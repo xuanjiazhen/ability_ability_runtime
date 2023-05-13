@@ -110,6 +110,15 @@ void JsEnvironment::RemoveTask(const std::string& name)
 void JsEnvironment::InitSourceMap(const std::shared_ptr<SourceMapOperatorImpl> operatorImpl)
 {
     sourceMapOperator_ = std::make_shared<SourceMapOperator>(operatorImpl);
+
+    if (engine_ == nullptr) {
+        JSENV_LOG_E("Invalid Native Engine.");
+        return;
+    }
+    static auto TranslateBySourceMapFunc = [=](std::string rawStack) {
+        return sourceMapOperator_->TranslateBySourceMap(rawStack);
+    };
+    engine_->RegisterTranslateBySourceMap(TranslateBySourceMapFunc);
 }
 
 void JsEnvironment::RegisterUncaughtExceptionHandler(JsEnv::UncaughtExceptionInfo uncaughtExceptionInfo)
