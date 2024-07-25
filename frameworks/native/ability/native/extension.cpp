@@ -30,7 +30,7 @@ void Extension::Init(const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &reco
 {
     TAG_LOGD(AAFwkTag::EXT, "called");
     if ((record == nullptr) || (application == nullptr) || (handler == nullptr) || (token == nullptr)) {
-        TAG_LOGE(AAFwkTag::EXT, "init failed, some obj null");
+        TAG_LOGE(AAFwkTag::EXT, "null args");
         return;
     }
     abilityInfo_ = record->GetAbilityInfo();

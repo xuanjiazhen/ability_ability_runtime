@@ -861,7 +861,7 @@ int UIAbilityLifecycleManager::ResolveLocked(const AbilityRequest &abilityReques
     TAG_LOGI(AAFwkTag::ABILITYMGR, "ability_name:%{public}s", abilityRequest.want.GetElement().GetURI().c_str());
 
     if (!abilityRequest.IsCallType(AbilityCallType::CALL_REQUEST_TYPE)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s, resolve ability_name:", __func__);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "call type not request");
         return RESOLVE_CALL_ABILITY_INNER_ERR;
     }
 
@@ -1356,7 +1356,7 @@ void UIAbilityLifecycleManager::CompleteTerminate(const std::shared_ptr<AbilityR
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
 
     if (abilityRecord->GetAbilityState() != AbilityState::TERMINATING) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed, %{public}s, ability not terminating", __func__);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ability not terminating");
         return;
     }
     abilityRecord->RemoveAbilityDeathRecipient();

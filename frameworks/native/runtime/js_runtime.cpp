@@ -496,7 +496,7 @@ std::shared_ptr<AbilityBase::FileMapper> JsRuntime::GetSafeData(const std::strin
     std::vector<std::string> fileNames;
     extractor->GetSpecifiedTypeFiles(fileNames, ".abc");
     if (fileNames.empty()) {
-        TAG_LOGI(AAFwkTag::JSRUNTIME, "There's no abc file in hap or hqf: %{private}s", path.c_str());
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "no abc file in hap/hqf: %{private}s", path.c_str());
         return nullptr;
     }
     std::string fileName = fileNames.front();

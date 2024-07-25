@@ -42,7 +42,7 @@ void ExtensionImpl::Init(const std::shared_ptr<AppExecFwk::OHOSApplication> &app
     TAG_LOGD(AAFwkTag::EXT, "call");
     if ((token == nullptr) || (application == nullptr) || (handler == nullptr) || (record == nullptr) ||
         extension == nullptr) {
-        TAG_LOGE(AAFwkTag::EXT, "init failed, some obj null");
+        TAG_LOGE(AAFwkTag::EXT, "null args");
         return;
     }
 
@@ -131,7 +131,7 @@ void ExtensionImpl::HandleExtensionTransaction(const Want &want, const AAFwk::Li
         }
         default: {
             ret = false;
-            TAG_LOGE(AAFwkTag::EXT, "error state");
+            TAG_LOGE(AAFwkTag::EXT, "invalid state");
             break;
         }
     }

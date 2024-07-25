@@ -211,7 +211,7 @@ public:
         }
 
         auto ret = ptr->ChangeCurrentState(state);
-        TAG_LOGD(AAFwkTag::DEFAULT, "ChangeCurrentState ret:%{public}s", ret ? "true" : "false");
+        TAG_LOGD(AAFwkTag::DEFAULT,"retval: %{public}s", ret ? "true" : "false");
 
         return ret;
     }
@@ -431,7 +431,7 @@ private:
         bool isCallable = false;
         napi_is_callable(env, info.argv[0], &isCallable);
         if (!isCallable) {
-            TAG_LOGE(AAFwkTag::DEFAULT, "IsCallable %{public}s", isCallable ? "true" : "false");
+            TAG_LOGE(AAFwkTag::DEFAULT, "isCallable false");
             ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
         }
 

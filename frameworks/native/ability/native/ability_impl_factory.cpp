@@ -36,9 +36,7 @@ std::shared_ptr<AbilityImpl> AbilityImplFactory::MakeAbilityImplObject(const std
     }
 
     std::shared_ptr<AbilityImpl> abilityImpl = nullptr;
-    TAG_LOGD(AAFwkTag::ABILITY,
-        "type:%{public}d, isStageBasedModel:%{public}d", info->type,
-        info->isStageBasedModel);
+    TAG_LOGD(AAFwkTag::ABILITY, "type:%{public}d,isStageBasedModel:%{public}d", info->type, info->isStageBasedModel);
     switch (info->type) {
 #ifdef SUPPORT_GRAPHICS
         case AppExecFwk::AbilityType::PAGE:
@@ -56,7 +54,7 @@ std::shared_ptr<AbilityImpl> AbilityImplFactory::MakeAbilityImplObject(const std
             abilityImpl = std::make_shared<DataAbilityImpl>();
             break;
         default:
-            TAG_LOGE(AAFwkTag::ABILITY, "error");
+            TAG_LOGE(AAFwkTag::ABILITY, "invalid type");
             break;
     }
 

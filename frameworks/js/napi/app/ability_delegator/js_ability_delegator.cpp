@@ -254,7 +254,7 @@ napi_value JSAbilityDelegator::SetMockList(napi_env env, napi_callback_info info
 
 napi_value JSAbilityDelegator::OnAddAbilityMonitor(napi_env env, NapiCallbackInfo& info)
 {
-    TAG_LOGI(AAFwkTag::DELEGATOR, "argc: %{public}d", static_cast<int32_t>(info.argc));
+    TAG_LOGI(AAFwkTag::DELEGATOR, "argc:%{public}d", static_cast<int32_t>(info.argc));
 
     std::shared_ptr<AbilityMonitor> monitor = nullptr;
     if (!ParseAbilityMonitorPara(env, info, monitor, false)) {
@@ -506,8 +506,7 @@ napi_value JSAbilityDelegator::OnWaitAbilityMonitor(napi_env env, NapiCallbackIn
     NapiAsyncTask::ExecuteCallback execute = [monitor, timeout, opt, abilityObjectBox]() {
         TAG_LOGI(AAFwkTag::DELEGATOR, "execute called");
         if (!abilityObjectBox) {
-            TAG_LOGE(
-                AAFwkTag::DELEGATOR, "null abilityObjectBox");
+            TAG_LOGE(AAFwkTag::DELEGATOR, "null abilityObjectBox");
             return;
         }
 
@@ -808,7 +807,7 @@ napi_value JSAbilityDelegator::OnStartAbility(napi_env env, NapiCallbackInfo& in
 
     AAFwk::Want want;
     if (!ParseStartAbilityPara(env, info, want)) {
-        TAG_LOGE(AAFwkTag::DELEGATOR, "parse startAbility param failed");
+        TAG_LOGE(AAFwkTag::DELEGATOR, "parse startAbility failed");
         return ThrowJsError(env, INCORRECT_PARAMETERS,
             "Parse want failed, want must be Want.");
     }
@@ -1142,7 +1141,7 @@ napi_value JSAbilityDelegator::ParseAbilityMonitorPara(
 
     if (info.argc > ARGC_ONE) {
         if (!AppExecFwk::IsTypeForNapiValue(env, info.argv[INDEX_ONE], napi_function)) {
-            TAG_LOGE(AAFwkTag::DELEGATOR, "parse callback param failed");
+            TAG_LOGE(AAFwkTag::DELEGATOR, "parse callback failed");
             return nullptr;
         }
     }
@@ -1315,7 +1314,7 @@ napi_value JSAbilityDelegator::ParseAbilityCommonPara(
 
     if (info.argc > ARGC_ONE) {
         if (!AppExecFwk::IsTypeForNapiValue(env, info.argv[INDEX_ONE], napi_function)) {
-            TAG_LOGE(AAFwkTag::DELEGATOR, "invalid callbacl");
+            TAG_LOGE(AAFwkTag::DELEGATOR, "invalid callback");
             return nullptr;
         }
     }
@@ -1475,7 +1474,7 @@ void JSAbilityDelegator::AddStageMonitorRecord(
         std::unique_lock<std::mutex> lck(g_mtxStageMonitorRecord);
         g_stageMonitorRecord.emplace(reference, monitor);
     }
-    TAG_LOGI(AAFwkTag::DELEGATOR, "end, size: %{public}zu", g_stageMonitorRecord.size());
+    TAG_LOGI(AAFwkTag::DELEGATOR, "size: %{public}zu", g_stageMonitorRecord.size());
 }
 
 void JSAbilityDelegator::RemoveStageMonitorRecord(napi_env env, napi_value value)
@@ -1495,7 +1494,7 @@ void JSAbilityDelegator::RemoveStageMonitorRecord(napi_env env, napi_value value
         napi_strict_equals(env, value, jsMonitor->GetNapiValue(), &isEquals);
         if (isEquals) {
             g_stageMonitorRecord.erase(iter);
-            TAG_LOGI(AAFwkTag::DELEGATOR, "end, size: %{public}zu", g_stageMonitorRecord.size());
+            TAG_LOGI(AAFwkTag::DELEGATOR, "size: %{public}zu", g_stageMonitorRecord.size());
             break;
         }
     }

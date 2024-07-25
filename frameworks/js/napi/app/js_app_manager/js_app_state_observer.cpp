@@ -69,7 +69,7 @@ void JSAppStateObserver::OnAbilityStateChanged(const AbilityStateData &abilitySt
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (!valid_) {
-        TAG_LOGE(AAFwkTag::APPMGR, "appmgr may has cancelled storage");
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid appMgr");
         return;
     }
     wptr<JSAppStateObserver> jsObserver = this;
@@ -103,7 +103,7 @@ void JSAppStateObserver::OnExtensionStateChanged(const AbilityStateData &ability
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (!valid_) {
-        TAG_LOGE(AAFwkTag::APPMGR, "appmgr may destroyed");
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid appMgr");
         return;
     }
     wptr<JSAppStateObserver> jsObserver = this;
@@ -137,7 +137,7 @@ void JSAppStateObserver::OnProcessCreated(const ProcessData &processData)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (!valid_) {
-        TAG_LOGE(AAFwkTag::APPMGR, "appmgr may has cancelled storage");
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid appMgr");
         return;
     }
     wptr<JSAppStateObserver> jsObserver = this;
@@ -171,7 +171,7 @@ void JSAppStateObserver::OnProcessStateChanged(const ProcessData &processData)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (!valid_) {
-        TAG_LOGE(AAFwkTag::APPMGR, "appmgr may has destroyed");
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid appMgr");
         return;
     }
     wptr<JSAppStateObserver> jsObserver = this;
@@ -205,7 +205,7 @@ void JSAppStateObserver::OnProcessDied(const ProcessData &processData)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (!valid_) {
-        TAG_LOGE(AAFwkTag::APPMGR, "appmgr may destroyed");
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid appMgr");
         return;
     }
     wptr<JSAppStateObserver> jsObserver = this;
@@ -240,7 +240,7 @@ void JSAppStateObserver::OnAppStarted(const AppStateData &appStateData)
     TAG_LOGD(AAFwkTag::APPMGR, "bundleName:%{public}s, uid:%{public}d, state:%{public}d",
         appStateData.bundleName.c_str(), appStateData.uid, appStateData.state);
     if (!valid_) {
-        TAG_LOGE(AAFwkTag::APPMGR, "appmgr may destroyed");
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid appMgr");
         return;
     }
     wptr<JSAppStateObserver> jsObserver = this;
@@ -280,7 +280,7 @@ void JSAppStateObserver::OnAppStopped(const AppStateData &appStateData)
     TAG_LOGD(AAFwkTag::APPMGR, "bundleName:%{public}s, uid:%{public}d, state:%{public}d",
         appStateData.bundleName.c_str(), appStateData.uid, appStateData.state);
     if (!valid_) {
-        TAG_LOGE(AAFwkTag::APPMGR, "appmgr may destroyed");
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid appMgr");
         return;
     }
     wptr<JSAppStateObserver> jsObserver = this;
@@ -288,7 +288,7 @@ void JSAppStateObserver::OnAppStopped(const AppStateData &appStateData)
         HandleScope handleScope(env);
         sptr<JSAppStateObserver> jsObserverSptr = jsObserver.promote();
         if (!jsObserverSptr) {
-            TAG_LOGW(AAFwkTag::APPMGR, "jsObserverSptr null");
+            TAG_LOGW(AAFwkTag::APPMGR, "null jsObserverSptr");
             return;
         }
         jsObserverSptr->HandleOnAppStopped(appStateData);
@@ -320,14 +320,14 @@ void JSAppStateObserver::CallJsFunction(
 {
     TAG_LOGD(AAFwkTag::APPMGR, "call method:%{public}s", methodName);
     if (value == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Failed to get object");
+        TAG_LOGE(AAFwkTag::APPMGR, "null value");
         return;
     }
 
     napi_value method = nullptr;
     napi_get_named_property(env_, value, methodName, &method);
     if (method == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "get method failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "null method");
         return;
     }
     napi_value callResult = nullptr;

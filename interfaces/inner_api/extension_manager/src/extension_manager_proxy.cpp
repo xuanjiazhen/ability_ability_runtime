@@ -64,11 +64,11 @@ int ExtensionManagerProxy::ConnectAbilityCommon(const Want &want, const sptr<IRe
         }
     }
     if (!data.WriteInt32(userId)) {
-        TAG_LOGE(AAFwkTag::EXTMGR, "userId write failed.");
+        TAG_LOGE(AAFwkTag::EXTMGR, "userId write failed");
         return INNER_ERR;
     }
     if (!data.WriteInt32(static_cast<int32_t>(extensionType))) {
-        TAG_LOGE(AAFwkTag::EXTMGR, "extensionType write failed.");
+        TAG_LOGE(AAFwkTag::EXTMGR, "extensionType write failed");
         return INNER_ERR;
     }
     if (!data.WriteBool(isQueryExtensionOnly)) {

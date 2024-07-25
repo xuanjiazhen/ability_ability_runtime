@@ -58,7 +58,7 @@ bool DeepLinkReserveConfig::LoadConfiguration()
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     std::string configPath = GetConfigPath();
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "Deeplink reserve config path is: %{public}s", configPath.c_str());
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "config path: %{public}s", configPath.c_str());
     nlohmann::json jsonBuf;
     if (!ReadFileInfoJson(configPath, jsonBuf)) {
         return false;

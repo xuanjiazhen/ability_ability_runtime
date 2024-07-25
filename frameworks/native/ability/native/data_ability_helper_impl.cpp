@@ -185,7 +185,7 @@ std::shared_ptr<DataAbilityHelperImpl> DataAbilityHelperImpl::Creator(
     const std::shared_ptr<OHOS::AbilityRuntime::Context> &context, const std::shared_ptr<Uri> &uri, const bool tryBind)
 {
     if (context == nullptr) {
-        TAG_LOGE(AAFwkTag::DATA_ABILITY, "invalid param");
+        TAG_LOGE(AAFwkTag::DATA_ABILITY, "null context");
         return nullptr;
     }
 

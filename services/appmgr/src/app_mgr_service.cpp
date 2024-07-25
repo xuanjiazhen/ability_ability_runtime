@@ -933,7 +933,7 @@ int AppMgrService::GetAbilityRecordsByProcessID(const int pid, std::vector<sptr<
 
 int32_t AppMgrService::PreStartNWebSpawnProcess()
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "PreStartNWebSpawnProcess");
+    TAG_LOGI(AAFwkTag::APPMGR, "called");
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
@@ -1365,7 +1365,7 @@ int32_t AppMgrService::GetChildProcessInfoForSelf(ChildProcessInfo &info)
 
 void AppMgrService::AttachChildProcess(const sptr<IRemoteObject> &childScheduler)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "AttachChildProcess.");
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return;
@@ -1435,7 +1435,7 @@ int32_t AppMgrService::UnregisterRenderStateObserver(const sptr<IRenderStateObse
     }
 
     if (AAFwk::PermissionVerification::GetInstance()->VerifyAppStateObserverPermission() == ERR_PERMISSION_DENIED) {
-        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "permission denied");
         return ERR_PERMISSION_DENIED;
     }
     return appMgrServiceInner_->UnregisterRenderStateObserver(observer);
@@ -1459,7 +1459,7 @@ int32_t AppMgrService::SignRestartAppFlag(const std::string &bundleName)
     bool isCallingPermission =
         AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS);
     if (!isCallingPermission) {
-        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "permission denied");
         return ERR_PERMISSION_DENIED;
     }
     return appMgrServiceInner_->SignRestartAppFlag(bundleName);
@@ -1474,7 +1474,7 @@ int32_t AppMgrService::GetAppRunningUniqueIdByPid(pid_t pid, std::string &appRun
     bool isCallingPermission = AAFwk::PermissionVerification::GetInstance()->IsSACall() &&
         AAFwk::PermissionVerification::GetInstance()->VerifyRunningInfoPerm();
     if (!isCallingPermission) {
-        TAG_LOGE(AAFwkTag::APPMGR, "GetAppRunningUniqueIdByPid not SA call or verification failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "permission denied");
         return ERR_PERMISSION_DENIED;
     }
     return appMgrServiceInner_->GetAppRunningUniqueIdByPid(pid, appRunningUniqueId);

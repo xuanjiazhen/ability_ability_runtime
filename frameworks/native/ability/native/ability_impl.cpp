@@ -215,7 +215,7 @@ int32_t AbilityImpl::Share(WantParams &wantParam)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
     if (ability_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "null ability_ ");
+        TAG_LOGE(AAFwkTag::ABILITY, "null ability_");
         return ERR_INVALID_VALUE;
     }
     return ability_->OnShare(wantParam);
@@ -230,8 +230,7 @@ void AbilityImpl::DispatchSaveAbilityState()
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
     if (ability_ == nullptr || abilityLifecycleCallbacks_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY,
-            "null ability_/abilityLifecycleCallbacks_");
+        TAG_LOGE(AAFwkTag::ABILITY, "null ability_/abilityLifecycleCallbacks_");
         return;
     }
 
@@ -499,7 +498,7 @@ void AbilityImpl::ScheduleUpdateConfiguration(const Configuration &config)
     }
 
     if (lifecycleState_ != AAFwk::ABILITY_STATE_INITIAL) {
-        TAG_LOGI(AAFwkTag::ABILITY, "ability name:[%{public}s]", ability_->GetAbilityName().c_str());
+        TAG_LOGI(AAFwkTag::ABILITY, "ability:[%{public}s]", ability_->GetAbilityName().c_str());
         ability_->OnConfigurationUpdatedNotify(config);
     }
 }
@@ -595,7 +594,7 @@ void AbilityImpl::AfterFocusedCommon(bool isFocused)
         }
 
         if (impl->ability_->GetWant() == nullptr) {
-            TAG_LOGW(AAFwkTag::ABILITY, "want");
+            TAG_LOGW(AAFwkTag::ABILITY, "null want");
             return;
         }
         auto info = impl->ability_->GetLifeCycleStateInfo();
@@ -620,7 +619,7 @@ void AbilityImpl::WindowLifeCycleImpl::AfterForeground()
     TAG_LOGI(AAFwkTag::ABILITY, "called");
     auto owner = owner_.lock();
     if (owner == nullptr || !owner->IsStageBasedModel()) {
-        TAG_LOGE(AAFwkTag::ABILITY, "null stage mode ability/abilityImpl");
+        TAG_LOGE(AAFwkTag::ABILITY, "Not stage mode or null owner_");
         return;
     }
     FreezeUtil::LifecycleFlow flow = { token_, FreezeUtil::TimeoutState::FOREGROUND };
@@ -635,13 +634,21 @@ void AbilityImpl::WindowLifeCycleImpl::AfterForeground()
             owner->notifyForegroundByAbility_ = false;
             needNotifyAMS = true;
         } else {
-            TAG_LOGD(AAFwkTag::ABILITY, "notify foreground by window,client's foreground is running");
+            TAG_LOGD(AAFwkTag::ABILITY, "client foreground running");
             owner->notifyForegroundByWindow_ = true;
         }
     }
 
     if (needNotifyAMS) {
+<<<<<<< HEAD
         TAG_LOGI(AAFwkTag::ABILITY, "window notify ams");
+=======
+<<<<<<< HEAD
+        TAG_LOGI(AAFwkTag::ABILITY, "lifecycle: window notify ams");
+=======
+        TAG_LOGI(AAFwkTag::ABILITY, "notify ams");
+>>>>>>> 40c67f0a7 (IssueNo:modify log)
+>>>>>>> 6dd585548e (IssueNo:modify log)
         PacMap restoreData;
         auto ret = AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_,
             AbilityLifeCycleState::ABILITY_STATE_FOREGROUND_NEW, restoreData);
@@ -656,7 +663,11 @@ void AbilityImpl::WindowLifeCycleImpl::AfterBackground()
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto owner = owner_.lock();
     if (owner && !owner->IsStageBasedModel()) {
+<<<<<<< HEAD
         TAG_LOGW(AAFwkTag::ABILITY, "not stage");
+=======
+        TAG_LOGW(AAFwkTag::ABILITY, "Not stage");
+>>>>>>> 40c67f0a7 (IssueNo:modify log)
         return;
     }
     FreezeUtil::LifecycleFlow flow = { token_, FreezeUtil::TimeoutState::BACKGROUND };
@@ -664,7 +675,15 @@ void AbilityImpl::WindowLifeCycleImpl::AfterBackground()
         "; AbilityImpl::WindowLifeCycleImpl::AfterBackground; the background lifecycle";
     FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
 
+<<<<<<< HEAD
     TAG_LOGI(AAFwkTag::ABILITY, "window after background");
+=======
+<<<<<<< HEAD
+    TAG_LOGI(AAFwkTag::ABILITY, "lifecycle: window after background");
+=======
+    TAG_LOGI(AAFwkTag::ABILITY, "after background");
+>>>>>>> 40c67f0a7 (IssueNo:modify log)
+>>>>>>> 6dd585548e (IssueNo:modify log)
     PacMap restoreData;
     auto ret = AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_,
         AbilityLifeCycleState::ABILITY_STATE_BACKGROUND_NEW, restoreData);
@@ -697,7 +716,7 @@ void AbilityImpl::WindowLifeCycleImpl::ForegroundFailed(int32_t type)
     PacMap restoreData;
     switch (type) {
         case static_cast<int32_t>(OHOS::Rosen::WMError::WM_ERROR_INVALID_OPERATION): {
-            TAG_LOGD(AAFwkTag::ABILITY, "window was freezed");
+            TAG_LOGD(AAFwkTag::ABILITY, "window freezed");
             AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_,
                 AbilityLifeCycleState::ABILITY_STATE_WINDOW_FREEZED, restoreData);
             break;
@@ -705,11 +724,19 @@ void AbilityImpl::WindowLifeCycleImpl::ForegroundFailed(int32_t type)
         case static_cast<int32_t>(OHOS::Rosen::WMError::WM_ERROR_INVALID_WINDOW_MODE_OR_SIZE): {
             auto owner = owner_.lock();
             if (owner == nullptr || !owner->IsStageBasedModel()) {
+<<<<<<< HEAD
                 TAG_LOGE(AAFwkTag::ABILITY, "null ability/abilityImpl");
                 return;
             }
 
             TAG_LOGD(AAFwkTag::ABILITY, "stage mode, schedule foreground invalid mode");
+=======
+                TAG_LOGE(AAFwkTag::ABILITY, "Not stage mode or null owner");
+                return;
+            }
+
+            TAG_LOGD(AAFwkTag::ABILITY, "invalid mode");
+>>>>>>> 40c67f0a7 (IssueNo:modify log)
             AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_,
                 AbilityLifeCycleState::ABILITY_STATE_INVALID_WINDOW_MODE, restoreData);
             break;

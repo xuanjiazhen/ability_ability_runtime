@@ -489,7 +489,7 @@ void AppRunningRecord::LaunchApplication(const Configuration &config)
 void AppRunningRecord::UpdateApplicationInfoInstalled(const ApplicationInfo &appInfo)
 {
     if (!isStageBasedModel_) {
-        TAG_LOGI(AAFwkTag::APPMGR, "Current version than supports");
+        TAG_LOGI(AAFwkTag::APPMGR, "not stageMode");
         return;
     }
 
@@ -529,8 +529,7 @@ void AppRunningRecord::AddAbilityStageBySpecifiedAbility(const std::string &bund
     HapModuleInfo hapModuleInfo;
     if (GetTheModuleInfoNeedToUpdated(bundleName, hapModuleInfo)) {
         if (startProcessSpecifiedAbilityEventId_ == 0) {
-            TAG_LOGI(
-                AAFwkTag::APPMGR, "START_PROCESS_SPECIFIED_ABILITY_TIMEOUT_MSG not exist");
+            TAG_LOGI(AAFwkTag::APPMGR, "START_PROCESS_SPECIFIED_ABILITY_TIMEOUT_MSG not exist");
             SendEvent(AMSEventHandler::ADD_ABILITY_STAGE_INFO_TIMEOUT_MSG,
                 AMSEventHandler::ADD_ABILITY_STAGE_INFO_TIMEOUT);
         }

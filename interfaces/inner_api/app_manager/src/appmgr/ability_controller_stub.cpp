@@ -44,7 +44,7 @@ int AbilityControllerStub::OnRemoteRequest(
             return HandleAllowAbilityBackground(data, reply);
     }
     
-    TAG_LOGI(AAFwkTag::APPMGR, "finish");
+    TAG_LOGI(AAFwkTag::APPMGR, "end");
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 

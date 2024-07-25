@@ -1842,7 +1842,7 @@ void MissionListManager::CompleteTerminate(const std::shared_ptr<AbilityRecord> 
     CHECK_POINTER(abilityRecord);
     std::lock_guard guard(managerLock_);
     if (abilityRecord->GetAbilityState() != AbilityState::TERMINATING) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s, ability not terminating", __func__);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ability not terminating");
         return;
     }
     abilityRecord->RemoveAbilityDeathRecipient();
@@ -2960,13 +2960,13 @@ void MissionListManager::CompleteFirstFrameDrawing(const sptr<IRemoteObject> &ab
     FinishAsyncTrace(HITRACE_TAG_ABILITY_MANAGER, TRACE_ATOMIC_SERVICE, TRACE_ATOMIC_SERVICE_ID);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     if (!abilityToken) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "%{public}s abilityToken null", __func__);
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "null ability token");
         return;
     }
 
     auto abilityRecord = GetAbilityRecordByToken(abilityToken);
     if (!abilityRecord) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "%{public}s GetAbilityRecordByToken fail", __func__);
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "null abilityRecord");
         return;
     }
 
@@ -3023,13 +3023,13 @@ Closure MissionListManager::GetCancelStartingWindowTask(const std::shared_ptr<Ab
 {
     auto windowHandler = AbilityManagerService::GetPubInstance()->GetWMSHandler();
     if (!windowHandler) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s, get fail", __func__);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null windowHandler");
         return nullptr;
     }
 
     return [windowHandler, abilityRecord] {
         if (windowHandler && abilityRecord && abilityRecord->IsStartingWindow()) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s, call windowHandler CancelStartingWindow", __func__);
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "call CancelStartingWindow");
             windowHandler->CancelStartingWindow(abilityRecord->GetToken());
             abilityRecord->SetStartingWindow(false);
         }
@@ -3272,7 +3272,7 @@ int MissionListManager::ResolveLocked(const AbilityRequest &abilityRequest)
     TAG_LOGI(AAFwkTag::ABILITYMGR, "ability_name:%{public}s", abilityRequest.want.GetElement().GetURI().c_str());
 
     if (!abilityRequest.IsCallType(AbilityCallType::CALL_REQUEST_TYPE)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s, resolve ability_name:", __func__);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "call type not request");
         return RESOLVE_CALL_ABILITY_INNER_ERR;
     }
 

@@ -654,8 +654,7 @@ int AbilitySchedulerStub::ExecuteBatchInner(MessageParcel &data, MessageParcel &
     TAG_LOGI(AAFwkTag::ABILITYMGR, "total:%{public}d", total);
     for (int i = 0; i < total; i++) {
         if (results[i] == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR,
-                "null results[i], index: %{public}d", i);
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null results[i], index: %{public}d", i);
             return ERR_INVALID_VALUE;
         }
         if (!reply.WriteParcelable(results[i].get())) {

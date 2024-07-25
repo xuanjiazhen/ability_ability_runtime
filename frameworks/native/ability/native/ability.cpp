@@ -1171,19 +1171,16 @@ std::shared_ptr<NativeRdb::DataAbilityPredicates> Ability::ParsePredictionArgsRe
     if (predicates == nullptr) {
         TAG_LOGD(AAFwkTag::ABILITY, "null predicates");
     } else {
-        TAG_LOGD(AAFwkTag::ABILITY, "operation->GetDataAbilityPredicates isn`t nullptr");
+        TAG_LOGD(AAFwkTag::ABILITY, "not null predicates");
         strPredicatesList = predicates->GetWhereArgs();
     }
 
     if (strPredicatesList.empty()) {
-        TAG_LOGE(AAFwkTag::ABILITY, "GetWhereArgs()"
-                "error strList empty");
+        TAG_LOGE(AAFwkTag::ABILITY, "GetWhereArgs() error strList empty");
     }
 
     for (auto iterMap : predicatesBackReferencesMap) {
-        TAG_LOGD(AAFwkTag::ABILITY, "predicatesBackReferencesMap first:%{public}d second:%{public}d",
-            iterMap.first,
-            iterMap.second);
+        TAG_LOGD(AAFwkTag::ABILITY, "iterMap [%{public}d,%{public}d]", iterMap.first, iterMap.second);
         int tempCount = ChangeRef2Value(results, numRefs, iterMap.second);
         if (tempCount < 0) {
             TAG_LOGE(AAFwkTag::ABILITY, "tempCount:%{public}d", tempCount);
@@ -1354,7 +1351,7 @@ bool Ability::CheckAssertQueryResult(std::shared_ptr<NativeRdb::AbsSharedResultS
     }
 
     if (valuesBucket == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "intput valuesBucket");
+        TAG_LOGE(AAFwkTag::ABILITY, "null valuesBucket");
         return true;
     }
 
@@ -1391,7 +1388,15 @@ bool Ability::CheckAssertQueryResult(std::shared_ptr<NativeRdb::AbsSharedResultS
                 continue;
             }
             if (strName == strObject) {
+<<<<<<< HEAD
                 TAG_LOGE(AAFwkTag::ABILITY, "strName=strObject");
+=======
+<<<<<<< HEAD
+                TAG_LOGE(AAFwkTag::ABILITY, "strName same to strObject");
+=======
+                TAG_LOGE(AAFwkTag::ABILITY, "strName==strObject");
+>>>>>>> 40c67f0a7 (IssueNo:modify log)
+>>>>>>> 6dd585548e (IssueNo:modify log)
                 continue;
             }
 
@@ -1484,7 +1489,15 @@ void Ability::OnForeground(const Want &want)
     if (abilityInfo_ != nullptr) {
         eventInfo.bundleType = static_cast<int32_t>(abilityInfo_->applicationInfo.bundleType);
     } else {
+<<<<<<< HEAD
         TAG_LOGE(AAFwkTag::ABILITY, "null abilityInfo_");
+=======
+<<<<<<< HEAD
+        TAG_LOGE(AAFwkTag::ABILITY, "null abilityInfo_, can not get bundleType");
+=======
+        TAG_LOGE(AAFwkTag::ABILITY, "null abilityInfo_");
+>>>>>>> 40c67f0a7 (IssueNo:modify log)
+>>>>>>> 6dd585548e (IssueNo:modify log)
     }
     AAFwk::EventReport::SendAbilityEvent(AAFwk::EventName::ABILITY_ONFOREGROUND,
         HiSysEventType::BEHAVIOR, eventInfo);

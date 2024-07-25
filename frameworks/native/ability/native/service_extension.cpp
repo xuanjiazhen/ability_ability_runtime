@@ -58,7 +58,7 @@ void ServiceExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
     const sptr<IRemoteObject> &token)
 {
     ExtensionBase<ServiceExtensionContext>::Init(record, application, handler, token);
-    TAG_LOGD(AAFwkTag::SERVICE_EXT, "begin init context");
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "init");
 }
 
 std::shared_ptr<ServiceExtensionContext> ServiceExtension::CreateAndInitContext(

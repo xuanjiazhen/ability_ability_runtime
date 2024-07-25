@@ -226,7 +226,7 @@ bool SimulatorImpl::Initialize(const Options &options)
 void CallObjectMethod(napi_env env, napi_value obj, const char *name, napi_value const *argv, size_t argc)
 {
     if (obj == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY_SIM, "get Ability object failed");
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "null obj");
         return;
     }
     napi_value methodOnCreate = nullptr;

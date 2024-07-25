@@ -467,7 +467,7 @@ void JSFormExtensionConnection::HandleOnAbilityConnectDone(const AppExecFwk::Ele
 
 void JSFormExtensionConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
 {
-    TAG_LOGD(AAFwkTag::FORM_EXT, "called, resultCode:%{public}d", resultCode);
+    TAG_LOGD(AAFwkTag::FORM_EXT, "resultCode:%{public}d", resultCode);
     wptr<JSFormExtensionConnection> connection = this;
     std::unique_ptr<NapiAsyncTask::CompleteCallback> complete = std::make_unique<NapiAsyncTask::CompleteCallback>
         ([connection, element, resultCode](napi_env env, NapiAsyncTask &task, int32_t status) {
@@ -487,7 +487,7 @@ void JSFormExtensionConnection::OnAbilityDisconnectDone(const AppExecFwk::Elemen
 void JSFormExtensionConnection::HandleOnAbilityDisconnectDone(const AppExecFwk::ElementName &element,
     int resultCode)
 {
-    TAG_LOGI(AAFwkTag::FORM_EXT, "called, resultCode:%{public}d", resultCode);
+    TAG_LOGI(AAFwkTag::FORM_EXT, "resultCode:%{public}d", resultCode);
     napi_value napiElementName = OHOS::AppExecFwk::WrapElementName(env_, element);
     napi_value argv[] = {napiElementName};
     if (jsConnectionObject_ == nullptr) {
@@ -508,7 +508,7 @@ void JSFormExtensionConnection::HandleOnAbilityDisconnectDone(const AppExecFwk::
     }
 
     // release connect
-    TAG_LOGD(AAFwkTag::FORM_EXT, "size:%{public}zu", g_connects.size());
+    TAG_LOGD(AAFwkTag::FORM_EXT, "g_connects.size:%{public}zu.", g_connects.size());
     std::string bundleName = element.GetBundleName();
     std::string abilityName = element.GetAbilityName();
     auto item = std::find_if(g_connects.begin(),

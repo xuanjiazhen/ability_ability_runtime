@@ -185,7 +185,7 @@ void StartAbilityByCallExecuteDone(std::shared_ptr<StartAbilityByCallParameters>
     }
     std::unique_lock<std::mutex> lock(calldata->mutexlock);
     if (calldata->remoteCallee != nullptr) {
-        TAG_LOGI(AAFwkTag::CONTEXT, "not null callExecute callee");
+        TAG_LOGI(AAFwkTag::CONTEXT, "remoteCallee not null");
         return;
     }
 
@@ -204,12 +204,12 @@ void StartAbilityByCallComplete(napi_env env, NapiAsyncTask& task, std::weak_ptr
         return;
     }
     if (calldata->err != 0) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "callComplete err is %{public}d", calldata->err);
+        TAG_LOGE(AAFwkTag::CONTEXT, "callComplete err:%{public}d", calldata->err);
         task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
         TAG_LOGD(AAFwkTag::CONTEXT, "clear failed call of startup is called");
         auto context = abilityContext.lock();
         if (context == nullptr || callerCallBack == nullptr) {
-            TAG_LOGE(AAFwkTag::CONTEXT, "null context or callBack");
+            TAG_LOGE(AAFwkTag::CONTEXT, "null input params");
             return;
         }
         context->ClearFailedCallConnection(callerCallBack);
@@ -217,7 +217,7 @@ void StartAbilityByCallComplete(napi_env env, NapiAsyncTask& task, std::weak_ptr
     }
     auto context = abilityContext.lock();
     if (context == nullptr || callerCallBack == nullptr || calldata->remoteCallee == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null callComplete params error %{public}s",
+        TAG_LOGE(AAFwkTag::CONTEXT, "null param %{public}s:",
             context == nullptr ? "context" : (calldata->remoteCallee == nullptr ? "remoteCallee" : "callerCallBack"));
         task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
         TAG_LOGD(AAFwkTag::CONTEXT, "callComplete end");
@@ -226,7 +226,7 @@ void StartAbilityByCallComplete(napi_env env, NapiAsyncTask& task, std::weak_ptr
     auto releaseCallAbilityFunc = [abilityContext] (const std::shared_ptr<CallerCallBack> &callback) -> ErrCode {
         auto contextForRelease = abilityContext.lock();
         if (contextForRelease == nullptr) {
-            TAG_LOGE(AAFwkTag::CONTEXT, "null releaseCallAbilityFunction");
+            TAG_LOGE(AAFwkTag::CONTEXT, "null context");
             return -1;
         }
         return contextForRelease->ReleaseCall(callback);
@@ -413,7 +413,7 @@ void JsAbilityContext::ClearFailedCallConnection(
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
     auto context = abilityContext.lock();
     if (context == nullptr || callback == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null context or callback");
+        TAG_LOGE(AAFwkTag::CONTEXT, "null input param");
         return;
     }
 
@@ -1586,7 +1586,7 @@ napi_value JsAbilityContext::OnConnectAbilityWithAccount(napi_env env, NapiCallb
                     RemoveConnection(connectId);
                     return;
                 }
-                TAG_LOGI(AAFwkTag::CONTEXT, "context->ConnectAbilityWithAccount connection:%{public}d",
+                TAG_LOGI(AAFwkTag::CONTEXT, "ConnectWithAccount connection:%{public}d",
                     static_cast<int32_t>(connectId));
                 auto innerErrorCode = context->ConnectAbilityWithAccount(want, accountId, connection);
                 int32_t errcode = static_cast<int32_t>(AbilityRuntime::GetJsErrorCodeByNativeError(innerErrorCode));
@@ -1606,7 +1606,7 @@ napi_value JsAbilityContext::OnDisconnectAbility(napi_env env, NapiCallbackInfo&
 {
     std::lock_guard<std::recursive_mutex> lock(gConnectsLock_);
     if (info.argc < ARGC_ONE) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "not enough params");
+        TAG_LOGE(AAFwkTag::CONTEXT, "invalid argc");
         ThrowTooFewParametersError(env);
         return CreateJsUndefined(env);
     }

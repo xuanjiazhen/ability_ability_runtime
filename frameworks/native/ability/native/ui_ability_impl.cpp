@@ -39,7 +39,7 @@ void UIAbilityImpl::Init(const std::shared_ptr<AppExecFwk::OHOSApplication> &app
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
     if (token == nullptr || application == nullptr || handler == nullptr ||
         record == nullptr || ability == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null token or application or handler or record");
+        TAG_LOGE(AAFwkTag::UIABILITY, "null params");
         return;
     }
     token_ = record->GetToken();

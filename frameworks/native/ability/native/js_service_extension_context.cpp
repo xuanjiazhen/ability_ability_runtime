@@ -241,7 +241,7 @@ private:
         }
 
         if (isStartRecent) {
-            TAG_LOGD(AAFwkTag::SERVICE_EXT, "OnStartRecentAbility is called");
+            TAG_LOGD(AAFwkTag::SERVICE_EXT, "start recent");
             want.SetParam(Want::PARAM_RESV_START_RECENT, true);
         }
 
@@ -292,12 +292,12 @@ private:
         }
 
         if (!CheckTypeForNapiValue(env, info.argv[ARGC_ZERO], napi_string)) {
-            TAG_LOGE(AAFwkTag::SERVICE_EXT, "link must be string");
+            TAG_LOGE(AAFwkTag::SERVICE_EXT, "link not string");
             ThrowInvalidParamError(env, "Parse param link failed, must be a string.");
             return false;
         }
         if (!ConvertFromJsValue(env, info.argv[ARGC_ZERO], linkValue) || !CheckUrl(linkValue)) {
-            TAG_LOGE(AAFwkTag::SERVICE_EXT, "param link invalid");
+            TAG_LOGE(AAFwkTag::SERVICE_EXT, "invalid link");
             ThrowInvalidParamError(env, "link parameter invalid.");
             return false;
         }
@@ -420,7 +420,7 @@ private:
         unwrapArgc = ARGC_ZERO;
         // Check input want
         if (!AppExecFwk::UnwrapWant(env, info.argv[INDEX_ZERO], want)) {
-            ThrowInvalidParamError(env, "Parse param want failed, must be a Want.");
+            ThrowInvalidParamError(env, "unwrap want failed");
             return false;
         }
         ++unwrapArgc;
@@ -467,7 +467,7 @@ private:
         }
 
         if (calls->remoteCallee == nullptr) {
-            TAG_LOGD(AAFwkTag::SERVICE_EXT, "async wait execute");
+            TAG_LOGD(AAFwkTag::SERVICE_EXT, "null remoteCallee");
             NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnStartAbilityByCall", env,
                 CreateAsyncTaskWithLastParam(
                     env, nullptr, GetCallExecute(calls), GetCallComplete(calls), &retsult));
@@ -500,8 +500,7 @@ private:
             }
         }
 
-        TAG_LOGI(AAFwkTag::SERVICE_EXT, "callee:%{public}s.%{public}s.",
-            want.GetBundle().c_str(),
+        TAG_LOGI(AAFwkTag::SERVICE_EXT, "callee:%{public}s.%{public}s", want.GetBundle().c_str(),
             want.GetElement().GetAbilityName().c_str());
         return true;
     }
@@ -511,7 +510,7 @@ private:
         auto callComplete = [weak = context_, calldata = calls] (
             napi_env env, NapiAsyncTask& task, int32_t) {
             if (calldata->err != 0) {
-                TAG_LOGE(AAFwkTag::SERVICE_EXT, "callComplete err: %{public}d", calldata->err);
+                TAG_LOGE(AAFwkTag::SERVICE_EXT, "calldata err: %{public}d", calldata->err);
                 ClearFailedCallConnection(weak, calldata->callerCallBack);
                 task.Reject(env, CreateJsError(env, calldata->err, "callComplete err."));
                 return;
@@ -523,7 +522,7 @@ private:
                     const std::shared_ptr<CallerCallBack> &callback) -> ErrCode {
                     auto contextForRelease = weak.lock();
                     if (contextForRelease == nullptr) {
-                        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null contextForRelease");
+                        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null context");
                         return -1;
                     }
                     return contextForRelease->ReleaseCall(callback);
@@ -532,9 +531,8 @@ private:
                     CreateJsCallerComplex(
                         env, releaseCallFunc, calldata->remoteCallee, calldata->callerCallBack));
             } else {
-                TAG_LOGE(AAFwkTag::SERVICE_EXT, "null %{public}s",
-                    context == nullptr ? "context" :
-                        (calldata->remoteCallee == nullptr ? "remoteCallee" : "callerCallBack"));
+                TAG_LOGE(AAFwkTag::SERVICE_EXT, "null %{public}s", context == nullptr ? "context" :
+                    (calldata->remoteCallee == nullptr ? "remoteCallee" : "callerCallBack"));
                 task.Reject(env, CreateJsError(env, -1, "Create Call Failed."));
             }
 
@@ -549,7 +547,7 @@ private:
             constexpr int callerTimeOut = 10; // 10s
             std::unique_lock<std::mutex> lock(calldata->mutexlock);
             if (calldata->remoteCallee != nullptr) {
-                TAG_LOGI(AAFwkTag::SERVICE_EXT, "callee isn`t null");
+                TAG_LOGI(AAFwkTag::SERVICE_EXT, "callee not null");
                 return;
             }
 
@@ -578,14 +576,14 @@ private:
     CallerCallBack::OnReleaseClosure GetReleaseListen()
     {
         auto releaseListen = [](const std::string &str) {
-            TAG_LOGD(AAFwkTag::SERVICE_EXT, "called, %{public}s", str.c_str());
+            TAG_LOGD(AAFwkTag::SERVICE_EXT, "called %{public}s", str.c_str());
         };
         return releaseListen;
     }
 
     napi_value OnStartAbilityWithAccount(napi_env env, NapiCallbackInfo& info)
     {
-        TAG_LOGI(AAFwkTag::SERVICE_EXT, "StartAbilityWithAccount");
+        TAG_LOGI(AAFwkTag::SERVICE_EXT, "called");
         if (info.argc < ARGC_TWO) {
             TAG_LOGE(AAFwkTag::SERVICE_EXT, "invalid argc");
             ThrowTooFewParametersError(env);
@@ -639,7 +637,7 @@ private:
         unwrapArgc = ARGC_ZERO;
         // Check input want
         if (!AppExecFwk::UnwrapWant(env, info.argv[INDEX_ZERO], want)) {
-            ThrowInvalidParamError(env, "Parse param want failed, must be a Want.");
+            ThrowInvalidParamError(env, "unwrap want failed");
             return false;
         }
         ++unwrapArgc;
@@ -849,8 +847,7 @@ private:
     void FindConnection(AAFwk::Want& want, sptr<JSServiceExtensionConnection>& connection, int64_t& connectId,
         int32_t &accountId) const
     {
-        TAG_LOGI(AAFwkTag::SERVICE_EXT, "Disconnect ability begin, connection:%{public}d",
-            static_cast<int32_t>(connectId));
+        TAG_LOGI(AAFwkTag::SERVICE_EXT, "find connection:%{public}d", static_cast<int32_t>(connectId));
         std::lock_guard guard(g_connectsMutex);
         auto item = std::find_if(g_connects.begin(),
             g_connects.end(),
@@ -1218,8 +1215,7 @@ private:
         sptr<JSServiceExtensionConnection> connection, int64_t connectId, std::shared_ptr<int> innerErrorCode)
     {
         return [weak = context_, want, connection, connectId, innerErrorCode]() {
-            TAG_LOGI(AAFwkTag::SERVICE_EXT, "Connect ability execute begin, connectId: %{public}d.",
-                static_cast<int32_t>(connectId));
+            TAG_LOGI(AAFwkTag::SERVICE_EXT, "get execute connectId: %{public}d.", static_cast<int32_t>(connectId));
 
             auto context = weak.lock();
             if (!context) {

@@ -543,7 +543,7 @@ std::string AbilityRecord::GetLabel()
 
     auto result = resourceMgr->GetStringById(applicationInfo_.labelId, strLabel);
     if (result != OHOS::Global::Resource::RState::SUCCESS) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "%{public}s, fail", __func__);
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "getStringById failed");
     }
 
     InitColdStartingWindowResource(resourceMgr);
@@ -802,7 +802,7 @@ void AbilityRecord::NotifyAnimationFromRecentTask(const std::shared_ptr<StartOpt
 {
     auto windowHandler = GetWMSHandler();
     if (!windowHandler) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "%{public}s, failed", __func__);
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "null windowHandler");
         return;
     }
 
@@ -821,7 +821,7 @@ void AbilityRecord::NotifyAnimationFromStartingAbility(const std::shared_ptr<Abi
 {
     auto windowHandler = GetWMSHandler();
     if (!windowHandler) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "%{public}s, failed", __func__);
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "null windowHandler");
         return;
     }
 
@@ -925,7 +925,7 @@ sptr<IWindowManagerServiceHandler> AbilityRecord::GetWMSHandler() const
 {
     auto abilityMgr = DelayedSingleton<AbilityManagerService>::GetInstance();
     if (!abilityMgr) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "%{public}s, fail", __func__);
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "null abilityMgr");
         return nullptr;
     }
     return abilityMgr->GetWMSHandler();
@@ -935,13 +935,13 @@ void AbilityRecord::SetWindowModeAndDisplayId(sptr<AbilityTransitionInfo> &info,
     const std::shared_ptr<Want> &want) const
 {
     if (!want) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "%{public}s, want invalid", __func__);
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "null want");
         return;
     }
     auto mode = want->GetIntParam(Want::PARAM_RESV_WINDOW_MODE, -1);
     auto displayId = want->GetIntParam(Want::PARAM_RESV_DISPLAY_ID, -1);
     if (mode != -1) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s: origin window mode: %{public}d", __func__, mode);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "origin window mode: %{public}d", mode);
         info->mode_ = static_cast<uint32_t>(mode);
     }
     if (displayId != -1) {
@@ -1015,7 +1015,7 @@ std::shared_ptr<Global::Resource::ResourceManager> AbilityRecord::CreateResource
     }
 
     if (!resourceMgr->AddResource(loadPath.c_str())) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "%{public}s, failed", __func__);
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "addResource failed");
         return nullptr;
     }
     return resourceMgr;
@@ -1026,7 +1026,7 @@ std::shared_ptr<Media::PixelMap> AbilityRecord::GetPixelMap(const uint32_t windo
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     if (resourceMgr == nullptr) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "%{public}s, null resourceMgr", __func__);
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "null resourceMgr");
         return nullptr;
     }
 
@@ -1099,7 +1099,7 @@ void AbilityRecord::StartingWindowHot(const std::shared_ptr<StartOptions> &start
 
     auto pixelMap = missionListWrap->GetSnapshot(missionId_);
     if (!pixelMap) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "%{public}s, failed", __func__);
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "null pixelMap");
     }
 
     auto info = CreateAbilityTransitionInfo(startOptions, want, abilityRequest);
@@ -1113,7 +1113,7 @@ void AbilityRecord::StartingWindowCold(const std::shared_ptr<StartOptions> &star
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     auto windowHandler = GetWMSHandler();
     if (!windowHandler) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "%{public}s, get WMS failed", __func__);
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "null windowHandler");
         return;
     }
 
@@ -3176,7 +3176,7 @@ void AbilityRecord::DumpAbilityInfoDone(std::vector<std::string> &infos)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
     if (isDumpTimeout_) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "%{public}s, time out", __func__);
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "dump timeout");
         return;
     }
     {

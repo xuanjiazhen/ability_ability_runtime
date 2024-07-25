@@ -35,7 +35,7 @@ AppPreloader::AppPreloader(std::shared_ptr<RemoteClientManager> remoteClientMana
 bool AppPreloader::PreCheck(const std::string &bundleName, PreloadMode preloadMode)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::APPMGR, "PreloadApplication PreCheck, bundleName: %{public}s, preloadMode:%{public}d",
+    TAG_LOGD(AAFwkTag::APPMGR, "bundleName: %{public}s, preloadMode:%{public}d",
         bundleName.c_str(), preloadMode);
     if (preloadMode == PreloadMode::PRE_MAKE) {
         return true;
@@ -53,7 +53,7 @@ int32_t AppPreloader::GeneratePreloadRequest(const std::string &bundleName, int3
     PreloadRequest &request)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::APPMGR, "PreloadApplication GeneratePreloadRequest");
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
 
     AAFwk::Want launchWant;
     if (!GetLaunchWant(bundleName, userId, launchWant)) {
@@ -150,7 +150,7 @@ bool AppPreloader::GetBundleAndHapInfo(const std::string &bundleName, int32_t us
 bool AppPreloader::CheckPreloadConditions(const AbilityInfo &abilityInfo)
 {
     if (abilityInfo.type != AppExecFwk::AbilityType::PAGE || !abilityInfo.isStageBasedModel) {
-        TAG_LOGE(AAFwkTag::APPMGR, "AbilityType is not UIAbility");
+        TAG_LOGE(AAFwkTag::APPMGR, "not UIAbility");
         return false;
     }
     ApplicationInfo appInfo = abilityInfo.applicationInfo;

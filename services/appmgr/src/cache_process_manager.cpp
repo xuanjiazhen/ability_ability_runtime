@@ -255,7 +255,7 @@ bool CacheProcessManager::IsAppSupportProcessCache(const std::shared_ptr<AppRunn
     }
     auto appInfo = appRecord->GetApplicationInfo();
     if (appInfo == nullptr) {
-        TAG_LOGD(AAFwkTag::APPMGR, "appinfo nullptr");
+        TAG_LOGE(AAFwkTag::APPMGR, "null appinfo");
         return false;
     }
     auto actualVer = appInfo->apiTargetVersion % API_VERSION_MOD;

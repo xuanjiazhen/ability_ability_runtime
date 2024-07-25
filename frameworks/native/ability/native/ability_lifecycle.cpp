@@ -40,7 +40,7 @@ void LifeCycle::DispatchLifecycle(const LifeCycle::Event &event, const Want &wan
 {
     TAG_LOGD(AAFwkTag::ABILITY, "event:%{public}d", event);
     if ((event != LifeCycle::Event::ON_FOREGROUND) && (event != LifeCycle::Event::ON_START)) {
-        TAG_LOGE(AAFwkTag::ABILITY, "error,event:%{public}d", event);
+        TAG_LOGE(AAFwkTag::ABILITY, "invalid event: %{public}d", event);
         return;
     }
 
@@ -77,7 +77,7 @@ void LifeCycle::DispatchLifecycle(const LifeCycle::Event &event)
     TAG_LOGD(AAFwkTag::ABILITY, "event:%{public}d", event);
     if ((event != LifeCycle::Event::ON_ACTIVE) && (event != LifeCycle::Event::ON_BACKGROUND) &&
         (event != LifeCycle::Event::ON_INACTIVE) && (event != LifeCycle::Event::ON_STOP)) {
-        TAG_LOGE(AAFwkTag::ABILITY, "error,event:%{public}d", event);
+        TAG_LOGE(AAFwkTag::ABILITY, "invalid event: %{public}d", event);
         return;
     }
 

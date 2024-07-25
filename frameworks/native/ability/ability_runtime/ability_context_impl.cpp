@@ -325,7 +325,7 @@ ErrCode AbilityContextImpl::TerminateAbilityWithResult(const AAFwk::Want& want, 
         info->resultCode = resultCode;
         auto ifaceSessionToken = iface_cast<Rosen::ISession>(sessionToken);
         auto err = ifaceSessionToken->TerminateSession(info);
-        TAG_LOGI(AAFwkTag::CONTEXT, "scb, ret=%{public}d", err);
+        TAG_LOGI(AAFwkTag::CONTEXT, "scb,ret=%{public}d", err);
         return static_cast<int32_t>(err);
     } else {
         ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->TerminateAbility(token_, resultCode, &want);

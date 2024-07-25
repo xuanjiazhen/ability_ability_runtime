@@ -162,7 +162,7 @@ int32_t AbilityFirstFrameStateObserverManager::RegisterAbilityFirstFrameStateObs
     }
     // verify permissions.
     if (AAFwk::PermissionVerification::GetInstance()->VerifyAppStateObserverPermission() == ERR_PERMISSION_DENIED) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "permission verification fail");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "permission denied");
         return ERR_PERMISSION_DENIED;
     }
     if (targetBundleName.empty()) {
@@ -182,7 +182,7 @@ int32_t AbilityFirstFrameStateObserverManager::UnregisterAbilityFirstFrameStateO
     }
     // verify permissions.
     if (AAFwk::PermissionVerification::GetInstance()->VerifyAppStateObserverPermission() == ERR_PERMISSION_DENIED) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "permission verification fail");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "permission denied");
         return ERR_PERMISSION_DENIED;
     }
     if (stateObserverSetForBundleName_->RemoveAbilityFirstFrameStateObserver(observer) == ERR_OK) {

@@ -79,7 +79,7 @@ AbilityManagerClient::AbilityManagerClient()
 
 AbilityManagerClient::~AbilityManagerClient()
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Remove DeathRecipient");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "called");
     RemoveDeathRecipient();
 }
 
@@ -226,7 +226,7 @@ ErrCode AbilityManagerClient::StartAbilityForResultAsCaller(
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "The abilityName:%{public}s, userId:%{public}d",
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "abilityName:%{public}s, userId:%{public}d",
         want.GetElement().GetAbilityName().c_str(), userId);
     HandleDlpApp(const_cast<Want &>(want));
     return abms->StartAbilityForResultAsCaller(want, callerToken, requestCode, userId);
@@ -238,7 +238,7 @@ ErrCode AbilityManagerClient::StartAbilityForResultAsCaller(const Want &want, co
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "The abilityName:%{public}s, userId:%{public}d",
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "abilityName:%{public}s, userId:%{public}d",
         want.GetElement().GetAbilityName().c_str(), userId);
     HandleDlpApp(const_cast<Want &>(want));
     return abms->StartAbilityForResultAsCaller(want, startOptions, callerToken, requestCode, userId);
@@ -295,7 +295,7 @@ ErrCode AbilityManagerClient::StartExtensionAbility(const Want &want, sptr<IRemo
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "name:%{public}s %{public}s, userId=%{public}d.",
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "name:%{public}s %{public}s, userId=%{public}d",
         want.GetElement().GetAbilityName().c_str(), want.GetElement().GetBundleName().c_str(), userId);
     return abms->StartExtensionAbility(want, callerToken, userId, extensionType);
 }
@@ -311,7 +311,7 @@ ErrCode AbilityManagerClient::PreloadUIExtensionAbility(const Want &want, std::s
 {
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "elementName:%{public}s, hostBundleName:%{public}s.",
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "elementName:%{public}s, hostBundleName:%{public}s",
         want.GetElement().GetURI().c_str(), hostBundleName.c_str());
     return abms->PreloadUIExtensionAbility(want, hostBundleName, userId);
 }
@@ -534,7 +534,7 @@ ErrCode AbilityManagerClient::ConnectDataShareExtensionAbility(const Want &want,
         return ABILITY_SERVICE_NOT_CONNECTED;
     }
 
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "name:%{public}s %{public}s, uri:%{public}s.",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "name:%{public}s %{public}s, uri:%{public}s",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(),
         want.GetUriString().c_str());
     return abms->ConnectAbilityCommon(want, connect, nullptr, AppExecFwk::ExtensionAbilityType::DATASHARE, userId);
@@ -551,7 +551,7 @@ ErrCode AbilityManagerClient::ConnectExtensionAbility(const Want &want, sptr<IAb
         return ABILITY_SERVICE_NOT_CONNECTED;
     }
 
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "name:%{public}s %{public}s, userId:%{public}d.",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "name:%{public}s %{public}s, userId:%{public}d",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), userId);
     return abms->ConnectAbilityCommon(want, connect, nullptr, AppExecFwk::ExtensionAbilityType::UNSPECIFIED, userId);
 }
@@ -647,13 +647,13 @@ ErrCode AbilityManagerClient::Connect()
     }
 
     proxy_ = iface_cast<IAbilityManager>(remoteObj);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "Connect ability manager service success.");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Connect ams success");
     return ERR_OK;
 }
 
 void AbilityManagerClient::RemoveDeathRecipient()
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "RemoveDeathRecipient");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "called");
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (proxy_ == nullptr) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "null proxy_");
@@ -1466,7 +1466,7 @@ void AbilityManagerClient::ResetProxy(wptr<IRemoteObject> remote)
 
 void AbilityManagerClient::AbilityMgrDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityMgrDeathRecipient handle remote died.");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "remote died");
     AbilityManagerClient::GetInstance()->ResetProxy(remote);
 }
 
@@ -1599,7 +1599,7 @@ ErrCode AbilityManagerClient::ForceExitApp(const int32_t pid, const ExitReason &
 
 ErrCode AbilityManagerClient::RecordAppExitReason(const ExitReason &exitReason)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "RecordAppExitReason reason:%{public}d, exitMsg: %{public}s", exitReason.reason,
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "reason:%{public}d, exitMsg: %{public}s", exitReason.reason,
         exitReason.exitMsg.c_str());
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
@@ -1608,7 +1608,7 @@ ErrCode AbilityManagerClient::RecordAppExitReason(const ExitReason &exitReason)
 
 ErrCode AbilityManagerClient::RecordProcessExitReason(const int32_t pid, const ExitReason &exitReason)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "RecordProcessExitReason pid:%{public}d, reason:%{public}d, exitMsg: %{public}s",
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "pid:%{public}d, reason:%{public}d, exitMsg: %{public}s",
         pid, exitReason.reason, exitReason.exitMsg.c_str());
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);

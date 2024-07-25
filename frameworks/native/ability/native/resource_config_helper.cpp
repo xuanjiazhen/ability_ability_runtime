@@ -81,12 +81,12 @@ void ResourceConfigHelper::UpdateResConfig(
     const AppExecFwk::Configuration &configuration, std::shared_ptr<Global::Resource::ResourceManager> resourceManager)
 {
     if (resourceManager == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "invalid Resource manager");
+        TAG_LOGE(AAFwkTag::ABILITY, "null resourceMgr");
         return;
     }
     std::unique_ptr<Global::Resource::ResConfig> resConfig(Global::Resource::CreateResConfig());
     if (resConfig == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "create resConfig failed");
+        TAG_LOGE(AAFwkTag::ABILITY, "null resConfig");
         return;
     }
     resourceManager->GetResConfig(*resConfig);
@@ -115,7 +115,7 @@ void ResourceConfigHelper::UpdateResConfig(
         TAG_LOGE(AAFwkTag::ABILITY, "update resConfig failed:%{public}d", static_cast<int>(ret));
         return;
     }
-    TAG_LOGD(AAFwkTag::ABILITY, "current colorMode: %{public}d, hasPointerDevice: %{public}d",
+    TAG_LOGD(AAFwkTag::ABILITY, "colorMode: %{public}d, hasPointerDevice: %{public}d",
              resConfig->GetColorMode(), resConfig->GetInputDevice());
 }
 
