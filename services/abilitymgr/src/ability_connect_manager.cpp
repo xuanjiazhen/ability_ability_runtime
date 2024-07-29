@@ -3211,7 +3211,7 @@ std::string AbilityConnectManager::GenerateBundleName(const AbilityRequest &abil
 
 int32_t AbilityConnectManager::ReportXiaoYiToRSSIfNeeded(const AppExecFwk::AbilityInfo &abilityInfo)
 {
-    if (abilityInfo.type != AppExecFwk::AbilityType::EXTENSION || 
+    if (abilityInfo.type != AppExecFwk::AbilityType::EXTENSION ||
         abilityInfo.bundleName != XIAOYI_BUNDLE_NAME) {
         return ERR_OK;
     }
