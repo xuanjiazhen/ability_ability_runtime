@@ -737,6 +737,10 @@ void JsBaseContext::BindPropertiesAndFunctions(napi_env env, napi_value object, 
         JsBaseContext::CreateModuleResourceManager);
     BindNativeFunction(env, object, "getGroupDir", moduleName, JsBaseContext::GetGroupDir);
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> ac092cb80... update frameworks/native/appkit/ability_runtime/context/js_context_utils.cpp.
 napi_value CreateJsBaseContext(napi_env env, std::shared_ptr<Context> context, bool keepContext)
 {
     napi_value object = nullptr;
