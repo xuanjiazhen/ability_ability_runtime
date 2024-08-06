@@ -97,6 +97,22 @@ public:
     void ScheduleBackgroundRunning();
 
     /**
+     * ScheduleShowWindowRunning, call ScheduleShowWindow() through proxy project,
+     * Notify application to switch to show.
+     *
+     * @return
+     */
+    void ScheduleShowWindowRunning();
+
+    /**
+     * ScheduleHiddenWindowRunning, call ScheduleHiddenWindow() through proxy project,
+     * Notify application to switch to hidden.
+     *
+     * @return
+     */
+    void ScheduleHiddenWindowRunning();
+
+    /**
      * ScheduleTrimMemory, call ScheduleShrinkMemory() through proxy project,
      * Notifies the application of the memory seen.
      *

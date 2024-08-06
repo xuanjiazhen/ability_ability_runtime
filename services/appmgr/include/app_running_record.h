@@ -48,6 +48,7 @@
 namespace OHOS {
 namespace Rosen {
 class WindowVisibilityInfo;
+class WindowPidVisibilityInfo;
 }
 namespace AppExecFwk {
 class AbilityRunningRecord;
@@ -686,6 +687,7 @@ public:
     int32_t NotifyAppFault(const FaultData &faultData);
 #ifdef SUPPORT_SCREEN
     void OnWindowVisibilityChanged(const std::vector<sptr<OHOS::Rosen::WindowVisibilityInfo>> &windowVisibilityInfos);
+    void OnWindowPidVisibilityChanged(const sptr<OHOS::Rosen::WindowPidVisibilityInfo>& windowPidVisibilityInfo);
 #endif //SUPPORT_SCREEN
     bool IsAbilitytiesBackground();
 
@@ -991,6 +993,7 @@ private:
     bool isMultiThread_ = false;
     SupportProcessCacheState procCacheSupportState_ = SupportProcessCacheState::UNSPECIFIED;
     bool processCacheBlocked = false; // temporarily block process cache feature
+    Rosen::WindowStateInfo windowState;
     sptr<IRemoteObject> browserHost_;
     bool isGPU_ = false;
     pid_t gpuPid_ = 0;

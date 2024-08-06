@@ -61,6 +61,10 @@ int ApplicationStateObserverStub::OnRemoteRequest(
             return HandleOnPageHide(data, reply);
         case Message::TRANSACT_ON_APP_CACHE_STATE_CHANGED:
             return HandleOnAppCacheStateChanged(data, reply);
+        case Message::TRANSACT_ON_WINDOW_SHOW:
+            return HandleOnPageShow(data, reply);
+        case Message::TRANSACT_ON_WINDOW_HIDDEN:
+            return HandleOnPageHide(data, reply);
     }
     TAG_LOGW(AAFwkTag::APPMGR, "ApplicationStateObserverStub::OnRemoteRequest, default case, need check");
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
@@ -79,6 +83,12 @@ void ApplicationStateObserverStub::OnProcessCreated(const ProcessData &processDa
 {}
 
 void ApplicationStateObserverStub::OnProcessStateChanged(const ProcessData &processData)
+{}
+
+void ApplicationStateObserverStub::OnWindowShow(const ProcessData &processData)
+{}
+
+void ApplicationStateObserverStub::OnWindowHidden(const ProcessData &processData)
 {}
 
 void ApplicationStateObserverStub::OnProcessDied(const ProcessData &processData)
@@ -181,6 +191,30 @@ int32_t ApplicationStateObserverStub::HandleOnProcessStateChanged(MessageParcel 
     }
 
     OnProcessStateChanged(*processData);
+    return NO_ERROR;
+}
+
+int32_t ApplicationStateObserverStub::HandleOnWindowShow(MessageParcel &data, MessageParcel &reply)
+{
+    std::unique_ptr<ProcessData> processData(data.ReadParcelable<ProcessData>());
+    if (!processData) {
+        TAG_LOGE(AAFwkTag::APPMGR, "ReadParcelable<ProcessData> failed");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+
+    OnWindowShow(*processData);
+    return NO_ERROR;
+}
+
+int32_t ApplicationStateObserverStub::HandleOnWindowHidden(MessageParcel &data, MessageParcel &reply)
+{
+    std::unique_ptr<ProcessData> processData(data.ReadParcelable<ProcessData>());
+    if (!processData) {
+        TAG_LOGE(AAFwkTag::APPMGR, "ReadParcelable<ProcessData> failed");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+
+    OnWindowHidden(*processData);
     return NO_ERROR;
 }
 
