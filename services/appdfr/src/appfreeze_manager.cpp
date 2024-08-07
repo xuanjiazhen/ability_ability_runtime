@@ -15,6 +15,7 @@
 #include "appfreeze_manager.h"
 
 #include <fcntl.h>
+#include <regex>
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <sys/types.h>
@@ -51,6 +52,10 @@ constexpr char FREEZE_MEMORY[] = "FREEZE_MEMORY";
 constexpr int MAX_LAYER = 8;
 constexpr int FREEZEMAP_SIZE_MAX = 20;
 constexpr int FREEZE_TIME_LIMIT = 60000;
+constexpr int UID_INDEX = 2;
+constexpr int UID_MAX_VALUE = 10000;
+constexpr int ANCO_UID_MIN = 999;
+constexpr int ANCO_UID_MAX = 2000;
 static constexpr int64_t NANOSECONDS = 1000000000;  // NANOSECONDS mean 10^9 nano second
 static constexpr int64_t MICROSECONDS = 1000000;    // MICROSECONDS mean 10^6 millias second
 const std::string LOG_FILE_PATH = "data/log/eventlog";
@@ -260,7 +265,7 @@ int AppfreezeManager::AcquireStack(const FaultData& faultData,
     }
     for (auto& pidTemp : pids) {
         TAG_LOGI(AAFwkTag::APPDFR, "pidTemp pids:%{public}d", pidTemp);
-        if (pidTemp != pid) {
+        if (pidTemp != pid && !IsAncoProc(pidTemp)) {
             std::string content = "PeerBinder catcher stacktrace for pid : " + std::to_string(pidTemp) + "\n";
             content += CatcherStacktrace(pidTemp);
             binderInfo += content;
@@ -409,6 +414,29 @@ void AppfreezeManager::ParseBinderPids(const std::map<int, std::set<int>>& binde
             ParseBinderPids(binderInfo, pids, each, layer);
         }
     }
+}
+
+bool AppfreezeManager::IsAncoProc(int pid) const
+{
+    std::string statusPath = "/proc/" + std::to_string(pid) + "/status";
+    std::ifstream inFile(statusPath);
+    if (!inFile) {
+        TAG_LOGE(AAFwkTag::APPDFR, "read proc %{public}d status failed", pid);
+        return false;
+    }
+    std::string line;
+    std::smatch matches;
+    std::regex pattern("Uid:(\\s+)(\\d+)");
+    int uid = 0;
+
+    while (getline(inFile, line)) {
+        if (std::regex_search(line, matches, pattern)) {
+            uid = std::stoi(matches[UID_INDEX]) % UID_MAX_VALUE;
+            break;
+        }
+    }
+    inFile.close();
+    return (uid > ANCO_UID_MIN) && (uid < ANCO_UID_MAX);
 }
 
 void AppfreezeManager::DeleteStack(int pid)
