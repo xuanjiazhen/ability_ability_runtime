@@ -384,15 +384,21 @@ void JsUIServiceExtension::OnCommand(const AAFwk::Want &want, bool restart, int 
         auto extensionWindowConfig = std::make_shared<Rosen::ExtensionWindowConfig>();
         OnSceneWillCreated(extensionWindowConfig);
         auto option = GetWindowOption(want, extensionWindowConfig, hostWindowId);
-        sptr<Rosen::Window> extensionWindow = Rosen::Window::Create(extensionWindowConfig->windowName, option, context);
-        if (extensionWindow != nullptr) {
-            OnSceneDidCreated(extensionWindow);
-            context->SetWindow(extensionWindow);
-            AbilityWindowConfigTransition(option, extensionWindowConfig);
+        if (option != nullptr) {
+            sptr<Rosen::Window> extensionWindow = Rosen::Window::Create(extensionWindowConfig->windowName, option, context);
+            if (extensionWindow != nullptr) {
+                OnSceneDidCreated(extensionWindow);
+                context->SetWindow(extensionWindow);
+                AbilityWindowConfigTransition(option, extensionWindowConfig);
+            } else {
+                TAG_LOGE(AAFwkTag::UISERVC_EXT, "extensionWindow is nullptr");
+            }
+            firstRequest_ = false;
         } else {
-            TAG_LOGE(AAFwkTag::UISERVC_EXT, "extensionWindow is nullptr");
+            OnSceneDidCreated(nullptr);
+            context->SetWindow(nullptr);
+            TAG_LOGE(AAFwkTag::UISERVC_EXT, "option is nullptr");
         }
-        firstRequest_ = false;
     }
 #endif
 
@@ -683,8 +689,14 @@ void JsUIServiceExtension::OnSceneDidCreated(sptr<Rosen::Window>& window)
     TAG_LOGI(AAFwkTag::UISERVC_EXT, "OnSceneDidCreated call");
     HandleScope handleScope(jsRuntime_);
     auto env = jsRuntime_.GetNapiEnv();
-    napi_value jsWindow = Rosen::CreateJsWindowObject(env, window);
-    napi_value argv[] = {jsWindow};
+    if (window != nullptr) {
+        napi_value jsWindow = Rosen::CreateJsWindowObject(env, window);
+        napi_value argv[] = {jsWindow};
+    } else {
+        napi_value jsWindow = CreateJsUndefined(env);
+        napi_value argv[] = {jsWindow};
+    }
+
     CallObjectMethod("onWindowDidCreate", argv, ArraySize(argv));
     TAG_LOGI(AAFwkTag::UISERVC_EXT, "End OnSceneDidCreated.");
 }
