@@ -379,9 +379,6 @@ HWTEST_F(ImplicitStartProcessorTest, ProcessLinkType_001, TestSize.Level1)
     AbilityInfo abilityInfo2;
     abilityInfo2.linkType = AppExecFwk::LinkType::APP_LINK;
     abilityInfos.push_back(abilityInfo2);
-
-    processor->SetUriReservedFlag(true);
-    processor->SetUriReservedBundle("haha");
 }
 
 /*
@@ -395,7 +392,6 @@ HWTEST_F(ImplicitStartProcessorTest, ProcessLinkType_001, TestSize.Level1)
 HWTEST_F(ImplicitStartProcessorTest, OnlyKeepReserveApp_001, TestSize.Level1)
 {
     auto processor = std::make_shared<ImplicitStartProcessor>();
-    processor->SetUriReservedFlag(false);
     std::vector<AppExecFwk::AbilityInfo> abilityInfos;
     std::vector<AppExecFwk::ExtensionAbilityInfo> extensionAbInfos;
     AppExecFwk::ExtensionAbilityInfo  extensionAbInfo;
@@ -403,35 +399,8 @@ HWTEST_F(ImplicitStartProcessorTest, OnlyKeepReserveApp_001, TestSize.Level1)
     AppExecFwk::AbilityInfo  abilityInfo;
     abilityInfo.bundleName = "haha";
     abilityInfos.push_back(abilityInfo);
-    processor->SetUriReservedBundle("haha");
-    processor->OnlyKeepReserveApp(abilityInfos, extensionAbInfos);
-}
-
-/*
- * Feature: ImplicitStartProcessor
- * Function: GenerateAbilityRequestByAction
- * SubFunction: NA
- * FunctionPoints:ImplicitStartProcessor GenerateAbilityRequestByAction
- * EnvConditions: NA
- * CaseDescription: Verify GenerateAbilityRequestByAction  etc.
- */
-HWTEST_F(ImplicitStartProcessorTest, GenerateAbilityRequestByAction_001, TestSize.Level1)
-{
-    auto processor = std::make_shared<ImplicitStartProcessor>();
-    int32_t  userId = 100;
-    AbilityRequest request;
-    std::vector<DialogAppInfo> dialogAppInfos;
-    bool findDefaultApp = false;
-    Want want;
-    want.SetParam(PARAM_ABILITY_APPINFOS, false);
-    request.want = want;
-    processor->GenerateAbilityRequestByAction(userId, request, dialogAppInfos, false, findDefaultApp);
-    processor->SetUriReservedFlag(true);
-    processor->GenerateAbilityRequestByAction(userId, request, dialogAppInfos, false, findDefaultApp);
-    Want want2;
-    want2.SetParam(OPEN_LINK_APP_LINKING_ONLY, false);
-    request.want = want2;
-    processor->GenerateAbilityRequestByAction(userId, request, dialogAppInfos, false, findDefaultApp);
+    AbilityRequest abilityRequest;
+    processor->OnlyKeepReserveApp(abilityInfos, extensionAbInfos, abilityRequest);
 }
 
 /*
@@ -523,34 +492,6 @@ HWTEST_F(ImplicitStartProcessorTest, IsExistDefaultApp_001, TestSize.Level1)
 {
     auto processor = std::make_shared<ImplicitStartProcessor>();
     int32_t  userId = 100;
-}
-
-/*
- * Feature: ImplicitStartProcessor
- * Function: IsActionImplicitStart
- * SubFunction: NA
- * FunctionPoints:ImplicitStartProcessor IsActionImplicitStart
- * EnvConditions: NA
- * CaseDescription: Verify IsActionImplicitStart  etc.
- */
-HWTEST_F(ImplicitStartProcessorTest, IsActionImplicitStart_001, TestSize.Level1)
-{
-    auto processor = std::make_shared<ImplicitStartProcessor>();
-    Want want;
-    processor->IsActionImplicitStart(want, true);
-    std::string supportStart = OHOS::system::GetParameter(SUPPORT_ACTION_START_SELECTOR, "false");
-    std::string value1 = "false";
-    std::string value2 = "true";
-    OHOS::system::SetParameter(SUPPORT_ACTION_START_SELECTOR, value1);
-    EXPECT_EQ(false, processor->IsActionImplicitStart(want, true));
-    OHOS::system::SetParameter(SUPPORT_ACTION_START_SELECTOR, value2);
-    EXPECT_EQ(false, processor->IsActionImplicitStart(want, true));
-    want.SetParam(OPEN_LINK_APP_LINKING_ONLY, true);
-    EXPECT_EQ(false, processor->IsActionImplicitStart(want, false));
-    want.SetParam(OPEN_LINK_APP_LINKING_ONLY, false);
-    processor->IsActionImplicitStart(want, false);
-    EXPECT_EQ(false, processor->IsActionImplicitStart(want, false));
-    OHOS::system::SetParameter(SUPPORT_ACTION_START_SELECTOR, supportStart);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

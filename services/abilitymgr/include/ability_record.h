@@ -192,12 +192,48 @@ public:
     {
         return callerInfo_;
     }
+    bool IsHistoryRequestCode(int32_t requestCode)
+    {
+        for (auto it = requestCodeList_.begin(); it != requestCodeList_.end(); it++) {
+            if (requestCode == *it) {
+                return true;
+            }
+        }
+        return false;
+    }
+    void RemoveHistoryRequestCode(int32_t requestCode)
+    {
+        for (auto it = requestCodeList_.begin(); it != requestCodeList_.end(); it++) {
+            if (requestCode == *it) {
+                requestCodeList_.erase(it);
+                return;
+            }
+        }
+    }
+    void AddHistoryRequestCode(int32_t requestCode)
+    {
+        if (IsHistoryRequestCode(requestCode)) {
+            return;
+        }
+        requestCodeList_.emplace_back(requestCode);
+    }
+
+    void SetRequestCodeList(std::list<int32_t> requestCodeList)
+    {
+        requestCodeList_ = requestCodeList;
+    }
+
+    std::list<int32_t> GetRequestCodeList()
+    {
+        return requestCodeList_;
+    }
 
 private:
     int requestCode_ = -1;  // requestCode of for-result start mode
     std::weak_ptr<AbilityRecord> caller_;
     std::shared_ptr<SystemAbilityCallerRecord> saCaller_ = nullptr;
     std::shared_ptr<CallerAbilityInfo> callerInfo_ = nullptr;
+    std::list<int32_t> requestCodeList_;
 };
 
 /**
@@ -250,6 +286,8 @@ struct AbilityRequest {
 
     sptr<SessionInfo> sessionInfo;
     uint32_t specifyTokenId = 0;
+    bool uriReservedFlag = false;
+    std::string reservedBundleName;
 
     std::pair<bool, LaunchReason> IsContinuation() const
     {
@@ -712,6 +750,12 @@ public:
     void SendResult(bool isSandboxApp, uint32_t tokeId);
 
     /**
+     * send result object to caller ability thread.
+     *
+     */
+    void SendResultByBackToCaller(const std::shared_ptr<AbilityResult> &result);
+
+    /**
      * send result object to caller ability thread for sandbox app file saving.
      */
     void SendSandboxSavefileResult(const Want &want, int resultCode, int requestCode);
@@ -727,6 +771,8 @@ public:
      *
      */
     void SaveResultToCallers(const int resultCode, const Want *resultWant);
+
+    std::shared_ptr<AbilityRecord> GetCallerByRequestCode(int32_t requestCode, int32_t pid);
 
     /**
      * save result to caller ability.
@@ -770,6 +816,8 @@ public:
      *
      */
     bool IsConnectListEmpty();
+
+    void RemoveCallerRequestCode(std::shared_ptr<AbilityRecord> callerAbilityRecord, int32_t requestCode);
 
     /**
      * add caller record
