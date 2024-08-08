@@ -28,7 +28,7 @@ using namespace testing::mt;
 
 namespace OHOS {
 
-class CjEnvironmentTest : public testing::Test {
+class CjEnvironmentFirstTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -36,13 +36,13 @@ public:
     void TearDown() override;
 };
 
-void CjEnvironmentTest::SetUpTestCase() {}
+void CjEnvironmentFirstTest::SetUpTestCase() {}
 
-void CjEnvironmentTest::TearDownTestCase() {}
+void CjEnvironmentFirstTest::TearDownTestCase() {}
 
-void CjEnvironmentTest::SetUp() {}
+void CjEnvironmentFirstTest::SetUp() {}
 
-void CjEnvironmentTest::TearDown() {}
+void CjEnvironmentFirstTest::TearDown() {}
 
 void RegisterCJUncaughtExceptionHandlerTest(const CJUncaughtExceptionInfo &handle) {}
 
@@ -51,7 +51,7 @@ void RegisterCJUncaughtExceptionHandlerTest(const CJUncaughtExceptionInfo &handl
  * @tc.desc: JsRuntime test for UpdatePkgContextInfoJson.
  * @tc.type: FUNC
  */
-HWTEST_F(CjEnvironmentTest, CJEnvironment_GetInstance_0100, TestSize.Level1)
+HWTEST_F(CjEnvironmentFirstTest, CJEnvironment_GetInstance_0100, TestSize.Level1)
 {
     auto cJEnvironment = std::make_shared<CJEnvironment>();
     CJEnvironment *ret = nullptr;
@@ -64,7 +64,7 @@ HWTEST_F(CjEnvironmentTest, CJEnvironment_GetInstance_0100, TestSize.Level1)
  * @tc.desc: JsRuntime test for IsRuntimeStarted.
  * @tc.type: FUNC
  */
-HWTEST_F(CjEnvironmentTest, CJEnvironment_IsRuntimeStarted_0100, TestSize.Level1)
+HWTEST_F(CjEnvironmentFirstTest, CJEnvironment_IsRuntimeStarted_0100, TestSize.Level1)
 {
     auto cJEnvironment = std::make_shared<CJEnvironment>();
     bool ret = cJEnvironment->IsRuntimeStarted();
@@ -76,7 +76,7 @@ HWTEST_F(CjEnvironmentTest, CJEnvironment_IsRuntimeStarted_0100, TestSize.Level1
  * @tc.desc: JsRuntime test for SetSanitizerKindRuntimeVersion.
  * @tc.type: FUNC
  */
-HWTEST_F(CjEnvironmentTest, CJEnvironment_SetSanitizerKindRuntimeVersion_0100, TestSize.Level1)
+HWTEST_F(CjEnvironmentFirstTest, CJEnvironment_SetSanitizerKindRuntimeVersion_0100, TestSize.Level1)
 {
     auto cJEnvironment = std::make_shared<CJEnvironment>();
     SanitizerKind kind = SanitizerKind::ASAN;
@@ -90,10 +90,10 @@ HWTEST_F(CjEnvironmentTest, CJEnvironment_SetSanitizerKindRuntimeVersion_0100, T
  * @tc.desc: JsRuntime test for InitCJAppNS.
  * @tc.type: FUNC
  */
-HWTEST_F(CjEnvironmentTest, CJEnvironment_InitCJAppNS_0100, TestSize.Level1)
+HWTEST_F(CjEnvironmentFirstTest, CJEnvironment_InitCJAppNS_0100, TestSize.Level1)
 {
     auto cJEnvironment = std::make_shared<CJEnvironment>();
-    std::string path = "ability_runtime/CjEnvironmentTest";
+    std::string path = "ability_runtime/CjEnvironmentFirstTest";
 
     cJEnvironment->InitCJAppNS(path);
     EXPECT_NE(cJEnvironment->cjAppNSName, nullptr);
@@ -104,10 +104,10 @@ HWTEST_F(CjEnvironmentTest, CJEnvironment_InitCJAppNS_0100, TestSize.Level1)
  * @tc.desc: JsRuntime test for InitCJSDKNS.
  * @tc.type: FUNC
  */
-HWTEST_F(CjEnvironmentTest, CJEnvironment_InitCJSDKNS_0100, TestSize.Level1)
+HWTEST_F(CjEnvironmentFirstTest, CJEnvironment_InitCJSDKNS_0100, TestSize.Level1)
 {
     auto cJEnvironment = std::make_shared<CJEnvironment>();
-    std::string path = "ability_runtime/CjEnvironmentTest";
+    std::string path = "ability_runtime/CjEnvironmentFirstTest";
     cJEnvironment->InitCJSDKNS(path);
     EXPECT_NE(cJEnvironment->cjAppNSName, nullptr);
 }
@@ -117,10 +117,10 @@ HWTEST_F(CjEnvironmentTest, CJEnvironment_InitCJSDKNS_0100, TestSize.Level1)
  * @tc.desc: JsRuntime test for InitCJSysNS.
  * @tc.type: FUNC
  */
-HWTEST_F(CjEnvironmentTest, CJEnvironment_InitCJSysNS_0100, TestSize.Level1)
+HWTEST_F(CjEnvironmentFirstTest, CJEnvironment_InitCJSysNS_0100, TestSize.Level1)
 {
     auto cJEnvironment = std::make_shared<CJEnvironment>();
-    std::string path = "ability_runtime/CjEnvironmentTest";
+    std::string path = "ability_runtime/CjEnvironmentFirstTest";
     cJEnvironment->InitCJSysNS(path);
     std::string getTempCjAppNSName = cJEnvironment->cjAppNSName;
     EXPECT_NE(cJEnvironment->cjAppNSName, nullptr);
@@ -131,10 +131,10 @@ HWTEST_F(CjEnvironmentTest, CJEnvironment_InitCJSysNS_0100, TestSize.Level1)
  * @tc.desc: JsRuntime test for InitCJChipSDKNS.
  * @tc.type: FUNC
  */
-HWTEST_F(CjEnvironmentTest, CJEnvironment_InitCJChipSDKNS_0100, TestSize.Level1)
+HWTEST_F(CjEnvironmentFirstTest, CJEnvironment_InitCJChipSDKNS_0100, TestSize.Level1)
 {
     auto cJEnvironment = std::make_shared<CJEnvironment>();
-    std::string path = "ability_runtime/CjEnvironmentTest";
+    std::string path = "ability_runtime/CjEnvironmentFirstTest";
     cJEnvironment->InitCJChipSDKNS(path);
     EXPECT_NE(cJEnvironment->cjAppNSName, nullptr);
 }
@@ -144,7 +144,7 @@ HWTEST_F(CjEnvironmentTest, CJEnvironment_InitCJChipSDKNS_0100, TestSize.Level1)
  * @tc.desc: JsRuntime test for StartRuntime.
  * @tc.type: FUNC
  */
-HWTEST_F(CjEnvironmentTest, CJEnvironment_StartRuntime_0100, TestSize.Level1)
+HWTEST_F(CjEnvironmentFirstTest, CJEnvironment_StartRuntime_0100, TestSize.Level1)
 {
     auto cJEnvironment = std::make_shared<CJEnvironment>();
 
@@ -161,7 +161,7 @@ HWTEST_F(CjEnvironmentTest, CJEnvironment_StartRuntime_0100, TestSize.Level1)
  * @tc.desc: JsRuntime test for StopRuntime.
  * @tc.type: FUNC
  */
-HWTEST_F(CjEnvironmentTest, CJEnvironment_StopRuntime_0100, TestSize.Level1)
+HWTEST_F(CjEnvironmentFirstTest, CJEnvironment_StopRuntime_0100, TestSize.Level1)
 {
     auto cJEnvironment = std::make_shared<CJEnvironment>();
     cJEnvironment->StopRuntime();
@@ -176,7 +176,7 @@ HWTEST_F(CjEnvironmentTest, CJEnvironment_StopRuntime_0100, TestSize.Level1)
  * @tc.desc: JsRuntime test for RegisterCJUncaughtExceptionHandler.
  * @tc.type: FUNC
  */
-HWTEST_F(CjEnvironmentTest, CJEnvironment_RegisterCJUncaughtExceptionHandler_0100, TestSize.Level1)
+HWTEST_F(CjEnvironmentFirstTest, CJEnvironment_RegisterCJUncaughtExceptionHandler_0100, TestSize.Level1)
 {
     // using RegisterUncaughtExceptionType = void (*)(const CJUncaughtExceptionInfo& handle);
     CJEnvironment cJEnvironment;
@@ -206,7 +206,7 @@ HWTEST_F(CjEnvironmentTest, CJEnvironment_RegisterCJUncaughtExceptionHandler_010
  * @tc.desc: JsRuntime test for IsUISchedulerStarted.
  * @tc.type: FUNC
  */
-HWTEST_F(CjEnvironmentTest, CJEnvironment_IsUISchedulerStarted_0100, TestSize.Level1)
+HWTEST_F(CjEnvironmentFirstTest, CJEnvironment_IsUISchedulerStarted_0100, TestSize.Level1)
 {
     auto cJEnvironment = std::make_shared<CJEnvironment>();
     bool ret = cJEnvironment->IsUISchedulerStarted();
@@ -218,7 +218,7 @@ HWTEST_F(CjEnvironmentTest, CJEnvironment_IsUISchedulerStarted_0100, TestSize.Le
  * @tc.desc: Test when isUISchedulerStarted_ is true.
  * @tc.type: FUNC
  */
-HWTEST_F(CjEnvironmentTest, StartUIScheduler_0100, TestSize.Level1)
+HWTEST_F(CjEnvironmentFirstTest, StartUIScheduler_0100, TestSize.Level1)
 {
     auto cjEnv = std::make_shared<CJEnvironment>();
     cjEnv->isUISchedulerStarted_ = true;
@@ -231,7 +231,7 @@ HWTEST_F(CjEnvironmentTest, StartUIScheduler_0100, TestSize.Level1)
  * @tc.desc: Test StopUIScheduler.
  * @tc.type: FUNC
  */
-HWTEST_F(CjEnvironmentTest, StopUIScheduler_0100, TestSize.Level1)
+HWTEST_F(CjEnvironmentFirstTest, StopUIScheduler_0100, TestSize.Level1)
 {
     auto cjEnv = std::make_shared<CJEnvironment>();
     EXPECT_NE(cjEnv, nullptr);
@@ -243,7 +243,7 @@ HWTEST_F(CjEnvironmentTest, StopUIScheduler_0100, TestSize.Level1)
  * @tc.desc: Test LoadCJLibrary.
  * @tc.type: FUNC
  */
-HWTEST_F(CjEnvironmentTest, LoadCJLibrary_0100, TestSize.Level1)
+HWTEST_F(CjEnvironmentFirstTest, LoadCJLibrary_0100, TestSize.Level1)
 {
     auto cjEnv = std::make_shared<CJEnvironment>();
     char dlNames[5] = "Name";
@@ -257,7 +257,7 @@ HWTEST_F(CjEnvironmentTest, LoadCJLibrary_0100, TestSize.Level1)
  * @tc.desc: Test LoadCJLibrary.
  * @tc.type: FUNC
  */
-HWTEST_F(CjEnvironmentTest, LoadCJLibrary_0200, TestSize.Level1)
+HWTEST_F(CjEnvironmentFirstTest, LoadCJLibrary_0200, TestSize.Level1)
 {
     auto cjEnv = std::make_shared<CJEnvironment>();
     CJEnvironment::LibraryKind kind = CJEnvironment::SYSTEM;
@@ -272,7 +272,7 @@ HWTEST_F(CjEnvironmentTest, LoadCJLibrary_0200, TestSize.Level1)
  * @tc.desc: Test LoadCJLibrary.
  * @tc.type: FUNC
  */
-HWTEST_F(CjEnvironmentTest, UnLoadCJLibrary_0100, TestSize.Level1)
+HWTEST_F(CjEnvironmentFirstTest, UnLoadCJLibrary_0100, TestSize.Level1)
 {
     auto cjEnv = std::make_shared<CJEnvironment>();
     EXPECT_NE(cjEnv, nullptr);
@@ -284,7 +284,7 @@ HWTEST_F(CjEnvironmentTest, UnLoadCJLibrary_0100, TestSize.Level1)
  * @tc.desc: Test GetUIScheduler.
  * @tc.type: FUNC
  */
-HWTEST_F(CjEnvironmentTest, GetUIScheduler_0100, TestSize.Level1)
+HWTEST_F(CjEnvironmentFirstTest, GetUIScheduler_0100, TestSize.Level1)
 {
     auto cjEnv = std::make_shared<CJEnvironment>();
     cjEnv->isUISchedulerStarted_ = true;
@@ -297,7 +297,7 @@ HWTEST_F(CjEnvironmentTest, GetUIScheduler_0100, TestSize.Level1)
  * @tc.desc: Test GetSymbol.
  * @tc.type: FUNC
  */
-HWTEST_F(CjEnvironmentTest, GetSymbol_0100, TestSize.Level1)
+HWTEST_F(CjEnvironmentFirstTest, GetSymbol_0100, TestSize.Level1)
 {
     auto cjEnv = std::make_shared<CJEnvironment>();
     EXPECT_NE(cjEnv, nullptr);
@@ -313,7 +313,7 @@ HWTEST_F(CjEnvironmentTest, GetSymbol_0100, TestSize.Level1)
  * @tc.desc: Test StartDebugger.
  * @tc.type: FUNC
  */
-HWTEST_F(CjEnvironmentTest, StartDebugger_0100, TestSize.Level1)
+HWTEST_F(CjEnvironmentFirstTest, StartDebugger_0100, TestSize.Level1)
 {
     auto cjEnv = std::make_shared<CJEnvironment>();
     EXPECT_NE(cjEnv, nullptr);
@@ -326,7 +326,7 @@ HWTEST_F(CjEnvironmentTest, StartDebugger_0100, TestSize.Level1)
  * @tc.desc: Test PostTask.
  * @tc.type: FUNC
  */
-HWTEST_F(CjEnvironmentTest, PostTask_0100, TestSize.Level1)
+HWTEST_F(CjEnvironmentFirstTest, PostTask_0100, TestSize.Level1)
 {
     auto cjEnv = std::make_shared<CJEnvironment>();
     TaskFuncType task = nullptr;
@@ -339,7 +339,7 @@ HWTEST_F(CjEnvironmentTest, PostTask_0100, TestSize.Level1)
  * @tc.desc: Test HasHigherPriorityTask.
  * @tc.type: FUNC
  */
-HWTEST_F(CjEnvironmentTest, HasHigherPriorityTask_0100, TestSize.Level1)
+HWTEST_F(CjEnvironmentFirstTest, HasHigherPriorityTask_0100, TestSize.Level1)
 {
     auto cjEnv = std::make_shared<CJEnvironment>();
     EXPECT_NE(cjEnv, nullptr);
