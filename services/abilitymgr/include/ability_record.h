@@ -286,6 +286,8 @@ struct AbilityRequest {
 
     sptr<SessionInfo> sessionInfo;
     uint32_t specifyTokenId = 0;
+    bool uriReservedFlag = false;
+    std::string reservedBundleName;
 
     std::pair<bool, LaunchReason> IsContinuation() const
     {
@@ -662,10 +664,10 @@ public:
     void ConnectAbility();
 
     /**
-     * connect the ability.
+     * connect the ability with want.
      *
      */
-    void ConnectUIServiceExtAbility(const Want &want);
+    void ConnectAbilityWithWant(const Want &want);
 
     /**
      * disconnect the ability.
@@ -677,7 +679,7 @@ public:
      * disconnect the ability with want
      *
      */
-    void DisconnectUIServiceExtAbility(const Want &want);
+    void DisconnectAbilityWithWant(const Want &want);
 
     /**
      * Command the ability.
@@ -985,6 +987,7 @@ public:
     void SetSessionInfo(sptr<SessionInfo> sessionInfo);
     void UpdateSessionInfo(sptr<IRemoteObject> sessionToken);
     void SetMinimizeReason(bool fromUser);
+    void SetSceneFlag(uint32_t sceneFlag);
     bool IsMinimizeFromUser() const;
     void SetClearMissionFlag(bool clearMissionFlag);
     bool IsClearMissionFlag();
@@ -1133,7 +1136,7 @@ private:
 
     void PublishFileOpenEvent(const Want &want);
 
-    static void SetDebugAppByWaitingDebugFlag(Want &requestWant, const std::string &bundleName, bool isDebugApp);
+    void SetDebugAppByWaitingDebugFlag();
 
 #ifdef SUPPORT_SCREEN
     std::shared_ptr<Want> GetWantFromMission() const;

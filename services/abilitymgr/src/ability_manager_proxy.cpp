@@ -15,20 +15,9 @@
 
 #include "ability_manager_proxy.h"
 
-#include "errors.h"
-#include "string_ex.h"
-
-#include "hilog_tag_wrapper.h"
-#include "ability_connect_callback_proxy.h"
-#include "ability_connect_callback_stub.h"
-#include "ability_manager_errors.h"
 #include "ability_scheduler_stub.h"
 #include "ability_util.h"
-#include "appexecfwk_errors.h"
-#include "configuration.h"
-#include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
-#include "session_info.h"
 #include "status_bar_delegate_interface.h"
 
 namespace OHOS {
@@ -764,7 +753,7 @@ int AbilityManagerProxy::StartUIExtensionAbility(const sptr<SessionInfo> &extens
     return reply.ReadInt32();
 }
 
-int AbilityManagerProxy::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart)
+int AbilityManagerProxy::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -782,6 +771,10 @@ int AbilityManagerProxy::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool
             TAG_LOGE(AAFwkTag::ABILITYMGR, "flag write failed.");
             return INNER_ERR;
         }
+    }
+    if (!data.WriteUint32(sceneFlag)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "sceneFlag write failed.");
+        return INNER_ERR;
     }
     auto error = SendRequest(AbilityManagerInterfaceCode::START_UI_ABILITY_BY_SCB, data, reply, option);
     if (error != NO_ERROR) {
@@ -1573,7 +1566,7 @@ int AbilityManagerProxy::MinimizeUIExtensionAbility(const sptr<SessionInfo> &ext
     return reply.ReadInt32();
 }
 
-int AbilityManagerProxy::MinimizeUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool fromUser)
+int AbilityManagerProxy::MinimizeUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool fromUser, uint32_t sceneFlag)
 {
     int error;
     MessageParcel data;
@@ -1596,6 +1589,10 @@ int AbilityManagerProxy::MinimizeUIAbilityBySCB(const sptr<SessionInfo> &session
     }
     if (!data.WriteBool(fromUser)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "fromUser write failed.");
+        return INNER_ERR;
+    }
+    if (!data.WriteUint32(sceneFlag)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "sceneFlag write failed.");
         return INNER_ERR;
     }
 
@@ -5225,7 +5222,7 @@ int32_t AbilityManagerProxy::GetUIExtensionSessionInfo(const sptr<IRemoteObject>
     return reply.ReadInt32();
 }
 
-int32_t AbilityManagerProxy::RestartApp(const AAFwk::Want &want)
+int32_t AbilityManagerProxy::RestartApp(const AAFwk::Want &want, bool isAppRecovery)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -5236,6 +5233,10 @@ int32_t AbilityManagerProxy::RestartApp(const AAFwk::Want &want)
     }
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return IPC_PROXY_ERR;
+    }
+    if (!data.WriteBool(isAppRecovery)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Write isAppRecovery failed.");
         return IPC_PROXY_ERR;
     }
     auto ret = SendRequest(AbilityManagerInterfaceCode::RESTART_APP, data, reply, option);

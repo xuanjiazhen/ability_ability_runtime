@@ -15,11 +15,9 @@
 
 #include "connection_record.h"
 
-#include "ability_manager_errors.h"
 #include "ability_manager_service.h"
 #include "ability_util.h"
 #include "connection_state_manager.h"
-#include "hilog_tag_wrapper.h"
 #include "ui_service_extension_connection_constants.h"
 
 namespace OHOS {
@@ -120,7 +118,7 @@ int ConnectionRecord::DisconnectAbility()
         /* schedule disconnect to target ability */
         if (isAbilityUIServiceExt) {
             TAG_LOGI(AAFwkTag::CONNECTION, "Disconnect UIServiceExtension ability, set correct want");
-            targetService_->DisconnectUIServiceExtAbility(GetConnectWant());
+            targetService_->DisconnectAbilityWithWant(GetConnectWant());
         } else {
             targetService_->DisconnectAbility();
         }
@@ -221,6 +219,25 @@ void ConnectionRecord::ScheduleConnectAbilityDone()
         TAG_LOGE(AAFwkTag::CONNECTION, "fail to schedule connect ability done, current state is not connecting.");
         return;
     }
+
+    sptr<IRemoteObject> hostproxy = nullptr;
+    if (connectWant_.HasParameter(UISERVICEHOSTPROXY_KEY)) {
+        hostproxy = connectWant_.GetRemoteObject(UISERVICEHOSTPROXY_KEY);
+    }
+    auto element = connectWant_.GetElement();
+    Want::ClearWant(&connectWant_);
+    connectWant_.SetElement(element);
+    if (hostproxy != nullptr) {
+        connectWant_.SetParam(UISERVICEHOSTPROXY_KEY, hostproxy);
+    }
+
+    CancelConnectTimeoutTask();
+
+    CompleteConnect(ERR_OK);
+}
+
+void ConnectionRecord::CancelConnectTimeoutTask()
+{
     auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
     if (handler == nullptr) {
         TAG_LOGE(AAFwkTag::CONNECTION, "fail to get AbilityTaskHandler");
@@ -228,8 +245,6 @@ void ConnectionRecord::ScheduleConnectAbilityDone()
         std::string taskName = std::string("ConnectTimeout_") + std::to_string(recordId_);
         handler->CancelTask(taskName);
     }
-
-    CompleteConnect(ERR_OK);
 }
 
 void ConnectionRecord::DisconnectTimeout()
@@ -331,7 +346,7 @@ void ConnectionRecord::SetConnectWant(const Want &want)
     connectWant_ = want;
 }
 
-Want ConnectionRecord::GetConnectWant()
+Want ConnectionRecord::GetConnectWant() const
 {
     return connectWant_;
 }

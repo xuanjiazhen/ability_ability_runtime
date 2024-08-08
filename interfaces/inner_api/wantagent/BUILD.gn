@@ -71,7 +71,6 @@ ohos_shared_library("wantagent_innerkits") {
   external_deps = [
     "ability_base:want",
     "c_utils:utils",
-    "hicollie:libhicollie",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
@@ -92,6 +91,11 @@ ohos_shared_library("wantagent_innerkits") {
 
   if (is_double_framework) {
     cflags = [ "-DCONFIG_DUAL_FRAMEWORK" ]
+  }
+
+  cflags_cc = []
+  if (os_dlp_part_enabled) {
+    cflags_cc += [ "-DWITH_DLP" ]
   }
 
   innerapi_tags = [

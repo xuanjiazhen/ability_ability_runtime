@@ -15,20 +15,10 @@
 
 #include "ability_manager_stub.h"
 
-#include "errors.h"
-#include "string_ex.h"
-
-#include "ability_connect_callback_proxy.h"
-#include "ability_connect_callback_stub.h"
-#include "ability_manager_collaborator_proxy.h"
 #include "ability_manager_errors.h"
 #include "ability_manager_radar.h"
-#include "ability_scheduler_proxy.h"
-#include "ability_scheduler_stub.h"
-#include "configuration.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
-#include "session_info.h"
 #include "status_bar_delegate_interface.h"
 #include <iterator>
 
@@ -1046,7 +1036,8 @@ int AbilityManagerStub::MinimizeUIAbilityBySCBInner(MessageParcel &data, Message
         sessionInfo = data.ReadParcelable<SessionInfo>();
     }
     bool fromUser = data.ReadBool();
-    int32_t result = MinimizeUIAbilityBySCB(sessionInfo, fromUser);
+    uint32_t sceneFlag = data.ReadUint32();
+    int32_t result = MinimizeUIAbilityBySCB(sessionInfo, fromUser, sceneFlag);
     reply.WriteInt32(result);
     return NO_ERROR;
 }
@@ -2273,8 +2264,9 @@ int AbilityManagerStub::StartUIAbilityBySCBInner(MessageParcel &data, MessagePar
     if (data.ReadBool()) {
         sessionInfo = data.ReadParcelable<SessionInfo>();
     }
+    uint32_t sceneFlag = data.ReadUint32();
     bool isColdStart = false;
-    int32_t result = StartUIAbilityBySCB(sessionInfo, isColdStart);
+    int32_t result = StartUIAbilityBySCB(sessionInfo, isColdStart, sceneFlag);
     reply.WriteBool(isColdStart);
     reply.WriteInt32(result);
     return NO_ERROR;
@@ -3871,7 +3863,8 @@ int32_t AbilityManagerStub::RestartAppInner(MessageParcel &data, MessageParcel &
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
         return IPC_STUB_ERR;
     }
-    auto result = RestartApp(*want);
+    bool isAppRecovery = data.ReadBool();
+    auto result = RestartApp(*want, isAppRecovery);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "fail to write result.");
         return IPC_STUB_ERR;
