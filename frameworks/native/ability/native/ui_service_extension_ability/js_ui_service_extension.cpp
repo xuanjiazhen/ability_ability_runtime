@@ -379,7 +379,11 @@ void JsUIServiceExtension::OnCommand(const AAFwk::Want &want, bool restart, int 
 #ifdef SUPPORT_GRAPHICS
     auto context = GetContext();
     if (firstRequest_ && context != nullptr) {
-        int32_t hostWindowId = want.GetIntParam(WANT_PARAMS_HOST_WINDOW_ID_KEY, 0);
+        int32_t hostWindowId = 0;
+        if (want.HasParameter(WANT_PARAMS_HOST_WINDOW_ID_KEY)) {
+             hostWindowId = want.GetIntParam(WANT_PARAMS_HOST_WINDOW_ID_KEY, 0);
+        }
+
         TAG_LOGI(AAFwkTag::UISERVC_EXT, "try create window hostWindowId %{public}d", hostWindowId);
         auto extensionWindowConfig = std::make_shared<Rosen::ExtensionWindowConfig>();
         OnSceneWillCreated(extensionWindowConfig);
