@@ -15,11 +15,12 @@
 
 #include "app_scheduler_proxy.h"
 
+#include "app_scheduler_const.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "ipc_types.h"
 #include "iremote_object.h"
-#include "app_scheduler_const.h"
+#include "message_parcel_write_utils.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -202,7 +203,7 @@ void AppSchedulerProxy::ScheduleLaunchAbility(const AbilityInfo &info, const spt
         }
     }
 
-    if (!data.WriteParcelable(want.get())) {
+    if (AbilityRuntime::MessageParcelUtils::WriteParcelInfo<AAFwk::Want>(*want, data) != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "write want fail.");
         return;
     }
@@ -398,7 +399,8 @@ void AppSchedulerProxy::ScheduleAcceptWant(const AAFwk::Want &want, const std::s
         return;
     }
 
-    if (!data.WriteParcelable(&want) || !data.WriteString(moduleName)) {
+    if (AbilityRuntime::MessageParcelUtils::WriteParcelInfo<AAFwk::Want>(want, data) != ERR_OK ||
+        !data.WriteString(moduleName)) {
         return;
     }
     int32_t ret = SendTransactCmd(
@@ -417,7 +419,8 @@ void AppSchedulerProxy::ScheduleNewProcessRequest(const AAFwk::Want &want, const
         return;
     }
 
-    if (!data.WriteParcelable(&want) || !data.WriteString(moduleName)) {
+    if (AbilityRuntime::MessageParcelUtils::WriteParcelInfo<AAFwk::Want>(want, data) != ERR_OK ||
+        !data.WriteString(moduleName)) {
         return;
     }
     sptr<IRemoteObject> remote = Remote();
