@@ -93,8 +93,6 @@ const std::string NEED_STARTINGWINDOW = "ohos.ability.NeedStartingWindow";
 const std::string PARAMS_URI = "ability.verify.uri";
 const std::string PARAMS_FILE_SAVING_URL_KEY = "pick_path_return";
 const uint32_t RELEASE_STARTING_BG_TIMEOUT = 15000; // release starting window resource timeout.
-const std::string SHELL_ASSISTANT_BUNDLENAME = "com.huawei.shell_assistant";
-const std::string SHELL_ASSISTANT_ABILITYNAME = "MainAbility";
 const std::string SHELL_ASSISTANT_DIEREASON = "crash_die";
 const std::string PARAM_MISSION_AFFINITY_KEY = "ohos.anco.param.missionAffinity";
 const std::string DISTRIBUTED_FILES_PATH = "/data/storage/el2/distributedfiles/";
@@ -113,7 +111,6 @@ const int LOAD_TIMEOUT_ASANENABLED = 150;
 const int TERMINATE_TIMEOUT_ASANENABLED = 150;
 const int HALF_TIMEOUT = 2;
 const int MAX_URI_COUNT = 500;
-const int32_t BROKER_UID = 5557;
 const int RESTART_SCENEBOARD_DELAY = 500;
 #ifdef SUPPORT_ASAN
 const int COLDSTART_TIMEOUT_MULTIPLE = 15000;
@@ -1856,7 +1853,7 @@ void AbilityRecord::SaveResult(int resultCode, const Want *resultWant, std::shar
     std::shared_ptr<AbilityRecord> callerAbilityRecord = caller->GetCaller();
     if (callerAbilityRecord != nullptr) {
         Want* newWant = const_cast<Want*>(resultWant);
-        if (callerAbilityRecord->GetApplicationInfo().name == SHELL_ASSISTANT_BUNDLENAME) {
+        if (callerAbilityRecord->GetApplicationInfo().name == AppUtils::GetInstance().GetBrokerDelegateBundleName()) {
             newWant->SetParam(std::string(PARAM_SEND_RESULT_CALLER_BUNDLENAME), applicationInfo_.name);
             newWant->SetParam(std::string(PARAM_SEND_RESULT_CALLER_TOKENID), static_cast<int32_t>(
                 applicationInfo_.accessTokenId));
@@ -3150,7 +3147,8 @@ void AbilityRecord::GrantUriPermission(Want &want, std::string targetBundleName,
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Sandbox can not grant uriPermission by terminate self with result.");
         return;
     }
-    if (targetBundleName == SHELL_ASSISTANT_BUNDLENAME && collaboratorType_ == CollaboratorType::OTHERS_TYPE) {
+    if (targetBundleName == AppUtils::GetInstance().GetBrokerDelegateBundleName() &&
+        collaboratorType_ == CollaboratorType::OTHERS_TYPE) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "reject shell application to grant uri permission");
         return;
     }
@@ -3170,7 +3168,8 @@ void AbilityRecord::GrantUriPermission(Want &want, std::string targetBundleName,
     }
 
     auto callerPkg = want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
-    if (callerPkg == SHELL_ASSISTANT_BUNDLENAME && GrantPermissionToShell(uriVec, want.GetFlags(), targetBundleName)) {
+    if (callerPkg == AppUtils::GetInstance().GetBrokerDelegateBundleName() &&
+        GrantPermissionToShell(uriVec, want.GetFlags(), targetBundleName)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "permission to shell");
         return;
     }
@@ -3314,7 +3313,7 @@ void AbilityRecord::HandleDlpClosed()
 void AbilityRecord::NotifyRemoveShellProcess(int32_t type)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "type is : %{public}d", type);
-    if (abilityInfo_.bundleName == SHELL_ASSISTANT_BUNDLENAME) {
+    if (abilityInfo_.bundleName == AppUtils::GetInstance().GetBrokerDelegateBundleName()) {
         auto collaborator = DelayedSingleton<AbilityManagerService>::GetInstance()->GetCollaborator(type);
         if (collaborator == nullptr) {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "collaborator is nullptr");
@@ -3339,7 +3338,7 @@ void AbilityRecord::NotifyMissionBindPid()
         return;
     }
     int32_t persistentId = sessionInfo->persistentId;
-    if (abilityInfo_.bundleName == SHELL_ASSISTANT_BUNDLENAME && abilityInfo_.name == SHELL_ASSISTANT_ABILITYNAME) {
+    if (abilityInfo_.bundleName == AppUtils::GetInstance().GetBrokerDelegateBundleName()) {
         auto collaborator = DelayedSingleton<AbilityManagerService>::GetInstance()->GetCollaborator(
             CollaboratorType::RESERVE_TYPE);
         if (collaborator == nullptr) {
