@@ -22,6 +22,7 @@
 #include "data_ability_result.h"
 #include "hilog_tag_wrapper.h"
 #include "ishared_result_set.h"
+#include "message_parcel_read_utils.h"
 #include "session_info.h"
 #include "values_bucket.h"
 
@@ -164,19 +165,31 @@ int AbilitySchedulerStub::OnRemoteRequestInnerThird(
 
 int AbilitySchedulerStub::AbilityTransactionInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    std::shared_ptr<AAFwk::Want> want = std::make_shared<Want>();
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilitySchedulerStub want is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "make shared want failed");
         return ERR_INVALID_VALUE;
+    }
+    int32_t resultCode = ERR_OK;
+    resultCode = AbilityRuntime::MessageParcelUtils::ReadParcelInfo<Want>(data, *want);
+    if (resultCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read want failed");
+        return resultCode;
     }
     std::unique_ptr<LifeCycleStateInfo> stateInfo(data.ReadParcelable<LifeCycleStateInfo>());
     if (!stateInfo) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "ReadParcelable<LifeCycleStateInfo> failed");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read stateInfo failed");
         return ERR_INVALID_VALUE;
     }
     sptr<SessionInfo> sessionInfo = nullptr;
     if (data.ReadBool()) {
-        sessionInfo = data.ReadParcelable<SessionInfo>();
+        SessionInfo tmpSessionInfo;
+        resultCode = AbilityRuntime::MessageParcelUtils::ReadParcelInfo<SessionInfo>(data, tmpSessionInfo);
+        if (resultCode != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "read sessionInfo failed");
+            return resultCode;
+        }
+        sessionInfo = &tmpSessionInfo;
     }
     ScheduleAbilityTransaction(*want, *stateInfo, sessionInfo);
     return NO_ERROR;
@@ -194,10 +207,15 @@ int AbilitySchedulerStub::SendResultInner(MessageParcel &data, MessageParcel &re
 {
     int requestCode = data.ReadInt32();
     int resultCode = data.ReadInt32();
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    std::shared_ptr<AAFwk::Want> want = std::make_shared<Want>();
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilitySchedulerStub want is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "make shared want failed");
         return ERR_INVALID_VALUE;
+    }
+    auto ret = AbilityRuntime::MessageParcelUtils::ReadParcelInfo<Want>(data, *want);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read want failed");
+        return resultCode;
     }
     SendResult(requestCode, resultCode, *want);
     return NO_ERROR;
@@ -205,10 +223,15 @@ int AbilitySchedulerStub::SendResultInner(MessageParcel &data, MessageParcel &re
 
 int AbilitySchedulerStub::ConnectAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    std::shared_ptr<AAFwk::Want> want = std::make_shared<Want>();
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilitySchedulerStub want is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "make shared want failed");
         return ERR_INVALID_VALUE;
+    }
+    auto resultCode = AbilityRuntime::MessageParcelUtils::ReadParcelInfo<Want>(data, *want);
+    if (resultCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read want failed");
+        return resultCode;
     }
     ScheduleConnectAbility(*want);
     return NO_ERROR;
@@ -216,10 +239,15 @@ int AbilitySchedulerStub::ConnectAbilityInner(MessageParcel &data, MessageParcel
 
 int AbilitySchedulerStub::DisconnectAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    std::shared_ptr<AAFwk::Want> want = std::make_shared<Want>();
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilitySchedulerStub want is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "make shared want failed");
         return ERR_INVALID_VALUE;
+    }
+    auto resultCode = AbilityRuntime::MessageParcelUtils::ReadParcelInfo<Want>(data, *want);
+    if (resultCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read want failed");
+        return resultCode;
     }
     ScheduleDisconnectAbility(*want);
     return NO_ERROR;
@@ -227,10 +255,15 @@ int AbilitySchedulerStub::DisconnectAbilityInner(MessageParcel &data, MessagePar
 
 int AbilitySchedulerStub::CommandAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    std::shared_ptr<AAFwk::Want> want = std::make_shared<Want>();
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilitySchedulerStub want is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "make shared want failed");
         return ERR_INVALID_VALUE;
+    }
+    auto resultCode = AbilityRuntime::MessageParcelUtils::ReadParcelInfo<Want>(data, *want);
+    if (resultCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read want failed");
+        return resultCode;
     }
     bool reStart = data.ReadBool();
     int startId = data.ReadInt32();
@@ -251,12 +284,27 @@ int AbilitySchedulerStub::PrepareTerminateAbilityInner(MessageParcel &data, Mess
 
 int AbilitySchedulerStub::CommandAbilityWindowInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    std::shared_ptr<AAFwk::Want> want = std::make_shared<Want>();
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "make shared want failed");
         return ERR_INVALID_VALUE;
     }
-    sptr<SessionInfo> sessionInfo(data.ReadParcelable<SessionInfo>());
+    int32_t resultCode = ERR_OK;
+    resultCode = AbilityRuntime::MessageParcelUtils::ReadParcelInfo<Want>(data, *want);
+    if (resultCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read want failed");
+        return resultCode;
+    }
+    sptr<SessionInfo> sessionInfo = nullptr;
+    if (data.ReadBool()) {
+        SessionInfo tmpSessionInfo;
+        resultCode = AbilityRuntime::MessageParcelUtils::ReadParcelInfo<SessionInfo>(data, tmpSessionInfo);
+        if (resultCode != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "read sessionInfo failed");
+            return resultCode;
+        }
+        sessionInfo = &tmpSessionInfo;
+    }
     int32_t winCmd = data.ReadInt32();
     ScheduleCommandAbilityWindow(*want, sessionInfo, static_cast<WindowCommand>(winCmd));
     return NO_ERROR;
@@ -711,10 +759,15 @@ int AbilitySchedulerStub::CallRequestInner(MessageParcel &data, MessageParcel &r
 int AbilitySchedulerStub::OnExecuteIntentInner(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilitySchedulerStub::OnExecuteIntentInner start");
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    std::shared_ptr<AAFwk::Want> want = std::make_shared<Want>();
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilitySchedulerStub want is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "make shared want failed");
         return ERR_INVALID_VALUE;
+    }
+    auto resultCode = AbilityRuntime::MessageParcelUtils::ReadParcelInfo<Want>(data, *want);
+    if (resultCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read want failed");
+        return resultCode;
     }
     OnExecuteIntent(*want);
     return NO_ERROR;
@@ -722,10 +775,15 @@ int AbilitySchedulerStub::OnExecuteIntentInner(MessageParcel &data, MessageParce
 
 int AbilitySchedulerStub::CreateModalUIExtensionInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    std::shared_ptr<AAFwk::Want> want = std::make_shared<Want>();
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilitySchedulerStub want is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "make shared want failed");
         return ERR_INVALID_VALUE;
+    }
+    auto resultCode = AbilityRuntime::MessageParcelUtils::ReadParcelInfo<Want>(data, *want);
+    if (resultCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read want failed");
+        return resultCode;
     }
     int ret = CreateModalUIExtension(*want);
     if (!reply.WriteInt32(ret)) {
