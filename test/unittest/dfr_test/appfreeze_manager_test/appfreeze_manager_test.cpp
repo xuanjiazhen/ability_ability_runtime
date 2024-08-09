@@ -23,6 +23,12 @@
 #include "cpp/condition_variable.h"
 #include "fault_data.h"
 #include "freeze_util.h"
+#include "hisysevent.h"
+
+#ifdef HiSysEventWrite
+#undef HiSysEventWrite
+#define HiSysEventWrite(domain, eventName, type, ...)({})
+#endif
 
 using namespace testing;
 using namespace testing::ext;
