@@ -9685,7 +9685,7 @@ std::shared_ptr<AbilityRecord> AbilityManagerService::GetFocusAbility()
     return nullptr;
 }
 
-void GetCallerTokenList(const sptr<IRemoteObject> &token, std::list<sptr<IRemoteObject>> &callerList)
+void AbilityManagerService::GetCallerTokenList(const sptr<IRemoteObject> &token, std::list<sptr<IRemoteObject>> &callerList)
 {
     auto abilityRecord = AAFwk::Token::GetAbilityRecordByToken(token);
     if (abilityRecord == nullptr) {
@@ -9702,12 +9702,19 @@ void GetCallerTokenList(const sptr<IRemoteObject> &token, std::list<sptr<IRemote
     }
 
     auto callerToken = sessionInfo->callerToken;
+    std::shared_ptr<AbilityRecord> callerAbilityRecord;
     auto callerAbilityRecord = AAFwk::Token::GetAbilityRecordByToken(callerToken);
     if (callerAbilityRecord == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "callerAbilityRecord is null, id: %{public}d", extensionRecordId);
         callerList.clear();
         return;
     }
+
+    TAG_LOGD(AAFwkTag::ABILITYMGR,
+             "ability: %{public}s, pid: %{public}d, tokenId: %{public}d",
+             callerAbilityRecord->GetWant().GetElement().GetURI().c_str(),
+             callerAbilityRecord->GetPid(),
+             callerAbilityRecord->GetApplicationInfo().accessTokenId);
 
     auto callerExtensionRecordId = callerAbilityRecord->GetUIExtensionAbilityId();
     if (callerExtensionRecordId == INVALID_EXTENSION_RECORD_ID) {
@@ -9727,12 +9734,12 @@ void GetCallerTokenList(const sptr<IRemoteObject> &token, std::list<sptr<IRemote
     GetCallerTokenList(callerToken, callerList);
 }
 
-sptr<IRemoteObject> GetUIExtensionToken(const std::shared_ptr<AbilityConnectManager> connectManager, const uint32_t uiExtensionTokenId)
+sptr<IRemoteObject> AbilityManagerService::GetUIExtensionToken(const std::shared_ptr<AbilityConnectManager> connectManager, const uint32_t uiExtensionTokenId)
 {
     return connectManager->GetUIExtensionToken(uiExtensionTokenId);
 }
 
-bool IsUIExtensionFocused(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &focusToken)
+bool AbilityManagerService::IsUIExtensionFocused(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &focusToken)
 {
     bool isFocused = false;
 
@@ -9764,12 +9771,6 @@ bool IsUIExtensionFocused(const sptr<IRemoteObject> &token, const sptr<IRemoteOb
             TAG_LOGW(AAFwkTag::ABILITYMGR, "Wrong ability");
             continue;
         }
-
-        TAG_LOGD(AAFwkTag::ABILITYMGR,
-                "ability: %{public}s, pid: %{public}d, tokenId: %{public}d",
-                ability->GetWant().GetElement().GetURI().c_str(),
-                ability->GetPid(),
-                ability->GetApplicationInfo().accessTokenId);
 
         if (item == focusToken) {
             isFocused = true;

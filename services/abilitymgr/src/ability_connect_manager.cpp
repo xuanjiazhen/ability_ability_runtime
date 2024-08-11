@@ -2937,7 +2937,6 @@ sptr<IRemoteObject> AbilityConnectManager::GetUIExtensionSourceToken(const sptr<
 }
 
 
-
 bool AbilityConnectManager::IsWindowExtensionFocused(uint32_t extensionTokenId, const sptr<IRemoteObject>& focusToken)
 {
     std::lock_guard guard(windowExtensionMapMutex_);
