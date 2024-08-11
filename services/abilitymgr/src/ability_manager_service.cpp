@@ -8357,7 +8357,7 @@ int AbilityManagerService::CheckStaticCfgPermission(const AppExecFwk::AbilityReq
     if (abilityInfo.applicationInfo.accessTokenId == tokenId) {
         return AppExecFwk::Constants::PERMISSION_GRANTED;
     }
-    
+
     if (abilityRequest.want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME) ==
         AppUtils::GetInstance().GetBrokerDelegateBundleName() &&
         abilityRequest.abilityInfo.applicationInfo.codePath == std::to_string(CollaboratorType::RESERVE_TYPE)) {
@@ -9685,6 +9685,100 @@ std::shared_ptr<AbilityRecord> AbilityManagerService::GetFocusAbility()
     return nullptr;
 }
 
+void GetCallerTokenList(const sptr<IRemoteObject> &token, std::list<sptr<IRemoteObject>> &callerList)
+{
+    auto abilityRecord = AAFwk::Token::GetAbilityRecordByToken(token);
+    if (abilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Get ability record failed");
+        callerList.clear();
+        return;
+    }
+
+    auto extensionRecordId = abilityRecord->GetUIExtensionAbilityId();
+    auto sessionInfo = abilityRecord->GetSessionInfo();
+    if (!sessionInfo) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionInfo is null, id: %{public}d", extensionRecordId);
+        return;
+    }
+
+    auto callerToken = sessionInfo->callerToken;
+    auto callerAbilityRecord = AAFwk::Token::GetAbilityRecordByToken(callerToken);
+    if (callerAbilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "callerAbilityRecord is null, id: %{public}d", extensionRecordId);
+        callerList.clear();
+        return;
+    }
+
+    auto callerExtensionRecordId = callerAbilityRecord->GetUIExtensionAbilityId();
+    if (callerExtensionRecordId == INVALID_EXTENSION_RECORD_ID) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Get caller, caught invalid id: %{public}d", callerExtensionRecordId);
+        callerList.push_front(callerToken);
+        return;
+    }
+
+    // If caller extension record id is same with current, need terminate, prevent possible stack-overflow.
+    if (callerExtensionRecordId == extensionRecordId) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Invalid id: %{public}d, same with caller", extensionRecordId);
+        callerList.clear();
+        return;
+    }
+
+    callerList.push_front(callerToken);
+    GetCallerTokenList(callerToken, callerList);
+}
+
+sptr<IRemoteObject> GetUIExtensionToken(const std::shared_ptr<AbilityConnectManager> connectManager, const uint32_t uiExtensionTokenId)
+{
+    return connectManager->GetUIExtensionToken(uiExtensionTokenId);
+}
+
+bool IsUIExtensionFocused(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &focusToken)
+{
+    bool isFocused = false;
+
+    auto uiExtensionAbility= Token::GetAbilityRecordByToken(token);
+    if (!uiExtensionAbility) {
+        return isFocused;
+    }
+
+    TAG_LOGD(AAFwkTag::ABILITYMGR,
+        "ability: %{public}s, pid: %{public}d, tokenId: %{public}d",
+        uiExtensionAbility->GetWant().GetElement().GetURI().c_str(),
+        uiExtensionAbility->GetPid(),
+        uiExtensionAbility->GetApplicationInfo().accessTokenId);
+
+    if (!AAFwk::UIExtensionUtils::IsUIExtension(uiExtensionAbility->GetAbilityInfo().extensionAbilityType)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "Not ui extension ability");
+        return isFocused;
+    }
+
+    std::list<sptr<IRemoteObject>> callerList;
+    GetCallerTokenList(token, callerList);
+    if (callerList.empty()) {
+        return isFocused;
+    }
+
+    for (auto item : callerList) {
+        auto ability = AAFwk::Token::GetAbilityRecordByToken(item);
+        if (ability == nullptr) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "Wrong ability");
+            continue;
+        }
+
+        TAG_LOGD(AAFwkTag::ABILITYMGR,
+                "ability: %{public}s, pid: %{public}d, tokenId: %{public}d",
+                ability->GetWant().GetElement().GetURI().c_str(),
+                ability->GetPid(),
+                ability->GetApplicationInfo().accessTokenId);
+
+        if (item == focusToken) {
+            isFocused = true;
+            break;
+        }
+    }
+    return isFocused;
+}
+
 int AbilityManagerService::CheckUIExtensionIsFocused(uint32_t uiExtensionTokenId, bool& isFocused)
 {
     sptr<IRemoteObject> token;
@@ -9702,11 +9796,15 @@ int AbilityManagerService::CheckUIExtensionIsFocused(uint32_t uiExtensionTokenId
     }
 
     bool focused = false;
+    bool uiExtensionFocused = false;
     int32_t userId = GetValidUserId(DEFAULT_INVAL_VALUE);
     auto connectManager = GetConnectManagerByUserId(userId);
     if (connectManager) {
-        focused = connectManager->IsUIExtensionFocused(uiExtensionTokenId, token)
-            || connectManager->IsWindowExtensionFocused(uiExtensionTokenId, token);
+        auto uiExtensionToken = GetUIExtensionToken(connectManager, uiExtensionTokenId);
+        if (uiExtensionToken) {
+            uiExtensionFocused = IsUIExtensionFocused(uiExtensionToken, token);
+        }
+        focused = uiExtensionFocused || connectManager->IsWindowExtensionFocused(uiExtensionTokenId, token);
     } else {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "connectManager is nullptr, userId: %{public}d", userId);
     }
@@ -9714,8 +9812,11 @@ int AbilityManagerService::CheckUIExtensionIsFocused(uint32_t uiExtensionTokenId
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Check connectManager in user0");
         connectManager = GetConnectManagerByUserId(U0_USER_ID);
         if (connectManager) {
-            focused = connectManager->IsUIExtensionFocused(uiExtensionTokenId, token)
-                || connectManager->IsWindowExtensionFocused(uiExtensionTokenId, token);
+            auto uiExtensionToken = GetUIExtensionToken(connectManager, uiExtensionTokenId);
+            if (uiExtensionToken) {
+                uiExtensionFocused = IsUIExtensionFocused(uiExtensionToken, token);
+            }
+            focused = uiExtensionFocused || connectManager->IsWindowExtensionFocused(uiExtensionTokenId, token);
         } else {
             TAG_LOGW(AAFwkTag::ABILITYMGR, "connectManager is nullptr, userId: 0");
         }
@@ -10856,9 +10957,31 @@ int32_t AbilityManagerService::GetUIExtensionRootHostInfo(const sptr<IRemoteObje
         return ERR_INVALID_VALUE;
     }
 
-    auto callerRecord = connectManager->GetUIExtensionRootHostInfo(token);
-    if (callerRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Get root host info failed.");
+
+    auto abilityRecord = AAFwk::Token::GetAbilityRecordByToken(token);
+
+    if (!AAFwk::UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "Not ui extension ability.");
+        return ERR_INVALID_VALUE;
+    }
+
+    std::list<sptr<IRemoteObject>> callerList;
+    GetCallerTokenList(token, callerList);
+
+    if (callerList.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Get root caller list failed.");
+        return ERR_INVALID_VALUE;
+    }
+
+    sptr<IRemoteObject> rootCallerToken = callerList.front();
+    if (!rootCallerToken) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Get root caller token failed.");
+        return ERR_INVALID_VALUE;
+    }
+
+    auto callerRecord = AAFwk::Token::GetAbilityRecordByToken(rootCallerToken);
+    if (!callerRecord) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Get root caller record failed.");
         return ERR_INVALID_VALUE;
     }
 
