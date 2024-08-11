@@ -2277,7 +2277,8 @@ private:
 
     bool IsUIExtensionFocused(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &focusToken);
 
-    sptr<IRemoteObject> GetUIExtensionToken(const std::shared_ptr<AbilityConnectManager> connectManager, const uint32_t uiExtensionTokenId);
+    sptr<IRemoteObject> GetUIExtensionToken(
+        const std::shared_ptr<AbilityConnectManager> connectManager, const uint32_t tokenId);
 
     constexpr static int REPOLL_TIME_MICRO_SECONDS = 1000000;
     constexpr static int WAITING_BOOT_ANIMATION_TIMER = 5;
