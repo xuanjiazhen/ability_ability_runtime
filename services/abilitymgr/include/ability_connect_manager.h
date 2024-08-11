@@ -295,6 +295,8 @@ public:
 
     sptr<IRemoteObject> GetUIExtensionSourceToken(const sptr<IRemoteObject> &token);
 
+    sptr<IRemoteObject> GetUIExtensionToken(const uint32_t &uiExtensionTokenId);
+
     bool IsWindowExtensionFocused(uint32_t extensionTokenId, const sptr<IRemoteObject>& focusToken);
 
     void HandleProcessFrozen(const std::vector<int32_t> &pidList, int32_t uid);
