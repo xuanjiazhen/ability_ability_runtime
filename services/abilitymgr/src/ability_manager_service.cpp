@@ -9702,7 +9702,6 @@ void AbilityManagerService::GetCallerTokenList(const sptr<IRemoteObject> &token,
     }
 
     auto callerToken = sessionInfo->callerToken;
-    std::shared_ptr<AbilityRecord> callerAbilityRecord;
     auto callerAbilityRecord = AAFwk::Token::GetAbilityRecordByToken(callerToken);
     if (callerAbilityRecord == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "callerAbilityRecord is null, id: %{public}d", extensionRecordId);
