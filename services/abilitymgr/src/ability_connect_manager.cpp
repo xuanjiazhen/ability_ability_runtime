@@ -2936,6 +2936,22 @@ sptr<IRemoteObject> AbilityConnectManager::GetUIExtensionSourceToken(const sptr<
     return nullptr;
 }
 
+sptr<IRemoteObject> AbilityConnectManager::GetUIExtensionToken(const uint32_t &uiExtensionTokenId)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    CHECK_POINTER_AND_RETURN(uiExtensionAbilityRecordMgr_, nullptr);
+    std::lock_guard guard(uiExtensionMapMutex_);
+    for (auto &item : uiExtensionMap_) {
+        auto uiExtension = item.second.first.lock();
+        auto sessionInfo = item.second.second;
+        if (uiExtension && uiExtension->GetApplicationInfo().accessTokenId == uiExtensionTokenId) {
+            if (sessionInfo) {
+                return sessionInfo->callerToken;
+            }
+        }
+    }
+    return nullptr;
+}
 
 bool AbilityConnectManager::IsWindowExtensionFocused(uint32_t extensionTokenId, const sptr<IRemoteObject>& focusToken)
 {
