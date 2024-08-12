@@ -77,7 +77,10 @@ void AbilityMgrServiceDialogTest::SetUp()
     systemDialogScheduler_ = std::make_shared<SystemDialogScheduler>();
 }
 
-void AbilityMgrServiceDialogTest::TearDown() {}
+void AbilityMgrServiceDialogTest::TearDown()
+{
+    AbilityManagerClient::GetInstance()->proxy_ = nullptr;
+}
 
 /*
  * @tc.number    : AbilityMgrServiceDialog_0100
