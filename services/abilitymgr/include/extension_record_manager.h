@@ -104,7 +104,7 @@ public:
         int32_t extensionRecordId);
 
     int32_t GetOrCreateExtensionRecord(const AAFwk::AbilityRequest &abilityRequest, const std::string &hostBundleName,
-                                        std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, bool &isLoaded);
+        std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, bool &isLoaded);
 
     std::shared_ptr<AAFwk::AbilityRecord> GetAbilityRecordBySessionInfo(const sptr<AAFwk::SessionInfo> &sessionInfo);
 
