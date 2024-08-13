@@ -781,7 +781,7 @@ bool ExtensionRecordManager::IsUIExtensionFocused(
 
     bool isFocused = false;
 
-    auto abilityRecord= Token::GetAbilityRecordByToken(token);
+    auto abilityRecord = Token::GetAbilityRecordByToken(token);
     if (!abilityRecord) {
         return isFocused;
     }
