@@ -766,7 +766,7 @@ void ExtensionRecordManager::GetCallerTokenList(
     }
 
     callerList.push_front(callerToken);
-    GetCallerTokenList(callerToken, callerList);
+    GetCallerTokenList(callerAbilityRecord, callerList);
 }
 
 bool ExtensionRecordManager::IsUIExtensionFocused(
@@ -781,7 +781,7 @@ bool ExtensionRecordManager::IsUIExtensionFocused(
 
     bool isFocused = false;
 
-    auto abilityRecord = Token::GetAbilityRecordByToken(token);
+    auto abilityRecord = AAFwk::Token::GetAbilityRecordByToken(token);
     if (!abilityRecord) {
         return isFocused;
     }
