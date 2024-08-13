@@ -27,12 +27,9 @@
 #include "ui_extension_host_info.h"
 #include "ui_extension_session_info.h"
 
-namespace OHOS
-{
-    namespace AbilityRuntime
-    {
-        class ExtensionRecordManager : public std::enable_shared_from_this<ExtensionRecordManager>
-        {
+namespace OHOS{
+namespace AbilityRuntime{
+class ExtensionRecordManager : public std::enable_shared_from_this<ExtensionRecordManager> {
         public:
             using ExtensionAbilityRecordMap = std::map<int32_t, std::shared_ptr<ExtensionRecord>>;
             using PreLoadUIExtensionMapKey = std::tuple<std::string, std::string, std::string, std::string>;
@@ -72,7 +69,7 @@ namespace OHOS
             void AddExtensionRecordToTerminatedList(const int32_t extensionRecordId);
 
             static bool IsBelongToManager(const AppExecFwk::AbilityInfo &abilityInfo);
-            
+
             /**
              * @brief Get extensionList by pid.
              * @param pid Process id.
