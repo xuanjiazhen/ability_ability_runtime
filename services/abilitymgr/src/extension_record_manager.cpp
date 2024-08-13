@@ -779,11 +779,9 @@ void ExtensionRecordManager::GetCallerTokenList(
         return;
     }
 
-    TAG_LOGD(AAFwkTag::ABILITYMGR,
-             "ability: %{public}s, pid: %{public}d, tokenId: %{public}d",
-             callerAbilityRecord->GetWant().GetElement().GetURI().c_str(),
-             callerAbilityRecord->GetPid(),
-             callerAbilityRecord->GetApplicationInfo().accessTokenId);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "ability: %{public}s, pid: %{public}d, tokenId: %{public}d",
+        callerAbilityRecord->GetWant().GetElement().GetURI().c_str(), callerAbilityRecord->GetPid(),
+        callerAbilityRecord->GetApplicationInfo().accessTokenId);
 
     auto callerExtensionRecordId = callerAbilityRecord->GetUIExtensionAbilityId();
     if (callerExtensionRecordId == INVALID_EXTENSION_RECORD_ID) {
@@ -814,16 +812,13 @@ bool ExtensionRecordManager::IsUIExtensionFocused(
     }
 
     bool isFocused = false;
-
     auto abilityRecord = AAFwk::Token::GetAbilityRecordByToken(token);
     if (!abilityRecord) {
         return isFocused;
     }
 
-    TAG_LOGD(AAFwkTag::ABILITYMGR,
-        "ability: %{public}s, pid: %{public}d, tokenId: %{public}d",
-        abilityRecord->GetWant().GetElement().GetURI().c_str(),
-        abilityRecord->GetPid(),
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "ability: %{public}s, pid: %{public}d, tokenId: %{public}d",
+        abilityRecord->GetWant().GetElement().GetURI().c_str(), abilityRecord->GetPid(),
         abilityRecord->GetApplicationInfo().accessTokenId);
 
     if (!AAFwk::UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
