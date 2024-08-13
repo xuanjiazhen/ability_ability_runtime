@@ -114,9 +114,6 @@ public:
 
     int32_t GetUIExtensionSessionInfo(const sptr<IRemoteObject> token, UIExtensionSessionInfo &uiExtensionSessionInfo);
 
-    void GetCallerTokenList(
-        const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, std::list<sptr<IRemoteObject>> &callerList);
-
     bool IsUIExtensionFocused(
         int32_t extensionRecordId, const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &focusToken);
 
@@ -155,6 +152,9 @@ private:
 
     bool IsHostSpecifiedProcessValid(const AAFwk::AbilityRequest &abilityRequest,
         std::shared_ptr<ExtensionRecord> &record, const std::string &process);
+
+    void GetCallerTokenList(
+        const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, std::list<sptr<IRemoteObject>> &callerList);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

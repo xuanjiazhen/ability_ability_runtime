@@ -846,6 +846,7 @@ bool ExtensionRecordManager::IsUIExtensionFocused(
 
         if (item == focusToken) {
             isFocused = true;
+            SetCachedFocusedCallerToken(extensionRecordId, item);
             break;
         }
     }
