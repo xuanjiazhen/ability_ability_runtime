@@ -457,6 +457,40 @@ int32_t ExtensionRecordManager::StartAbility(const AAFwk::AbilityRequest &abilit
     return ERR_OK;
 }
 
+bool ExtensionRecordManager::IsFocused(int32_t extensionRecordId, const sptr<IRemoteObject>& focusToken)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto cachedCaller = GetCachedFocusedCallerToken(extensionRecordId);
+    if (cachedCaller != nullptr && cachedCaller == focusToken) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "id: %{public}d has focused", extensionRecordId);
+        return true;
+    }
+
+    bool isFocused = false;
+    std::list<sptr<IRemoteObject>> callerList;
+    auto rootCallerToken = GetCallerTokenList(extensionRecordId, callerList);
+    for (auto item : callerList) {
+        auto ability = AAFwk::Token::GetAbilityRecordByToken(item);
+        if (ability == nullptr) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "Wrong ability");
+            continue;
+        }
+
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "ability: %{public}s, pid: %{public}d, tokenId: %{public}d",
+            ability->GetWant().GetElement().GetURI().c_str(), ability->GetPid(),
+            ability->GetApplicationInfo().accessTokenId);
+
+        if (item == focusToken) {
+            isFocused = true;
+            SetCachedFocusedCallerToken(extensionRecordId, item);
+            break;
+        }
+    }
+
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "id: %{public}d isFocused: %{public}d.", extensionRecordId, isFocused);
+    return isFocused;
+}
+
 void ExtensionRecordManager::SetCachedFocusedCallerToken(int32_t extensionRecordId,
     sptr<IRemoteObject> &focusedCallerToken)
 {

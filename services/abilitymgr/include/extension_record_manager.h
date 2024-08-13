@@ -70,6 +70,8 @@ public:
 
     static bool IsBelongToManager(const AppExecFwk::AbilityInfo &abilityInfo);
 
+    bool IsFocused(int32_t extensionRecordId, const sptr<IRemoteObject>& focusToken);
+
     /**
      * @brief Get extensionList by pid.
      * @param pid Process id.
