@@ -2908,7 +2908,8 @@ bool AbilityConnectManager::IsUIExtensionFocused(uint32_t uiExtensionTokenId, co
         auto uiExtension = item.second.first.lock();
         auto sessionInfo = item.second.second;
         if (uiExtension && uiExtension->GetApplicationInfo().accessTokenId == uiExtensionTokenId) {
-            if (uiExtensionAbilityRecordMgr_->IsFocused(uiExtension->GetUIExtensionAbilityId(), focusToken)) {
+            if (sessionInfo && uiExtensionAbilityRecordMgr_->IsUIExtensionFocused(
+                uiExtension->GetUIExtensionAbilityId(), sessionInfo->callerToken, focusToken)) {
                 TAG_LOGI(AAFwkTag::ABILITYMGR, "isFocused.");
                 return true;
             }
@@ -2931,23 +2932,6 @@ sptr<IRemoteObject> AbilityConnectManager::GetUIExtensionSourceToken(const sptr<
             uiExtension->GetToken()->AsObject() == token) {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "The source token found.");
             return sessionInfo->callerToken;
-        }
-    }
-    return nullptr;
-}
-
-sptr<IRemoteObject> AbilityConnectManager::GetUIExtensionToken(const uint32_t &uiExtensionTokenId)
-{
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
-    CHECK_POINTER_AND_RETURN(uiExtensionAbilityRecordMgr_, nullptr);
-    std::lock_guard guard(uiExtensionMapMutex_);
-    for (auto &item : uiExtensionMap_) {
-        auto uiExtension = item.second.first.lock();
-        auto sessionInfo = item.second.second;
-        if (uiExtension && uiExtension->GetApplicationInfo().accessTokenId == uiExtensionTokenId) {
-            if (sessionInfo) {
-                return sessionInfo->callerToken;
-            }
         }
     }
     return nullptr;

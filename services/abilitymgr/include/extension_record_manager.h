@@ -27,128 +27,137 @@
 #include "ui_extension_host_info.h"
 #include "ui_extension_session_info.h"
 
-namespace OHOS {
-namespace AbilityRuntime {
-class ExtensionRecordManager : public std::enable_shared_from_this<ExtensionRecordManager> {
-public:
-    using ExtensionAbilityRecordMap = std::map<int32_t, std::shared_ptr<ExtensionRecord>>;
-    using PreLoadUIExtensionMapKey = std::tuple<std::string, std::string, std::string, std::string>;
-    using PreLoadUIExtensionMapType =
-        std::map<PreLoadUIExtensionMapKey, std::vector<std::shared_ptr<ExtensionRecord>>>;
-    explicit ExtensionRecordManager(const int32_t userId);
-    virtual ~ExtensionRecordManager();
+namespace OHOS
+{
+    namespace AbilityRuntime
+    {
+        class ExtensionRecordManager : public std::enable_shared_from_this<ExtensionRecordManager>
+        {
+        public:
+            using ExtensionAbilityRecordMap = std::map<int32_t, std::shared_ptr<ExtensionRecord>>;
+            using PreLoadUIExtensionMapKey = std::tuple<std::string, std::string, std::string, std::string>;
+            using PreLoadUIExtensionMapType =
+                std::map<PreLoadUIExtensionMapKey, std::vector<std::shared_ptr<ExtensionRecord>>>;
+            explicit ExtensionRecordManager(const int32_t userId);
+            virtual ~ExtensionRecordManager();
 
-    /**
-     * @brief Generate extension record id, if input id didn't exist, return it, else assign one.
-     *
-     * @param extensionRecordId Input extension record id.
-     * @return int32_t Generated extension record id.
-     */
-    int32_t GenerateExtensionRecordId(const int32_t extensionRecordId);
+            /**
+             * @brief Generate extension record id, if input id didn't exist, return it, else assign one.
+             *
+             * @param extensionRecordId Input extension record id.
+             * @return int32_t Generated extension record id.
+             */
+            int32_t GenerateExtensionRecordId(const int32_t extensionRecordId);
 
-    /**
-     * @brief Add extension record by id, if record exist, replace it.
-     *
-     * @param extensionRecordId extension record id.
-     * @param record extension record.
-     */
-    void AddExtensionRecord(const int32_t extensionRecordId, const std::shared_ptr<ExtensionRecord> &record);
+            /**
+             * @brief Add extension record by id, if record exist, replace it.
+             *
+             * @param extensionRecordId extension record id.
+             * @param record extension record.
+             */
+            void AddExtensionRecord(const int32_t extensionRecordId, const std::shared_ptr<ExtensionRecord> &record);
 
-    /**
-     * @brief Remove extension record by id
-     *
-     * @param extensionRecordId extension record id.
-     */
-    void RemoveExtensionRecord(const int32_t extensionRecordId);
+            /**
+             * @brief Remove extension record by id
+             *
+             * @param extensionRecordId extension record id.
+             */
+            void RemoveExtensionRecord(const int32_t extensionRecordId);
 
-    /**
-     * @brief Add extension record to terminate list by id
-     *
-     * @param extensionRecordId extension record id.
-     */
-    void AddExtensionRecordToTerminatedList(const int32_t extensionRecordId);
+            /**
+             * @brief Add extension record to terminate list by id
+             *
+             * @param extensionRecordId extension record id.
+             */
+            void AddExtensionRecordToTerminatedList(const int32_t extensionRecordId);
 
-    static bool IsBelongToManager(const AppExecFwk::AbilityInfo &abilityInfo);
+            static bool IsBelongToManager(const AppExecFwk::AbilityInfo &abilityInfo);
+            
+            /**
+             * @brief Get extensionList by pid.
+             * @param pid Process id.
+             * @param extensionList UIExtensionAbility name list.
+             */
+            int32_t GetActiveUIExtensionList(const int32_t pid, std::vector<std::string> &extensionList);
 
-    bool IsFocused(int32_t extensionRecordId, const sptr<IRemoteObject>& focusToken);
+            /**
+             * @brief Get extensionList by bundleName.
+             * @param bundleName The application bundle name.
+             * @param extensionList UIExtensionAbility name list.
+             */
+            int32_t GetActiveUIExtensionList(const std::string &bundleName, std::vector<std::string> &extensionList);
 
-    /**
-     * @brief Get extensionList by pid.
-     * @param pid Process id.
-     * @param extensionList UIExtensionAbility name list.
-     */
-    int32_t GetActiveUIExtensionList(const int32_t pid, std::vector<std::string> &extensionList);
+            int32_t StartAbility(const AAFwk::AbilityRequest &abilityRequest);
 
-    /**
-     * @brief Get extensionList by bundleName.
-     * @param bundleName The application bundle name.
-     * @param extensionList UIExtensionAbility name list.
-     */
-    int32_t GetActiveUIExtensionList(const std::string &bundleName, std::vector<std::string> &extensionList);
+            int32_t CreateExtensionRecord(const AAFwk::AbilityRequest &abilityRequest, const std::string &hostBundleName,
+                                          std::shared_ptr<ExtensionRecord> &extensionRecord, int32_t &extensionRecordId);
 
-    int32_t StartAbility(const AAFwk::AbilityRequest &abilityRequest);
+            bool IsPreloadExtensionRecord(const AAFwk::AbilityRequest &abilityRequest,
+                                          const std::string &hostBundleName, std::shared_ptr<ExtensionRecord> &extensionRecord, bool &isLoaded);
 
-    int32_t CreateExtensionRecord(const AAFwk::AbilityRequest &abilityRequest, const std::string &hostBundleName,
-        std::shared_ptr<ExtensionRecord> &extensionRecord, int32_t &extensionRecordId);
+            int32_t AddPreloadUIExtensionRecord(const std::shared_ptr<AAFwk::AbilityRecord> abilityRecord);
 
-    bool IsPreloadExtensionRecord(const AAFwk::AbilityRequest &abilityRequest,
-        const std::string &hostBundleName, std::shared_ptr<ExtensionRecord> &extensionRecord, bool &isLoaded);
+            void RemoveAllPreloadUIExtensionRecord(PreLoadUIExtensionMapKey &preLoadUIExtensionInfo);
 
-    int32_t AddPreloadUIExtensionRecord(const std::shared_ptr<AAFwk::AbilityRecord> abilityRecord);
+            bool RemovePreloadUIExtensionRecord(
+                const std::tuple<std::string, std::string, std::string, std::string> extensionRecordMapKey);
 
-    void RemoveAllPreloadUIExtensionRecord(PreLoadUIExtensionMapKey &preLoadUIExtensionInfo);
+            bool RemovePreloadUIExtensionRecordById(
+                const std::tuple<std::string, std::string, std::string, std::string> extensionRecordMapKey,
+                int32_t extensionRecordId);
 
-    bool RemovePreloadUIExtensionRecord(
-        const std::tuple<std::string, std::string, std::string, std::string> extensionRecordMapKey);
+            int32_t GetOrCreateExtensionRecord(const AAFwk::AbilityRequest &abilityRequest, const std::string &hostBundleName,
+                                               std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, bool &isLoaded);
 
-    bool RemovePreloadUIExtensionRecordById(
-        const std::tuple<std::string, std::string, std::string, std::string> extensionRecordMapKey,
-        int32_t extensionRecordId);
+            std::shared_ptr<AAFwk::AbilityRecord> GetAbilityRecordBySessionInfo(const sptr<AAFwk::SessionInfo> &sessionInfo);
 
-    int32_t GetOrCreateExtensionRecord(const AAFwk::AbilityRequest &abilityRequest, const std::string &hostBundleName,
-        std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, bool &isLoaded);
+            std::shared_ptr<AAFwk::AbilityRecord> GetUIExtensionRootHostInfo(const sptr<IRemoteObject> token);
 
-    std::shared_ptr<AAFwk::AbilityRecord> GetAbilityRecordBySessionInfo(const sptr<AAFwk::SessionInfo> &sessionInfo);
+            int32_t GetUIExtensionSessionInfo(const sptr<IRemoteObject> token, UIExtensionSessionInfo &uiExtensionSessionInfo);
 
-    std::shared_ptr<AAFwk::AbilityRecord> GetUIExtensionRootHostInfo(const sptr<IRemoteObject> token);
+            void GetCallerTokenList(
+                const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, std::list<sptr<IRemoteObject>> &callerList);
 
-    int32_t GetUIExtensionSessionInfo(const sptr<IRemoteObject> token, UIExtensionSessionInfo &uiExtensionSessionInfo);
+            bool IsUIExtensionFocused(
+                int32_t extensionRecordId, const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &focusToken);
 
-    void LoadTimeout(int32_t extensionRecordId);
-    void ForegroundTimeout(int32_t extensionRecordId);
-    void BackgroundTimeout(int32_t extensionRecordId);
-    void TerminateTimeout(int32_t extensionRecordId);
+            void LoadTimeout(int32_t extensionRecordId);
+            void ForegroundTimeout(int32_t extensionRecordId);
+            void BackgroundTimeout(int32_t extensionRecordId);
+            void TerminateTimeout(int32_t extensionRecordId);
 
-    int32_t GetHostBundleNameForExtensionId(int32_t extensionRecordId, std::string& hostBundleName);
-private:
-    inline std::shared_ptr<ExtensionRecord> GetExtensionRecordById(int32_t extensionRecordId);
+            int32_t GetHostBundleNameForExtensionId(int32_t extensionRecordId, std::string &hostBundleName);
 
-private:
-    int32_t userId_;
-    static std::atomic_int32_t extensionRecordId_;
-    std::mutex mutex_;
-    std::set<int32_t> extensionRecordIdSet_;
-    ExtensionAbilityRecordMap extensionRecords_;
-    ExtensionAbilityRecordMap terminateRecords_;
-    std::mutex preloadUIExtensionMapMutex_;
-    PreLoadUIExtensionMapType preloadUIExtensionMap_;
+        private:
+            inline std::shared_ptr<ExtensionRecord> GetExtensionRecordById(int32_t extensionRecordId);
 
-    void SetCachedFocusedCallerToken(int32_t extensionRecordId, sptr<IRemoteObject> &focusedCallerToken);
-    sptr<IRemoteObject> GetCachedFocusedCallerToken(int32_t extensionRecordId) const;
-    sptr<IRemoteObject> GetCallerTokenList(int32_t extensionRecordId, std::list<sptr<IRemoteObject>> &callerList);
-    sptr<IRemoteObject> GetRootCallerTokenLocked(int32_t extensionRecordId);
+        private:
+            int32_t userId_;
+            static std::atomic_int32_t extensionRecordId_;
+            std::mutex mutex_;
+            std::set<int32_t> extensionRecordIdSet_;
+            ExtensionAbilityRecordMap extensionRecords_;
+            ExtensionAbilityRecordMap terminateRecords_;
+            std::mutex preloadUIExtensionMapMutex_;
+            PreLoadUIExtensionMapType preloadUIExtensionMap_;
 
-    int32_t GetOrCreateExtensionRecordInner(const AAFwk::AbilityRequest &abilityRequest,
-        const std::string &hostBundleName, std::shared_ptr<ExtensionRecord> &extensionRecord, bool &isLoaded);
+            void SetCachedFocusedCallerToken(int32_t extensionRecordId, sptr<IRemoteObject> &focusedCallerToken);
+            sptr<IRemoteObject> GetCachedFocusedCallerToken(int32_t extensionRecordId) const;
+            sptr<IRemoteObject> GetCallerTokenList(int32_t extensionRecordId, std::list<sptr<IRemoteObject>> &callerList);
+            sptr<IRemoteObject> GetRootCallerTokenLocked(
+                int32_t extensionRecordId, const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord);
 
-    int32_t GetExtensionRecord(const int32_t extensionRecordId, const std::string &hostBundleName,
-        std::shared_ptr<ExtensionRecord> &extensionRecord, bool &isLoaded);
+            int32_t GetOrCreateExtensionRecordInner(const AAFwk::AbilityRequest &abilityRequest,
+                                                    const std::string &hostBundleName, std::shared_ptr<ExtensionRecord> &extensionRecord, bool &isLoaded);
 
-    int32_t UpdateProcessName(const AAFwk::AbilityRequest &abilityRequest, std::shared_ptr<ExtensionRecord> &record);
+            int32_t GetExtensionRecord(const int32_t extensionRecordId, const std::string &hostBundleName,
+                                       std::shared_ptr<ExtensionRecord> &extensionRecord, bool &isLoaded);
 
-    bool IsHostSpecifiedProcessValid(const AAFwk::AbilityRequest &abilityRequest,
-        std::shared_ptr<ExtensionRecord> &record, const std::string &process);
-};
-} // namespace AbilityRuntime
+            int32_t UpdateProcessName(const AAFwk::AbilityRequest &abilityRequest, std::shared_ptr<ExtensionRecord> &record);
+
+            bool IsHostSpecifiedProcessValid(const AAFwk::AbilityRequest &abilityRequest,
+                                             std::shared_ptr<ExtensionRecord> &record, const std::string &process);
+        };
+    } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_EXTENSION_RECORD_MANAGER_H
