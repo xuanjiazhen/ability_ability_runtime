@@ -766,7 +766,7 @@ void ExtensionRecordManager::GetCallerTokenList(
     auto extensionRecordId = abilityRecord->GetUIExtensionAbilityId();
     auto sessionInfo = abilityRecord->GetSessionInfo();
     if (!sessionInfo) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionInfo is null, id: %{public}d", extensionRecordId);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionInfo null, id: %{public}d", extensionRecordId);
         callerList.clear();
         return;
     }
@@ -774,7 +774,7 @@ void ExtensionRecordManager::GetCallerTokenList(
     auto callerToken = sessionInfo->callerToken;
     auto callerAbilityRecord = AAFwk::Token::GetAbilityRecordByToken(callerToken);
     if (callerAbilityRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "callerAbilityRecord is null, id: %{public}d", extensionRecordId);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "callerRecord null, id: %{public}d", extensionRecordId);
         callerList.clear();
         return;
     }
@@ -785,14 +785,14 @@ void ExtensionRecordManager::GetCallerTokenList(
 
     auto callerExtensionRecordId = callerAbilityRecord->GetUIExtensionAbilityId();
     if (callerExtensionRecordId == INVALID_EXTENSION_RECORD_ID) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "Get caller, caught invalid id: %{public}d", callerExtensionRecordId);
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Get caller, callerRecord: %{public}d", callerExtensionRecordId);
         callerList.push_front(callerToken);
         return;
     }
 
     // If caller extension record id is same with current, need terminate, prevent possible stack-overflow.
     if (callerExtensionRecordId == extensionRecordId) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Invalid id: %{public}d, same with caller", extensionRecordId);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "callerRecordId: %{public}d, same with caller", extensionRecordId);
         callerList.clear();
         return;
     }
@@ -828,10 +828,6 @@ bool ExtensionRecordManager::IsUIExtensionFocused(
 
     std::list<sptr<IRemoteObject>> callerList;
     GetCallerTokenList(abilityRecord, callerList);
-    if (callerList.empty()) {
-        return isFocused;
-    }
-
     for (auto& item : callerList) {
         auto ability = AAFwk::Token::GetAbilityRecordByToken(item);
         if (ability == nullptr) {
