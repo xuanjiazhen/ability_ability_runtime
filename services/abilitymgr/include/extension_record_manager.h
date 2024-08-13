@@ -87,10 +87,10 @@ public:
     int32_t StartAbility(const AAFwk::AbilityRequest &abilityRequest);
 
     int32_t CreateExtensionRecord(const AAFwk::AbilityRequest &abilityRequest, const std::string &hostBundleName,
-                                    std::shared_ptr<ExtensionRecord> &extensionRecord, int32_t &extensionRecordId);
+        std::shared_ptr<ExtensionRecord> &extensionRecord, int32_t &extensionRecordId);
 
     bool IsPreloadExtensionRecord(const AAFwk::AbilityRequest &abilityRequest,
-                                    const std::string &hostBundleName, std::shared_ptr<ExtensionRecord> &extensionRecord, bool &isLoaded);
+        const std::string &hostBundleName, std::shared_ptr<ExtensionRecord> &extensionRecord, bool &isLoaded);
 
     int32_t AddPreloadUIExtensionRecord(const std::shared_ptr<AAFwk::AbilityRecord> abilityRecord);
 
@@ -123,8 +123,7 @@ public:
     void BackgroundTimeout(int32_t extensionRecordId);
     void TerminateTimeout(int32_t extensionRecordId);
 
-    int32_t GetHostBundleNameForExtensionId(int32_t extensionRecordId, std::string &hostBundleName);
-
+    int32_t GetHostBundleNameForExtensionId(int32_t extensionRecordId, std::string& hostBundleName);
 private:
     inline std::shared_ptr<ExtensionRecord> GetExtensionRecordById(int32_t extensionRecordId);
 
@@ -145,16 +144,16 @@ private:
         int32_t extensionRecordId, const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord);
 
     int32_t GetOrCreateExtensionRecordInner(const AAFwk::AbilityRequest &abilityRequest,
-                                            const std::string &hostBundleName, std::shared_ptr<ExtensionRecord> &extensionRecord, bool &isLoaded);
+        const std::string &hostBundleName, std::shared_ptr<ExtensionRecord> &extensionRecord, bool &isLoaded);
 
     int32_t GetExtensionRecord(const int32_t extensionRecordId, const std::string &hostBundleName,
-                                std::shared_ptr<ExtensionRecord> &extensionRecord, bool &isLoaded);
+        std::shared_ptr<ExtensionRecord> &extensionRecord, bool &isLoaded);
 
     int32_t UpdateProcessName(const AAFwk::AbilityRequest &abilityRequest, std::shared_ptr<ExtensionRecord> &record);
 
     bool IsHostSpecifiedProcessValid(const AAFwk::AbilityRequest &abilityRequest,
-                                        std::shared_ptr<ExtensionRecord> &record, const std::string &process);
-    };
-    } // namespace AbilityRuntime
+        std::shared_ptr<ExtensionRecord> &record, const std::string &process);
+};
+} // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_EXTENSION_RECORD_MANAGER_H
