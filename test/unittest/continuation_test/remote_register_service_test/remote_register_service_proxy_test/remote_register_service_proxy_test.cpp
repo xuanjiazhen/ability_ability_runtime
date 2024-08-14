@@ -57,7 +57,7 @@ public:
 
     int SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override
     {
-        GTEST_LOG_(INFO) << "MockRegisterService::SendRequest called. return value " << returnCode_;
+        GTEST_LOG_(INFO) << "MockRegisterService::SendRequest called. return value lijun " << returnCode_;
         reply.WriteInt32(ERR_NONE);
         return returnCode_;
     }
