@@ -30,6 +30,7 @@
 #include "hilog_tag_wrapper.h"
 #include "mock_ability_connect_callback.h"
 #include "mock_sa_call.h"
+#include "mock_task_handler_wrap.h"
 #include "sa_mgr_client.h"
 #include "system_ability_definition.h"
 #include <thread>
@@ -167,7 +168,7 @@ void AbilityConnectManagerTest::TearDownTestCase(void)
 void AbilityConnectManagerTest::SetUp(void)
 {
     connectManager_ = std::make_unique<AbilityConnectManager>(0);
-    taskHandler_ = TaskHandlerWrap::CreateQueueHandler("AbilityConnectManagerTest");
+    taskHandler_ = MockTaskHandlerWrap::CreateQueueHandler("AbilityConnectManagerTest");
     eventHandler_ = std::make_shared<EventHandlerWrap>(taskHandler_);
     // generate ability request
     std::string deviceName = "device";
@@ -239,7 +240,6 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_001, TestSize.Level1)
 
     auto result = ConnectManager()->StartAbility(abilityRequest_);
     EXPECT_EQ(OHOS::ERR_OK, result);
-    WaitUntilTaskDone(TaskHandler());
 
     auto elementName = abilityRequest_.want.GetElement().GetURI();
     auto service = ConnectManager()->GetServiceRecordByElementName(elementName);
@@ -249,13 +249,11 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_001, TestSize.Level1)
     service->SetAbilityState(OHOS::AAFwk::AbilityState::ACTIVE);
 
     auto result1 = ConnectManager()->StartAbility(abilityRequest_);
-    WaitUntilTaskDone(TaskHandler());
     EXPECT_EQ(OHOS::ERR_OK, result1);
     EXPECT_EQ(static_cast<int>(ConnectManager()->GetServiceMap().size()), 1);
 
     service->SetAbilityState(OHOS::AAFwk::AbilityState::ACTIVATING);
     auto result2 = ConnectManager()->StartAbility(abilityRequest_);
-    WaitUntilTaskDone(TaskHandler());
     EXPECT_EQ(OHOS::ERR_OK, result2);
     EXPECT_EQ(static_cast<int>(ConnectManager()->GetServiceMap().size()), 1);
 }
@@ -277,7 +275,6 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_002, TestSize.Level1)
 
     auto result = ConnectManager()->StartAbility(abilityRequest_);
     EXPECT_EQ(OHOS::ERR_OK, result);
-    WaitUntilTaskDone(TaskHandler());
 
     OHOS::sptr<OHOS::IRemoteObject> nullToken = nullptr;
     auto result1 = ConnectManager()->TerminateAbility(nullToken);
@@ -288,7 +285,6 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_002, TestSize.Level1)
     EXPECT_NE(service, nullptr);
 
     auto result2 = ConnectManager()->TerminateAbility(service->GetToken());
-    WaitUntilTaskDone(TaskHandler());
     EXPECT_EQ(OHOS::ERR_OK, result2);
     EXPECT_EQ(service->GetAbilityState(), TERMINATING);
 }
@@ -308,7 +304,6 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_003, TestSize.Level1)
 
     auto result = ConnectManager()->StartAbility(abilityRequest_);
     EXPECT_EQ(OHOS::ERR_OK, result);
-    WaitUntilTaskDone(TaskHandler());
 
     auto elementName = abilityRequest_.want.GetElement().GetURI();
     auto service = ConnectManager()->GetServiceRecordByElementName(elementName);
@@ -316,7 +311,6 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_003, TestSize.Level1)
 
     service->SetTerminatingState();
     auto result1 = ConnectManager()->TerminateAbility(service->GetToken());
-    WaitUntilTaskDone(TaskHandler());
     EXPECT_EQ(OHOS::ERR_OK, result1);
     EXPECT_NE(service->GetAbilityState(), TERMINATING);
 }
@@ -336,7 +330,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_004, TestSize.Level1)
 
     auto result = ConnectManager()->StartAbility(abilityRequest_);
     EXPECT_EQ(OHOS::ERR_OK, result);
-    WaitUntilTaskDone(TaskHandler());
+
 
     auto result1 = ConnectManager()->ConnectAbilityLocked(abilityRequest_, callbackA_, nullptr);
     EXPECT_EQ(0, result1);
@@ -346,7 +340,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_004, TestSize.Level1)
     EXPECT_NE(service, nullptr);
 
     auto result2 = ConnectManager()->TerminateAbility(service->GetToken());
-    WaitUntilTaskDone(TaskHandler());
+
     EXPECT_EQ(0, result2);
     EXPECT_EQ(service->GetAbilityState(), TERMINATING);
 }
@@ -368,7 +362,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_005, TestSize.Level1)
 
     auto result = ConnectManager()->StartAbility(abilityRequest_);
     EXPECT_EQ(OHOS::ERR_OK, result);
-    WaitUntilTaskDone(TaskHandler());
+
 
     auto elementName = abilityRequest_.want.GetElement().GetURI();
     auto service = ConnectManager()->GetServiceRecordByElementName(elementName);
@@ -376,11 +370,11 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_005, TestSize.Level1)
 
     AbilityRequest otherRequest;
     auto result1 = ConnectManager()->StopServiceAbility(otherRequest);
-    WaitUntilTaskDone(TaskHandler());
+
     EXPECT_EQ(OHOS::ERR_INVALID_VALUE, result1);
 
     auto result2 = ConnectManager()->StopServiceAbility(abilityRequest_);
-    WaitUntilTaskDone(TaskHandler());
+
     EXPECT_EQ(OHOS::ERR_OK, result2);
     EXPECT_EQ(service->GetAbilityState(), TERMINATING);
 }
@@ -400,7 +394,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_006, TestSize.Level1)
 
     auto result = ConnectManager()->StartAbility(abilityRequest_);
     EXPECT_EQ(OHOS::ERR_OK, result);
-    WaitUntilTaskDone(TaskHandler());
+
 
     auto elementName = abilityRequest_.want.GetElement().GetURI();
     auto service = ConnectManager()->GetServiceRecordByElementName(elementName);
@@ -408,7 +402,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_006, TestSize.Level1)
 
     service->SetTerminatingState();
     auto result1 = ConnectManager()->StopServiceAbility(abilityRequest_);
-    WaitUntilTaskDone(TaskHandler());
+
     EXPECT_EQ(OHOS::ERR_OK, result1);
     EXPECT_NE(service->GetAbilityState(), TERMINATING);
 }
@@ -428,7 +422,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_007, TestSize.Level1)
 
     auto result = ConnectManager()->StartAbility(abilityRequest_);
     EXPECT_EQ(OHOS::ERR_OK, result);
-    WaitUntilTaskDone(TaskHandler());
+
 
     auto result1 = ConnectManager()->ConnectAbilityLocked(abilityRequest_, callbackA_, nullptr);
     EXPECT_EQ(0, result1);
@@ -438,7 +432,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_007, TestSize.Level1)
     EXPECT_NE(service, nullptr);
 
     auto result2 = ConnectManager()->StopServiceAbility(abilityRequest_);
-    WaitUntilTaskDone(TaskHandler());
+
     EXPECT_EQ(0, result2);
     EXPECT_EQ(service->GetAbilityState(), TERMINATING);
 }
@@ -485,7 +479,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_009, TestSize.Level1)
 
     auto connectMap = ConnectManager()->connectMap_;
     EXPECT_EQ(1, static_cast<int>(connectMap.size()));
-    WaitUntilTaskDone(TaskHandler());
+
     usleep(TEST_WAIT_TIME);
 
     connectMap = ConnectManager()->connectMap_;
@@ -550,7 +544,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_011, TestSize.Level1)
     ConnectManager()->AttachAbilityThreadLocked(scheduler, token->AsObject());
     ConnectManager()->AbilityTransitionDone(token->AsObject(), OHOS::AAFwk::AbilityState::INACTIVE);
 
-    WaitUntilTaskDone(TaskHandler());
+
     usleep(TEST_WAIT_TIME);
     connectMap = ConnectManager()->connectMap_;
     EXPECT_EQ(0, result);
@@ -1035,7 +1029,6 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Kit_Disconnect_002, TestSize.Level1)
     }
 
     auto result5 = ConnectManager()->DisconnectAbilityLocked(callbackA_);
-    WaitUntilTaskDone(TaskHandler());
     EXPECT_EQ(result5, OHOS::ERR_OK);
     auto serviceMap = ConnectManager()->GetServiceMap();
     EXPECT_EQ(static_cast<int>(serviceMap.size()), 2);
@@ -1114,7 +1107,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_020, TestSize.Level1)
     }
 
     auto result2 = ConnectManager()->DisconnectAbilityLocked(callbackA_);
-    WaitUntilTaskDone(TaskHandler());
+
     EXPECT_EQ(result2, OHOS::ERR_OK);
 
     auto result3 = ConnectManager()->ScheduleDisconnectAbilityDoneLocked(token);
@@ -1234,7 +1227,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_024, TestSize.Level1)
     auto token = abilityRecord->GetToken();
 
     ConnectManager()->OnAbilityDied(abilityRecord, 0);
-    WaitUntilTaskDone(TaskHandler());
+
     auto list = abilityRecord->GetConnectRecordList();
     EXPECT_EQ(static_cast<int>(list.size()), 0);
 
@@ -1245,7 +1238,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_024, TestSize.Level1)
     auto token1 = abilityRecord1->GetToken();
 
     ConnectManager()->OnAbilityDied(abilityRecord1, 0);
-    WaitUntilTaskDone(TaskHandler());
+
     auto list1 = abilityRecord1->GetConnectRecordList();
     EXPECT_EQ(static_cast<int>(list1.size()), 0);
 }
@@ -1373,11 +1366,11 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_029, TestSize.Level1)
     ConnectManager()->SetEventHandler(EventHandler());
 
     auto result = ConnectManager()->ConnectAbilityLocked(abilityRequest_, callbackA_, nullptr);
-    WaitUntilTaskDone(TaskHandler());
+
     EXPECT_EQ(0, result);
 
     ConnectManager()->OnCallBackDied(nullptr);
-    WaitUntilTaskDone(TaskHandler());
+
     auto connectMap = ConnectManager()->connectMap_;
     auto connectRecordList = connectMap.at(callbackA_->AsObject());
     EXPECT_EQ(1, static_cast<int>(connectRecordList.size()));
@@ -1386,7 +1379,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_029, TestSize.Level1)
     }
 
     ConnectManager()->OnCallBackDied(callbackA_->AsObject());
-    WaitUntilTaskDone(TaskHandler());
+
     connectRecordList = connectMap.at(callbackA_->AsObject());
     EXPECT_EQ(1, static_cast<int>(connectMap.size()));
     for (auto& it : connectRecordList) {
@@ -2303,7 +2296,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_RestartAbility_001, TestSize.Level1)
 
     auto result = ConnectManager()->StartAbility(abilityRequest_);
     EXPECT_EQ(OHOS::ERR_OK, result);
-    WaitUntilTaskDone(TaskHandler());
+
 
     auto elementName = abilityRequest_.want.GetElement().GetURI();
     std::shared_ptr<AbilityRecord> service = ConnectManager()->GetServiceRecordByElementName(elementName);
@@ -2312,7 +2305,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_RestartAbility_001, TestSize.Level1)
 
     // HandleTerminate
     ConnectManager()->OnAbilityDied(service, userId);
-    WaitUntilTaskDone(TaskHandler());
+
     EXPECT_EQ(static_cast<int>(ConnectManager()->GetServiceMap().size()), 0);
 }
 
@@ -2334,7 +2327,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_RestartAbility_002, TestSize.Level1)
 
     auto result = ConnectManager()->StartAbility(abilityRequest2_);
     EXPECT_EQ(OHOS::ERR_OK, result);
-    WaitUntilTaskDone(TaskHandler());
+
 
     auto elementName = abilityRequest2_.want.GetElement().GetURI();
     auto service = ConnectManager()->GetServiceRecordByElementName(elementName);
@@ -2364,7 +2357,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_RestartAbility_003, TestSize.Level1)
 
     auto result = ConnectManager()->StartAbility(abilityRequest2_);
     EXPECT_EQ(OHOS::ERR_OK, result);
-    WaitUntilTaskDone(TaskHandler());
+
 
     auto elementName = abilityRequest2_.want.GetElement().GetURI();
     std::shared_ptr<AbilityRecord> service = ConnectManager()->GetServiceRecordByElementName(elementName);
@@ -2394,7 +2387,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_PostRestartResidentTask_001, TestSize.
     ConnectManager()->SetEventHandler(EventHandler());
 
     ConnectManager()->PostRestartResidentTask(abilityRequest2_);
-    WaitUntilTaskDone(TaskHandler());
+
     EXPECT_EQ(static_cast<int>(ConnectManager()->GetServiceMap().size()), 0);
 }
 
@@ -2416,7 +2409,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Start_Service_With_SessionInfo_001, Te
     auto result = ConnectManager()->StartAbility(abilityRequest_);
     EXPECT_EQ(OHOS::ERR_OK, result);
     abilityRequest_.sessionInfo = nullptr;
-    WaitUntilTaskDone(TaskHandler());
+
 
     auto service = ConnectManager()->GetUIExtensioBySessionInfo(sessionInfo);
     EXPECT_EQ(static_cast<int>(ConnectManager()->GetServiceMap().size()), 1);
