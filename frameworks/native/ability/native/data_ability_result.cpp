@@ -18,7 +18,6 @@
 #include <memory>
 
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "parcel_macro_base.h"
 
 namespace OHOS {
@@ -88,7 +87,7 @@ DataAbilityResult *DataAbilityResult::CreateFromParcel(Parcel &parcel)
 {
     DataAbilityResult *dataAbilityResult = new (std::nothrow) DataAbilityResult(parcel);
     if (dataAbilityResult == nullptr) {
-        TAG_LOGE(AAFwkTag::DATA_ABILITY, "DataAbilityResult::CreateFromParcel dataAbilityResult is nullptr");
+        TAG_LOGE(AAFwkTag::DATA_ABILITY, "null dataAbilityResult");
     }
     return dataAbilityResult;
 }

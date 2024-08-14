@@ -23,7 +23,6 @@
 #undef protected
 
 #include "auto_startup_info.h"
-#include "hilog_wrapper.h"
 #include "types.h"
 using namespace testing;
 using namespace testing::ext;
@@ -346,8 +345,8 @@ HWTEST_F(AbilityAutoStartupDataManagerTest, DeleteAutoStartupData_bundleName_100
     GTEST_LOG_(INFO) << "DeleteAutoStartupData_bundleName_100 start";
     AbilityAutoStartupDataManager abilityAutoStartupDataManager;
     std::string bundleName = "";
-    int32_t uid = 0;
-    auto result = abilityAutoStartupDataManager.DeleteAutoStartupData(bundleName, uid);
+    int32_t accessTokenId = 0;
+    auto result = abilityAutoStartupDataManager.DeleteAutoStartupData(bundleName, accessTokenId);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
     GTEST_LOG_(INFO) << "DeleteAutoStartupData_bundleName_100 end";
 }
@@ -363,8 +362,8 @@ HWTEST_F(AbilityAutoStartupDataManagerTest, DeleteAutoStartupData_bundleName_200
     GTEST_LOG_(INFO) << "DeleteAutoStartupData_bundleName_200 start";
     AbilityAutoStartupDataManager abilityAutoStartupDataManager;
     std::string bundleName = "com.example.testbundle";
-    int32_t uid = 0;
-    auto result = abilityAutoStartupDataManager.DeleteAutoStartupData(bundleName, uid);
+    int32_t accessTokenId = 0;
+    auto result = abilityAutoStartupDataManager.DeleteAutoStartupData(bundleName, accessTokenId);
     EXPECT_EQ(result, ERR_OK);
     GTEST_LOG_(INFO) << "DeleteAutoStartupData_bundleName_200 end";
 }
@@ -384,8 +383,8 @@ HWTEST_F(AbilityAutoStartupDataManagerTest, DeleteAutoStartupData_bundleName_300
     EXPECT_EQ(true, abilityAutoStartupDataManager.CheckKvStore());
 
     std::string bundleName = "com.example.testbundle";
-    int32_t uid = 0;
-    auto result = abilityAutoStartupDataManager.DeleteAutoStartupData(bundleName, uid);
+    int32_t accessTokenId = 0;
+    auto result = abilityAutoStartupDataManager.DeleteAutoStartupData(bundleName, accessTokenId);
     EXPECT_EQ(result, ERR_OK);
     GTEST_LOG_(INFO) << "DeleteAutoStartupData_bundleName_300 end";
 }

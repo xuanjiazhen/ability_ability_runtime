@@ -53,6 +53,8 @@ struct EventInfo {
     int32_t processType = -1;
     int32_t callerPid = -1;
     int64_t duration = 0;
+    int32_t reason = -1;
+    int32_t subReason = -1;
 };
 
 enum class EventName {
@@ -89,6 +91,7 @@ enum class EventName {
     PROCESS_EXIT,
     DRAWN_COMPLETED,
     APP_STARTUP_TYPE,
+    PROCESS_START_FAILED,
 
     // key behavior event
     GRANT_URI_PERMISSION,
@@ -116,6 +119,7 @@ public:
     static void SendAppForegroundEvent(const EventName &eventName, const EventInfo &eventInfo);
     static void SendAppBackgroundEvent(const EventName &eventName, const EventInfo &eventInfo);
     static void SendProcessStartEvent(const EventName &eventName, const EventInfo &eventInfo);
+    static void SendProcessStartFailedEvent(const EventName &eventName, const EventInfo &eventInfo);
     static void SendProcessExitEvent(const EventName &eventName, const EventInfo &eventInfo);
     static void SendStartServiceEvent(const EventName &eventName, const EventInfo &eventInfo);
     static void SendStopServiceEvent(const EventName &eventName, const EventInfo &eventInfo);
@@ -125,6 +129,13 @@ public:
 
 private:
     static std::string ConvertEventName(const EventName &eventName);
+    static void LogErrorEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
+    static void LogStartAbilityEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
+    static void LogTerminateAbilityEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
+    static void LogAbilityOnForegroundEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
+    static void LogAbilityOnBackgroundEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
+    static void LogAbilityOnActiveEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
+    static void LogStartStandardEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
 };
 }  // namespace AAFWK
 }  // namespace OHOS

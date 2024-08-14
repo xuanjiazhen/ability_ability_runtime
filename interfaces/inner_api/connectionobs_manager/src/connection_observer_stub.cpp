@@ -16,20 +16,12 @@
 #include "connection_observer_stub.h"
 
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "ipc_types.h"
 #include "message_parcel.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-ConnectionObserverStub::ConnectionObserverStub()
-{
-    vecMemberFunc_.resize(IConnectionObserver::CMD_MAX);
-    vecMemberFunc_[ON_EXTENSION_CONNECTED] = &ConnectionObserverStub::OnExtensionConnectedInner;
-    vecMemberFunc_[ON_EXTENSION_DISCONNECTED] = &ConnectionObserverStub::OnExtensionDisconnectedInner;
-    vecMemberFunc_[ON_DLP_ABILITY_OPENED] = &ConnectionObserverStub::OnDlpAbilityOpenedInner;
-    vecMemberFunc_[ON_DLP_ABILITY_CLOSED] = &ConnectionObserverStub::OnDlpAbilityClosedInner;
-}
+ConnectionObserverStub::ConnectionObserverStub() {}
 
 int ConnectionObserverStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
@@ -37,15 +29,23 @@ int ConnectionObserverStub::OnRemoteRequest(
     std::u16string descriptor = ConnectionObserverStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (descriptor != remoteDescriptor) {
-        TAG_LOGI(AAFwkTag::CONNECTION, "ConnectionObserverStub Local descriptor is not equal to remote.");
+        TAG_LOGI(AAFwkTag::CONNECTION, "invalid descriptor");
         return ERR_INVALID_STATE;
     }
-
     if (code < IConnectionObserver::CMD_MAX && code >= 0) {
-        auto memberFunc = vecMemberFunc_[code];
-        return (this->*memberFunc)(data, reply);
+        switch (code) {
+            case ON_EXTENSION_CONNECTED:
+                return OnExtensionConnectedInner(data, reply);
+            case ON_EXTENSION_DISCONNECTED:
+                return OnExtensionDisconnectedInner(data, reply);
+#ifdef WITH_DLP
+            case ON_DLP_ABILITY_OPENED:
+                return OnDlpAbilityOpenedInner(data, reply);
+            case ON_DLP_ABILITY_CLOSED:
+                return OnDlpAbilityClosedInner(data, reply);
+#endif // WITH_DLP
+        }
     }
-
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
@@ -53,7 +53,7 @@ int ConnectionObserverStub::OnExtensionConnectedInner(MessageParcel &data, Messa
 {
     std::unique_ptr<ConnectionData> connectionData(data.ReadParcelable<ConnectionData>());
     if (!connectionData) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "OnExensionConnected ReadParcelable<ConnectionData> failed");
+        TAG_LOGE(AAFwkTag::CONNECTION, "error connectionData");
         return ERR_INVALID_VALUE;
     }
 
@@ -65,7 +65,7 @@ int ConnectionObserverStub::OnExtensionDisconnectedInner(MessageParcel &data, Me
 {
     std::unique_ptr<ConnectionData> connectionData(data.ReadParcelable<ConnectionData>());
     if (!connectionData) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "OnExtensionDisconnected ReadParcelable<ConnectionData> failed");
+        TAG_LOGE(AAFwkTag::CONNECTION, "error connectionData");
         return ERR_INVALID_VALUE;
     }
 
@@ -73,11 +73,12 @@ int ConnectionObserverStub::OnExtensionDisconnectedInner(MessageParcel &data, Me
     return NO_ERROR;
 }
 
+#ifdef WITH_DLP
 int ConnectionObserverStub::OnDlpAbilityOpenedInner(MessageParcel &data, MessageParcel &reply)
 {
     std::unique_ptr<DlpStateData> dlpData(data.ReadParcelable<DlpStateData>());
     if (!dlpData) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "OnDlpAbilityOpened ReadParcelable<DlpStateData> failed");
+        TAG_LOGE(AAFwkTag::CONNECTION, "error dlpData");
         return ERR_INVALID_VALUE;
     }
 
@@ -89,12 +90,13 @@ int ConnectionObserverStub::OnDlpAbilityClosedInner(MessageParcel &data, Message
 {
     std::unique_ptr<DlpStateData> dlpData(data.ReadParcelable<DlpStateData>());
     if (!dlpData) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "OnDlpAbilityClosed ReadParcelable<DlpStateData> failed");
+        TAG_LOGE(AAFwkTag::CONNECTION, "error dlpData");
         return ERR_INVALID_VALUE;
     }
 
     OnDlpAbilityClosed(*dlpData);
     return NO_ERROR;
 }
+#endif // WITH_DLP
 }  // namespace AbilityRuntime
 }  // namespace OHOS

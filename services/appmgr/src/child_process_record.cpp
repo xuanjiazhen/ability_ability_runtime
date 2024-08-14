@@ -40,7 +40,7 @@ ChildProcessRecord::ChildProcessRecord(pid_t hostPid, const std::string &libName
 
 ChildProcessRecord::~ChildProcessRecord()
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "Called.");
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
 }
 
 std::shared_ptr<ChildProcessRecord> ChildProcessRecord::CreateChildProcessRecord(pid_t hostPid,
@@ -100,6 +100,11 @@ std::string ChildProcessRecord::GetProcessName() const
 std::string ChildProcessRecord::GetSrcEntry() const
 {
     return srcEntry_;
+}
+
+ProcessType ChildProcessRecord::GetProcessType() const
+{
+    return processType_;
 }
 
 std::shared_ptr<AppRunningRecord> ChildProcessRecord::GetHostRecord() const

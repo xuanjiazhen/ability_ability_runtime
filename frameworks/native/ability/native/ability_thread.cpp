@@ -19,7 +19,6 @@
 #include "fa_ability_thread.h"
 #include "ui_ability_thread.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "hitrace_meter.h"
 
 namespace OHOS {
@@ -34,12 +33,12 @@ void AbilityThread::AbilityThreadMain(const std::shared_ptr<OHOSApplication> &ap
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITY, "begin");
     if (abilityRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "abilityRecord is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITY, "null abilityRecord");
         return;
     }
     std::shared_ptr<AbilityInfo> abilityInfo = abilityRecord->GetAbilityInfo();
     if (abilityInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "abilityInfo is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITY, "null abilityInfo");
         return;
     }
 
@@ -52,7 +51,7 @@ void AbilityThread::AbilityThreadMain(const std::shared_ptr<OHOSApplication> &ap
         thread = new (std::nothrow) AbilityRuntime::FAAbilityThread();
     }
     if (thread == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "thread is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITY, "null thread");
         return;
     }
     thread->Attach(application, abilityRecord, mainRunner, stageContext);
@@ -66,13 +65,13 @@ void AbilityThread::AbilityThreadMain(const std::shared_ptr<OHOSApplication> &ap
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITY, "begin");
     if (abilityRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "abilityRecord is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITY, "null abilityRecord");
         return;
     }
 
     std::shared_ptr<AbilityInfo> abilityInfo = abilityRecord->GetAbilityInfo();
     if (abilityInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "abilityInfo is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITY, "null abilityInfo");
         return;
     }
 
@@ -85,7 +84,7 @@ void AbilityThread::AbilityThreadMain(const std::shared_ptr<OHOSApplication> &ap
         thread = new (std::nothrow) AbilityRuntime::FAAbilityThread();
     }
     if (thread == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "thread is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITY, "null thread");
         return;
     }
     thread->Attach(application, abilityRecord, stageContext);

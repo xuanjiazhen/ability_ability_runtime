@@ -19,7 +19,6 @@
 #include "auto_startup_info.h"
 #include "event_handler.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "ipc_types.h"
 #include "message_parcel.h"
 
@@ -31,18 +30,9 @@ AutoStartupCallBackStub::AutoStartupCallBackStub()
     Init();
 }
 
-AutoStartupCallBackStub::~AutoStartupCallBackStub()
-{
-    requestFuncMap_.clear();
-}
+AutoStartupCallBackStub::~AutoStartupCallBackStub() {}
 
-void AutoStartupCallBackStub::Init()
-{
-    requestFuncMap_[static_cast<uint32_t>(AbilityManagerInterfaceCode::ON_AUTO_STARTUP_ON)] =
-        &AutoStartupCallBackStub::OnAutoStartupOnInner;
-    requestFuncMap_[static_cast<uint32_t>(AbilityManagerInterfaceCode::ON_AUTO_STARTUP_OFF)] =
-        &AutoStartupCallBackStub::OnAutoStartupOffInner;
-}
+void AutoStartupCallBackStub::Init() {}
 
 int AutoStartupCallBackStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
@@ -50,18 +40,20 @@ int AutoStartupCallBackStub::OnRemoteRequest(
     std::u16string autoStartUpCallBackDescriptor = AutoStartupCallBackStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (autoStartUpCallBackDescriptor != remoteDescriptor) {
-        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Local descriptor is not equal to remote.");
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "invalid descriptor");
         return ERR_INVALID_STATE;
     }
 
-    auto itFunc = requestFuncMap_.find(code);
-    if (itFunc != requestFuncMap_.end()) {
-        auto requestFunc = itFunc->second;
-        if (requestFunc != nullptr) {
-            return (this->*requestFunc)(data, reply);
-        }
+    switch (code) {
+        case static_cast<uint32_t>(AbilityManagerInterfaceCode::ON_AUTO_STARTUP_ON):
+            return OnAutoStartupOnInner(data, reply);
+            break;
+        case static_cast<uint32_t>(AbilityManagerInterfaceCode::ON_AUTO_STARTUP_OFF):
+            return OnAutoStartupOffInner(data, reply);
+            break;
     }
-    TAG_LOGW(AAFwkTag::AUTO_STARTUP, "Default case, need check.");
+
+    TAG_LOGW(AAFwkTag::AUTO_STARTUP, "Default case");
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
@@ -69,7 +61,7 @@ int32_t AutoStartupCallBackStub::OnAutoStartupOnInner(MessageParcel &data, Messa
 {
     sptr<AutoStartupInfo> info = data.ReadParcelable<AutoStartupInfo>();
     if (info == nullptr) {
-        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Failed to read parcelable.");
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Read info failed");
         return ERR_INVALID_VALUE;
     }
 
@@ -79,11 +71,11 @@ int32_t AutoStartupCallBackStub::OnAutoStartupOnInner(MessageParcel &data, Messa
     handler->PostSyncTask([weak, info]() {
         auto autoStartUpCallBackStub = weak.promote();
         if (autoStartUpCallBackStub == nullptr) {
-            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "autoStartUpCallBackStub is nullptr.");
+            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null autoStartUpCallBackStub");
             return;
         }
         autoStartUpCallBackStub->OnAutoStartupOn(*info);
-    });
+        }, "AutoStartupCallBackStub::OnAutoStartupOnInner");
 
     return NO_ERROR;
 }
@@ -92,7 +84,7 @@ int32_t AutoStartupCallBackStub::OnAutoStartupOffInner(MessageParcel &data, Mess
 {
     sptr<AutoStartupInfo> info = data.ReadParcelable<AutoStartupInfo>();
     if (info == nullptr) {
-        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Failed to read parcelable.");
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Read info failed");
         return ERR_INVALID_VALUE;
     }
 
@@ -102,11 +94,11 @@ int32_t AutoStartupCallBackStub::OnAutoStartupOffInner(MessageParcel &data, Mess
     handler->PostSyncTask([weak, info]() {
         auto autoStartUpCallBackStub = weak.promote();
         if (autoStartUpCallBackStub == nullptr) {
-            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "autoStartUpCallBackStub is nullptr.");
+            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null autoStartUpCallBackStub");
             return;
         }
         autoStartUpCallBackStub->OnAutoStartupOff(*info);
-    });
+        }, "AutoStartupCallBackStub::OnAutoStartupOffInner");
 
     return NO_ERROR;
 }

@@ -17,7 +17,6 @@
 
 #include "connection_observer_errors.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -25,7 +24,7 @@ using namespace OHOS::AbilityRuntime;
 int ConnectionObserverController::AddObserver(const sptr<AbilityRuntime::IConnectionObserver> &observer)
 {
     if (!observer) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "observer is invalid");
+        TAG_LOGE(AAFwkTag::CONNECTION, "invalid observer");
         return AbilityRuntime::ERR_INVALID_OBSERVER;
     }
 
@@ -34,7 +33,7 @@ int ConnectionObserverController::AddObserver(const sptr<AbilityRuntime::IConnec
         return (item && item->AsObject() == observer->AsObject());
     });
     if (it != observers_.end()) {
-        TAG_LOGW(AAFwkTag::CONNECTION, "observer was already added, do not add again");
+        TAG_LOGW(AAFwkTag::CONNECTION, "observer already added");
         return 0;
     }
 
@@ -50,7 +49,7 @@ int ConnectionObserverController::AddObserver(const sptr<AbilityRuntime::IConnec
     }
     auto observerObj = observer->AsObject();
     if (!observerObj || !observerObj->AddDeathRecipient(observerDeathRecipient_)) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "AddDeathRecipient failed.");
+        TAG_LOGE(AAFwkTag::CONNECTION, "AddDeathRecipient failed");
     }
     observers_.emplace_back(observer);
 
@@ -60,7 +59,7 @@ int ConnectionObserverController::AddObserver(const sptr<AbilityRuntime::IConnec
 void ConnectionObserverController::RemoveObserver(const sptr<AbilityRuntime::IConnectionObserver> &observer)
 {
     if (!observer) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "observer is invalid");
+        TAG_LOGE(AAFwkTag::CONNECTION, "observer invalid");
         return;
     }
 
@@ -83,6 +82,7 @@ void ConnectionObserverController::NotifyExtensionDisconnected(const AbilityRunt
     CallObservers(&AbilityRuntime::IConnectionObserver::OnExtensionDisconnected, data);
 }
 
+#ifdef WITH_DLP
 void ConnectionObserverController::NotifyDlpAbilityOpened(const AbilityRuntime::DlpStateData& data)
 {
     CallObservers(&AbilityRuntime::IConnectionObserver::OnDlpAbilityOpened, data);
@@ -92,6 +92,7 @@ void ConnectionObserverController::NotifyDlpAbilityClosed(const AbilityRuntime::
 {
     CallObservers(&AbilityRuntime::IConnectionObserver::OnDlpAbilityClosed, data);
 }
+#endif // WITH_DLP
 
 std::vector<sptr<AbilityRuntime::IConnectionObserver>> ConnectionObserverController::GetObservers()
 {
@@ -101,10 +102,10 @@ std::vector<sptr<AbilityRuntime::IConnectionObserver>> ConnectionObserverControl
 
 void ConnectionObserverController::HandleRemoteDied(const wptr<IRemoteObject> &remote)
 {
-    TAG_LOGD(AAFwkTag::CONNECTION, "remote connection oberver was died.");
+    TAG_LOGD(AAFwkTag::CONNECTION, "remote connection oberver died");
     auto remoteObj = remote.promote();
     if (!remoteObj) {
-        TAG_LOGD(AAFwkTag::CONNECTION, "invalid remote object.");
+        TAG_LOGD(AAFwkTag::CONNECTION, "invalid remoteObj");
         return;
     }
     remoteObj->RemoveDeathRecipient(observerDeathRecipient_);
