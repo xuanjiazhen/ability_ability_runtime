@@ -129,7 +129,9 @@ inline bool IsPublicForEmbedded(const AppExecFwk::ExtensionAbilityType type)
         AppExecFwk::ExtensionAbilityType::ADS,
         AppExecFwk::ExtensionAbilityType::SYSPICKER_PHOTOPICKER,
         AppExecFwk::ExtensionAbilityType::SYSPICKER_MEDIACONTROL,
-        AppExecFwk::ExtensionAbilityType::SYS_VISUAL
+        AppExecFwk::ExtensionAbilityType::SYS_VISUAL,
+        AppExecFwk::ExtensionAbilityType::AUTO_FILL_SMART,
+        AppExecFwk::ExtensionAbilityType::AUTO_FILL_PASSWORD
     };
     return publicForEmbeddedSet.find(type) != publicForEmbeddedSet.end();
 }
