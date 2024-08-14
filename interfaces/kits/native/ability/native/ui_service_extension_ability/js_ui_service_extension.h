@@ -28,6 +28,7 @@
 #endif
 #include "ui_service_extension.h"
 #include "ui_service_stub.h"
+#include "window_config.h"
 
 class NativeReference;
 
@@ -43,6 +44,17 @@ public:
     explicit UIServiceStubImpl(std::weak_ptr<JsUIServiceExtension>& ext);
     virtual ~UIServiceStubImpl();
     virtual int32_t SendData(sptr<IRemoteObject> hostProxy, OHOS::AAFwk::WantParams &data) override;
+
+protected:
+    std::weak_ptr<JsUIServiceExtension> extension_;
+};
+
+using namespace OHOS::Rosen;
+class UIServiceExtensionWindowEventListener : public Rosen::IWindowRectChangeListener, public Rosen::IWindowLifeCycle {
+public:
+    explicit UIServiceExtensionWindowEventListener(std::weak_ptr<JsUIServiceExtension>& ext);
+    virtual void OnRectChange(Rect rect, WindowSizeChangeReason reason);
+    virtual void AfterDestroyed();
 
 protected:
     std::weak_ptr<JsUIServiceExtension> extension_;
@@ -133,6 +145,20 @@ public:
     virtual void OnCommand(const AAFwk::Want &want, bool restart, int startId) override;
 
     /**
+     * @brief Called when the window rect is updated.
+     *
+     * @param winRect Indicates the updated rect information.
+     */
+    void OnWindowRectChanged(Rect winRect);
+
+    /**
+     * @brief Called when the window is destroyed.
+     *
+     * @param
+     */
+    void OnWindowDestroyed();
+
+    /**
      * @brief Called when the system configuration is updated.
      *
      * @param configuration Indicates the updated configuration information.
@@ -160,6 +186,8 @@ private:
     void AbilityWindowConfigTransition(sptr<Rosen::WindowOption>& option,
         const std::shared_ptr<Rosen::ExtensionWindowConfig>& extensionWindowConfig);
 
+    void SaveAbilityWindowConfig(int32_t windowType, Rect winRect);
+
     napi_value CallObjectMethod(const char* name, napi_value const *argv = nullptr, size_t argc = 0);
 
     napi_value WrapWant(napi_env env, const AAFwk::Want &want);
@@ -182,6 +210,9 @@ private:
     sptr<UIServiceStubImpl> extensionStub_;
     std::map<sptr<IRemoteObject>, std::unique_ptr<NativeReference>> hostProxyMap_;
     bool firstRequest_ = true;
+    sptr<UIServiceExtensionWindowEventListener> windowEventListener_;
+    AAFwk::WindowConfig windowConfig_;
+
 #ifdef SUPPORT_GRAPHICS
     void OnSceneWillCreated(std::shared_ptr<Rosen::ExtensionWindowConfig> extensionWindowConfig);
     void OnSceneDidCreated(sptr<Rosen::Window>& window);
