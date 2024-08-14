@@ -1499,12 +1499,14 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     TAG_LOGD(AAFwkTag::APPKIT, "the application isSystemApp: %{public}d", isSystemApp);
 #ifdef CJ_FRONTEND
     if (isCJApp) {
+        bool hwasanEnabled = appInfo.sanFlag &
+            static_cast<uint32_t>(GetApplicationSanFlag::GET_APPLICATION_INFO_WITH_HWASANENABLED);
         AbilityRuntime::CJRuntime::SetAppLibPath(appLibPaths);
         if (appInfo.asanEnabled) {
             AbilityRuntime::CJRuntime::SetSanitizerVersion(SanitizerKind::ASAN);
         } else if (appInfo.tsanEnabled) {
             AbilityRuntime::CJRuntime::SetSanitizerVersion(SanitizerKind::TSAN);
-        } else if (appInfo.hwasanEnabled) {
+        } else if (hwasanEnabled) {
             AbilityRuntime::CJRuntime::SetSanitizerVersion(SanitizerKind::HWASAN);
         }
     } else {
