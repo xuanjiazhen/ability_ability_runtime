@@ -34,6 +34,7 @@
 #include "mock_native_token.h"
 #include "mock_render_scheduler.h"
 #include "mock_sa_call.h"
+#include "mock_task_handler_wrap.h"
 #include "parameters.h"
 #include "render_state_observer_stub.h"
 #include "window_manager.h"
@@ -3448,8 +3449,7 @@ HWTEST_F(AppMgrServiceInnerTest, TimeoutNotifyApp_001, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "TimeoutNotifyApp_001 start");
     std::shared_ptr<AppMgrServiceInner> appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner, nullptr);
-    std::shared_ptr<TaskHandlerWrap> taskHandler =
-        AAFwk::TaskHandlerWrap::CreateQueueHandler("app_mgr_task_queue");
+    std::shared_ptr<TaskHandlerWrap> taskHandler = MockTaskHandlerWrap::CreateQueueHandler("app_mgr_task_queue");
     appMgrServiceInner->SetTaskHandler(taskHandler);
 
     int32_t pid = 0;
