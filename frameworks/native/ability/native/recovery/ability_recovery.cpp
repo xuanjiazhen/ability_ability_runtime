@@ -273,10 +273,6 @@ bool AbilityRecovery::ScheduleSaveAbilityState(StateReason reason)
             return false;
         }
         abilityMgr->EnableRecoverAbility(token);
-        if (reason == StateReason::LIFECYCLE && DefaultRecovery()) {
-            TAG_LOGD(AAFwkTag::RECOVERY, "AppRecovery ScheduleSaveAbilityState SubmitSaveRecoveryInfo");
-            abilityMgr->SubmitSaveRecoveryInfo(token);
-        }
     }
     return ret;
 }
