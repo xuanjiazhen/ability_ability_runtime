@@ -18,6 +18,7 @@
 
 #include "ability_manager_interface.h"
 #include "auto_startup_info.h"
+#include "configuration.h"
 #include "iremote_proxy.h"
 #include "mission_info.h"
 
@@ -1354,6 +1355,16 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t TerminateMission(int32_t missionId) override;
+
+    /**
+     * @brief Get ui extension configuration by ability token.
+     *
+     * @param token ability token.
+     * @param config output ui extension configuration.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetUIExtensionConfigurationByToken(const sptr<IRemoteObject> &token,
+        AppExecFwk::Configuration &config) override;
 
 private:
     template <typename T>

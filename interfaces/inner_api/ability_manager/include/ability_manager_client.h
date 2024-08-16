@@ -23,6 +23,7 @@
 #include "ability_manager_interface.h"
 #include "ability_scheduler_interface.h"
 #include "auto_startup_info.h"
+#include "configuration.h"
 #include "iremote_object.h"
 #include "mission_info.h"
 #include "snapshot.h"
@@ -1589,6 +1590,15 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode TerminateMission(int32_t missionId);
+
+    /**
+     * @brief Get ui extension configuration by ability token.
+     *
+     * @param token ability token.
+     * @param config output ui extension configuration.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t GetUIExtensionConfigurationByToken(const sptr<IRemoteObject> &token, AppExecFwk::Configuration &config);
 
 private:
     AbilityManagerClient();
