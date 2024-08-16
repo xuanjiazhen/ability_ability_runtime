@@ -416,6 +416,9 @@ enum class AbilityManagerInterfaceCode {
     // start ability only ui ability
     START_ABILITY_ONLY_UI_ABILITY = 1067,
 
+    // get ui extension configuration by token
+    GET_UI_EXTENSION_CONFIGURATION_BY_TOKEN = 1068,
+
     // ipc id for continue ability(1101)
     START_CONTINUATION = 1101,
 
