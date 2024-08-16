@@ -334,6 +334,7 @@ public:
 
     virtual bool IsProcessAttached(sptr<IRemoteObject> token) override;
 
+    bool CheckSpecifiedRequest(const AppExecFwk::AbilityInfo &abilityInfo, int32_t requestId) override;
 private:
     bool WriteInterfaceToken(MessageParcel &data);
     int32_t SendTransactCmd(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);

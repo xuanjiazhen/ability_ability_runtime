@@ -713,5 +713,20 @@ bool AmsMgrScheduler::IsProcessAttached(sptr<IRemoteObject> token)
     }
     return amsMgrServiceInner_->IsProcessAttached(token);
 }
+
+bool AmsMgrScheduler::CheckSpecifiedRequest(const AppExecFwk::AbilityInfo &abilityInfo, int32_t requestId)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AmsMgrService is not ready.");
+        return false;
+    }
+    pid_t callingPid = IPCSkeleton::GetCallingPid();
+    pid_t procPid = getprocpid();
+    if (callingPid != procPid) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Not allow other process to call.");
+        return false;
+    }
+    return amsMgrServiceInner_->CheckSpecifiedRequest(abilityInfo, requestId);
+}
 } // namespace AppExecFwk
 }  // namespace OHOS

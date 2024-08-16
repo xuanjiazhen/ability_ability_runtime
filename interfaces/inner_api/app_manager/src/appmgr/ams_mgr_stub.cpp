@@ -213,6 +213,8 @@ int32_t AmsMgrStub::OnRemoteRequestInnerFourth(uint32_t code, MessageParcel &dat
             return HandleKillProcessesByAccessTokenId(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::IS_PROCESS_ATTACHED):
             return HandleIsProcessAttached(data, reply);
+        case static_cast<uint32_t>(IAmsMgr::Message::CHECK_SPECIFIED_REQUEST):
+            return HandleCheckSpecifiedRequest(data, reply);
     }
     return AAFwk::ERR_CODE_NOT_EXIST;
 }
@@ -844,6 +846,22 @@ int32_t AmsMgrStub::HandleIsProcessAttached(MessageParcel &data, MessageParcel &
     auto isAttached = IsProcessAttached(token);
     if (!reply.WriteBool(isAttached)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Fail to write result");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AmsMgrStub::HandleCheckSpecifiedRequest(MessageParcel &data, MessageParcel &reply)
+{
+    std::shared_ptr<AbilityInfo> abilityInfo(data.ReadParcelable<AbilityInfo>());
+    if (!abilityInfo) {
+        TAG_LOGE(AAFwkTag::APPMGR, "ReadParcelable<AbilityInfo> failed");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+    auto requestId = data.ReadUint32();
+    auto result = CheckSpecifiedRequest(*abilityInfo, requestId);
+    if (!reply.WriteBool(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Fail to write result in CheckSpecifiedRequest.");
         return ERR_INVALID_VALUE;
     }
     return NO_ERROR;

@@ -78,7 +78,7 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
-    if (!CheckSessionInfo(sessionInfo)) {
+    if (!CheckSessionInfo(sessionInfo) || !CheckSpecifiedModule(abilityRequest.abilityInfo)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionInfo is invalid.");
         return ERR_INVALID_VALUE;
     }
@@ -197,12 +197,27 @@ void UIAbilityLifecycleManager::AddCallerRecord(AbilityRequest &abilityRequest, 
 void UIAbilityLifecycleManager::CheckSpecified(AbilityRequest &abilityRequest,
     std::shared_ptr<AbilityRecord> uiAbilityRecord)
 {
-    if (abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED && !specifiedInfoQueue_.empty()) {
-        SpecifiedInfo specifiedInfo = specifiedInfoQueue_.front();
-        specifiedInfoQueue_.pop();
+    if (abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED && !specifiedInfoList_.empty()) {
+        SpecifiedInfo specifiedInfo = specifiedInfoList_.front();
+        specifiedInfoList_.pop_front();
         uiAbilityRecord->SetSpecifiedFlag(specifiedInfo.flag);
         specifiedAbilityMap_.emplace(specifiedInfo, uiAbilityRecord);
     }
+}
+
+bool UIAbilityLifecycleManager::CheckSpecifiedModule(const AppExecFwk::AbilityInfo &abilityInfo)
+{
+    if (abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED && !specifiedInfoList_.empty()) {
+        auto specifiedInfo = specifiedInfoList_.front();
+        if (specifiedInfo.abilityName == abilityInfo.name && specifiedInfo.bundleName == abilityInfo.bundleName &&
+            IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->CheckSpecifiedRequest(
+                abilityInfo, specifiedInfo.requestId))) {
+            return true;
+        }
+        specifiedInfoList_.pop_front();
+        return false;
+    }
+    return true;
 }
 
 void UIAbilityLifecycleManager::SendKeyEvent(AbilityRequest &abilityRequest) const
@@ -1654,7 +1669,7 @@ void UIAbilityLifecycleManager::OnAcceptWantResponse(const AAFwk::Want &want, co
         }
     }
     NotifyStartSpecifiedAbility(abilityRequest, want);
-    StartAbilityBySpecifed(abilityRequest, callerAbility);
+    StartAbilityBySpecifed(abilityRequest, callerAbility, requestId);
 }
 
 void UIAbilityLifecycleManager::OnStartSpecifiedAbilityTimeoutResponse(const AAFwk::Want &want, int32_t requestId)
@@ -1831,7 +1846,7 @@ int UIAbilityLifecycleManager::SendSessionInfoToSCB(std::shared_ptr<AbilityRecor
 }
 
 int UIAbilityLifecycleManager::StartAbilityBySpecifed(const AbilityRequest &abilityRequest,
-    std::shared_ptr<AbilityRecord> &callerAbility)
+    std::shared_ptr<AbilityRecord> &callerAbility, int32_t requestId)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     sptr<SessionInfo> sessionInfo = new SessionInfo();
@@ -1843,7 +1858,8 @@ int UIAbilityLifecycleManager::StartAbilityBySpecifed(const AbilityRequest &abil
     specifiedInfo.abilityName = abilityRequest.abilityInfo.name;
     specifiedInfo.bundleName = abilityRequest.abilityInfo.bundleName;
     specifiedInfo.flag = abilityRequest.specifiedFlag;
-    specifiedInfoQueue_.push(specifiedInfo);
+    specifiedInfo.requestId = requestId;
+    specifiedInfoList_.push_back(specifiedInfo);
 
     SendSessionInfoToSCB(callerAbility, sessionInfo);
     return ERR_OK;

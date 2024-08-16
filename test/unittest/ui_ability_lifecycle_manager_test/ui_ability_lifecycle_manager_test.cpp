@@ -2495,7 +2495,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartAbilityBySpecifed_001, TestSize.Lev
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
     AbilityRequest request;
     std::shared_ptr<AbilityRecord> callerAbility = nullptr;
-    uiAbilityLifecycleManager->StartAbilityBySpecifed(request, callerAbility);
+    uiAbilityLifecycleManager->StartAbilityBySpecifed(request, callerAbility, 0);
     uiAbilityLifecycleManager.reset();
 }
 
@@ -4246,7 +4246,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAbilityWithResult_001, TestS
 {
     auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    
+
     std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
     Want resultWant;
     int32_t resultCode = 100;
@@ -4268,7 +4268,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAbilityWithResult_002, TestS
 {
     auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    
+
     std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
     Want resultWant;
     int32_t resultCode = 100;
@@ -4290,7 +4290,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAbilityWithResult_003, TestS
 {
     auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    
+
     std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
     Want resultWant;
     int32_t resultCode = 100;
@@ -4322,7 +4322,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAbilityWithResult_004, TestS
 {
     auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    
+
     std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
     Want resultWant;
     int32_t resultCode = 100;
@@ -4353,7 +4353,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAbilityWithResult_005, TestS
 {
     auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    
+
     std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
     Want resultWant;
     int32_t resultCode = 100;
@@ -4361,7 +4361,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAbilityWithResult_005, TestS
     int32_t pid = 1;
     bool backFlag = true;
     int64_t callerRequestCode = AbilityRuntime::StartupUtil::GenerateFullRequestCode(pid, backFlag, requestCode);
-    
+
     std::shared_ptr<AbilityRecord> callerAbilityRecord = InitAbilityRecord();
     callerAbilityRecord->pid_ = pid;
     auto newCallerRecord = std::make_shared<CallerRecord>(requestCode, callerAbilityRecord);
@@ -4388,7 +4388,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAbilityWithResult_006, TestS
 {
     auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    
+
     std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
     Want resultWant;
     int32_t resultCode = 100;
@@ -4396,7 +4396,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAbilityWithResult_006, TestS
     int32_t pid = 1;
     bool backFlag = true;
     int64_t callerRequestCode = AbilityRuntime::StartupUtil::GenerateFullRequestCode(pid, backFlag, requestCode);
-    
+
     std::shared_ptr<AbilityRecord> callerAbilityRecord = InitAbilityRecord();
     callerAbilityRecord->pid_ = pid;
     auto newCallerRecord = std::make_shared<CallerRecord>(requestCode, callerAbilityRecord);

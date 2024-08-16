@@ -1312,5 +1312,27 @@ bool AmsMgrProxy::IsProcessAttached(sptr<IRemoteObject> token)
     }
     return reply.ReadBool();
 }
+
+bool AmsMgrProxy::CheckSpecifiedRequest(const AppExecFwk::AbilityInfo &abilityInfo, int32_t requestId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return false;
+    }
+    if (!data.WriteParcelable(&abilityInfo) || !data.WriteInt32(requestId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "parcel WriteString failed");
+        return false;
+    }
+
+    auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::CHECK_SPECIFIED_REQUEST), data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Send request failed, error code is %{public}d.", ret);
+        return false;
+    }
+    return reply.ReadBool();
+}
 } // namespace AppExecFwk
 } // namespace OHOS

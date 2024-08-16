@@ -715,7 +715,8 @@ public:
     void RegisterStartSpecifiedAbilityResponse(const sptr<IStartSpecifiedAbilityResponse> &response);
 
     void ScheduleAcceptWantDone(const int32_t recordId, const AAFwk::Want &want, const std::string &flag);
-
+    // abilityInfo.package
+    bool CheckSpecifiedRequest(const AppExecFwk::AbilityInfo &abilityInfo, int32_t requestId);
     void ScheduleNewProcessRequestDone(const int32_t recordId, const AAFwk::Want &want, const std::string &flag);
 
     /**

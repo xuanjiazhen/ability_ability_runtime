@@ -402,5 +402,25 @@ bool ModuleRunningRecord::IsAllAbilityReadyToCleanedByUserRequest()
     }
     return true;
 }
+
+void ModuleRunningRecord::AddSpecifiedRequestId(int32_t requestId)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "requestId: %{public}d", requestId);
+    std::lock_guard lock(specifiedRequestIdsMutex_);
+    specifiedRequestIds_.insert(requestId);
+}
+
+bool ModuleRunningRecord::HasRequestIdAndRemove(int32_t requestId)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "requestId: %{public}d", requestId);
+    std::lock_guard lock(specifiedRequestIdsMutex_);
+    return specifiedRequestIds_.erase(requestId) > 0;
+}
+
+bool ModuleRunningRecord::IsLaunchingSpecified()
+{
+    std::lock_guard lock(specifiedRequestIdsMutex_);
+    return specifiedRequestIds_.size() > 0;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

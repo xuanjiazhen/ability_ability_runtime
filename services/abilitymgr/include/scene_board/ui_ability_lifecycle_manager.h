@@ -44,6 +44,7 @@ public:
         std::string abilityName = "";
         std::string bundleName = "";
         std::string flag = "";
+        int32_t requestId = -1;
     };
     struct key_compare {
         bool operator()(const SpecifiedInfo &info1, const SpecifiedInfo &info2) const
@@ -414,9 +415,11 @@ private:
     int MoveAbilityToFront(const AbilityRequest &abilityRequest, const std::shared_ptr<AbilityRecord> &abilityRecord,
         std::shared_ptr<AbilityRecord> callerAbility, std::shared_ptr<StartOptions> startOptions = nullptr);
     int SendSessionInfoToSCB(std::shared_ptr<AbilityRecord> &callerAbility, sptr<SessionInfo> &sessionInfo);
-    int StartAbilityBySpecifed(const AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &callerAbility);
+    int StartAbilityBySpecifed(const AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &callerAbility,
+        int32_t requestId);
     std::shared_ptr<AbilityRecord> GetReusedSpecifiedAbility(const AAFwk::Want &want, const std::string &flag);
     void EraseSpecifiedAbilityRecord(const std::shared_ptr<AbilityRecord> &abilityRecord);
+    bool CheckSpecifiedModule(const AppExecFwk::AbilityInfo &abilityInfo);
 
     void SetLastExitReason(std::shared_ptr<AbilityRecord> &abilityRecord) const;
     void SetRevicerInfo(const AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &abilityRecord) const;
@@ -450,7 +453,7 @@ private:
     std::map<SpecifiedInfo, std::shared_ptr<AbilityRecord>, key_compare> specifiedAbilityMap_;
     int32_t specifiedRequestId_ = 0;
     std::map<int32_t, AbilityRequest> specifiedRequestMap_;
-    std::queue<SpecifiedInfo> specifiedInfoQueue_;
+    std::list<SpecifiedInfo> specifiedInfoList_;
     sptr<ISessionHandler> handler_;
     ffrt::mutex statusBarDelegateManagerLock_;
     std::shared_ptr<StatusBarDelegateManager> statusBarDelegateManager_;

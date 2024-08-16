@@ -645,5 +645,13 @@ bool AppScheduler::IsProcessAttached(sptr<IRemoteObject> token) const
     }
     return appMgrClient_->IsProcessAttached(token);
 }
+bool AppScheduler::CheckSpecifiedRequest(const AppExecFwk::AbilityInfo &abilityInfo, int32_t requestId)
+{
+    if (!appMgrClient_) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "appMgrClient is nullptr");
+        return false;
+    }
+    return appMgrClient_->CheckSpecifiedRequest(abilityInfo, requestId);
+}
 } // namespace AAFwk
 }  // namespace OHOS

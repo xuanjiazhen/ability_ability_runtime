@@ -818,6 +818,7 @@ public:
      * @return Returns true is only UIAbility, otherwise return false
      */
     bool IsProcessContainsOnlyUIAbility(const pid_t pid);
+    bool CheckSpecifiedRequest(const AppExecFwk::AbilityInfo &abilityInfo, int32_t requestId);
 
     bool IsProcessAttached(sptr<IRemoteObject> token) const;
 

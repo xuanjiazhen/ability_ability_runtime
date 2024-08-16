@@ -35,6 +35,7 @@ constexpr int64_t NANOSECONDS = 1000000000;  // NANOSECONDS mean 10^9 nano secon
 constexpr int64_t MICROSECONDS = 1000000;    // MICROSECONDS mean 10^6 millias second
 constexpr int32_t MAX_RESTART_COUNT = 3;
 constexpr int32_t RESTART_INTERVAL_TIME = 120000;
+constexpr int32_t SPECIFIED_DELAY = 1000;  // 1000ms
 constexpr const char* LAUNCHER_NAME = "com.ohos.sceneboard";
 constexpr const char *EVENT_KEY_VERSION_NAME = "VERSION_NAME";
 constexpr const char *EVENT_KEY_VERSION_CODE = "VERSION_CODE";
@@ -745,7 +746,7 @@ void AppRunningRecord::AddModule(std::shared_ptr<ApplicationInfo> appInfo,
     std::lock_guard<ffrt::mutex> hapModulesLock(hapModulesLock_);
     const auto &iter = hapModules_.find(appInfo->bundleName);
     if (iter != hapModules_.end()) {
-        moduleRecord = GetModuleRecordByModuleName(appInfo->bundleName, hapModuleInfo.moduleName);
+        moduleRecord = GetModuleRecordByModuleNameInner(appInfo->bundleName, hapModuleInfo.moduleName);
         if (!moduleRecord) {
             moduleRecord = std::make_shared<ModuleRunningRecord>(appInfo, eventHandler_);
             iter->second.push_back(moduleRecord);
@@ -775,6 +776,13 @@ void AppRunningRecord::AddModule(std::shared_ptr<ApplicationInfo> appInfo,
 std::shared_ptr<ModuleRunningRecord> AppRunningRecord::GetModuleRecordByModuleName(
     const std::string bundleName, const std::string &moduleName)
 {
+    std::lock_guard hapModulesLock(hapModulesLock_);
+    return GetModuleRecordByModuleNameInner(bundleName, moduleName);
+}
+
+std::shared_ptr<ModuleRunningRecord> AppRunningRecord::GetModuleRecordByModuleNameInner(
+    const std::string bundleName, const std::string &moduleName)
+{
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     auto moduleRecords = hapModules_.find(bundleName);
     if (moduleRecords != hapModules_.end()) {
@@ -784,8 +792,29 @@ std::shared_ptr<ModuleRunningRecord> AppRunningRecord::GetModuleRecordByModuleNa
             }
         }
     }
-
     return nullptr;
+}
+
+void AppRunningRecord::AddModuleSpecifiedRequestId(const std::string bundleName, const std::string &moduleName,
+    int32_t requestId)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "bundleName: %{public}s, moduleName: %{public}s, requestId: %{public}d",
+        bundleName.c_str(), moduleName.c_str(), requestId);
+    auto moduleRecord = GetModuleRecordByModuleName(bundleName, moduleName);
+    if (moduleRecord) {
+        moduleRecord->AddSpecifiedRequestId(requestId);
+    }
+}
+
+bool AppRunningRecord::IsLaunchingSpecified()
+{
+    auto moduleRecordList = GetAllModuleRecord();
+    for (const auto &item: moduleRecordList) {
+        if (item && item->IsLaunchingSpecified()) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void AppRunningRecord::StateChangedNotifyObserver(const std::shared_ptr<AbilityRunningRecord> &ability,
@@ -1171,6 +1200,25 @@ void AppRunningRecord::AbilityTerminated(const sptr<IRemoteObject> &token)
     HiSysEventWrite(HiSysEvent::Domain::AAFWK, "CACHE_SUPPORT_STATE", HiSysEvent::EventType::BEHAVIOR,
         EVENT_KEY_VERSION_CODE, appInfo->versionCode, EVENT_KEY_VERSION_NAME, appInfo->versionName,
         EVENT_KEY_BUNDLE_NAME, appInfo->bundleName, EVENT_KEY_SUPPORT_STATE, state);
+
+    if (moduleRecord->IsLaunchingSpecified() && taskHandler_) {
+        TAG_LOGI(AAFwkTag::APPMGR, "delay clear");
+        taskHandler_->SubmitTask([pThis = shared_from_this(), moduleRecord, needCache, isExtensionDebug]() {
+            pThis->AfterAbilityTerminated(moduleRecord, needCache, isExtensionDebug);
+            }, SPECIFIED_DELAY);
+    } else {
+        AfterAbilityTerminated(moduleRecord, needCache, isExtensionDebug);
+    }
+}
+
+void AppRunningRecord::AfterAbilityTerminated(std::shared_ptr<ModuleRunningRecord> moduleRecord, bool needCache,
+    bool isExtensionDebug)
+{
+    if (moduleRecord == nullptr) {
+        TAG_LOGW(AAFwkTag::APPMGR, "module null");
+        return;
+    }
+
     if (moduleRecord->GetAbilities().empty() && (!IsKeepAliveApp()
         || AAFwk::UIExtensionUtils::IsUIExtension(GetExtensionType())
         || !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficent()) && !needCache) {
@@ -1182,6 +1230,7 @@ void AppRunningRecord::AbilityTerminated(const sptr<IRemoteObject> &token)
         || AAFwk::UIExtensionUtils::IsUIExtension(GetExtensionType())
         || !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficent()) && !isExtensionDebug
         && !needCache) {
+        SetTerminating();
         ScheduleTerminate();
     }
 }
@@ -1405,7 +1454,9 @@ bool AppRunningRecord::IsLastPageAbilityRecord(const sptr<IRemoteObject> &token)
 
 void AppRunningRecord::SetTerminating()
 {
-    isTerminating = true;
+    if (!IsLaunchingSpecified()) {
+        isTerminating = true;
+    }
 }
 
 bool AppRunningRecord::IsTerminating()
