@@ -17,6 +17,7 @@
 
 #include "ability_manager_errors.h"
 #include "ability_manager_radar.h"
+#include "configuration.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "status_bar_delegate_interface.h"

@@ -259,8 +259,17 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
         SetLastExitReason(abilityRequest, targetService);
         if (IsUIExtensionAbility(targetService)) {
             targetService->SetLaunchReason(LaunchReason::LAUNCHREASON_START_ABILITY);
-            if (abilityRequest.sessionInfo != nullptr && abilityRequest.sessionInfo->configuration != nullptr) {
-                targetService->SetConfiguration(*(abilityRequest.sessionInfo->configuration));
+            if (abilityRequest.sessionInfo != nullptr) {
+                auto displayId = abilityRequest.sessionInfo->displayId;
+                auto density = abilityRequest.sessionInfo->density;
+                auto orientation = abilityRequest.sessionInfo->orientation;
+                AppExecFwk::Configuration config;
+                config.AddItem(
+                    displayId, AppExecFwk::ConfigurationInner::APPLICATION_DENSITYDPI, std::to_string(density));
+                config.AddItem(
+                    displayId, AppExecFwk::ConfigurationInner::APPLICATION_DIRECTION, std::to_string(orientation));
+                config.AddItem(AppExecFwk::ConfigurationInner::APPLICATION_DISPLAYID, std::to_string(displayId));
+                targetService->SetConfiguration(config);
             }
         }
         targetService->GrantUriPermissionForServiceExtension();

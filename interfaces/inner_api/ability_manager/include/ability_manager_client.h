@@ -23,6 +23,7 @@
 #include "ability_manager_interface.h"
 #include "ability_scheduler_interface.h"
 #include "auto_startup_info.h"
+#include "configuration.h"
 #include "iremote_object.h"
 #include "mission_info.h"
 #include "snapshot.h"

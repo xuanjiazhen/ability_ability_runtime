@@ -128,12 +128,14 @@ void ConfigurationUtils::InitDisplayConfig(const std::shared_ptr<Configuration> 
     }
     auto displayId = static_cast<uint64_t>(std::stoi(displayIdStr));
     auto densityStr = configuration->GetItem(displayId, AppExecFwk::ConfigurationInner::APPLICATION_DENSITYDPI);
-    auto directionStr = configuration->GetItem(displayId, AppExecFwk::ConfigurationInner::APPLICATION_DIRECTION);
+    auto orientationStr = configuration->GetItem(displayId, AppExecFwk::ConfigurationInner::APPLICATION_DIRECTION);
+    auto orientation = static_cast<int32_t>(std::stoi(orientationStr));
+    auto direction = ConvertDirection(static_cast<Rosen::DisplayOrientation>(orientation));
     float density = static_cast<float>(std::stof(densityStr));
-    contextConfig->AddItem(displayId, ConfigurationInner::APPLICATION_DENSITYDPI, densityStr);
-    contextConfig->AddItem(displayId, ConfigurationInner::APPLICATION_DIRECTION, directionStr);
+    contextConfig->AddItem(displayId, ConfigurationInner::APPLICATION_DENSITYDPI, GetDensityStr(density));
+    contextConfig->AddItem(displayId, ConfigurationInner::APPLICATION_DIRECTION, direction);
     contextConfig->AddItem(ConfigurationInner::APPLICATION_DISPLAYID, displayIdStr);
-    UpdateDisplayResConfig(resourceManager, density, directionStr);
+    UpdateDisplayResConfig(resourceManager, density, direction);
 }
 
 bool ConfigurationUtils::UpdateDisplayConfig(std::shared_ptr<Configuration> configuration,
