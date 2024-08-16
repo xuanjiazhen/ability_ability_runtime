@@ -702,9 +702,8 @@ void UIAbilityLifecycleManager::UpdateAbilityRecordLaunchReason(
         return;
     }
 
-    auto res = abilityRequest.IsContinuation();
-    if (res.first) {
-        abilityRecord->SetLaunchReason(res.second);
+    if (abilityRequest.IsContinuation()) {
+        abilityRecord->SetLaunchReason(LaunchReason::LAUNCHREASON_CONTINUATION);
         return;
     }
 
