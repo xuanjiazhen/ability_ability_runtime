@@ -2079,7 +2079,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, RequestModalUIExtension_001, TestSize.L
     auto abilityMs = std::make_shared<AbilityManagerService>();
     Want want;
     auto result = abilityMs->RequestModalUIExtension(want);
-    EXPECT_EQ(result, ERROR_OK);
+    EXPECT_EQ(result, ERR_OK);
 }
 
 /*
@@ -2092,7 +2092,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, RequestModalUIExtensionInner_001, TestS
     auto abilityMs = std::make_shared<AbilityManagerService>();
     Want want;
     auto result = abilityMs->RequestModalUIExtensionInner(want);
-    EXPECT_EQ(result, ERROR_OK);
+    EXPECT_EQ(result, ERR_OK);
 }
 
 /*
