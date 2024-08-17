@@ -254,7 +254,7 @@ void JsRuntime::StartDebugMode(const DebugOption dOption)
     }
     CHECK_POINTER(jsEnv_);
     if (jsEnv_->GetDebugMode()) {
-        TAG_LOGI(AAFwkTag::JSRUNTIME, "debugMode");
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "debugMode");
         return;
     }
     // Set instance id to tid after the first instance.

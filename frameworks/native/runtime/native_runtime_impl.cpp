@@ -77,7 +77,7 @@ napi_status NativeRuntimeImpl::CreateJsEnv(const Options& options, std::shared_p
     pandaOption.SetMemConfigProperty(memConfigProperty);
     pandaOption.SetGcThreadNum(gcThreadNum);
     pandaOption.SetLongPauseTime(longPauseTime);
-    TAG_LOGI(AAFwkTag::JSRUNTIME, "ark properties = %{public}d bundlename = %{public}s",
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "ark properties = %{public}d bundlename = %{public}s",
         arkProperties, bundleName.c_str());
     pandaOption.SetGcType(panda::RuntimeOption::GC_TYPE::GEN_GC);
     pandaOption.SetGcPoolSize(DEFAULT_GC_POOL_SIZE);
