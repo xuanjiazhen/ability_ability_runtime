@@ -37,6 +37,7 @@ enum class ChildProcessManagerErrorCode {
     ERR_CONNECTION_FAILED = 11,
     ERR_UNSUPPORTED_START_MODE = 12,
     ERR_MULTI_PROCESS_MODEL_DISABLED_NEW = 13,
+    ERR_PERMISSION_DENIED = 14,
 };
 
 const std::map<ChildProcessManagerErrorCode, AbilityErrorCode> INTERNAL_ERR_CODE_MAP = {
@@ -53,6 +54,7 @@ const std::map<ChildProcessManagerErrorCode, AbilityErrorCode> INTERNAL_ERR_CODE
     { ChildProcessManagerErrorCode::ERR_UNSUPPORTED_START_MODE, AbilityErrorCode::ERROR_CODE_INVALID_PARAM },
     { ChildProcessManagerErrorCode::ERR_MULTI_PROCESS_MODEL_DISABLED_NEW,
         AbilityErrorCode::ERROR_CODE_CAPABILITY_NOT_SUPPORT },
+    { ChildProcessManagerErrorCode::ERR_PERMISSION_DENIED, AbilityErrorCode::ERROR_CODE_PERMISSION_DENIED },
 };
 
 class ChildProcessManagerErrorUtil {

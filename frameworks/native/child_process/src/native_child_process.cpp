@@ -28,9 +28,12 @@ namespace {
 std::mutex g_mutexCallBackObj;
 sptr<IRemoteObject> g_CallbackStub;
 OH_Ability_OnNativeChildProcessStarted g_Callback = nullptr;
+constexpr size_t MAX_KEY_SIZE = 20;
+constexpr size_t MAX_FD_SIZE = 16;
 
 const std::map<ChildProcessManagerErrorCode, Ability_NativeChildProcess_ErrCode> CPM_ERRCODE_MAP = {
     { ChildProcessManagerErrorCode::ERR_OK, NCP_NO_ERROR },
+    { ChildProcessManagerErrorCode::ERR_PERMISSION_DENIED, NCP_ERR_NO_PERMISSION },
     { ChildProcessManagerErrorCode::ERR_MULTI_PROCESS_MODEL_DISABLED, NCP_ERR_MULTI_PROCESS_DISABLED },
     { ChildProcessManagerErrorCode::ERR_ALREADY_IN_CHILD_PROCESS, NCP_ERR_ALREADY_IN_CHILD },
     { ChildProcessManagerErrorCode::ERR_GET_APP_MGR_FAILED, NCP_ERR_SERVICE_ERROR },
@@ -99,5 +102,59 @@ int OH_Ability_CreateNativeChildProcess(const char* libName, OH_Ability_OnNative
 
     g_Callback = onProcessStarted;
     g_CallbackStub = callbackStub;
+    return NCP_NO_ERROR;
+}
+
+Ability_NativeChildProcess_ErrCode OH_Ability_StartNativeChildProcess(const char* entry,
+    NativeChildProcess_Args args, NativeChildProcess_Options options, int32_t &pid)
+{
+    if (entry == nullptr || *entry == '\0') {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "Invalid entry");
+        return NCP_ERR_INVALID_PARAM;
+    }
+
+    std::string entryName(entry);
+    if (entryName.find(":") != std::string::npos) {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "entry point misses a colon");
+        return NCP_ERR_INVALID_PARAM;
+    }
+
+    if (args.entryParams == nullptr || *(args.entryParams) == '\0') {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "Invalid args.entryParams");
+        return NCP_ERR_INVALID_PARAM;
+    }
+    std::string entryParams(args.entryParams);
+
+    std::map<std::string, int32_t> fds;
+    NativeChildProcess_Fd* cur = args.fdList.head;
+    while (cur != nullptr) {
+        std::string key(cur->name);
+        if (key.size() > MAX_KEY_SIZE) {
+            TAG_LOGE(AAFwkTag::PROCESSMGR, "fd name too long");
+            return NCP_ERR_INVALID_PARAM;
+        }
+        fds.emplace(key, cur->fd);
+        cur = cur->next;
+    }
+    if (fds.size() > MAX_FD_SIZE) {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "too many fds");
+        return NCP_ERR_INVALID_PARAM;
+    }
+    AppExecFwk::ChildProcessArgs args = {
+        .entryParams = entryParams,
+        .fds = fds
+    };
+
+    AppExecFwk::ChildProcessOptions childProcessOptions = {
+        .isolationMode = (options.isolationMode == NCP_ISOLATION_MODE_ISOLATED)
+    };
+    int32_t childProcessType = AppExecFwk::CHILD_PROCESS_TYPE_ARK;
+
+    ChildProcessManager &mgr = ChildProcessManager::GetInstance();
+    auto cpmErr = mgr.StartChildProcessWithArgs(entryName, pid, childProcessType, args, childProcessOptions);
+    if (cpmErr != ChildProcessManagerErrorCode::ERR_OK) {
+        return CvtChildProcessManagerErrCode(cpmErr);
+    }
+
     return NCP_NO_ERROR;
 }
