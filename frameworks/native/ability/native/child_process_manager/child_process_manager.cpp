@@ -29,6 +29,7 @@
 #include "bundle_info.h"
 #include "bundle_mgr_interface.h"
 #include "child_process.h"
+#include "native_args_child_process.h"
 #include "native_child_ipc_process.h"
 #include "child_process_manager_error_utils.h"
 #include "child_process_request.h"
@@ -103,17 +104,18 @@ ChildProcessManagerErrorCode ChildProcessManager::StartChildProcessByAppSpawnFor
 {
     AppExecFwk::ChildProcessArgs args;
     AppExecFwk::ChildProcessOptions options;
-    return StartArkChildProcess(srcEntry, pid, AppExecFwk::CHILD_PROCESS_TYPE_JS, args, options);
+    return StartChildProcessWithArgs(srcEntry, pid, AppExecFwk::CHILD_PROCESS_TYPE_JS, args, options);
 }
 
-ChildProcessManagerErrorCode ChildProcessManager::StartArkChildProcess(
+ChildProcessManagerErrorCode ChildProcessManager::StartChildProcessWithArgs(
     const std::string &srcEntry, pid_t &pid, int32_t childProcessType, const AppExecFwk::ChildProcessArgs &args,
     const AppExecFwk::ChildProcessOptions &options)
 {
-    TAG_LOGI(AAFwkTag::PROCESSMGR, "startWitDebug: %{public}d, processName:"
-        "%{public}s, native:%{public}d, entryParams:%{private}s, fdsSize:%{public}zu, options.isolationMode:%{public}d",
-        g_debugOption.isStartWithDebug, g_debugOption.processName.c_str(), g_debugOption.isStartWithNative,
-        args.entryParams.c_str(), args.fds.size(), options.isolationMode);
+    TAG_LOGI(AAFwkTag::PROCESSMGR, "StartChildProcessWithArgs, childProcessType:%{public}d, startWitDebug: %{public}d,"
+        " processName:%{public}s, native:%{public}d, entryParams:%{private}s, fdsSize:%{public}zu,"
+        " options.isolationMode:%{public}d", childProcessType, g_debugOption.isStartWithDebug,
+        g_debugOption.processName.c_str(), g_debugOption.isStartWithNative, args.entryParams.c_str(), args.fds.size(),
+        options.isolationMode);
     ChildProcessManagerErrorCode errorCode = PreCheck(childProcessType != AppExecFwk::CHILD_PROCESS_TYPE_JS);
     if (errorCode != ChildProcessManagerErrorCode::ERR_OK) {
         return errorCode;
@@ -308,6 +310,31 @@ bool ChildProcessManager::LoadNativeLib(const std::string &moduleName,
     
     childProcess->OnStart();
     TAG_LOGD(AAFwkTag::PROCESSMGR, "end");
+    return true;
+}
+
+bool ChildProcessManager::LoadNativeLibWithArgs(const std::string &moduleName, const std::string &srcEntry,
+    const std::string &entryFunc, std::shared_ptr<AppExecFwk::ChildProcessArgs> args)
+{
+    TAG_LOGI(AAFwkTag::PROCESSMGR, "moduleName:%{public}s, srcEntry:%{public}s, entryFunc:%{public}s.",
+        moduleName.c_str(), srcEntry.c_str(), entryFunc.c_str());
+    auto childProcess = NativeArgsChildProcess::Create();
+    if (childProcess == nullptr) {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "Failed create NativeArgsChildProcess.");
+        return false;
+    }
+
+    std::shared_ptr<ChildProcessStartInfo> processStartInfo = std::make_shared<ChildProcessStartInfo>();
+    processStartInfo->moduleName = moduleName;
+    processStartInfo->srcEntry = srcEntry;
+    processStartInfo->entryFunc = entryFunc;
+    if (!childProcess->Init(processStartInfo)) {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "NativeArgsChildProcess init failed.");
+        return false;
+    }
+
+    childProcess->OnStart(args);
+    TAG_LOGD(AAFwkTag::PROCESSMGR, "LoadNativeLibWithArgs end.");
     return true;
 }
 

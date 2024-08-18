@@ -1331,7 +1331,8 @@ private:
     int32_t StartChildProcessPreCheck(const pid_t callingPid);
 
     int32_t StartChildProcessImpl(const std::shared_ptr<ChildProcessRecord> childProcessRecord,
-        const std::shared_ptr<AppRunningRecord> appRecord, pid_t &childPid, const ChildProcessArgs &args);
+        const std::shared_ptr<AppRunningRecord> appRecord, pid_t &childPid, const ChildProcessArgs &args,
+        const ChildProcessOptions &options);
 
     int32_t GetChildProcessInfo(const std::shared_ptr<ChildProcessRecord> childProcessRecord,
         const std::shared_ptr<AppRunningRecord> appRecord, ChildProcessInfo &info);
