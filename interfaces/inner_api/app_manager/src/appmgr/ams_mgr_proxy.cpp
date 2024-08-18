@@ -459,6 +459,31 @@ int32_t AmsMgrProxy::ForceKillApplication(const std::string &bundleName,
     return reply.ReadInt32();
 }
 
+int32_t AmsMgrProxy::KillProcessesByAccessTokenId(const uint32_t accessTokenId)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "start");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        return ERR_INVALID_DATA;
+    }
+
+    if (!data.WriteInt32(accessTokenId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "parcel accessTokenId failed");
+        return ERR_FLATTEN_OBJECT;
+    }
+
+    int32_t ret =
+        SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::FORCE_KILL_APPLICATION_BY_ACCESS_TOKEN_ID),
+            data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d.", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
 int32_t AmsMgrProxy::UpdateApplicationInfoInstalled(const std::string &bundleName, const int uid)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "start.");
@@ -1264,6 +1289,28 @@ bool AmsMgrProxy::IsKilledForUpgradeWeb(const std::string &bundleName)
     }
 
     auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::IS_KILLED_FOR_UPGRADE_WEB), data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Send request failed, error code is %{public}d.", ret);
+        return false;
+    }
+    return reply.ReadBool();
+}
+
+bool AmsMgrProxy::IsProcessAttached(sptr<IRemoteObject> token)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return false;
+    }
+    if (!data.WriteRemoteObject(token.GetRefPtr())) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write token");
+        return false;
+    }
+
+    auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::IS_PROCESS_ATTACHED), data, reply, option);
     if (ret != NO_ERROR) {
         TAG_LOGE(AAFwkTag::APPMGR, "Send request failed, error code is %{public}d.", ret);
         return false;

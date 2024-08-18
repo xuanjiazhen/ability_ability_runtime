@@ -234,6 +234,19 @@ public:
         int requestCode = DEFAULT_INVAL_VALUE) override;
 
     /**
+     * Start ui ability
+     *
+     * @param want the want of the ability to start.
+     * @param callerToken caller ability token.
+     * @param specifyTokenId The Caller ID.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int StartAbilityOnlyUIAbility(
+        const Want &want,
+        const sptr<IRemoteObject> &callerToken,
+        uint32_t specifyTokenId) override;
+
+    /**
      * Start extension ability with want, send want to ability manager service.
      *
      * @param want, the want of the ability to start.
@@ -288,7 +301,7 @@ public:
      * @param isColdStart the session info of the ability is or not cold start.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart) override;
+    virtual int StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag = 0) override;
 
     /**
      * Stop extension ability with want, send want to ability manager service.
@@ -314,6 +327,18 @@ public:
      */
     virtual int TerminateAbility(
         const sptr<IRemoteObject> &token, int resultCode, const Want *resultWant = nullptr) override;
+
+    /**
+     * BackToCallerAbilityWithResult, return to the caller ability.
+     *
+     * @param token, the token of the ability to terminate.
+     * @param resultCode, the resultCode of the ability to terminate.
+     * @param resultWant, the Want of the ability to return.
+     * @param callerRequestCode, the requestCode of caller ability.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int BackToCallerAbilityWithResult(const sptr<IRemoteObject> &token, int resultCode,
+        const Want *resultWant, int64_t callerRequestCode) override;
 
     /**
      * TerminateUIExtensionAbility, terminate the special ui extension ability.
@@ -397,7 +422,8 @@ public:
      * @param fromUser, Whether form user.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int MinimizeUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool fromUser = false) override;
+    virtual int MinimizeUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool fromUser = false,
+        uint32_t sceneFlag = 0) override;
 
     /**
      * ConnectAbility, connect session with service ability.
@@ -564,7 +590,7 @@ public:
      * @param bundleName.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int KillProcess(const std::string &bundleName, const bool clearPageStack = true) override;
+    virtual int KillProcess(const std::string &bundleName, const bool clearpagestack = false) override;
 
     #ifdef ABILITY_COMMAND_FOR_TEST
     /**
@@ -1201,9 +1227,10 @@ public:
     /**
      * @brief Restart app self.
      * @param want The ability type must be UIAbility.
+     * @param isAppRecovery True indicates that the app is restarted because of recovery.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t RestartApp(const AAFwk::Want &want) override;
+    int32_t RestartApp(const AAFwk::Want &want, bool isAppRecovery = false) override;
 
     /**
      * @brief Pop-up launch of full-screen atomic service.

@@ -290,6 +290,19 @@ public:
         int32_t userId = DEFAULT_INVAL_VALUE);
 
     /**
+     * Start ui ability
+     *
+     * @param want the want of the ability to start.
+     * @param callerToken caller ability token.
+     * @param specifyTokenId The Caller ID.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode StartAbilityOnlyUIAbility(
+        const Want &want,
+        sptr<IRemoteObject> callerToken,
+        uint32_t specifyTokenId);
+
+    /**
      * Start extension ability with want, send want to ability manager service.
      *
      * @param want, the want of the ability to start.
@@ -345,7 +358,7 @@ public:
      * @param isColdStart the session info of the ability is or not cold start.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart);
+    ErrCode StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag = 0);
 
     /**
      * Stop extension ability with want, send want to ability manager service.
@@ -371,6 +384,18 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode TerminateAbility(sptr<IRemoteObject> token, int resultCode, const Want *resultWant);
+
+    /**
+     * BackToCallerAbilityWithResult, return to the caller ability.
+     *
+     * @param token, the token of the ability to terminate.
+     * @param resultCode, the resultCode of the ability to terminate.
+     * @param resultWant, the Want of the ability to return.
+     * @param callerRequestCode, the requestCode of caller ability.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode BackToCallerAbilityWithResult(const sptr<IRemoteObject> &token, int resultCode,
+        const Want *resultWant, int64_t callerRequestCode);
 
     /**
      * TerminateUIExtensionAbility with want, return want from ability manager service.
@@ -453,7 +478,7 @@ public:
      * @param fromUser, Whether form user.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode MinimizeUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool fromUser = false);
+    ErrCode MinimizeUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool fromUser = false, uint32_t sceneFlag = 0);
 
     /**
      * ConnectAbility, connect session with service ability.
@@ -575,7 +600,7 @@ public:
      * @param clearPageStack.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode KillProcess(const std::string &bundleName, const bool clearPageStack = true);
+    ErrCode KillProcess(const std::string &bundleName, const bool clearpagestack = false);
 
     #ifdef ABILITY_COMMAND_FOR_TEST
     /**

@@ -15,8 +15,6 @@
 
 #include "call_container.h"
 
-#include "hilog_tag_wrapper.h"
-#include "ability_manager_errors.h"
 #include "ability_connect_callback_stub.h"
 #include "ability_util.h"
 #include "ability_manager_service.h"
@@ -123,7 +121,7 @@ void CallContainer::OnConnectionDied(const wptr<IRemoteObject> &remote)
 
 bool CallContainer::CallRequestDone(const sptr<IRemoteObject> &callStub)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Call Request Done start.");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "start");
 
     CHECK_POINTER_AND_RETURN(callStub, false);
 
@@ -137,7 +135,7 @@ bool CallContainer::CallRequestDone(const sptr<IRemoteObject> &callStub)
             }
         });
 
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Call Request Done end.");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "end");
     return true;
 }
 

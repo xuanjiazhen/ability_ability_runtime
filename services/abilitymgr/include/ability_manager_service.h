@@ -346,6 +346,19 @@ public:
         int requestCode) override;
 
     /**
+     * Start ui ability
+     *
+     * @param want the want of the ability to start.
+     * @param callerToken caller ability token.
+     * @param specifyTokenId The Caller ID.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int StartAbilityOnlyUIAbility(
+        const Want &want,
+        const sptr<IRemoteObject> &callerToken,
+        uint32_t specifyTokenId) override;
+
+    /**
      * Open link of ability and atomic service.
      *
      * @param want Ability want.
@@ -428,7 +441,7 @@ public:
      * @param isColdStart the session info of the ability is or not cold start.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart) override;
+    virtual int StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag = 0) override;
 
     /**
      * Stop extension ability with want, send want to ability manager service.
@@ -455,6 +468,18 @@ public:
      */
     virtual int TerminateAbility(const sptr<IRemoteObject> &token, int resultCode = DEFAULT_INVAL_VALUE,
         const Want *resultWant = nullptr) override;
+
+    /**
+     * BackToCallerAbilityWithResult, return to the caller ability.
+     *
+     * @param token, the token of the ability to terminate.
+     * @param resultCode, the resultCode of the ability to terminate.
+     * @param resultWant, the Want of the ability to return.
+     * @param callerRequestCode, the requestCode of caller ability.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int BackToCallerAbilityWithResult(const sptr<IRemoteObject> &token, int resultCode,
+        const Want *resultWant, int64_t callerRequestCode) override;
 
     /**
      * TerminateAbility, terminate the special ui extension ability.
@@ -538,7 +563,8 @@ public:
      * @param fromUser, Whether form user.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int MinimizeUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool fromUser = false) override;
+    virtual int MinimizeUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool fromUser = false,
+        uint32_t sceneFlag = 0) override;
 
     /**
      * ConnectAbility, connect session with service ability.
@@ -813,7 +839,7 @@ public:
      * @param bundleName.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int KillProcess(const std::string &bundleName, const bool clearPageStack = true) override;
+    virtual int KillProcess(const std::string &bundleName, const bool clearpagestack = false) override;
 
     /**
      * Uninstall app
@@ -983,7 +1009,8 @@ public:
         bool isStartAsCaller = false,
         uint32_t specifyTokenId = 0,
         bool isForegroundToRestartApp = false,
-        bool isImplicit = false);
+        bool isImplicit = false,
+        bool isUIAbilityOnly = false);
 
     int StartAbilityInner(
         const Want &want,
@@ -994,7 +1021,8 @@ public:
         bool isStartAsCaller = false,
         uint32_t specifyTokenId = 0,
         bool isForegroundToRestartApp = false,
-        bool isImplicit = false);
+        bool isImplicit = false,
+        bool isUIAbilityOnly = false);
 
     int StartExtensionAbilityInner(
         const Want &want,
@@ -1167,6 +1195,10 @@ public:
     virtual int SendDialogResult(const Want &want, const std::string &dialogSessionId, bool isAllowed) override;
 
     int CreateCloneSelectorDialog(AbilityRequest &request, int32_t userId, const std::string &replaceWantString = "");
+
+    void RemoveSelectorIdentity(int32_t tokenId);
+
+    void SetTargetCloneIndexInSameBundle(const Want &want, sptr<IRemoteObject> callerToken);
 
     virtual int RegisterAbilityFirstFrameStateObserver(const sptr<IAbilityFirstFrameStateObserver> &observer,
         const std::string &bundleName) override;
@@ -1684,9 +1716,10 @@ public:
     /**
      * @brief Restart app self.
      * @param want The ability type must be UIAbility.
+     * @param isAppRecovery True indicates that the app is restarted because of recovery.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t RestartApp(const AAFwk::Want &want) override;
+    int32_t RestartApp(const AAFwk::Want &want, bool isAppRecovery = false) override;
 
     /**
      * @brief Request to display assert fault dialog.
@@ -1851,9 +1884,9 @@ private:
 
     int StartRemoteAbility(const Want &want, int requestCode, int32_t validUserId,
         const sptr<IRemoteObject> &callerToken);
-    int StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionInfo, bool &isColdStart);
-    int StartUIAbilityByPreInstallInner(sptr<SessionInfo> sessionInfo,
-        uint32_t specifyTokenId, bool &isColdStart);
+    int StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionInfo, uint32_t sceneFlag, bool &isColdStart);
+    int StartUIAbilityByPreInstallInner(sptr<SessionInfo> sessionInfo, uint32_t specifyTokenId,
+        uint32_t sceneFlag, bool &isColdStart);
     int32_t PreStartInner(const FreeInstallInfo& taskInfo);
     void RemovePreStartSession(const std::string& sessionId);
 
@@ -1874,6 +1907,7 @@ private:
     void UpdateAsCallerSourceInfo(Want& want, sptr<IRemoteObject> asCallerSourceToken, sptr<IRemoteObject> callerToken);
     void UpdateAsCallerInfoFromToken(Want& want, sptr<IRemoteObject> asCallerSourceToken);
     void UpdateAsCallerInfoFromCallerRecord(Want& want, sptr<IRemoteObject> callerToken);
+    bool UpdateAsCallerInfoFromDialog(Want& want);
     void UpdateCallerInfo(Want& want, const sptr<IRemoteObject> &callerToken);
     void UpdateCallerInfoFromToken(Want& want, const sptr<IRemoteObject> &token);
     int StartAbilityPublicPrechainCheck(StartAbilityParams &params);
@@ -2195,6 +2229,7 @@ private:
         const int32_t oriValidUserId);
 
     void InitInterceptor();
+    void InitInterceptorForScreenUnlock();
     void InitPushTask();
     void InitDeepLinkReserve();
     void InitDefaultRecoveryList();
@@ -2209,7 +2244,7 @@ private:
 
     void WaitBootAnimationStart();
 
-    int32_t SignRestartAppFlag(int32_t userId, const std::string &bundleName);
+    int32_t SignRestartAppFlag(int32_t userId, const std::string &bundleName, bool isAppRecovery = false);
     int32_t CheckRestartAppWant(const AAFwk::Want &want);
 
     int32_t CheckDebugAssertPermission();
@@ -2227,6 +2262,8 @@ private:
 
     int CheckUIExtensionUsage(AppExecFwk::UIExtensionUsage uiExtensionUsage,
         AppExecFwk::ExtensionAbilityType extensionType);
+
+    bool CheckUIExtensionCallerIsForeground(const AbilityRequest &abilityRequest);
 
     int CheckExtensionCallPermission(const Want& want, const AbilityRequest& abilityRequest);
 
@@ -2334,7 +2371,7 @@ private:
 
     void CloseAssertDialog(const std::string &assertSessionId);
 
-    void SetReserveInfo(const std::string &linkString);
+    void SetReserveInfo(const std::string &linkString, AbilityRequest& abilityRequest);
 
     void ReportPreventStartAbilityResult(const AppExecFwk::AbilityInfo &callerAbilityInfo,
         const AppExecFwk::AbilityInfo &abilityInfo);

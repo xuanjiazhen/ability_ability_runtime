@@ -247,6 +247,9 @@ enum class AbilityManagerInterfaceCode {
     // ipc id for ability window config transition done (81)
     ABILITY_WINDOW_CONFIG_TRANSITION_DONE = 81,
 
+    // Back to caller.
+    BACK_TO_CALLER_UIABILITY = 82,
+
     // ipc id 1001-2000 for DMS
     // ipc id for starting ability (1001)
     START_ABILITY = 1001,
@@ -409,6 +412,9 @@ enum class AbilityManagerInterfaceCode {
 
     // ipc id for clean uiability from user
     CLEAN_UI_ABILITY_BY_SCB = 1066,
+
+    // start ability only ui ability
+    START_ABILITY_ONLY_UI_ABILITY = 1067,
 
     // ipc id for continue ability(1101)
     START_CONTINUATION = 1101,

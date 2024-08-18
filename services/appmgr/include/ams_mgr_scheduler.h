@@ -133,7 +133,7 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int32_t KillProcessWithAccount(
-        const std::string &bundleName, const int accountId, const bool clearPageStack = true) override;
+        const std::string &bundleName, const int accountId, const bool clearpagestack = false) override;
 
     /**
      * UpdateApplicationInfoInstalled, call UpdateApplicationInfoInstalled() through proxy object,
@@ -151,7 +151,7 @@ public:
      * @param  bundleName, bundle name in Application record.
      * @return ERR_OK, return back success, others fail.
      */
-    virtual int32_t KillApplication(const std::string &bundleName,  const bool clearPageStack = true) override;
+    virtual int32_t KillApplication(const std::string &bundleName,  const bool clearpagestack = false) override;
 
     /**
      * ForceKillApplication, force kill the application.
@@ -165,6 +165,14 @@ public:
         const int appIndex = 0) override;
 
     /**
+     * KillProcessesByAccessTokenId.
+     *
+     * @param  accessTokenId, accessTokenId.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int32_t KillProcessesByAccessTokenId(const uint32_t accessTokenId) override;
+
+    /**
      * KillApplicationByUid, call KillApplicationByUid() through proxy object, kill the application.
      *
      * @param  bundleName, bundle name in Application record.
@@ -173,7 +181,7 @@ public:
      */
     virtual int KillApplicationByUid(const std::string &bundleName, const int uid) override;
 
-    virtual int KillApplicationSelf(const bool clearPageStack = true) override;
+    virtual int KillApplicationSelf(const bool clearpagestack = false) override;
 
     int GetApplicationInfoByProcessID(const int pid, AppExecFwk::ApplicationInfo &application, bool &debug) override;
 
@@ -330,6 +338,8 @@ public:
      * @return Returns true is only UIAbility, otherwise return false
      */
     virtual bool IsProcessContainsOnlyUIAbility(const pid_t pid) override;
+
+    virtual bool IsProcessAttached(sptr<IRemoteObject> token) override;
 
 private:
     /**

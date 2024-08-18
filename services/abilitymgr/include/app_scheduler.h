@@ -231,7 +231,7 @@ public:
      *
      * @param bundleName.
      */
-    int KillApplication(const std::string &bundleName, const bool clearPageStack = true);
+    int KillApplication(const std::string &bundleName, const bool clearpagestack = false);
 
     /**
      * ForceKillApplication, force kill the application.
@@ -243,6 +243,14 @@ public:
      */
     int ForceKillApplication(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
+
+    /**
+     * KillProcessesByAccessTokenId.
+     *
+     * @param  accessTokenId, accessTokenId.
+     * @return ERR_OK, return back success, others fail.
+     */
+    int KillProcessesByAccessTokenId(const uint32_t accessTokenId);
 
     /**
      * kill the application by uid
@@ -462,6 +470,8 @@ public:
      * @return Returns true is only UIAbility, otherwise return false
      */
     bool IsProcessContainsOnlyUIAbility(const pid_t pid);
+
+    bool IsProcessAttached(sptr<IRemoteObject> token) const;
 
 protected:
     /**

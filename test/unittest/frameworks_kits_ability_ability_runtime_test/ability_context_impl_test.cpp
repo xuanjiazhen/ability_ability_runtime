@@ -86,6 +86,11 @@ public:
     void UnregisterAbilityLifecycleObserver(const std::shared_ptr<ILifecycleObserver> &observer)
     {
     }
+
+    std::shared_ptr<AAFwk::Want> GetWant()
+    {
+        return nullptr;
+    }
 };
 
 class AbilityContextImplTest : public testing::Test {
@@ -251,6 +256,33 @@ HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_SetMissionContinueState_02
     g_mockAbilityMs->SetCommonMockResult(false);
 
     AAFwk::ContinueState state = AAFwk::ContinueState::CONTINUESTATE_INACTIVE;
+    auto ret = context_->SetMissionContinueState(state);
+    EXPECT_NE(ret, 0);
+
+    g_mockAbilityMs->SetCommonMockResult(true);
+    ret = context_->SetMissionContinueState(state);
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    }
+
+    wptr<IRemoteObject> token(new IPCObjectStub());
+    context_->SetWeakSessionToken(token);
+    context_->SetMissionContinueState(state);
+}
+
+/**
+ * @tc.name: Ability_Context_Impl_SetMissionContinueState_0300
+ * @tc.desc: test set mission continue state.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_SetMissionContinueState_0300, Function | MediumTest | Level1)
+{
+    ASSERT_TRUE(g_mockAbilityMs != nullptr);
+    ASSERT_TRUE(context_ != nullptr);
+    AAFwk::AbilityManagerClient::GetInstance()->proxy_ = g_mockAbilityMs;
+    g_mockAbilityMs->SetCommonMockResult(false);
+
+    AAFwk::ContinueState state = AAFwk::ContinueState::CONTINUESTATE_MAX;
     auto ret = context_->SetMissionContinueState(state);
     EXPECT_NE(ret, 0);
 
@@ -1521,8 +1553,10 @@ HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_RequestDialog_0100, Functi
     int32_t missionId = -1;
     ErrCode ret = context_->GetMissionId(missionId);
     EXPECT_FALSE(ret == ERR_OK);
-    int32_t missionId2 = 1;
-    EXPECT_EQ(context_->GetMissionId(missionId2), ERR_OK);
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        int32_t missionId2 = 1;
+        EXPECT_EQ(context_->GetMissionId(missionId2), MISSION_NOT_FOUND);
+    }
     RuntimeTask task2 = [](const int32_t count, const Want& want, bool isInner)
     { ; };
     int requestCode = 22;
@@ -1632,6 +1666,21 @@ HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_OpenLink_0100, Function | 
     context_->SetRestoreEnabled(true);
     EXPECT_EQ(context_->GetRestoreEnabled(), true);
 }
+
+/**
+ * @tc.number: Ability_Context_Impl_StartUIServiceExtensionAbility_0100
+ * @tc.name: StartUIServiceExtensionAbility
+ * @tc.desc: Start Ability For Result With Account
+ */
+HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_StartUIServiceExtensionAbility_0100,
+    Function | MediumTest | Level1)
+{
+    AAFwk::Want want;
+    int32_t accountId{1};
+    auto ret = context_->StartUIServiceExtensionAbility(want, accountId);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
 } // namespace AppExecFwk
 } // namespace OHOS
 

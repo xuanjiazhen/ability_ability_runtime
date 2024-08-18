@@ -73,7 +73,6 @@ ohos_shared_library("perm_verification") {
   cflags_cc = []
   if (os_dlp_part_enabled) {
     cflags_cc += [ "-DWITH_DLP" ]
-    external_deps += [ "dlp_permission_service:libdlp_permission_sdk" ]
   }
 
   subsystem_name = "ability"
@@ -169,6 +168,28 @@ ohos_shared_library("res_sched_util") {
     defines = [ "RESOURCE_SCHEDULE_SERVICE_ENABLE" ]
     external_deps += [ "resource_schedule_service:ressched_client" ]
   }
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+ohos_shared_library("file_monitor") {
+  sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  branch_protector_ret = "pac_ret"
+
+  public_configs = [ ":common_config" ]
+  include_dirs = [ "include" ]
+
+  sources = [ "src/file_monitor.cpp" ]
+
+  external_deps = [ "hilog:libhilog" ]
 
   subsystem_name = "ability"
   part_name = "ability_runtime"

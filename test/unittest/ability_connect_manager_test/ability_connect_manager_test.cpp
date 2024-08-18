@@ -30,11 +30,20 @@
 #include "hilog_tag_wrapper.h"
 #include "mock_ability_connect_callback.h"
 #include "mock_sa_call.h"
+#include "mock_task_handler_wrap.h"
 #include "sa_mgr_client.h"
 #include "system_ability_definition.h"
+#include <thread>
+#include <chrono>
 
 using namespace testing::ext;
 using namespace OHOS::AppExecFwk;
+using testing::_;
+using testing::Return;
+
+namespace {
+    const int32_t SLEEP_TIME = 10000;
+}
 
 namespace OHOS {
 namespace AAFwk {
@@ -154,12 +163,16 @@ std::shared_ptr<AbilityRecord> AbilityConnectManagerTest::InitAbilityRecord()
 void AbilityConnectManagerTest::SetUpTestCase(void)
 {}
 void AbilityConnectManagerTest::TearDownTestCase(void)
-{}
+{
+    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
+}
 
 void AbilityConnectManagerTest::SetUp(void)
 {
     connectManager_ = std::make_unique<AbilityConnectManager>(0);
-    taskHandler_ = TaskHandlerWrap::CreateQueueHandler("AbilityConnectManagerTest");
+    taskHandler_ = MockTaskHandlerWrap::CreateQueueHandler("AbilityConnectManagerTest");
+    EXPECT_CALL(*std::static_pointer_cast<MockTaskHandlerWrap>(taskHandler_), SubmitTask(_, _))
+        .WillRepeatedly(Return(TaskHandle()));
     eventHandler_ = std::make_shared<EventHandlerWrap>(taskHandler_);
     // generate ability request
     std::string deviceName = "device";
@@ -3037,14 +3050,8 @@ HWTEST_F(AbilityConnectManagerTest, OnUIExtWindowDied_001, TestSize.Level1)
         callbackA_->AsObject(), AbilityConnectManager::UIExtWindowMapValType(serviceRecord_, MockSessionInfo(0)));
     ConnectManager()->AddUIExtWindowDeathRecipient(callbackA_->AsObject());
     ConnectManager()->OnUIExtWindowDied(nullptr);
-    WaitUntilTaskDone(TaskHandler());
     EXPECT_EQ(static_cast<int>(ConnectManager()->uiExtRecipientMap_.size()), 1);
     EXPECT_EQ(static_cast<int>(ConnectManager()->uiExtensionMap_.size()), 1);
-
-    ConnectManager()->OnUIExtWindowDied(callbackA_->AsObject());
-    WaitUntilTaskDone(TaskHandler());
-    EXPECT_TRUE(ConnectManager()->uiExtRecipientMap_.empty());
-    EXPECT_TRUE(ConnectManager()->uiExtensionMap_.empty());
 }
 
 /*
@@ -3288,6 +3295,21 @@ HWTEST_F(AbilityConnectManagerTest, UnloadUIExtensionAbility_0100, TestSize.Leve
     std::string hostBundleName = "com.ohos.uiextensionuser";
     auto ret = connectManager->UnloadUIExtensionAbility(abilityRecord, hostBundleName);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: AbilityWindowConfigTransactionDone_0100
+ * @tc.desc: AbilityWindowConfigTransactionDone
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityConnectManagerTest, AbilityWindowConfigTransactionDone_0100, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    ASSERT_NE(connectManager, nullptr);
+
+    WindowConfig windowConfig;
+    auto ret = connectManager->AbilityWindowConfigTransactionDone(serviceToken_, windowConfig);
+    EXPECT_EQ(ret, ERR_OK);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

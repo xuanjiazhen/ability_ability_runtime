@@ -160,7 +160,7 @@ public:
      * @param  bundleName, bundle name in Application record.
      * @return ERR_OK, return back success, others fail.
      */
-    virtual AppMgrResultCode KillApplication(const std::string &bundleName, const bool clearPageStack = true);
+    virtual AppMgrResultCode KillApplication(const std::string &bundleName, const bool clearpagestack = false);
 
     /**
      * ForceKillApplication, call ForceKillApplication() through proxy object, force kill the application.
@@ -172,6 +172,15 @@ public:
      */
     virtual AppMgrResultCode ForceKillApplication(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
+
+    /**
+     * KillProcessesByAccessTokenId, call KillProcessesByAccessTokenId() through proxy object,
+     * force kill the application.
+     *
+     * @param  accessTokenId, accessTokenId.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual AppMgrResultCode KillProcessesByAccessTokenId(const uint32_t accessTokenId);
 
     /**
      * KillApplication, call KillApplication() through proxy object, kill the application.
@@ -187,7 +196,7 @@ public:
      *
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual AppMgrResultCode KillApplicationSelf(const bool clearPageStack = true);
+    virtual AppMgrResultCode KillApplicationSelf(const bool clearpagestack = false);
 
     /**
      * ClearUpApplicationData, call ClearUpApplicationData() through proxy project,
@@ -808,6 +817,8 @@ public:
      * @return Returns true is only UIAbility, otherwise return false
      */
     bool IsProcessContainsOnlyUIAbility(const pid_t pid);
+
+    bool IsProcessAttached(sptr<IRemoteObject> token) const;
 
 private:
     void SetServiceManager(std::unique_ptr<AppServiceManager> serviceMgr);

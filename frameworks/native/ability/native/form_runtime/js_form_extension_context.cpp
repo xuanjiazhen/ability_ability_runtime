@@ -52,13 +52,13 @@ void RemoveConnection(int64_t connectId)
         return connectId == obj.first.id;
     });
     if (item != g_connects.end()) {
-        TAG_LOGD(AAFwkTag::FORM_EXT, "remove conn ability exist.");
+        TAG_LOGD(AAFwkTag::FORM_EXT, "ability exist");
         if (item->second) {
             item->second->RemoveConnectionObject();
         }
         g_connects.erase(item);
     } else {
-        TAG_LOGD(AAFwkTag::FORM_EXT, "remove connection ability not exist");
+        TAG_LOGD(AAFwkTag::FORM_EXT, "ability not exist");
     }
 }
 class JsFormExtensionContext final {
@@ -119,26 +119,29 @@ private:
             napi_value nativeDataValue = nullptr;
             napi_get_named_property(env, info.argv[1], "data", &nativeDataValue);
             if (nativeDataValue == nullptr || !ConvertFromJsValue(env, nativeDataValue, formDataStr)) {
-                TAG_LOGE(AAFwkTag::FORM_EXT, "NativeDataValue is nullptr or ConvertFromJsValue failed.");
+                TAG_LOGE(AAFwkTag::FORM_EXT, "NativeDataValue null or ConvertFromJsValue failed");
             }
         } else {
-            TAG_LOGE(AAFwkTag::FORM_EXT, "not object.");
+            TAG_LOGE(AAFwkTag::FORM_EXT, "Not object");
         }
 
         formProviderData = AppExecFwk::FormProviderData(formDataStr);
+        auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
+        NapiAsyncTask::ExecuteCallback execute = [weak = context_, formId, formProviderData, innerErrCode]() {
+            auto context = weak.lock();
+            if (!context) {
+                TAG_LOGW(AAFwkTag::FORM_EXT, "Context released");
+                *innerErrCode = static_cast<int>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+                return;
+            }
+            *innerErrCode = context->UpdateForm(formId, formProviderData);
+        };
         NapiAsyncTask::CompleteCallback complete =
-            [weak = context_, formId, formProviderData](napi_env env, NapiAsyncTask& task, int32_t status) {
-                auto context = weak.lock();
-                if (!context) {
-                    TAG_LOGW(AAFwkTag::FORM_EXT, "context is released");
-                    task.Reject(env, CreateJsError(env, 1, "Context is released"));
-                    return;
-                }
-                auto errcode = context->UpdateForm(formId, formProviderData);
-                if (errcode == ERR_OK) {
+            [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+                if (*innerErrCode == ERR_OK) {
                     task.Resolve(env, CreateJsUndefined(env));
                 } else {
-                    task.Reject(env, CreateJsError(env, errcode, "update form failed."));
+                    task.Reject(env, CreateJsError(env, *innerErrCode, "update form failed."));
                 }
             };
 
@@ -146,13 +149,13 @@ private:
             (info.argc == UPDATE_FORM_PARAMS_SIZE) ? nullptr : info.argv[info.argc - 1];
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JsFormExtensionContext::OnUpdateForm",
-            env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
+            env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
         return result;
     }
 
     napi_value OnStartAbility(napi_env env, NapiCallbackInfo& info)
     {
-        TAG_LOGI(AAFwkTag::FORM_EXT, "OnStartAbility is called");
+        TAG_LOGI(AAFwkTag::FORM_EXT, "called");
         // only support one or two params
         if (info.argc != ARGC_ONE && info.argc != ARGC_TWO) {
             TAG_LOGE(AAFwkTag::FORM_EXT, "Not enough params");
@@ -164,40 +167,40 @@ private:
         AAFwk::Want want;
         bool unwrapResult = OHOS::AppExecFwk::UnwrapWant(env, info.argv[INDEX_ZERO], want);
         if (!unwrapResult) {
-            TAG_LOGE(AAFwkTag::FORM_EXT, "Failed to unwrap want.");
+            TAG_LOGE(AAFwkTag::FORM_EXT, "unwrap want failed");
             NapiFormUtil::ThrowParamTypeError(env, "want", "Want");
             return CreateJsUndefined(env);
         }
-        TAG_LOGI(AAFwkTag::FORM_EXT, "Start ability, bundleName: %{public}s abilityName: %{public}s.",
+        TAG_LOGI(AAFwkTag::FORM_EXT, "Start bundle: %{public}s ability: %{public}s",
             want.GetBundle().c_str(),
             want.GetElement().GetAbilityName().c_str());
         unwrapArgc++;
-
+        auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
+        NapiAsyncTask::ExecuteCallback execute = [weak = context_, want, innerErrCode]() {
+            TAG_LOGI(AAFwkTag::FORM_EXT, "startAbility begin");
+            auto context = weak.lock();
+            if (!context) {
+                TAG_LOGW(AAFwkTag::FORM_EXT, "context is released");
+                *innerErrCode = ERR_APPEXECFWK_FORM_COMMON_CODE;
+                return;
+            }
+            // entry to the core functionality.
+            *innerErrCode = context->StartAbility(want);
+        };
         NapiAsyncTask::CompleteCallback complete =
-            [weak = context_, want](napi_env env, NapiAsyncTask& task, int32_t status) {
-                TAG_LOGI(AAFwkTag::FORM_EXT, "startAbility begin");
-                auto context = weak.lock();
-                if (!context) {
-                    TAG_LOGW(AAFwkTag::FORM_EXT, "context is released");
-                    task.Reject(env, NapiFormUtil::CreateErrorByInternalErrorCode(
-                        env, ERR_APPEXECFWK_FORM_COMMON_CODE));
-                    return;
-                }
-
-                // entry to the core functionality.
-                ErrCode innerErrorCode = context->StartAbility(want);
-                if (innerErrorCode == ERR_OK) {
+            [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+                if (*innerErrCode == ERR_OK) {
                     task.Resolve(env, CreateJsUndefined(env));
                 } else {
-                    TAG_LOGE(AAFwkTag::FORM_EXT, "Failed to StartAbility, errorCode: %{public}d.", innerErrorCode);
-                    task.Reject(env, NapiFormUtil::CreateErrorByInternalErrorCode(env, innerErrorCode));
+                    TAG_LOGE(AAFwkTag::FORM_EXT, "Start failed: %{public}d", *innerErrCode);
+                    task.Reject(env, NapiFormUtil::CreateErrorByInternalErrorCode(env, *innerErrCode));
                 }
             };
 
         napi_value lastParam = (info.argc == unwrapArgc) ? nullptr : info.argv[unwrapArgc];
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JsFormExtensionContext::OnStartAbility",
-            env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
+            env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
         return result;
     }
 
@@ -205,13 +208,13 @@ private:
     {
         TAG_LOGD(AAFwkTag::FORM_EXT, "called");
         if (!CheckCallerIsSystemApp()) {
-            TAG_LOGE(AAFwkTag::FORM_EXT, "ConnectAbility app is not system-app, can not use system-api");
+            TAG_LOGE(AAFwkTag::FORM_EXT, "not system app");
             ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
             return CreateJsUndefined(env);
         }
         // Check params count
         if (info.argc < ARGC_TWO) {
-            TAG_LOGE(AAFwkTag::FORM_EXT, "Connect ability failed, not enough arguments.");
+            TAG_LOGE(AAFwkTag::FORM_EXT, "invalid argc");
             ThrowTooFewParametersError(env);
             return CreateJsUndefined(env);
         }
@@ -224,27 +227,34 @@ private:
             return CreateJsUndefined(env);
         }
         int64_t connectId = connection->GetConnectionId();
+        auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
+        NapiAsyncTask::ExecuteCallback execute = [weak = context_, want, connection, connectId, innerErrCode]() {
+            auto context = weak.lock();
+            if (!context) {
+                TAG_LOGE(AAFwkTag::FORM_EXT, "Context is free");
+                *innerErrCode = static_cast<int>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+                RemoveConnection(connectId);
+                return;
+            }
+            TAG_LOGD(AAFwkTag::FORM_EXT, "ConnectAbility connection:%{public}d", static_cast<int32_t>(connectId));
+            *innerErrCode = context->ConnectAbility(want, connection);
+            int32_t errcode = static_cast<int32_t>(AbilityRuntime::GetJsErrorCodeByNativeError(*innerErrCode));
+            if (errcode) {
+                connection->CallJsFailed(errcode);
+                RemoveConnection(connectId);
+            }
+        };
         NapiAsyncTask::CompleteCallback complete =
-            [weak = context_, want, connection, connectId](napi_env env, NapiAsyncTask& task, int32_t status) {
-                auto context = weak.lock();
-                if (!context) {
-                    TAG_LOGE(AAFwkTag::FORM_EXT, "context is free");
-                    task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
-                    RemoveConnection(connectId);
-                    return;
+            [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+                if (*innerErrCode == ERR_OK) {
+                    task.Resolve(env, CreateJsUndefined(env));
+                } else {
+                    task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
                 }
-                TAG_LOGD(AAFwkTag::FORM_EXT, "ConnectAbility connection:%{public}d", static_cast<int32_t>(connectId));
-                auto innerErrorCode = context->ConnectAbility(want, connection);
-                int32_t errcode = static_cast<int32_t>(AbilityRuntime::GetJsErrorCodeByNativeError(innerErrorCode));
-                if (errcode) {
-                    connection->CallJsFailed(errcode);
-                    RemoveConnection(connectId);
-                }
-                task.Resolve(env, CreateJsUndefined(env));
             };
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JSFormExtensionConnection::OnConnectAbility",
-            env, CreateAsyncTaskWithLastParam(env, nullptr, nullptr, std::move(complete), &result));
+            env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(excute), std::move(complete), &result));
         return CreateJsValue(env, connectId);
     }
 
@@ -252,7 +262,7 @@ private:
     {
         TAG_LOGI(AAFwkTag::FORM_EXT, "DisconnectAbility");
         if (!CheckCallerIsSystemApp()) {
-            TAG_LOGE(AAFwkTag::FORM_EXT, "DisconnectAbility app is not system-app, can not use system-api");
+            TAG_LOGE(AAFwkTag::FORM_EXT, "not system app");
             ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
             return CreateJsUndefined(env);
         }
@@ -271,33 +281,35 @@ private:
         sptr<JSFormExtensionConnection> connection = nullptr;
         FindConnection(want, connection, connectId);
         // begin disconnect
+        auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
+        NapiAsyncTask::ExecuteCallback execute = [weak = context_, want, connection, innerErrCode]() {
+            auto context = weak.lock();
+            if (!context) {
+                TAG_LOGW(AAFwkTag::FORM_EXT, "Release context");
+                *innerErrCode = static_cast<int>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+                return;
+            }
+            if (!connection) {
+                TAG_LOGW(AAFwkTag::FORM_EXT, "Connection null");
+                *innerErrCode = AbilityErrorCode::ERROR_CODE_INNER
+                return;
+            }
+            *innerErrCode = context->DisconnectAbility(want, connection);
+        };
         NapiAsyncTask::CompleteCallback complete =
-            [weak = context_, want, connection](
+            [innerErrCode](
                 napi_env env, NapiAsyncTask& task, int32_t status) {
-                auto context = weak.lock();
-                if (!context) {
-                    TAG_LOGW(AAFwkTag::FORM_EXT, "release context");
-                    task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
-                    return;
-                }
-                if (connection == nullptr) {
-                    TAG_LOGW(AAFwkTag::FORM_EXT, "connection null");
-                    task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
-                    return;
-                }
-                TAG_LOGD(AAFwkTag::FORM_EXT, "context->DisconnectAbility.");
-                auto innerErrorCode = context->DisconnectAbility(want, connection);
-                if (innerErrorCode == 0) {
+                if (*innerErrCode == ERR_OK) {
                     task.Resolve(env, CreateJsUndefined(env));
                 } else {
-                    task.Reject(env, CreateJsErrorByNativeErr(env, innerErrorCode));
+                    task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
                 }
             };
 
         napi_value lastParam = (info.argc == ARGC_ONE) ? nullptr : info.argv[INDEX_ONE];
         napi_value result = nullptr;
         NapiAsyncTask::Schedule("JSFormExtensionConnection::OnDisconnectAbility",
-            env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
+            env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
         return result;
     }
 
@@ -305,7 +317,7 @@ private:
         sptr<JSFormExtensionConnection>& connection, AAFwk::Want& want) const
     {
         if (!CheckTypeForNapiValue(env, value, napi_object)) {
-            TAG_LOGE(AAFwkTag::FORM_EXT, "Failed to get connection object");
+            TAG_LOGE(AAFwkTag::FORM_EXT, "get connection object failed");
             return false;
         }
         connection->SetJsConnectionObject(value);
@@ -319,14 +331,13 @@ private:
         } else {
             g_serialNumber = 0;
         }
-        TAG_LOGD(AAFwkTag::FORM_EXT, "make new one, not find connection");
+        TAG_LOGD(AAFwkTag::FORM_EXT, "not find connection");
         return true;
     }
 
     void FindConnection(AAFwk::Want& want, sptr<JSFormExtensionConnection>& connection, int64_t& connectId) const
     {
-        TAG_LOGI(AAFwkTag::FORM_EXT, "Disconnect ability begin, connection:%{public}d.",
-            static_cast<int32_t>(connectId));
+        TAG_LOGD(AAFwkTag::FORM_EXT, "connection:%{public}d", static_cast<int32_t>(connectId));
         auto item = std::find_if(g_connects.begin(),
             g_connects.end(),
             [&connectId](const auto &obj) {
@@ -336,7 +347,7 @@ private:
             // match id
             want = item->first.want;
             connection = item->second;
-            TAG_LOGD(AAFwkTag::FORM_EXT, "find conn ability exist");
+            TAG_LOGD(AAFwkTag::FORM_EXT, "ability not exist");
         }
         return;
     }
@@ -345,7 +356,7 @@ private:
 
 napi_value CreateJsFormExtensionContext(napi_env env, std::shared_ptr<FormExtensionContext> context)
 {
-    TAG_LOGD(AAFwkTag::FORM_EXT, "Create js form extension context.");
+    TAG_LOGD(AAFwkTag::FORM_EXT, "called");
     std::shared_ptr<OHOS::AppExecFwk::AbilityInfo> abilityInfo = nullptr;
     if (context) {
         abilityInfo = context->GetAbilityInfo();
@@ -363,7 +374,6 @@ napi_value CreateJsFormExtensionContext(napi_env env, std::shared_ptr<FormExtens
     BindNativeFunction(env, object, "disconnectServiceExtensionAbility",
         moduleName, JsFormExtensionContext::DisconnectAbility);
 
-    TAG_LOGD(AAFwkTag::FORM_EXT, "Create end.");
     return object;
 }
 
@@ -422,13 +432,13 @@ int64_t JSFormExtensionConnection::GetConnectionId()
 void JSFormExtensionConnection::OnAbilityConnectDone(const AppExecFwk::ElementName &element,
     const sptr<IRemoteObject> &remoteObject, int resultCode)
 {
-    TAG_LOGD(AAFwkTag::FORM_EXT, "OnAbilityConnectDone, resultCode:%{public}d", resultCode);
+    TAG_LOGD(AAFwkTag::FORM_EXT, "called, resultCode:%{public}d", resultCode);
     wptr<JSFormExtensionConnection> connection = this;
     std::unique_ptr<NapiAsyncTask::CompleteCallback> complete = std::make_unique<NapiAsyncTask::CompleteCallback>
         ([connection, element, remoteObject, resultCode](napi_env env, NapiAsyncTask &task, int32_t status) {
             sptr<JSFormExtensionConnection> connectionSptr = connection.promote();
             if (!connectionSptr) {
-                TAG_LOGE(AAFwkTag::FORM_EXT, "connectionSptr nullptr");
+                TAG_LOGE(AAFwkTag::FORM_EXT, "connectionSptr null");
                 return;
             }
             connectionSptr->HandleOnAbilityConnectDone(element, remoteObject, resultCode);
@@ -443,7 +453,7 @@ void JSFormExtensionConnection::OnAbilityConnectDone(const AppExecFwk::ElementNa
 void JSFormExtensionConnection::HandleOnAbilityConnectDone(const AppExecFwk::ElementName &element,
     const sptr<IRemoteObject> &remoteObject, int resultCode)
 {
-    TAG_LOGI(AAFwkTag::FORM_EXT, "HandleOnAbilityConnectDone start, resultCode:%{public}d", resultCode);
+    TAG_LOGI(AAFwkTag::FORM_EXT, "called, resultCode:%{public}d", resultCode);
     // wrap ElementName
     napi_value napiElementName = OHOS::AppExecFwk::WrapElementName(env_, element);
 
@@ -451,18 +461,18 @@ void JSFormExtensionConnection::HandleOnAbilityConnectDone(const AppExecFwk::Ele
     napi_value napiRemoteObject = NAPI_ohos_rpc_CreateJsRemoteObject(env_, remoteObject);
     napi_value argv[] = {napiElementName, napiRemoteObject};
     if (jsConnectionObject_ == nullptr) {
-        TAG_LOGE(AAFwkTag::FORM_EXT, "jsConnectionObject_ null");
+        TAG_LOGE(AAFwkTag::FORM_EXT, "jsConnectionObject null");
         return;
     }
     napi_value obj = jsConnectionObject_->GetNapiValue();
     if (!CheckTypeForNapiValue(env_, obj, napi_object)) {
-        TAG_LOGE(AAFwkTag::FORM_EXT, "error to get object");
+        TAG_LOGE(AAFwkTag::FORM_EXT, "get object error");
         return;
     }
     napi_value methodOnConnect = nullptr;
     napi_get_named_property(env_, obj, "onConnect", &methodOnConnect);
     if (methodOnConnect == nullptr) {
-        TAG_LOGE(AAFwkTag::FORM_EXT, "Error to get onConnect from object");
+        TAG_LOGE(AAFwkTag::FORM_EXT, "get onConnect error");
         return;
     }
     napi_call_function(env_, obj, methodOnConnect, ARGC_TWO, argv, nullptr);
@@ -470,13 +480,13 @@ void JSFormExtensionConnection::HandleOnAbilityConnectDone(const AppExecFwk::Ele
 
 void JSFormExtensionConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
 {
-    TAG_LOGD(AAFwkTag::FORM_EXT, "OnAbilityDisconnectDone, resultCode:%{public}d", resultCode);
+    TAG_LOGD(AAFwkTag::FORM_EXT, "called, resultCode:%{public}d", resultCode);
     wptr<JSFormExtensionConnection> connection = this;
     std::unique_ptr<NapiAsyncTask::CompleteCallback> complete = std::make_unique<NapiAsyncTask::CompleteCallback>
         ([connection, element, resultCode](napi_env env, NapiAsyncTask &task, int32_t status) {
             sptr<JSFormExtensionConnection> connectionSptr = connection.promote();
             if (!connectionSptr) {
-                TAG_LOGI(AAFwkTag::FORM_EXT, "connectionSptr nullptr");
+                TAG_LOGI(AAFwkTag::FORM_EXT, "connectionSptr null");
                 return;
             }
             connectionSptr->HandleOnAbilityDisconnectDone(element, resultCode);
@@ -490,11 +500,11 @@ void JSFormExtensionConnection::OnAbilityDisconnectDone(const AppExecFwk::Elemen
 void JSFormExtensionConnection::HandleOnAbilityDisconnectDone(const AppExecFwk::ElementName &element,
     int resultCode)
 {
-    TAG_LOGI(AAFwkTag::FORM_EXT, "HandleOnAbilityDisconnectDone, resultCode:%{public}d", resultCode);
+    TAG_LOGI(AAFwkTag::FORM_EXT, "called, resultCode:%{public}d", resultCode);
     napi_value napiElementName = OHOS::AppExecFwk::WrapElementName(env_, element);
     napi_value argv[] = {napiElementName};
     if (jsConnectionObject_ == nullptr) {
-        TAG_LOGE(AAFwkTag::FORM_EXT, "jsConnectionObject_ null");
+        TAG_LOGE(AAFwkTag::FORM_EXT, "jsConnectionObject null");
         return;
     }
     napi_value obj = jsConnectionObject_->GetNapiValue();
@@ -506,12 +516,12 @@ void JSFormExtensionConnection::HandleOnAbilityDisconnectDone(const AppExecFwk::
     napi_value method = nullptr;
     napi_get_named_property(env_, obj, "onDisconnect", &method);
     if (method == nullptr) {
-        TAG_LOGE(AAFwkTag::FORM_EXT, "Error to get onDisconnect from object");
+        TAG_LOGE(AAFwkTag::FORM_EXT, "get onDisconnect error");
         return;
     }
 
     // release connect
-    TAG_LOGD(AAFwkTag::FORM_EXT, "OnAbilityDisconnectDone g_connects.size:%{public}zu.", g_connects.size());
+    TAG_LOGD(AAFwkTag::FORM_EXT, "size:%{public}zu", g_connects.size());
     std::string bundleName = element.GetBundleName();
     std::string abilityName = element.GetAbilityName();
     auto item = std::find_if(g_connects.begin(),
@@ -525,7 +535,7 @@ void JSFormExtensionConnection::HandleOnAbilityDisconnectDone(const AppExecFwk::
     if (item != g_connects.end()) {
         // match bundleName && abilityName
         g_connects.erase(item);
-        TAG_LOGD(AAFwkTag::FORM_EXT, "OnAbilityDisconnectDone erase g_connects.size:%{public}zu.", g_connects.size());
+        TAG_LOGD(AAFwkTag::FORM_EXT, "erase size:%{public}zu", g_connects.size());
     }
     napi_call_function(env_, obj, method, ARGC_ONE, argv, nullptr);
 }
@@ -544,21 +554,21 @@ void JSFormExtensionConnection::RemoveConnectionObject()
 
 void JSFormExtensionConnection::CallJsFailed(int32_t errorCode)
 {
-    TAG_LOGD(AAFwkTag::FORM_EXT, "CallJsFailed start");
+    TAG_LOGD(AAFwkTag::FORM_EXT, "called");
     if (jsConnectionObject_ == nullptr) {
-        TAG_LOGE(AAFwkTag::FORM_EXT, "jsConnectionObject_ null");
+        TAG_LOGE(AAFwkTag::FORM_EXT, "jsConnectionObject null");
         return;
     }
     napi_value obj = jsConnectionObject_->GetNapiValue();
     if (!CheckTypeForNapiValue(env_, obj, napi_object)) {
-        TAG_LOGE(AAFwkTag::FORM_EXT, "Error to get object");
+        TAG_LOGE(AAFwkTag::FORM_EXT, "get object error");
         return;
     }
 
     napi_value method = nullptr;
     napi_get_named_property(env_, obj, "onFailed", &method);
     if (method == nullptr) {
-        TAG_LOGE(AAFwkTag::FORM_EXT, "Error to get onFailed from object");
+        TAG_LOGE(AAFwkTag::FORM_EXT, "get onFailed error");
         return;
     }
     napi_value argv[] = {CreateJsValue(env_, errorCode)};

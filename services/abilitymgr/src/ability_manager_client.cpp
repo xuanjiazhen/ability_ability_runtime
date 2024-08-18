@@ -15,27 +15,18 @@
 
 #include "ability_manager_client.h"
 
-#include "ability_manager_interface.h"
-#include "string_ex.h"
 #ifdef WITH_DLP
 #include "dlp_file_kits.h"
 #endif // WITH_DLP
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
-#include "if_system_ability_manager.h"
-#include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #ifdef SUPPORT_SCREEN
 #include "scene_board_judgement.h"
 #include "session_manager_lite.h"
-#include "ws_common.h"
 #endif // SUPPORT_SCREEN
-#include "session_info.h"
-
 #include "status_bar_delegate_interface.h"
-#include "string_ex.h"
 #include "system_ability_definition.h"
-
 
 namespace OHOS {
 namespace AAFwk {
@@ -278,6 +269,18 @@ ErrCode AbilityManagerClient::StartAbilityByUIContentSession(const Want &want, s
     return abms->StartAbilityByUIContentSession(want, callerToken, sessionInfo, userId, requestCode);
 }
 
+ErrCode AbilityManagerClient::StartAbilityOnlyUIAbility(const Want &want, sptr<IRemoteObject> callerToken,
+    uint32_t specifyTokenId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ability:%{public}s",
+        want.GetElement().GetAbilityName().c_str());
+    HandleDlpApp(const_cast<Want &>(want));
+    return abms->StartAbilityOnlyUIAbility(want, callerToken, specifyTokenId);
+}
+
 ErrCode AbilityManagerClient::SendResultToAbility(int requestCode, int resultCode, Want& resultWant)
 {
     auto abms = GetAbilityManager();
@@ -341,13 +344,13 @@ ErrCode AbilityManagerClient::StartUIExtensionAbility(sptr<SessionInfo> extensio
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     CHECK_POINTER_RETURN_INVALID_VALUE(extensionSessionInfo);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "name: %{public}s %{public}s, persistentId: %{public}d, userId: %{public}d.",
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "name:%{public}s %{public}s, persistentId:%{public}d, userId:%{public}d",
         extensionSessionInfo->want.GetElement().GetAbilityName().c_str(),
         extensionSessionInfo->want.GetElement().GetBundleName().c_str(), extensionSessionInfo->persistentId, userId);
     return abms->StartUIExtensionAbility(extensionSessionInfo, userId);
 }
 
-ErrCode AbilityManagerClient::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart)
+ErrCode AbilityManagerClient::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (sessionInfo == nullptr) {
@@ -358,7 +361,7 @@ ErrCode AbilityManagerClient::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo,
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "Start UIAbility by SCB: %{public}s.",
         sessionInfo->want.GetElement().GetURI().c_str());
-    return abms->StartUIAbilityBySCB(sessionInfo, isColdStart);
+    return abms->StartUIAbilityBySCB(sessionInfo, isColdStart, sceneFlag);
 }
 
 ErrCode AbilityManagerClient::StopExtensionAbility(const Want &want, sptr<IRemoteObject> callerToken,
@@ -377,6 +380,15 @@ ErrCode AbilityManagerClient::TerminateAbility(sptr<IRemoteObject> token, int re
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     return abms->TerminateAbility(token, resultCode, resultWant);
+}
+
+ErrCode AbilityManagerClient::BackToCallerAbilityWithResult(const sptr<IRemoteObject> &token, int resultCode,
+    const Want *resultWant, int64_t callerRequestCode)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->BackToCallerAbilityWithResult(token, resultCode, resultWant, callerRequestCode);
 }
 
 ErrCode AbilityManagerClient::TerminateUIExtensionAbility(sptr<SessionInfo> extensionSessionInfo,
@@ -463,7 +475,7 @@ ErrCode AbilityManagerClient::MinimizeUIExtensionAbility(sptr<SessionInfo> exten
     return abms->MinimizeUIExtensionAbility(extensionSessionInfo, fromUser);
 }
 
-ErrCode AbilityManagerClient::MinimizeUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool fromUser)
+ErrCode AbilityManagerClient::MinimizeUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool fromUser, uint32_t sceneFlag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (sessionInfo == nullptr) {
@@ -474,7 +486,7 @@ ErrCode AbilityManagerClient::MinimizeUIAbilityBySCB(sptr<SessionInfo> sessionIn
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "Minimize UIAbility by SCB: %{public}s",
         sessionInfo->want.GetElement().GetURI().c_str());
-    return abms->MinimizeUIAbilityBySCB(sessionInfo, fromUser);
+    return abms->MinimizeUIAbilityBySCB(sessionInfo, fromUser, sceneFlag);
 }
 
 ErrCode AbilityManagerClient::ConnectAbility(const Want &want, sptr<IAbilityConnection> connect, int32_t userId)
@@ -482,7 +494,7 @@ ErrCode AbilityManagerClient::ConnectAbility(const Want &want, sptr<IAbilityConn
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "name:%{public}s %{public}s, userId:%{public}d.",
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "name:%{public}s %{public}s, userId:%{public}d",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), userId);
     return abms->ConnectAbilityCommon(want, connect, nullptr, AppExecFwk::ExtensionAbilityType::SERVICE, userId);
 }
@@ -493,7 +505,7 @@ ErrCode AbilityManagerClient::ConnectAbility(
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "name:%{public}s %{public}s, userId:%{public}d.",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "name:%{public}s %{public}s, userId:%{public}d",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), userId);
     return abms->ConnectAbilityCommon(want, connect, callerToken, AppExecFwk::ExtensionAbilityType::SERVICE, userId);
 }
@@ -1252,7 +1264,7 @@ ErrCode AbilityManagerClient::SetMissionContinueState(sptr<IRemoteObject> token,
     TAG_LOGI(AAFwkTag::ABILITYMGR,
         "SetMissionContinueState called. state: %{public}d", state);
 #ifdef SUPPORT_SCREEN
-    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled() && sessionToken) {
         auto sceneSessionManager = SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
         CHECK_POINTER_RETURN_INVALID_VALUE(sceneSessionManager);
         TAG_LOGI(AAFwkTag::ABILITYMGR, "call");

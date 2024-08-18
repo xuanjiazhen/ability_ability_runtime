@@ -69,6 +69,7 @@ public:
 
 private:
     int TerminateAbilityInner(MessageParcel &data, MessageParcel &reply);
+    int BackToCallerInner(MessageParcel &data, MessageParcel &reply);
     int TerminateUIExtensionAbilityInner(MessageParcel &data, MessageParcel &reply);
     int CloseUIAbilityBySCBInner(MessageParcel &data, MessageParcel &reply);
     int SendResultToAbilityInner(MessageParcel &data, MessageParcel &reply);
@@ -287,6 +288,8 @@ private:
 
     int StartAbilityForResultAsCallerInner(MessageParcel &data, MessageParcel &reply);
     int StartAbilityForResultAsCallerForOptionsInner(MessageParcel &data, MessageParcel &reply);
+
+    int32_t StartAbilityOnlyUIAbilityInner(MessageParcel &data, MessageParcel &reply);
 
     //insight intent related
     int32_t StartAbilityByInsightIntentInner(MessageParcel &data, MessageParcel &reply);

@@ -15,23 +15,11 @@
 
 #include "app_exit_reason_helper.h"
 
-#include <string>
-#include <vector>
-
-#include "ability_util.h"
-#include "ability_manager_errors.h"
 #include "accesstoken_kit.h"
 #include "app_exit_reason_data_manager.h"
-#include "app_scheduler.h"
-#include "bundle_constants.h"
 #include "bundle_mgr_helper.h"
-#include "bundle_mgr_interface.h"
-#include "hilog_tag_wrapper.h"
-#include "ipc_skeleton.h"
 #include "os_account_manager_wrapper.h"
 #include "scene_board_judgement.h"
-#include "singleton.h"
-#include "sub_managers_helper.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -80,7 +68,7 @@ int32_t AppExitReasonHelper::RecordAppExitReason(const ExitReason &exitReason)
     }
 
     if (abilityList.empty()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Active abilityLists empty.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityLists empty");
         return ERR_GET_ACTIVE_ABILITY_LIST_EMPTY;
     }
     int32_t userId;
@@ -150,7 +138,7 @@ int32_t AppExitReasonHelper::RecordProcessExitReason(const int32_t pid, const st
     auto ret = DelayedSingleton<AppScheduler>::GetInstance()->NotifyAppMgrRecordExitReason(pid, exitReason.reason,
         exitReason.exitMsg);
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "NotifyAppMgrRecordExitReason failed.code: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "NotifyAppMgrRecordExitReason failed:%{public}d", ret);
     }
 
     if (abilityLists.empty()) {

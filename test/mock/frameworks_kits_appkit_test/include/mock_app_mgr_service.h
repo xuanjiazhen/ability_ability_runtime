@@ -88,6 +88,8 @@ public:
     MOCK_METHOD1(SetSupportedProcessCacheSelf, int32_t(bool isSupported));
     MOCK_METHOD3(StartNativeChildProcess, int32_t(const std::string &libName, int32_t childProcessCount,
         const sptr<IRemoteObject> &callback));
+    MOCK_METHOD2(GetSupportedProcessCachePids, int32_t(const std::string &bundleName,
+        std::vector<int32_t> &pidList));
 
     void AttachApplication(const sptr<IRemoteObject>& app)
     {
@@ -129,6 +131,7 @@ public:
 
     MOCK_METHOD2(KillApplication, int(const std::string& appName, const bool clearPageStack));
     MOCK_METHOD3(ForceKillApplication, int(const std::string& appName, const int userId, const int appIndex));
+    MOCK_METHOD1(KillProcessesByAccessTokenId, int32_t(const uint32_t accessTokenId));
     MOCK_METHOD2(KillApplicationByUid, int(const std::string&, const int uid));
     MOCK_METHOD0(IsFinalAppProcess, bool());
 

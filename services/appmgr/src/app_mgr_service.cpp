@@ -1084,7 +1084,7 @@ int32_t AppMgrService::NotifyHotReloadPage(const std::string &bundleName, const 
 int32_t AppMgrService::SetContinuousTaskProcess(int32_t pid, bool isContinuousTask)
 {
     if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller is not foundation.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller not foundation");
         return ERR_INVALID_OPERATION;
     }
     if (!IsReady()) {
@@ -1597,6 +1597,27 @@ void AppMgrService::RestartResidentProcessDependedOnWeb()
         return;
     }
     appMgrServiceInner_->RestartResidentProcessDependedOnWeb();
+}
+
+int32_t AppMgrService::GetSupportedProcessCachePids(const std::string &bundleName,
+    std::vector<int32_t> &pidList)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AppMgrService is not ready.");
+        return ERR_INVALID_OPERATION;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "The caller is not system-app, can not use system-api");
+        return AAFwk::ERR_NOT_SYSTEM_APP;
+    }
+    auto isPerm = AAFwk::PermissionVerification::GetInstance()->VerifyRunningInfoPerm();
+    if (!isPerm) {
+        return AAFwk::CHECK_PERMISSION_FAILED;
+    }
+    if (!DelayedSingleton<CacheProcessManager>::GetInstance()->QueryEnableProcessCache()) {
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    return appMgrServiceInner_->GetSupportedProcessCachePids(bundleName, pidList);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

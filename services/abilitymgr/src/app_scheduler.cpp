@@ -15,27 +15,13 @@
 
 #include "app_scheduler.h"
 
-#include "ability_manager_errors.h"
 #include "ability_manager_service.h"
-#include "ability_record.h"
 #include "ability_util.h"
-#include "appmgr/app_mgr_constants.h"
 #include "hitrace_meter.h"
-#include "hilog_tag_wrapper.h"
-#include "in_process_call_wrapper.h"
+#include "utils/state_utils.h"
 
 namespace OHOS {
 namespace AAFwk {
-const std::map<AppState, std::string> appStateToStrMap_ = {
-    std::map<AppState, std::string>::value_type(AppState::BEGIN, "BEGIN"),
-    std::map<AppState, std::string>::value_type(AppState::READY, "READY"),
-    std::map<AppState, std::string>::value_type(AppState::FOREGROUND, "FOREGROUND"),
-    std::map<AppState, std::string>::value_type(AppState::BACKGROUND, "BACKGROUND"),
-    std::map<AppState, std::string>::value_type(AppState::SUSPENDED, "SUSPENDED"),
-    std::map<AppState, std::string>::value_type(AppState::TERMINATED, "TERMINATED"),
-    std::map<AppState, std::string>::value_type(AppState::END, "END"),
-    std::map<AppState, std::string>::value_type(AppState::FOCUS, "FOCUS"),
-};
 AppScheduler::AppScheduler() : appMgrClient_(std::make_unique<AppExecFwk::AppMgrClient>())
 {}
 
@@ -247,7 +233,7 @@ void AppScheduler::OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abili
 
 int AppScheduler::KillApplication(const std::string &bundleName, const bool clearPageStack)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "[%{public}s(%{public}s)] enter", __FILE__, __FUNCTION__);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
     int ret = (int)appMgrClient_->KillApplication(bundleName, clearPageStack);
     if (ret != ERR_OK) {
@@ -266,6 +252,19 @@ int AppScheduler::ForceKillApplication(const std::string &bundleName,
     int ret = (int)appMgrClient_->ForceKillApplication(bundleName, userId, appIndex);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Fail to force kill application.");
+        return INNER_ERR;
+    }
+
+    return ERR_OK;
+}
+
+int AppScheduler::KillProcessesByAccessTokenId(const uint32_t accessTokenId)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Called.");
+    CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
+    int ret = (int)appMgrClient_->KillProcessesByAccessTokenId(accessTokenId);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Fail to force kill application by accessTokenId.");
         return INNER_ERR;
     }
 
@@ -390,11 +389,7 @@ int AppScheduler::GetProcessRunningInfosByUserId(std::vector<AppExecFwk::Running
 
 std::string AppScheduler::ConvertAppState(const AppState &state)
 {
-    auto it = appStateToStrMap_.find(state);
-    if (it != appStateToStrMap_.end()) {
-        return it->second;
-    }
-    return "INVALIDSTATE";
+    return StateUtils::AppStateToStrMap(state);
 }
 
 int AppScheduler::StartUserTest(
@@ -471,13 +466,13 @@ int AppScheduler::GetApplicationInfoByProcessID(const int pid, AppExecFwk::Appli
 int32_t AppScheduler::NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, const std::string &exitMsg)
 {
     if (pid < 0) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "NotifyAppMgrRecordExitReason failed, pid <= 0.");
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "pid<=0");
         return ERR_INVALID_VALUE;
     }
     CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
     auto ret = static_cast<int32_t>(IN_PROCESS_CALL(appMgrClient_->NotifyAppMgrRecordExitReason(pid, reason, exitMsg)));
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "NotifyAppMgrRecordExitReason failed.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed");
         return ret;
     }
     return ERR_OK;
@@ -648,6 +643,15 @@ bool AppScheduler::IsProcessContainsOnlyUIAbility(const pid_t pid)
         return false;
     }
     return appMgrClient_->IsProcessContainsOnlyUIAbility(pid);
+}
+
+bool AppScheduler::IsProcessAttached(sptr<IRemoteObject> token) const
+{
+    if (!appMgrClient_) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "appMgrClient is nullptr");
+        return false;
+    }
+    return appMgrClient_->IsProcessAttached(token);
 }
 } // namespace AAFwk
 }  // namespace OHOS

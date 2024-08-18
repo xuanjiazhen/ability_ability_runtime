@@ -21,6 +21,7 @@
 #include <list>
 #include <memory>
 #include <vector>
+#include <set>
 #include <utility>
 #include "cpp/mutex.h"
 #include "cpp/condition_variable.h"
@@ -192,12 +193,33 @@ public:
     {
         return callerInfo_;
     }
+    bool IsHistoryRequestCode(int32_t requestCode)
+    {
+        return requestCodeSet_.count(requestCode) > 0;
+    }
+    void RemoveHistoryRequestCode(int32_t requestCode)
+    {
+        requestCodeSet_.erase(requestCode);
+    }
+    void AddHistoryRequestCode(int32_t requestCode)
+    {
+        requestCodeSet_.insert(requestCode);
+    }
+    void SetRequestCodeSet(const std::set<int32_t> &requestCodeSet)
+    {
+        requestCodeSet_ = requestCodeSet;
+    }
+    std::set<int32_t> GetRequestCodeSet()
+    {
+        return requestCodeSet_;
+    }
 
 private:
     int requestCode_ = -1;  // requestCode of for-result start mode
     std::weak_ptr<AbilityRecord> caller_;
     std::shared_ptr<SystemAbilityCallerRecord> saCaller_ = nullptr;
     std::shared_ptr<CallerAbilityInfo> callerInfo_ = nullptr;
+    std::set<int32_t> requestCodeSet_;
 };
 
 /**
@@ -250,6 +272,8 @@ struct AbilityRequest {
 
     sptr<SessionInfo> sessionInfo;
     uint32_t specifyTokenId = 0;
+    bool uriReservedFlag = false;
+    std::string reservedBundleName;
 
     std::pair<bool, LaunchReason> IsContinuation() const
     {
@@ -624,10 +648,10 @@ public:
     void ConnectAbility();
 
     /**
-     * connect the ability.
+     * connect the ability with want.
      *
      */
-    void ConnectUIServiceExtAbility(const Want &want);
+    void ConnectAbilityWithWant(const Want &want);
 
     /**
      * disconnect the ability.
@@ -639,7 +663,7 @@ public:
      * disconnect the ability with want
      *
      */
-    void DisconnectUIServiceExtAbility(const Want &want);
+    void DisconnectAbilityWithWant(const Want &want);
 
     /**
      * Command the ability.
@@ -712,6 +736,12 @@ public:
     void SendResult(bool isSandboxApp, uint32_t tokeId);
 
     /**
+     * send result object to caller ability thread.
+     *
+     */
+    void SendResultByBackToCaller(const std::shared_ptr<AbilityResult> &result);
+
+    /**
      * send result object to caller ability thread for sandbox app file saving.
      */
     void SendSandboxSavefileResult(const Want &want, int resultCode, int requestCode);
@@ -727,6 +757,8 @@ public:
      *
      */
     void SaveResultToCallers(const int resultCode, const Want *resultWant);
+
+    std::shared_ptr<AbilityRecord> GetCallerByRequestCode(int32_t requestCode, int32_t pid);
 
     /**
      * save result to caller ability.
@@ -770,6 +802,8 @@ public:
      *
      */
     bool IsConnectListEmpty();
+
+    void RemoveCallerRequestCode(std::shared_ptr<AbilityRecord> callerAbilityRecord, int32_t requestCode);
 
     /**
      * add caller record
@@ -937,6 +971,7 @@ public:
     void SetSessionInfo(sptr<SessionInfo> sessionInfo);
     void UpdateSessionInfo(sptr<IRemoteObject> sessionToken);
     void SetMinimizeReason(bool fromUser);
+    void SetSceneFlag(uint32_t sceneFlag);
     bool IsMinimizeFromUser() const;
     void SetClearMissionFlag(bool clearMissionFlag);
     bool IsClearMissionFlag();
@@ -1085,7 +1120,7 @@ private:
 
     void PublishFileOpenEvent(const Want &want);
 
-    static void SetDebugAppByWaitingDebugFlag(Want &requestWant, const std::string &bundleName, bool isDebugApp);
+    void SetDebugAppByWaitingDebugFlag();
 
 #ifdef SUPPORT_SCREEN
     std::shared_ptr<Want> GetWantFromMission() const;
