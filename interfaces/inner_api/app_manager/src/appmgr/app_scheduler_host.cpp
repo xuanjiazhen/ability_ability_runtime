@@ -223,8 +223,8 @@ int32_t AppSchedulerHost::HandleScheduleJsHeapMemory(MessageParcel &data, Messag
 int32_t AppSchedulerHost::HandleScheduleLaunchAbility(MessageParcel &data, MessageParcel &reply)
 {
     HITRACE_METER(HITRACE_TAG_APP);
-    MessageParcel rawData;
-    if (!AbilityRuntime::RawDataUtils::ReadRawData(data, rawData)) {
+    auto rawData = AbilityRuntime::MessageParcelUtil::MakeRawDataParcel();
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
         return ERR_APPEXECFWK_PARCEL_ERROR;
     }
     std::unique_ptr<AbilityInfo> abilityInfo(rawData.ReadParcelable<AbilityInfo>());

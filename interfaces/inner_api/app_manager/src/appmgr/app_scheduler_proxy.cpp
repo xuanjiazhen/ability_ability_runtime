@@ -20,7 +20,7 @@
 #include "hitrace_meter.h"
 #include "ipc_types.h"
 #include "iremote_object.h"
-#include "raw_data_utils.h"
+#include "message_parcel_util.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -186,7 +186,7 @@ void AppSchedulerProxy::ScheduleLaunchAbility(const AbilityInfo &info, const spt
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
-    auto rawData = AbilityRuntime::RawDataUtils::MakeRawDataParcel();
+    auto rawData = AbilityRuntime::MessageParcelUtil::MakeRawDataParcel();
     if (!rawData.WriteInterfaceToken(AppSchedulerProxy::GetDescriptor())) {
         TAG_LOGE(AAFwkTag::APPMGR, "write interface token failed");
         return;
@@ -213,7 +213,7 @@ void AppSchedulerProxy::ScheduleLaunchAbility(const AbilityInfo &info, const spt
         TAG_LOGE(AAFwkTag::APPMGR, "write ability record id fail.");
         return;
     }
-    if (!AbilityRuntime::RawDataUtils::WriteRawData(data, rawData)) {
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
         TAG_LOGE(AAFwkTag::APPMGR, "write raw data failed");
         return;
     }
