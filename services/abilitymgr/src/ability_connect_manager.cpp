@@ -2198,9 +2198,6 @@ void AbilityConnectManager::HandleAbilityDiedTask(
         abilityRecord->RemoveConnectRecordFromList(connectRecord);
         RemoveConnectionRecordFromMap(connectRecord);
     }
-    if (abilityRecord->GetWant().GetBoolParam(IS_PRELOAD_UIEXTENSION_ABILITY, false)) {
-        ClearPreloadUIExtensionRecord(abilityRecord);
-    }
     if (IsUIExtensionAbility(abilityRecord)) {
         HandleUIExtensionDied(abilityRecord);
     }
@@ -2901,8 +2898,9 @@ bool AbilityConnectManager::IsUIExtensionFocused(uint32_t uiExtensionTokenId, co
         auto uiExtension = item.second.first.lock();
         auto sessionInfo = item.second.second;
         if (uiExtension && uiExtension->GetApplicationInfo().accessTokenId == uiExtensionTokenId) {
-            if (uiExtensionAbilityRecordMgr_->IsFocused(uiExtension->GetUIExtensionAbilityId(), focusToken)) {
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "isFocused.");
+            if (sessionInfo && uiExtensionAbilityRecordMgr_->IsFocused(
+                uiExtension->GetUIExtensionAbilityId(), sessionInfo->callerToken, focusToken)) {
+                TAG_LOGD(AAFwkTag::ABILITYMGR, "Focused");
                 return true;
             }
             if (sessionInfo && sessionInfo->callerToken == focusToken) {
@@ -3060,6 +3058,9 @@ void AbilityConnectManager::RemoveUIExtensionAbilityRecord(const std::shared_ptr
 {
     CHECK_POINTER(abilityRecord);
     CHECK_POINTER(uiExtensionAbilityRecordMgr_);
+    if (abilityRecord->GetWant().GetBoolParam(IS_PRELOAD_UIEXTENSION_ABILITY, false)) {
+        ClearPreloadUIExtensionRecord(abilityRecord);
+    }
     uiExtensionAbilityRecordMgr_->RemoveExtensionRecord(abilityRecord->GetUIExtensionAbilityId());
 }
 
