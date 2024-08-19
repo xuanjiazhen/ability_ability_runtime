@@ -322,7 +322,6 @@ int AbilityRecord::LoadAbility()
 
     std::lock_guard guard(wantLock_);
     want_.SetParam(ABILITY_OWNER_USERID, ownerMissionUserId_);
-    want_.SetParam("ohos.ability.launch.reason", static_cast<int>(lifeCycleStateInfo_.launchParam.launchReason));
     auto result = DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility(
         token_, callerToken_, abilityInfo_, applicationInfo_, want_, recordId_);
     want_.RemoveParam(ABILITY_OWNER_USERID);
@@ -1815,12 +1814,12 @@ std::shared_ptr<AbilityRecord> AbilityRecord::GetCallerByRequestCode(int32_t req
 {
     for (auto caller : GetCallerRecordList()) {
         if (caller == nullptr) {
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "null caller");
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "null caller");
             continue;
         }
         std::shared_ptr<AbilityRecord> callerAbilityRecord = caller->GetCaller();
         if (callerAbilityRecord == nullptr || callerAbilityRecord->GetPid() != pid) {
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "callerAbility not match");
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "callerAbility not match");
             continue;
         }
         if (caller->IsHistoryRequestCode(requestCode)) {

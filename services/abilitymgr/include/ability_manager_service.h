@@ -2265,6 +2265,8 @@ private:
 
     bool CheckUIExtensionCallerIsForeground(const AbilityRequest &abilityRequest);
 
+    bool CheckUIExtensionCallerPidByHostWindowId(const AbilityRequest &abilityRequest);
+
     int CheckExtensionCallPermission(const Want& want, const AbilityRequest& abilityRequest);
 
     int CheckServiceCallPermission(const AbilityRequest& abilityRequest,
@@ -2375,6 +2377,8 @@ private:
 
     void ReportPreventStartAbilityResult(const AppExecFwk::AbilityInfo &callerAbilityInfo,
         const AppExecFwk::AbilityInfo &abilityInfo);
+
+    void UpdateBackToCallerFlag(const sptr<IRemoteObject> &callerToken, Want &want, int32_t requestCode, bool backFlag);
 
     void SetAbilityRequestSessionInfo(AbilityRequest &abilityRequest, AppExecFwk::ExtensionAbilityType extensionType);
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
