@@ -17,57 +17,55 @@
 #define OHOS_ABILITY_RUNTIME_RAW_DATA_UTILS_H
 
 #include <memory>
-#include "appexecfwk_errors.h"
-#include "hilog_tag_wrapper.h"
 #include "message_parcel.h"
 
 namespace OHOS::AbilityRuntime {
 namespace RawDataUtils {
-constexpr int32_t MAX_PARCEL_CAPACITY = 100 * 1024 * 1024; // 100M
+constexpr int32_t RAW_DATA_EXPECTED_CAPACITY = 100 * 1024 * 1024; // 100M
 
 MessageParcel MakeRawDataParcel()
 {
     MessageParcel parcel;
-    (void)parcel.SetMaxCapacity(MAX_PARCEL_CAPACITY);
+    (void)parcel.SetMaxCapacity(RAW_DATA_EXPECTED_CAPACITY);
     return parcel;
 }
 
-int32_t WriteRawData(MessageParcel &dataParcel, MessageParcel &rawDataParcel)
+bool WriteRawData(MessageParcel &dataParcel, MessageParcel &rawDataParcel)
 {
     size_t size = rawDataParcel.GetDataSize();
     if (!dataParcel.WriteUint32(size)) {
-        return ERR_APPEXECFWK_PARCEL_ERROR;
+        return false;
     }
     if (!dataParcel.WriteRawData(reinterpret_cast<uint8_t *>(rawDataParcel.GetData()), size)) {
-        return ERR_APPEXECFWK_PARCEL_ERROR;
+        return false;
     }
-    return ERR_OK;
+    return true;
 }
 
-int32_t ReadRawData(MessageParcel &dataParcel, MessageParcel &rawDataParcel)
+bool ReadRawData(MessageParcel &dataParcel, MessageParcel &rawDataParcel)
 {
     size_t size = dataParcel.ReadUint32();
     if (size <= 0) {
-        return ERR_APPEXECFWK_PARCEL_ERROR;
+        return false;
     }
     const void *rawData = dataParcel.ReadRawData(size);
     if (rawData == nullptr) {
-        return ERR_APPEXECFWK_PARCEL_ERROR;
+        return false;
     }
 
     void *buffer = malloc(size);
     if (buffer == nullptr) {
-        return ERR_APPEXECFWK_PARCEL_ERROR;
+        return false;
     }
     if (memcpy_s(buffer, size, data, size) != 0) {
         free(buffer);
-        return ERR_APPEXECFWK_PARCEL_ERROR;
+        return false;
     }
 
     if (!rawDataParcel.ParseFrom(reinterpret_cast<uintptr_t>(buffer), dataSize)) {
-        return ERR_APPEXECFWK_PARCEL_ERROR;
+        return false;
     }
-    return ERR_OK;
+    return true;
 }
 
 } // namespace RawDataUtils

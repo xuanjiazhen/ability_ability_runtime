@@ -14,12 +14,14 @@
  */
 
 #include "app_scheduler_host.h"
+
 #include "ability_info.h"
 #include "ability_manager_errors.h"
 #include "appexecfwk_errors.h"
 #include "hitrace_meter.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_types.h"
+#include "raw_data_utils.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -221,19 +223,23 @@ int32_t AppSchedulerHost::HandleScheduleJsHeapMemory(MessageParcel &data, Messag
 int32_t AppSchedulerHost::HandleScheduleLaunchAbility(MessageParcel &data, MessageParcel &reply)
 {
     HITRACE_METER(HITRACE_TAG_APP);
-    std::unique_ptr<AbilityInfo> abilityInfo(data.ReadParcelable<AbilityInfo>());
+    MessageParcel rawData;
+    if (!AbilityRuntime::RawDataUtils::ReadRawData(data, rawData)) {
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+    std::unique_ptr<AbilityInfo> abilityInfo(rawData.ReadParcelable<AbilityInfo>());
     if (!abilityInfo) {
         TAG_LOGE(AAFwkTag::APPMGR, "ReadParcelable<AbilityInfo> failed");
         return ERR_APPEXECFWK_PARCEL_ERROR;
     }
 
     sptr<IRemoteObject> token = nullptr;
-    if (data.ReadBool()) {
-        token = data.ReadRemoteObject();
+    if (rawData.ReadBool()) {
+        token = rawData.ReadRemoteObject();
     }
 
-    std::shared_ptr<AAFwk::Want> want(data.ReadParcelable<AAFwk::Want>());
-    auto abilityRecordId = data.ReadInt32();
+    std::shared_ptr<AAFwk::Want> want(rawData.ReadParcelable<AAFwk::Want>());
+    auto abilityRecordId = rawData.ReadInt32();
     ScheduleLaunchAbility(*abilityInfo, token, want, abilityRecordId);
     return NO_ERROR;
 }

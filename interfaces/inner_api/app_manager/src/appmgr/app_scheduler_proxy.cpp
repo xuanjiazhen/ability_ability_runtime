@@ -15,11 +15,12 @@
 
 #include "app_scheduler_proxy.h"
 
+#include "app_scheduler_const.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "ipc_types.h"
 #include "iremote_object.h"
-#include "app_scheduler_const.h"
+#include "raw_data_utils.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -185,29 +186,35 @@ void AppSchedulerProxy::ScheduleLaunchAbility(const AbilityInfo &info, const spt
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
-    if (!WriteInterfaceToken(data)) {
+    auto rawData = AbilityRuntime::RawDataUtils::MakeRawDataParcel();
+    if (!rawData.WriteInterfaceToken(AppSchedulerProxy::GetDescriptor())) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write interface token failed");
         return;
     }
-    data.WriteParcelable(&info);
+    rawData.WriteParcelable(&info);
 
     if (token) {
-        if (!data.WriteBool(true) || !data.WriteRemoteObject(token.GetRefPtr())) {
+        if (!rawData.WriteBool(true) || !rawData.WriteRemoteObject(token.GetRefPtr())) {
             TAG_LOGE(AAFwkTag::APPMGR, "Failed to write flag and token");
             return;
         }
     } else {
-        if (!data.WriteBool(false)) {
+        if (!rawData.WriteBool(false)) {
             TAG_LOGE(AAFwkTag::APPMGR, "Failed to write flag");
             return;
         }
     }
 
-    if (!data.WriteParcelable(want.get())) {
+    if (!rawData.WriteParcelable(want.get())) {
         TAG_LOGE(AAFwkTag::APPMGR, "write want fail.");
         return;
     }
-    if (!data.WriteInt32(abilityRecordId)) {
+    if (!rawData.WriteInt32(abilityRecordId)) {
         TAG_LOGE(AAFwkTag::APPMGR, "write ability record id fail.");
+        return;
+    }
+    if (!AbilityRuntime::RawDataUtils::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write raw data failed");
         return;
     }
     int32_t ret = SendTransactCmd(
