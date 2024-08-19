@@ -27,6 +27,7 @@ config("appmgr_test_config") {
   defines = [ "AMS_LOG_TAG = \"AppMgrService\"" ]
 
   include_dirs = [
+    "${ability_runtime_path}/utils/global/message_parcel_utils/include",
     "${ability_runtime_services_path}/appdfr/include",
     "${ability_runtime_test_path}/mock/services_appmgr_test/include",
     "${distributeddatamgr_path}/kv_store/interfaces/innerkits/distributeddata/include",
@@ -194,6 +195,7 @@ ohos_source_set("abilityms_test_source") {
   ]
 
   include_dirs = [
+    "${ability_runtime_path}/utils/global/message_parcel_utils/include",
     "${ability_runtime_services_path}/appdfr/include",
     "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/appexecfwk_core",
     "${ability_runtime_innerkits_path}/app_manager/include/appmgr",
