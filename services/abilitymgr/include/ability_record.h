@@ -21,7 +21,6 @@
 #include <list>
 #include <memory>
 #include <vector>
-#include <utility>
 #include "cpp/mutex.h"
 #include "cpp/condition_variable.h"
 
@@ -252,16 +251,13 @@ struct AbilityRequest {
     bool uriReservedFlag = false;
     std::string reservedBundleName;
 
-    std::pair<bool, LaunchReason> IsContinuation() const
+    bool IsContinuation() const
     {
         auto flags = want.GetFlags();
         if ((flags & Want::FLAG_ABILITY_CONTINUATION) == Want::FLAG_ABILITY_CONTINUATION) {
-            return {true, LaunchReason::LAUNCHREASON_CONTINUATION};
+            return true;
         }
-        if ((flags & Want::FLAG_ABILITY_PREPARE_CONTINUATION) == Want::FLAG_ABILITY_PREPARE_CONTINUATION) {
-            return {true, LaunchReason::LAUNCHREASON_PREPARE_CONTINUATION};
-        }
-        return {false, LaunchReason::LAUNCHREASON_UNKNOWN};
+        return false;
     }
 
     bool IsAcquireShareData() const
