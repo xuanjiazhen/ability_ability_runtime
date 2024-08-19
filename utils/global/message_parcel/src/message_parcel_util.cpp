@@ -13,16 +13,12 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_RAW_DATA_UTILS_H
-#define OHOS_ABILITY_RUNTIME_RAW_DATA_UTILS_H
+#include "message_parcel_util.h"
 
 #include <memory>
-#include "message_parcel.h"
 
 namespace OHOS::AbilityRuntime {
-namespace RawDataUtils {
-constexpr int32_t RAW_DATA_EXPECTED_CAPACITY = 100 * 1024 * 1024; // 100M
-
+namespace MessageParcelUtil {
 MessageParcel MakeRawDataParcel()
 {
     MessageParcel parcel;
@@ -67,7 +63,5 @@ bool ReadRawData(MessageParcel &dataParcel, MessageParcel &rawDataParcel)
     }
     return true;
 }
-
-} // namespace RawDataUtils
+}  // namespace MessageParcelUtil
 }  // namespace OHOS::AbilityRuntime
-#endif  // OHOS_ABILITY_RUNTIME_RAW_DATA_UTILS_H

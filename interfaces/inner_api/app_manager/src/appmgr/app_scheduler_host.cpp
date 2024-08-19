@@ -21,7 +21,7 @@
 #include "hitrace_meter.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_types.h"
-#include "raw_data_utils.h"
+#include "message_parcel_util.h"
 
 namespace OHOS {
 namespace AppExecFwk {
