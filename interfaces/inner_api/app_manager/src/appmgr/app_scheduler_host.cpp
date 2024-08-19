@@ -20,6 +20,7 @@
 #include "hitrace_meter.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_types.h"
+#include "message_parcel_read_utils.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -232,7 +233,16 @@ int32_t AppSchedulerHost::HandleScheduleLaunchAbility(MessageParcel &data, Messa
         token = data.ReadRemoteObject();
     }
 
-    std::shared_ptr<AAFwk::Want> want(data.ReadParcelable<AAFwk::Want>());
+    MessageParcel rawData;
+    if (AbilityRuntime::MessageParcelUtils::ReadRawData(data, rawData) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "read rawData failed");
+        return resultCode;
+    }
+    std::shared_ptr<AAFwk::Want> want(rawData.ReadParcelable<AAFwk::Want>());
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "read shared want failed");
+        return ERR_INVALID_VALUE:
+    }
     auto abilityRecordId = data.ReadInt32();
     ScheduleLaunchAbility(*abilityInfo, token, want, abilityRecordId);
     return NO_ERROR;
@@ -335,14 +345,18 @@ int32_t AppSchedulerHost::HandleScheduleClearPageStack(MessageParcel &data, Mess
 int32_t AppSchedulerHost::HandleScheduleAcceptWant(MessageParcel &data, MessageParcel &reply)
 {
     HITRACE_METER(HITRACE_TAG_APP);
-    AAFwk::Want *want = data.ReadParcelable<AAFwk::Want>();
+    MessageParcel rawData;
+    if (AbilityRuntime::MessageParcelUtils::ReadRawData(data, rawData) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "read rawData failed");
+        return resultCode;
+    }
+    std::shared_ptr<AAFwk::Want> want(rawData.ReadParcelable<AAFwk::Want>());
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "want is nullptr");
+        TAG_LOGE(AAFwkTag::APPMGR, "read shared want failed");
         return ERR_INVALID_VALUE;
     }
     auto moduleName = data.ReadString();
-    ScheduleAcceptWant(*want, moduleName);
-    delete want;
+    ScheduleAcceptWant(want, moduleName);
     return NO_ERROR;
 }
 
@@ -350,14 +364,18 @@ int32_t AppSchedulerHost::HandleScheduleNewProcessRequest(MessageParcel &data, M
 {
     TAG_LOGD(AAFwkTag::APPMGR, "call.");
     HITRACE_METER(HITRACE_TAG_APP);
-    AAFwk::Want *want = data.ReadParcelable<AAFwk::Want>();
+    MessageParcel rawData;
+    if (AbilityRuntime::MessageParcelUtils::ReadRawData(data, rawData) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "read rawData failed");
+        return resultCode;
+    }
+    std::shared_ptr<AAFwk::Want> want(rawData.ReadParcelable<AAFwk::Want>());
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "want is nullptr");
+        TAG_LOGE(AAFwkTag::APPMGR, "read shared want failed");
         return ERR_INVALID_VALUE;
     }
     auto moduleName = data.ReadString();
-    ScheduleNewProcessRequest(*want, moduleName);
-    delete want;
+    ScheduleNewProcessRequest(want, moduleName);
     return NO_ERROR;
 }
 

@@ -22,6 +22,7 @@
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "ishared_result_set.h"
+#include "message_parcel_write_utils.h"
 #include "session_info.h"
 #include "values_bucket.h"
 
@@ -52,13 +53,14 @@ void AbilitySchedulerProxy::ScheduleAbilityTransaction(const Want &want, const L
     if (!WriteInterfaceToken(data)) {
         return;
     }
-    if (!data.WriteParcelable(&want)) {
+    auto parcel = AbilityRuntime::MessageParcelUtils::GetRawDataParcel();
+    if (!parcel.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write want failed");
         return;
     }
     data.WriteParcelable(&stateInfo);
     if (sessionInfo) {
-        if (!data.WriteBool(true) || !data.WriteParcelable(sessionInfo)) {
+        if (!data.WriteBool(true) || !parcel.WriteParcelable(sessionInfo)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "write sessionInfo failed");
             return;
         }
@@ -66,6 +68,10 @@ void AbilitySchedulerProxy::ScheduleAbilityTransaction(const Want &want, const L
         if (!data.WriteBool(false)) {
             return;
         }
+    }
+    if (AbilityRuntime::MessageParcelUtils::WriteRawData(data, parcel) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write rawData failed");
+        return;
     }
     int32_t err = SendTransactCmd(IAbilityScheduler::SCHEDULE_ABILITY_TRANSACTION, data, reply, option);
     if (err != NO_ERROR) {
@@ -114,8 +120,13 @@ void AbilitySchedulerProxy::SendResult(int requestCode, int resultCode, const Wa
     }
     data.WriteInt32(requestCode);
     data.WriteInt32(resultCode);
-    if (!data.WriteParcelable(&resultWant)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "fail to WriteParcelable");
+    auto parcel = AbilityRuntime::MessageParcelUtils::GetRawDataParcel();
+    if (!parcel.WriteParcelable(&resultWant)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write resultWant failed");
+        return;
+    }
+    if (AbilityRuntime::MessageParcelUtils::WriteRawData(data, parcel) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write rawData failed");
         return;
     }
     int32_t err = SendTransactCmd(IAbilityScheduler::SEND_RESULT, data, reply, option);
@@ -132,8 +143,13 @@ void AbilitySchedulerProxy::ScheduleConnectAbility(const Want &want)
     if (!WriteInterfaceToken(data)) {
         return;
     }
-    if (!data.WriteParcelable(&want)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "fail to WriteParcelable");
+    auto parcel = AbilityRuntime::MessageParcelUtils::GetRawDataParcel();
+    if (!parcel.WriteParcelable(&want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write want failed");
+        return;
+    }
+    if (AbilityRuntime::MessageParcelUtils::WriteRawData(data, parcel) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write rawData failed");
         return;
     }
     int32_t err = SendTransactCmd(IAbilityScheduler::SCHEDULE_ABILITY_CONNECT, data, reply, option);
@@ -150,8 +166,13 @@ void AbilitySchedulerProxy::ScheduleDisconnectAbility(const Want &want)
     if (!WriteInterfaceToken(data)) {
         return;
     }
-    if (!data.WriteParcelable(&want)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "fail to WriteParcelable.");
+    auto parcel = AbilityRuntime::MessageParcelUtils::GetRawDataParcel();
+    if (!parcel.WriteParcelable(&want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write want failed");
+        return;
+    }
+    if (AbilityRuntime::MessageParcelUtils::WriteRawData(data, parcel) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write rawData failed");
         return;
     }
 
@@ -169,8 +190,13 @@ void AbilitySchedulerProxy::ScheduleCommandAbility(const Want &want, bool restar
     if (!WriteInterfaceToken(data)) {
         return;
     }
-    if (!data.WriteParcelable(&want)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "WriteParcelable failed");
+    auto parcel = AbilityRuntime::MessageParcelUtils::GetRawDataParcel();
+    if (!parcel.WriteParcelable(&want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write want failed");
+        return;
+    }
+    if (AbilityRuntime::MessageParcelUtils::WriteRawData(data, parcel) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write rawData failed");
         return;
     }
     if (!data.WriteBool(restart)) {
@@ -216,12 +242,17 @@ void AbilitySchedulerProxy::ScheduleCommandAbilityWindow(const Want &want, const
     if (!WriteInterfaceToken(data)) {
         return;
     }
-    if (!data.WriteParcelable(&want)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "WriteParcelable failed.");
+    auto parcel = AbilityRuntime::MessageParcelUtils::GetRawDataParcel();
+    if (!parcel.WriteParcelable(&want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write want failed");
         return;
     }
-    if (!data.WriteParcelable(sessionInfo)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "WriteParcelable failed.");
+    if (!parcel.WriteParcelable(sessionInfo)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write sessionInfo failed.");
+        return;
+    }
+    if (AbilityRuntime::MessageParcelUtils::WriteRawData(data, parcel) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write rawData failed");
         return;
     }
     if (!data.WriteInt32(winCmd)) {
@@ -1120,7 +1151,15 @@ void AbilitySchedulerProxy::OnExecuteIntent(const Want &want)
     if (!WriteInterfaceToken(data)) {
         return;
     }
-    data.WriteParcelable(&want);
+    auto parcel = AbilityRuntime::MessageParcelUtils::GetRawDataParcel();
+    if (!parcel.WriteParcelable(&want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write want failed");
+        return;
+    }
+    if (AbilityRuntime::MessageParcelUtils::WriteRawData(data, parcel) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write rawData failed");
+        return;
+    }
     int32_t err = SendTransactCmd(IAbilityScheduler::SCHEDULE_ONEXECUTE_INTENT, data, reply, option);
     if (err != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "ScheduleAbilityTransaction fail to SendRequest. err: %{public}d", err);
@@ -1140,8 +1179,13 @@ int32_t AbilitySchedulerProxy::CreateModalUIExtension(const Want &want)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Write interface fail");
         return INNER_ERR;
     }
-    if (!data.WriteParcelable(&want)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Write wants fail");
+    auto parcel = AbilityRuntime::MessageParcelUtils::GetRawDataParcel();
+    if (!parcel.WriteParcelable(&want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write want failed");
+        return INNER_ERR;
+    }
+    if (AbilityRuntime::MessageParcelUtils::WriteRawData(data, parcel) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write rawData failed");
         return INNER_ERR;
     }
     int32_t err = SendTransactCmd(IAbilityScheduler::CREATE_MODAL_UI_EXTENSION, data, reply, option);
