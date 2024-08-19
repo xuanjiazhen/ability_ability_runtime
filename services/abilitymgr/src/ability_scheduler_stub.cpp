@@ -22,6 +22,7 @@
 #include "data_ability_result.h"
 #include "hilog_tag_wrapper.h"
 #include "ishared_result_set.h"
+#include "message_parcel_read_utils.h"
 #include "session_info.h"
 #include "values_bucket.h"
 
@@ -164,9 +165,14 @@ int AbilitySchedulerStub::OnRemoteRequestInnerThird(
 
 int AbilitySchedulerStub::AbilityTransactionInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    if (AbilityRuntime::MessageParcelUtils::ReadRawData(data, rawData) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "read rawData failed");
+        return resultCode;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilitySchedulerStub want is nullptr");
+        TAG_LOGE(AAFwkTag::APPMGR, "read shared want failed");
         return ERR_INVALID_VALUE;
     }
     std::unique_ptr<LifeCycleStateInfo> stateInfo(data.ReadParcelable<LifeCycleStateInfo>());
@@ -176,7 +182,10 @@ int AbilitySchedulerStub::AbilityTransactionInner(MessageParcel &data, MessagePa
     }
     sptr<SessionInfo> sessionInfo = nullptr;
     if (data.ReadBool()) {
-        sessionInfo = data.ReadParcelable<SessionInfo>();
+        sessionInfo = rawData.ReadParcelable<SessionInfo>();
+        if (sessionInfo == nullptr) {
+            return ERR_INVALID_VALUE;
+        }
     }
     ScheduleAbilityTransaction(*want, *stateInfo, sessionInfo);
     return NO_ERROR;
@@ -194,9 +203,15 @@ int AbilitySchedulerStub::SendResultInner(MessageParcel &data, MessageParcel &re
 {
     int requestCode = data.ReadInt32();
     int resultCode = data.ReadInt32();
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+
+    MessageParcel rawData;
+    if (AbilityRuntime::MessageParcelUtils::ReadRawData(data, rawData) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "read rawData failed");
+        return resultCode;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilitySchedulerStub want is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read shared want failed");
         return ERR_INVALID_VALUE;
     }
     SendResult(requestCode, resultCode, *want);
@@ -205,9 +220,14 @@ int AbilitySchedulerStub::SendResultInner(MessageParcel &data, MessageParcel &re
 
 int AbilitySchedulerStub::ConnectAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    if (AbilityRuntime::MessageParcelUtils::ReadRawData(data, rawData) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "read rawData failed");
+        return resultCode;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilitySchedulerStub want is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read shared want failed");
         return ERR_INVALID_VALUE;
     }
     ScheduleConnectAbility(*want);
@@ -216,9 +236,14 @@ int AbilitySchedulerStub::ConnectAbilityInner(MessageParcel &data, MessageParcel
 
 int AbilitySchedulerStub::DisconnectAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    if (AbilityRuntime::MessageParcelUtils::ReadRawData(data, rawData) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "read rawData failed");
+        return resultCode;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilitySchedulerStub want is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read shared want failed");
         return ERR_INVALID_VALUE;
     }
     ScheduleDisconnectAbility(*want);
@@ -227,9 +252,14 @@ int AbilitySchedulerStub::DisconnectAbilityInner(MessageParcel &data, MessagePar
 
 int AbilitySchedulerStub::CommandAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    if (AbilityRuntime::MessageParcelUtils::ReadRawData(data, rawData) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "read rawData failed");
+        return resultCode;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilitySchedulerStub want is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read shared want failed");
         return ERR_INVALID_VALUE;
     }
     bool reStart = data.ReadBool();
@@ -251,12 +281,23 @@ int AbilitySchedulerStub::PrepareTerminateAbilityInner(MessageParcel &data, Mess
 
 int AbilitySchedulerStub::CommandAbilityWindowInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    if (AbilityRuntime::MessageParcelUtils::ReadRawData(data, rawData) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "read rawData failed");
+        return resultCode;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read shared want failed");
         return ERR_INVALID_VALUE;
     }
-    sptr<SessionInfo> sessionInfo(data.ReadParcelable<SessionInfo>());
+    sptr<SessionInfo> sessionInfo = nullptr;
+    if (data.ReadBool()) {
+        sessionInfo = rawData.ReadParcelable<SessionInfo>();
+        if (sessionInfo == nullptr) {
+            return ERR_INVALID_VALUE;
+        }
+    }
     int32_t winCmd = data.ReadInt32();
     ScheduleCommandAbilityWindow(*want, sessionInfo, static_cast<WindowCommand>(winCmd));
     return NO_ERROR;
@@ -711,9 +752,14 @@ int AbilitySchedulerStub::CallRequestInner(MessageParcel &data, MessageParcel &r
 int AbilitySchedulerStub::OnExecuteIntentInner(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilitySchedulerStub::OnExecuteIntentInner start");
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    if (AbilityRuntime::MessageParcelUtils::ReadRawData(data, rawData) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "read rawData failed");
+        return resultCode;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilitySchedulerStub want is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read shared want failed");
         return ERR_INVALID_VALUE;
     }
     OnExecuteIntent(*want);
@@ -722,9 +768,14 @@ int AbilitySchedulerStub::OnExecuteIntentInner(MessageParcel &data, MessageParce
 
 int AbilitySchedulerStub::CreateModalUIExtensionInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    if (AbilityRuntime::MessageParcelUtils::ReadRawData(data, rawData) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "read rawData failed");
+        return resultCode;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilitySchedulerStub want is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read shared want failed");
         return ERR_INVALID_VALUE;
     }
     int ret = CreateModalUIExtension(*want);

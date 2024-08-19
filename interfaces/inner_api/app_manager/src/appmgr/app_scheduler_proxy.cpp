@@ -15,11 +15,12 @@
 
 #include "app_scheduler_proxy.h"
 
+#include "app_scheduler_const.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "ipc_types.h"
 #include "iremote_object.h"
-#include "app_scheduler_const.h"
+#include "message_parcel_write_utils.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -202,8 +203,12 @@ void AppSchedulerProxy::ScheduleLaunchAbility(const AbilityInfo &info, const spt
         }
     }
 
-    if (!data.WriteParcelable(want.get())) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write want fail.");
+    auto parcel = AbilityRuntime::MessageParcelUtils::MakeRawDataParcel();
+    if (!parcel.WriteParcelable(want.get())) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write want fail");
+    }
+    if (AbilityRuntime::MessageParcelUtils::WriteRawData(data, parcel) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write rawData fail");
         return;
     }
     if (!data.WriteInt32(abilityRecordId)) {
@@ -398,7 +403,11 @@ void AppSchedulerProxy::ScheduleAcceptWant(const AAFwk::Want &want, const std::s
         return;
     }
 
-    if (!data.WriteParcelable(&want) || !data.WriteString(moduleName)) {
+    auto parcel = AbilityRuntime::MessageParcelUtils::MakeRawDataParcel();
+    if (!parcel.WriteParcelable(&want) || !data.WriteString(moduleName)) {
+        return;
+    }
+    if (AbilityRuntime::MessageParcelUtils::WriteRawData(data, parcel) != ERR_OK) {
         return;
     }
     int32_t ret = SendTransactCmd(
@@ -417,7 +426,11 @@ void AppSchedulerProxy::ScheduleNewProcessRequest(const AAFwk::Want &want, const
         return;
     }
 
-    if (!data.WriteParcelable(&want) || !data.WriteString(moduleName)) {
+    auto parcel = AbilityRuntime::MessageParcelUtils::MakeRawDataParcel();
+    if (!parcel.WriteParcelable(&want) || !data.WriteString(moduleName)) {
+        return;
+    }
+    if (AbilityRuntime::MessageParcelUtils::WriteRawData(data, parcel) != ERR_OK) {
         return;
     }
     sptr<IRemoteObject> remote = Remote();
