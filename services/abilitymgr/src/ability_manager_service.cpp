@@ -2560,6 +2560,7 @@ int AbilityManagerService::PreloadUIExtensionAbilityInner(const Want &want, std:
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Generate ability request error.");
         return result;
     }
+    abilityRequest.extensionType = abilityRequest.abilityInfo.extensionAbilityType;
     abilityRequest.want.SetParam(IS_PRELOAD_UIEXTENSION_ABILITY, true);
     auto abilityInfo = abilityRequest.abilityInfo;
     auto res = JudgeAbilityVisibleControl(abilityInfo);
@@ -9475,6 +9476,13 @@ int AbilityManagerService::CheckUIExtensionIsFocused(uint32_t uiExtensionTokenId
         return ret;
     }
 
+    auto topAbility = Token::GetAbilityRecordByToken(token);
+    if (topAbility != nullptr) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "top ability: %{public}s, pid: %{public}d, tokenId: %{public}d",
+            topAbility->GetWant().GetElement().GetURI().c_str(), topAbility->GetPid(),
+            topAbility->GetApplicationInfo().accessTokenId);
+    }
+
     bool focused = false;
     int32_t userId = GetValidUserId(DEFAULT_INVAL_VALUE);
     auto connectManager = GetConnectManagerByUserId(userId);
@@ -10610,6 +10618,14 @@ int32_t AbilityManagerService::GetUIExtensionRootHostInfo(const sptr<IRemoteObje
     }
 
     auto callerRecord = connectManager->GetUIExtensionRootHostInfo(token);
+    if (callerRecord == nullptr && validUserId != U0_USER_ID) {
+        connectManager = GetConnectManagerByUserId(U0_USER_ID);
+        if (connectManager == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Connect manager is nullptr, userId: %{public}d.", U0_USER_ID);
+            return ERR_INVALID_VALUE;
+        }
+        callerRecord = connectManager->GetUIExtensionRootHostInfo(token);
+    }
     if (callerRecord == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Get root host info failed.");
         return ERR_INVALID_VALUE;
