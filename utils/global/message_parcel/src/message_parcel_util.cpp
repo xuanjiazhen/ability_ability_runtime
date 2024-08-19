@@ -15,19 +15,14 @@
 
 #include "message_parcel_util.h"
 
-#include <memory>
+#include "hilog_tag_wrapper.h"
+#include "securec.h"
 
 namespace OHOS::AbilityRuntime {
 namespace MessageParcelUtil {
-MessageParcel MakeRawDataParcel()
-{
-    MessageParcel parcel;
-    (void)parcel.SetMaxCapacity(RAW_DATA_EXPECTED_CAPACITY);
-    return parcel;
-}
-
 bool WriteRawData(MessageParcel &dataParcel, MessageParcel &rawDataParcel)
 {
+    TAG_LOGI(AAFwkTag::DEFAULT, "call");
     size_t size = rawDataParcel.GetDataSize();
     if (!dataParcel.WriteUint32(size)) {
         return false;
@@ -41,6 +36,7 @@ bool WriteRawData(MessageParcel &dataParcel, MessageParcel &rawDataParcel)
 bool ReadRawData(MessageParcel &dataParcel, MessageParcel &rawDataParcel)
 {
     size_t size = dataParcel.ReadUint32();
+    TAG_LOGI(AAFwkTag::DEFAULT, "call, rawDataSize:%{public}zu", size);
     if (size <= 0) {
         return false;
     }
@@ -53,12 +49,12 @@ bool ReadRawData(MessageParcel &dataParcel, MessageParcel &rawDataParcel)
     if (buffer == nullptr) {
         return false;
     }
-    if (memcpy_s(buffer, size, data, size) != 0) {
+    if (memcpy_s(buffer, size, rawData, size) != 0) {
         free(buffer);
         return false;
     }
 
-    if (!rawDataParcel.ParseFrom(reinterpret_cast<uintptr_t>(buffer), dataSize)) {
+    if (!rawDataParcel.ParseFrom(reinterpret_cast<uintptr_t>(buffer), size)) {
         return false;
     }
     return true;

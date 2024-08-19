@@ -186,37 +186,38 @@ void AppSchedulerProxy::ScheduleLaunchAbility(const AbilityInfo &info, const spt
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
-    auto rawData = AbilityRuntime::MessageParcelUtil::MakeRawDataParcel();
-    if (!rawData.WriteInterfaceToken(AppSchedulerProxy::GetDescriptor())) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write interface token failed");
+
+    if (!WriteInterfaceToken(data)) {
         return;
     }
-    rawData.WriteParcelable(&info);
-
+    data.WriteParcelable(&info);
     if (token) {
-        if (!rawData.WriteBool(true) || !rawData.WriteRemoteObject(token.GetRefPtr())) {
+        if (!data.WriteBool(true) || !data.WriteRemoteObject(token.GetRefPtr())) {
             TAG_LOGE(AAFwkTag::APPMGR, "Failed to write flag and token");
             return;
         }
     } else {
-        if (!rawData.WriteBool(false)) {
+        if (!data.WriteBool(false)) {
             TAG_LOGE(AAFwkTag::APPMGR, "Failed to write flag");
             return;
         }
     }
-
-    if (!rawData.WriteParcelable(want.get())) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write want fail.");
+    if (!data.WriteInt32(abilityRecordId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write ability record id fail.");
         return;
     }
-    if (!rawData.WriteInt32(abilityRecordId)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write ability record id fail.");
+
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(want.get())) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write want fail.");
         return;
     }
     if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
         TAG_LOGE(AAFwkTag::APPMGR, "write raw data failed");
         return;
     }
+
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_LAUNCH_ABILITY_TRANSACTION), data, reply, option);
     if (ret != NO_ERROR) {

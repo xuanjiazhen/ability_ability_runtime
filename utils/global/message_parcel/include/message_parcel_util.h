@@ -22,8 +22,6 @@ namespace OHOS::AbilityRuntime {
 namespace MessageParcelUtil {
 constexpr int32_t RAW_DATA_EXPECTED_CAPACITY = 100 * 1024 * 1024; // 100M
 
-MessageParcel MakeRawDataParcel();
-
 bool WriteRawData(MessageParcel &dataParcel, MessageParcel &rawDataParcel);
 
 bool ReadRawData(MessageParcel &dataParcel, MessageParcel &rawDataParcel);

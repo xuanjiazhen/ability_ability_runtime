@@ -19,11 +19,21 @@ config("message_parcel_util_config") {
 }
 
 ohos_shared_library("message_parcel_util") {
-  include_dirs = [ "${ability_runtime_utils_path}/global/message_parcel/include" ]
+  sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  branch_protector_ret = "pac_ret"
+
+  include_dirs = [ "${ability_runtime_services_path}/common/include" ]
 
   sources = [ "src/message_parcel_util.cpp" ]
 
-  public_configs = [ ":message_parcel_util" ]
+  public_configs = [ ":message_parcel_util_config" ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -32,6 +42,7 @@ ohos_shared_library("message_parcel_util") {
 
   external_deps = [
     "c_utils:utils",
+    "hilog:libhilog",
     "ipc:ipc_single",
   ]
 
