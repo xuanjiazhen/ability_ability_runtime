@@ -22,11 +22,12 @@
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"
 
+#include "app_mem_info.h"
 #include "app_mgr_interface.h"
 #include "app_service_manager.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
-#include "app_mem_info.h"
+#include "param.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -128,9 +129,8 @@ AppMgrClient::AppMgrClient()
 AppMgrClient::~AppMgrClient()
 {}
 
-AppMgrResultCode AppMgrClient::LoadAbility(sptr<IRemoteObject> token, sptr<IRemoteObject> preToken,
-    const AbilityInfo &abilityInfo, const ApplicationInfo &appInfo, const AAFwk::Want &want,
-    int32_t abilityRecordId)
+AppMgrResultCode AppMgrClient::LoadAbility(const AbilityInfo &abilityInfo, const ApplicationInfo &appInfo,
+    const AAFwk::Want &want, AbilityRuntime::LoadParam loadParam)
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
@@ -140,7 +140,8 @@ AppMgrResultCode AppMgrClient::LoadAbility(sptr<IRemoteObject> token, sptr<IRemo
             std::shared_ptr<AbilityInfo> abilityInfoPtr = std::make_shared<AbilityInfo>(abilityInfo);
             std::shared_ptr<ApplicationInfo> appInfoPtr = std::make_shared<ApplicationInfo>(appInfo);
             std::shared_ptr<AAFwk::Want> wantPtr = std::make_shared<AAFwk::Want>(want);
-            amsService->LoadAbility(token, preToken, abilityInfoPtr, appInfoPtr, wantPtr, abilityRecordId);
+            auto loadParamPtr = std::make_shared<AbilityRuntime::LoadParam>(loadParam);
+            amsService->LoadAbility(abilityInfoPtr, appInfoPtr, wantPtr, loadParamPtr);
             return AppMgrResultCode::RESULT_OK;
         }
     }
@@ -1326,6 +1327,19 @@ bool AppMgrClient::IsKilledForUpgradeWeb(const std::string &bundleName)
     }
     TAG_LOGD(AAFwkTag::APPMGR, "call");
     return amsService->IsKilledForUpgradeWeb(bundleName);
+}
+
+bool AppMgrClient::IsProcessAttached(sptr<IRemoteObject> token) const
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        return false;
+    }
+    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+    if (amsService == nullptr) {
+        return false;
+    }
+    return amsService->IsProcessAttached(token);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

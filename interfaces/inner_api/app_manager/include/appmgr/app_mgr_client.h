@@ -42,6 +42,9 @@
 #include "app_jsheap_mem_info.h"
 
 namespace OHOS {
+namespace AbilityRuntime {
+struct LoadParam;
+}
 namespace AppExecFwk {
 class AppServiceManager;
 class Configuration;
@@ -54,16 +57,14 @@ public:
     /**
      * Load ability.
      *
-     * @param token Ability identify.
-     * @param preToken Ability identify of caller.
      * @param abilityInfo Ability information.
      * @param appInfo Application information.
      * @param want Want.
+     * @param loadParam load ability param.
      * @return Returns RESULT_OK on success, others on failure.
      */
-    virtual AppMgrResultCode LoadAbility(sptr<IRemoteObject> token, sptr<IRemoteObject> preToken,
-        const AbilityInfo &abilityInfo, const ApplicationInfo &appInfo, const AAFwk::Want &want,
-        int32_t abilityRecordId);
+    virtual AppMgrResultCode LoadAbility(const AbilityInfo &abilityInfo, const ApplicationInfo &appInfo,
+        const AAFwk::Want &want, AbilityRuntime::LoadParam loadParam);
 
     /**
      * Terminate ability.
@@ -160,7 +161,7 @@ public:
      * @param  bundleName, bundle name in Application record.
      * @return ERR_OK, return back success, others fail.
      */
-    virtual AppMgrResultCode KillApplication(const std::string &bundleName, const bool clearPageStack = true);
+    virtual AppMgrResultCode KillApplication(const std::string &bundleName, const bool clearpagestack = false);
 
     /**
      * ForceKillApplication, call ForceKillApplication() through proxy object, force kill the application.
@@ -196,7 +197,7 @@ public:
      *
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual AppMgrResultCode KillApplicationSelf(const bool clearPageStack = true);
+    virtual AppMgrResultCode KillApplicationSelf(const bool clearpagestack = false);
 
     /**
      * ClearUpApplicationData, call ClearUpApplicationData() through proxy project,
@@ -817,6 +818,8 @@ public:
      * @return Returns true is only UIAbility, otherwise return false
      */
     bool IsProcessContainsOnlyUIAbility(const pid_t pid);
+
+    bool IsProcessAttached(sptr<IRemoteObject> token) const;
 
 private:
     void SetServiceManager(std::unique_ptr<AppServiceManager> serviceMgr);

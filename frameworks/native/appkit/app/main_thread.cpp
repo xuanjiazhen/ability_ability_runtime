@@ -673,24 +673,19 @@ void MainThread::ScheduleHeapMemory(const int32_t pid, OHOS::AppExecFwk::MallocI
  */
 void MainThread::ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info)
 {
-    TAG_LOGI(AAFwkTag::APPKIT, "pid: %{public}d, tid: %{public}d, needGc: %{public}d, needSnapshot: %{public}d",
-        info.pid, info.tid, info.needGc, info.needSnapshot);
-    auto app = applicationForDump_.lock();
-    if (app == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "app nullptr");
-        return;
-    }
-    auto &runtime = app->GetRuntime();
-    if (runtime == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "runtime nullptr");
-        return;
-    }
-    if (info.needSnapshot == true) {
-        runtime->DumpHeapSnapshot(info.tid, info.needGc);
-    } else {
-        if (info.needGc == true) {
-            runtime->ForceFullGC(info.tid);
+    TAG_LOGI(AAFwkTag::APPKIT, "pid: %{public}d, tid: %{public}d, needGc: %{public}d, needSnapshot: %{public}d,\n"
+        "needLeakobj: %{public}d", info.pid, info.tid, info.needGc, info.needSnapshot, info.needLeakobj);
+    wptr<MainThread> weak = this;
+    auto task = [weak, info]() {
+        auto appThread = weak.promote();
+        if (appThread == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "appThread is nullptr");
+            return;
         }
+        appThread->HandleJsHeapMemory(info);
+    };
+    if (!mainHandler_->PostTask(task, "MainThread:HandleJsHeapMemory")) {
+        TAG_LOGE(AAFwkTag::APPKIT, "PostTask HandleJsHeapMemory failed");
     }
 }
 
@@ -992,6 +987,22 @@ void MainThread::HandleTerminateApplicationLocal()
     TAG_LOGD(AAFwkTag::APPKIT, "runner is stopped");
     SetRunnerStarted(false);
     HandleCancelAssertFaultTask();
+}
+
+void MainThread::HandleJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    if (mainHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null mainHandler");
+        return;
+    }
+    auto app = applicationForDump_.lock();
+    if (app == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null app");
+        return;
+    }
+    auto helper = std::make_shared<DumpRuntimeHelper>(app);
+    helper->DumpJsHeap(info);
 }
 
 /**
@@ -1535,9 +1546,11 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     if (isCJApp) {
         AbilityRuntime::CJRuntime::SetAppLibPath(appLibPaths);
         if (appInfo.asanEnabled) {
-            AbilityRuntime::CJRuntime::SetAsanVersion();
+            AbilityRuntime::CJRuntime::SetSanitizerVersion(SanitizerKind::ASAN);
         } else if (appInfo.tsanEnabled) {
-            AbilityRuntime::CJRuntime::SetTsanVersion();
+            AbilityRuntime::CJRuntime::SetSanitizerVersion(SanitizerKind::TSAN);
+        } else if (appInfo.hwasanEnabled) {
+            AbilityRuntime::CJRuntime::SetSanitizerVersion(SanitizerKind::HWASAN);
         }
     } else {
 #endif
@@ -3471,21 +3484,21 @@ void MainThread::ParseAppConfigurationParams(const std::string configuration, Co
     TAG_LOGD(AAFwkTag::APPKIT, "start");
     appConfig.AddItem(AAFwk::GlobalConfigurationKey::APP_FONT_SIZE_SCALE, DEFAULT_APP_FONT_SIZE_SCALE);
     if (configuration.empty()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "the configuration is empty");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "empty config");
         return;
     }
     nlohmann::json configurationJson = nlohmann::json::parse(configuration, nullptr, false);
     if (configurationJson.is_discarded()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "json discarded error");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "discarded error");
         return;
     }
     if (!configurationJson.contains(JSON_KEY_APP_CONFIGURATION)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "app configuration is not exist");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "app config not exist");
         return;
     }
     nlohmann::json jsonObject = configurationJson.at(JSON_KEY_APP_CONFIGURATION).get<nlohmann::json>();
     if (jsonObject.empty()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "app configuration is null");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null app config");
         return;
     }
     if (jsonObject.contains(JSON_KEY_APP_FONT_SIZE_SCALE)
@@ -3519,7 +3532,7 @@ void MainThread::HandleCacheProcess()
     if (application_ != nullptr) {
         auto &runtime = application_->GetRuntime();
         if (runtime == nullptr) {
-            TAG_LOGE(AAFwkTag::APPKIT, "runtime nullptr");
+            TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
             return;
         }
         runtime->ForceFullGC();

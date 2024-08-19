@@ -21,6 +21,7 @@
 #include <list>
 #include <memory>
 #include <vector>
+#include <set>
 #include <utility>
 #include "cpp/mutex.h"
 #include "cpp/condition_variable.h"
@@ -194,38 +195,23 @@ public:
     }
     bool IsHistoryRequestCode(int32_t requestCode)
     {
-        for (auto it = requestCodeList_.begin(); it != requestCodeList_.end(); it++) {
-            if (requestCode == *it) {
-                return true;
-            }
-        }
-        return false;
+        return requestCodeSet_.count(requestCode) > 0;
     }
     void RemoveHistoryRequestCode(int32_t requestCode)
     {
-        for (auto it = requestCodeList_.begin(); it != requestCodeList_.end(); it++) {
-            if (requestCode == *it) {
-                requestCodeList_.erase(it);
-                return;
-            }
-        }
+        requestCodeSet_.erase(requestCode);
     }
     void AddHistoryRequestCode(int32_t requestCode)
     {
-        if (IsHistoryRequestCode(requestCode)) {
-            return;
-        }
-        requestCodeList_.emplace_back(requestCode);
+        requestCodeSet_.insert(requestCode);
     }
-
-    void SetRequestCodeList(std::list<int32_t> requestCodeList)
+    void SetRequestCodeSet(const std::set<int32_t> &requestCodeSet)
     {
-        requestCodeList_ = requestCodeList;
+        requestCodeSet_ = requestCodeSet;
     }
-
-    std::list<int32_t> GetRequestCodeList()
+    std::set<int32_t> GetRequestCodeSet()
     {
-        return requestCodeList_;
+        return requestCodeSet_;
     }
 
 private:
@@ -233,7 +219,7 @@ private:
     std::weak_ptr<AbilityRecord> caller_;
     std::shared_ptr<SystemAbilityCallerRecord> saCaller_ = nullptr;
     std::shared_ptr<CallerAbilityInfo> callerInfo_ = nullptr;
-    std::list<int32_t> requestCodeList_;
+    std::set<int32_t> requestCodeSet_;
 };
 
 /**
@@ -286,6 +272,8 @@ struct AbilityRequest {
 
     sptr<SessionInfo> sessionInfo;
     uint32_t specifyTokenId = 0;
+    bool uriReservedFlag = false;
+    std::string reservedBundleName;
 
     std::pair<bool, LaunchReason> IsContinuation() const
     {
@@ -405,7 +393,7 @@ public:
      *
      */
     void ForegroundAbility(uint32_t sceneFlag = 0);
-    void ForegroundAbility(const Closure &task, uint32_t sceneFlag = 0);
+    void ForegroundUIExtensionAbility(uint32_t sceneFlag = 0);
 
     /**
      * process request of foregrounding the ability.
@@ -418,6 +406,8 @@ public:
      *
      */
     void PostForegroundTimeoutTask();
+
+    void PostUIExtensionAbilityTimeoutTask(uint32_t messageId);
 
     /**
      * move the ability to back ground.
@@ -660,10 +650,10 @@ public:
     void ConnectAbility();
 
     /**
-     * connect the ability.
+     * connect the ability with want.
      *
      */
-    void ConnectUIServiceExtAbility(const Want &want);
+    void ConnectAbilityWithWant(const Want &want);
 
     /**
      * disconnect the ability.
@@ -675,7 +665,7 @@ public:
      * disconnect the ability with want
      *
      */
-    void DisconnectUIServiceExtAbility(const Want &want);
+    void DisconnectAbilityWithWant(const Want &want);
 
     /**
      * Command the ability.
@@ -983,6 +973,7 @@ public:
     void SetSessionInfo(sptr<SessionInfo> sessionInfo);
     void UpdateSessionInfo(sptr<IRemoteObject> sessionToken);
     void SetMinimizeReason(bool fromUser);
+    void SetSceneFlag(uint32_t sceneFlag);
     bool IsMinimizeFromUser() const;
     void SetClearMissionFlag(bool clearMissionFlag);
     bool IsClearMissionFlag();
@@ -1073,7 +1064,7 @@ public:
     void RemoveConnectWant();
 
 protected:
-    void SendEvent(uint32_t msg, uint32_t timeOut, int32_t param = -1);
+    void SendEvent(uint32_t msg, uint32_t timeOut, int32_t param = -1, bool isExtension = false);
 
     sptr<Token> token_ = {};                               // used to interact with kit and wms
     std::unique_ptr<LifecycleDeal> lifecycleDeal_ = {};    // life manager used to schedule life

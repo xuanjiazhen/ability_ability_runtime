@@ -44,18 +44,18 @@ const std::string HTTPS_SCHEME_NAME = "https";
 const std::string APP_CLONE_INDEX = "ohos.extra.param.key.appCloneIndex";
 constexpr const char* SUPPORT_ACTION_START_SELECTOR = "persist.sys.ability.support.action_start_selector";
 
-const std::vector<std::string> ImplicitStartProcessor::blackList = {
-    std::vector<std::string>::value_type(BLACK_ACTION_SELECT_DATA),
-};
-
-const std::unordered_set<AppExecFwk::ExtensionAbilityType> ImplicitStartProcessor::extensionWhiteList = {
-    AppExecFwk::ExtensionAbilityType::FORM,
-    AppExecFwk::ExtensionAbilityType::INPUTMETHOD,
-    AppExecFwk::ExtensionAbilityType::WALLPAPER,
-    AppExecFwk::ExtensionAbilityType::WINDOW,
-    AppExecFwk::ExtensionAbilityType::THUMBNAIL,
-    AppExecFwk::ExtensionAbilityType::PREVIEW
-};
+bool ImplicitStartProcessor::IsExtensionInWhiteList(AppExecFwk::ExtensionAbilityType type)
+{
+    switch (type) {
+        case AppExecFwk::ExtensionAbilityType::FORM: return true;
+        case AppExecFwk::ExtensionAbilityType::INPUTMETHOD: return true;
+        case AppExecFwk::ExtensionAbilityType::WALLPAPER: return true;
+        case AppExecFwk::ExtensionAbilityType::WINDOW: return true;
+        case AppExecFwk::ExtensionAbilityType::THUMBNAIL: return true;
+        case AppExecFwk::ExtensionAbilityType::PREVIEW: return true;
+        default: return false;
+    }
+}
 
 bool ImplicitStartProcessor::IsImplicitStartAction(const Want &want)
 {
@@ -69,7 +69,7 @@ bool ImplicitStartProcessor::IsImplicitStartAction(const Want &want)
         return false;
     }
 
-    if (std::find(blackList.begin(), blackList.end(), want.GetAction()) == blackList.end()) {
+    if (want.GetAction() != BLACK_ACTION_SELECT_DATA) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "implicit start, the action is %{public}s", want.GetAction().data());
         return true;
     }
@@ -305,20 +305,10 @@ static void ProcessLinkType(std::vector<AppExecFwk::AbilityInfo> &abilityInfos)
     }
 }
 
-void ImplicitStartProcessor::SetUriReservedFlag(const bool flag)
-{
-    uriReservedFlag_ = flag;
-}
-
-void ImplicitStartProcessor::SetUriReservedBundle(const std::string bundleName)
-{
-    reservedBundleName_ = bundleName;
-}
-
 void ImplicitStartProcessor::OnlyKeepReserveApp(std::vector<AppExecFwk::AbilityInfo> &abilityInfos,
-    std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos)
+    std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos, const AbilityRequest &request)
 {
-    if (!uriReservedFlag_) {
+    if (!request.uriReservedFlag) {
         return;
     }
     if (extensionInfos.size() > 0) {
@@ -326,12 +316,12 @@ void ImplicitStartProcessor::OnlyKeepReserveApp(std::vector<AppExecFwk::AbilityI
     }
 
     for (auto it = abilityInfos.begin(); it != abilityInfos.end();) {
-        if (it->bundleName == reservedBundleName_) {
+        if (it->bundleName == request.reservedBundleName) {
             it++;
             continue;
         } else {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "Reserve App %{public}s dismatch with bundleName %{public}s.",
-                reservedBundleName_.c_str(), it->bundleName.c_str());
+                request.reservedBundleName.c_str(), it->bundleName.c_str());
             it = abilityInfos.erase(it);
         }
     }
@@ -372,7 +362,7 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId,
             static_cast<uint32_t>(AppExecFwk::GetAbilityInfoFlag::GET_ABILITY_INFO_WITH_APP_LINKING);
     }
 
-    if (uriReservedFlag_) {
+    if (request.uriReservedFlag) {
         abilityInfoFlag = static_cast<uint32_t>(abilityInfoFlag) |
             static_cast<uint32_t>(AppExecFwk::GetAbilityInfoFlag::GET_ABILITY_INFO_ONLY_SYSTEM_APP);
     }
@@ -387,7 +377,7 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId,
     IN_PROCESS_CALL_WITHOUT_RET(bundleMgrHelper->ImplicitQueryInfos(
         request.want, abilityInfoFlag, userId, withDefault, abilityInfos, extensionInfos, findDefaultApp));
 
-    OnlyKeepReserveApp(abilityInfos, extensionInfos);
+    OnlyKeepReserveApp(abilityInfos, extensionInfos, request);
     if (isOpenLink && extensionInfos.size() > 0) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "Clear extensionInfos when isOpenLink.");
         extensionInfos.clear();
@@ -604,7 +594,7 @@ bool ImplicitStartProcessor::CheckImplicitStartExtensionIsValid(const AbilityReq
     }
     TAG_LOGD(
         AAFwkTag::ABILITYMGR, "ImplicitStartExtension type: %{public}d.", static_cast<int32_t>(extensionInfo.type));
-    if (extensionWhiteList.find(extensionInfo.type) == extensionWhiteList.end()) {
+    if (!IsExtensionInWhiteList(extensionInfo.type)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "The extension without UI is not allowed ImplicitStart");
         return false;
     }
@@ -775,12 +765,25 @@ void ImplicitStartProcessor::AddIdentity(int32_t tokenId, std::string identity)
     identityList_.emplace_back(IdentityNode(tokenId, identity));
 }
 
-void ImplicitStartProcessor::ResetCallingIdentityAsCaller(int32_t tokenId)
+void ImplicitStartProcessor::ResetCallingIdentityAsCaller(int32_t tokenId, bool flag)
 {
     std::lock_guard guard(identityListLock_);
     for (auto it = identityList_.begin(); it != identityList_.end(); it++) {
         if (it->tokenId == tokenId) {
             IPCSkeleton::SetCallingIdentity(it->identity);
+            if (flag) {
+                identityList_.erase(it);
+            }
+            return;
+        }
+    }
+}
+
+void ImplicitStartProcessor::RemoveIdentity(int32_t tokenId)
+{
+    std::lock_guard guard(identityListLock_);
+    for (auto it = identityList_.begin(); it != identityList_.end(); it++) {
+        if (it->tokenId == tokenId) {
             identityList_.erase(it);
             return;
         }

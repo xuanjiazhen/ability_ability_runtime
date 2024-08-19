@@ -288,6 +288,11 @@ ohos_shared_library("abilitykit_native") {
     external_deps += [ "relational_store:native_rdb" ]
   }
 
+  cflags_cc = []
+  if (os_dlp_part_enabled) {
+    cflags_cc += [ "-DWITH_DLP" ]
+  }
+
   public_external_deps = [
     "ability_base:session_info",
     "accessibility:accessibility_common",
@@ -395,6 +400,7 @@ ohos_shared_library("extensionkit_native") {
     "${ability_runtime_native_path}/ability/native/extension_module_loader.cpp",
     "${ability_runtime_native_path}/ability/native/js_extension_common.cpp",
     "${ability_runtime_native_path}/appkit/ability_runtime/extension_context.cpp",
+    "${ability_runtime_native_path}/appkit/ability_runtime/ui_holder_extension_context.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/launch_param.cpp",
   ]
 
@@ -406,6 +412,7 @@ ohos_shared_library("extensionkit_native") {
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
     "${ability_runtime_native_path}/ability:ability_context_native",
+    "${ability_runtime_native_path}/appkit:app_context",
   ]
 
   external_deps = [
@@ -571,6 +578,11 @@ ohos_shared_library("uiabilitykit_native") {
     "napi:ace_napi",
     "node:node_header_notice",
   ]
+
+  cflags_cc = []
+  if (os_dlp_part_enabled) {
+    cflags_cc += [ "-DWITH_DLP" ]
+  }
 
   if (cj_frontend) {
     sources += [
@@ -1737,13 +1749,14 @@ ohos_shared_library("embedded_ui_extension_module") {
 config("auto_fill_extension_config") {
   visibility = [ ":*" ]
   include_dirs = [
+    "${ability_runtime_path}/interfaces/kits/native/ability/native/ability_runtime",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/auto_fill_extension_ability",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_extension_ability",
   ]
 }
 
 ohos_shared_library("auto_fill_extension") {
-  configs = [ ":auto_fill_extension_config" ]
+  public_configs = [ ":auto_fill_extension_config" ]
 
   sources = [
     "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/auto_fill_extension.cpp",
@@ -1871,6 +1884,7 @@ ohos_shared_library("photo_editor_extension") {
   external_deps = [
     "ability_base:want",
     "ability_base:zuri",
+    "app_file_service:fileuri_native",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",

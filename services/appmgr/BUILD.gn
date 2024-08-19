@@ -104,6 +104,7 @@ ohos_shared_library("libappms") {
     "${ability_runtime_path}/utils/server/startup:startup_util",
     "${ability_runtime_services_path}/common:app_util",
     "${ability_runtime_services_path}/common:event_report",
+    "${ability_runtime_services_path}/common:file_monitor",
     "${ability_runtime_services_path}/common:perm_verification",
     "${ability_runtime_services_path}/common:res_sched_util",
     "${ability_runtime_services_path}/common:task_handler_wrap",
@@ -163,7 +164,6 @@ ohos_shared_library("libappms") {
   cflags_cc = []
   if (os_dlp_part_enabled) {
     cflags_cc += [ "-DWITH_DLP" ]
-    external_deps += [ "dlp_permission_service:libdlp_permission_sdk" ]
   }
   if (background_task_mgr_continuous_task_enable) {
     defines += [ "BGTASKMGR_CONTINUOUS_TASK_ENABLE" ]

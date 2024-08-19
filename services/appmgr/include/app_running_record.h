@@ -320,26 +320,6 @@ public:
      */
     void SetTrimMemoryLevel(int32_t level);
 
-    // Kill this process with a given reason
-    /**
-     * ForceKillApp, Kill this process with a given reason.
-     *
-     * @param reason, The reason to kill the process.
-     *
-     * @return
-     */
-    void ForceKillApp(const std::string &reason) const;
-
-    // Schedule to crash this app with a given description
-    /**
-     * ScheduleAppCrash, Schedule to crash this app with a given description.
-     *
-     * @param description, the given description.
-     *
-     * @return
-     */
-    void ScheduleAppCrash(const std::string &description) const;
-
     /**
      * LaunchApplication, Notify application to launch application.
      *
@@ -734,6 +714,9 @@ public:
     void SetApplicationPendingState(ApplicationPendingState pendingState);
     ApplicationPendingState GetApplicationPendingState() const;
 
+    void SetApplicationScheduleState(ApplicationScheduleState scheduleState);
+    ApplicationScheduleState GetApplicationScheduleState() const;
+
     void GetSplitModeAndFloatingMode(bool &isSplitScreenMode, bool &isFloatingWindowMode);
 
     void AddChildProcessRecord(pid_t pid, const std::shared_ptr<ChildProcessRecord> record);
@@ -848,6 +831,10 @@ public:
     void SetUserRequestCleaning();
     bool IsUserRequestCleaning() const;
     bool IsAllAbilityReadyToCleanedByUserRequest();
+    bool IsProcessAttached() const;
+    // records whether uiability has launched before.
+    void SetUIAbilityLaunched(bool hasLaunched);
+    bool HasUIAbilityLaunched();
 
 private:
     /**
@@ -902,6 +889,7 @@ private:
     bool isStageBasedModel_ = false;
     ApplicationState curState_ = ApplicationState::APP_STATE_CREATE;  // current state of this process
     ApplicationPendingState pendingState_ = ApplicationPendingState::READY;
+    ApplicationScheduleState scheduleState_ = ApplicationScheduleState::SCHEDULE_READY;
     bool isFocused_ = false; // if process is focused.
     /**
      * If there is an ability is foregrounding, this flag will be true,
@@ -1001,6 +989,7 @@ private:
     bool isAttachedToStatusBar = false;
     bool isDependedOnArkWeb_ = false;
     bool isUserRequestCleaning_ = false;
+    bool hasUIAbilityLaunched_ = false;
 };
 
 }  // namespace AppExecFwk

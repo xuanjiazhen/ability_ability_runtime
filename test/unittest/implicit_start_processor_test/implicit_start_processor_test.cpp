@@ -379,9 +379,6 @@ HWTEST_F(ImplicitStartProcessorTest, ProcessLinkType_001, TestSize.Level1)
     AbilityInfo abilityInfo2;
     abilityInfo2.linkType = AppExecFwk::LinkType::APP_LINK;
     abilityInfos.push_back(abilityInfo2);
-
-    processor->SetUriReservedFlag(true);
-    processor->SetUriReservedBundle("haha");
 }
 
 /*
@@ -395,7 +392,6 @@ HWTEST_F(ImplicitStartProcessorTest, ProcessLinkType_001, TestSize.Level1)
 HWTEST_F(ImplicitStartProcessorTest, OnlyKeepReserveApp_001, TestSize.Level1)
 {
     auto processor = std::make_shared<ImplicitStartProcessor>();
-    processor->SetUriReservedFlag(false);
     std::vector<AppExecFwk::AbilityInfo> abilityInfos;
     std::vector<AppExecFwk::ExtensionAbilityInfo> extensionAbInfos;
     AppExecFwk::ExtensionAbilityInfo  extensionAbInfo;
@@ -403,8 +399,8 @@ HWTEST_F(ImplicitStartProcessorTest, OnlyKeepReserveApp_001, TestSize.Level1)
     AppExecFwk::AbilityInfo  abilityInfo;
     abilityInfo.bundleName = "haha";
     abilityInfos.push_back(abilityInfo);
-    processor->SetUriReservedBundle("haha");
-    processor->OnlyKeepReserveApp(abilityInfos, extensionAbInfos);
+    AbilityRequest abilityRequest;
+    processor->OnlyKeepReserveApp(abilityInfos, extensionAbInfos, abilityRequest);
 }
 
 /*
@@ -474,7 +470,7 @@ HWTEST_F(ImplicitStartProcessorTest, AddIdentity_001, TestSize.Level1)
     int32_t  userId = 102;
     std::string  identity;
     processor->AddIdentity(userId, identity);
-    processor->ResetCallingIdentityAsCaller(userId);
+    processor->ResetCallingIdentityAsCaller(userId, true);
     AddInfoParam param;
     std::vector<DialogAppInfo> dialogAppInfos;
     param.isExtension = true;

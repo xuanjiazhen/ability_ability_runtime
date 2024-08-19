@@ -231,7 +231,7 @@ public:
      *
      * @param bundleName.
      */
-    int KillApplication(const std::string &bundleName, const bool clearPageStack = true);
+    int KillApplication(const std::string &bundleName, const bool clearpagestack = false);
 
     /**
      * ForceKillApplication, force kill the application.
@@ -470,6 +470,8 @@ public:
      * @return Returns true is only UIAbility, otherwise return false
      */
     bool IsProcessContainsOnlyUIAbility(const pid_t pid);
+
+    bool IsProcessAttached(sptr<IRemoteObject> token) const;
 
 protected:
     /**

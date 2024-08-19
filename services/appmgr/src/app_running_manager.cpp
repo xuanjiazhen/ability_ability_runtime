@@ -538,7 +538,8 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::GetAppRunningRecord(const i
     return ((iter == appRunningRecordMap_.end()) ? nullptr : iter->second);
 }
 
-void AppRunningManager::HandleAbilityAttachTimeOut(const sptr<IRemoteObject> &token)
+void AppRunningManager::HandleAbilityAttachTimeOut(const sptr<IRemoteObject> &token,
+    std::shared_ptr<AppMgrServiceInner> serviceInner)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (token == nullptr) {
@@ -553,11 +554,17 @@ void AppRunningManager::HandleAbilityAttachTimeOut(const sptr<IRemoteObject> &to
     }
 
     std::shared_ptr<AbilityRunningRecord> abilityRecord = appRecord->GetAbilityRunningRecordByToken(token);
+    bool isSCB = false;
     if (abilityRecord) {
         abilityRecord->SetTerminating();
+        isSCB = abilityRecord->IsSceneBoard();
+        if (isSCB && appRecord->GetPriorityObject() && serviceInner != nullptr) {
+            pid_t pid = appRecord->GetPriorityObject()->GetPid();
+            (void)serviceInner->KillProcessByPid(pid, "AttachTimeoutKillSCB");
+        }
     }
 
-    if (appRecord->IsLastAbilityRecord(token) && (!appRecord->IsKeepAliveApp() ||
+    if ((isSCB || appRecord->IsLastAbilityRecord(token)) && (!appRecord->IsKeepAliveApp() ||
         !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficent())) {
         appRecord->SetTerminating();
     }
@@ -762,6 +769,7 @@ void AppRunningManager::GetForegroundApplications(std::vector<AppStateData> &lis
             appData.accessTokenId = appInfo ? appInfo->accessTokenId : 0;
             appData.extensionType = appRecord->GetExtensionType();
             appData.isFocused = appRecord->GetFocusFlag();
+            appData.appIndex = appRecord->GetAppIndex();
             list.push_back(appData);
             TAG_LOGD(AAFwkTag::APPMGR, "bundleName:%{public}s", appData.bundleName.c_str());
         }
@@ -822,7 +830,7 @@ int32_t AppRunningManager::UpdateConfigurationByBundleName(const Configuration &
 bool AppRunningManager::isCollaboratorReserveType(const std::shared_ptr<AppRunningRecord> &appRecord)
 {
     std::string bundleName = appRecord->GetApplicationInfo()->name;
-    bool isReserveType = bundleName == AAFwk::AppUtils::GetInstance().GetShellAssistantBundleName();
+    bool isReserveType = bundleName == AAFwk::AppUtils::GetInstance().GetBrokerDelegateBundleName();
     if (isReserveType) {
         TAG_LOGI(AAFwkTag::APPMGR, "isReserveType app [%{public}s]", appRecord->GetName().c_str());
     }
@@ -1116,7 +1124,8 @@ bool AppRunningManager::IsApplicationFirstForeground(const AppRunningRecord &for
         const auto &appRecord = item.second;
         if (appRecord == nullptr || appRecord->GetBundleName() != foregroundingRecord.GetBundleName()
             || AAFwk::UIExtensionUtils::IsUIExtension(appRecord->GetExtensionType())
-            || AAFwk::UIExtensionUtils::IsWindowExtension(appRecord->GetExtensionType())) {
+            || AAFwk::UIExtensionUtils::IsWindowExtension(appRecord->GetExtensionType())
+            || appRecord->GetAppIndex() != foregroundingRecord.GetAppIndex()) {
             continue;
         }
         auto state = appRecord->GetState();
@@ -1128,7 +1137,7 @@ bool AppRunningManager::IsApplicationFirstForeground(const AppRunningRecord &for
     return true;
 }
 
-bool AppRunningManager::IsApplicationBackground(const std::string &bundleName)
+bool AppRunningManager::IsApplicationBackground(const AppRunningRecord &backgroundingRecord)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     std::lock_guard guard(runningRecordMapMutex_);
@@ -1139,11 +1148,12 @@ bool AppRunningManager::IsApplicationBackground(const std::string &bundleName)
             return false;
         }
         if (AAFwk::UIExtensionUtils::IsUIExtension(appRecord->GetExtensionType())
-            || AAFwk::UIExtensionUtils::IsWindowExtension(appRecord->GetExtensionType())) {
+            || AAFwk::UIExtensionUtils::IsWindowExtension(appRecord->GetExtensionType())
+            || appRecord->GetAppIndex() != backgroundingRecord.GetAppIndex()) {
             continue;
         }
         auto state = appRecord->GetState();
-        if (appRecord && appRecord->GetBundleName() == bundleName &&
+        if (appRecord && appRecord->GetBundleName() == backgroundingRecord.GetBundleName() &&
             state == ApplicationState::APP_STATE_FOREGROUND) {
             return false;
         }
@@ -1367,7 +1377,7 @@ int32_t AppRunningManager::GetAllUIExtensionRootHostPid(pid_t pid, std::vector<p
         [](const std::string& a, pid_t b) {
             return a + std::to_string(b) + " ";
         });
-    TAG_LOGI(AAFwkTag::APPMGR, "pid: %{public}s, hostPid: %{public}s.", std::to_string(pid).c_str(),
+    TAG_LOGD(AAFwkTag::APPMGR, "pid: %{public}s, hostPid: %{public}s.", std::to_string(pid).c_str(),
         hostPidStr.c_str());
     return ERR_OK;
 }

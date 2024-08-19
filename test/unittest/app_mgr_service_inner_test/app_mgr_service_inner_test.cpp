@@ -34,6 +34,8 @@
 #include "mock_native_token.h"
 #include "mock_render_scheduler.h"
 #include "mock_sa_call.h"
+#include "mock_task_handler_wrap.h"
+#include "param.h"
 #include "parameters.h"
 #include "render_state_observer_stub.h"
 #include "window_manager.h"
@@ -399,18 +401,21 @@ HWTEST_F(AppMgrServiceInnerTest, LoadAbility_001, TestSize.Level0)
     EXPECT_NE(appMgrServiceInner, nullptr);
 
     appMgrServiceInner->appRunningManager_ = nullptr;
-    appMgrServiceInner->LoadAbility(token, nullptr, abilityInfo_, applicationInfo_, nullptr, 0);
+    AbilityRuntime::LoadParam loadParam;
+    loadParam.token = token;
+    auto loadParamPtr = std::make_shared<AbilityRuntime::LoadParam>(loadParam);
+    appMgrServiceInner->LoadAbility(abilityInfo_, applicationInfo_, nullptr, loadParamPtr);
 
     auto appMgrServiceInner1 = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner1, nullptr);
 
     appMgrServiceInner1->remoteClientManager_->SetBundleManagerHelper(nullptr);
-    appMgrServiceInner1->LoadAbility(token, nullptr, abilityInfo_, applicationInfo_, nullptr, 0);
+    appMgrServiceInner1->LoadAbility(abilityInfo_, applicationInfo_, nullptr, loadParamPtr);
 
     auto appMgrServiceInner2 = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner2, nullptr);
 
-    appMgrServiceInner2->LoadAbility(token, nullptr, abilityInfo_, applicationInfo_, nullptr, 0);
+    appMgrServiceInner2->LoadAbility(abilityInfo_, applicationInfo_, nullptr, loadParamPtr);
     TAG_LOGI(AAFwkTag::TEST, "LoadAbility_001 end");
 }
 
@@ -3446,8 +3451,13 @@ HWTEST_F(AppMgrServiceInnerTest, NotifyAppFault_001, TestSize.Level1)
 HWTEST_F(AppMgrServiceInnerTest, TimeoutNotifyApp_001, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "TimeoutNotifyApp_001 start");
-    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    std::shared_ptr<AppMgrServiceInner> appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner, nullptr);
+    std::shared_ptr<TaskHandlerWrap> taskHandler = MockTaskHandlerWrap::CreateQueueHandler("app_mgr_task_queue");
+    EXPECT_CALL(*std::static_pointer_cast<MockTaskHandlerWrap>(taskHandler), SubmitTask(_, _))
+        .WillRepeatedly(Return(TaskHandle()));
+    appMgrServiceInner->SetTaskHandler(taskHandler);
+
     int32_t pid = 0;
     int32_t uid = 0;
     std::string bundleName = "test_processName";
@@ -4370,6 +4380,30 @@ HWTEST_F(AppMgrServiceInnerTest, BlockProcessCacheByPids_001, TestSize.Level1)
 
     std::vector<int32_t> pids{2};
     appMgrServiceInner->BlockProcessCacheByPids(pids);
+}
+
+/**
+ * @tc.name: GetSupportedProcessCachePids_001
+ * @tc.desc: Get pids of processes which belong to specific bundle name and support process cache feature.
+ * @tc.type: FUNC
+ * @tc.require: issueI76JBF
+ */
+HWTEST_F(AppMgrServiceInnerTest, GetSupportedProcessCachePids_001, TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetSupportedProcessCachePids_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    std::string bundleName = "testBundleName";
+    std::vector<int32_t> pidList;
+    int32_t ret = appMgrServiceInner->GetSupportedProcessCachePids(bundleName, pidList);
+    EXPECT_EQ(ret, ERR_OK);
+
+    appMgrServiceInner->appRunningManager_ = nullptr;
+    ret = appMgrServiceInner->GetSupportedProcessCachePids(bundleName, pidList);
+    EXPECT_NE(ret, ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "GetSupportedProcessCachePids_001 end");
 }
 } // namespace AppExecFwk
 } // namespace OHOS

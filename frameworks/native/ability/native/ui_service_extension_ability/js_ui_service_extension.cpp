@@ -67,7 +67,7 @@ UIServiceStubImpl::UIServiceStubImpl(std::weak_ptr<JsUIServiceExtension>& ext)
 
 UIServiceStubImpl::~UIServiceStubImpl()
 {
-    TAG_LOGI(AAFwkTag::UISERVC_EXT, "~UIServiceStubImpl");
+    TAG_LOGI(AAFwkTag::UISERVC_EXT, "~");
 }
 
 int32_t UIServiceStubImpl::SendData(sptr<IRemoteObject> hostProxy, OHOS::AAFwk::WantParams &data)
@@ -252,39 +252,19 @@ void JsUIServiceExtension::OnStart(const AAFwk::Want &want)
     TAG_LOGD(AAFwkTag::UISERVC_EXT, "ok");
 }
 
-void JsUIServiceExtension::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
-{
-    Extension::OnStart(want, sessionInfo);
-    TAG_LOGD(AAFwkTag::UISERVC_EXT, "call");
-
-    auto context = GetContext();
-    if (context != nullptr) {
-        int32_t  displayId = static_cast<int32_t>(Rosen::DisplayManager::GetInstance().GetDefaultDisplayId());
-        displayId = want.GetIntParam(Want::PARAM_RESV_DISPLAY_ID, displayId);
-        TAG_LOGD(AAFwkTag::UISERVC_EXT, "displayId %{public}d", displayId);
-        auto configUtils = std::make_shared<ConfigurationUtils>();
-        configUtils->InitDisplayConfig(displayId, context->GetConfiguration(), context->GetResourceManager());
-    }
-
-    HandleScope handleScope(jsRuntime_);
-    napi_env env = jsRuntime_.GetNapiEnv();
-
-    // display config has changed, need update context.config
-    if (context != nullptr) {
-        JsExtensionContext::ConfigurationUpdated(env, shellContextRef_, context->GetConfiguration());
-    }
-
-    napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, want);
-    napi_value argv[] = {napiWant};
-    CallObjectMethod("onCreate", argv, ARGC_ONE);
-
-    TAG_LOGD(AAFwkTag::UISERVC_EXT, "ok");
-}
-
 void JsUIServiceExtension::OnStop()
 {
     Extension::OnStop();
     TAG_LOGD(AAFwkTag::UISERVC_EXT, "call");
+    auto context = GetContext();
+    if (context != nullptr) {
+        sptr<Rosen::Window> win = context->GetWindow();
+        if (win != nullptr) {
+            TAG_LOGI(AAFwkTag::UISERVC_EXT, "Destroy Window");
+            win->Destroy();
+            context->SetWindow(nullptr);
+        }
+    }
     CallObjectMethod("onDestroy");
     bool ret = ConnectionManager::GetInstance().DisconnectCaller(GetContext()->GetToken());
     if (ret) {
@@ -298,28 +278,106 @@ void JsUIServiceExtension::OnStop()
 sptr<IRemoteObject> JsUIServiceExtension::OnConnect(const AAFwk::Want &want,
     AppExecFwk::AbilityTransactionCallbackInfo<sptr<IRemoteObject>> *callbackInfo, bool &isAsyncCallback)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::UISERVC_EXT, "call");
     HandleScope handleScope(jsRuntime_);
-    sptr<IRemoteObject> result = CallOnConnect(want);
-    return result;
+    Extension::OnConnect(want);
+    napi_env env = jsRuntime_.GetNapiEnv();
+    sptr<IRemoteObject> hostProxy = GetHostProxyFromWant(want);
+    if (hostProxy == nullptr) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "hostProxy null");
+        return nullptr;
+    }
+    napi_value napiWant = WrapWant(env, want);
+    if (napiWant == nullptr) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "napiWant null");
+        return nullptr;
+    }
+    if (extensionStub_ == nullptr) {
+        std::weak_ptr<JsUIServiceExtension> weakThis =
+            std::static_pointer_cast<JsUIServiceExtension>(shared_from_this());
+        extensionStub_ = sptr<UIServiceStubImpl>::MakeSptr(weakThis);
+    }
+    sptr<IRemoteObject> stubObject = nullptr;
+    if (extensionStub_ != nullptr) {
+        stubObject = extensionStub_->AsObject();
+    }
+    if (hostProxyMap_.find(hostProxy) != hostProxyMap_.end()) {
+        TAG_LOGI(AAFwkTag::UISERVC_EXT, "hostproxy exist");
+        return stubObject;
+    }
+    napi_ref hostProxyNref = AAFwk::JsUIServiceHostProxy::CreateJsUIServiceHostProxy(env, hostProxy);
+    if (hostProxyNref == nullptr) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "CreateJsUIServiceHostProxy fail");
+        return nullptr;
+    }
+    napi_value jsHostProxy = reinterpret_cast<NativeReference*>(hostProxyNref)->GetNapiValue();
+    hostProxyMap_[hostProxy] = std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference*>(hostProxyNref));
+
+    napi_value argv[] = {napiWant, jsHostProxy};
+    CallObjectMethod("onConnect", argv, ARGC_TWO);
+    return stubObject;
 }
 
 void JsUIServiceExtension::OnDisconnect(const AAFwk::Want &want,
     AppExecFwk::AbilityTransactionCallbackInfo<> *callbackInfo, bool &isAsyncCallback)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::UISERVC_EXT, "call");
     HandleScope handleScope(jsRuntime_);
     Extension::OnDisconnect(want);
-    TAG_LOGD(AAFwkTag::UISERVC_EXT, "begin.");
-    CallOnDisconnect(want);
-    TAG_LOGD(AAFwkTag::UISERVC_EXT, "end.");
+    napi_env env = jsRuntime_.GetNapiEnv();
+    sptr<IRemoteObject> hostProxy = GetHostProxyFromWant(want);
+    if (hostProxy == nullptr) {
+        TAG_LOGW(AAFwkTag::UISERVC_EXT, "hostProxy null");
+        return;
+    }
+    napi_value napiWant = WrapWant(env, want);
+    if (napiWant == nullptr) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "napiWant null");
+        return;
+    }
+    napi_value jsHostProxy = nullptr;
+    auto iter = hostProxyMap_.find(hostProxy);
+    if (iter != hostProxyMap_.end()) {
+        auto &hostProxyNref = iter->second;
+        if (hostProxyNref != nullptr) {
+            jsHostProxy = hostProxyNref->GetNapiValue();
+        }
+    }
+    if (jsHostProxy == nullptr) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "jsHostProxy null");
+        return;
+    }
+    napi_value argv[] = { napiWant, jsHostProxy };
+    CallObjectMethod("onDisconnect", argv, ARGC_TWO);
+    hostProxyMap_.erase(iter);
 }
 
 void JsUIServiceExtension::OnCommand(const AAFwk::Want &want, bool restart, int startId)
 {
+    Extension::OnCommand(want, restart, startId);
+    TAG_LOGD(AAFwkTag::UISERVC_EXT, "restart=%{public}s,startId=%{public}d.",
+        restart ? "true" : "false",
+        startId);
+    // wrap want
+    HandleScope handleScope(jsRuntime_);
+    napi_env env = jsRuntime_.GetNapiEnv();
+    napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, want);
+    // wrap startId
+    napi_value napiStartId = nullptr;
+    napi_create_int32(env, startId, &napiStartId);
+    napi_value argv[] = {napiWant, napiStartId};
+    CallObjectMethod("onRequest", argv, ARGC_TWO);
+
 #ifdef SUPPORT_GRAPHICS
     auto context = GetContext();
     if (firstRequest_ && context != nullptr) {
-        int32_t hostWindowId = want.GetIntParam(WANT_PARAMS_HOST_WINDOW_ID_KEY, 0);
+        int32_t hostWindowId = 0;
+        if (want.HasParameter(WANT_PARAMS_HOST_WINDOW_ID_KEY)) {
+            hostWindowId = want.GetIntParam(WANT_PARAMS_HOST_WINDOW_ID_KEY, 0);
+        }
+
         TAG_LOGI(AAFwkTag::UISERVC_EXT, "try create window hostWindowId %{public}d", hostWindowId);
         auto extensionWindowConfig = std::make_shared<Rosen::ExtensionWindowConfig>();
         OnSceneWillCreated(extensionWindowConfig);
@@ -335,20 +393,6 @@ void JsUIServiceExtension::OnCommand(const AAFwk::Want &want, bool restart, int 
         firstRequest_ = false;
     }
 #endif
-
-    Extension::OnCommand(want, restart, startId);
-    TAG_LOGD(AAFwkTag::UISERVC_EXT, "restart=%{public}s,startId=%{public}d.",
-        restart ? "true" : "false",
-        startId);
-    // wrap want
-    HandleScope handleScope(jsRuntime_);
-    napi_env env = jsRuntime_.GetNapiEnv();
-    napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, want);
-    // wrap startId
-    napi_value napiStartId = nullptr;
-    napi_create_int32(env, startId, &napiStartId);
-    napi_value argv[] = {napiWant, napiStartId};
-    CallObjectMethod("onRequest", argv, ARGC_TWO);
     TAG_LOGD(AAFwkTag::UISERVC_EXT, "ok");
 }
 
@@ -378,68 +422,6 @@ void JsUIServiceExtension::AbilityWindowConfigTransition(sptr<Rosen::WindowOptio
     AAFwk::AbilityManagerClient::GetInstance()->AbilityWindowConfigTransitionDone(token, windowConfig);
 }
 
-sptr<IRemoteObject> JsUIServiceExtension::CallOnConnect(const AAFwk::Want &want)
-{
-    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    Extension::OnConnect(want);
-    TAG_LOGI(AAFwkTag::UISERVC_EXT, "call");
-    napi_env env = jsRuntime_.GetNapiEnv();
-    sptr<IRemoteObject> hostProxy = GetHostProxyFromWant(want);
-    if (hostProxy == nullptr) {
-        TAG_LOGW(AAFwkTag::UISERVC_EXT, "hostProxy nullptr");
-        return nullptr;
-    }
-    napi_value napiWant = WrapWant(env, want);
-    if (napiWant == nullptr) {
-        return nullptr;
-    }
-    SetupServiceStub();
-    sptr<IRemoteObject> stubObject = extensionStub_->AsObject();
-    if (hostProxyMap_.find(hostProxy) != hostProxyMap_.end()) {
-        TAG_LOGW(AAFwkTag::UISERVC_EXT, "alread exist hostproxy record");
-        return stubObject;
-    }
-    napi_ref hostProxyNref = AAFwk::JsUIServiceHostProxy::CreateJsUIServiceHostProxy(env, hostProxy);
-    if (hostProxyNref == nullptr) {
-        TAG_LOGE(AAFwkTag::UISERVC_EXT, "Failed to CreateJsUIServiceHostProxy");
-        return nullptr;
-    }
-    napi_value jsHostProxy = reinterpret_cast<NativeReference*>(hostProxyNref)->GetNapiValue();
-    hostProxyMap_[hostProxy] = std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference*>(hostProxyNref));
-
-    napi_value argv[] = {napiWant, jsHostProxy};
-    CallObjectMethod("onConnect", argv, ARGC_TWO);
-    return stubObject;
-}
-
-napi_value JsUIServiceExtension::CallOnDisconnect(const AAFwk::Want &want)
-{
-    TAG_LOGI(AAFwkTag::UISERVC_EXT, "call");
-    HandleEscape handleEscape(jsRuntime_);
-    napi_env env = jsRuntime_.GetNapiEnv();
-    sptr<IRemoteObject> hostProxy = GetHostProxyFromWant(want);
-    if (hostProxy == nullptr) {
-        TAG_LOGW(AAFwkTag::UISERVC_EXT, "hostProxy nullptr");
-        return nullptr;
-    }
-    napi_value napiWant = WrapWant(env, want);
-    if (napiWant == nullptr) {
-        return nullptr;
-    }
-    napi_value jsHostProxy = nullptr;
-    auto iter = hostProxyMap_.find(hostProxy);
-    if (iter != hostProxyMap_.end()) {
-        jsHostProxy = iter->second->GetNapiValue();
-    } else {
-        TAG_LOGE(AAFwkTag::UISERVC_EXT, "jsHostProxy null");
-        return nullptr;
-    }
-    napi_value argv[] = { napiWant, jsHostProxy };
-    CallObjectMethod("onDisconnect", argv, ARGC_TWO);
-    hostProxyMap_.erase(iter);
-    return nullptr;
-}
-
 napi_value JsUIServiceExtension::WrapWant(napi_env env, const AAFwk::Want &want)
 {
     AAFwk::Want jsWant = want;
@@ -455,12 +437,12 @@ int32_t JsUIServiceExtension::OnSendData(sptr<IRemoteObject> hostProxy, OHOS::AA
         ([weak = weak_from_this(), hostProxy, wantParams = data](napi_env env, NapiAsyncTask &task, int32_t status) {
             auto extensionSptr = weak.lock();
             if (!extensionSptr) {
-                TAG_LOGE(AAFwkTag::UISERVC_EXT, "extensionSptr nullptr");
+                TAG_LOGE(AAFwkTag::UISERVC_EXT, "extensionSptr null");
                 return;
             }
             auto sptrThis = std::static_pointer_cast<JsUIServiceExtension>(extensionSptr);
             if (!sptrThis) {
-                TAG_LOGE(AAFwkTag::UISERVC_EXT, "sptrThis nullptr");
+                TAG_LOGE(AAFwkTag::UISERVC_EXT, "sptrThis null");
                 return;
             }
             sptrThis->HandleSendData(hostProxy, wantParams);
@@ -482,10 +464,13 @@ void JsUIServiceExtension::HandleSendData(sptr<IRemoteObject> hostProxy, const O
     napi_value jsHostProxy = nullptr;
     auto iter = hostProxyMap_.find(hostProxy);
     if (iter != hostProxyMap_.end()) {
-        jsHostProxy = iter->second->GetNapiValue();
+        auto &hostProxyNref = iter->second;
+        if (hostProxyNref != nullptr) {
+            jsHostProxy = hostProxyNref->GetNapiValue();
+        }
     }
     if (jsHostProxy == nullptr) {
-        TAG_LOGE(AAFwkTag::UISERVC_EXT, "jsHostProxy = nullptr");
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "jsHostProxy null");
         return;
     }
 
@@ -494,25 +479,13 @@ void JsUIServiceExtension::HandleSendData(sptr<IRemoteObject> hostProxy, const O
     CallObjectMethod("onData", argv, ARGC_TWO);
 }
 
-void JsUIServiceExtension::SetupServiceStub()
-{
-    if (extensionStub_ != nullptr) {
-        return;
-    }
-    TAG_LOGI(AAFwkTag::UISERVC_EXT, "called");
-    std::weak_ptr<JsUIServiceExtension> weakThis = std::static_pointer_cast<JsUIServiceExtension>(shared_from_this());
-    extensionStub_ = sptr<UIServiceStubImpl>::MakeSptr(weakThis);
-}
-
 sptr<IRemoteObject> JsUIServiceExtension::GetHostProxyFromWant(const AAFwk::Want &want)
 {
-    sptr<IRemoteObject> hostProxy = nullptr;
     if (!want.HasParameter(UISERVICEHOSTPROXY_KEY)) {
         TAG_LOGW(AAFwkTag::UISERVC_EXT, "Not found UISERVICEHOSTPROXY_KEY");
-        return hostProxy;
+        return nullptr;
     }
-    hostProxy = want.GetRemoteObject(UISERVICEHOSTPROXY_KEY);
-    return hostProxy;
+    return want.GetRemoteObject(UISERVICEHOSTPROXY_KEY);
 }
 
 napi_value JsUIServiceExtension::CallObjectMethod(const char* name, napi_value const* argv, size_t argc)
