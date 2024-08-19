@@ -25,15 +25,13 @@ ohos_shared_library("message_parcel_util") {
 
   public_configs = [ ":message_parcel_util" ]
 
-  defines = []
   cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
 
-  deps = []
   external_deps = [
-    "hilog:libhilog",
+    "c_utils:utils",
     "ipc:ipc_single",
   ]
 
