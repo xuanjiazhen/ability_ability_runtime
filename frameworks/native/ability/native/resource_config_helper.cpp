@@ -90,8 +90,11 @@ void ResourceConfigHelper::UpdateResConfig(
         UErrorCode status = U_ZERO_ERROR;
         icu::Locale locale = icu::Locale::forLanguageTag(language_, status);
         TAG_LOGD(AAFwkTag::ABILITY, "Get forLanguageTag return[%{public}d].", static_cast<int>(status));
-        if (status == U_ZERO_ERROR) {
+        SetLevel curSetLevel = ApplicationConfigurationManager::GetInstance().GetLanguageSetLevel();
+        if (status == U_ZERO_ERROR && curSetLevel < SetLevel::Application) {
             resConfig->SetLocaleInfo(locale);
+        } else if (status == U_ZERO_ERROR) {
+            resConfig->SetPreferredLocaleInfo(locale);
         }
         const icu::Locale *localeInfo = resConfig->GetLocaleInfo();
         if (localeInfo != nullptr) {
