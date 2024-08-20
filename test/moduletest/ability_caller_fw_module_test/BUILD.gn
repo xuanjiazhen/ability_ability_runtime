@@ -22,7 +22,10 @@ config("module_private_config") {
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
-  include_dirs = [ "${ability_runtime_test_path}/mock/frameworks_kits_ability_ability_runtime_test/AMS" ]
+  include_dirs = [ 
+    "${ability_runtime_path}/interfaces/kits/native/appkit/sysmgrclient",
+    "${ability_runtime_test_path}/mock/frameworks_kits_ability_ability_runtime_test/AMS",
+  ]
 }
 
 ohos_moduletest("ability_caller_fw_module_test") {
@@ -40,6 +43,7 @@ ohos_moduletest("ability_caller_fw_module_test") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
+    "${ability_runtime_native_path}/appkit:sys_mgr_client",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
     "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gmock_main",

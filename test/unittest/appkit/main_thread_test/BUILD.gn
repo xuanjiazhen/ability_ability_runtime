@@ -20,6 +20,7 @@ ohos_unittest("main_thread_test") {
 
   include_dirs = [
     "${ability_runtime_path}/interfaces/kits/native/appkit/dfr",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/sysmgrclient",
     "${ability_runtime_test_path}/mock/services_appmgr_test/include",
   ]
 
@@ -40,6 +41,7 @@ ohos_unittest("main_thread_test") {
 
   deps = [
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:sys_mgr_client",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
@@ -77,6 +79,7 @@ ohos_unittest("main_thread_by_mock_bms_test") {
   module_out_path = "ability_runtime/appkit"
 
   include_dirs = [
+    "${ability_runtime_path}/interfaces/kits/native/appkit/sysmgrclient",
     "${ability_runtime_test_path}/mock/common/include",
     "${ability_runtime_test_path}/mock/services_appmgr_test/include",
   ]
@@ -98,6 +101,7 @@ ohos_unittest("main_thread_by_mock_bms_test") {
 
   deps = [
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:sys_mgr_client",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]

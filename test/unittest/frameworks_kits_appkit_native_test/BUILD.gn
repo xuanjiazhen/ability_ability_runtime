@@ -45,6 +45,7 @@ config("module_context_config") {
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper",
     "${ability_runtime_path}/interfaces/kits/native/appkit/app/task",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/sysmgrclient",
   ]
   cflags = []
   if (target_cpu == "arm") {
@@ -66,6 +67,7 @@ ohos_unittest("context_deal_interface_test") {
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
+    "${ability_runtime_native_path}/appkit:sys_mgr_client",
     "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "${global_path}/resource_management/frameworks/resmgr:global_resmgr",
     "//third_party/googletest:gmock_main",
@@ -119,6 +121,7 @@ ohos_unittest("application_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:sys_mgr_client",
     "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gtest_main",
   ]
@@ -178,6 +181,7 @@ ohos_unittest("context_impl_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:sys_mgr_client",
     "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gtest_main",
   ]
@@ -229,6 +233,7 @@ ohos_unittest("context_container_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:sys_mgr_client",
     "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gtest_main",
   ]
@@ -290,6 +295,7 @@ ohos_unittest("context_deal_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:sys_mgr_client",
     "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
@@ -348,6 +354,7 @@ ohos_unittest("application_impl_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:sys_mgr_client",
     "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gtest_main",
   ]
@@ -435,6 +442,7 @@ ohos_unittest("ability_stage_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:sys_mgr_client",
     "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gtest_main",
   ]
@@ -485,6 +493,7 @@ ohos_unittest("form_extension_context_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:sys_mgr_client",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
@@ -540,6 +549,7 @@ ohos_unittest("bms_context_impl_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:sys_mgr_client",
     "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
@@ -582,6 +592,7 @@ ohos_unittest("context_container_by_mock_bms_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:sys_mgr_client",
     "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",

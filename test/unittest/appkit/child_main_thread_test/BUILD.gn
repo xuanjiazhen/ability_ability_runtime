@@ -18,8 +18,10 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 ohos_unittest("child_main_thread_test") {
   module_out_path = "ability_runtime/appkit"
 
-  include_dirs =
-      [ "${ability_runtime_test_path}/mock/services_appmgr_test/include" ]
+  include_dirs = [ 
+    "${ability_runtime_path}/interfaces/kits/native/appkit/sysmgrclient",
+    "${ability_runtime_test_path}/mock/services_appmgr_test/include",
+  ]
 
   sources = [
     "${ability_runtime_test_path}/mock/services_appmgr_test/src/mock_bundle_manager.cpp",
@@ -39,6 +41,7 @@ ohos_unittest("child_main_thread_test") {
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:sys_mgr_client",
     "${ability_runtime_path}/interfaces/inner_api/child_process_manager:child_process_manager",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",

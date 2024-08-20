@@ -90,6 +90,7 @@ ohos_shared_library("appkit_native") {
     "${ability_runtime_path}/utils/global/time/include",
     "${ability_runtime_services_path}/abilitymgr/include",
     "${ability_runtime_napi_path}/inner/napi_common",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/sysmgrclient",
     "${ability_runtime_utils_path}/global/constant",
   ]
 
@@ -162,6 +163,7 @@ ohos_shared_library("appkit_native") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:app_context_utils",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
+    "${ability_runtime_native_path}/appkit:sys_mgr_client",
     "${ability_runtime_path}/js_environment/frameworks/js_environment:js_environment",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_services_path}/common:app_util",
@@ -270,6 +272,7 @@ ohos_shared_library("app_context") {
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/context",
     "${ability_runtime_path}/interfaces/kits/native/appkit/app",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/sysmgrclient",
   ]
 
   configs = [ ":appkit_config" ]
@@ -284,13 +287,13 @@ ohos_shared_library("app_context") {
     "${ability_runtime_native_path}/appkit/ability_runtime/context/context_impl.cpp",
     "${ability_runtime_native_path}/appkit/ability_runtime/context/environment_callback.cpp",
     "${ability_runtime_native_path}/appkit/app/overlay_event_subscriber.cpp",
-    "${ability_runtime_native_path}/appkit/app/sys_mgr_client.cpp",
   ]
   cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   deps = [
+    ":sys_mgr_client",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
@@ -403,6 +406,7 @@ ohos_shared_library("appkit_delegator") {
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/ability_delegator/include",
     "${ability_runtime_services_path}/common/include",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/sysmgrclient",
   ]
 
   configs = [ ":appkit_config" ]
@@ -434,6 +438,7 @@ ohos_shared_library("appkit_delegator") {
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:delegator_mgmt",
+    "${ability_runtime_native_path}/appkit:sys_mgr_client",
   ]
 
   external_deps = [
@@ -533,6 +538,40 @@ ohos_shared_library("application_context_manager") {
   ]
 
   public_configs = [ ":application_context_manager_config" ]
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+ohos_shared_library("sys_mgr_client") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  include_dirs = [
+    "${ability_runtime_path}/interfaces/kits/native/appkit/sysmgrclient",
+    "${ability_runtime_services_path}/common/include",
+  ]
+
+  sources = [
+    "${ability_runtime_native_path}/appkit/sysmgrclient/sys_mgr_client.cpp",
+  ]
+
+  cflags = []
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  deps = []
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+  ]
 
   subsystem_name = "ability"
   part_name = "ability_runtime"

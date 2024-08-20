@@ -24,6 +24,7 @@ config("module_private_config") {
     "${ability_runtime_test_path}/mock/frameworks_kits_appkit_native_test/include",
     "${ability_runtime_test_path}/mock/frameworks_kits_appkit_test/include",
     "${ability_runtime_path}/interfaces/kits/native/appkit/app",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/sysmgrclient",
   ]
 
   defines = [ "AMS_LOG_TAG = \"ApplicationModuleTest\"" ]
@@ -47,6 +48,7 @@ ohos_moduletest("appexecfwk_appkit_native_app_module_test_first") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
+    "${ability_runtime_native_path}/appkit:sys_mgr_client",
     "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
@@ -84,6 +86,7 @@ ohos_moduletest("appexecfwk_appkit_native_app_module_test_second") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
+    "${ability_runtime_native_path}/appkit:sys_mgr_client",
     "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
@@ -121,6 +124,7 @@ ohos_moduletest("appexecfwk_appkit_native_app_module_test_third") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
+    "${ability_runtime_native_path}/appkit:sys_mgr_client",
     "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
@@ -158,6 +162,7 @@ ohos_moduletest("appexecfwk_appkit_native_app_module_test_fourth") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
+    "${ability_runtime_native_path}/appkit:sys_mgr_client",
     "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
