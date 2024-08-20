@@ -43,6 +43,7 @@ config("module_private_config") {
     "${ability_base_kits_path}/extractortool/include",
     "${ability_runtime_test_path}/mock/services_appmgr_test/include",
     "${ability_runtime_path}/interfaces/kits/native/ability/ability_runtime",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/sysmgrclient",
   ]
   cflags = []
   if (target_cpu == "arm") {
@@ -69,6 +70,7 @@ config("module_ability_context_config") {
     "//third_party/googletest/googlemock/include",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
     "${ability_runtime_path}/interfaces/kits/native/appkit/app",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/sysmgrclient",
     "${multimodalinput_path}/interfaces/native/innerkits/event/include",
     "//third_party/libuv/include",
     "${global_path}/resource_management/interfaces/inner_api/include",
@@ -1223,6 +1225,7 @@ ohos_unittest("ability_thread_call_request_test") {
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_native_path}/appkit:sys_mgr_client",
     "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gtest_main",
   ]
@@ -1683,6 +1686,7 @@ ohos_unittest("ability_permission_test") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_native_path}/appkit:sys_mgr_client",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
     "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "${global_path}/resource_management/frameworks/resmgr:global_resmgr",
