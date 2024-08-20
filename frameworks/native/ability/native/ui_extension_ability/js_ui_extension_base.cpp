@@ -253,7 +253,7 @@ void JsUIExtensionBase::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *cal
         return;
     }
 
-    std::weak_ptr<UIExtensionBaseImpl> weakPtr = shared_from_this();
+    std::weak_ptr<Extension> weakPtr = shared_from_this();
     auto asyncCallback = [extensionWeakPtr = weakPtr]() {
         auto jsUIExtensionBase = extensionWeakPtr.lock();
         if (jsUIExtensionBase == nullptr) {
