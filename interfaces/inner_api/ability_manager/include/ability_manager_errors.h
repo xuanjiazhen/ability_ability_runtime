@@ -571,9 +571,24 @@ enum {
     ERR_NOT_SUPPORT_BACK_TO_CALLER = 2097262,
 
     /*
-     * Result (2097261) for killing process uid is foundation.
+     * Result (2097263) for killing process uid is foundation.
      */
-    ERR_KILL_FOUNDATION_UID = 2097261,
+    ERR_KILL_FOUNDATION_UID = 2097263,
+
+    /*
+     * Result (2097264) for not support child process.
+     */
+    ERR_NOT_SUPPORT_CHILD_PROCESS = 2097264,
+
+    /*
+     * Result (2097265) for already in child process.
+     */
+    ERR_ALREADY_IN_CHILD_PROCESS = 2097265,
+
+    /*
+     * Result (2097266) for native args child process reach limit.
+     */
+    ERR_NATIVE_ARGS_CHILD_PROCESS_REACH_LIMIT = 2097266,
 
     /**
      * Native error(3000000) for target bundle not exist.
