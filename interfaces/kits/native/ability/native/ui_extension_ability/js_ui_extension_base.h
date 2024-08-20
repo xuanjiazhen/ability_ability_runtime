@@ -96,11 +96,11 @@ public:
      * You can override this function to implement your own processing logic.
      */
     void OnStop() override;
-    virtual void OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *callbackInfo, bool &isAsyncCallback) override;
+    virtual void OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *callbackInfo, bool &isAsyncCallback);
     /**
      * @brief The callback of OnStop.
      */
-    virtual void OnStopCallBack() override;
+    virtual void OnStopCallBack();
 
     /**
      * @brief Called when the system configuration is updated.
