@@ -27,6 +27,7 @@
 #include "hisysevent.h"
 #ifdef SUPPORT_SCREEN
 #include "window_visibility_info.h"
+#include "window_pid_visibility_info.h"
 #endif //SUPPORT_SCREEN
 namespace OHOS {
 namespace AppExecFwk {
@@ -1993,6 +1994,26 @@ void AppRunningRecord::OnWindowVisibilityChanged(
         if (windowIds_.empty() && IsAbilitytiesBackground()) {
             SetApplicationPendingState(ApplicationPendingState::BACKGROUNDING);
         }
+    }
+}
+
+void AppRunningRecord::OnWindowPidVisibilityChanged(
+    const sptr<OHOS::Rosen::WindowPidVisibilityInfo>& windowPidVisibilityInfo)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "called");
+    if (!windowPidVisibilityInfo) {
+        TAG_LOGW(AAFwkTag::APPMGR, "Window pid visibility info is empty.");
+        return;
+    }
+    if (!appLifeCycleDeal_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appLifeCycleDeal_ is null");
+        return;
+    }
+    if (windowPidVisibilityInfo->visibilityState_ == OHOS::Rosen::WindowPidVisibilityState::VISIBILITY_STATE) {
+        appLifeCycleDeal_->ScheduleShowWindowRunning();
+    }
+    if (windowPidVisibilityInfo->visibilityState_ == OHOS::Rosen::WindowPidVisibilityState::INVISIBILITY_STATE) {
+        appLifeCycleDeal_->ScheduleHiddenWindowRunning();
     }
 }
 #endif //SUPPORT_SCREEN

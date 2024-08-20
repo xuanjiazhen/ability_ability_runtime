@@ -111,6 +111,26 @@ void AppLifeCycleDeal::ScheduleForegroundRunning()
     appThread->ScheduleForegroundApplication();
 }
 
+void AppLifeCycleDeal::ScheduleShowWindowRunning()
+{
+    auto appThread = GetApplicationClient();
+    if (!appThread) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appThread is nullptr");
+        return;
+    }
+    appThread->ScheduleShowWindow();
+}
+
+void AppLifeCycleDeal::ScheduleHiddenWindowRunning()
+{
+    auto appThread = GetApplicationClient();
+    if (!appThread) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appThread is nullptr");
+        return;
+    }
+    appThread->ScheduleHiddenWindow();
+}
+
 void AppLifeCycleDeal::ScheduleBackgroundRunning()
 {
     auto appThread = GetApplicationClient();

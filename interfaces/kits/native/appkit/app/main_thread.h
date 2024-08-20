@@ -145,6 +145,20 @@ public:
 
     /**
      *
+     * @brief Schedule the show lifecycle of window.
+     *
+     */
+    void ScheduleShowWindow() override;
+
+    /**
+     *
+     * @brief Schedule the hidden lifecycle of window.
+     *
+     */
+    void ScheduleHiddenWindow() override;
+
+    /**
+     *
      * @brief Schedule the terminate lifecycle of application.
      *
      * @param isLastProcess When it is the last application process, pass in true.
@@ -439,6 +453,20 @@ private:
      *
      */
     void HandleBackgroundApplication();
+
+    /**
+     *
+     * @brief Show the window.
+     *
+     */
+    void HandleShowWindow();
+
+    /**
+     *
+     * @brief Hidden the window.
+     *
+     */
+    void HandleHiddenWindow();
 
     /**
      *
