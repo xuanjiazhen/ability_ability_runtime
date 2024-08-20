@@ -17,11 +17,12 @@
 
 #include <type_traits>
 #include <vector>
-
+#include "ability_context.h"
 #include "ability_info.h"
 #include "ability_manager_client.h"
 #include "configuration_utils.h"
 #include "connection_manager.h"
+#include "context.h"
 #include "hilog_tag_wrapper.h"
 #include "hilog_wrapper.h"
 #include "hitrace_meter.h"
@@ -252,7 +253,7 @@ void JsUIExtensionBase::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *cal
         return;
     }
 
-    std::weak_ptr<Extension> weakPtr = shared_from_this();
+    std::weak_ptr<UIExtensionBaseImpl> weakPtr = shared_from_this();
     auto asyncCallback = [extensionWeakPtr = weakPtr]() {
         auto jsUIExtensionBase = extensionWeakPtr.lock();
         if (jsUIExtensionBase == nullptr) {
