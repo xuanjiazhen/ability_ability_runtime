@@ -17,7 +17,7 @@
 
 #include <type_traits>
 #include <vector>
-#include "ability_context.h"
+
 #include "ability_info.h"
 #include "ability_manager_client.h"
 #include "configuration_utils.h"
@@ -253,7 +253,7 @@ void JsUIExtensionBase::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *cal
         return;
     }
 
-    std::weak_ptr<Extension> weakPtr = shared_from_this();
+    std::weak_ptr<JsUIExtensionBase> weakPtr = shared_from_this();
     auto asyncCallback = [extensionWeakPtr = weakPtr]() {
         auto jsUIExtensionBase = extensionWeakPtr.lock();
         if (jsUIExtensionBase == nullptr) {
@@ -273,12 +273,11 @@ void JsUIExtensionBase::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *cal
 
 void JsUIExtensionBase::OnStopCallBack()
 {
-    auto context = GetContext();
-    if (context == nullptr) {
+    if (context_ == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "Failed to get context");
         return;
     }
-    bool ret = ConnectionManager::GetInstance().DisconnectCaller(context->GetToken());
+    bool ret = ConnectionManager::GetInstance().DisconnectCaller(context_->GetToken());
     if (ret) {
         ConnectionManager::GetInstance().ReportConnectionLeakEvent(getpid(), gettid());
         TAG_LOGD(AAFwkTag::UI_EXT, "The service connection is not disconnected.");

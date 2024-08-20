@@ -21,12 +21,11 @@
 #include "extension_common.h"
 #include "iremote_object.h"
 #include "ui_extension_context.h"
-#include "ui_extension_base.h"
 #include "ui_extension_base_impl.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-class UIExtensionBaseImpl : public UIExtensionBase {
+class UIExtensionBaseImpl {
 public:
     UIExtensionBaseImpl() = default;
     virtual ~UIExtensionBaseImpl() = default;

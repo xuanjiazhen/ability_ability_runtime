@@ -22,7 +22,7 @@
 #include "extension_base.h"
 #include "iremote_object.h"
 #include "ui_extension_context.h"
-// #include "ui_extension_base_impl.h"
+#include "ui_extension_base_impl.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
