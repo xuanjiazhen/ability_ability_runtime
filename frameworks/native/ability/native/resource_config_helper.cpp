@@ -16,6 +16,7 @@
 #include "hilog_tag_wrapper.h"
 #include "configuration_convertor.h"
 #include "hitrace_meter.h"
+#include "application_configuration_manager.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
