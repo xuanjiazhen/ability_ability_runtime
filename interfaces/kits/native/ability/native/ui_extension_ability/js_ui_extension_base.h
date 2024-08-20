@@ -25,12 +25,10 @@
 #include "ohos_application.h"
 #include "session_info.h"
 #include "ui_extension_base.h"
-#include "ui_extension_base_impl.h"
 #include "ui_extension_context.h"
 #include "ui_extension_window_command.h"
 #include "want.h"
 #include "window.h"
-#include <memory>
 
 class NativeReference;
 
