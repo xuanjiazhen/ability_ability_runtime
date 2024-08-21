@@ -31,6 +31,10 @@
         {
             "type": "mediaControl",
             "typePicker": "sysPicker/mediaControl"
+        },
+        {
+            "type": "recentPhoto",
+            "typePicker": "sysPicker/recentPhoto"
         }
     ]
 }
