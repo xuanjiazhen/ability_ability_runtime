@@ -202,6 +202,11 @@ ohos_shared_library("appkit_native") {
   if (ability_runtime_graphics) {
     external_deps += [
       "ace_engine:ace_forward_compatibility",
+      "graphic_2d:2d_graphics",
+      "graphic_2d:EGL",
+      "graphic_2d:GLESv3",
+      "graphic_2d:libcomposer",
+      "graphic_2d:librender_service_base",
       "graphic_2d:librender_service_client",
       "i18n:intl_util",
       "icu:shared_icuuc",
