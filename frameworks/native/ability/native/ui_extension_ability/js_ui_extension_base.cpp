@@ -227,7 +227,7 @@ void JsUIExtensionBase::OnStart(const AAFwk::Want &want, AAFwk::LaunchParam &lau
 void JsUIExtensionBase::OnStop()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    UIExtensionBaseImpl::OnStop();
+    JsUIExtensionBase::OnStop();
     TAG_LOGD(AAFwkTag::UI_EXT, "called");
     HandleScope handleScope(jsRuntime_);
     CallObjectMethod("onDestroy");
@@ -244,7 +244,7 @@ void JsUIExtensionBase::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *cal
     }
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::UI_EXT, "OnStop begin.");
-    UIExtensionBaseImpl::OnStop();
+    JsUIExtensionBase::OnStop();
     HandleScope handleScope(jsRuntime_);
     napi_value result = CallObjectMethod("onDestroy", nullptr, 0, true);
     if (!CheckPromise(result)) {
