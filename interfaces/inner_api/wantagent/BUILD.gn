@@ -65,6 +65,7 @@ ohos_shared_library("wantagent_innerkits") {
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/error_utils:ability_runtime_error_util",
+    "${ability_runtime_path}/interfaces/inner_api/runtime:runtime",
     "${ability_runtime_services_path}/abilitymgr:wantagent_manager",
   ]
 
