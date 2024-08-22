@@ -718,11 +718,11 @@ int32_t ContextImpl::CreateBundleContext(std::shared_ptr<Context> &context, cons
 
     TAG_LOGD(AAFwkTag::APPKIT, "length: %{public}zu, bundleName: %{public}s",
         (size_t)bundleName.length(), bundleName.c_str());
-    errCode = bundleMgr_->GetBundleInfoV9(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT,
-        bundleInfo, accountId);
-    if (errCode != ERR_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "failed, errCode: %{public}d", errCode);
-        return errCode;
+    bundleMgr_->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, accountId);
+
+    if (bundleInfo.name.empty() || bundleInfo.applicationInfo.name.empty()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "bundleInfo is empty");
+        return ERR_INVALID_VALUE;
     }
 
     std::shared_ptr<ContextImpl> appContext = std::make_shared<ContextImpl>();
