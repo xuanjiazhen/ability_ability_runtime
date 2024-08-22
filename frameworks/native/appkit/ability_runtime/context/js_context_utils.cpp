@@ -87,7 +87,6 @@ private:
     napi_value OnCreateSystemHspModuleResourceManager(napi_env env, NapiCallbackInfo& info);
     napi_value OnCreateModuleResourceManager(napi_env env, NapiCallbackInfo& info);
     bool CheckCallerIsSystemApp();
-    void BindPropertiesAndFunctions(napi_env env, napi_value object, const char* moduleName, std::make_unique<JsBaseContext> jsContext);
 };
 
 void JsBaseContext::Finalizer(napi_env env, void* data, void* hint)
@@ -713,8 +712,8 @@ napi_value AttachApplicationContext(napi_env env, void* value, void* hint)
     return contextObj;
 }
 
-void JsBaseContext::BindPropertiesAndFunctions(napi_env env, napi_value object, const char* moduleName, std::make_unique<JsBaseContext> jsContext){
-
+void BindPropertyAndFunction(napi_env env, napi_value object, const char* moduleName)
+{
     BindNativeProperty(env, object, "cacheDir", JsBaseContext::GetCacheDir);
     BindNativeProperty(env, object, "tempDir", JsBaseContext::GetTempDir);
     BindNativeProperty(env, object, "resourceDir", JsBaseContext::GetResourceDir);
@@ -771,8 +770,7 @@ napi_value CreateJsBaseContext(napi_env env, std::shared_ptr<Context> context, b
     }
 
     const char *moduleName = "JsBaseContext";
-    BindPropertiesAndFunctions(env,object,moduleName,jsContext);
-    BindPropertiesAndFunctions(env,object,moduleName,jsContext);
+    BindPropertyAndFunction(env, object, moduleName);
     return object;
 }
 }  // namespace AbilityRuntime
