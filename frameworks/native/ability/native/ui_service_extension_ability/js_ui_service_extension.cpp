@@ -80,6 +80,27 @@ int32_t UIServiceStubImpl::SendData(sptr<IRemoteObject> hostProxy, OHOS::AAFwk::
     return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
 }
 
+UIServiceExtensionWindowEventListener::UIServiceExtensionWindowEventListener(std::weak_ptr<JsUIServiceExtension>& ext)
+    :extension_(ext)
+{
+}
+
+void UIServiceExtensionWindowEventListener::OnRectChange(Rect rect, WindowSizeChangeReason reason)
+{
+    auto sptr = extension_.lock();
+    if (sptr) {
+        sptr->OnWindowRectChanged(rect);
+    }
+}
+
+void UIServiceExtensionWindowEventListener::AfterDestroyed()
+{
+    auto sptr = extension_.lock();
+    if (sptr) {
+        sptr->OnWindowDestroyed();
+    }
+}
+
 napi_value AttachUIServiceExtensionContext(napi_env env, void *value, void *)
 {
     if (value == nullptr) {
@@ -238,6 +259,10 @@ void JsUIServiceExtension::OnStart(const AAFwk::Want &want)
         configUtils->InitDisplayConfig(displayId, context->GetConfiguration(), context->GetResourceManager());
     }
 
+    std::weak_ptr<JsUIServiceExtension> weakThis =
+        std::static_pointer_cast<JsUIServiceExtension>(shared_from_this());
+    windowEventListener_ = sptr<UIServiceExtensionWindowEventListener>::MakeSptr(weakThis);
+
     HandleScope handleScope(jsRuntime_);
     napi_env env = jsRuntime_.GetNapiEnv();
 
@@ -261,6 +286,8 @@ void JsUIServiceExtension::OnStop()
         sptr<Rosen::Window> win = context->GetWindow();
         if (win != nullptr) {
             TAG_LOGI(AAFwkTag::UISERVC_EXT, "Destroy Window");
+            win->UnregisterLifeCycleListener(windowEventListener_);
+            win->UnregisterWindowRectChangeListener(windowEventListener_);
             win->Destroy();
             context->SetWindow(nullptr);
         }
@@ -386,6 +413,9 @@ void JsUIServiceExtension::OnCommand(const AAFwk::Want &want, bool restart, int 
         if (extensionWindow != nullptr) {
             OnSceneDidCreated(extensionWindow);
             context->SetWindow(extensionWindow);
+            extensionWindow->RegisterLifeCycleListener(windowEventListener_);
+            extensionWindow->RegisterWindowRectChangeListener(windowEventListener_);
+            extensionWindowConfig->windowRect = extensionWindow->GetRect();
             AbilityWindowConfigTransition(option, extensionWindowConfig);
         } else {
             TAG_LOGE(AAFwkTag::UISERVC_EXT, "extensionWindow is nullptr");
@@ -396,9 +426,34 @@ void JsUIServiceExtension::OnCommand(const AAFwk::Want &want, bool restart, int 
     TAG_LOGD(AAFwkTag::UISERVC_EXT, "ok");
 }
 
+void JsUIServiceExtension::OnWindowRectChanged(Rect winRect)
+{
+    TAG_LOGI(AAFwkTag::UISERVC_EXT, "OnWindowRectChanged {%{public}d, %{public}d, %{public}d, %{public}d}",
+        winRect.posX_, winRect.posY_, winRect.width_, winRect.height_);
+    SaveAbilityWindowConfig(windowConfig_.windowType, winRect);
+}
+
+void JsUIServiceExtension::OnWindowDestroyed()
+{
+    TAG_LOGI(AAFwkTag::UISERVC_EXT, "OnWindowDestroyed");
+    Rect zeroRect = {0, 0, 0, 0};
+    SaveAbilityWindowConfig(windowConfig_.windowType, zeroRect);
+}
+
 void JsUIServiceExtension::AbilityWindowConfigTransition(sptr<Rosen::WindowOption>& option,
     const std::shared_ptr<Rosen::ExtensionWindowConfig>& extensionWindowConfig)
 {
+    if (option == nullptr) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "option is null.");
+        return;
+    }
+    SaveAbilityWindowConfig(static_cast<int32_t>(option->GetWindowType()), extensionWindowConfig->windowRect);
+}
+
+void JsUIServiceExtension::SaveAbilityWindowConfig(int32_t windowType, Rect winRect)
+{
+    TAG_LOGI(AAFwkTag::UISERVC_EXT, "SaveAbilityWindowConfig {%{public}d, %{public}d, %{public}d, %{public}d}",
+        winRect.posX_, winRect.posY_, winRect.width_, winRect.height_);
     auto context = GetContext();
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::UISERVC_EXT, "context is nullptr");
@@ -409,17 +464,12 @@ void JsUIServiceExtension::AbilityWindowConfigTransition(sptr<Rosen::WindowOptio
         TAG_LOGE(AAFwkTag::UISERVC_EXT, "token is null.");
         return;
     }
-    AAFwk::WindowConfig windowConfig;
-    if (option != nullptr) {
-        windowConfig.windowType = static_cast<int32_t>(option->GetWindowType());
-    }
-    if (extensionWindowConfig != nullptr) {
-        windowConfig.posx = extensionWindowConfig->windowRect.posX_;
-        windowConfig.posy = extensionWindowConfig->windowRect.posY_;
-        windowConfig.width = extensionWindowConfig->windowRect.width_;
-        windowConfig.height = extensionWindowConfig->windowRect.height_;
-    }
-    AAFwk::AbilityManagerClient::GetInstance()->AbilityWindowConfigTransitionDone(token, windowConfig);
+    windowConfig_.windowType = windowType;
+    windowConfig_.posx = winRect.posX_;
+    windowConfig_.posy = winRect.posY_;
+    windowConfig_.width = winRect.width_;
+    windowConfig_.height = winRect.height_;
+    AAFwk::AbilityManagerClient::GetInstance()->AbilityWindowConfigTransitionDone(token, windowConfig_);
 }
 
 napi_value JsUIServiceExtension::WrapWant(napi_env env, const AAFwk::Want &want)
