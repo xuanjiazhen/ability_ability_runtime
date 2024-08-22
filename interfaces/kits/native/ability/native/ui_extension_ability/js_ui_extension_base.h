@@ -179,7 +179,7 @@ protected:
 protected:
     JsRuntime &jsRuntime_;
     std::shared_ptr<NativeReference> shellContextRef_;
-    std::shared_ptr<NativeReference> jsObj_ = nullptr;
+    std::shared_ptr<NativeReference> jsObj_;
     std::shared_ptr<UIExtensionContext> context_;
     std::map<uint64_t, sptr<Rosen::Window>> uiWindowMap_;
     std::set<uint64_t> foregroundWindows_;
