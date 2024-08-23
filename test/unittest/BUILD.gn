@@ -548,6 +548,7 @@ group("unittest") {
       "uri_permission_impl_test:unittest",
       "uri_permission_manager_test:unittest",
       "uri_permission_test:unittest",
+      "uri_permission_utils_test:unittest",
       "user_controller_test:unittest",
       "user_event_handler_test:unittest",
       "want_agent_helper_test:unittest",
