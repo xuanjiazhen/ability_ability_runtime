@@ -343,12 +343,17 @@ int32_t AppSchedulerHost::HandleScheduleClearPageStack(MessageParcel &data, Mess
 int32_t AppSchedulerHost::HandleScheduleAcceptWant(MessageParcel &data, MessageParcel &reply)
 {
     HITRACE_METER(HITRACE_TAG_APP);
-    AAFwk::Want *want = data.ReadParcelable<AAFwk::Want>();
+    auto moduleName = data.ReadString();
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "read raw data failed");
+    }
+    AAFwk::Want *want = rawdata.ReadParcelable<AAFwk::Want>();
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
     }
-    auto moduleName = data.ReadString();
     ScheduleAcceptWant(*want, moduleName);
     delete want;
     return NO_ERROR;
@@ -358,12 +363,17 @@ int32_t AppSchedulerHost::HandleScheduleNewProcessRequest(MessageParcel &data, M
 {
     TAG_LOGD(AAFwkTag::APPMGR, "call.");
     HITRACE_METER(HITRACE_TAG_APP);
-    AAFwk::Want *want = data.ReadParcelable<AAFwk::Want>();
+    auto moduleName = data.ReadString();
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "read raw data failed");
+    }
+    AAFwk::Want *want = rawData.ReadParcelable<AAFwk::Want>();
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
     }
-    auto moduleName = data.ReadString();
     ScheduleNewProcessRequest(*want, moduleName);
     delete want;
     return NO_ERROR;

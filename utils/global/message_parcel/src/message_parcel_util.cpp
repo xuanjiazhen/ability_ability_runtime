@@ -22,7 +22,7 @@ namespace OHOS::AbilityRuntime {
 namespace MessageParcelUtil {
 bool WriteRawData(MessageParcel &dataParcel, MessageParcel &rawDataParcel)
 {
-    TAG_LOGI(AAFwkTag::DEFAULT, "call");
+    TAG_LOGD(AAFwkTag::DEFAULT, "call");
     size_t size = rawDataParcel.GetDataSize();
     if (!dataParcel.WriteUint32(size)) {
         return false;
@@ -36,7 +36,7 @@ bool WriteRawData(MessageParcel &dataParcel, MessageParcel &rawDataParcel)
 bool ReadRawData(MessageParcel &dataParcel, MessageParcel &rawDataParcel)
 {
     size_t size = dataParcel.ReadUint32();
-    TAG_LOGI(AAFwkTag::DEFAULT, "call, rawDataSize:%{public}zu", size);
+    TAG_LOGD(AAFwkTag::DEFAULT, "call, rawDataSize:%{public}zu", size);
     if (size <= 0) {
         return false;
     }
