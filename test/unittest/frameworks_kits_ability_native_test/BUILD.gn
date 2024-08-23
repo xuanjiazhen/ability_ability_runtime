@@ -271,6 +271,7 @@ ohos_unittest("ability_context_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_path}/interfaces/inner_api/runtime:runtime",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
     "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gmock_main",
@@ -2203,6 +2204,7 @@ ohos_unittest("ability_handler_test") {
     "${ability_runtime_native_path}/appkit:app_context_utils",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_path}/interfaces/inner_api/runtime:runtime",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -2504,6 +2506,7 @@ ohos_unittest("form_extension_module_loader_test") {
 
   deps = [
     "${ability_runtime_native_path}/ability/native:form_extension",
+    "${ability_runtime_path}/interfaces/inner_api/runtime:runtime",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]

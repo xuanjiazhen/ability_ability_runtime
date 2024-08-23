@@ -23,7 +23,10 @@ ohos_unittest("extension_config_mgr_test") {
 
   configs = [ "${ability_runtime_services_path}/common:common_config" ]
 
-  deps = [ "${ability_runtime_native_path}/ability/native:abilitykit_native" ]
+  deps = [
+    "${ability_runtime_native_path}/ability/native:abilitykit_native",
+    "${ability_runtime_path}/interfaces/inner_api/runtime:runtime",
+  ]
 
   external_deps = [
     "bundle_framework:appexecfwk_base",
