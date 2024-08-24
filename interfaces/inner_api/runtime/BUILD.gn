@@ -40,6 +40,7 @@ config("runtime_public_config") {
   include_dirs = [
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ability_business_error",
     "include",
+    "//third_party/json/include",
   ]
 }
 
@@ -48,10 +49,9 @@ config("runtime_all_deps_config") {
 }
 
 ohos_shared_library("runtime") {
-  branch_protector_ret = "pac_ret"
-
   include_dirs = [
     "${ability_runtime_path}/services/abilitymgr/include",
+    "${bundlefwk_path}/interfaces/kits/js/common",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper",
     "${ability_runtime_utils_path}/global/constant",
   ]
@@ -88,6 +88,8 @@ ohos_shared_library("runtime") {
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_path}/js_environment/frameworks/js_environment:js_environment",
+    "${third_party_path}/jsoncpp:jsoncpp",
+    "${third_party_path}/zlib:shared_libz",
   ]
 
   external_deps = [
@@ -95,6 +97,7 @@ ohos_shared_library("runtime") {
     "ability_base:extractortool",
     "ability_base:extractresourcemanager",
     "ability_base:string_utils",
+    "ability_base:want",
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
@@ -111,17 +114,9 @@ ohos_shared_library("runtime") {
     "hitrace:hitrace_meter",
     "init:syscap_ts",
     "ipc:ipc_core",
-    "json:nlohmann_json_static",
-    "jsoncpp:jsoncpp",
     "napi:ace_napi",
     "resource_management:global_resmgr",
     "samgr:samgr_proxy",
-    "zlib:shared_libz",
-  ]
-
-  public_external_deps = [
-    "ability_base:session_info",
-    "ability_base:want",
   ]
 
   defines = []
