@@ -76,10 +76,10 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     std::string faultType(data, size);
     freeze->CatchJsonStacktrace(pid, faultType);
     freeze->CatcherStacktrace(pid);
-    std::string memoryContent(data, size);
-    freeze->AcquireStack(faultData, appInfo, memoryContent);
+    OHOS::AppExecFwk::AppfreezeManager::ExtraFreezeInfo extraInfo;
+    freeze->AcquireStack(faultData, appInfo, extraInfo);
     std::string binderInfo(data, size);
-    freeze->NotifyANR(faultData, appInfo, binderInfo, memoryContent);
+    freeze->NotifyANR(faultData, appInfo, binderInfo, extraInfo);
     int state = static_cast<int>(GetU32Data(data));
     freeze->SetFreezeState(pid, state);
     freeze->GetFreezeState(pid);

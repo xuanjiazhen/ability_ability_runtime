@@ -68,6 +68,11 @@ public:
         std::string msg;
     };
 
+    struct ExtraFreezeInfo {
+        std::string memoryContent = "";
+        std::string stackContent = "";
+    };
+
     AppfreezeManager();
     ~AppfreezeManager();
 
@@ -96,15 +101,17 @@ private:
     void FindStackByPid(std::string& ret, int pid) const;
     std::string CatchJsonStacktrace(int pid, const std::string& faultType) const;
     std::string CatcherStacktrace(int pid) const;
-    int AcquireStack(const FaultData& faultData, const AppInfo& appInfo, const std::string& memoryContent);
+    int AcquireStack(const FaultData& faultData, const AppInfo& appInfo, const ExtraFreezeInfo& extraInfo);
     int NotifyANR(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo,
-        const std::string& binderInfo, const std::string& memoryContent);
+        const std::string& binderInfo, const ExtraFreezeInfo& extraInfo);
     int64_t GetFreezeCurrentTime();
     void SetFreezeState(int32_t pid, int state);
     int GetFreezeState(int32_t pid);
     int64_t GetFreezeTime(int32_t pid);
     void ClearOldInfo();
     void CollectFreezeSysMemory(std::string& memoryContent);
+    std::string CatchJsonStackContent(int pid, const std::string& stack);
+    std::string CatcherStackContent(int pid, const std::string& stack);
 
     static const inline std::string LOGGER_DEBUG_PROC_PATH = "/proc/transaction_proc";
     std::string name_;

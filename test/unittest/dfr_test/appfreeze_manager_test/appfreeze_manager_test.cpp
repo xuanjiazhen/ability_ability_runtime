@@ -88,7 +88,11 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_002, TestSize.Level1)
     EXPECT_EQ(ret, 0);
     ret = appfreezeManager->AppfreezeHandleWithStack(faultData, appInfo);
     EXPECT_EQ(ret, 0);
-    ret = appfreezeManager->AcquireStack(faultData, appInfo, "test");
+    AppfreezeManager::ExtraFreezeInfo extraInfo = {
+        .memoryContent = "",
+        .stackContent = "",
+    };
+    ret = appfreezeManager->AcquireStack(faultData, appInfo, extraInfo);
     EXPECT_EQ(ret, 0);
 
     faultData.errorObject.name = AppFreezeType::APP_INPUT_BLOCK;
@@ -96,7 +100,7 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_002, TestSize.Level1)
     EXPECT_EQ(ret, 0);
     ret = appfreezeManager->AppfreezeHandleWithStack(faultData, appInfo);
     EXPECT_EQ(ret, 0);
-    ret = appfreezeManager->AcquireStack(faultData, appInfo, "test");
+    ret = appfreezeManager->AcquireStack(faultData, appInfo, extraInfo);
     EXPECT_EQ(ret, 0);
 }
 
@@ -115,7 +119,11 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_003, TestSize.Level1)
         .bundleName = "AppfreezeManagerTest_003",
         .processName = "AppfreezeManagerTest_003",
     };
-    int ret = appfreezeManager->NotifyANR(faultData, appInfo, "", "");
+    AppfreezeManager::ExtraFreezeInfo extraInfo = {
+        .memoryContent = "",
+        .stackContent = "",
+    };
+    int ret = appfreezeManager->NotifyANR(faultData, appInfo, "", extraInfo);
     EXPECT_EQ(ret, 0);
 }
 
