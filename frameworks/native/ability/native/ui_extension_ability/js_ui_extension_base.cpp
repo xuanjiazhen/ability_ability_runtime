@@ -21,7 +21,10 @@
 #include "ability_info.h"
 #include "ability_manager_client.h"
 #include "configuration_utils.h"
+#include "connection_manager.h"
+#include "context.h"
 #include "hilog_tag_wrapper.h"
+#include "hilog_wrapper.h"
 #include "hitrace_meter.h"
 #include "insight_intent_executor_info.h"
 #include "insight_intent_executor_mgr.h"
@@ -283,7 +286,8 @@ void JsUIExtensionBase::OnStopCallBack()
 
     auto applicationContext = Context::GetApplicationContext();
     if (applicationContext != nullptr) {
-        applicationContext->DispatchOnAbilityDestroy(jsObj_);
+        std::shared_ptr<NativeReference> sharedJsObj = std::move(jsObj_);
+        applicationContext->DispatchOnAbilityDestroy(sharedJsObj);
     }
 }
 
@@ -715,7 +719,7 @@ void JsUIExtensionBase::DestroyWindow(const sptr<AAFwk::SessionInfo> &sessionInf
     }
 }
 
-napi_value JsUIExtensionBase::CallObjectMethod(const char *name, napi_value const *argv, size_t argc)
+napi_value JsUIExtensionBase::CallObjectMethod(const char *name, napi_value const *argv, size_t argc, bool withResult)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "CallObjectMethod(%{public}s), begin", name);
     if (!jsObj_) {
@@ -728,12 +732,17 @@ napi_value JsUIExtensionBase::CallObjectMethod(const char *name, napi_value cons
         TAG_LOGE(AAFwkTag::UI_EXT, "Failed to get object");
         return nullptr;
     }
-
+    HandleEscape handleEscape(jsRuntime_);
     napi_value method = nullptr;
     napi_get_named_property(env, obj, name, &method);
     if (!CheckTypeForNapiValue(env, method, napi_function)) {
         TAG_LOGE(AAFwkTag::UI_EXT, "Failed to get '%{public}s' object", name);
         return nullptr;
+    }
+    if (withResult) {
+        napi_value result = nullptr;
+        napi_call_function(env, obj, method, argc, argv, &result);
+        return handleEscape.Escape(result);
     }
     TAG_LOGD(AAFwkTag::UI_EXT, "CallFunction(%{public}s), success", name);
     napi_value result = nullptr;
