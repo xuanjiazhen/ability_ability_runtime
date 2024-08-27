@@ -462,6 +462,9 @@
               ]
             },
             "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:dialog_request_callback"
+          },
+          {
+            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:abilitykit_utils"
           }
         ],
         "test": [
