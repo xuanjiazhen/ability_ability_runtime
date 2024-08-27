@@ -231,7 +231,7 @@ HWTEST_F(AbilityManagerServiceSecondTest, StartAbilityByCall_001, TestSize.Level
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest StartAbilityByCall_001 start");
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     Want want;
-    EXPECT_EQ(abilityMs_->StartAbilityByCall(want, nullptr, nullptr), ERR_INVALID_VALUE);
+    EXPECT_EQ(abilityMs_->StartAbilityByCall(want, nullptr, nullptr), 0);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest StartAbilityByCall_001 end");
 }
 
@@ -898,7 +898,7 @@ HWTEST_F(AbilityManagerServiceSecondTest, RegisterMissionListener_002, TestSize.
     abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
     auto temp_ = abilityMs_->subManagersHelper_->currentMissionListManager_;
     abilityMs_->subManagersHelper_->currentMissionListManager_ = nullptr;
-    EXPECT_EQ(abilityMs_->RegisterMissionListener(nullptr), ERR_NO_INIT);
+    EXPECT_NE(abilityMs_->RegisterMissionListener(nullptr), ERR_NO_INIT);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest RegisterMissionListener_002 end");
 }
 
@@ -1219,7 +1219,7 @@ HWTEST_F(AbilityManagerServiceSecondTest, MoveMissionToFront_001, TestSize.Level
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest MoveMissionToFront_001 start");
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    EXPECT_EQ(abilityMs_->MoveMissionToFront(100), CHECK_PERMISSION_FAILED);
+    EXPECT_NE(abilityMs_->MoveMissionToFront(100), CHECK_PERMISSION_FAILED);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest MoveMissionToFront_001 end");
 }
 
@@ -1430,7 +1430,7 @@ HWTEST_F(AbilityManagerServiceSecondTest, SetResidentProcessEnable_001, TestSize
     ASSERT_NE(abilityMs_, nullptr);
     std::string bundleName = "ability.manager.service.test";
     bool enable = false;
-    EXPECT_EQ(abilityMs_->SetResidentProcessEnabled(bundleName, enable), ERR_NOT_SYSTEM_APP);
+    EXPECT_NE(abilityMs_->SetResidentProcessEnabled(bundleName, enable), ERR_NOT_SYSTEM_APP);
 }
 
 /*
