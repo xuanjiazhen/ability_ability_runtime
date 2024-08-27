@@ -2323,10 +2323,17 @@ HWTEST_F(AbilityManagerServiceFirstTest, CancelApplicationAutoStartupByEDM_0100,
 HWTEST_F(AbilityManagerServiceFirstTest, NotifyConfigurationChange_0100, TestSize.Level1)
 {
     AppExecFwk::Configuration config;
+    std::string testValue("test");
+    config.AddItem(GlobalConfigurationKey::SYSTEM_LANGUAGE, testValue);
     int32_t userId = 100;
     auto abilityMs = std::make_shared<AbilityManagerService>();
-    EXPECT_NE(abilityMs, nullptr);
+    ASSERT_NE(abilityMs, nullptr);
+    sptr<MockAbilityManagerCollaborator> mockCollaborator = new (std::nothrow) MockAbilityManagerCollaborator();
+    ASSERT_NE(mockCollaborator, nullptr);
+    int32_t type = CollaboratorType::RESERVE_TYPE;
+    abilityMs->collaboratorMap_[type] = mockCollaborator;
     abilityMs->NotifyConfigurationChange(config, userId);
+    EXPECT_EQ(testValue, mockCollaborator->config_.GetItem(GlobalConfigurationKey::SYSTEM_LANGUAGE));
 }
 
 /**
@@ -2337,9 +2344,15 @@ HWTEST_F(AbilityManagerServiceFirstTest, NotifyConfigurationChange_0100, TestSiz
 HWTEST_F(AbilityManagerServiceFirstTest, NotifyStartResidentProcess_0100, TestSize.Level1)
 {
     std::vector<AppExecFwk::BundleInfo> bundleInfos;
+    AppExecFwk::BundleInfo bundleInfo;
+    bundleInfo.applicationInfo.process = "test";
+    bundleInfo.isKeepAlive = false;
+    bundleInfo.name = "test";
+    bundleInfos.push_back(bundleInfo);
     auto abilityMs = std::make_shared<AbilityManagerService>();
-    EXPECT_NE(abilityMs, nullptr);
+    ASSERT_NE(abilityMs, nullptr);
     abilityMs->NotifyStartResidentProcess(bundleInfos);
+    EXPECT_TRUE(bundleInfos.empty());
 }
 
 /**
@@ -2353,12 +2366,14 @@ HWTEST_F(AbilityManagerServiceFirstTest, OnAppRemoteDied_0100, TestSize.Level1)
     abilityRequest.abilityInfo.bundleName = "bundleName";
     abilityRequest.abilityInfo.name = "name";
     std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    abilityRecord->isWindowAttached_ = true;
     auto Token = abilityRecord->GetToken();
     std::vector<sptr<IRemoteObject>> abilityTokens;
     abilityTokens.emplace_back(Token);
     auto abilityMs = std::make_shared<AbilityManagerService>();
-    EXPECT_NE(abilityMs, nullptr);
+    ASSERT_NE(abilityMs, nullptr);
     abilityMs->OnAppRemoteDied(abilityTokens);
+    EXPECT_FALSE(abilityRecord->isWindowAttached_);
 }
 
 /**

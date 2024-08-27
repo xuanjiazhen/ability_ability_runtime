@@ -43,6 +43,14 @@ public:
     {
         return {};
     }
+
+    bool UpdateConfiguration(const AppExecFwk::Configuration &config, int32_t userId) override
+    {
+        config_ = config;
+        return true;
+    }
+
+    AppExecFwk::Configuration config_;
 };
 } // AAFwk
 } // OHOS
