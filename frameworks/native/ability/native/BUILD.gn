@@ -203,6 +203,7 @@ ohos_shared_library("abilitykit_native") {
     "${ability_runtime_native_path}/ability/native/ability_lifecycle.cpp",
     "${ability_runtime_native_path}/ability/native/ability_lifecycle_executor.cpp",
     "${ability_runtime_native_path}/ability/native/ability_loader.cpp",
+    "${ability_runtime_native_path}/ability/native/ability_local_record.cpp",
     "${ability_runtime_native_path}/ability/native/ability_post_event_timeout.cpp",
     "${ability_runtime_native_path}/ability/native/ability_process.cpp",
     "${ability_runtime_native_path}/ability/native/ability_runtime/js_ability.cpp",
