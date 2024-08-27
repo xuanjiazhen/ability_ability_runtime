@@ -2055,7 +2055,7 @@ HWTEST_F(MissionListManagerTest, CompleteForegroundSuccess_001, TestSize.Level1)
     abilityRecord->abilityInfo_.excludeFromMissions = false;
     abilityRecord->SetStartedByCall(true);
     abilityRecord->SetStartToForeground(true);
-    abilityRecord->isReady_ = true;
+    abilityRecord->SetLoadState(AbilityLoadState::LOADED);
     abilityRecord->pendingState_ = AbilityState::BACKGROUND;
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(1, abilityRecord, "missionName");
     mission->SetMovingState(true);
@@ -2085,7 +2085,7 @@ HWTEST_F(MissionListManagerTest, CompleteForegroundSuccess_002, TestSize.Level1)
     abilityRecord->abilityInfo_.excludeFromMissions = true;
     abilityRecord->SetStartedByCall(false);
     abilityRecord->SetStartToForeground(true);
-    abilityRecord->isReady_ = true;
+    abilityRecord->SetLoadState(AbilityLoadState::LOADED);
     abilityRecord->pendingState_ = AbilityState::FOREGROUND;
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(1, abilityRecord, "missionName");
     mission->SetMovingState(true);
@@ -2116,7 +2116,7 @@ HWTEST_F(MissionListManagerTest, CompleteForegroundSuccess_003, TestSize.Level1)
     abilityRecord->abilityInfo_.excludeFromMissions = true;
     abilityRecord->SetStartedByCall(true);
     abilityRecord->SetStartToForeground(false);
-    abilityRecord->isReady_ = true;
+    abilityRecord->SetLoadState(AbilityLoadState::LOADED);
     abilityRecord->pendingState_ = AbilityState::ACTIVE;
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(1, abilityRecord, "missionName");
     mission->SetMovingState(true);
@@ -2147,7 +2147,6 @@ HWTEST_F(MissionListManagerTest, CompleteForegroundSuccess_004, TestSize.Level1)
     abilityRecord->abilityInfo_.excludeFromMissions = true;
     abilityRecord->SetStartedByCall(true);
     abilityRecord->SetStartToForeground(true);
-    abilityRecord->isReady_ = false;
     abilityRecord->pendingState_ = AbilityState::ACTIVE;
     DelayedSingleton<MissionInfoMgr>::GetInstance()->missionIdMap_.clear();
     InnerMissionInfo info;
@@ -2175,7 +2174,7 @@ HWTEST_F(MissionListManagerTest, CompleteForegroundSuccess_005, TestSize.Level1)
     abilityRecord->abilityInfo_.excludeFromMissions = true;
     abilityRecord->SetStartedByCall(true);
     abilityRecord->SetStartToForeground(false);
-    abilityRecord->isReady_ = true;
+    abilityRecord->SetLoadState(AbilityLoadState::LOADED);
     abilityRecord->pendingState_ = AbilityState::ACTIVE;
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(1, abilityRecord, "missionName");
     mission->SetMovingState(false);
@@ -2340,7 +2339,7 @@ HWTEST_F(MissionListManagerTest, CompleteBackground_003, TestSize.Level1)
     abilityRecord->SetSwitchingPause(false);
     abilityRecord->SetStartedByCall(true);
     abilityRecord->SetStartToBackground(true);
-    abilityRecord->isReady_ = true;
+    abilityRecord->SetLoadState(AbilityLoadState::LOADED);
     missionListManager->terminateAbilityList_.push_back(abilityRecord);
     missionListManager->CompleteBackground(abilityRecord);
     missionListManager.reset();
@@ -2365,7 +2364,7 @@ HWTEST_F(MissionListManagerTest, CompleteBackground_004, TestSize.Level1)
     abilityRecord->SetSwitchingPause(false);
     abilityRecord->SetStartedByCall(false);
     abilityRecord->SetStartToBackground(true);
-    abilityRecord->isReady_ = true;
+    abilityRecord->SetLoadState(AbilityLoadState::LOADED);
     abilityRecord2->currentState_ = AbilityState::BACKGROUND;
     missionListManager->terminateAbilityList_.push_back(abilityRecord2);
     missionListManager->CompleteBackground(abilityRecord);
@@ -2391,7 +2390,7 @@ HWTEST_F(MissionListManagerTest, CompleteBackground_005, TestSize.Level1)
     abilityRecord->SetSwitchingPause(false);
     abilityRecord->SetStartedByCall(true);
     abilityRecord->SetStartToBackground(false);
-    abilityRecord->isReady_ = true;
+    abilityRecord->SetLoadState(AbilityLoadState::LOADED);
     abilityRecord2->currentState_ = AbilityState::BACKGROUND;
     missionListManager->terminateAbilityList_.push_back(abilityRecord2);
     missionListManager->CompleteBackground(abilityRecord);
@@ -2417,7 +2416,6 @@ HWTEST_F(MissionListManagerTest, CompleteBackground_006, TestSize.Level1)
     abilityRecord->SetSwitchingPause(false);
     abilityRecord->SetStartedByCall(true);
     abilityRecord->SetStartToBackground(true);
-    abilityRecord->isReady_ = false;
     abilityRecord2->currentState_ = AbilityState::FOREGROUND;
     missionListManager->terminateAbilityList_.push_back(abilityRecord2);
     missionListManager->CompleteBackground(abilityRecord);
@@ -2616,7 +2614,7 @@ HWTEST_F(MissionListManagerTest, RemoveBackgroundingAbility_006, TestSize.Level1
     abilityRecord2->SetWant(want);
     abilityRecord2->SetAbilityState(AbilityState::BACKGROUND);
     abilityRecord2->minimizeReason_ = false;
-    abilityRecord2->isReady_ = true;
+    abilityRecord2->SetLoadState(AbilityLoadState::LOADED);
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(1, abilityRecord, "missionName");
     std::shared_ptr<Mission> mission2 = std::make_shared<Mission>(2, abilityRecord2, "missionName");
     missionList->missions_.push_back(mission);
@@ -2651,7 +2649,7 @@ HWTEST_F(MissionListManagerTest, RemoveBackgroundingAbility_007, TestSize.Level1
     abilityRecord2->SetWant(want);
     abilityRecord2->SetAbilityState(AbilityState::FOREGROUND);
     abilityRecord2->minimizeReason_ = false;
-    abilityRecord2->isReady_ = true;
+    abilityRecord2->SetLoadState(AbilityLoadState::LOADED);
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(1, abilityRecord, "missionName");
     std::shared_ptr<Mission> mission2 = std::make_shared<Mission>(2, abilityRecord2, "missionName");
     missionList->missions_.push_back(mission);
@@ -2686,7 +2684,7 @@ HWTEST_F(MissionListManagerTest, RemoveBackgroundingAbility_008, TestSize.Level1
     abilityRecord2->SetWant(want);
     abilityRecord2->SetAbilityState(AbilityState::BACKGROUND);
     abilityRecord2->minimizeReason_ = true;
-    abilityRecord2->isReady_ = true;
+    abilityRecord2->SetLoadState(AbilityLoadState::LOADED);
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(1, abilityRecord, "missionName");
     std::shared_ptr<Mission> mission2 = std::make_shared<Mission>(2, abilityRecord2, "missionName");
     missionList->missions_.push_back(mission);
@@ -2721,7 +2719,6 @@ HWTEST_F(MissionListManagerTest, RemoveBackgroundingAbility_009, TestSize.Level1
     abilityRecord2->SetWant(want);
     abilityRecord2->SetAbilityState(AbilityState::BACKGROUND);
     abilityRecord2->minimizeReason_ = false;
-    abilityRecord2->isReady_ = false;
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(1, abilityRecord, "missionName");
     std::shared_ptr<Mission> mission2 = std::make_shared<Mission>(2, abilityRecord2, "missionName");
     missionList->missions_.push_back(mission);
@@ -2951,7 +2948,7 @@ HWTEST_F(MissionListManagerTest, RemoveTerminatingAbility_006, TestSize.Level1)
     abilityRecord2->SetWant(want);
     abilityRecord2->SetAbilityState(AbilityState::BACKGROUND);
     abilityRecord2->minimizeReason_ = false;
-    abilityRecord2->isReady_ = true;
+    abilityRecord2->SetLoadState(AbilityLoadState::LOADED);
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(1, abilityRecord2, "missionName");
     bool flag = true;
     missionList->missions_.push_back(mission);
@@ -2984,7 +2981,7 @@ HWTEST_F(MissionListManagerTest, RemoveTerminatingAbility_007, TestSize.Level1)
     abilityRecord2->SetWant(want);
     abilityRecord2->SetAbilityState(AbilityState::FOREGROUND);
     abilityRecord2->minimizeReason_ = false;
-    abilityRecord2->isReady_ = true;
+    abilityRecord2->SetLoadState(AbilityLoadState::LOADED);
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(1, abilityRecord2, "missionName");
     bool flag = true;
     missionList->missions_.push_back(mission);
@@ -3017,7 +3014,7 @@ HWTEST_F(MissionListManagerTest, RemoveTerminatingAbility_008, TestSize.Level1)
     abilityRecord2->SetWant(want);
     abilityRecord2->SetAbilityState(AbilityState::BACKGROUND);
     abilityRecord2->minimizeReason_ = true;
-    abilityRecord2->isReady_ = true;
+    abilityRecord2->SetLoadState(AbilityLoadState::LOADED);
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(1, abilityRecord2, "missionName");
     bool flag = true;
     missionList->missions_.push_back(mission);
@@ -3050,7 +3047,6 @@ HWTEST_F(MissionListManagerTest, RemoveTerminatingAbility_009, TestSize.Level1)
     abilityRecord2->SetWant(want);
     abilityRecord2->SetAbilityState(AbilityState::BACKGROUND);
     abilityRecord2->minimizeReason_ = false;
-    abilityRecord2->isReady_ = false;
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(1, abilityRecord2, "missionName");
     bool flag = true;
     missionList->missions_.push_back(mission);

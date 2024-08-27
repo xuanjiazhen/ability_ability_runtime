@@ -1365,6 +1365,7 @@ void AbilityConnectManager::LoadAbility(const std::shared_ptr<AbilityRecord> &ab
     DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility(
         token, perToken, abilityRecord->GetAbilityInfo(), abilityRecord->GetApplicationInfo(),
         abilityRecord->GetWant(), abilityRecord->GetRecordId());
+    abilityRecord->SetLoadState(AbilityLoadState::LOADING);
 }
 
 void AbilityConnectManager::PostRestartResidentTask(const AbilityRequest &abilityRequest)
@@ -1453,6 +1454,7 @@ void AbilityConnectManager::HandleStartTimeoutTask(const std::shared_ptr<Ability
     TAG_LOGW(AAFwkTag::ABILITYMGR, "load ability timeout.");
     std::lock_guard guard(serialMutex_);
     CHECK_POINTER(abilityRecord);
+    abilityRecord->SetLoadState(AbilityLoadState::FAILED);
     if (UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "consume session timeout, abilityUri: %{public}s",
             abilityRecord->GetURI().c_str());
