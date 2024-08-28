@@ -338,7 +338,7 @@ public:
      * @return Returns true is only UIAbility, otherwise return false
      */
     virtual bool IsProcessContainsOnlyUIAbility(const pid_t pid) override;
-
+    bool CheckSpecifiedRequest(const AppExecFwk::AbilityInfo &abilityInfo, int32_t requestId) override;
     virtual bool IsProcessAttached(sptr<IRemoteObject> token) override;
 
 private:

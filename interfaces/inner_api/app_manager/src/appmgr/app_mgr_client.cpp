@@ -1343,5 +1343,20 @@ bool AppMgrClient::IsProcessAttached(sptr<IRemoteObject> token) const
     }
     return amsService->IsProcessAttached(token);
 }
+bool AppMgrClient::CheckSpecifiedRequest(const AppExecFwk::AbilityInfo &abilityInfo, int32_t requestId)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
+        return false;
+    }
+    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+    if (amsService == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "amsService is nullptr.");
+        return false;
+    }
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
+    return amsService->CheckSpecifiedRequest(abilityInfo, requestId);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -4145,6 +4145,7 @@ void AppMgrServiceInner::StartSpecifiedAbility(const AAFwk::Want &want, const Ap
             appRecord->ScheduleAcceptWant(hapModuleInfo.moduleName);
         }
     }
+    appRecord->AddModuleSpecifiedRequestId(appInfo->bundleName, hapModuleInfo.moduleName, requestId);
 }
 
 void AppMgrServiceInner::RegisterStartSpecifiedAbilityResponse(const sptr<IStartSpecifiedAbilityResponse> &response)
@@ -4173,6 +4174,33 @@ void AppMgrServiceInner::ScheduleAcceptWantDone(
             appRecord->GetSpecifiedRequestId());
     }
     appRecord->ResetSpecifiedRequestId();
+}
+
+bool AppMgrServiceInner::CheckSpecifiedRequest(const AppExecFwk::AbilityInfo &abilityInfo, int32_t requestId)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "bundleName: %{public}s, requestId: %{public}d", abilityInfo.bundleName.c_str(),
+        requestId);
+    auto checkModule = [requestId](const AppRunningRecord &appRecord) -> bool {
+        auto modules = appRecord.GetAllModuleRecord();
+        for (const auto &item : modules) {
+            if (item && item->HasRequestIdAndRemove(requestId)) {
+                TAG_LOGD(AAFwkTag::APPMGR, "has requestId: %{public}d", requestId);
+                return true;
+            }
+        }
+        return false;
+    };
+
+    auto appRecordMap = appRunningManager_->GetAppRunningRecordMap();
+    for (const auto &[recordId, appRecord] : appRecordMap) {
+        if (appRecord && appRecord->GetBundleName() == abilityInfo.bundleName &&
+            appRecord->GetUid() == abilityInfo.applicationInfo.uid) {
+            if (checkModule(*appRecord)) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 void AppMgrServiceInner::HandleStartSpecifiedAbilityTimeOut(const int64_t eventId)

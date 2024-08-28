@@ -21,6 +21,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <unordered_set>
 #include "cpp/mutex.h"
 #include "iremote_object.h"
 
@@ -164,6 +165,10 @@ public:
 
     bool IsAllAbilityReadyToCleanedByUserRequest();
 
+    void AddSpecifiedRequestId(int32_t requestId);
+    bool HasRequestIdAndRemove(int32_t requestId);
+    bool IsLaunchingSpecified();
+
 private:
     void SendEvent(uint32_t msg, int64_t timeOut, const std::shared_ptr<AbilityRunningRecord> &abilityRecord);
 
@@ -180,6 +185,9 @@ private:
     std::shared_ptr<AMSEventHandler> eventHandler_;
     HapModuleInfo owenInfo_;
     ModuleRecordState owenState_ = ModuleRecordState::UNKNOWN_STATE;
+
+    std::mutex specifiedRequestIdsMutex_;
+    std::unordered_set<int32_t> specifiedRequestIds_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

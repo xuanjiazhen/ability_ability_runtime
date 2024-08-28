@@ -316,6 +316,8 @@ public:
 
     std::shared_ptr<ModuleRunningRecord> GetModuleRecordByModuleName(
         const std::string bundleName, const std::string &moduleName);
+    std::shared_ptr<ModuleRunningRecord> GetModuleRecordByModuleNameInner(
+        const std::string bundleName, const std::string &moduleName);
 
     std::shared_ptr<ModuleRunningRecord> GetModuleRunningRecordByToken(const sptr<IRemoteObject> &token) const;
 
@@ -486,7 +488,8 @@ public:
      * @return
      */
     void AbilityTerminated(const sptr<IRemoteObject> &token);
-
+    void AfterAbilityTerminated(std::shared_ptr<ModuleRunningRecord> moduleRecord, bool needCache,
+        bool isExtensionDebug);
     /**
      * @brief Setting application service internal handler instance.
      *
@@ -844,6 +847,9 @@ public:
     // records whether uiability has launched before.
     void SetUIAbilityLaunched(bool hasLaunched);
     bool HasUIAbilityLaunched();
+    void AddModuleSpecifiedRequestId(const std::string bundleName, const std::string &moduleName,
+        int32_t requestId);
+    bool IsLaunchingSpecified();
 
 private:
     /**

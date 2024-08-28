@@ -464,6 +464,8 @@ public:
 
     bool IsProcessAttached(sptr<IRemoteObject> token) const;
 
+    bool CheckSpecifiedRequest(const AppExecFwk::AbilityInfo &abilityInfo, int32_t requestId);
+
 protected:
     /**
      * OnAbilityRequestDone, app manager service call this interface after ability request done.
