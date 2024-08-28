@@ -403,6 +403,8 @@ void AbilityManagerService::InitPushTask()
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Parse json from boot fail");
     }
     isParamStartAbilityEnable_ = system::GetBoolParameter(PARAM_PREVENT_STARTABILITY, false);
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+    "CheckParamStartAbilityEnable is %{public}s.", PARAM_PREVENT_STARTABILITY);
     taskHandler_->SubmitTask(bootCompletedTask, "BootCompletedTask");
 }
 
