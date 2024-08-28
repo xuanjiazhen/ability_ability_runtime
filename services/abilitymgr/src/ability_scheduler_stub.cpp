@@ -22,6 +22,7 @@
 #include "data_ability_result.h"
 #include "hilog_tag_wrapper.h"
 #include "ishared_result_set.h"
+#include "message_parcel_util.h"
 #include "session_info.h"
 #include "values_bucket.h"
 
@@ -190,7 +191,13 @@ int AbilitySchedulerStub::SendResultInner(MessageParcel &data, MessageParcel &re
 {
     int requestCode = data.ReadInt32();
     int resultCode = data.ReadInt32();
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
         return ERR_INVALID_VALUE;
@@ -201,7 +208,13 @@ int AbilitySchedulerStub::SendResultInner(MessageParcel &data, MessageParcel &re
 
 int AbilitySchedulerStub::ConnectAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
         return ERR_INVALID_VALUE;
@@ -212,7 +225,13 @@ int AbilitySchedulerStub::ConnectAbilityInner(MessageParcel &data, MessageParcel
 
 int AbilitySchedulerStub::DisconnectAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
         return ERR_INVALID_VALUE;
@@ -223,7 +242,13 @@ int AbilitySchedulerStub::DisconnectAbilityInner(MessageParcel &data, MessagePar
 
 int AbilitySchedulerStub::CommandAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
         return ERR_INVALID_VALUE;
@@ -706,7 +731,13 @@ int AbilitySchedulerStub::CallRequestInner(MessageParcel &data, MessageParcel &r
 int AbilitySchedulerStub::OnExecuteIntentInner(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
         return ERR_INVALID_VALUE;
@@ -717,7 +748,13 @@ int AbilitySchedulerStub::OnExecuteIntentInner(MessageParcel &data, MessageParce
 
 int AbilitySchedulerStub::CreateModalUIExtensionInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
         return ERR_INVALID_VALUE;

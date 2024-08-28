@@ -74,6 +74,7 @@ ohos_source_set("appmgr_test_source") {
   }
   deps = [
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_path}/utils/global/message_parcel:message_parcel_util",
     "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
   ]
 
@@ -219,6 +220,7 @@ ohos_source_set("abilityms_test_source") {
     "${ability_runtime_innerkits_path}/connectionobs_manager:connection_obs_manager",
     "${ability_runtime_innerkits_path}/uri_permission:uri_permission_mgr",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
+    "${ability_runtime_path}/utils/global/message_parcel:message_parcel_util",
     "${ability_runtime_path}/utils/server/startup:startup_util",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
     "${ability_runtime_services_path}/common:app_util",
