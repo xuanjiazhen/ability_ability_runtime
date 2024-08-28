@@ -349,7 +349,7 @@ int32_t AppSchedulerHost::HandleScheduleAcceptWant(MessageParcel &data, MessageP
     if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
         TAG_LOGE(AAFwkTag::APPMGR, "read raw data failed");
     }
-    AAFwk::Want *want = rawdata.ReadParcelable<AAFwk::Want>();
+    AAFwk::Want *want = rawData.ReadParcelable<AAFwk::Want>();
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "want is nullptr");
         return ERR_INVALID_VALUE;

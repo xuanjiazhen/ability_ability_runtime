@@ -439,7 +439,7 @@ void AppSchedulerProxy::ScheduleNewProcessRequest(const AAFwk::Want &want, const
     }
 
     MessageParcel rawData;
-    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);  
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
     if (!rawData.WriteParcelable(&want)) {
         return;
     }
