@@ -124,6 +124,7 @@ ohos_shared_library("app_manager") {
   }
   deps = [
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
+    "${ability_runtime_path}/utils/global/message_parcel:message_parcel_util",
     "${ability_runtime_path}/utils/server/startup:startup_util",
   ]
 

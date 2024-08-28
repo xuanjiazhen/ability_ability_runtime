@@ -20,6 +20,7 @@
 #include "ipc_types.h"
 #include "iremote_object.h"
 #include "app_scheduler_const.h"
+#include "message_parcel_util.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -202,8 +203,14 @@ void AppSchedulerProxy::ScheduleLaunchAbility(const AbilityInfo &info, const spt
         }
     }
 
-    if (!data.WriteParcelable(want.get())) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(want.get())) {
         TAG_LOGE(AAFwkTag::APPMGR, "write want fail.");
+        return;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write raw data failed");
         return;
     }
     if (!data.WriteInt32(abilityRecordId)) {

@@ -20,6 +20,7 @@
 #include "hitrace_meter.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_types.h"
+#include "message_parcel_util.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -232,7 +233,13 @@ int32_t AppSchedulerHost::HandleScheduleLaunchAbility(MessageParcel &data, Messa
         token = data.ReadRemoteObject();
     }
 
-    std::shared_ptr<AAFwk::Want> want(data.ReadParcelable<AAFwk::Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "read raw data failed");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+    std::shared_ptr<AAFwk::Want> want(rawData.ReadParcelable<AAFwk::Want>());
     auto abilityRecordId = data.ReadInt32();
     ScheduleLaunchAbility(*abilityInfo, token, want, abilityRecordId);
     return NO_ERROR;
