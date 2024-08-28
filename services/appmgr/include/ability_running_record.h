@@ -17,7 +17,6 @@
 #define OHOS_ABILITY_RUNTIME_ABILITY_RUNNING_RECORD_H
 
 #include <string>
-
 #include "ability_info.h"
 #include "application_info.h"
 #include "app_mgr_constants.h"
