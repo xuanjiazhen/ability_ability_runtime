@@ -19,6 +19,7 @@
 #include "ability_manager_radar.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "message_parcel_util.h"
 #include "status_bar_delegate_interface.h"
 #include <iterator>
 
@@ -932,7 +933,13 @@ int AbilityManagerStub::TerminateAbilityInner(MessageParcel &data, MessageParcel
         token = data.ReadRemoteObject();
     }
     int resultCode = data.ReadInt32();
-    Want *resultWant = data.ReadParcelable<Want>();
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    Want *resultWant = rawData.ReadParcelable<Want>();
     bool flag = data.ReadBool();
     int32_t result;
     if (flag) {
@@ -954,7 +961,13 @@ int AbilityManagerStub::BackToCallerInner(MessageParcel &data, MessageParcel &re
         token = data.ReadRemoteObject();
     }
     int resultCode = data.ReadInt32();
-    Want *resultWant = data.ReadParcelable<Want>();
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    Want *resultWant = rawData.ReadParcelable<Want>();
     int64_t callerRequestCode = data.ReadInt64();
     int32_t result = BackToCallerAbilityWithResult(token, resultCode, resultWant, callerRequestCode);
     reply.WriteInt32(result);
@@ -967,11 +980,17 @@ int AbilityManagerStub::BackToCallerInner(MessageParcel &data, MessageParcel &re
 int AbilityManagerStub::TerminateUIExtensionAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
     sptr<SessionInfo> extensionSessionInfo = nullptr;
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
     if (data.ReadBool()) {
-        extensionSessionInfo = data.ReadParcelable<SessionInfo>();
+        extensionSessionInfo = rawData.ReadParcelable<SessionInfo>();
     }
     int resultCode = data.ReadInt32();
-    Want *resultWant = data.ReadParcelable<Want>();
+    Want *resultWant = rawData.ReadParcelable<Want>();
     int32_t result = TerminateUIExtensionAbility(extensionSessionInfo, resultCode, resultWant);
     reply.WriteInt32(result);
     if (resultWant != nullptr) {
@@ -984,7 +1003,13 @@ int AbilityManagerStub::SendResultToAbilityInner(MessageParcel &data, MessagePar
 {
     int requestCode = data.ReadInt32();
     int resultCode = data.ReadInt32();
-    Want *resultWant = data.ReadParcelable<Want>();
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    Want *resultWant = rawData.ReadParcelable<Want>();
     if (resultWant == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "resultWant is nullptr");
         return ERR_INVALID_VALUE;
@@ -1009,8 +1034,14 @@ int AbilityManagerStub::MinimizeAbilityInner(MessageParcel &data, MessageParcel 
 int AbilityManagerStub::MinimizeUIExtensionAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
     sptr<SessionInfo> extensionSessionInfo = nullptr;
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
     if (data.ReadBool()) {
-        extensionSessionInfo = data.ReadParcelable<SessionInfo>();
+        extensionSessionInfo = rawData.ReadParcelable<SessionInfo>();
     }
     auto fromUser = data.ReadBool();
     int32_t result = MinimizeUIExtensionAbility(extensionSessionInfo, fromUser);
@@ -1021,8 +1052,14 @@ int AbilityManagerStub::MinimizeUIExtensionAbilityInner(MessageParcel &data, Mes
 int AbilityManagerStub::MinimizeUIAbilityBySCBInner(MessageParcel &data, MessageParcel &reply)
 {
     sptr<SessionInfo> sessionInfo = nullptr;
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
     if (data.ReadBool()) {
-        sessionInfo = data.ReadParcelable<SessionInfo>();
+        sessionInfo = rawData.ReadParcelable<SessionInfo>();
     }
     bool fromUser = data.ReadBool();
     uint32_t sceneFlag = data.ReadUint32();
@@ -1105,7 +1142,13 @@ int AbilityManagerStub::ScheduleCommandAbilityDoneInner(MessageParcel &data, Mes
 int AbilityManagerStub::ScheduleCommandAbilityWindowDoneInner(MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> token = data.ReadRemoteObject();
-    sptr<SessionInfo> sessionInfo = data.ReadParcelable<SessionInfo>();
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    sptr<SessionInfo> sessionInfo = rawData.ReadParcelable<SessionInfo>();
     int32_t winCmd = data.ReadInt32();
     int32_t abilityCmd = data.ReadInt32();
     int32_t result = ScheduleCommandAbilityWindowDone(token, sessionInfo,
@@ -1184,7 +1227,13 @@ int32_t AbilityManagerStub::UpgradeAppInner(MessageParcel &data, MessageParcel &
 
 int AbilityManagerStub::StartAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
@@ -1198,7 +1247,13 @@ int AbilityManagerStub::StartAbilityInner(MessageParcel &data, MessageParcel &re
 
 int AbilityManagerStub::StartAbilityInnerSpecifyTokenId(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr.");
         return ERR_INVALID_VALUE;
@@ -1218,7 +1273,13 @@ int AbilityManagerStub::StartAbilityInnerSpecifyTokenId(MessageParcel &data, Mes
 
 int AbilityManagerStub::StartAbilityByUIContentSessionAddCallerInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::unique_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::unique_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
@@ -1235,7 +1296,7 @@ int AbilityManagerStub::StartAbilityByUIContentSessionAddCallerInner(MessageParc
 
     sptr<SessionInfo> sessionInfo = nullptr;
     if (data.ReadBool()) {
-        sessionInfo = data.ReadParcelable<SessionInfo>();
+        sessionInfo = rawData.ReadParcelable<SessionInfo>();
         if (sessionInfo == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionInfo is nullptr");
             return ERR_INVALID_VALUE;
@@ -1251,7 +1312,13 @@ int AbilityManagerStub::StartAbilityByUIContentSessionAddCallerInner(MessageParc
 
 int AbilityManagerStub::StartAbilityByUIContentSessionForOptionsInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::unique_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::unique_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
@@ -1272,7 +1339,7 @@ int AbilityManagerStub::StartAbilityByUIContentSessionForOptionsInner(MessagePar
     }
     sptr<SessionInfo> sessionInfo = nullptr;
     if (data.ReadBool()) {
-        sessionInfo = data.ReadParcelable<SessionInfo>();
+        sessionInfo = rawData.ReadParcelable<SessionInfo>();
         if (sessionInfo == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionInfo is nullptr");
             return ERR_INVALID_VALUE;
@@ -1288,7 +1355,13 @@ int AbilityManagerStub::StartAbilityByUIContentSessionForOptionsInner(MessagePar
 
 int AbilityManagerStub::StartExtensionAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
@@ -1307,7 +1380,13 @@ int AbilityManagerStub::StartExtensionAbilityInner(MessageParcel &data, MessageP
 
 int AbilityManagerStub::RequestModalUIExtensionInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
@@ -1319,7 +1398,13 @@ int AbilityManagerStub::RequestModalUIExtensionInner(MessageParcel &data, Messag
 
 int AbilityManagerStub::PreloadUIExtensionAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr.");
         return ERR_INVALID_VALUE;
@@ -1350,7 +1435,13 @@ int AbilityManagerStub::ChangeAbilityVisibilityInner(MessageParcel &data, Messag
 
 int AbilityManagerStub::ChangeUIAbilityVisibilityBySCBInner(MessageParcel &data, MessageParcel &reply)
 {
-    sptr<SessionInfo> sessionInfo = data.ReadParcelable<SessionInfo>();
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    sptr<SessionInfo> sessionInfo = rawData.ReadParcelable<SessionInfo>();
     if (!sessionInfo) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "read sessionInfo failed.");
         return ERR_NULL_OBJECT;
@@ -1368,8 +1459,14 @@ int AbilityManagerStub::ChangeUIAbilityVisibilityBySCBInner(MessageParcel &data,
 int AbilityManagerStub::StartUIExtensionAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
     sptr<SessionInfo> extensionSessionInfo = nullptr;
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
     if (data.ReadBool()) {
-        extensionSessionInfo = data.ReadParcelable<SessionInfo>();
+        extensionSessionInfo = rawData.ReadParcelable<SessionInfo>();
         if (extensionSessionInfo == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "read extensionSessionInfo failed.");
             return ERR_NULL_OBJECT;
@@ -1388,8 +1485,14 @@ int AbilityManagerStub::StartUIExtensionAbilityInner(MessageParcel &data, Messag
 int AbilityManagerStub::StartUIExtensionAbilityEmbeddedInner(MessageParcel &data, MessageParcel &reply)
 {
     sptr<SessionInfo> extensionSessionInfo = nullptr;
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_INVALID_VALUE;
+    }
     if (data.ReadBool()) {
-        extensionSessionInfo = data.ReadParcelable<SessionInfo>();
+        extensionSessionInfo = rawData.ReadParcelable<SessionInfo>();
         if (extensionSessionInfo == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "read extensionSessionInfo failed.");
             return ERR_NULL_OBJECT;
@@ -1408,8 +1511,14 @@ int AbilityManagerStub::StartUIExtensionAbilityEmbeddedInner(MessageParcel &data
 int AbilityManagerStub::StartUIExtensionConstrainedEmbeddedInner(MessageParcel &data, MessageParcel &reply)
 {
     sptr<SessionInfo> extensionSessionInfo = nullptr;
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_INVALID_VALUE;
+    }
     if (data.ReadBool()) {
-        extensionSessionInfo = data.ReadParcelable<SessionInfo>();
+        extensionSessionInfo = rawData.ReadParcelable<SessionInfo>();
         if (extensionSessionInfo == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "read extensionSessionInfo failed.");
             return ERR_NULL_OBJECT;
@@ -1427,7 +1536,13 @@ int AbilityManagerStub::StartUIExtensionConstrainedEmbeddedInner(MessageParcel &
 
 int AbilityManagerStub::StopExtensionAbilityInner(MessageParcel& data, MessageParcel& reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr.");
         return ERR_INVALID_VALUE;
@@ -1446,7 +1561,13 @@ int AbilityManagerStub::StopExtensionAbilityInner(MessageParcel& data, MessagePa
 
 int AbilityManagerStub::StartAbilityAddCallerInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr.");
         return ERR_INVALID_VALUE;
@@ -1466,7 +1587,13 @@ int AbilityManagerStub::StartAbilityAddCallerInner(MessageParcel &data, MessageP
 
 int AbilityManagerStub::StartAbilityAsCallerByTokenInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr!");
         return ERR_INVALID_VALUE;
@@ -1489,7 +1616,13 @@ int AbilityManagerStub::StartAbilityAsCallerByTokenInner(MessageParcel &data, Me
 
 int AbilityManagerStub::StartAbilityAsCallerForOptionInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
@@ -1518,7 +1651,13 @@ int AbilityManagerStub::StartAbilityAsCallerForOptionInner(MessageParcel &data, 
 
 int AbilityManagerStub::ConnectAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr.");
         return ERR_INVALID_VALUE;
@@ -1539,7 +1678,13 @@ int AbilityManagerStub::ConnectAbilityInner(MessageParcel &data, MessageParcel &
 
 int AbilityManagerStub::ConnectAbilityWithTypeInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s, want is nullptr!", __func__);
         return ERR_INVALID_VALUE;
@@ -1562,7 +1707,13 @@ int AbilityManagerStub::ConnectAbilityWithTypeInner(MessageParcel &data, Message
 
 int AbilityManagerStub::ConnectUIExtensionAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s, want is nullptr", __func__);
         return ERR_INVALID_VALUE;
@@ -1573,7 +1724,7 @@ int AbilityManagerStub::ConnectUIExtensionAbilityInner(MessageParcel &data, Mess
     }
     sptr<SessionInfo> sessionInfo = nullptr;
     if (data.ReadBool()) {
-        sessionInfo = data.ReadParcelable<SessionInfo>();
+        sessionInfo = rawData.ReadParcelable<SessionInfo>();
     }
     int32_t userId = data.ReadInt32();
 
@@ -1606,7 +1757,13 @@ int AbilityManagerStub::DisconnectAbilityInner(MessageParcel &data, MessageParce
 
 int AbilityManagerStub::StopServiceAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
@@ -1661,7 +1818,13 @@ int AbilityManagerStub::DumpStateInner(MessageParcel &data, MessageParcel &reply
 
 int AbilityManagerStub::StartAbilityForSettingsInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
@@ -1685,7 +1848,13 @@ int AbilityManagerStub::StartAbilityForSettingsInner(MessageParcel &data, Messag
 
 int AbilityManagerStub::StartAbilityForOptionsInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr.");
         return ERR_INVALID_VALUE;
@@ -1710,8 +1879,14 @@ int AbilityManagerStub::StartAbilityForOptionsInner(MessageParcel &data, Message
 int AbilityManagerStub::CloseUIAbilityBySCBInner(MessageParcel &data, MessageParcel &reply)
 {
     sptr<SessionInfo> sessionInfo = nullptr;
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
     if (data.ReadBool()) {
-        sessionInfo = data.ReadParcelable<SessionInfo>();
+        sessionInfo = rawData.ReadParcelable<SessionInfo>();
     }
     int32_t result = CloseUIAbilityBySCB(sessionInfo);
     reply.WriteInt32(result);
@@ -1876,8 +2051,13 @@ int AbilityManagerStub::GetPendingRequestWantInner(MessageParcel &data, MessageP
         TAG_LOGE(AAFwkTag::ABILITYMGR, "wantSender is nullptr");
         return ERR_INVALID_VALUE;
     }
-
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     int32_t result = GetPendingRequestWant(wantSender, want);
     if (result != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "GetPendingRequestWant is failed");
@@ -1986,7 +2166,13 @@ int AbilityManagerStub::ContinueAbilityInner(MessageParcel &data, MessageParcel 
 int AbilityManagerStub::StartContinuationInner(MessageParcel &data, MessageParcel &reply)
 {
     AAFWK::ContinueRadar::GetInstance().SaveDataRes("GetContentInfo");
-    std::unique_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::unique_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "StartContinuationInner want readParcelable failed!");
         return ERR_NULL_OBJECT;
@@ -2219,7 +2405,13 @@ int AbilityManagerStub::MoveMissionsToBackgroundInner(MessageParcel &data, Messa
 int AbilityManagerStub::StartAbilityByCallInner(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityManagerStub::StartAbilityByCallInner begin.");
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
@@ -2250,8 +2442,14 @@ int AbilityManagerStub::StartAbilityByCallInner(MessageParcel &data, MessageParc
 int AbilityManagerStub::StartUIAbilityBySCBInner(MessageParcel &data, MessageParcel &reply)
 {
     sptr<SessionInfo> sessionInfo = nullptr;
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
     if (data.ReadBool()) {
-        sessionInfo = data.ReadParcelable<SessionInfo>();
+        sessionInfo = rawData.ReadParcelable<SessionInfo>();
     }
     uint32_t sceneFlag = data.ReadUint32();
     bool isColdStart = false;
@@ -2545,7 +2743,13 @@ int AbilityManagerStub::IsRunningInStabilityTestInner(MessageParcel &data, Messa
 
 int AbilityManagerStub::StartUserTestInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::unique_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::unique_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
@@ -2681,7 +2885,13 @@ int AbilityManagerStub::ForceTimeoutForTestInner(MessageParcel &data, MessagePar
 
 int AbilityManagerStub::FreeInstallAbilityFromRemoteInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::unique_ptr<AAFwk::Want> want(data.ReadParcelable<AAFwk::Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::unique_ptr<AAFwk::Want> want(rawData.ReadParcelable<AAFwk::Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
@@ -2789,7 +2999,13 @@ int AbilityManagerStub::SubmitSaveRecoveryInfoInner(MessageParcel &data, Message
 
 int AbilityManagerStub::HandleRequestDialogService(MessageParcel &data, MessageParcel &reply)
 {
-    std::unique_ptr<AAFwk::Want> want(data.ReadParcelable<AAFwk::Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::unique_ptr<AAFwk::Want> want(rawData.ReadParcelable<AAFwk::Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
@@ -2886,7 +3102,13 @@ int AbilityManagerStub::ScheduleRecoverAbilityInner(MessageParcel &data, Message
     }
 
     int reason = data.ReadInt32();
-    Want *want = data.ReadParcelable<Want>();
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    Want *want = rawData.ReadParcelable<Want>();
     ScheduleRecoverAbility(token, reason, want);
     if (want != nullptr) {
         delete want;
@@ -3098,7 +3320,13 @@ int AbilityManagerStub::GetDialogSessionInfoInner(MessageParcel &data, MessagePa
 int AbilityManagerStub::SendDialogResultInner(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
-    std::unique_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::unique_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
@@ -3250,8 +3478,14 @@ int AbilityManagerStub::CallUIAbilityBySCBInner(MessageParcel &data, MessageParc
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call.");
     sptr<SessionInfo> sessionInfo = nullptr;
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
     if (data.ReadBool()) {
-        sessionInfo = data.ReadParcelable<SessionInfo>();
+        sessionInfo = rawData.ReadParcelable<SessionInfo>();
     }
     bool isColdStart = false;
     CallUIAbilityBySCB(sessionInfo, isColdStart);
@@ -3262,7 +3496,13 @@ int AbilityManagerStub::CallUIAbilityBySCBInner(MessageParcel &data, MessageParc
 int32_t AbilityManagerStub::StartSpecifiedAbilityBySCBInner(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call.");
-    std::unique_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::unique_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
@@ -3273,7 +3513,13 @@ int32_t AbilityManagerStub::StartSpecifiedAbilityBySCBInner(MessageParcel &data,
 
 int AbilityManagerStub::NotifySaveAsResultInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::unique_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::unique_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (!want) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
@@ -3321,8 +3567,14 @@ int AbilityManagerStub::PrepareTerminateAbilityBySCBInner(MessageParcel &data, M
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call.");
     sptr<SessionInfo> sessionInfo = nullptr;
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
     if (data.ReadBool()) {
-        sessionInfo = data.ReadParcelable<SessionInfo>();
+        sessionInfo = rawData.ReadParcelable<SessionInfo>();
     }
     bool isPrepareTerminate = false;
     auto result = PrepareTerminateAbilityBySCB(sessionInfo, isPrepareTerminate);
@@ -3510,7 +3762,13 @@ int32_t AbilityManagerStub::DetachAppDebugInner(MessageParcel &data, MessageParc
 
 int32_t AbilityManagerStub::IsAbilityControllerStartInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::unique_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::unique_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
         return true;
@@ -3544,7 +3802,13 @@ int32_t AbilityManagerStub::ExecuteIntentInner(MessageParcel &data, MessageParce
 int AbilityManagerStub::StartAbilityForResultAsCallerInner(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
-    std::unique_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::unique_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "The want is nullptr.");
         return ERR_INVALID_VALUE;
@@ -3563,7 +3827,13 @@ int AbilityManagerStub::StartAbilityForResultAsCallerInner(MessageParcel &data, 
 int AbilityManagerStub::StartAbilityForResultAsCallerForOptionsInner(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
-    std::unique_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::unique_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "The want is nullptr.");
         return ERR_INVALID_VALUE;
@@ -3586,7 +3856,13 @@ int AbilityManagerStub::StartAbilityForResultAsCallerForOptionsInner(MessageParc
 
 int32_t AbilityManagerStub::StartAbilityOnlyUIAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::unique_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::unique_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
@@ -3606,7 +3882,13 @@ int32_t AbilityManagerStub::StartAbilityOnlyUIAbilityInner(MessageParcel &data, 
 
 int32_t AbilityManagerStub::StartAbilityByInsightIntentInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::unique_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::unique_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
@@ -3753,8 +4035,14 @@ int32_t AbilityManagerStub::UpdateSessionInfoBySCBInner(MessageParcel &data, Mes
         return ERR_ENOUGH_DATA;
     }
     std::list<SessionInfo> sessionInfos;
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
     for (auto i = 0; i < size; i++) {
-        std::unique_ptr<SessionInfo> info(data.ReadParcelable<SessionInfo>());
+        std::unique_ptr<SessionInfo> info(rawData.ReadParcelable<SessionInfo>());
         if (info == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "Read session info failed.");
             return ERR_NATIVE_IPC_PARCEL_FAILED;
@@ -3836,7 +4124,13 @@ int32_t AbilityManagerStub::GetUIExtensionSessionInfoInner(MessageParcel &data, 
 int32_t AbilityManagerStub::RestartAppInner(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call.");
-    std::unique_ptr<AAFwk::Want> want(data.ReadParcelable<AAFwk::Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::unique_ptr<AAFwk::Want> want(rawData.ReadParcelable<AAFwk::Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
         return IPC_STUB_ERR;
@@ -3852,7 +4146,13 @@ int32_t AbilityManagerStub::RestartAppInner(MessageParcel &data, MessageParcel &
 
 int32_t AbilityManagerStub::OpenAtomicServiceInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::unique_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::unique_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
@@ -3916,7 +4216,13 @@ int32_t AbilityManagerStub::IsEmbeddedOpenAllowedInner(MessageParcel &data, Mess
 
 int32_t AbilityManagerStub::StartShortcutInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
@@ -3952,7 +4258,13 @@ int32_t AbilityManagerStub::TransferAbilityResultForExtensionInner(MessageParcel
 {
     sptr<IRemoteObject> callerToken = data.ReadRemoteObject();
     int32_t resultCode = data.ReadInt32();
-    sptr<Want> want = data.ReadParcelable<Want>();
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    sptr<Want> want = rawData.ReadParcelable<Want>();
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
@@ -3985,8 +4297,14 @@ int32_t AbilityManagerStub::PreStartMissionInner(MessageParcel &data, MessagePar
 int32_t AbilityManagerStub::CleanUIAbilityBySCBInner(MessageParcel &data, MessageParcel &reply)
 {
     sptr<SessionInfo> sessionInfo = nullptr;
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
     if (data.ReadBool()) {
-        sessionInfo = data.ReadParcelable<SessionInfo>();
+        sessionInfo = rawData.ReadParcelable<SessionInfo>();
     }
     int32_t result = CleanUIAbilityBySCB(sessionInfo);
     reply.WriteInt32(result);
@@ -3995,7 +4313,13 @@ int32_t AbilityManagerStub::CleanUIAbilityBySCBInner(MessageParcel &data, Messag
 
 int32_t AbilityManagerStub::OpenLinkInner(MessageParcel &data, MessageParcel &reply)
 {
-    sptr<Want> want = data.ReadParcelable<Want>();
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    sptr<Want> want = rawData.ReadParcelable<Want>();
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr.");
         return ERR_INVALID_VALUE;
