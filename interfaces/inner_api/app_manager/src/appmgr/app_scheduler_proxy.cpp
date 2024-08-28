@@ -15,11 +15,12 @@
 
 #include "app_scheduler_proxy.h"
 
+#include "app_scheduler_const.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "ipc_types.h"
 #include "iremote_object.h"
-#include "app_scheduler_const.h"
+#include "message_parcel_util.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -185,11 +186,11 @@ void AppSchedulerProxy::ScheduleLaunchAbility(const AbilityInfo &info, const spt
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
+
     if (!WriteInterfaceToken(data)) {
         return;
     }
     data.WriteParcelable(&info);
-
     if (token) {
         if (!data.WriteBool(true) || !data.WriteRemoteObject(token.GetRefPtr())) {
             TAG_LOGE(AAFwkTag::APPMGR, "Failed to write flag and token");
@@ -201,15 +202,22 @@ void AppSchedulerProxy::ScheduleLaunchAbility(const AbilityInfo &info, const spt
             return;
         }
     }
-
-    if (!data.WriteParcelable(want.get())) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write want fail.");
-        return;
-    }
     if (!data.WriteInt32(abilityRecordId)) {
         TAG_LOGE(AAFwkTag::APPMGR, "write ability record id fail.");
         return;
     }
+
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(want.get())) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write want fail.");
+        return;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write raw data failed");
+        return;
+    }
+
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_LAUNCH_ABILITY_TRANSACTION), data, reply, option);
     if (ret != NO_ERROR) {
@@ -398,7 +406,17 @@ void AppSchedulerProxy::ScheduleAcceptWant(const AAFwk::Want &want, const std::s
         return;
     }
 
-    if (!data.WriteParcelable(&want) || !data.WriteString(moduleName)) {
+    if (!data.WriteString(moduleName)) {
+        return;
+    }
+
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
+        return;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write raw data failed");
         return;
     }
     int32_t ret = SendTransactCmd(
@@ -416,10 +434,20 @@ void AppSchedulerProxy::ScheduleNewProcessRequest(const AAFwk::Want &want, const
     if (!WriteInterfaceToken(data)) {
         return;
     }
-
-    if (!data.WriteParcelable(&want) || !data.WriteString(moduleName)) {
+    if (!data.WriteString(moduleName)) {
         return;
     }
+
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
+        return;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write raw data failed");
+        return;
+    }
+
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "Remote() is NULL");
