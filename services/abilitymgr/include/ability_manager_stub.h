@@ -220,11 +220,6 @@ private:
     int FreeInstallAbilityFromRemoteInner(MessageParcel &data, MessageParcel &reply);
     int AddFreeInstallObserverInner(MessageParcel &data, MessageParcel &reply);
 
-    #ifdef ABILITY_COMMAND_FOR_TEST
-    int BlockAmsServiceInner(MessageParcel &data, MessageParcel &reply);
-    int BlockAbilityInner(MessageParcel &data, MessageParcel &reply);
-    int BlockAppServiceInner(MessageParcel &data, MessageParcel &reply);
-    #endif
     int EnableRecoverAbilityInner(MessageParcel &data, MessageParcel &reply);
     int SubmitSaveRecoveryInfoInner(MessageParcel &data, MessageParcel &reply);
     int ScheduleRecoverAbilityInner(MessageParcel &data, MessageParcel &reply);
@@ -289,14 +284,16 @@ private:
     int StartAbilityForResultAsCallerInner(MessageParcel &data, MessageParcel &reply);
     int StartAbilityForResultAsCallerForOptionsInner(MessageParcel &data, MessageParcel &reply);
 
+    int32_t StartAbilityOnlyUIAbilityInner(MessageParcel &data, MessageParcel &reply);
+
     //insight intent related
     int32_t StartAbilityByInsightIntentInner(MessageParcel &data, MessageParcel &reply);
     int32_t ExecuteInsightIntentDoneInner(MessageParcel &data, MessageParcel &reply);
     int32_t GetForegroundUIAbilitiesInner(MessageParcel &data, MessageParcel &reply);
+    int32_t RestartAppInner(MessageParcel &data, MessageParcel &reply);
 
     int32_t GetUIExtensionRootHostInfoInner(MessageParcel &data, MessageParcel &reply);
     int32_t GetUIExtensionSessionInfoInner(MessageParcel &data, MessageParcel &reply);
-    int32_t RestartAppInner(MessageParcel &data, MessageParcel &reply);
     int32_t RequestAssertFaultDialogInner(MessageParcel &data, MessageParcel &reply);
     int32_t NotifyDebugAssertResultInner(MessageParcel &data, MessageParcel &reply);
     int32_t StartShortcutInner(MessageParcel &data, MessageParcel &reply);

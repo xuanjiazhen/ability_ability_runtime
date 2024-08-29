@@ -21,6 +21,7 @@
 #include <list>
 #include <memory>
 #include <vector>
+#include <set>
 #include <utility>
 #include "cpp/mutex.h"
 #include "cpp/condition_variable.h"
@@ -160,6 +161,7 @@ public:
     int32_t callerTokenId = 0;
     int32_t callerUid = 0;
     int32_t callerPid = 0;
+    std::string callerNativeName;
 };
 
 /**
@@ -194,38 +196,23 @@ public:
     }
     bool IsHistoryRequestCode(int32_t requestCode)
     {
-        for (auto it = requestCodeList_.begin(); it != requestCodeList_.end(); it++) {
-            if (requestCode == *it) {
-                return true;
-            }
-        }
-        return false;
+        return requestCodeSet_.count(requestCode) > 0;
     }
     void RemoveHistoryRequestCode(int32_t requestCode)
     {
-        for (auto it = requestCodeList_.begin(); it != requestCodeList_.end(); it++) {
-            if (requestCode == *it) {
-                requestCodeList_.erase(it);
-                return;
-            }
-        }
+        requestCodeSet_.erase(requestCode);
     }
     void AddHistoryRequestCode(int32_t requestCode)
     {
-        if (IsHistoryRequestCode(requestCode)) {
-            return;
-        }
-        requestCodeList_.emplace_back(requestCode);
+        requestCodeSet_.insert(requestCode);
     }
-
-    void SetRequestCodeList(std::list<int32_t> requestCodeList)
+    void SetRequestCodeSet(const std::set<int32_t> &requestCodeSet)
     {
-        requestCodeList_ = requestCodeList;
+        requestCodeSet_ = requestCodeSet;
     }
-
-    std::list<int32_t> GetRequestCodeList()
+    std::set<int32_t> GetRequestCodeSet()
     {
-        return requestCodeList_;
+        return requestCodeSet_;
     }
 
 private:
@@ -233,7 +220,7 @@ private:
     std::weak_ptr<AbilityRecord> caller_;
     std::shared_ptr<SystemAbilityCallerRecord> saCaller_ = nullptr;
     std::shared_ptr<CallerAbilityInfo> callerInfo_ = nullptr;
-    std::list<int32_t> requestCodeList_;
+    std::set<int32_t> requestCodeSet_;
 };
 
 /**
@@ -363,6 +350,18 @@ enum class AbilityVisibilityState {
     UNSPECIFIED,
 };
 
+struct LaunchDebugInfo {
+public:
+    void Update(const Want &want);
+
+    bool isDebugAppSet = false;
+    bool isNativeDebugSet = false;
+    bool isPerfCmdSet = false;
+    bool debugApp = false;
+    bool nativeDebug = false;
+    std::string perfCmd;
+};
+
 /**
  * @class AbilityRecord
  * AbilityRecord records ability info and states and used to schedule ability life.
@@ -407,7 +406,7 @@ public:
      *
      */
     void ForegroundAbility(uint32_t sceneFlag = 0);
-    void ForegroundAbility(const Closure &task, uint32_t sceneFlag = 0);
+    void ForegroundUIExtensionAbility(uint32_t sceneFlag = 0);
 
     /**
      * process request of foregrounding the ability.
@@ -420,6 +419,8 @@ public:
      *
      */
     void PostForegroundTimeoutTask();
+
+    void PostUIExtensionAbilityTimeoutTask(uint32_t messageId);
 
     /**
      * move the ability to back ground.
@@ -720,6 +721,12 @@ public:
     Want GetWant() const;
 
     /**
+     * remove signature info of want.
+     *
+     */
+    void RemoveSignatureInfo();
+
+    /**
      * remove specified wantParam for start ability.
      *
      */
@@ -823,8 +830,8 @@ public:
      * add caller record
      *
      */
-    void AddCallerRecord(const sptr<IRemoteObject> &callerToken, int requestCode, std::string srcAbilityId = "",
-        uint32_t callingTokenId = 0);
+    void AddCallerRecord(const sptr<IRemoteObject> &callerToken, int requestCode, const Want &want,
+        std::string srcAbilityId = "", uint32_t callingTokenId = 0);
 
     /**
      * get caller record to list.
@@ -995,9 +1002,6 @@ public:
     void SetWindowMode(int32_t windowMode);
     void RemoveWindowMode();
     LifeCycleStateInfo lifeCycleStateInfo_;                // target life state info
-    #ifdef ABILITY_COMMAND_FOR_TEST
-    int BlockAbility();
-    #endif
 
     bool CanRestartRootLauncher();
 
@@ -1076,7 +1080,7 @@ public:
     void RemoveConnectWant();
 
 protected:
-    void SendEvent(uint32_t msg, uint32_t timeOut, int32_t param = -1);
+    void SendEvent(uint32_t msg, uint32_t timeOut, int32_t param = -1, bool isExtension = false);
 
     sptr<Token> token_ = {};                               // used to interact with kit and wms
     std::unique_ptr<LifecycleDeal> lifecycleDeal_ = {};    // life manager used to schedule life
@@ -1103,6 +1107,8 @@ private:
         std::string srcAbilityId);
 
     bool IsSystemAbilityCall(const sptr<IRemoteObject> &callerToken, uint32_t callingTokenId = 0);
+
+    void RecordSaCallerInfo(const Want &want);
 
 #ifdef WITH_DLP
     void HandleDlpAttached();
@@ -1295,7 +1301,10 @@ private:
     uint32_t specifyTokenId_ = 0;
 
     std::shared_ptr<Want> connectWant_ = nullptr;
+    std::shared_ptr<CallerAbilityInfo> saCallerInfo_ = nullptr;
     ffrt::mutex connectWantLock_;
+    bool isLaunching_ = true;
+    LaunchDebugInfo launchDebugInfo_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

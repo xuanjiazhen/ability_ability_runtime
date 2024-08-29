@@ -42,6 +42,9 @@
 #include "app_jsheap_mem_info.h"
 
 namespace OHOS {
+namespace AbilityRuntime {
+struct LoadParam;
+}
 namespace AppExecFwk {
 class AppServiceManager;
 class Configuration;
@@ -54,16 +57,14 @@ public:
     /**
      * Load ability.
      *
-     * @param token Ability identify.
-     * @param preToken Ability identify of caller.
      * @param abilityInfo Ability information.
      * @param appInfo Application information.
      * @param want Want.
+     * @param loadParam load ability param.
      * @return Returns RESULT_OK on success, others on failure.
      */
-    virtual AppMgrResultCode LoadAbility(sptr<IRemoteObject> token, sptr<IRemoteObject> preToken,
-        const AbilityInfo &abilityInfo, const ApplicationInfo &appInfo, const AAFwk::Want &want,
-        int32_t abilityRecordId);
+    virtual AppMgrResultCode LoadAbility(const AbilityInfo &abilityInfo, const ApplicationInfo &appInfo,
+        const AAFwk::Want &want, AbilityRuntime::LoadParam loadParam);
 
     /**
      * Terminate ability.
@@ -160,7 +161,7 @@ public:
      * @param  bundleName, bundle name in Application record.
      * @return ERR_OK, return back success, others fail.
      */
-    virtual AppMgrResultCode KillApplication(const std::string &bundleName, const bool clearpagestack = false);
+    virtual AppMgrResultCode KillApplication(const std::string &bundleName, const bool clearPageStack = false);
 
     /**
      * ForceKillApplication, call ForceKillApplication() through proxy object, force kill the application.
@@ -196,7 +197,7 @@ public:
      *
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual AppMgrResultCode KillApplicationSelf(const bool clearpagestack = false);
+    virtual AppMgrResultCode KillApplicationSelf(const bool clearPageStack = false);
 
     /**
      * ClearUpApplicationData, call ClearUpApplicationData() through proxy project,
@@ -255,6 +256,15 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual AppMgrResultCode GetAllRenderProcesses(std::vector<RenderProcessInfo> &info);
+
+    /**
+     * GetAllChildrenProcesses, call GetAllChildrenProcesses() through proxy project.
+     * Obtains information about children processes that are running on the device.
+     *
+     * @param info, child process info.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual AppMgrResultCode GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info);
 
     /**
      * NotifyMemoryLevel, call NotifyMemoryLevel() through proxy project.
@@ -350,7 +360,7 @@ public:
      * @param config System environment change parameters.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual AppMgrResultCode UpdateConfiguration(const Configuration &config);
+    virtual AppMgrResultCode UpdateConfiguration(const Configuration &config, const int32_t userId = -1);
 
     /**
      *  Update config by bundle name.
@@ -376,15 +386,6 @@ public:
      * @return Returns RESULT_OK on success, others on failure.
      */
     virtual AppMgrResultCode UnregisterConfigurationObserver(const sptr<IConfigurationObserver> &observer);
-
-    #ifdef ABILITY_COMMAND_FOR_TEST
-    /**
-     * Block app service.
-     *
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    virtual int BlockAppService();
-    #endif
 
     /**
      * Start a user test
@@ -817,6 +818,10 @@ public:
      * @return Returns true is only UIAbility, otherwise return false
      */
     bool IsProcessContainsOnlyUIAbility(const pid_t pid);
+
+    bool IsProcessAttached(sptr<IRemoteObject> token) const;
+
+    bool IsAppKilling(sptr<IRemoteObject> token) const;
 
 private:
     void SetServiceManager(std::unique_ptr<AppServiceManager> serviceMgr);

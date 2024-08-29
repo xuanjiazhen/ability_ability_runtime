@@ -54,9 +54,6 @@ constexpr const int BASE_TEN = 10;
 constexpr const char SIGN_TERMINAL = '\0';
 namespace {
 using namespace std::chrono_literals;
-#ifdef ABILITY_COMMAND_FOR_TEST
-static const int APP_MS_BLOCK = 65;
-#endif
 constexpr const char* TASK_INIT_APPMGRSERVICEINNER = "InitAppMgrServiceInnerTask";
 constexpr const char* TASK_ATTACH_APPLICATION = "AttachApplicationTask";
 constexpr const char* TASK_APPLICATION_FOREGROUNDED = "ApplicationForegroundedTask";
@@ -415,6 +412,14 @@ int32_t AppMgrService::GetAllRenderProcesses(std::vector<RenderProcessInfo> &inf
         return ERR_INVALID_OPERATION;
     }
     return appMgrServiceInner_->GetAllRenderProcesses(info);
+}
+
+int AppMgrService::GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info)
+{
+    if (!IsReady()) {
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->GetAllChildrenProcesses(info);
 }
 
 int32_t AppMgrService::JudgeSandboxByPid(pid_t pid, bool &isSandbox)
@@ -997,14 +1002,14 @@ int32_t AppMgrService::GetConfiguration(Configuration& config)
     return ERR_OK;
 }
 
-int32_t AppMgrService::UpdateConfiguration(const Configuration& config)
+int32_t AppMgrService::UpdateConfiguration(const Configuration& config, const int32_t userId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "UpdateConfiguration failed, AppMgrService not ready.");
         return ERR_INVALID_OPERATION;
     }
-    return appMgrServiceInner_->UpdateConfiguration(config);
+    return appMgrServiceInner_->UpdateConfiguration(config, userId);
 }
 
 int32_t AppMgrService::UpdateConfigurationByBundleName(const Configuration& config, const std::string &name)
@@ -1033,24 +1038,6 @@ int32_t AppMgrService::UnregisterConfigurationObserver(const sptr<IConfiguration
     }
     return appMgrServiceInner_->UnregisterConfigurationObserver(observer);
 }
-
-#ifdef ABILITY_COMMAND_FOR_TEST
-int AppMgrService::BlockAppService()
-{
-    TAG_LOGD(AAFwkTag::APPMGR, "begin");
-    if (!IsReady()) {
-        return ERR_INVALID_OPERATION;
-    }
-    auto task = [=]() {
-        while (1) {
-            TAG_LOGD(AAFwkTag::APPMGR, "begin block app service");
-            std::this_thread::sleep_for(APP_MS_BLOCK*1s);
-        }
-    };
-    taskHandler_->SubmitTask(task);
-    return ERR_OK;
-}
-#endif
 
 bool AppMgrService::GetAppRunningStateByBundleName(const std::string &bundleName)
 {
@@ -1084,7 +1071,7 @@ int32_t AppMgrService::NotifyHotReloadPage(const std::string &bundleName, const 
 int32_t AppMgrService::SetContinuousTaskProcess(int32_t pid, bool isContinuousTask)
 {
     if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller is not foundation.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller not foundation");
         return ERR_INVALID_OPERATION;
     }
     if (!IsReady()) {
@@ -1597,6 +1584,27 @@ void AppMgrService::RestartResidentProcessDependedOnWeb()
         return;
     }
     appMgrServiceInner_->RestartResidentProcessDependedOnWeb();
+}
+
+int32_t AppMgrService::GetSupportedProcessCachePids(const std::string &bundleName,
+    std::vector<int32_t> &pidList)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AppMgrService is not ready.");
+        return ERR_INVALID_OPERATION;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "The caller is not system-app, can not use system-api");
+        return AAFwk::ERR_NOT_SYSTEM_APP;
+    }
+    auto isPerm = AAFwk::PermissionVerification::GetInstance()->VerifyRunningInfoPerm();
+    if (!isPerm) {
+        return AAFwk::CHECK_PERMISSION_FAILED;
+    }
+    if (!DelayedSingleton<CacheProcessManager>::GetInstance()->QueryEnableProcessCache()) {
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    return appMgrServiceInner_->GetSupportedProcessCachePids(bundleName, pidList);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -113,6 +113,9 @@ int AbilityManagerStub::OnRemoteRequestInnerSecond(uint32_t code, MessageParcel 
     if (interfaceCode == AbilityManagerInterfaceCode::START_UI_SESSION_ABILITY_FOR_OPTIONS) {
         return StartAbilityByUIContentSessionForOptionsInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::START_ABILITY_ONLY_UI_ABILITY) {
+        return StartAbilityOnlyUIAbilityInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -439,17 +442,6 @@ int AbilityManagerStub::OnRemoteRequestInnerEleventh(uint32_t code, MessageParce
     if (interfaceCode == AbilityManagerInterfaceCode::REGISTER_SESSION_HANDLER) {
         return RegisterSessionHandlerInner(data, reply);
     }
-#ifdef ABILITY_COMMAND_FOR_TEST
-    if (interfaceCode == AbilityManagerInterfaceCode::BLOCK_ABILITY) {
-        return BlockAbilityInner(data, reply);
-    }
-    if (interfaceCode == AbilityManagerInterfaceCode::BLOCK_AMS_SERVICE) {
-        return BlockAmsServiceInner(data, reply);
-    }
-    if (interfaceCode == AbilityManagerInterfaceCode::BLOCK_APP_SERVICE) {
-        return BlockAppServiceInner(data, reply);
-    }
-#endif
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -2685,37 +2677,6 @@ int AbilityManagerStub::ForceTimeoutForTestInner(MessageParcel &data, MessagePar
     }
     return NO_ERROR;
 }
-
-int AbilityManagerStub::BlockAbilityInner(MessageParcel &data, MessageParcel &reply)
-{
-    int32_t abilityRecordId = data.ReadInt32();
-    int32_t result = BlockAbility(abilityRecordId);
-    if (!reply.WriteInt32(result)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write failed.");
-        return ERR_INVALID_VALUE;
-    }
-    return NO_ERROR;
-}
-
-int AbilityManagerStub::BlockAmsServiceInner(MessageParcel &data, MessageParcel &reply)
-{
-    int32_t result = BlockAmsService();
-    if (!reply.WriteInt32(result)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write failed.");
-        return ERR_INVALID_VALUE;
-    }
-    return NO_ERROR;
-}
-
-int AbilityManagerStub::BlockAppServiceInner(MessageParcel &data, MessageParcel &reply)
-{
-    int32_t result = BlockAppService();
-    if (!reply.WriteInt32(result)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write failed.");
-        return ERR_INVALID_VALUE;
-    }
-    return NO_ERROR;
-}
 #endif
 
 int AbilityManagerStub::FreeInstallAbilityFromRemoteInner(MessageParcel &data, MessageParcel &reply)
@@ -3619,6 +3580,26 @@ int AbilityManagerStub::StartAbilityForResultAsCallerForOptionsInner(MessageParc
     int32_t requestCode = data.ReadInt32();
     int32_t userId = data.ReadInt32();
     int32_t result = StartAbilityForResultAsCaller(*want, *startOptions, callerToken, requestCode, userId);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::StartAbilityOnlyUIAbilityInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::unique_ptr<Want> want(data.ReadParcelable<Want>());
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+
+    sptr<IRemoteObject> callerToken = nullptr;
+    if (!data.ReadBool()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid caller token");
+        return ERR_INVALID_VALUE;
+    }
+    callerToken = data.ReadRemoteObject();
+    uint32_t specifyTokenId = data.ReadUint32();
+    int32_t result = StartAbilityOnlyUIAbility(*want, callerToken, specifyTokenId);
     reply.WriteInt32(result);
     return NO_ERROR;
 }

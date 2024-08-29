@@ -1091,7 +1091,7 @@ void AbilitySchedulerProxy::DumpAbilityInfo(const std::vector<std::string> &para
 
 void AbilitySchedulerProxy::CallRequest()
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilitySchedulerProxy::CallRequest start");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "start");
 
     MessageParcel data;
     MessageParcel reply;
@@ -1107,7 +1107,7 @@ void AbilitySchedulerProxy::CallRequest()
         return;
     }
 
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilitySchedulerProxy::CallRequest end");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "end");
 }
 
 void AbilitySchedulerProxy::OnExecuteIntent(const Want &want)
@@ -1169,31 +1169,6 @@ void AbilitySchedulerProxy::UpdateSessionToken(sptr<IRemoteObject> sessionToken)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Fail to SendRequest. err: %{public}d", err);
     }
 }
-
-#ifdef ABILITY_COMMAND_FOR_TEST
-int AbilitySchedulerProxy::BlockAbility()
-{
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilitySchedulerProxy::BlockAbility start");
-    int ret = -1;
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
-    if (!WriteInterfaceToken(data)) {
-        return ret;
-    }
-    int32_t err = SendTransactCmd(IAbilityScheduler::BLOCK_ABILITY_INNER, data, reply, option);
-    if (err != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "BlockAbility fail to SendRequest. err: %d", err);
-        return ret;
-    }
-    if (!reply.ReadInt32(ret)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "fail to ReadInt32 ret");
-        return ret;
-    }
-    return ret;
-}
-#endif
 
 int32_t AbilitySchedulerProxy::SendTransactCmd(uint32_t code, MessageParcel &data,
     MessageParcel &reply, MessageOption &option)

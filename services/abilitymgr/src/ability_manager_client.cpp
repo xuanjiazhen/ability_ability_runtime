@@ -269,6 +269,18 @@ ErrCode AbilityManagerClient::StartAbilityByUIContentSession(const Want &want, s
     return abms->StartAbilityByUIContentSession(want, callerToken, sessionInfo, userId, requestCode);
 }
 
+ErrCode AbilityManagerClient::StartAbilityOnlyUIAbility(const Want &want, sptr<IRemoteObject> callerToken,
+    uint32_t specifyTokenId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ability:%{public}s",
+        want.GetElement().GetAbilityName().c_str());
+    HandleDlpApp(const_cast<Want &>(want));
+    return abms->StartAbilityOnlyUIAbility(want, callerToken, specifyTokenId);
+}
+
 ErrCode AbilityManagerClient::SendResultToAbility(int requestCode, int resultCode, Want& resultWant)
 {
     auto abms = GetAbilityManager();
@@ -332,7 +344,7 @@ ErrCode AbilityManagerClient::StartUIExtensionAbility(sptr<SessionInfo> extensio
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     CHECK_POINTER_RETURN_INVALID_VALUE(extensionSessionInfo);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "name: %{public}s %{public}s, persistentId: %{public}d, userId: %{public}d.",
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "name:%{public}s %{public}s, persistentId:%{public}d, userId:%{public}d",
         extensionSessionInfo->want.GetElement().GetAbilityName().c_str(),
         extensionSessionInfo->want.GetElement().GetBundleName().c_str(), extensionSessionInfo->persistentId, userId);
     return abms->StartUIExtensionAbility(extensionSessionInfo, userId);
@@ -496,6 +508,18 @@ ErrCode AbilityManagerClient::ConnectAbility(
     TAG_LOGI(AAFwkTag::ABILITYMGR, "name:%{public}s %{public}s, userId:%{public}d",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), userId);
     return abms->ConnectAbilityCommon(want, connect, callerToken, AppExecFwk::ExtensionAbilityType::SERVICE, userId);
+}
+
+ErrCode AbilityManagerClient::ConnectUIServiceExtesnionAbility(
+    const Want &want, sptr<IAbilityConnection> connect, sptr<IRemoteObject> callerToken, int32_t userId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "name:%{public}s %{public}s, userId:%{public}d",
+        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), userId);
+    return abms->ConnectAbilityCommon(want, connect, callerToken,
+        AppExecFwk::ExtensionAbilityType::UI_SERVICE, userId);
 }
 
 ErrCode AbilityManagerClient::ConnectDataShareExtensionAbility(const Want &want,
@@ -1394,6 +1418,7 @@ void AbilityManagerClient::EnableRecoverAbility(sptr<IRemoteObject> token)
 
 void AbilityManagerClient::ScheduleRecoverAbility(sptr<IRemoteObject> token, int32_t reason, const Want *want)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN(abms);
     return abms->ScheduleRecoverAbility(token, reason, want);
@@ -1412,32 +1437,6 @@ void AbilityManagerClient::ScheduleClearRecoveryPageStack()
     CHECK_POINTER_RETURN(abms);
     return abms->ScheduleClearRecoveryPageStack();
 }
-
-#ifdef ABILITY_COMMAND_FOR_TEST
-ErrCode AbilityManagerClient::BlockAmsService()
-{
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "enter");
-    auto abms = GetAbilityManager();
-    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    return abms->BlockAmsService();
-}
-
-ErrCode AbilityManagerClient::BlockAbility(int32_t abilityRecordId)
-{
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "enter");
-    auto abms = GetAbilityManager();
-    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    return abms->BlockAbility(abilityRecordId);
-}
-
-ErrCode AbilityManagerClient::BlockAppService()
-{
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "enter");
-    auto abms = GetAbilityManager();
-    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    return abms->BlockAppService();
-}
-#endif
 
 sptr<IAbilityManager> AbilityManagerClient::GetAbilityManager()
 {

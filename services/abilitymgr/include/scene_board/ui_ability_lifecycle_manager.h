@@ -140,8 +140,8 @@ public:
      */
     std::shared_ptr<AbilityRecord> GetUIAbilityRecordBySessionInfo(const sptr<SessionInfo> &sessionInfo);
 
-    int BackToCallerAbilityWithResult(sptr<SessionInfo> currentSessionInfo,
-        std::shared_ptr<AbilityRecord> abilityRecord);
+    int32_t BackToCallerAbilityWithResult(std::shared_ptr<AbilityRecord> abilityRecord,
+        int resultCode, const Want *resultWant, int64_t callerRequestCode);
 
     /**
      * CloseUIAbility, close the special ability by scb.
@@ -166,6 +166,8 @@ public:
 
     int NotifySCBToPreStartUIAbility(const AbilityRequest &abilityRequest,
         sptr<SessionInfo> &sessionInfo);
+
+    int32_t NotifySCBToRecoveryAfterInterception(const AbilityRequest &abilityRequest);
 
     /**
      * @brief handle time out event
@@ -308,16 +310,6 @@ public:
 
     void GetAbilityRunningInfos(std::vector<AbilityRunningInfo> &info, bool isPerm) const;
 
-    #ifdef ABILITY_COMMAND_FOR_TEST
-    /**
-     * Block ability.
-     *
-     * @param abilityRecordId The Ability Record Id.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    int BlockAbility(int abilityRecordId) const;
-    #endif
-
     /**
      * @brief dump all abilities
      *
@@ -446,6 +438,8 @@ private:
     void TerminateSession(std::shared_ptr<AbilityRecord> abilityRecord);
     int StartWithPersistentIdByDistributed(const AbilityRequest &abilityRequest, int32_t persistentId);
     void CheckCallerFromBackground(std::shared_ptr<AbilityRecord> callerAbility, sptr<SessionInfo> &sessionInfo);
+    int32_t BackToCallerAbilityWithResultLocked(sptr<SessionInfo> currentSessionInfo,
+        std::shared_ptr<AbilityRecord> callerAbilityRecord);
 
     int32_t userId_ = -1;
     mutable ffrt::mutex sessionLock_;

@@ -19,6 +19,7 @@
 #include "gmock/gmock.h"
 #include "semaphore_ex.h"
 #include "app_mgr_service_inner.h"
+#include "param.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -29,10 +30,8 @@ public:
     virtual ~MockAppMgrServiceInner()
     {}
 
-    MOCK_METHOD6(LoadAbility,
-        void(sptr<IRemoteObject> token, sptr<IRemoteObject> preToken,
-            std::shared_ptr<AbilityInfo> abilityInfo, std::shared_ptr<ApplicationInfo> appInfo,
-            std::shared_ptr<AAFwk::Want> want, int32_t abilityRecordId));
+    MOCK_METHOD4(LoadAbility, void(std::shared_ptr<AbilityInfo> abilityInfo, std::shared_ptr<ApplicationInfo> appInfo,
+            std::shared_ptr<AAFwk::Want> want, std::shared_ptr<AbilityRuntime::LoadParam> loadParam));
     MOCK_METHOD2(AttachApplication, void(const pid_t pid, const sptr<IAppScheduler>& app));
     MOCK_METHOD1(ApplicationForegrounded, void(const int32_t recordId));
     MOCK_METHOD1(ApplicationBackgrounded, void(const int32_t recordId));
@@ -48,6 +47,7 @@ public:
     MOCK_METHOD1(IsBackgroundRunningRestricted, int32_t(const std::string&));
     MOCK_METHOD1(GetAllRunningProcesses, int32_t(std::vector<RunningProcessInfo>&));
     MOCK_METHOD1(GetAllRenderProcesses, int32_t(std::vector<RenderProcessInfo>&));
+    MOCK_METHOD1(GetAllChildrenProcesses, int(std::vector<ChildProcessInfo>&));
     MOCK_METHOD1(RegisterAppStateCallback, void(const sptr<IAppStateCallback>& callback));
     MOCK_METHOD0(StopAllProcess, void());
     MOCK_CONST_METHOD0(QueryAppSpawnConnectionState, SpawnConnectionState());

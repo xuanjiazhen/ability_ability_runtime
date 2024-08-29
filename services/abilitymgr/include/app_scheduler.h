@@ -231,7 +231,7 @@ public:
      *
      * @param bundleName.
      */
-    int KillApplication(const std::string &bundleName, const bool clearpagestack = false);
+    int KillApplication(const std::string &bundleName, const bool clearPageStack = false);
 
     /**
      * ForceKillApplication, force kill the application.
@@ -364,15 +364,6 @@ public:
      */
     void SetCurrentUserId(int32_t userId);
 
-    #ifdef ABILITY_COMMAND_FOR_TEST
-    /**
-     * Block app service.
-     *
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    int BlockAppService();
-    #endif
-
     /**
      * Get bundleName by pid.
      *
@@ -470,6 +461,10 @@ public:
      * @return Returns true is only UIAbility, otherwise return false
      */
     bool IsProcessContainsOnlyUIAbility(const pid_t pid);
+
+    bool IsProcessAttached(sptr<IRemoteObject> token) const;
+
+    bool IsAppKilling(sptr<IRemoteObject> token) const;
 
 protected:
     /**

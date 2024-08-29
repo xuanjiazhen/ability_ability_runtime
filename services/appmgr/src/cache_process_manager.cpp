@@ -284,12 +284,17 @@ bool CacheProcessManager::IsAppSupportProcessCacheInnerFirst(const std::shared_p
         TAG_LOGI(AAFwkTag::APPMGR, "appRecord nullptr precheck failed");
         return false;
     }
-    if (appRecord->GetBundleName() == AAFwk::AppUtils::GetInstance().GetShellAssistantBundleName()) {
+    if (appRecord->GetBundleName() == AAFwk::AppUtils::GetInstance().GetBrokerDelegateBundleName()) {
         TAG_LOGD(AAFwkTag::APPMGR, "shell assistant, not support.");
         return false;
     }
     if (appRecord->GetProcessCacheBlocked()) {
         TAG_LOGD(AAFwkTag::APPMGR, "%{public}s of %{public}s 's process cache temporarily blocked.",
+            appRecord->GetProcessName().c_str(), appRecord->GetBundleName().c_str());
+        return false;
+    }
+    if (!appRecord->HasUIAbilityLaunched()) {
+        TAG_LOGD(AAFwkTag::APPMGR, "%{public}s of %{public}s has not created uiability before.",
             appRecord->GetProcessName().c_str(), appRecord->GetBundleName().c_str());
         return false;
     }

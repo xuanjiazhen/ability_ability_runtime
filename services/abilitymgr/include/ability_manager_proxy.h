@@ -234,6 +234,19 @@ public:
         int requestCode = DEFAULT_INVAL_VALUE) override;
 
     /**
+     * Start ui ability
+     *
+     * @param want the want of the ability to start.
+     * @param callerToken caller ability token.
+     * @param specifyTokenId The Caller ID.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int StartAbilityOnlyUIAbility(
+        const Want &want,
+        const sptr<IRemoteObject> &callerToken,
+        uint32_t specifyTokenId) override;
+
+    /**
      * Start extension ability with want, send want to ability manager service.
      *
      * @param want, the want of the ability to start.
@@ -577,7 +590,7 @@ public:
      * @param bundleName.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int KillProcess(const std::string &bundleName, const bool clearpagestack = false) override;
+    virtual int KillProcess(const std::string &bundleName, const bool clearPageStack = false) override;
 
     #ifdef ABILITY_COMMAND_FOR_TEST
     /**
@@ -864,30 +877,6 @@ public:
      * @param callStub The callee object.
      */
     void GetAbilityTokenByCalleeObj(const sptr<IRemoteObject> &callStub, sptr<IRemoteObject> &token) override;
-
-    #ifdef ABILITY_COMMAND_FOR_TEST
-    /**
-     * Block ability manager service.
-     *
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    virtual int BlockAmsService() override;
-
-    /**
-     * Block ability.
-     *
-     * @param abilityRecordId The Ability Record Id.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    virtual int BlockAbility(int32_t abilityRecordId) override;
-
-    /**
-     * Block app service.
-     *
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    virtual int BlockAppService() override;
-    #endif
 
     /**
      * Call free install from remote.

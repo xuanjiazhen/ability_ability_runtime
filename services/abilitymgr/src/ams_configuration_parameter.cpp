@@ -216,6 +216,7 @@ int AmsConfigurationParameter::LoadAmsConfiguration(const std::string &filePath)
 
     LoadSystemConfiguration(amsJson);
     LoadBackToCallerConfig(amsJson);
+    LoadSupportSCBCrashRebootConfig(amsJson);
     SetPickerJsonObject(amsJson);
     amsJson.clear();
     inFile.close();
@@ -271,21 +272,38 @@ int AmsConfigurationParameter::LoadSystemConfiguration(nlohmann::json& Object)
     return READ_FAIL;
 }
 
-int AmsConfigurationParameter::LoadBackToCallerConfig(nlohmann::json& Object)
+int32_t AmsConfigurationParameter::LoadBackToCallerConfig(nlohmann::json& Object)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "load backTocaller config.");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "load backTocaller config");
     if (Object.contains(AmsConfig::SUPPORT_BACK_TO_CALLER) &&
         Object.at(AmsConfig::SUPPORT_BACK_TO_CALLER).is_boolean()) {
         supportBackToCaller_ = Object.at(AmsConfig::SUPPORT_BACK_TO_CALLER).get<bool>();
         return READ_OK;
     }
-    TAG_LOGE(AAFwkTag::ABILITYMGR, "load backTocaller failed.");
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "load backTocaller failed");
     return READ_FAIL;
 }
 
 bool AmsConfigurationParameter::IsSupportBackToCaller() const
 {
     return supportBackToCaller_;
+}
+
+int32_t AmsConfigurationParameter::LoadSupportSCBCrashRebootConfig(nlohmann::json& Object)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "load scb_crash_reboot_config config");
+    if (Object.contains(AmsConfig::SUPPORT_SCB_CRASH_REBOOT) &&
+        Object.at(AmsConfig::SUPPORT_SCB_CRASH_REBOOT).is_boolean()) {
+        supportSceneboardCrashReboot_ = Object.at(AmsConfig::SUPPORT_SCB_CRASH_REBOOT).get<bool>();
+        return READ_OK;
+    }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "load scb_crash_reboot_config failed");
+    return READ_FAIL;
+}
+
+bool AmsConfigurationParameter::IsSupportSCBCrashReboot() const
+{
+    return supportSceneboardCrashReboot_;
 }
 
 bool AmsConfigurationParameter::CheckServiceConfigEnable(nlohmann::json& Object, const std::string &configName,

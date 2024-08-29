@@ -18,6 +18,7 @@
 #include <cstdint>
 
 #include "accesstoken_kit.h"
+#include "file_monitor.h"
 #include "os_account_manager_wrapper.h"
 
 namespace OHOS {
@@ -75,6 +76,7 @@ bool AppExitReasonDataManager::CheckKvStore()
     while (tryTimes > 0) {
         DistributedKv::Status status = GetKvStore();
         if (status == DistributedKv::Status::SUCCESS && kvStorePtr_ != nullptr) {
+            OHOS::AAFwk::FileMonitor::SetDBDeleteMonitorFlag(APP_EXIT_REASON_STORAGE_DIR);
             return true;
         }
         TAG_LOGD(AAFwkTag::ABILITYMGR, "try times: %{public}d", tryTimes);
@@ -386,7 +388,7 @@ int32_t AppExitReasonDataManager::DeleteAllRecoverInfoByTokenId(uint32_t tokenId
 int32_t AppExitReasonDataManager::DeleteAbilityRecoverInfo(
     uint32_t accessTokenId, const std::string &moduleName, const std::string &abilityName)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "DeleteAbilityRecoverInfo tokenId %{private}u module %{public}s ability %{public}s ",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "tokenId %{private}u module %{public}s ability %{public}s ",
         accessTokenId, moduleName.c_str(), abilityName.c_str());
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
@@ -400,7 +402,7 @@ int32_t AppExitReasonDataManager::DeleteAbilityRecoverInfo(
     DistributedKv::Value value;
     DistributedKv::Status status = kvStorePtr_->Get(key, value);
     if (status != DistributedKv::Status::SUCCESS) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "DeleteAbilityRecoverInfo get error: %{public}d", status);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed:%{public}d", status);
         return ERR_INVALID_VALUE;
     }
 
@@ -429,7 +431,7 @@ int32_t AppExitReasonDataManager::DeleteAbilityRecoverInfo(
 int32_t AppExitReasonDataManager::GetAbilityRecoverInfo(
     uint32_t accessTokenId, const std::string &moduleName, const std::string &abilityName, bool &hasRecoverInfo)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "GetAbilityRecoverInfo tokenId %{private}u module %{public}s abillity %{public}s ",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "tokenId %{private}u module %{public}s abillity %{public}s",
         accessTokenId, moduleName.c_str(), abilityName.c_str());
     hasRecoverInfo = false;
     {
@@ -445,9 +447,9 @@ int32_t AppExitReasonDataManager::GetAbilityRecoverInfo(
     DistributedKv::Status status = kvStorePtr_->Get(key, value);
     if (status != DistributedKv::Status::SUCCESS) {
         if (status == DistributedKv::Status::KEY_NOT_FOUND) {
-            TAG_LOGW(AAFwkTag::ABILITYMGR, "GetAbilityRecoverInfo KEY_NOT_FOUND.");
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "KEY_NOT_FOUND");
         } else {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "GetAbilityRecoverInfo error: %{public}d.", status);
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "error:%{public}d", status);
         }
         return ERR_INVALID_VALUE;
     }
