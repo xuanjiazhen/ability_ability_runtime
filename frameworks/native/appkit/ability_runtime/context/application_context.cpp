@@ -736,6 +736,29 @@ void ApplicationContext::SetFont(const std::string &font)
     #endif
 }
 
+bool ApplicationContext::SetFontSizeScale(double fontSizeScale)
+{
+    if (contextImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null context");
+        return false;
+    }
+    auto configPtr = contextImpl_->GetConfiguration();
+    std::string followSysteme =
+        configPtr->GetItem(AAFwk::GlobalConfigurationKey::APP_FONT_SIZE_SCALE);
+    if (!followSysteme.empty()
+        && followSysteme.compare(AppExecFwk::ConfigurationInner::IS_APP_FONT_FOLLOW_SYSTEM) == 0) {
+        TAG_LOGE(AAFwkTag::APPKIT, "follow systeme");
+        return false;
+    }
+    AppExecFwk::Configuration config;
+    config.AddItem(AAFwk::GlobalConfigurationKey::APP_FONT_SIZE_SCALE, std::to_string(fontSizeScale));
+    if (appConfigChangeCallback_ != nullptr) {
+        appConfigChangeCallback_(config);
+    }
+    TAG_LOGD(AAFwkTag::APPKIT, "SetFontSizeScale callback ok");
+    return true;
+}
+
 void ApplicationContext::SetMcc(const std::string &mcc)
 {
     if (contextImpl_ != nullptr) {
