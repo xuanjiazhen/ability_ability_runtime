@@ -232,6 +232,7 @@ ohos_shared_library("abilitykit_native") {
   configs = [ ":ability_config" ]
   public_configs = [
     ":ability_public_config",
+    "${ability_runtime_path}/interfaces/kits/native/ability/native",
     "${ability_runtime_native_path}/ability:ability_context_public_config",
     "${ability_runtime_innerkits_path}/wantagent:wantagent_innerkits_public_config",
   ]
