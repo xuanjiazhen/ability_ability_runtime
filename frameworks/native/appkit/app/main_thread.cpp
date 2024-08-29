@@ -846,7 +846,7 @@ bool MainThread::CheckAbilityItem(const std::shared_ptr<AbilityLocalRecord> &rec
 void MainThread::HandleTerminateApplicationLocal()
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
-    if (application_ == nullptr) {
+    if (applicationImpl_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "error!");
         return;
     }
@@ -900,6 +900,11 @@ void MainThread::HandleProcessSecurityExit()
     TAG_LOGD(AAFwkTag::APPKIT, "HandleProcessSecurityExit");
     if (abilityRecordMgr_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "abilityRecordMgr_ is null");
+        return;
+    }
+
+    if (application_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "application_ is null");
         return;
     }
 
@@ -966,11 +971,6 @@ bool MainThread::InitCreate(
 
 bool MainThread::CheckForHandleLaunchApplication(const AppLaunchData &appLaunchData)
 {
-    if (application_ != nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "already create application");
-        return false;
-    }
-
     if (!CheckLaunchApplicationParam(appLaunchData)) {
         TAG_LOGE(AAFwkTag::APPKIT, "appLaunchData invalid");
         return false;
@@ -3218,6 +3218,10 @@ void MainThread::DetachAppDebug()
 bool MainThread::NotifyDeviceDisConnect()
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
+    if (appMgr_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "appMgr is nullptr");
+        return false;
+    }
     bool isLastProcess = appMgr_->IsFinalAppProcess();
     ScheduleTerminateApplication(isLastProcess);
     return true;
