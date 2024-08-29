@@ -240,6 +240,7 @@ ohos_shared_library("abilitykit_native") {
     ":continuation_ipc",
     ":extension_blocklist_config",
     ":ui_service_extension_connection",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
@@ -544,6 +545,7 @@ ohos_shared_library("uiabilitykit_native") {
     ":abilitykit_native",
     ":continuation_ipc",
     ":ui_extension",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
@@ -642,6 +644,7 @@ ohos_shared_library("ability_thread") {
     ":abilitykit_native",
     ":extensionkit_native",
     ":uiabilitykit_native",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/dataobs_manager:dataobs_manager",
@@ -786,6 +789,7 @@ ohos_shared_library("service_extension") {
 
   deps = [
     ":abilitykit_native",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/runtime:runtime",
@@ -906,6 +910,7 @@ ohos_shared_library("ui_service_extension") {
   deps = [
     ":abilitykit_native",
     ":ui_service_extension_connection",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/ability_manager:process_options",
@@ -1070,6 +1075,7 @@ ohos_shared_library("continuation_ipc") {
 
   deps = [
     ":abilitykit_utils",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
   ]

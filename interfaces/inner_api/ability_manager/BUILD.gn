@@ -118,9 +118,10 @@ ohos_shared_library("ability_manager") {
     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
   ]
 
-  public_deps = [ ":ability_connect_callback_stub" ]
+  public_deps = []
 
   deps = [
+    ":ability_connect_callback_stub",
     ":ability_start_options",
     ":ability_start_setting",
     ":mission_info",
