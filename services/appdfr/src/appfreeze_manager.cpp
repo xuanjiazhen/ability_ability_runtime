@@ -154,7 +154,7 @@ int AppfreezeManager::AppfreezeHandleWithStack(const FaultData& faultData, const
         || faultData.errorObject.name == AppFreezeType::APP_INPUT_BLOCK
         || faultData.errorObject.name == AppFreezeType::THREAD_BLOCK_6S) {
         if (AppExecFwk::AppfreezeManager::GetInstance()->IsNeedIgnoreFreezeEvent(appInfo.pid)) {
-            TAG_LOGE(AAFwkTag::APPDFR, "AppFreeze already happend in a short period of time.");
+            TAG_LOGE(AAFwkTag::APPDFR, "appFreeze happend");
             return 0;
         }
     }
@@ -193,14 +193,14 @@ std::string AppfreezeManager::WriteToFile(const std::string& fileName, std::stri
     }
     std::string realPath;
     if (!OHOS::PathToRealPath(dir_path, realPath)) {
-        TAG_LOGE(AAFwkTag::APPDFR, "PathToRealPath Failed:%{public}s.", dir_path.c_str());
+        TAG_LOGE(AAFwkTag::APPDFR, "pathToRealPath Failed:%{public}s", dir_path.c_str());
         return "";
     }
     std::string stackPath = realPath + "/" + fileName;
     constexpr mode_t defaultLogFileMode = 0644;
     auto fd = open(stackPath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, defaultLogFileMode);
     if (fd < 0) {
-        TAG_LOGI(AAFwkTag::APPDFR, "Failed to create stackPath");
+        TAG_LOGI(AAFwkTag::APPDFR, "stackPath create failed");
         return "";
     } else {
         TAG_LOGI(AAFwkTag::APPDFR, "stackPath = %{public}s", stackPath.c_str());
@@ -298,7 +298,7 @@ int AppfreezeManager::NotifyANR(const FaultData& faultData, const AppfreezeManag
     }
     TAG_LOGI(AAFwkTag::APPDFR,
         "reportEvent:%{public}s, pid:%{public}d, bundleName:%{public}s, appRunningUniqueId:%{public}s"
-        ", eventId:%{public}d hisysevent write ret = %{public}d.",
+        ", eventId:%{public}d hisysevent write ret = %{public}d",
         faultData.errorObject.name.c_str(), appInfo.pid, appInfo.bundleName.c_str(), appRunningUniqueId.c_str(),
         faultData.eventId, ret);
     return 0;
@@ -370,12 +370,12 @@ std::set<int> AppfreezeManager::GetBinderPeerPids(std::string& stack, int pid) c
     std::string path = LOGGER_DEBUG_PROC_PATH;
     char resolvePath[PATH_MAX] = {0};
     if (realpath(path.c_str(), resolvePath) == nullptr) {
-        TAG_LOGE(AAFwkTag::APPDFR, "GetBinderPeerPids realpath error");
+        TAG_LOGE(AAFwkTag::APPDFR, "getBinderPeerPids realpath error");
         return pids;
     }
     fin.open(resolvePath);
     if (!fin.is_open()) {
-        TAG_LOGE(AAFwkTag::APPDFR, "open file failed, %{public}s.", resolvePath);
+        TAG_LOGE(AAFwkTag::APPDFR, "file unopen, %{public}s", resolvePath);
         stack += "open file failed :" + path + "\r\n";
         return pids;
     }
@@ -471,7 +471,7 @@ bool AppfreezeManager::IsProcessDebug(int32_t pid, std::string processName)
     auto it = appfreezeFilterMap_.find(processName);
     if (it != appfreezeFilterMap_.end() && it->second.pid == pid) {
         if (it->second.state == AppFreezeState::APPFREEZE_STATE_CANCELED) {
-            TAG_LOGI(AAFwkTag::APPDFR, "appfreeze filtration only once in a lifecycle.");
+            TAG_LOGI(AAFwkTag::APPDFR, "appfreeze filtration once in lifecycle");
             return false;
         } else {
             TAG_LOGI(AAFwkTag::APPDFR, "appfreeze filtration %{public}s", processName.c_str());
@@ -485,7 +485,7 @@ bool AppfreezeManager::IsProcessDebug(int32_t pid, std::string processName)
     std::string debugBundle(paramBundle);
 
     if (processName.compare(debugBundle) == 0) {
-        TAG_LOGI(AAFwkTag::APPDFR, "appfreeze filtration %{public}s_%{public}s don't exit.",
+        TAG_LOGI(AAFwkTag::APPDFR, "appfreeze filtration %{public}s_%{public}s don't exit",
             debugBundle.c_str(), processName.c_str());
         return true;
     }

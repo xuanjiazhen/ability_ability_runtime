@@ -64,7 +64,7 @@ bool DeepLinkReserveConfig::LoadConfiguration()
         return false;
     }
     if (!LoadReservedUriList(jsonBuf)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "LoadConfiguration failed.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "loadConfiguration failed");
         return false;
     }
 
@@ -224,18 +224,18 @@ void DeepLinkReserveConfig::LoadReservedUrilItem(const nlohmann::json &jsonUriOb
 bool DeepLinkReserveConfig::LoadReservedUriList(const nlohmann::json &object)
 {
     if (!object.contains(DEEPLINK_RESERVED_URI_NAME)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Deeplink reserved uri config not existed.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "deeplink reserved uri config not existed");
         return false;
     }
 
     for (auto &item : object.at(DEEPLINK_RESERVED_URI_NAME).items()) {
         const nlohmann::json& jsonObject = item.value();
         if (!jsonObject.contains(BUNDLE_NAME) || !jsonObject.at(BUNDLE_NAME).is_string()) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "Wrong deeplink reserve bundleName.");
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "wrong deeplink reserve bundleName");
             return false;
         }
         if (!jsonObject.contains(URIS_NAME) || !jsonObject.at(URIS_NAME).is_array()) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "Wrong deeplink reserve uris.");
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "wrong deeplink reserve uris");
             return false;
         }
         std::string bundleName = jsonObject.at(BUNDLE_NAME).get<std::string>();
@@ -252,18 +252,18 @@ bool DeepLinkReserveConfig::LoadReservedUriList(const nlohmann::json &object)
 bool DeepLinkReserveConfig::ReadFileInfoJson(const std::string &filePath, nlohmann::json &jsonBuf)
 {
     if (access(filePath.c_str(), F_OK) != 0) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Deeplink reserve config not exist.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "deeplink reserve config not exist");
         return false;
     }
 
     if (filePath.empty()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "File path is empty.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "file path empty");
         return false;
     }
 
     char path[PATH_MAX] = {0};
     if (realpath(filePath.c_str(), path) == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "realpath error, errno is %{public}d.", errno);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "realpath error, errno is %{public}d", errno);
         return false;
     }
 
@@ -280,7 +280,7 @@ bool DeepLinkReserveConfig::ReadFileInfoJson(const std::string &filePath, nlohma
     in.seekg(0, std::ios::end);
     int64_t size = in.tellg();
     if (size <= 0) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "the file is an empty file");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "the file empty");
         in.close();
         return false;
     }
