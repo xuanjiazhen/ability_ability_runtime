@@ -21,6 +21,7 @@
 #include <unistd.h>
 
 #include "accesstoken_kit.h"
+#include "file_monitor.h"
 #include "errors.h"
 #include "hilog_tag_wrapper.h"
 #include "nlohmann/json.hpp"
@@ -81,6 +82,7 @@ bool AppExitReasonDataManager::CheckKvStore()
     while (tryTimes > 0) {
         DistributedKv::Status status = GetKvStore();
         if (status == DistributedKv::Status::SUCCESS && kvStorePtr_ != nullptr) {
+            OHOS::AAFwk::FileMonitor::SetDBDeleteMonitorFlag(APP_EXIT_REASON_STORAGE_DIR);
             return true;
         }
         TAG_LOGD(AAFwkTag::ABILITYMGR, "try times: %{public}d", tryTimes);
