@@ -666,7 +666,7 @@ ErrCode AbilityManagerShellCommand::RunAsForceStop()
     }
 
     ErrCode result = OHOS::ERR_OK;
-    result = AbilityManagerClient::GetInstance()->KillProcess(bundleName);
+    result = AbilityManagerClient::GetInstance()->KillProcess(bundleName, false);
     if (result == OHOS::ERR_OK) {
         TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s", STRING_FORCE_STOP_OK.c_str());
         resultReceiver_ = STRING_FORCE_STOP_OK + "\n";
