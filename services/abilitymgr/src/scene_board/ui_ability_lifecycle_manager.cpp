@@ -347,10 +347,10 @@ int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(const AbilityRequest &a
     auto isSpecified = (abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED);
     if (isSpecified) {
         PreCreateProcessName(const_cast<AbilityRequest &>(abilityRequest));
-        specifiedRequestMap_.emplace(specifiedRequestId_, abilityRequest);
+        specifiedWantMap_.emplace(specifiedWantId_, abilityRequest);
         DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedAbility(
-            abilityRequest.want, abilityRequest.abilityInfo, specifiedRequestId_);
-        ++specifiedRequestId_;
+            abilityRequest.want, abilityRequest.abilityInfo, specifiedWantId_);
+        ++specifiedWantId_;
         return ERR_OK;
     }
     auto sessionInfo = CreateSessionInfo(abilityRequest);
@@ -1617,14 +1617,14 @@ void UIAbilityLifecycleManager::OnAcceptWantResponse(const AAFwk::Want &want, co
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
-    auto it = specifiedRequestMap_.find(requestId);
-    if (it == specifiedRequestMap_.end()) {
+    auto it = specifiedWantMap_.find(requestId);
+    if (it == specifiedWantMap_.end()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "Not find for %{public}s.", want.GetElement().GetURI().c_str());
         return;
     }
 
     AbilityRequest abilityRequest = it->second;
-    specifiedRequestMap_.erase(it);
+    specifiedWantMap_.erase(it);
     if (abilityRequest.abilityInfo.launchMode != AppExecFwk::LaunchMode::SPECIFIED) {
         return;
     }
@@ -1663,7 +1663,7 @@ void UIAbilityLifecycleManager::OnStartSpecifiedAbilityTimeoutResponse(const AAF
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "called");
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
-    specifiedRequestMap_.erase(requestId);
+    specifiedWantMap_.erase(requestId);
 }
 
 void UIAbilityLifecycleManager::OnStartSpecifiedProcessResponse(const AAFwk::Want &want, const std::string &flag,
@@ -1718,8 +1718,8 @@ void UIAbilityLifecycleManager::StartSpecifiedAbilityBySCB(const Want &want)
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
         std::lock_guard<ffrt::mutex> guard(sessionLock_);
-        requestId = specifiedRequestId_++;
-        specifiedRequestMap_.emplace(requestId, abilityRequest);
+        requestId = specifiedWantId_++;
+        specifiedWantMap_.emplace(requestId, abilityRequest); // 这里是不是要区分ability/process？
     }
     DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedAbility(
         abilityRequest.want, abilityRequest.abilityInfo, requestId);

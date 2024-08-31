@@ -4183,7 +4183,7 @@ void AppMgrServiceInner::ScheduleAcceptWantDone(
 
     if (startSpecifiedAbilityResponse_) {
         startSpecifiedAbilityResponse_->OnAcceptWantResponse(want, flag,
-            appRecord->GetSpecifiedRequestId());
+            appRecord->GetSpecifiedRequestId());//123
     }
     appRecord->ResetSpecifiedRequestId();
 }
@@ -4204,7 +4204,7 @@ void AppMgrServiceInner::HandleStartSpecifiedAbilityTimeOut(const int64_t eventI
 
     if (appRecord->IsStartSpecifiedAbility() && startSpecifiedAbilityResponse_) {
         startSpecifiedAbilityResponse_->OnTimeoutResponse(appRecord->GetSpecifiedWant(),
-            appRecord->GetSpecifiedRequestId());
+            appRecord->GetSpecifiedRequestId());//123
     }
     appRecord->ResetSpecifiedRequestId();
 

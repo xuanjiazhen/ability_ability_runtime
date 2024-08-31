@@ -451,6 +451,11 @@ private:
     std::map<SpecifiedInfo, std::shared_ptr<AbilityRecord>, key_compare> specifiedAbilityMap_;
     int32_t specifiedRequestId_ = 0;
     std::map<int32_t, AbilityRequest> specifiedRequestMap_;
+
+    // add map for start specified ability
+    int32_t specifiedWantId_ = 0;
+    std::map<int32_t, AAFwk::Want> specifiedWantMap_;
+
     std::queue<SpecifiedInfo> specifiedInfoQueue_;
     sptr<ISessionHandler> handler_;
     ffrt::mutex statusBarDelegateManagerLock_;

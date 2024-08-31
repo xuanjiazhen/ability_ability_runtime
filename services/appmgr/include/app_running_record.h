@@ -599,7 +599,7 @@ public:
     void ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName);
     void ScheduleNewProcessRequestDone();
     void ApplicationTerminated();
-    AAFwk::Want GetSpecifiedWant() const;
+    AAFwk::Want GetSpecifiedWant(int32_t requestId = 0) const;
     AAFwk::Want GetNewProcessRequestWant() const;
     int32_t GetNewProcessRequestId() const;
     void ResetNewProcessRequestId();

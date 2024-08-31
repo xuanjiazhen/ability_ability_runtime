@@ -1579,8 +1579,8 @@ void AppRunningRecord::SetProcessAndExtensionType(const std::shared_ptr<AbilityI
     return;
 }
 
-void AppRunningRecord::SetSpecifiedAbilityFlagAndWant(
-    int requestId, const AAFwk::Want &want, const std::string &moduleName)
+void AppRunningRecord::SetSpecifiedAbilityRequestFlagAndWant(
+    int requestId, const AAFwk::Want &want, const std::string &moduleName, bool isAbility)
 {
     std::lock_guard lock(specifiedMutex_);
     if (specifiedRequestId_ != -1) {
@@ -1688,10 +1688,15 @@ void AppRunningRecord::ApplicationTerminated()
     eventHandler_->RemoveEvent(AMSEventHandler::TERMINATE_APPLICATION_TIMEOUT_MSG, eventId_);
 }
 
-AAFwk::Want AppRunningRecord::GetSpecifiedWant() const
+AAFwk::Want AppRunningRecord::GetSpecifiedWant(int32_t requestId) const
 {
     std::lock_guard lock(specifiedMutex_);
-    return specifiedWant_;
+    if (specifiedWant_.find(requestId) == specifiedWant_.end()) {
+        return 
+    }
+
+    return specifiedWants_.find();
+    // return specifiedWant_;
 }
 
 AAFwk::Want AppRunningRecord::GetNewProcessRequestWant() const
