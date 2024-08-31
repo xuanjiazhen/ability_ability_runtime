@@ -18,6 +18,7 @@
 #include "ability_scheduler_stub.h"
 #include "ability_util.h"
 #include "hitrace_meter.h"
+#include "message_parcel_util.h"
 #include "status_bar_delegate_interface.h"
 
 namespace OHOS {
@@ -54,8 +55,15 @@ int AbilityManagerProxy::StartAbility(const Want &want, int32_t userId, int requ
     if (!WriteInterfaceToken(data)) {
         return INNER_ERR;
     }
-    if (!data.WriteParcelable(&want)) {
+
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
 
@@ -143,8 +151,15 @@ int AbilityManagerProxy::StartAbility(const Want &want, const AbilityStartSettin
     if (!WriteInterfaceToken(data)) {
         return INNER_ERR;
     }
-    if (!data.WriteParcelable(&want)) {
+
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
     if (!data.WriteParcelable(&abilityStartSetting)) {
@@ -189,8 +204,14 @@ int AbilityManagerProxy::StartAbility(
     if (!WriteInterfaceToken(data)) {
         return INNER_ERR;
     }
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
     if (callerToken) {
@@ -231,8 +252,14 @@ int AbilityManagerProxy::StartAbilityWithSpecifyTokenId(
     if (!WriteInterfaceToken(data)) {
         return INNER_ERR;
     }
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
     if (callerToken) {
@@ -280,8 +307,14 @@ int32_t AbilityManagerProxy::StartAbilityByInsightIntent(const Want &want, const
         return INNER_ERR;
     }
 
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
 
@@ -320,8 +353,14 @@ int AbilityManagerProxy::StartAbility(const Want &want, const StartOptions &star
     if (!WriteInterfaceToken(data)) {
         return INNER_ERR;
     }
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
     if (!data.WriteParcelable(&startOptions)) {
@@ -364,7 +403,13 @@ int AbilityManagerProxy::StartAbilityAsCaller(const Want &want, const sptr<IRemo
     if (!WriteInterfaceToken(data)) {
         return INNER_ERR;
     }
-    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Parcelable, &want);
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(rawData, Parcelable, &want);
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
+        return INNER_ERR;
+    }
     if (callerToken) {
         PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Bool, true);
         PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, RemoteObject, callerToken);
@@ -398,7 +443,13 @@ int AbilityManagerProxy::StartAbilityAsCaller(const Want &want, const StartOptio
     if (!WriteInterfaceToken(data)) {
         return INNER_ERR;
     }
-    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Parcelable, &want);
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(rawData, Parcelable, &want);
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
+        return INNER_ERR;
+    }
     PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Parcelable, &startOptions);
     if (callerToken) {
         PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Bool, true);
@@ -431,7 +482,13 @@ int AbilityManagerProxy::StartAbilityForResultAsCaller(
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Write interface token failed.");
         return INNER_ERR;
     }
-    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Parcelable, &want);
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(rawData, Parcelable, &want);
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
+        return INNER_ERR;
+    }
     if (callerToken) {
         PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Bool, true);
         PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, RemoteObject, callerToken);
@@ -458,7 +515,13 @@ int AbilityManagerProxy::StartAbilityForResultAsCaller(const Want &want, const S
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Write interface token failed.");
         return INNER_ERR;
     }
-    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Parcelable, &want);
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(rawData, Parcelable, &want);
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
+        return INNER_ERR;
+    }
     PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Parcelable, &startOptions);
     if (callerToken) {
         PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Bool, true);
@@ -494,8 +557,14 @@ int AbilityManagerProxy::CheckUISessionParams(MessageParcel &data, const sptr<IR
         }
     }
     if (sessionInfo) {
-        if (!data.WriteBool(true) || !data.WriteParcelable(sessionInfo)) {
+        MessageParcel rawData;
+        rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+        if (!data.WriteBool(true) || !rawData.WriteParcelable(sessionInfo)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "flag and sessionInfo write failed.");
+            return INNER_ERR;
+        }
+        if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
             return INNER_ERR;
         }
     } else {
@@ -526,8 +595,14 @@ int AbilityManagerProxy::StartAbilityByUIContentSession(const Want &want,
     if (!WriteInterfaceToken(data)) {
         return INNER_ERR;
     }
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
     if (CheckUISessionParams(data, callerToken, sessionInfo, userId, requestCode) == INNER_ERR) {
@@ -552,8 +627,14 @@ int AbilityManagerProxy::StartAbilityByUIContentSession(const Want &want, const 
     if (!WriteInterfaceToken(data)) {
         return INNER_ERR;
     }
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
     if (!data.WriteParcelable(&startOptions)) {
@@ -585,8 +666,14 @@ int AbilityManagerProxy::StartAbilityOnlyUIAbility(const Want &want, const sptr<
         return INNER_ERR;
     }
 
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
 
@@ -621,8 +708,14 @@ int AbilityManagerProxy::StartExtensionAbility(const Want &want, const sptr<IRem
     if (!WriteInterfaceToken(data)) {
         return INNER_ERR;
     }
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
     if (callerToken) {
@@ -658,8 +751,14 @@ int AbilityManagerProxy::RequestModalUIExtension(const Want &want)
     if (!WriteInterfaceToken(data)) {
         return INNER_ERR;
     }
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
 
@@ -680,9 +779,13 @@ int AbilityManagerProxy::PreloadUIExtensionAbility(const Want &want, std::string
     if (!WriteInterfaceToken(data)) {
         return INNER_ERR;
     }
-
-    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Parcelable, &want);
-
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(rawData, Parcelable, &want);
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
+        return INNER_ERR;
+    }
     if (!data.WriteString16(Str8ToStr16(hostBundleName))) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "hostBundleName write failed.");
         return ERR_INVALID_VALUE;
@@ -732,8 +835,14 @@ int AbilityManagerProxy::ChangeUIAbilityVisibilityBySCB(sptr<SessionInfo> sessio
     if (!WriteInterfaceToken(data)) {
         return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
-    if (!data.WriteParcelable(sessionInfo)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(sessionInfo)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write sessionInfo failed.");
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
     if (!data.WriteBool(isShow)) {
@@ -761,8 +870,14 @@ int AbilityManagerProxy::StartUIExtensionAbility(const sptr<SessionInfo> &extens
     CHECK_POINTER_AND_RETURN_LOG(extensionSessionInfo, ERR_INVALID_VALUE,
         "connect ability fail, extensionSessionInfo is nullptr");
     if (extensionSessionInfo) {
-        if (!data.WriteBool(true) || !data.WriteParcelable(extensionSessionInfo)) {
+        MessageParcel rawData;
+        rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+        if (!data.WriteBool(true) || !rawData.WriteParcelable(extensionSessionInfo)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "flag and extensionSessionInfo write failed.");
+            return INNER_ERR;
+        }
+        if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
             return INNER_ERR;
         }
     } else {
@@ -801,8 +916,14 @@ int AbilityManagerProxy::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool
         return INNER_ERR;
     }
     if (sessionInfo) {
-        if (!data.WriteBool(true) || !data.WriteParcelable(sessionInfo)) {
+        MessageParcel rawData;
+        rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+        if (!data.WriteBool(true) || !rawData.WriteParcelable(sessionInfo)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "flag and sessionInfo write failed.");
+            return INNER_ERR;
+        }
+        if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
             return INNER_ERR;
         }
     } else {
@@ -834,8 +955,14 @@ int AbilityManagerProxy::StopExtensionAbility(const Want &want, const sptr<IRemo
     if (!WriteInterfaceToken(data)) {
         return INNER_ERR;
     }
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
     if (callerToken) {
@@ -892,8 +1019,14 @@ int AbilityManagerProxy::TerminateAbility(const sptr<IRemoteObject> &token,
             return INNER_ERR;
         }
     }
-    if (!data.WriteInt32(resultCode) || !data.WriteParcelable(resultWant)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!data.WriteInt32(resultCode) || !rawData.WriteParcelable(resultWant)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "data write failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
     if (!data.WriteBool(flag)) {
@@ -933,8 +1066,14 @@ int AbilityManagerProxy::BackToCallerAbilityWithResult(const sptr<IRemoteObject>
             return INNER_ERR;
         }
     }
-    if (!data.WriteInt32(resultCode) || !data.WriteParcelable(resultWant)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!data.WriteInt32(resultCode) || !rawData.WriteParcelable(resultWant)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write ability result failed");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
     if (!data.WriteInt64(callerRequestCode)) {
@@ -963,8 +1102,10 @@ int AbilityManagerProxy::TerminateUIExtensionAbility(const sptr<SessionInfo> &ex
 
     CHECK_POINTER_AND_RETURN_LOG(extensionSessionInfo, ERR_INVALID_VALUE,
         "connect ability fail, extensionSessionInfo is nullptr");
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
     if (extensionSessionInfo) {
-        if (!data.WriteBool(true) || !data.WriteParcelable(extensionSessionInfo)) {
+        if (!data.WriteBool(true) || !rawData.WriteParcelable(extensionSessionInfo)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "flag and extensionSessionInfo write failed.");
             return INNER_ERR;
         }
@@ -975,8 +1116,12 @@ int AbilityManagerProxy::TerminateUIExtensionAbility(const sptr<SessionInfo> &ex
         }
     }
 
-    if (!data.WriteInt32(resultCode) || !data.WriteParcelable(resultWant)) {
+    if (!data.WriteInt32(resultCode) || !rawData.WriteParcelable(resultWant)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "data write failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
 
@@ -1000,8 +1145,14 @@ int AbilityManagerProxy::CloseUIAbilityBySCB(const sptr<SessionInfo> &sessionInf
     }
 
     if (sessionInfo) {
-        if (!data.WriteBool(true) || !data.WriteParcelable(sessionInfo)) {
+        MessageParcel rawData;
+        rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+        if (!data.WriteBool(true) || !rawData.WriteParcelable(sessionInfo)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "flag and sessionInfo write failed.");
+            return INNER_ERR;
+        }
+        if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
             return INNER_ERR;
         }
     } else {
@@ -1033,8 +1184,14 @@ int AbilityManagerProxy::SendResultToAbility(int32_t requestCode, int32_t result
         TAG_LOGE(AAFwkTag::ABILITYMGR, "requestCode write failed.");
         return INNER_ERR;
     }
-    if (!data.WriteInt32(resultCode) || !data.WriteParcelable(&resultWant)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!data.WriteInt32(resultCode) || !rawData.WriteParcelable(&resultWant)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "data write failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
     error = SendRequest(AbilityManagerInterfaceCode::SEND_RESULT_TO_ABILITY, data, reply, option);
@@ -1115,7 +1272,13 @@ int AbilityManagerProxy::ConnectAbilityCommon(
     if (!WriteInterfaceToken(data)) {
         return INNER_ERR;
     }
-    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Parcelable, &want);
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(rawData, Parcelable, &want);
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
+        return INNER_ERR;
+    }
     CHECK_POINTER_AND_RETURN_LOG(connect, ERR_INVALID_VALUE, "connect ability fail, connect is nullptr");
     if (connect->AsObject()) {
         PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Bool, true);
@@ -1150,7 +1313,9 @@ int AbilityManagerProxy::ConnectUIExtensionAbility(const Want &want, const sptr<
     if (!WriteInterfaceToken(data)) {
         return INNER_ERR;
     }
-    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Parcelable, &want);
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(rawData, Parcelable, &want);
     CHECK_POINTER_AND_RETURN_LOG(connect, ERR_INVALID_VALUE, "connect ability fail, connect is nullptr");
     if (connect->AsObject()) {
         PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Bool, true);
@@ -1161,9 +1326,13 @@ int AbilityManagerProxy::ConnectUIExtensionAbility(const Want &want, const sptr<
     CHECK_POINTER_AND_RETURN_LOG(sessionInfo, ERR_INVALID_VALUE, "connect ability fail, sessionInfo is nullptr");
     if (sessionInfo) {
         PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Bool, true);
-        PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Parcelable, sessionInfo);
+        PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(rawData, Parcelable, sessionInfo);
     } else {
         PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Bool, false);
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
+        return INNER_ERR;
     }
     PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Int32, userId);
     if (connectInfo != nullptr) {
@@ -1458,8 +1627,14 @@ int AbilityManagerProxy::ScheduleCommandAbilityWindowDone(
         TAG_LOGE(AAFwkTag::ABILITYMGR, "token write failed.");
         return ERR_INVALID_VALUE;
     }
-    if (!data.WriteParcelable(sessionInfo)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(sessionInfo)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionInfo write failed.");
+        return ERR_INVALID_VALUE;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return ERR_INVALID_VALUE;
     }
     if (!data.WriteInt32(winCmd)) {
@@ -1582,8 +1757,14 @@ int AbilityManagerProxy::MinimizeUIExtensionAbility(const sptr<SessionInfo> &ext
     CHECK_POINTER_AND_RETURN_LOG(extensionSessionInfo, ERR_INVALID_VALUE,
         "connect ability fail, extensionSessionInfo is nullptr");
     if (extensionSessionInfo) {
-        if (!data.WriteBool(true) || !data.WriteParcelable(extensionSessionInfo)) {
+        MessageParcel rawData;
+        rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+        if (!data.WriteBool(true) || !rawData.WriteParcelable(extensionSessionInfo)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "flag and extensionSessionInfo write failed.");
+            return INNER_ERR;
+        }
+        if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
             return INNER_ERR;
         }
     } else {
@@ -1616,8 +1797,14 @@ int AbilityManagerProxy::MinimizeUIAbilityBySCB(const sptr<SessionInfo> &session
         return INNER_ERR;
     }
     if (sessionInfo) {
-        if (!data.WriteBool(true) || !data.WriteParcelable(sessionInfo)) {
+        MessageParcel rawData;
+        rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+        if (!data.WriteBool(true) || !rawData.WriteParcelable(sessionInfo)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "flag and sessionInfo write failed.");
+            return INNER_ERR;
+        }
+        if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
             return INNER_ERR;
         }
     } else {
@@ -1653,8 +1840,14 @@ int AbilityManagerProxy::StopServiceAbility(const Want &want, int32_t userId, co
     if (!WriteInterfaceToken(data)) {
         return INNER_ERR;
     }
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
     if (!data.WriteInt32(userId)) {
@@ -1807,8 +2000,14 @@ void AbilityManagerProxy::ScheduleRecoverAbility(const sptr<IRemoteObject>& toke
 
     data.WriteInt32(reason);
 
-    if (!data.WriteParcelable(want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "AppRecovery write want failed.");
+        return;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return;
     }
 
@@ -2209,8 +2408,14 @@ int AbilityManagerProxy::GetPendingRequestWant(const sptr<IWantSender> &target, 
         TAG_LOGE(AAFwkTag::ABILITYMGR, "target write failed.");
         return INNER_ERR;
     }
-    if (want == nullptr || !data.WriteParcelable(want.get())) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (want == nullptr || !rawData.WriteParcelable(want.get())) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
     auto error = SendRequest(AbilityManagerInterfaceCode::GET_PENDING_REQUEST_WANT, data, reply, option);
@@ -2414,8 +2619,14 @@ int AbilityManagerProxy::StartContinuation(const Want &want, const sptr<IRemoteO
     if (!WriteInterfaceToken(data)) {
         return INNER_ERR;
     }
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
     if (!data.WriteRemoteObject(abilityToken)) {
@@ -3216,8 +3427,14 @@ int AbilityManagerProxy::SendDialogResult(const Want &want, const std::string &d
     if (!WriteInterfaceToken(data)) {
         return INNER_ERR;
     }
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return ERR_INVALID_VALUE;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return ERR_INVALID_VALUE;
     }
     if (!data.WriteString(dialogSessionId)) {
@@ -3477,12 +3694,17 @@ int AbilityManagerProxy::StartAbilityByCall(const Want &want, const sptr<IAbilit
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-
     if (!WriteInterfaceToken(data)) {
         return INNER_ERR;
     }
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return ERR_INVALID_VALUE;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return ERR_INVALID_VALUE;
     }
     if (connect == nullptr) {
@@ -3508,8 +3730,6 @@ int AbilityManagerProxy::StartAbilityByCall(const Want &want, const sptr<IAbilit
         TAG_LOGE(AAFwkTag::ABILITYMGR, "accountId write failed.");
         return ERR_INVALID_VALUE;
     }
-
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityManagerProxy::StartAbilityByCall SendRequest Call.");
     error = SendRequest(AbilityManagerInterfaceCode::START_CALL_ABILITY, data, reply, option);
     if (error != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Send request error: %{public}d", error);
@@ -3678,8 +3898,14 @@ int AbilityManagerProxy::StartUserTest(const Want &want, const sptr<IRemoteObjec
     if (!WriteInterfaceToken(data)) {
         return INNER_ERR;
     }
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
     if (!data.WriteRemoteObject(observer)) {
@@ -3924,8 +4150,14 @@ int AbilityManagerProxy::FreeInstallAbilityFromRemote(const Want &want, const sp
         return INNER_ERR;
     }
 
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
 
@@ -4118,8 +4350,14 @@ int32_t AbilityManagerProxy::RequestDialogService(const Want &want, const sptr<I
         return INNER_ERR;
     }
 
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
 
@@ -4337,8 +4575,14 @@ void AbilityManagerProxy::CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInf
         return;
     }
     if (sessionInfo) {
-        if (!data.WriteBool(true) || !data.WriteParcelable(sessionInfo)) {
+        MessageParcel rawData;
+        rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+        if (!data.WriteBool(true) || !rawData.WriteParcelable(sessionInfo)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "flag and sessionInfo write failed.");
+            return;
+        }
+        if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
             return;
         }
     } else {
@@ -4366,8 +4610,14 @@ void AbilityManagerProxy::StartSpecifiedAbilityBySCB(const Want &want)
         return;
     }
 
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return;
     }
 
@@ -4386,8 +4636,14 @@ int32_t AbilityManagerProxy::NotifySaveAsResult(const Want &want, int resultCode
         TAG_LOGE(AAFwkTag::ABILITYMGR, "WriteInterfaceToken failed.");
         return INNER_ERR;
     }
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "WriteWantObject failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
 
@@ -4686,8 +4942,14 @@ int AbilityManagerProxy::PrepareTerminateAbilityBySCB(const sptr<SessionInfo> &s
         return INNER_ERR;
     }
     if (sessionInfo) {
-        if (!data.WriteBool(true) || !data.WriteParcelable(sessionInfo)) {
+        MessageParcel rawData;
+        rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+        if (!data.WriteBool(true) || !rawData.WriteParcelable(sessionInfo)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "flag and sessionInfo write failed.");
+            return INNER_ERR;
+        }
+        if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
             return INNER_ERR;
         }
     } else {
@@ -4850,8 +5112,14 @@ bool AbilityManagerProxy::IsAbilityControllerStart(const Want &want)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Write interface token failed.");
         return true;
     }
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "WriteWantObject failed.");
+        return true;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return true;
     }
 
@@ -5028,9 +5296,15 @@ int32_t AbilityManagerProxy::UpdateSessionInfoBySCB(std::list<SessionInfo> &sess
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Write size failed.");
         return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
     for (const auto &info : sessionInfos) {
-        if (!data.WriteParcelable(&info)) {
+        if (!rawData.WriteParcelable(&info)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "Write sessionInfo failed.");
+            return ERR_NATIVE_IPC_PARCEL_FAILED;
+        }
+        if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
             return ERR_NATIVE_IPC_PARCEL_FAILED;
         }
     }
@@ -5214,8 +5488,14 @@ int32_t AbilityManagerProxy::RestartApp(const AAFwk::Want &want, bool isAppRecov
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Write interface token failed.");
         return IPC_PROXY_ERR;
     }
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return IPC_PROXY_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return IPC_PROXY_ERR;
     }
     if (!data.WriteBool(isAppRecovery)) {
@@ -5238,8 +5518,14 @@ int32_t AbilityManagerProxy::OpenAtomicService(Want& want, const StartOptions &o
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Write interface token failed.");
         return INNER_ERR;
     }
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Write want failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
     if (!data.WriteParcelable(&options)) {
@@ -5343,8 +5629,14 @@ int32_t AbilityManagerProxy::StartShortcut(const Want &want, const StartOptions 
     if (!WriteInterfaceToken(data)) {
         return INNER_ERR;
     }
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
     if (!data.WriteParcelable(&startOptions)) {
@@ -5399,8 +5691,14 @@ int32_t AbilityManagerProxy::TransferAbilityResultForExtension(const sptr<IRemot
         TAG_LOGE(AAFwkTag::ABILITYMGR, "callerToken or resultCode write failed.");
         return INNER_ERR;
     }
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
     auto error = SendRequest(AbilityManagerInterfaceCode::TRANSFER_ABILITY_RESULT, data, reply, option);
@@ -5447,8 +5745,14 @@ int AbilityManagerProxy::CleanUIAbilityBySCB(const sptr<SessionInfo> &sessionInf
     }
 
     if (sessionInfo) {
-        if (!data.WriteBool(true) || !data.WriteParcelable(sessionInfo)) {
+        MessageParcel rawData;
+        rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+        if (!data.WriteBool(true) || !rawData.WriteParcelable(sessionInfo)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "write flag or sessionInfo  failed.");
+            return INNER_ERR;
+        }
+        if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
             return INNER_ERR;
         }
     } else {
@@ -5512,8 +5816,14 @@ ErrCode AbilityManagerProxy::OpenLink(const Want& want, sptr<IRemoteObject> call
     if (!WriteInterfaceToken(data)) {
         return IPC_PROXY_ERR;
     }
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write failed.");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed.");
         return INNER_ERR;
     }
     if (!data.WriteRemoteObject(callerToken)) {
