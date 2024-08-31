@@ -457,6 +457,16 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     bool isDebugApp = want.GetBoolParam(DEBUG_APP, false);
+    if (isDebugApp || want.GetBoolParam("nativeDebug", false)) {
+        AppExecFwk::BundleInfo bundleInfo;
+        if(GetAppBundleInfo(want.GetElement().GetBundleName(), bundleInfo, userId) == ERR_OK) {
+            if (bundleInfo.applicationInfo.appProvisionType != AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "release app not support debug");
+                return ERR_INVALID_VALUE;
+            }
+        }
+    }
+
     bool hasWindowOptions = (want.HasParameter(Want::PARAM_RESV_WINDOW_LEFT) ||
         want.HasParameter(Want::PARAM_RESV_WINDOW_TOP) ||
         want.HasParameter(Want::PARAM_RESV_WINDOW_HEIGHT) ||
@@ -8052,18 +8062,17 @@ int AbilityManagerService::StartUserTest(const Want &want, const sptr<IRemoteObj
         return ERR_INVALID_VALUE;
     }
 
-    auto bms = GetBundleManager();
-    CHECK_POINTER_AND_RETURN(bms, START_USER_TEST_FAIL);
     AppExecFwk::BundleInfo bundleInfo;
-    if (!IN_PROCESS_CALL(
-        bms->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, U0_USER_ID))) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get bundleInfo by U0_USER_ID %{public}d", U0_USER_ID);
-        int32_t userId = GetUserId();
-        if (!IN_PROCESS_CALL(
-            bms->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId))) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get bundleInfo by userId %{public}d", userId);
-            return GET_BUNDLE_INFO_FAILED;
-        }
+    int ret = GetAppBundleInfo(bundleName, bundleInfo);
+    if(ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get bundleinfo failed");
+        return ret;
+    }
+
+    bool isDebugApp = want.GetBoolParam(DEBUG_APP, false);
+    if (isDebugApp && bundleInfo.applicationInfo.appProvisionType != AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "release app not support debug");
+        return ERR_INVALID_VALUE;
     }
 
     return DelayedSingleton<AppScheduler>::GetInstance()->StartUserTest(want, observer, bundleInfo, GetUserId());
@@ -10483,6 +10492,13 @@ int32_t AbilityManagerService::AttachAppDebug(const std::string &bundleName)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "developer Mode false");
         return ERR_NOT_DEVELOPER_MODE;
     }
+    AppExecFwk::BundleInfo bundleInfo;
+    if(GetAppBundleInfo(bundleName, bundleInfo, userId) == ERR_OK) {
+        if (bundleInfo.applicationInfo.appProvisionType != AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "release app not support debug");
+            return ERR_INVALID_VALUE;
+        }
+    }
 
     if (!AAFwk::PermissionVerification::GetInstance()->IsSACall() &&
         !AAFwk::PermissionVerification::GetInstance()->IsShellCall()) {
@@ -10497,6 +10513,13 @@ int32_t AbilityManagerService::AttachAppDebug(const std::string &bundleName)
 int32_t AbilityManagerService::DetachAppDebug(const std::string &bundleName)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    AppExecFwk::BundleInfo bundleInfo;
+    if(GetAppBundleInfo(bundleName, bundleInfo, userId) == ERR_OK) {
+        if (bundleInfo.applicationInfo.appProvisionType != AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "release app not support debug");
+            return ERR_INVALID_VALUE;
+        }
+    }
     if (!AAFwk::PermissionVerification::GetInstance()->IsSACall() &&
         !AAFwk::PermissionVerification::GetInstance()->IsShellCall()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "permission verification failed");
@@ -12130,6 +12153,35 @@ int32_t AbilityManagerService::TerminateMission(int32_t missionId)
     }
 
     return missionListManager->ClearMission(missionId);
+}
+
+int AbilityManagerService::GetAppBundleInfo(const std::string &bundleName, AppExecFwk::BundleInfo &bundleInfo,
+    int32_t userId)
+{
+    if (bundleName.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Invalid bundle name");
+        return INVALID_DATA;
+    }
+    auto bms = GetBundleManager();
+    CHECK_POINTER_AND_RETURN(bms, START_USER_TEST_FAIL);
+    if (userId > -1) {
+        // get bundle info with no userId
+        if (!IN_PROCESS_CALL(bms->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo,
+            userId))) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get bundle with userId %{public}d", userId);
+            return GET_BUNDLE_INFO_FAILED;
+        }
+    } else if (!IN_PROCESS_CALL( // get bundle info with userId
+        bms->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, U0_USER_ID))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get bundle info by U0_USER_ID %{public}d", U0_USER_ID);
+        int32_t userId = GetUserId();
+        if (!IN_PROCESS_CALL(
+            bms->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId))) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get bundle info by userId %{public}d", userId);
+            return GET_BUNDLE_INFO_FAILED;
+        }
+    }
+    return ERR_OK;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
