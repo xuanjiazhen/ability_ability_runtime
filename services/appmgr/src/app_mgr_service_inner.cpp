@@ -5516,22 +5516,24 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
         }
     }
 
-    auto notifyAppTask = [appRecord, pid, callerUid, bundleName, faultData, innerService = shared_from_this()]() {
+    std::string processName = appRecord->GetProcessName();
+    auto notifyAppTask = [appRecord, pid, callerUid, bundleName, processName, faultData,
+        innerService = shared_from_this()]() {
         if (faultData.faultType == FaultDataType::APP_FREEZE) {
             AppfreezeManager::AppInfo info = {
                 .pid = pid,
                 .uid = callerUid,
                 .bundleName = bundleName,
-                .processName = bundleName,
+                .processName = processName,
             };
             AppExecFwk::AppfreezeManager::GetInstance()->AppfreezeHandleWithStack(faultData, info);
         }
 
         TAG_LOGW(AAFwkTag::APPMGR,
             "FaultData is: name: %{public}s, faultType: %{public}d, uid: %{public}d, pid: %{public}d,"
-            "bundleName: %{public}s, faultData.forceExit==%{public}d, faultData.waitSaveState==%{public}d",
-            faultData.errorObject.name.c_str(), faultData.faultType,
-            callerUid, pid, bundleName.c_str(), faultData.forceExit, faultData.waitSaveState);
+            " bundleName: %{public}s, processName: %{pubclic}s, faultData.forceExit==%{public}d,"
+            " faultData.waitSaveState==%{public}d", faultData.errorObject.name.c_str(), faultData.faultType,
+            callerUid, pid, bundleName.c_str(), processName.c_str(), faultData.forceExit, faultData.waitSaveState);
     };
 
     if (AppExecFwk::AppfreezeManager::GetInstance()->IsProcessDebug(pid, bundleName)) {
