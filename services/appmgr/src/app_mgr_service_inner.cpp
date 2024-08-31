@@ -4387,7 +4387,7 @@ void AppMgrServiceInner::InitGlobalConfiguration()
 
 #ifdef SUPPORT_SCREEN
     // Currently only this interface is known
-    auto language = OHOS::Global::I18n::LocaleConfig::GetSystemLanguage();
+    auto language = OHOS::Global::I18n::LocaleConfig::GetSystemLocale();
     TAG_LOGI(AAFwkTag::APPMGR, "current global language is : %{public}s", language.c_str());
     configuration_->AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE, language);
 #endif
