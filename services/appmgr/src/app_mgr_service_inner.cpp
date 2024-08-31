@@ -105,14 +105,14 @@ using namespace OHOS::Security;
 namespace {
 #define CHECK_CALLER_IS_SYSTEM_APP                                                             \
     if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) { \
-        TAG_LOGE(AAFwkTag::APPMGR, "The caller is not system-app, can not use system-api");    \
+        TAG_LOGE(AAFwkTag::APPMGR, "can't use SA");    \
         return AAFwk::ERR_NOT_SYSTEM_APP;                                                      \
     }
 
 #define CHECK_IS_SA_CALL(listener)                                                                              \
     auto instance = AAFwk::PermissionVerification::GetInstance();                                               \
     if ((listener) == nullptr || instance == nullptr || appRunningStatusModule_ == nullptr) {                     \
-        TAG_LOGE(AAFwkTag::APPMGR, "Listener or getInstance is nullptr or appRunningStatusModule_ is nullptr"); \
+        TAG_LOGE(AAFwkTag::APPMGR, "null listener, getInstance or appRunningStatusModule_"); \
         return ERR_INVALID_VALUE;                                                                               \
     }                                                                                                           \
     if (!instance->IsSACall()) {                                                                                \
