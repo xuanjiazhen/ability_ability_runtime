@@ -45,7 +45,6 @@
 #include "napi_common_util.h"
 #include "system_ability_definition.h"
 
-
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
