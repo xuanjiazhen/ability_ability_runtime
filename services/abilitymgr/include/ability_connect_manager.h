@@ -627,9 +627,6 @@ private:
     void ProcessEliminateAbilityRecord(std::shared_ptr<AbilityRecord> eliminateRecord);
     std::string GetServiceKey(const std::shared_ptr<AbilityRecord> &service);
 
-    int32_t ReportXiaoYiToRSSIfNeeded(const AppExecFwk::AbilityInfo &abilityInfo);
-    int32_t ReportAbilityStartInfoToRSS(const AppExecFwk::AbilityInfo &abilityInfo);
-
 private:
     const std::string TASK_ON_CALLBACK_DIED = "OnCallbackDiedTask";
     const std::string TASK_ON_ABILITY_DIED = "OnAbilityDiedTask";

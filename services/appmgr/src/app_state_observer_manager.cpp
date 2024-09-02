@@ -29,7 +29,6 @@ namespace OHOS {
 namespace AppExecFwk {
 namespace {
 const std::string THREAD_NAME = "AppStateObserverManager";
-const std::string XIAOYI_BUNDLE_NAME = "com.huawei.hmos.vassistant";
 const int BUNDLE_NAME_LIST_MAX_SIZE = 128;
 constexpr char DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
 } // namespace
@@ -610,10 +609,6 @@ void AppStateObserverManager::HandleOnAppProcessCreated(const std::shared_ptr<Ap
         return;
     }
     ProcessData data = WrapProcessData(appRecord);
-    if (data.bundleName == XIAOYI_BUNDLE_NAME && data.extensionType == ExtensionAbilityType::SERVICE) {
-        TAG_LOGI(AAFwkTag::APPMGR, "change processType to NORMAL");
-        data.processType = ProcessType::NORMAL;
-    }
     TAG_LOGI(AAFwkTag::APPMGR,
         "bundle:%{public}s, pid:%{public}d, uid:%{public}d, processType:%{public}d, "
         "extensionType:%{public}d, processName:%{public}s, renderUid:%{public}d, isTestMode:%{public}d",
@@ -693,10 +688,6 @@ void AppStateObserverManager::HandleOnProcessStateChanged(const std::shared_ptr<
         return;
     }
     ProcessData data = WrapProcessData(appRecord);
-    if (data.bundleName == XIAOYI_BUNDLE_NAME && data.extensionType == ExtensionAbilityType::SERVICE) {
-        TAG_LOGI(AAFwkTag::APPMGR, "change processType to NORMAL");
-        data.processType = ProcessType::NORMAL;
-    }
     TAG_LOGD(AAFwkTag::APPMGR,
         "bundle:%{public}s, pid:%{public}d, uid:%{public}d, state:%{public}d, "
         "isContinuousTask:%{public}d, gpuPid:%{public}d",
