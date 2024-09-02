@@ -1367,6 +1367,8 @@ HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_StartAbilityByType_0100, F
     int32_t sessionId = 200;
     context_->EraseUIExtension(sessionId);
     context_->CreateModalUIExtensionWithApp(want);
+    context_->SetRestoreEnabled(true);
+    context_->GetRestoreEnabled();
 }
 
 /**

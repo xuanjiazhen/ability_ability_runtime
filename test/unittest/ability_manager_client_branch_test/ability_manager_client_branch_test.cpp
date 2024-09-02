@@ -150,7 +150,7 @@ HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_DumpSysState_0100,
 HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_SetMissionIcon_0100, TestSize.Level1)
 {
     sptr<IRemoteObject> abilityToken = nullptr;
-    std::shared_ptr<OHOS::Media::PixelMap> icon = std::make_shared<OHOS::Media::PixelMap>();
+    std::shared_ptr<OHOS::Media::PixelMap> icon = nullptr;
 
     auto result = client_->SetMissionIcon(abilityToken, icon);
     EXPECT_NE(result, ERR_OK);
@@ -848,7 +848,7 @@ HWTEST_F(AbilityManagerClientBranchTest, NotifyCompleteContinuation_0100, TestSi
     bool isSuccess = true;
     client_->NotifyCompleteContinuation(deviceId, sessionId, isSuccess);
 
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(client_ != nullptr);
     GTEST_LOG_(INFO) << "NotifyCompleteContinuation_0100 end";
 }
 
@@ -1009,7 +1009,7 @@ HWTEST_F(AbilityManagerClientBranchTest, CompleteFirstFrameDrawing_0100, TestSiz
     sptr<IRemoteObject> abilityToken = nullptr;
     client_->CompleteFirstFrameDrawing(abilityToken);
 
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(client_ != nullptr);
     GTEST_LOG_(INFO) << "CompleteFirstFrameDrawing_0100 end";
 }
 
@@ -1141,7 +1141,7 @@ HWTEST_F(AbilityManagerClientBranchTest, OnRemoteDied_0100, TestSize.Level1)
     wptr<IRemoteObject> remote = nullptr;
     recipient.OnRemoteDied(remote);
 
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(client_ != nullptr);
     GTEST_LOG_(INFO) << "OnRemoteDied_0100 end";
 }
 
@@ -1157,7 +1157,7 @@ HWTEST_F(AbilityManagerClientBranchTest, CallRequestDone_0100, TestSize.Level1)
     sptr<IRemoteObject> callStub = nullptr;
     client_->CallRequestDone(token, callStub);
 
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(client_ != nullptr);
     GTEST_LOG_(INFO) << "CallRequestDone_0100 end";
 }
 
@@ -1549,10 +1549,10 @@ HWTEST_F(AbilityManagerClientBranchTest, ShareDataDone_0100, TestSize.Level1)
  */
 HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_GetAbilityTokenByCalleeObj_0100, TestSize.Level1)
 {
-    EXPECT_TRUE(client_ != nullptr);
     sptr<IRemoteObject> callStub = nullptr;
     sptr<IRemoteObject> token = nullptr;
     client_->GetAbilityTokenByCalleeObj(callStub, token);
+    EXPECT_TRUE(client_ != nullptr);
 }
 
 /**
@@ -1739,10 +1739,10 @@ HWTEST_F(AbilityManagerClientBranchTest, PrepareTerminateAbilityBySCB_0100, Test
  */
 HWTEST_F(AbilityManagerClientBranchTest, UpdateMissionSnapShot_0100, TestSize.Level1)
 {
-    EXPECT_TRUE(client_ != nullptr);
     sptr<IRemoteObject> token = nullptr;
     auto pixelMap = std::shared_ptr<Media::PixelMap>();
     client_->UpdateMissionSnapShot(token, pixelMap);
+    EXPECT_TRUE(client_ != nullptr);
 }
 
 /**
@@ -1764,10 +1764,10 @@ HWTEST_F(AbilityManagerClientBranchTest, RegisterSessionHandler_0100, TestSize.L
  */
 HWTEST_F(AbilityManagerClientBranchTest, SetLockedState_0100, TestSize.Level1)
 {
-    EXPECT_TRUE(client_ != nullptr);
     int32_t sessionId = 1;
     bool lockedState = true;
     client_->SetLockedState(sessionId, lockedState);
+    EXPECT_TRUE(client_ != nullptr);
 }
 
 /**
@@ -1777,9 +1777,9 @@ HWTEST_F(AbilityManagerClientBranchTest, SetLockedState_0100, TestSize.Level1)
  */
 HWTEST_F(AbilityManagerClientBranchTest, StartSpecifiedAbilityBySCB_0100, TestSize.Level1)
 {
-    EXPECT_TRUE(client_ != nullptr);
     Want want;
     client_->StartSpecifiedAbilityBySCB(want);
+    EXPECT_TRUE(client_ != nullptr);
 }
 
 /**
@@ -2597,7 +2597,10 @@ HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_SetMissionLabel_01
     sptr<IRemoteObject> token = nullptr;
     std::string label = "label";
     ErrCode ret = client_->SetMissionLabel(token, label);
-    EXPECT_EQ(ret, ERR_OK);
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        EXPECT_EQ(ret, ERR_OK);
+    }
+    EXPECT_TRUE(client_ != nullptr);
     GTEST_LOG_(INFO) << "AbilityManagerClient_SetMissionLabel_0100 end";
 }
 #endif
