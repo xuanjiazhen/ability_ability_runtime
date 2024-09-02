@@ -99,7 +99,9 @@ HWTEST_F(NativeRuntimeImplTest, NativeRuntimeImplTest_003, TestSize.Level1)
     EXPECT_EQ(err, napi_status::napi_ok);
 
     napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
-    err = NativeRuntimeImpl::GetNativeRuntimeImpl().Init(options, env);
+    std::map<std::string, std::vector<std::vector<std::string>>> pkgContextInfoMap;
+    std::map<std::string, std::string> pkgAliasMap;
+    err = NativeRuntimeImpl::GetNativeRuntimeImpl().Init(options, env, pkgContextInfoMap, pkgAliasMap);
     EXPECT_EQ(err, napi_status::napi_ok);
 
     err = NativeRuntimeImpl::GetNativeRuntimeImpl().RemoveJsEnv(env);

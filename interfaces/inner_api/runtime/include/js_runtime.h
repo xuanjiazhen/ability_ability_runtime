@@ -67,6 +67,11 @@ public:
     static bool ReadSourceMapData(const std::string& hapPath, const std::string& sourceMapPath, std::string& content);
 
     static std::shared_ptr<Options> GetChildOptions();
+
+    static void GetPkgContextInfoListMap(const std::map<std::string, std::string> &contextInfoMap,
+        std::map<std::string, std::vector<std::vector<std::string>>> &pkgContextInfoMap,
+        std::map<std::string, std::string> &pkgAliasMap);
+
     JsRuntime();
     ~JsRuntime() override;
 
@@ -184,10 +189,6 @@ private:
 
     std::string GetSystemKitPath();
     std::vector<panda::HmsMap> GetSystemKitsMap(uint32_t version);
-
-    void GetPkgContextInfoListMap(const std::map<std::string, std::string> &contextInfoMap,
-        std::map<std::string, std::vector<std::vector<std::string>>> &pkgContextInfoMap,
-        std::map<std::string, std::string> &pkgAliasMap);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -109,7 +109,9 @@ napi_status NativeRuntimeImpl::CreateJsEnv(const Options& options, std::shared_p
     return AddEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()), jsEnv);
 }
 
-napi_status NativeRuntimeImpl::Init(const Options& options, napi_env env)
+napi_status NativeRuntimeImpl::Init(const Options& options, napi_env env,
+    std::map<std::string, std::vector<std::vector<std::string>>> &pkgContextInfoMap,
+    std::map<std::string, std::string> &pkgAliasMap)
 {
     auto jsEnv = GetJsEnv(env);
     if (jsEnv == nullptr) {
@@ -139,6 +141,9 @@ napi_status NativeRuntimeImpl::Init(const Options& options, napi_env env)
                 hapPath = options.hapModulePath.find(moduleName)->second;
                 return true;
             });
+        panda::JSNApi::SetpkgContextInfoList(vm, pkgContextInfoMap);
+        panda::JSNApi::SetPkgAliasList(vm, pkgAliasMap);
+        panda::JSNApi::SetPkgNameList(vm, options.packageNameList);
     }
 
     if (!preloaded_) {
