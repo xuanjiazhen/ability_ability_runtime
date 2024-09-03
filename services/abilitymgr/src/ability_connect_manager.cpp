@@ -2369,7 +2369,7 @@ void AbilityConnectManager::HandleUIExtensionDied(const std::shared_ptr<AbilityR
         }
 
         if (abilityRecord == uiExtAbility) {
-            sptr<Rosen::ISession> sessionProxy = iface_cast<Rosen::ISession>(it->second.second->sessionToken );
+            sptr<Rosen::ISession> sessionProxy = iface_cast<Rosen::ISession>(it->second.second->sessionToken);
             if (sessionProxy) {
                 TAG_LOGD(AAFwkTag::ABILITYMGR, "start NotifyExtensionDied");
                 sessionProxy->NotifyExtensionDied();
@@ -2846,7 +2846,7 @@ void AbilityConnectManager::AddUIExtWindowDeathRecipient(const sptr<SessionInfo>
 {
     CHECK_POINTER(session);
     std::lock_guard lock(uiExtRecipientMapMutex_);
-    auto it = uiExtRecipientMap_.find(session);
+    auto it = uiExtRecipientMap_.find(session->sessionToken);
     if (it != uiExtRecipientMap_.end()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "recipient added before");
         return;
