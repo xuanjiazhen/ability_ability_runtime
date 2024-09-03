@@ -15,6 +15,7 @@
 
 #include "message_parcel_util.h"
 
+#include "hilog_tag_wrapper.h"
 #include "securec.h"
 
 namespace OHOS::AbilityRuntime {
@@ -28,6 +29,7 @@ bool WriteRawData(MessageParcel &dataParcel, MessageParcel &rawDataParcel)
     if (!dataParcel.WriteRawData(reinterpret_cast<uint8_t *>(rawDataParcel.GetData()), size)) {
         return false;
     }
+    TAG_LOGI(AAFwkTag::DEFAULT, "write raw data success, size=%{public}d", int(size));
     return true;
 }
 
@@ -55,6 +57,7 @@ bool ReadRawData(MessageParcel &dataParcel, MessageParcel &rawDataParcel)
         free(buffer);
         return false;
     }
+    TAG_LOGI(AAFwkTag::DEFAULT, "read raw data success, size=%{public}d", int(size));
     return true;
 }
 }  // namespace MessageParcelUtil
