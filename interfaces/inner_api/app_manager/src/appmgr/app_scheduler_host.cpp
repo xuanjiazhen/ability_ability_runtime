@@ -356,7 +356,7 @@ int32_t AppSchedulerHost::HandleScheduleAcceptWant(MessageParcel &data, MessageP
         return ERR_INVALID_VALUE;
     }
     auto moduleName = data.ReadString();
-    TAG_LOGI(AAFwkTag::APPMGR, "DEBUG, moduleName=%{public}s", moduleName);
+    TAG_LOGI(AAFwkTag::APPMGR, "DEBUG, moduleName=%{public}s", moduleName.c_str());
     TAG_LOGI(AAFwkTag::APPMGR, "DEBUG, wantSize=%{public}d", int(sizeof(*want)));
     ScheduleAcceptWant(*want, moduleName);
     delete want;
@@ -379,7 +379,7 @@ int32_t AppSchedulerHost::HandleScheduleNewProcessRequest(MessageParcel &data, M
         return ERR_INVALID_VALUE;
     }
     auto moduleName = data.ReadString();
-    TAG_LOGI(AAFwkTag::APPMGR, "DEBUG, moduleName=%{public}s", moduleName);
+    TAG_LOGI(AAFwkTag::APPMGR, "DEBUG, moduleName=%{public}s", moduleName.c_str());
     TAG_LOGI(AAFwkTag::APPMGR, "DEBUG, wantSize=%{public}d", int(sizeof(*want)));
     ScheduleNewProcessRequest(*want, moduleName);
     delete want;

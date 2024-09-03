@@ -400,7 +400,7 @@ void AppSchedulerProxy::ScheduleClearPageStack()
 
 void AppSchedulerProxy::ScheduleAcceptWant(const AAFwk::Want &want, const std::string &moduleName)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "DEBUG, moduleName=%{public}s", moduleName);
+    TAG_LOGI(AAFwkTag::APPMGR, "DEBUG, moduleName=%{public}s", moduleName.c_str());
     TAG_LOGI(AAFwkTag::APPMGR, "DEBUG, wantSize=%{public}d", int(sizeof(want)));
     MessageParcel data;
     MessageParcel reply;
@@ -430,7 +430,7 @@ void AppSchedulerProxy::ScheduleAcceptWant(const AAFwk::Want &want, const std::s
 
 void AppSchedulerProxy::ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "DEBUG, moduleName=%{public}s", moduleName);
+    TAG_LOGI(AAFwkTag::APPMGR, "DEBUG, moduleName=%{public}s", moduleName.c_str());
     TAG_LOGI(AAFwkTag::APPMGR, "DEBUG, wantSize=%{public}d", int(sizeof(want)));
     MessageParcel data;
     MessageParcel reply;
