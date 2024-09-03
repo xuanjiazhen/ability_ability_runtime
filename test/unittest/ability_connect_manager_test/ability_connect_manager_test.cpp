@@ -3027,7 +3027,7 @@ HWTEST_F(AbilityConnectManagerTest, RemoveUIExtWindowDeathRecipient_001, TestSiz
     ConnectManager()->RemoveUIExtWindowDeathRecipient(nullptr);
     EXPECT_FALSE(ConnectManager()->uiExtRecipientMap_.empty());
 
-    ConnectManager()->RemoveUIExtWindowDeathRecipient(MockSessionInfo(0));
+    ConnectManager()->RemoveUIExtWindowDeathRecipient(callbackA_->AsObject());
     EXPECT_TRUE(ConnectManager()->uiExtRecipientMap_.empty());
 }
 
@@ -3137,8 +3137,8 @@ HWTEST_F(AbilityConnectManagerTest, IsUIExtensionFocused_002, TestSize.Level1)
     sptr<SessionInfo> sessionInfo1 = new (std::nothrow) SessionInfo();
     sessionInfo1->callerToken = uiExtensionUser->GetToken();
     uiExtension1->sessionInfo_ = sessionInfo1;
-    connectManager->uiExtensionMap_.emplace(
-        sessionInfo1->uiExtensionComponentId, AbilityConnectManager::UIExtWindowMapValType(uiExtension1, sessionInfo1));
+    connectManager->uiExtensionMap_.emplace(sessionInfo1->uiExtensionComponentId,
+        AbilityConnectManager::UIExtWindowMapValType(uiExtension1, sessionInfo1));
     bool isFocused1 = connectManager->IsUIExtensionFocused(
         uiExtension1->GetApplicationInfo().accessTokenId, uiExtensionUser->GetToken());
     EXPECT_EQ(isFocused1, true);
@@ -3153,8 +3153,8 @@ HWTEST_F(AbilityConnectManagerTest, IsUIExtensionFocused_002, TestSize.Level1)
     sptr<SessionInfo> sessionInfo2 = new (std::nothrow) SessionInfo();
     sessionInfo2->callerToken = uiExtension1->GetToken();
     uiExtension2->sessionInfo_ = sessionInfo2;
-    connectManager->uiExtensionMap_.emplace(
-        sessionInfo2->uiExtensionComponentId, AbilityConnectManager::UIExtWindowMapValType(uiExtension2, sessionInfo2));
+    connectManager->uiExtensionMap_.emplace(sessionInfo2->uiExtensionComponentId,
+        AbilityConnectManager::UIExtWindowMapValType(uiExtension2, sessionInfo2));
     bool isFocused2 = connectManager->IsUIExtensionFocused(
         uiExtension2->GetApplicationInfo().accessTokenId, uiExtensionUser->GetToken());
     EXPECT_EQ(isFocused2, true);
