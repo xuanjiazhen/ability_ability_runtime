@@ -77,7 +77,7 @@ void AmsMgrScheduler::LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInf
     }
 
     if (amsMgrServiceInner_->VerifyRequestPermission() != ERR_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "permission denied");
         return;
     }
     PerfProfile::GetInstance().SetAbilityLoadStartTime(GetTickCount());
@@ -116,7 +116,7 @@ void AmsMgrScheduler::UpdateAbilityState(const sptr<IRemoteObject> &token, const
     }
 
     if (amsMgrServiceInner_->VerifyRequestPermission() != ERR_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "permission denied");
         return;
     }
     std::function<void()> updateAbilityStateFunc = [amsMgrServiceInner = amsMgrServiceInner_, token, state] () {
@@ -135,7 +135,7 @@ void AmsMgrScheduler::UpdateExtensionState(const sptr<IRemoteObject> &token, con
     }
 
     if (amsMgrServiceInner_->VerifyRequestPermission() != ERR_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "permission denied");
         return;
     }
     std::function<void()> updateExtensionStateFunc = [amsMgrServiceInner = amsMgrServiceInner_, token, state]() {
@@ -154,7 +154,7 @@ void AmsMgrScheduler::TerminateAbility(const sptr<IRemoteObject> &token, bool cl
     }
 
     if (amsMgrServiceInner_->VerifyRequestPermission() != ERR_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "permission denied");
         return;
     }
     std::function<void()> terminateAbilityFunc = [amsMgrServiceInner = amsMgrServiceInner_, token, clearMissionFlag]() {
@@ -189,7 +189,7 @@ void AmsMgrScheduler::AbilityBehaviorAnalysis(const sptr<IRemoteObject> &token, 
     }
 
     if (amsMgrServiceInner_->VerifyRequestPermission() != ERR_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "permission denied");
         return;
     }
     std::function<void()> abilityBehaviorAnalysisFunc = [amsMgrServiceInner = amsMgrServiceInner_, token, preToken,
@@ -207,7 +207,7 @@ void AmsMgrScheduler::KillProcessByAbilityToken(const sptr<IRemoteObject> &token
     }
 
     if (amsMgrServiceInner_->VerifyKillProcessPermission(token) != ERR_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "permission denied");
         return;
     }
 
@@ -233,7 +233,7 @@ void AmsMgrScheduler::KillProcessesByUserId(int32_t userId)
     auto permission = AAFwk::PermissionConstants::PERMISSION_CLEAN_BACKGROUND_PROCESSES;
     if (!isCallingFromFoundation &&
         amsMgrServiceInner_->VerifyAccountPermission(permission, userId) == ERR_PERMISSION_DENIED) {
-        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "permission denied");
         return;
     }
 
@@ -284,7 +284,7 @@ void AmsMgrScheduler::AttachPidToParent(const sptr<IRemoteObject> &token, const 
 int32_t AmsMgrScheduler::KillProcessWithAccount(
     const std::string &bundleName, const int accountId, const bool clearPageStack)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "bundleName = %{public}s, accountId = %{public}d, clearPageStack = %{public}d",
+    TAG_LOGI(AAFwkTag::APPMGR, "bundleName: %{public}s, accountId: %{public}d, clearPageStack: %{public}d",
         bundleName.c_str(), accountId, clearPageStack);
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
@@ -300,7 +300,7 @@ void AmsMgrScheduler::AbilityAttachTimeOut(const sptr<IRemoteObject> &token)
     }
 
     if (amsMgrServiceInner_->VerifyRequestPermission() != ERR_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "permission denied");
         return;
     }
     auto task = [amsMgrServiceInner = amsMgrServiceInner_, token]() {
@@ -311,13 +311,13 @@ void AmsMgrScheduler::AbilityAttachTimeOut(const sptr<IRemoteObject> &token)
 
 void AmsMgrScheduler::PrepareTerminate(const sptr<IRemoteObject> &token, bool clearMissionFlag)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "Notify AppMgrService to prepare to terminate the ability.");
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (!IsReady()) {
         return;
     }
 
     if (amsMgrServiceInner_->VerifyRequestPermission() != ERR_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "permission denied");
         return;
     }
     auto task = [=]() { amsMgrServiceInner_->PrepareTerminate(token, clearMissionFlag); };
@@ -368,7 +368,7 @@ int32_t AmsMgrScheduler::KillProcessesByAccessTokenId(const uint32_t accessToken
 
 int32_t AmsMgrScheduler::KillApplicationByUid(const std::string &bundleName, const int uid)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "bundleName = %{public}s, uid = %{public}d", bundleName.c_str(), uid);
+    TAG_LOGI(AAFwkTag::APPMGR, "bundleName=%{public}s, uid=%{public}d", bundleName.c_str(), uid);
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
@@ -422,7 +422,7 @@ void AmsMgrScheduler::StartSpecifiedAbility(const AAFwk::Want &want, const AppEx
     }
 
     if (amsMgrServiceInner_->VerifyRequestPermission() != ERR_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "permission denied");
         return;
     }
     auto task = [=]() { amsMgrServiceInner_->StartSpecifiedAbility(want, abilityInfo, requestId); };
@@ -438,7 +438,7 @@ void AmsMgrScheduler::StartSpecifiedProcess(const AAFwk::Want &want, const AppEx
     }
 
     if (amsMgrServiceInner_->VerifyRequestPermission() != ERR_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "permission denied");
         return;
     }
     auto task = [=]() { amsMgrServiceInner_->StartSpecifiedProcess(want, abilityInfo, requestId); };
@@ -633,7 +633,7 @@ bool AmsMgrScheduler::IsMemorySizeSufficent()
         return true;
     }
     if (amsMgrServiceInner_->VerifyRequestPermission() != ERR_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "permission denied");
         return true;
     }
     return amsMgrServiceInner_->IsMemorySizeSufficent();

@@ -119,7 +119,7 @@ auto OnSendFinishedUvAfterWorkCallback = [](uv_work_t* work, int status) {
     TAG_LOGI(AAFwkTag::WANTAGENT, "called");
     TriggerReceiveDataWorker* dataWorkerData = static_cast<TriggerReceiveDataWorker *>(work->data);
     if (dataWorkerData == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "worker is nullptr");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null worker");
         delete work;
         return;
     }
@@ -397,7 +397,7 @@ napi_value JsWantAgent::OnGetWant(napi_env env, napi_callback_info info)
     int32_t errCode = BUSINESS_ERROR_CODE_OK;
     WantAgent* pWantAgent = nullptr;
     if (argc > ARGC_TWO || argc < ARGC_ONE) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "Not enough arguments");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "invalid argc");
         ThrowTooFewParametersError(env);
         return CreateJsUndefined(env);
     }

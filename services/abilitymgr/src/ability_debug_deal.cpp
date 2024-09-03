@@ -62,7 +62,7 @@ void AbilityDebugDeal::OnAbilitysDebugStoped(const std::vector<sptr<IRemoteObjec
 
 void AbilityDebugDeal::OnAbilitysAssertDebugChange(const std::vector<sptr<IRemoteObject>> &tokens, bool isAssertDebug)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "Called. %{public}s", isAssertDebug ? "start assert debug" : "stop assert debug");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "isAssertDebug: %{public}s", isAssertDebug);
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     for (const auto &token : tokens) {
         auto abilityRecord = Token::GetAbilityRecordByToken(token);

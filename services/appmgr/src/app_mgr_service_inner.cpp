@@ -1777,7 +1777,7 @@ int32_t AppMgrServiceInner::GetProcessRunningInfosByUserId(std::vector<RunningPr
 {
     if (VerifyAccountPermission(AAFwk::PermissionConstants::PERMISSION_GET_RUNNING_INFO, userId) ==
         ERR_PERMISSION_DENIED) {
-        TAG_LOGE(AAFwkTag::APPMGR, "%{public}s: Permission verification fail", __func__);
+        TAG_LOGE(AAFwkTag::APPMGR, "permission denied");
         return ERR_PERMISSION_DENIED;
     }
 
@@ -1902,7 +1902,7 @@ int32_t AppMgrServiceInner::DumpHeapMemory(const int32_t pid, OHOS::AppExecFwk::
 {
     auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
     if (!isSaCall) {
-        TAG_LOGE(AAFwkTag::APPMGR, "callerToken not SA");
+        TAG_LOGE(AAFwkTag::APPMGR, "caller not SA");
         return ERR_INVALID_VALUE;
     }
     if (pid < 0) {
@@ -1920,7 +1920,7 @@ int32_t AppMgrServiceInner::DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &i
 {
     auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
     if (!isSaCall) {
-        TAG_LOGE(AAFwkTag::APPMGR, "callerToken not SA");
+        TAG_LOGE(AAFwkTag::APPMGR, "caller not SA");
         return ERR_INVALID_VALUE;
     }
     if (info.pid == 0) {
@@ -3642,7 +3642,7 @@ bool AppMgrServiceInner::CheckGetRunningInfoPermission() const
 
     auto isPerm = AAFwk::PermissionVerification::GetInstance()->VerifyRunningInfoPerm();
     if (!isPerm) {
-        TAG_LOGE(AAFwkTag::APPMGR, "permission verify fail");
+        TAG_LOGE(AAFwkTag::APPMGR, "permission denied");
         return false;
     }
 
@@ -3651,9 +3651,7 @@ bool AppMgrServiceInner::CheckGetRunningInfoPermission() const
 
 void AppMgrServiceInner::LoadResidentProcess(const std::vector<AppExecFwk::BundleInfo> &infos)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "%{public}s call", __func__);
-
-    TAG_LOGI(AAFwkTag::APPMGR, "info size: [%{public}zu]", infos.size());
+    TAG_LOGI(AAFwkTag::APPMGR, "bundle info size: [%{public}zu]", infos.size());
     StartResidentProcess(infos, -1, true);
 }
 
@@ -3804,7 +3802,7 @@ void AppMgrServiceInner::RestartResidentProcess(std::shared_ptr<AppRunningRecord
 
 void AppMgrServiceInner::NotifyAppStatus(const std::string &bundleName, const std::string &eventData)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "bundle name is %{public}s, event is %{public}s",
+    TAG_LOGD(AAFwkTag::APPMGR, "bundleName: %{public}s, event: %{public}s",
         bundleName.c_str(), eventData.c_str());
     Want want;
     want.SetAction(eventData);
@@ -3819,8 +3817,7 @@ void AppMgrServiceInner::NotifyAppStatus(const std::string &bundleName, const st
 void AppMgrServiceInner::NotifyAppStatusByCallerUid(const std::string &bundleName, const int32_t tokenId,
     const int32_t userId, const int32_t callerUid, const std::string &eventData)
 {
-    TAG_LOGI(AAFwkTag::APPMGR,
-        "%{public}s call, bundle name: %{public}s, userId: %{public}d, event: %{public}s", __func__,
+    TAG_LOGI(AAFwkTag::APPMGR, "bundleName: %{public}s, userId: %{public}d, event: %{public}s",
         bundleName.c_str(), userId, eventData.c_str());
     Want want;
     want.SetAction(eventData);
@@ -3877,11 +3874,11 @@ int32_t AppMgrServiceInner::UnregisterAbilityForegroundStateObserver(
 
 int32_t AppMgrServiceInner::GetForegroundApplications(std::vector<AppStateData> &list)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "begin.");
+    TAG_LOGD(AAFwkTag::APPMGR, "begin");
     CHECK_CALLER_IS_SYSTEM_APP;
     auto isPerm = AAFwk::PermissionVerification::GetInstance()->VerifyRunningInfoPerm();
     if (!isPerm) {
-        TAG_LOGE(AAFwkTag::APPMGR, "permission verify fail");
+        TAG_LOGE(AAFwkTag::APPMGR, "permission denied");
         return ERR_PERMISSION_DENIED;
     }
 
@@ -4471,7 +4468,7 @@ std::shared_ptr<AppExecFwk::Configuration> AppMgrServiceInner::GetConfiguration(
 
 void AppMgrServiceInner::KillApplicationByRecord(const std::shared_ptr<AppRunningRecord> &appRecord)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "Kill application by appRecord.");
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (!appRecord || !taskHandler_) {
         TAG_LOGW(AAFwkTag::APPMGR, "appRecord or taskHandler_ null");
         return;
@@ -4581,7 +4578,7 @@ int AppMgrServiceInner::GetAbilityRecordsByProcessID(const int pid, std::vector<
     auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
     auto callingPid = IPCSkeleton::GetCallingPid();
     if (!isSaCall && callingPid != pid) {
-        TAG_LOGE(AAFwkTag::APPMGR, "permission verify fail");
+        TAG_LOGE(AAFwkTag::APPMGR, "Permission denied");
         return ERR_PERMISSION_DENIED;
     }
     for (auto &item : appRecord->GetAbilities()) {
@@ -4617,8 +4614,7 @@ int AppMgrServiceInner::GetApplicationInfoByProcessID(const int pid, AppExecFwk:
 
 int32_t AppMgrServiceInner::NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, const std::string &exitMsg)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "NotifyAppMgrRecordExitReason pid:%{public}d, reason:%{public}d, exitMsg:%{public}s.",
-        pid, reason, exitMsg.c_str());
+    TAG_LOGD(AAFwkTag::APPMGR, "pid:%{public}d, reason:%{public}d, exitMsg:%{public}s", pid, reason, exitMsg.c_str());
     auto callerUid = IPCSkeleton::GetCallingUid();
     if (callerUid != FOUNDATION_UID) {
         TAG_LOGE(AAFwkTag::APPMGR, "not foundation call");
@@ -4777,7 +4773,7 @@ int AppMgrServiceInner::VerifyAccountPermission(const std::string &permissionNam
         auto isCallingPermAccount = AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
             AAFwk::PermissionConstants::PERMISSION_INTERACT_ACROSS_LOCAL_ACCOUNTS);
         if (!isCallingPermAccount) {
-            TAG_LOGE(AAFwkTag::APPMGR, "permission accounts verify fail");
+            TAG_LOGE(AAFwkTag::APPMGR, "permission denied");
             return ERR_PERMISSION_DENIED;
         }
     }
@@ -5161,7 +5157,7 @@ void AppMgrServiceInner::RegisterFocusListener()
 
 void AppMgrServiceInner::FreeFocusListener()
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "freeFocusListener begin");
+    TAG_LOGI(AAFwkTag::APPMGR, "begin");
 #ifdef SUPPORT_SCREEN
     if (!focusListener_) {
         TAG_LOGE(AAFwkTag::APPMGR, "no focusListener_");
@@ -5170,7 +5166,7 @@ void AppMgrServiceInner::FreeFocusListener()
     WindowManager::GetInstance().UnregisterFocusChangedListener(focusListener_);
     focusListener_ = nullptr;
 #endif // SUPPORT_SCREEN
-    TAG_LOGI(AAFwkTag::APPMGR, "freeFocusListener end");
+    TAG_LOGI(AAFwkTag::APPMGR, "end");
 }
 #ifdef SUPPORT_SCREEN
 void AppMgrServiceInner::HandleFocused(const sptr<OHOS::Rosen::FocusChangeInfo> &focusChangeInfo)
@@ -7284,8 +7280,7 @@ int32_t AppMgrServiceInner::GetAllUIExtensionProviderPid(pid_t hostPid, std::vec
 
 int32_t AppMgrServiceInner::NotifyMemorySizeStateChanged(bool isMemorySizeSufficent)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "isMemorySizeSufficent: %{public}d",
-        isMemorySizeSufficent);
+    TAG_LOGI(AAFwkTag::APPMGR, "isMemorySizeSufficent: %{public}d", isMemorySizeSufficent);
     bool isMemmgrCall = AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
         MEMMGR_PROC_NAME);
     bool isSupportCall = OHOS::system::GetBoolParameter(SUPPORT_CALL_NOTIFY_MEMORY_CHANGED, false);

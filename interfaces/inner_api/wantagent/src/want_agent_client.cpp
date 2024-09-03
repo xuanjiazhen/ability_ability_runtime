@@ -271,7 +271,7 @@ ErrCode WantAgentClient::GetPendingRequestWant(const sptr<IWantSender> &target, 
 
     sptr<IRemoteObject> obj = target->AsObject();
     if (obj == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "Input Param target is invalid");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null obj");
         return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
     }
 

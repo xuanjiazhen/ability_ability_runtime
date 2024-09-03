@@ -150,7 +150,7 @@ napi_value CreateJsAbilityStageContextFromSendable(napi_env env, void* wrapped)
     auto weakContext = sendableContext->context_;
     std::shared_ptr<Context> context = weakContext.lock();
     if (context == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "context invalid");
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
         return nullptr;
     }
 
@@ -257,7 +257,7 @@ private:
         bool stageMode = false;
         napi_status status = IsStageContext(env, info.argv[0], stageMode);
         if (status != napi_ok || !stageMode) {
-            TAG_LOGE(AAFwkTag::CONTEXT, "context isn't stageMode, status is %{public}d", status);
+            TAG_LOGE(AAFwkTag::CONTEXT, "not stageMode: %{public}d", status);
             ThrowInvalidParamError(env, "Parse param context failed, must be a context of stageMode.");
             return CreateJsUndefined(env);
         }
@@ -284,7 +284,7 @@ private:
     {
         TAG_LOGD(AAFwkTag::CONTEXT, "called");
         if (info.argc != ARGC_ONE) {
-            TAG_LOGE(AAFwkTag::CONTEXT, "invalid params");
+            TAG_LOGE(AAFwkTag::CONTEXT, "invalid argc");
             ThrowInvalidParamError(env, "Parameter error: The number of parameter is invalid.");
             return CreateJsUndefined(env);
         }
@@ -313,7 +313,7 @@ private:
     {
         TAG_LOGD(AAFwkTag::CONTEXT, "called");
         if (info.argc != ARGC_ONE) {
-            TAG_LOGE(AAFwkTag::CONTEXT, "invalid params");
+            TAG_LOGE(AAFwkTag::CONTEXT, "invalid argc");
             ThrowInvalidParamError(env, "Parameter error: The number of parameter is invalid.");
             return CreateJsUndefined(env);
         }
@@ -342,7 +342,7 @@ private:
     {
         TAG_LOGD(AAFwkTag::CONTEXT, "called");
         if (info.argc != ARGC_ONE) {
-            TAG_LOGE(AAFwkTag::CONTEXT, "invalid params");
+            TAG_LOGE(AAFwkTag::CONTEXT, "invalid argc");
             ThrowInvalidParamError(env, "Parameter error: The number of parameter is invalid.");
             return CreateJsUndefined(env);
         }
@@ -371,7 +371,7 @@ private:
     {
         TAG_LOGD(AAFwkTag::CONTEXT, "called");
         if (info.argc != ARGC_ONE) {
-            TAG_LOGE(AAFwkTag::CONTEXT, "invalid params");
+            TAG_LOGE(AAFwkTag::CONTEXT, "invalid argc");
             ThrowInvalidParamError(env, "Parameter error: The number of parameter is invalid.");
             return CreateJsUndefined(env);
         }

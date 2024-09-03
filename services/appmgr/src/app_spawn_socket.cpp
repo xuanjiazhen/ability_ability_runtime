@@ -61,7 +61,7 @@ void AppSpawnSocket::CloseAppSpawnConnection()
 
 ErrCode AppSpawnSocket::WriteMessage(const void *buf, const int32_t len)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "ready to write message");
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (len <= 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "write message fail");
         return ERR_INVALID_VALUE;
@@ -85,7 +85,7 @@ ErrCode AppSpawnSocket::WriteMessage(const void *buf, const int32_t len)
 
 ErrCode AppSpawnSocket::ReadMessage(void *buf, const int32_t len)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "ready to read message");
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (len <= 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "read message fail");
         return ERR_INVALID_VALUE;

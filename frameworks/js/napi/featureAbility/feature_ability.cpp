@@ -227,7 +227,7 @@ napi_value JsFeatureAbility::OnHasWindowFocus(napi_env env, const NapiCallbackIn
     NapiAsyncTask::CompleteCallback complete =
         [obj = this](napi_env env, NapiAsyncTask &task, int32_t status) {
             if (obj->ability_ == nullptr) {
-                TAG_LOGE(AAFwkTag::FA, "HasWindowFocus execute error, the ability is nullptr");
+                TAG_LOGE(AAFwkTag::FA, "null ability");
                 task.Reject(env, CreateJsError(env, NAPI_ERR_ACE_ABILITY, "HasWindowFocus failed"));
                 return;
             }
@@ -502,7 +502,7 @@ napi_value CreateAsyncWork(napi_env env, napi_value &resourceName, AsyncCallback
         } else {
             TAG_LOGE(AAFwkTag::FA, "null ability");
         }
-        TAG_LOGI(AAFwkTag::FA, "worker pool thread execute exit");
+        TAG_LOGI(AAFwkTag::FA, "worker pool thread exit");
     },
     [](napi_env env, napi_status status, void *data) {
         TAG_LOGI(AAFwkTag::FA, "complete");
@@ -1186,7 +1186,7 @@ napi_value ContinueAbilityWrap(napi_env env, napi_callback_info info, AsyncCallb
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, nullptr, nullptr));
     NAPI_CALL(env, napi_typeof(env, args[0], &valueType));
     if (valueType != napi_object && valueType != napi_function) {
-        TAG_LOGE(AAFwkTag::FA, "wrong argument type. Object or function expected");
+        TAG_LOGE(AAFwkTag::FA, "Object or function expected");
         return nullptr;
     }
     if (argc == 0) {

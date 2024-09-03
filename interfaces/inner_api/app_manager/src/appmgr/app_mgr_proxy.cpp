@@ -714,7 +714,7 @@ int AppMgrProxy::GetAbilityRecordsByProcessID(const int pid, std::vector<sptr<IR
 
 int AppMgrProxy::PreStartNWebSpawnProcess()
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "PreStartNWebSpawnProcess");
+    TAG_LOGI(AAFwkTag::APPMGR, "called");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -726,7 +726,7 @@ int AppMgrProxy::PreStartNWebSpawnProcess()
     PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::PRE_START_NWEBSPAWN_PROCESS, data, reply, option);
     auto result = reply.ReadInt32();
     if (result != 0) {
-        TAG_LOGW(AAFwkTag::APPMGR, "PreStartNWebSpawnProcess failed, result: %{public}d", result);
+        TAG_LOGW(AAFwkTag::APPMGR, "result: %{public}d", result);
     }
     return result;
 }
@@ -776,7 +776,7 @@ int AppMgrProxy::StartRenderProcess(const std::string &renderParam,
     auto result = reply.ReadInt32();
     renderPid = reply.ReadInt32();
     if (result != 0) {
-        TAG_LOGW(AAFwkTag::APPMGR, "StartRenderProcess failed, result: %{public}d", result);
+        TAG_LOGW(AAFwkTag::APPMGR, "result: %{public}d", result);
     }
     return result;
 }
@@ -848,14 +848,14 @@ int AppMgrProxy::GetRenderProcessTerminationStatus(pid_t renderPid, int &status)
 
     int32_t ret = SendRequest(AppMgrInterfaceCode::GET_RENDER_PROCESS_TERMINATION_STATUS, data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "GetRenderProcessTerminationStatus SendRequest is failed, error code: %{public}d",
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest failed: %{public}d",
             ret);
         return ret;
     }
 
     auto result = reply.ReadInt32();
     if (result != 0) {
-        TAG_LOGW(AAFwkTag::APPMGR, "GetRenderProcessTerminationStatus failed, result: %{public}d", result);
+        TAG_LOGW(AAFwkTag::APPMGR, "result: %{public}d", result);
         return result;
     }
     status = reply.ReadInt32();
@@ -864,7 +864,7 @@ int AppMgrProxy::GetRenderProcessTerminationStatus(pid_t renderPid, int &status)
 
 int32_t AppMgrProxy::UpdateConfiguration(const Configuration &config, const int32_t userId)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "AppMgrProxy UpdateConfiguration");
+    TAG_LOGI(AAFwkTag::APPMGR, "called");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
@@ -889,7 +889,7 @@ int32_t AppMgrProxy::UpdateConfiguration(const Configuration &config, const int3
 
 int32_t AppMgrProxy::UpdateConfigurationByBundleName(const Configuration &config, const std::string &name)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "AppMgrProxy UpdateConfigurationByBundleName");
+    TAG_LOGI(AAFwkTag::APPMGR, "called");
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
         return ERR_INVALID_DATA;

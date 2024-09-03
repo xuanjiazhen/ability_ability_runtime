@@ -51,7 +51,7 @@ bool TaskHandlerClient::PostTask(std::function<void()> task, long delayTime)
 
     bool ret = taskHandler_->PostTask(task, delayTime, EventQueue::Priority::LOW);
     if (!ret) {
-        TAG_LOGE(AAFwkTag::ABILITY, "taskHandler_ PostTask failed");
+        TAG_LOGE(AAFwkTag::ABILITY, "PostTask failed");
     }
     return ret;
 }

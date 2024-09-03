@@ -180,10 +180,10 @@ int AbilityConnectManager::TerminateAbilityInner(const sptr<IRemoteObject> &toke
     }
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     std::string element = abilityRecord->GetURI();
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "Terminate ability, ability is %{public}s.", element.c_str());
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "ability: %{public}s", element.c_str());
     if (IsUIExtensionAbility(abilityRecord)) {
         if (!abilityRecord->IsConnectListEmpty()) {
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "exist connection, don't terminate");
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "connection active");
             return ERR_OK;
         } else if (abilityRecord->IsAbilityState(AbilityState::FOREGROUND) ||
             abilityRecord->IsAbilityState(AbilityState::FOREGROUNDING)) {
@@ -1154,8 +1154,7 @@ int AbilityConnectManager::ScheduleDisconnectAbilityDoneLocked(const sptr<IRemot
             AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "don't terminate uiservice");
         } else {
-            TAG_LOGD(AAFwkTag::ABILITYMGR,
-                "Service ability has no any connection, and not started, need terminate or cache.");
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "Service ability has no any connection, and not started");
             TerminateOrCacheAbility(abilityRecord);
         }
     }
@@ -1474,7 +1473,7 @@ void AbilityConnectManager::LoadAbility(const std::shared_ptr<AbilityRecord> &ab
 
 void AbilityConnectManager::PostRestartResidentTask(const AbilityRequest &abilityRequest)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "PostRestartResidentTask start");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "start");
     CHECK_POINTER(taskHandler_);
     std::string taskName = std::string("RestartResident_") + std::string(abilityRequest.abilityInfo.name);
     auto task = [abilityRequest, connectManager = shared_from_this()]() {
@@ -1486,14 +1485,14 @@ void AbilityConnectManager::PostRestartResidentTask(const AbilityRequest &abilit
     if (abilityMgr) {
         restartIntervalTime = AmsConfigurationParameter::GetInstance().GetRestartIntervalTime();
     }
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "PostRestartResidentTask, time:%{public}d", restartIntervalTime);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "time:%{public}d", restartIntervalTime);
     taskHandler_->SubmitTask(task, taskName, restartIntervalTime);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "PostRestartResidentTask end");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "end");
 }
 
 void AbilityConnectManager::HandleRestartResidentTask(const AbilityRequest &abilityRequest)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "HandleRestartResidentTask start");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "start");
     std::lock_guard guard(serialMutex_);
     auto findRestartResidentTask = [abilityRequest](const AbilityRequest &requestInfo) {
         return (requestInfo.want.GetElement().GetBundleName() == abilityRequest.want.GetElement().GetBundleName() &&

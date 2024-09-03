@@ -831,13 +831,13 @@ int AppMgrClient::StartRenderProcess(const std::string &renderParam,
 void AppMgrClient::AttachRenderProcess(const sptr<IRenderScheduler> &renderScheduler)
 {
     if (!renderScheduler) {
-        TAG_LOGI(AAFwkTag::APPMGR, "renderScheduler is nullptr");
+        TAG_LOGE(AAFwkTag::APPMGR, "null renderScheduler");
         return;
     }
 
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
-        TAG_LOGI(AAFwkTag::APPMGR, "AttachRenderProcess");
+        TAG_LOGI(AAFwkTag::APPMGR, "null service");
         service->AttachRenderProcess(renderScheduler->AsObject());
     }
 }

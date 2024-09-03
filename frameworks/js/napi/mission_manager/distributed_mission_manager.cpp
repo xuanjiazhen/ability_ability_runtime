@@ -152,7 +152,7 @@ bool SetStartSyncMissionsContext(const napi_env &env, const napi_value &value,
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, fixConflictValue, &valueType);
     if (valueType != napi_boolean) {
-        TAG_LOGE(AAFwkTag::MISSION, "fixConflict error type");
+        TAG_LOGE(AAFwkTag::MISSION, "fixConflict not bool");
         errInfo = "Parameter error. The type of \"fixConflict\" must be boolean";
         return false;
     }
@@ -160,20 +160,20 @@ bool SetStartSyncMissionsContext(const napi_env &env, const napi_value &value,
     bool isTag = false;
     napi_has_named_property(env, value, "tag", &isTag);
     if (!isTag) {
-        TAG_LOGE(AAFwkTag::MISSION, "Wrong tag argument name");
+        TAG_LOGE(AAFwkTag::MISSION, "not tag");
         errInfo = "Parameter error. The key of \"MissionParameter\" must be tag";
         return false;
     }
     napi_value tagValue = nullptr;
     napi_get_named_property(env, value, "tag", &tagValue);
     if (tagValue == nullptr) {
-        TAG_LOGE(AAFwkTag::MISSION, "not find tag");
+        TAG_LOGE(AAFwkTag::MISSION, "no tag");
         errInfo = "Parameter error. The value of \"tag\" must not be undefined";
         return false;
     }
     napi_typeof(env, tagValue, &valueType);
     if (valueType != napi_number) {
-        TAG_LOGE(AAFwkTag::MISSION, "tag error type");
+        TAG_LOGE(AAFwkTag::MISSION, "tag not number");
         errInfo = "Parameter error. The type of \"tag\" must be number";
         return false;
     }
@@ -197,13 +197,13 @@ bool SetSyncRemoteMissionsContext(const napi_env &env, const napi_value &value,
     bool isDeviceId = false;
     napi_has_named_property(env, value, "deviceId", &isDeviceId);
     if (!isDeviceId) {
-        TAG_LOGE(AAFwkTag::MISSION, "Wrong deviceId argument name");
+        TAG_LOGE(AAFwkTag::MISSION, "not deviceId");
         errInfo = "Parameter error. The key of \"parameter\" must be deviceId";
         return false;
     }
     napi_get_named_property(env, value, "deviceId", &deviceIdValue);
     if (deviceIdValue == nullptr) {
-        TAG_LOGE(AAFwkTag::MISSION, "not find deviceId");
+        TAG_LOGE(AAFwkTag::MISSION, "null deviceId");
         errInfo = "Parameter error. The value of \"deviceId\" must not be undefined";
         return false;
     }
@@ -217,7 +217,7 @@ bool SetSyncRemoteMissionsContext(const napi_env &env, const napi_value &value,
     char deviceId[VALUE_BUFFER_SIZE + 1] = {0};
     napi_get_value_string_utf8(env, deviceIdValue, deviceId, VALUE_BUFFER_SIZE + 1, &context->valueLen);
     if (context->valueLen > VALUE_BUFFER_SIZE) {
-        TAG_LOGE(AAFwkTag::MISSION, "deviceId length not correct");
+        TAG_LOGE(AAFwkTag::MISSION, "invalid deviceId len");
         errInfo = "Parameter error. The length of \"deviceId\" must be less than " +
             std::to_string(VALUE_BUFFER_SIZE);
         return false;
@@ -225,8 +225,8 @@ bool SetSyncRemoteMissionsContext(const napi_env &env, const napi_value &value,
     context->deviceId = deviceId;
 
     if (isStart) {
-        if (!SetStartSyncMissionsContext (env, value, context, errInfo)) {
-            TAG_LOGE(AAFwkTag::MISSION, "Wrong start sync argument");
+        if (!SetStartSyncMissionsContext(env, value, context, errInfo)) {
+            TAG_LOGE(AAFwkTag::MISSION, "set context failed");
             return false;
         }
     }
@@ -242,13 +242,13 @@ bool ProcessSyncInput(napi_env &env, napi_callback_info info, bool isStart,
     napi_value argv[2] = { nullptr };
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (argc != ARGS_ONE && argc != ARGS_TWO) {
-        TAG_LOGE(AAFwkTag::MISSION, "argument size error");
+        TAG_LOGE(AAFwkTag::MISSION, "invalid argc");
         errInfo = "Parameter error. The type of \"number of parameters\" must be 1 or 2";
         return false;
     }
     syncContext->env = env;
     if (!SetSyncRemoteMissionsContext(env, argv[0], isStart, syncContext, errInfo)) {
-        TAG_LOGE(AAFwkTag::MISSION, "Wrong argument");
+        TAG_LOGE(AAFwkTag::MISSION, "invalid arg");
         return false;
     }
     if (argc == ARGS_TWO) {
@@ -319,7 +319,7 @@ napi_value NAPI_StartSyncRemoteMissions(napi_env env, napi_callback_info info)
     if (!ProcessSyncInput(env, info, true, syncContext, errInfo)) {
         delete syncContext;
         syncContext = nullptr;
-        TAG_LOGE(AAFwkTag::MISSION, "Wrong argument");
+        TAG_LOGE(AAFwkTag::MISSION, "invalid arg");
         napi_throw(env, GenerateBusinessError(env, PARAMETER_CHECK_FAILED, errInfo));
         return GetUndefined(env);
     }
@@ -391,7 +391,7 @@ napi_value NAPI_StopSyncRemoteMissions(napi_env env, napi_callback_info info)
     if (!ProcessSyncInput(env, info, false, syncContext, errInfo)) {
         delete syncContext;
         syncContext = nullptr;
-        TAG_LOGE(AAFwkTag::MISSION, "Wrong argument");
+        TAG_LOGE(AAFwkTag::MISSION, "invalid arg");
         napi_throw(env, GenerateBusinessError(env, PARAMETER_CHECK_FAILED, errInfo));
         return GetUndefined(env);
     }
@@ -481,7 +481,7 @@ void RegisterMissionExecuteCB(napi_env env, void *data)
         TAG_LOGI(AAFwkTag::MISSION, "add registration");
         registration_[registerMissionCB->deviceId] = registration;
     }
-    TAG_LOGD(AAFwkTag::MISSION, "end.deviceId:%{public}d", registerMissionCB->result);
+    TAG_LOGD(AAFwkTag::MISSION, "deviceId:%{public}d", registerMissionCB->result);
 }
 
 void RegisterMissionCallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -547,7 +547,7 @@ napi_value RegisterMissionAsync(napi_env env, RegisterMissionCB *registerMission
         static_cast<void *>(registerMissionCB),
         &registerMissionCB->cbBase.asyncWork);
     napi_queue_async_work(env, registerMissionCB->cbBase.asyncWork);
-    TAG_LOGI(AAFwkTag::MISSION, "asyncCallback end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
     return result;
 }
 
@@ -565,7 +565,7 @@ bool CheckMissionCallbackProperty(napi_env &env, const napi_value &value, std::s
         errInfo = "Parameter error. The type of \"options\" must be MissionCallback";
         return false;
     }
-    TAG_LOGI(AAFwkTag::MISSION, "called end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
     return true;
 }
 
@@ -579,7 +579,7 @@ bool SetCallbackReference(napi_env &env, const napi_value &value,
     napi_value jsMethod = nullptr;
     napi_get_named_property(env, value, "notifyMissionsChanged", &jsMethod);
     if (jsMethod == nullptr) {
-        TAG_LOGE(AAFwkTag::MISSION, "not find notifyMissionsChanged");
+        TAG_LOGE(AAFwkTag::MISSION, "null jsMethod");
         errInfo = "Parameter error. The value of \"notifyMissionsChanged\" must not be undefined";
         return false;
     }
@@ -618,7 +618,7 @@ bool SetCallbackReference(napi_env &env, const napi_value &value,
     }
     // 2 refers the second argument
     napi_create_reference(env, jsMethod, 1, &registerMissionCB->missionRegistrationCB.callback[2]);
-    TAG_LOGI(AAFwkTag::MISSION, "called end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
     return true;
 }
 
@@ -630,7 +630,7 @@ bool CreateCallbackReference(napi_env &env, const napi_value &value,
     napi_typeof(env, value, &valuetype);
     if (valuetype == napi_object) {
         if (!SetCallbackReference(env, value, registerMissionCB, errInfo)) {
-            TAG_LOGE(AAFwkTag::MISSION, "Wrong callback.");
+            TAG_LOGE(AAFwkTag::MISSION, "Wrong callback");
             return false;
         }
     } else {
@@ -638,7 +638,7 @@ bool CreateCallbackReference(napi_env &env, const napi_value &value,
         errInfo = "Parameter error. The type of \"options\" must be MissionCallback";
         return false;
     }
-    TAG_LOGI(AAFwkTag::MISSION, "called end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
     return true;
 }
 
@@ -657,7 +657,7 @@ bool CreateOnCallbackReference(napi_env &env, const napi_value &jsMethod,
     napi_create_reference(env, jsMethod, 1, &onCB->callbackRef);
     onCB->onCallbackCB.napiCallback =
         std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference *>(onCB->onCallbackCB.callback));
-    TAG_LOGI(AAFwkTag::MISSION, "called end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
     return true;
 }
 
@@ -669,7 +669,7 @@ bool RegisterMissionWrapDeviceId(napi_env &env, napi_value &argc,
     napi_has_named_property(env, argc, "deviceId", &isDeviceId);
     napi_typeof(env, argc, &valueType);
     if (!isDeviceId || valueType != napi_object) {
-        TAG_LOGE(AAFwkTag::MISSION, "Wrong deviceId argument name");
+        TAG_LOGE(AAFwkTag::MISSION, "deviceId not napi_object");
         errInfo = "Parameter error. The key of \"MissionDeviceInfo\" must be deviceId";
         return false;
     }
@@ -677,7 +677,7 @@ bool RegisterMissionWrapDeviceId(napi_env &env, napi_value &argc,
     napi_value napiDeviceId = nullptr;
     napi_get_named_property(env, argc, "deviceId", &napiDeviceId);
     if (napiDeviceId == nullptr) {
-        TAG_LOGE(AAFwkTag::MISSION, "not find deviceId.");
+        TAG_LOGE(AAFwkTag::MISSION, "null deviceId");
         errInfo = "Parameter error. The value of \"deviceId\" must not be undefined";
         return false;
     }
@@ -691,7 +691,7 @@ bool RegisterMissionWrapDeviceId(napi_env &env, napi_value &argc,
     size_t valueLen = 0;
     napi_get_value_string_utf8(env, napiDeviceId, deviceId, VALUE_BUFFER_SIZE + 1, &valueLen);
     if (valueLen > VALUE_BUFFER_SIZE) {
-        TAG_LOGE(AAFwkTag::MISSION, "deviceId length not correct");
+        TAG_LOGE(AAFwkTag::MISSION, "invalid deviceId len");
         errInfo = "Parameter error. The length of \"deviceId\" must be less than " +
             std::to_string(VALUE_BUFFER_SIZE);
         return false;
@@ -706,13 +706,13 @@ bool OnWrapType(napi_env &env, napi_value &argc,
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, argc, &valueType);
     if (valueType != napi_string) {
-        TAG_LOGE(AAFwkTag::MISSION, "Wrong type argument name");
+        TAG_LOGE(AAFwkTag::MISSION, "type not napi_string");
         errInfo = "Parameter error. The type of \"type\" must be string";
         return false;
     }
     std::string type = AppExecFwk::UnwrapStringFromJS(env, argc, "");
     if (type != "continueStateChange") {
-        TAG_LOGE(AAFwkTag::MISSION, "not find type");
+        TAG_LOGE(AAFwkTag::MISSION, "invalid type");
         errInfo = "Parameter error. The value of \"type\" must not be continueStateChange";
         return false;
     }
@@ -728,13 +728,13 @@ napi_value RegisterMissionWrap(napi_env &env, napi_callback_info info,
     napi_value args[ARGS_MAX_COUNT] = {nullptr};
     napi_get_cb_info(env, info, &argcAsync, args, nullptr, nullptr);
     if (argcAsync != ARGS_TWO && argcAsync != ARGS_THREE) {
-        TAG_LOGE(AAFwkTag::MISSION, "Wrong argument count");
+        TAG_LOGE(AAFwkTag::MISSION, "invalid argc");
         errInfo = "Parameter error. The type of \"number of parameters\" must be 2 or 3";
         return nullptr;
     }
 
     if (!RegisterMissionWrapDeviceId(env, args[0], registerMissionCB, errInfo)) {
-        TAG_LOGI(AAFwkTag::MISSION, "RegisterMissionWrapDeviceId failed");
+        TAG_LOGI(AAFwkTag::MISSION, "reg MissionWrapDeviceId failed");
         return nullptr;
     }
     if (argcAsync > 1 && !CreateCallbackReference(env, args[1], registerMissionCB, errInfo)) {
@@ -752,7 +752,7 @@ napi_value RegisterMissionWrap(napi_env &env, napi_callback_info info,
     }
 
     napi_value ret = RegisterMissionAsync(env, registerMissionCB);
-    TAG_LOGI(AAFwkTag::MISSION, "called end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
     return ret;
 }
 
@@ -797,7 +797,7 @@ void OnExecuteCB(napi_env &env, OnCB *onCB)
     } else {
         TAG_LOGI(AAFwkTag::MISSION, "add registrationOfOn failed");
     }
-    TAG_LOGI(AAFwkTag::MISSION, "called end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
 }
 
 napi_value OnWrap(napi_env &env, napi_callback_info info,
@@ -808,7 +808,7 @@ napi_value OnWrap(napi_env &env, napi_callback_info info,
     napi_value args[ARGS_MAX_COUNT] = {nullptr};
     napi_get_cb_info(env, info, &argcAsync, args, nullptr, nullptr);
     if (argcAsync != ARGS_TWO) {
-        TAG_LOGE(AAFwkTag::MISSION, "Wrong argument count");
+        TAG_LOGE(AAFwkTag::MISSION, "invalid argc");
         errInfo = "Parameter error. The type of \"number of parameters\" must be 2";
         return nullptr;
     }
@@ -830,7 +830,7 @@ napi_value OnWrap(napi_env &env, napi_callback_info info,
     }
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
-    TAG_LOGI(AAFwkTag::MISSION, "called end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
     return result;
 }
 
@@ -858,7 +858,7 @@ void OffExecuteCB(napi_env env, OnCB *onCB)
         TAG_LOGI(AAFwkTag::MISSION, "remove registration");
         registrationOfOn_.erase(onCB->type);
     }
-    TAG_LOGD(AAFwkTag::MISSION, "end.type:%{public}d", onCB->result);
+    TAG_LOGD(AAFwkTag::MISSION, "type:%{public}d ", onCB->result);
 }
 
 napi_value OffWrap(napi_env &env, napi_callback_info info,
@@ -869,7 +869,7 @@ napi_value OffWrap(napi_env &env, napi_callback_info info,
     napi_value args[ARGS_MAX_COUNT] = {nullptr};
     napi_get_cb_info(env, info, &argcAsync, args, nullptr, nullptr);
     if (argcAsync != ARGS_ONE && argcAsync != ARGS_TWO) {
-        TAG_LOGE(AAFwkTag::MISSION, "Wrong argument count");
+        TAG_LOGE(AAFwkTag::MISSION, "invalid argc");
         errInfo = "Parameter error. The type of \"number of parameters\" must be 1 or 2";
         return nullptr;
     }
@@ -890,7 +890,7 @@ napi_value OffWrap(napi_env &env, napi_callback_info info,
     }
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
-    TAG_LOGI(AAFwkTag::MISSION, "called end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
     return result;
 }
 
@@ -1049,7 +1049,7 @@ void NAPIRemoteMissionListener::SetNotifyNetDisconnectCBRef(const napi_ref &ref)
 
 void UvWorkNotifyMissionChanged(uv_work_t *work, int status)
 {
-    TAG_LOGI(AAFwkTag::MISSION, "start, uv_queue_work");
+    TAG_LOGI(AAFwkTag::MISSION, "uv_queue_work");
     if (work == nullptr) {
         TAG_LOGE(AAFwkTag::MISSION, "null work");
         return;
@@ -1086,7 +1086,7 @@ void UvWorkNotifyMissionChanged(uv_work_t *work, int status)
     delete registerMissionCB;
     registerMissionCB = nullptr;
     delete work;
-    TAG_LOGI(AAFwkTag::MISSION, "uv_queue_work end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
 }
 
 void UvWorkOnCallback(uv_work_t *work, int status)
@@ -1137,7 +1137,7 @@ void UvWorkOnCallback(uv_work_t *work, int status)
     delete onCB;
     onCB = nullptr;
     delete work;
-    TAG_LOGI(AAFwkTag::MISSION, "uv_queue_work end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
 }
 
 void NAPIRemoteMissionListener::NotifyMissionsChanged(const std::string &deviceId)
@@ -1212,7 +1212,7 @@ void NAPIRemoteOnListener::OnCallback(const uint32_t continueState, const std::s
         onCB = nullptr;
         delete work;
     }
-    TAG_LOGI(AAFwkTag::MISSION, "OnCallback end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
 }
 
 void UvWorkNotifySnapshot(uv_work_t *work, int status)
@@ -1248,7 +1248,7 @@ void UvWorkNotifySnapshot(uv_work_t *work, int status)
     delete registerMissionCB;
     registerMissionCB = nullptr;
     delete work;
-    TAG_LOGI(AAFwkTag::MISSION, "uv_queue_work end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
 }
 
 void CallbackReturn(napi_value *result, RegisterMissionCB *registerMissionCB)
@@ -1294,12 +1294,12 @@ void NAPIRemoteMissionListener::NotifySnapshot(const std::string &deviceId, int3
         registerMissionCB = nullptr;
         delete work;
     }
-    TAG_LOGI(AAFwkTag::MISSION, "NotifySnapshot end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
 }
 
 void UvWorkNotifyNetDisconnect(uv_work_t *work, int status)
 {
-    TAG_LOGI(AAFwkTag::MISSION, "begin, uv_queue_work");
+    TAG_LOGI(AAFwkTag::MISSION, "uv_queue_work");
     if (work == nullptr) {
         TAG_LOGE(AAFwkTag::MISSION, "null work");
         return;
@@ -1332,12 +1332,12 @@ void UvWorkNotifyNetDisconnect(uv_work_t *work, int status)
     delete registerMissionCB;
     registerMissionCB = nullptr;
     delete work;
-    TAG_LOGI(AAFwkTag::MISSION, "uv_queue_work end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
 }
 
 void NAPIRemoteMissionListener::NotifyNetDisconnect(const std::string &deviceId, int32_t state)
 {
-    TAG_LOGI(AAFwkTag::MISSION, "called. state: %{public}d", state);
+    TAG_LOGI(AAFwkTag::MISSION, "state: %{public}d", state);
     uv_loop_s *loop = nullptr;
 
     napi_get_uv_event_loop(env_, &loop);
@@ -1396,7 +1396,7 @@ void UnRegisterMissionExecuteCB(napi_env env, void *data)
         TAG_LOGI(AAFwkTag::MISSION, "remove registration");
         registration_.erase(registerMissionCB->deviceId);
     }
-    TAG_LOGD(AAFwkTag::MISSION, "end.deviceId:%{public}d", registerMissionCB->result);
+    TAG_LOGD(AAFwkTag::MISSION, "deviceId:%{public}d", registerMissionCB->result);
 }
 
 void UnRegisterMissionPromiseCompletedCB(napi_env env, napi_status status, void *data)
@@ -1444,7 +1444,7 @@ napi_value UnRegisterMissionPromise(napi_env env, RegisterMissionCB *registerMis
         static_cast<void *>(registerMissionCB),
         &registerMissionCB->cbBase.asyncWork);
     napi_queue_async_work(env, registerMissionCB->cbBase.asyncWork);
-    TAG_LOGI(AAFwkTag::MISSION, "asyncCallback end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
     return promise;
 }
 
@@ -1460,7 +1460,7 @@ bool GetUnRegisterMissionDeviceId(napi_env &env, const napi_value &value,
     if (isDeviceId && valueType == napi_object) {
         napi_get_named_property(env, value, "deviceId", &napiDeviceId);
     } else {
-        TAG_LOGE(AAFwkTag::MISSION, "Wrong deviceId argument name");
+        TAG_LOGE(AAFwkTag::MISSION, "not deviceId");
         errInfo = "Parameter error. The key of \"MissionDeviceInfo\" must be deviceId";
         return false;
     }
@@ -1473,20 +1473,20 @@ bool GetUnRegisterMissionDeviceId(napi_env &env, const napi_value &value,
     size_t valueLen = 0;
     napi_typeof(env, napiDeviceId, &valueType);
     if (valueType != napi_string) {
-        TAG_LOGE(AAFwkTag::MISSION, " Wrong argument type");
+        TAG_LOGE(AAFwkTag::MISSION, "not napi_string");
         errInfo = "Parameter error. The type of \"deviceId\" must be string";
         return false;
     }
     char deviceId[VALUE_BUFFER_SIZE + 1] = {0};
     napi_get_value_string_utf8(env, napiDeviceId, deviceId, VALUE_BUFFER_SIZE + 1, &valueLen);
     if (valueLen > VALUE_BUFFER_SIZE) {
-        TAG_LOGE(AAFwkTag::MISSION, "deviceId length not correct");
+        TAG_LOGE(AAFwkTag::MISSION, "invalid deviceId len");
         errInfo = "Parameter error. The length of \"deviceId\" must be less than " +
             std::to_string(VALUE_BUFFER_SIZE);
         return false;
     }
     registerMissionCB->deviceId = std::string(deviceId);
-    TAG_LOGI(AAFwkTag::MISSION, "called end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
     return true;
 }
 
@@ -1499,15 +1499,15 @@ napi_value UnRegisterMissionWrap(napi_env &env, napi_callback_info info,
     napi_value ret = nullptr;
 
     napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
-    TAG_LOGI(AAFwkTag::MISSION, "argc is %{public}zu", argc);
+    TAG_LOGI(AAFwkTag::MISSION, "argc:%{public}zu", argc);
     if (argc != ARGS_ONE && argc != ARGS_TWO) {
-        TAG_LOGE(AAFwkTag::MISSION, "Wrong argument count");
+        TAG_LOGE(AAFwkTag::MISSION, "invalid argc");
         errInfo = "Parameter error. The type of \"number of parameters\" must be 1 or 2";
         return nullptr;
     }
 
     if (!GetUnRegisterMissionDeviceId(env, args[0], registerMissionCB, errInfo)) {
-        TAG_LOGE(AAFwkTag::MISSION, "Wrong argument");
+        TAG_LOGE(AAFwkTag::MISSION, "wrong arg");
         return nullptr;
     }
 
@@ -1522,7 +1522,7 @@ napi_value UnRegisterMissionWrap(napi_env &env, napi_callback_info info,
         napi_create_reference(env, args[1], 1, &registerMissionCB->callbackRef);
     }
     ret = UnRegisterMissionPromise(env, registerMissionCB);
-    TAG_LOGI(AAFwkTag::MISSION, "called end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
     return ret;
 }
 
@@ -1554,8 +1554,7 @@ napi_value WrapString(napi_env &env, const std::string &param, const std::string
     TAG_LOGI(AAFwkTag::MISSION, "called");
 
     napi_value jsValue = nullptr;
-    TAG_LOGD(AAFwkTag::MISSION, "called. %{public}s = %{public}s",
-        paramName.c_str(), param.c_str());
+    TAG_LOGD(AAFwkTag::MISSION, "%{public}s:%{public}s", paramName.c_str(), param.c_str());
     napi_create_string_utf8(env, param.c_str(), NAPI_AUTO_LENGTH, &jsValue);
 
     return jsValue;
@@ -1569,7 +1568,7 @@ napi_value WrapInt32(napi_env &env, int32_t num, const std::string &paramName)
     napi_create_object(env, &jsObject);
 
     napi_value jsValue = nullptr;
-    TAG_LOGD(AAFwkTag::MISSION, "called. %{public}s = %{public}d", paramName.c_str(), num);
+    TAG_LOGD(AAFwkTag::MISSION, "%{public}s:%{public}d", paramName.c_str(), num);
     napi_create_int32(env, num, &jsValue);
     napi_set_named_property(env, jsObject, paramName.c_str(), jsValue);
 
@@ -1578,7 +1577,7 @@ napi_value WrapInt32(napi_env &env, int32_t num, const std::string &paramName)
 
 napi_value CreateInt32(napi_env &env, int32_t num, const std::string &paramName)
 {
-    TAG_LOGD(AAFwkTag::MISSION, "called. %{public}s = %{public}d", paramName.c_str(), num);
+    TAG_LOGD(AAFwkTag::MISSION, "%{public}s:%{public}d", paramName.c_str(), num);
 
     napi_value jsValue = nullptr;
     napi_create_int32(env, num, &jsValue);
@@ -1606,7 +1605,6 @@ void ContinueAbilityExecuteCB(napi_env env, void *data)
 {
     TAG_LOGI(AAFwkTag::MISSION, "called");
     auto continueAbilityCB = static_cast<ContinueAbilityCB *>(data);
-    TAG_LOGI(AAFwkTag::MISSION, "create continueAbilityCB success.");
     sptr<NAPIMissionContinue> continuation(new (std::nothrow) NAPIMissionContinue());
     continueAbilityCB->abilityContinuation = continuation;
     if (continueAbilityCB->abilityContinuation == nullptr) {
@@ -1614,7 +1612,6 @@ void ContinueAbilityExecuteCB(napi_env env, void *data)
         return;
     }
     continueAbilityCB->abilityContinuation->SetContinueAbilityEnv(env);
-    TAG_LOGI(AAFwkTag::MISSION, "set env success");
     if (continueAbilityCB->abilityContinuationCB.callback[0] != nullptr) {
         continueAbilityCB->abilityContinuation->
             SetContinueAbilityCBRef(continueAbilityCB->abilityContinuationCB.callback[0]);
@@ -1643,7 +1640,7 @@ void ContinueAbilityExecuteCB(napi_env env, void *data)
         continueAbilityCB->missionId, continueAbilityCB->abilityContinuation,
         continueAbilityCB->wantParams);
     }
-    TAG_LOGI(AAFwkTag::MISSION, "end. error:%{public}d ", continueAbilityCB->result);
+    TAG_LOGI(AAFwkTag::MISSION, "error:%{public}d", continueAbilityCB->result);
 }
 
 void ContinueAbilityCallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -1716,7 +1713,7 @@ napi_value ContinueAbilityAsync(napi_env env, ContinueAbilityCB *continueAbility
         static_cast<void *>(continueAbilityCB),
         &continueAbilityCB->cbBase.asyncWork);
     napi_queue_async_work_with_qos(env, continueAbilityCB->cbBase.asyncWork, napi_qos_user_initiated);
-    TAG_LOGI(AAFwkTag::MISSION, "asyncCallback end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
     return result;
 }
 
@@ -1827,7 +1824,7 @@ bool CheckContinueFirstArgs(napi_env &env, const napi_value &value,
 {
     TAG_LOGI(AAFwkTag::MISSION, "called");
     if (!CheckContinueKeyExist(env, value)) {
-        TAG_LOGE(AAFwkTag::MISSION, "Wrong argument key");
+        TAG_LOGE(AAFwkTag::MISSION, "invalid key");
         errInfo = "Parameter error. The type of \"parameter\" must be ContinueMission";
         return false;
     }
@@ -1838,7 +1835,7 @@ bool CheckContinueFirstArgs(napi_env &env, const napi_value &value,
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, value, &valueType);
     if (valueType != napi_object) {
-        TAG_LOGE(AAFwkTag::MISSION, "Wrong argument type");
+        TAG_LOGE(AAFwkTag::MISSION, "not napi_object");
         errInfo = "Parameter error. The type of \"parameter\" must be ContinueMission";
         return false;
     }
@@ -1848,7 +1845,7 @@ bool CheckContinueFirstArgs(napi_env &env, const napi_value &value,
     napi_get_named_property(env, value, "wantParam", &napiWantParam);
     if (napiSrcDeviceId == nullptr || napiDstDeviceId == nullptr ||
         napiMissionId == nullptr || napiWantParam == nullptr) {
-        TAG_LOGE(AAFwkTag::MISSION, "miss required parameters");
+        TAG_LOGE(AAFwkTag::MISSION, "miss required params");
         errInfo = "Parameter error. The number of \"ContinueMission\" must be 4";
         return false;
     }
@@ -1856,10 +1853,10 @@ bool CheckContinueFirstArgs(napi_env &env, const napi_value &value,
         !CheckContinueDeviceInfoDstDeviceId(env, napiDstDeviceId, continueAbilityCB, errInfo) ||
         !CheckContinueDeviceInfoMissionId(env, napiMissionId, continueAbilityCB, errInfo) ||
         !CheckContinueDeviceInfoWantParam(env, napiWantParam, continueAbilityCB, errInfo)) {
-        TAG_LOGE(AAFwkTag::MISSION, "continueMission check ContinueDeviceInfo failed");
+        TAG_LOGE(AAFwkTag::MISSION, "check ContinueDeviceInfo failed");
         return false;
     }
-    TAG_LOGI(AAFwkTag::MISSION, "called end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
     return true;
 }
 
@@ -1868,14 +1865,14 @@ bool CheckArgsWithBundleName(napi_env &env, const napi_value &value,
 {
     TAG_LOGI(AAFwkTag::MISSION, "called");
     if (!CheckBundleNameExist(env, value)) {
-        TAG_LOGE(AAFwkTag::MISSION, "Args without bundleName");
+        TAG_LOGE(AAFwkTag::MISSION, "no bundleName");
         return false;
     }
     napi_value napiValue[ARGS_SIX] = {nullptr};
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, value, &valueType);
     if (valueType != napi_object) {
-        TAG_LOGE(AAFwkTag::MISSION, "Args without bundleName");
+        TAG_LOGE(AAFwkTag::MISSION, "not napi_object");
         return false;
     }
     napi_get_named_property(env, value, "srcDeviceId", &napiValue[ARGS_ZERO]);
@@ -1886,7 +1883,7 @@ bool CheckArgsWithBundleName(napi_env &env, const napi_value &value,
     napi_get_named_property(env, value, "continueType", &napiValue[ARGS_FIVE]);
     if (napiValue[ARGS_ZERO] == nullptr || napiValue[ARGS_ONE] == nullptr ||
         napiValue[ARGS_TWO] == nullptr || napiValue[ARGS_THREE] == nullptr) {
-        TAG_LOGE(AAFwkTag::MISSION, "miss required parameters");
+        TAG_LOGE(AAFwkTag::MISSION, "miss required params");
         return false;
     }
     CheckContinueDeviceInfoContinueType(env, napiValue[ARGS_FIVE], continueAbilityCB, errInfo);
@@ -1895,10 +1892,10 @@ bool CheckArgsWithBundleName(napi_env &env, const napi_value &value,
         !CheckContinueDeviceInfoDstDeviceId(env, napiValue[ARGS_ONE], continueAbilityCB, errInfo) ||
         !CheckContinueDeviceInfoBundleName(env, napiValue[ARGS_TWO], continueAbilityCB, errInfo) ||
         !CheckContinueDeviceInfoWantParam(env, napiValue[ARGS_THREE], continueAbilityCB, errInfo)) {
-        TAG_LOGE(AAFwkTag::MISSION, "continueMission check ContinueDeviceInfo failed");
+        TAG_LOGE(AAFwkTag::MISSION, "check ContinueDeviceInfo failed");
         return false;
     }
-    TAG_LOGI(AAFwkTag::MISSION, "called end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
     return true;
 }
 
@@ -1910,7 +1907,7 @@ bool CheckContinueCallback(napi_env &env, const napi_value &value,
     napi_valuetype valuetype = napi_undefined;
     napi_typeof(env, value, &valuetype);
     if (valuetype != napi_object) {
-        TAG_LOGE(AAFwkTag::MISSION, "Wrong argument type");
+        TAG_LOGE(AAFwkTag::MISSION, "not napi_object");
         errInfo = "Parameter error. The type of \"options\" must be ContinueCallback";
         return false;
     }
@@ -1934,7 +1931,7 @@ bool CheckContinueCallback(napi_env &env, const napi_value &value,
         return false;
     }
     napi_create_reference(env, jsMethod, 1, &continueAbilityCB->abilityContinuationCB.callback[0]);
-    TAG_LOGI(AAFwkTag::MISSION, "called end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
     return true;
 }
 
@@ -1945,25 +1942,24 @@ bool CheckContinueCallbackWithBundleName(napi_env &env, const napi_value &value,
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, value, &valueType);
     if (valueType != napi_function) {
-        TAG_LOGE(AAFwkTag::MISSION, "Wrong argument type");
+        TAG_LOGE(AAFwkTag::MISSION, "not napi_function");
         return false;
     }
     napi_create_reference(env, value, 1, &continueAbilityCB->abilityContinuationCB.callback[0]);
     napi_create_reference(env, value, 1, &continueAbilityCB->callbackRef);
-    TAG_LOGI(AAFwkTag::MISSION, "called end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
     return true;
 }
 
 napi_value ContinueAbilityWrap(napi_env &env, napi_callback_info info,
     ContinueAbilityCB *continueAbilityCB, std::string &errInfo)
 {
-    TAG_LOGI(AAFwkTag::MISSION, "called");
     size_t argcAsync = 3;
     napi_value args[ARGS_MAX_COUNT] = {nullptr};
     napi_value ret = nullptr;
 
     napi_get_cb_info(env, info, &argcAsync, args, nullptr, nullptr);
-    TAG_LOGI(AAFwkTag::MISSION, "argcAsync is %{public}zu", argcAsync);
+    TAG_LOGI(AAFwkTag::MISSION, "argcAsync:%{public}zu", argcAsync);
 
     if (argcAsync != ARGS_ONE && argcAsync != ARGS_TWO && argcAsync != ARGS_THREE) {
         TAG_LOGE(AAFwkTag::MISSION, "invalid argc");
@@ -1975,14 +1971,14 @@ napi_value ContinueAbilityWrap(napi_env &env, napi_callback_info info,
         continueAbilityCB->hasArgsWithBundleName = true;
         if (argcAsync == ARGS_TWO && CheckContinueCallbackWithBundleName(env, args[1], continueAbilityCB, errInfo)) {
             ret = ContinueAbilityAsync(env, continueAbilityCB);
-            TAG_LOGI(AAFwkTag::MISSION, "called end");
+            TAG_LOGI(AAFwkTag::MISSION, "end");
             return ret;
         }
     }
 
     if (!continueAbilityCB->hasArgsWithBundleName) {
         if (!CheckContinueFirstArgs(env, args[0], continueAbilityCB, errInfo)) {
-            TAG_LOGE(AAFwkTag::MISSION, "check the first argument failed");
+            TAG_LOGE(AAFwkTag::MISSION, "check args[0] failed");
             return nullptr;
         }
 
@@ -2006,7 +2002,7 @@ napi_value ContinueAbilityWrap(napi_env &env, napi_callback_info info,
     }
 
     ret = ContinueAbilityAsync(env, continueAbilityCB);
-    TAG_LOGI(AAFwkTag::MISSION, "called end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
     return ret;
 }
 
@@ -2097,12 +2093,12 @@ void UvWorkOnContinueDone(uv_work_t *work, int status)
     delete continueAbilityCB;
     continueAbilityCB = nullptr;
     delete work;
-    TAG_LOGI(AAFwkTag::MISSION, "uv_queue_work end");
+    TAG_LOGI(AAFwkTag::MISSION, "end");
 }
 
 void NAPIMissionContinue::OnContinueDone(int32_t result)
 {
-    TAG_LOGI(AAFwkTag::MISSION, "called. result = %{public}d", result);
+    TAG_LOGI(AAFwkTag::MISSION, "result: %{public}d", result);
     uv_loop_s *loop = nullptr;
 
     napi_get_uv_event_loop(env_, &loop);

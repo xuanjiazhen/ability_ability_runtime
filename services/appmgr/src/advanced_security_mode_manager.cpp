@@ -29,12 +29,12 @@ const std::string PARAM_GLOBAL_ADVANCED_MODE_STATE = "ohos.boot.advsecmode.state
 }
 AdvancedSecurityModeManager::AdvancedSecurityModeManager()
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "ASMM constructor");
+    TAG_LOGD(AAFwkTag::APPMGR, "constructor");
 }
 
 AdvancedSecurityModeManager::~AdvancedSecurityModeManager()
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "ASMM deconstructor");
+    TAG_LOGD(AAFwkTag::APPMGR, "deconstructor");
 }
 
 void AdvancedSecurityModeManager::Init()
@@ -48,7 +48,7 @@ void AdvancedSecurityModeManager::Init()
 bool AdvancedSecurityModeManager::IsJITEnabled()
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::APPMGR, "ASMM IsJITEnabled %{public}d", !isAdvSecModeEnabled_);
+    TAG_LOGD(AAFwkTag::APPMGR, "IsJITEnabled %{public}d", !isAdvSecModeEnabled_);
     return !isAdvSecModeEnabled_;
 }
 }  // namespace AppExecFwk

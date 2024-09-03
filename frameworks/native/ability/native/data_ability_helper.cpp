@@ -42,7 +42,7 @@ DataAbilityHelper::DataAbilityHelper(const std::shared_ptr<DataShare::DataShareH
  */
 std::shared_ptr<DataAbilityHelper> DataAbilityHelper::Creator(const std::shared_ptr<Context> context)
 {
-    TAG_LOGI(AAFwkTag::DATA_ABILITY, "Creator with context");
+    TAG_LOGI(AAFwkTag::DATA_ABILITY, "called");
     DataAbilityHelper *ptrDataAbilityHelper = nullptr;
     std::shared_ptr<DataAbilityHelperImpl> dataAbilityHelperImpl = DataAbilityHelperImpl::Creator(context);
     if (dataAbilityHelperImpl) {
@@ -62,7 +62,7 @@ std::shared_ptr<DataAbilityHelper> DataAbilityHelper::Creator(const std::shared_
 std::shared_ptr<DataAbilityHelper> DataAbilityHelper::Creator(
     const std::shared_ptr<Context> context, const std::shared_ptr<Uri> &uri)
 {
-    TAG_LOGI(AAFwkTag::DATA_ABILITY, "Creator with context & uri");
+    TAG_LOGI(AAFwkTag::DATA_ABILITY, "called");
     if (!context || !uri) {
         TAG_LOGE(AAFwkTag::DATA_ABILITY, "invalid param");
         return nullptr;
@@ -159,8 +159,7 @@ std::shared_ptr<DataAbilityHelper> DataAbilityHelper::Creator(
 std::shared_ptr<DataAbilityHelper> DataAbilityHelper::Creator(
     const std::shared_ptr<OHOS::AbilityRuntime::Context> context, const std::shared_ptr<Uri> &uri, const bool tryBind)
 {
-    TAG_LOGI(
-        AAFwkTag::DATA_ABILITY, "Creator with ability runtime context & uri & tryBind");
+    TAG_LOGI(AAFwkTag::DATA_ABILITY, "Creator called");
     DataAbilityHelper *ptrDataAbilityHelper = nullptr;
     auto dataAbilityHelperImpl = DataAbilityHelperImpl::Creator(context, uri, tryBind);
     if (dataAbilityHelperImpl) {

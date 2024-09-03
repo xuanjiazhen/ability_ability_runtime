@@ -35,12 +35,12 @@ constexpr char DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
 } // namespace
 AppStateObserverManager::AppStateObserverManager()
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "AppStateObserverManager instance is created");
+    TAG_LOGD(AAFwkTag::APPMGR, "created");
 }
 
 AppStateObserverManager::~AppStateObserverManager()
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "AppStateObserverManager instance is destroyed");
+    TAG_LOGD(AAFwkTag::APPMGR, "destroyed");
 }
 
 void AppStateObserverManager::Init()

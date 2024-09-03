@@ -113,14 +113,14 @@ void FindUIServiceAbilityConnection(napi_env env, AAFwk::Want& want, napi_value 
 
 JSUIServiceExtAbilityConnection::JSUIServiceExtAbilityConnection(napi_env env) : JSAbilityConnection(env)
 {
-    TAG_LOGI(AAFwkTag::UISERVC_EXT, "JSUIServiceExtAbilityConnection");
+    TAG_LOGI(AAFwkTag::UISERVC_EXT, "called");
     wptr<JSUIServiceExtAbilityConnection> weakthis = this;
     serviceHostStub_ = sptr<UIAbilityServiceHostStubImpl>::MakeSptr(weakthis);
 }
 
 JSUIServiceExtAbilityConnection::~JSUIServiceExtAbilityConnection()
 {
-    TAG_LOGI(AAFwkTag::UISERVC_EXT, "~JSUIServiceExtAbilityConnection");
+    TAG_LOGI(AAFwkTag::UISERVC_EXT, "~called");
     serviceHostStub_ = nullptr;
     napiAsyncTask_ = nullptr;
     ReleaseNativeReference(serviceProxyObject_.release());
@@ -130,7 +130,7 @@ void JSUIServiceExtAbilityConnection::HandleOnAbilityConnectDone(
     const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode)
 {
     if (napiAsyncTask_ != nullptr) {
-        TAG_LOGI(AAFwkTag::UISERVC_EXT, "HandleOnAbilityConnectDone, CreateJsUIServiceProxy");
+        TAG_LOGI(AAFwkTag::UISERVC_EXT, "CreateJsUIServiceProxy");
         sptr<UIAbilityServiceHostStubImpl> hostStub = GetServiceHostStub();
         sptr<IRemoteObject> hostProxy = nullptr;
         if (hostStub != nullptr) {
@@ -151,7 +151,7 @@ void JSUIServiceExtAbilityConnection::HandleOnAbilityConnectDone(
 void JSUIServiceExtAbilityConnection::HandleOnAbilityDisconnectDone(const AppExecFwk::ElementName &element,
     int resultCode)
 {
-    TAG_LOGI(AAFwkTag::UISERVC_EXT, "HandleOnAbilityDisconnectDone");
+    TAG_LOGI(AAFwkTag::UISERVC_EXT, "called");
     if (napiAsyncTask_ != nullptr) {
         napi_value innerError = CreateJsError(env_, AbilityErrorCode::ERROR_CODE_INNER);
         napiAsyncTask_->Reject(env_, innerError);

@@ -1542,8 +1542,7 @@ size_t NAPIAbilityConnection::RemoveAllCallbacks(ConnectRemoveKeyType key)
             ++it;
         }
     }
-    TAG_LOGI(AAFwkTag::JSNAPI, "RemoveAllCallbacks removed size:%{public}zu, left size:%{public}zu", result,
-             callbacks_.size());
+    TAG_LOGI(AAFwkTag::JSNAPI, "removed size:%{public}zu, left size:%{public}zu", result, callbacks_.size());
     return result;
 }
 
@@ -1651,10 +1650,10 @@ void NAPIAbilityConnection::HandleOnAbilityConnectDone(ConnectionCallback &callb
 void NAPIAbilityConnection::OnAbilityConnectDone(
     const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode)
 {
-    TAG_LOGI(AAFwkTag::JSNAPI, "%{public}s bundleName:%{public}s abilityName:%{public}s, resultCode:%{public}d",
-             __func__, element.GetBundleName().c_str(), element.GetAbilityName().c_str(), resultCode);
+    TAG_LOGI(AAFwkTag::JSNAPI, "bundleName:%{public}s abilityName:%{public}s, resultCode:%{public}d",
+        element.GetBundleName().c_str(), element.GetAbilityName().c_str(), resultCode);
     if (remoteObject == nullptr) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "%{public}s, remoteObject == nullptr.", __func__);
+        TAG_LOGE(AAFwkTag::JSNAPI, "null remoteObject");
         return;
     }
     std::lock_guard<std::mutex> guard(lock_);
@@ -1769,8 +1768,8 @@ void NAPIAbilityConnection::HandleOnAbilityDisconnectDone(ConnectionCallback &ca
 
 void NAPIAbilityConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
 {
-    TAG_LOGI(AAFwkTag::JSNAPI, "%{public}s bundleName:%{public}s abilityName:%{public}s, resultCode:%{public}d",
-             __func__, element.GetBundleName().c_str(), element.GetAbilityName().c_str(), resultCode);
+    TAG_LOGI(AAFwkTag::JSNAPI, "bundleName:%{public}s abilityName:%{public}s, resultCode:%{public}d",
+        element.GetBundleName().c_str(), element.GetAbilityName().c_str(), resultCode);
     std::lock_guard<std::mutex> guard(lock_);
     element_ = element;
     for (const auto &callback : callbacks_) {

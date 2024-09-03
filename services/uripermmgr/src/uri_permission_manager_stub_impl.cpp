@@ -668,7 +668,7 @@ std::vector<bool> UriPermissionManagerStubImpl::CheckUriAuthorization(const std:
     for (size_t i = 0; i < uriVec.size(); i++) {
         Uri uri(uriVec[i]);
         if (!CheckUriTypeIsValid(uri)) {
-            TAG_LOGW(AAFwkTag::URIPERMMGR, "uri:invalid, uri:%{private}s", uriVec[i].c_str());
+            TAG_LOGW(AAFwkTag::URIPERMMGR, "invalid uri:%{private}s", uriVec[i].c_str());
             continue;
         }
         result[i] = CheckUriPermission(uri, flag, tokenIdPermission);
@@ -886,7 +886,7 @@ int32_t UriPermissionManagerStubImpl::CheckProxyUriPermission(TokenIdPermission 
     if (tokenIdPermission.VerifyProxyAuthorizationUriPermission() && VerifyUriPermission(uri, flag, tokenId)) {
         return true;
     }
-    TAG_LOGW(AAFwkTag::URIPERMMGR, "failed");
+    TAG_LOGW(AAFwkTag::URIPERMMGR, "permission denied");
     return false;
 }
 

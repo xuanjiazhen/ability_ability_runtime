@@ -184,7 +184,7 @@ void CJRuntime::SetSanitizerVersion(SanitizerKind kind)
 void CJRuntime::StartDebugMode(const DebugOption dOption)
 {
     if (debugModel_) {
-        TAG_LOGI(AAFwkTag::CJRUNTIME, "Already in debug mode");
+        TAG_LOGI(AAFwkTag::CJRUNTIME, "debugMode");
         return;
     }
 

@@ -185,7 +185,7 @@ private:
                     return;
                 }
                 if (observer == nullptr || appManager == nullptr) {
-                    TAG_LOGE(AAFwkTag::APPMGR, "observer or appManager nullptr");
+                    TAG_LOGE(AAFwkTag::APPMGR, "null observer or appManager");
                     task.Reject(env, CreateJsError(env, ERROR_CODE_ONE, "observer or appManager nullptr"));
                     return;
                 }
@@ -326,7 +326,6 @@ private:
                 errCode = ERR_NOT_OK;
             }
         }
-
         NapiAsyncTask::CompleteCallback complete =
             [bundleName, abilityManager = abilityManager_, errCode](napi_env env, NapiAsyncTask& task,
                 int32_t status) {
@@ -368,7 +367,7 @@ private:
                 TAG_LOGE(AAFwkTag::APPMGR, "get bundleName failed");
                 errCode = ERR_NOT_OK;
             } else {
-                TAG_LOGI(AAFwkTag::APPMGR, "kill process [%{public}s]", bundleName.c_str());
+                TAG_LOGI(AAFwkTag::APPMGR, "kill process:%{public}s", bundleName.c_str());
             }
         }
 
@@ -421,7 +420,6 @@ private:
                 errCode = ERR_NOT_OK;
             }
         }
-
         NapiAsyncTask::CompleteCallback complete =
             [appManager = appManager_, bundleName, accountId, errCode](
                 napi_env env, NapiAsyncTask &task, int32_t status) {
@@ -461,7 +459,7 @@ private:
                     return;
                 }
                 if (abilityManager == nullptr) {
-                    TAG_LOGW(AAFwkTag::APPMGR, "abilityManager nullptr");
+                    TAG_LOGW(AAFwkTag::APPMGR, "null abilityManager");
                     task.Reject(env, CreateJsError(env, ERROR_CODE_ONE, "abilityManager nullptr"));
                     return;
                 }

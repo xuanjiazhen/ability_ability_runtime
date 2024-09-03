@@ -72,7 +72,7 @@ void NewAbilityImpl::HandleAbilityTransaction(const Want &want, const AAFwk::Lif
 
 void NewAbilityImpl::HandleShareData(const int32_t &uniqueId)
 {
-    TAG_LOGI(AAFwkTag::ABILITY, "begin sourceState:%{public}d", lifecycleState_);
+    TAG_LOGI(AAFwkTag::ABILITY, "sourceState:%{public}d", lifecycleState_);
     WantParams wantParam;
     int32_t resultCode = Share(wantParam);
     TAG_LOGI(AAFwkTag::ABILITY, "wantParam size: %{public}d", wantParam.Size());

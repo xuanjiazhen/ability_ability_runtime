@@ -86,7 +86,7 @@ ErrCode AbilityAutoStartupClient::Connect()
     }
 
     proxy_ = iface_cast<IAbilityManager>(remoteObj);
-    TAG_LOGD(AAFwkTag::AUTO_STARTUP, "Connect AbilityManagerService success");
+    TAG_LOGD(AAFwkTag::AUTO_STARTUP, "connect ams ok");
     return ERR_OK;
 }
 

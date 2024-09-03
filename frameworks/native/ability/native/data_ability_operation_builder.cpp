@@ -54,8 +54,7 @@ std::shared_ptr<DataAbilityOperationBuilder> DataAbilityOperationBuilder::WithVa
     TAG_LOGD(AAFwkTag::DATA_ABILITY, "start");
     if (type_ != DataAbilityOperation::TYPE_INSERT && type_ != DataAbilityOperation::TYPE_UPDATE &&
         type_ != DataAbilityOperation::TYPE_ASSERT) {
-        TAG_LOGE(AAFwkTag::DATA_ABILITY, "only inserts, updates and assert can have values,"
-            " type:%{public}d", type_);
+        TAG_LOGE(AAFwkTag::DATA_ABILITY, "invalid type:%{public}d", type_);
         return nullptr;
     }
 
@@ -70,8 +69,7 @@ std::shared_ptr<DataAbilityOperationBuilder> DataAbilityOperationBuilder::WithPr
     TAG_LOGD(AAFwkTag::DATA_ABILITY, "start");
     if (type_ != DataAbilityOperation::TYPE_DELETE && type_ != DataAbilityOperation::TYPE_UPDATE &&
         type_ != DataAbilityOperation::TYPE_ASSERT) {
-        TAG_LOGE(AAFwkTag::DATA_ABILITY, "only deletes, updates and assert can have selections,"
-            " type=%{public}d", type_);
+        TAG_LOGE(AAFwkTag::DATA_ABILITY," invalid type:%{public}d", type_);
         return nullptr;
     }
     dataAbilityPredicates_ = predicates;
@@ -80,13 +78,10 @@ std::shared_ptr<DataAbilityOperationBuilder> DataAbilityOperationBuilder::WithPr
 }
 std::shared_ptr<DataAbilityOperationBuilder> DataAbilityOperationBuilder::WithExpectedCount(int count)
 {
-    TAG_LOGD(AAFwkTag::DATA_ABILITY, "start");
     TAG_LOGI(AAFwkTag::DATA_ABILITY, "expectedCount:%{public}d", count);
     if (type_ != DataAbilityOperation::TYPE_UPDATE && type_ != DataAbilityOperation::TYPE_DELETE &&
         type_ != DataAbilityOperation::TYPE_ASSERT) {
-        TAG_LOGE(AAFwkTag::DATA_ABILITY,
-            "only updates, deletes and assert can have expected counts, "
-            "type=%{public}d", type_);
+        TAG_LOGE(AAFwkTag::DATA_ABILITY, "invalid type:%{public}d", type_);
         return nullptr;
     }
     expectedCount_ = count;
@@ -96,13 +91,11 @@ std::shared_ptr<DataAbilityOperationBuilder> DataAbilityOperationBuilder::WithEx
 std::shared_ptr<DataAbilityOperationBuilder> DataAbilityOperationBuilder::WithPredicatesBackReference(
     int requestArgIndex, int previousResult)
 {
-    TAG_LOGD(AAFwkTag::DATA_ABILITY, "start");
     TAG_LOGI(AAFwkTag::DATA_ABILITY, "requestArgIndex:%{public}d, previousResult:%{public}d",
         requestArgIndex, previousResult);
     if (type_ != DataAbilityOperation::TYPE_UPDATE && type_ != DataAbilityOperation::TYPE_DELETE &&
         type_ != DataAbilityOperation::TYPE_ASSERT) {
-        TAG_LOGE(AAFwkTag::DATA_ABILITY, "only updates, deletes, "
-            "and asserts can have select back-references, type=%{public}d", type_);
+        TAG_LOGE(AAFwkTag::DATA_ABILITY, "invalid type:%{public}d", type_);
         return nullptr;
     }
     dataAbilityPredicatesBackReferences_.insert(std::make_pair(requestArgIndex, previousResult));
@@ -115,8 +108,7 @@ std::shared_ptr<DataAbilityOperationBuilder> DataAbilityOperationBuilder::WithVa
     TAG_LOGD(AAFwkTag::DATA_ABILITY, "start");
     if (type_ != DataAbilityOperation::TYPE_INSERT && type_ != DataAbilityOperation::TYPE_UPDATE &&
         type_ != DataAbilityOperation::TYPE_ASSERT) {
-        TAG_LOGE(AAFwkTag::DATA_ABILITY, "only inserts, updates, and asserts can have "
-            "value back-references, type=%{public}d", type_);
+        TAG_LOGE(AAFwkTag::DATA_ABILITY, "invalid type:%{public}d", type_);
         return nullptr;
     }
     valuesBucketReferences_ = backReferences;
@@ -125,12 +117,10 @@ std::shared_ptr<DataAbilityOperationBuilder> DataAbilityOperationBuilder::WithVa
 }
 std::shared_ptr<DataAbilityOperationBuilder> DataAbilityOperationBuilder::WithInterruptionAllowed(bool interrupted)
 {
-    TAG_LOGD(AAFwkTag::DATA_ABILITY, "start");
     TAG_LOGI(AAFwkTag::DATA_ABILITY, "interrupted=%{public}d", interrupted);
     if (type_ != DataAbilityOperation::TYPE_INSERT && type_ != DataAbilityOperation::TYPE_UPDATE &&
         type_ != DataAbilityOperation::TYPE_ASSERT && type_ != DataAbilityOperation::TYPE_DELETE) {
-        TAG_LOGE(AAFwkTag::DATA_ABILITY, "only inserts, updates, delete, "
-            "and asserts can have value back-references, type=%{public}d", type_);
+        TAG_LOGE(AAFwkTag::DATA_ABILITY, "invalid type:%{public}d", type_);
         return nullptr;
     }
     interrupted_ = interrupted;

@@ -1772,7 +1772,7 @@ napi_value WrapProcessName(napi_env env, const ProcessNameCB *processNameCB)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
     if (processNameCB == nullptr) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "%{public}s, Invalid param(processNameCB == nullptr)", __func__);
+        TAG_LOGE(AAFwkTag::JSNAPI, "null processNameCB");
         return nullptr;
     }
     napi_value result = nullptr;
@@ -2133,7 +2133,6 @@ GetOrCreateLocalDirCB *CreateGetOrCreateLocalDirCBInfo(napi_env env)
 
 void GetOrCreateLocalDirExecuteCB(napi_env env, void *data)
 {
-    TAG_LOGI(AAFwkTag::JSNAPI, "execute");
     GetOrCreateLocalDirCB *getOrCreateLocalDirCB = static_cast<GetOrCreateLocalDirCB *>(data);
     if (getOrCreateLocalDirCB == nullptr) {
         TAG_LOGE(AAFwkTag::JSNAPI, "null callingBundleCB");
@@ -2149,14 +2148,12 @@ void GetOrCreateLocalDirExecuteCB(napi_env env, void *data)
     }
 
     getOrCreateLocalDirCB->rootDir = getOrCreateLocalDirCB->cbBase.ability->GetAbilityContext()->GetBaseDir();
-    TAG_LOGI(AAFwkTag::JSNAPI, "GetDir rootDir:%{public}s",
-             getOrCreateLocalDirCB->rootDir.c_str());
+    TAG_LOGI(AAFwkTag::JSNAPI, "GetDir rootDir:%{public}s", getOrCreateLocalDirCB->rootDir.c_str());
     if (!OHOS::FileExists(getOrCreateLocalDirCB->rootDir)) {
         TAG_LOGI(AAFwkTag::JSNAPI, "dir not exits, create dir");
         OHOS::ForceCreateDirectory(getOrCreateLocalDirCB->rootDir);
         OHOS::ChangeModeDirectory(getOrCreateLocalDirCB->rootDir, MODE);
     }
-    TAG_LOGI(AAFwkTag::JSNAPI, "execute end");
 }
 
 napi_value WrapGetOrCreateLocalDir(napi_env env, const GetOrCreateLocalDirCB *getOrCreateLocalDirCB)
@@ -2168,7 +2165,6 @@ napi_value WrapGetOrCreateLocalDir(napi_env env, const GetOrCreateLocalDirCB *ge
     }
     napi_value result = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, getOrCreateLocalDirCB->rootDir.c_str(), NAPI_AUTO_LENGTH, &result));
-    TAG_LOGI(AAFwkTag::JSNAPI, "end");
     return result;
 }
 
@@ -2484,7 +2480,6 @@ DatabaseDirCB *CreateGetDatabaseDirCBInfo(napi_env env)
 
 napi_value GetDatabaseDirWrap(napi_env env, napi_callback_info info, DatabaseDirCB *getDatabaseDirCB)
 {
-    TAG_LOGI(AAFwkTag::JSNAPI, "called");
     if (getDatabaseDirCB == nullptr) {
         TAG_LOGE(AAFwkTag::JSNAPI, "null getDatabaseDirCB");
         return nullptr;
@@ -2510,13 +2505,11 @@ napi_value GetDatabaseDirWrap(napi_env env, napi_callback_info info, DatabaseDir
     // if dataDirWithModuleName is not exits, do nothing and return.
     if (!OHOS::FileExists(dataDirWithModuleName)) {
         getDatabaseDirCB->dataBaseDir = "";
-        TAG_LOGI(AAFwkTag::JSNAPI, "dirWithModuleName not exits:%{public}s",
-            dataDirWithModuleName.c_str());
+        TAG_LOGI(AAFwkTag::JSNAPI, "dirWithModuleName not exits:%{public}s", dataDirWithModuleName.c_str());
     } else {
         getDatabaseDirCB->dataBaseDir = dataDirWithModuleName + NAPI_CONTEXT_FILE_SEPARATOR + abilityName +
                                         NAPI_CONTEXT_FILE_SEPARATOR + NAPI_CONTEXT_DATABASE;
-        TAG_LOGI(AAFwkTag::JSNAPI, "GetDir dataBaseDir:%{public}s",
-                 getDatabaseDirCB->dataBaseDir.c_str());
+        TAG_LOGI(AAFwkTag::JSNAPI, "GetDir dataBaseDir:%{public}s", getDatabaseDirCB->dataBaseDir.c_str());
         if (!OHOS::FileExists(getDatabaseDirCB->dataBaseDir)) {
             TAG_LOGE(AAFwkTag::JSNAPI, "dir not exits, create dir");
             OHOS::ForceCreateDirectory(getDatabaseDirCB->dataBaseDir);
@@ -2526,7 +2519,6 @@ napi_value GetDatabaseDirWrap(napi_env env, napi_callback_info info, DatabaseDir
     napi_value result = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, getDatabaseDirCB->dataBaseDir.c_str(), NAPI_AUTO_LENGTH, &result));
 
-    TAG_LOGI(AAFwkTag::JSNAPI, "end");
     return result;
 }
 
@@ -2581,7 +2573,6 @@ PreferencesDirCB *CreateGetPreferencesDirCBInfo(napi_env env)
 
 napi_value GetPreferencesDirWrap(napi_env env, napi_callback_info info, PreferencesDirCB *getPreferencesDirCB)
 {
-    TAG_LOGI(AAFwkTag::JSNAPI, "called");
     if (getPreferencesDirCB == nullptr) {
         TAG_LOGE(AAFwkTag::JSNAPI, "null getPreferencesDirCB");
         return nullptr;
@@ -2622,7 +2613,6 @@ napi_value GetPreferencesDirWrap(napi_env env, napi_callback_info info, Preferen
     NAPI_CALL(
         env, napi_create_string_utf8(env, getPreferencesDirCB->preferencesDir.c_str(), NAPI_AUTO_LENGTH, &result));
 
-    TAG_LOGI(AAFwkTag::JSNAPI, "end");
     return result;
 }
 
@@ -2763,7 +2753,7 @@ napi_value NAPI_SetWakeUpScreen(napi_env env, napi_callback_info info)
             delete setWakeUpScreenCB;
             setWakeUpScreenCB = nullptr;
         }
-        TAG_LOGE(AAFwkTag::JSNAPI, "setWakeUpScreenCB run failed, delete resource");
+        TAG_LOGE(AAFwkTag::JSNAPI, "setWakeUpScreenCB failed");
         ret = WrapVoidToJS(env);
     }
     TAG_LOGI(AAFwkTag::JSNAPI, "end");
@@ -3185,10 +3175,9 @@ napi_value NapiJsContext::JsGetExternalCacheDir(napi_env env, napi_callback_info
 
 bool NapiJsContext::DataInit(napi_env env)
 {
-    TAG_LOGD(AAFwkTag::JSNAPI, "called");
     napi_value global = nullptr;
     napi_value abilityObj = nullptr;
-    TAG_LOGI(AAFwkTag::JSNAPI, "Get Ability to start");
+    TAG_LOGI(AAFwkTag::JSNAPI, "start");
     NAPI_CALL_BASE(env, napi_get_global(env, &global), false);
     NAPI_CALL_BASE(env, napi_get_named_property(env, global, "ability", &abilityObj), false);
     napi_status status = napi_get_value_external(env, abilityObj, reinterpret_cast<void **>(&ability_));
@@ -3596,7 +3585,7 @@ napi_value NapiJsContext::OnGetOrCreateLocalDir(napi_env env, napi_callback_info
         auto context = obj->ability_->GetAbilityContext();
         if (context == nullptr || dir == nullptr) {
             *value = static_cast<int32_t>(NAPI_ERR_ABILITY_CALL_INVALID);
-            TAG_LOGE(AAFwkTag::JSNAPI, "task execute error, the ability context is nullptr");
+            TAG_LOGE(AAFwkTag::JSNAPI, "the ability context is nullptr");
             return;
         }
         dir->name = context->GetBaseDir();

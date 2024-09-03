@@ -179,7 +179,7 @@ void ExtensionConfig::LoadExtensionServiceBlockedList(const nlohmann::json &obje
 bool ExtensionConfig::ReadFileInfoJson(const std::string &filePath, nlohmann::json &jsonBuf)
 {
     if (access(filePath.c_str(), F_OK) != 0) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}s, not existed", filePath.c_str());
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}s not exist", filePath.c_str());
         return false;
     }
 

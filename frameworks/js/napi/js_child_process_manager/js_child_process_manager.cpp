@@ -276,7 +276,7 @@ private:
         auto pid = std::make_shared<pid_t>(0);
         NapiAsyncTask::ExecuteCallback execute = [srcEntry, args, options, childProcessType, pid, innerErrorCode]() {
             if (!pid || !innerErrorCode) {
-                TAG_LOGE(AAFwkTag::PROCESSMGR, "innerErrorCode or pid is nullptr");
+                TAG_LOGE(AAFwkTag::PROCESSMGR, "null innerErrorCode/pid");
                 return;
             }
             *innerErrorCode = ChildProcessManager::GetInstance().StartChildProcessWithArgs(srcEntry, *pid,
@@ -285,7 +285,7 @@ private:
         NapiAsyncTask::CompleteCallback complete =
             [pid, innerErrorCode](napi_env env, NapiAsyncTask &task, int32_t status) {
             if (!pid || !innerErrorCode) {
-                TAG_LOGE(AAFwkTag::PROCESSMGR, "innerErrorCode or pid is nullptr");
+                TAG_LOGE(AAFwkTag::PROCESSMGR, "null innerErrorCode/pid");
                 task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
                 return;
             }

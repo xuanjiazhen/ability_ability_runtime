@@ -24,8 +24,8 @@ void PageAbilityImpl::HandleAbilityTransaction(const Want &want, const AAFwk::Li
     sptr<AAFwk::SessionInfo> sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::ABILITY, "start, sourceState:%{public}d, targetState:%{public}d, "
-             "isNewWant:%{public}d, sceneFlag:%{public}d",
+    TAG_LOGI(AAFwkTag::ABILITY, "sourceState:%{public}d, targetState:%{public}d, "
+             "isNewWant:%{public}d, sceneFlag:%{public}d.",
         lifecycleState_, targetState.state, targetState.isNewWant, targetState.sceneFlag);
     if (ability_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "null ability_");
@@ -75,7 +75,7 @@ void PageAbilityImpl::HandleAbilityTransaction(const Want &want, const AAFwk::Li
     }
 
     if (AbilityTransaction(want, targetState)) {
-        TAG_LOGI(AAFwkTag::ABILITY, "done, notify ams");
+        TAG_LOGI(AAFwkTag::ABILITY, "notify ams");
         AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_, targetState.state, GetRestoreData());
     }
 }
@@ -129,11 +129,11 @@ bool PageAbilityImpl::AbilityTransaction(const Want &want, const AAFwk::LifeCycl
         }
         default: {
             ret = false;
-            TAG_LOGE(AAFwkTag::ABILITY, "error");
+            TAG_LOGE(AAFwkTag::ABILITY, "invalid state");
             break;
         }
     }
-    TAG_LOGD(AAFwkTag::ABILITY, "end: ret = %{public}d", static_cast<int>(ret));
+    TAG_LOGD(AAFwkTag::ABILITY, "retVal= %{public}d", static_cast<int>(ret));
     return ret;
 }
 
