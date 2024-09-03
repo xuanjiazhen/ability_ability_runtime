@@ -395,7 +395,7 @@ int MissionListManager::GetTargetMission(const AbilityRequest &abilityRequest, s
         return ERR_INVALID_VALUE;
     }
 
-    if (targetAbilityRecord->GetPendingState() == AbilityState::FOREGROUND) {
+    if (targetAbilityRecord->GetPendingState() != AbilityState::INITIAL) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "pending state is FOREGROUND.");
         targetAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
         return ERR_OK;
@@ -4043,7 +4043,7 @@ int MissionListManager::DoAbilityForeground(std::shared_ptr<AbilityRecord> &abil
         TAG_LOGE(AAFwkTag::ABILITYMGR, "DoAbilityForeground failed, ability record is null.");
         return ERR_INVALID_VALUE;
     }
-    if (abilityRecord->GetPendingState() == AbilityState::FOREGROUND) {
+    if (abilityRecord->GetPendingState() != AbilityState::INITIAL) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "pending state is FOREGROUND.");
         abilityRecord->SetPendingState(AbilityState::FOREGROUND);
         return ERR_OK;
