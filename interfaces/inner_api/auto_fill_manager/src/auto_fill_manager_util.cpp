@@ -19,7 +19,6 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
-#ifdef SUPPORT_GRAPHICS
 void AutoFillManagerUtil::ConvertToPopupUIExtensionConfig(const AutoFill::AutoFillCustomConfig &config,
     Ace::CustomPopupUIExtensionConfig &popupConfig)
 {
@@ -133,11 +132,10 @@ Ace::PopupPlacement AutoFillManagerUtil::ConvertPopupPlacement(const AutoFill::P
             popupPlacement = Ace::PopupPlacement::RIGHT_BOTTOM;
             break;
         default:
-            TAG_LOGE(AAFwkTag::AUTOFILLMGR, "Popup placement is invalid.");
+            TAG_LOGE(AAFwkTag::AUTOFILLMGR, "Popup placement invalid");
             break;
     }
     return popupPlacement;
 }
-#endif // SUPPORT_GRAPHICS
 } // namespace AbilityRuntime
 } // namespace OHOS

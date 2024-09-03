@@ -536,11 +536,6 @@ enum {
     EXTENSION_BLOCKED_BY_SERVICE_LIST = 2097255,
 
     /*
-     * Result(2097256) for non-app-provision mode
-     */
-    ERR_NOT_IN_APP_PROVISION_MODE = 2097256,
-    
-    /*
      * Result(2097257) for share file uri non-implicitly
      */
     ERR_SHARE_FILE_URI_NON_IMPLICITLY = 2097257,
@@ -564,6 +559,16 @@ enum {
      * Result (2097261) for killing process uid is foundation.
      */
     ERR_KILL_FOUNDATION_UID = 2097261,
+
+    /*
+     * Result (2097262) caller not exists.
+     */
+    ERR_CALLER_NOT_EXISTS = 2097262,
+    
+    /*
+     * Result (2097263) Not support back to caller.
+     */
+    ERR_NOT_SUPPORT_BACK_TO_CALLER = 2097263,
 
     /**
      * Native error(3000000) for target bundle not exist.

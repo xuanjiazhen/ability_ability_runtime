@@ -27,10 +27,10 @@
 #include "bundle_mgr_proxy.h"
 #include "connect_server_manager.h"
 #include "console.h"
-#ifdef SUPPORT_SCREEN
+#ifdef SUPPORT_GRAPHICS
 #include "core/common/container_scope.h"
-#include "declarative_module_preloader.h"
 #endif
+#include "declarative_module_preloader.h"
 
 #include "extractor.h"
 #include "file_mapper.h"
@@ -43,7 +43,7 @@
 #include "singleton.h"
 #include "syscap_ts.h"
 #include "system_ability_definition.h"
-#ifdef SUPPORT_SCREEN
+#ifdef SUPPORT_GRAPHICS
 using OHOS::Ace::ContainerScope;
 #endif
 
@@ -58,11 +58,11 @@ const std::string CACHE_DIRECTORY = "el2";
 const std::string RESTRICTED_PREFIX_PATH = "abcs/";
 const int PATH_THREE = 3;
 #ifdef APP_USE_ARM
-constexpr char ARK_DEBUGGER_LIB_PATH[] = "/system/lib/platformsdk/libark_debugger.z.so";
+constexpr char ARK_DEBUGGER_LIB_PATH[] = "/system/lib/platformsdk/libark_inspector.z.so";
 #elif defined(APP_USE_X86_64)
-constexpr char ARK_DEBUGGER_LIB_PATH[] = "/system/lib64/platformsdk/libark_debugger.z.so";
+constexpr char ARK_DEBUGGER_LIB_PATH[] = "/system/lib64/platformsdk/libark_inspector.z.so";
 #else
-constexpr char ARK_DEBUGGER_LIB_PATH[] = "/system/lib64/platformsdk/libark_debugger.z.so";
+constexpr char ARK_DEBUGGER_LIB_PATH[] = "/system/lib64/platformsdk/libark_inspector.z.so";
 #endif
 
 bool g_debugMode = false;
@@ -89,9 +89,8 @@ void InitWorkerFunc(NativeEngine* nativeEngine)
 
     OHOS::JsSysModule::Console::InitConsoleModule(reinterpret_cast<napi_env>(nativeEngine));
     InitSyscapModule(reinterpret_cast<napi_env>(nativeEngine));
-#ifdef SUPPORT_SCREEN
     OHOS::Ace::DeclarativeModulePreloader::PreloadWorker(*nativeEngine);
-#endif
+
     auto arkNativeEngine = static_cast<ArkNativeEngine*>(nativeEngine);
     // load jsfwk
     if (g_jsFramework && !arkNativeEngine->ExecuteJsBin("/system/etc/strip.native.min.abc")) {
@@ -516,7 +515,7 @@ void AssetHelper::GetAmi(std::string& ami, const std::string& filePath)
 
 int32_t GetContainerId()
 {
-#ifdef SUPPORT_SCREEN
+#ifdef SUPPORT_GRAPHICS
     int32_t scopeId = ContainerScope::CurrentId();
     return scopeId;
 #else
@@ -526,13 +525,13 @@ int32_t GetContainerId()
 }
 void UpdateContainerScope(int32_t id)
 {
-#ifdef SUPPORT_SCREEN
+#ifdef SUPPORT_GRAPHICS
 ContainerScope::UpdateCurrent(id);
 #endif
 }
 void RestoreContainerScope(int32_t id)
 {
-#ifdef SUPPORT_SCREEN
+#ifdef SUPPORT_GRAPHICS
 ContainerScope::UpdateCurrent(-1);
 #endif
 }

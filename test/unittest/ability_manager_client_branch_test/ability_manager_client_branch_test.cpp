@@ -1095,61 +1095,6 @@ HWTEST_F(AbilityManagerClientBranchTest, SetAbilityController_0100, TestSize.Lev
     GTEST_LOG_(INFO) << "SetAbilityController_0100 end";
 }
 
-
-#ifdef ABILITY_COMMAND_FOR_TEST
-/**
- * @tc.name: AbilityManagerClient_BlockAmsService_0100
- * @tc.desc: BlockAmsService
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerClientBranchTest, BlockAmsService_0100, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "BlockAmsService_0100 start";
-    EXPECT_CALL(*mock_, BlockAmsService())
-        .Times(1)
-        .WillOnce(Return(0));
-    auto result = client_->BlockAmsService();
-
-    EXPECT_EQ(result, ERR_OK);
-    GTEST_LOG_(INFO) << "BlockAmsService_0100 end";
-}
-
-/**
- * @tc.name: AbilityManagerClient_BlockAppService_0100
- * @tc.desc: BlockAppService
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerClientBranchTest, BlockAppService_0100, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "BlockAppService_0100 start";
-    EXPECT_CALL(*mock_, BlockAppService())
-        .Times(1)
-        .WillOnce(Return(0));
-    auto result = client_->BlockAppService(info);
-
-    EXPECT_EQ(result, ERR_OK);
-    GTEST_LOG_(INFO) << "BlockAppService_0100 end";
-}
-
-/**
- * @tc.name: AbilityManagerClient_BlockAbility_0100
- * @tc.desc: BlockAbility
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerClientBranchTest, BlockAbility_0100, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "BlockAbility_0100 start";
-    EXPECT_CALL(*mock_, BlockAbility(_))
-        .Times(1)
-        .WillOnce(Return(0));
-    int32_t abilityRecordId = 1;
-    auto result = client_->BlockAbility(abilityRecordId);
-
-    EXPECT_EQ(result, ERR_OK);
-    GTEST_LOG_(INFO) << "BlockAbility_0100 end";
-}
-#endif
-
 /**
  * @tc.name: AbilityManagerClient_DumpAbilityInfoDone_0100
  * @tc.desc: DumpAbilityInfoDone
@@ -1749,7 +1694,6 @@ HWTEST_F(AbilityManagerClientBranchTest, StartAbilityByUIContentSession_0200, Te
     GTEST_LOG_(INFO) << "StartUIExtensionAbility_0200 end";
 }
 
-#ifdef WITH_DLP
 /**
  * @tc.number: NotifySaveAsResult_0100
  * @tc.name: NotifySaveAsResult
@@ -1761,7 +1705,6 @@ HWTEST_F(AbilityManagerClientBranchTest, NotifySaveAsResult_0100, TestSize.Level
     auto result = client_->NotifySaveAsResult(want, 0, 0);
     EXPECT_EQ(result, ERR_OK);
 }
-#endif // WITH_DLP
 
 /**
  * @tc.number: PrepareTerminateAbility_0100
@@ -1789,7 +1732,6 @@ HWTEST_F(AbilityManagerClientBranchTest, PrepareTerminateAbilityBySCB_0100, Test
     EXPECT_EQ(result, ERR_OK);
 }
 
-#ifdef WITH_DLP
 /**
  * @tc.number: UpdateMissionSnapShot_0100
  * @tc.name: UpdateMissionSnapShot
@@ -1802,7 +1744,6 @@ HWTEST_F(AbilityManagerClientBranchTest, UpdateMissionSnapShot_0100, TestSize.Le
     auto pixelMap = std::shared_ptr<Media::PixelMap>();
     client_->UpdateMissionSnapShot(token, pixelMap);
 }
-#endif // WITH_DLP
 
 /**
  * @tc.name: AbilityManagerClient_RegisterSessionHandler_0100

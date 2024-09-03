@@ -107,6 +107,9 @@ int32_t PendingWantRecord::SenderInner(SenderInfo &senderInfo)
         case static_cast<int32_t>(OperationType::SEND_COMMON_EVENT):
             res = pendingWantManager->PendingWantPublishCommonEvent(want, senderInfo, callerUid_, callerTokenId_);
             break;
+        case static_cast<int32_t>(OperationType::START_SERVICE_EXTENSION):
+            res = pendingWantManager->PendingWantStartServiceExtension(want, callerToken_);
+            break;
         default:
             break;
     }
@@ -137,7 +140,11 @@ void PendingWantRecord::BuildSendWant(SenderInfo &senderInfo, Want &want)
             wantParams.SetParam(sendInfoWantParamKey, mapIter->second);
         }
     }
-    wantParams.SetParam("ohos.extra.param.key.appCloneIndex", Integer::Box(key_->GetAppIndex()));
+    
+    if (!wantParams.HasParam("ohos.extra.param.key.appCloneIndex")) {
+        wantParams.SetParam("ohos.extra.param.key.appCloneIndex", Integer::Box(key_->GetAppIndex()));
+    }
+    
     want.SetParams(wantParams);
 }
 

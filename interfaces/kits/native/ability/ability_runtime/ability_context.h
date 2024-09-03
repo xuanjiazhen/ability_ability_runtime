@@ -32,9 +32,7 @@
 #include "want.h"
 
 #ifdef SUPPORT_GRAPHICS
-#ifdef SUPPORT_SCREEN
 #include "pixel_map.h"
-#endif
 #endif
 
 namespace OHOS {
@@ -164,6 +162,8 @@ public:
     virtual ErrCode StopServiceExtensionAbility(const AAFwk::Want& want, int32_t accountId = -1) = 0;
 
     virtual ErrCode TerminateAbilityWithResult(const AAFwk::Want &want, int resultCode) = 0;
+
+    virtual ErrCode BackToCallerAbilityWithResult(const AAFwk::Want &want, int resultCode, int64_t requestCode) = 0;
 
     virtual ErrCode RestoreWindowStage(napi_env env, napi_value contentStorage) = 0;
 
@@ -349,7 +349,6 @@ public:
     virtual std::shared_ptr<AAFwk::Want> GetWant() = 0;
 
 #ifdef SUPPORT_GRAPHICS
-#ifdef SUPPORT_SCREEN
     /**
      * @brief Set mission label of this ability.
      *
@@ -388,7 +387,6 @@ public:
         const std::shared_ptr<JsUIExtensionCallback> &uiExtensionCallbacks) = 0;
     virtual ErrCode CreateModalUIExtensionWithApp(const AAFwk::Want &want) = 0;
     virtual void EraseUIExtension(int32_t sessionId) = 0;
-#endif
 #endif
     virtual bool IsTerminating() = 0;
     virtual void SetTerminating(bool state) = 0;

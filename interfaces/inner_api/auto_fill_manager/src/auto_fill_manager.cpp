@@ -24,7 +24,6 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-#ifdef SUPPORT_GRAPHICS
 const std::string WANT_PARAMS_EXTENSION_TYPE = "autoFill/password";
 const std::string WANT_PARAMS_SMART_EXTENSION_TYPE = "autoFill/smart";
 const std::string AUTO_FILL_START_POPUP_WINDOW = "persist.sys.abilityms.autofill.is_passwd_popup_window";
@@ -36,9 +35,7 @@ constexpr static char WANT_PARAMS_AUTO_FILL_TYPE_KEY[] = "ability.want.params.Au
 constexpr static char AUTO_FILL_MANAGER_THREAD[] = "AutoFillManager";
 constexpr static uint32_t AUTO_FILL_REQUEST_TIME_OUT_VALUE = 1000;
 constexpr static uint32_t AUTO_FILL_UI_EXTENSION_SESSION_ID_INVALID = 0;
-#endif //SUPPORT_GRAPHICS
 } // namespace
-#ifdef SUPPORT_GRAPHICS
 AutoFillManager &AutoFillManager::GetInstance()
 {
     static AutoFillManager instance;
@@ -61,12 +58,12 @@ int32_t AutoFillManager::RequestAutoFill(Ace::UIContent *uiContent, const AutoFi
 {
     TAG_LOGD(AAFwkTag::AUTOFILLMGR, "called");
     if (uiContent == nullptr || fillCallback == nullptr) {
-        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "UIContent or fillCallback is nullptr.");
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "null uiContent or fillCallback");
         return AutoFill::AUTO_FILL_OBJECT_IS_NULL;
     }
 
     if (request.autoFillType == AbilityBase::AutoFillType::UNSPECIFIED) {
-        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "Auto fill type is invalid.");
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "autoFillType invalid");
         return AutoFill::AUTO_FILL_TYPE_INVALID;
     }
     return HandleRequestExecuteInner(uiContent, request, fillCallback, nullptr, result);
@@ -77,7 +74,7 @@ int32_t AutoFillManager::RequestAutoSave(Ace::UIContent *uiContent, const AutoFi
 {
     TAG_LOGD(AAFwkTag::AUTOFILLMGR, "called");
     if (uiContent == nullptr || saveCallback == nullptr) {
-        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "UIContent or save callback is nullptr.");
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "null UIContent or saveCallback");
         return AutoFill::AUTO_FILL_OBJECT_IS_NULL;
     }
     return HandleRequestExecuteInner(uiContent, request, nullptr, saveCallback, result);
@@ -89,11 +86,11 @@ int32_t AutoFillManager::HandleRequestExecuteInner(Ace::UIContent *uiContent, co
     AutoFill::AutoFillResult &result)
 {
     if (uiContent == nullptr || (fillCallback == nullptr && saveCallback == nullptr)) {
-        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "UIContent or fillCallback&saveCallback is nullptr.");
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "null uiContent or fillCallback&saveCallback");
         return AutoFill::AUTO_FILL_OBJECT_IS_NULL;
     }
     if (!IsPreviousRequestFinished(uiContent)) {
-        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "Previous request is not finished.");
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "Previous request not finished");
         return AutoFill::AUTO_FILL_PREVIOUS_REQUEST_NOT_FINISHED;
     }
 
@@ -109,7 +106,7 @@ int32_t AutoFillManager::HandleRequestExecuteInner(Ace::UIContent *uiContent, co
     bool isSmartAutoFill = false;
     AutoFill::AutoFillWindowType autoFillWindowType = AutoFill::AutoFillWindowType::MODAL_WINDOW;
     if (!ConvertAutoFillWindowType(request, isSmartAutoFill, autoFillWindowType)) {
-        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "Convert auto fill type failed.");
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "Convert auto fill type failed");
         return AutoFill::AUTO_FILL_CREATE_MODULE_UI_EXTENSION_FAILED;
     }
 
@@ -118,7 +115,7 @@ int32_t AutoFillManager::HandleRequestExecuteInner(Ace::UIContent *uiContent, co
     result.isPopup = autoFillWindowType == AutoFill::AutoFillWindowType::POPUP_WINDOW ? true : false;
     auto sessionId = CreateAutoFillExtension(uiContent, request, callback, autoFillWindowType, isSmartAutoFill);
     if (sessionId == AUTO_FILL_UI_EXTENSION_SESSION_ID_INVALID) {
-        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "Create ui extension is failed.");
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "Create ui extension failed");
         RemoveEvent(callbackId);
         return AutoFill::AUTO_FILL_CREATE_MODULE_UI_EXTENSION_FAILED;
     }
@@ -128,7 +125,7 @@ int32_t AutoFillManager::HandleRequestExecuteInner(Ace::UIContent *uiContent, co
     extensionCallback->SetWindowType(autoFillWindowType);
     extensionCallback->SetExtensionType(isSmartAutoFill);
     extensionCallback->SetAutoFillRequest(request);
-    TAG_LOGI(AAFwkTag::AUTOFILLMGR, "callbackId: %{public}u.", callbackId);
+    TAG_LOGI(AAFwkTag::AUTOFILLMGR, "callbackId: %{public}u", callbackId);
     std::lock_guard<std::mutex> lock(extensionCallbacksMutex_);
     extensionCallbacks_.emplace(callbackId, extensionCallback);
     return AutoFill::AUTO_FILL_SUCCESS;
@@ -139,7 +136,7 @@ void AutoFillManager::UpdateCustomPopupUIExtension(uint32_t autoFillSessionId, c
     TAG_LOGD(AAFwkTag::AUTOFILLMGR, "called");
     auto extensionCallback = GetAutoFillExtensionCallback(autoFillSessionId);
     if (extensionCallback == nullptr) {
-        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "Extension callback is nullptr.");
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "null extensionCallback");
         return;
     }
     extensionCallback->UpdateCustomPopupUIExtension(viewData);
@@ -150,7 +147,7 @@ void AutoFillManager::CloseUIExtension(uint32_t autoFillSessionId)
     TAG_LOGD(AAFwkTag::AUTOFILLMGR, "called");
     auto extensionCallback = GetAutoFillExtensionCallback(autoFillSessionId);
     if (extensionCallback == nullptr) {
-        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "Extension callback is nullptr.");
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "null extensionCallback");
         return;
     }
     extensionCallback->CloseUIExtension();
@@ -191,7 +188,7 @@ int32_t AutoFillManager::CreateAutoFillExtension(Ace::UIContent *uiContent,
 {
     int32_t sessionId = AUTO_FILL_UI_EXTENSION_SESSION_ID_INVALID;
     if (uiContent == nullptr) {
-        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "Content is nullptr.");
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "null uiContent");
         return sessionId;
     }
 
@@ -270,7 +267,7 @@ void AutoFillManager::SetTimeOutEvent(uint32_t eventId)
 {
     TAG_LOGD(AAFwkTag::AUTOFILLMGR, "called");
     if (eventHandler_ == nullptr) {
-        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "Eventhandler is nullptr.");
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "null eventHandler");
         return;
     }
     eventHandler_->SendEvent(eventId, AUTO_FILL_REQUEST_TIME_OUT_VALUE);
@@ -280,7 +277,7 @@ void AutoFillManager::RemoveEvent(uint32_t eventId)
 {
     TAG_LOGI(AAFwkTag::AUTOFILLMGR, "called");
     if (eventHandler_ == nullptr) {
-        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "Eventhandler is nullptr.");
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "null eventHandler");
         return;
     }
     eventHandler_->RemoveEvent(eventId);
@@ -291,7 +288,7 @@ void AutoFillManager::HandleTimeOut(uint32_t eventId)
     TAG_LOGI(AAFwkTag::AUTOFILLMGR, "called");
     auto extensionCallback = GetAutoFillExtensionCallback(eventId);
     if (extensionCallback == nullptr) {
-        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "Extension callback is nullptr.");
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "null extensionCallback");
         return;
     }
     extensionCallback->HandleTimeOut();
@@ -317,7 +314,7 @@ std::shared_ptr<AutoFillExtensionCallback> AutoFillManager::GetAutoFillExtension
     std::lock_guard<std::mutex> lock(extensionCallbacksMutex_);
     auto iter = extensionCallbacks_.find(callbackId);
     if (iter == extensionCallbacks_.end()) {
-        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "callback is not find. callbackId: %{public}u", callbackId);
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "not find, callbackId: %{public}u", callbackId);
         return nullptr;
     }
     return iter->second;
@@ -348,6 +345,5 @@ bool AutoFillManager::IsPreviousRequestFinished(Ace::UIContent *uiContent)
     }
     return true;
 }
-#endif // SUPPORT_GRAPHICS
 } // namespace AbilityRuntime
 } // namespace OHOS

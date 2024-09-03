@@ -282,6 +282,19 @@ public:
         int32_t userId = DEFAULT_INVAL_VALUE);
 
     /**
+     * Start ui ability
+     *
+     * @param want the want of the ability to start.
+     * @param callerToken caller ability token.
+     * @param specifyTokenId The Caller ID.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode StartAbilityOnlyUIAbility(
+        const Want &want,
+        sptr<IRemoteObject> callerToken,
+        uint32_t specifyTokenId);
+
+    /**
      * Start extension ability with want, send want to ability manager service.
      *
      * @param want, the want of the ability to start.
@@ -363,6 +376,18 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode TerminateAbility(sptr<IRemoteObject> token, int resultCode, const Want *resultWant);
+
+    /**
+     * BackToCallerAbilityWithResult, return to the caller ability.
+     *
+     * @param token, the token of the ability to terminate.
+     * @param resultCode, the resultCode of the ability to terminate.
+     * @param resultWant, the Want of the ability to return.
+     * @param callerRequestCode, the requestCode of caller ability.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode BackToCallerAbilityWithResult(const sptr<IRemoteObject> &token, int resultCode,
+        const Want *resultWant, int64_t callerRequestCode);
 
     /**
      * TerminateUIExtensionAbility with want, return want from ability manager service.
@@ -981,7 +1006,7 @@ public:
     ErrCode SetMissionContinueState(sptr<IRemoteObject> token, const AAFwk::ContinueState &state,
         sptr<IRemoteObject> sessionToken);
 
-#ifdef SUPPORT_SCREEN
+#ifdef SUPPORT_GRAPHICS
     /**
      * Set mission label of this ability.
      *
@@ -1107,30 +1132,6 @@ public:
      */
     virtual int SetAbilityController(sptr<AppExecFwk::IAbilityController> abilityController,
         bool imAStabilityTest);
-
-    #ifdef ABILITY_COMMAND_FOR_TEST
-    /**
-     * Block ability manager service.
-     *
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    ErrCode BlockAmsService();
-
-    /**
-     * Block ability.
-     *
-     * @param abilityRecordId The Ability Record Id.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    ErrCode BlockAbility(int32_t abilityRecordId);
-
-    /**
-     * Block app service.
-     *
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    ErrCode BlockAppService();
-    #endif
 
     /**
      * Free install ability from remote DMS.
@@ -1533,14 +1534,6 @@ public:
      * @return Returns ERR_OK on success, others on failure.
     */
     int32_t OpenLink(const Want& want, sptr<IRemoteObject> callerToken, int32_t userId, int requestCode);
-
-    /**
-     * Terminate process by bundleName.
-     *
-     * @param missionId, The mission id of the UIAbility need to be terminated.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    ErrCode TerminateMission(int32_t missionId);
 
 private:
     AbilityManagerClient();

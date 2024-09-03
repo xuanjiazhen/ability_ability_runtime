@@ -71,7 +71,7 @@ public:
      */
     std::shared_ptr<AppRunningRecord> CheckAppRunningRecordIsExist(const std::string &appName,
         const std::string &processName, const int uid, const BundleInfo &bundleInfo,
-        const std::string &specifiedProcessFlag = "", bool *isProCache = nullptr);
+        const std::string &specifiedProcessFlag = "");
 
 #ifdef APP_NO_RESPONSE_DIALOG
     /**
@@ -272,12 +272,11 @@ public:
     int32_t NotifyHotReloadPage(const std::string &bundleName, const sptr<IQuickFixCallback> &callback);
     int32_t NotifyUnLoadRepairPatch(const std::string &bundleName, const sptr<IQuickFixCallback> &callback);
     bool IsApplicationFirstForeground(const AppRunningRecord &foregroundingRecord);
-    bool IsApplicationBackground(const std::string &bundleName);
+    bool IsApplicationBackground(const AppRunningRecord &backgroundingRecord);
     bool IsApplicationFirstFocused(const AppRunningRecord &foregroundingRecord);
     bool IsApplicationUnfocused(const std::string &bundleName);
-#ifdef SUPPORT_SCREEN
     void OnWindowVisibilityChanged(const std::vector<sptr<OHOS::Rosen::WindowVisibilityInfo>> &windowVisibilityInfos);
-#endif //SUPPORT_SCREEN
+
     /**
      * @brief Set attach app debug mode.
      * @param bundleName The application bundle name.

@@ -13,26 +13,30 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_UI_SERVICE_PROXY_H
-#define OHOS_ABILITY_RUNTIME_UI_SERVICE_PROXY_H
+#ifndef OHOS_APPLICATION_CONFIGURATION_MANAGER_H
+#define OHOS_APPLICATION_CONFIGURATION_MANAGER_H
 
-#include "iremote_broker.h"
-#include "iremote_object.h"
-#include "iremote_proxy.h"
-#include "ui_service_interface.h"
+#include <cstdint>
 
 namespace OHOS {
-namespace AAFwk {
-class UIServiceProxy : public IRemoteProxy<IUIService> {
-public:
-    explicit UIServiceProxy(const sptr<IRemoteObject>& impl);
-    virtual ~UIServiceProxy();
+namespace AbilityRuntime {
+enum class SetLevel : uint8_t {
+    Default,
+    System,
+    Application,
+};
 
-    virtual int32_t SendData(sptr<IRemoteObject> hostProxy, OHOS::AAFwk::WantParams &data) override;
+class ApplicationConfigurationManager {
+    ApplicationConfigurationManager() = default;
+    ~ApplicationConfigurationManager() = default;
+public:
+    static ApplicationConfigurationManager& GetInstance();
+    void SetLanguageSetLevel(SetLevel languageSetLevel);
+    SetLevel GetLanguageSetLevel() const;
 
 private:
-    static inline BrokerDelegator<UIServiceProxy> delegator_;
+    SetLevel languageSetLevel_ = SetLevel::Default;
 };
-} // namespace AAFwk
+} // namespace AbilityRuntime
 } // namespace OHOS
-#endif //OHOS_ABILITY_RUNTIME_UI_SERVICE_PROXY_H
+#endif

@@ -24,16 +24,11 @@
 #include "want_agent_log_wrapper.h"
 #include "want_sender_info.h"
 #include "want_sender_interface.h"
-#include "xcollie/xcollie.h"
-#include "xcollie/xcollie_define.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS::AppExecFwk;
 using namespace OHOS::AbilityRuntime;
 namespace OHOS::AbilityRuntime::WantAgent {
-
-const unsigned int XCOLLIE_TIMEOUT = 10;
-
 WantAgentHelper::WantAgentHelper()
 {}
 
@@ -131,6 +126,9 @@ ErrCode WantAgentHelper::GetWantAgent(
             break;
         case WantAgentConstant::OperationType::SEND_COMMON_EVENT:
             result = PendingWant::GetCommonEvent(context, requestCode, wants[0], flags, pendingWant);
+            break;
+        case WantAgentConstant::OperationType::START_SERVICE_EXTENSION:
+            result = PendingWant::GetServiceExtension(context, requestCode, wants[0], flags, pendingWant);
             break;
         default:
             TAG_LOGE(AAFwkTag::WANTAGENT, "operation type is error");
@@ -470,17 +468,10 @@ ErrCode WantAgentHelper::GetType(const std::shared_ptr<WantAgent> &agent, int32_
 ErrCode WantAgentHelper::GetWant(const std::shared_ptr<WantAgent> &agent, std::shared_ptr<AAFwk::Want> &want)
 {
     if ((agent == nullptr) || (agent->GetPendingWant() == nullptr)) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "WantAgent or PendingWant invalid input param.");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
         return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_WANTAGENT;
     }
-    int id = HiviewDFX::XCollie::GetInstance().SetTimer(
-        "OHOS::AbilityRuntime::WantAgent::WantAgentHelper::GetWant",
-        XCOLLIE_TIMEOUT,
-        nullptr,
-        nullptr,
-        HiviewDFX::XCOLLIE_FLAG_LOG|HiviewDFX::XCOLLIE_FLAG_RECOVERY);
-    ErrCode result = agent->GetPendingWant()->GetWant(agent->GetPendingWant()->GetTarget(), want);
-    HiviewDFX::XCollie::GetInstance().CancelTimer(id);
-    return result;
+
+    return agent->GetPendingWant()->GetWant(agent->GetPendingWant()->GetTarget(), want);
 }
 }  // namespace OHOS::AbilityRuntime::WantAgent

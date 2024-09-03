@@ -73,7 +73,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     AppExecFwk::AbilityInfo abilityInfo;
     extensionRecordManager->IsBelongToManager(abilityInfo);
     auto focusToken = GetFuzzAbilityToken();
-    extensionRecordManager->IsFocused(int32Param, focusToken);
+    extensionRecordManager->IsFocused(int32Param, focusToken, focusToken);
     std::vector<std::string> extensionList;
     extensionRecordManager->GetActiveUIExtensionList(int32Param, extensionList);
     std::string strParam(data, size);
@@ -106,6 +106,8 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     extensionRecordManager->GetRootCallerTokenLocked(int32Param);
     extensionRecordManager->GetOrCreateExtensionRecordInner(abilityRequest, strParam, extensionRecord, boolParam);
     extensionRecordManager->IsHostSpecifiedProcessValid(abilityRequest, record, strParam);
+    std::list<sptr<IRemoteObject>> callerList;
+    mgr->GetCallerTokenList(int32Param, callerList);
 
     return true;
 }

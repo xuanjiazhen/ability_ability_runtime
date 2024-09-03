@@ -244,6 +244,9 @@ enum class AbilityManagerInterfaceCode {
     // Set resident process enable status.
     SET_RESIDENT_PROCESS_ENABLE = 80,
 
+    // Back to caller.
+    BACK_TO_CALLER_UIABILITY = 82,
+
     // ipc id 1001-2000 for DMS
     // ipc id for starting ability (1001)
     START_ABILITY = 1001,
@@ -303,12 +306,6 @@ enum class AbilityManagerInterfaceCode {
     GET_PROCESS_RUNNING_INFO = 1026,
 
     START_ABILITY_FOR_OPTIONS = 1028,
-
-    BLOCK_AMS_SERVICE = 1029,
-
-    BLOCK_ABILITY = 1030,
-
-    BLOCK_APP_SERVICE = 1031,
 
     // ipc id for call ability
     START_CALL_ABILITY = 1032,
@@ -406,6 +403,9 @@ enum class AbilityManagerInterfaceCode {
 
     // ipc id for clean uiability from user
     CLEAN_UI_ABILITY_BY_SCB = 1066,
+
+    // start ability only ui ability
+    START_ABILITY_ONLY_UI_ABILITY = 1067,
 
     // ipc id for continue ability(1101)
     START_CONTINUATION = 1101,
@@ -542,9 +542,6 @@ enum class AbilityManagerInterfaceCode {
     REQUEST_ASSERT_FAULT_DIALOG = 6116,
     // ipc id for notify the operation status of the user
     NOTIFY_DEBUG_ASSERT_RESULT = 6117,
-
-    // ipc id for terminate mission
-    TERMINATE_MISSION = 6118,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

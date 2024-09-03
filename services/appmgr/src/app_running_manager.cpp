@@ -29,16 +29,13 @@
 #include "parameters.h"
 #include "quick_fix_callback_with_record.h"
 #include <cstddef>
-#ifdef SUPPORT_SCREEN
 #include "scene_board_judgement.h"
-#include "window_visibility_info.h"
-#endif //SUPPORT_SCREEN
 #include "app_mgr_service_const.h"
 #include "app_mgr_service_dump_error_code.h"
 #include "cache_process_manager.h"
 #include "res_sched_util.h"
 #include "ui_extension_utils.h"
-
+#include "window_visibility_info.h"
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
@@ -107,7 +104,7 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CreateAppRunningRecord(
 
 std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExist(const std::string &appName,
     const std::string &processName, const int uid, const BundleInfo &bundleInfo,
-    const std::string &specifiedProcessFlag, bool *isProCache)
+    const std::string &specifiedProcessFlag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR,
@@ -121,9 +118,12 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExis
 
     auto FindSameProcess = [signCode, specifiedProcessFlag, processName, jointUserId](const auto &pair) {
         return (pair.second != nullptr) &&
-            (specifiedProcessFlag.empty() || pair.second->GetSpecifiedProcessFlag() == specifiedProcessFlag) &&
-            (pair.second->GetSignCode() == signCode) && (pair.second->GetProcessName() == processName) &&
-            (pair.second->GetJointUserId() == jointUserId) && !(pair.second->IsTerminating()) &&
+            (specifiedProcessFlag.empty() ||
+            pair.second->GetSpecifiedProcessFlag() == specifiedProcessFlag) &&
+            (pair.second->GetSignCode() == signCode) &&
+            (pair.second->GetProcessName() == processName) &&
+            (pair.second->GetJointUserId() == jointUserId) &&
+            !(pair.second->IsTerminating()) &&
             !(pair.second->IsKilling()) && !(pair.second->GetRestartAppFlag());
     };
 
@@ -135,7 +135,8 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExis
     for (const auto &item : appRunningMap) {
         const auto &appRecord = item.second;
         if (appRecord && appRecord->GetProcessName() == processName &&
-            (specifiedProcessFlag.empty() || appRecord->GetSpecifiedProcessFlag() == specifiedProcessFlag) &&
+            (specifiedProcessFlag.empty() ||
+            appRecord->GetSpecifiedProcessFlag() == specifiedProcessFlag) &&
             !(appRecord->IsTerminating()) && !(appRecord->IsKilling()) && !(appRecord->GetRestartAppFlag()) &&
             !(appRecord->IsUserRequestCleaning())) {
             auto appInfoList = appRecord->GetAppInfoList();
@@ -147,15 +148,10 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExis
                 return appInfo->name == appName && appInfo->uid == uid;
             };
             auto appInfoIter = std::find_if(appInfoList.begin(), appInfoList.end(), isExist);
-            if (appInfoIter == appInfoList.end()) {
-                continue;
-            }
-            bool isProcCacheInner =
+            if (appInfoIter != appInfoList.end()) {
                 DelayedSingleton<CacheProcessManager>::GetInstance()->ReuseCachedProcess(appRecord);
-            if (isProCache != nullptr) {
-                *isProCache = isProcCacheInner;
+                return appRecord;
             }
-            return appRecord;
         }
     }
     return nullptr;
@@ -639,13 +635,11 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
 
     auto isLastAbility =
         clearMissionFlag ? appRecord->IsLastPageAbilityRecord(token) : appRecord->IsLastAbilityRecord(token);
-#ifdef SUPPORT_SCREEN
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         appRecord->TerminateAbility(token, true);
     } else {
         appRecord->TerminateAbility(token, false);
     }
-#endif //SUPPORT_SCREEN
     auto isLauncherApp = appRecord->GetApplicationInfo()->isLauncherApp;
     if (isLastAbility && (!appRecord->IsKeepAliveApp() ||
         !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficent()) && !isLauncherApp) {
@@ -756,6 +750,7 @@ void AppRunningManager::GetForegroundApplications(std::vector<AppStateData> &lis
             appData.accessTokenId = appInfo ? appInfo->accessTokenId : 0;
             appData.extensionType = appRecord->GetExtensionType();
             appData.isFocused = appRecord->GetFocusFlag();
+            appData.appIndex = appRecord->GetAppIndex();
             list.push_back(appData);
             TAG_LOGD(AAFwkTag::APPMGR, "bundleName:%{public}s", appData.bundleName.c_str());
         }
@@ -1110,7 +1105,8 @@ bool AppRunningManager::IsApplicationFirstForeground(const AppRunningRecord &for
         const auto &appRecord = item.second;
         if (appRecord == nullptr || appRecord->GetBundleName() != foregroundingRecord.GetBundleName()
             || AAFwk::UIExtensionUtils::IsUIExtension(appRecord->GetExtensionType())
-            || AAFwk::UIExtensionUtils::IsWindowExtension(appRecord->GetExtensionType())) {
+            || AAFwk::UIExtensionUtils::IsWindowExtension(appRecord->GetExtensionType())
+            || appRecord->GetAppIndex() != foregroundingRecord.GetAppIndex()) {
             continue;
         }
         auto state = appRecord->GetState();
@@ -1122,7 +1118,7 @@ bool AppRunningManager::IsApplicationFirstForeground(const AppRunningRecord &for
     return true;
 }
 
-bool AppRunningManager::IsApplicationBackground(const std::string &bundleName)
+bool AppRunningManager::IsApplicationBackground(const AppRunningRecord &backgroundingRecord)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     std::lock_guard guard(runningRecordMapMutex_);
@@ -1133,18 +1129,19 @@ bool AppRunningManager::IsApplicationBackground(const std::string &bundleName)
             return false;
         }
         if (AAFwk::UIExtensionUtils::IsUIExtension(appRecord->GetExtensionType())
-            || AAFwk::UIExtensionUtils::IsWindowExtension(appRecord->GetExtensionType())) {
+            || AAFwk::UIExtensionUtils::IsWindowExtension(appRecord->GetExtensionType())
+            || appRecord->GetAppIndex() != backgroundingRecord.GetAppIndex()) {
             continue;
         }
         auto state = appRecord->GetState();
-        if (appRecord && appRecord->GetBundleName() == bundleName &&
+        if (appRecord && appRecord->GetBundleName() == backgroundingRecord.GetBundleName() &&
             state == ApplicationState::APP_STATE_FOREGROUND) {
             return false;
         }
     }
     return true;
 }
-#ifdef SUPPORT_SCREEN
+
 void AppRunningManager::OnWindowVisibilityChanged(
     const std::vector<sptr<OHOS::Rosen::WindowVisibilityInfo>> &windowVisibilityInfos)
 {
@@ -1168,7 +1165,7 @@ void AppRunningManager::OnWindowVisibilityChanged(
         pids.emplace(info->pid_);
     }
 }
-#endif //SUPPORT_SCREEN
+
 bool AppRunningManager::IsApplicationFirstFocused(const AppRunningRecord &focusedRecord)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
@@ -1361,7 +1358,7 @@ int32_t AppRunningManager::GetAllUIExtensionRootHostPid(pid_t pid, std::vector<p
         [](const std::string& a, pid_t b) {
             return a + std::to_string(b) + " ";
         });
-    TAG_LOGI(AAFwkTag::APPMGR, "pid: %{public}s, hostPid: %{public}s.", std::to_string(pid).c_str(),
+    TAG_LOGD(AAFwkTag::APPMGR, "pid: %{public}s, hostPid: %{public}s.", std::to_string(pid).c_str(),
         hostPidStr.c_str());
     return ERR_OK;
 }

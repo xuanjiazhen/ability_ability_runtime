@@ -80,6 +80,7 @@ public:
     ErrCode StartServiceExtensionAbility(const Want &want, int32_t accountId = -1) override;
     ErrCode StopServiceExtensionAbility(const Want& want, int32_t accountId = -1) override;
     ErrCode TerminateAbilityWithResult(const AAFwk::Want &want, int resultCode) override;
+    ErrCode BackToCallerAbilityWithResult(const AAFwk::Want &want, int resultCode, int64_t requestCode) override;
     void OnAbilityResult(int requestCode, int resultCode, const AAFwk::Want &resultData) override;
     ErrCode ConnectAbility(const AAFwk::Want &want,
                         const sptr<AbilityConnectCallback> &connectCallback) override;
@@ -214,10 +215,10 @@ public:
      * @return Returns ERR_OK if success.
      */
     ErrCode SetMissionContinueState(const AAFwk::ContinueState &state) override;
-#ifdef SUPPORT_SCREEN
+
     ErrCode StartAbilityByType(const std::string &type,
         AAFwk::WantParams &wantParam, const std::shared_ptr<JsUIExtensionCallback> &uiExtensionCallbacks) override;
-#endif
+
     ErrCode RequestModalUIExtension(const Want &want) override;
 
     ErrCode ChangeAbilityVisibility(bool isShow) override;
@@ -239,7 +240,7 @@ public:
 
     std::shared_ptr<AAFwk::Want> GetWant() override;
 
-#ifdef SUPPORT_SCREEN
+#ifdef SUPPORT_GRAPHICS
     /**
      * @brief Set mission label of this ability.
      *

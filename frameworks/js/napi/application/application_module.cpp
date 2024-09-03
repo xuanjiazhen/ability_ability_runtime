@@ -13,9 +13,16 @@
  * limitations under the License.
  */
 
-#ifndef FUZZTEST_OHOS_ABILITY_RUNTIME_BLOCKAPPSERVICE_FUZZER_H
-#define FUZZTEST_OHOS_ABILITY_RUNTIME_BLOCKAPPSERVICE_FUZZER_H
+#include "js_application.h"
+#include "napi/native_api.h"
 
-#define FUZZ_PROJECT_NAME "blockappservice_fuzzer"
+static napi_module _module = {
+    .nm_version = 0,
+    .nm_register_func = OHOS::AbilityRuntime::ApplicationInit,
+    .nm_modname = "app.ability.application",
+};
 
-#endif
+extern "C" __attribute__((constructor)) void NAPI_app_ability_application_AutoRegister(void)
+{
+    napi_module_register(&_module);
+}

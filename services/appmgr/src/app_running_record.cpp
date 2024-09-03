@@ -24,10 +24,8 @@
 #include "app_mgr_service_const.h"
 #include "app_mgr_service_dump_error_code.h"
 #include "cache_process_manager.h"
-#include "hisysevent.h"
-#ifdef SUPPORT_SCREEN
 #include "window_visibility_info.h"
-#endif //SUPPORT_SCREEN
+
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
@@ -36,10 +34,6 @@ constexpr int64_t MICROSECONDS = 1000000;    // MICROSECONDS mean 10^6 millias s
 constexpr int32_t MAX_RESTART_COUNT = 3;
 constexpr int32_t RESTART_INTERVAL_TIME = 120000;
 constexpr const char* LAUNCHER_NAME = "com.ohos.sceneboard";
-constexpr const char *EVENT_KEY_VERSION_NAME = "VERSION_NAME";
-constexpr const char *EVENT_KEY_VERSION_CODE = "VERSION_CODE";
-constexpr const char *EVENT_KEY_BUNDLE_NAME = "BUNDLE_NAME";
-constexpr const char *EVENT_KEY_SUPPORT_STATE = "SUPPORT_STATE";
 }
 
 int64_t AppRunningRecord::appEventId_ = 0;
@@ -632,6 +626,7 @@ void AppRunningRecord::LaunchPendingAbilities()
 }
 void AppRunningRecord::ScheduleForegroundRunning()
 {
+    SetApplicationScheduleState(ApplicationScheduleState::SCHEDULE_FOREGROUNDING);
     if (appLifeCycleDeal_) {
         appLifeCycleDeal_->ScheduleForegroundRunning();
     }
@@ -639,6 +634,7 @@ void AppRunningRecord::ScheduleForegroundRunning()
 
 void AppRunningRecord::ScheduleBackgroundRunning()
 {
+    SetApplicationScheduleState(ApplicationScheduleState::SCHEDULE_BACKGROUNDING);
     int32_t recordId = GetRecordId();
     auto serviceInner = appMgrServiceInner_;
     auto appbackgroundtask = [recordId, serviceInner]() {
@@ -1165,11 +1161,6 @@ void AppRunningRecord::AbilityTerminated(const sptr<IRemoteObject> &token)
             appRecord->GetBundleName().c_str());
         needCache = true;
     }
-    auto state = static_cast<int>(GetSupportProcessCacheState());
-    auto appInfo = appRecord->GetApplicationInfo();
-    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "CACHE_SUPPORT_STATE", HiSysEvent::EventType::BEHAVIOR,
-        EVENT_KEY_VERSION_CODE, appInfo->versionCode, EVENT_KEY_VERSION_NAME, appInfo->versionName,
-        EVENT_KEY_BUNDLE_NAME, appInfo->bundleName, EVENT_KEY_SUPPORT_STATE, state);
     if (moduleRecord->GetAbilities().empty() && (!IsKeepAliveApp()
         || AAFwk::UIExtensionUtils::IsUIExtension(GetExtensionType())
         || !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficent()) && !needCache) {
@@ -1943,7 +1934,7 @@ bool AppRunningRecord::IsAbilitytiesBackground()
     }
     return true;
 }
-#ifdef SUPPORT_SCREEN
+
 void AppRunningRecord::OnWindowVisibilityChanged(
     const std::vector<sptr<OHOS::Rosen::WindowVisibilityInfo>> &windowVisibilityInfos)
 {
@@ -1994,7 +1985,6 @@ void AppRunningRecord::OnWindowVisibilityChanged(
         }
     }
 }
-#endif //SUPPORT_SCREEN
 
 bool AppRunningRecord::IsContinuousTask()
 {
@@ -2111,6 +2101,16 @@ void AppRunningRecord::SetApplicationPendingState(ApplicationPendingState pendin
 ApplicationPendingState AppRunningRecord::GetApplicationPendingState() const
 {
     return pendingState_;
+}
+
+void AppRunningRecord::SetApplicationScheduleState(ApplicationScheduleState scheduleState)
+{
+    scheduleState_ = scheduleState;
+}
+
+ApplicationScheduleState AppRunningRecord::GetApplicationScheduleState() const
+{
+    return scheduleState_;
 }
 
 void AppRunningRecord::AddChildProcessRecord(pid_t pid, const std::shared_ptr<ChildProcessRecord> record)

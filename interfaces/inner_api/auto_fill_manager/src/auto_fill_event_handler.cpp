@@ -28,12 +28,10 @@ void AutoFillEventHandler::ProcessEvent(const AppExecFwk::InnerEvent::Pointer &e
 {
     TAG_LOGD(AAFwkTag::AUTOFILLMGR, "called");
     if (event == nullptr) {
-        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "Event is nullptr.");
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "null Event");
         return;
     }
-#ifdef SUPPORT_GRAPHICS
     AutoFillManager::GetInstance().HandleTimeOut(event->GetInnerEventId());
-#endif // SUPPORT_GRAPHICS
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

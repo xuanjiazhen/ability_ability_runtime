@@ -80,6 +80,9 @@ int AbilityManagerStub::OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &
     if (interfaceCode == AbilityManagerInterfaceCode::RELEASE_DATA_ABILITY) {
         return ReleaseDataAbilityInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::BACK_TO_CALLER_UIABILITY) {
+        return BackToCallerInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -116,6 +119,9 @@ int AbilityManagerStub::OnRemoteRequestInnerSecond(uint32_t code, MessageParcel 
     }
     if (interfaceCode == AbilityManagerInterfaceCode::START_UI_SESSION_ABILITY_FOR_OPTIONS) {
         return StartAbilityByUIContentSessionForOptionsInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::START_ABILITY_ONLY_UI_ABILITY) {
+        return StartAbilityOnlyUIAbilityInner(data, reply);
     }
     return ERR_CODE_NOT_EXIST;
 }
@@ -437,17 +443,6 @@ int AbilityManagerStub::OnRemoteRequestInnerEleventh(uint32_t code, MessageParce
     if (interfaceCode == AbilityManagerInterfaceCode::REGISTER_SESSION_HANDLER) {
         return RegisterSessionHandlerInner(data, reply);
     }
-#ifdef ABILITY_COMMAND_FOR_TEST
-    if (interfaceCode == AbilityManagerInterfaceCode::BLOCK_ABILITY) {
-        return BlockAbilityInner(data, reply);
-    }
-    if (interfaceCode == AbilityManagerInterfaceCode::BLOCK_AMS_SERVICE) {
-        return BlockAmsServiceInner(data, reply);
-    }
-    if (interfaceCode == AbilityManagerInterfaceCode::BLOCK_APP_SERVICE) {
-        return BlockAppServiceInner(data, reply);
-    }
-#endif
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -513,11 +508,9 @@ int AbilityManagerStub::OnRemoteRequestInnerThirteenth(uint32_t code, MessagePar
     if (interfaceCode == AbilityManagerInterfaceCode::UNREGISTER_CONNECTION_OBSERVER) {
         return UnregisterConnectionObserverInner(data, reply);
     }
-#ifdef WITH_DLP
     if (interfaceCode == AbilityManagerInterfaceCode::GET_DLP_CONNECTION_INFOS) {
         return GetDlpConnectionInfosInner(data, reply);
     }
-#endif // WITH_DLP
     if (interfaceCode == AbilityManagerInterfaceCode::MOVE_ABILITY_TO_BACKGROUND) {
         return MoveAbilityToBackgroundInner(data, reply);
     }
@@ -754,9 +747,6 @@ int AbilityManagerStub::OnRemoteRequestInnerNineteenth(uint32_t code, MessagePar
     if (interfaceCode == AbilityManagerInterfaceCode::OPEN_LINK) {
         return OpenLinkInner(data, reply);
     }
-    if (interfaceCode == AbilityManagerInterfaceCode::TERMINATE_MISSION) {
-        return TerminateMissionInner(data, reply);
-    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -946,6 +936,23 @@ int AbilityManagerStub::TerminateAbilityInner(MessageParcel &data, MessageParcel
     } else {
         result = CloseAbility(token, resultCode, resultWant);
     }
+    reply.WriteInt32(result);
+    if (resultWant != nullptr) {
+        delete resultWant;
+    }
+    return NO_ERROR;
+}
+
+int AbilityManagerStub::BackToCallerInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> token = nullptr;
+    if (data.ReadBool()) {
+        token = data.ReadRemoteObject();
+    }
+    int resultCode = data.ReadInt32();
+    Want *resultWant = data.ReadParcelable<Want>();
+    int64_t callerRequestCode = data.ReadInt64();
+    int32_t result = BackToCallerAbilityWithResult(token, resultCode, resultWant, callerRequestCode);
     reply.WriteInt32(result);
     if (resultWant != nullptr) {
         delete resultWant;
@@ -2624,13 +2631,11 @@ int AbilityManagerStub::UnregisterObserver(const sptr<AbilityRuntime::IConnectio
     return NO_ERROR;
 }
 
-#ifdef WITH_DLP
 int AbilityManagerStub::GetDlpConnectionInfos(std::vector<AbilityRuntime::DlpConnectionInfo> &infos)
 {
     // should implement in child
     return NO_ERROR;
 }
-#endif // WITH_DLP
 
 int AbilityManagerStub::GetConnectionData(std::vector<AbilityRuntime::ConnectionData> &infos)
 {
@@ -2646,37 +2651,6 @@ int AbilityManagerStub::ForceTimeoutForTestInner(MessageParcel &data, MessagePar
     int result = ForceTimeoutForTest(abilityName, state);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "force ability timeout error");
-        return ERR_INVALID_VALUE;
-    }
-    return NO_ERROR;
-}
-
-int AbilityManagerStub::BlockAbilityInner(MessageParcel &data, MessageParcel &reply)
-{
-    int32_t abilityRecordId = data.ReadInt32();
-    int32_t result = BlockAbility(abilityRecordId);
-    if (!reply.WriteInt32(result)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write failed.");
-        return ERR_INVALID_VALUE;
-    }
-    return NO_ERROR;
-}
-
-int AbilityManagerStub::BlockAmsServiceInner(MessageParcel &data, MessageParcel &reply)
-{
-    int32_t result = BlockAmsService();
-    if (!reply.WriteInt32(result)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write failed.");
-        return ERR_INVALID_VALUE;
-    }
-    return NO_ERROR;
-}
-
-int AbilityManagerStub::BlockAppServiceInner(MessageParcel &data, MessageParcel &reply)
-{
-    int32_t result = BlockAppService();
-    if (!reply.WriteInt32(result)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write failed.");
         return ERR_INVALID_VALUE;
     }
     return NO_ERROR;
@@ -2752,14 +2726,13 @@ int AbilityManagerStub::UpdateMissionSnapShotFromWMSInner(MessageParcel &data, M
         TAG_LOGE(AAFwkTag::ABILITYMGR, "read ability token failed.");
         return ERR_NULL_OBJECT;
     }
-#ifdef SUPPORT_SCREEN
+
     std::shared_ptr<Media::PixelMap> pixelMap(data.ReadParcelable<Media::PixelMap>());
     if (pixelMap == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "read pixelMap failed.");
         return ERR_NULL_OBJECT;
     }
     UpdateMissionSnapShot(token, pixelMap);
-#endif // SUPPORT_SCREEN
     return NO_ERROR;
 }
 
@@ -2905,7 +2878,6 @@ int AbilityManagerStub::UnregisterConnectionObserverInner(MessageParcel &data, M
     return UnregisterObserver(observer);
 }
 
-#ifdef WITH_DLP
 int AbilityManagerStub::GetDlpConnectionInfosInner(MessageParcel &data, MessageParcel &reply)
 {
     std::vector<AbilityRuntime::DlpConnectionInfo> infos;
@@ -2929,7 +2901,6 @@ int AbilityManagerStub::GetDlpConnectionInfosInner(MessageParcel &data, MessageP
 
     return ERR_OK;
 }
-#endif // WITH_DLP
 
 int AbilityManagerStub::GetConnectionDataInner(MessageParcel &data, MessageParcel &reply)
 {
@@ -2972,7 +2943,7 @@ int AbilityManagerStub::SetMissionContinueStateInner(MessageParcel &data, Messag
     return NO_ERROR;
 }
 
-#ifdef SUPPORT_SCREEN
+#ifdef SUPPORT_GRAPHICS
 int AbilityManagerStub::SetMissionLabelInner(MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> token = data.ReadRemoteObject();
@@ -3571,6 +3542,26 @@ int AbilityManagerStub::StartAbilityForResultAsCallerForOptionsInner(MessageParc
     return NO_ERROR;
 }
 
+int32_t AbilityManagerStub::StartAbilityOnlyUIAbilityInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::unique_ptr<Want> want(data.ReadParcelable<Want>());
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "want is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+
+    sptr<IRemoteObject> callerToken = nullptr;
+    if (!data.ReadBool()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid caller token");
+        return ERR_INVALID_VALUE;
+    }
+    callerToken = data.ReadRemoteObject();
+    uint32_t specifyTokenId = data.ReadUint32();
+    int32_t result = StartAbilityOnlyUIAbility(*want, callerToken, specifyTokenId);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
 int32_t AbilityManagerStub::StartAbilityByInsightIntentInner(MessageParcel &data, MessageParcel &reply)
 {
     std::unique_ptr<Want> want(data.ReadParcelable<Want>());
@@ -3972,17 +3963,6 @@ int32_t AbilityManagerStub::OpenLinkInner(MessageParcel &data, MessageParcel &re
     int requestCode = data.ReadInt32();
 
     int32_t result = OpenLink(*want, callerToken, userId, requestCode);
-    if (result != NO_ERROR && result != ERR_OPEN_LINK_START_ABILITY_DEFAULT_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "OpenLink failed.");
-    }
-    reply.WriteInt32(result);
-    return result;
-}
-
-int32_t AbilityManagerStub::TerminateMissionInner(MessageParcel &data, MessageParcel &reply)
-{
-    int32_t missionId = data.ReadInt32();
-    int32_t result = TerminateMission(missionId);
     if (result != NO_ERROR && result != ERR_OPEN_LINK_START_ABILITY_DEFAULT_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "OpenLink failed.");
     }

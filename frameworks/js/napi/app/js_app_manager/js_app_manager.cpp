@@ -34,9 +34,6 @@
 #include "js_app_state_observer.h"
 #ifdef SUPPORT_GRAPHICS
 #include "js_ability_first_frame_state_observer.h"
-#ifdef SUPPORT_SCREEN
-#include "tokenid_kit.h"
-#endif
 #endif
 #include "js_error_utils.h"
 #include "js_runtime.h"
@@ -44,7 +41,7 @@
 #include "napi/native_api.h"
 #include "napi_common_util.h"
 #include "system_ability_definition.h"
-
+#include "tokenid_kit.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -138,11 +135,6 @@ public:
         GET_CB_INFO_AND_CALL(env, info, JsAppManager, OnClearUpAppData);
     }
 
-    static napi_value TerminateMission(napi_env env, napi_callback_info info)
-    {
-        GET_CB_INFO_AND_CALL(env, info, JsAppManager, OnTerminateMission);
-    }
-
     static napi_value IsSharedBundleRunning(napi_env env, napi_callback_info info)
     {
         GET_CB_INFO_AND_CALL(env, info, JsAppManager, OnIsSharedBundleRunning);
@@ -177,7 +169,7 @@ public:
     {
         GET_CB_INFO_AND_CALL(env, info, JsAppManager, OnIsAppRunning);
     }
-#ifdef SUPPORT_SCREEN
+
     static bool CheckCallerIsSystemApp()
     {
         auto selfToken = IPCSkeleton::GetSelfTokenID();
@@ -186,7 +178,6 @@ public:
         }
         return true;
     }
-#endif
 
     static bool IsParasNullOrUndefined(napi_env env, const napi_value& para)
     {
@@ -242,9 +233,9 @@ private:
         } else if (type == ON_OFF_TYPE_APP_FOREGROUND_STATE) {
             return OnOnForeground(env, argc, argv);
         } else if (type == ON_OFF_TYPE_ABILITY_FIRST_FRAME_STATE) {
-#ifdef SUPPORT_SCREEN
+#ifdef SUPPORT_GRAPHICS
             return OnOnAbilityFirstFrameState(env, argc, argv);
-#else
+#elif
             TAG_LOGE(AAFwkTag::APPMGR, "not support");
             return CreateJsUndefined(env);
 #endif
@@ -387,9 +378,9 @@ private:
         } else if (type == ON_OFF_TYPE_APP_FOREGROUND_STATE) {
             return OnOffForeground(env, argc, argv);
         } else if (type == ON_OFF_TYPE_ABILITY_FIRST_FRAME_STATE) {
-#ifdef SUPPORT_SCREEN
+#ifdef SUPPORT_GRAPHICS
             return OnOffAbilityFirstFrameState(env, argc, argv);
-#else
+#elif
             TAG_LOGE(AAFwkTag::APPMGR, "not support");
             return CreateJsUndefined(env);
 #endif
@@ -398,7 +389,7 @@ private:
         return OnOffOld(env, argc, argv);
     }
 
-#ifdef SUPPORT_SCREEN
+#ifdef SUPPORT_GRAPHICS
     napi_value OnOnAbilityFirstFrameState(napi_env env, size_t argc, napi_value *argv)
     {
         if (!CheckCallerIsSystemApp()) {
@@ -661,7 +652,7 @@ private:
         std::unique_ptr<NapiAsyncTask> napiAsyncTask = CreateEmptyAsyncTask(env, lastParam, &result);
         auto asyncTask = [appManager = appManager_, env, task = napiAsyncTask.get()]() {
             if (appManager == nullptr) {
-                TAG_LOGW(AAFwkTag::APPMGR, "appManager nullptr");
+                TAG_LOGW(AAFwkTag::APPMGR, "abilityManager nullptr");
                 task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
                 delete task;
                 return;
@@ -687,13 +678,11 @@ private:
     napi_value OnGetRunningMultiAppInfo(napi_env env, size_t argc, napi_value* argv)
     {
         TAG_LOGD(AAFwkTag::APPMGR, "called");
-#ifdef SUPPORT_SCREEN
         if (!CheckCallerIsSystemApp()) {
             TAG_LOGE(AAFwkTag::APPMGR, "Current app is not system app");
             ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
             return CreateJsUndefined(env);
         }
-#endif
         // only support 1 params
         if (argc < ARGC_ONE) {
             TAG_LOGE(AAFwkTag::APPMGR, "invalid argc");
@@ -940,46 +929,6 @@ private:
         if (napi_status::napi_ok != napi_send_event(env, asyncTask, napi_eprio_high)) {
             napiAsyncTask->Reject(env, CreateJsErrorByNativeErr(env,
                 static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "send event failed!"));
-        } else {
-            napiAsyncTask.release();
-        }
-        return result;
-    }
-
-    napi_value OnTerminateMission(napi_env env, size_t argc, napi_value* argv)
-    {
-        TAG_LOGD(AAFwkTag::APPMGR, "OnTerminateMission call.");
-        if (argc < ARGC_ONE) {
-            TAG_LOGE(AAFwkTag::APPMGR, "Params not match");
-            ThrowTooFewParametersError(env);
-            return CreateJsUndefined(env);
-        }
-
-        int32_t missionId = 0;
-        if (!ConvertFromJsValue(env, argv[INDEX_ZERO], missionId)) {
-            TAG_LOGE(AAFwkTag::APPMGR, "get missionId wrong!");
-            ThrowInvalidParamError(env, "Parse param missionId failed, must be a number.");
-            return CreateJsUndefined(env);
-        }
-
-        napi_value result = nullptr;
-        std::unique_ptr<NapiAsyncTask> napiAsyncTask = CreateEmptyAsyncTask(env, nullptr, &result);
-        auto asyncTask = [missionId, env, task = napiAsyncTask.get()]() {
-            auto amsClient = AAFwk::AbilityManagerClient::GetInstance();
-            if (amsClient == nullptr) {
-                TAG_LOGW(AAFwkTag::APPMGR, "amsClient nullptr");
-                task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
-                delete task;
-                return;
-            }
-            auto ret = amsClient->TerminateMission(missionId);
-            (ret == ERR_OK) ? task->ResolveWithNoError(env, CreateJsUndefined(env)) :
-                task->Reject(env, CreateJsErrorByNativeErr(env, ret, "Terminate mission failed."));
-            delete task;
-        };
-        if (napi_status::napi_ok != napi_send_event(env, asyncTask, napi_eprio_high)) {
-            napiAsyncTask->Reject(env, CreateJsErrorByNativeErr(env,
-                static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "Terminate mission failed."));
         } else {
             napiAsyncTask.release();
         }
@@ -1464,7 +1413,6 @@ napi_value JsAppManagerInit(napi_env env, napi_value exportObj)
         JsAppManager::KillProcessesByBundleName);
     BindNativeFunction(env, exportObj, "clearUpApplicationData", moduleName, JsAppManager::ClearUpApplicationData);
     BindNativeFunction(env, exportObj, "clearUpAppData", moduleName, JsAppManager::ClearUpAppData);
-    BindNativeFunction(env, exportObj, "terminateMission", moduleName, JsAppManager::TerminateMission);
     BindNativeFunction(env, exportObj, "getAppMemorySize", moduleName, JsAppManager::GetAppMemorySize);
     BindNativeFunction(env, exportObj, "isRamConstrainedDevice", moduleName, JsAppManager::IsRamConstrainedDevice);
     BindNativeFunction(env, exportObj, "isSharedBundleRunning", moduleName, JsAppManager::IsSharedBundleRunning);

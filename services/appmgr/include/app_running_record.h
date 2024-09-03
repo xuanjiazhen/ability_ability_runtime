@@ -677,9 +677,9 @@ public:
     ProcessType GetProcessType() const;
 
     int32_t NotifyAppFault(const FaultData &faultData);
-#ifdef SUPPORT_SCREEN
+
     void OnWindowVisibilityChanged(const std::vector<sptr<OHOS::Rosen::WindowVisibilityInfo>> &windowVisibilityInfos);
-#endif //SUPPORT_SCREEN
+
     bool IsAbilitytiesBackground();
 
     inline void SetAbilityForegroundingFlag()
@@ -724,6 +724,9 @@ public:
 
     void SetApplicationPendingState(ApplicationPendingState pendingState);
     ApplicationPendingState GetApplicationPendingState() const;
+
+    void SetApplicationScheduleState(ApplicationScheduleState scheduleState);
+    ApplicationScheduleState GetApplicationScheduleState() const;
 
     void GetSplitModeAndFloatingMode(bool &isSplitScreenMode, bool &isFloatingWindowMode);
 
@@ -893,6 +896,7 @@ private:
     bool isStageBasedModel_ = false;
     ApplicationState curState_ = ApplicationState::APP_STATE_CREATE;  // current state of this process
     ApplicationPendingState pendingState_ = ApplicationPendingState::READY;
+    ApplicationScheduleState scheduleState_ = ApplicationScheduleState::SCHEDULE_READY;
     bool isFocused_ = false; // if process is focused.
     /**
      * If there is an ability is foregrounding, this flag will be true,

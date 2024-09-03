@@ -129,6 +129,18 @@ public:
      * @return int error code
      */
     int MoveAbilityToBackground(const std::shared_ptr<AbilityRecord> &abilityRecord) override;
+    
+    /**
+     * @brief Back to caller ability with result
+     *
+     * @param abilityRecord the ability to move
+     * @param resultCode result code
+     * @param resultWant result want
+     * @param callerRequestCode request code of caller
+     * @return int error code
+     */
+    int32_t BackToCallerAbilityWithResult(std::shared_ptr<AbilityRecord> abilityRecord,
+        int32_t resultCode, const Want *resultWant, int64_t callerRequestCode) override;
 
     /**
      * @brief Terminate ability with the given abilityRecord
@@ -317,9 +329,7 @@ public:
      * @param token The target ability.
      * @param pixelMap The snapshot.
      */
-#ifdef SUPPORT_SCREEN
     void UpdateSnapShot(const sptr<IRemoteObject> &token, const std::shared_ptr<Media::PixelMap> &pixelMap) override;
-#endif // SUPPORT_SCREEN
 
     /**
      * Get ability number.
@@ -329,16 +339,6 @@ public:
     int32_t GetAbilityNumber(const AppExecFwk::ElementName &element) const;
 
     void EnableRecoverAbility(int32_t missionId) override;
-
-#ifdef ABILITY_COMMAND_FOR_TEST
-    /**
-     * Block ability.
-     *
-     * @param abilityRecordId The Ability Record Id.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    int BlockAbility(int abilityRecordId) override;
-#endif
 
     void UninstallApp(const std::string &bundleName, int32_t uid) override;
 
@@ -366,7 +366,7 @@ public:
     void SignRestartAppFlag(const std::string &bundleName) override;
 
     void SetAnimationFlag(bool IsAnimationEnabled);
-#ifdef SUPPORT_SCREEN
+#ifdef SUPPORT_GRAPHICS
 public:
     /**
      * Set mission label of this ability.
@@ -443,7 +443,8 @@ private:
         const std::shared_ptr<MissionList> &list);
     int ClearMissionLocked(int missionId, const std::shared_ptr<Mission> &mission);
     int ClearMissionLocking(int missionId, const std::shared_ptr<Mission> &mission);
-    int MoveAbilityToBackgroundLocked(const std::shared_ptr<AbilityRecord> &abilityRecord);
+    int MoveAbilityToBackgroundLocked(const std::shared_ptr<AbilityRecord> &abilityRecord,
+        const std::shared_ptr<AbilityRecord> &specifiedNextRecord = nullptr);
     void RemoveBackgroundingAbility(const std::shared_ptr<AbilityRecord> &abilityRecord);
     int TerminateAbilityLocked(const std::shared_ptr<AbilityRecord> &abilityRecord, bool flag);
     /**

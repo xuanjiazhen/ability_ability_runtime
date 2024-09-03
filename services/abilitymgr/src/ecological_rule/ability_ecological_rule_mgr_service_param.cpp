@@ -46,6 +46,11 @@ AbilityExperienceRule *AbilityExperienceRule::Unmarshalling(Parcel &in)
 
     rule->replaceWant = in.ReadParcelable<Want>();
 
+    if (!in.ReadBool(rule->isBackSkuExempt)) {
+        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "read isBackSkuExempt failed");
+        rule->isBackSkuExempt = true;
+    }
+
     return rule;
 }
 
@@ -65,6 +70,10 @@ bool AbilityExperienceRule::Marshalling(Parcel &parcel) const
         return false;
     }
 
+    if (!parcel.WriteBool(isBackSkuExempt)) {
+        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "write isBackSkuExempt failed");
+    }
+
     return true;
 }
 
@@ -78,7 +87,7 @@ AbilityCallerInfo *AbilityCallerInfo::Unmarshalling(Parcel &in)
 {
     auto *info = new (std::nothrow) AbilityCallerInfo();
     if (info == nullptr) {
-        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "new callerInfo failed, return nullptr");
+        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "info null");
         return nullptr;
     }
 

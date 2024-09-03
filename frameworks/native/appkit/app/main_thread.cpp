@@ -58,7 +58,7 @@
 #include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
 #include "resource_config_helper.h"
-#ifdef SUPPORT_SCREEN
+#ifdef SUPPORT_GRAPHICS
 #include "locale_config.h"
 #include "ace_forward_compatibility.h"
 #include "form_constants.h"
@@ -1047,12 +1047,13 @@ bool MainThread::InitResourceManager(std::shared_ptr<Global::Resource::ResourceM
     std::unique_ptr<Global::Resource::ResConfig> resConfig(Global::Resource::CreateResConfig());
 #if defined(SUPPORT_GRAPHICS) && defined(SUPPORT_APP_PREFERRED_LANGUAGE)
     UErrorCode status = U_ZERO_ERROR;
-    icu::Locale locale = icu::Locale::forLanguageTag(Global::I18n::PreferredLanguage::GetAppPreferredLanguage(), status);
-    resConfig->SetLocaleInfo(locale);
-    const icu::Locale *localeInfo = resConfig->GetLocaleInfo();
-    if (localeInfo != nullptr) {
-        TAG_LOGD(AAFwkTag::APPKIT, "Language: %{public}s, script: %{public}s, region: %{public}s",
-            localeInfo->getLanguage(), localeInfo->getScript(), localeInfo->getCountry());
+    icu::Locale systemLocale = icu::Locale::forLanguageTag(Global::I18n::LocaleConfig::GetSystemLanguage(), status);
+    resConfig->SetLocaleInfo(systemLocale);
+
+    if (Global::I18n::PreferredLanguage::IsSetAppPreferredLanguage()) {
+        icu::Locale preferredLocale =
+            icu::Locale::forLanguageTag(Global::I18n::PreferredLanguage::GetAppPreferredLanguage(), status);
+        resConfig->SetPreferredLocaleInfo(preferredLocale);
     }
 #endif
     std::string colormode = config.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE);
@@ -1404,7 +1405,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         isStageBased = entryHapModuleInfo.isStageBasedModel;
     }
 
-#ifdef SUPPORT_SCREEN
+#ifdef SUPPORT_GRAPHICS
     std::vector<OHOS::AppExecFwk::Metadata> metaData = entryHapModuleInfo.metadata;
     bool isFullUpdate = std::any_of(metaData.begin(), metaData.end(), [](const auto &metaDataItem) {
         return metaDataItem.name == "ArkTSPartialUpdate" && metaDataItem.value == "false";
@@ -1421,7 +1422,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         ChangeToLocalPath(bundleName, appInfo.moduleSourceDirs, localPaths);
         LoadAbilityLibrary(localPaths);
         LoadNativeLiabrary(bundleInfo, appInfo.nativeLibraryPath);
-#ifdef SUPPORT_SCREEN
+#ifdef SUPPORT_GRAPHICS
     } else if (Ace::AceForwardCompatibility::PipelineChanged()) {
         std::vector<std::string> localPaths;
         ChangeToLocalPath(bundleName, appInfo.moduleSourceDirs, localPaths);
@@ -1460,7 +1461,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     }
     application_->SetApplicationContext(applicationContext);
 
-#ifdef SUPPORT_SCREEN
+#ifdef SUPPORT_GRAPHICS
     OHOS::EglSetCacheDir(applicationContext->GetCacheDir());
 #endif
 
@@ -2446,6 +2447,7 @@ void MainThread::HandleSignal(int signal, [[maybe_unused]] siginfo_t *siginfo, v
         case SignalType::SIGNAL_JSHEAP_OLD: {
             auto heapFunc = []() { return MainThread::HandleDumpHeap(false); };
             mainHandler_->PostTask(heapFunc, "MainThread::SIGNAL_JSHEAP_OLD");
+            break;
         }
         case SignalType::SIGNAL_JSHEAP: {
             auto heapFunc = []() { return MainThread::HandleDumpHeap(false); };
@@ -2694,7 +2696,7 @@ void MainThread::LoadAbilityLibrary(const std::vector<std::string> &libraryPaths
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
 #ifdef ABILITY_LIBRARY_LOADER
     TAG_LOGD(AAFwkTag::APPKIT, "start");
-#ifdef SUPPORT_SCREEN
+#ifdef SUPPORT_GRAPHICS
     LoadAceAbilityLibrary();
 #endif
     size_t size = libraryPaths.size();
@@ -3414,21 +3416,21 @@ void MainThread::ParseAppConfigurationParams(const std::string configuration, Co
     TAG_LOGD(AAFwkTag::APPKIT, "start");
     appConfig.AddItem(AAFwk::GlobalConfigurationKey::APP_FONT_SIZE_SCALE, DEFAULT_APP_FONT_SIZE_SCALE);
     if (configuration.empty()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "the configuration is empty");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "emptye config");
         return;
     }
     nlohmann::json configurationJson = nlohmann::json::parse(configuration, nullptr, false);
     if (configurationJson.is_discarded()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "json discarded error");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "discarded error");
         return;
     }
     if (!configurationJson.contains(JSON_KEY_APP_CONFIGURATION)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "app configuration is not exist");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "app config not exist");
         return;
     }
     nlohmann::json jsonObject = configurationJson.at(JSON_KEY_APP_CONFIGURATION).get<nlohmann::json>();
     if (jsonObject.empty()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "app configuration is null");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null app config");
         return;
     }
     if (jsonObject.contains(JSON_KEY_APP_FONT_SIZE_SCALE)
@@ -3462,7 +3464,7 @@ void MainThread::HandleCacheProcess()
     if (application_ != nullptr) {
         auto &runtime = application_->GetRuntime();
         if (runtime == nullptr) {
-            TAG_LOGE(AAFwkTag::APPKIT, "runtime nullptr");
+            TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
             return;
         }
         runtime->ForceFullGC();
