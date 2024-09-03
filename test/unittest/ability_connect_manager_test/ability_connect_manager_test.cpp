@@ -2997,11 +2997,11 @@ HWTEST_F(AbilityConnectManagerTest, AddUIExtWindowDeathRecipient_001, TestSize.L
     ConnectManager()->AddUIExtWindowDeathRecipient(nullptr);
     EXPECT_TRUE(ConnectManager()->uiExtRecipientMap_.empty());
 
-    ConnectManager()->AddUIExtWindowDeathRecipient(callbackA_->AsObject());
+    ConnectManager()->AddUIExtWindowDeathRecipient(MockSessionInfo(0));
     EXPECT_EQ(static_cast<int>(ConnectManager()->uiExtRecipientMap_.size()), 1);
 
     // Add twice, do not add repeatedly
-    ConnectManager()->AddUIExtWindowDeathRecipient(callbackA_->AsObject());
+    ConnectManager()->AddUIExtWindowDeathRecipient(MockSessionInfo(0));
     EXPECT_EQ(static_cast<int>(ConnectManager()->uiExtRecipientMap_.size()), 1);
     ConnectManager()->uiExtRecipientMap_.clear();
 }
@@ -3021,13 +3021,13 @@ HWTEST_F(AbilityConnectManagerTest, RemoveUIExtWindowDeathRecipient_001, TestSiz
     ConnectManager()->SetEventHandler(EventHandler());
     ConnectManager()->uiExtRecipientMap_.clear();
 
-    ConnectManager()->AddUIExtWindowDeathRecipient(callbackA_->AsObject());
+    ConnectManager()->AddUIExtWindowDeathRecipient(MockSessionInfo(0));
     EXPECT_EQ(static_cast<int>(ConnectManager()->uiExtRecipientMap_.size()), 1);
 
     ConnectManager()->RemoveUIExtWindowDeathRecipient(nullptr);
     EXPECT_FALSE(ConnectManager()->uiExtRecipientMap_.empty());
 
-    ConnectManager()->RemoveUIExtWindowDeathRecipient(callbackA_->AsObject());
+    ConnectManager()->RemoveUIExtWindowDeathRecipient(MockSessionInfo(0));
     EXPECT_TRUE(ConnectManager()->uiExtRecipientMap_.empty());
 }
 
@@ -3048,8 +3048,8 @@ HWTEST_F(AbilityConnectManagerTest, OnUIExtWindowDied_001, TestSize.Level1)
     ConnectManager()->uiExtensionMap_.clear();
 
     ConnectManager()->uiExtensionMap_.emplace(
-        callbackA_->AsObject(), AbilityConnectManager::UIExtWindowMapValType(serviceRecord_, MockSessionInfo(0)));
-    ConnectManager()->AddUIExtWindowDeathRecipient(callbackA_->AsObject());
+        MockSessionInfo(0)->uiExtensionComponentId, AbilityConnectManager::UIExtWindowMapValType(serviceRecord_, MockSessionInfo(0)));
+    ConnectManager()->AddUIExtWindowDeathRecipient(MockSessionInfo(0));
     ConnectManager()->OnUIExtWindowDied(nullptr);
     EXPECT_EQ(static_cast<int>(ConnectManager()->uiExtRecipientMap_.size()), 1);
     EXPECT_EQ(static_cast<int>(ConnectManager()->uiExtensionMap_.size()), 1);
@@ -3072,13 +3072,13 @@ HWTEST_F(AbilityConnectManagerTest, HandleUIExtWindowDiedTask_001, TestSize.Leve
     connectManager->uiExtensionMap_.clear();
 
     connectManager->uiExtensionMap_.emplace(
-        callbackA_->AsObject(), AbilityConnectManager::UIExtWindowMapValType(serviceRecord_, MockSessionInfo(0)));
-    connectManager->AddUIExtWindowDeathRecipient(callbackA_->AsObject());
+        MockSessionInfo(0)->uiExtensionComponentId, AbilityConnectManager::UIExtWindowMapValType(serviceRecord_, MockSessionInfo(0)));
+    connectManager->AddUIExtWindowDeathRecipient(MockSessionInfo(0));
     connectManager->HandleUIExtWindowDiedTask(nullptr);
     EXPECT_EQ(static_cast<int>(connectManager->uiExtRecipientMap_.size()), 1);
     EXPECT_EQ(static_cast<int>(connectManager->uiExtensionMap_.size()), 1);
 
-    connectManager->HandleUIExtWindowDiedTask(callbackA_->AsObject());
+    connectManager->HandleUIExtWindowDiedTask(MockSessionInfo(0));
     EXPECT_TRUE(connectManager->uiExtRecipientMap_.empty());
     EXPECT_TRUE(connectManager->uiExtensionMap_.empty());
 }
@@ -3138,7 +3138,7 @@ HWTEST_F(AbilityConnectManagerTest, IsUIExtensionFocused_002, TestSize.Level1)
     sessionInfo1->callerToken = uiExtensionUser->GetToken();
     uiExtension1->sessionInfo_ = sessionInfo1;
     connectManager->uiExtensionMap_.emplace(
-        callbackA_->AsObject(), AbilityConnectManager::UIExtWindowMapValType(uiExtension1, sessionInfo1));
+        sessionInfo1->uiExtensionComponentId, AbilityConnectManager::UIExtWindowMapValType(uiExtension1, sessionInfo1));
     bool isFocused1 = connectManager->IsUIExtensionFocused(
         uiExtension1->GetApplicationInfo().accessTokenId, uiExtensionUser->GetToken());
     EXPECT_EQ(isFocused1, true);
@@ -3154,7 +3154,7 @@ HWTEST_F(AbilityConnectManagerTest, IsUIExtensionFocused_002, TestSize.Level1)
     sessionInfo2->callerToken = uiExtension1->GetToken();
     uiExtension2->sessionInfo_ = sessionInfo2;
     connectManager->uiExtensionMap_.emplace(
-        callbackA_->AsObject(), AbilityConnectManager::UIExtWindowMapValType(uiExtension2, sessionInfo2));
+        sessionInfo2->uiExtensionComponentId, AbilityConnectManager::UIExtWindowMapValType(uiExtension2, sessionInfo2));
     bool isFocused2 = connectManager->IsUIExtensionFocused(
         uiExtension2->GetApplicationInfo().accessTokenId, uiExtensionUser->GetToken());
     EXPECT_EQ(isFocused2, true);

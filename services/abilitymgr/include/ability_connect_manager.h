@@ -56,7 +56,7 @@ public:
     using ConnectListType = std::list<std::shared_ptr<ConnectionRecord>>;
     using RecipientMapType = std::map<sptr<IRemoteObject>, sptr<IRemoteObject::DeathRecipient>>;
     using UIExtWindowMapValType = std::pair<std::weak_ptr<AbilityRecord>, sptr<SessionInfo>>;
-    using UIExtensionMapType = std::map<sptr<IRemoteObject>, UIExtWindowMapValType>;
+    using UIExtensionMapType = std::map<uint64_t, UIExtWindowMapValType>;
     using WindowExtMapValType = std::pair<uint32_t, sptr<SessionInfo>>;
     using WindowExtensionMapType = std::map<sptr<IRemoteObject>, WindowExtMapValType>;
 
@@ -571,10 +571,10 @@ private:
      */
     void CompleteStartServiceReq(const std::string &serviceUri);
 
-    void AddUIExtWindowDeathRecipient(const sptr<IRemoteObject> &session);
+    void AddUIExtWindowDeathRecipient(const sptr<SessionInfo> &session);
     void RemoveUIExtWindowDeathRecipient(const sptr<IRemoteObject> &session);
-    void OnUIExtWindowDied(const wptr<IRemoteObject> &remote);
-    void HandleUIExtWindowDiedTask(const sptr<IRemoteObject> &remote);
+    void OnUIExtWindowDied(const wptr<SessionInfo> &remote);
+    void HandleUIExtWindowDiedTask(const sptr<SessionInfo> &remote);
 
     /**
      * Post an extension's disconnect task, auto disconnect when extension conected timeout.
