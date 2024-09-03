@@ -3047,8 +3047,8 @@ HWTEST_F(AbilityConnectManagerTest, OnUIExtWindowDied_001, TestSize.Level1)
     ConnectManager()->uiExtRecipientMap_.clear();
     ConnectManager()->uiExtensionMap_.clear();
 
-    ConnectManager()->uiExtensionMap_.emplace(
-        MockSessionInfo(0)->uiExtensionComponentId, AbilityConnectManager::UIExtWindowMapValType(serviceRecord_, MockSessionInfo(0)));
+    ConnectManager()->uiExtensionMap_.emplace(MockSessionInfo(0)->uiExtensionComponentId,
+        AbilityConnectManager::UIExtWindowMapValType(serviceRecord_, MockSessionInfo(0)));
     ConnectManager()->AddUIExtWindowDeathRecipient(MockSessionInfo(0));
     ConnectManager()->OnUIExtWindowDied(nullptr);
     EXPECT_EQ(static_cast<int>(ConnectManager()->uiExtRecipientMap_.size()), 1);
