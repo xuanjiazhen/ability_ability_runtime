@@ -1178,7 +1178,7 @@ int32_t AbilitySchedulerProxy::CreateModalUIExtension(const Want &want)
     }
     if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed");
-        return;
+        return INNER_ERR;
     }
     int32_t err = SendTransactCmd(IAbilityScheduler::CREATE_MODAL_UI_EXTENSION, data, reply, option);
     if (err != NO_ERROR) {

@@ -220,6 +220,7 @@ int AbilitySchedulerStub::ConnectAbilityInner(MessageParcel &data, MessageParcel
 
 int AbilitySchedulerStub::DisconnectAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
+    MessageParcel rawData;
     rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
     if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
@@ -237,6 +238,7 @@ int AbilitySchedulerStub::DisconnectAbilityInner(MessageParcel &data, MessagePar
 
 int AbilitySchedulerStub::CommandAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
+    MessageParcel rawData;
     rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
     if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
