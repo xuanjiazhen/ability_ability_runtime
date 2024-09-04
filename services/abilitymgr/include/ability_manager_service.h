@@ -470,6 +470,16 @@ public:
         const Want *resultWant = nullptr) override;
 
     /**
+     * TerminateUIServiceExtensionAbility, terminate the UIServiceExtensionAbility.
+     *
+     * @param token, the token of the ability to terminate.
+     * @param resultCode, the resultCode of the ability to terminate.
+     * @param resultWant, the Want of the ability to return.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int TerminateUIServiceExtensionAbility(const sptr<IRemoteObject> &token) override;
+
+    /**
      * BackToCallerAbilityWithResult, return to the caller ability.
      *
      * @param token, the token of the ability to terminate.
