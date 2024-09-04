@@ -316,6 +316,7 @@ group("unittest") {
     deps += [
       "ability_auto_startup_data_manager_test:unittest",
       "ability_auto_startup_service_test:unittest",
+      "ability_background_connection_test:unittest",
       "ability_bundle_event_callback_test:unittest",
       "ability_business_error_test:unittest",
       "ability_cache_manager_test:unittest",
@@ -341,6 +342,7 @@ group("unittest") {
       "ability_interceptor_test:unittest",
       "ability_manager_client_branch_second_test:unittest",
       "ability_manager_client_branch_test:unittest",
+      "ability_manager_event_subscriber_test:unittest",
       "ability_manager_proxy_test:unittest",
       "ability_manager_service_dialog_test:unittest",
       "ability_manager_service_first_test:unittest",
@@ -365,6 +367,7 @@ group("unittest") {
       "ability_token_proxy_test:unittest",
       "ability_token_stub_test:unittest",
       "advanced_security_mode_manager_test:unittest",
+      "ag_convert_callback_impl_test:unittest",
       "ams_ability_running_record_test:unittest",
       "ams_app_death_recipient_test:unittest",
       "ams_app_life_cycle_test:unittest",
