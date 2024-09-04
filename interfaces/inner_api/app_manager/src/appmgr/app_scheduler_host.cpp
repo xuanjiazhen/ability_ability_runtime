@@ -355,7 +355,7 @@ int32_t AppSchedulerHost::HandleScheduleAcceptWant(MessageParcel &data, MessageP
     }
     auto moduleName = rawData.ReadString();
     TAG_LOGI(AAFwkTag::APPMGR, "IPC DEBUG: want=%{public}s, module=%{public}s",
-        want->ToString.c_str(), moduleName.c_str());
+        want->ToString().c_str(), moduleName.c_str());
     ScheduleAcceptWant(*want, moduleName);
     delete want;
     return NO_ERROR;

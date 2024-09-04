@@ -399,7 +399,7 @@ void AppSchedulerProxy::ScheduleClearPageStack()
 void AppSchedulerProxy::ScheduleAcceptWant(const AAFwk::Want &want, const std::string &moduleName)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "IPC DEBUG: want=%{public}s, module=%{public}s",
-        want.ToString.c_str(), moduleName.c_str());
+        want.ToString().c_str(), moduleName.c_str());
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
