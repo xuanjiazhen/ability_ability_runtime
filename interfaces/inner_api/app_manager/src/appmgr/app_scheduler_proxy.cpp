@@ -398,8 +398,6 @@ void AppSchedulerProxy::ScheduleClearPageStack()
 
 void AppSchedulerProxy::ScheduleAcceptWant(const AAFwk::Want &want, const std::string &moduleName)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "IPC DEBUG: want=%{public}s, module=%{public}s",
-        want.ToString().c_str(), moduleName.c_str());
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
@@ -416,7 +414,7 @@ void AppSchedulerProxy::ScheduleAcceptWant(const AAFwk::Want &want, const std::s
         TAG_LOGE(AAFwkTag::APPMGR, "write raw data failed");
         return;
     }
-    if (!rawData.WriteString(moduleName)) {
+    if (!data.WriteString(moduleName)) {
         return;
     }
     int32_t ret = SendTransactCmd(

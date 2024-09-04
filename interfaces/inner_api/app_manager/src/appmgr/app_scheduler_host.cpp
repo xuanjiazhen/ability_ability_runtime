@@ -353,9 +353,7 @@ int32_t AppSchedulerHost::HandleScheduleAcceptWant(MessageParcel &data, MessageP
         TAG_LOGE(AAFwkTag::APPMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
     }
-    auto moduleName = rawData.ReadString();
-    TAG_LOGI(AAFwkTag::APPMGR, "IPC DEBUG: want=%{public}s, module=%{public}s",
-        want->ToString().c_str(), moduleName.c_str());
+    auto moduleName = data.ReadString();
     ScheduleAcceptWant(*want, moduleName);
     delete want;
     return NO_ERROR;
