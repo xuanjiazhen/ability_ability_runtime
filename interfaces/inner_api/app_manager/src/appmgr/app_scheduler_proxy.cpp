@@ -183,8 +183,6 @@ void AppSchedulerProxy::ScheduleMemoryCommon(const int32_t level, const uint32_t
 void AppSchedulerProxy::ScheduleLaunchAbility(const AbilityInfo &info, const sptr<IRemoteObject> &token,
     const std::shared_ptr<AAFwk::Want> &want, int32_t abilityRecordId)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "DEBUG, recordId=%{public}d", int(abilityRecordId));
-    TAG_LOGI(AAFwkTag::APPMGR, "DEBUG, wantSize=%{public}d", int(sizeof(*want)));
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
@@ -400,8 +398,8 @@ void AppSchedulerProxy::ScheduleClearPageStack()
 
 void AppSchedulerProxy::ScheduleAcceptWant(const AAFwk::Want &want, const std::string &moduleName)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "DEBUG, moduleName=%{public}s", moduleName.c_str());
-    TAG_LOGI(AAFwkTag::APPMGR, "DEBUG, wantSize=%{public}d", int(sizeof(want)));
+    TAG_LOGI(AAFwkTag::APPMGR, "IPC DEBUG: want=%{public}s, module=%{public}s",
+        want.ToString.c_str(), moduleName.c_str());
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
@@ -418,7 +416,7 @@ void AppSchedulerProxy::ScheduleAcceptWant(const AAFwk::Want &want, const std::s
         TAG_LOGE(AAFwkTag::APPMGR, "write raw data failed");
         return;
     }
-    if (!data.WriteString(moduleName)) {
+    if (!rawData.WriteString(moduleName)) {
         return;
     }
     int32_t ret = SendTransactCmd(
@@ -430,8 +428,6 @@ void AppSchedulerProxy::ScheduleAcceptWant(const AAFwk::Want &want, const std::s
 
 void AppSchedulerProxy::ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "DEBUG, moduleName=%{public}s", moduleName.c_str());
-    TAG_LOGI(AAFwkTag::APPMGR, "DEBUG, wantSize=%{public}d", int(sizeof(want)));
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);

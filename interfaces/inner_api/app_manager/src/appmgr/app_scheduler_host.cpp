@@ -241,8 +241,6 @@ int32_t AppSchedulerHost::HandleScheduleLaunchAbility(MessageParcel &data, Messa
     }
     std::shared_ptr<AAFwk::Want> want(rawData.ReadParcelable<AAFwk::Want>());
     auto abilityRecordId = data.ReadInt32();
-    TAG_LOGI(AAFwkTag::APPMGR, "DEBUG, recordId=%{public}d", int(abilityRecordId));
-    TAG_LOGI(AAFwkTag::APPMGR, "DEBUG, wantSize=%{public}d", int(sizeof(*want)));
     ScheduleLaunchAbility(*abilityInfo, token, want, abilityRecordId);
     return NO_ERROR;
 }
@@ -355,9 +353,9 @@ int32_t AppSchedulerHost::HandleScheduleAcceptWant(MessageParcel &data, MessageP
         TAG_LOGE(AAFwkTag::APPMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
     }
-    auto moduleName = data.ReadString();
-    TAG_LOGI(AAFwkTag::APPMGR, "DEBUG, moduleName=%{public}s", moduleName.c_str());
-    TAG_LOGI(AAFwkTag::APPMGR, "DEBUG, wantSize=%{public}d", int(sizeof(*want)));
+    auto moduleName = rawData.ReadString();
+    TAG_LOGI(AAFwkTag::APPMGR, "IPC DEBUG: want=%{public}s, module=%{public}s",
+        want->ToString.c_str(), moduleName.c_str());
     ScheduleAcceptWant(*want, moduleName);
     delete want;
     return NO_ERROR;
@@ -379,8 +377,6 @@ int32_t AppSchedulerHost::HandleScheduleNewProcessRequest(MessageParcel &data, M
         return ERR_INVALID_VALUE;
     }
     auto moduleName = data.ReadString();
-    TAG_LOGI(AAFwkTag::APPMGR, "DEBUG, moduleName=%{public}s", moduleName.c_str());
-    TAG_LOGI(AAFwkTag::APPMGR, "DEBUG, wantSize=%{public}d", int(sizeof(*want)));
     ScheduleNewProcessRequest(*want, moduleName);
     delete want;
     return NO_ERROR;
