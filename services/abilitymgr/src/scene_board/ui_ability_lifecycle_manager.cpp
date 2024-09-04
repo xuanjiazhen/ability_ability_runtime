@@ -1804,6 +1804,7 @@ int UIAbilityLifecycleManager::MoveAbilityToFront(const AbilityRequest &abilityR
     }
     sptr<SessionInfo> sessionInfo = abilityRecord->GetSessionInfo();
     CHECK_POINTER_AND_RETURN(sessionInfo, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "reuse session: %{public}d", sessionInfo->persistentId);
     sessionInfo->want = abilityRequest.want;
     sessionInfo->callerToken = abilityRequest.callerToken;
     sessionInfo->requestCode = abilityRequest.requestCode;
@@ -1820,9 +1821,11 @@ int UIAbilityLifecycleManager::SendSessionInfoToSCB(std::shared_ptr<AbilityRecor
     sptr<SessionInfo> &sessionInfo)
 {
     CHECK_POINTER_AND_RETURN(sessionInfo, ERR_INVALID_VALUE);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "call"
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call"
+        "SendSessionInfoToSCB, session id: %{public}d,"
         "windowLeft=%{public}d,windowTop=%{public}d,"
         "windowHeight=%{public}d,windowWidth=%{public}d",
+        sessionInfo->persistentId,
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_LEFT, 0),
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_TOP, 0),
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_HEIGHT, 0),
