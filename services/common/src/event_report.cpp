@@ -313,7 +313,8 @@ void EventReport::SendGrantUriPermissionEvent(const EventName &eventName, const 
                 name,
                 HiSysEventType::BEHAVIOR,
                 EVENT_KEY_CALLER_BUNDLE_NAME, eventInfo.callerBundleName,
-                EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName);
+                EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
+                EVENT_KEY_URI, eventInfo.uri);
             break;
         default:
             break;

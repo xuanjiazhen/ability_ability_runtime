@@ -3280,6 +3280,9 @@ void AbilityRecord::GrantUriPermissionInner(Want &want, std::vector<std::string>
     auto checkResults = IN_PROCESS_CALL(UriPermissionManagerClient::GetInstance().CheckUriAuthorization(
         uriVec, flag, callerTokenId));
     auto permissionUris = UriUtils::GetInstance().GetPermissionedUriList(uriVec, checkResults, want);
+    if (permissionUris.size() != uriVec.size()) {
+        UriUtils::GetInstance().SendShareUnPrivilegeUriEvent(uriVec, checkResults, callerTokenId, targetBundleName);
+    }
     if (permissionUris.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "uris not permissioned.");
         return;

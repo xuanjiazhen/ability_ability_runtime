@@ -354,7 +354,6 @@ int UriPermissionManagerStubImpl::GrantSingleUriPermission(const Uri &uri, unsig
     if (!CheckUriPermission(uri, flag, tokenIdPermission)) {
         TAG_LOGW(AAFwkTag::URIPERMMGR, "No permission, uri:%{private}s, callerTokenId:%{public}u",
             uri.ToString().c_str(), callerTokenId);
-        UPMSUtils::SendShareUnPrivilegeUriEvent(callerTokenId, targetTokenId);
         return CHECK_PERMISSION_FAILED;
     }
     return GrantUriPermissionImpl(uri, flag, callerTokenId, targetTokenId, abilityId);
@@ -405,7 +404,6 @@ int UriPermissionManagerStubImpl::GrantBatchUriPermission(const std::vector<Uri>
         callerTokenId, targetTokenId, flag, abilityId);
     TokenIdPermission tokenIdPermission(callerTokenId);
     std::vector<std::string> uriStrVec = {};
-    bool checkUriPermissionFailedFlag = false;
     for (const auto &uri : uriVec) {
         if (!CheckUriTypeIsValid(uri)) {
             TAG_LOGW(AAFwkTag::URIPERMMGR, "failed, uri:%{private}s", uri.ToString().c_str());
@@ -413,13 +411,9 @@ int UriPermissionManagerStubImpl::GrantBatchUriPermission(const std::vector<Uri>
         }
         if (!CheckUriPermission(uri, flag, tokenIdPermission)) {
             TAG_LOGW(AAFwkTag::URIPERMMGR, "No permission, uri:%{private}s", uri.ToString().c_str());
-            checkUriPermissionFailedFlag = true;
             continue;
         }
         uriStrVec.emplace_back(uri.ToString());
-    }
-    if (checkUriPermissionFailedFlag) {
-        UPMSUtils::SendShareUnPrivilegeUriEvent(callerTokenId, targetTokenId);
     }
     if (uriStrVec.empty()) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "empty uri");

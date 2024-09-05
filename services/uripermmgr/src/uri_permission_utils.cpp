@@ -40,24 +40,6 @@ std::shared_ptr<AppExecFwk::BundleMgrHelper> UPMSUtils::ConnectManagerHelper()
     return bundleMgrHelper_;
 }
 
-bool UPMSUtils::SendShareUnPrivilegeUriEvent(uint32_t callerTokenId, uint32_t targetTokenId)
-{
-    std::string callerBundleName;
-    if (!GetBundleNameByTokenId(callerTokenId, callerBundleName)) {
-        return false;
-    }
-    std::string targetBundleName;
-    if (!GetBundleNameByTokenId(targetTokenId, targetBundleName)) {
-        return false;
-    }
-    AAFwk::EventInfo eventInfo;
-    eventInfo.callerBundleName = callerBundleName;
-    eventInfo.bundleName = targetBundleName;
-    TAG_LOGD(AAFwkTag::URIPERMMGR, "Send SHARE_UNPRIVILEGED_FILE_URI Event");
-    AAFwk::EventReport::SendGrantUriPermissionEvent(AAFwk::EventName::SHARE_UNPRIVILEGED_FILE_URI, eventInfo);
-    return true;
-}
-
 bool UPMSUtils::SendSystemAppGrantUriPermissionEvent(uint32_t callerTokenId, uint32_t targetTokenId,
     const std::vector<std::string> &uriVec, const std::vector<int32_t> &resVec)
 {
