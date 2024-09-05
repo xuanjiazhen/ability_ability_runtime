@@ -302,6 +302,15 @@ std::string AbilityStageContext::GetDistributedFilesDir()
     return contextImpl_->GetDistributedFilesDir();
 }
 
+std::string AbilityStageContext::GetShareFilesDir()
+{
+    if (contextImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Invalid contextImpl");
+        return {};
+    }
+    return contextImpl_->GetShareFilesDir();
+}
+
 std::string AbilityStageContext::GetCloudFileDir()
 {
     if (contextImpl_ == nullptr) {

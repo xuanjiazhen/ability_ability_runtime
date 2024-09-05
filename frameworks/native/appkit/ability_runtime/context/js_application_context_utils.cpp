@@ -158,6 +158,7 @@ napi_value JsApplicationContextUtils::OnSwitchArea(napi_env env, NapiCallbackInf
     BindNativeProperty(env, object, "preferencesDir", GetPreferencesDir);
     BindNativeProperty(env, object, "bundleCodeDir", GetBundleCodeDir);
     BindNativeProperty(env, object, "cloudFileDir", GetCloudFileDir);
+    BindNativeProperty(env, object, "shareFilesDir", GetShareFilesDir);
     return CreateJsUndefined(env);
 }
 
@@ -439,6 +440,23 @@ napi_value JsApplicationContextUtils::OnGetCloudFileDir(napi_env env, NapiCallba
         return CreateJsUndefined(env);
     }
     std::string path = applicationContext->GetCloudFileDir();
+    return CreateJsValue(env, path);
+}
+
+napi_value JsApplicationContextUtils::GetShareFilesDir(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils,
+        OnGetShareFilesDir, APPLICATION_CONTEXT_NAME);
+}
+
+napi_value JsApplicationContextUtils::OnGetShareFilesDir(napi_env env, NapiCallbackInfo& info)
+{
+    auto applicationContext = applicationContext_.lock();
+    if (!applicationContext) {
+        TAG_LOGW(AAFwkTag::APPKIT, "applicationContext is already released");
+        return CreateJsUndefined(env);
+    }
+    std::string path = applicationContext->GetShareFilesDir();
     return CreateJsValue(env, path);
 }
 
@@ -1562,6 +1580,7 @@ void JsApplicationContextUtils::BindNativeApplicationContext(napi_env env, napi_
     BindNativeProperty(env, object, "preferencesDir", JsApplicationContextUtils::GetPreferencesDir);
     BindNativeProperty(env, object, "bundleCodeDir", JsApplicationContextUtils::GetBundleCodeDir);
     BindNativeProperty(env, object, "cloudFileDir", JsApplicationContextUtils::GetCloudFileDir);
+    BindNativeProperty(env, object, "shareFilesDir", JsApplicationContextUtils::GetShareFilesDir);
     BindNativeFunction(env, object, "registerAbilityLifecycleCallback", MD_NAME,
         JsApplicationContextUtils::RegisterAbilityLifecycleCallback);
     BindNativeFunction(env, object, "unregisterAbilityLifecycleCallback", MD_NAME,

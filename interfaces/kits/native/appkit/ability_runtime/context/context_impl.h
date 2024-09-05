@@ -143,6 +143,8 @@ public:
 
     std::string GetCloudFileDir() override;
 
+    std::string GetShareFilesDir() override;
+
     /**
      * @brief Switch file area
      *
@@ -398,6 +400,7 @@ private:
     static const std::string CONTEXT_DISTRIBUTEDFILES_BASE_MIDDLE;
     static const std::string CONTEXT_DISTRIBUTEDFILES;
     static const std::string CONTEXT_CLOUDFILE;
+    static const std::string CONTEXT_SHAREFILES;
     static const std::string CONTEXT_FILE_SEPARATOR;
     static const std::string CONTEXT_DATA;
     static const std::string CONTEXT_DATA_STORAGE;
@@ -440,6 +443,7 @@ private:
         const std::string &sourcDir, std::string &localPath);
 
     void CreateDirIfNotExistWithCheck(const std::string& dirPath, const mode_t& mode, bool checkExist = true);
+    bool CheckDirExist(const std::string& dirPath);
     int32_t GetDatabaseDirWithCheck(bool checkExist, std::string &databaseDir);
     int32_t GetGroupDatabaseDirWithCheck(const std::string &groupId, bool checkExist, std::string &databaseDir);
     int32_t GetPreferencesDirWithCheck(bool checkExist, std::string &preferencesDir);

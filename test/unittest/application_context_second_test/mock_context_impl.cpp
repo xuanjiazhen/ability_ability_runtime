@@ -79,6 +79,11 @@ std::string MockContextImpl::GetCloudFileDir()
     return "/cloud";
 }
 
+std::string MockContextImpl::GetShareFilesDir()
+{
+    return "/ShareFiles";
+}
+
 std::string MockContextImpl::GetGroupDir(std::string groupId)
 {
     return "/group";

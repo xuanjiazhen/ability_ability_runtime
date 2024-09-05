@@ -60,6 +60,7 @@ const std::string ContextImpl::CONTEXT_DISTRIBUTEDFILES_BASE_BEFORE("/mnt/hmdfs/
 const std::string ContextImpl::CONTEXT_DISTRIBUTEDFILES_BASE_MIDDLE("/device_view/local/data/");
 const std::string ContextImpl::CONTEXT_DISTRIBUTEDFILES("distributedfiles");
 const std::string ContextImpl::CONTEXT_CLOUDFILE("cloud");
+const std::string ContextImpl::CONTEXT_SHAREFILES("shareFiles");
 const std::string ContextImpl::CONTEXT_FILE_SEPARATOR("/");
 const std::string ContextImpl::CONTEXT_DATA("/data/");
 const std::string ContextImpl::CONTEXT_DATA_STORAGE("/data/storage/");
@@ -360,6 +361,20 @@ std::string ContextImpl::GetCloudFileDir()
 {
     std::string dir = CONTEXT_DATA_STORAGE + CONTEXT_ELS[1] + CONTEXT_FILE_SEPARATOR + CONTEXT_CLOUDFILE;
     CreateDirIfNotExist(dir, MODE);
+    return dir;
+}
+
+std::string ContextImpl::GetShareFilesDir()
+{
+    if (currArea_.compare(CONTEXT_ELS[1]) != 0) {
+        TAG_LOGE(AAFwkTag::APPKIT, "current area not el2: %{public}s", currArea_.c_str());
+        return "";
+    }
+    std::string dir = CONTEXT_DATA_STORAGE + CONTEXT_ELS[1] + CONTEXT_FILE_SEPARATOR + CONTEXT_SHAREFILES;
+    if (!CheckDirExist(dir)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "shareFiles not created");
+        return "";
+    }
     return dir;
 }
 
@@ -1462,6 +1477,11 @@ void ContextImpl::PrintTokenInfo() const
         TAG_LOGI(AAFwkTag::EXT, "handle: %{public}d, descriptor: %{public}s",
             tokenProxyObject->GetHandle(), remoteDescriptor.c_str());
     }
+}
+
+bool ContextImpl::CheckDirExist(const std::string& dirPath)
+{
+    return OHOS::FileExists(dirPath);
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

@@ -658,6 +658,11 @@ std::string ApplicationContext::GetCloudFileDir()
     return (contextImpl_ != nullptr) ? contextImpl_->GetCloudFileDir() : "";
 }
 
+std::string ApplicationContext::GetShareFilesDir()
+{
+    return (contextImpl_ != nullptr) ? contextImpl_->GetShareFilesDir() : "";
+}
+
 sptr<IRemoteObject> ApplicationContext::GetToken()
 {
     return (contextImpl_ != nullptr) ? contextImpl_->GetToken() : nullptr;

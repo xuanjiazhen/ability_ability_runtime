@@ -150,6 +150,10 @@ class Context {
     return this.__context_impl__.cloudFileDir;
   }
 
+  get shareFilesDir() {
+    return this.__context_impl__.shareFilesDir;
+  }
+
   get eventHub() {
     return this.__context_impl__.eventHub;
   }
