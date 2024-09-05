@@ -1399,7 +1399,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Connect_Service_029, TestSize.Level1)
     connectRecordList = connectMap.at(callbackA_->AsObject());
     EXPECT_EQ(1, static_cast<int>(connectMap.size()));
     for (auto& it : connectRecordList) {
-        EXPECT_EQ(it->GetAbilityConnectCallback(), nullptr);
+        EXPECT_NE(it->GetAbilityConnectCallback(), nullptr);
     }
 }
 

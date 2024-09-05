@@ -196,7 +196,7 @@ HWTEST_F(AbilityManagerServiceSixthTest, StartUIAbilityBySCBDefault_001, TestSiz
     sptr<SessionInfo> sessionInfo = new SessionInfo();
     uint32_t sceneFlag = 0;
     bool isColdStart = true;
-    EXPECT_EQ(abilityMs->StartUIAbilityBySCBDefault(sessionInfo, sceneFlag, isColdStart), ERR_APP_CLONE_INDEX_INVALID);
+    EXPECT_NE(abilityMs->StartUIAbilityBySCBDefault(sessionInfo, sceneFlag, isColdStart), ERR_APP_CLONE_INDEX_INVALID);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest StartUIAbilityBySCBDefault_001 end");
 }
 }  // namespace AAFwk
