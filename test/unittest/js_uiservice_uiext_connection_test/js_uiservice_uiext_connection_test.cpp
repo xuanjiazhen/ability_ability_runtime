@@ -34,13 +34,14 @@ public:
     static void TearDownTestCase(void);
 };
 
-void JsUiserviceUiextConnectionTest::SetUpTestCase(){}
-
-void JsUiserviceUiextConnectionTest::TearDownTestCase(){}
-
-void JsUiserviceUiextConnectionTest::SetUp(){}
-
-void JsUiserviceUiextConnectionTest::TearDown(){}
+void JsUiserviceUiextConnectionTest::SetUpTestCase(void)
+{}
+void JsUiserviceUiextConnectionTest::TearDownTestCase(void)
+{}
+void JsUiserviceUiextConnectionTest::SetUp()
+{}
+void JsUiserviceUiextConnectionTest::TearDown()
+{}
 
 /**
  * @tc.number: HandleOnAbilityConnectDone_0100
