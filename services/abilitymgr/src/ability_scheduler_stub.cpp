@@ -238,13 +238,7 @@ int AbilitySchedulerStub::DisconnectAbilityInner(MessageParcel &data, MessagePar
 
 int AbilitySchedulerStub::CommandAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
-    MessageParcel rawData;
-    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
-    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
-        return ERR_AAFWK_PARCEL_FAIL;
-    }
-    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
+    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
         return ERR_INVALID_VALUE;

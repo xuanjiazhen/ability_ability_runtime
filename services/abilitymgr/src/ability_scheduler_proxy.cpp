@@ -186,14 +186,8 @@ void AbilitySchedulerProxy::ScheduleCommandAbility(const Want &want, bool restar
     if (!WriteInterfaceToken(data)) {
         return;
     }
-    MessageParcel rawData;
-    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
-    if (!rawData.WriteParcelable(&want)) {
+    if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "WriteParcelable failed");
-        return;
-    }
-    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed");
         return;
     }
     if (!data.WriteBool(restart)) {
