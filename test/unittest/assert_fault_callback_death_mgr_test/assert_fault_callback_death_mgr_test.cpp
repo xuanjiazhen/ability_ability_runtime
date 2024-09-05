@@ -46,7 +46,6 @@ void AssertFaultCallbackDeathMgrTest::TearDown()
  */
 HWTEST_F(AssertFaultCallbackDeathMgrTest, AddAssertFaultCallback_0100, TestSize.Level1)
 {
-
     auto assertFaultCallbackDeathMgr = new AbilityRuntime::AssertFaultCallbackDeathMgr();
     EXPECT_NE(assertFaultCallbackDeathMgr, nullptr);
 
@@ -64,7 +63,6 @@ HWTEST_F(AssertFaultCallbackDeathMgrTest, AddAssertFaultCallback_0100, TestSize.
  */
 HWTEST_F(AssertFaultCallbackDeathMgrTest, RemoveAssertFaultCallback_0100, TestSize.Level1)
 {
-
     auto assertFaultCallbackDeathMgr = new AbilityRuntime::AssertFaultCallbackDeathMgr();
     EXPECT_NE(assertFaultCallbackDeathMgr, nullptr);
 
@@ -84,7 +82,6 @@ HWTEST_F(AssertFaultCallbackDeathMgrTest, RemoveAssertFaultCallback_0100, TestSi
  */
 HWTEST_F(AssertFaultCallbackDeathMgrTest, CallAssertFaultCallback_0100, TestSize.Level1)
 {
-
     auto assertFaultCallbackDeathMgr = new AbilityRuntime::AssertFaultCallbackDeathMgr();
     EXPECT_NE(assertFaultCallbackDeathMgr, nullptr);
 
