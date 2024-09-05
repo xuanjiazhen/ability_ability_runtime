@@ -7901,7 +7901,6 @@ void AbilityManagerService::SwitchToUser(int32_t oldUserId, int32_t userId, sptr
         ConnectBmsService();
         StartUserApps();
     }
-    callback->OnStartUserDone(userId, ERR_OK);
     bool isBoot = oldUserId == U0_USER_ID ? true : false;
     StartHighestPriorityAbility(userId, isBoot);
      if (taskHandler_) {
@@ -10127,6 +10126,7 @@ void AbilityManagerService::SetRootSceneSession(const sptr<IRemoteObject> &rootS
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no sceneboard called, no allowed");
         return;
     }
+    callback->OnStartUserDone(userId, ERR_OK);
     auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
     CHECK_POINTER(uiAbilityManager);
     uiAbilityManager->SetRootSceneSession(rootSceneSession);
