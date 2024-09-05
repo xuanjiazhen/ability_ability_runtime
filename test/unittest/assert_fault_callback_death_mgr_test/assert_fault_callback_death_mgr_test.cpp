@@ -54,9 +54,6 @@ HWTEST_F(AssertFaultCallbackDeathMgrTest, AddAssertFaultCallback_0100, TestSize.
     AbilityRuntime::AssertFaultCallbackDeathMgr::CallbackTask callback;
     assertFaultCallbackDeathMgr->AddAssertFaultCallback(remote, callback);
 
-    // remote = Remote();
-    // assertFaultCallbackDeathMgr->AddAssertFaultCallback(remote, callback);
-
     delete assertFaultCallbackDeathMgr;
 }
 
