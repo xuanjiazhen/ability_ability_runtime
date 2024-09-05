@@ -60,6 +60,7 @@
 #include "restart_app_manager.h"
 #include "scene_board_judgement.h"
 #include "server_constant.h"
+#include "scene_session_manager.h"
 #include "softbus_bus_center.h"
 #include "start_ability_handler/start_ability_sandbox_savefile.h"
 #include "start_ability_utils.h"
@@ -3354,6 +3355,33 @@ int AbilityManagerService::TerminateAbility(const sptr<IRemoteObject> &token, in
         return ERR_OK;
     }
     return TerminateAbilityWithFlag(token, resultCode, resultWant, true);
+}
+
+int AbilityManagerService::TerminateUIServiceExtensionAbility(const sptr<IRemoteObject> &token)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (!VerificationAllToken(token)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s verificationAllToken failed", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    auto abilityRecord = Token::GetAbilityRecordByToken(token);
+    CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
+
+    auto type = abilityRecord->GetAbilityInfo().type;
+    auto extensionAbilityType = abilityRecord->GetAbilityInfo().extensionAbilityType;
+
+    if (type != AppExecFwk::AbilityType::EXTENSION  ||
+        extensionAbilityType != AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
+            return ERR_INVALID_VALUE;
+    }
+    
+    auto userId = abilityRecord->GetApplicationInfo().uid / BASE_USER_RANGE; 
+    auto connectManager = GetConnectManagerByUserId(userId);
+    if (!connectManager) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "connectManager null. userId=%{public}d", userId);
+        return ERR_INVALID_VALUE;
+    }
+    return connectManager->TerminateAbility(token);    
 }
 
 int AbilityManagerService::BackToCallerAbilityWithResult(const sptr<IRemoteObject> &token, int resultCode,
@@ -12127,18 +12155,27 @@ void AbilityManagerService::SetAbilityRequestSessionInfo(AbilityRequest &ability
     }
     abilityRequest.want.RemoveParam(WANT_PARAMS_HOST_WINDOW_ID_KEY);
     auto callerAbilityRecord = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
-    if(callerAbilityRecord != nullptr) {
-        sptr<SessionInfo> callerSessionInfo = callerAbilityRecord->GetSessionInfo();
-        if (callerSessionInfo != nullptr) {
-            if (callerAbilityRecord->GetAbilityInfo().type == AbilityType::PAGE) {
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "UIAbility Caller");
+    if(callerAbilityRecord != nullptr) {  
+        if (callerAbilityRecord->GetAbilityInfo().type == AbilityType::PAGE) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "UIAbility Caller");
+            sptr<SessionInfo> callerSessionInfo = callerAbilityRecord->GetSessionInfo();
+            if (callerSessionInfo != nullptr) {
                 abilityRequest.want.SetParam(WANT_PARAMS_HOST_WINDOW_ID_KEY, callerSessionInfo->persistentId);
-            } else {
-                abilityRequest.want.SetParam(WANT_PARAMS_HOST_WINDOW_ID_KEY, 0);
-            }
-        }
+            }            
+        } else if (callerAbilityRecord->GetAbilityInfo().type == AppExecFwk::AbilityType::EXTENSION &&
+                    AAFwk::UIExtensionUtils::IsUIExtension(callerAbilityRecord->GetAbilityInfo().extensionAbilityType)) {
+            UIExtensionSessionInfo uiExtensionSessionInfo;
+            if (GetUIExtensionSessionInfo(abilityRequest.callerToken, uiExtensionSessionInfo) == ERR_OK) {
+                int32_t mainWindowId = 0;
+                mainWindowId = Rosen::SceneSessionManager::GetInstance().
+                                GetRootMainWindowId(static_cast<int32_t>(uiExtensionSessionInfo.hostWindowId));
+                abilityRequest.want.SetParam(WANT_PARAMS_HOST_WINDOW_ID_KEY, mainWindowId);
+            }            
+        } else {
+            abilityRequest.want.SetParam(WANT_PARAMS_HOST_WINDOW_ID_KEY, 0);
+        }        
     } else {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "callerAbilityRecord null");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "callerAbilityRecord is nullptr");
     }
 }
 
