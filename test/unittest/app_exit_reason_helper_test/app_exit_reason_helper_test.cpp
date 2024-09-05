@@ -59,11 +59,16 @@ void AppExitReasonHelperTest::TearDown()
  */
 HWTEST_F(AppExitReasonHelperTest, RecordAppExitReason_0100, TestSize.Level1)
 {
-    std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler(AAFwk::AbilityConfig::NAME_ABILITY_MGR_SERVICE);
-    std::weak_ptr<AAFwk::AbilityManagerService> service = AAFwk::AbilityManagerService::GetPubInstance();
-    std::shared_ptr<AAFwk::AbilityEventHandler> eventHandler_ = std::make_shared<AAFwk::AbilityEventHandler>(taskHandler_, service);
-    std::shared_ptr<AAFwk::SubManagersHelper> subManagersHelper_ = std::make_shared<AAFwk::SubManagersHelper>(taskHandler_, eventHandler_);
-    std::shared_ptr<AAFwk::AppExitReasonHelper> appExitReasonHelper_ = std::make_shared<AAFwk::AppExitReasonHelper>(subManagersHelper_);
+    std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
+    taskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler(AAFwk::AbilityConfig::NAME_ABILITY_MGR_SERVICE);
+    std::weak_ptr<AAFwk::AbilityManagerService> service;
+    service = AAFwk::AbilityManagerService::GetPubInstance();
+    std::shared_ptr<AAFwk::AbilityEventHandler> eventHandler_;
+    eventHandler_ = std::make_shared<AAFwk::AbilityEventHandler>(taskHandler_, service);
+    std::shared_ptr<AAFwk::SubManagersHelper> subManagersHelper_;
+    subManagersHelper_ = std::make_shared<AAFwk::SubManagersHelper>(taskHandler_, eventHandler_);
+    std::shared_ptr<AAFwk::AppExitReasonHelper> appExitReasonHelper_;
+    appExitReasonHelper_ = std::make_shared<AAFwk::AppExitReasonHelper>(subManagersHelper_);
     AAFwk::ExitReason exitReason(AAFwk::REASON_MAX, "");
     int32_t result = appExitReasonHelper_->RecordAppExitReason(exitReason);
     EXPECT_NE(result, ERR_INVALID_VALUE);
@@ -81,11 +86,16 @@ HWTEST_F(AppExitReasonHelperTest, RecordAppExitReason_0100, TestSize.Level1)
  */
 HWTEST_F(AppExitReasonHelperTest, RecordProcessExitReason_0100, TestSize.Level1)
 {
-    std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler(AAFwk::AbilityConfig::NAME_ABILITY_MGR_SERVICE);
-    std::weak_ptr<AAFwk::AbilityManagerService> service = AAFwk::AbilityManagerService::GetPubInstance();
-    std::shared_ptr<AAFwk::AbilityEventHandler> eventHandler_ = std::make_shared<AAFwk::AbilityEventHandler>(taskHandler_, service);
-    std::shared_ptr<AAFwk::SubManagersHelper> subManagersHelper_ = std::make_shared<AAFwk::SubManagersHelper>(taskHandler_, eventHandler_);
-    std::shared_ptr<AAFwk::AppExitReasonHelper> appExitReasonHelper_ = std::make_shared<AAFwk::AppExitReasonHelper>(subManagersHelper_);
+    std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
+    taskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler(AAFwk::AbilityConfig::NAME_ABILITY_MGR_SERVICE);
+    std::weak_ptr<AAFwk::AbilityManagerService> service;
+    service = AAFwk::AbilityManagerService::GetPubInstance();
+    std::shared_ptr<AAFwk::AbilityEventHandler> eventHandler_;
+    eventHandler_ = std::make_shared<AAFwk::AbilityEventHandler>(taskHandler_, service);
+    std::shared_ptr<AAFwk::SubManagersHelper> subManagersHelper_;
+    subManagersHelper_ = std::make_shared<AAFwk::SubManagersHelper>(taskHandler_, eventHandler_);
+    std::shared_ptr<AAFwk::AppExitReasonHelper> appExitReasonHelper_;
+    appExitReasonHelper_ = std::make_shared<AAFwk::AppExitReasonHelper>(subManagersHelper_);
 
     int32_t pid = 0;
     AAFwk::ExitReason exitReason;
@@ -101,11 +111,16 @@ HWTEST_F(AppExitReasonHelperTest, RecordProcessExitReason_0100, TestSize.Level1)
  */
 HWTEST_F(AppExitReasonHelperTest, RecordAppExitReason_0200, TestSize.Level1)
 {
-    std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler(AAFwk::AbilityConfig::NAME_ABILITY_MGR_SERVICE);
-    std::weak_ptr<AAFwk::AbilityManagerService> service = AAFwk::AbilityManagerService::GetPubInstance();
-    std::shared_ptr<AAFwk::AbilityEventHandler> eventHandler_ = std::make_shared<AAFwk::AbilityEventHandler>(taskHandler_, service);
-    std::shared_ptr<AAFwk::SubManagersHelper> subManagersHelper_ = std::make_shared<AAFwk::SubManagersHelper>(taskHandler_, eventHandler_);
-    std::shared_ptr<AAFwk::AppExitReasonHelper> appExitReasonHelper_ = std::make_shared<AAFwk::AppExitReasonHelper>(subManagersHelper_);
+    std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
+    taskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler(AAFwk::AbilityConfig::NAME_ABILITY_MGR_SERVICE);
+    std::weak_ptr<AAFwk::AbilityManagerService> service;
+    service = AAFwk::AbilityManagerService::GetPubInstance();
+    std::shared_ptr<AAFwk::AbilityEventHandler> eventHandler_;
+    eventHandler_ = std::make_shared<AAFwk::AbilityEventHandler>(taskHandler_, service);
+    std::shared_ptr<AAFwk::SubManagersHelper> subManagersHelper_;
+    subManagersHelper_ = std::make_shared<AAFwk::SubManagersHelper>(taskHandler_, eventHandler_);
+    std::shared_ptr<AAFwk::AppExitReasonHelper> appExitReasonHelper_;
+    appExitReasonHelper_ = std::make_shared<AAFwk::AppExitReasonHelper>(subManagersHelper_);
 
     int32_t uid = 0;
     AAFwk::ExitReason exitReason;
@@ -123,11 +138,16 @@ HWTEST_F(AppExitReasonHelperTest, RecordAppExitReason_0200, TestSize.Level1)
  */
 HWTEST_F(AppExitReasonHelperTest, RecordProcessExitReason_0200, TestSize.Level1)
 {
-    std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler(AAFwk::AbilityConfig::NAME_ABILITY_MGR_SERVICE);
-    std::weak_ptr<AAFwk::AbilityManagerService> service = AAFwk::AbilityManagerService::GetPubInstance();
-    std::shared_ptr<AAFwk::AbilityEventHandler> eventHandler_ = std::make_shared<AAFwk::AbilityEventHandler>(taskHandler_, service);
-    std::shared_ptr<AAFwk::SubManagersHelper> subManagersHelper_ = std::make_shared<AAFwk::SubManagersHelper>(taskHandler_, eventHandler_);
-    std::shared_ptr<AAFwk::AppExitReasonHelper> appExitReasonHelper_ = std::make_shared<AAFwk::AppExitReasonHelper>(subManagersHelper_);
+    std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
+    taskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler(AAFwk::AbilityConfig::NAME_ABILITY_MGR_SERVICE);
+    std::weak_ptr<AAFwk::AbilityManagerService> service;
+    service = AAFwk::AbilityManagerService::GetPubInstance();
+    std::shared_ptr<AAFwk::AbilityEventHandler> eventHandler_;
+    eventHandler_ = std::make_shared<AAFwk::AbilityEventHandler>(taskHandler_, service);
+    std::shared_ptr<AAFwk::SubManagersHelper> subManagersHelper_;
+    subManagersHelper_ = std::make_shared<AAFwk::SubManagersHelper>(taskHandler_, eventHandler_);
+    std::shared_ptr<AAFwk::AppExitReasonHelper> appExitReasonHelper_;
+    appExitReasonHelper_ = std::make_shared<AAFwk::AppExitReasonHelper>(subManagersHelper_);
 
     int32_t pid = 0;
     std::string bundleName("test");
@@ -146,11 +166,16 @@ HWTEST_F(AppExitReasonHelperTest, RecordProcessExitReason_0200, TestSize.Level1)
  */
 HWTEST_F(AppExitReasonHelperTest, RecordProcessExtensionExitReason_0100, TestSize.Level1)
 {
-    std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler(AAFwk::AbilityConfig::NAME_ABILITY_MGR_SERVICE);
-    std::weak_ptr<AAFwk::AbilityManagerService> service = AAFwk::AbilityManagerService::GetPubInstance();
-    std::shared_ptr<AAFwk::AbilityEventHandler> eventHandler_ = std::make_shared<AAFwk::AbilityEventHandler>(taskHandler_, service);
-    std::shared_ptr<AAFwk::SubManagersHelper> subManagersHelper_ = std::make_shared<AAFwk::SubManagersHelper>(taskHandler_, eventHandler_);
-    std::shared_ptr<AAFwk::AppExitReasonHelper> appExitReasonHelper_ = std::make_shared<AAFwk::AppExitReasonHelper>(subManagersHelper_);
+    std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
+    taskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler(AAFwk::AbilityConfig::NAME_ABILITY_MGR_SERVICE);
+    std::weak_ptr<AAFwk::AbilityManagerService> service;
+    service = AAFwk::AbilityManagerService::GetPubInstance();
+    std::shared_ptr<AAFwk::AbilityEventHandler> eventHandler_;
+    eventHandler_ = std::make_shared<AAFwk::AbilityEventHandler>(taskHandler_, service);
+    std::shared_ptr<AAFwk::SubManagersHelper> subManagersHelper_;
+    subManagersHelper_ = std::make_shared<AAFwk::SubManagersHelper>(taskHandler_, eventHandler_);
+    std::shared_ptr<AAFwk::AppExitReasonHelper> appExitReasonHelper_;
+    appExitReasonHelper_ = std::make_shared<AAFwk::AppExitReasonHelper>(subManagersHelper_);
 
     int32_t pid = 0;
     std::string bundleName("test");
@@ -167,11 +192,16 @@ HWTEST_F(AppExitReasonHelperTest, RecordProcessExtensionExitReason_0100, TestSiz
  */
 HWTEST_F(AppExitReasonHelperTest, GetActiveAbilityList_0100, TestSize.Level1)
 {
-    std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler(AAFwk::AbilityConfig::NAME_ABILITY_MGR_SERVICE);
-    std::weak_ptr<AAFwk::AbilityManagerService> service = AAFwk::AbilityManagerService::GetPubInstance();
-    std::shared_ptr<AAFwk::AbilityEventHandler> eventHandler_ = std::make_shared<AAFwk::AbilityEventHandler>(taskHandler_, service);
-    std::shared_ptr<AAFwk::SubManagersHelper> subManagersHelper_ = std::make_shared<AAFwk::SubManagersHelper>(taskHandler_, eventHandler_);
-    std::shared_ptr<AAFwk::AppExitReasonHelper> appExitReasonHelper_ = std::make_shared<AAFwk::AppExitReasonHelper>(subManagersHelper_);
+    std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
+    taskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler(AAFwk::AbilityConfig::NAME_ABILITY_MGR_SERVICE);
+    std::weak_ptr<AAFwk::AbilityManagerService> service;
+    service = AAFwk::AbilityManagerService::GetPubInstance();
+    std::shared_ptr<AAFwk::AbilityEventHandler> eventHandler_;
+    eventHandler_ = std::make_shared<AAFwk::AbilityEventHandler>(taskHandler_, service);
+    std::shared_ptr<AAFwk::SubManagersHelper> subManagersHelper_;
+    subManagersHelper_ = std::make_shared<AAFwk::SubManagersHelper>(taskHandler_, eventHandler_);
+    std::shared_ptr<AAFwk::AppExitReasonHelper> appExitReasonHelper_;
+    appExitReasonHelper_ = std::make_shared<AAFwk::AppExitReasonHelper>(subManagersHelper_);
 
     int32_t uid = 0;
     std::vector<std::string> abilityLists;
@@ -188,11 +218,16 @@ HWTEST_F(AppExitReasonHelperTest, GetActiveAbilityList_0100, TestSize.Level1)
  */
 HWTEST_F(AppExitReasonHelperTest, GetActiveAbilityListFromUIAbilityManager_0100, TestSize.Level1)
 {
-    std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler(AAFwk::AbilityConfig::NAME_ABILITY_MGR_SERVICE);
-    std::weak_ptr<AAFwk::AbilityManagerService> service = AAFwk::AbilityManagerService::GetPubInstance();
-    std::shared_ptr<AAFwk::AbilityEventHandler> eventHandler_ = std::make_shared<AAFwk::AbilityEventHandler>(taskHandler_, service);
-    std::shared_ptr<AAFwk::SubManagersHelper> subManagersHelper_ = std::make_shared<AAFwk::SubManagersHelper>(taskHandler_, eventHandler_);
-    std::shared_ptr<AAFwk::AppExitReasonHelper> appExitReasonHelper_ = std::make_shared<AAFwk::AppExitReasonHelper>(subManagersHelper_);
+    std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
+    taskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler(AAFwk::AbilityConfig::NAME_ABILITY_MGR_SERVICE);
+    std::weak_ptr<AAFwk::AbilityManagerService> service;
+    service = AAFwk::AbilityManagerService::GetPubInstance();
+    std::shared_ptr<AAFwk::AbilityEventHandler> eventHandler_;
+    eventHandler_ = std::make_shared<AAFwk::AbilityEventHandler>(taskHandler_, service);
+    std::shared_ptr<AAFwk::SubManagersHelper> subManagersHelper_;
+    subManagersHelper_ = std::make_shared<AAFwk::SubManagersHelper>(taskHandler_, eventHandler_);
+    std::shared_ptr<AAFwk::AppExitReasonHelper> appExitReasonHelper_;
+    appExitReasonHelper_ = std::make_shared<AAFwk::AppExitReasonHelper>(subManagersHelper_);
 
     int32_t uid = 0;
     std::vector<std::string> abilityLists;
