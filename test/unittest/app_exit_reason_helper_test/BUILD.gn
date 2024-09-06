@@ -24,6 +24,7 @@ ohos_unittest("app_exit_reason_helper_test") {
     blocklist = "../../cfi_blocklist.txt"
   }
   branch_protector_ret = "pac_ret"
+  
   module_out_path = module_output_path
 
   include_dirs = [ "${ability_runtime_services_path}/abilitymgr/include" ]
