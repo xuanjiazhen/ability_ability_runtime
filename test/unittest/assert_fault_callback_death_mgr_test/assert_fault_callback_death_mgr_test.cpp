@@ -13,7 +13,10 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
+
+#define private public
 #include "assert_fault_callback_death_mgr.h"
+#undef private
 #include "assert_fault_proxy.h"
 #include "app_scheduler.h"
 
@@ -46,14 +49,14 @@ void AssertFaultCallbackDeathMgrTest::TearDown()
  */
 HWTEST_F(AssertFaultCallbackDeathMgrTest, AddAssertFaultCallback_0100, TestSize.Level1)
 {
-    auto assertFaultCallbackDeathMgr = new AbilityRuntime::AssertFaultCallbackDeathMgr();
-    EXPECT_NE(assertFaultCallbackDeathMgr, nullptr);
-
     sptr<IRemoteObject> remote;
     AbilityRuntime::AssertFaultCallbackDeathMgr::CallbackTask callback;
+    auto assertFaultCallbackDeathMgr = std::make_shared<AbilityRuntime::AssertFaultCallbackDeathMgr>();
+    EXPECT_NE(assertFaultCallbackDeathMgr, nullptr);
     assertFaultCallbackDeathMgr->AddAssertFaultCallback(remote, callback);
-
-    delete assertFaultCallbackDeathMgr;
+    remote = nullptr;
+    assertFaultCallbackDeathMgr->AddAssertFaultCallback(remote, callback);
+    EXPECT_EQ(assertFaultCallbackDeathMgr->assertFaultSessionDialogs_.size(), 0);
 }
 
 /**
@@ -63,16 +66,14 @@ HWTEST_F(AssertFaultCallbackDeathMgrTest, AddAssertFaultCallback_0100, TestSize.
  */
 HWTEST_F(AssertFaultCallbackDeathMgrTest, RemoveAssertFaultCallback_0100, TestSize.Level1)
 {
-    auto assertFaultCallbackDeathMgr = new AbilityRuntime::AssertFaultCallbackDeathMgr();
+    sptr<IRemoteObject> remote;
+    AbilityRuntime::AssertFaultCallbackDeathMgr::CallbackTask callback;
+    auto assertFaultCallbackDeathMgr = std::make_shared<AbilityRuntime::AssertFaultCallbackDeathMgr>();
     EXPECT_NE(assertFaultCallbackDeathMgr, nullptr);
 
-    wptr<IRemoteObject> remote;
-    EXPECT_NE(remote, nullptr);
-    AbilityRuntime::AssertFaultCallbackDeathMgr::CallbackTask callback;
     assertFaultCallbackDeathMgr->RemoveAssertFaultCallback(remote, false);
     assertFaultCallbackDeathMgr->RemoveAssertFaultCallback(remote, true);
-
-    delete assertFaultCallbackDeathMgr;
+    EXPECT_EQ(assertFaultCallbackDeathMgr->assertFaultSessionDialogs_.size(), 0);
 }
 
 /**
@@ -82,14 +83,15 @@ HWTEST_F(AssertFaultCallbackDeathMgrTest, RemoveAssertFaultCallback_0100, TestSi
  */
 HWTEST_F(AssertFaultCallbackDeathMgrTest, CallAssertFaultCallback_0100, TestSize.Level1)
 {
-    auto assertFaultCallbackDeathMgr = new AbilityRuntime::AssertFaultCallbackDeathMgr();
+    sptr<IRemoteObject> remote;
+    AbilityRuntime::AssertFaultCallbackDeathMgr::CallbackTask callback;
+    auto assertFaultCallbackDeathMgr = std::make_shared<AbilityRuntime::AssertFaultCallbackDeathMgr>();
     EXPECT_NE(assertFaultCallbackDeathMgr, nullptr);
 
     uint64_t assertFaultSessionId = 0;
     AAFwk::UserStatus status = ASSERT_TERMINATE;
     assertFaultCallbackDeathMgr->CallAssertFaultCallback(assertFaultSessionId, status);
-
-    delete assertFaultCallbackDeathMgr;
+    EXPECT_EQ(assertFaultCallbackDeathMgr->assertFaultSessionDialogs_.size(), 0);
 }
 }  // namespace AAFwk
 }  // namespace OHOS
