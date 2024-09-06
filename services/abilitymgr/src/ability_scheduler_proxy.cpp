@@ -200,6 +200,17 @@ void AbilitySchedulerProxy::ScheduleCommandAbility(const Want &want, bool restar
         return;
     }
 
+    {
+        MessageParcel sendParcel;
+        sendParcel.WriteParcelable(&want);
+        MessageParcel testParcel;
+        AbilityRuntime::MessageParcelUtil::WriteRawData(testParcel, sendParcel);
+        MessageParcel receiveParcel;
+        AbilityRuntime::MessageParcelUtil::ReadRawData(receiveParcel, testParcel);
+        std::shared_ptr<Want> testWant(receiveParcel.ReadParcelable<Want>());
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "TEST: want=%{public}s", testWant->ToString().c_str());
+    }
+
     int32_t err = SendTransactCmd(IAbilityScheduler::SCHEDULE_ABILITY_COMMAND, data, reply, option);
     if (err != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "fail, err: %{public}d", err);
