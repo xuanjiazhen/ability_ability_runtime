@@ -99,7 +99,7 @@ public:
     /**
      * @brief The callback of OnStop.
      */
-    void OnStopCallBack() override;
+    void OnStopCallBack();
 
     /**
      * @brief Called when the system configuration is updated.
