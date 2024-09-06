@@ -6820,11 +6820,21 @@ void AbilityManagerService::SubscribeScreenUnlockedEvent()
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     // add listen screen unlocked.
     EventFwk::MatchingSkills matchingSkills;
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED);
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED);
     EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
     subscribeInfo.SetThreadMode(EventFwk::CommonEventSubscribeInfo::COMMON);
+    auto callback = [abilityManager = weak_from_this()]() {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "screen unlocked");
+        auto abilityMgr = abilityManager.lock();
+        if (abilityMgr == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid abilityMgr pointer");
+            return;
+        }
+        abilityMgr->RemoveScreenUnlockInterceptor();
+    };
     auto userScreenUnlockCallback = [abilityManager = weak_from_this()]() {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "user screen unlocked.");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "user screen unlocked");
         auto abilityMgr = abilityManager.lock();
         if (abilityMgr == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid abilityMgr pointer");
@@ -6847,7 +6857,7 @@ void AbilityManagerService::SubscribeScreenUnlockedEvent()
         };
         taskHandler->SubmitTask(startAutoStartupAppsTask, "StartAutoStartupApps");
     };
-    screenSubscriber_ = std::make_shared<AbilityRuntime::AbilityManagerEventSubscriber>(subscribeInfo, nullptr,
+    screenSubscriber_ = std::make_shared<AbilityRuntime::AbilityManagerEventSubscriber>(subscribeInfo, callback,
         userScreenUnlockCallback);
     bool subResult = EventFwk::CommonEventManager::SubscribeCommonEvent(screenSubscriber_);
     if (!subResult) {
