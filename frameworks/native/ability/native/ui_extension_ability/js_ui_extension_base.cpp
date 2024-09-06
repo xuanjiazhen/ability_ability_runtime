@@ -293,7 +293,10 @@ bool JsUIExtensionBase::CheckPromise(napi_value result)
         TAG_LOGD(AAFwkTag::UI_EXT, "result is nullptr");
         return false;
     }
+<<<<<<< HEAD
     HandleScope handleScope(jsRuntime_);
+=======
+>>>>>>> 518df5d1574435698332bf61c0ea58e103704a9f
     napi_env env = jsRuntime_.GetNapiEnv();
     bool isPromise = false;
     napi_is_promise(env, result, &isPromise);
@@ -323,8 +326,12 @@ napi_value PromiseCallback(napi_env env, napi_callback_info info)
 
 bool JsUIExtensionBase::CallPromise(napi_value result, AppExecFwk::AbilityTransactionCallbackInfo<> *callbackInfo)
 {
+<<<<<<< HEAD
     HandleScope handleScope(jsRuntime_);
     napi_env env = jsRuntime_.GetNapiEnv();
+=======
+    auto env = jsRuntime_.GetNapiEnv();
+>>>>>>> 518df5d1574435698332bf61c0ea58e103704a9f
     if (!CheckTypeForNapiValue(env, result, napi_object)) {
         TAG_LOGE(AAFwkTag::UI_EXT, "Failed to convert native value to NativeObject");
         return false;
@@ -341,6 +348,10 @@ bool JsUIExtensionBase::CallPromise(napi_value result, AppExecFwk::AbilityTransa
         TAG_LOGE(AAFwkTag::UI_EXT, "property then is not callable");
         return false;
     }
+<<<<<<< HEAD
+=======
+    HandleScope handleScope(jsRuntime_);
+>>>>>>> 518df5d1574435698332bf61c0ea58e103704a9f
     napi_value promiseCallback = nullptr;
     napi_status createStatus = napi_create_function(env, "promiseCallback", strlen("promiseCallback"), PromiseCallback,
         callbackInfo, &promiseCallback);
