@@ -23,7 +23,6 @@ ohos_unittest("want_receiver_stub_test") {
     debug = false
     blocklist = "../../cfi_blocklist.txt"
   }
-  branch_protector_ret = "pac_ret"
   module_out_path = module_output_path
 
   include_dirs = [
