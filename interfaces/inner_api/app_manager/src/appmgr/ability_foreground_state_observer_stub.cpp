@@ -17,40 +17,28 @@
 
 #include "appexecfwk_errors.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "ipc_types.h"
 #include "iremote_object.h"
 
 namespace OHOS {
 namespace AppExecFwk {
-AbilityForegroundStateObserverStub::AbilityForegroundStateObserverStub()
-{
-    memberFuncMap_[static_cast<uint32_t>(IAbilityForegroundStateObserver::Message::ON_ABILITY_STATE_CHANGED)] =
-        &AbilityForegroundStateObserverStub::HandleOnAbilityStateChanged;
-}
+AbilityForegroundStateObserverStub::AbilityForegroundStateObserverStub() {}
 
-AbilityForegroundStateObserverStub::~AbilityForegroundStateObserverStub()
-{
-    memberFuncMap_.clear();
-}
+AbilityForegroundStateObserverStub::~AbilityForegroundStateObserverStub() {}
 
 int32_t AbilityForegroundStateObserverStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "Called.");
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
     std::u16string descriptor = AbilityForegroundStateObserverStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (descriptor != remoteDescriptor) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Local descriptor is not equal to remote.");
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid descriptor");
         return ERR_INVALID_STATE;
     }
 
-    auto itFunc = memberFuncMap_.find(code);
-    if (itFunc != memberFuncMap_.end()) {
-        auto memberFunc = itFunc->second;
-        if (memberFunc != nullptr) {
-            return (this->*memberFunc)(data, reply);
-        }
+    if (code == static_cast<uint32_t>(IAbilityForegroundStateObserver::Message::ON_ABILITY_STATE_CHANGED)) {
+        return HandleOnAbilityStateChanged(data, reply);
     }
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
@@ -59,7 +47,7 @@ int32_t AbilityForegroundStateObserverStub::HandleOnAbilityStateChanged(MessageP
 {
     std::unique_ptr<AbilityStateData> processData(data.ReadParcelable<AbilityStateData>());
     if (processData == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "ProcessData is null.");
+        TAG_LOGE(AAFwkTag::APPMGR, "null processData");
         return ERR_APPEXECFWK_PARCEL_ERROR;
     }
 
@@ -73,7 +61,7 @@ AbilityForegroundStateObserverRecipient::AbilityForegroundStateObserverRecipient
 
 void AbilityForegroundStateObserverRecipient::OnRemoteDied(const wptr<IRemoteObject> &__attribute__((unused)) remote)
 {
-    TAG_LOGE(AAFwkTag::APPMGR, "Remote died.");
+    TAG_LOGE(AAFwkTag::APPMGR, "Remote died");
     if (handler_) {
         handler_(remote);
     }

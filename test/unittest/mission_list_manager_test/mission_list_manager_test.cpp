@@ -20,10 +20,10 @@
 #include "ability_info.h"
 #include "ability_manager_errors.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "mission.h"
 #include "mission_info_mgr.h"
 #include "mission_list_manager.h"
+#include "startup_util.h"
 #undef private
 #undef protected
 
@@ -34,7 +34,9 @@ using namespace OHOS::AppExecFwk;
 namespace OHOS {
 namespace AAFwk {
 namespace {
+#ifdef WITH_DLP
 const std::string DLP_INDEX = "ohos.dlp.params.index";
+#endif // WITH_DLP
 }
 class MissionListManagerTest : public testing::Test {
 public:
@@ -959,6 +961,7 @@ HWTEST_F(MissionListManagerTest, CreateOrReusedMissionInfo_007, TestSize.Level1)
     missionListManager.reset();
 }
 
+#ifdef WITH_DLP
 /*
  * Feature: MissionListManager
  * Function: BuildInnerMissionInfo
@@ -1005,6 +1008,7 @@ HWTEST_F(MissionListManagerTest, BuildInnerMissionInfo_002, TestSize.Level1)
     missionListManager->BuildInnerMissionInfo(info, missionName, abilityRequest);
     missionListManager.reset();
 }
+#endif // WITH_DLP
 
 /*
  * Feature: MissionListManager
@@ -2052,7 +2056,7 @@ HWTEST_F(MissionListManagerTest, CompleteForegroundSuccess_001, TestSize.Level1)
     abilityRecord->abilityInfo_.excludeFromMissions = false;
     abilityRecord->SetStartedByCall(true);
     abilityRecord->SetStartToForeground(true);
-    abilityRecord->isReady_ = true;
+    abilityRecord->SetLoadState(AbilityLoadState::LOADED);
     abilityRecord->pendingState_ = AbilityState::BACKGROUND;
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(1, abilityRecord, "missionName");
     mission->SetMovingState(true);
@@ -2082,7 +2086,7 @@ HWTEST_F(MissionListManagerTest, CompleteForegroundSuccess_002, TestSize.Level1)
     abilityRecord->abilityInfo_.excludeFromMissions = true;
     abilityRecord->SetStartedByCall(false);
     abilityRecord->SetStartToForeground(true);
-    abilityRecord->isReady_ = true;
+    abilityRecord->SetLoadState(AbilityLoadState::LOADED);
     abilityRecord->pendingState_ = AbilityState::FOREGROUND;
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(1, abilityRecord, "missionName");
     mission->SetMovingState(true);
@@ -2113,7 +2117,7 @@ HWTEST_F(MissionListManagerTest, CompleteForegroundSuccess_003, TestSize.Level1)
     abilityRecord->abilityInfo_.excludeFromMissions = true;
     abilityRecord->SetStartedByCall(true);
     abilityRecord->SetStartToForeground(false);
-    abilityRecord->isReady_ = true;
+    abilityRecord->SetLoadState(AbilityLoadState::LOADED);
     abilityRecord->pendingState_ = AbilityState::ACTIVE;
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(1, abilityRecord, "missionName");
     mission->SetMovingState(true);
@@ -2144,7 +2148,6 @@ HWTEST_F(MissionListManagerTest, CompleteForegroundSuccess_004, TestSize.Level1)
     abilityRecord->abilityInfo_.excludeFromMissions = true;
     abilityRecord->SetStartedByCall(true);
     abilityRecord->SetStartToForeground(true);
-    abilityRecord->isReady_ = false;
     abilityRecord->pendingState_ = AbilityState::ACTIVE;
     DelayedSingleton<MissionInfoMgr>::GetInstance()->missionIdMap_.clear();
     InnerMissionInfo info;
@@ -2172,7 +2175,7 @@ HWTEST_F(MissionListManagerTest, CompleteForegroundSuccess_005, TestSize.Level1)
     abilityRecord->abilityInfo_.excludeFromMissions = true;
     abilityRecord->SetStartedByCall(true);
     abilityRecord->SetStartToForeground(false);
-    abilityRecord->isReady_ = true;
+    abilityRecord->SetLoadState(AbilityLoadState::LOADED);
     abilityRecord->pendingState_ = AbilityState::ACTIVE;
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(1, abilityRecord, "missionName");
     mission->SetMovingState(false);
@@ -2337,7 +2340,7 @@ HWTEST_F(MissionListManagerTest, CompleteBackground_003, TestSize.Level1)
     abilityRecord->SetSwitchingPause(false);
     abilityRecord->SetStartedByCall(true);
     abilityRecord->SetStartToBackground(true);
-    abilityRecord->isReady_ = true;
+    abilityRecord->SetLoadState(AbilityLoadState::LOADED);
     missionListManager->terminateAbilityList_.push_back(abilityRecord);
     missionListManager->CompleteBackground(abilityRecord);
     missionListManager.reset();
@@ -2362,7 +2365,7 @@ HWTEST_F(MissionListManagerTest, CompleteBackground_004, TestSize.Level1)
     abilityRecord->SetSwitchingPause(false);
     abilityRecord->SetStartedByCall(false);
     abilityRecord->SetStartToBackground(true);
-    abilityRecord->isReady_ = true;
+    abilityRecord->SetLoadState(AbilityLoadState::LOADED);
     abilityRecord2->currentState_ = AbilityState::BACKGROUND;
     missionListManager->terminateAbilityList_.push_back(abilityRecord2);
     missionListManager->CompleteBackground(abilityRecord);
@@ -2388,7 +2391,7 @@ HWTEST_F(MissionListManagerTest, CompleteBackground_005, TestSize.Level1)
     abilityRecord->SetSwitchingPause(false);
     abilityRecord->SetStartedByCall(true);
     abilityRecord->SetStartToBackground(false);
-    abilityRecord->isReady_ = true;
+    abilityRecord->SetLoadState(AbilityLoadState::LOADED);
     abilityRecord2->currentState_ = AbilityState::BACKGROUND;
     missionListManager->terminateAbilityList_.push_back(abilityRecord2);
     missionListManager->CompleteBackground(abilityRecord);
@@ -2414,7 +2417,6 @@ HWTEST_F(MissionListManagerTest, CompleteBackground_006, TestSize.Level1)
     abilityRecord->SetSwitchingPause(false);
     abilityRecord->SetStartedByCall(true);
     abilityRecord->SetStartToBackground(true);
-    abilityRecord->isReady_ = false;
     abilityRecord2->currentState_ = AbilityState::FOREGROUND;
     missionListManager->terminateAbilityList_.push_back(abilityRecord2);
     missionListManager->CompleteBackground(abilityRecord);
@@ -2613,7 +2615,7 @@ HWTEST_F(MissionListManagerTest, RemoveBackgroundingAbility_006, TestSize.Level1
     abilityRecord2->SetWant(want);
     abilityRecord2->SetAbilityState(AbilityState::BACKGROUND);
     abilityRecord2->minimizeReason_ = false;
-    abilityRecord2->isReady_ = true;
+    abilityRecord2->SetLoadState(AbilityLoadState::LOADED);
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(1, abilityRecord, "missionName");
     std::shared_ptr<Mission> mission2 = std::make_shared<Mission>(2, abilityRecord2, "missionName");
     missionList->missions_.push_back(mission);
@@ -2648,7 +2650,7 @@ HWTEST_F(MissionListManagerTest, RemoveBackgroundingAbility_007, TestSize.Level1
     abilityRecord2->SetWant(want);
     abilityRecord2->SetAbilityState(AbilityState::FOREGROUND);
     abilityRecord2->minimizeReason_ = false;
-    abilityRecord2->isReady_ = true;
+    abilityRecord2->SetLoadState(AbilityLoadState::LOADED);
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(1, abilityRecord, "missionName");
     std::shared_ptr<Mission> mission2 = std::make_shared<Mission>(2, abilityRecord2, "missionName");
     missionList->missions_.push_back(mission);
@@ -2683,7 +2685,7 @@ HWTEST_F(MissionListManagerTest, RemoveBackgroundingAbility_008, TestSize.Level1
     abilityRecord2->SetWant(want);
     abilityRecord2->SetAbilityState(AbilityState::BACKGROUND);
     abilityRecord2->minimizeReason_ = true;
-    abilityRecord2->isReady_ = true;
+    abilityRecord2->SetLoadState(AbilityLoadState::LOADED);
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(1, abilityRecord, "missionName");
     std::shared_ptr<Mission> mission2 = std::make_shared<Mission>(2, abilityRecord2, "missionName");
     missionList->missions_.push_back(mission);
@@ -2718,7 +2720,6 @@ HWTEST_F(MissionListManagerTest, RemoveBackgroundingAbility_009, TestSize.Level1
     abilityRecord2->SetWant(want);
     abilityRecord2->SetAbilityState(AbilityState::BACKGROUND);
     abilityRecord2->minimizeReason_ = false;
-    abilityRecord2->isReady_ = false;
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(1, abilityRecord, "missionName");
     std::shared_ptr<Mission> mission2 = std::make_shared<Mission>(2, abilityRecord2, "missionName");
     missionList->missions_.push_back(mission);
@@ -2948,7 +2949,7 @@ HWTEST_F(MissionListManagerTest, RemoveTerminatingAbility_006, TestSize.Level1)
     abilityRecord2->SetWant(want);
     abilityRecord2->SetAbilityState(AbilityState::BACKGROUND);
     abilityRecord2->minimizeReason_ = false;
-    abilityRecord2->isReady_ = true;
+    abilityRecord2->SetLoadState(AbilityLoadState::LOADED);
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(1, abilityRecord2, "missionName");
     bool flag = true;
     missionList->missions_.push_back(mission);
@@ -2981,7 +2982,7 @@ HWTEST_F(MissionListManagerTest, RemoveTerminatingAbility_007, TestSize.Level1)
     abilityRecord2->SetWant(want);
     abilityRecord2->SetAbilityState(AbilityState::FOREGROUND);
     abilityRecord2->minimizeReason_ = false;
-    abilityRecord2->isReady_ = true;
+    abilityRecord2->SetLoadState(AbilityLoadState::LOADED);
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(1, abilityRecord2, "missionName");
     bool flag = true;
     missionList->missions_.push_back(mission);
@@ -3014,7 +3015,7 @@ HWTEST_F(MissionListManagerTest, RemoveTerminatingAbility_008, TestSize.Level1)
     abilityRecord2->SetWant(want);
     abilityRecord2->SetAbilityState(AbilityState::BACKGROUND);
     abilityRecord2->minimizeReason_ = true;
-    abilityRecord2->isReady_ = true;
+    abilityRecord2->SetLoadState(AbilityLoadState::LOADED);
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(1, abilityRecord2, "missionName");
     bool flag = true;
     missionList->missions_.push_back(mission);
@@ -3047,7 +3048,6 @@ HWTEST_F(MissionListManagerTest, RemoveTerminatingAbility_009, TestSize.Level1)
     abilityRecord2->SetWant(want);
     abilityRecord2->SetAbilityState(AbilityState::BACKGROUND);
     abilityRecord2->minimizeReason_ = false;
-    abilityRecord2->isReady_ = false;
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(1, abilityRecord2, "missionName");
     bool flag = true;
     missionList->missions_.push_back(mission);
@@ -5992,100 +5992,6 @@ HWTEST_F(MissionListManagerTest, GetForegroundAbilities_002, TestSize.Level1)
     missionListManager.reset();
 }
 
-#ifdef ABILITY_COMMAND_FOR_TEST
-/*
- * Feature: MissionListManager
- * Function: BlockAbility
- * SubFunction: NA
- * FunctionPoints: MissionListManager BlockAbility
- * EnvConditions: NA
- * CaseDescription: Verify BlockAbility
- */
-HWTEST_F(MissionListManagerTest, BlockAbility_001, TestSize.Level1)
-{
-    int userId = 3;
-    auto missionListManager = std::make_shared<MissionListManager>(userId);
-    EXPECT_NE(missionListManager, nullptr);
-    std::shared_ptr<MissionList> missionList = std::make_shared<MissionList>();
-    std::shared_ptr<MissionList> missionList2 = std::make_shared<MissionList>();
-    int32_t abilityRecordId = 1;
-    missionListManager->currentMissionLists_.push_back(missionList);
-    missionListManager->defaultStandardList_ = missionList;
-    missionListManager->defaultSingleList_ = missionList;
-    missionListManager->launcherList_ = missionList2;
-    int res = missionListManager->BlockAbility(abilityRecordId);
-    EXPECT_EQ(res, -1);
-    missionListManager.reset();
-}
-
-/*
- * Feature: MissionListManager
- * Function: BlockAbility
- * SubFunction: NA
- * FunctionPoints: MissionListManager BlockAbility
- * EnvConditions: NA
- * CaseDescription: Verify BlockAbility
- */
-HWTEST_F(MissionListManagerTest, BlockAbility_002, TestSize.Level1)
-{
-    int userId = 3;
-    auto missionListManager = std::make_shared<MissionListManager>(userId);
-    std::shared_ptr<MissionList> missionList = std::make_shared<MissionList>();
-    int32_t abilityRecordId = 1;
-    missionListManager->currentMissionLists_.push_back(missionList);
-    missionListManager->defaultStandardList_ = missionList;
-    missionListManager->defaultSingleList_ = missionList;
-    missionListManager->launcherList_ = missionList;
-    int res = missionListManager->BlockAbility(abilityRecordId);
-    EXPECT_EQ(res, -1);
-    missionListManager.reset();
-}
-
-/*
- * Feature: MissionListManager
- * Function: BlockAbility
- * SubFunction: NA
- * FunctionPoints: MissionListManager BlockAbility
- * EnvConditions: NA
- * CaseDescription: Verify BlockAbility
- */
-HWTEST_F(MissionListManagerTest, BlockAbility_003, TestSize.Level1)
-{
-    int userId = 3;
-    auto missionListManager = std::make_shared<MissionListManager>(userId);
-    int32_t abilityRecordId = 1;
-    missionListManager->currentMissionLists_.push_back(nullptr);
-    missionListManager->defaultStandardList_ = nullptr;
-    missionListManager->defaultSingleList_ = nullptr;
-    missionListManager->launcherList_ = nullptr;
-    int res = missionListManager->BlockAbility(abilityRecordId);
-    EXPECT_EQ(res, -1);
-    missionListManager.reset();
-}
-
-/*
- * Feature: MissionListManager
- * Function: BlockAbility
- * SubFunction: NA
- * FunctionPoints: MissionListManager BlockAbility
- * EnvConditions: NA
- * CaseDescription: Verify BlockAbility
- */
-HWTEST_F(MissionListManagerTest, BlockAbility_004, TestSize.Level1)
-{
-    int userId = 3;
-    auto missionListManager = std::make_shared<MissionListManager>(userId);
-    int32_t abilityRecordId = 1;
-    missionListManager->currentMissionLists_.clear();
-    missionListManager->defaultStandardList_ = nullptr;
-    missionListManager->defaultSingleList_ = nullptr;
-    missionListManager->launcherList_ = nullptr;
-    int res = missionListManager->BlockAbility(abilityRecordId);
-    EXPECT_EQ(res, -1);
-    missionListManager.reset();
-}
-#endif
-
 /*
  * Feature: MissionListManager
  * Function: SetMissionANRStateByTokens
@@ -6528,6 +6434,194 @@ HWTEST_F(MissionListManagerTest, OnStartSpecifiedAbilityTimeoutResponse_005, Tes
     missionListManager->OnStartSpecifiedAbilityTimeoutResponse(want);
     missionListManager->waitingAbilityQueue_.push(abilityRequest2);
     missionListManager->OnStartSpecifiedAbilityTimeoutResponse(want);
+}
+
+/*
+ * Feature: MissionListManager
+ * Function: BackToCallerAbilityWithResult
+ * SubFunction: NA
+ * FunctionPoints: MissionListManager BackToCallerAbilityWithResult
+ * EnvConditions: NA
+ * CaseDescription: Verify BackToCallerAbilityWithResult
+ */
+HWTEST_F(MissionListManagerTest, BackToCallerAbilityWithResult_001, TestSize.Level1)
+{
+    constexpr int32_t userId = -1;
+    auto missionListManager = std::make_shared<MissionListManager>(userId);
+    EXPECT_NE(missionListManager, nullptr);
+    missionListManager->Init();
+
+    std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
+    Want resultWant;
+    int32_t resultCode = 100;
+    int64_t callerRequestCode = 0;
+    auto ret = missionListManager->BackToCallerAbilityWithResult(abilityRecord,
+        resultCode, &resultWant, callerRequestCode);
+    EXPECT_EQ(ret, ERR_CALLER_NOT_EXISTS);
+}
+
+/*
+ * Feature: MissionListManager
+ * Function: BackToCallerAbilityWithResult
+ * SubFunction: NA
+ * FunctionPoints: MissionListManager BackToCallerAbilityWithResult
+ * EnvConditions: NA
+ * CaseDescription: Verify BackToCallerAbilityWithResult
+ */
+HWTEST_F(MissionListManagerTest, BackToCallerAbilityWithResult_002, TestSize.Level1)
+{
+    constexpr int32_t userId = -1;
+    auto missionListManager = std::make_shared<MissionListManager>(userId);
+    EXPECT_NE(missionListManager, nullptr);
+    missionListManager->Init();
+
+    std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
+    Want resultWant;
+    int32_t resultCode = 100;
+    int64_t callerRequestCode = 1;
+    auto ret = missionListManager->BackToCallerAbilityWithResult(abilityRecord,
+        resultCode, &resultWant, callerRequestCode);
+    EXPECT_EQ(ret, ERR_CALLER_NOT_EXISTS);
+}
+
+/*
+ * Feature: MissionListManager
+ * Function: BackToCallerAbilityWithResult
+ * SubFunction: NA
+ * FunctionPoints: MissionListManager BackToCallerAbilityWithResult
+ * EnvConditions: NA
+ * CaseDescription: Verify BackToCallerAbilityWithResult
+ */
+HWTEST_F(MissionListManagerTest, BackToCallerAbilityWithResult_003, TestSize.Level1)
+{
+    constexpr int32_t userId = -1;
+    auto missionListManager = std::make_shared<MissionListManager>(userId);
+    EXPECT_NE(missionListManager, nullptr);
+    missionListManager->Init();
+
+    std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
+    Want resultWant;
+    int32_t resultCode = 100;
+    int32_t requestCode = 1;
+    int32_t pid = 1;
+    bool backFlag = false;
+    int64_t callerRequestCode = AbilityRuntime::StartupUtil::GenerateFullRequestCode(pid, backFlag, requestCode);
+
+    // not support back to caller
+    std::shared_ptr<AbilityRecord> callerAbilityRecord = InitAbilityRecord();
+    callerAbilityRecord->pid_ = pid;
+    auto newCallerRecord = std::make_shared<CallerRecord>(requestCode, callerAbilityRecord);
+    newCallerRecord->AddHistoryRequestCode(requestCode);
+    abilityRecord->callerList_.emplace_back(newCallerRecord);
+    auto ret = missionListManager->BackToCallerAbilityWithResult(abilityRecord,
+        resultCode, &resultWant, callerRequestCode);
+    EXPECT_EQ(ret, ERR_NOT_SUPPORT_BACK_TO_CALLER);
+}
+
+/*
+ * Feature: MissionListManager
+ * Function: BackToCallerAbilityWithResult
+ * SubFunction: NA
+ * FunctionPoints: MissionListManager BackToCallerAbilityWithResult
+ * EnvConditions: NA
+ * CaseDescription: Verify BackToCallerAbilityWithResult
+ */
+HWTEST_F(MissionListManagerTest, BackToCallerAbilityWithResult_004, TestSize.Level1)
+{
+    constexpr int32_t userId = -1;
+    auto missionListManager = std::make_shared<MissionListManager>(userId);
+    EXPECT_NE(missionListManager, nullptr);
+    missionListManager->Init();
+
+    std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
+    Want resultWant;
+    int32_t resultCode = 100;
+    int32_t requestCode = 1;
+    int32_t pid = 1;
+    bool backFlag = true;
+    int64_t callerRequestCode = AbilityRuntime::StartupUtil::GenerateFullRequestCode(pid, backFlag, requestCode);
+
+    // caller is self
+    abilityRecord->pid_ = pid;
+    auto newCallerRecord = std::make_shared<CallerRecord>(requestCode, abilityRecord);
+    newCallerRecord->AddHistoryRequestCode(requestCode);
+    abilityRecord->callerList_.emplace_back(newCallerRecord);
+    auto ret = missionListManager->BackToCallerAbilityWithResult(abilityRecord,
+        resultCode, &resultWant, callerRequestCode);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/*
+ * Feature: MissionListManager
+ * Function: BackToCallerAbilityWithResult
+ * SubFunction: NA
+ * FunctionPoints: MissionListManager BackToCallerAbilityWithResult
+ * EnvConditions: NA
+ * CaseDescription: Verify BackToCallerAbilityWithResult
+ */
+HWTEST_F(MissionListManagerTest, BackToCallerAbilityWithResult_005, TestSize.Level1)
+{
+    constexpr int32_t userId = -1;
+    auto missionListManager = std::make_shared<MissionListManager>(userId);
+    EXPECT_NE(missionListManager, nullptr);
+    missionListManager->Init();
+
+    std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
+    Want resultWant;
+    int32_t resultCode = 100;
+    int32_t requestCode = 1;
+    int32_t pid = 1;
+    bool backFlag = true;
+    int64_t callerRequestCode = AbilityRuntime::StartupUtil::GenerateFullRequestCode(pid, backFlag, requestCode);
+
+    std::shared_ptr<AbilityRecord> callerAbilityRecord = InitAbilityRecord();
+    callerAbilityRecord->pid_ = pid;
+    auto newCallerRecord = std::make_shared<CallerRecord>(requestCode, callerAbilityRecord);
+    newCallerRecord->AddHistoryRequestCode(requestCode);
+    abilityRecord->pid_ = pid;
+    abilityRecord->callerList_.emplace_back(newCallerRecord);
+
+    // current ability is backgrounded
+    abilityRecord->currentState_ = AbilityState::BACKGROUND;
+    auto ret = missionListManager->BackToCallerAbilityWithResult(abilityRecord,
+        resultCode, &resultWant, callerRequestCode);
+    EXPECT_EQ(ret, CHECK_PERMISSION_FAILED);
+}
+
+/*
+ * Feature: MissionListManager
+ * Function: BackToCallerAbilityWithResult
+ * SubFunction: NA
+ * FunctionPoints: MissionListManager BackToCallerAbilityWithResult
+ * EnvConditions: NA
+ * CaseDescription: Verify BackToCallerAbilityWithResult
+ */
+HWTEST_F(MissionListManagerTest, BackToCallerAbilityWithResult_006, TestSize.Level1)
+{
+    constexpr int32_t userId = -1;
+    auto missionListManager = std::make_shared<MissionListManager>(userId);
+    EXPECT_NE(missionListManager, nullptr);
+    missionListManager->Init();
+
+    std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
+    Want resultWant;
+    int32_t resultCode = 100;
+    int32_t requestCode = 1;
+    int32_t pid = 1;
+    bool backFlag = true;
+    int64_t callerRequestCode = AbilityRuntime::StartupUtil::GenerateFullRequestCode(pid, backFlag, requestCode);
+
+    std::shared_ptr<AbilityRecord> callerAbilityRecord = InitAbilityRecord();
+    callerAbilityRecord->pid_ = pid;
+    auto newCallerRecord = std::make_shared<CallerRecord>(requestCode, callerAbilityRecord);
+    newCallerRecord->AddHistoryRequestCode(requestCode);
+    abilityRecord->pid_ = pid;
+    abilityRecord->callerList_.emplace_back(newCallerRecord);
+
+    abilityRecord->currentState_ = AbilityState::FOREGROUND;
+    auto ret = missionListManager->BackToCallerAbilityWithResult(abilityRecord,
+        resultCode, &resultWant, callerRequestCode);
+    EXPECT_EQ(ret, ERR_OK);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

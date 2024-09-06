@@ -34,12 +34,9 @@ public:
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
 private:
-    int32_t HandleScheduleLoadJs(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleScheduleLoadChild(MessageParcel &data, MessageParcel &reply);
     int32_t HandleScheduleExitProcessSafely(MessageParcel &data, MessageParcel &reply);
     int32_t HandleScheduleRunNativeProc(MessageParcel &data, MessageParcel &reply);
-
-    using ChildSchedulerFunc = int32_t (ChildSchedulerStub::*)(MessageParcel &data, MessageParcel &reply);
-    std::map<uint32_t, ChildSchedulerFunc> memberFuncMap_;
 
     DISALLOW_COPY_AND_MOVE(ChildSchedulerStub);
 };

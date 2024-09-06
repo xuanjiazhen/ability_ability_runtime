@@ -15,13 +15,12 @@
 
 #include "data_ability_caller_recipient.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 
 namespace OHOS {
 namespace AAFwk {
 void DataAbilityCallerRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
-    TAG_LOGE(AAFwkTag::DATA_ABILITY, "recv DataAbilityCallerRecipient death notice");
+    TAG_LOGE(AAFwkTag::DATA_ABILITY, "recv death notice");
 
     if (handler_) {
         handler_(remote);
@@ -30,12 +29,12 @@ void DataAbilityCallerRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 
 DataAbilityCallerRecipient::DataAbilityCallerRecipient(RemoteDiedHandler handler) : handler_(handler)
 {
-    TAG_LOGE(AAFwkTag::DATA_ABILITY, "%{public}s", __func__);
+    TAG_LOGE(AAFwkTag::DATA_ABILITY, "called");
 }
 
 DataAbilityCallerRecipient::~DataAbilityCallerRecipient()
 {
-    TAG_LOGE(AAFwkTag::DATA_ABILITY, "%{public}s", __func__);
+    TAG_LOGE(AAFwkTag::DATA_ABILITY, "called");
 }
 }  // namespace AAFwk
 }  // namespace OHOS

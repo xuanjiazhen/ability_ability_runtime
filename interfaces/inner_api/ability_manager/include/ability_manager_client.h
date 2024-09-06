@@ -41,7 +41,6 @@ class AbilityManagerClient {
 public:
     virtual ~AbilityManagerClient();
     static std::shared_ptr<AbilityManagerClient> GetInstance();
-
     void RemoveDeathRecipient();
 
     /**
@@ -61,6 +60,14 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode AbilityTransitionDone(sptr<IRemoteObject> token, int state, const PacMap &saveData);
+
+    /**
+     * AbilityWindowConfigTransitionDone, ability call this interface after lift cycle was changed.
+     *
+     * @param token,.ability's token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode AbilityWindowConfigTransitionDone(sptr<IRemoteObject> token, const WindowConfig &windowConfig);
 
     /**
      * ScheduleConnectAbilityDone, service ability call this interface while session was connected.
@@ -283,6 +290,19 @@ public:
         int32_t userId = DEFAULT_INVAL_VALUE);
 
     /**
+     * Start ui ability
+     *
+     * @param want the want of the ability to start.
+     * @param callerToken caller ability token.
+     * @param specifyTokenId The Caller ID.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode StartAbilityOnlyUIAbility(
+        const Want &want,
+        sptr<IRemoteObject> callerToken,
+        uint32_t specifyTokenId);
+
+    /**
      * Start extension ability with want, send want to ability manager service.
      *
      * @param want, the want of the ability to start.
@@ -338,7 +358,7 @@ public:
      * @param isColdStart the session info of the ability is or not cold start.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart);
+    ErrCode StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag = 0);
 
     /**
      * Stop extension ability with want, send want to ability manager service.
@@ -364,6 +384,18 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode TerminateAbility(sptr<IRemoteObject> token, int resultCode, const Want *resultWant);
+
+    /**
+     * BackToCallerAbilityWithResult, return to the caller ability.
+     *
+     * @param token, the token of the ability to terminate.
+     * @param resultCode, the resultCode of the ability to terminate.
+     * @param resultWant, the Want of the ability to return.
+     * @param callerRequestCode, the requestCode of caller ability.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode BackToCallerAbilityWithResult(const sptr<IRemoteObject> &token, int resultCode,
+        const Want *resultWant, int64_t callerRequestCode);
 
     /**
      * TerminateUIExtensionAbility with want, return want from ability manager service.
@@ -446,7 +478,7 @@ public:
      * @param fromUser, Whether form user.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode MinimizeUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool fromUser = false);
+    ErrCode MinimizeUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool fromUser = false, uint32_t sceneFlag = 0);
 
     /**
      * ConnectAbility, connect session with service ability.
@@ -466,6 +498,20 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode ConnectAbility(
+        const Want &want,
+        sptr<IAbilityConnection> connect,
+        sptr<IRemoteObject> callerToken,
+        int32_t userId = DEFAULT_INVAL_VALUE);
+
+    /**
+     * ConnectUIServiceExtesnionAbility, connect session with uiService ability.
+     *
+     * @param want, Special want for uiService type's ability.
+     * @param connect, Callback used to notify caller the result of connecting or disconnecting.
+     * @param callerToken, caller ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode ConnectUIServiceExtesnionAbility(
         const Want &want,
         sptr<IAbilityConnection> connect,
         sptr<IRemoteObject> callerToken,
@@ -568,7 +614,7 @@ public:
      * @param clearPageStack.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode KillProcess(const std::string &bundleName, const bool clearPageStack = true);
+    ErrCode KillProcess(const std::string &bundleName, const bool clearPageStack = false);
 
     #ifdef ABILITY_COMMAND_FOR_TEST
     /**
@@ -1034,8 +1080,8 @@ public:
     void UpdateMissionSnapShot(sptr<IRemoteObject> token,
         std::shared_ptr<OHOS::Media::PixelMap> pixelMap);
 
-    ErrCode GetDialogSessionInfo(const std::string dialogSessionId, sptr<DialogSessionInfo> &info);
-    ErrCode SendDialogResult(const Want &want, const std::string dialogSessionId, bool isAllow);
+    ErrCode GetDialogSessionInfo(const std::string &dialogSessionId, sptr<DialogSessionInfo> &info);
+    ErrCode SendDialogResult(const Want &want, const std::string &dialogSessionId, bool isAllow);
 #endif
 
     /**
@@ -1110,30 +1156,6 @@ public:
     virtual int SetAbilityController(sptr<AppExecFwk::IAbilityController> abilityController,
         bool imAStabilityTest);
 
-    #ifdef ABILITY_COMMAND_FOR_TEST
-    /**
-     * Block ability manager service.
-     *
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    ErrCode BlockAmsService();
-
-    /**
-     * Block ability.
-     *
-     * @param abilityRecordId The Ability Record Id.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    ErrCode BlockAbility(int32_t abilityRecordId);
-
-    /**
-     * Block app service.
-     *
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    ErrCode BlockAppService();
-    #endif
-
     /**
      * Free install ability from remote DMS.
      *
@@ -1163,6 +1185,13 @@ public:
     void EnableRecoverAbility(sptr<IRemoteObject> token);
 
     /**
+     * @brief Submit save recovery info.
+     *
+     * @param token Ability identify.
+     */
+    void SubmitSaveRecoveryInfo(sptr<IRemoteObject> token);
+
+    /**
      * @brief Schedule recovery ability.
      *
      * @param token Ability identify.
@@ -1181,10 +1210,12 @@ public:
     /**
      * @brief Add free install observer.
      *
+     * @param callerToken The caller ability token.
      * @param observer Free install observer.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode AddFreeInstallObserver(sptr<AbilityRuntime::IFreeInstallObserver> observer);
+    ErrCode AddFreeInstallObserver(const sptr<IRemoteObject> callToken,
+        const sptr<AbilityRuntime::IFreeInstallObserver> observer);
 
     /**
      * Called to verify that the MissionId is valid.
@@ -1399,6 +1430,13 @@ public:
         std::vector<int32_t> &sessionIds);
 
     /**
+     * @brief Restart app self.
+     * @param want The ability type must be UIAbility.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t RestartApp(const AAFwk::Want &want);
+
+    /**
      * @brief Get host info of root caller.
      *
      * @param token The ability token.
@@ -1410,11 +1448,15 @@ public:
         int32_t userId = DEFAULT_INVAL_VALUE);
 
     /**
-     * @brief Restart app self.
-     * @param want The ability type must be UIAbility.
-     * @return Returns ERR_OK on success, others on failure.
+     * @brief Get ui extension session info
+     *
+     * @param token The ability token.
+     * @param uiExtensionSessionInfo The ui extension session info.
+     * @param userId The user id.
+     * @return int32_t Returns ERR_OK on success, others on failure.
      */
-    int32_t RestartApp(const AAFwk::Want &want);
+    ErrCode GetUIExtensionSessionInfo(const sptr<IRemoteObject> token, UIExtensionSessionInfo &uiExtensionSessionInfo,
+        int32_t userId = DEFAULT_INVAL_VALUE);
 
     /**
      * Pop-up launch of full-screen atomic service.
@@ -1498,6 +1540,45 @@ public:
      * @param uid, the uid of the frozen process.
      */
     void NotifyFrozenProcessByRSS(const std::vector<int32_t> &pidList, int32_t uid);
+
+    /**
+     * Open atomic service window prior to finishing free install.
+     *
+     * @param bundleName, the bundle name of the atomic service.
+     * @param moduleName, the module name of the atomic service.
+     * @param abilityName, the ability name of the atomic service.
+     * @param startTime, the starting time of the free install task.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t PreStartMission(const std::string& bundleName, const std::string& moduleName,
+        const std::string& abilityName, const std::string& startTime);
+
+    /**
+     *  Request to clean UIAbility from user.
+     *
+     * @param sessionInfo the session info of the ability to clean.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode CleanUIAbilityBySCB(sptr<SessionInfo> sessionInfo);
+
+    /**
+     * Open link of ability and atomic service.
+     *
+     * @param want Ability want.
+     * @param callerToken Caller ability token.
+     * @param userId User ID.
+     * @param requestCode Ability request code.
+     * @return Returns ERR_OK on success, others on failure.
+    */
+    int32_t OpenLink(const Want& want, sptr<IRemoteObject> callerToken, int32_t userId, int requestCode);
+
+    /**
+     * Terminate process by bundleName.
+     *
+     * @param missionId, The mission id of the UIAbility need to be terminated.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode TerminateMission(int32_t missionId);
 
 private:
     AbilityManagerClient();

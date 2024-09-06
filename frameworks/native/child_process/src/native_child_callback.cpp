@@ -15,7 +15,6 @@
 
 #include "native_child_callback.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "ipc_inner_object.h"
 #include "child_process_manager_error_utils.h"
 
@@ -30,12 +29,12 @@ NativeChildCallback::NativeChildCallback(OH_Ability_OnNativeChildProcessStarted 
 void NativeChildCallback::OnNativeChildStarted(const sptr<IRemoteObject> &nativeChild)
 {
     if (callback_ == nullptr) {
-        TAG_LOGE(AAFwkTag::PROCESSMGR, "Native child process started, but callback is null?");
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "null callback_");
         return;
     }
 
     if (!nativeChild) {
-        TAG_LOGE(AAFwkTag::PROCESSMGR, "Native child process ipc object is null");
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "null nativeChild");
         return;
     }
     
@@ -54,11 +53,11 @@ void NativeChildCallback::OnNativeChildStarted(const sptr<IRemoteObject> &native
 void NativeChildCallback::OnError(int32_t errCode)
 {
     if (callback_ == nullptr) {
-        TAG_LOGE(AAFwkTag::PROCESSMGR, "Native child process start failed, but callback is null?");
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "null callback_");
         return;
     }
 
-    TAG_LOGI(AAFwkTag::PROCESSMGR, "Native child process start failed, err %{public}d", errCode);
+    TAG_LOGI(AAFwkTag::PROCESSMGR, "Native child process start err %{public}d", errCode);
     callback_(errCode, nullptr);
 }
 

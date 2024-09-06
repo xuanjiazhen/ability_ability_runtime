@@ -17,9 +17,6 @@
 #include "remote_on_listener_stub.h"
 
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
-#include "ipc_types.h"
-#include "message_parcel.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -35,7 +32,7 @@ int RemoteOnListenerStub::OnRemoteRequest(
     std::u16string descriptor = RemoteOnListenerStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (descriptor != remoteDescriptor) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "RemoteOnListenerStub Local descriptor is not equal to remote");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "RemoteOnListenerStub Local descriptor invalid");
         return ERR_INVALID_STATE;
     }
 

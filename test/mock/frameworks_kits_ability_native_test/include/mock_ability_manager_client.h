@@ -23,10 +23,9 @@
 #include "values_bucket.h"
 #include "ability_connect_callback_interface.h"
 #include "ability_manager_errors.h"
-#include "ability_context.h"
+#include "fa_ability_context.h"
 #include "ability_manager_interface.h"
 #include "ability_scheduler_interface.h"
-#include "hilog_wrapper.h"
 #include "iremote_object.h"
 #include "iremote_stub.h"
 #include "want.h"
@@ -131,12 +130,6 @@ public:
     {
         return std::vector<std::shared_ptr<AppExecFwk::DataAbilityResult>>();
     };
-#ifdef ABILITY_COMMAND_FOR_TEST
-    virtual int BlockAbility()
-    {
-        return 0;
-    };
-#endif
     virtual void NotifyContinuationResult(int32_t result) {};
     virtual void ContinueAbility(const std::string& deviceId, uint32_t versionCode) {};
     virtual void DumpAbilityInfo(const std::vector<std::string>& params, std::vector<std::string>& info) {};

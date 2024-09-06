@@ -20,23 +20,22 @@
 
 #include "ability_connect_callback.h"
 #include "extension_context.h"
+#include "free_install_observer_interface.h"
 #include "start_options.h"
+#include "ui_holder_extension_context.h"
 #include "want.h"
 #ifdef SUPPORT_SCREEN
 #include "window.h"
 #endif // SUPPORT_SCREEN
 
 namespace OHOS {
-namespace Ace {
-class UIContent;
-}
 namespace AbilityRuntime {
 using RuntimeTask = std::function<void(int, const AAFwk::Want &, bool)>;
 /**
  * @brief context supply for UIExtension
  *
  */
-class UIExtensionContext : public ExtensionContext {
+class UIExtensionContext : public UIHolderExtensionContext {
 public:
     UIExtensionContext() = default;
     virtual ~UIExtensionContext() = default;
@@ -54,6 +53,7 @@ public:
     virtual ErrCode StartAbility(const AAFwk::Want &want) const;
     virtual ErrCode StartAbility(const AAFwk::Want &want, const AAFwk::StartOptions &startOptions) const;
     virtual ErrCode StartAbility(const AAFwk::Want &want, int requestCode) const;
+    virtual ErrCode StartUIServiceExtension(const AAFwk::Want& want, int32_t accountId = -1) const;
     /**
      * @brief Destroys the current ui extension ability.
      *
@@ -70,6 +70,9 @@ public:
      * @return Returns zero on success, others on failure.
      */
     virtual ErrCode ConnectAbility(
+        const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback) const;
+
+    virtual ErrCode ConnectUIServiceExtensionAbility(
         const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback) const;
 
     /**
@@ -141,13 +144,20 @@ public:
     void SetWindow(sptr<Rosen::Window> window);
 
     sptr<Rosen::Window> GetWindow();
+
+    Ace::UIContent* GetUIContent() override;
 #endif // SUPPORT_SCREEN
-    Ace::UIContent* GetUIContent();
+
+    ErrCode OpenLink(const AAFwk::Want& want, int reuqestCode);
 
     ErrCode OpenAtomicService(AAFwk::Want& want, const AAFwk::StartOptions &options, int requestCode,
         RuntimeTask &&task);
     
+    ErrCode AddFreeInstallObserver(const sptr<AbilityRuntime::IFreeInstallObserver> &observer);
+
     void InsertResultCallbackTask(int requestCode, RuntimeTask&& task);
+
+    void RemoveResultCallbackTask(int requestCode);
 
     using SelfType = UIExtensionContext;
     static const size_t CONTEXT_TYPE_ID;
@@ -155,17 +165,16 @@ public:
 protected:
     bool IsContext(size_t contextTypeId) override
     {
-        return contextTypeId == CONTEXT_TYPE_ID || ExtensionContext::IsContext(contextTypeId);
+        return contextTypeId == CONTEXT_TYPE_ID || UIHolderExtensionContext::IsContext(contextTypeId);
     }
+
+    sptr<Rosen::Window> window_ = nullptr;
 #endif // SUPPORT_SCREEN
 private:
     static int ILLEGAL_REQUEST_CODE;
     std::map<int, RuntimeTask> resultCallbacks_;
-
-    int curRequestCode_ = 0;
-#ifdef SUPPORT_SCREEN
-    sptr<Rosen::Window> window_ = nullptr;
-#endif // SUPPORT_SCREEN
+    static int32_t curRequestCode_;
+    static std::mutex requestCodeMutex_;
     std::mutex mutexlock_;
     /**
      * @brief Get Current Ability Type

@@ -20,16 +20,15 @@
 #include "ams_mgr_scheduler.h"
 
 namespace OHOS {
+namespace AbilityRuntime {
+struct LoadParam;
+}
 namespace AppExecFwk {
 class MockAmsMgrScheduler : public AmsMgrStub {
 public:
-    MOCK_METHOD6(LoadAbility,
-        void(const sptr<IRemoteObject>& token, const sptr<IRemoteObject>& preToken,
-            const std::shared_ptr<AbilityInfo>& abilityInfo, const std::shared_ptr<ApplicationInfo>& appInfo,
-            const std::shared_ptr<AAFwk::Want>& want, int32_t abilityRecordId));
-    MOCK_METHOD5(AbilityBehaviorAnalysis,
-        void(const sptr<OHOS::IRemoteObject>& token, const sptr<OHOS::IRemoteObject>& preToken,
-            const int32_t visibility, const int32_t perceptibility, const int32_t connectionState));
+    MOCK_METHOD4(LoadAbility,
+        void(const std::shared_ptr<AbilityInfo>& abilityInfo, const std::shared_ptr<ApplicationInfo>& appInfo,
+            const std::shared_ptr<AAFwk::Want>& want, std::shared_ptr<AbilityRuntime::LoadParam> loadParam));
     MOCK_METHOD2(TerminateAbility, void(const sptr<IRemoteObject>& token, bool clearMissionFlag));
     MOCK_METHOD2(UpdateAbilityState, void(const sptr<IRemoteObject>& token, const AbilityState state));
     MOCK_METHOD0(Reset, void());
@@ -38,6 +37,8 @@ public:
     MOCK_METHOD3(KillProcessWithAccount, int(const std::string&, const int, const bool clearPageStack));
     MOCK_METHOD2(UpdateApplicationInfoInstalled, int(const std::string&, const int uid));
     MOCK_METHOD2(KillApplication, int32_t(const std::string& bundleName, const bool clearPageStack));
+    MOCK_METHOD3(ForceKillApplication, int32_t(const std::string& appName, const int userId, const int appIndex));
+    MOCK_METHOD1(KillProcessesByAccessTokenId, int32_t(const uint32_t accessTokenId));
     MOCK_METHOD2(KillApplicationByUid, int(const std::string&, const int uid));
     MOCK_METHOD0(IsReady, bool());
     MOCK_METHOD1(AbilityAttachTimeOut, void(const sptr<IRemoteObject>& token));

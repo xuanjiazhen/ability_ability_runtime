@@ -22,6 +22,7 @@
 
 #include "auto_startup_info.h"
 #include "bundle_mgr_client.h"
+#include "bundle_mgr_helper.h"
 #include "iremote_object.h"
 #include "singleton.h"
 
@@ -80,10 +81,10 @@ public:
     /**
      * @brief Delete current bundleName auto start up data.
      * @param bundleName The current bundleName.
-     * @param uid The uid.
+     * @param accessTokenId The accessTokenId.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t DeleteAutoStartupData(const std::string &bundleName, int32_t uid);
+    int32_t DeleteAutoStartupData(const std::string &bundleName, int32_t accessTokenId);
 
     /**
      * @brief Check current bundleName auto start up data.
@@ -139,7 +140,8 @@ private:
     void CleanResource(const wptr<IRemoteObject> &remote);
     std::string GetSelfApplicationBundleName();
     bool CheckSelfApplication(const std::string &bundleName);
-    bool GetBundleInfo(const std::string &bundleName, AppExecFwk::BundleInfo &bundleInfo, int32_t uid, int32_t &userId);
+    bool GetBundleInfo(const std::string &bundleName, AppExecFwk::BundleInfo &bundleInfo, int32_t uid,
+        int32_t &userId, int32_t appIndex);
     bool GetAbilityData(const AutoStartupInfo &info, bool &isVisible,
         std::string &abilityTypeName, std::string &accessTokenId, int32_t &userId);
     std::string GetAbilityTypeName(AppExecFwk::AbilityInfo abilityInfo);

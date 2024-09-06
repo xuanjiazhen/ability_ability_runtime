@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 import("//build/test.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
-module_output_path = "ans_standard/wantagent"
+module_output_path = "ability_runtime/abilitymgr"
 
 ohos_unittest("pending_want_test") {
   module_out_path = module_output_path
@@ -39,6 +39,7 @@ ohos_unittest("pending_want_test") {
   deps = [
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:wantagent_manager",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]

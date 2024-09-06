@@ -59,7 +59,7 @@ public:
 
     virtual int StartAbilityAsCaller(const Want& want, const sptr<IRemoteObject>& callerToken,
         const sptr<IRemoteObject>& asCallerSourceToken, int32_t userId = DEFAULT_INVAL_VALUE,
-        int requestCode = -1, bool isSendDialogResult = false) override
+        int requestCode = -1) override
     {
         return 0;
     }
@@ -142,7 +142,7 @@ public:
         return 0;
     }
 
-    virtual int KillProcess(const std::string& bundleName, const bool clearPageStack = true) override
+    virtual int KillProcess(const std::string& bundleName, const bool clearPageStack = false) override
     {
         return 0;
     }

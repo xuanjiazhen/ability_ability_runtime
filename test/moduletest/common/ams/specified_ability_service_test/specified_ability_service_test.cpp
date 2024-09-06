@@ -25,6 +25,8 @@
 #define protected public
 #include "ability_manager_errors.h"
 #include "ability_manager_service.h"
+#include "mission_list_manager.h"
+#include "scene_board_judgement.h"
 #undef private
 #undef protected
 
@@ -109,11 +111,16 @@ HWTEST_F(SpecifiedAbilityServiceTest, OnAcceptWantResponse_001, TestSize.Level1)
     std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
     abilityRecord->SetAbilityState(OHOS::AAFwk::AbilityState::FOREGROUND);
 
-    abilityMgrServ_->subManagersHelper_->InitMissionListManager(11, true);
     Want want;
     want.SetElementName("DemoDeviceId", "DemoBundleName", "DemoAbilityName");
-    EXPECT_TRUE(abilityMgrServ_->subManagersHelper_->currentMissionListManager_);
-    abilityMgrServ_->subManagersHelper_->currentMissionListManager_->EnqueueWaitingAbility(abilityRequest);
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        abilityMgrServ_->subManagersHelper_->InitMissionListManager(11, true);
+        auto missionListMgr = abilityMgrServ_->subManagersHelper_->currentMissionListManager_;
+        EXPECT_TRUE(missionListMgr);
+        reinterpret_cast<MissionListManager*>(missionListMgr.get())->EnqueueWaitingAbility(abilityRequest);
+    } else {
+        abilityMgrServ_->subManagersHelper_->InitSubManagers(11, true);
+    }
     abilityMgrServ_->OnAcceptWantResponse(want, "flag");
 
     EXPECT_EQ(false, abilityRecord->IsNewWant());

@@ -82,7 +82,8 @@ public:
         const std::string targetBundleName, int32_t appIndex = 0, uint32_t initiatorTokenId = 0,
         int32_t abilityId = -1) override;
     int32_t GrantUriPermissionPrivileged(const std::vector<Uri> &uriVec, uint32_t flag,
-        const std::string &targetBundleName, int32_t appIndex = 0) override;
+        const std::string &targetBundleName, int32_t appIndex, uint32_t initiatorTokenId,
+        int32_t abilityId) override;
     
     std::vector<bool> CheckUriAuthorization(const std::vector<std::string> &uriVec, uint32_t flag,
         uint32_t tokenId) override;
@@ -142,6 +143,10 @@ private:
     int32_t DeleteShareFile(uint32_t targetTokenId, const std::vector<std::string> &uriVec);
 
     void RemoveUriRecord(std::vector<std::string> &uriList, const TokenId tokenId, int32_t abilityId);
+
+    bool VerifySubDirUriPermission(const std::string &uriStr, uint32_t newFlag, uint32_t tokenId);
+
+    bool IsDistributedSubDirUri(const std::string &inputUri, const std::string &cachedUri);
 
     class ProxyDeathRecipient : public IRemoteObject::DeathRecipient {
     public:

@@ -16,7 +16,6 @@
 #include "app_scheduler_proxy.h"
 
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "hitrace_meter.h"
 #include "ipc_types.h"
 #include "iremote_object.h"
@@ -588,7 +587,7 @@ int32_t AppSchedulerProxy::ScheduleChangeAppGcState(int32_t state)
 
 void AppSchedulerProxy::AttachAppDebug()
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "Called.");
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
@@ -624,7 +623,7 @@ int32_t AppSchedulerProxy::ScheduleRequestTerminateProcess()
 
 void AppSchedulerProxy::DetachAppDebug()
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "Called.");
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");

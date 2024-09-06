@@ -24,7 +24,6 @@
 #include "ffrt.h"
 #include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "hitrace_meter.h"
 #include "hisysevent.h"
 #include "parameter.h"
@@ -95,7 +94,7 @@ int AppfreezeInner::AppfreezeHandle(const FaultData& faultData, bool onlyMainThr
     }
     auto reportFreeze = [faultData, onlyMainThread]() {
         if (faultData.errorObject.name == "") {
-            TAG_LOGE(AAFwkTag::APPDFR, "name is nullptr, AppfreezeHandle failed.");
+            TAG_LOGE(AAFwkTag::APPDFR, "null name");
             return;
         }
         AppExecFwk::AppfreezeInner::GetInstance()->AcquireStack(faultData, onlyMainThread);
@@ -115,7 +114,7 @@ int AppfreezeInner::AppfreezeHandle(const FaultData& faultData, bool onlyMainThr
 bool AppfreezeInner::IsExitApp(const std::string& name)
 {
     if (name == AppFreezeType::THREAD_BLOCK_6S || name == AppFreezeType::APP_INPUT_BLOCK ||
-        name == AppFreezeType::LIFECYCLE_TIMEOUT) {
+        name == AppFreezeType::LIFECYCLE_TIMEOUT || name == AppFreezeType::BUSSINESS_THREAD_BLOCK_6S) {
         return true;
     }
     return false;
@@ -129,9 +128,9 @@ void AppfreezeInner::SendProcessKillEvent(const std::string& killReason)
         std::string processName = applicationInfo->process;
         int result = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::FRAMEWORK, "PROCESS_KILL",
             HiviewDFX::HiSysEvent::EventType::FAULT, EVENT_PID, pid,
-            EVENT_PROCESS_NAME, applicationInfo->process, EVENT_MESSAGE, killReason);
-        TAG_LOGI(AAFwkTag::APPDFR, "hisysevent write result=%{public}d, send event [FRAMEWORK,PROCESS_KILL],"
-            " pid=%{public}d, processName=%{public}s, msg=%{public}s", result, pid, processName.c_str(),
+            EVENT_PROCESS_NAME, processName, EVENT_MESSAGE, killReason);
+        TAG_LOGI(AAFwkTag::APPDFR, "result:%{public}d,"
+            " pid:%{public}d, processName:%{public}s, msg:%{public}s", result, pid, processName.c_str(),
             killReason.c_str());
     }
 }
@@ -170,6 +169,7 @@ int AppfreezeInner::AcquireStack(const FaultData& info, bool onlyMainThread)
         faultData.notifyApp = false;
         faultData.waitSaveState = false;
         faultData.forceExit = false;
+        faultData.eventId = it->eventId;
         bool isExit = IsExitApp(it->errorObject.name);
         if (isExit) {
             faultData.forceExit = true;
@@ -220,17 +220,17 @@ int AppfreezeInner::NotifyANR(const FaultData& faultData)
         faultData.errorObject.name.c_str());
     auto applicationInfo = applicationInfo_.lock();
     if (applicationInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::APPDFR, "NotifyANR fail, applicationInfo_ is nullptr.");
+        TAG_LOGE(AAFwkTag::APPDFR, "null applicationInfo_");
         return -1;
     }
 
     int32_t pid = static_cast<int32_t>(getpid());
-    TAG_LOGI(AAFwkTag::APPDFR, "Start NotifyAppFault:%{public}s, pid:%{public}d, bundleName:%{public}s.",
+    TAG_LOGI(AAFwkTag::APPDFR, "NotifyAppFault:%{public}s, pid:%{public}d, bundleName:%{public}s",
         faultData.errorObject.name.c_str(), pid, applicationInfo->bundleName.c_str());
 
     int ret = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->NotifyAppFault(faultData);
     if (ret != 0) {
-        TAG_LOGW(AAFwkTag::APPDFR, "NotifyAppFault ret :%{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPDFR, "NotifyAppFault ret:%{public}d", ret);
     }
     return ret;
 }

@@ -18,7 +18,6 @@
 #include <parameter.h>
 #include "ability_manager_service.h"
 #include "ability_event_handler.h"
-#include "hilog_wrapper.h"
 
 using namespace testing::ext;
 namespace OHOS {
@@ -74,6 +73,7 @@ HWTEST_F(AbilityEventHandlerTest, ability_event_handler_001, TestSize.Level1)
     handler->ProcessEvent(event2);
     event2 = EventWrap(AbilityManagerService::BACKGROUND_TIMEOUT_MSG, event.GetParam());
     handler->ProcessEvent(event2);
+    EXPECT_TRUE(handler != nullptr);
 }  // namespace AppExecFwk
 }  // namespace OHOS
 }

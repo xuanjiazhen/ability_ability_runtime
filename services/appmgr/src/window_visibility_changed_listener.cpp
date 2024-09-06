@@ -30,21 +30,21 @@ WindowVisibilityChangedListener::WindowVisibilityChangedListener(
 void WindowVisibilityChangedListener::OnWindowVisibilityChanged(
     const std::vector<sptr<WindowVisibilityInfo>> &windowVisibilityInfos)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "Called.");
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (windowVisibilityInfos.empty()) {
-        TAG_LOGW(AAFwkTag::APPMGR, "Window visibility info is empty.");
+        TAG_LOGW(AAFwkTag::APPMGR, "windowVisibilityInfo is empty");
         return;
     }
 
     if (taskHandler_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Task handler is nullptr.");
+        TAG_LOGE(AAFwkTag::APPMGR, "null taskHandler");
         return;
     }
 
     auto task = [inner = appServiceInner_, windowVisibilityInfos] {
         auto serviceInner = inner.lock();
         if (serviceInner == nullptr) {
-            TAG_LOGE(AAFwkTag::APPMGR, "Failed to get app mgr service inner.");
+            TAG_LOGE(AAFwkTag::APPMGR, "get fail");
             return;
         }
         serviceInner->HandleWindowVisibilityChanged(windowVisibilityInfos);

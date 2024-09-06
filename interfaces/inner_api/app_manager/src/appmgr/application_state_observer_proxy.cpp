@@ -16,7 +16,6 @@
 #include "application_state_observer_proxy.h"
 
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "ipc_types.h"
 
 
@@ -146,6 +145,42 @@ void ApplicationStateObserverProxy::OnProcessStateChanged(const ProcessData &pro
             ret, processData.bundleName.c_str());
     }
     TAG_LOGD(AAFwkTag::APPMGR, "end");
+}
+
+void ApplicationStateObserverProxy::OnWindowShow(const ProcessData &processData)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    if (!WriteInterfaceToken(data)) {
+        return;
+    }
+    data.WriteParcelable(&processData);
+    int32_t ret = SendTransactCmd(
+        static_cast<uint32_t>(IApplicationStateObserver::Message::TRANSACT_ON_WINDOW_SHOW),
+        data, reply, option);
+    if (ret != NO_ERROR && ret != ERR_INVALID_STUB) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is wrong, error code: %{public}d, bundleName:%{public}s.",
+            ret, processData.bundleName.c_str());
+    }
+}
+
+void ApplicationStateObserverProxy::OnWindowHidden(const ProcessData &processData)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    if (!WriteInterfaceToken(data)) {
+        return;
+    }
+    data.WriteParcelable(&processData);
+    int32_t ret = SendTransactCmd(
+        static_cast<uint32_t>(IApplicationStateObserver::Message::TRANSACT_ON_WINDOW_HIDDEN),
+        data, reply, option);
+    if (ret != NO_ERROR && ret != ERR_INVALID_STUB) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is wrong, error code: %{public}d, bundleName:%{public}s.",
+            ret, processData.bundleName.c_str());
+    }
 }
 
 void ApplicationStateObserverProxy::OnProcessDied(const ProcessData &processData)

@@ -16,8 +16,6 @@
 #include "pending_want_record.h"
 
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
-#include "iremote_object.h"
 #include "pending_want_manager.h"
 #include "int_wrapper.h"
 
@@ -75,7 +73,7 @@ int32_t PendingWantRecord::SenderInner(SenderInfo &senderInfo)
 
     auto pendingWantManager = pendingWantManager_.lock();
     if (pendingWantManager == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "%{public}s:pendingWantManager is nullptr.", __func__);
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null pendingWantManager");
         return ERR_INVALID_VALUE;
     }
 
@@ -87,7 +85,19 @@ int32_t PendingWantRecord::SenderInner(SenderInfo &senderInfo)
     BuildSendWant(senderInfo, want);
 
     bool sendFinish = (senderInfo.finishedReceiver != nullptr);
-    int res = NO_ERROR;
+    int32_t res = ExecuteOperation(pendingWantManager, senderInfo, want);
+    if (sendFinish && res != START_CANCELED) {
+        WantParams wantParams = {};
+        senderInfo.finishedReceiver->PerformReceive(want, senderInfo.code, "", wantParams, false, false, 0);
+    }
+
+    return res;
+}
+
+int32_t PendingWantRecord::ExecuteOperation(
+    std::shared_ptr<PendingWantManager> pendingWantManager, SenderInfo &senderInfo, Want &want)
+{
+    int32_t res = NO_ERROR;
     switch (key_->GetType()) {
         case static_cast<int32_t>(OperationType::START_ABILITY):
             res = pendingWantManager->PendingWantStartAbility(want, senderInfo.startOptions,
@@ -108,15 +118,12 @@ int32_t PendingWantRecord::SenderInner(SenderInfo &senderInfo)
         case static_cast<int32_t>(OperationType::SEND_COMMON_EVENT):
             res = pendingWantManager->PendingWantPublishCommonEvent(want, senderInfo, callerUid_, callerTokenId_);
             break;
+        case static_cast<int32_t>(OperationType::START_SERVICE_EXTENSION):
+            res = pendingWantManager->PendingWantStartServiceExtension(want, callerToken_);
+            break;
         default:
             break;
     }
-
-    if (sendFinish && res != START_CANCELED) {
-        WantParams wantParams = {};
-        senderInfo.finishedReceiver->PerformReceive(want, senderInfo.code, "", wantParams, false, false, 0);
-    }
-
     return res;
 }
 
@@ -138,7 +145,11 @@ void PendingWantRecord::BuildSendWant(SenderInfo &senderInfo, Want &want)
             wantParams.SetParam(sendInfoWantParamKey, mapIter->second);
         }
     }
-    wantParams.SetParam("ohos.extra.param.key.appCloneIndex", Integer::Box(key_->GetAppIndex()));
+
+    if (!wantParams.HasParam("ohos.extra.param.key.appCloneIndex")) {
+        wantParams.SetParam("ohos.extra.param.key.appCloneIndex", Integer::Box(key_->GetAppIndex()));
+    }
+    
     want.SetParams(wantParams);
 }
 

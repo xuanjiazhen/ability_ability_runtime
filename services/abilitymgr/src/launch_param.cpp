@@ -16,7 +16,6 @@
 #include "launch_param.h"
 
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "string_ex.h"
 
 namespace OHOS {
@@ -63,7 +62,7 @@ bool LaunchParam::Marshalling(Parcel &parcel) const
         return false;
     }
     if (!parcel.WriteString16(Str8ToStr16(lastExitMessage))) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Write parcel lastExitMessage failed.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write lastExitMessage failed");
         return false;
     }
     return true;

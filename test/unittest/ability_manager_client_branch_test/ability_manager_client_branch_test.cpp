@@ -24,7 +24,6 @@
 #undef protected
 
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "mock_ability_connect_callback.h"
 #include "mock_ability_manager_collaborator.h"
 #include "session/host/include/session.h"
@@ -151,7 +150,7 @@ HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_DumpSysState_0100,
 HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_SetMissionIcon_0100, TestSize.Level1)
 {
     sptr<IRemoteObject> abilityToken = nullptr;
-    std::shared_ptr<OHOS::Media::PixelMap> icon = std::make_shared<OHOS::Media::PixelMap>();
+    std::shared_ptr<OHOS::Media::PixelMap> icon = nullptr;
 
     auto result = client_->SetMissionIcon(abilityToken, icon);
     EXPECT_NE(result, ERR_OK);
@@ -849,7 +848,7 @@ HWTEST_F(AbilityManagerClientBranchTest, NotifyCompleteContinuation_0100, TestSi
     bool isSuccess = true;
     client_->NotifyCompleteContinuation(deviceId, sessionId, isSuccess);
 
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(client_ != nullptr);
     GTEST_LOG_(INFO) << "NotifyCompleteContinuation_0100 end";
 }
 
@@ -1010,7 +1009,7 @@ HWTEST_F(AbilityManagerClientBranchTest, CompleteFirstFrameDrawing_0100, TestSiz
     sptr<IRemoteObject> abilityToken = nullptr;
     client_->CompleteFirstFrameDrawing(abilityToken);
 
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(client_ != nullptr);
     GTEST_LOG_(INFO) << "CompleteFirstFrameDrawing_0100 end";
 }
 
@@ -1096,61 +1095,6 @@ HWTEST_F(AbilityManagerClientBranchTest, SetAbilityController_0100, TestSize.Lev
     GTEST_LOG_(INFO) << "SetAbilityController_0100 end";
 }
 
-
-#ifdef ABILITY_COMMAND_FOR_TEST
-/**
- * @tc.name: AbilityManagerClient_BlockAmsService_0100
- * @tc.desc: BlockAmsService
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerClientBranchTest, BlockAmsService_0100, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "BlockAmsService_0100 start";
-    EXPECT_CALL(*mock_, BlockAmsService())
-        .Times(1)
-        .WillOnce(Return(0));
-    auto result = client_->BlockAmsService();
-
-    EXPECT_EQ(result, ERR_OK);
-    GTEST_LOG_(INFO) << "BlockAmsService_0100 end";
-}
-
-/**
- * @tc.name: AbilityManagerClient_BlockAppService_0100
- * @tc.desc: BlockAppService
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerClientBranchTest, BlockAppService_0100, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "BlockAppService_0100 start";
-    EXPECT_CALL(*mock_, BlockAppService())
-        .Times(1)
-        .WillOnce(Return(0));
-    auto result = client_->BlockAppService(info);
-
-    EXPECT_EQ(result, ERR_OK);
-    GTEST_LOG_(INFO) << "BlockAppService_0100 end";
-}
-
-/**
- * @tc.name: AbilityManagerClient_BlockAbility_0100
- * @tc.desc: BlockAbility
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerClientBranchTest, BlockAbility_0100, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "BlockAbility_0100 start";
-    EXPECT_CALL(*mock_, BlockAbility(_))
-        .Times(1)
-        .WillOnce(Return(0));
-    int32_t abilityRecordId = 1;
-    auto result = client_->BlockAbility(abilityRecordId);
-
-    EXPECT_EQ(result, ERR_OK);
-    GTEST_LOG_(INFO) << "BlockAbility_0100 end";
-}
-#endif
-
 /**
  * @tc.name: AbilityManagerClient_DumpAbilityInfoDone_0100
  * @tc.desc: DumpAbilityInfoDone
@@ -1197,7 +1141,7 @@ HWTEST_F(AbilityManagerClientBranchTest, OnRemoteDied_0100, TestSize.Level1)
     wptr<IRemoteObject> remote = nullptr;
     recipient.OnRemoteDied(remote);
 
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(client_ != nullptr);
     GTEST_LOG_(INFO) << "OnRemoteDied_0100 end";
 }
 
@@ -1213,7 +1157,7 @@ HWTEST_F(AbilityManagerClientBranchTest, CallRequestDone_0100, TestSize.Level1)
     sptr<IRemoteObject> callStub = nullptr;
     client_->CallRequestDone(token, callStub);
 
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(client_ != nullptr);
     GTEST_LOG_(INFO) << "CallRequestDone_0100 end";
 }
 
@@ -1378,7 +1322,7 @@ HWTEST_F(AbilityManagerClientBranchTest, StartAbilityByCall_002, TestSize.Level1
     Want want;
     EXPECT_EQ(client_->StartAbilityByCall(want, nullptr), ERR_OK);
     client_->EnableRecoverAbility(nullptr);
-    EXPECT_EQ(client_->AddFreeInstallObserver(nullptr), ERR_OK);
+    EXPECT_EQ(client_->AddFreeInstallObserver(nullptr, nullptr), ERR_OK);
 }
 
 /**
@@ -1605,10 +1549,10 @@ HWTEST_F(AbilityManagerClientBranchTest, ShareDataDone_0100, TestSize.Level1)
  */
 HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_GetAbilityTokenByCalleeObj_0100, TestSize.Level1)
 {
-    EXPECT_TRUE(client_ != nullptr);
     sptr<IRemoteObject> callStub = nullptr;
     sptr<IRemoteObject> token = nullptr;
     client_->GetAbilityTokenByCalleeObj(callStub, token);
+    EXPECT_TRUE(client_ != nullptr);
 }
 
 /**
@@ -1750,6 +1694,7 @@ HWTEST_F(AbilityManagerClientBranchTest, StartAbilityByUIContentSession_0200, Te
     GTEST_LOG_(INFO) << "StartUIExtensionAbility_0200 end";
 }
 
+#ifdef WITH_DLP
 /**
  * @tc.number: NotifySaveAsResult_0100
  * @tc.name: NotifySaveAsResult
@@ -1761,6 +1706,7 @@ HWTEST_F(AbilityManagerClientBranchTest, NotifySaveAsResult_0100, TestSize.Level
     auto result = client_->NotifySaveAsResult(want, 0, 0);
     EXPECT_EQ(result, ERR_OK);
 }
+#endif // WITH_DLP
 
 /**
  * @tc.number: PrepareTerminateAbility_0100
@@ -1788,6 +1734,7 @@ HWTEST_F(AbilityManagerClientBranchTest, PrepareTerminateAbilityBySCB_0100, Test
     EXPECT_EQ(result, ERR_OK);
 }
 
+#ifdef WITH_DLP
 /**
  * @tc.number: UpdateMissionSnapShot_0100
  * @tc.name: UpdateMissionSnapShot
@@ -1795,11 +1742,12 @@ HWTEST_F(AbilityManagerClientBranchTest, PrepareTerminateAbilityBySCB_0100, Test
  */
 HWTEST_F(AbilityManagerClientBranchTest, UpdateMissionSnapShot_0100, TestSize.Level1)
 {
-    EXPECT_TRUE(client_ != nullptr);
     sptr<IRemoteObject> token = nullptr;
     auto pixelMap = std::shared_ptr<Media::PixelMap>();
     client_->UpdateMissionSnapShot(token, pixelMap);
+    EXPECT_TRUE(client_ != nullptr);
 }
+#endif // WITH_DLP
 
 /**
  * @tc.name: AbilityManagerClient_RegisterSessionHandler_0100
@@ -1820,10 +1768,10 @@ HWTEST_F(AbilityManagerClientBranchTest, RegisterSessionHandler_0100, TestSize.L
  */
 HWTEST_F(AbilityManagerClientBranchTest, SetLockedState_0100, TestSize.Level1)
 {
-    EXPECT_TRUE(client_ != nullptr);
     int32_t sessionId = 1;
     bool lockedState = true;
     client_->SetLockedState(sessionId, lockedState);
+    EXPECT_TRUE(client_ != nullptr);
 }
 
 /**
@@ -1833,9 +1781,9 @@ HWTEST_F(AbilityManagerClientBranchTest, SetLockedState_0100, TestSize.Level1)
  */
 HWTEST_F(AbilityManagerClientBranchTest, StartSpecifiedAbilityBySCB_0100, TestSize.Level1)
 {
-    EXPECT_TRUE(client_ != nullptr);
     Want want;
     client_->StartSpecifiedAbilityBySCB(want);
+    EXPECT_TRUE(client_ != nullptr);
 }
 
 /**
@@ -2460,6 +2408,25 @@ HWTEST_F(AbilityManagerClientBranchTest, SetMissionContinueState_0100, TestSize.
 }
 
 /**
+ * @tc.name: AbilityManagerClient_SetMissionContinueState_0200
+ * @tc.desc: SetMissionContinueState
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, SetMissionContinueState_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SetMissionContinueState_0200 start";
+    EXPECT_NE(client_, nullptr);
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        sptr<IRemoteObject> token = nullptr;
+        sptr<IRemoteObject> sessionToken = nullptr;
+        AAFwk::ContinueState state = AAFwk::ContinueState::CONTINUESTATE_INACTIVE;
+        auto result = client_->SetMissionContinueState(token, state, sessionToken);
+        EXPECT_EQ(ERR_OK, result);
+    }
+    GTEST_LOG_(INFO) << "SetMissionContinueState_0200 end";
+}
+
+/**
  * @tc.name: AbilityManagerClient_VerifyPermission_0100
  * @tc.desc: VerifyPermission
  * @tc.type: FUNC
@@ -2580,36 +2547,6 @@ HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_GetAbilityStateByP
 }
 
 /**
- * @tc.name: AbilityManagerClient_RegisterStatusBarDelegate_0100
- * @tc.desc: RegisterStatusBarDelegate
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_RegisterStatusBarDelegate_0100, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "AbilityManagerClient_RegisterStatusBarDelegate_0100 start";
-    ErrCode ret = client_->RegisterStatusBarDelegate(nullptr);
-    EXPECT_EQ(ret, ERR_OK);
-    GTEST_LOG_(INFO) << "AbilityManagerClient_RegisterStatusBarDelegate_0100 end";
-}
-
-#ifdef SUPPORT_GRAPHICS
-/**
- * @tc.name: AbilityManagerClient_SetMissionLabel_0100
- * @tc.desc: SetMissionLabel
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_SetMissionLabel_0100, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "AbilityManagerClient_SetMissionLabel_0100 start";
-    sptr<IRemoteObject> token = nullptr;
-    std::string label = "label";
-    ErrCode ret = client_->SetMissionLabel(token, label);
-    EXPECT_EQ(ret, ERR_OK);
-    GTEST_LOG_(INFO) << "AbilityManagerClient_SetMissionLabel_0100 end";
-}
-#endif
-
-/**
  * @tc.name: AbilityManagerClient_TransferAbilityResultForExtension_0100
  * @tc.desc: TransferAbilityResult
  * @tc.type: FUNC
@@ -2638,5 +2575,38 @@ HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_SetResidentProcess
     EXPECT_TRUE(client_ != nullptr);
     GTEST_LOG_(INFO) << "AbilityManagerClient_SetResidentProcessEnabled_0100 end";
 }
+
+/**
+ * @tc.name: AbilityManagerClient_RegisterStatusBarDelegate_0100
+ * @tc.desc: RegisterStatusBarDelegate
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_RegisterStatusBarDelegate_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityManagerClient_RegisterStatusBarDelegate_0100 start";
+    ErrCode ret = client_->RegisterStatusBarDelegate(nullptr);
+    EXPECT_EQ(ret, ERR_OK);
+    GTEST_LOG_(INFO) << "AbilityManagerClient_RegisterStatusBarDelegate_0100 end";
+}
+
+#ifdef SUPPORT_GRAPHICS
+/**
+ * @tc.name: AbilityManagerClient_SetMissionLabel_0100
+ * @tc.desc: SetMissionLabel
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_SetMissionLabel_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityManagerClient_SetMissionLabel_0100 start";
+    sptr<IRemoteObject> token = nullptr;
+    std::string label = "label";
+    ErrCode ret = client_->SetMissionLabel(token, label);
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        EXPECT_EQ(ret, ERR_OK);
+    }
+    EXPECT_TRUE(client_ != nullptr);
+    GTEST_LOG_(INFO) << "AbilityManagerClient_SetMissionLabel_0100 end";
+}
+#endif
 }  // namespace AAFwk
 }  // namespace OHOS

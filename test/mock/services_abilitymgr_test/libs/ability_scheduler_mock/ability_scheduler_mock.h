@@ -21,7 +21,6 @@
 #include <iremote_stub.h>
 #include <gmock/gmock.h>
 #include "ability_scheduler_interface.h"
-#include "hilog_wrapper.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -166,13 +165,6 @@ public:
     }
 
     virtual void UpdateSessionToken(sptr<IRemoteObject> sessionToken) override {}
-
-#ifdef ABILITY_COMMAND_FOR_TEST
-    virtual int BlockAbility()
-    {
-        return 0;
-    }
-#endif
 
     int code_ = 0;
 };

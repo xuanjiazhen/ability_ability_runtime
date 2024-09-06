@@ -19,7 +19,6 @@
 #include "extension_ability_info.h"
 #include "extension_manager_proxy.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "hitrace_meter.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
@@ -29,7 +28,7 @@ namespace OHOS {
 namespace AAFwk {
 #define CHECK_POINTER_RETURN_NOT_CONNECTED(object)   \
     if (!object) {                                   \
-        TAG_LOGE(AAFwkTag::EXTMGR, "proxy is nullptr."); \
+        TAG_LOGE(AAFwkTag::EXTMGR, "null proxy"); \
         return ABILITY_SERVICE_NOT_CONNECTED;        \
     }
 
@@ -53,30 +52,30 @@ void ExtensionManagerClient::Connect()
 {
     auto systemManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (systemManager == nullptr) {
-        TAG_LOGE(AAFwkTag::EXTMGR, "Fail to get SAMgr.");
+        TAG_LOGE(AAFwkTag::EXTMGR, "Get SAMgr failed");
         return;
     }
     auto remoteObj = systemManager->GetSystemAbility(ABILITY_MGR_SERVICE_ID);
     if (remoteObj == nullptr) {
-        TAG_LOGE(AAFwkTag::EXTMGR, "Fail to connect ability manager service.");
+        TAG_LOGE(AAFwkTag::EXTMGR, "Connect AMS failed");
         return;
     }
 
     deathRecipient_ = new ExtensionMgrDeathRecipient();
     if (remoteObj->IsProxyObject() && !remoteObj->AddDeathRecipient(deathRecipient_)) {
-        TAG_LOGE(AAFwkTag::EXTMGR, "Add death recipient to AbilityManagerService failed.");
+        TAG_LOGE(AAFwkTag::EXTMGR, "AddDeathRecipient failed");
         return;
     }
 
     proxy_ = sptr<IExtensionManager>(new ExtensionManagerProxy(remoteObj));
-    TAG_LOGD(AAFwkTag::EXTMGR, "Connect ability manager service success.");
+    TAG_LOGD(AAFwkTag::EXTMGR, "Connect AMS success");
 }
 
 void ExtensionManagerClient::ResetProxy(const wptr<IRemoteObject>& remote)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (proxy_ == nullptr) {
-        TAG_LOGI(AAFwkTag::EXTMGR, "proxy_ is nullptr, no need reset.");
+        TAG_LOGI(AAFwkTag::EXTMGR, "null proxy_, no need reset");
         return;
     }
 
@@ -89,7 +88,7 @@ void ExtensionManagerClient::ResetProxy(const wptr<IRemoteObject>& remote)
 
 void ExtensionManagerClient::ExtensionMgrDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)
 {
-    TAG_LOGI(AAFwkTag::EXTMGR, "ExtensionMgrDeathRecipient handle remote died.");
+    TAG_LOGI(AAFwkTag::EXTMGR, "called");
     ExtensionManagerClient::GetInstance().ResetProxy(remote);
 }
 
@@ -99,7 +98,7 @@ ErrCode ExtensionManagerClient::ConnectServiceExtensionAbility(const Want &want,
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetExtensionManager();
     if (abms == nullptr) {
-        TAG_LOGE(AAFwkTag::EXTMGR, "Connect service failed, bundleName:%{public}s, abilityName:%{public}s.",
+        TAG_LOGE(AAFwkTag::EXTMGR, "Connect failed, bundleName:%{public}s, abilityName:%{public}s.",
             want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
         return ABILITY_SERVICE_NOT_CONNECTED;
     }
@@ -115,7 +114,7 @@ ErrCode ExtensionManagerClient::ConnectServiceExtensionAbility(const Want &want,
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetExtensionManager();
     if (abms == nullptr) {
-        TAG_LOGE(AAFwkTag::EXTMGR, "Connect service failed, bundleName:%{public}s, abilityName:%{public}s.",
+        TAG_LOGE(AAFwkTag::EXTMGR, "Connect failed, bundleName:%{public}s, abilityName:%{public}s.",
             want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
         return ABILITY_SERVICE_NOT_CONNECTED;
     }
@@ -131,7 +130,7 @@ ErrCode ExtensionManagerClient::ConnectEnterpriseAdminExtensionAbility(const Wan
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetExtensionManager();
     if (abms == nullptr) {
-        TAG_LOGE(AAFwkTag::EXTMGR, "Connect service failed, bundleName:%{public}s, abilityName:%{public}s.",
+        TAG_LOGE(AAFwkTag::EXTMGR, "Connect failed, bundleName:%{public}s, abilityName:%{public}s.",
             want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
         return ABILITY_SERVICE_NOT_CONNECTED;
     }

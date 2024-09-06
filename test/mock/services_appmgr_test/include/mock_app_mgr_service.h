@@ -17,6 +17,7 @@
 #define MOCK_OHOS_ABILITY_RUNTIME_MOCK_APP_MGR_SERVICE_H
 
 #include "gmock/gmock.h"
+#include <cstdint>
 #include "semaphore_ex.h"
 #include "app_mgr_stub.h"
 #include "app_malloc_info.h"
@@ -41,6 +42,8 @@ public:
     MOCK_METHOD1(AbilityCleaned, void(const sptr<IRemoteObject>& token));
     MOCK_METHOD2(UpdateApplicationInfoInstalled, int(const std::string&, const int uid));
     MOCK_METHOD2(KillApplication, int32_t(const std::string& appName, const bool clearPageStack));
+    MOCK_METHOD3(ForceKillApplication, int32_t(const std::string& appName, const int userId, const int appIndex));
+    MOCK_METHOD1(KillProcessesByAccessTokenId, int32_t(const uint32_t accessTokenId));
     MOCK_METHOD2(KillApplicationByUid, int(const std::string&, const int uid));
     MOCK_METHOD1(IsBackgroundRunningRestricted, int(const std::string& bundleName));
     MOCK_METHOD1(GetAllRunningProcesses, int(std::vector<RunningProcessInfo>& info));
@@ -48,6 +51,7 @@ public:
         std::vector<RunningProcessInfo>& info));
     MOCK_METHOD2(GetProcessRunningInfosByUserId, int(std::vector<RunningProcessInfo>& info, int32_t userId));
     MOCK_METHOD1(GetAllRenderProcesses, int(std::vector<RenderProcessInfo>& info));
+    MOCK_METHOD1(GetAllChildrenProcesses, int(std::vector<ChildProcessInfo>&));
     MOCK_METHOD0(GetAmsMgr, sptr<IAmsMgr>());
     MOCK_METHOD1(GetAppFreezingTime, void(int& time));
     MOCK_METHOD1(SetAppFreezingTime, void(int time));
@@ -69,13 +73,10 @@ public:
         void(const int32_t recordId, const AAFwk::Want& want, const std::string& flag));
     MOCK_METHOD2(GetAbilityRecordsByProcessID, int(const int pid, std::vector<sptr<IRemoteObject>>& tokens));
     MOCK_METHOD1(GetConfiguration, int32_t(Configuration& config));
-    MOCK_METHOD1(UpdateConfiguration, int32_t(const Configuration& config));
+    MOCK_METHOD2(UpdateConfiguration, int32_t(const Configuration& config, const int32_t userId));
     MOCK_METHOD2(UpdateConfigurationByBundleName, int32_t(const Configuration& config, const std::string &name));
     MOCK_METHOD1(RegisterConfigurationObserver, int32_t(const sptr<IConfigurationObserver>& observer));
     MOCK_METHOD1(UnregisterConfigurationObserver, int32_t(const sptr<IConfigurationObserver>& observer));
-#ifdef ABILITY_COMMAND_FOR_TEST
-    MOCK_METHOD0(BlockAppService, int());
-#endif
     MOCK_METHOD1(GetAppRunningStateByBundleName, bool(const std::string& bundleName));
     MOCK_METHOD2(NotifyLoadRepairPatch, int32_t(const std::string& bundleName,
         const sptr<IQuickFixCallback>& callback));
@@ -95,8 +96,7 @@ public:
     MOCK_METHOD2(IsApplicationRunning, int32_t(const std::string &bundleName, bool &isRunning));
     MOCK_METHOD3(IsAppRunning, int32_t(const std::string &bundleName,
         int32_t appCloneIndex, bool &isRunning));
-    MOCK_METHOD4(StartChildProcess, int32_t(const std::string &srcEntry, pid_t &childPid, int32_t childProcessCount,
-        bool isStartWithNative));
+    MOCK_METHOD2(StartChildProcess, int32_t(pid_t &childPid, const ChildProcessRequest &request));
     MOCK_METHOD1(GetChildProcessInfoForSelf, int32_t(ChildProcessInfo &info));
     MOCK_METHOD1(AttachChildProcess, void(const sptr<IRemoteObject> &childScheduler));
     MOCK_METHOD0(ExitChildProcessSafely, void());
@@ -107,8 +107,12 @@ public:
     MOCK_METHOD0(RequestTerminateApplication, int32_t());
     MOCK_METHOD0(IsFinalAppProcess, bool());
     MOCK_METHOD1(SetSupportedProcessCacheSelf, int32_t(bool isSupport));
+    MOCK_METHOD2(SetSupportedProcessCache, int32_t(int32_t pid, bool isSupport));
     MOCK_METHOD3(StartNativeChildProcess, int32_t(const std::string &libName, int32_t childProcessCount,
         const sptr<IRemoteObject> &callback));
+    MOCK_METHOD2(GetSupportedProcessCachePids, int32_t(const std::string &bundleName,
+        std::vector<int32_t> &pidList));
+
     virtual int StartUserTestProcess(
         const AAFwk::Want &want, const sptr<IRemoteObject> &observer, const BundleInfo &bundleInfo, int32_t userId)
     {

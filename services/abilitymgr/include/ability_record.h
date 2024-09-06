@@ -21,6 +21,8 @@
 #include <list>
 #include <memory>
 #include <vector>
+#include <set>
+#include <utility>
 #include "cpp/mutex.h"
 #include "cpp/condition_variable.h"
 
@@ -41,6 +43,7 @@
 #include "ui_extension_window_command.h"
 #include "uri.h"
 #include "want.h"
+#include "window_config.h"
 #ifdef SUPPORT_GRAPHICS
 #include "ability_window_configuration.h"
 #include "resource_manager.h"
@@ -158,6 +161,7 @@ public:
     int32_t callerTokenId = 0;
     int32_t callerUid = 0;
     int32_t callerPid = 0;
+    std::string callerNativeName;
 };
 
 /**
@@ -190,12 +194,33 @@ public:
     {
         return callerInfo_;
     }
+    bool IsHistoryRequestCode(int32_t requestCode)
+    {
+        return requestCodeSet_.count(requestCode) > 0;
+    }
+    void RemoveHistoryRequestCode(int32_t requestCode)
+    {
+        requestCodeSet_.erase(requestCode);
+    }
+    void AddHistoryRequestCode(int32_t requestCode)
+    {
+        requestCodeSet_.insert(requestCode);
+    }
+    void SetRequestCodeSet(const std::set<int32_t> &requestCodeSet)
+    {
+        requestCodeSet_ = requestCodeSet;
+    }
+    std::set<int32_t> GetRequestCodeSet()
+    {
+        return requestCodeSet_;
+    }
 
 private:
     int requestCode_ = -1;  // requestCode of for-result start mode
     std::weak_ptr<AbilityRecord> caller_;
     std::shared_ptr<SystemAbilityCallerRecord> saCaller_ = nullptr;
     std::shared_ptr<CallerAbilityInfo> callerInfo_ = nullptr;
+    std::set<int32_t> requestCodeSet_;
 };
 
 /**
@@ -248,14 +273,19 @@ struct AbilityRequest {
 
     sptr<SessionInfo> sessionInfo;
     uint32_t specifyTokenId = 0;
+    bool uriReservedFlag = false;
+    std::string reservedBundleName;
 
-    bool IsContinuation() const
+    std::pair<bool, LaunchReason> IsContinuation() const
     {
         auto flags = want.GetFlags();
         if ((flags & Want::FLAG_ABILITY_CONTINUATION) == Want::FLAG_ABILITY_CONTINUATION) {
-            return true;
+            return {true, LaunchReason::LAUNCHREASON_CONTINUATION};
         }
-        return false;
+        if ((flags & Want::FLAG_ABILITY_PREPARE_CONTINUATION) == Want::FLAG_ABILITY_PREPARE_CONTINUATION) {
+            return {true, LaunchReason::LAUNCHREASON_PREPARE_CONTINUATION};
+        }
+        return {false, LaunchReason::LAUNCHREASON_UNKNOWN};
     }
 
     bool IsAcquireShareData() const
@@ -320,6 +350,18 @@ enum class AbilityVisibilityState {
     UNSPECIFIED,
 };
 
+struct LaunchDebugInfo {
+public:
+    void Update(const Want &want);
+
+    bool isDebugAppSet = false;
+    bool isNativeDebugSet = false;
+    bool isPerfCmdSet = false;
+    bool debugApp = false;
+    bool nativeDebug = false;
+    std::string perfCmd;
+};
+
 /**
  * @class AbilityRecord
  * AbilityRecord records ability info and states and used to schedule ability life.
@@ -364,7 +406,7 @@ public:
      *
      */
     void ForegroundAbility(uint32_t sceneFlag = 0);
-    void ForegroundAbility(const Closure &task, sptr<SessionInfo> sessionInfo = nullptr, uint32_t sceneFlag = 0);
+    void ForegroundUIExtensionAbility(uint32_t sceneFlag = 0);
 
     /**
      * process request of foregrounding the ability.
@@ -377,6 +419,12 @@ public:
      *
      */
     void PostForegroundTimeoutTask();
+
+    void RemoveForegroundTimeoutTask();
+
+    void RemoveLoadTimeoutTask();
+
+    void PostUIExtensionAbilityTimeoutTask(uint32_t messageId);
 
     /**
      * move the ability to back ground.
@@ -431,6 +479,13 @@ public:
      */
     AbilityState GetAbilityState() const;
 
+    /**
+     * get ability's windowconfig.
+     *
+     * @return ability windowconfig.
+     */
+    WindowConfig GetAbilityWindowConfig() const;
+
     bool IsForeground() const;
 
     AbilityVisibilityState GetAbilityVisibilityState() const;
@@ -451,16 +506,6 @@ public:
     }
 
     sptr<SessionInfo> GetSessionInfo() const;
-
-    sptr<SessionInfo> GetUIExtRequestSessionInfo() const
-    {
-        return uiExtRequestSessionInfo_;
-    }
-
-    void SetUIExtRequestSessionInfo(sptr<SessionInfo> sessionInfo)
-    {
-        uiExtRequestSessionInfo_ = sessionInfo;
-    }
 
     /**
      * get ability's token.
@@ -503,6 +548,8 @@ public:
      * @return true : ready ,false: not ready
      */
     bool IsReady() const;
+    void SetLoadState(AbilityLoadState loadState);
+    AbilityLoadState GetLoadState() const;
 
     void UpdateRecoveryInfo(bool hasRecoverInfo);
 
@@ -536,8 +583,6 @@ public:
         std::shared_ptr<StartOptions> &startOptions, const std::shared_ptr<AbilityRecord> &callerAbility,
         uint32_t sceneFlag = 0);
 
-    bool GrantUriPermissionForServiceExtension();
-
     void ProcessForegroundAbility(const std::shared_ptr<AbilityRecord> &callerAbility, bool needExit = true,
         uint32_t sceneFlag = 0);
     void NotifyAnimationFromTerminatingAbility() const;
@@ -549,6 +594,8 @@ public:
     bool GetColdStartFlag();
     void SetColdStartFlag(bool isColdStart);
 #endif
+
+    bool GrantUriPermissionForServiceExtension();
 
     /**
      * check whether the ability is launcher.
@@ -622,10 +669,22 @@ public:
     void ConnectAbility();
 
     /**
+     * connect the ability with want.
+     *
+     */
+    void ConnectAbilityWithWant(const Want &want);
+
+    /**
      * disconnect the ability.
      *
      */
     void DisconnectAbility();
+
+    /**
+     * disconnect the ability with want
+     *
+     */
+    void DisconnectAbilityWithWant(const Want &want);
 
     /**
      * Command the ability.
@@ -641,6 +700,7 @@ public:
      */
     void SaveAbilityState();
     void SaveAbilityState(const PacMap &inState);
+    void SaveAbilityWindowConfig(const WindowConfig &windowConfig);
 
     /**
      * restore ability state.
@@ -665,6 +725,12 @@ public:
      *
      */
     Want GetWant() const;
+
+    /**
+     * remove signature info of want.
+     *
+     */
+    void RemoveSignatureInfo();
 
     /**
      * remove specified wantParam for start ability.
@@ -697,6 +763,12 @@ public:
     void SendResult(bool isSandboxApp, uint32_t tokeId);
 
     /**
+     * send result object to caller ability thread.
+     *
+     */
+    void SendResultByBackToCaller(const std::shared_ptr<AbilityResult> &result);
+
+    /**
      * send result object to caller ability thread for sandbox app file saving.
      */
     void SendSandboxSavefileResult(const Want &want, int resultCode, int requestCode);
@@ -712,6 +784,8 @@ public:
      *
      */
     void SaveResultToCallers(const int resultCode, const Want *resultWant);
+
+    std::shared_ptr<AbilityRecord> GetCallerByRequestCode(int32_t requestCode, int32_t pid);
 
     /**
      * save result to caller ability.
@@ -740,6 +814,11 @@ public:
     std::list<std::shared_ptr<ConnectionRecord>> GetConnectingRecordList();
 
     /**
+     * get the count of In Progress record.
+     *
+     */
+    uint32_t GetInProgressRecordCount();
+    /**
      * remove the connect record from list.
      *
      */
@@ -751,12 +830,14 @@ public:
      */
     bool IsConnectListEmpty();
 
+    void RemoveCallerRequestCode(std::shared_ptr<AbilityRecord> callerAbilityRecord, int32_t requestCode);
+
     /**
      * add caller record
      *
      */
-    void AddCallerRecord(const sptr<IRemoteObject> &callerToken, int requestCode, std::string srcAbilityId = "",
-        uint32_t callingTokenId = 0);
+    void AddCallerRecord(const sptr<IRemoteObject> &callerToken, int requestCode, const Want &want,
+        std::string srcAbilityId = "", uint32_t callingTokenId = 0);
 
     /**
      * get caller record to list.
@@ -917,6 +998,7 @@ public:
     void SetSessionInfo(sptr<SessionInfo> sessionInfo);
     void UpdateSessionInfo(sptr<IRemoteObject> sessionToken);
     void SetMinimizeReason(bool fromUser);
+    void SetSceneFlag(uint32_t sceneFlag);
     bool IsMinimizeFromUser() const;
     void SetClearMissionFlag(bool clearMissionFlag);
     bool IsClearMissionFlag();
@@ -926,9 +1008,6 @@ public:
     void SetWindowMode(int32_t windowMode);
     void RemoveWindowMode();
     LifeCycleStateInfo lifeCycleStateInfo_;                // target life state info
-    #ifdef ABILITY_COMMAND_FOR_TEST
-    int BlockAbility();
-    #endif
 
     bool CanRestartRootLauncher();
 
@@ -1000,8 +1079,14 @@ public:
 
     void SetSpecifyTokenId(const uint32_t specifyTokenId);
 
+    void SaveConnectWant(const Want &want);
+
+    void UpdateConnectWant();
+
+    void RemoveConnectWant();
+
 protected:
-    void SendEvent(uint32_t msg, uint32_t timeOut, int32_t param = -1);
+    void SendEvent(uint32_t msg, uint32_t timeOut, int32_t param = -1, bool isExtension = false);
 
     sptr<Token> token_ = {};                               // used to interact with kit and wms
     std::unique_ptr<LifecycleDeal> lifecycleDeal_ = {};    // life manager used to schedule life
@@ -1029,8 +1114,12 @@ private:
 
     bool IsSystemAbilityCall(const sptr<IRemoteObject> &callerToken, uint32_t callingTokenId = 0);
 
+    void RecordSaCallerInfo(const Want &want);
+
+#ifdef WITH_DLP
     void HandleDlpAttached();
     void HandleDlpClosed();
+#endif // WITH_DLP
     void NotifyRemoveShellProcess(int32_t type);
     void NotifyAnimationAbilityDied();
     inline void SetCallerAccessTokenId(uint32_t callerAccessTokenId)
@@ -1057,7 +1146,7 @@ private:
 
     void PublishFileOpenEvent(const Want &want);
 
-    static void SetDebugAppByWaitingDebugFlag(Want &requestWant, const std::string &bundleName, bool isDebugApp);
+    void SetDebugAppByWaitingDebugFlag();
 
 #ifdef SUPPORT_SCREEN
     std::shared_ptr<Want> GetWantFromMission() const;
@@ -1110,7 +1199,7 @@ private:
     std::weak_ptr<AbilityRecord> nextAbilityRecord_ = {};  // ability that started by this ability
     int64_t startTime_ = 0;                           // records first time of ability start
     int64_t restartTime_ = 0;                         // the time of last trying restart
-    bool isReady_ = false;                            // is ability thread attached?
+    std::atomic<AbilityLoadState> loadState_ = AbilityLoadState::INIT;  // ability thread attach state
     bool isWindowStarted_ = false;                     // is window hotstart or coldstart?
     bool isWindowAttached_ = false;                   // Is window of this ability attached?
     bool isLauncherAbility_ = false;                  // is launcher?
@@ -1148,13 +1237,11 @@ private:
     std::list<std::shared_ptr<CallerRecord>> callerList_ = {};
 
     bool isUninstall_ = false;
-    const static std::map<AbilityState, std::string> stateToStrMap;
-    const static std::map<AbilityLifeCycleState, AbilityState> convertStateMap;
-    const static std::map<AppState, std::string> appStateToStrMap_;
 
     bool isLauncherRoot_ = false;
 
     PacMap stateDatas_;             // ability saved ability state data
+    WindowConfig windowConfig_;
     bool isRestarting_ = false;     // is restarting ?
     AppState appState_ = AppState::BEGIN;
 
@@ -1193,7 +1280,6 @@ private:
     sptr<SessionInfo> sessionInfo_ = nullptr;
     mutable ffrt::mutex sessionLock_;
     std::map<uint64_t, AbilityWindowState> abilityWindowStateMap_;
-    sptr<SessionInfo> uiExtRequestSessionInfo_ = nullptr;
 
 #ifdef SUPPORT_SCREEN
     bool isStartingWindow_ = false;
@@ -1219,6 +1305,12 @@ private:
 
     bool isRestartApp_ = false; // Only app calling RestartApp can be set to true
     uint32_t specifyTokenId_ = 0;
+
+    std::shared_ptr<Want> connectWant_ = nullptr;
+    std::shared_ptr<CallerAbilityInfo> saCallerInfo_ = nullptr;
+    ffrt::mutex connectWantLock_;
+    bool isLaunching_ = true;
+    LaunchDebugInfo launchDebugInfo_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

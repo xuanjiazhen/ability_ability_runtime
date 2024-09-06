@@ -55,7 +55,7 @@ int MockServiceAbilityManagerService::StartAbility(
 
 int MockServiceAbilityManagerService::StartAbilityAsCaller(
     const Want& want, const sptr<IRemoteObject>& callerToken, sptr<IRemoteObject> asCallerSourceToken,
-    int32_t userId, int requestCode, bool isSendDialogResult)
+    int32_t userId, int requestCode)
 {
     return 0;
 }
@@ -123,6 +123,23 @@ int MockServiceAbilityManagerService::AbilityTransitionDone(
     GTEST_LOG_(INFO) << "MockServiceAbilityManagerService::AbilityTransitionDone startAbility is " << startAbility;
     want_.SetElementName("BundleName", "abilityName");
     if (abilityScheduler_ != nullptr && state == AAFwk::ABILITY_STATE_INACTIVE) {
+        want_.SetElementName("BundleName", "abilityName");
+        if (startAbility) {
+            abilityScheduler_->ScheduleCommandAbility(want_, false, -1);
+        } else {
+            abilityScheduler_->ScheduleConnectAbility(want_);
+        }
+    }
+    return 0;
+}
+
+int MockServiceAbilityManagerService::AbilityWindowConfigTransitionDone(
+    const sptr<IRemoteObject>& token, const WindowConfig& windowConfig)
+{
+    GTEST_LOG_(INFO) << "MockServiceAbilityManagerService::AbilityWindowConfigTransitionDone startAbility is " <<
+        startAbility;
+    want_.SetElementName("BundleName", "abilityName");
+    if (abilityScheduler_ != nullptr) {
         want_.SetElementName("BundleName", "abilityName");
         if (startAbility) {
             abilityScheduler_->ScheduleCommandAbility(want_, false, -1);

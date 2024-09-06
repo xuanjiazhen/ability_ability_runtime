@@ -19,7 +19,6 @@
 #include "app_state_callback_host.h"
 #include "errors.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "mock_ability_token.h"
 
 using namespace testing;
@@ -75,7 +74,7 @@ HWTEST_F(AppConfigDataManagerTest, SetAppWaitingDebugInfo_001, TestSize.Level1)
     auto manager = std::make_shared<AbilityRuntime::AppConfigDataManager>();
     const std::string bundleName;
     auto iret = manager->SetAppWaitingDebugInfo(bundleName);
-    ASSERT_EQ(iret, ERR_INVALID_VALUE);
+    EXPECT_EQ(iret, ERR_INVALID_VALUE);
 }
 
 /*
@@ -91,7 +90,7 @@ HWTEST_F(AppConfigDataManagerTest, SetAppWaitingDebugInfo_002, TestSize.Level1)
     auto manager = std::make_shared<AbilityRuntime::AppConfigDataManager>();
     const std::string bundleName = "bundle";
     auto iret = manager->SetAppWaitingDebugInfo(bundleName);
-    ASSERT_EQ(iret, ERR_OK);
+    EXPECT_EQ(iret, ERR_OK);
 }
 
 /*
@@ -106,7 +105,7 @@ HWTEST_F(AppConfigDataManagerTest, ClearAppWaitingDebugInfo_001, TestSize.Level1
 {
     auto manager = std::make_shared<AbilityRuntime::AppConfigDataManager>();
     auto iret = manager->ClearAppWaitingDebugInfo();
-    ASSERT_EQ(iret, ERR_OK);
+    EXPECT_EQ(iret, ERR_OK);
 }
 
 /*
@@ -122,7 +121,7 @@ HWTEST_F(AppConfigDataManagerTest, GetAppWaitingDebugList_001, TestSize.Level1)
     auto manager = std::make_shared<AbilityRuntime::AppConfigDataManager>();
     std::vector<std::string> bundleNameList;
     auto iret = manager->GetAppWaitingDebugList(bundleNameList);
-    ASSERT_EQ(iret, ERR_OK);
+    EXPECT_EQ(iret, ERR_OK);
 }
 
 }  // namespace AppExecFwk

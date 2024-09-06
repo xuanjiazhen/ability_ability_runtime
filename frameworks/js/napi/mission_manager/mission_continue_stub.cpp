@@ -16,7 +16,6 @@
 #include "mission_continue_stub.h"
 
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "ipc_types.h"
 #include "message_parcel.h"
 #include "want.h"
@@ -33,7 +32,7 @@ int32_t MissionContinueStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
     if (data.ReadInterfaceToken() != GetDescriptor()) {
-        TAG_LOGE(AAFwkTag::MISSION, "Local descriptor is not equal to remote");
+        TAG_LOGE(AAFwkTag::MISSION, "invalid descriptor");
         return ERR_INVALID_STATE;
     }
 
@@ -45,7 +44,7 @@ int32_t MissionContinueStub::OnRemoteRequest(
             return NO_ERROR;
         }
         default: {
-            TAG_LOGW(AAFwkTag::MISSION, "MissionContinueStub::OnRemoteRequest code: %{public}d", code);
+            TAG_LOGW(AAFwkTag::MISSION, "code: %{public}d", code);
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }
     }

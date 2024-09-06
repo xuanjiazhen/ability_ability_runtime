@@ -15,7 +15,6 @@
 
 #include "service_ability_impl.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -24,13 +23,13 @@ void ServiceAbilityImpl::HandleAbilityTransaction(const Want &want, const AAFwk:
     sptr<AAFwk::SessionInfo> sessionInfo)
 {
     TAG_LOGD(AAFwkTag::ABILITY,
-        "ServiceAbilityImpl::HandleAbilityTransaction begin sourceState:%{public}d; targetState: %{public}d; "
+        "begin sourceState:%{public}d; targetState: %{public}d; "
         "isNewWant: %{public}d",
         lifecycleState_,
         targetState.state,
         targetState.isNewWant);
     if (lifecycleState_ == targetState.state) {
-        TAG_LOGE(AAFwkTag::ABILITY, "Org lifeCycleState equals to Dst lifeCycleState.");
+        TAG_LOGE(AAFwkTag::ABILITY, "lifeCycleStat:org=Dst");
         return;
     }
 
@@ -56,7 +55,7 @@ void ServiceAbilityImpl::HandleAbilityTransaction(const Want &want, const AAFwk:
         }
         default: {
             ret = false;
-            TAG_LOGE(AAFwkTag::ABILITY, "ServiceAbilityImpl::HandleAbilityTransaction state is error");
+            TAG_LOGE(AAFwkTag::ABILITY, "error");
             break;
         }
     }
@@ -68,7 +67,7 @@ void ServiceAbilityImpl::HandleAbilityTransaction(const Want &want, const AAFwk:
 
 void ServiceAbilityImpl::AbilityTransactionCallback(const AbilityLifeCycleState &state)
 {
-    TAG_LOGD(AAFwkTag::ABILITY, "called.");
+    TAG_LOGD(AAFwkTag::ABILITY, "called");
     AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_, state, GetRestoreData());
 }
 }  // namespace AppExecFwk

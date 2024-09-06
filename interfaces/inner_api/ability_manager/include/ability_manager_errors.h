@@ -462,7 +462,7 @@ enum {
      * Native error(2097240) for memory size state unchanged.
      */
     ERR_NATIVE_MEMORY_SIZE_STATE_UNCHANGED,
-    
+
     /**
      * Native error(2097241) for target bundle not exist.
      */
@@ -549,6 +549,56 @@ enum {
      * Native error(2097258) for target bundle not exist.
      */
     ERR_BUNDLE_NOT_EXIST,
+
+    /*
+     * Result(2097259) for open link start abilty default ok.
+     */
+    ERR_OPEN_LINK_START_ABILITY_DEFAULT_OK = 2097259,
+
+    /*
+     * Result (2097260) for target free install task does not exist.
+     */
+    ERR_FREE_INSTALL_TASK_NOT_EXIST = 2097260,
+
+    /*
+     * Result (2097261) for killing process uid is foundation.
+     */
+    ERR_KILL_FOUNDATION_UID = 2097261,
+
+    /*
+     * Result (2097262) caller not exists.
+     */
+    ERR_CALLER_NOT_EXISTS = 2097262,
+    
+    /*
+     * Result (2097263) Not support back to caller.
+     */
+    ERR_NOT_SUPPORT_BACK_TO_CALLER = 2097263,
+
+    /*
+     * Result (2097264) for not support child process.
+     */
+    ERR_NOT_SUPPORT_CHILD_PROCESS = 2097264,
+
+    /*
+     * Result (2097265) for already in child process.
+     */
+    ERR_ALREADY_IN_CHILD_PROCESS = 2097265,
+
+    /*
+     * Result (2097266) for child process reach limit.
+     */
+    ERR_CHILD_PROCESS_REACH_LIMIT = 2097266,
+
+    /**
+     * Result(2097267) for check is debug app.
+     */
+    ERR_NOT_DEBUG_APP = 2097267,
+
+    /*
+     * Result (2097268) for native child process reach limit.
+     */
+    ERR_NOT_SUPPORT_NATIVE_CHILD_PROCESS = 2097268,
 
     /**
      * Native error(3000000) for target bundle not exist.

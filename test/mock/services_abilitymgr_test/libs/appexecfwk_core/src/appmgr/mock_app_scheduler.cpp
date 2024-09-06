@@ -16,7 +16,6 @@
 #include "app_scheduler.h"
 
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "ability_util.h"
 #include "ability_manager_errors.h"
 #include "appmgr/app_mgr_constants.h"
@@ -67,12 +66,6 @@ void AppScheduler::MoveToForeground(const sptr<IRemoteObject>& token)
 void AppScheduler::MoveToBackground(const sptr<IRemoteObject>& token)
 {
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::MoveToBackground()");
-}
-
-void AppScheduler::AbilityBehaviorAnalysis(const sptr<IRemoteObject>& token, const sptr<IRemoteObject>& preToken,
-    const int32_t visibility, const int32_t perceptibility, const int32_t connectionState)
-{
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::AbilityBehaviorAnalysis()");
 }
 
 void AppScheduler::KillProcessByAbilityToken(const sptr<IRemoteObject>& token)
@@ -129,6 +122,21 @@ void AppScheduler::PrepareTerminate(const sptr<IRemoteObject>& token, bool clear
 void AppScheduler::OnAppStateChanged(const AppExecFwk::AppProcessData& appData)
 {
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::OnAppStateChanged()");
+}
+
+void AppScheduler::NotifyConfigurationChange(const AppExecFwk::Configuration &config, int32_t userId)
+{
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::NotifyConfigurationChange()");
+}
+
+void AppScheduler::NotifyStartResidentProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos)
+{
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::NotifyStartResidentProcess()");
+}
+
+void AppScheduler::OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abilityTokens)
+{
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::OnAppRemoteDied()");
 }
 
 void AppScheduler::UpdateAbilityState(const sptr<IRemoteObject>& token, const AppExecFwk::AbilityState state)

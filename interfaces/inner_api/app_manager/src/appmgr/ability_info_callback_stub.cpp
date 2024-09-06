@@ -16,43 +16,32 @@
 #include "ability_info_callback_stub.h"
 #include "appexecfwk_errors.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "ipc_types.h"
 #include "iremote_object.h"
 
 namespace OHOS {
 namespace AppExecFwk {
-AbilityInfoCallbackStub::AbilityInfoCallbackStub()
-{
-    memberFuncMap_[static_cast<uint32_t>(
-        IAbilityInfoCallback::Notify_ABILITY_TOKEN)] = &AbilityInfoCallbackStub::HandleNotifyAbilityToken;
-}
+AbilityInfoCallbackStub::AbilityInfoCallbackStub() {}
 
-AbilityInfoCallbackStub::~AbilityInfoCallbackStub()
-{
-    memberFuncMap_.clear();
-}
+AbilityInfoCallbackStub::~AbilityInfoCallbackStub() {}
 
 int AbilityInfoCallbackStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "AbilityInfoCallbackStub::OnReceived, code = %{public}u, flags= %{public}d.", code,
+    TAG_LOGI(AAFwkTag::APPMGR, "code: %{public}u, flags: %{public}d", code,
         option.GetFlags());
     std::u16string descriptor = AbilityInfoCallbackStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (descriptor != remoteDescriptor) {
-        TAG_LOGE(AAFwkTag::APPMGR, "local descriptor is not equal to remote.");
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid descriptor");
         return ERR_INVALID_STATE;
     }
 
-    auto itFunc = memberFuncMap_.find(code);
-    if (itFunc != memberFuncMap_.end()) {
-        auto memberFunc = itFunc->second;
-        if (memberFunc != nullptr) {
-            return (this->*memberFunc)(data, reply);
-        }
+    if (code == static_cast<uint32_t>(IAbilityInfoCallback::Notify_ABILITY_TOKEN)) {
+        return HandleNotifyAbilityToken(data, reply);
     }
-    TAG_LOGI(AAFwkTag::APPMGR, "AbilityInfoCallbackStub::OnReceived end");
+
+    TAG_LOGI(AAFwkTag::APPMGR, "end");
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
@@ -62,7 +51,7 @@ void AbilityInfoCallbackStub::NotifyAbilityToken(const sptr<IRemoteObject> token
 
 int32_t AbilityInfoCallbackStub::HandleNotifyAbilityToken(MessageParcel &data, MessageParcel &reply)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "AbilityInfoCallbackStub");
+    TAG_LOGI(AAFwkTag::APPMGR, "called");
     sptr<IRemoteObject> token = data.ReadRemoteObject();
     Want *want = data.ReadParcelable<Want>();
 

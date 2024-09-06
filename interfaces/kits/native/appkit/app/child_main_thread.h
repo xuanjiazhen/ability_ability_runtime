@@ -21,6 +21,7 @@
 #include <memory>
 
 #include "app_mgr_interface.h"
+#include "base_shared_bundle_info.h"
 #include "bundle_info.h"
 #include "bundle_mgr_interface.h"
 #include "child_scheduler_interface.h"
@@ -32,27 +33,30 @@
 
 namespace OHOS {
 namespace AppExecFwk {
+using HspList = std::vector<BaseSharedBundleInfo>;
 class ChildMainThread : public ChildSchedulerStub {
     DECLARE_DELAYED_IPCSINGLETON(ChildMainThread);
-    
+
 public:
-    static void Start(const ChildProcessInfo &processInfo);
-    bool ScheduleLoadJs() override;
+    static void Start(const std::map<std::string, int32_t> &fds);
+    void SetFds(const std::map<std::string, int32_t> &fds);
+    bool ScheduleLoadChild() override;
     bool ScheduleExitProcessSafely() override;
     bool ScheduleRunNativeProc(const sptr<IRemoteObject> &mainProcessCb) override;
 
 private:
+    static int32_t GetChildProcessInfo(ChildProcessInfo &info);
     bool Init(const std::shared_ptr<EventRunner> &runner, const ChildProcessInfo &processInfo);
     bool Attach();
     void HandleLoadJs();
+    void HandleLoadArkTs();
+    void HandleLoadNative();
     void InitNativeLib(const BundleInfo &bundleInfo);
     void HandleExitProcessSafely();
     void ExitProcessSafely();
-    void GetNativeLibPath(const BundleInfo &bundleInfo, AppLibPathMap &appLibPaths);
-    void GetHapSoPath(const HapModuleInfo &hapInfo, AppLibPathMap &appLibPaths, bool isPreInstallApp);
+    void GetNativeLibPath(const BundleInfo &bundleInfo, const HspList &hspList, AppLibPathMap &appLibPaths);
     void HandleRunNativeProc(const sptr<IRemoteObject> &mainProcessCb);
     void UpdateNativeChildLibModuleName(const AppLibPathMap &appLibPaths, bool isSystemApp);
-    std::string GetLibPath(const std::string &hapPath, bool isPreInstallApp);
 
     sptr<IAppMgr> appMgr_ = nullptr;
     std::shared_ptr<EventHandler> mainHandler_ = nullptr;
@@ -60,6 +64,7 @@ private:
     std::shared_ptr<ChildProcessInfo> processInfo_ = nullptr;
     std::unique_ptr<AbilityRuntime::Runtime> runtime_ = nullptr;
     std::string nativeLibModuleName_;
+    std::shared_ptr<ChildProcessArgs> processArgs_ = nullptr;
 
     DISALLOW_COPY_AND_MOVE(ChildMainThread);
 };

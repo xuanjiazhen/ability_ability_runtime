@@ -16,13 +16,13 @@
 #ifndef OHOS_ABILITY_RUNTIME_ABILITY_CONTEXT_H
 #define OHOS_ABILITY_RUNTIME_ABILITY_CONTEXT_H
 
-#include "foundation/ability/ability_runtime/interfaces/kits/native/appkit/ability_runtime/context/context.h"
-
 #include "ability_connect_callback.h"
 #include "ability_info.h"
 #include "ability_lifecycle_observer_interface.h"
 #include "caller_callback.h"
 #include "configuration.h"
+#include "context.h"
+#include "free_install_observer_interface.h"
 #include "iability_callback.h"
 #include "js_ui_extension_callback.h"
 #include "mission_info.h"
@@ -159,9 +159,13 @@ public:
 
     virtual ErrCode StartServiceExtensionAbility(const AAFwk::Want &want, int32_t accountId = -1) = 0;
 
+    virtual ErrCode StartUIServiceExtensionAbility(const AAFwk::Want &want, int32_t accountId = -1) = 0;
+
     virtual ErrCode StopServiceExtensionAbility(const AAFwk::Want& want, int32_t accountId = -1) = 0;
 
     virtual ErrCode TerminateAbilityWithResult(const AAFwk::Want &want, int resultCode) = 0;
+
+    virtual ErrCode BackToCallerAbilityWithResult(const AAFwk::Want &want, int resultCode, int64_t requestCode) = 0;
 
     virtual ErrCode RestoreWindowStage(napi_env env, napi_value contentStorage) = 0;
 
@@ -169,8 +173,12 @@ public:
 
     virtual ErrCode RequestModalUIExtension(const AAFwk::Want& want) = 0;
 
+    virtual ErrCode OpenLink(const AAFwk::Want& want, int requestCode) = 0;
+
     virtual ErrCode OpenAtomicService(AAFwk::Want& want, const AAFwk::StartOptions &options, int requestCode,
         RuntimeTask &&task) = 0;
+
+    virtual ErrCode AddFreeInstallObserver(const sptr<AbilityRuntime::IFreeInstallObserver> &observer) = 0;
 
     virtual ErrCode ChangeAbilityVisibility(bool isShow) { return 0; }
 
@@ -192,6 +200,16 @@ public:
      */
     virtual ErrCode ConnectAbilityWithAccount(const AAFwk::Want &want, int accountId,
                                 const sptr<AbilityConnectCallback> &connectCallback) = 0;
+
+    /**
+    * @brief Connects the current ability to an uiService ability using the AbilityInfo.AbilityType.SERVICE template.
+    *
+    * @param want Indicates the want containing information about the ability to connect
+    * @param connectCallback Indicates the callback object when the target ability is connected.
+    * @return True means success and false means failure
+    */
+    virtual ErrCode ConnectUIServiceExtensionAbility(const AAFwk::Want& want,
+        const sptr<AbilityConnectCallback>& connectCallback) = 0;
 
     /**
     * @brief Disconnects the current ability from an ability
@@ -343,6 +361,8 @@ public:
     virtual void SetRestoreEnabled(bool enabled) = 0;
     virtual bool GetRestoreEnabled() = 0;
 
+    virtual std::shared_ptr<AAFwk::Want> GetWant() = 0;
+
 #ifdef SUPPORT_GRAPHICS
 #ifdef SUPPORT_SCREEN
     /**
@@ -388,6 +408,7 @@ public:
     virtual bool IsTerminating() = 0;
     virtual void SetTerminating(bool state) = 0;
     virtual void InsertResultCallbackTask(int requestCode, RuntimeTask&& task) = 0;
+    virtual void RemoveResultCallbackTask(int requestCode) = 0;
     using SelfType = AbilityContext;
     static const size_t CONTEXT_TYPE_ID;
 

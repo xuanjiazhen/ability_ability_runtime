@@ -16,7 +16,6 @@
 #include "dlp_state_data.h"
 
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "string_ex.h"
 
 namespace OHOS {
@@ -86,17 +85,17 @@ bool DlpStateData::ReadFromParcel(Parcel &parcel)
     targetAbilityName = Str16ToStr8(strValue);
 
     if (!parcel.ReadInt32(callerUid)) {
-        TAG_LOGW(AAFwkTag::CONNECTION, "DlpStateData::ReadFromParcel read callerUid failed");
+        TAG_LOGW(AAFwkTag::CONNECTION, "read callerUid failed");
         return false;
     }
 
     if (!parcel.ReadInt32(callerPid)) {
-        TAG_LOGW(AAFwkTag::CONNECTION, "DlpStateData::ReadFromParcel read callerPid failed");
+        TAG_LOGW(AAFwkTag::CONNECTION, "read callerPid failed");
         return false;
     }
 
     if (!parcel.ReadString16(strValue)) {
-        TAG_LOGW(AAFwkTag::CONNECTION, "DlpStateData::ReadFromParcel read strValue failed");
+        TAG_LOGW(AAFwkTag::CONNECTION, "read strValue failed");
         return false;
     }
     callerName = Str16ToStr8(strValue);

@@ -14,9 +14,8 @@
  */
 
 #include "ui_extension_record.h"
+
 #include "ability_util.h"
-#include "extension_record_manager.h"
-#include "hilog_tag_wrapper.h"
 #include "session/host/include/zidl/session_interface.h"
 
 namespace OHOS {
@@ -35,7 +34,7 @@ bool UIExtensionRecord::ContinueToGetCallerToken()
 void UIExtensionRecord::Update(const AAFwk::AbilityRequest &abilityRequest)
 {
     if (abilityRecord_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityRecord_ is null");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null abilityRecord_");
         return;
     }
     abilityRecord_->SetSessionInfo(abilityRequest.sessionInfo);
@@ -56,28 +55,28 @@ void UIExtensionRecord::HandleNotifyUIExtensionTimeout(ErrorCode code)
 
 void UIExtensionRecord::LoadTimeout()
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "Called.");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     HandleNotifyUIExtensionTimeout(ErrorCode::LOAD_TIMEOUT);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Notify wms, the uiextension load time out.");
 }
 
 void UIExtensionRecord::ForegroundTimeout()
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "Called.");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     HandleNotifyUIExtensionTimeout(ErrorCode::FOREGROUND_TIMEOUT);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Notify wms, the uiextension move foreground time out.");
 }
 
 void UIExtensionRecord::BackgroundTimeout()
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "Called.");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     HandleNotifyUIExtensionTimeout(ErrorCode::BACKGROUND_TIMEOUT);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Notify wms, the uiextension move background time out.");
 }
 
 void UIExtensionRecord::TerminateTimeout()
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "Called.");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     HandleNotifyUIExtensionTimeout(ErrorCode::TERMINATE_TIMEOUT);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Notify wms, the uiextension terminate time out.");
 }

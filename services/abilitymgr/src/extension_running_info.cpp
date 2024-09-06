@@ -14,10 +14,8 @@
  */
 
 #include "extension_running_info.h"
+
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
-#include "nlohmann/json.hpp"
-#include "string_ex.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -38,7 +36,7 @@ bool ExtensionRunningInfo::ReadFromParcel(Parcel &parcel)
     startTime = parcel.ReadInt32();
     int32_t clientPackageSize = parcel.ReadInt32();
     if (clientPackageSize > CYCLE_LIMIT) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "clientPackageSize is too large.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "too large clientPackageSize");
         return false;
     }
     for (int32_t i = 0; i < clientPackageSize; i++) {

@@ -71,6 +71,20 @@ public:
     virtual void OnProcessStateChanged(const ProcessData &processData) override;
 
     /**
+     * Will be called when the window show.
+     *
+     * @param processData Process data.
+     */
+    virtual void OnWindowShow(const ProcessData &processData) override;
+
+    /**
+     * Will be called when the window hidden.
+     *
+     * @param processData Process data.
+     */
+    virtual void OnWindowHidden(const ProcessData &processData) override;
+
+    /**
      * Will be called when the process die.
      *
      * @param processData Process data.
@@ -141,6 +155,10 @@ private:
 
     int32_t HandleOnProcessStateChanged(MessageParcel &data, MessageParcel &reply);
 
+    int32_t HandleOnWindowShow(MessageParcel &data, MessageParcel &reply);
+
+    int32_t HandleOnWindowHidden(MessageParcel &data, MessageParcel &reply);
+
     int32_t HandleOnProcessDied(MessageParcel &data, MessageParcel &reply);
 
     int32_t HandleOnApplicationStateChanged(MessageParcel &data, MessageParcel &reply);
@@ -159,34 +177,6 @@ private:
 
     int32_t HandleOnAppCacheStateChanged(MessageParcel &data, MessageParcel &reply);
 
-    using ApplicationStateObserverFunc = int32_t (ApplicationStateObserverStub::*)(MessageParcel &data,
-        MessageParcel &reply);
-    const std::map<uint32_t, ApplicationStateObserverFunc> memberFuncMap_ = {
-        { static_cast<uint32_t>(Message::TRANSACT_ON_FOREGROUND_APPLICATION_CHANGED),
-            &ApplicationStateObserverStub::HandleOnForegroundApplicationChanged },
-        { static_cast<uint32_t>(Message::TRANSACT_ON_ABILITY_STATE_CHANGED),
-            &ApplicationStateObserverStub::HandleOnAbilityStateChanged },
-        { static_cast<uint32_t>(Message::TRANSACT_ON_EXTENSION_STATE_CHANGED),
-            &ApplicationStateObserverStub::HandleOnExtensionStateChanged },
-        { static_cast<uint32_t>(Message::TRANSACT_ON_PROCESS_CREATED),
-            &ApplicationStateObserverStub::HandleOnProcessCreated },
-        { static_cast<uint32_t>(Message::TRANSACT_ON_PROCESS_STATE_CHANGED),
-            &ApplicationStateObserverStub::HandleOnProcessStateChanged },
-        { static_cast<uint32_t>(Message::TRANSACT_ON_PROCESS_DIED),
-            &ApplicationStateObserverStub::HandleOnProcessDied },
-        { static_cast<uint32_t>(Message::TRANSACT_ON_APPLICATION_STATE_CHANGED),
-            &ApplicationStateObserverStub::HandleOnApplicationStateChanged },
-        { static_cast<uint32_t>(Message::TRANSACT_ON_APP_STATE_CHANGED),
-            &ApplicationStateObserverStub::HandleOnAppStateChanged },
-        { static_cast<uint32_t>(Message::TRANSACT_ON_PROCESS_REUSED),
-            &ApplicationStateObserverStub::HandleOnProcessReused },
-        { static_cast<uint32_t>(Message::TRANSACT_ON_APP_STARTED), &ApplicationStateObserverStub::HandleOnAppStarted },
-        { static_cast<uint32_t>(Message::TRANSACT_ON_APP_STOPPED), &ApplicationStateObserverStub::HandleOnAppStopped },
-        { static_cast<uint32_t>(Message::TRANSACT_ON_PAGE_SHOW), &ApplicationStateObserverStub::HandleOnPageShow },
-        { static_cast<uint32_t>(Message::TRANSACT_ON_PAGE_HIDE), &ApplicationStateObserverStub::HandleOnPageHide },
-        { static_cast<uint32_t>(Message::TRANSACT_ON_APP_CACHE_STATE_CHANGED),
-            &ApplicationStateObserverStub::HandleOnAppCacheStateChanged },
-    };
     static std::mutex callbackMutex_;
 
     DISALLOW_COPY_AND_MOVE(ApplicationStateObserverStub);

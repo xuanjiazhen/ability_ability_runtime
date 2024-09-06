@@ -147,19 +147,14 @@ public:
     MOCK_METHOD4(StartAbilityByCall,
         int(const Want&, const sptr<IAbilityConnection>&, const sptr<IRemoteObject>&, int32_t));
 
-    MOCK_METHOD6(StartAbilityAsCaller, int(const Want& want, const sptr<IRemoteObject>& callerToken,
-        sptr<IRemoteObject> asCallerSourceToken, int32_t userId, int requestCode, bool isSendDialogResult));
+    MOCK_METHOD5(StartAbilityAsCaller, int(const Want& want, const sptr<IRemoteObject>& callerToken,
+        sptr<IRemoteObject> asCallerSourceToken, int32_t userId, int requestCode));
     MOCK_METHOD6(StartAbilityAsCaller, int(const Want &want, const StartOptions &startOptions,
         const sptr<IRemoteObject>& callerToken, sptr<IRemoteObject> asCallerSourceToken,
         int32_t userId, int requestCode));
     MOCK_METHOD2(AcquireShareData, int32_t(const int32_t &missionId, const sptr<IAcquireShareDataCallback> &shareData));
     MOCK_METHOD4(ShareDataDone, int32_t(const sptr<IRemoteObject> &token,
         const int32_t &resultCode, const int32_t &uniqueId, WantParams &wantParam));
-#ifdef ABILITY_COMMAND_FOR_TEST
-    MOCK_METHOD0(BlockAppService, int());
-    MOCK_METHOD0(BlockAmsService, int());
-    MOCK_METHOD1(BlockAbility, int(int32_t abilityRecordId));
-#endif
 
     sptr<IAbilityScheduler> AcquireDataAbility(
         const Uri& uri, bool tryBind, const sptr<IRemoteObject>& callerToken) override
@@ -173,7 +168,7 @@ public:
         return releaseDataAbility_;
     }
 
-    int KillProcess(const std::string& bundleName, const bool clearPageStack = true) override;
+    int KillProcess(const std::string& bundleName, const bool clearPageStack = false) override;
 
     int UninstallApp(const std::string& bundleName, int32_t uid) override;
 

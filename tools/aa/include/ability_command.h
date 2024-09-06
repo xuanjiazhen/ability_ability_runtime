@@ -44,9 +44,6 @@ const std::string HELP_MSG = "usage: aa <command> <options>\n"
 #ifdef ABILITY_COMMAND_FOR_TEST
     "  test                        start the test framework with options\n"
     "  ApplicationNotResponding     Pass in pid with options\n"
-    "  block-ability <ability-record-id>       block ability with ability record id\n"
-    "  block-ams-service                       block ams service\n"
-    "  block-app-service                       block app service\n";
 #else
     "  test                        start the test framework with options\n"
     "  appdebug                    set / cancel / get waiting debug status\n";
@@ -70,8 +67,8 @@ const std::string HELP_MSG_START =
     "usage: aa start <options>\n"
     "options list:\n"
     "  -h, --help                                                   list available commands\n"
-    "  [-d <device-id>] [-a <ability-name> -b <bundle-name>] [-m <module-name>] [-p <perf-cmd>] [-D] [-S] [-N] [-R]"
-    "  [--ps <key> <string-value>] "
+    "  [-d <device-id>] [-a <ability-name> -b <bundle-name>] [-m <module-name>] [-p <perf-cmd>] [-D] [-E] [-S] [-N]"
+    "  [-R] [--ps <key> <string-value>] "
     "  [--pi <key> <integer-value>] "
     "  [--pb <key> <boolean-value>] "
     "  [--psn <key>] "
@@ -158,7 +155,6 @@ const std::string HELP_MSG_APPDEBUG_APP_DEBUG =
     "  -g, --get                                   get wait debug mode application bundle name and persist flag\n";
 
 const std::string HELP_MSG_FORCE_STOP = "usage: aa force-stop <bundle-name> [-p pid] [-r kill-reason]\n";
-const std::string HELP_MSG_BLOCK_ABILITY = "usage: aa block-ability <abilityrecordid>\n";
 const std::string HELP_MSG_FORCE_TIMEOUT =
     "usage: aa force-timeout <ability-name> <INITIAL|INACTIVE|COMMAND|FOREGROUND|BACKGROUND|TERMINATING>\n"
     "usage: aa force-timeout clean.";
@@ -186,14 +182,8 @@ const std::string STRING_START_USER_TEST_NG = "error: failed to start user test.
 const std::string STRING_USER_TEST_STARTED = "user test started.";
 const std::string STRING_USER_TEST_FINISHED = "user test finished.";
 
-const std::string STRING_BLOCK_ABILITY_OK = "block ability successfully.";
-const std::string STRING_BLOCK_ABILITY_NG = "error: failed to block stop ability.";
-
 const std::string STRING_BLOCK_AMS_SERVICE_OK = "block ams service successfully.";
 const std::string STRING_BLOCK_AMS_SERVICE_NG = "error: failed to block ams service.";
-
-const std::string STRING_BLOCK_APP_SERVICE_OK = "block app service successfully.";
-const std::string STRING_BLOCK_APP_SERVICE_NG = "error: failed to block app service.";
 
 const std::string STRING_APP_DEBUG_OK = "app debug successfully.";
 const std::string STRING_APP_DEBUG_NG = "error: failed to app debug.";
@@ -216,6 +206,7 @@ const std::string PERFCMD_FIRST_PROFILE = "profile";
 const std::string PERFCMD_FIRST_DUMPHEAP = "dumpheap";
 
 const std::string STRING_TEST_REGEX_INTEGER_NUMBERS = "^(0|[1-9][0-9]*|-[1-9][0-9]*)$";
+const std::string STRING_REGEX_ALL_NUMBERS = "^(-)?([0-9]|[1-9][0-9]+)([\\.][0-9]+)?$";
 }  // namespace
 
 class AbilityManagerShellCommand : public ShellCommand {
@@ -234,6 +225,7 @@ private:
 
     ErrCode RunAsHelpCommand();
     ErrCode RunAsScreenCommand();
+    void HandleInvalidScreenOptions(int& result);
     ErrCode RunAsStartAbility();
     ErrCode RunAsStopService();
     ErrCode RunAsDumpsysCommand();
@@ -257,9 +249,6 @@ private:
 #ifdef ABILITY_COMMAND_FOR_TEST
     ErrCode RunForceTimeoutForTest();
     ErrCode RunAsSendAppNotRespondingProcessID();
-    ErrCode RunAsBlockAbilityCommand();
-    ErrCode RunAsBlockAmsServiceCommand();
-    ErrCode RunAsBlockAppServiceCommand();
     ErrCode RunAsSendAppNotRespondingWithUnknownOption();
     ErrCode RunAsSendAppNotRespondingWithOption(int32_t option, std::string& pid);
 #endif

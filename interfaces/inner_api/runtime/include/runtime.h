@@ -55,6 +55,7 @@ public:
         bool isTestFramework = false;
         bool jitEnabled = false;
         bool isMultiThread = false;
+        bool isErrorInfoEnhance = false;
         int32_t uid = -1;
         // ArkTsCard start
         bool isUnique = false;
@@ -85,7 +86,7 @@ public:
 
     virtual void StartDebugMode(const DebugOption debugOption) = 0;
     virtual void DumpHeapSnapshot(bool isPrivate) = 0;
-    virtual void DumpCpuProfile(bool isPrivate) = 0;
+    virtual void DumpCpuProfile() = 0;
     virtual void DestroyHeapProfiler() = 0;
     virtual void ForceFullGC() = 0;
     virtual void ForceFullGC(uint32_t tid) = 0;
@@ -102,7 +103,7 @@ public:
     virtual bool UnLoadRepairPatch(const std::string& patchFile) = 0;
     virtual void RegisterQuickFixQueryFunc(const std::map<std::string, std::string>& moduleAndPath) = 0;
     virtual void StartProfiler(const DebugOption debugOption) = 0;
-    virtual void DoCleanWorkAfterStageCleaned() = 0;
+    virtual void DoCleanWorkAfterStageCleaned() {}
     virtual void SetModuleLoadChecker(const std::shared_ptr<ModuleCheckerDelegate> moduleCheckerDelegate) const {}
     virtual void SetDeviceDisconnectCallback(const std::function<bool()> &cb) = 0;
     virtual void UpdatePkgContextInfoJson(std::string moduleName, std::string hapPath, std::string packageName) = 0;

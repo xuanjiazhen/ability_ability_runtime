@@ -15,14 +15,7 @@
 
 #include "ecological_rule/ability_ecological_rule_mgr_service_param.h"
 
-#include <string>
-#include <vector>
-
-#include "iremote_broker.h"
-#include "iremote_object.h"
-
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 
 namespace OHOS {
 namespace EcologicalRuleMgrService {
@@ -35,7 +28,7 @@ AbilityExperienceRule *AbilityExperienceRule::Unmarshalling(Parcel &in)
         return nullptr;
     }
 
-    if (!in.ReadBool(rule->isAllow)) {
+    if (!in.ReadInt32(rule->resultCode)) {
         delete rule;
         return nullptr;
     }
@@ -47,13 +40,18 @@ AbilityExperienceRule *AbilityExperienceRule::Unmarshalling(Parcel &in)
 
     rule->replaceWant = in.ReadParcelable<Want>();
 
+    if (!in.ReadBool(rule->isBackSkuExempt)) {
+        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "read isBackSkuExempt failed");
+        rule->isBackSkuExempt = true;
+    }
+
     return rule;
 }
 
 bool AbilityExperienceRule::Marshalling(Parcel &parcel) const
 {
-    if (!parcel.WriteBool(isAllow)) {
-        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "write isAllow failed");
+    if (!parcel.WriteInt32(resultCode)) {
+        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "write resultCode failed");
         return false;
     }
 
@@ -64,6 +62,10 @@ bool AbilityExperienceRule::Marshalling(Parcel &parcel) const
     if (!parcel.WriteParcelable(replaceWant)) {
         TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "write replaceWant failed");
         return false;
+    }
+
+    if (!parcel.WriteBool(isBackSkuExempt)) {
+        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "write isBackSkuExempt failed");
     }
 
     return true;
@@ -79,7 +81,7 @@ AbilityCallerInfo *AbilityCallerInfo::Unmarshalling(Parcel &in)
 {
     auto *info = new (std::nothrow) AbilityCallerInfo();
     if (info == nullptr) {
-        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "new callerInfo failed, return nullptr");
+        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "info null");
         return nullptr;
     }
 
@@ -169,6 +171,11 @@ bool AbilityCallerInfo::Marshalling(Parcel &parcel) const
 
     if (!parcel.WriteInt32(static_cast<int32_t>(targetExtensionAbilityType))) {
         TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "write targetExtensionAbilityType failed");
+        return false;
+    }
+
+    if (!parcel.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "write userId failed");
         return false;
     }
     return true;

@@ -57,8 +57,7 @@ public:
         const sptr<IRemoteObject>& callerToken,
         const sptr<IRemoteObject> asCallerSourceToken,
         int32_t userId = DEFAULT_INVAL_VALUE,
-        int requestCode = DEFAULT_INVAL_VALUE,
-        bool isSendDialogResult = false) override;
+        int requestCode = DEFAULT_INVAL_VALUE) override;
     int StartAbilityAsCaller(
         const Want& want,
         const StartOptions& startOptions,
@@ -94,6 +93,7 @@ public:
     int AttachAbilityThread(const sptr<IAbilityScheduler>& scheduler, const sptr<IRemoteObject>& token) override;
 
     int AbilityTransitionDone(const sptr<IRemoteObject>& token, int state, const PacMap& saveData) override;
+    int AbilityWindowConfigTransitionDone(const sptr<IRemoteObject>& token, const WindowConfig& windowConfig) override;
     int ScheduleConnectAbilityDone(const sptr<IRemoteObject>& token, const sptr<IRemoteObject>& remoteObject) override;
     int ScheduleDisconnectAbilityDone(const sptr<IRemoteObject>& token) override;
     int ScheduleCommandAbilityDone(const sptr<IRemoteObject>& token) override;
@@ -165,12 +165,6 @@ public:
     MOCK_METHOD2(AcquireShareData, int32_t(const int32_t &missionId, const sptr<IAcquireShareDataCallback> &shareData));
     MOCK_METHOD4(ShareDataDone, int32_t(const sptr<IRemoteObject> &token,
         const int32_t &resultCode, const int32_t &uniqueId, WantParams &wantParam));
-
-#ifdef ABILITY_COMMAND_FOR_TEST
-    MOCK_METHOD0(BlockAppService, int());
-    MOCK_METHOD0(BlockAmsService, int());
-    MOCK_METHOD1(BlockAbility, int(int32_t abilityRecordId));
-#endif
 
     sptr<IAbilityScheduler> AcquireDataAbility(
         const Uri& uri, bool tryBind, const sptr<IRemoteObject>& callerToken) override

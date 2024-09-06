@@ -22,7 +22,6 @@
 #include "ability_manager_client.h"
 #include "ability_manager_errors.h"
 #include "connection_manager.h"
-#include "hilog_wrapper.h"
 #undef protected
 #undef private
 
@@ -281,7 +280,7 @@ HWTEST_F(ConnectionManagerTest, CreateConnection_0100, TestSize.Level0)
     AAFwk::Want want;
     int32_t accountId = 0;
     sptr<AbilityConnectCallback> connectCallback = new (std::nothrow) MockAbilityConnectCallback();
-    auto result = mgr->CreateConnection(connectCallernew, want, accountId, connectCallback);
+    auto result = mgr->CreateConnection(connectCallernew, want, accountId, connectCallback, false);
     EXPECT_EQ(result, AAFwk::CHECK_PERMISSION_FAILED);
     GTEST_LOG_(INFO) << "ConnectionManagerTest CreateConnection_0100 end";
 }

@@ -22,6 +22,7 @@ ohos_unittest("lifecycle_test") {
   include_dirs = [
     "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/appexecfwk_core/include",
     "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/aakit/include",
+    "${ability_runtime_utils_path}/global/constant",
   ]
 
   sources = [ "lifecycle_test.cpp" ]
@@ -29,6 +30,7 @@ ohos_unittest("lifecycle_test") {
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
 
   deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
@@ -41,6 +43,7 @@ ohos_unittest("lifecycle_test") {
   external_deps = [
     "ability_base:session_info",
     "ability_base:want",
+    "ability_base:zuri",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",

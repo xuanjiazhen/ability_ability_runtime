@@ -15,14 +15,14 @@
 
 #include "app_jsheap_mem_info.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 
 namespace OHOS {
 namespace AppExecFwk {
 bool JsHeapDumpInfo::Marshalling(Parcel &parcel) const
 {
     return (parcel.WriteUint32(pid) && parcel.WriteUint32(tid)
-        && parcel.WriteBool(needGc) && parcel.WriteBool(needSnapshot));
+        && parcel.WriteBool(needGc) && parcel.WriteBool(needSnapshot)
+        && parcel.WriteBool(needLeakobj));
 }
 
 JsHeapDumpInfo *JsHeapDumpInfo::Unmarshalling(Parcel &parcel)
@@ -36,6 +36,7 @@ JsHeapDumpInfo *JsHeapDumpInfo::Unmarshalling(Parcel &parcel)
     info->tid = parcel.ReadUint32();
     info->needGc = parcel.ReadBool();
     info->needSnapshot = parcel.ReadBool();
+    info->needLeakobj = parcel.ReadBool();
     return info;
 }
 } // namespace AppExecFwk

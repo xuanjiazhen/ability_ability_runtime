@@ -25,6 +25,7 @@
 
 namespace OHOS {
 namespace AAFwk {
+
 struct StartAbilityInfo {
     static std::shared_ptr<StartAbilityInfo> CreateStartAbilityInfo(const Want &want, int32_t userId,
         int32_t appIndex);
@@ -53,12 +54,19 @@ struct StartAbilityUtils {
     static bool GetCallerAbilityInfo(const sptr<IRemoteObject> &callerToken,
         AppExecFwk::AbilityInfo &abilityInfo);
     static int32_t CheckAppProvisionMode(const Want& want, int32_t userId);
+    static int32_t CheckAppProvisionMode(const std::string& bundleName, int32_t userId);
+    static std::vector<int32_t> GetCloneAppIndexes(const std::string &bundleName, int32_t userId);
+
+    static bool IsCallFromAncoShellOrBroker(const sptr<IRemoteObject> &callerToken);
 
     static thread_local std::shared_ptr<StartAbilityInfo> startAbilityInfo;
     static thread_local std::shared_ptr<StartAbilityInfo> callerAbilityInfo;
     static thread_local bool skipCrowTest;
     static thread_local bool skipStartOther;
     static thread_local bool skipErms;
+    static thread_local int32_t ermsResultCode;
+    static thread_local bool isWantWithAppCloneIndex;
+    static thread_local bool ermsSupportBackToCallerFlag;
 };
 
 struct StartAbilityInfoWrap {

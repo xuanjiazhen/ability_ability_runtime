@@ -16,7 +16,6 @@
 #include "start_options.h"
 
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "process_options.h"
 
 namespace OHOS {
@@ -106,7 +105,7 @@ bool StartOptions::Marshalling(Parcel &parcel) const
     parcel.WriteBool(windowWidthUsed_);
     parcel.WriteBool(windowHeightUsed_);
     if (!parcel.WriteParcelable(processOptions.get())) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Write processOptions failed.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write processOptions failed");
         return false;
     }
     return true;

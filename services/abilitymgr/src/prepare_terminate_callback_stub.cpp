@@ -15,38 +15,30 @@
 
 #include "prepare_terminate_callback_stub.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 
 namespace OHOS {
 namespace AAFwk {
 
-PrepareTerminateCallbackStub::PrepareTerminateCallbackStub()
-{
-    requestFuncMap_[ON_DO_PREPARE_TERMINATE] = &PrepareTerminateCallbackStub::DoPrepareTerminateInner;
-}
+PrepareTerminateCallbackStub::PrepareTerminateCallbackStub() {}
 
 PrepareTerminateCallbackStub::~PrepareTerminateCallbackStub()
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
-    requestFuncMap_.clear();
 }
 
 int32_t PrepareTerminateCallbackStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     if (data.ReadInterfaceToken() != IPrepareTerminateCallback::GetDescriptor()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "InterfaceToken not equal IPrepareTerminateCallback's descriptor.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "InterfaceToken invalid");
         return ERR_INVALID_STATE;
     }
 
-    auto itFunc = requestFuncMap_.find(code);
-    if (itFunc != requestFuncMap_.end()) {
-        auto requestFunc = itFunc->second;
-        if (requestFunc != nullptr) {
-            return (this->*requestFunc)(data, reply);
-        }
+    if (code == ON_DO_PREPARE_TERMINATE) {
+        return DoPrepareTerminateInner(data, reply);
     }
-    TAG_LOGW(AAFwkTag::ABILITYMGR, "default case, needs to be checked.");
+
+    TAG_LOGW(AAFwkTag::ABILITYMGR, "default case, check");
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 

@@ -16,12 +16,8 @@
 #include "scene_board/status_bar_delegate_manager.h"
 
 #include "ability_util.h"
-#include "errors.h"
-#include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
-#include "in_process_call_wrapper.h"
 #include "process_options.h"
-#include "session_info.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -47,7 +43,7 @@ bool StatusBarDelegateManager::IsCallerInStatusBar()
     bool isExist = false;
     auto ret = statusBarDelegate->CheckIfStatusBarItemExists(callingTokenId, isExist);
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "CheckIfStatusBarItemExists failed, ret: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed, ret: %{public}d", ret);
         return false;
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "isExist: %{public}d", isExist);
@@ -68,7 +64,7 @@ int32_t StatusBarDelegateManager::DoProcessAttachment(std::shared_ptr<AbilityRec
     if (processOptions->processMode == ProcessMode::NEW_PROCESS_ATTACH_TO_PARENT) {
         auto callerRecord = abilityRecord->GetCallerRecord();
         CHECK_POINTER_AND_RETURN(callerRecord, ERR_INVALID_VALUE);
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "attach pid to parent.");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "attach pid to parent");
         IN_PROCESS_CALL_WITHOUT_RET(DelayedSingleton<AppScheduler>::GetInstance()->AttachPidToParent(
             abilityRecord->GetToken(), callerRecord->GetToken()));
     }
@@ -78,10 +74,10 @@ int32_t StatusBarDelegateManager::DoProcessAttachment(std::shared_ptr<AbilityRec
         auto accessTokenId = abilityRecord->GetApplicationInfo().accessTokenId;
         auto ret = statusBarDelegate->AttachPidToStatusBarItem(accessTokenId, abilityRecord->GetPid());
         if (ret != ERR_OK) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "AttachPidToStatusBarItem failed, ret: %{public}d", ret);
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "failed, ret: %{public}d", ret);
             return ret;
         }
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "AttachPidToStatusBarItem success.");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "success");
     }
     if (processOptions->processMode == ProcessMode::NEW_PROCESS_ATTACH_TO_STATUS_BAR_ITEM) {
         IN_PROCESS_CALL_WITHOUT_RET(DelayedSingleton<AppScheduler>::GetInstance()->AttachedToStatusBar(

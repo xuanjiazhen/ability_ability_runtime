@@ -22,7 +22,6 @@
 #include "app_scheduler_interface.h"
 #include "app_mgr_stub.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "app_malloc_info.h"
 #include "app_jsheap_mem_info.h"
 
@@ -51,9 +50,6 @@ public:
     MOCK_METHOD3(ScheduleAcceptWantDone, void(const int32_t recordId, const AAFwk::Want& want,
         const std::string& flag));
     MOCK_METHOD2(GetAbilityRecordsByProcessID, int(const int pid, std::vector<sptr<IRemoteObject>>& tokens));
-#ifdef ABILITY_COMMAND_FOR_TEST
-    MOCK_METHOD0(BlockAppService, int());
-#endif
     MOCK_METHOD0(PreStartNWebSpawnProcess, int());
     MOCK_METHOD6(StartRenderProcess,
                  int(const std::string &renderParam, int32_t ipcFd,
@@ -62,7 +58,7 @@ public:
     MOCK_METHOD1(SaveBrowserChannel, void(sptr<IRemoteObject> browser));
     MOCK_METHOD2(GetRenderProcessTerminationStatus, int(pid_t renderPid, int& status));
     MOCK_METHOD1(GetConfiguration, int32_t(Configuration& config));
-    MOCK_METHOD1(UpdateConfiguration, int32_t(const Configuration& config));
+    MOCK_METHOD2(UpdateConfiguration, int32_t(const Configuration& config, const int32_t userId));
     MOCK_METHOD1(RegisterConfigurationObserver, int32_t(const sptr<IConfigurationObserver>& observer));
     MOCK_METHOD1(UnregisterConfigurationObserver, int32_t(const sptr<IConfigurationObserver>& observer));
     MOCK_METHOD1(GetAppRunningStateByBundleName, bool(const std::string& bundleName));
@@ -77,18 +73,21 @@ public:
     MOCK_METHOD2(GetProcessMemoryByPid, int32_t(const int32_t pid, int32_t & memorySize));
     MOCK_METHOD3(GetRunningProcessInformation, int32_t(const std::string & bundleName, int32_t userId,
         std::vector<RunningProcessInfo> &info));
-    MOCK_METHOD3(StartChildProcess, int32_t(const std::string &srcEntry, pid_t &childPid, int32_t childProcessCount));
+    MOCK_METHOD2(StartChildProcess, int32_t(pid_t &childPid, const ChildProcessRequest &request));
     MOCK_METHOD1(GetChildProcessInfoForSelf, int32_t(ChildProcessInfo &info));
     MOCK_METHOD1(AttachChildProcess, void(const sptr<IRemoteObject> &childScheduler));
     MOCK_METHOD0(ExitChildProcessSafely, void());
     MOCK_METHOD1(RegisterRenderStateObserver, int32_t(const sptr<IRenderStateObserver> &observer));
     MOCK_METHOD1(UnregisterRenderStateObserver, int32_t(const sptr<IRenderStateObserver> &observer));
     MOCK_METHOD2(UpdateRenderState, int32_t(pid_t renderPid, int32_t state));
-    MOCK_METHOD1(SetSupportedProcessCacheSelf, int32_t(bool isSupported));
     MOCK_METHOD2(GetRunningMultiAppInfoByBundleName, int32_t(const std::string &bundleName,
         RunningMultiAppInfo &info));
+    MOCK_METHOD1(SetSupportedProcessCacheSelf, int32_t(bool isSupported));
+    MOCK_METHOD2(SetSupportedProcessCache, int32_t(int32_t pid, bool isSupport));
     MOCK_METHOD3(StartNativeChildProcess, int32_t(const std::string &libName, int32_t childProcessCount,
         const sptr<IRemoteObject> &callback));
+    MOCK_METHOD2(GetSupportedProcessCachePids, int32_t(const std::string &bundleName,
+        std::vector<int32_t> &pidList));
 
     void AttachApplication(const sptr<IRemoteObject>& app)
     {
@@ -129,6 +128,8 @@ public:
     MOCK_METHOD2(UpdateApplicationInfoInstalled, int(const std::string&, const int uid));
 
     MOCK_METHOD2(KillApplication, int(const std::string& appName, const bool clearPageStack));
+    MOCK_METHOD3(ForceKillApplication, int(const std::string& appName, const int userId, const int appIndex));
+    MOCK_METHOD1(KillProcessesByAccessTokenId, int32_t(const uint32_t accessTokenId));
     MOCK_METHOD2(KillApplicationByUid, int(const std::string&, const int uid));
     MOCK_METHOD0(IsFinalAppProcess, bool());
 
@@ -163,6 +164,11 @@ public:
     }
 
     virtual int GetAllRenderProcesses(std::vector<RenderProcessInfo>& info) override
+    {
+        return 0;
+    }
+
+    virtual int GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info) override
     {
         return 0;
     }

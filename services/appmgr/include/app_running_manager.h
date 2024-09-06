@@ -23,23 +23,25 @@
 
 #include "ability_info.h"
 #include "app_debug_listener_interface.h"
+#include "app_jsheap_mem_info.h"
 #include "app_malloc_info.h"
 #include "app_mem_info.h"
 #include "app_running_record.h"
 #include "app_state_data.h"
 #include "application_info.h"
 #include "bundle_info.h"
+#include "configuration.h"
 #include "iremote_object.h"
 #include "record_query_result.h"
 #include "refbase.h"
 #include "running_process_info.h"
-#include "app_jsheap_mem_info.h"
 
 namespace OHOS {
 namespace Rosen {
 class WindowVisibilityInfo;
 }
 namespace AppExecFwk {
+
 class AppRunningManager {
 public:
     AppRunningManager();
@@ -70,7 +72,19 @@ public:
      */
     std::shared_ptr<AppRunningRecord> CheckAppRunningRecordIsExist(const std::string &appName,
         const std::string &processName, const int uid, const BundleInfo &bundleInfo,
-        const std::string &specifiedProcessFlag = "");
+        const std::string &specifiedProcessFlag = "", bool *isProCache = nullptr);
+
+#ifdef APP_NO_RESPONSE_DIALOG
+    /**
+     * CheckAppRunningRecordIsExist, Check whether the process of the app exists by bundle name and process Name.
+     *
+     * @param bundleName, Indicates the bundle name of the bundle..
+     * @param ablityName, ablity name.
+     *
+     * @return true if exist.
+     */
+    bool CheckAppRunningRecordIsExist(const std::string &bundleName, const std::string &ablityName);
+#endif
 
     /**
      * CheckAppRunningRecordIsExistByBundleName, Check whether the process of the application exists.
@@ -80,6 +94,14 @@ public:
      * @return, Return true if exist.
      */
     bool CheckAppRunningRecordIsExistByBundleName(const std::string &bundleName);
+
+    /**
+     * CheckAppRunningRecordIsExistByUid, check app exist when concurrent.
+     *
+     * @param uid, the process uid.
+     * @return, Return true if exist.
+     */
+    bool CheckAppRunningRecordIsExistByUid(int32_t uid);
 
     /**
      * CheckAppRunningRecordIsExistByBundleName, Check whether the process of the application exists.
@@ -148,7 +170,7 @@ public:
      * @return Return true if found, otherwise return false.
      */
     bool ProcessExitByBundleName(
-        const std::string &bundleName, std::list<pid_t> &pids, const bool clearPageStack = true);
+        const std::string &bundleName, std::list<pid_t> &pids, const bool clearPageStack = false);
     /**
      * Get Foreground Applications.
      *
@@ -162,7 +184,7 @@ public:
     * @param config System environment change parameters.
     * @return Returns ERR_OK on success, others on failure.
     */
-    int32_t UpdateConfiguration(const Configuration &config);
+    int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1);
 
     /**
      *  Update config by sa.
@@ -217,7 +239,7 @@ public:
     void SetAbilityForegroundingFlagToAppRecord(const pid_t pid);
 
     void HandleTerminateTimeOut(int64_t eventId);
-    void HandleAbilityAttachTimeOut(const sptr<IRemoteObject> &token);
+    void HandleAbilityAttachTimeOut(const sptr<IRemoteObject> &token, std::shared_ptr<AppMgrServiceInner> serviceInner);
     std::shared_ptr<AppRunningRecord> GetAppRunningRecord(const int64_t eventId);
     void TerminateAbility(const sptr<IRemoteObject> &token, bool clearMissionFlag,
         std::shared_ptr<AppMgrServiceInner> appMgrServiceInner);
@@ -232,7 +254,7 @@ public:
     int32_t ProcessUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo);
 
     bool ProcessExitByBundleNameAndUid(
-        const std::string &bundleName, const int uid, std::list<pid_t> &pids, const bool clearPageStack = true);
+        const std::string &bundleName, const int uid, std::list<pid_t> &pids, const bool clearPageStack = false);
     bool GetPidsByUserId(int32_t userId, std::list<pid_t> &pids);
 
     void PrepareTerminate(const sptr<IRemoteObject> &token, bool clearMissionFlag = false);
@@ -242,18 +264,16 @@ public:
     void GetRunningProcessInfoByToken(const sptr<IRemoteObject> &token, AppExecFwk::RunningProcessInfo &info);
     int32_t GetRunningProcessInfoByPid(const pid_t pid, OHOS::AppExecFwk::RunningProcessInfo &info);
 
+    void initConfig(const Configuration &config);
     void ClipStringContent(const std::regex &re, const std::string &source, std::string &afterCutStr);
-    void HandleAddAbilityStageTimeOut(const int64_t eventId);
-    void HandleStartSpecifiedAbilityTimeOut(const int64_t eventId);
     std::shared_ptr<AppRunningRecord> GetAppRunningRecordByRenderPid(const pid_t pid);
     std::shared_ptr<RenderRecord> OnRemoteRenderDied(const wptr<IRemoteObject> &remote);
-    bool ProcessExitByPid(pid_t pid);
     bool GetAppRunningStateByBundleName(const std::string &bundleName);
     int32_t NotifyLoadRepairPatch(const std::string &bundleName, const sptr<IQuickFixCallback> &callback);
     int32_t NotifyHotReloadPage(const std::string &bundleName, const sptr<IQuickFixCallback> &callback);
     int32_t NotifyUnLoadRepairPatch(const std::string &bundleName, const sptr<IQuickFixCallback> &callback);
     bool IsApplicationFirstForeground(const AppRunningRecord &foregroundingRecord);
-    bool IsApplicationBackground(const std::string &bundleName);
+    bool IsApplicationBackground(const AppRunningRecord &backgroundingRecord);
     bool IsApplicationFirstFocused(const AppRunningRecord &foregroundingRecord);
     bool IsApplicationUnfocused(const std::string &bundleName);
 #ifdef SUPPORT_SCREEN
@@ -283,6 +303,7 @@ public:
 
     std::shared_ptr<AppRunningRecord> GetAppRunningRecordByChildProcessPid(const pid_t pid);
     std::shared_ptr<ChildProcessRecord> OnChildProcessRemoteDied(const wptr<IRemoteObject> &remote);
+    bool IsChildProcessReachLimit(uint32_t accessTokenId);
 
     /**
      * @brief Obtain number of app through bundlename.
@@ -320,7 +341,16 @@ public:
     bool IsAppProcessesAllCached(const std::string &bundleName, int32_t uid,
         const std::set<std::shared_ptr<AppRunningRecord>> &cachedSet);
 
-private:
+    int32_t UpdateConfigurationDelayed(const std::shared_ptr<AppRunningRecord> &appRecord);
+
+    bool GetPidsByBundleNameUserIdAndAppIndex(const std::string &bundleName,
+        const int userId, const int appIndex, std::list<pid_t> &pids);
+
+    bool HandleUserRequestClean(const sptr<IRemoteObject> &abilityToken, pid_t &pid, int32_t &uid);
+
+    void SetMultiUserConfigurationMgr(const std::shared_ptr<MultiUserConfigurationMgr>& multiUserConfigurationMgr);
+
+  private:
     std::shared_ptr<AbilityRunningRecord> GetAbilityRunningRecord(const int64_t eventId);
     int32_t AssignRunningProcessInfoByAppRecord(
         std::shared_ptr<AppRunningRecord> appRecord, AppExecFwk::RunningProcessInfo &info) const;
@@ -332,6 +362,11 @@ private:
 
     std::mutex uiExtensionMapLock_;
     std::map<int32_t, std::pair<pid_t, pid_t>> uiExtensionLauncherMap_;
+
+    std::shared_ptr<Configuration> configuration_;
+    std::mutex updateConfigurationDelayedLock_;
+    std::map<const int32_t, bool> updateConfigurationDelayedMap_;
+    std::shared_ptr<MultiUserConfigurationMgr> multiUserConfigurationMgr_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

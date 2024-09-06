@@ -17,7 +17,6 @@
 
 #include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "hitrace_meter.h"
 #ifdef SUPPORT_SCREEN
 #include "scene_board_judgement.h"
@@ -39,7 +38,7 @@ void NewAbilityImpl::HandleAbilityTransaction(const Want &want, const AAFwk::Lif
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITY,
-        "Lifecycle: srcState:%{public}d; targetState: %{public}d; isNewWant: %{public}d, sceneFlag: %{public}d",
+        "srcState:%{public}d; targetState: %{public}d; isNewWant: %{public}d, sceneFlag: %{public}d",
         lifecycleState_, targetState.state, targetState.isNewWant, targetState.sceneFlag);
 #ifdef SUPPORT_SCREEN
     if (ability_ != nullptr) {
@@ -50,7 +49,7 @@ void NewAbilityImpl::HandleAbilityTransaction(const Want &want, const AAFwk::Lif
             ability_->RequestFocus(want);
             AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_, targetState.state, GetRestoreData());
         }
-        TAG_LOGE(AAFwkTag::ABILITY, "Org lifeCycleState equals to Dst lifeCycleState.");
+        TAG_LOGE(AAFwkTag::ABILITY, "lifeCycleStat:org=Dst");
         return;
     }
 #endif
@@ -73,16 +72,16 @@ void NewAbilityImpl::HandleAbilityTransaction(const Want &want, const AAFwk::Lif
 
 void NewAbilityImpl::HandleShareData(const int32_t &uniqueId)
 {
-    TAG_LOGI(AAFwkTag::ABILITY, "handleShareData begin sourceState:%{public}d.", lifecycleState_);
+    TAG_LOGI(AAFwkTag::ABILITY, "begin sourceState:%{public}d", lifecycleState_);
     WantParams wantParam;
     int32_t resultCode = Share(wantParam);
-    TAG_LOGI(AAFwkTag::ABILITY, "wantParam size: %{public}d.", wantParam.Size());
+    TAG_LOGI(AAFwkTag::ABILITY, "wantParam size: %{public}d", wantParam.Size());
     AbilityManagerClient::GetInstance()->ShareDataDone(token_, resultCode, uniqueId, wantParam);
 }
 
 void NewAbilityImpl::AbilityTransactionCallback(const AbilityLifeCycleState &state)
 {
-    TAG_LOGI(AAFwkTag::ABILITY, "Lifecycle: notify ability manager service.");
+    TAG_LOGI(AAFwkTag::ABILITY, "notify ams");
     auto ret = AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_, state, GetRestoreData());
     if (ret == ERR_OK && state == AAFwk::ABILITY_STATE_FOREGROUND_NEW) {
         FreezeUtil::LifecycleFlow flow = { token_, FreezeUtil::TimeoutState::FOREGROUND };
@@ -102,7 +101,6 @@ void NewAbilityImpl::AbilityTransactionCallback(const AbilityLifeCycleState &sta
 bool NewAbilityImpl::AbilityTransaction(const Want &want, const AAFwk::LifeCycleStateInfo &targetState)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::ABILITY, "NewAbilityImpl::AbilityTransaction begin");
     bool ret = true;
     switch (targetState.state) {
         case AAFwk::ABILITY_STATE_INITIAL: {
@@ -122,28 +120,7 @@ bool NewAbilityImpl::AbilityTransaction(const Want &want, const AAFwk::LifeCycle
             break;
         }
         case AAFwk::ABILITY_STATE_FOREGROUND_NEW: {
-            if (targetState.isNewWant) {
-                NewWant(want);
-            }
-#ifdef SUPPORT_SCREEN
-            if (lifecycleState_ == AAFwk::ABILITY_STATE_FOREGROUND_NEW) {
-                if (ability_) {
-                    ability_->RequestFocus(want);
-                }
-            } else {
-                {
-                    std::lock_guard<std::mutex> lock(notifyForegroundLock_);
-                    notifyForegroundByWindow_ = false;
-                }
-                Foreground(want);
-                std::lock_guard<std::mutex> lock(notifyForegroundLock_);
-                ret = notifyForegroundByWindow_;
-                if (ret) {
-                    notifyForegroundByWindow_ = false;
-                    notifyForegroundByAbility_ = false;
-                }
-            }
-#endif
+            ret = AbilityTransactionForeground(want, targetState);
             break;
         }
         case AAFwk::ABILITY_STATE_BACKGROUND_NEW: {
@@ -157,11 +134,40 @@ bool NewAbilityImpl::AbilityTransaction(const Want &want, const AAFwk::LifeCycle
         }
         default: {
             ret = false;
-            TAG_LOGE(AAFwkTag::ABILITY, "NewAbilityImpl::HandleAbilityTransaction state error");
+            TAG_LOGE(AAFwkTag::ABILITY, "error");
             break;
         }
     }
-    TAG_LOGD(AAFwkTag::ABILITY, "NewAbilityImpl::AbilityTransaction end: retVal = %{public}d", static_cast<int>(ret));
+    TAG_LOGD(AAFwkTag::ABILITY, "end: ret = %{public}d", static_cast<int>(ret));
+    return ret;
+}
+
+bool NewAbilityImpl::AbilityTransactionForeground(const Want &want, const AAFwk::LifeCycleStateInfo &targetState)
+{
+    bool ret = true;
+    if (targetState.isNewWant) {
+        NewWant(want);
+    }
+#ifdef SUPPORT_SCREEN
+    if (lifecycleState_ == AAFwk::ABILITY_STATE_FOREGROUND_NEW) {
+        if (ability_) {
+            ability_->RequestFocus(want);
+        }
+    } else {
+        {
+            std::lock_guard<std::mutex> lock(notifyForegroundLock_);
+            notifyForegroundByWindow_ = false;
+        }
+        Foreground(want);
+        std::lock_guard<std::mutex> lock(notifyForegroundLock_);
+        ret = notifyForegroundByWindow_;
+        if (ret) {
+            notifyForegroundByWindow_ = false;
+            notifyForegroundByAbility_ = false;
+        }
+    }
+#endif
+
     return ret;
 }
 }  // namespace AppExecFwk

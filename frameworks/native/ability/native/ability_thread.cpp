@@ -19,14 +19,10 @@
 #include "fa_ability_thread.h"
 #include "ui_ability_thread.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "hitrace_meter.h"
 
 namespace OHOS {
 namespace AppExecFwk {
-#ifdef ABILITY_COMMAND_FOR_TEST
-const int32_t BLOCK_ABILITY_TIME = 20;
-#endif
 void AbilityThread::AbilityThreadMain(const std::shared_ptr<OHOSApplication> &application,
     const std::shared_ptr<AbilityLocalRecord> &abilityRecord, const std::shared_ptr<EventRunner> &mainRunner,
     const std::shared_ptr<AbilityRuntime::Context> &stageContext)
@@ -34,12 +30,12 @@ void AbilityThread::AbilityThreadMain(const std::shared_ptr<OHOSApplication> &ap
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITY, "begin");
     if (abilityRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "abilityRecord is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITY, "null abilityRecord");
         return;
     }
     std::shared_ptr<AbilityInfo> abilityInfo = abilityRecord->GetAbilityInfo();
     if (abilityInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "abilityInfo is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITY, "null abilityInfo");
         return;
     }
 
@@ -52,7 +48,7 @@ void AbilityThread::AbilityThreadMain(const std::shared_ptr<OHOSApplication> &ap
         thread = new (std::nothrow) AbilityRuntime::FAAbilityThread();
     }
     if (thread == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "thread is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITY, "null thread");
         return;
     }
     thread->Attach(application, abilityRecord, mainRunner, stageContext);
@@ -66,13 +62,13 @@ void AbilityThread::AbilityThreadMain(const std::shared_ptr<OHOSApplication> &ap
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITY, "begin");
     if (abilityRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "abilityRecord is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITY, "null abilityRecord");
         return;
     }
 
     std::shared_ptr<AbilityInfo> abilityInfo = abilityRecord->GetAbilityInfo();
     if (abilityInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "abilityInfo is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITY, "null abilityInfo");
         return;
     }
 
@@ -85,7 +81,7 @@ void AbilityThread::AbilityThreadMain(const std::shared_ptr<OHOSApplication> &ap
         thread = new (std::nothrow) AbilityRuntime::FAAbilityThread();
     }
     if (thread == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "thread is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITY, "null thread");
         return;
     }
     thread->Attach(application, abilityRecord, stageContext);
@@ -288,23 +284,5 @@ void AbilityThread::UpdateSessionToken(sptr<IRemoteObject> sessionToken)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
 }
-
-#ifdef ABILITY_COMMAND_FOR_TEST
-int AbilityThread::BlockAbility()
-{
-    TAG_LOGD(AAFwkTag::ABILITY, "begin");
-    if (abilityHandler_) {
-        auto task = []() {
-            while (1) {
-                std::this_thread::sleep_for(BLOCK_ABILITY_TIME * 1s);
-            }
-        };
-        abilityHandler_->PostTask(task, "AbilityThread:BlockAbility");
-        TAG_LOGD(AAFwkTag::ABILITY, "end");
-        return ERR_OK;
-    }
-    return ERR_NO_INIT;
-}
-#endif
 } // namespace AppExecFwk
 } // namespace OHOS

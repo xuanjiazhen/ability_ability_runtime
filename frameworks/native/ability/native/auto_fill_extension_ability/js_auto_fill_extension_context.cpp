@@ -16,7 +16,7 @@
 #include "js_auto_fill_extension_context.h"
 
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
+#include "js_auto_fill_extension_util.h"
 #include "js_error_utils.h"
 #include "js_extension_context.h"
 #include "napi/native_api.h"
@@ -31,7 +31,7 @@ constexpr size_t ARGC_ONE = 1;
 }
 void JsAutoFillExtensionContext::Finalizer(napi_env env, void *data, void *hint)
 {
-    TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "Called.");
+    TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "called");
     std::unique_ptr<JsAutoFillExtensionContext>(static_cast<JsAutoFillExtensionContext*>(data));
 }
 
@@ -42,9 +42,9 @@ napi_value JsAutoFillExtensionContext::ReloadInModal(napi_env env, napi_callback
 
 napi_value JsAutoFillExtensionContext::OnReloadInModal(napi_env env, NapiCallbackInfo &info)
 {
-    TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "Called.");
+    TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "called");
     if (info.argc < ARGC_ONE) {
-        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "Not enough params");
+        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "invalid argc");
         ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
         return CreateJsUndefined(env);
     }
@@ -52,7 +52,7 @@ napi_value JsAutoFillExtensionContext::OnReloadInModal(napi_env env, NapiCallbac
     napi_value jsCustomData = GetPropertyValueByPropertyName(env, info.argv[INDEX_ZERO], "data", napi_object);
     CustomData customData;
     if (jsCustomData == nullptr || !AppExecFwk::UnwrapWantParams(env, jsCustomData, customData.data)) {
-        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "Parse custom data failed.");
+        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "Parse custom data failed");
         ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
         return CreateJsUndefined(env);
     }
@@ -61,12 +61,12 @@ napi_value JsAutoFillExtensionContext::OnReloadInModal(napi_env env, NapiCallbac
     NapiAsyncTask::ExecuteCallback execute = [weak = context_, customData, ret = retVal, env]() {
         auto context = weak.lock();
         if (context == nullptr) {
-            TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "Context is nullptr.");
+            TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null context");
             ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
             return;
         }
         if (ret == nullptr) {
-            TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "The param is invalid.");
+            TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "invalid param");
             return;
         }
         *ret = context->ReloadInModal(customData);
@@ -74,12 +74,12 @@ napi_value JsAutoFillExtensionContext::OnReloadInModal(napi_env env, NapiCallbac
 
     NapiAsyncTask::CompleteCallback complete = [ret = retVal](napi_env env, NapiAsyncTask &task, int32_t status) {
         if (ret == nullptr) {
-            TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "The param is invalid.");
+            TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "invalid param");
             task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
             return;
         }
         if (*ret != ERR_OK) {
-            TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "Failed error is %{public}d.", *ret);
+            TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "Failed error %{public}d", *ret);
             task.Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(*ret)));
             return;
         }
@@ -94,7 +94,7 @@ napi_value JsAutoFillExtensionContext::OnReloadInModal(napi_env env, NapiCallbac
 napi_value JsAutoFillExtensionContext::CreateJsAutoFillExtensionContext(
     napi_env env, const std::shared_ptr<AutoFillExtensionContext> &context)
 {
-    TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "Called.");
+    TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "called");
     std::shared_ptr<OHOS::AppExecFwk::AbilityInfo> abilityInfo = nullptr;
     if (context != nullptr) {
         abilityInfo = context->GetAbilityInfo();

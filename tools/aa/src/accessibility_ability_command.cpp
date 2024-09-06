@@ -26,7 +26,6 @@
 #include "accessibility_system_ability_client.h"
 #include "bool_wrapper.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "iservice_registry.h"
 #include "mission_snapshot.h"
 #include "sa_mgr_client.h"
@@ -246,12 +245,12 @@ AccessibilityAbilityShellCommand::AccessibilityAbilityShellCommand(int argc, cha
     if (abilityClientPtr_ == nullptr) {
         abilityClientPtr_ = Accessibility::AccessibilitySystemAbilityClient::GetInstance();
         if (abilityClientPtr_ == nullptr) {
-            TAG_LOGE(AAFwkTag::AA_TOOL, "Get access ability system ability client failed.");
+            TAG_LOGE(AAFwkTag::AA_TOOL, "Get ability client failed");
         }
     }
     int32_t addPermissionResult = AccessibilityUtils::AddPermission();
     if (addPermissionResult != 0) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "Add permission for access ability tool failed.");
+        TAG_LOGE(AAFwkTag::AA_TOOL, "Add permission failed");
     }
 }
 
@@ -326,6 +325,33 @@ ErrCode AccessibilityAbilityShellCommand::RunAsHelpCommand()
     return OHOS::ERR_OK;
 }
 
+void AccessibilityAbilityShellCommand::CheckEnableCommandOption(const int option,
+    AccessibilityCommandArgument& argument)
+{
+    switch (option) {
+        case 'a': {
+            argument.abilityName = optarg;
+            argument.abilityArgumentNum++;
+            break;
+        }
+        case 'b': {
+            argument.bundleName = optarg;
+            argument.bundleArgumentNum++;
+            break;
+        }
+        case 'c': {
+            argument.capabilityNames = optarg;
+            argument.capabilityNamesArgumentNum++;
+            break;
+        }
+        default: {
+            argument.unknownArgumentNum++;
+            argument.unknownArguments.push_back(argv_[optind - 1]);
+            break;
+        }
+    }
+}
+
 ErrCode AccessibilityAbilityShellCommand::MakeEnableCommandArgumentFromCmd(AccessibilityCommandArgument& argument)
 {
     int option = -1;
@@ -371,29 +397,7 @@ ErrCode AccessibilityAbilityShellCommand::MakeEnableCommandArgumentFromCmd(Acces
                 }
             }
         }
-
-        switch (option) {
-            case 'a': {
-                argument.abilityName = optarg;
-                argument.abilityArgumentNum++;
-                break;
-            }
-            case 'b': {
-                argument.bundleName = optarg;
-                argument.bundleArgumentNum++;
-                break;
-            }
-            case 'c': {
-                argument.capabilityNames = optarg;
-                argument.capabilityNamesArgumentNum++;
-                break;
-            }
-            default: {
-                argument.unknownArgumentNum++;
-                argument.unknownArguments.push_back(argv_[optind - 1]);
-                break;
-            }
-        }
+        CheckEnableCommandOption(option, argument);
     }
     return CheckEnableCommandArgument(argument, resultReceiver_);
 }
@@ -490,7 +494,7 @@ const std::vector<std::string> AccessibilityAbilityShellCommand::GetEnabledAbili
     std::vector<std::string> enabledAbilities;
     if (abilityClientPtr_ != nullptr &&
         (abilityClientPtr_->GetEnabledAbilities(enabledAbilities) != Accessibility::RET_OK)) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "Failed to GetEnabledAbilities");
+        TAG_LOGE(AAFwkTag::AA_TOOL, "GetEnabledAbilities failed");
     }
     return enabledAbilities;
 }
@@ -502,7 +506,7 @@ const std::vector<Accessibility::AccessibilityAbilityInfo> AccessibilityAbilityS
     const Accessibility::AbilityStateType stateType = Accessibility::AbilityStateType::ABILITY_STATE_INSTALLED;
     if (abilityClientPtr_ != nullptr &&
         (abilityClientPtr_->GetAbilityList(allTypes, stateType, installedAbilities) != Accessibility::RET_OK)) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "Failed to GetInstalledAbilities");
+        TAG_LOGE(AAFwkTag::AA_TOOL, "GetInstalledAbilities failed");
     }
     return installedAbilities;
 }
@@ -620,19 +624,19 @@ ErrCode AccessibilityAbilityShellCommand::CheckEnableCommandArgument(const Acces
     }
     std::vector<Accessibility::AccessibilityAbilityInfo> installedAbilities = GetInstalledAbilities();
     if (!CheckAbilityArgument(argument, resultMessage)) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "abilityName = %{public}s is invalid.", argument.abilityName.c_str());
+        TAG_LOGE(AAFwkTag::AA_TOOL, "invalid abilityName: %{public}s", argument.abilityName.c_str());
         return OHOS::ERR_INVALID_VALUE;
     }
     if (!CheckBundleArgument(argument, resultMessage)) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "bundleName = %{public}s is invalid.", argument.bundleName.c_str());
+        TAG_LOGE(AAFwkTag::AA_TOOL, "invalid bundleName: %{public}s", argument.bundleName.c_str());
         return OHOS::ERR_INVALID_VALUE;
     }
     if (!CheckCapabilitiesArgument(argument, installedAbilities, resultMessage)) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "capabilityNames = %{public}s is invalid", argument.capabilityNames.c_str());
+        TAG_LOGE(AAFwkTag::AA_TOOL, "invalid capabilityNames: %{public}s", argument.capabilityNames.c_str());
         return OHOS::ERR_INVALID_VALUE;
     }
     if (!CheckParamValidity(argument, installedAbilities, resultMessage)) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "%{public}s/%{public}s is not installed",
+        TAG_LOGE(AAFwkTag::AA_TOOL, "%{public}s/%{public}s not installed",
             argument.bundleName.c_str(), argument.abilityName.c_str());
         return OHOS::ERR_INVALID_VALUE;
     }
@@ -693,15 +697,15 @@ ErrCode AccessibilityAbilityShellCommand::CheckCommandArgument(const Accessibili
     }
     std::vector<Accessibility::AccessibilityAbilityInfo> installedAbilities = GetInstalledAbilities();
     if (!CheckAbilityArgument(argument, resultMessage)) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "abilityName = %{public}s is invalid", argument.abilityName.c_str());
+        TAG_LOGE(AAFwkTag::AA_TOOL, "invalid abilityName: %{public}s", argument.abilityName.c_str());
         return OHOS::ERR_INVALID_VALUE;
     }
     if (!CheckBundleArgument(argument, resultMessage)) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "bundleName = %{public}s is invalid", argument.bundleName.c_str());
+        TAG_LOGE(AAFwkTag::AA_TOOL, "invalid bundleName: %{public}s", argument.bundleName.c_str());
         return OHOS::ERR_INVALID_VALUE;
     }
     if (!CheckParamValidity(argument, installedAbilities, resultMessage)) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "%{public}s/%{public}s is not installed",
+        TAG_LOGE(AAFwkTag::AA_TOOL, "%{public}s/%{public}s not installed",
             argument.bundleName.c_str(), argument.abilityName.c_str());
         return OHOS::ERR_INVALID_VALUE;
     }

@@ -25,6 +25,7 @@
 #include "ability_record.h"
 #include "extension_record.h"
 #include "ui_extension_host_info.h"
+#include "ui_extension_session_info.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -69,8 +70,6 @@ public:
 
     static bool IsBelongToManager(const AppExecFwk::AbilityInfo &abilityInfo);
 
-    bool IsFocused(int32_t extensionRecordId, const sptr<IRemoteObject>& focusToken);
-
     /**
      * @brief Get extensionList by pid.
      * @param pid Process id.
@@ -89,14 +88,14 @@ public:
 
     int32_t CreateExtensionRecord(const AAFwk::AbilityRequest &abilityRequest, const std::string &hostBundleName,
         std::shared_ptr<ExtensionRecord> &extensionRecord, int32_t &extensionRecordId);
-    
+
     bool IsPreloadExtensionRecord(const AAFwk::AbilityRequest &abilityRequest,
         const std::string &hostBundleName, std::shared_ptr<ExtensionRecord> &extensionRecord, bool &isLoaded);
 
     int32_t AddPreloadUIExtensionRecord(const std::shared_ptr<AAFwk::AbilityRecord> abilityRecord);
 
     void RemoveAllPreloadUIExtensionRecord(PreLoadUIExtensionMapKey &preLoadUIExtensionInfo);
-    
+
     bool RemovePreloadUIExtensionRecord(
         const std::tuple<std::string, std::string, std::string, std::string> extensionRecordMapKey);
 
@@ -111,12 +110,19 @@ public:
 
     std::shared_ptr<AAFwk::AbilityRecord> GetUIExtensionRootHostInfo(const sptr<IRemoteObject> token);
 
+    int32_t GetUIExtensionSessionInfo(const sptr<IRemoteObject> token, UIExtensionSessionInfo &uiExtensionSessionInfo);
+
+    bool IsFocused(
+        int32_t extensionRecordId, const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &focusToken);
+
     void LoadTimeout(int32_t extensionRecordId);
     void ForegroundTimeout(int32_t extensionRecordId);
     void BackgroundTimeout(int32_t extensionRecordId);
     void TerminateTimeout(int32_t extensionRecordId);
 
     int32_t GetHostBundleNameForExtensionId(int32_t extensionRecordId, std::string& hostBundleName);
+    void GetCallerTokenList(const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord,
+        std::list<sptr<IRemoteObject>> &callerList);
 private:
     inline std::shared_ptr<ExtensionRecord> GetExtensionRecordById(int32_t extensionRecordId);
 
@@ -130,7 +136,10 @@ private:
     std::mutex preloadUIExtensionMapMutex_;
     PreLoadUIExtensionMapType preloadUIExtensionMap_;
 
-    sptr<IRemoteObject> GetRootCallerTokenLocked(int32_t extensionRecordId);
+    void SetCachedFocusedCallerToken(int32_t extensionRecordId, sptr<IRemoteObject> &focusedCallerToken);
+    sptr<IRemoteObject> GetCachedFocusedCallerToken(int32_t extensionRecordId) const;
+    sptr<IRemoteObject> GetRootCallerTokenLocked(
+        int32_t extensionRecordId, const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord);
 
     int32_t GetOrCreateExtensionRecordInner(const AAFwk::AbilityRequest &abilityRequest,
         const std::string &hostBundleName, std::shared_ptr<ExtensionRecord> &extensionRecord, bool &isLoaded);

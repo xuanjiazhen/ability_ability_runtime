@@ -24,7 +24,6 @@
 #include "app_mgr_interface.h"
 #include "iremote_object.h"
 #include "app_state_callback_proxy.h"
-#include "hilog_wrapper.h"
 #include "refbase.h"
 #include "mock_bundle_manager.h"
 #include "mock_ability_token.h"
@@ -32,6 +31,7 @@
 #include "mock_app_spawn_client.h"
 #include "mock_iapp_state_callback.h"
 #include "mock_native_token.h"
+#include "param.h"
 #include "system_ability_definition.h"
 #include "sys_mgr_client.h"
 
@@ -178,8 +178,10 @@ std::shared_ptr<AppRunningRecord> AmsAppLifeCycleModuleTest::StartProcessAndLoad
     } else {
         EXPECT_CALL(*mockAppScheduler, ScheduleLaunchAbility(_, _, _, _)).Times(1);
     }
-
-    serviceInner_->LoadAbility(token, nullptr, abilityInfo, appInfo, nullptr, 0);
+    AbilityRuntime::LoadParam loadParam;
+    loadParam.token = token;
+    auto loadParamPtr = std::make_shared<AbilityRuntime::LoadParam>(loadParam);
+    serviceInner_->LoadAbility(abilityInfo, appInfo, nullptr, loadParamPtr);
     BundleInfo bundleInfo;
     HapModuleInfo hapModuleInfo;
     EXPECT_TRUE(serviceInner_->GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo));
@@ -232,7 +234,6 @@ void AmsAppLifeCycleModuleTest::ChangeAbilityStateToForegroud(const sptr<MockApp
         EXPECT_NE(appRunningRecord, nullptr);
         CHECK_POINTER_IS_NULLPTR(appRunningRecord);
         int32_t recordId = appRunningRecord->GetRecordId();
-        appRunningRecord->SetUpdateStateFromService(true);
         serviceInner_->ApplicationForegrounded(recordId);
     }
 }
@@ -253,7 +254,6 @@ void AmsAppLifeCycleModuleTest::ChangeAbilityStateToBackGroud(const sptr<MockApp
         EXPECT_NE(appRunningRecord, nullptr);
         CHECK_POINTER_IS_NULLPTR(appRunningRecord);
         int32_t recordId = appRunningRecord->GetRecordId();
-        appRunningRecord->SetUpdateStateFromService(true);
         serviceInner_->ApplicationBackgrounded(recordId);
     }
 }
@@ -357,7 +357,10 @@ void AmsAppLifeCycleModuleTest::CreateAppRecentList(const int32_t appNum)
         EXPECT_CALL(*mockAppStateCallbackStub_, OnAppStateChanged(_)).Times(1);
 
         serviceInner_->SetAppSpawnClient(std::unique_ptr<MockAppSpawnClient>(mockedSpawnClient));
-        serviceInner_->LoadAbility(token, nullptr, abilityInfo, appInfo, nullptr, 0);
+        AbilityRuntime::LoadParam loadParam;
+        loadParam.token = token;
+        auto loadParamPtr = std::make_shared<AbilityRuntime::LoadParam>(loadParam);
+        serviceInner_->LoadAbility(abilityInfo, appInfo, nullptr, loadParamPtr);
     }
     return;
 }
@@ -874,50 +877,6 @@ HWTEST_F(AmsAppLifeCycleModuleTest, StateChange_009, TestSize.Level3)
  * Feature: Ams
  * Function: AppLifeCycle
  * SubFunction: NA
- * FunctionPoints: test getrecentapplist and removeappfromrecentlist all process.
- * EnvConditions: system running normally
- * CaseDescription: 1.call getrecentapplist API to get current app list
- *                  2.call removeappfromrecentlist API to remove current app list
- */
-HWTEST_F(AmsAppLifeCycleModuleTest, StateChange_011, TestSize.Level1)
-{
-    EXPECT_TRUE(serviceInner_->GetRecentAppList().empty());
-    CreateAppRecentList(INDEX_NUM_100);
-    EXPECT_EQ(INDEX_NUM_100, static_cast<int32_t>(serviceInner_->GetRecentAppList().size()));
-    for (int32_t i = INDEX_NUM_MAX; i > 0; i--) {
-        std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
-        appInfo->name = TEST_APP_NAME + std::to_string(i);
-        appInfo->bundleName = appInfo->name;  // specify process condition
-        auto appTaskInfo =
-            serviceInner_->appProcessManager_->GetAppTaskInfoByProcessName(appInfo->name, appInfo->bundleName);
-        serviceInner_->appProcessManager_->RemoveAppFromRecentList(appTaskInfo);
-    }
-    EXPECT_TRUE(serviceInner_->GetRecentAppList().empty());
-}
-
-/*
- * Feature: Ams
- * Function: AppLifeCycle
- * SubFunction: NA
- * FunctionPoints: test getrecentapplist and clearrecentappList all process.
- * EnvConditions: system running normally
- * CaseDescription: 1.call getrecentapplist API to get current app list
- *                  2.call clearrecentapplist API to clear current app list
- */
-HWTEST_F(AmsAppLifeCycleModuleTest, StateChange_012, TestSize.Level1)
-{
-    EXPECT_TRUE(serviceInner_->GetRecentAppList().empty());
-    CreateAppRecentList(INDEX_NUM_100);
-    EXPECT_EQ(INDEX_NUM_100, static_cast<int32_t>(serviceInner_->GetRecentAppList().size()));
-
-    serviceInner_->appProcessManager_->ClearRecentAppList();
-    EXPECT_TRUE(serviceInner_->GetRecentAppList().empty());
-}
-
-/*
- * Feature: Ams
- * Function: AppLifeCycle
- * SubFunction: NA
  * FunctionPoints: test get and stop all process.
  * EnvConditions: system running normally
  * CaseDescription: OnStop
@@ -997,345 +956,6 @@ HWTEST_F(AmsAppLifeCycleModuleTest, StateChange_015, TestSize.Level1)
     appRunningRecord->SetAppMgrServiceInner(inner);
 
     appRunningRecord->UpdateAbilityState(token, AbilityState::ABILITY_STATE_BACKGROUND);
-}
-
-/*
- * Feature: Ams
- * Function: AbilityBehaviorAnalysis
- * SubFunction: NA
- * FunctionPoints: Ability Status change received
- * EnvConditions: system running normally
- * CaseDescription: Ability record update(specify process mode)
- */
-HWTEST_F(AmsAppLifeCycleModuleTest, AbilityBehaviorAnalysis_01, TestSize.Level1)
-{
-    const int32_t formateVaule = 0;
-    const int32_t visibility = 1;
-    const int32_t perceptibility = 1;
-    const int32_t connectionState = 1;
-
-    pid_t pid = 123;
-    sptr<IRemoteObject> token = GetAbilityToken();
-    auto abilityInfo = GetAbilityInfo("0", "MainAbility", "pNew", "com.ohos.test.special");
-    auto appInfo = GetApplicationInfo("com.ohos.test.special");
-    sptr<MockAppScheduler> mockAppScheduler = new MockAppScheduler();
-
-    sptr<BundleMgrService> bundleMgr = new BundleMgrService();
-    serviceInner_->SetBundleManager(bundleMgr.GetRefPtr());
-
-    StartAppProcess(pid);
-    serviceInner_->LoadAbility(token, nullptr, abilityInfo, appInfo, nullptr, 0);
-    BundleInfo bundleInfo;
-    HapModuleInfo hapModuleInfo;
-    EXPECT_TRUE(serviceInner_->GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo));
-    std::shared_ptr<AppRunningRecord> record = serviceInner_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, abilityInfo->process, abilityInfo->applicationInfo.uid, bundleInfo);
-    if (record == nullptr) {
-        EXPECT_TRUE(false);
-    } else {
-        pid_t newPid = record->GetPriorityObject()->GetPid();
-        EXPECT_EQ(newPid, pid);
-    }
-
-    auto abilityRecord = record->GetAbilityRunningRecordByToken(token);
-
-    EXPECT_EQ(abilityRecord->GetVisibility(), formateVaule);
-    EXPECT_EQ(abilityRecord->GetPerceptibility(), formateVaule);
-    EXPECT_EQ(abilityRecord->GetConnectionState(), formateVaule);
-
-    serviceInner_->AbilityBehaviorAnalysis(token, nullptr, visibility, perceptibility, connectionState);
-
-    auto appRecord = serviceInner_->GetAppRunningRecordByAbilityToken(token);
-    auto abilityRecord_1 = appRecord->GetAbilityRunningRecordByToken(token);
-
-    EXPECT_EQ(abilityRecord_1->GetToken(), token);
-    EXPECT_EQ(abilityRecord_1->GetPreToken(), nullptr);
-    EXPECT_EQ(abilityRecord_1->GetVisibility(), visibility);
-    EXPECT_EQ(abilityRecord_1->GetPerceptibility(), perceptibility);
-    EXPECT_EQ(abilityRecord_1->GetConnectionState(), connectionState);
-}
-
-/*
- * Feature: Ams
- * Function: AbilityBehaviorAnalysis
- * SubFunction: NA
- * FunctionPoints: Ability Status change received
- * EnvConditions: system running normally
- * CaseDescription: Ability record update(specify process mode and assign visibility)
- */
-HWTEST_F(AmsAppLifeCycleModuleTest, AbilityBehaviorAnalysis_02, TestSize.Level1)
-{
-    const int32_t formateVaule = 0;
-    const int32_t visibility = 1;
-    const int32_t perceptibility = 0;
-    const int32_t connectionState = 0;
-
-    pid_t pid = 123;
-    sptr<IRemoteObject> token = GetAbilityToken();
-    auto abilityInfo = GetAbilityInfo("0", "MainAbility", "pNew", "com.ohos.test.special");
-    auto appInfo = GetApplicationInfo("com.ohos.test.special");
-    sptr<MockAppScheduler> mockAppScheduler = new MockAppScheduler();
-
-    sptr<BundleMgrService> bundleMgr = new BundleMgrService();
-    serviceInner_->SetBundleManager(bundleMgr.GetRefPtr());
-
-    StartAppProcess(pid);
-    serviceInner_->LoadAbility(token, nullptr, abilityInfo, appInfo, nullptr, 0);
-    BundleInfo bundleInfo;
-    HapModuleInfo hapModuleInfo;
-    EXPECT_TRUE(serviceInner_->GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo));
-    std::shared_ptr<AppRunningRecord> record = serviceInner_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, abilityInfo->process, abilityInfo->applicationInfo.uid, bundleInfo);
-    if (record == nullptr) {
-        EXPECT_TRUE(false);
-    } else {
-        pid_t newPid = record->GetPriorityObject()->GetPid();
-        EXPECT_EQ(newPid, pid);
-    }
-
-    auto abilityRecord = record->GetAbilityRunningRecordByToken(token);
-
-    EXPECT_EQ(abilityRecord->GetVisibility(), formateVaule);
-    EXPECT_EQ(abilityRecord->GetPerceptibility(), formateVaule);
-    EXPECT_EQ(abilityRecord->GetConnectionState(), formateVaule);
-
-    serviceInner_->AbilityBehaviorAnalysis(token, nullptr, visibility, perceptibility, connectionState);
-
-    auto appRecord = serviceInner_->GetAppRunningRecordByAbilityToken(token);
-    auto abilityRecord_1 = appRecord->GetAbilityRunningRecordByToken(token);
-
-    EXPECT_EQ(abilityRecord_1->GetToken(), token);
-    EXPECT_EQ(abilityRecord_1->GetPreToken(), nullptr);
-    EXPECT_EQ(abilityRecord_1->GetVisibility(), visibility);
-    EXPECT_EQ(abilityRecord_1->GetPerceptibility(), perceptibility);
-    EXPECT_EQ(abilityRecord_1->GetConnectionState(), connectionState);
-}
-
-/*
- * Feature: Ams
- * Function: AbilityBehaviorAnalysis
- * SubFunction: NA
- * FunctionPoints: Ability Status change received
- * EnvConditions: system running normally
- * CaseDescription: Ability record update(specify process mode and assign perceptibility)
- */
-HWTEST_F(AmsAppLifeCycleModuleTest, AbilityBehaviorAnalysis_03, TestSize.Level1)
-{
-    const int32_t formateVaule = 0;
-    const int32_t visibility = 0;
-    const int32_t perceptibility = 1;
-    const int32_t connectionState = 0;
-
-    pid_t pid = 123;
-    sptr<IRemoteObject> token = GetAbilityToken();
-    auto abilityInfo = GetAbilityInfo("0", "MainAbility", "pNew", "com.ohos.test.special");
-    auto appInfo = GetApplicationInfo("com.ohos.test.special");
-    sptr<MockAppScheduler> mockAppScheduler = new MockAppScheduler();
-
-    sptr<BundleMgrService> bundleMgr = new BundleMgrService();
-    serviceInner_->SetBundleManager(bundleMgr.GetRefPtr());
-
-    StartAppProcess(pid);
-    serviceInner_->LoadAbility(token, nullptr, abilityInfo, appInfo, nullptr, 0);
-    BundleInfo bundleInfo;
-    HapModuleInfo hapModuleInfo;
-    EXPECT_TRUE(serviceInner_->GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo));
-    std::shared_ptr<AppRunningRecord> record = serviceInner_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, abilityInfo->process, abilityInfo->applicationInfo.uid, bundleInfo);
-    if (record == nullptr) {
-        EXPECT_TRUE(false);
-    } else {
-        pid_t newPid = record->GetPriorityObject()->GetPid();
-        EXPECT_EQ(newPid, pid);
-    }
-
-    auto abilityRecord = record->GetAbilityRunningRecordByToken(token);
-
-    EXPECT_EQ(abilityRecord->GetVisibility(), formateVaule);
-    EXPECT_EQ(abilityRecord->GetPerceptibility(), formateVaule);
-    EXPECT_EQ(abilityRecord->GetConnectionState(), formateVaule);
-
-    serviceInner_->AbilityBehaviorAnalysis(token, nullptr, visibility, perceptibility, connectionState);
-
-    auto appRecord = serviceInner_->GetAppRunningRecordByAbilityToken(token);
-    auto abilityRecord_1 = appRecord->GetAbilityRunningRecordByToken(token);
-
-    EXPECT_EQ(abilityRecord_1->GetToken(), token);
-    EXPECT_EQ(abilityRecord_1->GetPreToken(), nullptr);
-    EXPECT_EQ(abilityRecord_1->GetVisibility(), visibility);
-    EXPECT_EQ(abilityRecord_1->GetPerceptibility(), perceptibility);
-    EXPECT_EQ(abilityRecord_1->GetConnectionState(), connectionState);
-}
-
-/*
- * Feature: Ams
- * Function: AbilityBehaviorAnalysis
- * SubFunction: NA
- * FunctionPoints: Ability Status change received
- * EnvConditions: system running normally
- * CaseDescription: Ability record update(specify process mode and assign connectionState)
- */
-HWTEST_F(AmsAppLifeCycleModuleTest, AbilityBehaviorAnalysis_04, TestSize.Level1)
-{
-    const int32_t formateVaule = 0;
-    const int32_t visibility = 0;
-    const int32_t perceptibility = 0;
-    const int32_t connectionState = 1;
-
-    pid_t pid = 123;
-    sptr<IRemoteObject> token = GetAbilityToken();
-    auto abilityInfo = GetAbilityInfo("0", "MainAbility", "pNew", "com.ohos.test.special");
-    auto appInfo = GetApplicationInfo("com.ohos.test.special");
-    sptr<MockAppScheduler> mockAppScheduler = new MockAppScheduler();
-
-    sptr<BundleMgrService> bundleMgr = new BundleMgrService();
-    serviceInner_->SetBundleManager(bundleMgr.GetRefPtr());
-
-    StartAppProcess(pid);
-    serviceInner_->LoadAbility(token, nullptr, abilityInfo, appInfo, nullptr, 0);
-    BundleInfo bundleInfo;
-    HapModuleInfo hapModuleInfo;
-    EXPECT_TRUE(serviceInner_->GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo));
-    std::shared_ptr<AppRunningRecord> record = serviceInner_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, abilityInfo->process, abilityInfo->applicationInfo.uid, bundleInfo);
-    if (record == nullptr) {
-        EXPECT_TRUE(false);
-    } else {
-        pid_t newPid = record->GetPriorityObject()->GetPid();
-        EXPECT_EQ(newPid, pid);
-    }
-
-    auto abilityRecord = record->GetAbilityRunningRecordByToken(token);
-
-    EXPECT_EQ(abilityRecord->GetVisibility(), formateVaule);
-    EXPECT_EQ(abilityRecord->GetPerceptibility(), formateVaule);
-    EXPECT_EQ(abilityRecord->GetConnectionState(), formateVaule);
-
-    serviceInner_->AbilityBehaviorAnalysis(token, nullptr, visibility, perceptibility, connectionState);
-
-    auto appRecord = serviceInner_->GetAppRunningRecordByAbilityToken(token);
-    auto abilityRecord_1 = appRecord->GetAbilityRunningRecordByToken(token);
-
-    EXPECT_EQ(abilityRecord_1->GetToken(), token);
-    EXPECT_EQ(abilityRecord_1->GetPreToken(), nullptr);
-    EXPECT_EQ(abilityRecord_1->GetVisibility(), visibility);
-    EXPECT_EQ(abilityRecord_1->GetPerceptibility(), perceptibility);
-    EXPECT_EQ(abilityRecord_1->GetConnectionState(), connectionState);
-}
-
-/*
- * Feature: Ams
- * Function: AbilityBehaviorAnalysis
- * SubFunction: NA
- * FunctionPoints: Ability Status change received
- * EnvConditions: system running normally
- * CaseDescription: Ability record update(specify process mode and assign proken)
- */
-HWTEST_F(AmsAppLifeCycleModuleTest, AbilityBehaviorAnalysis_05, TestSize.Level1)
-{
-    const int32_t formateVaule = 0;
-    const int32_t visibility = 0;
-    const int32_t perceptibility = 0;
-    const int32_t connectionState = 0;
-
-    pid_t pid = 123;
-    sptr<IRemoteObject> token = new (std::nothrow) MockAbilityToken();
-    auto abilityInfo = GetAbilityInfo("0", "MainAbility", "pNew", "com.ohos.test.special");
-    auto appInfo = GetApplicationInfo("com.ohos.test.special");
-    sptr<MockAppScheduler> mockAppScheduler = new MockAppScheduler();
-
-    sptr<BundleMgrService> bundleMgr = new BundleMgrService();
-    serviceInner_->SetBundleManager(bundleMgr.GetRefPtr());
-
-    StartAppProcess(pid);
-    serviceInner_->LoadAbility(token, nullptr, abilityInfo, appInfo, nullptr, 0);
-    BundleInfo bundleInfo;
-    HapModuleInfo hapModuleInfo;
-    EXPECT_TRUE(serviceInner_->GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo));
-    std::shared_ptr<AppRunningRecord> record = serviceInner_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, abilityInfo->process, abilityInfo->applicationInfo.uid, bundleInfo);
-    if (record == nullptr) {
-        EXPECT_TRUE(false);
-    } else {
-        pid_t newPid = record->GetPriorityObject()->GetPid();
-        EXPECT_EQ(newPid, pid);
-    }
-
-    auto abilityRecord = record->GetAbilityRunningRecordByToken(token);
-
-    EXPECT_EQ(abilityRecord->GetVisibility(), formateVaule);
-    EXPECT_EQ(abilityRecord->GetPerceptibility(), formateVaule);
-    EXPECT_EQ(abilityRecord->GetConnectionState(), formateVaule);
-
-    sptr<IRemoteObject> preToken = new (std::nothrow) MockAbilityToken();
-    serviceInner_->AbilityBehaviorAnalysis(token, preToken, visibility, perceptibility, connectionState);
-
-    auto appRecord = serviceInner_->GetAppRunningRecordByAbilityToken(token);
-    auto abilityRecord_1 = appRecord->GetAbilityRunningRecordByToken(token);
-
-    EXPECT_EQ(abilityRecord_1->GetToken(), token);
-    EXPECT_EQ(abilityRecord_1->GetPreToken(), preToken);
-    EXPECT_EQ(abilityRecord_1->GetVisibility(), visibility);
-    EXPECT_EQ(abilityRecord_1->GetPerceptibility(), perceptibility);
-    EXPECT_EQ(abilityRecord_1->GetConnectionState(), connectionState);
-}
-
-/*
- * Feature: Ams
- * Function: AbilityBehaviorAnalysis
- * SubFunction: NA
- * FunctionPoints: Ability Status change received
- * EnvConditions: system running normally
- * CaseDescription: Ability record update(specify process mode and assign bundleName)
- */
-HWTEST_F(AmsAppLifeCycleModuleTest, AbilityBehaviorAnalysis_06, TestSize.Level1)
-{
-    const int32_t formateVaule = 0;
-    const int32_t visibility = 0;
-    const int32_t perceptibility = 0;
-    const int32_t connectionState = 0;
-
-    pid_t pid = 123;
-    sptr<IRemoteObject> token = new (std::nothrow) MockAbilityToken();
-    auto abilityInfo = GetAbilityInfo("0", "MainAbility", "pNew", "com.ohos.test.special");
-    auto appInfo = GetApplicationInfo("com.ohos.test.special");
-    appInfo->bundleName = appInfo->name;
-    sptr<MockAppScheduler> mockAppScheduler = new MockAppScheduler();
-
-    sptr<BundleMgrService> bundleMgr = new BundleMgrService();
-    serviceInner_->SetBundleManager(bundleMgr.GetRefPtr());
-
-    StartAppProcess(pid);
-    serviceInner_->LoadAbility(token, nullptr, abilityInfo, appInfo, nullptr, 0);
-    BundleInfo bundleInfo;
-    HapModuleInfo hapModuleInfo;
-    EXPECT_TRUE(serviceInner_->GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo));
-    std::shared_ptr<AppRunningRecord> record = serviceInner_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, abilityInfo->process, abilityInfo->applicationInfo.uid, bundleInfo);
-    if (record == nullptr) {
-        EXPECT_TRUE(false);
-    } else {
-        pid_t newPid = record->GetPriorityObject()->GetPid();
-        EXPECT_EQ(newPid, pid);
-    }
-
-    auto abilityRecord = record->GetAbilityRunningRecordByToken(token);
-
-    EXPECT_EQ(abilityRecord->GetVisibility(), formateVaule);
-    EXPECT_EQ(abilityRecord->GetPerceptibility(), formateVaule);
-    EXPECT_EQ(abilityRecord->GetConnectionState(), formateVaule);
-
-    sptr<IRemoteObject> preToken = new (std::nothrow) MockAbilityToken();
-    serviceInner_->AbilityBehaviorAnalysis(token, preToken, visibility, perceptibility, connectionState);
-
-    auto appRecord = serviceInner_->GetAppRunningRecordByAbilityToken(token);
-    auto abilityRecord_1 = appRecord->GetAbilityRunningRecordByToken(token);
-
-    EXPECT_EQ(abilityRecord_1->GetToken(), token);
-    EXPECT_EQ(abilityRecord_1->GetPreToken(), preToken);
-    EXPECT_EQ(abilityRecord_1->GetVisibility(), visibility);
-    EXPECT_EQ(abilityRecord_1->GetPerceptibility(), perceptibility);
-    EXPECT_EQ(abilityRecord_1->GetConnectionState(), connectionState);
 }
 
 /*

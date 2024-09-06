@@ -33,10 +33,10 @@
 #include "connect_server_manager.h"
 #include "ecmascript/napi/include/jsnapi.h"
 #include "extract_resource_manager.h"
+#include "file_mapper.h"
 #include "file_path_utils.h"
 #include "hdc_register.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "hitrace_meter.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
@@ -79,7 +79,6 @@ constexpr size_t PARAM_TWO = 2;
 constexpr uint8_t SYSCAP_MAX_SIZE = 100;
 constexpr int64_t DEFAULT_GC_POOL_SIZE = 0x10000000; // 256MB
 constexpr int32_t DEFAULT_INTER_VAL = 500;
-constexpr int32_t TRIGGER_GC_AFTER_CLEAR_STAGE_MS = 3000;
 constexpr int32_t API8 = 8;
 const std::string SANDBOX_ARK_CACHE_PATH = "/data/storage/ark-cache/";
 const std::string SANDBOX_ARK_PROIFILE_PATH = "/data/storage/ark-profile";
@@ -103,6 +102,7 @@ const std::string MODULE_NAME = "moduleName";
 const std::string VERSION = "version";
 const std::string ENTRY_PATH = "entryPath";
 const std::string IS_SO = "isSO";
+constexpr char DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
 const std::string DEPENDENCY_ALIAS = "dependencyAlias";
 
 static auto PermissionCheckFunc = []() {
@@ -119,7 +119,7 @@ static auto PermissionCheckFunc = []() {
 napi_value CanIUse(napi_env env, napi_callback_info info)
 {
     if (env == nullptr || info == nullptr) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "get syscap failed since env or callback info is nullptr.");
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null env or info");
         return nullptr;
     }
     napi_value undefined = CreateJsUndefined(env);
@@ -128,14 +128,14 @@ napi_value CanIUse(napi_env env, napi_callback_info info)
     napi_value argv[1] = { nullptr };
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (argc != 1) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "Get syscap failed with invalid parameter.");
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "invalid argc");
         return undefined;
     }
 
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, argv[0], &valueType);
     if (valueType != napi_string) {
-        TAG_LOGI(AAFwkTag::JSRUNTIME, "%{public}s called. Params is invalid.", __func__);
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "invalid type");
         return undefined;
     }
 
@@ -169,7 +169,7 @@ napi_status CreateNapiEnv(napi_env *env)
     }
     auto options = JsRuntime::GetChildOptions();
     if (options == nullptr) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "options is null, it maybe application startup failed!");
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null options");
         return napi_status::napi_generic_failure;
     }
     std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
@@ -180,7 +180,7 @@ napi_status CreateNapiEnv(napi_env *env)
     }
     *env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "CreateJsEnv failed");
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null env");
         return napi_status::napi_generic_failure;
     }
     return NativeRuntimeImpl::GetNativeRuntimeImpl().Init(*options, *env);
@@ -207,7 +207,7 @@ std::shared_ptr<Runtime::Options> JsRuntime::childOptions_ = nullptr;
 std::mutex childOptionsMutex_;
 JsRuntime::JsRuntime()
 {
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "JsRuntime costructor.");
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
 }
 
 JsRuntime::~JsRuntime()
@@ -247,9 +247,13 @@ std::unique_ptr<JsRuntime> JsRuntime::Create(const Options& options)
 
 void JsRuntime::StartDebugMode(const DebugOption dOption)
 {
+    if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "Developer Mode is false.");
+        return;
+    }
     CHECK_POINTER(jsEnv_);
     if (jsEnv_->GetDebugMode()) {
-        TAG_LOGI(AAFwkTag::JSRUNTIME, "Already in debug mode");
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "debugMode");
         return;
     }
     // Set instance id to tid after the first instance.
@@ -267,10 +271,10 @@ void JsRuntime::StartDebugMode(const DebugOption dOption)
     std::string inputProcessName = bundleName_ != dOption.processName ? dOption.processName : "";
     HdcRegister::Get().StartHdcRegister(bundleName_, inputProcessName, isDebugApp, [bundleName,
             isStartWithDebug, instanceId, weak, isDebugApp] (int socketFd, std::string option) {
-            TAG_LOGI(AAFwkTag::JSRUNTIME, "HdcRegister msg, fd= %{public}d, option= %{public}s.",
+            TAG_LOGI(AAFwkTag::JSRUNTIME, "HdcRegister msg, fd= %{public}d, option= %{public}s",
                 socketFd, option.c_str());
         if (weak == nullptr) {
-                TAG_LOGE(AAFwkTag::JSRUNTIME, "jsEnv is nullptr in hdc register callback");
+                TAG_LOGE(AAFwkTag::JSRUNTIME, "null weak");
             return;
         }
         if (option.find(DEBUGGER) == std::string::npos) {
@@ -290,6 +294,11 @@ void JsRuntime::StartDebugMode(const DebugOption dOption)
         ConnectServerManager::Get().StartConnectServer(bundleName_, -1, true);
     }
 
+    DebuggerConnectionHandler(isDebugApp, isStartWithDebug);
+}
+
+void JsRuntime::DebuggerConnectionHandler(bool isDebugApp, bool isStartWithDebug)
+{
     ConnectServerManager::Get().StoreInstanceMessage(getproctid(), instanceId_);
     EcmaVM* vm = GetEcmaVm();
     auto dTask = jsEnv_->GetDebuggerPostTask();
@@ -315,7 +324,7 @@ void JsRuntime::InitConsoleModule()
 
 bool JsRuntime::StartDebugger(bool needBreakPoint, uint32_t instanceId)
 {
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "StartDebugger called.");
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
     return true;
 }
 
@@ -365,13 +374,13 @@ int32_t JsRuntime::JsperfProfilerCommandParse(const std::string &command, int32_
     std::string interval;
     constexpr size_t matchNumResultIndex = 1;
     if (jsperfMatchResults.size() < PARAM_TWO) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "no results need to be matched");
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "jsperfMatchResults not match");
         return defaultValue;
     }
 
     interval = jsperfMatchResults[matchNumResultIndex].str();
     if (interval.empty()) {
-        TAG_LOGD(AAFwkTag::JSRUNTIME, "match order result error");
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "empty interval");
         return defaultValue;
     }
 
@@ -380,6 +389,10 @@ int32_t JsRuntime::JsperfProfilerCommandParse(const std::string &command, int32_
 
 void JsRuntime::StartProfiler(const DebugOption dOption)
 {
+    if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "Developer Mode is false.");
+        return;
+    }
     CHECK_POINTER(jsEnv_);
     if (JsRuntime::hasInstance.exchange(true, std::memory_order_relaxed)) {
         instanceId_ = static_cast<uint32_t>(getproctid());
@@ -394,9 +407,9 @@ void JsRuntime::StartProfiler(const DebugOption dOption)
     std::string inputProcessName = bundleName_ != dOption.processName ? dOption.processName : "";
     HdcRegister::Get().StartHdcRegister(bundleName_, inputProcessName, isDebugApp,
         [bundleName, isStartWithDebug, instanceId, weak, isDebugApp](int socketFd, std::string option) {
-        TAG_LOGI(AAFwkTag::JSRUNTIME, "HdcRegister msg, fd= %{public}d, option= %{public}s.", socketFd, option.c_str());
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "HdcRegister msg, fd= %{public}d, option= %{public}s", socketFd, option.c_str());
         if (weak == nullptr) {
-            TAG_LOGE(AAFwkTag::JSRUNTIME, "jsEnv is nullptr in hdc register callback");
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "null jsEnv");
             return;
         }
         if (option.find(DEBUGGER) == std::string::npos) {
@@ -412,6 +425,12 @@ void JsRuntime::StartProfiler(const DebugOption dOption)
             weak->StartDebugger(option, socketFd, isDebugApp);
         }
     });
+
+    DebuggerConnectionManager(isDebugApp, isStartWithDebug, dOption);
+}
+
+void JsRuntime::DebuggerConnectionManager(bool isDebugApp, bool isStartWithDebug, const DebugOption dOption)
+{
     if (isDebugApp) {
         ConnectServerManager::Get().StartConnectServer(bundleName_, 0, true);
     }
@@ -427,7 +446,7 @@ void JsRuntime::StartProfiler(const DebugOption dOption)
     auto dTask = jsEnv_->GetDebuggerPostTask();
     panda::JSNApi::DebugOption option = {ARK_DEBUGGER_LIB_PATH, isDebugApp ? isStartWithDebug : false};
     ConnectServerManager::Get().StoreDebuggerInfo(getproctid(), reinterpret_cast<void*>(vm), option, dTask, isDebugApp);
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "profiler:%{public}d interval:%{public}d.", profiler, interval);
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "profiler:%{public}d interval:%{public}d", profiler, interval);
     jsEnv_->StartProfiler(ARK_DEBUGGER_LIB_PATH, instanceId_, profiler, interval, getproctid(), isDebugApp);
 }
 
@@ -436,7 +455,7 @@ bool JsRuntime::GetFileBuffer(const std::string& filePath, std::string& fileFull
 {
     Extractor extractor(filePath);
     if (!extractor.Init()) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "GetFileBuffer, Extractor of %{private}s init failed.", filePath.c_str());
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "Extractor of %{private}s init failed", filePath.c_str());
         return false;
     }
 
@@ -448,42 +467,71 @@ bool JsRuntime::GetFileBuffer(const std::string& filePath, std::string& fileFull
     }
     if (fileNames.empty()) {
         TAG_LOGW(
-            AAFwkTag::JSRUNTIME, "GetFileBuffer, There's no abc file in hap or hqf %{private}s.", filePath.c_str());
+            AAFwkTag::JSRUNTIME, "no .abc in hap/hqf %{private}s", filePath.c_str());
         return true;
     }
 
     std::string fileName = fileNames.front();
     fileFullName = filePath + "/" + fileName;
-    std::ostringstream outStream;
-    if (!extractor.ExtractByName(fileName, outStream)) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "GetFileBuffer, Extract %{public}s failed.", fileFullName.c_str());
+    std::unique_ptr<uint8_t[]> data;
+    size_t dataLen = 0;
+    if (!extractor.ExtractToBufByName(fileName, data, dataLen)) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "Extract %{public}s failed", fileFullName.c_str());
         return false;
     }
 
-    const auto &outStr = outStream.str();
-    buffer.assign(outStr.begin(), outStr.end());
+    buffer.assign(data.get(), data.get() + dataLen);
     return true;
+}
+
+std::shared_ptr<AbilityBase::FileMapper> JsRuntime::GetSafeData(const std::string& path, std::string& fileFullName)
+{
+    bool newCreate = false;
+    auto extractor = ExtractorUtil::GetExtractor(path, newCreate, true);
+    if (extractor == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "Get extractor failed. path: %{private}s", path.c_str());
+        return nullptr;
+    }
+
+    std::vector<std::string> fileNames;
+    extractor->GetSpecifiedTypeFiles(fileNames, ".abc");
+    if (fileNames.empty()) {
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "There's no abc file in hap or hqf: %{private}s", path.c_str());
+        return nullptr;
+    }
+    std::string fileName = fileNames.front();
+    fileFullName = path + "/" + fileName;
+
+    auto safeData = extractor->GetSafeData(fileName);
+    if (safeData == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "Get safe data failed. path: %{private}s", path.c_str());
+        return nullptr;
+    }
+
+    return safeData;
 }
 
 bool JsRuntime::LoadRepairPatch(const std::string& hqfFile, const std::string& hapPath)
 {
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "LoadRepairPatch function called.");
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
     auto vm = GetEcmaVm();
     CHECK_POINTER_AND_RETURN(vm, false);
 
     InitSourceMap(hqfFile);
 
     std::string patchFile;
-    std::vector<uint8_t> patchBuffer;
-    if (!GetFileBuffer(hqfFile, patchFile, patchBuffer)) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "LoadRepairPatch, get patch file buffer failed.");
+    auto hqfSafeData = GetSafeData(hqfFile, patchFile);
+    if (hqfSafeData == nullptr) {
+        if (patchFile.empty()) {
+            TAG_LOGI(AAFwkTag::JSRUNTIME, "No need to load patch cause no ets. path: %{private}s", hqfFile.c_str());
+            return true;
+        }
         return false;
     }
 
     std::string baseFile;
-    std::vector<uint8_t> baseBuffer;
-    if (!GetFileBuffer(hapPath, baseFile, baseBuffer)) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "LoadRepairPatch, get base file buffer failed.");
+    auto hapSafeData = GetSafeData(hapPath, baseFile);
+    if (hapSafeData == nullptr) {
         return false;
     }
 
@@ -498,46 +546,46 @@ bool JsRuntime::LoadRepairPatch(const std::string& hqfFile, const std::string& h
         resolvedHapPath = hapPath.substr(0, hspPosition) + MERGE_ABC_PATH;
     }
 
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "LoadRepairPatch, LoadPatch, patchFile: %{private}s, baseFile: %{private}s.",
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "LoadPatch, patchFile: %{private}s, baseFile: %{private}s",
         patchFile.c_str(), resolvedHapPath.c_str());
-    auto ret = panda::JSNApi::LoadPatch(vm, patchFile, patchBuffer.data(), patchBuffer.size(),
-        resolvedHapPath, baseBuffer.data(), baseBuffer.size());
+    auto ret = panda::JSNApi::LoadPatch(vm, patchFile, hqfSafeData->GetDataPtr(), hqfSafeData->GetDataLen(),
+        resolvedHapPath, hapSafeData->GetDataPtr(), hapSafeData->GetDataLen());
     if (ret != panda::JSNApi::PatchErrorCode::SUCCESS) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "LoadPatch failed with %{public}d.", static_cast<int32_t>(ret));
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "LoadPatch failed:%{public}d", static_cast<int32_t>(ret));
         return false;
     }
 
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "LoadRepairPatch, Load patch %{private}s succeed.", patchFile.c_str());
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "Load patch %{private}s succeed", patchFile.c_str());
     return true;
 }
 
 bool JsRuntime::UnLoadRepairPatch(const std::string& hqfFile)
 {
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "UnLoadRepairPatch function called.");
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
     auto vm = GetEcmaVm();
     CHECK_POINTER_AND_RETURN(vm, false);
 
     Extractor extractor(hqfFile);
     if (!extractor.Init()) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "UnLoadRepairPatch, Extractor of %{private}s init failed.", hqfFile.c_str());
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "Extractor of %{private}s init failed", hqfFile.c_str());
         return false;
     }
 
     std::vector<std::string> fileNames;
     extractor.GetSpecifiedTypeFiles(fileNames, ".abc");
     if (fileNames.empty()) {
-        TAG_LOGW(AAFwkTag::JSRUNTIME, "UnLoadRepairPatch, There's no abc file in hqf %{private}s.", hqfFile.c_str());
+        TAG_LOGW(AAFwkTag::JSRUNTIME, "no .abc in hqf %{private}s", hqfFile.c_str());
         return true;
     }
 
     for (const auto &fileName : fileNames) {
         std::string patchFile = hqfFile + "/" + fileName;
-        TAG_LOGD(AAFwkTag::JSRUNTIME, "UnLoadRepairPatch, UnloadPatch, patchFile: %{private}s.", patchFile.c_str());
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "UnloadPatch, patchFile: %{private}s", patchFile.c_str());
         auto ret = panda::JSNApi::UnloadPatch(vm, patchFile);
         if (ret != panda::JSNApi::PatchErrorCode::SUCCESS) {
-            TAG_LOGW(AAFwkTag::JSRUNTIME, "UnLoadPatch failed with %{public}d.", static_cast<int32_t>(ret));
+            TAG_LOGW(AAFwkTag::JSRUNTIME, "UnLoadPatch failed with %{public}d", static_cast<int32_t>(ret));
         }
-        TAG_LOGD(AAFwkTag::JSRUNTIME, "UnLoadRepairPatch, UnLoad patch %{private}s succeed.", patchFile.c_str());
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "UnLoad patch %{private}s succeed", patchFile.c_str());
     }
 
     return true;
@@ -545,7 +593,7 @@ bool JsRuntime::UnLoadRepairPatch(const std::string& hqfFile)
 
 bool JsRuntime::NotifyHotReloadPage()
 {
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "function called.");
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
 #ifdef SUPPORT_SCREEN
     Ace::HotReloader::HotReload();
 #endif // SUPPORT_SCREEN
@@ -554,14 +602,14 @@ bool JsRuntime::NotifyHotReloadPage()
 
 bool JsRuntime::LoadScript(const std::string& path, std::vector<uint8_t>* buffer, bool isBundle)
 {
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "Load script, path: %{private}s.", path.c_str());
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "path: %{private}s", path.c_str());
     CHECK_POINTER_AND_RETURN(jsEnv_, false);
     return jsEnv_->LoadScript(path, buffer, isBundle);
 }
 
 bool JsRuntime::LoadScript(const std::string& path, uint8_t* buffer, size_t len, bool isBundle)
 {
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "Load script, path: %{private}s.", path.c_str());
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "path: %{private}s", path.c_str());
     CHECK_POINTER_AND_RETURN(jsEnv_, false);
     return jsEnv_->LoadScript(path, buffer, len, isBundle);
 }
@@ -569,9 +617,9 @@ bool JsRuntime::LoadScript(const std::string& path, uint8_t* buffer, size_t len,
 std::unique_ptr<NativeReference> JsRuntime::LoadSystemModuleByEngine(
     napi_env env, const std::string& moduleName, const napi_value* argv, size_t argc)
 {
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "JsRuntime::LoadSystemModule(%{public}s)", moduleName.c_str());
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "ModuleName %{public}s", moduleName.c_str());
     if (env == nullptr) {
-        TAG_LOGI(AAFwkTag::JSRUNTIME, "JsRuntime::LoadSystemModule: invalid engine.");
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "invalid engine");
         return nullptr;
     }
 
@@ -627,8 +675,12 @@ void JsRuntime::PostPreload(const Options& options)
         postOption.SetAnDir(sandBoxAnFilePath);
     }
     if (options.isMultiThread) {
-        TAG_LOGD(AAFwkTag::JSRUNTIME, "Start Multi-Thread Mode: %{public}d.", options.isMultiThread);
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "Multi-Thread Mode: %{public}d", options.isMultiThread);
         panda::JSNApi::SetMultiThreadCheck();
+    }
+    if (options.isErrorInfoEnhance) {
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "Start Error-Info-Enhance Mode: %{public}d.", options.isErrorInfoEnhance);
+        panda::JSNApi::SetErrorInfoEnhance();
     }
     bool profileEnabled = OHOS::system::GetBoolParameter("ark.profile", false);
     postOption.SetEnableProfile(profileEnabled);
@@ -667,14 +719,14 @@ bool JsRuntime::Initialize(const Options& options)
 #endif
     if (!preloaded_) {
         if (!CreateJsEnv(options)) {
-            TAG_LOGE(AAFwkTag::JSRUNTIME, "Create js environment failed.");
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "Create jsEnv failed");
             return false;
         }
         NativeCreateEnv::RegCreateNapiEnvCallback(CreateNapiEnv);
         NativeCreateEnv::RegDestroyNapiEnvCallback(DestroyNapiEnv);
     }
     apiTargetVersion_ = options.apiTargetVersion;
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "Initialize: %{public}d.", apiTargetVersion_);
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "Initialize: %{public}d", apiTargetVersion_);
     bool isModular = false;
     if (IsUseAbilityRuntime(options)) {
         auto env = GetNapiEnv();
@@ -711,9 +763,9 @@ bool JsRuntime::Initialize(const Options& options)
                 TAG_LOGE(AAFwkTag::JSRUNTIME, "Failed to create reference for global.requireNapi");
                 return false;
             }
-            TAG_LOGD(AAFwkTag::JSRUNTIME, "PreloadAce start.");
+            TAG_LOGD(AAFwkTag::JSRUNTIME, "PreloadAce start");
             PreloadAce(options);
-            TAG_LOGD(AAFwkTag::JSRUNTIME, "PreloadAce end.");
+            TAG_LOGD(AAFwkTag::JSRUNTIME, "PreloadAce end");
             nativeEngine->RegisterPermissionCheck(PermissionCheckFunc);
         }
 
@@ -769,7 +821,7 @@ bool JsRuntime::Initialize(const Options& options)
         SetRequestAotCallback();
 
         if (!InitLoop(options.isStageModel)) {
-            TAG_LOGE(AAFwkTag::JSRUNTIME, "Initialize loop failed.");
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "Init loop failed");
             return false;
         }
     }
@@ -791,7 +843,7 @@ bool JsRuntime::CreateJsEnv(const Options& options)
     pandaOption.SetMemConfigProperty(memConfigProperty);
     pandaOption.SetGcThreadNum(gcThreadNum);
     pandaOption.SetLongPauseTime(longPauseTime);
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "JSRuntime::Initialize ark properties = %{public}d bundlename = %{public}s",
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "ark properties=%{public}d bundlename=%{public}s",
         arkProperties, bundleName.c_str());
     pandaOption.SetGcType(panda::RuntimeOption::GC_TYPE::GEN_GC);
     pandaOption.SetGcPoolSize(DEFAULT_GC_POOL_SIZE);
@@ -806,8 +858,13 @@ bool JsRuntime::CreateJsEnv(const Options& options)
     pandaOption.SetEnableJIT(options.jitEnabled);
 
     if (options.isMultiThread) {
-        TAG_LOGD(AAFwkTag::JSRUNTIME, "Start Multi Thread Mode: %{public}d.", options.isMultiThread);
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "Start Multi Thread Mode: %{public}d", options.isMultiThread);
         panda::JSNApi::SetMultiThreadCheck();
+    }
+
+    if (options.isErrorInfoEnhance) {
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "Start Error Info Enhance Mode: %{public}d.", options.isErrorInfoEnhance);
+        panda::JSNApi::SetErrorInfoEnhance();
     }
 
     if (IsUseAbilityRuntime(options)) {
@@ -820,7 +877,7 @@ bool JsRuntime::CreateJsEnv(const Options& options)
     OHOSJsEnvLogger::RegisterJsEnvLogger();
     jsEnv_ = std::make_shared<JsEnv::JsEnvironment>(std::make_unique<OHOSJsEnvironmentImpl>(options.eventRunner));
     if (jsEnv_ == nullptr || !jsEnv_->Initialize(pandaOption, static_cast<void*>(this))) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "Initialize js environment failed.");
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "Init jsEnv failed");
         return false;
     }
 
@@ -847,24 +904,13 @@ void JsRuntime::PreloadAce(const Options& options)
 
 void JsRuntime::ReloadFormComponent()
 {
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "Call.");
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
     auto nativeEngine = GetNativeEnginePointer();
     CHECK_POINTER(nativeEngine);
     // ArkTsCard update condition, need to reload new component
 #ifdef SUPPORT_SCREEN
     OHOS::Ace::DeclarativeModulePreloader::ReloadCard(*nativeEngine, bundleName_, pkgContextInfoJsonStringMap_);
 #endif
-}
-
-void JsRuntime::DoCleanWorkAfterStageCleaned()
-{
-    // Force gc. If the jsRuntime is destroyed, this task should not be executed.
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "DoCleanWorkAfterStageCleaned begin");
-    RemoveTask("ability_destruct_gc");
-    auto gcTask = [this]() {
-        panda::JSNApi::TriggerGC(GetEcmaVm(), panda::JSNApi::TRIGGER_GC_TYPE::FULL_GC);
-    };
-    PostTask(gcTask, "ability_destruct_gc", TRIGGER_GC_AFTER_CLEAR_STAGE_MS);
 }
 
 bool JsRuntime::InitLoop(bool isStage)
@@ -875,16 +921,16 @@ bool JsRuntime::InitLoop(bool isStage)
 
 void JsRuntime::SetAppLibPath(const AppLibPathMap& appLibPaths, const bool& isSystemApp)
 {
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "Set library path.");
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "Set library path");
 
     if (appLibPaths.size() == 0) {
-        TAG_LOGW(AAFwkTag::JSRUNTIME, "There's no library path need to set.");
+        TAG_LOGW(AAFwkTag::JSRUNTIME, "no lib path to set");
         return;
     }
 
     auto moduleManager = NativeModuleManager::GetInstance();
     if (moduleManager == nullptr) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "Get module manager failed.");
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null moduleManager");
         return;
     }
 
@@ -906,7 +952,7 @@ void JsRuntime::InitSourceMap(const std::string hqfFilePath)
     std::string patchSoureMapFile;
     std::vector<uint8_t> soureMapBuffer;
     if (!GetFileBuffer(hqfFilePath, patchSoureMapFile, soureMapBuffer, false)) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "InitSourceMap, get patchSoureMap file buffer failed.");
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "get patchSoureMap file buffer failed");
         return;
     }
     std::string str(soureMapBuffer.begin(), soureMapBuffer.end());
@@ -921,7 +967,7 @@ void JsRuntime::InitSourceMap(const std::string hqfFilePath)
 
 void JsRuntime::Deinitialize()
 {
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "JsRuntime deinitialize.");
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
     for (auto it = modules_.begin(); it != modules_.end(); it = modules_.erase(it)) {
         delete it->second;
         it->second = nullptr;
@@ -1051,7 +1097,7 @@ std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& module
 std::unique_ptr<NativeReference> JsRuntime::LoadSystemModule(
     const std::string& moduleName, const napi_value* argv, size_t argc)
 {
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "JsRuntime::LoadSystemModule(%{public}s)", moduleName.c_str());
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "SystemModule %{public}s", moduleName.c_str());
     napi_env env = GetNapiEnv();
     CHECK_POINTER_AND_RETURN(env, std::unique_ptr<NativeReference>());
 
@@ -1112,19 +1158,19 @@ bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath
         if (!extractor->IsHapCompress(modulePath) && useSafeMempry) {
             auto safeData = extractor->GetSafeData(modulePath);
             if (!safeData) {
-                TAG_LOGE(AAFwkTag::JSRUNTIME, "Get abc file failed.");
+                TAG_LOGE(AAFwkTag::JSRUNTIME, "Get safeData abc file failed");
                 return false;
             }
             return LoadScript(abcPath, safeData->GetDataPtr(), safeData->GetDataLen(), isBundle_);
         } else {
-            std::ostringstream outStream;
-            if (!extractor->GetFileBuffer(modulePath, outStream)) {
-                TAG_LOGE(AAFwkTag::JSRUNTIME, "Get abc file failed");
+            std::unique_ptr<uint8_t[]> data;
+            size_t dataLen = 0;
+            if (!extractor->ExtractToBufByName(modulePath, data, dataLen)) {
+                TAG_LOGE(AAFwkTag::JSRUNTIME, "Get File  Buffer abc file failed");
                 return false;
             }
-            const auto& outStr = outStream.str();
             std::vector<uint8_t> buffer;
-            buffer.assign(outStr.begin(), outStr.end());
+            buffer.assign(data.get(), data.get() + dataLen);
 
             return LoadScript(abcPath, &buffer, isBundle_);
         }
@@ -1187,11 +1233,11 @@ void JsRuntime::RemoveTask(const std::string& name)
     jsEnv_->RemoveTask(name);
 }
 
-void JsRuntime::DumpCpuProfile(bool isPrivate)
+void JsRuntime::DumpCpuProfile()
 {
     auto nativeEngine = GetNativeEnginePointer();
     CHECK_POINTER(nativeEngine);
-    nativeEngine->DumpCpuProfile(true, DumpFormat::JSON, isPrivate, false);
+    nativeEngine->DumpCpuProfile();
 }
 
 void JsRuntime::DumpHeapSnapshot(bool isPrivate)
@@ -1205,7 +1251,14 @@ void JsRuntime::DumpHeapSnapshot(uint32_t tid, bool isFullGC)
 {
     auto vm = GetEcmaVm();
     CHECK_POINTER(vm);
-    DFXJSNApi::DumpHeapSnapshot(vm, 0, true, false, false, isFullGC, tid);
+    panda::ecmascript::DumpSnapShotOption dumpOption;
+    dumpOption.dumpFormat = panda::ecmascript::DumpFormat::JSON;
+    dumpOption.isVmMode = true;
+    dumpOption.isPrivate = false;
+    dumpOption.captureNumericValue = true;
+    dumpOption.isFullGC = isFullGC;
+    dumpOption.isSync = false;
+    DFXJSNApi::DumpHeapSnapshot(vm, dumpOption, tid);
 }
 
 void JsRuntime::ForceFullGC(uint32_t tid)
@@ -1225,7 +1278,8 @@ void JsRuntime::ForceFullGC()
 {
     auto vm = GetEcmaVm();
     CHECK_POINTER(vm);
-    panda::JSNApi::TriggerGC(vm, panda::JSNApi::TRIGGER_GC_TYPE::FULL_GC);
+    panda::JSNApi::TriggerGC(vm, panda::ecmascript::GCReason::TRIGGER_BY_ABILITY,
+        panda::JSNApi::TRIGGER_GC_TYPE::FULL_GC);
 }
 
 void JsRuntime::AllowCrossThreadExecution()
@@ -1246,7 +1300,7 @@ void JsRuntime::NotifyApplicationState(bool isBackground)
     auto nativeEngine = GetNativeEnginePointer();
     CHECK_POINTER(nativeEngine);
     nativeEngine->NotifyApplicationState(isBackground);
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "NotifyApplicationState, isBackground %{public}d.", isBackground);
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "isBackground %{public}d", isBackground);
 }
 
 bool JsRuntime::SuspendVM(uint32_t tid)
@@ -1343,7 +1397,7 @@ bool JsRuntime::ReadSourceMapData(const std::string& hapPath, const std::string&
 {
     // Source map relative path, FA: "/assets/js", Stage: "/ets"
     if (hapPath.empty()) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "hapPath is empty");
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "empty hapPath");
         return false;
     }
     bool newCreate = false;
@@ -1356,7 +1410,7 @@ bool JsRuntime::ReadSourceMapData(const std::string& hapPath, const std::string&
     std::unique_ptr<uint8_t[]> dataPtr = nullptr;
     size_t len = 0;
     if (!extractor->ExtractToBufByName(sourceMapPath, dataPtr, len)) {
-        TAG_LOGD(AAFwkTag::JSRUNTIME, "can't find source map, and switch to stage model.");
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "can't find source map, and switch to stage model");
         std::string tempPath = std::regex_replace(sourceMapPath, std::regex("ets"), "assets/js");
         if (!extractor->ExtractToBufByName(tempPath, dataPtr, len)) {
             TAG_LOGD(AAFwkTag::JSRUNTIME, "get mergeSourceMapData fileBuffer failed, map path: %{private}s",
@@ -1387,7 +1441,7 @@ void JsRuntime::FreeNativeReference(std::unique_ptr<NativeReference> uniqueNativ
     std::shared_ptr<NativeReference>&& sharedNativeRef)
 {
     if (uniqueNativeRef == nullptr && sharedNativeRef == nullptr) {
-        TAG_LOGW(AAFwkTag::JSRUNTIME, "native reference is invalid.");
+        TAG_LOGW(AAFwkTag::JSRUNTIME, "invalid nativeRef");
         return;
     }
 
@@ -1398,13 +1452,13 @@ void JsRuntime::FreeNativeReference(std::unique_ptr<NativeReference> uniqueNativ
 
     auto work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "new uv work failed.");
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null work");
         return;
     }
 
     auto cb = new (std::nothrow) JsNativeReferenceDeleterObject();
     if (cb == nullptr) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "new deleter object failed.");
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null cb");
         delete work;
         work = nullptr;
         return;
@@ -1479,24 +1533,24 @@ void JsRuntime::SetRequestAotCallback()
     auto callback = [](const std::string& bundleName, const std::string& moduleName, int32_t triggerMode) -> int32_t {
         auto systemAbilityMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
         if (systemAbilityMgr == nullptr) {
-            TAG_LOGE(AAFwkTag::JSRUNTIME, "Failed to get system ability manager.");
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "get SaMgr failed");
             return ERR_INVALID_VALUE;
         }
 
         auto remoteObj = systemAbilityMgr->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
         if (remoteObj == nullptr) {
-            TAG_LOGE(AAFwkTag::JSRUNTIME, "Remote object is nullptr.");
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "null remoteObject");
             return ERR_INVALID_VALUE;
         }
 
         auto bundleMgr = iface_cast<AppExecFwk::IBundleMgr>(remoteObj);
         if (bundleMgr == nullptr) {
-            TAG_LOGE(AAFwkTag::JSRUNTIME, "Failed to get bundle manager.");
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "get bms failed");
             return ERR_INVALID_VALUE;
         }
 
         TAG_LOGD(AAFwkTag::JSRUNTIME,
-            "Reset compile status, bundleName: %{public}s, moduleName: %{public}s, triggerMode: %{public}d.",
+            "Reset compile status, bundleName: %{public}s, moduleName: %{public}s, triggerMode: %{public}d",
             bundleName.c_str(), moduleName.c_str(), triggerMode);
         return bundleMgr->ResetAOTCompileStatus(bundleName, moduleName, triggerMode);
     };
@@ -1506,7 +1560,7 @@ void JsRuntime::SetRequestAotCallback()
 
 void JsRuntime::SetDeviceDisconnectCallback(const std::function<bool()> &cb)
 {
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "Start.");
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
     CHECK_POINTER(jsEnv_);
     jsEnv_->SetDeviceDisconnectCallback(cb);
 }
@@ -1591,12 +1645,13 @@ void JsRuntime::GetPkgContextInfoListMap(const std::map<std::string, std::string
             TAG_LOGE(AAFwkTag::JSRUNTIME, "moduleName: %{public}s load hapPath failed", it->first.c_str());
             continue;
         }
-        std::ostringstream outStream;
-        if (!extractor->ExtractByName("pkgContextInfo.json", outStream)) {
-            TAG_LOGW(AAFwkTag::JSRUNTIME, "moduleName: %{public}s get pkgContextInfo failed", it->first.c_str());
+        std::unique_ptr<uint8_t[]> data;
+        size_t dataLen = 0;
+        if (!extractor->ExtractToBufByName("pkgContextInfo.json", data, dataLen)) {
+            TAG_LOGD(AAFwkTag::JSRUNTIME, "moduleName: %{public}s get pkgContextInfo failed", it->first.c_str());
             continue;
         }
-        auto jsonObject = nlohmann::json::parse(outStream.str(), nullptr, false);
+        auto jsonObject = nlohmann::json::parse(data.get(), data.get() + dataLen, nullptr, false);
         if (jsonObject.is_discarded()) {
             TAG_LOGE(AAFwkTag::JSRUNTIME, "moduleName: %{public}s parse json error", it->first.c_str());
             continue;

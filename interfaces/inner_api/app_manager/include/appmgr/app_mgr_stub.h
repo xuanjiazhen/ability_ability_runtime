@@ -55,6 +55,15 @@ public:
      */
     virtual int32_t GetForegroundApplications(std::vector<AppStateData> &list) override;
 
+    /**
+     * Get pids of processes which belong to specific bundle name and support process cache feature.
+     * @param bundleName bundle name.
+     * @param pidList pid list of processes that support process cache..
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetSupportedProcessCachePids(const std::string &bundleName,
+        std::vector<int32_t> &pidList) override;
+
 private:
     int32_t HandleAttachApplication(MessageParcel &data, MessageParcel &reply);
     int32_t HandlePreloadApplication(MessageParcel &data, MessageParcel &reply);
@@ -69,6 +78,7 @@ private:
     int32_t HandleGetProcessRunningInfosByUserId(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetProcessRunningInformation(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetAllRenderProcesses(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleGetAllChildrenProcesses(MessageParcel &data, MessageParcel &reply);
     int32_t HandleAddAbilityStageDone(MessageParcel &data, MessageParcel &reply);
     int32_t HandleNotifyMemoryLevel(MessageParcel &data, MessageParcel &reply);
     int32_t HandleNotifyProcMemoryLevel(MessageParcel &data, MessageParcel &reply);
@@ -96,9 +106,6 @@ private:
     int32_t HandleDumpJsHeapMemory(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetRunningMultiAppInfoByBundleName(MessageParcel &data, MessageParcel &reply);
     int32_t HandleIsAppRunning(MessageParcel &data, MessageParcel &reply);
-#ifdef ABILITY_COMMAND_FOR_TEST
-    int32_t HandleBlockAppServiceDone(MessageParcel &data, MessageParcel &reply);
-#endif
     int32_t HandleGetAppRunningStateByBundleName(MessageParcel &data, MessageParcel &reply);
     int32_t HandleNotifyLoadRepairPatch(MessageParcel &data, MessageParcel &reply);
     int32_t HandleNotifyHotReloadPage(MessageParcel &data, MessageParcel &reply);
@@ -128,6 +135,7 @@ private:
     int32_t HandleGetChildProcessInfoForSelf(MessageParcel &data, MessageParcel &reply);
     int32_t HandleAttachChildProcess(MessageParcel &data, MessageParcel &reply);
     int32_t HandleExitChildProcessSafely(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleClearUpApplicationDataBySelf(MessageParcel &data, MessageParcel& reply);
     int32_t HandleIsFinalAppProcess(MessageParcel &data, MessageParcel &reply);
     int32_t HandleRequestTerminateProcess(MessageParcel &data, MessageParcel &reply);
     int32_t HandleRequestTerminateApplication(MessageParcel &data, MessageParcel &reply);
@@ -140,17 +148,31 @@ private:
     int32_t HandleGetAllUIExtensionRootHostPid(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetAllUIExtensionProviderPid(MessageParcel &data, MessageParcel &reply);
     int32_t HandleNotifyMemorySizeStateChanged(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleSetAppAssertionPauseState(MessageParcel &data, MessageParcel& reply);
     int32_t HandleSetSupportedProcessCacheSelf(MessageParcel &data, MessageParcel &reply);
-    int32_t HandleSetAppAssertionPauseState(MessageParcel &data, MessageParcel &reply);
-    int32_t HandleStartNativeChildProcess(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleSetSupportedProcessCache(MessageParcel &data, MessageParcel &reply);
     int32_t HandleSaveBrowserChannel(MessageParcel &data, MessageParcel &reply);
     int32_t HandleCheckCallingIsUserTestMode(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleStartNativeChildProcess(MessageParcel &data, MessageParcel& reply);
     int32_t HandleNotifyProcessDependedOnWeb(MessageParcel &data, MessageParcel &reply);
     int32_t HandleKillProcessDependedOnWeb(MessageParcel &data, MessageParcel &reply);
     int32_t HandleRestartResidentProcessDependedOnWeb(MessageParcel &data, MessageParcel &reply);
-    using AppMgrFunc = int32_t (AppMgrStub::*)(MessageParcel &data, MessageParcel &reply);
-    std::map<uint32_t, AppMgrFunc> memberFuncMap_;
-
+    int32_t OnRemoteRequestInner(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+    int32_t OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data,
+        MessageParcel &reply, MessageOption &option);
+    int32_t OnRemoteRequestInnerSecond(uint32_t code, MessageParcel &data,
+        MessageParcel &reply, MessageOption &option);
+    int32_t OnRemoteRequestInnerThird(uint32_t code, MessageParcel &data,
+        MessageParcel &reply, MessageOption &option);
+    int32_t OnRemoteRequestInnerFourth(uint32_t code, MessageParcel &data,
+        MessageParcel &reply, MessageOption &option);
+    int32_t OnRemoteRequestInnerFifth(uint32_t code, MessageParcel &data,
+        MessageParcel &reply, MessageOption &option);
+    int32_t OnRemoteRequestInnerSixth(uint32_t code, MessageParcel &data,
+        MessageParcel &reply, MessageOption &option);
+    int32_t OnRemoteRequestInnerSeventh(uint32_t code, MessageParcel &data,
+        MessageParcel &reply, MessageOption &option);
+    int32_t HandleGetSupportedProcessCachePids(MessageParcel &data, MessageParcel &reply);
     DISALLOW_COPY_AND_MOVE(AppMgrStub);
 };
 }  // namespace AppExecFwk

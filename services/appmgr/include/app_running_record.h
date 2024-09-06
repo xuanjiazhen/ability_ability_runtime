@@ -54,6 +54,17 @@ class AbilityRunningRecord;
 class AppMgrServiceInner;
 class AppRunningRecord;
 
+class MultiUserConfigurationMgr {
+public:
+    void Insert(const int32_t userId, const Configuration& config);
+
+    Configuration GetConfigurationByUserId(const int32_t userId);
+
+private:
+    std::map<int32_t, Configuration> multiUserConfiguration_;
+    std::mutex multiUserConfigurationMutex_;
+};
+
 /**
  * @class RenderRecord
  * Record nweb render process info.
@@ -319,26 +330,6 @@ public:
      */
     void SetTrimMemoryLevel(int32_t level);
 
-    // Kill this process with a given reason
-    /**
-     * ForceKillApp, Kill this process with a given reason.
-     *
-     * @param reason, The reason to kill the process.
-     *
-     * @return
-     */
-    void ForceKillApp(const std::string &reason) const;
-
-    // Schedule to crash this app with a given description
-    /**
-     * ScheduleAppCrash, Schedule to crash this app with a given description.
-     *
-     * @param description, the given description.
-     *
-     * @return
-     */
-    void ScheduleAppCrash(const std::string &description) const;
-
     /**
      * LaunchApplication, Notify application to launch application.
      *
@@ -556,16 +547,20 @@ public:
     void SetEmptyKeepAliveAppState(bool isEmptyKeepAliveApp);
 
     void SetKeepAliveEnableState(bool isKeepAliveEnable);
-
-    void SetSingleton(bool isSingleton);
+    void SetKeepAliveBundle(bool isKeepAliveBundle);
 
     void SetMainProcess(bool isMainProcess);
+
+    void SetSingleton(bool isSingleton);
 
     void SetStageModelState(bool isStageBasedModel);
 
     std::list<std::shared_ptr<ModuleRunningRecord>> GetAllModuleRecord() const;
 
     const std::list<std::shared_ptr<ApplicationInfo>> GetAppInfoList();
+
+    void SetAppIdentifier(const std::string &appIdentifier);
+    const std::string &GetAppIdentifier() const;
 
     inline const std::shared_ptr<ApplicationInfo> GetApplicationInfo()
     {
@@ -615,11 +610,14 @@ public:
     void SetDebugApp(bool isDebugApp);
     bool IsDebugApp();
     bool IsDebugging() const;
+    void SetErrorInfoEnhance(const bool errorInfoEnhance);
     void SetNativeDebug(bool isNativeDebug);
     void SetPerfCmd(const std::string &perfCmd);
     void SetMultiThread(const bool multiThread);
     void AddRenderRecord(const std::shared_ptr<RenderRecord> &record);
     void RemoveRenderRecord(const std::shared_ptr<RenderRecord> &record);
+    void RemoveRenderPid(pid_t pid);
+    bool ConstainsRenderPid(pid_t renderPid);
     std::shared_ptr<RenderRecord> GetRenderRecordByPid(const pid_t pid);
     std::map<int32_t, std::shared_ptr<RenderRecord>> GetRenderRecordMap();
     void SetStartMsg(const AppSpawnStartMsg &msg);
@@ -673,11 +671,9 @@ public:
 
     void SetProcessChangeReason(ProcessChangeReason reason);
 
+    bool NeedUpdateConfigurationBackground();
+
     ProcessChangeReason GetProcessChangeReason() const;
-
-    bool IsUpdateStateFromService();
-
-    void SetUpdateStateFromService(bool isUpdateStateFromService);
 
     ExtensionAbilityType GetExtensionType() const;
     ProcessType GetProcessType() const;
@@ -731,12 +727,16 @@ public:
     void SetApplicationPendingState(ApplicationPendingState pendingState);
     ApplicationPendingState GetApplicationPendingState() const;
 
+    void SetApplicationScheduleState(ApplicationScheduleState scheduleState);
+    ApplicationScheduleState GetApplicationScheduleState() const;
+
     void GetSplitModeAndFloatingMode(bool &isSplitScreenMode, bool &isFloatingWindowMode);
 
     void AddChildProcessRecord(pid_t pid, const std::shared_ptr<ChildProcessRecord> record);
     void RemoveChildProcessRecord(const std::shared_ptr<ChildProcessRecord> record);
     std::shared_ptr<ChildProcessRecord> GetChildProcessRecordByPid(const pid_t pid);
     std::map<pid_t, std::shared_ptr<ChildProcessRecord>> GetChildProcessRecordMap();
+    int32_t GetChildProcessCount();
 
     void SetPreloadState(PreloadState state);
 
@@ -802,6 +802,8 @@ public:
     void SetAttachedToStatusBar(bool isAttached);
     bool IsAttachedToStatusBar();
 
+    void ScheduleCacheProcess();
+
     void SetBrowserHost(sptr<IRemoteObject> browser);
     sptr<IRemoteObject> GetBrowserHost();
     void SetIsGPU(bool gpu);
@@ -809,8 +811,6 @@ public:
     void SetGPUPid(pid_t gpuPid);
     pid_t GetGPUPid();
 
-    void ScheduleCacheProcess();
-    
     inline void SetStrictMode(bool strictMode)
     {
         isStrictMode_ = strictMode;
@@ -830,15 +830,10 @@ public:
     {
         return isDependedOnArkWeb_;
     }
-private:
-    /**
-     * SearchTheModuleInfoNeedToUpdated, Get an uninitialized abilityStage data.
-     *
-     * @return If an uninitialized data is found return true,Otherwise return false.
-     */
-    bool GetTheModuleInfoNeedToUpdated(const std::string bundleName, HapModuleInfo &info);
 
-    // drive application state changes when ability state changes.
+    void SetProcessCacheBlocked(bool isBlocked);
+    bool GetProcessCacheBlocked();
+
     /**
      * ScheduleForegroundRunning, Notify application to switch to foreground.
      *
@@ -852,6 +847,22 @@ private:
      * @return
      */
     void ScheduleBackgroundRunning();
+
+    void SetUserRequestCleaning();
+    bool IsUserRequestCleaning() const;
+    bool IsAllAbilityReadyToCleanedByUserRequest();
+    bool IsProcessAttached() const;
+    // records whether uiability has launched before.
+    void SetUIAbilityLaunched(bool hasLaunched);
+    bool HasUIAbilityLaunched();
+
+private:
+    /**
+     * SearchTheModuleInfoNeedToUpdated, Get an uninitialized abilityStage data.
+     *
+     * @return If an uninitialized data is found return true,Otherwise return false.
+     */
+    bool GetTheModuleInfoNeedToUpdated(const std::string bundleName, HapModuleInfo &info);
 
     /**
      * AbilityForeground, Handling the ability process when switching to the foreground.
@@ -891,13 +902,15 @@ private:
         }
     };
 
-    bool isKeepAliveApp_ = false;  // Only resident processes can be set to true, please choose carefully
+    bool isKeepAliveRdb_ = false;  // Only resident processes can be set to true, please choose carefully
+    bool isKeepAliveBundle_ = false;
     bool isEmptyKeepAliveApp_ = false;  // Only empty resident processes can be set to true, please choose carefully
     bool isMainProcess_ = true; // Only MainProcess can be keepalive
     bool isSingleton_ = false;
     bool isStageBasedModel_ = false;
     ApplicationState curState_ = ApplicationState::APP_STATE_CREATE;  // current state of this process
     ApplicationPendingState pendingState_ = ApplicationPendingState::READY;
+    ApplicationScheduleState scheduleState_ = ApplicationScheduleState::SCHEDULE_READY;
     bool isFocused_ = false; // if process is focused.
     /**
      * If there is an ability is foregrounding, this flag will be true,
@@ -932,6 +945,7 @@ private:
     bool isLauncherApp_;
     std::string mainAppName_;
     int restartResidentProcCount_ = 0;
+    std::string appIdentifier_;
 
     mutable std::mutex specifiedMutex_;
     int32_t specifiedRequestId_ = -1;
@@ -953,7 +967,7 @@ private:
 
     std::shared_ptr<UserTestRecord> userTestRecord_ = nullptr;
 
-    bool isKilling_ = false;
+    std::atomic<bool> isKilling_ = false;
     bool isContinuousTask_ = false;    // Only continuesTask processes can be set to true, please choose carefully
     std::atomic_bool isSpawned_ = false;
 
@@ -963,13 +977,14 @@ private:
     // render record
     std::map<int32_t, std::shared_ptr<RenderRecord>> renderRecordMap_;
     ffrt::mutex renderRecordMapLock_;
+    std::set<pid_t> renderPidSet_; // Contains all render pid added, whether died or not
+    ffrt::mutex renderPidSetLock_;
     AppSpawnStartMsg startMsg_;
     int32_t appIndex_ = 0;
     bool securityFlag_ = false;
     int32_t requestProcCode_ = 0;
     ProcessChangeReason processChangeReason_ = ProcessChangeReason::REASON_NONE;
 
-    bool isUpdateStateFromService_ = false;
     int32_t callerPid_ = -1;
     int32_t callerUid_ = -1;
     int32_t callerTokenId_ = -1;
@@ -983,15 +998,19 @@ private:
 
     bool isRestartApp_ = false; // Only app calling RestartApp can be set to true
     bool isAssertPause_ = false;
+    bool isErrorInfoEnhance_ = false;
     bool isNativeStart_ = false;
     bool isMultiThread_ = false;
     SupportProcessCacheState procCacheSupportState_ = SupportProcessCacheState::UNSPECIFIED;
+    bool processCacheBlocked = false; // temporarily block process cache feature
     sptr<IRemoteObject> browserHost_;
     bool isGPU_ = false;
     pid_t gpuPid_ = 0;
     bool isStrictMode_ = false;
     bool isAttachedToStatusBar = false;
     bool isDependedOnArkWeb_ = false;
+    bool isUserRequestCleaning_ = false;
+    bool hasUIAbilityLaunched_ = false;
 };
 
 }  // namespace AppExecFwk

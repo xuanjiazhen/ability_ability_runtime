@@ -15,18 +15,13 @@
 
 #include "pending_want_manager.h"
 
-#include <atomic>
-#include <chrono>
-#include <thread>
-
 #include "ability_manager_service.h"
 #include "ability_util.h"
 #include "distributed_client.h"
-#include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "hitrace_meter.h"
-#include "in_process_call_wrapper.h"
-#include "permission_verification.h"
+#include "permission_constants.h"
+#include "session_manager_lite.h"
+#include "wm_common.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -36,28 +31,38 @@ using namespace std::placeholders;
 
 PendingWantManager::PendingWantManager()
 {
-    TAG_LOGD(AAFwkTag::WANTAGENT, "%{public}s(%{public}d)", __PRETTY_FUNCTION__, __LINE__);
 }
 
 PendingWantManager::~PendingWantManager()
 {
-    TAG_LOGI(AAFwkTag::WANTAGENT, "%{public}s(%{public}d)", __PRETTY_FUNCTION__, __LINE__);
 }
 
 sptr<IWantSender> PendingWantManager::GetWantSender(int32_t callingUid, int32_t uid, const bool isSystemApp,
     const WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, int32_t appIndex)
 {
-    TAG_LOGD(AAFwkTag::WANTAGENT, "begin.");
+    TAG_LOGD(AAFwkTag::WANTAGENT, "begin");
     if (wantSenderInfo.type != static_cast<int32_t>(OperationType::SEND_COMMON_EVENT)) {
         if (callingUid != uid &&
             !isSystemApp &&
             !AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
-            TAG_LOGE(AAFwkTag::WANTAGENT, "is not allowed to send");
+            TAG_LOGE(AAFwkTag::WANTAGENT, "cannot send");
             return nullptr;
         }
     }
 
+    if (wantSenderInfo.type == static_cast<int32_t>(OperationType::START_SERVICE_EXTENSION) && !isSystemApp &&
+        !AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "non-system app called");
+        return nullptr;
+    }
+
     WantSenderInfo info = wantSenderInfo;
+
+    if (!isSystemApp && !AAFwk::PermissionVerification::GetInstance()->IsSACall() &&
+        info.allWants.size() > 0) {
+        info.allWants.back().want.RemoveParam("ohos.extra.param.key.appCloneIndex");
+    }
+        
     return GetWantSenderLocked(callingUid, uid, wantSenderInfo.userId, info, callerToken, appIndex);
 }
 
@@ -115,7 +120,7 @@ sptr<IWantSender> PendingWantManager::GetWantSenderLocked(const int32_t callingU
         rec->SetCallerUid(callingUid);
         pendingKey->SetCode(PendingRecordIdCreate());
         wantRecords_.insert(std::make_pair(pendingKey, rec));
-        TAG_LOGI(AAFwkTag::WANTAGENT, "wantRecords_ size %{public}zu", wantRecords_.size());
+        TAG_LOGD(AAFwkTag::WANTAGENT, "wantRecords_ size %{public}zu", wantRecords_.size());
         return rec;
     }
     return nullptr;
@@ -148,7 +153,7 @@ bool PendingWantManager::CheckPendingWantRecordByKey(
     const std::shared_ptr<PendingWantKey> &inputKey, const std::shared_ptr<PendingWantKey> &key)
 {
     if (!inputKey || !key) {
-        TAG_LOGW(AAFwkTag::WANTAGENT, "inputKey or key is nullptr!");
+        TAG_LOGW(AAFwkTag::WANTAGENT, "inputKey or key null");
         return false;
     }
     if (inputKey->GetAppIndex() != key->GetAppIndex()) {
@@ -183,15 +188,13 @@ bool PendingWantManager::CheckPendingWantRecordByKey(
 
 int32_t PendingWantManager::SendWantSender(sptr<IWantSender> target, const SenderInfo &senderInfo)
 {
-    TAG_LOGI(AAFwkTag::WANTAGENT, "begin");
-
     if (target == nullptr) {
         if (senderInfo.finishedReceiver != nullptr) {
             Want want;
             WantParams wantParams = {};
             senderInfo.finishedReceiver->PerformReceive(want, senderInfo.code, "canceled", wantParams, false, false, 0);
         }
-        TAG_LOGE(AAFwkTag::WANTAGENT, "sender is nullptr.");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null sender");
         return ERR_INVALID_VALUE;
     }
     sptr<IRemoteObject> obj = target->AsObject();
@@ -201,7 +204,7 @@ int32_t PendingWantManager::SendWantSender(sptr<IWantSender> target, const Sende
             WantParams wantParams = {};
             senderInfo.finishedReceiver->PerformReceive(want, senderInfo.code, "canceled", wantParams, false, false, 0);
         }
-        TAG_LOGE(AAFwkTag::WANTAGENT, "target obj is nullptr or is a proxy object.");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "target object null or a proxy");
         return ERR_INVALID_VALUE;
     }
     sptr<PendingWantRecord> record = iface_cast<PendingWantRecord>(obj);
@@ -214,19 +217,19 @@ void PendingWantManager::CancelWantSender(const bool isSystemApp, const sptr<IWa
     TAG_LOGD(AAFwkTag::WANTAGENT, "begin");
 
     if (sender == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "sender is nullptr.");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null sender");
         return;
     }
 
     auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
     if (!isSaCall && !isSystemApp) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "is not allowed to send");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "cannot send");
         return;
     }
 
     sptr<IRemoteObject> obj = sender->AsObject();
     if (obj == nullptr || obj->IsProxyObject()) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "target obj is nullptr or is a proxy object.");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "target object null or a proxy");
         return;
     }
     sptr<PendingWantRecord> record = iface_cast<PendingWantRecord>(obj);
@@ -235,7 +238,7 @@ void PendingWantManager::CancelWantSender(const bool isSystemApp, const sptr<IWa
 
 void PendingWantManager::CancelWantSenderLocked(PendingWantRecord &record, bool cleanAbility)
 {
-    TAG_LOGD(AAFwkTag::WANTAGENT, "begin.");
+    TAG_LOGD(AAFwkTag::WANTAGENT, "begin");
     std::lock_guard<ffrt::mutex> locker(mutex_);
     MakeWantSenderCanceledLocked(record);
     if (cleanAbility) {
@@ -252,7 +255,7 @@ int32_t PendingWantManager::DeviceIdDetermine(const Want &want, const sptr<Start
     if (want.GetElement().GetDeviceID() == "" || want.GetElement().GetDeviceID() == localDeviceId) {
         if (!startOptions) {
             result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbilityWithSpecifyTokenIdInner(
-                want, callerToken, callerTokenId, requestCode, callerUid);
+                want, callerToken, callerTokenId, true, requestCode, callerUid);
         } else {
             TAG_LOGD(AAFwkTag::WANTAGENT, "StartOptions windowMode:%{public}d displayId:%{public}d \
                 withAnimation:%{public}d windowLeft:%{public}d windowTop:%{public}d windowWidth:%{public}d \
@@ -261,11 +264,11 @@ int32_t PendingWantManager::DeviceIdDetermine(const Want &want, const sptr<Start
                 startOptions->GetWindowLeft(), startOptions->GetWindowTop(), startOptions->GetWindowWidth(),
                 startOptions->GetWindowHeight());
             result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbilityWithSpecifyTokenIdInner(
-                want, *startOptions, callerToken, requestCode, callerUid, callerTokenId);
+                want, *startOptions, callerToken, true, requestCode, callerUid, callerTokenId);
         }
 
         if (result != ERR_OK && result != START_ABILITY_WAITING) {
-            TAG_LOGE(AAFwkTag::WANTAGENT, "%{public}s:result != ERR_OK && result != START_ABILITY_WAITING.", __func__);
+            TAG_LOGE(AAFwkTag::WANTAGENT, "startAbility failed");
         }
         return result;
     }
@@ -273,7 +276,7 @@ int32_t PendingWantManager::DeviceIdDetermine(const Want &want, const sptr<Start
     sptr<IRemoteObject> remoteObject =
         OHOS::DelayedSingleton<SaMgrClient>::GetInstance()->GetSystemAbility(DISTRIBUTED_SCHED_SA_ID);
     if (remoteObject == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "failed to get distributed schedule manager service");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "GetSystemAbility failed");
         result = ERR_INVALID_VALUE;
         return result;
     }
@@ -282,7 +285,7 @@ int32_t PendingWantManager::DeviceIdDetermine(const Want &want, const sptr<Start
     int32_t callingUid = IPCSkeleton::GetCallingUid();
     result = dmsClient.StartRemoteAbility(want, callingUid, requestCode, accessToken);
     if (result != ERR_OK) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "%{public}s: StartRemoteAbility Error! result = %{public}d", __func__, result);
+        TAG_LOGE(AAFwkTag::WANTAGENT, "StartRemoteAbility failed result = %{public}d", result);
     }
 
     return result;
@@ -292,8 +295,24 @@ int32_t PendingWantManager::PendingWantStartAbility(const Want &want, const sptr
     const sptr<IRemoteObject> &callerToken, int32_t requestCode, const int32_t callerUid, int32_t callerTokenId)
 {
     TAG_LOGI(AAFwkTag::WANTAGENT, "begin");
+    if (!CheckCallerPermission()) {
+        return ERR_INVALID_VALUE;
+    }
     int32_t result = DeviceIdDetermine(want, startOptions, callerToken, requestCode, callerUid, callerTokenId);
     return result;
+}
+
+int32_t PendingWantManager::PendingWantStartServiceExtension(Want &want, const sptr<IRemoteObject> &callerToken)
+{
+    TAG_LOGI(AAFwkTag::WANTAGENT, "called");
+    if (!PermissionVerification::GetInstance()->IsSystemAppCall()
+        && !PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "non-system app called");
+        return ERR_INVALID_VALUE;
+    }
+    //reset flags
+    want.SetFlags(0);
+    return DelayedSingleton<AbilityManagerService>::GetInstance()->StartExtensionAbility(want, callerToken);
 }
 
 int32_t PendingWantManager::PendingWantStartAbilitys(const std::vector<WantsInfo> &wantsInfo,
@@ -302,6 +321,9 @@ int32_t PendingWantManager::PendingWantStartAbilitys(const std::vector<WantsInfo
 {
     TAG_LOGI(AAFwkTag::WANTAGENT, "begin");
 
+    if (!CheckCallerPermission()) {
+        return ERR_INVALID_VALUE;
+    }
     int32_t result = ERR_OK;
     for (const auto &item : wantsInfo) {
         auto res = DeviceIdDetermine(item.want, startOptions, callerToken, requestCode, callerUid, callerTokenId);
@@ -324,7 +346,7 @@ int32_t PendingWantManager::PendingWantPublishCommonEvent(
     CommonEventPublishInfo eventPublishData;
 
     if (!want.GetBundle().empty()) {
-        TAG_LOGI(AAFwkTag::WANTAGENT, "eventPublishData set bundleName = %{public}s", want.GetBundle().c_str());
+        TAG_LOGI(AAFwkTag::WANTAGENT, "eventPublishData set bundleName: %{public}s", want.GetBundle().c_str());
         eventPublishData.SetBundleName(want.GetBundle());
     }
 
@@ -360,15 +382,13 @@ sptr<PendingWantRecord> PendingWantManager::GetPendingWantRecordByCode(int32_t c
 
 int32_t PendingWantManager::GetPendingWantUid(const sptr<IWantSender> &target)
 {
-    TAG_LOGI(AAFwkTag::WANTAGENT, "begin");
-
     if (target == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "target is nullptr.");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null target");
         return -1;
     }
     sptr<IRemoteObject> obj = target->AsObject();
     if (obj == nullptr || obj->IsProxyObject()) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "target obj is nullptr or is a proxy object.");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "target obj null or a proxy object");
         return -1;
     }
 
@@ -382,12 +402,12 @@ int32_t PendingWantManager::GetPendingWantUserId(const sptr<IWantSender> &target
     TAG_LOGD(AAFwkTag::WANTAGENT, "begin");
 
     if (target == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "%{public}s:target is nullptr.", __func__);
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null target");
         return -1;
     }
     sptr<IRemoteObject> obj = target->AsObject();
     if (obj == nullptr || obj->IsProxyObject()) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "target obj is nullptr or is a proxy object.");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "target obj null or a proxy object");
         return -1;
     }
     sptr<PendingWantRecord> targetRecord = iface_cast<PendingWantRecord>(obj);
@@ -400,12 +420,12 @@ std::string PendingWantManager::GetPendingWantBundleName(const sptr<IWantSender>
     TAG_LOGD(AAFwkTag::WANTAGENT, "begin");
 
     if (target == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "%{public}s:target is nullptr.", __func__);
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null target");
         return "";
     }
     sptr<IRemoteObject> obj = target->AsObject();
     if (obj == nullptr || obj->IsProxyObject()) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "target obj is nullptr or is a proxy object.");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "target obj null or a proxy object");
         return "";
     }
 
@@ -422,12 +442,12 @@ int32_t PendingWantManager::GetPendingWantCode(const sptr<IWantSender> &target)
     TAG_LOGD(AAFwkTag::WANTAGENT, "begin");
 
     if (target == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "%{public}s:target is nullptr.", __func__);
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null target");
         return -1;
     }
     sptr<IRemoteObject> obj = target->AsObject();
     if (obj == nullptr || obj->IsProxyObject()) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "target obj is nullptr or is a proxy object.");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "target obj null or a proxy object");
         return -1;
     }
 
@@ -441,12 +461,12 @@ int32_t PendingWantManager::GetPendingWantType(const sptr<IWantSender> &target)
     TAG_LOGD(AAFwkTag::WANTAGENT, "begin");
 
     if (target == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "%{public}s:target is nullptr.", __func__);
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null target");
         return -1;
     }
     sptr<IRemoteObject> obj = target->AsObject();
     if (obj == nullptr || obj->IsProxyObject()) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "target obj is nullptr or is a proxy object.");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "target obj null or a proxy object");
         return -1;
     }
 
@@ -460,19 +480,19 @@ void PendingWantManager::RegisterCancelListener(const sptr<IWantSender> &sender,
     TAG_LOGI(AAFwkTag::WANTAGENT, "begin");
 
     if ((sender == nullptr) || (recevier == nullptr)) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "%{public}s:sender is nullptr or recevier is nullptr.", __func__);
+        TAG_LOGE(AAFwkTag::WANTAGENT, "sender or recevier null");
         return;
     }
     sptr<IRemoteObject> obj = sender->AsObject();
     if (obj == nullptr || obj->IsProxyObject()) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "target obj is nullptr or is a proxy object.");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "target obj null or a proxy object");
         return;
     }
 
     sptr<PendingWantRecord> targetRecord = iface_cast<PendingWantRecord>(obj);
     auto record = GetPendingWantRecordByCode(targetRecord->GetKey()->GetCode());
     if (record == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "%{public}s:record is nullptr. code = %{public}d", __func__,
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null record. code = %{public}d",
             targetRecord->GetKey()->GetCode());
         return;
     }
@@ -485,22 +505,20 @@ void PendingWantManager::RegisterCancelListener(const sptr<IWantSender> &sender,
 
 void PendingWantManager::UnregisterCancelListener(const sptr<IWantSender> &sender, const sptr<IWantReceiver> &recevier)
 {
-    TAG_LOGI(AAFwkTag::WANTAGENT, "begin");
-
     if (sender == nullptr || recevier == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "%{public}s:sender is nullptr or recevier is nullptr.", __func__);
+        TAG_LOGE(AAFwkTag::WANTAGENT, "sender or recevier null");
         return;
     }
     sptr<IRemoteObject> obj = sender->AsObject();
     if (obj == nullptr || obj->IsProxyObject()) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "target obj is nullptr or is a proxy object.");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "target obj null or a proxy object");
         return;
     }
 
     sptr<PendingWantRecord> targetRecord = iface_cast<PendingWantRecord>(obj);
     auto record = GetPendingWantRecordByCode(targetRecord->GetKey()->GetCode());
     if (record == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "%{public}s:record is nullptr.", __func__);
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null record");
         return;
     }
     std::lock_guard<ffrt::mutex> locker(mutex_);
@@ -512,33 +530,32 @@ int32_t PendingWantManager::GetPendingRequestWant(const sptr<IWantSender> &targe
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::WANTAGENT, "begin");
     if (target == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "%{public}s:target is nullptr.", __func__);
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null target");
         return ERR_INVALID_VALUE;
     }
     sptr<IRemoteObject> obj = target->AsObject();
     if (obj == nullptr || obj->IsProxyObject()) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "target obj is nullptr or is a proxy object.");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "target obj null or a proxy object");
         return ERR_INVALID_VALUE;
     }
 
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "%{public}s:want is nullptr.", __func__);
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null want");
         return ERR_INVALID_VALUE;
     }
     sptr<PendingWantRecord> targetRecord = iface_cast<PendingWantRecord>(obj);
 
     if (targetRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "%{public}s:targetRecord is nullptr.", __func__);
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null targetRecord");
         return ERR_INVALID_VALUE;
     }
 
     auto record = GetPendingWantRecordByCode(targetRecord->GetKey()->GetCode());
     if (record == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "%{public}s:record is nullptr.", __func__);
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null record");
         return ERR_INVALID_VALUE;
     }
     want.reset(new (std::nothrow) Want(record->GetKey()->GetRequestWant()));
-    TAG_LOGD(AAFwkTag::WANTAGENT, "want is ok.");
     return NO_ERROR;
 }
 
@@ -546,22 +563,22 @@ int32_t PendingWantManager::GetWantSenderInfo(const sptr<IWantSender> &target, s
 {
     TAG_LOGD(AAFwkTag::WANTAGENT, "begin");
     if (target == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "%{public}s:target is nullptr.", __func__);
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null target");
         return ERR_INVALID_VALUE;
     }
     sptr<IRemoteObject> obj = target->AsObject();
     if (obj == nullptr || obj->IsProxyObject()) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "target obj is nullptr or is a proxy object.");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "target obj null or a proxy object");
         return ERR_INVALID_VALUE;
     }
     if (info == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "%{public}s:info is nullptr.", __func__);
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null info");
         return ERR_INVALID_VALUE;
     }
     sptr<PendingWantRecord> targetRecord = iface_cast<PendingWantRecord>(obj);
     auto record = GetPendingWantRecordByCode(targetRecord->GetKey()->GetCode());
     if (record == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "%{public}s:record is nullptr.", __func__);
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null record");
         return ERR_INVALID_VALUE;
     }
     WantSenderInfo wantSenderInfo;
@@ -570,13 +587,11 @@ int32_t PendingWantManager::GetWantSenderInfo(const sptr<IWantSender> &target, s
     wantSenderInfo.flags = (uint32_t)(record->GetKey()->GetFlags());
     wantSenderInfo.allWants = record->GetKey()->GetAllWantsInfos();
     info.reset(new (std::nothrow) WantSenderInfo(wantSenderInfo));
-    TAG_LOGE(AAFwkTag::WANTAGENT, "%{public}s:want is ok.", __func__);
     return NO_ERROR;
 }
 
 void PendingWantManager::ClearPendingWantRecord(const std::string &bundleName, int32_t uid)
 {
-    TAG_LOGI(AAFwkTag::WANTAGENT, "bundleName: %{public}s", bundleName.c_str());
     auto abilityManagerService = DelayedSingleton<AbilityManagerService>::GetInstance();
     CHECK_POINTER(abilityManagerService);
     auto handler = abilityManagerService->GetTaskHandler();
@@ -587,7 +602,6 @@ void PendingWantManager::ClearPendingWantRecord(const std::string &bundleName, i
 
 void PendingWantManager::ClearPendingWantRecordTask(const std::string &bundleName, int32_t uid)
 {
-    TAG_LOGI(AAFwkTag::WANTAGENT, "bundleName: %{public}s", bundleName.c_str());
     std::lock_guard<ffrt::mutex> locker(mutex_);
     auto iter = wantRecords_.begin();
     while (iter != wantRecords_.end()) {
@@ -613,9 +627,54 @@ void PendingWantManager::ClearPendingWantRecordTask(const std::string &bundleNam
     }
 }
 
+bool PendingWantManager::CheckCallerPermission()
+{
+    auto callerPid = IPCSkeleton::GetCallingPid();
+    AppExecFwk::RunningProcessInfo processInfo;
+    DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByPid(callerPid, processInfo);
+    auto permission = DelayedSingleton<PermissionVerification>::GetInstance();
+    if (permission == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null permission");
+        return false;
+    }
+    if ((!processInfo.isFocused && !processInfo.isAbilityForegrounding) ||
+        (!permission->IsSystemAppCall() && !CheckWindowState(callerPid))) {
+        TAG_LOGW(AAFwkTag::WANTAGENT, "caller unfocused");
+        if (!permission->VerifyCallingPermission(PermissionConstants::PERMISSION_START_ABILITIES_FROM_BACKGROUND) &&
+            !permission->VerifyCallingPermission(PermissionConstants::PERMISSION_START_ABILIIES_FROM_BACKGROUND) &&
+            !permission->IsSACall()) {
+            TAG_LOGW(AAFwkTag::WANTAGENT, "caller PERMISSION_DENIED");
+            return false;
+        }
+    }
+    return true;
+}
+
+bool PendingWantManager::CheckWindowState(int32_t pid)
+{
+    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+    if (sceneSessionManager == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null manager");
+        return false;
+    }
+    std::vector<Rosen::MainWindowState> windowStates;
+    Rosen::WSError ret = sceneSessionManager->GetMainWindowStatesByPid(pid, windowStates);
+    if (ret != Rosen::WSError::WS_OK) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "fail GetWindow");
+        return false;
+    }
+    for (auto &windowState : windowStates) {
+        if (!windowState.isPcOrPadEnableActivation_ && !windowState.isForegroundInteractive_) {
+            TAG_LOGD(AAFwkTag::WANTAGENT, "window interactive");
+            return false;
+        }
+    }
+    return true;
+}
+
 void PendingWantManager::Dump(std::vector<std::string> &info)
 {
-    TAG_LOGD(AAFwkTag::WANTAGENT, "dump begin.");
+    TAG_LOGD(AAFwkTag::WANTAGENT, "dump begin");
     std::string dumpInfo = "    PendingWantRecords:";
     info.push_back(dumpInfo);
 
@@ -647,7 +706,7 @@ void PendingWantManager::Dump(std::vector<std::string> &info)
 }
 void PendingWantManager::DumpByRecordId(std::vector<std::string> &info, const std::string &args)
 {
-    TAG_LOGD(AAFwkTag::WANTAGENT, "dump by id begin.");
+    TAG_LOGD(AAFwkTag::WANTAGENT, "dump by id begin");
     std::string dumpInfo = "    PendingWantRecords:";
     info.push_back(dumpInfo);
 

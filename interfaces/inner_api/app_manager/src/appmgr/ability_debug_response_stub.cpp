@@ -17,7 +17,6 @@
 
 #include "appexecfwk_errors.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "ipc_types.h"
 #include "iremote_object.h"
 
@@ -27,24 +26,15 @@ namespace {
 constexpr int32_t CYCLE_LIMIT_MIN = 0;
 constexpr int32_t CYCLE_LIMIT_MAX = 1000;
 }
-AbilityDebugResponseStub::AbilityDebugResponseStub()
-{
-    responseFuncMap_[static_cast<uint32_t>(IAbilityDebugResponse::Message::ON_ABILITYS_DEBUG_STARTED)] =
-        &AbilityDebugResponseStub::HandleOnAbilitysDebugStarted;
-    responseFuncMap_[static_cast<uint32_t>(IAbilityDebugResponse::Message::ON_ABILITYS_DEBUG_STOPED)] =
-        &AbilityDebugResponseStub::HandleOnAbilitysDebugStoped;
-}
+AbilityDebugResponseStub::AbilityDebugResponseStub() {}
 
-AbilityDebugResponseStub::~AbilityDebugResponseStub()
-{
-    responseFuncMap_.clear();
-}
+AbilityDebugResponseStub::~AbilityDebugResponseStub() {}
 
 int32_t AbilityDebugResponseStub::HandleOnAbilitysDebugStarted(MessageParcel &data, MessageParcel &reply)
 {
     auto tokenSize = data.ReadInt32();
     if (tokenSize <= CYCLE_LIMIT_MIN || tokenSize > CYCLE_LIMIT_MAX) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Token size exceeds limit.");
+        TAG_LOGE(AAFwkTag::APPMGR, "Token size exceeds limit");
         return ERR_INVALID_DATA;
     }
 
@@ -52,7 +42,7 @@ int32_t AbilityDebugResponseStub::HandleOnAbilitysDebugStarted(MessageParcel &da
     for (int32_t index = 0; index < tokenSize; index++) {
         auto token = data.ReadRemoteObject();
         if (token == nullptr) {
-            TAG_LOGE(AAFwkTag::APPMGR, "Token is nullptr.");
+            TAG_LOGE(AAFwkTag::APPMGR, "null token");
             return ERR_INVALID_DATA;
         }
         tokens.push_back(token);
@@ -65,7 +55,7 @@ int32_t AbilityDebugResponseStub::HandleOnAbilitysDebugStoped(MessageParcel &dat
 {
     auto tokenSize = data.ReadInt32();
     if (tokenSize <= CYCLE_LIMIT_MIN || tokenSize > CYCLE_LIMIT_MAX) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Token size exceeds limit.");
+        TAG_LOGE(AAFwkTag::APPMGR, "Token size exceeds limit");
         return ERR_INVALID_DATA;
     }
 
@@ -73,7 +63,7 @@ int32_t AbilityDebugResponseStub::HandleOnAbilitysDebugStoped(MessageParcel &dat
     for (int32_t index = 0; index < tokenSize; index++) {
         auto token = data.ReadRemoteObject();
         if (token == nullptr) {
-            TAG_LOGE(AAFwkTag::APPMGR, "Token is nullptr.");
+            TAG_LOGE(AAFwkTag::APPMGR, "null token");
             return ERR_INVALID_DATA;
         }
         tokens.push_back(token);
@@ -86,7 +76,7 @@ int32_t AbilityDebugResponseStub::HandleOnAbilitysAssertDebugChange(MessageParce
 {
     auto tokenSize = data.ReadInt32();
     if (tokenSize <= CYCLE_LIMIT_MIN || tokenSize > CYCLE_LIMIT_MAX) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Token size exceeds limit.");
+        TAG_LOGE(AAFwkTag::APPMGR, "Token size exceeds limit");
         return ERR_INVALID_DATA;
     }
 
@@ -94,7 +84,7 @@ int32_t AbilityDebugResponseStub::HandleOnAbilitysAssertDebugChange(MessageParce
     for (int32_t index = 0; index < tokenSize; index++) {
         auto token = data.ReadRemoteObject();
         if (token == nullptr) {
-            TAG_LOGE(AAFwkTag::APPMGR, "Token is nullptr.");
+            TAG_LOGE(AAFwkTag::APPMGR, "null token");
             return ERR_INVALID_DATA;
         }
         tokens.push_back(token);
@@ -107,21 +97,21 @@ int32_t AbilityDebugResponseStub::HandleOnAbilitysAssertDebugChange(MessageParce
 int AbilityDebugResponseStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "code = %{public}u, flags= %{public}d", code, option.GetFlags());
+    TAG_LOGD(AAFwkTag::APPMGR, "code: %{public}u, flags: %{public}d", code, option.GetFlags());
     std::u16string descriptor = AbilityDebugResponseStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (descriptor != remoteDescriptor) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Local descriptor is not equal to remote.");
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid descriptor");
         return ERR_INVALID_STATE;
     }
 
-    auto itFunc = responseFuncMap_.find(code);
-    if (itFunc != responseFuncMap_.end()) {
-        auto responseFunc = itFunc->second;
-        if (responseFunc != nullptr) {
-            return (this->*responseFunc)(data, reply);
-        }
+    switch (code) {
+        case static_cast<uint32_t>(IAbilityDebugResponse::Message::ON_ABILITYS_DEBUG_STARTED):
+            return HandleOnAbilitysDebugStarted(data, reply);
+        case static_cast<uint32_t>(IAbilityDebugResponse::Message::ON_ABILITYS_DEBUG_STOPED):
+            return HandleOnAbilitysDebugStoped(data, reply);
     }
+
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 } // namespace AppExecFwk

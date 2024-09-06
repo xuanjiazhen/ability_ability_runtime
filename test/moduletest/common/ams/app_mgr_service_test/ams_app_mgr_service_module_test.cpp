@@ -129,14 +129,15 @@ public:
         return 0;
     }
 
+    void ScheduleCacheProcess() override
+    {}
+
     int32_t ScheduleDumpFfrt(std::string& result) override
     {
         return 0;
     }
-    void ScheduleClearPageStack() override
-    {}
 
-    void ScheduleCacheProcess() override
+    void ScheduleClearPageStack() override
     {}
 };
 class AppMgrServiceModuleTest : public testing::Test {
@@ -422,7 +423,7 @@ HWTEST_F(AppMgrServiceModuleTest, KillApplication_001, TestSize.Level1)
     Semaphore sem(0);
 
     auto mockHandler = [&testResult, testBundleName, &sem](
-        const std::string& bundleName, const bool clearPageStack = true) {
+        const std::string& bundleName, const bool clearPageStack = false) {
         testResult = (bundleName == testBundleName);
         sem.Post();
         return 0;

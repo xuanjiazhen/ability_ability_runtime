@@ -18,7 +18,6 @@
 #include "app_utils.h"
 #include "config_policy_utils.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -49,7 +48,7 @@ void AmsConfigurationParameter::Parse()
         return;
     }
     std::string customConfig = filePath;
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "The configuration file path is :%{private}s", customConfig.c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "file path: %{private}s", customConfig.c_str());
     LoadUIExtensionPickerConfig(customConfig);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "load config ref : %{private}d", ref);
 }
@@ -120,12 +119,12 @@ void AmsConfigurationParameter::LoadUIExtensionPickerConfig(const std::string &f
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s", __func__);
     if (filePath.empty()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "the file is not existed due to empty file path.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "empty file path");
         return;
     }
 
     if (access(filePath.c_str(), F_OK) != 0) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "can not access the file: %{private}s.", filePath.c_str());
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "can not access the file: %{private}s", filePath.c_str());
         return;
     }
     std::ifstream inFile;
@@ -180,18 +179,18 @@ int AmsConfigurationParameter::LoadAmsConfiguration(const std::string &filePath)
     TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}s", __func__);
     int ret[2] = {0};
     if (filePath.empty()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "the file is not existed due to empty file path.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "empty file path");
         return READ_FAIL;
     }
 
     if (access(filePath.c_str(), F_OK) != 0) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "can not access the file: %{private}s.", filePath.c_str());
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "can not access the file: %{private}s", filePath.c_str());
         return READ_FAIL;
     }
     std::ifstream inFile;
     inFile.open(filePath, std::ios::in);
     if (!inFile.is_open()) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "Read ability manager service config error.");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "error");
         nonConfigFile_ = true;
         return READ_FAIL;
     }
@@ -216,6 +215,8 @@ int AmsConfigurationParameter::LoadAmsConfiguration(const std::string &filePath)
     }
 
     LoadSystemConfiguration(amsJson);
+    LoadBackToCallerConfig(amsJson);
+    LoadSupportSCBCrashRebootConfig(amsJson);
     SetPickerJsonObject(amsJson);
     amsJson.clear();
     inFile.close();
@@ -227,7 +228,7 @@ int AmsConfigurationParameter::LoadAmsConfiguration(const std::string &filePath)
         }
     }
 
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Reading ability manager service config success.");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "reading ability manager service config success");
     return READ_OK;
 }
 
@@ -269,6 +270,40 @@ int AmsConfigurationParameter::LoadSystemConfiguration(nlohmann::json& Object)
     }
 
     return READ_FAIL;
+}
+
+int32_t AmsConfigurationParameter::LoadBackToCallerConfig(nlohmann::json& Object)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "load backTocaller config");
+    if (Object.contains(AmsConfig::SUPPORT_BACK_TO_CALLER) &&
+        Object.at(AmsConfig::SUPPORT_BACK_TO_CALLER).is_boolean()) {
+        supportBackToCaller_ = Object.at(AmsConfig::SUPPORT_BACK_TO_CALLER).get<bool>();
+        return READ_OK;
+    }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "load backTocaller failed");
+    return READ_FAIL;
+}
+
+bool AmsConfigurationParameter::IsSupportBackToCaller() const
+{
+    return supportBackToCaller_;
+}
+
+int32_t AmsConfigurationParameter::LoadSupportSCBCrashRebootConfig(nlohmann::json& Object)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "load scb_crash_reboot_config config");
+    if (Object.contains(AmsConfig::SUPPORT_SCB_CRASH_REBOOT) &&
+        Object.at(AmsConfig::SUPPORT_SCB_CRASH_REBOOT).is_boolean()) {
+        supportSceneboardCrashReboot_ = Object.at(AmsConfig::SUPPORT_SCB_CRASH_REBOOT).get<bool>();
+        return READ_OK;
+    }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "load scb_crash_reboot_config failed");
+    return READ_FAIL;
+}
+
+bool AmsConfigurationParameter::IsSupportSCBCrashReboot() const
+{
+    return supportSceneboardCrashReboot_;
 }
 
 bool AmsConfigurationParameter::CheckServiceConfigEnable(nlohmann::json& Object, const std::string &configName,

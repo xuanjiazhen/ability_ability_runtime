@@ -23,7 +23,6 @@
 #undef protected
 
 #include "auto_startup_info.h"
-#include "hilog_wrapper.h"
 #include "types.h"
 using namespace testing;
 using namespace testing::ext;
@@ -346,8 +345,8 @@ HWTEST_F(AbilityAutoStartupDataManagerTest, DeleteAutoStartupData_bundleName_100
     GTEST_LOG_(INFO) << "DeleteAutoStartupData_bundleName_100 start";
     AbilityAutoStartupDataManager abilityAutoStartupDataManager;
     std::string bundleName = "";
-    int32_t uid = 0;
-    auto result = abilityAutoStartupDataManager.DeleteAutoStartupData(bundleName, uid);
+    int32_t accessTokenId = 0;
+    auto result = abilityAutoStartupDataManager.DeleteAutoStartupData(bundleName, accessTokenId);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
     GTEST_LOG_(INFO) << "DeleteAutoStartupData_bundleName_100 end";
 }
@@ -363,8 +362,8 @@ HWTEST_F(AbilityAutoStartupDataManagerTest, DeleteAutoStartupData_bundleName_200
     GTEST_LOG_(INFO) << "DeleteAutoStartupData_bundleName_200 start";
     AbilityAutoStartupDataManager abilityAutoStartupDataManager;
     std::string bundleName = "com.example.testbundle";
-    int32_t uid = 0;
-    auto result = abilityAutoStartupDataManager.DeleteAutoStartupData(bundleName, uid);
+    int32_t accessTokenId = 0;
+    auto result = abilityAutoStartupDataManager.DeleteAutoStartupData(bundleName, accessTokenId);
     EXPECT_EQ(result, ERR_OK);
     GTEST_LOG_(INFO) << "DeleteAutoStartupData_bundleName_200 end";
 }
@@ -384,8 +383,8 @@ HWTEST_F(AbilityAutoStartupDataManagerTest, DeleteAutoStartupData_bundleName_300
     EXPECT_EQ(true, abilityAutoStartupDataManager.CheckKvStore());
 
     std::string bundleName = "com.example.testbundle";
-    int32_t uid = 0;
-    auto result = abilityAutoStartupDataManager.DeleteAutoStartupData(bundleName, uid);
+    int32_t accessTokenId = 0;
+    auto result = abilityAutoStartupDataManager.DeleteAutoStartupData(bundleName, accessTokenId);
     EXPECT_EQ(result, ERR_OK);
     GTEST_LOG_(INFO) << "DeleteAutoStartupData_bundleName_300 end";
 }
@@ -590,15 +589,32 @@ HWTEST_F(AbilityAutoStartupDataManagerTest, IsEqual_info_100, TestSize.Level1)
  * SubFunction: NA
  * FunctionPoints: AbilityAutoStartupDataManager IsEqual
  */
-HWTEST_F(AbilityAutoStartupDataManagerTest, IsEqual_bundleName_100, TestSize.Level1)
+HWTEST_F(AbilityAutoStartupDataManagerTest, IsEqual_userId_100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "IsEqual_bundleName_100 start";
+    GTEST_LOG_(INFO) << "IsEqual_userId_100 start";
     AbilityAutoStartupDataManager abilityAutoStartupDataManager;
     DistributedKv::Key key;
-    std::string bundleName = " com.example.testbundle";
-    auto result = abilityAutoStartupDataManager.IsEqual(key, bundleName);
+    int32_t userId = 100;
+    auto result = abilityAutoStartupDataManager.IsEqual(key, userId);
     EXPECT_FALSE(result);
-    GTEST_LOG_(INFO) << "IsEqual_bundleName_100 end";
+    GTEST_LOG_(INFO) << "IsEqual_userId_100 end";
+}
+
+/**
+ * Feature: AbilityAutoStartupDataManager
+ * Function: IsEqual
+ * SubFunction: NA
+ * FunctionPoints: AbilityAutoStartupDataManager IsEqual
+ */
+HWTEST_F(AbilityAutoStartupDataManagerTest, IsEqual_accessTokenId_100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "IsEqual_userId_100 start";
+    AbilityAutoStartupDataManager abilityAutoStartupDataManager;
+    DistributedKv::Key key;
+    std::string accessTokenId = "123";
+    auto result = abilityAutoStartupDataManager.IsEqual(key, accessTokenId);
+    EXPECT_FALSE(result);
+    GTEST_LOG_(INFO) << "IsEqual_accessTokenId_100 end";
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

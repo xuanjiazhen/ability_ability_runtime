@@ -15,12 +15,12 @@
 
 #include "ability_cache_manager.h"
 
-#include <algorithm>
-
 #include "hilog_tag_wrapper.h"
 
 namespace OHOS {
 namespace AAFwk {
+const std::string FRS_APP_INDEX = "ohos.extra.param.key.frs_index";
+const std::string FRS_BUNDLE_NAME = "com.ohos.formrenderservice";
 
 AbilityCacheManager::AbilityCacheManager() {}
 
@@ -59,7 +59,7 @@ void AbilityCacheManager::RemoveAbilityRecInProcList(std::shared_ptr<AbilityReco
     uint32_t accessTokenId = abilityRecord->GetApplicationInfo().accessTokenId;
     auto findProcInfo = procLruMap_.find(accessTokenId);
     if (findProcInfo == procLruMap_.end()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Can't found the abilityRecord in process list for remove.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "can't find record");
         return;
     }
     auto it = findProcInfo->second.recList.begin();
@@ -122,7 +122,7 @@ std::shared_ptr<AbilityRecord> AbilityCacheManager::AddToDevLru(std::shared_ptr<
 std::shared_ptr<AbilityRecord> AbilityCacheManager::Put(std::shared_ptr<AbilityRecord> abilityRecord)
 {
     if (abilityRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "The param abilityRecord is nullptr for Put operation.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null abilityRecord");
         return nullptr;
     }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Put the ability to lru, service:%{public}s, extension type %{public}d",
@@ -135,7 +135,7 @@ std::shared_ptr<AbilityRecord> AbilityCacheManager::Put(std::shared_ptr<AbilityR
 void AbilityCacheManager::Remove(std::shared_ptr<AbilityRecord> abilityRecord)
 {
     if (abilityRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "The param abilityRecord is nullptr for Remove operation.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null abilityRecord");
         return;
     }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Remove the ability from lru, service:%{public}s, extension type %{public}d",
@@ -156,14 +156,14 @@ std::shared_ptr<AbilityRecord> AbilityCacheManager::GetAbilityRecInProcList(cons
 {
     auto findProcInfo = procLruMap_.find(abilityRequest.appInfo.accessTokenId);
     if (findProcInfo == procLruMap_.end()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Can't found the bundleName in process list for get.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "can't found bundleName");
         return nullptr;
     }
     ProcRecordsInfo &procRecordsInfo = findProcInfo->second;
     auto recIter = procRecordsInfo.recList.begin();
     while (recIter != procRecordsInfo.recList.end()) {
         if (IsRecInfoSame(abilityRequest, *recIter)) {
-            std::shared_ptr<AbilityRecord> &abilityRecord = *recIter;
+            std::shared_ptr<AbilityRecord> abilityRecord = *recIter;
             procRecordsInfo.recList.erase(recIter);
             procRecordsInfo.cnt--;
             return abilityRecord;
@@ -191,15 +191,17 @@ std::shared_ptr<AbilityRecord> AbilityCacheManager::Get(const AbilityRequest& ab
 std::shared_ptr<AbilityRecord> AbilityCacheManager::FindRecordByToken(const sptr<IRemoteObject> &token)
 {
     if (token == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "The param token is nullptr for FindRecordByToken operation.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null token");
         return nullptr;
     }
+    std::lock_guard<std::mutex> lock(mutex_);
     auto it = devRecLru_.begin();
     while (it != devRecLru_.end()) {
         sptr<IRemoteObject> srcToken = (*it)->GetToken();
         if (srcToken == token) {
             std::shared_ptr<AbilityRecord> &abilityRecord = *it;
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "Find the ability from lru, service:%{public}s, extension type %{public}d",
+            TAG_LOGD(AAFwkTag::ABILITYMGR,
+                "Find the ability by token from lru, service:%{public}s, extension type %{public}d",
                 abilityRecord->GetURI().c_str(), abilityRecord->GetAbilityInfo().extensionAbilityType);
             return abilityRecord;
         } else {
@@ -207,6 +209,97 @@ std::shared_ptr<AbilityRecord> AbilityCacheManager::FindRecordByToken(const sptr
         }
     }
     return nullptr;
+}
+
+std::list<std::shared_ptr<AbilityRecord>> AbilityCacheManager::GetAbilityList()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return devRecLru_;
+}
+
+std::shared_ptr<AbilityRecord> AbilityCacheManager::FindRecordBySessionId(const std::string &assertSessionId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = devRecLru_.begin();
+    while (it != devRecLru_.end()) {
+        auto assertSessionStr = (*it)->GetWant().GetStringParam(Want::PARAM_ASSERT_FAULT_SESSION_ID);
+        if (assertSessionStr == assertSessionId) {
+            std::shared_ptr<AbilityRecord> &abilityRecord = *it;
+            TAG_LOGD(AAFwkTag::ABILITYMGR,
+                "Find the ability by sessionId from lru, service:%{public}s, extension type %{public}d",
+                abilityRecord->GetURI().c_str(), abilityRecord->GetAbilityInfo().extensionAbilityType);
+            return abilityRecord;
+        } else {
+            it++;
+        }
+    }
+    return nullptr;
+}
+
+std::shared_ptr<AbilityRecord> AbilityCacheManager::FindRecordByServiceKey(const std::string &serviceKey)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = devRecLru_.begin();
+    while (it != devRecLru_.end()) {
+        std::string curServiceKey = (*it)->GetURI();
+        if (FRS_BUNDLE_NAME == (*it)->GetAbilityInfo().bundleName) {
+            curServiceKey = curServiceKey + std::to_string((*it)->GetWant().GetIntParam(FRS_APP_INDEX, 0));
+        }
+        if (curServiceKey.compare(serviceKey) == 0) {
+            std::shared_ptr<AbilityRecord> &abilityRecord = *it;
+            TAG_LOGD(AAFwkTag::ABILITYMGR,
+                "Find the ability by serviceKey from lru, service:%{public}s, extension type %{public}d",
+                abilityRecord->GetURI().c_str(), abilityRecord->GetAbilityInfo().extensionAbilityType);
+            return abilityRecord;
+        } else {
+            it++;
+        }
+    }
+    return nullptr;
+}
+
+void AbilityCacheManager::RemoveLauncherDeathRecipient()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = devRecLru_.begin();
+    while (it != devRecLru_.end()) {
+        auto targetExtension = *it;
+        if (targetExtension != nullptr && targetExtension->GetAbilityInfo().type == AbilityType::EXTENSION &&
+            ((targetExtension->GetAbilityInfo().name == AbilityConfig::LAUNCHER_ABILITY_NAME &&
+            targetExtension->GetAbilityInfo().bundleName == AbilityConfig::LAUNCHER_BUNDLE_NAME) ||
+            targetExtension->IsSceneBoard())) {
+            targetExtension->RemoveAbilityDeathRecipient();
+            return;
+        }
+        it++;
+    }
+}
+
+void AbilityCacheManager::SignRestartAppFlag(const std::string &bundleName)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = devRecLru_.begin();
+    while (it != devRecLru_.end()) {
+        auto abilityRecord = *it;
+        if (abilityRecord != nullptr && abilityRecord->GetApplicationInfo().bundleName == bundleName) {
+            abilityRecord->SetRestartAppFlag(true);
+        }
+        it++;
+    }
+}
+
+void AbilityCacheManager::DeleteInvalidServiceRecord(const std::string &bundleName)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = devRecLru_.begin();
+    while (it != devRecLru_.end()) {
+        auto abilityRecord = *it;
+        if (abilityRecord != nullptr && abilityRecord->GetApplicationInfo().bundleName == bundleName) {
+            RemoveAbilityRecInProcList(abilityRecord);
+            RemoveAbilityRecInDevList(abilityRecord);
+        }
+        it++;
+    }
 }
 }  // namespace AAFwk
 } // namespace OHOS

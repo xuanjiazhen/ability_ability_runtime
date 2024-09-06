@@ -21,14 +21,7 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
-StatusBarDelegateStub::StatusBarDelegateStub()
-{
-    vecMemberFunc_.resize(static_cast<size_t>(StatusBarDelegateCmd::END));
-    vecMemberFunc_[static_cast<uint32_t>(StatusBarDelegateCmd::CHECK_IF_STATUS_BAR_ITEM_EXISTS)] =
-        &StatusBarDelegateStub::HandleCheckIfStatusBarItemExists;
-    vecMemberFunc_[static_cast<uint32_t>(StatusBarDelegateCmd::ATTACH_PID_TO_STATUS_BAR_ITEM)] =
-        &StatusBarDelegateStub::HandleAttachPidToStatusBarItem;
-}
+StatusBarDelegateStub::StatusBarDelegateStub() {}
 
 int32_t StatusBarDelegateStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
@@ -36,13 +29,17 @@ int32_t StatusBarDelegateStub::OnRemoteRequest(
     std::u16string descriptor = StatusBarDelegateStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (descriptor != remoteDescriptor) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "local descriptor is not equal to remote.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid descriptor");
         return ERR_INVALID_STATE;
     }
 
     if (code < static_cast<uint32_t>(StatusBarDelegateCmd::END)) {
-        auto memberFunc = vecMemberFunc_[code];
-        return (this->*memberFunc)(data, reply);
+        switch (code) {
+            case static_cast<uint32_t>(StatusBarDelegateCmd::CHECK_IF_STATUS_BAR_ITEM_EXISTS):
+                return HandleCheckIfStatusBarItemExists(data, reply);
+            case static_cast<uint32_t>(StatusBarDelegateCmd::ATTACH_PID_TO_STATUS_BAR_ITEM):
+                return HandleAttachPidToStatusBarItem(data, reply);
+        }
     }
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
@@ -54,11 +51,11 @@ int32_t StatusBarDelegateStub::HandleCheckIfStatusBarItemExists(MessageParcel &d
     bool isExist = false;
     auto result = CheckIfStatusBarItemExists(accessTokenId, isExist);
     if (!reply.WriteBool(result)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result failed.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result failed");
         return AAFwk::ERR_NATIVE_IPC_PARCEL_FAILED;
     }
     if (!reply.WriteBool(isExist)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "write isExist failed.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write isExist failed");
         return AAFwk::ERR_NATIVE_IPC_PARCEL_FAILED;
     }
     return NO_ERROR;
@@ -71,7 +68,7 @@ int32_t StatusBarDelegateStub::HandleAttachPidToStatusBarItem(MessageParcel &dat
     int32_t pid = data.ReadInt32();
     auto result = AttachPidToStatusBarItem(accessTokenId, pid);
     if (!reply.WriteInt32(result)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result failed.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result failed");
         return AAFwk::ERR_NATIVE_IPC_PARCEL_FAILED;
     }
     return NO_ERROR;

@@ -20,11 +20,19 @@
 #include "implicit_start_processor.h"
 #undef private
 #undef protected
+#include "ability_ecological_rule_mgr_service_param.h"
+#include "parameters.h"
 
+using namespace OHOS;
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::AppExecFwk;
-
+namespace {
+    constexpr const char* SUPPORT_ACTION_START_SELECTOR = "persist.sys.ability.support.action_start_selector";
+    const std::string PARAM_ABILITY_APPINFOS = "ohos.ability.params.appInfos";
+    const std::string OPEN_LINK_APP_LINKING_ONLY = "appLinkingOnly";
+    const int NFC_CALLER_UID = 1027;
+}
 namespace OHOS {
 namespace AAFwk {
 
@@ -59,7 +67,7 @@ HWTEST_F(ImplicitStartProcessorTest, ImplicitStartAbility_001, TestSize.Level1)
     AbilityRequest request;
     int32_t userId = 0;
     bool res = processor->ImplicitStartAbility(request, userId,
-        AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_UNDEFINED);
+        AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_UNDEFINED, "", true);
     EXPECT_TRUE(res);
 }
 
@@ -330,6 +338,130 @@ HWTEST_F(ImplicitStartProcessorTest, SetTargetLinkInfo_003, TestSize.Level1)
     processor->SetTargetLinkInfo(skillUri, want);
     int32_t targetLinkType = want.GetIntParam("send_to_erms_targetLinkType", 0);
     EXPECT_EQ(targetLinkType, 2);
+}
+
+/*
+ * Feature: ImplicitStartProcessor
+ * Function: MatchTypeAndUri
+ * SubFunction: NA
+ * FunctionPoints:ImplicitStartProcessor MatchTypeAndUri
+ * EnvConditions: NA
+ * CaseDescription: Verify MatchTypeAndUri
+ */
+HWTEST_F(ImplicitStartProcessorTest, MatchTypeAndUri_001, TestSize.Level1)
+{
+    auto processor = std::make_shared<ImplicitStartProcessor>();
+    Want want;
+    processor->MatchTypeAndUri(want);
+    want.SetType("haha");
+    EXPECT_EQ("haha", processor->MatchTypeAndUri(want));
+    want.SetType("");
+    want.SetUri("http://wwwsocom");
+    EXPECT_EQ("", processor->MatchTypeAndUri(want));
+    want.SetUri("http://www.so.com");
+    processor->MatchTypeAndUri(want);
+}
+
+/*
+ * Feature: ImplicitStartProcessor
+ * Function: ProcessLinkType
+ * SubFunction: NA
+ * FunctionPoints:ImplicitStartProcessor ProcessLinkType
+ * EnvConditions: NA
+ * CaseDescription: Verify ProcessLinkType SetUriReservedFlag SetUriReservedBundle etc.
+ */
+HWTEST_F(ImplicitStartProcessorTest, ProcessLinkType_001, TestSize.Level1)
+{
+    auto processor = std::make_shared<ImplicitStartProcessor>();
+    std::vector<AppExecFwk::AbilityInfo> abilityInfos;
+    AbilityInfo abilityInfo;
+    abilityInfos.push_back(abilityInfo);
+    AbilityInfo abilityInfo2;
+    abilityInfo2.linkType = AppExecFwk::LinkType::APP_LINK;
+    abilityInfos.push_back(abilityInfo2);
+    EXPECT_TRUE(processor != nullptr);
+}
+
+/*
+ * Feature: ImplicitStartProcessor
+ * Function: OnlyKeepReserveApp
+ * SubFunction: NA
+ * FunctionPoints:ImplicitStartProcessor OnlyKeepReserveApp
+ * EnvConditions: NA
+ * CaseDescription: Verify OnlyKeepReserveApp  etc.
+ */
+HWTEST_F(ImplicitStartProcessorTest, OnlyKeepReserveApp_001, TestSize.Level1)
+{
+    auto processor = std::make_shared<ImplicitStartProcessor>();
+    std::vector<AppExecFwk::AbilityInfo> abilityInfos;
+    std::vector<AppExecFwk::ExtensionAbilityInfo> extensionAbInfos;
+    AppExecFwk::ExtensionAbilityInfo  extensionAbInfo;
+    extensionAbInfos.push_back(extensionAbInfo);
+    AppExecFwk::AbilityInfo  abilityInfo;
+    abilityInfo.bundleName = "haha";
+    abilityInfos.push_back(abilityInfo);
+    AbilityRequest abilityRequest;
+    processor->OnlyKeepReserveApp(abilityInfos, extensionAbInfos, abilityRequest);
+    EXPECT_TRUE(processor != nullptr);
+}
+
+/*
+ * Feature: ImplicitStartProcessor
+ * Function: GetDefaultAppProxy
+ * SubFunction: NA
+ * FunctionPoints:ImplicitStartProcessor GetDefaultAppProxy
+ * EnvConditions: NA
+ * CaseDescription: Verify GetDefaultAppProxy  etc.
+ */
+HWTEST_F(ImplicitStartProcessorTest, GetDefaultAppProxy_001, TestSize.Level1)
+{
+    auto processor = std::make_shared<ImplicitStartProcessor>();
+    auto result = processor->GetDefaultAppProxy();
+    EXPECT_EQ(result, nullptr);
+}
+
+/*
+ * Feature: ImplicitStartProcessor
+ * Function: FilterAbilityList
+ * SubFunction: NA
+ * FunctionPoints:ImplicitStartProcessor FilterAbilityList
+ * EnvConditions: NA
+ * CaseDescription: Verify FilterAbilityList  etc.
+ */
+HWTEST_F(ImplicitStartProcessorTest, FilterAbilityList_001, TestSize.Level1)
+{
+    auto processor = std::make_shared<ImplicitStartProcessor>();
+    Want want;
+    std::vector<AppExecFwk::AbilityInfo> abilityInfos;
+    std::vector<AppExecFwk::ExtensionAbilityInfo> extensionAbInfos;
+    int32_t  userId = 100;
+    auto result = processor->FilterAbilityList(want, abilityInfos, extensionAbInfos, userId);
+    EXPECT_EQ(result, true);
+}
+
+/*
+ * Feature: ImplicitStartProcessor
+ * Function: AddIdentity
+ * SubFunction: NA
+ * FunctionPoints:ImplicitStartProcessor AddIdentity
+ * EnvConditions: NA
+ * CaseDescription: Verify AddIdentity  ResetCallingIdentityAsCaller AddAbilityInfoToDialogInfos etc.
+ */
+HWTEST_F(ImplicitStartProcessorTest, AddIdentity_001, TestSize.Level1)
+{
+    auto processor = std::make_shared<ImplicitStartProcessor>();
+    int32_t  userId = 102;
+    std::string  identity;
+    processor->AddIdentity(userId, identity);
+    processor->ResetCallingIdentityAsCaller(userId, true);
+    AddInfoParam param;
+    std::vector<DialogAppInfo> dialogAppInfos;
+    param.isExtension = true;
+    param.info.type = AbilityType::FORM;
+    processor->AddAbilityInfoToDialogInfos(param, dialogAppInfos);
+    param.isExtension = false;
+    processor->AddAbilityInfoToDialogInfos(param, dialogAppInfos);
+    EXPECT_TRUE(processor != nullptr);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -26,6 +26,7 @@
 #include "application_info.h"
 #include "bundle_info.h"
 #include "child_process_info.h"
+#include "child_process_request.h"
 #include "fault_data.h"
 #include "iapp_state_callback.h"
 #include "iapplication_state_observer.h"
@@ -177,6 +178,15 @@ public:
     virtual int GetAllRenderProcesses(std::vector<RenderProcessInfo> &info) = 0;
 
     /**
+     * GetAllChildrenProcesses, call GetAllChildrenProcesses() through proxy project.
+     * Obtains information about children processes that are running on the device.
+     *
+     * @param info, child process info.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info) = 0;
+
+    /**
      * JudgeSandboxByPid, call JudgeSandboxByPid() through proxy project.
      * Obtains information about application processes that are running on the device.
      *
@@ -323,14 +333,6 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int GetAbilityRecordsByProcessID(const int pid, std::vector<sptr<IRemoteObject>> &tokens) = 0;
-    #ifdef ABILITY_COMMAND_FOR_TEST
-    /**
-     *  Block app service.
-     *
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    virtual int BlockAppService() = 0;
-    #endif
 
     /**
      * Prestart nwebspawn process.
@@ -372,7 +374,7 @@ public:
 
     virtual int32_t GetConfiguration(Configuration& config) = 0;
 
-    virtual int32_t UpdateConfiguration(const Configuration &config) = 0;
+    virtual int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1) = 0;
 
     virtual int32_t UpdateConfigurationByBundleName(const Configuration &config, const std::string &name) = 0;
 
@@ -591,12 +593,11 @@ public:
     /**
      * Start child process, called by ChildProcessManager.
      *
-     * @param srcEntry Child process source file entrance path to be started.
      * @param childPid Created child process pid.
+     * @param request Child process start request params.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t StartChildProcess(const std::string &srcEntry, pid_t &childPid, int32_t childProcessCount,
-        bool isStartWithDebug) = 0;
+    virtual int32_t StartChildProcess(pid_t &childPid, const ChildProcessRequest &request) = 0;
 
     /**
      * Get child process record for self.
@@ -713,6 +714,8 @@ public:
     }
 
     virtual int32_t SetSupportedProcessCacheSelf(bool isSupport) = 0;
+    
+    virtual int32_t SetSupportedProcessCache(int32_t pid, bool isSupport) = 0;
 
     /**
      * Set application assertion pause state.
@@ -767,6 +770,14 @@ public:
     {
         return;
     }
+
+    /**
+     * Get pids of processes which belong to specific bundle name and support process cache feature.
+     * @param bundleName bundle name.
+     * @param pidList pid list of processes that support process cache..
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetSupportedProcessCachePids(const std::string &bundleName, std::vector<int32_t> &pidList) = 0;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

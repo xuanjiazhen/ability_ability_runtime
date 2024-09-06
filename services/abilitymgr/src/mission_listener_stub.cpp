@@ -16,25 +16,10 @@
 #include "mission_listener_stub.h"
 
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
-#include "ipc_types.h"
-#include "message_parcel.h"
 
 namespace OHOS {
 namespace AAFwk {
-MissionListenerStub::MissionListenerStub()
-{
-    vecMemberFunc_.resize(IMissionListener::MISSION_LINSTENER_CMD_MAX);
-    vecMemberFunc_[ON_MISSION_CREATED] = &MissionListenerStub::OnMissionCreatedInner;
-    vecMemberFunc_[ON_MISSION_DESTROYED] = &MissionListenerStub::OnMissionDestroyedInner;
-    vecMemberFunc_[ON_MISSION_SNAPSHOT_CHANGED] = &MissionListenerStub::OnMissionSnapshotChangedInner;
-    vecMemberFunc_[ON_MISSION_MOVED_TO_FRONT] = &MissionListenerStub::OnMissionMovedToFrontInner;
-    vecMemberFunc_[ON_MISSION_ICON_UPDATED] = &MissionListenerStub::OnMissionIconUpdatedInner;
-    vecMemberFunc_[ON_MISSION_CLOSED] = &MissionListenerStub::OnMissionClosedInner;
-    vecMemberFunc_[ON_MISSION_LABEL_UPDATED] = &MissionListenerStub::OnMissionLabelUpdatedInner;
-    vecMemberFunc_[ON_MISSION_FOCUSED] = &MissionListenerStub::OnMissionFocusedInner;
-    vecMemberFunc_[ON_MISSION_UNFOCUSED] = &MissionListenerStub::OnMissionUnfocusedInner;
-}
+MissionListenerStub::MissionListenerStub() {}
 
 int MissionListenerStub::OnMissionCreatedInner(MessageParcel &data, MessageParcel &reply)
 {
@@ -86,7 +71,7 @@ int MissionListenerStub::OnMissionIconUpdatedInner(MessageParcel &data, MessageP
     OnMissionIconUpdated(missionId, icon);
     return NO_ERROR;
 #else
-    TAG_LOGE(AAFwkTag::ABILITYMGR, "do not support OnMissionIconUpdated");
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "not support OnMissionIconUpdated");
     return ERR_INVALID_STATE;
 #endif
 }
@@ -109,15 +94,40 @@ int MissionListenerStub::OnRemoteRequest(
     std::u16string descriptor = MissionListenerStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (descriptor != remoteDescriptor) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "Local descriptor is not equal to remote");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "local descriptor not equal to remote");
         return ERR_INVALID_STATE;
     }
-
     if (code < IMissionListener::MISSION_LINSTENER_CMD_MAX && code >= 0) {
-        auto memberFunc = vecMemberFunc_[code];
-        return (this->*memberFunc)(data, reply);
+        switch (code) {
+            case ON_MISSION_CREATED:
+                return OnMissionCreatedInner(data, reply);
+                break;
+            case ON_MISSION_DESTROYED:
+                return OnMissionDestroyedInner(data, reply);
+                break;
+            case ON_MISSION_SNAPSHOT_CHANGED:
+                return OnMissionSnapshotChangedInner(data, reply);
+                break;
+            case ON_MISSION_MOVED_TO_FRONT:
+                return OnMissionMovedToFrontInner(data, reply);
+                break;
+            case ON_MISSION_ICON_UPDATED:
+                return OnMissionIconUpdatedInner(data, reply);
+                break;
+            case ON_MISSION_CLOSED:
+                return OnMissionClosedInner(data, reply);
+                break;
+            case ON_MISSION_LABEL_UPDATED:
+                return OnMissionLabelUpdatedInner(data, reply);
+                break;
+            case ON_MISSION_FOCUSED:
+                return OnMissionFocusedInner(data, reply);
+                break;
+            case ON_MISSION_UNFOCUSED:
+                return OnMissionUnfocusedInner(data, reply);
+                break;
+        }
     }
-
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 }  // namespace AAFwk

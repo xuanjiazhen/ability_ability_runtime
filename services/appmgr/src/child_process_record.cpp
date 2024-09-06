@@ -21,11 +21,19 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-ChildProcessRecord::ChildProcessRecord(pid_t hostPid, const std::string &srcEntry,
-    const std::shared_ptr<AppRunningRecord> hostRecord, int32_t childProcessCount, bool isStartWithDebug)
-    : hostPid_(hostPid), childProcessCount_(childProcessCount), srcEntry_(srcEntry), hostRecord_(hostRecord),
-    isStartWithDebug_(isStartWithDebug)
+ChildProcessRecord::ChildProcessRecord(pid_t hostPid, const ChildProcessRequest &request,
+    const std::shared_ptr<AppRunningRecord> hostRecord)
+    : hostPid_(hostPid), childProcessCount_(request.childProcessCount), childProcessType_(request.childProcessType),
+    hostRecord_(hostRecord), isStartWithDebug_(request.isStartWithDebug)
 {
+    srcEntry_ = request.srcEntry;
+    if (childProcessType_ == CHILD_PROCESS_TYPE_NATIVE_ARGS) {
+        auto pos = request.srcEntry.rfind(":");
+        if (pos != std::string::npos) {
+            srcEntry_ = request.srcEntry.substr(0, pos);
+            entryFunc_ = request.srcEntry.substr(pos + 1);
+        }
+    }
     MakeProcessName(hostRecord);
 }
 
@@ -40,19 +48,18 @@ ChildProcessRecord::ChildProcessRecord(pid_t hostPid, const std::string &libName
 
 ChildProcessRecord::~ChildProcessRecord()
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "Called.");
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
 }
 
 std::shared_ptr<ChildProcessRecord> ChildProcessRecord::CreateChildProcessRecord(pid_t hostPid,
-    const std::string &srcEntry, const std::shared_ptr<AppRunningRecord> hostRecord, int32_t childProcessCount,
-    bool isStartWithDebug)
+    const ChildProcessRequest &request, const std::shared_ptr<AppRunningRecord> hostRecord)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "hostPid: %{public}d, srcEntry: %{public}s", hostPid, srcEntry.c_str());
-    if (hostPid <= 0 || srcEntry.empty() || !hostRecord) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Invalid parameter.");
+    TAG_LOGD(AAFwkTag::APPMGR, "hostPid: %{public}d, srcEntry: %{priavte}s,", hostPid, request.srcEntry.c_str());
+    if (hostPid <= 0 || request.srcEntry.empty() || !hostRecord) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid parameter");
         return nullptr;
     }
-    return std::make_shared<ChildProcessRecord>(hostPid, srcEntry, hostRecord, childProcessCount, isStartWithDebug);
+    return std::make_shared<ChildProcessRecord>(hostPid, request, hostRecord);
 }
 
 std::shared_ptr<ChildProcessRecord> ChildProcessRecord::CreateNativeChildProcessRecord(
@@ -61,7 +68,7 @@ std::shared_ptr<ChildProcessRecord> ChildProcessRecord::CreateNativeChildProcess
 {
     TAG_LOGD(AAFwkTag::APPMGR, "hostPid: %{public}d, libName: %{public}s", hostPid, libName.c_str());
     if (hostPid <= 0 || libName.empty() || !hostRecord || !mainProcessCb) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Invalid parameter.");
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid parameter");
         return nullptr;
     }
     return std::make_shared<ChildProcessRecord>(hostPid, libName, hostRecord, mainProcessCb,
@@ -103,6 +110,16 @@ std::string ChildProcessRecord::GetSrcEntry() const
     return srcEntry_;
 }
 
+ProcessType ChildProcessRecord::GetProcessType() const
+{
+    return processType_;
+}
+
+std::string ChildProcessRecord::GetEntryFunc() const
+{
+    return entryFunc_;
+}
+
 std::shared_ptr<AppRunningRecord> ChildProcessRecord::GetHostRecord() const
 {
     return hostRecord_.lock();
@@ -126,19 +143,19 @@ void ChildProcessRecord::SetDeathRecipient(const sptr<AppDeathRecipient> recipie
 void ChildProcessRecord::RegisterDeathRecipient()
 {
     if (scheduler_ == nullptr || deathRecipient_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "scheduler_ or deathRecipient_ is null.");
+        TAG_LOGE(AAFwkTag::APPMGR, "null scheduler_ or deathRecipient_");
         return;
     }
     auto obj = scheduler_->AsObject();
     if (!obj || !obj->AddDeathRecipient(deathRecipient_)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "AddDeathRecipient failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "AddDeathRecipient failed");
     }
 }
 
 void ChildProcessRecord::RemoveDeathRecipient()
 {
     if (!scheduler_) {
-        TAG_LOGE(AAFwkTag::APPMGR, "scheduler_ is null.");
+        TAG_LOGE(AAFwkTag::APPMGR, "null scheduler_");
         return;
     }
     auto object = scheduler_->AsObject();
@@ -150,7 +167,7 @@ void ChildProcessRecord::RemoveDeathRecipient()
 void ChildProcessRecord::ScheduleExitProcessSafely()
 {
     if (!scheduler_) {
-        TAG_LOGE(AAFwkTag::APPMGR, "scheduler_ is null.");
+        TAG_LOGE(AAFwkTag::APPMGR, "null scheduler_");
         return;
     }
     scheduler_->ScheduleExitProcessSafely();
@@ -159,18 +176,18 @@ void ChildProcessRecord::ScheduleExitProcessSafely()
 void ChildProcessRecord::MakeProcessName(const std::shared_ptr<AppRunningRecord> hostRecord)
 {
     if (!hostRecord) {
-        TAG_LOGW(AAFwkTag::APPMGR, "hostRecord empty.");
+        TAG_LOGW(AAFwkTag::APPMGR, "hostRecord empty");
         return;
     }
     processName_ = hostRecord->GetBundleName();
     if (srcEntry_.empty()) {
-        TAG_LOGW(AAFwkTag::APPMGR, "srcEntry empty.");
+        TAG_LOGW(AAFwkTag::APPMGR, "srcEntry empty");
         return;
     }
     std::string filename = std::filesystem::path(srcEntry_).stem();
     if (!filename.empty()) {
         processName_.append(":");
-        if (childProcessType_ == CHILD_PROCESS_TYPE_NATIVE) {
+        if (childProcessType_ == CHILD_PROCESS_TYPE_NATIVE || childProcessType_ == CHILD_PROCESS_TYPE_NATIVE_ARGS) {
             processName_.append("Native_");
         }
         
@@ -185,7 +202,7 @@ bool ChildProcessRecord::isStartWithDebug()
     return isStartWithDebug_;
 }
 
-int32_t ChildProcessRecord::GetProcessType() const
+int32_t ChildProcessRecord::GetChildProcessType() const
 {
     return childProcessType_;
 }
@@ -200,5 +217,14 @@ void ChildProcessRecord::ClearMainProcessCallback()
     mainProcessCb_.clear();
 }
 
+void ChildProcessRecord::SetEntryParams(const std::string &entryParams)
+{
+    entryParams_ = entryParams;
+}
+
+std::string ChildProcessRecord::GetEntryParams() const
+{
+    return entryParams_;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

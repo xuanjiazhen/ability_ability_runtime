@@ -19,7 +19,6 @@
 #include "configuration.h"
 #include "extension_context.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "hitrace_meter.h"
 
 namespace OHOS {
@@ -31,7 +30,7 @@ void Extension::Init(const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &reco
 {
     TAG_LOGD(AAFwkTag::EXT, "called");
     if ((record == nullptr) || (application == nullptr) || (handler == nullptr) || (token == nullptr)) {
-        TAG_LOGE(AAFwkTag::EXT, "Extension::init failed, some object is nullptr");
+        TAG_LOGE(AAFwkTag::EXT, "init failed, some obj null");
         return;
     }
     abilityInfo_ = record->GetAbilityInfo();
@@ -42,7 +41,7 @@ void Extension::Init(const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &reco
 void Extension::OnStart(const AAFwk::Want &want)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::EXT, "extension:%{public}s.", abilityInfo_->name.c_str());
+    TAG_LOGD(AAFwkTag::EXT, "extension:%{public}s", abilityInfo_->name.c_str());
     SetLaunchWant(want);
     SetLastRequestWant(want);
 }
@@ -50,14 +49,14 @@ void Extension::OnStart(const AAFwk::Want &want)
 void Extension::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::EXT, "extension:%{public}s.", abilityInfo_->name.c_str());
+    TAG_LOGD(AAFwkTag::EXT, "extension:%{public}s", abilityInfo_->name.c_str());
     SetLaunchWant(want);
     SetLastRequestWant(want);
 }
 
 void Extension::OnStop()
 {
-    TAG_LOGD(AAFwkTag::EXT, "extension:%{public}s.", abilityInfo_->name.c_str());
+    TAG_LOGD(AAFwkTag::EXT, "extension:%{public}s", abilityInfo_->name.c_str());
 }
 
 void Extension::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *callbackInfo, bool &isAsyncCallback)
@@ -73,7 +72,7 @@ void Extension::OnStopCallBack()
 sptr<IRemoteObject> Extension::OnConnect(const AAFwk::Want &want)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::EXT, "extension:%{public}s.", abilityInfo_->name.c_str());
+    TAG_LOGD(AAFwkTag::EXT, "extension:%{public}s", abilityInfo_->name.c_str());
     return nullptr;
 }
 
@@ -87,7 +86,7 @@ sptr<IRemoteObject> Extension::OnConnect(const AAFwk::Want &want,
 void Extension::OnDisconnect(const AAFwk::Want &want)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::EXT, "extension:%{public}s.", abilityInfo_->name.c_str());
+    TAG_LOGD(AAFwkTag::EXT, "extension:%{public}s", abilityInfo_->name.c_str());
 }
 
 void Extension::OnDisconnect(const AAFwk::Want &want, AppExecFwk::AbilityTransactionCallbackInfo<> *callbackInfo,
@@ -99,7 +98,7 @@ void Extension::OnDisconnect(const AAFwk::Want &want, AppExecFwk::AbilityTransac
 
 void Extension::OnCommand(const AAFwk::Want &want, bool restart, int startId)
 {
-    TAG_LOGD(AAFwkTag::EXT, "restart=%{public}s,startId=%{public}d.",
+    TAG_LOGD(AAFwkTag::EXT, "restart:%{public}s,startId:%{public}d",
         restart ? "true" : "false",
         startId);
     SetLastRequestWant(want);
@@ -114,13 +113,13 @@ void Extension::OnCommandWindow(const AAFwk::Want &want, const sptr<AAFwk::Sessi
 void Extension::OnForeground(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::EXT, "extension:%{public}s.", abilityInfo_->name.c_str());
+    TAG_LOGD(AAFwkTag::EXT, "extension:%{public}s", abilityInfo_->name.c_str());
 }
 
 void Extension::OnBackground()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::EXT, "extension:%{public}s.", abilityInfo_->name.c_str());
+    TAG_LOGD(AAFwkTag::EXT, "extension:%{public}s", abilityInfo_->name.c_str());
 }
 
 void Extension::SetLaunchWant(const AAFwk::Want &want)
@@ -170,18 +169,18 @@ void Extension::SetExtensionWindowLifeCycleListener(const sptr<Rosen::IWindowLif
 
 void Extension::OnAbilityResult(int requestCode, int resultCode, const Want &want)
 {
-    TAG_LOGD(AAFwkTag::EXT, "call.");
+    TAG_LOGD(AAFwkTag::EXT, "call");
 }
 
 void Extension::OnCommandWindowDone(const sptr<AAFwk::SessionInfo> &sessionInfo, AAFwk::WindowCommand winCmd)
 {
-    TAG_LOGD(AAFwkTag::EXT, "call.");
+    TAG_LOGD(AAFwkTag::EXT, "call");
 }
 
 void Extension::OnInsightIntentExecuteDone(const sptr<AAFwk::SessionInfo> &sessionInfo,
     const AppExecFwk::InsightIntentExecuteResult &result)
 {
-    TAG_LOGD(AAFwkTag::EXT, "call.");
+    TAG_LOGD(AAFwkTag::EXT, "call");
 }
 
 void Extension::SetLaunchParam(const AAFwk::LaunchParam &launchParam)
@@ -196,13 +195,13 @@ const AAFwk::LaunchParam &Extension::GetLaunchParam() const
 
 bool Extension::HandleInsightIntent(const AAFwk::Want &want)
 {
-    TAG_LOGD(AAFwkTag::EXT, "call.");
+    TAG_LOGD(AAFwkTag::EXT, "call");
     return true;
 }
 
 bool Extension::OnInsightIntentExecuteDone(uint64_t intentId, const AppExecFwk::InsightIntentExecuteResult &result)
 {
-    TAG_LOGD(AAFwkTag::EXT, "call.");
+    TAG_LOGD(AAFwkTag::EXT, "call");
     return true;
 }
 }

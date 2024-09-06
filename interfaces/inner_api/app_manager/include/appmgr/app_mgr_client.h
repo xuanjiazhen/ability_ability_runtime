@@ -42,6 +42,9 @@
 #include "app_jsheap_mem_info.h"
 
 namespace OHOS {
+namespace AbilityRuntime {
+struct LoadParam;
+}
 namespace AppExecFwk {
 class AppServiceManager;
 class Configuration;
@@ -54,16 +57,14 @@ public:
     /**
      * Load ability.
      *
-     * @param token Ability identify.
-     * @param preToken Ability identify of caller.
      * @param abilityInfo Ability information.
      * @param appInfo Application information.
      * @param want Want.
+     * @param loadParam load ability param.
      * @return Returns RESULT_OK on success, others on failure.
      */
-    virtual AppMgrResultCode LoadAbility(sptr<IRemoteObject> token, sptr<IRemoteObject> preToken,
-        const AbilityInfo &abilityInfo, const ApplicationInfo &appInfo, const AAFwk::Want &want,
-        int32_t abilityRecordId);
+    virtual AppMgrResultCode LoadAbility(const AbilityInfo &abilityInfo, const ApplicationInfo &appInfo,
+        const AAFwk::Want &want, AbilityRuntime::LoadParam loadParam);
 
     /**
      * Terminate ability.
@@ -108,20 +109,6 @@ public:
     virtual AppMgrResultCode ConnectAppMgrService();
 
     /**
-     * AbilityBehaviorAnalysis, ability behavior analysis assistant process optimization.
-     *
-     * @param token, the unique identification to start the ability.
-     * @param preToken, the unique identification to call the ability.
-     * @param visibility, the visibility information about windows info.
-     * @param perceptibility, the Perceptibility information about windows info.
-     * @param connectionState, the service ability connection state.
-     * @return Returns RESULT_OK on success, others on failure.
-     */
-    virtual AppMgrResultCode AbilityBehaviorAnalysis(const sptr<IRemoteObject> &token,
-        const sptr<IRemoteObject> &preToken, const int32_t visibility, const int32_t perceptibility,
-        const int32_t connectionState);
-
-    /**
      * KillProcessByAbilityToken, call KillProcessByAbilityToken() through proxy object,
      * kill the process by ability token.
      *
@@ -160,7 +147,27 @@ public:
      * @param  bundleName, bundle name in Application record.
      * @return ERR_OK, return back success, others fail.
      */
-    virtual AppMgrResultCode KillApplication(const std::string &bundleName, const bool clearPageStack = true);
+    virtual AppMgrResultCode KillApplication(const std::string &bundleName, const bool clearPageStack = false);
+
+    /**
+     * ForceKillApplication, call ForceKillApplication() through proxy object, force kill the application.
+     *
+     * @param  bundleName, bundle name in Application record.
+     * @param  userId, userId.
+     * @param  appIndex, appIndex.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual AppMgrResultCode ForceKillApplication(const std::string &bundleName, const int userId = -1,
+        const int appIndex = 0);
+
+    /**
+     * KillProcessesByAccessTokenId, call KillProcessesByAccessTokenId() through proxy object,
+     * force kill the application.
+     *
+     * @param  accessTokenId, accessTokenId.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual AppMgrResultCode KillProcessesByAccessTokenId(const uint32_t accessTokenId);
 
     /**
      * KillApplication, call KillApplication() through proxy object, kill the application.
@@ -176,7 +183,7 @@ public:
      *
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual AppMgrResultCode KillApplicationSelf(const bool clearPageStack = true);
+    virtual AppMgrResultCode KillApplicationSelf(const bool clearPageStack = false);
 
     /**
      * Normal scheduling to exit the process.
@@ -249,6 +256,15 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual AppMgrResultCode GetAllRenderProcesses(std::vector<RenderProcessInfo> &info);
+
+    /**
+     * GetAllChildrenProcesses, call GetAllChildrenProcesses() through proxy project.
+     * Obtains information about children processes that are running on the device.
+     *
+     * @param info, child process info.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual AppMgrResultCode GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info);
 
     /**
      * NotifyMemoryLevel, call NotifyMemoryLevel() through proxy project.
@@ -344,7 +360,7 @@ public:
      * @param config System environment change parameters.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual AppMgrResultCode UpdateConfiguration(const Configuration &config);
+    virtual AppMgrResultCode UpdateConfiguration(const Configuration &config, const int32_t userId = -1);
 
     /**
      *  Update config by bundle name.
@@ -370,15 +386,6 @@ public:
      * @return Returns RESULT_OK on success, others on failure.
      */
     virtual AppMgrResultCode UnregisterConfigurationObserver(const sptr<IConfigurationObserver> &observer);
-
-    #ifdef ABILITY_COMMAND_FOR_TEST
-    /**
-     * Block app service.
-     *
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    virtual int BlockAppService();
-    #endif
 
     /**
      * Start a user test
@@ -686,18 +693,18 @@ public:
     int32_t UnregisterAppRunningStatusListener(const sptr<IRemoteObject> &listener);
 
     /**
-     * Whether the current application process is the last surviving process.
-     *
-     * @return Returns true is final application process, others return false.
-     */
-    bool IsFinalAppProcess();
-
-    /**
      * To clear the process by ability token.
      *
      * @param token the unique identification to the ability.
      */
     void ClearProcessByToken(sptr<IRemoteObject> token) const;
+
+    /**
+     * Whether the current application process is the last surviving process.
+     *
+     * @return Returns true is final application process, others return false.
+     */
+    bool IsFinalAppProcess();
 
     int32_t RegisterRenderStateObserver(const sptr<IRenderStateObserver> &observer);
 
@@ -761,6 +768,8 @@ public:
 
     int32_t SetSupportedProcessCacheSelf(bool isSupport);
 
+    int32_t SetSupportedProcessCache(int32_t pid, bool isSupport);
+
     void SaveBrowserChannel(sptr<IRemoteObject> browser);
 
     /**
@@ -782,6 +791,40 @@ public:
     int32_t NotifyProcessDependedOnWeb();
 
     void KillProcessDependedOnWeb();
+
+    /**
+     * Temporarily block the process cache feature.
+     *
+     * @param pids the pids of the processes that should be blocked.
+     */
+    virtual AppMgrResultCode BlockProcessCacheByPids(const std::vector<int32_t> &pids);
+
+    /**
+     * Request to clean uiability from user.
+     *
+     * @param token the token of ability.
+     * @return Returns true if clean success, others return false.
+     */
+    bool CleanAbilityByUserRequest(const sptr<IRemoteObject> &token);
+
+    /**
+     * whether killed for upgrade web.
+     *
+     * @param bundleName the bundle name is killed for upgrade web.
+     * @return Returns true is killed for upgrade web, others return false.
+     */
+    bool IsKilledForUpgradeWeb(const std::string &bundleName);
+
+    /**
+     * whether the abilities of process specified by pid type only UIAbility.
+     * @return Returns true is only UIAbility, otherwise return false
+     */
+    bool IsProcessContainsOnlyUIAbility(const pid_t pid);
+
+    bool IsProcessAttached(sptr<IRemoteObject> token) const;
+
+    bool IsAppKilling(sptr<IRemoteObject> token) const;
+
 private:
     void SetServiceManager(std::unique_ptr<AppServiceManager> serviceMgr);
     /**

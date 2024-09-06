@@ -105,7 +105,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     appMgrService->Dump(fd, args);
     std::string result(data, size);
     appMgrService->Dump(args, result);
-    appMgrService->ShowHelp(result);
+    appMgrService->ShowHelp(args, result);
     std::string flag(data, size);
     appMgrService->ScheduleAcceptWantDone(recordId, *want, flag);
     Configuration config;
@@ -130,9 +130,6 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     appMgrService->NotifyLoadRepairPatch(bundleName, callback);
     appMgrService->NotifyHotReloadPage(bundleName, callback);
     appMgrService->NotifyUnLoadRepairPatch(bundleName, callback);
-#ifdef ABILITY_COMMAND_FOR_TEST
-    appMgrService->BlockAppService();
-#endif
     appMgrService->ApplicationBackgrounded(recordId);
     sptr<IRemoteObject> token = GetFuzzAbilityToken();
     appMgrService->AbilityCleaned(token);

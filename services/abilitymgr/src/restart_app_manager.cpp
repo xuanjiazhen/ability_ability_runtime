@@ -17,7 +17,6 @@
 
 #include "app_scheduler.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "ipc_skeleton.h"
 
 namespace OHOS {
@@ -35,7 +34,7 @@ bool RestartAppManager::IsRestartAppFrequent(const RestartAppKeyType &key, time_
     constexpr int64_t MIN_RESTART_TIME = 10;
     auto it = restartAppHistory_.find(key);
     if ((it != restartAppHistory_.end()) && (it->second + MIN_RESTART_TIME > time)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Restart too frequently. Try again at least 10s later.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "restart too frequently. try again at least 10s later");
         return true;
     }
     return false;
@@ -51,14 +50,14 @@ void RestartAppManager::AddRestartAppHistory(const RestartAppKeyType &key, time_
 
 bool RestartAppManager::IsForegroundToRestartApp() const
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "IsForegroundToRestartApp, called.");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     auto callerPid = IPCSkeleton::GetCallingPid();
     AppExecFwk::RunningProcessInfo processInfo;
     DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByPid(callerPid, processInfo);
     if (processInfo.isFocused || processInfo.isAbilityForegrounding) {
         return true;
     }
-    TAG_LOGE(AAFwkTag::ABILITYMGR, "IsForegroundToRestartApp, app stae is not foreground.");
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "IsForegroundToRestartApp, state not foreground");
     return false;
 }
 }  // namespace AAFwk

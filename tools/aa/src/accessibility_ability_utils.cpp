@@ -18,7 +18,6 @@
 
 #include "accesstoken_kit.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
 
@@ -187,12 +186,12 @@ int32_t AccessibilityUtils::AddPermission()
     };
     uint64_t tokenId = GetAccessTokenId(&infoInstance);
     if (!tokenId) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "Set token failed.");
+        TAG_LOGE(AAFwkTag::AA_TOOL, "Set token failed");
         return -1;
     }
     int32_t setTokenResult = SetSelfTokenID(tokenId);
     if (setTokenResult != 0) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "Set token failed.");
+        TAG_LOGE(AAFwkTag::AA_TOOL, "Set token failed");
         return -1;
     }
     return AccessTokenKit::ReloadNativeTokenInfo();

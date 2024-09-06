@@ -15,12 +15,8 @@
 
 #include "call_record.h"
 
-#include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "ability_util.h"
 #include "ability_manager_service.h"
-#include "ability_record.h"
-#include "element_name.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -71,7 +67,7 @@ void CallRecord::SetCallStub(const sptr<IRemoteObject> &call)
         auto callStubDied = [wptr = callRecord] (const wptr<IRemoteObject> &remote) {
             auto call = wptr.lock();
             if (call == nullptr) {
-                TAG_LOGE(AAFwkTag::ABILITYMGR, "callRecord  is nullptr, can't call stub died.");
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "null call");
                 return;
             }
 
@@ -82,7 +78,7 @@ void CallRecord::SetCallStub(const sptr<IRemoteObject> &call)
     }
 
     if (!callRemoteObject_->AddDeathRecipient(callDeathRecipient_)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "AddDeathRecipient failed.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "addDeathRecipient failed");
     }
 }
 
@@ -125,7 +121,7 @@ bool CallRecord::SchedulerConnectDone()
     auto remoteObject = callRemoteObject_;
     auto callback = connCallback_;
     if (!remoteObject || !callback || !tmpService) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "callstub or connCallback is nullptr, can't scheduler connect done.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "callstub or connCallback null");
         return false;
     }
 
@@ -151,7 +147,7 @@ bool CallRecord::SchedulerDisconnectDone()
     std::shared_ptr<AbilityRecord> tmpService = service_.lock();
     auto callback = connCallback_;
     if (!callback || !tmpService) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "callstub or connCallback is nullptr, can't scheduler connect done.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "callstub or connCallback null");
         return false;
     }
 

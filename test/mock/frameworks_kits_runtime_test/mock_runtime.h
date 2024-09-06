@@ -57,7 +57,7 @@ public:
     {
         return;
     }
-    void DumpCpuProfile(bool isPrivate) override
+    void DumpCpuProfile() override
     {
         return;
     }
@@ -117,11 +117,9 @@ public:
 
     void StartProfiler(const DebugOption debugOption) override {}
 
-    void DoCleanWorkAfterStageCleaned() override {}
     void DumpHeapSnapshot(uint32_t tid, bool isFullGC) override {}
     void ForceFullGC(uint32_t tid) override {}
-
-    void UpdatePkgContextInfoJson(std::string moduleName, std::string hapPath, std::string packageName) override {};
+    void UpdatePkgContextInfoJson(std::string moduleName, std::string hapPath, std::string packageName) override {}
 public:
     Language language;
 };

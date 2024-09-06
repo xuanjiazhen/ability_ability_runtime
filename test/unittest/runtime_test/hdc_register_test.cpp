@@ -17,16 +17,9 @@
 
 #define private public
 #define protected public
-#include "js_runtime.h"
-#include "js_runtime_utils.h"
-#include "js_worker.h"
 #include "hdc_register.h"
 #undef private
 #undef protected
-
-#include "event_runner.h"
-#include "mock_js_runtime.h"
-#include "hilog_wrapper.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -64,10 +57,10 @@ HWTEST_F(HdcRegisterTest, HdcRegisterTest_0100, TestSize.Level0)
     const std::string bundleName = "";
     bool debugApp = true;
     auto &pHdcRegister = AbilityRuntime::HdcRegister::Get();
-    
+
     pHdcRegister.StartHdcRegister(bundleName, processName, debugApp, nullptr);
 
-    EXPECT_TRUE(true);
+    EXPECT_NE(pHdcRegister.registerHandler_, nullptr);
 }
 
 /**
@@ -81,7 +74,7 @@ HWTEST_F(HdcRegisterTest, HdcRegisterTest_0200, TestSize.Level0)
     pHdcRegister.registerHandler_ = nullptr;
     pHdcRegister.StopHdcRegister();
     
-    EXPECT_TRUE(true);
+    EXPECT_EQ(pHdcRegister.registerHandler_, nullptr);
 }
 
 /**
@@ -98,7 +91,7 @@ HWTEST_F(HdcRegisterTest, HdcRegisterTest_0300, TestSize.Level0)
     pHdcRegister.StartHdcRegister(bundleName, processName, debugApp, nullptr);
     pHdcRegister.StopHdcRegister();
 
-    EXPECT_TRUE(true);
+    EXPECT_EQ(pHdcRegister.registerHandler_, nullptr);
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

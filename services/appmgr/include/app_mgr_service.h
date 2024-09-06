@@ -181,6 +181,15 @@ public:
     virtual int32_t GetAllRenderProcesses(std::vector<RenderProcessInfo> &info) override;
 
     /**
+     * GetAllChildrenProcesses, call GetAllChildrenProcesses() through proxy project.
+     * Obtains information about children processes that are running on the device.
+     *
+     * @param info, child process info.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info) override;
+
+    /**
      * JudgeSandboxByPid, call JudgeSandboxByPid() through proxy project.
      * Obtains information about application processes that are running on the device.
      *
@@ -330,22 +339,13 @@ public:
 
     virtual int32_t GetConfiguration(Configuration& config) override;
 
-    virtual int32_t UpdateConfiguration(const Configuration &config) override;
+    virtual int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1) override;
 
     virtual int32_t UpdateConfigurationByBundleName(const Configuration &config, const std::string &name) override;
 
     virtual int32_t RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer) override;
 
     virtual int32_t UnregisterConfigurationObserver(const sptr<IConfigurationObserver> &observer) override;
-
-    #ifdef ABILITY_COMMAND_FOR_TEST
-    /**
-     * Block app service.
-     *
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    virtual int BlockAppService() override;
-    #endif
 
     bool GetAppRunningStateByBundleName(const std::string &bundleName) override;
 
@@ -490,12 +490,11 @@ public:
     /**
      * Start child process, called by ChildProcessManager.
      *
-     * @param srcEntry Child process source file entrance path to be started.
      * @param childPid Created child process pid.
+     * @param request Child process start request params.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t StartChildProcess(const std::string &srcEntry, pid_t &childPid, int32_t childProcessCoun,
-        bool isStartWithDebug) override;
+    int32_t StartChildProcess(pid_t &childPid, const ChildProcessRequest &request) override;
 
     /**
      * Get child process record for self.
@@ -548,18 +547,11 @@ public:
 
     int32_t NotifyMemorySizeStateChanged(bool isMemorySizeSufficent) override;
 
-    int32_t SetSupportedProcessCacheSelf(bool isSupport) override;
-
     void SetAppAssertionPauseState(bool flag) override;
-    /**
-     * Start native child process, callde by ChildProcessManager.
-     * @param libName lib file name to be load in child process
-     * @param childProcessCount current started child process count
-     * @param callback callback for notify start result
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    int32_t StartNativeChildProcess(const std::string &libName, int32_t childProcessCount,
-        const sptr<IRemoteObject> &callback) override;
+
+    int32_t SetSupportedProcessCacheSelf(bool isSupport) override;
+    
+    int32_t SetSupportedProcessCache(int32_t pid, bool isSupport) override;
 
     virtual void SaveBrowserChannel(sptr<IRemoteObject> browser) override;
 
@@ -570,6 +562,15 @@ public:
      * @return Returns ERR_OK is test ability, others is not test ability.
      */
     int32_t CheckCallingIsUserTestMode(const pid_t pid, bool &isUserTest) override;
+    /**
+     * Start native child process, callde by ChildProcessManager.
+     * @param libName lib file name to be load in child process
+     * @param childProcessCount current started child process count
+     * @param callback callback for notify start result
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t StartNativeChildProcess(const std::string &libName, int32_t childProcessCount,
+        const sptr<IRemoteObject> &callback) override;
 
     virtual int32_t NotifyProcessDependedOnWeb() override;
 
@@ -704,6 +705,16 @@ private:
      * @return Returns true is final application process, others return false.
      */
     bool IsFinalAppProcess() override;
+
+    /**
+     * Get pids of processes which belong to specific bundle name and support process cache feature.
+     *
+     * @param bundleName bundle name.
+     * @param pidList pid list of processes that support process cache.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetSupportedProcessCachePids(const std::string &bundleName,
+        std::vector<int32_t> &pidList) override;
 
     enum DumpIpcKey {
         KEY_DUMP_IPC_START = 0,

@@ -21,8 +21,8 @@
 #include <native_engine/native_value.h>
 
 #include "ability_connect_callback.h"
+#include "ability_context.h"
 #include "event_handler.h"
-#include "foundation/ability/ability_runtime/interfaces/kits/native/ability/ability_runtime/ability_context.h"
 #include "js_ability_context.h"
 #include "js_free_install_observer.h"
 #include "js_runtime.h"
@@ -37,6 +37,7 @@ public:
     ~JsEmbeddableUIAbilityContext() = default;
     static void Finalizer(napi_env env, void* data, void* hint);
     static napi_value StartAbility(napi_env env, napi_callback_info info);
+    static napi_value OpenLink(napi_env env, napi_callback_info info);
     static napi_value StartAbilityForResult(napi_env env, napi_callback_info info);
     static napi_value ConnectAbility(napi_env env, napi_callback_info info);
     static napi_value DisconnectAbility(napi_env env, napi_callback_info info);
@@ -61,6 +62,11 @@ public:
     static napi_value SetMissionContinueState(napi_env env, napi_callback_info info);
     static napi_value StartAbilityByType(napi_env env, napi_callback_info info);
     static napi_value MoveAbilityToBackground(napi_env env, napi_callback_info info);
+    static napi_value RequestModalUIExtension(napi_env env, napi_callback_info info);
+    static napi_value OpenAtomicService(napi_env env, napi_callback_info info);
+    static napi_value ShowAbility(napi_env env, napi_callback_info info);
+    static napi_value HideAbility(napi_env env, napi_callback_info info);
+    static napi_value SetRestoreEnabled(napi_env env, napi_callback_info info);
 
 private:
     static void WrapJsUIAbilityContext(napi_env env, std::shared_ptr<AbilityContext> uiAbiContext,
@@ -68,6 +74,7 @@ private:
     static void WrapJsUIExtensionContext(napi_env env, std::shared_ptr<UIExtensionContext> uiExtContext,
         napi_value &objValue, int32_t screenMode);
     napi_value OnStartAbility(napi_env env, NapiCallbackInfo& info);
+    napi_value OnOpenLink(napi_env env, NapiCallbackInfo& info);
     napi_value OnStartAbilityForResult(napi_env env, NapiCallbackInfo& info);
     napi_value OnConnectAbility(napi_env env, NapiCallbackInfo& info);
     napi_value OnDisconnectAbility(napi_env env, NapiCallbackInfo& info);
@@ -90,6 +97,11 @@ private:
     napi_value OnSetMissionContinueState(napi_env env, NapiCallbackInfo& info);
     napi_value OnStartAbilityByType(napi_env env, NapiCallbackInfo& info);
     napi_value OnMoveAbilityToBackground(napi_env env, NapiCallbackInfo& info);
+    napi_value OnRequestModalUIExtension(napi_env env, NapiCallbackInfo& info);
+    napi_value OnOpenAtomicService(napi_env env, NapiCallbackInfo& info);
+    napi_value OnShowAbility(napi_env env, NapiCallbackInfo& info);
+    napi_value OnHideAbility(napi_env env, NapiCallbackInfo& info);
+    napi_value OnSetRestoreEnabled(napi_env env, NapiCallbackInfo& info);
 
 #ifdef SUPPORT_GRAPHICS
 public:

@@ -16,7 +16,6 @@
 #include "js_mission_info_utils.h"
 
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "napi_common_want.h"
 #include "napi_remote_object.h"
 #include "bool_wrapper.h"
@@ -140,7 +139,7 @@ bool InnerWrapJsWantParamsWantParams(
 
 bool WrapJsWantParamsArray(napi_env env, napi_value object, const std::string &key, sptr<AAFwk::IArray> &ao)
 {
-    TAG_LOGI(AAFwkTag::MISSION, "called. key=%{public}s", key.c_str());
+    TAG_LOGI(AAFwkTag::MISSION, "key:%{public}s", key.c_str());
     if (AAFwk::Array::IsStringArray(ao)) {
         return InnerWrapWantParamsArray<AAFwk::IString, AAFwk::String, std::string>(
             env, object, key, ao);

@@ -76,14 +76,18 @@ public:
         const AAFwk::StartOptions &startOptions, int requestCode, RuntimeTask &&task) override;
     ErrCode StartAbilityForResult(const AAFwk::Want &want, const AAFwk::StartOptions &startOptions,
         int requestCode, RuntimeTask &&task) override;
+    ErrCode StartUIServiceExtensionAbility(const AAFwk::Want &want, int32_t accountId = -1) override;
     ErrCode StartServiceExtensionAbility(const Want &want, int32_t accountId = -1) override;
     ErrCode StopServiceExtensionAbility(const Want& want, int32_t accountId = -1) override;
     ErrCode TerminateAbilityWithResult(const AAFwk::Want &want, int resultCode) override;
+    ErrCode BackToCallerAbilityWithResult(const AAFwk::Want &want, int resultCode, int64_t requestCode) override;
     void OnAbilityResult(int requestCode, int resultCode, const AAFwk::Want &resultData) override;
     ErrCode ConnectAbility(const AAFwk::Want &want,
                         const sptr<AbilityConnectCallback> &connectCallback) override;
     ErrCode ConnectAbilityWithAccount(const AAFwk::Want &want, int accountId,
                         const sptr<AbilityConnectCallback> &connectCallback) override;
+    ErrCode ConnectUIServiceExtensionAbility(const AAFwk::Want& want,
+        const sptr<AbilityConnectCallback>& connectCallback) override;
     void DisconnectAbility(const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback,
         int32_t accountId = -1) override;
     std::shared_ptr<AppExecFwk::HapModuleInfo> GetHapModuleInfo() const override;
@@ -221,6 +225,10 @@ public:
 
     ErrCode ChangeAbilityVisibility(bool isShow) override;
 
+    ErrCode AddFreeInstallObserver(const sptr<AbilityRuntime::IFreeInstallObserver> &observer) override;
+
+    ErrCode OpenLink(const AAFwk::Want& want, int requestCode) override;
+
     ErrCode OpenAtomicService(AAFwk::Want& want, const AAFwk::StartOptions &options, int requestCode,
         RuntimeTask &&task) override;
 
@@ -230,8 +238,12 @@ public:
 
     void InsertResultCallbackTask(int requestCode, RuntimeTask&& task) override;
 
+    void RemoveResultCallbackTask(int requestCode) override;
+
     void SetRestoreEnabled(bool enabled) override;
     bool GetRestoreEnabled() override;
+
+    std::shared_ptr<AAFwk::Want> GetWant() override;
 
 #ifdef SUPPORT_SCREEN
     /**
@@ -299,7 +311,7 @@ private:
     wptr<IRemoteObject> sessionToken_;
     std::mutex uiExtensionMutex_;
     std::map<int32_t, Want> uiExtensionMap_;
-    std::atomic<bool> restoreEnabled_ = true;
+    std::atomic<bool> restoreEnabled_ = false;
 
     static void RequestDialogResultJSThreadWorker(uv_work_t* work, int status);
     void OnAbilityResultInner(int requestCode, int resultCode, const AAFwk::Want &resultData);

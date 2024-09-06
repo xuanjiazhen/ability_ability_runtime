@@ -180,19 +180,6 @@ public:
     void UpdateExtensionState(const sptr<IRemoteObject> &token, const AppExecFwk::ExtensionState state);
 
     /**
-     * AbilityBehaviorAnalysis, ability behavior analysis assistant process optimization.
-     *
-     * @param token, the unique identification to start the ability.
-     * @param preToken, the unique identification to call the ability.
-     * @param visibility, the visibility information about windows info.
-     * @param perceptibility, the Perceptibility information about windows info.
-     * @param connectionState, the service ability connection state.
-     * @return Returns RESULT_OK on success, others on failure.
-     */
-    void AbilityBehaviorAnalysis(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &preToken,
-        const int32_t visibility, const int32_t perceptibility, const int32_t connectionState);
-
-    /**
      * KillProcessByAbilityToken, call KillProcessByAbilityToken() through proxy object,
      * kill the process by ability token.
      *
@@ -231,7 +218,26 @@ public:
      *
      * @param bundleName.
      */
-    int KillApplication(const std::string &bundleName, const bool clearPageStack = true);
+    int KillApplication(const std::string &bundleName, const bool clearPageStack = false);
+
+    /**
+     * ForceKillApplication, force kill the application.
+     *
+     * @param  bundleName, bundle name in Application record.
+     * @param  userId, userId.
+     * @param  appIndex, appIndex.
+     * @return ERR_OK, return back success, others fail.
+     */
+    int ForceKillApplication(const std::string &bundleName, const int userId = -1,
+        const int appIndex = 0);
+
+    /**
+     * KillProcessesByAccessTokenId.
+     *
+     * @param  accessTokenId, accessTokenId.
+     * @return ERR_OK, return back success, others fail.
+     */
+    int KillProcessesByAccessTokenId(const uint32_t accessTokenId);
 
     /**
      * kill the application by uid
@@ -328,6 +334,15 @@ public:
     int GetApplicationInfoByProcessID(const int pid, AppExecFwk::ApplicationInfo &application, bool &debug);
 
     /**
+     *  Set the process cache status by process ID.
+     *
+     * @param pid The process id.
+     * @param isSupport The process is support cache.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    void SetProcessCacheStatus(int32_t pid, bool isSupport);
+
+    /**
      * Record process exit reason to appRunningRecord
      * @param pid pid
      * @param reason reason enum
@@ -344,15 +359,6 @@ public:
      * @return
      */
     void SetCurrentUserId(int32_t userId);
-
-    #ifdef ABILITY_COMMAND_FOR_TEST
-    /**
-     * Block app service.
-     *
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    int BlockAppService();
-    #endif
 
     /**
      * Get bundleName by pid.
@@ -433,6 +439,28 @@ public:
      * @param token the token of the abilityRecord that is attached to status bar.
      */
     void AttachedToStatusBar(const sptr<IRemoteObject> &token);
+
+    void BlockProcessCacheByPids(const std::vector<int32_t>& pids);
+
+    /**
+     * Request to clean uiability from user.
+     *
+     * @param token the token of ability.
+     * @return Returns true if clean success, others return false.
+     */
+    bool CleanAbilityByUserRequest(const sptr<IRemoteObject> &token);
+
+    bool IsKilledForUpgradeWeb(const std::string &bundleName);
+
+    /**
+     * whether the abilities of process specified by pid type only UIAbility.
+     * @return Returns true is only UIAbility, otherwise return false
+     */
+    bool IsProcessContainsOnlyUIAbility(const pid_t pid);
+
+    bool IsProcessAttached(sptr<IRemoteObject> token) const;
+
+    bool IsAppKilling(sptr<IRemoteObject> token) const;
 
 protected:
     /**

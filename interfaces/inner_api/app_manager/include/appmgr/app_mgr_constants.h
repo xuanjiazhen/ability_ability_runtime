@@ -40,6 +40,12 @@ enum class ApplicationPendingState {
     BACKGROUNDING,
 };
 
+enum class ApplicationScheduleState {
+    SCHEDULE_READY = 0,
+    SCHEDULE_FOREGROUNDING,
+    SCHEDULE_BACKGROUNDING,
+};
+
 enum class AbilityState {
     ABILITY_STATE_CREATE = 0,
     ABILITY_STATE_READY,
@@ -79,12 +85,14 @@ enum class ProcessType {
     EXTENSION,
     RENDER,
     GPU,
+    CHILD,
 };
 
 enum class AppStartType {
     COLD = 0,
     HOT,
     MULTI_INSTANCE,
+    PROCESS_CACHE_LAUNCH
 };
 
 enum class PreloadMode {

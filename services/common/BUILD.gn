@@ -31,6 +31,7 @@ config("common_config") {
     "${ability_runtime_napi_path}/*",
     "${ability_runtime_native_path}/ability/native/*",
     "${ability_runtime_native_path}/child_process/*",
+    "${ability_runtime_path}/frameworks/c/ability_runtime/*",
     "${ability_runtime_path}/frameworks/simulator/ability_simulator/*",
     "${ability_runtime_path}/tools/aa/*",
     "${ability_runtime_services_path}/common/*",
@@ -69,6 +70,11 @@ ohos_shared_library("perm_verification") {
     "init:libbegetutil",
     "ipc:ipc_core",
   ]
+
+  cflags_cc = []
+  if (os_dlp_part_enabled) {
+    cflags_cc += [ "-DWITH_DLP" ]
+  }
 
   subsystem_name = "ability"
   innerapi_tags = [ "platformsdk_indirect" ]

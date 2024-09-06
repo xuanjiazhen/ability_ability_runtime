@@ -14,8 +14,7 @@
  */
 
 #include "ui_extension_record_factory.h"
-#include "ability_util.h"
-#include "extension_record_manager.h"
+
 #include "hilog_tag_wrapper.h"
 #include "ui_extension_record.h"
 
@@ -53,7 +52,7 @@ int32_t UIExtensionRecordFactory::CreateRecord(
 {
     auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
     if (abilityRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to create ability record");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "create record failed");
         return ERR_NULL_OBJECT;
     }
     extensionRecord = std::make_shared<UIExtensionRecord>(abilityRecord);

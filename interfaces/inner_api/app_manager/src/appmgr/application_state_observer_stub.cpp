@@ -16,7 +16,6 @@
 #include "application_state_observer_stub.h"
 #include "appexecfwk_errors.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "ipc_types.h"
 #include "iremote_object.h"
 
@@ -33,12 +32,39 @@ int ApplicationStateObserverStub::OnRemoteRequest(
         return ERR_INVALID_STATE;
     }
 
-    auto itFunc = memberFuncMap_.find(code);
-    if (itFunc != memberFuncMap_.end()) {
-        auto memberFunc = itFunc->second;
-        if (memberFunc != nullptr) {
-            return (this->*memberFunc)(data, reply);
-        }
+    switch (static_cast<Message>(code)) {
+        case Message::TRANSACT_ON_FOREGROUND_APPLICATION_CHANGED:
+            return HandleOnForegroundApplicationChanged(data, reply);
+        case Message::TRANSACT_ON_ABILITY_STATE_CHANGED:
+            return HandleOnAbilityStateChanged(data, reply);
+        case Message::TRANSACT_ON_EXTENSION_STATE_CHANGED:
+            return HandleOnExtensionStateChanged(data, reply);
+        case Message::TRANSACT_ON_PROCESS_CREATED:
+            return HandleOnProcessCreated(data, reply);
+        case Message::TRANSACT_ON_PROCESS_STATE_CHANGED:
+            return HandleOnProcessStateChanged(data, reply);
+        case Message::TRANSACT_ON_PROCESS_DIED:
+            return HandleOnProcessDied(data, reply);
+        case Message::TRANSACT_ON_APPLICATION_STATE_CHANGED:
+            return HandleOnApplicationStateChanged(data, reply);
+        case Message::TRANSACT_ON_APP_STATE_CHANGED:
+            return HandleOnAppStateChanged(data, reply);
+        case Message::TRANSACT_ON_PROCESS_REUSED:
+            return HandleOnProcessReused(data, reply);
+        case Message::TRANSACT_ON_APP_STARTED:
+            return HandleOnAppStarted(data, reply);
+        case Message::TRANSACT_ON_APP_STOPPED:
+            return HandleOnAppStopped(data, reply);
+        case Message::TRANSACT_ON_PAGE_SHOW:
+            return HandleOnPageShow(data, reply);
+        case Message::TRANSACT_ON_PAGE_HIDE:
+            return HandleOnPageHide(data, reply);
+        case Message::TRANSACT_ON_APP_CACHE_STATE_CHANGED:
+            return HandleOnAppCacheStateChanged(data, reply);
+        case Message::TRANSACT_ON_WINDOW_SHOW:
+            return HandleOnWindowShow(data, reply);
+        case Message::TRANSACT_ON_WINDOW_HIDDEN:
+            return HandleOnWindowHidden(data, reply);
     }
     TAG_LOGW(AAFwkTag::APPMGR, "ApplicationStateObserverStub::OnRemoteRequest, default case, need check");
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
@@ -58,6 +84,18 @@ void ApplicationStateObserverStub::OnProcessCreated(const ProcessData &processDa
 
 void ApplicationStateObserverStub::OnProcessStateChanged(const ProcessData &processData)
 {}
+
+void ApplicationStateObserverStub::OnWindowShow(const ProcessData &processData)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "ApplicationStateObserverStub::OnWindowShow called, bundleName:%{public}s,"
+        "pid:%{public}d, uid:%{public}d.", processData.bundleName.c_str(), processData.pid, processData.uid);
+}
+
+void ApplicationStateObserverStub::OnWindowHidden(const ProcessData &processData)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "ApplicationStateObserverStub::OnWindowHidden called, bundleName:%{public}s,"
+        "pid:%{public}d, uid:%{public}d.", processData.bundleName.c_str(), processData.pid, processData.uid);
+}
 
 void ApplicationStateObserverStub::OnProcessDied(const ProcessData &processData)
 {}
@@ -159,6 +197,30 @@ int32_t ApplicationStateObserverStub::HandleOnProcessStateChanged(MessageParcel 
     }
 
     OnProcessStateChanged(*processData);
+    return NO_ERROR;
+}
+
+int32_t ApplicationStateObserverStub::HandleOnWindowShow(MessageParcel &data, MessageParcel &reply)
+{
+    std::unique_ptr<ProcessData> processData(data.ReadParcelable<ProcessData>());
+    if (!processData) {
+        TAG_LOGE(AAFwkTag::APPMGR, "ReadParcelable<ProcessData> failed");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+
+    OnWindowShow(*processData);
+    return NO_ERROR;
+}
+
+int32_t ApplicationStateObserverStub::HandleOnWindowHidden(MessageParcel &data, MessageParcel &reply)
+{
+    std::unique_ptr<ProcessData> processData(data.ReadParcelable<ProcessData>());
+    if (!processData) {
+        TAG_LOGE(AAFwkTag::APPMGR, "ReadParcelable<ProcessData> failed");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+
+    OnWindowHidden(*processData);
     return NO_ERROR;
 }
 

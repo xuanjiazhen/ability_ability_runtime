@@ -20,9 +20,9 @@
 
 #include <iremote_object.h>
 #include <iremote_stub.h>
-
+#ifdef WITH_DLP
 #include "dlp_connection_info.h"
-#include "hilog_wrapper.h"
+#endif // WITH_DLP
 #include "iconnection_observer.h"
 
 namespace OHOS {
@@ -61,12 +61,15 @@ public:
 
     virtual int UnregisterObserver(const sptr<AbilityRuntime::IConnectionObserver> &observer);
 
+#ifdef WITH_DLP
     virtual int GetDlpConnectionInfos(std::vector<AbilityRuntime::DlpConnectionInfo> &infos);
+#endif // WITH_DLP
 
     virtual int GetConnectionData(std::vector<AbilityRuntime::ConnectionData> &connectionData);
 
 private:
     int TerminateAbilityInner(MessageParcel &data, MessageParcel &reply);
+    int BackToCallerInner(MessageParcel &data, MessageParcel &reply);
     int TerminateUIExtensionAbilityInner(MessageParcel &data, MessageParcel &reply);
     int CloseUIAbilityBySCBInner(MessageParcel &data, MessageParcel &reply);
     int SendResultToAbilityInner(MessageParcel &data, MessageParcel &reply);
@@ -75,6 +78,7 @@ private:
     int MinimizeUIAbilityBySCBInner(MessageParcel &data, MessageParcel &reply);
     int AttachAbilityThreadInner(MessageParcel &data, MessageParcel &reply);
     int AbilityTransitionDoneInner(MessageParcel &data, MessageParcel &reply);
+    int AbilityWindowConfigTransitionDoneInner(MessageParcel &data, MessageParcel &reply);
     int ScheduleConnectAbilityDoneInner(MessageParcel &data, MessageParcel &reply);
     int ScheduleDisconnectAbilityDoneInner(MessageParcel &data, MessageParcel &reply);
     int ScheduleCommandAbilityDoneInner(MessageParcel &data, MessageParcel &reply);
@@ -189,7 +193,9 @@ private:
     int UpdateMissionSnapShotFromWMSInner(MessageParcel &data, MessageParcel &reply);
     int RegisterConnectionObserverInner(MessageParcel &data, MessageParcel &reply);
     int UnregisterConnectionObserverInner(MessageParcel &data, MessageParcel &reply);
+#ifdef WITH_DLP
     int GetDlpConnectionInfosInner(MessageParcel &data, MessageParcel &reply);
+#endif // WITH_DLP
     int GetConnectionDataInner(MessageParcel &data, MessageParcel &reply);
     int MoveAbilityToBackgroundInner(MessageParcel &data, MessageParcel &reply);
     int32_t MoveUIAbilityToBackgroundInner(MessageParcel &data, MessageParcel &reply);
@@ -214,12 +220,8 @@ private:
     int FreeInstallAbilityFromRemoteInner(MessageParcel &data, MessageParcel &reply);
     int AddFreeInstallObserverInner(MessageParcel &data, MessageParcel &reply);
 
-    #ifdef ABILITY_COMMAND_FOR_TEST
-    int BlockAmsServiceInner(MessageParcel &data, MessageParcel &reply);
-    int BlockAbilityInner(MessageParcel &data, MessageParcel &reply);
-    int BlockAppServiceInner(MessageParcel &data, MessageParcel &reply);
-    #endif
     int EnableRecoverAbilityInner(MessageParcel &data, MessageParcel &reply);
+    int SubmitSaveRecoveryInfoInner(MessageParcel &data, MessageParcel &reply);
     int ScheduleRecoverAbilityInner(MessageParcel &data, MessageParcel &reply);
     int ScheduleClearRecoveryPageStackInner(MessageParcel &data, MessageParcel &reply);
     int GetTopAbilityInner(MessageParcel &data, MessageParcel &reply);
@@ -282,19 +284,24 @@ private:
     int StartAbilityForResultAsCallerInner(MessageParcel &data, MessageParcel &reply);
     int StartAbilityForResultAsCallerForOptionsInner(MessageParcel &data, MessageParcel &reply);
 
+    int32_t StartAbilityOnlyUIAbilityInner(MessageParcel &data, MessageParcel &reply);
+
     //insight intent related
     int32_t StartAbilityByInsightIntentInner(MessageParcel &data, MessageParcel &reply);
     int32_t ExecuteInsightIntentDoneInner(MessageParcel &data, MessageParcel &reply);
     int32_t GetForegroundUIAbilitiesInner(MessageParcel &data, MessageParcel &reply);
+    int32_t RestartAppInner(MessageParcel &data, MessageParcel &reply);
 
     int32_t GetUIExtensionRootHostInfoInner(MessageParcel &data, MessageParcel &reply);
-    int32_t RestartAppInner(MessageParcel &data, MessageParcel &reply);
+    int32_t GetUIExtensionSessionInfoInner(MessageParcel &data, MessageParcel &reply);
     int32_t RequestAssertFaultDialogInner(MessageParcel &data, MessageParcel &reply);
     int32_t NotifyDebugAssertResultInner(MessageParcel &data, MessageParcel &reply);
     int32_t StartShortcutInner(MessageParcel &data, MessageParcel &reply);
     int32_t GetAbilityStateByPersistentIdInner(MessageParcel &data, MessageParcel &reply);
     int32_t TransferAbilityResultForExtensionInner(MessageParcel &data, MessageParcel &reply);
     int32_t NotifyFrozenProcessByRSSInner(MessageParcel &data, MessageParcel &reply);
+    int32_t CleanUIAbilityBySCBInner(MessageParcel &data, MessageParcel &reply);
+    int32_t PreStartMissionInner(MessageParcel &data, MessageParcel &reply);
     int OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);
     int OnRemoteRequestInnerSecond(uint32_t code, MessageParcel &data,
@@ -339,6 +346,8 @@ private:
         MessageParcel &reply, MessageOption &option);
     int HandleOnRemoteRequestInnerSecond(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);
+    int32_t OpenLinkInner(MessageParcel &data, MessageParcel &reply);
+    int32_t TerminateMissionInner(MessageParcel &data, MessageParcel &reply);
 };
 }  // namespace AAFwk
 }  // namespace OHOS

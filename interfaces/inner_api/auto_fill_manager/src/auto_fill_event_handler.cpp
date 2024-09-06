@@ -17,7 +17,6 @@
 
 #include "auto_fill_manager.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -27,9 +26,9 @@ AutoFillEventHandler::AutoFillEventHandler(const std::shared_ptr<AppExecFwk::Eve
 
 void AutoFillEventHandler::ProcessEvent(const AppExecFwk::InnerEvent::Pointer &event)
 {
-    TAG_LOGD(AAFwkTag::AUTOFILLMGR, "Called.");
+    TAG_LOGD(AAFwkTag::AUTOFILLMGR, "called");
     if (event == nullptr) {
-        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "Event is nullptr.");
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "null Event");
         return;
     }
 #ifdef SUPPORT_GRAPHICS

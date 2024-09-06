@@ -16,8 +16,6 @@
 #include "want_sender_proxy.h"
 
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
-#include "ipc_types.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -39,17 +37,17 @@ void WantSenderProxy::Send(SenderInfo &senderInfo)
         return;
     }
     if (!data.WriteParcelable(&senderInfo)) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "fail to WriteParcelable value");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "WriteParcelable value empty");
         return;
     }
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "Remote() is NULL");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null remote");
         return;
     }
     int32_t ret = remote->SendRequest(static_cast<uint32_t>(IWantSender::WANT_SENDER_SEND), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::WANTAGENT, "error code: %{public}d", ret);
     }
 }
 }  // namespace AAFwk

@@ -2257,7 +2257,7 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_DoAbilityForeground_001, Tes
     sptr<IRemoteObject> token = nullptr;
     uint32_t flag = 0;
     auto res = stub_->DoAbilityForeground(token, flag);
-    EXPECT_EQ(res, 0);
+    EXPECT_EQ(res, NO_ERROR);
 }
 
 /*
@@ -2273,7 +2273,7 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_DoAbilityBackground_001, Tes
     sptr<IRemoteObject> token = nullptr;
     uint32_t flag = 0;
     auto res = stub_->DoAbilityBackground(token, flag);
-    EXPECT_EQ(res, 0);
+    EXPECT_EQ(res, NO_ERROR);
 }
 
 /*
@@ -2338,6 +2338,7 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_UnregisterObserver_001, Test
     EXPECT_EQ(res, NO_ERROR);
 }
 
+#ifdef WITH_DLP
 /*
  * Feature: AbilityManagerService
  * Function: GetDlpConnectionInfos
@@ -2352,6 +2353,7 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_GetDlpConnectionInfos_001, T
     auto res = stub_->GetDlpConnectionInfos(infos);
     EXPECT_EQ(res, NO_ERROR);
 }
+#endif // WITH_DLP
 
 /*
  * Feature: AbilityManagerService
@@ -2382,60 +2384,6 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_ForceTimeoutForTestInner_001
     MessageParcel data;
     MessageParcel reply;
     auto res = stub_->ForceTimeoutForTestInner(data, reply);
-    EXPECT_EQ(res, NO_ERROR);
-}
-#endif
-
-#ifdef ABILITY_COMMAND_FOR_TEST
-/*
- * Feature: AbilityManagerService
- * Function: BlockAbilityInner
- * SubFunction: NA
- * FunctionPoints: AbilityManagerService BlockAbilityInner
- * EnvConditions: NA
- * CaseDescription: Verify the function BlockAbilityInner is normal flow.
- */
-HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_BlockAbilityInner_001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    auto res = stub_->BlockAbilityInner(data, reply);
-    EXPECT_EQ(res, NO_ERROR);
-}
-#endif
-
-#ifdef ABILITY_COMMAND_FOR_TEST
-/*
- * Feature: AbilityManagerService
- * Function: BlockAmsServiceInner
- * SubFunction: NA
- * FunctionPoints: AbilityManagerService BlockAmsServiceInner
- * EnvConditions: NA
- * CaseDescription: Verify the function BlockAmsServiceInner is normal flow.
- */
-HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_BlockAmsServiceInner_001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    auto res = stub_->BlockAmsServiceInner(data, reply);
-    EXPECT_EQ(res, NO_ERROR);
-}
-#endif
-
-#ifdef ABILITY_COMMAND_FOR_TEST
-/*
- * Feature: AbilityManagerService
- * Function: BlockAppServiceInner
- * SubFunction: NA
- * FunctionPoints: AbilityManagerService BlockAppServiceInner
- * EnvConditions: NA
- * CaseDescription: Verify the function BlockAppServiceInner is normal flow.
- */
-HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_BlockAppServiceInner_001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    auto res = stub_->BlockAppServiceInner(data, reply);
     EXPECT_EQ(res, NO_ERROR);
 }
 #endif
@@ -2665,6 +2613,7 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_UnregisterConnectionObserver
     EXPECT_EQ(res, ERR_NULL_OBJECT);
 }
 
+#ifdef WITH_DLP
 /*
  * Feature: AbilityManagerService
  * Function: GetDlpConnectionInfosInner
@@ -2680,6 +2629,7 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_GetDlpConnectionInfosInner_0
     auto res = stub_->GetDlpConnectionInfosInner(data, reply);
     EXPECT_EQ(res, ERR_OK);
 }
+#endif // WITH_DLP
 
 /*
  * Feature: AbilityManagerService
@@ -2870,7 +2820,7 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_CallRequestDone_001, TestSiz
     sptr<IRemoteObject> token = nullptr;
     sptr<IRemoteObject> callStub = nullptr;
     stub_->CallRequestDone(token, callStub);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(stub_ != nullptr);
 }
 
 /*

@@ -16,8 +16,6 @@
 #include "exit_reason.h"
 
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
-#include "nlohmann/json.hpp"
 #include "parcel_macro_base.h"
 #include "string_ex.h"
 
@@ -43,11 +41,11 @@ ExitReason *ExitReason::Unmarshalling(Parcel &parcel)
 {
     ExitReason *data = new (std::nothrow) ExitReason();
     if (!data) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "data is nullptr.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null data");
         return nullptr;
     }
     if (!data->ReadFromParcel(parcel)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "read from parcel failed");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read failed");
         delete data;
         data = nullptr;
     }

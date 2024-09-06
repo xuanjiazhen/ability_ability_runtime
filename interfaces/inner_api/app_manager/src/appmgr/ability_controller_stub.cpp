@@ -16,47 +16,35 @@
 #include "ability_controller_stub.h"
 #include "appexecfwk_errors.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "ipc_types.h"
 #include "iremote_object.h"
 
 namespace OHOS {
 namespace AppExecFwk {
-AbilityControllerStub::AbilityControllerStub()
-{
-    memberFuncMap_[static_cast<uint32_t>(
-        IAbilityController::Message::TRANSACT_ON_ALLOW_ABILITY_START)] =
-        &AbilityControllerStub::HandleAllowAbilityStart;
-    memberFuncMap_[static_cast<uint32_t>(
-        IAbilityController::Message::TRANSACT_ON_ALLOW_ABILITY_BACKGROUND)] =
-        &AbilityControllerStub::HandleAllowAbilityBackground;
-}
+AbilityControllerStub::AbilityControllerStub() {}
 
-AbilityControllerStub::~AbilityControllerStub()
-{
-    memberFuncMap_.clear();
-}
+AbilityControllerStub::~AbilityControllerStub() {}
 
 int AbilityControllerStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "AbilityControllerStub::OnReceived, code = %{public}u, flags= %{public}d.", code,
+    TAG_LOGI(AAFwkTag::APPMGR, "OnReceived, code:%{public}u, flags:%{public}d", code,
         option.GetFlags());
     std::u16string descriptor = AbilityControllerStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (descriptor != remoteDescriptor) {
-        TAG_LOGE(AAFwkTag::APPMGR, "local descriptor is unequal to remote.");
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid descriptor");
         return ERR_INVALID_STATE;
     }
 
-    auto itFunc = memberFuncMap_.find(code);
-    if (itFunc != memberFuncMap_.end()) {
-        auto memberFunc = itFunc->second;
-        if (memberFunc != nullptr) {
-            return (this->*memberFunc)(data, reply);
-        }
+    switch (code) {
+        case static_cast<uint32_t>(IAbilityController::Message::TRANSACT_ON_ALLOW_ABILITY_START):
+            return HandleAllowAbilityStart(data, reply);
+        case static_cast<uint32_t>(IAbilityController::Message::TRANSACT_ON_ALLOW_ABILITY_BACKGROUND):
+            return HandleAllowAbilityBackground(data, reply);
     }
-    TAG_LOGI(AAFwkTag::APPMGR, "AbilityControllerStub::OnRemoteRequest finish");
+    
+    TAG_LOGI(AAFwkTag::APPMGR, "finish");
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
@@ -72,7 +60,7 @@ bool AbilityControllerStub::AllowAbilityBackground(const std::string &bundleName
 
 int32_t AbilityControllerStub::HandleAllowAbilityStart(MessageParcel &data, MessageParcel &reply)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "HandleAllowAbilityStart");
+    TAG_LOGI(AAFwkTag::APPMGR, "called");
     std::unique_ptr<Want> want(data.ReadParcelable<Want>());
     if (!want) {
         TAG_LOGE(AAFwkTag::APPMGR, "ReadParcelable<Want> failed");
@@ -86,7 +74,7 @@ int32_t AbilityControllerStub::HandleAllowAbilityStart(MessageParcel &data, Mess
 
 int32_t AbilityControllerStub::HandleAllowAbilityBackground(MessageParcel &data, MessageParcel &reply)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "HandleAllowAbilityBackground");
+    TAG_LOGI(AAFwkTag::APPMGR, "called");
     std::string pkg = data.ReadString();
     bool ret = AllowAbilityBackground(pkg);
     reply.WriteBool(ret);

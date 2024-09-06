@@ -29,7 +29,9 @@ const int32_t ABILITY_INFO_FLAG = 4;
 const int32_t DEFAULT_USERID = 100;
 const int32_t FIRST_APP_INDEX = 1000;
 const int32_t SECOND_APP_INDEX = 2000;
+#ifdef WITH_DLP
 const int32_t ERR_COD1 = 8519801;
+#endif // WITH_DLP
 const int32_t ERR_COD3 = 8519802;
 const int32_t ERR_COD4 = 8519921;
 const int32_t ERR_COD5 = 8519816;
@@ -263,20 +265,6 @@ HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_QueryDataGroupInfos_001, TestS
     std::vector<DataGroupInfo> infos;
     auto ret = bundleMgrHelper->QueryDataGroupInfos(bundleName, userId, infos);
     EXPECT_EQ(ret, false);
-}
-
-/**
- * @tc.name: BundleMgrHelperTest_GetBundleGidsByUid_001
- * @tc.desc: GetBundleGidsByUid
- * @tc.type: FUNC
- */
-HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_GetBundleGidsByUid_001, TestSize.Level1)
-{
-    std::string bundleName;
-    int32_t uid = DEFAULT_USERID;
-    std::vector<int> gids;
-    auto ret = bundleMgrHelper->GetBundleGidsByUid(bundleName, uid, gids);
-    EXPECT_EQ(ret, true);
 }
 
 /**
@@ -521,6 +509,7 @@ HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_GetDefaultAppProxy_001, TestSi
     EXPECT_NE(ret, nullptr);
 }
 
+#ifdef WITH_DLP
 /**
  * @tc.name: BundleMgrHelperTest_InstallSandboxApp_001
  * @tc.desc: InstallSandboxApp
@@ -550,6 +539,7 @@ HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_InstallSandboxApp_002, TestSiz
     auto ret = bundleMgrHelper->InstallSandboxApp(bundleName, dlpType, userId, appIndex);
     EXPECT_EQ(ret, ERR_COD1);
 }
+#endif // WITH_DLP
 
 /**
  * @tc.name: BundleMgrHelperTest_UninstallSandboxApp_001
@@ -860,6 +850,19 @@ HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_GetLaunchWantForBundle_001, Te
     Want want;
     int32_t userId = DEFAULT_USERID;
     auto ret = bundleMgrHelper->GetLaunchWantForBundle(bundleName, want, userId);
+    EXPECT_NE(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: BundleMgrHelperTest_GetSignatureInfoByBundleName_001
+ * @tc.desc: GetSignatureInfoByBundleName
+ * @tc.type: FUNC
+ */
+HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_GetSignatureInfoByBundleName_001, TestSize.Level1)
+{
+    std::string bundleName;
+    SignatureInfo signatureInfo;
+    auto ret = bundleMgrHelper->GetSignatureInfoByBundleName(bundleName, signatureInfo);
     EXPECT_NE(ret, ERR_OK);
 }
 }  // namespace AppExecFwk

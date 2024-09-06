@@ -14,11 +14,9 @@
  */
 
 #include "extension_record.h"
+
 #include "ability_manager_service.h"
 #include "ability_util.h"
-#include "errors.h"
-#include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -46,17 +44,27 @@ void ExtensionRecord::SetRootCallerToken(sptr<IRemoteObject> &rootCallerToken)
     rootCallerToken_ = rootCallerToken;
 }
 
+sptr<IRemoteObject> ExtensionRecord::GetFocusedCallerToken() const
+{
+    return focusedCallerToken_;
+}
+
+void ExtensionRecord::SetFocusedCallerToken(sptr<IRemoteObject> &focusedCallerToken)
+{
+    focusedCallerToken_ = focusedCallerToken;
+}
+
 void ExtensionRecord::UnloadUIExtensionAbility()
 {
     auto ret = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->UnregisterApplicationStateObserver(
         preLoadUIExtStateObserver_);
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Unregister application state observer error.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "unRegisterObserver error");
     }
     auto result = DelayedSingleton<AAFwk::AbilityManagerService>::GetInstance()->UnloadUIExtensionAbility(
         abilityRecord_, hostBundleName_);
     if (result != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Unload UIExtension error.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "UIExtension unload error");
     }
 }
 

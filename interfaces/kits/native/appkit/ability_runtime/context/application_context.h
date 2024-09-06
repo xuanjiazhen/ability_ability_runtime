@@ -27,9 +27,11 @@
 namespace OHOS {
 namespace AAFwk {
 class Want;
+struct ExitReason;
 }
 namespace AbilityRuntime {
 using AppConfigUpdateCallback = std::function<void(const AppExecFwk::Configuration &config)>;
+using AppProcessExitCallback = std::function<void(const AAFwk::ExitReason &exitReason)>;
 class ApplicationContext : public Context {
 public:
     ApplicationContext() = default;
@@ -54,6 +56,13 @@ public:
     void DispatchOnAbilityForeground(const std::shared_ptr<NativeReference> &ability);
     void DispatchOnAbilityBackground(const std::shared_ptr<NativeReference> &ability);
     void DispatchOnAbilityContinue(const std::shared_ptr<NativeReference> &ability);
+    void DispatchOnAbilityWillContinue(const std::shared_ptr<NativeReference> &ability);
+    void DispatchOnWindowStageWillRestore(const std::shared_ptr<NativeReference> &ability,
+        const std::shared_ptr<NativeReference> &windowStage);
+    void DispatchOnWindowStageRestore(const std::shared_ptr<NativeReference> &ability,
+        const std::shared_ptr<NativeReference> &windowStage);
+    void DispatchOnAbilityWillSaveState(const std::shared_ptr<NativeReference> &ability);
+    void DispatchOnAbilitySaveState(const std::shared_ptr<NativeReference> &ability);
     void DispatchConfigurationUpdated(const AppExecFwk::Configuration &config);
     void DispatchMemoryLevel(const int level);
     void NotifyApplicationForeground();
@@ -102,12 +111,16 @@ public:
     void SetColorMode(int32_t colorMode);
     void SetLanguage(const std::string &language);
     void SetFont(const std::string &font);
+    void SetMcc(const std::string &mcc);
+    void SetMnc(const std::string &mnc);
     void ClearUpApplicationData();
     int GetArea() override;
     std::shared_ptr<AppExecFwk::Configuration> GetConfiguration() const override;
+    void SetConfiguration(const std::shared_ptr<AppExecFwk::Configuration> &config);
+    void AppHasDarkRes(bool &darkRes);
     std::string GetBaseDir() const override;
     Global::Resource::DeviceType GetDeviceType() const override;
-    void KillProcessBySelf(const bool clearPageStack = true);
+    void KillProcessBySelf(const bool clearPageStack = false);
     int32_t GetProcessRunningInformation(AppExecFwk::RunningProcessInfo &info);
     int32_t RestartApp(const AAFwk::Want& want);
 
@@ -124,6 +137,7 @@ public:
     void SetApplicationInfoUpdateFlag(bool flag);
     void RegisterAppConfigUpdateObserver(AppConfigUpdateCallback appConfigChangeCallback);
     void RegisterAppFontObserver(AppConfigUpdateCallback appFontCallback);
+    void RegisterProcessSecurityExit(AppProcessExitCallback appProcessExitCallback);
 
     std::string GetAppRunningUniqueId() const;
     void SetAppRunningUniqueId(const std::string &appRunningUniqueId);
@@ -132,6 +146,17 @@ public:
     void SetCurrentAppCloneIndex(int32_t appIndex);
     int32_t GetCurrentAppMode();
     void SetCurrentAppMode(int32_t appIndex);
+    void ProcessSecurityExit(const AAFwk::ExitReason &exitReason);
+
+    using SelfType = ApplicationContext;
+    static const size_t CONTEXT_TYPE_ID;
+
+protected:
+    bool IsContext(size_t contextTypeId) override
+    {
+        return contextTypeId == CONTEXT_TYPE_ID || Context::IsContext(contextTypeId);
+    }
+
 private:
     std::shared_ptr<ContextImpl> contextImpl_;
     static std::vector<std::shared_ptr<AbilityLifecycleCallback>> callbacks_;
@@ -143,6 +168,7 @@ private:
     bool applicationInfoUpdateFlag_ = false;
     AppConfigUpdateCallback appConfigChangeCallback_ = nullptr;
     AppConfigUpdateCallback appFontCallback_ = nullptr;
+    AppProcessExitCallback appProcessExitCallback_ = nullptr;
     std::string appRunningUniqueId_;
     int32_t appIndex_ = 0;
     int32_t appMode_ = 0;

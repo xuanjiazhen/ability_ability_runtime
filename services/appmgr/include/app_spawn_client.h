@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,6 +26,7 @@
 
 #include "appexecfwk_errors.h"
 #include "appspawn.h"
+#include "child_process_info.h"
 #include "data_group_info.h"
 #include "nocopyable.h"
 #include "shared/base_shared_bundle_info.h"
@@ -73,6 +74,9 @@ struct AppSpawnStartMsg {
     bool strictMode = false; // whether is strict mode
     std::string processType = "";
     int32_t maxChildProcess = 0;
+    int32_t childProcessType = CHILD_PROCESS_TYPE_NOT_CHILD;
+    std::map<std::string, int32_t> fds;
+    bool isolationMode = false;
 };
 
 constexpr auto LEN_PID = sizeof(pid_t);
@@ -91,6 +95,9 @@ struct StartFlags {
     static const int GWP_ENABLED_NORMAL = 11;
     static const int TSANENABLED = 12;
     static const int EXTENSION_CONTROLLED = 13;
+    static const int HWASANENABLED = 21;
+    static const int UBSANENABLED = 22;
+    static const int TEMP_JIT_ALLOW = 28;
 };
 
 union AppSpawnPidMsg {
@@ -220,6 +227,12 @@ private:
     std::string serviceName_ = APPSPAWN_SERVER_NAME;
     AppSpawnClientHandle handle_ = nullptr;
     SpawnConnectionState state_ = SpawnConnectionState::STATE_NOT_CONNECT;
+
+    int32_t SetChildProcessTypeStartFlag(const AppSpawnReqMsgHandle &reqHandle, int32_t childProcessType);
+
+    int32_t SetExtMsgFds(const AppSpawnReqMsgHandle &reqHandle, const std::map<std::string, int32_t> &fds);
+
+    int32_t SetIsolationModeFlag(const AppSpawnStartMsg &startMsg, const AppSpawnReqMsgHandle &reqHandle);
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
