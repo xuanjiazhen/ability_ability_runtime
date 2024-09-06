@@ -302,6 +302,13 @@ public:
      */
     int32_t ScheduleChangeAppGcState(int32_t state) override;
 
+    /**
+     * Request normal scheduling to exit the process.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t ScheduleRequestTerminateProcess() override;
+
     void AttachAppDebug() override;
     void DetachAppDebug() override;
     bool NotifyDeviceDisConnect();
@@ -615,6 +622,7 @@ private:
 
     int32_t ChangeAppGcState(int32_t state);
 
+    void RequestTerminateProcess();
     void HandleCacheProcess();
 
     bool IsBgWorkingThread(const AbilityInfo &info);
@@ -662,6 +670,7 @@ private:
     std::string pathSeparator_ = "/";
     std::string abilityLibraryType_ = ".so";
     static std::weak_ptr<OHOSApplication> applicationForDump_;
+    bool isKilling_ = false;
 
 #ifdef ABILITY_LIBRARY_LOADER
     /**
@@ -721,6 +730,7 @@ private:
         std::vector<std::pair<std::string, std::string>> &fileMap);
     void GetNativeLibPath(const BundleInfo &bundleInfo, const HspList &hspList, AppLibPathMap &appLibPaths);
     void SetAppDebug(uint32_t modeFlag, bool isDebug);
+    bool HandleTerminateAbilityByProcessInnerList();
 
     std::vector<std::string> fileEntries_;
     std::vector<std::string> nativeFileEntries_;
