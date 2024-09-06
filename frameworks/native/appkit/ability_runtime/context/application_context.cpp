@@ -802,6 +802,24 @@ std::string ApplicationContext::GetAppRunningUniqueId() const
     return appRunningUniqueId_;
 }
 
+void ApplicationContext::RequestTerminateProcess()
+{
+    if (contextImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Context is nullptr.");
+        return;
+    }
+    contextImpl_->RequestTerminateProcess();
+}
+
+void ApplicationContext::RequestTerminateApplication()
+{
+    if (contextImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Context is nullptr.");
+        return;
+    }
+    contextImpl_->RequestTerminateApplication();
+}
+
 int32_t ApplicationContext::GetCurrentAppCloneIndex()
 {
     TAG_LOGD(AAFwkTag::APPKIT, "getCurrentAppCloneIndex is %{public}d", appIndex_);
