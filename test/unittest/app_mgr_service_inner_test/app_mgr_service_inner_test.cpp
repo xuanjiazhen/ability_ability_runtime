@@ -875,19 +875,19 @@ HWTEST_F(AppMgrServiceInnerTest, KillApplicationByUserId_001, TestSize.Level0)
     EXPECT_NE(appMgrServiceInner, nullptr);
 
     std::string bundleName = "test_bundleName";
-    int result = appMgrServiceInner->KillApplicationByUserId(bundleName, 0, 0);
+    int result = appMgrServiceInner->KillApplicationByUserId(bundleName, 0);
     EXPECT_EQ(result, 0);
 
     appMgrServiceInner->remoteClientManager_->SetBundleManagerHelper(nullptr);
-    appMgrServiceInner->KillApplicationByUserId(bundleName, 0, 0);
+    appMgrServiceInner->KillApplicationByUserId(bundleName, 0);
     EXPECT_EQ(result, 0);
 
     appMgrServiceInner->remoteClientManager_ = nullptr;
-    appMgrServiceInner->KillApplicationByUserId(bundleName, 0, 0);
+    appMgrServiceInner->KillApplicationByUserId(bundleName, 0);
     EXPECT_EQ(result, 0);
 
     appMgrServiceInner->appRunningManager_ = nullptr;
-    appMgrServiceInner->KillApplicationByUserId(bundleName, 0, 0);
+    appMgrServiceInner->KillApplicationByUserId(bundleName, 0);
     EXPECT_EQ(result, 0);
 
     TAG_LOGI(AAFwkTag::TEST, "KillApplicationByUserId_001 end");
