@@ -29,20 +29,22 @@ ohos_unittest("app_exit_reason_helper_test") {
   include_dirs = [ "${ability_runtime_services_path}/abilitymgr/include" ]
 
   sources = [
-    "${ability_runtime_services_path}/abilitymgr/src/app_exit_reason_helper.cpp",
     "${ability_runtime_path}/frameworks/native/appkit/ability_bundle_manager_helper/bundle_mgr_helper.cpp",
-    "${ability_runtime_services_path}/abilitymgr/src/sub_managers_helper.cpp",
-    "${ability_runtime_services_path}/abilitymgr/src/scene_board/ui_ability_lifecycle_manager.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/app_exit_reason_helper.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/process_options.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/scene_board/ui_ability_lifecycle_manager.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/sub_managers_helper.cpp",
     "app_exit_reason_helper_test.cpp",
   ]
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
-    "${ability_runtime_services_path}/common:file_monitor",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
+    "${ability_runtime_path}/utils/global/freeze:freeze_util",
+    "${ability_runtime_path}/utils/server/startup:startup_util",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:file_monitor",
     "${ability_runtime_services_path}/common:perm_verification",
     "${ability_runtime_services_path}/common:task_handler_wrap",
     "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/aakit:aakit_mock",
@@ -50,14 +52,11 @@ ohos_unittest("app_exit_reason_helper_test") {
     "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/appexecfwk_core:appexecfwk_bundlemgr_mock",
     "${distributedschedule_path}/safwk/interfaces/innerkits/safwk:system_ability_fwk",
     "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
-    "${ability_runtime_path}/utils/global/freeze:freeze_util",
-    "${ability_runtime_path}/utils/server/startup:startup_util",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
-    "kv_store:distributeddata_inner",
     "ability_base:want",
     "ability_base:zuri",
     "ability_runtime:ability_deps_wrapper",
@@ -69,11 +68,12 @@ ohos_unittest("app_exit_reason_helper_test") {
     "common_event_service:cesfwk_innerkits",
     "ffrt:libffrt",
     "hilog:libhilog",
+    "hitrace:hitrace_meter",
     "init:libbeget_proxy",
     "ipc:ipc_core",
+    "kv_store:distributeddata_inner",
     "napi:ace_napi",
     "window_manager:libwsutils",
-    "hitrace:hitrace_meter",
     "window_manager:session_manager_lite",
   ]
   cflags_cc = []
