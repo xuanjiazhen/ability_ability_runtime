@@ -95,6 +95,13 @@ void UserController::StartUser(int32_t userId, sptr<IUserCallback> callback, boo
         return;
     }
 
+    auto appScheduler = DelayedSingleton<AppScheduler>::GetInstance();
+    if (!appScheduler) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null appScheduler");
+        return INVALID_USERID_VALUE;
+    }
+    appScheduler->SetEnableStartProcessFlagByUserId(userId, true);
+
     if (!IsExistOsAccount(userId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null StartUser account:%{public}d", userId);
         callback->OnStartUserDone(userId, INVALID_USERID_VALUE);
@@ -217,10 +224,11 @@ int32_t UserController::LogoutUser(int32_t userId)
         return INVALID_USERID_VALUE;
     }
     abilityManagerService->ClearUserData(userId);
-    appScheduler->KillProcessesByUserId(userId);
+    appScheduler->SetEnableStartProcessFlagByUserId(userId, false);
     if (IsCurrentUser(userId)) {
         SetCurrentUserId(0);
     }
+    appScheduler->KillProcessesByUserId(userId);
     ClearAbilityUserItems(userId);
     return 0;
 }

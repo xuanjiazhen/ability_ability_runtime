@@ -806,6 +806,14 @@ public:
      */
     void SetCurrentUserId(const int32_t userId);
 
+    /**
+     * Set enable start process flag by userId
+     * @param userId the user id.
+     * @param enableStartProcess enable start process.
+     * @return
+     */
+    void SetEnableStartProcessFlagByUserId(const int32_t userId, bool enableStartProcess);
+
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
     int32_t SetContinuousTaskProcess(int32_t pid, bool isContinuousTask);
 #endif
@@ -1392,6 +1400,8 @@ private:
     void AfterLoadAbility(std::shared_ptr<AppRunningRecord> appRecord, std::shared_ptr<AbilityInfo> abilityInfo,
         std::shared_ptr<AbilityRuntime::LoadParam> loadParam);
 
+    bool IsLogoutUser(const int32_t uid);
+
 private:
     /**
      * ClearUpApplicationData, clear the application data.
@@ -1578,6 +1588,8 @@ private:
     ffrt::mutex waitingDebugLock_;
     bool isInitAppWaitingDebugListExecuted_ = false;
     std::unordered_set<int32_t> renderUidSet_;
+    std::unordered_set<int32_t> logoutUserIdSet_;
+    ffrt::mutex logoutUserIdLock_;
     std::string supportIsolationMode_ {"false"};
     std::string supportServiceExtMultiProcess_ {"false"};
     int32_t currentUserId_ = 0;

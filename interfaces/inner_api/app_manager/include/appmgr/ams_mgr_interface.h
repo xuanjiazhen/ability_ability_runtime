@@ -226,6 +226,14 @@ public:
     virtual void SetCurrentUserId(const int32_t userId) = 0;
 
     /**
+     * Set enable start process flag by userId
+     * @param userId the user id.
+     * @param enableStartProcess enable start process.
+     * @return
+     */
+    virtual void SetEnableStartProcessFlagByUserId(const int32_t userId, bool enableStartProcess) = 0;
+
+    /**
      * Get bundleName by pid.
      *
      * @param pid process id.
@@ -407,6 +415,7 @@ public:
         KILL_APPLICATION_SELF,
         UPDATE_APPLICATION_INFO_INSTALLED,
         SET_CURRENT_USER_ID,
+        ENABLE_START_PROCESS_FLAG_BY_USER_ID,
         Get_BUNDLE_NAME_BY_PID,
         SET_ABILITY_FOREGROUNDING_FLAG,
         REGISTER_APP_DEBUG_LISTENER,
