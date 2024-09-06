@@ -35,7 +35,9 @@ public:
     static NativeRuntimeImpl& GetNativeRuntimeImpl();
     napi_status CreateJsEnv(const Options& options, std::shared_ptr<JsEnv::JsEnvironment>& jsEnv);
     napi_status RemoveJsEnv(napi_env env);
-    napi_status Init(const Options& options, napi_env env);
+    napi_status Init(const Options& options, napi_env env,
+        std::map<std::string, std::vector<std::vector<std::string>>> &pkgContextInfoMap,
+        std::map<std::string, std::string> &pkgAliasMap);
     
 private:
     NativeRuntimeImpl();

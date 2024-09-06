@@ -183,7 +183,12 @@ napi_status CreateNapiEnv(napi_env *env)
         TAG_LOGE(AAFwkTag::JSRUNTIME, "null env");
         return napi_status::napi_generic_failure;
     }
-    return NativeRuntimeImpl::GetNativeRuntimeImpl().Init(*options, *env);
+    std::map<std::string, std::vector<std::vector<std::string>>> pkgContextInfoMap;
+    std::map<std::string, std::string> pkgAliasMap;
+    if (!options->preload) {
+        JsRuntime::GetPkgContextInfoListMap(options->pkgContextInfoJsonStringMap, pkgContextInfoMap, pkgAliasMap);
+    }
+    return NativeRuntimeImpl::GetNativeRuntimeImpl().Init(*options, *env, pkgContextInfoMap, pkgAliasMap);
 }
 
 napi_status DestroyNapiEnv(napi_env *env)
@@ -794,7 +799,7 @@ bool JsRuntime::Initialize(const Options& options)
             std::map<std::string, std::string> pkgAliasMap;
             pkgContextInfoJsonStringMap_ = options.pkgContextInfoJsonStringMap;
             packageNameList_ = options.packageNameList;
-            GetPkgContextInfoListMap(options.pkgContextInfoJsonStringMap, pkgContextInfoMap, pkgAliasMap);
+            JsRuntime::GetPkgContextInfoListMap(options.pkgContextInfoJsonStringMap, pkgContextInfoMap, pkgAliasMap);
             panda::JSNApi::SetpkgContextInfoList(vm, pkgContextInfoMap);
             panda::JSNApi::SetPkgAliasList(vm, pkgAliasMap);
             panda::JSNApi::SetPkgNameList(vm, options.packageNameList);
@@ -1749,6 +1754,8 @@ void JsRuntime::SetChildOptions(const Options& options)
     childOptions_->packagePathStr = options.packagePathStr;
     childOptions_->assetBasePathStr = options.assetBasePathStr;
     childOptions_->jitEnabled = options.jitEnabled;
+    childOptions_->pkgContextInfoJsonStringMap = options.pkgContextInfoJsonStringMap;
+    childOptions_->packageNameList = options.packageNameList;
 }
 
 std::shared_ptr<Runtime::Options> JsRuntime::GetChildOptions()
@@ -1767,7 +1774,7 @@ void JsRuntime::UpdatePkgContextInfoJson(std::string moduleName, std::string hap
         auto vm = GetEcmaVm();
         std::map<std::string, std::vector<std::vector<std::string>>> pkgContextInfoMap;
         std::map<std::string, std::string> pkgAliasMap;
-        GetPkgContextInfoListMap(pkgContextInfoJsonStringMap_, pkgContextInfoMap, pkgAliasMap);
+        JsRuntime::GetPkgContextInfoListMap(pkgContextInfoJsonStringMap_, pkgContextInfoMap, pkgAliasMap);
         panda::JSNApi::SetpkgContextInfoList(vm, pkgContextInfoMap);
         panda::JSNApi::SetPkgAliasList(vm, pkgAliasMap);
         panda::JSNApi::SetPkgNameList(vm, packageNameList_);
