@@ -525,6 +525,7 @@ void OHOSApplication::OnConfigurationUpdated(Configuration config)
     if (!colorModeNeedRemoveIsSetBySa.empty() && !globalColorModeIsSetBySa.empty()) {
         configuration_->RemoveItem(AAFwk::GlobalConfigurationKey::COLORMODE_IS_SET_BY_SA);
         configuration_->RemoveItem(AAFwk::GlobalConfigurationKey::COLORMODE_NEED_REMOVE_SET_BY_SA);
+        configuration_->RemoveItem(AAFwk::GlobalConfigurationKey::SYSTEM_ABILITY_COLORMODE);
     }
 
     abilityRuntimeContext_->SetConfiguration(configuration_);
@@ -998,6 +999,10 @@ bool OHOSApplication::isUpdateColor(Configuration &config, std::string colorMode
     std::string globalColorModeIsSetBySa, std::string colorModeIsSetByApp, std::string colorModeIsSetBySa)
 {
     bool isUpdateColor = true;
+    // update color mode value set by sa
+    if (!colorModeIsSetBySa.empty() && colorModeIsSetByApp.empty()) {
+        config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_ABILITY_COLORMODE, colorMode);
+    }
     if (colorMode.compare(ConfigurationInner::COLOR_MODE_AUTO) == 0 && globalColorModeIsSetBySa.empty()) {
         TAG_LOGD(AAFwkTag::APPKIT, "colorMode is auto");
         constexpr int buffSize = 64;
@@ -1008,6 +1013,10 @@ bool OHOSApplication::isUpdateColor(Configuration &config, std::string colorMode
             return false;
         }
         config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE, valueGet);
+    } else if (colorMode.compare(ConfigurationInner::COLOR_MODE_AUTO) == 0 && !globalColorModeIsSetBySa.empty()) {
+        std::string saColor = configuration_->GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_ABILITY_COLORMODE);
+        config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE, saColor);
+        TAG_LOGD(AAFwkTag::APPKIT, "colormode is auto and follow color: %{public}s set by SA", saColor.c_str());
     }
     std::string globalColorModeIsSetByApp =
         configuration_->GetItem(AAFwk::GlobalConfigurationKey::COLORMODE_IS_SET_BY_APP);
