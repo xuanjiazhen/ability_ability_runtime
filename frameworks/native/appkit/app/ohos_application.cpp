@@ -855,6 +855,10 @@ void OHOSApplication::SetConfiguration(const Configuration &config)
     if (!configuration_) {
         configuration_ = std::make_shared<Configuration>(config);
     }
+
+    if (abilityRuntimeContext_ && configuration_) {
+        abilityRuntimeContext_->SetConfiguration(configuration_);
+    } 
 }
 
 void OHOSApplication::ScheduleAcceptWant(const AAFwk::Want &want, const std::string &moduleName, std::string &flag)
