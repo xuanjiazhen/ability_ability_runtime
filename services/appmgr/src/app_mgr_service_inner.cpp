@@ -5666,7 +5666,12 @@ int32_t AppMgrServiceInner::NotifyAppFaultBySA(const AppFaultDataBySA &faultData
         FaultData transformedFaultData = ConvertDataTypes(faultData);
         int32_t uid = record->GetUid();
         std::string bundleName = record->GetBundleName();
-
+        if (AppExecFwk::AppfreezeManager::GetInstance()->IsProcessDebug(pid, bundleName)) {
+            TAG_LOGW(AAFwkTag::APPMGR,
+                "don't reportEvent and kill:%{public}s, pid:%{public}d, bundleName:%{public}s",
+                faultData.errorObject.name.c_str(), pid, bundleName.c_str());
+            return ERR_OK;
+        }
         if (faultData.errorObject.name == "appRecovery") {
             AppRecoveryNotifyApp(pid, bundleName, faultData.faultType, "appRecovery");
             return ERR_OK;
