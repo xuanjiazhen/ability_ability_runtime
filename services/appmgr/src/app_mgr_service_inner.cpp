@@ -5914,12 +5914,12 @@ int32_t AppMgrServiceInner::StartNativeProcessForDebugger(const AAFwk::Want &wan
 
     bool isSandboxApp = want.GetBoolParam(ENTER_SANDBOX, false);
     auto&& pefCmd = want.GetStringParam(PERF_CMD);
+    if (!appInfo->debug) {
+        TAG_LOGE(AAFwkTag::APPMGR, "app don't debug mode");
+        return ERR_INVALID_OPERATION;
+    }
     std::string debugCmd = "";
     if (pefCmd.empty()) {
-        if (!appInfo->debug) {
-            TAG_LOGE(AAFwkTag::APPMGR, "app don't debug mode");
-            return ERR_INVALID_OPERATION;
-        }
         debugCmd = want.GetStringParam(DEBUG_CMD);
     }
     return StartPerfProcessByStartMsg(startMsg, pefCmd, debugCmd, isSandboxApp);
