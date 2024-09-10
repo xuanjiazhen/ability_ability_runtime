@@ -43,6 +43,37 @@ private:
     ~AbilityPermissionUtil() = default;
 
     DISALLOW_COPY_AND_MOVE(AbilityPermissionUtil);
+
+    /**
+     * Check if Caller is allowed to start PageAbility(FA) or Ability(Stage).
+     *
+     * @param abilityRequest, abilityRequest.
+     * @return Returns whether the caller is allowed to start Ability.
+     */
+    int CheckCallAbilityPermission(const AbilityRequest &abilityRequest, uint32_t specifyTokenId = 0,
+        bool isCallByShortcut = false);
+
+    /**
+     * Check if Caller is allowed to start Ability(Stage) by call.
+     *
+     * @param abilityRequest, abilityRequest.
+     * @return Returns whether the caller is allowed to start Ability by call.
+     */
+    int CheckStartByCallPermission(const AbilityRequest &abilityRequest);
+
+    /**
+     * Judge if Caller-Application is in background state.
+     *
+     * @param abilityRequest, abilityRequest.
+     * @param isBackgroundCall, Indicates the Caller-Application state.
+     *                          TRUE: The Caller-Application is not in focus and not in foreground state.
+     *                          FALSE: The Caller-Application is in focus or in foreground state.
+     * @return Returns ERR_OK on check success, others on check failure.
+     */
+    int IsCallFromBackground(const AbilityRequest &abilityRequest, bool &isBackgroundCall, bool isData = false);
+
+    int32_t SetBackgroundCall(const AppExecFwk::RunningProcessInfo &processInfo,
+        const AbilityRequest &abilityRequest, bool &isBackgroundCall) const;
 };
 } // namespace AAFwk
 } // namespace OHOS
