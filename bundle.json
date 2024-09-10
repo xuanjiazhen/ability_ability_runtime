@@ -68,20 +68,15 @@
             "hitrace",
             "hiview",
             "i18n",
-            "icu",
             "image_framework",
             "init",
             "input",
             "ipc",
-            "json",
-            "jsoncpp",
             "kv_store",
-            "libuv",
             "memmgr",
             "memory_utils",
             "napi",
             "netmanager_base",
-            "node",
             "os_account",
             "power_manager",
             "relational_store",
@@ -94,11 +89,16 @@
             "storage_service",
             "toolchain",
             "webview",
-            "window_manager",
-            "zlib"
+            "window_manager"
   ],
           "third_party": [
-            "libjpeg-turbo"
+            "icu",
+            "json",
+            "jsoncpp",
+            "libjpeg-turbo",
+            "libuv",
+            "node",
+            "zlib"
           ]
       },
       "build": {
