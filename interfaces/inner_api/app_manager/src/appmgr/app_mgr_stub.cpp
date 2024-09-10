@@ -37,6 +37,22 @@
 namespace OHOS {
 namespace AppExecFwk {
 constexpr int32_t CYCLE_LIMIT = 1000;
+namespace {
+#ifdef __aarch64__
+constexpr uint32_t OBJECT_MASK = 0xffffffff;
+#else
+constexpr uint32_t OBJECT_MASK = 0xffffff;
+#endif
+
+uint32_t ConvertAddr(const void *ptr)
+{
+    if (ptr == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "ptr is null");
+        return 0;
+    }
+    return static_cast<uint32_t>((reinterpret_cast<uintptr_t>(ptr)) & OBJECT_MASK);
+}
+}
 
 AppMgrStub::AppMgrStub() {}
 
@@ -313,6 +329,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerSeventh(uint32_t code, MessageParcel &da
             return HandleNotifyMemorySizeStateChanged(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::SET_SUPPORTED_PROCESS_CACHE_SELF):
             return HandleSetSupportedProcessCacheSelf(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::SET_SUPPORTED_PROCESS_CACHE):
+            return HandleSetSupportedProcessCache(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::APP_GET_RUNNING_PROCESSES_BY_BUNDLE_TYPE):
             return HandleGetRunningProcessesByBundleType(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::SET_APP_ASSERT_PAUSE_STATE_SELF):
@@ -331,6 +349,10 @@ int32_t AppMgrStub::OnRemoteRequestInnerSeventh(uint32_t code, MessageParcel &da
             return HandleKillProcessDependedOnWeb(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::RESTART_RESIDENT_PROCESS_DEPENDED_ON_WEB):
             return HandleRestartResidentProcessDependedOnWeb(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::GET_SUPPORTED_PROCESS_CACHE_PIDS):
+            return HandleGetSupportedProcessCachePids(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::GET_ALL_CHILDREN_PROCESSES):
+            return HandleGetAllChildrenProcesses(data, reply);
     }
     return INVALID_FD;
 }
@@ -341,6 +363,12 @@ int32_t AppMgrStub::HandleAttachApplication(MessageParcel &data, MessageParcel &
     sptr<IRemoteObject> client = data.ReadRemoteObject();
     if (client == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "remote object null");
+    }
+    TAG_LOGI(AAFwkTag::APPMGR, "remote: %{public}u", ConvertAddr(client.GetRefPtr()));
+    IPCObjectProxy *proxy = reinterpret_cast<IPCObjectProxy *>(client.GetRefPtr());
+    if (proxy != nullptr) {
+        int32_t pid = static_cast<int32_t>(IPCSkeleton::GetCallingPid());
+        TAG_LOGI(AAFwkTag::APPMGR, "handle:%{public}u, callingPid:%{public}d", proxy->GetHandle(), pid);
     }
     AttachApplication(client);
     return NO_ERROR;
@@ -510,6 +538,25 @@ int32_t AppMgrStub::HandleGetAllRenderProcesses(MessageParcel &data, MessageParc
         }
     }
     if (!reply.WriteInt32(result)) {
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleGetAllChildrenProcesses(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    std::vector<ChildProcessInfo> info;
+    auto result = GetAllChildrenProcesses(info);
+    reply.WriteInt32(info.size());
+    for (auto &it : info) {
+        if (!reply.WriteParcelable(&it)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Write ChildProcessInfo faild, child pid=%{public}d", it.pid);
+            return ERR_INVALID_VALUE;
+        }
+    }
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write result faild");
         return ERR_INVALID_VALUE;
     }
     return NO_ERROR;
@@ -882,7 +929,8 @@ int32_t AppMgrStub::HandleUpdateConfiguration(MessageParcel &data, MessageParcel
         TAG_LOGE(AAFwkTag::APPMGR, "AppMgrStub read configuration error");
         return ERR_INVALID_VALUE;
     }
-    int32_t ret = UpdateConfiguration(*config);
+    int32_t userId = data.ReadInt32();
+    int32_t ret = UpdateConfiguration(*config, userId);
     if (!reply.WriteInt32(ret)) {
         return ERR_INVALID_VALUE;
     }
@@ -1062,7 +1110,7 @@ int32_t AppMgrStub::HandleGetRunningProcessInfoByPid(MessageParcel &data, Messag
     auto pid = static_cast<pid_t>(data.ReadInt32());
     auto result = GetRunningProcessInfoByPid(pid, processInfo);
     if (reply.WriteParcelable(&processInfo)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "process info write failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "failed");
         return ERR_INVALID_VALUE;
     }
     if (!reply.WriteInt32(result)) {
@@ -1491,6 +1539,19 @@ int32_t AppMgrStub::HandleSetSupportedProcessCacheSelf(MessageParcel &data, Mess
     return NO_ERROR;
 }
 
+int32_t AppMgrStub::HandleSetSupportedProcessCache(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    bool isSupport = data.ReadBool();
+    int32_t pid = data.ReadInt32();
+    auto ret = SetSupportedProcessCache(pid, isSupport);
+    if (!reply.WriteInt32(ret)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write ret error.");
+        return IPC_STUB_ERR;
+    }
+    return NO_ERROR;
+}
+
 int32_t AppMgrStub::HandleSetAppAssertionPauseState(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
@@ -1554,6 +1615,31 @@ int32_t AppMgrStub::HandleRestartResidentProcessDependedOnWeb(MessageParcel &dat
 {
     TAG_LOGD(AAFwkTag::APPMGR, "call");
     RestartResidentProcessDependedOnWeb();
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleGetSupportedProcessCachePids(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    std::string bundleName = data.ReadString();
+    std::vector<int32_t> pidList;
+    auto result = GetSupportedProcessCachePids(bundleName, pidList);
+    reply.WriteInt32(pidList.size());
+    for (auto it : pidList) {
+        if (!reply.WriteInt32(it)) {
+            return ERR_INVALID_VALUE;
+        }
+    }
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "fail to write result.");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::GetSupportedProcessCachePids(const std::string &bundleName,
+    std::vector<int32_t> &pidList)
+{
     return NO_ERROR;
 }
 }  // namespace AppExecFwk

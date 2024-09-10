@@ -256,7 +256,11 @@ void JsUIAbility::SetAbilityContext(std::shared_ptr<AbilityInfo> abilityInfo,
             TAG_LOGD(AAFwkTag::UIABILITY, "finalizer for weak_ptr ability context is called");
             delete static_cast<std::weak_ptr<AbilityRuntime::AbilityContext> *>(data);
         }, nullptr, nullptr);
+<<<<<<< HEAD
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
+=======
+    TAG_LOGI(AAFwkTag::UIABILITY, "End");
+>>>>>>> upstream/master
 }
 
 void JsUIAbility::CreateJSContext(napi_env env, napi_value &contextObj, int32_t screenMode)
@@ -775,6 +779,17 @@ void JsUIAbility::AbilityContinuationOrRecover(const Want &want)
         }
         OnSceneRestored();
     } else {
+<<<<<<< HEAD
+=======
+        if (ShouldDefaultRecoverState(want) && abilityRecovery_ != nullptr && scene_ != nullptr) {
+            TAG_LOGD(AAFwkTag::UIABILITY, "need restore");
+            std::string pageStack = abilityRecovery_->GetSavedPageStack(AppExecFwk::StateReason::DEVELOPER_REQUEST);
+            auto mainWindow = scene_->GetMainWindow();
+            if (!pageStack.empty() && mainWindow != nullptr) {
+                mainWindow->SetRestoredRouterStack(pageStack);
+            }
+        }
+>>>>>>> upstream/master
         OnSceneCreated();
     }
 }

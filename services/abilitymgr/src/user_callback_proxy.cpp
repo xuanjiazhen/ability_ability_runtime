@@ -16,8 +16,6 @@
 #include "user_callback_proxy.h"
 
 #include "hilog_tag_wrapper.h"
-#include "ipc_types.h"
-#include "message_parcel.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -40,23 +38,23 @@ void UserCallbackProxy::SendRequestCommon(int userId, int errcode, IUserCallback
     TAG_LOGI(AAFwkTag::ABILITYMGR,
         "UserCallbackProxy, sendrequest, cmd:%{public}d, userId:%{public}d, errcode:%{public}d", cmd, userId, errcode);
     if (!data.WriteInterfaceToken(IUserCallback::GetDescriptor())) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Write interface token failed.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write interface token failed");
         return;
     }
 
     if (!data.WriteInt32(userId)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Write userId error.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write userId error");
         return;
     }
 
     if (!data.WriteInt32(errcode)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Write errcode error.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write errcode error");
         return;
     }
 
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "remote object is nullptr.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null remote object");
         return;
     }
 

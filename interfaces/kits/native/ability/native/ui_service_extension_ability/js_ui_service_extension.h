@@ -37,6 +37,19 @@ class Runtime;
 class UIServiceExtensionContext;
 class JsUIServiceExtension;
 
+<<<<<<< HEAD
+=======
+class UIServiceStubImpl : public AAFwk::UIServiceStub {
+public:
+    explicit UIServiceStubImpl(std::weak_ptr<JsUIServiceExtension>& ext);
+    virtual ~UIServiceStubImpl();
+    virtual int32_t SendData(sptr<IRemoteObject> hostProxy, OHOS::AAFwk::WantParams &data) override;
+
+protected:
+    std::weak_ptr<JsUIServiceExtension> extension_;
+};
+
+>>>>>>> upstream/master
 /**
  * @brief Basic service components.
  */
@@ -138,8 +151,23 @@ protected:
     bool showOnLockScreen_ = false;
 
 private:
+<<<<<<< HEAD
     napi_value CallObjectMethod(const char* name, napi_value const *argv = nullptr, size_t argc = 0);
 
+=======
+    bool CreateWindowIfNeeded();
+
+    void AbilityWindowConfigTransition(sptr<Rosen::WindowOption>& option, uint32_t windowId);
+
+    napi_value CallObjectMethod(const char* name, napi_value const *argv = nullptr, size_t argc = 0);
+
+    napi_value WrapWant(napi_env env, const AAFwk::Want &want);
+
+    void HandleSendData(sptr<IRemoteObject> hostProxy, const OHOS::AAFwk::WantParams &data);
+
+    sptr<IRemoteObject> GetHostProxyFromWant(const AAFwk::Want &want);
+
+>>>>>>> upstream/master
     void BindContext(napi_env env, napi_value obj);
 
     void GetSrcPath(std::string& srcPath);
@@ -151,7 +179,14 @@ private:
     std::shared_ptr<AbilityContext> aContext_ = nullptr;
     std::shared_ptr<NativeReference> shellContextRef_ = nullptr;
     std::shared_ptr<AbilityHandler> handler_ = nullptr;
+<<<<<<< HEAD
 
+=======
+    int32_t hostWindowIdInStart_ = 0;
+    sptr<UIServiceStubImpl> extensionStub_;
+    std::map<sptr<IRemoteObject>, std::unique_ptr<NativeReference>> hostProxyMap_;
+    bool firstRequest_ = true;
+>>>>>>> upstream/master
 #ifdef SUPPORT_GRAPHICS
 protected:
     class JsUIServiceExtensionDisplayListener : public Rosen::DisplayManager::IDisplayListener {

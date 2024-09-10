@@ -316,7 +316,11 @@ private:
         int32_t errCode = 0;
         std::string bundleName;
 
+<<<<<<< HEAD
         // only support 1 or 2 or 3 params
+=======
+        // only support 1 or 2 params
+>>>>>>> upstream/master
         if (argc != ARGC_ONE && argc != ARGC_TWO) {
             TAG_LOGE(AAFwkTag::APPMGR, "invalid argc");
             errCode = ERR_NOT_OK;
@@ -406,7 +410,12 @@ private:
         int32_t errCode = 0;
         int32_t accountId = -1;
         std::string bundleName;
+<<<<<<< HEAD
         // only support 2 or 3 or 4 params
+=======
+
+        // only support 2 or 3 params
+>>>>>>> upstream/master
         if (argc != ARGC_TWO && argc != ARGC_THREE) {
             TAG_LOGE(AAFwkTag::APPMGR, "invalid argc");
             errCode = ERR_NOT_OK;

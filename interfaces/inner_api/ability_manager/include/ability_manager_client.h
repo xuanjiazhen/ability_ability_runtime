@@ -350,7 +350,7 @@ public:
      * @param isColdStart the session info of the ability is or not cold start.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart);
+    ErrCode StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag = 0);
 
     /**
      * Stop extension ability with want, send want to ability manager service.
@@ -470,7 +470,7 @@ public:
      * @param fromUser, Whether form user.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode MinimizeUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool fromUser = false);
+    ErrCode MinimizeUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool fromUser = false, uint32_t sceneFlag = 0);
 
     /**
      * ConnectAbility, connect session with service ability.
@@ -490,6 +490,20 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode ConnectAbility(
+        const Want &want,
+        sptr<IAbilityConnection> connect,
+        sptr<IRemoteObject> callerToken,
+        int32_t userId = DEFAULT_INVAL_VALUE);
+
+    /**
+     * ConnectUIServiceExtesnionAbility, connect session with uiService ability.
+     *
+     * @param want, Special want for uiService type's ability.
+     * @param connect, Callback used to notify caller the result of connecting or disconnecting.
+     * @param callerToken, caller ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode ConnectUIServiceExtesnionAbility(
         const Want &want,
         sptr<IAbilityConnection> connect,
         sptr<IRemoteObject> callerToken,
@@ -591,7 +605,11 @@ public:
      * @param bundleName.
      * @return Returns ERR_OK on success, others on failure.
      */
+<<<<<<< HEAD
     ErrCode KillProcess(const std::string &bundleName);
+=======
+    ErrCode KillProcess(const std::string &bundleName, const bool clearPageStack = false);
+>>>>>>> upstream/master
 
     #ifdef ABILITY_COMMAND_FOR_TEST
     /**

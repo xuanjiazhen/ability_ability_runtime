@@ -737,11 +737,14 @@ HWTEST_F(UIAbilityBaseTest, UIAbilityContinuation_0200, TestSize.Level1)
     ret = ability->ShouldRecoverState(want);
     EXPECT_EQ(ret, false);
 
+<<<<<<< HEAD
     ability->EnableAbilityRecovery(nullptr);
     ret = ability->ShouldRecoverState(want);
     EXPECT_EQ(ret, false);
     ability->EnableAbilityRecovery(abilityRecovery);
 
+=======
+>>>>>>> upstream/master
     auto abilityContext = std::make_shared<AbilityRuntime::AbilityContextImpl>();
     ability->AttachAbilityContext(abilityContext);
 

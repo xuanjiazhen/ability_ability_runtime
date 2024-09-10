@@ -15,6 +15,8 @@
 
 #include "application_context_manager.h"
 
+#include "hilog_tag_wrapper.h"
+
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
@@ -52,7 +54,14 @@ void ApplicationContextManager::AddGlobalObject(napi_env env,
     if (envData == nullptr) {
         return;
     }
+<<<<<<< HEAD
     napi_add_env_cleanup_hook(env, HandleClean, static_cast<void*>(envData));
+=======
+    auto ret = napi_add_env_cleanup_hook(env, HandleClean, static_cast<void*>(envData));
+    if (ret != napi_status::napi_ok) {
+        TAG_LOGE(AAFwkTag::APPKIT, "add hook err");
+    }
+>>>>>>> upstream/master
     std::lock_guard<std::mutex> lock(applicationContextMutex_);
     auto iter = applicationContextMap_.find(env);
     if (iter == applicationContextMap_.end()) {

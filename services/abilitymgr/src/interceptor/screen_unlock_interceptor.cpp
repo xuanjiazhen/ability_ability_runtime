@@ -15,14 +15,11 @@
 
 #include "interceptor/screen_unlock_interceptor.h"
 
-#include "ability_info.h"
 #include "ability_util.h"
-#include "hilog_tag_wrapper.h"
 #include "parameters.h"
 #include "start_ability_utils.h"
 #ifdef SUPPORT_SCREEN
 #include "screenlock_manager.h"
-#include "screenlock_common.h"
 #endif
 
 namespace OHOS {
@@ -58,17 +55,15 @@ ErrCode ScreenUnlockInterceptor::DoProcess(AbilityInterceptorParam param)
         }
     }
 
-    // temp add isSystemApp pass, remove after systemapp adjust
-    if (targetAbilityInfo.applicationInfo.isSystemApp ||
-        targetAbilityInfo.applicationInfo.allowAppRunWhenDeviceFirstLocked) {
+    if (targetAbilityInfo.applicationInfo.allowAppRunWhenDeviceFirstLocked) {
         return ERR_OK;
     }
 #ifdef SUPPORT_SCREEN
-    if (OHOS::ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
+    if (!OHOS::ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
         return ERR_OK;
     }
 #endif
-    TAG_LOGE(AAFwkTag::ABILITYMGR, "Can not startup when device first locked.");
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "no startup when device first locked");
     return ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK;
 }
 } // namespace AAFwk

@@ -50,9 +50,9 @@ public:
      * @param appInfo, the app information.
      * @param want, the starting information.
      */
-    virtual void LoadAbility(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &preToken,
-        const std::shared_ptr<AbilityInfo> &abilityInfo, const std::shared_ptr<ApplicationInfo> &appInfo,
-        const std::shared_ptr<AAFwk::Want> &want, int32_t abilityRecordId) override;
+    virtual void LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInfo,
+        const std::shared_ptr<ApplicationInfo> &appInfo,
+        const std::shared_ptr<AAFwk::Want> &want, std::shared_ptr<AbilityRuntime::LoadParam> loadParam) override;
 
     /**
      * TerminateAbility, call TerminateAbility() through the proxy object, terminate the token ability.
@@ -90,19 +90,6 @@ public:
     virtual void RegisterAppStateCallback(const sptr<IAppStateCallback> &callback) override;
 
     /**
-     * AbilityBehaviorAnalysis, ability behavior analysis assistant process optimization.
-     *
-     * @param token, the unique identification to start the ability.
-     * @param preToken, the unique identification to call the ability.
-     * @param visibility, the visibility information about windows info.
-     * @param perceptibility, the Perceptibility information about windows info.
-     * @param connectionState, the service ability connection state.
-     * @return
-     */
-    virtual void AbilityBehaviorAnalysis(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &preToken,
-        const int32_t visibility, const int32_t perceptibility, const int32_t connectionState) override;
-
-    /**
      * KillProcessByAbilityToken, call KillProcessByAbilityToken() through proxy object,
      * kill the process by ability token.
      *
@@ -133,7 +120,11 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int32_t KillProcessWithAccount(
+<<<<<<< HEAD
         const std::string &bundleName, const int accountId) override;
+=======
+        const std::string &bundleName, const int accountId, const bool clearPageStack = false) override;
+>>>>>>> upstream/master
 
     /**
      * UpdateApplicationInfoInstalled, call UpdateApplicationInfoInstalled() through proxy object,
@@ -151,7 +142,11 @@ public:
      * @param  bundleName, bundle name in Application record.
      * @return ERR_OK, return back success, others fail.
      */
+<<<<<<< HEAD
     virtual int32_t KillApplication(const std::string &bundleName) override;
+=======
+    virtual int32_t KillApplication(const std::string &bundleName,  const bool clearPageStack = false) override;
+>>>>>>> upstream/master
 
     /**
      * ForceKillApplication, force kill the application.
@@ -181,7 +176,11 @@ public:
      */
     virtual int KillApplicationByUid(const std::string &bundleName, const int uid) override;
 
+<<<<<<< HEAD
     virtual int KillApplicationSelf() override;
+=======
+    virtual int KillApplicationSelf(const bool clearPageStack = false) override;
+>>>>>>> upstream/master
 
     int GetApplicationInfoByProcessID(const int pid, AppExecFwk::ApplicationInfo &application, bool &debug) override;
 
@@ -211,6 +210,8 @@ public:
         int32_t requestId = 0) override;
 
     virtual void SetCurrentUserId(const int32_t userId) override;
+
+    virtual void SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess) override;
 
     virtual int32_t GetBundleNameByPid(const int pid, std::string &bundleName, int32_t &uid) override;
 
@@ -338,6 +339,10 @@ public:
      * @return Returns true is only UIAbility, otherwise return false
      */
     virtual bool IsProcessContainsOnlyUIAbility(const pid_t pid) override;
+
+    virtual bool IsProcessAttached(sptr<IRemoteObject> token) override;
+
+    virtual bool IsAppKilling(sptr<IRemoteObject> token) override;
 
 private:
     /**

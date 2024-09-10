@@ -14,10 +14,9 @@
  */
 
 #include "extension_record_factory.h"
+
 #include "ability_util.h"
 #include "app_utils.h"
-#include "extension_record_manager.h"
-#include "hilog_tag_wrapper.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -27,6 +26,9 @@ const std::map<AppExecFwk::ExtensionAbilityType, ExtensionRecordConfig> EXTENSIO
     { AppExecFwk::ExtensionAbilityType::EMBEDDED_UI,
       { PROCESS_MODE_BUNDLE, PROCESS_MODE_SUPPORT_DEFAULT | PROCESS_MODE_HOST_SPECIFIED | PROCESS_MODE_HOST_INSTANCE,
         PRE_CHECK_FLAG_CALLED_WITHIN_THE_BUNDLE | PRE_CHECK_FLAG_MULTIPLE_PROCESSES }},
+    { AppExecFwk::ExtensionAbilityType::STATUS_BAR_VIEW,
+      { PROCESS_MODE_BUNDLE, PROCESS_MODE_SUPPORT_DEFAULT | PROCESS_MODE_RUN_WITH_MAIN_PROCESS,
+        PRE_CHECK_FLAG_NONE }},
 };
 
 uint32_t GetPreCheckFlag(ExtensionAbilityType type)
@@ -56,7 +58,7 @@ int32_t ExtensionRecordFactory::PreCheck(const AAFwk::AbilityRequest &abilityReq
     }
     if (preCheckFlag & PRE_CHECK_FLAG_CALLED_WITHIN_THE_BUNDLE) {
         if (hostBundleName != abilityRequest.abilityInfo.applicationName) {
-            TAG_LOGW(AAFwkTag::ABILITYMGR, "not called within bundle.");
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "not called");
             return ERR_INVALID_VALUE;
         }
 
@@ -67,14 +69,18 @@ int32_t ExtensionRecordFactory::PreCheck(const AAFwk::AbilityRequest &abilityReq
             CHECK_POINTER_AND_RETURN(callerAbilityRecord, ERR_INVALID_VALUE);
             AppExecFwk::AbilityInfo abilityInfo = callerAbilityRecord->GetAbilityInfo();
             if (abilityInfo.type != AbilityType::PAGE) {
+<<<<<<< HEAD
                 TAG_LOGW(AAFwkTag::ABILITYMGR, "caller ability is not UIAbility.");
+=======
+                TAG_LOGW(AAFwkTag::ABILITYMGR, "not UIAbility");
+>>>>>>> upstream/master
                 return ERR_INVALID_VALUE;
             }
         }
     }
     if (preCheckFlag & PRE_CHECK_FLAG_MULTIPLE_PROCESSES) {
         if (!AppUtils::GetInstance().IsMultiProcessModel()) {
-            TAG_LOGW(AAFwkTag::ABILITYMGR, "not multi process model.");
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "not multi process model");
             return ERR_INVALID_VALUE;
         }
     }
@@ -123,7 +129,7 @@ int32_t ExtensionRecordFactory::CreateRecord(
 {
     auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
     if (abilityRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to create ability record");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityRecord create failed");
         return ERR_NULL_OBJECT;
     }
     extensionRecord = std::make_shared<ExtensionRecord>(abilityRecord);

@@ -22,20 +22,18 @@
 #include "extension_context.h"
 #include "free_install_observer_interface.h"
 #include "start_options.h"
+#include "ui_holder_extension_context.h"
 #include "want.h"
 #include "window.h"
 
 namespace OHOS {
-namespace Ace {
-class UIContent;
-}
 namespace AbilityRuntime {
 using RuntimeTask = std::function<void(int, const AAFwk::Want &, bool)>;
 /**
  * @brief context supply for UIExtension
  *
  */
-class UIExtensionContext : public ExtensionContext {
+class UIExtensionContext : public UIHolderExtensionContext {
 public:
     UIExtensionContext() = default;
     virtual ~UIExtensionContext() = default;
@@ -70,6 +68,9 @@ public:
      * @return Returns zero on success, others on failure.
      */
     virtual ErrCode ConnectAbility(
+        const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback) const;
+
+    virtual ErrCode ConnectUIServiceExtensionAbility(
         const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback) const;
 
     /**
@@ -142,7 +143,12 @@ public:
 
     sptr<Rosen::Window> GetWindow();
 
+<<<<<<< HEAD
     Ace::UIContent* GetUIContent();
+=======
+    Ace::UIContent* GetUIContent() override;
+#endif // SUPPORT_SCREEN
+>>>>>>> upstream/master
 
     ErrCode OpenLink(const AAFwk::Want& want, int reuqestCode);
 
@@ -161,15 +167,23 @@ public:
 protected:
     bool IsContext(size_t contextTypeId) override
     {
-        return contextTypeId == CONTEXT_TYPE_ID || ExtensionContext::IsContext(contextTypeId);
+        return contextTypeId == CONTEXT_TYPE_ID || UIHolderExtensionContext::IsContext(contextTypeId);
     }
 
+<<<<<<< HEAD
+=======
+    sptr<Rosen::Window> window_ = nullptr;
+#endif // SUPPORT_SCREEN
+>>>>>>> upstream/master
 private:
     static int ILLEGAL_REQUEST_CODE;
     std::map<int, RuntimeTask> resultCallbacks_;
     static int32_t curRequestCode_;
     static std::mutex requestCodeMutex_;
+<<<<<<< HEAD
     sptr<Rosen::Window> window_ = nullptr;
+=======
+>>>>>>> upstream/master
     std::mutex mutexlock_;
     /**
      * @brief Get Current Ability Type

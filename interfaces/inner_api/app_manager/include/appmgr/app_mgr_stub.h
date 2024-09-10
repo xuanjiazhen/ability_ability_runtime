@@ -55,6 +55,15 @@ public:
      */
     virtual int32_t GetForegroundApplications(std::vector<AppStateData> &list) override;
 
+    /**
+     * Get pids of processes which belong to specific bundle name and support process cache feature.
+     * @param bundleName bundle name.
+     * @param pidList pid list of processes that support process cache..
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetSupportedProcessCachePids(const std::string &bundleName,
+        std::vector<int32_t> &pidList) override;
+
 private:
     int32_t HandleAttachApplication(MessageParcel &data, MessageParcel &reply);
     int32_t HandlePreloadApplication(MessageParcel &data, MessageParcel &reply);
@@ -69,6 +78,7 @@ private:
     int32_t HandleGetProcessRunningInfosByUserId(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetProcessRunningInformation(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetAllRenderProcesses(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleGetAllChildrenProcesses(MessageParcel &data, MessageParcel &reply);
     int32_t HandleAddAbilityStageDone(MessageParcel &data, MessageParcel &reply);
     int32_t HandleNotifyMemoryLevel(MessageParcel &data, MessageParcel &reply);
     int32_t HandleNotifyProcMemoryLevel(MessageParcel &data, MessageParcel &reply);
@@ -137,6 +147,7 @@ private:
     int32_t HandleNotifyMemorySizeStateChanged(MessageParcel &data, MessageParcel &reply);
     int32_t HandleSetAppAssertionPauseState(MessageParcel &data, MessageParcel& reply);
     int32_t HandleSetSupportedProcessCacheSelf(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleSetSupportedProcessCache(MessageParcel &data, MessageParcel &reply);
     int32_t HandleSaveBrowserChannel(MessageParcel &data, MessageParcel &reply);
     int32_t HandleCheckCallingIsUserTestMode(MessageParcel &data, MessageParcel &reply);
     int32_t HandleStartNativeChildProcess(MessageParcel &data, MessageParcel& reply);
@@ -158,6 +169,7 @@ private:
         MessageParcel &reply, MessageOption &option);
     int32_t OnRemoteRequestInnerSeventh(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);
+    int32_t HandleGetSupportedProcessCachePids(MessageParcel &data, MessageParcel &reply);
     DISALLOW_COPY_AND_MOVE(AppMgrStub);
 };
 }  // namespace AppExecFwk

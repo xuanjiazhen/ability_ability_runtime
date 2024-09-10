@@ -31,7 +31,6 @@ const std::string DLP_PARAMS_SECURITY_FLAG = "ohos.dlp.params.securityFlag";
 namespace {
 const int32_t SHELL_START_EXTENSION_FLOOR = 0; // FORM
 const int32_t SHELL_START_EXTENSION_CEIL = 21; // EMBEDDED_UI
-const int32_t BROKER_UID = 5557;
 const std::string FOUNDATION_PROCESS_NAME = "foundation";
 const std::set<std::string> OBSERVER_NATIVE_CALLER = {
     "memmgrservice",
@@ -54,6 +53,11 @@ bool PermissionVerification::VerifyCallingPermission(
     const std::string &permissionName, const uint32_t specifyTokenId) const
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+<<<<<<< HEAD
+=======
+    TAG_LOGD(AAFwkTag::DEFAULT, "permission %{public}s, specifyTokenId: %{public}u",
+        permissionName.c_str(), specifyTokenId);
+>>>>>>> upstream/master
     auto callerToken = specifyTokenId == 0 ? GetCallingTokenID() : specifyTokenId;
     TAG_LOGD(AAFwkTag::DEFAULT, "Token: %{public}u", callerToken);
     int32_t ret = Security::AccessToken::AccessTokenKit::VerifyAccessToken(callerToken, permissionName, false);
@@ -96,14 +100,22 @@ bool PermissionVerification::CheckSpecificSystemAbilityAccessPermission(const st
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::DEFAULT, "called");
     if (!IsSACall()) {
+<<<<<<< HEAD
         TAG_LOGE(AAFwkTag::DEFAULT, "verify failed");
+=======
+        TAG_LOGE(AAFwkTag::DEFAULT, "verify fail");
+>>>>>>> upstream/master
         return false;
     }
     auto callerToken = GetCallingTokenID();
     Security::AccessToken::NativeTokenInfo nativeTokenInfo;
     int32_t result = Security::AccessToken::AccessTokenKit::GetNativeTokenInfo(callerToken, nativeTokenInfo);
     if (result != ERR_OK || nativeTokenInfo.processName != processName) {
+<<<<<<< HEAD
         TAG_LOGE(AAFwkTag::DEFAULT, "Check process failed");
+=======
+        TAG_LOGE(AAFwkTag::DEFAULT, "check process fail");
+>>>>>>> upstream/master
         return false;
     }
     return true;
@@ -121,7 +133,11 @@ bool PermissionVerification::CheckObserverCallerPermission() const
     int32_t result = Security::AccessToken::AccessTokenKit::GetNativeTokenInfo(callerToken, nativeTokenInfo);
     if (result != ERR_OK ||
         OBSERVER_NATIVE_CALLER.find(nativeTokenInfo.processName) == OBSERVER_NATIVE_CALLER.end()) {
+<<<<<<< HEAD
         TAG_LOGE(AAFwkTag::DEFAULT, "Check token failed");
+=======
+        TAG_LOGE(AAFwkTag::DEFAULT, "check token fail");
+>>>>>>> upstream/master
         return false;
     }
     return true;
@@ -254,7 +270,11 @@ int PermissionVerification::CheckCallDataAbilityPermission(const VerificationInf
 {
     if ((verificationInfo.apiTargetVersion > API8 || isShell) &&
         !JudgeStartAbilityFromBackground(verificationInfo.isBackgroundCall, verificationInfo.withContinuousTask)) {
+<<<<<<< HEAD
         TAG_LOGE(AAFwkTag::DEFAULT, "Start DataAbility failed");
+=======
+        TAG_LOGE(AAFwkTag::DEFAULT, "start DataAbility fail");
+>>>>>>> upstream/master
         return CHECK_PERMISSION_FAILED;
     }
     if (!JudgeStartInvisibleAbility(verificationInfo.accessTokenId, verificationInfo.visible)) {
@@ -263,7 +283,11 @@ int PermissionVerification::CheckCallDataAbilityPermission(const VerificationInf
         return ABILITY_VISIBLE_FALSE_DENY_REQUEST;
     }
     if (!JudgeAssociatedWakeUp(verificationInfo.accessTokenId, verificationInfo.associatedWakeUp)) {
+<<<<<<< HEAD
         TAG_LOGE(AAFwkTag::DEFAULT, "associatedWakeUp is false");
+=======
+        TAG_LOGE(AAFwkTag::DEFAULT, "associatedWakeUp false");
+>>>>>>> upstream/master
         return CHECK_PERMISSION_FAILED;
     }
 
@@ -286,7 +310,11 @@ int PermissionVerification::CheckCallServiceAbilityPermission(const Verification
         return ABILITY_VISIBLE_FALSE_DENY_REQUEST;
     }
     if (!JudgeAssociatedWakeUp(verificationInfo.accessTokenId, verificationInfo.associatedWakeUp)) {
+<<<<<<< HEAD
         TAG_LOGE(AAFwkTag::DEFAULT, "associatedWakeUp is false");
+=======
+        TAG_LOGE(AAFwkTag::DEFAULT, "associatedWakeUp false");
+>>>>>>> upstream/master
         return CHECK_PERMISSION_FAILED;
     }
 
@@ -351,7 +379,11 @@ bool PermissionVerification::JudgeStartInvisibleAbility(const uint32_t accessTok
         TAG_LOGD(AAFwkTag::DEFAULT, "Caller PASS");
         return true;
     }
+<<<<<<< HEAD
     TAG_LOGE(AAFwkTag::DEFAULT, "verification failed");
+=======
+    TAG_LOGE(AAFwkTag::DEFAULT, "verification fail");
+>>>>>>> upstream/master
     return false;
 }
 
@@ -370,7 +402,11 @@ bool PermissionVerification::JudgeStartAbilityFromBackground(
         TAG_LOGD(AAFwkTag::DEFAULT, "Caller PASS");
         return true;
     }
+<<<<<<< HEAD
     TAG_LOGE(AAFwkTag::DEFAULT, "verification failed");
+=======
+    TAG_LOGE(AAFwkTag::DEFAULT, "verification fail");
+>>>>>>> upstream/master
     return false;
 }
 
@@ -394,7 +430,7 @@ int PermissionVerification::JudgeInvisibleAndBackground(const VerificationInfo &
     uint32_t specifyTokenId = verificationInfo.specifyTokenId;
     TAG_LOGD(AAFwkTag::DEFAULT, "specifyTokenId: %{public}u, isCallByShortcut %{public}d",
         specifyTokenId, isCallByShortcut);
-    if (specifyTokenId == 0 && IPCSkeleton::GetCallingUid() != BROKER_UID &&
+    if (specifyTokenId == 0 &&
         SupportSystemAbilityPermission::IsSupportSaCallPermission() && IsSACall()) {
         TAG_LOGD(AAFwkTag::DEFAULT, "Support SA call");
         return ERR_OK;
@@ -424,6 +460,11 @@ bool PermissionVerification::IsSystemAppCall() const
 {
     auto callerToken = IPCSkeleton::GetCallingFullTokenID();
     return Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(callerToken);
+}
+
+bool PermissionVerification::VerifyBackgroundCallPermission(const bool isBackgroundCall) const
+{
+    return JudgeStartAbilityFromBackground(isBackgroundCall);
 }
 
 bool PermissionVerification::VerifyPrepareTerminatePermission() const

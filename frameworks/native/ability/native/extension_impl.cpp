@@ -191,7 +191,12 @@ void ExtensionImpl::Start(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
     }
 
     TAG_LOGD(AAFwkTag::EXT, "ExtensionImpl::Start");
+<<<<<<< HEAD
     if (extension_->abilityInfo_->extensionAbilityType == AppExecFwk::ExtensionAbilityType::WINDOW) {
+=======
+    if (extension_->abilityInfo_->extensionAbilityType == AppExecFwk::ExtensionAbilityType::WINDOW ||
+        AAFwk::UIExtensionUtils::IsUIExtension(extension_->abilityInfo_->extensionAbilityType)) {
+>>>>>>> upstream/master
         extension_->OnStart(want, sessionInfo);
     } else {
         extension_->OnStart(want);

@@ -57,9 +57,6 @@ public:
 
     bool GetUIExtensionAbilityExitReason(const std::string &keyEx, AAFwk::ExitReason &exitReason);
 
-    int32_t GetAbilitySessionId(uint32_t accessTokenId,
-        const std::string &moduleName, const std::string &abilityName, int &sessionId);
-
 private:
     DistributedKv::Status GetKvStore();
     bool CheckKvStore();

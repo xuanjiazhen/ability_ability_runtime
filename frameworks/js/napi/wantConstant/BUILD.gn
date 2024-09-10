@@ -27,6 +27,14 @@ ohos_shared_library("wantconstant") {
     "napi:ace_napi",
   ]
 
+<<<<<<< HEAD
+=======
+  cflags_cc = []
+  if (os_dlp_part_enabled) {
+    cflags_cc += [ "-DWITH_DLP" ]
+  }
+
+>>>>>>> upstream/master
   relative_install_dir = "module/ability"
 
   subsystem_name = "ability"
@@ -46,6 +54,14 @@ ohos_shared_library("wantconstant_napi") {
     "napi:ace_napi",
   ]
 
+<<<<<<< HEAD
+=======
+  cflags_cc = []
+  if (os_dlp_part_enabled) {
+    cflags_cc += [ "-DWITH_DLP" ]
+  }
+
+>>>>>>> upstream/master
   relative_install_dir = "module/app/ability"
 
   defines = [ "ENABLE_ERRCODE" ]

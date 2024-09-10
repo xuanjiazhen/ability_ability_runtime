@@ -15,13 +15,8 @@
 
 #include "data_ability_record.h"
 
-#include <algorithm>
-#include <mutex>
-
 #include "ability_util.h"
-#include "app_scheduler.h"
 #include "connection_state_manager.h"
-#include "hilog_tag_wrapper.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -55,13 +50,21 @@ int DataAbilityRecord::StartLoading()
 
     auto ability = AbilityRecord::CreateAbilityRecord(request_);
     if (!ability) {
+<<<<<<< HEAD
         TAG_LOGE(AAFwkTag::DATA_ABILITY, "allocate ability failed");
+=======
+        TAG_LOGE(AAFwkTag::DATA_ABILITY, "allocate failed");
+>>>>>>> upstream/master
         return ERR_NO_MEMORY;
     }
 
     int ret = ability->LoadAbility();
     if (ret != ERR_OK) {
+<<<<<<< HEAD
         TAG_LOGE(AAFwkTag::DATA_ABILITY, "LoadAbility failed");
+=======
+        TAG_LOGE(AAFwkTag::DATA_ABILITY, "loadAbility failed");
+>>>>>>> upstream/master
         return ret;
     }
 
@@ -205,7 +208,11 @@ int DataAbilityRecord::AddClient(const sptr<IRemoteObject> &client, bool tryBind
         return ERR_NULL_OBJECT;
     }
 
+<<<<<<< HEAD
     TAG_LOGI(AAFwkTag::DATA_ABILITY, "add death monitoring for caller");
+=======
+    TAG_LOGI(AAFwkTag::DATA_ABILITY, "add death monitoring");
+>>>>>>> upstream/master
     if (client != nullptr && callerDeathRecipient_ != nullptr) {
         client->RemoveDeathRecipient(callerDeathRecipient_);
     }
@@ -259,7 +266,11 @@ int DataAbilityRecord::RemoveClient(const sptr<IRemoteObject> &client, bool isNo
     for (auto it(clients_.begin()); it != clients_.end(); ++it) {
         if (it->client == client) {
             clients_.erase(it);
+<<<<<<< HEAD
             TAG_LOGI(AAFwkTag::DATA_ABILITY, "Data ability '%{public}s|%{public}s'",
+=======
+            TAG_LOGI(AAFwkTag::DATA_ABILITY, "dataability '%{public}s|%{public}s'",
+>>>>>>> upstream/master
                 ability_->GetApplicationInfo().bundleName.c_str(),
                 ability_->GetAbilityInfo().name.c_str());
             break;
@@ -306,8 +317,6 @@ int DataAbilityRecord::RemoveClients(const std::shared_ptr<AbilityRecord> &clien
                     continue;
                 }
                 if (clientAbilityRecord == client) {
-                    appScheduler->AbilityBehaviorAnalysis(
-                        ability_->GetToken(), clientAbilityRecord->GetToken(), 0, 0, 0);
                     it = clients_.erase(it);
                     TAG_LOGI(AAFwkTag::DATA_ABILITY,
                         "Ability '%{public}s|%{public}s' --X-> Data ability '%{public}s|%{public}s'",
@@ -333,7 +342,6 @@ int DataAbilityRecord::RemoveClients(const std::shared_ptr<AbilityRecord> &clien
                     it = clients_.erase(it);
                     continue;
                 }
-                appScheduler->AbilityBehaviorAnalysis(ability_->GetToken(), clientAbilityRecord->GetToken(), 0, 0, 0);
                 it = clients_.erase(it);
             } else {
                 ++it;
@@ -496,7 +504,11 @@ void DataAbilityRecord::OnSchedulerDied(const wptr<IRemoteObject> &remote)
             if (it->client == object) {
                 TAG_LOGD(AAFwkTag::DATA_ABILITY, "remove system caller");
                 it = clients_.erase(it);
+<<<<<<< HEAD
                 TAG_LOGI(AAFwkTag::DATA_ABILITY, "Data ability '%{public}s|%{public}s'",
+=======
+                TAG_LOGI(AAFwkTag::DATA_ABILITY, "dataability '%{public}s|%{public}s'",
+>>>>>>> upstream/master
                     ability_->GetApplicationInfo().bundleName.c_str(),
                     ability_->GetAbilityInfo().name.c_str());
             } else {
@@ -509,7 +521,11 @@ void DataAbilityRecord::OnSchedulerDied(const wptr<IRemoteObject> &remote)
             if (it->isNotHap) {
                 TAG_LOGD(AAFwkTag::DATA_ABILITY, "remove system caller");
                 it = clients_.erase(it);
+<<<<<<< HEAD
                 TAG_LOGI(AAFwkTag::DATA_ABILITY, "Data ability '%{public}s|%{public}s'",
+=======
+                TAG_LOGI(AAFwkTag::DATA_ABILITY, "dataability '%{public}s|%{public}s'",
+>>>>>>> upstream/master
                     ability_->GetApplicationInfo().bundleName.c_str(),
                     ability_->GetAbilityInfo().name.c_str());
             } else {

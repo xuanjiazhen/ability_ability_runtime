@@ -45,6 +45,7 @@ ohos_unittest("AmsRecentAppListTest") {
     "${ability_runtime_services_path}/appmgr/src/module_running_record.cpp",
     "${ability_runtime_services_path}/appmgr/src/remote_client_manager.cpp",
     "${ability_runtime_services_path}/appmgr/src/render_state_observer_manager.cpp",
+    "${ability_runtime_services_path}/appmgr/src/user_record_manager.cpp",
     "${ability_runtime_services_path}/appmgr/src/window_focus_changed_listener.cpp",
     "${ability_runtime_services_path}/appmgr/src/window_visibility_changed_listener.cpp",
     "${ability_runtime_test_path}/mock/services_appmgr_test/src/mock_bundle_manager.cpp",
@@ -97,6 +98,19 @@ ohos_unittest("AmsRecentAppListTest") {
     "window_manager:libwm",
     "window_manager:libwsutils",
   ]
+<<<<<<< HEAD
+=======
+
+  if (os_dlp_part_enabled) {
+    cflags_cc += [ "-DWITH_DLP" ]
+  }
+  if (ability_runtime_graphics) {
+    external_deps += [
+      "window_manager:libwm",
+      "window_manager:libwsutils",
+    ]
+  }
+>>>>>>> upstream/master
 }
 
 group("unittest") {

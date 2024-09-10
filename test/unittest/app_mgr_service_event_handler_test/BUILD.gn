@@ -43,6 +43,7 @@ ohos_unittest("AMSEventHandlerTest") {
     "${ability_runtime_services_path}/appmgr/src/module_running_record.cpp",
     "${ability_runtime_services_path}/appmgr/src/remote_client_manager.cpp",
     "${ability_runtime_services_path}/appmgr/src/render_state_observer_manager.cpp",
+    "${ability_runtime_services_path}/appmgr/src/user_record_manager.cpp",
     "${ability_runtime_services_path}/appmgr/src/window_focus_changed_listener.cpp",
     "${ability_runtime_services_path}/appmgr/src/window_visibility_changed_listener.cpp",
   ]
@@ -95,6 +96,18 @@ ohos_unittest("AMSEventHandlerTest") {
     "window_manager:libwm",
     "window_manager:libwsutils",
   ]
+<<<<<<< HEAD
+=======
+  if (os_dlp_part_enabled) {
+    cflags_cc += [ "-DWITH_DLP" ]
+  }
+  if (ability_runtime_graphics) {
+    external_deps += [
+      "window_manager:libwm",
+      "window_manager:libwsutils",
+    ]
+  }
+>>>>>>> upstream/master
 
   if (ability_runtime_feature_sandboxmanager) {
     external_deps += [ "sandbox_manager:libsandbox_manager_sdk" ]

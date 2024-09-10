@@ -18,10 +18,7 @@
 #include "ability_record.h"
 #include "ability_util.h"
 #include "ecological_rule/ability_ecological_rule_mgr_service.h"
-#include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
-#include "in_process_call_wrapper.h"
-#include "ipc_skeleton.h"
 #include "parameters.h"
 #include "start_ability_utils.h"
 
@@ -42,6 +39,7 @@ ErrCode EcologicalRuleInterceptor::DoProcess(AbilityInterceptorParam param)
         return ERR_OK;
     }
     if (StartAbilityUtils::skipErms) {
+        StartAbilityUtils::skipErms = false;
         return ERR_OK;
     }
     if (param.want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME) ==
@@ -72,7 +70,11 @@ ErrCode EcologicalRuleInterceptor::DoProcess(AbilityInterceptorParam param)
     
     std::string supportErms = OHOS::system::GetParameter(ABILITY_SUPPORT_ECOLOGICAL_RULEMGRSERVICE, "true");
     if (supportErms == "false") {
+<<<<<<< HEAD
         TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "erms between apps not supported");
+=======
+        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "not support erms");
+>>>>>>> upstream/master
         return ERR_OK;
     }
 #ifdef SUPPORT_GRAPHICS
@@ -93,7 +95,11 @@ bool EcologicalRuleInterceptor::DoProcess(Want &want, int32_t userId)
     }
     std::string supportErms = OHOS::system::GetParameter(ABILITY_SUPPORT_ECOLOGICAL_RULEMGRSERVICE, "true");
     if (supportErms == "false") {
+<<<<<<< HEAD
         TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "Erms between apps not supported");
+=======
+        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "not support erms");
+>>>>>>> upstream/master
         return true;
     }
 
@@ -136,7 +142,9 @@ void EcologicalRuleInterceptor::GetEcologicalTargetInfo(const Want &want,
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     callerInfo.targetLinkFeature = want.GetStringParam("send_to_erms_targetLinkFeature");
     callerInfo.targetLinkType = want.GetIntParam("send_to_erms_targetLinkType", 0);
-    if (StartAbilityUtils::startAbilityInfo) {
+    if (StartAbilityUtils::startAbilityInfo &&
+        StartAbilityUtils::startAbilityInfo->abilityInfo.bundleName == want.GetBundle() &&
+        StartAbilityUtils::startAbilityInfo->abilityInfo.name == want.GetElement().GetAbilityName()) {
         AppExecFwk::AbilityInfo targetAbilityInfo = StartAbilityUtils::startAbilityInfo->abilityInfo;
         callerInfo.targetAppDistType = targetAbilityInfo.applicationInfo.appDistributionType;
         callerInfo.targetAppProvisionType = targetAbilityInfo.applicationInfo.appProvisionType;
@@ -175,7 +183,11 @@ void EcologicalRuleInterceptor::GetEcologicalCallerInfo(const Want &want, ErmsCa
         std::string callerBundleName;
         ErrCode err = IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callerInfo.uid, callerBundleName));
         if (err != ERR_OK) {
+<<<<<<< HEAD
             TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "Get callerBundleName failed,uid: %{public}d", callerInfo.uid);
+=======
+            TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "failed,uid: %{public}d", callerInfo.uid);
+>>>>>>> upstream/master
             return;
         }
         bool getCallerResult = IN_PROCESS_CALL(bundleMgrHelper->GetApplicationInfo(callerBundleName,
@@ -217,6 +229,7 @@ void EcologicalRuleInterceptor::InitErmsCallerInfo(const Want &want,
     callerInfo.uid = want.GetIntParam(Want::PARAM_RESV_CALLER_UID, IPCSkeleton::GetCallingUid());
     callerInfo.pid = want.GetIntParam(Want::PARAM_RESV_CALLER_PID, IPCSkeleton::GetCallingPid());
     callerInfo.embedded = want.GetIntParam("send_to_erms_embedded", 0);
+    callerInfo.userId = userId;
     
     GetEcologicalTargetInfo(want, abilityInfo, callerInfo);
     GetEcologicalCallerInfo(want, callerInfo, userId, callerToken);

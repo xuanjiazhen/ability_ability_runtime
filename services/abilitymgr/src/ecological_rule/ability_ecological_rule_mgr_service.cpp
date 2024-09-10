@@ -17,7 +17,6 @@
 
 #include "ability_manager_errors.h"
 #include "iservice_registry.h"
-#include "iremote_broker.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 
@@ -70,13 +69,13 @@ sptr<IAbilityEcologicalRuleMgrService> AbilityEcologicalRuleMgrServiceClient::Co
 {
     sptr<ISystemAbilityManager> samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (samgr == nullptr) {
-        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "GetSystemAbilityManager error");
+        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "null samgr");
         return nullptr;
     }
 
     auto systemAbility = samgr->CheckSystemAbility(ECOLOGICALRULEMANAGERSERVICE_ID);
     if (systemAbility == nullptr) {
-        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "CheckSystemAbility error");
+        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "null systemAbility");
         return nullptr;
     }
 
@@ -117,7 +116,7 @@ int32_t AbilityEcologicalRuleMgrServiceClient::EvaluateResolveInfos(const AAFwk:
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     int64_t start = GetCurrentTimeMicro();
-    TAG_LOGD(AAFwkTag::ECOLOGICAL_RULE, "want: %{public}s, callerInfo: %{public}s, type: %{public}d",
+    TAG_LOGD(AAFwkTag::ECOLOGICAL_RULE, "want: %{private}s, callerInfo: %{public}s, type: %{public}d",
         want.ToString().c_str(), callerInfo.ToString().c_str(), type);
     if (!CheckConnectService()) {
         return AAFwk::ERR_CONNECT_ERMS_FAILED;
@@ -134,7 +133,7 @@ int32_t AbilityEcologicalRuleMgrServiceClient::QueryStartExperience(const OHOS::
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     int64_t start = GetCurrentTimeMicro();
-    TAG_LOGD(AAFwkTag::ECOLOGICAL_RULE, "callerInfo: %{public}s, want: %{public}s", callerInfo.ToString().c_str(),
+    TAG_LOGD(AAFwkTag::ECOLOGICAL_RULE, "callerInfo: %{public}s, want: %{private}s", callerInfo.ToString().c_str(),
         want.ToString().c_str());
 
     if (!CheckConnectService()) {
@@ -144,7 +143,7 @@ int32_t AbilityEcologicalRuleMgrServiceClient::QueryStartExperience(const OHOS::
     if (rule.replaceWant != nullptr) {
         rule.replaceWant->SetParam(ERMS_ORIGINAL_TARGET, want.ToString());
         TAG_LOGD(AAFwkTag::ECOLOGICAL_RULE,
-            "queryStart finish: resultCode = %{public}d, sceneCode = %{public}s, replaceWant = %{public}s",
+            "queryStart finish: resultCode = %{public}d, sceneCode = %{public}s, replaceWant = %{private}s",
             rule.resultCode, rule.sceneCode.c_str(), (*(rule.replaceWant)).ToString().c_str());
     }
     int64_t cost = GetCurrentTimeMicro() - start;
@@ -205,7 +204,11 @@ int32_t AbilityEcologicalRuleMgrServiceProxy::EvaluateResolveInfos(const Want &w
 
     auto remote = Remote();
     if (remote == nullptr) {
+<<<<<<< HEAD
         TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "get remote failed");
+=======
+        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "null remote");
+>>>>>>> upstream/master
         return ERR_FAILED;
     }
 
@@ -234,7 +237,11 @@ bool AbilityEcologicalRuleMgrServiceProxy::ReadParcelableVector(std::vector<T> &
     for (int32_t i = 0; i < infoSize; i++) {
         sptr<T> info = reply.ReadParcelable<T>();
         if (info == nullptr) {
+<<<<<<< HEAD
             TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "read info failed");
+=======
+            TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "null info");
+>>>>>>> upstream/master
             return false;
         }
         parcelableVector.emplace_back(*info);
@@ -268,7 +275,7 @@ int32_t AbilityEcologicalRuleMgrServiceProxy::QueryStartExperience(const Want &w
 
     auto remote = Remote();
     if (remote == nullptr) {
-        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "get Remote failed");
+        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "null remote");
         return ERR_FAILED;
     }
 
@@ -280,7 +287,7 @@ int32_t AbilityEcologicalRuleMgrServiceProxy::QueryStartExperience(const Want &w
 
     sptr<AbilityExperienceRule> sptrRule = reply.ReadParcelable<AbilityExperienceRule>();
     if (sptrRule == nullptr) {
-        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "ReadParcelable sptrRule error");
+        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "null sptrRule");
         return ERR_FAILED;
     }
 

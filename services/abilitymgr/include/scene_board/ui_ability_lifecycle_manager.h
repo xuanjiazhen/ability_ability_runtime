@@ -66,7 +66,8 @@ public:
      * @param isColdStart the session info of the ability is or not cold start.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int StartUIAbility(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo, bool &isColdStart);
+    int StartUIAbility(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo, uint32_t sceneFlag,
+        bool &isColdStart);
 
     /**
      * @brief execute after the ability schedule the lifecycle
@@ -119,7 +120,7 @@ public:
      * @param fromUser, Whether form user.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int MinimizeUIAbility(const std::shared_ptr<AbilityRecord> &abilityRecord, bool fromUser = false);
+    int MinimizeUIAbility(const std::shared_ptr<AbilityRecord> &abilityRecord, bool fromUser, uint32_t sceneFlag);
 
     /**
      * GetUIAbilityRecordBySessionInfo.
@@ -156,6 +157,8 @@ public:
 
     int NotifySCBToPreStartUIAbility(const AbilityRequest &abilityRequest,
         sptr<SessionInfo> &sessionInfo);
+
+    int32_t NotifySCBToRecoveryAfterInterception(const AbilityRequest &abilityRequest);
 
     /**
      * @brief handle time out event
@@ -333,6 +336,10 @@ public:
 
     int32_t RegisterStatusBarDelegate(sptr<AbilityRuntime::IStatusBarDelegate> delegate);
     bool IsCallerInStatusBar();
+<<<<<<< HEAD
+=======
+
+>>>>>>> upstream/master
     int32_t TryPrepareTerminateByPids(const std::vector<int32_t>& pids);
 
     int ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow);
@@ -353,7 +360,7 @@ public:
     void NotifySCBToHandleAtomicServiceException(sptr<SessionInfo> sessionInfo, int32_t errorCode,
         const std::string& errorReason);
 
-    int32_t CleanUIAbility(const std::shared_ptr<AbilityRecord> &abilityRecord);
+    int32_t CleanUIAbility(const std::shared_ptr<AbilityRecord> &abilityRecord, bool forceKill);
 
 private:
     int32_t GetPersistentIdByAbilityRequest(const AbilityRequest &abilityRequest, bool &reuse) const;
@@ -389,6 +396,8 @@ private:
     void NotifyAbilityToken(const sptr<IRemoteObject> &token, const AbilityRequest &abilityRequest) const;
     int CloseUIAbilityInner(std::shared_ptr<AbilityRecord> abilityRecord,
         int resultCode, const Want *resultWant, bool isClearSession);
+    int32_t BackToCallerAbilityWithResultLocked(sptr<SessionInfo> currentSessionInfo,
+        std::shared_ptr<AbilityRecord> callerAbilityRecord);
 
     // byCall
     int CallAbilityLocked(const AbilityRequest &abilityRequest);

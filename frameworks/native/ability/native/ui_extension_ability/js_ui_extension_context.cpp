@@ -21,6 +21,7 @@
 #include "ability_manager_errors.h"
 #include "event_handler.h"
 #include "hilog_tag_wrapper.h"
+#include "hitrace_meter.h"
 #include "js_extension_context.h"
 #include "js_error_utils.h"
 #include "js_data_struct_converter.h"
@@ -35,7 +36,6 @@
 #include "open_link_options.h"
 #include "open_link/napi_common_open_link_options.h"
 #include "start_options.h"
-#include "hitrace_meter.h"
 #include "uri.h"
 
 namespace OHOS {
@@ -47,9 +47,9 @@ constexpr int32_t INDEX_TWO = 2;
 constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
+constexpr size_t ARGC_THREE = 3;
 
 const std::string ATOMIC_SERVICE_PREFIX = "com.atomicservice.";
-constexpr size_t ARGC_THREE = 3;
 } // namespace
 
 static std::map<UIExtensionConnectionKey, sptr<JSUIExtensionConnection>, key_compare> g_connects;
@@ -61,19 +61,19 @@ void RemoveConnection(int64_t connectId)
         return connectId == obj.first.id;
     });
     if (item != g_connects.end()) {
-        TAG_LOGD(AAFwkTag::UI_EXT, "remove conn ability exist");
+        TAG_LOGD(AAFwkTag::UI_EXT, "conn ability exists");
         if (item->second) {
             item->second->RemoveConnectionObject();
         }
         g_connects.erase(item);
     } else {
-        TAG_LOGD(AAFwkTag::UI_EXT, "remove conn ability not exist");
+        TAG_LOGD(AAFwkTag::UI_EXT, "conn ability not exists");
     }
 }
 
 void FindConnection(AAFwk::Want& want, sptr<JSUIExtensionConnection>& connection, int64_t& connectId)
 {
-    TAG_LOGD(AAFwkTag::UI_EXT, "Disconnect ability enter, connection:%{public}d", static_cast<int32_t>(connectId));
+    TAG_LOGD(AAFwkTag::UI_EXT, "Disconnect ability enter, connection:%{public}" PRId64, connectId);
     auto item = std::find_if(g_connects.begin(),
         g_connects.end(),
         [&connectId](const auto &obj) {
@@ -198,9 +198,8 @@ napi_value JsUIExtensionContext::OnStartAbility(napi_env env, NapiCallbackInfo& 
                 return;
             }
 
-            ErrCode innerErrorCode = ERR_OK;
-            (unwrapArgc == 1) ? innerErrorCode = context->StartAbility(want) :
-                innerErrorCode = context->StartAbility(want, startOptions);
+            ErrCode innerErrorCode = (unwrapArgc == 1) ? context->StartAbility(want) :
+                context->StartAbility(want, startOptions);
             if (innerErrorCode == 0) {
                 task.Resolve(env, CreateJsUndefined(env));
             } else {
@@ -420,6 +419,7 @@ napi_value JsUIExtensionContext::OnStartAbilityForResult(napi_env env, NapiCallb
     std::shared_ptr<NapiAsyncTask> asyncTask = std::move(uasyncTask);
     RuntimeTask task = [env, asyncTask](int resultCode, const AAFwk::Want &want, bool isInner) {
         TAG_LOGI(AAFwkTag::UI_EXT, "called");
+        HandleScope handleScope(env);
         napi_value abilityResult = AppExecFwk::WrapAbilityResult(env, resultCode, want);
         if (abilityResult == nullptr) {
             TAG_LOGW(AAFwkTag::UI_EXT, "wrap abilityResult failed");
@@ -492,6 +492,7 @@ napi_value JsUIExtensionContext::OnStartAbilityForResultAsCaller(napi_env env, N
     std::shared_ptr<NapiAsyncTask> asyncTask = std::move(uasyncTask);
     RuntimeTask task = [env, asyncTask](int resultCode, const AAFwk::Want &want, bool isInner) {
         TAG_LOGI(AAFwkTag::UI_EXT, "called");
+        HandleScope handleScope(env);
         napi_value abilityResult = AppExecFwk::WrapAbilityResult(env, resultCode, want);
         if (abilityResult == nullptr) {
             TAG_LOGW(AAFwkTag::UI_EXT, "Wrap abilityResult failed");
@@ -529,8 +530,13 @@ napi_value JsUIExtensionContext::OnConnectAbility(napi_env env, NapiCallbackInfo
         return CreateJsUndefined(env);
     }
     // Unwrap want and connection
+    auto connection = sptr<JSUIExtensionConnection>::MakeSptr(env);
+    if (connection == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "make conn failed");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return CreateJsUndefined(env);
+    }
     AAFwk::Want want;
-    sptr<JSUIExtensionConnection> connection = new JSUIExtensionConnection(env);
     if (!AppExecFwk::UnwrapWant(env, info.argv[0], want) ||
         !CheckConnectionParam(env, info.argv[1], connection, want)) {
         ThrowInvalidParamError(env,
@@ -654,6 +660,172 @@ napi_value JsUIExtensionContext::OnStartUIServiceExtension(napi_env env, NapiCal
         env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
     return result;
 }
+<<<<<<< HEAD
+=======
+
+bool JsUIExtensionContext::UnwrapConnectUIServiceExtensionParam(napi_env env, NapiCallbackInfo& info, AAFwk::Want& want)
+{
+    if (info.argc < ARGC_TWO) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "invalid argc");
+        ThrowTooFewParametersError(env);
+        return false;
+    }
+    bool unwrapResult = OHOS::AppExecFwk::UnwrapWant(env, info.argv[INDEX_ZERO], want);
+    if (!unwrapResult) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "failed, UnwrapWant failed");
+        ThrowInvalidParamError(env, "parse want error");
+        return false;
+    }
+    TAG_LOGI(AAFwkTag::UISERVC_EXT, "callee:%{public}s.%{public}s", want.GetBundle().c_str(),
+        want.GetElement().GetAbilityName().c_str());
+    if (!CheckTypeForNapiValue(env, info.argv[INDEX_ONE], napi_object)) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "failed, callback type incorrect");
+        ThrowInvalidParamError(env, "Incorrect parameter types");
+        return false;
+    }
+    return true;
+}
+
+bool JsUIExtensionContext::CheckConnectAlreadyExist(napi_env env, AAFwk::Want& want, napi_value callback,
+    napi_value& result)
+{
+    TAG_LOGI(AAFwkTag::UISERVC_EXT, "called");
+    sptr<JSUIServiceUIExtConnection> connection = nullptr;
+    UIServiceConnection::FindUIServiceExtensionConnection(env, want, callback, connection);
+    if (connection == nullptr) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "connection == nullptr");
+        return false;
+    }
+
+    std::unique_ptr<NapiAsyncTask> uasyncTask = CreateAsyncTaskWithLastParam(env, nullptr, nullptr, nullptr, &result);
+    napi_value proxy = connection->GetProxyObject();
+    if (proxy == nullptr) {
+        TAG_LOGW(AAFwkTag::UISERVC_EXT, "can't got proxy object, wait for duplicated connect finish");
+        connection->AddDuplicatedPendingTask(uasyncTask);
+    } else {
+        TAG_LOGI(AAFwkTag::UISERVC_EXT, "Resolve, got proxy object");
+        uasyncTask->ResolveWithNoError(env, proxy);
+    }
+    return true;
+}
+
+napi_value JsUIExtensionContext::OnConnectUIServiceExtension(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGI(AAFwkTag::UISERVC_EXT, "called");
+    AAFwk::Want want;
+    bool unwrapResult = UnwrapConnectUIServiceExtensionParam(env, info, want);
+    if (!unwrapResult) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "UnwrapConnectUIServiceExtensionParam failed");
+        return CreateJsUndefined(env);
+    }
+    napi_value callbackObject = nullptr;
+    if (info.argc > ARGC_ONE) {
+        callbackObject = info.argv[INDEX_ONE];
+    }
+    napi_value result = nullptr;
+    bool duplicated = CheckConnectAlreadyExist(env, want, callbackObject, result);
+    if (duplicated) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "duplicated");
+        return result;
+    }
+
+    sptr<JSUIServiceUIExtConnection> connection = sptr<JSUIServiceUIExtConnection>::MakeSptr(env);
+    sptr<UIExtensionServiceHostStubImpl> stub = connection->GetServiceHostStub();
+    want.SetParam(UISERVICEHOSTPROXY_KEY, stub->AsObject());
+
+    result = nullptr;
+    std::unique_ptr<NapiAsyncTask> uasyncTask = CreateAsyncTaskWithLastParam(env, nullptr, nullptr, nullptr, &result);
+    std::shared_ptr<NapiAsyncTask> uasyncTaskShared = std::move(uasyncTask);
+    if (info.argc > ARGC_ONE) {
+        connection->SetJsConnectionObject(callbackObject);
+    }
+    connection->SetNapiAsyncTask(uasyncTaskShared);
+    UIServiceConnection::AddUIServiceExtensionConnection(want, connection);
+    std::unique_ptr<NapiAsyncTask::CompleteCallback> complete = std::make_unique<NapiAsyncTask::CompleteCallback>(
+        [weak = context_, want, uasyncTaskShared, connection](
+            napi_env env, NapiAsyncTask& taskUseless, int32_t status) {
+            DoConnectUIServiceExtension(env, weak, connection, uasyncTaskShared, want);
+        });
+    napi_ref callback = nullptr;
+    std::unique_ptr<NapiAsyncTask::ExecuteCallback> execute = nullptr;
+    NapiAsyncTask::ScheduleHighQos("JsUIExtensionContext::OnConnectUIServiceExtension",
+        env, std::make_unique<NapiAsyncTask>(callback, std::move(execute), std::move(complete)));
+    return result;
+}
+
+void JsUIExtensionContext::DoConnectUIServiceExtension(napi_env env,
+    std::weak_ptr<UIExtensionContext> weakContext, sptr<JSUIServiceUIExtConnection> connection,
+    std::shared_ptr<NapiAsyncTask> uasyncTaskShared, const AAFwk::Want& want)
+{
+    if (uasyncTaskShared == nullptr) {
+        return;
+    }
+
+    int64_t connectId = connection->GetConnectionId();
+    auto context = weakContext.lock();
+    if (!context) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "connect ability failed, context is released");
+        uasyncTaskShared->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+        UIServiceConnection::RemoveUIServiceExtensionConnection(connectId);
+        return;
+    }
+
+    auto innerErrorCode = context->ConnectUIServiceExtensionAbility(want, connection);
+    AbilityErrorCode errcode = AbilityRuntime::GetJsErrorCodeByNativeError(innerErrorCode);
+    if (errcode != AbilityErrorCode::ERROR_OK) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "ConnectAbility failed, errcode is %{public}d.", errcode);
+        uasyncTaskShared->Reject(env, CreateJsError(env, errcode));
+        UIServiceConnection::RemoveUIServiceExtensionConnection(connectId);
+    }
+}
+
+napi_value JsUIExtensionContext::OnDisconnectUIServiceExtension(napi_env env, NapiCallbackInfo& info)
+{
+    if (info.argc < ARGC_ONE) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "invalid argc");
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+    AAFwk::JsUIServiceProxy* proxy = nullptr;
+    napi_status status = napi_unwrap(env, info.argv[INDEX_ZERO], reinterpret_cast<void**>(&proxy));
+    if (status != napi_ok || proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "napi_unwrap err or proxy == nullptr");
+        ThrowInvalidParamError(env, "Parameter verification failed");
+        return CreateJsUndefined(env);
+    }
+
+    int64_t connectId = proxy->GetConnectionId();
+    AAFwk::Want want;
+    sptr<JSUIServiceUIExtConnection> connection = nullptr;
+    UIServiceConnection::FindUIServiceExtensionConnection(connectId, want, connection);
+
+    TAG_LOGI(AAFwkTag::UISERVC_EXT, "connection:%{public}d.", static_cast<int32_t>(connectId));
+    NapiAsyncTask::CompleteCallback complete =
+        [weak = context_, want, connectId, connection](
+            napi_env env, NapiAsyncTask& task, int32_t status) {
+            auto context = weak.lock();
+            if (!context) {
+                TAG_LOGW(AAFwkTag::UISERVC_EXT, "OnDisconnectUIServiceExtension context is released");
+                task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+                UIServiceConnection::RemoveUIServiceExtensionConnection(connectId);
+            } else if (!connection) {
+                TAG_LOGW(AAFwkTag::UISERVC_EXT, "connection nullptr");
+                task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                UIServiceConnection::RemoveUIServiceExtensionConnection(connectId);
+            } else {
+                TAG_LOGI(AAFwkTag::UISERVC_EXT, "context->DisconnectAbility");
+                context->DisconnectAbility(want, connection);
+                task.ResolveWithNoError(env, CreateJsUndefined(env));
+            }
+        };
+
+    napi_value result = nullptr;
+    NapiAsyncTask::Schedule("JsUIExtensionContext::OnDisconnectUIServiceExtension",
+        env, CreateAsyncTaskWithLastParam(env, nullptr, nullptr, std::move(complete), &result));
+    return result;
+}
+
+>>>>>>> upstream/master
 napi_value JsUIExtensionContext::OnReportDrawnCompleted(napi_env env, NapiCallbackInfo& info)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "called");
@@ -765,6 +937,12 @@ napi_value JsUIExtensionContext::OpenAtomicServiceInner(napi_env env, NapiCallba
         system_clock::now().time_since_epoch()).count());
     want.SetParam(Want::PARAM_RESV_START_TIME, startTime);
     napi_value result = nullptr;
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGW(AAFwkTag::UI_EXT, "context is released");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return CreateJsUndefined(env);
+    }
     AddFreeInstallObserver(env, want, nullptr, &result, true);
     RuntimeTask task = [env, element = want.GetElement(), startTime, &observer = freeInstallObserver_](
         int resultCode, const AAFwk::Want& want, bool isInner) {
@@ -788,16 +966,9 @@ napi_value JsUIExtensionContext::OpenAtomicServiceInner(napi_env env, NapiCallba
             observer->OnInstallFinished(bundleName, abilityName, startTime, abilityResult);
         }
     };
-    auto context = context_.lock();
-    if (context == nullptr) {
-        TAG_LOGW(AAFwkTag::UI_EXT, "context is released");
-        ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
-        return CreateJsUndefined(env);
-    } else {
-        want.SetParam(Want::PARAM_RESV_FOR_RESULT, true);
-        auto curRequestCode = context->GenerateCurRequestCode();
-        context->OpenAtomicService(want, options, curRequestCode, std::move(task));
-    }
+    want.SetParam(Want::PARAM_RESV_FOR_RESULT, true);
+    auto curRequestCode = context->GenerateCurRequestCode();
+    context->OpenAtomicService(want, options, curRequestCode, std::move(task));
     TAG_LOGD(AAFwkTag::UI_EXT, "end");
     return result;
 }
@@ -888,27 +1059,55 @@ JSUIExtensionConnection::JSUIExtensionConnection(napi_env env) : env_(env) {}
 
 JSUIExtensionConnection::~JSUIExtensionConnection()
 {
+<<<<<<< HEAD
     if (jsConnectionObject_ == nullptr) {
+=======
+    ReleaseNativeReference(jsConnectionObject_.release());
+}
+
+void JSUIExtensionConnection::ReleaseNativeReference(NativeReference* ref)
+{
+    if (ref == nullptr) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "null ref");
+>>>>>>> upstream/master
         return;
     }
 
     uv_loop_t *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
     if (loop == nullptr) {
+<<<<<<< HEAD
+=======
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "null uv loop");
+        delete ref;
+>>>>>>> upstream/master
         return;
     }
 
     uv_work_t *work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {
+<<<<<<< HEAD
+=======
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "null work");
+        delete ref;
+>>>>>>> upstream/master
         return;
     }
     work->data = reinterpret_cast<void *>(jsConnectionObject_.release());
     int ret = uv_queue_work(loop, work, [](uv_work_t *work) {},
     [](uv_work_t *work, int status) {
         if (work == nullptr) {
+<<<<<<< HEAD
             return;
         }
         if (work->data == nullptr) {
+=======
+            TAG_LOGE(AAFwkTag::UISERVC_EXT, "null work");
+            return;
+        }
+        if (work->data == nullptr) {
+            TAG_LOGE(AAFwkTag::UISERVC_EXT, "null data");
+>>>>>>> upstream/master
             delete work;
             work = nullptr;
             return;
@@ -1067,5 +1266,35 @@ void JSUIExtensionConnection::CallJsFailed(int32_t errorCode)
     TAG_LOGD(AAFwkTag::UI_EXT, "CallJsFailed end");
 }
 
+<<<<<<< HEAD
+=======
+napi_value JSUIExtensionConnection::CallObjectMethod(const char* name, napi_value const *argv, size_t argc)
+{
+    TAG_LOGD(AAFwkTag::UISERVC_EXT, "name:%{public}s", name);
+    if (!jsConnectionObject_) {
+        TAG_LOGW(AAFwkTag::UISERVC_EXT, "null jsConnectionObject_");
+        return nullptr;
+    }
+
+    HandleScope handleScope(env_);
+    napi_value obj = jsConnectionObject_->GetNapiValue();
+    if (!CheckTypeForNapiValue(env_, obj, napi_object)) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "jsConnectionObject_ type error");
+        return nullptr;
+    }
+
+    napi_value method = nullptr;
+    napi_get_named_property(env_, obj, name, &method);
+    if (!CheckTypeForNapiValue(env_, method, napi_function)) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "type error, method: '%{public}s'", name);
+        return nullptr;
+    }
+    napi_value result = nullptr;
+    napi_call_function(env_, obj, method, argc, argv, &result);
+    TAG_LOGD(AAFwkTag::UISERVC_EXT, "callFunction(%{public}s) ok", name);
+    return result;
+}
+
+>>>>>>> upstream/master
 }  // namespace AbilityRuntime
 }  // namespace OHOS

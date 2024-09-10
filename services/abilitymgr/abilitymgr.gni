@@ -59,8 +59,12 @@ abilityms_files = [
   "src/ams_configuration_parameter.cpp",
   "src/insight_intent_utils.cpp",
   "src/insight_intent_profile.cpp",
+<<<<<<< HEAD
 
   # interceptor
+=======
+  "src/recovery_info_timer.cpp",
+>>>>>>> upstream/master
   "src/interceptor/ability_interceptor_executer.cpp",
   "src/interceptor/ability_jump_interceptor.cpp",
   "src/interceptor/control_interceptor.cpp",
@@ -70,7 +74,6 @@ abilityms_files = [
   "src/interceptor/extension_control_interceptor.cpp",
   "src/interceptor/screen_unlock_interceptor.cpp",
   "src/interceptor/start_other_app_interceptor.cpp",
-
   "src/uri_utils.cpp",
   "src/window_focus_changed_listener.cpp",
 
@@ -136,6 +139,7 @@ abilityms_files = [
 
   #utils
   "src/utils/window_options_utils.cpp",
+  "src/utils/want_utils.cpp",
   "src/utils/state_utils.cpp",
   "src/utils/app_mgr_util.cpp",
   "src/utils/dump_utils.cpp",

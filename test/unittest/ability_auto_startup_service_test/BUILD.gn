@@ -71,6 +71,13 @@ ohos_unittest("ability_auto_startup_service_test") {
     "kv_store:distributeddata_inner",
   ]
 
+<<<<<<< HEAD
+=======
+  cflags_cc = []
+  if (os_dlp_part_enabled) {
+    cflags_cc += [ "-DWITH_DLP" ]
+  }
+>>>>>>> upstream/master
   if (ability_runtime_graphics) {
     external_deps += [
       "window_manager:libwsutils",

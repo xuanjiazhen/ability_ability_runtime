@@ -20,13 +20,14 @@
 #include "hilog_tag_wrapper.h"
 #include "app_state_observer_manager.h"
 #include "app_mgr_service_inner.h"
+#include "app_utils.h"
 #include "cache_process_manager.h"
 
 namespace {
 const std::string MAX_PROC_CACHE_NUM = "persist.sys.abilityms.maxProcessCacheNum";
+const std::string RESOURCE_CACHE_PROCESS_ENABLE = "persist.sys.resource.warmStartProcessEnable";
 const std::string PROCESS_CACHE_API_CHECK_CONFIG = "persist.sys.abilityms.processCacheApiCheck";
 const std::string PROCESS_CACHE_SET_SUPPORT_CHECK_CONFIG = "persist.sys.abilityms.processCacheSetSupportCheck";
-const std::string SHELL_ASSISTANT_BUNDLENAME = "com.huawei.shell_assistant";
 constexpr int32_t API12 = 12;
 constexpr int32_t API_VERSION_MOD = 100;
 }
@@ -39,7 +40,8 @@ CacheProcessManager::CacheProcessManager()
     maxProcCacheNum_ = OHOS::system::GetIntParameter<int>(MAX_PROC_CACHE_NUM, 0);
     shouldCheckApi = OHOS::system::GetBoolParameter(PROCESS_CACHE_API_CHECK_CONFIG, true);
     shouldCheckSupport = OHOS::system::GetBoolParameter(PROCESS_CACHE_SET_SUPPORT_CHECK_CONFIG, true);
-    TAG_LOGW(AAFwkTag::APPMGR, "maxProcCacheNum is =%{public}d", maxProcCacheNum_);
+    resourceCacheProcessEnable_ = OHOS::system::GetBoolParameter(RESOURCE_CACHE_PROCESS_ENABLE, false);
+    TAG_LOGW(AAFwkTag::APPMGR, "maxProcCacheNum %{public}d", maxProcCacheNum_);
 }
 
 CacheProcessManager::~CacheProcessManager()
@@ -55,10 +57,15 @@ void CacheProcessManager::SetAppMgr(const std::weak_ptr<AppMgrServiceInner> &app
 void CacheProcessManager::RefreshCacheNum()
 {
     maxProcCacheNum_ = OHOS::system::GetIntParameter<int>(MAX_PROC_CACHE_NUM, 0);
-    TAG_LOGW(AAFwkTag::APPMGR, "maxProcCacheNum is =%{public}d", maxProcCacheNum_);
+    TAG_LOGW(AAFwkTag::APPMGR, "maxProcCacheNum %{public}d", maxProcCacheNum_);
 }
 
 bool CacheProcessManager::QueryEnableProcessCache()
+{
+    return maxProcCacheNum_ > 0 || resourceCacheProcessEnable_;
+}
+
+bool CacheProcessManager::QueryEnableProcessCacheFromKits()
 {
     return maxProcCacheNum_ > 0;
 }
@@ -71,11 +78,11 @@ bool CacheProcessManager::PenddingCacheProcess(const std::shared_ptr<AppRunningR
         return false;
     }
     if (appRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "nullptr precheck failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "precheck failed");
         return false;
     }
     if (appRecord->IsKeepAliveApp()) {
-        TAG_LOGW(AAFwkTag::APPMGR, "Not cache keepalive process");
+        TAG_LOGW(AAFwkTag::APPMGR, "Not cache process");
         return false;
     }
     {
@@ -97,7 +104,7 @@ bool CacheProcessManager::CheckAndCacheProcess(const std::shared_ptr<AppRunningR
         return false;
     }
     if (appRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "appRecord nullptr precheck failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "precheck failed");
         return false;
     }
     if (!IsCachedProcess(appRecord)) {
@@ -124,12 +131,12 @@ bool CacheProcessManager::CheckAndCacheProcess(const std::shared_ptr<AppRunningR
 bool CacheProcessManager::CheckAndNotifyCachedState(const std::shared_ptr<AppRunningRecord> &appRecord)
 {
     if (appRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "appRecord nullptr precheck failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "precheck failed");
         return false;
     }
     auto appMgrSptr = appMgr_.lock();
     if (appMgrSptr == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "appMgr is nullptr");
+        TAG_LOGE(AAFwkTag::APPMGR, "null appMgr");
         return false;
     }
     auto &bundleName = appRecord->GetBundleName();
@@ -146,20 +153,20 @@ bool CacheProcessManager::CheckAndNotifyCachedState(const std::shared_ptr<AppRun
             return false;
         }
         if (!appMgrSptr->IsAppProcessesAllCached(bundleName, uid, sameAppSet[bundleName][uid])) {
-            TAG_LOGI(AAFwkTag::APPMGR, "Not all processes of one app is cached, abort notify");
+            TAG_LOGI(AAFwkTag::APPMGR, "Not cache process");
             return false;
         }
         notifyRecord = *(sameAppSet[bundleName][uid].begin());
     }
     appMgrSptr->OnAppCacheStateChanged(notifyRecord, ApplicationState::APP_STATE_CACHED);
-    TAG_LOGI(AAFwkTag::APPMGR, "app cached state is notified: %{public}s, uid:%{public}d", bundleName.c_str(), uid);
+    TAG_LOGI(AAFwkTag::APPMGR, "notified: %{public}s, uid:%{public}d", bundleName.c_str(), uid);
     return true;
 }
 
 bool CacheProcessManager::IsCachedProcess(const std::shared_ptr<AppRunningRecord> &appRecord)
 {
     if (appRecord == nullptr) {
-        TAG_LOGI(AAFwkTag::APPMGR, "appRecord nullptr precheck failed");
+        TAG_LOGI(AAFwkTag::APPMGR, "precheck failed");
         return false;
     }
     std::lock_guard<ffrt::recursive_mutex> queueLock(cacheQueueMtx);
@@ -178,7 +185,7 @@ void CacheProcessManager::OnProcessKilled(const std::shared_ptr<AppRunningRecord
         return;
     }
     if (appRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "appRecord nullptr precheck failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "precheck failed");
         return;
     }
     CheckAndNotifyCachedState(appRecord);
@@ -202,8 +209,13 @@ void CacheProcessManager::ReuseCachedProcess(const std::shared_ptr<AppRunningRec
         return;
     }
     if (appRecord == nullptr) {
+<<<<<<< HEAD
         TAG_LOGE(AAFwkTag::APPMGR, "appRecord nullptr precheck failed");
         return;
+=======
+        TAG_LOGE(AAFwkTag::APPMGR, "precheck failed");
+        return false;
+>>>>>>> upstream/master
     }
     if (!IsCachedProcess(appRecord)) {
         return;
@@ -211,8 +223,13 @@ void CacheProcessManager::ReuseCachedProcess(const std::shared_ptr<AppRunningRec
     RemoveCacheRecord(appRecord);
     auto appMgrSptr = appMgr_.lock();
     if (appMgrSptr == nullptr) {
+<<<<<<< HEAD
         TAG_LOGE(AAFwkTag::APPMGR, "appMgr is nullptr");
         return;
+=======
+        TAG_LOGE(AAFwkTag::APPMGR, "null appMgr");
+        return true;
+>>>>>>> upstream/master
     }
     appMgrSptr->OnAppCacheStateChanged(appRecord, ApplicationState::APP_STATE_READY);
     TAG_LOGI(AAFwkTag::APPMGR, "app none cached state is notified: %{public}s, uid: %{public}d, %{public}s",
@@ -222,7 +239,7 @@ void CacheProcessManager::ReuseCachedProcess(const std::shared_ptr<AppRunningRec
 bool CacheProcessManager::IsAppSupportProcessCache(const std::shared_ptr<AppRunningRecord> &appRecord)
 {
     if (appRecord == nullptr) {
-        TAG_LOGI(AAFwkTag::APPMGR, "appRecord nullptr precheck failed");
+        TAG_LOGI(AAFwkTag::APPMGR, "precheck failed");
         return false;
     }
     auto appInfo = appRecord->GetApplicationInfo();
@@ -260,15 +277,20 @@ bool CacheProcessManager::IsAppSupportProcessCache(const std::shared_ptr<AppRunn
 bool CacheProcessManager::IsAppSupportProcessCacheInnerFirst(const std::shared_ptr<AppRunningRecord> &appRecord)
 {
     if (appRecord == nullptr) {
-        TAG_LOGI(AAFwkTag::APPMGR, "appRecord nullptr precheck failed");
+        TAG_LOGI(AAFwkTag::APPMGR, "precheck failed");
         return false;
     }
-    if (appRecord->GetBundleName() == SHELL_ASSISTANT_BUNDLENAME) {
+    if (appRecord->GetBundleName() == AAFwk::AppUtils::GetInstance().GetBrokerDelegateBundleName()) {
         TAG_LOGD(AAFwkTag::APPMGR, "shell assistant, not support.");
         return false;
     }
     if (appRecord->GetProcessCacheBlocked()) {
         TAG_LOGD(AAFwkTag::APPMGR, "%{public}s of %{public}s 's process cache temporarily blocked.",
+            appRecord->GetProcessName().c_str(), appRecord->GetBundleName().c_str());
+        return false;
+    }
+    if (!appRecord->HasUIAbilityLaunched()) {
+        TAG_LOGD(AAFwkTag::APPMGR, "%{public}s of %{public}s has not created uiability before.",
             appRecord->GetProcessName().c_str(), appRecord->GetBundleName().c_str());
         return false;
     }
@@ -310,7 +332,7 @@ bool CacheProcessManager::IsAppShouldCache(const std::shared_ptr<AppRunningRecor
 bool CacheProcessManager::IsAppAbilitiesEmpty(const std::shared_ptr<AppRunningRecord> &appRecord)
 {
     if (appRecord == nullptr) {
-        TAG_LOGI(AAFwkTag::APPMGR, "appRecord nullptr precheck failed");
+        TAG_LOGI(AAFwkTag::APPMGR, "precheck failed");
         return false;
     }
     auto allModuleRecord = appRecord->GetAllModuleRecord();
@@ -346,14 +368,14 @@ void CacheProcessManager::RemoveCacheRecord(const std::shared_ptr<AppRunningReco
 void CacheProcessManager::ShrinkAndKillCache()
 {
     TAG_LOGD(AAFwkTag::APPMGR, "Called");
-    if (maxProcCacheNum_ <= 0) {
+    if (maxProcCacheNum_ <= 0 && !resourceCacheProcessEnable_) {
         TAG_LOGI(AAFwkTag::APPMGR, "Cache disabled.");
         return;
     }
     std::vector<std::shared_ptr<AppRunningRecord>> cleanList;
     {
         std::lock_guard<ffrt::recursive_mutex> queueLock(cacheQueueMtx);
-        while (GetCurrentCachedProcNum() > maxProcCacheNum_) {
+        while (GetCurrentCachedProcNum() > maxProcCacheNum_ && !resourceCacheProcessEnable_) {
             const auto& tmpAppRecord = cachedAppRecordQueue_.front();
             cachedAppRecordQueue_.pop_front();
             RemoveFromApplicationSet(tmpAppRecord);
@@ -373,12 +395,12 @@ void CacheProcessManager::ShrinkAndKillCache()
 bool CacheProcessManager::KillProcessByRecord(const std::shared_ptr<AppRunningRecord> &appRecord)
 {
     if (appRecord == nullptr) {
-        TAG_LOGW(AAFwkTag::APPMGR, "appRecord nullptr precheck failed");
+        TAG_LOGW(AAFwkTag::APPMGR, "precheck failed");
         return false;
     }
     auto appMgrSptr = appMgr_.lock();
     if (appMgrSptr == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "appMgr is nullptr");
+        TAG_LOGE(AAFwkTag::APPMGR, "null appMgr");
         return false;
     }
     // notify before kill
@@ -466,7 +488,7 @@ void CacheProcessManager::PrepareActivateCache(const std::shared_ptr<AppRunningR
     TAG_LOGD(AAFwkTag::APPMGR, "%{public}s needs activate.", appRecord->GetBundleName().c_str());
     auto appMgrSptr = appMgr_.lock();
     if (appMgrSptr == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "appMgr is nullptr");
+        TAG_LOGE(AAFwkTag::APPMGR, "null appMgr");
         return;
     }
     appMgrSptr->OnAppCacheStateChanged(appRecord, ApplicationState::APP_STATE_READY);
@@ -507,6 +529,21 @@ bool CacheProcessManager::IsAppContainsSrvExt(const std::shared_ptr<AppRunningRe
     }
     srvExtCheckedFlag.insert(appRecord);
     return srvExtRecords.find(appRecord) != srvExtRecords.end() ? true : false;
+}
+
+void CacheProcessManager::OnAppProcessCacheBlocked(const std::shared_ptr<AppRunningRecord> &appRecord)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    if (!QueryEnableProcessCache()) {
+        return;
+    }
+    if (appRecord == nullptr || !IsCachedProcess(appRecord)) {
+        return;
+    }
+    TAG_LOGI(AAFwkTag::APPMGR, "%{public}s is cached and is blocked, which needs exit.",
+        appRecord->GetBundleName().c_str());
+    RemoveCacheRecord(appRecord);
+    KillProcessByRecord(appRecord);
 }
 } // namespace OHOS
 } // namespace AppExecFwk

@@ -51,6 +51,14 @@ ohos_unittest("ability_first_frame_state_observer_manager_test") {
     "hilog:libhilog",
     "ipc:ipc_core",
   ]
+<<<<<<< HEAD
+=======
+
+  cflags_cc = []
+  if (os_dlp_part_enabled) {
+    cflags_cc += [ "-DWITH_DLP" ]
+  }
+>>>>>>> upstream/master
 }
 
 group("unittest") {

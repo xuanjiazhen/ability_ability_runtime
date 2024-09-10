@@ -71,6 +71,18 @@ public:
      * @return The ui service extension instance.
      */
     static UIServiceExtension* Create(const std::unique_ptr<Runtime>& runtime);
+<<<<<<< HEAD
+=======
+
+#ifdef SUPPORT_GRAPHICS
+    /**
+     * @brief get the window option.
+     * @return Returns a window option object pointer.
+     */
+    sptr<Rosen::WindowOption> GetWindowOption(
+        const std::shared_ptr< Rosen::ExtensionWindowConfig>& extensionWindowConfig, const int32_t hostWindowId);
+#endif
+>>>>>>> upstream/master
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS

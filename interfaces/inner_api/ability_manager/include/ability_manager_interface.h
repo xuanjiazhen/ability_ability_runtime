@@ -400,7 +400,7 @@ public:
      * @param isColdStart the session info of the ability is or not cold start.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart)
+    virtual int StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag = 0)
     {
         return 0;
     }
@@ -570,7 +570,8 @@ public:
      * @param fromUser, Whether form user.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int MinimizeUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool fromUser = false)
+    virtual int MinimizeUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool fromUser = false,
+        uint32_t sceneFlag = 0)
     {
         return 0;
     };
@@ -735,7 +736,11 @@ public:
      * @param bundleName.
      * @return Returns ERR_OK on success, others on failure.
      */
+<<<<<<< HEAD
     virtual int KillProcess(const std::string &bundleName) = 0;
+=======
+    virtual int KillProcess(const std::string &bundleName, const bool clearPageStack = false) = 0;
+>>>>>>> upstream/master
 
     #ifdef ABILITY_COMMAND_FOR_TEST
     /**

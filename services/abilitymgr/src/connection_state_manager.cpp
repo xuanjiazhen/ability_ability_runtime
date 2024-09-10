@@ -15,13 +15,9 @@
 
 #include "connection_state_manager.h"
 
-#include <fstream>
-
-#include "app_mgr_interface.h"
 #include "connection_observer_errors.h"
 #include "global_constant.h"
 #include "hilog_tag_wrapper.h"
-#include "if_system_ability_manager.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 
@@ -399,7 +395,11 @@ std::shared_ptr<ConnectionStateItem> ConnectionStateManager::RemoveDiedCaller(in
     std::lock_guard<ffrt::mutex> guard(stateLock_);
     auto it = connectionStates_.find(callerPid);
     if (it == connectionStates_.end()) {
+<<<<<<< HEAD
         TAG_LOGW(AAFwkTag::CONNECTION, "callerPid:%{public}d.", callerPid);
+=======
+        TAG_LOGW(AAFwkTag::CONNECTION, "callerPid:%{public}d", callerPid);
+>>>>>>> upstream/master
         return nullptr;
     }
     auto stateItem = it->second;
@@ -540,7 +540,11 @@ void ConnectionStateManager::InitAppStateObserver()
     });
     int32_t err = appManager->RegisterApplicationStateObserver(appStateObserver_);
     if (err != 0) {
+<<<<<<< HEAD
         TAG_LOGE(AAFwkTag::CONNECTION, "register to appmanager err:%{public}d", err);
+=======
+        TAG_LOGE(AAFwkTag::CONNECTION, "register to appmgr err:%{public}d", err);
+>>>>>>> upstream/master
         appStateObserver_ = nullptr;
         return;
     }

@@ -17,7 +17,6 @@
 
 #include "ability_record.h"
 #include "ability_util.h"
-#include "hilog_tag_wrapper.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -181,7 +180,7 @@ bool LifecycleDeal::PrepareTerminateAbility()
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     auto abilityScheduler = GetScheduler();
     if (abilityScheduler == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityScheduler is nullptr.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null abilityScheduler");
         return false;
     }
     return abilityScheduler->SchedulePrepareTerminateAbility();

@@ -595,17 +595,34 @@ napi_value JsApplicationContextUtils::OnKillProcessBySelf(napi_env env, NapiCall
         return CreateJsUndefined(env);
     }
 
+<<<<<<< HEAD
     TAG_LOGD(AAFwkTag::APPKIT, "kill self process");
     auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
     NapiAsyncTask::ExecuteCallback execute =
         [applicationContext = applicationContext_, innerErrCode]() {
+=======
+    bool clearPageStack = true;
+    bool hasClearPageStack = false;
+    if (info.argc > ARGC_ZERO && ConvertFromJsValue(env, info.argv[0], clearPageStack)) {
+        hasClearPageStack = true;
+    }
+
+    TAG_LOGD(AAFwkTag::APPKIT, "kill self process");
+    auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute =
+        [applicationContext = applicationContext_, clearPageStack, innerErrCode]() {
+>>>>>>> upstream/master
         auto context = applicationContext.lock();
         if (!context) {
             TAG_LOGE(AAFwkTag::APPKIT, "applicationContext is released");
             *innerErrCode = ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST;
             return;
         }
+<<<<<<< HEAD
         context->KillProcessBySelf();
+=======
+        context->KillProcessBySelf(clearPageStack);
+>>>>>>> upstream/master
     };
     NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
         if (*innerErrCode != ERR_OK) {
@@ -614,7 +631,11 @@ napi_value JsApplicationContextUtils::OnKillProcessBySelf(napi_env env, NapiCall
         }
         task.ResolveWithNoError(env, CreateJsUndefined(env));
     };
+<<<<<<< HEAD
     napi_value lastParam = (info.argc == ARGC_ONE) ? info.argv[INDEX_ZERO] : nullptr;
+=======
+    napi_value lastParam = (info.argc == ARGC_ONE && !hasClearPageStack) ? info.argv[INDEX_ZERO] : nullptr;
+>>>>>>> upstream/master
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JsApplicationContextUtils::OnkillProcessBySelf",
         env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));

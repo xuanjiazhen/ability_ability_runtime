@@ -48,6 +48,8 @@ config("wantagent_innerkits_public_config") {
 }
 
 ohos_shared_library("wantagent_innerkits") {
+  branch_protector_ret = "pac_ret"
+
   include_dirs = [
     "${ability_runtime_services_path}/common/include",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper",
@@ -68,7 +70,6 @@ ohos_shared_library("wantagent_innerkits") {
     "src/want_agent_client.cpp",
     "src/want_agent_helper.cpp",
     "src/want_agent_info.cpp",
-    "src/want_agent_log_wrapper.cpp",
   ]
 
   configs = [ "${c_utils_base_path}:utils_config" ]
@@ -88,6 +89,7 @@ ohos_shared_library("wantagent_innerkits") {
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
+    "jsoncpp:jsoncpp",
     "napi:ace_napi",
     "samgr:samgr_proxy",
   ]
@@ -98,6 +100,11 @@ ohos_shared_library("wantagent_innerkits") {
 
   if (is_double_framework) {
     cflags = [ "-DCONFIG_DUAL_FRAMEWORK" ]
+  }
+
+  cflags_cc = []
+  if (os_dlp_part_enabled) {
+    cflags_cc += [ "-DWITH_DLP" ]
   }
 
   innerapi_tags = [

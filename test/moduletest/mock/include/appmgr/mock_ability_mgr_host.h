@@ -142,7 +142,11 @@ public:
         return 0;
     }
 
+<<<<<<< HEAD
     virtual int KillProcess(const std::string& bundleName) override
+=======
+    virtual int KillProcess(const std::string& bundleName, const bool clearPageStack = false) override
+>>>>>>> upstream/master
     {
         return 0;
     }

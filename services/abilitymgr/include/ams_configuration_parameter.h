@@ -49,6 +49,11 @@ constexpr const char* UIEATENSION_TYPE = "type";
 constexpr const char* UIEATENSION_TYPE_PICKER = "typePicker";
 constexpr const char* MULTI_USER_TYPE = "multiUserType";
 constexpr const char* SUPPORT_BACK_TO_CALLER = "supportBackToCaller";
+<<<<<<< HEAD
+=======
+constexpr const char* SUPPORT_SCB_CRASH_REBOOT = "supportSCBCrashReboot";
+constexpr const char* RESIDENT_WHITE_LIST = "normal_resident_apps";
+>>>>>>> upstream/master
 }  // namespace AmsConfig
 
 enum class SatrtUiMode { STATUSBAR = 1, NAVIGATIONBAR = 2, STARTUIBOTH = 3 };
@@ -64,6 +69,8 @@ enum class JsonValueType {
 
 class AmsConfigurationParameter final {
 public:
+    enum { READ_OK = 0, READ_FAIL = 1, READ_JSON_FAIL = 2 };
+
     static AmsConfigurationParameter &GetInstance();
     /**
      * return true : ams no config file
@@ -117,6 +124,11 @@ public:
 
     bool IsSupportBackToCaller() const;
 
+<<<<<<< HEAD
+=======
+    bool IsSupportSCBCrashReboot() const;
+
+>>>>>>> upstream/master
     /**
      * set picker json object.
      */
@@ -131,7 +143,7 @@ public:
 
     const std::map<std::string, std::string>& GetPickerMap() const;
 
-    enum { READ_OK = 0, READ_FAIL = 1, READ_JSON_FAIL = 2 };
+    bool InResidentWhiteList(const std::string &bundleName) const;
 
 private:
     AmsConfigurationParameter();
@@ -152,6 +164,11 @@ private:
     void UpdatePickerConfigurationString(nlohmann::json& Object, const std::string &configName, std::string &value);
     void LoadUIExtensionPickerConfig(const std::string &filePath);
     int32_t LoadBackToCallerConfig(nlohmann::json& Object);
+<<<<<<< HEAD
+=======
+    int32_t LoadSupportSCBCrashRebootConfig(nlohmann::json& Object);
+    void LoadResidentWhiteListConfig(nlohmann::json& Object);
+>>>>>>> upstream/master
 
 private:
     bool nonConfigFile_ {false};
@@ -171,6 +188,11 @@ private:
     std::map<std::string, std::string> picker_;
     int multiUserType_ {0};
     bool supportBackToCaller_ {true};
+<<<<<<< HEAD
+=======
+    bool supportSceneboardCrashReboot_{true};
+    std::vector<std::string> residentWhiteList_;
+>>>>>>> upstream/master
 };
 }  // namespace AAFwk
 }  // namespace OHOS

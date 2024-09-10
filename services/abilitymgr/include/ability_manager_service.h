@@ -441,7 +441,7 @@ public:
      * @param isColdStart the session info of the ability is or not cold start.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart) override;
+    virtual int StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag = 0) override;
 
     /**
      * Stop extension ability with want, send want to ability manager service.
@@ -563,7 +563,8 @@ public:
      * @param fromUser, Whether form user.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int MinimizeUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool fromUser = false) override;
+    virtual int MinimizeUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool fromUser = false,
+        uint32_t sceneFlag = 0) override;
 
     /**
      * ConnectAbility, connect session with service ability.
@@ -829,7 +830,11 @@ public:
      * @param bundleName.
      * @return Returns ERR_OK on success, others on failure.
      */
+<<<<<<< HEAD
     virtual int KillProcess(const std::string &bundleName) override;
+=======
+    virtual int KillProcess(const std::string &bundleName, const bool clearPageStack = false) override;
+>>>>>>> upstream/master
 
     /**
      * Uninstall app
@@ -1019,7 +1024,8 @@ public:
         AppExecFwk::ExtensionAbilityType extensionType,
         bool checkSystemCaller = true,
         bool isImplicit = false,
-        bool isDlp = false);
+        bool isDlp = false,
+        bool isStartAsCaller = false);
 
     int RequestModalUIExtensionInner(Want want);
 
@@ -1183,6 +1189,10 @@ public:
     virtual int SendDialogResult(const Want &want, const std::string &dialogSessionId, bool isAllowed) override;
 
     int CreateCloneSelectorDialog(AbilityRequest &request, int32_t userId, const std::string &replaceWantString = "");
+
+    void RemoveSelectorIdentity(int32_t tokenId);
+
+    void SetTargetCloneIndexInSameBundle(const Want &want, sptr<IRemoteObject> callerToken);
 
     virtual int RegisterAbilityFirstFrameStateObserver(const sptr<IAbilityFirstFrameStateObserver> &observer,
         const std::string &bundleName) override;
@@ -1611,6 +1621,7 @@ public:
      */
     virtual int32_t OpenFile(const Uri& uri, uint32_t flag) override;
 
+    void RemoveLauncherDeathRecipient(int32_t userId);
     /**
      * @brief Set application auto start up state by EDM.
      * @param info The auto startup info, include bundle name, module name, ability name.
@@ -1634,14 +1645,20 @@ public:
      */
     int32_t GetForegroundUIAbilities(std::vector<AppExecFwk::AbilityStateData> &list) override;
 
-    void RemoveLauncherDeathRecipient(int32_t userId);
-
     /**
      * @brief Update session info.
      * @param sessionInfos The vector of session info.
      */
     virtual int32_t UpdateSessionInfoBySCB(std::list<SessionInfo> &sessionInfos, int32_t userId,
         std::vector<int32_t> &sessionIds) override;
+
+    /**
+     * @brief Restart app self.
+     * @param want The ability type must be UIAbility.
+     * @param isAppRecovery True indicates that the app is restarted because of recovery.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t RestartApp(const AAFwk::Want &want, bool isAppRecovery = false) override;
 
     /**
      * @brief Get host info of root caller.
@@ -1675,6 +1692,7 @@ public:
     int32_t SetResidentProcessEnabled(const std::string &bundleName, bool enable) override;
 
     /**
+<<<<<<< HEAD
      * @brief Restart app self.
      * @param want The ability type must be UIAbility.
      * @param isAppRecovery True indicates that the app is restarted because of recovery.
@@ -1683,6 +1701,8 @@ public:
     int32_t RestartApp(const AAFwk::Want &want, bool isAppRecovery = false) override;
 
     /**
+=======
+>>>>>>> upstream/master
      * @brief Request to display assert fault dialog.
      * @param callback Listen for user operation callbacks.
      * @param wantParams Assert dialog box display information.
@@ -1758,6 +1778,27 @@ public:
     void NotifySCBToHandleAtomicServiceException(const std::string& sessionId, int errCode,
         const std::string& reason);
 
+<<<<<<< HEAD
+=======
+    int32_t TerminateMission(int32_t missionId) override;
+
+    int32_t StartUIAbilityBySCBDefaultCommon(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
+        uint32_t sceneFlag, bool &isColdStart);
+
+    int32_t NotifySCBToRecoveryAfterInterception(const AbilityRequest &abilityRequest);
+
+    /**
+     * Judge if Caller-Application is in background state.
+     *
+     * @param abilityRequest, abilityRequest.
+     * @param isBackgroundCall, Indicates the Caller-Application state.
+     *                          TRUE: The Caller-Application is not in focus and not in foreground state.
+     *                          FALSE: The Caller-Application is in focus or in foreground state.
+     * @return Returns ERR_OK on check success, others on check failure.
+     */
+    int IsCallFromBackground(const AbilityRequest &abilityRequest, bool &isBackgroundCall, bool isData = false);
+
+>>>>>>> upstream/master
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;
     static constexpr uint32_t ACTIVE_TIMEOUT_MSG = 1;
@@ -1766,6 +1807,11 @@ public:
     static constexpr uint32_t FOREGROUND_TIMEOUT_MSG = 5;
     static constexpr uint32_t BACKGROUND_TIMEOUT_MSG = 6;
     static constexpr uint32_t SHAREDATA_TIMEOUT_MSG = 7;
+<<<<<<< HEAD
+=======
+    static constexpr uint32_t LOAD_HALF_TIMEOUT_MSG = 8;
+    static constexpr uint32_t FOREGROUND_HALF_TIMEOUT_MSG = 9;
+>>>>>>> upstream/master
 
     static constexpr uint32_t MIN_DUMP_ARGUMENT_NUM = 2;
     static constexpr uint32_t MAX_WAIT_SYSTEM_UI_NUM = 600;
@@ -1833,9 +1879,9 @@ private:
 
     int StartRemoteAbility(const Want &want, int requestCode, int32_t validUserId,
         const sptr<IRemoteObject> &callerToken);
-    int StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionInfo, bool &isColdStart);
-    int StartUIAbilityByPreInstallInner(sptr<SessionInfo> sessionInfo,
-        uint32_t specifyTokenId, bool &isColdStart);
+    int StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionInfo, uint32_t sceneFlag, bool &isColdStart);
+    int StartUIAbilityByPreInstallInner(sptr<SessionInfo> sessionInfo, uint32_t specifyTokenId,
+        uint32_t sceneFlag, bool &isColdStart);
     int32_t PreStartInner(const FreeInstallInfo& taskInfo);
     void RemovePreStartSession(const std::string& sessionId);
 
@@ -1957,7 +2003,7 @@ private:
 
     bool IsNeedTimeoutForTest(const std::string &abilityName, const std::string &state) const;
 
-    void StartResidentApps();
+    void StartResidentApps(int32_t userId);
 
     void StartAutoStartupApps();
     void RetryStartAutoStartupApps(const std::vector<AutoStartupInfo> &infoList, int32_t retryCount);
@@ -1977,13 +2023,20 @@ private:
     int CheckStaticCfgPermission(const AppExecFwk::AbilityRequest &abilityRequest, bool isStartAsCaller,
         uint32_t callerTokenId, bool isData = false, bool isSaCall = false, bool isImplicit = false);
 
+<<<<<<< HEAD
+=======
+    int CheckPermissionForUIService(AppExecFwk::ExtensionAbilityType extensionType,
+        const Want &want, const AbilityRequest &abilityRequest);
+
+>>>>>>> upstream/master
     bool GetValidDataAbilityUri(const std::string &abilityInfoUri, std::string &adjustUri);
 
     int GenerateExtensionAbilityRequest(const Want &want, AbilityRequest &request,
         const sptr<IRemoteObject> &callerToken, int32_t userId);
     int32_t InitialAbilityRequest(AbilityRequest &request, const StartAbilityInfo &abilityInfo) const;
     int CheckOptExtensionAbility(const Want &want, AbilityRequest &abilityRequest,
-        int32_t validUserId, AppExecFwk::ExtensionAbilityType extensionType, bool isImplicit = false);
+        int32_t validUserId, AppExecFwk::ExtensionAbilityType extensionType, bool isImplicit = false,
+        bool isStartAsCaller = false);
 
     void SubscribeBackgroundTask();
 
@@ -2077,17 +2130,6 @@ private:
      */
     int CheckUIExtensionPermission(const AbilityRequest &abilityRequest);
 
-    /**
-     * Judge if Caller-Application is in background state.
-     *
-     * @param abilityRequest, abilityRequest.
-     * @param isBackgroundCall, Indicates the Caller-Application state.
-     *                          TRUE: The Caller-Application is not in focus and not in foreground state.
-     *                          FALSE: The Caller-Application is in focus or in foreground state.
-     * @return Returns ERR_OK on check success, others on check failure.
-     */
-    int IsCallFromBackground(const AbilityRequest &abilityRequest, bool &isBackgroundCall, bool isData = false);
-
     bool IsTargetPermission(const Want &want) const;
 
     bool IsDelegatorCall(const AppExecFwk::RunningProcessInfo &processInfo, const AbilityRequest &abilityRequest) const;
@@ -2176,6 +2218,7 @@ private:
         const int32_t oriValidUserId);
 
     void InitInterceptor();
+    void InitInterceptorForScreenUnlock();
     void InitPushTask();
     void InitDeepLinkReserve();
 
@@ -2192,12 +2235,12 @@ private:
     int32_t SignRestartAppFlag(int32_t userId, const std::string &bundleName, bool isAppRecovery = false);
     int32_t CheckRestartAppWant(const AAFwk::Want &want);
 
-    int32_t CheckDebugAssertPermission();
-    std::shared_ptr<AbilityDebugDeal> ConnectInitAbilityDebugDeal();
-
     int StartUIAbilityForOptionWrap(const Want &want, const StartOptions &options, sptr<IRemoteObject> callerToken,
         bool isPendingWantCaller, int32_t userId, int requestCode, uint32_t callerTokenId = 0, bool isImplicit = false,
         bool isCallByShortcut = false);
+
+    int32_t CheckDebugAssertPermission();
+    std::shared_ptr<AbilityDebugDeal> ConnectInitAbilityDebugDeal();
 
     int32_t SetBackgroundCall(const AppExecFwk::RunningProcessInfo &processInfo,
         const AbilityRequest &abilityRequest, bool &isBackgroundCall) const;
@@ -2236,8 +2279,14 @@ private:
     int PreStartFreeInstall(const Want &want, sptr<IRemoteObject> callerToken,
         uint32_t specifyTokenId, bool isStartAsCaller, Want &localWant);
 
+    bool IsAtomicServiceUrl(const Want& want, sptr<IRemoteObject> callerToken,
+    int32_t userId, int requestCode);
+
     void ReportCleanSession(const sptr<SessionInfo> &sessionInfo,
         const std::shared_ptr<AbilityRecord> &abilityRecord, int32_t errCode);
+    
+    void SendStartAbilityOtherExtensionEvent(const AppExecFwk::AbilityInfo& abilityInfo,
+        const Want& want, uint32_t specifyTokenId);
 
     constexpr static int REPOLL_TIME_MICRO_SECONDS = 1000000;
     constexpr static int WAITING_BOOT_ANIMATION_TIMER = 5;
@@ -2316,18 +2365,25 @@ private:
 
     bool GetJsonFromFile(const char *filePath, Json::Value &root);
 
-    bool ParseJsonFromBoot(nlohmann::json jsonObj, const std::string &relativePath,
-        const std::string &WHITE_LIST);
-
-    void CloseAssertDialog(const std::string &assertSessionId);
+    bool ParseJsonFromBoot(const std::string &relativePath);
 
     void SetReserveInfo(const std::string &linkString, AbilityRequest& abilityRequest);
+    void CloseAssertDialog(const std::string &assertSessionId);
 
+<<<<<<< HEAD
+    void SetReserveInfo(const std::string &linkString, AbilityRequest& abilityRequest);
+
+=======
+>>>>>>> upstream/master
     void ReportPreventStartAbilityResult(const AppExecFwk::AbilityInfo &callerAbilityInfo,
         const AppExecFwk::AbilityInfo &abilityInfo);
 
     void UpdateBackToCallerFlag(const sptr<IRemoteObject> &callerToken, Want &want, int32_t requestCode, bool backFlag);
 
+<<<<<<< HEAD
+=======
+    void SetAbilityRequestSessionInfo(AbilityRequest &abilityRequest, AppExecFwk::ExtensionAbilityType extensionType);
+>>>>>>> upstream/master
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
     std::shared_ptr<BackgroundTaskObserver> bgtaskObserver_;
 #endif

@@ -17,13 +17,27 @@
 #define OHOS_APPLICATION_CONFIGURATION_MANAGER_H
 
 #include <cstdint>
+<<<<<<< HEAD
+=======
+#include <string>
+#include <vector>
+>>>>>>> upstream/master
 
 namespace OHOS {
 namespace AbilityRuntime {
 enum class SetLevel : uint8_t {
+<<<<<<< HEAD
     Default,
     System,
     Application,
+=======
+    // system level, only color mode have SA level
+    System,
+    SA,
+    // application level
+    Application,
+    SetLevelCount,
+>>>>>>> upstream/master
 };
 
 class ApplicationConfigurationManager {
@@ -33,9 +47,20 @@ public:
     static ApplicationConfigurationManager& GetInstance();
     void SetLanguageSetLevel(SetLevel languageSetLevel);
     SetLevel GetLanguageSetLevel() const;
+<<<<<<< HEAD
 
 private:
     SetLevel languageSetLevel_ = SetLevel::Default;
+=======
+    std::string SetColorModeSetLevel(SetLevel colorModeSetLevel, const std::string &value);
+    SetLevel GetColorModeSetLevel() const;
+    bool ColorModeHasSetByApplication() const;
+
+private:
+    SetLevel languageSetLevel_ = SetLevel::System;
+    SetLevel colorModeSetLevel_ = SetLevel::System;
+    std::vector<std::string> colorModeVal_ = std::vector<std::string>(static_cast<uint8_t>(SetLevel::SetLevelCount));
+>>>>>>> upstream/master
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

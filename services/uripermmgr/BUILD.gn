@@ -87,6 +87,7 @@ ohos_shared_library("libupms") {
   ]
   if (ability_runtime_feature_sandboxmanager) {
     external_deps += [ "sandbox_manager:libsandbox_manager_sdk" ]
+    defines = [ "ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER" ]
   }
 
   subsystem_name = "ability"
@@ -140,6 +141,7 @@ ohos_static_library("libupms_static") {
 
   if (ability_runtime_feature_sandboxmanager) {
     external_deps += [ "sandbox_manager:libsandbox_manager_sdk" ]
+    defines = [ "ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER" ]
   }
 
   subsystem_name = "ability"

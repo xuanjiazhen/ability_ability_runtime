@@ -74,6 +74,7 @@
 #ifdef CJ_FRONTEND
 #include "cj_runtime.h"
 #endif
+#include "native_lib_util.h"
 #include "nlohmann/json.hpp"
 #include "ohos_application.h"
 #include "overlay_module_info.h"
@@ -126,6 +127,7 @@ constexpr int32_t DISTRIBUTE_TIME = 100;
 constexpr int32_t START_HIGH_SENSITIVE = 1;
 constexpr int32_t EXIT_HIGH_SENSITIVE = 2;
 constexpr int32_t UNSPECIFIED_USERID = -2;
+constexpr int32_t JS_ERROR_EXIT = -2;
 constexpr int32_t TIME_OUT = 120;
 constexpr int32_t DEFAULT_SLEEP_TIME = 100000;
 
@@ -145,6 +147,7 @@ constexpr char EVENT_KEY_HAPPEN_TIME[] = "HAPPEN_TIME";
 constexpr char EVENT_KEY_REASON[] = "REASON";
 constexpr char EVENT_KEY_JSVM[] = "JSVM";
 constexpr char EVENT_KEY_SUMMARY[] = "SUMMARY";
+constexpr char EVENT_KEY_PNAME[] = "PNAME";
 constexpr char EVENT_KEY_APP_RUNING_UNIQUE_ID[] = "APP_RUNNING_UNIQUE_ID";
 constexpr char DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
 constexpr char PRODUCT_ASSERT_FAULT_DIALOG_ENABLED[] = "persisit.sys.abilityms.support_assert_fault_dialog";
@@ -166,89 +169,6 @@ const int32_t TYPE_RESERVE = 1;
 const int32_t TYPE_OTHERS = 2;
 
 extern "C" int DFX_SetAppRunningUniqueId(const char* appRunningId, size_t len) __attribute__((weak));
-
-std::string GetLibPath(const std::string &hapPath, bool isPreInstallApp)
-{
-    std::string libPath = LOCAL_CODE_PATH;
-    if (isPreInstallApp) {
-        auto pos = hapPath.rfind("/");
-        libPath = hapPath.substr(0, pos);
-    }
-    return libPath;
-}
-
-void GetHapSoPath(const HapModuleInfo &hapInfo, AppLibPathMap &appLibPaths, bool isPreInstallApp)
-{
-    if (hapInfo.nativeLibraryPath.empty()) {
-        TAG_LOGD(AAFwkTag::APPKIT, "Lib path of %{public}s is empty, lib isn't isolated or compressed",
-            hapInfo.moduleName.c_str());
-        return;
-    }
-
-    std::string appLibPathKey = hapInfo.bundleName + "/" + hapInfo.moduleName;
-    std::string libPath = LOCAL_CODE_PATH;
-    if (!hapInfo.compressNativeLibs) {
-        TAG_LOGD(AAFwkTag::APPKIT, "Lib of %{public}s will not be extracted from hap", hapInfo.moduleName.c_str());
-        libPath = GetLibPath(hapInfo.hapPath, isPreInstallApp);
-    }
-
-    libPath += (libPath.back() == '/') ? hapInfo.nativeLibraryPath : "/" + hapInfo.nativeLibraryPath;
-    TAG_LOGD(
-        AAFwkTag::APPKIT, "appLibPathKey: %{private}s, lib path: %{private}s", appLibPathKey.c_str(), libPath.c_str());
-    appLibPaths[appLibPathKey].emplace_back(libPath);
-}
-
-void GetHspNativeLibPath(const BaseSharedBundleInfo &hspInfo, AppLibPathMap &appLibPaths, bool isPreInstallApp)
-{
-    if (hspInfo.nativeLibraryPath.empty()) {
-        return;
-    }
-
-    std::string appLibPathKey = hspInfo.bundleName + "/" + hspInfo.moduleName;
-    std::string libPath = LOCAL_CODE_PATH;
-    if (!hspInfo.compressNativeLibs) {
-        libPath = GetLibPath(hspInfo.hapPath, isPreInstallApp);
-        libPath = libPath.back() == '/' ? libPath : libPath + "/";
-        if (isPreInstallApp) {
-            libPath += hspInfo.nativeLibraryPath;
-        } else {
-            libPath += hspInfo.bundleName + "/" + hspInfo.moduleName + "/" + hspInfo.nativeLibraryPath;
-        }
-    } else {
-        libPath = libPath.back() == '/' ? libPath : libPath + "/";
-        libPath += hspInfo.bundleName + "/" + hspInfo.nativeLibraryPath;
-    }
-
-    TAG_LOGD(
-        AAFwkTag::APPKIT, "appLibPathKey: %{private}s, libPath: %{private}s", appLibPathKey.c_str(), libPath.c_str());
-    appLibPaths[appLibPathKey].emplace_back(libPath);
-}
-
-void GetPatchNativeLibPath(const HapModuleInfo &hapInfo, std::string &patchNativeLibraryPath,
-    AppLibPathMap &appLibPaths)
-{
-    if (hapInfo.isLibIsolated) {
-        patchNativeLibraryPath = hapInfo.hqfInfo.nativeLibraryPath;
-    }
-
-    if (patchNativeLibraryPath.empty()) {
-        TAG_LOGD(AAFwkTag::APPKIT, "Patch lib path of %{public}s is empty", hapInfo.moduleName.c_str());
-        return;
-    }
-
-    if (hapInfo.compressNativeLibs && !hapInfo.isLibIsolated) {
-        TAG_LOGD(AAFwkTag::APPKIT, "Lib of %{public}s has compressed and isn't isolated, no need to set",
-            hapInfo.moduleName.c_str());
-        return;
-    }
-
-    std::string appLibPathKey = hapInfo.bundleName + "/" + hapInfo.moduleName;
-    std::string patchLibPath = LOCAL_CODE_PATH;
-    patchLibPath += (patchLibPath.back() == '/') ? patchNativeLibraryPath : "/" + patchNativeLibraryPath;
-    TAG_LOGD(AAFwkTag::APPKIT, "appLibPathKey: %{public}s, patch lib path: %{private}s", appLibPathKey.c_str(),
-        patchLibPath.c_str());
-    appLibPaths[appLibPathKey].emplace_back(patchLibPath);
-}
 } // namespace
 
 void MainThread::GetNativeLibPath(const BundleInfo &bundleInfo, const HspList &hspList, AppLibPathMap &appLibPaths)
@@ -639,24 +559,19 @@ void MainThread::ScheduleHeapMemory(const int32_t pid, OHOS::AppExecFwk::MallocI
  */
 void MainThread::ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info)
 {
-    TAG_LOGI(AAFwkTag::APPKIT, "pid: %{public}d, tid: %{public}d, needGc: %{public}d, needSnapshot: %{public}d",
-        info.pid, info.tid, info.needGc, info.needSnapshot);
-    auto app = applicationForDump_.lock();
-    if (app == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "app nullptr");
-        return;
-    }
-    auto &runtime = app->GetRuntime();
-    if (runtime == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "runtime nullptr");
-        return;
-    }
-    if (info.needSnapshot == true) {
-        runtime->DumpHeapSnapshot(info.tid, info.needGc);
-    } else {
-        if (info.needGc == true) {
-            runtime->ForceFullGC(info.tid);
+    TAG_LOGI(AAFwkTag::APPKIT, "pid: %{public}d, tid: %{public}d, needGc: %{public}d, needSnapshot: %{public}d,\n"
+        "needLeakobj: %{public}d", info.pid, info.tid, info.needGc, info.needSnapshot, info.needLeakobj);
+    wptr<MainThread> weak = this;
+    auto task = [weak, info]() {
+        auto appThread = weak.promote();
+        if (appThread == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "appThread is nullptr");
+            return;
         }
+        appThread->HandleJsHeapMemory(info);
+    };
+    if (!mainHandler_->PostTask(task, "MainThread:HandleJsHeapMemory")) {
+        TAG_LOGE(AAFwkTag::APPKIT, "PostTask HandleJsHeapMemory failed");
     }
 }
 
@@ -916,7 +831,7 @@ bool MainThread::CheckAbilityItem(const std::shared_ptr<AbilityLocalRecord> &rec
 void MainThread::HandleTerminateApplicationLocal()
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
-    if (application_ == nullptr) {
+    if (applicationImpl_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "error!");
         return;
     }
@@ -943,6 +858,22 @@ void MainThread::HandleTerminateApplicationLocal()
     HandleCancelAssertFaultTask();
 }
 
+void MainThread::HandleJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    if (mainHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null mainHandler");
+        return;
+    }
+    auto app = applicationForDump_.lock();
+    if (app == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null app");
+        return;
+    }
+    auto helper = std::make_shared<DumpRuntimeHelper>(app);
+    helper->DumpJsHeap(info);
+}
+
 /**
  *
  * @brief Schedule the application process exit safely.
@@ -956,7 +887,10 @@ void MainThread::HandleProcessSecurityExit()
         TAG_LOGE(AAFwkTag::APPKIT, "abilityRecordMgr_ is null");
         return;
     }
-
+    if (application_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "application_ is null");
+        return;
+    }
     std::vector<sptr<IRemoteObject>> tokens = (abilityRecordMgr_->GetAllTokens());
 
     for (auto iter = tokens.begin(); iter != tokens.end(); ++iter) {
@@ -1020,11 +954,6 @@ bool MainThread::InitCreate(
 
 bool MainThread::CheckForHandleLaunchApplication(const AppLaunchData &appLaunchData)
 {
-    if (application_ != nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "already create application");
-        return false;
-    }
-
     if (!CheckLaunchApplicationParam(appLaunchData)) {
         TAG_LOGE(AAFwkTag::APPKIT, "appLaunchData invalid");
         return false;
@@ -1476,9 +1405,11 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     if (isCJApp) {
         AbilityRuntime::CJRuntime::SetAppLibPath(appLibPaths);
         if (appInfo.asanEnabled) {
-            AbilityRuntime::CJRuntime::SetAsanVersion();
+            AbilityRuntime::CJRuntime::SetSanitizerVersion(SanitizerKind::ASAN);
         } else if (appInfo.tsanEnabled) {
-            AbilityRuntime::CJRuntime::SetTsanVersion();
+            AbilityRuntime::CJRuntime::SetSanitizerVersion(SanitizerKind::TSAN);
+        } else if (appInfo.hwasanEnabled) {
+            AbilityRuntime::CJRuntime::SetSanitizerVersion(SanitizerKind::HWASAN);
         }
     } else {
 #endif
@@ -1605,6 +1536,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
                     EVENT_KEY_REASON, errorObj.name,
                     EVENT_KEY_JSVM, JSVM_TYPE,
                     EVENT_KEY_SUMMARY, summary,
+                    EVENT_KEY_PNAME, processName,
                     EVENT_KEY_APP_RUNING_UNIQUE_ID, appRunningId);
                 ErrorObject appExecErrorObj = {
                     .name = errorObj.name,
@@ -1632,7 +1564,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
                     bundleName.c_str(), errorObj.name.c_str(), summary.c_str());
                 AAFwk::ExitReason exitReason = { REASON_JS_ERROR, errorObj.name };
                 AbilityManagerClient::GetInstance()->RecordAppExitReason(exitReason);
-                appThread->ScheduleProcessSecurityExit();
+                _exit(JS_ERROR_EXIT);
             };
             (static_cast<AbilityRuntime::JsRuntime&>(*runtime)).RegisterUncaughtExceptionHandler(uncaughtExceptionInfo);
 #ifdef CJ_FRONTEND
@@ -2137,17 +2069,10 @@ void MainThread::HandleCleanAbilityLocal(const sptr<IRemoteObject> &token)
     }
 
     std::shared_ptr<AbilityLocalRecord> record = abilityRecordMgr_->GetAbilityItem(token);
-    if (record == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "abilityRecord not found");
-        return;
-    }
+    CHECK_POINTER_TAG_LOG(record, AAFwkTag::APPKIT, "abilityRecord not found");
     std::shared_ptr<AbilityInfo> abilityInfo = record->GetAbilityInfo();
-    if (abilityInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "record->GetAbilityInfo() failed");
-        return;
-    }
+    CHECK_POINTER_TAG_LOG(abilityInfo, AAFwkTag::APPKIT, "record->GetAbilityInfo() failed");
     TAG_LOGD(AAFwkTag::APPKIT, "ability name: %{public}s", abilityInfo->name.c_str());
-
     abilityRecordMgr_->RemoveAbilityRecord(token);
     application_->CleanAbilityStage(token, abilityInfo, false);
 #ifdef APP_ABILITY_USE_TWO_RUNNER
@@ -2163,6 +2088,7 @@ void MainThread::HandleCleanAbilityLocal(const sptr<IRemoteObject> &token)
         TAG_LOGW(AAFwkTag::APPKIT, "runner not found");
     }
 #endif
+    AfterCleanAbilityGC();
 }
 
 /**
@@ -2185,29 +2111,16 @@ void MainThread::HandleCleanAbility(const sptr<IRemoteObject> &token, bool isCac
         TAG_LOGE(AAFwkTag::APPKIT, "should launch application first");
         return;
     }
-
-    if (token == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "token is null");
-        return;
-    }
-
+    CHECK_POINTER_TAG_LOG(token, AAFwkTag::APPKIT, "token is null");
     std::shared_ptr<AbilityLocalRecord> record = abilityRecordMgr_->GetAbilityItem(token);
-    if (record == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "abilityRecord not found");
-        return;
-    }
+    CHECK_POINTER_TAG_LOG(record, AAFwkTag::APPKIT, "abilityRecord not found");
     std::shared_ptr<AbilityInfo> abilityInfo = record->GetAbilityInfo();
-    if (abilityInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "record->GetAbilityInfo() failed");
-        return;
-    }
-
+    CHECK_POINTER_TAG_LOG(abilityInfo, AAFwkTag::APPKIT, "record->GetAbilityInfo() failed");
 #ifdef SUPPORT_GRAPHICS
     if (abilityInfo->type == AbilityType::PAGE && abilityInfo->isStageBasedModel) {
         AppRecovery::GetInstance().RemoveAbility(token);
     }
 #endif
-
     abilityRecordMgr_->RemoveAbilityRecord(token);
     application_->CleanAbilityStage(token, abilityInfo, isCacheProcess);
 #ifdef APP_ABILITY_USE_TWO_RUNNER
@@ -2224,8 +2137,18 @@ void MainThread::HandleCleanAbility(const sptr<IRemoteObject> &token, bool isCac
     }
 #endif
     appMgr_->AbilityCleaned(token);
+    AfterCleanAbilityGC();
     TAG_LOGD(AAFwkTag::APPKIT, "end. app: %{public}s, ability: %{public}s.",
         applicationInfo_->name.c_str(), abilityInfo->name.c_str());
+}
+
+void MainThread::AfterCleanAbilityGC()
+{
+    bool appBackground = applicationImpl_ ?
+        applicationImpl_->GetState() != ApplicationImpl::APP_STATE_FOREGROUND : false;
+    if (appBackground) {
+        ForceFullGC();
+    }
 }
 
 /**
@@ -3270,6 +3193,10 @@ void MainThread::DetachAppDebug()
 bool MainThread::NotifyDeviceDisConnect()
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
+    if (appMgr_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "appMgr is nullptr");
+        return false;
+    }
     bool isLastProcess = appMgr_->IsFinalAppProcess();
     ScheduleTerminateApplication(isLastProcess);
     return true;
@@ -3407,7 +3334,11 @@ void MainThread::ParseAppConfigurationParams(const std::string configuration, Co
     TAG_LOGD(AAFwkTag::APPKIT, "start");
     appConfig.AddItem(AAFwk::GlobalConfigurationKey::APP_FONT_SIZE_SCALE, DEFAULT_APP_FONT_SIZE_SCALE);
     if (configuration.empty()) {
+<<<<<<< HEAD
         TAG_LOGE(AAFwkTag::ABILITYMGR, "emptye config");
+=======
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "empty config");
+>>>>>>> upstream/master
         return;
     }
     nlohmann::json configurationJson = nlohmann::json::parse(configuration, nullptr, false);

@@ -961,7 +961,7 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_ProcessForegroundAbility_001, TestSi
 {
     std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
     uint32_t sceneFlag = 0;
-    abilityRecord->isReady_ = true;
+    abilityRecord->SetLoadState(AbilityLoadState::LOADED);
     abilityRecord->currentState_ = AbilityState::FOREGROUND;
     abilityRecord->ProcessForegroundAbility(sceneFlag);
 }
@@ -978,7 +978,7 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_ProcessForegroundAbility_002, TestSi
 {
     std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
     uint32_t sceneFlag = 0;
-    abilityRecord->isReady_ = true;
+    abilityRecord->SetLoadState(AbilityLoadState::LOADED);
     abilityRecord->currentState_ = AbilityState::BACKGROUND;
     abilityRecord->ProcessForegroundAbility(sceneFlag);
 }
@@ -995,7 +995,6 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_ProcessForegroundAbility_003, TestSi
 {
     std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
     uint32_t sceneFlag = 0;
-    abilityRecord->isReady_ = false;
     abilityRecord->ProcessForegroundAbility(sceneFlag);
 }
 
@@ -1050,7 +1049,6 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_ProcessForegroundAbility_008, TestSi
     std::shared_ptr<StartOptions> startOptions = nullptr ;
     std::shared_ptr<AbilityRecord> callerAbility;
     uint32_t sceneFlag = 1;
-    abilityRecord->isReady_ = false;
     abilityRecord->ProcessForegroundAbility(isRecent, abilityRequest, startOptions, callerAbility, sceneFlag);
 }
 
@@ -2146,9 +2144,8 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_DumpClientInfo_001, TestSize.Level1)
     abilityRecord->scheduler_ = nullptr;
     abilityRecord->DumpClientInfo(info, params, isClient, dumpConfig);
     abilityRecord->scheduler_ = new AbilityScheduler();
-    abilityRecord->isReady_ = false;
     abilityRecord->DumpClientInfo(info, params, isClient, dumpConfig);
-    abilityRecord->isReady_ = true;
+    abilityRecord->SetLoadState(AbilityLoadState::LOADED);
     abilityRecord->DumpClientInfo(info, params, isClient, dumpConfig);
     dumpConfig = true;
     abilityRecord->DumpClientInfo(info, params, isClient, dumpConfig);
@@ -3060,6 +3057,271 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_GetRestartCount_001, TestSize.Level1)
     EXPECT_EQ(result, restartCount);
 }
 
+<<<<<<< HEAD
+=======
+/*
+ * Feature: AbilityRecord
+ * Function: IsHistoryRequestCode
+ * SubFunction: IsHistoryRequestCode
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify CallerRecord IsHistoryRequestCode
+ */
+HWTEST_F(AbilityRecordTest, AbilityRecord_CallerRecord_IsHistoryRequestCode_001, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    auto callerRecord = std::make_shared<CallerRecord>(1, abilityRecord);
+    callerRecord->requestCodeSet_ = {1};
+    bool ret = callerRecord->IsHistoryRequestCode(1);
+    EXPECT_EQ(ret, true);
+    ret = callerRecord->IsHistoryRequestCode(2);
+    EXPECT_EQ(ret, false);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: RemoveHistoryRequestCode
+ * SubFunction: RemoveHistoryRequestCode
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify CallerRecord RemoveHistoryRequestCode
+ */
+HWTEST_F(AbilityRecordTest, AbilityRecord_CallerRecord_RemoveHistoryRequestCode_001, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    auto callerRecord = std::make_shared<CallerRecord>(1, abilityRecord);
+    callerRecord->requestCodeSet_ = {1};
+    callerRecord->RemoveHistoryRequestCode(1);
+    EXPECT_EQ(callerRecord->requestCodeSet_.empty(), true);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: AddHistoryRequestCode
+ * SubFunction: AddHistoryRequestCode
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify CallerRecord AddHistoryRequestCode
+ */
+HWTEST_F(AbilityRecordTest, AbilityRecord_CallerRecord_AddHistoryRequestCode_001, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    auto callerRecord = std::make_shared<CallerRecord>(1, abilityRecord);
+    callerRecord->AddHistoryRequestCode(1);
+    EXPECT_EQ(callerRecord->requestCodeSet_.count(1), 1);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: SetRequestCodeSet
+ * SubFunction: SetRequestCodeSet
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify CallerRecord SetRequestCodeSet
+ */
+HWTEST_F(AbilityRecordTest, AbilityRecord_CallerRecord_SetRequestCodeSet_001, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    auto callerRecord = std::make_shared<CallerRecord>(1, abilityRecord);
+    std::set<int32_t> requestCodeSet = {1};
+    callerRecord->SetRequestCodeSet(requestCodeSet);
+    EXPECT_EQ(callerRecord->requestCodeSet_.count(1), 1);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: GetRequestCodeSet
+ * SubFunction: GetRequestCodeSet
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify CallerRecord GetRequestCodeSet
+ */
+HWTEST_F(AbilityRecordTest, AbilityRecord_CallerRecord_GetRequestCodeSet_001, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    auto callerRecord = std::make_shared<CallerRecord>(1, abilityRecord);
+    callerRecord->requestCodeSet_ = {1};
+    auto requestCodeSet = callerRecord->GetRequestCodeSet();
+    EXPECT_EQ(requestCodeSet.count(1), 1);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: SendResultByBackToCaller
+ * SubFunction: SendResultByBackToCaller
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord SendResultByBackToCaller
+ */
+HWTEST_F(AbilityRecordTest, AbilityRecord_SendResultByBackToCaller_001, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    OHOS::sptr<IAbilityScheduler> scheduler = new AbilityScheduler();
+    abilityRecord->SetScheduler(scheduler);
+    abilityRecord->SendResultByBackToCaller(abilityResult_);
+    EXPECT_EQ(nullptr, abilityRecord_->GetResult());
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: GetCallerByRequestCode
+ * SubFunction: GetCallerByRequestCode
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord GetCallerByRequestCode
+ */
+HWTEST_F(AbilityRecordTest, AbilityRecord_GetCallerByRequestCode_001, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    int32_t requestCode = 1;
+    int32_t pid = 1;
+    auto callerAbility = abilityRecord->GetCallerByRequestCode(requestCode, pid);
+    EXPECT_EQ(nullptr, callerAbility);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: GetCallerByRequestCode
+ * SubFunction: GetCallerByRequestCode
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord GetCallerByRequestCode
+ */
+HWTEST_F(AbilityRecordTest, AbilityRecord_GetCallerByRequestCode_002, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    int32_t requestCode = 1;
+    int32_t pid = 1;
+    auto callerAbility = abilityRecord->GetCallerByRequestCode(requestCode, pid);
+    EXPECT_EQ(nullptr, callerAbility);
+
+    // add a record, but pid is not expected
+    std::shared_ptr<AbilityRecord> callerAbilityRecord = GetAbilityRecord();
+    callerAbilityRecord->pid_ = 0;
+
+    auto newCallerRecord = std::make_shared<CallerRecord>(requestCode, callerAbilityRecord);
+    newCallerRecord->AddHistoryRequestCode(requestCode);
+    abilityRecord->callerList_.emplace_back(newCallerRecord);
+    callerAbility = abilityRecord->GetCallerByRequestCode(requestCode, pid);
+    EXPECT_EQ(nullptr, callerAbility);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: GetCallerByRequestCode
+ * SubFunction: GetCallerByRequestCode
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord GetCallerByRequestCode
+ */
+HWTEST_F(AbilityRecordTest, AbilityRecord_GetCallerByRequestCode_003, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    int32_t requestCode = 1;
+    int32_t pid = 1;
+    std::shared_ptr<AbilityRecord> callerAbilityRecord = GetAbilityRecord();
+
+    // add a record, but requestCode is not expected
+    callerAbilityRecord->pid_ = pid;
+    auto newCallerRecord = std::make_shared<CallerRecord>(0, callerAbilityRecord);
+    newCallerRecord->AddHistoryRequestCode(0);
+
+    abilityRecord->callerList_.emplace_back(newCallerRecord);
+    auto callerAbility = abilityRecord->GetCallerByRequestCode(requestCode, pid);
+    EXPECT_EQ(nullptr, callerAbility);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: GetCallerByRequestCode
+ * SubFunction: GetCallerByRequestCode
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord GetCallerByRequestCode
+ */
+HWTEST_F(AbilityRecordTest, AbilityRecord_GetCallerByRequestCode_004, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    int32_t requestCode = 1;
+    int32_t pid = 1;
+    std::shared_ptr<AbilityRecord> callerAbilityRecord = GetAbilityRecord();
+
+    // add a record, both pid and requestCode is expected
+    callerAbilityRecord->pid_ = pid;
+    auto newCallerRecord = std::make_shared<CallerRecord>(requestCode, callerAbilityRecord);
+    newCallerRecord->AddHistoryRequestCode(requestCode);
+
+    abilityRecord->callerList_.emplace_back(newCallerRecord);
+    auto callerAbility = abilityRecord->GetCallerByRequestCode(requestCode, pid);
+    EXPECT_NE(nullptr, callerAbility);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: RemoveCallerRequestCode
+ * SubFunction: RemoveCallerRequestCode
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord RemoveCallerRequestCode
+ */
+HWTEST_F(AbilityRecordTest, AbilityRecord_RemoveCallerRequestCode_001, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    int32_t requestCode = 1;
+    std::shared_ptr<AbilityRecord> callerAbilityRecord = GetAbilityRecord();
+    auto newCallerRecord = std::make_shared<CallerRecord>(requestCode, callerAbilityRecord);
+    newCallerRecord->AddHistoryRequestCode(requestCode);
+    abilityRecord->callerList_.emplace_back(newCallerRecord);
+
+    // pid is not expected
+    abilityRecord->RemoveCallerRequestCode(callerAbilityRecord, 0);
+    EXPECT_EQ(abilityRecord->callerList_.size(), 1);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: RemoveCallerRequestCode
+ * SubFunction: RemoveCallerRequestCode
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord RemoveCallerRequestCode
+ */
+HWTEST_F(AbilityRecordTest, AbilityRecord_RemoveCallerRequestCode_002, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    int32_t requestCode = 1;
+    std::shared_ptr<AbilityRecord> callerAbilityRecord = GetAbilityRecord();
+    auto newCallerRecord = std::make_shared<CallerRecord>(requestCode, callerAbilityRecord);
+    newCallerRecord->AddHistoryRequestCode(requestCode);
+    abilityRecord->callerList_.emplace_back(newCallerRecord);
+
+    // abilityRecord is not expected
+    abilityRecord->RemoveCallerRequestCode(nullptr, 0);
+    EXPECT_EQ(abilityRecord->callerList_.size(), 1);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: RemoveCallerRequestCode
+ * SubFunction: RemoveCallerRequestCode
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord RemoveCallerRequestCode
+ */
+HWTEST_F(AbilityRecordTest, AbilityRecord_RemoveCallerRequestCode_003, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    int32_t requestCode = 1;
+    std::shared_ptr<AbilityRecord> callerAbilityRecord = GetAbilityRecord();
+    auto newCallerRecord = std::make_shared<CallerRecord>(requestCode, callerAbilityRecord);
+    newCallerRecord->AddHistoryRequestCode(requestCode);
+    abilityRecord->callerList_.emplace_back(newCallerRecord);
+
+    // both abilityRecord and requestCode is expected
+    abilityRecord->RemoveCallerRequestCode(callerAbilityRecord, requestCode);
+    EXPECT_EQ(abilityRecord->callerList_.size(), 0);
+}
+>>>>>>> upstream/master
 
 /*
  * Feature: AbilityRecord
@@ -3282,6 +3544,10 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_GetPermissionedUriList_006, TestSize.L
     auto paramStramUris = want.GetStringArrayParam(AbilityConfig::PARAMS_STREAM);
     EXPECT_EQ(paramStramUris.size(), 1);
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> upstream/master
 }  // namespace AAFwk
 }  // namespace OHOS
 

@@ -14,9 +14,8 @@
  */
 
 #include "ui_extension_record.h"
+
 #include "ability_util.h"
-#include "extension_record_manager.h"
-#include "hilog_tag_wrapper.h"
 #include "session/host/include/zidl/session_interface.h"
 
 namespace OHOS {
@@ -35,7 +34,7 @@ bool UIExtensionRecord::ContinueToGetCallerToken()
 void UIExtensionRecord::Update(const AAFwk::AbilityRequest &abilityRequest)
 {
     if (abilityRecord_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityRecord_ is null");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null abilityRecord_");
         return;
     }
     abilityRecord_->SetSessionInfo(abilityRequest.sessionInfo);

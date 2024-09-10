@@ -74,5 +74,49 @@ std::shared_ptr<UIServiceExtensionContext> UIServiceExtension::CreateAndInitCont
     }
     return context;
 }
+<<<<<<< HEAD
+=======
+
+#ifdef SUPPORT_GRAPHICS
+sptr<Rosen::WindowOption> UIServiceExtension::GetWindowOption(
+    const std::shared_ptr< Rosen::ExtensionWindowConfig>& extensionWindowConfig, const int32_t hostWindowId)
+{
+    auto option = sptr<Rosen::WindowOption>::MakeSptr();
+    if (option == nullptr) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "Option is nullptr");
+        return nullptr;
+    }
+    if (extensionWindowConfig->windowAttribute == Rosen::ExtensionWindowAttribute::SUB_WINDOW) {
+        if (hostWindowId == 0) {
+            TAG_LOGE(AAFwkTag::UISERVC_EXT, "create SUB_WINDOW, but hostWindowId = 0");
+            return nullptr;
+        }
+        option->SetWindowType(Rosen::WindowType::WINDOW_TYPE_APP_SUB_WINDOW);
+        option->SetParentId(hostWindowId);
+        option->SetExtensionTag(true);
+        option->SetSubWindowTitle(extensionWindowConfig->subWindowOptions.title);
+        option->SetSubWindowDecorEnable(extensionWindowConfig->subWindowOptions.decorEnabled);
+        if (extensionWindowConfig->subWindowOptions.isModal) {
+            option->AddWindowFlag(Rosen::WindowFlag::WINDOW_FLAG_IS_MODAL);
+            if (extensionWindowConfig->subWindowOptions.isTopmost) {
+                option->SetWindowTopmost(true);
+            }
+        }
+    } else if (extensionWindowConfig->windowAttribute == Rosen::ExtensionWindowAttribute::SYSTEM_WINDOW) {
+        Rosen::WindowType winType;
+        if (Rosen::ParseSystemWindowTypeForApiWindowType(
+            extensionWindowConfig->systemWindowOptions.windowType, winType)) {
+            option->SetWindowType(winType);
+        } else {
+            TAG_LOGE(AAFwkTag::UISERVC_EXT, "ParseSystemWindowTypeForApiWindowType error");
+            return nullptr;
+        }
+    }
+    option->SetWindowMode(Rosen::WindowMode::WINDOW_MODE_FLOATING);
+    option->SetWindowRect(extensionWindowConfig->windowRect);
+    return option;
+}
+#endif
+>>>>>>> upstream/master
 }
 }

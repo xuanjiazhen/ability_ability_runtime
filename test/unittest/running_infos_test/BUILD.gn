@@ -43,6 +43,7 @@ ohos_unittest("running_infos_test") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "jsoncpp:jsoncpp",
   ]
 
   if (ability_runtime_graphics) {

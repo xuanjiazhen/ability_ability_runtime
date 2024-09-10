@@ -15,11 +15,14 @@
 
 #include "connection_record.h"
 
-#include "ability_manager_errors.h"
 #include "ability_manager_service.h"
 #include "ability_util.h"
 #include "connection_state_manager.h"
+<<<<<<< HEAD
 #include "hilog_tag_wrapper.h"
+=======
+#include "ui_service_extension_connection_constants.h"
+>>>>>>> upstream/master
 
 namespace OHOS {
 namespace AAFwk {
@@ -102,7 +105,7 @@ int ConnectionRecord::DisconnectAbility()
         /* post timeout task to taskhandler */
         auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
         if (handler == nullptr) {
-            TAG_LOGE(AAFwkTag::CONNECTION, "fail to get TaskHandler");
+            TAG_LOGE(AAFwkTag::CONNECTION, "null handler");
         } else {
             std::string taskName("DisconnectTimeout_");
             taskName += std::to_string(recordId_);
@@ -115,7 +118,16 @@ int ConnectionRecord::DisconnectAbility()
             handler->SubmitTask(disconnectTask, taskName, disconnectTimeout);
         }
         /* schedule disconnect to target ability */
+<<<<<<< HEAD
         targetService_->DisconnectAbility();
+=======
+        if (isAbilityUIServiceExt) {
+            TAG_LOGI(AAFwkTag::CONNECTION, "Disconnect UIServiceExtension ability, set correct want");
+            targetService_->DisconnectAbilityWithWant(GetConnectWant());
+        } else {
+            targetService_->DisconnectAbility();
+        }
+>>>>>>> upstream/master
     } else {
         TAG_LOGD(AAFwkTag::CONNECTION,
             "current connection count: %{public}zu, no need disconnect, just remove", connectNums);
@@ -140,7 +152,11 @@ void ConnectionRecord::CompleteConnect(int resultCode)
     auto callback = GetAbilityConnectCallback();
     auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
     if (remoteObject == nullptr) {
+<<<<<<< HEAD
         TAG_LOGW(AAFwkTag::CONNECTION, "extension returned null: %{public}s", element.GetURI().c_str());
+=======
+        TAG_LOGW(AAFwkTag::CONNECTION, "null remoteObject: %{public}s", element.GetURI().c_str());
+>>>>>>> upstream/master
         if (handler) {
             SetConnectState(ConnectionState::DISCONNECTING);
             handler->SubmitTask([service = targetService_]() {
@@ -213,6 +229,25 @@ void ConnectionRecord::ScheduleConnectAbilityDone()
         TAG_LOGE(AAFwkTag::CONNECTION, "failed, current state not connecting");
         return;
     }
+
+    sptr<IRemoteObject> hostproxy = nullptr;
+    if (connectWant_.HasParameter(UISERVICEHOSTPROXY_KEY)) {
+        hostproxy = connectWant_.GetRemoteObject(UISERVICEHOSTPROXY_KEY);
+    }
+    auto element = connectWant_.GetElement();
+    Want::ClearWant(&connectWant_);
+    connectWant_.SetElement(element);
+    if (hostproxy != nullptr) {
+        connectWant_.SetParam(UISERVICEHOSTPROXY_KEY, hostproxy);
+    }
+
+    CancelConnectTimeoutTask();
+
+    CompleteConnect(ERR_OK);
+}
+
+void ConnectionRecord::CancelConnectTimeoutTask()
+{
     auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
     if (handler == nullptr) {
         TAG_LOGE(AAFwkTag::CONNECTION, "fail to get AbilityTaskHandler");
@@ -220,8 +255,6 @@ void ConnectionRecord::ScheduleConnectAbilityDone()
         std::string taskName = std::string("ConnectTimeout_") + std::to_string(recordId_);
         handler->CancelTask(taskName);
     }
-
-    CompleteConnect(ERR_OK);
 }
 
 void ConnectionRecord::DisconnectTimeout()
@@ -317,5 +350,18 @@ sptr<IRemoteObject> ConnectionRecord::GetConnection() const
 
     return callback->AsObject();
 }
+<<<<<<< HEAD
+=======
+
+void ConnectionRecord::SetConnectWant(const Want &want)
+{
+    connectWant_ = want;
+}
+
+Want ConnectionRecord::GetConnectWant() const
+{
+    return connectWant_;
+}
+>>>>>>> upstream/master
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -46,6 +46,10 @@ public:
     void ReportEventToRSS(const int32_t uid, const std::string &bundleName, const std::string &reason,
         const int32_t callerPid = -1);
     void GetAllFrozenPidsFromRSS(std::unordered_set<int32_t> &frozenPids);
+<<<<<<< HEAD
+=======
+    bool CheckShouldForceKillProcess(int32_t pid);
+>>>>>>> upstream/master
     void ReportLoadingEventToRss(LoadingStage stage, int32_t pid, int32_t uid, int64_t timeDuration = 0);
 private:
     ResSchedUtil() = default;

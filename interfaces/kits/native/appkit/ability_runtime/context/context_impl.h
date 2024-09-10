@@ -342,7 +342,11 @@ public:
      *
      * @return error code
      */
+<<<<<<< HEAD
     void KillProcessBySelf();
+=======
+    void KillProcessBySelf(const bool clearPageStack = false);
+>>>>>>> upstream/master
 
     /**
      * @brief Get running informationfor cuirrent process
@@ -453,6 +457,12 @@ private:
     void GetOverlayPath(std::shared_ptr<Global::Resource::ResourceManager> &resourceManager,
         const std::string &bundleName, const std::string &moduleName, std::string &loadPath, bool currentBundle,
         std::shared_ptr<Context> inputContext = nullptr);
+<<<<<<< HEAD
+=======
+    void AddPatchResource(std::shared_ptr<Global::Resource::ResourceManager> &resourceManager,
+        const std::string &loadPath, const std::string &hqfPath, bool isDebug,
+        std::shared_ptr<Context> inputContext = nullptr);
+>>>>>>> upstream/master
     void SubscribeToOverlayEvents(std::shared_ptr<Global::Resource::ResourceManager> &resourceManager,
         const std::string &name, const std::string &hapModuleName, std::string &loadPath,
         std::vector<AppExecFwk::OverlayModuleInfo> overlayModuleInfos);
@@ -485,7 +495,10 @@ private:
     // False: no need to get a new fms remote object.
     volatile bool resetFlag_ = false;
 
+<<<<<<< HEAD
     std::mutex overlaySubscriberMutex_;
+=======
+>>>>>>> upstream/master
     std::shared_ptr<AppExecFwk::OverlayEventSubscriber> overlaySubscriber_;
 };
 }  // namespace AbilityRuntime

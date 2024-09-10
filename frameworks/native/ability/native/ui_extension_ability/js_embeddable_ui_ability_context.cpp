@@ -200,6 +200,14 @@ napi_value JsEmbeddableUIAbilityContext::HideAbility(napi_env env, napi_callback
     GET_NAPI_INFO_AND_CALL(env, info, JsEmbeddableUIAbilityContext, OnHideAbility);
 }
 
+<<<<<<< HEAD
+=======
+napi_value JsEmbeddableUIAbilityContext::SetRestoreEnabled(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsEmbeddableUIAbilityContext, OnSetRestoreEnabled);
+}
+
+>>>>>>> upstream/master
 napi_value JsEmbeddableUIAbilityContext::OnStartAbility(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
@@ -508,6 +516,20 @@ napi_value JsEmbeddableUIAbilityContext::OnHideAbility(napi_env env, NapiCallbac
     return jsAbilityContext_->OnHideAbility(env, info);
 }
 
+<<<<<<< HEAD
+=======
+napi_value JsEmbeddableUIAbilityContext::OnSetRestoreEnabled(napi_env env, NapiCallbackInfo& info)
+{
+    if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "OnSetRestoreEnabled in half screen mode.");
+        ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
+        return CreateJsUndefined(env);
+    }
+    CHECK_POINTER_RETURN(env, jsAbilityContext_);
+    return jsAbilityContext_->OnSetRestoreEnabled(env, info);
+}
+
+>>>>>>> upstream/master
 #ifdef SUPPORT_GRAPHICS
 napi_value JsEmbeddableUIAbilityContext::SetMissionLabel(napi_env env, napi_callback_info info)
 {
@@ -633,6 +655,10 @@ napi_value JsEmbeddableUIAbilityContext::CreateJsEmbeddableUIAbilityContext(napi
     BindNativeFunction(env, objValue, "openAtomicService", moduleName, OpenAtomicService);
     BindNativeFunction(env, objValue, "showAbility", moduleName, ShowAbility);
     BindNativeFunction(env, objValue, "hideAbility", moduleName, HideAbility);
+<<<<<<< HEAD
+=======
+    BindNativeFunction(env, objValue, "setRestoreEnabled", moduleName, SetRestoreEnabled);
+>>>>>>> upstream/master
 
 #ifdef SUPPORT_GRAPHICS
     BindNativeFunction(env, objValue, "setMissionLabel", moduleName, SetMissionLabel);

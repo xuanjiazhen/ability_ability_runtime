@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+<<<<<<<< HEAD:frameworks/js/napi/application/application_module.cpp
 #include "js_application.h"
 #include "napi/native_api.h"
 
@@ -26,3 +27,25 @@ extern "C" __attribute__((constructor)) void NAPI_app_ability_application_AutoRe
 {
     napi_module_register(&_module);
 }
+========
+#ifndef OHOS_ABILITY_RUNTIME_WANT_UTILS_H
+#define OHOS_ABILITY_RUNTIME_WANT_UTILS_H
+
+#include "want.h"
+
+#ifdef APP_DOMAIN_VERIFY_ENABLED
+#include "ag_convert_callback_impl.h"
+#include "app_domain_verify_mgr_client.h"
+#endif
+
+namespace OHOS {
+namespace AAFwk {
+class WantUtils final {
+public:
+    static int32_t ConvertToExplicitWant(Want& want);
+    static int32_t GetCallerBundleName(std::string &callerBundleName);
+};
+}  // namespace AAFwk
+}  // namespace OHOS
+#endif  // OHOS_ABILITY_RUNTIME_WANT_UTILS_H
+>>>>>>>> upstream/master:services/abilitymgr/include/utils/want_utils.h

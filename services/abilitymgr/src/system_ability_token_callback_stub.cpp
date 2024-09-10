@@ -15,11 +15,7 @@
 
 #include "system_ability_token_callback_stub.h"
 
-#include "errors.h"
 #include "hilog_tag_wrapper.h"
-#include "ipc_skeleton.h"
-#include "ipc_types.h"
-#include "want.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -37,7 +33,7 @@ int32_t SystemAbilityTokenCallbackStub::OnRemoteRequest(uint32_t code,
         case SEND_RESULT: {
             std::shared_ptr<AAFwk::Want> want(data.ReadParcelable<AAFwk::Want>());
             if (want == nullptr) {
-                TAG_LOGE(AAFwkTag::ABILITYMGR, "SEND_RESULT want readParcelable failed!");
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "SEND_RESULT want readParcelable failed");
                 return ERR_NULL_OBJECT;
             }
             int32_t callerUid = data.ReadInt32();

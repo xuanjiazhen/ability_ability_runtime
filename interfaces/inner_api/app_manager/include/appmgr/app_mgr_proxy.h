@@ -156,6 +156,15 @@ public:
     virtual int32_t GetAllRenderProcesses(std::vector<RenderProcessInfo> &info) override;
 
     /**
+     * GetAllChildrenProcesses, call GetAllChildrenProcesses() through proxy project.
+     * Obtains information about children processes that are running on the device.
+     *
+     * @param info, child process info.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info) override;
+
+    /**
      * JudgeSandboxByPid, call JudgeSandboxByPid() through proxy project.
      * Obtains information about application processes that are running on the device.
      *
@@ -368,7 +377,7 @@ public:
 
     virtual int32_t GetConfiguration(Configuration& config) override;
 
-    virtual int32_t UpdateConfiguration(const Configuration &config) override;
+    virtual int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1) override;
 
     virtual int32_t UpdateConfigurationByBundleName(const Configuration &config, const std::string &name) override;
 
@@ -607,6 +616,8 @@ public:
 
     int32_t SetSupportedProcessCacheSelf(bool isSupport) override;
 
+    int32_t SetSupportedProcessCache(int32_t pid, bool isSupport) override;
+
     virtual void SaveBrowserChannel(sptr<IRemoteObject> browser) override;
 
     /**
@@ -632,6 +643,15 @@ public:
     virtual void KillProcessDependedOnWeb() override;
 
     virtual void RestartResidentProcessDependedOnWeb() override;
+
+    /**
+     * Get pids of processes which belong to specific bundle name and support process cache feature.
+     * @param bundleName bundle name.
+     * @param pidList pid list of processes that support process cache..
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetSupportedProcessCachePids(const std::string &bundleName,
+        std::vector<int32_t> &pidList) override;
 private:
     bool SendTransactCmd(AppMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     bool WriteInterfaceToken(MessageParcel &data);

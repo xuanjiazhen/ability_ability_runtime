@@ -736,7 +736,10 @@ void BindPropertyAndFunction(napi_env env, napi_value object, const char* module
         JsBaseContext::CreateModuleResourceManager);
     BindNativeFunction(env, object, "getGroupDir", moduleName, JsBaseContext::GetGroupDir);
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> upstream/master
 napi_value CreateJsBaseContext(napi_env env, std::shared_ptr<Context> context, bool keepContext)
 {
     napi_value object = nullptr;

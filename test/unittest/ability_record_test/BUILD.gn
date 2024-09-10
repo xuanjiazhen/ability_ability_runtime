@@ -97,6 +97,10 @@ ohos_unittest("ability_record_test") {
   if (ability_runtime_graphics) {
     external_deps += [ "image_framework:image_native" ]
   }
+  cflags_cc = []
+  if (os_dlp_part_enabled) {
+    cflags_cc += [ "-DWITH_DLP" ]
+  }
 }
 
 ohos_unittest("ability_record_test_call") {
@@ -176,6 +180,13 @@ ohos_unittest("ability_record_test_call") {
   if (ability_runtime_graphics) {
     external_deps += [ "window_manager:libwm" ]
   }
+<<<<<<< HEAD
+=======
+  cflags_cc = []
+  if (os_dlp_part_enabled) {
+    cflags_cc += [ "-DWITH_DLP" ]
+  }
+>>>>>>> upstream/master
 }
 
 group("unittest") {

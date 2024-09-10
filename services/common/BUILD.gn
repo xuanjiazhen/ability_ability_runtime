@@ -31,6 +31,7 @@ config("common_config") {
     "${ability_runtime_napi_path}/*",
     "${ability_runtime_native_path}/ability/native/*",
     "${ability_runtime_native_path}/child_process/*",
+    "${ability_runtime_path}/frameworks/c/ability_runtime/*",
     "${ability_runtime_path}/frameworks/simulator/ability_simulator/*",
     "${ability_runtime_path}/tools/aa/*",
     "${ability_runtime_services_path}/common/*",
@@ -53,6 +54,8 @@ config("common_config") {
 
 #build so
 ohos_shared_library("perm_verification") {
+  branch_protector_ret = "pac_ret"
+
   include_dirs = [ "${ability_runtime_utils_path}/server/constant" ]
 
   public_configs = [ ":common_config" ]
@@ -70,12 +73,22 @@ ohos_shared_library("perm_verification") {
     "ipc:ipc_core",
   ]
 
+<<<<<<< HEAD
+=======
+  cflags_cc = []
+  if (os_dlp_part_enabled) {
+    cflags_cc += [ "-DWITH_DLP" ]
+  }
+
+>>>>>>> upstream/master
   subsystem_name = "ability"
   innerapi_tags = [ "platformsdk_indirect" ]
   part_name = "ability_runtime"
 }
 
 ohos_shared_library("event_report") {
+  branch_protector_ret = "pac_ret"
+
   public_configs = [ ":common_config" ]
 
   sources = [ "src/event_report.cpp" ]
@@ -92,6 +105,8 @@ ohos_shared_library("event_report") {
 }
 
 ohos_shared_library("task_handler_wrap") {
+  branch_protector_ret = "pac_ret"
+
   public_configs = [ ":common_config" ]
   include_dirs = [ "include" ]
 
@@ -112,6 +127,8 @@ ohos_shared_library("task_handler_wrap") {
 }
 
 ohos_shared_library("app_util") {
+  branch_protector_ret = "pac_ret"
+
   public_configs = [ ":common_config" ]
   include_dirs = [ "include" ]
 

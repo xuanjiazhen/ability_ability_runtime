@@ -17,12 +17,9 @@
 
 #include "ability_record.h"
 #include "ability_util.h"
-#include "bundle_constants.h"
-#include "bundle_mgr_helper.h"
+#include "app_utils.h"
 #include "global_constant.h"
-#include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
-#include "server_constant.h"
 #include "startup_util.h"
 
 namespace OHOS {
@@ -31,8 +28,6 @@ namespace {
 constexpr const char* SCREENSHOT_BUNDLE_NAME = "com.huawei.ohos.screenshot";
 constexpr const char* SCREENSHOT_ABILITY_NAME = "com.huawei.ohos.screenshot.ServiceExtAbility";
 constexpr int32_t ERMS_ISALLOW_RESULTCODE = 10;
-constexpr const char* SHELL_ASSISTANT_BUNDLENAME = "com.huawei.shell_assistant";
-constexpr int32_t BROKER_UID = 5557;
 constexpr const char* PARAM_RESV_ANCO_CALLER_UID = "ohos.anco.param.callerUid";
 constexpr const char* PARAM_RESV_ANCO_CALLER_BUNDLENAME = "ohos.anco.param.callerBundleName";
 }
@@ -53,7 +48,7 @@ bool StartAbilityUtils::GetAppIndex(const Want &want, sptr<IRemoteObject> caller
         appIndex = abilityRecord->GetAppIndex();
         return true;
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "appCloneIndex: %{public}d.", want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0));
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "appCloneIndex:%{public}d", want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0));
     return AbilityRuntime::StartupUtil::GetAppIndex(want, appIndex);
 }
 
@@ -63,20 +58,20 @@ bool StartAbilityUtils::GetApplicationInfo(const std::string &bundleName, int32_
     if (StartAbilityUtils::startAbilityInfo &&
         StartAbilityUtils::startAbilityInfo->GetAppBundleName() == bundleName) {
         appInfo = StartAbilityUtils::startAbilityInfo->abilityInfo.applicationInfo;
-    } else {
-        if (bundleName.empty()) {
-            return false;
-        }
-        auto bms = AbilityUtil::GetBundleManagerHelper();
-        CHECK_POINTER_AND_RETURN(bms, false);
-        bool result = IN_PROCESS_CALL(
-            bms->GetApplicationInfo(bundleName, AppExecFwk::ApplicationFlag::GET_BASIC_APPLICATION_INFO,
-                userId, appInfo)
-        );
-        if (!result) {
-            TAG_LOGW(AAFwkTag::ABILITYMGR, "Get app info from bms failed: %{public}s", bundleName.c_str());
-            return false;
-        }
+        return true;
+    }
+    if (bundleName.empty()) {
+        return false;
+    }
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN(bms, false);
+    bool result = IN_PROCESS_CALL(
+        bms->GetApplicationInfo(bundleName, AppExecFwk::ApplicationFlag::GET_BASIC_APPLICATION_INFO,
+            userId, appInfo)
+    );
+    if (!result) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "failed: %{public}s", bundleName.c_str());
+        return false;
     }
     return true;
 }
@@ -149,7 +144,7 @@ StartAbilityInfoWrap::StartAbilityInfoWrap(const Want &want, int32_t validUserId
     const sptr<IRemoteObject> &callerToken, bool isExtension)
 {
     if (StartAbilityUtils::startAbilityInfo != nullptr) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "startAbilityInfo has been created");
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "startAbilityInfo created");
     }
     // This is for special goal and could be removed later.
     auto element = want.GetElement();
@@ -183,7 +178,7 @@ StartAbilityInfoWrap::StartAbilityInfoWrap(const Want &want, int32_t validUserId
     }
 
     if (StartAbilityUtils::callerAbilityInfo != nullptr) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "callerAbilityInfo has been created");
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "callerAbilityInfo created");
     }
     StartAbilityUtils::callerAbilityInfo = StartAbilityInfo::CreateCallerAbilityInfo(callerToken);
 
@@ -240,7 +235,7 @@ std::shared_ptr<StartAbilityInfo> StartAbilityInfo::CreateStartAbilityInfo(const
                 abilityInfoFlag, userId, extensionInfos));
         }
         if (extensionInfos.size() <= 0) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "Get extension info failed.");
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "extensionInfo empty");
             request->status = RESOLVE_ABILITY_ERR;
             return request;
         }
@@ -280,14 +275,14 @@ std::shared_ptr<StartAbilityInfo> StartAbilityInfo::CreateStartExtensionInfo(con
             abilityInfoFlag, userId, extensionInfos));
     }
     if (extensionInfos.size() <= 0) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "CreateStartExtensionInfo error. Get extension info failed.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "extensionInfo empty");
         abilityInfo->status = RESOLVE_ABILITY_ERR;
         return abilityInfo;
     }
 
     AppExecFwk::ExtensionAbilityInfo extensionInfo = extensionInfos.front();
     if (extensionInfo.bundleName.empty() || extensionInfo.name.empty()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "extensionInfo empty.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "extensionInfo empty");
         abilityInfo->status = RESOLVE_ABILITY_ERR;
         return abilityInfo;
     }
@@ -309,7 +304,7 @@ void StartAbilityInfo::FindExtensionInfo(const Want &want, int32_t flags, int32_
     IN_PROCESS_CALL_WITHOUT_RET(bms->QueryCloneExtensionAbilityInfoWithAppIndex(want.GetElement(),
         flags, appIndex, extensionInfo, userId));
     if (extensionInfo.bundleName.empty() || extensionInfo.name.empty()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "extensionInfo empty.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "extensionInfo empty");
         abilityInfo->status = RESOLVE_ABILITY_ERR;
         return;
     }
@@ -331,7 +326,7 @@ std::shared_ptr<StartAbilityInfo> StartAbilityInfo::CreateCallerAbilityInfo(cons
     }
     auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
     if (abilityRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "can not find abilityRecord");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityRecord empty");
         return nullptr;
     }
     auto request = std::make_shared<StartAbilityInfo>();
@@ -342,12 +337,12 @@ std::shared_ptr<StartAbilityInfo> StartAbilityInfo::CreateCallerAbilityInfo(cons
 bool StartAbilityUtils::IsCallFromAncoShellOrBroker(const sptr<IRemoteObject> &callerToken)
 {
     auto callingUid = IPCSkeleton::GetCallingUid();
-    if (callingUid == BROKER_UID) {
+    if (callingUid == AppUtils::GetInstance().GetCollaboratorBrokerUID()) {
         return true;
     }
     AppExecFwk::AbilityInfo callerAbilityInfo;
     if (GetCallerAbilityInfo(callerToken, callerAbilityInfo)) {
-        return callerAbilityInfo.bundleName == SHELL_ASSISTANT_BUNDLENAME;
+        return callerAbilityInfo.bundleName == AppUtils::GetInstance().GetBrokerDelegateBundleName();
     }
     return false;
 }

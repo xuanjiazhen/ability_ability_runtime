@@ -274,7 +274,10 @@ struct AbilityRequest {
     uint32_t specifyTokenId = 0;
     bool uriReservedFlag = false;
     std::string reservedBundleName;
+<<<<<<< HEAD
 
+=======
+>>>>>>> upstream/master
     std::pair<bool, LaunchReason> IsContinuation() const
     {
         auto flags = want.GetFlags();
@@ -419,6 +422,13 @@ public:
      */
     void PostForegroundTimeoutTask();
 
+<<<<<<< HEAD
+=======
+    void RemoveForegroundTimeoutTask();
+
+    void RemoveLoadTimeoutTask();
+
+>>>>>>> upstream/master
     void PostUIExtensionAbilityTimeoutTask(uint32_t messageId);
 
     /**
@@ -536,6 +546,8 @@ public:
      * @return true : ready ,false: not ready
      */
     bool IsReady() const;
+    void SetLoadState(AbilityLoadState loadState);
+    AbilityLoadState GetLoadState() const;
 
     void UpdateRecoveryInfo(bool hasRecoverInfo);
 
@@ -655,12 +667,30 @@ public:
     void ConnectAbility();
 
     /**
+<<<<<<< HEAD
+=======
+     * connect the ability with want.
+     *
+     */
+    void ConnectAbilityWithWant(const Want &want);
+
+    /**
+>>>>>>> upstream/master
      * disconnect the ability.
      *
      */
     void DisconnectAbility();
 
     /**
+<<<<<<< HEAD
+=======
+     * disconnect the ability with want
+     *
+     */
+    void DisconnectAbilityWithWant(const Want &want);
+
+    /**
+>>>>>>> upstream/master
      * Command the ability.
      *
      */
@@ -925,6 +955,10 @@ public:
     int32_t GetRestartCount() const;
     void SetRestartCount(int32_t restartCount);
     bool GetKeepAlive() const;
+    bool IsKeepAliveBundle() const
+    {
+        return keepAliveBundle_;
+    }
     void SetLoading(bool status);
     bool IsLoading() const;
     int64_t GetRestartTime();
@@ -966,6 +1000,7 @@ public:
     void SetSessionInfo(sptr<SessionInfo> sessionInfo);
     void UpdateSessionInfo(sptr<IRemoteObject> sessionToken);
     void SetMinimizeReason(bool fromUser);
+    void SetSceneFlag(uint32_t sceneFlag);
     bool IsMinimizeFromUser() const;
     void SetClearMissionFlag(bool clearMissionFlag);
     bool IsClearMissionFlag();
@@ -1083,6 +1118,10 @@ private:
 
     void RecordSaCallerInfo(const Want &want);
 
+<<<<<<< HEAD
+=======
+#ifdef WITH_DLP
+>>>>>>> upstream/master
     void HandleDlpAttached();
     void HandleDlpClosed();
     void NotifyRemoveShellProcess(int32_t type);
@@ -1164,7 +1203,7 @@ private:
     std::weak_ptr<AbilityRecord> nextAbilityRecord_ = {};  // ability that started by this ability
     int64_t startTime_ = 0;                           // records first time of ability start
     int64_t restartTime_ = 0;                         // the time of last trying restart
-    bool isReady_ = false;                            // is ability thread attached?
+    std::atomic<AbilityLoadState> loadState_ = AbilityLoadState::INIT;  // ability thread attach state
     bool isWindowStarted_ = false;                     // is window hotstart or coldstart?
     bool isWindowAttached_ = false;                   // Is window of this ability attached?
     bool isLauncherAbility_ = false;                  // is launcher?
@@ -1224,7 +1263,7 @@ private:
     bool minimizeReason_ = false;
 
     bool clearMissionFlag_ = false;
-
+    bool keepAliveBundle_ = false;
     int32_t restartCount_ = -1;
     int32_t restartMax_ = -1;
     std::string specifiedFlag_;

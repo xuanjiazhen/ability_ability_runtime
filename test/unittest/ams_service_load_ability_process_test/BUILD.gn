@@ -46,6 +46,7 @@ ohos_unittest("AmsServiceLoadAbilityProcessTest") {
     "${ability_runtime_services_path}/appmgr/src/module_running_record.cpp",
     "${ability_runtime_services_path}/appmgr/src/remote_client_manager.cpp",
     "${ability_runtime_services_path}/appmgr/src/render_state_observer_manager.cpp",
+    "${ability_runtime_services_path}/appmgr/src/user_record_manager.cpp",
     "${ability_runtime_services_path}/appmgr/src/window_focus_changed_listener.cpp",
     "${ability_runtime_services_path}/appmgr/src/window_visibility_changed_listener.cpp",
     "${ability_runtime_test_path}/mock/services_appmgr_test/src/mock_bundle_manager.cpp",
@@ -104,6 +105,13 @@ ohos_unittest("AmsServiceLoadAbilityProcessTest") {
     external_deps += [ "sandbox_manager:libsandbox_manager_sdk" ]
     defines = [ "ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER" ]
   }
+<<<<<<< HEAD
+=======
+
+  if (os_dlp_part_enabled) {
+    cflags_cc += [ "-DWITH_DLP" ]
+  }
+>>>>>>> upstream/master
 }
 
 group("unittest") {

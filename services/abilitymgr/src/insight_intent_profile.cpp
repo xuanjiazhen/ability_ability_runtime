@@ -17,7 +17,6 @@
 
 #include "hilog_tag_wrapper.h"
 #include "json_util.h"
-#include "nlohmann/json.hpp"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -232,7 +231,7 @@ void from_json(const nlohmann::json &jsonObject, InsightIntentProfileInfoVec &in
 bool TransformToInsightIntentInfo(const InsightIntentProfileInfo &insightIntent, InsightIntentInfo &info)
 {
     if (insightIntent.intentName.empty()) {
-        TAG_LOGE(AAFwkTag::INTENT, "Intent name is empty");
+        TAG_LOGE(AAFwkTag::INTENT, "empty intentName");
         return false;
     }
 
@@ -279,7 +278,7 @@ bool InsightIntentProfile::TransformTo(const std::string &profileStr, std::vecto
     TAG_LOGD(AAFwkTag::INTENT, "called");
     auto jsonObject = nlohmann::json::parse(profileStr, nullptr, false);
     if (jsonObject.is_discarded()) {
-        TAG_LOGE(AAFwkTag::INTENT, "jsonObject is discarded");
+        TAG_LOGE(AAFwkTag::INTENT, "discarded jsonObject");
         return false;
     }
 
@@ -289,7 +288,7 @@ bool InsightIntentProfile::TransformTo(const std::string &profileStr, std::vecto
         g_parseResult = ERR_OK;
         profileInfos = jsonObject.get<InsightIntentProfileInfoVec>();
         if (g_parseResult != ERR_OK) {
-            TAG_LOGE(AAFwkTag::INTENT, "g_parseResult is %{public}d", g_parseResult);
+            TAG_LOGE(AAFwkTag::INTENT, "g_parseResult :%{public}d", g_parseResult);
             int32_t ret = g_parseResult;
             // need recover parse result to ERR_OK
             g_parseResult = ERR_OK;

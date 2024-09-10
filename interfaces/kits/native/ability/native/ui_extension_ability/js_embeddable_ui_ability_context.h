@@ -66,6 +66,10 @@ public:
     static napi_value OpenAtomicService(napi_env env, napi_callback_info info);
     static napi_value ShowAbility(napi_env env, napi_callback_info info);
     static napi_value HideAbility(napi_env env, napi_callback_info info);
+<<<<<<< HEAD
+=======
+    static napi_value SetRestoreEnabled(napi_env env, napi_callback_info info);
+>>>>>>> upstream/master
 
 private:
     static void WrapJsUIAbilityContext(napi_env env, std::shared_ptr<AbilityContext> uiAbiContext,
@@ -100,6 +104,10 @@ private:
     napi_value OnOpenAtomicService(napi_env env, NapiCallbackInfo& info);
     napi_value OnShowAbility(napi_env env, NapiCallbackInfo& info);
     napi_value OnHideAbility(napi_env env, NapiCallbackInfo& info);
+<<<<<<< HEAD
+=======
+    napi_value OnSetRestoreEnabled(napi_env env, NapiCallbackInfo& info);
+>>>>>>> upstream/master
 
 #ifdef SUPPORT_GRAPHICS
 public:

@@ -63,6 +63,10 @@ ohos_unittest("extension_record_manager_test") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
+<<<<<<< HEAD
+=======
+    "${ability_runtime_path}/utils/server/startup:startup_util",
+>>>>>>> upstream/master
     "${ability_runtime_services_path}/abilitymgr:abilityms",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",

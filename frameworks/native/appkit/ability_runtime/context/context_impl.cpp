@@ -582,7 +582,10 @@ int32_t ContextImpl::GetBundleInfo(const std::string &bundleName, AppExecFwk::Bu
         if (accountId == 0) {
             accountId = GetCurrentActiveAccountId();
         }
-        bundleMgr_->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, accountId);
+        bundleMgr_->GetBundleInfoV9(bundleName,
+            static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION) +
+            static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE),
+            bundleInfo, accountId);
     }
 
     if (bundleInfo.name.empty() || bundleInfo.applicationInfo.name.empty()) {
@@ -618,7 +621,10 @@ void ContextImpl::GetBundleInfo(const std::string &bundleName, AppExecFwk::Bundl
             static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_EXTENSION_ABILITY) +
             static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_METADATA)), bundleInfo);
     } else {
-        bundleMgr_->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, accountId);
+        bundleMgr_->GetBundleInfoV9(bundleName,
+            static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION) +
+            static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE),
+            bundleInfo, accountId);
     }
 }
 
@@ -703,7 +709,11 @@ int32_t ContextImpl::CreateBundleContext(std::shared_ptr<Context> &context, cons
     std::shared_ptr<Context> inputContext)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> upstream/master
     if (bundleName.empty()) {
         TAG_LOGE(AAFwkTag::APPKIT, "bundleName is empty");
         return ERR_INVALID_VALUE;
@@ -889,12 +899,35 @@ std::shared_ptr<Global::Resource::ResourceManager> ContextImpl::InitResourceMana
                 TAG_LOGD(AAFwkTag::APPKIT, "loadPath: %{private}s", loadPath.c_str());
                 GetOverlayPath(resourceManager, bundleInfo.name, hapModuleInfo.moduleName, loadPath, currentBundle,
                     inputContext);
+<<<<<<< HEAD
+=======
+                AddPatchResource(resourceManager, loadPath, hapModuleInfo.hqfInfo.hqfFilePath,
+                    bundleInfo.applicationInfo.debug, inputContext);
+>>>>>>> upstream/master
             }
         }
     }
     return resourceManager;
 }
 
+<<<<<<< HEAD
+=======
+void ContextImpl::AddPatchResource(std::shared_ptr<Global::Resource::ResourceManager> &resourceManager,
+    const std::string &loadPath, const std::string &hqfPath, bool isDebug, std::shared_ptr<Context> inputContext)
+{
+    std::regex pattern(std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR)
+        + GetBundleNameWithContext(inputContext));
+    if (!hqfPath.empty() && isDebug) {
+        std::string realHqfPath = std::regex_replace(hqfPath, pattern, LOCAL_CODE_PATH);
+        TAG_LOGI(AAFwkTag::APPKIT, "AddPatchResource hapPath:%{public}s, patchPath:%{public}s",
+            loadPath.c_str(), realHqfPath.c_str());
+        if (!resourceManager->AddPatchResource(loadPath.c_str(), realHqfPath.c_str())) {
+            TAG_LOGE(AAFwkTag::APPKIT, "AddPatchResource failed");
+        }
+    }
+}
+
+>>>>>>> upstream/master
 void ContextImpl::GetOverlayPath(std::shared_ptr<Global::Resource::ResourceManager> &resourceManager,
     const std::string &bundleName, const std::string &moduleName, std::string &loadPath, bool currentBundle,
     std::shared_ptr<Context> inputContext)
@@ -938,7 +971,10 @@ void ContextImpl::SubscribeToOverlayEvents(std::shared_ptr<Global::Resource::Res
     const std::string &name, const std::string &hapModuleName, std::string &loadPath,
     std::vector<AppExecFwk::OverlayModuleInfo> overlayModuleInfos)
 {
+<<<<<<< HEAD
     std::lock_guard<std::mutex> lock(overlaySubscriberMutex_);
+=======
+>>>>>>> upstream/master
     if (overlaySubscriber_ != nullptr) {
         return;
     }
@@ -960,7 +996,10 @@ void ContextImpl::SubscribeToOverlayEvents(std::shared_ptr<Global::Resource::Res
 
 void ContextImpl::UnsubscribeToOverlayEvents()
 {
+<<<<<<< HEAD
     std::lock_guard<std::mutex> lock(overlaySubscriberMutex_);
+=======
+>>>>>>> upstream/master
     if (overlaySubscriber_ != nullptr) {
         EventFwk::CommonEventManager::UnSubscribeCommonEvent(overlaySubscriber_);
         overlaySubscriber_ = nullptr;
@@ -1205,6 +1244,10 @@ void ContextImpl::AppHasDarkRes(bool &darkRes)
 
 void ContextImpl::KillProcessBySelf()
 {
+<<<<<<< HEAD
+=======
+    TAG_LOGI(AAFwkTag::APPKIT, "killProcessBySelf called clearPageStack is %{public}d", clearPageStack);
+>>>>>>> upstream/master
     auto appMgrClient = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
     appMgrClient->KillApplicationSelf();
 }

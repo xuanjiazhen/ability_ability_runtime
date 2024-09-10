@@ -29,6 +29,9 @@
 #include "running_process_info.h"
 
 namespace OHOS {
+namespace AbilityRuntime {
+struct LoadParam;
+}
 namespace AppExecFwk {
 class IAmsMgr : public IRemoteBroker {
 public:
@@ -43,9 +46,9 @@ public:
      * @param appInfo, the app information.
      * @return
      */
-    virtual void LoadAbility(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &preToken,
-        const std::shared_ptr<AbilityInfo> &abilityInfo, const std::shared_ptr<ApplicationInfo> &appInfo,
-        const std::shared_ptr<AAFwk::Want> &want, int32_t abilityRecordId) {};
+    virtual void LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInfo,
+        const std::shared_ptr<ApplicationInfo> &appInfo,
+        const std::shared_ptr<AAFwk::Want> &want, std::shared_ptr<AbilityRuntime::LoadParam> loadParam) {};
 
     /**
      * TerminateAbility, call TerminateAbility() through the proxy object, terminate the token ability.
@@ -83,20 +86,6 @@ public:
     virtual void RegisterAppStateCallback(const sptr<IAppStateCallback> &callback) = 0;
 
     /**
-     * AbilityBehaviorAnalysis,call AbilityBehaviorAnalysis() through the proxy object,
-     * ability behavior analysis assistant process optimization.
-     *
-     * @param token, the unique identification to start the ability.
-     * @param preToken, the unique identification to call the ability.
-     * @param visibility, the visibility information about windows info.
-     * @param perceptibility, the Perceptibility information about windows info.
-     * @param connectionState, the service ability connection state.
-     * @return
-     */
-    virtual void AbilityBehaviorAnalysis(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &preToken,
-        const int32_t visibility, const int32_t perceptibility, const int32_t connectionState) = 0;
-
-    /**
      * KillProcessByAbilityToken, call KillProcessByAbilityToken() through proxy object,
      * kill the process by ability token.
      *
@@ -126,7 +115,12 @@ public:
      * @param accountId, account ID.
      * @return ERR_OK, return back success, others fail.
      */
+<<<<<<< HEAD
     virtual int KillProcessWithAccount(const std::string &bundleName, const int accountId) = 0;
+=======
+    virtual int KillProcessWithAccount(
+        const std::string &bundleName, const int accountId, const bool clearPageStack = false) = 0;
+>>>>>>> upstream/master
 
     /**
      * UpdateApplicationInfoInstalled, call UpdateApplicationInfoInstalled() through proxy object,
@@ -144,7 +138,11 @@ public:
      * @param  bundleName, bundle name in Application record.
      * @return ERR_OK, return back success, others fail.
      */
+<<<<<<< HEAD
     virtual int KillApplication(const std::string &bundleName) = 0;
+=======
+    virtual int KillApplication(const std::string &bundleName, const bool clearPageStack = false) = 0;
+>>>>>>> upstream/master
 
     /**
      * ForceKillApplication, call ForceKillApplication() through proxy object, force kill the application.
@@ -179,7 +177,11 @@ public:
      *
      * @return Returns ERR_OK on success, others on failure.
      */
+<<<<<<< HEAD
     virtual int KillApplicationSelf()
+=======
+    virtual int KillApplicationSelf(const bool clearPageStack = false)
+>>>>>>> upstream/master
     {
         return ERR_OK;
     }
@@ -220,6 +222,14 @@ public:
      * @return
      */
     virtual void SetCurrentUserId(const int32_t userId) = 0;
+
+    /**
+     * Set enable start process flag by userId
+     * @param userId the user id.
+     * @param enableStartProcess enable start process.
+     * @return
+     */
+    virtual void SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess) {}
 
     /**
      * Get bundleName by pid.
@@ -370,13 +380,22 @@ public:
         return false;
     }
 
+    virtual bool IsProcessAttached(sptr<IRemoteObject> token)
+    {
+        return false;
+    }
+
+    virtual bool IsAppKilling(sptr<IRemoteObject> token)
+    {
+        return false;
+    }
+
     enum class Message {
         LOAD_ABILITY = 0,
         TERMINATE_ABILITY,
         UPDATE_ABILITY_STATE,
         UPDATE_EXTENSION_STATE,
         REGISTER_APP_STATE_CALLBACK,
-        ABILITY_BEHAVIOR_ANALYSIS,
         KILL_PEOCESS_BY_ABILITY_TOKEN,
         KILL_PROCESSES_BY_USERID,
         KILL_PROCESS_WITH_ACCOUNT,
@@ -393,6 +412,7 @@ public:
         KILL_APPLICATION_SELF,
         UPDATE_APPLICATION_INFO_INSTALLED,
         SET_CURRENT_USER_ID,
+        ENABLE_START_PROCESS_FLAG_BY_USER_ID,
         Get_BUNDLE_NAME_BY_PID,
         SET_ABILITY_FOREGROUNDING_FLAG,
         REGISTER_APP_DEBUG_LISTENER,
@@ -421,6 +441,10 @@ public:
         FORCE_KILL_APPLICATION,
         CLEAN_UIABILITY_BY_USER_REQUEST,
         FORCE_KILL_APPLICATION_BY_ACCESS_TOKEN_ID = 49,
+        IS_PROCESS_ATTACHED,
+        IS_APP_KILLING,
+        // Add enumeration values above
+        END
     };
 };
 }  // namespace AppExecFwk

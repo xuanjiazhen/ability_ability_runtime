@@ -14,7 +14,7 @@
  */
 
 #include "ability_start_setting.h"
-#include <cstring>
+
 #include "string_ex.h"
 
 using namespace OHOS;
@@ -24,6 +24,10 @@ namespace AAFwk {
 const std::string AbilityStartSetting::BOUNDS_KEY = "bounds";
 const std::string AbilityStartSetting::WINDOW_DISPLAY_ID_KEY = "windowId";
 const std::string AbilityStartSetting::WINDOW_MODE_KEY = "windowMode";
+<<<<<<< HEAD
+=======
+const std::string AbilityStartSetting::IS_START_BY_SCB_KEY = "isStartByScb";
+>>>>>>> upstream/master
 constexpr uint32_t CYCLE_LIMIT = 1000;
 
 /**

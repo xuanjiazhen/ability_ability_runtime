@@ -14,5 +14,10 @@
     "system_configuration":{
         "system_orientation": "vertical"
     },
+<<<<<<< HEAD
     "supportBackToCaller": true
+=======
+    "supportBackToCaller": true,
+    "supportSCBCrashReboot": true
+>>>>>>> upstream/master
 }

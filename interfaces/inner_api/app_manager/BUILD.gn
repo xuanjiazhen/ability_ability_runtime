@@ -40,9 +40,12 @@ config("appmgr_core_config") {
 }
 
 ohos_shared_library("app_manager") {
+  branch_protector_ret = "pac_ret"
+
   include_dirs = [
     "//third_party/json/include",
     "${ability_runtime_path}/interfaces/kits/native/appkit/dfr",
+    "${ability_runtime_path}/utils/global/time/include",
     "${ability_runtime_services_path}/appdfr/include",
     "${ability_runtime_services_path}/appmgr/include",
     "${ability_runtime_services_path}/common/include",
@@ -127,7 +130,10 @@ ohos_shared_library("app_manager") {
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
-  deps = [ "${ability_runtime_path}/utils/global/freeze:freeze_util" ]
+  deps = [
+    "${ability_runtime_path}/utils/global/freeze:freeze_util",
+    "${ability_runtime_path}/utils/server/startup:startup_util",
+  ]
 
   external_deps = [
     "ability_base:configuration",

@@ -21,7 +21,6 @@
 #include "want_params_wrapper.h"
 #include "pending_want.h"
 #include "want_agent_client.h"
-#include "want_agent_log_wrapper.h"
 #include "want_sender_info.h"
 #include "want_sender_interface.h"
 
@@ -224,7 +223,7 @@ ErrCode WantAgentHelper::Send(const std::shared_ptr<PendingWant> &pendingWant,
         pendingWant->GetTarget());
 }
 
-ErrCode WantAgentHelper::Cancel(const std::shared_ptr<WantAgent> &agent)
+ErrCode WantAgentHelper::Cancel(const std::shared_ptr<WantAgent> agent)
 {
     if (agent == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");

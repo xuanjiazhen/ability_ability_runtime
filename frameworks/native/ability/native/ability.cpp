@@ -170,7 +170,10 @@ void Ability::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
         SetSessionToken(sessionInfo->sessionToken);
     }
     TAG_LOGD(AAFwkTag::ABILITY, "ability:%{public}s", abilityInfo_->name.c_str());
+<<<<<<< HEAD
 #ifdef SUPPORT_GRAPHICS
+=======
+>>>>>>> upstream/master
     if (abilityInfo_->type == AppExecFwk::AbilityType::PAGE) {
         int32_t defualtDisplayId = static_cast<int32_t>(Rosen::DisplayManager::GetInstance().GetDefaultDisplayId());
         int32_t displayId = want.GetIntParam(Want::PARAM_RESV_DISPLAY_ID, defualtDisplayId);

@@ -38,6 +38,11 @@
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
+<<<<<<< HEAD
+=======
+constexpr size_t DEFAULT_RECOVERY_MAX_RESTORE_SIZE = 400 * 1024;
+
+>>>>>>> upstream/master
 static std::string GetSaveAppCachePath(int32_t savedStateId)
 {
     auto context = AbilityRuntime::Context::GetApplicationContext();

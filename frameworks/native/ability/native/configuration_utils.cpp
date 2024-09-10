@@ -49,8 +49,11 @@ void ConfigurationUtils::GetGlobalConfig(const Configuration &configuration,
     resourceConfig.SetHasPointerDevice(configuration.GetItem(AAFwk::GlobalConfigurationKey::INPUT_POINTER_DEVICE));
     resourceConfig.SetMcc(configuration.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_MCC));
     resourceConfig.SetMnc(configuration.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_MNC));
+<<<<<<< HEAD
     resourceConfig.SetColorModeIsSetByApp(
         configuration.GetItem(AAFwk::GlobalConfigurationKey::COLORMODE_IS_SET_BY_APP));
+=======
+>>>>>>> upstream/master
     resourceConfig.SetThemeId(configuration.GetItem(AAFwk::GlobalConfigurationKey::THEME_ID));
 }
 
@@ -111,6 +114,46 @@ void ConfigurationUtils::UpdateDisplayConfig(Rosen::DisplayId displayId, std::sh
     TAG_LOGI(AAFwkTag::ABILITY, "update display config %{public}s for all windows",
         diffConfiguration->GetName().c_str());
     Rosen::Window::UpdateConfigurationForAll(diffConfiguration);
+}
+
+void ConfigurationUtils::InitDisplayConfig(std::shared_ptr<Configuration> configuration,
+    std::shared_ptr<ResourceManager> resourceManager, Rosen::DisplayId displayId, float density, int32_t orientation)
+{
+    TAG_LOGD(AAFwkTag::ABILITY, "Init display config");
+    if (configuration == nullptr || resourceManager == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "Input invalid");
+        return;
+    }
+    auto direction = GetDirectionStr(orientation);
+    configuration->AddItem(displayId, ConfigurationInner::APPLICATION_DENSITYDPI, GetDensityStr(density));
+    configuration->AddItem(displayId, ConfigurationInner::APPLICATION_DIRECTION, direction);
+    configuration->AddItem(ConfigurationInner::APPLICATION_DISPLAYID, std::to_string(displayId));
+    UpdateDisplayResConfig(resourceManager, density, direction);
+}
+
+bool ConfigurationUtils::UpdateDisplayConfig(std::shared_ptr<Configuration> configuration,
+    std::shared_ptr<ResourceManager> resourceManager, Rosen::DisplayId displayId, float density,
+    Rosen::DisplayOrientation orientation)
+{
+    TAG_LOGD(AAFwkTag::ABILITY, "Update display config");
+    if (configuration == nullptr || resourceManager == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "Input invalid");
+        return false;
+    }
+    auto direction = GetDirectionStr(static_cast<int32_t>(orientation));
+    Configuration newConfig;
+    newConfig.AddItem(displayId, ConfigurationInner::APPLICATION_DENSITYDPI, GetDensityStr(density));
+    newConfig.AddItem(displayId, ConfigurationInner::APPLICATION_DIRECTION, direction);
+
+    std::vector<std::string> changeKeyV;
+    configuration->CompareDifferent(changeKeyV, newConfig);
+    if (changeKeyV.empty()) {
+        TAG_LOGD(AAFwkTag::ABILITY, "There's no changed config");
+        return false;
+    }
+    configuration->Merge(changeKeyV, newConfig);
+    UpdateDisplayResConfig(resourceManager, density, direction);
+    return true;
 }
 
 bool ConfigurationUtils::GetDisplayConfig(Rosen::DisplayId displayId, float &density,

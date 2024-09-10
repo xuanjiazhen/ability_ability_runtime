@@ -17,9 +17,8 @@
 
 #include "interceptor/disposed_rule_interceptor.h"
 #include "ability_record.h"
-#include "hilog_tag_wrapper.h"
 #include "modal_system_ui_extension.h"
-#include "want.h"
+
 namespace OHOS {
 namespace AAFwk {
 namespace {
@@ -34,6 +33,7 @@ DisposedObserver::DisposedObserver(const AppExecFwk::DisposedRule &disposedRule,
 void DisposedObserver::OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData)
 {
     std::lock_guard<ffrt::mutex> guard(observerLock_);
+<<<<<<< HEAD
     if (abilityStateData.abilityState == static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_FOREGROUND)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Call");
         token_ = abilityStateData.token;
@@ -49,6 +49,30 @@ void DisposedObserver::OnAbilityStateChanged(const AppExecFwk::AbilityStateData 
             }
             interceptor_->UnregisterObserver(abilityStateData.bundleName);
         }
+=======
+    if (abilityStateData.abilityState != static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_FOREGROUND)) {
+        return;
+    }
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Call");
+    token_ = abilityStateData.token;
+    auto abilityRecord = Token::GetAbilityRecordByToken(token_);
+    if (abilityRecord && !abilityRecord->GetAbilityInfo().isStageBasedModel) {
+        auto systemUIExtension = std::make_shared<OHOS::Rosen::ModalSystemUiExtension>();
+        Want want = *disposedRule_.want;
+        want.SetParam(UIEXTENSION_MODAL_TYPE, 1);
+        auto sessionInfo = abilityRecord->GetSessionInfo();
+        if (sessionInfo != nullptr) {
+            want.SetParam(INTERCEPT_MISSION_ID, sessionInfo->persistentId);
+        } else {
+            want.SetParam(INTERCEPT_MISSION_ID, abilityRecord->GetMissionId());
+        }
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "FA modal system");
+        bool ret = IN_PROCESS_CALL(systemUIExtension->CreateModalUIExtension(want));
+        if (!ret) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "call failed");
+        }
+        interceptor_->UnregisterObserver(abilityStateData.bundleName);
+>>>>>>> upstream/master
     }
 }
 
@@ -59,7 +83,7 @@ void DisposedObserver::OnPageShow(const AppExecFwk::PageStateData &pageStateData
         int ret = IN_PROCESS_CALL(AbilityManagerClient::GetInstance()->StartAbility(*disposedRule_.want));
         if (ret != ERR_OK) {
             interceptor_->UnregisterObserver(pageStateData.bundleName);
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "failed to start disposed ability");
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "call failed");
             return;
         }
     }
@@ -73,15 +97,27 @@ void DisposedObserver::OnPageShow(const AppExecFwk::PageStateData &pageStateData
             bool ret = IN_PROCESS_CALL(systemUIExtension->CreateModalUIExtension(want));
             if (!ret) {
                 interceptor_->UnregisterObserver(pageStateData.bundleName);
-                TAG_LOGE(AAFwkTag::ABILITYMGR, "failed to start system UIExtension");
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "call failed");
                 return;
             }
         } else {
+<<<<<<< HEAD
             TAG_LOGD(AAFwkTag::ABILITYMGR, "modal app");
             int ret = abilityRecord->CreateModalUIExtension(*disposedRule_.want);
+=======
+            Want want = *disposedRule_.want;
+            auto sessionInfo = abilityRecord->GetSessionInfo();
+            if (sessionInfo != nullptr) {
+                want.SetParam(INTERCEPT_MISSION_ID, sessionInfo->persistentId);
+            } else {
+                want.SetParam(INTERCEPT_MISSION_ID, abilityRecord->GetMissionId());
+            }
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "modal app");
+            int ret = abilityRecord->CreateModalUIExtension(want);
+>>>>>>> upstream/master
             if (ret != ERR_OK) {
                 interceptor_->UnregisterObserver(pageStateData.bundleName);
-                TAG_LOGE(AAFwkTag::ABILITYMGR, "failed to start disposed UIExtension");
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "call failed");
                 return;
             }
         }

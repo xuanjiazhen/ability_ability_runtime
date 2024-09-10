@@ -19,10 +19,16 @@ config("napi_common_public_config") {
 }
 
 ohos_shared_library("napi_common") {
+<<<<<<< HEAD
   include_dirs = [
     "${ability_runtime_napi_path}/featureAbility",
     "//third_party/node/src",
   ]
+=======
+  branch_protector_ret = "pac_ret"
+
+  include_dirs = [ "${ability_runtime_napi_path}/featureAbility" ]
+>>>>>>> upstream/master
 
   public_configs = [
     ":napi_common_public_config",

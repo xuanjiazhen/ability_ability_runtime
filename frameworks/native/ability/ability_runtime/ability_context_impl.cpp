@@ -329,6 +329,22 @@ ErrCode AbilityContextImpl::TerminateAbilityWithResult(const AAFwk::Want& want, 
         TAG_LOGI(AAFwkTag::CONTEXT, "ret=%{public}d", err);
         return err;
     }
+<<<<<<< HEAD
+}
+
+ErrCode AbilityContextImpl::BackToCallerAbilityWithResult(const AAFwk::Want& want, int resultCode, int64_t requestCode)
+{
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->BackToCallerAbilityWithResult(
+        token_, resultCode, &want, requestCode);
+    TAG_LOGI(AAFwkTag::CONTEXT, "ret:%{public}d", err);
+    return static_cast<int32_t>(err);
+=======
+#else
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->TerminateAbility(token_, resultCode, &want);
+    TAG_LOGI(AAFwkTag::CONTEXT, "ret=%{public}d", err);
+    return err;
+#endif
+>>>>>>> upstream/master
 }
 
 ErrCode AbilityContextImpl::BackToCallerAbilityWithResult(const AAFwk::Want& want, int resultCode, int64_t requestCode)
@@ -408,6 +424,22 @@ ErrCode AbilityContextImpl::ConnectAbilityWithAccount(const AAFwk::Want& want, i
         ConnectionManager::GetInstance().ConnectAbilityWithAccount(token_, want, accountId, connectCallback);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "failed, ret:%{public}d", ret);
+<<<<<<< HEAD
+=======
+    }
+    return ret;
+}
+
+ErrCode AbilityContextImpl::ConnectUIServiceExtensionAbility(const AAFwk::Want& want,
+    const sptr<AbilityConnectCallback>& connectCallback)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::CONTEXT,
+        "called, name:%{public}s", abilityInfo_ == nullptr ? "" : abilityInfo_->name.c_str());
+    ErrCode ret = ConnectionManager::GetInstance().ConnectUIServiceExtensionAbility(token_, want, connectCallback);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "failed, ret:%{public}d", ret);
+>>>>>>> upstream/master
     }
     return ret;
 }
@@ -555,7 +587,11 @@ ErrCode AbilityContextImpl::TerminateSelf()
     }
 
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled() && sessionToken) {
+<<<<<<< HEAD
         TAG_LOGI(AAFwkTag::CONTEXT, "terminateSelf SCB");
+=======
+        TAG_LOGI(AAFwkTag::CONTEXT, "Terminate %{public}s", abilityInfo_ == nullptr ? "" : abilityInfo_->name.c_str());
+>>>>>>> upstream/master
         AAFwk::Want resultWant;
         sptr<AAFwk::SessionInfo> info = new AAFwk::SessionInfo();
         info->want = resultWant;
@@ -571,6 +607,17 @@ ErrCode AbilityContextImpl::TerminateSelf()
         }
         return err;
     }
+<<<<<<< HEAD
+=======
+#else
+    AAFwk::Want resultWant;
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->TerminateAbility(token_, -1, &resultWant);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "failed %{public}d", err);
+    }
+    return err;
+#endif
+>>>>>>> upstream/master
 }
 
 ErrCode AbilityContextImpl::CloseAbility()

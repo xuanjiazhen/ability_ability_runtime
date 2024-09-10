@@ -41,6 +41,7 @@ namespace Rosen {
 class WindowVisibilityInfo;
 }
 namespace AppExecFwk {
+
 class AppRunningManager {
 public:
     AppRunningManager();
@@ -169,7 +170,11 @@ public:
      * @return Return true if found, otherwise return false.
      */
     bool ProcessExitByBundleName(
+<<<<<<< HEAD
         const std::string &bundleName, std::list<pid_t> &pids);
+=======
+        const std::string &bundleName, std::list<pid_t> &pids, const bool clearPageStack = false);
+>>>>>>> upstream/master
     /**
      * Get Foreground Applications.
      *
@@ -183,7 +188,7 @@ public:
     * @param config System environment change parameters.
     * @return Returns ERR_OK on success, others on failure.
     */
-    int32_t UpdateConfiguration(const Configuration &config);
+    int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1);
 
     /**
      *  Update config by sa.
@@ -238,7 +243,7 @@ public:
     void SetAbilityForegroundingFlagToAppRecord(const pid_t pid);
 
     void HandleTerminateTimeOut(int64_t eventId);
-    void HandleAbilityAttachTimeOut(const sptr<IRemoteObject> &token);
+    void HandleAbilityAttachTimeOut(const sptr<IRemoteObject> &token, std::shared_ptr<AppMgrServiceInner> serviceInner);
     std::shared_ptr<AppRunningRecord> GetAppRunningRecord(const int64_t eventId);
     void TerminateAbility(const sptr<IRemoteObject> &token, bool clearMissionFlag,
         std::shared_ptr<AppMgrServiceInner> appMgrServiceInner);
@@ -253,7 +258,11 @@ public:
     int32_t ProcessUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo);
 
     bool ProcessExitByBundleNameAndUid(
+<<<<<<< HEAD
         const std::string &bundleName, const int uid, std::list<pid_t> &pids);
+=======
+        const std::string &bundleName, const int uid, std::list<pid_t> &pids, const bool clearPageStack = false);
+>>>>>>> upstream/master
     bool GetPidsByUserId(int32_t userId, std::list<pid_t> &pids);
 
     void PrepareTerminate(const sptr<IRemoteObject> &token, bool clearMissionFlag = false);
@@ -301,6 +310,7 @@ public:
 
     std::shared_ptr<AppRunningRecord> GetAppRunningRecordByChildProcessPid(const pid_t pid);
     std::shared_ptr<ChildProcessRecord> OnChildProcessRemoteDied(const wptr<IRemoteObject> &remote);
+    bool IsChildProcessReachLimit(uint32_t accessTokenId);
 
     /**
      * @brief Obtain number of app through bundlename.
@@ -345,7 +355,9 @@ public:
 
     bool HandleUserRequestClean(const sptr<IRemoteObject> &abilityToken, pid_t &pid, int32_t &uid);
 
-private:
+    void SetMultiUserConfigurationMgr(const std::shared_ptr<MultiUserConfigurationMgr>& multiUserConfigurationMgr);
+
+  private:
     std::shared_ptr<AbilityRunningRecord> GetAbilityRunningRecord(const int64_t eventId);
     int32_t AssignRunningProcessInfoByAppRecord(
         std::shared_ptr<AppRunningRecord> appRecord, AppExecFwk::RunningProcessInfo &info) const;
@@ -361,6 +373,7 @@ private:
     std::shared_ptr<Configuration> configuration_;
     std::mutex updateConfigurationDelayedLock_;
     std::map<const int32_t, bool> updateConfigurationDelayedMap_;
+    std::shared_ptr<MultiUserConfigurationMgr> multiUserConfigurationMgr_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -44,6 +44,7 @@ struct AddInfoParam {
     bool withDefault = false;
     std::string typeName;
     std::vector<std::string> infoNames;
+    bool isExistDefaultApp = false;
 };
 using namespace OHOS::EcologicalRuleMgrService;
 using ErmsCallerInfo = OHOS::EcologicalRuleMgrService::AbilityCallerInfo;
@@ -61,8 +62,13 @@ public:
     int ImplicitStartAbility(AbilityRequest &request, int32_t userId, int32_t windowMode = 0,
         const std::string &replaceWantString = "", bool isAppCloneSelector = false);
 
-    void ResetCallingIdentityAsCaller(int32_t tokenId);
+    void ResetCallingIdentityAsCaller(int32_t tokenId, bool flag);
 
+<<<<<<< HEAD
+=======
+    void RemoveIdentity(int32_t tokenId);
+
+>>>>>>> upstream/master
 private:
     int GenerateAbilityRequestByAction(int32_t userId, AbilityRequest &request,
         std::vector<DialogAppInfo> &dialogAppInfos, bool isMoreHapList, bool &findDefaultApp);
@@ -106,9 +112,10 @@ private:
 
     bool IsActionImplicitStart(const Want &want, bool findDeafultApp);
 
+    int CheckImplicitCallPermission(const AbilityRequest& abilityRequest);
+
 private:
-    const static std::vector<std::string> blackList;
-    const static std::unordered_set<AppExecFwk::ExtensionAbilityType> extensionWhiteList;
+    bool IsExtensionInWhiteList(AppExecFwk::ExtensionAbilityType type);
     std::shared_ptr<AppExecFwk::BundleMgrHelper> iBundleManagerHelper_;
     ffrt::mutex identityListLock_;
     std::list<IdentityNode> identityList_;

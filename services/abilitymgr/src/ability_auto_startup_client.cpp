@@ -16,7 +16,6 @@
 #include "ability_auto_startup_client.h"
 
 #include "hilog_tag_wrapper.h"
-#include "if_system_ability_manager.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 
@@ -67,22 +66,38 @@ ErrCode AbilityAutoStartupClient::Connect()
     }
     sptr<ISystemAbilityManager> systemManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (systemManager == nullptr) {
+<<<<<<< HEAD
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Get registry failed");
+=======
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null systemManager");
+>>>>>>> upstream/master
         return GET_ABILITY_SERVICE_FAILED;
     }
     sptr<IRemoteObject> remoteObj = systemManager->GetSystemAbility(ABILITY_MGR_SERVICE_ID);
     if (remoteObj == nullptr) {
+<<<<<<< HEAD
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Connect AbilityManagerService failed");
+=======
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null remoteObj");
+>>>>>>> upstream/master
         return GET_ABILITY_SERVICE_FAILED;
     }
 
     deathRecipient_ = sptr<IRemoteObject::DeathRecipient>(new AbilityMgrDeathRecipient());
     if (deathRecipient_ == nullptr) {
+<<<<<<< HEAD
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Create AbilityMgrDeathRecipient failed");
         return GET_ABILITY_SERVICE_FAILED;
     }
     if ((remoteObj->IsProxyObject()) && (!remoteObj->AddDeathRecipient(deathRecipient_))) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Add death recipient to AbilityManagerService failed");
+=======
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null deathRecipient");
+        return GET_ABILITY_SERVICE_FAILED;
+    }
+    if ((remoteObj->IsProxyObject()) && (!remoteObj->AddDeathRecipient(deathRecipient_))) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "AddDeathRecipient fail");
+>>>>>>> upstream/master
         return GET_ABILITY_SERVICE_FAILED;
     }
 
@@ -117,7 +132,11 @@ ErrCode AbilityAutoStartupClient::QueryAllAutoStartupApplications(std::vector<Au
 
 void AbilityAutoStartupClient::AbilityMgrDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)
 {
+<<<<<<< HEAD
     TAG_LOGI(AAFwkTag::AUTO_STARTUP, "Handle remote died");
+=======
+    TAG_LOGI(AAFwkTag::AUTO_STARTUP, "remote died");
+>>>>>>> upstream/master
     AbilityAutoStartupClient::GetInstance()->ResetProxy(remote);
 }
 

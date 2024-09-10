@@ -164,7 +164,11 @@ void UIAbility::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessio
     (const_cast<AAFwk::Want &>(want)).RemoveParam(DLP_PARAMS_SECURITY_FLAG);
     SetWant(want);
     TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", abilityInfo_->name.c_str());
+<<<<<<< HEAD
 #ifdef SUPPORT_GRAPHICS
+=======
+#ifdef SUPPORT_SCREEN
+>>>>>>> upstream/master
     if (sessionInfo != nullptr) {
         SetSessionToken(sessionInfo->sessionToken);
         SetIdentityToken(sessionInfo->identityToken);
@@ -190,7 +194,11 @@ void UIAbility::OnStop()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
+<<<<<<< HEAD
 #ifdef SUPPORT_GRAPHICS
+=======
+#ifdef SUPPORT_SCREEN
+>>>>>>> upstream/master
     TAG_LOGD(AAFwkTag::UIABILITY, "unregisterDisplayInfoChangedListener");
     (void)Rosen::WindowManager::GetInstance().UnregisterDisplayInfoChangedListener(token_, abilityDisplayListener_);
     auto &&window = GetWindow();
@@ -309,8 +317,6 @@ void UIAbility::InitConfigurationProperties(const AppExecFwk::Configuration &cha
 {
     resourceConfig.SetMcc(changeConfiguration.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_MCC));
     resourceConfig.SetMnc(changeConfiguration.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_MNC));
-    resourceConfig.SetColorModeIsSetByApp(
-        changeConfiguration.GetItem(AAFwk::GlobalConfigurationKey::COLORMODE_IS_SET_BY_APP));
     if (setting_) {
         auto displayId =
             std::atoi(setting_->GetProperty(AppExecFwk::AbilityStartSetting::WINDOW_DISPLAY_ID_KEY).c_str());
@@ -385,11 +391,13 @@ void UIAbility::OnRestoreAbilityState(const AppExecFwk::PacMap &inState)
 
 void UIAbility::SetWant(const AAFwk::Want &want)
 {
+    std::lock_guard<std::mutex> lock(wantMutexlock_);
     setWant_ = std::make_shared<AAFwk::Want>(want);
 }
 
 std::shared_ptr<AAFwk::Want> UIAbility::GetWant()
 {
+    std::lock_guard<std::mutex> lock(wantMutexlock_);
     return setWant_;
 }
 
@@ -525,6 +533,7 @@ sptr<IRemoteObject> UIAbility::CallRequest()
 
 bool UIAbility::IsUseNewStartUpRule()
 {
+    std::lock_guard<std::mutex> lock(wantMutexlock_);
     if (!isNewRuleFlagSetted_ && setWant_) {
         startUpNewRule_ = setWant_->GetBoolParam(COMPONENT_STARTUP_NEW_RULES, false);
         isNewRuleFlagSetted_ = true;
@@ -661,7 +670,31 @@ std::string UIAbility::GetContentInfo()
         TAG_LOGE(AAFwkTag::UIABILITY, "null scene");
         return "";
     }
+<<<<<<< HEAD
     return scene_->GetContentInfo();
+=======
+    return scene_->GetContentInfo(Rosen::BackupAndRestoreType::CONTINUATION);
+}
+
+std::string UIAbility::GetContentInfoForRecovery()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (scene_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null scene");
+        return "";
+    }
+    return scene_->GetContentInfo(Rosen::BackupAndRestoreType::APP_RECOVERY);
+}
+
+std::string UIAbility::GetContentInfoForDefaultRecovery()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (scene_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null scene");
+        return "";
+    }
+    return scene_->GetContentInfo(Rosen::BackupAndRestoreType::RESOURCESCHEDULE_RECOVERY);
+>>>>>>> upstream/master
 }
 
 void UIAbility::SetSceneListener(const sptr<Rosen::IWindowLifeCycle> &listener)
@@ -1130,6 +1163,46 @@ std::string UIAbility::GetIdentityToken() const
 {
     return identityToken_;
 }
+<<<<<<< HEAD
+=======
+
+bool UIAbility::CheckRecoveryEnabled()
+{
+    if (useAppSettedRecoveryValue_.load()) {
+        TAG_LOGD(AAFwkTag::UIABILITY, "use app setted value");
+        // Check in app recovery, here return true.
+        return true;
+    }
+
+    return CheckDefaultRecoveryEnabled();
+}
+
+bool UIAbility::CheckDefaultRecoveryEnabled()
+{
+    if (abilityContext_ == nullptr) {
+        TAG_LOGW(AAFwkTag::UIABILITY, "context invalid");
+        return false;
+    }
+
+    return abilityContext_->GetRestoreEnabled();
+}
+
+bool UIAbility::IsStartByScb()
+{
+    if (setting_ == nullptr) {
+        TAG_LOGW(AAFwkTag::UIABILITY, "null setting_");
+        return false;
+    }
+
+    auto value = setting_->GetProperty(AppExecFwk::AbilityStartSetting::IS_START_BY_SCB_KEY);
+    if (value == "true") {
+        TAG_LOGD(AAFwkTag::UIABILITY, "start by scb");
+        return true;
+    }
+
+    return false;
+}
+>>>>>>> upstream/master
 #endif
 } // namespace AbilityRuntime
 } // namespace OHOS

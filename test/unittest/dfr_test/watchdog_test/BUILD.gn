@@ -80,6 +80,11 @@ ohos_unittest("watchdog_test") {
     "hilog:libhilog",
     "image_framework:image_native",
     "ipc:ipc_core",
+<<<<<<< HEAD
+=======
+    "json:nlohmann_json_static",
+    "jsoncpp:jsoncpp",
+>>>>>>> upstream/master
     "napi:ace_napi",
   ]
 }
