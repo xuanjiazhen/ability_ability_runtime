@@ -47,6 +47,7 @@ ohos_shared_library("napi_ability_common") {
 
   external_deps = [
     "ability_base:base",
+    "ability_base:configuration",
     "ability_base:want",
     "access_token:libtokenid_sdk",
     "bundle_framework:appexecfwk_base",
@@ -58,10 +59,7 @@ ohos_shared_library("napi_ability_common") {
     "napi:ace_napi",
   ]
 
-  public_external_deps = [
-    "ability_base:configuration",
-    "bundle_framework:appexecfwk_core",
-  ]
+  public_external_deps = [ "bundle_framework:appexecfwk_core" ]
 
   if (ability_runtime_graphics) {
     defines = [ "SUPPORT_GRAPHICS" ]
@@ -69,6 +67,7 @@ ohos_shared_library("napi_ability_common") {
       "form_fwk:fmskit_provider_client",
       "form_fwk:form_manager",
       "window_manager:libdm",
+      "window_manager:libdm_lite",
     ]
   }
 

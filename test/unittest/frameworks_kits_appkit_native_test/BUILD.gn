@@ -126,7 +126,6 @@ ohos_unittest("application_test") {
   external_deps = [
     "ability_base:base",
     "ability_base:configuration",
-    "ability_base:extractortool",
     "ability_base:want",
     "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
@@ -356,7 +355,6 @@ ohos_unittest("application_impl_test") {
     "ability_base:configuration",
     "ability_base:want",
     "ability_runtime:runtime",
-    "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -442,7 +440,6 @@ ohos_unittest("ability_stage_test") {
   external_deps = [
     "ability_base:base",
     "ability_base:configuration",
-    "ability_base:extractortool",
     "ability_base:want",
     "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
