@@ -10326,6 +10326,34 @@ int AbilityManagerService::PrepareTerminateAbilityBySCB(const sptr<SessionInfo> 
     return ERR_OK;
 }
 
+int32_t AbilityManagerService::PrepareTerminateAbilityBySCB(const sptr<SessionInfo> &sessionInfo,
+    sptr<IPrepareTerminateCallback> &callback)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Call.");
+    if (sessionInfo == nullptr || sessionInfo->sessionToken == nullptr
+        callback == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionInfo or callback null");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!IsCallerSceneBoard()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not sceneboard called, not allowed");
+        return ERR_WRONG_INTERFACE_CALL;
+    }
+
+    auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
+    CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
+    auto abilityRecord = uiAbilityManager->GetUIAbilityRecordBySessionInfo(sessionInfo);
+    int32_t ret = uiAbilityManager->PrepareTerminateAbility(abilityRecord);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "the ret of PrepareTermianteAbility is %{public}d", ret);
+        callback->DoPrepareTermiante();
+    }
+
+    return ERR_OK;
+}
+
 int AbilityManagerService::RegisterSessionHandler(const sptr<IRemoteObject> &object)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");

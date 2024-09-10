@@ -1762,6 +1762,15 @@ ErrCode AbilityManagerClient::PrepareTerminateAbilityBySCB(sptr<SessionInfo> ses
     return abms->PrepareTerminateAbilityBySCB(sessionInfo, isPrepareTerminate);
 }
 
+ErrCode AbilityManagerClient::PrepareTerminateAbilityBySCB(sptr<SessionInfo> sessionInfo,
+    sptr<IPrepareTerminateCallback> &callback)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, PrepareTerminateAbilityBySCB");
+    return abms->PrepareTerminateAbilityBySCB(sessionInfo, callback);
+}
+
 ErrCode AbilityManagerClient::RegisterSessionHandler(sptr<IRemoteObject> object)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");

@@ -1020,6 +1020,15 @@ public:
     ErrCode PrepareTerminateAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isPrepareTerminate);
 
     /**
+     * PrepareTerminateAbilityBySCB, prepare to terminate ability by scb.
+     *
+     * @param sessionInfo the session info of the ability to terminate.
+     * @param callback the callback of ability onPrepareToTermiante return true.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode PrepareTerminateAbilityBySCB(sptr<SessionInfo> sessionInfo, sptr<IPrepareTerminateCallback> &callback);
+
+    /**
      * Set mission continue state of this ability.
      *
      * @param token Indidate token of ability.

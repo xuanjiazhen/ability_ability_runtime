@@ -1257,6 +1257,16 @@ bool AbilityRecord::PrepareTerminateAbility()
     return lifecycleDeal_->PrepareTerminateAbility();
 }
 
+int32_t AbilityRecord::PrepareTerminateAbility(sptr<IPrepareTerminateCallback> &callback)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
+    if (lifecycleDeal_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null lifecycleDeal_");
+        return ERR_INVALID_VALUE;
+    }
+    return lifecycleDeal_->PrepareTerminateAbility(callback);
+}
+
 int AbilityRecord::TerminateAbility()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);

@@ -531,6 +531,9 @@ int AbilityManagerStub::OnRemoteRequestInnerFourteenth(uint32_t code, MessagePar
     if (interfaceCode == AbilityManagerInterfaceCode::PREPARE_TERMINATE_ABILITY_BY_SCB) {
         return PrepareTerminateAbilityBySCBInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::PREPARE_TERMINATE_ABILITY_BY_SCB_CALLBACK) {
+        return PrepareTerminateAbilityBySCBCallbackInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::REQUESET_MODAL_UIEXTENSION) {
         return RequestModalUIExtensionInner(data, reply);
     }
@@ -3071,6 +3074,26 @@ int AbilityManagerStub::PrepareTerminateAbilityInner(MessageParcel &data, Messag
     return NO_ERROR;
 }
 
+int AbilityManagerStub::PrepareTerminateAbilityInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
+    sptr<IRemoteObject> token = nullptr;
+    if (data.ReadBool()) {
+        token = data.ReadRemoteObject();
+    }
+    sptr<IPrepareTerminateCallback> callback = iface_cast<IPrepareTerminateCallback>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "callback null");
+        return ERR_NULL_OBJECT;
+    }
+    int result = PrepareTerminateAbility(token, callback);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "end failed err: %{public}d", result);
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+} 
+
 int AbilityManagerStub::GetDialogSessionInfoInner(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
@@ -3326,6 +3349,25 @@ int AbilityManagerStub::PrepareTerminateAbilityBySCBInner(MessageParcel &data, M
             TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
             return ERR_INVALID_VALUE;
         }
+    }
+    return result;
+}
+
+int AbilityManagerStub::PrepareTerminateAbilityBySCBCallbackInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Call.");
+    sptr<SessionInfo> sessionInfo = nullptr;
+    if (data.ReadBool()) {
+        sessionInfo = data.ReadParcelable<SessionInfo>();
+    }
+    sptr<IPrepareTerminateCallback> callback = iface_cast<IPrepareTerminateCallback>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "callback null");
+        return ERR_NULL_OBJECT;
+    }
+    auto result = PrepareTerminateAbilityBySCB(sessionInfo, callback);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "stub error, ret:%{public}.", result);
     }
     return result;
 }

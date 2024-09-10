@@ -245,6 +245,13 @@ int AbilitySchedulerStub::PrepareTerminateAbilityInner(MessageParcel &data, Mess
     return NO_ERROR;
 }
 
+int32_t AbilitySchedulerStub::SchedulePrepareTerminateAbilityInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IPrepareTerminateCallback> callback(data.ReadParcelable<IPrepareTerminateCallback>());
+    int32_t ret = SchedulePrepareTerminateAbility(callback);
+    return NO_ERROR;
+}
+
 int AbilitySchedulerStub::CommandAbilityWindowInner(MessageParcel &data, MessageParcel &reply)
 {
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());

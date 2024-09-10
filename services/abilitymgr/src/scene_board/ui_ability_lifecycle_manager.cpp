@@ -2060,6 +2060,41 @@ bool UIAbilityLifecycleManager::PrepareTerminateAbility(const std::shared_ptr<Ab
     return future.get();
 }
 
+int32_t UIAbilityLifecycleManager::PrepareTerminateAbility(const std::shared_ptr<AbilityRecord> &abilityRecord,
+    sptr<IPrepareTerminateCallback> &callback)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (abilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null ability record");
+        return ERR_INVALID_VALUE;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "abilityInfoName:%{public}s", abilityRecord->GetAbilityInfo().name.c_str());
+    if (!CheckPrepareTerminateEnable(abilityRecord)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Not support prepare terminate.");
+        return CHECK_PERMISSION_FAILED;
+    }
+
+    // execute DoPrepareTerminate timeout
+    auto taskHandler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
+    if (taskHandler == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get AbilityTaskHandler failed");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t prepareTerminateTimeout =
+        AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * PREPARE_TERMINATE_TIMEOUT_MULTIPLE /
+        AppUtils::GetInstance().GetTimeoutUnitTimeRatio();
+    auto timeoutTask = [&callback]() {
+        if (callback != nullptr) {
+            callback->DoPrepareTerminate();
+        }
+    };
+    taskHandler_->SubmitTask(timeoutTask, "PrepareTermiante_" + std::to_string(abilityRecord->GetAbilityRecordId()),
+        prepareTerminateTimeout)
+
+    return abilityRecord->PrepareTerminateAbility(callback);
+}
+
 bool UIAbilityLifecycleManager::CheckPrepareTerminateEnable(const std::shared_ptr<AbilityRecord> &abilityRecord)
 {
     if (abilityRecord == nullptr || abilityRecord->IsTerminating()) {

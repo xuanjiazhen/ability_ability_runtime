@@ -1555,6 +1555,15 @@ public:
     virtual int PrepareTerminateAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isTerminate) override;
 
     /**
+     * PrepareTerminateAbilityBySCB, prepare to terminate ability by scb.
+     *
+     * @param sessionInfo the session info of the ability to start.
+     * @param callback the callback of ability onPrepareToTermiante return true.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int PrepareTerminateAbilityBySCB(const sptr<SessionInfo> &sessionInfo, sptr<IPrepareTerminateCallback> &callback) override;
+
+    /**
      * @brief Register app debug listener.
      * @param listener App debug listener.
      * @return Returns ERR_OK on success, others on failure.

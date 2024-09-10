@@ -186,6 +186,18 @@ bool LifecycleDeal::PrepareTerminateAbility()
     return abilityScheduler->SchedulePrepareTerminateAbility();
 }
 
+int32_t LifecycleDeal::PrepareTerminateAbility(sptr<IPrepareTerminateCallback> &callback)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
+    auto abilityScheduler = GetScheduler();
+    if (abilityScheduler == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null abilityScheduler");
+    }
+    if (abilityScheduler->SchedulePrepareTerminateAbility(callback) != ERR_OK) {
+
+    }
+}
+
 void LifecycleDeal::UpdateSessionToken(sptr<IRemoteObject> sessionToken)
 {
     auto abilityScheduler = GetScheduler();

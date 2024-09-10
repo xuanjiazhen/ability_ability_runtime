@@ -4708,6 +4708,43 @@ int AbilityManagerProxy::PrepareTerminateAbilityBySCB(const sptr<SessionInfo> &s
     return NO_ERROR;
 }
 
+int32_t AbilityManagerProxy::PrepareTerminateAbilityBySCB(const sptr<SessionInfo> &sessionInfo
+    sptr<IPrepareTerminateCallback> &callback)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return INNER_ERR;
+    }
+    if (sessionInfo) {
+        if (!data.WriteBool(true) || !data.WriteParcelable(sessionInfo)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "flag and sessionInfo write fail");
+            return INNER_ERR;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "flag write fail");
+            return INNER_ERR;
+        }
+    }
+    if (!data.WriteRemoteObject(callback->AsObject())) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write callback fail");
+        return INNER_ERR;
+    }
+
+    auto error = SendRequest(AbilityManagerInterfaceCode::PREPARE_TERMINATE_ABILITY_BY_SCB,
+        data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        return error;
+    }
+
+    return NO_ERROR;
+}
+
 int32_t AbilityManagerProxy::RegisterAppDebugListener(sptr<AppExecFwk::IAppDebugListener> listener)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
