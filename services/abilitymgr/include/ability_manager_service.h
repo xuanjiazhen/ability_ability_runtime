@@ -1783,6 +1783,25 @@ public:
 
     int32_t NotifySCBToRecoveryAfterInterception(const AbilityRequest &abilityRequest);
 
+    /**
+     * Judge if Caller-Application is in background state.
+     *
+     * @param abilityRequest, abilityRequest.
+     * @param isBackgroundCall, Indicates the Caller-Application state.
+     *                          TRUE: The Caller-Application is not in focus and not in foreground state.
+     *                          FALSE: The Caller-Application is in focus or in foreground state.
+     * @return Returns ERR_OK on check success, others on check failure.
+     */
+    int IsCallFromBackground(const AbilityRequest &abilityRequest, bool &isBackgroundCall, bool isData = false);
+
+    bool ShouldPreventStartAbility(const AbilityRequest &abilityRequest);
+
+    bool CheckUIExtensionCallerPidByHostWindowId(const AbilityRequest &abilityRequest);
+
+    std::shared_ptr<AbilityRecord> GetUIExtensionRootCaller(const sptr<IRemoteObject> token, int32_t userId);
+
+    bool CheckCallingTokenId(const std::string &bundleName, int32_t userId = INVALID_USER_ID, int32_t appIndex = 0);
+
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;
     static constexpr uint32_t ACTIVE_TIMEOUT_MSG = 1;
@@ -2069,7 +2088,6 @@ private:
     int32_t RequestDialogServiceInner(const Want &want, const sptr<IRemoteObject> &callerToken,
         int requestCode, int32_t userId);
 
-    bool CheckCallingTokenId(const std::string &bundleName, int32_t userId = INVALID_USER_ID, int32_t appIndex = 0);
     bool IsCallerSceneBoard();
 
     void ReleaseAbilityTokenMap(const sptr<IRemoteObject> &token);
@@ -2152,15 +2170,14 @@ private:
     int32_t CheckDebugAssertPermission();
     std::shared_ptr<AbilityDebugDeal> ConnectInitAbilityDebugDeal();
 
+    int32_t SetBackgroundCall(const AppExecFwk::RunningProcessInfo &processInfo,
+        const AbilityRequest &abilityRequest, bool &isBackgroundCall) const;
+
     void GetRunningMultiAppIndex(const std::string &bundleName, int32_t uid, int32_t &appIndex);
     ErrCode ConvertToExplicitWant(Want& want);
 
     int CheckUIExtensionUsage(AppExecFwk::UIExtensionUsage uiExtensionUsage,
         AppExecFwk::ExtensionAbilityType extensionType);
-
-    std::shared_ptr<AbilityRecord> GetUIExtensionRootCaller(const sptr<IRemoteObject> token, int32_t userId);
-
-    bool CheckUIExtensionCallerPidByHostWindowId(const AbilityRequest &abilityRequest);
 
     int CheckExtensionCallPermission(const Want& want, const AbilityRequest& abilityRequest);
 
@@ -2249,8 +2266,6 @@ private:
     std::map<std::string, std::list<std::string>> whiteListMap_;
 
     std::list<std::string> exportWhiteList_;
-
-    bool ShouldPreventStartAbility(const AbilityRequest &abilityRequest);
 
     void PrintStartAbilityInfo(AppExecFwk::AbilityInfo callerInfo, AppExecFwk::AbilityInfo calledInfo);
 

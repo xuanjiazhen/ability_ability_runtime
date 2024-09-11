@@ -17,11 +17,15 @@
 #define OHOS_EXTENSION_PERMISSIONS_UTIL_H
 
 #include "extension_ability_info.h"
+#include "ability_record.h"
+#include "permission_verification.h"
+
 
 namespace OHOS {
 namespace AAFwk {
 class ExtensionPermissionsUtil final {
 public:
+    static ExtensionPermissionsUtil &GetInstance();
     static bool CheckSAPermission(const AppExecFwk::ExtensionAbilityType &extensionType);
     static bool CheckSAPermissionMore(const AppExecFwk::ExtensionAbilityType &extensionType);
 
@@ -29,9 +33,10 @@ public:
      * Check if Caller is allowed to start ServiceAbility(FA) or ServiceExtension(Stage) or DataShareExtension(Stage).
      *
      * @param abilityRequest, abilityRequest.
+     * @param bool, isParamStartAbilityEnable_.
      * @return Returns whether the caller is allowed to start Service.
      */
-    int CheckCallServicePermission(const AbilityRequest &abilityRequest);
+    int CheckCallServicePermission(const AbilityRequest &abilityRequest, bool isParamStartAbilityEnable_ = false);
 
         /**
      * Check if Caller is allowed to start DataAbility(FA)
@@ -39,24 +44,27 @@ public:
      * @param abilityRequest, abilityRequest.
      * @return Returns whether the caller is allowed to start DataAbility.
      */
-    int CheckCallDataAbilityPermission(AbilityRequest &abilityRequest, bool isShell, bool IsSACall = false);
+    int CheckCallDataAbilityPermission(AbilityRequest &abilityRequest, bool isShell, bool IsSACall = false, bool whiteListassociatedWakeUpFlag_ = true);
 
     /**
      * Check if Caller is allowed to start ServiceExtension(Stage) or DataShareExtension(Stage).
      *
      * @param abilityRequest, abilityRequest.
+     * @param bool, isParamStartAbilityEnable_.
      * @return Returns whether the caller is allowed to start ServiceExtension.
      */
-    int CheckCallServiceExtensionPermission(const AbilityRequest &abilityRequest);
+    int CheckCallServiceExtensionPermission(const AbilityRequest &abilityRequest, bool isParamStartAbilityEnable_ = false);
 
     /**
      * Check if Caller is allowed to start other Extension(Stage).
      *
      * @param abilityRequest, abilityRequest.
+     * @param bool, isParamStartAbilityEnable_.
      * @return Returns whether the caller is allowed to start OtherExtension.
      */
-    int CheckCallOtherExtensionPermission(const AbilityRequest &abilityRequest);
+    int CheckCallOtherExtensionPermission(const AbilityRequest &abilityRequest, bool isParamStartAbilityEnable_ = false);
 
+private:
     /**
      * @brief Check some specified uiextension type should be a system app.
      * Consider expanding it to table-driven in the future.
@@ -67,6 +75,7 @@ public:
     int CheckUIExtensionPermission(const AbilityRequest &abilityRequest);
 
     bool CheckUIExtensionCallerIsForeground(const AbilityRequest &abilityRequest);
+
     bool CheckUIExtensionCallerIsUIAbility(const AbilityRequest &abilityRequest);
 
     /**
@@ -78,8 +87,7 @@ public:
     int CheckCallServiceAbilityPermission(const AbilityRequest &abilityRequest);
 
     AAFwk::PermissionVerification::VerificationInfo CreateVerificationInfo(
-        const AbilityRequest &abilityRequest, bool isData = false, bool isShell = false, bool isSA = false);
-
+        const AbilityRequest &abilityRequest, bool isData = false, bool isShell = false, bool isSA = false, bool whiteListassociatedWakeUpFlag_ = true);
 };
 
 } // namespace AAFwk

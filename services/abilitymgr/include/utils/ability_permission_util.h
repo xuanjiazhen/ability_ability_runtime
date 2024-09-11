@@ -38,12 +38,6 @@ public:
     // check dominate screen
     bool IsDominateScreen(const Want &want, bool isPendingWantCaller);
 
-private:
-    AbilityPermissionUtil() = default;
-    ~AbilityPermissionUtil() = default;
-
-    DISALLOW_COPY_AND_MOVE(AbilityPermissionUtil);
-
     /**
      * Check if Caller is allowed to start PageAbility(FA) or Ability(Stage).
      *
@@ -61,19 +55,11 @@ private:
      */
     int CheckStartByCallPermission(const AbilityRequest &abilityRequest);
 
-    /**
-     * Judge if Caller-Application is in background state.
-     *
-     * @param abilityRequest, abilityRequest.
-     * @param isBackgroundCall, Indicates the Caller-Application state.
-     *                          TRUE: The Caller-Application is not in focus and not in foreground state.
-     *                          FALSE: The Caller-Application is in focus or in foreground state.
-     * @return Returns ERR_OK on check success, others on check failure.
-     */
-    int IsCallFromBackground(const AbilityRequest &abilityRequest, bool &isBackgroundCall, bool isData = false);
+private:
+    AbilityPermissionUtil() = default;
+    ~AbilityPermissionUtil() = default;
 
-    int32_t SetBackgroundCall(const AppExecFwk::RunningProcessInfo &processInfo,
-        const AbilityRequest &abilityRequest, bool &isBackgroundCall) const;
+    DISALLOW_COPY_AND_MOVE(AbilityPermissionUtil);
 };
 } // namespace AAFwk
 } // namespace OHOS
