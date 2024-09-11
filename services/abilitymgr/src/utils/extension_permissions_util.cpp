@@ -91,7 +91,7 @@ bool ExtensionPermissionsUtil::CheckSAPermissionMore(const AppExecFwk::Extension
         checkRet = PermissionVerification::GetInstance()->VerifyCallingPermission(
             "ohos.permission.CONNECT_VOIP_EXTENSION");
     } else {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "No need connect permission for extension type %{public}d.", extensionType);
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "No need connect permission for extension type %{public}d.", extensionType);
         return true;
     }
 

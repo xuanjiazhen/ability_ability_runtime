@@ -431,7 +431,7 @@ private:
 
     napi_value OnGetTopAbility(napi_env env, NapiCallbackInfo& info)
     {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "called");
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
 #ifdef ENABLE_ERRCODE
         auto selfToken = IPCSkeleton::GetSelfTokenID();
         if (!Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken)) {
