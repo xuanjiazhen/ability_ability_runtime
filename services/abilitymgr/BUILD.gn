@@ -174,7 +174,7 @@ ohos_shared_library("abilityms") {
     "window_manager:libwsutils",
     "window_manager:scene_session",
     "window_manager:session_manager_lite",
-    "window_manager:sms",
+    "window_manager:sms",    
   ]
   public_external_deps = [ "background_task_mgr:bgtaskmgr_innerkits" ]
 
