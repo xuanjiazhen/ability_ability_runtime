@@ -110,13 +110,11 @@ void JsPhotoEditorExtensionImpl::BindContext()
         TAG_LOGE(AAFwkTag::UI_EXT, "Fail to get context native object");
         return;
     }
-
-    auto workContext = new (std::nothrow) std::weak_ptr<PhotoEditorExtensionContext>(context_);
-    napi_coerce_to_native_binding_object(env, contextObj, DetachCallbackFunc, AttachUIExtensionContext, workContext,
+    napi_coerce_to_native_binding_object(env, contextObj, DetachCallbackFunc, AttachUIExtensionContext, context_.get(),
                                          nullptr);
     context_->Bind(jsRuntime_, shellContextRef_.get());
     napi_set_named_property(env, obj, "context", contextObj);
-    napi_wrap(env, contextObj, workContext,
+    napi_wrap(env, contextObj, context_.get(),
         [](napi_env, void *data, void *) {
             TAG_LOGD(AAFwkTag::UI_EXT, "Finalizer called");
             if (data == nullptr) {
