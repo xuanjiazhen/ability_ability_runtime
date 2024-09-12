@@ -11369,7 +11369,7 @@ bool AbilityManagerService::CheckVisibilityWindowInfo(const int32_t uid)
 {
     std::vector<sptr<Rosen::WindowVisibilityInfo>> infos;
     Rosen::WindowManager::GetInstance().GetVisibilityWindowInfo(infos);
-    for () {
+    for (auto info : infos) {
         if (!info) {
             continue;
         }
