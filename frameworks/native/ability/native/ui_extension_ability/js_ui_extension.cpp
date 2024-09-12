@@ -146,6 +146,7 @@ void JsUIExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
     if (record != nullptr) {
         token_ = record->GetToken();
     }
+    application_ = application;
     std::string srcPath(Extension::abilityInfo_->moduleName + "/");
     srcPath.append(Extension::abilityInfo_->srcEntrance);
     srcPath.erase(srcPath.rfind('.'));
@@ -941,7 +942,9 @@ void JsUIExtension::OnConfigurationUpdated(const AppExecFwk::Configuration& conf
         TAG_LOGE(AAFwkTag::UI_EXT, "Failed to get context");
         return;
     }
-
+    if (context != nullptr && application_ != nullptr) {
+        context->SetConfiguration(application_->GetConfiguration());
+    }
     auto configUtils = std::make_shared<ConfigurationUtils>();
     configUtils->UpdateGlobalConfig(configuration, context->GetResourceManager());
 
