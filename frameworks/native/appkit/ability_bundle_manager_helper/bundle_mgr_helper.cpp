@@ -782,7 +782,7 @@ ErrCode BundleMgrHelper::GetUidByBundleName(const std::string &bundleName, int32
     return bundleMgr->GetUidByBundleName(bundleName, userId, appCloneIndex);
 }
 
-ErrCode BundleMgrHelper::QueryExtensionAbilityInfosOnlyWithTypeName(const std::string &extensionTypeName,
+ErrCode BundleMgrHelper::QueryExtensionAbilityInfosOnlyWithTypeNameForAms(const std::string &extensionTypeName,
     const uint32_t flag, const int32_t userId, std::vector<ExtensionAbilityInfo> &extensionInfos)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
@@ -793,7 +793,7 @@ ErrCode BundleMgrHelper::QueryExtensionAbilityInfosOnlyWithTypeName(const std::s
     }
 
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    return bundleMgr->QueryExtensionAbilityInfosOnlyWithTypeName(extensionTypeName, flag, userId, extensionInfos);
+    return bundleMgr->QueryExtensionAbilityInfosOnlyWithTypeNameForAms(extensionTypeName, flag, userId, extensionInfos);
 }
 
 sptr<IDefaultApp> BundleMgrHelper::GetDefaultAppProxy()

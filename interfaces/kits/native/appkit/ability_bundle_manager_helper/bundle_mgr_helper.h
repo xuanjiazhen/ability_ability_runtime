@@ -90,7 +90,7 @@ public:
     bool GetHapModuleInfo(const AbilityInfo &abilityInfo, int32_t userId, HapModuleInfo &hapModuleInfo);
     bool QueryAppGalleryBundleName(std::string &bundleName);
     ErrCode GetUidByBundleName(const std::string &bundleName, int32_t userId, int32_t appCloneIndex);
-    ErrCode QueryExtensionAbilityInfosOnlyWithTypeName(const std::string &extensionTypeName,
+    ErrCode QueryExtensionAbilityInfosOnlyWithTypeNameForAms(const std::string &extensionTypeName,
         const uint32_t flag, const int32_t userId, std::vector<ExtensionAbilityInfo> &extensionInfos);
     sptr<IDefaultApp> GetDefaultAppProxy();
     ErrCode GetLaunchWantForBundle(const std::string &bundleName, Want &want, int32_t userId);
@@ -108,7 +108,7 @@ private:
     sptr<IBundleInstaller> ConnectBundleInstaller();
     void OnDeath();
     std::string ParseBundleNameByAppId(const std::string &appId) const;
-	
+
 private:
     DECLARE_DELAYED_SINGLETON(BundleMgrHelper)
     std::mutex mutex_;

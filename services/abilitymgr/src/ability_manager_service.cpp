@@ -2889,7 +2889,7 @@ void AbilityManagerService::SetPickerElementName(const sptr<SessionInfo> &extens
         int32_t validUserId = GetValidUserId(userId);
         TAG_LOGI(AAFwkTag::ABILITYMGR, "targetType: %{public}s, pickerType: %{public}s, userId: %{public}d",
             targetType.c_str(), pickerType.c_str(), validUserId);
-        auto ret = IN_PROCESS_CALL(bms->QueryExtensionAbilityInfosOnlyWithTypeName(pickerType,
+        auto ret = IN_PROCESS_CALL(bms->QueryExtensionAbilityInfosOnlyWithTypeNameForAms(pickerType,
             static_cast<int32_t>(AppExecFwk::GetExtensionAbilityInfoFlag::GET_EXTENSION_ABILITY_INFO_WITH_PERMISSION),
             validUserId,
             extensionInfos));
@@ -3374,7 +3374,7 @@ int32_t AbilityManagerService::TerminateUIServiceExtensionAbility(const sptr<IRe
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no sceneboard, no allowed");
         return ERR_WRONG_INTERFACE_CALL;
     }
-    
+
     auto abilityRecord = Token::GetAbilityRecordByToken(token);
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
 
@@ -3385,14 +3385,14 @@ int32_t AbilityManagerService::TerminateUIServiceExtensionAbility(const sptr<IRe
         extensionAbilityType != AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
             return ERR_INVALID_VALUE;
     }
-    
+
     auto userId = GetValidUserId(DEFAULT_INVAL_VALUE);
     auto connectManager = GetConnectManagerByUserId(userId);
     if (!connectManager) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "connectManager null. userId=%{public}d", userId);
         return ERR_INVALID_VALUE;
     }
-    return connectManager->TerminateAbility(token);    
+    return connectManager->TerminateAbility(token);
 }
 
 int AbilityManagerService::BackToCallerAbilityWithResult(const sptr<IRemoteObject> &token, int resultCode,
