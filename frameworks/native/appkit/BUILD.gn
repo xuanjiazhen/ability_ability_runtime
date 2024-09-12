@@ -13,7 +13,7 @@
 
 import("//arkcompiler/ets_frontend/es2panda/es2abc_config.gni")
 import("//build/ohos.gni")
-import("//build/templates/abc/ohos_abc.gni")
+import("//build/config/components/ets_frontend/es2abc_config.gni")
 import("//commonlibrary/memory_utils/purgeable_mem_config.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
