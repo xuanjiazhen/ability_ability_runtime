@@ -277,21 +277,11 @@ void AbilityManagerService::OnStart()
     state_ = ServiceRunningState::STATE_RUNNING;
     /* Publish service maybe failed, so we need call this function at the last,
      * so it can't affect the TDD test program */
-    instance_ = DelayedSingleton<AbilityManagerService>::GetInstance().get();
-    if (instance_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "instance_ null");
-        return;
-    }
-    bool ret = Publish(instance_);
-    if (!ret) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "publish failed");
-        return;
-    }
 
-    SetParameter(BOOTEVENT_APPFWK_READY, "true");
     AddSystemAbilityListener(BACKGROUND_TASK_MANAGER_SERVICE_ID);
     AddSystemAbilityListener(DISTRIBUTED_SCHED_SA_ID);
     AddSystemAbilityListener(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+    AddSystemAbilityListener(APP_MGR_SERVICE_ID);
 #ifdef SUPPORT_SCREEN
     AddSystemAbilityListener(MULTIMODAL_INPUT_SERVICE_ID);
 #endif
@@ -2412,7 +2402,9 @@ void AbilityManagerService::OnAddSystemAbility(int32_t systemAbilityId, const st
             break;
         }
         case BUNDLE_MGR_SERVICE_SYS_ABILITY_ID: {
+            SetBmsReadyFlag(true);
             SubscribeBundleEventCallback();
+            PublishAbilitymsStartEvent();
             break;
         }
 #ifdef SUPPORT_SCREEN
@@ -2422,6 +2414,11 @@ void AbilityManagerService::OnAddSystemAbility(int32_t systemAbilityId, const st
             break;
         }
 #endif
+        case APP_MGR_SERVICE_ID: {
+            SetAppmsReadyFlag(true);
+            PublishAbilitymsStartEvent();
+            break;
+        }
         default:
             break;
     }
@@ -2440,12 +2437,54 @@ void AbilityManagerService::OnRemoveSystemAbility(int32_t systemAbilityId, const
             break;
         }
         case BUNDLE_MGR_SERVICE_SYS_ABILITY_ID: {
+            SetBmsReadyFlag(false);
             UnsubscribeBundleEventCallback();
+            break;
+        }
+        case APP_MGR_SERVICE_ID: {
+            SetAppmsReadyFlag(false);
             break;
         }
         default:
             break;
     }
+}
+
+void AbilityManagerService::PublishAbilitymsStartEvent()
+{
+    std::lock_guard guard(isSAReadyLock_);
+    if (isBmsReady_ && isAppmsReady_) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "publish abilityms start event.");
+        instance_ = DelayedSingleton<AbilityManagerService>::GetInstance().get();
+        if (instance_ == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "instance_ null");
+            return;
+        }
+        bool ret = Publish(instance_);
+        if (!ret) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "publish failed");
+            return;
+        }
+        SetParameter(BOOTEVENT_APPFWK_READY, "true");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "abilityms start success.");
+        if (taskHandler_) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "submit startResidentApps task");
+            auto startResidentAppsTask = [aams = shared_from_this()]() { aams->StartResidentApps(U0_USER_ID); };
+            taskHandler_->SubmitTask(startResidentAppsTask, "StartResidentApps");
+        }
+    }
+}
+
+void AbilityManagerService::SetBmsReadyFlag(bool isBmsReady)
+{
+    std::lock_guard guard(isSAReadyLock_);
+    isBmsReady_ = isBmsReady;
+}
+
+void AbilityManagerService::SetAppmsReadyFlag(bool isAppmsReady)
+{
+    std::lock_guard guard(isSAReadyLock_);
+    isAppmsReady_ = isAppmsReady;
 }
 
 void AbilityManagerService::SubscribeBackgroundTask()
@@ -2479,11 +2518,6 @@ void AbilityManagerService::UnSubscribeBackgroundTask()
 void AbilityManagerService::SubscribeBundleEventCallback()
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "subscribeBundleEventCallback begin");
-    if (taskHandler_) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "submit startResidentApps task");
-        auto startResidentAppsTask = [aams = shared_from_this()]() { aams->StartResidentApps(U0_USER_ID); };
-        taskHandler_->SubmitTask(startResidentAppsTask, "StartResidentApps");
-    }
 
     if (abilityBundleEventCallback_) {
         return;
@@ -7849,9 +7883,15 @@ void AbilityManagerService::SwitchToUser(int32_t oldUserId, int32_t userId, sptr
         ConnectBmsService();
         StartUserApps();
     }
-    callback->OnStartUserDone(userId, ERR_OK);
+    {
+        std::lock_guard guard(startUserCallbackLock_);
+        startUserCallbackMap_[userId] = callback;
+    }
     bool isBoot = oldUserId == U0_USER_ID ? true : false;
     StartHighestPriorityAbility(userId, isBoot);
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        callback->OnStartUserDone(userId, ERR_OK);
+    }
      if (taskHandler_) {
         taskHandler_->SubmitTask([abilityMs = shared_from_this(), userId]() {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "StartResidentApps userId:%{public}d", userId);
@@ -10085,6 +10125,14 @@ void AbilityManagerService::SetRootSceneSession(const sptr<IRemoteObject> &rootS
     if (!IsCallerSceneBoard()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no sceneboard called, no allowed");
         return;
+    }
+    {
+        std::lock_guard guard(startUserCallbackLock_);
+        auto userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+        auto it = startUserCallbackMap_.find(userId);
+        if (it != startUserCallbackMap_.end() && it->second) {
+            it->second->OnStartUserDone(userId, ERR_OK);
+        }
     }
     auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
     CHECK_POINTER(uiAbilityManager);
