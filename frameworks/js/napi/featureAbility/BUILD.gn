@@ -13,6 +13,7 @@
 
 import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
+import("//foundation/distributeddatamgr/relational_store/relational_store.gni")
 
 ohos_shared_library("featureability") {
   include_dirs = [ "./" ]
@@ -39,6 +40,7 @@ ohos_shared_library("featureability") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:data_ability_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "//third_party/libuv:uv",
   ]
 
   external_deps = [
@@ -51,7 +53,6 @@ ohos_shared_library("featureability") {
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
-    "libuv:uv",
     "napi:ace_napi",
   ]
 
@@ -65,9 +66,11 @@ ohos_shared_library("featureability") {
 
   if (ability_runtime_relational) {
     include_dirs += [
+      "${common_tool_path}",
       "${relational_store_napi_path}/common/include",
       "${relational_store_napi_path}/dataability/include",
       "${relational_store_napi_path}/rdb/include",
+      "${relational_store_common_path}/include",
     ]
     sources += [
       "${relational_store_napi_path}/common/src/js_utils.cpp",
@@ -76,7 +79,6 @@ ohos_shared_library("featureability") {
       "${relational_store_napi_path}/rdb/src/napi_result_set.cpp",
     ]
     external_deps += [
-      "kv_store:distributeddata_mgr",
       "relational_store:native_dataability",
       "relational_store:native_rdb",
       "relational_store:rdb_data_share_adapter",
