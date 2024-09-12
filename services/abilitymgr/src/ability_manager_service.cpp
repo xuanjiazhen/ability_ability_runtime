@@ -125,6 +125,7 @@
 #include "session_manager_lite.h"
 #include "window_focus_changed_listener.h"
 #endif
+#include "window_manager_lite.h"
 
 using OHOS::AppExecFwk::ElementName;
 using OHOS::Security::AccessToken::AccessTokenKit;
@@ -11062,6 +11063,24 @@ bool AbilityManagerService::IsEmbeddedOpenAllowed(sptr<IRemoteObject> callerToke
     return erms->DoProcess(want, GetUserId());
 }
 
+bool AbilityManagerService::CheckVisibilityWindowInfo(const int32_t uid)
+{
+    std::vector<sptr<Rosen::WindowVisibilityInfo>> infos;
+    Rosen::WindowManager::GetInstance().GetVisibilityWindowInfo(infos);
+    for () {
+        if (!info) {
+            continue;
+        }
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "CheckVisibilityWindowInfo begin info->uid_:%{public}d, uid:%{public}d",info->uid_, uid);
+        if (info->uid_ == uid) {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}d has visible window", uid);
+            return true;
+        }
+    }
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}d doesn't has visible window", uid);
+    return false;
+}
+
 bool AbilityManagerService::ShouldPreventStartAbility(const AbilityRequest &abilityRequest)
 {
     std::shared_ptr<AbilityRecord> abilityRecord = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
@@ -11091,9 +11110,9 @@ bool AbilityManagerService::ShouldPreventStartAbility(const AbilityRequest &abil
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Is not UI Ability Pass");
         return false;
     }
-    if (abilityRecord->GetAbilityState() != AAFwk::AbilityState::BACKGROUND) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "Process is not on background Pass");
-        return false;
+    if (CheckVisibilityWindowInfo(abilityInfo.applicationInfo.uid)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Process is Visibility window Pass");
+
     }
     if (continuousFlag) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Process has continuous task Pass");
