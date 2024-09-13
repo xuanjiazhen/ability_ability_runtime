@@ -1097,6 +1097,20 @@ public:
     int32_t NotifyMemorySizeStateChanged(bool isMemorySizeSufficent);
 
     /**
+     * Normal scheduling to exit the process.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t RequestTerminateProcess() const;
+
+    /**
+     * Normal scheduling to exit the application.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t RequestTerminateApplication() const;
+
+    /**
      * whether memory size is sufficent.
      * @return Returns true is sufficent memory size, others return false.
      */

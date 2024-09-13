@@ -353,6 +353,10 @@ int32_t AppMgrStub::OnRemoteRequestInnerSeventh(uint32_t code, MessageParcel &da
             return HandleGetSupportedProcessCachePids(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::GET_ALL_CHILDREN_PROCESSES):
             return HandleGetAllChildrenProcesses(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::REQUEST_TERMINATE_PROCESS):
+            return HandleRequestTerminateProcess(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::REQUEST_TERMINATE_APPLICATION):
+            return HandleRequestTerminateApplication(data, reply);
     }
     return INVALID_FD;
 }
@@ -1437,6 +1441,28 @@ int32_t AppMgrStub::HandleUpdateRenderState(MessageParcel &data, MessageParcel &
     int32_t pid = data.ReadInt32();
     int32_t state = data.ReadInt32();
     int32_t result = UpdateRenderState(pid, state);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Fail to write result.");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleRequestTerminateProcess(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "Called.");
+    auto result = RequestTerminateProcess();
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Fail to write result.");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleRequestTerminateApplication(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "Called.");
+    auto result = RequestTerminateApplication();
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Fail to write result.");
         return ERR_INVALID_VALUE;
