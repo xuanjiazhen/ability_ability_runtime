@@ -92,13 +92,20 @@
             "sandbox_manager",
             "screenlock_mgr",
             "storage_service",
+            "third_party",
             "toolchain",
             "webview",
             "window_manager",
             "zlib"
   ],
           "third_party": [
-            "libjpeg-turbo"
+            "icu",
+            "json",
+            "jsoncpp",
+            "libjpeg-turbo",
+            "libuv",
+            "node",
+            "zlib"
           ]
       },
       "build": {
