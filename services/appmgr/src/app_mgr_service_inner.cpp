@@ -6198,7 +6198,7 @@ int32_t AppMgrServiceInner::SetAppWaitingDebug(const std::string &bundleName, bo
 
     if (!CheckIsDebugApp(bundleName)) {
         TAG_LOGE(AAFwkTag::APPMGR, "is not debug app");
-        return AAFwk::ERR_NOT_DEBUG_APP;
+        return AAFwk::ERR_NOT_IN_APP_PROVISION_MODE;
     }
 
     InitAppWaitingDebugList();
