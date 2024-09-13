@@ -167,11 +167,11 @@ ohos_shared_library("abilityms") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "window_manager:libmodal_system_ui_extension_client",
+    "window_manager:libwm_lite",
     "window_manager:libwsutils",
     "window_manager:scene_session",
     "window_manager:session_manager_lite",
     "window_manager:sms",
-    "window_manager:libwm_lite",
   ]
   public_external_deps = [ "background_task_mgr:bgtaskmgr_innerkits" ]
 
