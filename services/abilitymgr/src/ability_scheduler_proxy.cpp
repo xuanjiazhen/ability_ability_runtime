@@ -22,6 +22,7 @@
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "ishared_result_set.h"
+#include "message_parcel_util.h"
 #include "session_info.h"
 #include "values_bucket.h"
 
@@ -126,14 +127,21 @@ void AbilitySchedulerProxy::SendResult(int requestCode, int resultCode, const Wa
 
 void AbilitySchedulerProxy::ScheduleConnectAbility(const Want &want)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "P1: want=%{public}s", want.ToString().c_str());
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
     if (!WriteInterfaceToken(data)) {
         return;
     }
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "fail to WriteParcelable");
+        return;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed");
         return;
     }
     int32_t err = SendTransactCmd(IAbilityScheduler::SCHEDULE_ABILITY_CONNECT, data, reply, option);
@@ -144,14 +152,21 @@ void AbilitySchedulerProxy::ScheduleConnectAbility(const Want &want)
 
 void AbilitySchedulerProxy::ScheduleDisconnectAbility(const Want &want)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "P2: want=%{public}s", want.ToString().c_str());
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
     if (!WriteInterfaceToken(data)) {
         return;
     }
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "fail to WriteParcelable");
+        return;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed");
         return;
     }
 
@@ -163,6 +178,8 @@ void AbilitySchedulerProxy::ScheduleDisconnectAbility(const Want &want)
 
 void AbilitySchedulerProxy::ScheduleCommandAbility(const Want &want, bool restart, int startId)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "P3: want=%{public}s, re=%{public}d, id=%{public}d",
+        want.ToString().c_str(), int(restart), startId);
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
@@ -181,6 +198,17 @@ void AbilitySchedulerProxy::ScheduleCommandAbility(const Want &want, bool restar
     if (!data.WriteInt32(startId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "fail to WriteInt32");
         return;
+    }
+
+    {
+        MessageParcel sendParcel;
+        sendParcel.WriteParcelable(&want);
+        MessageParcel testParcel;
+        AbilityRuntime::MessageParcelUtil::WriteRawData(testParcel, sendParcel);
+        MessageParcel receiveParcel;
+        AbilityRuntime::MessageParcelUtil::ReadRawData(receiveParcel, testParcel);
+        std::shared_ptr<Want> testWant(receiveParcel.ReadParcelable<Want>());
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "TEST: want=%{public}s", testWant->ToString().c_str());
     }
 
     int32_t err = SendTransactCmd(IAbilityScheduler::SCHEDULE_ABILITY_COMMAND, data, reply, option);
@@ -1113,14 +1141,20 @@ void AbilitySchedulerProxy::CallRequest()
 void AbilitySchedulerProxy::OnExecuteIntent(const Want &want)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
-
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "P4: want=%{public}s", want.ToString().c_str());
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
     if (!WriteInterfaceToken(data)) {
         return;
     }
-    data.WriteParcelable(&want);
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    rawData.WriteParcelable(&want);
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed");
+        return;
+    }
     int32_t err = SendTransactCmd(IAbilityScheduler::SCHEDULE_ONEXECUTE_INTENT, data, reply, option);
     if (err != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "fail, err: %{public}d", err);
@@ -1133,6 +1167,7 @@ int32_t AbilitySchedulerProxy::CreateModalUIExtension(const Want &want)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilitySchedulerProxy::CreateModalUIExtension start");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "P5: want=%{public}s", want.ToString().c_str());
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
@@ -1140,8 +1175,14 @@ int32_t AbilitySchedulerProxy::CreateModalUIExtension(const Want &want)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Write interface fail");
         return INNER_ERR;
     }
-    if (!data.WriteParcelable(&want)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Write wants fail");
+        return INNER_ERR;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write raw data failed");
         return INNER_ERR;
     }
     int32_t err = SendTransactCmd(IAbilityScheduler::CREATE_MODAL_UI_EXTENSION, data, reply, option);

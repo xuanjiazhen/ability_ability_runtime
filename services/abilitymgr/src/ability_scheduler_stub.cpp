@@ -22,6 +22,7 @@
 #include "data_ability_result.h"
 #include "hilog_tag_wrapper.h"
 #include "ishared_result_set.h"
+#include "message_parcel_util.h"
 #include "session_info.h"
 #include "values_bucket.h"
 
@@ -201,22 +202,36 @@ int AbilitySchedulerStub::SendResultInner(MessageParcel &data, MessageParcel &re
 
 int AbilitySchedulerStub::ConnectAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
         return ERR_INVALID_VALUE;
     }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "S1: want=%{public}s", want->ToString().c_str());
     ScheduleConnectAbility(*want);
     return NO_ERROR;
 }
 
 int AbilitySchedulerStub::DisconnectAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
         return ERR_INVALID_VALUE;
     }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "S2: want=%{public}s", want->ToString().c_str());
     ScheduleDisconnectAbility(*want);
     return NO_ERROR;
 }
@@ -231,6 +246,8 @@ int AbilitySchedulerStub::CommandAbilityInner(MessageParcel &data, MessageParcel
     bool reStart = data.ReadBool();
     int startId = data.ReadInt32();
     TAG_LOGD(AAFwkTag::ABILITYMGR, "ReadInt32, startId:%{public}d", startId);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "S3: want=%{public}s, re=%{public}d, id=%{public}d",
+        want->ToString().c_str(), int(reStart), startId);
     ScheduleCommandAbility(*want, reStart, startId);
     return NO_ERROR;
 }
@@ -707,22 +724,36 @@ int AbilitySchedulerStub::CallRequestInner(MessageParcel &data, MessageParcel &r
 int AbilitySchedulerStub::OnExecuteIntentInner(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
         return ERR_INVALID_VALUE;
     }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "S4: want=%{public}s", want->ToString().c_str());
     OnExecuteIntent(*want);
     return NO_ERROR;
 }
 
 int AbilitySchedulerStub::CreateModalUIExtensionInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!AbilityRuntime::MessageParcelUtil::ReadRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read raw data failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    std::shared_ptr<Want> want(rawData.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
         return ERR_INVALID_VALUE;
     }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "S5: want=%{public}s", want->ToString().c_str());
     int ret = CreateModalUIExtension(*want);
     if (!reply.WriteInt32(ret)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "fail to WriteInt32 ret");

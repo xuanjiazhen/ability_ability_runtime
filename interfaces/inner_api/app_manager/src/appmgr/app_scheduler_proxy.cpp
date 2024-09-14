@@ -15,11 +15,12 @@
 
 #include "app_scheduler_proxy.h"
 
+#include "app_scheduler_const.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "ipc_types.h"
 #include "iremote_object.h"
-#include "app_scheduler_const.h"
+#include "message_parcel_util.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -202,8 +203,14 @@ void AppSchedulerProxy::ScheduleLaunchAbility(const AbilityInfo &info, const spt
         }
     }
 
-    if (!data.WriteParcelable(want.get())) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(want.get())) {
         TAG_LOGE(AAFwkTag::APPMGR, "write want fail.");
+        return;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write raw data failed");
         return;
     }
     if (!data.WriteInt32(abilityRecordId)) {
@@ -398,7 +405,16 @@ void AppSchedulerProxy::ScheduleAcceptWant(const AAFwk::Want &want, const std::s
         return;
     }
 
-    if (!data.WriteParcelable(&want) || !data.WriteString(moduleName)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
+        return;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write raw data failed");
+        return;
+    }
+    if (!data.WriteString(moduleName)) {
         return;
     }
     int32_t ret = SendTransactCmd(
@@ -417,7 +433,16 @@ void AppSchedulerProxy::ScheduleNewProcessRequest(const AAFwk::Want &want, const
         return;
     }
 
-    if (!data.WriteParcelable(&want) || !data.WriteString(moduleName)) {
+    MessageParcel rawData;
+    rawData.SetMaxCapacity(AbilityRuntime::MessageParcelUtil::RAW_DATA_EXPECTED_CAPACITY);
+    if (!rawData.WriteParcelable(&want)) {
+        return;
+    }
+    if (!AbilityRuntime::MessageParcelUtil::WriteRawData(data, rawData)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write raw data failed");
+        return;
+    }
+    if (!data.WriteString(moduleName)) {
         return;
     }
     sptr<IRemoteObject> remote = Remote();
