@@ -2020,26 +2020,6 @@ void AppRunningRecord::OnWindowVisibilityChanged(
             windowIds_.emplace(info->windowId_);
         }
     }
-
-    if (pendingState_ == ApplicationPendingState::READY) {
-        TAG_LOGD(AAFwkTag::APPMGR, "pending state is READY.");
-        if (!windowIds_.empty() && curState_ != ApplicationState::APP_STATE_FOREGROUND) {
-            SetApplicationPendingState(ApplicationPendingState::FOREGROUNDING);
-            ScheduleForegroundRunning();
-        }
-        if (windowIds_.empty() && IsAbilitytiesBackground() && curState_ == ApplicationState::APP_STATE_FOREGROUND) {
-            SetApplicationPendingState(ApplicationPendingState::BACKGROUNDING);
-            ScheduleBackgroundRunning();
-        }
-    } else {
-        TAG_LOGI(AAFwkTag::APPMGR, "not READY");
-        if (!windowIds_.empty()) {
-            SetApplicationPendingState(ApplicationPendingState::FOREGROUNDING);
-        }
-        if (windowIds_.empty() && IsAbilitytiesBackground()) {
-            SetApplicationPendingState(ApplicationPendingState::BACKGROUNDING);
-        }
-    }
 }
 #endif //SUPPORT_SCREEN
 
