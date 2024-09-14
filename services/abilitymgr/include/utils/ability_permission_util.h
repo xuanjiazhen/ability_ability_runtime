@@ -38,6 +38,23 @@ public:
     // check dominate screen
     bool IsDominateScreen(const Want &want, bool isPendingWantCaller);
 
+    /**
+     * Check if Caller is allowed to start PageAbility(FA) or Ability(Stage).
+     *
+     * @param abilityRequest, abilityRequest.
+     * @return Returns whether the caller is allowed to start Ability.
+     */
+    int CheckCallAbilityPermission(const AbilityRequest &abilityRequest, uint32_t specifyTokenId = 0,
+        bool isCallByShortcut = false);
+
+    /**
+     * Check if Caller is allowed to start Ability(Stage) by call.
+     *
+     * @param abilityRequest, abilityRequest.
+     * @return Returns whether the caller is allowed to start Ability by call.
+     */
+    int CheckStartByCallPermission(const AbilityRequest &abilityRequest);
+
 private:
     AbilityPermissionUtil() = default;
     ~AbilityPermissionUtil() = default;

@@ -1803,6 +1803,14 @@ public:
      */
     int IsCallFromBackground(const AbilityRequest &abilityRequest, bool &isBackgroundCall, bool isData = false);
 
+    bool ShouldPreventStartAbility(const AbilityRequest &abilityRequest);
+
+    bool CheckUIExtensionCallerPidByHostWindowId(const AbilityRequest &abilityRequest);
+
+    std::shared_ptr<AbilityRecord> GetUIExtensionRootCaller(const sptr<IRemoteObject> token, int32_t userId);
+
+    bool CheckCallingTokenId(const std::string &bundleName, int32_t userId = INVALID_USER_ID, int32_t appIndex = 0);
+
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;
     static constexpr uint32_t ACTIVE_TIMEOUT_MSG = 1;
@@ -2060,72 +2068,6 @@ private:
     bool GenerateDataAbilityRequestByUri(const std::string& dataAbilityUri,
         AbilityRequest &abilityRequest, sptr<IRemoteObject> callerToken, int32_t userId);
 
-    /**
-     * Check if Caller is allowed to start ServiceAbility(FA) or ServiceExtension(Stage) or DataShareExtension(Stage).
-     *
-     * @param abilityRequest, abilityRequest.
-     * @return Returns whether the caller is allowed to start Service.
-     */
-    int CheckCallServicePermission(const AbilityRequest &abilityRequest);
-
-    /**
-     * Check if Caller is allowed to start DataAbility(FA)
-     *
-     * @param abilityRequest, abilityRequest.
-     * @return Returns whether the caller is allowed to start DataAbility.
-     */
-    int CheckCallDataAbilityPermission(AbilityRequest &abilityRequest, bool isShell, bool IsSACall = false);
-
-    /**
-     * Check if Caller is allowed to start ServiceExtension(Stage) or DataShareExtension(Stage).
-     *
-     * @param abilityRequest, abilityRequest.
-     * @return Returns whether the caller is allowed to start ServiceExtension.
-     */
-    int CheckCallServiceExtensionPermission(const AbilityRequest &abilityRequest);
-
-    /**
-     * Check if Caller is allowed to start other Extension(Stage).
-     *
-     * @param abilityRequest, abilityRequest.
-     * @return Returns whether the caller is allowed to start OtherExtension.
-     */
-    int CheckCallOtherExtensionPermission(const AbilityRequest &abilityRequest);
-
-    /**
-     * Check if Caller is allowed to start ServiceAbility(FA).
-     *
-     * @param abilityRequest, abilityRequest.
-     * @return Returns whether the caller is allowed to start ServiceAbility.
-     */
-    int CheckCallServiceAbilityPermission(const AbilityRequest &abilityRequest);
-
-    /**
-     * Check if Caller is allowed to start PageAbility(FA) or Ability(Stage).
-     *
-     * @param abilityRequest, abilityRequest.
-     * @return Returns whether the caller is allowed to start Ability.
-     */
-    int CheckCallAbilityPermission(const AbilityRequest &abilityRequest, uint32_t specifyTokenId = 0,
-        bool isCallByShortcut = false);
-
-    /**
-     * Check if Caller is allowed to start Ability(Stage) by call.
-     *
-     * @param abilityRequest, abilityRequest.
-     * @return Returns whether the caller is allowed to start Ability by call.
-     */
-    int CheckStartByCallPermission(const AbilityRequest &abilityRequest);
-
-    /**
-     * @brief Check some specified uiextension type should be a system app.
-     * Consider expanding it to table-driven in the future.
-     *
-     * @param abilityRequest The ability request.
-     * @return Returns ERR_OK when allowed, others when check failed.
-     */
-    int CheckUIExtensionPermission(const AbilityRequest &abilityRequest);
-
     bool IsTargetPermission(const Want &want) const;
 
     bool IsDelegatorCall(const AppExecFwk::RunningProcessInfo &processInfo, const AbilityRequest &abilityRequest) const;
@@ -2133,9 +2075,6 @@ private:
     bool CheckNewRuleSwitchState(const std::string &param);
 
     void UpdateFocusState(std::vector<AbilityRunningInfo> &info);
-
-    AAFwk::PermissionVerification::VerificationInfo CreateVerificationInfo(
-        const AbilityRequest &abilityRequest, bool isData = false, bool isShell = false, bool isSA = false);
 
     int AddStartControlParam(Want &want, const sptr<IRemoteObject> &callerToken);
 
@@ -2157,7 +2096,6 @@ private:
     int32_t RequestDialogServiceInner(const Want &want, const sptr<IRemoteObject> &callerToken,
         int requestCode, int32_t userId);
 
-    bool CheckCallingTokenId(const std::string &bundleName, int32_t userId = INVALID_USER_ID, int32_t appIndex = 0);
     bool IsCallerSceneBoard();
 
     void ReleaseAbilityTokenMap(const sptr<IRemoteObject> &token);
@@ -2249,12 +2187,6 @@ private:
     int CheckUIExtensionUsage(AppExecFwk::UIExtensionUsage uiExtensionUsage,
         AppExecFwk::ExtensionAbilityType extensionType);
 
-    bool CheckUIExtensionCallerIsForeground(const AbilityRequest &abilityRequest);
-    bool CheckUIExtensionCallerIsUIAbility(const AbilityRequest &abilityRequest);
-    std::shared_ptr<AbilityRecord> GetUIExtensionRootCaller(const sptr<IRemoteObject> token, int32_t userId);
-
-    bool CheckUIExtensionCallerPidByHostWindowId(const AbilityRequest &abilityRequest);
-
     int CheckExtensionCallPermission(const Want& want, const AbilityRequest& abilityRequest);
 
     int CheckServiceCallPermission(const AbilityRequest& abilityRequest,
@@ -2341,8 +2273,6 @@ private:
     std::map<std::string, std::list<std::string>> whiteListMap_;
 
     std::list<std::string> exportWhiteList_;
-
-    bool ShouldPreventStartAbility(const AbilityRequest &abilityRequest);
 
     void PrintStartAbilityInfo(AppExecFwk::AbilityInfo callerInfo, AppExecFwk::AbilityInfo calledInfo);
 

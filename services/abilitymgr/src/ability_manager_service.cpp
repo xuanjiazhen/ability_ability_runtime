@@ -116,8 +116,6 @@ constexpr const char* NEW_RULES_EXCEPT_LAUNCHER_SYSTEMUI = "component.startup.ne
 constexpr const char* BACKGROUND_JUDGE_FLAG = "component.startup.backgroundJudge.flag";
 constexpr const char* WHITE_LIST_ASS_WAKEUP_FLAG = "component.startup.whitelist.associatedWakeUp";
 
-// White list app
-constexpr const char* BUNDLE_NAME_SETTINGSDATA = "com.ohos.settingsdata";
 // Support prepare terminate
 constexpr int32_t PREPARE_TERMINATE_ENABLE_SIZE = 6;
 constexpr const char* PREPARE_TERMINATE_ENABLE_PARAMETER = "persist.sys.prepare_terminate";
@@ -155,7 +153,6 @@ constexpr size_t INDEX_ZERO = 0;
 constexpr size_t INDEX_ONE = 1;
 constexpr size_t INDEX_TWO = 2;
 constexpr size_t ARGC_THREE = 3;
-constexpr static char WANT_PARAMS_VIEW_DATA_KEY[] = "ohos.ability.params.viewData";
 constexpr const char* WANT_PARAMS_HOST_WINDOW_ID_KEY = "ohos.extra.param.key.hostwindowid";
 
 constexpr int32_t FOUNDATION_UID = 5523;
@@ -881,7 +878,7 @@ int AbilityManagerService::CheckExtensionCallPermission(const Want& want, const 
             "cannot start, use startServiceExtensionAbility");
         return ERR_WRONG_INTERFACE_CALL;
     }
-    int result = CheckCallServicePermission(abilityRequest);
+    int result = ExtensionPermissionsUtil::GetInstance().CheckCallServicePermission(abilityRequest, isParamStartAbilityEnable_);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "check permission failed");
     }
@@ -893,7 +890,7 @@ int AbilityManagerService::CheckServiceCallPermission(const AbilityRequest& abil
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR,
         "Check call service or extension permission, name is %{public}s.", abilityInfo.name.c_str());
-    int result = CheckCallServicePermission(abilityRequest);
+    int result = ExtensionPermissionsUtil::GetInstance().CheckCallServicePermission(abilityRequest, isParamStartAbilityEnable_);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "check permission failed");
     }
@@ -927,7 +924,7 @@ int AbilityManagerService::CheckAbilityCallPermission(const AbilityRequest& abil
     const AppExecFwk::AbilityInfo& abilityInfo, uint32_t specifyTokenId)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Check call ability permission, name is %{public}s.", abilityInfo.name.c_str());
-    int result = CheckCallAbilityPermission(abilityRequest, specifyTokenId);
+    int result = AbilityPermissionUtil::GetInstance().CheckCallAbilityPermission(abilityRequest, specifyTokenId);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "check permission failed");
     }
@@ -1423,7 +1420,7 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
         SendAbilityEvent(EventName::START_ABILITY_ERROR, HiSysEventType::FAULT, eventInfo);
         return ERR_STATIC_CFG_PERMISSION;
     }
-    result = CheckCallAbilityPermission(abilityRequest);
+    result = AbilityPermissionUtil::GetInstance().CheckCallAbilityPermission(abilityRequest);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s checkCallAbilityPermission error", __func__);
         eventInfo.errCode = result;
@@ -1745,7 +1742,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         SendAbilityEvent(EventName::START_ABILITY_ERROR, HiSysEventType::FAULT, eventInfo);
         return ERR_STATIC_CFG_PERMISSION;
     }
-    result = CheckCallAbilityPermission(abilityRequest, 0, isCallByShortcut);
+    result = AbilityPermissionUtil::GetInstance().CheckCallAbilityPermission(abilityRequest, 0, isCallByShortcut);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s CheckCallAbilityPermission error", __func__);
         eventInfo.errCode = result;
@@ -1960,7 +1957,7 @@ int32_t AbilityManagerService::RequestDialogServiceInner(const Want &want, const
     if (type == AppExecFwk::AbilityType::EXTENSION &&
         abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::SERVICE) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Check call ability permission, name is %{public}s.", abilityInfo.name.c_str());
-        result = CheckCallServicePermission(abilityRequest);
+        result = ExtensionPermissionsUtil::GetInstance().CheckCallServicePermission(abilityRequest, isParamStartAbilityEnable_);
         if (result != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "check permission failed");
             return result;
@@ -2389,12 +2386,12 @@ int AbilityManagerService::CheckOptExtensionAbility(const Want &want, AbilityReq
     if (abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::DATASHARE ||
         abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::SERVICE ||
         abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
-        result = CheckCallServiceExtensionPermission(abilityRequest);
+        result = ExtensionPermissionsUtil::GetInstance().CheckCallServiceExtensionPermission(abilityRequest, isParamStartAbilityEnable_);
         if (result != ERR_OK) {
             return result;
         }
     } else {
-        result = CheckCallOtherExtensionPermission(abilityRequest);
+        result = ExtensionPermissionsUtil::GetInstance().CheckCallOtherExtensionPermission(abilityRequest, isParamStartAbilityEnable_);
         if (result != ERR_OK) {
             return result;
         }
@@ -4116,7 +4113,7 @@ int AbilityManagerService::ConnectLocalAbility(const Want &want, const int32_t u
         return result;
     }
 
-    result = CheckCallServicePermission(abilityRequest);
+    result = ExtensionPermissionsUtil::GetInstance().CheckCallServicePermission(abilityRequest, isParamStartAbilityEnable_);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s checkCallServicePermission error", __func__);
         return result;
@@ -5038,7 +5035,7 @@ sptr<IAbilityScheduler> AbilityManagerService::AcquireDataAbility(
 
     auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
     auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
-    if (!isSaCall && CheckCallDataAbilityPermission(abilityRequest, isShellCall, isSaCall) != ERR_OK) {
+    if (!isSaCall && ExtensionPermissionsUtil::GetInstance().CheckCallDataAbilityPermission(abilityRequest, isShellCall, isSaCall, whiteListassociatedWakeUpFlag_) != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid ability request info acquiring");
         return nullptr;
     }
@@ -7154,7 +7151,7 @@ int AbilityManagerService::StartAbilityByCall(const Want &want, const sptr<IAbil
         return RESOLVE_CALL_ABILITY_VERSION_ERR;
     }
 
-    result = CheckStartByCallPermission(abilityRequest);
+    result = AbilityPermissionUtil::GetInstance().CheckStartByCallPermission(abilityRequest);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "checkStartByCallPermission fail, result:%{public}d", result);
         return result;
@@ -9254,304 +9251,6 @@ bool AbilityManagerService::GetAnimationFlag()
 
 #endif
 
-int AbilityManagerService::CheckCallServicePermission(const AbilityRequest &abilityRequest)
-{
-    if (abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_UID, IPCSkeleton::GetCallingUid()) ==
-        AppUtils::GetInstance().GetCollaboratorBrokerUID() &&
-        abilityRequest.want.GetElement().GetBundleName() == AppUtils::GetInstance().GetBrokerDelegateBundleName()) {
-        auto collaborator = GetCollaborator(CollaboratorType::RESERVE_TYPE);
-        if (collaborator != nullptr) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "Collaborator CheckCallAbilityPermission");
-            return collaborator->CheckCallAbilityPermission(abilityRequest.want);
-        }
-    }
-    if (abilityRequest.abilityInfo.isStageBasedModel) {
-        auto extensionType = abilityRequest.abilityInfo.extensionAbilityType;
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "extensionType is %{public}d.", static_cast<int>(extensionType));
-        if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE ||
-            extensionType == AppExecFwk::ExtensionAbilityType::DATASHARE ||
-            extensionType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
-            return CheckCallServiceExtensionPermission(abilityRequest);
-        } else {
-            return CheckCallOtherExtensionPermission(abilityRequest);
-        }
-    } else {
-        return CheckCallServiceAbilityPermission(abilityRequest);
-    }
-}
-
-int AbilityManagerService::CheckCallDataAbilityPermission(AbilityRequest &abilityRequest, bool isShell, bool isSACall)
-{
-    abilityRequest.appInfo = abilityRequest.abilityInfo.applicationInfo;
-    abilityRequest.uid = abilityRequest.appInfo.uid;
-    if (abilityRequest.appInfo.name.empty() || abilityRequest.appInfo.bundleName.empty()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid app info acquiring");
-        return ERR_INVALID_VALUE;
-    }
-    if (abilityRequest.abilityInfo.type != AppExecFwk::AbilityType::DATA) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "BMS query result not data ability");
-        return ERR_WRONG_INTERFACE_CALL;
-    }
-
-    AAFwk::PermissionVerification::VerificationInfo verificationInfo = CreateVerificationInfo(abilityRequest,
-        true, isShell, isSACall);
-    if (isShell) {
-        verificationInfo.isBackgroundCall = true;
-    }
-    if (!isShell && IsCallFromBackground(abilityRequest, verificationInfo.isBackgroundCall, true) != ERR_OK) {
-        return ERR_INVALID_VALUE;
-    }
-    int result = AAFwk::PermissionVerification::GetInstance()->CheckCallDataAbilityPermission(verificationInfo,
-        isShell);
-    if (result != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "without start DataAbility permission");
-        return result;
-    }
-
-    return ERR_OK;
-}
-
-AAFwk::PermissionVerification::VerificationInfo AbilityManagerService::CreateVerificationInfo(
-    const AbilityRequest &abilityRequest, bool isData, bool isShell, bool isSA)
-{
-    AAFwk::PermissionVerification::VerificationInfo verificationInfo;
-    verificationInfo.accessTokenId = abilityRequest.appInfo.accessTokenId;
-    verificationInfo.visible = abilityRequest.abilityInfo.visible;
-    verificationInfo.withContinuousTask = IsBackgroundTaskUid(IPCSkeleton::GetCallingUid());
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "Call ServiceAbility or DataAbility, target bundleName: %{public}s.",
-        abilityRequest.appInfo.bundleName.c_str());
-    if (whiteListassociatedWakeUpFlag_ &&
-        abilityRequest.appInfo.bundleName == BUNDLE_NAME_SETTINGSDATA) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR,
-            "Call ServiceAbility or DataAbility, target bundle in white-list, allow associatedWakeUp.");
-        verificationInfo.associatedWakeUp = true;
-    } else {
-        verificationInfo.associatedWakeUp = abilityRequest.appInfo.associatedWakeUp;
-    }
-    if (!isData) {
-        isSA = AAFwk::PermissionVerification::GetInstance()->IsSACall();
-        isShell = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
-    }
-    if (isSA || isShell) {
-        return verificationInfo;
-    }
-    std::shared_ptr<AbilityRecord> callerAbility = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
-    if (callerAbility) {
-        verificationInfo.apiTargetVersion = callerAbility->GetApplicationInfo().apiTargetVersion;
-    }
-
-    return verificationInfo;
-}
-
-int AbilityManagerService::CheckCallServiceExtensionPermission(const AbilityRequest &abilityRequest)
-{
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "begin");
-
-    AAFwk::PermissionVerification::VerificationInfo verificationInfo;
-    verificationInfo.accessTokenId = abilityRequest.appInfo.accessTokenId;
-    verificationInfo.visible = abilityRequest.abilityInfo.visible;
-    verificationInfo.withContinuousTask = IsBackgroundTaskUid(IPCSkeleton::GetCallingUid());
-    verificationInfo.isBackgroundCall = false;
-    if (isParamStartAbilityEnable_) {
-        bool stopContinuousTaskFlag = ShouldPreventStartAbility(abilityRequest);
-        if (stopContinuousTaskFlag) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "no have permission to start ServiceExtension");
-            return CHECK_PERMISSION_FAILED;
-        }
-    }
-
-    if (abilityRequest.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "background startup UI_SERVICE");
-        verificationInfo.isBackgroundCall = true;
-        std::shared_ptr<AbilityRecord> callerAbility = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
-        if (callerAbility) {
-            verificationInfo.apiTargetVersion = callerAbility->GetApplicationInfo().apiTargetVersion;
-        }
-        if (IsCallFromBackground(abilityRequest, verificationInfo.isBackgroundCall) != ERR_OK) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "not background startup UI_SERVICE");
-            return ERR_INVALID_VALUE;
-        }
-    }
-
-    int result = AAFwk::PermissionVerification::GetInstance()->CheckCallServiceExtensionPermission(verificationInfo);
-    if (result != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "without start serviceExtension or sataShareExtension permission");
-    }
-    return result;
-}
-
-int AbilityManagerService::CheckCallOtherExtensionPermission(const AbilityRequest &abilityRequest)
-{
-    if (IPCSkeleton::GetCallingUid() != AppUtils::GetInstance().GetCollaboratorBrokerUID() &&
-        AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
-        return ERR_OK;
-    }
-
-    auto extensionType = abilityRequest.abilityInfo.extensionAbilityType;
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "OtherExtension type: %{public}d.", static_cast<int32_t>(extensionType));
-    if (system::GetBoolParameter(DEVELOPER_MODE_STATE, false) &&
-        PermissionVerification::GetInstance()->VerifyShellStartExtensionType(static_cast<int32_t>(extensionType))) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "CheckCallOtherExtensionPermission, allow aa start with debug mode.");
-        return ERR_OK;
-    }
-    if (extensionType == AppExecFwk::ExtensionAbilityType::WINDOW) {
-        CHECK_CALLER_IS_SYSTEM_APP;
-        return ERR_OK;
-    }
-    if (extensionType == AppExecFwk::ExtensionAbilityType::ADS_SERVICE) {
-        return ERR_OK;
-    }
-    if (extensionType == AppExecFwk::ExtensionAbilityType::AUTO_FILL_PASSWORD ||
-        extensionType == AppExecFwk::ExtensionAbilityType::AUTO_FILL_SMART) {
-        if (!abilityRequest.appInfo.isSystemApp) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "application requesting call isn't system application");
-            return CHECK_PERMISSION_FAILED;
-        }
-        std::string jsonDataStr = abilityRequest.want.GetStringParam(WANT_PARAMS_VIEW_DATA_KEY);
-        AbilityBase::ViewData viewData;
-        viewData.FromJsonString(jsonDataStr.c_str());
-        if (!CheckCallingTokenId(viewData.bundleName)) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "no %{public}s called, no allowed", viewData.bundleName.c_str());
-            return ERR_WRONG_INTERFACE_CALL;
-        }
-        return ERR_OK;
-    }
-    if (AAFwk::UIExtensionUtils::IsUIExtension(extensionType)) {
-        return CheckUIExtensionPermission(abilityRequest);
-    }
-    if (extensionType == AppExecFwk::ExtensionAbilityType::VPN) {
-        return ERR_OK;
-    }
-
-    const std::string fileAccessPermission = "ohos.permission.FILE_ACCESS_MANAGER";
-    if (extensionType == AppExecFwk::ExtensionAbilityType::FILEACCESS_EXTENSION &&
-        AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(fileAccessPermission)) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "Temporary, FILEACCESS_EXTENSION use serviceExtension start-up rule.");
-        return CheckCallServiceExtensionPermission(abilityRequest);
-    }
-
-    TAG_LOGE(AAFwkTag::ABILITYMGR, "not SA, can't start other extension");
-    return CHECK_PERMISSION_FAILED;
-}
-
-int AbilityManagerService::CheckUIExtensionPermission(const AbilityRequest &abilityRequest)
-{
-    if (abilityRequest.want.HasParameter(AAFwk::SCREEN_MODE_KEY)) {
-        // If started by embedded atomic service, allow it.
-        return ERR_OK;
-    }
-
-    auto extensionType = abilityRequest.abilityInfo.extensionAbilityType;
-    if (AAFwk::UIExtensionUtils::IsSystemUIExtension(extensionType)) {
-        auto callerRecord = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
-        if (callerRecord == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid caller");
-            return NO_FOUND_ABILITY_BY_CALLER;
-        }
-
-        if (!abilityRequest.appInfo.isSystemApp && !callerRecord->GetApplicationInfo().isSystemApp) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "bundle %{public}s want start or caller bundle %{public}s "
-                "isn't system app, type %{public}d not allowed", abilityRequest.appInfo.bundleName.c_str(),
-                callerRecord->GetApplicationInfo().bundleName.c_str(), extensionType);
-            return CHECK_PERMISSION_FAILED;
-        }
-    }
-
-    if (AAFwk::UIExtensionUtils::IsSystemCallerNeeded(extensionType)) {
-        auto callerRecord = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
-        if (callerRecord == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid caller");
-            return NO_FOUND_ABILITY_BY_CALLER;
-        }
-
-        if (!callerRecord->GetApplicationInfo().isSystemApp
-            && !AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR,
-                     "bundle %{public}s want start but caller bundle %{public}s "
-                     "isn't system app, type %{public}d not allowed",
-                     abilityRequest.appInfo.bundleName.c_str(), callerRecord->GetApplicationInfo().bundleName.c_str(),
-                     extensionType);
-            return CHECK_PERMISSION_FAILED;
-        }
-    }
-
-    if (!CheckUIExtensionCallerIsForeground(abilityRequest)) {
-        return CHECK_PERMISSION_FAILED;
-    }
-
-    if (!CheckUIExtensionCallerPidByHostWindowId(abilityRequest)) {
-        return ERR_INVALID_CALLER;
-    }
-
-    return ERR_OK;
-}
-
-bool AbilityManagerService::CheckUIExtensionCallerIsForeground(const AbilityRequest &abilityRequest)
-{
-    if (!CheckUIExtensionCallerIsUIAbility(abilityRequest)) {
-        // Check only if the caller is uiability, if caller is not a uiability, don't check.
-        return true;
-    }
-
-    bool isBackgroundCall = true;
-    auto ret = IsCallFromBackground(abilityRequest, isBackgroundCall);
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "start uea when background");
-        return false;
-    }
-
-    if (!isBackgroundCall) {
-        return true;
-    }
-
-    auto callerAbility = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
-    if (callerAbility != nullptr) {
-        if (UIExtensionUtils::IsUIExtension(callerAbility->GetAbilityInfo().extensionAbilityType)) {
-            auto tokenId = callerAbility->GetApplicationInfo().accessTokenId;
-            bool isFocused = false;
-            if (CheckUIExtensionIsFocused(tokenId, isFocused) == ERR_OK && isFocused) {
-                TAG_LOGD(AAFwkTag::ABILITYMGR, "Root caller is foreground");
-                return true;
-            }
-        }
-
-        if (callerAbility->IsSceneBoard()) {
-            return true;
-        }
-    }
-
-    if (PermissionVerification::GetInstance()->VerifyCallingPermission(
-        PermissionConstants::PERMISSION_START_ABILITIES_FROM_BACKGROUND)) {
-        return true;
-    }
-
-    TAG_LOGE(AAFwkTag::ABILITYMGR, "caller app not foreground, can't start %{public}s",
-        abilityRequest.want.GetElement().GetURI().c_str());
-    return false;
-}
-
-bool AbilityManagerService::CheckUIExtensionCallerIsUIAbility(const AbilityRequest &abilityRequest)
-{
-    auto callerAbility = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
-    if (callerAbility == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "caller ability invalid");
-        return false;
-    }
-
-    if (callerAbility->GetAbilityInfo().type == AppExecFwk::AbilityType::PAGE) {
-        return true;
-    }
-
-    if (UIExtensionUtils::IsUIExtension(callerAbility->GetAbilityInfo().extensionAbilityType)) {
-        callerAbility = GetUIExtensionRootCaller(abilityRequest.callerToken, abilityRequest.userId);
-        if (callerAbility != nullptr && callerAbility->GetAbilityInfo().type == AppExecFwk::AbilityType::PAGE) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 bool AbilityManagerService::CheckUIExtensionCallerPidByHostWindowId(const AbilityRequest &abilityRequest)
 {
 #ifdef SUPPORT_SCREEN
@@ -9608,70 +9307,6 @@ bool AbilityManagerService::CheckUIExtensionCallerPidByHostWindowId(const Abilit
 #else
     return true;
 #endif // SUPPORT_SCREEN
-}
-
-int AbilityManagerService::CheckCallServiceAbilityPermission(const AbilityRequest &abilityRequest)
-{
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "Call");
-    AAFwk::PermissionVerification::VerificationInfo verificationInfo = CreateVerificationInfo(abilityRequest);
-    if (IsCallFromBackground(abilityRequest, verificationInfo.isBackgroundCall) != ERR_OK) {
-        return ERR_INVALID_VALUE;
-    }
-
-    int result = AAFwk::PermissionVerification::GetInstance()->CheckCallServiceAbilityPermission(verificationInfo);
-    if (result != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "without start serviceAbility permission");
-    }
-    return result;
-}
-
-int AbilityManagerService::CheckCallAbilityPermission(const AbilityRequest &abilityRequest, uint32_t specifyTokenId,
-    bool isCallByShortcut)
-{
-    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "Call");
-
-    AAFwk::PermissionVerification::VerificationInfo verificationInfo;
-    verificationInfo.accessTokenId = abilityRequest.appInfo.accessTokenId;
-    verificationInfo.visible = abilityRequest.abilityInfo.visible;
-    verificationInfo.withContinuousTask = IsBackgroundTaskUid(IPCSkeleton::GetCallingUid());
-    verificationInfo.specifyTokenId = specifyTokenId;
-    if (IsCallFromBackground(abilityRequest, verificationInfo.isBackgroundCall) != ERR_OK) {
-        return ERR_INVALID_VALUE;
-    }
-
-    int result = AAFwk::PermissionVerification::GetInstance()->CheckCallAbilityPermission(
-        verificationInfo, isCallByShortcut);
-    if (result != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "without start pageAbility(FA) or ability(Stage) permission");
-    }
-    return result;
-}
-
-int AbilityManagerService::CheckStartByCallPermission(const AbilityRequest &abilityRequest)
-{
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "Call");
-    // check whether the target ability is page type and not specified mode.
-    if (abilityRequest.abilityInfo.type != AppExecFwk::AbilityType::PAGE ||
-        abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "called ability not common ability");
-        return RESOLVE_CALL_ABILITY_TYPE_ERR;
-    }
-
-    AAFwk::PermissionVerification::VerificationInfo verificationInfo;
-    verificationInfo.accessTokenId = abilityRequest.appInfo.accessTokenId;
-    verificationInfo.visible = abilityRequest.abilityInfo.visible;
-    verificationInfo.withContinuousTask = IsBackgroundTaskUid(IPCSkeleton::GetCallingUid());
-    if (IsCallFromBackground(abilityRequest, verificationInfo.isBackgroundCall) != ERR_OK) {
-        return ERR_INVALID_VALUE;
-    }
-
-    if (AAFwk::PermissionVerification::GetInstance()->CheckStartByCallPermission(verificationInfo) != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "without startAbilityByCall permission");
-        return RESOLVE_CALL_NO_PERMISSIONS;
-    }
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "caller has permission to resolve the call proxy of common ability");
-    return ERR_OK;
 }
 
 int AbilityManagerService::IsCallFromBackground(const AbilityRequest &abilityRequest, bool &isBackgroundCall,

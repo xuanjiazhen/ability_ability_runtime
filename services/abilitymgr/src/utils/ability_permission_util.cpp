@@ -25,6 +25,7 @@
 #include "ipc_skeleton.h"
 #include "permission_constants.h"
 #include "permission_verification.h"
+#include "ability_manager_service.h"
 
 using OHOS::Security::AccessToken::AccessTokenKit;
 
@@ -33,7 +34,6 @@ namespace AAFwk {
 namespace {
 constexpr const char* IS_DELEGATOR_CALL = "isDelegatorCall";
 constexpr const char* SETTINGS = "settings";
-constexpr int32_t BASE_USER_RANGE = 200000;
 }
 
 AbilityPermissionUtil &AbilityPermissionUtil::GetInstance()
@@ -102,6 +102,57 @@ bool AbilityPermissionUtil::IsDominateScreen(const Want &want, bool isPendingWan
     }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "not dominate screen.");
     return false;
+}
+
+int AbilityPermissionUtil::CheckCallAbilityPermission(const AbilityRequest &abilityRequest, uint32_t specifyTokenId,
+    bool isCallByShortcut)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Call");
+
+    AAFwk::PermissionVerification::VerificationInfo verificationInfo;
+    verificationInfo.accessTokenId = abilityRequest.appInfo.accessTokenId;
+    verificationInfo.visible = abilityRequest.abilityInfo.visible;
+    auto abilityMs = DelayedSingleton<AbilityManagerService>::GetInstance();
+    verificationInfo.withContinuousTask = abilityMs->IsBackgroundTaskUid(IPCSkeleton::GetCallingUid());
+    verificationInfo.specifyTokenId = specifyTokenId;
+    if (abilityMs->IsCallFromBackground(abilityRequest, verificationInfo.isBackgroundCall) != ERR_OK) {
+        return ERR_INVALID_VALUE;
+    }
+
+    int result = AAFwk::PermissionVerification::GetInstance()->CheckCallAbilityPermission(
+        verificationInfo, isCallByShortcut);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "without start pageAbility(FA) or ability(Stage) permission");
+    }
+    return result;
+}
+
+int AbilityPermissionUtil::CheckStartByCallPermission(const AbilityRequest &abilityRequest)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Call");
+    // check whether the target ability is page type and not specified mode.
+    if (abilityRequest.abilityInfo.type != AppExecFwk::AbilityType::PAGE ||
+        abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "called ability not common ability");
+        return RESOLVE_CALL_ABILITY_TYPE_ERR;
+    }
+
+    AAFwk::PermissionVerification::VerificationInfo verificationInfo;
+    verificationInfo.accessTokenId = abilityRequest.appInfo.accessTokenId;
+    verificationInfo.visible = abilityRequest.abilityInfo.visible;
+    auto abilityMs = DelayedSingleton<AbilityManagerService>::GetInstance();
+    verificationInfo.withContinuousTask = abilityMs->IsBackgroundTaskUid(IPCSkeleton::GetCallingUid());
+    if (abilityMs->IsCallFromBackground(abilityRequest, verificationInfo.isBackgroundCall) != ERR_OK) {
+        return ERR_INVALID_VALUE;
+    }
+
+    if (AAFwk::PermissionVerification::GetInstance()->CheckStartByCallPermission(verificationInfo) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "without startAbilityByCall permission");
+        return RESOLVE_CALL_NO_PERMISSIONS;
+    }
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "caller has permission to resolve the call proxy of common ability");
+    return ERR_OK;
 }
 } // AAFwk
 } // OHOS
