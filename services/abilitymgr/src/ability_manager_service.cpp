@@ -11112,7 +11112,7 @@ bool AbilityManagerService::ShouldPreventStartAbility(const AbilityRequest &abil
     }
     if (CheckVisibilityWindowInfo(abilityInfo.applicationInfo.uid)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Process is Visibility window Pass");
-
+        return false;
     }
     if (continuousFlag) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Process has continuous task Pass");
