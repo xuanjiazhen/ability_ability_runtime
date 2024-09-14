@@ -5292,24 +5292,17 @@ void AppMgrServiceInner::InitWindowVisibilityChangedListener()
     }
     windowVisibilityChangedListener_ =
         new (std::nothrow) WindowVisibilityChangedListener(weak_from_this(), taskHandler_);
-    auto registerTask = [innerService = weak_from_this()] () {
-        auto inner = innerService.lock();
-        if (inner == nullptr) {
-            TAG_LOGE(AAFwkTag::APPMGR, "service inner null");
-            return;
-        }
-        if (inner->windowVisibilityChangedListener_ == nullptr) {
-            TAG_LOGE(AAFwkTag::APPMGR, "window visibility changed listener null");
-            return;
-        }
-        WindowManager::GetInstance().RegisterVisibilityChangedListener(inner->windowVisibilityChangedListener_);
-    };
-
-    if (taskHandler_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "task handler null");
+    auto innerService = weak_from_this();
+    auto inner = innerService.lock();
+    if (inner == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "service inner null");
         return;
     }
-    taskHandler_->SubmitTask(registerTask, "RegisterVisibilityListener.", REGISTER_VISIBILITY_DELAY);
+    if (inner->windowVisibilityChangedListener_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "window visibility changed listener null");
+        return;
+    }
+    WindowManager::GetInstance().RegisterVisibilityChangedListener(inner->windowVisibilityChangedListener_);
     TAG_LOGD(AAFwkTag::APPMGR, "End.");
 }
 
