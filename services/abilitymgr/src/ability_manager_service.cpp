@@ -83,7 +83,7 @@
 #include "session_manager_lite.h"
 #include "window_focus_changed_listener.h"
 #endif
-#include "window_manager_lite.h"
+#include "window_manager.h"
 
 using OHOS::AppExecFwk::ElementName;
 using OHOS::Security::AccessToken::AccessTokenKit;
@@ -11373,7 +11373,6 @@ bool AbilityManagerService::CheckVisibilityWindowInfo(const int32_t uid)
         if (!info) {
             continue;
         }
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "CheckVisibilityWindowInfo begin info->uid_:%{public}d, uid:%{public}d",info->uid_, uid);
         if (info->uid_ == uid) {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}d has visible window", uid);
             return true;
@@ -11417,9 +11416,13 @@ bool AbilityManagerService::ShouldPreventStartAbility(const AbilityRequest &abil
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Is not UI Ability Pass");
         return false;
     }
-    if (CheckVisibilityWindowInfo(abilityInfo.applicationInfo.uid)) {
+    if (CheckVisibilityWindowInfo(callerAbilityInfo.uid)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Process is Visibility window Pass");
-
+        return false;
+    }
+    if (abilityRecord->GetAbilityState() != AAFwk::AbilityState::BACKGROUND) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Process is not on background Pass");
+        return false;
     }
     if (continuousFlag) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Process has continuous task Pass");
