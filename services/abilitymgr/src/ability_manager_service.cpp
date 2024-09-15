@@ -11419,10 +11419,6 @@ bool AbilityManagerService::ShouldPreventStartAbility(const AbilityRequest &abil
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Is not UI Ability Pass");
         return false;
     }
-    if () {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "Process is Visibility window Pass");
-        return false;
-    }
     if (CheckVisibilityWindowInfo(callerAbilityInfo.uid, abilityRecord->GetAbilityState())) {
         return false;
     }
