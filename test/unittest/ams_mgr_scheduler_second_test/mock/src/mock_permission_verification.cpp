@@ -19,7 +19,8 @@
 namespace OHOS {
 namespace AAFwk {
 
-bool PermissionVerification::VerifyCallingPermission(const std::string &permissionName) const
+bool PermissionVerification::VerifyCallingPermission(const std::string &permissionName,
+    const uint32_t specifyTokenId) const
 {
     return !!(MyFlag::flag_);
 }
@@ -31,9 +32,10 @@ bool PermissionVerification::IsShellCall() const
 {
     return (MyFlag::flag_ & MyFlag::FLAG::IS_SHELL_CALL);
 }
-bool PermissionVerification::CheckSpecificSystemAbilityAccessPermission() const
+bool PermissionVerification::CheckSpecificSystemAbilityAccessPermission(const std::string &processName) const
 {
-    TAG_LOGD(AAFwkTag::TEST, "mock CheckSpecificSystemAbilityAccessPermission flag_: %{public}d.", MyFlag::flag_);
+    TAG_LOGD(AAFwkTag::TEST, "mock CheckSpecificSystemAbilityAccessPermission flag_: %{public}d, %{public}d.",
+        MyFlag::flag_, !!(MyFlag::flag_));
     return !!(MyFlag::flag_);
 }
 bool PermissionVerification::VerifyRunningInfoPerm() const

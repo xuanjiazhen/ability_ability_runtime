@@ -956,6 +956,10 @@ public:
     int32_t GetRestartCount() const;
     void SetRestartCount(int32_t restartCount);
     bool GetKeepAlive() const;
+    void SetKeepAliveBundle(bool value)
+    {
+        keepAliveBundle_ = value;
+    }
     bool IsKeepAliveBundle() const
     {
         return keepAliveBundle_;
@@ -1197,7 +1201,6 @@ private:
     int recordId_ = 0;                                // record id
     int32_t uiExtensionAbilityId_ = 0;                // uiextension ability id
     AppExecFwk::AbilityInfo abilityInfo_ = {};             // the ability info get from BMS
-    AppExecFwk::ApplicationInfo applicationInfo_ = {};     // the ability info get from BMS
     std::weak_ptr<AbilityRecord> preAbilityRecord_ = {};   // who starts this ability record
     std::weak_ptr<AbilityRecord> nextAbilityRecord_ = {};  // ability that started by this ability
     int64_t startTime_ = 0;                           // records first time of ability start

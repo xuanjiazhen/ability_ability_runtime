@@ -83,7 +83,7 @@ enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 constexpr int32_t BASE_USER_RANGE = 200000;
 constexpr int32_t U0_USER_ID = 0;
 constexpr int32_t INVALID_USER_ID = -1;
-constexpr const char* KEY_SESSION_ID = "com.ohohs.param.sessionId";
+constexpr const char* KEY_SESSION_ID = "com.ohos.param.sessionId";
 using OHOS::AppExecFwk::IAbilityController;
 class PendingWantManager;
 struct StartAbilityInfo;
@@ -1874,8 +1874,6 @@ private:
      */
     void InitGlobalConfiguration();
 
-    std::shared_ptr<AppExecFwk::BundleMgrHelper> GetBundleManager();
-
     sptr<OHOS::AppExecFwk::IAppMgr> GetAppMgr();
 
     int StartRemoteAbility(const Want &want, int requestCode, int32_t validUserId,
@@ -2257,7 +2255,7 @@ private:
 
     bool CheckUIExtensionCallerPidByHostWindowId(const AbilityRequest &abilityRequest);
 
-    int CheckExtensionCallPermission(const Want& want, const AbilityRequest& abilityRequest);
+    int CheckExtensionCallPermission(const Want& want, const AbilityRequest& abilityRequest, uint32_t specifyTokenId);
 
     int CheckServiceCallPermission(const AbilityRequest& abilityRequest,
         const AppExecFwk::AbilityInfo& abilityInfo);
@@ -2292,7 +2290,6 @@ private:
     std::shared_ptr<AbilityEventHandler> eventHandler_;
     ServiceRunningState state_;
     sptr<AppExecFwk::IBundleMgr> iBundleManager_;
-    std::shared_ptr<AppExecFwk::BundleMgrHelper> bundleMgrHelper_;
     sptr<OHOS::AppExecFwk::IAppMgr> appMgr_ { nullptr };
 
     std::shared_ptr<FreeInstallManager> freeInstallManager_;

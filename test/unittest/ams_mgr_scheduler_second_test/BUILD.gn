@@ -46,7 +46,6 @@ ohos_unittest("ams_mgr_scheduler_second_test") {
     "mock/src/mock_ipc_skeleton.cpp",
     "mock/src/mock_my_flag.cpp",
     "mock/src/mock_permission_verification.cpp",
-  
   ]
 
   sources += [ "ams_mgr_scheduler_second_test.cpp" ]

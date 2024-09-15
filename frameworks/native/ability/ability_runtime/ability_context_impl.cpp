@@ -312,7 +312,6 @@ ErrCode AbilityContextImpl::StopServiceExtensionAbility(const AAFwk::Want& want,
 
 ErrCode AbilityContextImpl::TerminateAbilityWithResult(const AAFwk::Want& want, int resultCode)
 {
-    TAG_LOGD(AAFwkTag::CONTEXT, "called");
     isTerminating_.store(true);
 #ifdef SUPPORT_SCREEN
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
@@ -320,13 +319,16 @@ ErrCode AbilityContextImpl::TerminateAbilityWithResult(const AAFwk::Want& want, 
         if (sessionToken == nullptr) {
             return ERR_INVALID_VALUE;
         }
-        sptr<AAFwk::SessionInfo> info = new AAFwk::SessionInfo();
+        sptr<AAFwk::SessionInfo> info = sptr<AAFwk::SessionInfo>::MakeSptr();
         info->want = want;
         info->resultCode = resultCode;
         auto ifaceSessionToken = iface_cast<Rosen::ISession>(sessionToken);
-        auto err = ifaceSessionToken->TerminateSession(info);
-        TAG_LOGI(AAFwkTag::CONTEXT, "scb, ret=%{public}d", err);
-        return static_cast<int32_t>(err);
+        TAG_LOGI(AAFwkTag::CONTEXT, "scb call, TerminateAbilityWithResult");
+        ErrCode ret = static_cast<int32_t>(ifaceSessionToken->TerminateSession(info));
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "scb call, TerminateAbilityWithResult err: %{public}d", ret);
+        }
+        return ret;
     } else {
         ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->TerminateAbility(token_, resultCode, &want);
         TAG_LOGI(AAFwkTag::CONTEXT, "ret=%{public}d", err);
@@ -578,14 +580,18 @@ ErrCode AbilityContextImpl::TerminateSelf()
     }
 #ifdef SUPPORT_SCREEN
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled() && sessionToken) {
-        TAG_LOGI(AAFwkTag::CONTEXT, "Terminate %{public}s", abilityInfo_ == nullptr ? "" : abilityInfo_->name.c_str());
+        TAG_LOGI(AAFwkTag::CONTEXT, "scb call, TerminateSelf: %{public}s",
+            abilityInfo_ ? abilityInfo_->name.c_str() : "");
         AAFwk::Want resultWant;
-        sptr<AAFwk::SessionInfo> info = new AAFwk::SessionInfo();
+        sptr<AAFwk::SessionInfo> info = sptr<AAFwk::SessionInfo>::MakeSptr();
         info->want = resultWant;
         info->resultCode = -1;
         auto ifaceSessionToken = iface_cast<Rosen::ISession>(sessionToken);
-        auto err = ifaceSessionToken->TerminateSession(info);
-        return static_cast<int32_t>(err);
+        ErrCode ret = static_cast<int32_t>(ifaceSessionToken->TerminateSession(info));
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "scb call, TerminateSelf err: %{public}d", ret);
+        }
+        return ret;
     } else {
         AAFwk::Want resultWant;
         ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->TerminateAbility(token_, -1, &resultWant);
@@ -686,7 +692,7 @@ ErrCode AbilityContextImpl::RequestDialogService(napi_env env, AAFwk::Want &want
 #endif // SUPPORT_SCREEN
     auto resultTask =
         [env, outTask = std::move(task)](int32_t resultCode, const AAFwk::Want &resultWant) {
-        auto retData = new RequestResult();
+        auto retData = new (std::nothrow) RequestResult();
         retData->resultCode = resultCode;
         retData->resultWant = resultWant;
         retData->task = std::move(outTask);
@@ -697,7 +703,7 @@ ErrCode AbilityContextImpl::RequestDialogService(napi_env env, AAFwk::Want &want
             TAG_LOGE(AAFwkTag::CONTEXT, "null uv loop");
             return;
         }
-        auto work = new uv_work_t;
+        auto work = new (std::nothrow) uv_work_t;
         work->data = static_cast<void*>(retData);
         int rev = uv_queue_work_with_qos(
             loop,
@@ -715,7 +721,7 @@ ErrCode AbilityContextImpl::RequestDialogService(napi_env env, AAFwk::Want &want
         }
     };
 
-    sptr<IRemoteObject> remoteObject = new DialogRequestCallbackImpl(std::move(resultTask));
+    sptr<IRemoteObject> remoteObject = sptr<DialogRequestCallbackImpl>::MakeSptr(std::move(resultTask));
     want.SetParam(RequestConstants::REQUEST_CALLBACK_KEY, remoteObject);
 
     auto err = AAFwk::AbilityManagerClient::GetInstance()->RequestDialogService(want, token_);
@@ -736,7 +742,7 @@ ErrCode AbilityContextImpl::RequestDialogService(AAFwk::Want &want, RequestDialo
     want.SetParam(RequestConstants::WINDOW_RECTANGLE_WIDTH_KEY, width);
     want.SetParam(RequestConstants::WINDOW_RECTANGLE_HEIGHT_KEY, height);
 
-    sptr<IRemoteObject> remoteObject = new DialogRequestCallbackImpl(std::move(task));
+    sptr<IRemoteObject> remoteObject = sptr<DialogRequestCallbackImpl>::MakeSptr(std::move(task));
     want.SetParam(RequestConstants::REQUEST_CALLBACK_KEY, remoteObject);
 
     auto err = AAFwk::AbilityManagerClient::GetInstance()->RequestDialogService(want, token_);
