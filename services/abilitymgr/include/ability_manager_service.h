@@ -1910,7 +1910,7 @@ private:
     int StartAbilityPublicPrechainCheck(StartAbilityParams &params);
     int StartAbilityPrechainInterceptor(StartAbilityParams &params);
     bool StartAbilityInChain(StartAbilityParams &params, int &result);
-    bool CheckVisibilityWindowInfo(const int32_t uid);
+    bool CheckVisibilityWindowInfo(const int32_t uid, AbilityState currentState);
 
     bool CheckIfOperateRemote(const Want &want);
     std::string AnonymizeDeviceId(const std::string& deviceId);
