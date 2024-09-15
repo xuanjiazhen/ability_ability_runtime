@@ -11380,7 +11380,7 @@ bool AbilityManagerService::CheckVisibilityWindowInfo(const int32_t uid, Ability
     }
     if (currentState != AAFwk::AbilityState::BACKGROUND) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Process is not on background Pass");
-        return false;
+        return true;
     }
     return false;
 }
