@@ -11365,7 +11365,7 @@ bool AbilityManagerService::IsEmbeddedOpenAllowed(sptr<IRemoteObject> callerToke
     return erms->DoProcess(want, GetUserId());
 }
 
-bool AbilityManagerService::CheckVisibilityWindowInfo(const int32_t uid)
+bool AbilityManagerService::CheckVisibilityWindowInfo(const int32_t uid, AbilityState currentState)
 {
     std::vector<sptr<Rosen::WindowVisibilityInfo>> infos;
     Rosen::WindowManager::GetInstance().GetVisibilityWindowInfo(infos);
@@ -11374,11 +11374,14 @@ bool AbilityManagerService::CheckVisibilityWindowInfo(const int32_t uid)
             continue;
         }
         if (info->uid_ == uid) {
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}d has visible window", uid);
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}d Process is Visibility window Pass", uid);
             return true;
         }
     }
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}d doesn't has visible window", uid);
+    if (currentState != AAFwk::AbilityState::BACKGROUND) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Process is not on background Pass");
+        return false;
+    }
     return false;
 }
 
@@ -11416,12 +11419,11 @@ bool AbilityManagerService::ShouldPreventStartAbility(const AbilityRequest &abil
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Is not UI Ability Pass");
         return false;
     }
-    if (CheckVisibilityWindowInfo(callerAbilityInfo.uid)) {
+    if () {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Process is Visibility window Pass");
         return false;
     }
-    if (abilityRecord->GetAbilityState() != AAFwk::AbilityState::BACKGROUND) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "Process is not on background Pass");
+    if (CheckVisibilityWindowInfo(callerAbilityInfo.uid, abilityRecord->GetAbilityState())) {
         return false;
     }
     if (continuousFlag) {
