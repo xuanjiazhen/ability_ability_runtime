@@ -417,7 +417,5 @@ HWTEST_F(UIServiceExtensionTest, SetWindow_0100, TestSize.Level1)
 
     TAG_LOGI(AAFwkTag::TEST, "SetWindow_0100 end");
 }
-
-
 } // namespace AbilityRuntime
 } // namespace OHOS

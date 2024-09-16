@@ -791,18 +791,6 @@ ErrCode AmsMgrStub::HandleBlockProcessCacheByPids(MessageParcel &data, MessagePa
     return NO_ERROR;
 }
 
-ErrCode AmsMgrStub::HandleCleanAbilityByUserRequest(MessageParcel &data, MessageParcel &reply)
-{
-    HITRACE_METER(HITRACE_TAG_APP);
-    sptr<IRemoteObject> token = data.ReadRemoteObject();
-    auto result = CleanAbilityByUserRequest(token);
-    if (!reply.WriteBool(result)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "fail to write the result.");
-        return ERR_INVALID_VALUE;
-    }
-    return NO_ERROR;
-}
-
 int32_t AmsMgrStub::HandleIsKilledForUpgradeWeb(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
@@ -827,6 +815,18 @@ int32_t AmsMgrStub::HandleIsProcessContainsOnlyUIAbility(MessageParcel &data, Me
     auto result = IsProcessContainsOnlyUIAbility(pid);
     if (!reply.WriteBool(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Fail to write result in HandleIsProcessContainsOnlyUIAbility.");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+ErrCode AmsMgrStub::HandleCleanAbilityByUserRequest(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    sptr<IRemoteObject> token = data.ReadRemoteObject();
+    auto result = CleanAbilityByUserRequest(token);
+    if (!reply.WriteBool(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "fail to write the result.");
         return ERR_INVALID_VALUE;
     }
     return NO_ERROR;

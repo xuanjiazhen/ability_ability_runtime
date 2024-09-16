@@ -377,19 +377,14 @@ napi_value JsAbilityContext::HideAbility(napi_env env, napi_callback_info info)
     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnHideAbility);
 }
 
-napi_value JsAbilityContext::OpenAtomicService(napi_env env, napi_callback_info info)
-{
-    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnOpenAtomicService);
-}
-
 napi_value JsAbilityContext::MoveAbilityToBackground(napi_env env, napi_callback_info info)
 {
     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnMoveAbilityToBackground);
 }
 
-napi_value JsAbilityContext::SetRestoreEnabled(napi_env env, napi_callback_info info)
+napi_value JsAbilityContext::OpenAtomicService(napi_env env, napi_callback_info info)
 {
-    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnSetRestoreEnabled);
+    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnOpenAtomicService);
 }
 
 napi_value JsAbilityContext::StartUIServiceExtension(napi_env env, napi_callback_info info)
@@ -405,6 +400,11 @@ napi_value JsAbilityContext::ConnectUIServiceExtension(napi_env env, napi_callba
 napi_value JsAbilityContext::DisconnectUIServiceExtension(napi_env env, napi_callback_info info)
 {
     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnDisconnectUIServiceExtension);
+}
+
+napi_value JsAbilityContext::SetRestoreEnabled(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnSetRestoreEnabled);
 }
 
 void JsAbilityContext::ClearFailedCallConnection(
@@ -1952,16 +1952,16 @@ napi_value CreateJsAbilityContext(napi_env env, std::shared_ptr<AbilityContext> 
         JsAbilityContext::ShowAbility);
     BindNativeFunction(env, object, "hideAbility", moduleName,
         JsAbilityContext::HideAbility);
-    BindNativeFunction(env, object, "openAtomicService", moduleName,
-        JsAbilityContext::OpenAtomicService);
     BindNativeFunction(env, object, "moveAbilityToBackground", moduleName, JsAbilityContext::MoveAbilityToBackground);
-    BindNativeFunction(env, object, "setRestoreEnabled", moduleName, JsAbilityContext::SetRestoreEnabled);
+    BindNativeFunction(env, object, "openAtomicService", moduleName, JsAbilityContext::OpenAtomicService);
     BindNativeFunction(env, object, "startUIServiceExtensionAbility", moduleName,
         JsAbilityContext::StartUIServiceExtension);
     BindNativeFunction(env, object, "connectUIServiceExtensionAbility", moduleName,
         JsAbilityContext::ConnectUIServiceExtension);
     BindNativeFunction(env, object, "disconnectUIServiceExtensionAbility", moduleName,
         JsAbilityContext::DisconnectUIServiceExtension);
+    BindNativeFunction(env, object, "setRestoreEnabled", moduleName, JsAbilityContext::SetRestoreEnabled);
+
 #ifdef SUPPORT_GRAPHICS
     BindNativeFunction(env, object, "setMissionLabel", moduleName, JsAbilityContext::SetMissionLabel);
     BindNativeFunction(env, object, "setMissionIcon", moduleName, JsAbilityContext::SetMissionIcon);
@@ -2501,6 +2501,36 @@ napi_value JsAbilityContext::ChangeAbilityVisibility(napi_env env, NapiCallbackI
     return result;
 }
 
+napi_value JsAbilityContext::OnMoveAbilityToBackground(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "start");
+    auto abilityContext = context_.lock();
+
+    NapiAsyncTask::CompleteCallback complete =
+        [weak = context_](napi_env env, NapiAsyncTask& task, int32_t status) {
+            TAG_LOGD(AAFwkTag::CONTEXT, "start task");
+            auto context = weak.lock();
+            if (!context) {
+                TAG_LOGW(AAFwkTag::CONTEXT, "released context");
+                task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+                return;
+            }
+
+            auto errcode = context->MoveUIAbilityToBackground();
+            if (errcode == 0) {
+                task.ResolveWithNoError(env, CreateJsUndefined(env));
+            } else {
+                task.Reject(env, CreateJsErrorByNativeErr(env, errcode));
+            }
+        };
+
+    napi_value lastParam = (info.argc > ARGC_ZERO) ? info.argv[INDEX_ZERO] : nullptr;
+    napi_value result = nullptr;
+    NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnMoveAbilityToBackground",
+        env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
+    return result;
+}
+
 napi_value JsAbilityContext::OnOpenAtomicService(napi_env env, NapiCallbackInfo& info)
 {
     if (info.argc == ARGC_ZERO) {
@@ -2572,36 +2602,6 @@ napi_value JsAbilityContext::OpenAtomicServiceInner(napi_env env, NapiCallbackIn
         context->OpenAtomicService(want, options, requestCode, std::move(task));
     }
     TAG_LOGD(AAFwkTag::CONTEXT, "end");
-    return result;
-}
-
-napi_value JsAbilityContext::OnMoveAbilityToBackground(napi_env env, NapiCallbackInfo& info)
-{
-    TAG_LOGD(AAFwkTag::CONTEXT, "start");
-    auto abilityContext = context_.lock();
-
-    NapiAsyncTask::CompleteCallback complete =
-        [weak = context_](napi_env env, NapiAsyncTask& task, int32_t status) {
-            TAG_LOGD(AAFwkTag::CONTEXT, "start task");
-            auto context = weak.lock();
-            if (!context) {
-                TAG_LOGW(AAFwkTag::CONTEXT, "released context");
-                task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
-                return;
-            }
-
-            auto errcode = context->MoveUIAbilityToBackground();
-            if (errcode == 0) {
-                task.ResolveWithNoError(env, CreateJsUndefined(env));
-            } else {
-                task.Reject(env, CreateJsErrorByNativeErr(env, errcode));
-            }
-        };
-
-    napi_value lastParam = (info.argc > ARGC_ZERO) ? info.argv[INDEX_ZERO] : nullptr;
-    napi_value result = nullptr;
-    NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnMoveAbilityToBackground",
-        env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
     return result;
 }
 
