@@ -1594,17 +1594,6 @@ void AbilityConnectManager::HandleStartTimeoutTask(const std::shared_ptr<Ability
     }
     TAG_LOGW(AAFwkTag::ABILITYMGR, "load timeout:%{public}s,user:%{public}d",
         abilityRecord->GetURI().c_str(), userId_);
-    if (abilityRecord->IsSceneBoard()) {
-        auto isAttached = IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->IsProcessAttached(
-            abilityRecord->GetToken()));
-        DelayedSingleton<AppScheduler>::GetInstance()->AttachTimeOut(abilityRecord->GetToken());
-        if (!isAttached) {
-            MoveToTerminatingMap(abilityRecord);
-            RemoveServiceAbility(abilityRecord);
-            RestartAbility(abilityRecord, userId_);
-        }
-        return;
-    }
     MoveToTerminatingMap(abilityRecord);
     RemoveServiceAbility(abilityRecord);
     DelayedSingleton<AppScheduler>::GetInstance()->AttachTimeOut(abilityRecord->GetToken());
@@ -2250,6 +2239,11 @@ void AbilityConnectManager::HandleAbilityDiedTask(
 
     if (IsUIExtensionAbility(abilityRecord)) {
         HandleUIExtensionDied(abilityRecord);
+    }
+    std::string serviceKey = GetServiceKey(abilityRecord);
+    if (GetServiceRecordByElementName(serviceKey) == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s ability record is not exist in service map.", serviceKey);
+        return;
     }
 
     bool isRemove = false;
