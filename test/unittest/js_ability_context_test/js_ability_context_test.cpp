@@ -376,7 +376,7 @@ HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_RequestCodeFromString
     std::string requestCodeStr1 = "1000000000000001";
     auto requestCode = RequestCodeFromStringToInt64(requestCodeStr1);
     EXPECT_EQ(requestCode, 0);
-    
+
     // requestCode not match
     std::string requestCodeStr2 = "001000";
     requestCode = RequestCodeFromStringToInt64(requestCodeStr2);
@@ -393,7 +393,7 @@ HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_RequestCodeFromString
     std::string requestCodeStr5 = "-1";
     requestCode = RequestCodeFromStringToInt64(requestCodeStr5);
     EXPECT_EQ(requestCode, 0);
-    
+
     // requestCode is too large
     std::string requestCodeStr6 = "562949953421312";
     requestCode = RequestCodeFromStringToInt64(requestCodeStr6);
@@ -436,6 +436,5 @@ HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_OnStartUIServiceExten
 
     JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
 }
-
 }  // namespace AAFwk
 }  // namespace OHOS
