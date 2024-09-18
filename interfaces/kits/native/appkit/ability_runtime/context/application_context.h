@@ -42,7 +42,7 @@ public:
     void RegisterEnvironmentCallback(const std::shared_ptr<EnvironmentCallback> &environmentCallback);
     void UnregisterEnvironmentCallback(const std::shared_ptr<EnvironmentCallback> &environmentCallback);
     void RegisterApplicationStateChangeCallback(
-        const std::weak_ptr<ApplicationStateChangeCallback> &applicationStateChangeCallback);
+        const std::shared_ptr<ApplicationStateChangeCallback> &applicationStateChangeCallback);
     void DispatchOnAbilityCreate(const std::shared_ptr<NativeReference> &ability);
     void DispatchOnWindowStageCreate(const std::shared_ptr<NativeReference> &ability,
         const std::shared_ptr<NativeReference> &windowStage);
@@ -160,7 +160,7 @@ private:
     std::shared_ptr<ContextImpl> contextImpl_;
     static std::vector<std::shared_ptr<AbilityLifecycleCallback>> callbacks_;
     static std::vector<std::shared_ptr<EnvironmentCallback>> envCallbacks_;
-    static std::vector<std::weak_ptr<ApplicationStateChangeCallback>> applicationStateCallback_;
+    static std::vector<std::shared_ptr<ApplicationStateChangeCallback>> applicationStateCallback_;
     std::recursive_mutex callbackLock_;
     std::recursive_mutex envCallbacksLock_;
     std::recursive_mutex applicationStateCallbackLock_;
