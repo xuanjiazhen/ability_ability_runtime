@@ -111,6 +111,7 @@
           "//foundation/ability/ability_runtime/frameworks/native/ability/native:ability_thread",
           "//foundation/ability/ability_runtime/frameworks/native/ability/native:extension_module",
           "//foundation/ability/ability_runtime/frameworks/native/child_process:child_process",
+          "//foundation/ability/ability_runtime/frameworks/native/context:native_context_ndk",
           "//foundation/ability/ability_runtime/frameworks/native/insight_intent:insight_intent_innerkits",
           "//foundation/ability/ability_runtime/frameworks/c/ability_runtime:ability_runtime",
           "//foundation/ability/ability_runtime/frameworks/cj:cj_ability_packages",
