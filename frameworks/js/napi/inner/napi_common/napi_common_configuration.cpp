@@ -23,9 +23,7 @@ namespace OHOS {
 namespace AppExecFwk {
 namespace {
 constexpr double FONT_SIZE_MIN_SCALE = 0.0;
-constexpr double FONT_SIZE_MAX_SCALE = 3.2;
 constexpr double FONT_WEIGHT_MIN_SCALE = 0.0;
-constexpr double FONT_WEIGHT_MAX_SCALE = 1.25;
 }
 
 EXTERN_C_START
@@ -126,7 +124,7 @@ bool UnwrapConfiguration(napi_env env, napi_value param, Configuration &config)
     double fontSizeScale = 0.0;
     if (UnwrapDoubleByPropertyName(env, param, "fontSizeScale", fontSizeScale)) {
         TAG_LOGD(AAFwkTag::JSNAPI, "The parsed fontSizeScale part %{public}lf", fontSizeScale);
-        if (fontSizeScale < FONT_SIZE_MIN_SCALE || fontSizeScale > FONT_SIZE_MAX_SCALE) {
+        if (fontSizeScale < FONT_SIZE_MIN_SCALE) {
             TAG_LOGE(AAFwkTag::JSNAPI, "invalid fontSizeScale");
             return false;
         }
@@ -138,7 +136,7 @@ bool UnwrapConfiguration(napi_env env, napi_value param, Configuration &config)
     double fontWeightScale = 0.0;
     if (UnwrapDoubleByPropertyName(env, param, "fontWeightScale", fontWeightScale)) {
         TAG_LOGD(AAFwkTag::JSNAPI, "The parsed fontWeightScale part %{public}lf", fontWeightScale);
-        if (fontWeightScale < FONT_WEIGHT_MIN_SCALE || fontWeightScale > FONT_WEIGHT_MAX_SCALE) {
+        if (fontWeightScale < FONT_WEIGHT_MIN_SCALE) {
             TAG_LOGE(AAFwkTag::JSNAPI, "invalid fontWeightScale");
             return false;
         }

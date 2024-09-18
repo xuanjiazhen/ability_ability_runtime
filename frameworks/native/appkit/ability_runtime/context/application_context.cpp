@@ -734,16 +734,14 @@ void ApplicationContext::SetFont(const std::string &font)
 
 bool ApplicationContext::SetFontSizeScale(double fontSizeScale)
 {
-    if (contextImpl_ == nullptr) {
+    if (contextImpl_ == nullptr || appConfigChangeCallback_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null context");
         return false;
     }
 
     AppExecFwk::Configuration config;
     config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_FONT_SIZE_SCALE, std::to_string(fontSizeScale));
-    if (appConfigChangeCallback_ != nullptr) {
-        appConfigChangeCallback_(config);
-    }
+    appConfigChangeCallback_(config);
     TAG_LOGD(AAFwkTag::APPKIT, "SetFontSizeScale callback ok");
     return true;
 }
