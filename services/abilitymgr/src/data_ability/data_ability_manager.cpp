@@ -32,12 +32,10 @@ constexpr system_clock::duration DATA_ABILITY_LOAD_TIMEOUT = 11000ms;
 
 DataAbilityManager::DataAbilityManager()
 {
-    TAG_LOGD(AAFwkTag::DATA_ABILITY, "Call");
 }
 
 DataAbilityManager::~DataAbilityManager()
 {
-    TAG_LOGD(AAFwkTag::DATA_ABILITY, "Call");
 }
 
 sptr<IAbilityScheduler> DataAbilityManager::Acquire(
@@ -284,11 +282,6 @@ int DataAbilityManager::AbilityTransitionDone(const sptr<IRemoteObject> &token, 
     return ret;
 }
 
-void DataAbilityManager::OnAbilityRequestDone(const sptr<IRemoteObject> &token, const int32_t state)
-{
-    /* Do nothing now. */
-}
-
 void DataAbilityManager::OnAbilityDied(const std::shared_ptr<AbilityRecord> &abilityRecord)
 {
     TAG_LOGI(AAFwkTag::DATA_ABILITY, "call");
@@ -333,32 +326,23 @@ void DataAbilityManager::OnAbilityDied(const std::shared_ptr<AbilityRecord> &abi
 void DataAbilityManager::OnAppStateChanged(const AppInfo &info)
 {
     std::lock_guard<ffrt::mutex> locker(mutex_);
+    HandleOnAppStateChanged(info, dataAbilityRecordsLoaded_);
+    HandleOnAppStateChanged(info, dataAbilityRecordsLoading_);
+}
 
-    for (auto it = dataAbilityRecordsLoaded_.begin(); it != dataAbilityRecordsLoaded_.end(); ++it) {
+void DataAbilityManager::HandleOnAppStateChanged(const AppInfo &info, const DataAbilityRecordPtrMap &recordMap)
+{
+    for (auto it = recordMap.begin(); it != recordMap.end(); ++it) {
         if (!it->second) {
             continue;
         }
         auto abilityRecord = it->second->GetAbilityRecord();
-        if (abilityRecord && (info.processName == abilityRecord->GetAbilityInfo().process ||
-                                 info.processName == abilityRecord->GetApplicationInfo().bundleName)) {
-            auto appName = abilityRecord->GetApplicationInfo().name;
-            auto uid = abilityRecord->GetAbilityInfo().applicationInfo.uid;
-            auto isExist = [&appName, &uid](
-                               const AppData &appData) { return appData.appName == appName && appData.uid == uid; };
-            auto iter = std::find_if(info.appData.begin(), info.appData.end(), isExist);
-            if (iter != info.appData.end()) {
-                abilityRecord->SetAppState(info.state);
-            }
-        }
-    }
-
-    for (auto it = dataAbilityRecordsLoading_.begin(); it != dataAbilityRecordsLoading_.end(); ++it) {
-        if (!it->second) {
+        if (abilityRecord == nullptr) {
             continue;
         }
-        auto abilityRecord = it->second->GetAbilityRecord();
-        if (abilityRecord && (info.processName == abilityRecord->GetAbilityInfo().process ||
-                                 info.processName == abilityRecord->GetApplicationInfo().bundleName)) {
+        bool processEqual = info.processName == abilityRecord->GetAbilityInfo().process;
+        bool bundleNameEqual = info.processName == abilityRecord->GetApplicationInfo().bundleName;
+        if (processEqual || bundleNameEqual) {
             auto appName = abilityRecord->GetApplicationInfo().name;
             auto uid = abilityRecord->GetAbilityInfo().applicationInfo.uid;
             auto isExist = [&appName, &uid](
@@ -541,13 +525,13 @@ void DataAbilityManager::DumpState(std::vector<std::string> &info, const std::st
         } else {
             info.emplace_back(args + ": Nothing to dump.");
         }
-    } else {
-        info.emplace_back("dataAbilityRecords:");
-        for (auto &&dataAbilityRecord : dataAbilityRecordMap) {
-            info.emplace_back("  uri [" + dataAbilityRecord.first + "]");
-            if (dataAbilityRecord.second) {
-                dataAbilityRecord.second->Dump(info);
-            }
+        return;
+    }
+    info.emplace_back("dataAbilityRecords:");
+    for (auto &&dataAbilityRecord : dataAbilityRecordMap) {
+        info.emplace_back("  uri [" + dataAbilityRecord.first + "]");
+        if (dataAbilityRecord.second) {
+            dataAbilityRecord.second->Dump(info);
         }
     }
 }

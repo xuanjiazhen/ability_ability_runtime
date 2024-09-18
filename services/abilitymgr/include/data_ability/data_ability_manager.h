@@ -40,7 +40,6 @@ public:
     int Release(const sptr<IAbilityScheduler> &scheduler, const sptr<IRemoteObject> &client, bool isNotHap);
     int AttachAbilityThread(const sptr<IAbilityScheduler> &scheduler, const sptr<IRemoteObject> &token);
     int AbilityTransitionDone(const sptr<IRemoteObject> &token, int state);
-    void OnAbilityRequestDone(const sptr<IRemoteObject> &token, const int32_t state);
     void OnAppStateChanged(const AppInfo &info);
     void OnAbilityDied(const std::shared_ptr<AbilityRecord> &abilityRecord);
     std::shared_ptr<AbilityRecord> GetAbilityRecordById(int64_t id);
@@ -66,6 +65,8 @@ private:
         std::shared_ptr<DataAbilityRecord> &record);
     void DumpClientInfo(std::vector<std::string> &info, bool isClient,
         std::shared_ptr<DataAbilityRecord> dataAbilityRecord) const;
+    void HandleOnAppStateChanged(const AppInfo &info, const DataAbilityRecordPtrMap &recordMap);
+
 private:
     mutable ffrt::mutex mutex_;
     DataAbilityRecordPtrMap dataAbilityRecordsLoaded_;

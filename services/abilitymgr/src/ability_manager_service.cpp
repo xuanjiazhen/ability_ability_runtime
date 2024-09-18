@@ -5925,12 +5925,7 @@ void AbilityManagerService::OnAbilityRequestDone(const sptr<IRemoteObject> &toke
     auto type = abilityRecord->GetAbilityInfo().type;
     switch (type) {
         case AppExecFwk::AbilityType::DATA: {
-            auto dataAbilityManager = GetDataAbilityManagerByUserId(userId);
-            if (!dataAbilityManager) {
-                TAG_LOGE(AAFwkTag::ABILITYMGR, "dataAbilityManager null userId=%{public}d", userId);
-                return;
-            }
-            dataAbilityManager->OnAbilityRequestDone(token, state);
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "data ability, no need handle OnAbilityRequestDone");
             break;
         }
         case AppExecFwk::AbilityType::SERVICE:
