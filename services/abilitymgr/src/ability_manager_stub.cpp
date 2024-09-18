@@ -754,6 +754,9 @@ int AbilityManagerStub::OnRemoteRequestInnerNineteenth(uint32_t code, MessagePar
     if (interfaceCode == AbilityManagerInterfaceCode::TERMINATE_MISSION) {
         return TerminateMissionInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::UPDATE_ASSOCIATE_CONFIG_LIST) {
+        return UpdateAssociateConfigListInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -4031,6 +4034,33 @@ int32_t AbilityManagerStub::TerminateMissionInner(MessageParcel &data, MessagePa
     }
     reply.WriteInt32(result);
     return result;
+}
+
+int32_t AbilityManagerStub::UpdateAssociateConfigListInner(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t size = data.ReadInt32();
+    std::map<std::string, std::list<std::string>> configs;
+    for (int32_t i = 0; i < size; ++i) {
+        std::string key = data.ReadString();
+        int32_t itemSize = data.ReadInt32();
+        configs.emplace(key, std::list<std::string>());
+        for (int32_t j = 0; j < itemSize; ++j) {
+            configs[key].push_back(data.ReadString());
+        }
+    }
+
+    std::list<std::string> exportConfigs;
+    size = data.ReadInt32();
+    for (int32_t i = 0; i < size; ++i) {
+        exportConfigs.push_back(data.ReadString());
+    }
+    int32_t flag = data.ReadInt32();
+    int32_t result = UpdateAssociateConfigList(configs, exportConfigs, flag);
+    if (result != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "update associate config fail");
+    }
+    reply.WriteInt32(result);
+    return NO_ERROR;
 }
 } // namespace AAFwk
 } // namespace OHOS

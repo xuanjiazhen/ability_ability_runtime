@@ -1588,6 +1588,12 @@ public:
      */
     ErrCode TerminateMission(int32_t missionId);
 
+    /**
+     * update associate config list by rss.
+     */
+    ErrCode UpdateAssociateConfigList(const std::map<std::string, std::list<std::string>>& configs,
+        const std::list<std::string>& exportConfigs, int32_t flag);
+
 private:
     AbilityManagerClient();
     DISALLOW_COPY_AND_MOVE(AbilityManagerClient);

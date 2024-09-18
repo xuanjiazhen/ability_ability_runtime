@@ -11469,6 +11469,7 @@ void AbilityManagerService::ReportPreventStartAbilityResult(const AppExecFwk::Ab
 bool AbilityManagerService::IsInWhiteList(const std::string &callerBundleName, const std::string &calleeBundleName,
     const std::string &calleeAbilityName)
 {
+    std::lock_guard<std::mutex> locker(whiteListMutex_);
     std::map<std::string, std::list<std::string>>::iterator iter = whiteListMap_.find(callerBundleName);
     std::string uri = calleeBundleName + "/" + calleeAbilityName;
     if (iter != whiteListMap_.end()) {
@@ -11490,6 +11491,7 @@ bool AbilityManagerService::ParseJsonFromBoot(const std::string &relativePath)
     if (ParseJsonValueFromFile(jsonObj, absolutePath) != ERR_OK) {
         return false;
     }
+    std::lock_guard<std::mutex> locker(whiteListMutex_);
     nlohmann::json whiteListJsonList = jsonObj[WHITE_LIST];
     for (const auto& [key, value] : whiteListJsonList.items()) {
         if (!value.is_array()) {
@@ -12129,6 +12131,26 @@ int32_t AbilityManagerService::TerminateMission(int32_t missionId)
     }
 
     return missionListManager->ClearMission(missionId);
+}
+
+int32_t AbilityManagerService::UpdateAssociateConfigList(const std::map<std::string, std::list<std::string>>& configs,
+    const std::list<std::string>& exportConfigs, int32_t flag)
+{
+    std::lock_guard<std::mutex> locker(whiteListMutex_);
+    if (flag == 1) {
+        whiteListMap_ = configs;
+        exportWhiteList_ = exportConfigs;
+    } else if (flag == 2) {
+        for (const auto& config : configs) {
+            for (const auto& item : config.second) {
+                whiteListMap_[config.first].push_back(item);
+            }
+        }
+
+        for (const auto& config : exportConfigs) {
+            exportWhiteList_.push_back(config);
+        }
+    }
 }
 }  // namespace AAFwk
 }  // namespace OHOS

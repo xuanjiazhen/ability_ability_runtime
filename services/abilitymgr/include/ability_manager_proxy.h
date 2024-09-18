@@ -1339,6 +1339,12 @@ public:
      */
     virtual int32_t TerminateMission(int32_t missionId) override;
 
+    /**
+     * update associate config list by rss.
+     */
+    virtual int32_t UpdateAssociateConfigList(const std::map<std::string, std::list<std::string>>& configs,
+        const std::list<std::string>& exportConfigs, int32_t flag) override;
+
 private:
     template <typename T>
     int GetParcelableInfos(MessageParcel &reply, std::vector<T> &parcelableInfos);
