@@ -26,6 +26,7 @@ ohos_fuzztest("AbilityManagerServiceCFuzzTest") {
       "${ability_runtime_test_path}/fuzztest/abilitymanagerservicec_fuzzer"
   include_dirs = [
     "${ability_runtime_innerkits_path}/ability_manager/include",
+    "${ability_runtime_services_path}/abilitymgr/include/mission",
     "${ability_runtime_innerkits_path}/dataobs_manager/include",
     "${multimodalinput_path}/interfaces/native/innerkits/event/include",
   ]
