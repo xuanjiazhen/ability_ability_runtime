@@ -8819,8 +8819,7 @@ int AbilityManagerService::SetMissionIcon(const sptr<IRemoteObject> &token,
     return missionListManager->SetMissionIcon(token, icon);
 }
 
-int AbilityManagerService::RegisterWindowManagerServiceHandler(const sptr<IWindowManagerServiceHandler> &handler,
-    bool animationEnabled)
+int AbilityManagerService::RegisterWindowManagerServiceHandler(const sptr<IWindowManagerServiceHandler> &handler)
 {
     auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
     if (!isSaCall) {
@@ -8828,7 +8827,6 @@ int AbilityManagerService::RegisterWindowManagerServiceHandler(const sptr<IWindo
         return CHECK_PERMISSION_FAILED;
     }
     wmsHandler_ = handler;
-    isAnimationEnabled_ = animationEnabled;
     TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}s: WMS handler registered successfully.", __func__);
     return ERR_OK;
 }
@@ -9028,12 +9026,6 @@ int AbilityManagerService::UnregisterAbilityFirstFrameStateObserver(
     return AppExecFwk::AbilityFirstFrameStateObserverManager::GetInstance().
         UnregisterAbilityFirstFrameStateObserver(observer);
 }
-
-bool AbilityManagerService::GetAnimationFlag()
-{
-    return isAnimationEnabled_;
-}
-
 #endif
 
 int AbilityManagerService::CheckCallServicePermission(const AbilityRequest &abilityRequest)
