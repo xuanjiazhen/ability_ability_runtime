@@ -174,6 +174,9 @@ constexpr char ASSERT_FAULT_DETAIL[] = "assertFaultDialogDetail";
 constexpr char PRODUCT_ASSERT_FAULT_DIALOG_ENABLED[] = "persisit.sys.abilityms.support_assert_fault_dialog";
 constexpr const char* ABILITYMS_ENABLE_UISERVICE = "const.abilityms.enable_uiservice";
 
+constexpr int32_t UPDATE_CONFIG_FLAG_COVER = 1;
+constexpr int32_t UPDATE_CONFIG_FLAG_APPEND = 2;
+
 const std::unordered_set<std::string> COMMON_PICKER_TYPE = {
     "share", "action"
 };
@@ -12137,20 +12140,20 @@ int32_t AbilityManagerService::UpdateAssociateConfigList(const std::map<std::str
     const std::list<std::string>& exportConfigs, int32_t flag)
 {
     std::lock_guard<std::mutex> locker(whiteListMutex_);
-    if (flag == 1) {
+    if (flag == UPDATE_CONFIG_FLAG_COVER) {
         whiteListMap_ = configs;
         exportWhiteList_ = exportConfigs;
-    } else if (flag == 2) {
+    } else if (flag == UPDATE_CONFIG_FLAG_APPEND) {
         for (const auto& config : configs) {
             for (const auto& item : config.second) {
                 whiteListMap_[config.first].push_back(item);
             }
         }
-
         for (const auto& config : exportConfigs) {
             exportWhiteList_.push_back(config);
         }
     }
+    return ERR_OK;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
