@@ -1226,7 +1226,7 @@ void AbilityManagerShellCommand::ParseBundleName(std::string &bundleName)
 #ifdef ABILITY_COMMAND_FOR_TEST
 ErrCode AbilityManagerShellCommand::RunForceTimeoutForTest()
 {
-    TAG_LOGI(AAFwkTag::AA_TOOL, "[%{public}s(%{public}s)] enter", __FILE__, __FUNCTION__);
+    TAG_LOGI(AAFwkTag::AA_TOOL, "[(%{public}s)] enter", __FUNCTION__);
     if (argList_.empty()) {
         resultReceiver_.append(HELP_MSG_FORCE_TIMEOUT + "\n");
         return OHOS::ERR_INVALID_VALUE;

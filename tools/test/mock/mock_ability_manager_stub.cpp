@@ -26,7 +26,7 @@ const std::string STRING_BUNDLE_NAME_INVALID = "invalid_bundle";
 
 int MockAbilityManagerStub::StartAbility(const Want& want, int32_t userId, int requestCode)
 {
-    TAG_LOGI(AAFwkTag::TEST, "[%{public}s(%{public}s)] enter", __FILE__, __FUNCTION__);
+    TAG_LOGI(AAFwkTag::TEST, "[(%{public}s)] enter", __FUNCTION__);
 
     AppExecFwk::ElementName element = want.GetElement();
 
@@ -50,7 +50,7 @@ int MockAbilityManagerStub::StartAbility(const Want& want, int32_t userId, int r
 
 void MockAbilityManagerStub::DumpState(const std::string& args, std::vector<std::string>& state)
 {
-    TAG_LOGI(AAFwkTag::TEST, "[%{public}s(%{public}s)] enter", __FILE__, __FUNCTION__);
+    TAG_LOGI(AAFwkTag::TEST, "[(%{public}s)] enter", __FUNCTION__);
 
     std::vector<std::string> argList;
     SplitStr(args, " ", argList);
@@ -72,7 +72,7 @@ void MockAbilityManagerStub::DumpState(const std::string& args, std::vector<std:
 int MockAbilityManagerStub::StopServiceAbility(const Want& want, int32_t userId,
     const sptr<IRemoteObject> &token)
 {
-    TAG_LOGI(AAFwkTag::TEST, "[%{public}s(%{public}s)] enter", __FILE__, __FUNCTION__);
+    TAG_LOGI(AAFwkTag::TEST, "[(%{public}s)] enter", __FUNCTION__);
 
     AppExecFwk::ElementName element = want.GetElement();
 
