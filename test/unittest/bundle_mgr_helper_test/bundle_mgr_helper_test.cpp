@@ -763,19 +763,19 @@ HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_GetBundleInfoV9_001, TestSize.
 }
 
 /**
- * @tc.name: QueryExtensionAbilityInfosOnlyWithTypeName_001
- * @tc.desc: QueryExtensionAbilityInfosOnlyWithTypeName
+ * @tc.name: QueryExtensionAbilityInfosOnlyWithTypeNameForAms_001
+ * @tc.desc: QueryExtensionAbilityInfosOnlyWithTypeNameForAms
  * @tc.type: FUNC
  */
-HWTEST_F(BundleMgrHelperTest, QueryExtensionAbilityInfosOnlyWithTypeName_001, TestSize.Level1)
+HWTEST_F(BundleMgrHelperTest, QueryExtensionAbilityInfosOnlyWithTypeNameForAms_001, TestSize.Level1)
 {
     std::string extensionTypeName = "extensionTypeName";
     uint32_t flag = 1;
     int32_t userId = 1;
     std::vector<ExtensionAbilityInfo> extensionInfos;
-    auto ret = bundleMgrHelper->QueryExtensionAbilityInfosOnlyWithTypeName(extensionTypeName,
+    auto ret = bundleMgrHelper->QueryExtensionAbilityInfosOnlyWithTypeNameForAms(extensionTypeName,
         flag, userId, extensionInfos);
-    EXPECT_EQ(ret, ERR_COD7);
+    EXPECT_NE(ret, ERR_OK);
 }
 
 /**

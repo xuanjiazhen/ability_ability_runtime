@@ -2884,7 +2884,7 @@ void AbilityManagerService::SetPickerElementName(const sptr<SessionInfo> &extens
         int32_t validUserId = GetValidUserId(userId);
         TAG_LOGI(AAFwkTag::ABILITYMGR, "targetType: %{public}s, pickerType: %{public}s, userId: %{public}d",
             targetType.c_str(), pickerType.c_str(), validUserId);
-        auto ret = IN_PROCESS_CALL(bms->QueryExtensionAbilityInfosOnlyWithTypeName(pickerType,
+        auto ret = IN_PROCESS_CALL(bms->QueryExtensionAbilityInfosOnlyWithTypeNameForAms(pickerType,
             static_cast<int32_t>(AppExecFwk::GetExtensionAbilityInfoFlag::GET_EXTENSION_ABILITY_INFO_WITH_PERMISSION),
             validUserId,
             extensionInfos));
