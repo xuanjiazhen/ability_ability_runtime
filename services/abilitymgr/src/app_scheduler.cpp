@@ -270,7 +270,7 @@ int AppScheduler::KillProcessesByAccessTokenId(const uint32_t accessTokenId)
 
 int AppScheduler::KillApplicationByUid(const std::string &bundleName, int32_t uid)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "[%{public}s(%{public}s)] enter", __FILE__, __FUNCTION__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "[(%{public}s)] enter", __FUNCTION__);
     CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
     int ret = (int)appMgrClient_->KillApplicationByUid(bundleName, uid);
     if (ret != ERR_OK) {
