@@ -282,6 +282,10 @@ public:
      * @return Returns abilityRecord on success, nullptr on failure.
      */
     std::shared_ptr<AbilityRecord> GetAbilityRecordsById(int32_t sessionId) const;
+    bool AddToSessionAbilityMap(int32_t sessionId, std::shared_ptr<AbilityRecord> record);
+    std::unordered_map<int32_t, std::shared_ptr<AbilityRecord>> GetSessionAbilityMap() const;
+    std::shared_ptr<AbilityRecord> GetAbilityRecordFromSessionMapByToken(sptr<IRemoteObject> token) const;
+    std::shared_ptr<AbilityRecord> GetAbilityRecordByAbilityId(int32_t abilityId) const;
 
     /**
      * Get check ability number.
@@ -353,7 +357,7 @@ public:
 
     int ChangeUIAbilityVisibilityBySCB(sptr<SessionInfo> sessionInfo, bool isShow);
 
-    std::vector<std::shared_ptr<AbilityRecord>> GetAbilityRecordsByName(const AppExecFwk::ElementName &element);
+    std::vector<std::shared_ptr<AbilityRecord>> GetAbilityRecordsByName(const AppExecFwk::ElementName &element) const;
 
     std::shared_ptr<AbilityRecord> GetAbilityRecordByToken(const sptr<IRemoteObject> &token) const;
 
@@ -397,7 +401,6 @@ private:
     void PrintTimeOutLog(std::shared_ptr<AbilityRecord> ability, uint32_t msgId, bool isHalf = false);
     void DelayCompleteTerminate(const std::shared_ptr<AbilityRecord> &abilityRecord);
     void CompleteTerminate(const std::shared_ptr<AbilityRecord> &abilityRecord);
-    bool IsContainsAbilityInner(const sptr<IRemoteObject> &token) const;
     bool CheckProperties(const std::shared_ptr<AbilityRecord> &abilityRecord, const AbilityRequest &abilityRequest,
         AppExecFwk::LaunchMode launchMode) const;
     void NotifyAbilityToken(const sptr<IRemoteObject> &token, const AbilityRequest &abilityRequest) const;
@@ -411,7 +414,6 @@ private:
     sptr<SessionInfo> CreateSessionInfo(const AbilityRequest &abilityRequest) const;
     int NotifySCBPendingActivation(sptr<SessionInfo> &sessionInfo, const AbilityRequest &abilityRequest);
     int ResolveAbility(const std::shared_ptr<AbilityRecord> &targetAbility, const AbilityRequest &abilityRequest) const;
-    std::vector<std::shared_ptr<AbilityRecord>> GetAbilityRecordsByNameInner(const AppExecFwk::ElementName &element);
 
     void NotifyStartSpecifiedAbility(AbilityRequest &request, const AAFwk::Want &want);
     void NotifyRestartSpecifiedAbility(AbilityRequest &request, const sptr<IRemoteObject> &token);
@@ -445,6 +447,7 @@ private:
 
     int32_t userId_ = -1;
     mutable ffrt::mutex sessionLock_;
+    mutable ffrt::mutex sessionAbilityMapMutex_;
     std::unordered_map<int32_t, std::shared_ptr<AbilityRecord>> sessionAbilityMap_;
     std::unordered_map<int64_t, std::shared_ptr<AbilityRecord>> tmpAbilityMap_;
     std::list<std::shared_ptr<AbilityRecord>> terminateAbilityList_;
