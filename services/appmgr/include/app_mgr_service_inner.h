@@ -1563,7 +1563,6 @@ private:
     void MakeIsolateSandBoxProcessName(const std::shared_ptr<AbilityInfo> &abilityInfo,
         const HapModuleInfo &hapModuleInfo, std::string &processName) const;
     void DealMultiUserConfig(const Configuration &config, const int32_t userId);
-    bool CheckIsDebugApp(const std::string &bundleName);
     int32_t MakeKiaProcess(std::shared_ptr<AAFwk::Want> want, bool &isKia, std::string &watermarkBusinessName,
         bool &isWatermarkEnabled, bool &isFileUri, std::string &processName);
     int32_t ProcessKia(bool isKia, std::shared_ptr<AppRunningRecord> appRecord,
