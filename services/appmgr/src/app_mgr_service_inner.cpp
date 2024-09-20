@@ -2591,6 +2591,7 @@ void AppMgrServiceInner::AbilityTerminated(const sptr<IRemoteObject> &token)
         return;
     }
 
+    TAG_LOGI(AAFwkTag::APPMGR, "Terminate ability. bundle:%{public}s", appRecord->GetBundleName().c_str());
     appRecord->AbilityTerminated(token);
 }
 

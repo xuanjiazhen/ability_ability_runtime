@@ -668,7 +668,8 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
                 appRecord->GetBundleName().c_str());
             return;
         }
-        TAG_LOGD(AAFwkTag::APPMGR, "The ability is the last in the app:%{public}s.", appRecord->GetName().c_str());
+        TAG_LOGI(AAFwkTag::APPMGR, "The ability is the last in the app:%{public}s. delay kill",
+            appRecord->GetName().c_str());
         appRecord->SetTerminating();
         if (clearMissionFlag && appMgrServiceInner != nullptr) {
             auto delayTime = appRecord->ExtensionAbilityRecordExists() ?
