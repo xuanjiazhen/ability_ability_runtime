@@ -37,6 +37,7 @@ ohos_fuzztest("AbilityFrameworksNativeOhosJsEnvLoggerFuzzTest") {
     "${distributedschedule_path}/samgr/adapter/interfaces/innerkits/include/",
     "${ability_runtime_innerkits_path}/app_manager/include/appmgr",
     "${ability_runtime_services_path}/abilitymgr/include",
+    "${ability_runtime_services_path}/abilitymgr/include/mission",
     "//third_party/zlib/contrib/minizip",
     "//third_party/zlib",
     "//third_party/jsoncpp:jsoncpp",

@@ -23,6 +23,7 @@ ohos_unittest("ui_ability_lifecycle_manager_test") {
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper",
     "${ability_runtime_services_path}/appdfr/include",
     "${ability_runtime_services_path}/abilitymgr/include/",
+    "${ability_runtime_services_path}/abilitymgr/include/mission",
     "${ability_runtime_services_path}/abilitymgr/include/scene_board/",
     "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy/include",
     "mock/include",

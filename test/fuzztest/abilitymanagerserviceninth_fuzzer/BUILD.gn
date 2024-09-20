@@ -27,6 +27,7 @@ ohos_fuzztest("AbilityManagerServiceNinthFuzzTest") {
   include_dirs = [
     "${ability_runtime_innerkits_path}/ability_manager/include",
     "${ability_runtime_innerkits_path}/dataobs_manager/include",
+    "${ability_runtime_services_path}/abilitymgr/include/mission",
     "${multimodalinput_path}/interfaces/native/innerkits/event/include",
   ]
   cflags = [
