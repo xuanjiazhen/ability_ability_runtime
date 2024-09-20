@@ -1735,6 +1735,15 @@ public:
     {
         return 0;
     }
+
+    /**
+     * update associate config list by rss.
+     */
+    virtual int32_t UpdateAssociateConfigList(const std::map<std::string, std::list<std::string>>& configs,
+        const std::list<std::string>& exportConfigs, int32_t flag)
+    {
+        return 0;
+    }
 };
 }  // namespace AAFwk
 }  // namespace OHOS

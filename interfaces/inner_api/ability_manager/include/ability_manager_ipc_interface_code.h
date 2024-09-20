@@ -555,6 +555,9 @@ enum class AbilityManagerInterfaceCode {
 
     // ipc id for terminate mission
     TERMINATE_MISSION = 6118,
+
+    // update associate config list
+    UPDATE_ASSOCIATE_CONFIG_LIST = 6119,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

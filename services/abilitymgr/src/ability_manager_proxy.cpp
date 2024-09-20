@@ -5588,5 +5588,58 @@ int32_t AbilityManagerProxy::TerminateMission(int32_t missionId)
 
     return reply.ReadInt32();
 }
+
+int32_t AbilityManagerProxy::UpdateAssociateConfigList(const std::map<std::string, std::list<std::string>>& configs,
+    const std::list<std::string>& exportConfigs, int32_t flag)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        return IPC_PROXY_ERR;
+    }
+
+    if (!data.WriteInt32(static_cast<int32_t>(configs.size()))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write configs size fail");
+        return INNER_ERR;
+    }
+    for (const auto& config : configs) {
+        if (!data.WriteString(config.first)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "write config key fail");
+            return INNER_ERR;
+        }
+        if (!data.WriteInt32(static_cast<int32_t>(config.second.size()))) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "write config item size fail");
+            return INNER_ERR;
+        }
+        for (const auto& item : config.second) {
+            if (!data.WriteString(item)) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "write config item fail");
+                return INNER_ERR;
+            }
+        }
+    }
+
+    if (!data.WriteInt32(static_cast<int32_t>(exportConfigs.size()))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write export configs size fail");
+        return INNER_ERR;
+    }
+    for (const auto& config : exportConfigs) {
+        if (!data.WriteString(config)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "write export config item fail");
+            return INNER_ERR;
+        }
+    }
+    if (!data.WriteInt32(flag)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write flag fail");
+        return INNER_ERR;
+    }
+    auto error = SendRequest(AbilityManagerInterfaceCode::UPDATE_ASSOCIATE_CONFIG_LIST, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error: %{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
 } // namespace AAFwk
 } // namespace OHOS
