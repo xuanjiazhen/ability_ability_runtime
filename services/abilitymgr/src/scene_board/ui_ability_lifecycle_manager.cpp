@@ -131,7 +131,7 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
         AddCallerRecord(abilityRequest, sessionInfo, uiAbilityRecord);
     }
     uiAbilityRecord->ProcessForegroundAbility(sessionInfo->callingTokenId, sceneFlag);
-    CheckSpecified(abilityRequest, uiAbilityRecord);
+    SetSpecifiedFlag(abilityRequest, uiAbilityRecord);
     SendKeyEvent(abilityRequest);
     return ERR_OK;
 }
@@ -195,14 +195,26 @@ void UIAbilityLifecycleManager::AddCallerRecord(AbilityRequest &abilityRequest, 
         sessionInfo->requestCode, abilityRequest.want, srcAbilityId, sessionInfo->callingTokenId);
 }
 
-void UIAbilityLifecycleManager::CheckSpecified(AbilityRequest &abilityRequest,
+void UIAbilityLifecycleManager::SetSpecifiedFlag(AbilityRequest &abilityRequest,
     std::shared_ptr<AbilityRecord> uiAbilityRecord)
 {
-    if (abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED && !specifiedInfoQueue_.empty()) {
-        SpecifiedInfo specifiedInfo = specifiedInfoQueue_.front();
-        specifiedInfoQueue_.pop();
-        uiAbilityRecord->SetSpecifiedFlag(specifiedInfo.flag);
-        specifiedAbilityMap_.emplace(specifiedInfo, uiAbilityRecord);
+    if (abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED && !specifiedInfos_.empty()) {
+        auto iter = std::find_if(specifiedInfos_.begin(), specifiedInfos_.end(),
+            [abilityName = abilityRequest.abilityInfo.name,
+            bundleName = abilityRequest.abilityInfo.bundleName,
+            moduleName = abilityRequest.abilityInfo.moduleName](
+                const SpecifiedInfo& specifiedInfo) {
+                return (abilityName == specifiedInfo.abilityName) &&
+                    (bundleName == specifiedInfo.bundleName) &&
+                    (moduleName == specifiedInfo.moduleName);
+            });
+        if (iter == specifiedInfos_.end()) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "No specified info,abilityName=%{public}s,bundleName=%{public}s",
+                abilityRequest.abilityInfo.name.c_str(), abilityRequest.abilityInfo.bundleName.c_str());
+            return;
+        }
+        specifiedInfos_.erase(iter);
+        uiAbilityRecord->SetSpecifiedFlag(iter->flag);
     }
 }
 
@@ -682,19 +694,6 @@ void UIAbilityLifecycleManager::EraseAbilityRecord(const std::shared_ptr<Ability
     for (auto iter = sessionAbilityMap_.begin(); iter != sessionAbilityMap_.end(); iter++) {
         if (iter->second != nullptr && iter->second->GetToken()->AsObject() == abilityRecord->GetToken()->AsObject()) {
             sessionAbilityMap_.erase(iter);
-            break;
-        }
-    }
-}
-
-void UIAbilityLifecycleManager::EraseSpecifiedAbilityRecord(const std::shared_ptr<AbilityRecord> &abilityRecord)
-{
-    for (auto iter = specifiedAbilityMap_.begin(); iter != specifiedAbilityMap_.end(); iter++) {
-        auto abilityInfo = abilityRecord->GetAbilityInfo();
-        if (iter->second != nullptr && iter->second->GetToken()->AsObject() == abilityRecord->GetToken()->AsObject() &&
-            iter->first.abilityName == abilityInfo.name && iter->first.bundleName == abilityInfo.bundleName &&
-            iter->first.flag == abilityRecord->GetSpecifiedFlag()) {
-            specifiedAbilityMap_.erase(iter);
             break;
         }
     }
@@ -1371,7 +1370,6 @@ void UIAbilityLifecycleManager::CompleteTerminate(const std::shared_ptr<AbilityR
         TAG_LOGE(AAFwkTag::ABILITYMGR, "appMS fail to terminate ability");
     }
     abilityRecord->RevokeUriPermission();
-    EraseSpecifiedAbilityRecord(abilityRecord);
     terminateAbilityList_.remove(abilityRecord);
 }
 
@@ -1594,7 +1592,6 @@ void UIAbilityLifecycleManager::HandleForegroundTimeout(const std::shared_ptr<Ab
     NotifySCBToHandleException(abilityRecord,
         static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_FOREGROUND_TIMEOUT), "handleForegroundTimeout");
     DelayedSingleton<AppScheduler>::GetInstance()->AttachTimeOut(abilityRecord->GetToken());
-    EraseSpecifiedAbilityRecord(abilityRecord);
 }
 
 void UIAbilityLifecycleManager::OnAbilityDied(std::shared_ptr<AbilityRecord> abilityRecord)
@@ -1627,7 +1624,6 @@ void UIAbilityLifecycleManager::OnAbilityDied(std::shared_ptr<AbilityRecord> abi
         "onAbilityDied");
     DelayedSingleton<AppScheduler>::GetInstance()->AttachTimeOut(abilityRecord->GetToken());
     DispatchTerminate(abilityRecord);
-    EraseSpecifiedAbilityRecord(abilityRecord);
 }
 
 void UIAbilityLifecycleManager::OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag,
@@ -1656,13 +1652,12 @@ void UIAbilityLifecycleManager::OnAcceptWantResponse(const AAFwk::Want &want, co
         if (persistentId != 0) {
             std::shared_ptr<AbilityRecord> abilityRecord = nullptr;
             auto iter = sessionAbilityMap_.find(persistentId);
-            if (iter != sessionAbilityMap_.end()) {
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "find specified ability");
-                abilityRecord = iter->second;
-            } else {
+            if (iter == sessionAbilityMap_.end()) {
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "OnAcceptWantResponse Unexpected Error");
                 return;
             }
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "find specified ability");
+            abilityRecord = iter->second;
             if (!abilityRecord) {
                 return;
             }
@@ -1671,6 +1666,19 @@ void UIAbilityLifecycleManager::OnAcceptWantResponse(const AAFwk::Want &want, co
             UpdateAbilityRecordLaunchReason(abilityRequest, abilityRecord);
             MoveAbilityToFront(abilityRequest, abilityRecord, callerAbility);
             NotifyRestartSpecifiedAbility(abilityRequest, abilityRecord->GetToken());
+            return;
+        }
+        auto iter = std::find_if(specifiedInfos_.begin(), specifiedInfos_.end(),
+            [abilityName = abilityRequest.abilityInfo.name,
+            bundleName = abilityRequest.abilityInfo.bundleName,
+            moduleName = abilityRequest.abilityInfo.moduleName](
+                const SpecifiedInfo& specifiedInfo) {
+                return (abilityName == specifiedInfo.abilityName) &&
+                    (bundleName == specifiedInfo.bundleName) &&
+                    (moduleName == specifiedInfo.moduleName);
+            });
+        if (iter != specifiedInfos_.end()) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "ability is starting already");
             return;
         }
     }
@@ -1742,19 +1750,6 @@ void UIAbilityLifecycleManager::StartSpecifiedAbilityBySCB(const Want &want)
     }
     DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedAbility(
         abilityRequest.want, abilityRequest.abilityInfo, requestId);
-}
-
-std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GetReusedSpecifiedAbility(const AAFwk::Want &want,
-    const std::string &flag)
-{
-    auto element = want.GetElement();
-    for (const auto& [first, second] : specifiedAbilityMap_) {
-        if (flag == first.flag && element.GetAbilityName() == first.abilityName &&
-            element.GetBundleName() == first.bundleName) {
-            return second;
-        }
-    }
-    return nullptr;
 }
 
 void UIAbilityLifecycleManager::NotifyRestartSpecifiedAbility(AbilityRequest &request,
@@ -1860,11 +1855,13 @@ int UIAbilityLifecycleManager::StartAbilityBySpecifed(const AbilityRequest &abil
     sessionInfo->want = abilityRequest.want;
     sessionInfo->requestCode = abilityRequest.requestCode;
     sessionInfo->processOptions = abilityRequest.processOptions;
-    SpecifiedInfo specifiedInfo;
-    specifiedInfo.abilityName = abilityRequest.abilityInfo.name;
-    specifiedInfo.bundleName = abilityRequest.abilityInfo.bundleName;
-    specifiedInfo.flag = abilityRequest.specifiedFlag;
-    specifiedInfoQueue_.push(specifiedInfo);
+    SpecifiedInfo specifiedInfo = {
+        .abilityName = abilityRequest.abilityInfo.name,
+        .bundleName = abilityRequest.abilityInfo.bundleName,
+        .moduleName = abilityRequest.abilityInfo.moduleName,
+        .flag = abilityRequest.specifiedFlag,
+    };
+    specifiedInfos_.push_back(specifiedInfo);
 
     SendSessionInfoToSCB(callerAbility, sessionInfo);
     return ERR_OK;
