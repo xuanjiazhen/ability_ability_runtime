@@ -28,6 +28,7 @@ ohos_fuzztest("AbilityMgrAbilityManagerStubFuzzTest") {
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper",
     "${ability_runtime_innerkits_path}/app_manager/include/appmgr",
     "${ability_runtime_services_path}/abilitymgr/include",
+    "${ability_runtime_services_path}/abilitymgr/include/mission",
     "${ability_runtime_services_path}/common/include",
     "${ability_runtime_path}/interfaces/kits/native/session_info/include",
     "${distributedschedule_path}/samgr/adapter/interfaces/innerkits/include",
