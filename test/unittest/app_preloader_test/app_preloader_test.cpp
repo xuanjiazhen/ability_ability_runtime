@@ -15,7 +15,9 @@
 
 #include <gtest/gtest.h>
 
+#define private public
 #include "app_preloader.h"
+#undef private
 #include "hilog_tag_wrapper.h"
 
 using namespace testing;
@@ -29,14 +31,12 @@ public:
     void TearDown();
 
 protected:
-    std::shared_ptr<RemoteClientManager> remoteClientManager_ = nullptr;
+    std::shared_ptr<BundleMgrHelper> bundleMgrHelper_;
 };
 
 void AppPreloaderTest::SetUp()
 {
-    remoteClientManager_ = std::make_shared<RemoteClientManager>();
-    auto bundleMgrHelper = std::make_shared<BundleMgrHelper>();
-    remoteClientManager_->SetBundleManagerHelper(bundleMgrHelper);
+    bundleMgrHelper_ = std::make_shared<BundleMgrHelper>();
 }
 
 void AppPreloaderTest::TearDown()
@@ -50,8 +50,9 @@ void AppPreloaderTest::TearDown()
 HWTEST_F(AppPreloaderTest, AppPreloaderTest_GeneratePreloadRequest_0100, TestSize.Level0)
 {
     TAG_LOGD(AAFwkTag::TEST, "AppPreloaderTest_GeneratePreloadRequest_0100 start.");
-    auto manager = std::make_shared<AppPreloader>(remoteClientManager_);
+    auto manager = std::make_shared<AppPreloader>();
     EXPECT_NE(manager, nullptr);
+    manager->bundleMgrHelper_ = bundleMgrHelper_;
 
     std::string bundleName = "com.acts.preloadtest";
     int32_t userId = 100;
@@ -69,8 +70,9 @@ HWTEST_F(AppPreloaderTest, AppPreloaderTest_GeneratePreloadRequest_0100, TestSiz
 HWTEST_F(AppPreloaderTest, AppPreloaderTest_PreCheck_0100, TestSize.Level0)
 {
     TAG_LOGD(AAFwkTag::TEST, "AppPreloaderTest_PreCheck_0100 start.");
-    auto manager = std::make_shared<AppPreloader>(remoteClientManager_);
+    auto manager = std::make_shared<AppPreloader>();
     EXPECT_NE(manager, nullptr);
+    manager->bundleMgrHelper_ = bundleMgrHelper_;
 
     std::string bundleName = "com.acts.preloadtest";
     auto ret = manager->PreCheck(bundleName, PreloadMode::PRE_MAKE);

@@ -94,7 +94,7 @@ void AmsAppServiceFlowModuleTest::SetUp()
     serviceInner_->SetTaskHandler(taskHandler);
     serviceInner_->SetEventHandler(handler_);
     mockBundleMgr_ = DelayedSingleton<BundleMgrHelper>::GetInstance();
-    serviceInner_->SetBundleManagerHelper(mockBundleMgr_);
+    serviceInner_->bundleMgrHelper_ = mockBundleMgr_;
 }
 
 void AmsAppServiceFlowModuleTest::TearDown()

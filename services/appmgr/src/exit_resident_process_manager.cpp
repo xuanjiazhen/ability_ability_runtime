@@ -17,9 +17,9 @@
 #include <mutex>
 
 #include "ability_manager_errors.h"
+#include "bundle_mgr_helper.h"
 #include "hilog_tag_wrapper.h"
 #include "in_process_call_wrapper.h"
-#include "remote_client_manager.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -95,12 +95,7 @@ void ExitResidentProcessManager::QueryExitBundleInfos(const std::vector<ExitResi
     std::vector<AppExecFwk::BundleInfo>& exitBundleInfos)
 {
     AppExecFwk::BundleInfo bundleInfo;
-    std::shared_ptr<RemoteClientManager> remoteClientManager = std::make_shared<RemoteClientManager>();
-    if (remoteClientManager == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "null remoteClientManager");
-        return;
-    }
-    auto bundleMgrHelper = remoteClientManager->GetBundleManagerHelper();
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
     if (bundleMgrHelper == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null bundleMgrHelper");
         return;

@@ -53,10 +53,7 @@ uint32_t GetU32Data(const char* ptr)
 
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
-    std::shared_ptr<RemoteClientManager> remoteClientManager = std::make_shared<RemoteClientManager>();
-    auto bundleMgrHelper = std::make_shared<AppExecFwk::BundleMgrHelper>();
-    remoteClientManager->SetBundleManagerHelper(bundleMgrHelper);
-    auto appPreloader = std::make_shared<AppPreloader>(remoteClientManager);
+    auto appPreloader = std::make_shared<AppPreloader>();
     std::string bundleName(data, size);
     int32_t userId = static_cast<int32_t>(GetU32Data(data));
     int32_t appIndex = static_cast<int32_t>(GetU32Data(data));

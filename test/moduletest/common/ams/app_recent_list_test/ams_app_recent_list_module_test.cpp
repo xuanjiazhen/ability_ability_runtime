@@ -72,7 +72,7 @@ void AmsAppRecentListModuleTest::SetUp()
     serviceInner_.reset(new (std::nothrow) AppMgrServiceInner());
     serviceInner_->Init();
     mockBundleMgr = DelayedSingleton<BundleMgrHelper>::GetInstance();
-    serviceInner_->SetBundleManagerHelper(mockBundleMgr);
+    serviceInner_->bundleMgrHelper_ = mockBundleMgr;
 }
 
 void AmsAppRecentListModuleTest::TearDown()

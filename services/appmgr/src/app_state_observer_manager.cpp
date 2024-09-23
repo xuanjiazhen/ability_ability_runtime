@@ -18,10 +18,10 @@
 #include "ability_foreground_state_observer_stub.h"
 #include "app_foreground_state_observer_stub.h"
 #include "application_state_observer_stub.h"
+#include "bundle_mgr_helper.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "in_process_call_wrapper.h"
-#include "remote_client_manager.h"
 #include "ui_extension_utils.h"
 #include "parameters.h"
 
@@ -1040,8 +1040,8 @@ AppStateData AppStateObserverManager::WrapAppStateData(const std::shared_ptr<App
             }
         }
     }
-    std::shared_ptr<RemoteClientManager> remoteClientManager = std::make_shared<RemoteClientManager>();
-    auto bundleMgr = remoteClientManager->GetBundleManagerHelper();
+
+    auto bundleMgr = DelayedSingleton<BundleMgrHelper>::GetInstance();
     std::string callerBundleName;
     if (bundleMgr != nullptr &&
         IN_PROCESS_CALL(bundleMgr->GetNameForUid(appRecord->GetCallerUid(), callerBundleName)) == ERR_OK) {

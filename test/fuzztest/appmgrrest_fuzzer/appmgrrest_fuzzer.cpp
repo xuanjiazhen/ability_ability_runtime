@@ -86,12 +86,9 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     appSpawnClient.GetRenderProcessTerminationStatus(startMsg, status);
     appSpawnClient.QueryConnectionState();
     RemoteClientManager remoteClientManager;
-    std::shared_ptr<BundleMgrHelper> bundleManagerHelper = nullptr;
-    remoteClientManager.SetBundleManagerHelper(bundleManagerHelper);
     std::shared_ptr<AppSpawnClient> appSpawnClientptr;
     remoteClientManager.SetSpawnClient(appSpawnClientptr);
     remoteClientManager.GetSpawnClient();
-    remoteClientManager.GetBundleManagerHelper();
     remoteClientManager.GetNWebSpawnClient();
     std::shared_ptr<AppMgrServiceInner> owner;
     WindowFocusChangedListener windowFocusChangedListener(owner, handler);
