@@ -228,9 +228,7 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
     }
     CHECK_POINTER_AND_RETURN(targetService, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbility:%{public}s", targetService->GetURI().c_str());
-    if (abilityRequest.sessionInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null sessionInfo");
-    } else {
+    if (abilityRequest.sessionInfo != nullptr) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "component id: %{public}" PRId64,
             abilityRequest.sessionInfo->uiExtensionComponentId);
     }
