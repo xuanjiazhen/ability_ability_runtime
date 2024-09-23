@@ -2861,7 +2861,8 @@ void AbilityConnectManager::AddUIExtWindowDeathRecipient(const sptr<SessionInfo>
         std::weak_ptr<AbilityConnectManager> thisWeakPtr(shared_from_this());
         wptr<SessionInfo> wptrSession(session);
         sptr<IRemoteObject::DeathRecipient> deathRecipient =
-            new (std::nothrow) AbilityConnectCallbackRecipient([thisWeakPtr, wptrSession](const wptr<IRemoteObject> &remote) {
+            new (std::nothrow) AbilityConnectCallbackRecipient([thisWeakPtr, wptrSession]
+            (const wptr<IRemoteObject> &remote) {
                 auto abilityConnectManager = thisWeakPtr.lock();
                 if (abilityConnectManager) {
                     abilityConnectManager->OnUIExtWindowDied(wptrSession);
