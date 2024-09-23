@@ -573,8 +573,8 @@ private:
 
     void AddUIExtWindowDeathRecipient(const sptr<SessionInfo> &session);
     void RemoveUIExtWindowDeathRecipient(const sptr<IRemoteObject> &session);
-    void OnUIExtWindowDied(const wptr<SessionInfo> &remote);
-    void HandleUIExtWindowDiedTask(const sptr<SessionInfo> &remote);
+    void OnUIExtWindowDied(const wptr<SessionInfo> &session);
+    void HandleUIExtWindowDiedTask(const sptr<SessionInfo> &session);
 
     /**
      * Post an extension's disconnect task, auto disconnect when extension conected timeout.
