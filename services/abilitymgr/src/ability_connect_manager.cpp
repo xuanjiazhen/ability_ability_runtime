@@ -2910,7 +2910,7 @@ void AbilityConnectManager::HandleUIExtWindowDiedTask(const sptr<SessionInfo> &s
             abilityRecord = it->second.first.lock();
             sessionInfo = it->second.second;
             TAG_LOGW(AAFwkTag::UI_EXT, "uiExtAbility caller died, component id: %{public}"
-                PRId64, remote->uiExtensionComponentId);
+                PRId64, session->uiExtensionComponentId);
             uiExtensionMap_.erase(it);
         } else {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "not find");
