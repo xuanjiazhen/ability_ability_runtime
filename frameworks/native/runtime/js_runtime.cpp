@@ -973,6 +973,8 @@ napi_value JsRuntime::LoadJsBundle(const std::string& path, const std::string& h
 napi_value JsRuntime::LoadJsModule(const std::string& path, const std::string& hapPath)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "zhuhan path: %{public}s", path.c_str());
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "zhuhan hapPath: %{public}s", hapPath.c_str());
     if (!RunScript(path, hapPath, false)) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "Failed to run script: %{private}s", path.c_str());
         return nullptr;
@@ -997,6 +999,9 @@ std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& module
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::JSRUNTIME, "Load module(%{public}s, %{private}s, %{private}s, %{public}s)",
         moduleName.c_str(), modulePath.c_str(), hapPath.c_str(), esmodule ? "true" : "false");
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "zhuhan modulePath is srcPath, modulePath: %{public}s", modulePath.c_str());
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "zhuhan hapPath: %{public}s", hapPath.c_str());
+
     auto vm = GetEcmaVm();
     CHECK_POINTER_AND_RETURN(vm, std::unique_ptr<NativeReference>());
     // use for debugger, js engine need to know load module to handle debug event
@@ -1030,6 +1035,8 @@ std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& module
                 return std::unique_ptr<NativeReference>();
             }
         }
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "zhuhan fileName: %{public}s", fileName.c_str());
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "zhuhan hapPath: %{public}s", hapPath.c_str());
         classValue = esmodule ? LoadJsModule(fileName, hapPath) : LoadJsBundle(fileName, hapPath, useCommonChunk);
         if (classValue == nullptr) {
             return std::unique_ptr<NativeReference>();
@@ -1083,6 +1090,7 @@ std::unique_ptr<NativeReference> JsRuntime::LoadSystemModule(
 
 bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath, bool useCommonChunk)
 {
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "zhuhan srcPath: %{public}s,  hapPath: %{public}s", srcPath.c_str(), hapPath.c_str());
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     auto vm = GetEcmaVm();
     CHECK_POINTER_AND_RETURN(vm, false);
@@ -1119,6 +1127,7 @@ bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath
                 TAG_LOGE(AAFwkTag::JSRUNTIME, "Get safeData abc file failed");
                 return false;
             }
+            TAG_LOGI(AAFwkTag::JSRUNTIME, "zhuhan abcPath: %{public}s,", abcPath.c_str());
             return LoadScript(abcPath, safeData->GetDataPtr(), safeData->GetDataLen(), isBundle_);
         } else {
             std::unique_ptr<uint8_t[]> data;
@@ -1129,7 +1138,7 @@ bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath
             }
             std::vector<uint8_t> buffer;
             buffer.assign(data.get(), data.get() + dataLen);
-
+            TAG_LOGI(AAFwkTag::JSRUNTIME, "zhuhan abcPath: %{public}s,", abcPath.c_str());
             return LoadScript(abcPath, &buffer, isBundle_);
         }
     };
@@ -1149,6 +1158,7 @@ bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath
         panda::JSNApi::SetAssetPath(vm, path);
         panda::JSNApi::SetModuleName(vm, moduleName_);
     }
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "zhuhan path: %{public}s,  srcPath: %{public}s", path.c_str(), srcPath.c_str());
     return func(path, srcPath);
 }
 
