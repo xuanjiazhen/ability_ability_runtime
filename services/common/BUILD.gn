@@ -121,7 +121,10 @@ ohos_shared_library("app_util") {
   branch_protector_ret = "pac_ret"
 
   public_configs = [ ":common_config" ]
-  include_dirs = [ "include" ]
+  include_dirs = [ 
+    "include",
+    "//third_party//json/include",
+  ]
 
   sources = [
     "src/ability_manager_radar.cpp",
@@ -134,7 +137,6 @@ ohos_shared_library("app_util") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "init:libbegetutil",
-    "json:nlohmann_json_static",
   ]
 
   if (ability_runtime_graphics) {
