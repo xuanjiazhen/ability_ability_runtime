@@ -228,10 +228,7 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
     }
     CHECK_POINTER_AND_RETURN(targetService, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbility:%{public}s", targetService->GetURI().c_str());
-    if (abilityRequest.sessionInfo != nullptr) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "component id: %{public}" PRId64,
-            abilityRequest.sessionInfo->uiExtensionComponentId);
-    }
+
     targetService->AddCallerRecord(abilityRequest.callerToken, abilityRequest.requestCode, abilityRequest.want);
 
     targetService->SetLaunchReason(LaunchReason::LAUNCHREASON_START_EXTENSION);
@@ -242,6 +239,8 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
 
     if (IsUIExtensionAbility(targetService) && abilityRequest.sessionInfo && abilityRequest.sessionInfo->sessionToken) {
         auto &remoteObj = abilityRequest.sessionInfo;
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "component id: %{public}" PRId64,
+            remoteObj->uiExtensionComponentId);
         {
             std::lock_guard guard(uiExtensionMapMutex_);
             uiExtensionMap_[remoteObj->uiExtensionComponentId] = UIExtWindowMapValType(targetService, remoteObj);
