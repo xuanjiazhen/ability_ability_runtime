@@ -48,6 +48,7 @@ public:
     static napi_value GetPreferencesDir(napi_env env, napi_callback_info info);
     static napi_value GetBundleCodeDir(napi_env env, napi_callback_info info);
     static napi_value GetCloudFileDir(napi_env env, napi_callback_info info);
+    static napi_value SetColorMode(napi_env env, napi_callback_info info);
 
     napi_value OnGetCacheDir(napi_env env, NapiCallbackInfo &info);
     napi_value OnGetTempDir(napi_env env, NapiCallbackInfo &info);
@@ -73,6 +74,11 @@ void JsBaseContext::Finalizer(napi_env env, void *data, void *hint)
 }
 
 napi_value JsBaseContext::CreateBundleContext(napi_env env, napi_callback_info info)
+{
+    return nullptr;
+}
+
+napi_value JsBaseContext::SetColorMode(napi_env env, napi_callback_info info)
 {
     return nullptr;
 }
@@ -347,6 +353,7 @@ napi_value CreateJsBaseContext(napi_env env, std::shared_ptr<Context> context, b
     BindNativeFunction(env, object, "createModuleContext", moduleName, JsBaseContext::CreateModuleContext);
     BindNativeFunction(env, object, "createModuleResourceManager", moduleName,
         JsBaseContext::CreateModuleResourceManager);
+    BindNativeFunction(env, object, "setColorMode", moduleName, JsBaseContext::SetColorMode);
 
     return object;
 }
