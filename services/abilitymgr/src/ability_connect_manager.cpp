@@ -176,10 +176,12 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
     targetService->SetSessionInfo(abilityRequest.sessionInfo);
 
     if (IsUIExtensionAbility(targetService) && abilityRequest.sessionInfo && abilityRequest.sessionInfo->sessionToken) {
-        auto &remoteObj = abilityRequest.sessionInfo->sessionToken;
+        auto &remoteObj = abilityRequest.sessionInfo;
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "component id: %{public}" PRId64,
+            remoteObj->uiExtensionComponentId);
         {
             std::lock_guard guard(uiExtensionMapMutex_);
-            uiExtensionMap_[remoteObj] = UIExtWindowMapValType(targetService, abilityRequest.sessionInfo);
+            uiExtensionMap_[remoteObj->uiExtensionComponentId] = UIExtWindowMapValType(targetService, remoteObj);
         }
         AddUIExtWindowDeathRecipient(remoteObj);
     }
@@ -1177,7 +1179,7 @@ void AbilityConnectManager::HandleCommandDestroy(const sptr<SessionInfo> &sessio
         size_t ret = 0;
         {
             std::lock_guard guard(uiExtensionMapMutex_);
-            ret = uiExtensionMap_.erase(sessionInfo->sessionToken);
+            ret = uiExtensionMap_.erase(sessionInfo->uiExtensionComponentId);
         }
         if (ret > 0) {
             return;
@@ -1321,11 +1323,12 @@ std::shared_ptr<AbilityRecord> AbilityConnectManager::GetUIExtensioBySessionInfo
     }
 
     std::lock_guard guard(uiExtensionMapMutex_);
-    auto it = uiExtensionMap_.find(sessionToken->AsObject());
+    auto it = uiExtensionMap_.find(sessionInfo->uiExtensionComponentId);
     if (it != uiExtensionMap_.end()) {
         auto abilityRecord = it->second.first.lock();
         if (abilityRecord == nullptr) {
-            TAG_LOGW(AAFwkTag::ABILITYMGR, "abilityRecord null");
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "abilityRecord null, component id: %{public}" PRId64,
+                sessionInfo->uiExtensionComponentId);
             RemoveUIExtWindowDeathRecipient(sessionToken->AsObject());
             uiExtensionMap_.erase(it);
             return nullptr;
@@ -2303,20 +2306,20 @@ void AbilityConnectManager::HandleUIExtensionDied(const std::shared_ptr<AbilityR
     for (auto it = uiExtensionMap_.begin(); it != uiExtensionMap_.end();) {
         std::shared_ptr<AbilityRecord> uiExtAbility = it->second.first.lock();
         if (uiExtAbility == nullptr) {
-            TAG_LOGW(AAFwkTag::ABILITYMGR, "uiExtAbility null");
-            RemoveUIExtWindowDeathRecipient(it->first);
+            TAG_LOGW(AAFwkTag::UI_EXT, "uiExtAbility null, component id: %{public}" PRId64, it->first);
+            RemoveUIExtWindowDeathRecipient(it->second.second->sessionToken);
             it = uiExtensionMap_.erase(it);
             continue;
         }
 
         if (abilityRecord == uiExtAbility) {
-            sptr<Rosen::ISession> sessionProxy = iface_cast<Rosen::ISession>(it->first);
+            sptr<Rosen::ISession> sessionProxy = iface_cast<Rosen::ISession>(it->second.second->sessionToken);
             if (sessionProxy) {
                 TAG_LOGD(AAFwkTag::ABILITYMGR, "start NotifyExtensionDied");
                 sessionProxy->NotifyExtensionDied();
             }
-            TAG_LOGW(AAFwkTag::UI_EXT, "uiExtAbility died");
-            RemoveUIExtWindowDeathRecipient(it->first);
+            TAG_LOGW(AAFwkTag::UI_EXT, "uiExtAbility died, component id: %{public}" PRId64, it->first);
+            RemoveUIExtWindowDeathRecipient(it->second.second->sessionToken);
             it = uiExtensionMap_.erase(it);
             continue;
         }
@@ -2788,27 +2791,30 @@ void AbilityConnectManager::MoveToTerminatingMap(const std::shared_ptr<AbilityRe
     }
 }
 
-void AbilityConnectManager::AddUIExtWindowDeathRecipient(const sptr<IRemoteObject> &session)
+void AbilityConnectManager::AddUIExtWindowDeathRecipient(const sptr<SessionInfo> &session)
 {
     CHECK_POINTER(session);
+    CHECK_POINTER(session->sessionToken);
     std::lock_guard lock(uiExtRecipientMapMutex_);
-    auto it = uiExtRecipientMap_.find(session);
+    auto it = uiExtRecipientMap_.find(session->sessionToken);
     if (it != uiExtRecipientMap_.end()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "recipient added before");
         return;
     } else {
         std::weak_ptr<AbilityConnectManager> thisWeakPtr(shared_from_this());
+        wptr<SessionInfo> wptrSession(session);
         sptr<IRemoteObject::DeathRecipient> deathRecipient =
-            new AbilityConnectCallbackRecipient([thisWeakPtr](const wptr<IRemoteObject> &remote) {
+            new (std::nothrow) AbilityConnectCallbackRecipient([thisWeakPtr, wptrSession]
+            (const wptr<IRemoteObject> &remote) {
                 auto abilityConnectManager = thisWeakPtr.lock();
                 if (abilityConnectManager) {
-                    abilityConnectManager->OnUIExtWindowDied(remote);
+                    abilityConnectManager->OnUIExtWindowDied(wptrSession);
                 }
             });
-        if (!session->AddDeathRecipient(deathRecipient)) {
+        if (!session->sessionToken->AddDeathRecipient(deathRecipient)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "AddDeathRecipient fail");
         }
-        uiExtRecipientMap_.emplace(session, deathRecipient);
+        uiExtRecipientMap_.emplace(session->sessionToken, deathRecipient);
     }
 }
 
@@ -2824,9 +2830,9 @@ void AbilityConnectManager::RemoveUIExtWindowDeathRecipient(const sptr<IRemoteOb
     }
 }
 
-void AbilityConnectManager::OnUIExtWindowDied(const wptr<IRemoteObject> &remote)
+void AbilityConnectManager::OnUIExtWindowDied(const wptr<SessionInfo> &session)
 {
-    auto object = remote.promote();
+    auto object = session.promote();
     CHECK_POINTER(object);
     if (taskHandler_) {
         auto task = [object, connectManager = shared_from_this()]() {
@@ -2836,19 +2842,21 @@ void AbilityConnectManager::OnUIExtWindowDied(const wptr<IRemoteObject> &remote)
     }
 }
 
-void AbilityConnectManager::HandleUIExtWindowDiedTask(const sptr<IRemoteObject> &remote)
+void AbilityConnectManager::HandleUIExtWindowDiedTask(const sptr<SessionInfo> &session)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call.");
-    CHECK_POINTER(remote);
+    CHECK_POINTER(session);
+    CHECK_POINTER(session->sessionToken);
     std::shared_ptr<AbilityRecord> abilityRecord;
     sptr<SessionInfo> sessionInfo;
     {
         std::lock_guard guard(uiExtensionMapMutex_);
-        auto it = uiExtensionMap_.find(remote);
+        auto it = uiExtensionMap_.find(session->uiExtensionComponentId);
         if (it != uiExtensionMap_.end()) {
             abilityRecord = it->second.first.lock();
             sessionInfo = it->second.second;
-            TAG_LOGW(AAFwkTag::UI_EXT, "uiExtAbility caller died");
+            TAG_LOGW(AAFwkTag::UI_EXT, "uiExtAbility caller died, component id: %{public}"
+                PRId64, remote->uiExtensionComponentId);
             uiExtensionMap_.erase(it);
         } else {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "not find");
@@ -2861,7 +2869,7 @@ void AbilityConnectManager::HandleUIExtWindowDiedTask(const sptr<IRemoteObject> 
     } else {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "abilityRecord null");
     }
-    RemoveUIExtWindowDeathRecipient(remote);
+    RemoveUIExtWindowDeathRecipient(session->sessionToken);
 }
 
 bool AbilityConnectManager::IsUIExtensionFocused(uint32_t uiExtensionTokenId, const sptr<IRemoteObject>& focusToken)
