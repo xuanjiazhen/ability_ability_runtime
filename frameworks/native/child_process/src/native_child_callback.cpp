@@ -38,7 +38,7 @@ void NativeChildCallback::OnNativeChildStarted(const sptr<IRemoteObject> &native
         return;
     }
     
-    TAG_LOGI(AAFwkTag::PROCESSMGR, "Native child process started");
+    TAG_LOGI(AAFwkTag::PROCESSMGR, "Native child process started lijun");
     sptr<IRemoteObject> ipcRemote = nativeChild;
     OHIPCRemoteProxy *ipcProxy = CreateIPCRemoteProxy(ipcRemote);
     if (ipcProxy == nullptr) {
