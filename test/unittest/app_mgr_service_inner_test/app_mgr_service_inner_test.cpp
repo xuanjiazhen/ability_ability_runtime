@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #define private public
+#include "app_mgr_inner_param.h"
 #include "app_mgr_service_inner.h"
 #include "app_running_record.h"
 #include "remote_client_manager.h"
@@ -1747,8 +1748,10 @@ HWTEST_F(AppMgrServiceInnerTest, StartProcess_001, TestSize.Level0)
     std::shared_ptr<AppRunningRecord> appRecord =
         appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(applicationInfo_, processName, bundleInfo, "");
     EXPECT_NE(appRecord, nullptr);
-    appMgrServiceInner->StartProcess(appName, processName, 0, nullptr, 0, bundleInfo, bundleName, 0);
-    appMgrServiceInner->StartProcess(appName, processName, 0, appRecord, 0, bundleInfo, bundleName, 0);
+    StartProcessParam startProcessParam = {processName, 0, nullptr, 0, bundleInfo, bundleName, 0, true, false, "", ""};
+    appMgrServiceInner->StartProcess(startProcessParam);
+    startProcessParam.appRecord = appRecord;
+    appMgrServiceInner->StartProcess(startProcessParam);
 
     TAG_LOGI(AAFwkTag::TEST, "StartProcess_001 end");
 }
