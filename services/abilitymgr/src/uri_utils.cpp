@@ -16,6 +16,8 @@
 #include "uri_utils.h"
 
 #include "ability_config.h"
+#include "accesstoken_kit.h"
+#include "event_report.h"
 #include "hilog_tag_wrapper.h"
 #include "in_process_call_wrapper.h"
 #include "uri_permission_manager_client.h"
@@ -172,5 +174,30 @@ std::vector<Uri> UriUtils::GetPermissionedUriList(const std::vector<std::string>
     return permissionedUris;
 }
 
+void UriUtils::SendShareUnPrivilegeUriEvent(const std::vector<std::string> &uriVec,
+    const std::vector<bool> &checkResults, uint32_t callerTokenId, const std::string &targetBundleName)
+{
+    if (checkResults.size() != uriVec.size()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Event Invalid param: %{public}zu : %{public}zu",
+            uriVec.size(), checkResults.size());
+        return;
+    }
+    AAFwk::EventInfo eventInfo;
+    Security::AccessToken::HapTokenInfo hapInfo;
+    if (Security::AccessToken::AccessTokenKit::GetHapTokenInfo(callerTokenId, hapInfo) == ERR_OK) {
+        eventInfo.callerBundleName = hapInfo.bundleName;
+    }
+    eventInfo.bundleName = targetBundleName;
+    // find first unprivileged uri
+    for (size_t i = 0; i < checkResults.size(); i++) {
+        if (!checkResults[i]) {
+            eventInfo.uri = uriVec[i];
+            break;
+        }
+    }
+    TAG_LOGI(AAFwkTag::URIPERMMGR, "Send SHARE_UNPRIVILEGED_FILE_URI Event");
+    AAFwk::EventReport::SendGrantUriPermissionEvent(AAFwk::EventName::SHARE_UNPRIVILEGED_FILE_URI, eventInfo);
+    return;
+}
 } // AAFwk
 } // OHOS

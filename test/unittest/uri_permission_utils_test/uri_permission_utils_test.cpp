@@ -60,18 +60,6 @@ HWTEST_F(UriPermissionUtilsTest, Upms_SendSystemAppGrantUriPermissionEvent_001, 
 
 /*
  * Feature: UPMSUtils
- * Function: SendShareUnPrivilegeUriEvent
- * SubFunction: NA
- * FunctionPoints: URIPermissionManagerService SendShareUnPrivilegeUriEvent
- */
-HWTEST_F(UriPermissionUtilsTest, Upms_SendShareUnPrivilegeUriEvent_001, TestSize.Level1)
-{
-    auto ret = UPMSUtils::SendShareUnPrivilegeUriEvent(1001, 1002);
-    EXPECT_EQ(ret, false);
-}
-
-/*
- * Feature: UPMSUtils
  * Function: GetCurrentAccountId
  * SubFunction: NA
  * FunctionPoints: UPMSUtils GetCurrentAccountId

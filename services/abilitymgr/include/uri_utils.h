@@ -36,6 +36,9 @@ public:
 
     std::vector<Uri> GetPermissionedUriList(const std::vector<std::string> &uriVec,
         const std::vector<bool> &checkResults, Want &want);
+    
+    void SendShareUnPrivilegeUriEvent(const std::vector<std::string> &uriVec,
+        const std::vector<bool> &checkResults, uint32_t callerTokenId, const std::string &targetBundleName);
 
 private:
     UriUtils();

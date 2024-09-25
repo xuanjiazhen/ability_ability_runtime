@@ -461,19 +461,6 @@ HWTEST_F(UriPermissionImplTest, Upms_SendSystemAppGrantUriPermissionEvent_001, T
 }
 
 /*
- * Feature: URIPermissionManagerService
- * Function: ConnectManager
- * SubFunction: NA
- * FunctionPoints: URIPermissionManagerService SendShareUnPrivilegeUriEvent
- */
-HWTEST_F(UriPermissionImplTest, Upms_SendShareUnPrivilegeUriEvent_001, TestSize.Level1)
-{
-    MyFlag::flag_ |= MyFlag::IS_SA_CALL;
-    auto ret = UPMSUtils::SendShareUnPrivilegeUriEvent(1001, 1002);
-    ASSERT_EQ(ret, false);
-}
-
-/*
  * Feature: UriPermissionManagerStubImpl
  * Function: CheckUriPermission
  * SubFunction: NA

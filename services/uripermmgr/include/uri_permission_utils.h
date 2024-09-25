@@ -24,7 +24,6 @@ namespace AAFwk {
 
 class UPMSUtils {
 public:
-    static bool SendShareUnPrivilegeUriEvent(uint32_t callTokenId, uint32_t targetTokenId);
     static bool SendSystemAppGrantUriPermissionEvent(uint32_t callerTokenId, uint32_t targetTokenId,
         const std::vector<std::string> &uriVec, const std::vector<int32_t> &resVec);
     static int32_t GetCurrentAccountId();
