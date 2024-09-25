@@ -136,7 +136,7 @@ AbilityRequest AbilityConnectManagerTest::GenerateAbilityRequest(const std::stri
     abilityRequest.appInfo = appinfo;
     abilityInfo.process = bundleName;
 
-    return abilityRequest;
+    return abilityRequest; 
 }
 
 sptr<SessionInfo> AbilityConnectManagerTest::MockSessionInfo(int32_t persistentId)
@@ -147,6 +147,7 @@ sptr<SessionInfo> AbilityConnectManagerTest::MockSessionInfo(int32_t persistentI
         return nullptr;
     }
     sessionInfo->persistentId = persistentId;
+    sessionInfo->uiExtensionComponentId = persistentId;
     return sessionInfo;
 }
 
