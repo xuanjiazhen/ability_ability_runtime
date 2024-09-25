@@ -14,6 +14,7 @@
  */
 
 #define private public
+#include "app_mgr_inner_param.h"
 #include "app_mgr_service_inner.h"
 #undef private
 #include <unistd.h>
@@ -143,11 +144,9 @@ TestApplicationPreRecord AmsWorkFlowTest::CreateTestApplicationRecord(const std:
     if (!appRecord) {
         appRecord = serviceInner_->CreateAppRunningRecord(
             token, nullptr, appInfo, abilityInfo, appInfo->name, bundleInfo, hapModuleInfo, nullptr, 0);
-        serviceInner_->StartProcess(abilityInfo->applicationName,
-            appInfo->name,
-            false, appRecord,
-            abilityInfo->applicationInfo.uid,
-            bundleInfo, abilityInfo->applicationInfo.bundleName, 0);
+        StartProcessParam startProcessParam = {appInfo->name, false, appRecord, abilityInfo->applicationInfo.uid,
+            bundleInfo, abilityInfo->applicationInfo.bundleName, 0, true, false, "", ""};
+        serviceInner_->StartProcess(startProcessParam);
     } else {
         appRecord->AddModule(appInfo, abilityInfo, token, hapModuleInfo, nullptr, 0);
     }

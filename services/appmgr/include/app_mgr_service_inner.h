@@ -35,6 +35,7 @@
 #include "app_malloc_info.h"
 #include "app_mgr_constants.h"
 #include "app_mgr_event.h"
+#include "app_mgr_inner_param.h"
 #include "app_preloader.h"
 #include "app_record_id.h"
 #include "app_running_manager.h"
@@ -1279,13 +1280,7 @@ private:
      *
      * @return
      */
-    void StartProcess(const std::string &appName, const std::string &processName, uint32_t startFlags,
-                      std::shared_ptr<AppRunningRecord> appRecord, const int uid, const BundleInfo &bundleInfo,
-                      const std::string &bundleName, const int32_t bundleIndex, bool appExistFlag = true,
-                      bool isPreload = false, const std::string &moduleName = "", const std::string &abilityName = "",
-                      bool strictMode = false, int32_t maxChildProcess = 0, sptr<IRemoteObject> token = nullptr,
-                      std::shared_ptr<AAFwk::Want> want = nullptr,
-                      ExtensionAbilityType ExtensionAbilityType = ExtensionAbilityType::UNSPECIFIED);
+    void StartProcess(StartProcessParam& startProcessParam);
 
     /**
      * KillApplicationByUserId, kill the application by user ID.
@@ -1507,21 +1502,13 @@ private:
 
     std::string GetSpecifiedProcessFlag(std::shared_ptr<AbilityInfo> abilityInfo, std::shared_ptr<AAFwk::Want> want);
 
-    void LoadAbilityNoAppRecord(const std::shared_ptr<AppRunningRecord> appRecord,
-        bool isShellCall, std::shared_ptr<ApplicationInfo> appInfo,
-        std::shared_ptr<AbilityInfo> abilityInfo, const std::string &processName,
-        const std::string &specifiedProcessFlag, const BundleInfo &bundleInfo,
-        const HapModuleInfo &hapModuleInfo, std::shared_ptr<AAFwk::Want> want,
-        bool appExistFlag, bool isPreload, sptr<IRemoteObject> token = nullptr);
+    void LoadAbilityNoAppRecord(LoadAbilityParam& loadAbilityParam);
 
     int32_t CreatNewStartMsg(const Want &want, const AbilityInfo &abilityInfo,
         const std::shared_ptr<ApplicationInfo> &appInfo, const std::string &processName,
         AppSpawnStartMsg &startMsg);
 
-    int32_t CreateStartMsg(const std::string &processName, uint32_t startFlags, const int uid,
-        const BundleInfo &bundleInfo, const int32_t bundleIndex, BundleType bundleType, AppSpawnStartMsg &startMsg,
-        std::shared_ptr<AAFwk::Want> want, const std::string &moduleName = "", const std::string &abilityName = "",
-        bool strictMode = false);
+    int32_t CreateStartMsg(CreateStartMsgParam& createStartMsgParam);
 
     void QueryExtensionSandBox(const std::string &moduleName, const std::string &abilityName,
         const BundleInfo &bundleInfo, AppSpawnStartMsg &startMsg, DataGroupInfoList& dataGroupInfoList,

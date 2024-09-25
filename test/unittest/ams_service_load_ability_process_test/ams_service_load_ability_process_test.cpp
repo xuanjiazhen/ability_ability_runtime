@@ -14,6 +14,7 @@
  */
 #include <limits>
 #define private public
+#include "app_mgr_inner_param.h"
 #include "app_mgr_service_inner.h"
 #include "iservice_registry.h"
 #undef private
@@ -1220,11 +1221,9 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, StartProcess001, TestSize.Level1)
     std::shared_ptr<AppRunningRecord> record = service_->CreateAppRunningRecord(
         loadParam, appInfo, abilityInfo, GetTestAppName(), bundleInfo, hapModuleInfo, nullptr);
 
-    service_->StartProcess(abilityInfo->applicationName,
-        GetTestAppName(),
-        false, record,
-        abilityInfo->applicationInfo.uid,
-        bundleInfo, abilityInfo->applicationInfo.bundleName, 0);
+    StartProcessParam startProcessParam = {GetTestAppName(), false, record, abilityInfo->applicationInfo.uid,
+        bundleInfo, abilityInfo->applicationInfo.bundleName, 0, true, false, "", ""};
+    service_->StartProcess(startProcessParam);
     const auto& recordMap = service_->appRunningManager_->GetAppRunningRecordMap();
     EXPECT_EQ(recordMap.size(), (uint32_t)1);
 
@@ -1273,11 +1272,9 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, StartProcess002, TestSize.Level1)
         loadParam, appInfo, abilityInfo, GetTestAppName(), bundleInfo, hapModuleInfo, nullptr);
 
     service_->SetAppSpawnClient(nullptr);
-    service_->StartProcess(abilityInfo->applicationName,
-        GetTestAppName(),
-        false, record,
-        abilityInfo->applicationInfo.uid,
-        bundleInfo, abilityInfo->applicationInfo.bundleName, 0);
+    StartProcessParam startProcessParam = {GetTestAppName(), false, record, abilityInfo->applicationInfo.uid,
+        bundleInfo, abilityInfo->applicationInfo.bundleName, 0, true, false, "", ""};
+    service_->StartProcess(startProcessParam);
     const auto& recordMap = service_->appRunningManager_->GetAppRunningRecordMap();
     EXPECT_EQ(recordMap.size(), (uint32_t)0);
 
@@ -1318,12 +1315,9 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, StartProcess003, TestSize.Level1)
     loadParam->token = token;
     std::shared_ptr<AppRunningRecord> record = service_->CreateAppRunningRecord(
         loadParam, appInfo, abilityInfo, GetTestAppName(), bundleInfo, hapModuleInfo, nullptr);
-
-    service_->StartProcess(abilityInfo->applicationName,
-        GetTestAppName(),
-        false, nullptr,
-        abilityInfo->applicationInfo.uid,
-        bundleInfo, abilityInfo->applicationInfo.bundleName, 0);
+    StartProcessParam startProcessParam = {GetTestAppName(), false, nullptr, abilityInfo->applicationInfo.uid,
+        bundleInfo, abilityInfo->applicationInfo.bundleName, 0, true, false, "", ""};
+    service_->StartProcess(startProcessParam);
     const auto& recordMap = service_->appRunningManager_->GetAppRunningRecordMap();
     EXPECT_EQ(recordMap.size(), (uint32_t)1);
 
@@ -1374,11 +1368,9 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, StartProcess004, TestSize.Level1)
 
     EXPECT_NE(record, nullptr);
     CHECK_POINTER_IS_NULLPTR(record);
-    service_->StartProcess(abilityInfo->applicationName,
-        GetTestAppName(),
-        false, record,
-        abilityInfo->applicationInfo.uid,
-        bundleInfo, abilityInfo->applicationInfo.bundleName, 0);
+    StartProcessParam startProcessParam = {GetTestAppName(), false, record, abilityInfo->applicationInfo.uid,
+        bundleInfo, abilityInfo->applicationInfo.bundleName, 0, true, false, "", ""};
+    service_->StartProcess(startProcessParam);
     auto record1 = service_->GetAppRunningRecordByAppRecordId(record->GetRecordId());
     EXPECT_EQ(record1, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AmsServiceLoadAbilityProcessTest StartProcess004 end");
