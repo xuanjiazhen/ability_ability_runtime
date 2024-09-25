@@ -207,6 +207,29 @@ bool AbilitySchedulerProxy::SchedulePrepareTerminateAbility()
     return reply.ReadBool();
 }
 
+int32_t AbilitySchedulerProxy::SchedulePrepareTerminateAbility(sptr<IPrepareTerminateCallback> &callback)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "fail to write interface");
+        return ERR_INVALID_DATA;
+    }
+
+    if (!data.WriteRemoteObject(callback->AsObject())) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write callback fail");
+        return INNER_ERR;
+    }
+
+    int32_t err = SendRequest(IAbilityScheduler::SCHEDULE_ABILITY_PREPARE_TERMINATE_CALLBACK, data, reply, option);
+    if (err != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed, err: %{public}d", err);
+        return err;
+    }
+    return ERR_OK;
+}
+
 void AbilitySchedulerProxy::ScheduleCommandAbilityWindow(const Want &want, const sptr<SessionInfo> &sessionInfo,
     WindowCommand winCmd)
 {
