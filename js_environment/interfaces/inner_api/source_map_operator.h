@@ -58,7 +58,7 @@ public:
     std::string TranslateBySourceMap(const std::string& stackStr)
     {
         if (sourceMapObj_ == nullptr) {
-            return "";
+            return NOT_FOUNDMAP + stackStr;
         }
         if (isDebugVersion_) {
             return sourceMapObj_->TranslateBySourceMap(stackStr);
@@ -75,6 +75,11 @@ public:
         return sourceMapObj_->TranslateUrlPositionBySourceMap(url, line, column);
     }
 
+    void SetInitStatus(InitStatus status)
+    {
+        initStatus_ = status;
+    }
+
     bool GetInitStatus() const
     {
         return (initStatus_ == InitStatus::EXECUTED_SUCCESSFULLY);
@@ -85,6 +90,10 @@ public:
         return sourceMapObj_;
     }
 
+    bool GetDebugVersion() const
+    {
+        return isDebugVersion_;
+    }
 private:
     const std::string bundleName_;
     bool isModular_ = false;
