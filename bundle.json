@@ -85,6 +85,7 @@
             "node",
             "os_account",
             "power_manager",
+            "preferences",
             "relational_store",
             "resource_management",
             "resource_schedule_service",
@@ -93,10 +94,13 @@
             "sandbox_manager",
             "screenlock_mgr",
             "storage_service",
+            "skia",
             "toolchain",
             "webview",
             "window_manager",
-            "zlib"
+            "zlib",
+            "ets_frontend",
+            "runtime_core"
   ],
           "third_party": [
             "libjpeg-turbo"
