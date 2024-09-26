@@ -1117,6 +1117,8 @@ public:
 
     int32_t SetSupportedProcessCacheSelf(bool isSupport);
 
+    int32_t SetSupportedProcessCache(int32_t pid, bool isSupport);
+
     void OnAppCacheStateChanged(const std::shared_ptr<AppRunningRecord> &appRecord, ApplicationState state);
 
     virtual void SaveBrowserChannel(const pid_t hostPid, sptr<IRemoteObject> browser);
