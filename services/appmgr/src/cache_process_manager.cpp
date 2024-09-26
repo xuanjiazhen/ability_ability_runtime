@@ -65,6 +65,11 @@ bool CacheProcessManager::QueryEnableProcessCache()
     return maxProcCacheNum_ > 0 || resourceCacheProcessEnable_;
 }
 
+bool CacheProcessManager::QueryEnableProcessCacheFromKits()
+{
+    return maxProcCacheNum_ > 0;
+}
+
 bool CacheProcessManager::PenddingCacheProcess(const std::shared_ptr<AppRunningRecord> &appRecord)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
