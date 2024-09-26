@@ -1500,7 +1500,7 @@ int32_t AppMgrStub::HandleSetSupportedProcessCache(MessageParcel &data, MessageP
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     bool isSupport = data.ReadBool();
-    int32_t pid = data.ReadInt32()
+    int32_t pid = data.ReadInt32();
     auto ret = SetSupportedProcessCache(pid, isSupport);
     if (!reply.WriteInt32(ret)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write ret error.");
