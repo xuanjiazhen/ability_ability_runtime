@@ -148,6 +148,7 @@ sptr<SessionInfo> AbilityConnectManagerTest::MockSessionInfo(int32_t persistentI
     }
     sessionInfo->persistentId = persistentId;
     sessionInfo->uiExtensionComponentId = persistentId;
+    sessionInfo->sessionToken = callbackA_->AsObject();
     return sessionInfo;
 }
 
