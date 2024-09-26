@@ -65,7 +65,7 @@ void AppRunningManager::initConfig(const Configuration &config)
 
 std::shared_ptr<AppRunningRecord> AppRunningManager::CreateAppRunningRecord(
     const std::shared_ptr<ApplicationInfo> &appInfo, const std::string &processName, const BundleInfo &bundleInfo,
-    const std::string &instanceKey)
+    const std::string &instanceKey, bool inResidentList)
 {
     if (!appInfo) {
         TAG_LOGE(AAFwkTag::APPMGR, "param error");
@@ -93,7 +93,7 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CreateAppRunningRecord(
 
     appRecord->SetStageModelState(isStageBasedModel);
     appRecord->SetSingleton(bundleInfo.singleton);
-    appRecord->SetKeepAliveBundle(bundleInfo.isKeepAlive);
+    appRecord->SetKeepAliveBundle(bundleInfo.isKeepAlive && (inResidentList || appInfo->uid / BASE_USER_RANGE == 0));
     appRecord->SetSignCode(signCode);
     appRecord->SetJointUserId(bundleInfo.jointUserId);
     appRecord->SetAppIdentifier(bundleInfo.signatureInfo.appIdentifier);

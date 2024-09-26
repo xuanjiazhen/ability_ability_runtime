@@ -326,7 +326,7 @@ HWTEST_F(AppRunningManagerTest, RemoveAppRunningRecordById_0100, TestSize.Level1
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
     std::string processName = "test.ProcessName";
     BundleInfo bundleInfo;
-    auto appRecord = appRunningManager->CreateAppRunningRecord(appInfo, processName, bundleInfo, "");
+    auto appRecord = appRunningManager->CreateAppRunningRecord(appInfo, processName, bundleInfo, "", false);
     ASSERT_NE(appRecord, nullptr);
 
     int32_t uiExtensionAbilityId = 1000;
@@ -351,7 +351,8 @@ HWTEST_F(AppRunningManagerTest, AppRunningRecord_0100, TestSize.Level1)
         std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
         static std::string processName = "test.ProcessName";
         BundleInfo bundleInfo;
-        auto appRecord = appRunningManager_Record0100->CreateAppRunningRecord(appInfo, processName, bundleInfo, "");
+        auto appRecord = appRunningManager_Record0100->CreateAppRunningRecord(appInfo, processName, bundleInfo, "",
+            false);
         ASSERT_NE(appRecord, nullptr);
         processName += "a";
 
@@ -713,7 +714,7 @@ HWTEST_F(AppRunningManagerTest, CheckAppCloneRunningRecordIsExistByBundleName_01
 {
     static std::shared_ptr<AppRunningManager> appRunningManager = std::make_shared<AppRunningManager>();
     ASSERT_NE(appRunningManager, nullptr);
-    
+
     std::string bundleName = "bundleName";
     int32_t appCloneIndex = 1;
     bool isRunning = true;
@@ -731,7 +732,7 @@ HWTEST_F(AppRunningManagerTest, GetAllAppRunningRecordCountByBundleName_0100, Te
 {
     static std::shared_ptr<AppRunningManager> appRunningManager = std::make_shared<AppRunningManager>();
     ASSERT_NE(appRunningManager, nullptr);
-    
+
     std::string bundleName = "bundleName";
     EXPECT_EQ(appRunningManager->GetAllAppRunningRecordCountByBundleName(bundleName), 0);
 }
@@ -745,7 +746,7 @@ HWTEST_F(AppRunningManagerTest, ProcessUpdateApplicationInfoInstalled_0100, Test
 {
     static std::shared_ptr<AppRunningManager> appRunningManager = std::make_shared<AppRunningManager>();
     ASSERT_NE(appRunningManager, nullptr);
-    
+
     ApplicationInfo appInfo;
     EXPECT_EQ(appRunningManager->ProcessUpdateApplicationInfoInstalled(appInfo), 0);
 }

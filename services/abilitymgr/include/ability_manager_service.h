@@ -1125,8 +1125,7 @@ public:
     virtual int GetProcessRunningInfos(std::vector<AppExecFwk::RunningProcessInfo> &info) override;
     int GetProcessRunningInfosByUserId(std::vector<AppExecFwk::RunningProcessInfo> &info, int32_t userId);
     void GetAbilityRunningInfo(std::vector<AbilityRunningInfo> &info, std::shared_ptr<AbilityRecord> &abilityRecord);
-    void GetExtensionRunningInfo(std::shared_ptr<AbilityRecord> &abilityRecord, const int32_t userId,
-        std::vector<ExtensionRunningInfo> &info);
+    bool IsExtensionRunning(const AppExecFwk::ElementName &element, int32_t userId);
 
     int GetMissionSaveTime() const;
 

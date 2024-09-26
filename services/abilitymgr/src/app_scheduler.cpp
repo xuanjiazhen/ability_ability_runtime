@@ -660,6 +660,15 @@ bool AppScheduler::IsAppKilling(sptr<IRemoteObject> token) const
     return appMgrClient_->IsAppKilling(token);
 }
 
+void AppScheduler::SetNormalResidentApps(const std::vector<std::string> &bundleNames) const
+{
+    if (!appMgrClient_) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "appMgrClient is nullptr");
+        return;
+    }
+    appMgrClient_->SetNormalResidentApps(bundleNames);
+}
+
 void AppScheduler::SetProcessCacheStatus(int32_t pid, bool isSupport)
 {
     if (!appMgrClient_) {

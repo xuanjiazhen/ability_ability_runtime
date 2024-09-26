@@ -26,6 +26,7 @@ namespace OHOS {
 namespace AppExecFwk {
 namespace {
 constexpr int32_t MAX_APP_DEBUG_COUNT = 100;
+constexpr int32_t MAX_RESIDENT_BUNDLE_NAME_COUNT = 100;
 }
 AmsMgrProxy::AmsMgrProxy(const sptr<IRemoteObject> &impl) : IRemoteProxy<IAmsMgr>(impl)
 {}
@@ -1319,6 +1320,39 @@ bool AmsMgrProxy::IsAppKilling(sptr<IRemoteObject> token)
         return false;
     }
     return reply.ReadBool();
+}
+
+void AmsMgrProxy::SetNormalResidentApps(const std::vector<std::string> &bundleNames)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return;
+    }
+
+    int32_t listSize = static_cast<int32_t>(bundleNames.size());
+    if (listSize > MAX_RESIDENT_BUNDLE_NAME_COUNT) {
+        TAG_LOGE(AAFwkTag::APPMGR, "count is %{public}d.", listSize);
+        return;
+    }
+
+    if (!data.WriteInt32(listSize)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write size");
+        return;
+    }
+
+    if (!data.WriteStringVector(bundleNames)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write bundleNames");
+        return;
+    }
+
+    auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::SET_NORMAL_RESIDENT_APPS), data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Send request failed, error code is %{public}d.", ret);
+        return;
+    }
 }
 } // namespace AppExecFwk
 } // namespace OHOS

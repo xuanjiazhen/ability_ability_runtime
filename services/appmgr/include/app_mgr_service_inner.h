@@ -1362,6 +1362,8 @@ public:
      */
     virtual int32_t CheckIsKiaProcess(pid_t pid, bool &isKia);
 
+    void SetNormalResidentApps(const std::vector<std::string> &bundleNames);
+    bool IsInResidentAppList(const std::string &bundleName);
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
@@ -1843,6 +1845,9 @@ private:
     std::vector<LoadAbilityTaskFunc> loadAbilityTaskFuncList_;
     sptr<IKiaInterceptor> kiaInterceptor_;
     std::shared_ptr<MultiUserConfigurationMgr> multiUserConfigurationMgr_;
+
+    std::mutex residentBundleNamesMutex_;
+    std::vector<std::string> residentBundleNames_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

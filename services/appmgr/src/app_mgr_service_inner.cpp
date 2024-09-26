@@ -2354,7 +2354,7 @@ std::shared_ptr<AppRunningRecord> AppMgrServiceInner::CreateAppRunningRecord(
         return nullptr;
     }
     auto appRecord = appRunningManager_->CreateAppRunningRecord(appInfo, processName, bundleInfo,
-        loadParam->instanceKey);
+        loadParam->instanceKey, IsInResidentAppList(appInfo->bundleName));
     if (!appRecord) {
         TAG_LOGE(AAFwkTag::APPMGR, "get appRecord fail");
         return nullptr;
@@ -3877,7 +3877,8 @@ void AppMgrServiceInner::StartEmptyResidentProcess(
         return;
     }
 
-    auto appRecord = appRunningManager_->CreateAppRunningRecord(appInfo, processName, info, "");
+    auto appRecord = appRunningManager_->CreateAppRunningRecord(appInfo, processName, info, "",
+        IsInResidentAppList(appInfo->bundleName));
     if (!appRecord) {
         TAG_LOGE(AAFwkTag::APPMGR, "start process [%{public}s] fail", processName.c_str());
         return;
@@ -4172,7 +4173,8 @@ int AppMgrServiceInner::StartEmptyProcess(const AAFwk::Want &want, const sptr<IR
         TAG_LOGE(AAFwkTag::APPMGR, "disable start process in logout user");
         return ERR_INVALID_OPERATION;
     }
-    auto appRecord = appRunningManager_->CreateAppRunningRecord(appInfo, processName, info, "");
+    auto appRecord = appRunningManager_->CreateAppRunningRecord(appInfo, processName, info, "",
+        IsInResidentAppList(appInfo->bundleName));
     CHECK_POINTER_AND_RETURN_VALUE(appRecord, ERR_INVALID_VALUE);
 
     auto isDebug = want.GetBoolParam(DEBUG_APP, false);
@@ -4310,7 +4312,8 @@ void AppMgrServiceInner::StartSpecifiedAbility(const AAFwk::Want &want, const Ap
                 bundleInfo.name, appInfo->uid, AbilityRuntime::RunningStatus::APP_RUNNING_START);
         }
         // new app record
-        appRecord = appRunningManager_->CreateAppRunningRecord(appInfo, processName, bundleInfo, instanceKey);
+        appRecord = appRunningManager_->CreateAppRunningRecord(appInfo, processName, bundleInfo, instanceKey,
+            IsInResidentAppList(appInfo->bundleName));
         if (!appRecord) {
             TAG_LOGE(AAFwkTag::APPMGR, "start process [%{public}s] fail", processName.c_str());
             return;
@@ -8078,6 +8081,28 @@ int32_t AppMgrServiceInner::CheckIsKiaProcess(pid_t pid, bool &isKia)
         return ERR_INVALID_VALUE;
     }
     return appRunningManager_->CheckIsKiaProcess(pid, isKia);
+}
+
+void AppMgrServiceInner::SetNormalResidentApps(const std::vector<std::string> &bundleNames)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "call");
+    std::lock_guard lock(residentBundleNamesMutex_);
+    residentBundleNames_ = bundleNames;
+}
+
+bool AppMgrServiceInner::IsInResidentAppList(const std::string &bundleName)
+{
+    std::lock_guard lock(residentBundleNamesMutex_);
+    if (residentBundleNames_.empty()) {
+        return true;
+    }
+
+    for (const auto &item : residentBundleNames_) {
+        if (item == bundleName) {
+            return true;
+        }
+    }
+    return false;
 }
 } // namespace AppExecFwk
 }  // namespace OHOS

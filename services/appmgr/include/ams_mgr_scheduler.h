@@ -417,6 +417,7 @@ public:
 
     virtual bool IsAppKilling(sptr<IRemoteObject> token) override;
 
+    virtual void SetNormalResidentApps(const std::vector<std::string> &bundleNames) override;
 private:
     /**
      * @brief Judge whether the application service is ready.

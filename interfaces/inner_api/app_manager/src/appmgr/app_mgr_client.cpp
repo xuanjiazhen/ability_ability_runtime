@@ -1379,5 +1379,18 @@ bool AppMgrClient::IsAppKilling(sptr<IRemoteObject> token) const
     }
     return amsService->IsAppKilling(token);
 }
+
+void AppMgrClient::SetNormalResidentApps(const std::vector<std::string> &bundleNames) const
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        return;
+    }
+    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+    if (amsService == nullptr) {
+        return;
+    }
+    amsService->SetNormalResidentApps(bundleNames);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

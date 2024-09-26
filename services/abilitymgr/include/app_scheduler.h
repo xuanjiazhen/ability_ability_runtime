@@ -562,6 +562,8 @@ public:
 
     bool IsAppKilling(sptr<IRemoteObject> token) const;
 
+    void SetNormalResidentApps(const std::vector<std::string> &bundleNames) const;
+
 protected:
     /**
      * OnAbilityRequestDone, app manager service call this interface after ability request done.
