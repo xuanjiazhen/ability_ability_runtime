@@ -2613,37 +2613,6 @@ HWTEST_F(UIAbilityLifecycleManagerTest, IsContainsAbility_002, TestSize.Level1)
 }
 
 /**
- * @tc.name: UIAbilityLifecycleManager_IsContainsAbilityInner_0100
- * @tc.desc: IsContainsAbilityInner
- * @tc.type: FUNC
- */
-HWTEST_F(UIAbilityLifecycleManagerTest, IsContainsAbilityInner_001, TestSize.Level1)
-{
-    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
-    EXPECT_NE(mgr, nullptr);
-    sptr<IRemoteObject> token = nullptr;
-    bool boolValue = mgr->IsContainsAbilityInner(token);
-    EXPECT_FALSE(boolValue);
-}
-
-/**
- * @tc.name: UIAbilityLifecycleManager_IsContainsAbilityInner_0200
- * @tc.desc: IsContainsAbilityInner
- * @tc.type: FUNC
- */
-HWTEST_F(UIAbilityLifecycleManagerTest, IsContainsAbilityInner_002, TestSize.Level1)
-{
-    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
-    EXPECT_NE(mgr, nullptr);
-    AbilityRequest abilityRequest;
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
-    auto&& token = abilityRecord->GetToken()->AsObject();
-    mgr->sessionAbilityMap_.emplace(1, abilityRecord);
-    bool boolValue = mgr->IsContainsAbilityInner(token);
-    EXPECT_TRUE(boolValue);
-}
-
-/**
  * @tc.name: UIAbilityLifecycleManager_NotifySCBToMinimizeUIAbility_0100
  * @tc.desc: NotifySCBToMinimizeUIAbility
  * @tc.type: FUNC
@@ -3681,67 +3650,6 @@ HWTEST_F(UIAbilityLifecycleManagerTest, GetAbilityRecordsByName_003, TestSize.Le
 }
 
 /**
- * @tc.name: UIAbilityLifecycleManager_GetAbilityRecordsByNameInner_0100
- * @tc.desc: GetAbilityRecordsByNameInner
- * @tc.type: FUNC
- */
-HWTEST_F(UIAbilityLifecycleManagerTest, GetAbilityRecordsByNameInner_001, TestSize.Level1)
-{
-    auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
-    EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    AbilityRequest abilityRequest;
-    abilityRequest.abilityInfo.bundleName = "com.example.unittest";
-    abilityRequest.abilityInfo.name = "MainAbility";
-    abilityRequest.abilityInfo.deviceId = "100";
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
-    uiAbilityLifecycleManager->sessionAbilityMap_.emplace(1, abilityRecord);
-    AppExecFwk::ElementName element;
-    auto ret = uiAbilityLifecycleManager->GetAbilityRecordsByNameInner(element);
-    EXPECT_EQ(ret.empty(), true);
-}
-
-/**
- * @tc.name: UIAbilityLifecycleManager_GetAbilityRecordsByNameInner_0200
- * @tc.desc: GetAbilityRecordsByNameInner
- * @tc.type: FUNC
- */
-HWTEST_F(UIAbilityLifecycleManagerTest, GetAbilityRecordsByNameInner_002, TestSize.Level1)
-{
-    auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
-    EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    AbilityRequest abilityRequest;
-    abilityRequest.abilityInfo.deviceId = "100";
-    abilityRequest.abilityInfo.bundleName = "com.example.unittest";
-    abilityRequest.abilityInfo.name = "MainAbility";
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
-    uiAbilityLifecycleManager->sessionAbilityMap_.emplace(1, abilityRecord);
-    AppExecFwk::ElementName element("100", "com.example.unittest", "MainAbility");
-    auto ret = uiAbilityLifecycleManager->GetAbilityRecordsByNameInner(element);
-    EXPECT_EQ(ret.empty(), false);
-}
-
-/**
- * @tc.name: UIAbilityLifecycleManager_GetAbilityRecordsByNameInner_0300
- * @tc.desc: GetAbilityRecordsByNameInner
- * @tc.type: FUNC
- */
-HWTEST_F(UIAbilityLifecycleManagerTest, GetAbilityRecordsByNameInner_003, TestSize.Level1)
-{
-    auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
-    EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    AbilityRequest abilityRequest;
-    abilityRequest.abilityInfo.deviceId = "100";
-    abilityRequest.abilityInfo.bundleName = "com.example.unittest";
-    abilityRequest.abilityInfo.name = "MainAbility";
-    abilityRequest.abilityInfo.moduleName = "entry";
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
-    uiAbilityLifecycleManager->sessionAbilityMap_.emplace(1, abilityRecord);
-    AppExecFwk::ElementName element("100", "com.example.unittest", "MainAbility", "entry");
-    auto ret = uiAbilityLifecycleManager->GetAbilityRecordsByNameInner(element);
-    EXPECT_EQ(ret.empty(), false);
-}
-
-/**
  * @tc.name: UIAbilityLifecycleManager_GetReusedCollaboratorPersistentId_0100
  * @tc.desc: GetReusedCollaboratorPersistentId
  * @tc.type: FUNC
@@ -4408,6 +4316,95 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAbilityWithResult_006, TestS
     auto ret = uiAbilityLifecycleManager->BackToCallerAbilityWithResult(abilityRecord, resultCode,
         &resultWant, callerRequestCode);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/*
+ * Feature: UIAbilityLifecycleManagerTest
+ * Function: AddToSessionAbilityMap
+ * SubFunction: NA
+ * FunctionPoints: UIAbilityLifecycleManagerTest AddToSessionAbilityMap
+ * EnvConditions: NA
+ * CaseDescription: Verify AddToSessionAbilityMap
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, AddToSessionAbilityMap_001, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
+
+    std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
+
+    EXPECT_FALSE(uiAbilityLifecycleManager->AddToSessionAbilityMap(0, nullptr));
+    EXPECT_TRUE(uiAbilityLifecycleManager->AddToSessionAbilityMap(0, abilityRecord));
+    EXPECT_FALSE(uiAbilityLifecycleManager->AddToSessionAbilityMap(0, abilityRecord));
+
+    EXPECT_EQ(uiAbilityLifecycleManager->GetAbilityRecordsById(0), abilityRecord);
+}
+
+/*
+ * Feature: UIAbilityLifecycleManagerTest
+ * Function: GetSessionAbilityMap
+ * SubFunction: NA
+ * FunctionPoints: UIAbilityLifecycleManagerTest GetSessionAbilityMap
+ * EnvConditions: NA
+ * CaseDescription: Verify GetSessionAbilityMap
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, GetSessionAbilityMap_001, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
+
+    std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
+
+    auto tmpSessionMap = uiAbilityLifecycleManager->GetSessionAbilityMap();
+    EXPECT_TRUE(tmpSessionMap.empty());
+
+    uiAbilityLifecycleManager->AddToSessionAbilityMap(0, abilityRecord);
+    tmpSessionMap = uiAbilityLifecycleManager->GetSessionAbilityMap();
+
+    EXPECT_EQ(tmpSessionMap[0], abilityRecord);
+}
+
+/*
+ * Feature: UIAbilityLifecycleManagerTest
+ * Function: GetAbilityRecordFromSessionMapByToken
+ * SubFunction: NA
+ * FunctionPoints: UIAbilityLifecycleManagerTest GetAbilityRecordFromSessionMapByToken
+ * EnvConditions: NA
+ * CaseDescription: Verify GetAbilityRecordFromSessionMapByToken
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, GetAbilityRecordFromSessionMapByToken_001, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
+
+    std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
+
+    EXPECT_EQ(uiAbilityLifecycleManager->GetAbilityRecordFromSessionMapByToken(nullptr), nullptr);
+
+    uiAbilityLifecycleManager->AddToSessionAbilityMap(0, abilityRecord);
+    auto tmpRecord = uiAbilityLifecycleManager->GetAbilityRecordFromSessionMapByToken(
+        abilityRecord->GetToken()->AsObject());
+
+    EXPECT_EQ(tmpRecord, abilityRecord);
+}
+
+/*
+ * Feature: UIAbilityLifecycleManagerTest
+ * Function: GetAbilityRecordByAbilityId
+ * SubFunction: NA
+ * FunctionPoints: UIAbilityLifecycleManagerTest GetAbilityRecordByAbilityId
+ * EnvConditions: NA
+ * CaseDescription: Verify GetAbilityRecordByAbilityId
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, GetAbilityRecordByAbilityId_001, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
+
+    std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
+
+    EXPECT_EQ(uiAbilityLifecycleManager->GetAbilityRecordByAbilityId(abilityRecord->GetAbilityRecordId()), nullptr);
+
+    uiAbilityLifecycleManager->AddToSessionAbilityMap(0, abilityRecord);
+    auto tmpRecord = uiAbilityLifecycleManager->GetAbilityRecordByAbilityId(abilityRecord->GetAbilityRecordId());
+
+    EXPECT_EQ(tmpRecord, abilityRecord);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

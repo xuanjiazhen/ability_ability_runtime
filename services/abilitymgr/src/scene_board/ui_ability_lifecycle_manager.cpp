@@ -78,7 +78,7 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
     uint32_t sceneFlag, bool &isColdStart)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
     if (!CheckSessionInfo(sessionInfo)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionInfo invalid");
         return ERR_INVALID_VALUE;
@@ -88,11 +88,10 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
     TAG_LOGI(AAFwkTag::ABILITYMGR, "session:%{public}d. bundle:%{public}s, ability:%{public}s, instanceKey:%{public}s",
         sessionInfo->persistentId, abilityRequest.abilityInfo.bundleName.c_str(),
         abilityRequest.abilityInfo.name.c_str(), sessionInfo->instanceKey.c_str());
-    std::shared_ptr<AbilityRecord> uiAbilityRecord = nullptr;
-    auto iter = sessionAbilityMap_.find(sessionInfo->persistentId);
-    if (iter != sessionAbilityMap_.end()) {
+    auto uiAbilityRecord = GetAbilityRecordsById(sessionInfo->persistentId);
+    bool isNewRecord = false;
+    if (uiAbilityRecord != nullptr) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "NewWant:%{public}d", sessionInfo->isNewWant);
-        uiAbilityRecord = iter->second;
         uiAbilityRecord->SetIsNewWant(sessionInfo->isNewWant);
         if (sessionInfo->isNewWant) {
             uiAbilityRecord->SetWant(abilityRequest.want);
@@ -103,6 +102,7 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
     } else {
         uiAbilityRecord = CreateAbilityRecord(abilityRequest, sessionInfo);
         isColdStart = true;
+        isNewRecord = true;
         UpdateProcessName(abilityRequest, uiAbilityRecord);
     }
     CHECK_POINTER_AND_RETURN(uiAbilityRecord, ERR_INVALID_VALUE);
@@ -118,11 +118,11 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
         uiAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
     }
 
-    if (iter == sessionAbilityMap_.end()) {
+    if (isNewRecord) {
         auto abilityInfo = abilityRequest.abilityInfo;
         MoreAbilityNumbersSendEventInfo(
             abilityRequest.userId, abilityInfo.bundleName, abilityInfo.name, abilityInfo.moduleName);
-        sessionAbilityMap_.emplace(sessionInfo->persistentId, uiAbilityRecord);
+        AddToSessionAbilityMap(sessionInfo->persistentId, uiAbilityRecord);
     }
 
     UpdateAbilityRecordLaunchReason(abilityRequest, uiAbilityRecord);
@@ -221,8 +221,8 @@ int UIAbilityLifecycleManager::AttachAbilityThread(const sptr<IAbilityScheduler>
     const sptr<IRemoteObject> &token)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
-    if (!IsContainsAbilityInner(token)) {
+    std::lock_guard guard(sessionLock_);
+    if (!IsContainsAbility(token)) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "Not in running list");
         return ERR_INVALID_VALUE;
     }
@@ -271,7 +271,7 @@ void UIAbilityLifecycleManager::OnAbilityRequestDone(const sptr<IRemoteObject> &
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     AppAbilityState abilityState = DelayedSingleton<AppScheduler>::GetInstance()->ConvertToAppAbilityState(state);
     if (abilityState == AppAbilityState::ABILITY_STATE_FOREGROUND) {
-        std::lock_guard<ffrt::mutex> guard(sessionLock_);
+        std::lock_guard guard(sessionLock_);
         auto abilityRecord = GetAbilityRecordByToken(token);
         CHECK_POINTER(abilityRecord);
         if (abilityRecord->IsTerminating()) {
@@ -295,7 +295,7 @@ int UIAbilityLifecycleManager::AbilityTransactionDone(const sptr<IRemoteObject> 
     std::string abilityState = AbilityRecord::ConvertAbilityState(static_cast<AbilityState>(targetState));
     TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityTransactionDone, state: %{public}s.", abilityState.c_str());
 
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
     auto abilityRecord = GetAbilityRecordByToken(token);
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     abilityRecord->RemoveSignatureInfo();
@@ -312,7 +312,7 @@ int UIAbilityLifecycleManager::AbilityTransactionDone(const sptr<IRemoteObject> 
 int UIAbilityLifecycleManager::AbilityWindowConfigTransactionDone(const sptr<IRemoteObject> &token,
     const WindowConfig &windowConfig)
 {
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
     auto abilityRecord = GetAbilityRecordByToken(token);
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     abilityRecord->SaveAbilityWindowConfig(windowConfig);
@@ -322,7 +322,7 @@ int UIAbilityLifecycleManager::AbilityWindowConfigTransactionDone(const sptr<IRe
 int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(const AbilityRequest &abilityRequest)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
     // start abilty with persistentId by dms
     int32_t persistentId = abilityRequest.want.GetIntParam(DMS_PERSISTENT_ID, 0);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "NotifySCBToStartUIAbility, want with persistentId: %{public}d.", persistentId);
@@ -376,6 +376,7 @@ void UIAbilityLifecycleManager::CancelSameAbilityTimeoutTask(const AppExecFwk::A
 {
     auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetEventHandler();
     CHECK_POINTER_LOG(handler, "handler null");
+    std::lock_guard guard(sessionAbilityMapMutex_);
     for (const auto &[sessionId, abilityRecord]: sessionAbilityMap_) {
         if (abilityRecord && abilityRecord->GetAbilityInfo().name == abilityInfo.name &&
             abilityRecord->GetAbilityInfo().bundleName == abilityInfo.bundleName && !abilityRecord->IsReady()) {
@@ -389,7 +390,7 @@ void UIAbilityLifecycleManager::CancelSameAbilityTimeoutTask(const AppExecFwk::A
 int32_t UIAbilityLifecycleManager::NotifySCBToRecoveryAfterInterception(const AbilityRequest &abilityRequest)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
     auto abilityInfo = abilityRequest.abilityInfo;
     bool isUIAbility = (abilityInfo.type == AppExecFwk::AbilityType::PAGE && abilityInfo.isStageBasedModel);
     // When 'processMode' is set to new process mode, the priority is higher than 'isolationProcess'.
@@ -431,7 +432,7 @@ int UIAbilityLifecycleManager::NotifySCBToPreStartUIAbility(const AbilityRequest
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
 
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
     sessionInfo = CreateSessionInfo(abilityRequest);
     sessionInfo->requestCode = abilityRequest.requestCode;
     sessionInfo->isAtomicService = true;
@@ -562,7 +563,7 @@ int UIAbilityLifecycleManager::DispatchTerminate(const std::shared_ptr<AbilityRe
 void UIAbilityLifecycleManager::CompleteForegroundSuccess(const std::shared_ptr<AbilityRecord> &abilityRecord)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
 
     CHECK_POINTER(abilityRecord);
     // ability do not save window mode
@@ -596,7 +597,7 @@ void UIAbilityLifecycleManager::HandleForegroundFailed(const std::shared_ptr<Abi
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "state: %{public}d.", static_cast<int32_t>(state));
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
     if (ability == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null ability record");
         return;
@@ -627,12 +628,7 @@ std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GetAbilityRecordByToke
         }
     }
 
-    for (auto iter = sessionAbilityMap_.begin(); iter != sessionAbilityMap_.end(); iter++) {
-        if (iter->second != nullptr && iter->second->GetToken()->AsObject() == token) {
-            return iter->second;
-        }
-    }
-    return nullptr;
+    return GetAbilityRecordFromSessionMapByToken(token);
 }
 
 #ifdef SUPPORT_SCREEN
@@ -643,8 +639,8 @@ void UIAbilityLifecycleManager::CompleteFirstFrameDrawing(const sptr<IRemoteObje
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null");
         return;
     }
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
-    if (!IsContainsAbilityInner(token)) {
+    std::lock_guard guard(sessionLock_);
+    if (!IsContainsAbility(token)) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "Not in running list");
         return;
     }
@@ -663,19 +659,7 @@ void UIAbilityLifecycleManager::CompleteFirstFrameDrawing(const sptr<IRemoteObje
 
 bool UIAbilityLifecycleManager::IsContainsAbility(const sptr<IRemoteObject> &token) const
 {
-    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
-    return IsContainsAbilityInner(token);
-}
-
-bool UIAbilityLifecycleManager::IsContainsAbilityInner(const sptr<IRemoteObject> &token) const
-{
-    for (auto iter = sessionAbilityMap_.begin(); iter != sessionAbilityMap_.end(); iter++) {
-        if (iter->second != nullptr && iter->second->GetToken()->AsObject() == token) {
-            return true;
-        }
-    }
-    return false;
+    return GetAbilityRecordFromSessionMapByToken(token) != nullptr;
 }
 
 void UIAbilityLifecycleManager::EraseAbilityRecord(const std::shared_ptr<AbilityRecord> &abilityRecord)
@@ -684,6 +668,7 @@ void UIAbilityLifecycleManager::EraseAbilityRecord(const std::shared_ptr<Ability
         return;
     }
 
+    std::lock_guard guard(sessionAbilityMapMutex_);
     for (auto iter = sessionAbilityMap_.begin(); iter != sessionAbilityMap_.end(); iter++) {
         if (iter->second != nullptr && iter->second->GetToken()->AsObject() == abilityRecord->GetToken()->AsObject()) {
             sessionAbilityMap_.erase(iter);
@@ -778,7 +763,7 @@ std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GetUIAbilityRecordBySe
     const sptr<SessionInfo> &sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
     CHECK_POINTER_AND_RETURN(sessionInfo, nullptr);
     CHECK_POINTER_AND_RETURN(sessionInfo->sessionToken, nullptr);
     auto sessionToken = iface_cast<Rosen::ISession>(sessionInfo->sessionToken);
@@ -789,11 +774,7 @@ std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GetUIAbilityRecordBySe
         return nullptr;
     }
 
-    auto iter = sessionAbilityMap_.find(sessionInfo->persistentId);
-    if (iter != sessionAbilityMap_.end()) {
-        return iter->second;
-    }
-    return nullptr;
+    return GetAbilityRecordsById(sessionInfo->persistentId);
 }
 
 int32_t UIAbilityLifecycleManager::NotifySCBToMinimizeUIAbility(const std::shared_ptr<AbilityRecord> abilityRecord,
@@ -816,7 +797,7 @@ int UIAbilityLifecycleManager::MinimizeUIAbility(const std::shared_ptr<AbilityRe
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
     if (abilityRecord == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null ability record");
         return ERR_INVALID_VALUE;
@@ -878,13 +859,13 @@ bool UIAbilityLifecycleManager::IsAbilityStarted(AbilityRequest &abilityRequest,
     std::shared_ptr<AbilityRecord> &targetRecord)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call.");
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
     bool reuse = false;
     auto persistentId = GetPersistentIdByAbilityRequest(abilityRequest, reuse);
     if (persistentId == 0) {
         return false;
     }
-    targetRecord = sessionAbilityMap_.at(persistentId);
+    targetRecord = GetAbilityRecordsById(persistentId);
     if (targetRecord) {
         targetRecord->AddCallerRecord(abilityRequest.callerToken, abilityRequest.requestCode, abilityRequest.want);
         targetRecord->SetLaunchReason(LaunchReason::LAUNCHREASON_CALL);
@@ -896,7 +877,7 @@ int UIAbilityLifecycleManager::CallAbilityLocked(const AbilityRequest &abilityRe
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call.");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
 
     // Get target uiAbility record.
     std::shared_ptr<AbilityRecord> uiAbilityRecord;
@@ -907,7 +888,8 @@ int UIAbilityLifecycleManager::CallAbilityLocked(const AbilityRequest &abilityRe
         uiAbilityRecord->SetOwnerMissionUserId(userId_);
         SetRevicerInfo(abilityRequest, uiAbilityRecord);
     } else {
-        uiAbilityRecord = sessionAbilityMap_.at(persistentId);
+        uiAbilityRecord = GetAbilityRecordsById(persistentId);
+        CHECK_POINTER_AND_RETURN(uiAbilityRecord, RESOLVE_CALL_ABILITY_INNER_ERR);
     }
     uiAbilityRecord->AddCallerRecord(abilityRequest.callerToken, abilityRequest.requestCode, abilityRequest.want);
     uiAbilityRecord->SetLaunchReason(LaunchReason::LAUNCHREASON_CALL);
@@ -961,7 +943,7 @@ void UIAbilityLifecycleManager::CallUIAbilityBySCB(const sptr<SessionInfo> &sess
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call.");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
     CHECK_POINTER_LOG(sessionInfo, "sessionInfo is invalid.");
     CHECK_POINTER_LOG(sessionInfo->sessionToken, "sessionToken is nullptr.");
     auto sessionToken = iface_cast<Rosen::ISession>(sessionInfo->sessionToken);
@@ -979,8 +961,7 @@ void UIAbilityLifecycleManager::CallUIAbilityBySCB(const sptr<SessionInfo> &sess
     }
     auto uiAbilityRecord = search->second;
     CHECK_POINTER_LOG(uiAbilityRecord, "UIAbility not exist.");
-    auto sessionSearch = sessionAbilityMap_.find(sessionInfo->persistentId);
-    if (sessionSearch != sessionAbilityMap_.end()) {
+    if (GetAbilityRecordsById(sessionInfo->persistentId) != nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "session exist");
         return;
     }
@@ -989,7 +970,7 @@ void UIAbilityLifecycleManager::CallUIAbilityBySCB(const sptr<SessionInfo> &sess
     MoreAbilityNumbersSendEventInfo(sessionInfo->userId, sessionInfo->want.GetElement().GetBundleName(),
         sessionInfo->want.GetElement().GetAbilityName(), sessionInfo->want.GetElement().GetModuleName());
 
-    sessionAbilityMap_.emplace(sessionInfo->persistentId, uiAbilityRecord);
+    AddToSessionAbilityMap(sessionInfo->persistentId, uiAbilityRecord);
     tmpAbilityMap_.erase(search);
     uiAbilityRecord->SetSessionInfo(sessionInfo);
 
@@ -1159,7 +1140,7 @@ bool UIAbilityLifecycleManager::GetContentAndTypeId(uint32_t msgId, std::string 
 void UIAbilityLifecycleManager::CompleteBackground(const std::shared_ptr<AbilityRecord> &abilityRecord)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
     if (abilityRecord->GetAbilityState() != AbilityState::BACKGROUNDING) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed, state: %{public}d, not complete background",
             abilityRecord->GetAbilityState());
@@ -1202,7 +1183,7 @@ int32_t UIAbilityLifecycleManager::BackToCallerAbilityWithResult(std::shared_ptr
     int resultCode, const Want *resultWant, int64_t callerRequestCode)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
     if (abilityRecord == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null abilityRecord");
         return ERR_INVALID_VALUE;
@@ -1280,7 +1261,7 @@ int UIAbilityLifecycleManager::CloseUIAbility(const std::shared_ptr<AbilityRecor
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
     return CloseUIAbilityInner(abilityRecord, resultCode, resultWant, isClearSession);
 }
 
@@ -1362,7 +1343,7 @@ void UIAbilityLifecycleManager::CompleteTerminate(const std::shared_ptr<AbilityR
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     CHECK_POINTER(abilityRecord);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
 
     if (abilityRecord->GetAbilityState() != AbilityState::TERMINATING) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed, %{public}s, ability not terminating", __func__);
@@ -1401,6 +1382,7 @@ int32_t UIAbilityLifecycleManager::GetPersistentIdByAbilityRequest(const Ability
     }
 
     reuse = true;
+    std::lock_guard guard(sessionAbilityMapMutex_);
     for (const auto& [first, second] : sessionAbilityMap_) {
         if (CheckProperties(second, abilityRequest, AppExecFwk::LaunchMode::SINGLETON)) {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "SINGLETON: find.");
@@ -1423,6 +1405,7 @@ int32_t UIAbilityLifecycleManager::GetReusedSpecifiedPersistentId(const AbilityR
 
     reuse = true;
     // specified ability name and bundle name and module name and appIndex format is same as singleton.
+    std::lock_guard guard(sessionAbilityMapMutex_);
     for (const auto& [first, second] : sessionAbilityMap_) {
         if (second->GetSpecifiedFlag() == abilityRequest.specifiedFlag &&
             CheckProperties(second, abilityRequest, AppExecFwk::LaunchMode::SPECIFIED)) {
@@ -1450,6 +1433,7 @@ int32_t UIAbilityLifecycleManager::GetReusedStandardPersistentId(const AbilityRe
     reuse = true;
     int64_t sessionTime = 0;
     int32_t persistentId = 0;
+    std::lock_guard guard(sessionAbilityMapMutex_);
     for (const auto& [first, second] : sessionAbilityMap_) {
         if (CheckProperties(second, abilityRequest, AppExecFwk::LaunchMode::STANDARD) &&
             second->GetRestartTime() >= sessionTime) {
@@ -1468,6 +1452,7 @@ int32_t UIAbilityLifecycleManager::GetReusedCollaboratorPersistentId(const Abili
     reuse = false;
     int64_t sessionTime = 0;
     int32_t persistentId = 0;
+    std::lock_guard guard(sessionAbilityMapMutex_);
     for (const auto& [first, second] : sessionAbilityMap_) {
         if (second->GetCollaboratorType() != CollaboratorType::DEFAULT_TYPE &&
             abilityRequest.want.GetStringParam(PARAM_MISSION_AFFINITY_KEY) == second->GetMissionAffinity() &&
@@ -1497,14 +1482,8 @@ void UIAbilityLifecycleManager::OnTimeOut(uint32_t msgId, int64_t abilityRecordI
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call, msgId is %{public}d", msgId);
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
-    std::shared_ptr<AbilityRecord> abilityRecord;
-    for (auto iter = sessionAbilityMap_.begin(); iter != sessionAbilityMap_.end(); iter++) {
-        if (iter->second != nullptr && iter->second->GetAbilityRecordId() == abilityRecordId) {
-            abilityRecord = iter->second;
-            break;
-        }
-    }
+    std::lock_guard guard(sessionLock_);
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecordByAbilityId(abilityRecordId);
     if (abilityRecord == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null ability record");
         return;
@@ -1607,7 +1586,7 @@ void UIAbilityLifecycleManager::OnAbilityDied(std::shared_ptr<AbilityRecord> abi
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
     if (abilityRecord == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null ability record");
         return;
@@ -1641,7 +1620,7 @@ void UIAbilityLifecycleManager::OnAcceptWantResponse(const AAFwk::Want &want, co
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
     auto it = specifiedRequestMap_.find(requestId);
     if (it == specifiedRequestMap_.end()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "not find %{public}s", want.GetElement().GetURI().c_str());
@@ -1660,16 +1639,9 @@ void UIAbilityLifecycleManager::OnAcceptWantResponse(const AAFwk::Want &want, co
         bool reuse = false;
         auto persistentId = GetReusedSpecifiedPersistentId(abilityRequest, reuse);
         if (persistentId != 0) {
-            std::shared_ptr<AbilityRecord> abilityRecord = nullptr;
-            auto iter = sessionAbilityMap_.find(persistentId);
-            if (iter != sessionAbilityMap_.end()) {
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "find specified ability");
-                abilityRecord = iter->second;
-            } else {
+            auto abilityRecord = GetAbilityRecordsById(persistentId);
+            if (abilityRecord == nullptr) {
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "OnAcceptWantResponse Unexpected Error");
-                return;
-            }
-            if (!abilityRecord) {
                 return;
             }
             abilityRecord->SetWant(abilityRequest.want);
@@ -1687,7 +1659,7 @@ void UIAbilityLifecycleManager::OnAcceptWantResponse(const AAFwk::Want &want, co
 void UIAbilityLifecycleManager::OnStartSpecifiedAbilityTimeoutResponse(const AAFwk::Want &want, int32_t requestId)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "called");
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
     specifiedRequestMap_.erase(requestId);
 }
 
@@ -1696,7 +1668,7 @@ void UIAbilityLifecycleManager::OnStartSpecifiedProcessResponse(const AAFwk::Wan
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call.");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
     auto it = specifiedRequestMap_.find(requestId);
     if (it == specifiedRequestMap_.end()) {
         return;
@@ -1725,7 +1697,7 @@ void UIAbilityLifecycleManager::OnStartSpecifiedProcessResponse(const AAFwk::Wan
 void UIAbilityLifecycleManager::OnStartSpecifiedProcessTimeoutResponse(const AAFwk::Want &want, int32_t requestId)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "called");
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
     specifiedRequestMap_.erase(requestId);
 }
 
@@ -1742,7 +1714,7 @@ void UIAbilityLifecycleManager::StartSpecifiedAbilityBySCB(const Want &want)
     int32_t requestId = 0;
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-        std::lock_guard<ffrt::mutex> guard(sessionLock_);
+        std::lock_guard guard(sessionLock_);
         requestId = specifiedRequestId_++;
         specifiedRequestMap_.emplace(requestId, abilityRequest);
     }
@@ -1881,7 +1853,7 @@ void UIAbilityLifecycleManager::CallRequestDone(const std::shared_ptr<AbilityRec
     const sptr<IRemoteObject> &callStub)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
     if (abilityRecord == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null ability record");
         return;
@@ -1901,9 +1873,9 @@ int UIAbilityLifecycleManager::ReleaseCallLocked(
     CHECK_POINTER_AND_RETURN(connect, ERR_INVALID_VALUE);
     CHECK_POINTER_AND_RETURN(connect->AsObject(), ERR_INVALID_VALUE);
 
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
 
-    auto abilityRecords = GetAbilityRecordsByNameInner(element);
+    auto abilityRecords = GetAbilityRecordsByName(element);
     auto isExist = [connect] (const std::shared_ptr<AbilityRecord> &abilityRecord) {
         return abilityRecord->IsExistConnection(connect);
     };
@@ -1927,10 +1899,10 @@ void UIAbilityLifecycleManager::OnCallConnectDied(const std::shared_ptr<CallReco
     TAG_LOGI(AAFwkTag::ABILITYMGR, "on callConnect died");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     CHECK_POINTER(callRecord);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
 
     AppExecFwk::ElementName element = callRecord->GetTargetServiceName();
-    auto abilityRecords = GetAbilityRecordsByNameInner(element);
+    auto abilityRecords = GetAbilityRecordsByName(element);
     auto isExist = [callRecord] (const std::shared_ptr<AbilityRecord> &abilityRecord) {
         return abilityRecord->IsExistConnection(callRecord->GetConCallBack());
     };
@@ -1945,16 +1917,10 @@ void UIAbilityLifecycleManager::OnCallConnectDied(const std::shared_ptr<CallReco
 }
 
 std::vector<std::shared_ptr<AbilityRecord>> UIAbilityLifecycleManager::GetAbilityRecordsByName(
-    const AppExecFwk::ElementName &element)
-{
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
-    return GetAbilityRecordsByNameInner(element);
-}
-
-std::vector<std::shared_ptr<AbilityRecord>> UIAbilityLifecycleManager::GetAbilityRecordsByNameInner(
-    const AppExecFwk::ElementName &element)
+    const AppExecFwk::ElementName &element) const
 {
     std::vector<std::shared_ptr<AbilityRecord>> records;
+    std::lock_guard guard(sessionAbilityMapMutex_);
     for (const auto& [first, second] : sessionAbilityMap_) {
         auto &abilityInfo = second->GetAbilityInfo();
         AppExecFwk::ElementName localElement(abilityInfo.deviceId, abilityInfo.bundleName,
@@ -1972,7 +1938,7 @@ std::vector<std::shared_ptr<AbilityRecord>> UIAbilityLifecycleManager::GetAbilit
 int32_t UIAbilityLifecycleManager::GetSessionIdByAbilityToken(const sptr<IRemoteObject> &token)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionAbilityMapMutex_);
     for (const auto& [first, second] : sessionAbilityMap_) {
         if (second && second->GetToken()->AsObject() == token) {
             return first;
@@ -2098,21 +2064,70 @@ void UIAbilityLifecycleManager::SetSessionHandler(const sptr<ISessionHandler> &h
 std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GetAbilityRecordsById(int32_t sessionId) const
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionAbilityMapMutex_);
     auto search = sessionAbilityMap_.find(sessionId);
     if (search == sessionAbilityMap_.end()) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "sessionId invalid");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "invalid sessionId: %{public}d", sessionId);
         return nullptr;
     }
     return search->second;
 }
 
+bool UIAbilityLifecycleManager::AddToSessionAbilityMap(int32_t sessionId, std::shared_ptr<AbilityRecord> record)
+{
+    if (record == nullptr) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "invalid record");
+        return false;
+    }
+
+    std::lock_guard guard(sessionAbilityMapMutex_);
+    auto result = sessionAbilityMap_.emplace(sessionId, record);
+    if (!result.second) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "invalid sessionId: %{public}d", sessionId);
+        return false;
+    }
+    return result.second;
+}
+
+std::unordered_map<int32_t, std::shared_ptr<AbilityRecord>> UIAbilityLifecycleManager::GetSessionAbilityMap() const
+{
+    std::lock_guard guard(sessionAbilityMapMutex_);
+    return sessionAbilityMap_;
+}
+
+std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GetAbilityRecordFromSessionMapByToken(
+    sptr<IRemoteObject> token) const
+{
+    if (token == nullptr) {
+        return nullptr;
+    }
+
+    std::lock_guard guard(sessionAbilityMapMutex_);
+    for (const auto &[sessionId, record]: sessionAbilityMap_) {
+        if (record && record->GetToken() && record->GetToken()->AsObject() == token) {
+            return record;
+        }
+    }
+    return nullptr;
+}
+
+std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GetAbilityRecordByAbilityId(int32_t abilityId) const
+{
+    std::lock_guard guard(sessionAbilityMapMutex_);
+    for (const auto &[sessionId, record]: sessionAbilityMap_) {
+        if (record && record->GetAbilityRecordId() == abilityId) {
+            return record;
+        }
+    }
+    return nullptr;
+}
+
 void UIAbilityLifecycleManager::GetActiveAbilityList(int32_t uid, std::vector<std::string> &abilityList, int32_t pid)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    auto tmpSessionMap = GetSessionAbilityMap();
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call");
-    for (const auto& [sessionId, abilityRecord] : sessionAbilityMap_) {
+    for (const auto& [sessionId, abilityRecord] : tmpSessionMap) {
         if (abilityRecord == nullptr) {
             TAG_LOGW(AAFwkTag::ABILITYMGR, "null second");
             continue;
@@ -2147,7 +2162,7 @@ int32_t UIAbilityLifecycleManager::CheckAbilityNumber(
     const std::string &bundleName, const std::string &abilityName, const std::string &moduleName) const
 {
     int32_t checkAbilityNumber = 0;
-
+    std::lock_guard guard(sessionAbilityMapMutex_);
     for (auto [persistentId, record] : sessionAbilityMap_) {
         auto recordAbilityInfo = record->GetAbilityInfo();
         if (bundleName == recordAbilityInfo.bundleName && abilityName == recordAbilityInfo.name &&
@@ -2182,7 +2197,7 @@ void UIAbilityLifecycleManager::MoreAbilityNumbersSendEventInfo(
 void UIAbilityLifecycleManager::OnAppStateChanged(const AppInfo &info)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call.");
     if (info.state == AppState::TERMINATED || info.state == AppState::END) {
         for (const auto& abilityRecord : terminateAbilityList_) {
@@ -2197,8 +2212,9 @@ void UIAbilityLifecycleManager::OnAppStateChanged(const AppInfo &info)
         }
         return;
     }
+    auto tmpSessionMap = GetSessionAbilityMap();
     if (info.state == AppState::COLD_START) {
-        for (const auto& [sessionId, abilityRecord] : sessionAbilityMap_) {
+        for (const auto& [sessionId, abilityRecord] : tmpSessionMap) {
             if (abilityRecord == nullptr) {
                 TAG_LOGW(AAFwkTag::ABILITYMGR, "null abilityRecord");
                 continue;
@@ -2213,7 +2229,7 @@ void UIAbilityLifecycleManager::OnAppStateChanged(const AppInfo &info)
         }
         return;
     }
-    for (const auto& [sessionId, abilityRecord] : sessionAbilityMap_) {
+    for (const auto& [sessionId, abilityRecord] : tmpSessionMap) {
         if (abilityRecord == nullptr) {
             TAG_LOGW(AAFwkTag::ABILITYMGR, "null abilityRecord");
             continue;
@@ -2228,9 +2244,10 @@ void UIAbilityLifecycleManager::OnAppStateChanged(const AppInfo &info)
 void UIAbilityLifecycleManager::UninstallApp(const std::string &bundleName, int32_t uid)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
+    auto tmpSessionMap = GetSessionAbilityMap();
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call");
-    for (auto it = sessionAbilityMap_.begin(); it != sessionAbilityMap_.end();) {
+    for (auto it = tmpSessionMap.begin(); it != tmpSessionMap.end();) {
         if (it->second == nullptr) {
             it++;
             continue;
@@ -2253,9 +2270,9 @@ void UIAbilityLifecycleManager::UninstallApp(const std::string &bundleName, int3
 void UIAbilityLifecycleManager::GetAbilityRunningInfos(std::vector<AbilityRunningInfo> &info, bool isPerm) const
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call.");
-    for (auto [sessionId, abilityRecord] : sessionAbilityMap_) {
+    auto tmpSessionMap = GetSessionAbilityMap();
+    for (auto [sessionId, abilityRecord] : tmpSessionMap) {
         if (abilityRecord == nullptr) {
             TAG_LOGW(AAFwkTag::ABILITYMGR, "null abilityRecord");
             continue;
@@ -2275,14 +2292,7 @@ void UIAbilityLifecycleManager::GetAbilityRunningInfos(std::vector<AbilityRunnin
 void UIAbilityLifecycleManager::Dump(std::vector<std::string> &info)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
-    std::unordered_map<int32_t, std::shared_ptr<AbilityRecord>> sessionAbilityMapLocked;
-    {
-        HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-        std::lock_guard<ffrt::mutex> guard(sessionLock_);
-        for (const auto& [sessionId, abilityRecord] : sessionAbilityMap_) {
-            sessionAbilityMapLocked[sessionId] = abilityRecord;
-        }
-    }
+    auto sessionAbilityMapLocked = GetSessionAbilityMap();
 
     std::string dumpInfo = "User ID #" + std::to_string(userId_);
     info.push_back(dumpInfo);
@@ -2315,14 +2325,7 @@ void UIAbilityLifecycleManager::DumpMissionList(
     std::vector<std::string> &info, bool isClient, const std::string &args)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
-    std::unordered_map<int32_t, std::shared_ptr<AbilityRecord>> sessionAbilityMapLocked;
-    {
-        HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-        std::lock_guard<ffrt::mutex> guard(sessionLock_);
-        for (const auto& [sessionId, abilityRecord] : sessionAbilityMap_) {
-            sessionAbilityMapLocked[sessionId] = abilityRecord;
-        }
-    }
+    auto sessionAbilityMapLocked = GetSessionAbilityMap();
     std::string dumpInfo = "User ID #" + std::to_string(userId_);
     info.push_back(dumpInfo);
     dumpInfo = "  current mission lists:{";
@@ -2354,14 +2357,7 @@ void UIAbilityLifecycleManager::DumpMissionListByRecordId(std::vector<std::strin
     int32_t abilityRecordId, const std::vector<std::string> &params)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
-    std::unordered_map<int32_t, std::shared_ptr<AbilityRecord>> sessionAbilityMapLocked;
-    {
-        HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-        std::lock_guard<ffrt::mutex> guard(sessionLock_);
-        for (const auto& [sessionId, abilityRecord] : sessionAbilityMap_) {
-            sessionAbilityMapLocked[sessionId] = abilityRecord;
-        }
-    }
+    auto sessionAbilityMapLocked = GetSessionAbilityMap();
     std::string dumpInfo = "User ID #" + std::to_string(userId_);
     info.push_back(dumpInfo);
     dumpInfo = "  current mission lists:{";
@@ -2417,7 +2413,7 @@ int UIAbilityLifecycleManager::MoveMissionToFront(int32_t sessionId, std::shared
 
 std::shared_ptr<StatusBarDelegateManager> UIAbilityLifecycleManager::GetStatusBarDelegateManager()
 {
-    std::lock_guard<ffrt::mutex> lock(statusBarDelegateManagerLock_);
+    std::lock_guard lock(statusBarDelegateManagerLock_);
     if (statusBarDelegateManager_ == nullptr) {
         statusBarDelegateManager_ = std::make_shared<StatusBarDelegateManager>();
     }
@@ -2505,7 +2501,7 @@ void UIAbilityLifecycleManager::TerminateSession(std::shared_ptr<AbilityRecord> 
 int UIAbilityLifecycleManager::ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
     auto abilityRecord = GetAbilityRecordByToken(token);
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     auto callingTokenId = IPCSkeleton::GetCallingTokenID();
@@ -2532,14 +2528,9 @@ int UIAbilityLifecycleManager::ChangeAbilityVisibility(sptr<IRemoteObject> token
 int UIAbilityLifecycleManager::ChangeUIAbilityVisibilityBySCB(sptr<SessionInfo> sessionInfo, bool isShow)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
     CHECK_POINTER_AND_RETURN(sessionInfo, ERR_INVALID_VALUE);
-    auto iter = sessionAbilityMap_.find(sessionInfo->persistentId);
-    if (iter == sessionAbilityMap_.end()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "ability not found");
-        return ERR_NATIVE_ABILITY_NOT_FOUND;
-    }
-    std::shared_ptr<AbilityRecord> uiAbilityRecord = iter->second;
+    auto uiAbilityRecord = GetAbilityRecordsById(sessionInfo->persistentId);
     CHECK_POINTER_AND_RETURN(uiAbilityRecord, ERR_INVALID_VALUE);
     auto state = uiAbilityRecord->GetAbilityVisibilityState();
     if (state == AbilityVisibilityState::UNSPECIFIED || state == AbilityVisibilityState::INITIAL) {
@@ -2563,8 +2554,9 @@ int32_t UIAbilityLifecycleManager::UpdateSessionInfoBySCB(std::list<SessionInfo>
 {
     std::unordered_set<std::shared_ptr<AbilityRecord>> abilitySet;
     {
-        std::lock_guard<ffrt::mutex> guard(sessionLock_);
-        for (auto [sessionId, abilityRecord] : sessionAbilityMap_) {
+        std::lock_guard guard(sessionLock_);
+        auto tmpSessionMap = GetSessionAbilityMap();
+        for (auto [sessionId, abilityRecord] : tmpSessionMap) {
             bool isFind = false;
             for (auto iter = sessionInfos.begin(); iter != sessionInfos.end(); iter++) {
                 if (iter->persistentId == sessionId) {
@@ -2590,8 +2582,8 @@ int32_t UIAbilityLifecycleManager::UpdateSessionInfoBySCB(std::list<SessionInfo>
 
 void UIAbilityLifecycleManager::SignRestartAppFlag(const std::string &bundleName, bool isAppRecovery)
 {
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
-    auto tempSessionAbilityMap = sessionAbilityMap_;
+    std::lock_guard guard(sessionLock_);
+    auto tempSessionAbilityMap = GetSessionAbilityMap();
     for (auto &[sessionId, abilityRecord] : tempSessionAbilityMap) {
         if (abilityRecord == nullptr || abilityRecord->GetApplicationInfo().bundleName != bundleName) {
             continue;
@@ -2638,14 +2630,10 @@ int UIAbilityLifecycleManager::StartWithPersistentIdByDistributed(const AbilityR
 int32_t UIAbilityLifecycleManager::GetAbilityStateByPersistentId(int32_t persistentId, bool &state)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
-    auto iter = sessionAbilityMap_.find(persistentId);
-    if (iter != sessionAbilityMap_.end()) {
-        std::shared_ptr<AbilityRecord> uiAbilityRecord = iter->second;
-        if (uiAbilityRecord && uiAbilityRecord->GetPendingState() == AbilityState::INITIAL) {
-            state = true;
-            return ERR_OK;
-        }
+    auto uiAbilityRecord = GetAbilityRecordsById(persistentId);
+    if (uiAbilityRecord && uiAbilityRecord->GetPendingState() == AbilityState::INITIAL) {
+        state = true;
+        return ERR_OK;
     }
     state = false;
     return ERR_INVALID_VALUE;
@@ -2657,7 +2645,7 @@ int32_t UIAbilityLifecycleManager::CleanUIAbility(
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    std::lock_guard guard(sessionLock_);
     if (forceKillProcess) {
         std::string element = abilityRecord->GetElementName().GetURI();
         if (DelayedSingleton<AppScheduler>::GetInstance()->CleanAbilityByUserRequest(abilityRecord->GetToken())) {
