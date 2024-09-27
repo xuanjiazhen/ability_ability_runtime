@@ -39,7 +39,7 @@ public:
         ErrCode(const std::string &bundleName, std::vector<AppExecFwk::BaseSharedBundleInfo> &baseSharedBundleInfos,
         AppExecFwk::GetDependentBundleInfoFlag flag));
     MOCK_METHOD2(GetBundleInfoForSelf, ErrCode(int32_t flags, AppExecFwk::BundleInfo &bundleInfo));
-
+    MOCK_METHOD4(GetBundleInfoV9, ErrCode(const std::string&, int32_t, AppExecFwk::BundleInfo&, int32_t));
     sptr<AppExecFwk::IOverlayManager> GetOverlayManagerProxy()
     {
         sptr<AppExecFwk::IOverlayManager> overlayModuleProxy =
