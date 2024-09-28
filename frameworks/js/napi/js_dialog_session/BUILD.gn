@@ -31,6 +31,8 @@ ohos_shared_library("dialogsession_napi") {
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
     "${ability_runtime_native_path}/appkit:app_context",
+    "//third_party/json:nlohmann_json_static",
+    "//third_party/jsoncpp:jsoncpp",
   ]
 
   external_deps = [

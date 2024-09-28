@@ -29,7 +29,11 @@ template("abilitymanager") {
       "js_ability_manager_utils.cpp",
     ]
 
-    include_dirs = [ "./" ]
+    include_dirs = [
+      "./",
+      "//third_party/icu/icu4c/source/common",
+      "${ipc_native_path}/src/napi/include",
+    ]
 
     deps = [
       "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
