@@ -103,6 +103,4 @@ ohos_unittest("AmsServiceEventDriveTest") {
 
 group("unittest") {
   testonly = true
-
-  deps = [ ":AmsServiceEventDriveTest" ]
 }
