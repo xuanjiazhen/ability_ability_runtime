@@ -18,16 +18,24 @@
 #define private public
 #include "app_mgr_service_inner.h"
 #include "app_running_record.h"
+#include "iservice_registry.h"
 #undef private
 #include "ability_manager_errors.h"
 #include "appfreeze_manager.h"
 #include "hilog_tag_wrapper.h"
+#include "ability_debug_response_proxy.h"
+#include "appspawn_util.h"
+#include "mock_ability_debug_response_stub.h"
 #include "mock_ability_token.h"
+#include "mock_bundle_installer_service.h"
+#include "mock_bundle_manager_service.h"
 #include "mock_ipc_skeleton.h"
 #include "mock_my_flag.h"
 #include "mock_native_token.h"
 #include "mock_permission_verification.h"
 #include "mock_sa_call.h"
+#include "mock_system_ability_manager.h"
+#include "mock_task_handler_wrap.h"
 #include "param.h"
 
 using namespace testing;
@@ -40,10 +48,17 @@ namespace {
 constexpr int32_t APP_DEBUG_INFO_PID = 0;
 constexpr int32_t APP_DEBUG_INFO_UID = 0;
 constexpr int32_t DEFAULT_INVAL_VALUE = -1;
+constexpr int32_t TEST_PID_100 = 100;
 const std::string PARAM_SPECIFIED_PROCESS_FLAG = "ohoSpecifiedProcessFlag";
 const std::string TEST_FLAG = "testFlag";
 const std::string TEST_PROCESS_NAME = "testProcessName";
 const std::string TEST_BUNDLE_NAME = "testBundleName";
+constexpr const char* DEVELOPER_MODE_STATE = "const.security.developermode.state";
+constexpr int32_t BUNDLE_MGR_SERVICE_SYS_ABILITY_ID = 401;
+static constexpr int64_t NANOSECONDS = 1000000000;  // NANOSECONDS mean 10^9 nano second
+static constexpr int64_t MICROSECONDS = 1000000;    // MICROSECONDS mean 10^6 millias second
+sptr<MockBundleInstallerService> mockBundleInstaller = new (std::nothrow) MockBundleInstallerService();
+sptr<MockBundleManagerService> mockBundleMgr = new (std::nothrow) MockBundleManagerService();
 }
 
 class AppMgrServiceInnerSecondTest : public testing::Test {
@@ -52,9 +67,13 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
-
+    void MockBundleInstallerAndSA();
+    void MockBundleInstaller();
+    sptr<ISystemAbilityManager> iSystemAbilityMgr_ = nullptr;
+    sptr<AppExecFwk::MockSystemAbilityManager> mockSystemAbility_ = nullptr;
     void InitAppInfo(const std::string& deviceName, const std::string& abilityName,
         const std::string& appName, const std::string& bundleName, const std::string& moduleName);
+    std::shared_ptr<BundleMgrHelper> bundleMgrHelper_{ nullptr };
 
 public:
     std::shared_ptr<AbilityInfo> abilityInfo_;
@@ -104,10 +123,38 @@ void AppMgrServiceInnerSecondTest::SetUp()
     std::string bundleName = TEST_BUNDLE_NAME;
     std::string moduleName = "entry";
     InitAppInfo(deviceName, abilityName, appName, bundleName, moduleName);
+    mockSystemAbility_ = new (std::nothrow) AppExecFwk::MockSystemAbilityManager();
+    iSystemAbilityMgr_ = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    SystemAbilityManagerClient::GetInstance().systemAbilityManager_ = mockSystemAbility_;
 }
 
 void AppMgrServiceInnerSecondTest::TearDown()
-{}
+{
+    SystemAbilityManagerClient::GetInstance().systemAbilityManager_ = iSystemAbilityMgr_;
+}
+
+
+void AppMgrServiceInnerSecondTest::MockBundleInstallerAndSA()
+{
+    auto mockGetBundleInstaller = []() { return mockBundleInstaller; };
+    auto mockGetSystemAbility = [bms = mockBundleMgr, saMgr = iSystemAbilityMgr_](int32_t systemAbilityId) {
+        if (systemAbilityId == BUNDLE_MGR_SERVICE_SYS_ABILITY_ID) {
+            return bms->AsObject();
+        } else {
+            return saMgr->GetSystemAbility(systemAbilityId);
+        }
+    };
+    EXPECT_CALL(*mockBundleMgr, GetBundleInstaller()).WillOnce(testing::Invoke(mockGetBundleInstaller));
+    EXPECT_CALL(*mockSystemAbility_, CheckSystemAbility(testing::_))
+        .WillOnce(testing::Invoke(mockGetSystemAbility))
+        .WillRepeatedly(testing::Invoke(mockGetSystemAbility));
+}
+
+void AppMgrServiceInnerSecondTest::MockBundleInstaller()
+{
+    auto mockGetBundleInstaller = []() { return mockBundleInstaller; };
+    EXPECT_CALL(*mockBundleMgr, GetBundleInstaller()).WillOnce(testing::Invoke(mockGetBundleInstaller));
+}
 
 /**
  * @tc.name: AppMgrServiceInnerSecondTest_GetSpecifiedProcessFlag_0100
@@ -652,6 +699,352 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_NotifyMemMgr
     ret = appMgrServiceInner->NotifyMemMgrPriorityChanged(appRecord);
     EXPECT_FALSE(ret); // stub err
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_NotifyMemMgrPriorityChanged_0100 end");
+}
+
+/**
+ * @tc.name: AppMgrServiceInnerSecondTest_CheckAppFault_0100
+ * @tc.desc: Test CheckAppFault
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_CheckAppFault_0100, TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_CheckAppFault_0100 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    std::shared_ptr<AppRunningRecord> appRecord = nullptr;
+    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    loadParam->token = token_;
+    loadParam->preToken = preToken_;
+    appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
+        TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
+    FaultData faultData;
+
+    bool ret = appMgrServiceInner->CheckAppFault(appRecord, faultData);
+    EXPECT_FALSE(ret);
+
+    faultData.timeoutMarkers = "timeout";
+    appMgrServiceInner->dfxTaskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler("dfx_freeze_task_queue_test");
+    ret = appMgrServiceInner->CheckAppFault(appRecord, faultData);
+    EXPECT_TRUE(ret);
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_CheckAppFault_0100 end");
+}
+
+/**
+ * @tc.name: AppMgrServiceInnerSecondTest_CheckAppFault_0200
+ * @tc.desc: Test CheckAppFault
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_CheckAppFault_0200, TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_CheckAppFault_0200 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    std::shared_ptr<AppRunningRecord> appRecord = nullptr;
+    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    loadParam->token = token_;
+    loadParam->preToken = preToken_;
+    appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
+        TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
+    FaultData faultData;
+
+    appRecord->isDebugApp_ = true;
+    bool ret = appMgrServiceInner->CheckAppFault(appRecord, faultData);
+    EXPECT_TRUE(ret);
+
+    appRecord->isDebugApp_ = false;
+    appRecord->isAssertPause_ = true;
+    ret = appMgrServiceInner->CheckAppFault(appRecord, faultData);
+    EXPECT_TRUE(ret);
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_CheckAppFault_0200 end");
+}
+
+/**
+ * @tc.name: AppMgrServiceInnerSecondTest_TransformedNotifyAppFault_0100
+ * @tc.desc: Test KillFaultApp
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_TransformedNotifyAppFault_0100, TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_TransformedNotifyAppFault_0100 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AppFaultDataBySA faultData;
+
+    int32_t ret = appMgrServiceInner->TransformedNotifyAppFault(faultData);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    std::shared_ptr<AppRunningRecord> appRecord = nullptr;
+    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    loadParam->token = token_;
+    loadParam->preToken = preToken_;
+    appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
+        TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
+    appRecord->GetPriorityObject()->SetPid(TEST_PID_100);
+    faultData.pid = TEST_PID_100;
+    ret = appMgrServiceInner->TransformedNotifyAppFault(faultData);
+    EXPECT_EQ(ret, ERR_OK);
+
+    faultData.timeoutMarkers = "timeoutMarkers";
+    ret = appMgrServiceInner->TransformedNotifyAppFault(faultData);
+    EXPECT_EQ(ret, ERR_OK);
+
+    faultData.errorObject.name = "appRecovery";
+    ret = appMgrServiceInner->TransformedNotifyAppFault(faultData);
+    EXPECT_EQ(ret, ERR_OK);
+
+    appRecord->GetPriorityObject()->SetPid(1);
+    faultData.pid = 1;
+    ret = appMgrServiceInner->TransformedNotifyAppFault(faultData);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_TransformedNotifyAppFault_0100 end");
+}
+
+/**
+ * @tc.name: AppMgrServiceInnerSecondTest_TransformedNotifyAppFault_0200
+ * @tc.desc: Test KillFaultApp
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_TransformedNotifyAppFault_0200, TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_TransformedNotifyAppFault_0200 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AppFaultDataBySA faultData;
+    BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    std::shared_ptr<AppRunningRecord> appRecord = nullptr;
+    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    loadParam->token = token_;
+    loadParam->preToken = preToken_;
+    appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
+        TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
+
+    appRecord->GetPriorityObject()->SetPid(TEST_PID_100);
+    faultData.pid = TEST_PID_100;
+    faultData.faultType = FaultDataType::APP_FREEZE;
+    appMgrServiceInner->dfxTaskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler("dfx_freeze_task_queue_test");
+    int32_t ret = appMgrServiceInner->TransformedNotifyAppFault(faultData);
+    EXPECT_EQ(ret, ERR_OK);
+
+    appRecord->isDebugApp_ = true;
+    ret = appMgrServiceInner->TransformedNotifyAppFault(faultData);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_TransformedNotifyAppFault_0200 end");
+}
+
+/**
+ * @tc.name: AppMgrServiceInnerSecondTest_StartNativeProcessForDebugger_0100
+ * @tc.desc: Test StartNativeProcessForDebugger
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_StartNativeProcessForDebugger_0100,
+    TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_StartNativeProcessForDebugger_0100 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    Want want;
+
+    int32_t ret = appMgrServiceInner->StartNativeProcessForDebugger(want);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+
+    want.SetParam(AppspawnUtil::DLP_PARAMS_INDEX, 1);
+    ret = appMgrServiceInner->StartNativeProcessForDebugger(want);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+
+    MockBundleInstallerAndSA();
+    EXPECT_CALL(*mockBundleMgr, GetHapModuleInfo(testing::_, testing::_, testing::_))
+        .WillOnce(testing::Return(true))
+        .WillRepeatedly(testing::Return(true));
+    ret = appMgrServiceInner->StartNativeProcessForDebugger(want);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_StartNativeProcessForDebugger_0100 end");
+}
+
+/**
+ * @tc.name: AppMgrServiceInnerSecondTest_GetBundleNameByPid_0100
+ * @tc.desc: Test GetBundleNameByPid
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_GetBundleNameByPid_0100, TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_GetBundleNameByPid_0100 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    std::string bundleName = "testbundleName";
+    int32_t uid = 101;
+
+    int32_t ret = appMgrServiceInner->GetBundleNameByPid(TEST_PID_100, bundleName, uid);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+
+    AppFaultDataBySA faultData;
+    BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    std::shared_ptr<AppRunningRecord> appRecord = nullptr;
+    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    loadParam->token = token_;
+    loadParam->preToken = preToken_;
+    appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
+        TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
+    appRecord->GetPriorityObject()->SetPid(TEST_PID_100);
+    ret = appMgrServiceInner->GetBundleNameByPid(TEST_PID_100, bundleName, uid);
+    EXPECT_EQ(ret, ERR_OK);
+
+    MyFlag::flag_ = 0;
+    ret = appMgrServiceInner->GetBundleNameByPid(TEST_PID_100, bundleName, uid);
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_GetBundleNameByPid_0100 end");
+}
+
+/**
+ * @tc.name: AppMgrServiceInnerSecondTest_NotifyAbilitiesAssertDebugChange_0100
+ * @tc.desc: Test NotifyAbilitiesAssertDebugChange
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_NotifyAbilitiesAssertDebugChange_0100,
+    TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_NotifyAbilitiesAssertDebugChange_0100 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    std::shared_ptr<AppRunningRecord> appRecord = nullptr;
+    bool isAssertDebug = true;
+
+    int32_t ret = appMgrServiceInner->NotifyAbilitiesAssertDebugChange(appRecord, isAssertDebug);
+    EXPECT_EQ(ret, ERR_NO_INIT);
+
+    BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    loadParam->token = token_;
+    loadParam->preToken = preToken_;
+    appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
+        TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
+    ret = appMgrServiceInner->NotifyAbilitiesAssertDebugChange(appRecord, isAssertDebug);
+    EXPECT_EQ(ret, ERR_NO_INIT);
+
+    auto mockStub = new (std::nothrow) MockAbilityDebugResponseStub();
+    appMgrServiceInner->abilityDebugResponse_ = new AbilityDebugResponseProxy(mockStub);
+    ret = appMgrServiceInner->NotifyAbilitiesAssertDebugChange(appRecord, isAssertDebug);
+    EXPECT_EQ(ret, ERR_OK);
+
+    appRecord->hapModules_.clear();
+    ret = appMgrServiceInner->NotifyAbilitiesAssertDebugChange(appRecord, isAssertDebug);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_NotifyAbilitiesAssertDebugChange_0100 end");
+}
+
+/**
+ * @tc.name: AppMgrServiceInnerSecondTest_ApplicationTerminatedSendProcessEvent_0100
+ * @tc.desc: Test ApplicationTerminatedSendProcessEvent
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_ApplicationTerminatedSendProcessEvent_0100,
+    TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_ApplicationTerminatedSendProcessEvent_0100 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    std::shared_ptr<AppRunningRecord> appRecord = nullptr;
+    appMgrServiceInner->ApplicationTerminatedSendProcessEvent(appRecord);
+
+    BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    loadParam->token = token_;
+    loadParam->preToken = preToken_;
+    appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
+        TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
+    std::vector<BaseSharedBundleInfo> baseSharedBundleInfoList;
+
+    appMgrServiceInner->SetRunningSharedBundleList(TEST_BUNDLE_NAME, baseSharedBundleInfoList);
+    appMgrServiceInner->ApplicationTerminatedSendProcessEvent(appRecord);
+    EXPECT_EQ(appMgrServiceInner->runningSharedBundleList_.size(), 0);
+
+    MyFlag::flag_ = MyFlag::IS_SA_CALL;
+    appMgrServiceInner->appDebugManager_ = nullptr;
+    appMgrServiceInner->SetRunningSharedBundleList(TEST_BUNDLE_NAME, baseSharedBundleInfoList);
+    appMgrServiceInner->ApplicationTerminatedSendProcessEvent(appRecord);
+    EXPECT_EQ(appMgrServiceInner->runningSharedBundleList_.size(), 1);
+
+    appMgrServiceInner->appRunningManager_ = nullptr;
+    appMgrServiceInner->ApplicationTerminatedSendProcessEvent(appRecord);
+    EXPECT_EQ(appMgrServiceInner->runningSharedBundleList_.size(), 0);
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_ApplicationTerminatedSendProcessEvent_0100 end");
+}
+
+/**
+ * @tc.name: AppMgrServiceInnerSecondTest_ApplicationTerminatedSendProcessEvent_0200
+ * @tc.desc: Test ApplicationTerminatedSendProcessEvent
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_ApplicationTerminatedSendProcessEvent_0200,
+    TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_ApplicationTerminatedSendProcessEvent_0200 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    std::shared_ptr<AppRunningRecord> appRecord = nullptr;
+    BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    loadParam->token = token_;
+    loadParam->preToken = preToken_;
+    appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
+        TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
+
+    appMgrServiceInner->appRunningManager_->ClearAppRunningRecordMap();
+    appMgrServiceInner->ApplicationTerminatedSendProcessEvent(appRecord);
+    EXPECT_EQ(appMgrServiceInner->appDebugManager_->debugInfos_.size(), 0);
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_ApplicationTerminatedSendProcessEvent_0200 end");
+}
+
+/**
+ * @tc.name: AppMgrServiceInnerSecondTest_ClearAppRunningDataForKeepAlive_0100
+ * @tc.desc: Test ClearAppRunningDataForKeepAlive
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_ClearAppRunningDataForKeepAlive_0100,
+    TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_ClearAppRunningDataForKeepAlive_0100 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    std::shared_ptr<AppRunningRecord> appRecord = nullptr;
+    appMgrServiceInner->ClearAppRunningDataForKeepAlive(appRecord);
+
+    BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    loadParam->token = token_;
+    loadParam->preToken = preToken_;
+    appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
+        TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
+    appMgrServiceInner->ClearAppRunningDataForKeepAlive(appRecord);
+
+    int32_t uid = 101;
+    appRecord->SetUid(uid);
+    appRecord->SetKeepAliveBundle(true);
+    appRecord->SetKeepAliveEnableState(true);
+    appRecord->SetSingleton(true);
+    appMgrServiceInner->ClearAppRunningDataForKeepAlive(appRecord);
+
+    uid = 200000;
+    appRecord->SetUid(uid);
+    appMgrServiceInner->ClearAppRunningDataForKeepAlive(appRecord);
+
+    appMgrServiceInner->currentUserId_ = 1;
+    appMgrServiceInner->ClearAppRunningDataForKeepAlive(appRecord);
+
+    appMgrServiceInner->taskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler("AppMgrServiceInnerSecondTest");
+    appMgrServiceInner->ClearAppRunningDataForKeepAlive(appRecord);
+
+    appRecord->SetRestartResidentProcCount(-1);
+    struct timespec t;
+    t.tv_sec = 0;
+    t.tv_nsec = 0;
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    int64_t systemTimeMillis = static_cast<int64_t>(((t.tv_sec) * NANOSECONDS + t.tv_nsec) / MICROSECONDS);
+    appRecord->restartTimeMillis_ = systemTimeMillis + 1000;
+    appMgrServiceInner->ClearAppRunningDataForKeepAlive(appRecord);
+    EXPECT_EQ(appMgrServiceInner->restartResidentTaskList_.size(), 1);
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_ClearAppRunningDataForKeepAlive_0100 end");
 }
 } // namespace AppExecFwk
 } // namespace OHOS
