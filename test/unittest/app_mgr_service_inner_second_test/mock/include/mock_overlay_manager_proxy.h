@@ -20,13 +20,10 @@
 #include "gmock/gmock.h"
 
 namespace OHOS::AppExecFwk {
-OverlayModuleInfo g_omi;
+OverlayModuleInfo *g_omi = nullptr;
 class MockOverlayManagerProxy : public OverlayManagerProxy {
 public:
-    MockOverlayManagerProxy(const sptr<IRemoteObject> &object):OverlayManagerProxy(object)
-    {
-        g_omi.bundleName = "";
-    };
+    MockOverlayManagerProxy(const sptr<IRemoteObject> &object):OverlayManagerProxy(object) {};
     ~MockOverlayManagerProxy() override
     {};
 
@@ -35,8 +32,8 @@ public:
         std::vector<OverlayModuleInfo> &overlayModuleInfo, int32_t id)
     {
         overlayModuleInfo.clear();
-        if (g_omi.bundleName != "") {
-            overlayModuleInfo.push_back(g_omi);
+        if (g_omi != nullptr) {
+            overlayModuleInfo.push_back(*g_omi);
         }
         
         return ret;
