@@ -35,6 +35,7 @@ public:
         const std::string &str, const std::string &str1,
         std::vector<OverlayModuleInfo> &overlayModuleInfo, int32_t id)
     {
+        OverlayModuleInfo omi;
         if (count == TEST_FIRST) {
             count++;
             return 0;
@@ -42,15 +43,13 @@ public:
             
         if (count == TEST_SECOND) {
             count++;
-            OverlayModuleInfo omi;
             overlayModuleInfo.push_back(omi);
             return 0;
         }
         
         if (count == TEST_THIRD) {
             count++;
-            OverlayModuleInfo omi2;
-            overlayModuleInfo.push_back(omi2);
+            overlayModuleInfo.push_back(omi);
             return 1;
         }
         
