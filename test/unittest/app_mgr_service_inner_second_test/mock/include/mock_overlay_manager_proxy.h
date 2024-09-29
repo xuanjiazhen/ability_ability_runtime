@@ -31,7 +31,6 @@ public:
         const std::string &str, const std::string &str1,
         std::vector<OverlayModuleInfo> &overlayModuleInfo, int32_t id)
     {
-        
         return 0;
     }
 };
