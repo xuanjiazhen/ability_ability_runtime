@@ -40,9 +40,9 @@ ohos_unittest("AppMgrServiceInnerSecondTest") {
   ]
 
   sources = [
+    "${ability_runtime_services_path}/appmgr/src/child_process_record.cpp",
     "${ability_runtime_test_path}/mock/common/src/mock_native_token.cpp",
     "${ability_runtime_test_path}/mock/task_handler_wrap_mock/src/mock_task_handler_wrap.cpp",
-    "${ability_runtime_services_path}/appmgr/src/child_process_record.cpp",
     "app_mgr_service_inner_second_test.cpp",
     "mock/src/mock_ipc_skeleton.cpp",
     "mock/src/mock_my_flag.cpp",
