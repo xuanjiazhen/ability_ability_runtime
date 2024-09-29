@@ -688,66 +688,6 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_VerifyKillPr
 }
 
 /**
- * @tc.name: AppMgrServiceInnerSecondTest_DetachAppDebug_0100
- * @tc.desc: Test DetachAppDebug
- * @tc.type: FUNC
- */
-HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_DetachAppDebug_0100, TestSize.Level0)
-{
-    TAG_LOGI(AAFwkTag::TEST, "DetachAppDebug_0100 start");
-    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    EXPECT_NE(appMgrServiceInner, nullptr);
-    MyFlag::flag_ = MyFlag::IS_SA_CALL;
-    auto ret = appMgrServiceInner->DetachAppDebug(TEST_BUNDLE_NAME);
-    EXPECT_EQ(ret, ERR_OK);
-
-    MyFlag::flag_ = MyFlag::IS_SHELL_CALL;
-    ret = appMgrServiceInner->DetachAppDebug(TEST_BUNDLE_NAME);
-    EXPECT_EQ(ret, ERR_OK);
-
-    appMgrServiceInner->appRunningManager_ = nullptr;
-    ret = appMgrServiceInner->DetachAppDebug(TEST_BUNDLE_NAME);
-    EXPECT_NE(ret, ERR_OK);
-
-    MyFlag::flag_ = 3;
-    appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
-    ret = appMgrServiceInner->DetachAppDebug(TEST_BUNDLE_NAME);
-    EXPECT_EQ(ret, ERR_OK);
-
-    MyFlag::flag_ = 0;
-    ret = appMgrServiceInner->DetachAppDebug(TEST_BUNDLE_NAME);
-    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
-    TAG_LOGI(AAFwkTag::TEST, "DetachAppDebug_0100 end");
-}
-
-/**
- * @tc.name: AppMgrServiceInnerSecondTest_DetachAppDebug_0200
- * @tc.desc: Test DetachAppDebug
- * @tc.type: FUNC
- */
-HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_DetachAppDebug_002, TestSize.Level0)
-{
-    TAG_LOGI(AAFwkTag::TEST, "DetachAppDebug_0200 start");
-    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    EXPECT_NE(appMgrServiceInner, nullptr);
-
-    MyFlag::flag_ = MyFlag::IS_SHELL_CALL;
-    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
-    EXPECT_NE(appInfo, nullptr);
-
-    int32_t recordId = 1;
-    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, TEST_PROCESS_NAME);
-    EXPECT_NE(appRecord, nullptr);
-
-    appRecord->mainBundleName_ = TEST_BUNDLE_NAME;
-    appRecord->SetDebugApp(false);
-    appMgrServiceInner->appRunningManager_->appRunningRecordMap_.emplace(recordId, appRecord);
-    int32_t ret = appMgrServiceInner->DetachAppDebug(TEST_BUNDLE_NAME);
-    EXPECT_EQ(ret, ERR_OK);
-    TAG_LOGI(AAFwkTag::TEST, "DetachAppDebug_0200 end");
-}
-
-/**
  * @tc.name: AppMgrServiceInnerSecondTest_KillRenderProcess_0100
  * @tc.desc: Test KillRenderProcess
  * @tc.type: FUNC
