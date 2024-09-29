@@ -280,14 +280,17 @@ int32_t AbilityRecord::GetPid()
 void AbilityRecord::LoadUIAbility()
 {
     SetLoading(true);
-    int loadTimeout = AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * LOAD_TIMEOUT_MULTIPLE;
+    int loadTimeout = AmsConfigurationParameter::GetInstance()
+        .GetAppStartTimeoutTime(GetApplicationInfo().bundleName) * LOAD_TIMEOUT_MULTIPLE;
     if (abilityInfo_.applicationInfo.asanEnabled || abilityInfo_.applicationInfo.tsanEnabled) {
-        loadTimeout = AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * LOAD_TIMEOUT_ASANENABLED;
+        loadTimeout = AmsConfigurationParameter::GetInstance()
+            .GetAppStartTimeoutTime(GetApplicationInfo().bundleName) * LOAD_TIMEOUT_ASANENABLED;
         SendEvent(AbilityManagerService::LOAD_HALF_TIMEOUT_MSG, loadTimeout / HALF_TIMEOUT);
         SendEvent(AbilityManagerService::LOAD_TIMEOUT_MSG, loadTimeout);
     } else {
         int coldStartTimeout =
-            AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * COLDSTART_TIMEOUT_MULTIPLE;
+            AmsConfigurationParameter::GetInstance()
+                .GetAppStartTimeoutTime(GetApplicationInfo().bundleName) * COLDSTART_TIMEOUT_MULTIPLE;
         std::lock_guard guard(wantLock_);
         auto delayTime = want_.GetBoolParam("coldStart", false) ? coldStartTimeout : loadTimeout;
         SendEvent(AbilityManagerService::LOAD_HALF_TIMEOUT_MSG, delayTime / HALF_TIMEOUT);
@@ -400,16 +403,22 @@ void AbilityRecord::ForegroundAbility(uint32_t sceneFlag)
     }
 }
 
+bool AbilityRecord::GrantUriPermissionForUIExtension()
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "GrantUriPermissionForUIExtension:: called.");
+    if (UIExtensionUtils::IsUIExtension(abilityInfo_.extensionAbilityType)) {
+        std::lock_guard guard(wantLock_);
+        GrantUriPermission(want_, abilityInfo_.applicationInfo.bundleName, false, 0);
+        return true;
+    }
+    return false;
+}
+
 void AbilityRecord::ForegroundUIExtensionAbility(uint32_t sceneFlag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "ability:%{public}s", GetURI().c_str());
     CHECK_POINTER(lifecycleDeal_);
-    // grant uri permission
-    {
-        std::lock_guard guard(wantLock_);
-        GrantUriPermission(want_, abilityInfo_.applicationInfo.bundleName, false, 0);
-    }
 
     // schedule active after updating AbilityState and sending timeout message to avoid ability async callback
     // earlier than above actions.
@@ -465,7 +474,8 @@ void AbilityRecord::PostForegroundTimeoutTask()
         return;
     }
     int foregroundTimeout =
-        AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * FOREGROUND_TIMEOUT_MULTIPLE;
+        AmsConfigurationParameter::GetInstance()
+            .GetAppStartTimeoutTime(GetApplicationInfo().bundleName) * FOREGROUND_TIMEOUT_MULTIPLE;
     SendEvent(AbilityManagerService::FOREGROUND_HALF_TIMEOUT_MSG, foregroundTimeout / HALF_TIMEOUT);
     SendEvent(AbilityManagerService::FOREGROUND_TIMEOUT_MSG, foregroundTimeout);
     std::string methodName = "ForegroundAbility";
@@ -499,15 +509,17 @@ void AbilityRecord::PostUIExtensionAbilityTimeoutTask(uint32_t messageId)
     TAG_LOGD(AAFwkTag::ABILITYMGR, "post timeout %{public}d, id %{public}d", messageId, recordId_);
     switch (messageId) {
         case AbilityManagerService::LOAD_TIMEOUT_MSG: {
-            uint32_t timeout = AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() *
-                static_cast<uint32_t>(LOAD_TIMEOUT_MULTIPLE);
+            uint32_t timeout = AmsConfigurationParameter::GetInstance()
+                .GetAppStartTimeoutTime(GetApplicationInfo().bundleName) *
+                    static_cast<uint32_t>(LOAD_TIMEOUT_MULTIPLE);
             SendEvent(AbilityManagerService::LOAD_HALF_TIMEOUT_MSG, timeout / HALF_TIMEOUT, recordId_, true);
             SendEvent(AbilityManagerService::LOAD_TIMEOUT_MSG, timeout, recordId_, true);
             break;
         }
         case AbilityManagerService::FOREGROUND_TIMEOUT_MSG: {
-            uint32_t timeout = AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() *
-                static_cast<uint32_t>(FOREGROUND_TIMEOUT_MULTIPLE);
+            uint32_t timeout = AmsConfigurationParameter::GetInstance()
+                .GetAppStartTimeoutTime(GetApplicationInfo().bundleName) *
+                    static_cast<uint32_t>(FOREGROUND_TIMEOUT_MULTIPLE);
             SendEvent(AbilityManagerService::FOREGROUND_HALF_TIMEOUT_MSG, timeout / HALF_TIMEOUT, recordId_, true);
             SendEvent(AbilityManagerService::FOREGROUND_TIMEOUT_MSG, timeout, recordId_, true);
             ResSchedUtil::GetInstance().ReportLoadingEventToRss(LoadingStage::FOREGROUND_BEGIN, GetPid(), GetUid(),
@@ -881,7 +893,8 @@ void AbilityRecord::PostCancelStartingWindowHotTask()
     };
     auto taskName = std::to_string(missionId_) + "_hot";
     int foregroundTimeout =
-        AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * FOREGROUND_TIMEOUT_MULTIPLE;
+        AmsConfigurationParameter::GetInstance()
+            .GetAppStartTimeoutTime(GetApplicationInfo().bundleName) * FOREGROUND_TIMEOUT_MULTIPLE;
     handler->SubmitTask(delayTask, taskName, foregroundTimeout);
 }
 
@@ -910,7 +923,8 @@ void AbilityRecord::PostCancelStartingWindowColdTask()
         }
     };
     auto taskName = std::to_string(missionId_) + "_cold";
-    int loadTimeout = AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * LOAD_TIMEOUT_MULTIPLE;
+    int loadTimeout = AmsConfigurationParameter::GetInstance()
+        .GetAppStartTimeoutTime(GetApplicationInfo().bundleName) * LOAD_TIMEOUT_MULTIPLE;
     handler->SubmitTask(delayTask, taskName, loadTimeout);
 }
 
@@ -1224,7 +1238,8 @@ void AbilityRecord::BackgroundAbility(const Closure &task)
         auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
         if (handler && task) {
             int backgroundTimeout =
-                AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * BACKGROUND_TIMEOUT_MULTIPLE;
+                AmsConfigurationParameter::GetInstance()
+                    .GetAppStartTimeoutTime(GetApplicationInfo().bundleName) * BACKGROUND_TIMEOUT_MULTIPLE;
             handler->SubmitTask(task, "background_" + std::to_string(recordId_), backgroundTimeout, false);
 
             if (abilityInfo_.type == AppExecFwk::AbilityType::PAGE) {
@@ -1567,7 +1582,8 @@ void AbilityRecord::Activate()
     CHECK_POINTER(lifecycleDeal_);
 
     if (!IsDebug()) {
-        int activeTimeout = AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * ACTIVE_TIMEOUT_MULTIPLE;
+        int activeTimeout = AmsConfigurationParameter::GetInstance()
+            .GetAppStartTimeoutTime(GetApplicationInfo().bundleName) * ACTIVE_TIMEOUT_MULTIPLE;
         SendEvent(AbilityManagerService::ACTIVE_TIMEOUT_MSG, activeTimeout);
     }
 
@@ -1587,7 +1603,8 @@ void AbilityRecord::Inactivate()
 
     if (!IsDebug()) {
         int inactiveTimeout =
-            AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * INACTIVE_TIMEOUT_MULTIPLE;
+            AmsConfigurationParameter::GetInstance()
+                .GetAppStartTimeoutTime(GetApplicationInfo().bundleName) * INACTIVE_TIMEOUT_MULTIPLE;
         SendEvent(AbilityManagerService::INACTIVE_TIMEOUT_MSG, inactiveTimeout);
     }
 
@@ -1609,11 +1626,13 @@ void AbilityRecord::Terminate(const Closure &task)
         if (handler && task) {
             if (abilityInfo_.applicationInfo.asanEnabled) {
                 int terminateTimeout =
-                    AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * TERMINATE_TIMEOUT_ASANENABLED;
+                    AmsConfigurationParameter::GetInstance()
+                        .GetAppStartTimeoutTime(GetApplicationInfo().bundleName) * TERMINATE_TIMEOUT_ASANENABLED;
                 handler->SubmitTask(task, "terminate_" + std::to_string(recordId_), terminateTimeout);
             } else {
                 int terminateTimeout =
-                    AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * TERMINATE_TIMEOUT_MULTIPLE;
+                    AmsConfigurationParameter::GetInstance()
+                        .GetAppStartTimeoutTime(GetApplicationInfo().bundleName) * TERMINATE_TIMEOUT_MULTIPLE;
                 handler->SubmitTask(task, "terminate_" + std::to_string(recordId_), terminateTimeout);
             }
         }
@@ -1637,7 +1656,8 @@ void AbilityRecord::ShareData(const int32_t &uniqueId)
     CHECK_POINTER(lifecycleDeal_);
     if (!IsDebug()) {
         int loadTimeout =
-            AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * SHAREDATA_TIMEOUT_MULTIPLE;
+            AmsConfigurationParameter::GetInstance()
+                .GetAppStartTimeoutTime(GetApplicationInfo().bundleName) * SHAREDATA_TIMEOUT_MULTIPLE;
         TAG_LOGD(AAFwkTag::ABILITYMGR, "loadTimeOut %{public}d.", loadTimeout);
         SendEvent(AbilityManagerService::SHAREDATA_TIMEOUT_MSG, loadTimeout, uniqueId);
     }
@@ -1816,7 +1836,7 @@ void AbilityRecord::SendSandboxSavefileResult(const Want &want, int resultCode, 
             }
         }
     } else {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "uri illigal for request: %{public}d", requestCode);
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "uri illegal for request: %{public}d", requestCode);
     }
 
     auto scheduler = scheduler_;
@@ -3178,36 +3198,6 @@ void AbilityRecord::DumpAbilityInfoDone(std::vector<std::string> &infos)
     dumpCondition_.notify_all();
 }
 
-bool AbilityRecord::GetUriListFromWant(Want &want, std::vector<std::string> &uriVec)
-{
-    auto uriStr = want.GetUri().ToString();
-    uriVec = want.GetStringArrayParam(AbilityConfig::PARAMS_STREAM);
-    if (uriVec.empty() && uriStr.empty()) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "uriVec empty.");
-        return false;
-    }
-    // process param stream
-    auto paramStreamUriCount = uriVec.size();
-    if (uriStr.empty() && paramStreamUriCount > MAX_URI_COUNT) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "uri empty, paream stream counts: %{public}zu", paramStreamUriCount);
-        uriVec.resize(MAX_URI_COUNT);
-        want.RemoveParam(AbilityConfig::PARAMS_STREAM);
-        want.SetParam(AbilityConfig::PARAMS_STREAM, uriVec);
-        return true;
-    }
-    if (!uriStr.empty() && paramStreamUriCount > MAX_URI_COUNT - 1) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "paream stream counts: %{public}zu", paramStreamUriCount);
-        uriVec.resize(MAX_URI_COUNT - 1);
-        want.RemoveParam(AbilityConfig::PARAMS_STREAM);
-        want.SetParam(AbilityConfig::PARAMS_STREAM, uriVec);
-    }
-    // process uri
-    if (!uriStr.empty()) {
-        uriVec.insert(uriVec.begin(), uriStr);
-    }
-    return true;
-}
-
 void AbilityRecord::PublishFileOpenEvent(const Want &want)
 {
     auto wangUri = want.GetUri();
@@ -3256,7 +3246,7 @@ void AbilityRecord::GrantUriPermission(Want &want, std::string targetBundleName,
         return;
     }
 
-    if ((want.GetFlags() & (Want::FLAG_AUTH_READ_URI_PERMISSION | Want::FLAG_AUTH_WRITE_URI_PERMISSION)) == 0) {
+    if (!UriUtils::GetInstance().IsGrantUriPermissionFlag(want)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Do not call uriPermissionMgr.");
         return;
     }
@@ -3265,7 +3255,7 @@ void AbilityRecord::GrantUriPermission(Want &want, std::string targetBundleName,
         return;
     }
     std::vector<std::string> uriVec;
-    if (!GetUriListFromWant(want, uriVec)) {
+    if (!UriUtils::GetInstance().GetUriListFromWant(want, uriVec)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "get uri list failed");
         return;
     }
@@ -3292,9 +3282,22 @@ void AbilityRecord::GrantUriPermissionInner(Want &want, std::vector<std::string>
         return;
     }
     uint32_t flag = want.GetFlags();
-    auto checkResults = IN_PROCESS_CALL(UriPermissionManagerClient::GetInstance().CheckUriAuthorization(
-        uriVec, flag, callerTokenId));
-    auto permissionUris = UriUtils::GetInstance().GetPermissionedUriList(uriVec, checkResults, want);
+    std::vector<Uri> permissionUris;
+    if (abilityInfo_.extensionAbilityType != AppExecFwk::ExtensionAbilityType::SERVICE &&
+        abilityInfo_.extensionAbilityType != AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
+        auto checkResults = IN_PROCESS_CALL(UriPermissionManagerClient::GetInstance().CheckUriAuthorization(
+            uriVec, flag, callerTokenId));
+        permissionUris = UriUtils::GetInstance().GetPermissionedUriList(uriVec, checkResults, want);
+    } else {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "target is Service Extension.");
+        // for service extension, uri permission checked ahead
+        for (auto &uriStr: uriVec) {
+            Uri uri(uriStr);
+            if (uri.GetScheme() == "file") {
+                permissionUris.emplace_back(uri);
+            }
+        }
+    }
     if (permissionUris.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "uris not permissioned.");
         return;

@@ -395,6 +395,13 @@ int32_t AppMgrService::GetRunningMultiAppInfoByBundleName(const std::string &bun
     return appMgrServiceInner_->GetRunningMultiAppInfoByBundleName(bundleName, info);
 }
 
+int32_t AppMgrService::GetAllRunningInstanceKeysBySelf(std::vector<std::string> &instanceKeys)
+{
+    if (!IsReady()) {
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->GetAllRunningInstanceKeysBySelf(instanceKeys);
+}
 
 int32_t AppMgrService::GetAllRunningInstanceKeysByBundleName(const std::string &bundleName,
     std::vector<std::string> &instanceKeys)
@@ -1508,14 +1515,14 @@ int32_t AppMgrService::GetAllUIExtensionProviderPid(pid_t hostPid, std::vector<p
     return appMgrServiceInner_->GetAllUIExtensionProviderPid(hostPid, providerPids);
 }
 
-int32_t AppMgrService::NotifyMemorySizeStateChanged(bool isMemorySizeSufficent)
+int32_t AppMgrService::NotifyMemorySizeStateChanged(bool isMemorySizeSufficient)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
 
-    return appMgrServiceInner_->NotifyMemorySizeStateChanged(isMemorySizeSufficent);
+    return appMgrServiceInner_->NotifyMemorySizeStateChanged(isMemorySizeSufficient);
 }
 
 int32_t AppMgrService::SetSupportedProcessCacheSelf(bool isSupport)
