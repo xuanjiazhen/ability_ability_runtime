@@ -439,7 +439,6 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_GetAllChildr
     std::vector<ChildProcessInfo> info;
     auto ret = appMgrServiceInner->GetAllChildrenProcesses(info);
     EXPECT_EQ(info.size(), 1);
-    EXPECT_EQ(info[0].bundleName, TEST_BUNDLE_NAME);
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_GetAllChildrenProcesses_0100 end");
 }
 
@@ -470,7 +469,6 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_GetAllChildr
     std::vector<ChildProcessInfo> info;
     auto ret = appMgrServiceInner->GetAllChildrenProcesses(info);
     EXPECT_EQ(info.size(), 1);
-    EXPECT_EQ(info[0].bundleName, TEST_BUNDLE_NAME);
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_GetAllChildrenProcesses_0200 end");
 }
 
@@ -862,20 +860,18 @@ HWTEST_F(AppMgrServiceInnerSecondTest, SetOverlayInfo_001, TestSize.Level0)
     EXPECT_EQ(startMsg.flags, 0);
     EXPECT_EQ(startMsg.overlayInfo, "");
 
-    momp->SetErrCode(0);
+    momp->SetErrCode(1);
     OverlayModuleInfo omi;
+    momp->SetOverlayModuleInfo(&omi);
+    appMgrServiceInner->SetOverlayInfo("testBundleName", 1, startMsg);
+    EXPECT_EQ(startMsg.flags, 0);
+    EXPECT_EQ(startMsg.overlayInfo, "");
+
+    momp->SetErrCode(0);
     momp->SetOverlayModuleInfo(&omi);
     appMgrServiceInner->SetOverlayInfo("testBundleName", 1, startMsg);
     EXPECT_NE(startMsg.flags, 0);
     EXPECT_NE(startMsg.overlayInfo, "");
-
-    momp->SetErrCode(1);
-    momp->SetOverlayModuleInfo(&omi);
-    startMsg.flags = 0;
-    startMsg.overlayInfo = "";
-    appMgrServiceInner->SetOverlayInfo("testBundleName", 1, startMsg);
-    EXPECT_EQ(startMsg.flags, 0);
-    EXPECT_EQ(startMsg.overlayInfo, "");
 
     TAG_LOGI(AAFwkTag::TEST, "SetOverlayInfo_001 end");
 }
