@@ -848,6 +848,8 @@ HWTEST_F(AppMgrServiceInnerSecondTest, SetOverlayInfo_001, TestSize.Level0)
     appMgrServiceInner->remoteClientManager_->GetBundleManagerHelper()->bundleMgr_ = ibm;
     sptr<IRemoteObject> object = nullptr;
     MockOverlayManagerProxy *momp = new MockOverlayManagerProxy(object);
+    EXPECT_CALL(*momp, GetOverlayModuleInfoForTarget(_, _, _, _))
+        .WillRepeatedly(Return(0));
     EXPECT_CALL(*mibm, GetOverlayManagerProxy())
         .WillOnce(Return(nullptr))
         .WillOnce(Return(momp));
