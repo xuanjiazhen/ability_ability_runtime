@@ -49,6 +49,7 @@ ohos_shared_library("napi_common") {
     "${ability_runtime_innerkits_path}/ability_manager:process_options",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/runtime:runtime",
+    "//third_party/libuv:uv",
   ]
 
   external_deps = [
@@ -61,7 +62,6 @@ ohos_shared_library("napi_common") {
     "hilog:libhilog",
     "ipc:ipc_core",
     "ipc:ipc_napi",
-    "libuv:uv",
     "napi:ace_napi",
   ]
 
