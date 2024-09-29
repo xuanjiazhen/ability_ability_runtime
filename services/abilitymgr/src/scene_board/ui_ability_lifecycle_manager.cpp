@@ -102,6 +102,7 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
             sessionInfo->want.CloseAllFd();
         }
     } else {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "SCB cold start new ability");
         uiAbilityRecord = CreateAbilityRecord(abilityRequest, sessionInfo);
         isColdStart = true;
         UpdateProcessName(abilityRequest, uiAbilityRecord);
@@ -985,6 +986,9 @@ void UIAbilityLifecycleManager::CallUIAbilityBySCB(const sptr<SessionInfo> &sess
         TAG_LOGE(AAFwkTag::ABILITYMGR, "session exist");
         return;
     }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SCB start new ability. bundle:%{public}s, ability:%{public}s",
+        sessionInfo->want.GetElement().GetBundleName().c_str(),
+        sessionInfo->want.GetElement().GetAbilityName().c_str());
     isColdStart = true;
 
     MoreAbilityNumbersSendEventInfo(sessionInfo->userId, sessionInfo->want.GetElement().GetBundleName(),
