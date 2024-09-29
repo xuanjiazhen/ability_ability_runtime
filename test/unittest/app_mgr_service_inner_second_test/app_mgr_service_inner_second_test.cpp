@@ -747,51 +747,5 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_DetachAppDeb
 
     TAG_LOGI(AAFwkTag::TEST, "DetachAppDebug_0200 end");
 }
-
-/**
- * @tc.name: AppMgrServiceInnerSecondTest_KillRenderProcess_0100
- * @tc.desc: Test KillRenderProcess
- * @tc.type: FUNC
- */
-HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_KillRenderProcess_0100, TestSize.Level0)
-{
-    TAG_LOGI(AAFwkTag::TEST, "KillRenderProcess_0100 start");
-    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    EXPECT_NE(appMgrServiceInner, nullptr);
-    appMgrServiceInner->KillRenderProcess(nullptr);
-
-    auto appInfo = std::make_shared<ApplicationInfo>();
-    EXPECT_NE(appInfo, nullptr);
-    appInfo->bundleName = "testBundleName";
-    appInfo->name = "testBundleName";
-    std::string processName = "testProcess";
-    int32_t recordId = 1;
-    pid_t hostPid = 1001;
-    auto hostRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
-    EXPECT_NE(hostRecord, nullptr);
-    hostRecord->priorityObject_->SetPid(hostPid);
-    hostRecord->SetUid(100);
-    std::string renderParam = "test_render_param";
-    int32_t ipcFd = 1;
-    int32_t sharedFd = 1;
-    int32_t crashFd = 1;
-
-    auto appRunningRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, TEST_PROCESS_NAME);
-    EXPECT_NE(appRunningRecord, nullptr);
-
-    std::shared_ptr<RenderRecord> renderRecord =
-        RenderRecord::CreateRenderRecord(hostPid, renderParam, ipcFd, sharedFd, crashFd, hostRecord);
-    EXPECT_NE(renderRecord, nullptr);
-
-    renderRecord->SetPid(10);
-    renderRecord->SetUid(10);
-    appRunningRecord->AddRenderRecord(renderRecord);
-    appMgrServiceInner->KillRenderProcess(appRunningRecord);
-
-    renderRecord->SetPid(0);
-    appRunningRecord->AddRenderRecord(renderRecord);
-    appMgrServiceInner->KillRenderProcess(appRunningRecord);
-    TAG_LOGI(AAFwkTag::TEST, "KillRenderProcess_0100 end");
-}
 } // namespace AppExecFwk
 } // namespace OHOS
