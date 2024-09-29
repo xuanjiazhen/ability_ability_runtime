@@ -195,7 +195,10 @@ ohos_source_set("abilityms_test_source") {
 
   include_dirs = [
     "${ability_runtime_services_path}/appdfr/include",
+    "${ability_base_kits_path}/extractortool/include",
     "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/appexecfwk_core",
+    "${distributedschedule_path}/safwk/interfaces/innerkits/safwk",
+    "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy/include",
     "${ability_runtime_innerkits_path}/app_manager/include/appmgr",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/context",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/distributed_ability_runtime",
@@ -286,7 +289,12 @@ ohos_source_set("abilityms_test_source") {
       "${ability_runtime_services_path}/abilitymgr/src/system_dialog_scheduler.cpp",
       "${ability_runtime_services_path}/appdfr/src/application_anr_listener.cpp",
     ]
-    deps += [ "//third_party/libjpeg-turbo:turbojpeg_static" ]
+    deps += [
+      "${global_path}/i18n/frameworks/intl:intl_util",
+      "${multimedia_path}/interfaces/innerkits:image_native",
+      "//third_party/icu/icu4c:shared_icuuc",
+      "//third_party/libjpeg-turbo:turbojpeg_static",
+    ]
     external_deps += [
       "i18n:intl_util",
       "icu:shared_icuuc",
