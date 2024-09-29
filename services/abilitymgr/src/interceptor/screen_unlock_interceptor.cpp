@@ -55,7 +55,8 @@ ErrCode ScreenUnlockInterceptor::DoProcess(AbilityInterceptorParam param)
         }
     }
 
-    if (targetAbilityInfo.applicationInfo.allowAppRunWhenDeviceFirstLocked) {
+    if (targetAbilityInfo.applicationInfo.isSystemApp ||
+        targetAbilityInfo.applicationInfo.allowAppRunWhenDeviceFirstLocked) {
         return ERR_OK;
     }
 #ifdef SUPPORT_SCREEN
