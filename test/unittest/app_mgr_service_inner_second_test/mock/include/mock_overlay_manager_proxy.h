@@ -39,11 +39,13 @@ public:
         return ret;
     }
  
-    void SetErrCode(int value) {
+    void SetErrCode(int value)
+    {
         ret = value;
     }
 
-    void SetOverlayModuleInfo(OverlayModuleInfo *omi) {
+    void SetOverlayModuleInfo(OverlayModuleInfo *omi)
+    {
         this->omi = omi;
     }
 
