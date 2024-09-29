@@ -107,6 +107,7 @@ enum class AppMgrInterfaceCode {
     CHECK_CALLING_IS_USER_TEST_MODE = 82,
     SET_APPFREEZE_FILTER = 83,
     GET_ALL_CHILDREN_PROCESSES = 88,
+    SET_SUPPORTED_PROCESS_CACHE = 89,
 };
 } // AppExecFwk
 } // OHOS
