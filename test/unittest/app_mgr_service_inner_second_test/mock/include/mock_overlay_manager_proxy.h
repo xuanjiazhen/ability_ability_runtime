@@ -19,22 +19,29 @@
 #include "overlay_manager_proxy.h"
 #include "gmock/gmock.h"
 
+#define TEST_FIRST 0
+#define TEST_SECOND 1
+#define TEST_THIRD 2
+
 namespace OHOS::AppExecFwk {
 static int count = 0;
 class MockOverlayManagerProxy : public OverlayManagerProxy {
 public:
     MockOverlayManagerProxy(const sptr<IRemoteObject> &object):OverlayManagerProxy(object) {};
-    ~MockOverlayManagerProxy() override {};
+    ~MockOverlayManagerProxy() override
+    {};
 
-    ErrCode GetOverlayModuleInfoForTarget(const std::string &str, const std::string &str1, std::vector<OverlayModuleInfo> &overlayModuleInfo, int32_t id)
+    ErrCode GetOverlayModuleInfoForTarget(
+        const std::string &str, const std::string &str1,
+        std::vector<OverlayModuleInfo> &overlayModuleInfo, int32_t id)
     {
-        if (count == 0)
+        if (count == TEST_FIRST)
         {
             count++;
             return 0;
         }
             
-        if (count == 1)
+        if (count == TEST_SECOND)
         {
             count++;
             OverlayModuleInfo omi;
@@ -42,7 +49,7 @@ public:
             return 0;
         }
         
-        if (count == 2)
+        if (count == TEST_THIRD)
         {
             count++;
             OverlayModuleInfo omi2;
