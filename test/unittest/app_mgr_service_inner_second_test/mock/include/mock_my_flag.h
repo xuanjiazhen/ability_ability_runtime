@@ -25,6 +25,9 @@ public:
         IS_SA_AND_SHELL_CALL,
     };
     static int flag_;
+    static bool myFlag_;
+    static bool isMultiInstance_;
+    static void reset();
 };
 }  // namespace AAFwk
 }  // namespace OHOS

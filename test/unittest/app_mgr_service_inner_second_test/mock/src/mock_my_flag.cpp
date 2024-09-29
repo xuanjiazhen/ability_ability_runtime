@@ -18,5 +18,12 @@
 namespace OHOS {
 namespace AAFwk {
 int MyFlag::flag_ = 1;
+bool MyFlag::myFlag_ = false;
+bool MyFlag::isMultiInstance_ = false;
+void MyFlag::reset()
+{
+    MyFlag::myFlag_ = false;
+    MyFlag::isMultiInstance_ = false;
+}
 } // namespace AAFwk
 } // namespace OHOS
