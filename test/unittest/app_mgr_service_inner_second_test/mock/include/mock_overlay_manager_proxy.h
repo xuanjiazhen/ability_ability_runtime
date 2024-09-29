@@ -35,7 +35,6 @@ public:
         const std::string &str, const std::string &str1,
         std::vector<OverlayModuleInfo> &overlayModuleInfo, int32_t id)
     {
-        OverlayModuleInfo omi;
         if (count == TEST_FIRST) {
             count++;
             return 0;
@@ -55,6 +54,8 @@ public:
         
         return 0;
     }
+
+    OverlayModuleInfo omi;
 };
 } // namespace OHOS::AppExecFwk
 #endif // FOUNDATION_MOCK_OVERLAY_MANAGER_PROXY_H
