@@ -40,7 +40,7 @@ public:
     static std::vector<bool>
     CheckUriPersistentPermission(std::vector<Uri> &uriVec,
                                  uint32_t callerTokenId, uint32_t flag,
-                                 std::vector<PolicyInfo> &pathPolicies);
+                                 std::vector<PolicyInfo> &pathPolicies, const std::string &bundleName);
 
     static PolicyInfo GetPathPolicyInfoFromUri(Uri &uri, uint32_t flag, const std::string &bundleName = "");
 };
