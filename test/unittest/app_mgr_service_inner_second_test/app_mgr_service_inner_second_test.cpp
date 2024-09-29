@@ -857,14 +857,20 @@ HWTEST_F(AppMgrServiceInnerSecondTest, SetOverlayInfo_001, TestSize.Level0)
     EXPECT_EQ(startMsg.flags, 0);
     EXPECT_EQ(startMsg.overlayInfo, "");
     
+    momp->SetErrCode(0);
     appMgrServiceInner->SetOverlayInfo("testBundleName", 1, startMsg);
     EXPECT_EQ(startMsg.flags, 0);
     EXPECT_EQ(startMsg.overlayInfo, "");
 
+    momp->SetErrCode(0);
+    OverlayModuleInfo omi;
+    momp->SetOverlayModuleInfo(&omi);
     appMgrServiceInner->SetOverlayInfo("testBundleName", 1, startMsg);
     EXPECT_NE(startMsg.flags, 0);
     EXPECT_NE(startMsg.overlayInfo, "");
 
+    momp->SetErrCode(1);
+    momp->SetOverlayModuleInfo(&omi);
     startMsg.flags = 0;
     startMsg.overlayInfo = "";
     appMgrServiceInner->SetOverlayInfo("testBundleName", 1, startMsg);
