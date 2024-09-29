@@ -25,13 +25,10 @@ public:
     MockOverlayManagerProxy(const sptr<IRemoteObject> &object):OverlayManagerProxy(object) {};
     ~MockOverlayManagerProxy() override
     {};
-
-    ErrCode GetOverlayModuleInfoForTarget(
+    
+    MOCK_METHOD4(GetOverlayModuleInfoForTarget, ErrCode(
         const std::string &str, const std::string &str1,
-        std::vector<OverlayModuleInfo> &overlayModuleInfo, int32_t id)
-    {
-        return 0;
-    }
+        std::vector<OverlayModuleInfo> &overlayModuleInfo, int32_t id));
 };
 } // namespace OHOS::AppExecFwk
 #endif // FOUNDATION_MOCK_OVERLAY_MANAGER_PROXY_H
