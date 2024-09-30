@@ -560,22 +560,11 @@ bool JsRuntime::LoadScript(const std::string& path, std::vector<uint8_t>* buffer
     return jsEnv_->LoadScript(path, buffer, isBundle);
 }
 
-bool JsRuntime::LoadScript(const std::string& path, uint8_t* buffer, size_t len, bool isBundle,
-    const std::string& srcEntrance)
+bool JsRuntime::LoadScript(const std::string& path, uint8_t* buffer, size_t len, bool isBundle)
 {
     TAG_LOGD(AAFwkTag::JSRUNTIME, "path: %{private}s", path.c_str());
     CHECK_POINTER_AND_RETURN(jsEnv_, false);
-    if (isOhmUrl_ && !moduleName_.empty()) {
-        auto vm = GetEcmaVm();
-        CHECK_POINTER_AND_RETURN(vm, false);
-        std::string srcFilename = "";
-        srcFilename = BUNDLE_INSTALL_PATH + moduleName_ + MERGE_ABC_PATH;
-        return panda::JSNApi::ExecuteSecureWithOhmUrl(vm, buffer, len, srcFilename, srcEntrance);
-    }
     return jsEnv_->LoadScript(path, buffer, len, isBundle);
-    // if ohmurl modulePath=/data/storage/el1/bundle/${modulename}/ets/modules.abc
-    // LoadScriptohmurl(buffer, len, modulePath, srcentry)
-
 }
 
 std::unique_ptr<NativeReference> JsRuntime::LoadSystemModuleByEngine(
@@ -982,13 +971,10 @@ napi_value JsRuntime::LoadJsBundle(const std::string& path, const std::string& h
     return exportObj;
 }
 
-napi_value JsRuntime::LoadJsModule(const std::string& path, const std::string& hapPath, const std::string& srcEntrance)
+napi_value JsRuntime::LoadJsModule(const std::string& path, const std::string& hapPath)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::JSRUNTIME, "zhuhan path: %{public}s", path.c_str());
-    TAG_LOGI(AAFwkTag::JSRUNTIME, "zhuhan hapPath: %{public}s", hapPath.c_str());
-    TAG_LOGI(AAFwkTag::JSRUNTIME, "zhuhan srcEntrance: %{public}s", srcEntrance.c_str());
-    if (!RunScript(path, hapPath, false, srcEntrance)) {
+    if (!RunScript(path, hapPath, false)) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "Failed to run script: %{private}s", path.c_str());
         return nullptr;
     }
@@ -996,10 +982,6 @@ napi_value JsRuntime::LoadJsModule(const std::string& path, const std::string& h
     auto vm = GetEcmaVm();
     CHECK_POINTER_AND_RETURN(vm, nullptr);
     panda::Local<panda::ObjectRef> exportObj = panda::JSNApi::GetExportObject(vm, path, "default");
-    if (isOhmUrl_) {
-        exportObj = panda::JSNApi::GetExportObjectByOhmUrl(vm, srcEntrance, "default");
-    }
-
     if (exportObj->IsNull()) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "Get export object failed");
         return nullptr;
@@ -1011,23 +993,17 @@ napi_value JsRuntime::LoadJsModule(const std::string& path, const std::string& h
 }
 
 std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& moduleName, const std::string& modulePath,
-    const std::string& hapPath, bool esmodule, bool useCommonChunk, const std::string& srcEntrance)
+    const std::string& hapPath, bool esmodule, bool useCommonChunk)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "Load module(%{public}s, %{private}s, %{private}s, %{public}s, %{private}s)",
-        moduleName.c_str(), modulePath.c_str(), hapPath.c_str(), esmodule ? "true" : "false", srcEntrance.c_str());
-    TAG_LOGI(AAFwkTag::JSRUNTIME, "zhuhan modulePath is srcPath, modulePath: %{public}s", modulePath.c_str());
-    TAG_LOGI(AAFwkTag::JSRUNTIME, "zhuhan hapPath: %{public}s", hapPath.c_str());
-    TAG_LOGI(AAFwkTag::JSRUNTIME, "zhuhan srcEntrance: %{public}s", srcEntrance.c_str());
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "Load module(%{public}s, %{private}s, %{private}s, %{public}s)",
+        moduleName.c_str(), modulePath.c_str(), hapPath.c_str(), esmodule ? "true" : "false");
     auto vm = GetEcmaVm();
     CHECK_POINTER_AND_RETURN(vm, std::unique_ptr<NativeReference>());
     // use for debugger, js engine need to know load module to handle debug event
     panda::JSNApi::NotifyLoadModule(vm);
     auto env = GetNapiEnv();
     CHECK_POINTER_AND_RETURN(env, std::unique_ptr<NativeReference>());
-    // 1.check ohmurl
-    // 成员变量存下来或者零时变量往下传
-    isOhmUrl_ = panda::JSNApi::IsOhmUrlFile(srcEntrance);
 
     HandleScope handleScope(*this);
 
@@ -1055,9 +1031,7 @@ std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& module
                 return std::unique_ptr<NativeReference>();
             }
         }
-        TAG_LOGI(AAFwkTag::JSRUNTIME, "zhuhan fileName: %{public}s", fileName.c_str());
-        TAG_LOGI(AAFwkTag::JSRUNTIME, "zhuhan hapPath: %{public}s", hapPath.c_str());
-        classValue = esmodule ? LoadJsModule(fileName, hapPath, srcEntrance) : LoadJsBundle(fileName, hapPath, useCommonChunk);
+        classValue = esmodule ? LoadJsModule(fileName, hapPath) : LoadJsBundle(fileName, hapPath, useCommonChunk);
         if (classValue == nullptr) {
             return std::unique_ptr<NativeReference>();
         }
@@ -1108,8 +1082,7 @@ std::unique_ptr<NativeReference> JsRuntime::LoadSystemModule(
     return std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference*>(resultRef));
 }
 
-bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath, bool useCommonChunk,
-    const std::string& srcEntrance)
+bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath, bool useCommonChunk)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     auto vm = GetEcmaVm();
@@ -1125,7 +1098,6 @@ bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath
     }
 
     bool newCreate = false;
-    // hsp添加是否可以复用这段逻辑
     std::string loadPath = ExtractorUtil::GetLoadFilePath(hapPath);
     std::shared_ptr<Extractor> extractor = ExtractorUtil::GetExtractor(loadPath, newCreate, true);
     if (!extractor) {
@@ -1148,7 +1120,7 @@ bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath
                 TAG_LOGE(AAFwkTag::JSRUNTIME, "Get safeData abc file failed");
                 return false;
             }
-            return LoadScript(abcPath, safeData->GetDataPtr(), safeData->GetDataLen(), isBundle_, srcEntrance);
+            return LoadScript(abcPath, safeData->GetDataPtr(), safeData->GetDataLen(), isBundle_);
         } else {
             std::unique_ptr<uint8_t[]> data;
             size_t dataLen = 0;
@@ -1178,8 +1150,6 @@ bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath
         panda::JSNApi::SetAssetPath(vm, path);
         panda::JSNApi::SetModuleName(vm, moduleName_);
     }
-    TAG_LOGI(AAFwkTag::JSRUNTIME, "zhuhan path: %{public}s,  srcPath: %{public}s", path.c_str(), srcPath.c_str());
-    // hsp的path重新拼接（/data/storage/el1/bundle/${modulename}/ets/modules.abc）和老版本一样
     return func(path, srcPath);
 }
 
