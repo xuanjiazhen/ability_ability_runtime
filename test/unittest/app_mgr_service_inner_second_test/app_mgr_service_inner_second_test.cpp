@@ -653,5 +653,38 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_NotifyMemMgr
     EXPECT_FALSE(ret); // stub err
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_NotifyMemMgrPriorityChanged_0100 end");
 }
+
+/**
+ * @tc.name: AppMgrServiceInnerSecondTest_VerifyKillProcessPermission_0100
+ * @tc.desc: Test VerifyKillProcessPermission
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_VerifyKillProcessPermission_0100, TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermission_0100 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    auto ret = appMgrServiceInner->VerifyKillProcessPermission(TEST_BUNDLE_NAME);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermission_0100 end");
+}
+
+/**
+ * @tc.name: AppMgrServiceInnerSecondTest_VerifyKillProcessPermission_0200
+ * @tc.desc: Test VerifyKillProcessPermission
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_VerifyKillProcessPermission_0200, TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermission_0200 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    auto ret = appMgrServiceInner->VerifyKillProcessPermission(token_);
+    EXPECT_EQ(ret, ERR_OK);
+    appMgrServiceInner->appRunningManager_ = nullptr;
+    ret = appMgrServiceInner->VerifyKillProcessPermission(token_);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermission_0200 end");
+}
 } // namespace AppExecFwk
 } // namespace OHOS
