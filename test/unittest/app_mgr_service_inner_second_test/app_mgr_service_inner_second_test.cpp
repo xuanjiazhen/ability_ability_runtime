@@ -846,8 +846,6 @@ HWTEST_F(AppMgrServiceInnerSecondTest, SetOverlayInfo_001, TestSize.Level0)
     EXPECT_EQ(startMsg.flags, 0);
     EXPECT_EQ(startMsg.overlayInfo, "");
 
-    bundleManager = std::make_shared<BundleMgrHelper>();
-    appMgrServiceInner->SetBundleManagerHelper(bundleManager);
     MOCKIBundleMgr *mibm = new MOCKIBundleMgr();
     sptr<IBundleMgr> ibm = sptr<IBundleMgr>(mibm);
     appMgrServiceInner->remoteClientManager_->GetBundleManagerHelper()->bundleMgr_ = ibm;
