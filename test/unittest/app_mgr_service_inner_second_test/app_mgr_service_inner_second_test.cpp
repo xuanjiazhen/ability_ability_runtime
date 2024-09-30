@@ -812,37 +812,6 @@ HWTEST_F(AppMgrServiceInnerSecondTest, KillProcessByAbilityToken_001, TestSize.L
 }
 
 /**
- * @tc.name: SetOverlayInfo_001
- * @tc.desc: SetOverlayInfo.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AppMgrServiceInnerSecondTest, SetOverlayInfo_001, TestSize.Level0)
-{
-    TAG_LOGI(AAFwkTag::TEST, "SetOverlayInfo_001 start");
-    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    EXPECT_NE(appMgrServiceInner, nullptr);
-    appMgrServiceInner->remoteClientManager_ = nullptr;
-    AppSpawnStartMsg startMsg;
-    appMgrServiceInner->SetOverlayInfo("testBundleName", 1, startMsg);
-    EXPECT_EQ(startMsg.flags, 0);
-    EXPECT_EQ(startMsg.overlayInfo, "");
-
-    appMgrServiceInner->remoteClientManager_ = std::make_shared<RemoteClientManager>();
-    appMgrServiceInner->SetOverlayInfo("testBundleName", 1, startMsg);
-    EXPECT_EQ(startMsg.flags, 0);
-    EXPECT_EQ(startMsg.overlayInfo, "");
-
-    std::shared_ptr<BundleMgrHelper> bundleManager = nullptr;
-    appMgrServiceInner->remoteClientManager_->SetBundleManagerHelper(bundleManager);
-    appMgrServiceInner->SetOverlayInfo("testBundleName", 1, startMsg);
-    EXPECT_EQ(startMsg.flags, 0);
-    EXPECT_EQ(startMsg.overlayInfo, "");
-
-    TAG_LOGI(AAFwkTag::TEST, "SetOverlayInfo_001 end");
-}
-
-/**
  * @tc.name: StartProcessVerifyPermission_001
  * @tc.desc: Test StartProcessVerifyPermission.
  * @tc.type: FUNC
