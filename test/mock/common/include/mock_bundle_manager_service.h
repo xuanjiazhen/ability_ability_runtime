@@ -39,6 +39,11 @@ public:
         ErrCode(const std::string &bundleName, std::vector<AppExecFwk::BaseSharedBundleInfo> &baseSharedBundleInfos,
         AppExecFwk::GetDependentBundleInfoFlag flag));
     MOCK_METHOD2(GetBundleInfoForSelf, ErrCode(int32_t flags, AppExecFwk::BundleInfo &bundleInfo));
+    MOCK_METHOD4(GetBundleInfoV9, ErrCode(const std::string&, int32_t, AppExecFwk::BundleInfo&, int32_t));
+    MOCK_METHOD4(QueryAbilityInfo, bool(const Want &want, int32_t flags, int32_t userId,
+        AppExecFwk::AbilityInfo &abilityInfo));
+    MOCK_METHOD5(GetSandboxExtAbilityInfos, ErrCode(const Want &want, int32_t appIndex, int32_t flags,
+        int32_t userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos));
 
     sptr<AppExecFwk::IOverlayManager> GetOverlayManagerProxy()
     {

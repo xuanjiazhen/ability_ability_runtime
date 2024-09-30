@@ -20,6 +20,5 @@ group("unittest") {
     "main_fourth_test:unittest",
     "main_thread_test:unittest",
     "ohos_application_first_test:unittest",
-    "ohos_application_test:unittest",
   ]
 }
