@@ -127,7 +127,7 @@ void LifecycleDeal::RestoreAbilityState(const PacMap &inState)
 }
 
 void LifecycleDeal::ForegroundNew(const Want &want, LifeCycleStateInfo &stateInfo,
-    sptr<SessionInfo> sessionInfo)
+    sptr<SessionInfo> sessionInfo, const sptr<IRemoteObject> &token)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     auto abilityScheduler = GetScheduler();
@@ -136,7 +136,7 @@ void LifecycleDeal::ForegroundNew(const Want &want, LifeCycleStateInfo &stateInf
         stateInfo.caller.bundleName.c_str(),
         stateInfo.caller.abilityName.c_str());
     stateInfo.state = AbilityLifeCycleState::ABILITY_STATE_FOREGROUND_NEW;
-    abilityScheduler->ScheduleAbilityTransaction(want, stateInfo, sessionInfo);
+    abilityScheduler->ScheduleAbilityTransaction(want, stateInfo, sessionInfo, token);
 }
 
 void LifecycleDeal::BackgroundNew(const Want &want, LifeCycleStateInfo &stateInfo,

@@ -95,7 +95,8 @@ public:
      * @param sessionInfo Indicates the session info.
      */
     void ScheduleAbilityTransaction(
-        const Want &want, const LifeCycleStateInfo &targetState, sptr<SessionInfo> sessionInfo = nullptr) override;
+        const Want &want, const LifeCycleStateInfo &targetState, sptr<SessionInfo> sessionInfo = nullptr,
+        const sptr<IRemoteObject> &token = nullptr) override;
 
     /**
      * @brief Provide operating system ShareData information to the observer

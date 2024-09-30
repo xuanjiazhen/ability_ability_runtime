@@ -48,7 +48,7 @@ public:
      * @param stateInfo, The lifecycle state to be transformed.
      */
     void ScheduleAbilityTransaction(const Want &want, const LifeCycleStateInfo &stateInfo,
-        sptr<SessionInfo> sessionInfo = nullptr) override;
+        sptr<SessionInfo> sessionInfo = nullptr, const sptr<IRemoteObject> &token = nullptr) override;
 
     /*
      * ScheduleShareData,  schedule ability to transform life state and share data with orgin ability.
@@ -334,6 +334,7 @@ public:
 private:
     bool WriteInterfaceToken(MessageParcel &data);
     int32_t SendTransactCmd(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+    void ReportLifecycleError(std::string entry, int state, const sptr<IRemoteObject> &token = nullptr);
 
 private:
     static inline BrokerDelegator<AbilitySchedulerProxy> delegator_;

@@ -307,7 +307,8 @@ void UIAbilityThread::HandleUpdateConfiguration(const AppExecFwk::Configuration 
 }
 
 void UIAbilityThread::ScheduleAbilityTransaction(
-    const Want &want, const LifeCycleStateInfo &lifeCycleStateInfo, sptr<AAFwk::SessionInfo> sessionInfo)
+    const Want &want, const LifeCycleStateInfo &lifeCycleStateInfo, sptr<AAFwk::SessionInfo> sessionInfo,
+    const sptr<IRemoteObject> &token)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::UIABILITY, "name:%{public}s,targeState:%{public}d,isNewWant:%{public}d",

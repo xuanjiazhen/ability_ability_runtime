@@ -16,6 +16,7 @@
 #include "app_state_callback_proxy.h"
 
 #include "configuration.h"
+#include "freeze_util.h"
 #include "ipc_types.h"
 
 #include "hilog_tag_wrapper.h"
@@ -40,18 +41,27 @@ void AppStateCallbackProxy::OnAbilityRequestDone(const sptr<IRemoteObject> &toke
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
+    AbilityRuntime::FreezeUtil::LifecycleFlow flow = {token, AbilityRuntime::FreezeUtil::TimeoutState::FOREGROUND};
+    std::string entry;
     if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "data write failed");
+        entry = "ERROR OnAbilityRequestDone; data write failed";
+        AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
         return;
     }
 
     if (token) {
         if (!data.WriteBool(true) || !data.WriteRemoteObject(token.GetRefPtr())) {
             TAG_LOGE(AAFwkTag::APPMGR, "Failed to write flag and token");
+            entry = "ERROR OnAbilityRequestDone; Failed to write flag and token";
+            AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
             return;
         }
     } else {
         if (!data.WriteBool(false)) {
             TAG_LOGE(AAFwkTag::APPMGR, "Failed to write flag");
+            entry = "ERROR OnAbilityRequestDone; Failed to write flag";
+            AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
             return;
         }
     }
@@ -61,7 +71,9 @@ void AppStateCallbackProxy::OnAbilityRequestDone(const sptr<IRemoteObject> &toke
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_ABILITY_REQUEST_DONE), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "OnAbilityRequestDone is failed, due to IPC Error: %{public}d", ret);
+        entry = "ERROR OnAbilityRequestDone; OnAbilityRequestDone is failed, due to IPC Error";
+        AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
     }
     TAG_LOGD(AAFwkTag::APPMGR, "end");
 }
