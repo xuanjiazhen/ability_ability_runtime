@@ -878,7 +878,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, SetOverlayInfo_001, TestSize.Level0)
     appMgrServiceInner->SetOverlayInfo("testBundleName", 1, startMsg);
     EXPECT_NE(startMsg.flags, 0);
     EXPECT_NE(startMsg.overlayInfo, "");
-
+    testing::Mock::AllowLeak(mibm);
     TAG_LOGI(AAFwkTag::TEST, "SetOverlayInfo_001 end");
 }
 
