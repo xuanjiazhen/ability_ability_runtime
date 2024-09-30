@@ -21,6 +21,7 @@
 
 namespace OHOS::AppExecFwk {
 OverlayModuleInfo *g_omi = nullptr;
+ErrCode ret = -1;
 class MockOverlayManagerProxy : public OverlayManagerProxy {
 public:
     MockOverlayManagerProxy(const sptr<IRemoteObject> &object):OverlayManagerProxy(object) {};
@@ -48,8 +49,6 @@ public:
     {
         g_omi = omi;
     }
-
-    ErrCode ret;
 };
 } // namespace OHOS::AppExecFwk
 #endif // FOUNDATION_MOCK_OVERLAY_MANAGER_PROXY_H
