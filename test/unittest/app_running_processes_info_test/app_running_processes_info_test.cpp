@@ -69,8 +69,6 @@ public:
     void MockBundleInstaller();
     sptr<ISystemAbilityManager> iSystemAbilityMgr_ = nullptr;
     sptr<AppExecFwk::MockSystemAbilityManager> mockSystemAbility_ = nullptr;
-    std::shared_ptr<AppExecFwk::BundleMgrHelper> bundleMgrClient =
-        DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
 
 protected:
     static const std::string GetTestProcessName()
@@ -125,7 +123,6 @@ void AppRunningProcessesInfoTest::SetUp()
     mockAppSchedulerClient_ = sptr<MockAppSchedulerClient>::MakeSptr(impl);
     service_.reset(new (std::nothrow) AppMgrServiceInner());
     SystemAbilityManagerClient::GetInstance().systemAbilityManager_ = mockSystemAbility_;
-    service_->SetBundleManagerHelper(bundleMgrClient);
 }
 
 void AppRunningProcessesInfoTest::TearDown()

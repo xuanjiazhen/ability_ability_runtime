@@ -23,13 +23,14 @@
 #include "hitrace_meter.h"
 #include "res_sched_client.h"
 #include "res_type.h"
+#include "singleton.h"
 #include "startup_util.h"
 
 namespace OHOS {
 namespace AppExecFwk {
-AppPreloader::AppPreloader(std::shared_ptr<RemoteClientManager> remoteClientManager)
+AppPreloader::AppPreloader()
 {
-    remoteClientManager_ = remoteClientManager;
+    bundleMgrHelper_ = DelayedSingleton<BundleMgrHelper>::GetInstance();
 }
 
 bool AppPreloader::PreCheck(const std::string &bundleName, PreloadMode preloadMode)
@@ -169,11 +170,7 @@ bool AppPreloader::CheckPreloadConditions(const AbilityInfo &abilityInfo)
 
 std::shared_ptr<BundleMgrHelper> AppPreloader::GetBundleManagerHelper()
 {
-    if (!remoteClientManager_) {
-        TAG_LOGE(AAFwkTag::APPMGR, "null remoteClientManager_");
-        return nullptr;
-    }
-    return remoteClientManager_->GetBundleManagerHelper();
+    return bundleMgrHelper_;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

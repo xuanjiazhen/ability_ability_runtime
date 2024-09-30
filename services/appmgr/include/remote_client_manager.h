@@ -20,7 +20,6 @@
 #include "refbase.h"
 
 #include "app_spawn_client.h"
-#include "bundle_mgr_helper.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -43,20 +42,6 @@ public:
      */
     void SetSpawnClient(const std::shared_ptr<AppSpawnClient> &appSpawnClient);
 
-    /**
-     * GetBundleManager, Get bundle management services.
-     *
-     * @return the bundle management services instance.
-     */
-    std::shared_ptr<BundleMgrHelper> GetBundleManagerHelper();
-
-    /**
-     * @brief Setting bundle management instance.
-     *
-     * @param appSpawnClient, the bundle management instance.
-     */
-    void SetBundleManagerHelper(const std::shared_ptr<BundleMgrHelper> &bundleMgrHelper);
-
     std::shared_ptr<AppSpawnClient> GetNWebSpawnClient();
 
     std::shared_ptr<AppSpawnClient> GetCJSpawnClient();
@@ -65,7 +50,6 @@ public:
 
 private:
     std::shared_ptr<AppSpawnClient> appSpawnClient_;
-    std::shared_ptr<BundleMgrHelper> bundleManagerHelper_;
     std::shared_ptr<AppSpawnClient> nwebSpawnClient_;
     std::shared_ptr<AppSpawnClient> cjAppSpawnClient_;
     std::shared_ptr<AppSpawnClient> nativeSpawnClient_;

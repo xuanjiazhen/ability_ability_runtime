@@ -138,10 +138,8 @@ HWTEST_F(ExitResidentProcessManagerTest, QueryExitBundleInfos_001, TestSize.Leve
     std::vector<AppExecFwk::BundleInfo> exitBundleInfos;
     auto exitResidentProcessManager = std::make_shared<ExitResidentProcessManager>();
     std::shared_ptr<RemoteClientManager> remoteClientManager = std::make_shared<RemoteClientManager>();
-    auto bundleMgrHelper = remoteClientManager->GetBundleManagerHelper();
     exitResidentProcessManager->QueryExitBundleInfos(exitBundleNames, exitBundleInfos);
     EXPECT_NE(remoteClientManager, nullptr);
-    EXPECT_NE(bundleMgrHelper, nullptr);
 }
 
 /**

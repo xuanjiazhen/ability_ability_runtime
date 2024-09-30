@@ -170,7 +170,7 @@ void AppRunningProcessesInfoModuleTest::SetUp()
     service_.reset(new (std::nothrow) AppMgrServiceInner());
     mockToken_ = new (std::nothrow) MockAbilityToken();
     mockBundleMgr_ = DelayedSingleton<BundleMgrHelper>::GetInstance();
-    service_->SetBundleManagerHelper(mockBundleMgr_);
+    service_->bundleMgrHelper_ = mockBundleMgr_;
 }
 
 void AppRunningProcessesInfoModuleTest::TearDown()

@@ -307,9 +307,10 @@ AppMgrServiceInner::AppMgrServiceInner()
       appDebugManager_(std::make_shared<AppDebugManager>()),
       appRunningStatusModule_(std::make_shared<AbilityRuntime::AppRunningStatusModule>()),
       securityModeManager_(std::make_shared<AdvancedSecurityModeManager>()),
-      appPreloader_(std::make_shared<AppPreloader>(remoteClientManager_)),
+      appPreloader_(std::make_shared<AppPreloader>()),
       multiUserConfigurationMgr_(std::make_shared<MultiUserConfigurationMgr>())
 {
+    bundleMgrHelper_ = DelayedSingleton<BundleMgrHelper>::GetInstance();
     appRunningManager_->SetMultiUserConfigurationMgr(multiUserConfigurationMgr_);
 }
 
@@ -949,8 +950,7 @@ bool AppMgrServiceInner::GetBundleAndHapInfo(const AbilityInfo &abilityInfo,
     int32_t appIndex) const
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
-    if (bundleMgrHelper == nullptr) {
+    if (bundleMgrHelper_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
         return false;
     }
@@ -959,16 +959,16 @@ bool AppMgrServiceInner::GetBundleAndHapInfo(const AbilityInfo &abilityInfo,
     TAG_LOGD(AAFwkTag::APPMGR, "UserId:%{public}d.", userId);
     int32_t bundleMgrResult;
     if (appIndex == 0) {
-        bundleMgrResult = IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfoV9(appInfo->bundleName,
+        bundleMgrResult = IN_PROCESS_CALL(bundleMgrHelper_->GetBundleInfoV9(appInfo->bundleName,
             static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION) |
             static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_EXTENSION_ABILITY) |
             static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE) |
             static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_REQUESTED_PERMISSION), bundleInfo, userId));
     } else if (appIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
-        bundleMgrResult = IN_PROCESS_CALL(bundleMgrHelper->GetCloneBundleInfo(appInfo->bundleName,
+        bundleMgrResult = IN_PROCESS_CALL(bundleMgrHelper_->GetCloneBundleInfo(appInfo->bundleName,
             static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION), appIndex, bundleInfo, userId));
     } else {
-        bundleMgrResult = IN_PROCESS_CALL(bundleMgrHelper->GetSandboxBundleInfo(appInfo->bundleName,
+        bundleMgrResult = IN_PROCESS_CALL(bundleMgrHelper_->GetSandboxBundleInfo(appInfo->bundleName,
             appIndex, userId, bundleInfo));
     }
 
@@ -978,9 +978,9 @@ bool AppMgrServiceInner::GetBundleAndHapInfo(const AbilityInfo &abilityInfo,
     }
     bool hapQueryResult = false;
     if (appIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
-        hapQueryResult = bundleMgrHelper->GetHapModuleInfo(abilityInfo, userId, hapModuleInfo);
+        hapQueryResult = bundleMgrHelper_->GetHapModuleInfo(abilityInfo, userId, hapModuleInfo);
     } else {
-        hapQueryResult = (bundleMgrHelper->GetSandboxHapModuleInfo(abilityInfo, appIndex, userId, hapModuleInfo) == 0);
+        hapQueryResult = (bundleMgrHelper_->GetSandboxHapModuleInfo(abilityInfo, appIndex, userId, hapModuleInfo) == 0);
     }
     if (!hapQueryResult) {
         TAG_LOGE(AAFwkTag::APPMGR, "getHapModuleInfo fail");
@@ -1323,20 +1323,14 @@ int32_t AppMgrServiceInner::UpdateApplicationInfoInstalled(const std::string &bu
         return result;
     }
 
-    if (remoteClientManager_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "remoteClientManager_ fail");
-        return ERR_NO_INIT;
-    }
-
-    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
-    if (bundleMgrHelper == nullptr) {
+    if (bundleMgrHelper_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
         return ERR_NO_INIT;
     }
     auto userId = GetUserIdByUid(uid);
     ApplicationInfo appInfo;
     HITRACE_METER_NAME(HITRACE_TAG_APP, "BMS->GetApplicationInfo");
-    bool bundleMgrResult = bundleMgrHelper->GetApplicationInfo(bundleName,
+    bool bundleMgrResult = bundleMgrHelper_->GetApplicationInfo(bundleName,
         ApplicationFlag::GET_BASIC_APPLICATION_INFO, userId, appInfo);
     if (!bundleMgrResult) {
         TAG_LOGE(AAFwkTag::APPMGR, "get applicationInfo fail");
@@ -1470,15 +1464,6 @@ int32_t AppMgrServiceInner::KillApplicationByUid(const std::string &bundleName, 
 
     int64_t startTime = SystemTimeMillisecond();
     std::list<pid_t> pids;
-    if (remoteClientManager_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "remoteClientManager_ null");
-        return ERR_NO_INIT;
-    }
-    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
-    if (bundleMgrHelper == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
-        return ERR_NO_INIT;
-    }
     TAG_LOGI(AAFwkTag::APPMGR, "uid value: %{public}d", uid);
     if (!appRunningManager_->ProcessExitByBundleNameAndUid(bundleName, uid, pids)) {
         TAG_LOGI(AAFwkTag::APPMGR, "unstart");
@@ -1624,18 +1609,13 @@ int32_t AppMgrServiceInner::KillApplicationByUserIdLocked(
     int result = ERR_OK;
     int64_t startTime = SystemTimeMillisecond();
     std::list<pid_t> pids;
-    if (remoteClientManager_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "remoteClientManager_ null");
-        return ERR_NO_INIT;
-    }
-    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
-    if (bundleMgrHelper == nullptr) {
+    if (bundleMgrHelper_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
         return ERR_NO_INIT;
     }
 
     TAG_LOGI(AAFwkTag::APPMGR, "uId value: %{public}d", userId);
-    int uid = IN_PROCESS_CALL(bundleMgrHelper->GetUidByBundleName(bundleName, userId, appCloneIndex));
+    int uid = IN_PROCESS_CALL(bundleMgrHelper_->GetUidByBundleName(bundleName, userId, appCloneIndex));
     TAG_LOGI(AAFwkTag::APPMGR, "uID value: %{public}d", uid);
     if (!appRunningManager_->ProcessExitByBundleNameAndUid(bundleName, uid, pids, clearPageStack)) {
         TAG_LOGI(AAFwkTag::APPMGR, "process corresponding package name unstart");
@@ -1701,8 +1681,8 @@ int32_t AppMgrServiceInner::ClearUpApplicationDataByUserId(const std::string &bu
         TAG_LOGE(AAFwkTag::APPMGR, "invalid callerUid:%{public}d", callerUid);
         return ERR_INVALID_OPERATION;
     }
-    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
-    if (bundleMgrHelper == nullptr) {
+
+    if (bundleMgrHelper_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
         return ERR_INVALID_OPERATION;
     }
@@ -1715,7 +1695,7 @@ int32_t AppMgrServiceInner::ClearUpApplicationDataByUserId(const std::string &bu
         return AAFwk::ERR_APP_CLONE_INDEX_INVALID;
     }
     // 2.delete bundle side user data
-    if (!IN_PROCESS_CALL(bundleMgrHelper->CleanBundleDataFiles(bundleName, userId, appCloneIndex))) {
+    if (!IN_PROCESS_CALL(bundleMgrHelper_->CleanBundleDataFiles(bundleName, userId, appCloneIndex))) {
         TAG_LOGE(AAFwkTag::APPMGR, "delete user data fail");
         return AAFwk::ERR_APP_CLONE_INDEX_INVALID;
     }
@@ -1802,17 +1782,12 @@ int32_t AppMgrServiceInner::GetRunningMultiAppInfoByBundleName(const std::string
         TAG_LOGE(AAFwkTag::APPMGR, "bundlename null");
         return AAFwk::INVALID_PARAMETERS_ERR;
     }
-    if (remoteClientManager_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "remoteClientManager_ null");
-        return ERR_INVALID_VALUE;
-    }
-    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
-    if (bundleMgrHelper == nullptr) {
+    if (bundleMgrHelper_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
         return ERR_INVALID_VALUE;
     }
     ApplicationInfo appInfo;
-    auto queryRet = IN_PROCESS_CALL(bundleMgrHelper->GetApplicationInfo(bundleName,
+    auto queryRet = IN_PROCESS_CALL(bundleMgrHelper_->GetApplicationInfo(bundleName,
         ApplicationFlag::GET_BASIC_APPLICATION_INFO, currentUserId_, appInfo));
     if (!queryRet) {
         TAG_LOGE(AAFwkTag::APPMGR, "bundle unexist");
@@ -1882,17 +1857,12 @@ int32_t AppMgrServiceInner::GetAllRunningInstanceKeysByBundleNameInner(const std
         TAG_LOGE(AAFwkTag::APPMGR, "bundlename null");
         return AAFwk::INVALID_PARAMETERS_ERR;
     }
-    if (remoteClientManager_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "remoteClientManager_ null");
-        return ERR_INVALID_VALUE;
-    }
-    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
-    if (bundleMgrHelper == nullptr) {
+    if (bundleMgrHelper_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
         return ERR_INVALID_VALUE;
     }
     ApplicationInfo appInfo;
-    auto queryRet = IN_PROCESS_CALL(bundleMgrHelper->GetApplicationInfo(bundleName,
+    auto queryRet = IN_PROCESS_CALL(bundleMgrHelper_->GetApplicationInfo(bundleName,
         ApplicationFlag::GET_BASIC_APPLICATION_INFO, currentUserId_, appInfo));
     if (!queryRet) {
         TAG_LOGE(AAFwkTag::APPMGR, "bundle unexist");
@@ -2595,16 +2565,6 @@ void AppMgrServiceInner::SetAppSpawnClient(std::shared_ptr<AppSpawnClient> spawn
     remoteClientManager_->SetSpawnClient(std::move(spawnClient));
 }
 
-void AppMgrServiceInner::SetBundleManagerHelper(const std::shared_ptr<BundleMgrHelper> &bundleMgrHelper)
-{
-    if (remoteClientManager_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "remoteClientManager_ null");
-        return;
-    }
-
-    remoteClientManager_->SetBundleManagerHelper(bundleMgrHelper);
-}
-
 void AppMgrServiceInner::RegisterAppStateCallback(const sptr<IAppStateCallback>& callback)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
@@ -3014,16 +2974,11 @@ void AppMgrServiceInner::SetOverlayInfo(const std::string &bundleName,
                                         const int32_t userId,
                                         AppSpawnStartMsg &startMsg)
 {
-    if (remoteClientManager_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "remoteClientManager_ null");
-        return;
-    }
-    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
-    if (bundleMgrHelper == nullptr) {
+    if (bundleMgrHelper_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
         return;
     }
-    auto overlayMgrProxy = bundleMgrHelper->GetOverlayManagerProxy();
+    auto overlayMgrProxy = bundleMgrHelper_->GetOverlayManagerProxy();
     if (overlayMgrProxy !=  nullptr) {
         std::vector<OverlayModuleInfo> overlayModuleInfo;
         TAG_LOGD(AAFwkTag::APPMGR, "Check overlay app begin.");
@@ -3138,16 +3093,6 @@ int32_t AppMgrServiceInner::CreatNewStartMsg(const Want &want, const AbilityInfo
     const std::shared_ptr<ApplicationInfo> &appInfo, const std::string &processName, AppSpawnStartMsg &startMsg)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
-    if (!remoteClientManager_) {
-        TAG_LOGE(AAFwkTag::APPMGR, "remoteClientManager null");
-        return ERR_NO_INIT;
-    }
-    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
-    if (!bundleMgrHelper) {
-        TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
-        return ERR_NO_INIT;
-    }
-
     BundleInfo bundleInfo;
     HapModuleInfo hapModuleInfo;
     int32_t appIndex = want.GetIntParam(AppspawnUtil::DLP_PARAMS_INDEX, 0);
@@ -3225,14 +3170,13 @@ int32_t AppMgrServiceInner::CreateStartMsg(const std::string &processName, uint3
     const BundleInfo &bundleInfo, const int32_t bundleIndex, BundleType bundleType, AppSpawnStartMsg &startMsg,
     std::shared_ptr<AAFwk::Want> want, const std::string &moduleName, const std::string &abilityName, bool strictMode)
 {
-    if (!remoteClientManager_ || !otherTaskHandler_) {
-        TAG_LOGE(AAFwkTag::APPMGR, "remoteClientManager or otherTaskHandler null");
+    if (!otherTaskHandler_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "otherTaskHandler null");
         return ERR_NO_INIT;
     }
 
-    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
-    if (!bundleMgrHelper) {
-        TAG_LOGE(AAFwkTag::APPMGR, "get bundle manager helper fail");
+    if (!bundleMgrHelper_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "bundle manager null");
         return ERR_NO_INIT;
     }
 
@@ -3241,7 +3185,7 @@ int32_t AppMgrServiceInner::CreateStartMsg(const std::string &processName, uint3
     }));
 
     HspList hspList;
-    auto ret = bundleMgrHelper->GetBaseSharedBundleInfos(bundleInfo.name, hspList,
+    auto ret = bundleMgrHelper_->GetBaseSharedBundleInfos(bundleInfo.name, hspList,
         AppExecFwk::GetDependentBundleInfoFlag::GET_ALL_DEPENDENT_BUNDLE_INFO);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "getBaseSharedBundleInfos fail: %{public}d", ret);
@@ -3251,7 +3195,7 @@ int32_t AppMgrServiceInner::CreateStartMsg(const std::string &processName, uint3
 
     auto userId = GetUserIdByUid(uid);
     DataGroupInfoList dataGroupInfoList;
-    bool result = bundleMgrHelper->QueryDataGroupInfos(bundleInfo.name, userId, dataGroupInfoList);
+    bool result = bundleMgrHelper_->QueryDataGroupInfos(bundleInfo.name, userId, dataGroupInfoList);
     if (!result || dataGroupInfoList.empty()) {
         TAG_LOGD(AAFwkTag::APPMGR, "the bundle has no groupInfos.");
     }
@@ -3980,7 +3924,7 @@ bool AppMgrServiceInner::CheckRemoteClient()
         return false;
     }
 
-    if (!remoteClientManager_->GetBundleManagerHelper()) {
+    if (!bundleMgrHelper_) {
         TAG_LOGE(AAFwkTag::APPMGR, "get bundle manager helper fail");
         return false;
     }
@@ -4013,11 +3957,10 @@ void AppMgrServiceInner::RestartResidentProcess(std::shared_ptr<AppRunningRecord
         return;
     }
 
-    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
     BundleInfo bundleInfo;
     auto userId = GetUserIdByUid(appRecord->GetUid());
     auto flags = BundleFlag::GET_BUNDLE_DEFAULT | BundleFlag::GET_BUNDLE_WITH_REQUESTED_PERMISSION;
-    if (!IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfo(
+    if (!IN_PROCESS_CALL(bundleMgrHelper_->GetBundleInfo(
         appRecord->GetBundleName(),
         static_cast<BundleFlag>(flags),
         bundleInfo, userId))) {
@@ -4954,8 +4897,8 @@ bool AppMgrServiceInner::CheckCallerIsAppGallery()
         TAG_LOGE(AAFwkTag::APPMGR, "get app running record fail, callingPId: %{public}d", callerPid);
         return false;
     }
-    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
-    if (!bundleMgrHelper) {
+
+    if (!bundleMgrHelper_) {
         TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
         return false;
     }
@@ -4965,7 +4908,7 @@ bool AppMgrServiceInner::CheckCallerIsAppGallery()
         return false;
     }
     std::string appGalleryBundleName;
-    if (!bundleMgrHelper->QueryAppGalleryBundleName(appGalleryBundleName)) {
+    if (!bundleMgrHelper_->QueryAppGalleryBundleName(appGalleryBundleName)) {
         TAG_LOGE(AAFwkTag::APPMGR, "queryAppGalleryBundleName fail");
         return false;
     }
@@ -5947,14 +5890,10 @@ int32_t AppMgrServiceInner::TransformedNotifyAppFault(const AppFaultDataBySA &fa
 
 int32_t AppMgrServiceInner::NotifyAppFaultBySA(const AppFaultDataBySA &faultData)
 {
-    if (remoteClientManager_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "remoteClientManager_ null");
-        return ERR_NO_INIT;
-    }
     std::string callerBundleName;
-    if (auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper(); bundleMgrHelper != nullptr) {
+    if (bundleMgrHelper_ != nullptr) {
         int32_t callingUid = IPCSkeleton::GetCallingUid();
-        IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callingUid, callerBundleName));
+        IN_PROCESS_CALL(bundleMgrHelper_->GetNameForUid(callingUid, callerBundleName));
     }
 #ifdef ABILITY_FAULT_AND_EXIT_TEST
     if ((AAFwk::PermissionVerification::GetInstance()->IsSACall()) ||
@@ -6076,12 +6015,7 @@ int32_t AppMgrServiceInner::IsAppRunning(const std::string &bundleName, int32_t 
         TAG_LOGE(AAFwkTag::APPMGR, "appCloneIndex invalid");
         return AAFwk::ERR_APP_CLONE_INDEX_INVALID;
     }
-    if (remoteClientManager_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "remoteClientManager null");
-        return ERR_INVALID_OPERATION;
-    }
-    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
-    if (bundleMgrHelper == nullptr) {
+    if (bundleMgrHelper_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
         return ERR_INVALID_OPERATION;
     }
@@ -6089,13 +6023,13 @@ int32_t AppMgrServiceInner::IsAppRunning(const std::string &bundleName, int32_t 
     auto userId = GetCurrentAccountId();
     int32_t bundleMgrResult;
     if (appCloneIndex == 0) {
-        bundleMgrResult = IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfoV9(bundleName,
+        bundleMgrResult = IN_PROCESS_CALL(bundleMgrHelper_->GetBundleInfoV9(bundleName,
             static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION) |
             static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_EXTENSION_ABILITY) |
             static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE) |
             static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_REQUESTED_PERMISSION), bundleInfo, userId));
     } else {
-        bundleMgrResult = IN_PROCESS_CALL(bundleMgrHelper->GetCloneBundleInfo(bundleName,
+        bundleMgrResult = IN_PROCESS_CALL(bundleMgrHelper_->GetCloneBundleInfo(bundleName,
             static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION),
             appCloneIndex, bundleInfo, userId));
     }
@@ -6110,27 +6044,26 @@ int32_t AppMgrServiceInner::IsAppRunning(const std::string &bundleName, int32_t 
 
 bool AppMgrServiceInner::CreateAbilityInfo(const AAFwk::Want &want, AbilityInfo &abilityInfo)
 {
-    auto&& bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
-    if (!bundleMgrHelper) {
+    if (!bundleMgrHelper_) {
         TAG_LOGE(AAFwkTag::APPMGR, "get bundle manager helper error");
         return false;
     }
     auto userId = GetCurrentAccountId();
     auto abilityInfoFlag = AbilityRuntime::StartupUtil::BuildAbilityInfoFlag();
-    if (IN_PROCESS_CALL(bundleMgrHelper->QueryAbilityInfo(want, abilityInfoFlag, userId, abilityInfo))) {
+    if (IN_PROCESS_CALL(bundleMgrHelper_->QueryAbilityInfo(want, abilityInfoFlag, userId, abilityInfo))) {
         TAG_LOGI(AAFwkTag::APPMGR, "queryAbilityInfo ok");
         return true;
     }
     std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
     int32_t appIndex = want.GetIntParam(AppspawnUtil::DLP_PARAMS_INDEX, 0);
     if (appIndex == 0) {
-        if (!IN_PROCESS_CALL(bundleMgrHelper->QueryExtensionAbilityInfos(want, abilityInfoFlag,
+        if (!IN_PROCESS_CALL(bundleMgrHelper_->QueryExtensionAbilityInfos(want, abilityInfoFlag,
             userId, extensionInfos))) {
             TAG_LOGE(AAFwkTag::APPMGR, "queryExtensionAbilityInfos fail");
             return false;
         }
     } else {
-        if (!IN_PROCESS_CALL(bundleMgrHelper->GetSandboxExtAbilityInfos(want, appIndex,
+        if (!IN_PROCESS_CALL(bundleMgrHelper_->GetSandboxExtAbilityInfos(want, appIndex,
             abilityInfoFlag, userId, extensionInfos))) {
             TAG_LOGE(AAFwkTag::APPMGR, "getSandboxExtAbilityInfos fail");
             return false;
@@ -6300,15 +6233,6 @@ int32_t AppMgrServiceInner::GetRunningProcessInformation(
         return ERR_NO_INIT;
     }
 
-    if (remoteClientManager_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "remoteClientManager_ null");
-        return ERR_NO_INIT;
-    }
-    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
-    if (bundleMgrHelper == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
-        return ERR_NO_INIT;
-    }
     TAG_LOGI(AAFwkTag::APPMGR, "uid value: %{public}d", userId);
     const auto &appRunningRecordMap = appRunningManager_->GetAppRunningRecordMap();
     for (const auto &item : appRunningRecordMap) {
@@ -6558,12 +6482,10 @@ void AppMgrServiceInner::InitAppWaitingDebugList()
 bool AppMgrServiceInner::CheckIsDebugApp(const std::string &bundleName)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
-    CHECK_POINTER_AND_RETURN_VALUE(remoteClientManager_, false);
-    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
-    CHECK_POINTER_AND_RETURN_VALUE(bundleMgrHelper, false);
+    CHECK_POINTER_AND_RETURN_VALUE(bundleMgrHelper_, false);
 
     BundleInfo bundleInfo;
-    auto ret = IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfoV9(bundleName,
+    auto ret = IN_PROCESS_CALL(bundleMgrHelper_->GetBundleInfoV9(bundleName,
         static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION), bundleInfo, currentUserId_));
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "getBundleInfo fail");
@@ -7713,15 +7635,10 @@ int32_t AppMgrServiceInner::CheckCallingIsUserTestModeInner(const pid_t pid, boo
 }
 
 bool AppMgrServiceInner::IsSceneBoardCall() {
-    if (remoteClientManager_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "remoteClientManager_ null");
-        return false;
-    }
-    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
-    if (bundleMgrHelper != nullptr) {
+    if (bundleMgrHelper_ != nullptr) {
         int32_t callingUid = IPCSkeleton::GetCallingUid();
         std::string callerBundleName;
-        IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callingUid, callerBundleName));
+        IN_PROCESS_CALL(bundleMgrHelper_->GetNameForUid(callingUid, callerBundleName));
         return callerBundleName == SCENE_BOARD_BUNDLE_NAME;
     }
     return false;

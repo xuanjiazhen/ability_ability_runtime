@@ -24,6 +24,7 @@
 #include "ability_manager_errors.h"
 #include "app_death_recipient.h"
 #include "app_mgr_constants.h"
+#include "bundle_mgr_helper.h"
 #include "datetime_ex.h"
 #include "global_constant.h"
 #include "hilog_tag_wrapper.h"
@@ -324,12 +325,8 @@ int32_t AppMgrService::ClearUpApplicationData(const std::string &bundleName, int
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
-    std::shared_ptr<RemoteClientManager> remoteClientManager = std::make_shared<RemoteClientManager>();
-    if (remoteClientManager == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "null remoteClientManager");
-        return ERR_INVALID_OPERATION;
-    }
-    auto bundleMgrHelper = remoteClientManager->GetBundleManagerHelper();
+
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
     if (bundleMgrHelper == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null bundleMgrHelper");
         return ERR_INVALID_OPERATION;
@@ -613,12 +610,8 @@ int AppMgrService::FinishUserTest(const std::string &msg, const int64_t &resultC
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
-    std::shared_ptr<RemoteClientManager> remoteClientManager = std::make_shared<RemoteClientManager>();
-    if (remoteClientManager == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "null remoteClientManager");
-        return ERR_INVALID_OPERATION;
-    }
-    auto bundleMgrHelper = remoteClientManager->GetBundleManagerHelper();
+
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
     if (bundleMgrHelper == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null bundleMgrHelper");
         return ERR_INVALID_OPERATION;

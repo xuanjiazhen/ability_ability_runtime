@@ -20,7 +20,7 @@
 
 #include "ability_info.h"
 #include "app_mgr_constants.h"
-#include "remote_client_manager.h"
+#include "bundle_mgr_helper.h"
 #include "want.h"
 
 namespace OHOS {
@@ -36,7 +36,7 @@ struct PreloadRequest {
 
 class AppPreloader {
 public:
-    AppPreloader(std::shared_ptr<RemoteClientManager> remoteClientManager);
+    AppPreloader();
     ~AppPreloader() = default;
 
     int32_t GeneratePreloadRequest(const std::string &bundleName, int32_t userId, int32_t appIndex,
@@ -56,7 +56,8 @@ private:
 
     std::shared_ptr<BundleMgrHelper> GetBundleManagerHelper();
 
-    std::shared_ptr<RemoteClientManager> remoteClientManager_;
+private:
+    std::shared_ptr<BundleMgrHelper> bundleMgrHelper_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

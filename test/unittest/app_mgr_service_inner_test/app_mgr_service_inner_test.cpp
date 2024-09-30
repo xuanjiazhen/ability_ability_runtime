@@ -410,7 +410,6 @@ HWTEST_F(AppMgrServiceInnerTest, LoadAbility_001, TestSize.Level0)
     auto appMgrServiceInner1 = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner1, nullptr);
 
-    appMgrServiceInner1->remoteClientManager_->SetBundleManagerHelper(nullptr);
     appMgrServiceInner1->LoadAbility(abilityInfo_, applicationInfo_, nullptr, loadParamPtr);
 
     auto appMgrServiceInner2 = std::make_shared<AppMgrServiceInner>();
@@ -539,7 +538,6 @@ HWTEST_F(AppMgrServiceInnerTest, GetBundleAndHapInfo_001, TestSize.Level0)
     HapModuleInfo hapModuleInfo;
     appMgrServiceInner->GetBundleAndHapInfo(*abilityInfo_, applicationInfo_, bundleInfo, hapModuleInfo, 1);
 
-    appMgrServiceInner->remoteClientManager_->SetBundleManagerHelper(nullptr);
     appMgrServiceInner->GetBundleAndHapInfo(*abilityInfo_, applicationInfo_, bundleInfo, hapModuleInfo, 1);
     TAG_LOGI(AAFwkTag::TEST, "GetBundleAndHapInfo_001 end");
 }
@@ -837,7 +835,6 @@ HWTEST_F(AppMgrServiceInnerTest, KillApplicationByUid_001, TestSize.Level0)
     std::string bundleName = "test_bundleName";
     appMgrServiceInner->KillApplicationByUid(bundleName, 0);
 
-    appMgrServiceInner->remoteClientManager_->SetBundleManagerHelper(nullptr);
     appMgrServiceInner->KillApplicationByUid(bundleName, 0);
 
     appMgrServiceInner->remoteClientManager_ = nullptr;
@@ -886,7 +883,6 @@ HWTEST_F(AppMgrServiceInnerTest, KillApplicationByUserId_001, TestSize.Level0)
     int result = appMgrServiceInner->KillApplicationByUserId(bundleName, 0, 0);
     EXPECT_EQ(result, 0);
 
-    appMgrServiceInner->remoteClientManager_->SetBundleManagerHelper(nullptr);
     appMgrServiceInner->KillApplicationByUserId(bundleName, 0, 0);
     EXPECT_EQ(result, 0);
 
@@ -917,7 +913,6 @@ HWTEST_F(AppMgrServiceInnerTest, KillApplicationByUserIdLocked_001, TestSize.Lev
     int result = appMgrServiceInner->KillApplicationByUserIdLocked(bundleName, 0, 0);
     EXPECT_EQ(result, 0);
 
-    appMgrServiceInner->remoteClientManager_->SetBundleManagerHelper(nullptr);
     appMgrServiceInner->KillApplicationByUserIdLocked(bundleName, 0, 0);
     EXPECT_EQ(result, 0);
 
@@ -970,7 +965,6 @@ HWTEST_F(AppMgrServiceInnerTest, ClearUpApplicationDataByUserId_001, TestSize.Le
     appMgrServiceInner->appRunningManager_ = nullptr;
     appMgrServiceInner->ClearUpApplicationDataByUserId(bundleName, 1, 1, 0, 0);
 
-    appMgrServiceInner->remoteClientManager_->SetBundleManagerHelper(nullptr);
     appMgrServiceInner->ClearUpApplicationDataByUserId(bundleName, 1, 1, 0, 0);
 
     TAG_LOGI(AAFwkTag::TEST, "ClearUpApplicationDataByUserId_001 end");
@@ -1448,27 +1442,6 @@ HWTEST_F(AppMgrServiceInnerTest, SetAppSpawnClient_001, TestSize.Level0)
     appMgrServiceInner->SetAppSpawnClient(spawnClient);
 
     TAG_LOGI(AAFwkTag::TEST, "SetAppSpawnClient_001 end");
-}
-
-/**
- * @tc.name: SetBundleManager_001
- * @tc.desc: set bundle manager.
- * @tc.type: FUNC
- * @tc.require: issueI5W4S7
- */
-HWTEST_F(AppMgrServiceInnerTest, SetBundleManager_001, TestSize.Level0)
-{
-    TAG_LOGI(AAFwkTag::TEST, "SetBundleManager_001 start");
-    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    EXPECT_NE(appMgrServiceInner, nullptr);
-
-    std::shared_ptr<BundleMgrHelper> bundleManager;
-    appMgrServiceInner->SetBundleManagerHelper(bundleManager);
-
-    appMgrServiceInner->remoteClientManager_ = nullptr;
-    appMgrServiceInner->SetBundleManagerHelper(bundleManager);
-
-    TAG_LOGI(AAFwkTag::TEST, "SetBundleManager_001 end");
 }
 
 /**
@@ -2155,7 +2128,6 @@ HWTEST_F(AppMgrServiceInnerTest, CheckRemoteClient_001, TestSize.Level0)
     appMgrServiceInner->remoteClientManager_->SetSpawnClient(nullptr);
     appMgrServiceInner->CheckRemoteClient();
 
-    appMgrServiceInner->remoteClientManager_->SetBundleManagerHelper(nullptr);
     appMgrServiceInner->CheckRemoteClient();
 
     appMgrServiceInner->remoteClientManager_ = nullptr;
@@ -2512,7 +2484,6 @@ HWTEST_F(AppMgrServiceInnerTest, StartSpecifiedAbility_001, TestSize.Level0)
     abilityInfo_->applicationInfo = *applicationInfo_;
     appMgrServiceInner->StartSpecifiedAbility(want, *abilityInfo_);
 
-    appMgrServiceInner->remoteClientManager_->SetBundleManagerHelper(nullptr);
     appMgrServiceInner->StartSpecifiedAbility(want, *abilityInfo_);
 
     appMgrServiceInner->remoteClientManager_ = nullptr;
