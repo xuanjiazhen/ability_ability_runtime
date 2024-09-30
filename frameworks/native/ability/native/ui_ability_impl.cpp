@@ -496,7 +496,7 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterUnfocused()
 
 void UIAbilityImpl::WindowLifeCycleImpl::ForegroundFailed(int32_t type)
 {
-    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    TAG_LOGE(AAFwkTag::UIABILITY, "scb call, ForegroundFailed");
     FreezeUtil::LifecycleFlow flow = { token_, FreezeUtil::TimeoutState::FOREGROUND };
     std::string entry = "ERROR UIAbilityImpl::WindowLifeCycleImpl::ForegroundFailed; GoForeground failed.";
     FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
