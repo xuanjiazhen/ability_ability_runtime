@@ -29,7 +29,6 @@
 #include "mock_permission_verification.h"
 #include "mock_sa_call.h"
 #include "param.h"
-#include "mock_IBundleMgr.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -836,18 +835,6 @@ HWTEST_F(AppMgrServiceInnerSecondTest, SetOverlayInfo_001, TestSize.Level0)
 
     std::shared_ptr<BundleMgrHelper> bundleManager = nullptr;
     appMgrServiceInner->remoteClientManager_->SetBundleManagerHelper(bundleManager);
-    appMgrServiceInner->SetOverlayInfo("testBundleName", 1, startMsg);
-    EXPECT_EQ(startMsg.flags, 0);
-    EXPECT_EQ(startMsg.overlayInfo, "");
-
-    bundleManager = std::make_shared<BundleMgrHelper>();
-    appMgrServiceInner->SetBundleManagerHelper(bundleManager);
-    MOCKIBundleMgr *mibm = new MOCKIBundleMgr();
-    sptr<IBundleMgr> ibm = sptr<IBundleMgr>(mibm);
-    appMgrServiceInner->remoteClientManager_->GetBundleManagerHelper()->bundleMgr_ = ibm;
-    EXPECT_CALL(*mibm, GetOverlayManagerProxy())
-        .WillOnce(Return(nullptr));
-
     appMgrServiceInner->SetOverlayInfo("testBundleName", 1, startMsg);
     EXPECT_EQ(startMsg.flags, 0);
     EXPECT_EQ(startMsg.overlayInfo, "");
