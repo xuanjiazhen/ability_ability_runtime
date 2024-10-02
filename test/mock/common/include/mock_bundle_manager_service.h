@@ -21,6 +21,7 @@
 #include "gmock/gmock.h"
 #include "iremote_object.h"
 #include "iremote_stub.h"
+#include "module_info.h"
 #include "mock_overlay_manager.h"
 
 namespace OHOS {
@@ -44,7 +45,8 @@ public:
         AppExecFwk::AbilityInfo &abilityInfo));
     MOCK_METHOD5(GetSandboxExtAbilityInfos, ErrCode(const Want &want, int32_t appIndex, int32_t flags,
         int32_t userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos));
-
+    MOCK_METHOD5(GetJsonProfile, ErrCode(AppExecFwk::ProfileType, const std::string&, const std::string&,
+        std::string&, int32_t));
     sptr<AppExecFwk::IOverlayManager> GetOverlayManagerProxy()
     {
         sptr<AppExecFwk::IOverlayManager> overlayModuleProxy =
