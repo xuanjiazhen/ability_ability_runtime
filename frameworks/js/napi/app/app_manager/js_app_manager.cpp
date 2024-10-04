@@ -389,7 +389,8 @@ private:
             if (ret == 0) {
                 task.Resolve(env, CreateJsValue(env, ret));
             } else {
-                task.Reject(env, CreateJsError(env, ret, "clear up application failed."));
+                task.Reject(env, CreateJsError(env, AAFwk::CLEAR_APPLICATION_DATA_FAIL,
+                    "clear up application failed."));
             }
         };
 
