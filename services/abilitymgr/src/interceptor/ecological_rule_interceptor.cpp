@@ -177,7 +177,7 @@ void EcologicalRuleInterceptor::GetEcologicalCallerInfo(const Want &want, ErmsCa
         std::string callerBundleName;
         ErrCode err = IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callerInfo.uid, callerBundleName));
         if (err != ERR_OK) {
-            TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "failed,uid: %{public}d", callerInfo.uid);
+            TAG_LOGD(AAFwkTag::ECOLOGICAL_RULE, "failed,uid: %{public}d", callerInfo.uid);
             return;
         }
         bool getCallerResult = IN_PROCESS_CALL(bundleMgrHelper->GetApplicationInfo(callerBundleName,
@@ -223,7 +223,7 @@ void EcologicalRuleInterceptor::InitErmsCallerInfo(const Want &want,
     
     GetEcologicalTargetInfo(want, abilityInfo, callerInfo);
     GetEcologicalCallerInfo(want, callerInfo, userId, callerToken);
-    TAG_LOGI(AAFwkTag::ECOLOGICAL_RULE, "ERMS's %{public}s", callerInfo.ToString().c_str());
+    TAG_LOGD(AAFwkTag::ECOLOGICAL_RULE, "ERMS's %{public}s", callerInfo.ToString().c_str());
 }
 
 int32_t EcologicalRuleInterceptor::GetAppTypeByBundleType(int32_t bundleType)

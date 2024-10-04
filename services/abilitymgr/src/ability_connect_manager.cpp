@@ -158,7 +158,7 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
         GetOrCreateServiceRecord(abilityRequest, false, targetService, isLoadedAbility);
     }
     CHECK_POINTER_AND_RETURN(targetService, ERR_INVALID_VALUE);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbility:%{public}s", targetService->GetURI().c_str());
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "StartAbility:%{public}s", targetService->GetURI().c_str());
 
     targetService->AddCallerRecord(abilityRequest.callerToken, abilityRequest.requestCode, abilityRequest.want);
 
@@ -199,7 +199,7 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
     } else if (IsUIExtensionAbility(targetService)) {
         DoForegroundUIExtension(targetService, abilityRequest);
     } else {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "targetService activating");
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "targetService activating");
         EnqueueStartServiceReq(abilityRequest);
         return ERR_OK;
     }
@@ -266,7 +266,7 @@ void AbilityConnectManager::EnqueueStartServiceReq(const AbilityRequest &ability
     if (!serviceUri.empty()) {
         abilityUri = serviceUri;
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "abilityUri: %{public}s", abilityUri.c_str());
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "abilityUri: %{public}s", abilityUri.c_str());
     auto reqListIt = startServiceReqList_.find(abilityUri);
     if (reqListIt != startServiceReqList_.end()) {
         reqListIt->second->push_back(abilityRequest);

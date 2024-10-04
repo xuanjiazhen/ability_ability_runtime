@@ -1197,7 +1197,7 @@ void ContextImpl::CreateDirIfNotExist(const std::string& dirPath, const mode_t& 
         TAG_LOGD(AAFwkTag::APPKIT, "ForceCreateDirectory, dir: %{public}s", dirPath.c_str());
         bool createDir = OHOS::ForceCreateDirectory(dirPath);
         if (!createDir) {
-            TAG_LOGE(AAFwkTag::APPKIT, "create dir %{public}s failed, errno is %{public}d", dirPath.c_str(), errno);
+            TAG_LOGD(AAFwkTag::APPKIT, "create dir %{public}s failed, errno is %{public}d", dirPath.c_str(), errno);
             return;
         }
         if (mode != 0) {
