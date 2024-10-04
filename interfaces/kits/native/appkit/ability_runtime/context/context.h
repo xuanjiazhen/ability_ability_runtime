@@ -184,6 +184,8 @@ public:
 
     virtual std::string GetCloudFileDir() = 0;
 
+    virtual std::string GetShareFilesDir() = 0;
+
      /**
      * @brief Obtains token.
      *
