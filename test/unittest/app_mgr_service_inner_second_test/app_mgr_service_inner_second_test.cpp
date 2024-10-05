@@ -824,7 +824,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_LoadAbility_
     EXPECT_NE(appMgrServiceInner->appRunningManager_, nullptr);
     appMgrServiceInner->LoadAbility(abilityInfo_, applicationInfo_, nullptr, loadParamPtr);
     int32_t userId = 101;
-    appMgrServiceInner->SetEnableStartProcessFlagByUserId(userId, false);
+    appMgrServiceInner->SetEnableStartProcessFlagByUs erId(userId, false);
     applicationInfo_->uid = USER_SCALE * 101;
     appMgrServiceInner->LoadAbility(abilityInfo_, applicationInfo_, nullptr, loadParamPtr);
     applicationInfo_->uid = 1;
