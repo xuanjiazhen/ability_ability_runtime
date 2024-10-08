@@ -72,7 +72,7 @@ public:
      * @param sessionInfo Indicates the session info.
      */
     void ScheduleAbilityTransaction(const Want &want, const LifeCycleStateInfo &targetState,
-        sptr<AAFwk::SessionInfo> sessionInfo = nullptr) override;
+        sptr<AAFwk::SessionInfo> sessionInfo = nullptr, const sptr<IRemoteObject> &token = nullptr) override;
 
     /**
      * @brief Provide operating system ShareData information to the observer

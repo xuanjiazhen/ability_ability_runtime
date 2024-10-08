@@ -19,6 +19,7 @@
 #include "data_ability_operation.h"
 #include "data_ability_predicates.h"
 #include "data_ability_result.h"
+#include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "ishared_result_set.h"
@@ -40,7 +41,7 @@ bool AbilitySchedulerProxy::WriteInterfaceToken(MessageParcel &data)
 }
 
 void AbilitySchedulerProxy::ScheduleAbilityTransaction(const Want &want, const LifeCycleStateInfo &stateInfo,
-    sptr<SessionInfo> sessionInfo)
+    sptr<SessionInfo> sessionInfo, const sptr<IRemoteObject> &token)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "begin");
@@ -54,12 +55,15 @@ void AbilitySchedulerProxy::ScheduleAbilityTransaction(const Want &want, const L
     }
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write want failed");
+        ReportLifecycleError("ERROR AbilityTransaction; write want failed", stateInfo.state, token);
         return;
     }
     data.WriteParcelable(&stateInfo);
     if (sessionInfo) {
         if (!data.WriteBool(true) || !data.WriteParcelable(sessionInfo)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "write sessionInfo failed");
+            ReportLifecycleError("ERROR AbilityTransaction; write sessionInfo failed",
+                stateInfo.state, token);
             return;
         }
     } else {
@@ -69,7 +73,8 @@ void AbilitySchedulerProxy::ScheduleAbilityTransaction(const Want &want, const L
     }
     int32_t err = SendTransactCmd(IAbilityScheduler::SCHEDULE_ABILITY_TRANSACTION, data, reply, option);
     if (err != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "fail, err: %{public}d", err);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "IPC Error: %{public}dr", err);
+        ReportLifecycleError("ERROR AbilityTransaction; IPC Error", stateInfo.state, token);
     }
     int64_t cost = std::chrono::duration_cast<std::chrono::microseconds>(
         std::chrono::system_clock::now().time_since_epoch()).count() - start;
@@ -81,6 +86,15 @@ void AbilitySchedulerProxy::ScheduleAbilityTransaction(const Want &want, const L
         TAG_LOGD(AAFwkTag::ABILITYMGR,
             "ScheduleAbilityTransaction proxy cost %{public}" PRId64 "mirco seconds, data size: %{public}zu",
             cost, data.GetWritePosition());
+    }
+}
+
+void AbilitySchedulerProxy::ReportLifecycleError(std::string entry, int state, const sptr<IRemoteObject> &token)
+{
+    if (state == AAFwk::ABILITY_STATE_FOREGROUND_NEW && token) {
+        AbilityRuntime::FreezeUtil::LifecycleFlow flow = {token,
+            AbilityRuntime::FreezeUtil::TimeoutState::FOREGROUND};
+        AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
     }
 }
 

@@ -53,7 +53,7 @@ public:
      * @param sessionInfo, The session info
      */
     virtual void ScheduleAbilityTransaction(const Want &want, const LifeCycleStateInfo &targetState,
-        sptr<SessionInfo> sessionInfo = nullptr) = 0;
+        sptr<SessionInfo> sessionInfo = nullptr, const sptr<IRemoteObject> &token = nullptr) = 0;
 
     /*
      * ScheduleShareData,  schedule ability to share data.
