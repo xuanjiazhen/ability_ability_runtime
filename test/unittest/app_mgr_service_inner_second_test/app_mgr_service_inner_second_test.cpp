@@ -690,5 +690,145 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_NotifyMemMgr
     EXPECT_FALSE(ret); // stub err
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_NotifyMemMgrPriorityChanged_0100 end");
 }
+
+/**
+ * @tc.name: AppMgrServiceInnerSecondTest_VerifyKillProcessPermission_0100
+ * @tc.desc: Test VerifyKillProcessPermission
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_VerifyKillProcessPermission_0100, TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermission_0100 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    auto ret = appMgrServiceInner->VerifyKillProcessPermission(TEST_BUNDLE_NAME);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermission_0100 end");
+}
+
+/**
+ * @tc.name: AppMgrServiceInnerSecondTest_VerifyKillProcessPermission_0200
+ * @tc.desc: Test VerifyKillProcessPermission
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_VerifyKillProcessPermission_0200, TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermission_0200 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    auto ret = appMgrServiceInner->VerifyKillProcessPermission(token_);
+    EXPECT_EQ(ret, ERR_OK);
+    appMgrServiceInner->appRunningManager_ = nullptr;
+    ret = appMgrServiceInner->VerifyKillProcessPermission(token_);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermission_0200 end");
+}
+
+/**
+ * @tc.name: AppMgrServiceInnerSecondTest_DetachAppDebug_0100
+ * @tc.desc: Test DetachAppDebug
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_DetachAppDebug_0100, TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DetachAppDebug_0100 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    MyFlag::flag_ = MyFlag::IS_SA_CALL;
+    auto ret = appMgrServiceInner->DetachAppDebug(TEST_BUNDLE_NAME);
+    EXPECT_EQ(ret, ERR_OK);
+
+    MyFlag::flag_ = MyFlag::IS_SHELL_CALL;
+    ret = appMgrServiceInner->DetachAppDebug(TEST_BUNDLE_NAME);
+    EXPECT_EQ(ret, ERR_OK);
+
+    appMgrServiceInner->appRunningManager_ = nullptr;
+    ret = appMgrServiceInner->DetachAppDebug(TEST_BUNDLE_NAME);
+    EXPECT_NE(ret, ERR_OK);
+
+    MyFlag::flag_ = 3;
+    appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
+    ret = appMgrServiceInner->DetachAppDebug(TEST_BUNDLE_NAME);
+    EXPECT_EQ(ret, ERR_OK);
+
+    MyFlag::flag_ = 0;
+    ret = appMgrServiceInner->DetachAppDebug(TEST_BUNDLE_NAME);
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    TAG_LOGI(AAFwkTag::TEST, "DetachAppDebug_0100 end");
+}
+
+/**
+ * @tc.name: AppMgrServiceInnerSecondTest_DetachAppDebug_0200
+ * @tc.desc: Test DetachAppDebug
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_DetachAppDebug_002, TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DetachAppDebug_0200 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    MyFlag::flag_ = MyFlag::IS_SHELL_CALL;
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    EXPECT_NE(appInfo, nullptr);
+
+    int32_t recordId = 1;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, TEST_PROCESS_NAME);
+    EXPECT_NE(appRecord, nullptr);
+
+    appRecord->mainBundleName_ = TEST_BUNDLE_NAME;
+    appRecord->SetDebugApp(false);
+    appMgrServiceInner->appRunningManager_->appRunningRecordMap_.emplace(recordId, appRecord);
+    int32_t ret = appMgrServiceInner->DetachAppDebug(TEST_BUNDLE_NAME);
+    EXPECT_EQ(ret, ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "DetachAppDebug_0200 end");
+}
+
+/**
+ * @tc.name: AppMgrServiceInnerSecondTest_KillRenderProcess_0100
+ * @tc.desc: Test KillRenderProcess
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_KillRenderProcess_0100, TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "KillRenderProcess_0100 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    appMgrServiceInner->KillRenderProcess(nullptr);
+
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    EXPECT_NE(appInfo, nullptr);
+    appInfo->bundleName = "testBundleName";
+    appInfo->name = "testBundleName";
+    std::string processName = "testProcess";
+    int32_t recordId = 1;
+    pid_t hostPid = 1001;
+    auto hostRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    EXPECT_NE(hostRecord, nullptr);
+    hostRecord->priorityObject_->SetPid(hostPid);
+    hostRecord->SetUid(100);
+    std::string renderParam = "test_render_param";
+    int32_t ipcFd = 1;
+    int32_t sharedFd = 1;
+    int32_t crashFd = 1;
+
+    auto appRunningRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, TEST_PROCESS_NAME);
+    EXPECT_NE(appRunningRecord, nullptr);
+
+    std::shared_ptr<RenderRecord> renderRecord =
+        RenderRecord::CreateRenderRecord(hostPid, renderParam, ipcFd, sharedFd, crashFd, hostRecord);
+    EXPECT_NE(renderRecord, nullptr);
+
+    renderRecord->SetPid(10);
+    renderRecord->SetUid(10);
+    appRunningRecord->AddRenderRecord(renderRecord);
+    appMgrServiceInner->KillRenderProcess(appRunningRecord);
+
+    renderRecord->SetPid(0);
+    appRunningRecord->AddRenderRecord(renderRecord);
+    appMgrServiceInner->KillRenderProcess(appRunningRecord);
+    TAG_LOGI(AAFwkTag::TEST, "KillRenderProcess_0100 end");
+}
 } // namespace AppExecFwk
 } // namespace OHOS
