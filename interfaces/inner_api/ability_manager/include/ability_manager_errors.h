@@ -591,11 +591,6 @@ enum {
      */
     ERR_CHILD_PROCESS_REACH_LIMIT = 2097266,
 
-    /**
-     * Result(2097267) for check is debug app.
-     */
-    ERR_NOT_DEBUG_APP = 2097267,
-
     /*
      * Result (2097268) for native child process reach limit.
      */
