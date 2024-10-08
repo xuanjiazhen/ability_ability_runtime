@@ -18,6 +18,7 @@
 
 #include "ability_handler.h"
 #include "configuration.h"
+#include "ohos_application.h"
 #ifdef SUPPORT_GRAPHICS
 #include "display_manager.h"
 #include "window_manager.h"
@@ -216,6 +217,7 @@ private:
     std::shared_ptr<int32_t> screenModePtr_;
     sptr<IRemoteObject> token_ = nullptr;
     std::shared_ptr<AbilityHandler> handler_ = nullptr;
+    std::shared_ptr<AppExecFwk::OHOSApplication> application_ = nullptr;
 
 #ifdef SUPPORT_GRAPHICS
     class JsUIExtensionAbilityDisplayListener : public OHOS::Rosen::IDisplayInfoChangedListener {
