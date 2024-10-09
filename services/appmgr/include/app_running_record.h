@@ -364,7 +364,12 @@ public:
      */
     void AddAbilityStage();
 
-    void AddAbilityStageBySpecifiedAbility(const std::string &bundleName);
+    /**
+     * AddAbilityStageBySpecifiedAbility, Notify application to ability stage.
+     *
+     * @return Return true if the ability stage need to be add, otherwise return false.
+     */
+    bool AddAbilityStageBySpecifiedAbility(const std::string &bundleName);
 
     void AddAbilityStageBySpecifiedProcess(const std::string &bundleName);
 
