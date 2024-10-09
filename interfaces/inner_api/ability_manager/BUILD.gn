@@ -26,6 +26,8 @@ config("ability_manager_public_config") {
   include_dirs = [
     "include/",
     "include/status_bar_delegate",
+    "include/insight_intent",
+    "include/ui_extension",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
     "${ability_runtime_path}/interfaces/kits/native/ability/ability_runtime",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/context",
