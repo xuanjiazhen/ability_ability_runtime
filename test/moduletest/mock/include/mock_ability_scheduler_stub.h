@@ -22,7 +22,8 @@ namespace OHOS {
 namespace AAFwk {
 class MockAbilitySchedulerStub : public AbilitySchedulerStub {
 public:
-    MOCK_METHOD3(ScheduleAbilityTransaction, void(const Want&, const LifeCycleStateInfo&, sptr<SessionInfo>));
+    MOCK_METHOD4(ScheduleAbilityTransaction, void(const Want&, const LifeCycleStateInfo&, sptr<SessionInfo>,
+        const sptr<IRemoteObject>&));
     MOCK_METHOD1(ScheduleShareData, void(const int32_t &uniqueId));
     MOCK_METHOD3(SendResult, void(int, int, const Want&));
     MOCK_METHOD1(ScheduleConnectAbility, void(const Want&));

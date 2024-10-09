@@ -29,8 +29,8 @@ class MockAbilitySchedulerStub : public AAFwk::AbilitySchedulerStub {
 public:
     MockAbilitySchedulerStub() = default;
     virtual ~MockAbilitySchedulerStub() = default;
-    MOCK_METHOD3(ScheduleAbilityTransaction, void(const AAFwk::Want&, const AAFwk::LifeCycleStateInfo&,
-        sptr<AAFwk::SessionInfo>));
+    MOCK_METHOD4(ScheduleAbilityTransaction, void(const Want&, const LifeCycleStateInfo&, sptr<SessionInfo>,
+        const sptr<IRemoteObject>&));
     MOCK_METHOD1(ScheduleShareData, void(const int32_t &uniqueId));
     MOCK_METHOD3(SendResult, void(int, int, const AAFwk::Want&));
     MOCK_METHOD1(ScheduleConnectAbility, void(const AAFwk::Want&));

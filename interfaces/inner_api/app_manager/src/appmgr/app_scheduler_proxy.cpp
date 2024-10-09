@@ -15,6 +15,7 @@
 
 #include "app_scheduler_proxy.h"
 
+#include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "ipc_types.h"
@@ -190,30 +191,43 @@ void AppSchedulerProxy::ScheduleLaunchAbility(const AbilityInfo &info, const spt
     }
     data.WriteParcelable(&info);
 
+    AbilityRuntime::FreezeUtil::LifecycleFlow flow = {token, AbilityRuntime::FreezeUtil::TimeoutState::LOAD};
+    std::string entry;
+
     if (token) {
         if (!data.WriteBool(true) || !data.WriteRemoteObject(token.GetRefPtr())) {
             TAG_LOGE(AAFwkTag::APPMGR, "Failed to write flag and token");
+            entry = "ERROR AppLifeCycleDeal::LaunchAbility; Failed to write flag and token.";
+            AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
             return;
         }
     } else {
         if (!data.WriteBool(false)) {
             TAG_LOGE(AAFwkTag::APPMGR, "Failed to write flag");
+            entry = "ERROR AppLifeCycleDeal::LaunchAbility; Failed to write flag.";
+            AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
             return;
         }
     }
 
     if (!data.WriteParcelable(want.get())) {
         TAG_LOGE(AAFwkTag::APPMGR, "write want fail.");
+        entry = "ERROR AppLifeCycleDeal::LaunchAbility; write want fail.";
+        AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
         return;
     }
     if (!data.WriteInt32(abilityRecordId)) {
         TAG_LOGE(AAFwkTag::APPMGR, "write ability record id fail.");
+        entry = "ERROR AppLifeCycleDeal::LaunchAbility; write ability record id fail.";
+        AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
         return;
     }
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_LAUNCH_ABILITY_TRANSACTION), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "LaunchAbility is failed, due to IPC error: %{public}d", ret);
+        entry = "ERROR AppLifeCycleDeal::LaunchAbility; LaunchAbility is failed, due to IPC error";
+        AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
     }
 }
 
@@ -263,7 +277,7 @@ void AppSchedulerProxy::ScheduleLaunchApplication(const AppLaunchData &launchDat
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_LAUNCH_APPLICATION_TRANSACTION), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "LaunchApplication is failed, error code: %{public}d", ret);
     }
 }
 
