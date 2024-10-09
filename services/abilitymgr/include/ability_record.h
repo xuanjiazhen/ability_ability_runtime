@@ -1095,6 +1095,8 @@ public:
 
     void RemoveConnectWant();
 
+    void UpdateDmsCallerInfo(Want &want);
+
     inline std::string GetInstanceKey() const
     {
         return instanceKey_;
@@ -1103,6 +1105,16 @@ public:
     void SetInstanceKey(const std::string& key)
     {
         instanceKey_ = key;
+    }
+
+    void SetSecurityFlag(bool securityFlag)
+    {
+        securityFlag_ = securityFlag;
+    }
+
+    bool GetSecurityFlag() const
+    {
+        return securityFlag_;
     }
 
 protected:
@@ -1329,6 +1341,7 @@ private:
     bool isLaunching_ = true;
     LaunchDebugInfo launchDebugInfo_;
     std::string instanceKey_ = "";
+    bool securityFlag_ = false;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
