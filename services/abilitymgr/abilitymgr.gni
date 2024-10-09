@@ -51,8 +51,6 @@ abilityms_files = [
   "src/pending_want_common_event.cpp",
   "src/restart_app_manager.cpp",
   "src/ams_configuration_parameter.cpp",
-  "src/insight_intent_utils.cpp",
-  "src/insight_intent_profile.cpp",
   "src/recovery_info_timer.cpp",
   "src/modal_system_dialog/modal_system_dialog_ui_extension.cpp",
   "src/interceptor/ability_interceptor_executer.cpp",
@@ -68,17 +66,26 @@ abilityms_files = [
   "src/uri_utils.cpp",
   "src/window_focus_changed_listener.cpp",
 
+  # insight intent
+  "src/insight_intent/insight_intent_utils.cpp",
+  "src/insight_intent/insight_intent_profile.cpp",
+  "src/insight_intent/insight_intent_execute_manager.cpp",
+  "src/insight_intent/insight_intent_execute_result.cpp",
+
   # start ability handler
   "src/start_ability_handler.cpp",
   "src/start_ability_handler/start_ability_sandbox_savefile.cpp",
   "src/start_ability_utils.cpp",
 
+  # ui extension
+  "src/ui_extension/ui_extension_record.cpp",
+  "src/ui_extension/ui_extension_record_factory.cpp",
+
   # new ability manager service here
   "src/extension_record_manager.cpp",
   "src/extension_record.cpp",
   "src/extension_record_factory.cpp",
-  "src/ui_extension_record.cpp",
-  "src/ui_extension_record_factory.cpp",
+
   "src/screen_lock/unlock_screen_manager.cpp",
   "src/start_options.cpp",
   "src/user_callback_proxy.cpp",
@@ -123,8 +130,6 @@ abilityms_files = [
   "src/ability_auto_startup_data_manager.cpp",
   "src/ability_auto_startup_service.cpp",
   "src/auto_startup_info.cpp",
-  "src/insight_intent_execute_manager.cpp",
-  "src/insight_intent_execute_result.cpp",
 
   "src/ability_manager_event_subscriber.cpp",
 
