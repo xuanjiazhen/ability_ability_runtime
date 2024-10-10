@@ -2518,20 +2518,6 @@ void MainThread::DestroyHeapProfiler()
 void MainThread::ForceFullGC()
 {
     TAG_LOGD(AAFwkTag::APPKIT, "Force fullGC");
-    if (mainHandler_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "mainHandler is nullptr");
-        return;
-    }
-
-    auto task = [] {
-        auto app = applicationForDump_.lock();
-        if (app == nullptr || app->GetRuntime() == nullptr) {
-            TAG_LOGE(AAFwkTag::APPKIT, "runtime is nullptr");
-            return;
-        }
-        app->GetRuntime()->ForceFullGC();
-    };
-    mainHandler_->PostTask(task, "MainThread:ForceFullGC");
 }
 
 void MainThread::Start()
@@ -3399,16 +3385,6 @@ void MainThread::HandleCacheProcess()
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPKIT, "start");
-
-    // force gc
-    if (application_ != nullptr) {
-        auto &runtime = application_->GetRuntime();
-        if (runtime == nullptr) {
-            TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
-            return;
-        }
-        runtime->ForceFullGC();
-    }
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
