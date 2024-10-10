@@ -614,8 +614,6 @@ private:
 
     int32_t ChangeAppGcState(int32_t state);
 
-    void HandleCacheProcess();
-
     bool IsBgWorkingThread(const AbilityInfo &info);
 
     /**
