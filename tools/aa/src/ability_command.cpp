@@ -882,13 +882,20 @@ ErrCode AbilityManagerShellCommand::ParseParam(ParametersInteger& pi)
 {
     std::string key = optarg;
     std::string intString = argv_[optind + OPTION_PARAMETER_VALUE_OFFSET];
-    if (!std::regex_match(intString, std::regex(STRING_TEST_REGEX_INTEGER_NUMBERS))) {
-        resultReceiver_.append("invalid parameter ");
+    try {
+        if (!std::regex_match(intString, std::regex(STRING_TEST_REGEX_INTEGER_NUMBERS))) {
+            resultReceiver_.append("invalid parameter ");
+            resultReceiver_.append(intString);
+            resultReceiver_.append(" for integer option\n");
+            return OHOS::ERR_INVALID_VALUE;
+        }
+    } catch (...) {
+        resultReceiver_.append("regex_match error ");
         resultReceiver_.append(intString);
         resultReceiver_.append(" for integer option\n");
-
         return OHOS::ERR_INVALID_VALUE;
     }
+
     pi[key] = atoi(argv_[optind + OPTION_PARAMETER_VALUE_OFFSET]);
     return OHOS::ERR_OK;
 }

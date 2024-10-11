@@ -274,7 +274,7 @@ private:
             }
             task.ResolveWithNoError(env, CreateJsUndefined(env));
         };
-
+        
         napi_value result = nullptr;
         NapiAsyncTask::Schedule("JsAbilityManager::OnNotifyDebugAssertResult", env,
             CreateAsyncTaskWithLastParam(env, nullptr, nullptr, std::move(complete), &result));
