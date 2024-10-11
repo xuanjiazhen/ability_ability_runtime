@@ -23,7 +23,8 @@ ohos_fuzztest("AbilityMgrExtensionRecordFuzzTest") {
   module_out_path = module_output_path
 
   cflags_cc = []
-  fuzz_config_file = "${ability_runtime_test_path}/fuzztest/abilitymgrextensionrecord_fuzzer"
+  fuzz_config_file =
+      "${ability_runtime_test_path}/fuzztest/abilitymgrextensionrecord_fuzzer"
   include_dirs = [
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper",
     "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy/include",
@@ -38,8 +39,8 @@ ohos_fuzztest("AbilityMgrExtensionRecordFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
   sources = [
-    "${ability_runtime_services_path}/abilitymgr/src/ui_extension/extension_record.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/preload_uiext_state_observer.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/ui_extension/extension_record.cpp",
     "abilitymgrextensionrecord_fuzzer.cpp",
   ]
 
