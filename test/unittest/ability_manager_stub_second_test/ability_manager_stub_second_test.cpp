@@ -765,5 +765,103 @@ HWTEST_F(AbilityManagerStubSecondTest, OnRemoteRequestInnerNineteenth_0100, Test
 
     TAG_LOGI(AAFwkTag::TEST, "OnRemoteRequestInnerNineteenth_0100 end");
 }
+
+/**
+ * @tc.name: OnRemoteRequestInner_0100
+ * @tc.desc: Test OnRemoteRequestInner
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubSecondTest, OnRemoteRequestInner_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnRemoteRequestInner_0100 begin");
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(AbilityManagerInterfaceCode::TERMINATE_ABILITY);
+    stub_->OnRemoteRequestInner(code, data, reply, option);
+    
+    code = static_cast<uint32_t>(AbilityManagerInterfaceCode::ACQUIRE_SHARE_DATA);
+    stub_->OnRemoteRequestInner(code, data, reply, option);
+
+    code = 0;
+    auto ret = stub_->OnRemoteRequestInner(code, data, reply, option);
+    EXPECT_NE(ret, ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "OnRemoteRequestInner_0100 end");
+}
+
+/**
+ * @tc.name: HandleOnRemoteRequestInnerFirst_0100
+ * @tc.desc: Test HandleOnRemoteRequestInnerFirst
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubSecondTest, HandleOnRemoteRequestInnerFirst_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "HandleOnRemoteRequestInnerFirst_0100 begin");
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code[] = {
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::TERMINATE_ABILITY),
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::KILL_PROCESS),
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_ABILITY_BY_INSIGHT_INTENT),
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_CONTINUATION),
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::STOP_SYNC_MISSIONS),
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::REGISTER_COLLABORATOR),
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::GET_PENDING_WANT_SENDER),
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::GET_PENDING_REQUEST_WANT),
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::GET_MISSION_INFOS),
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::RELEASE_CALL_ABILITY)
+    };
+
+    int i = 0;
+    while (i < sizeof(code) / sizeof(uint32_t)) {
+        stub_->HandleOnRemoteRequestInnerFirst(code[i++], data, reply, option);
+    }
+    
+    uint32_t code_ = 0;
+    auto ret = stub_->HandleOnRemoteRequestInnerFirst(code_, data, reply, option);
+    EXPECT_EQ(ret, ERR_CODE_NOT_EXIST);
+
+    TAG_LOGI(AAFwkTag::TEST, "HandleOnRemoteRequestInnerFirst_0100 end");
+}
+
+/**
+ * @tc.name: HandleOnRemoteRequestInnerSecond_0100
+ * @tc.desc: Test HandleOnRemoteRequestInnerSecond
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubSecondTest, HandleOnRemoteRequestInnerSecond_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "HandleOnRemoteRequestInnerSecond_0100 begin");
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code[] = {
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::ACQUIRE_SHARE_DATA),
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_USER_TEST),
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::GET_ELEMENT_NAME_BY_TOKEN),
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::SET_MISSION_CONTINUE_STATE),
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::SET_MISSION_LABEL),
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::COMPLETE_FIRST_FRAME_DRAWING_BY_SCB),
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::NOTIFY_SAVE_AS_RESULT),
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::GET_CONNECTION_DATA),
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::NOTIFY_DEBUG_ASSERT_RESULT)
+    };
+
+    int i = 0;
+    while (i < sizeof(code) / sizeof(uint32_t)) {
+        stub_->HandleOnRemoteRequestInnerSecond(code[i++], data, reply, option);
+    }
+    
+    uint32_t code_ = 0;
+    auto ret = stub_->HandleOnRemoteRequestInnerSecond(code_, data, reply, option);
+    EXPECT_EQ(ret, ERR_CODE_NOT_EXIST);
+
+    TAG_LOGI(AAFwkTag::TEST, "HandleOnRemoteRequestInnerSecond_0100 end");
+}
 } // namespace AAFwk
 } // namespace OHOS
