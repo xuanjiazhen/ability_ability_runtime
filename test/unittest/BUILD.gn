@@ -612,6 +612,7 @@ group("unittest") {
       "wants_info_test:unittest",
       "window_config_test:unittest",
       "window_focus_changed_listener_test:unittest",
+      "window_options_utils_second_test:unittest",
       "window_options_utils_test:unittest",
       "window_visibility_changed_listener_test:unittest",
     ]
