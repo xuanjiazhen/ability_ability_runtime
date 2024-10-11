@@ -257,6 +257,7 @@ group("fuzztest") {
     "continuemission_fuzzer:fuzztest",
     "crowdtestinterceptor_fuzzer:fuzztest",
     "dataabilitymanager_fuzzer:fuzztest",
+    "deeplinkreserveconfig_fuzzer:fuzztest",
     "delegatordoabilityforeground_fuzzer:fuzztest",
     "disposedobserver_fuzzer:fuzztest",
     "doabilitybackground_fuzzer:fuzztest",
