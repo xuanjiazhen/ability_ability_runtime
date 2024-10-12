@@ -196,7 +196,7 @@ void DoSomethingTestWithMyAPI3(std::shared_ptr<MissionListManager> missionListMg
 {
     bool boolParam = *data % ENABLE;
     int32_t int32Param = static_cast<int32_t>(GetU32Data(data));
-    uint32_t uint32Param = static_cast<uint32_t>(GetU32Data(data));;
+    uint32_t uint32Param = static_cast<uint32_t>(GetU32Data(data));
     auto abilityRecord = GetFuzzAbilityRecord();
     std::shared_ptr<Mission> mission = std::make_shared<Mission>(int32Param, abilityRecord);
     abilityRecord->SetMissionId(int32Param);

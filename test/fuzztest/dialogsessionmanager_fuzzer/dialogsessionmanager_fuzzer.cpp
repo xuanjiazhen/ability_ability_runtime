@@ -72,13 +72,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     std::vector<DialogAbilityInfo> targetAbilityInfos;
     sptr<IRemoteObject> callerToken = GetFuzzAbilityToken();
     Parcel wantParcel;
-    Want* want = nullptr;
-    if (wantParcel.WriteBuffer(data, size)) {
-        want = Want::Unmarshalling(wantParcel);
-        if (!want) {
-            return false;
-        }
-    }
+    Want want;
     auto dialogSessionInfo = std::make_shared<DialogSessionInfo>();
     if (dialogSessionInfo == nullptr) {
         return false;
@@ -100,13 +94,13 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     dialogSessionManager->NotifySCBToRecoveryAfterInterception(dialogSessionId, abilityRequest);
     dialogSessionManager->GenerateDialogSessionRecordCommon(abilityRequest, int32Param, wantParams,
         dialogAppInfos, isSelector);
-    dialogSessionManager->CreateJumpModalDialog(abilityRequest, int32Param, *want);
-    dialogSessionManager->CreateImplicitSelectorModalDialog(abilityRequest, *want, int32Param, dialogAppInfos);
-    dialogSessionManager->CreateCloneSelectorModalDialog(abilityRequest, *want, int32Param, dialogAppInfos,
+    dialogSessionManager->CreateJumpModalDialog(abilityRequest, int32Param, want);
+    dialogSessionManager->CreateImplicitSelectorModalDialog(abilityRequest, want, int32Param, dialogAppInfos);
+    dialogSessionManager->CreateCloneSelectorModalDialog(abilityRequest, want, int32Param, dialogAppInfos,
         replaceWant);
-    dialogSessionManager->CreateModalDialogCommon(*want, callerToken, dialogSessionId);
-    dialogSessionManager->HandleErmsResult(abilityRequest, int32Param, *want);
-    dialogSessionManager->HandleErmsResultBySCB(abilityRequest, *want);
+    dialogSessionManager->CreateModalDialogCommon(want, callerToken, dialogSessionId);
+    dialogSessionManager->HandleErmsResult(abilityRequest, int32Param, want);
+    dialogSessionManager->HandleErmsResultBySCB(abilityRequest, want);
     dialogSessionManager->IsCreateCloneSelectorDialog(bundleName, int32Param);
     return true;
 }

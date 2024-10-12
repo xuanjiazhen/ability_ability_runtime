@@ -57,7 +57,6 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     std::string str(data, size);
     auto dialogAbilityInfo = std::make_shared<DialogAbilityInfo>();
     dialogAbilityInfo->GetURI();
-    dialogAbilityInfo->ParseURI(str);
 
     return true;
 }

@@ -201,7 +201,6 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     if (!Infot_) {
         Infot_ = std::make_shared<MissionListenerController>();
     }
-    Infot_->Init();
     int32_t missionIds = static_cast<int32_t>(GetU32Data(data));
     Infot_->NotifyMissionCreated(missionIds);
     Infot_->NotifyMissionDestroyed(missionIds);
