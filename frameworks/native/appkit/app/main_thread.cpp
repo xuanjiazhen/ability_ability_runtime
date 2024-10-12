@@ -1876,10 +1876,18 @@ void MainThread::ChangeToLocalPath(const std::string &bundleName,
     if (sourceDir.empty()) {
         return;
     }
-    if (std::regex_search(localPath, std::regex(bundleName))) {
-        localPath = std::regex_replace(localPath, pattern, std::string(LOCAL_CODE_PATH));
-    } else {
-        localPath = std::regex_replace(localPath, std::regex(ABS_CODE_PATH), LOCAL_BUNDLES);
+    try {
+        if (std::regex_search(localPath, std::regex(bundleName))) {
+            localPath = std::regex_replace(localPath, pattern, std::string(LOCAL_CODE_PATH));
+        } else {
+            localPath = std::regex_replace(localPath, std::regex(ABS_CODE_PATH), LOCAL_BUNDLES);
+        }
+    } catch (...) {
+        TAG_LOGE(
+            AAFwkTag::APPKIT,
+            "ChangeToLocalPath error localPath:%{public}s bundleName:%{public}s",
+            localPath.c_str(), bundleName.c_str());
+        return;
     }
 }
 
@@ -3383,8 +3391,12 @@ void MainThread::ParseAppConfigurationParams(const std::string configuration, Co
         && jsonObject[JSON_KEY_APP_FONT_MAX_SCALE].is_string()) {
         std::string appFontMaxScale = jsonObject.at(JSON_KEY_APP_FONT_MAX_SCALE).get<std::string>();
         const std::regex INTEGER_REGEX("^[-+]?([0-9]+)([.]([0-9]+))?$");
-        if (std::regex_match(appFontMaxScale, INTEGER_REGEX)) {
-            appConfig.AddItem(AAFwk::GlobalConfigurationKey::APP_FONT_MAX_SCALE, appFontMaxScale);
+        try {
+            if (std::regex_match(appFontMaxScale, INTEGER_REGEX)) {
+                appConfig.AddItem(AAFwk::GlobalConfigurationKey::APP_FONT_MAX_SCALE, appFontMaxScale);
+            }
+        } catch (...) {
+            TAG_LOGE(AAFwkTag::APPKIT, "regex_match error appFontMaxScale: %{public}s", appFontMaxScale.c_str());
         }
     }
     TAG_LOGD(AAFwkTag::APPKIT, "configuration_: %{public}s", appConfig.GetName().c_str());

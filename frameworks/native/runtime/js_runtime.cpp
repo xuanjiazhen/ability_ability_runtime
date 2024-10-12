@@ -300,8 +300,13 @@ int32_t JsRuntime::JsperfProfilerCommandParse(const std::string &command, int32_
     auto jsPerfStr = command.substr(findPos, command.length() - findPos);
     const std::regex regexJsperf(R"(^jsperf($|\s+($|\d*\s*($|nativeperf.*))))");
     std::match_results<std::string::const_iterator> matchResults;
-    if (!std::regex_match(jsPerfStr, matchResults, regexJsperf)) {
-        TAG_LOGD(AAFwkTag::JSRUNTIME, "the order not match");
+    try {
+        if (!std::regex_match(jsPerfStr, matchResults, regexJsperf)) {
+            TAG_LOGD(AAFwkTag::JSRUNTIME, "the order not match");
+            return defaultValue;
+        }
+    } catch (...) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "regex_match error jsPerfStr:%{public}s", jsPerfStr.c_str());
         return defaultValue;
     }
 

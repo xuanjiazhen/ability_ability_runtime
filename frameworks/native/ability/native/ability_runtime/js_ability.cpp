@@ -674,7 +674,12 @@ bool JsAbility::InitWindowScene(const Want &want)
             setting_->GetProperty(OHOS::AppExecFwk::AbilityStartSetting::WINDOW_DISPLAY_ID_KEY);
         std::regex formatRegex("[0-9]{0,9}$");
         std::smatch sm;
-        bool flag = std::regex_match(strDisplayId, sm, formatRegex);
+        bool flag = false;
+        try {
+            flag = std::regex_match(strDisplayId, sm, formatRegex);
+        } catch (...) {
+            TAG_LOGW(AAFwkTag::ABILITY, "regex_match error formatRegex:[%{public}s]", strDisplayId.c_str());
+        }
         if (flag && !strDisplayId.empty()) {
             int base = 10; // Numerical base (radix) that determines the valid characters and their interpretation.
             displayId = strtol(strDisplayId.c_str(), nullptr, base);

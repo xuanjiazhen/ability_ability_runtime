@@ -835,7 +835,12 @@ void JsUIAbility::DoOnForegroundForSceneIsNull(const Want &want)
         std::string strDisplayId = setting_->GetProperty(OHOS::AppExecFwk::AbilityStartSetting::WINDOW_DISPLAY_ID_KEY);
         std::regex formatRegex("[0-9]{0,9}$");
         std::smatch sm;
-        bool flag = std::regex_match(strDisplayId, sm, formatRegex);
+        bool flag = false;
+        try {
+            flag = std::regex_match(strDisplayId, sm, formatRegex);
+        } catch (...) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "regex_match error, strDisplayId: [%{public}s]", strDisplayId.c_str());
+        }
         if (flag && !strDisplayId.empty()) {
             displayId = strtol(strDisplayId.c_str(), nullptr, BASE_DISPLAY_ID_NUM);
             TAG_LOGD(AAFwkTag::UIABILITY, "displayId: %{public}d", displayId);
