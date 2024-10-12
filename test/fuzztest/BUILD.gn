@@ -258,6 +258,7 @@ group("fuzztest") {
     "crowdtestinterceptor_fuzzer:fuzztest",
     "dataabilitymanager_fuzzer:fuzztest",
     "delegatordoabilityforeground_fuzzer:fuzztest",
+    "dialogsessioninfo_fuzzer:fuzztest",
     "disposedobserver_fuzzer:fuzztest",
     "doabilitybackground_fuzzer:fuzztest",
     "doabilityforeground_fuzzer:fuzztest",
