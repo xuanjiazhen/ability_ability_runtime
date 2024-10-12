@@ -25,9 +25,13 @@ ohos_unittest("resident_process_manager_test") {
     "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/system_ability_mock",
     "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy/include",
     "${ability_runtime_services_path}/abilitymgr/include",
+    "mock/include",
   ]
 
-  sources = [ "resident_process_manager_test.cpp" ]
+  sources = [
+    "mock/src/mock_bundle_mgr_helper.cpp",
+    "resident_process_manager_test.cpp",
+  ]
 
   configs = [
     "${ability_runtime_services_path}/abilitymgr:abilityms_config",

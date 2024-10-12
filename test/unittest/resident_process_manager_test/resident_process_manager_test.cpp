@@ -21,6 +21,7 @@
 #undef private
 #undef protected
 #include "ability_manager_service.h"
+#include "mock_bundle_mgr_helper.h"
 #include "user_controller.h"
 
 using namespace testing;
@@ -253,6 +254,32 @@ HWTEST_F(ResidentProcessManagerTest, SetResidentProcessEnable_001, TestSize.Leve
     std::string bundleName = "com.example.resident.process";
     std::string callerName;
     EXPECT_EQ(manager->SetResidentProcessEnabled(bundleName, callerName, false), INVALID_PARAMETERS_ERR);
+}
+
+/*
+ * Feature: ResidentProcessManager
+ * Function: UpdateResidentProcessesStatus
+ * SubFunction: NA
+ * FunctionPoints:ResidentProcessManager UpdateResidentProcessesStatus
+ * EnvConditions: NA
+ * CaseDescription: Verify UpdateResidentProcessesStatus
+ */
+HWTEST_F(ResidentProcessManagerTest, UpdateResidentProcessesStatus_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ResidentProcessManagerTest_UpdateResidentProcessesStatus_001 start");
+    std::string bundleName;
+    auto manager = std::make_shared<ResidentProcessManager>();
+    manager->UpdateResidentProcessesStatus(bundleName, false, false);
+    bundleName = "com.example.resident.process";
+    manager->UpdateResidentProcessesStatus(bundleName, false, false);
+    manager->UpdateResidentProcessesStatus(bundleName, true, true);
+    manager->UpdateResidentProcessesStatus(bundleName, false, true);
+    bundleName = "com.test.test1";
+    manager->UpdateResidentProcessesStatus(bundleName, false, true);
+    bundleName = "te";
+    manager->UpdateResidentProcessesStatus(bundleName, false, true);
+    EXPECT_NE(manager, nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "ResidentProcessManagerTest_UpdateResidentProcessesStatus_001 end");
 }
 
 /*
