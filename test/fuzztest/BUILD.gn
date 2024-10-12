@@ -298,6 +298,7 @@ group("fuzztest") {
     "missioninfomgrb_fuzzer:fuzztest",
     "missioninfomgrc_fuzzer:fuzztest",
     "missionlistenerstub_fuzzer:fuzztest",
+    "missionlistmanagerfifth_fuzzer:fuzztest",
     "missionlistmanagerfourth_fuzzer:fuzztest",
     "missionlistmanagersecond_fuzzer:fuzztest",
     "missionlistmanagerthird_fuzzer:fuzztest",
