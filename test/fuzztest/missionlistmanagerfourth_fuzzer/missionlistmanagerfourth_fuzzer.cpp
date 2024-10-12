@@ -30,9 +30,17 @@ using namespace OHOS::AppExecFwk;
 
 namespace OHOS {
 namespace {
-constexpr size_t FOO_MAX_LEN = 1024;
+constexpr int INPUT_ZERO = 0;
+constexpr int INPUT_ONE = 1;
+constexpr int INPUT_TWO = 2;
+constexpr int INPUT_THREE = 3;
 constexpr size_t U32_AT_SIZE = 4;
+constexpr size_t OFFSET_ZERO = 24;
+constexpr size_t OFFSET_ONE = 16;
+constexpr size_t OFFSET_TWO = 8;
+constexpr size_t FOO_MAX_LEN = 1024;
 constexpr uint8_t ENABLE = 2;
+constexpr uint8_t STATE = 17;
 class MyAbilityConnection : public IAbilityConnection {
 public:
     MyAbilityConnection() = default;
@@ -46,10 +54,11 @@ public:
 };
 } // namespace
 
-uint32_t GetU32Data(const char *ptr)
+uint32_t GetU32Data(const char* ptr)
 {
     // convert fuzz input data to an integer
-    return (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | ptr[3];
+    return (ptr[INPUT_ZERO] << OFFSET_ZERO) | (ptr[INPUT_ONE] << OFFSET_ONE) | (ptr[INPUT_TWO] << OFFSET_TWO) |
+        ptr[INPUT_THREE];
 }
 
 std::shared_ptr<AbilityRecord> GetFuzzAbilityRecord()
@@ -115,6 +124,44 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     missionListManager->CompleteTerminateAndUpdateMission(abilityRecord);
     missionListManager->GetAbilityFromTerminateList(token);
     missionListManager->SetMissionLockedState(intParam, boolParam);
+    missionListManager->ProcessPreload(abilityRecord);
+    missionListManager->CompleteFirstFrameDrawing(token);
+    AbilityRequest abilityRequest;
+    missionListManager->GetTargetMissionList(abilityRecord, abilityRequest);
+    missionListManager->MoveToTerminateList(abilityRecord);
+     missionListManager->CompleteForegroundFailed(nullptr, AAFwk::AbilityState::FOREGROUND_INVALID_MODE);
+    OHOS::AAFwk::AbilityState state[] = {
+        AAFwk::AbilityState::FOREGROUND_WINDOW_FREEZED,
+        AAFwk::AbilityState::FOREGROUND_DO_NOTHING,
+        AAFwk::AbilityState::FOREGROUND_INVALID_MODE
+    };
+    int i = 0;
+    while (i < sizeof(state) / sizeof(AAFwk::AbilityState)) {
+        missionListManager->CompleteForegroundFailed(abilityRecord, state[i++]);
+    }
+    OHOS::AAFwk::AbilityState state2 = static_cast<OHOS::AAFwk::AbilityState>(*data % STATE);
+    missionListManager->CompleteForegroundFailed(abilityRecord, state2);
+    missionListManager->UpdateMissionSnapshot(abilityRecord);
+
+    uint32_t msgId[] = {
+        static_cast<uint32_t>(AbilityManagerService::LOAD_TIMEOUT_MSG),
+        static_cast<uint32_t>(AbilityManagerService::ACTIVE_TIMEOUT_MSG),
+        static_cast<uint32_t>(AbilityManagerService::INACTIVE_TIMEOUT_MSG),
+        static_cast<uint32_t>(AbilityManagerService::FOREGROUND_TIMEOUT_MSG),
+        static_cast<uint32_t>(AbilityManagerService::BACKGROUND_TIMEOUT_MSG),
+        static_cast<uint32_t>(AbilityManagerService::TERMINATE_TIMEOUT_MSG)
+    };
+    std::string msgContent;
+    int typeId;
+    i = 0;
+    while (i < sizeof(msgId) / sizeof(uint32_t)) {
+        missionListManager->GetContentAndTypeId(msgId[i++], msgContent, typeId);
+    }
+    uint32_t uint32Param = static_cast<uint32_t>(GetU32Data(data));
+    missionListManager->GetContentAndTypeId(uint32Param, msgContent, typeId);
+    missionListManager->PrintTimeOutLog(abilityRecord, uint32Param, boolParam);
+    missionListManager->PostMissionLabelUpdateTask(intParam);
+    missionListManager->NotifyMissionCreated(abilityRecord);
     if (want) {
         delete want;
         want = nullptr;
