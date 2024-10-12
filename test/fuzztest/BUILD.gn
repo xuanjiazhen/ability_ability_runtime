@@ -266,6 +266,7 @@ group("fuzztest") {
     "dumpsysstate_fuzzer:fuzztest",
     "extensionconfig_fuzzer:fuzztest",
     "extensioncontrolinterceptor_fuzzer:fuzztest",
+    "extensionpermissionsutil_fuzzer:fuzztest",
     "extensionrecordfactory_fuzzer:fuzztest",
     "extensionrecordmanagera_fuzzer:fuzztest",
     "faultdata_fuzzer:fuzztest",
