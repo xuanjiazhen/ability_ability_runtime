@@ -734,5 +734,19 @@ bool AmsMgrScheduler::IsAppKilling(sptr<IRemoteObject> token)
     }
     return amsMgrServiceInner_->IsAppKilling(token);
 }
+
+void AmsMgrScheduler::SetNormalResidentApps(const std::vector<std::string> &bundleNames)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AmsMgrService is not ready.");
+        return;
+    }
+    if (IPCSkeleton::GetCallingPid() != getprocpid()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not allow other process to call");
+        return;
+    }
+
+    amsMgrServiceInner_->SetNormalResidentApps(bundleNames);
+}
 } // namespace AppExecFwk
 }  // namespace OHOS

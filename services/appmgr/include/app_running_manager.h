@@ -49,17 +49,16 @@ public:
     /**
      * CreateAppRunningRecord, Get or create application record information.
      *
-     * @param token, the unique identification to start the ability.
-     * @param abilityInfo, ability information.
      * @param appInfo, app information.
      * @param processName, app process name.
-     * @param uid, app uid in Application record.
-     * @param result, If error occurs, error code is in |result|.
-     *
+     * @param bundleInfo bundle info.
+     * @param instanceKey, instance key.
+     * @param inResidentList determine it's alive property
      * @return AppRunningRecord pointer if success get or create.
      */
     std::shared_ptr<AppRunningRecord> CreateAppRunningRecord(const std::shared_ptr<ApplicationInfo> &appInfo,
-        const std::string &processName, const BundleInfo &bundleInfo, const std::string &instanceKey);
+        const std::string &processName, const BundleInfo &bundleInfo, const std::string &instanceKey,
+        bool inResidentList);
 
     /**
      * CheckAppRunningRecordIsExist, Get process record by application name and process Name.

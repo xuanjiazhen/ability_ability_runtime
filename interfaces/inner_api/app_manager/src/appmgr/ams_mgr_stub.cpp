@@ -34,6 +34,7 @@ namespace AppExecFwk {
 namespace {
 constexpr int32_t MAX_APP_DEBUG_COUNT = 100;
 constexpr int32_t MAX_KILL_PROCESS_PID_COUNT = 100;
+constexpr int32_t MAX_RESIDENT_BUNDLE_NAME_COUNT = 100;
 }
 
 AmsMgrStub::AmsMgrStub()
@@ -215,6 +216,8 @@ int32_t AmsMgrStub::OnRemoteRequestInnerFourth(uint32_t code, MessageParcel &dat
             return HandleIsProcessAttached(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::IS_APP_KILLING):
             return HandleIsAppKilling(data, reply);
+        case static_cast<uint32_t>(IAmsMgr::Message::SET_NORMAL_RESIDENT_APPS):
+            return HandleSetNormalResidentApps(data, reply);
     }
     return AAFwk::ERR_CODE_NOT_EXIST;
 }
@@ -853,6 +856,24 @@ int32_t AmsMgrStub::HandleIsAppKilling(MessageParcel &data, MessageParcel &reply
         TAG_LOGE(AAFwkTag::APPMGR, "Fail to write result");
         return ERR_INVALID_VALUE;
     }
+    return NO_ERROR;
+}
+
+int32_t AmsMgrStub::HandleSetNormalResidentApps(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    auto listSize = data.ReadInt32();
+    if (listSize < 0 || listSize > MAX_RESIDENT_BUNDLE_NAME_COUNT) {
+        TAG_LOGE(AAFwkTag::APPMGR, "wrong size");
+        return ERR_INVALID_VALUE;
+    }
+
+    std::vector<std::string> bundleNames;
+    if (!reply.ReadStringVector(&bundleNames)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "ReadStringVector failed");
+        return ERR_INVALID_DATA;
+    }
+    SetNormalResidentApps(bundleNames);
     return NO_ERROR;
 }
 }  // namespace AppExecFwk

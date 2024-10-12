@@ -228,6 +228,7 @@ public:
 
     void GetExtensionRunningInfo(std::shared_ptr<AbilityRecord> &abilityRecord, const int32_t userId,
         std::vector<ExtensionRunningInfo> &info);
+    bool IsExtensionRunning(const AppExecFwk::ElementName &element);
 
     /**
      * set from ability manager service for sequenced task

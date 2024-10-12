@@ -888,6 +888,8 @@ public:
 
     bool IsAppKilling(sptr<IRemoteObject> token) const;
 
+    void SetNormalResidentApps(const std::vector<std::string> &bundleNames) const;
+
 private:
     void SetServiceManager(std::unique_ptr<AppServiceManager> serviceMgr);
     /**

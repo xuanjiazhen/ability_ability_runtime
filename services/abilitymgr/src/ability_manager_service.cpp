@@ -2563,7 +2563,11 @@ void AbilityManagerService::SubscribeBundleEventCallback()
     TAG_LOGI(AAFwkTag::ABILITYMGR, "subscribeBundleEventCallback begin");
     if (taskHandler_) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "submit startResidentApps task");
-        auto startResidentAppsTask = [aams = shared_from_this()]() { aams->StartResidentApps(U0_USER_ID); };
+        auto startResidentAppsTask = [aams = shared_from_this()]() {
+            DelayedSingleton<AppScheduler>::GetInstance()->SetNormalResidentApps(
+                AmsConfigurationParameter::GetInstance().GetResidentWhiteList());
+            aams->StartResidentApps(U0_USER_ID);
+        };
         taskHandler_->SubmitTask(startResidentAppsTask, "StartResidentApps");
     }
 
@@ -8698,6 +8702,16 @@ void AbilityManagerService::GetAbilityRunningInfo(std::vector<AbilityRunningInfo
     info.emplace_back(runningInfo);
 }
 
+bool AbilityManagerService::IsExtensionRunning(const AppExecFwk::ElementName &element, int32_t userId)
+{
+    auto connectManager = GetConnectManagerByUserId(userId);
+    if (connectManager == nullptr) {
+        return false;
+    }
+
+    return connectManager->IsExtensionRunning(element);
+}
+
 int AbilityManagerService::VerifyAccountPermission(int32_t userId)
 {
     if ((userId < 0) || (userController_ && (userController_->GetCurrentUserId() == userId))) {
@@ -12133,7 +12147,7 @@ void AbilityManagerService::SetAbilityRequestSessionInfo(AbilityRequest &ability
         auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().
             GetSceneSessionManagerLiteProxy();
         CHECK_POINTER_LOG(sceneSessionManager, "sceneSessionManager is nullptr");
-        auto err = sceneSessionManager->GetRootMainWindowId(static_cast<int32_t>(callerSessionInfo->hostWindowId),mainWindowId);      
+        auto err = sceneSessionManager->GetRootMainWindowId(static_cast<int32_t>(callerSessionInfo->hostWindowId),mainWindowId);
         TAG_LOGI(AAFwkTag::ABILITYMGR, "callerSessionInfo->hostWindowId = %{public}d, mainWindowId = %{public}d, err = %{public}d",
             callerSessionInfo->hostWindowId, mainWindowId, err);
         abilityRequest.want.SetParam(WANT_PARAMS_HOST_WINDOW_ID_KEY, mainWindowId);

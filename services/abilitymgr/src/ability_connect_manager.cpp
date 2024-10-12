@@ -2520,6 +2520,11 @@ void AbilityConnectManager::GetExtensionRunningInfos(int upperLimit, std::vector
     std::for_each(cacheAbilityList.begin(), cacheAbilityList.end(), queryInfoForCache);
 }
 
+bool AbilityConnectManager::IsExtensionRunning(const AppExecFwk::ElementName &element)
+{
+    return GetServiceRecordByElementName(element.GetURI()) != nullptr;
+}
+
 void AbilityConnectManager::GetAbilityRunningInfos(std::vector<AbilityRunningInfo> &info, bool isPerm)
 {
     auto serviceMapBack = GetServiceMap();

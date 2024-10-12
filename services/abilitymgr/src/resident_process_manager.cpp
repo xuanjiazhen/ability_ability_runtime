@@ -112,6 +112,11 @@ void ResidentProcessManager::StartResidentProcessWithMainElement(std::vector<App
             }
 
             needEraseIndexSet.insert(i);
+
+            AppExecFwk::ElementName element("", hapModuleInfo.bundleName, mainElement, hapModuleInfo.name);
+            if (DelayedSingleton<AbilityManagerService>::GetInstance()->IsExtensionRunning(element, userId)) {
+                continue;
+            }
             // startAbility
             Want want;
             want.SetElementName(hapModuleInfo.bundleName, mainElement);
