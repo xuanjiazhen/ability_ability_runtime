@@ -98,10 +98,12 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     dialogSessionManager->GenerateSelectorTargetAbilityInfos(dialogAppInfos, targetAbilityInfos);
     dialogSessionManager->GenerateDialogCallerInfo(abilityRequest, int32Param, dialogCallerInfo, isSelector);
     dialogSessionManager->NotifySCBToRecoveryAfterInterception(dialogSessionId, abilityRequest);
-    dialogSessionManager->GenerateDialogSessionRecordCommon(abilityRequest, int32Param, wantParams, dialogAppInfos, isSelector);
+    dialogSessionManager->GenerateDialogSessionRecordCommon(abilityRequest, int32Param, wantParams,
+        dialogAppInfos, isSelector);
     dialogSessionManager->CreateJumpModalDialog(abilityRequest, int32Param, *want);
     dialogSessionManager->CreateImplicitSelectorModalDialog(abilityRequest, *want, int32Param, dialogAppInfos);
-    dialogSessionManager->CreateCloneSelectorModalDialog(abilityRequest, *want, int32Param, dialogAppInfos, replaceWant);
+    dialogSessionManager->CreateCloneSelectorModalDialog(abilityRequest, *want, int32Param, dialogAppInfos,
+        replaceWant);
     dialogSessionManager->CreateModalDialogCommon(*want, callerToken, dialogSessionId);
     dialogSessionManager->HandleErmsResult(abilityRequest, int32Param, *want);
     dialogSessionManager->HandleErmsResultBySCB(abilityRequest, *want);
