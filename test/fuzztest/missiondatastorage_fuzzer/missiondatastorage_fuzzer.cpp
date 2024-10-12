@@ -38,7 +38,10 @@ constexpr uint8_t ENABLE = 2;
 uint32_t GetU32Data(const char* ptr)
 {
     // convert fuzz input data to an integer
-    return (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | ptr[3];
+    return (static_cast<uint32_t>(ptr[0]) << 24) |
+           (static_cast<uint32_t>(ptr[1]) << 16) |
+           (static_cast<uint32_t>(ptr[2]) << 8)  |
+           static_cast<uint32_t>(ptr[3]);
 }
 
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
