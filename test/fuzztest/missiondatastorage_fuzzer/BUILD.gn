@@ -19,7 +19,7 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 module_output_path = "ability_runtime/abilitymgr"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("MissionDataStorageTest") {
+ohos_fuzztest("MissionDataStorageFuzzTest") {
   module_out_path = module_output_path
 
   fuzz_config_file =
@@ -82,7 +82,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":MissionDataStorageTest",
+    ":MissionDataStorageFuzzTest",
   ]
 }
 ###############################################################################
