@@ -294,6 +294,7 @@ group("fuzztest") {
     "loadability_fuzzer:fuzztest",
     "lockmissionforcleanup_fuzzer:fuzztest",
     "minimizeability_fuzzer:fuzztest",
+    "missiondatastorage_fuzzer:fuzztest",
     "missioninfomgra_fuzzer:fuzztest",
     "missioninfomgrb_fuzzer:fuzztest",
     "missioninfomgrc_fuzzer:fuzztest",
