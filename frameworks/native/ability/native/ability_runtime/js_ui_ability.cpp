@@ -186,6 +186,7 @@ void JsUIAbility::Init(std::shared_ptr<AppExecFwk::AbilityLocalRecord> record,
     }
 #endif
     std::string srcPath(abilityInfo->package);
+    TAG_LOGI(AAFwkTag::UIABILITY, "zhuhan abilityInfo->package: %{public}s", srcPath.c_str());
     if (!abilityInfo->isModuleJson) {
         /* temporary compatibility api8 + config.json */
         srcPath.append("/assets/js/");
@@ -200,7 +201,9 @@ void JsUIAbility::Init(std::shared_ptr<AppExecFwk::AbilityLocalRecord> record,
         }
         srcPath.append("/");
         srcPath.append(abilityInfo->srcEntrance);
+        TAG_LOGI(AAFwkTag::UIABILITY, "zhuhan abilityInfo->srcEntrance: %{public}s", srcPath.c_str());
         srcPath.erase(srcPath.rfind("."));
+        TAG_LOGI(AAFwkTag::UIABILITY, "zhuhan abilityInfo->srcEntrance: %{public}s", srcPath.c_str());
         srcPath.append(".abc");
         TAG_LOGD(AAFwkTag::UIABILITY, "jsAbility srcPath: %{public}s", srcPath.c_str());
     }
