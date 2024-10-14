@@ -74,7 +74,7 @@ public:
      * schedule ability life cycle to foreground
      */
     void ForegroundNew(const Want &want, LifeCycleStateInfo &stateInfo,
-        sptr<SessionInfo> sessionInfo = nullptr);
+        sptr<SessionInfo> sessionInfo = nullptr, const sptr<IRemoteObject> &token = nullptr);
     /**
      * schedule ability life cycle to background
      */

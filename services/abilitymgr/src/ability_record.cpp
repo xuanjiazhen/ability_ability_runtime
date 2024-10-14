@@ -398,7 +398,8 @@ void AbilityRecord::ForegroundAbility(uint32_t sceneFlag)
     lifeCycleStateInfo_.sceneFlag = sceneFlag;
     Want want = GetWant();
     UpdateDmsCallerInfo(want);
-    lifecycleDeal_->ForegroundNew(want, lifeCycleStateInfo_, GetSessionInfo());
+    auto abilityRecord(shared_from_this());
+    lifecycleDeal_->ForegroundNew(want, lifeCycleStateInfo_, GetSessionInfo(), abilityRecord->GetToken());
     lifeCycleStateInfo_.sceneFlag = 0;
     lifeCycleStateInfo_.sceneFlagBak = 0;
     {
@@ -431,7 +432,8 @@ void AbilityRecord::ForegroundUIExtensionAbility(uint32_t sceneFlag)
     SetAbilityStateInner(AbilityState::FOREGROUNDING);
 #endif // SUPPORT_SCREEN
     lifeCycleStateInfo_.sceneFlag = sceneFlag;
-    lifecycleDeal_->ForegroundNew(GetWant(), lifeCycleStateInfo_, GetSessionInfo());
+    auto abilityRecord(shared_from_this());
+    lifecycleDeal_->ForegroundNew(GetWant(), lifeCycleStateInfo_, GetSessionInfo(), abilityRecord->GetToken());
     lifeCycleStateInfo_.sceneFlag = 0;
     lifeCycleStateInfo_.sceneFlagBak = 0;
     {

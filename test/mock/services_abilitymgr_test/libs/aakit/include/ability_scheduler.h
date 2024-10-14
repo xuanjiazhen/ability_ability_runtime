@@ -31,7 +31,7 @@ public:
     virtual ~AbilityScheduler();
 
     void ScheduleAbilityTransaction(const Want& want, const LifeCycleStateInfo& targetState,
-        sptr<SessionInfo> sessionInfo = nullptr) override;
+        sptr<SessionInfo> sessionInfo = nullptr, const sptr<IRemoteObject> &token = nullptr) override;
 
     void ScheduleShareData(const int32_t &uniqueId) override;
 

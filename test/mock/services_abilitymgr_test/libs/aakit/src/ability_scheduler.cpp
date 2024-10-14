@@ -26,7 +26,7 @@ AbilityScheduler::~AbilityScheduler()
 {}
 
 void AbilityScheduler::ScheduleAbilityTransaction(const Want& want, const LifeCycleStateInfo& targetState,
-    sptr<SessionInfo> sessionInfo)
+    sptr<SessionInfo> sessionInfo, const sptr<IRemoteObject> &token)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityScheduler ScheduleAbilityTransaction %d", targetState.state);
     (void)want;

@@ -17,6 +17,7 @@
 
 #include "ability_scheduler_stub.h"
 #include "ability_util.h"
+#include "freeze_util.h"
 #include "hitrace_meter.h"
 #include "status_bar_delegate_interface.h"
 
@@ -1307,20 +1308,32 @@ int AbilityManagerProxy::AttachAbilityThread(const sptr<IAbilityScheduler> &sche
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    AbilityRuntime::FreezeUtil::LifecycleFlow flow = {token, AbilityRuntime::FreezeUtil::TimeoutState::LOAD};
+    std::string entry;
     if (scheduler == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "scheduler is nullptr");
+        entry = "ERROR AttachAbilityThread; scheduler is nullptr";
+        AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
         return ERR_INVALID_VALUE;
     }
     if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "data write failed");
+        entry = "ERROR AttachAbilityThread; data write failed";
+        AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
         return INNER_ERR;
     }
     if (!data.WriteRemoteObject(scheduler->AsObject()) || !data.WriteRemoteObject(token)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "data write fail");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "data write failed");
+        entry = "ERROR AttachAbilityThread; data write failed";
+        AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
         return ERR_INVALID_VALUE;
     }
 
     error = SendRequest(AbilityManagerInterfaceCode::ATTACH_ABILITY_THREAD, data, reply, option);
     if (error != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, " AttachAbilityThread failed due to IPC error:%{public}d", error);
+        entry = "ERROR AttachAbilityThread; AttachAbilityThread failed due to IPC error";
+        AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
         return error;
     }
     return reply.ReadInt32();
@@ -1332,22 +1345,40 @@ int AbilityManagerProxy::AbilityTransitionDone(const sptr<IRemoteObject> &token,
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-
+    AbilityRuntime::FreezeUtil::LifecycleFlow flow = {token, AbilityRuntime::FreezeUtil::TimeoutState::FOREGROUND};
+    std::string entry;
     if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "data write failed");
+        if (state == AAFwk::ABILITY_STATE_FOREGROUND_NEW) {
+            entry = "ERROR AbilityTransitionDone; data write failed";
+            AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
+        }
         return INNER_ERR;
     }
     if (!data.WriteRemoteObject(token) || !data.WriteInt32(state)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "token or state write fail");
+        if (state == AAFwk::ABILITY_STATE_FOREGROUND_NEW) {
+            entry = "ERROR AbilityTransitionDone; token or state write fail";
+            AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
+        }
         return ERR_INVALID_VALUE;
     }
     if (!data.WriteParcelable(&saveData)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "saveData write fail");
+        if (state == AAFwk::ABILITY_STATE_FOREGROUND_NEW) {
+            entry = "ERROR AbilityTransitionDone; saveData write fail";
+            AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
+        }
         return INNER_ERR;
     }
 
     error = SendRequest(AbilityManagerInterfaceCode::ABILITY_TRANSITION_DONE, data, reply, option);
     if (error != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityTransitionDone failed due to IPC error:%{public}d", error);
+        if (state == AAFwk::ABILITY_STATE_FOREGROUND_NEW) {
+            entry = "ERROR AbilityTransitionDone; AbilityTransitionDone failed due to IPC error";
+            AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
+        }
         return error;
     }
     return reply.ReadInt32();

@@ -87,13 +87,13 @@ HWTEST_F(IpcAbilitySchedulerModuleTest, ScheduleAbilityTransaction_001, TestSize
         stubState.lifeCycleStateInfo.isNewWant = false;
 
         auto stubHandler = [&](const Want& want, const LifeCycleStateInfo& lifeCycleStateInfo,
-            sptr<SessionInfo> sessionInfo) {
+            sptr<SessionInfo> sessionInfo, const sptr<IRemoteObject> &token) {
             stubState.want.SetAction(want.GetAction());
             stubState.lifeCycleStateInfo.isNewWant = lifeCycleStateInfo.isNewWant;
             sem.Post();
         };
 
-        EXPECT_CALL(*stub, ScheduleAbilityTransaction(_, _, _)).Times(1).WillOnce(Invoke(stubHandler));
+        EXPECT_CALL(*stub, ScheduleAbilityTransaction(_, _,  _, _)).Times(1).WillOnce(Invoke(stubHandler));
 
         proxy->ScheduleAbilityTransaction(proxyState.want, proxyState.lifeCycleStateInfo);
 

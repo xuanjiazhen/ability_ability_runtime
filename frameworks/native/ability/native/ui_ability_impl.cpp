@@ -498,6 +498,9 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterUnfocused()
 void UIAbilityImpl::WindowLifeCycleImpl::ForegroundFailed(int32_t type)
 {
     TAG_LOGE(AAFwkTag::UIABILITY, "scb call, ForegroundFailed");
+    FreezeUtil::LifecycleFlow flow = { token_, FreezeUtil::TimeoutState::FOREGROUND };
+    std::string entry = "ERROR UIAbilityImpl::WindowLifeCycleImpl::ForegroundFailed; GoForeground failed.";
+    FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
     AppExecFwk::PacMap restoreData;
     switch (type) {
         case static_cast<int32_t>(OHOS::Rosen::WMError::WM_ERROR_INVALID_OPERATION): {

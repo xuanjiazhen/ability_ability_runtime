@@ -89,7 +89,8 @@ void AbilityThread::AbilityThreadMain(const std::shared_ptr<OHOSApplication> &ap
 }
 
 void AbilityThread::ScheduleAbilityTransaction(
-    const Want &want, const LifeCycleStateInfo &targetState, sptr<SessionInfo> sessionInfo)
+    const Want &want, const LifeCycleStateInfo &targetState, sptr<SessionInfo> sessionInfo,
+    const sptr<IRemoteObject> &token)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
 }
