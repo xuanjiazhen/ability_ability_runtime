@@ -15,29 +15,10 @@
 
 #include "ability_manager_service.h"
 
-#include <atomic>
-#include <chrono>
-#include <csignal>
-#include <cstdlib>
-#include <fstream>
-#include <functional>
-#include <getopt.h>
-#include <memory>
-#include <mutex>
-#include <nlohmann/json.hpp>
-#include <string>
-#include <thread>
-#include <unistd.h>
-#include <unordered_set>
-
 #include "ability_background_connection.h"
 #include "ability_connect_manager.h"
-#include "ability_debug_deal.h"
-#include "ability_manager_constants.h"
-#include "ability_manager_errors.h"
 #include "ability_manager_radar.h"
 #include "ability_resident_process_rdb.h"
-#include "ability_util.h"
 #include "accesstoken_kit.h"
 #include "ability_manager_xcollie.h"
 #ifdef APP_DOMAIN_VERIFY_ENABLED
@@ -48,28 +29,16 @@
 #include "app_exit_reason_data_manager.h"
 #include "application_util.h"
 #include "assert_fault_callback_death_mgr.h"
-#include "assert_fault_proxy.h"
-#include "bundle_mgr_client.h"
-#include "common_event_manager.h"
-#include "common_event_support.h"
 #include "connection_state_manager.h"
 #include "display_manager.h"
 #include "distributed_client.h"
 #ifdef WITH_DLP
 #include "dlp_utils.h"
 #endif // WITH_DLP
-#include "errors.h"
-#include "extension_config.h"
 #include "freeze_util.h"
 #include "global_constant.h"
-#include "hilog_tag_wrapper.h"
-#include "hisysevent.h"
 #include "hitrace_meter.h"
-#include "if_system_ability_manager.h"
-#include "in_process_call_wrapper.h"
-#include "insight_intent_execute_callback_proxy.h"
 #include "insight_intent_execute_manager.h"
-#include "int_wrapper.h"
 #include "interceptor/ability_jump_interceptor.h"
 #include "interceptor/control_interceptor.h"
 #include "interceptor/crowd_test_interceptor.h"
@@ -79,35 +48,23 @@
 #include "interceptor/screen_unlock_interceptor.h"
 #include "interceptor/start_other_app_interceptor.h"
 #include "ipc_skeleton.h"
-#include "ipc_types.h"
 #include "iservice_registry.h"
-#include "itest_observer.h"
-#include "mission_info.h"
-#include "mission_info_mgr.h"
 #include "mock_session_manager_service.h"
 #include "modal_system_ui_extension.h"
 #include "os_account_manager_wrapper.h"
-#include "parameters.h"
 #include "permission_constants.h"
 #include "process_options.h"
 #include "recovery_param.h"
 #include "res_sched_util.h"
 #include "restart_app_manager.h"
-#include "sa_mgr_client.h"
 #include "scene_board_judgement.h"
 #include "server_constant.h"
-#include "session_info.h"
 #include "softbus_bus_center.h"
 #include "start_ability_handler/start_ability_sandbox_savefile.h"
-#include "start_options.h"
 #include "start_ability_utils.h"
 #include "startup_util.h"
 #include "status_bar_delegate_interface.h"
-#include "string_ex.h"
 #include "string_wrapper.h"
-#include "system_ability_definition.h"
-#include "system_ability_token_callback.h"
-#include "extension_record_manager.h"
 #include "ui_extension_utils.h"
 #include "unlock_screen_manager.h"
 #include "uri_permission_manager_client.h"
@@ -115,8 +72,8 @@
 #include "view_data.h"
 #include "xcollie/watchdog.h"
 #include "config_policy_utils.h"
-#include "running_multi_info.h"
 #include "utils/ability_permission_util.h"
+#include "utils/extension_permissions_util.h"
 #include "utils/dump_utils.h"
 #include "utils/window_options_utils.h"
 #ifdef SUPPORT_GRAPHICS
@@ -193,6 +150,11 @@ constexpr const char* PARAM_RESV_ANCO_CALLER_BUNDLENAME = "ohos.anco.param.calle
 // Distributed continued session Id
 constexpr const char* DMS_CONTINUED_SESSION_ID = "ohos.dms.continueSessionId";
 constexpr const char* DMS_PERSISTENT_ID = "ohos.dms.persistentId";
+constexpr const char* DMS_CALLER_BUNDLE_NAME = "ohos.dms.param.sourceCallerBundleName";
+constexpr const char* DMS_CALLER_ABILITY_NAME = "ohos.dms.param.sourceCallerAbilityName";
+constexpr const char* DMS_CALLER_NATIVE_NAME = "ohos.dms.param.sourceCallerNativeName";
+constexpr const char* DMS_CALLER_APP_ID = "ohos.dms.param.sourceCallerAppId";
+constexpr const char* DMS_CALLER_APP_IDENTIFIER = "ohos.dms.param.sourceCallerAppIdentifier";
 
 constexpr const char* DEBUG_APP = "debugApp";
 constexpr const char* NATIVE_DEBUG = "nativeDebug";
@@ -3524,6 +3486,7 @@ int AbilityManagerService::StartRemoteAbility(const Want &want, int requestCode,
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s", __func__);
     Want remoteWant = want;
+    UpdateDmsCallerInfo(remoteWant, callerToken);
     if (AddStartControlParam(remoteWant, callerToken) != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s AddStartControlParam failed.", __func__);
         return ERR_INVALID_VALUE;
@@ -4081,6 +4044,12 @@ int AbilityManagerService::ConnectLocalAbility(const Want &want, const int32_t u
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s CheckCallServicePermission error.", __func__);
         return result;
     }
+
+    if (!ExtensionPermissionsUtil::CheckSAPermission(targetExtensionType)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "The SA doesn't have permission for target extension.");
+        return CHECK_PERMISSION_FAILED;
+    }
+
     result = PreLoadAppDataAbilities(abilityInfo.bundleName, validUserId);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "ConnectAbility: App data ability preloading failed, '%{public}s', %{public}d",
@@ -4105,6 +4074,7 @@ int AbilityManagerService::ConnectRemoteAbility(Want &want, const sptr<IRemoteOb
     const sptr<IRemoteObject> &connect)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s begin ConnectAbilityRemote", __func__);
+    UpdateDmsCallerInfo(want, callerToken);
     if (AddStartControlParam(want, callerToken) != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s AddStartControlParam failed.", __func__);
         return ERR_INVALID_VALUE;
@@ -6989,6 +6959,7 @@ int AbilityManagerService::StartRemoteAbilityByCall(const Want &want, const sptr
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s begin StartRemoteAbilityByCall", __func__);
     Want remoteWant = want;
+    UpdateDmsCallerInfo(remoteWant, callerToken);
     if (AddStartControlParam(remoteWant, callerToken) != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s AddStartControlParam failed.", __func__);
         return ERR_INVALID_VALUE;
@@ -8133,17 +8104,57 @@ void AbilityManagerService::UpdateCallerInfo(Want& want, const sptr<IRemoteObjec
     UpdateSignatureInfo(callerBundleName, want);
 }
 
-void AbilityManagerService::UpdateSignatureInfo(std::string bundleName, Want& want)
+void AbilityManagerService::UpdateSignatureInfo(std::string bundleName, Want& want, bool isRemote)
 {
     auto bundleMgr = GetBundleManager();
     if (bundleMgr != nullptr) {
         AppExecFwk::SignatureInfo signatureInfo;
         IN_PROCESS_CALL(bundleMgr->GetSignatureInfoByBundleName(bundleName, signatureInfo));
-        want.RemoveParam(Want::PARAM_RESV_CALLER_APP_ID);
-        want.SetParam(Want::PARAM_RESV_CALLER_APP_ID, signatureInfo.appId);
-        want.RemoveParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER);
-        want.SetParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER, signatureInfo.appIdentifier);
+        std::string callerAppId = isRemote ? DMS_CALLER_APP_ID : Want::PARAM_RESV_CALLER_APP_ID;
+        std::string callerAppIdentifier = isRemote ? DMS_CALLER_APP_IDENTIFIER : Want::PARAM_RESV_CALLER_APP_IDENTIFIER;
+        want.RemoveParam(callerAppId);
+        want.SetParam(callerAppId, signatureInfo.appId);
+        want.RemoveParam(callerAppIdentifier);
+        want.SetParam(callerAppIdentifier, signatureInfo.appIdentifier);
     }
+}
+
+void AbilityManagerService::UpdateDmsCallerInfo(Want& want, const sptr<IRemoteObject> &callerToken)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    int32_t tokenId = static_cast<int32_t>(IPCSkeleton::GetCallingTokenID());
+    int32_t callerUid = IPCSkeleton::GetCallingUid();
+
+    auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
+    if (!abilityRecord) {
+        std::string bundleName;
+        auto bundleMgr = AbilityUtil::GetBundleManagerHelper();
+        if (bundleMgr != nullptr) {
+            IN_PROCESS_CALL(bundleMgr->GetNameForUid(callerUid, bundleName));
+        }
+        if (bundleName == "") {
+            std::string nativeName;
+            Security::AccessToken::NativeTokenInfo nativeTokenInfo;
+            int32_t result = Security::AccessToken::AccessTokenKit::GetNativeTokenInfo(tokenId, nativeTokenInfo);
+            if (result == ERR_OK) {
+                nativeName = "_" + nativeTokenInfo.processName;
+            }
+            want.RemoveParam(DMS_CALLER_NATIVE_NAME);
+            want.SetParam(DMS_CALLER_NATIVE_NAME, nativeName);
+        }
+        want.RemoveParam(DMS_CALLER_BUNDLE_NAME);
+        want.SetParam(DMS_CALLER_BUNDLE_NAME, bundleName);
+        want.RemoveParam(DMS_CALLER_ABILITY_NAME);
+        want.SetParam(DMS_CALLER_ABILITY_NAME, std::string(""));
+        return;
+    }
+    std::string callerBundleName = abilityRecord->GetAbilityInfo().bundleName;
+    want.RemoveParam(DMS_CALLER_BUNDLE_NAME);
+    want.SetParam(DMS_CALLER_BUNDLE_NAME, callerBundleName);
+    std::string callerAbilityName = abilityRecord->GetAbilityInfo().name;
+    want.RemoveParam(DMS_CALLER_ABILITY_NAME);
+    want.SetParam(DMS_CALLER_ABILITY_NAME, callerAbilityName);
+    UpdateSignatureInfo(callerBundleName, want, true);
 }
 
 void AbilityManagerService::UpdateAsCallerSourceInfo(Want& want, sptr<IRemoteObject> asCallerSourceToken,
@@ -9193,6 +9204,13 @@ int AbilityManagerService::CheckCallServiceExtensionPermission(const AbilityRequ
     verificationInfo.visible = abilityRequest.abilityInfo.visible;
     verificationInfo.withContinuousTask = IsBackgroundTaskUid(IPCSkeleton::GetCallingUid());
     verificationInfo.isBackgroundCall = false;
+    if (isParamStartAbilityEnable_) {
+        bool stopContinuousTaskFlag = ShouldPreventStartAbility(abilityRequest);
+        if (stopContinuousTaskFlag) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Do not have permission to start ServiceExtension");
+            return CHECK_PERMISSION_FAILED;
+        }
+    }
 
     int result = AAFwk::PermissionVerification::GetInstance()->CheckCallServiceExtensionPermission(verificationInfo);
     if (result != ERR_OK) {
@@ -11172,15 +11190,15 @@ bool AbilityManagerService::ShouldPreventStartAbility(const AbilityRequest &abil
         TAG_LOGD(AAFwkTag::ABILITYMGR, "No matched token pass");
         return false;
     }
+    auto abilityInfo = abilityRequest.abilityInfo;
+    auto callerAbilityInfo = abilityRecord->GetAbilityInfo();
+    PrintStartAbilityInfo(callerAbilityInfo, abilityInfo);
     if (abilityRecord->GetApplicationInfo().apiTargetVersion % API_VERSION_MOD < API12) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "API version %{public}d pass",
             abilityRecord->GetApplicationInfo().apiTargetVersion % API_VERSION_MOD);
         return false;
     }
-    auto abilityInfo = abilityRequest.abilityInfo;
-    auto callerAbilityInfo = abilityRecord->GetAbilityInfo();
-    bool continuousFlag = false;
-    continuousFlag = IsBackgroundTaskUid(IPCSkeleton::GetCallingUid());
+    bool continuousFlag = IsBackgroundTaskUid(IPCSkeleton::GetCallingUid());
     if (abilityInfo.extensionAbilityType != AppExecFwk::ExtensionAbilityType::DATASHARE &&
         abilityInfo.extensionAbilityType != AppExecFwk::ExtensionAbilityType::SERVICE) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Process did not call service or datashare extension Pass");
@@ -11206,10 +11224,53 @@ bool AbilityManagerService::ShouldPreventStartAbility(const AbilityRequest &abil
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Process is in white list Pass");
         return false;
     }
+    if(!IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->
+        IsProcessContainsOnlyUIAbility(abilityRecord->GetPid()))) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Process has other extension except UIAbility, pass");
+        return false;
+    }
     TAG_LOGE(AAFwkTag::ABILITYMGR, "Do not have permission to start ServiceExtension %{public}s.",
         abilityRecord->GetURI().c_str());
     ReportPreventStartAbilityResult(callerAbilityInfo, abilityInfo);
     return true;
+}
+
+void AbilityManagerService::PrintStartAbilityInfo(AppExecFwk::AbilityInfo callerInfo, AppExecFwk::AbilityInfo calledInfo)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "calledAbilityInfo toString: "
+        "calledUid is: %{public}d, "
+        "name is: %{public}s, "
+        "bundleName is: %{public}s, "
+        "type is: %{public}d, "
+        "extensionAbilityType is: %{public}d, "
+        "moduleName is: %{public}s, "
+        "applicationName is: %{public}s",
+        calledInfo.applicationInfo.uid,
+        calledInfo.name.c_str(),
+        calledInfo.bundleName.c_str(),
+        static_cast<int32_t>(calledInfo.type),
+        static_cast<int32_t>(calledInfo.extensionAbilityType),
+        calledInfo.moduleName.c_str(),
+        calledInfo.applicationName.c_str());
+    
+
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "callerAbilityInfo toString: "
+        "callerUid is: %{public}d, "
+        "callerPid is: %{public}d, "
+        "name is: %{public}s, "
+        "bundleName is: %{public}s, "
+        "type is: %{public}d, "
+        "extensionAbilityType is: %{public}d, "
+        "moduleName is: %{public}s, "
+        "applicationName is: %{public}s", 
+        IPCSkeleton::GetCallingUid(),
+        IPCSkeleton::GetCallingPid(),
+        callerInfo.name.c_str(),
+        callerInfo.bundleName.c_str(),
+        static_cast<int32_t>(callerInfo.type),
+        static_cast<int32_t>(callerInfo.extensionAbilityType),
+        callerInfo.moduleName.c_str(),
+        callerInfo.applicationName.c_str());
 }
 
 void AbilityManagerService::ReportPreventStartAbilityResult(const AppExecFwk::AbilityInfo &callerAbilityInfo,
