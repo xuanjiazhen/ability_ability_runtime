@@ -150,6 +150,7 @@ ohos_shared_library("abilitykit_utils") {
     "ability_base:configuration",
     "ability_base:want",
     "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "graphic_2d:2d_graphics",
@@ -508,7 +509,6 @@ ohos_shared_library("extensionkit_native") {
     public_external_deps += [
       "form_fwk:form_manager",
       "graphic_2d:color_manager",
-      "image_framework:image_native",
       "window_manager:libdm",
     ]
   }
@@ -821,6 +821,7 @@ ohos_shared_library("form_extension_module") {
     "hilog:libhilog",
     "json:nlohmann_json_static",
     "napi:ace_napi",
+    "node:node_header_notice",
     "window_manager:libwm",
   ]
 
@@ -1205,6 +1206,7 @@ ohos_shared_library("data_ability_helper") {
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "json:nlohmann_json_static",
+    "node:node_header_notice",
     "relational_store:native_dataability",
     "relational_store:rdb_data_ability_adapter",
     "window_manager:libwm",
@@ -1248,6 +1250,7 @@ ohos_shared_library("service_extension_module") {
     "hilog:libhilog",
     "json:nlohmann_json_static",
     "napi:ace_napi",
+    "node:node_header_notice",
   ]
 
   if (ability_runtime_graphics) {
@@ -1459,6 +1462,7 @@ ohos_shared_library("ui_extension_module") {
     "bundle_framework:appexecfwk_core",
     "hilog:libhilog",
     "napi:ace_napi",
+    "node:node_header_notice",
     "window_manager:libwm",
   ]
   if (ability_runtime_graphics) {
@@ -1592,6 +1596,7 @@ ohos_shared_library("share_extension_module") {
     "bundle_framework:appexecfwk_core",
     "hilog:libhilog",
     "napi:ace_napi",
+    "node:node_header_notice",
   ]
 
   if (ability_runtime_graphics) {
@@ -1653,6 +1658,7 @@ ohos_shared_library("action_extension_module") {
     "bundle_framework:appexecfwk_core",
     "hilog:libhilog",
     "napi:ace_napi",
+    "node:node_header_notice",
   ]
 
   if (ability_runtime_graphics) {
@@ -1904,6 +1910,7 @@ ohos_shared_library("auto_fill_extension_module") {
     "bundle_framework:appexecfwk_core",
     "hilog:libhilog",
     "napi:ace_napi",
+    "node:node_header_notice",
     "window_manager:libwm",
   ]
   if (ability_runtime_graphics) {
