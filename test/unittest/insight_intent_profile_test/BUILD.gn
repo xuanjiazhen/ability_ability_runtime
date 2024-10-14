@@ -27,6 +27,7 @@ ohos_unittest("insight_intent_profile_test") {
 
   include_dirs = [
     "${ability_runtime_abilitymgr_path}/include",
+    "${ability_runtime_abilitymgr_path}/include/insight_intent",
     "${ability_runtime_abilitymgr_path}/src",
   ]
 
