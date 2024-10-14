@@ -143,10 +143,10 @@ constexpr char TOKEN_KEY[] = "ohos.ability.params.token";
 constexpr char DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
 constexpr char PRODUCT_APPBOOT_SETTING_ENABLED[] = "const.product.appboot.setting.enabled";
 // Broker params key
-constexpr const char* KEY_VISIBLE_ID = "ohos.anco.param.visible";
+// constexpr const char* KEY_VISIBLE_ID = "ohos.anco.param.visible";
 constexpr const char* START_ABILITY_TYPE = "ABILITY_INNER_START_WITH_ACCOUNT";
 constexpr const char* BUNDLE_NAME_DIALOG = "com.ohos.amsdialog";
-constexpr const char* STR_PHONE = "phone";
+// constexpr const char* STR_PHONE = "phone";
 constexpr const char* PARAM_RESV_ANCO_CALLER_UID = "ohos.anco.param.callerUid";
 constexpr const char* PARAM_RESV_ANCO_CALLER_BUNDLENAME = "ohos.anco.param.callerBundleName";
 // Distributed continued session Id
@@ -170,7 +170,7 @@ constexpr const char* FOUNDATION_PROCESS_NAME = "foundation";
 constexpr const char* RSS_PROCESS_NAME = "resource_schedule_service";
 constexpr const char* IS_PRELOAD_UIEXTENSION_ABILITY = "ability.want.params.is_preload_uiextension_ability";
 constexpr const char* UIEXTENSION_MODAL_TYPE = "ability.want.params.modalType";
-constexpr const char* SUPPORT_CLOSE_ON_BLUR = "supportCloseOnBlur";
+// constexpr const char* SUPPORT_CLOSE_ON_BLUR = "supportCloseOnBlur";
 constexpr const char* ATOMIC_SERVICE_PREFIX = "com.atomicservice.";
 constexpr const char* PARAM_SPECIFIED_PROCESS_FLAG = "ohosSpecifiedProcessFlag";
 
@@ -224,7 +224,7 @@ constexpr int32_t ACCOUNT_MGR_SERVICE_UID = 3058;
 constexpr int32_t DMS_UID = 5522;
 constexpr int32_t BOOTEVENT_COMPLETED_DELAY_TIME = 1000;
 constexpr int32_t BOOTEVENT_BOOT_ANIMATION_READY_SIZE = 6;
-constexpr const char* BUNDLE_NAME_KEY = "bundleName";
+// constexpr const char* BUNDLE_NAME_KEY = "bundleName";
 constexpr const char* DM_PKG_NAME = "ohos.distributedhardware.devicemanager";
 constexpr const char* ACTION_CHOOSE = "ohos.want.action.select";
 constexpr const char* HIGHEST_PRIORITY_ABILITY_ENTITY = "flag.home.intent.from.system";
@@ -4479,7 +4479,7 @@ void AbilityManagerService::NotifyCompleteContinuation(const std::string &device
     std::string callerBundleName;
     // reset ipc identity
     auto identity = IPCSkeleton::ResetCallingIdentity();
-    bool result = bundleMgr->GetBundleNameForUid(callerUid, callerBundleName);
+    // bool result = bundleMgr->GetBundleNameForUid(callerUid, callerBundleName);
     // set ipc identity to raw
     IPCSkeleton::SetCallingIdentity(identity);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "callerBundleName: %{public}s", callerBundleName.c_str());
@@ -9546,7 +9546,7 @@ bool AbilityManagerService::CheckUIExtensionCallerPidByHostWindowId(const Abilit
     CHECK_POINTER_AND_RETURN(sceneSessionManager, false);
     pid_t hostPid = 0;
     // If host window id is scb, it will return with error.
-    auto ret = sceneSessionManager->CheckWindowId(hostWindowId, hostPid);
+    // auto ret = sceneSessionManager->CheckWindowId(hostWindowId, hostPid);
     TAG_LOGD(AAFwkTag::UI_EXT, "get pid %{public}d by windowId %{public}d", hostPid, hostWindowId);
     if (hostPid != 0 && callerAbility->GetPid() == hostPid) {
         return true;
