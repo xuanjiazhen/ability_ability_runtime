@@ -1610,5 +1610,35 @@ bool JsUIAbility::BackPressDefaultValue()
 {
     return CheckSatisfyTargetAPIVersion(API12) ? true : false;
 }
+
+void JsUIAbility::DispatchWindowStageFocus()
+{
+    auto abilityContext = GetAbilityContext();
+    if (abilityContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext");
+        return;
+    }
+    auto applicationContext = abilityContext->GetApplicationContext();
+    if (applicationContext == nullptr || applicationContext->IsAbilityLifecycleCallbackEmpty()) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null applicationContext or lifecycleCallback");
+        return;
+    }
+    applicationContext->DispatchWindowStageFocus(GetJsAbility(), GetJsWindowStage());
+}
+
+void JsUIAbility::DispatchWindowStageUnfocus()
+{
+    auto abilityContext = GetAbilityContext();
+    if (abilityContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext");
+        return;
+    }
+    auto applicationContext = abilityContext->GetApplicationContext();
+    if (applicationContext == nullptr || applicationContext->IsAbilityLifecycleCallbackEmpty()) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null applicationContext or lifecycleCallback");
+        return;
+    }
+    applicationContext->DispatchWindowStageUnfocus(GetJsAbility(), GetJsWindowStage());
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

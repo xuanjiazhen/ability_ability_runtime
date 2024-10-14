@@ -395,21 +395,11 @@ void UIAbilityImpl::AfterFocusedCommon(bool isFocused)
             return;
         }
 
-        auto abilityContext = impl->ability_->GetAbilityContext();
-        if (abilityContext == nullptr) {
-            TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext");
-            return;
-        }
-        auto applicationContext = abilityContext->GetApplicationContext();
-        if (applicationContext == nullptr || applicationContext->IsAbilityLifecycleCallbackEmpty()) {
-            TAG_LOGE(AAFwkTag::UIABILITY, "null applicationContext or lifecycleCallback");
-            return;
-        }
         auto &jsAbility = static_cast<JsUIAbility &>(*(impl->ability_));
         if (focuseMode) {
-            applicationContext->DispatchWindowStageFocus(jsAbility.GetJsAbility(), jsAbility.GetJsWindowStage());
+            jsAbility.DispatchWindowStageFocus();
         } else {
-            applicationContext->DispatchWindowStageUnfocus(jsAbility.GetJsAbility(), jsAbility.GetJsWindowStage());
+            jsAbility.DispatchWindowStageUnfocus();
         }
     };
 

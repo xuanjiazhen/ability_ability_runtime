@@ -168,6 +168,10 @@ public:
      */
     int32_t OnShare(WantParams &wantParams) override;
 
+    void DispatchWindowStageFocus();
+
+    void DispatchWindowStageUnfocus();
+
 #ifdef SUPPORT_SCREEN
 public:
     /**
