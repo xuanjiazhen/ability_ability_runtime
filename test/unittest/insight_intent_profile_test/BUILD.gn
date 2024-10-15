@@ -30,9 +30,7 @@ ohos_unittest("insight_intent_profile_test") {
     "${ability_runtime_abilitymgr_path}/src/insight_intent",
   ]
 
-  sources = [
-    "insight_intent_profile_test.cpp",
-  ]
+  sources = [ "insight_intent_profile_test.cpp" ]
 
   deps = [ "${ability_runtime_abilitymgr_path}/:abilityms" ]
 
