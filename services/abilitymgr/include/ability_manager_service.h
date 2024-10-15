@@ -1982,6 +1982,9 @@ private:
     void UserStarted(int32_t userId);
     void SwitchToUser(int32_t userId);
     void SwitchToUser(int32_t oldUserId, int32_t userId, sptr<IUserCallback> callback);
+    void PublishAbilitymsStartEvent();
+    void SetBmsReadyFlag(bool isBmsReady);
+    void SetAppmsReadyFlag(bool isAppmsReady);
     void SwitchManagers(int32_t userId, bool switchUser = true);
     void StartUserApps();
     void PauseOldUser(int32_t userId);
@@ -2337,6 +2340,11 @@ private:
     std::map<int32_t, std::pair<int64_t, const sptr<IAcquireShareDataCallback>>> iAcquireShareDataMap_;
     // first is callstub, second is ability token
     std::map<sptr<IRemoteObject>, sptr<IRemoteObject>> callStubTokenMap_;
+    ffrt::mutex startUserCallbackLock_;
+    std::map<int32_t, sptr<IUserCallback>> startUserCallbackMap_;
+    bool isBmsReady_ = false;
+    bool isAppmsReady_ = false;
+    ffrt::mutex isSAReadyLock_;
 #ifdef SUPPORT_GRAPHICS
     sptr<WindowFocusChangedListener> focusListener_;
 #endif // SUPPORT_GRAPHICS
