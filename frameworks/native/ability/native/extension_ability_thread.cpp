@@ -50,6 +50,7 @@ constexpr static char FILEACCESS_EXT_ABILITY[] = "FileAccessExtension";
 constexpr static char ENTERPRISE_ADMIN_EXTENSION[] = "EnterpriseAdminExtension";
 constexpr static char INPUTMETHOD_EXTENSION[] = "InputMethodExtensionAbility";
 constexpr static char APP_ACCOUNT_AUTHORIZATION_EXTENSION[] = "AppAccountAuthorizationExtension";
+constexpr static char FENCE_EXTENSION[] = "FenceExtension";
 }
 
 const std::map<AppExecFwk::ExtensionAbilityType, std::string> UI_EXTENSION_NAME_MAP = {
@@ -152,6 +153,9 @@ void ExtensionAbilityThread::CreateExtensionAbilityName(
     if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::APP_ACCOUNT_AUTHORIZATION) {
         abilityName = APP_ACCOUNT_AUTHORIZATION_EXTENSION;
     }
+    if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::FENCE) {
+        abilityName = FENCE_EXTENSION;
+    }
 #ifdef SUPPORT_GRAPHICS
     if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::SYSDIALOG_USERAUTH) {
         abilityName = USER_AUTH_EXTENSION;
@@ -211,7 +215,7 @@ void ExtensionAbilityThread::HandleAttach(const std::shared_ptr<AppExecFwk::OHOS
         return;
     }
 
-    TAG_LOGI(AAFwkTag::EXT, "Begin, extension: %{public}s", abilityName.c_str());
+    TAG_LOGI(AAFwkTag::EXT, "HandleAttach, extension: %{public}s", abilityName.c_str());
     if (mainRunner == nullptr) {
         runner_ = AppExecFwk::EventRunner::Create(abilityName);
         if (runner_ == nullptr) {
@@ -239,8 +243,6 @@ void ExtensionAbilityThread::HandleAttach(const std::shared_ptr<AppExecFwk::OHOS
     }
     currentExtension_.reset(extension);
     token_ = abilityRecord->GetToken();
-    abilityRecord->SetEventHandler(abilityHandler_);
-    mainRunner == nullptr ? abilityRecord->SetEventRunner(runner_) : abilityRecord->SetEventRunner(mainRunner);
     abilityRecord->SetAbilityThread(this);
     HandleAttachInner(application, abilityRecord);
 }
@@ -267,7 +269,7 @@ void ExtensionAbilityThread::HandleExtensionTransaction(
     const Want &want, const LifeCycleStateInfo &lifeCycleStateInfo, sptr<AAFwk::SessionInfo> sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::EXT, "%{public}s Begin", __func__);
+    TAG_LOGD(AAFwkTag::EXT, "%{public}s", __func__);
     if (extensionImpl_ == nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "null extensionImpl_");
         return;
@@ -371,7 +373,7 @@ void ExtensionAbilityThread::HandleExtensionUpdateConfiguration(const AppExecFwk
     TAG_LOGD(AAFwkTag::EXT, "End");
 }
 
-void ExtensionAbilityThread::ScheduleAbilityTransaction(
+bool ExtensionAbilityThread::ScheduleAbilityTransaction(
     const Want &want, const LifeCycleStateInfo &lifeCycleStateInfo, sptr<AAFwk::SessionInfo> sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -379,11 +381,11 @@ void ExtensionAbilityThread::ScheduleAbilityTransaction(
         want.GetElement().GetAbilityName().c_str(), lifeCycleStateInfo.state, lifeCycleStateInfo.isNewWant);
     if (token_ == nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "null token_");
-        return;
+        return false;
     }
     if (abilityHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "null abilityHandler_");
-        return;
+        return false;
     }
     wptr<ExtensionAbilityThread> weak = this;
     auto task = [weak, want, lifeCycleStateInfo, sessionInfo]() {
@@ -397,7 +399,9 @@ void ExtensionAbilityThread::ScheduleAbilityTransaction(
     bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::HIGH);
     if (!ret) {
         TAG_LOGE(AAFwkTag::EXT, "PostTask error");
+        return false;
     }
+    return true;
 }
 
 void ExtensionAbilityThread::ScheduleConnectAbility(const Want &want)

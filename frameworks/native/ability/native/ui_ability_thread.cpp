@@ -140,8 +140,6 @@ void UIAbilityThread::Attach(const std::shared_ptr<AppExecFwk::OHOSApplication> 
     ability->SetAbilityRecordId(abilityRecord->GetAbilityRecordId());
     currentAbility_.reset(ability);
     token_ = abilityRecord->GetToken();
-    abilityRecord->SetEventHandler(abilityHandler_);
-    abilityRecord->SetEventRunner(mainRunner);
     abilityRecord->SetAbilityThread(this);
     std::shared_ptr<AppExecFwk::AbilityContext> abilityObject = currentAbility_;
     std::shared_ptr<AppExecFwk::ContextDeal> contextDeal =
@@ -212,8 +210,6 @@ void UIAbilityThread::Attach(const std::shared_ptr<AppExecFwk::OHOSApplication> 
     ability->SetAbilityRecordId(abilityRecord->GetAbilityRecordId());
     currentAbility_.reset(ability);
     token_ = abilityRecord->GetToken();
-    abilityRecord->SetEventHandler(abilityHandler_);
-    abilityRecord->SetEventRunner(runner_);
     abilityRecord->SetAbilityThread(this);
     std::shared_ptr<AppExecFwk::AbilityContext> abilityObject = currentAbility_;
     std::shared_ptr<AppExecFwk::ContextDeal> contextDeal =
@@ -310,7 +306,7 @@ void UIAbilityThread::HandleUpdateConfiguration(const AppExecFwk::Configuration 
     abilityImpl_->ScheduleUpdateConfiguration(config);
 }
 
-void UIAbilityThread::ScheduleAbilityTransaction(
+bool UIAbilityThread::ScheduleAbilityTransaction(
     const Want &want, const LifeCycleStateInfo &lifeCycleStateInfo, sptr<AAFwk::SessionInfo> sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -323,11 +319,11 @@ void UIAbilityThread::ScheduleAbilityTransaction(
 
     if (token_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null token_");
-        return;
+        return false;
     }
     if (abilityHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityHandler_");
-        return;
+        return false;
     }
     wptr<UIAbilityThread> weak = this;
     auto task = [weak, want, lifeCycleStateInfo, sessionInfo]() {
@@ -342,7 +338,9 @@ void UIAbilityThread::ScheduleAbilityTransaction(
     bool ret = abilityHandler_->PostTask(task, "UIAbilityThread:AbilityTransaction");
     if (!ret) {
         TAG_LOGE(AAFwkTag::UIABILITY, "postTask error");
+        return false;
     }
+    return true;
 }
 
 void UIAbilityThread::ScheduleShareData(const int32_t &uniqueId)

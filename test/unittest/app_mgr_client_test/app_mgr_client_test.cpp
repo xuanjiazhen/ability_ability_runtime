@@ -894,7 +894,7 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_RegisterAbilityDebugResponse_001, TestSi
  */
 HWTEST_F(AppMgrClientTest, AppMgrClient_AttachAppDebug_001, TestSize.Level1)
 {
-    AAFwk::IsMockSaCall::IsMockSaCallWithPermission();
+    AAFwk::IsMockSaCall::IsMockSpecificSystemAbilityAccessPermission();
     auto appMgrClient = std::make_unique<AppMgrClient>();
     EXPECT_NE(appMgrClient, nullptr);
 
@@ -1324,8 +1324,8 @@ HWTEST_F(AppMgrClientTest, GetAppRunningUniqueIdByPid_001, TestSize.Level0)
 HWTEST_F(AppMgrClientTest, NotifyMemorySizeStateChanged_001, TestSize.Level0)
 {
     auto appMgrClient = std::make_unique<AppMgrClient>();
-    bool isMemorySizeSufficent = false;
-    int32_t ret = appMgrClient->NotifyMemorySizeStateChanged(isMemorySizeSufficent);
+    bool isMemorySizeSufficient = false;
+    int32_t ret = appMgrClient->NotifyMemorySizeStateChanged(isMemorySizeSufficient);
     EXPECT_EQ(ret, 1);
 }
 

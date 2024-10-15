@@ -18,6 +18,7 @@
 
 #include "ability_scheduler_stub.h"
 #include "context.h"
+#include "event_runner.h"
 #include "ohos_application.h"
 
 namespace OHOS {
@@ -93,7 +94,7 @@ public:
      * @param targetState Indicates the lifecycle state.
      * @param sessionInfo Indicates the session info.
      */
-    void ScheduleAbilityTransaction(
+    bool ScheduleAbilityTransaction(
         const Want &want, const LifeCycleStateInfo &targetState, sptr<SessionInfo> sessionInfo = nullptr) override;
 
     /**

@@ -44,7 +44,7 @@ std::string GetInstanceMapMessage(
 }
 
 using StartServer = void (*)(const std::string&);
-using StartServerForSocketPair = void (*)(int);
+using StartServerForSocketPair = bool (*)(int);
 using SendMessage = void (*)(const std::string&);
 using SendLayoutMessage = void (*)(const std::string&);
 using StopServer = void (*)(const std::string&);
@@ -106,8 +106,7 @@ void ConnectServerManager::StartConnectServer(const std::string& bundleName, int
     auto startServerForSocketPair =
         reinterpret_cast<StartServerForSocketPair>(dlsym(handlerConnectServerSo_, "StartServerForSocketPair"));
     if (startServerForSocketPair == nullptr) {
-        TAG_LOGE(
-            AAFwkTag::JSRUNTIME, "null startServerForSocketPair");
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null startServerForSocketPair");
         return;
     }
     startServerForSocketPair(socketFd);

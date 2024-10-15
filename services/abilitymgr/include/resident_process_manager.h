@@ -66,12 +66,33 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t SetResidentProcessEnabled(const std::string &bundleName, const std::string &callerName, bool updateEnable);
+
+    /**
+     * start empty resident processes.
+     *
+     * @param bundleInfos bundles of resident processes.
+     */
     void StartResidentProcess(const std::vector<AppExecFwk::BundleInfo> &bundleInfos);
+    /**
+     * If bundle has right main element, start the main element
+     */
     void StartResidentProcessWithMainElement(std::vector<AppExecFwk::BundleInfo> &bundleInfos, int32_t userId);
+    /**
+     * Once one process created, query keepalive status from db and update then
+     */
     void OnAppStateChanged(const AppInfo &info);
+    /**
+     * Before starting a resident element, store it.
+     */
     int32_t PutResidentAbility(const std::string &bundleName, const std::string &abilityName, int32_t userId);
     bool IsResidentAbility(const std::string &bundleName, const std::string &abilityName, int32_t userId);
+    /**
+     * After a resident element being started, remove it
+     */
     void RemoveResidentAbility(int32_t residentId);
+    /**
+     * query resident bundles for user
+     */
     bool GetResidentBundleInfosForUser(std::vector<AppExecFwk::BundleInfo> &bundleInfos, int32_t userId);
     void StartFailedResidentAbilities();
 private:
@@ -79,6 +100,9 @@ private:
         std::string &mainElement, std::set<uint32_t> &needEraseIndexSet, size_t bundleInfoIndex, int32_t userId = 0);
     void UpdateResidentProcessesStatus(const std::string &bundleName, bool localEnable, bool updateEnable);
     void AddFailedResidentAbility(const std::string &bundleName, const std::string &abilityName, int32_t userId);
+    void NotifyDisableResidentProcess(const std::vector<AppExecFwk::BundleInfo> &bundleInfos, int32_t userId);
+    void UpdateMainElement(const std::string &bundleName, const std::string &moduleName,
+        const std::string &mainElement, bool updateEnable, int32_t userId);
 
     std::mutex residentAbilityInfoMutex_;
     std::list<ResidentAbilityInfo> residentAbilityInfos_;
