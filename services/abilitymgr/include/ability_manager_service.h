@@ -1791,6 +1791,8 @@ public:
 
     int32_t BlockAllAppStart(bool flag) override;
 
+    int SetWantForSessionInfo(sptr<SessionInfo> sessionInfo);
+
     int32_t StartUIAbilityBySCBDefaultCommon(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
         uint32_t sceneFlag, bool &isColdStart);
 
@@ -1808,6 +1810,9 @@ public:
     int IsCallFromBackground(const AbilityRequest &abilityRequest, bool &isBackgroundCall, bool isData = false);
 
     void EnableListForSCBRecovery(int32_t userId) const;
+
+    int32_t UpdateKeepAliveEnableState(const std::string &bundleName, const std::string &moduleName,
+        const std::string &mainElement, bool updateEnable, int32_t userId);
 
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;
@@ -1878,7 +1883,7 @@ private:
      * connect bms.
      *
      */
-    void ConnectBmsService();
+    void ConnectServices();
 
     /**
      * Determine whether it is a system APP
@@ -2307,13 +2312,9 @@ private:
 
     bool CheckWorkSchedulerPermission(const sptr<IRemoteObject> &callerToken, const uint32_t uid);
 
-    constexpr static int REPOLL_TIME_MICRO_SECONDS = 1000000;
-
     std::shared_ptr<TaskHandlerWrap> taskHandler_;
     std::shared_ptr<AbilityEventHandler> eventHandler_;
     ServiceRunningState state_;
-    sptr<AppExecFwk::IBundleMgr> iBundleManager_;
-    sptr<OHOS::AppExecFwk::IAppMgr> appMgr_ { nullptr };
 
     std::shared_ptr<FreeInstallManager> freeInstallManager_;
 

@@ -188,8 +188,7 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
         AddUIExtWindowDeathRecipient(remoteObj);
     }
 
-    auto &abilityInfo = abilityRequest.abilityInfo;
-    ret = ReportXiaoYiToRSSIfNeeded(abilityInfo);
+    ret = ReportXiaoYiToRSSIfNeeded(abilityRequest.abilityInfo);
     if (ret != ERR_OK) {
         return ret;
     }
@@ -571,7 +570,7 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
     bool isCallbackConnected = !connectRecordList.empty();
     // 3. If this service ability and callback has been connected, There is no need to connect repeatedly
     if (isLoadedAbility && (isCallbackConnected) && IsAbilityConnected(targetService, connectRecordList)) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "Service/callback connected");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Service/callback connected");
         return ERR_OK;
     }
 
@@ -608,7 +607,7 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
         targetService->SetWant(abilityRequest.want);
         HandleActiveAbility(targetService, connectRecord);
     } else {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "TargetService active");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "TargetService activing");
         targetService->SaveConnectWant(abilityRequest.want);
     }
     return ret;
@@ -949,6 +948,7 @@ int AbilityConnectManager::AbilityWindowConfigTransactionDone(const sptr<IRemote
 void AbilityConnectManager::ProcessPreload(const std::shared_ptr<AbilityRecord> &record) const
 {
     auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER(record);
     CHECK_POINTER(bundleMgrHelper);
     auto abilityInfo = record->GetAbilityInfo();
     Want want;
@@ -1321,12 +1321,6 @@ std::shared_ptr<AbilityRecord> AbilityConnectManager::GetUIExtensionBySessionInf
     CHECK_POINTER_AND_RETURN(sessionInfo, nullptr);
     auto sessionToken = iface_cast<Rosen::ISession>(sessionInfo->sessionToken);
     CHECK_POINTER_AND_RETURN(sessionToken, nullptr);
-    std::string descriptor = Str16ToStr8(sessionToken->GetDescriptor());
-    if (descriptor != "OHOS.ISession") {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "token not a sessionToken, token->GetDescriptor(): %{public}s",
-            descriptor.c_str());
-        return nullptr;
-    }
 
     std::lock_guard guard(uiExtensionMapMutex_);
     auto it = uiExtensionMap_.find(sessionToken->AsObject());
@@ -1756,6 +1750,7 @@ void AbilityConnectManager::ResumeConnectAbility(const std::shared_ptr<AbilityRe
 void AbilityConnectManager::CommandAbility(const std::shared_ptr<AbilityRecord> &abilityRecord)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    CHECK_POINTER(abilityRecord);
     if (taskHandler_ != nullptr) {
         // first connect ability, There is at most one connect record.
         int recordId = abilityRecord->GetRecordId();
@@ -3256,6 +3251,25 @@ void AbilityConnectManager::UninstallApp(const std::string &bundleName)
             abilityRecord->SetKeepAliveBundle(false);
         }
     }
+}
+
+int32_t AbilityConnectManager::UpdateKeepAliveEnableState(const std::string &bundleName,
+    const std::string &moduleName, const std::string &mainElement, bool updateEnable)
+{
+    std::lock_guard lock(serviceMapMutex_);
+    for (const auto &[key, abilityRecord]: serviceMap_) {
+        CHECK_POINTER_AND_RETURN(abilityRecord, ERR_NULL_OBJECT);
+        if (abilityRecord->GetAbilityInfo().bundleName == bundleName &&
+            abilityRecord->GetAbilityInfo().name == mainElement &&
+            abilityRecord->GetAbilityInfo().moduleName == moduleName) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR,
+                "update keepAlive,bundle:%{public}s,module:%{public}s,ability:%{public}s,enable:%{public}d",
+                bundleName.c_str(), moduleName.c_str(), mainElement.c_str(), updateEnable);
+            abilityRecord->SetKeepAliveBundle(updateEnable);
+            return ERR_OK;
+        }
+    }
+    return ERR_OK;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

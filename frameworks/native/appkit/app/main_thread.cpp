@@ -410,7 +410,7 @@ std::shared_ptr<EventHandler> MainThread::GetMainHandler() const
  * @brief Schedule the foreground lifecycle of application.
  *
  */
-void MainThread::ScheduleForegroundApplication()
+bool MainThread::ScheduleForegroundApplication()
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPKIT, "called");
@@ -429,10 +429,10 @@ void MainThread::ScheduleForegroundApplication()
     auto tmpWatchdog = watchdog_;
     if (tmpWatchdog == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "Watch dog is nullptr.");
-        return;
+    } else {
+        tmpWatchdog->SetBackgroundStatus(false);
     }
-    tmpWatchdog->SetBackgroundStatus(false);
-    tmpWatchdog = nullptr;
+    return true;
 }
 
 /**
@@ -800,15 +800,12 @@ void MainThread::ScheduleConfigurationUpdated(const Configuration &config)
 
 bool MainThread::CheckLaunchApplicationParam(const AppLaunchData &appLaunchData) const
 {
-    ApplicationInfo appInfo = appLaunchData.GetApplicationInfo();
-    ProcessInfo processInfo = appLaunchData.GetProcessInfo();
-
-    if (appInfo.name.empty()) {
+    if (appLaunchData.GetApplicationInfo().name.empty()) {
         TAG_LOGE(AAFwkTag::APPKIT, "applicationName is empty");
         return false;
     }
 
-    if (processInfo.GetProcessName().empty()) {
+    if (appLaunchData.GetProcessInfo().GetProcessName().empty()) {
         TAG_LOGE(AAFwkTag::APPKIT, "processName is empty");
         return false;
     }
@@ -913,7 +910,7 @@ void MainThread::HandleProcessSecurityExit()
         TAG_LOGE(AAFwkTag::APPKIT, "application_ is null");
         return;
     }
-    std::vector<sptr<IRemoteObject>> tokens = (abilityRecordMgr_->GetAllTokens());
+    std::vector<sptr<IRemoteObject>> tokens = abilityRecordMgr_->GetAllTokens();
 
     for (auto iter = tokens.begin(); iter != tokens.end(); ++iter) {
         HandleCleanAbilityLocal(*iter);
@@ -1049,7 +1046,7 @@ void MainThread::OnStartAbility(const std::string &bundleName,
         loadPath = std::regex_replace(loadPath, pattern, std::string(LOCAL_CODE_PATH));
         TAG_LOGD(AAFwkTag::APPKIT, "ModuleResPath: %{public}s", loadPath.c_str());
         // getOverlayPath
-        if (overlayModuleInfos_.size() == 0) {
+        if (overlayModuleInfos_.empty()) {
             if (!resourceManager->AddResource(loadPath.c_str())) {
                 TAG_LOGE(AAFwkTag::APPKIT, "AddResource failed");
             }
@@ -1163,7 +1160,7 @@ void MainThread::HandleOnOverlayChanged(const EventFwk::CommonEventData &data,
     }
 
     // 2.add/remove overlay hapPath
-    if (loadPath.empty() || overlayModuleInfos.size() == 0) {
+    if (loadPath.empty() || overlayModuleInfos.empty()) {
         TAG_LOGW(AAFwkTag::APPKIT, "There is not any hapPath in overlayModuleInfo");
     } else {
         if (isEnable) {
@@ -1191,12 +1188,8 @@ bool IsNeedLoadLibrary(const std::string &bundleName)
         "com.ohos.formrenderservice"
     };
 
-    for (const auto &item : needLoadLibraryBundleNames) {
-        if (item == bundleName) {
-            return true;
-        }
-    }
-    return false;
+    return std::find(needLoadLibraryBundleNames.begin(), needLoadLibraryBundleNames.end(), bundleName)
+        != needLoadLibraryBundleNames.end();
 }
 
 bool GetBundleForLaunchApplication(std::shared_ptr<BundleMgrHelper> bundleMgrHelper, const std::string &bundleName,
@@ -1876,7 +1869,14 @@ void MainThread::ChangeToLocalPath(const std::string &bundleName,
     if (sourceDir.empty()) {
         return;
     }
-    if (std::regex_search(localPath, std::regex(bundleName))) {
+    bool isExist = false;
+    try {
+        isExist = std::regex_search(localPath, std::regex(bundleName));
+    } catch (...) {
+        TAG_LOGE(AAFwkTag::APPKIT, "ChangeToLocalPath error localPath:%{public}s bundleName:%{public}s",
+            localPath.c_str(), bundleName.c_str());
+    }
+    if (isExist) {
         localPath = std::regex_replace(localPath, pattern, std::string(LOCAL_CODE_PATH));
     } else {
         localPath = std::regex_replace(localPath, std::regex(ABS_CODE_PATH), LOCAL_BUNDLES);
@@ -1901,7 +1901,20 @@ void MainThread::HandleAbilityStage(const HapModuleInfo &abilityStage)
         return;
     }
 
-    application_->AddAbilityStage(abilityStage);
+    wptr<MainThread> weak = this;
+    auto callback = [weak]() {
+        auto appThread = weak.promote();
+        if (!appThread->appMgr_ || !appThread->applicationImpl_) {
+            TAG_LOGE(AAFwkTag::APPKIT, "appMgr_ is nullptr");
+            return;
+        }
+        appThread->appMgr_->AddAbilityStageDone(appThread->applicationImpl_->GetRecordId());
+    };
+    bool isAsyncCallback = false;
+    application_->AddAbilityStage(abilityStage, callback, isAsyncCallback);
+    if (isAsyncCallback) {
+        return;
+    }
 
     if (!appMgr_ || !applicationImpl_) {
         TAG_LOGE(AAFwkTag::APPKIT, "appMgr_ is nullptr");
