@@ -151,12 +151,12 @@ void ResourceConfigHelper::UpdateResConfig(std::unique_ptr<Global::Resource::Res
 
 bool ResourceConfigHelper::ConvertStringToUint32(std::string source, uint32_t &result)
 {
-    try {
+    // try {
         result = static_cast<uint32_t>(std::stoi(source));
-    } catch (...) {
-        TAG_LOGW(AAFwkTag::ABILITY, "invalid source:%{public}s", source.c_str());
-        return false;
-    }
+    // } catch (...) {
+    //     TAG_LOGW(AAFwkTag::ABILITY, "invalid source:%{public}s", source.c_str());
+    //     return false;
+    // }
     return true;
 }
 } // namespace AbilityRuntime

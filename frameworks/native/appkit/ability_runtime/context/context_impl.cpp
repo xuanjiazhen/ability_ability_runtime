@@ -1421,12 +1421,12 @@ void ContextImpl::ChangeToLocalPath(const std::string& bundleName, const std::st
         return;
     }
     bool isExist = false;
-    try {
+    // try {
         isExist = std::regex_search(localPath, std::regex(bundleName));
-    } catch (...) {
-        TAG_LOGE(AAFwkTag::APPKIT, "ChangeToLocalPath error localPath:%{public}s bundleName:%{public}s",
-            localPath.c_str(), bundleName.c_str());
-    }
+    // } catch (...) {
+    //     TAG_LOGE(AAFwkTag::APPKIT, "ChangeToLocalPath error localPath:%{public}s bundleName:%{public}s",
+    //         localPath.c_str(), bundleName.c_str());
+    // }
     if (isExist) {
         localPath = std::regex_replace(localPath, pattern, std::string(LOCAL_CODE_PATH));
     } else {

@@ -76,7 +76,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 constexpr size_t PARAM_TWO = 2;
-constexpr uint8_t SYSCAP_MAX_SIZE = 100;
+// constexpr uint8_t SYSCAP_MAX_SIZE = 100;
 constexpr int64_t DEFAULT_GC_POOL_SIZE = 0x10000000; // 256MB
 constexpr int32_t DEFAULT_INTER_VAL = 500;
 constexpr int32_t API8 = 8;

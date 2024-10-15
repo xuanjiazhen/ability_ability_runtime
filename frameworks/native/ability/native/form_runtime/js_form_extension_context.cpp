@@ -112,11 +112,11 @@ private:
         std::string strFormId;
         ConvertFromJsValue(env, info.argv[0], strFormId);
         int64_t formId = 0;
-        try {
+        // try {
             formId = strFormId.empty() ? -1 : std::stoll(strFormId);
-        }catch (...) {
-            TAG_LOGE(AAFwkTag::FORM_EXT, "stoll error strFormId:%{public}s", strFormId.c_str());
-        }
+        // }catch (...) {
+        //     TAG_LOGE(AAFwkTag::FORM_EXT, "stoll error strFormId:%{public}s", strFormId.c_str());
+        // }
         
         AppExecFwk::FormProviderData formProviderData;
         std::string formDataStr = "{}";

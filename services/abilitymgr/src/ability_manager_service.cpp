@@ -4475,7 +4475,7 @@ void AbilityManagerService::NotifyCompleteContinuation(const std::string &device
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get bms");
         return;
     }
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    // int32_t callerUid = IPCSkeleton::GetCallingUid();
     std::string callerBundleName;
     // reset ipc identity
     auto identity = IPCSkeleton::ResetCallingIdentity();
@@ -10068,10 +10068,10 @@ int32_t AbilityManagerService::NotifySaveAsResult(const Want &want, int resultCo
     CHECK_CALLER_IS_SYSTEM_APP;
 #ifdef WITH_DLP
     //caller check
-    if (!DlpUtils::CheckCallerIsDlpManager(AbilityUtil::GetBundleManagerHelper())) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "caller check failed");
-        return CHECK_PERMISSION_FAILED;
-    }
+    // if (!DlpUtils::CheckCallerIsDlpManager(AbilityUtil::GetBundleManagerHelper())) {
+    //     TAG_LOGW(AAFwkTag::ABILITYMGR, "caller check failed");
+    //     return CHECK_PERMISSION_FAILED;
+    // }
 #endif // WITH_DLP
     auto checkResult = AbilityUtil::CheckInstanceKey(want);
     if (checkResult != ERR_OK) {

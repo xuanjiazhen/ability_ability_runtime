@@ -256,7 +256,7 @@ constexpr int32_t NETSYS_SOCKET_GROUPID = 1097;
 #endif
 
 constexpr int32_t DEFAULT_INVAL_VALUE = -1;
-constexpr int32_t NO_ABILITY_RECORD_ID = -1;
+// constexpr int32_t NO_ABILITY_RECORD_ID = -1;
 constexpr int32_t EXIT_REASON_UNKNOWN = 0;
 constexpr int32_t PROCESS_START_FAILED_SUB_REASON_UNKNOWN = 0;
 
@@ -4686,9 +4686,9 @@ void AppMgrServiceInner::InitGlobalConfiguration()
     auto language = OHOS::Global::I18n::LocaleConfig::GetSystemLocale();
     TAG_LOGI(AAFwkTag::APPMGR, "current global language: %{public}s", language.c_str());
     configuration_->AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE, language);
-    std::string sysHour = OHOS::Global::I18n::LocaleConfig::GetSystemHour();
-    TAG_LOGI(AAFwkTag::APPMGR, "current 24 hour clock: %{public}s", sysHour.c_str());
-    configuration_->AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_HOUR, sysHour);
+    // std::string sysHour = OHOS::Global::I18n::LocaleConfig::GetSystemHour();
+    // TAG_LOGI(AAFwkTag::APPMGR, "current 24 hour clock: %{public}s", sysHour.c_str());
+    // configuration_->AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_HOUR, sysHour);
 #endif
 
     // Assign to default colorMode "light"
