@@ -18,6 +18,7 @@
 
 #include "iremote_proxy.h"
 #include "iability_controller.h"
+#include <cstring>
 
 namespace OHOS {
 namespace AppExecFwk {
