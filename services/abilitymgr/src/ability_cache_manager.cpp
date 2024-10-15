@@ -43,8 +43,7 @@ void AbilityCacheManager::RemoveAbilityRecInDevList(std::shared_ptr<AbilityRecor
     if (abilityRecord == nullptr) {
         return;
     }
-    auto it = devRecLru_.begin();
-    uint32_t accessTokenId = abilityRecord->GetApplicationInfo().accessTokenId;
+    auto it = devRecLru_.begin();    
     while (it != devRecLru_.end()) {
         if ((*it)->GetRecordId() == abilityRecord->GetRecordId()) {
             devRecLru_.erase(it);

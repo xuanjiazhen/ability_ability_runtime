@@ -950,10 +950,8 @@ int32_t ImplicitStartProcessor::FindAppClone(std::vector<AppExecFwk::AbilityInfo
 {
     if (abilityInfos.size() > 0 && extensionInfos.size() > 0) {
         return ERR_OK;
-    }
+    }    
     
-    bool isExitAbilityAppClone = FindAbilityAppClone(abilityInfos);
-    bool isExitExtensionAppClone = FindExtensionAppClone(extensionInfos);
     if ((abilityInfos.size() == 0 && FindExtensionAppClone(extensionInfos)) ||
         (extensionInfos.size() == 0 && FindAbilityAppClone(abilityInfos))) {
         isAppCloneSelector = true;

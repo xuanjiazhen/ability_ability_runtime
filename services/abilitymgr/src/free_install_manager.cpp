@@ -260,8 +260,7 @@ void FreeInstallManager::NotifyFreeInstallResult(int32_t recordId, const Want &w
         TAG_LOGE(AAFwkTag::FREE_INSTALL, "null app callback");
         return;
     }
-
-    bool isFromRemote = want.GetBoolParam(FROM_REMOTE_KEY, false);
+    
     for (auto it = freeInstallList_.begin(); it != freeInstallList_.end();) {
         FreeInstallInfo &freeInstallInfo = *it;
         std::string bundleName = freeInstallInfo.want.GetElement().GetBundleName();
