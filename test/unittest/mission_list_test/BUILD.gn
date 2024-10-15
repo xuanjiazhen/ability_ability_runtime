@@ -112,7 +112,7 @@ group("unittest") {
   testonly = true
 
   deps = [
+    ":mission_list_test",
     ":mission_list_test_call",
-    ":mission_list_test"
   ]
 }
