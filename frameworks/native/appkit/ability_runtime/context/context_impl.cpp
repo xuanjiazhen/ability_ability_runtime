@@ -1021,12 +1021,12 @@ void ContextImpl::UpdateResConfig(std::shared_ptr<Global::Resource::ResourceMana
     resConfig->SetDeviceType(GetDeviceType());
     std::string mcc = config_->GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_MCC);
     std::string mnc = config_->GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_MNC);
-    try {
+    // try {
         resConfig->SetMcc(static_cast<uint32_t>(std::stoi(mcc)));
         resConfig->SetMnc(static_cast<uint32_t>(std::stoi(mnc)));
-    } catch (...) {
-        TAG_LOGD(AAFwkTag::APPKIT, "Set mcc,mnc failed mcc:%{public}s mnc:%{public}s", mcc.c_str(), mnc.c_str());
-    }
+    // } catch (...) {
+    //     TAG_LOGD(AAFwkTag::APPKIT, "Set mcc,mnc failed mcc:%{public}s mnc:%{public}s", mcc.c_str(), mnc.c_str());
+    // }
     resourceManager->UpdateResConfig(*resConfig);
 }
 
@@ -1421,12 +1421,12 @@ void ContextImpl::ChangeToLocalPath(const std::string& bundleName, const std::st
         return;
     }
     bool isExist = false;
-    try {
+    // try {
         isExist = std::regex_search(localPath, std::regex(bundleName));
-    } catch (...) {
-        TAG_LOGE(AAFwkTag::APPKIT, "ChangeToLocalPath error localPath:%{public}s bundleName:%{public}s",
-            localPath.c_str(), bundleName.c_str());
-    }
+    // } catch (...) {
+    //     TAG_LOGE(AAFwkTag::APPKIT, "ChangeToLocalPath error localPath:%{public}s bundleName:%{public}s",
+    //         localPath.c_str(), bundleName.c_str());
+    // }
     if (isExist) {
         localPath = std::regex_replace(localPath, pattern, std::string(LOCAL_CODE_PATH));
     } else {

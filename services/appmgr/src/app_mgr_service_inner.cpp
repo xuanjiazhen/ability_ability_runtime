@@ -144,7 +144,7 @@ constexpr int KILL_PROCESS_TIMEOUT_MICRO_SECONDS = 1000;
 constexpr int KILL_PROCESS_DELAYTIME_MICRO_SECONDS = 200;
 // delay register focus listener to wms
 constexpr int REGISTER_FOCUS_DELAY = 5000;
-constexpr int REGISTER_VISIBILITY_DELAY = 5000;
+// constexpr int REGISTER_VISIBILITY_DELAY = 5000;
 constexpr int REGISTER_PID_VISIBILITY_DELAY = 5000;
 // Max render process number limitation for phone device.
 constexpr int PHONE_MAX_RENDER_PROCESS_NUM = 40;
@@ -152,8 +152,8 @@ constexpr int PROCESS_RESTART_MARGIN_MICRO_SECONDS = 2000;
 constexpr const int32_t API10 = 10;
 constexpr const int32_t API_VERSION_MOD = 100;
 constexpr const int32_t U0_USER_ID = 0;
-constexpr const char* CLASS_NAME = "ohos.app.MainThread";
-constexpr const char* FUNC_NAME = "main";
+// constexpr const char* CLASS_NAME = "ohos.app.MainThread";
+// constexpr const char* FUNC_NAME = "main";
 constexpr const char* RENDER_PARAM = "invalidparam";
 constexpr const char* COLD_START = "coldStart";
 constexpr const char* PERF_CMD = "perfCmd";
@@ -209,9 +209,9 @@ constexpr ErrCode APPMGR_ERR_OFFSET = ErrCodeOffset(SUBSYS_APPEXECFWK, 0x01);
 constexpr ErrCode ERR_ALREADY_EXIST_RENDER = APPMGR_ERR_OFFSET + 100;
  // Error code for reaching render process number limitation.
 constexpr ErrCode ERR_REACHING_MAXIMUM_RENDER_PROCESS_LIMITATION = APPMGR_ERR_OFFSET + 101;
-constexpr const char* EVENT_KEY_UID = "UID";
+// constexpr const char* EVENT_KEY_UID = "UID";
 constexpr const char* EVENT_KEY_PID = "PID";
-constexpr const char* EVENT_KEY_PACKAGE_NAME = "PACKAGE_NAME";
+// constexpr const char* EVENT_KEY_PACKAGE_NAME = "PACKAGE_NAME";
 constexpr const char* EVENT_KEY_PROCESS_NAME = "PROCESS_NAME";
 constexpr const char* EVENT_KEY_MESSAGE = "MSG";
 
@@ -233,7 +233,7 @@ constexpr const char* SUPPORT_CALL_NOTIFY_MEMORY_CHANGED =
 
 constexpr const char* SYSTEM_BASIC = "system_basic";
 constexpr const char* SYSTEM_CORE = "system_core";
-constexpr const char* ABILITY_OWNER_USERID = "AbilityMS_Owner_UserId";
+// constexpr const char* ABILITY_OWNER_USERID = "AbilityMS_Owner_UserId";
 constexpr const char* PROCESS_EXIT_EVENT_TASK = "Send Process Exit Event Task";
 constexpr const char* KILL_PROCESS_REASON_PREFIX = "Kill Reason:";
 constexpr const char* PRELOAD_APPLIATION_TASK = "PreloadApplicactionTask";
@@ -256,7 +256,7 @@ constexpr int32_t NETSYS_SOCKET_GROUPID = 1097;
 #endif
 
 constexpr int32_t DEFAULT_INVAL_VALUE = -1;
-constexpr int32_t NO_ABILITY_RECORD_ID = -1;
+// constexpr int32_t NO_ABILITY_RECORD_ID = -1;
 constexpr int32_t EXIT_REASON_UNKNOWN = 0;
 constexpr int32_t PROCESS_START_FAILED_SUB_REASON_UNKNOWN = 0;
 
@@ -4687,9 +4687,9 @@ void AppMgrServiceInner::InitGlobalConfiguration()
     auto language = OHOS::Global::I18n::LocaleConfig::GetSystemLocale();
     TAG_LOGI(AAFwkTag::APPMGR, "current global language: %{public}s", language.c_str());
     configuration_->AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE, language);
-    std::string sysHour = OHOS::Global::I18n::LocaleConfig::GetSystemHour();
-    TAG_LOGI(AAFwkTag::APPMGR, "current 24 hour clock: %{public}s", sysHour.c_str());
-    configuration_->AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_HOUR, sysHour);
+    // std::string sysHour = OHOS::Global::I18n::LocaleConfig::GetSystemHour();
+    // TAG_LOGI(AAFwkTag::APPMGR, "current 24 hour clock: %{public}s", sysHour.c_str());
+    // configuration_->AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_HOUR, sysHour);
 #endif
 
     // Assign to default colorMode "light"
@@ -8006,7 +8006,7 @@ bool AppMgrServiceInner::IsKilledForUpgradeWeb(const std::string &bundleName) co
 
 void AppMgrServiceInner::GetPidsByAccessTokenId(const uint32_t accessTokenId, std::vector<pid_t> &pids)
 {
-    int32_t result = ERR_OK;
+    // int32_t result = ERR_OK;
     pid_t foregroundPid = -1;
     for (const auto &item : appRunningManager_->GetAppRunningRecordMap()) {
         const auto &appRecord = item.second;
