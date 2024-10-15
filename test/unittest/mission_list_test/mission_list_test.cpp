@@ -1072,7 +1072,6 @@ HWTEST_F(MissionListTest, GetActiveAbilityList_0100, TestSize.Level1)
     EXPECT_NE(*missionList->missions_.begin(), nullptr);
     ai = (*missionList->missions_.begin())->GetAbilityRecord()->GetAbilityInfo();
     EXPECT_NE(ai.applicationInfo.uid, uid);
-
 }
 
 /*
