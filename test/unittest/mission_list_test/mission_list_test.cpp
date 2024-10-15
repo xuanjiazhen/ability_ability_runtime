@@ -1039,15 +1039,18 @@ HWTEST_F(MissionListTest, GetActiveAbilityList_0100, TestSize.Level1)
     std::vector<std::string> abilityList;
     int32_t pid = 1;
     missionList->GetActiveAbilityList(uid, abilityList, pid);
+    EXPECT_EQ(*missionList->missions_.begin(), nullptr);
     
     missionList->missions_.clear();
     missionList->missions_.push_back(mission);
     missionList->GetActiveAbilityList(uid, abilityList, pid);
+    EXPECT_NE(*missionList->missions_.begin(), nullptr);
     
     missionList->missions_.clear();
     mission = std::make_shared<Mission>(1, abilityRecord, "name");
     missionList->missions_.push_back(mission);
     missionList->GetActiveAbilityList(uid, abilityList, pid);
+    EXPECT_NE(*missionList->missions_.begin(), nullptr);
 
     pid = NO_PID;
     missionList->missions_.clear();
@@ -1055,12 +1058,14 @@ HWTEST_F(MissionListTest, GetActiveAbilityList_0100, TestSize.Level1)
     missionList->missions_.push_back(mission);
     uid = -1;
     missionList->GetActiveAbilityList(uid, abilityList, pid);
+    EXPECT_NE(*missionList->missions_.begin(), nullptr);
 
     missionList->missions_.clear();
     uid = 2;
     mission = std::make_shared<Mission>(1, abilityRecord, "name");
     missionList->missions_.push_back(mission);
     missionList->GetActiveAbilityList(uid, abilityList, pid);
+    EXPECT_NE(*missionList->missions_.begin(), nullptr);
 }
 
 /*
@@ -1085,15 +1090,18 @@ HWTEST_F(MissionListTest, SignRestartAppFlag_0100, TestSize.Level1)
     missionList->missions_.push_back(nullptr);
     std::string bundleName("testbundlename");
     missionList->SignRestartAppFlag(bundleName);
+    EXPECT_EQ(*missionList->missions_.begin(), nullptr);
     
     missionList->missions_.clear();
     missionList->missions_.push_back(mission);
     missionList->SignRestartAppFlag(bundleName);
+    EXPECT_NE(*missionList->missions_.begin(), nullptr);
    
     missionList->missions_.clear();
     mission = std::make_shared<Mission>(1, abilityRecord, "bundle");
     missionList->missions_.push_back(mission);
     missionList->SignRestartAppFlag(bundleName);
+    EXPECT_NE(*missionList->missions_.begin(), nullptr);
 
     missionList->SignRestartAppFlag("");
 }
