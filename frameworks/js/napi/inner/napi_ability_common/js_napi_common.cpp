@@ -1709,10 +1709,17 @@ void UvWorkOnAbilityDisconnectDone(uv_work_t *work, int status)
     auto item = std::find_if(connects_.begin(), connects_.end(),
         [deviceId, bundleName, abilityName](const std::map<ConnectionKey,
             sptr<NAPIAbilityConnection>>::value_type &obj) {
+                TAG_LOGI(AAFwkTag::JSNAPI, "deviceId:%{public}s", obj.first.want.GetDeviceId().c_str());
+                TAG_LOGI(AAFwkTag::JSNAPI, "bundleName:%{public}s", obj.first.want.GetBundle().c_str());
+                TAG_LOGI(AAFwkTag::JSNAPI, "abilityName:%{public}s", obj.first.want.GetElement().GetAbilityName().c_str());
             return (deviceId == obj.first.want.GetDeviceId()) &&
                    (bundleName == obj.first.want.GetBundle()) &&
                    (abilityName == obj.first.want.GetElement().GetAbilityName());
         });
+
+    TAG_LOGI(AAFwkTag::JSNAPI, "connectAbilityCB->deviceId:%{public}s", deviceId.c_str());
+    TAG_LOGI(AAFwkTag::JSNAPI, "connectAbilityCB->bundleName:%{public}s", bundleName.c_str());
+    TAG_LOGI(AAFwkTag::JSNAPI, "connectAbilityCB->abilityName:%{public}s", abilityName.c_str());
     if (item != connects_.end()) {
         // match deviceId & bundlename && abilityname
         connects_.erase(item);
