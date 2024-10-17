@@ -1,0 +1,142 @@
+diff --git a/hisysevent.yaml b/hisysevent.yaml
+index 306f463c757934fb1518ce892b953468135af6cf..3258cd38cc5cee545a959a8e43e14bd0fb252437 100644
+--- a/hisysevent.yaml
++++ b/hisysevent.yaml
+@@ -173,6 +173,12 @@ ABILITY_ONINACTIVE:
+   ABILITY_NAME: {type: STRING, desc: ability name}
+   BUNDLE_TYPE: {type: INT32, desc: 'type of componment, atomic service or normal app'}
+ 
++START_ABILITY_BY_APP_LINKING:
++  __BASE: {type: BEHAVIOR, level: MINOR, desc: start ability by App Linking}
++  BUNDLE_NAME: {type: STRING, desc: bundle name}
++  CALLER_BUNDLENAME: {type: STRING, desc: caller bundle name}
++  URI: {type: STRING, desc: uri information}
++
+ # serviceExtensionAbility behavior event
+ 
+ START_SERVICE:
+diff --git a/services/abilitymgr/src/implicit_start_processor.cpp b/services/abilitymgr/src/implicit_start_processor.cpp
+index 010e5d8b4dc7ed03a198637a8a93b663195e6063..3236ea5288b3af2cc4b88cafa1bfa73ef7d8e3ee 100644
+--- a/services/abilitymgr/src/implicit_start_processor.cpp
++++ b/services/abilitymgr/src/implicit_start_processor.cpp
+@@ -44,6 +44,23 @@ const std::string HTTPS_SCHEME_NAME = "https";
+ const std::string APP_CLONE_INDEX = "ohos.extra.param.key.appCloneIndex";
+ constexpr const char* SUPPORT_ACTION_START_SELECTOR = "persist.sys.ability.support.action_start_selector";
+ 
++void SendAbilityEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo)
++{
++    auto instance_ = DelayedSingleton<AbilityManagerService>::GetInstance();
++    if (instance_ == nullptr) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "instance null.");
++        return;
++    }
++    auto taskHandler = instance_->GetTaskHandler();
++    if (taskHandler == nullptr) {
++        TAG_LOGI(AAFwkTag::ABILITYMGR, "task handler null.");
++        return;
++    }
++    taskHandler->SubmitTask([eventName, type, eventInfo]() {
++        EventReport::SendAbilityEvent(eventName, type, eventInfo);
++    });
++}
++
+ bool ImplicitStartProcessor::IsExtensionInWhiteList(AppExecFwk::ExtensionAbilityType type)
+ {
+     switch (type) {
+@@ -427,6 +444,13 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId,
+     if (abilityInfos.size() == 1) {
+         auto skillUri =  abilityInfos.front().skillUri;
+         SetTargetLinkInfo(skillUri, request.want);
++        if (abilityInfos.front().linkType == AppExecFwk::LinkType::APP_LINK) {
++            EventInfo eventInfo;
++            eventInfo.bundleName = abilityInfos.front().bundleName;
++            eventInfo.callerBundleName = request.want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
++            eventInfo.uri = request.want.GetUriString();
++            SendAbilityEvent(EventName::START_ABILITY_BY_APP_LINKING, HiSysEventType::BEHAVIOR, eventInfo);
++        }
+     }
+ 
+     {
+@@ -651,7 +675,7 @@ int ImplicitStartProcessor::CallStartAbilityInner(int32_t userId,
+     eventInfo.abilityName = want.GetElement().GetAbilityName();
+ 
+     if (callType == AbilityCallType::INVALID_TYPE) {
+-        EventReport::SendAbilityEvent(EventName::START_ABILITY, HiSysEventType::BEHAVIOR, eventInfo);
++        SendAbilityEvent(EventName::START_ABILITY, HiSysEventType::BEHAVIOR, eventInfo);
+     }
+ 
+     TAG_LOGI(AAFwkTag::ABILITYMGR, "ability:%{public}s, bundle:%{public}s", eventInfo.abilityName.c_str(),
+@@ -661,7 +685,7 @@ int ImplicitStartProcessor::CallStartAbilityInner(int32_t userId,
+     if (ret != ERR_OK) {
+         eventInfo.errCode = ret;
+         if (callType == AbilityCallType::INVALID_TYPE) {
+-            EventReport::SendAbilityEvent(EventName::START_ABILITY_ERROR, HiSysEventType::FAULT, eventInfo);
++            SendAbilityEvent(EventName::START_ABILITY_ERROR, HiSysEventType::FAULT, eventInfo);
+         }
+     }
+     return ret;
+diff --git a/services/common/include/event_report.h b/services/common/include/event_report.h
+index 887c3c122a587478875c5a06dfe0b05b66aa9d46..22f4160d9e1a98cb0f25c1db1095a2d8fbb20a3c 100644
+--- a/services/common/include/event_report.h
++++ b/services/common/include/event_report.h
+@@ -74,6 +74,7 @@ enum class EventName {
+     ABILITY_ONBACKGROUND,
+     ABILITY_ONACTIVE,
+     ABILITY_ONINACTIVE,
++    START_ABILITY_BY_APP_LINKING,
+ 
+     // serviceExtensionAbility behavior event
+     START_SERVICE,
+@@ -136,6 +137,7 @@ private:
+     static void LogAbilityOnBackgroundEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
+     static void LogAbilityOnActiveEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
+     static void LogStartStandardEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
++    static void LogStartAbilityByAppLinking(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
+ };
+ }  // namespace AAFWK
+ }  // namespace OHOS
+diff --git a/services/common/src/event_report.cpp b/services/common/src/event_report.cpp
+index 0926b13cb6b441f41f2772b026d345d0f7259944..9a52744e6eded5c9fe169457a5ca3ca6a7448ce1 100644
+--- a/services/common/src/event_report.cpp
++++ b/services/common/src/event_report.cpp
+@@ -199,6 +199,22 @@ void EventReport::LogStartStandardEvent(const std::string &name, HiSysEventType
+         EVENT_KEY_ABILITY_NUMBER, eventInfo.abilityNumber);
+ }
+ 
++void EventReport::LogStartAbilityByAppLinking(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
++{
++    TAG_LOGD(AAFwkTag::DEFAULT, "EventInfo, bundleName: %{public}s, callerBundleName: %{public}s, uri: %{public}s",
++        eventInfo.bundleName.c_str(), eventInfo.callerBundleName.c_str(), eventInfo.uri.c_str());
++    auto ret = HiSysEventWrite(
++        HiSysEvent::Domain::AAFWK,
++        name,
++        type,
++        EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
++        EVENT_KEY_CALLER_BUNDLE_NAME, eventInfo.callerBundleName,
++        EVENT_KEY_URI, eventInfo.uri);
++    if (ret != 0) {
++        TAG_LOGE(AAFwkTag::DEFAULT, "Write event fail: %{public}s, ret %{public}d", name.c_str(), ret);
++    }
++}
++
+ void EventReport::SendAbilityEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo)
+ {
+     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+@@ -232,6 +248,9 @@ void EventReport::SendAbilityEvent(const EventName &eventName, HiSysEventType ty
+         case EventName::START_STANDARD_ABILITIES:
+             LogStartStandardEvent(name, type, eventInfo);
+             break;
++        case EventName::START_ABILITY_BY_APP_LINKING:
++            LogStartAbilityByAppLinking(name, type, eventInfo);
++            break;
+         default:
+             break;
+     }
+@@ -634,6 +653,7 @@ std::string EventReport::ConvertEventName(const EventName &eventName)
+         // ability behavior event
+         "START_ABILITY", "TERMINATE_ABILITY", "CLOSE_ABILITY",
+         "ABILITY_ONFOREGROUND", "ABILITY_ONBACKGROUND", "ABILITY_ONACTIVE", "ABILITY_ONINACTIVE",
++        "START_ABILITY_BY_APP_LINKING",
+ 
+         // serviceExtensionAbility behavior event
+         "START_SERVICE", "STOP_SERVICE", "CONNECT_SERVICE", "DISCONNECT_SERVICE",
