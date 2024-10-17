@@ -41,6 +41,7 @@ constexpr const char* GRANT_PERSIST_URI_PERMISSION = "persist.sys.abilityms.gran
 constexpr const char* START_OPTIONS_WITH_ANIMATION = "persist.sys.abilityms.start_options_with_animation";
 constexpr const char* MULTI_PROCESS_MODEL = "persist.sys.abilityms.multi_process_model";
 constexpr const char* START_OPTIONS_WITH_PROCESS_OPTION = "persist.sys.abilityms.start_options_with_process_option";
+constexpr const char* BACK_TO_CALLER_INTERCEPT = "persist.sys.abilityms.back_to_caller_intercept";
 constexpr const char* MOVE_UI_ABILITY_TO_BACKGROUND_API_ENABLE =
     "persist.sys.abilityms.move_ui_ability_to_background_api_enable";
 constexpr const char* CONFIG_PATH = "/etc/ability_runtime/resident_process_in_extreme_memory.json";
@@ -244,6 +245,16 @@ bool AppUtils::IsSupportNativeChildProcess()
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportNativeChildProcess_.value);
     return isSupportNativeChildProcess_.value;
+}
+
+bool AppUtils::IsBackToCallerIntercept()
+{
+    if (!IsBackToCallerIntercept_.isLoaded) {
+        IsBackToCallerIntercept_.value = system::GetBoolParameter(BACK_TO_CALLER_INTERCEPT, false);
+        IsBackToCallerIntercept_.isLoaded = true;
+    }
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", IsBackToCallerIntercept_.value);
+    return IsBackToCallerIntercept_.value;
 }
 
 bool AppUtils::IsAllowResidentInExtremeMemory(const std::string& bundleName, const std::string& abilityName)

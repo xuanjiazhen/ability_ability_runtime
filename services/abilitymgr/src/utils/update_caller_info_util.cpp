@@ -19,6 +19,7 @@
 #include "ability_record.h"
 #include "accesstoken_kit.h"
 #include "app_scheduler.h"
+#include "app_utils.h"
 #include "ams_configuration_parameter.h"
 #include "dialog_session_manager.h"
 #include "hilog_tag_wrapper.h"
@@ -263,8 +264,8 @@ void UpdateCallerInfoUtil::UpdateBackToCallerFlag(const sptr<IRemoteObject> &cal
     auto callerAbilityRecord = Token::GetAbilityRecordByToken(callerToken);
     if (requestCode > 0 && callerAbilityRecord != nullptr) {
         // default return true on oh
-        if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-            backFlag = AmsConfigurationParameter::GetInstance().IsSupportBackToCaller();
+        if (!AppUtils::GetInstance().IsBackToCallerIntercept()) {
+            backFlag = true;
         }
         auto fullRequestCode = AbilityRuntime::StartupUtil::GenerateFullRequestCode(
             callerAbilityRecord->GetPid(), backFlag, requestCode);
