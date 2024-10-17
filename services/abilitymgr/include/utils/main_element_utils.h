@@ -32,13 +32,14 @@ public:
      * @param hapModuleInfo The hap module info.
      * @param processName The process name.
      * @param mainElement The returned main element.
-     * @param needEraseIndexSet The returned set of indices that need to be erased.
-     * @param bundleInfoIndex The index of the bundle info.
+     * @param isDataAbility The returned flag indicates whether the module contains data ability.
+     * @param uri Returned URI of the data ability.
      * @param userId User id.
      * @return Whether or not the hap module has the main element.
      */
-    static bool CheckMainElement(const AppExecFwk::HapModuleInfo &hapModuleInfo, const std::string &processName,
-        std::string &mainElement, std::set<uint32_t> &needEraseIndexSet, size_t bundleInfoIndex, int32_t userId = 0);
+    static bool CheckMainElement(const AppExecFwk::HapModuleInfo &hapModuleInfo,
+        const std::string &processName, std::string &mainElement, bool &isDataAbility,
+        std::string &uriStr, int32_t userId = 0);
     
     /**
      * UpdateMainElement, update main element.
@@ -51,6 +52,17 @@ public:
      */
     static void UpdateMainElement(const std::string &bundleName, const std::string &moduleName,
         const std::string &mainElement, bool updateEnable, int32_t userId);
+
+    /**
+     * CheckMainUIAbility, check if bundle has main UIAbility.
+     *
+     * @param bundle The bundle info.
+     * @param userId User id.
+     * @param mainElementName The returned main element name.
+     * @return Whether or not the hap module has the main element.
+     */
+    static bool CheckMainUIAbility(const AppExecFwk::BundleInfo &bundleInfo, int32_t userId,
+        std::string& mainElementName);
 };
 }  // namespace AAFwk
 }  // namespace OHOS

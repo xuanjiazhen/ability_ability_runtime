@@ -113,6 +113,7 @@ abilityms_files = [
   "src/background_task_observer.cpp",
 
   #resident_process
+  "src/resident_process/keep_alive_process_manager.cpp",
   "src/resident_process/resident_process_manager.cpp",
 
   "src/ability_bundle_event_callback.cpp",
@@ -124,6 +125,8 @@ abilityms_files = [
   "src/auto_startup_info.cpp",
   "src/insight_intent_execute_manager.cpp",
   "src/insight_intent_execute_result.cpp",
+  "src/ability_keep_alive_data_manager.cpp",
+  "src/ability_keep_alive_service.cpp",
 
   "src/ability_manager_event_subscriber.cpp",
 
@@ -134,6 +137,7 @@ abilityms_files = [
   "src/utils/dump_utils.cpp",
   "src/utils/extension_permissions_util.cpp",
   "src/utils/insight_intent_utils.cpp",
+  "src/utils/keep_alive_utils.cpp",
   "src/utils/main_element_utils.cpp",
   "src/utils/modal_system_dialog_util.cpp",
   "src/utils/multi_app_utils.cpp",

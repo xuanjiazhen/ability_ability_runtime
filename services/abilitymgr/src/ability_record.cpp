@@ -32,6 +32,7 @@
 #include "global_constant.h"
 #include "hitrace_meter.h"
 #include "image_source.h"
+#include "keep_alive_process_manager.h"
 #include "multi_instance_utils.h"
 #include "os_account_manager_wrapper.h"
 #include "ui_service_extension_connection_constants.h"
@@ -344,6 +345,13 @@ int AbilityRecord::LoadAbility()
 
     std::lock_guard guard(wantLock_);
     want_.SetParam(ABILITY_OWNER_USERID, ownerMissionUserId_);
+    if (want_.HasParameter(Want::PARAM_APP_KEEP_ALIVE_ENABLED)) {
+        want_.RemoveParam(Want::PARAM_APP_KEEP_ALIVE_ENABLED);
+    }
+    if (DelayedSingleton<KeepAliveProcessManager>::GetInstance()->IsKeepAliveBundle(
+        abilityInfo_.applicationInfo.bundleName, -1)) {
+        want_.SetParam(Want::PARAM_APP_KEEP_ALIVE_ENABLED, true);
+    }
     auto result = DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility(
         token_, callerToken_, abilityInfo_, abilityInfo_.applicationInfo, want_, recordId_, instanceKey_);
     want_.RemoveParam(ABILITY_OWNER_USERID);

@@ -352,5 +352,30 @@ JsAppProcessState ConvertToJsAppProcessState(
     }
     return processState;
 }
+
+napi_value CreateJsKeepAliveBundleInfo(napi_env env, const KeepAliveInfo &info)
+{
+    napi_value object = nullptr;
+    napi_create_object(env, &object);
+    if (object == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null obj");
+        return nullptr;
+    }
+    napi_set_named_property(env, object, "bundleName", CreateJsValue(env, info.bundleName));
+    napi_set_named_property(env, object, "type", CreateJsValue(env, static_cast<int32_t>(info.appType)));
+    napi_set_named_property(env, object, "setter", CreateJsValue(env, static_cast<int32_t>(info.setter)));
+    return object;
+}
+
+napi_value CreateJsKeepAliveBundleInfoArray(napi_env env, const std::vector<KeepAliveInfo>& data)
+{
+    napi_value arrayValue = nullptr;
+    napi_create_array_with_length(env, data.size(), &arrayValue);
+    uint32_t index = 0;
+    for (const auto &item : data) {
+        napi_set_element(env, arrayValue, index++, CreateJsKeepAliveBundleInfo(env, item));
+    }
+    return arrayValue;
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS
