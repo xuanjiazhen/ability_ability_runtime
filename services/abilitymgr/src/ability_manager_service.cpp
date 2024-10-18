@@ -6257,10 +6257,6 @@ int AbilityManagerService::GenerateAbilityRequest(const Want &want, int requestC
         (const_cast<Want &>(want)).SetParam(DLP_PARAMS_SECURITY_FLAG, abilityRecord->GetSecurityFlag());
     }
 
-    if (abilityRecord != nullptr) {
-        (const_cast<Want &>(want)).SetParam(DEBUG_APP, abilityRecord->IsDebugApp());
-    }
-
     request.want = want;
     request.requestCode = requestCode;
     request.callerToken = callerToken;
@@ -6320,6 +6316,11 @@ int AbilityManagerService::GenerateAbilityRequest(const Want &want, int requestC
         request.appInfo.name.c_str(), request.abilityInfo.moduleName.c_str(), request.uid);
 
     request.want.SetModuleName(request.abilityInfo.moduleName);
+
+    if (abilityRecord != nullptr &&
+        request.appInfo.appProvisionType != AppExecFwk::Constants::APP_PROVISION_TYPE_RELEASE) {
+        (const_cast<Want &>(want)).SetParam(DEBUG_APP, abilityRecord->IsDebugApp());
+    }
 
     if (want.GetBoolParam(Want::PARAM_RESV_START_RECENT, false) &&
         AAFwk::PermissionVerification::GetInstance()->VerifyStartRecentAbilityPermission()) {
