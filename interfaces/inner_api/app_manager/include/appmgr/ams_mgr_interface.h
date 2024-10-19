@@ -171,16 +171,19 @@ public:
      *
      * @param  bundleName, bundle name in Application record.
      * @param  userId, userId.
+     * @param  reason, caller function name.
      * @return ERR_OK, return back success, others fail.
      */
-    virtual int KillApplicationByUid(const std::string &bundleName, const int uid) = 0;
+    virtual int KillApplicationByUid(const std::string &bundleName, const int uid,
+        const std::string& reason = "KillApplicationByUid") = 0;
 
     /**
      * Kill the application self.
      *
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int KillApplicationSelf(const bool clearPageStack = false)
+    virtual int KillApplicationSelf(const bool clearPageStack = false,
+        const std::string& reason = "KillApplicationSelf")
     {
         return ERR_OK;
     }
@@ -443,6 +446,8 @@ public:
         return false;
     }
 
+    virtual void SetAppExceptionCallback(sptr<IRemoteObject> callback) {}
+
     enum class Message {
         LOAD_ABILITY = 0,
         TERMINATE_ABILITY,
@@ -496,6 +501,7 @@ public:
         FORCE_KILL_APPLICATION_BY_ACCESS_TOKEN_ID = 49,
         IS_PROCESS_ATTACHED,
         IS_APP_KILLING,
+        SET_APP_EXCEPTION_CALLBACK,
         // Add enumeration values above
         END
     };
