@@ -296,8 +296,7 @@ int32_t AppSpawnClient::AppspawnSetExtMsg(const AppSpawnStartMsg &startMsg, AppS
     }
 
     if (!startMsg.atomicAccount.empty()) {
-        ret = AppSpawnReqMsgAddExtInfo(reqHandle, MSG_EXT_NAME_ACCOUNT_ID,
-            reinterpret_cast<const uint8_t*>(startMsg.atomicAccount.c_str()), startMsg.atomicAccount.size());
+        ret = AppSpawnReqMsgAddStringInfo(reqHandle, MSG_EXT_NAME_ACCOUNT_ID, startMsg.atomicAccount.c_str());
         if (ret) {
             TAG_LOGE(AAFwkTag::APPMGR, "fail, ret: %{public}d", ret);
             return ret;
