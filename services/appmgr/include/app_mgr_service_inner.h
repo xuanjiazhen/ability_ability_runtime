@@ -1775,6 +1775,12 @@ private:
      * @param appRecord indicates the process is going to die.
      */
     void NotifyAppAttachFailed(std::shared_ptr<AppRunningRecord> appRecord);
+
+    /**
+      * called by process cached
+      */
+    virtual void ProcessCached();
+
 private:
     /**
      * Notify application status.

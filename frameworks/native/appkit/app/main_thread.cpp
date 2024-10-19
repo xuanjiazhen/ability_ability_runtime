@@ -3430,6 +3430,11 @@ void MainThread::HandleCacheProcess()
         }
         runtime->ForceFullGC();
     }
+    if (appMgr_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "appMgr_ nullptr");
+        return;
+    }
+    appMgr_->ProcessCached();
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

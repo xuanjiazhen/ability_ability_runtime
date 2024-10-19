@@ -347,6 +347,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerSeventh(uint32_t code, MessageParcel &da
             return HandleCheckIsKiaProcess(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::GET_APP_INDEX_BY_PID):
             return HandleGetAppIndexByPid(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::PROCESS_CACHED):
+            return HandleProcessCached(data, reply);
     }
     return INVALID_FD;
 }
@@ -1706,6 +1708,18 @@ int32_t AppMgrStub::HandleGetAppIndexByPid(MessageParcel &data, MessageParcel &r
         return IPC_STUB_ERR;
     }
     return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleProcessCached(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
+    ProcessCached();
+    return NO_ERROR;
+}
+
+void AppMgrStub::ProcessCached()
+{
+    return;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

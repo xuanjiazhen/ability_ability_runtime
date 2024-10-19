@@ -124,7 +124,6 @@ bool CacheProcessManager::CheckAndCacheProcess(const std::shared_ptr<AppRunningR
         return true;
     }
     appRecord->ScheduleCacheProcess();
-    appRecord->SetProcessCaching(false);
     auto appInfo = appRecord->GetApplicationInfo();
     HiSysEventWrite(HiSysEvent::Domain::AAFWK, "CACHE_START_APP", HiSysEvent::EventType::BEHAVIOR,
         EVENT_KEY_VERSION_CODE, appInfo->versionCode, EVENT_KEY_VERSION_NAME, appInfo->versionName,
@@ -141,11 +140,35 @@ bool CacheProcessManager::CheckAndCacheProcess(const std::shared_ptr<AppRunningR
     return true;
 }
 
+void CacheProcessManager::HandleProcessCached(const std::shared_ptr<AppRunningRecord> &appRecord)
+{
+    if (!appRecord) {
+        return;
+    }
+    if (!appRecord->IsCaching()) {
+        return;
+    }
+    appRecord->SetProcessCaching(false);
+    if (!IsCachedProcess(appRecord)) {
+        TAG_LOGI(AAFwkTag::APPMGR, "kill process %{public}s because cache process end not in cached queue",
+            appRecord->GetBundleName().c_str());
+        std::string taskName = "ASYNC_KILL_PROCESS";
+        appRecord->PostTask("ASYNC_KILL_PROCESS", 0, [appRecord]() {
+            DelayedSingleton<CacheProcessManager>::GetInstance()->KillProcessByRecord(appRecord);
+        });
+    }
+}
 bool CacheProcessManager::CheckAndNotifyCachedState(const std::shared_ptr<AppRunningRecord> &appRecord)
 {
     if (appRecord == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "precheck failed");
         return false;
+    }
+    if (appRecord->IsCaching()) {
+        TAG_LOGI(AAFwkTag::APPMGR, "kill process %{public}s because long time gc",
+            appRecord->GetBundleName().c_str());
+        KillProcessByRecord(appRecord);
+        return false;     
     }
     auto appMgrSptr = appMgr_.lock();
     if (appMgrSptr == nullptr) {
@@ -171,7 +194,6 @@ bool CacheProcessManager::CheckAndNotifyCachedState(const std::shared_ptr<AppRun
         }
         notifyRecord = *(sameAppSet[bundleName][uid].begin());
     }
-    appRecord->SetProcessCaching(false);
     appMgrSptr->OnAppCacheStateChanged(notifyRecord, ApplicationState::APP_STATE_CACHED);
     TAG_LOGI(AAFwkTag::APPMGR, "notified: %{public}s, uid:%{public}d", bundleName.c_str(), uid);
     return true;
@@ -235,6 +257,9 @@ bool CacheProcessManager::ReuseCachedProcess(const std::shared_ptr<AppRunningRec
         return false;
     }
     RemoveCacheRecord(appRecord);
+    if (appRecord->IsCaching()) {
+        return false;
+    }
     HiSysEventWrite(HiSysEvent::Domain::AAFWK, "CACHE_START_APP", HiSysEvent::EventType::BEHAVIOR,
         EVENT_KEY_VERSION_CODE, appInfo->versionCode, EVENT_KEY_VERSION_NAME, appInfo->versionName,
         EVENT_KEY_BUNDLE_NAME, appInfo->bundleName, EVENT_KEY_CACHE_STATE, "exitCacheNormal");
@@ -249,7 +274,6 @@ bool CacheProcessManager::ReuseCachedProcess(const std::shared_ptr<AppRunningRec
     if (appRecord->GetEnableProcessCache()) {
         appRecord->SetEnableProcessCache(false);
     }
-    appRecord->SetProcessCaching(false);
     appMgrSptr->OnAppCacheStateChanged(appRecord, ApplicationState::APP_STATE_READY);
     TAG_LOGI(AAFwkTag::APPMGR, "app none cached state is notified: %{public}s, uid: %{public}d, %{public}s",
         appRecord->GetBundleName().c_str(), appRecord->GetUid(), PrintCacheQueue().c_str());

@@ -740,6 +740,11 @@ public:
     virtual int32_t GetSupportedProcessCachePids(const std::string &bundleName,
         std::vector<int32_t> &pidList) override;
 
+    /**
+      * called by process cached
+      */
+    virtual void ProcessCached() override;
+
     virtual int32_t GetAppIndexByPid(pid_t pid, int32_t &appIndex) override;
 private:
     bool SendTransactCmd(AppMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);

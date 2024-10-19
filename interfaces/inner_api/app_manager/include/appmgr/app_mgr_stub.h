@@ -64,6 +64,11 @@ public:
     virtual int32_t GetSupportedProcessCachePids(const std::string &bundleName,
         std::vector<int32_t> &pidList) override;
 
+    /**
+      * called by process cached
+      */
+    virtual void ProcessCached() override;
+
 private:
     int32_t HandleAttachApplication(MessageParcel &data, MessageParcel &reply);
     int32_t HandlePreloadApplication(MessageParcel &data, MessageParcel &reply);
@@ -175,6 +180,7 @@ private:
     int32_t OnRemoteRequestInnerSeventh(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);
     int32_t HandleGetSupportedProcessCachePids(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleProcessCached(MessageParcel &data, MessageParcel &reply);
     DISALLOW_COPY_AND_MOVE(AppMgrStub);
 };
 }  // namespace AppExecFwk

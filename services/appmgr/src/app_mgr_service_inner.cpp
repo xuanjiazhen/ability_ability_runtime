@@ -8184,6 +8184,20 @@ int32_t AppMgrServiceInner::GetSupportedProcessCachePids(const std::string &bund
     return ERR_OK;
 }
 
+
+void AppMgrServiceInner::ProcessCached()
+{
+    auto cachePrcoMgr = DelayedSingleton<CacheProcessManager>::GetInstance();
+    if (!cachePrcoMgr) {
+        return;
+    }
+    auto callerPid = IPCSkeleton::GetCallerPid();
+    auto appRecord = GetAppRunningRecordByPid(callerPid);
+    CHECK_POINTER_AND_RETURN_LOG(apprecord, "no such appRecord");
+    cachePrcoMgr->HandleProcessCached(appRecord);
+    return;
+}
+
 int AppMgrServiceInner::RegisterKiaInterceptor(const sptr<IKiaInterceptor> &interceptor)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "call");
