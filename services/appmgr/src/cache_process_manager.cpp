@@ -168,7 +168,7 @@ bool CacheProcessManager::CheckAndNotifyCachedState(const std::shared_ptr<AppRun
         TAG_LOGI(AAFwkTag::APPMGR, "kill process %{public}s because long time gc",
             appRecord->GetBundleName().c_str());
         KillProcessByRecord(appRecord);
-        return false;     
+        return false;
     }
     auto appMgrSptr = appMgr_.lock();
     if (appMgrSptr == nullptr) {

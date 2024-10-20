@@ -8184,7 +8184,6 @@ int32_t AppMgrServiceInner::GetSupportedProcessCachePids(const std::string &bund
     return ERR_OK;
 }
 
-
 void AppMgrServiceInner::ProcessCached()
 {
     auto cachePrcoMgr = DelayedSingleton<CacheProcessManager>::GetInstance();

@@ -2035,12 +2035,12 @@ void AppMgrProxy::ProcessCached()
     }
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
-    auto ret = SendRequest(AppMgrInterfaceCode:PROCESS_CACHED, data, reply, option);
+    auto ret = SendRequest(AppMgrInterfaceCode::PROCESS_CACHED, data, reply, option);
     if (ret != NO_ERROR) {
         TAG_LOGE(AAFwkTag::APPMGR, "Send request failed with error code %{public}d.", ret);
         return;
     }
-    return; 
+    return;
 }
 
 int32_t AppMgrProxy::RegisterKiaInterceptor(const sptr<IKiaInterceptor> &interceptor)

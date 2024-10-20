@@ -263,6 +263,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerFifth(uint32_t code, MessageParcel &data
             return HandleIsApplicationRunning(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::START_CHILD_PROCESS):
             return HandleStartChildProcess(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::PROCESS_CACHED):
+            return HandleProcessCached(data, reply);
     }
     return INVALID_FD;
 }
@@ -347,8 +349,6 @@ int32_t AppMgrStub::OnRemoteRequestInnerSeventh(uint32_t code, MessageParcel &da
             return HandleCheckIsKiaProcess(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::GET_APP_INDEX_BY_PID):
             return HandleGetAppIndexByPid(data, reply);
-        case static_cast<uint32_t>(AppMgrInterfaceCode::PROCESS_CACHED):
-            return HandleProcessCached(data, reply);
     }
     return INVALID_FD;
 }

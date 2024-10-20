@@ -1657,7 +1657,7 @@ void AppMgrService::ProcessCached()
     if (!DelayedSingleton<CacheProcessManager>::GetInstance()->QueryEnableProcessCache()) {
         return;
     }
-    appMgrServiceInner_->ProcessCached();    
+    appMgrServiceInner_->ProcessCached();
 }
 
 int32_t AppMgrService::RegisterKiaInterceptor(const sptr<IKiaInterceptor> &interceptor)
