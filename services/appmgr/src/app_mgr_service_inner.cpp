@@ -8190,9 +8190,9 @@ void AppMgrServiceInner::ProcessCached()
     if (!cachePrcoMgr) {
         return;
     }
-    auto callerPid = IPCSkeleton::GetCallerPid();
+    auto callerPid = IPCSkeleton::GetCallingPid();
     auto appRecord = GetAppRunningRecordByPid(callerPid);
-    CHECK_POINTER_AND_RETURN_LOG(apprecord, "no such appRecord");
+    CHECK_POINTER_AND_RETURN_LOG(appRecord, "no such appRecord");
     cachePrcoMgr->HandleProcessCached(appRecord);
     return;
 }
