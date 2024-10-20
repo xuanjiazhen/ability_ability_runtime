@@ -1383,6 +1383,11 @@ public:
      */
     virtual int32_t CheckIsKiaProcess(pid_t pid, bool &isKia);
 
+    /**
+      * called by process cached
+      */
+    virtual void ProcessCached();
+
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
@@ -1775,11 +1780,6 @@ private:
      * @param appRecord indicates the process is going to die.
      */
     void NotifyAppAttachFailed(std::shared_ptr<AppRunningRecord> appRecord);
-
-    /**
-      * called by process cached
-      */
-    virtual void ProcessCached();
 
 private:
     /**
