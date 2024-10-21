@@ -108,6 +108,12 @@ Ace::PopupPlacement AutoFillManagerUtil::ConvertPopupPlacement(const AutoFill::P
         case AutoFill::PopupPlacement::RIGHT:
             popupPlacement = Ace::PopupPlacement::RIGHT;
             break;
+        case AutoFill::PopupPlacement::TOP:
+            popupPlacement = Ace::PopupPlacement::TOP;
+            break;
+        case AutoFill::PopupPlacement::BOTTOM:
+            popupPlacement = Ace::PopupPlacement::BOTTOM;
+            break;
         case AutoFill::PopupPlacement::TOP_LEFT:
             popupPlacement = Ace::PopupPlacement::TOP_LEFT;
             break;

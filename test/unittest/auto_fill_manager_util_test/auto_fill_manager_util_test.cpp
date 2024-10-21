@@ -161,6 +161,12 @@ HWTEST_F(AutoFillManagerUtilTest, ConvertPopupPlacement_0100, TestSize.Level1)
     EXPECT_EQ(static_cast<int32_t>(popup->ConvertPopupPlacement(PopupPlacement::RIGHT)),
         static_cast<int32_t>(AbilityRuntime::AutoFill::PopupPlacement::RIGHT));
 
+    EXPECT_EQ(static_cast<int32_t>(popup->ConvertPopupPlacement(PopupPlacement::TOP)),
+        static_cast<int32_t>(AbilityRuntime::AutoFill::PopupPlacement::TOP));
+
+    EXPECT_EQ(static_cast<int32_t>(popup->ConvertPopupPlacement(PopupPlacement::BOTTOM)),
+        static_cast<int32_t>(AbilityRuntime::AutoFill::PopupPlacement::BOTTOM));
+
     EXPECT_EQ(static_cast<int32_t>(popup->ConvertPopupPlacement(PopupPlacement::TOP_LEFT)),
         static_cast<int32_t>(AbilityRuntime::AutoFill::PopupPlacement::TOP_LEFT));
 
