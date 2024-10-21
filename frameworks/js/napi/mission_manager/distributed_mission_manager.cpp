@@ -59,6 +59,8 @@ static int32_t ErrorCodeReturn(int32_t code)
         case ERR_INVALID_VALUE:
             return PARAMETER_CHECK_FAILED;
         case INVALID_PARAMETERS_ERR:
+        case MISSION_NOT_CONTINUE_ACTIVE:
+        case MISSION_NOT_FOCUSED:
             return PARAMETER_CHECK_FAILED;
         case REGISTER_REMOTE_MISSION_LISTENER_FAIL:
             return PARAMETER_CHECK_FAILED;
