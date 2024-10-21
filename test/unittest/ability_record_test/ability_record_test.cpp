@@ -52,6 +52,8 @@ using namespace OHOS::AbilityBase::Constants;
 namespace OHOS {
 namespace AAFwk {
 namespace {
+constexpr int32_t API12 = 12;
+constexpr int32_t API_VERSION_MOD = 100;
 const std::string DEBUG_APP = "debugApp";
 #ifdef WITH_DLP
 const std::string DLP_BUNDLE_NAME = "com.ohos.dlpmanager";
@@ -3544,6 +3546,43 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_GetPermissionedUriList_006, TestSize.L
     EXPECT_EQ(want.GetUriString(), uri1);
     auto paramStramUris = want.GetStringArrayParam(AbilityConfig::PARAMS_STREAM);
     EXPECT_EQ(paramStramUris.size(), 1);
+}
+
+/*
+ * Feature: UriUtils
+ * Function: CheckUriPermissionForServiceExtension
+ * SubFunction: CheckUriPermissionForServiceExtension
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify UriUtils CheckUriPermissionForServiceExtension
+ */
+HWTEST_F(AbilityRecordTest, UriUtils_CheckUriPermissionForServiceExtension_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UriUtils_CheckUriPermissionForServiceExtension_001 start");
+    std::string uri1 = "file://com.example.test/test1.txt";
+    Want want;
+    AppExecFwk::ExtensionAbilityType extensionAbilityType;
+    auto& uriUtil = UriUtils::GetInstance();
+    want.SetUri(uri1);
+    EXPECT_EQ(want.GetUriString(), uri1);
+
+    extensionAbilityType = AppExecFwk::ExtensionAbilityType::FORM;
+    uriUtil.CheckUriPermissionForServiceExtension(want, extensionAbilityType);
+    extensionAbilityType = AppExecFwk::ExtensionAbilityType::SERVICE;
+    uriUtil.CheckUriPermissionForServiceExtension(want, extensionAbilityType);
+    extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI_SERVICE;
+    uriUtil.CheckUriPermissionForServiceExtension(want, extensionAbilityType);
+    want.SetFlags(Want::FLAG_AUTH_READ_URI_PERMISSION);
+    uriUtil.CheckUriPermissionForServiceExtension(want, extensionAbilityType);
+    want.SetFlags(Want::FLAG_AUTH_WRITE_URI_PERMISSION);
+    uriUtil.CheckUriPermissionForServiceExtension(want, extensionAbilityType);
+    want.SetFlags(Want::FLAG_AUTH_READ_URI_PERMISSION | Want::FLAG_AUTH_WRITE_URI_PERMISSION);
+    uriUtil.CheckUriPermissionForServiceExtension(want, extensionAbilityType);
+    std::vector<std::string> uriVec = { uri1 };
+    want.SetParam(AbilityConfig::PARAMS_STREAM, uriVec);
+    uriUtil.CheckUriPermissionForServiceExtension(want, extensionAbilityType);
+    EXPECT_EQ(want.GetUriString(), "");
+    TAG_LOGI(AAFwkTag::TEST, "UriUtils_CheckUriPermissionForServiceExtension_001 end");
 }
 
 /*
