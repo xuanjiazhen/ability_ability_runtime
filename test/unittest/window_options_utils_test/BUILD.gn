@@ -26,12 +26,16 @@ ohos_unittest("window_options_utils_test") {
   }
   branch_protector_ret = "pac_ret"
   include_dirs = [
-    "mock/include",
+    "${ability_runtime_services_path}/abilitymgr/include/data_ability",
+    "${ability_runtime_services_path}/abilitymgr/include/mission",
     "${ability_runtime_services_path}/abilitymgr/include/utils",
     "${ability_runtime_services_path}/abilitymgr/include",
     "${ability_runtime_services_path}/common/include",
-    "${ability_runtime_path}interfaces/inner_api/ability_manager/include",
-    "${ability_runtime_services_path}/abilitymgr/include",
+    "${ability_runtime_path}/interfaces/inner_api/ability_manager/include",
+    "${ability_runtime_path}/interfaces/inner_api/session_handler/include",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper",
+    "${ability_runtime_innerkits_path}/connectionobs_manager/include",
+    "mock/include",
   ]
 
   sources = [
@@ -41,11 +45,14 @@ ohos_unittest("window_options_utils_test") {
     "${ability_runtime_services_path}/abilitymgr/src/utils/window_options_utils.cpp",
     "${ability_runtime_services_path}/common/src/app_utils.cpp",
     "${ability_runtime_services_path}/common/src/json_utils.cpp",
+    "mock/src/mock_parameters.cpp",
     "window_options_utils_test.cpp",
   ]
 
   deps = [
     "${ability_runtime_abilitymgr_path}/:abilityms",
+    "${ability_runtime_innerkits_path}/connectionobs_manager:connection_obs_manager",
+    "${ability_runtime_native_path}/appkit:appkit_native",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
