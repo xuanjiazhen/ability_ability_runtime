@@ -20,7 +20,6 @@
 #include "ability_info.h"
 #include "ability_local_record.h"
 #include "ability_start_setting.h"
-#include "context_deal.h"
 #include "mock_scene_created_ability.h"
 
 namespace OHOS {

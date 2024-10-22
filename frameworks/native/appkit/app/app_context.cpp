@@ -22,11 +22,6 @@ AppContext::AppContext()
 AppContext::~AppContext()
 {}
 
-const std::shared_ptr<AbilityInfo> AppContext::GetAbilityInfo()
-{
-    return nullptr;
-}
-
 ErrCode AppContext::StartAbility(const AAFwk::Want &want, int requestCode)
 {
     return ERR_INVALID_VALUE;
@@ -58,11 +53,6 @@ ErrCode AppContext::DisconnectAbility(const sptr<AAFwk::IAbilityConnection> &con
     return ERR_INVALID_VALUE;
 }
 
-bool AppContext::StopAbility(const AAFwk::Want &want)
-{
-    return false;
-}
-
 sptr<IRemoteObject> AppContext::GetToken()
 {
     return nullptr;
@@ -70,10 +60,5 @@ sptr<IRemoteObject> AppContext::GetToken()
 
 void AppContext::StartAbilities(const std::vector<AAFwk::Want> &wants)
 {}
-
-int AppContext::GetMissionId()
-{
-    return -1;
-}
 }  // namespace AppExecFwk
 }  // namespace OHOS

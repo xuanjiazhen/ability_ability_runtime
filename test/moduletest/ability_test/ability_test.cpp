@@ -19,7 +19,6 @@
 #include "ability_impl_factory.h"
 #include "ability_loader.h"
 #include "ability_local_record.h"
-#include "context_deal.h"
 #include "data_ability_helper.h"
 #include "ability_manager_client.h"
 #include "ability_manager_interface.h"
@@ -188,7 +187,6 @@ HWTEST_F(AbilityBaseTest, AaFwk_Ability_AbilityFwk_Start_Test_0500, Function | M
  */
 HWTEST_F(AbilityBaseTest, AaFwk_Ability_AbilityFwk_Start_Test_0600, Function | MediumTest | Level1)
 {
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
     std::shared_ptr<ProcessInfo> processInfo = std::make_shared<ProcessInfo>();
@@ -200,10 +198,7 @@ HWTEST_F(AbilityBaseTest, AaFwk_Ability_AbilityFwk_Start_Test_0600, Function | M
     appInfo->bundleName = "bundleName";
 
     application->SetProcessInfo(processInfo);
-    contextDeal->SetApplicationInfo(appInfo);
-    contextDeal->SetApplicationContext(application);
-    application->AttachBaseContext(contextDeal);
-
+    application->SetApplicationInfo(appInfo);
     sptr<IRemoteObject> abilityToken = sptr<IRemoteObject>(new AbilityRuntime::FAAbilityThread());
     EXPECT_NE(abilityToken, nullptr);
     if (abilityToken != nullptr) {

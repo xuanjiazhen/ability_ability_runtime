@@ -133,9 +133,7 @@ HWTEST_F(DataAbilityImplTest, AaFwk_DataAbilityImplTest_Insert_0300, Function | 
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
 
     dataabilityimpl->Init(application, record, ability, handler, token);
     EXPECT_NE(dataabilityimpl, nullptr);
@@ -218,11 +216,8 @@ HWTEST_F(DataAbilityImplTest, AaFwk_DataAbilityImplTest_Update_0300, Function | 
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
-
+    ability->SetAbilityInfo(abilityInfo);
     Uri uri("\nullptr");
     constexpr int32_t number = -1;
     NativeRdb::ValuesBucket value;
@@ -301,10 +296,8 @@ HWTEST_F(DataAbilityImplTest, AaFwk_DataAbilityImplTest_Delete_0300, Function | 
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
 
     Uri uri("\nullptr");
     constexpr int32_t number = -1;
@@ -387,10 +380,8 @@ HWTEST_F(DataAbilityImplTest, AaFwk_DataAbilityImplTest_Query_0300, Function | M
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
 
     Uri uri("\nullptr");
     std::vector<std::string> columns;
@@ -470,10 +461,8 @@ HWTEST_F(DataAbilityImplTest, AaFwk_DataAbilityImplTest_OpenFile_0300, Function 
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
     Uri uri("\nullptr");
     constexpr int32_t number = -1;
     const std::string mode = "r";
@@ -549,10 +538,8 @@ HWTEST_F(DataAbilityImplTest, AaFwk_DataAbilityImplTest_OpenRawFile_0300, Functi
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
     Uri uri("\nullptr");
     constexpr int32_t number = -1;
     const std::string mode = "r";
@@ -820,10 +807,8 @@ HWTEST_F(DataAbilityImplTest, AaFwk_DataAbilityImplTest_BatchInsert_0300, Functi
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
 
     Uri uri("\nullptr");
     std::vector<NativeRdb::ValuesBucket> values;
@@ -899,10 +884,8 @@ HWTEST_F(DataAbilityImplTest, AaFwk_DataAbilityImplTest_NormalizeUri_0300, Funct
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
 
     Uri uri("\nullptr");
     Uri urivalue("");
@@ -977,10 +960,8 @@ HWTEST_F(DataAbilityImplTest, AaFwk_DataAbilityImplTest_DenormalizeUri_0300, Fun
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
 
     Uri uri("\nullptr");
     Uri urivalue("");
@@ -1010,10 +991,8 @@ HWTEST_F(DataAbilityImplTest, AaFwk_DataAbilityImplTest_GetPermissionInfo_0100, 
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
 
     Uri uri("\nullptr");
     const std::string permissionType = "r";
@@ -1043,10 +1022,8 @@ HWTEST_F(DataAbilityImplTest, AaFwk_DataAbilityImplTest_GetPermissionInfo_0200, 
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
 
     Uri uri("\nullptr");
     const std::string permissionType = "w";
@@ -1076,10 +1053,8 @@ HWTEST_F(DataAbilityImplTest, AaFwk_DataAbilityImplTest_GetPermissionInfo_0300, 
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
 
     Uri uri("\nullptr");
     const std::string permissionType = "a";
@@ -1170,10 +1145,8 @@ HWTEST_F(
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
 
     Uri uri("\nullptr");
     const std::string permissionType = "a";
@@ -1272,10 +1245,8 @@ HWTEST_F(
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
 
     Uri uri("\nullptr");
     const std::string permissionType = "r";
@@ -1309,9 +1280,7 @@ HWTEST_F(
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
 
     Uri uri("\nullptr");
     const std::string permissionType = "w";
@@ -1343,10 +1312,8 @@ HWTEST_F(DataAbilityImplTest, AaFwk_DataAbilityImplTest_CheckOpenFilePermission_
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
 
     Uri uri("\nullptr");
     const std::string mode = "r";
@@ -1378,10 +1345,8 @@ HWTEST_F(DataAbilityImplTest, AaFwk_DataAbilityImplTest_CheckOpenFilePermission_
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
 
     Uri uri("\nullptr");
     const std::string mode = "w";
@@ -1413,10 +1378,8 @@ HWTEST_F(DataAbilityImplTest, AaFwk_DataAbilityImplTest_CheckOpenFilePermission_
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
 
     Uri uri("\nullptr");
     const std::string mode = "ar";
@@ -1448,10 +1411,8 @@ HWTEST_F(DataAbilityImplTest, AaFwk_DataAbilityImplTest_CheckOpenFilePermission_
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
 
     Uri uri("\nullptr");
     const std::string mode = "aw";
@@ -1483,10 +1444,8 @@ HWTEST_F(DataAbilityImplTest, AaFwk_DataAbilityImplTest_CheckOpenFilePermission_
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
 
     Uri uri("\nullptr");
     const std::string mode = "abc";
@@ -1563,10 +1522,8 @@ HWTEST_F(DataAbilityImplTest, AaFwk_DataAbilityImplTest_ExecuteBatch_0300, Funct
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
 
     std::vector<std::shared_ptr<DataAbilityOperation>> operations;
     std::shared_ptr<DataAbilityOperation> operation = std::make_shared<DataAbilityOperation>();
@@ -1598,10 +1555,8 @@ HWTEST_F(DataAbilityImplTest, AaFwk_DataAbilityImplTest_ExecuteBatch_0400, Funct
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
 
     std::vector<std::shared_ptr<DataAbilityOperation>> operations;
     dataabilityimpl->ExecuteBatch(operations);
@@ -1689,10 +1644,8 @@ HWTEST_F(
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
 
     std::vector<std::shared_ptr<DataAbilityOperation>> operations;
     std::shared_ptr<DataAbilityOperation> operation = std::make_shared<DataAbilityOperation>();
@@ -1725,10 +1678,8 @@ HWTEST_F(
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
 
     std::vector<std::shared_ptr<DataAbilityOperation>> operations;
     std::shared_ptr<DataAbilityOperation> operation = std::make_shared<DataAbilityOperation>();
@@ -1761,10 +1712,8 @@ HWTEST_F(
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
 
     std::vector<std::shared_ptr<DataAbilityOperation>> operations;
     std::shared_ptr<DataAbilityOperation> operation = std::make_shared<DataAbilityOperation>();
@@ -1797,10 +1746,8 @@ HWTEST_F(
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
 
     std::vector<std::shared_ptr<DataAbilityOperation>> operations;
     std::shared_ptr<DataAbilityOperation> operation = std::make_shared<DataAbilityOperation>();
@@ -1833,10 +1780,8 @@ HWTEST_F(
     std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
     std::shared_ptr<Ability> ability = std::make_shared<MockDataAbility>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     dataabilityimpl->Init(application, record, ability, handler, token);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(contextDeal);
+    ability->SetAbilityInfo(abilityInfo);
 
     std::vector<std::shared_ptr<DataAbilityOperation>> operations;
     std::shared_ptr<DataAbilityOperation> operation1 = std::make_shared<DataAbilityOperation>();

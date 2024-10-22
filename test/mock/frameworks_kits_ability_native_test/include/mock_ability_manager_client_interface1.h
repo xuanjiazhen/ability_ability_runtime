@@ -47,16 +47,6 @@ public:
     };
 };
 
-class MockAbilityContextDeal : public ContextDeal {
-public:
-    MockAbilityContextDeal();
-    ~MockAbilityContextDeal();
-
-    std::shared_ptr<HapModuleInfo> GetHapModuleInfo();
-
-    std::shared_ptr<HapModuleInfo> hapModInfo_;
-};
-
 class MockAbilityContextTest : public AbilityContext {
 public:
     MockAbilityContextTest();

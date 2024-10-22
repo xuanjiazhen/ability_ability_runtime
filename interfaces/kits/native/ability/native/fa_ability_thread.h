@@ -423,9 +423,8 @@ private:
      * @param application Indicates the main process.
      * @param abilityRecord current running ability record
      * @param abilityObject Indicates the abilityObject.
-     * @return Returns the contextDeal.
      */
-    std::shared_ptr<AppExecFwk::ContextDeal> CreateAndInitContextDeal(
+    void CreateAndInitContextDeal(
         const std::shared_ptr<AppExecFwk::OHOSApplication> &application,
         const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &abilityRecord,
         const std::shared_ptr<AppExecFwk::AbilityContext> &abilityObject);

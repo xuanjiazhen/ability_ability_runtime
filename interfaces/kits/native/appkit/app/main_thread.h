@@ -54,7 +54,6 @@ struct BaseSharedBundleInfo;
 using HspList = std::vector<BaseSharedBundleInfo>;
 enum class MainThreadState { INIT, ATTACH, READY, RUNNING };
 struct BundleInfo;
-class ContextDeal;
 // class Global::Resource::ResourceManager;
 class AppMgrDeathRecipient : public IRemoteObject::DeathRecipient {
 public:
@@ -700,7 +699,7 @@ private:
      */
     bool CheckFileType(const std::string &fileName, const std::string &extensionName);
 
-    bool InitCreate(std::shared_ptr<ContextDeal> &contextDeal, ApplicationInfo &appInfo, ProcessInfo &processInfo);
+    bool InitCreate(ApplicationInfo &appInfo, ProcessInfo &processInfo);
     bool CheckForHandleLaunchApplication(const AppLaunchData &appLaunchData);
     bool InitResourceManager(std::shared_ptr<Global::Resource::ResourceManager> &resourceManager,
         const AppExecFwk::HapModuleInfo &entryHapModuleInfo, const std::string &bundleName,

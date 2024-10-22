@@ -18,8 +18,7 @@
 #define private public
 #include "ability.h"
 #include "ability_context.h"
-#include "context_container.h"
-#include "context_deal.h"
+#include "fa_context.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
 #include "mock_bundle_installer_service.h"
@@ -47,7 +46,6 @@ public:
     ~ContextContainerByMockBmsTest()
     {}
     std::shared_ptr<AbilityContext> context_ = nullptr;
-    std::shared_ptr<ContextDeal> contextDeal_ = nullptr;
     sptr<ISystemAbilityManager> iSystemAbilityMgr_ = nullptr;
     sptr<AppExecFwk::MockSystemAbilityManager> mockSystemAbility_ = nullptr;
     static void SetUpTestCase(void);
@@ -69,7 +67,6 @@ void ContextContainerByMockBmsTest::SetUp(void)
     iSystemAbilityMgr_ = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     SystemAbilityManagerClient::GetInstance().systemAbilityManager_ = mockSystemAbility_;
     context_ = std::make_shared<AbilityContext>();
-    contextDeal_ = std::make_shared<ContextDeal>();
 }
 
 void ContextContainerByMockBmsTest::TearDown(void)

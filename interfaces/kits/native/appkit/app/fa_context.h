@@ -13,11 +13,10 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_CONTEXT_H
-#define OHOS_ABILITY_RUNTIME_CONTEXT_H
+#ifndef OHOS_ABILITY_RUNTIME_CONTEXT_CONTAINER_H
+#define OHOS_ABILITY_RUNTIME_CONTEXT_CONTAINER_H
 
 #include <memory>
-
 #include "ability_info.h"
 #include "ability_manager_interface.h"
 #include "bundle_mgr_interface.h"
@@ -28,11 +27,9 @@
 #include "task/task_priority.h"
 
 namespace OHOS {
-namespace DataShare {
-class DataShareHelper;
-}
 namespace AppExecFwk {
 class BundleMgrHelper;
+class AppContext;
 using Want = OHOS::AAFwk::Want;
 using AbilityStartSetting = AAFwk::AbilityStartSetting;
 using PermissionRequestTask = std::function<void(const std::vector<std::string>&, const std::vector<int>&)>;
@@ -53,178 +50,11 @@ using PermissionRequestTask = std::function<void(const std::vector<std::string>&
 
 #define OHOS_REQUEST_PERMISSION_VALUE 1
 
-constexpr int INVALID_RESOURCE_VALUE = -1;  // GetColor() Failed return Value
 constexpr int DEFAULT_ACCOUNT_ID = -1;
-
-class DataAbilityHelperImpl;
-class ContinuationConnector;
-class IAbilityManager;
 class Context {
 public:
     Context() = default;
     virtual ~Context() = default;
-
-    /**
-     * Called when getting the ProcessInfo
-     *
-     * @return ProcessInfo
-     */
-    virtual std::shared_ptr<ProcessInfo> GetProcessInfo() const = 0;
-
-    /**
-     * @brief Obtains information about the current application. The returned application information includes basic
-     * information such as the application name and application permissions.
-     *
-     * @return Returns the ApplicationInfo for the current application.
-     */
-    virtual std::shared_ptr<ApplicationInfo> GetApplicationInfo() const = 0;
-
-    /**
-     * @brief Obtains the Context object of the application.
-     *
-     * @return Returns the Context object of the application.
-     */
-    virtual std::shared_ptr<Context> GetApplicationContext() const = 0;
-
-    /**
-     * @brief Obtains the path of the package containing the current ability. The returned path contains the resources,
-     *  source code, and configuration files of a module.
-     *
-     * @return Returns the path of the package file.
-     */
-    virtual std::string GetBundleCodePath() = 0;
-
-    /**
-     * @brief Obtains information about the current ability.
-     * The returned information includes the class name, bundle name, and other information about the current ability.
-     *
-     * @return Returns the AbilityInfo object for the current ability.
-     */
-    virtual const std::shared_ptr<AbilityInfo> GetAbilityInfo() = 0;
-
-    /**
-     * @brief Obtains the Context object of the application.
-     *
-     * @return Returns the Context object of the application.
-     */
-    virtual std::shared_ptr<Context> GetContext() = 0;
-
-    /**
-     * @brief Obtains an BundleMgrHelper instance.
-     * You can use this instance to obtain information about the application bundle.
-     *
-     * @return Returns an BundleMgrHelper instance.
-     */
-    virtual std::shared_ptr<BundleMgrHelper> GetBundleManager() const = 0;
-
-    /**
-     * @brief Obtains a resource manager.
-     *
-     * @return Returns a ResourceManager object.
-     */
-    virtual std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager() const = 0;
-
-    /**
-     * @brief Destroys another ability that uses the AbilityInfo.AbilityType.SERVICE template.
-     * The current ability using either the AbilityInfo.AbilityType.SERVICE or AbilityInfo.AbilityType.PAGE
-     * template can call this method to destroy another ability that uses the AbilityInfo.AbilityType.SERVICE
-     * template. The current ability itself can be destroyed by calling the terminateAbility() method.
-     *
-     * @param want Indicates the Want containing information about the ability to destroy.
-     *
-     * @return Returns true if the ability is destroyed successfully; returns false otherwise.
-     */
-    virtual bool StopAbility(const AAFwk::Want &want) = 0;
-
-    /**
-     * @brief Obtains the local database path.
-     * If the local database path does not exist, the system creates one and returns the created path.
-     *
-     * @return Returns the local database file.
-     */
-    virtual std::string GetDatabaseDir() = 0;
-
-    /**
-     * @brief Obtains the absolute path where all private data files of this application are stored.
-     *
-     * @return Returns the absolute path storing all private data files of this application.
-     */
-    virtual std::string GetDataDir() = 0;
-
-    /**
-     * @brief Obtains the directory for storing custom data files of the application.
-     * You can use the returned File object to create and access files in this directory. The files
-     * can be accessible only by the current application.
-     *
-     * @param name Indicates the name of the directory to retrieve. This directory is created as part
-     * of your application data.
-     * @param mode Indicates the file operating mode. The value can be 0 or a combination of MODE_PRIVATE.
-     *
-     * @return Returns a File object for the requested directory.
-     */
-    virtual std::string GetDir(const std::string &name, int mode) = 0;
-
-    /**
-     * @brief Obtains the absolute path to the application-specific cache directory
-     * on the primary external or shared storage device.
-     *
-     * @return Returns the absolute path to the application-specific cache directory on the external or
-     * shared storage device; returns null if the external or shared storage device is temporarily unavailable.
-     */
-    virtual std::string GetExternalCacheDir()
-    {
-        return "";
-    }
-
-    /**
-     * @brief Obtains the absolute path to the directory for storing files for the application on the
-     * primary external or shared storage device.
-     *
-     * @param type Indicates the type of the file directory to return
-     *
-     * @return Returns the absolute path to the application file directory on the external or shared storage
-     * device; returns null if the external or shared storage device is temporarily unavailable.
-     */
-    virtual std::string GetExternalFilesDir(std::string &type)
-    {
-        return "";
-    }
-
-    /**
-     * @brief Obtains the directory for storing files for the application on the device's internal storage.
-     *
-     * @return Returns the application file directory.
-     */
-    virtual std::string GetFilesDir() = 0;
-
-    /**
-     * @brief Checks whether the current process has the given permission.
-     * You need to call requestPermissionsFromUser(std::vector<std::string>,std::vector<int>, int) to request
-     * a permission only if the current process does not have the specific permission.
-     *
-     * @param permission Indicates the permission to check. This parameter cannot be null.
-     *
-     * @return Returns 0 (IBundleManager.PERMISSION_GRANTED) if the current process has the permission;
-     * returns -1 (IBundleManager.PERMISSION_DENIED) otherwise.
-     */
-    virtual int VerifySelfPermission(const std::string &permission)
-    {
-        return 0;
-    }
-
-    /**
-     * @brief Obtains the bundle name of the current ability.
-     *
-     * @return Returns the bundle name of the current ability.
-     */
-    virtual std::string GetBundleName() const = 0;
-
-    /**
-     * @brief Obtains the path of the OHOS Ability Package (HAP} containing this ability.
-     *
-     * @return Returns the path of the HAP containing this ability.
-     */
-    virtual std::string GetBundleResourcePath() = 0;
 
     /**
      * @brief Starts a new ability.
@@ -241,43 +71,20 @@ public:
      *
      * @return errCode ERR_OK on success, others on failure.
      */
-    virtual ErrCode StartAbility(const AAFwk::Want &want, int requestCode) = 0;
-
-    /**
-     * @brief Remove permissions for all users who have access to specific permissions
-     *
-     * @param permission Indicates the permission to unauth. This parameter cannot be null.
-     * @param uri Indicates the URI to unauth. This parameter cannot be null.
-     * @param uid Indicates the UID of the unauth to check.
-     *
-     */
-    virtual void UnauthUriPermission(const std::string &permission, const Uri &uri, int uid)
-    {}
-
-    /**
-     * @brief Obtains an ability manager.
-     * The ability manager provides information about running processes and memory usage of an application.
-     *
-     * @return Returns an IAbilityManager instance.
-     */
-    virtual sptr<AAFwk::IAbilityManager> GetAbilityManager() = 0;
-
-    /**
-     * @brief Obtains the type of this application.
-     *
-     * @return Returns system if this application is a system application;
-     * returns normal if it is released in OHOS AppGallery;
-     * returns other if it is released by a third-party vendor;
-     * returns an empty string if the query fails.
-     */
-    virtual std::string GetAppType() = 0;
+    virtual ErrCode StartAbility(const AAFwk::Want &want, int requestCode)
+    {
+        return 0;
+    }
 
     /**
      * @brief Destroys the current ability.
      *
      * @return errCode ERR_OK on success, others on failure.
      */
-    virtual ErrCode TerminateAbility() = 0;
+    virtual ErrCode TerminateAbility()
+    {
+        return 0;
+    }
 
     /**
      * @brief Query whether the application of the specified PID and UID has been granted a certain permission
@@ -294,37 +101,6 @@ public:
     }
 
     /**
-     * @brief Sets the pattern of this Context based on the specified pattern ID.
-     *
-     * @param patternId Indicates the resource ID of the pattern to set.
-     */
-    virtual void SetPattern(int patternId) = 0;
-
-    /**
-     * @brief Obtains the Context object of this ability.
-     *
-     * @return Returns the Context object of this ability.
-     */
-    virtual std::shared_ptr<Context> GetAbilityPackageContext()
-    {
-        return nullptr;
-    }
-
-    /**
-     * @brief Obtains the HapModuleInfo object of the application.
-     *
-     * @return Returns the HapModuleInfo object of the application.
-     */
-    virtual std::shared_ptr<HapModuleInfo> GetHapModuleInfo() = 0;
-
-    /**
-     * @brief Obtains the name of the current process.
-     *
-     * @return Returns the current process name.
-     */
-    virtual std::string GetProcessName() = 0;
-
-    /**
      * @brief Obtains the bundle name of the ability that called the current ability.
      * You can use the obtained bundle name to check whether the calling ability is allowed to receive the data you will
      * send. If you did not use Ability.startAbilityForResult(ohos.aafwk.content.Want, int,
@@ -332,7 +108,10 @@ public:
      *
      * @return Returns the bundle name of the calling ability; returns null if no calling ability is available.
      */
-    virtual std::string GetCallingBundle() = 0;
+    virtual std::string GetCallingBundle()
+    {
+        return 0;
+    }
 
     /**
      * @brief Requests certain permissions from the system.
@@ -357,7 +136,10 @@ public:
      *
      * @return errCode ERR_OK on success, others on failure.
      */
-    virtual ErrCode StartAbility(const Want &want, int requestCode, const AbilityStartSetting &abilityStartSetting) = 0;
+    virtual ErrCode StartAbility(const Want &want, int requestCode, const AbilityStartSetting &abilityStartSetting)
+    {
+        return 0;
+    }
 
     /**
      * @brief Connects the current ability to an ability using the AbilityInfo.AbilityType.SERVICE template.
@@ -368,7 +150,10 @@ public:
      *
      * @return True means success and false means failure
      */
-    virtual bool ConnectAbility(const Want &want, const sptr<AAFwk::IAbilityConnection> &conn) = 0;
+    virtual bool ConnectAbility(const Want &want, const sptr<AAFwk::IAbilityConnection> &conn)
+    {
+        return false;
+    }
 
     /**
      * @brief Disconnects the current ability from an ability
@@ -378,121 +163,17 @@ public:
      *
      * @return errCode ERR_OK on success, others on failure.
      */
-    virtual ErrCode DisconnectAbility(const sptr<AAFwk::IAbilityConnection> &conn) = 0;
-
-    /**
-     * @brief Obtains information about the caller of this ability.
-     *
-     * @return Returns the caller information.
-     */
-    virtual Uri GetCaller() = 0;
-
-    /**
-     * @brief Get the string of this Context based on the specified resource ID.
-     *
-     * @param resId Indicates the resource ID of the string to get.
-     *
-     * @return Returns the string of this Context.
-     */
-    virtual std::string GetString(int resId) = 0;
-
-    /**
-     * @brief Get the string array of this Context based on the specified resource ID.
-     *
-     * @param resId Indicates the resource ID of the string array to get.
-     *
-     * @return Returns the string array of this Context.
-     */
-    virtual std::vector<std::string> GetStringArray(int resId) = 0;
-
-    /**
-     * @brief Get the integer array of this Context based on the specified resource ID.
-     *
-     * @param resId Indicates the resource ID of the integer array to get.
-     *
-     * @return Returns the integer array of this Context.
-     */
-    virtual std::vector<int> GetIntArray(int resId) = 0;
-
-    /**
-     * @brief Obtains the theme of this Context.
-     *
-     * @return theme Returns the theme of this Context.
-     */
-    virtual std::map<std::string, std::string> GetTheme() = 0;
-
-    /**
-     * @brief Sets the theme of this Context based on the specified theme ID.
-     *
-     * @param themeId Indicates the resource ID of the theme to set.
-     */
-    virtual void SetTheme(int themeId) = 0;
-
-    /**
-     * @brief Obtains the pattern of this Context.
-     *
-     * @return getPattern in interface Context
-     */
-    virtual std::map<std::string, std::string> GetPattern() = 0;
-
-    /**
-     * @brief Get the color of this Context based on the specified resource ID.
-     *
-     * @param resId Indicates the resource ID of the color to get.
-     *
-     * @return Returns the color value of this Context.
-     */
-    virtual int GetColor(int resId) = 0;
-
-    /**
-     * @brief Obtains the theme id of this Context.
-     *
-     * @return int Returns the theme id of this Context.
-     */
-    virtual int GetThemeId() = 0;
-
-    /**
-     * @brief Obtains the current display orientation of this ability.
-     *
-     * @return Returns the current display orientation.
-     */
-    virtual int GetDisplayOrientation() = 0;
-
-    /**
-     * @brief Obtains the path storing the preference file of the application.
-     *        If the preference file path does not exist, the system creates one and returns the created path.
-     *
-     * @return Returns the preference file path .
-     */
-    virtual std::string GetPreferencesDir() = 0;
-
-    /**
-     * @brief Set color mode
-     *
-     * @param the value of color mode.
-     */
-    virtual void SetColorMode(int mode) = 0;
-
-    /**
-     * @brief Obtains color mode.
-     *
-     * @return Returns the color mode value.
-     */
-    virtual int GetColorMode() = 0;
-
-    /**
-     * @brief Obtains the unique ID of the mission containing this ability.
-     *
-     * @return Returns the unique mission ID.
-     */
-    virtual int GetMissionId() = 0;
+    virtual ErrCode DisconnectAbility(const sptr<AAFwk::IAbilityConnection> &conn)
+    {
+        return 0;
+    }
 
     /**
      * @brief Starts multiple abilities.
      *
      * @param wants Indicates the Want containing information array about the target ability to start.
      */
-    virtual void StartAbilities(const std::vector<AAFwk::Want> &wants) = 0;
+    virtual void StartAbilities(const std::vector<AAFwk::Want> &wants) {}
 
     /**
      * @brief Checks whether the configuration of this ability is changing.
@@ -514,8 +195,149 @@ public:
         return false;
     }
 
-    virtual sptr<IRemoteObject> GetToken() = 0;
+    virtual sptr<IRemoteObject> GetToken()
+    {
+        return nullptr;
+    }
+
+    /**
+     * Called when getting the ProcessInfo
+     *
+     * @return ProcessInfo
+     */
+    std::shared_ptr<ProcessInfo> GetProcessInfo() const;
+
+    /**
+     * Called when setting the ProcessInfo
+     *
+     * @param info ProcessInfo instance
+     */
+    void SetProcessInfo(const std::shared_ptr<ProcessInfo> &info);
+
+    /**
+     * @brief Obtains information about the current application. The returned application information includes basic
+     * information such as the application name and application permissions.
+     *
+     * @return Returns the ApplicationInfo for the current application.
+     */
+    std::shared_ptr<ApplicationInfo> GetApplicationInfo() const;
+
+    /**
+     * @brief Set ApplicationInfo
+     *
+     * @param info ApplicationInfo instance.
+     */
+    void SetApplicationInfo(const std::shared_ptr<ApplicationInfo> &info);
+
+    /**
+     * @brief Obtains a resource manager.
+     *
+     * @return Returns a ResourceManager object.
+     */
+    virtual std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager();
+
+    /**
+     * @brief Obtains the bundle name of the current ability.
+     *
+     * @return Returns the bundle name of the current ability.
+     */
+    std::string GetBundleName() const;
+
+    /**
+     * @brief Obtains the type of this application.
+     *
+     * @return Returns system if this application is a system application;
+     * returns normal if it is released in OHOS AppGallery;
+     * returns other if it is released by a third-party vendor;
+     * returns an empty string if the query fails.
+     */
+    std::string GetAppType();
+
+    /**
+     * @brief Obtains the name of the current process.
+     *
+     * @return Returns the current process name.
+     */
+    std::string GetProcessName();
+
+    /**
+     * @brief Creates a Context object for an application with the given bundle name.
+     *
+     * @param bundleName Indicates the bundle name of the application.
+     * @param flag  Indicates the flag for creating a Context object. It can be 0, any of
+     * the following values, or any combination of the following values: CONTEXT_IGNORE_SECURITY,
+     * CONTEXT_INCLUDE_CODE, and CONTEXT_RESTRICTED. The value 0 indicates that there is no restriction
+     * on creating contexts for applications.
+     * @param accountId Indicates the account id.
+     *
+     * @return Returns a Context object created for the specified application.
+     */
+    std::shared_ptr<Context> CreateBundleContext(const std::string &bundleName, int flag,
+        int accountId = DEFAULT_ACCOUNT_ID);
+
+    /**
+     * @brief Obtains information about the caller of this ability.
+     *
+     * @return Returns the caller information.
+     */
+    Uri GetCaller();
+
+    /**
+     * @brief SetUriString
+     *
+     * @param uri the uri to set.
+     */
+    void SetUriString(const std::string &uri);
+
+    /**
+     * @brief InitResourceManager
+     *
+     * @param bundleInfo  BundleInfo
+     */
+    void InitResourceManager(BundleInfo &bundleInfo, std::shared_ptr<Context> context);
+
+    /**
+     * @brief set resourceManager 
+     *
+     */
+    void SetResourceManager(const std::shared_ptr<Global::Resource::ResourceManager> &resourceManager);
+
+    /**
+     * @brief Obtains the lifecycle state info.
+     *
+     * @return Returns the lifecycle state info.
+     */
+    AAFwk::LifeCycleStateInfo GetLifeCycleStateInfo() const;
+
+    /**
+     * @brief Set the LifeCycleStateInfo
+     *
+     * @param info the info to set.
+     */
+    void SetLifeCycleStateInfo(const AAFwk::LifeCycleStateInfo &info);
+
+    /**
+     * @brief Obtains the path of the package containing the current ability. The returned path contains the resources,
+     *  source code, and configuration files of a module.
+     *
+     * @return Returns the path of the package file.
+     */
+    std::string GetBundleCodePath();
+
+    virtual std::shared_ptr<Context> GetApplicationContext()
+    {
+        return nullptr;
+    }
+private:
+    void LoadResources(BundleInfo &bundleInfo, std::shared_ptr<Global::Resource::ResourceManager> &resourceManager,
+        std::unique_ptr<Global::Resource::ResConfig> &resConfig, std::shared_ptr<Context> &context);
+
+    std::shared_ptr<ProcessInfo> processInfo_ = nullptr;
+    std::shared_ptr<ApplicationInfo> applicationInfo_ = nullptr;
+    AAFwk::LifeCycleStateInfo lifeCycleStateInfo_;
+    std::string uriString_ = "";
+    std::shared_ptr<Global::Resource::ResourceManager> resourceManager_ = nullptr;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
-#endif  // OHOS_ABILITY_RUNTIME_CONTEXT_H
+#endif  // OHOS_ABILITY_RUNTIME_CONTEXT_CONTAINER_H

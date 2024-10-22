@@ -19,6 +19,7 @@
 #include "accesstoken_kit.h"
 #include "authorization_result.h"
 #include "bundle_constants.h"
+#include "bundle_mgr_helper.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "iservice_registry.h"
@@ -244,7 +245,7 @@ AppExecFwk::AbilityType AbilityContext::GetAbilityInfoType()
     return info->type;
 }
 
-std::shared_ptr<Global::Resource::ResourceManager> AbilityContext::GetResourceManager() const
+std::shared_ptr<Global::Resource::ResourceManager> AbilityContext::GetResourceManager()
 {
     std::shared_ptr<Context> appContext = GetApplicationContext();
     if (appContext == nullptr) {
@@ -252,9 +253,7 @@ std::shared_ptr<Global::Resource::ResourceManager> AbilityContext::GetResourceMa
         return nullptr;
     }
 
-    TAG_LOGD(AAFwkTag::CONTEXT, "before getResourceManager");
     std::shared_ptr<Global::Resource::ResourceManager> resourceManager = appContext->GetResourceManager();
-    TAG_LOGD(AAFwkTag::CONTEXT, "after getResourceManager");
     if (resourceManager == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null resourceManager");
         return nullptr;
@@ -337,6 +336,68 @@ int32_t AbilityContext::AddFreeInstallObserver(const sptr<AbilityRuntime::IFreeI
         TAG_LOGE(AAFwkTag::CONTEXT, "add observer failed, ret: %{public}d", ret);
     }
     return ret;
+}
+
+const std::shared_ptr<AbilityInfo> AbilityContext::GetAbilityInfo()
+{
+    return abilityInfo_;
+}
+
+void AbilityContext::SetAbilityInfo(const std::shared_ptr<AbilityInfo> &info)
+{
+    if (info == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "info is empty");
+        return;
+    }
+    abilityInfo_ = info;
+}
+
+std::shared_ptr<HapModuleInfo> AbilityContext::GetHapModuleInfo()
+{
+    // fix set HapModuleInfoLocal data failed, request only once
+    if (hapModuleInfoLocal_ == nullptr) {
+        HapModuleInfoRequestInit();
+        if (hapModuleInfoLocal_ == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "hapModuleInfoLocal_ is nullptr");
+            return nullptr;
+        }
+    }
+    return hapModuleInfoLocal_;
+}
+
+bool AbilityContext::HapModuleInfoRequestInit()
+{
+    auto ptr = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    if (ptr == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to get bundle manager service.");
+        return false;
+    }
+
+    if (abilityInfo_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "The abilityInfo_ is nullptr.");
+        return false;
+    }
+
+    hapModuleInfoLocal_ = std::make_shared<HapModuleInfo>();
+    if (!ptr->GetHapModuleInfo(*abilityInfo_.get(), *hapModuleInfoLocal_)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed, will retval false value.");
+        return false;
+    }
+    return true;
+}
+
+std::shared_ptr<Context> AbilityContext::GetApplicationContext()
+{
+    return appContext_;
+}
+
+void AbilityContext::SetApplicationContext(const std::shared_ptr<Context> &context)
+{
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "context is empty");
+        return;
+    }
+    appContext_ = context;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

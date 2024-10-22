@@ -15,7 +15,6 @@
 
 #include <gtest/gtest.h>
 
-#include "context_deal.h"
 #include "fa_ability_thread.h"
 #include "mock_ability_token.h"
 #include "mock_service_ability.h"
@@ -80,9 +79,7 @@ HWTEST_F(ServiceAbilityImplTest, AaFwk_ServiceAbilityImpl_HandleAbilityTransacti
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
 
     std::shared_ptr<Ability> ability = std::make_shared<MockServiceAbility>();
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    deal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(deal);
+    ability->SetAbilityInfo(abilityInfo);
 
     serviceAbilityImpl_->Init(application, record, ability, handler, token);
     Want want;
@@ -121,9 +118,7 @@ HWTEST_F(ServiceAbilityImplTest, AaFwk_ServiceAbilityImpl_HandleAbilityTransacti
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
 
     std::shared_ptr<Ability> ability = std::make_shared<MockServiceAbility>();
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    deal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(deal);
+    ability->SetAbilityInfo(abilityInfo);
 
     serviceAbilityImpl_->Init(application, record, ability, handler, token);
 
@@ -156,9 +151,7 @@ HWTEST_F(ServiceAbilityImplTest, AaFwk_ServiceAbilityImpl_HandleAbilityTransacti
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
 
     std::shared_ptr<Ability> ability = std::make_shared<MockServiceAbility>();
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    deal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(deal);
+    ability->SetAbilityInfo(abilityInfo);
 
     serviceAbilityImpl_->Init(application, record, ability, handler, token);
 
@@ -192,9 +185,7 @@ HWTEST_F(ServiceAbilityImplTest, AaFwk_ServiceAbilityImpl_HandleAbilityTransacti
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
 
     std::shared_ptr<Ability> ability = std::make_shared<MockServiceAbility>();
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    deal->SetAbilityInfo(abilityInfo);
-    ability->AttachBaseContext(deal);
+    ability->SetAbilityInfo(abilityInfo);
 
     serviceAbilityImpl_->Init(application, record, ability, handler, token);
 

@@ -53,40 +53,6 @@ config("module_context_config") {
   defines = [ "AMS_LOG_TAG = \"ApplicationUnitTest\"" ]
 }
 
-ohos_unittest("context_deal_interface_test") {
-  module_out_path = module_output_path
-  sources = [
-    "${ability_runtime_test_path}/mock/frameworks_kits_appkit_native_test/include/mock_ability_manager_client_interface1.cpp",
-    "${ability_runtime_test_path}/mock/frameworks_kits_appkit_native_test/include/mock_resourceManager_interface1.cpp",
-    "context_deal_interface1_test.cpp",
-  ]
-
-  configs = [ ":module_private_config" ]
-
-  deps = [
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
-    "${ability_runtime_native_path}/ability/native:abilitykit_native",
-    "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
-    "${global_path}/resource_management/frameworks/resmgr:global_resmgr",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [
-    "bundle_framework:appexecfwk_base",
-    "c_utils:utils",
-    "eventhandler:libeventhandler",
-    "hilog:libhilog",
-    "init:libbegetutil",
-    "ipc:ipc_core",
-    "napi:ace_napi",
-  ]
-
-  if (ability_runtime_graphics) {
-    deps += [ "${multimodalinput_path}/frameworks/proxy:libmmi-client" ]
-  }
-}
-
 ohos_unittest("application_test") {
   module_out_path = module_output_path
 
@@ -202,56 +168,6 @@ ohos_unittest("context_impl_test") {
     "ipc:ipc_core",
     "napi:ace_napi",
     "resource_management:global_resmgr",
-  ]
-
-  if (ability_runtime_graphics) {
-    external_deps += [ "window_manager:libwm" ]
-  }
-}
-
-ohos_unittest("context_container_test") {
-  module_out_path = module_output_path
-  sources = [
-    "${ability_runtime_native_path}/appkit/app/app_loader.cpp",
-    "${ability_runtime_native_path}/appkit/app/application_cleaner.cpp",
-    "${ability_runtime_native_path}/appkit/app/ohos_application.cpp",
-    "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include/mock_bundle_manager.cpp",
-    "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include/mock_overlay_manager.cpp",
-    "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include/sys_mgr_client_mock.cpp",
-    "context_container_test.cpp",
-  ]
-
-  configs = [ ":module_context_config" ]
-
-  deps = [
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
-    "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
-    "${ability_runtime_native_path}/ability/native:ability_thread",
-    "${ability_runtime_native_path}/ability/native:abilitykit_native",
-    "${ability_runtime_native_path}/ability/native:configuration_helper",
-    "${ability_runtime_native_path}/appkit:app_context",
-    "${ability_runtime_native_path}/appkit:appkit_manager_helper",
-    "${ability_runtime_native_path}/appkit:appkit_native",
-    "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [
-    "ability_base:configuration",
-    "ability_base:want",
-    "ability_base:zuri",
-    "ability_runtime:runtime",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
-    "c_utils:utils",
-    "common_event_service:cesfwk_innerkits",
-    "eventhandler:libeventhandler",
-    "ffrt:libffrt",
-    "hilog:libhilog",
-    "hitrace:hitrace_meter",
-    "init:libbegetutil",
-    "ipc:ipc_core",
-    "napi:ace_napi",
   ]
 
   if (ability_runtime_graphics) {
@@ -380,70 +296,6 @@ ohos_unittest("dump_ffrt_helper_test") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "napi:ace_napi",
-  ]
-
-  if (ability_runtime_graphics) {
-    external_deps += [ "window_manager:libwm" ]
-  }
-}
-
-ohos_unittest("context_deal_test") {
-  module_out_path = module_output_path
-
-  include_dirs = [
-    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper",
-    "${ability_runtime_test_path}/mock/common/include",
-  ]
-
-  sources = [
-    "${ability_runtime_native_path}/appkit/app/app_loader.cpp",
-    "${ability_runtime_native_path}/appkit/app/application_cleaner.cpp",
-    "${ability_runtime_native_path}/appkit/app/ohos_application.cpp",
-    "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include/mock_bundle_manager.cpp",
-    "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include/mock_overlay_manager.cpp",
-    "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include/sys_mgr_client_mock.cpp",
-    "${ability_runtime_test_path}/mock/frameworks_kits_appkit_native_test/include/mock_ability_manager_client.cpp",
-    "context_deal_test.cpp",
-  ]
-
-  if (ability_runtime_feature_coverage) {
-    cflags = [ "--coverage" ]
-    ldflags = [ "--coverage" ]
-  }
-
-  configs = [ ":module_context_config" ]
-
-  deps = [
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
-    "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
-    "${ability_runtime_native_path}/ability/native:ability_thread",
-    "${ability_runtime_native_path}/ability/native:abilitykit_native",
-    "${ability_runtime_native_path}/ability/native:configuration_helper",
-    "${ability_runtime_native_path}/appkit:app_context",
-    "${ability_runtime_native_path}/appkit:appkit_manager_helper",
-    "${ability_runtime_native_path}/appkit:appkit_native",
-    "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [
-    "ability_base:configuration",
-    "ability_base:want",
-    "ability_base:zuri",
-    "ability_runtime:runtime",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
-    "c_utils:utils",
-    "common_event_service:cesfwk_innerkits",
-    "eventhandler:libeventhandler",
-    "ffrt:libffrt",
-    "hilog:libhilog",
-    "hitrace:hitrace_meter",
-    "init:libbegetutil",
-    "ipc:ipc_core",
-    "napi:ace_napi",
-    "resource_management:global_resmgr",
   ]
 
   if (ability_runtime_graphics) {
@@ -971,8 +823,6 @@ group("unittest") {
     ":assert_fault_test",
     ":bms_context_impl_test",
     ":context_container_by_mock_bms_test",
-    ":context_container_test",
-    ":context_deal_test",
     ":context_impl_test",
     ":dump_ffrt_helper_test",
     ":dump_ipc_helper_test",

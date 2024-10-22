@@ -131,13 +131,6 @@ public:
     void UnregisterAbilityLifecycleObserver(const std::shared_ptr<ILifecycleObserver> &observer) override;
 
     /**
-     * @brief Obtains a resource manager.
-     *
-     * @return Returns a ResourceManager object.
-     */
-    std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager() const override;
-
-    /**
      * Start other ability for result.
      *
      * @param want information of other ability
@@ -1008,7 +1001,7 @@ public:
      *
      * @return Returns the display orientation of the window.
      */
-    int GetDisplayOrientation() override;
+    int GetDisplayOrientation();
 
     /**
      * @brief Called when this ability is about to leave the foreground and enter the background due to a user
@@ -1163,6 +1156,10 @@ public:
 
     void EraseUIExtension(int32_t sessionId) override;
 
+    std::shared_ptr<Context> GetContext()
+    {
+        return shared_from_this();
+    }
 protected:
     class AbilityDisplayListener : public OHOS::Rosen::DisplayManager::IDisplayListener {
     public:

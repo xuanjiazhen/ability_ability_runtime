@@ -99,8 +99,6 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     std::string abilityName(data, size);
     std::string moduleName(data, size);
     abilityContext.SetCallingContext(deviceId, bundleName, abilityName, moduleName);
-    std::shared_ptr<ContextDeal> base = nullptr;
-    abilityContext.AttachBaseContext(base);
     std::string type(data, size);
     abilityContext.GetExternalFilesDir(type);
     std::string url(data, size);
@@ -109,7 +107,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     int patternId = static_cast<int>(GetU32Data(data));
     abilityContext.SetPattern(patternId);
     BundleInfo bundleInfo;
-    std::shared_ptr<ContextDeal> deal = nullptr;
+    std::shared_ptr<AppContext> deal = nullptr;
     abilityContext.InitResourceManager(bundleInfo, deal);
     int resId = static_cast<int>(GetU32Data(data));
     abilityContext.GetString(resId);
