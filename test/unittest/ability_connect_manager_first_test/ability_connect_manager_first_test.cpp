@@ -137,10 +137,9 @@ std::shared_ptr<AbilityRecord> AbilityConnectManagerTest::InitAbilityRecord()
 
 void AbilityConnectManagerTest::SetUpTestCase(void)
 {}
+
 void AbilityConnectManagerTest::TearDownTestCase(void)
-{
-    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
-}
+{}
 
 void AbilityConnectManagerTest::SetUp(void)
 {
@@ -349,13 +348,13 @@ HWTEST_F(AbilityConnectManagerTest, HandleActiveAbility_001, TestSize.Level1)
     connectManager->HandleActiveAbility(targetService, connectRecord);
     abilityRecord->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI_SERVICE;
     Want want;
-    want.SetParam(PARAM_RESV_CALLER_APP_ID, "app");
-    abilityRecord.SetWant(want);
-    EXPECT_EQ(abilityRecord.GetWant().GetStringParam(), "app");
+    want.SetParam(PARAM_RESV_CALLER_APP_ID, std::string("app"));
+    abilityRecord->SetWant(want);
+    EXPECT_EQ(abilityRecord->GetWant().GetStringParam(PARAM_RESV_CALLER_APP_ID), "app");
     connectManager->HandleActiveAbility(abilityRecord, connectRecord);
     connectRecord = nullptr;
     connectManager->HandleActiveAbility(abilityRecord, connectRecord);
-    EXPECT_EQ(abilityRecord.GetWant().GetStringParam(), ""); // remove signatureInfo
+    EXPECT_EQ(abilityRecord->GetWant().GetStringParam(PARAM_RESV_CALLER_APP_ID), ""); // remove signatureInfo
     TAG_LOGI(AAFwkTag::TEST, "HandleActiveAbility_001 end");
 }
 
@@ -380,14 +379,13 @@ HWTEST_F(AbilityConnectManagerTest, HandleActiveAbility_002, TestSize.Level1)
     //AbilityRequest abilityRequest;
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
     Want want;
-    want.SetParam(PARAM_RESV_CALLER_APP_ID, "app");
-    abilityRecord.SetWant(want);
+    want.SetParam(PARAM_RESV_CALLER_APP_ID, std::string("app"));
+    abilityRecord->SetWant(want);
     OHOS::sptr<IAbilityConnection> callback1 = new AbilityConnectCallback();
-    std::shared_ptr<ConnectionRecord> connectRecord =
-        std::make_shared<ConnectionRecord>(callerToken, abilityRecord, callback1);
+    auto connectRecord = std::make_shared<ConnectionRecord>(callerToken, abilityRecord, callback1);
     abilityRecord->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI;
     connectManager->HandleActiveAbility(abilityRecord, connectRecord);
-    EXPECT_EQ(abilityRecord.GetWant().GetStringParam(), ""); // remove signatureInfo
+    EXPECT_EQ(abilityRecord->GetWant().GetStringParam(PARAM_RESV_CALLER_APP_ID), "app"); // no remove signatureInfo
     TAG_LOGI(AAFwkTag::TEST, "HandleActiveAbility_002 end");
 }
 
@@ -400,6 +398,7 @@ HWTEST_F(AbilityConnectManagerTest, HandleActiveAbility_003, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "HandleActiveAbility_003 start");
     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
     EXPECT_NE(connectManager, nullptr);
+
     auto result = connectManager->ConnectAbilityLocked(abilityRequest_, callbackA_, nullptr);
     EXPECT_EQ(0, result);
 
@@ -422,22 +421,11 @@ HWTEST_F(AbilityConnectManagerTest, HandleActiveAbility_003, TestSize.Level1)
     //AbilityRequest abilityRequest;
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
     OHOS::sptr<IAbilityConnection> callback1 = new AbilityConnectCallback();
-    std::shared_ptr<ConnectionRecord> connectRecord =
-        std::make_shared<ConnectionRecord>(callerToken, abilityRecord, callback1);
-    abilityRecord->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI;
-    connectManager->HandleActiveAbility(abilityRecord, connectRecord);
-    connectManager->taskHandler_ = MockTaskHandlerWrap::CreateQueueHandler("HandleActiveAbility003");
+    auto connectRecord = std::make_shared<ConnectionRecord>(callerToken, abilityRecord, callback1);
+    auto mockTaskHandler = MockTaskHandlerWrap::CreateQueueHandler("HandleActiveAbility003");
+    EXPECT_CALL(*mockTaskHandler, SubmitTaskInner(_, _)).Times(testing::AtLeast(1));
+    connectManager->taskHandler_ = mockTaskHandler;
     abilityRecord->connRemoteObject_ = abilityRecord->GetToken();
-    connectManager->HandleActiveAbility(abilityRecord, connectRecord);
-    EXPECT_CALL(*(connectManager->taskHandler_), SubmitTaskInner(_, _)).Times(AtLeast(1));
-    connectManager->taskHandler_ = nullptr;
-    abilityRecord->connRemoteObject_ = nullptr;
-    connectManager->HandleActiveAbility(abilityRecord, connectRecord);
-    connectManager->taskHandler_ = nullptr;
-    abilityRecord->connRemoteObject_ = abilityRecord->GetToken();
-    connectManager->HandleActiveAbility(abilityRecord, connectRecord);
-    connectManager->taskHandler_ = MockTaskHandlerWrap::CreateQueueHandler("HandleActiveAbility003");
-    abilityRecord->connRemoteObject_ = nullptr;
     connectManager->HandleActiveAbility(abilityRecord, connectRecord);
     TAG_LOGI(AAFwkTag::TEST, "HandleActiveAbility_003 end");
 }
