@@ -848,6 +848,7 @@ public:
 
     void SetProcessCaching(bool isCaching);
     bool IsCaching();
+    void SetNeedPreloadModule(bool isNeedPreloadModule);
 
     /**
      * ScheduleForegroundRunning, Notify application to switch to foreground.
@@ -1038,6 +1039,7 @@ private:
     bool isDependedOnArkWeb_ = false;
     bool isUserRequestCleaning_ = false;
     bool hasUIAbilityLaunched_ = false;
+    bool isNeedPreloadModule_ = false;
     bool isAllowedNWebPreload_ = false;
     bool isUnSetPermission_ = false;
 };
