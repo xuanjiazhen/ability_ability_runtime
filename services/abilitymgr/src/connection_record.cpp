@@ -140,6 +140,7 @@ void ConnectionRecord::CompleteConnect(int resultCode)
         SetConnectState(ConnectionState::CONNECTED);
         targetService_->SetAbilityState(AbilityState::ACTIVE);
     }
+    const AppExecFwk::AbilityInfo &abilityInfo = targetService_->GetAbilityInfo();
     AppExecFwk::ElementName element(abilityInfo.deviceId, abilityInfo.bundleName,
         abilityInfo.name, abilityInfo.moduleName);
     auto remoteObject = targetService_->GetConnRemoteObject();
