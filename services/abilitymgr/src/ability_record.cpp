@@ -2275,7 +2275,7 @@ void AbilityRecord::GetAbilityTypeString(std::string &typeStr)
 
 std::string AbilityRecord::ConvertAbilityState(const AbilityState &state)
 {
-    return  StateUtils::StateToStrMap(state);
+    return StateUtils::StateToStrMap(state);
 }
 
 std::string AbilityRecord::ConvertAppState(const AppState &state)
@@ -2948,6 +2948,15 @@ sptr<SessionInfo> AbilityRecord::GetSessionInfo() const
 {
     std::lock_guard guard(sessionLock_);
     return sessionInfo_;
+}
+
+int32_t AbilityRecord::GetSessionId() const
+{
+    std::lock_guard guard(sessionLock_);
+    if (sessionInfo_ == nullptr) {
+        return -1;
+    }
+    return sessionInfo_->persistentId;
 }
 
 void AbilityRecord::UpdateSessionInfo(sptr<IRemoteObject> sessionToken)
