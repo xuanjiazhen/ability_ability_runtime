@@ -421,7 +421,7 @@ protected:
 private:
     void AbilityContext::SetElementNameProperties(std::shared_ptr<ElementName>& elementName,
         const std::string& abilityName, const std::string& bundleName,
-        const std::string& deviceId, const std::string& moduleName)
+        const std::string& deviceId, const std::string& moduleName);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
