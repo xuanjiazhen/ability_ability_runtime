@@ -23,6 +23,7 @@
 #include "ability_record.h"
 #include "sa_mgr_client.h"
 #include "string_wrapper.h"
+#include "int_wrapper.h"
 
 using namespace testing::ext;
 using namespace OHOS::AAFwk;
