@@ -419,7 +419,7 @@ protected:
         return contextTypeId == CONTEXT_TYPE_ID || Context::IsContext(contextTypeId);
     }
 private:
-    void AbilityContext::SetElementNameProperties(std::shared_ptr<ElementName>& elementName,
+    void SetElementNameProperties(std::shared_ptr<AppExecFwk::ElementName>& elementName,
         const std::string& abilityName, const std::string& bundleName,
         const std::string& deviceId, const std::string& moduleName);
 };

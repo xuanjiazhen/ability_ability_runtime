@@ -302,7 +302,7 @@ void AbilityContext::RequestPermissionsFromUser(std::vector<std::string> &permis
     }
 
     AAFwk::Want want;
-    want.SetElementName(GRANT_ABILITY_BUNDLE_NAME, GRANT_ABILITY_ABILITY_NAME);
+    want.ElementName(GRANT_ABILITY_BUNDLE_NAME, GRANT_ABILITY_ABILITY_NAME);
     want.SetParam(PERMISSION_KEY, permissions);
     want.SetParam(STATE_KEY, permissionsState);
     want.SetParam(TOKEN_KEY, token_);
