@@ -19,6 +19,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "js_quickfix_callback.h"
 
 class ModuleCheckerDelegate;
 
@@ -102,12 +103,16 @@ public:
     virtual bool LoadRepairPatch(const std::string& patchFile, const std::string& baseFile) = 0;
     virtual bool NotifyHotReloadPage() = 0;
     virtual bool UnLoadRepairPatch(const std::string& patchFile) = 0;
-    virtual void RegisterQuickFixQueryFunc(const std::map<std::string, std::string>& moduleAndPath) = 0;
+    virtual void RegisterQuickFixQueryFunc(const std::map<std::string, std::string>& moduleAndPath,
+                                           AbilityRuntime::RuntimeType type, const std::string &bundleName = "") = 0;
     virtual void StartProfiler(const DebugOption debugOption) = 0;
     virtual void DoCleanWorkAfterStageCleaned() {}
     virtual void SetModuleLoadChecker(const std::shared_ptr<ModuleCheckerDelegate> moduleCheckerDelegate) const {}
     virtual void SetDeviceDisconnectCallback(const std::function<bool()> &cb) = 0;
     virtual void UpdatePkgContextInfoJson(std::string moduleName, std::string hapPath, std::string packageName) = 0;
+    virtual bool LoadRepairFormPatch(const std::string& patchFile, const std::string& baseFile,
+                                     const std::string &bundleName, const std::string &moduleName) = 0;
+
     Runtime(const Runtime&) = delete;
     Runtime(Runtime&&) = delete;
     Runtime& operator=(const Runtime&) = delete;

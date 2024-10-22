@@ -1706,5 +1706,33 @@ int32_t AppRunningManager::CheckIsKiaProcess(pid_t pid, bool &isKia)
     isKia = appRunningRecord->GetIsKia();
     return ERR_OK;
 }
+
+int32_t AppRunningManager::NotifyLoadPatch(const std::string &bundleName, const std::string &moduleName,
+                                           const sptr<IQuickFixCallback> &callback, const int &patchVersion)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    std::lock_guard guard(updateConfigurationDelayedLock_);
+    int32_t result = ERR_OK;
+    bool loadSucceed = false;
+    auto callbackByRecord = sptr<QuickFixCallbackWithRecord>::MakeSptr(callback);
+    if (callbackByRecord == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+
+    for (const auto &item : appRunningRecordMap_) {
+        const auto &appRecord = item.second;
+        if (appRecord && appRecord->GetBundleName() == bundleName) {
+            auto recordId = appRecord->GetRecordId();
+            callbackByRecord->AddRecordId(recordId);
+            result = appRecord->NotifyLoadPatch(bundleName, moduleName, callbackByRecord, recordId, patchVersion);
+            if (result == ERR_OK) {
+                loadSucceed = true;
+            } else {
+                callbackByRecord->RemoveRecordId(recordId);
+            }
+        }
+    }
+    return loadSucceed == true ? ERR_OK : result;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

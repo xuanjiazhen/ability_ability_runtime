@@ -214,6 +214,19 @@ public:
         const int32_t recordId);
 
     /**
+     *
+     * @brief notice hotreload app's form
+     *
+     * @param bundleName bundlename of application
+     * @param moduleName moduleName of application's module
+     * @param callback quickfix callback to notice user
+     * @param patchVersion quickfix hotreload version
+     *
+     */
+    int32_t NotifyLoadPatch(const std::string &bundleName, const std::string &moduleName,
+                            const sptr<IQuickFixCallback> &callback, const int32_t recordId, const int &patchVersion);
+
+    /**
      * @brief Notify application reload page.
      *
      * @param callback called when HotReload finished.

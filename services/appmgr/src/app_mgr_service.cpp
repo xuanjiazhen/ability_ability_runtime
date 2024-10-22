@@ -1681,5 +1681,15 @@ int32_t AppMgrService::GetAppIndexByPid(pid_t pid, int32_t &appIndex)
     }
     return appMgrServiceInner_->GetAppIndexByPid(pid, appIndex);
 }
+
+int32_t AppMgrService::NotifyLoadPatch(const std::string &bundleName, const std::string &moduleName,
+                                       const sptr<IQuickFixCallback> &callback, const int &patchVersion)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "huasmile AppMgrService is not ready.");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->NotifyLoadPatch(bundleName, moduleName, callback, patchVersion);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

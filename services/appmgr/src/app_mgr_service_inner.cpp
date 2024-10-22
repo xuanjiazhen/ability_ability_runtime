@@ -8215,5 +8215,22 @@ int32_t AppMgrServiceInner::CheckIsKiaProcess(pid_t pid, bool &isKia)
     }
     return appRunningManager_->CheckIsKiaProcess(pid, isKia);
 }
+
+int32_t AppMgrServiceInner::NotifyLoadPatch(const std::string &bundleName, const std::string &moduleName,
+                                            const sptr<IQuickFixCallback> &callback, const int &patchVerion)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (!appRunningManager_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "huasmile running manager is nullptr.");
+        return ERR_INVALID_OPERATION;
+    }
+
+    if (IPCSkeleton::GetCallingUid() != QUICKFIX_UID) {
+        TAG_LOGE(AAFwkTag::APPMGR, "huasmile Permission deny, not quick_fix.");
+        return ERR_PERMISSION_DENIED;
+    }
+
+    return appRunningManager_->NotifyLoadPatch(bundleName, moduleName, callback, patchVerion);
+}
 } // namespace AppExecFwk
 }  // namespace OHOS

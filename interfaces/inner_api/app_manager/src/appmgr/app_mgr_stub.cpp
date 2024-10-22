@@ -183,6 +183,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerThird(uint32_t code, MessageParcel &data
             return HandleGetAppRunningStateByBundleName(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::NOTIFY_LOAD_REPAIR_PATCH):
             return HandleNotifyLoadRepairPatch(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::NOTIFY_LOAD_PATCH):
+            return HandleNotifyLoadPatch(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::NOTIFY_HOT_RELOAD_PAGE):
             return HandleNotifyHotReloadPage(data, reply);
     #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
@@ -1704,6 +1706,21 @@ int32_t AppMgrStub::HandleGetAppIndexByPid(MessageParcel &data, MessageParcel &r
     if (!reply.WriteInt32(appIndex)) {
         TAG_LOGE(AAFwkTag::APPMGR, "fail to write appIndex.");
         return IPC_STUB_ERR;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleNotifyLoadPatch(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    std::string bundleName = data.ReadString();
+    std::string moduleName = data.ReadString();
+    int patchVersion = data.ReadInt32();
+    auto callback = iface_cast<IQuickFixCallback>(data.ReadRemoteObject());
+    auto ret = NotifyLoadPatch(bundleName, moduleName, callback, patchVersion);
+    if (!reply.WriteInt32(ret)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "huasmile replay.ret:%{public}d", ret);
+        return ERR_INVALID_VALUE;
     }
     return NO_ERROR;
 }

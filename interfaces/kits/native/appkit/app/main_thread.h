@@ -55,6 +55,7 @@ using HspList = std::vector<BaseSharedBundleInfo>;
 enum class MainThreadState { INIT, ATTACH, READY, RUNNING };
 struct BundleInfo;
 class ContextDeal;
+class IFormMgr;
 // class Global::Resource::ResourceManager;
 class AppMgrDeathRecipient : public IRemoteObject::DeathRecipient {
 public:
@@ -283,7 +284,13 @@ public:
     int32_t ScheduleNotifyLoadRepairPatch(const std::string &bundleName, const sptr<IQuickFixCallback> &callback,
         const int32_t recordId) override;
 
+    int32_t ScheduleNotifyLoadPatch(const std::string &bundleName, const std::string &moduleName,
+                                    const sptr<IQuickFixCallback> &callback,
+                                    const int32_t recordId, const int &patchVersion) override;
+
     int32_t ScheduleNotifyHotReloadPage(const sptr<IQuickFixCallback> &callback, const int32_t recordId) override;
+
+    sptr<IFormMgr> GetFormRenderMgrRemote();
 
     int32_t ScheduleNotifyUnLoadRepairPatch(const std::string &bundleName,
         const sptr<IQuickFixCallback> &callback, const int32_t recordId) override;
@@ -733,6 +740,18 @@ private:
     constexpr static std::string applicationLibraryPath = "/hos/lib/libapplication_native.z.so";
 #endif  // APPLICATION_LIBRARY_LOADER
     DISALLOW_COPY_AND_MOVE(MainThread);
+};
+
+class fixMgrDeathRecipient : public IRemoteObject::DeathRecipient {
+public:
+    /**
+     *
+     * @brief Notify the fixMgrDeathRecipient that the remote is dead.
+     * @param remote The remote which is dead.
+     */
+    virtual void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
+    fixMgrDeathRecipient() = default;
+    ~fixMgrDeathRecipient() override = default;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

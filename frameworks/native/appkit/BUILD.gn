@@ -16,6 +16,7 @@ import("//build/ohos.gni")
 import("//build/templates/abc/ohos_abc.gni")
 import("//commonlibrary/memory_utils/purgeable_mem_config.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
+import("//foundation/ability/ability_base/ability_base.gni")
 
 ohos_abc("delegator_mgmt") {
   sources = [ "${ability_runtime_native_path}/appkit/ability_delegator/runner_runtime/delegator_mgmt.js" ]
@@ -48,6 +49,7 @@ config("appkit_config") {
     "${ability_runtime_path}/interfaces/kits/native/appkit/app",
     "${ability_runtime_path}/interfaces/kits/native/appkit/dfr",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
+    "${ability_base_innerapi_path}/include",
   ]
 }
 

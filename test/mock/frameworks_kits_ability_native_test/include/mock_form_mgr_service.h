@@ -271,6 +271,13 @@ public:
     {
         return 0;
     }
+
+    int32_t UpdateFormByHqf(const std::string &bundleName, const std::string &moduleName,
+                                    const int &patchVersion, const int32_t recordId,
+                                    const sptr<IQuickFixCallback> &callback)
+    {
+        return 0;
+    }
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

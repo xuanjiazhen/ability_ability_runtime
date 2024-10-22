@@ -117,6 +117,8 @@ public:
 
     MOCK_METHOD1(RegisterKiaInterceptor, int32_t(const sptr<IKiaInterceptor> &interceptor));
     MOCK_METHOD2(CheckIsKiaProcess, int32_t(pid_t pid, bool &isKia));
+    MOCK_METHOD4(NotifyLoadPatch, int32_t(const std::string &bundleName, const std::string &moduleName,
+                                          const sptr<IQuickFixCallback> &callback, const int &patchVersion));
     virtual int StartUserTestProcess(
         const AAFwk::Want &want, const sptr<IRemoteObject> &observer, const BundleInfo &bundleInfo, int32_t userId)
     {

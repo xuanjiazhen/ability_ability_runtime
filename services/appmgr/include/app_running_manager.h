@@ -253,6 +253,19 @@ public:
      */
     int32_t ProcessUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo);
 
+    /**
+     *
+     * @brief notice hotreload app's form
+     *
+     * @param bundleName bundlename of application
+     * @param moduleName moduleName of application's module
+     * @param callback quickfix callback to notice user
+     * @param patchVersion quickfix hotreload version
+     *
+     */
+    int32_t NotifyLoadPatch(const std::string &bundleName, const std::string &moduleName,
+                            const sptr<IQuickFixCallback> &callback, const int &patchVersion);
+
     bool ProcessExitByBundleNameAndUid(
         const std::string &bundleName, const int uid, std::list<pid_t> &pids, const bool clearPageStack = false);
     bool GetPidsByUserId(int32_t userId, std::list<pid_t> &pids);

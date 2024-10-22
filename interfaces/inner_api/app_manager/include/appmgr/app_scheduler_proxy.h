@@ -181,6 +181,19 @@ public:
     virtual void ScheduleClearPageStack() override;
 
     /**
+     * @brief hotreload update form_card when quickfix deployed
+     * @param bundleName application's name
+     * @param moduleName update_card of module
+     * @param patchVersion quickfix patchVersion
+     * @param recordId task record
+     * @param callback callback to notice  result of quickfix's updated
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t ScheduleNotifyLoadPatch(const std::string &bundleName, const std::string &moduleName,
+                                    const sptr<IQuickFixCallback> &callback,
+                                    const int32_t recordId, const int &patchVersion) override;
+
+    /**
      * @brief Schedule the given module the onAcceptWant lifecycle call.
      *
      * @param want the param passed to onAcceptWant lifecycle.

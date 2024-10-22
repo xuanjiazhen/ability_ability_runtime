@@ -23,10 +23,19 @@
 namespace OHOS {
 namespace AbilityRuntime {
 class JsRuntime;
+
+enum RuntimeType {
+    RUNTIME_APP = 1,
+    RUNTIME_FORM = 2,
+};
+
 class JsQuickfixCallback final {
 public:
-    explicit JsQuickfixCallback(
-        const std::map<std::string, std::string> moduleAndHqfPath) : moduleAndHqfPath_(moduleAndHqfPath) {};
+    explicit JsQuickfixCallback(const std::map<std::string, std::string> moduleAndHqfPath, const RuntimeType type,
+    const std::string &patchVersion = "")
+    : moduleAndHqfPath_(moduleAndHqfPath), 
+    type_(type),
+    patchVersion_(patchVersion) {};
     ~JsQuickfixCallback() = default;
 
     bool operator()(std::string baseFileName,
@@ -34,9 +43,13 @@ public:
                     uint8_t **patchBuffer,
                     size_t &patchSize);
 
+    std::string getModuleName(const std::string &baseFileName);
+
 private:
     std::vector<uint8_t> newpatchBuffer_;
     std::map<std::string, std::string> moduleAndHqfPath_;
+    RuntimeType type_;
+    std::string patchVersion_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
