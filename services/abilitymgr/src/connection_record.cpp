@@ -165,7 +165,8 @@ void ConnectionRecord::CompleteConnect(int resultCode)
             });
     }
     DelayedSingleton<ConnectionStateManager>::GetInstance()->AddConnection(shared_from_this());
-    TAG_LOGI(AAFwkTag::CONNECTION, "result: %{public}d, connectState:%{public}d", resultCode, state_);
+    TAG_LOGI(AAFwkTag::CONNECTION, "result: %{public}d, service:%{public}s, recordId: %{public}d, connectState:%{public}d", resultCode,
+        , targetService->GetURI().c_str(), connectRecord->GetRecordId(), state_);
 }
 
 void ConnectionRecord::CompleteDisconnect(int resultCode, bool isCallerDied, bool isTargetDied)
@@ -193,7 +194,7 @@ void ConnectionRecord::CompleteDisconnect(int resultCode, bool isCallerDied, boo
     }
     handler->SubmitTask(onDisconnectDoneTask);
     DelayedSingleton<ConnectionStateManager>::GetInstance()->RemoveConnection(shared_from_this(), isCallerDied);
-    TAG_LOGD(AAFwkTag::CONNECTION, "result: %{public}d, connectState:%{public}d", resultCode, state_);
+    TAG_LOGD(AAFwkTag::CONNECTION, "CompleteDisconnect result: %{public}d, connectState:%{public}d", resultCode, state_);
 }
 
 void ConnectionRecord::ScheduleDisconnectAbilityDone()
