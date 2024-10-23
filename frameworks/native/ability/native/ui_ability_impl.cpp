@@ -104,7 +104,7 @@ void UIAbilityImpl::Stop(bool &isAsyncCallback)
         isAsyncCallback = false;
         return;
     }
-    std::weak_ptr<UIAbilityImpl> weakPtr = shared_from_this();
+    std::weak_ptr<UIAbilityImpl> weakPtr = weak_from_this();
     auto asyncCallback = [abilityImplWeakPtr = weakPtr, state = AAFwk::ABILITY_STATE_INITIAL]() {
         auto abilityImpl = abilityImplWeakPtr.lock();
         if (abilityImpl == nullptr) {
@@ -213,14 +213,15 @@ void UIAbilityImpl::AbilityTransactionCallback(const AAFwk::AbilityLifeCycleStat
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
     FreezeUtil::LifecycleFlow flow = { token_, FreezeUtil::TimeoutState::FOREGROUND };
-    std::string entry = "AbilityManagerClient::AbilityTransitionDone; the transaction start.";
-    FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
     if (state == AAFwk::ABILITY_STATE_FOREGROUND_NEW) {
         lifecycleState_ = AAFwk::ABILITY_STATE_FOREGROUND_NEW;
+        std::string entry = "AbilityManagerClient::AbilityTransitionDone; the transaction start.";
+        FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
     }
     auto ret = AAFwk::AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_, state, GetRestoreData());
     if (ret == ERR_OK && state == AAFwk::ABILITY_STATE_FOREGROUND_NEW) {
         FreezeUtil::GetInstance().DeleteLifecycleEvent(flow);
+        FreezeUtil::GetInstance().DeleteAppLifecycleEvent(0);
     }
 }
 
@@ -400,6 +401,7 @@ void UIAbilityImpl::AfterFocusedCommon(bool isFocused)
             TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext");
             return;
         }
+        impl->ability_->OnAfterFocusedCommon(focuseMode);
         auto applicationContext = abilityContext->GetApplicationContext();
         if (applicationContext == nullptr || applicationContext->IsAbilityLifecycleCallbackEmpty()) {
             TAG_LOGE(AAFwkTag::UIABILITY, "null applicationContext or lifecycleCallback");
@@ -454,6 +456,7 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterForeground()
             token_, AAFwk::AbilityLifeCycleState::ABILITY_STATE_FOREGROUND_NEW, restoreData);
         if (ret == ERR_OK) {
             FreezeUtil::GetInstance().DeleteLifecycleEvent(flow);
+            FreezeUtil::GetInstance().DeleteAppLifecycleEvent(0);
         }
     }
 }
@@ -471,6 +474,7 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterBackground()
         token_, AAFwk::AbilityLifeCycleState::ABILITY_STATE_BACKGROUND_NEW, restoreData);
     if (ret == ERR_OK) {
         FreezeUtil::GetInstance().DeleteLifecycleEvent(flow);
+        FreezeUtil::GetInstance().DeleteAppLifecycleEvent(0);
     }
 }
 
@@ -497,6 +501,9 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterUnfocused()
 void UIAbilityImpl::WindowLifeCycleImpl::ForegroundFailed(int32_t type)
 {
     TAG_LOGE(AAFwkTag::UIABILITY, "scb call, ForegroundFailed");
+    FreezeUtil::LifecycleFlow flow = { token_, FreezeUtil::TimeoutState::FOREGROUND };
+    std::string entry = "ERROR UIAbilityImpl::WindowLifeCycleImpl::ForegroundFailed; GoForeground failed.";
+    FreezeUtil::GetInstance().AppendLifecycleEvent(flow, entry);
     AppExecFwk::PacMap restoreData;
     switch (type) {
         case static_cast<int32_t>(OHOS::Rosen::WMError::WM_ERROR_INVALID_OPERATION): {
@@ -603,7 +610,7 @@ bool UIAbilityImpl::AbilityTransaction(const AAFwk::Want &want, const AAFwk::Lif
                 Background();
             } else {
                 TAG_LOGD(AAFwkTag::UIABILITY, "handleExecuteInsightIntentBackground");
-                HandleExecuteInsightIntentBackground(want);
+                ret = HandleExecuteInsightIntentBackground(want);
             }
 #endif
             break;
@@ -769,7 +776,7 @@ void UIAbilityImpl::PostForegroundInsightIntent()
     }
 }
 
-void UIAbilityImpl::HandleExecuteInsightIntentBackground(const AAFwk::Want &want, bool onlyExecuteIntent)
+bool UIAbilityImpl::HandleExecuteInsightIntentBackground(const AAFwk::Want &want, bool onlyExecuteIntent)
 {
     TAG_LOGI(AAFwkTag::UIABILITY, "called");
     auto executeParam = std::make_shared<InsightIntentExecuteParam>();
@@ -777,7 +784,7 @@ void UIAbilityImpl::HandleExecuteInsightIntentBackground(const AAFwk::Want &want
     if (!ret && !onlyExecuteIntent) {
         TAG_LOGE(AAFwkTag::UIABILITY, "invalid params");
         Background();
-        return;
+        return true;
     }
 
     TAG_LOGD(AAFwkTag::UIABILITY,
@@ -791,14 +798,16 @@ void UIAbilityImpl::HandleExecuteInsightIntentBackground(const AAFwk::Want &want
     if (intentCb == nullptr && !onlyExecuteIntent) {
         TAG_LOGE(AAFwkTag::UIABILITY, "create async callback failed");
         Background();
-        return;
+        return true;
     }
     TAG_LOGD(AAFwkTag::UIABILITY, "lifecycleState_: %{public}d", lifecycleState_);
     if (lifecycleState_ == AAFwk::ABILITY_STATE_INITIAL
         || lifecycleState_ == AAFwk::ABILITY_STATE_STARTED_NEW) {
         ExecuteInsightIntentBackgroundByColdBoot(want, executeParam, std::move(intentCb));
+        return false;
     } else {
         ExecuteInsightIntentBackgroundAlreadyStart(want, executeParam, std::move(intentCb));
+        return true;
     }
 }
 
@@ -817,6 +826,7 @@ void UIAbilityImpl::ExecuteInsightIntentBackgroundByColdBoot(const Want &want,
             }
             abilityImpl->Background();
             abilityImpl->ExecuteInsightIntentDone(intentId, result);
+            abilityImpl->AbilityTransactionCallback(AAFwk::ABILITY_STATE_BACKGROUND_NEW);
         };
     callback->Push(asyncCallback);
 

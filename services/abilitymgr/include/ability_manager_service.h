@@ -1157,7 +1157,7 @@ public:
      */
     sptr<IRemoteObject> GetAbilityTokenByMissionId(int32_t missionId);
 
-    virtual int StartUser(int userId, sptr<IUserCallback> callback) override;
+    virtual int StartUser(int userId, sptr<IUserCallback> callback, bool isAppRecovery = false) override;
 
     virtual int StopUser(int userId, const sptr<IUserCallback> &callback) override;
 
@@ -1811,6 +1811,9 @@ public:
 
     void EnableListForSCBRecovery(int32_t userId) const;
 
+    int32_t UpdateKeepAliveEnableState(const std::string &bundleName, const std::string &moduleName,
+        const std::string &mainElement, bool updateEnable, int32_t userId);
+
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;
     static constexpr uint32_t ACTIVE_TIMEOUT_MSG = 1;
@@ -1875,7 +1878,7 @@ private:
      * start highest priority ability.
      *
      */
-    void StartHighestPriorityAbility(int32_t userId, bool isBoot);
+    void StartHighestPriorityAbility(int32_t userId, bool isBoot, bool isAppRecovery = false);
     /**
      * connect bms.
      *
@@ -1978,7 +1981,8 @@ private:
     void StopFreezingScreen();
     void UserStarted(int32_t userId);
     void SwitchToUser(int32_t userId);
-    void SwitchToUser(int32_t oldUserId, int32_t userId, sptr<IUserCallback> callback);
+    void SwitchToUser(int32_t oldUserId, int32_t userId, sptr<IUserCallback> callback,
+        bool isAppRecovery = false);
     void SwitchManagers(int32_t userId, bool switchUser = true);
     void StartUserApps();
     void PauseOldUser(int32_t userId);
@@ -2137,6 +2141,16 @@ private:
      */
     int CheckUIExtensionPermission(const AbilityRequest &abilityRequest);
 
+    /**
+     * @brief Check CallerInfoQueryExtension permission
+     *
+     * @param abilityRequest The ability request.
+     * @return Returns ERR_OK when allowed, others when check failed.
+     */
+    int CheckCallerInfoQueryExtensionPermission(const AbilityRequest &abilityRequest);
+
+    int CheckFileAccessExtensionPermission(const AbilityRequest &abilityRequest);
+
     bool IsTargetPermission(const Want &want) const;
 
     bool IsDelegatorCall(const AppExecFwk::RunningProcessInfo &processInfo, const AbilityRequest &abilityRequest) const;
@@ -2241,8 +2255,8 @@ private:
 
     void WaitBootAnimationStart();
 
-    int32_t SignRestartAppFlag(int32_t userId, const std::string &bundleName, bool isAppRecovery = false);
-    int32_t CheckRestartAppWant(const AAFwk::Want &want);
+    int32_t SignRestartAppFlag(int32_t userId, int32_t uid, bool isAppRecovery = false);
+    int32_t CheckRestartAppWant(const AAFwk::Want &want, int32_t appIndex);
 
     int StartUIAbilityForOptionWrap(const Want &want, const StartOptions &options, sptr<IRemoteObject> callerToken,
         bool isPendingWantCaller, int32_t userId, int requestCode, uint32_t callerTokenId = 0, bool isImplicit = false,

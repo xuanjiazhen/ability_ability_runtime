@@ -434,6 +434,10 @@ const std::function<void()> OHOSApplication::CreateAutoStartupCallback(
     const std::function<void(const std::shared_ptr<AbilityRuntime::Context>&)>& callback)
 {
     const std::shared_ptr<AbilityInfo> &abilityInfo = abilityRecord->GetAbilityInfo();
+    if (abilityInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null abilityInfo");
+        return nullptr;
+    }
     if (!IsMainProcess(abilityInfo->bundleName, abilityInfo->applicationInfo.process)) {
         return nullptr;
     }
@@ -464,6 +468,10 @@ const std::function<void()> OHOSApplication::CreateAutoStartupCallback(
     const std::function<void()>& callback)
 {
     auto applicationInfo = abilityRuntimeContext_->GetApplicationInfo();
+    if (applicationInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null applicationInfo");
+        return nullptr;
+    }
     if (!IsMainProcess(hapModuleInfo.bundleName, applicationInfo->process)) {
         return nullptr;
     }
@@ -874,6 +882,8 @@ bool OHOSApplication::IsUpdateLanguageNeeded(Configuration &config, AbilityRunti
         return false;
     }
     AbilityRuntime::ApplicationConfigurationManager::GetInstance().SetLanguageSetLevel(level);
+    config.AddItem(AAFwk::GlobalConfigurationKey::IS_PREFERRED_LANGUAGE,
+        level == AbilityRuntime::SetLevel::Application ? "1" : "0");
     return true;
 }
 
