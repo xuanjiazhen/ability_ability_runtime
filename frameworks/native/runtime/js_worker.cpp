@@ -22,27 +22,26 @@
 #include <unistd.h>
 #include <vector>
 
+#include "bundle_info.h"
 #include "bundle_mgr_helper.h"
+#include "bundle_mgr_proxy.h"
 #include "connect_server_manager.h"
-#include "commonlibrary/c_utils/base/include/refbase.h"
+#include "console.h"
 #ifdef SUPPORT_GRAPHICS
 #include "core/common/container_scope.h"
 #endif
 #include "declarative_module_preloader.h"
-
 #include "extractor.h"
 #include "file_mapper.h"
-#include "foundation/bundlemanager/bundle_framework/interfaces/inner_api/appexecfwk_base/include/bundle_info.h"
-#include "foundation/bundlemanager/bundle_framework/interfaces/inner_api/appexecfwk_core/include/bundlemgr/bundle_mgr_proxy.h"
-#include "foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy/include/iservice_registry.h"
-#include "foundation/communication/ipc/interfaces/innerkits/ipc_core/include/iremote_object.h"
-#include "singleton.h"
-#include "system_ability_definition.h"
 #include "hilog_tag_wrapper.h"
+#include "iremote_object.h"
+#include "iservice_registry.h"
 #include "js_runtime_utils.h"
 #include "native_engine/impl/ark/ark_native_engine.h"
-#include "commonlibrary/ets_utils/js_sys_module/console/console.h"
+#include "refbase.h"
+#include "singleton.h"
 #include "syscap_ts.h"
+#include "system_ability_definition.h"
 #ifdef SUPPORT_GRAPHICS
 using OHOS::Ace::ContainerScope;
 #endif
@@ -58,11 +57,11 @@ const std::string CACHE_DIRECTORY = "el2";
 const std::string RESTRICTED_PREFIX_PATH = "abcs/";
 const int PATH_THREE = 3;
 #ifdef APP_USE_ARM
-constexpr char ARK_DEBUGGER_LIB_PATH[] = "/system/lib/platformsdk/libark_inspector.z.so";
+constexpr char ARK_DEBUGGER_LIB_PATH[] = "/system/lib/libark_inspector.z.so";
 #elif defined(APP_USE_X86_64)
-constexpr char ARK_DEBUGGER_LIB_PATH[] = "/system/lib64/platformsdk/libark_inspector.z.so";
+constexpr char ARK_DEBUGGER_LIB_PATH[] = "/system/lib64/libark_inspector.z.so";
 #else
-constexpr char ARK_DEBUGGER_LIB_PATH[] = "/system/lib64/platformsdk/libark_inspector.z.so";
+constexpr char ARK_DEBUGGER_LIB_PATH[] = "/system/lib64/libark_inspector.z.so";
 #endif
 
 bool g_debugMode = false;
