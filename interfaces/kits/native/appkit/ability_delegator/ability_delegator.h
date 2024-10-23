@@ -35,7 +35,6 @@
 #include "iability_stage_monitor.h"
 #include "shell_cmd_result.h"
 #include "test_runner.h"
-
 #include "foundation/ability/ability_runtime/interfaces/kits/native/appkit/ability_runtime/context/context.h"
 #include "want.h"
 
