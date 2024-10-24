@@ -1651,7 +1651,7 @@ void NAPIAbilityConnection::HandleOnAbilityConnectDone(ConnectionCallback &callb
 void NAPIAbilityConnection::OnAbilityConnectDone(
     const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode)
 {
-    TAG_LOGI(AAFwkTag::JSNAPI, "%{public}s bundleName:%{public}s abilityName:%{public}s, resultCode:%{public}d, resultCode:%{public}s",
+    TAG_LOGI(AAFwkTag::JSNAPI, "%{public}s bundleName:%{public}s a1bilityName:%{public}s, resultCode:%{public}d, deviceId:%{public}s",
              __func__, element.GetBundleName().c_str(), element.GetAbilityName().c_str(), resultCode, element.GetDeviceID().c_str());
     if (remoteObject == nullptr) {
         TAG_LOGE(AAFwkTag::JSNAPI, "%{public}s, remoteObject == nullptr.", __func__);
