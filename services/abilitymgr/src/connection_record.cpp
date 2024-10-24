@@ -142,8 +142,9 @@ void ConnectionRecord::CompleteConnect(int resultCode)
     }
     const AppExecFwk::AbilityInfo &abilityInfo = targetService_->GetAbilityInfo();
     TAG_LOGI(AAFwkTag::CONNECTION, "CompleteConnect, abilityInfo deviceId:%{public}s", abilityInfo.deviceId.c_str());
-    AppExecFwk::ElementName element(targetService_->GetWant().GetDeviceID(), abilityInfo.bundleName,
+    AppExecFwk::ElementName element(targetService_->GetWant().GetDeviceId(), abilityInfo.bundleName,
         abilityInfo.name, abilityInfo.moduleName);
+    TAG_LOGI("test deviceId: %{public}s", targetService_->GetWant().GetDeviceId().c_str());
     auto remoteObject = targetService_->GetConnRemoteObject();
     auto callback = GetAbilityConnectCallback();
     auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();

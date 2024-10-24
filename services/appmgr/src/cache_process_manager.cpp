@@ -33,6 +33,7 @@ const std::string PROCESS_CACHE_API_CHECK_CONFIG = "persist.sys.abilityms.proces
 const std::string PROCESS_CACHE_SET_SUPPORT_CHECK_CONFIG = "persist.sys.abilityms.processCacheSetSupportCheck";
 constexpr int32_t API12 = 12;
 constexpr int32_t API_VERSION_MOD = 100;
+constexpr int32_t CACHE_PROCESS_TIMEOUT_TIME_MS = 1500; // 1500ms
 constexpr const char *EVENT_KEY_VERSION_NAME = "VERSION_NAME";
 constexpr const char *EVENT_KEY_VERSION_CODE = "VERSION_CODE";
 constexpr const char *EVENT_KEY_BUNDLE_NAME = "BUNDLE_NAME";
@@ -122,6 +123,10 @@ bool CacheProcessManager::CheckAndCacheProcess(const std::shared_ptr<AppRunningR
         TAG_LOGD(AAFwkTag::APPMGR, "%{public}s not cache for abilities not empty",
             appRecord->GetName().c_str());
         return true;
+    }
+    if (warmStartProcesEnable_ && appRecord->GetPriorityObject()) {
+        AAFwk::ResSchedUtil::GetInstance().ReportLoadingEventToRss(AAFwk::LoadingStage::PROCESS_CACHE_BEGIN,
+            appRecord->GetPriorityObject()->GetPid(), appRecord->GetUid(), CACHE_PROCESS_TIMEOUT_TIME_MS);
     }
     appRecord->ScheduleCacheProcess();
     appRecord->SetProcessCaching(false);
@@ -246,10 +251,8 @@ bool CacheProcessManager::ReuseCachedProcess(const std::shared_ptr<AppRunningRec
         TAG_LOGE(AAFwkTag::APPMGR, "null appMgr");
         return true;
     }
-    if (AAFwk::UIExtensionUtils::IsUIExtension(appRecord->GetExtensionType())) {
-        if (appRecord->GetEnableProcessCache()) {
-            appRecord->SetEnableProcessCache(false);
-        }
+    if (appRecord->GetEnableProcessCache()) {
+        appRecord->SetEnableProcessCache(false);
     }
     appRecord->SetProcessCaching(false);
     appMgrSptr->OnAppCacheStateChanged(appRecord, ApplicationState::APP_STATE_READY);
@@ -279,32 +282,30 @@ bool CacheProcessManager::IsProcessSupportHotStart(const std::shared_ptr<AppRunn
             appRecord->GetProcessName().c_str(), appRecord->GetBundleName().c_str());
         return false;
     }
+    if (!appRecord->HasUIAbilityLaunched()) {
+        TAG_LOGD(AAFwkTag::APPMGR, "%{public}s of %{public}s has not created uiability before.",
+            appRecord->GetProcessName().c_str(), appRecord->GetBundleName().c_str());
+        return false;
+    }
     return true;
 }
 
-bool CacheProcessManager::IsProcessSupportWarmStart(const std::shared_ptr<AppRunningRecord> &appRecord)
+void CacheProcessManager::CheckAndSetProcessCacheEnable(const std::shared_ptr<AppRunningRecord> &appRecord)
 {
-    if (appRecord == nullptr) {
-        return false;
+    if (appRecord == nullptr || !warmStartProcesEnable_) {
+        return;
     }
-    if (!AAFwk::UIExtensionUtils::IsUIExtension(appRecord->GetExtensionType())) {
-        return true;
-    }
-    auto enable = appRecord->GetEnableProcessCache();
-    if (enable) {
-        return true;
+    if (appRecord->GetSupportProcessCacheState() != SupportProcessCacheState::SUPPORT) {
+        return;
     }
     if (!appRecord->GetPriorityObject()) {
-        return false;
+        return;
     }
     bool forceKillProcess =
         AAFwk::ResSchedUtil::GetInstance().CheckShouldForceKillProcess(appRecord->GetPriorityObject()->GetPid());
-    if (!forceKillProcess) {
-        appRecord->SetEnableProcessCache(true);
-        return true;
-    } else {
-        appRecord->SetEnableProcessCache(false);
-        return false;
+    if (forceKillProcess) {
+        appRecord->SetProcessCacheBlocked(true);
+        return;
     }
 }
 
@@ -330,9 +331,6 @@ bool CacheProcessManager::IsAppSupportProcessCache(const std::shared_ptr<AppRunn
     if (maxProcCacheNum_ > 0 && !IsProcessSupportHotStart(appRecord)) {
         return false;
     }
-    if (warmStartProcesEnable_ && !IsProcessSupportWarmStart(appRecord)) {
-        return false;
-    }
     return IsAppSupportProcessCacheInnerFirst(appRecord);
 }
 
@@ -351,15 +349,13 @@ bool CacheProcessManager::IsAppSupportProcessCacheInnerFirst(const std::shared_p
             appRecord->GetProcessName().c_str(), appRecord->GetBundleName().c_str());
         return false;
     }
-    if (!appRecord->HasUIAbilityLaunched() &&
-        !AAFwk::UIExtensionUtils::IsUIExtension(appRecord->GetExtensionType())) {
-        TAG_LOGD(AAFwkTag::APPMGR, "%{public}s of %{public}s has not created uiability before.",
-            appRecord->GetProcessName().c_str(), appRecord->GetBundleName().c_str());
-        return false;
+    if (warmStartProcesEnable_) {
+        if (!appRecord->HasUIAbilityLaunched() &&
+            !AAFwk::UIExtensionUtils::IsUIExtension(appRecord->GetExtensionType())) {
+            return false;
+        }
     }
-    if (warmStartProcesEnable_ && !appRecord->GetEnableProcessCache()) {
-        return false;
-    }
+
     auto supportState = appRecord->GetSupportProcessCacheState();
     switch (supportState) {
         case SupportProcessCacheState::UNSPECIFIED:
