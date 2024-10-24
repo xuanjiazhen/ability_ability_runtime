@@ -807,6 +807,16 @@ enum NativeFreeInstallError {
      */
     CONTINUE_FREE_INSTALL_FAILED = 29360205,
 
+    /*
+     * Result(29360233) for mission continue state is not active.
+     */
+    MISSION_NOT_CONTINUE_ACTIVE = 29360233,
+
+    /*
+    * Result(29360234) for mission is not focused.
+    */
+    MISSION_NOT_FOCUSED = 29360234,
+
     /**
      * Undefine error code.
      */
