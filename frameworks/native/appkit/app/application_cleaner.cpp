@@ -48,27 +48,34 @@ constexpr int64_t MAX_FILE_SIZE = 50 * 1024;
 } // namespace
 void ApplicationCleaner::RenameTempData()
 {
-    if (context_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Context is null");
-        return;
-    }
-    std::vector<std::string> tempdir{};
-    context_->GetAllTempDir(tempdir);
-    if (tempdir.empty()) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Get app temp path list is empty");
-        return;
-    }
-    int64_t now =
-        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
-            .count();
-    std::ostringstream stream;
-    stream << std::hex << now;
-    for (const auto &path : tempdir) {
-        auto newPath = path + MARK_SYMBOL + stream.str();
-        if (rename(path.c_str(), newPath.c_str()) != 0) {
-            TAG_LOGE(AAFwkTag::APPKIT, "Rename temp dir failed, msg is %{public}s", strerror(errno));
+    auto renameTemp = [self = shared_from_this()]() {
+        if (self == nullptr || self->context_ == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "Context is null");
+            return;
         }
-    }
+        std::vector<std::string> tempdir{};
+        self->context_->GetAllTempDir(tempdir);
+        if (tempdir.empty()) {
+            TAG_LOGE(AAFwkTag::APPKIT, "Get app temp path list is empty");
+            return;
+        }
+        int64_t now =
+            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
+                .count();
+        std::ostringstream stream;
+        stream << std::hex << now;
+        for (const auto &path : tempdir) {
+            auto newPath = path + MARK_SYMBOL + stream.str();
+            if (rename(path.c_str(), newPath.c_str()) != 0) {
+                TAG_LOGE(AAFwkTag::APPKIT, "Rename temp dir failed, msg is %{public}s", strerror(errno));
+            }
+        }
+    };
+
+    ffrt::task_attr attr;
+    attr.name(TASK_NAME);
+    attr.delay(DELAY);
+    ffrt::submit(std::move(renameTemp), attr);
 }
 
 void ApplicationCleaner::ClearTempData()
