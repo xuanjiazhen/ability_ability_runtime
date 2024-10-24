@@ -347,6 +347,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerSeventh(uint32_t code, MessageParcel &da
             return HandleCheckIsKiaProcess(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::GET_APP_INDEX_BY_PID):
             return HandleGetAppIndexByPid(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::REGISTER_APP_STATE_CALLBACK):
+            return HandleRegisterAppStateCallback(data, reply);
     }
     return INVALID_FD;
 }
@@ -1705,6 +1707,18 @@ int32_t AppMgrStub::HandleGetAppIndexByPid(MessageParcel &data, MessageParcel &r
         TAG_LOGE(AAFwkTag::APPMGR, "fail to write appIndex.");
         return IPC_STUB_ERR;
     }
+    return NO_ERROR;
+}
+
+ErrCode AppMgrStub::HandleRegisterAppStateCallback(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    sptr<IAppStateCallback> callback = nullptr;
+    if (data.ReadBool()) {
+        sptr<IRemoteObject> obj = data.ReadRemoteObject();
+        callback = iface_cast<IAppStateCallback>(obj);
+    }
+    RegisterAppStateCallback(callback);
     return NO_ERROR;
 }
 }  // namespace AppExecFwk

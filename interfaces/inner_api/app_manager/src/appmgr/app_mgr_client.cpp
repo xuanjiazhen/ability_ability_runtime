@@ -196,11 +196,8 @@ AppMgrResultCode AppMgrClient::RegisterAppStateCallback(const sptr<IAppStateCall
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
-        sptr<IAmsMgr> amsService = service->GetAmsMgr();
-        if (amsService != nullptr) {
-            amsService->RegisterAppStateCallback(callback);
-            return AppMgrResultCode::RESULT_OK;
-        }
+        service->RegisterAppStateCallback(callback);
+        return AppMgrResultCode::RESULT_OK;
     }
     return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
 }

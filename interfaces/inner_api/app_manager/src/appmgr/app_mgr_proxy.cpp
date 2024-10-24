@@ -2093,5 +2093,36 @@ int32_t AppMgrProxy::GetAppIndexByPid(pid_t pid, int32_t &appIndex)
     appIndex = reply.ReadInt32();
     return ERR_OK;
 }
+
+void AppMgrProxy::RegisterAppStateCallback(const sptr<IAppStateCallback> &callback)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "begin");
+    if (!callback) {
+        TAG_LOGE(AAFwkTag::APPMGR, "callback null");
+        return;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        return;
+    }
+
+    if (callback->AsObject()) {
+        if (!data.WriteBool(true) || !data.WriteRemoteObject(callback->AsObject())) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Failed to write flag and callback");
+            return;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Failed to write flag");
+            return;
+        }
+    }
+
+    PARCEL_UTIL_SENDREQ_NORET(AppMgrInterfaceCode::REGISTER_APP_STATE_CALLBACK, data, reply, option);
+    TAG_LOGD(AAFwkTag::APPMGR, "end");
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

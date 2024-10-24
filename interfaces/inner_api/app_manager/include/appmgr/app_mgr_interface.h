@@ -865,6 +865,14 @@ public:
     {
         return 0;
     }
+
+    /**
+     * RegisterAppStateCallback, call RegisterAppStateCallback() through the proxy object, register the callback.
+     *
+     * @param callback, Ams register the callback.
+     * @return
+     */
+    virtual void RegisterAppStateCallback(const sptr<IAppStateCallback> &callback) {}
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

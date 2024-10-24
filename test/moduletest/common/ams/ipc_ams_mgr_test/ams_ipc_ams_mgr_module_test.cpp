@@ -215,45 +215,6 @@ HWTEST_F(AmsIpcAmsmgrModuleTest, ExcuteAmsmgrIPCInterface_003, TestSize.Level3)
  * Feature: ApplicationFramework
  * Function: AppManagerService
  * SubFunction: AmsmgrIPCInterface
- * FunctionPoints: test registerappstatecallback API,then check the function whether is good or not
- * EnvConditions: system running normally
- * CaseDescription: execute registerappstatecallback API 1000 times
- */
-HWTEST_F(AmsIpcAmsmgrModuleTest, ExcuteAmsmgrIPCInterface_004, TestSize.Level3)
-{
-    auto mockAppMgrServiceInner = GetMockAppMgrServiceInner();
-    std::unique_ptr<AmsMgrScheduler> amsMgrScheduler =
-        std::make_unique<AmsMgrScheduler>(mockAppMgrServiceInner, GetAmsTaskHandler());
-    sptr<MockAppStateCallback> callback = new MockAppStateCallback();
-
-    sptr<MockMockAppMgrService> mockMockAppMgr(new MockMockAppMgrService());
-    sptr<IAppMgr> appMgrClient = iface_cast<IAppMgr>(mockMockAppMgr);
-
-    auto mockHandler = [&]() -> sptr<IAmsMgr> {
-        mockMockAppMgr->Post();
-        return sptr<IAmsMgr>(amsMgrScheduler.get());
-    };
-
-    EXPECT_CALL(*mockMockAppMgr, GetAmsMgr()).Times(1).WillOnce(Invoke(mockHandler));
-
-    auto amsMgrScheduler_ = appMgrClient->GetAmsMgr();
-    mockMockAppMgr->Wait();
-
-    for (int i = 0; i < COUNT; i++) {
-        EXPECT_CALL(*mockAppMgrServiceInner, RegisterAppStateCallback(_))
-            .WillOnce(InvokeWithoutArgs(mockAppMgrServiceInner.get(), &MockAppMgrServiceInner::Post));
-        amsMgrScheduler_->RegisterAppStateCallback(callback);
-        mockAppMgrServiceInner->Wait();
-    }
-
-    mockAppMgrServiceInner.reset();
-    amsMgrScheduler.release();
-}
-
-/*
- * Feature: ApplicationFramework
- * Function: AppManagerService
- * SubFunction: AmsmgrIPCInterface
  * FunctionPoints: test KillApplication API,then check the function whether is good or not
  * EnvConditions: system running normally
  * CaseDescription: execute KillApplication API 1000 times

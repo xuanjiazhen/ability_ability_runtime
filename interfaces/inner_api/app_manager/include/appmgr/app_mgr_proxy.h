@@ -741,6 +741,8 @@ public:
         std::vector<int32_t> &pidList) override;
 
     virtual int32_t GetAppIndexByPid(pid_t pid, int32_t &appIndex) override;
+
+    virtual void RegisterAppStateCallback(const sptr<IAppStateCallback> &callback) override;
 private:
     bool SendTransactCmd(AppMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     bool WriteInterfaceToken(MessageParcel &data);
