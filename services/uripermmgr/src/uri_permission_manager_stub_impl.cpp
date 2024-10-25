@@ -123,7 +123,7 @@ bool UriPermissionManagerStubImpl::IsDistributedSubDirUri(const std::string &inp
 int UriPermissionManagerStubImpl::GrantUriPermission(const Uri &uri, unsigned int flag,
     const std::string targetBundleName, int32_t appIndex, uint32_t initiatorTokenId, int32_t abilityId)
 {
-    TAG_LOGI(AAFwkTag::URIPERMMGR, "Uri:%{private}s", uri.ToString().c_str());
+    TAG_LOGD(AAFwkTag::URIPERMMGR, "Uri:%{private}s", uri.ToString().c_str());
     if (!UPMSUtils::IsSAOrSystemAppCall()) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "not SA/SystemApp");
         return CHECK_PERMISSION_FAILED;
@@ -135,7 +135,7 @@ int UriPermissionManagerStubImpl::GrantUriPermission(const Uri &uri, unsigned in
 int UriPermissionManagerStubImpl::GrantUriPermission(const std::vector<Uri> &uriVec, unsigned int flag,
     const std::string targetBundleName, int32_t appIndex, uint32_t initiatorTokenId, int32_t abilityId)
 {
-    TAG_LOGI(AAFwkTag::URIPERMMGR, "BundleName:%{public}s, appIndex:%{public}d, uriVec size:%{public}zu",
+    TAG_LOGD(AAFwkTag::URIPERMMGR, "BundleName:%{public}s, appIndex:%{public}d, uriVec size:%{public}zu",
         targetBundleName.c_str(), appIndex, uriVec.size());
     if (!UPMSUtils::IsSAOrSystemAppCall()) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "not SA/SystemApp");
@@ -302,7 +302,7 @@ int UriPermissionManagerStubImpl::AddTempUriPermission(const std::string &uri, u
             return ERR_OK;
         }
     }
-    TAG_LOGI(AAFwkTag::URIPERMMGR, "insert new uri permission record");
+    TAG_LOGD(AAFwkTag::URIPERMMGR, "insert new uri permission record");
     infoList.emplace_back(info);
     return ERR_OK;
 }
