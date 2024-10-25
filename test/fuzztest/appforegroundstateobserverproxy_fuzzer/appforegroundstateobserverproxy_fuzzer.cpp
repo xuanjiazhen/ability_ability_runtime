@@ -41,10 +41,10 @@ constexpr uint8_t ENABLE = 2;
 constexpr size_t OFFSET_ZERO = 24;
 constexpr size_t OFFSET_ONE = 16;
 constexpr size_t OFFSET_TWO = 8;
+const std::u16string APPMGR_INTERFACE_TOKEN = u"ohos.aafwk.AppManager";
 static std::shared_ptr<AppForegroundStateObserverProxy> appForegroundStateObserverProxy = nullptr;
 }
 
-const std::u16string APPMGR_INTERFACE_TOKEN = u"ohos.aafwk.AppManager";
 uint32_t GetU32Data(const char* ptr)
 {
     // convert fuzz input data to an integer
