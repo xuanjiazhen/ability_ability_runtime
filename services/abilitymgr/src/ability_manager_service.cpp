@@ -2809,7 +2809,7 @@ int AbilityManagerService::StartExtensionAbilityInner(const Want &want, const sp
         UpdateCallerInfo(abilityRequest.want, callerToken);
     }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Start extension begin, name is %{public}s.", abilityInfo.name.c_str());
-    UriUtils::GetInstance().CheckUriPermissionForServiceExtension(const_cast<Want &>(abilityRequest.want),
+    UriUtils::GetInstance().CheckUriPermissionForServiceExtension(abilityRequest.want,
         abilityRequest.abilityInfo.extensionAbilityType);
     eventInfo.errCode = connectManager->StartAbility(abilityRequest);
     if (eventInfo.errCode != ERR_OK) {
@@ -3082,7 +3082,7 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
     }
     ReportEventToRSS(abilityRequest.abilityInfo, abilityRequest.callerToken);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "Start extension begin, name is %{public}s.", abilityInfo.name.c_str());
-    UriUtils::GetInstance().CheckUriPermissionForServiceExtension(const_cast<Want &>(abilityRequest.want),
+    UriUtils::GetInstance().CheckUriPermissionForUIExtension(abilityRequest.want,
         abilityRequest.abilityInfo.extensionAbilityType);
     eventInfo.errCode = connectManager->StartAbility(abilityRequest);
     if (eventInfo.errCode != ERR_OK) {
@@ -7685,7 +7685,7 @@ void AbilityManagerService::StartSwitchUserDialogInner(const Want &want, int32_t
         }
     }
 
-    UriUtils::GetInstance().CheckUriPermissionForServiceExtension(const_cast<Want &>(abilityRequest.want),
+    UriUtils::GetInstance().CheckUriPermissionForServiceExtension(abilityRequest.want,
         abilityRequest.abilityInfo.extensionAbilityType);
     eventInfo.errCode = connectManager->StartAbility(abilityRequest);
     if (eventInfo.errCode != ERR_OK) {
