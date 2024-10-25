@@ -19,7 +19,7 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 module_output_path = "ability_runtime/appmgr"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("AppForegroundStateObserverProxyTest") {
+ohos_fuzztest("AppForegroundStateObserverProxyFuzzTest") {
   module_out_path = module_output_path
 
   fuzz_config_file = "${ability_runtime_test_path}/fuzztest/appforegroundstateobserverproxy_fuzzer"
@@ -69,7 +69,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":AppForegroundStateObserverProxyTest",
+    ":AppForegroundStateObserverProxyFuzzTest",
   ]
 }
 ###############################################################################

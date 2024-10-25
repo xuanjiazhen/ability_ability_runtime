@@ -41,6 +41,7 @@ constexpr uint8_t ENABLE = 2;
 constexpr size_t OFFSET_ZERO = 24;
 constexpr size_t OFFSET_ONE = 16;
 constexpr size_t OFFSET_TWO = 8;
+static std::shared_ptr<AppForegroundStateObserverProxy> appForegroundStateObserverProxy = nullptr;
 }
 
 const std::u16string APPMGR_INTERFACE_TOKEN = u"ohos.aafwk.AppManager";
@@ -51,10 +52,27 @@ uint32_t GetU32Data(const char* ptr)
         ptr[INPUT_THREE];
 }
 
-bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+void SetAppForegroundStateObserverProxy()
 {
     sptr<IRemoteObject> impl;
-    auto appForegroundStateObserverProxy = std::make_shared<AppForegroundStateObserverProxy>(impl);
+    appForegroundStateObserverProxy = std::make_shared<AppForegroundStateObserverProxy>(impl);
+}
+
+bool Init()
+{
+    static std::once_flag flag;
+    std::call_once(flag, SetAppForegroundStateObserverProxy);
+    if (appForegroundStateObserverProxy == nullptr) {
+        return false;
+    }
+    return true;
+}
+
+bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+{
+    if (!Init()) {
+        return false;
+    }
     AppStateData appStateData;
     appForegroundStateObserverProxy->OnAppStateChanged(appStateData);
     MessageParcel dataParcel;
