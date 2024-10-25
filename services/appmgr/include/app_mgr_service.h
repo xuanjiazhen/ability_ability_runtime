@@ -912,6 +912,11 @@ private:
     virtual int32_t GetSupportedProcessCachePids(const std::string &bundleName,
         std::vector<int32_t> &pidList) override;
 
+    /**
+      * called by process cached
+      */
+    virtual void ProcessCached() override;
+
     enum DumpIpcKey {
         KEY_DUMP_IPC_START = 0,
         KEY_DUMP_IPC_STOP,

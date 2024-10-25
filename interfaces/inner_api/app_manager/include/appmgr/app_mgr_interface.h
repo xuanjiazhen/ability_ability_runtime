@@ -856,6 +856,11 @@ public:
     virtual int32_t GetSupportedProcessCachePids(const std::string &bundleName, std::vector<int32_t> &pidList) = 0;
 
     /**
+      * called by process cached
+      */
+    virtual void ProcessCached() {};
+
+    /**
      * Get appIndex of pid.
      * @param pid The pid.
      * @param appIndex appIndex of pid.

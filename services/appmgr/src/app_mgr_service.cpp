@@ -1647,6 +1647,19 @@ int32_t AppMgrService::GetSupportedProcessCachePids(const std::string &bundleNam
     return appMgrServiceInner_->GetSupportedProcessCachePids(bundleName, pidList);
 }
 
+void AppMgrService::ProcessCached()
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "Called");
+    if (!appMgrServiceInner_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
+        return;
+    }
+    if (!DelayedSingleton<CacheProcessManager>::GetInstance()->QueryEnableProcessCache()) {
+        return;
+    }
+    appMgrServiceInner_->ProcessCached();
+}
+
 int32_t AppMgrService::RegisterKiaInterceptor(const sptr<IKiaInterceptor> &interceptor)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "Called");

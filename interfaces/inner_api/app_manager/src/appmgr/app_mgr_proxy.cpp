@@ -2025,6 +2025,24 @@ int32_t AppMgrProxy::GetSupportedProcessCachePids(const std::string &bundleName,
     return reply.ReadInt32();
 }
 
+void AppMgrProxy::ProcessCached()
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "Called.");
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return;
+    }
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    auto ret = SendRequest(AppMgrInterfaceCode::PROCESS_CACHED, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Send request failed with error code %{public}d.", ret);
+        return;
+    }
+    return;
+}
+
 int32_t AppMgrProxy::RegisterKiaInterceptor(const sptr<IKiaInterceptor> &interceptor)
 {
     if (interceptor == nullptr) {
