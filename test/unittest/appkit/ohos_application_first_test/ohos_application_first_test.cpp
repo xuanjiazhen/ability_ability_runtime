@@ -174,7 +174,7 @@ HWTEST_F(OHOSApplicationFirstTest, IsUpdateColorNeeded_0200, TestSize.Level0)
     config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE, colorMode);
     std::string colorMode1 = config.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE);
     EXPECT_FALSE(colorMode1.empty());
-    AbilityRuntime::SetLevel level = AbilityRuntime::SetLevel::SetLevelCount;
+    AbilityRuntime::SetLevel level = AbilityRuntime::SetLevel::Application;
     bool result = ohosApplication_->IsUpdateColorNeeded(config, level);
     EXPECT_TRUE(result);
     TAG_LOGI(AAFwkTag::TEST, "IsUpdateColorNeeded_0200 end");
