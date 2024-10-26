@@ -1452,9 +1452,6 @@ private:
     int32_t StartPerfProcess(const std::shared_ptr<AppRunningRecord> &appRecord, const std::string& perfCmd,
         const std::string& debugCmd, bool isSandboxApp);
 
-    void StartProcessVerifyPermission(const BundleInfo &bundleInfo, bool &hasAccessBundleDirReq,
-        uint8_t &setAllowInternet, uint8_t &allowInternet, std::vector<int32_t> &gids);
-
     void AddMountPermission(uint32_t accessTokenId, std::set<std::string> &permissions);
 
     /**
@@ -1619,9 +1616,6 @@ private:
 
     void KillAttachedChildProcess(const std::shared_ptr<AppRunningRecord> &appRecord);
 
-    void PresetMaxChildProcess(std::shared_ptr<AppRunningRecord> appRecord,
-        int32_t &maxChildProcess);
-
     void AfterLoadAbility(std::shared_ptr<AppRunningRecord> appRecord, std::shared_ptr<AbilityInfo> abilityInfo,
         std::shared_ptr<AbilityRuntime::LoadParam> loadParam);
 
@@ -1679,9 +1673,6 @@ private:
      * @param appRecord the main process
      */
     void KillRenderProcess(const std::shared_ptr<AppRunningRecord> &appRecord);
-
-    void SetOverlayInfo(const std::string& bundleName, const int32_t userId, AppSpawnStartMsg& startMsg);
-    void SetAppEnvInfo(const BundleInfo &bundleInfo, AppSpawnStartMsg& startMsg);
 
     void TimeoutNotifyApp(int32_t pid, int32_t uid, const std::string& bundleName, const FaultData &faultData);
 
@@ -1741,7 +1732,7 @@ private:
     int32_t CreatNewStartMsg(const Want &want, const AbilityInfo &abilityInfo,
         const std::shared_ptr<ApplicationInfo> &appInfo, const std::string &processName,
         AppSpawnStartMsg &startMsg);
-
+    
     /**
      * Build message body for app spawn
      */
@@ -1750,16 +1741,8 @@ private:
         std::shared_ptr<AAFwk::Want> want, const std::string &moduleName = "", const std::string &abilityName = "",
         bool strictMode = false);
 
-    void QueryExtensionSandBox(const std::string &moduleName, const std::string &abilityName,
-        const BundleInfo &bundleInfo, AppSpawnStartMsg &startMsg, DataGroupInfoList& dataGroupInfoList,
-        bool strictMode, std::shared_ptr<AAFwk::Want> want);
-
     int32_t StartPerfProcessByStartMsg(AppSpawnStartMsg &startMsg, const std::string& perfCmd,
         const std::string& debugCmd, bool isSandboxApp);
-
-    void SetAtomicServiceInfo(BundleType bundleType, AppSpawnStartMsg &startMsg);
-
-    void SetAppInfo(const BundleInfo &bundleInfo, AppSpawnStartMsg &startMsg);
 
     /**
      * Query ability for one want param

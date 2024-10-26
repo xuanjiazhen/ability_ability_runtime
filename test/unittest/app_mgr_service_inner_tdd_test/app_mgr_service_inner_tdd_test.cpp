@@ -22,6 +22,7 @@
 #include "remote_client_manager.h"
 #undef private
 #include "app_scheduler.h"
+#include "app_spawn_start_msg_util.cpp"
 #include "app_mgr_event.h"
 #include "event_handler.h"
 #include "hilog_tag_wrapper.h"
@@ -1033,7 +1034,7 @@ HWTEST_F(AppMgrServiceInnerTest, QueryExtensionSandBox_001, TestSize.Level0)
     dataGroupInfo.dataGroupId = "test1";
     dataGroupInfoList.emplace_back(dataGroupInfo);
     bool strictMode = false;
-    appMgrServiceInner->QueryExtensionSandBox(moduleName, extensionName, bundleInfo, startMsg, dataGroupInfoList,
+    QueryExtensionSandBox(moduleName, extensionName, bundleInfo, startMsg, dataGroupInfoList,
         strictMode, nullptr);
     EXPECT_EQ(startMsg.dataGroupInfoList.size(), 1);
     TAG_LOGI(AAFwkTag::TEST, "QueryExtensionSandBox_001 end");
@@ -1070,7 +1071,7 @@ HWTEST_F(AppMgrServiceInnerTest, QueryExtensionSandBox_002, TestSize.Level0)
     dataGroupInfo.dataGroupId = "test3";
     dataGroupInfoList.emplace_back(dataGroupInfo);
     bool strictMode = true;
-    appMgrServiceInner->QueryExtensionSandBox(moduleName, extensionName, bundleInfo, startMsg, dataGroupInfoList,
+    QueryExtensionSandBox(moduleName, extensionName, bundleInfo, startMsg, dataGroupInfoList,
         strictMode, nullptr);
     EXPECT_EQ(startMsg.dataGroupInfoList.size(), 0);
     TAG_LOGI(AAFwkTag::TEST, "QueryExtensionSandBox_002 end");
@@ -1101,7 +1102,7 @@ HWTEST_F(AppMgrServiceInnerTest, QueryExtensionSandBox_003, TestSize.Level0)
     AppSpawnStartMsg startMsg;
     DataGroupInfoList dataGroupInfoList;
     bool strictMode = false;
-    appMgrServiceInner->QueryExtensionSandBox(moduleName, extensionName, bundleInfo, startMsg, dataGroupInfoList,
+    QueryExtensionSandBox(moduleName, extensionName, bundleInfo, startMsg, dataGroupInfoList,
         strictMode, nullptr);
     EXPECT_EQ(startMsg.dataGroupInfoList.size(), 0);
     TAG_LOGI(AAFwkTag::TEST, "QueryExtensionSandBox_003 end");
@@ -1132,7 +1133,7 @@ HWTEST_F(AppMgrServiceInnerTest, QueryExtensionSandBox_004, TestSize.Level0)
     AppSpawnStartMsg startMsg;
     DataGroupInfoList dataGroupInfoList;
     bool strictMode = false;
-    appMgrServiceInner->QueryExtensionSandBox(moduleName, extensionName, bundleInfo, startMsg, dataGroupInfoList,
+    QueryExtensionSandBox(moduleName, extensionName, bundleInfo, startMsg, dataGroupInfoList,
         strictMode, nullptr);
     EXPECT_EQ(startMsg.dataGroupInfoList.size(), 0);
     TAG_LOGI(AAFwkTag::TEST, "QueryExtensionSandBox_004 end");
@@ -1154,7 +1155,7 @@ HWTEST_F(AppMgrServiceInnerTest, SetAppEnvInfo_001, TestSize.Level1)
     BundleInfo info;
     info.applicationInfo.hwasanEnabled = true;
     AppSpawnStartMsg startMsg;
-    appMgrServiceInner->SetAppEnvInfo(info, startMsg);
+    SetAppEnvInfo(info, startMsg);
     std::string hwasanEnabled = "hwasanEnabled";
     EXPECT_EQ(startMsg.appEnv.find(hwasanEnabled)->second, "1");
     TAG_LOGI(AAFwkTag::TEST, "SetAppEnvInfo_001 end");
@@ -1176,7 +1177,7 @@ HWTEST_F(AppMgrServiceInnerTest, SetAppEnvInfo_002, TestSize.Level1)
     BundleInfo info;
     info.applicationInfo.hwasanEnabled = false;
     AppSpawnStartMsg startMsg;
-    appMgrServiceInner->SetAppEnvInfo(info, startMsg);
+    SetAppEnvInfo(info, startMsg);
     std::string hwasanEnabled = "hwasanEnabled";
     EXPECT_EQ(startMsg.appEnv.find(hwasanEnabled)->second, "0");
     TAG_LOGI(AAFwkTag::TEST, "SetAppEnvInfo_002 end");
@@ -1198,7 +1199,7 @@ HWTEST_F(AppMgrServiceInnerTest, SetAppEnvInfo_003, TestSize.Level1)
     BundleInfo info;
     info.applicationInfo.ubsanEnabled = false;
     AppSpawnStartMsg startMsg;
-    appMgrServiceInner->SetAppEnvInfo(info, startMsg);
+    SetAppEnvInfo(info, startMsg);
     std::string ubsanEnabled = "ubsanEnabled";
     EXPECT_EQ(startMsg.appEnv.find(ubsanEnabled)->second, "0");
     TAG_LOGI(AAFwkTag::TEST, "SetAppEnvInfo_003 end");
@@ -1220,7 +1221,7 @@ HWTEST_F(AppMgrServiceInnerTest, SetAppEnvInfo_004, TestSize.Level1)
     BundleInfo info;
     info.applicationInfo.ubsanEnabled = true;
     AppSpawnStartMsg startMsg;
-    appMgrServiceInner->SetAppEnvInfo(info, startMsg);
+    SetAppEnvInfo(info, startMsg);
     std::string ubsanEnabled = "ubsanEnabled";
     EXPECT_EQ(startMsg.appEnv.find(ubsanEnabled)->second, "1");
     TAG_LOGI(AAFwkTag::TEST, "SetAppEnvInfo_004 end");
