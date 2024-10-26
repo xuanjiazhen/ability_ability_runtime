@@ -25,7 +25,6 @@
 #include "ability_loader.h"
 #include "abs_shared_result_set.h"
 #include "application_impl.h"
-#include "context_deal.h"
 #include "data_ability_predicates.h"
 #include "dataobs_mgr_client.h"
 #ifdef WITH_DLP
@@ -91,7 +90,6 @@ FAAbilityThread::~FAAbilityThread()
         }
     } else {
         if (currentAbility_) {
-            currentAbility_->DetachBaseContext();
             currentAbility_.reset();
         }
     }
@@ -227,29 +225,21 @@ void FAAbilityThread::CreateExtensionAbilityNameSupportGraphics(
 #endif
 }
 
-std::shared_ptr<AppExecFwk::ContextDeal> FAAbilityThread::CreateAndInitContextDeal(
+void FAAbilityThread::CreateAndInitContextDeal(
     const std::shared_ptr<AppExecFwk::OHOSApplication> &application,
     const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &abilityRecord,
     const std::shared_ptr<AppExecFwk::AbilityContext> &abilityObject)
 {
     TAG_LOGD(AAFwkTag::FA, "begin");
-    std::shared_ptr<AppExecFwk::ContextDeal> contextDeal = nullptr;
     if ((application == nullptr) || (abilityRecord == nullptr) || (abilityObject == nullptr)) {
         TAG_LOGE(AAFwkTag::FA, "application or abilityRecord or abilityObject is nullptr");
-        return contextDeal;
+        return;
     }
 
-    contextDeal = std::make_shared<AppExecFwk::ContextDeal>();
-    contextDeal->SetAbilityInfo(abilityRecord->GetAbilityInfo());
-    contextDeal->SetApplicationInfo(application->GetApplicationInfo());
+    abilityObject->SetAbilityInfo(abilityRecord->GetAbilityInfo());
     abilityObject->SetProcessInfo(application->GetProcessInfo());
 
-    std::shared_ptr<AppExecFwk::Context> tmpContext = application->GetApplicationContext();
-    contextDeal->SetApplicationContext(tmpContext);
-
-    contextDeal->SetBundleCodePath(abilityRecord->GetAbilityInfo()->codePath);
-    contextDeal->SetContext(abilityObject);
-    return contextDeal;
+    abilityObject->SetApplicationContext(application);
 }
 
 void FAAbilityThread::Attach(const std::shared_ptr<AppExecFwk::OHOSApplication> &application,
@@ -291,9 +281,8 @@ void FAAbilityThread::Attach(const std::shared_ptr<AppExecFwk::OHOSApplication> 
     token_ = abilityRecord->GetToken();
     abilityRecord->SetAbilityThread(this);
     std::shared_ptr<AppExecFwk::AbilityContext> abilityObject = currentAbility_;
-    std::shared_ptr<AppExecFwk::ContextDeal> contextDeal =
-        CreateAndInitContextDeal(application, abilityRecord, abilityObject);
-    ability->AttachBaseContext(contextDeal);
+    CreateAndInitContextDeal(application, abilityRecord, abilityObject);
+    ability->SetApplicationInfo(application->GetApplicationInfo());
     // new hap requires
     ability->AttachAbilityContext(
         BuildAbilityContext(abilityRecord->GetAbilityInfo(), application, token_, stageContext));
@@ -460,10 +449,7 @@ void FAAbilityThread::Attach(const std::shared_ptr<AppExecFwk::OHOSApplication> 
     currentAbility_.reset(ability);
     token_ = abilityRecord->GetToken();
     abilityRecord->SetAbilityThread(this);
-    std::shared_ptr<AppExecFwk::AbilityContext> abilityObject = currentAbility_;
-    std::shared_ptr<AppExecFwk::ContextDeal> contextDeal =
-        CreateAndInitContextDeal(application, abilityRecord, abilityObject);
-    ability->AttachBaseContext(contextDeal);
+    CreateAndInitContextDeal(application, abilityRecord, currentAbility_);
     // new hap requires
     ability->AttachAbilityContext(
         BuildAbilityContext(abilityRecord->GetAbilityInfo(), application, token_, stageContext));

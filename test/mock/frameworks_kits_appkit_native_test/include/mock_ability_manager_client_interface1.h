@@ -69,17 +69,6 @@ public:
     MockIBundleMgr() {};
     virtual ~MockIBundleMgr() {};
 };
-
-class MockAbilityContextDeal : public ContextDeal {
-public:
-    MockAbilityContextDeal() {};
-    virtual ~MockAbilityContextDeal() {};
-
-    sptr<IBundleMgr> GetBundleManager() const override
-    {
-        return sptr<IBundleMgr>(new (std::nothrow) MockIBundleMgr());
-    };
-};
 }  // namespace AppExecFwk
 }  // namespace OHOS
 

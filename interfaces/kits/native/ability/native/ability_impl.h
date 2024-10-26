@@ -488,7 +488,6 @@ protected:
 
 private:
     std::shared_ptr<ApplicationImpl> applicationImpl_;
-    std::shared_ptr<ContextDeal> contextDeal_;
     bool hasSaveData_ = false;
     bool needSaveDate_ = false;
     PacMap restoreData_;

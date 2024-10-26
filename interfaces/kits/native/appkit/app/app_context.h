@@ -16,22 +16,15 @@
 #ifndef OHOS_ABILITY_RUNTIME_APP_CONTEXT_H
 #define OHOS_ABILITY_RUNTIME_APP_CONTEXT_H
 
-#include "context_container.h"
+#include "fa_context.h"
 
 namespace OHOS {
 namespace AppExecFwk {
-class AppContext : public ContextContainer, public std::enable_shared_from_this<AppContext> {
+class AppContext : public Context, public std::enable_shared_from_this<AppContext> {
 public:
     AppContext();
+    explicit AppContext(bool isCreateBySystemApp);
     virtual ~AppContext();
-
-    /**
-     * @brief Obtains information about the current ability.
-     * The returned information includes the class name, bundle name, and other information about the current ability.
-     *
-     * @return Returns the AbilityInfo object for the current ability.
-     */
-    const std::shared_ptr<AbilityInfo> GetAbilityInfo() override;
 
     /**
      * @brief Starts a new ability.
@@ -101,33 +94,21 @@ public:
     ErrCode DisconnectAbility(const sptr<AAFwk::IAbilityConnection> &conn) override;
 
     /**
-     * @brief Destroys another ability that uses the AbilityInfo.AbilityType.SERVICE template.
-     * The current ability using either the AbilityInfo.AbilityType.SERVICE or AbilityInfo.AbilityType.PAGE
-     * template can call this method to destroy another ability that uses the AbilityInfo.AbilityType.SERVICE
-     * template. The current ability itself can be destroyed by calling the terminateAbility() method.
-     *
-     * @param want Indicates the Want containing information about the ability to destroy.
-     *
-     * @return Returns true if the ability is destroyed successfully; returns false otherwise.
-     */
-    bool StopAbility(const AAFwk::Want &want) override;
-
-    /**
      * @brief Starts multiple abilities.
      *
      * @param wants Indicates the Want containing information array about the target ability to start.
      */
     void StartAbilities(const std::vector<AAFwk::Want> &wants) override;
 
-    /**
-     * @brief Obtains the unique ID of the mission containing this ability.
-     *
-     * @return Returns the unique mission ID.
-     */
-    int GetMissionId() override;
-
+    std::shared_ptr<Context> GetApplicationContext() override
+    {
+        return shared_from_this();
+    }
 protected:
     sptr<IRemoteObject> GetToken() override;
+
+private:
+    bool isCreateBySystemApp_ = false;
     std::mutex mutex_;
 };
 }  // namespace AppExecFwk

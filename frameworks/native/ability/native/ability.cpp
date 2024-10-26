@@ -25,8 +25,6 @@
 #include "configuration_convertor.h"
 #include "connection_manager.h"
 #include "continuation_manager.h"
-#include "continuation_register_manager.h"
-#include "continuation_register_manager_proxy.h"
 #include "data_ability_operation.h"
 #include "data_ability_predicates.h"
 #include "data_ability_result.h"
@@ -145,11 +143,6 @@ void Ability::Init(const std::shared_ptr<AbilityInfo> &abilityInfo, const std::s
 void Ability::AttachAbilityContext(const std::shared_ptr<AbilityRuntime::AbilityContext> &abilityContext)
 {
     abilityContext_ = abilityContext;
-}
-
-std::shared_ptr<Global::Resource::ResourceManager> Ability::GetResourceManager() const
-{
-    return AbilityContext::GetResourceManager();
 }
 
 bool Ability::IsUpdatingConfigurations()

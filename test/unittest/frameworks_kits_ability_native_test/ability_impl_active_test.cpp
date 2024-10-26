@@ -18,7 +18,6 @@
 
 #include "ability.h"
 #include "ability_impl.h"
-#include "context_deal.h"
 #include "mock_ability_token.h"
 #include "ohos_application.h"
 #include "page_ability_impl.h"
@@ -129,11 +128,9 @@ HWTEST_F(AbilityImplActiveTest, AaFwk_AbilityImpl_Active_001, TestSize.Level1)
     std::shared_ptr<MockAbilityClass> mockAbility = std::make_shared<MockAbilityClass>();
     std::shared_ptr<Ability> ability = std::static_pointer_cast<Ability>(mockAbility);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(nullptr);
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
 
     abilityInfo->type = AbilityType::PAGE;
-    contextDeal->SetAbilityInfo(abilityInfo);
-    mockAbility->AttachBaseContext(contextDeal);
+    mockAbility->SetAbilityInfo(abilityInfo);
     abilityImpl->Init(application, record, ability, handler, token, contextDeal);
     abilityImpl->Inactive();
 
@@ -169,11 +166,9 @@ HWTEST_F(AbilityImplActiveTest, AaFwk_AbilityImpl_Active_002, TestSize.Level1)
     std::shared_ptr<MockAbilityClass> mockAbility = std::make_shared<MockAbilityClass>();
     std::shared_ptr<Ability> ability = std::static_pointer_cast<Ability>(mockAbility);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(nullptr);
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
 
     abilityInfo->type = AbilityType::SERVICE;
-    contextDeal->SetAbilityInfo(abilityInfo);
-    mockAbility->AttachBaseContext(contextDeal);
+    mockAbility->SetAbilityInfo(abilityInfo);
     abilityImpl->Init(application, record, ability, handler, token, contextDeal);
     abilityImpl->Inactive();
 
@@ -209,11 +204,9 @@ HWTEST_F(AbilityImplActiveTest, AaFwk_AbilityImpl_Active_003, TestSize.Level1)
     std::shared_ptr<MockAbilityClass> mockAbility = std::make_shared<MockAbilityClass>();
     std::shared_ptr<Ability> ability = std::static_pointer_cast<Ability>(mockAbility);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(nullptr);
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
 
     abilityInfo->type = AbilityType::PAGE;
-    contextDeal->SetAbilityInfo(abilityInfo);
-    mockAbility->AttachBaseContext(contextDeal);
+    mockAbility->SetAbilityInfo(abilityInfo);
     abilityImpl->Init(application, record, ability, handler, token, contextDeal);
 
     GTEST_LOG_(INFO) << "AaFwk_AbilityImpl_Active_003 test proc";
@@ -248,11 +241,9 @@ HWTEST_F(AbilityImplActiveTest, AaFwk_AbilityImpl_InActive_001, TestSize.Level1)
     std::shared_ptr<MockAbilityClass> mockAbility = std::make_shared<MockAbilityClass>();
     std::shared_ptr<Ability> ability = std::static_pointer_cast<Ability>(mockAbility);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(nullptr);
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
 
     abilityInfo->type = AbilityType::PAGE;
-    contextDeal->SetAbilityInfo(abilityInfo);
-    mockAbility->AttachBaseContext(contextDeal);
+    mockAbility->SetAbilityInfo(abilityInfo);
     abilityImpl->Init(application, record, ability, handler, token, contextDeal);
     abilityImpl->Active();
 
@@ -288,11 +279,9 @@ HWTEST_F(AbilityImplActiveTest, AaFwk_AbilityImpl_InActive_002, TestSize.Level1)
     std::shared_ptr<MockAbilityClass> mockAbility = std::make_shared<MockAbilityClass>();
     std::shared_ptr<Ability> ability = std::static_pointer_cast<Ability>(mockAbility);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(nullptr);
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
 
     abilityInfo->type = AbilityType::DATA;
-    contextDeal->SetAbilityInfo(abilityInfo);
-    mockAbility->AttachBaseContext(contextDeal);
+    mockAbility->SetAbilityInfo(abilityInfo);
     abilityImpl->Init(application, record, ability, handler, token, contextDeal);
     abilityImpl->Active();
 
@@ -328,11 +317,9 @@ HWTEST_F(AbilityImplActiveTest, AaFwk_AbilityImpl_InActive_003, TestSize.Level1)
     std::shared_ptr<MockAbilityClass> mockAbility = std::make_shared<MockAbilityClass>();
     std::shared_ptr<Ability> ability = std::static_pointer_cast<Ability>(mockAbility);
     std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(nullptr);
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
 
     abilityInfo->type = AbilityType::PAGE;
-    contextDeal->SetAbilityInfo(abilityInfo);
-    mockAbility->AttachBaseContext(contextDeal);
+    mockAbility->SetAbilityInfo(abilityInfo);
     abilityImpl->Init(application, record, ability, handler, token, contextDeal);
 
     GTEST_LOG_(INFO) << "AaFwk_AbilityImpl_InActive_003 test proc";

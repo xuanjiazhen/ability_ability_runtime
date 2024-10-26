@@ -421,10 +421,9 @@ HWTEST_F(MainThreadTest, GetMainHandler_0100, TestSize.Level1)
 HWTEST_F(MainThreadTest, InitCreate_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    std::shared_ptr<ContextDeal> contextDeal;
     ApplicationInfo appInfo;
     ProcessInfo processInfo;
-    auto result = mainThread_->InitCreate(contextDeal, appInfo, processInfo);
+    auto result = mainThread_->InitCreate(appInfo, processInfo);
     EXPECT_TRUE(result);
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
@@ -770,10 +769,9 @@ HWTEST_F(MainThreadTest, HandleProcessSecurityExit_0100, TestSize.Level1)
     mainThread_->abilityRecordMgr_ = nullptr;
     mainThread_->HandleProcessSecurityExit();
 
-    std::shared_ptr<ContextDeal> contextDeal;
     ApplicationInfo appInfo;
     ProcessInfo processInfo;
-    mainThread_->InitCreate(contextDeal, appInfo, processInfo);
+    mainThread_->InitCreate(appInfo, processInfo);
     mainThread_->HandleProcessSecurityExit();
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
@@ -1916,11 +1914,9 @@ HWTEST_F(MainThreadTest, HandleLaunchAbility_0200, TestSize.Level1)
     AbilityRuntime::Runtime::Options options;
     auto runtime = AbilityRuntime::Runtime::Create(options);
     mainThread_->application_->SetRuntime(std::move(runtime));
-    auto contextDeal = std::make_shared<ContextDeal>();
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->debug = true;
-    contextDeal->SetApplicationInfo(appInfo);
-    mainThread_->application_->AttachBaseContext(contextDeal);
+    mainThread_->application_->SetApplicationInfo(appInfo);
     mainThread_->HandleLaunchAbility(abilityRecord3);
 }
 

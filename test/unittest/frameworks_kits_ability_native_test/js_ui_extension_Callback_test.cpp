@@ -18,7 +18,6 @@
 
 #include "ability_handler.h"
 #include "app_module_checker.h"
-#include "context_deal.h"
 #include "js_environment.h"
 #include "js_runtime.h"
 #include "js_ui_extension_callback.h"

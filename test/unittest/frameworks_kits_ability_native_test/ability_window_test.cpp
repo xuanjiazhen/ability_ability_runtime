@@ -19,7 +19,6 @@
 #include "ability_context_impl.h"
 #include "ability_impl.h"
 #include "ability_window.h"
-#include "context_deal.h"
 #include "ohos_application.h"
 #include "page_ability_impl.h"
 #include "mock_window.h"

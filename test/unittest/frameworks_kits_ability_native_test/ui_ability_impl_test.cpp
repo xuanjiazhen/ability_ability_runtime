@@ -21,7 +21,6 @@
 #undef protected
 #undef private
 #include "ability_handler.h"
-#include "context_deal.h"
 #include "locale_config.h"
 #include "mock_ability_impl.h"
 #include "mock_ability_token.h"
@@ -87,16 +86,13 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_ScheduleUpdateConfiguration_001, Test
         EXPECT_NE(pMocKUIAbility, nullptr);
         std::shared_ptr<UIAbility> uiability = pMocKUIAbility;
         if (pMocKUIAbility != nullptr) {
-            std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
             std::shared_ptr<Global::Resource::ResourceManager> resourceManager(
                 Global::Resource::CreateResourceManager());
             if (resourceManager == nullptr) {
                 GTEST_LOG_(INFO) << "AbilityRuntime_ScheduleUpdateConfiguration_001 resourceManager is nullptr";
             }
-            contextDeal->initResourceManager(resourceManager);
-            contextDeal->SetApplicationContext(application);
-            pMocKUIAbility->AttachBaseContext(contextDeal);
-            application->AttachBaseContext(contextDeal);
+            application->initResourceManager(resourceManager);
+            application->SetApplicationContext(application);
             mockUIAbilityimpl->Init(application, record, uiability, handler, token);
 
             Configuration config;
@@ -135,16 +131,13 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_ScheduleUpdateConfiguration_002, Test
         EXPECT_NE(pMocKUIAbility, nullptr);
         std::shared_ptr<UIAbility> uiability = pMocKUIAbility;
         if (pMocKUIAbility != nullptr) {
-            std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
             std::shared_ptr<Global::Resource::ResourceManager> resourceManager(
                 Global::Resource::CreateResourceManager());
             if (resourceManager == nullptr) {
                 GTEST_LOG_(INFO) << "AbilityRuntime_ScheduleUpdateConfiguration_002 resourceManager is nullptr";
             }
-            contextDeal->initResourceManager(resourceManager);
-            contextDeal->SetApplicationContext(application);
-            pMocKUIAbility->AttachBaseContext(contextDeal);
-            application->AttachBaseContext(contextDeal);
+            application->initResourceManager(resourceManager);
+            application->SetApplicationContext(application);
             mockUIAbilityimpl->Init(application, record, uiability, handler, token);
 
             auto testNotify1 = pMocKUIAbility->OnConfigurationUpdated_;
@@ -191,7 +184,6 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_ScheduleUpdateConfiguration_003, Test
         EXPECT_NE(pMocKUIAbility, nullptr);
         std::shared_ptr<UIAbility> uiability = pMocKUIAbility;
         if (pMocKUIAbility != nullptr) {
-            std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
             contextDeal->SetApplicationInfo(applicationInfo);
             contextDeal->SetAbilityInfo(abilityInfo);
             std::shared_ptr<Global::Resource::ResourceManager> resourceManager(
@@ -199,10 +191,8 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_ScheduleUpdateConfiguration_003, Test
             if (resourceManager == nullptr) {
                 GTEST_LOG_(INFO) << "AbilityRuntime_ScheduleUpdateConfiguration_003 resourceManager is nullptr";
             }
-            contextDeal->initResourceManager(resourceManager);
-            contextDeal->SetApplicationContext(application);
-            pMocKUIAbility->AttachBaseContext(contextDeal);
-            application->AttachBaseContext(contextDeal);
+            application->initResourceManager(resourceManager);
+            application->SetApplicationContext(application);
             mockUIAbilityimpl->Init(application, record, uiability, handler, token);
 
             Configuration config;
@@ -282,9 +272,7 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_Start_001, TestSize.Level1)
         EXPECT_NE(pMocKUIAbility, nullptr);
         if (pMocKUIAbility != nullptr) {
             uiability.reset(pMocKUIAbility);
-            std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
-            contextDeal->SetAbilityInfo(abilityInfo);
-            uiability->AttachBaseContext(contextDeal);
+            uiability->SetAbilityInfo(abilityInfo);
             mockUIAbilityimpl->Init(application, record, uiability, handler, token);
             Want want;
             mockUIAbilityimpl->ImplStart(want);
@@ -321,9 +309,7 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_Stop_001, TestSize.Level1)
         EXPECT_NE(pMocKUIAbility, nullptr);
         if (pMocKUIAbility != nullptr) {
             uiability.reset(pMocKUIAbility);
-            std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
-            contextDeal->SetAbilityInfo(abilityInfo);
-            uiability->AttachBaseContext(contextDeal);
+            uiability->SetAbilityInfo(abilityInfo);
             mockUIAbilityimpl->Init(application, record, uiability, handler, token);
             mockUIAbilityimpl->ImplStop();
             EXPECT_EQ(MockUIAbility::Event::ON_STOP, pMocKUIAbility->state_);
@@ -361,12 +347,10 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_New_Foreground_001, TestSize.Level1)
         EXPECT_NE(pMocKUIAbility, nullptr);
         if (pMocKUIAbility != nullptr) {
             uiability.reset(pMocKUIAbility);
-            std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
+
             std::shared_ptr<ApplicationInfo> applicationInfo = std::make_shared<ApplicationInfo>();
-            contextDeal->SetApplicationInfo(applicationInfo);
-            contextDeal->SetAbilityInfo(abilityInfo);
-            pMocKUIAbility->AttachBaseContext(contextDeal);
-            application->AttachBaseContext(contextDeal);
+            application->SetApplicationInfo(applicationInfo);
+            pMocKUIAbility->SetAbilityInfo(abilityInfo);
             mockAbilityimpl->Init(application, record, uiability, handler, token);
             Want want;
             mockAbilityimpl->ImplForeground(want);
@@ -405,12 +389,9 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_New_Foreground_002, TestSize.Level1)
         EXPECT_NE(pMocKUIAbility, nullptr);
         if (pMocKUIAbility != nullptr) {
             uiability.reset(pMocKUIAbility);
-            std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
             std::shared_ptr<ApplicationInfo> applicationInfo = std::make_shared<ApplicationInfo>();
-            contextDeal->SetApplicationInfo(applicationInfo);
-            contextDeal->SetAbilityInfo(abilityInfo);
-            pMocKUIAbility->AttachBaseContext(contextDeal);
-            application->AttachBaseContext(contextDeal);
+            application->SetApplicationInfo(applicationInfo);
+            pMocKUIAbility->SetAbilityInfo(abilityInfo);
             mockAbilityimpl->Init(application, record, uiability, handler, token);
             Want want;
             mockAbilityimpl->ImplForeground(want);
@@ -447,12 +428,9 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_New_Background_001, TestSize.Level1)
         EXPECT_NE(pMocKUIAbility, nullptr);
         if (pMocKUIAbility != nullptr) {
             uiability.reset(pMocKUIAbility);
-            std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
             std::shared_ptr<ApplicationInfo> applicationInfo = std::make_shared<ApplicationInfo>();
-            contextDeal->SetApplicationInfo(applicationInfo);
-            contextDeal->SetAbilityInfo(abilityInfo);
-            pMocKUIAbility->AttachBaseContext(contextDeal);
-            application->AttachBaseContext(contextDeal);
+            application->SetApplicationInfo(applicationInfo);
+            pMocKUIAbility->SetAbilityInfo(abilityInfo);
             mockUIAbilityimpl->Init(application, record, uiability, handler, token);
             mockUIAbilityimpl->ImplBackground();
             EXPECT_EQ(MockUIAbility::Event::ON_BACKGROUND, pMocKUIAbility->state_);
@@ -490,12 +468,9 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_New_Background_002, TestSize.Level1)
         EXPECT_NE(pMocKUIAbility, nullptr);
         if (pMocKUIAbility != nullptr) {
             uiability.reset(pMocKUIAbility);
-            std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
             std::shared_ptr<ApplicationInfo> applicationInfo = std::make_shared<ApplicationInfo>();
-            contextDeal->SetApplicationInfo(applicationInfo);
-            contextDeal->SetAbilityInfo(abilityInfo);
-            pMocKUIAbility->AttachBaseContext(contextDeal);
-            application->AttachBaseContext(contextDeal);
+            application->SetApplicationInfo(applicationInfo);
+            pMocKUIAbility->SetAbilityInfo(abilityInfo);
             mockUIAbilityimpl->Init(application, record, uiability, handler, token);
             mockUIAbilityimpl->ImplBackground();
             mockUIAbilityimpl->ImplBackground();
@@ -535,12 +510,9 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_New_Foreground_Background_001, TestSi
         EXPECT_NE(pMocKUIAbility, nullptr);
         if (pMocKUIAbility != nullptr) {
             uiability.reset(pMocKUIAbility);
-            std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
             std::shared_ptr<ApplicationInfo> applicationInfo = std::make_shared<ApplicationInfo>();
-            contextDeal->SetApplicationInfo(applicationInfo);
-            contextDeal->SetAbilityInfo(abilityInfo);
-            pMocKUIAbility->AttachBaseContext(contextDeal);
-            application->AttachBaseContext(contextDeal);
+            application->SetApplicationInfo(applicationInfo);
+            pMocKUIAbility->SetAbilityInfo(abilityInfo);
             mockUIAbilityimpl->Init(application, record, uiability, handler, token);
             Want want;
             mockUIAbilityimpl->ImplForeground(want);
@@ -580,12 +552,9 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_New_Foreground_Background_002, TestSi
         EXPECT_NE(pMocKUIAbility, nullptr);
         if (pMocKUIAbility != nullptr) {
             uiability.reset(pMocKUIAbility);
-            std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
             std::shared_ptr<ApplicationInfo> applicationInfo = std::make_shared<ApplicationInfo>();
-            contextDeal->SetApplicationInfo(applicationInfo);
-            contextDeal->SetAbilityInfo(abilityInfo);
-            pMocKUIAbility->AttachBaseContext(contextDeal);
-            application->AttachBaseContext(contextDeal);
+            application->SetApplicationInfo(applicationInfo);
+            pMocKUIAbility->SetAbilityInfo(abilityInfo);
             mockAbilityimpl->Init(application, record, uiability, handler, token);
             Want want;
             mockAbilityimpl->ImplForeground(want);
@@ -626,12 +595,9 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_New_Foreground_Background_003, TestSi
         EXPECT_NE(pMocKUIAbility, nullptr);
         if (pMocKUIAbility != nullptr) {
             uiability.reset(pMocKUIAbility);
-            std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
             std::shared_ptr<ApplicationInfo> applicationInfo = std::make_shared<ApplicationInfo>();
-            contextDeal->SetApplicationInfo(applicationInfo);
-            contextDeal->SetAbilityInfo(abilityInfo);
-            pMocKUIAbility->AttachBaseContext(contextDeal);
-            application->AttachBaseContext(contextDeal);
+            application->SetApplicationInfo(applicationInfo);
+            pMocKUIAbility->SetAbilityInfo(abilityInfo);
             mockAbilityimpl->Init(application, record, uiability, handler, token);
             Want want;
             mockAbilityimpl->ImplBackground();
@@ -671,12 +637,9 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_New_Foreground_Background_004, TestSi
         EXPECT_NE(pMocKUIAbility, nullptr);
         if (pMocKUIAbility != nullptr) {
             uiability.reset(pMocKUIAbility);
-            std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
             std::shared_ptr<ApplicationInfo> applicationInfo = std::make_shared<ApplicationInfo>();
-            contextDeal->SetApplicationInfo(applicationInfo);
-            contextDeal->SetAbilityInfo(abilityInfo);
-            pMocKUIAbility->AttachBaseContext(contextDeal);
-            application->AttachBaseContext(contextDeal);
+            application->SetApplicationInfo(applicationInfo);
+            pMocKUIAbility->SetAbilityInfo(abilityInfo);
             mockUIAbilityimpl->Init(application, record, uiability, handler, token);
             Want want;
             mockUIAbilityimpl->ImplBackground();
@@ -1010,9 +973,7 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_Start_0300, TestSize.Level1)
         EXPECT_NE(pMocKUIAbility, nullptr);
         if (pMocKUIAbility != nullptr) {
             uiability.reset(pMocKUIAbility);
-            std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
-            contextDeal->SetAbilityInfo(abilityInfo);
-            uiability->AttachBaseContext(contextDeal);
+            uiability->SetAbilityInfo(abilityInfo);
             mockUIAbilityimpl->Init(application, record, uiability, handler, token);
             Want want;
             mockUIAbilityimpl->ImplStart(want);
@@ -1065,9 +1026,7 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_Start_0600, TestSize.Level1)
     std::shared_ptr<MockUIAbility> pMocKUIAbility = std::make_shared<MockUIAbility>();
     std::shared_ptr<UIAbility> uiability = pMocKUIAbility;
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
-    contextDeal->SetAbilityInfo(abilityInfo);
-    uiability->AttachBaseContext(contextDeal);
+    uiability->SetAbilityInfo(abilityInfo);
     abilityImpl_->ability_ = uiability;
     Want want;
     abilityImpl_->Start(want);
@@ -1119,9 +1078,7 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_Stop_0400, TestSize.Level1)
     std::shared_ptr<MockUIAbility> pMocKUIAbility = std::make_shared<MockUIAbility>();
     std::shared_ptr<UIAbility> uiability = pMocKUIAbility;
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
-    contextDeal->SetAbilityInfo(abilityInfo);
-    uiability->AttachBaseContext(contextDeal);
+    uiability->SetAbilityInfo(abilityInfo);
     abilityImpl_->ability_ = uiability;
     abilityImpl_->Stop();
     EXPECT_NE(abilityImpl_->lifecycleState_, AAFwk::ABILITY_STATE_ACTIVE);
@@ -1176,9 +1133,7 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_Stop_0700, TestSize.Level1)
     std::shared_ptr<MockUIAbility> pMocKUIAbility = std::make_shared<MockUIAbility>();
     std::shared_ptr<UIAbility> uiability = pMocKUIAbility;
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
-    contextDeal->SetAbilityInfo(abilityInfo);
-    uiability->AttachBaseContext(contextDeal);
+    uiability->SetAbilityInfo(abilityInfo);
     abilityImpl_->ability_ = uiability;
     bool isAsyncCallback = true;
     abilityImpl_->Stop(isAsyncCallback);
@@ -1209,9 +1164,7 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_Stop_0800, TestSize.Level1)
         EXPECT_NE(pMocKUIAbility, nullptr);
         if (pMocKUIAbility != nullptr) {
             uiability.reset(pMocKUIAbility);
-            std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
-            contextDeal->SetAbilityInfo(abilityInfo);
-            uiability->AttachBaseContext(contextDeal);
+            uiability->SetAbilityInfo(abilityInfo);
             abilityImpl_->Init(application, record, uiability, handler, token);
             abilityImpl_->lifecycleState_ = AAFwk::ABILITY_STATE_ACTIVE;
             bool isAsyncCallback = false;
@@ -1267,9 +1220,7 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_StopCallback_0400, TestSize.Level1)
     std::shared_ptr<MockUIAbility> pMocKUIAbility = std::make_shared<MockUIAbility>();
     std::shared_ptr<UIAbility> uiability = pMocKUIAbility;
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
-    contextDeal->SetAbilityInfo(abilityInfo);
-    uiability->AttachBaseContext(contextDeal);
+    uiability->SetAbilityInfo(abilityInfo);
     abilityImpl_->ability_ = uiability;
     abilityImpl_->StopCallback();
     EXPECT_NE(abilityImpl_->lifecycleState_, AAFwk::ABILITY_STATE_ACTIVE);
@@ -1375,9 +1326,7 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_SetLifeCycleStateInfo_0100, TestSize.
     std::shared_ptr<MockUIAbility> pMocKUIAbility = std::make_shared<MockUIAbility>();
     std::shared_ptr<UIAbility> uiability = pMocKUIAbility;
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
-    contextDeal->SetAbilityInfo(abilityInfo);
-    uiability->AttachBaseContext(contextDeal);
+    uiability->SetAbilityInfo(abilityInfo);
     abilityImpl_->ability_ = uiability;
     AAFwk::LifeCycleStateInfo info;
     info.isNewWant = true;
@@ -1460,9 +1409,7 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_SetCallingContext_0100, TestSize.Leve
     std::shared_ptr<MockUIAbility> pMocKUIAbility = std::make_shared<MockUIAbility>();
     std::shared_ptr<UIAbility> uiability = pMocKUIAbility;
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
-    contextDeal->SetAbilityInfo(abilityInfo);
-    uiability->AttachBaseContext(contextDeal);
+    uiability->SetAbilityInfo(abilityInfo);
     abilityImpl_->ability_ = uiability;
     std::string deviceId = "deviceId";
     std::string bundleName = "bundleName";
@@ -1519,10 +1466,7 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_ContinueAbility_0200, TestSize.Level1
     std::shared_ptr<MockUIAbility> pMocKUIAbility = std::make_shared<MockUIAbility>();
     std::shared_ptr<UIAbility> uiability = pMocKUIAbility;
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
-    ASSERT_NE(contextDeal, nullptr);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    uiability->AttachBaseContext(contextDeal);
+    uiability->SetAbilityInfo(abilityInfo);
     abilityImpl_->ability_ = uiability;
 
     std::string deviceId = "deviceId";
@@ -1557,10 +1501,7 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_NotifyContinuationResult_0200, TestSi
     std::shared_ptr<MockUIAbility> pMocKUIAbility = std::make_shared<MockUIAbility>();
     std::shared_ptr<UIAbility> uiability = pMocKUIAbility;
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
-    ASSERT_NE(contextDeal, nullptr);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    uiability->AttachBaseContext(contextDeal);
+    uiability->SetAbilityInfo(abilityInfo);
     abilityImpl_->ability_ = uiability;
 
     int32_t result = 0;
@@ -1594,10 +1535,7 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_NotifyMemoryLevel_0200, TestSize.Leve
     std::shared_ptr<MockUIAbility> pMocKUIAbility = std::make_shared<MockUIAbility>();
     std::shared_ptr<UIAbility> uiability = pMocKUIAbility;
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
-    ASSERT_NE(contextDeal, nullptr);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    uiability->AttachBaseContext(contextDeal);
+    uiability->SetAbilityInfo(abilityInfo);
     abilityImpl_->ability_ = uiability;
 
     int32_t level = 0;
@@ -1672,10 +1610,7 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_AfterFocusedCommon_0300, TestSize.Lev
     std::shared_ptr<MockUIAbility> pMocKUIAbility = std::make_shared<MockUIAbility>();
     std::shared_ptr<UIAbility> uiability = pMocKUIAbility;
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
-    ASSERT_NE(contextDeal, nullptr);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    uiability->AttachBaseContext(contextDeal);
+    uiability->SetAbilityInfo(abilityInfo);
     abilityImpl_->ability_ = uiability;
     abilityImpl_->AfterFocusedCommon(true);
     GTEST_LOG_(INFO) << "AbilityRuntime_AfterFocusedCommon_0300 end";
@@ -1692,10 +1627,7 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_AfterFocusedCommon_0400, TestSize.Lev
     std::shared_ptr<MockUIAbility> pMocKUIAbility = std::make_shared<MockUIAbility>();
     std::shared_ptr<UIAbility> uiability = pMocKUIAbility;
     auto abilityInfo = std::make_shared<AbilityInfo>();
-    auto contextDeal = std::make_shared<ContextDeal>();
-    ASSERT_NE(contextDeal, nullptr);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    uiability->AttachBaseContext(contextDeal);
+    uiability->SetAbilityInfo(abilityInfo);
     abilityImpl_->ability_ = uiability;
     abilityImpl_->AfterFocusedCommon(true);
     GTEST_LOG_(INFO) << "AbilityRuntime_AfterFocusedCommon_0400 end";
@@ -1713,10 +1645,7 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_AfterFocusedCommon_0500, TestSize.Lev
     std::shared_ptr<UIAbility> uiability = pMocKUIAbility;
     auto abilityInfo = std::make_shared<AbilityInfo>();
     abilityInfo->isStageBasedModel = true;
-    auto contextDeal = std::make_shared<ContextDeal>();
-    ASSERT_NE(contextDeal, nullptr);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    uiability->AttachBaseContext(contextDeal);
+    uiability->SetAbilityInfo(abilityInfo);
     abilityImpl_->ability_ = uiability;
     auto eventRunner = EventRunner::Create(abilityInfo->name);
     auto handler = std::make_shared<AbilityHandler>(eventRunner);
@@ -1737,10 +1666,7 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_AfterFocusedCommon_0600, TestSize.Lev
     std::shared_ptr<UIAbility> uiability = pMocKUIAbility;
     auto abilityInfo = std::make_shared<AbilityInfo>();
     abilityInfo->isStageBasedModel = false;
-    auto contextDeal = std::make_shared<ContextDeal>();
-    ASSERT_NE(contextDeal, nullptr);
-    contextDeal->SetAbilityInfo(abilityInfo);
-    uiability->AttachBaseContext(contextDeal);
+    uiability->SetAbilityInfo(abilityInfo);
     abilityImpl_->ability_ = uiability;
     auto eventRunner = EventRunner::Create(abilityInfo->name);
     auto handler = std::make_shared<AbilityHandler>(eventRunner);

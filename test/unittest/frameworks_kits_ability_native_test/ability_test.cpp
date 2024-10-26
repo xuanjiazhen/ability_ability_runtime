@@ -29,7 +29,6 @@
 #include "abs_shared_result_set.h"
 #include "app_loader.h"
 #include "configuration.h"
-#include "context_deal.h"
 #include "data_ability_operation.h"
 #include "data_ability_predicates.h"
 #include "data_ability_result.h"

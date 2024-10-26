@@ -20,7 +20,7 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-class ContextContainer {
+class Context {
 };
 } // namespace AppExecFwk
 } // namespace OHOS

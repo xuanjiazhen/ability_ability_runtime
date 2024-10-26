@@ -32,7 +32,6 @@
 #include "sa_mgr_client.h"
 #include "sys_mgr_client.h"
 #include "system_ability_definition.h"
-#include "context_deal.h"
 #include "iservice_registry.h"
 #undef private
 
@@ -184,13 +183,10 @@ HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_GetCallingAbility_0100, Functi
  */
 HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_GetApplicationInfo_0100, Function | MediumTest | Level1)
 {
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
     std::shared_ptr<ApplicationInfo> info = std::make_shared<ApplicationInfo>();
     std::string name = "WeChat";
     info->name = name;
-    deal->SetApplicationInfo(info);
-
-    context_->AttachBaseContext(deal);
+    context_->SetApplicationInfo(info);
     EXPECT_STREQ(name.c_str(), context_->GetApplicationInfo()->name.c_str());
 }
 
@@ -201,12 +197,10 @@ HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_GetApplicationInfo_0100, Funct
  */
 HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_GetDatabaseDir_0100, Function | MediumTest | Level1)
 {
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
     std::shared_ptr<ApplicationInfo> info = std::make_shared<ApplicationInfo>();
     std::string dir = "dataBaseDir";
     info->dataBaseDir = dir;
-    deal->SetApplicationInfo(info);
-    context_->AttachBaseContext(deal);
+    context_->SetApplicationInfo(info);
 
     EXPECT_STREQ("/data/storage/el2/database", context_->GetDatabaseDir().c_str());
 }
@@ -218,12 +212,10 @@ HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_GetDatabaseDir_0100, Function 
  */
 HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_GetDataDir_0100, Function | MediumTest | Level1)
 {
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
     std::shared_ptr<ApplicationInfo> info = std::make_shared<ApplicationInfo>();
     std::string dir = "dataDir";
     info->dataDir = dir;
-    deal->SetApplicationInfo(info);
-    context_->AttachBaseContext(deal);
+    context_->SetApplicationInfo(info);
 
     EXPECT_STREQ("/data/storage/el2/base/data", context_->GetDataDir().c_str());
 }
@@ -235,8 +227,6 @@ HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_GetDataDir_0100, Function | Me
  */
 HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_GetBundleManager_0100, Function | MediumTest | Level3)
 {
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    context_->AttachBaseContext(deal);
     auto ptr = context_->GetBundleManager();
 
     EXPECT_NE(nullptr, ptr);
@@ -252,11 +242,7 @@ HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_GetBundleCodePath_0100, Functi
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
     std::string codePath = "hello";
     appInfo->codePath = codePath;
-
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    deal->SetApplicationInfo(appInfo);
-
-    context_->AttachBaseContext(deal);
+    context_->SetApplicationInfo(appInfo);
     EXPECT_STREQ("/data/storage/el1/bundle", context_->GetBundleCodePath().c_str());
 }
 
@@ -271,10 +257,7 @@ HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_GetBundleName_0100, Function |
     std::string name = "hello";
     appInfo->bundleName = name;
 
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    deal->SetApplicationInfo(appInfo);
-
-    context_->AttachBaseContext(deal);
+    context_->SetApplicationInfo(appInfo);
     EXPECT_STREQ(name.c_str(), context_->GetBundleName().c_str());
 }
 
@@ -288,11 +271,7 @@ HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_GetBundleResourcePath_0100, Fu
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
     std::string resourcePath = "hello";
     abilityInfo->resourcePath = resourcePath;
-
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    deal->SetAbilityInfo(abilityInfo);
-
-    context_->AttachBaseContext(deal);
+    context_->SetAbilityInfo(abilityInfo);
     EXPECT_STREQ(resourcePath.c_str(), context_->GetBundleResourcePath().c_str());
 }
 
@@ -304,9 +283,7 @@ HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_GetBundleResourcePath_0100, Fu
 HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_GetApplicationContext_0100, Function | MediumTest | Level3)
 {
     std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    deal->SetApplicationContext(application);
-    context_->AttachBaseContext(deal);
+    context_->SetApplicationContext(application);
     EXPECT_NE(nullptr, context_->GetApplicationContext());
 }
 
@@ -318,17 +295,11 @@ HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_GetApplicationContext_0100, Fu
 HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_GetContext_0100, Function | MediumTest | Level1)
 {
     std::shared_ptr<Ability> ability = std::make_shared<Ability>();
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
 
     std::string name = "hello";
     abilityInfo->name = name;
-
-    deal->SetAbilityInfo(abilityInfo);
-    std::shared_ptr<Context> context(ability);
-    deal->SetContext(context);
-    ability->AttachBaseContext(deal);
-
+    abilityInfo->SetAbilityInfo(abilityInfo);
     EXPECT_STREQ(name.c_str(), ability->GetContext()->GetAbilityInfo()->name.c_str());
 }
 
@@ -339,8 +310,6 @@ HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_GetContext_0100, Function | Me
  */
 HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_GetAbilityManager_0100, Function | MediumTest | Level3)
 {
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    context_->AttachBaseContext(deal);
     MockBundleInstaller();
     sptr<AAFwk::IAbilityManager> ptr = context_->GetAbilityManager();
 
@@ -372,11 +341,9 @@ HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_GetProcessInfo_0100, Function 
 HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_GetAppType_0100, Function | MediumTest | Level1)
 {
     std::string empty = "system";
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
     std::shared_ptr<ApplicationInfo> info = std::make_shared<ApplicationInfo>();
     info->bundleName = "hello";
-    deal->SetApplicationInfo(info);
-    context_->AttachBaseContext(deal);
+    context_->SetApplicationInfo(info);
 
     MockBundleInstaller();
     EXPECT_CALL(*mockBundleMgr, GetAppType(testing::_))
@@ -392,13 +359,11 @@ HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_GetAppType_0100, Function | Me
  */
 HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_GetAbilityInfo_0100, Function | MediumTest | Level1)
 {
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
 
     std::string name = "hello";
     abilityInfo->name = name;
-    deal->SetAbilityInfo(abilityInfo);
-    context_->AttachBaseContext(deal);
+    context_->SetAbilityInfo(abilityInfo);
 
     EXPECT_STREQ(name.c_str(), context_->GetAbilityInfo()->name.c_str());
 }
@@ -420,13 +385,11 @@ HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_GetElementName_0100, Function 
  */
 HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_GetElementName_0200, Function | MediumTest | Level3)
 {
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
 
     std::string name = "abilityName";
     abilityInfo->name = name;
-    deal->SetAbilityInfo(abilityInfo);
-    context_->AttachBaseContext(deal);
+    context_->SetAbilityInfo(abilityInfo);
 
     EXPECT_STREQ(name.c_str(), context_->GetElementName()->GetAbilityName().c_str());
 }
@@ -482,12 +445,10 @@ HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_GetCallingAbility_0200, Functi
  */
 HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_ConnectAbility_0100, Function | MediumTest | Level1)
 {
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
 
     abilityInfo->type = AppExecFwk::AbilityType::SERVICE;
-    deal->SetAbilityInfo(abilityInfo);
-    context_->AttachBaseContext(deal);
+    context_->SetAbilityInfo(abilityInfo);
 
     Want want;
     bool ret = context_->ConnectAbility(want, nullptr);
@@ -514,12 +475,10 @@ HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_ConnectAbility_0200, Function 
  */
 HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_ConnectAbility_0300, Function | MediumTest | Level1)
 {
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
 
     abilityInfo->type = AppExecFwk::AbilityType::SERVICE;
-    deal->SetAbilityInfo(abilityInfo);
-    context_->AttachBaseContext(deal);
+    context_->SetAbilityInfo(abilityInfo);
 
     Want want;
     OHOS::sptr<AAFwk::IAbilityConnection> callback = new NAPIAbilityConnection();
@@ -548,12 +507,10 @@ HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_ConnectAbility_0400, Function 
  */
 HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_DisconnectAbility_0100, Function | MediumTest | Level1)
 {
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
 
     abilityInfo->type = AppExecFwk::AbilityType::SERVICE;
-    deal->SetAbilityInfo(abilityInfo);
-    context_->AttachBaseContext(deal);
+    context_->SetAbilityInfo(abilityInfo);
     auto result = context_->DisconnectAbility(nullptr);
     EXPECT_EQ(result, 0);
 }
@@ -566,12 +523,10 @@ HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_DisconnectAbility_0100, Functi
  */
 HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_DisconnectAbility_0200, Function | MediumTest | Level1)
 {
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
 
     abilityInfo->type = AppExecFwk::AbilityType::SERVICE;
-    deal->SetAbilityInfo(abilityInfo);
-    context_->AttachBaseContext(deal);
+    context_->SetAbilityInfo(abilityInfo);
     OHOS::sptr<AAFwk::IAbilityConnection> callback = new NAPIAbilityConnection();
     auto result = context_->DisconnectAbility(callback);
     EXPECT_EQ(result, 0);
@@ -585,12 +540,10 @@ HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_DisconnectAbility_0200, Functi
 HWTEST_F(AbilityContextTest, AaFwk_AbilityContext_StopAbility_0100, Function | MediumTest | Level1)
 {
     Want want;
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
 
     abilityInfo->type = AppExecFwk::AbilityType::SERVICE;
-    deal->SetAbilityInfo(abilityInfo);
-    context_->AttachBaseContext(deal);
+    context_->SetAbilityInfo(abilityInfo);
     bool ret = context_->StopAbility(want);
     EXPECT_TRUE(ret);
 }
@@ -616,15 +569,12 @@ HWTEST_F(AbilityContextTest, AaFwk_Ability_GetHapModuleInfo_0100, TestSize.Level
 {
     GTEST_LOG_(INFO) << "AaFwk_Ability_GetHapModuleInfo_0100 start";
 
-    std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     std::string package = "com.ohos.callui";
-    contextDeal->hapModuleInfoLocal_ = std::make_shared<HapModuleInfo>();
-    contextDeal->hapModuleInfoLocal_->name = "com.ohos.callui";
-    context_->AttachBaseContext(contextDeal);
+    context_->hapModuleInfoLocal_ = std::make_shared<HapModuleInfo>();
+    context_->hapModuleInfoLocal_->name = "com.ohos.callui";
     EXPECT_CALL(*mockBundleMgr, GetHapModuleInfo(testing::_, testing::_))
         .WillOnce(testing::Return(true))
         .WillRepeatedly(testing::Return(true));
-    context_->AttachBaseContext(contextDeal);
     std::shared_ptr<HapModuleInfo> info = context_->GetHapModuleInfo();
     EXPECT_STREQ(info->name.c_str(), package.c_str());
     GTEST_LOG_(INFO) << "AaFwk_Ability_GetHapModuleInfo_0100 end";

@@ -21,7 +21,6 @@
 #include "application_context.h"
 #include "application_impl.h"
 #include "application_info.h"
-#include "context_deal.h"
 #include "context_impl.h"
 #include "fa_ability_thread.h"
 #include "hilog_tag_wrapper.h"
@@ -164,10 +163,8 @@ HWTEST_F(OHOSApplicationTest, AppExecFwk_OHOSApplicationTest_DumpApplication_030
 {
     GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_DumpApplication_0300 start.";
     ohosApplication_->DumpApplication();
-    auto contextDeal = std::make_shared<ContextDeal>();
     auto appInfo = std::make_shared<ApplicationInfo>();
-    contextDeal->SetApplicationInfo(appInfo);
-    ohosApplication_->AttachBaseContext(contextDeal);
+    ohosApplication_->SetApplicationInfo(appInfo);
     ohosApplication_->DumpApplication();
     EXPECT_TRUE(ohosApplication_->GetApplicationInfo() != nullptr);
     GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_DumpApplication_0300 end.";

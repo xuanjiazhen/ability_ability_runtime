@@ -19,7 +19,6 @@
 #include "ability_context.h"
 #include "ability_loader.h"
 #include "ability_manager_client.h"
-#include "context_deal.h"
 #include "fa_ability_thread.h"
 #include "mock_serviceability_manager_service.h"
 #include "ohos_application.h"
@@ -93,9 +92,7 @@ HWTEST_F(AbilityContextTest, AaFwk_Ability_Context_ConnectAbility_0100, Function
 
     AbilityThread::AbilityThreadMain(application, abilityRecord, nullptr);
 
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    deal->SetAbilityInfo(abilityInfo);
-    context_->AttachBaseContext(deal);
+    context_->SetAbilityInfo(abilityInfo);
 
     Want want;
     bool ret = context_->ConnectAbility(want, nullptr);
@@ -119,9 +116,7 @@ HWTEST_F(AbilityContextTest, AaFwk_Ability_Context_DisconnectAbility_0100, Funct
 
     AbilityThread::AbilityThreadMain(application, abilityRecord, nullptr);
 
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    deal->SetAbilityInfo(abilityInfo);
-    context_->AttachBaseContext(deal);
+    context_->SetAbilityInfo(abilityInfo);
 
     Want want;
     context_->ConnectAbility(want, nullptr);
@@ -170,9 +165,7 @@ HWTEST_F(AbilityContextTest, AaFwk_Ability_Context_TerminateAbility_0100, Functi
     context_->StartAbility(want, -1);
     usleep(AbilityContextTest::TEST_WAIT_TIME);
 
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    deal->SetAbilityInfo(abilityInfo);
-    context_->AttachBaseContext(deal);
+    context_->SetAbilityInfo(abilityInfo);
     context_->TerminateAbility();
     usleep(AbilityContextTest::TEST_WAIT_TIME);
 }
@@ -194,9 +187,7 @@ HWTEST_F(AbilityContextTest, AaFwk_Ability_Context_TerminateAbility_0200, Functi
 
     AbilityThread::AbilityThreadMain(application, abilityRecord, nullptr);
 
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    deal->SetAbilityInfo(abilityInfo);
-    context_->AttachBaseContext(deal);
+    context_->SetAbilityInfo(abilityInfo);
     context_->TerminateAbility();
     usleep(AbilityContextTest::TEST_WAIT_TIME);
 }
@@ -218,9 +209,7 @@ HWTEST_F(AbilityContextTest, AaFwk_Ability_Context_StopService_0100, Function | 
 
     AbilityThread::AbilityThreadMain(application, abilityRecord, nullptr);
 
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    deal->SetAbilityInfo(abilityInfo);
-    context_->AttachBaseContext(deal);
+    context_->SetAbilityInfo(abilityInfo);
 
     Want want;
     context_->StartAbility(want, -1);
@@ -246,9 +235,7 @@ HWTEST_F(AbilityContextTest, AaFwk_Ability_Context_StopService_0200, Function | 
     auto abilityRecord = std::make_shared<AbilityLocalRecord>(abilityInfo, abilityToken, nullptr, 0);
 
     AbilityThread::AbilityThreadMain(application, abilityRecord, nullptr);
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    deal->SetAbilityInfo(abilityInfo);
-    context_->AttachBaseContext(deal);
+    context_->SetAbilityInfo(abilityInfo);
 
     Want want;
     bool ret = context_->StopAbility(want);
@@ -279,8 +266,7 @@ HWTEST_F(AbilityContextTest, AaFwk_Ability_Context_GetCallingBundle_0100, Functi
 HWTEST_F(AbilityContextTest, AaFwk_Ability_Context_GetElementName_0100, Function | MediumTest | Level1)
 {
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    deal->SetAbilityInfo(abilityInfo);
+    context_->SetAbilityInfo(abilityInfo);
     auto result = context_->GetElementName();
     EXPECT_TRUE(result == nullptr);
 }
@@ -333,9 +319,7 @@ HWTEST_F(AbilityContextTest, AaFwk_Ability_Context_ConnectAbility_0300, Function
     abilityInfo->name = "DemoAbility";
     auto abilityRecord = std::make_shared<AbilityLocalRecord>(abilityInfo, abilityToken, nullptr, 0);
     AbilityThread::AbilityThreadMain(application, abilityRecord, nullptr);
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    deal->SetAbilityInfo(abilityInfo);
-    context_->AttachBaseContext(deal);
+    context_->SetAbilityInfo(abilityInfo);
     Want want;
     bool ret = context_->ConnectAbility(want, nullptr);
     EXPECT_FALSE(ret);
@@ -356,9 +340,7 @@ HWTEST_F(AbilityContextTest, AaFwk_Ability_Context_StopService_0300, Function | 
     auto abilityRecord = std::make_shared<AbilityLocalRecord>(abilityInfo, abilityToken, nullptr, 0);
 
     AbilityThread::AbilityThreadMain(application, abilityRecord, nullptr);
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    deal->SetAbilityInfo(abilityInfo);
-    context_->AttachBaseContext(deal);
+    context_->SetAbilityInfo(abilityInfo);
 
     Want want;
     bool ret = context_->StopAbility(want);
@@ -558,9 +540,7 @@ HWTEST_F(AbilityContextTest, AaFwk_Ability_Context_GetAbilityInfoType_0200, Func
     auto abilityRecord = std::make_shared<AbilityLocalRecord>(abilityInfo, abilityToken, nullptr, 0);
 
     AbilityThread::AbilityThreadMain(application, abilityRecord, nullptr);
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    deal->SetAbilityInfo(abilityInfo);
-    context_->AttachBaseContext(deal);
+    context_->SetAbilityInfo(abilityInfo);
     auto result = context_->GetAbilityInfoType();
     EXPECT_EQ(result, AppExecFwk::AbilityType::SERVICE);
 }
@@ -604,9 +584,7 @@ HWTEST_F(AbilityContextTest, AaFwk_Ability_Context_GetResourceManager_0200, Func
     abilityInfo->name = "DemoAbility";
     auto abilityRecord = std::make_shared<AbilityLocalRecord>(abilityInfo, abilityToken, nullptr, 0);
     AbilityThread::AbilityThreadMain(application, abilityRecord, nullptr);
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    deal->SetAbilityInfo(abilityInfo);
-    context_->AttachBaseContext(deal);
+    context_->SetAbilityInfo(abilityInfo);
     auto result = context_->GetResourceManager();
     EXPECT_TRUE(result == nullptr);
 }
@@ -653,9 +631,7 @@ HWTEST_F(AbilityContextTest, AaFwk_Ability_Context_VerifyPermission_0300, Functi
     abilityInfo->name = "DemoAbility";
     auto abilityRecord = std::make_shared<AbilityLocalRecord>(abilityInfo, abilityToken, nullptr, 0);
     AbilityThread::AbilityThreadMain(application, abilityRecord, nullptr);
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    deal->SetAbilityInfo(abilityInfo);
-    context_->AttachBaseContext(deal);
+    context_->SetAbilityInfo(abilityInfo);
     std::string permission = "permission";
     int32_t pid = 1;
     int32_t uid = 1;
@@ -778,7 +754,7 @@ HWTEST_F(AbilityContextTest, AaFwk_Ability_Context_GetProcessName_0100, Function
 HWTEST_F(AbilityContextTest, AaFwk_Ability_Context_InitResourceManager_0100, Function | MediumTest | Level1)
 {
     BundleInfo bundleInfo;
-    std::shared_ptr<ContextDeal> deal = nullptr;
+    std::shared_ptr<AppContext> deal = nullptr;
     context_->InitResourceManager(bundleInfo, deal);
     EXPECT_TRUE(deal == nullptr);
 }
@@ -898,9 +874,7 @@ HWTEST_F(AbilityContextTest, AaFwk_Ability_Context_SetColorMode_0100, Function |
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
     auto abilityRecord = std::make_shared<AbilityLocalRecord>(abilityInfo, abilityToken, nullptr, 0);
     AbilityThread::AbilityThreadMain(application, abilityRecord, nullptr);
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    deal->SetAbilityInfo(abilityInfo);
-    context_->AttachBaseContext(deal);
+    context_->SetAbilityInfo(abilityInfo);
     int32_t mode = 1;
     context_->SetColorMode(mode);
     auto result = context_->GetColorMode();

@@ -23,7 +23,6 @@
 #include "application_impl.h"
 #include "application_info.h"
 #include "configuration.h"
-#include "context_deal.h"
 #include "context_impl.h"
 #include "fa_ability_thread.h"
 #include "hap_module_info.h"

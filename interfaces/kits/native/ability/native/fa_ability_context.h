@@ -18,7 +18,7 @@
 
 #include <map>
 
-#include "context_container.h"
+#include "fa_context.h"
 #include "data_ability_helper.h"
 
 namespace OHOS {
@@ -26,10 +26,37 @@ namespace DataShare {
 class DataShareHelper;
 }
 namespace AppExecFwk {
-class AbilityContext : public ContextContainer {
+class AbilityContext : public Context {
 public:
     AbilityContext() = default;
     virtual ~AbilityContext() = default;
+
+    /**
+     * @brief Obtains the absolute path to the application-specific cache directory
+     * on the primary external or shared storage device.
+     *
+     * @return Returns the absolute path to the application-specific cache directory on the external or
+     * shared storage device; returns null if the external or shared storage device is temporarily unavailable.
+     */
+    virtual std::string GetExternalCacheDir()
+    {
+        return "";
+    }
+
+    /**
+     * @brief Checks whether the current process has the given permission.
+     * You need to call requestPermissionsFromUser(std::vector<std::string>,std::vector<int>, int) to request
+     * a permission only if the current process does not have the specific permission.
+     *
+     * @param permission Indicates the permission to check. This parameter cannot be null.
+     *
+     * @return Returns 0 (IBundleManager.PERMISSION_GRANTED) if the current process has the permission;
+     * returns -1 (IBundleManager.PERMISSION_DENIED) otherwise.
+     */
+    virtual int VerifySelfPermission(const std::string &permission)
+    {
+        return 0;
+    }
 
     /**
      * @brief Starts a new ability.
@@ -46,7 +73,7 @@ public:
      *
      * @return errCode ERR_OK on success, others on failure.
      */
-    using ContextContainer::StartAbility;
+    using Context::StartAbility;
     ErrCode StartAbility(const AAFwk::Want &want, int requestCode) override;
 
     /**
@@ -125,14 +152,14 @@ public:
      *
      * @return Returns true if the ability is destroyed successfully; returns false otherwise.
      */
-    virtual bool StopAbility(const AAFwk::Want &want) override;
+    virtual bool StopAbility(const AAFwk::Want &want);
 
     /**
      * @brief Obtains a resource manager.
      *
      * @return Returns a ResourceManager object.
      */
-    std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager() const override;
+    std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager() override;
 
     /**
      * @brief Query whether the application of the specified PID and UID has been granted a certain permission
@@ -180,17 +207,45 @@ public:
     {
         abilityRecordId_ = abilityRecordId;
     }
+
     int32_t GetAbilityRecordId() const
     {
         return abilityRecordId_;
     }
+
+    /**
+     * @brief Obtains information about the current ability.
+     * The returned information includes the class name, bundle name, and other information about the current ability.
+     *
+     * @return Returns the AbilityInfo object for the current ability.
+     */
+    virtual const std::shared_ptr<AbilityInfo> GetAbilityInfo();
+
+    /**
+     * @brief Set AbilityInfo
+     *
+     * @param info AbilityInfo instance.
+     */
+    void SetAbilityInfo(const std::shared_ptr<AbilityInfo> &info);
+
+    /**
+     * @brief Obtains the HapModuleInfo object of the application.
+     *
+     * @return Returns the HapModuleInfo object of the application.
+     */
+    std::shared_ptr<HapModuleInfo> GetHapModuleInfo();
+
+    sptr<IRemoteObject> GetToken() override;
+
+    std::shared_ptr<Context> GetApplicationContext() override;
+
+    void SetApplicationContext(const std::shared_ptr<Context> &context);
 
     friend DataAbilityHelper;
     friend OHOS::DataShare::DataShareHelper;
     static int ABILITY_CONTEXT_DEFAULT_REQUEST_CODE;
 
 protected:
-    sptr<IRemoteObject> GetToken() override;
     sptr<IRemoteObject> GetSessionToken();
 
     sptr<IRemoteObject> token_;
@@ -204,7 +259,9 @@ protected:
     std::mutex sessionTokenMutex_;
     sptr<IRemoteObject> sessionToken_;
     int32_t abilityRecordId_ = 0;
-
+    std::shared_ptr<AbilityInfo> abilityInfo_ = nullptr;
+    std::shared_ptr<HapModuleInfo> hapModuleInfoLocal_ = nullptr;
+    std::shared_ptr<Context> appContext_ = nullptr;
 private:
     /**
      * @brief Get Current Ability Type
@@ -213,6 +270,7 @@ private:
      */
     AppExecFwk::AbilityType GetAbilityInfoType();
     void GetPermissionDes(const std::string &permissionName, std::string &des);
+    bool HapModuleInfoRequestInit();
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

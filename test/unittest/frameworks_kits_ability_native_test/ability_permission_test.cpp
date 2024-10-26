@@ -15,7 +15,6 @@
 
 #include <gtest/gtest.h>
 #include "ability_context.h"
-#include "context_deal.h"
 #include "ability_info.h"
 #include "ability.h"
 #include "mock_bundle_manager.h"
@@ -86,10 +85,7 @@ HWTEST_F(AbilityPermissionTest, AaFwk_AbilityPermissionTest_VerifySelfPermission
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
     std::string name = "hello";
     appInfo->bundleName = name;
-
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    deal->SetApplicationInfo(appInfo);
-    context_->AttachBaseContext(deal);
+    context_->SetApplicationInfo(appInfo);
 
     context_->VerifySelfPermission(permission_name);
 }
@@ -111,11 +107,7 @@ HWTEST_F(AbilityPermissionTest, AaFwk_AbilityPermissionTest_VerifyPermission_010
     std::string name = "hello";
     appInfo->bundleName = name;
 
-    std::shared_ptr<ContextDeal> deal = std::make_shared<ContextDeal>();
-    deal->SetApplicationInfo(appInfo);
-
-    context_->AttachBaseContext(deal);
-
+    context_->SetApplicationInfo(appInfo);
     context_->VerifyPermission(permission_name, 0, 10);
 }
 }  // namespace AppExecFwk

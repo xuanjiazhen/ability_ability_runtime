@@ -21,7 +21,6 @@
 #include "ability_handler.h"
 #include "ability_loader.h"
 #include "ability_manager_client.h"
-#include "context_deal.h"
 #include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
@@ -41,7 +40,6 @@ UIAbilityThread::UIAbilityThread() : abilityImpl_(nullptr), currentAbility_(null
 UIAbilityThread::~UIAbilityThread()
 {
     if (currentAbility_) {
-        currentAbility_->DetachBaseContext();
         currentAbility_.reset();
     }
 }
@@ -73,38 +71,26 @@ std::string UIAbilityThread::CreateAbilityName(const std::shared_ptr<AppExecFwk:
     return abilityName;
 }
 
-std::shared_ptr<AppExecFwk::ContextDeal> UIAbilityThread::CreateAndInitContextDeal(
+void UIAbilityThread::CreateAndInitContextDeal(
     const std::shared_ptr<AppExecFwk::OHOSApplication> &application,
     const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &abilityRecord,
     const std::shared_ptr<AppExecFwk::AbilityContext> &abilityObject)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
-    std::shared_ptr<AppExecFwk::ContextDeal> contextDeal = nullptr;
     if (application == nullptr || abilityRecord == nullptr || abilityObject == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null application or abilityRecord or abilityObject");
-        return contextDeal;
-    }
-
-    contextDeal = std::make_shared<AppExecFwk::ContextDeal>();
-    if (contextDeal == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null contextDeal");
-        return contextDeal;
+        return;
     }
 
     auto abilityInfo = abilityRecord->GetAbilityInfo();
     if (abilityInfo == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityInfo");
-        return nullptr;
+        return;
     }
 
-    contextDeal->SetAbilityInfo(abilityInfo);
-    contextDeal->SetApplicationInfo(application->GetApplicationInfo());
+    abilityObject->SetAbilityInfo(abilityInfo);
     abilityObject->SetProcessInfo(application->GetProcessInfo());
-    std::shared_ptr<AppExecFwk::Context> tmpContext = application->GetApplicationContext();
-    contextDeal->SetApplicationContext(tmpContext);
-    contextDeal->SetBundleCodePath(abilityInfo->codePath);
-    contextDeal->SetContext(abilityObject);
-    return contextDeal;
+    abilityObject->SetApplicationContext(application);
 }
 
 void UIAbilityThread::Attach(const std::shared_ptr<AppExecFwk::OHOSApplication> &application,
@@ -141,11 +127,9 @@ void UIAbilityThread::Attach(const std::shared_ptr<AppExecFwk::OHOSApplication> 
     currentAbility_.reset(ability);
     token_ = abilityRecord->GetToken();
     abilityRecord->SetAbilityThread(this);
-    std::shared_ptr<AppExecFwk::AbilityContext> abilityObject = currentAbility_;
-    std::shared_ptr<AppExecFwk::ContextDeal> contextDeal =
-        CreateAndInitContextDeal(application, abilityRecord, abilityObject);
-    ability->AttachBaseContext(contextDeal);
-
+    CreateAndInitContextDeal(application, abilityRecord, currentAbility_);
+    // LQ todo
+    ability->SetApplicationInfo(application->GetApplicationInfo());
     // new hap requires
     ability->AttachAbilityContext(BuildAbilityContext(abilityRecord->GetAbilityInfo(),
         application, token_, stageContext, abilityRecord->GetAbilityRecordId()));
@@ -215,10 +199,7 @@ void UIAbilityThread::Attach(const std::shared_ptr<AppExecFwk::OHOSApplication> 
     token_ = abilityRecord->GetToken();
     abilityRecord->SetAbilityThread(this);
     std::shared_ptr<AppExecFwk::AbilityContext> abilityObject = currentAbility_;
-    std::shared_ptr<AppExecFwk::ContextDeal> contextDeal =
-        CreateAndInitContextDeal(application, abilityRecord, abilityObject);
-    ability->AttachBaseContext(contextDeal);
-
+    CreateAndInitContextDeal(application, abilityRecord, currentAbility_);
     // new hap requires
     ability->AttachAbilityContext(BuildAbilityContext(abilityRecord->GetAbilityInfo(),
         application, token_, stageContext, abilityRecord->GetAbilityRecordId()));

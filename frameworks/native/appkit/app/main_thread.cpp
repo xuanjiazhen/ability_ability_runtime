@@ -43,7 +43,6 @@
 #include "configuration_convertor.h"
 #include "common_event_manager.h"
 #include "global_constant.h"
-#include "context_deal.h"
 #include "context_impl.h"
 #include "dump_ffrt_helper.h"
 #include "dump_ipc_helper.h"
@@ -926,8 +925,7 @@ void MainThread::HandleProcessSecurityExit()
     HandleTerminateApplicationLocal();
 }
 
-bool MainThread::InitCreate(
-    std::shared_ptr<ContextDeal> &contextDeal, ApplicationInfo &appInfo, ProcessInfo &processInfo)
+bool MainThread::InitCreate(ApplicationInfo &appInfo, ProcessInfo &processInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     // get application shared point
@@ -960,18 +958,11 @@ bool MainThread::InitCreate(
         TAG_LOGE(AAFwkTag::APPKIT, "create AbilityRecordMgr failed");
         return false;
     }
-
-    contextDeal = std::make_shared<ContextDeal>();
-    if (contextDeal == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "create contextDeal failed");
-        return false;
-    }
     AppExecFwk::AppfreezeInner::GetInstance()->SetApplicationInfo(applicationInfo_);
 
     application_->SetProcessInfo(processInfo_);
-    contextDeal->SetApplicationInfo(applicationInfo_);
-    contextDeal->SetBundleCodePath(applicationInfo_->codePath);  // BMS need to add cpath
-
+    // LQ todo
+    application_->SetApplicationInfo(applicationInfo_);
     return true;
 }
 
@@ -1299,12 +1290,11 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     auto appInfo = appLaunchData.GetApplicationInfo();
     ProcessInfo processInfo = appLaunchData.GetProcessInfo();
     TAG_LOGD(AAFwkTag::APPKIT, "InitCreate Start");
-    std::shared_ptr<ContextDeal> contextDeal;
-    if (!InitCreate(contextDeal, appInfo, processInfo)) {
+    if (!InitCreate(appInfo, processInfo)) {
         TAG_LOGE(AAFwkTag::APPKIT, "InitCreate failed");
         return;
     }
-    auto bundleMgrHelper = contextDeal->GetBundleManager();
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
     if (bundleMgrHelper == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "The bundleMgrHelper is nullptr");
         return;
@@ -1718,9 +1708,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     contextImpl->SetResourceManager(resourceManager);
     AbilityBase::ExtractResourceManager::GetExtractResourceManager().SetGlobalObject(resourceManager);
 
-    contextDeal->initResourceManager(resourceManager);
-    contextDeal->SetApplicationContext(application_);
-    application_->AttachBaseContext(contextDeal);
+    application_->SetResourceManager(resourceManager);
     application_->SetAbilityRecordMgr(abilityRecordMgr_);
     application_->SetConfiguration(appConfig);
     contextImpl->SetConfiguration(application_->GetConfiguration());
