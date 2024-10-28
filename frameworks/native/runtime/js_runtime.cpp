@@ -861,10 +861,6 @@ void JsRuntime::DoCleanWorkAfterStageCleaned()
     // Force gc. If the jsRuntime is destroyed, this task should not be executed.
     TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
     RemoveTask("ability_destruct_gc");
-    auto gcTask = [this]() {
-        panda::JSNApi::TriggerGC(GetEcmaVm(), panda::JSNApi::TRIGGER_GC_TYPE::FULL_GC);
-    };
-    PostTask(gcTask, "ability_destruct_gc", TRIGGER_GC_AFTER_CLEAR_STAGE_MS);
 }
 
 bool JsRuntime::InitLoop(bool isStage)
