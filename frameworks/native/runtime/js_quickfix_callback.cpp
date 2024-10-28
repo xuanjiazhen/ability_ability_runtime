@@ -25,8 +25,47 @@ namespace AbilityRuntime {
 namespace {
     constexpr char MERGE_ABC_PATH[] = "/ets/modules.abc";
     constexpr char BUNDLE_INSTALL_PATH[] = "/data/storage/el1/bundle/";
+    constexpr char WIDGET_ABC_PATH[] = "/ets/widgets.abc";
 }
 
+std::string JsQuickfixCallback::getModuleName(const std::string &baseFileName)
+{
+    if (baseFileName.empty()) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "huasmile baseFileName is empty!");
+        return "";
+    }
+
+    std::string moduleName;
+    if (type_ == AbilityRuntime::RuntimeType::RUNTIME_APP) {
+        int baseFileNameLen = static_cast<int>(baseFileName.length());
+        int prefixLen = strlen(BUNDLE_INSTALL_PATH);
+        int suffixLen = strlen(MERGE_ABC_PATH);
+        int moduleLen = baseFileNameLen - prefixLen - suffixLen;
+        if (moduleLen < 0) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "huasmile invalid baseFileName!");
+            return "";
+        }
+        moduleName = baseFileName.substr(prefixLen, moduleLen);
+    } else if (type_ == AbilityRuntime::RuntimeType::RUNTIME_FORM) {
+        std::string fullPath = patchVersion_ + "/";
+        size_t patchPos = baseFileName.find(fullPath);
+        if (patchPos == std::string::npos) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "huasmile invalid patchPos!");
+            return "";
+        }
+        size_t endPos = baseFileName.find(WIDGET_ABC_PATH);
+        if (endPos == std::string::npos) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "huasmile invalid endPos!");
+            return "";
+        }
+        moduleName = baseFileName.substr(patchPos + fullPath.size(), endPos - patchPos - fullPath.size());
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "huasmile moduleName:%{public}s", moduleName.c_str());
+    } else {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "huasmile not support runtime_type");
+        return "";
+    }
+    return moduleName;
+}
 bool JsQuickfixCallback::operator()(std::string baseFileName, std::string &patchFileName,
                                     uint8_t **patchBuffer, size_t &patchSize)
 {
@@ -36,27 +75,27 @@ bool JsQuickfixCallback::operator()(std::string baseFileName, std::string &patch
         TAG_LOGE(AAFwkTag::JSRUNTIME, ".abc not found");
         return false;
     }
-    int baseFileNameLen = static_cast<int>(baseFileName.length());
-    int prefixLen = strlen(BUNDLE_INSTALL_PATH);
-    int suffixLen = strlen(MERGE_ABC_PATH);
-    int moduleLen = baseFileNameLen - prefixLen - suffixLen;
-    if (moduleLen < 0) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "invalid moduleLen");
+
+    std::string moduleName = getModuleName(baseFileName);
+    if (moduleName.empty()) {
         return false;
     }
-    std::string moduleName = baseFileName.substr(prefixLen, moduleLen);
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "moduleName: %{private}s", moduleName.c_str());
 
     auto it = moduleAndHqfPath_.find(moduleName);
     if (it == moduleAndHqfPath_.end()) {
         return false;
     }
 
+    std::string resolvedHqfFile;
     std::string hqfFile = it->second;
-    std::string resolvedHqfFile(AbilityBase::GetLoadPath(hqfFile));
+    if (type_ == AbilityRuntime::RuntimeType::RUNTIME_APP) {
+        resolvedHqfFile = AbilityBase::GetLoadPath(hqfFile);
+    } else if (type_ == AbilityRuntime::RuntimeType::RUNTIME_FORM) {
+        resolvedHqfFile = hqfFile;
+    }
+
     TAG_LOGD(AAFwkTag::JSRUNTIME, "hqfFile: %{private}s, resolvedHqfFile: %{private}s", hqfFile.c_str(),
         resolvedHqfFile.c_str());
-
     auto data = JsRuntime::GetSafeData(resolvedHqfFile, patchFileName);
     if (data == nullptr) {
         if (patchFileName.empty()) {

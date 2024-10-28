@@ -85,6 +85,7 @@ const std::string SANDBOX_ARK_PROIFILE_PATH = "/data/storage/ark-profile";
 const std::string DEBUGGER = "@Debugger";
 
 constexpr char MERGE_ABC_PATH[] = "/ets/modules.abc";
+constexpr char WIDGET_ABC_PATH[] = "/ets/widgets.abc";
 constexpr char BUNDLE_INSTALL_PATH[] = "/data/storage/el1/bundle/";
 constexpr const char* PERMISSION_RUN_ANY_CODE = "ohos.permission.RUN_ANY_CODE";
 
@@ -423,6 +424,42 @@ std::shared_ptr<AbilityBase::FileMapper> JsRuntime::GetSafeData(const std::strin
     }
 
     return safeData;
+}
+
+bool JsRuntime::LoadRepairFormPatch(const std::string& hqfFile, const std::string& hapPath,
+                                    const std::string &bundleName, const std::string &moduleName)
+{
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "hqfFile:%{public}s, hapPath:%{public}s", hqfFile.c_str(), hapPath.c_str());
+    auto vm = GetEcmaVm();
+    CHECK_POINTER_AND_RETURN(vm, false);
+
+    InitSourceMap(hqfFile);
+
+    std::string patchFile;
+    auto hqfSafeData = GetSafeData(hqfFile, patchFile);
+    if (hqfSafeData == nullptr) {
+        if (patchFile.empty()) {
+            return true;
+        }
+        return false;
+    }
+
+    std::string baseFile;
+    auto hapSafeData = GetSafeData(hapPath, baseFile);
+    if (hapSafeData == nullptr) {
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "huasmile hapSafeData is nullptr");
+        return false;
+    }
+
+    std::string oldBaseWidget = BUNDLE_INSTALL_PATH + bundleName + "/" + moduleName + WIDGET_ABC_PATH;
+    auto ret = panda::JSNApi::LoadPatch(vm,
+                                        patchFile, hqfSafeData->GetDataPtr(), hqfSafeData->GetDataLen(),
+                                        oldBaseWidget, hapSafeData->GetDataPtr(), hapSafeData->GetDataLen());
+    if (ret != panda::JSNApi::PatchErrorCode::SUCCESS) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "LoadPatch failed with %{public}d.", static_cast<int32_t>(ret));
+        return false;
+    }
+    return true;
 }
 
 bool JsRuntime::LoadRepairPatch(const std::string& hqfFile, const std::string& hapPath)
@@ -1320,7 +1357,8 @@ void JsRuntime::RegisterUncaughtExceptionHandler(const JsEnv::UncaughtExceptionI
     jsEnv_->RegisterUncaughtExceptionHandler(uncaughtExceptionInfo);
 }
 
-void JsRuntime::RegisterQuickFixQueryFunc(const std::map<std::string, std::string>& moduleAndPath)
+void JsRuntime::RegisterQuickFixQueryFunc(const std::map<std::string, std::string>& moduleAndPath,
+                                          AbilityRuntime::RuntimeType type, const std::string &bundleName)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     auto vm = GetEcmaVm();
@@ -1329,7 +1367,7 @@ void JsRuntime::RegisterQuickFixQueryFunc(const std::map<std::string, std::strin
         std::string hqfFile(AbilityBase::GetLoadPath(it->second));
         InitSourceMap(hqfFile);
     }
-    panda::JSNApi::RegisterQuickFixQueryFunc(vm, JsQuickfixCallback(moduleAndPath));
+    panda::JSNApi::RegisterQuickFixQueryFunc(vm, JsQuickfixCallback(moduleAndPath, type, bundleName));
 }
 
 bool JsRuntime::ReadSourceMapData(const std::string& hapPath, const std::string& sourceMapPath, std::string& content)

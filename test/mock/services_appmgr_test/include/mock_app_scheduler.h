@@ -69,6 +69,9 @@ public:
     MOCK_METHOD0(ScheduleClearPageStack, void());
     MOCK_METHOD0(IsMemorySizeSufficent, bool());
     MOCK_METHOD0(ScheduleCacheProcess, void());
+    MOCK_METHOD5(ScheduleNotifyLoadPatch, int32_t(const std::string &bundleName, const std::string &moduleName,
+                                                  const sptr<IQuickFixCallback> &callback,
+                                                  const int32_t recordId, const int &patchVersion));
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

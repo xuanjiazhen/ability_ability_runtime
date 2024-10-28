@@ -404,5 +404,18 @@ int AppLifeCycleDeal::DumpFfrt(std::string& result)
     }
     return appThread->ScheduleDumpFfrt(result);
 }
+
+int32_t AppLifeCycleDeal::NotifyLoadPatch(const std::string &bundleName, const std::string &moduleName,
+                                          const sptr<IQuickFixCallback> &callback,
+                                          const int32_t recordId, const int &patchVersion)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto appThread = GetApplicationClient();
+    if (appThread == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "huasmile appThread is nullptr.");
+        return ERR_INVALID_VALUE;
+    }
+    return appThread->ScheduleNotifyLoadPatch(bundleName, moduleName, callback, recordId, patchVersion);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

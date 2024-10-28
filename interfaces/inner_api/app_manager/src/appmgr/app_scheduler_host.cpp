@@ -115,6 +115,8 @@ int32_t AppSchedulerHost::OnRemoteRequestInnerSecond(uint32_t code, MessageParce
             return HandleScheduleNewProcessRequest(data, reply);
         case static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_NOTIFY_LOAD_REPAIR_PATCH):
             return HandleNotifyLoadRepairPatch(data, reply);
+        case static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_NOTIFY_LOAD_PATCH):
+            return HandleNotifyLoadPatch(data, reply);
         case static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_NOTIFY_HOT_RELOAD_PAGE):
             return HandleNotifyHotReloadPage(data, reply);
         case static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_NOTIFY_UNLOAD_REPAIR_PATCH):
@@ -494,6 +496,18 @@ int32_t AppSchedulerHost::HandleScheduleDumpFfrt(MessageParcel &data, MessagePar
         TAG_LOGE(AAFwkTag::APPMGR, "Fail to write string of ScheduleDumpFfrt result");
         return ERR_INVALID_VALUE;
     }
+    return NO_ERROR;
+}
+
+int32_t AppSchedulerHost::HandleNotifyLoadPatch(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    std::string bundleName = data.ReadString();
+    std::string moduleName = data.ReadString();
+    auto callback = iface_cast<IQuickFixCallback>(data.ReadRemoteObject());
+    auto recordId = data.ReadInt32();
+    int patchVersion = data.ReadInt32();
+    ScheduleNotifyLoadPatch(bundleName, moduleName, callback, recordId, patchVersion);
     return NO_ERROR;
 }
 }  // namespace AppExecFwk

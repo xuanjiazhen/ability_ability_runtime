@@ -44,7 +44,10 @@ config("runtime_public_config") {
 }
 
 config("runtime_all_deps_config") {
-  include_dirs = [ "include" ]
+  include_dirs = [ 
+              "include",
+              "${ability_runtime_native_path}/runtime", 
+    ]
 }
 
 ohos_shared_library("runtime") {

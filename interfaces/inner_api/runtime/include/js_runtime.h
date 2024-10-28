@@ -114,7 +114,8 @@ public:
     panda::ecmascript::EcmaVM* GetEcmaVm() const;
 
     void UpdateModuleNameAndAssetPath(const std::string& moduleName);
-    void RegisterQuickFixQueryFunc(const std::map<std::string, std::string>& moduleAndPath) override;
+    void RegisterQuickFixQueryFunc(const std::map<std::string, std::string>& moduleAndPath,
+                                   AbilityRuntime::RuntimeType type, const std::string &bundleName = "") override;
     static bool GetFileBuffer(const std::string& filePath, std::string& fileFullName, std::vector<uint8_t>& buffer,
                               bool isABC = true);
     static std::shared_ptr<AbilityBase::FileMapper> GetSafeData(const std::string& path, std::string& fileFullName);
@@ -138,7 +139,8 @@ public:
         const std::string& moduleName, const napi_value* argv = nullptr, size_t argc = 0);
     void SetDeviceDisconnectCallback(const std::function<bool()> &cb) override;
     void UpdatePkgContextInfoJson(std::string moduleName, std::string hapPath, std::string packageName) override;
-
+    bool LoadRepairFormPatch(const std::string& hqfFile, const std::string& hapPath,
+                             const std::string &bundleName, const std::string &moduleName) override;
 private:
     void FinishPreload() override;
     bool Initialize(const Options& options);

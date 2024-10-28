@@ -2534,5 +2534,17 @@ void AppRunningRecord::AddAppLifecycleEvent(const std::string &msg)
         AbilityRuntime::FreezeUtil::GetInstance().AddAppLifecycleEvent(prioObject->GetPid(), msg);
     }
 }
+
+int32_t AppRunningRecord::NotifyLoadPatch(const std::string &bundleName, const std::string &moduleName,
+                                          const sptr<IQuickFixCallback> &callback,
+                                          const int32_t recordId, const int &patchVersion)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (!appLifeCycleDeal_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "huasmile appLifeCycleDeal_ is null");
+        return ERR_INVALID_VALUE;
+    }
+    return appLifeCycleDeal_->NotifyLoadPatch(bundleName, moduleName, callback, recordId, patchVersion);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

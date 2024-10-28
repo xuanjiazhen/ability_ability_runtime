@@ -788,5 +788,53 @@ void AppSchedulerProxy::ScheduleCacheProcess()
         TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
     }
 }
+
+int32_t AppSchedulerProxy::ScheduleNotifyLoadPatch(const std::string &bundleName, const std::string &moduleName,
+                                                   const sptr<IQuickFixCallback> &callback,
+                                                   const int32_t recordId, const int &patchVersion)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return ERR_INVALID_DATA;
+    }
+
+    if (!data.WriteString(bundleName)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write bundle name failed.");
+        return ERR_INVALID_DATA;
+    }
+
+    if (!data.WriteString(moduleName)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write module name failed.");
+        return ERR_INVALID_DATA;
+    }
+
+    if (callback == nullptr || !data.WriteRemoteObject(callback->AsObject())) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write callback failed.");
+        return ERR_INVALID_DATA;
+    }
+
+    if (!data.WriteInt32(recordId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write record id failed.");
+        return ERR_INVALID_DATA;
+    }
+
+    if (!data.WriteInt32(patchVersion)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write record id failed.");
+        return ERR_INVALID_DATA;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret =
+        SendTransactCmd(static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_NOTIFY_LOAD_PATCH), data, reply, option);
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Send request failed with errno %{public}d.", ret);
+        return ret;
+    }
+
+    return reply.ReadInt32();
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
