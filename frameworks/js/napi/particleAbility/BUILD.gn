@@ -61,6 +61,11 @@ ohos_shared_library("particleability") {
   ]
 
   if (ability_runtime_relational) {
+    include_dirs += [
+      "${relational_store_napi_path}/common/include",
+      "${relational_store_napi_path}/dataability/include",
+      "${relational_store_napi_path}/rdb/include",
+    ]
     sources += [
       "${relational_store_napi_path}/common/src/js_df_manager.cpp",
       "${relational_store_napi_path}/common/src/js_utils.cpp",
