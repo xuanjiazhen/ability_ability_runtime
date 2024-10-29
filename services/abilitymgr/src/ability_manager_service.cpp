@@ -18,7 +18,6 @@
 #include "ability_background_connection.h"
 #include "ability_connect_manager.h"
 #include "ability_manager_radar.h"
-#include "ability_resident_process_rdb.h"
 #include "accesstoken_kit.h"
 #include "ability_manager_xcollie.h"
 #include "app_exception_handler.h"
@@ -50,6 +49,8 @@
 #include "interceptor/start_other_app_interceptor.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
+#include "keep_alive_process_manager.h"
+#include "keep_alive_utils.h"
 #include "mock_session_manager_service.h"
 #include "modal_system_dialog/modal_system_dialog_ui_extension.h"
 #include "modal_system_ui_extension.h"
@@ -181,6 +182,8 @@ constexpr char PRODUCT_ASSERT_FAULT_DIALOG_ENABLED[] = "persisit.sys.abilityms.s
 constexpr const char* ABILITYMS_ENABLE_UISERVICE = "const.abilityms.enable_uiservice";
 
 constexpr const char* DLP_PARAMS_SECURITY_FLAG = "ohos.dlp.params.securityFlag";
+
+constexpr char PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED[] = "const.product.enterprisefeature.setting.enabled";
 
 constexpr int32_t RESOURCE_SCHEDULE_UID = 1096;
 constexpr int32_t UPDATE_CONFIG_FLAG_COVER = 1;
@@ -2374,18 +2377,23 @@ void AbilityManagerService::AppUpgradeCompleted(const std::string &bundleName, i
         return;
     }
 
-    bool keepAliveEnable = bundleInfo.isKeepAlive;
-    AmsResidentProcessRdb::GetInstance().GetResidentProcessEnable(bundleInfo.name, keepAliveEnable);
-    if (!keepAliveEnable) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "not resident application");
+    KeepAliveType type = KeepAliveType::UNSPECIFIED;
+    if (!KeepAliveUtils::IsKeepAliveBundle(bundleInfo, userId, type)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "not keep-alive application");
         return;
     }
 
     std::vector<AppExecFwk::BundleInfo> bundleInfos = { bundleInfo };
-    DelayedSingleton<ResidentProcessManager>::GetInstance()->StartResidentProcessWithMainElement(bundleInfos, userId);
-
-    if (!bundleInfos.empty()) {
-        DelayedSingleton<ResidentProcessManager>::GetInstance()->StartResidentProcess(bundleInfos);
+    if (type == KeepAliveType::THIRD_PARTY) {
+        DelayedSingleton<KeepAliveProcessManager>::GetInstance()->StartKeepAliveProcessWithMainElement(
+            bundleInfos, userId);
+    } else if (type == KeepAliveType::RESIDENT_PROCESS) {
+        auto residentProcessManager = DelayedSingleton<ResidentProcessManager>::GetInstance();
+        CHECK_POINTER(residentProcessManager);
+        residentProcessManager->StartResidentProcessWithMainElement(bundleInfos, userId);
+        if (!bundleInfos.empty()) {
+            residentProcessManager->StartResidentProcess(bundleInfos);
+        }
     }
 }
 
@@ -6162,6 +6170,12 @@ void AbilityManagerService::OnAppStateChanged(const AppInfo &info)
     auto residentProcessMgr = DelayedSingleton<ResidentProcessManager>::GetInstance();
     CHECK_POINTER(residentProcessMgr);
     residentProcessMgr->OnAppStateChanged(info);
+
+    if (system::GetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false)) {
+        auto keepAliveProcessMgr = DelayedSingleton<KeepAliveProcessManager>::GetInstance();
+        CHECK_POINTER(keepAliveProcessMgr);
+        keepAliveProcessMgr->OnAppStateChanged(info);
+    }
 }
 
 std::shared_ptr<AbilityEventHandler> AbilityManagerService::GetEventHandler()
@@ -6518,9 +6532,9 @@ int AbilityManagerService::KillProcess(const std::string &bundleName, const bool
         return GET_BUNDLE_INFO_FAILED;
     }
 
-    bool keepAliveEnable = bundleInfo.isKeepAlive;
-    AmsResidentProcessRdb::GetInstance().GetResidentProcessEnable(bundleName, keepAliveEnable);
-    if (keepAliveEnable && DelayedSingleton<AppScheduler>::GetInstance()->IsMemorySizeSufficent()) {
+    KeepAliveType type;
+    if (KeepAliveUtils::IsKeepAliveBundle(bundleInfo, userId, type)
+        && DelayedSingleton<AppScheduler>::GetInstance()->IsMemorySizeSufficent()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no kill alive process");
         return KILL_PROCESS_KEEP_ALIVE;
     }
@@ -6977,23 +6991,42 @@ void AbilityManagerService::StartResidentApps(int32_t userId)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "StartResidentApps %{public}d", userId);
     ConnectServices();
+    auto residentProcessManager = DelayedSingleton<ResidentProcessManager>::GetInstance();
+    CHECK_POINTER(residentProcessManager);
     std::vector<AppExecFwk::BundleInfo> bundleInfos;
-    if (!DelayedSingleton<ResidentProcessManager>::GetInstance()->GetResidentBundleInfosForUser(bundleInfos, userId)) {
+    if (!residentProcessManager->GetResidentBundleInfosForUser(bundleInfos, userId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "get resident bundleinfos failed");
         return;
     }
-    DelayedSingleton<ResidentProcessManager>::GetInstance()->Init();
+    residentProcessManager->Init();
     TAG_LOGI(AAFwkTag::ABILITYMGR, "startResidentApps getBundleInfos size:%{public}zu", bundleInfos.size());
 
-    DelayedSingleton<ResidentProcessManager>::GetInstance()->StartResidentProcessWithMainElement(bundleInfos, userId);
+    residentProcessManager->StartResidentProcessWithMainElement(bundleInfos, userId);
     if (!bundleInfos.empty()) {
 #ifdef SUPPORT_GRAPHICS
         if (userId == U0_USER_ID) {
             WaitBootAnimationStart();
         }
 #endif
-        DelayedSingleton<ResidentProcessManager>::GetInstance()->StartResidentProcess(bundleInfos);
+        residentProcessManager->StartResidentProcess(bundleInfos);
     }
+}
+
+void AbilityManagerService::StartKeepAliveApps(int32_t userId)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartKeepAliveApps %{public}d", userId);
+    ConnectServices();
+    auto keepAliveProcessManager = DelayedSingleton<KeepAliveProcessManager>::GetInstance();
+    CHECK_POINTER(keepAliveProcessManager);
+    std::vector<AppExecFwk::BundleInfo> bundleInfos;
+    if (!keepAliveProcessManager->GetKeepAliveBundleInfosForUser(
+        bundleInfos, userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get keep-alive bundle info failed");
+        return;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartKeepAliveApps getBundleInfos size:%{public}zu", bundleInfos.size());
+
+    keepAliveProcessManager->StartKeepAliveProcessWithMainElement(bundleInfos, userId);
 }
 
 void AbilityManagerService::StartAutoStartupApps()
@@ -8093,7 +8126,13 @@ void AbilityManagerService::SwitchToUser(int32_t oldUserId, int32_t userId, sptr
         taskHandler_->SubmitTask([abilityMs = shared_from_this(), userId]() {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "StartResidentApps userId:%{public}d", userId);
             abilityMs->StartResidentApps(userId);
+        });
+        if (system::GetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false)) {
+            taskHandler_->SubmitTask([abilityMs = shared_from_this(), userId]() {
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "StartKeepAliveApps userId:%{public}d", userId);
+                abilityMs->StartKeepAliveApps(userId);
             });
+        }
     }
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled() &&
         AmsConfigurationParameter::GetInstance().MultiUserType() != 0) {
@@ -10836,17 +10875,38 @@ void AbilityManagerService::NotifyStartResidentProcess(std::vector<AppExecFwk::B
         }
     }
 
-    DelayedSingleton<ResidentProcessManager>::GetInstance()->StartResidentProcessWithMainElement(
+    auto residentProcessMgr = DelayedSingleton<ResidentProcessManager>::GetInstance();
+    CHECK_POINTER(residentProcessMgr);
+
+    residentProcessMgr->StartResidentProcessWithMainElement(
         bundleInfosForU0, U0_USER_ID);
     if (!bundleInfosForU0.empty()) {
-        DelayedSingleton<ResidentProcessManager>::GetInstance()->StartResidentProcess(bundleInfosForU0);
+        residentProcessMgr->StartResidentProcess(bundleInfosForU0);
     }
 
-    DelayedSingleton<ResidentProcessManager>::GetInstance()->StartResidentProcessWithMainElement(
+    residentProcessMgr->StartResidentProcessWithMainElement(
         bundleInfosForCurrentUser, currentUser);
     if (!bundleInfosForCurrentUser.empty()) {
-        DelayedSingleton<ResidentProcessManager>::GetInstance()->StartResidentProcess(bundleInfosForCurrentUser);
+        residentProcessMgr->StartResidentProcess(bundleInfosForCurrentUser);
     }
+}
+
+void AbilityManagerService::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos)
+{
+    if (!system::GetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false)) {
+        return;
+    }
+
+    auto userId = GetUserId();
+    std::vector<AppExecFwk::BundleInfo> bundleInfosForCurrentUser;
+    for (const auto &item: bundleInfos) {
+        if (item.uid / BASE_USER_RANGE == userId) {
+            bundleInfosForCurrentUser.push_back(item);
+        }
+    }
+
+    DelayedSingleton<KeepAliveProcessManager>::GetInstance()->StartKeepAliveProcessWithMainElement(
+        bundleInfosForCurrentUser, userId);
 }
 
 void AbilityManagerService::NotifyAppPreCache(int32_t pid, int32_t userId)
@@ -11016,10 +11076,7 @@ int32_t AbilityManagerService::SetResidentProcessEnabled(const std::string &bund
     }
 
     auto residentProcessManager = DelayedSingleton<ResidentProcessManager>::GetInstance();
-    if (residentProcessManager == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "get resident proces mgr null");
-        return INNER_ERR;
-    }
+    CHECK_POINTER_AND_RETURN(residentProcessManager, INNER_ERR);
 
     std::string callerName;
     int32_t uid = 0;
@@ -12263,6 +12320,40 @@ int32_t AbilityManagerService::UpdateKeepAliveEnableState(const std::string &bun
         TAG_LOGE(AAFwkTag::ABILITYMGR, "UpdateKeepAliveEnableState failed, err:%{public}d", ret);
     }
     return ret;
+}
+
+bool AbilityManagerService::IsCallerInStatusBar()
+{
+    auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
+    CHECK_POINTER_AND_RETURN(uiAbilityManager, false);
+
+    return uiAbilityManager->IsCallerInStatusBar();
+}
+
+int32_t AbilityManagerService::SetApplicationKeepAlive(const std::string &bundleName, int32_t userId, bool flag)
+{
+    return DelayedSingleton<KeepAliveProcessManager>::GetInstance()->SetApplicationKeepAlive(
+        bundleName, userId, flag);
+}
+
+int32_t AbilityManagerService::QueryKeepAliveApplications(int32_t appType, int32_t userId,
+    std::vector<KeepAliveInfo> &list)
+{
+    return DelayedSingleton<KeepAliveProcessManager>::GetInstance()->QueryKeepAliveApplications(
+        appType, userId, list);
+}
+
+int32_t AbilityManagerService::SetApplicationKeepAliveByEDM(const std::string &bundleName, int32_t userId, bool flag)
+{
+    return DelayedSingleton<KeepAliveProcessManager>::GetInstance()->SetApplicationKeepAlive(
+        bundleName, userId, flag, true);
+}
+
+int32_t AbilityManagerService::QueryKeepAliveApplicationsByEDM(int32_t appType, int32_t userId,
+    std::vector<KeepAliveInfo> &list)
+{
+    return DelayedSingleton<KeepAliveProcessManager>::GetInstance()->QueryKeepAliveApplications(
+        appType, userId, list, true);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -802,6 +802,11 @@ enum NativeFreeInstallError {
      */
     INVALID_REMOTE_PARAMETERS_ERR = 29360131,
 
+    /**
+     * Native error(29360135) for target bundle has no main ability.
+     */
+    ERR_NO_MAIN_ABILITY = 29360135,
+
     /*
      * Result(29360205) for continue freeinstall failed.
      */

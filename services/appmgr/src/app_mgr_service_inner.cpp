@@ -2514,7 +2514,7 @@ std::shared_ptr<AppRunningRecord> AppMgrServiceInner::CreateAppRunningRecord(
     }
 
     appRecord->SetProcessAndExtensionType(abilityInfo);
-    appRecord->SetKeepAliveEnableState(bundleInfo.isKeepAlive);
+    appRecord->SetKeepAliveEnableState(bundleInfo.isKeepAlive || loadParam->isKeepAlive);
     appRecord->SetEmptyKeepAliveAppState(false);
     appRecord->SetTaskHandler(taskHandler_);
     appRecord->SetEventHandler(eventHandler_);
@@ -7640,6 +7640,7 @@ int32_t AppMgrServiceInner::NotifyMemorySizeStateChanged(bool isMemorySizeSuffic
         ExitResidentProcessManager::GetInstance().QueryExitBundleInfos(exitProcessInfos, exitBundleInfos);
 
         innerServicer->NotifyStartResidentProcess(exitBundleInfos);
+        innerServicer->NotifyStartKeepAliveProcess(exitBundleInfos);
     };
     taskHandler_->SubmitTask(StartExitKeepAliveProcessTask, "startexitkeepaliveprocess");
     return ERR_OK;
@@ -7666,6 +7667,16 @@ void AppMgrServiceInner::NotifyStartResidentProcess(std::vector<AppExecFwk::Bund
     for (const auto &item : appStateCallbacks_) {
         if (item.callback != nullptr) {
             item.callback->NotifyStartResidentProcess(bundleInfos);
+        }
+    }
+}
+
+void AppMgrServiceInner::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos)
+{
+    std::lock_guard lock(appStateCallbacksLock_);
+    for (const auto &item : appStateCallbacks_) {
+        if (item.callback != nullptr) {
+            item.callback->NotifyStartKeepAliveProcess(bundleInfos);
         }
     }
 }
@@ -7958,6 +7969,7 @@ void AppMgrServiceInner::RestartResidentProcessDependedOnWeb()
         ExitResidentProcessManager::GetInstance().QueryExitBundleInfos(bundleNames, exitBundleInfos);
 
         innerServicer->NotifyStartResidentProcess(exitBundleInfos);
+        innerServicer->NotifyStartKeepAliveProcess(exitBundleInfos);
     };
     taskHandler_->SubmitTask(RestartResidentProcessDependedOnWebTask, "RestartResidentProcessDependedOnWeb");
 }

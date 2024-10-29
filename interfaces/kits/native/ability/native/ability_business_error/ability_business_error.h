@@ -201,6 +201,9 @@ enum class AbilityErrorCode {
     // target free install task does not exist.
     ERROR_CODE_FREE_INSTALL_TASK_NOT_EXIST = 16300007,
 
+    // target bundle has no main ability.
+    ERROR_CODE_NO_MAIN_ABILITY = 16300008,
+
     ERROR_CODE_BUNDLE_NAME_INVALID = 18500001,
 };
 

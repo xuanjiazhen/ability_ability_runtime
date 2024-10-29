@@ -81,6 +81,9 @@ int AppScheduler::LoadAbility(sptr<IRemoteObject> token, sptr<IRemoteObject> pre
     loadParam.token = token;
     loadParam.preToken = preToken;
     loadParam.instanceKey = instanceKey;
+    if (want.GetBoolParam(Want::PARAM_APP_KEEP_ALIVE_ENABLED, false)) {
+        loadParam.isKeepAlive = true;
+    }
     int ret = static_cast<int>(IN_PROCESS_CALL(
         appMgrClient_->LoadAbility(abilityInfo, applicationInfo, want, loadParam)));
     if (ret != ERR_OK) {
@@ -220,6 +223,13 @@ void AppScheduler::NotifyStartResidentProcess(std::vector<AppExecFwk::BundleInfo
     auto callback = callback_.lock();
     CHECK_POINTER(callback);
     callback->NotifyStartResidentProcess(bundleInfos);
+}
+
+void AppScheduler::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos)
+{
+    auto callback = callback_.lock();
+    CHECK_POINTER(callback);
+    callback->NotifyStartKeepAliveProcess(bundleInfos);
 }
 
 void AppScheduler::OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abilityTokens)

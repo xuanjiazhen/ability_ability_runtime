@@ -65,8 +65,8 @@ void MainElementUtils::UpdateMainElement(const std::string &bundleName, const st
 }
 
 bool MainElementUtils::CheckMainElement(const AppExecFwk::HapModuleInfo &hapModuleInfo,
-    const std::string &processName, std::string &mainElement,
-    std::set<uint32_t> &needEraseIndexSet, size_t bundleInfoIndex, int32_t userId)
+    const std::string &processName, std::string &mainElement, bool &isDataAbility,
+    std::string &uriStr, int32_t userId)
 {
     if (!hapModuleInfo.isModuleJson) {
         // old application model
@@ -87,16 +87,9 @@ bool MainElementUtils::CheckMainElement(const AppExecFwk::HapModuleInfo &hapModu
             return false;
         }
 
-        std::string uriStr;
-        bool getDataAbilityUri = DelayedSingleton<AbilityManagerService>::GetInstance()->GetDataAbilityUri(
+        isDataAbility = DelayedSingleton<AbilityManagerService>::GetInstance()->GetDataAbilityUri(
             hapModuleInfo.abilityInfos, mainElement, uriStr);
-        if (getDataAbilityUri) {
-            // dataability, need use AcquireDataAbility
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "call, mainElement: %{public}s, uri: %{public}s",
-                mainElement.c_str(), uriStr.c_str());
-            Uri uri(uriStr);
-            DelayedSingleton<AbilityManagerService>::GetInstance()->AcquireDataAbility(uri, true, nullptr);
-            needEraseIndexSet.insert(bundleInfoIndex);
+        if (isDataAbility) {
             return false;
         }
     } else {
@@ -115,6 +108,31 @@ bool MainElementUtils::CheckMainElement(const AppExecFwk::HapModuleInfo &hapModu
         }
     }
     return IsMainElementTypeOk(hapModuleInfo, mainElement, userId);
+}
+
+bool MainElementUtils::CheckMainUIAbility(const AppExecFwk::BundleInfo &bundleInfo, int32_t userId,
+    std::string& mainElementName)
+{
+    for (const auto& hapModuleInfo : bundleInfo.hapModuleInfos) {
+        if (hapModuleInfo.moduleType != AppExecFwk::ModuleType::ENTRY) {
+            continue;
+        }
+
+        mainElementName = hapModuleInfo.mainElementName;
+        if (mainElementName.empty()) {
+            return false;
+        }
+        for (const auto &abilityInfo: hapModuleInfo.abilityInfos) {
+            if (abilityInfo.type != AppExecFwk::AbilityType::PAGE) {
+                continue;
+            }
+            if (abilityInfo.name == mainElementName) {
+                return true;
+            }
+        }
+        break;
+    }
+    return false;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
