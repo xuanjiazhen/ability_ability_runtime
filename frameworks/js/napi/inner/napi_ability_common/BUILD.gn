@@ -48,6 +48,7 @@ ohos_shared_library("napi_ability_common") {
   external_deps = [
     "ability_base:base",
     "ability_base:want",
+    "bundle_framework:appexecfwk_base",
     "access_token:libtokenid_sdk",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
@@ -56,6 +57,7 @@ ohos_shared_library("napi_ability_common") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "napi:ace_napi",
+    "samgr:samgr_proxy",
   ]
 
   public_external_deps = [
