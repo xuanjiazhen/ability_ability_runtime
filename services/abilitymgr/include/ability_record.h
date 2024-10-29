@@ -35,6 +35,7 @@
 #include "application_info.h"
 #include "bundlemgr/bundle_mgr_interface.h"
 #include "call_container.h"
+#include "event_report.h"
 #include "exit_reason.h"
 #include "ipc_skeleton.h"
 #include "lifecycle_deal.h"
@@ -1189,6 +1190,8 @@ private:
 
     void SetDebugAppByWaitingDebugFlag();
     void AfterLoaded();
+
+    EventInfo BuildEventInfo();
 
 #ifdef SUPPORT_SCREEN
     std::shared_ptr<Want> GetWantFromMission() const;

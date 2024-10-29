@@ -1879,6 +1879,8 @@ private:
     std::shared_ptr<MultiUserConfigurationMgr> multiUserConfigurationMgr_;
     int32_t willKillPidsNum_;
     std::shared_ptr<AAFwk::TaskHandlerWrap> delayKillTaskHandler_;
+    void SendAbilityEvent(const std::shared_ptr<AppRunningRecord> appRecord,
+        const std::shared_ptr<AbilityRunningRecord> abilityRecord, const AbilityState state);
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
