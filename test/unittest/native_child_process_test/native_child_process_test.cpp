@@ -54,61 +54,214 @@ HWTEST_F(NativeChildProcessTest, OH_Ability_StartNativeChildProcess_001, TestSiz
 
     Ability_NativeChildProcess_ErrCode err = OH_Ability_StartNativeChildProcess(entry, args, options, pid);
     EXPECT_NE(err, 0);
+}
+
+/**
+ * @tc.name: OH_Ability_StartNativeChildProcess_002
+ * @tc.desc: Test OH_Ability_StartNativeChildProcess.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeChildProcessTest, OH_Ability_StartNativeChildProcess_002, TestSize.Level1)
+{
+    char* entry = nullptr;
+    NativeChildProcess_Args args;
+    NativeChildProcess_Options options;
+    int32_t *pid = nullptr;
 
     char temp = '\0';
     entry = &temp;
-    err = OH_Ability_StartNativeChildProcess(entry, args, options, pid);
+    Ability_NativeChildProcess_ErrCode err = OH_Ability_StartNativeChildProcess(entry, args, options, pid);
     EXPECT_NE(err, 0);
+}
 
-    temp = '1';
-    err = OH_Ability_StartNativeChildProcess(entry, args, options, pid);
-    EXPECT_NE(err, 0);
+/**
+ * @tc.name: OH_Ability_StartNativeChildProcess_003
+ * @tc.desc: Test OH_Ability_StartNativeChildProcess.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeChildProcessTest, OH_Ability_StartNativeChildProcess_003, TestSize.Level1)
+{
+    char* entry = nullptr;
+    NativeChildProcess_Args args;
+    NativeChildProcess_Options options;
+    int32_t *pid = nullptr;
 
-    temp = ':';
-    err = OH_Ability_StartNativeChildProcess(entry, args, options, pid);
+    char temp = '1';
+    entry = &temp;
+    Ability_NativeChildProcess_ErrCode err = OH_Ability_StartNativeChildProcess(entry, args, options, pid);
     EXPECT_NE(err, 0);
+}
+
+/**
+ * @tc.name: OH_Ability_StartNativeChildProcess_004
+ * @tc.desc: Test OH_Ability_StartNativeChildProcess.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeChildProcessTest, OH_Ability_StartNativeChildProcess_004, TestSize.Level1)
+{
+    char* entry = nullptr;
+    NativeChildProcess_Args args;
+    NativeChildProcess_Options options;
+    int32_t *pid = nullptr;
+
+    char temp = ':';
+    entry = &temp;
+    Ability_NativeChildProcess_ErrCode err = OH_Ability_StartNativeChildProcess(entry, args, options, pid);
+    EXPECT_NE(err, 0);
+}
+
+/**
+ * @tc.name: OH_Ability_StartNativeChildProcess_005
+ * @tc.desc: Test OH_Ability_StartNativeChildProcess.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeChildProcessTest, OH_Ability_StartNativeChildProcess_005, TestSize.Level1)
+{
+    char* entry = nullptr;
+    NativeChildProcess_Args args;
+    NativeChildProcess_Options options;
+    int32_t *pid = nullptr;
 
     int32_t tempid = 1;
     pid = &tempid;
     NativeChildProcess_Fd head;
     head.fdName = nullptr;
     args.fdList.head = &head;
-    err = OH_Ability_StartNativeChildProcess(entry, args, options, pid);
+    char temp = ':';
+    entry = &temp;
+    Ability_NativeChildProcess_ErrCode err = OH_Ability_StartNativeChildProcess(entry, args, options, pid);
     EXPECT_NE(err, 0);
+}
 
+/**
+ * @tc.name: OH_Ability_StartNativeChildProcess_006
+ * @tc.desc: Test OH_Ability_StartNativeChildProcess.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeChildProcessTest, OH_Ability_StartNativeChildProcess_006, TestSize.Level1)
+{
+    char* entry = nullptr;
+    NativeChildProcess_Args args;
+    NativeChildProcess_Options options;
+    int32_t *pid = nullptr;
+    
+
+    int32_t tempid = 1;
+    pid = &tempid;
+    NativeChildProcess_Fd head;
     char temp2[50] = {"123456789012345678901234567890"};
     head.fdName = temp2;
-    err = OH_Ability_StartNativeChildProcess(entry, args, options, pid);
+    args.fdList.head = &head;
+    char temp = ':';
+    entry = &temp;
+    Ability_NativeChildProcess_ErrCode err = OH_Ability_StartNativeChildProcess(entry, args, options, pid);
     EXPECT_NE(err, 0);
+}
 
-    head.fdName = &temp;
+/**
+ * @tc.name: OH_Ability_StartNativeChildProcess_007
+ * @tc.desc: Test OH_Ability_StartNativeChildProcess.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeChildProcessTest, OH_Ability_StartNativeChildProcess_007, TestSize.Level1)
+{
+    char* entry = nullptr;
+    NativeChildProcess_Args args;
+    NativeChildProcess_Options options;
+    int32_t *pid = nullptr;
+    
+    int32_t tempid = 1;
+    pid = &tempid;
+    NativeChildProcess_Fd head;
+    char fdName = ':';
+    entry = &fdName;
+    head.fdName = &fdName;
     NativeChildProcess_Fd *temphead = &head;
     NativeChildProcess_Fd head2[20];
-    char name[20][10];
+    char key[20][10];
     for (int i = 0; i < 20; i++) {
-        sprintf(name[i],"key%d", i);
-        head2[i].fdName =  name[i];
+        key[i][0] = i;
+        key[i][1] = 0;
+        head2[i].fdName =  key[i];
         head2[i].fd = i;
         temphead->next = &head2[i];
         temphead = &head2[i];
     }
     args.fdList.head = &head;
-    err = OH_Ability_StartNativeChildProcess(entry, args, options, pid);
+    Ability_NativeChildProcess_ErrCode err = OH_Ability_StartNativeChildProcess(entry, args, options, pid);
     EXPECT_NE(err, 0);
+}
 
+/**
+ * @tc.name: OH_Ability_StartNativeChildProcess_008
+ * @tc.desc: Test OH_Ability_StartNativeChildProcess.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeChildProcessTest, OH_Ability_StartNativeChildProcess_008, TestSize.Level1)
+{
+    char* entry = nullptr;
+    NativeChildProcess_Args args;
+    NativeChildProcess_Options options;
+    int32_t *pid = nullptr;
+    
+    int32_t tempid = 1;
+    pid = &tempid;
+    NativeChildProcess_Fd head;
+    char fdName = ':';
+    entry = &fdName;
+    head.fdName = &fdName;
     head.next = nullptr;
     args.fdList.head = &head;
-    args.entryParams = &temp;
-    err = OH_Ability_StartNativeChildProcess(entry, args, options, pid);
+    args.entryParams = &fdName;
+    Ability_NativeChildProcess_ErrCode err = OH_Ability_StartNativeChildProcess(entry, args, options, pid);
     EXPECT_NE(err, 0);
+}
 
-    char temp3 = '\0';
-    args.entryParams = &temp3;
-    err = OH_Ability_StartNativeChildProcess(entry, args, options, pid);
+/**
+ * @tc.name: OH_Ability_StartNativeChildProcess_009
+ * @tc.desc: Test OH_Ability_StartNativeChildProcess.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeChildProcessTest, OH_Ability_StartNativeChildProcess_009, TestSize.Level1)
+{
+    char* entry = nullptr;
+    NativeChildProcess_Args args;
+    NativeChildProcess_Options options;
+    int32_t *pid = nullptr;
+
+    int32_t tempid = 1;
+    pid = &tempid;
+    NativeChildProcess_Fd head;
+    char fdName = ':';
+    entry = &fdName;
+    head.fdName = &fdName;
+    head.next = nullptr;
+    args.fdList.head = &head;
+    args.entryParams = &fdName;
+    char temp2 = '\0';
+    args.entryParams = &temp2;
+    Ability_NativeChildProcess_ErrCode err = OH_Ability_StartNativeChildProcess(entry, args, options, pid);
     EXPECT_NE(err, 0);
+}
 
+/**
+ * @tc.name: OH_Ability_StartNativeChildProcess_0010
+ * @tc.desc: Test OH_Ability_StartNativeChildProcess.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeChildProcessTest, OH_Ability_StartNativeChildProcess_010, TestSize.Level1)
+{
+    char* entry = nullptr;
+    NativeChildProcess_Args args;
+    NativeChildProcess_Options options;
+    int32_t *pid = nullptr;
+
+    int32_t tempid = 1;
+    pid = &tempid;
+    char temp = ':';
+    entry = &temp;
     args.entryParams = nullptr;
-    err = OH_Ability_StartNativeChildProcess(entry, args, options, pid);
+    Ability_NativeChildProcess_ErrCode err = OH_Ability_StartNativeChildProcess(entry, args, options, pid);
     EXPECT_NE(err, 0);
 }
 }  // namespace AbilityRuntime

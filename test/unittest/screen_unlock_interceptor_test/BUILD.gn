@@ -19,17 +19,14 @@ module_output_path = "ability_runtime/abilitymgr"
 
 ohos_unittest("screen_unlock_interceptor_test") {
   module_out_path = module_output_path
-  include_dirs = [
-    "//base/theme/screenlock_mgr/interfaces/inner_api/include",
-    "//base/theme/screenlock_mgr/interfaces/inner_api/include",
-    "${ability_runtime_services_path}/abilitymgr/include",
-  ]
+  include_dirs = [ "${ability_runtime_services_path}/abilitymgr/include" ]
 
   sources = [
     "${ability_runtime_services_path}/abilitymgr/src/interceptor/screen_unlock_interceptor.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/start_ability_utils.cpp",
     "screen_unlock_interceptor_test.cpp",
   ]
+  
   configs = [
     "${ability_runtime_services_path}/common:common_config",
     "${ability_runtime_services_path}/abilitymgr:abilityms_config",

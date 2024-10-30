@@ -135,7 +135,7 @@ HWTEST_F(ScreenUnlockInterceptorTest, DoProcess_003, TestSize.Level0)
     AAFwk::AbilityInterceptorParam param = AAFwk::AbilityInterceptorParam(want, requestCode, userId, isWithUI, token,
         shouldBlockFunc);
     StartAbilityUtils::startAbilityInfo = nullptr;
-   auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
     // Act
     ErrCode result = screenUnlockInterceptor.DoProcess(param);
 
@@ -165,7 +165,8 @@ HWTEST_F(ScreenUnlockInterceptorTest, DoProcess_004, TestSize.Level0)
     StartAbilityUtils::startAbilityInfo = nullptr;
     AbilityInfo abilityInfo;
     auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
-    bundleMgrHelper->QueryAbilityInfo(param.want, AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, param.userId, abilityInfo);
+    bundleMgrHelper->QueryAbilityInfo(param.want, AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION,
+        param.userId, abilityInfo);
     
     // Act
     ErrCode result = screenUnlockInterceptor.DoProcess(param);
