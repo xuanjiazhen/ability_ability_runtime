@@ -268,6 +268,16 @@ int32_t GetUserIdByUid(int32_t uid)
     return uid / BASE_USER_RANGE;
 }
 
+bool IsForeground(const std::shared_ptr<AppRunningRecord> &appRecord)
+{
+    bool appIsForeground = false;
+    if (appRecord->GetState() == ApplicationState::APP_STATE_FOREGROUND ||
+        appRecord->GetState() == ApplicationState::APP_STATE_FOCUS) {
+        appIsForeground = true;
+    }
+    return appIsForeground;
+}
+
 bool IsCjAbility(const std::string& info)
 {
     // in cj application, the srcEntry format should be packageName.AbilityClassName.
@@ -1370,15 +1380,16 @@ void AppMgrServiceInner::ApplicationTerminated(const int32_t recordId)
 
     ApplicationTerminatedSendProcessEvent(appRecord);
     taskHandler_->CancelTask("DELAY_KILL_PROCESS_" + std::to_string(recordId));
-
     auto uid = appRecord->GetUid();
+    bool foreground = IsForeground(appRecord);
     auto result = HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::FRAMEWORK, "PROCESS_KILL",
         OHOS::HiviewDFX::HiSysEvent::EventType::FAULT,
         EVENT_KEY_PID, std::to_string(eventInfo.pid),
         EVENT_KEY_PROCESS_NAME, eventInfo.processName,
-        EVENT_KEY_MESSAGE, "Kill Reason:app exit");
+        EVENT_KEY_MESSAGE, "Kill Reason:app exit", "FOREGROUND", foreground);
     TAG_LOGW(AAFwkTag::APPMGR, "hisysevent write result=%{public}d, send [FRAMEWORK,PROCESS_KILL], pid=%{public}d,"
-        " processName=%{public}s, msg=Kill Reason:app exit", result, eventInfo.pid, eventInfo.processName.c_str());
+        " processName=%{public}s, msg=Kill Reason:app exit, FOREGROUND = %{public}d",
+        result, eventInfo.pid, eventInfo.processName.c_str(), foreground);
     NotifyAppRunningStatusEvent(appRecord->GetBundleName(), uid, AbilityRuntime::RunningStatus::APP_RUNNING_STOP);
 }
 
@@ -2449,13 +2460,14 @@ int32_t AppMgrServiceInner::KillProcessByPidInner(const pid_t pid, const std::st
     DelayedSingleton<CacheProcessManager>::GetInstance()->OnProcessKilled(appRecord);
     eventInfo.pid = appRecord->GetPriorityObject()->GetPid();
     eventInfo.processName = appRecord->GetProcessName();
+    bool foreground = IsForeground(appRecord);
     AAFwk::EventReport::SendAppEvent(AAFwk::EventName::APP_TERMINATE, HiSysEventType::BEHAVIOR, eventInfo);
     int result = HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::FRAMEWORK, "PROCESS_KILL",
         OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, EVENT_KEY_PID, std::to_string(eventInfo.pid),
-        EVENT_KEY_PROCESS_NAME, eventInfo.processName, EVENT_KEY_MESSAGE, killReason);
+        EVENT_KEY_PROCESS_NAME, eventInfo.processName, EVENT_KEY_MESSAGE, killReason, "FOREGROUND", foreground);
     TAG_LOGW(AAFwkTag::APPMGR, "hisysevent write result=%{public}d, send event [FRAMEWORK,PROCESS_KILL], pid="
-        "%{public}d, processName=%{public}s, msg=%{public}s", result, pid, eventInfo.processName.c_str(),
-        killReason.c_str());
+        "%{public}d, processName=%{public}s, msg=%{public}s, FOREGROUND = %{public}d",
+        result, pid, eventInfo.processName.c_str(), killReason.c_str(), foreground);
     return ret;
 }
 
