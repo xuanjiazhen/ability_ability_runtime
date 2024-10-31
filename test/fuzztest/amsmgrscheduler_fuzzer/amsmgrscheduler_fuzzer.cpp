@@ -96,8 +96,6 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     amsMgrScheduler->UpdateExtensionState(token, extensionState);
     bool clearMissionFlag = *data % ENABLE;
     amsMgrScheduler->TerminateAbility(token, clearMissionFlag);
-    sptr<IAppStateCallback> callback;
-    amsMgrScheduler->RegisterAppStateCallback(callback);
     int32_t userId = static_cast<int32_t>(GetU32Data(data));
     amsMgrScheduler->KillProcessesByUserId(userId);
     std::string bundleName(data, size);

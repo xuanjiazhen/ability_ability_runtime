@@ -180,41 +180,6 @@ void AmsMgrProxy::UpdateExtensionState(const sptr<IRemoteObject> &token, const E
     TAG_LOGD(AAFwkTag::APPMGR, "end");
 }
 
-void AmsMgrProxy::RegisterAppStateCallback(const sptr<IAppStateCallback> &callback)
-{
-    TAG_LOGD(AAFwkTag::APPMGR, "begin");
-    if (!callback) {
-        TAG_LOGE(AAFwkTag::APPMGR, "callback null");
-        return;
-    }
-
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option(MessageOption::TF_SYNC);
-    if (!WriteInterfaceToken(data)) {
-        return;
-    }
-
-    if (callback->AsObject()) {
-        if (!data.WriteBool(true) || !data.WriteRemoteObject(callback->AsObject())) {
-            TAG_LOGE(AAFwkTag::APPMGR, "Failed to write flag and callback");
-            return;
-        }
-    } else {
-        if (!data.WriteBool(false)) {
-            TAG_LOGE(AAFwkTag::APPMGR, "Failed to write flag");
-            return;
-        }
-    }
-
-    int32_t ret = SendTransactCmd(
-        static_cast<uint32_t>(IAmsMgr::Message::REGISTER_APP_STATE_CALLBACK), data, reply, option);
-    if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest err: %{public}d", ret);
-    }
-    TAG_LOGD(AAFwkTag::APPMGR, "end");
-}
-
 void AmsMgrProxy::KillProcessByAbilityToken(const sptr<IRemoteObject> &token)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "start");

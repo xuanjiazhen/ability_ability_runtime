@@ -69,6 +69,7 @@ constexpr const char* TASK_FINISH_USER_TEST = "FinishUserTest";
 constexpr const char* TASK_ATTACH_RENDER_PROCESS = "AttachRenderTask";
 constexpr const char* TASK_ATTACH_CHILD_PROCESS = "AttachChildProcessTask";
 constexpr const char* TASK_EXIT_CHILD_PROCESS_SAFELY = "ExitChildProcessSafelyTask";
+constexpr const char* TASK_REGISTER_APP_STATE_CALLBACK = "RegisterAppStateCallbackTask";
 constexpr const char* FOUNDATION_PROCESS = "foundation";
 constexpr int32_t USER_UID = 2000;
 }  // namespace
@@ -1684,6 +1685,21 @@ int32_t AppMgrService::GetAppIndexByPid(pid_t pid, int32_t &appIndex)
         return ERR_INVALID_VALUE;
     }
     return appMgrServiceInner_->GetAppIndexByPid(pid, appIndex);
+}
+
+void AppMgrService::RegisterAppStateCallback(const sptr<IAppStateCallback> &callback)
+{
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "caller is not SA");
+        return;
+    }
+    if (!IsReady()) {
+        return;
+    }
+    std::function<void()> registerAppStateCallbackFunc = [appMgrServiceInner = appMgrServiceInner_, callback]() {
+        appMgrServiceInner->RegisterAppStateCallback(callback);
+    };
+    taskHandler_->SubmitTask(registerAppStateCallbackFunc, TASK_REGISTER_APP_STATE_CALLBACK);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -22,7 +22,6 @@
 #include "app_record_id.h"
 #include "application_info.h"
 #include "configuration.h"
-#include "iapp_state_callback.h"
 #include "iremote_broker.h"
 #include "iremote_object.h"
 #include "istart_specified_ability_response.h"
@@ -76,14 +75,6 @@ public:
      * @return
      */
     virtual void UpdateExtensionState(const sptr<IRemoteObject> &token, const ExtensionState state) = 0;
-
-    /**
-     * RegisterAppStateCallback, call RegisterAppStateCallback() through the proxy object, register the callback.
-     *
-     * @param callback, Ams register the callback.
-     * @return
-     */
-    virtual void RegisterAppStateCallback(const sptr<IAppStateCallback> &callback) = 0;
 
     /**
      * KillProcessByAbilityToken, call KillProcessByAbilityToken() through proxy object,

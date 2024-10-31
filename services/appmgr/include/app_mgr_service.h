@@ -773,6 +773,8 @@ public:
     virtual void RestartResidentProcessDependedOnWeb() override;
 
     int32_t GetAppIndexByPid(pid_t pid, int32_t &appIndex) override;
+
+    virtual void RegisterAppStateCallback(const sptr<IAppStateCallback> &callback) override;
 private:
     /**
      * Init, Initialize application services.

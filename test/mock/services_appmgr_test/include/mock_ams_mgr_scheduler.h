@@ -68,12 +68,6 @@ public:
 
     MockAmsMgrScheduler() : AmsMgrStub() {};
     virtual ~MockAmsMgrScheduler() {};
-    virtual void RegisterAppStateCallback(const sptr<IAppStateCallback>& callback) override
-    {
-        callback->OnAbilityRequestDone(nullptr, AbilityState::ABILITY_STATE_BACKGROUND);
-        AppProcessData appProcessData;
-        callback->OnAppStateChanged(appProcessData);
-    }
 
     MOCK_METHOD1(SetCurrentUserId, void(const int32_t userId));
 

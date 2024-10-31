@@ -68,14 +68,6 @@ public:
     virtual void UpdateExtensionState(const sptr<IRemoteObject> &token, const ExtensionState state) override;
 
     /**
-     * RegisterAppStateCallback, call RegisterAppStateCallback() through the proxy object, register the callback.
-     *
-     * @param callback, Ams register the callback.
-     * @return
-     */
-    virtual void RegisterAppStateCallback(const sptr<IAppStateCallback> &callback) override;
-
-    /**
      * KillProcessByAbilityToken, call KillProcessByAbilityToken() through proxy object,
      * kill the process by ability token.
      *

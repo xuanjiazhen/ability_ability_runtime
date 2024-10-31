@@ -36,7 +36,6 @@ namespace {
 constexpr const char* TASK_TERMINATE_ABILITY = "TerminateAbilityTask";
 constexpr const char* TASK_UPDATE_ABILITY_STATE = "UpdateAbilityStateTask";
 constexpr const char* TASK_UPDATE_EXTENSION_STATE = "UpdateExtensionStateTask";
-constexpr const char* TASK_REGISTER_APP_STATE_CALLBACK = "RegisterAppStateCallbackTask";
 constexpr const char* TASK_STOP_ALL_PROCESS = "StopAllProcessTask";
 constexpr const char* TASK_ABILITY_BEHAVIOR_ANALYSIS = "AbilityBehaviorAnalysisTask";
 constexpr const char* TASK_KILL_PROCESS_BY_ABILITY_TOKEN = "KillProcessByAbilityTokenTask";
@@ -179,21 +178,6 @@ void AmsMgrScheduler::TerminateAbility(const sptr<IRemoteObject> &token, bool cl
         .taskName_ = TASK_TERMINATE_ABILITY,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
     });
-}
-
-void AmsMgrScheduler::RegisterAppStateCallback(const sptr<IAppStateCallback> &callback)
-{
-    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
-        TAG_LOGE(AAFwkTag::APPMGR, "caller is not SA");
-        return;
-    }
-    if (!IsReady()) {
-        return;
-    }
-    std::function<void()> registerAppStateCallbackFunc = [amsMgrServiceInner = amsMgrServiceInner_, callback]() {
-        amsMgrServiceInner->RegisterAppStateCallback(callback);
-    };
-    amsHandler_->SubmitTask(registerAppStateCallbackFunc, TASK_REGISTER_APP_STATE_CALLBACK);
 }
 
 void AmsMgrScheduler::KillProcessByAbilityToken(const sptr<IRemoteObject> &token)

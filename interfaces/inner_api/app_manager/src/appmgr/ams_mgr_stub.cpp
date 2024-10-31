@@ -95,8 +95,6 @@ int32_t AmsMgrStub::OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data
             return HandleUpdateAbilityState(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::UPDATE_EXTENSION_STATE):
             return HandleUpdateExtensionState(data, reply);
-        case static_cast<uint32_t>(IAmsMgr::Message::REGISTER_APP_STATE_CALLBACK):
-            return HandleRegisterAppStateCallback(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::KILL_PEOCESS_BY_ABILITY_TOKEN):
             return HandleKillProcessByAbilityToken(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::KILL_PROCESSES_BY_USERID):
@@ -272,18 +270,6 @@ ErrCode AmsMgrStub::HandleUpdateExtensionState(MessageParcel &data, MessageParce
     sptr<IRemoteObject> token = data.ReadRemoteObject();
     int32_t state = data.ReadInt32();
     UpdateExtensionState(token, static_cast<ExtensionState>(state));
-    return NO_ERROR;
-}
-
-ErrCode AmsMgrStub::HandleRegisterAppStateCallback(MessageParcel &data, MessageParcel &reply)
-{
-    HITRACE_METER(HITRACE_TAG_APP);
-    sptr<IAppStateCallback> callback = nullptr;
-    if (data.ReadBool()) {
-        sptr<IRemoteObject> obj = data.ReadRemoteObject();
-        callback = iface_cast<IAppStateCallback>(obj);
-    }
-    RegisterAppStateCallback(callback);
     return NO_ERROR;
 }
 

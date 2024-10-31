@@ -221,32 +221,6 @@ HWTEST_F(AmsMgrSchedulerTest, AmsMgrScheduler_004, TestSize.Level1)
 /*
  * Feature: AMS
  * Function: AmsMgrScheduler
- * SubFunction: RegisterAppStateCallback
- * FunctionPoints: Act normal
- * EnvConditions: Mobile that can run ohos test framework.
- * CaseDescription: Verify the function RegisterAppStateCallback can works.
- */
-HWTEST_F(AmsMgrSchedulerTest, AmsMgrScheduler_005, TestSize.Level1)
-{
-    TAG_LOGD(AAFwkTag::TEST, "AmsMgrScheduler_005 start.");
-
-    auto mockAppMgrServiceInner = GetMockAppMgrServiceInner();
-    std::unique_ptr<AmsMgrScheduler> amsMgrScheduler =
-        std::make_unique<AmsMgrScheduler>(mockAppMgrServiceInner, GetAmsTaskHandler());
-    ASSERT_NE(amsMgrScheduler, nullptr);
-
-    sptr<AppStateCallbackHost> appStateCallbackHost = new AppStateCallbackHost();
-    EXPECT_CALL(*mockAppMgrServiceInner, RegisterAppStateCallback(_))
-        .WillOnce(InvokeWithoutArgs(mockAppMgrServiceInner.get(), &MockAppMgrServiceInner::Post));
-    amsMgrScheduler->RegisterAppStateCallback(appStateCallbackHost);
-    mockAppMgrServiceInner->Wait();
-
-    TAG_LOGD(AAFwkTag::TEST, "AmsMgrScheduler_005 end.");
-}
-
-/*
- * Feature: AMS
- * Function: AmsMgrScheduler
  * SubFunction: IsReady
  * FunctionPoints: Check Params
  * EnvConditions: Mobile that can run ohos test framework.
@@ -512,25 +486,6 @@ HWTEST_F(AmsMgrSchedulerTest, TerminateAbility_001, TestSize.Level0)
     amsMgrScheduler->amsMgrServiceInner_ = GetMockAppMgrServiceInner();
     amsMgrScheduler->amsHandler_ = GetAmsTaskHandler();
     amsMgrScheduler->TerminateAbility(token, clearMissionFlag);
-}
-
-/*
- * Feature: AmsMgrScheduler
- * Function: RegisterAppStateCallback
- * SubFunction: NA
- * FunctionPoints: AmsMgrScheduler RegisterAppStateCallback
- * EnvConditions: NA
- * CaseDescription: Verify RegisterAppStateCallback
- */
-HWTEST_F(AmsMgrSchedulerTest, RegisterAppStateCallback_001, TestSize.Level0)
-{
-    auto amsMgrScheduler = std::make_unique<AmsMgrScheduler>(nullptr, nullptr);
-    ASSERT_NE(amsMgrScheduler, nullptr);
-    sptr<IAppStateCallback> callback = nullptr;
-    amsMgrScheduler->RegisterAppStateCallback(callback);
-    amsMgrScheduler->amsMgrServiceInner_ = GetMockAppMgrServiceInner();
-    amsMgrScheduler->amsHandler_ = GetAmsTaskHandler();
-    amsMgrScheduler->RegisterAppStateCallback(callback);
 }
 
 /*
