@@ -491,13 +491,18 @@ int AbilityConnectManager::PreloadUIExtensionAbilityInner(const AbilityRequest &
     std::string &hostBundleName)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
+    EventInfo eventInfo = BuildEventInfo(abilityRequest);
     if (!UIExtensionUtils::IsUIExtension(abilityRequest.abilityInfo.extensionAbilityType)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "can't preload non-uiextension type");
+        eventInfo.errCode = ERR_WRONG_INTERFACE_CALL;
+        EventReport::SendExtensionEvent(EventName::PRELOAD_EXTENSION_ERROR, HiSysEventType::FAULT, eventInfo);
         return ERR_WRONG_INTERFACE_CALL;
     }
     int32_t ret = AbilityPermissionUtil::GetInstance().CheckMultiInstanceKeyForExtension(abilityRequest);
     if (ret != ERR_OK) {
         //  Do not distinguishing specific error codes
+        eventInfo.errCode = ERR_INVALID_VALUE;
+        EventReport::SendExtensionEvent(EventName::PRELOAD_EXTENSION_ERROR, HiSysEventType::FAULT, eventInfo);
         return ERR_INVALID_VALUE;
     }
     std::shared_ptr<ExtensionRecord> extensionRecord = nullptr;
@@ -507,6 +512,8 @@ int AbilityConnectManager::PreloadUIExtensionAbilityInner(const AbilityRequest &
         extensionRecord, extensionRecordId);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "CreateExtensionRecord ERR");
+        eventInfo.errCode = ret;
+        EventReport::SendExtensionEvent(EventName::PRELOAD_EXTENSION_ERROR, HiSysEventType::FAULT, eventInfo);
         return ret;
     }
     CHECK_POINTER_AND_RETURN(extensionRecord, ERR_NULL_OBJECT);
@@ -517,6 +524,8 @@ int AbilityConnectManager::PreloadUIExtensionAbilityInner(const AbilityRequest &
     targetService->SetURI(extensionRecordKey);
     AddToServiceMap(extensionRecordKey, targetService);
     LoadAbility(targetService);
+    eventInfo.errCode = ERR_OK;
+    EventReport::SendExtensionEvent(EventName::PRELOAD_EXTENSION_ERROR, HiSysEventType::BEHAVIOR, eventInfo);
     return ERR_OK;
 }
 
@@ -3184,6 +3193,16 @@ EventInfo AbilityConnectManager::BuildEventInfo(const std::shared_ptr<AbilityRec
         eventInfo.moduleName = abilityInfo.moduleName;
         eventInfo.abilityName = abilityInfo.name;
     }
+    return eventInfo;
+}
+
+EventInfo AbilityConnectManager::BuildEventInfo(const AbilityRequest &abilityRequest)
+{
+    EventInfo eventInfo;
+    eventInfo.userId = abilityRequest.userId;
+    eventInfo.bundleName = abilityRequest.want.GetElement().GetBundleName();
+    eventInfo.moduleName = abilityRequest.want.GetElement().GetModuleName();
+    eventInfo.abilityName = abilityRequest.want.GetElement().GetAbilityName();
     return eventInfo;
 }
 

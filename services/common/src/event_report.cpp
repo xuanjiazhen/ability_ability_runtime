@@ -333,6 +333,7 @@ void EventReport::SendExtensionEvent(const EventName &eventName, HiSysEventType 
         case EventName::START_EXTENSION_ERROR:
         case EventName::STOP_EXTENSION_ERROR:
         case EventName::CONNECT_SERVICE_ERROR:
+        case EventName::PRELOAD_EXTENSION_ERROR:
             HiSysEventWrite(
                 HiSysEvent::Domain::AAFWK,
                 name,
@@ -668,6 +669,7 @@ std::string EventReport::ConvertEventName(const EventName &eventName)
         // fault event
         "START_ABILITY_ERROR", "TERMINATE_ABILITY_ERROR", "START_EXTENSION_ERROR",
         "STOP_EXTENSION_ERROR", "CONNECT_SERVICE_ERROR", "DISCONNECT_SERVICE_ERROR",
+        "PRELOAD_EXTENSION_ERROR",
 
         // ability behavior event
         "START_ABILITY", "TERMINATE_ABILITY", "CLOSE_ABILITY",
