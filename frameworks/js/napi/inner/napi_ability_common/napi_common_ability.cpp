@@ -810,7 +810,11 @@ napi_value GetContextAsync(
             asyncCallbackInfo = nullptr;
             TAG_LOGI(AAFwkTag::JSNAPI, "complete end");
         }, static_cast<void *>(asyncCallbackInfo), &asyncCallbackInfo->asyncWork);
-    napi_queue_async_work_with_qos(env, asyncCallbackInfo->asyncWork, napi_qos_user_initiated);
+    napi_status status =
+        napi_queue_async_work_with_qos(env, asyncCallbackInfo->asyncWork, napi_qos_user_initiated);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "run task err: %{public}d", status);
+    }
     napi_value result = nullptr;
     napi_get_null(env, &result);
     TAG_LOGI(AAFwkTag::JSNAPI, "asyncCallback end");
@@ -855,7 +859,11 @@ napi_value GetContextPromise(napi_env env, AsyncCallbackInfo *asyncCallbackInfo)
         },
         static_cast<void *>(asyncCallbackInfo),
         &asyncCallbackInfo->asyncWork);
-    napi_queue_async_work_with_qos(env, asyncCallbackInfo->asyncWork, napi_qos_user_initiated);
+    napi_status status =
+        napi_queue_async_work_with_qos(env, asyncCallbackInfo->asyncWork, napi_qos_user_initiated);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "run task err: %{public}d", status);
+    }
     TAG_LOGI(AAFwkTag::JSNAPI, "promise end");
     return promise;
 }

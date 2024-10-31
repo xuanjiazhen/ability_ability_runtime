@@ -186,7 +186,11 @@ napi_value SetShowOnLockScreenPromise(napi_env env, ShowOnLockScreenCB *cbData)
         },
         static_cast<void *>(cbData),
         &cbData->cbBase.asyncWork);
-    napi_queue_async_work_with_qos(env, cbData->cbBase.asyncWork, napi_qos_user_initiated);
+    napi_status status =
+        napi_queue_async_work_with_qos(env, cbData->cbBase.asyncWork, napi_qos_user_initiated);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "run task err: %{public}d", status);
+    }
     TAG_LOGI(AAFwkTag::JSNAPI, "promise end");
     return promise;
 }
@@ -401,7 +405,10 @@ napi_value SetWakeUpScreenPromise(napi_env env, SetWakeUpScreenCB *cbData)
         },
         static_cast<void *>(cbData),
         &cbData->cbBase.asyncWork);
-    napi_queue_async_work(env, cbData->cbBase.asyncWork);
+    napi_status status = napi_queue_async_work(env, cbData->cbBase.asyncWork);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "run task err: %{public}d", status);
+    }
     return promise;
 }
 
