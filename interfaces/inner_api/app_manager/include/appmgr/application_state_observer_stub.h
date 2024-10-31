@@ -17,7 +17,6 @@
 #define OHOS_ABILITY_RUNTIME_APPLICATION_STATE_OBSERVER_STUB_H
 
 #include <map>
-#include <mutex>
 
 #include "iremote_stub.h"
 #include "nocopyable.h"
@@ -176,8 +175,6 @@ private:
     int32_t HandleOnPageHide(MessageParcel &data, MessageParcel &reply);
 
     int32_t HandleOnAppCacheStateChanged(MessageParcel &data, MessageParcel &reply);
-
-    static std::mutex callbackMutex_;
 
     DISALLOW_COPY_AND_MOVE(ApplicationStateObserverStub);
 };
