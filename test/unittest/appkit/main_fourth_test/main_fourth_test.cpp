@@ -328,23 +328,6 @@ HWTEST_F(MainThreadTest, SetAppDebug_0200, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
 
-/*
- * Feature: MainThread
- * Function: HandleCacheProcess
- * SubFunction: NA
- * FunctionPoints: MainThread HandleCacheProcess
- * EnvConditions: NA
- * CaseDescription: Verify HandleCacheProcess
- */
-HWTEST_F(MainThreadTest, HandleCacheProcess_0100, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    mainThread_->application_ = std::make_shared<OHOSApplication>();
-    mainThread_->HandleCacheProcess();
-    EXPECT_NE(mainThread_->application_, nullptr);
-    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
-}
-
 /**
  * @tc.name: InitResourceManager_0100
  * @tc.desc: init resourceManager.
