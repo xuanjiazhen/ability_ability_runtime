@@ -1455,7 +1455,7 @@ int32_t AppMgrServiceInner::UpdateApplicationInfoInstalled(const std::string &bu
     return result;
 }
 
-int32_t AppMgrServiceInner::KillApplication(const std::string &bundleName, const bool clearPageStack)
+int32_t AppMgrServiceInner::KillApplication(const std::string &bundleName, bool clearPageStack, int32_t appIndex)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "call");
     if (!appRunningManager_) {
@@ -1464,7 +1464,7 @@ int32_t AppMgrServiceInner::KillApplication(const std::string &bundleName, const
     }
 
     if (CheckCallerIsAppGallery()) {
-        return KillApplicationByBundleName(bundleName, clearPageStack, "KillApplicationByAppGallery");
+        return KillApplicationByBundleName(bundleName, appIndex, clearPageStack, "KillApplicationByAppGallery");
     }
 
     auto result = VerifyKillProcessPermission(bundleName);
@@ -1473,7 +1473,7 @@ int32_t AppMgrServiceInner::KillApplication(const std::string &bundleName, const
         return result;
     }
 
-    return KillApplicationByBundleName(bundleName, clearPageStack, "KillApplication");
+    return KillApplicationByBundleName(bundleName, appIndex, clearPageStack, "KillApplication");
 }
 
 int32_t AppMgrServiceInner::ForceKillApplication(const std::string &bundleName,
@@ -1719,30 +1719,29 @@ int32_t AppMgrServiceInner::KillAppSelfWithInstanceKey(const std::string &instan
 }
 
 int32_t AppMgrServiceInner::KillApplicationByBundleName(
-    const std::string &bundleName, const bool clearPageStack, const std::string& reason)
+    const std::string &bundleName, int32_t appIndex, bool clearPageStack, const std::string& reason)
 {
     int result = ERR_OK;
     int64_t startTime = SystemTimeMillisecond();
     std::list<pid_t> pids;
 
-    if (!appRunningManager_->ProcessExitByBundleName(bundleName, pids, clearPageStack)) {
+    if (!appRunningManager_->ProcessExitByBundleNameAndAppIndex(bundleName, appIndex, pids, clearPageStack)) {
         TAG_LOGE(AAFwkTag::APPMGR, "process corresponding to the package name did not start");
         return result;
     }
     if (WaitForRemoteProcessExit(pids, startTime)) {
         TAG_LOGD(AAFwkTag::APPMGR, "The remote process exited successfully ");
-        NotifyAppStatus(bundleName, EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_RESTARTED);
+        NotifyAppStatus(bundleName, appIndex, EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_RESTARTED);
         return result;
     }
     for (auto iter = pids.begin(); iter != pids.end(); ++iter) {
-        result = KillProcessByPid(*iter, reason);
-        if (result < 0) {
-            TAG_LOGE(AAFwkTag::APPMGR, "killApplicationSelf fail for bundleName: %{public}s, pid: %{public}d",
-                bundleName.c_str(), *iter);
-            return result;
+        auto singleRet = KillProcessByPid(*iter, reason);
+        if (singleRet < 0) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Failed to kill pid:%{public}d", *iter);
+            result = singleRet;
         }
     }
-    NotifyAppStatus(bundleName, EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_RESTARTED);
+    NotifyAppStatus(bundleName, appIndex, EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_RESTARTED);
     return result;
 }
 
@@ -1838,7 +1837,8 @@ int32_t AppMgrServiceInner::ClearUpApplicationDataBySelf(int32_t callerUid, pid_
             newUserId = currentUserId_;
         }
     }
-    return ClearUpApplicationDataByUserId(callerBundleName, callerUid, callerPid, 0, newUserId, true,
+    auto appCloneIndex = appRecord->GetAppIndex();
+    return ClearUpApplicationDataByUserId(callerBundleName, callerUid, callerPid, appCloneIndex, newUserId, true,
         "ClearUpApplicationDataBySelf");
 }
 
@@ -3645,6 +3645,10 @@ void AppMgrServiceInner::ProcessAppDebug(const std::shared_ptr<AppRunningRecord>
         TAG_LOGE(AAFwkTag::APPMGR, "appRecord or appDebugManager_ null");
         return;
     }
+    if (appRecord->GetAppIndex() != 0) {
+        TAG_LOGW(AAFwkTag::APPMGR, "appIndex is not zero");
+        return;
+    }
 
     auto startDebug = [this, appRecord](const bool &isDebugStart) {
         std::vector<AppDebugInfo> debugInfos;
@@ -4211,7 +4215,7 @@ void AppMgrServiceInner::RestartResidentProcess(std::shared_ptr<AppRunningRecord
     StartResidentProcess(infos, appRecord->GetRestartResidentProcCount(), appRecord->IsEmptyKeepAliveApp());
 }
 
-void AppMgrServiceInner::NotifyAppStatus(const std::string &bundleName, const std::string &eventData)
+void AppMgrServiceInner::NotifyAppStatus(const std::string &bundleName, int32_t appIndex, const std::string &eventData)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "bundle name is %{public}s, event is %{public}s",
         bundleName.c_str(), eventData.c_str());
@@ -4221,6 +4225,7 @@ void AppMgrServiceInner::NotifyAppStatus(const std::string &bundleName, const st
     element.SetBundleName(bundleName);
     want.SetElement(element);
     want.SetParam(Constants::USER_ID, 0);
+    want.SetParam(Constants::APP_INDEX, appIndex);
     EventFwk::CommonEventData commonData {want};
     EventFwk::CommonEventManager::PublishCommonEvent(commonData);
 }
@@ -4752,7 +4757,8 @@ int32_t AppMgrServiceInner::UpdateConfiguration(const Configuration &config, con
     return result;
 }
 
-int32_t AppMgrServiceInner::UpdateConfigurationByBundleName(const Configuration &config, const std::string &name)
+int32_t AppMgrServiceInner::UpdateConfigurationByBundleName(const Configuration &config, const std::string &name,
+    int32_t appIndex)
 {
     if (!appRunningManager_) {
         TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
@@ -4763,7 +4769,7 @@ int32_t AppMgrServiceInner::UpdateConfigurationByBundleName(const Configuration 
     if (ret != ERR_OK) {
         return ret;
     }
-    int32_t result = appRunningManager_->UpdateConfigurationByBundleName(config, name);
+    int32_t result = appRunningManager_->UpdateConfigurationByBundleName(config, name, appIndex);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "update error");
         return result;
@@ -6560,14 +6566,14 @@ int32_t AppMgrServiceInner::AttachAppDebug(const std::string &bundleName)
         TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
         return ERR_NO_INIT;
     }
-    appRunningManager_->SetAttachAppDebug(bundleName, true);
+    appRunningManager_->SetAttachAppDebug(bundleName, 0, true);
 
-    auto debugInfos = appRunningManager_->GetAppDebugInfosByBundleName(bundleName, false);
+    auto debugInfos = appRunningManager_->GetAppDebugInfosByBundleName(bundleName, 0, false);
     if (!debugInfos.empty() && appDebugManager_ != nullptr) {
         appDebugManager_->StartDebug(debugInfos);
     }
 
-    NotifyAbilitiesDebugChange(bundleName, true);
+    NotifyAbilitiesDebugChange(bundleName, 0, true);
     return ERR_OK;
 }
 
@@ -6585,15 +6591,15 @@ int32_t AppMgrServiceInner::DetachAppDebug(const std::string &bundleName)
         return ERR_NO_INIT;
     }
 
-    auto debugInfos = appRunningManager_->GetAppDebugInfosByBundleName(bundleName, true);
+    auto debugInfos = appRunningManager_->GetAppDebugInfosByBundleName(bundleName, 0, true);
     if (!debugInfos.empty()) {
-        appRunningManager_->SetAttachAppDebug(bundleName, false);
+        appRunningManager_->SetAttachAppDebug(bundleName, 0, false);
         if (appDebugManager_ != nullptr) {
             appDebugManager_->StopDebug(debugInfos);
         }
     }
 
-    NotifyAbilitiesDebugChange(bundleName, false);
+    NotifyAbilitiesDebugChange(bundleName, 0, false);
     return ERR_OK;
 }
 
@@ -6805,7 +6811,8 @@ int32_t AppMgrServiceInner::RegisterAbilityDebugResponse(const sptr<IAbilityDebu
     return ERR_OK;
 }
 
-int32_t AppMgrServiceInner::NotifyAbilitiesDebugChange(const std::string &bundleName, const bool &isAppDebug)
+int32_t AppMgrServiceInner::NotifyAbilitiesDebugChange(const std::string &bundleName, int32_t appIndex,
+    const bool &isAppDebug)
 {
     if (appRunningManager_ == nullptr || abilityDebugResponse_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ or abilityDebugResponse null");
@@ -6813,7 +6820,7 @@ int32_t AppMgrServiceInner::NotifyAbilitiesDebugChange(const std::string &bundle
     }
 
     std::vector<sptr<IRemoteObject>> tokens;
-    appRunningManager_->GetAbilityTokensByBundleName(bundleName, tokens);
+    appRunningManager_->GetAbilityTokensByBundleName(bundleName, appIndex, tokens);
     if (!tokens.empty()) {
         isAppDebug ? abilityDebugResponse_->OnAbilitysDebugStarted(tokens) :
             abilityDebugResponse_->OnAbilitysDebugStoped(tokens);
@@ -7586,6 +7593,10 @@ void AppMgrServiceInner::SetAppAssertionPauseState(bool flag)
     auto appRecord = GetAppRunningRecordByPid(callerPid);
     if (appRecord == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "no appRecord pid: %{public}d", callerPid);
+        return;
+    }
+    if (appRecord->GetAppIndex() != 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appIndex is not zero");
         return;
     }
     appRecord->SetAssertionPauseFlag(flag);

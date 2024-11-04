@@ -120,11 +120,12 @@ void DoSomethingInterestingWithMyAPIaddb(const char* data, size_t size)
     manager->IsApplicationFirstFocused(foregroundingRecord);
     manager->IsApplicationUnfocused(jsonStr);
     bool isAttachDebug = *data % ENABLE;
-    manager->SetAttachAppDebug(jsonStr, isAttachDebug);
+    int32_t appIndex = static_cast<int32_t>(GetU32Data(data));
+    manager->SetAttachAppDebug(jsonStr, appIndex, isAttachDebug);
     bool isDetachDebug = *data % ENABLE;
-    manager->GetAppDebugInfosByBundleName(jsonStr, isDetachDebug);
+    manager->GetAppDebugInfosByBundleName(jsonStr, appIndex, isDetachDebug);
     std::vector<sptr<IRemoteObject>> abilityTokens;
-    manager->GetAbilityTokensByBundleName(jsonStr, abilityTokens);
+    manager->GetAbilityTokensByBundleName(jsonStr, appIndex, abilityTokens);
     pid_t pidApps = static_cast<pid_t>(GetU32Data(data));
     manager->GetAppRunningRecordByChildProcessPid(pidApps);
     wptr<IRemoteObject> remote;
@@ -200,7 +201,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     manager->GetForegroundApplications(list);
     Configuration config;
     manager->UpdateConfiguration(config);
-    manager->UpdateConfigurationByBundleName(config, jsonStr);
+    manager->UpdateConfigurationByBundleName(config, jsonStr, appCloneIndex);
     int32_t level = static_cast<int32_t>(GetU32Data(data));
     manager->NotifyMemoryLevel(level);
     std::map<pid_t, MemoryLevel> procLevelMap;
