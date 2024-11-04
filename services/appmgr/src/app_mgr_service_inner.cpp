@@ -944,7 +944,7 @@ void AppMgrServiceInner::AttachApplication(const pid_t pid, const sptr<IAppSched
         return;
     }
     TAG_LOGI(AAFwkTag::APPMGR, "attach pid:%{public}d, bundle:%{public}s", pid, eventInfo.bundleName.c_str());
-    sptr<AppDeathRecipient> appDeathRecipient = new (std::nothrow) AppDeathRecipient();
+    sptr<AppDeathRecipient> appDeathRecipient = sptr<AppDeathRecipient>::MakeSptr();
     CHECK_POINTER_AND_RETURN_LOG(appDeathRecipient, "Failed to create death recipient.");
     appDeathRecipient->SetTaskHandler(taskHandler_);
     appDeathRecipient->SetAppMgrServiceInner(shared_from_this());
@@ -1418,16 +1418,12 @@ void AppMgrServiceInner::SendProcessExitEventTask(
     if (exitResult) {
         eventInfo.exitResult = EXIT_SUCESS;
         AAFwk::EventReport::SendProcessExitEvent(AAFwk::EventName::PROCESS_EXIT, eventInfo);
-        TAG_LOGI(AAFwkTag::APPMGR, "time : %{public}" PRId64 ", exitResult : %{public}d, pid : %{public}d",
-            eventInfo.time, eventInfo.exitResult, eventInfo.pid);
         return;
     }
 
     if (--count <= 0) {
         eventInfo.exitResult = EXIT_FAILED;
         AAFwk::EventReport::SendProcessExitEvent(AAFwk::EventName::PROCESS_EXIT, eventInfo);
-        TAG_LOGI(AAFwkTag::APPMGR, "time : %{public}" PRId64 ", exitResult : %{public}d, pid : %{public}d",
-            eventInfo.time, eventInfo.exitResult, eventInfo.pid);
         return;
     }
 
