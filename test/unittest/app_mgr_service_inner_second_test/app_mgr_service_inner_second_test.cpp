@@ -23,6 +23,7 @@
 #undef private
 #include "ability_manager_errors.h"
 #include "appfreeze_manager.h"
+#include "app_spawn_start_msg_util.cpp"
 #include "hilog_tag_wrapper.h"
 #include "mock_ability_token.h"
 #include "mock_app_mgr_service_inner.h"
@@ -1778,18 +1779,18 @@ HWTEST_F(AppMgrServiceInnerSecondTest, SetOverlayInfo_001, TestSize.Level1)
     EXPECT_NE(appMgrServiceInner, nullptr);
     appMgrServiceInner->remoteClientManager_ = nullptr;
     AppSpawnStartMsg startMsg;
-    appMgrServiceInner->SetOverlayInfo("testBundleName", 1, startMsg);
+    SetOverlayInfo("testBundleName", 1, startMsg);
     EXPECT_EQ(startMsg.flags, 0);
     EXPECT_EQ(startMsg.overlayInfo, "");
 
     appMgrServiceInner->remoteClientManager_ = std::make_shared<RemoteClientManager>();
-    appMgrServiceInner->SetOverlayInfo("testBundleName", 1, startMsg);
+    SetOverlayInfo("testBundleName", 1, startMsg);
     EXPECT_EQ(startMsg.flags, 0);
     EXPECT_EQ(startMsg.overlayInfo, "");
 
     std::shared_ptr<BundleMgrHelper> bundleManager = nullptr;
     appMgrServiceInner->remoteClientManager_->SetBundleManagerHelper(bundleManager);
-    appMgrServiceInner->SetOverlayInfo("testBundleName", 1, startMsg);
+    SetOverlayInfo("testBundleName", 1, startMsg);
     EXPECT_EQ(startMsg.flags, 0);
     EXPECT_EQ(startMsg.overlayInfo, "");
     
@@ -1813,20 +1814,20 @@ HWTEST_F(AppMgrServiceInnerSecondTest, StartProcessVerifyPermission_001, TestSiz
     uint8_t allowInternet;
     std::vector<int32_t> gids;
     bundleInfo.reqPermissions.push_back("ohos.permission.ACCESS_BUNDLE_DIR");
-    appMgrServiceInner->StartProcessVerifyPermission(
+    StartProcessVerifyPermission(
         bundleInfo, hasAccessBundleDirReq, setAllowInternet, allowInternet, gids);
     EXPECT_FALSE(hasAccessBundleDirReq);
 
     bundleInfo.reqPermissions.clear();
     bundleInfo.reqPermissions.push_back("ohos.permission.INTERNET");
-    appMgrServiceInner->StartProcessVerifyPermission(
+    StartProcessVerifyPermission(
         bundleInfo, hasAccessBundleDirReq, setAllowInternet, allowInternet, gids);
     EXPECT_FALSE(hasAccessBundleDirReq);
 
     bundleInfo.reqPermissions.clear();
     bundleInfo.reqPermissions.push_back("ohos.permission.INTERNET");
     bundleInfo.applicationInfo.accessTokenId = 1;
-    appMgrServiceInner->StartProcessVerifyPermission(
+    StartProcessVerifyPermission(
         bundleInfo, hasAccessBundleDirReq, setAllowInternet, allowInternet, gids);
     EXPECT_EQ(setAllowInternet, 1);
     EXPECT_EQ(allowInternet, 0);
@@ -1834,7 +1835,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, StartProcessVerifyPermission_001, TestSiz
     bundleInfo.reqPermissions.clear();
     bundleInfo.reqPermissions.push_back("ohos.permission.MANAGE_VPN");
     bundleInfo.applicationInfo.accessTokenId = 0;
-    appMgrServiceInner->StartProcessVerifyPermission(
+    StartProcessVerifyPermission(
         bundleInfo, hasAccessBundleDirReq, setAllowInternet, allowInternet, gids);
     EXPECT_EQ(setAllowInternet, 1);
     EXPECT_EQ(allowInternet, 0);
@@ -1842,13 +1843,13 @@ HWTEST_F(AppMgrServiceInnerSecondTest, StartProcessVerifyPermission_001, TestSiz
     bundleInfo.reqPermissions.clear();
     bundleInfo.reqPermissions.push_back("ohos.permission.ACCESS_BUNDLE_DIR");
     bundleInfo.applicationInfo.accessTokenId = 1;
-    appMgrServiceInner->StartProcessVerifyPermission(
+    StartProcessVerifyPermission(
         bundleInfo, hasAccessBundleDirReq, setAllowInternet, allowInternet, gids);
     EXPECT_FALSE(std::find(gids.begin(), gids.end(), 1097) != gids.end());
 
     bundleInfo.reqPermissions.clear();
     bundleInfo.applicationInfo.accessTokenId = 1;
-    appMgrServiceInner->StartProcessVerifyPermission(
+    StartProcessVerifyPermission(
         bundleInfo, hasAccessBundleDirReq, setAllowInternet, allowInternet, gids);
     EXPECT_TRUE(std::find(gids.begin(), gids.end(), 1097) == gids.end());
 

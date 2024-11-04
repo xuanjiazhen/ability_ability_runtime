@@ -72,6 +72,9 @@ ohos_shared_library("libappms") {
     "src/window_focus_changed_listener.cpp",
     "src/window_pid_visibility_changed_listener.cpp",
     "src/window_visibility_changed_listener.cpp",
+
+    # utils
+    "src/utils/app_spawn_start_msg_util.cpp",
   ]
 
   defines = [ "AMS_LOG_TAG = \"AppMgrService\"" ]

@@ -33,6 +33,7 @@
 #include "app_mgr_service.h"
 #include "app_mgr_event.h"
 #include "app_process_data.h"
+#include "app_spawn_start_msg_util.h"
 #include "app_state_observer_manager.h"
 #include "app_utils.h"
 #include "appfreeze_manager.h"
@@ -150,22 +151,18 @@ constexpr int REGISTER_PID_VISIBILITY_DELAY = 5000;
 constexpr int PHONE_MAX_RENDER_PROCESS_NUM = 40;
 constexpr int PROCESS_RESTART_MARGIN_MICRO_SECONDS = 2000;
 constexpr const int32_t API10 = 10;
-constexpr const int32_t API15 = 15;
 constexpr const int32_t API_VERSION_MOD = 100;
 constexpr const int32_t U0_USER_ID = 0;
 constexpr const char* CLASS_NAME = "ohos.app.MainThread";
 constexpr const char* FUNC_NAME = "main";
-constexpr const char* RENDER_PARAM = "invalidparam";
+
 constexpr const char* COLD_START = "coldStart";
 constexpr const char* PERF_CMD = "perfCmd";
 constexpr const char* ERROR_INFO_ENHANCE = "errorInfoEnhance";
 constexpr const char* MULTI_THREAD = "multiThread";
 constexpr const char* DEBUG_CMD = "debugCmd";
 constexpr const char* ENTER_SANDBOX = "sandboxApp";
-constexpr const char* PERMISSION_INTERNET = "ohos.permission.INTERNET";
-constexpr const char* PERMISSION_MANAGE_VPN = "ohos.permission.MANAGE_VPN";
-constexpr const char* PERMISSION_ACCESS_BUNDLE_DIR = "ohos.permission.ACCESS_BUNDLE_DIR";
-constexpr const char* PERMISSION_TEMP_JIT_ALLOW = "TEMPJITALLOW";
+
 constexpr const int32_t KILL_PROCESS_BY_USER_INTERVAL = 20;
 
 #ifdef WITH_DLP
@@ -181,14 +178,11 @@ constexpr const char* NATIVE_DEBUG = "nativeDebug";
 constexpr const char* SERVICE_EXTENSION = ":ServiceExtension";
 constexpr const char* KEEP_ALIVE = ":KeepAlive";
 constexpr const char* PARAM_SPECIFIED_PROCESS_FLAG = "ohoSpecifiedProcessFlag";
-constexpr const char* TSAN_FLAG_NAME = "tsanEnabled";
-constexpr const char* HWASAN_FLAG_NAME = "hwasanEnabled";
-constexpr const char* UBSAN_FLAG_NAME = "ubsanEnabled";
 constexpr const char* UIEXTENSION_ABILITY_ID = "ability.want.params.uiExtensionAbilityId";
 constexpr const char* UIEXTENSION_ROOT_HOST_PID = "ability.want.params.uiExtensionRootHostPid";
 constexpr const char* MEMMGR_PROC_NAME = "memmgrservice";
 constexpr const char* STRICT_MODE = "strictMode";
-constexpr const char* ISOLATED_SANDBOX = "isolatedSandbox";
+
 constexpr const char* RENDER_PROCESS_NAME = ":render";
 constexpr const char* RENDER_PROCESS_TYPE = "render";
 constexpr const char* GPU_PROCESS_NAME = ":gpu";
@@ -198,8 +192,6 @@ const std::string TOKEN_ID = "TOKEN_ID";
 const int32_t SIGNAL_KILL = 9;
 constexpr int32_t USER_SCALE = 200000;
 #define ENUM_TO_STRING(s) #s
-#define APP_ACCESS_BUNDLE_DIR 0x20
-#define APP_OVERLAY_FLAG 0x100
 
 constexpr int32_t MAX_RESTART_COUNT = 3;
 constexpr int32_t RESTART_INTERVAL_TIME = 120000;
@@ -250,12 +242,6 @@ constexpr int32_t QUICKFIX_UID = 5524;
 constexpr int32_t DEFAULT_USER_ID = 0;
 constexpr int32_t CURRENT_USER_ID = -1;
 constexpr int32_t RESOURCE_MANAGER_UID = 1096;
-
-constexpr int32_t BLUETOOTH_GROUPID = 1002;
-
-#ifdef APP_MGR_SERVICE_APPMS
-constexpr int32_t NETSYS_SOCKET_GROUPID = 1097;
-#endif
 
 constexpr int32_t DEFAULT_INVAL_VALUE = -1;
 constexpr int32_t NO_ABILITY_RECORD_ID = -1;
@@ -3183,130 +3169,6 @@ int32_t AppMgrServiceInner::StartPerfProcess(const std::shared_ptr<AppRunningRec
     return StartPerfProcessByStartMsg(startMsg, perfCmd, debugCmd, isSandboxApp);
 }
 
-void AppMgrServiceInner::SetOverlayInfo(const std::string &bundleName,
-                                        const int32_t userId,
-                                        AppSpawnStartMsg &startMsg)
-{
-    if (remoteClientManager_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "remoteClientManager_ null");
-        return;
-    }
-    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
-    if (bundleMgrHelper == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
-        return;
-    }
-    auto overlayMgrProxy = bundleMgrHelper->GetOverlayManagerProxy();
-    if (overlayMgrProxy !=  nullptr) {
-        std::vector<OverlayModuleInfo> overlayModuleInfo;
-        TAG_LOGD(AAFwkTag::APPMGR, "Check overlay app begin.");
-        HITRACE_METER_NAME(HITRACE_TAG_APP, "BMS->GetOverlayModuleInfoForTarget");
-        auto targetRet = IN_PROCESS_CALL(overlayMgrProxy->GetOverlayModuleInfoForTarget(
-            bundleName, "", overlayModuleInfo, userId));
-        if (targetRet == ERR_OK && overlayModuleInfo.size() != 0) {
-            TAG_LOGD(AAFwkTag::APPMGR, "Start an overlay app process.");
-            startMsg.flags = startMsg.flags | APP_OVERLAY_FLAG;
-            std::string overlayInfoPaths;
-            for (auto it : overlayModuleInfo) {
-                overlayInfoPaths += (it.hapPath + "|");
-            }
-            startMsg.overlayInfo = overlayInfoPaths;
-        }
-    }
-}
-
-void AppMgrServiceInner::SetAppEnvInfo(const BundleInfo &bundleInfo, AppSpawnStartMsg& startMsg)
-{
-    if (bundleInfo.applicationInfo.tsanEnabled) {
-        startMsg.appEnv.emplace(TSAN_FLAG_NAME, std::to_string(1));
-    } else {
-        startMsg.appEnv.emplace(TSAN_FLAG_NAME, std::to_string(0));
-    }
-
-    if (bundleInfo.applicationInfo.hwasanEnabled) {
-        startMsg.appEnv.emplace(HWASAN_FLAG_NAME, std::to_string(1));
-    } else {
-        startMsg.appEnv.emplace(HWASAN_FLAG_NAME, std::to_string(0));
-    }
-
-    if (bundleInfo.applicationInfo.ubsanEnabled) {
-        startMsg.appEnv.emplace(UBSAN_FLAG_NAME, std::to_string(1));
-    } else {
-        startMsg.appEnv.emplace(UBSAN_FLAG_NAME, std::to_string(0));
-    }
-
-    if (!bundleInfo.applicationInfo.appEnvironments.empty()) {
-        for (const auto& appEnvironment : bundleInfo.applicationInfo.appEnvironments) {
-            startMsg.appEnv.emplace(appEnvironment.name, appEnvironment.value);
-        }
-    }
-}
-
-void AppMgrServiceInner::AddMountPermission(uint32_t accessTokenId, std::set<std::string> &permissions)
-{
-    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    auto spawnClient = remoteClientManager_->GetSpawnClient();
-    if (!spawnClient) {
-        TAG_LOGE(AAFwkTag::APPMGR, "spawnClient null");
-        return;
-    }
-    auto handle = spawnClient->GetAppSpawnClientHandle();
-    int32_t maxPermissionIndex = GetMaxPermissionIndex(handle);
-    for (int i = 0; i < maxPermissionIndex; i++) {
-        std::string permission = std::string(GetPermissionByIndex(handle, i));
-        if (Security::AccessToken::AccessTokenKit::VerifyAccessToken(accessTokenId, permission, false) ==
-            Security::AccessToken::PERMISSION_GRANTED) {
-            permissions.insert(permission);
-        }
-    }
-}
-
-void AppMgrServiceInner::StartProcessVerifyPermission(const BundleInfo &bundleInfo, bool &hasAccessBundleDirReq,
-                                                      uint8_t &setAllowInternet, uint8_t &allowInternet,
-                                                      std::vector<int32_t> &gids)
-{
-    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    hasAccessBundleDirReq = std::any_of(bundleInfo.reqPermissions.begin(), bundleInfo.reqPermissions.end(),
-        [] (const auto &reqPermission) {
-            if (PERMISSION_ACCESS_BUNDLE_DIR == reqPermission) {
-                return true;
-            }
-            return false;
-        });
-
-    auto token = bundleInfo.applicationInfo.accessTokenId;
-    {
-        HITRACE_METER_NAME(HITRACE_TAG_APP, "AccessTokenKit::VerifyAccessToken");
-        int result = Security::AccessToken::AccessTokenKit::VerifyAccessToken(token, PERMISSION_INTERNET, false);
-        if (result != Security::AccessToken::PERMISSION_GRANTED) {
-            setAllowInternet = 1;
-            allowInternet = 0;
-    #ifdef APP_MGR_SERVICE_APPMS
-            auto ret = OHOS::NetManagerStandard::NetConnClient::GetInstance().SetInternetPermission(bundleInfo.uid, 0);
-            TAG_LOGD(AAFwkTag::APPMGR, "SetInternetPermission, ret = %{public}d", ret);
-        } else {
-            auto ret = OHOS::NetManagerStandard::NetConnClient::GetInstance().SetInternetPermission(bundleInfo.uid, 1);
-            TAG_LOGD(AAFwkTag::APPMGR, "SetInternetPermission, ret = %{public}d", ret);
-            gids.push_back(NETSYS_SOCKET_GROUPID);
-    #endif
-        }
-
-        result = Security::AccessToken::AccessTokenKit::VerifyAccessToken(token, PERMISSION_MANAGE_VPN, false);
-        if (result == Security::AccessToken::PERMISSION_GRANTED) {
-            gids.push_back(BLUETOOTH_GROUPID);
-        }
-
-        if (hasAccessBundleDirReq) {
-            int result = Security::AccessToken::AccessTokenKit::VerifyAccessToken(token,
-                PERMISSION_ACCESS_BUNDLE_DIR, false);
-            if (result != Security::AccessToken::PERMISSION_GRANTED) {
-                TAG_LOGE(AAFwkTag::APPMGR, "startProcess not granted");
-                hasAccessBundleDirReq = false;
-            }
-        }
-    }
-}
-
 int32_t AppMgrServiceInner::CreatNewStartMsg(const Want &want, const AbilityInfo &abilityInfo,
     const std::shared_ptr<ApplicationInfo> &appInfo, const std::string &processName, AppSpawnStartMsg &startMsg)
 {
@@ -3339,65 +3201,6 @@ int32_t AppMgrServiceInner::CreatNewStartMsg(const Want &want, const AbilityInfo
     return ret;
 }
 
-void AppMgrServiceInner::SetAtomicServiceInfo(BundleType bundleType, AppSpawnStartMsg &startMsg)
-{
-#ifdef OHOS_ACCOUNT_ENABLED
-    TAG_LOGD(AAFwkTag::APPMGR, "execute with OHOS_ACCOUNT_ENABLED on");
-    if (bundleType == BundleType::ATOMIC_SERVICE) {
-        TAG_LOGI(AAFwkTag::APPMGR, "app is atomic service type");
-        AccountSA::OhosAccountInfo accountInfo;
-        auto errCode = AccountSA::OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfo);
-        if (errCode == ERR_OK) {
-            TAG_LOGI(AAFwkTag::APPMGR, "getOhosAccountInfo succeed, uid %{public}s", accountInfo.uid_.c_str());
-            startMsg.atomicServiceFlag = true;
-            startMsg.atomicAccount = accountInfo.uid_;
-        } else {
-            TAG_LOGE(AAFwkTag::APPMGR, "get ohos account info:%{public}d fail", errCode);
-        }
-    }
-#else
-    TAG_LOGD(AAFwkTag::APPMGR, "execute with OHOS_ACCOUNT_ENABLED off");
-#endif // OHOS_ACCOUNT_ENABLED
-}
-
-void AppMgrServiceInner::SetAppInfo(const BundleInfo &bundleInfo, AppSpawnStartMsg &startMsg)
-{
-    bool hasAccessBundleDirReq;
-    bool tempJitAllow = false;
-    uint8_t setAllowInternet = 0;
-    uint8_t allowInternet = 1;
-    std::vector<int32_t> gids;
-    StartProcessVerifyPermission(bundleInfo, hasAccessBundleDirReq, setAllowInternet, allowInternet, gids);
-    startMsg.uid = bundleInfo.uid;
-    startMsg.gid = bundleInfo.gid;
-    startMsg.hapFlags = bundleInfo.isPreInstallApp ? 1 : 0;
-    startMsg.accessTokenId = bundleInfo.applicationInfo.accessTokenId;
-    startMsg.accessTokenIdEx = bundleInfo.applicationInfo.accessTokenIdEx;
-    startMsg.apl = bundleInfo.applicationInfo.appPrivilegeLevel;
-    startMsg.ownerId = bundleInfo.signatureInfo.appIdentifier;
-    startMsg.provisionType = bundleInfo.applicationInfo.appProvisionType;
-    if (bundleInfo.applicationInfo.apiTargetVersion % API_VERSION_MOD < API15) {
-        startMsg.maxChildProcess = 0;
-    } else {
-        if (startMsg.maxChildProcess == 0) {
-            startMsg.maxChildProcess = bundleInfo.applicationInfo.maxChildProcess;
-        }
-    }
-    startMsg.setAllowInternet = setAllowInternet;
-    startMsg.allowInternet = allowInternet;
-    startMsg.gids = gids;
-    startMsg.flags |= hasAccessBundleDirReq ? APP_ACCESS_BUNDLE_DIR : 0;
-    tempJitAllow = std::any_of(bundleInfo.reqPermissions.begin(), bundleInfo.reqPermissions.end(),
-        [] (const auto &reqPermission) {
-            if (PERMISSION_TEMP_JIT_ALLOW == reqPermission) {
-                return true;
-            }
-            return false;
-        });
-    startMsg.flags |= tempJitAllow ? START_FLAG_BASE << StartFlags::TEMP_JIT_ALLOW : 0;
-    SetAppEnvInfo(bundleInfo, startMsg);
-}
-
 int32_t AppMgrServiceInner::CreateStartMsg(const std::string &processName, uint32_t startFlags, const int uid,
     const BundleInfo &bundleInfo, const int32_t bundleIndex, BundleType bundleType, AppSpawnStartMsg &startMsg,
     std::shared_ptr<AAFwk::Want> want, const std::string &moduleName, const std::string &abilityName, bool strictMode)
@@ -3420,90 +3223,15 @@ int32_t AppMgrServiceInner::CreateStartMsg(const std::string &processName, uint3
             .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
         }));
 
-    HspList hspList;
-    auto ret = bundleMgrHelper->GetBaseSharedBundleInfos(bundleInfo.name, hspList,
-        AppExecFwk::GetDependentBundleInfoFlag::GET_ALL_DEPENDENT_BUNDLE_INFO);
+    auto ret = AppSpawnStartMsgUtil::CreateStartMsgInner(remoteClientManager_, processName, startFlags, uid, bundleInfo,
+        bundleIndex, bundleType, startMsg, want, moduleName, abilityName, strictMode);
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "getBaseSharedBundleInfos fail: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "CreateStartMsgInner failed: %{public}d", ret);
         return ret;
     }
-    startMsg.hspList = hspList;
-
-    auto userId = GetUserIdByUid(uid);
-    DataGroupInfoList dataGroupInfoList;
-    bool result = bundleMgrHelper->QueryDataGroupInfos(bundleInfo.name, userId, dataGroupInfoList);
-    if (!result || dataGroupInfoList.empty()) {
-        TAG_LOGD(AAFwkTag::APPMGR, "the bundle has no groupInfos.");
-    }
-    QueryExtensionSandBox(moduleName, abilityName, bundleInfo, startMsg, dataGroupInfoList, strictMode, want);
-    startMsg.bundleName = bundleInfo.name;
-    startMsg.renderParam = RENDER_PARAM;
-    startMsg.flags = startFlags;
-    startMsg.bundleIndex = bundleIndex;
-    startMsg.procName = processName;
-
-    SetAtomicServiceInfo(bundleType, startMsg);
-    SetOverlayInfo(bundleInfo.name, userId, startMsg);
-    SetAppInfo(bundleInfo, startMsg);
-
-    TAG_LOGI(AAFwkTag::APPMGR, "apl: %{public}s, bundleName: %{public}s, startFlags: %{public}d",
-        startMsg.apl.c_str(), bundleInfo.name.c_str(), startFlags);
-
     autoSync.Sync();
+
     return ERR_OK;
-}
-
-void AppMgrServiceInner::PresetMaxChildProcess(std::shared_ptr<AppRunningRecord> appRecord, int32_t &maxChildProcess)
-{
-    ProcessType processType = appRecord->GetProcessType();
-    ExtensionAbilityType extensionType = appRecord->GetExtensionType();
-    if (processType == ProcessType::EXTENSION && extensionType != ExtensionAbilityType::DATASHARE &&
-        extensionType != ExtensionAbilityType::SERVICE) {
-        maxChildProcess = 1;
-    }
-}
-
-void AppMgrServiceInner::QueryExtensionSandBox(const std::string &moduleName, const std::string &abilityName,
-    const BundleInfo &bundleInfo, AppSpawnStartMsg &startMsg, DataGroupInfoList &dataGroupInfoList, bool strictMode,
-    std::shared_ptr<AAFwk::Want> want)
-{
-    std::vector<ExtensionAbilityInfo> extensionInfos;
-    for (auto hapModuleInfo: bundleInfo.hapModuleInfos) {
-        extensionInfos.insert(extensionInfos.end(), hapModuleInfo.extensionInfos.begin(),
-            hapModuleInfo.extensionInfos.end());
-    }
-    startMsg.strictMode = strictMode;
-    auto isExist = (want == nullptr) ? false : want->HasParameter(ISOLATED_SANDBOX);
-    bool isolatedSandbox = false;
-    if (isExist) {
-        isolatedSandbox = (want == nullptr) ? false : want->GetBoolParam(ISOLATED_SANDBOX, false);
-    }
-    auto infoExisted = [&moduleName, &abilityName, &strictMode, &isExist, &isolatedSandbox](
-                           const ExtensionAbilityInfo &info) {
-        auto ret = info.moduleName == moduleName && info.name == abilityName && info.needCreateSandbox;
-        if (isExist) {
-            return ret && isolatedSandbox;
-        }
-        return ret;
-    };
-    auto infoIter = std::find_if(extensionInfos.begin(), extensionInfos.end(), infoExisted);
-    DataGroupInfoList extensionDataGroupInfoList;
-    if (infoIter != extensionInfos.end()) {
-        startMsg.isolatedExtension = true;
-        startMsg.extensionSandboxPath = infoIter->moduleName + "-" + infoIter->name;
-        for (auto dataGroupInfo : dataGroupInfoList) {
-            auto groupIdExisted = [&dataGroupInfo](const std::string &dataGroupId) {
-                return dataGroupInfo.dataGroupId == dataGroupId;
-            };
-            if (std::find_if(infoIter->dataGroupIds.begin(), infoIter->dataGroupIds.end(), groupIdExisted) !=
-                infoIter->dataGroupIds.end()) {
-                extensionDataGroupInfoList.emplace_back(dataGroupInfo);
-            }
-        }
-        startMsg.dataGroupInfoList = extensionDataGroupInfoList;
-    } else {
-        startMsg.dataGroupInfoList = dataGroupInfoList;
-    }
 }
 
 void AppMgrServiceInner::StartProcess(const std::string &appName, const std::string &processName, uint32_t startFlags,
@@ -3533,9 +3261,9 @@ void AppMgrServiceInner::StartProcess(const std::string &appName, const std::str
     AppSpawnStartMsg startMsg;
     auto appInfo = appRecord->GetApplicationInfo();
     auto bundleType = appInfo ? appInfo->bundleType : BundleType::APP;
-    PresetMaxChildProcess(appRecord, startMsg.maxChildProcess);
-    auto ret = CreateStartMsg(processName, startFlags, uid, bundleInfo, bundleIndex, bundleType, startMsg, want,
-        moduleName, abilityName, strictMode);
+    AppSpawnStartMsgUtil::PresetMaxChildProcess(appRecord, startMsg.maxChildProcess);
+    auto ret = CreateStartMsg(processName, startFlags,
+        uid, bundleInfo, bundleIndex, bundleType, startMsg, want, moduleName, abilityName, strictMode);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "createStartMsg fail");
         appRunningManager_->RemoveAppRunningRecordById(appRecord->GetRecordId());
@@ -6356,6 +6084,25 @@ int32_t AppMgrServiceInner::StartNativeProcessForDebugger(const AAFwk::Want &wan
         debugCmd = want.GetStringParam(DEBUG_CMD);
     }
     return StartPerfProcessByStartMsg(startMsg, pefCmd, debugCmd, isSandboxApp);
+}
+
+void AppMgrServiceInner::AddMountPermission(uint32_t accessTokenId, std::set<std::string> &permissions)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    auto spawnClient = remoteClientManager_->GetSpawnClient();
+    if (!spawnClient) {
+        TAG_LOGE(AAFwkTag::APPMGR, "spawnClient null");
+        return;
+    }
+    auto handle = spawnClient->GetAppSpawnClientHandle();
+    int32_t maxPermissionIndex = GetMaxPermissionIndex(handle);
+    for (int i = 0; i < maxPermissionIndex; i++) {
+        std::string permission = std::string(GetPermissionByIndex(handle, i));
+        if (Security::AccessToken::AccessTokenKit::VerifyAccessToken(accessTokenId, permission, false) ==
+            Security::AccessToken::PERMISSION_GRANTED) {
+            permissions.insert(permission);
+        }
+    }
 }
 
 int32_t AppMgrServiceInner::GetCurrentAccountId() const
