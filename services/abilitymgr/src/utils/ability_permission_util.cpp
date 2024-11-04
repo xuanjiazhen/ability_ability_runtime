@@ -112,6 +112,7 @@ int32_t AbilityPermissionUtil::CheckMultiInstanceAndAppClone(Want &want, int32_t
     sptr<IRemoteObject> callerToken)
 {
     auto instanceKey = want.GetStringParam(Want::APP_INSTANCE_KEY);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "instanceKey:%{public}s, appIndex:%{public}d", instanceKey.c_str(), appIndex);
     auto isCreating = want.GetBoolParam(Want::CREATE_APP_INSTANCE_KEY, false);
     AppExecFwk::ApplicationInfo appInfo;
     auto isSupportMultiInstance = AppUtils::GetInstance().IsSupportMultiInstance();

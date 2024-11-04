@@ -507,6 +507,7 @@ public:
     }
 
     sptr<SessionInfo> GetSessionInfo() const;
+    int32_t GetSessionId() const;
 
     /**
      * get ability's token.

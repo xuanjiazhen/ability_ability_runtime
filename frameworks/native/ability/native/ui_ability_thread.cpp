@@ -233,7 +233,6 @@ void UIAbilityThread::HandleAbilityTransaction(
     std::string connector = "##";
     std::string traceName = __PRETTY_FUNCTION__ + connector + want.GetElement().GetAbilityName();
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, traceName);
-    TAG_LOGI(AAFwkTag::UIABILITY, "Lifecycle:name %{public}s", want.GetElement().GetAbilityName().c_str());
     if (abilityImpl_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityImpl_");
         return;
@@ -313,9 +312,8 @@ bool UIAbilityThread::ScheduleAbilityTransaction(
     const Want &want, const LifeCycleStateInfo &lifeCycleStateInfo, sptr<AAFwk::SessionInfo> sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::UIABILITY, "name:%{public}s,targeState:%{public}d,isNewWant:%{public}d",
+    TAG_LOGI(AAFwkTag::UIABILITY, "name:%{public}s, isNewWant:%{public}d",
         want.GetElement().GetAbilityName().c_str(),
-        lifeCycleStateInfo.state,
         lifeCycleStateInfo.isNewWant);
     std::string methodName = "ScheduleAbilityTransaction";
     AddLifecycleEvent(lifeCycleStateInfo.state, methodName);

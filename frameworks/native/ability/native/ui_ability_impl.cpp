@@ -164,12 +164,15 @@ void UIAbilityImpl::HandleAbilityTransaction(
     const AAFwk::Want &want, const AAFwk::LifeCycleStateInfo &targetState, sptr<AAFwk::SessionInfo> sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::UIABILITY,
-        "srcState:%{public}d; targetState: %{public}d; isNewWant: %{public}d, sceneFlag: %{public}d",
-        lifecycleState_, targetState.state, targetState.isNewWant, targetState.sceneFlag);
+    TAG_LOGI(AAFwkTag::UIABILITY, "srcState:%{public}d, targeState:%{public}d, sceneFlag:%{public}d",
+        lifecycleState_, targetState.state, targetState.sceneFlag);
+    if (sessionInfo != nullptr) {
+        TAG_LOGI(AAFwkTag::UIABILITY, "sessionId:%{public}d", sessionInfo->persistentId);
+    }
     UpdateSilentForeground(targetState, sessionInfo);
 #ifdef SUPPORT_SCREEN
     if (ability_ != nullptr) {
+        TAG_LOGI(AAFwkTag::UIABILITY, "abilityId:%{public}d", ability_->GetAbilityRecordId());
         ability_->sceneFlag_ = targetState.sceneFlag;
     }
     if ((lifecycleState_ == targetState.state) && !targetState.isNewWant) {

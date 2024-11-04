@@ -1009,6 +1009,7 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::string dialogSessionId = want.GetStringParam("dialogSessionId");
     bool isSendDialogResult = false;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s, callingPid:%{public}d", __func__, IPCSkeleton::GetCallingPid());
 #ifdef SUPPORT_SCREEN
     if (!dialogSessionId.empty() &&
         DialogSessionManager::GetInstance().GetDialogCallerInfo(dialogSessionId) != nullptr) {
@@ -5896,8 +5897,8 @@ int AbilityManagerService::AbilityTransitionDone(const sptr<IRemoteObject> &toke
     }
     auto abilityRecord = Token::GetAbilityRecordByToken(token);
     CHECK_POINTER_AND_RETURN_LOG(abilityRecord, ERR_INVALID_VALUE, "Ability record is nullptr.");
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilityTransitionDone, ability: %{public}s, state:%{public}d",
-        abilityRecord->GetURI().c_str(), state);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilityTransitionDone ability:%{public}s, session:%{public}d, abilityId:%{public}d",
+        abilityRecord->GetURI().c_str(), abilityRecord->GetSessionId(), abilityRecord->GetRecordId());
     if (!JudgeSelfCalled(abilityRecord)) {
         return CHECK_PERMISSION_FAILED;
     }
