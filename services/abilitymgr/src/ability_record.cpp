@@ -3828,13 +3828,12 @@ void AbilityRecord::UpdateDmsCallerInfo(Want &want)
     want.RemoveParam(DMS_CALLER_APP_IDENTIFIER);
 }
 
-void AbilityRecord::SetDebugUIExtension()
+void SetDebugUIExtension(boolean isDebugUIExt)
 {
-    if (!UIExtensionUtils::IsUIExtension(GetAbilityInfo().extensionAbilityType)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Not UIExtension");
+    if (!isDebugUIExt) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Invalid to debug UIExtension");
         return;
     }
-    std::lock_guard guard(wantLock_);
     want_.SetParam(DEBUG_APP, true);
     launchDebugInfo_.isDebugAppSet = true;
     launchDebugInfo_.debugApp = true;
