@@ -25,7 +25,6 @@
 #include "connection_manager.h"
 #include "context.h"
 #include "hilog_tag_wrapper.h"
-#include "hilog_wrapper.h"
 #include "hitrace_meter.h"
 #include "insight_intent_executor_mgr.h"
 #include "int_wrapper.h"
@@ -54,7 +53,7 @@ constexpr size_t ARGC_TWO = 2;
 } // namespace
 napi_value AttachUIExtensionBaseContext(napi_env env, void *value, void*)
 {
-    TAG_LOGD(AAFwkTag::UI_EXT, "called");
+    TAG_LOGD(AAFwkTag::UI_EXT, "AttachUIExtensionBaseContext");
     if (value == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null value");
         return nullptr;
@@ -90,7 +89,7 @@ napi_value AttachUIExtensionBaseContext(napi_env env, void *value, void*)
     auto workContext = new (std::nothrow) std::weak_ptr<UIExtensionContext>(ptr);
     napi_status status = napi_wrap(env, contextObj, workContext,
         [](napi_env, void *data, void*) {
-            TAG_LOGD(AAFwkTag::UI_EXT, "Finalizer for weak_ptr ui extension context is called");
+            TAG_LOGD(AAFwkTag::UI_EXT, "Finalizer for weak_ptr ui extension context");
             if (data == nullptr) {
                 TAG_LOGE(AAFwkTag::UI_EXT, "null data");
                 return;
@@ -129,7 +128,7 @@ std::shared_ptr<ExtensionCommon> JsUIExtensionBase::Init(const std::shared_ptr<A
     const sptr<IRemoteObject> &token)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::UI_EXT, "called");
+    TAG_LOGD(AAFwkTag::UI_EXT, "Init");
     if (abilityInfo_ == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null abilityInfo");
         return nullptr;
@@ -159,13 +158,13 @@ std::shared_ptr<ExtensionCommon> JsUIExtensionBase::Init(const std::shared_ptr<A
         return nullptr;
     }
 
-    BindContext();
+    BindContext(record->GetWant());
     handler_ = handler;
     RegisterDisplayInfoChangedListener();
     return JsExtensionCommon::Create(jsRuntime_, static_cast<NativeReference&>(*jsObj_), shellContextRef_);
 }
 
-void JsUIExtensionBase::BindContext()
+void JsUIExtensionBase::BindContext(const std::shared_ptr<AAFwk::Want> want)
 {
     HandleScope handleScope(jsRuntime_);
     if (jsObj_ == nullptr) {
@@ -206,7 +205,7 @@ void JsUIExtensionBase::BindContext()
     napi_set_named_property(env, obj, "context", contextObj);
     napi_status status = napi_wrap(env, contextObj, workContext,
         [](napi_env, void *data, void*) {
-            TAG_LOGD(AAFwkTag::UI_EXT, "Finalizer for weak_ptr ui extension context is called");
+            TAG_LOGD(AAFwkTag::UI_EXT, "Finalizer for weak_ptr ui extension context");
             if (data == nullptr) {
                 TAG_LOGE(AAFwkTag::UI_EXT, "null data");
                 return;
@@ -225,7 +224,7 @@ void JsUIExtensionBase::OnStart(
     const AAFwk::Want &want, AAFwk::LaunchParam &launchParam, sptr<AAFwk::SessionInfo> sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::UI_EXT, "called");
+    TAG_LOGD(AAFwkTag::UI_EXT, "OnStart");
 #ifdef SUPPORT_GRAPHICS
     if (context_ != nullptr && sessionInfo != nullptr) {
         auto configUtils = std::make_shared<ConfigurationUtils>();
@@ -254,14 +253,14 @@ void JsUIExtensionBase::OnStart(
 void JsUIExtensionBase::OnStop()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::UI_EXT, "called");
+    TAG_LOGD(AAFwkTag::UI_EXT, "OnStop");
     HandleScope handleScope(jsRuntime_);
     CallObjectMethod("onDestroy");
 #ifdef SUPPORT_GRAPHICS
     UnregisterDisplayInfoChangedListener();
 #endif // SUPPORT_GRAPHICS
     OnStopCallBack();
-    TAG_LOGD(AAFwkTag::UI_EXT, "end");
+    TAG_LOGD(AAFwkTag::UI_EXT, "OnStop end");
 }
 
 void JsUIExtensionBase::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *callbackInfo, bool &isAsyncCallback)
@@ -391,7 +390,7 @@ void JsUIExtensionBase::OnCommandWindow(
     const AAFwk::Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo, AAFwk::WindowCommand winCmd)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::UI_EXT, "called");
+    TAG_LOGD(AAFwkTag::UI_EXT, "OnCommandWindow");
     if (sessionInfo == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null sessionInfo");
         return;
@@ -450,7 +449,7 @@ bool JsUIExtensionBase::ForegroundWindowWithInsightIntent(const AAFwk::Want &wan
     const sptr<AAFwk::SessionInfo> &sessionInfo, bool needForeground)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::UI_EXT, "called");
+    TAG_LOGD(AAFwkTag::UI_EXT, "ForegroundWindowWithInsightIntent");
     if (!HandleSessionCreate(want, sessionInfo)) {
         TAG_LOGE(AAFwkTag::UI_EXT, "HandleSessionCreate failed");
         return false;
@@ -527,12 +526,13 @@ void JsUIExtensionBase::PostInsightIntentExecuted(const sptr<AAFwk::SessionInfo>
 void JsUIExtensionBase::OnCommandWindowDone(const sptr<AAFwk::SessionInfo> &sessionInfo, AAFwk::WindowCommand winCmd)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::UI_EXT, "called");
+    TAG_LOGD(AAFwkTag::UI_EXT, "OnCommandWindowDone");
     if (context_ == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null context");
         return;
     }
     AAFwk::AbilityCommand abilityCmd;
+    std::lock_guard<std::mutex> lock(uiWindowMutex_);
     if (uiWindowMap_.empty()) {
         abilityCmd = AAFwk::ABILITY_CMD_DESTROY;
     } else if (foregroundWindows_.empty()) {
@@ -556,6 +556,7 @@ void JsUIExtensionBase::OnInsightIntentExecuteDone(const sptr<AAFwk::SessionInfo
 
     TAG_LOGD(AAFwkTag::UI_EXT, "UIExtension component id: %{public}" PRId64, sessionInfo->uiExtensionComponentId);
     auto componentId = sessionInfo->uiExtensionComponentId;
+    std::lock_guard<std::mutex> lock(uiWindowMutex_);
     auto res = uiWindowMap_.find(componentId);
     if (res != uiWindowMap_.end() && res->second != nullptr) {
         WantParams params;
@@ -599,7 +600,8 @@ void JsUIExtensionBase::OnInsightIntentExecuteDone(const sptr<AAFwk::SessionInfo
 
 void JsUIExtensionBase::OnCommand(const AAFwk::Want &want, bool restart, int32_t startId)
 {
-    TAG_LOGD(AAFwkTag::UI_EXT, "called");
+    TAG_LOGD(AAFwkTag::UI_EXT, "restart=%{public}s, startId=%{public}d",
+        restart ? "true" : "false", startId);
     HandleScope handleScope(jsRuntime_);
     napi_env env = jsRuntime_.GetNapiEnv();
     if (env == nullptr) {
@@ -624,7 +626,7 @@ void JsUIExtensionBase::OnCommand(const AAFwk::Want &want, bool restart, int32_t
 void JsUIExtensionBase::OnForeground(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::UI_EXT, "called");
+    TAG_LOGD(AAFwkTag::UI_EXT, "OnForeground");
     if (InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
         bool finish = ForegroundWindowWithInsightIntent(want, sessionInfo, true);
         if (finish) {
@@ -640,7 +642,7 @@ void JsUIExtensionBase::OnForeground(const Want &want, sptr<AAFwk::SessionInfo> 
 void JsUIExtensionBase::OnBackground()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::UI_EXT, "called");
+    TAG_LOGD(AAFwkTag::UI_EXT, "OnBackground");
     HandleScope handleScope(jsRuntime_);
     CallObjectMethod("onBackground");
 }
@@ -708,6 +710,7 @@ bool JsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
         return false;
     }
     auto componentId = sessionInfo->uiExtensionComponentId;
+    std::lock_guard<std::mutex> lock(uiWindowMutex_);
     if (uiWindowMap_.find(componentId) == uiWindowMap_.end()) {
         if (context_ == nullptr || context_->GetAbilityInfo() == nullptr) {
             TAG_LOGE(AAFwkTag::UI_EXT, "null context");
@@ -719,6 +722,7 @@ bool JsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
         }
         sptr<Rosen::Window> uiWindow;
         {
+            TAG_LOGI(AAFwkTag::UI_EXT, "Before window create persistentId: %{public}d", sessionInfo->persistentId);
             HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::Create");
             option->SetDisplayId(sessionInfo->displayId);
             uiWindow = Rosen::Window::Create(option, context_, sessionInfo->sessionToken);
@@ -747,11 +751,12 @@ void JsUIExtensionBase::ForegroundWindow(const AAFwk::Want &want, const sptr<AAF
         TAG_LOGE(AAFwkTag::UI_EXT, "HandleSessionCreate failed");
         return;
     }
-    TAG_LOGD(AAFwkTag::UI_EXT, "UIExtension component id: %{public}" PRId64, sessionInfo->uiExtensionComponentId);
+    TAG_LOGI(AAFwkTag::UI_EXT, "Before window show persistentId: %{public}d", sessionInfo->persistentId);
     auto componentId = sessionInfo->uiExtensionComponentId;
+    std::lock_guard<std::mutex> lock(uiWindowMutex_);
     auto &uiWindow = uiWindowMap_[componentId];
     if (uiWindow) {
-        HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::show");
+        HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::Show");
         uiWindow->Show();
         foregroundWindows_.emplace(componentId);
     }
@@ -765,20 +770,22 @@ void JsUIExtensionBase::BackgroundWindow(const sptr<AAFwk::SessionInfo> &session
         return;
     }
 
-    TAG_LOGD(AAFwkTag::UI_EXT, "UIExtension component id: %{public}" PRId64, sessionInfo->uiExtensionComponentId);
     auto componentId = sessionInfo->uiExtensionComponentId;
+    std::lock_guard<std::mutex> lock(uiWindowMutex_);
     if (uiWindowMap_.find(componentId) == uiWindowMap_.end()) {
         TAG_LOGE(AAFwkTag::UI_EXT, "not find uiWindow");
         return;
     }
+    TAG_LOGI(AAFwkTag::UI_EXT, "Before window hide persistentId: %{public}d", sessionInfo->persistentId);
     auto &uiWindow = uiWindowMap_[componentId];
     if (uiWindow) {
+        HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::Hide");
         uiWindow->Hide();
         foregroundWindows_.erase(componentId);
     }
 }
 
-void JsUIExtensionBase::DestroyWindow(const sptr<AAFwk::SessionInfo> &sessionInfo)
+void JsUIExtensionBase::DestroyWindow(const sptr<AAFwk::SessionInfo> sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (sessionInfo == nullptr) {
@@ -786,8 +793,8 @@ void JsUIExtensionBase::DestroyWindow(const sptr<AAFwk::SessionInfo> &sessionInf
         return;
     }
 
-    TAG_LOGD(AAFwkTag::UI_EXT, "UIExtension component id: %{public}" PRId64, sessionInfo->uiExtensionComponentId);
     auto componentId = sessionInfo->uiExtensionComponentId;
+    std::lock_guard<std::mutex> lock(uiWindowMutex_);
     if (uiWindowMap_.find(componentId) == uiWindowMap_.end()) {
         TAG_LOGE(AAFwkTag::UI_EXT, "not find uiWindow");
         return;
@@ -797,8 +804,10 @@ void JsUIExtensionBase::DestroyWindow(const sptr<AAFwk::SessionInfo> &sessionInf
         napi_value argv[] = { contentSessions_[componentId]->GetNapiValue() };
         CallObjectMethod("onSessionDestroy", argv, ARGC_ONE);
     }
+    TAG_LOGI(AAFwkTag::UI_EXT, "Before window destory persistentId: %{public}d", sessionInfo->persistentId);
     auto &uiWindow = uiWindowMap_[componentId];
     if (uiWindow) {
+        HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::Destroy");
         uiWindow->Destroy();
     }
     uiWindowMap_.erase(componentId);
@@ -844,7 +853,7 @@ napi_value JsUIExtensionBase::CallObjectMethod(const char *name, napi_value cons
 void JsUIExtensionBase::OnConfigurationUpdated(const AppExecFwk::Configuration &configuration)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::UI_EXT, "called");
+    TAG_LOGD(AAFwkTag::UI_EXT, "OnConfigurationUpdated");
     if (context_ == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null context");
         return;
@@ -858,7 +867,7 @@ void JsUIExtensionBase::OnConfigurationUpdated(const AppExecFwk::Configuration &
 
 void JsUIExtensionBase::Dump(const std::vector<std::string> &params, std::vector<std::string> &info)
 {
-    TAG_LOGD(AAFwkTag::UI_EXT, "called");
+    TAG_LOGD(AAFwkTag::UI_EXT, "Dump");
     HandleScope handleScope(jsRuntime_);
     napi_env env = jsRuntime_.GetNapiEnv();
     napi_value argv[] = { CreateNativeArray(env, params) };
@@ -906,7 +915,7 @@ void JsUIExtensionBase::Dump(const std::vector<std::string> &params, std::vector
 
 void JsUIExtensionBase::OnAbilityResult(int32_t requestCode, int32_t resultCode, const Want &resultData)
 {
-    TAG_LOGD(AAFwkTag::UI_EXT, "called");
+    TAG_LOGD(AAFwkTag::UI_EXT, "OnAbilityResult");
     if (context_ == nullptr) {
         TAG_LOGW(AAFwkTag::UI_EXT, "null context");
         return;
@@ -931,7 +940,7 @@ void JsUIExtensionBase::SetContext(const std::shared_ptr<UIExtensionContext> &co
 
 void JsUIExtensionBase::ConfigurationUpdated()
 {
-    TAG_LOGD(AAFwkTag::UI_EXT, "begin");
+    TAG_LOGD(AAFwkTag::UI_EXT, "ConfigurationUpdated");
     HandleScope handleScope(jsRuntime_);
     napi_env env = jsRuntime_.GetNapiEnv();
 
