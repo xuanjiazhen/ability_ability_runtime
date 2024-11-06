@@ -72,6 +72,8 @@ ohos_shared_library("cj_ability_ffi") {
     "cj_application_context_ffi.cpp",
     "cj_element_name_ffi.cpp",
     "cj_want_ffi.cpp",
+    "cj_ability_monitor.cpp",
+    "cj_ability_monitor_object.cpp"
   ]
 
   cflags = [

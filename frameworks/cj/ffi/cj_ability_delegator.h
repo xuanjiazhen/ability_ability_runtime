@@ -16,11 +16,13 @@
 #ifndef OHOS_ABILITY_RUNTIME_CJ_ABILITY_DELEGATOR_FFI_H
 #define OHOS_ABILITY_RUNTIME_CJ_ABILITY_DELEGATOR_FFI_H
 
-#include <cstdint>
-
-#include "ability_delegator_registry.h"
+#include "cj_ability_delegator_registry.h"
+#include "cj_ability_monitor.h"
+#include "cj_ability_stage_monitor.h"
 #include "cj_macro.h"
 #include "ffi_remote_data.h"
+#include <cstdint>
+#include <memory>
 
 using WantHandle = void*;
 namespace OHOS {
@@ -28,16 +30,34 @@ namespace AbilityDelegatorCJ {
 
 class CJAbilityDelegator : public FFI::FFIData {
 public:
-    explicit CJAbilityDelegator(const std::shared_ptr<AppExecFwk::AbilityDelegator>& abilityDelegator)
-        : delegator_(abilityDelegator) {};
+    explicit CJAbilityDelegator(const std::shared_ptr<AppExecFwk::CJAbilityDelegatorImpl>& abilityDelegator);
  
     int32_t StartAbility(const AAFwk::Want& want);
     std::shared_ptr<AppExecFwk::ShellCmdResult> ExecuteShellCommand(const char* cmd, int64_t timeoutSec);
     std::shared_ptr<AbilityRuntime::ApplicationContext> GetAppContext();
-    void FinishTest(const char* msg, int64_t code);
- 
-private:
-    std::shared_ptr<AppExecFwk::AbilityDelegator> delegator_;
+    void FinishTest(const char *msg, int64_t code);
+
+    void AddAbilityMonitor(const std::shared_ptr<CJAbilityMonitor> &monitor);
+    void RemoveAbilityMonitor(const std::shared_ptr<CJAbilityMonitor> &monitor);
+    std::shared_ptr<AppExecFwk::ACJDelegatorAbilityProperty> WaitAbilityMonitor(
+        const std::shared_ptr<CJAbilityMonitor> &monitor,
+        bool hasTimeoutPara, int64_t timeoutSec);
+
+    void AddAbilityStageMonitor(
+        const std::shared_ptr<CJAbilityStageMonitor> &stageMonitor);
+    void RemoveAbilityStageMonitor(const std::shared_ptr<CJAbilityStageMonitor> &stageMonitor);
+    std::shared_ptr<AppExecFwk::CJDelegatorAbilityStageProperty> WaitAbilityStageMonitor(
+        const std::shared_ptr<CJAbilityStageMonitor> &stageMonitor,
+        bool hasTimeoutPara, int64_t timeoutSec);
+
+    void Print(const std::string &msg);
+    int64_t GetAbilityState(const sptr<OHOS::IRemoteObject> &remoteObject);
+    std::shared_ptr<AppExecFwk::ACJDelegatorAbilityProperty> GetCurrentTopAbility();
+    bool DoAbilityForeground(const sptr<OHOS::IRemoteObject> &remoteObject);
+    bool DoAbilityBackground(const sptr<OHOS::IRemoteObject> &remoteObject);
+
+  private:
+    std::shared_ptr<AppExecFwk::CJAbilityDelegatorImpl> delegator_;
 };
 
 class CJShellCmdResult : public FFI::FFIData {
@@ -52,6 +72,24 @@ private:
 };
 
 extern "C" {
+CJ_EXPORT bool FFIAbilityDelegatorDoAbilityForeground(int64_t id, int64_t abilityId, int32_t* errorcode);
+CJ_EXPORT bool FFIAbilityDelegatorDoAbilityBackground(int64_t id, int64_t abilityId, int32_t* errorcode);
+CJ_EXPORT int64_t FFIAbilityDelegatorGetCurrentTopAbility(int64_t id, int32_t* errorcode);
+CJ_EXPORT int64_t FFIAbilityDelegatorGetAbilityState(int64_t id, int64_t abilityId, int32_t* errorcode);
+CJ_EXPORT void FFIAbilityDelegatorPrint(int64_t id, const char* msg, int32_t* errorcode);
+CJ_EXPORT void FFIAbilityDelegatorAddAbilityMonitor(int64_t id, int64_t monitorId,
+                                                       const char* abilityName, const char* moduleName, int32_t* errorcode);
+CJ_EXPORT void FFIAbilityDelegatorRemoveAbilityMonitor(int64_t id, int64_t monitorId,
+                                                          const char* abilityName, const char* moduleName, int32_t* errorcode);
+CJ_EXPORT int64_t FFIAbilityDelegatorWaitAbilityMonitor(int64_t id, int64_t monitorId, const char* abilityName,
+    const char* moduleName, bool hasTimeoutPara, int64_t timeout, int32_t* errorcode);
+CJ_EXPORT void FFIAbilityDelegatorAddAbilityStageMonitor(int64_t id, int64_t stageMonitorId,
+                                                       const char* moduleName, const char* srcEntrance, int32_t* errorcode);
+CJ_EXPORT void FFIAbilityDelegatorRemoveAbilityStageMonitor(int64_t id, int64_t stageMonitorId,
+                                                        const char* moduleName, const char* srcEntrance, int32_t* errorcode);
+CJ_EXPORT int64_t FFIAbilityDelegatorWaitAbilityStageMonitor(int64_t id, int64_t stageMonitorId, const char* moduleName,
+    const char* srcEntrance, bool hasTimeoutPara, int64_t timeout, int32_t* errorcode);
+    
 CJ_EXPORT int64_t FFIAbilityDelegatorRegistryGetAbilityDelegator();
 CJ_EXPORT int32_t FFIAbilityDelegatorStartAbility(int64_t id, WantHandle want);
 CJ_EXPORT int32_t FFIAbilityDelegatorExecuteShellCommand(int64_t id, const char* cmd, int64_t timeoutSec);
