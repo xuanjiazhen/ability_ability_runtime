@@ -37,28 +37,5 @@ UIExtension* UIExtension::Create(const std::unique_ptr<Runtime>& runtime)
             return new UIExtension();
     }
 }
-
-void UIExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
-    const std::shared_ptr<OHOSApplication> &application,
-    std::shared_ptr<AbilityHandler> &handler,
-    const sptr<IRemoteObject> &token)
-{
-    TAG_LOGD(AAFwkTag::UI_EXT, "called");
-    ExtensionBase<UIExtensionContext>::Init(record, application, handler, token);
-}
-
-std::shared_ptr<UIExtensionContext> UIExtension::CreateAndInitContext(
-    const std::shared_ptr<AbilityLocalRecord> &record,
-    const std::shared_ptr<OHOSApplication> &application,
-    std::shared_ptr<AbilityHandler> &handler,
-    const sptr<IRemoteObject> &token)
-{
-    std::shared_ptr<UIExtensionContext> context =
-        ExtensionBase<UIExtensionContext>::CreateAndInitContext(record, application, handler, token);
-    if (context == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "UIExtension CreateAndInitContext context is nullptr");
-    }
-    return context;
-}
-}
-}
+} // namespace AbilityRuntime
+} // namespace OHOS

@@ -38,7 +38,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 #define CHECK_POINTER_RETURN(env, object)            \
     if (!(object)) {                                 \
-        TAG_LOGE(AAFwkTag::UI_EXT, "Context is nullptr");           \
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "Context is nullptr");           \
         return CreateJsUndefined(env);               \
     }
 
@@ -56,7 +56,7 @@ JsEmbeddableUIAbilityContext::JsEmbeddableUIAbilityContext(const std::shared_ptr
 
 void JsEmbeddableUIAbilityContext::Finalizer(napi_env env, void* data, void* hint)
 {
-    TAG_LOGD(AAFwkTag::UI_EXT, "called");
+    TAG_LOGD(AAFwkTag::EMBEDDABLE_UIABILITY, "called");
     std::unique_ptr<JsEmbeddableUIAbilityContext>(static_cast<JsEmbeddableUIAbilityContext*>(data));
 }
 
@@ -213,7 +213,7 @@ napi_value JsEmbeddableUIAbilityContext::SetRestoreEnabled(napi_env env, napi_ca
 napi_value JsEmbeddableUIAbilityContext::OnStartAbility(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGI(AAFwkTag::UI_EXT, "Start ability in embedded screen mode");
+        TAG_LOGI(AAFwkTag::EMBEDDABLE_UIABILITY, "Start ability in embedded screen mode");
         CHECK_POINTER_RETURN(env, jsUIExtensionContext_);
         return jsUIExtensionContext_->OnStartAbility(env, info);
     }
@@ -224,7 +224,7 @@ napi_value JsEmbeddableUIAbilityContext::OnStartAbility(napi_env env, NapiCallba
 napi_value JsEmbeddableUIAbilityContext::OnOpenLink(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGI(AAFwkTag::UI_EXT, "Start openlink in embedded screen mode.");
+        TAG_LOGI(AAFwkTag::EMBEDDABLE_UIABILITY, "Start openlink in embedded screen mode.");
         CHECK_POINTER_RETURN(env, jsUIExtensionContext_);
         return jsUIExtensionContext_->OnOpenLink(env, info);
     }
@@ -235,7 +235,7 @@ napi_value JsEmbeddableUIAbilityContext::OnOpenLink(napi_env env, NapiCallbackIn
 napi_value JsEmbeddableUIAbilityContext::OnStartAbilityForResult(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGI(AAFwkTag::UI_EXT, "Start ability for result in embedded screen mode");
+        TAG_LOGI(AAFwkTag::EMBEDDABLE_UIABILITY, "Start ability for result in embedded screen mode");
         CHECK_POINTER_RETURN(env, jsUIExtensionContext_);
         return jsUIExtensionContext_->OnStartAbilityForResult(env, info);
     }
@@ -246,7 +246,7 @@ napi_value JsEmbeddableUIAbilityContext::OnStartAbilityForResult(napi_env env, N
 napi_value JsEmbeddableUIAbilityContext::OnConnectAbility(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGI(AAFwkTag::UI_EXT, "Connect ability in embedded screen mode");
+        TAG_LOGI(AAFwkTag::EMBEDDABLE_UIABILITY, "Connect ability in embedded screen mode");
         CHECK_POINTER_RETURN(env, jsUIExtensionContext_);
         return jsUIExtensionContext_->OnConnectAbility(env, info);
     }
@@ -257,7 +257,7 @@ napi_value JsEmbeddableUIAbilityContext::OnConnectAbility(napi_env env, NapiCall
 napi_value JsEmbeddableUIAbilityContext::OnDisconnectAbility(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGI(AAFwkTag::UI_EXT, "Disconnect ability in embedded screen mode");
+        TAG_LOGI(AAFwkTag::EMBEDDABLE_UIABILITY, "Disconnect ability in embedded screen mode");
         CHECK_POINTER_RETURN(env, jsUIExtensionContext_);
         return jsUIExtensionContext_->OnDisconnectAbility(env, info);
     }
@@ -268,7 +268,7 @@ napi_value JsEmbeddableUIAbilityContext::OnDisconnectAbility(napi_env env, NapiC
 napi_value JsEmbeddableUIAbilityContext::OnTerminateSelf(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGI(AAFwkTag::UI_EXT, "TerminateSelf in embedded screen mode");
+        TAG_LOGI(AAFwkTag::EMBEDDABLE_UIABILITY, "TerminateSelf in embedded screen mode");
         CHECK_POINTER_RETURN(env, jsUIExtensionContext_);
         return jsUIExtensionContext_->OnTerminateSelf(env, info);
     }
@@ -279,7 +279,7 @@ napi_value JsEmbeddableUIAbilityContext::OnTerminateSelf(napi_env env, NapiCallb
 napi_value JsEmbeddableUIAbilityContext::OnTerminateSelfWithResult(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGI(AAFwkTag::UI_EXT, "TerminateSelfWithResult ability in embedded screen mode");
+        TAG_LOGI(AAFwkTag::EMBEDDABLE_UIABILITY, "TerminateSelfWithResult ability in embedded screen mode");
         CHECK_POINTER_RETURN(env, jsUIExtensionContext_);
         return jsUIExtensionContext_->OnTerminateSelfWithResult(env, info);
     }
@@ -290,7 +290,7 @@ napi_value JsEmbeddableUIAbilityContext::OnTerminateSelfWithResult(napi_env env,
 napi_value JsEmbeddableUIAbilityContext::OnBackToCallerAbilityWithResult(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "BackToCallerAbilityWithResult in embedded screen mode");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "BackToCallerAbilityWithResult in embedded screen mode");
         ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
         return CreateJsUndefined(env);
     }
@@ -301,7 +301,7 @@ napi_value JsEmbeddableUIAbilityContext::OnBackToCallerAbilityWithResult(napi_en
 napi_value JsEmbeddableUIAbilityContext::OnStartAbilityAsCaller(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Start ability as caller in embedded screen mode");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "Start ability as caller in embedded screen mode");
         ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
         return CreateJsUndefined(env);
     }
@@ -312,7 +312,7 @@ napi_value JsEmbeddableUIAbilityContext::OnStartAbilityAsCaller(napi_env env, Na
 napi_value JsEmbeddableUIAbilityContext::OnStartAbilityWithAccount(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Start ability with account in embedded screen mode");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "Start ability with account in embedded screen mode");
         ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
         return CreateJsUndefined(env);
     }
@@ -323,7 +323,7 @@ napi_value JsEmbeddableUIAbilityContext::OnStartAbilityWithAccount(napi_env env,
 napi_value JsEmbeddableUIAbilityContext::OnStartAbilityByCall(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Start ability by caller in embedded screen mode");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "Start ability by caller in embedded screen mode");
         ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
         return CreateJsUndefined(env);
     }
@@ -334,7 +334,7 @@ napi_value JsEmbeddableUIAbilityContext::OnStartAbilityByCall(napi_env env, Napi
 napi_value JsEmbeddableUIAbilityContext::OnStartAbilityForResultWithAccount(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Start ability for result in embedded screen mode");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "Start ability for result in embedded screen mode");
         ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
         return CreateJsUndefined(env);
     }
@@ -345,7 +345,7 @@ napi_value JsEmbeddableUIAbilityContext::OnStartAbilityForResultWithAccount(napi
 napi_value JsEmbeddableUIAbilityContext::OnStartExtensionAbility(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Start extension in embedded screen mode");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "Start extension in embedded screen mode");
         ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
         return CreateJsUndefined(env);
     }
@@ -356,7 +356,7 @@ napi_value JsEmbeddableUIAbilityContext::OnStartExtensionAbility(napi_env env, N
 napi_value JsEmbeddableUIAbilityContext::OnStartExtensionAbilityWithAccount(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Start extensionin with account in embedded screen mode");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "Start extensionin with account in embedded screen mode");
         ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
         return CreateJsUndefined(env);
     }
@@ -367,7 +367,7 @@ napi_value JsEmbeddableUIAbilityContext::OnStartExtensionAbilityWithAccount(napi
 napi_value JsEmbeddableUIAbilityContext::OnStopExtensionAbility(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Stop extensionin in embedded screen mode");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "Stop extensionin in embedded screen mode");
         ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
         return CreateJsUndefined(env);
     }
@@ -378,7 +378,7 @@ napi_value JsEmbeddableUIAbilityContext::OnStopExtensionAbility(napi_env env, Na
 napi_value JsEmbeddableUIAbilityContext::OnStopExtensionAbilityWithAccount(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Stop extensionin with account in embedded screen mode");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "Stop extensionin with account in embedded screen mode");
         ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
         return CreateJsUndefined(env);
     }
@@ -389,7 +389,7 @@ napi_value JsEmbeddableUIAbilityContext::OnStopExtensionAbilityWithAccount(napi_
 napi_value JsEmbeddableUIAbilityContext::OnConnectAbilityWithAccount(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Connect ability with account in embedded screen mode");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "Connect ability with account in embedded screen mode");
         ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
         return CreateJsUndefined(env);
     }
@@ -400,7 +400,7 @@ napi_value JsEmbeddableUIAbilityContext::OnConnectAbilityWithAccount(napi_env en
 napi_value JsEmbeddableUIAbilityContext::OnRestoreWindowStage(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Restore window stage with account in embedded screen mode");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "Restore window stage with account in embedded screen mode");
         ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
         return CreateJsUndefined(env);
     }
@@ -411,7 +411,7 @@ napi_value JsEmbeddableUIAbilityContext::OnRestoreWindowStage(napi_env env, Napi
 napi_value JsEmbeddableUIAbilityContext::OnIsTerminating(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Get terminating state in embedded screen mode");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "Get terminating state in embedded screen mode");
         ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
         return CreateJsUndefined(env);
     }
@@ -422,7 +422,7 @@ napi_value JsEmbeddableUIAbilityContext::OnIsTerminating(napi_env env, NapiCallb
 napi_value JsEmbeddableUIAbilityContext::OnStartRecentAbility(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Start recent ability in embedded screen mode");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "Start recent ability in embedded screen mode");
         ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
         return CreateJsUndefined(env);
     }
@@ -433,7 +433,7 @@ napi_value JsEmbeddableUIAbilityContext::OnStartRecentAbility(napi_env env, Napi
 napi_value JsEmbeddableUIAbilityContext::OnRequestDialogService(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Request dialog service in embedded screen mode");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "Request dialog service in embedded screen mode");
         ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
         return CreateJsUndefined(env);
     }
@@ -444,7 +444,7 @@ napi_value JsEmbeddableUIAbilityContext::OnRequestDialogService(napi_env env, Na
 napi_value JsEmbeddableUIAbilityContext::OnReportDrawnCompleted(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGI(AAFwkTag::UI_EXT, "Report Drawn Completed in half screen mode");
+        TAG_LOGI(AAFwkTag::EMBEDDABLE_UIABILITY, "Report Drawn Completed in half screen mode");
         CHECK_POINTER_RETURN(env, jsUIExtensionContext_);
         return jsUIExtensionContext_->OnReportDrawnCompleted(env, info);
     }
@@ -455,7 +455,7 @@ napi_value JsEmbeddableUIAbilityContext::OnReportDrawnCompleted(napi_env env, Na
 napi_value JsEmbeddableUIAbilityContext::OnSetMissionContinueState(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Set mission continue state in embedded screen mode");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "Set mission continue state in embedded screen mode");
         ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
         return CreateJsUndefined(env);
     }
@@ -466,7 +466,7 @@ napi_value JsEmbeddableUIAbilityContext::OnSetMissionContinueState(napi_env env,
 napi_value JsEmbeddableUIAbilityContext::OnStartAbilityByType(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Start ability by type in embedded screen mode");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "Start ability by type in embedded screen mode");
         ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
         return CreateJsUndefined(env);
     }
@@ -477,7 +477,7 @@ napi_value JsEmbeddableUIAbilityContext::OnStartAbilityByType(napi_env env, Napi
 napi_value JsEmbeddableUIAbilityContext::OnMoveAbilityToBackground(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "OnMoveAbilityToBackground in half screen mode");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "OnMoveAbilityToBackground in half screen mode");
         ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
         return CreateJsUndefined(env);
     }
@@ -488,7 +488,7 @@ napi_value JsEmbeddableUIAbilityContext::OnMoveAbilityToBackground(napi_env env,
 napi_value JsEmbeddableUIAbilityContext::OnRequestModalUIExtension(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "OnRequestModalUIExtension in half screen mode.");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "OnRequestModalUIExtension in half screen mode.");
         ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
         return CreateJsUndefined(env);
     }
@@ -499,7 +499,7 @@ napi_value JsEmbeddableUIAbilityContext::OnRequestModalUIExtension(napi_env env,
 napi_value JsEmbeddableUIAbilityContext::OnOpenAtomicService(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGI(AAFwkTag::UI_EXT, "OpenAtomicService in embedded screen mode.");
+        TAG_LOGI(AAFwkTag::EMBEDDABLE_UIABILITY, "OpenAtomicService in embedded screen mode.");
         CHECK_POINTER_RETURN(env, jsUIExtensionContext_);
         return jsUIExtensionContext_->OnOpenAtomicService(env, info);
     }
@@ -510,7 +510,7 @@ napi_value JsEmbeddableUIAbilityContext::OnOpenAtomicService(napi_env env, NapiC
 napi_value JsEmbeddableUIAbilityContext::OnShowAbility(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "OnShowAbility in half screen mode.");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "OnShowAbility in half screen mode.");
         ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
         return CreateJsUndefined(env);
     }
@@ -521,7 +521,7 @@ napi_value JsEmbeddableUIAbilityContext::OnShowAbility(napi_env env, NapiCallbac
 napi_value JsEmbeddableUIAbilityContext::OnHideAbility(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "OnHideAbility in half screen mode.");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "OnHideAbility in half screen mode.");
         ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
         return CreateJsUndefined(env);
     }
@@ -532,7 +532,7 @@ napi_value JsEmbeddableUIAbilityContext::OnHideAbility(napi_env env, NapiCallbac
 napi_value JsEmbeddableUIAbilityContext::OnSetRestoreEnabled(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "OnSetRestoreEnabled in half screen mode.");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "OnSetRestoreEnabled in half screen mode.");
         ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
         return CreateJsUndefined(env);
     }
@@ -543,20 +543,20 @@ napi_value JsEmbeddableUIAbilityContext::OnSetRestoreEnabled(napi_env env, NapiC
 #ifdef SUPPORT_GRAPHICS
 napi_value JsEmbeddableUIAbilityContext::SetMissionLabel(napi_env env, napi_callback_info info)
 {
-    TAG_LOGI(AAFwkTag::UI_EXT, "called");
+    TAG_LOGI(AAFwkTag::EMBEDDABLE_UIABILITY, "called");
     GET_NAPI_INFO_AND_CALL(env, info, JsEmbeddableUIAbilityContext, OnSetMissionLabel);
 }
 
 napi_value JsEmbeddableUIAbilityContext::SetMissionIcon(napi_env env, napi_callback_info info)
 {
-    TAG_LOGI(AAFwkTag::UI_EXT, "called");
+    TAG_LOGI(AAFwkTag::EMBEDDABLE_UIABILITY, "called");
     GET_NAPI_INFO_AND_CALL(env, info, JsEmbeddableUIAbilityContext, OnSetMissionIcon);
 }
 
 napi_value JsEmbeddableUIAbilityContext::OnSetMissionLabel(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Set mission label in embedded screen mode");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "Set mission label in embedded screen mode");
         ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
         return CreateJsUndefined(env);
     }
@@ -567,7 +567,7 @@ napi_value JsEmbeddableUIAbilityContext::OnSetMissionLabel(napi_env env, NapiCal
 napi_value JsEmbeddableUIAbilityContext::OnSetMissionIcon(napi_env env, NapiCallbackInfo& info)
 {
     if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Set mission icon in embedded screen mode");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "Set mission icon in embedded screen mode");
         ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
         return CreateJsUndefined(env);
     }
@@ -580,7 +580,7 @@ void JsEmbeddableUIAbilityContext::WrapJsUIAbilityContext(napi_env env,
     std::shared_ptr<AbilityContext> uiAbiContext, napi_value &objValue, int32_t screenMode)
 {
     if (uiAbiContext == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "UI ability context is nullptr");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "UI ability context is nullptr");
         return;
     }
     objValue = CreateJsBaseContext(env, uiAbiContext);
@@ -603,7 +603,7 @@ void JsEmbeddableUIAbilityContext::WrapJsUIExtensionContext(napi_env env,
     std::shared_ptr<UIExtensionContext> uiExtContext, napi_value &objValue, int32_t screenMode)
 {
     if (uiExtContext == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "UI extension context is nullptr");
+        TAG_LOGE(AAFwkTag::EMBEDDABLE_UIABILITY, "UI extension context is nullptr");
         return;
     }
     objValue = CreateJsBaseContext(env, uiExtContext);
@@ -625,7 +625,7 @@ void JsEmbeddableUIAbilityContext::WrapJsUIExtensionContext(napi_env env,
 napi_value JsEmbeddableUIAbilityContext::CreateJsEmbeddableUIAbilityContext(napi_env env,
     std::shared_ptr<AbilityContext> uiAbiContext, std::shared_ptr<UIExtensionContext> uiExtContext, int32_t screenMode)
 {
-    TAG_LOGD(AAFwkTag::UI_EXT, "begin");
+    TAG_LOGD(AAFwkTag::EMBEDDABLE_UIABILITY, "begin");
     napi_value objValue = nullptr;
     if (screenMode == AAFwk::JUMP_SCREEN_MODE) {
         WrapJsUIAbilityContext(env, uiAbiContext, objValue, screenMode);

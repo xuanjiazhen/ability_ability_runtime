@@ -48,6 +48,7 @@
 #include "dump_ffrt_helper.h"
 #include "dump_ipc_helper.h"
 #include "dump_runtime_helper.h"
+#include "embeddable_ui_ability.h"
 #include "exit_reason.h"
 #include "extension_ability_info.h"
 #include "extension_module_loader.h"
@@ -1649,6 +1650,15 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
                 return AbilityRuntime::UIAbility::Create(app->GetRuntime());
             }
             TAG_LOGE(AAFwkTag::APPKIT, "failed");
+            return nullptr;
+        });
+        AbilityLoader::GetInstance().RegisterExtension("EmbeddableUIAbility",
+            [wpApplication]() -> AbilityRuntime::Extension* {
+            auto app = wpApplication.lock();
+            if (app != nullptr) {
+                return AbilityRuntime::EmbeddableUIAbility::Create(app->GetRuntime());
+            }
+            TAG_LOGE(AAFwkTag::APPKIT, "Create EmbeddableUIAbility failed");
             return nullptr;
         });
 #ifdef CJ_FRONTEND

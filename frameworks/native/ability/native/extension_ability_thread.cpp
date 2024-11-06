@@ -96,6 +96,16 @@ std::string ExtensionAbilityThread::CreateAbilityName(
         return abilityInfo->name;
     }
 
+    auto want = abilityRecord->GetWant();
+    if (want != nullptr) {
+        int32_t screenMode = want->GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
+        if (screenMode != AAFwk::IDLE_SCREEN_MODE) {
+            abilityName = "EmbeddableUIAbility";
+            TAG_LOGI(AAFwkTag::EXT, "Create embeddable uiability as an extension");
+            return abilityName;
+        }
+    }
+
     application->GetExtensionNameByType(static_cast<int32_t>(abilityInfo->extensionAbilityType), abilityName);
     if (!abilityName.empty()) {
         TAG_LOGD(AAFwkTag::EXT, "Get extension name: %{public}s success", abilityName.c_str());

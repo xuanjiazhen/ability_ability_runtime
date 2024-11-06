@@ -16,7 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_UI_EXTENSION_H
 #define OHOS_ABILITY_RUNTIME_UI_EXTENSION_H
 
-#include "extension_base.h"
+#include "ui_extension_base.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -25,38 +25,10 @@ class Runtime;
 /**
  * @brief Basic ui extension components.
  */
-class UIExtension : public ExtensionBase<UIExtensionContext> {
+class UIExtension : public UIExtensionBase<UIExtensionContext> {
 public:
     UIExtension() = default;
     virtual ~UIExtension() = default;
-
-    /**
-     * @brief Create and init context.
-     *
-     * @param record the ui extension record.
-     * @param application the application info.
-     * @param handler the ui extension handler.
-     * @param token the remote token.
-     * @return The created context.
-     */
-    virtual std::shared_ptr<UIExtensionContext> CreateAndInitContext(
-        const std::shared_ptr<AbilityLocalRecord> &record,
-        const std::shared_ptr<OHOSApplication> &application,
-        std::shared_ptr<AbilityHandler> &handler,
-        const sptr<IRemoteObject> &token) override;
-
-    /**
-     * @brief Init the ui extension.
-     *
-     * @param record the ui extension record.
-     * @param application the application info.
-     * @param handler the ui extension handler.
-     * @param token the remote token.
-     */
-    virtual void Init(const std::shared_ptr<AbilityLocalRecord> &record,
-        const std::shared_ptr<OHOSApplication> &application,
-        std::shared_ptr<AbilityHandler> &handler,
-        const sptr<IRemoteObject> &token) override;
 
     /**
      * @brief Create ui extension.
@@ -66,6 +38,6 @@ public:
      */
     static UIExtension* Create(const std::unique_ptr<Runtime>& runtime);
 };
-}  // namespace AbilityRuntime
-}  // namespace OHOS
-#endif  // OHOS_ABILITY_RUNTIME_UI_EXTENSION_H
+} // namespace AbilityRuntime
+} // namespace OHOS
+#endif // OHOS_ABILITY_RUNTIME_UI_EXTENSION_H

@@ -63,7 +63,9 @@ public:
 
     virtual void SetContext(const std::shared_ptr<UIExtensionContext> &context) = 0;
 
-    virtual void BindContext() = 0;
+    virtual void BindContext(const std::shared_ptr<AAFwk::Want> want) = 0;
+    virtual bool HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFwk::SessionInfo> sessionInfo) = 0;
+    virtual void DestroyWindow(const sptr<AAFwk::SessionInfo> sessionInfo) = 0;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

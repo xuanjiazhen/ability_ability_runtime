@@ -570,6 +570,7 @@ config("uiability_config") {
     "${ability_runtime_innerkits_path}/wantagent/include",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/continuation/distributed",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/continuation/kits",
+    "${ability_runtime_path}/interfaces/kits/native/ability/native/embeddable_ui_ability",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/recovery/",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_extension_base",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/app",
@@ -603,6 +604,10 @@ ohos_shared_library("uiabilitykit_native") {
     "${ability_runtime_native_path}/ability/native/continuation/distributed/continuation_handler_stage.cpp",
     "${ability_runtime_native_path}/ability/native/continuation/distributed/continuation_manager_stage.cpp",
     "${ability_runtime_native_path}/ability/native/continuation/distributed/reverse_continuation_scheduler_primary_stage.cpp",
+    "${ability_runtime_native_path}/ability/native/embeddable_ui_ability/embeddable_ui_ability.cpp",
+    "${ability_runtime_native_path}/ability/native/embeddable_ui_ability/js_embeddable_ui_ability.cpp",
+    "${ability_runtime_native_path}/ability/native/embeddable_ui_ability/js_embeddable_ui_ability_context.cpp",
+    "${ability_runtime_native_path}/ability/native/embeddable_ui_ability/js_embeddable_ui_ability_impl.cpp",
     "${ability_runtime_native_path}/ability/native/recovery/ability_recovery.cpp",
     "${ability_runtime_native_path}/ability/native/recovery/app_recovery.cpp",
     "${ability_runtime_native_path}/ability/native/recovery/app_recovery_parcel_allocator.cpp",
@@ -625,6 +630,7 @@ ohos_shared_library("uiabilitykit_native") {
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:insight_intent_executor",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_native_path}/appkit:app_context_utils",
     "${ability_runtime_native_path}/appkit:appkit_delegator",
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
@@ -685,6 +691,8 @@ ohos_shared_library("uiabilitykit_native") {
       "window_manager:libwm",
       "window_manager:libwsutils",
       "window_manager:windowstage_kit",
+      "window_manager:embeddablewindowstage_kit",
+      "window_manager:extensionwindow_napi",
     ]
     public_external_deps += [
       "form_fwk:form_manager",
@@ -1387,8 +1395,8 @@ config("ui_extension_public_config") {
 ohos_shared_library("ui_extension") {
   include_dirs = [ "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_service_extension_ability/connection" ]
   sources = [
-    "${ability_runtime_native_path}/ability/native/ui_extension_ability/js_embeddable_ui_ability_context.cpp",
     "${ability_runtime_native_path}/ability/native/ui_extension_ability/js_ui_extension.cpp",
+    "${ability_runtime_native_path}/ability/native/ui_extension_ability/js_ui_extension_impl.cpp",
     "${ability_runtime_native_path}/ability/native/ui_extension_ability/ui_extension.cpp",
     "${ability_runtime_native_path}/ability/native/ui_extension_base/js_ui_extension_base.cpp",
     "${ability_runtime_native_path}/ability/native/ui_extension_base/js_ui_extension_content_session.cpp",
@@ -1427,7 +1435,6 @@ ohos_shared_library("ui_extension") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "napi:ace_napi",
-    "window_manager:embeddablewindowstage_kit",
     "window_manager:extensionwindow_napi",
   ]
 
@@ -1447,7 +1454,16 @@ ohos_shared_library("ui_extension") {
 }
 
 ohos_shared_library("ui_extension_module") {
-  include_dirs = [ "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_extension_ability" ]
+  include_dirs = [
+    "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_extension_ability",
+    "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_extension_base",
+    "${ability_runtime_path}/interfaces/kits/native/ability/native/ability_runtime",
+    "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_extension_base",
+    "${ability_runtime_path}/interfaces/kits/native/ability/ability_runtime",
+    "${ability_runtime_path}/interfaces/kits/native/ability/native",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/context",
+  ]
 
   sources = [ "${ability_runtime_native_path}/ability/native/ui_extension_ability/ui_extension_module_loader.cpp" ]
 

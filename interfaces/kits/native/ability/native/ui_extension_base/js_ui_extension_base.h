@@ -162,7 +162,9 @@ public:
      */
     void SetContext(const std::shared_ptr<UIExtensionContext> &context) override;
 
-    void BindContext() override;
+    void BindContext(const std::shared_ptr<AAFwk::Want> want) override;
+    bool HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFwk::SessionInfo> sessionInfo) override;
+    void DestroyWindow(const sptr<AAFwk::SessionInfo> sessionInfo) override;
 
     /**
      * @brief Called when configuration changed, including system configuration and window configuration.
@@ -176,13 +178,11 @@ protected:
     bool CallPromise(napi_value result, AppExecFwk::AbilityTransactionCallbackInfo<> *callbackInfo);
     void ForegroundWindow(const AAFwk::Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo);
     void BackgroundWindow(const sptr<AAFwk::SessionInfo> &sessionInfo);
-    void DestroyWindow(const sptr<AAFwk::SessionInfo> &sessionInfo);
     bool CallJsOnSessionCreate(const AAFwk::Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo,
         const sptr<Rosen::Window> &uiWindow, const uint64_t &uiExtensionComponentId);
     void OnCommandWindowDone(const sptr<AAFwk::SessionInfo> &sessionInfo, AAFwk::WindowCommand winCmd);
     bool ForegroundWindowWithInsightIntent(const AAFwk::Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo,
         bool needForeground);
-    bool HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo);
     void OnInsightIntentExecuteDone(const sptr<AAFwk::SessionInfo> &sessionInfo,
         const AppExecFwk::InsightIntentExecuteResult &result);
     void PostInsightIntentExecuted(const sptr<AAFwk::SessionInfo> &sessionInfo,
@@ -193,6 +193,7 @@ protected:
     std::shared_ptr<NativeReference> shellContextRef_;
     std::shared_ptr<NativeReference> jsObj_;
     std::shared_ptr<UIExtensionContext> context_;
+    std::mutex uiWindowMutex_;
     std::map<uint64_t, sptr<Rosen::Window>> uiWindowMap_;
     std::set<uint64_t> foregroundWindows_;
     std::map<uint64_t, std::shared_ptr<NativeReference>> contentSessions_;

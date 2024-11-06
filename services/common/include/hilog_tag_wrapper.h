@@ -68,6 +68,7 @@ enum class AAFwkLogTag : uint32_t {
     ABILITYMGR,
     ECOLOGICAL_RULE,
     DATA_ABILITY,
+    EMBEDDABLE_UIABILITY,
 
     EXT = DEFAULT + 0x40,       // 0xD001340
     AUTOFILL_EXT,
@@ -135,7 +136,7 @@ inline const char* GetDomainName2(AAFwkLogTag tag)
 inline const char* GetDomainName3(AAFwkLogTag tag)
 {
     const char* tagNames[] = { "Delegator", "Context", "UIAbility", "Want", "Mission",
-        "Connection", "AMS", "EcologicalRule", "DataAbility" };
+        "Connection", "AMS", "EcologicalRule", "DataAbility", "EmbeddableUIAbility" };
     uint32_t offset = GetOffset(tag, AAFwkLogTag::DELEGATOR);
     if (offset >= sizeof(tagNames) / sizeof(const char*)) {
         return "UN";
