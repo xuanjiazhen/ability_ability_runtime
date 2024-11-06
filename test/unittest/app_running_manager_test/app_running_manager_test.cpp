@@ -74,7 +74,7 @@ HWTEST_F(AppRunningManagerTest, AppRunningManager_SetAttachAppDebug_0100, TestSi
     std::string processName;
     auto appRunningRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
     appRunningManager->appRunningRecordMap_.insert(make_pair(RECORD_ID, appRunningRecord));
-    appRunningManager->SetAttachAppDebug(bundleName, true);
+    appRunningManager->SetAttachAppDebug(bundleName, 0, true);
     for (const auto &item : appRunningManager->appRunningRecordMap_) {
         const auto &appRecord = item.second;
         if (appRecord->GetBundleName() == bundleName) {
@@ -100,7 +100,7 @@ HWTEST_F(AppRunningManagerTest, AppRunningManager_SetAttachAppDebug_0200, TestSi
     std::string processName;
     auto appRunningRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
     appRunningManager->appRunningRecordMap_.insert(make_pair(RECORD_ID, appRunningRecord));
-    appRunningManager->SetAttachAppDebug(bundleName, isAttachDebug);
+    appRunningManager->SetAttachAppDebug(bundleName, 0, isAttachDebug);
     for (const auto &item : appRunningManager->appRunningRecordMap_) {
         const auto &appRecord = item.second;
         if (appRecord->GetBundleName() == bundleName) {
@@ -127,7 +127,7 @@ HWTEST_F(AppRunningManagerTest, AppRunningManager_GetAppDebugInfoByBundleName_01
     std::string processName;
     auto appRunningRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
     appRunningManager->appRunningRecordMap_.insert(make_pair(RECORD_ID, appRunningRecord));
-    appRunningManager->GetAppDebugInfosByBundleName(bundleName, isDetachDebug);
+    appRunningManager->GetAppDebugInfosByBundleName(bundleName, 0, isDetachDebug);
     EXPECT_EQ(appRunningManager->appRunningRecordMap_.size(), RECORD_MAP_SIZE);
     for (const auto &item : appRunningManager->appRunningRecordMap_) {
         const auto &appRecord = item.second;
@@ -153,7 +153,7 @@ HWTEST_F(AppRunningManagerTest, AppRunningManager_GetAbilityTokensByBundleName_0
     std::string processName;
     auto appRunningRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
     appRunningManager->appRunningRecordMap_.insert(make_pair(RECORD_ID, appRunningRecord));
-    appRunningManager->GetAbilityTokensByBundleName(bundleName, abilityTokens);
+    appRunningManager->GetAbilityTokensByBundleName(bundleName, 0, abilityTokens);
     for (const auto &item : appRunningManager->appRunningRecordMap_) {
         const auto &appRecord = item.second;
         for (const auto &token : appRecord->GetAbilities()) {

@@ -3639,7 +3639,7 @@ HWTEST_F(AppMgrServiceInnerTest, NotifyAbilitysDebugChange_001, TestSize.Level0)
     bool isAppDebug = true;
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
     appMgrServiceInner->appDebugManager_ = std::make_shared<AppDebugManager>();
-    auto result = appMgrServiceInner->NotifyAbilitiesDebugChange(bundleName, isAppDebug);
+    auto result = appMgrServiceInner->NotifyAbilitiesDebugChange(bundleName, 0, isAppDebug);
     EXPECT_EQ(result, ERR_NO_INIT);
 }
 
