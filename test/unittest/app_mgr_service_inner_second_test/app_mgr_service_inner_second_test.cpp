@@ -2053,16 +2053,19 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_StartChildPr
     ret = appMgrServiceInner->StartChildProcessPreCheck(pid, 1);
     EXPECT_EQ(ret, ERR_NOT_SUPPORT_CHILD_PROCESS);
 
+    TAG_LOGI(AAFwkTag::TEST, "zhawei StartChildProcessPreCheck start");
     system::SetBoolParameter(MULTI_PROCESS_MODEL, true);
-    auto& utils = AAFwk::AppUtils::GetInstance();
-    utils.isMultiProcessModel_.isLoaded = false;
-    ret = appMgrServiceInner->StartChildProcessPreCheck(pid, 1);
-    EXPECT_EQ(ret, ERR_CHILD_PROCESS_REACH_LIMIT);
-
-    utils.maxChildProcess_.isLoaded = true;
-    utils.maxChildProcess_.value = 1000000;
+    AAFwk::AppUtils::GetInstance().isMultiProcessModel_.isLoaded = false;
+    AAFwk::AppUtils::GetInstance().maxChildProcess_.isLoaded = true;
+    AAFwk::AppUtils::GetInstance().maxChildProcess_.value = 10000; // 10000 means max child process count
     ret = appMgrServiceInner->StartChildProcessPreCheck(pid, 1);
     EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "zhawei StartChildProcessPreCheck end");
+
+    AAFwk::AppUtils::GetInstance().maxChildProcess_.isLoaded = false;
+    AAFwk::AppUtils::GetInstance().maxChildProcess_.value = 0;
+    ret = appMgrServiceInner->StartChildProcessPreCheck(pid, 1);
+    EXPECT_EQ(ret, ERR_CHILD_PROCESS_REACH_LIMIT);
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_StartChildProcessPreCheck_0100 end");
 }
 
@@ -2105,7 +2108,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_StartChildPr
     ret = appMgrServiceInner->StartChildProcess(pid, childPid, request);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
-    appRecord->GetPriorityObject()->SetPid(1000);
+    appRecord->GetPriorityObject()->SetPid(PID_1000);
     pid = appRecord->GetPriorityObject()->GetPid();
     ret = appMgrServiceInner->StartChildProcess(pid, childPid, request);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);

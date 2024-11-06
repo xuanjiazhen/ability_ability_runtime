@@ -100,17 +100,13 @@ public:
     void SetUp() override;
     void TearDown() override;
     void MockBundleInstallerAndSA();
-    void MockBundleInstaller();
     sptr<ISystemAbilityManager> iSystemAbilityMgr_ = nullptr;
     sptr<AppExecFwk::MockSystemAbilityManager> mockSystemAbility_ = nullptr;
-    std::shared_ptr<BundleMgrHelper> bundleMgrHelper_{ nullptr };
 };
 
-void InsightIntentUtilsTest::SetUpTestCase(void)
-{}
+void InsightIntentUtilsTest::SetUpTestCase(void) {}
 
-void InsightIntentUtilsTest::TearDownTestCase(void)
-{}
+void InsightIntentUtilsTest::TearDownTestCase(void) {}
 
 void InsightIntentUtilsTest::SetUp()
 {
@@ -136,14 +132,12 @@ void InsightIntentUtilsTest::MockBundleInstallerAndSA()
 void InsightIntentUtilsTest::TearDown()
 {
     SystemAbilityManagerClient::GetInstance().systemAbilityManager_ = iSystemAbilityMgr_;
-    testing::Mock::AllowLeak(mockSystemAbility_);
 }
 
 /**
  * @tc.name: GetSrcEntry_0100
  * @tc.desc: basic function test of get caller info.
  * @tc.type: FUNC
- * @tc.require: issueI91RLM
  */
 HWTEST_F(InsightIntentUtilsTest, GetSrcEntry_0100, TestSize.Level1)
 {
@@ -237,7 +231,6 @@ HWTEST_F(InsightIntentUtilsTest, GetSrcEntry_0400, TestSize.Level1)
         TEST_SRC_ENTRY);
     EXPECT_EQ(result, ERR_INSIGHT_INTENT_START_INVALID_COMPONENT);
     Mock::VerifyAndClear(mockBundleMgr);
-    testing::Mock::AllowLeak(mockBundleMgr);
     TAG_LOGI(AAFwkTag::TEST, "InsightIntentUtilsTest GetSrcEntry_0400 end.");
 }
 } // namespace AAFwk
