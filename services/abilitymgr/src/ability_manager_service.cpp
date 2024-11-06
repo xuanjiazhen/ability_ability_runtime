@@ -196,6 +196,8 @@ constexpr int32_t UPDATE_CONFIG_FLAG_COVER = 1;
 constexpr int32_t UPDATE_CONFIG_FLAG_APPEND = 2;
 constexpr int32_t START_AUTO_START_APP_DELAY_TIME = 200;
 constexpr int32_t START_AUTO_START_APP_RETRY_MAX_TIMES = 5;
+constexpr const char* LIFE_CYCLE_STATE_FOREGROUND_DONE = "foreground done";
+constexpr const char* LIFE_CYCLE_STATE_BACKGROUND_DONE = "background done";
 
 const std::unordered_set<std::string> COMMON_PICKER_TYPE = {
     "share", "action"
@@ -212,6 +214,17 @@ void SendAbilityEvent(const EventName &eventName, HiSysEventType type, const Eve
     taskHandler->SubmitTask([eventName, type, eventInfo]() {
         EventReport::SendAbilityEvent(eventName, type, eventInfo);
         });
+}
+
+void SendUIAbilityEvent(EventInfo &eventInfo, const int32_t state)
+{
+    if (state == static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_FOREGROUND)) {
+        eventInfo.lifeCycleState = LIFE_CYCLE_STATE_FOREGROUND_DONE;
+        SendAbilityEvent(EventName::ABILITY_ONFOREGROUND, HiSysEventType::BEHAVIOR, eventInfo);
+    } else if (state == static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_BACKGROUND)) {
+        eventInfo.lifeCycleState = LIFE_CYCLE_STATE_BACKGROUND_DONE;
+        SendAbilityEvent(EventName::ABILITY_ONBACKGROUND, HiSysEventType::BEHAVIOR, eventInfo);
+    }
 }
 } // namespace
 
@@ -1272,6 +1285,8 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
         }
         auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
+        EventInfo eventInfo = BuildEventInfo(abilityRequest.want, abilityRequest.userId);
+        SendAbilityEvent(EventName::NOTIFY_SCB_START_ABILITY, HiSysEventType::BEHAVIOR, eventInfo);
         return uiAbilityManager->NotifySCBToStartUIAbility(abilityRequest);
     }
 
@@ -1549,6 +1564,7 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
         abilityRequest.want.SetParam(ServerConstant::IS_CALL_BY_SCB, false);
         auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
+        SendAbilityEvent(EventName::NOTIFY_SCB_START_ABILITY, HiSysEventType::BEHAVIOR, eventInfo);
         return uiAbilityManager->NotifySCBToStartUIAbility(abilityRequest);
     }
     auto missionListManager = GetMissionListManagerByUserId(oriValidUserId);
@@ -1946,6 +1962,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         abilityRequest.supportWindowModes = startOptions.supportWindowModes_;
         auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
+        SendAbilityEvent(EventName::NOTIFY_SCB_START_ABILITY, HiSysEventType::BEHAVIOR, eventInfo);
         return uiAbilityManager->NotifySCBToStartUIAbility(abilityRequest);
     }
     auto missionListManager = GetMissionListManagerByUserId(oriValidUserId);
@@ -2134,6 +2151,11 @@ int AbilityManagerService::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bo
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call, sceneFlag:%{public}u", sceneFlag);
+
+    auto currentUserId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    EventInfo eventInfo = BuildEventInfo(sessionInfo->want, currentUserId);
+    SendAbilityEvent(EventName::START_ABILITY_BY_SCB, HiSysEventType::BEHAVIOR, eventInfo);
+
     if (sessionInfo == nullptr || sessionInfo->sessionToken == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionInfo null");
         return ERR_INVALID_VALUE;
@@ -3569,7 +3591,8 @@ int AbilityManagerService::BackToCallerAbilityWithResult(const sptr<IRemoteObjec
 
 int AbilityManagerService::CloseAbility(const sptr<IRemoteObject> &token, int resultCode, const Want *resultWant)
 {
-    EventInfo eventInfo;
+    auto abilityRecord = Token::GetAbilityRecordByToken(token);
+    EventInfo eventInfo = BuildEventInfoByAbilityRecord(abilityRecord);
     SendAbilityEvent(EventName::CLOSE_ABILITY, HiSysEventType::BEHAVIOR, eventInfo);
     return TerminateAbilityWithFlag(token, resultCode, resultWant, false);
 }
@@ -3750,9 +3773,7 @@ int AbilityManagerService::CloseUIAbilityBySCB(const sptr<SessionInfo> &sessionI
         (void)DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->
             DeleteAbilityRecoverInfo(abilityInfo.applicationInfo.accessTokenId, abilityInfo.moduleName, abilityName);
     }
-    EventInfo eventInfo;
-    eventInfo.bundleName = abilityRecord->GetAbilityInfo().bundleName;
-    eventInfo.abilityName = abilityRecord->GetAbilityInfo().name;
+    EventInfo eventInfo = BuildEventInfoByAbilityRecord(abilityRecord);
     SendAbilityEvent(EventName::CLOSE_ABILITY, HiSysEventType::BEHAVIOR, eventInfo);
     eventInfo.errCode = uiAbilityManager->CloseUIAbility(abilityRecord, sessionInfo->resultCode,
         &(sessionInfo->want), sessionInfo->isClearSession);
@@ -4246,6 +4267,46 @@ EventInfo AbilityManagerService::BuildEventInfo(const Want &want, int32_t userId
     eventInfo.bundleName = want.GetElement().GetBundleName();
     eventInfo.moduleName = want.GetElement().GetModuleName();
     eventInfo.abilityName = want.GetElement().GetAbilityName();
+    std::vector<AbilityRunningInfo> abilityRunningInfos;
+    auto result = GetAbilityRunningInfos(abilityRunningInfos);
+    if (result != ERR_OK) {
+        return eventInfo;
+    }
+    for (const auto& info : abilityRunningInfos) {
+        if (info.ability.GetBundleName() == eventInfo.bundleName ||
+            info.ability.GetModuleName() == eventInfo.moduleName ||
+            info.ability.GetAbilityName() == eventInfo.abilityName) {
+            eventInfo.appIndex = info.appCloneIndex;
+            eventInfo.pid = info.pid;
+            eventInfo.processName = info.processName;
+        }
+    }
+    return eventInfo;
+}
+
+EventInfo AbilityManagerService::BuildEventInfoByAbilityRecord(const std::shared_ptr<AbilityRecord> &abilityRecord)
+{
+    EventInfo eventInfo;
+    if (abilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null abilityRecord");
+        return eventInfo;
+    }
+    auto userId = abilityRecord->GetApplicationInfo().uid / BASE_USER_RANGE;
+    auto want = abilityRecord->GetWant();
+    AppExecFwk::RunningProcessInfo processInfo;
+    DelayedSingleton<AppScheduler>::GetInstance()->
+        GetRunningProcessInfoByToken(abilityRecord->GetToken(), processInfo);
+    auto abilityInfo = abilityRecord->GetAbilityInfo();
+    eventInfo.userId = userId;
+    eventInfo.abilityName = abilityInfo.name;
+    eventInfo.moduleName = abilityInfo.moduleName;
+    eventInfo.bundleName = abilityInfo.bundleName;
+    eventInfo.callerBundleName = want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
+    eventInfo.bundleType = static_cast<int32_t>(abilityInfo.applicationInfo.bundleType);
+    eventInfo.launchMode = static_cast<int32_t>(abilityInfo.launchMode);
+    eventInfo.appIndex = abilityInfo.applicationInfo.appIndex;
+    eventInfo.pid = processInfo.pid_;
+    eventInfo.processName = processInfo.processName_;
     return eventInfo;
 }
 
@@ -6203,6 +6264,10 @@ void AbilityManagerService::OnAbilityRequestDone(const sptr<IRemoteObject> &toke
         }
         default: {
             int32_t ownerUserId = abilityRecord->GetOwnerMissionUserId();
+            if (type == AppExecFwk::AbilityType::PAGE) {
+                auto eventInfo = BuildEventInfoByAbilityRecord(abilityRecord);
+                SendUIAbilityEvent(eventInfo, state);
+            }
             if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
                 auto uiAbilityManager = GetUIAbilityManagerByUserId(ownerUserId);
                 CHECK_POINTER(uiAbilityManager);
@@ -10309,6 +10374,8 @@ void AbilityManagerService::CallUIAbilityBySCB(const sptr<SessionInfo> &sessionI
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no sceneboard called, no allowed");
         return;
     }
+    auto eventInfo = BuildEventInfo(sessionInfo->want, sessionInfo->userId);
+    SendAbilityEvent(EventName::START_ABILITY_BY_SCB, HiSysEventType::BEHAVIOR, eventInfo);
     auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
     CHECK_POINTER(uiAbilityManager);
     uiAbilityManager->CallUIAbilityBySCB(sessionInfo, isColdStart);
@@ -12367,10 +12434,8 @@ void AbilityManagerService::ReportCleanSession(const sptr<SessionInfo> &sessionI
     (void)DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->
         DeleteAbilityRecoverInfo(abilityInfo.applicationInfo.accessTokenId, abilityInfo.moduleName, abilityName);
 
-    EventInfo eventInfo;
+    EventInfo eventInfo = BuildEventInfoByAbilityRecord(abilityRecord);
     eventInfo.errCode = errCode;
-    eventInfo.bundleName = abilityRecord->GetAbilityInfo().bundleName;
-    eventInfo.abilityName = abilityRecord->GetAbilityInfo().name;
     SendAbilityEvent(EventName::CLOSE_ABILITY, HiSysEventType::BEHAVIOR, eventInfo);
     if (eventInfo.errCode != ERR_OK) {
         SendAbilityEvent(EventName::TERMINATE_ABILITY_ERROR, HiSysEventType::FAULT, eventInfo);

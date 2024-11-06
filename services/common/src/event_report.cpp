@@ -58,6 +58,9 @@ constexpr const char *EVENT_KEY_PID = "PID";
 constexpr const char *EVENT_KEY_REASON = "REASON";
 constexpr const char *EVENT_KEY_SUB_REASON = "SUB_REASON";
 constexpr const char *INVALID_EVENT_NAME = "INVALIDEVENTNAME";
+constexpr const char *EVENT_KEY_LAUNCH_MODE = "LAUNCH_MODE";
+constexpr const char *EVENT_KEY_APP_INDEX = "APP_INDEX";
+constexpr const char *EVENT_KEY_LIFE_CYCLE_STATE = "LIFE_CYCLE_STATE";
 
 constexpr const int32_t DEFAULT_EXTENSION_TYPE = -1;
 }
@@ -117,10 +120,31 @@ void EventReport::LogErrorEvent(const std::string &name, HiSysEventType type, co
         name,
         type,
         EVENT_KEY_USERID, eventInfo.userId,
+        EVENT_KEY_ERROR_CODE, eventInfo.errCode,
+        EVENT_KEY_APP_INDEX, eventInfo.appIndex,
         EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
         EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
         EVENT_KEY_ABILITY_NAME, eventInfo.abilityName,
-        EVENT_KEY_ERROR_CODE, eventInfo.errCode);
+        EVENT_KEY_PID, eventInfo.pid,
+        EVENT_KEY_PROCESS_NAME, eventInfo.processName);
+}
+
+void EventReport::LogTerminateAbilityErrorEvent(const std::string &name,
+    HiSysEventType type, const EventInfo &eventInfo)
+{
+    HiSysEventWrite(
+        HiSysEvent::Domain::AAFWK,
+        name,
+        type,
+        EVENT_KEY_USERID, eventInfo.userId,
+        EVENT_KEY_ERROR_CODE, eventInfo.errCode,
+        EVENT_KEY_LAUNCH_MODE, eventInfo.launchMode,
+        EVENT_KEY_APP_INDEX, eventInfo.appIndex,
+        EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
+        EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
+        EVENT_KEY_ABILITY_NAME, eventInfo.abilityName,
+        EVENT_KEY_PID, eventInfo.pid,
+        EVENT_KEY_PROCESS_NAME, eventInfo.processName);
 }
 
 void EventReport::LogStartAbilityEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
@@ -130,9 +154,12 @@ void EventReport::LogStartAbilityEvent(const std::string &name, HiSysEventType t
         name,
         type,
         EVENT_KEY_USERID, eventInfo.userId,
+        EVENT_KEY_APP_INDEX, eventInfo.appIndex,
         EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
         EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
-        EVENT_KEY_ABILITY_NAME, eventInfo.abilityName);
+        EVENT_KEY_ABILITY_NAME, eventInfo.abilityName,
+        EVENT_KEY_PID, eventInfo.pid,
+        EVENT_KEY_PROCESS_NAME, eventInfo.processName);
 }
 
 void EventReport::LogTerminateAbilityEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
@@ -141,8 +168,14 @@ void EventReport::LogTerminateAbilityEvent(const std::string &name, HiSysEventTy
         HiSysEvent::Domain::AAFWK,
         name,
         type,
+        EVENT_KEY_USERID, eventInfo.userId,
+        EVENT_KEY_LAUNCH_MODE, eventInfo.launchMode,
+        EVENT_KEY_APP_INDEX, eventInfo.appIndex,
         EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
-        EVENT_KEY_ABILITY_NAME, eventInfo.abilityName);
+        EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
+        EVENT_KEY_ABILITY_NAME, eventInfo.abilityName,
+        EVENT_KEY_PID, eventInfo.pid,
+        EVENT_KEY_PROCESS_NAME, eventInfo.processName);
 }
 
 void EventReport::LogAbilityOnForegroundEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
@@ -151,11 +184,17 @@ void EventReport::LogAbilityOnForegroundEvent(const std::string &name, HiSysEven
         HiSysEvent::Domain::AAFWK,
         name,
         type,
+        EVENT_KEY_USERID, eventInfo.userId,
+        EVENT_KEY_LAUNCH_MODE, eventInfo.launchMode,
+        EVENT_KEY_APP_INDEX, eventInfo.appIndex,
         EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
         EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
         EVENT_KEY_ABILITY_NAME, eventInfo.abilityName,
         EVENT_KEY_BUNDLE_TYPE, eventInfo.bundleType,
-        EVENT_KEY_CALLER_BUNDLE_NAME, eventInfo.callerBundleName);
+        EVENT_KEY_CALLER_BUNDLE_NAME, eventInfo.callerBundleName,
+        EVENT_KEY_PID, eventInfo.pid,
+        EVENT_KEY_PROCESS_NAME, eventInfo.processName,
+        EVENT_KEY_LIFE_CYCLE_STATE, eventInfo.lifeCycleState);
 }
 
 void EventReport::LogAbilityOnBackgroundEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
@@ -164,10 +203,16 @@ void EventReport::LogAbilityOnBackgroundEvent(const std::string &name, HiSysEven
         HiSysEvent::Domain::AAFWK,
         name,
         type,
+        EVENT_KEY_USERID, eventInfo.userId,
+        EVENT_KEY_LAUNCH_MODE, eventInfo.launchMode,
+        EVENT_KEY_APP_INDEX, eventInfo.appIndex,
         EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
         EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
         EVENT_KEY_ABILITY_NAME, eventInfo.abilityName,
-        EVENT_KEY_BUNDLE_TYPE, eventInfo.bundleType);
+        EVENT_KEY_BUNDLE_TYPE, eventInfo.bundleType,
+        EVENT_KEY_PID, eventInfo.pid,
+        EVENT_KEY_PROCESS_NAME, eventInfo.processName,
+        EVENT_KEY_LIFE_CYCLE_STATE, eventInfo.lifeCycleState);
 }
 
 void EventReport::LogAbilityOnActiveEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
@@ -182,6 +227,18 @@ void EventReport::LogAbilityOnActiveEvent(const std::string &name, HiSysEventTyp
         EVENT_KEY_ABILITY_TYPE, eventInfo.abilityType,
         EVENT_KEY_BUNDLE_TYPE, eventInfo.bundleType,
         EVENT_KEY_CALLER_BUNDLE_NAME, eventInfo.callerBundleName);
+}
+
+void EventReport::LogAbilityOnInactiveEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
+{
+    HiSysEventWrite(
+        HiSysEvent::Domain::AAFWK,
+        name,
+        type,
+        EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
+        EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
+        EVENT_KEY_ABILITY_NAME, eventInfo.abilityName,
+        EVENT_KEY_BUNDLE_TYPE, eventInfo.bundleType);
 }
 
 void EventReport::LogStartStandardEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
@@ -216,6 +273,30 @@ void EventReport::LogStartAbilityByAppLinking(const std::string &name, HiSysEven
     }
 }
 
+void EventReport::LogNotifySCBStartAbility(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
+{
+    HiSysEventWrite(
+        HiSysEvent::Domain::AAFWK,
+        name,
+        type,
+        EVENT_KEY_USERID, eventInfo.userId,
+        EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
+        EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
+        EVENT_KEY_ABILITY_NAME, eventInfo.abilityName);
+}
+
+void EventReport::LogStartAbilityBySCB(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
+{
+    HiSysEventWrite(
+        HiSysEvent::Domain::AAFWK,
+        name,
+        type,
+        EVENT_KEY_USERID, eventInfo.userId,
+        EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
+        EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
+        EVENT_KEY_ABILITY_NAME, eventInfo.abilityName);
+}
+
 void EventReport::SendAbilityEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -226,8 +307,10 @@ void EventReport::SendAbilityEvent(const EventName &eventName, HiSysEventType ty
     }
     switch (eventName) {
         case EventName::START_ABILITY_ERROR:
-        case EventName::TERMINATE_ABILITY_ERROR:
             LogErrorEvent(name, type, eventInfo);
+            break;
+        case EventName::TERMINATE_ABILITY_ERROR:
+            LogTerminateAbilityErrorEvent(name, type, eventInfo);
             break;
         case EventName::START_ABILITY:
             LogStartAbilityEvent(name, type, eventInfo);
@@ -240,8 +323,10 @@ void EventReport::SendAbilityEvent(const EventName &eventName, HiSysEventType ty
             LogAbilityOnForegroundEvent(name, type, eventInfo);
             break;
         case EventName::ABILITY_ONBACKGROUND:
-        case EventName::ABILITY_ONINACTIVE:
             LogAbilityOnBackgroundEvent(name, type, eventInfo);
+            break;
+        case EventName::ABILITY_ONINACTIVE:
+            LogAbilityOnInactiveEvent(name, type, eventInfo);
             break;
         case EventName::ABILITY_ONACTIVE:
             LogAbilityOnActiveEvent(name, type, eventInfo);
@@ -251,6 +336,12 @@ void EventReport::SendAbilityEvent(const EventName &eventName, HiSysEventType ty
             break;
         case EventName::START_ABILITY_BY_APP_LINKING:
             LogStartAbilityByAppLinking(name, type, eventInfo);
+            break;
+        case EventName::NOTIFY_SCB_START_ABILITY:
+            LogNotifySCBStartAbility(name, type, eventInfo);
+            break;
+        case EventName::START_ABILITY_BY_SCB:
+            LogStartAbilityBySCB(name, type, eventInfo);
             break;
         default:
             break;
@@ -672,7 +763,7 @@ std::string EventReport::ConvertEventName(const EventName &eventName)
         // ability behavior event
         "START_ABILITY", "TERMINATE_ABILITY", "CLOSE_ABILITY",
         "ABILITY_ONFOREGROUND", "ABILITY_ONBACKGROUND", "ABILITY_ONACTIVE", "ABILITY_ONINACTIVE",
-        "START_ABILITY_BY_APP_LINKING",
+        "START_ABILITY_BY_APP_LINKING", "NOTIFY_SCB_START_ABILITY", "START_ABILITY_BY_SCB",
 
         // serviceExtensionAbility behavior event
         "START_SERVICE", "STOP_SERVICE", "CONNECT_SERVICE", "DISCONNECT_SERVICE", "START_ABILITY_OTHER_EXTENSION",

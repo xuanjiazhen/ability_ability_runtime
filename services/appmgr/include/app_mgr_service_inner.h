@@ -1938,6 +1938,8 @@ private:
     std::atomic<int32_t> willKillPidsNum_ = 0;
     std::shared_ptr<AAFwk::TaskHandlerWrap> delayKillTaskHandler_;
     std::unordered_set<std::string> nwebPreloadSet_ {};
+    void SendAbilityEvent(const std::shared_ptr<AppRunningRecord> appRecord,
+        const std::shared_ptr<AbilityRunningRecord> abilityRecord, const AbilityState state);
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
