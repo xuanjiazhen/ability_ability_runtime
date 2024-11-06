@@ -1302,9 +1302,7 @@ int AbilityRecord::TerminateAbility()
 #ifdef WITH_DLP
     HandleDlpClosed();
 #endif // WITH_DLP
-    AAFwk::EventInfo eventInfo;
-    eventInfo.bundleName = GetAbilityInfo().bundleName;
-    eventInfo.abilityName = GetAbilityInfo().name;
+    AAFwk::EventInfo eventInfo = BuildEventInfo();
     if (clearMissionFlag_) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "deleteAbilityRecoverInfo before clearMission");
         (void)DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->
@@ -3764,6 +3762,24 @@ void AbilityRecord::UpdateDmsCallerInfo(Want &want)
     want.RemoveParam(DMS_CALLER_APP_ID);
     want.SetParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER, want.GetStringParam(DMS_CALLER_APP_IDENTIFIER));
     want.RemoveParam(DMS_CALLER_APP_IDENTIFIER);
+}
+
+AAFwk::EventInfo AbilityRecord::BuildEventInfo()
+{
+    AAFwk::EventInfo eventInfo;
+    auto userId = abilityInfo_.applicationInfo.uid / BASE_USER_RANGE;
+    AppExecFwk::RunningProcessInfo processInfo;
+    DelayedSingleton<AppScheduler>::GetInstance()->
+        GetRunningProcessInfoByToken(token_, processInfo);
+    eventInfo.userId = userId;
+    eventInfo.abilityName = abilityInfo_.name;
+    eventInfo.moduleName = abilityInfo_.moduleName;
+    eventInfo.bundleName = abilityInfo_.bundleName;
+    eventInfo.launchMode = static_cast<int32_t>(abilityInfo_.launchMode);
+    eventInfo.appIndex = abilityInfo_.applicationInfo.appIndex;
+    eventInfo.pid = processInfo.pid_;
+    eventInfo.processName = processInfo.processName_;
+    return eventInfo;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -58,6 +58,9 @@ struct EventInfo {
     int32_t exitReason = -1;
     bool isPreload = false;
     int32_t preloadMode = 0;
+    int32_t launchMode = -1;
+    int32_t appIndex = -1;
+    std::string lifeCycleState;
 };
 
 enum class EventName {
@@ -78,6 +81,8 @@ enum class EventName {
     ABILITY_ONACTIVE,
     ABILITY_ONINACTIVE,
     START_ABILITY_BY_APP_LINKING,
+    NOTIFY_SCB_START_ABILITY,
+    START_ABILITY_BY_SCB,
 
     // serviceExtensionAbility behavior event
     START_SERVICE,
@@ -136,13 +141,17 @@ public:
 private:
     static std::string ConvertEventName(const EventName &eventName);
     static void LogErrorEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
+    static void LogTerminateAbilityErrorEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
     static void LogStartAbilityEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
     static void LogTerminateAbilityEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
     static void LogAbilityOnForegroundEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
     static void LogAbilityOnBackgroundEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
     static void LogAbilityOnActiveEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
+    static void LogAbilityOnInactiveEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
     static void LogStartStandardEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
     static void LogStartAbilityByAppLinking(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
+    static void LogNotifySCBStartAbility(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
+    static void LogStartAbilityBySCB(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
 };
 }  // namespace AAFWK
 }  // namespace OHOS
