@@ -2053,14 +2053,12 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_StartChildPr
     ret = appMgrServiceInner->StartChildProcessPreCheck(pid, 1);
     EXPECT_EQ(ret, ERR_NOT_SUPPORT_CHILD_PROCESS);
 
-    TAG_LOGI(AAFwkTag::TEST, "zhawei StartChildProcessPreCheck start");
     system::SetBoolParameter(MULTI_PROCESS_MODEL, true);
     AAFwk::AppUtils::GetInstance().isMultiProcessModel_.isLoaded = false;
     AAFwk::AppUtils::GetInstance().maxChildProcess_.isLoaded = true;
     AAFwk::AppUtils::GetInstance().maxChildProcess_.value = 10000; // 10000 means max child process count
     ret = appMgrServiceInner->StartChildProcessPreCheck(pid, 1);
     EXPECT_EQ(ret, ERR_OK);
-    TAG_LOGI(AAFwkTag::TEST, "zhawei StartChildProcessPreCheck end");
 
     AAFwk::AppUtils::GetInstance().maxChildProcess_.isLoaded = false;
     AAFwk::AppUtils::GetInstance().maxChildProcess_.value = 0;
