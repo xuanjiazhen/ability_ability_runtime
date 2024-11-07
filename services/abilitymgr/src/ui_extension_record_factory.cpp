@@ -59,7 +59,7 @@ int32_t UIExtensionRecordFactory::CreateRecord(
     if (AAFwk::MultiInstanceUtils::IsMultiInstanceApp(abilityRequest.appInfo)) {
         abilityRecord->SetInstanceKey(AAFwk::MultiInstanceUtils::GetValidExtensionInstanceKey(abilityRequest));
     }
-    auto callerRecord = AAFWK::Token::GetAbilityRecordByToken(abilityRequest.callerToken);
+    auto callerRecord = AAFwk::Token::GetAbilityRecordByToken(abilityRequest.callerToken);
     auto callerBundleName = callerRecord ? callerRecord->GetAbilityInfo().bundleName : "";
     if (callerRecord) {
         if (callerRecord->IsDebug() &&
