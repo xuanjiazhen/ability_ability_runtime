@@ -1589,10 +1589,10 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
                 DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->NotifyAppFault(faultData);
                 int result = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::FRAMEWORK, "PROCESS_KILL",
                     HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PROCESS_NAME", processName,
-                    "MSG", KILL_REASON);
+                    "MSG", KILL_REASON, "FOREGROUND", false);
                 TAG_LOGW(AAFwkTag::APPKIT, "hisysevent write result=%{public}d, send event [FRAMEWORK,PROCESS_KILL],"
-                    " pid=%{public}d, processName=%{public}s, msg=%{public}s", result, pid, processName.c_str(),
-                    KILL_REASON);
+                    " pid=%{public}d, processName=%{public}s, msg=%{public}s, FOREGROUND = 0",
+                    result, pid, processName.c_str(), KILL_REASON);
 
                 if (ApplicationDataManager::GetInstance().NotifyUnhandledException(summary) &&
                     ApplicationDataManager::GetInstance().NotifyExceptionObject(appExecErrorObj)) {
