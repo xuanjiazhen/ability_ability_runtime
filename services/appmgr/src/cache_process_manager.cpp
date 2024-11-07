@@ -283,7 +283,7 @@ void CacheProcessManager::CheckAndSetProcessCacheEnable(const std::shared_ptr<Ap
     if (appRecord == nullptr || !warmStartProcesEnable_) {
         return;
     }
-    if (appRecord->GetSupportProcessCacheState != SupportProcessCacheState::SUPPORT) {
+    if (appRecord->GetSupportProcessCacheState() != SupportProcessCacheState::SUPPORT) {
         return;
     }
     if (!appRecord->GetPriorityObject()) {

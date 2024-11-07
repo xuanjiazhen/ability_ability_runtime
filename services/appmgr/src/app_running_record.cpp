@@ -2486,7 +2486,7 @@ void AppRunningRecord::SetUIAbilityLaunched(bool hasLaunched)
     hasUIAbilityLaunched_ = hasLaunched;
 }
 
-void AppRunningRecord::HasUIAbilityLaunched()
+bool AppRunningRecord::HasUIAbilityLaunched()
 {
     return hasUIAbilityLaunched_;
 }
