@@ -1099,7 +1099,7 @@ public:
 
     void UpdateDmsCallerInfo(Want &want);
 
-    void SetDebugUIExtension(boolean isDebugUIExt);
+    void SetDebugUIExtension(bool isDebugUIExt);
 
     inline std::string GetInstanceKey() const
     {
