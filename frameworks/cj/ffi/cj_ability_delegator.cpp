@@ -362,7 +362,7 @@ void FFIAbilityDelegatorRemoveAbilityMonitor(int64_t id, int64_t monitorId,
 
 int64_t FFIAbilityDelegatorWaitAbilityMonitor(int64_t id, int64_t monitorId,
                                               const char* abilityName,
-                                              const char* moduleName, bool hasTimeoutPara, int64_t timeoutSec, int32_t* errorCode)
+                                              const char* moduleName, bool hasTimeoutPara, int64_t timeout, int32_t* errorCode)
 {
     auto cjDelegator = FFI::FFIData::GetData<CJAbilityDelegator>(id);
     if (cjDelegator == nullptr) {
@@ -383,7 +383,7 @@ int64_t FFIAbilityDelegatorWaitAbilityMonitor(int64_t id, int64_t monitorId,
       g_monitorRecord.emplace(monitorId, cjMonitor);
     }
 
-    auto property = cjDelegator->WaitAbilityMonitor(cjMonitor, hasTimeoutPara, timeoutSec);
+    auto property = cjDelegator->WaitAbilityMonitor(cjMonitor, hasTimeoutPara, timeout);
     if (!property) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "null cj property");
         *errorCode = INVALID_CODE;
@@ -449,7 +449,7 @@ void FFIAbilityDelegatorRemoveAbilityStageMonitor(int64_t id, int64_t stageMonit
 
 int64_t FFIAbilityDelegatorWaitAbilityStageMonitor(int64_t id, int64_t stageMonitorId,
                                               const char* moduleName,
-                                              const char* srcEntrance, bool hasTimeoutPara, int64_t timeoutSec, int32_t* errorCode)
+                                              const char* srcEntrance, bool hasTimeoutPara, int64_t timeout, int32_t* errorCode)
 {
     auto cjDelegator = FFI::FFIData::GetData<CJAbilityDelegator>(id);
     if (cjDelegator == nullptr) {
@@ -470,7 +470,7 @@ int64_t FFIAbilityDelegatorWaitAbilityStageMonitor(int64_t id, int64_t stageMoni
       g_stageMonitorRecord.emplace(stageMonitorId, cjStageMonitor);
     }
 
-    auto property = cjDelegator->WaitAbilityStageMonitor(cjStageMonitor, hasTimeoutPara, timeoutSec);
+    auto property = cjDelegator->WaitAbilityStageMonitor(cjStageMonitor, hasTimeoutPara, timeout);
     if (!property) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "null cj stage property");
         *errorCode = INVALID_CODE;
