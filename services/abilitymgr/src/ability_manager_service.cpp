@@ -4670,27 +4670,58 @@ sptr<IWantSender> AbilityManagerService::GetWantSender(
             return nullptr;
         }
     }
-    //sa caller and has uid，no need find from bms.
-    bool isSpecifyUidBySa = (uid != -1) && (AAFwk::PermissionVerification::GetInstance()->IsSACall());
+    bool isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
+    bool isSystemCall = AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall();
 
     int32_t appUid = -1;
     int32_t appIndex = 0;
+    bool hasAppIndex = false;
     std::string bundleName = "";
     if (!wantSenderInfo.allWants.empty()) {
         bundleName = wantSenderInfo.allWants.back().want.GetElement().GetBundleName();
+        hasAppIndex = wantSenderInfo.allWants.back().want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY);
+        appIndex = wantSenderInfo.allWants.back().want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
     }
+    //query appIndex and appUid.
     if (!bundleName.empty()) {
-        AppExecFwk::BundleInfo bundleInfo;
-        MultiAppUtils::GetRunningMultiAppIndex(bundleName, callerUid, appIndex);
-        if (!isSpecifyUidBySa) {
-            bundleMgrResult = IN_PROCESS_CALL(bms->GetCloneBundleInfo(bundleName,
-                static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION),
-                appIndex, bundleInfo, userId));
-            if (bundleMgrResult == ERR_OK) {
-                appUid = bundleInfo.uid;
-            }
-        } else {
+        if (isSaCall) {  //SA can set appIndex and uid.
             appUid = uid;
+            if (uid == -1) {
+                //query uid by appIndex.appIndex is either the default value or a set value.
+                AppExecFwk::BundleInfo bundleInfo;
+                bundleMgrResult = IN_PROCESS_CALL(bms->GetCloneBundleInfo(bundleName,
+                    static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION),
+                    appIndex, bundleInfo, userId));
+                if (bundleMgrResult == ERR_OK) {
+                    appUid = bundleInfo.uid;
+                }
+            }
+        } else if (isSystemCall) { //System-app Call, can set appIndex.
+            if (wantSenderInfo.bundleName == bundleName && !hasAppIndex) {//send for self
+                appUid = callerUid;
+                MultiAppUtils::GetRunningMultiAppIndex(bundleName, appUid, appIndex);
+            } else {
+                AppExecFwk::BundleInfo bundleInfo;
+                bundleMgrResult = IN_PROCESS_CALL(bms->GetCloneBundleInfo(bundleName,
+                    static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION),
+                    appIndex, bundleInfo, userId));
+                if (bundleMgrResult == ERR_OK) {
+                    appUid = bundleInfo.uid;
+                }
+            }
+        } else {//Third-party application call，can not set uid and appIndex.
+            if (wantSenderInfo.bundleName == bundleName) {
+                appUid = callerUid;
+                MultiAppUtils::GetRunningMultiAppIndex(bundleName, callerUid, appIndex);
+            } else {
+                AppExecFwk::BundleInfo bundleInfo;
+                bundleMgrResult = IN_PROCESS_CALL(bms->GetCloneBundleInfo(bundleName,
+                    static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION),
+                    appIndex, bundleInfo, userId));
+                if (bundleMgrResult == ERR_OK) {
+                    appUid = bundleInfo.uid;
+                }
+            }
         }
         TAG_LOGD(AAFwkTag::ABILITYMGR, "App bundleName: %{public}s, uid: %{public}d", bundleName.c_str(), appUid);
     }
@@ -4699,19 +4730,9 @@ sptr<IWantSender> AbilityManagerService::GetWantSender(
         return nullptr;
     }
 
-    bool isSystemApp = false;
-    if (!wantSenderInfo.bundleName.empty() && !isSpecifyUidBySa) {
-        AppExecFwk::BundleInfo bundleInfo;
-        bundleMgrResult = IN_PROCESS_CALL(bms->GetBundleInfo(wantSenderInfo.bundleName,
-            AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId));
-        if (bundleMgrResult) {
-            isSystemApp = bundleInfo.applicationInfo.isSystemApp;
-        }
-    }
-
     TAG_LOGD(AAFwkTag::ABILITYMGR, "bundleName = %{public}s, appIndex:%{public}d",
         wantSenderInfo.bundleName.c_str(), appIndex);
-    return pendingWantManager->GetWantSender(callerUid, appUid, isSystemApp, wantSenderInfo, callerToken, appIndex);
+    return pendingWantManager->GetWantSender(callerUid, appUid, isSystemCall, wantSenderInfo, callerToken, appIndex);
 }
 
 int AbilityManagerService::SendWantSender(sptr<IWantSender> target, const SenderInfo &senderInfo)
