@@ -46,7 +46,7 @@ void AbilityInfoCallbackProxy::NotifyAbilityToken(const sptr<IRemoteObject> toke
     data.WriteParcelable(&want);
     int32_t ret = SendTransactCmd(IAbilityInfoCallback::Notify_ABILITY_TOKEN, data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest err: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "err: %{public}d", ret);
         return;
     }
 }
@@ -63,7 +63,7 @@ void AbilityInfoCallbackProxy::NotifyRestartSpecifiedAbility(const sptr<IRemoteO
     data.WriteRemoteObject(token);
     int32_t ret = SendTransactCmd(IAbilityInfoCallback::Notify_RESTART_SPECIFIED_ABILITY, data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest err: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "err: %{public}d", ret);
     }
 }
 
@@ -82,7 +82,7 @@ void AbilityInfoCallbackProxy::NotifyStartSpecifiedAbility(const sptr<IRemoteObj
     data.WriteInt32(requestCode);
     int32_t ret = SendTransactCmd(IAbilityInfoCallback::Notify_START_SPECIFIED_ABILITY, data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest failed, err: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "err: %{public}d", ret);
         return;
     }
     sptr<Want> tempWant = reply.ReadParcelable<Want>();

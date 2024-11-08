@@ -37,7 +37,7 @@ sptr<IRemoteObject> SaMgrClient::GetSystemAbility(const int32_t systemAbilityId)
         if (saMgr_ == nullptr) {
             saMgr_ = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
             if (saMgr_ == nullptr) {
-                TAG_LOGE(AAFwkTag::DEFAULT, "Get registry fialed");
+                TAG_LOGE(AAFwkTag::DEFAULT, "get registry failed");
                 return nullptr;
             }
         }
@@ -53,7 +53,7 @@ sptr<IRemoteObject> SaMgrClient::CheckSystemAbility(const int32_t systemAbilityI
         if (saMgr_ == nullptr) {
             saMgr_ = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
             if (saMgr_ == nullptr) {
-                TAG_LOGE(AAFwkTag::DEFAULT, "Get registry fialed");
+                TAG_LOGE(AAFwkTag::DEFAULT, "get registry failed");
                 return nullptr;
             }
         }

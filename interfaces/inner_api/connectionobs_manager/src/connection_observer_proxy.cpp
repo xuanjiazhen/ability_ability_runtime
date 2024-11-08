@@ -40,7 +40,7 @@ void ConnectionObserverProxy::OnExtensionConnected(const ConnectionData& connect
 
     int error = SendTransactCmd(IConnectionObserver::ON_EXTENSION_CONNECTED, data, reply, option);
     if (error != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "send request error: %{public}d", error);
+        TAG_LOGE(AAFwkTag::CONNECTION, "error: %{public}d", error);
         return;
     }
 }
@@ -64,7 +64,7 @@ void ConnectionObserverProxy::OnExtensionDisconnected(const ConnectionData& conn
 
     int error = SendTransactCmd(IConnectionObserver::ON_EXTENSION_DISCONNECTED, data, reply, option);
     if (error != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "send request error: %{public}d", error);
+        TAG_LOGE(AAFwkTag::CONNECTION, "error: %{public}d", error);
         return;
     }
 }
@@ -89,7 +89,7 @@ void ConnectionObserverProxy::OnDlpAbilityOpened(const DlpStateData& dlpData)
 
     int error = SendTransactCmd(IConnectionObserver::ON_DLP_ABILITY_OPENED, data, reply, option);
     if (error != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "send request error: %{public}d", error);
+        TAG_LOGE(AAFwkTag::CONNECTION, "error: %{public}d", error);
         return;
     }
 }
@@ -113,7 +113,7 @@ void ConnectionObserverProxy::OnDlpAbilityClosed(const DlpStateData& dlpData)
 
     int error = SendTransactCmd(IConnectionObserver::ON_DLP_ABILITY_CLOSED, data, reply, option);
     if (error != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "send request error: %{public}d", error);
+        TAG_LOGE(AAFwkTag::CONNECTION, "error: %{public}d", error);
         return;
     }
 }
@@ -130,7 +130,7 @@ int32_t ConnectionObserverProxy::SendTransactCmd(uint32_t code, MessageParcel &d
 
     int32_t ret = remote->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "SendRequest failed. code: %{public}d, ret: %{public}d.", code, ret);
+        TAG_LOGE(AAFwkTag::CONNECTION, "code: %{public}d, ret: %{public}d", code, ret);
         return ret;
     }
     return NO_ERROR;

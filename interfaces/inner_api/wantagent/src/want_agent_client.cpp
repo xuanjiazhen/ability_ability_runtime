@@ -205,7 +205,7 @@ void WantAgentClient::RegisterCancelListener(const sptr<IWantSender> &sender, co
     }
     auto abms = GetAbilityManager();
     if (!abms) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "ability proxy is nullptr");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null abms");
         return;
     }
     MessageParcel data;
@@ -237,7 +237,7 @@ void WantAgentClient::UnregisterCancelListener(
     }
     auto abms = GetAbilityManager();
     if (!abms) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "ability proxy is nullptr");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null abms");
         return;
     }
     MessageParcel data;
@@ -292,7 +292,7 @@ ErrCode WantAgentClient::GetPendingRequestWant(const sptr<IWantSender> &target, 
     auto error = abms->SendRequest(static_cast<int32_t>(AbilityManagerInterfaceCode::GET_PENDING_REQUEST_WANT),
         data, reply, option);
     if (error != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "Send request error: %{public}d", error);
+        TAG_LOGE(AAFwkTag::WANTAGENT, "error: %{public}d", error);
         return ERR_ABILITY_RUNTIME_EXTERNAL_SERVICE_TIMEOUT;
     }
     std::unique_ptr<Want> wantInfo(reply.ReadParcelable<Want>());
@@ -328,7 +328,7 @@ ErrCode WantAgentClient::GetWantSenderInfo(const sptr<IWantSender> &target, std:
     auto error = abms->SendRequest(static_cast<uint32_t>(AbilityManagerInterfaceCode::GET_PENDING_WANT_SENDER_INFO),
         data, reply, option);
     if (error != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "Send request error: %{public}d", error);
+        TAG_LOGE(AAFwkTag::WANTAGENT, "error: %{public}d", error);
         return error;
     }
     std::unique_ptr<WantSenderInfo> wantSenderInfo(reply.ReadParcelable<WantSenderInfo>());
@@ -401,11 +401,11 @@ bool WantAgentClient::WriteInterfaceToken(MessageParcel &data)
 bool WantAgentClient::CheckSenderAndRecevier(const sptr<IWantSender> &sender, const sptr<IWantReceiver> &receiver)
 {
     if (sender == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "sender is nullptr");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null sender");
         return false;
     }
     if (receiver == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "receiver is nullptr");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null receiver");
         return false;
     }
 

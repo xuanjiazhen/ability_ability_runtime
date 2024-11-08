@@ -57,7 +57,7 @@ void AbilityFirstFrameStateObserverProxy::OnAbilityFirstFrameState(
         static_cast<uint32_t>(IAbilityFirstFrameStateObserver::Message::ON_ABILITY_FIRST_FRAME_STATE),
         data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "SendRequest error: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "error: %{public}d", ret);
     }
 }
 } // namespace AppExecFwk

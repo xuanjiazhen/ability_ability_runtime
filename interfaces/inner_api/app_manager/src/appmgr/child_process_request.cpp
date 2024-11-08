@@ -33,14 +33,14 @@ bool ChildProcessRequest::ReadFromParcel(Parcel &parcel)
 
     std::unique_ptr<ChildProcessArgs> argsRead(parcel.ReadParcelable<ChildProcessArgs>());
     if (!argsRead) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Read ChildProcessArgs failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "read ChildProcessArgs failed");
         return false;
     }
     args = *argsRead;
 
     std::unique_ptr<ChildProcessOptions> optionsRead(parcel.ReadParcelable<ChildProcessOptions>());
     if (!optionsRead) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Read ChildProcessOptions failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "read ChildProcessOptions failed");
         return false;
     }
     options = *optionsRead;
@@ -52,7 +52,7 @@ ChildProcessRequest *ChildProcessRequest::Unmarshalling(Parcel &parcel)
 {
     ChildProcessRequest *data = new (std::nothrow) ChildProcessRequest();
     if (data && !data->ReadFromParcel(parcel)) {
-        TAG_LOGW(AAFwkTag::APPMGR, "Read from parcel failed.");
+        TAG_LOGW(AAFwkTag::APPMGR, "read from parcel failed");
         delete data;
         data = nullptr;
     }

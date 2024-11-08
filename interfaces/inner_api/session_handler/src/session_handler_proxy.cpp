@@ -34,12 +34,12 @@ void SessionHandlerProxy::OnSessionMovedToFront(int32_t sessionId)
     }
     auto remote = Remote();
     if (!remote) {
-        TAG_LOGE(AAFwkTag::DEFAULT, "remote null");
+        TAG_LOGE(AAFwkTag::DEFAULT, "null remote");
         return;
     }
     int32_t ret = remote->SendRequest(ISessionHandler::ON_SESSION_MOVED_TO_FRONT, data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::DEFAULT, "request failed: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::DEFAULT, "error: %{public}d", ret);
     }
 }
 }

@@ -36,7 +36,7 @@ int KiaInterceptorStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Mess
     if (code == KIA_INTERCEPTOR_ON_INTERCEPT) {
         return OnInterceptInner(data, reply);
     }
-    TAG_LOGW(AAFwkTag::APPMGR, "KiaInterceptorStub::OnRemoteRequest, default case, need check.");
+    TAG_LOGW(AAFwkTag::APPMGR, "default case, need check");
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
@@ -45,11 +45,11 @@ int KiaInterceptorStub::OnInterceptInner(MessageParcel &data, MessageParcel &rep
     sptr<AAFwk::Want> want = data.ReadParcelable<AAFwk::Want>();
     int resultCode = OnIntercept(*want);
     if (!reply.WriteInt32(resultCode)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write resultCode failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write resultCode failed");
         return ERR_INVALID_VALUE;
     }
     if (!reply.WriteParcelable(want)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write want failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write want failed");
         return ERR_INVALID_VALUE;
     }
 

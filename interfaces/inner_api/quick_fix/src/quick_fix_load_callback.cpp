@@ -23,12 +23,12 @@ namespace AAFwk {
 void QuickFixLoadCallback::OnLoadSystemAbilitySuccess(int32_t systemAbilityId, const sptr<IRemoteObject> &remoteObject)
 {
     if (systemAbilityId != QUICK_FIX_MGR_SERVICE_ID) {
-        TAG_LOGE(AAFwkTag::QUICKFIX, "System ability id %{public}d mismatch", systemAbilityId);
+        TAG_LOGE(AAFwkTag::QUICKFIX, "systemAbilityId %{public}d", systemAbilityId);
         return;
     }
 
     if (remoteObject == nullptr) {
-        TAG_LOGE(AAFwkTag::QUICKFIX, "Object is nullptr");
+        TAG_LOGE(AAFwkTag::QUICKFIX, "null remoteObject");
         return;
     }
 
@@ -39,7 +39,7 @@ void QuickFixLoadCallback::OnLoadSystemAbilitySuccess(int32_t systemAbilityId, c
 void QuickFixLoadCallback::OnLoadSystemAbilityFail(int32_t systemAbilityId)
 {
     if (systemAbilityId != QUICK_FIX_MGR_SERVICE_ID) {
-        TAG_LOGE(AAFwkTag::QUICKFIX, "System ability id %{public}d mismatch", systemAbilityId);
+        TAG_LOGE(AAFwkTag::QUICKFIX, "systemAbilityId %{public}d", systemAbilityId);
         return;
     }
 

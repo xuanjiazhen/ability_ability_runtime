@@ -66,7 +66,7 @@ int32_t StartSpecifiedAbilityResponseStub::HandleOnAcceptWantResponse(MessagePar
 {
     AAFwk::Want *want = data.ReadParcelable<AAFwk::Want>();
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "want is nullptr");
+        TAG_LOGE(AAFwkTag::APPMGR, "null want");
         return ERR_INVALID_VALUE;
     }
 
@@ -80,7 +80,7 @@ int32_t StartSpecifiedAbilityResponseStub::HandleOnTimeoutResponse(MessageParcel
 {
     AAFwk::Want *want = data.ReadParcelable<AAFwk::Want>();
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "want is nullptr");
+        TAG_LOGE(AAFwkTag::APPMGR, "null want");
         return ERR_INVALID_VALUE;
     }
 
@@ -93,7 +93,7 @@ int32_t StartSpecifiedAbilityResponseStub::HandleOnNewProcessRequestResponse(Mes
 {
     AAFwk::Want *want = data.ReadParcelable<AAFwk::Want>();
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "want is nullptr");
+        TAG_LOGE(AAFwkTag::APPMGR, "null want");
         return ERR_INVALID_VALUE;
     }
 
@@ -108,7 +108,7 @@ int32_t StartSpecifiedAbilityResponseStub::HandleOnNewProcessRequestTimeoutRespo
 {
     AAFwk::Want *want = data.ReadParcelable<AAFwk::Want>();
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "want is nullptr");
+        TAG_LOGE(AAFwkTag::APPMGR, "null want");
         return ERR_INVALID_VALUE;
     }
 
@@ -120,8 +120,7 @@ int32_t StartSpecifiedAbilityResponseStub::HandleOnNewProcessRequestTimeoutRespo
 int StartSpecifiedAbilityResponseStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "StartSpecifiedAbilityResponseStub::OnReceived, code = %{public}u, flags= %{public}d.",
-        code, option.GetFlags());
+    TAG_LOGI(AAFwkTag::APPMGR, "code = %{public}u, flags= %{public}d", code, option.GetFlags());
     std::u16string descriptor = StartSpecifiedAbilityResponseStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (descriptor != remoteDescriptor) {

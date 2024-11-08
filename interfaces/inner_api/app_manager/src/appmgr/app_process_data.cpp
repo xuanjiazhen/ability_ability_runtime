@@ -30,7 +30,7 @@ bool ReadFromParcelAppData(std::vector<AppData> &appDatas, Parcel &parcel)
     int32_t appDataSize;
     READ_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, appDataSize);
     if (appDataSize > CYCLE_LIMIT) {
-        TAG_LOGE(AAFwkTag::APPMGR, "infoSize is too large");
+        TAG_LOGE(AAFwkTag::APPMGR, "infoSize too large");
         return false;
     }
     for (auto i = 0; i < appDataSize; i++) {
@@ -92,7 +92,7 @@ AppProcessData *AppProcessData::Unmarshalling(Parcel &parcel)
 {
     AppProcessData *appProcessData = new (std::nothrow) AppProcessData();
     if (appProcessData && !appProcessData->ReadFromParcel(parcel)) {
-        TAG_LOGW(AAFwkTag::APPMGR, "failed, because ReadFromParcel failed");
+        TAG_LOGW(AAFwkTag::APPMGR, "read from parcel failed");
         delete appProcessData;
         appProcessData = nullptr;
     }

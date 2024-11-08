@@ -75,7 +75,7 @@ void ExtensionManagerClient::ResetProxy(const wptr<IRemoteObject>& remote)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (proxy_ == nullptr) {
-        TAG_LOGI(AAFwkTag::EXTMGR, "null proxy_, no need reset");
+        TAG_LOGI(AAFwkTag::EXTMGR, "null proxy_");
         return;
     }
 
@@ -98,7 +98,7 @@ ErrCode ExtensionManagerClient::ConnectServiceExtensionAbility(const Want &want,
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetExtensionManager();
     if (abms == nullptr) {
-        TAG_LOGE(AAFwkTag::EXTMGR, "Connect failed, bundleName:%{public}s, abilityName:%{public}s.",
+        TAG_LOGE(AAFwkTag::EXTMGR, "bundleName:%{public}s, abilityName:%{public}s",
             want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
         return ABILITY_SERVICE_NOT_CONNECTED;
     }
@@ -114,11 +114,11 @@ ErrCode ExtensionManagerClient::ConnectServiceExtensionAbility(const Want &want,
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetExtensionManager();
     if (abms == nullptr) {
-        TAG_LOGE(AAFwkTag::EXTMGR, "Connect failed, bundleName:%{public}s, abilityName:%{public}s.",
+        TAG_LOGE(AAFwkTag::EXTMGR, "bundleName:%{public}s, abilityName:%{public}s",
             want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
         return ABILITY_SERVICE_NOT_CONNECTED;
     }
-    TAG_LOGI(AAFwkTag::EXTMGR, "name:%{public}s %{public}s, userId:%{public}d.",
+    TAG_LOGI(AAFwkTag::EXTMGR, "name:%{public}s %{public}s, userId:%{public}d",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), userId);
     return abms->ConnectAbilityCommon(
         want, connect, callerToken, AppExecFwk::ExtensionAbilityType::SERVICE, userId, false);
@@ -130,11 +130,11 @@ ErrCode ExtensionManagerClient::ConnectEnterpriseAdminExtensionAbility(const Wan
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetExtensionManager();
     if (abms == nullptr) {
-        TAG_LOGE(AAFwkTag::EXTMGR, "Connect failed, bundleName:%{public}s, abilityName:%{public}s.",
+        TAG_LOGE(AAFwkTag::EXTMGR, "bundleName:%{public}s, abilityName:%{public}s",
             want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
         return ABILITY_SERVICE_NOT_CONNECTED;
     }
-    TAG_LOGI(AAFwkTag::EXTMGR, "name:%{public}s %{public}s, userId:%{public}d.",
+    TAG_LOGI(AAFwkTag::EXTMGR, "name:%{public}s %{public}s, userId:%{public}d",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), userId);
     return abms->ConnectAbilityCommon(
         want, connect, callerToken, AppExecFwk::ExtensionAbilityType::ENTERPRISE_ADMIN, userId, true);
@@ -146,12 +146,12 @@ ErrCode ExtensionManagerClient::ConnectExtensionAbility(const Want &want, const 
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetExtensionManager();
     if (abms == nullptr) {
-        TAG_LOGE(AAFwkTag::EXTMGR, "Connect failed, bundleName:%{public}s, abilityName:%{public}s",
+        TAG_LOGE(AAFwkTag::EXTMGR, "bundleName:%{public}s, abilityName:%{public}s",
             want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
         return ABILITY_SERVICE_NOT_CONNECTED;
     }
 
-    TAG_LOGI(AAFwkTag::EXTMGR, "bundleName: %{public}s, abilityName: %{public}s, userId: %{public}d.",
+    TAG_LOGI(AAFwkTag::EXTMGR, "bundleName: %{public}s, abilityName: %{public}s, userId: %{public}d",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), userId);
     return abms->ConnectAbilityCommon(want, connect, nullptr, AppExecFwk::ExtensionAbilityType::UNSPECIFIED, userId);
 }

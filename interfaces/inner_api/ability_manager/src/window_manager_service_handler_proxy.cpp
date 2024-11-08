@@ -50,7 +50,7 @@ void WindowManagerServiceHandlerProxy::NotifyWindowTransition(sptr<AbilityTransi
     MessageOption option(MessageOption::TF_ASYNC);
     int error = SendTransactCmd(WMSCmd::ON_NOTIFY_WINDOW_TRANSITION, data, reply, option);
     if (error != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "SendRequest error: %{public}d", error);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "error: %{public}d", error);
     }
     animaEnabled = reply.ReadBool();
 }
@@ -68,7 +68,7 @@ int32_t WindowManagerServiceHandlerProxy::GetFocusWindow(sptr<IRemoteObject>& ab
     MessageOption option;
     int error = SendTransactCmd(WMSCmd::ON_GET_FOCUS_ABILITY, data, reply, option);
     if (error != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "SendRequest error: %{public}d", error);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "error: %{public}d", error);
         return ERR_AAFWK_PARCEL_FAIL;
     }
     auto ret = reply.ReadInt32();
@@ -104,7 +104,7 @@ void WindowManagerServiceHandlerProxy::StartingWindow(sptr<AbilityTransitionInfo
     MessageOption option(MessageOption::TF_ASYNC);
     int error = SendTransactCmd(WMSCmd::ON_COLD_STARTING_WINDOW, data, reply, option);
     if (error != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "SendRequest error: %{public}d", error);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "error: %{public}d", error);
     }
 }
 
@@ -129,7 +129,7 @@ void WindowManagerServiceHandlerProxy::StartingWindow(sptr<AbilityTransitionInfo
     MessageOption option(MessageOption::TF_ASYNC);
     int error = SendTransactCmd(WMSCmd::ON_HOT_STARTING_WINDOW, data, reply, option);
     if (error != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "SendRequest error: %{public}d", error);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "error: %{public}d", error);
     }
 }
 
@@ -160,7 +160,7 @@ void WindowManagerServiceHandlerProxy::CancelStartingWindow(sptr<IRemoteObject> 
     MessageOption option(MessageOption::TF_ASYNC);
     int error = SendTransactCmd(WMSCmd::ON_CANCEL_STARTING_WINDOW, data, reply, option);
     if (error != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "SendRequest error: %{public}d", error);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "error: %{public}d", error);
     }
 }
 
@@ -180,7 +180,7 @@ void WindowManagerServiceHandlerProxy::NotifyAnimationAbilityDied(sptr<AbilityTr
     MessageOption option(MessageOption::TF_ASYNC);
     int error = SendTransactCmd(WMSCmd::ON_NOTIFY_ANIMATION_ABILITY_DIED, data, reply, option);
     if (error != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "SendRequest error: %{public}d", error);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "error: %{public}d", error);
     }
 }
 
@@ -209,7 +209,7 @@ int32_t WindowManagerServiceHandlerProxy::MoveMissionsToForeground(const std::ve
 
     int error = SendTransactCmd(WMSCmd::ON_MOVE_MISSINONS_TO_FOREGROUND, data, reply, option);
     if (error != ERR_NONE) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "SendoRequest error: %{public}d", error);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "error: %{public}d", error);
         return ERR_AAFWK_PARCEL_FAIL;
     }
     return reply.ReadInt32();
@@ -235,7 +235,7 @@ int32_t WindowManagerServiceHandlerProxy::MoveMissionsToBackground(const std::ve
 
     int error = SendTransactCmd(WMSCmd::ON_MOVE_MISSIONS_TO_BACKGROUND, data, reply, option);
     if (error != ERR_NONE) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "SendoRequest error: %{public}d", error);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "error: %{public}d", error);
         return ERR_AAFWK_PARCEL_FAIL;
     }
     if (!reply.ReadInt32Vector(&result)) {
@@ -256,7 +256,7 @@ int32_t WindowManagerServiceHandlerProxy::SendTransactCmd(uint32_t code, Message
 
     int32_t ret = remote->SendRequest(code, data, reply, option);
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "SendRequest failed. code: %{public}d, ret: %{public}d", code, ret);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "code: %{public}d, ret: %{public}d", code, ret);
         return ret;
     }
     return ERR_OK;

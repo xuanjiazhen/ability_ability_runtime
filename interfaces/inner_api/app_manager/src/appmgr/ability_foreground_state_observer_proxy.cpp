@@ -54,7 +54,7 @@ void AbilityForegroundStateObserverProxy::OnAbilityStateChanged(const AbilitySta
     int32_t ret = remote->SendRequest(
         static_cast<uint32_t>(IAbilityForegroundStateObserver::Message::ON_ABILITY_STATE_CHANGED), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest err: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d", ret);
     }
 }
 } // namespace AppExecFwk

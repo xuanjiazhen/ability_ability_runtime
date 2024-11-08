@@ -29,16 +29,16 @@ void AppRunningStatusProxy::NotifyAppRunningStatus(const std::string &bundle, in
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(AppRunningStatusProxy::GetDescriptor())) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return;
     }
     if (!data.WriteString(bundle) || !data.WriteInt32(uid) || !data.WriteInt32(static_cast<int32_t>(runningStatus))) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write data failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write data failed");
         return;
     }
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Remote is nullptr.");
+        TAG_LOGE(AAFwkTag::APPMGR, "null remote");
         return;
     }
 
@@ -47,7 +47,7 @@ void AppRunningStatusProxy::NotifyAppRunningStatus(const std::string &bundle, in
     int32_t ret = remote->SendRequest(
         static_cast<uint32_t>(AppRunningStatusListenerInterface::MessageCode::APP_RUNNING_STATUS), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
         return;
     }
 }

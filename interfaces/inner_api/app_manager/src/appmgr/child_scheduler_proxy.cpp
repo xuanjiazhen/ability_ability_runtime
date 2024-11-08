@@ -39,19 +39,19 @@ bool ChildSchedulerProxy::ScheduleLoadChild()
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
     if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return false;
     }
 
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Remote() is NULL");
+        TAG_LOGE(AAFwkTag::APPMGR, "null remote");
         return false;
     }
     int32_t ret = remote->SendRequest(
         static_cast<uint32_t>(IChildScheduler::Message::SCHEDULE_LOAD_JS), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
         return false;
     }
     TAG_LOGD(AAFwkTag::APPMGR, "ScheduleLoadChild end");
@@ -65,19 +65,19 @@ bool ChildSchedulerProxy::ScheduleExitProcessSafely()
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
     if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return false;
     }
 
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Remote() is NULL.");
+        TAG_LOGE(AAFwkTag::APPMGR, "null remote");
         return false;
     }
     int32_t ret = remote->SendRequest(
         static_cast<uint32_t>(IChildScheduler::Message::SCHEDULE_EXIT_PROCESS_SAFELY), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d.", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
         return false;
     }
     TAG_LOGD(AAFwkTag::APPMGR, "ScheduleExitProcessSafely end.");
@@ -91,25 +91,25 @@ bool ChildSchedulerProxy::ScheduleRunNativeProc(const sptr<IRemoteObject> &mainP
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
     if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return false;
     }
 
     if (!data.WriteRemoteObject(mainProcessCb)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write main process callback ipc object failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write main process callback ipc object failed");
         return false;
     }
 
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Remote() is null.");
+        TAG_LOGE(AAFwkTag::APPMGR, "null remote");
         return false;
     }
 
     int32_t ret = remote->SendRequest(
         static_cast<uint32_t>(IChildScheduler::Message::SCHEDULE_RUN_NATIVE_PROC), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d.", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", ret);
         return false;
     }
 

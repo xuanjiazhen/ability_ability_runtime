@@ -72,18 +72,18 @@ bool AppLaunchData::Marshalling(Parcel &parcel) const
     }
     if (valid) {
         if (!parcel.WriteParcelable(userTestRecord_.get())) {
-            TAG_LOGE(AAFwkTag::APPMGR, "Failed to write userTestRecord_");
+            TAG_LOGE(AAFwkTag::APPMGR, "write userTestRecord_ failed");
             return false;
         }
     }
 
     if (!parcel.WriteBool(debugApp_)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write debug flag.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write debugApp_ failed");
         return false;
     }
 
     if (!parcel.WriteString(perfCmd_)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write perf cmd.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write perfCmd_ failed");
         return false;
     }
 
@@ -92,7 +92,7 @@ bool AppLaunchData::Marshalling(Parcel &parcel) const
     }
 
     if (!parcel.WriteString(appRunningUniqueId_)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Marshalling, Failed to write app running unique id.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write uniqueId failed");
         return false;
     }
 
@@ -102,22 +102,22 @@ bool AppLaunchData::Marshalling(Parcel &parcel) const
 bool AppLaunchData::MarshallingExtend(Parcel &parcel) const
 {
     if (!parcel.WriteBool(isMultiThread_)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write is multi thread flag.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write isMultiThread_ failed");
         return false;
     }
 
     if (!parcel.WriteBool(isErrorInfoEnhance_)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write is error info enhance flag.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write isErrorInfoEnhance_ failed");
         return false;
     }
 
     if (!parcel.WriteString(instanceKey_)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Marshalling, Failed to write instance key.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write instanceKey_ failed");
         return false;
     }
 
     if (!parcel.WriteBool(isNeedPreloadModule_)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Marshalling, Failed to write instance key.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write isNeedPreloadModule_ failed");
         return false;
     }
 
@@ -133,21 +133,21 @@ bool AppLaunchData::ReadFromParcel(Parcel &parcel)
 {
     std::unique_ptr<ApplicationInfo> applicationInfoRead(parcel.ReadParcelable<ApplicationInfo>());
     if (!applicationInfoRead) {
-        TAG_LOGE(AAFwkTag::APPMGR, "failed, applicationInfoRead is nullptr");
+        TAG_LOGE(AAFwkTag::APPMGR, "null applicationInfoRead");
         return false;
     }
     applicationInfo_ = *applicationInfoRead;
 
     std::unique_ptr<Profile> profileRead(parcel.ReadParcelable<Profile>());
     if (!profileRead) {
-        TAG_LOGE(AAFwkTag::APPMGR, "failed, profileRead is nullptr");
+        TAG_LOGE(AAFwkTag::APPMGR, "null profileRead");
         return false;
     }
     profile_ = *profileRead;
 
     std::unique_ptr<ProcessInfo> processInfoRead(parcel.ReadParcelable<ProcessInfo>());
     if (!processInfoRead) {
-        TAG_LOGE(AAFwkTag::APPMGR, "failed, processInfoRead is nullptr");
+        TAG_LOGE(AAFwkTag::APPMGR, "null processInfoRead");
         return false;
     }
     processInfo_ = *processInfoRead;
@@ -160,7 +160,7 @@ bool AppLaunchData::ReadFromParcel(Parcel &parcel)
     if (valid) {
         userTestRecord_ = std::shared_ptr<UserTestRecord>(parcel.ReadParcelable<UserTestRecord>());
         if (!userTestRecord_) {
-            TAG_LOGE(AAFwkTag::APPMGR, "failed, userTestRecord is nullptr");
+            TAG_LOGE(AAFwkTag::APPMGR, "null userTestRecord");
             return false;
         }
     }
@@ -182,7 +182,7 @@ AppLaunchData *AppLaunchData::Unmarshalling(Parcel &parcel)
 {
     AppLaunchData *appLaunchData = new AppLaunchData();
     if (appLaunchData && !appLaunchData->ReadFromParcel(parcel)) {
-        TAG_LOGW(AAFwkTag::APPMGR, "failed, because ReadFromParcel failed");
+        TAG_LOGW(AAFwkTag::APPMGR, "read from parcel failed");
         delete appLaunchData;
         appLaunchData = nullptr;
     }
@@ -225,7 +225,7 @@ UserTestRecord *UserTestRecord::Unmarshalling(Parcel &parcel)
 {
     UserTestRecord *userTestRecord = new (std::nothrow) UserTestRecord();
     if (userTestRecord && !userTestRecord->ReadFromParcel(parcel)) {
-        TAG_LOGW(AAFwkTag::APPMGR, "failed, because ReadFromParcel failed");
+        TAG_LOGW(AAFwkTag::APPMGR, "read from parcel failed");
         delete userTestRecord;
         userTestRecord = nullptr;
     }
@@ -236,7 +236,7 @@ bool UserTestRecord::ReadFromParcel(Parcel &parcel)
 {
     AAFwk::Want *wantPtr = parcel.ReadParcelable<AAFwk::Want>();
     if (wantPtr == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "wantPtr is nullptr");
+        TAG_LOGE(AAFwkTag::APPMGR, "null wantPtr");
         return ERR_INVALID_VALUE;
     }
     want = *wantPtr;
@@ -246,7 +246,7 @@ bool UserTestRecord::ReadFromParcel(Parcel &parcel)
     if (valid) {
         observer = (static_cast<MessageParcel*>(&parcel))->ReadRemoteObject();
         if (!observer) {
-            TAG_LOGE(AAFwkTag::APPMGR, "observer is nullptr");
+            TAG_LOGE(AAFwkTag::APPMGR, "null observer");
             return false;
         }
     }

@@ -33,7 +33,7 @@ int32_t AppForegroundStateObserverStub::OnRemoteRequest(
     std::u16string descriptor = AppForegroundStateObserverStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (descriptor != remoteDescriptor) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Local descriptor is not equal to remote.");
+        TAG_LOGE(AAFwkTag::APPMGR, "local descriptor is not equal to remote");
         return ERR_INVALID_STATE;
     }
 
@@ -48,7 +48,7 @@ int32_t AppForegroundStateObserverStub::HandleOnAppStateChanged(MessageParcel &d
 {
     std::unique_ptr<AppStateData> processData(data.ReadParcelable<AppStateData>());
     if (processData == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "ProcessData is null.");
+        TAG_LOGE(AAFwkTag::APPMGR, "null processData");
         return ERR_APPEXECFWK_PARCEL_ERROR;
     }
 
@@ -61,7 +61,7 @@ AppForegroundStateObserverRecipient::AppForegroundStateObserverRecipient(RemoteD
 
 void AppForegroundStateObserverRecipient::OnRemoteDied(const wptr<IRemoteObject> &__attribute__((unused)) remote)
 {
-    TAG_LOGE(AAFwkTag::APPMGR, "Remote died.");
+    TAG_LOGE(AAFwkTag::APPMGR, "remote died");
     if (handler_) {
         handler_(remote);
     }

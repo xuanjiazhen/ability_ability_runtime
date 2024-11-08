@@ -29,7 +29,7 @@ void UriPermissionLoadCallback::OnLoadSystemAbilitySuccess(
     }
 
     if (remoteObject == nullptr) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "Object null");
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "null remoteObject");
         return;
     }
 

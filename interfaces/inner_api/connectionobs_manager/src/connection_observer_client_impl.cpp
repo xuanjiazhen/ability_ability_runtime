@@ -210,14 +210,14 @@ void ConnectionObserverClientImpl::ConnectLocked()
     }
     sptr<IRemoteObject> remoteObj = systemManager->GetSystemAbility(ABILITY_MGR_SERVICE_ID);
     if (remoteObj == nullptr) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "connect AMS failed");
+        TAG_LOGE(AAFwkTag::CONNECTION, "null remoteObj");
         return;
     }
 
     deathRecipient_ = sptr<IRemoteObject::DeathRecipient>(
         new (std::nothrow) ServiceDeathRecipient(shared_from_this()));
     if (deathRecipient_ == nullptr) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "create AbilityMgrDeathRecipient failed");
+        TAG_LOGE(AAFwkTag::CONNECTION, "null deathRecipient_");
         return;
     }
     if ((remoteObj->IsProxyObject()) && (!remoteObj->AddDeathRecipient(deathRecipient_))) {

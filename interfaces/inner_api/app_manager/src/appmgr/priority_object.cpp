@@ -133,7 +133,7 @@ PriorityObject *PriorityObject::Unmarshalling(Parcel &parcel)
 {
     PriorityObject *priorityObject = new (std::nothrow) PriorityObject();
     if (priorityObject && !priorityObject->ReadFromParcel(parcel)) {
-        TAG_LOGW(AAFwkTag::APPMGR, "failed, because ReadFromParcel failed");
+        TAG_LOGW(AAFwkTag::APPMGR, "read from parcel failed");
         delete priorityObject;
         priorityObject = nullptr;
     }

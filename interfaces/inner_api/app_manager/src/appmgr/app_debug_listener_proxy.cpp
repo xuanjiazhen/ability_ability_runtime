@@ -31,7 +31,7 @@ AppDebugListenerProxy::AppDebugListenerProxy(
 bool AppDebugListenerProxy::WriteInterfaceToken(MessageParcel &data)
 {
     if (!data.WriteInterfaceToken(AppDebugListenerProxy::GetDescriptor())) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return false;
     }
     return true;
@@ -54,25 +54,25 @@ void AppDebugListenerProxy::SendRequest(
 {
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return;
     }
 
     if (debugInfos.size() <= CYCLE_LIMIT_MIN || debugInfos.size() > CYCLE_LIMIT_MAX ||
         !data.WriteInt32(debugInfos.size())) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write debug info size failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write size failed");
         return;
     }
     for (auto &debugInfo : debugInfos) {
         if (!data.WriteParcelable(&debugInfo)) {
-            TAG_LOGE(AAFwkTag::APPMGR, "Write debug info failed.");
+            TAG_LOGE(AAFwkTag::APPMGR, "write debug info failed");
             return;
         }
     };
 
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Remote is nullptr.");
+        TAG_LOGE(AAFwkTag::APPMGR, "null remote");
         return;
     }
 
@@ -80,7 +80,7 @@ void AppDebugListenerProxy::SendRequest(
     MessageOption option(MessageOption::TF_ASYNC);
     int32_t ret = remote->SendRequest(static_cast<uint32_t>(message), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
 }
 } // namespace AppExecFwk

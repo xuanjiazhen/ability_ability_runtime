@@ -77,7 +77,7 @@ unsigned int WantAgentHelper::FlagsTransformer(const std::vector<WantAgentConsta
                 TAG_LOGE(AAFwkTag::WANTAGENT, "Invalid flag:REPLACE_BUNDLE");
                 break;
             default:
-                TAG_LOGE(AAFwkTag::WANTAGENT, "flags is error");
+                TAG_LOGE(AAFwkTag::WANTAGENT, "flags error");
                 break;
         }
     }
@@ -130,7 +130,7 @@ ErrCode WantAgentHelper::GetWantAgent(
             result = PendingWant::GetServiceExtension(context, requestCode, wants[0], flags, pendingWant);
             break;
         default:
-            TAG_LOGE(AAFwkTag::WANTAGENT, "operation type is error");
+            TAG_LOGE(AAFwkTag::WANTAGENT, "operation type error");
             result = ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
             break;
     }
@@ -467,7 +467,7 @@ ErrCode WantAgentHelper::GetType(const std::shared_ptr<WantAgent> &agent, int32_
 ErrCode WantAgentHelper::GetWant(const std::shared_ptr<WantAgent> &agent, std::shared_ptr<AAFwk::Want> &want)
 {
     if ((agent == nullptr) || (agent->GetPendingWant() == nullptr)) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "WantAgent or PendingWant invalid input param.");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null agent or pendingWant");
         return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_WANTAGENT;
     }
 

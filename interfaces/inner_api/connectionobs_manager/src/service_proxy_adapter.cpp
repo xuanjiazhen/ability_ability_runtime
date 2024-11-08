@@ -38,7 +38,7 @@ int32_t ServiceProxyAdapter::RegisterObserver(const sptr<IConnectionObserver> &o
     }
 
     if (!remoteObj_) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "no abilityms proxy");
+        TAG_LOGE(AAFwkTag::CONNECTION, "null remoteObj_");
         return ERR_NO_PROXY;
     }
 
@@ -58,7 +58,7 @@ int32_t ServiceProxyAdapter::RegisterObserver(const sptr<IConnectionObserver> &o
 
     error = remoteObj_->SendRequest(REGISTER_CONNECTION_OBSERVER, data, reply, option);
     if (error != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "Send request error: %{public}d", error);
+        TAG_LOGE(AAFwkTag::CONNECTION, "error: %{public}d", error);
         return error;
     }
     return reply.ReadInt32();
@@ -72,7 +72,7 @@ int32_t ServiceProxyAdapter::UnregisterObserver(const sptr<IConnectionObserver> 
     }
 
     if (!remoteObj_) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "no abilityms proxy");
+        TAG_LOGE(AAFwkTag::CONNECTION, "null remoteObj_");
         return ERR_NO_PROXY;
     }
 
@@ -92,7 +92,7 @@ int32_t ServiceProxyAdapter::UnregisterObserver(const sptr<IConnectionObserver> 
 
     error = remoteObj_->SendRequest(UNREGISTER_CONNECTION_OBSERVER, data, reply, option);
     if (error != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "Send request error: %{public}d", error);
+        TAG_LOGE(AAFwkTag::CONNECTION, "error: %{public}d", error);
         return error;
     }
     return reply.ReadInt32();
@@ -102,7 +102,7 @@ int32_t ServiceProxyAdapter::UnregisterObserver(const sptr<IConnectionObserver> 
 int32_t ServiceProxyAdapter::GetDlpConnectionInfos(std::vector<DlpConnectionInfo> &infos)
 {
     if (!remoteObj_) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "no abilityms proxy");
+        TAG_LOGE(AAFwkTag::CONNECTION, "null remoteObj_");
         return ERR_NO_PROXY;
     }
 
@@ -117,13 +117,13 @@ int32_t ServiceProxyAdapter::GetDlpConnectionInfos(std::vector<DlpConnectionInfo
 
     error = remoteObj_->SendRequest(GET_DLP_CONNECTION_INFOS, data, reply, option);
     if (error != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "Send request error: %{public}d", error);
+        TAG_LOGE(AAFwkTag::CONNECTION, "error: %{public}d", error);
         return error;
     }
 
     auto result = reply.ReadInt32();
     if (result != 0) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "fail, result: %{public}d", result);
+        TAG_LOGE(AAFwkTag::CONNECTION, "failed: %{public}d", result);
         return result;
     }
 
@@ -149,7 +149,7 @@ int32_t ServiceProxyAdapter::GetDlpConnectionInfos(std::vector<DlpConnectionInfo
 int32_t ServiceProxyAdapter::GetConnectionData(std::vector<ConnectionData> &connectionData)
 {
     if (!remoteObj_) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "no abilityms proxy");
+        TAG_LOGE(AAFwkTag::CONNECTION, "null remoteObj_");
         return ERR_NO_PROXY;
     }
 
@@ -164,13 +164,13 @@ int32_t ServiceProxyAdapter::GetConnectionData(std::vector<ConnectionData> &conn
 
     error = remoteObj_->SendRequest(GET_CONNECTION_DATA, data, reply, option);
     if (error != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "Send request error: %{public}d", error);
+        TAG_LOGE(AAFwkTag::CONNECTION, "error: %{public}d", error);
         return error;
     }
 
     auto result = reply.ReadInt32();
     if (result != 0) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "fail, result: %{public}d", result);
+        TAG_LOGE(AAFwkTag::CONNECTION, "error: %{public}d", result);
         return result;
     }
 

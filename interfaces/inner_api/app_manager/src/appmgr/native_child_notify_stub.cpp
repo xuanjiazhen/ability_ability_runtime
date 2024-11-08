@@ -28,7 +28,7 @@ int NativeChildNotifyStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
     std::u16string descriptor = NativeChildNotifyStub::GetDescriptor();
     std::u16string remoteDesc = data.ReadInterfaceToken();
     if (descriptor != remoteDesc) {
-        TAG_LOGE(AAFwkTag::APPMGR, "A local descriptor is not equivalent to a remote");
+        TAG_LOGE(AAFwkTag::APPMGR, "local descriptor not equivalent to remote");
         return ERR_INVALID_STATE;
     }
 
@@ -43,7 +43,7 @@ int NativeChildNotifyStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
             break;
         
         default:
-            TAG_LOGW(AAFwkTag::APPMGR, "NativeChildNotifyStub Unknow ipc call(%{public}u)", code);
+            TAG_LOGW(AAFwkTag::APPMGR, "unknow ipc call(%{public}u)", code);
             ret = IPCObjectStub::OnRemoteRequest(code, data, reply, option);
             break;
     }

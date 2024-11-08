@@ -31,12 +31,12 @@ AppDebugInfo *AppDebugInfo::Unmarshalling(Parcel &parcel)
 {
     AppDebugInfo *info = new (std::nothrow) AppDebugInfo();
     if (info == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "App debug info is nullptr.");
+        TAG_LOGE(AAFwkTag::APPMGR, "null info");
         return nullptr;
     }
 
     if (!info->ReadFromParcel(parcel)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Read from parcel failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "read from parcel failed");
         delete info;
         info = nullptr;
     }
@@ -47,17 +47,17 @@ bool AppDebugInfo::Marshalling(Parcel &parcel) const
 {
     // write bundleName
     if (!parcel.WriteString(bundleName)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write bundle name failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write bundle name failed");
         return false;
     }
     // write pid
     if (!parcel.WriteInt32(pid)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write pid failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write pid failed");
         return false;
     }
     // write uid
     if (!parcel.WriteInt32(uid)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write uid failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write uid failed");
         return false;
     }
     return true;

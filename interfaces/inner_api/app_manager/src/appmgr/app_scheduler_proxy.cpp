@@ -52,7 +52,7 @@ bool AppSchedulerProxy::ScheduleForegroundApplication()
             reply,
             option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
         return false;
     }
     return true;
@@ -72,7 +72,7 @@ void AppSchedulerProxy::ScheduleBackgroundApplication()
             reply,
             option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is wrong, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
 }
 
@@ -85,13 +85,13 @@ void AppSchedulerProxy::ScheduleTerminateApplication(bool isLastProcess)
         return;
     }
     if (!data.WriteBool(isLastProcess)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write bool failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write bool failed");
         return;
     }
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_TERMINATE_APPLICATION_TRANSACTION), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is unsuccessful, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
 }
 
@@ -107,7 +107,7 @@ void AppSchedulerProxy::ScheduleLowMemory()
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_LOWMEMORY_APPLICATION_TRANSACTION), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
 }
 
@@ -125,19 +125,19 @@ void AppSchedulerProxy::ScheduleHeapMemory(const int32_t pid, OHOS::AppExecFwk::
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
     if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "AppSchedulerProxy !WriteInterfaceToken.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return;
     }
     data.WriteInt32(pid);
     int32_t ret = SendTransactCmd(operation, data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", ret);
         return;
     }
 
     std::unique_ptr<MallocInfo> info(reply.ReadParcelable<MallocInfo>());
     if (info == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "MallocInfo ReadParcelable nullptr");
+        TAG_LOGE(AAFwkTag::APPMGR, "null info");
         return;
     }
     mallocInfo = *info;
@@ -151,13 +151,13 @@ void AppSchedulerProxy::ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &i
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
     if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "AppSchedulerProxy !WriteInterfaceToken.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return;
     }
     data.WriteParcelable(&info);
     int32_t ret = SendTransactCmd(operation, data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", ret);
         return;
     }
 }
@@ -179,7 +179,7 @@ void AppSchedulerProxy::ScheduleMemoryCommon(const int32_t level, const uint32_t
     data.WriteInt32(level);
     int32_t ret = SendTransactCmd(operation, data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
 }
 
@@ -207,19 +207,19 @@ void AppSchedulerProxy::ScheduleLaunchAbility(const AbilityInfo &info, const spt
     }
 
     if (!data.WriteParcelable(want.get())) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write want fail.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write want failed");
         AbilityRuntime::FreezeUtil::GetInstance().AppendLifecycleEvent(flow,
             "ERROR AppLifeCycleDeal::LaunchAbility; write want fail");
         return;
     }
     if (!data.WriteInt32(abilityRecordId)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write ability record id fail.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write ability record id failed");
         return;
     }
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_LAUNCH_ABILITY_TRANSACTION), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
         AppExceptionManager::GetInstance().LaunchAbilityFailed(token, std::string("SendRequest failed") +
             std::to_string(ret));
     }
@@ -244,7 +244,7 @@ void AppSchedulerProxy::ScheduleCleanAbility(const sptr<IRemoteObject> &token, b
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_CLEAN_ABILITY_TRANSACTION), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
 }
 
@@ -271,7 +271,7 @@ void AppSchedulerProxy::ScheduleLaunchApplication(const AppLaunchData &launchDat
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_LAUNCH_APPLICATION_TRANSACTION), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
 }
 
@@ -290,7 +290,7 @@ void AppSchedulerProxy::ScheduleUpdateApplicationInfoInstalled(const Application
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_UPDATE_APPLICATION_INFO_INSTALLED), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
     TAG_LOGD(AAFwkTag::APPMGR, "AppSchedulerProxy ScheduleUpdateApplicationInfoInstalled end");
 }
@@ -329,7 +329,7 @@ void AppSchedulerProxy::ScheduleAbilityStage(const HapModuleInfo &abilityStage)
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_ABILITY_STAGE_INFO), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
     TAG_LOGD(AAFwkTag::APPMGR, "AppSchedulerProxy ScheduleAbilityStage end");
 }
@@ -346,7 +346,7 @@ void AppSchedulerProxy::ScheduleProfileChanged(const Profile &profile)
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_PROFILE_CHANGED_TRANSACTION), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
 }
 
@@ -363,7 +363,7 @@ void AppSchedulerProxy::ScheduleConfigurationUpdated(const Configuration &config
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_CONFIGURATION_UPDATED), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
 }
 
@@ -378,7 +378,7 @@ void AppSchedulerProxy::ScheduleProcessSecurityExit()
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_PROCESS_SECURITY_EXIT_TRANSACTION), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
 }
 
@@ -393,7 +393,7 @@ void AppSchedulerProxy::ScheduleClearPageStack()
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_CLEAR_PAGE_STACK), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
 }
 
@@ -412,7 +412,7 @@ void AppSchedulerProxy::ScheduleAcceptWant(const AAFwk::Want &want, const std::s
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_ACCEPT_WANT), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
 }
 
@@ -430,13 +430,13 @@ void AppSchedulerProxy::ScheduleNewProcessRequest(const AAFwk::Want &want, const
     }
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Remote() is NULL");
+        TAG_LOGE(AAFwkTag::APPMGR, "null remote");
         return;
     }
     int32_t ret = remote->SendRequest(
         static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_NEW_PROCESS_REQUEST), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
 }
 
@@ -446,22 +446,22 @@ int32_t AppSchedulerProxy::ScheduleNotifyLoadRepairPatch(const std::string &bund
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "ScheduleNotifyLoadRepairPatch, Write interface token failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return ERR_INVALID_DATA;
     }
 
     if (!data.WriteString(bundleName)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "ScheduleNotifyLoadRepairPatch, Write bundle name failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write bundle name failed");
         return ERR_INVALID_DATA;
     }
 
     if (callback == nullptr || !data.WriteRemoteObject(callback->AsObject())) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write callback failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write callback failed");
         return ERR_INVALID_DATA;
     }
 
     if (!data.WriteInt32(recordId)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write record id failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write record id failed");
         return ERR_INVALID_DATA;
     }
 
@@ -470,7 +470,7 @@ int32_t AppSchedulerProxy::ScheduleNotifyLoadRepairPatch(const std::string &bund
     int32_t ret = SendTransactCmd(static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_NOTIFY_LOAD_REPAIR_PATCH),
         data, reply, option);
     if (ret != 0) {
-        TAG_LOGE(AAFwkTag::APPMGR, "ScheduleNotifyLoadRepairPatch, Send request failed with errno %{public}d.", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", ret);
         return ret;
     }
 
@@ -482,17 +482,17 @@ int32_t AppSchedulerProxy::ScheduleNotifyHotReloadPage(const sptr<IQuickFixCallb
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed!");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return ERR_INVALID_DATA;
     }
 
     if (callback == nullptr || !data.WriteRemoteObject(callback->AsObject())) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write callback failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write callback failed");
         return ERR_INVALID_DATA;
     }
 
     if (!data.WriteInt32(recordId)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write record id failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write record id failed");
         return ERR_INVALID_DATA;
     }
 
@@ -501,7 +501,7 @@ int32_t AppSchedulerProxy::ScheduleNotifyHotReloadPage(const sptr<IQuickFixCallb
     auto ret = SendTransactCmd(static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_NOTIFY_HOT_RELOAD_PAGE),
         data, reply, option);
     if (ret != 0) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Send request failed with errno %{public}d.", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", ret);
         return ret;
     }
 
@@ -514,22 +514,22 @@ int32_t AppSchedulerProxy::ScheduleNotifyUnLoadRepairPatch(const std::string &bu
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Schedule notify unload patch, Write interface token failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return ERR_INVALID_DATA;
     }
 
     if (!data.WriteString(bundleName)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Schedule notify unload patch, Write bundle name failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write bundle name failed");
         return ERR_INVALID_DATA;
     }
 
     if (callback == nullptr || !data.WriteRemoteObject(callback->AsObject())) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write callback failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write callback failed");
         return ERR_INVALID_DATA;
     }
 
     if (!data.WriteInt32(recordId)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write record id failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write record id failed");
         return ERR_INVALID_DATA;
     }
 
@@ -538,7 +538,7 @@ int32_t AppSchedulerProxy::ScheduleNotifyUnLoadRepairPatch(const std::string &bu
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_NOTIFY_UNLOAD_REPAIR_PATCH), data, reply, option);
     if (ret != 0) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Schedule notify unload patch, Send request failed with errno %{public}d.", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", ret);
         return ret;
     }
 
@@ -550,12 +550,12 @@ int32_t AppSchedulerProxy::ScheduleNotifyAppFault(const FaultData &faultData)
     MessageParcel data;
 
     if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return ERR_INVALID_DATA;
     }
 
     if (!data.WriteParcelable(&faultData)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write FaultData error.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write faultData error");
         return ERR_FLATTEN_OBJECT;
     }
 
@@ -564,7 +564,7 @@ int32_t AppSchedulerProxy::ScheduleNotifyAppFault(const FaultData &faultData)
     auto ret = SendTransactCmd(static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_NOTIFY_FAULT),
         data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Send request failed with error code %{public}d.", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", ret);
         return ret;
     }
 
@@ -576,7 +576,7 @@ int32_t AppSchedulerProxy::ScheduleChangeAppGcState(int32_t state)
     MessageParcel data;
 
     if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return ERR_INVALID_DATA;
     }
 
@@ -586,7 +586,7 @@ int32_t AppSchedulerProxy::ScheduleChangeAppGcState(int32_t state)
     auto ret = SendTransactCmd(static_cast<uint32_t>(IAppScheduler::Message::APP_GC_STATE_CHANGE),
         data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Send request failed with error code %{public}d.", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", ret);
         return ret;
     }
 
@@ -598,7 +598,7 @@ void AppSchedulerProxy::AttachAppDebug()
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return;
     }
 
@@ -607,7 +607,7 @@ void AppSchedulerProxy::AttachAppDebug()
     auto ret = SendTransactCmd(
         static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_ATTACH_APP_DEBUG), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Failed to send request with error code: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
 }
 
@@ -616,7 +616,7 @@ void AppSchedulerProxy::DetachAppDebug()
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return;
     }
 
@@ -625,7 +625,7 @@ void AppSchedulerProxy::DetachAppDebug()
     auto ret = SendTransactCmd(
         static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_DETACH_APP_DEBUG), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Send request failed with error code: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
 }
 
@@ -640,7 +640,7 @@ int32_t AppSchedulerProxy::ScheduleDumpIpcStart(std::string& result)
         result.append(MSG_DUMP_IPC_START_STAT, strlen(MSG_DUMP_IPC_START_STAT))
             .append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
             .append(MSG_DUMP_FAIL_REASON_INTERNAL, strlen(MSG_DUMP_FAIL_REASON_INTERNAL));
-        TAG_LOGE(AAFwkTag::APPMGR, "AppSchedulerProxy !WriteInterfaceToken.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return DumpErrorCode::ERR_INTERNAL_ERROR;
     }
     int32_t ret = SendTransactCmd(operation, data, reply, option);
@@ -648,14 +648,14 @@ int32_t AppSchedulerProxy::ScheduleDumpIpcStart(std::string& result)
         result.append(MSG_DUMP_IPC_START_STAT, strlen(MSG_DUMP_IPC_START_STAT))
             .append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
             .append(MSG_DUMP_FAIL_REASON_INTERNAL, strlen(MSG_DUMP_FAIL_REASON_INTERNAL));
-        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", ret);
         return DumpErrorCode::ERR_INTERNAL_ERROR;
     }
     if (!reply.ReadString(result)) {
         result.append(MSG_DUMP_IPC_START_STAT, strlen(MSG_DUMP_IPC_START_STAT))
             .append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
             .append(MSG_DUMP_FAIL_REASON_INTERNAL, strlen(MSG_DUMP_FAIL_REASON_INTERNAL));
-        TAG_LOGE(AAFwkTag::APPMGR, "Fail to read string of ScheduleDumpIpcStart result");
+        TAG_LOGE(AAFwkTag::APPMGR, "failed to read string of result");
         return DumpErrorCode::ERR_INTERNAL_ERROR;
     }
     return DumpErrorCode::ERR_OK;
@@ -672,7 +672,7 @@ int32_t AppSchedulerProxy::ScheduleDumpIpcStop(std::string& result)
         result.append(MSG_DUMP_IPC_STOP_STAT, strlen(MSG_DUMP_IPC_STOP_STAT))
             .append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
             .append(MSG_DUMP_FAIL_REASON_INTERNAL, strlen(MSG_DUMP_FAIL_REASON_INTERNAL));
-        TAG_LOGE(AAFwkTag::APPMGR, "AppSchedulerProxy !WriteInterfaceToken.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return DumpErrorCode::ERR_INTERNAL_ERROR;
     }
     int32_t ret = SendTransactCmd(operation, data, reply, option);
@@ -680,14 +680,14 @@ int32_t AppSchedulerProxy::ScheduleDumpIpcStop(std::string& result)
         result.append(MSG_DUMP_IPC_STOP_STAT, strlen(MSG_DUMP_IPC_STOP_STAT))
             .append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
             .append(MSG_DUMP_FAIL_REASON_INTERNAL, strlen(MSG_DUMP_FAIL_REASON_INTERNAL));
-        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", ret);
         return DumpErrorCode::ERR_INTERNAL_ERROR;
     }
     if (!reply.ReadString(result)) {
         result.append(MSG_DUMP_IPC_STOP_STAT, strlen(MSG_DUMP_IPC_STOP_STAT))
             .append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
             .append(MSG_DUMP_FAIL_REASON_INTERNAL, strlen(MSG_DUMP_FAIL_REASON_INTERNAL));
-        TAG_LOGE(AAFwkTag::APPMGR, "Fail to read string of ScheduleDumpIpcStop result");
+        TAG_LOGE(AAFwkTag::APPMGR, "failed to read string of result");
         return DumpErrorCode::ERR_INTERNAL_ERROR;
     }
     return DumpErrorCode::ERR_OK;
@@ -704,7 +704,7 @@ int32_t AppSchedulerProxy::ScheduleDumpIpcStat(std::string& result)
         result.append(MSG_DUMP_IPC_STAT, strlen(MSG_DUMP_IPC_STAT))
             .append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
             .append(MSG_DUMP_FAIL_REASON_INTERNAL, strlen(MSG_DUMP_FAIL_REASON_INTERNAL));
-        TAG_LOGE(AAFwkTag::APPMGR, "AppSchedulerProxy !WriteInterfaceToken.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return DumpErrorCode::ERR_INTERNAL_ERROR;
     }
     int32_t ret = SendTransactCmd(operation, data, reply, option);
@@ -712,14 +712,14 @@ int32_t AppSchedulerProxy::ScheduleDumpIpcStat(std::string& result)
         result.append(MSG_DUMP_IPC_STAT, strlen(MSG_DUMP_IPC_STAT))
             .append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
             .append(MSG_DUMP_FAIL_REASON_INTERNAL, strlen(MSG_DUMP_FAIL_REASON_INTERNAL));
-        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", ret);
         return DumpErrorCode::ERR_INTERNAL_ERROR;
     }
     if (!reply.ReadString(result)) {
         result.append(MSG_DUMP_IPC_STAT, strlen(MSG_DUMP_IPC_STAT))
             .append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
             .append(MSG_DUMP_FAIL_REASON_INTERNAL, strlen(MSG_DUMP_FAIL_REASON_INTERNAL));
-        TAG_LOGE(AAFwkTag::APPMGR, "Fail to read string of ScheduleDumpIpcStat result");
+        TAG_LOGE(AAFwkTag::APPMGR, "failed to read string of result");
         return DumpErrorCode::ERR_INTERNAL_ERROR;
     }
     return DumpErrorCode::ERR_OK;
@@ -736,20 +736,20 @@ int32_t AppSchedulerProxy::ScheduleDumpFfrt(std::string& result)
     if (!WriteInterfaceToken(data)) {
         result.append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
             .append(MSG_DUMP_FAIL_REASON_INTERNAL, strlen(MSG_DUMP_FAIL_REASON_INTERNAL));
-        TAG_LOGE(AAFwkTag::APPMGR, "AppSchedulerProxy !WriteInterfaceToken.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return DumpErrorCode::ERR_INTERNAL_ERROR;
     }
     int32_t ret = SendTransactCmd(operation, data, reply, option);
     if (ret != NO_ERROR) {
         result.append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
             .append(MSG_DUMP_FAIL_REASON_INTERNAL, strlen(MSG_DUMP_FAIL_REASON_INTERNAL));
-        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", ret);
         return DumpErrorCode::ERR_INTERNAL_ERROR;
     }
     if (!reply.ReadString(result)) {
         result.append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
             .append(MSG_DUMP_FAIL_REASON_INTERNAL, strlen(MSG_DUMP_FAIL_REASON_INTERNAL));
-        TAG_LOGE(AAFwkTag::APPMGR, "Fail to read string of ScheduleDumpFfrt result");
+        TAG_LOGE(AAFwkTag::APPMGR, "failed to read string of result");
         return DumpErrorCode::ERR_INTERNAL_ERROR;
     }
     return DumpErrorCode::ERR_OK;
@@ -761,14 +761,14 @@ int32_t AppSchedulerProxy::SendTransactCmd(uint32_t code, MessageParcel &data,
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Remote is nullptr.");
+        TAG_LOGE(AAFwkTag::APPMGR, "null remote");
         return ERR_NULL_OBJECT;
     }
 
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "remote->SendRequest");
     auto ret = remote->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Send request failed with error code: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", ret);
         return ret;
     }
     return ret;
@@ -785,7 +785,7 @@ void AppSchedulerProxy::ScheduleCacheProcess()
     }
     int32_t ret = SendTransactCmd(operation, data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
 }
 }  // namespace AppExecFwk

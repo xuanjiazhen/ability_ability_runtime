@@ -184,7 +184,7 @@ void AmsMgrProxy::RegisterAppStateCallback(const sptr<IAppStateCallback> &callba
 {
     TAG_LOGD(AAFwkTag::APPMGR, "begin");
     if (!callback) {
-        TAG_LOGE(AAFwkTag::APPMGR, "callback null");
+        TAG_LOGE(AAFwkTag::APPMGR, "null callback");
         return;
     }
 
@@ -401,7 +401,7 @@ int32_t AmsMgrProxy::ForceKillApplication(const std::string &bundleName,
     }
 
     if (!data.WriteString(bundleName)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "parcel bundleName failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "parcel bundleName failed");
         return ERR_FLATTEN_OBJECT;
     }
 
@@ -463,7 +463,7 @@ int32_t AmsMgrProxy::UpdateApplicationInfoInstalled(const std::string &bundleNam
         return ERR_FLATTEN_OBJECT;
     }
     if (!data.WriteInt32(uid)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "uid write failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "uid write failed");
         return ERR_FLATTEN_OBJECT;
     }
     int32_t ret =
@@ -530,7 +530,7 @@ int32_t AmsMgrProxy::KillApplicationSelf(const bool clearPageStack, const std::s
     int32_t ret =
         SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::KILL_APPLICATION_SELF), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest err: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d", ret);
         return ret;
     }
     return reply.ReadInt32();
@@ -606,7 +606,7 @@ void AmsMgrProxy::GetRunningProcessInfoByToken(
 
     std::unique_ptr<AppExecFwk::RunningProcessInfo> processInfo(reply.ReadParcelable<AppExecFwk::RunningProcessInfo>());
     if (processInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "recv process info faild");
+        TAG_LOGE(AAFwkTag::APPMGR, "recv process info failed");
         return;
     }
 
@@ -647,7 +647,7 @@ void AmsMgrProxy::StartSpecifiedAbility(const AAFwk::Want &want, const AppExecFw
 
     if (!data.WriteParcelable(&want) || !data.WriteParcelable(&abilityInfo) ||
         !data.WriteInt32(requestId)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write data failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write data failed");
         return;
     }
 
@@ -666,19 +666,19 @@ void AmsMgrProxy::StartSpecifiedProcess(const AAFwk::Want &want, const AppExecFw
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
     if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write data failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write data failed");
         return;
     }
 
     if (!data.WriteParcelable(&want) || !data.WriteParcelable(&abilityInfo) ||
         data.WriteInt32(requestId)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write data failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write data failed");
         return;
     }
 
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Remote is nullptr.");
+        TAG_LOGE(AAFwkTag::APPMGR, "null remote");
         return;
     }
     auto ret = remote->SendRequest(
@@ -692,7 +692,7 @@ void AmsMgrProxy::RegisterStartSpecifiedAbilityResponse(const sptr<IStartSpecifi
 {
     TAG_LOGD(AAFwkTag::APPMGR, "Register multi instances response by proxy.");
     if (!response) {
-        TAG_LOGE(AAFwkTag::APPMGR, "response null");
+        TAG_LOGE(AAFwkTag::APPMGR, "null response");
         return;
     }
 
@@ -866,7 +866,7 @@ int32_t AmsMgrProxy::RegisterAppDebugListener(const sptr<IAppDebugListener> &lis
     auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::REGISTER_APP_DEBUG_LISTENER),
         data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Send request err: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d", ret);
         return ret;
     }
     return reply.ReadInt32();
@@ -891,7 +891,7 @@ int32_t AmsMgrProxy::UnregisterAppDebugListener(const sptr<IAppDebugListener> &l
     auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::UNREGISTER_APP_DEBUG_LISTENER),
         data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Send request err: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d", ret);
         return ret;
     }
     return reply.ReadInt32();
@@ -916,7 +916,7 @@ int32_t AmsMgrProxy::AttachAppDebug(const std::string &bundleName)
     auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::ATTACH_APP_DEBUG),
         data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Send request err: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d", ret);
         return ret;
     }
     return reply.ReadInt32();
@@ -941,7 +941,7 @@ int32_t AmsMgrProxy::DetachAppDebug(const std::string &bundleName)
     auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::DETACH_APP_DEBUG),
         data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Send request err: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d", ret);
         return ret;
     }
     return reply.ReadInt32();
@@ -968,7 +968,7 @@ void AmsMgrProxy::SetKeepAliveEnableState(const std::string &bundleName, bool en
     auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::SET_KEEP_ALIVE_ENABLE_STATE),
         data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Send request err: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d", ret);
     }
 }
 
@@ -987,7 +987,7 @@ int32_t AmsMgrProxy::SetAppWaitingDebug(const std::string &bundleName, bool isPe
     }
 
     if (!data.WriteBool(isPersist)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write persist flag failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write persist flag failed");
         return ERR_INVALID_DATA;
     }
 
@@ -995,7 +995,7 @@ int32_t AmsMgrProxy::SetAppWaitingDebug(const std::string &bundleName, bool isPe
     MessageOption option(MessageOption::TF_SYNC);
     auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::SET_APP_WAITING_DEBUG), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Send request err: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d", ret);
         return ret;
     }
     return reply.ReadInt32();
@@ -1014,7 +1014,7 @@ int32_t AmsMgrProxy::CancelAppWaitingDebug()
     MessageOption option(MessageOption::TF_SYNC);
     auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::CANCEL_APP_WAITING_DEBUG), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Send request err: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d", ret);
         return ret;
     }
     return reply.ReadInt32();
@@ -1033,13 +1033,13 @@ int32_t AmsMgrProxy::GetWaitingDebugApp(std::vector<std::string> &debugInfoList)
     MessageOption option(MessageOption::TF_SYNC);
     auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::GET_WAITING_DEBUG_APP), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Send request err: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d", ret);
         return ret;
     }
 
     auto resultCode = reply.ReadInt32();
     if (resultCode != ERR_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Reply err: %{public}d", resultCode);
+        TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d", resultCode);
         return resultCode;
     }
 
@@ -1075,7 +1075,7 @@ bool AmsMgrProxy::IsWaitingDebugApp(const std::string &bundleName)
     MessageOption option(MessageOption::TF_SYNC);
     auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::IS_WAITING_DEBUG_APP), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Send request err: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d", ret);
         return false;
     }
     return reply.ReadBool();
@@ -1118,7 +1118,7 @@ int32_t AmsMgrProxy::RegisterAbilityDebugResponse(const sptr<IAbilityDebugRespon
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAmsMgr::Message::REGISTER_ABILITY_DEBUG_RESPONSE), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest err: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d", ret);
         return ret;
     }
     return reply.ReadInt32();
@@ -1143,7 +1143,7 @@ bool AmsMgrProxy::IsAttachDebug(const std::string &bundleName)
     auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::IS_ATTACH_DEBUG),
         data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Send request err: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d", ret);
         return false;
     }
     return reply.ReadBool();
@@ -1180,7 +1180,7 @@ bool AmsMgrProxy::IsMemorySizeSufficent()
     MessageOption option(MessageOption::TF_SYNC);
     auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::IS_MEMORY_SIZE_SUFFICIENT), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Send request err: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d", ret);
         return true;
     }
     return reply.ReadBool();
@@ -1197,7 +1197,7 @@ int32_t AmsMgrProxy::SendTransactCmd(uint32_t code, MessageParcel &data,
 
     int32_t ret = remote->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest err: %{public}d, ret: %{public}d", code, ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d, ret: %{public}d", code, ret);
         return ret;
     }
     return ret;
@@ -1303,7 +1303,7 @@ bool AmsMgrProxy::IsProcessAttached(sptr<IRemoteObject> token)
     MessageParcel reply;
     MessageOption option;
     if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return false;
     }
     if (!data.WriteRemoteObject(token.GetRefPtr())) {
@@ -1313,7 +1313,7 @@ bool AmsMgrProxy::IsProcessAttached(sptr<IRemoteObject> token)
 
     auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::IS_PROCESS_ATTACHED), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Send request failed, error code is %{public}d.", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d", ret);
         return false;
     }
     return reply.ReadBool();
@@ -1325,7 +1325,7 @@ bool AmsMgrProxy::IsAppKilling(sptr<IRemoteObject> token)
     MessageParcel reply;
     MessageOption option;
     if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return false;
     }
     if (!data.WriteRemoteObject(token.GetRefPtr())) {
@@ -1335,7 +1335,7 @@ bool AmsMgrProxy::IsAppKilling(sptr<IRemoteObject> token)
 
     auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::IS_APP_KILLING), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Send request failed, error code is %{public}d.", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", ret);
         return false;
     }
     return reply.ReadBool();
@@ -1347,7 +1347,7 @@ void AmsMgrProxy::SetAppExceptionCallback(sptr<IRemoteObject> callback)
     MessageParcel reply;
     MessageOption option;
     if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return;
     }
     if (!data.WriteRemoteObject(callback.GetRefPtr())) {
@@ -1358,7 +1358,7 @@ void AmsMgrProxy::SetAppExceptionCallback(sptr<IRemoteObject> callback)
     auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::SET_APP_EXCEPTION_CALLBACK),
         data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Send request failed, error code is %{public}d.", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", ret);
         return;
     }
 }

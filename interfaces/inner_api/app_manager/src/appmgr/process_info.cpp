@@ -46,7 +46,7 @@ ProcessInfo *ProcessInfo::Unmarshalling(Parcel &parcel)
 {
     ProcessInfo *processInfo = new (std::nothrow) ProcessInfo();
     if (processInfo && !processInfo->ReadFromParcel(parcel)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "ProcessInfo::Unmarshalling ReadFromParcel failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "read parcel failed");
         delete processInfo;
         processInfo = nullptr;
     }

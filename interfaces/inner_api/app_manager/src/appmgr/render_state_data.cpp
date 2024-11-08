@@ -29,23 +29,23 @@ bool RenderStateData::Marshalling(Parcel &parcel) const
 bool RenderStateData::ReadFromParcel(Parcel &parcel)
 {
     if (!parcel.ReadInt32(pid)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "pid read failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "pid read failed");
         return false;
     }
     if (!parcel.ReadInt32(uid)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "uid read failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "uid read failed");
         return false;
     }
     if (!parcel.ReadInt32(hostPid)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "hostPid read failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "hostPid read failed");
         return false;
     }
     if (!parcel.ReadInt32(hostUid)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "hostUid read failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "hostUid read failed");
         return false;
     }
     if (!parcel.ReadInt32(state)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "state read failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "state read failed");
         return false;
     }
     return true;
@@ -55,7 +55,7 @@ RenderStateData *RenderStateData::Unmarshalling(Parcel &parcel)
 {
     RenderStateData *renderStateData = new (std::nothrow) RenderStateData();
     if (renderStateData && !renderStateData->ReadFromParcel(parcel)) {
-        TAG_LOGW(AAFwkTag::APPMGR, "renderStateData failed, because ReadFromParcel failed");
+        TAG_LOGW(AAFwkTag::APPMGR, "read parcel failed");
         delete renderStateData;
         renderStateData = nullptr;
     }

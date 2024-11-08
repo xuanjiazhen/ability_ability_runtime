@@ -39,23 +39,23 @@ int KiaInterceptorProxy::OnIntercept(AAFwk::Want &want)
     data.WriteParcelable(&want);
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Remote() is NULL");
+        TAG_LOGE(AAFwkTag::APPMGR, "null remote");
         return ERR_INVALID_VALUE;
     }
     int32_t ret = remote->SendRequest(static_cast<uint32_t>(IKiaInterceptor::KIA_INTERCEPTOR_ON_INTERCEPT),
         data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d.", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", ret);
         return ret;
     }
     int resultCode = reply.ReadInt32();
     if (resultCode != ERR_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "OnIntercept failed, resultCode=%{public}d.", resultCode);
+        TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", resultCode);
         return resultCode;
     }
     sptr<AAFwk::Want> resultWant = reply.ReadParcelable<AAFwk::Want>();
     if (resultWant == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "resultWant is nullptr.");
+        TAG_LOGE(AAFwkTag::APPMGR, "null resultWant");
         return ERR_INVALID_VALUE;
     }
     want = *resultWant;

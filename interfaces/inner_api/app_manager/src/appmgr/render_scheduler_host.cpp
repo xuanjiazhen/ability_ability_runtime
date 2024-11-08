@@ -27,12 +27,11 @@ RenderSchedulerHost::~RenderSchedulerHost() {}
 int RenderSchedulerHost::OnRemoteRequest(uint32_t code, MessageParcel &data,
     MessageParcel &reply, MessageOption &option)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "RenderSchedulerHost::OnReceived, code = %{public}u, flags= %{public}d.", code,
-        option.GetFlags());
+    TAG_LOGI(AAFwkTag::APPMGR, "code = %{public}u, flags= %{public}d", code, option.GetFlags());
     std::u16string descriptor = RenderSchedulerHost::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (descriptor != remoteDescriptor) {
-        TAG_LOGE(AAFwkTag::APPMGR, "A local descriptor is not equivalent to a remote");
+        TAG_LOGE(AAFwkTag::APPMGR, "local descriptor not equivalent to remote");
         return ERR_INVALID_STATE;
     }
 
@@ -40,7 +39,7 @@ int RenderSchedulerHost::OnRemoteRequest(uint32_t code, MessageParcel &data,
         return HandleNotifyBrowserFd(data, reply);
     }
 
-    TAG_LOGI(AAFwkTag::APPMGR, "RenderSchedulerHost::OnRemoteRequest end");
+    TAG_LOGI(AAFwkTag::APPMGR, "end");
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 

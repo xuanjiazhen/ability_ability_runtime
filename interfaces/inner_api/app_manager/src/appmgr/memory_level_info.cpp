@@ -79,7 +79,7 @@ bool MemoryLevelInfo::ReadFromParcel(Parcel &parcel)
                 level = static_cast<MemoryLevel>(tempLevel);
                 break;
             default:
-                TAG_LOGE(AAFwkTag::APPMGR, "temp memory level=%{public}d is not valid.", tempLevel);
+                TAG_LOGE(AAFwkTag::APPMGR, "temp memory level=%{public}d", tempLevel);
                 continue;
         }
         procLevelMap_[pid] = level;
