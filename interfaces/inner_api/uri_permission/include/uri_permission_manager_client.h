@@ -104,6 +104,10 @@ public:
      */
     std::vector<bool> CheckUriAuthorization(const std::vector<std::string> &uriVec, uint32_t flag, uint32_t tokenId);
 
+    int32_t ClearPermissionTokenByMap(const uint32_t tokenId);
+
+    int32_t Active(const std::vector<PolicyInfo> &policy, std::vector<uint32_t> &result);
+
     void OnLoadSystemAbilitySuccess(const sptr<IRemoteObject> &remoteObject);
     void OnLoadSystemAbilityFail();
 private:

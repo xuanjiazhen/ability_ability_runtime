@@ -43,6 +43,8 @@ private:
     int HandleBatchGrantUriPermission(MessageParcel &data, MessageParcel &reply);
     int HandleRevokeUriPermissionManually(MessageParcel &data, MessageParcel &reply);
     int HandleVerifyUriPermission(MessageParcel &data, MessageParcel &reply);
+    int HandleClearPermissionTokenByMap(MessageParcel &data, MessageParcel &reply);
+    int HandleActive(MessageParcel &data, MessageParcel &reply);
 };
 }  // namespace AAFwk
 }  // namespace OHOS

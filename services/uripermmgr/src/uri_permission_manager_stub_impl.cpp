@@ -873,5 +873,50 @@ bool UriPermissionManagerStubImpl::CheckUriTypeIsValid(Uri uri)
     }
     return true;
 }
+
+int32_t UriPermissionManagerStubImpl::ClearPermissionTokenByMap(const uint32_t tokenId)
+{
+#ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
+    std::lock_guard<std::mutex> lock(ptMapMutex_);
+    if (permissionTokenMap_.find(tokenId) == permissionTokenMap_.end()) {
+        TAG_LOGD(AAFwkTag::URIPERMMGR, "permissionTokenMap_ empty");
+        return ERR_OK;
+    }
+    uint64_t timeNow = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+    auto ret = SandBoxManagerKit::UnSetAllPolicyByToken(tokenId, timeNow);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "ClearPermission failed, ret is %{public}d", ret);
+    }
+    permissionTokenMap_.erase(tokenId);
+#endif // ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
+    return ERR_OK;
+}
+
+int32_t UriPermissionManagerStubImpl::Active(const std::vector<PolicyInfo> &policy, std::vector<uint32_t> &result)
+{
+#ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
+    auto callingPid = IPCSkeleton::GetCallingPid();
+    bool isTerminating = false;
+    if (IN_PROCESS_CALL(appMgr_->IsTerminatingByPid(callingPid, isTerminating)) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "IsTerminatingByPid failed");
+        return INNER_ERR;
+    }
+    if (isTerminating) {
+        TAG_LOGD(AAFwkTag::URIPERMMGR, "app is terminating");
+        return ERR_OK;
+    }
+    uint64_t timeNow = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    auto ret = SandBoxManagerKit::StartAccessingPolicy(policy, result, false, tokenId, timeNow);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "StartAccessingPolicy failed");
+        return INNER_ERR;
+    }
+    permissionTokenMap_.insert(tokenId);
+#endif // ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
+    return ERR_OK;
+}
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -146,6 +146,10 @@ private:
 
     bool IsDistributedSubDirUri(const std::string &inputUri, const std::string &cachedUri);
 
+    int32_t ClearPermissionTokenByMap(const uint32_t tokenId) override;
+
+    int32_t Active(const std::vector<PolicyInfo> &policy, std::vector<uint32_t> &result) override;
+
     class ProxyDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
         explicit ProxyDeathRecipient(ClearProxyCallback&& proxy) : proxy_(proxy) {}
@@ -162,6 +166,8 @@ private:
     std::mutex mgrMutex_;
     sptr<AppExecFwk::IAppMgr> appMgr_ = nullptr;
     sptr<StorageManager::IStorageManager> storageManager_ = nullptr;
+    std::set<uint32_t> permissionTokenMap_;
+    std::mutex ptMapMutex_;
 };
 }  // namespace OHOS::AAFwk
 #endif  // OHOS_ABILITY_RUNTIME_URI_PERMISSION_MANAGER_STUB_IMPL_H
