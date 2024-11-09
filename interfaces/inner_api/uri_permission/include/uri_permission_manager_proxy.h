@@ -45,6 +45,8 @@ public:
     virtual bool VerifyUriPermission(const Uri &uri, uint32_t flag, uint32_t tokenId) override;
     virtual std::vector<bool> CheckUriAuthorization(const std::vector<std::string> &uriVec,
         uint32_t flag, uint32_t tokenId) override;
+    virtual int32_t ClearPermissionTokenByMap(const uint32_t tokenId) override;
+    virtual int32_t Active(const std::vector<PolicyInfo> &policy, std::vector<uint32_t> &result) override;
 
 private:
     static inline BrokerDelegator<UriPermissionManagerProxy> delegator_;
