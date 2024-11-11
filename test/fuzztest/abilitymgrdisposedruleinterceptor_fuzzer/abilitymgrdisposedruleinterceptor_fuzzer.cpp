@@ -83,9 +83,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     executer-> DoProcess(param);
     executer-> CheckControl(want, userId, disposedRule, 0);
     executer-> CheckDisposedRule(want, disposedRule);
-    executer-> StartNonBlockRule(want, disposedRule);
-    executer-> GetAppMgr();
-    executer-> UnregisterObserver(stringParam);
+    executer-> StartNonBlockRule(want, disposedRule, abilityInfo);
     executer-> CreateModalUIExtension(want, token);
     executer-> SetInterceptInfo(want, disposedRule);
 

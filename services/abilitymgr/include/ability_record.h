@@ -1131,6 +1131,16 @@ public:
     {
         freezeStrategy_ = value;
     }
+    
+    void SetDisposedBundleName(const std::string& disposedBundleName)
+    {
+        disposedBundleName_ = disposedBundleName;
+    }
+
+    std::string GetDisposedBundleName() const
+    {
+        return disposedBundleName_;
+    }
 
 protected:
     void SendEvent(uint32_t msg, uint32_t timeOut, int32_t param = -1, bool isExtension = false);
@@ -1359,6 +1369,7 @@ private:
     std::string instanceKey_ = "";
     bool securityFlag_ = false;
     std::atomic<FreezeStrategy> freezeStrategy_{FreezeStrategy::NOTIFY_FREEZE_MGR};
+    std::string disposedBundleName_ = "";
 };
 }  // namespace AAFwk
 }  // namespace OHOS

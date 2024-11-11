@@ -20,7 +20,6 @@
 
 #include "ability_record.h"
 #include "app_mgr_interface.h"
-#include "disposed_observer.h"
 #include "task_utils_wrap.h"
 
 namespace OHOS {
@@ -38,18 +37,17 @@ public:
     {
         taskHandler_ = taskHandler;
     };
-    void UnregisterObserver(const std::string &bundleName);
 private:
     bool CheckControl(const Want &want, int32_t userId, AppExecFwk::DisposedRule &disposedRule, int32_t appIndex);
     bool CheckDisposedRule(const Want &want, AppExecFwk::DisposedRule &disposedRule);
-    ErrCode StartNonBlockRule(const Want &want, AppExecFwk::DisposedRule &disposedRule);
-    sptr<AppExecFwk::IAppMgr> GetAppMgr();
+    ErrCode StartNonBlockRule(const Want &want, AppExecFwk::DisposedRule &disposedRule,
+        const std::shared_ptr<AppExecFwk::AbilityInfo> &abilityInfo);
     ErrCode CreateModalUIExtension(const Want &want, const sptr<IRemoteObject> &callerToken);
+    bool ShouldModalSystemUIExtension(std::shared_ptr<AAFwk::AbilityRecord> abilityRecord,
+        sptr<IRemoteObject> callerToken);
     void SetInterceptInfo(const Want &want, AppExecFwk::DisposedRule &disposedRule);
 private:
     std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
-    std::map<std::string, sptr<DisposedObserver>> disposedObserverMap_;
-    ffrt::mutex observerLock_;
 };
 } // namespace AAFwk
 } // namespace OHOS
