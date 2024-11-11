@@ -258,7 +258,6 @@ group("fuzztest") {
     "deeplinkreserveconfig_fuzzer:fuzztest",
     "delegatordoabilityforeground_fuzzer:fuzztest",
     "dialogsessioninfo_fuzzer:fuzztest",
-    "disposedobserver_fuzzer:fuzztest",
     "doabilitybackground_fuzzer:fuzztest",
     "doabilityforeground_fuzzer:fuzztest",
     "dumpabilityinfodone_fuzzer:fuzztest",

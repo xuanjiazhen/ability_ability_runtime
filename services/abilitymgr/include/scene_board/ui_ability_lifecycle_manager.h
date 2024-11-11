@@ -281,7 +281,7 @@ public:
      * @param sessionId the session id.
      * @return Returns abilityRecord on success, nullptr on failure.
      */
-    std::shared_ptr<AbilityRecord> GetAbilityRecordsById(int32_t sessionId) const;
+    std::shared_ptr<AbilityRecord> GetAbilityRecordById(int32_t sessionId) const;
 
     /**
      * Get check ability number.

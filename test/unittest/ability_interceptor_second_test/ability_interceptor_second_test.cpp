@@ -21,6 +21,7 @@
 #undef private
 #undef protected
 
+#include "ability_util.h"
 #include "bundlemgr/mock_bundle_manager.h"
 #include "permission_constants.h"
 #include "start_ability_utils.h"
@@ -134,7 +135,8 @@ HWTEST_F(AbilityInterceptorSecondTest, DisposedRuleInterceptor_003, TestSize.Lev
     DisposedRule disposedRule;
     disposedRule.want = std::make_shared<Want>();
     disposedRule.want->SetBundle(bundleName);
-    ErrCode result = executer->StartNonBlockRule(want, disposedRule);
+    const std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo;
+    ErrCode result = executer->StartNonBlockRule(want, disposedRule, abilityInfo);
     EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
@@ -156,7 +158,8 @@ HWTEST_F(AbilityInterceptorSecondTest, DisposedRuleInterceptor_004, TestSize.Lev
     DisposedRule disposedRule;
     disposedRule.want = std::make_shared<Want>();
     disposedRule.want->SetBundle(bundleName2);
-    ErrCode result = executer->StartNonBlockRule(want, disposedRule);
+    const std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo;
+    ErrCode result = executer->StartNonBlockRule(want, disposedRule, abilityInfo);
     EXPECT_NE(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }

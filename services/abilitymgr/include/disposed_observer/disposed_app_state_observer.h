@@ -13,33 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_DISPOSED_OBSERVER_H
-#define OHOS_ABILITY_RUNTIME_DISPOSED_OBSERVER_H
+#ifndef OHOS_ABILITY_RUNTIME_DISPOSED_APP_STATE_OBSERVER_H
+#define OHOS_ABILITY_RUNTIME_DISPOSED_APP_STATE_OBSERVER_H
 
-#include "ability_util.h"
 #include "application_state_observer_stub.h"
-#include "app_mgr_interface.h"
-#include "cpp/mutex.h"
-#include "want.h"
+#include "disposed_rule.h"
 
 namespace OHOS {
 namespace AAFwk {
-class DisposedRuleInterceptor;
-class DisposedObserver : public AppExecFwk::ApplicationStateObserverStub {
+class DisposedAppStateObserver : public AppExecFwk::ApplicationStateObserverStub {
 public:
-    DisposedObserver(const AppExecFwk::DisposedRule &disposedRule,
-        const std::shared_ptr<DisposedRuleInterceptor> &interceptor);
-    ~DisposedObserver() = default;
+    DisposedAppStateObserver(const AppExecFwk::DisposedRule &disposedRule) : disposedRule_(disposedRule) {}
+    void OnProcessDied(const AppExecFwk::ProcessData &processData) override;
+    void OnPageShow(const AppExecFwk::PageStateData &pageStateData) override;
 
 private:
-    void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData) override;
-    void OnPageShow(const AppExecFwk::PageStateData &pageStateData) override;
-private:
-    ffrt::mutex observerLock_;
     AppExecFwk::DisposedRule disposedRule_;
-    sptr<IRemoteObject> token_ = nullptr;
-    std::shared_ptr<DisposedRuleInterceptor> interceptor_ = nullptr;
 };
 } // namespace AAFwk
 } // namespace OHOS
-#endif // OHOS_ABILITY_RUNTIME_DISPOSED_OBSERVER_H
+#endif // OHOS_ABILITY_RUNTIME_DISPOSED_APP_STATE_OBSERVER_H

@@ -3699,16 +3699,7 @@ int AbilityManagerService::SendResultToAbility(int32_t requestCode, int32_t resu
         TAG_LOGE(AAFwkTag::ABILITYMGR, "missionId empty");
         return ERR_INVALID_VALUE;
     }
-    std::shared_ptr<AbilityRecord> abilityRecord = nullptr;
-    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        auto uiAbilityManager = GetCurrentUIAbilityManager();
-        CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
-        abilityRecord = uiAbilityManager->GetAbilityRecordsById(missionId);
-    } else {
-        sptr<IRemoteObject> abilityToken = GetAbilityTokenByMissionId(missionId);
-        CHECK_POINTER_AND_RETURN(abilityToken, ERR_INVALID_VALUE);
-        abilityRecord = Token::GetAbilityRecordByToken(abilityToken);
-    }
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecordById(missionId);
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
 
     abilityRecord->SetResult(std::make_shared<AbilityResult>(requestCode, resultCode, resultWant));
@@ -4424,16 +4415,7 @@ int AbilityManagerService::ContinueAbility(const std::string &deviceId, int32_t 
         return ERR_INVALID_VALUE;
     }
 
-    std::shared_ptr<AbilityRecord> abilityRecord = nullptr;
-    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        auto uiAbilityManager = GetCurrentUIAbilityManager();
-        CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
-        abilityRecord = uiAbilityManager->GetAbilityRecordsById(missionId);
-    } else {
-        sptr<IRemoteObject> abilityToken = GetAbilityTokenByMissionId(missionId);
-        CHECK_POINTER_AND_RETURN(abilityToken, ERR_INVALID_VALUE);
-        abilityRecord = Token::GetAbilityRecordByToken(abilityToken);
-    }
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecordById(missionId);
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
 
     abilityRecord->ContinueAbility(deviceId, versionCode);
@@ -4513,16 +4495,7 @@ int AbilityManagerService::NotifyContinuationResult(int32_t missionId, int32_t r
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "notify continuation result : %{public}d", result);
 
-    std::shared_ptr<AbilityRecord> abilityRecord = nullptr;
-    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        auto uiAbilityManager = GetCurrentUIAbilityManager();
-        CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
-        abilityRecord = uiAbilityManager->GetAbilityRecordsById(missionId);
-    } else {
-        sptr<IRemoteObject> abilityToken = GetAbilityTokenByMissionId(missionId);
-        CHECK_POINTER_AND_RETURN(abilityToken, ERR_INVALID_VALUE);
-        abilityRecord = Token::GetAbilityRecordByToken(abilityToken);
-    }
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecordById(missionId);
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
 
     if (!JudgeSelfCalled(abilityRecord) && !CheckCallerIsDmsProcess()) {
@@ -4911,7 +4884,7 @@ void AbilityManagerService::SetLockedState(int32_t sessionId, bool lockedState)
     }
     auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
     CHECK_POINTER(uiAbilityManager);
-    auto abilityRecord = uiAbilityManager->GetAbilityRecordsById(sessionId);
+    auto abilityRecord = uiAbilityManager->GetAbilityRecordById(sessionId);
     if (!abilityRecord) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityRecord null");
         return;
@@ -9590,6 +9563,10 @@ bool AbilityManagerService::CheckUIExtensionCallerIsForeground(const AbilityRequ
 
     auto callerAbility = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
     if (callerAbility != nullptr) {
+        if (callerAbility->GetDisposedBundleName() == abilityRequest.want.GetElement().GetBundleName()) {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "target is dispoesd uiextension");
+            return true;
+        }
         if (UIExtensionUtils::IsUIExtension(callerAbility->GetAbilityInfo().extensionAbilityType)) {
             auto tokenId = callerAbility->GetApplicationInfo().accessTokenId;
             bool isFocused = false;
@@ -10132,16 +10109,7 @@ int32_t AbilityManagerService::AcquireShareData(
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "missionId is %{public}d.", missionId);
     CHECK_CALLER_IS_SYSTEM_APP;
-    std::shared_ptr<AbilityRecord> abilityRecord = nullptr;
-    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        auto uiAbilityManager = GetCurrentUIAbilityManager();
-        CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
-        abilityRecord = uiAbilityManager->GetAbilityRecordsById(missionId);
-    } else {
-        auto missionListManager = GetCurrentMissionListManager();
-        CHECK_POINTER_AND_RETURN(missionListManager, ERR_INVALID_VALUE);
-        abilityRecord = missionListManager->GetAbilityRecordByMissionId(missionId);
-    }
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecordById(missionId);
     if (!abilityRecord) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityRecord null");
         return ERR_INVALID_VALUE;
@@ -12460,6 +12428,19 @@ int32_t AbilityManagerService::QueryKeepAliveApplicationsByEDM(int32_t appType, 
 {
     return KeepAliveProcessManager::GetInstance().QueryKeepAliveApplications(
         appType, userId, list, true);
+}
+
+std::shared_ptr<AbilityRecord> AbilityManagerService::GetAbilityRecordById(int32_t missionId)
+{
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        auto uiAbilityManager = GetCurrentUIAbilityManager();
+        CHECK_POINTER_AND_RETURN(uiAbilityManager, nullptr);
+        return uiAbilityManager->GetAbilityRecordById(missionId);
+    } else {
+        auto missionListManager = GetCurrentMissionListManager();
+        CHECK_POINTER_AND_RETURN(missionListManager, nullptr);
+        return missionListManager->GetAbilityRecordByMissionId(missionId);
+    }
 }
 }  // namespace AAFwk
 }  // namespace OHOS
