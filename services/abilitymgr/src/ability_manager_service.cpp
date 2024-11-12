@@ -1443,6 +1443,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         abilityRequest.userId = oriValidUserId;
         abilityRequest.want.SetParam(IS_CALL_BY_SCB, false);
+        abilityRequest.supportWindowModes = startOptions.supportWindowModes_;
         return uiAbilityLifecycleManager_->NotifySCBToStartUIAbility(abilityRequest, oriValidUserId);
     }
     auto missionListManager = GetListManagerByUserId(oriValidUserId);
