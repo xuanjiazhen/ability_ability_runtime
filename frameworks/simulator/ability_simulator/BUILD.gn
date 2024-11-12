@@ -11,10 +11,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/config/components/ets_frontend/es2abc_config.gni")
+import("//build/config/components/memory_utils/purgeable_mem_config.gni")
 import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
-import("//foundation/arkui/ace_engine/build/ace_gen_obj.gni")
 
 es2abc_gen_abc("gen_abc_js_mock") {
   js_mock_path =

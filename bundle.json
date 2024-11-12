@@ -79,6 +79,7 @@
             "jsoncpp",
             "kv_store",
             "libuv",
+            "libxml2",
             "media_library",
             "memmgr",
             "memory_utils",
