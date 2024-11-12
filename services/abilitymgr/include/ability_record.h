@@ -260,6 +260,7 @@ struct AbilityRequest {
     uint32_t callerAccessTokenId = -1;
     sptr<IAbilityConnection> connect = nullptr;
 
+    std::vector<AppExecFwk::SupportWindowMode> supportWindowModes;
     std::shared_ptr<AbilityStartSetting> startSetting = nullptr;
     std::shared_ptr<ProcessOptions> processOptions = nullptr;
     std::string specifiedFlag;

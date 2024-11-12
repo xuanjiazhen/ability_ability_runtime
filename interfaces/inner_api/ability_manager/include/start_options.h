@@ -18,6 +18,7 @@
 
 #include <string>
 
+#include "ability_info.h"
 #include "ability_window_configuration.h"
 #include "parcel.h"
 
@@ -32,6 +33,7 @@ public:
     bool windowTopUsed_ = false;
     bool windowWidthUsed_ = false;
     bool windowHeightUsed_ = false;
+    std::vector<AppExecFwk::SupportWindowMode> supportWindowModes_;
     std::shared_ptr<ProcessOptions> processOptions = nullptr;
 
     StartOptions() = default;

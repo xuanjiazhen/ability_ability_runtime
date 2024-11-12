@@ -1811,6 +1811,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         abilityRequest.userId = oriValidUserId;
         abilityRequest.want.SetParam(IS_CALL_BY_SCB, false);
         abilityRequest.processOptions = startOptions.processOptions;
+        abilityRequest.supportWindowModes = startOptions.supportWindowModes_;
         auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
         return uiAbilityManager->NotifySCBToStartUIAbility(abilityRequest);
