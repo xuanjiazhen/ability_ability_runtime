@@ -66,6 +66,7 @@ ohos_unittest("watchdog_test") {
 
   deps = [
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_path}/interfaces/inner_api/runtime:runtime",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
