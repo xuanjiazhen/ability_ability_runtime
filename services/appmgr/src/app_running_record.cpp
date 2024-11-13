@@ -2272,6 +2272,18 @@ bool AppRunningRecord::IsJITEnabled() const
     return jitEnabled_;
 }
 
+
+void SetPreloadMode(PreloadMode mode)
+{
+    preloadMode_ = mode;
+}
+
+PreloadMode GetPreloadMode()
+{
+    return preloadMode_;
+}
+
+
 void AppRunningRecord::SetPreloadState(PreloadState state)
 {
     preloadState_ = state;
