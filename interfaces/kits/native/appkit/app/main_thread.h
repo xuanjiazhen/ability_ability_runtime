@@ -576,7 +576,7 @@ private:
      *
      */
     bool PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord>& record, bool isStageBased,
-        const AppExecFwk::HapModuleInfo& entryHapModuleInfo, bool isCJApp);
+        const AppExecFwk::HapModuleInfo& entryHapModuleInfo);
 
 #ifdef CJ_FRONTEND
     bool CJPrepareAbilityDelegator(const std::shared_ptr<UserTestRecord>& record, bool isStageBased,
