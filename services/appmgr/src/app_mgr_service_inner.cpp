@@ -637,7 +637,7 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         } else {
             SendAppStartupTypeEvent(appRecord, abilityInfo, AppStartType::PROCESS_CACHE_LAUNCH);
         }
-        if (appRecord -> IsPreload()) {
+        if (appRecord -> IsPreloaded()) {
             SendAppStartupTypeEvent(appRecord, abilityInfo, AppStartType::HOT);
         }
         int32_t requestProcCode = (want == nullptr) ? 0 : want->GetIntParam(Want::PARAM_RESV_REQUEST_PROC_CODE, 0);
