@@ -33,8 +33,7 @@ public:
    * @param name Indicates the specified ability name.
    * @param cjAbilityMonitor Indicates the CJMonitorObject object.
    */
-  CJAbilityMonitor(const std::string &name,
-                 const std::shared_ptr<CJMonitorObject> &cjAbilityMonitor);
+    CJAbilityMonitor(const std::string& name, const std::shared_ptr<CJMonitorObject>& cjAbilityMonitor);
 
   /**
    * A constructor used to create a CJAbilityMonitor instance with the input
@@ -44,8 +43,8 @@ public:
    * @param moduleName Indicates the specified ability moduleName.
    * @param cjAbilityMonitor Indicates the CJMonitorObject object.
    */
-  CJAbilityMonitor(const std::string &name, const std::string &moduleName,
-                 const std::shared_ptr<CJMonitorObject> &cjAbilityMonitor);
+    CJAbilityMonitor(const std::string& name, const std::string& moduleName,
+        const std::shared_ptr<CJMonitorObject>& cjAbilityMonitor);
 
   /**
    * Default deconstructor used to deconstruct.
@@ -104,6 +103,6 @@ public:
 private:
   std::shared_ptr<CJMonitorObject> cjMonitor_;
 };
-} // namespace AbilityDelegatorJs
+} // namespace AbilityDelegatorCJ
 } // namespace OHOS
-#endif // OHOS_ABILITY_RUNTIME_ABILITY_MONITOR_H
+#endif // OHOS_ABILITY_RUNTIME_CJ_ABILITY_MONITOR_H

@@ -21,16 +21,18 @@
 namespace OHOS {
 namespace AbilityDelegatorCJ {
 
-CJAbilityMonitor::CJAbilityMonitor(const std::string &name, const std::shared_ptr<CJMonitorObject> &cjAbilityMonitor)
-    : CJIAbilityMonitor(name), cjMonitor_(cjAbilityMonitor) {}
+CJAbilityMonitor::CJAbilityMonitor(const std::string& name, const std::shared_ptr<CJMonitorObject>& cjAbilityMonitor)
+    : CJIAbilityMonitor(name), cjMonitor_(cjAbilityMonitor)
+{}
 
 CJAbilityMonitor::CJAbilityMonitor(
-    const std::string &name, const std::string &moduleName,
-    const std::shared_ptr<CJMonitorObject> &cjAbilityMonitor)
-    : CJIAbilityMonitor(name, moduleName), cjMonitor_(cjAbilityMonitor) {}
+    const std::string& name, const std::string& moduleName, const std::shared_ptr<CJMonitorObject>& cjAbilityMonitor)
+    : CJIAbilityMonitor(name, moduleName), cjMonitor_(cjAbilityMonitor)
+{}
 
-void CJAbilityMonitor::OnAbilityStart(const int64_t abilityId) {
-  TAG_LOGI(AAFwkTag::DELEGATOR, "called");
+void CJAbilityMonitor::OnAbilityStart(const int64_t abilityId)
+{
+    TAG_LOGI(AAFwkTag::DELEGATOR, "CJAbilityMonitor::OnAbilityStart called");
 
   if (cjMonitor_ == nullptr) {
     return;
@@ -39,8 +41,9 @@ void CJAbilityMonitor::OnAbilityStart(const int64_t abilityId) {
   cjMonitor_->OnAbilityCreate(abilityId);
 }
 
-void CJAbilityMonitor::OnAbilityForeground(const int64_t abilityId) {
-  TAG_LOGI(AAFwkTag::DELEGATOR, "called");
+void CJAbilityMonitor::OnAbilityForeground(const int64_t abilityId)
+{
+    TAG_LOGI(AAFwkTag::DELEGATOR, "CJAbilityMonitor::OnAbilityForeground called");
 
   if (cjMonitor_ == nullptr) {
     return;
@@ -49,8 +52,9 @@ void CJAbilityMonitor::OnAbilityForeground(const int64_t abilityId) {
   cjMonitor_->OnAbilityForeground(abilityId);
 }
 
-void CJAbilityMonitor::OnAbilityBackground(const int64_t abilityId) {
-  TAG_LOGI(AAFwkTag::DELEGATOR, "called");
+void CJAbilityMonitor::OnAbilityBackground(const int64_t abilityId)
+{
+    TAG_LOGI(AAFwkTag::DELEGATOR, "CJAbilityMonitor::OnAbilityBackground called");
 
   if (cjMonitor_ == nullptr) {
     return;
@@ -59,8 +63,9 @@ void CJAbilityMonitor::OnAbilityBackground(const int64_t abilityId) {
   cjMonitor_->OnAbilityBackground(abilityId);
 }
 
-void CJAbilityMonitor::OnAbilityStop(const int64_t abilityId) {
-  TAG_LOGI(AAFwkTag::DELEGATOR, "called");
+void CJAbilityMonitor::OnAbilityStop(const int64_t abilityId)
+{
+    TAG_LOGI(AAFwkTag::DELEGATOR, "CJAbilityMonitor::OnAbilityStop called");
 
   if (cjMonitor_ == nullptr) {
     return;
@@ -69,8 +74,9 @@ void CJAbilityMonitor::OnAbilityStop(const int64_t abilityId) {
   cjMonitor_->OnAbilityDestroy(abilityId);
 }
 
-void CJAbilityMonitor::OnWindowStageCreate(const int64_t abilityId) {
-  TAG_LOGI(AAFwkTag::DELEGATOR, "called");
+void CJAbilityMonitor::OnWindowStageCreate(const int64_t abilityId)
+{
+    TAG_LOGI(AAFwkTag::DELEGATOR, "CJAbilityMonitor::OnWindowStageCreate called");
 
   if (cjMonitor_ == nullptr) {
     return;
@@ -79,8 +85,9 @@ void CJAbilityMonitor::OnWindowStageCreate(const int64_t abilityId) {
   cjMonitor_->OnWindowStageCreate(abilityId);
 }
 
-void CJAbilityMonitor::OnWindowStageRestore(const int64_t abilityId) {
-  TAG_LOGI(AAFwkTag::DELEGATOR, "called");
+void CJAbilityMonitor::OnWindowStageRestore(const int64_t abilityId)
+{
+    TAG_LOGI(AAFwkTag::DELEGATOR, "CJAbilityMonitor::OnWindowStageRestore called");
 
   if (cjMonitor_ == nullptr) {
     return;
@@ -89,8 +96,9 @@ void CJAbilityMonitor::OnWindowStageRestore(const int64_t abilityId) {
   cjMonitor_->OnWindowStageRestore(abilityId);
 }
 
-void CJAbilityMonitor::OnWindowStageDestroy(const int64_t abilityId) {
-  TAG_LOGI(AAFwkTag::DELEGATOR, "called");
+void CJAbilityMonitor::OnWindowStageDestroy(const int64_t abilityId)
+{
+    TAG_LOGI(AAFwkTag::DELEGATOR, "CJAbilityMonitor::OnWindowStageDestroy called");
 
   if (cjMonitor_ == nullptr) {
     return;
@@ -98,5 +106,5 @@ void CJAbilityMonitor::OnWindowStageDestroy(const int64_t abilityId) {
 
   cjMonitor_->OnWindowStageDestroy(abilityId);
 }
-} // namespace AbilityDelegatorJs
+} // namespace AbilityDelegatorCJ
 } // namespace OHOS

@@ -16,7 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_CJ_UI_ABILITY_H
 #define OHOS_ABILITY_RUNTIME_CJ_UI_ABILITY_H
 
-#include "ability_delegator_infos.h"
+#include "cj_ability_delegator_infos.h"
 #include "freeze_util.h"
 #include "ui_ability.h"
 #ifdef SUPPORT_GRAPHICS

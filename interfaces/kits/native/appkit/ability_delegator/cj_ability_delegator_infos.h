@@ -33,7 +33,9 @@ struct ACJDelegatorAbilityProperty {
     // name of bundle + ability
     std::string fullName_;
     // lifecycle state of ability
-    AbilityLifecycleExecutor::LifecycleState lifecycleState_ {AbilityLifecycleExecutor::LifecycleState::UNINITIALIZED};
+    AbilityLifecycleExecutor::LifecycleState lifecycleState_ {
+        AbilityLifecycleExecutor::LifecycleState::UNINITIALIZED
+    };
     // ability object in jsruntime
     int64_t cjObject_;
 };

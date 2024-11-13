@@ -40,8 +40,7 @@ public:
    * lifecycle state changes of the abilityStage.
    * @param srcEntrance Indicates the path of the abilityStage.
    */
-  explicit CJIAbilityStageMonitor(const std::string &moduleName,
-                                const std::string &srcEntrance);
+    explicit CJIAbilityStageMonitor(const std::string& moduleName, const std::string& srcEntrance);
 
   /**
    * Default deconstructor used to deconstruct.
@@ -57,9 +56,7 @@ public:
    * object who waited.
    * @return true if match is successful; returns false otherwise.
    */
-  virtual bool
-  Match(const std::shared_ptr<CJDelegatorAbilityStageProperty> &abilityStage,
-        bool isNotify = false);
+    virtual bool Match(const std::shared_ptr<CJDelegatorAbilityStageProperty>& abilityStage, bool isNotify = false);
 
   /**
    * Waits for and returns the started AbilityStage object that matches the
@@ -72,8 +69,7 @@ public:
    * @return the AbilityStage object if any object has started is matched within
    * the specified time; returns null otherwise.
    */
-  virtual std::shared_ptr<CJDelegatorAbilityStageProperty>
-  WaitForAbilityStage(const int64_t timeoutMs);
+    virtual std::shared_ptr<CJDelegatorAbilityStageProperty> WaitForAbilityStage(const int64_t timeoutMs);
 
   /**
    * Waits for and returns the started AbilityStage object that matches the

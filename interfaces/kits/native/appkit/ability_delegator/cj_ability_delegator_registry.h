@@ -47,9 +47,8 @@ public:
    * @param delegator, Indicates the AbilityDelegator object.
    * @param args, Indicates the AbilityDelegatorArgs object.
    */
-  static void
-  RegisterInstance(const std::shared_ptr<CJAbilityDelegatorImpl> &delegator,
-                   const std::shared_ptr<AbilityDelegatorArgs> &args);
+    static void RegisterInstance(
+        const std::shared_ptr<CJAbilityDelegatorImpl>& delegator, const std::shared_ptr<AbilityDelegatorArgs>& args);
 
 private:
   static std::shared_ptr<CJAbilityDelegatorImpl> abilityDelegator_;

@@ -575,8 +575,13 @@ private:
      * @param record User Test info.
      *
      */
-    bool PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &record, bool isStageBased,
-        const AppExecFwk::HapModuleInfo &entryHapModuleInfo);
+    bool PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord>& record, bool isStageBased,
+        const AppExecFwk::HapModuleInfo& entryHapModuleInfo, bool isCJApp);
+
+#ifdef CJ_FRONTEND
+    bool CJPrepareAbilityDelegator(const std::shared_ptr<UserTestRecord>& record, bool isStageBased,
+        const AppExecFwk::HapModuleInfo& entryHapModuleInfo);
+#endif
 
     /**
      * @brief Set current process extension type

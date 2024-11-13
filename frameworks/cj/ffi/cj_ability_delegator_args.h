@@ -20,7 +20,7 @@
 #include <string>
 
 #include "want.h"
-#include "ability_delegator_registry.h"
+#include "cj_ability_delegator_registry.h"
 #include "cj_macro.h"
 #include "cj_common_ffi.h"
 #include "ffi_remote_data.h"

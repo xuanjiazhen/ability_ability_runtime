@@ -111,11 +111,14 @@ public:
    */
   void OnWindowStageDestroy(const int64_t abilityId);
 
-  int64_t GetId() { return monitorId_; }
+    int64_t GetId()
+    {
+        return monitorId_;
+    }
 
 private:
     int64_t monitorId_;
 };
-} // namespace AbilityDelegatorJs
+} // namespace AbilityDelegatorCJ
 } // namespace OHOS
-#endif // OHOS_ABILITY_RUNTIME_JS_ABILITY_MONITOR_H
+#endif // OHOS_ABILITY_RUNTIME_CJ_ABILITY_MONITOR_H

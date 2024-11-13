@@ -25,6 +25,10 @@
 
 #include "ability_manager_client.h"
 #include "constants.h"
+#ifdef CJ_FRONTEND
+#include "cj_ability_delegator_impl.h"
+#include "cj_ability_delegator_registry.h"
+#endif
 #include "ability_delegator.h"
 #include "ability_delegator_registry.h"
 #include "ability_loader.h"
@@ -1684,11 +1688,23 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
 
     auto usertestInfo = appLaunchData.GetUserTestInfo();
     if (usertestInfo) {
+#ifdef CJ_FRONTEND
+        if (!isCJApp) {
+#endif
         if (!PrepareAbilityDelegator(usertestInfo, isStageBased, entryHapModuleInfo)) {
             TAG_LOGE(AAFwkTag::APPKIT, "Failed to prepare ability delegator");
             return;
         }
+#ifdef CJ_FRONTEND
+        } else {
+            if (!CJPrepareAbilityDelegator(usertestInfo, isStageBased, entryHapModuleInfo)) {
+                TAG_LOGE(AAFwkTag::APPKIT, "Failed to prepare ability delegator");
+                return;
+            }
+        }
+#endif
     }
+    
 
     // init resourceManager.
     auto moduleName = entryHapModuleInfo.moduleName;
@@ -2133,6 +2149,59 @@ bool MainThread::PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &
     }
     return true;
 }
+
+#ifdef CJ_FRONTEND
+bool MainThread::CJPrepareAbilityDelegator(const std::shared_ptr<UserTestRecord>& record, bool isStageBased,
+    const AppExecFwk::HapModuleInfo& entryHapModuleInfo)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "enter, isStageBased = %{public}d", isStageBased);
+    if (!record) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Invalid UserTestRecord");
+        return false;
+    }
+    auto args = std::make_shared<AbilityDelegatorArgs>(record->want);
+    if (isStageBased) { // Stage model
+        TAG_LOGD(AAFwkTag::APPKIT, "Stage model");
+        auto testRunner = TestRunner::Create(application_->GetRuntime(), args, false);
+        auto delegator =
+            std::make_shared<CJAbilityDelegatorImpl>(application_->GetAppContext(), std::move(testRunner), record->observer);
+        CJAbilityDelegatorRegistry::RegisterInstance(delegator, args);
+        delegator->Prepare();
+    } else { // FA model
+        TAG_LOGD(AAFwkTag::APPKIT, "FA model");
+        AbilityRuntime::Runtime::Options options;
+        options.codePath = LOCAL_CODE_PATH;
+        options.eventRunner = mainHandler_->GetEventRunner();
+        options.hapPath = entryHapModuleInfo.hapPath;
+        options.loadAce = false;
+        options.isStageModel = false;
+        options.isTestFramework = true;
+        if (applicationInfo_) {
+            options.apiTargetVersion = applicationInfo_->apiTargetVersion;
+        }
+        if (entryHapModuleInfo.abilityInfos.empty()) {
+            TAG_LOGE(AAFwkTag::APPKIT, "Failed to abilityInfos");
+            return false;
+        }
+        bool isFaJsModel = entryHapModuleInfo.abilityInfos.front().srcLanguage == "js" ? true : false;
+        static auto runtime = AbilityRuntime::Runtime::Create(options);
+        auto testRunner = TestRunner::Create(runtime, args, isFaJsModel);
+        if (testRunner == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "Failed to Create testRunner");
+            return false;
+        }
+        if (!testRunner->Initialize()) {
+            TAG_LOGE(AAFwkTag::APPKIT, "Failed to Initialize testRunner");
+            return false;
+        }
+        auto delegator =
+            std::make_shared<CJAbilityDelegatorImpl>(application_->GetAppContext(), std::move(testRunner), record->observer);
+        CJAbilityDelegatorRegistry::RegisterInstance(delegator, args);
+        delegator->Prepare();
+    }
+    return true;
+}
+#endif
 
 /**
  *

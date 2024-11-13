@@ -17,58 +17,56 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-CJIAbilityStageMonitor::CJIAbilityStageMonitor(const std::string &moduleName,
-                                           const std::string &srcEntrance)
-    : moduleName_(moduleName), srcEntrance_(srcEntrance) {}
+CJIAbilityStageMonitor::CJIAbilityStageMonitor(const std::string& moduleName, const std::string& srcEntrance)
+    : moduleName_(moduleName), srcEntrance_(srcEntrance)
+{}
 
-bool CJIAbilityStageMonitor::Match(
-    const std::shared_ptr<CJDelegatorAbilityStageProperty> &abilityStage,
-    bool isNotify) {
-  if (!abilityStage) {
-    TAG_LOGE(AAFwkTag::DELEGATOR, "null abilityStage");
-    return false;
-  }
-  if (moduleName_.compare(abilityStage->moduleName_) != 0 ||
-      srcEntrance_.compare(abilityStage->srcEntrance_) != 0) {
-    TAG_LOGW(AAFwkTag::DELEGATOR, "different abilityStage");
-    return false;
-  }
-
-  TAG_LOGI(AAFwkTag::DELEGATOR,
-           "Matched : abilityStage module name : %{public}s, srcEntrance : "
-           "%{public}s, isNotify : %{public}s",
-           moduleName_.c_str(), srcEntrance_.c_str(),
-           (isNotify ? "true" : "false"));
-
-  if (isNotify) {
-    {
-      std::lock_guard<std::mutex> matchLock(mtxMatch_);
-      matchedAbilityStage_ = abilityStage;
+bool CJIAbilityStageMonitor::Match(const std::shared_ptr<CJDelegatorAbilityStageProperty>& abilityStage, bool isNotify)
+{
+    if (!abilityStage) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "null abilityStage");
+        return false;
     }
-    cvMatch_.notify_one();
-  }
-  return true;
+    if (moduleName_.compare(abilityStage->moduleName_) != 0 || srcEntrance_.compare(abilityStage->srcEntrance_) != 0) {
+        TAG_LOGW(AAFwkTag::DELEGATOR, "different abilityStage");
+        return false;
+    }
+
+    TAG_LOGI(AAFwkTag::DELEGATOR,
+        "Matched : abilityStage module name : %{public}s, srcEntrance : "
+        "%{public}s, isNotify : %{public}s",
+        moduleName_.c_str(), srcEntrance_.c_str(), (isNotify ? "true" : "false"));
+
+    if (isNotify) {
+        {
+            std::lock_guard<std::mutex> matchLock(mtxMatch_);
+            matchedAbilityStage_ = abilityStage;
+        }
+        cvMatch_.notify_one();
+    }
+    return true;
 }
 
-std::shared_ptr<CJDelegatorAbilityStageProperty> CJIAbilityStageMonitor::WaitForAbilityStage() {
-  return WaitForAbilityStage(MAX_TIME_OUT);
+std::shared_ptr<CJDelegatorAbilityStageProperty> CJIAbilityStageMonitor::WaitForAbilityStage()
+{
+    return WaitForAbilityStage(MAX_TIME_OUT);
 }
 
-std::shared_ptr<CJDelegatorAbilityStageProperty> CJIAbilityStageMonitor::WaitForAbilityStage(const int64_t timeoutMs) {
-  auto realTime = timeoutMs;
-  if (timeoutMs <= 0) {
-    TAG_LOGW(AAFwkTag::DELEGATOR, "timeout not positive number");
-    realTime = MAX_TIME_OUT;
-  }
+std::shared_ptr<CJDelegatorAbilityStageProperty> CJIAbilityStageMonitor::WaitForAbilityStage(const int64_t timeoutMs)
+{
+    auto realTime = timeoutMs;
+    if (timeoutMs <= 0) {
+        TAG_LOGW(AAFwkTag::DELEGATOR, "timeout not positive number");
+        realTime = MAX_TIME_OUT;
+    }
 
-  std::unique_lock<std::mutex> matchLock(mtxMatch_);
+    std::unique_lock<std::mutex> matchLock(mtxMatch_);
 
-  auto condition = [this] { return this->matchedAbilityStage_ != nullptr; };
-  if (!cvMatch_.wait_for(matchLock, std::chrono::milliseconds(realTime),
-                         condition)) {
-    TAG_LOGW(AAFwkTag::DELEGATOR, "wait abilityStage timeout");
-  }
-  return matchedAbilityStage_;
+    auto condition = [this] { return this->matchedAbilityStage_ != nullptr; };
+    if (!cvMatch_.wait_for(matchLock, std::chrono::milliseconds(realTime), condition)) {
+        TAG_LOGW(AAFwkTag::DELEGATOR, "wait abilityStage timeout");
+    }
+    return matchedAbilityStage_;
 }
 } // namespace AppExecFwk
 } // namespace OHOS
