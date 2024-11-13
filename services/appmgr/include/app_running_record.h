@@ -871,6 +871,10 @@ public:
 
     bool IsPreloaded() const;
 
+    void SetPreloadMode(PreloadMode mode);
+
+    PreloadMode GetPreloadMode();
+
     /**
      * @brief Obtains the app record assign tokenId.
      *
@@ -1183,6 +1187,7 @@ private:
     std::shared_ptr<Configuration> delayConfiguration_ = std::make_shared<Configuration>();
     bool isAllowedNWebPreload_ = false;
     bool isUnSetPermission_ = false;
+    PreloadMode preloadMode_ = PreloadMode::PRESS_DOWN;
 };
 
 }  // namespace AppExecFwk
