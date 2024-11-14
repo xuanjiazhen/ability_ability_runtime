@@ -300,7 +300,7 @@ void SourceMap::ExtractSourceMapData(const std::string& allmappings, std::shared
 MappingInfo SourceMap::Find(int32_t row, int32_t col, const SourceMapData& targetMap, const std::string& key)
 {
     if (row < 1 || col < 1 || targetMap.afterPos_.empty() || targetMap.sources_[0].empty()) {
-        return MappingInfo {0, 0, ""};
+        return MappingInfo {row, col, key};
     }
     row--;
     col--;
@@ -474,9 +474,6 @@ std::string SourceMap::GetSourceInfo(const std::string& line, const std::string&
 #else
         mapInfo = Find(StringToInt(line) - offSet, StringToInt(column), targetMap, key);
 #endif
-    if (mapInfo.row == 0 || mapInfo.col == 0) {
-        return "";
-    }
     std::string sources = isModular_ ? mapInfo.sources : GetRelativePath(mapInfo.sources);
     sourceInfo = "(" + sources + ":" + std::to_string(mapInfo.row) + ":" + std::to_string(mapInfo.col) + ")";
     return sourceInfo;
