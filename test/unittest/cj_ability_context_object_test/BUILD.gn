@@ -14,6 +14,7 @@
 import("//build/ohos.gni")
 import("//build/test.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
+import("//foundation/distributeddatamgr/relational_store/relational_store.gni")
 
 ohos_unittest("cj_ability_context_object_test") {
   module_out_path = "ability_runtime/cj_ability_context_object_test"
