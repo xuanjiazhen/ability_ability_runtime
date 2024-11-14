@@ -57,10 +57,7 @@ public:
 
     std::string TranslateBySourceMap(const std::string& stackStr)
     {
-        if (sourceMapObj_ == nullptr) {
-            return "";
-        }
-        if (hasFile_) {
+        if (hasFile_ && sourceMapObj_ != nullptr) {
             return sourceMapObj_->TranslateBySourceMap(stackStr);
         } else {
             return NOT_FOUNDMAP + stackStr;
@@ -75,6 +72,11 @@ public:
         return sourceMapObj_->TranslateUrlPositionBySourceMap(url, line, column);
     }
 
+    void SetInitStatus(InitStatus status)
+    {
+        initStatus_ = status;
+    }
+
     bool GetInitStatus() const
     {
         return (initStatus_ == InitStatus::EXECUTED_SUCCESSFULLY);
@@ -85,6 +87,10 @@ public:
         return sourceMapObj_;
     }
 
+    bool GetHasFile() const
+    {
+        return hasFile_;
+    }
 private:
     const std::string bundleName_;
     bool isModular_ = false;
