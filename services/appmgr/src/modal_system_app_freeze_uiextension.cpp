@@ -60,7 +60,7 @@ void ModalSystemAppFreezeUIExtension::ProcessAppFreeze(bool focusFlag, const Fau
     std::string bundleName, std::function<void()> callback, bool isDialogExist)
 {
     const std::string SCENE_BAOARD_NAME = "com.ohos.sceneboard";
-    if (bundleName == SCENE_BAOARD_NAME && callback) {
+    if ((bundleName == SCENE_BAOARD_NAME || faultData.waitSaveState) && callback) {
         callback();
         return;
     }
