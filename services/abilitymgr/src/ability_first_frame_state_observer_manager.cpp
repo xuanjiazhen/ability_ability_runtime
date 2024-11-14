@@ -124,6 +124,9 @@ void AbilityFirstFrameStateObserverSet::OnAbilityFirstFrameState(const std::shar
     abilityFirstFrameStateData.abilityName = abilityInfo.name;
     abilityFirstFrameStateData.appIndex = abilityRecord->GetAppIndex();
     abilityFirstFrameStateData.coldStart = abilityRecord->GetColdStartFlag();
+    if (abilityRecord->GetSessionInfo() != nullptr) {
+        abilityFirstFrameStateData.sessionId = abilityRecord->GetSessionInfo()->persistentId;
+    }
     std::lock_guard<ffrt::mutex> lockRegister(observerLock_);
     for (auto it : observerMap_) {
         if (!isNotifyAllBundles_) {
