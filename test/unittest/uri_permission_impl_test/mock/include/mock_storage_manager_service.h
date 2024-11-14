@@ -72,6 +72,12 @@ public:
         return E_OK;
     }
 
+    virtual int32_t NotifyMtpMultipled(const std::string &id, const std::string &path,
+    const std::string &desc, const std::string &uuid) override
+    {
+        return E_OK;
+    }
+
     virtual int32_t GetFreeSizeOfVolume(std::string volumeUuid, int64_t &freeSize) override
     {
         return E_OK;
