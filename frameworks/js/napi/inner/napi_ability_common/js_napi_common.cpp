@@ -1651,8 +1651,8 @@ void NAPIAbilityConnection::HandleOnAbilityConnectDone(ConnectionCallback &callb
 void NAPIAbilityConnection::OnAbilityConnectDone(
     const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode)
 {
-    TAG_LOGI(AAFwkTag::JSNAPI, "%{public}s bundleName:%{public}s abilityName:%{public}s, resultCode:%{public}d",
-             __func__, element.GetBundleName().c_str(), element.GetAbilityName().c_str(), resultCode);
+    TAG_LOGI(AAFwkTag::JSNAPI, "%{public}s bundleName:%{public}s a1bilityName:%{public}s, resultCode:%{public}d, deviceId:%{public}s",
+             __func__, element.GetBundleName().c_str(), element.GetAbilityName().c_str(), resultCode, element.GetDeviceID().c_str());
     if (remoteObject == nullptr) {
         TAG_LOGE(AAFwkTag::JSNAPI, "%{public}s, remoteObject == nullptr.", __func__);
         return;
@@ -1709,10 +1709,17 @@ void UvWorkOnAbilityDisconnectDone(uv_work_t *work, int status)
     auto item = std::find_if(connects_.begin(), connects_.end(),
         [deviceId, bundleName, abilityName](const std::map<ConnectionKey,
             sptr<NAPIAbilityConnection>>::value_type &obj) {
+                TAG_LOGI(AAFwkTag::JSNAPI, "deviceId:%{public}s", obj.first.want.GetDeviceId().c_str());
+                TAG_LOGI(AAFwkTag::JSNAPI, "bundleName:%{public}s", obj.first.want.GetBundle().c_str());
+                TAG_LOGI(AAFwkTag::JSNAPI, "abilityName:%{public}s", obj.first.want.GetElement().GetAbilityName().c_str());
             return (deviceId == obj.first.want.GetDeviceId()) &&
                    (bundleName == obj.first.want.GetBundle()) &&
                    (abilityName == obj.first.want.GetElement().GetAbilityName());
         });
+
+    TAG_LOGI(AAFwkTag::JSNAPI, "connectAbilityCB->deviceId:%{public}s", deviceId.c_str());
+    TAG_LOGI(AAFwkTag::JSNAPI, "connectAbilityCB->bundleName:%{public}s", bundleName.c_str());
+    TAG_LOGI(AAFwkTag::JSNAPI, "connectAbilityCB->abilityName:%{public}s", abilityName.c_str());
     if (item != connects_.end()) {
         // match deviceId & bundlename && abilityname
         connects_.erase(item);
