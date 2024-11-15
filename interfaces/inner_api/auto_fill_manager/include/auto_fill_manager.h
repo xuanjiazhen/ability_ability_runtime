@@ -21,6 +21,7 @@
 #include "auto_fill_custom_config.h"
 #include "auto_fill_event_handler.h"
 #include "auto_fill_extension_callback.h"
+#include "auto_fill_task_handler_wrap.h"
 #include "fill_request_callback_interface.h"
 #include "nocopyable.h"
 #include "save_request_callback_interface.h"
@@ -48,7 +49,7 @@ public:
 
     void CloseUIExtension(uint32_t autoFillSessionId);
 
-    void HandleTimeOut(uint32_t eventId);
+    void HandleTimeOut(uint32_t eventId, std::shared_ptr<AutoFillExtensionCallback> &extensionCallback);
     void SetTimeOutEvent(uint32_t eventId);
     void RemoveEvent(uint32_t eventId);
 
@@ -79,7 +80,8 @@ private:
     std::mutex extensionCallbacksMutex_;
     std::map<uint32_t, std::shared_ptr<AutoFillExtensionCallback>> extensionCallbacks_;
 
-    std::shared_ptr<AutoFillEventHandler> eventHandler_;
+    // std::shared_ptr<AutoFillEventHandler> eventHandler_;
+    std::shared_ptr<AutoFillTaskHandlerWrap> taskHandler_;
 };
 #endif // SUPPORT_GRAPHICS
 } // AbilityRuntime

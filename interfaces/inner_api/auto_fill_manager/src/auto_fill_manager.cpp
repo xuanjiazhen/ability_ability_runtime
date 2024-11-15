@@ -47,8 +47,7 @@ AutoFillManager &AutoFillManager::GetInstance()
 
 AutoFillManager::AutoFillManager()
 {
-    auto runner = AppExecFwk::EventRunner::Create(AUTO_FILL_MANAGER_THREAD);
-    eventHandler_ = std::make_shared<AutoFillEventHandler>(runner);
+    taskHandler_ = std::make_shared<AutoFillTaskHandlerWrap>();
 }
 
 AutoFillManager::~AutoFillManager()
@@ -272,27 +271,31 @@ bool AutoFillManager::ConvertAutoFillWindowType(const AutoFill::AutoFillRequest 
 void AutoFillManager::SetTimeOutEvent(uint32_t eventId)
 {
     TAG_LOGD(AAFwkTag::AUTOFILLMGR, "called");
-    if (eventHandler_ == nullptr) {
-        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "null eventHandler");
+    if (taskHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "null taskHandler_");
         return;
     }
-    eventHandler_->SendEvent(eventId, AUTO_FILL_REQUEST_TIME_OUT_VALUE);
+    auto extensionCallback = GetAutoFillExtensionCallback(eventId);
+    auto taskWrap = [ eventId, extensionCallback ]() {
+        HandleTimeOut(eventId, extensionCallback);
+    };
+    
+    taskHandler_->SubmitTask(taskWrap, std::to_string(eventId), AUTO_FILL_REQUEST_TIME_OUT_VALUE);
 }
 
 void AutoFillManager::RemoveEvent(uint32_t eventId)
 {
     TAG_LOGI(AAFwkTag::AUTOFILLMGR, "called");
-    if (eventHandler_ == nullptr) {
-        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "null eventHandler");
+    if (taskHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "null taskHandler");
         return;
     }
-    eventHandler_->RemoveEvent(eventId);
+    taskHandler_->CancelTask(std::to_string(eventId));
 }
 
-void AutoFillManager::HandleTimeOut(uint32_t eventId)
+void AutoFillManager::HandleTimeOut(uint32_t eventId, std::shared_ptr<AutoFillExtensionCallback> &extensionCallback)
 {
     TAG_LOGI(AAFwkTag::AUTOFILLMGR, "called");
-    auto extensionCallback = GetAutoFillExtensionCallback(eventId);
     if (extensionCallback == nullptr) {
         TAG_LOGE(AAFwkTag::AUTOFILLMGR, "null extensionCallback");
         return;
