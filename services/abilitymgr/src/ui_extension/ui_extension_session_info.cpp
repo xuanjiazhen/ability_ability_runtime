@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "ui_extension_session_info.h"
+#include "ui_extension/ui_extension_session_info.h"
 
 #include "hilog_tag_wrapper.h"
 
@@ -29,6 +29,13 @@ UIExtensionSessionInfo *UIExtensionSessionInfo::Unmarshalling(Parcel &parcel)
     info->persistentId = parcel.ReadInt32();
     info->hostWindowId = parcel.ReadUint32();
     info->uiExtensionUsage = static_cast<AAFwk::UIExtensionUsage>(parcel.ReadUint32());
+    std::unique_ptr<AppExecFwk::ElementName> element(parcel.ReadParcelable<AppExecFwk::ElementName>());
+    if (element == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get element failed");
+        delete info;
+        return nullptr;
+    }
+    info->elementName = *element;
     return info;
 }
 
@@ -46,6 +53,11 @@ bool UIExtensionSessionInfo::Marshalling(Parcel &parcel) const
 
     if (!parcel.WriteUint32(static_cast<uint32_t>(uiExtensionUsage))) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write uiExtensionUsage failed");
+        return false;
+    }
+
+    if (!parcel.WriteParcelable(&elementName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write elementName failed");
         return false;
     }
 

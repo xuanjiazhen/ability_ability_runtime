@@ -100,6 +100,8 @@ public:
 
     virtual void NotifyStartResidentProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos) {}
 
+    virtual void NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos) {}
+
     /**
      * @brief Notify abilityms app process pre cache
      * @param pid process pid.
@@ -566,7 +568,7 @@ public:
 
     bool IsProcessAttached(sptr<IRemoteObject> token) const;
 
-    bool IsAppKilling(sptr<IRemoteObject> token) const;
+    bool IsCallerKilling(const std::string& callerKey) const;
 
 protected:
     /**
@@ -596,6 +598,12 @@ protected:
      * @param bundleInfos resident process bundle infos.
      */
     virtual void NotifyStartResidentProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos) override;
+
+    /**
+     * @brief Notify abilityms start keep-alive process.
+     * @param bundleInfos resident process bundle infos.
+     */
+    virtual void NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos) override;
 
     /**
      * @brief Notify abilityms app process OnRemoteDied

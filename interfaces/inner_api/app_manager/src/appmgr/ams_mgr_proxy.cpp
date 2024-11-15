@@ -972,6 +972,31 @@ void AmsMgrProxy::SetKeepAliveEnableState(const std::string &bundleName, bool en
     }
 }
 
+void AmsMgrProxy::SetKeepAliveDkv(const std::string &bundleName, bool enable, int32_t uid)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write token failed");
+        return;
+    }
+    if (bundleName.empty() || !data.WriteString(bundleName)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write bundleName fail");
+        return;
+    }
+    if (!data.WriteBool(enable) || !data.WriteInt32(uid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write flag or uid fail");
+        return;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::SET_KEEP_ALIVE_DKV),
+        data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Send request err: %{public}d", ret);
+    }
+}
+
 int32_t AmsMgrProxy::SetAppWaitingDebug(const std::string &bundleName, bool isPersist)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
@@ -1319,7 +1344,7 @@ bool AmsMgrProxy::IsProcessAttached(sptr<IRemoteObject> token)
     return reply.ReadBool();
 }
 
-bool AmsMgrProxy::IsAppKilling(sptr<IRemoteObject> token)
+bool AmsMgrProxy::IsCallerKilling(const std::string& callerKey)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -1328,12 +1353,12 @@ bool AmsMgrProxy::IsAppKilling(sptr<IRemoteObject> token)
         TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return false;
     }
-    if (!data.WriteRemoteObject(token.GetRefPtr())) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write token");
+    if (!data.WriteString(callerKey)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write callerKey");
         return false;
     }
 
-    auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::IS_APP_KILLING), data, reply, option);
+    auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::IS_CALLER_KILLING), data, reply, option);
     if (ret != NO_ERROR) {
         TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", ret);
         return false;

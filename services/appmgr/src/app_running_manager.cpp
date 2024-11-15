@@ -26,6 +26,7 @@
 #include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "killing_process_manager.h"
 #include "os_account_manager_wrapper.h"
 #include "perf_profile.h"
 #include "parameters.h"
@@ -40,6 +41,7 @@
 #include "cache_process_manager.h"
 #include "res_sched_util.h"
 #include "ui_extension_utils.h"
+#include "uri_permission_manager_client.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -132,7 +134,7 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExis
         if (appRecord && appRecord->GetProcessName() == processName && appRecord->GetInstanceKey() == instanceKey &&
             (specifiedProcessFlag.empty() || appRecord->GetSpecifiedProcessFlag() == specifiedProcessFlag) &&
             !(appRecord->IsTerminating()) && !(appRecord->IsKilling()) && !(appRecord->GetRestartAppFlag()) &&
-            !(appRecord->IsUserRequestCleaning())) {
+            !(appRecord->IsUserRequestCleaning()) && !(appRecord->IsCaching() && appRecord->GetProcessCacheBlocked())) {
             auto appInfoList = appRecord->GetAppInfoList();
             TAG_LOGD(AAFwkTag::APPMGR,
                 "appInfoList: %{public}zu, processName: %{public}s, specifiedProcessFlag: %{public}s",
@@ -327,7 +329,7 @@ int32_t AppRunningManager::ProcessUpdateApplicationInfoInstalled(const Applicati
         }
         auto appInfoList = appRecord->GetAppInfoList();
         for (auto iter : appInfoList) {
-            if (iter->uid == appInfo.uid) {
+            if (iter->bundleName == appInfo.bundleName && iter->uid == appInfo.uid) {
                 appRecord->UpdateApplicationInfoInstalled(appInfo);
                 break;
             }
@@ -337,7 +339,7 @@ int32_t AppRunningManager::ProcessUpdateApplicationInfoInstalled(const Applicati
 }
 
 bool AppRunningManager::ProcessExitByBundleNameAndUid(
-    const std::string &bundleName, const int uid, std::list<pid_t> &pids, const bool clearPageStack)
+    const std::string &bundleName, const int uid, std::list<pid_t> &pids, const KillProcessConfig &config)
 {
     auto appRunningMap = GetAppRunningRecordMap();
     for (const auto &item : appRunningMap) {
@@ -355,8 +357,12 @@ bool AppRunningManager::ProcessExitByBundleNameAndUid(
             continue;
         }
         pids.push_back(pid);
-        if (clearPageStack) {
+        if (config.clearPageStack) {
             appRecord->ScheduleClearPageStack();
+        }
+        if (config.addKillingCaller) {
+            std::string callerKey = std::to_string(pid) + ":" + std::to_string(appRecord->GetUid());
+            KillingProcessManager::GetInstance().AddKillingCallerKey(callerKey);
         }
         appRecord->SetKilling();
         appRecord->ScheduleProcessSecurityExit();
@@ -630,6 +636,9 @@ void AppRunningManager::HandleAbilityAttachTimeOut(const sptr<IRemoteObject> &to
     if ((isPage || appRecord->IsLastAbilityRecord(token)) && (!appRecord->IsKeepAliveApp() ||
         !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient())) {
         appRecord->SetTerminating();
+        if (CheckAppRunningRecordIsLast(appRecord)) {
+            UnSetPolicy(appRecord);
+        }
     }
 
     std::weak_ptr<AppRunningRecord> appRecordWptr(appRecord);
@@ -676,6 +685,9 @@ void AppRunningManager::PrepareTerminate(const sptr<IRemoteObject> &token, bool 
         }
         TAG_LOGI(AAFwkTag::APPMGR, "ability is the last:%{public}s", appRecord->GetName().c_str());
         appRecord->SetTerminating();
+        if (CheckAppRunningRecordIsLast(appRecord)) {
+            UnSetPolicy(appRecord);
+        }
         appRecord->SetClearSession(clearMissionFlag);
     }
 }
@@ -749,6 +761,9 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
         }
         TAG_LOGI(AAFwkTag::APPMGR, "Terminate last ability in app:%{public}s.", appRecord->GetName().c_str());
         appRecord->SetTerminating();
+        if (CheckAppRunningRecordIsLast(appRecord)) {
+            UnSetPolicy(appRecord);
+        }
         if (clearMissionFlag && appMgrServiceInner != nullptr) {
             auto delayTime = appRecord->ExtensionAbilityRecordExists() ?
                 AMSEventHandler::DELAY_KILL_EXTENSION_PROCESS_TIMEOUT : AMSEventHandler::DELAY_KILL_PROCESS_TIMEOUT;
@@ -1772,6 +1787,54 @@ int32_t AppRunningManager::CheckIsKiaProcess(pid_t pid, bool &isKia)
     }
     isKia = appRunningRecord->GetIsKia();
     return ERR_OK;
+}
+
+bool AppRunningManager::CheckAppRunningRecordIsLast(const std::shared_ptr<AppRunningRecord> &appRecord)
+{
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRecord null");
+        return false;
+    }
+    std::lock_guard guard(runningRecordMapMutex_);
+    if (appRunningRecordMap_.empty()) {
+        return true;
+    }
+    auto bundleName = appRecord->GetBundleName();
+    auto appIndex = appRecord->GetAppIndex();
+    auto appRecordId = appRecord->GetRecordId();
+    auto userId = appRecord->GetUserId();
+    
+    for (const auto &item : appRunningRecordMap_) {
+        const auto &itemAppRecord = item.second;
+        if (itemAppRecord != nullptr &&
+            itemAppRecord->GetRecordId() != appRecordId &&
+            itemAppRecord->GetBundleName() == bundleName &&
+            itemAppRecord->GetAppIndex() == appIndex &&
+            itemAppRecord->GetUserId() == userId &&
+            !(appRecord->GetRestartAppFlag())) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void AppRunningManager::UnSetPolicy(const std::shared_ptr<AppRunningRecord> &appRecord)
+{
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRecord  null");
+        return;
+    }
+    auto appInfo = appRecord->GetApplicationInfo();
+    if (appInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appInfo  null");
+        return;
+    }
+    if (appRecord->IsUnSetPermission()) {
+        TAG_LOGI(AAFwkTag::APPMGR, "app is unset permission");
+        return;
+    }
+    appRecord->SetIsUnSetPermission(true);
+    AAFwk::UriPermissionManagerClient::GetInstance().ClearPermissionTokenByMap(appInfo->accessTokenId);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

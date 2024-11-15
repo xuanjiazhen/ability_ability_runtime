@@ -51,7 +51,7 @@ constexpr const char* SCENEBOARD_ABILITY_NAME = "com.ohos.sceneboard.MainAbility
 constexpr const char* TASK_SCENE_BOARD_ATTACH_TIMEOUT = "sceneBoardAttachTimeoutTask";
 constexpr const char* TASK_ATTACHED_TO_STATUS_BAR = "AttachedToStatusBar";
 constexpr const char* TASK_BLOCK_PROCESS_CACHE_BY_PIDS = "BlockProcessCacheByPids";
-constexpr const char* POWER_OFF_ABILITY = "BlockProcessCacheByPids";
+constexpr const char* POWER_OFF_ABILITY = "PoweroffAbility";
 constexpr int32_t SCENE_BOARD_ATTACH_TIMEOUT_TASK_TIME = 1000;
 constexpr int32_t LOAD_TASK_TIMEOUT = 30000; // ms
 };  // namespace
@@ -627,6 +627,15 @@ void AmsMgrScheduler::SetKeepAliveEnableState(const std::string &bundleName, boo
     amsMgrServiceInner_->SetKeepAliveEnableState(bundleName, enable, uid);
 }
 
+void AmsMgrScheduler::SetKeepAliveDkv(const std::string &bundleName, bool enable, int32_t uid)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return;
+    }
+    amsMgrServiceInner_->SetKeepAliveDkv(bundleName, enable, uid);
+}
+
 void AmsMgrScheduler::ClearProcessByToken(sptr<IRemoteObject> token)
 {
     if (!IsReady()) {
@@ -743,13 +752,13 @@ bool AmsMgrScheduler::IsProcessAttached(sptr<IRemoteObject> token)
     return amsMgrServiceInner_->IsProcessAttached(token);
 }
 
-bool AmsMgrScheduler::IsAppKilling(sptr<IRemoteObject> token)
+bool AmsMgrScheduler::IsCallerKilling(const std::string& callerKey)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "AmsMgrService is not ready.");
         return false;
     }
-    return amsMgrServiceInner_->IsAppKilling(token);
+    return amsMgrServiceInner_->IsCallerKilling(callerKey);
 }
 
 void AmsMgrScheduler::SetAppExceptionCallback(sptr<IRemoteObject> callback)

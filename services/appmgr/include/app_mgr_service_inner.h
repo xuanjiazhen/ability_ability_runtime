@@ -51,6 +51,7 @@
 #include "cpp/mutex.h"
 #include "event_report.h"
 #include "fault_data.h"
+#include "fd_guard.h"
 #include "hisysevent.h"
 #include "iapp_state_callback.h"
 #include "iapplication_state_observer.h"
@@ -59,6 +60,7 @@
 #include "irender_state_observer.h"
 #include "istart_specified_ability_response.h"
 #include "kia_interceptor_interface.h"
+#include "kill_process_config.h"
 #include "record_query_result.h"
 #include "refbase.h"
 #include "remote_client_manager.h"
@@ -81,6 +83,7 @@ class FocusChangeInfo;
 }
 namespace AppExecFwk {
 using OHOS::AAFwk::Want;
+using AAFwk::FdGuard;
 class WindowFocusChangedListener;
 class WindowVisibilityChangedListener;
 class WindowPidVisibilityChangedListener;
@@ -830,8 +833,8 @@ public:
 
     virtual int32_t StartRenderProcess(const pid_t hostPid,
                                        const std::string &renderParam,
-                                       int32_t ipcFd, int32_t sharedFd,
-                                       int32_t crashFd, pid_t &renderPid, bool isGPU = false);
+                                       FdGuard &&ipcFd, FdGuard &&sharedFd,
+                                       FdGuard &&crashFd, pid_t &renderPid, bool isGPU = false);
 
     virtual void AttachRenderProcess(const pid_t pid, const sptr<IRenderScheduler> &scheduler);
 
@@ -1267,6 +1270,16 @@ public:
      */
     void SetKeepAliveEnableState(const std::string &bundleName, bool enable, int32_t uid);
 
+    /**
+     * @brief Set non-resident keep-alive process status.
+     * when one process started, this method will be called from ability mgr with data selected from db.
+     *
+     * @param bundleName processed of witch to be configed
+     * @param enable config value
+     * @param uid indicates user, 0 for all users
+     */
+    void SetKeepAliveDkv(const std::string &bundleName, bool enable, int32_t uid);
+
     int32_t GetAppRunningUniqueIdByPid(pid_t pid, std::string &appRunningUniqueId);
 
     int32_t GetAllUIExtensionRootHostPid(pid_t pid, std::vector<pid_t> &hostPids);
@@ -1357,10 +1370,10 @@ public:
     bool IsProcessAttached(sptr<IRemoteObject> token) const;
 
     /**
-     * Is a process of a ability will be killed
+     * Is a process of a ability killing
      * @param indicates the ability
      */
-    bool IsAppKilling(sptr<IRemoteObject> token) const;
+    bool IsCallerKilling(const std::string& callerKey) const;
 
     /**
      * @brief Notify abilityms app process pre cache
@@ -1411,9 +1424,13 @@ private:
      */
     void RestartResidentProcess(std::shared_ptr<AppRunningRecord> appRecord);
 
-    bool CheckLoadAbilityConditions(std::shared_ptr<AAFwk::Want> want,
-        std::shared_ptr<AbilityRuntime::LoadParam> loadParam, const std::shared_ptr<AbilityInfo> &abilityInfo,
-        const std::shared_ptr<ApplicationInfo> &appInfo);
+    /**
+     * If one app needs keepalive and dies, restart the app again
+     */
+    void RestartKeepAliveProcess(std::shared_ptr<AppRunningRecord> appRecord);
+
+    bool CheckLoadAbilityConditions(const sptr<IRemoteObject> &token,
+        const std::shared_ptr<AbilityInfo> &abilityInfo, const std::shared_ptr<ApplicationInfo> &appInfo);
 
     /**
      * query bundle info for the given bundleName
@@ -1498,7 +1515,7 @@ private:
      * @return ERR_OK, return back success, others fail.
      */
     int32_t KillApplicationByUserIdLocked(const std::string &bundleName, int32_t appCloneIndex, int32_t userId,
-        const bool clearPageStack = false, const std::string& reason = "KillApplicationByUserIdLocked");
+        const KillProcessConfig &config = {});
 
     /**
      * WaitForRemoteProcessExit, Wait for the process to exit normally.
@@ -1607,6 +1624,8 @@ private:
 
     void ApplicationTerminatedSendProcessEvent(const std::shared_ptr<AppRunningRecord> &appRecord);
     void ClearAppRunningDataForKeepAlive(const std::shared_ptr<AppRunningRecord> &appRecord);
+    void ClearResidentProcessAppRunningData(const std::shared_ptr<AppRunningRecord> &appRecord);
+    void ClearNonResidentKeepAliveAppRunningData(const std::shared_ptr<AppRunningRecord> &appRecord);
 
     int32_t StartChildProcessPreCheck(pid_t callingPid, int32_t childProcessType);
 
@@ -1820,6 +1839,7 @@ private:
     void AddUIExtensionLauncherItem(std::shared_ptr<AAFwk::Want> want, std::shared_ptr<AppRunningRecord> appRecord,
         sptr<IRemoteObject> token);
     void NotifyStartResidentProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos);
+    void NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos);
     void RemoveUIExtensionLauncherItem(std::shared_ptr<AppRunningRecord> appRecord, sptr<IRemoteObject> token);
     bool IsSceneBoardCall();
     void CheckCleanAbilityByUserRequest(const std::shared_ptr<AppRunningRecord> &appRecord,
@@ -1843,6 +1863,12 @@ private:
     int32_t KillProcessByPidInner(const pid_t pid, const std::string& reason,
         const std::string& killReason, std::shared_ptr<AppRunningRecord> appRecord);
     bool IsAllowedNWebPreload(const std::string &processName);
+    void ParseInfoToAppfreeze(const FaultData &faultData, int32_t pid, int32_t uid, const std::string &bundleName,
+        const std::string &processName, const bool isOccurException = false);
+    int GetExceptionTimerId(const FaultData &faultData, const std::string &bundleName,
+        const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid, const int32_t callerUid);
+    int32_t SubmitDfxFaultTask(const FaultData &faultData, const std::string &bundleName,
+        const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid);
     const std::string TASK_ON_CALLBACK_DIED = "OnCallbackDiedTask";
     std::vector<AppStateCallbackWithUserId> appStateCallbacks_;
     std::shared_ptr<RemoteClientManager> remoteClientManager_;
@@ -1891,7 +1917,7 @@ private:
     std::vector<LoadAbilityTaskFunc> loadAbilityTaskFuncList_;
     sptr<IKiaInterceptor> kiaInterceptor_;
     std::shared_ptr<MultiUserConfigurationMgr> multiUserConfigurationMgr_;
-    int32_t willKillPidsNum_;
+    std::atomic<int32_t> willKillPidsNum_ = 0;
     std::shared_ptr<AAFwk::TaskHandlerWrap> delayKillTaskHandler_;
     std::unordered_set<std::string> nwebPreloadSet_ {};
 };

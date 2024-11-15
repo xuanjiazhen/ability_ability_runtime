@@ -213,8 +213,10 @@ int32_t AmsMgrStub::OnRemoteRequestInnerFourth(uint32_t code, MessageParcel &dat
             return HandleKillProcessesByAccessTokenId(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::IS_PROCESS_ATTACHED):
             return HandleIsProcessAttached(data, reply);
-        case static_cast<uint32_t>(IAmsMgr::Message::IS_APP_KILLING):
-            return HandleIsAppKilling(data, reply);
+        case static_cast<uint32_t>(IAmsMgr::Message::IS_CALLER_KILLING):
+            return HandleIsCallerKilling(data, reply);
+        case static_cast<uint32_t>(IAmsMgr::Message::SET_KEEP_ALIVE_DKV):
+            return HandleSetKeepAliveDkv(data, reply);
     }
     return AAFwk::ERR_CODE_NOT_EXIST;
 }
@@ -714,6 +716,16 @@ int32_t AmsMgrStub::HandleSetKeepAliveEnableState(MessageParcel &data, MessagePa
     return NO_ERROR;
 }
 
+int32_t AmsMgrStub::HandleSetKeepAliveDkv(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    auto bundleName = data.ReadString();
+    auto enable = data.ReadBool();
+    auto uid = data.ReadInt32();
+    SetKeepAliveDkv(bundleName, enable, uid);
+    return NO_ERROR;
+}
+
 int32_t AmsMgrStub::HandleClearNonPersistWaitingDebugFlag(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
@@ -851,13 +863,13 @@ int32_t AmsMgrStub::HandleIsProcessAttached(MessageParcel &data, MessageParcel &
     return NO_ERROR;
 }
 
-int32_t AmsMgrStub::HandleIsAppKilling(MessageParcel &data, MessageParcel &reply)
+int32_t AmsMgrStub::HandleIsCallerKilling(MessageParcel &data, MessageParcel &reply)
 {
     HITRACE_METER(HITRACE_TAG_APP);
-    sptr<IRemoteObject> token = data.ReadRemoteObject();
-    auto isAppKilling = IsAppKilling(token);
-    if (!reply.WriteBool(isAppKilling)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write result failed");
+    auto callerKey = data.ReadString();
+    auto isCallerKilling = IsCallerKilling(callerKey);
+    if (!reply.WriteBool(isCallerKilling)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "fail to write result");
         return ERR_INVALID_VALUE;
     }
     return NO_ERROR;

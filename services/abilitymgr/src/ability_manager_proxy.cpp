@@ -1020,6 +1020,34 @@ int AbilityManagerProxy::TerminateUIExtensionAbility(const sptr<SessionInfo> &ex
     return reply.ReadInt32();
 }
 
+int AbilityManagerProxy::CloseUIExtensionAbilityBySCB(const sptr<IRemoteObject> token)
+{
+    if (token == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "input invalid");
+        return ERR_INVALID_VALUE;
+    }
+
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write object fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteBool(true) || !data.WriteRemoteObject(token)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write flag and token fail");
+        return INNER_ERR;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    auto error = SendRequest(AbilityManagerInterfaceCode::CLOSE_UI_EXTENSION_ABILITY_BY_SCB, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
+
 int AbilityManagerProxy::CloseUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo)
 {
     int error;
@@ -5710,6 +5738,148 @@ bool AbilityManagerProxy::UpdateAssociateConfigInner(const std::map<std::string,
         }
     }
     return true;
+}
+
+int32_t AbilityManagerProxy::SetApplicationKeepAlive(const std::string &bundleName, int32_t userId, bool flag)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "writeInterfaceToken fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteString(bundleName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "faled to write bundleName");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "faled to write userID");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!data.WriteBool(flag)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "faled to write flag");
+        return ERR_INVALID_VALUE;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendRequest(AbilityManagerInterfaceCode::SET_APPLICATION_KEEP_ALLIVE,
+        data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error: %{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::QueryKeepAliveApplications(int32_t appType, int32_t userId,
+    std::vector<KeepAliveInfo> &list)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "writeInterfaceToken fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteInt32(appType)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "faled to write appType");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "faled to write userID");
+        return ERR_INVALID_VALUE;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendRequest(AbilityManagerInterfaceCode::GET_APPLICATIONS_KEEP_ALIVE,
+        data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error: %{public}d", ret);
+        return ret;
+    }
+
+    ret = GetParcelableInfos<KeepAliveInfo>(reply, list);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetParcelableInfos error: %{public}d", ret);
+        return ret;
+    }
+
+    return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::SetApplicationKeepAliveByEDM(const std::string &bundleName, int32_t userId, bool flag)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "writeInterfaceToken fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteString(bundleName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "faled to write bundleName");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "faled to write userID");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!data.WriteBool(flag)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "faled to write flag");
+        return ERR_INVALID_VALUE;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendRequest(AbilityManagerInterfaceCode::SET_APPLICATION_KEEP_ALLIVE_BY_EDM,
+        data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error: %{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::QueryKeepAliveApplicationsByEDM(int32_t appType, int32_t userId,
+    std::vector<KeepAliveInfo> &list)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "writeInterfaceToken fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteInt32(appType)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "faled to write appType");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "faled to write userID");
+        return ERR_INVALID_VALUE;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendRequest(AbilityManagerInterfaceCode::GET_APPLICATIONS_KEEP_ALIVE_BY_EDM,
+        data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error: %{public}d", ret);
+        return ret;
+    }
+
+    ret = GetParcelableInfos<KeepAliveInfo>(reply, list);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetParcelableInfos error: %{public}d", ret);
+        return ret;
+    }
+
+    return reply.ReadInt32();
 }
 } // namespace AAFwk
 } // namespace OHOS

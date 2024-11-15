@@ -471,6 +471,28 @@ int32_t AppMgrService::JudgeSandboxByPid(pid_t pid, bool &isSandbox)
     return ERR_OK;
 }
 
+int32_t AppMgrService::IsTerminatingByPid(pid_t pid, bool &isTerminating)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    bool isCallingPermission =
+        AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS);
+    if (!isCallingPermission) {
+        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+        return ERR_PERMISSION_DENIED;
+    }
+    auto appRunningRecord = appMgrServiceInner_->GetAppRunningRecordByPid(pid);
+    if (appRunningRecord && appRunningRecord->IsTerminating()) {
+        isTerminating = true;
+        TAG_LOGD(AAFwkTag::APPMGR, "current pid %{public}d is terminating.", pid);
+        return ERR_OK;
+    }
+    TAG_LOGD(AAFwkTag::APPMGR, "current pid %{public}d is not terminating.", pid);
+    return ERR_OK;
+}
+
 int32_t AppMgrService::GetProcessRunningInfosByUserId(std::vector<RunningProcessInfo> &info, int32_t userId)
 {
     if (!IsReady()) {
@@ -983,14 +1005,8 @@ int32_t AppMgrService::StartRenderProcess(const std::string &renderParam, int32_
         return ERR_INVALID_OPERATION;
     }
 
-    auto result = appMgrServiceInner_->StartRenderProcess(IPCSkeleton::GetCallingPid(),
-        renderParam, ipcFd, sharedFd, crashFd, renderPid, isGPU);
-    if (result == ERR_OK) {
-        ipcFdGuard.Release();
-        sharedFdGuard.Release();
-        crashFdGuard.Release();
-    }
-    return result;
+    return appMgrServiceInner_->StartRenderProcess(IPCSkeleton::GetCallingPid(), renderParam,
+        std::move(ipcFdGuard), std::move(sharedFdGuard), std::move(crashFdGuard), renderPid, isGPU);
 }
 
 void AppMgrService::AttachRenderProcess(const sptr<IRemoteObject> &scheduler)
@@ -1396,13 +1412,7 @@ int32_t AppMgrService::StartChildProcess(pid_t &childPid, const ChildProcessRequ
         return ERR_INVALID_OPERATION;
     }
 
-    auto result = appMgrServiceInner_->StartChildProcess(IPCSkeleton::GetCallingPid(), childPid, request);
-    if (result == ERR_OK) {
-        for (auto &fd : fds) {
-            fd.Release();
-        }
-    }
-    return result;
+    return appMgrServiceInner_->StartChildProcess(IPCSkeleton::GetCallingPid(), childPid, request);
 }
 
 int32_t AppMgrService::GetChildProcessInfoForSelf(ChildProcessInfo &info)
