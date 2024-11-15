@@ -6019,11 +6019,9 @@ int AppMgrServiceInner::GetExceptionTimerId(const FaultData &faultData, const st
         }
     };
     constexpr uint32_t timeout = 15; // 15s
-    int exceptionId = -1;
-#ifdef APP_MGR_SERVICE_HICOLLIE_ENABLE
-    exceptionId = HiviewDFX::XCollie::GetInstance().SetTimer("DfxFault::Exception", timeout,
+    int exceptionId = HiviewDFX::XCollie::GetInstance().SetTimer("DfxFault::Exception", timeout,
         exceptionCallback, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY);
-#endif
+    TAG_LOGI(AAFwkTag::APPMGR, "appfreeze set exceptionId: %{public}d success.", exceptionId);
     return exceptionId;
 }
 
@@ -6032,7 +6030,10 @@ int32_t AppMgrServiceInner::SubmitDfxFaultTask(const FaultData &faultData, const
 {
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     std::string processName = appRecord->GetProcessName();
-    int exceptionId = GetExceptionTimerId(faultData, bundleName, appRecord, pid, callerUid);
+    int exceptionId = -1;
+#ifdef APP_MGR_SERVICE_HICOLLIE_ENABLE
+    exceptionId = GetExceptionTimerId(faultData, bundleName, appRecord, pid, callerUid);
+#endif
     auto notifyAppTask = [appRecord, pid, callerUid, bundleName, processName, faultData, exceptionId,
         innerService = shared_from_this()]() {
         innerService->ParseInfoToAppfreeze(faultData, pid, callerUid, bundleName, processName);
