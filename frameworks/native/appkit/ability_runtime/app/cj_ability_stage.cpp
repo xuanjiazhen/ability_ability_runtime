@@ -209,9 +209,9 @@ void CJAbilityStage::OnDestroy() const
     cjAbilityStageObject_->OnDestroy();
 }
 
-std::shared_ptr<AppExecFwk::CJDelegatorAbilityStageProperty> CJAbilityStage::CreateStageProperty() const
+std::shared_ptr<OHOS::AppExecFwk::CJDelegatorAbilityStageProperty> CJAbilityStage::CreateStageProperty() const
 {
-    auto property = std::make_shared<AppExecFwk::CJDelegatorAbilityStageProperty>();
+    auto property = std::make_shared<OHOS::AppExecFwk::CJDelegatorAbilityStageProperty>();
     auto context = GetContext();
     if (!context) {
         TAG_LOGE(AAFwkTag::APPKIT, "Failed to get context");
@@ -222,8 +222,8 @@ std::shared_ptr<AppExecFwk::CJDelegatorAbilityStageProperty> CJAbilityStage::Cre
         TAG_LOGE(AAFwkTag::APPKIT, "Failed to get hapModuleInfo");
         return nullptr;
     }
-    property->moduleName_ = hapMoudleInfo.name;
-    property->srcEntrance_ = hapMoudleInfo.srcEntrance;
-    property->object_ = cjAbilityStageObject_->GetId();
+    property->moduleName_ = hapModuleInfo->name;
+    property->srcEntrance_ = hapModuleInfo->srcEntrance;
+    property->cjStageObject_ = cjAbilityStageObject_->GetId();
     return property;
 }

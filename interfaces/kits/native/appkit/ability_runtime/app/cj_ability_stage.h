@@ -70,7 +70,7 @@ public:
     void OnDestroy() const override;
 
 private:
-    std::shared_ptr<AppExecFwk::CJDelegatorAbilityStageProperty> CreateStageProperty() const;
+    std::shared_ptr<OHOS::AppExecFwk::CJDelegatorAbilityStageProperty> CreateStageProperty() const;
     std::shared_ptr<CJAbilityStageObject> cjAbilityStageObject_;
 };
 } // namespace AbilityRuntime
