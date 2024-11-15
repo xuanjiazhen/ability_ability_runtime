@@ -143,8 +143,8 @@ std::shared_ptr<CJDelegatorAbilityStageProperty> CJAbilityDelegatorImpl::WaitAbi
     return stage;
 }
 
-std::shared_ptr<ACJDelegatorAbilityProperty> CJAbilityDelegatorImpl::WaitAbilityStageMonitor(
-    const std::shared_ptr<CJIAbilityStageMonitor>& monitor, const int64_t timeoutMs)
+std::shared_ptr<ACJDelegatorAbilityProperty> CJAbilityDelegatorImpl::WaitAbilityMonitor(
+    const std::shared_ptr<CJIAbilityMonitor>& monitor, const int64_t timeoutMs)
 {
     if (!monitor) {
         TAG_LOGW(AAFwkTag::DELEGATOR, "invalid params");
@@ -153,7 +153,7 @@ std::shared_ptr<ACJDelegatorAbilityProperty> CJAbilityDelegatorImpl::WaitAbility
 
     AddAbilityMonitor(monitor);
 
-    auto obtainedAbility = monitor->WaitForAbilityStage(timeoutMs);
+    auto obtainedAbility = monitor->WaitForAbility(timeoutMs);
     if (!obtainedAbility) {
         TAG_LOGW(AAFwkTag::DELEGATOR, "invalid obtained ability");
         return {};
