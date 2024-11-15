@@ -111,7 +111,6 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
     }
     auto isShellCall = abilityRequest.want.GetBoolParam(IS_SHELL_CALL, false);
     uiAbilityRecord->ProcessForegroundAbility(sessionInfo->callingTokenId, sceneFlag, isShellCall);
-    CheckSpecified(abilityRequest, uiAbilityRecord);
     SendKeyEvent(abilityRequest);
     return ERR_OK;
 }
@@ -218,17 +217,6 @@ void UIAbilityLifecycleManager::AddCallerRecord(AbilityRequest &abilityRequest, 
     }
     uiAbilityRecord->AddCallerRecord(sessionInfo->callerToken,
         sessionInfo->requestCode, abilityRequest.want, srcAbilityId, sessionInfo->callingTokenId);
-}
-
-void UIAbilityLifecycleManager::CheckSpecified(AbilityRequest &abilityRequest,
-    std::shared_ptr<AbilityRecord> uiAbilityRecord)
-{
-    if (abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED && !specifiedInfoQueue_.empty()) {
-        SpecifiedInfo specifiedInfo = specifiedInfoQueue_.front();
-        specifiedInfoQueue_.pop();
-        uiAbilityRecord->SetSpecifiedFlag(specifiedInfo.flag);
-        specifiedAbilityMap_.emplace(specifiedInfo, uiAbilityRecord);
-    }
 }
 
 void UIAbilityLifecycleManager::SendKeyEvent(AbilityRequest &abilityRequest) const
@@ -726,19 +714,6 @@ void UIAbilityLifecycleManager::EraseAbilityRecord(const std::shared_ptr<Ability
     for (auto iter = sessionAbilityMap_.begin(); iter != sessionAbilityMap_.end(); iter++) {
         if (iter->second != nullptr && iter->second->GetToken()->AsObject() == abilityRecord->GetToken()->AsObject()) {
             sessionAbilityMap_.erase(iter);
-            break;
-        }
-    }
-}
-
-void UIAbilityLifecycleManager::EraseSpecifiedAbilityRecord(const std::shared_ptr<AbilityRecord> &abilityRecord)
-{
-    for (auto iter = specifiedAbilityMap_.begin(); iter != specifiedAbilityMap_.end(); iter++) {
-        auto abilityInfo = abilityRecord->GetAbilityInfo();
-        if (iter->second != nullptr && iter->second->GetToken()->AsObject() == abilityRecord->GetToken()->AsObject() &&
-            iter->first.abilityName == abilityInfo.name && iter->first.bundleName == abilityInfo.bundleName &&
-            iter->first.flag == abilityRecord->GetSpecifiedFlag()) {
-            specifiedAbilityMap_.erase(iter);
             break;
         }
     }
@@ -1446,7 +1421,6 @@ void UIAbilityLifecycleManager::CompleteTerminateLocked(const std::shared_ptr<Ab
         TAG_LOGE(AAFwkTag::ABILITYMGR, "appMS fail to terminate ability");
     }
     abilityRecord->RevokeUriPermission();
-    EraseSpecifiedAbilityRecord(abilityRecord);
     terminateAbilityList_.remove(abilityRecord);
 }
 
@@ -1670,7 +1644,6 @@ void UIAbilityLifecycleManager::HandleForegroundTimeout(const std::shared_ptr<Ab
     NotifySCBToHandleException(abilityRecord,
         static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_FOREGROUND_TIMEOUT), "handleForegroundTimeout");
     DelayedSingleton<AppScheduler>::GetInstance()->AttachTimeOut(abilityRecord->GetToken());
-    EraseSpecifiedAbilityRecord(abilityRecord);
 }
 
 void UIAbilityLifecycleManager::OnAbilityDied(std::shared_ptr<AbilityRecord> abilityRecord)
@@ -1705,7 +1678,6 @@ void UIAbilityLifecycleManager::OnAbilityDied(std::shared_ptr<AbilityRecord> abi
     }
     DelayedSingleton<AppScheduler>::GetInstance()->AttachTimeOut(abilityRecord->GetToken());
     DispatchTerminate(abilityRecord);
-    EraseSpecifiedAbilityRecord(abilityRecord);
 }
 
 void UIAbilityLifecycleManager::OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag,
@@ -1824,19 +1796,6 @@ void UIAbilityLifecycleManager::StartSpecifiedAbilityBySCB(const Want &want)
         abilityRequest.want, abilityRequest.abilityInfo, requestId);
 }
 
-std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GetReusedSpecifiedAbility(const AAFwk::Want &want,
-    const std::string &flag)
-{
-    auto element = want.GetElement();
-    for (const auto& [first, second] : specifiedAbilityMap_) {
-        if (flag == first.flag && element.GetAbilityName() == first.abilityName &&
-            element.GetBundleName() == first.bundleName) {
-            return second;
-        }
-    }
-    return nullptr;
-}
-
 void UIAbilityLifecycleManager::NotifyRestartSpecifiedAbility(AbilityRequest &request,
     const sptr<IRemoteObject> &token)
 {
@@ -1949,11 +1908,6 @@ int UIAbilityLifecycleManager::StartAbilityBySpecifed(const AbilityRequest &abil
     sessionInfo->startWindowOption = abilityRequest.startWindowOption;
     sessionInfo->instanceKey = abilityRequest.want.GetStringParam(Want::APP_INSTANCE_KEY);
     sessionInfo->isFromIcon = abilityRequest.isFromIcon;
-    SpecifiedInfo specifiedInfo;
-    specifiedInfo.abilityName = abilityRequest.abilityInfo.name;
-    specifiedInfo.bundleName = abilityRequest.abilityInfo.bundleName;
-    specifiedInfo.flag = abilityRequest.specifiedFlag;
-    specifiedInfoQueue_.push(specifiedInfo);
 
     SendSessionInfoToSCB(callerAbility, sessionInfo);
     return ERR_OK;

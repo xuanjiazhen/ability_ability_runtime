@@ -228,34 +228,6 @@ public:
     void SetSpecifiedProcessFlag(const std::string &flag);
 
     /**
-     * @brief Obtains the sign code.
-     *
-     * @return Returns the sign code.
-     */
-    const std::string &GetSignCode() const;
-
-    /**
-     * @brief Setting the sign code.
-     *
-     * @param code, the sign code.
-     */
-    void SetSignCode(const std::string &signCode);
-
-    /**
-     * @brief Obtains the jointUserId.
-     *
-     * @return Returns the jointUserId.
-     */
-    const std::string &GetJointUserId() const;
-
-    /**
-     * @brief Setting the jointUserId.
-     *
-     * @param jointUserId, the jointUserId.
-     */
-    void SetJointUserId(const std::string &jointUserId);
-
-    /**
      * @brief Obtains the application uid.
      *
      * @return Returns the application uid.
@@ -1101,8 +1073,6 @@ private:
     std::shared_ptr<AMSEventHandler> eventHandler_;
     bool isTerminating = false;
     bool isCaching_ = false;
-    std::string signCode_;  // the sign of this hap
-    std::string jointUserId_;
     std::map<std::string, std::shared_ptr<ApplicationInfo>> appInfos_;
     ffrt::mutex appInfosLock_;
     std::map<std::string, std::vector<std::shared_ptr<ModuleRunningRecord>>> hapModules_;

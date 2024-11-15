@@ -95,8 +95,6 @@ void DoSomethingInterestingWithMyAPIadda(const char* data, size_t size)
     manager->GetRunningProcessInfoByToken(token, processInfo);
     OHOS::AppExecFwk::RunningProcessInfo infoByPid;
     manager->GetRunningProcessInfoByPid(pidApps, infoByPid);
-    std::regex re;
-    manager->ClipStringContent(re, jsonStr, jsonStr);
     manager->GetAppRunningRecordByRenderPid(pidApps);
     wptr<IRemoteObject> remote;
     manager->OnRemoteRenderDied(remote);

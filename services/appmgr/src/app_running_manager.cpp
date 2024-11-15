@@ -73,10 +73,7 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CreateAppRunningRecord(
     auto recordId = AppRecordId::Create();
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
 
-    std::regex rule("[a-zA-Z.]+[-_#]{1}");
-    std::string signCode;
     bool isStageBasedModel = false;
-    ClipStringContent(rule, bundleInfo.appId, signCode);
     if (!bundleInfo.hapModuleInfos.empty()) {
         isStageBasedModel = bundleInfo.hapModuleInfos.back().isStageBasedModel;
     }
@@ -87,8 +84,6 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CreateAppRunningRecord(
     appRecord->SetStageModelState(isStageBasedModel);
     appRecord->SetSingleton(bundleInfo.singleton);
     appRecord->SetKeepAliveBundle(bundleInfo.isKeepAlive);
-    appRecord->SetSignCode(signCode);
-    appRecord->SetJointUserId(bundleInfo.jointUserId);
     appRecord->SetAppIdentifier(bundleInfo.signatureInfo.appIdentifier);
     appRecord->SetInstanceKey(instanceKey);
     {
@@ -110,25 +105,8 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExis
     TAG_LOGD(AAFwkTag::APPMGR,
         "appName: %{public}s, processName: %{public}s, uid: %{public}d, specifiedProcessFlag: %{public}s",
         appName.c_str(), processName.c_str(), uid, specifiedProcessFlag.c_str());
-    std::regex rule("[a-zA-Z.]+[-_#]{1}");
-    std::string signCode;
-    auto jointUserId = bundleInfo.jointUserId;
-    TAG_LOGD(AAFwkTag::APPMGR, "jointUserId : %{public}s", jointUserId.c_str());
-    ClipStringContent(rule, bundleInfo.appId, signCode);
-
-    auto FindSameProcess = [signCode, specifiedProcessFlag, processName, jointUserId](const auto &pair) {
-        return (pair.second != nullptr) &&
-            (specifiedProcessFlag.empty() || pair.second->GetSpecifiedProcessFlag() == specifiedProcessFlag) &&
-            (pair.second->GetSignCode() == signCode) && (pair.second->GetProcessName() == processName) &&
-            (pair.second->GetJointUserId() == jointUserId) && !(pair.second->IsTerminating()) &&
-            !(pair.second->IsKilling()) && !(pair.second->GetRestartAppFlag());
-    };
 
     auto appRunningMap = GetAppRunningRecordMap();
-    if (!jointUserId.empty()) {
-        auto iter = std::find_if(appRunningMap.begin(), appRunningMap.end(), FindSameProcess);
-        return ((iter == appRunningMap.end()) ? nullptr : iter->second);
-    }
     for (const auto &item : appRunningMap) {
         const auto &appRecord = item.second;
         if (appRecord && appRecord->GetProcessName() == processName && appRecord->GetInstanceKey() == instanceKey &&
@@ -851,14 +829,6 @@ void AppRunningManager::SetAbilityForegroundingFlagToAppRecord(const pid_t pid)
         return;
     }
     appRecord->SetAbilityForegroundingFlag();
-}
-
-void AppRunningManager::ClipStringContent(const std::regex &re, const std::string &source, std::string &afterCutStr)
-{
-    std::smatch basket;
-    if (std::regex_search(source, basket, re)) {
-        afterCutStr = basket.prefix().str() + basket.suffix().str();
-    }
 }
 
 void AppRunningManager::GetForegroundApplications(std::vector<AppStateData> &list)
