@@ -244,6 +244,7 @@ constexpr const char* DMS_API_VERSION = "dmsApiVersion";
 constexpr const char* DMS_IS_CALLER_BACKGROUND = "dmsIsCallerBackGround";
 constexpr const char* DMS_PROCESS_NAME = "distributedsched";
 constexpr const char* DMS_MISSION_ID = "dmsMissionId";
+constexpr const char* APP_TURBO_SERVICE = "app_turbo_service";
 constexpr const char* BOOTEVENT_APPFWK_READY = "bootevent.appfwk.ready";
 constexpr const char* BOOTEVENT_BOOT_COMPLETED = "bootevent.boot.completed";
 constexpr const char* BOOTEVENT_BOOT_ANIMATION_STARTED = "bootevent.bootanimation.started";
@@ -10576,6 +10577,36 @@ bool AbilityManagerService::CheckUserIdActive(int32_t userId)
 int32_t AbilityManagerService::CheckProcessOptions(const Want &want, const StartOptions &startOptions, int32_t userId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+
+    if (PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(APP_TURBO_SERVICE)
+        && startOptions.processOptions != nullptr
+        && startOptions.processOptions->startupVisibility == OHOS::AAFwk::StartupVisibility::STARTUP_HIDE) {
+        if (!AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "start ability silently is only supported in PC device");
+            return ERR_NOT_SUPPORTED_PRODUCT_TYPE;
+        }
+
+        std::string bundleName = want.GetElement().GetBundleName();
+        bool isRunning = false;
+        auto appMgr = AppMgrUtil::GetAppMgr();
+        if (appMgr == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "AppMgrUtil::GetAppMgr failed");
+            return ERR_INVALID_VALUE;
+        }
+        auto result = appMgr->IsAppRunning(bundleName, 0, isRunning);
+        if (result != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Query for app running failed, error code: %{public}d", result);
+            return result;
+        }
+        if (isRunning) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "ability is running now");
+            return ERR_ABILITY_ALREADY_RUNNING;
+        }
+
+        startOptions.processOptions->processMode = OHOS::AAFwk::ProcessMode::NO_ATTACHMENT;
+        return ERR_OK;
+    }
+
     if (startOptions.processOptions == nullptr ||
         !ProcessOptions::IsValidProcessMode(startOptions.processOptions->processMode)) {
         return ERR_OK;
