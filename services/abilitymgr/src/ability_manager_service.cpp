@@ -3085,6 +3085,40 @@ int AbilityManagerService::CheckUIExtensionUsage(AppExecFwk::UIExtensionUsage ui
     return ERR_OK;
 }
 
+int AbilityManagerService::CheckAtomicServiceUIExt(const sptr<SessionInfo> &extensionSessionInfo, int32_t userId)
+{
+    if (!extensionSessionInfo->want.HasParameter(AAFwk::SCREEN_MODE_KEY)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "not atomic service UIExtension");
+        return ERR_OK;
+    }
+    int32_t screenMode = extensionSessionInfo->want.GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
+    if (screenMode != AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "only support embedded pull-ups");
+        return ERR_INVALID_VALUE;
+    }
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN(bms, ERR_INVALID_VALUE);
+    AppExecFwk::BundleInfo bundleInfo;
+    if (!IN_PROCESS_CALL(bms->GetBundleInfo(extensionSessionInfo->want.GetBundle(),
+        AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, bundleInfo, GetValidUserId(userId)))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "verifyPermission failed get application info");
+        return CHECK_PERMISSION_FAILED;
+    }
+    if (bundleInfo.applicationInfo.bundleType != AppExecFwk::BundleType::ATOMIC_SERVICE) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "only support atomicService");
+        return ERR_INVALID_CALLER;
+    }
+    if (extensionSessionInfo->want.GetElement().GetAbilityName().empty()) {
+        if (bundleInfo.abilityInfos.empty()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get abilityInfos");
+            return ERR_INVALID_VALUE;
+        }
+        extensionSessionInfo->want.SetElementName(bundleInfo.name, bundleInfo.abilityInfos.begin()->name);
+    }
+    extensionSessionInfo->want.SetParam("send_to_erms_embedded", 1);
+    return ERR_OK;
+}
+
 int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &extensionSessionInfo, int32_t userId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -3093,32 +3127,10 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
     SetPickerElementName(extensionSessionInfo, userId);
     SetAutoFillElementName(extensionSessionInfo);
 
-    if (extensionSessionInfo->want.HasParameter(AAFwk::SCREEN_MODE_KEY)) {
-        int32_t screenMode = extensionSessionInfo->want.GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
-        if (screenMode != AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "only support embedded pull-ups");
-            return ERR_INVALID_VALUE;
-        }
-        auto bms = AbilityUtil::GetBundleManagerHelper();
-        CHECK_POINTER_AND_RETURN(bms, ERR_INVALID_VALUE);
-        AppExecFwk::BundleInfo bundleInfo;
-        if (!IN_PROCESS_CALL(bms->GetBundleInfo(extensionSessionInfo->want.GetBundle(),
-            AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, bundleInfo, GetValidUserId(userId)))) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "verifyPermission failed get application info");
-            return CHECK_PERMISSION_FAILED;
-        }
-        if (bundleInfo.applicationInfo.bundleType != AppExecFwk::BundleType::ATOMIC_SERVICE) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "only support atomicService");
-            return ERR_INVALID_CALLER;
-        }
-        if (extensionSessionInfo->want.GetElement().GetAbilityName().empty()) {
-            if (bundleInfo.abilityInfos.empty()) {
-                TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get abilityInfos");
-                return ERR_INVALID_VALUE;
-            }
-            extensionSessionInfo->want.SetElementName(bundleInfo.name, bundleInfo.abilityInfos.begin()->name);
-        }
-        extensionSessionInfo->want.SetParam("send_to_erms_embedded", 1);
+    auto isAtomicService = CheckAtomicServiceUIExt(extensionSessionInfo, userId);
+    if(isAtomicService != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "check atomic service uiext failed");
+        return isAtomicService;
     }
     std::string extensionTypeStr = extensionSessionInfo->want.GetStringParam(UIEXTENSION_TYPE_KEY);
     AppExecFwk::ExtensionAbilityType extensionType = extensionTypeStr.empty() ?
@@ -3174,18 +3186,6 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
         return ERR_INVALID_CALLER;
     }
 
-    auto shouldBlockFunc = [aams = shared_from_this()]() { return aams->ShouldBlockAllAppStart(); };
-    AbilityInterceptorParam interceptorParam = AbilityInterceptorParam(extensionSessionInfo->want, 0, GetUserId(),
-        true, nullptr, shouldBlockFunc);
-    auto result = interceptorExecuter_ == nullptr ? ERR_INVALID_VALUE :
-        interceptorExecuter_->DoProcess(interceptorParam);
-    if (result != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "interceptorExecuter_ null or doProcess error");
-        eventInfo.errCode = result;
-        EventReport::SendExtensionEvent(EventName::START_EXTENSION_ERROR, HiSysEventType::FAULT, eventInfo);
-        return result;
-    }
-
     int32_t validUserId = GetValidUserId(userId);
     if (!JudgeMultiUserConcurrency(validUserId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "multi-user non-concurrent unsatisfied");
@@ -3201,6 +3201,19 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
         return ERR_INVALID_VALUE;
     }
 #endif // SUPPORT_GRAPHICS
+
+    auto shouldBlockFunc = [aams = shared_from_this()]() { return aams->ShouldBlockAllAppStart(); };
+    AbilityInterceptorParam interceptorParam = AbilityInterceptorParam(extensionSessionInfo->want, 0, GetUserId(),
+        true, nullptr, shouldBlockFunc);
+    auto result = interceptorExecuter_ == nullptr ? ERR_INVALID_VALUE :
+        interceptorExecuter_->DoProcess(interceptorParam);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "interceptorExecuter_ null or doProcess error");
+        eventInfo.errCode = result;
+        EventReport::SendExtensionEvent(EventName::START_EXTENSION_ERROR, HiSysEventType::FAULT, eventInfo);
+        return result;
+    }
+
     AbilityRequest abilityRequest;
     abilityRequest.Voluation(extensionSessionInfo->want, DEFAULT_INVAL_VALUE, callerToken);
     abilityRequest.callType = AbilityCallType::START_EXTENSION_TYPE;
