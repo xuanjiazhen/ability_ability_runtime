@@ -5094,9 +5094,8 @@ int AbilityManagerService::AttachAbilityThread(
         }
         return dataAbilityManager->AttachAbilityThread(scheduler, token);
     } else {
-        FreezeUtil::LifecycleFlow flow = { token, FreezeUtil::TimeoutState::LOAD };
         std::string entry = "AbilityManagerService::AttachAbilityThread; the end of load lifecycle.";
-        FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
+        FreezeUtil::GetInstance().AddLifecycleEvent(token, entry);
         int32_t ownerMissionUserId = abilityRecord->GetOwnerMissionUserId();
         if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
             auto uiAbilityManager = GetUIAbilityManagerByUserId(ownerMissionUserId);
@@ -5694,14 +5693,12 @@ int AbilityManagerService::AbilityTransitionDone(const sptr<IRemoteObject> &toke
     }
 
     if (targetState == AbilityState::BACKGROUND) {
-        FreezeUtil::LifecycleFlow flow = { token, FreezeUtil::TimeoutState::BACKGROUND };
         std::string entry = "AbilityManagerService::AbilityTransitionDone; the end of background lifecycle.";
-        FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
+        FreezeUtil::GetInstance().AddLifecycleEvent(token, entry);
     } else if (targetState != AbilityState::INITIAL) {
-        FreezeUtil::LifecycleFlow flow = { token, FreezeUtil::TimeoutState::FOREGROUND };
         std::string entry = "AbilityManagerService::AbilityTransitionDone; the end of foreground lifecycle."
             " the end of foreground lifecycle.";
-        FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
+        FreezeUtil::GetInstance().AddLifecycleEvent(token, entry);
     }
 
     int32_t ownerMissionUserId = abilityRecord->GetOwnerMissionUserId();

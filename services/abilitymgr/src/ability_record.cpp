@@ -27,6 +27,7 @@
 #include "configuration_convertor.h"
 #include "connection_state_manager.h"
 #include "common_event_manager.h"
+#include "error_msg_util.h"
 #include "freeze_util.h"
 #include "global_constant.h"
 #include "hitrace_meter.h"
@@ -104,11 +105,10 @@ const int32_t BROKER_UID = 5557;
 const int RESTART_SCENEBOARD_DELAY = 500;
 constexpr int32_t DMS_UID = 5522;
 
-auto g_addLifecycleEventTask = [](sptr<Token> token, FreezeUtil::TimeoutState state, std::string &methodName) {
+auto g_addLifecycleEventTask = [](sptr<Token> token, std::string &methodName) {
     CHECK_POINTER_LOG(token, "token is nullptr");
-    FreezeUtil::LifecycleFlow flow = { token->AsObject(), state };
     std::string entry = std::string("AbilityRecord::") + methodName + "; the " + methodName + " lifecycle starts.";
-    FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
+    FreezeUtil::GetInstance().AddLifecycleEvent(token->AsObject(), entry);
 };
 
 Token::Token(std::weak_ptr<AbilityRecord> abilityRecord) : abilityRecord_(abilityRecord)
@@ -299,7 +299,7 @@ void AbilityRecord::LoadUIAbility()
         SendEvent(AbilityManagerService::LOAD_TIMEOUT_MSG, delayTime / HALF_TIMEOUT);
     }
     std::string methodName = "LoadAbility";
-    g_addLifecycleEventTask(token_, FreezeUtil::TimeoutState::LOAD, methodName);
+    g_addLifecycleEventTask(token_, methodName);
 }
 
 int AbilityRecord::LoadAbility(bool isShellCall)
@@ -403,10 +403,9 @@ void AbilityRecord::ForegroundAbility(uint32_t sceneFlag)
     lifeCycleStateInfo_.sceneFlag = sceneFlag;
     Want want = GetWant();
     UpdateDmsCallerInfo(want);
-    if (!lifecycleDeal_->ForegroundNew(want, lifeCycleStateInfo_, GetSessionInfo())) {
-        std::string methodName = "Foreground Fail ipc error";
-        g_addLifecycleEventTask(token_, FreezeUtil::TimeoutState::FOREGROUND, methodName);
-    }
+    AbilityRuntime::ErrorMsgGuard errorMsgGuard(token_ ? token_->AsObject() : nullptr,
+        reinterpret_cast<uintptr_t>(GetScheduler().GetRefPtr()), "ScheduleAbilityTransaction");
+    lifecycleDeal_->ForegroundNew(want, lifeCycleStateInfo_, GetSessionInfo());
     lifeCycleStateInfo_.sceneFlag = 0;
     lifeCycleStateInfo_.sceneFlagBak = 0;
     {
@@ -510,7 +509,7 @@ void AbilityRecord::PostForegroundTimeoutTask()
     }
     SendEvent(AbilityManagerService::FOREGROUND_TIMEOUT_MSG, foregroundTimeout / HALF_TIMEOUT);
     std::string methodName = "ForegroundAbility";
-    g_addLifecycleEventTask(token_, FreezeUtil::TimeoutState::FOREGROUND, methodName);
+    g_addLifecycleEventTask(token_, methodName);
     ResSchedUtil::GetInstance().ReportLoadingEventToRss(LoadingStage::FOREGROUND_BEGIN, GetPid(), GetUid(),
         foregroundTimeout, GetAbilityRecordId());
 }
@@ -1260,7 +1259,7 @@ void AbilityRecord::BackgroundAbility(const Closure &task)
 
             if (abilityInfo_.type == AppExecFwk::AbilityType::PAGE) {
                 std::string methodName = "BackgroundAbility";
-                g_addLifecycleEventTask(token_, FreezeUtil::TimeoutState::BACKGROUND, methodName);
+                g_addLifecycleEventTask(token_, methodName);
             }
         }
     } else {

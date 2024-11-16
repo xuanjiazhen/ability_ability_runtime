@@ -16,6 +16,7 @@
 #include "js_ability_stage.h"
 
 #include "ability_delegator_registry.h"
+#include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
 #include "js_ability_stage_context.h"
 #include "js_context_utils.h"
@@ -106,6 +107,7 @@ std::shared_ptr<AbilityStage> JsAbilityStage::Create(
         TAG_LOGW(AAFwkTag::APPKIT, "runtime is nullptr");
         return nullptr;
     }
+    FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "JsAbilityStage::Create");
     auto& jsRuntime = static_cast<JsRuntime&>(*runtime);
     std::string srcPath(hapModuleInfo.name);
     std::string moduleName(hapModuleInfo.moduleName);
@@ -195,7 +197,9 @@ void JsAbilityStage::OnCreate(const AAFwk::Want &want) const
         TAG_LOGE(AAFwkTag::APPKIT, "Failed to get 'onCreate' from AbilityStage object");
         return;
     }
+    FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "JsAbilityStage::OnCreate begin");
     napi_call_function(env, obj, methodOnCreate, 0, nullptr, nullptr);
+    FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "JsAbilityStage::OnCreate end");
 
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator();
     if (delegator) {
