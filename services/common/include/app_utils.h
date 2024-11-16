@@ -173,6 +173,13 @@ public:
     bool IsSupportNativeChildProcess();
 
     /**
+     * IsBackToCallerIntercept, check if it intercept ability back to caller.
+     *
+     * @return Whether it intercept ability back to caller.
+     */
+    bool IsBackToCallerIntercept();
+
+    /**
      * IsSupportMultiInstance, check if it supports multi-instance.
      *
      * @return Whether it supports multi-instance.
@@ -315,6 +322,7 @@ private:
     volatile DeviceConfiguration<bool> enableMoveUIAbilityToBackgroundApi_ = {false, true};
     volatile DeviceConfiguration<bool> isLaunchEmbededUIAbility_ = {false, false};
     volatile DeviceConfiguration<bool> isSupportNativeChildProcess_ = {false, false};
+    volatile DeviceConfiguration<bool> IsBackToCallerIntercept_ = {false, false};
     volatile DeviceConfiguration<bool> isSupportMultiInstance_ = {false, false};
     DeviceConfiguration<std::vector<std::pair<std::string, std::string>>>
         residentProcessInExtremeMemory_ = {false, {}};

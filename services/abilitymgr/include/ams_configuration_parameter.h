@@ -119,8 +119,6 @@ public:
      */
     int GetAppStartTimeoutTime() const;
 
-    bool IsSupportBackToCaller() const;
-
     bool IsSupportSCBCrashReboot() const;
 
     /**
@@ -158,7 +156,6 @@ private:
     void UpdateStartUpServiceConfigString(nlohmann::json& Object, const std::string &configName, std::string &value);
     void UpdatePickerConfigurationString(nlohmann::json& Object, const std::string &configName, std::string &value);
     void LoadUIExtensionPickerConfig(const std::string &filePath);
-    int32_t LoadBackToCallerConfig(nlohmann::json& Object);
     int32_t LoadSupportSCBCrashRebootConfig(nlohmann::json& Object);
     void LoadResidentWhiteListConfig(nlohmann::json& Object);
 
@@ -179,7 +176,6 @@ private:
     nlohmann::json pickerJsonObject_ = nlohmann::json::object();
     std::map<std::string, std::string> picker_;
     int multiUserType_ {0};
-    bool supportBackToCaller_ {true};
     bool supportSceneboardCrashReboot_{true};
     std::vector<std::string> residentWhiteList_;
 };
