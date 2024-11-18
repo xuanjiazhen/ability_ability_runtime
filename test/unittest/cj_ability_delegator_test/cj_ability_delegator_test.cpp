@@ -75,7 +75,7 @@ public:
     void TearDown() override;
 protected:
     static std::shared_ptr<CJAbilityDelegator> cjDelegator;
-    static std::shared_ptr<AbilityDelegator> commonDelegator_;
+    static std::shared_ptr<CJAbilityDelegatorImpl> commonDelegator_;
     static std::shared_ptr<AbilityDelegatorArgs> delegatorArgs_;
 };
 
