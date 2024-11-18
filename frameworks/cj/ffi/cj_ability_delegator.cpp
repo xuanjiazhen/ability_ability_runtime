@@ -42,7 +42,7 @@ CJAbilityDelegator::CJAbilityDelegator(const std::shared_ptr<AppExecFwk::CJAbili
         TAG_LOGI(AAFwkTag::DELEGATOR, "clearFunc called");
         if (!property) {
             TAG_LOGE(AAFwkTag::DELEGATOR, "property is null");
-          return;
+            return;
         }
 
         for (auto it = g_abilityRecord.begin(); it != g_abilityRecord.end();) {
@@ -430,7 +430,7 @@ void FFIAbilityDelegatorAddAbilityStageMonitor(
     }
 
     if (!isExisted) {
-      g_stageMonitorRecord.emplace(stageMonitorId, cjStageMonitor);
+        g_stageMonitorRecord.emplace(stageMonitorId, cjStageMonitor);
     }
     return cjDelegator->AddAbilityStageMonitor(cjStageMonitor);
 }

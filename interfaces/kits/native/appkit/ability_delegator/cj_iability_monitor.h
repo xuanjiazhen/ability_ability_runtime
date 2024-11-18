@@ -40,7 +40,7 @@ public:
     * @param abilityName Indicates the specified ability name for monitoring the
     * lifecycle state changes of the ability.
     */
-      explicit CJIAbilityMonitor(const std::string& abilityName);
+    explicit CJIAbilityMonitor(const std::string& abilityName);
 
     /**
     * A constructor used to create a IAbilityMonitor instance with the input
@@ -51,7 +51,7 @@ public:
     * @param moduleName Indicates the specified ability moduleName for monitoring
     * the lifecycle state changes of the ability.
     */
-      explicit CJIAbilityMonitor(const std::string& abilityName, const std::string& moduleName);
+    explicit CJIAbilityMonitor(const std::string& abilityName, const std::string& moduleName);
 
     /**
     * Default deconstructor used to deconstruct.
@@ -67,7 +67,7 @@ public:
     * object who waited.
     * @return true if match is successful; returns false otherwise.
     */
-      virtual bool Match(const std::shared_ptr<ACJDelegatorAbilityProperty>& ability, bool isNotify = false);
+    virtual bool Match(const std::shared_ptr<ACJDelegatorAbilityProperty>& ability, bool isNotify = false);
 
     /**
     * Waits for and returns the started Ability object that matches the
