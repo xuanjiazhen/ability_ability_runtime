@@ -35,7 +35,7 @@ void CJAbilityMonitor::OnAbilityStart(const int64_t abilityId)
     TAG_LOGI(AAFwkTag::DELEGATOR, "CJAbilityMonitor::OnAbilityStart called");
 
     if (cjMonitor_ == nullptr) {
-      return;
+        return;
     }
 
     cjMonitor_->OnAbilityCreate(abilityId);
@@ -46,7 +46,7 @@ void CJAbilityMonitor::OnAbilityForeground(const int64_t abilityId)
     TAG_LOGI(AAFwkTag::DELEGATOR, "CJAbilityMonitor::OnAbilityForeground called");
 
     if (cjMonitor_ == nullptr) {
-      return;
+        return;
     }
 
     cjMonitor_->OnAbilityForeground(abilityId);

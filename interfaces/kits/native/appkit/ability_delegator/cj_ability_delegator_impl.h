@@ -42,28 +42,28 @@ namespace OHOS {
 namespace AppExecFwk {
 class CJAbilityDelegatorImpl : public std::enable_shared_from_this<CJAbilityDelegatorImpl> {
 public:
-  enum class AbilityState : uint8_t {
-    /**
-     * Indicates that the ability has not been initialized.
-     */
-    UNINITIALIZED = 0,
-    /**
-     * Indicates that the ability is in the started state.
-     */
-    STARTED,
-    /**
-     * Indicates that the ability is in the foreground state.
-     */
-    FOREGROUND,
-    /**
-     * Indicates that the ability is in the background state.
-     */
-    BACKGROUND,
-    /**
-     * Indicates that the ability is in the stopped state.
-     */
-    STOPPED
-  };
+    enum class AbilityState : uint8_t {
+        /**
+        * Indicates that the ability has not been initialized.
+        */
+        UNINITIALIZED = 0,
+        /**
+        * Indicates that the ability is in the started state.
+        */
+        STARTED,
+        /**
+        * Indicates that the ability is in the foreground state.
+        */
+        FOREGROUND,
+        /**
+        * Indicates that the ability is in the background state.
+        */
+        BACKGROUND,
+        /**
+        * Indicates that the ability is in the stopped state.
+        */
+        STOPPED
+    };
 
   /**
    * Definition of cleanup function.
@@ -71,270 +71,270 @@ public:
     using ClearFunc = std::function<void(const std::shared_ptr<ACJDelegatorAbilityProperty>&)>;
 
 public:
-  /**
-   * A constructor used to create a CJAbilityDelegatorImpl instance with the input
-   * parameter passed.
-   *
-   * @param context Indicates the ability runtime context.
-   * @param runner Indicates the TestRunner object.
-   * @param observer Indicates the TestObserver object.
-   */
+    /**
+    * A constructor used to create a CJAbilityDelegatorImpl instance with the input
+    * parameter passed.
+    *
+    * @param context Indicates the ability runtime context.
+    * @param runner Indicates the TestRunner object.
+    * @param observer Indicates the TestObserver object.
+    */
     CJAbilityDelegatorImpl(const std::shared_ptr<AbilityRuntime::Context>& context, std::unique_ptr<TestRunner> runner,
         const sptr<IRemoteObject>& observer);
 
-  /**
-   * Default deconstructor used to deconstruct.
-   */
-  ~CJAbilityDelegatorImpl();
+    /**
+    * Default deconstructor used to deconstruct.
+    */
+    ~CJAbilityDelegatorImpl();
 
-  /**
-   * Adds monitor for monitoring the lifecycle state changes of the ability.
-   *
-   * @param monitor, Indicates the monitor object.
-   */
+    /**
+    * Adds monitor for monitoring the lifecycle state changes of the ability.
+    *
+    * @param monitor, Indicates the monitor object.
+    */
     void AddAbilityMonitor(const std::shared_ptr<CJIAbilityMonitor>& monitor);
 
-  /**
-   * Adds monitor for monitoring the lifecycle state changes of the
-   * abilityStage.
-   *
-   * @param monitor, Indicates the stage monitor object.
-   */
+    /**
+    * Adds monitor for monitoring the lifecycle state changes of the
+    * abilityStage.
+    *
+    * @param monitor, Indicates the stage monitor object.
+    */
     void AddAbilityStageMonitor(const std::shared_ptr<CJIAbilityStageMonitor>& monitor);
 
-  /**
-   * Removes ability monitor.
-   *
-   * @param monitor, Indicates the specified monitor object.
-   */
+    /**
+    * Removes ability monitor.
+    *
+    * @param monitor, Indicates the specified monitor object.
+    */
     void RemoveAbilityMonitor(const std::shared_ptr<CJIAbilityMonitor>& monitor);
 
-  /**
-   * Removes abilityStage monitor.
-   *
-   * @param monitor, Indicates the specified stage monitor object.
-   */
+    /**
+    * Removes abilityStage monitor.
+    *
+    * @param monitor, Indicates the specified stage monitor object.
+    */
     void RemoveAbilityStageMonitor(const std::shared_ptr<CJIAbilityStageMonitor>& monitor);
 
-  /**
-   * Clears all monitors.
-   */
-  void ClearAllMonitors();
+    /**
+    * Clears all monitors.
+    */
+    void ClearAllMonitors();
 
-  /**
-   * Obtains the number of monitors.
-   *
-   * @return the number of monitors.
-   */
-  size_t GetMonitorsNum();
+    /**
+    * Obtains the number of monitors.
+    *
+    * @return the number of monitors.
+    */
+    size_t GetMonitorsNum();
 
-  /**
-   * Obtains the number of stage monitors.
-   *
-   * @return the number of stage monitors.
-   */
-  size_t GetStageMonitorsNum();
+    /**
+    * Obtains the number of stage monitors.
+    *
+    * @return the number of stage monitors.
+    */
+    size_t GetStageMonitorsNum();
 
-  /**
-   * Waits for the specified monitor and return the obtained ability.
-   *
-   * @param monitor, Indicates the specified monitor object.
-   * @return the obtained ability.
-   */
+    /**
+    * Waits for the specified monitor and return the obtained ability.
+    *
+    * @param monitor, Indicates the specified monitor object.
+    * @return the obtained ability.
+    */
     std::shared_ptr<ACJDelegatorAbilityProperty> WaitAbilityMonitor(const std::shared_ptr<CJIAbilityMonitor>& monitor);
 
-  /**
-   * Waits for the specified monitor and return the obtained abilityStage.
-   *
-   * @param monitor, Indicates the specified stage monitor object.
-   * @return the obtained abilityStage.
-   */
+    /**
+    * Waits for the specified monitor and return the obtained abilityStage.
+    *
+    * @param monitor, Indicates the specified stage monitor object.
+    * @return the obtained abilityStage.
+    */
     std::shared_ptr<CJDelegatorAbilityStageProperty> WaitAbilityStageMonitor(
         const std::shared_ptr<CJIAbilityStageMonitor>& monitor);
 
-  /**
-   * Waits for the specified monitor within the timeout time and return the
-   * obtained ability.
-   *
-   * @param monitor, Indicates the specified monitor object.
-   * @param timeoutMs, Indicates the specified time out time, in milliseconds.
-   * @return the obtained ability.
-   */
+    /**
+    * Waits for the specified monitor within the timeout time and return the
+    * obtained ability.
+    *
+    * @param monitor, Indicates the specified monitor object.
+    * @param timeoutMs, Indicates the specified time out time, in milliseconds.
+    * @return the obtained ability.
+    */
     std::shared_ptr<ACJDelegatorAbilityProperty> WaitAbilityMonitor(
         const std::shared_ptr<CJIAbilityMonitor>& monitor, const int64_t timeoutMs);
 
-  /**
-   * Waits for the specified monitor within the timeout time and return the
-   * obtained abilityStage.
-   *
-   * @param monitor, Indicates the specified stage monitor object.
-   * @param timeoutMs, Indicates the specified time out time, in milliseconds.
-   * @return the obtained abilityStage.
-   */
+    /**
+    * Waits for the specified monitor within the timeout time and return the
+    * obtained abilityStage.
+    *
+    * @param monitor, Indicates the specified stage monitor object.
+    * @param timeoutMs, Indicates the specified time out time, in milliseconds.
+    * @return the obtained abilityStage.
+    */
     std::shared_ptr<CJDelegatorAbilityStageProperty> WaitAbilityStageMonitor(
         const std::shared_ptr<CJIAbilityStageMonitor>& monitor, const int64_t timeoutMs);
 
-  /**
-   * Obtains the application context.
-   *
-   * @return the application context.
-   */
-  std::shared_ptr<AbilityRuntime::Context> GetAppContext() const;
+    /**
+    * Obtains the application context.
+    *
+    * @return the application context.
+    */
+    std::shared_ptr<AbilityRuntime::Context> GetAppContext() const;
 
-  /**
-   * Obtains the lifecycle state of the specified ability.
-   *
-   * @param token, Indicates the specified ability.
-   * @return the lifecycle state of the specified ability.
-   */
+    /**
+    * Obtains the lifecycle state of the specified ability.
+    *
+    * @param token, Indicates the specified ability.
+    * @return the lifecycle state of the specified ability.
+    */
     CJAbilityDelegatorImpl::AbilityState GetAbilityState(const sptr<IRemoteObject>& token);
 
-  /**
-   * Obtains the ability that is currently being displayed.
-   *
-   * @return the ability that is currently being displayed.
-   */
-  std::shared_ptr<ACJDelegatorAbilityProperty> GetCurrentTopAbility();
+    /**
+    * Obtains the ability that is currently being displayed.
+    *
+    * @return the ability that is currently being displayed.
+    */
+    std::shared_ptr<ACJDelegatorAbilityProperty> GetCurrentTopAbility();
 
-  /**
-   * Obtains the name of the thread.
-   *
-   * @return the name of the thread.
-   */
-  std::string GetThreadName() const;
+    /**
+    * Obtains the name of the thread.
+    *
+    * @return the name of the thread.
+    */
+    std::string GetThreadName() const;
 
-  /**
-   * Notifies TestRunner to prepare.
-   */
-  void Prepare();
+    /**
+    * Notifies TestRunner to prepare.
+    */
+    void Prepare();
 
-  /**
-   * Notifies TestRunner to run.
-   */
-  void OnRun();
+    /**
+    * Notifies TestRunner to run.
+    */
+    void OnRun();
 
-  /**
-   * Starts an ability based on the given Want.
-   *
-   * @param want, Indicates the Want for starting the ability.
-   * @return the result code.
-   */
+    /**
+    * Starts an ability based on the given Want.
+    *
+    * @param want, Indicates the Want for starting the ability.
+    * @return the result code.
+    */
     ErrCode StartAbility(const AAFwk::Want& want);
 
-  /**
-   * Transits the specified ability to foreground.
-   *
-   * @param token, Indicates the specified ability.
-   * @return true if succeed; returns false otherwise.
-   */
+    /**
+    * Transits the specified ability to foreground.
+    *
+    * @param token, Indicates the specified ability.
+    * @return true if succeed; returns false otherwise.
+    */
     bool DoAbilityForeground(const sptr<IRemoteObject>& token);
 
-  /**
-   * Transits the specified ability to background.
-   *
-   * @param token, Indicates the specified ability.
-   * @return true if succeed; returns false otherwise.
-   */
+    /**
+    * Transits the specified ability to background.
+    *
+    * @param token, Indicates the specified ability.
+    * @return true if succeed; returns false otherwise.
+    */
     bool DoAbilityBackground(const sptr<IRemoteObject>& token);
 
-  /**
-   * Executes the specified shell command.
-   *
-   * @param cmd, Indicates the specified shell command.
-   * @param timeoutSec, Indicates the specified time out time, in seconds.
-   * @return the result of the specified shell command.
-   */
+    /**
+    * Executes the specified shell command.
+    *
+    * @param cmd, Indicates the specified shell command.
+    * @param timeoutSec, Indicates the specified time out time, in seconds.
+    * @return the result of the specified shell command.
+    */
     std::unique_ptr<ShellCmdResult> ExecuteShellCommand(const std::string& cmd, const int64_t timeoutSec);
 
-  /**
-   * Prints log information to the console.
-   * The total length of the log information to be printed cannot exceed 1000
-   * characters.
-   *
-   * @param msg, Indicates the log information to print.
-   */
+    /**
+    * Prints log information to the console.
+    * The total length of the log information to be printed cannot exceed 1000
+    * characters.
+    *
+    * @param msg, Indicates the log information to print.
+    */
     void Print(const std::string& msg);
 
-  /**
-   * Saves ability properties when ability is started and notify monitors of
-   * state changes.
-   *
-   * @param ability, Indicates the ability properties.
-   */
+    /**
+    * Saves ability properties when ability is started and notify monitors of
+    * state changes.
+    *
+    * @param ability, Indicates the ability properties.
+    */
     void PostPerformStart(const std::shared_ptr<ACJDelegatorAbilityProperty>& ability);
 
-  /**
-   * Saves abilityStage properties when abilityStage is started and notify
-   * monitors.
-   *
-   * @param abilityStage , Indicates the abilityStage properties.
-   */
+    /**
+    * Saves abilityStage properties when abilityStage is started and notify
+    * monitors.
+    *
+    * @param abilityStage , Indicates the abilityStage properties.
+    */
     void PostPerformStageStart(const std::shared_ptr<CJDelegatorAbilityStageProperty>& abilityStage);
 
-  /**
-   * Saves ability properties when scence is created and notify monitors of
-   * state changes.
-   *
-   * @param ability, Indicates the ability properties.
-   */
+    /**
+    * Saves ability properties when scence is created and notify monitors of
+    * state changes.
+    *
+    * @param ability, Indicates the ability properties.
+    */
     void PostPerformScenceCreated(const std::shared_ptr<ACJDelegatorAbilityProperty>& ability);
 
-  /**
-   * Saves ability properties when scence is restored and notify monitors of
-   * state changes.
-   *
-   * @param ability, Indicates the ability properties.
-   */
+    /**
+    * Saves ability properties when scence is restored and notify monitors of
+    * state changes.
+    *
+    * @param ability, Indicates the ability properties.
+    */
     void PostPerformScenceRestored(const std::shared_ptr<ACJDelegatorAbilityProperty>& ability);
 
-  /**
-   * Saves ability properties when scence is destroyed and notify monitors of
-   * state changes.
-   *
-   * @param ability, Indicates the ability properties.
-   */
+    /**
+    * Saves ability properties when scence is destroyed and notify monitors of
+    * state changes.
+    *
+    * @param ability, Indicates the ability properties.
+    */
     void PostPerformScenceDestroyed(const std::shared_ptr<ACJDelegatorAbilityProperty>& ability);
 
-  /**
-   * Saves ability properties when ability is in the foreground and notify
-   * monitors of state changes.
-   *
-   * @param ability, Indicates the ability properties.
-   */
+    /**
+    * Saves ability properties when ability is in the foreground and notify
+    * monitors of state changes.
+    *
+    * @param ability, Indicates the ability properties.
+    */
     void PostPerformForeground(const std::shared_ptr<ACJDelegatorAbilityProperty>& ability);
 
-  /**
-   * Saves ability properties when ability is in the background and notify
-   * monitors of state changes.
-   *
-   * @param ability, Indicates the ability properties.
-   */
+    /**
+    * Saves ability properties when ability is in the background and notify
+    * monitors of state changes.
+    *
+    * @param ability, Indicates the ability properties.
+    */
     void PostPerformBackground(const std::shared_ptr<ACJDelegatorAbilityProperty>& ability);
 
-  /**
-   * Saves ability properties when ability is stopped and notify monitors of
-   * state changes.
-   *
-   * @param ability, Indicates the ability properties.
-   */
+    /**
+    * Saves ability properties when ability is stopped and notify monitors of
+    * state changes.
+    *
+    * @param ability, Indicates the ability properties.
+    */
     void PostPerformStop(const std::shared_ptr<ACJDelegatorAbilityProperty>& ability);
 
-  /**
-   * Finishes user test.
-   *
-   * @param msg, Indicates the status information.The total length of the status
-   * information cannot exceed 1000 characters.
-   * @param resultCode, Indicates the result code.
-   */
+    /**
+    * Finishes user test.
+    *
+    * @param msg, Indicates the status information.The total length of the status
+    * information cannot exceed 1000 characters.
+    * @param resultCode, Indicates the result code.
+    */
     void FinishUserTest(const std::string& msg, const int64_t resultCode);
 
-  /**
-   * Registers a function for cleanup.
-   *
-   * @param func, Indicates the cleanup function, called when the ability is
-   * stopped.
-   */
-  void RegisterClearFunc(ClearFunc func);
+    /**
+    * Registers a function for cleanup.
+    *
+    * @param func, Indicates the cleanup function, called when the ability is
+    * stopped.
+    */
+    void RegisterClearFunc(ClearFunc func);
 
 private:
     CJAbilityDelegatorImpl::AbilityState ConvertAbilityState(

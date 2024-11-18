@@ -90,7 +90,7 @@ public:
     * @return the Ability object if any object has started is matched within the
     * specified time; returns null otherwise.
     */
-      virtual std::shared_ptr<ACJDelegatorAbilityProperty> WaitForAbility(const int64_t timeoutMs);
+    virtual std::shared_ptr<ACJDelegatorAbilityProperty> WaitForAbility(const int64_t timeoutMs);
 
     /**
     * Called when ability is started.

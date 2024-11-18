@@ -26,68 +26,68 @@ namespace OHOS {
 namespace AppExecFwk {
 class CJIAbilityStageMonitor {
 public:
-  /**
-   * Indicates that the default timeout is 5 seconds.
-   */
-  static constexpr int64_t MAX_TIME_OUT{5000};
+    /**
+    * Indicates that the default timeout is 5 seconds.
+    */
+    static constexpr int64_t MAX_TIME_OUT{5000};
 
 public:
-  /**
-   * A constructor used to create a CJIAbilityStageMonitor instance with the input
-   * parameter passed.
-   *
-   * @param moduleName Indicates the specified module name for monitoring the
-   * lifecycle state changes of the abilityStage.
-   * @param srcEntrance Indicates the path of the abilityStage.
-   */
+    /**
+    * A constructor used to create a CJIAbilityStageMonitor instance with the input
+    * parameter passed.
+    *
+    * @param moduleName Indicates the specified module name for monitoring the
+    * lifecycle state changes of the abilityStage.
+    * @param srcEntrance Indicates the path of the abilityStage.
+    */
     explicit CJIAbilityStageMonitor(const std::string& moduleName, const std::string& srcEntrance);
 
-  /**
-   * Default deconstructor used to deconstruct.
-   */
-  virtual ~CJIAbilityStageMonitor() = default;
+    /**
+    * Default deconstructor used to deconstruct.
+    */
+    virtual ~CJIAbilityStageMonitor() = default;
 
-  /**
-   * Match the monitored AbilityStage objects when newAbility objects are
-   * started.
-   *
-   * @param abilityStage Indicates the abilityStage.
-   * @param isNotify Indicates whether to notify the matched abilityStage to the
-   * object who waited.
-   * @return true if match is successful; returns false otherwise.
-   */
+    /**
+    * Match the monitored AbilityStage objects when newAbility objects are
+    * started.
+    *
+    * @param abilityStage Indicates the abilityStage.
+    * @param isNotify Indicates whether to notify the matched abilityStage to the
+    * object who waited.
+    * @return true if match is successful; returns false otherwise.
+    */
     virtual bool Match(const std::shared_ptr<CJDelegatorAbilityStageProperty>& abilityStage, bool isNotify = false);
 
-  /**
-   * Waits for and returns the started AbilityStage object that matches the
-   * conditions specified in this monitor within the specified time. The current
-   * thread will be blocked until the timer specified by timeoutMillisecond
-   * expires.
-   *
-   * @param timeoutMs Indicates the maximum amount of time to wait, in
-   * milliseconds. The value must be a positive integer.
-   * @return the AbilityStage object if any object has started is matched within
-   * the specified time; returns null otherwise.
-   */
+    /**
+    * Waits for and returns the started AbilityStage object that matches the
+    * conditions specified in this monitor within the specified time. The current
+    * thread will be blocked until the timer specified by timeoutMillisecond
+    * expires.
+    *
+    * @param timeoutMs Indicates the maximum amount of time to wait, in
+    * milliseconds. The value must be a positive integer.
+    * @return the AbilityStage object if any object has started is matched within
+    * the specified time; returns null otherwise.
+    */
     virtual std::shared_ptr<CJDelegatorAbilityStageProperty> WaitForAbilityStage(const int64_t timeoutMs);
 
-  /**
-   * Waits for and returns the started AbilityStage object that matches the
-   * conditions specified in this monitor within 5 seconds. The current thread
-   * will be blocked until the 5-second default timer expires.
-   *
-   * @return the AbilityStage object if any object has started is matched within
-   * 5 seconds; returns null otherwise.
-   */
-  virtual std::shared_ptr<CJDelegatorAbilityStageProperty> WaitForAbilityStage();
+    /**
+    * Waits for and returns the started AbilityStage object that matches the
+    * conditions specified in this monitor within 5 seconds. The current thread
+    * will be blocked until the 5-second default timer expires.
+    *
+    * @return the AbilityStage object if any object has started is matched within
+    * 5 seconds; returns null otherwise.
+    */
+    virtual std::shared_ptr<CJDelegatorAbilityStageProperty> WaitForAbilityStage();
 
 private:
-  std::string moduleName_;
-  std::string srcEntrance_;
-  std::shared_ptr<CJDelegatorAbilityStageProperty> matchedAbilityStage_;
+    std::string moduleName_;
+    std::string srcEntrance_;
+    std::shared_ptr<CJDelegatorAbilityStageProperty> matchedAbilityStage_;
 
-  std::condition_variable cvMatch_;
-  std::mutex mtxMatch_;
+    std::condition_variable cvMatch_;
+    std::mutex mtxMatch_;
 };
 } // namespace AppExecFwk
 } // namespace OHOS

@@ -35,10 +35,10 @@ public:
         : CJIAbilityStageMonitor(moduleName, srcEntrance), stageMonitorId_(stageMonitorId)
     {}
 
-  /**
-   * Default deconstructor used to deconstruct.
-   */
-  ~CJAbilityStageMonitor() = default;
+    /**
+    * Default deconstructor used to deconstruct.
+    */
+    ~CJAbilityStageMonitor() = default;
 
     int64_t GetId()
     {
@@ -46,7 +46,7 @@ public:
     }
 
 private:
-  int64_t stageMonitorId_;
+    int64_t stageMonitorId_;
 };
 } // namespace AbilityDelegatorCJ
 } // namespace OHOS

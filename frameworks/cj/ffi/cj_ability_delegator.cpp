@@ -196,9 +196,9 @@ std::shared_ptr<CJAbilityMonitor> ParseMonitorPara(
     auto cjMonitorObj = std::make_shared<CJMonitorObject>(monitorId);
     std::shared_ptr<CJAbilityMonitor> cjMonitor = nullptr;
     if (moduleName.empty()) {
-      cjMonitor = std::make_shared<CJAbilityMonitor>(abilityName, cjMonitorObj);
+        cjMonitor = std::make_shared<CJAbilityMonitor>(abilityName, cjMonitorObj);
     } else {
-      cjMonitor = std::make_shared<CJAbilityMonitor>(abilityName, moduleName, cjMonitorObj);
+        cjMonitor = std::make_shared<CJAbilityMonitor>(abilityName, moduleName, cjMonitorObj);
     }
     return cjMonitor;
 }
@@ -346,7 +346,7 @@ void FFIAbilityDelegatorAddAbilityMonitor(
     }
 
     if (!isExisted) {
-      g_monitorRecord.emplace(monitorId, cjMonitor);
+        g_monitorRecord.emplace(monitorId, cjMonitor);
     }
     return cjDelegator->AddAbilityMonitor(cjMonitor);
 }
@@ -398,7 +398,7 @@ int64_t FFIAbilityDelegatorWaitAbilityMonitor(int64_t id, int64_t monitorId, con
     }
 
     if (!isExisted) {
-      g_monitorRecord.emplace(monitorId, cjMonitor);
+        g_monitorRecord.emplace(monitorId, cjMonitor);
     }
 
     auto property = cjDelegator->WaitAbilityMonitor(cjMonitor, hasTimeoutPara, timeout);
@@ -482,7 +482,7 @@ int64_t FFIAbilityDelegatorWaitAbilityStageMonitor(int64_t id, int64_t stageMoni
     }
 
     if (!isExisted) {
-      g_stageMonitorRecord.emplace(stageMonitorId, cjStageMonitor);
+        g_stageMonitorRecord.emplace(stageMonitorId, cjStageMonitor);
     }
 
     auto property = cjDelegator->WaitAbilityStageMonitor(cjStageMonitor, hasTimeoutPara, timeout);

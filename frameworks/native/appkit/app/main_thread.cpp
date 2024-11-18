@@ -2162,8 +2162,8 @@ bool MainThread::CJPrepareAbilityDelegator(const std::shared_ptr<UserTestRecord>
     if (isStageBased) { // Stage model
         TAG_LOGD(AAFwkTag::APPKIT, "Stage model");
         auto testRunner = TestRunner::Create(application_->GetRuntime(), args, false);
-        auto delegator =
-            std::make_shared<CJAbilityDelegatorImpl>(application_->GetAppContext(), std::move(testRunner), record->observer);
+        auto delegator = std::make_shared<CJAbilityDelegatorImpl>(
+            application_->GetAppContext(), std::move(testRunner), record->observer);
         CJAbilityDelegatorRegistry::RegisterInstance(delegator, args);
         delegator->Prepare();
     } else { // FA model

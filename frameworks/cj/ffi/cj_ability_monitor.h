@@ -46,62 +46,62 @@ public:
     CJAbilityMonitor(const std::string& name, const std::string& moduleName,
         const std::shared_ptr<CJMonitorObject>& cjAbilityMonitor);
 
-  /**
-   * Default deconstructor used to deconstruct.
-   */
-  ~CJAbilityMonitor() = default;
+    /**
+    * Default deconstructor used to deconstruct.
+    */
+    ~CJAbilityMonitor() = default;
 
-  /**
-   * Called when ability is started.
-   *
-   * @param abilityId Indicates the ability object.
-   */
-  void OnAbilityStart(const int64_t abilityId) override;
+    /**
+    * Called when ability is started.
+    *
+    * @param abilityId Indicates the ability object.
+    */
+    void OnAbilityStart(const int64_t abilityId) override;
 
-  /**
-   * Called when ability is in foreground.
-   *
-   * @param abilityId Indicates the ability object.
-   */
-  void OnAbilityForeground(const int64_t abilityId) override;
+    /**
+    * Called when ability is in foreground.
+    *
+    * @param abilityId Indicates the ability object.
+    */
+    void OnAbilityForeground(const int64_t abilityId) override;
 
-  /**
-   * Called when ability is in background.
-   *
-   * @param abilityId Indicates the ability object.
-   */
-  void OnAbilityBackground(const int64_t abilityId) override;
+    /**
+    * Called when ability is in background.
+    *
+    * @param abilityId Indicates the ability object.
+    */
+    void OnAbilityBackground(const int64_t abilityId) override;
 
-  /**
-   * Called when ability is stopped.
-   *
-   * @param abilityId Indicates the ability object.
-   */
-  void OnAbilityStop(const int64_t abilityId) override;
+    /**
+    * Called when ability is stopped.
+    *
+    * @param abilityId Indicates the ability object.
+    */
+    void OnAbilityStop(const int64_t abilityId) override;
 
-  /**
-   * Called when window stage is created.
-   *
-   * @param abilityId Indicates the ability object.
-   */
-  void OnWindowStageCreate(const int64_t abilityId) override;
+    /**
+    * Called when window stage is created.
+    *
+    * @param abilityId Indicates the ability object.
+    */
+    void OnWindowStageCreate(const int64_t abilityId) override;
 
-  /**
-   * Called when window stage is restored.
-   *
-   * @param abilityId Indicates the ability object.
-   */
-  void OnWindowStageRestore(const int64_t abilityId) override;
+    /**
+    * Called when window stage is restored.
+    *
+    * @param abilityId Indicates the ability object.
+    */
+    void OnWindowStageRestore(const int64_t abilityId) override;
 
-  /**
-   * Called when window stage is destroyed.
-   *
-   * @param abilityId Indicates the ability object.
-   */
-  void OnWindowStageDestroy(const int64_t abilityId) override;
+    /**
+    * Called when window stage is destroyed.
+    *
+    * @param abilityId Indicates the ability object.
+    */
+    void OnWindowStageDestroy(const int64_t abilityId) override;
 
 private:
-  std::shared_ptr<CJMonitorObject> cjMonitor_;
+    std::shared_ptr<CJMonitorObject> cjMonitor_;
 };
 } // namespace AbilityDelegatorCJ
 } // namespace OHOS
