@@ -1704,7 +1704,6 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         }
 #endif
     }
-    
 
     // init resourceManager.
     auto moduleName = entryHapModuleInfo.moduleName;
@@ -2194,8 +2193,8 @@ bool MainThread::CJPrepareAbilityDelegator(const std::shared_ptr<UserTestRecord>
             TAG_LOGE(AAFwkTag::APPKIT, "Failed to Initialize testRunner");
             return false;
         }
-        auto delegator =
-            std::make_shared<CJAbilityDelegatorImpl>(application_->GetAppContext(), std::move(testRunner), record->observer);
+        auto delegator = std::make_shared<CJAbilityDelegatorImpl>(
+            application_->GetAppContext(), std::move(testRunner), record->observer);
         CJAbilityDelegatorRegistry::RegisterInstance(delegator, args);
         delegator->Prepare();
     }

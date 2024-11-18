@@ -23,13 +23,13 @@
 
 extern "C" {
 struct CJMonitorFuncs {
-  void (*cjOnAbilityCreate)(int64_t monitorId, int64_t abilityId);
-  void (*cjOnAbilityForeground)(int64_t monitorId, int64_t abilityId);
-  void (*cjOnAbilityBackground)(int64_t monitorId, int64_t abilityId);
-  void (*cjOnAbilityDestroy)(int64_t monitorId, int64_t abilityId);
-  void (*cjOnWindowStageCreate)(int64_t monitorId, int64_t abilityId);
-  void (*cjOnWindowStageRestore)(int64_t monitorId, int64_t abilityId);
-  void (*cjOnWindowStageDestroy)(int64_t monitorId, int64_t abilityId);
+    void (*cjOnAbilityCreate)(int64_t monitorId, int64_t abilityId);
+    void (*cjOnAbilityForeground)(int64_t monitorId, int64_t abilityId);
+    void (*cjOnAbilityBackground)(int64_t monitorId, int64_t abilityId);
+    void (*cjOnAbilityDestroy)(int64_t monitorId, int64_t abilityId);
+    void (*cjOnWindowStageCreate)(int64_t monitorId, int64_t abilityId);
+    void (*cjOnWindowStageRestore)(int64_t monitorId, int64_t abilityId);
+    void (*cjOnWindowStageDestroy)(int64_t monitorId, int64_t abilityId);
 };
 
 CJ_EXPORT void RegisterCJMonitorFuncs(void (*registerFunc)(CJMonitorFuncs*));
@@ -38,83 +38,83 @@ namespace OHOS {
 namespace AbilityDelegatorCJ {
 class CJMonitorObject {
 public:
-  /**
-   * A constructor used to create a CJMonitorObject instance with the input
-   * parameter passed.
-   */
-  explicit CJMonitorObject(const int64_t monitorId);
-  /**
-   * Default deconstructor used to deconstruct.
-   */
-  ~CJMonitorObject() = default;
+    /**
+    * A constructor used to create a CJMonitorObject instance with the input
+    * parameter passed.
+    */
+    explicit CJMonitorObject(const int64_t monitorId);
+    /**
+    * Default deconstructor used to deconstruct.
+    */
+    ~CJMonitorObject() = default;
 
-  /**
-   * Called when ability is started.
-   * Then call the corresponding method on the js side through the saved js
-   * object.
-   *
-   * @param abilityId Indicates the ability object.
-   */
-  void OnAbilityCreate(const int64_t abilityId);
+    /**
+    * Called when ability is started.
+    * Then call the corresponding method on the js side through the saved js
+    * object.
+    *
+    * @param abilityId Indicates the ability object.
+    */
+    void OnAbilityCreate(const int64_t abilityId);
 
-  /**
-   * Called when ability is in foreground.
-   * Then call the corresponding method on the js side through the saved js
-   * object.
-   *
-   * @param abilityId Indicates the ability object.
-   */
-  void OnAbilityForeground(const int64_t abilityId);
+    /**
+    * Called when ability is in foreground.
+    * Then call the corresponding method on the js side through the saved js
+    * object.
+    *
+    * @param abilityId Indicates the ability object.
+    */
+    void OnAbilityForeground(const int64_t abilityId);
 
-  /**
-   * Called when ability is in background.
-   * Then call the corresponding method on the js side through the saved js
-   * object.
-   *
-   * @param abilityId Indicates the ability object.
-   */
-  void OnAbilityBackground(const int64_t abilityId);
+    /**
+    * Called when ability is in background.
+    * Then call the corresponding method on the js side through the saved js
+    * object.
+    *
+    * @param abilityId Indicates the ability object.
+    */
+    void OnAbilityBackground(const int64_t abilityId);
 
-  /**
-   * Called when ability is stopped.
-   * Then call the corresponding method on the js side through the saved js
-   * object.
-   *
-   * @param abilityId Indicates the ability object.
-   */
-  void OnAbilityDestroy(const int64_t abilityId);
+    /**
+    * Called when ability is stopped.
+    * Then call the corresponding method on the js side through the saved js
+    * object.
+    *
+    * @param abilityId Indicates the ability object.
+    */
+    void OnAbilityDestroy(const int64_t abilityId);
 
-  /**
-   * Called when window stage is created.
-   * Then call the corresponding method on the js side through the saved js
-   * object.
-   *
-   * @param abilityId Indicates the ability object.
-   */
-  void OnWindowStageCreate(const int64_t abilityId);
+    /**
+    * Called when window stage is created.
+    * Then call the corresponding method on the js side through the saved js
+    * object.
+    *
+    * @param abilityId Indicates the ability object.
+    */
+    void OnWindowStageCreate(const int64_t abilityId);
 
-  /**
-   * Called when window stage is restored.
-   * Then call the corresponding method on the js side through the saved js
-   * object.
-   *
-   * @param abilityId Indicates the ability object.
-   */
-  void OnWindowStageRestore(const int64_t abilityId);
+    /**
+    * Called when window stage is restored.
+    * Then call the corresponding method on the js side through the saved js
+    * object.
+    *
+    * @param abilityId Indicates the ability object.
+    */
+    void OnWindowStageRestore(const int64_t abilityId);
 
-  /**
-   * Called when window stage is destroyed.
-   * Then call the corresponding method on the js side through the saved js
-   * object.
-   *
-   * @param abilityId Indicates the ability object.
-   */
-  void OnWindowStageDestroy(const int64_t abilityId);
+    /**
+    * Called when window stage is destroyed.
+    * Then call the corresponding method on the js side through the saved js
+    * object.
+    *
+    * @param abilityId Indicates the ability object.
+    */
+    void OnWindowStageDestroy(const int64_t abilityId);
 
-    int64_t GetId()
-    {
-        return monitorId_;
-    }
+      int64_t GetId()
+      {
+          return monitorId_;
+      }
 
 private:
     int64_t monitorId_;

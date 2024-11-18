@@ -80,7 +80,7 @@ protected:
 };
 
 std::shared_ptr<CJAbilityDelegator> CjAbilityDelegatorTest::cjDelegator = nullptr;
-std::shared_ptr<AbilityDelegator> CjAbilityDelegatorTest::commonDelegator_ = nullptr;
+std::shared_ptr<CJAbilityDelegatorImpl> CjAbilityDelegatorTest::commonDelegator_ = nullptr;
 std::shared_ptr<AbilityDelegatorArgs> CjAbilityDelegatorTest::delegatorArgs_ = nullptr;
 
 void CjAbilityDelegatorTest::SetUpTestCase()

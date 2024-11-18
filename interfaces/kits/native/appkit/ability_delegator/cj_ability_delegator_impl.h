@@ -337,8 +337,8 @@ public:
   void RegisterClearFunc(ClearFunc func);
 
 private:
-  CJAbilityDelegatorImpl::AbilityState ConvertAbilityState(
-      const AbilityLifecycleExecutor::LifecycleState lifecycleState);
+    CJAbilityDelegatorImpl::AbilityState ConvertAbilityState(
+        const AbilityLifecycleExecutor::LifecycleState lifecycleState);
     void ProcessAbilityProperties(const std::shared_ptr<ACJDelegatorAbilityProperty>& ability);
     void RemoveAbilityProperty(const std::shared_ptr<ACJDelegatorAbilityProperty>& ability);
     std::shared_ptr<ACJDelegatorAbilityProperty> FindPropertyByToken(const sptr<IRemoteObject>& token);
@@ -346,25 +346,25 @@ private:
     inline void CallClearFunc(const std::shared_ptr<ACJDelegatorAbilityProperty>& ability);
 
 private:
-  static constexpr size_t INFORMATION_MAX_LENGTH{1000};
-  static constexpr size_t DELEGATOR_PRINT_MAX_LENGTH{10000};
-  const std::string IS_DELEGATOR_CALL = "isDelegatorCall";
+    static constexpr size_t INFORMATION_MAX_LENGTH{1000};
+    static constexpr size_t DELEGATOR_PRINT_MAX_LENGTH{10000};
+    const std::string IS_DELEGATOR_CALL = "isDelegatorCall";
 
 private:
-  std::shared_ptr<AbilityRuntime::Context> appContext_;
-  std::unique_ptr<TestRunner> testRunner_;
-  sptr<IRemoteObject> observer_;
+    std::shared_ptr<AbilityRuntime::Context> appContext_;
+    std::unique_ptr<TestRunner> testRunner_;
+    sptr<IRemoteObject> observer_;
 
-  std::unique_ptr<DelegatorThread> delegatorThread_;
-  std::list<std::shared_ptr<ACJDelegatorAbilityProperty>> abilityProperties_;
-  std::vector<std::shared_ptr<CJIAbilityMonitor>> abilityMonitors_;
-  std::vector<std::shared_ptr<CJIAbilityStageMonitor>> abilityStageMonitors_;
+    std::unique_ptr<DelegatorThread> delegatorThread_;
+    std::list<std::shared_ptr<ACJDelegatorAbilityProperty>> abilityProperties_;
+    std::vector<std::shared_ptr<CJIAbilityMonitor>> abilityMonitors_;
+    std::vector<std::shared_ptr<CJIAbilityStageMonitor>> abilityStageMonitors_;
 
-  ClearFunc clearFunc_;
+    ClearFunc clearFunc_;
 
-  std::mutex mutexMonitor_;
-  std::mutex mutexAbilityProperties_;
-  std::mutex mutexStageMonitor_;
+    std::mutex mutexMonitor_;
+    std::mutex mutexAbilityProperties_;
+    std::mutex mutexStageMonitor_;
 };
 } // namespace AppExecFwk
 } // namespace OHOS
