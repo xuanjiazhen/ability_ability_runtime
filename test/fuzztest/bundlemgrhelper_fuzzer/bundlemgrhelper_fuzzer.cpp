@@ -125,7 +125,8 @@ void BundleMgrHelperFuzztest2(bool boolParam, std::string &stringParam, int32_t 
     bmHelper->UpgradeAtomicService(want, int32Param);
     std::vector<AbilityInfo> abilityInfos;
     std::vector<ExtensionAbilityInfo> extensionInfos;
-    bmHelper->ImplicitQueryInfos(want, int32Param, int32Param, boolParam, abilityInfos, extensionInfos);
+    bool findDefaultApp = false;
+    bmHelper->ImplicitQueryInfos(want, int32Param, int32Param, boolParam, abilityInfos, extensionInfos, findDefaultApp);
     bmHelper->CleanBundleDataFiles(stringParam, int32Param, int32Param);
     std::vector<DataGroupInfo> infos;
     bmHelper->QueryDataGroupInfos(stringParam, int32Param, infos);
