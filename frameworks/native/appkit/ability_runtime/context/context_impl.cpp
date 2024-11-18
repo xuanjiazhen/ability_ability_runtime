@@ -1500,10 +1500,9 @@ int32_t ContextImpl::CreateHspModuleResourceManagerInner(const std::shared_ptr<C
 {
     std::string bundleName;
     std::string moduleName;
-    if (!CheckContext(inputContext, bundleName, moduleName))
-    {
+    if (!CheckContext(inputContext, bundleName, moduleName)) {
         TAG_LOGD(AAFwkTag::APPKIT, "Context is error");
-        return ERR_INVALID_VALUE; 
+        return ERR_INVALID_VALUE;
     }
 
     if (bundleName.empty() || moduleName.empty()) {

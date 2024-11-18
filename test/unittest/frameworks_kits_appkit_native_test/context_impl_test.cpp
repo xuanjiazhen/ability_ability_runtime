@@ -1505,7 +1505,7 @@ HWTEST_F(ContextImplTest, AppExecFwk_AppContext_CreateHspModuleResourceManagerIn
     
     std::shared_ptr<Global::Resource::ResourceManager> resourceManager = nullptr;
     resourceManager = context->GetResourceManager();
-    if (resourceManager != nullptr) { 
+    if (resourceManager != nullptr) {
         resourceManager->GetResConfig(resConfig);
         resConfig.SetMcc(11);
         resConfig.SetMnc(22);
