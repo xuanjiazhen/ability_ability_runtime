@@ -33,8 +33,10 @@ ohos_shared_library("auto_fill_manager") {
   sources = [
     "src/auto_fill_event_handler.cpp",
     "src/auto_fill_extension_callback.cpp",
+    "src/auto_fill_ffrt_task_handler_wrap.cpp",
     "src/auto_fill_manager.cpp",
     "src/auto_fill_manager_util.cpp",
+    "src/auto_fill_task_handler_wrap.cpp",
   ]
 
   deps = [
@@ -49,6 +51,7 @@ ohos_shared_library("auto_fill_manager") {
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "ffrt:libffrt",
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",
