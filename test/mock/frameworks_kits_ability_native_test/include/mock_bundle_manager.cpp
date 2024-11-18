@@ -143,5 +143,14 @@ sptr<IOverlayManager> BundleMgrService::GetOverlayManagerProxy()
     sptr<IOverlayManager> overlayManagerProxy = new (std::nothrow) OverlayManagerProxy(nullptr);
     return overlayManagerProxy;
 }
+
+ErrCode BundleMgrService::GetBundleInfoV9(
+        const std::string &bundleName, int32_t flags, BundleInfo &bundleInfo, int32_t userId)
+{
+    bundleInfo.name = "test_bundleName";
+    bundleInfo.applicationInfo.name = "test_appName";
+    bundleInfo.applicationInfo.bundleType = AppExecFwk::BundleType::APP_SERVICE_FWK;
+    return ERR_OK;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

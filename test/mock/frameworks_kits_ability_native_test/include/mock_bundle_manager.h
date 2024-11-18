@@ -100,6 +100,8 @@ public:
         return ERR_OK;
     }
     sptr<IOverlayManager> GetOverlayManagerProxy() override;
+    ErrCode GetBundleInfoV9(
+        const std::string &bundleName, int32_t flags, BundleInfo &bundleInfo, int32_t userId) override;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

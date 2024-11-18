@@ -474,6 +474,8 @@ private:
         std::shared_ptr<Context> inputContext = nullptr);
     ErrCode GetOverlayMgrProxy();
     void UnsubscribeToOverlayEvents();
+    int32_t CreateHspModuleResourceManagerInner(const std::shared_ptr<Context> inputContext,
+        std::shared_ptr<Global::Resource::ResourceManager> &resourceManager);
 
     static Global::Resource::DeviceType deviceType_;
     std::shared_ptr<AppExecFwk::ApplicationInfo> applicationInfo_ = nullptr;
