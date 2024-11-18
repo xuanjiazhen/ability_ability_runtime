@@ -73,6 +73,7 @@ bool MemoryLevelInfo::ReadFromParcel(Parcel &parcel)
         int32_t tempLevel = parcel.ReadInt32();
         MemoryLevel level = MEMORY_LEVEL_MODERATE;
         switch (tempLevel) {
+            case MEMORY_LEVEL_BACKGROUND:
             case MEMORY_LEVEL_MODERATE:
             case MEMORY_LEVEL_LOW:
             case MEMORY_LEVEL_CRITICAL:
