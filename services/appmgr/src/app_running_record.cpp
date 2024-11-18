@@ -459,7 +459,7 @@ void AppRunningRecord::LaunchApplication(const Configuration &config)
     auto scheduler = appLifeCycleDeal_->GetApplicationClient();
     if (!scheduler) {
         TAG_LOGE(AAFwkTag::APPMGR, "appThread null");
-        AddAppLifecycleEvent("AppRunningRecord::LaunchApplication null scheduler");
+        AddAppLifecycleEvent("AppRunningRecord::LaunchApplication; null scheduler");
         return;
     }
     AppLaunchData launchData;
@@ -489,7 +489,7 @@ void AppRunningRecord::LaunchApplication(const Configuration &config)
     TAG_LOGD(AAFwkTag::APPMGR, "%{public}s called,app is %{public}s.", __func__, GetName().c_str());
     AddAppLifecycleEvent("AppRunningRecord::LaunchApplication");
     AbilityRuntime::ErrorMsgGuard errorMsgGuard(GetPid(), reinterpret_cast<uintptr_t>(scheduler.GetRefPtr()),
-        "ScheduleForegroundRunning");
+        "LaunchApplication");
     appLifeCycleDeal_->LaunchApplication(launchData, config);
 }
 
@@ -664,11 +664,11 @@ bool AppRunningRecord::ScheduleForegroundRunning()
         AddAppLifecycleEvent("AppRunningRecord::ScheduleForegroundRunning");
         auto scheduler = appLifeCycleDeal_->GetApplicationClient();
         if (!scheduler) {
-            AddAppLifecycleEvent("AppRunningRecord::ScheduleForegroundRunning null scheduler");
+            AddAppLifecycleEvent("AppRunningRecord::ScheduleForegroundRunning; null scheduler");
             return false;
         }
         AbilityRuntime::ErrorMsgGuard errorMsgGuard(GetPid(), reinterpret_cast<uintptr_t>(scheduler.GetRefPtr()),
-            "LaunchApplication");
+            "ScheduleForegroundRunning");
         return appLifeCycleDeal_->ScheduleForegroundRunning();
     }
     return false;
