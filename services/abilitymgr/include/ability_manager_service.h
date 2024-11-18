@@ -1824,6 +1824,14 @@ public:
     int IsCallFromBackground(const AbilityRequest &abilityRequest, bool &isBackgroundCall, bool isData = false);
 
     void EnableListForSCBRecovery(int32_t userId) const;
+    
+    /**
+     * @brief Get abilityRecord by id.
+     *
+     * @param missionId the session id or the mission id.
+     * @return Returns abilityRecord on success, nullptr on failure.
+     */
+    std::shared_ptr<AbilityRecord> GetAbilityRecordById(int32_t missionId);
 
     int32_t UpdateKeepAliveEnableState(const std::string &bundleName, const std::string &moduleName,
         const std::string &mainElement, bool updateEnable, int32_t userId);

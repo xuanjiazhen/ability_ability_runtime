@@ -2242,7 +2242,7 @@ void UIAbilityLifecycleManager::SetSessionHandler(const sptr<ISessionHandler> &h
     handler_ = handler;
 }
 
-std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GetAbilityRecordsById(int32_t sessionId) const
+std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GetAbilityRecordById(int32_t sessionId) const
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
@@ -2543,7 +2543,7 @@ int UIAbilityLifecycleManager::MoveMissionToFront(int32_t sessionId, std::shared
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto tmpSceneSession = iface_cast<Rosen::ISession>(rootSceneSession_);
     CHECK_POINTER_AND_RETURN(tmpSceneSession, ERR_INVALID_VALUE);
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecordsById(sessionId);
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecordById(sessionId);
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     if (startOptions != nullptr) {
         abilityRecord->SetWindowMode(startOptions->GetWindowMode());
@@ -2780,7 +2780,7 @@ void UIAbilityLifecycleManager::SignRestartAppFlag(int32_t uid, const std::strin
 void UIAbilityLifecycleManager::CompleteFirstFrameDrawing(int32_t sessionId) const
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
-    auto abilityRecord = GetAbilityRecordsById(sessionId);
+    auto abilityRecord = GetAbilityRecordById(sessionId);
     if (abilityRecord == nullptr) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "completeFirstFrameDrawing, get AbilityRecord by sessionId failed");
         return;

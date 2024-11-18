@@ -90,7 +90,7 @@ void DoSomethingInterestingWithMyAPI1(const char *data, size_t size)
     uIAbilityLifecycleManager->GetActiveAbilityList(int32Param, abilityList, int32Param);
     std::shared_ptr<AbilityRecord> abilityRecord5;
     uIAbilityLifecycleManager->PrepareTerminateAbility(abilityRecord5);
-    uIAbilityLifecycleManager->GetAbilityRecordsById(int32Param);
+    uIAbilityLifecycleManager->GetAbilityRecordById(int32Param);
     uIAbilityLifecycleManager->CheckAbilityNumber(strParam, strParam, strParam);
     uIAbilityLifecycleManager->MoreAbilityNumbersSendEventInfo(int32Param, strParam, strParam, strParam);
     AppInfo info;

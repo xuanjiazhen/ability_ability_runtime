@@ -37,6 +37,9 @@ bool AbilityFirstFrameStateData::Marshalling(Parcel &parcel) const
     if (!parcel.WriteBool(coldStart)) {
         return false;
     }
+    if (!parcel.WriteInt32(sessionId)) {
+        return false;
+    }
     return true;
 }
 
@@ -47,6 +50,7 @@ bool AbilityFirstFrameStateData::ReadFromParcel(Parcel &parcel)
     abilityName = parcel.ReadString();
     appIndex = parcel.ReadInt32();
     coldStart = parcel.ReadBool();
+    sessionId = parcel.ReadInt32();
     return true;
 }
 

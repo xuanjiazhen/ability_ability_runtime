@@ -16,17 +16,17 @@
 #include "interceptor/disposed_rule_interceptor.h"
 
 #include "ability_manager_service.h"
+#include "ability_util.h"
+#include "disposed_observer/disposed_observer_manager.h"
 #include "global_constant.h"
+#include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
-#include "iservice_registry.h"
 #include "modal_system_ui_extension.h"
 
 namespace OHOS {
 namespace AAFwk {
 namespace {
 constexpr const char* UNREGISTER_EVENT_TASK = "unregister event task";
-constexpr const char* UNREGISTER_TIMEOUT_OBSERVER_TASK = "unregister timeout observer task";
-constexpr int UNREGISTER_OBSERVER_MICRO_SECONDS = 5000;
 constexpr const char* UIEXTENSION_MODAL_TYPE = "ability.want.params.modalType";
 constexpr const char* INTERCEPT_PARAMETERS = "intercept_parammeters";
 constexpr const char* INTERCEPT_BUNDLE_NAME = "intercept_bundleName";
@@ -76,7 +76,7 @@ ErrCode DisposedRuleInterceptor::DoProcess(AbilityInterceptorParam param)
     if (disposedRule.disposedType != AppExecFwk::DisposedType::NON_BLOCK) {
         return ERR_OK;
     }
-    return StartNonBlockRule(param.want, disposedRule);
+    return StartNonBlockRule(param.want, disposedRule, param.abilityInfo);
 }
 
 bool DisposedRuleInterceptor::CheckControl(const Want &want, int32_t userId,
@@ -155,7 +155,8 @@ bool DisposedRuleInterceptor::CheckDisposedRule(const Want &want, AppExecFwk::Di
     return isAllowed;
 }
 
-ErrCode DisposedRuleInterceptor::StartNonBlockRule(const Want &want, AppExecFwk::DisposedRule &disposedRule)
+ErrCode DisposedRuleInterceptor::StartNonBlockRule(const Want &want, AppExecFwk::DisposedRule &disposedRule,
+    const std::shared_ptr<AppExecFwk::AbilityInfo> &abilityInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "not block");
@@ -169,81 +170,21 @@ ErrCode DisposedRuleInterceptor::StartNonBlockRule(const Want &want, AppExecFwk:
     }
     SetInterceptInfo(want, disposedRule);
     std::string bundleName = want.GetBundle();
-    {
-        std::lock_guard<ffrt::mutex> guard(observerLock_);
-        if (disposedObserverMap_.find(bundleName) != disposedObserverMap_.end()) {
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "start same disposed app, do not need to register again");
-            return ERR_OK;
+    if (DelayedSingleton<DisposedObserverManager>::GetInstance()->IsExistObserver(bundleName)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "start same disposed app, do not need to register again");
+        return ERR_OK;
+    }
+    if (abilityInfo->type == AbilityType::PAGE) {
+        DisposedModalType modalType = DisposedModalType::MODAL_SYSTEM;
+        if (abilityInfo->isStageBasedModel) {
+            modalType = DisposedModalType::MODAL_APP;
         }
+        return DelayedSingleton<DisposedObserverManager>::GetInstance()->
+            RegisterFirstFrameObserver(bundleName, disposedRule, modalType);
+    } else {
+        return DelayedSingleton<DisposedObserverManager>::GetInstance()->
+            RegisterAppStateObserver(bundleName, disposedRule);
     }
-    auto disposedObserver = sptr<DisposedObserver>::MakeSptr(disposedRule, shared_from_this());
-    CHECK_POINTER_AND_RETURN(disposedObserver, ERR_INVALID_VALUE);
-    sptr<OHOS::AppExecFwk::IAppMgr> appManager = GetAppMgr();
-    CHECK_POINTER_AND_RETURN(appManager, ERR_INVALID_VALUE);
-    std::vector<std::string> bundleNameList;
-    bundleNameList.push_back(bundleName);
-    int32_t ret = IN_PROCESS_CALL(appManager->RegisterApplicationStateObserver(disposedObserver, bundleNameList));
-    if (ret != 0) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "register failed, err:%{public}d", ret);
-        disposedObserver = nullptr;
-        return ret;
-    }
-    {
-        std::lock_guard<ffrt::mutex> guard(observerLock_);
-        disposedObserverMap_.emplace(bundleName, disposedObserver);
-    }
-    auto unregisterTask = [appManager, bundleName, interceptor = shared_from_this()] () {
-        std::lock_guard<ffrt::mutex> guard{interceptor->observerLock_};
-        auto iter = interceptor->disposedObserverMap_.find(bundleName);
-        if (iter != interceptor->disposedObserverMap_.end()) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "time out, unregister observer");
-            IN_PROCESS_CALL(appManager->UnregisterApplicationStateObserver(iter->second));
-            interceptor->disposedObserverMap_.erase(iter);
-        }
-    };
-    taskHandler_->SubmitTask(unregisterTask, UNREGISTER_TIMEOUT_OBSERVER_TASK, UNREGISTER_OBSERVER_MICRO_SECONDS);
-    return ERR_OK;
-}
-
-sptr<OHOS::AppExecFwk::IAppMgr> DisposedRuleInterceptor::GetAppMgr()
-{
-    OHOS::sptr<OHOS::ISystemAbilityManager> systemAbilityManager =
-        OHOS::SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (!systemAbilityManager) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "get systemAbilityManager failed");
-        return nullptr;
-    }
-    OHOS::sptr<OHOS::IRemoteObject> object = systemAbilityManager->GetSystemAbility(OHOS::APP_MGR_SERVICE_ID);
-    if (!object) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "get systemAbilityManager failed");
-        return nullptr;
-    }
-    sptr<OHOS::AppExecFwk::IAppMgr> appMgr = iface_cast<AppExecFwk::IAppMgr>(object);
-    if (!appMgr || !appMgr->AsObject()) {
-        return nullptr;
-    }
-    return appMgr;
-}
-
-void DisposedRuleInterceptor::UnregisterObserver(const std::string &bundleName)
-{
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "Call");
-    taskHandler_->CancelTask(UNREGISTER_TIMEOUT_OBSERVER_TASK);
-    auto unregisterTask = [bundleName, interceptor = shared_from_this()] () {
-        std::lock_guard<ffrt::mutex> guard{interceptor->observerLock_};
-        auto iter = interceptor->disposedObserverMap_.find(bundleName);
-        if (iter == interceptor->disposedObserverMap_.end()) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "no find observer");
-        } else {
-            auto disposedObserver = iter->second;
-            CHECK_POINTER(disposedObserver);
-            sptr<OHOS::AppExecFwk::IAppMgr> appManager = interceptor->GetAppMgr();
-            CHECK_POINTER(appManager);
-            IN_PROCESS_CALL(appManager->UnregisterApplicationStateObserver(disposedObserver));
-            interceptor->disposedObserverMap_.erase(iter);
-        }
-    };
-    taskHandler_->SubmitTask(unregisterTask, UNREGISTER_EVENT_TASK);
 }
 
 ErrCode DisposedRuleInterceptor::CreateModalUIExtension(const Want &want, const sptr<IRemoteObject> &callerToken)
@@ -257,6 +198,22 @@ ErrCode DisposedRuleInterceptor::CreateModalUIExtension(const Want &want, const 
     } else {
         return abilityRecord->CreateModalUIExtension(want);
     }
+}
+
+bool DisposedRuleInterceptor::ShouldModalSystemUIExtension(std::shared_ptr<AAFwk::AbilityRecord> abilityRecord,
+    sptr<IRemoteObject> callerToken)
+{
+    CHECK_POINTER_AND_RETURN(abilityRecord, true);
+    if (abilityRecord->GetAbilityInfo().type != AppExecFwk::AbilityType::PAGE) {
+        return true;
+    }
+    sptr<IRemoteObject> topToken = nullptr;
+    auto ret = IN_PROCESS_CALL(DelayedSingleton<AbilityManagerService>::GetInstance()->GetTopAbility(topToken));
+    if (ret != ERR_OK) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "GetTopAbility fail:%{public}d", ret);
+        return true;
+    }
+    return topToken != callerToken;
 }
 
 void DisposedRuleInterceptor::SetInterceptInfo(const Want &want, AppExecFwk::DisposedRule &disposedRule)

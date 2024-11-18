@@ -53,6 +53,7 @@ struct AbilityFirstFrameStateData : public Parcelable {
     std::string abilityName;
     int32_t appIndex;
     bool coldStart = false;
+    int32_t sessionId;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
