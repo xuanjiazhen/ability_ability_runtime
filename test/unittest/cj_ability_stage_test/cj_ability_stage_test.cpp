@@ -26,7 +26,13 @@
 #include "cj_ability_delegator_registry.h"
 using namespace testing;
 using namespace testing::ext;
-
+using namespace OHOS::AbilityDelegatorCJ;
+using namespace OHOS::AbilityDelegatorArgsCJ;
+using namespace OHOS::FFI;
+using namespace OHOS::AbilityRuntime;
+using namespace OHOS::AppExecFwk;
+using namespace OHOS::AAFwk;
+using namespace OHOS::RunnerRuntime;
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
@@ -92,7 +98,7 @@ void CjAbilityStageTest::SetUp(void)
         want.SetParam(para.first, para.second);
     }
 
-    auto delegatorArgs_ = std::make_shared<AbilityDelegatorArgs>(want);
+    auto delegatorArgs_ = std::make_shared<AbilityDelegatorArgsCJ::AbilityDelegatorArgs>(want);
     AbilityRuntime::Runtime::Options options;
     BundleInfo bundleInfo;
     auto testRunner = CJTestRunner::Create(AbilityRuntime::Runtime::Create(options), delegatorArgs_, bundleInfo);
