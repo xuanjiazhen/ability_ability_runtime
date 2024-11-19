@@ -93,7 +93,7 @@ std::shared_ptr<AppExecFwk::ACJDelegatorAbilityProperty> CJAbilityDelegator::Wai
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "CJAbilityDelegator::WaitAbilityMonitor called");
     std::shared_ptr<AppExecFwk::ACJDelegatorAbilityProperty> property =
-        delegator_->WaitAbilityMonitor(abilityMonitor, timeout)
+        delegator_->WaitAbilityMonitor(abilityMonitor, timeout);
     if (!property) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "property is null");
         return nullptr;
@@ -132,7 +132,7 @@ std::shared_ptr<AppExecFwk::CJDelegatorAbilityStageProperty> CJAbilityDelegator:
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "CJAbilityDelegator::WaitAbilityStageMonitor called");
     std::shared_ptr<AppExecFwk::CJDelegatorAbilityStageProperty> property =
-        delegator_->WaitAbilityStageMonitor(stageMonitor, timeout)
+        delegator_->WaitAbilityStageMonitor(stageMonitor, timeout);
     if (!property) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "property is null");
         return nullptr;
