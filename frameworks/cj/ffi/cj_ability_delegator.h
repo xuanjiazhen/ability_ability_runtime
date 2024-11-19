@@ -70,6 +70,16 @@ private:
 };
 
 extern "C" {
+struct AbilityInfo {
+    const char* abilityName;
+    const char* moduleName;
+};
+
+struct AbilityStageInfo {
+    const char* moduleName;
+    const char* srcEntrance;
+};
+
 CJ_EXPORT bool FFIAbilityDelegatorDoAbilityForeground(int64_t id, int64_t abilityId, int32_t* errorCode);
 CJ_EXPORT bool FFIAbilityDelegatorDoAbilityBackground(int64_t id, int64_t abilityId, int32_t* errorCode);
 CJ_EXPORT int64_t FFIAbilityDelegatorGetCurrentTopAbility(int64_t id, int32_t* errorCode);
@@ -79,15 +89,19 @@ CJ_EXPORT void FFIAbilityDelegatorAddAbilityMonitor(
     int64_t id, int64_t monitorId, const char* abilityName, const char* moduleName, int32_t* errorCode);
 CJ_EXPORT void FFIAbilityDelegatorRemoveAbilityMonitor(
     int64_t id, int64_t monitorId, const char* abilityName, const char* moduleName, int32_t* errorCode);
-CJ_EXPORT int64_t FFIAbilityDelegatorWaitAbilityMonitor(int64_t id, int64_t monitorId, const char* abilityName,
-    const char* moduleName, bool hasTimeoutPara, int64_t timeout, int32_t* errorCode);
+CJ_EXPORT int64_t FFIAbilityDelegatorWaitAbilityMonitor(
+    int64_t id, int64_t monitorId, AbilityInfo abilityInfo, int32_t* errorCode);
+CJ_EXPORT int64_t FFIAbilityDelegatorWaitAbilityMonitorWithTimeout(
+    int64_t id, int64_t monitorId, AbilityInfo abilityInfo, int64_t timeout, int32_t* errorCode);
 CJ_EXPORT void FFIAbilityDelegatorAddAbilityStageMonitor(
     int64_t id, int64_t stageMonitorId, const char* moduleName, const char* srcEntrance, int32_t* errorCode);
 CJ_EXPORT void FFIAbilityDelegatorRemoveAbilityStageMonitor(
     int64_t id, int64_t stageMonitorId, const char* moduleName, const char* srcEntrance, int32_t* errorCode);
-CJ_EXPORT int64_t FFIAbilityDelegatorWaitAbilityStageMonitor(int64_t id, int64_t stageMonitorId, const char* moduleName,
-    const char* srcEntrance, bool hasTimeoutPara, int64_t timeout, int32_t* errorCode);
-    
+CJ_EXPORT int64_t FFIAbilityDelegatorWaitAbilityStageMonitor(
+    int64_t id, int64_t stageMonitorId, AbilityStageInfo abilityStageInfo, int32_t* errorCode);
+CJ_EXPORT int64_t FFIAbilityDelegatorWaitAbilityStageMonitorWithTimeout(
+    int64_t id, int64_t stageMonitorId, AbilityStageInfo abilityStageInfo, int64_t timeout, int32_t* errorCode);
+
 CJ_EXPORT int64_t FFIAbilityDelegatorRegistryGetAbilityDelegator();
 CJ_EXPORT int32_t FFIAbilityDelegatorStartAbility(int64_t id, WantHandle want);
 CJ_EXPORT int32_t FFIAbilityDelegatorExecuteShellCommand(int64_t id, const char* cmd, int64_t timeoutSec);

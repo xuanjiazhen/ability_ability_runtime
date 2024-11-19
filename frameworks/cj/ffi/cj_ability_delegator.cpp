@@ -75,12 +75,25 @@ void CJAbilityDelegator::RemoveAbilityMonitor(const std::shared_ptr<CJAbilityMon
 }
 
 std::shared_ptr<AppExecFwk::ACJDelegatorAbilityProperty> CJAbilityDelegator::WaitAbilityMonitor(
-    const std::shared_ptr<CJAbilityMonitor>& abilityMonitor, bool hasTimeoutPara, int64_t timeout)
+    const std::shared_ptr<CJAbilityMonitor>& abilityMonitor)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "CJAbilityDelegator::WaitAbilityMonitor called");
     std::shared_ptr<AppExecFwk::ACJDelegatorAbilityProperty> property =
-        hasTimeoutPara ? delegator_->WaitAbilityMonitor(abilityMonitor, timeout)
-                       : delegator_->WaitAbilityMonitor(abilityMonitor);
+        delegator_->WaitAbilityMonitor(abilityMonitor);
+    if (!property) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "property is null");
+        return nullptr;
+    }
+    g_abilityRecord.emplace(property->cjObject_, property->token_);
+    return property;
+}
+
+std::shared_ptr<AppExecFwk::ACJDelegatorAbilityProperty> CJAbilityDelegator::WaitAbilityMonitor(
+    const std::shared_ptr<CJAbilityMonitor>& abilityMonitor, int64_t timeout)
+{
+    TAG_LOGI(AAFwkTag::DELEGATOR, "CJAbilityDelegator::WaitAbilityMonitor called");
+    std::shared_ptr<AppExecFwk::ACJDelegatorAbilityProperty> property =
+        delegator_->WaitAbilityMonitor(abilityMonitor, timeout)
     if (!property) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "property is null");
         return nullptr;
@@ -102,12 +115,24 @@ void CJAbilityDelegator::RemoveAbilityStageMonitor(const std::shared_ptr<CJAbili
 }
 
 std::shared_ptr<AppExecFwk::CJDelegatorAbilityStageProperty> CJAbilityDelegator::WaitAbilityStageMonitor(
-    const std::shared_ptr<CJAbilityStageMonitor>& stageMonitor, bool hasTimeoutPara, int64_t timeout)
+    const std::shared_ptr<CJAbilityStageMonitor>& stageMonitor)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "CJAbilityDelegator::WaitAbilityStageMonitor called");
     std::shared_ptr<AppExecFwk::CJDelegatorAbilityStageProperty> property =
-        hasTimeoutPara ? delegator_->WaitAbilityStageMonitor(stageMonitor, timeout)
-                       : delegator_->WaitAbilityStageMonitor(stageMonitor);
+        delegator_->WaitAbilityStageMonitor(stageMonitor);
+    if (!property) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "property is null");
+        return nullptr;
+    }
+    return property;
+}
+
+std::shared_ptr<AppExecFwk::CJDelegatorAbilityStageProperty> CJAbilityDelegator::WaitAbilityStageMonitor(
+    const std::shared_ptr<CJAbilityStageMonitor>& stageMonitor, int64_t timeout)
+{
+    TAG_LOGI(AAFwkTag::DELEGATOR, "CJAbilityDelegator::WaitAbilityStageMonitor called");
+    std::shared_ptr<AppExecFwk::CJDelegatorAbilityStageProperty> property =
+        delegator_->WaitAbilityStageMonitor(stageMonitor, timeout)
     if (!property) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "property is null");
         return nullptr;
@@ -377,8 +402,7 @@ void FFIAbilityDelegatorRemoveAbilityMonitor(
     return cjDelegator->RemoveAbilityMonitor(cjMonitor);
 }
 
-int64_t FFIAbilityDelegatorWaitAbilityMonitor(int64_t id, int64_t monitorId, const char* abilityName,
-    const char* moduleName, bool hasTimeoutPara, int64_t timeout, int32_t* errorCode)
+int64_t FFIAbilityDelegatorWaitAbilityMonitor(int64_t id, int64_t monitorId, AbilityInfo abilityInfo, int32_t* errorCode)
 {
     auto cjDelegator = FFI::FFIData::GetData<CJAbilityDelegator>(id);
     if (cjDelegator == nullptr) {
@@ -387,6 +411,8 @@ int64_t FFIAbilityDelegatorWaitAbilityMonitor(int64_t id, int64_t monitorId, con
         return 0;
     }
 
+    const char* abilityName = abilityInfo.abilityName;
+    const char* moduleName = abilityInfo.moduleName;
     bool isExisted = false;
     auto cjMonitor = ParseMonitorPara(monitorId, abilityName, moduleName, isExisted);
     if (cjMonitor == nullptr) {
@@ -399,7 +425,42 @@ int64_t FFIAbilityDelegatorWaitAbilityMonitor(int64_t id, int64_t monitorId, con
         g_monitorRecord.emplace(monitorId, cjMonitor);
     }
 
-    auto property = cjDelegator->WaitAbilityMonitor(cjMonitor, hasTimeoutPara, timeout);
+    auto property = cjDelegator->WaitAbilityMonitor(cjMonitor);
+    if (!property) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "property is null");
+        *errorCode = COMMON_FAILED;
+        return 0;
+    }
+
+    g_abilityRecord.emplace(property->cjObject_, property->token_);
+    return property->cjObject_;
+}
+
+int64_t FFIAbilityDelegatorWaitAbilityMonitorWithTimeout(
+    int64_t id, int64_t monitorId, AbilityInfo abilityInfo, int64_t timeout, int32_t* errorCode)
+{
+    auto cjDelegator = FFI::FFIData::GetData<CJAbilityDelegator>(id);
+    if (cjDelegator == nullptr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "null cj delegator");
+        *errorCode = COMMON_FAILED;
+        return 0;
+    }
+
+    const char* abilityName = abilityInfo.abilityName;
+    const char* moduleName = abilityInfo.moduleName;
+    bool isExisted = false;
+    auto cjMonitor = ParseMonitorPara(monitorId, abilityName, moduleName, isExisted);
+    if (cjMonitor == nullptr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "parase cj monitor failed");
+        *errorCode = INCORRECT_PARAMETERS;
+        return 0;
+    }
+
+    if (!isExisted) {
+        g_monitorRecord.emplace(monitorId, cjMonitor);
+    }
+
+    auto property = cjDelegator->WaitAbilityMonitor(cjMonitor, timeout);
     if (!property) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "property is null");
         *errorCode = COMMON_FAILED;
@@ -461,8 +522,8 @@ void FFIAbilityDelegatorRemoveAbilityStageMonitor(
     return cjDelegator->RemoveAbilityStageMonitor(cjStageMonitor);
 }
 
-int64_t FFIAbilityDelegatorWaitAbilityStageMonitor(int64_t id, int64_t stageMonitorId, const char* moduleName,
-    const char* srcEntrance, bool hasTimeoutPara, int64_t timeout, int32_t* errorCode)
+int64_t FFIAbilityDelegatorWaitAbilityStageMonitor(
+    int64_t id, int64_t stageMonitorId, AbilityStageInfo abilityStageInfo, int32_t* errorCode)
 {
     auto cjDelegator = FFI::FFIData::GetData<CJAbilityDelegator>(id);
     if (cjDelegator == nullptr) {
@@ -470,7 +531,8 @@ int64_t FFIAbilityDelegatorWaitAbilityStageMonitor(int64_t id, int64_t stageMoni
         *errorCode = COMMON_FAILED;
         return 0;
     }
-
+    const char* moduleName = abilityStageInfo.moduleName;
+    const char* srcEntrance = abilityStageInfo.srcEntrance;
     bool isExisted = false;
     auto cjStageMonitor = ParseStageMonitorPara(stageMonitorId, moduleName, srcEntrance, isExisted);
     if (cjStageMonitor == nullptr) {
@@ -483,7 +545,40 @@ int64_t FFIAbilityDelegatorWaitAbilityStageMonitor(int64_t id, int64_t stageMoni
         g_stageMonitorRecord.emplace(stageMonitorId, cjStageMonitor);
     }
 
-    auto property = cjDelegator->WaitAbilityStageMonitor(cjStageMonitor, hasTimeoutPara, timeout);
+    auto property = cjDelegator->WaitAbilityStageMonitor(cjStageMonitor);
+    if (!property) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "stageProperty is null");
+        *errorCode = COMMON_FAILED;
+        return 0;
+    }
+
+    return property->cjStageObject_;
+}
+
+int64_t FFIAbilityDelegatorWaitAbilityStageMonitorWithTimeout(
+    int64_t id, int64_t stageMonitorId, AbilityStageInfo abilityStageInfo, int64_t timeout, int32_t* errorCode)
+{
+    auto cjDelegator = FFI::FFIData::GetData<CJAbilityDelegator>(id);
+    if (cjDelegator == nullptr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "null cj delegator");
+        *errorCode = COMMON_FAILED;
+        return 0;
+    }
+    const char* moduleName = abilityStageInfo.moduleName;
+    const char* srcEntrance = abilityStageInfo.srcEntrance;
+    bool isExisted = false;
+    auto cjStageMonitor = ParseStageMonitorPara(stageMonitorId, moduleName, srcEntrance, isExisted);
+    if (cjStageMonitor == nullptr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "parse cj stageMonitor failed");
+        *errorCode = INCORRECT_PARAMETERS;
+        return 0;
+    }
+
+    if (!isExisted) {
+        g_stageMonitorRecord.emplace(stageMonitorId, cjStageMonitor);
+    }
+
+    auto property = cjDelegator->WaitAbilityStageMonitor(cjStageMonitor, timeout);
     if (!property) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "stageProperty is null");
         *errorCode = COMMON_FAILED;
