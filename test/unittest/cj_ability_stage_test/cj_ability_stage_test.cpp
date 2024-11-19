@@ -24,10 +24,12 @@
 #include <string>
 #include "cj_ability_delegator.h"
 #include "cj_ability_delegator_registry.h"
+#include "cj_application_context.h"
+#include "application_context.h"
+#include "runner_runtime/cj_test_runner.h"
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::AbilityDelegatorCJ;
-using namespace OHOS::AbilityDelegatorArgsCJ;
 using namespace OHOS::FFI;
 using namespace OHOS::AbilityRuntime;
 using namespace OHOS::AppExecFwk;
@@ -93,15 +95,16 @@ void CjAbilityStageTest::SetUp(void)
     paras.emplace(KEY_TEST_WAIT_TIMEOUT, VALUE_TEST_WAIT_TIMEOUT);
     paras.emplace(KEY_TEST_DEBUG, VALUE_TEST_DEBUG);
 
-    Want want;
+    AAFwk::Want want;
     for (auto para : paras) {
         want.SetParam(para.first, para.second);
     }
 
-    auto delegatorArgs_ = std::make_shared<AbilityDelegatorArgsCJ::AbilityDelegatorArgs>(want);
+    auto delegatorArgs_ = std::make_shared<AbilityDelegatorCJ::AbilityDelegatorArgs>(want);
     AbilityRuntime::Runtime::Options options;
-    BundleInfo bundleInfo;
-    auto testRunner = CJTestRunner::Create(AbilityRuntime::Runtime::Create(options), delegatorArgs_, bundleInfo);
+    AppExecFwk::BundleInfo bundleInfo;
+    auto testRunner = RunnerRuntime::CJTestRunner::Create(
+        AbilityRuntime::Runtime::Create(options), delegatorArgs_, bundleInfo);
     auto commonDelegator_ = std::make_shared<CJAbilityDelegatorImpl>(
         std::make_shared<AbilityRuntime::ContextImpl>(), std::move(testRunner), nullptr);
     CJAbilityDelegatorRegistry::RegisterInstance(commonDelegator_, delegatorArgs_);
