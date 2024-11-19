@@ -40,12 +40,15 @@ public:
     void AddAbilityMonitor(const std::shared_ptr<CJAbilityMonitor>& monitor);
     void RemoveAbilityMonitor(const std::shared_ptr<CJAbilityMonitor>& monitor);
     std::shared_ptr<AppExecFwk::ACJDelegatorAbilityProperty> WaitAbilityMonitor(
-        const std::shared_ptr<CJAbilityMonitor>& monitor, bool hasTimeoutPara, int64_t timeout);
-
+        const std::shared_ptr<CJAbilityMonitor>& monitor);
+    std::shared_ptr<AppExecFwk::ACJDelegatorAbilityProperty> WaitAbilityMonitor(
+        const std::shared_ptr<CJAbilityMonitor>& monitor, int64_t timeout);
     void AddAbilityStageMonitor(const std::shared_ptr<CJAbilityStageMonitor>& stageMonitor);
     void RemoveAbilityStageMonitor(const std::shared_ptr<CJAbilityStageMonitor>& stageMonitor);
     std::shared_ptr<AppExecFwk::CJDelegatorAbilityStageProperty> WaitAbilityStageMonitor(
-        const std::shared_ptr<CJAbilityStageMonitor>& stageMonitor, bool hasTimeoutPara, int64_t timeout);
+        const std::shared_ptr<CJAbilityStageMonitor>& stageMonitor);
+    std::shared_ptr<AppExecFwk::CJDelegatorAbilityStageProperty> WaitAbilityStageMonitor(
+        const std::shared_ptr<CJAbilityStageMonitor>& stageMonitor, int64_t timeout);
 
     void Print(const std::string& msg);
     int64_t GetAbilityState(const sptr<OHOS::IRemoteObject>& remoteObject);

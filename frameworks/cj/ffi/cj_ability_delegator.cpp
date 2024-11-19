@@ -402,7 +402,8 @@ void FFIAbilityDelegatorRemoveAbilityMonitor(
     return cjDelegator->RemoveAbilityMonitor(cjMonitor);
 }
 
-int64_t FFIAbilityDelegatorWaitAbilityMonitor(int64_t id, int64_t monitorId, AbilityInfo abilityInfo, int32_t* errorCode)
+int64_t FFIAbilityDelegatorWaitAbilityMonitor(
+    int64_t id, int64_t monitorId, AbilityInfo abilityInfo, int32_t* errorCode)
 {
     auto cjDelegator = FFI::FFIData::GetData<CJAbilityDelegator>(id);
     if (cjDelegator == nullptr) {
