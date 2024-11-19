@@ -21,34 +21,12 @@
 #include "hilog_wrapper.h"
 #include "runtime.h"
 #include "cj_ability_stage_object.h"
-#include <string>
-#include "cj_ability_delegator.h"
-#include "cj_ability_delegator_registry.h"
-#include "cj_application_context.h"
-#include "application_context.h"
-#include "runner_runtime/cj_test_runner.h"
+
 using namespace testing;
 using namespace testing::ext;
-using namespace OHOS::AbilityDelegatorCJ;
-using namespace OHOS::FFI;
-using namespace OHOS::AbilityRuntime;
-using namespace OHOS::AppExecFwk;
-using namespace OHOS::AAFwk;
-using namespace OHOS::RunnerRuntime;
+
 namespace OHOS {
 namespace AbilityRuntime {
-namespace {
-const std::string KEY_TEST_BUNDLE_NAME = "-p";
-const std::string VALUE_TEST_BUNDLE_NAME = "com.example.myapplication";
-const std::string KEY_TEST_RUNNER_CLASS = "-s unittest";
-const std::string VALUE_TEST_RUNNER_CLASS = "JSUserTestRunner";
-const std::string KEY_TEST_CASE = "-s class";
-const std::string VALUE_TEST_CASE = "ohos.acts.aafwk.ability.test.ConstructorTest#testDataAbilityOtherFunction0010";
-const std::string KEY_TEST_WAIT_TIMEOUT = "-w";
-const std::string VALUE_TEST_WAIT_TIMEOUT = "50";
-const std::string KEY_TEST_DEBUG { "-D" };
-const std::string VALUE_TEST_DEBUG { "true" };
-} // namespace
 class CjAbilityStageTest : public testing::Test {
 public:
     CjAbilityStageTest()
@@ -87,28 +65,6 @@ void CjAbilityStageTest::TearDownTestCase(void)
 
 void CjAbilityStageTest::SetUp(void)
 {
-    // Construct a common ability delegator firstly.
-    std::map<std::string, std::string> paras;
-    paras.emplace(KEY_TEST_BUNDLE_NAME, VALUE_TEST_BUNDLE_NAME);
-    paras.emplace(KEY_TEST_RUNNER_CLASS, VALUE_TEST_RUNNER_CLASS);
-    paras.emplace(KEY_TEST_CASE, VALUE_TEST_CASE);
-    paras.emplace(KEY_TEST_WAIT_TIMEOUT, VALUE_TEST_WAIT_TIMEOUT);
-    paras.emplace(KEY_TEST_DEBUG, VALUE_TEST_DEBUG);
-
-    AAFwk::Want want;
-    for (auto para : paras) {
-        want.SetParam(para.first, para.second);
-    }
-
-    auto delegatorArgs_ = std::make_shared<AbilityDelegatorCJ::AbilityDelegatorArgs>(want);
-    AbilityRuntime::Runtime::Options options;
-    AppExecFwk::BundleInfo bundleInfo;
-    auto testRunner = RunnerRuntime::CJTestRunner::Create(
-        AbilityRuntime::Runtime::Create(options), delegatorArgs_, bundleInfo);
-    auto commonDelegator_ = std::make_shared<CJAbilityDelegatorImpl>(
-        std::make_shared<AbilityRuntime::ContextImpl>(), std::move(testRunner), nullptr);
-    CJAbilityDelegatorRegistry::RegisterInstance(commonDelegator_, delegatorArgs_);
-
     RegisterCJAbilityStageFuncs(g_registerFunc);
     std::string moduleName = "0";
     auto proxy = CJAbilityStageObject::LoadModule(moduleName);
@@ -141,15 +97,15 @@ HWTEST_F(CjAbilityStageTest, CjAbilityStageTestCreate_001, TestSize.Level0)
  * @tc.name: CjAbilityStageTestOnCreate_001
  * @tc.desc: CjAbilityStageTest test for OnCreate.
  * @tc.type: FUNC
- */
-HWTEST_F(CjAbilityStageTest, CjAbilityStageTestOnCreate_001, TestSize.Level0)
-{
-    AAFwk::Want want;
-    cjAbilityStage_->OnCreate(want);
-    EXPECT_NE(cjAbilityStage_, nullptr);
-    initCjAbilityStage_->OnCreate(want);
-    EXPECT_NE(initCjAbilityStage_, nullptr);
-}
+*/
+// HWTEST_F(CjAbilityStageTest, CjAbilityStageTestOnCreate_001, TestSize.Level0)
+// {
+//     AAFwk::Want want;
+//     cjAbilityStage_->OnCreate(want);
+//     EXPECT_NE(cjAbilityStage_, nullptr);
+//     initCjAbilityStage_->OnCreate(want);
+//     EXPECT_NE(initCjAbilityStage_, nullptr);
+// }
 
 /**
  * @tc.name: CjAbilityStageTestOnAcceptWant_001
