@@ -10561,7 +10561,7 @@ bool AbilityManagerService::CheckUserIdActive(int32_t userId)
         return false;
     }
     if (osActiveAccountIds.empty()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "queryActiveOsAccountIds empty");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "test ...queryActiveOsAccountIds empty");
         return false;
     }
     auto iter = std::find(osActiveAccountIds.begin(), osActiveAccountIds.end(), userId);
