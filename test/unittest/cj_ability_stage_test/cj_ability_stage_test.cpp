@@ -21,6 +21,7 @@
 #include "hilog_wrapper.h"
 #include "runtime.h"
 #include "cj_ability_stage_object.h"
+#include <string>
 #include "cj_ability_delegator_registry.h"
 #include "cj_application_context.h"
 #include "application_context.h"

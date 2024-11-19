@@ -38,7 +38,7 @@ ohos_unittest("cj_ability_stage_test") {
     "${ability_base_path}/interfaces/kits/native/session_info/include",
     "${arkui_path}/ace_engine",
     "${ace_engine_path}/frameworks",
-    "${ability_runtime_path}/cj_environment/interfaces/inner_api"
+    "${ability_runtime_path}/cj_environment/interfaces/inner_api",
   ]
 
   sources = [
@@ -46,12 +46,12 @@ ohos_unittest("cj_ability_stage_test") {
     "${ability_runtime_native_path}/appkit/app/app_loader.cpp",
     "${ability_runtime_native_path}/appkit/app/application_cleaner.cpp",
     "${ability_runtime_native_path}/appkit/app/ohos_application.cpp",
+    "${ability_runtime_path}/frameworks/cj/ffi/cj_ability_delegator.cpp",
     "${ability_runtime_path}/frameworks/native/appkit/ability_runtime/app/cj_ability_stage.cpp",
     "${ability_runtime_path}/frameworks/native/appkit/ability_runtime/app/cj_ability_stage_context.cpp",
     "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include/mock_bundle_manager.cpp",
     "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include/mock_overlay_manager.cpp",
     "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include/sys_mgr_client_mock.cpp",
-    "${ability_runtime_path}/frameworks/cj/ffi/cj_ability_delegator.cpp",
     "cj_ability_stage_test.cpp",
   ]
   configs = [ "${c_utils_base_path}:utils_config" ]
@@ -108,9 +108,9 @@ ohos_unittest("cj_ability_stage_test") {
     "napi:ace_napi",
     "napi:cj_bind_ffi",
     "napi:cj_bind_native",
+    "resource_management:global_resmgr",
     "window_manager:libwsutils",
     "window_manager:scene_session",
-    "resource_management:global_resmgr",
   ]
 
   if (ability_runtime_graphics) {
