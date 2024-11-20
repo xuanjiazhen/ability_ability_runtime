@@ -24,13 +24,10 @@ namespace {
 void RegisterCJMonitorFuncs(void (*registerFunc)(CJMonitorFuncs*))
 {
     TAG_LOGD(AAFwkTag::DELEGATOR, "RegisterCJMonitorFuncs called");
-    if (g_cjMonitorFuncs != nullptr) {
-        TAG_LOGE(AAFwkTag::DELEGATOR, "repeated registration for cj functions");
-        return;
-    }
 
     if (registerFunc == nullptr) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "null registerFunc");
+        return;
     }
 
     registerFunc(&g_cjMonitorFuncs);
