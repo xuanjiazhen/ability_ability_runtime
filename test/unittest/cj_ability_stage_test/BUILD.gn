@@ -32,7 +32,6 @@ ohos_unittest("cj_ability_stage_test") {
     "${ability_runtime_path}/cj_environment/interfaces/inner_api",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_delegator",
     "${ability_runtime_path}/interfaces/kits/native/appkit/app",
-    "${ability_runtime_path}/cj_environment/interfaces/inner_api",
   ]
 
   sources = [
@@ -58,6 +57,7 @@ ohos_unittest("cj_ability_stage_test") {
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
     "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:configuration_helper",
@@ -78,6 +78,7 @@ ohos_unittest("cj_ability_stage_test") {
     "ability_base:configuration",
     "ability_base:want",
     "ability_runtime:runtime",
+    "ability_runtime:ability_context_native",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
