@@ -19,6 +19,7 @@
 namespace OHOS {
 namespace AppExecFwk {
 enum MemoryLevel {
+    MEMORY_LEVEL_BACKGROUND = -1,
     MEMORY_LEVEL_MODERATE = 0,
     MEMORY_LEVEL_LOW = 1,
     MEMORY_LEVEL_CRITICAL = 2,
