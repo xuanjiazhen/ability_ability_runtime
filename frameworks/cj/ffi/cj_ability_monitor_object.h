@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_CJ_ABILITY_MONITOR_OBJECT_H
 #define OHOS_ABILITY_RUNTIME_CJ_ABILITY_MONITOR_OBJECT_H
 
+#include "cj_macro.h"
 #include <cstdint>
 #include <memory>
 #include <string>

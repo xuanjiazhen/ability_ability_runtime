@@ -33,7 +33,6 @@ void RegisterCJMonitorFuncs(void (*registerFunc)(CJMonitorFuncs*))
         TAG_LOGE(AAFwkTag::DELEGATOR, "null registerFunc");
     }
 
-
     registerFunc(&g_cjMonitorFuncs);
     TAG_LOGD(AAFwkTag::DELEGATOR, "RegisterCJMonitorFuncs end");
 }
