@@ -41,7 +41,7 @@ int32_t StatusBarDelegateProxy::CheckIfStatusBarItemExists(uint32_t accessTokenI
     }
     auto ret = SendRequest(StatusBarDelegateCmd::CHECK_IF_STATUS_BAR_ITEM_EXISTS, data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Send request error: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "error: %{public}d", ret);
         return ret;
     }
     ret = reply.ReadInt32();
@@ -69,7 +69,7 @@ int32_t StatusBarDelegateProxy::AttachPidToStatusBarItem(uint32_t accessTokenId,
     }
     auto ret = SendRequest(StatusBarDelegateCmd::ATTACH_PID_TO_STATUS_BAR_ITEM, data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Send request error: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "error: %{public}d", ret);
         return ret;
     }
     return reply.ReadInt32();

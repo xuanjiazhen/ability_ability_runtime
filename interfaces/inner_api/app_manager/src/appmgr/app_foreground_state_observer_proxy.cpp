@@ -27,7 +27,7 @@ AppForegroundStateObserverProxy::AppForegroundStateObserverProxy(const sptr<IRem
 bool AppForegroundStateObserverProxy::WriteInterfaceToken(MessageParcel &data)
 {
     if (!data.WriteInterfaceToken(AppForegroundStateObserverProxy::GetDescriptor())) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return false;
     }
     return true;
@@ -37,16 +37,16 @@ void AppForegroundStateObserverProxy::OnAppStateChanged(const AppStateData &appS
 {
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write Token failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return;
     }
     if (!data.WriteParcelable(&appStateData)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Fail to write appStateData.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write appStateData failed");
         return;
     }
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Remote is NULL.");
+        TAG_LOGE(AAFwkTag::APPMGR, "null remote");
         return;
     }
     MessageParcel reply;
@@ -54,7 +54,7 @@ void AppForegroundStateObserverProxy::OnAppStateChanged(const AppStateData &appS
     int32_t ret = remote->SendRequest(
         static_cast<uint32_t>(IAppForegroundStateObserver::Message::ON_APP_STATE_CHANGED), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d.", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
 }
 } // namespace AppExecFwk

@@ -65,7 +65,7 @@ ProcessData *ProcessData::Unmarshalling(Parcel &parcel)
 {
     ProcessData *processData = new (std::nothrow) ProcessData();
     if (processData && !processData->ReadFromParcel(parcel)) {
-        TAG_LOGW(AAFwkTag::APPMGR, "processData failed, because ReadFromParcel failed");
+        TAG_LOGW(AAFwkTag::APPMGR, "read parcel failed");
         delete processData;
         processData = nullptr;
     }

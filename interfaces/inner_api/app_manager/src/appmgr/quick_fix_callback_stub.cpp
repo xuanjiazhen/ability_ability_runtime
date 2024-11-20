@@ -27,7 +27,7 @@ int QuickFixCallbackStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     if (data.ReadInterfaceToken() != IQuickFixCallback::GetDescriptor()) {
-        TAG_LOGE(AAFwkTag::APPMGR, "local descriptor is not equal to remote.");
+        TAG_LOGE(AAFwkTag::APPMGR, "local descriptor is not equal to remote");
         return ERR_INVALID_STATE;
     }
 
@@ -40,7 +40,7 @@ int QuickFixCallbackStub::OnRemoteRequest(
             return HandleOnReloadPageDoneInner(data, reply);
     }
 
-    TAG_LOGW(AAFwkTag::APPMGR, "default case, need check value of code!");
+    TAG_LOGW(AAFwkTag::APPMGR, "default case, need check value of code");
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 

@@ -47,7 +47,7 @@ bool AppResidentProcessInfo::ReadFromParcel(Parcel &parcel)
     isKeepAliveApp_ = parcel.ReadBool();
     auto size = parcel.ReadInt32();
     if (size > CYCLE_LIMIT) {
-        TAG_LOGE(AAFwkTag::APPMGR, "size is too large");
+        TAG_LOGE(AAFwkTag::APPMGR, "size too large");
         return false;
     }
     for (int32_t i = 0; i < size; i++) {

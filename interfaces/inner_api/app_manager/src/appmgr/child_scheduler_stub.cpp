@@ -27,12 +27,11 @@ ChildSchedulerStub::~ChildSchedulerStub() {}
 int32_t ChildSchedulerStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
     MessageParcel &reply, MessageOption &option)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "ChildSchedulerStub::OnReceived, code = %{public}u, flags= %{public}d.", code,
-        option.GetFlags());
+    TAG_LOGI(AAFwkTag::APPMGR, "code = %{public}u, flags= %{public}d", code, option.GetFlags());
     std::u16string descriptor = ChildSchedulerStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (descriptor != remoteDescriptor) {
-        TAG_LOGE(AAFwkTag::APPMGR, "A local descriptor is not equivalent to a remote");
+        TAG_LOGE(AAFwkTag::APPMGR, "local descriptor not equivalent to remote");
         return ERR_INVALID_STATE;
     }
 
@@ -44,7 +43,7 @@ int32_t ChildSchedulerStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
         case static_cast<uint32_t>(IChildScheduler::Message::SCHEDULE_RUN_NATIVE_PROC):
             return HandleScheduleRunNativeProc(data, reply);
     }
-    TAG_LOGI(AAFwkTag::APPMGR, "ChildSchedulerStub::OnRemoteRequest end");
+    TAG_LOGI(AAFwkTag::APPMGR, "end");
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 

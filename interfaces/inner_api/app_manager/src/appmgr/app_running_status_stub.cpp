@@ -32,7 +32,7 @@ int AppRunningStatusStub::OnRemoteRequest(
     std::u16string descriptor = AppRunningStatusStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (descriptor != remoteDescriptor) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Local descriptor is not equal to remote.");
+        TAG_LOGE(AAFwkTag::APPMGR, "local descriptor is not equal to remote");
         return ERR_INVALID_STATE;
     }
 

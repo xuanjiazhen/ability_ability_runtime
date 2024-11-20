@@ -52,7 +52,7 @@ AppStateData *AppStateData::Unmarshalling(Parcel &parcel)
 {
     AppStateData *appStateData = new (std::nothrow) AppStateData();
     if (appStateData && !appStateData->ReadFromParcel(parcel)) {
-        TAG_LOGW(AAFwkTag::APPMGR, "appStateData failed, because ReadFromParcel failed");
+        TAG_LOGW(AAFwkTag::APPMGR, "read from parcel failed");
         delete appStateData;
         appStateData = nullptr;
     }

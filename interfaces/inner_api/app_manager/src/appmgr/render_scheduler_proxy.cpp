@@ -47,25 +47,25 @@ void RenderSchedulerProxy::NotifyBrowserFd(int32_t ipcFd, int32_t sharedFd,
 
     if (!data.WriteFileDescriptor(ipcFd) || !data.WriteFileDescriptor(sharedFd) ||
         !data.WriteFileDescriptor(crashFd)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "want fd failed, ipcFd:%{public}d, sharedFd:%{public}d, "
+        TAG_LOGE(AAFwkTag::APPMGR, "ipcFd:%{public}d, sharedFd:%{public}d,"
             "crashFd:%{public}d", ipcFd, sharedFd, crashFd);
         return;
     }
 
     if (!data.WriteRemoteObject(browser)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write browser failed!");
+        TAG_LOGE(AAFwkTag::APPMGR, "write browser failed");
     }
 
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Remote() is NULL");
+        TAG_LOGE(AAFwkTag::APPMGR, "null remote");
         return;
     }
     int32_t ret = remote->SendRequest(
         static_cast<uint32_t>(IRenderScheduler::Message::NOTIFY_BROWSER_FD), data,
         reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
     TAG_LOGD(AAFwkTag::APPMGR, "NotifyBrowserFd end");
 }

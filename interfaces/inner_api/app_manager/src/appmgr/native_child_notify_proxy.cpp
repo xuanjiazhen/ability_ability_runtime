@@ -28,7 +28,7 @@ NativeChildNotifyProxy::NativeChildNotifyProxy(const sptr<IRemoteObject> &impl)
 bool NativeChildNotifyProxy::WriteInterfaceToken(MessageParcel &data)
 {
     if (!data.WriteInterfaceToken(NativeChildNotifyProxy::GetDescriptor())) {
-        TAG_LOGE(AAFwkTag::APPMGR, "NativeChildNotifyProxy write interface token failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "write interface token failed");
         return false;
     }
 
@@ -40,13 +40,13 @@ int32_t NativeChildNotifyProxy::SendRequest(uint32_t code, MessageParcel &data,
 {
     sptr<IRemoteObject> remote = Remote();
     if (!remote) {
-        TAG_LOGE(AAFwkTag::APPMGR, "NativeChildNotifyProxy get remote object failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "get remote object failed");
         return ERR_NULL_OBJECT;
     }
 
     int32_t ret = remote->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "NativeChildNotifyProxy SendRequest failed(%{public}d)", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "failed:(%{public}d)", ret);
         return ret;
     }
 
@@ -64,7 +64,7 @@ void NativeChildNotifyProxy::OnNativeChildStarted(const sptr<IRemoteObject> &nat
     }
 
     if (!data.WriteRemoteObject(nativeChild)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "NativeChildNotifyProxy write native child ipc object failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write native child ipc object failed");
         return;
     }
 
@@ -82,7 +82,7 @@ void NativeChildNotifyProxy::OnError(int32_t errCode)
     }
 
     if (!data.WriteInt32(errCode)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "NativeChildNotifyProxy write error code failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write error code failed");
         return;
     }
 

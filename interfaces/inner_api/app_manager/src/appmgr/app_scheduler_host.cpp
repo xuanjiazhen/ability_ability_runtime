@@ -338,7 +338,7 @@ int32_t AppSchedulerHost::HandleScheduleAcceptWant(MessageParcel &data, MessageP
     HITRACE_METER(HITRACE_TAG_APP);
     auto want = std::shared_ptr<AAFwk::Want>(data.ReadParcelable<AAFwk::Want>());
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "want is nullptr");
+        TAG_LOGE(AAFwkTag::APPMGR, "null want");
         return ERR_INVALID_VALUE;
     }
     auto moduleName = data.ReadString();
@@ -352,7 +352,7 @@ int32_t AppSchedulerHost::HandleScheduleNewProcessRequest(MessageParcel &data, M
     HITRACE_METER(HITRACE_TAG_APP);
     auto want = std::shared_ptr<AAFwk::Want>(data.ReadParcelable<AAFwk::Want>());
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "want is nullptr");
+        TAG_LOGE(AAFwkTag::APPMGR, "null want");
         return ERR_INVALID_VALUE;
     }
     auto moduleName = data.ReadString();
@@ -366,7 +366,7 @@ int32_t AppSchedulerHost::HandleNotifyLoadRepairPatch(MessageParcel &data, Messa
     std::string bundleName = data.ReadString();
     auto callback = iface_cast<IQuickFixCallback>(data.ReadRemoteObject());
     if (callback == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Callback is null.");
+        TAG_LOGE(AAFwkTag::APPMGR, "null callback");
         return ERR_INVALID_VALUE;
     }
     auto recordId = data.ReadInt32();
@@ -379,7 +379,7 @@ int32_t AppSchedulerHost::HandleNotifyHotReloadPage(MessageParcel &data, Message
     HITRACE_METER(HITRACE_TAG_APP);
     auto callback = iface_cast<IQuickFixCallback>(data.ReadRemoteObject());
     if (callback == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Callback is null.");
+        TAG_LOGE(AAFwkTag::APPMGR, "null callback");
         return ERR_INVALID_VALUE;
     }
     auto recordId = data.ReadInt32();
@@ -393,7 +393,7 @@ int32_t AppSchedulerHost::HandleNotifyUnLoadRepairPatch(MessageParcel &data, Mes
     std::string bundleName = data.ReadString();
     auto callback = iface_cast<IQuickFixCallback>(data.ReadRemoteObject());
     if (callback == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Callback is null.");
+        TAG_LOGE(AAFwkTag::APPMGR, "null callback");
         return ERR_INVALID_VALUE;
     }
     auto recordId = data.ReadInt32();
@@ -422,7 +422,7 @@ int32_t AppSchedulerHost::HandleScheduleChangeAppGcState(MessageParcel &data, Me
     int32_t state = data.ReadInt32();
     int32_t result = ScheduleChangeAppGcState(state);
     if (!reply.WriteInt32(result)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "reply write failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "reply write failed");
         return ERR_INVALID_VALUE;
     }
     return NO_ERROR;
@@ -448,7 +448,7 @@ int32_t AppSchedulerHost::HandleScheduleDumpIpcStart(MessageParcel &data, Messag
     std::string result;
     ScheduleDumpIpcStart(result);
     if (!reply.WriteString(result)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Fail to write string of ScheduleDumpIpcStart result");
+        TAG_LOGE(AAFwkTag::APPMGR, "write result failed");
         return ERR_INVALID_VALUE;
     }
     return NO_ERROR;
@@ -460,7 +460,7 @@ int32_t AppSchedulerHost::HandleScheduleDumpIpcStop(MessageParcel &data, Message
     std::string result;
     ScheduleDumpIpcStop(result);
     if (!reply.WriteString(result)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Fail to write string of ScheduleDumpIpcStop result");
+        TAG_LOGE(AAFwkTag::APPMGR, "write result failed");
         return ERR_INVALID_VALUE;
     }
     return NO_ERROR;
@@ -472,7 +472,7 @@ int32_t AppSchedulerHost::HandleScheduleDumpIpcStat(MessageParcel &data, Message
     std::string result;
     ScheduleDumpIpcStat(result);
     if (!reply.WriteString(result)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Fail to write string of ScheduleDumpIpcStat result");
+        TAG_LOGE(AAFwkTag::APPMGR, "write result failed");
         return ERR_INVALID_VALUE;
     }
     return NO_ERROR;
@@ -491,7 +491,7 @@ int32_t AppSchedulerHost::HandleScheduleDumpFfrt(MessageParcel &data, MessagePar
     std::string result;
     ScheduleDumpFfrt(result);
     if (!reply.WriteString(result)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Fail to write string of ScheduleDumpFfrt result");
+        TAG_LOGE(AAFwkTag::APPMGR, "write result failed");
         return ERR_INVALID_VALUE;
     }
     return NO_ERROR;

@@ -29,7 +29,7 @@ JsHeapDumpInfo *JsHeapDumpInfo::Unmarshalling(Parcel &parcel)
 {
     JsHeapDumpInfo *info = new (std::nothrow) JsHeapDumpInfo();
     if (info == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "info nullptr");
+        TAG_LOGE(AAFwkTag::APPMGR, "null info");
         return nullptr;
     }
     info->pid = parcel.ReadUint32();

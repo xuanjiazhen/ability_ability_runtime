@@ -44,14 +44,14 @@ void ConfigurationObserverProxy::OnConfigurationUpdated(const Configuration& con
     data.WriteParcelable(&configuration);
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Remote() is NULL");
+        TAG_LOGE(AAFwkTag::APPMGR, "null remote");
         return;
     }
     int32_t ret = remote->SendRequest(
         static_cast<uint32_t>(IConfigurationObserver::Message::TRANSACT_ON_CONFIGURATION_UPDATED),
         data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
 }
 }

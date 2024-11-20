@@ -28,12 +28,12 @@ bool ChildProcessArgs::ReadFromParcel(Parcel &parcel)
 
     int32_t fdsSize = parcel.ReadInt32();
     if (fdsSize > CHILD_PROCESS_ARGS_FDS_MAX_COUNT) {
-        TAG_LOGE(AAFwkTag::PROCESSMGR, "fds count must <= %{public}d.", CHILD_PROCESS_ARGS_FDS_MAX_COUNT);
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "fds count must <= %{public}d", CHILD_PROCESS_ARGS_FDS_MAX_COUNT);
         return false;
     }
     auto messageParcel = static_cast<MessageParcel*>(&parcel);
     if (messageParcel == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "static cast messageParcel failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "null messageParcel");
         return false;
     }
     for (int32_t i = 0; i < fdsSize; i++) {
@@ -64,7 +64,7 @@ bool ChildProcessArgs::Marshalling(Parcel &parcel) const
     WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, fds.size());
     auto messageParcel = static_cast<MessageParcel*>(&parcel);
     if (messageParcel == nullptr) {
-        TAG_LOGW(AAFwkTag::APPMGR, "static cast messageParcel failed");
+        TAG_LOGW(AAFwkTag::APPMGR, "null messageParcel");
         return false;
     }
     if (!CheckFdsSize()) {
@@ -76,7 +76,7 @@ bool ChildProcessArgs::Marshalling(Parcel &parcel) const
         }
         WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(String16, parcel, Str8ToStr16(item.first));
         if (!messageParcel->WriteFileDescriptor(item.second)) {
-            TAG_LOGE(AAFwkTag::APPMGR, "WriteFileDescriptor failed, fd:%{private}d", item.second);
+            TAG_LOGE(AAFwkTag::APPMGR, "failed:%{private}d", item.second);
             return false;
         }
     }
@@ -87,7 +87,7 @@ bool ChildProcessArgs::CheckFdsSize() const
 {
     TAG_LOGD(AAFwkTag::APPMGR, "CheckFdsSize: %{public}zu", fds.size());
     if (fds.size() > CHILD_PROCESS_ARGS_FDS_MAX_COUNT) {
-        TAG_LOGE(AAFwkTag::PROCESSMGR, "fds count must <= %{public}d.", CHILD_PROCESS_ARGS_FDS_MAX_COUNT);
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "fds count must <= %{public}d", CHILD_PROCESS_ARGS_FDS_MAX_COUNT);
         return false;
     }
     return true;

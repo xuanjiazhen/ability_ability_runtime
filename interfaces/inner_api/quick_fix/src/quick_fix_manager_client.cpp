@@ -52,7 +52,7 @@ int32_t QuickFixManagerClient::ApplyQuickFix(const std::vector<std::string> &qui
     std::vector<std::string> destFiles;
     auto copyRet = bundleQuickFixMgr->CopyFiles(quickFixFiles, destFiles);
     if (copyRet != 0) {
-        TAG_LOGE(AAFwkTag::QUICKFIX, "Copy files failed.");
+        TAG_LOGE(AAFwkTag::QUICKFIX, "copy files failed");
         return (copyRet == ERR_BUNDLEMANAGER_QUICK_FIX_PERMISSION_DENIED) ? QUICK_FIX_VERIFY_PERMISSION_FAILED :
             QUICK_FIX_COPY_FILES_FAILED;
     }
@@ -163,8 +163,7 @@ bool QuickFixManagerClient::LoadQuickFixMgrService()
 
     auto ret = systemAbilityMgr->LoadSystemAbility(QUICK_FIX_MGR_SERVICE_ID, loadCallback);
     if (ret != 0) {
-        TAG_LOGE(AAFwkTag::QUICKFIX, "Load system ability %{public}d failed with %{public}d", QUICK_FIX_MGR_SERVICE_ID,
-            ret);
+        TAG_LOGE(AAFwkTag::QUICKFIX, "load system ability %{public}d failed %{public}d", QUICK_FIX_MGR_SERVICE_ID, ret);
         return false;
     }
 

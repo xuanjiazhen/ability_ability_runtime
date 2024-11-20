@@ -61,7 +61,7 @@ void AppStateCallbackProxy::OnAbilityRequestDone(const sptr<IRemoteObject> &toke
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_ABILITY_REQUEST_DONE), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
     TAG_LOGD(AAFwkTag::APPMGR, "end");
 }
@@ -79,7 +79,7 @@ void AppStateCallbackProxy::OnAppStateChanged(const AppProcessData &appProcessDa
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_APP_STATE_CHANGED), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
     TAG_LOGD(AAFwkTag::APPMGR, "end");
 }
@@ -90,21 +90,21 @@ void AppStateCallbackProxy::NotifyConfigurationChange(const AppExecFwk::Configur
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
     if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return;
     }
     if (!data.WriteParcelable(&config)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write config failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write config failed");
         return;
     }
     if (!data.WriteInt32(userId)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write usr failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write user failed");
         return;
     }
     auto error = SendTransactCmd(
         static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_NOTIFY_CONFIG_CHANGE), data, reply, option);
     if (error != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Send config error: %{public}d", error);
+        TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", error);
     }
 }
 
@@ -114,12 +114,12 @@ void AppStateCallbackProxy::NotifyStartResidentProcess(std::vector<AppExecFwk::B
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
     if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "WriteInterfaceToken failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return;
     }
 
     if (!data.WriteInt32(bundleInfos.size())) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write bundle info size failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write bundle info size failed");
         return;
     }
 
@@ -133,7 +133,7 @@ void AppStateCallbackProxy::NotifyStartResidentProcess(std::vector<AppExecFwk::B
         static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_NOTIFY_START_RESIDENT_PROCESS),
         data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
 }
 
@@ -172,12 +172,12 @@ void AppStateCallbackProxy::OnAppRemoteDied(const std::vector<sptr<IRemoteObject
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
     if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "WriteInterfaceToken failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return;
     }
 
     if (!data.WriteInt32(abilityTokens.size())) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write token size failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token size failed");
         return;
     }
 
@@ -191,7 +191,7 @@ void AppStateCallbackProxy::OnAppRemoteDied(const std::vector<sptr<IRemoteObject
         static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_APP_REMOTE_DIED),
         data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
 }
 
@@ -201,17 +201,17 @@ void AppStateCallbackProxy::NotifyAppPreCache(int32_t pid, int32_t userId)
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
     if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "WriteInterfaceToken failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
         return;
     }
 
     if (!data.WriteInt32(pid)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write pid failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write pid failed");
         return;
     }
 
     if (!data.WriteInt32(userId)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write userId failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "write userId failed");
         return;
     }
 
@@ -219,7 +219,7 @@ void AppStateCallbackProxy::NotifyAppPreCache(int32_t pid, int32_t userId)
         static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_APP_PRE_CACHE),
         data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "error: %{public}d", ret);
     }
 }
 
@@ -228,13 +228,13 @@ int32_t AppStateCallbackProxy::SendTransactCmd(uint32_t code, MessageParcel &dat
 {
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Remote is nullptr.");
+        TAG_LOGE(AAFwkTag::APPMGR, "null remote");
         return ERR_NULL_OBJECT;
     }
 
     auto ret = remote->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Send request failed with error code: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", ret);
         return ret;
     }
     return ret;

@@ -48,7 +48,7 @@ bool AbilityControllerProxy::AllowAbilityStart(const Want &want, const std::stri
         static_cast<uint32_t>(IAbilityController::Message::TRANSACT_ON_ALLOW_ABILITY_START),
         data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest err: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "err: %{public}d", ret);
         return true;
     }
     return reply.ReadBool();
@@ -67,7 +67,7 @@ bool AbilityControllerProxy::AllowAbilityBackground(const std::string &bundleNam
         static_cast<uint32_t>(IAbilityController::Message::TRANSACT_ON_ALLOW_ABILITY_BACKGROUND),
         data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest err: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "err: %{public}d", ret);
         return true;
     }
     return reply.ReadBool();

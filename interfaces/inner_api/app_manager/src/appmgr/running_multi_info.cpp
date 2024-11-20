@@ -78,7 +78,7 @@ bool RunningMultiAppInfo::Marshalling(Parcel &parcel) const
         WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, clone.appCloneIndex);
         WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, clone.uid);
         if (!parcel.WriteInt32Vector(clone.pids)) {
-            TAG_LOGE(AAFwkTag::APPMGR, "write runningAppClones failed.");
+            TAG_LOGE(AAFwkTag::APPMGR, "write pids failed");
             return false;
         }
     }
@@ -90,7 +90,7 @@ bool RunningMultiAppInfo::Marshalling(Parcel &parcel) const
         WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(String16, parcel, Str8ToStr16(instanceInfo.instanceKey));
         WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, instanceInfo.uid);
         if (!parcel.WriteInt32Vector(instanceInfo.pids)) {
-            TAG_LOGE(AAFwkTag::APPMGR, "write runningMultiIntanceInfos failed.");
+            TAG_LOGE(AAFwkTag::APPMGR, "write pids failed");
             return false;
         }
     }

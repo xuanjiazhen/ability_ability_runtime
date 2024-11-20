@@ -36,7 +36,7 @@ int AppDebugListenerStub::OnRemoteRequest(
     std::u16string descriptor = AppDebugListenerStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (descriptor != remoteDescriptor) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Local descriptor is not equal to remote.");
+        TAG_LOGE(AAFwkTag::APPMGR, "local descriptor is not equal to remote");
         return ERR_INVALID_STATE;
     }
 
@@ -55,7 +55,7 @@ int32_t AppDebugListenerStub::HandleOnAppDebugStarted(MessageParcel &data, Messa
 {
     auto infoSize = data.ReadInt32();
     if (infoSize <= CYCLE_LIMIT_MIN || infoSize > CYCLE_LIMIT_MAX) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Token size exceeds limit.");
+        TAG_LOGE(AAFwkTag::APPMGR, "token size exceeds limit");
         return ERR_INVALID_DATA;
     }
 
@@ -63,7 +63,7 @@ int32_t AppDebugListenerStub::HandleOnAppDebugStarted(MessageParcel &data, Messa
     for (int32_t index = 0; index < infoSize; index++) {
         std::unique_ptr<AppDebugInfo> appDebugInfo(data.ReadParcelable<AppDebugInfo>());
         if (appDebugInfo == nullptr) {
-            TAG_LOGE(AAFwkTag::APPMGR, "Read app debug infos failed.");
+            TAG_LOGE(AAFwkTag::APPMGR, "null appDebugInfo");
             return ERR_INVALID_DATA;
         }
         appDebugInfos.emplace_back(*appDebugInfo);
@@ -77,7 +77,7 @@ int32_t AppDebugListenerStub::HandleOnAppDebugStoped(MessageParcel &data, Messag
 {
     auto infoSize = data.ReadInt32();
     if (infoSize <= CYCLE_LIMIT_MIN || infoSize > CYCLE_LIMIT_MAX) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Token size exceeds limit.");
+        TAG_LOGE(AAFwkTag::APPMGR, "token size exceeds limit");
         return ERR_INVALID_DATA;
     }
 
@@ -85,7 +85,7 @@ int32_t AppDebugListenerStub::HandleOnAppDebugStoped(MessageParcel &data, Messag
     for (int32_t index = 0; index < infoSize; index++) {
         std::unique_ptr<AppDebugInfo> appDebugInfo(data.ReadParcelable<AppDebugInfo>());
         if (appDebugInfo == nullptr) {
-            TAG_LOGE(AAFwkTag::APPMGR, "Read app debug infos failed.");
+            TAG_LOGE(AAFwkTag::APPMGR, "null appDebugInfo");
             return ERR_INVALID_DATA;
         }
         appDebugInfos.emplace_back(*appDebugInfo);

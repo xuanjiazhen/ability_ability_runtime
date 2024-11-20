@@ -127,7 +127,7 @@ int32_t AppStateCallbackHost::HandleNotifyConfigurationChange(MessageParcel &dat
 {
     std::unique_ptr<AppExecFwk::Configuration> config(data.ReadParcelable<AppExecFwk::Configuration>());
     if (config == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "To read config failed.");
+        TAG_LOGE(AAFwkTag::APPMGR, "read config failed");
         return ERR_DEAD_OBJECT;
     }
     auto userId = data.ReadInt32();
@@ -140,13 +140,13 @@ int32_t AppStateCallbackHost::HandleNotifyStartResidentProcess(MessageParcel &da
     std::vector<AppExecFwk::BundleInfo> bundleInfos;
     int32_t infoSize = data.ReadInt32();
     if (infoSize > CYCLE_LIMIT) {
-        TAG_LOGE(AAFwkTag::APPMGR, "infoSize is too large");
+        TAG_LOGE(AAFwkTag::APPMGR, "infoSize too large");
         return ERR_INVALID_VALUE;
     }
     for (int32_t i = 0; i < infoSize; i++) {
         std::unique_ptr<AppExecFwk::BundleInfo> bundleInfo(data.ReadParcelable<AppExecFwk::BundleInfo>());
         if (!bundleInfo) {
-            TAG_LOGE(AAFwkTag::APPMGR, "Read Parcelable infos failed.");
+            TAG_LOGE(AAFwkTag::APPMGR, "read bundle info failed");
             return ERR_INVALID_VALUE;
         }
         bundleInfos.emplace_back(*bundleInfo);
@@ -180,13 +180,13 @@ int32_t AppStateCallbackHost::HandleOnAppRemoteDied(MessageParcel &data, Message
     std::vector<sptr<IRemoteObject>> abilityTokens;
     int32_t infoSize = data.ReadInt32();
     if (infoSize > CYCLE_LIMIT) {
-        TAG_LOGE(AAFwkTag::APPMGR, "infoSize is too large");
+        TAG_LOGE(AAFwkTag::APPMGR, "infoSize too large");
         return ERR_INVALID_VALUE;
     }
     for (int32_t i = 0; i < infoSize; i++) {
         sptr<IRemoteObject> obj = data.ReadRemoteObject();
         if (!obj) {
-            TAG_LOGE(AAFwkTag::APPMGR, "Read token failed.");
+            TAG_LOGE(AAFwkTag::APPMGR, "read token failed");
             return ERR_INVALID_VALUE;
         }
         abilityTokens.emplace_back(obj);
@@ -199,12 +199,12 @@ int32_t AppStateCallbackHost::HandleNotifyAppPreCache(MessageParcel &data, Messa
 {
     int32_t pid = data.ReadInt32();
     if (pid <= 0) {
-        TAG_LOGE(AAFwkTag::APPMGR, "pid is illegal");
+        TAG_LOGE(AAFwkTag::APPMGR, "pid illegal");
         return ERR_INVALID_VALUE;
     }
     int32_t userId = data.ReadInt32();
     if (userId < 0) {
-        TAG_LOGE(AAFwkTag::APPMGR, "userId is illegal");
+        TAG_LOGE(AAFwkTag::APPMGR, "userId illegal");
         return ERR_INVALID_VALUE;
     }
     NotifyAppPreCache(pid, userId);

@@ -73,7 +73,7 @@ int32_t AutoFillManager::RequestAutoSave(Ace::UIContent *uiContent, const AutoFi
 {
     TAG_LOGD(AAFwkTag::AUTOFILLMGR, "called");
     if (uiContent == nullptr || saveCallback == nullptr) {
-        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "null UIContent or saveCallback");
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "null uiContent or saveCallback");
         return AutoFill::AUTO_FILL_OBJECT_IS_NULL;
     }
     return HandleRequestExecuteInner(uiContent, request, nullptr, saveCallback, result);
@@ -341,7 +341,7 @@ std::shared_ptr<AutoFillExtensionCallback> AutoFillManager::GetAutoFillExtension
     std::lock_guard<std::mutex> lock(extensionCallbacksMutex_);
     auto iter = extensionCallbacks_.find(callbackId);
     if (iter == extensionCallbacks_.end()) {
-        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "not find, callbackId: %{public}u", callbackId);
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "not find callbackId: %{public}u", callbackId);
         return nullptr;
     }
     return iter->second;

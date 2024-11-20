@@ -35,7 +35,7 @@ Profile *Profile::Unmarshalling(Parcel &parcel)
 {
     Profile *profile = new (std::nothrow) Profile();
     if (profile && !profile->ReadFromParcel(parcel)) {
-        TAG_LOGW(AAFwkTag::APPMGR, "failed, because ReadFromParcel failed");
+        TAG_LOGW(AAFwkTag::APPMGR, "read parcel failed");
         delete profile;
         profile = nullptr;
     }

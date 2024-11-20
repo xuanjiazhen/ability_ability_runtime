@@ -46,7 +46,7 @@ PageStateData *PageStateData::Unmarshalling(Parcel &parcel)
 {
     PageStateData *pageStateData = new (std::nothrow) PageStateData();
     if (pageStateData && !pageStateData->ReadFromParcel(parcel)) {
-        TAG_LOGW(AAFwkTag::APPMGR, "failed, because ReadFromParcel failed");
+        TAG_LOGW(AAFwkTag::APPMGR, "read from parcel failed");
         delete pageStateData;
         pageStateData = nullptr;
     }

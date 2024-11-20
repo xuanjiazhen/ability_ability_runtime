@@ -64,11 +64,11 @@ int ExtensionManagerProxy::ConnectAbilityCommon(const Want &want, const sptr<IRe
         }
     }
     if (!data.WriteInt32(userId)) {
-        TAG_LOGE(AAFwkTag::EXTMGR, "userId write failed.");
+        TAG_LOGE(AAFwkTag::EXTMGR, "userId write failed");
         return INNER_ERR;
     }
     if (!data.WriteInt32(static_cast<int32_t>(extensionType))) {
-        TAG_LOGE(AAFwkTag::EXTMGR, "extensionType write failed.");
+        TAG_LOGE(AAFwkTag::EXTMGR, "extensionType write failed");
         return INNER_ERR;
     }
     if (!data.WriteBool(isQueryExtensionOnly)) {
@@ -80,7 +80,7 @@ int ExtensionManagerProxy::ConnectAbilityCommon(const Want &want, const sptr<IRe
     MessageOption option;
     int error = SendRequest(AbilityManagerInterfaceCode::CONNECT_ABILITY_WITH_TYPE, data, reply, option);
     if (error != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::EXTMGR, "Send request error: %{public}d", error);
+        TAG_LOGE(AAFwkTag::EXTMGR, "error: %{public}d", error);
         return error;
     }
     return reply.ReadInt32();
@@ -106,7 +106,7 @@ int ExtensionManagerProxy::DisconnectAbility(const sptr<IRemoteObject> &connect)
     MessageOption option;
     auto error = SendRequest(AbilityManagerInterfaceCode::DISCONNECT_ABILITY, data, reply, option);
     if (error != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::EXTMGR, "Send request error: %{public}d", error);
+        TAG_LOGE(AAFwkTag::EXTMGR, "error: %{public}d", error);
         return error;
     }
     return reply.ReadInt32();

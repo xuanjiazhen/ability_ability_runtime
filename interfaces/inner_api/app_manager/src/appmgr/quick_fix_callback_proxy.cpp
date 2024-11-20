@@ -76,14 +76,14 @@ bool QuickFixCallbackProxy::SendRequestWithCmd(uint32_t code, MessageParcel &dat
 {
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Remote is nullptr.");
+        TAG_LOGE(AAFwkTag::APPMGR, "null remote");
         return false;
     }
 
     MessageOption option(MessageOption::TF_SYNC);
     auto ret = remote->SendRequest(code, data, reply, option);
     if (ret != 0) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Send request failed with error %{public}d.", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "error: %{public}d", ret);
         return false;
     }
 

@@ -87,7 +87,7 @@ void AbilityDebugResponseProxy::OnAbilitysAssertDebugChange(
     MessageOption option;
     auto ret = remote->SendRequest(static_cast<uint32_t>(Message::ON_ABILITYS_ASSERT_DEBUG), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest err: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d", ret);
     }
 }
 
@@ -124,7 +124,7 @@ void AbilityDebugResponseProxy::SendRequest(
     MessageOption option(MessageOption::TF_SYNC);
     auto ret = remote->SendRequest(static_cast<uint32_t>(message), data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest err: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d", ret);
     }
 }
 } // namespace AppExecFwk

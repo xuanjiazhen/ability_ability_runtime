@@ -64,7 +64,7 @@ int UriPermissionManagerProxy::GrantUriPermission(const Uri &uri, unsigned int f
     MessageOption option;
     int error = SendTransactCmd(UriPermMgrCmd::ON_GRANT_URI_PERMISSION, data, reply, option);
     if (error != ERR_OK) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "SendRequest failed, error:%{public}d", error);
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "error:%{public}d", error);
         return INNER_ERR;
     }
     return reply.ReadInt32();
@@ -117,7 +117,7 @@ int UriPermissionManagerProxy::GrantUriPermission(const std::vector<Uri> &uriVec
     MessageOption option;
     int error = SendTransactCmd(UriPermMgrCmd::ON_BATCH_GRANT_URI_PERMISSION, data, reply, option);
     if (error != ERR_OK) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "SendRequest failed, error:%{public}d", error);
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "error:%{public}d", error);
         return INNER_ERR;
     }
     return reply.ReadInt32();
@@ -170,7 +170,7 @@ int32_t UriPermissionManagerProxy::GrantUriPermissionPrivileged(const std::vecto
     MessageOption option;
     int error = SendTransactCmd(UriPermMgrCmd::ON_GRANT_URI_PERMISSION_PRIVILEGED, data, reply, option);
     if (error != ERR_OK) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "SendRequest failed, error:%{public}d", error);
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "error:%{public}d", error);
         return INNER_ERR;
     }
     return reply.ReadInt32();
@@ -196,7 +196,7 @@ void UriPermissionManagerProxy::RevokeUriPermission(const uint32_t tokenId, int3
     MessageOption option;
     int error = SendTransactCmd(UriPermMgrCmd::ON_REVOKE_URI_PERMISSION, data, reply, option);
     if (error != ERR_OK) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "SendRequest fail, error:%{public}d", error);
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "error:%{public}d", error);
     }
 }
 
@@ -216,7 +216,7 @@ int UriPermissionManagerProxy::RevokeAllUriPermissions(const uint32_t tokenId)
     MessageOption option;
     int error = SendTransactCmd(UriPermMgrCmd::ON_REVOKE_ALL_URI_PERMISSION, data, reply, option);
     if (error != ERR_OK) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "SendRequest fail, error:%{public}d", error);
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "error:%{public}d", error);
         return INNER_ERR;
     }
     return reply.ReadInt32();
@@ -247,7 +247,7 @@ int UriPermissionManagerProxy::RevokeUriPermissionManually(const Uri &uri, const
     MessageOption option;
     int error = SendTransactCmd(UriPermMgrCmd::ON_REVOKE_URI_PERMISSION_MANUALLY, data, reply, option);
     if (error != ERR_OK) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "SendRequest fail, error:%{public}d", error);
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "error:%{public}d", error);
         return INNER_ERR;
     }
     return reply.ReadInt32();
@@ -277,7 +277,7 @@ bool UriPermissionManagerProxy::VerifyUriPermission(const Uri& uri, uint32_t fla
     MessageOption option;
     int error = SendTransactCmd(UriPermMgrCmd::ON_VERIFY_URI_PERMISSION, data, reply, option);
     if (error != ERR_OK) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "SendRequest fail, error:%{public}d", error);
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "error:%{public}d", error);
         return false;
     }
     return reply.ReadBool();
@@ -319,7 +319,7 @@ std::vector<bool> UriPermissionManagerProxy::CheckUriAuthorization(const std::ve
     MessageOption option;
     int error = SendTransactCmd(UriPermMgrCmd::ON_CHECK_URI_AUTHORIZATION, data, reply, option);
     if (error != ERR_OK) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "SendRequest error:%{public}d", error);
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "error:%{public}d", error);
         return result;
     }
     auto size = reply.ReadUint32();
@@ -334,13 +334,13 @@ int32_t UriPermissionManagerProxy::SendTransactCmd(uint32_t code, MessageParcel 
 {
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "remoteObject null");
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "null remote");
         return ERR_NULL_OBJECT;
     }
 
     int32_t ret = remote->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "SendRequest failed. code:%{public}d, ret:%{public}d", code, ret);
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "code:%{public}d, ret:%{public}d", code, ret);
         return ret;
     }
     return NO_ERROR;

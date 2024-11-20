@@ -28,7 +28,7 @@ AbilityControllerStub::~AbilityControllerStub() {}
 int AbilityControllerStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "OnReceived, code:%{public}u, flags:%{public}d", code,
+    TAG_LOGI(AAFwkTag::APPMGR, "code:%{public}u, flags:%{public}d", code,
         option.GetFlags());
     std::u16string descriptor = AbilityControllerStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
