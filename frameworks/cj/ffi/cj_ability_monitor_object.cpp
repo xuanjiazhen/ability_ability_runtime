@@ -18,7 +18,7 @@
 #include "hilog_tag_wrapper.h"
 
 namespace {
-    CJMonitorFuncs* g_cjMonitorFuncs = nullptr;
+    CJMonitorFuncs g_cjMonitorFuncs = {};
 }
 
 void RegisterCJMonitorFuncs(void (*registerFunc)(CJMonitorFuncs*))
@@ -33,8 +33,8 @@ void RegisterCJMonitorFuncs(void (*registerFunc)(CJMonitorFuncs*))
         TAG_LOGE(AAFwkTag::DELEGATOR, "null registerFunc");
     }
 
-    g_cjMonitorFuncs = new CJMonitorFuncs();
-    registerFunc(g_cjMonitorFuncs);
+
+    registerFunc(&g_cjMonitorFuncs);
     TAG_LOGD(AAFwkTag::DELEGATOR, "RegisterCJMonitorFuncs end");
 }
 
@@ -46,43 +46,57 @@ CJMonitorObject::CJMonitorObject(const int64_t monitorId) : monitorId_(monitorId
 void CJMonitorObject::OnAbilityCreate(const int64_t abilityId)
 {
     TAG_LOGD(AAFwkTag::DELEGATOR, "CJMonitorObject::OnAbilityCreate called");
-    g_cjMonitorFuncs->cjOnAbilityCreate(monitorId_, abilityId);
+    if (g_cjMonitorFuncs.cjOnAbilityCreate) {
+        g_cjMonitorFuncs.cjOnAbilityCreate(monitorId_, abilityId);
+    }
 }
 
 void CJMonitorObject::OnAbilityForeground(const int64_t abilityId)
 {
     TAG_LOGD(AAFwkTag::DELEGATOR, "CJMonitorObject::OnAbilityForeground called");
-    g_cjMonitorFuncs->cjOnAbilityForeground(monitorId_, abilityId);
+    if (g_cjMonitorFuncs.cjOnAbilityForeground) {
+        g_cjMonitorFuncs.cjOnAbilityForeground(monitorId_, abilityId);
+    }
 }
 
 void CJMonitorObject::OnAbilityBackground(const int64_t abilityId)
 {
     TAG_LOGD(AAFwkTag::DELEGATOR, "CJMonitorObject::OnAbilityBackground called");
-    g_cjMonitorFuncs->cjOnAbilityBackground(monitorId_, abilityId);
+    if (g_cjMonitorFuncs.cjOnAbilityBackground) {
+        g_cjMonitorFuncs.cjOnAbilityBackground(monitorId_, abilityId);
+    }
 }
 
 void CJMonitorObject::OnAbilityDestroy(const int64_t abilityId)
 {
     TAG_LOGD(AAFwkTag::DELEGATOR, "CJMonitorObject::OnAbilityDestroy called");
-    g_cjMonitorFuncs->cjOnAbilityDestroy(monitorId_, abilityId);
+    if (g_cjMonitorFuncs.cjOnAbilityDestroy) {
+        g_cjMonitorFuncs.cjOnAbilityDestroy(monitorId_, abilityId);
+    }
 }
 
 void CJMonitorObject::OnWindowStageCreate(const int64_t abilityId)
 {
     TAG_LOGD(AAFwkTag::DELEGATOR, "CJMonitorObject::OnWindowStageCreate called");
-    g_cjMonitorFuncs->cjOnWindowStageCreate(monitorId_, abilityId);
+    if (g_cjMonitorFuncs.cjOnWindowStageCreate) {
+        g_cjMonitorFuncs.cjOnWindowStageCreate(monitorId_, abilityId);
+    }
 }
 
 void CJMonitorObject::OnWindowStageRestore(const int64_t abilityId)
 {
     TAG_LOGD(AAFwkTag::DELEGATOR, "CJMonitorObject::OnWindowStageRestore called");
-    g_cjMonitorFuncs->cjOnWindowStageRestore(monitorId_, abilityId);
+    if (g_cjMonitorFuncs.cjOnWindowStageRestore) {
+        g_cjMonitorFuncs.cjOnWindowStageRestore(monitorId_, abilityId);
+    }
 }
 
 void CJMonitorObject::OnWindowStageDestroy(const int64_t abilityId)
 {
     TAG_LOGD(AAFwkTag::DELEGATOR, "CJMonitorObject::OnWindowStageDestroy called");
-    g_cjMonitorFuncs->cjOnWindowStageDestroy(monitorId_, abilityId);
+    if (g_cjMonitorFuncs.cjOnWindowStageDestroy) {
+        g_cjMonitorFuncs.cjOnWindowStageDestroy(monitorId_, abilityId);
+    }
 }
 } // namespace AbilityDelegatorCJ
 } // namespace OHOS
