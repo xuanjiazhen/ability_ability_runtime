@@ -2717,12 +2717,15 @@ int AbilityManagerService::PreloadUIExtensionAbility(const Want &want, std::stri
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "called");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    EventInfo eventInfo = BuildEventInfo(want, userId);
     // check preload ui extension permission.
     CHECK_CALLER_IS_SYSTEM_APP;
     if (!PermissionVerification::GetInstance()->VerifyCallingPermission(
         PermissionConstants::PERMISSION_PRELOAD_UI_EXTENSION_ABILITY)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "permission %{public}s verification failed",
             PermissionConstants::PERMISSION_PRELOAD_UI_EXTENSION_ABILITY);
+        eventInfo.errCode = ERR_PERMISSION_DENIED;
+        EventReport::SendExtensionEvent(EventName::PRELOAD_EXTENSION_ERROR, HiSysEventType::FAULT, eventInfo);
         return ERR_PERMISSION_DENIED;
     }
     return PreloadUIExtensionAbilityInner(want, bundleName, userId);
@@ -2732,12 +2735,15 @@ int AbilityManagerService::PreloadUIExtensionAbilityInner(const Want &want, std:
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Preload ui extension called, elementName: %{public}s.",
         want.GetElement().GetURI().c_str());
+    EventInfo eventInfo = BuildEventInfo(want, userId);
     int32_t validUserId = GetValidUserId(userId);
     AbilityRequest abilityRequest;
     ErrCode result = ERR_OK;
     result = GenerateExtensionAbilityRequest(want, abilityRequest, nullptr, validUserId);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "generate abilityReq error");
+        eventInfo.errCode = result;
+        EventReport::SendExtensionEvent(EventName::PRELOAD_EXTENSION_ERROR, HiSysEventType::FAULT, eventInfo);
         return result;
     }
     abilityRequest.extensionType = abilityRequest.abilityInfo.extensionAbilityType;
@@ -2746,11 +2752,15 @@ int AbilityManagerService::PreloadUIExtensionAbilityInner(const Want &want, std:
     auto res = JudgeAbilityVisibleControl(abilityInfo);
     if (res != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "target ability invisible");
+        eventInfo.errCode = res;
+        EventReport::SendExtensionEvent(EventName::PRELOAD_EXTENSION_ERROR, HiSysEventType::FAULT, eventInfo);
         return res;
     }
     auto connectManager = GetConnectManagerByUserId(validUserId);
     if (connectManager == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "connectManager null, userId:%{public}d", validUserId);
+        eventInfo.errCode = ERR_INVALID_VALUE;
+        EventReport::SendExtensionEvent(EventName::PRELOAD_EXTENSION_ERROR, HiSysEventType::FAULT, eventInfo);
         return ERR_INVALID_VALUE;
     }
     return connectManager->PreloadUIExtensionAbilityLocked(abilityRequest, hostBundleName);
@@ -3092,11 +3102,14 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
     CHECK_POINTER_AND_RETURN(extensionSessionInfo, ERR_INVALID_VALUE);
     SetPickerElementName(extensionSessionInfo, userId);
     SetAutoFillElementName(extensionSessionInfo);
+    EventInfo eventInfo = BuildEventInfo(extensionSessionInfo->want, userId);
 
     if (extensionSessionInfo->want.HasParameter(AAFwk::SCREEN_MODE_KEY)) {
         int32_t screenMode = extensionSessionInfo->want.GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
         if (screenMode != AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "only support embedded pull-ups");
+            eventInfo.errCode = ERR_INVALID_VALUE;
+            EventReport::SendExtensionEvent(EventName::START_EXTENSION_ERROR, HiSysEventType::FAULT, eventInfo);
             return ERR_INVALID_VALUE;
         }
         auto bms = AbilityUtil::GetBundleManagerHelper();
@@ -3105,15 +3118,21 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
         if (!IN_PROCESS_CALL(bms->GetBundleInfo(extensionSessionInfo->want.GetBundle(),
             AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, bundleInfo, GetValidUserId(userId)))) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "verifyPermission failed get application info");
+            eventInfo.errCode = CHECK_PERMISSION_FAILED;
+            EventReport::SendExtensionEvent(EventName::START_EXTENSION_ERROR, HiSysEventType::FAULT, eventInfo);
             return CHECK_PERMISSION_FAILED;
         }
         if (bundleInfo.applicationInfo.bundleType != AppExecFwk::BundleType::ATOMIC_SERVICE) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "only support atomicService");
+            eventInfo.errCode = ERR_INVALID_CALLER;
+            EventReport::SendExtensionEvent(EventName::START_EXTENSION_ERROR, HiSysEventType::FAULT, eventInfo);
             return ERR_INVALID_CALLER;
         }
         if (extensionSessionInfo->want.GetElement().GetAbilityName().empty()) {
             if (bundleInfo.abilityInfos.empty()) {
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get abilityInfos");
+                eventInfo.errCode = ERR_INVALID_VALUE;
+                EventReport::SendExtensionEvent(EventName::START_EXTENSION_ERROR, HiSysEventType::FAULT, eventInfo);
                 return ERR_INVALID_VALUE;
             }
             extensionSessionInfo->want.SetElementName(bundleInfo.name, bundleInfo.abilityInfos.begin()->name);
@@ -3125,14 +3144,17 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
         AppExecFwk::ExtensionAbilityType::UI : AppExecFwk::ConvertToExtensionAbilityType(extensionTypeStr);
     if (extensionType == AppExecFwk::ExtensionAbilityType::UNSPECIFIED) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "input extension ability type invalid");
+        eventInfo.errCode = ERR_INVALID_VALUE;
+        EventReport::SendExtensionEvent(EventName::START_EXTENSION_ERROR, HiSysEventType::FAULT, eventInfo);
         return ERR_INVALID_VALUE;
     }
-    EventInfo eventInfo = BuildEventInfo(extensionSessionInfo->want, userId);
     eventInfo.extensionType = static_cast<int32_t>(extensionType);
 
     auto ret = CheckUIExtensionUsage(extensionSessionInfo->uiExtensionUsage, extensionType);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "check usage failed");
+        eventInfo.errCode = ret;
+        EventReport::SendExtensionEvent(EventName::START_EXTENSION_ERROR, HiSysEventType::FAULT, eventInfo);
         return ret;
     }
 
@@ -6436,6 +6458,7 @@ int AbilityManagerService::GenerateExtensionAbilityRequest(
     request.want = want;
     request.callerToken = callerToken;
     request.startSetting = nullptr;
+    request.userId = userId;
 
     auto abilityInfo = StartAbilityUtils::startAbilityInfo;
     if (abilityInfo == nullptr || abilityInfo->GetAppBundleName() != want.GetElement().GetBundleName()) {

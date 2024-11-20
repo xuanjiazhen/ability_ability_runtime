@@ -68,6 +68,7 @@ enum class EventName {
     STOP_EXTENSION_ERROR,
     CONNECT_SERVICE_ERROR,
     DISCONNECT_SERVICE_ERROR,
+    PRELOAD_EXTENSION_ERROR,
 
     // ability behavior event
     START_ABILITY,

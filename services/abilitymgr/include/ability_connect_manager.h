@@ -619,6 +619,7 @@ private:
         std::shared_ptr<AbilityRecord> &targetService, bool &isLoadedAbility);
     void HandleNotifyAssertFaultDialogDied(const std::shared_ptr<AbilityRecord> &abilityRecord);
     EventInfo BuildEventInfo(const std::shared_ptr<AbilityRecord> &abilityRecord);
+    EventInfo BuildEventInfo(const AbilityRequest &abilityRequest);
     void UpdateUIExtensionInfo(const std::shared_ptr<AbilityRecord> &abilityRecord);
     std::string GenerateBundleName(const AbilityRequest &abilityRequest) const;
 
