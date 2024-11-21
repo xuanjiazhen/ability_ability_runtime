@@ -37,7 +37,7 @@ enum class KeepAliveType : int32_t {
 class KeepAliveUtils final {
 public:
     /**
-     * CheckMainElement, check main element.
+     * NotifyDisableKeepAliveProcesses, notify disable keep-alive processes.
      *
      * @param bundleInfos The list of bundle info.
      * @param userId User id.

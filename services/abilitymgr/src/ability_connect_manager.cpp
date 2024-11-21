@@ -657,17 +657,35 @@ void AbilityConnectManager::HandleActiveAbility(std::shared_ptr<AbilityRecord> &
         return;
     }
 
-    if (targetService->GetConnectRecordList().size() > 1) {
+    if (targetService->GetConnectedListSize() >= 1) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "connected");
         targetService->RemoveSignatureInfo();
-        if (taskHandler_ != nullptr && targetService->GetConnRemoteObject()) {
-            auto task = [connectRecord]() { connectRecord->CompleteConnect(ERR_OK); };
-            taskHandler_->SubmitTask(task, TaskQoS::USER_INTERACTIVE);
-        } else {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "connecting");
+        if (taskHandler_ == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "taskHandler null");
+            return;
         }
-    } else {
+        auto task = [weak = weak_from_this(), connectRecord]() {
+            auto manager = weak.lock();
+            if (manager == nullptr) {
+                TAG_LOGE(AAFwkTag::APPKIT, "manager null");
+                return;
+            }
+            manager->CompleteConnectTask(connectRecord);
+        };
+        taskHandler_->SubmitTask(task, TaskQoS::USER_INTERACTIVE);
+    } else if (targetService->GetConnectingListSize() <= 1) {
         ConnectAbility(targetService);
+    } else {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "connecting");
     }
+}
+
+void AbilityConnectManager::CompleteConnectTask(std::shared_ptr<ConnectionRecord> connectRecord)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    CHECK_POINTER(connectRecord);
+    std::lock_guard guard(serialMutex_);
+    connectRecord->CompleteConnect(ERR_OK);
 }
 
 int AbilityConnectManager::DisconnectAbilityLocked(const sptr<IAbilityConnection> &connect)
@@ -1440,9 +1458,9 @@ void AbilityConnectManager::LoadAbility(const std::shared_ptr<AbilityRecord> &ab
     loadParam.token = token;
     loadParam.preToken = perToken;
     loadParam.instanceKey = abilityRecord->GetInstanceKey();
+    loadParam.isCallerSetProcess = abilityRecord->IsCallerSetProcess();
     DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility(
         loadParam, abilityRecord->GetAbilityInfo(), abilityRecord->GetApplicationInfo(), abilityRecord->GetWant());
-    abilityRecord->SetLoadState(AbilityLoadState::LOADING);
 }
 
 void AbilityConnectManager::PostRestartResidentTask(const AbilityRequest &abilityRequest)
@@ -1543,7 +1561,6 @@ void AbilityConnectManager::HandleStartTimeoutTask(const std::shared_ptr<Ability
     TAG_LOGW(AAFwkTag::ABILITYMGR, "load timeout");
     std::lock_guard guard(serialMutex_);
     CHECK_POINTER(abilityRecord);
-    abilityRecord->SetLoadState(AbilityLoadState::FAILED);
     if (UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "consume session timeout, Uri: %{public}s", abilityRecord->GetURI().c_str());
         if (uiExtensionAbilityRecordMgr_ != nullptr && IsCallerValid(abilityRecord)) {
@@ -1737,6 +1754,8 @@ int AbilityConnectManager::DispatchTerminate(const std::shared_ptr<AbilityRecord
     if (taskHandler_ != nullptr) {
         taskHandler_->CancelTask("terminate_" + std::to_string(abilityRecord->GetAbilityRecordId()));
     }
+    ResSchedUtil::GetInstance().ReportLoadingEventToRss(LoadingStage::DESTROY_END, abilityRecord->GetPid(),
+        abilityRecord->GetUid(), 0, abilityRecord->GetRecordId());
     // complete terminate
     TerminateDone(abilityRecord);
     return ERR_OK;

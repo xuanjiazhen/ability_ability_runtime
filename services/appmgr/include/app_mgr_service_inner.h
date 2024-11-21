@@ -196,6 +196,15 @@ public:
     virtual void KillProcessesByPids(std::vector<int32_t> &pids);
 
     /**
+     * KillProcessesInBatch, kill processes in batch;
+     * the killed bundle won't be started by the watcher.
+     *
+     * @param pids, the pid list of processes are going to be killed.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int32_t KillProcessesInBatch(const std::vector<int32_t> &pids);
+
+    /**
      * Set child and parent relationship
      * @param token child process
      * @param callerToken parent process
@@ -1370,6 +1379,12 @@ public:
     bool IsProcessAttached(sptr<IRemoteObject> token) const;
 
     /**
+     * Is a process of a ability killing
+     * @param indicates the ability
+     */
+    bool IsCallerKilling(const std::string& callerKey) const;
+
+    /**
      * @brief Notify abilityms app process pre cache
      * @param pid process pid.
      * @param userId userId Designation User ID.
@@ -1399,6 +1414,8 @@ public:
      */
     virtual int32_t CheckIsKiaProcess(pid_t pid, bool &isKia);
 
+    void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey);
+
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
@@ -1423,9 +1440,8 @@ private:
      */
     void RestartKeepAliveProcess(std::shared_ptr<AppRunningRecord> appRecord);
 
-    bool CheckLoadAbilityConditions(std::shared_ptr<AAFwk::Want> want,
-        std::shared_ptr<AbilityRuntime::LoadParam> loadParam, const std::shared_ptr<AbilityInfo> &abilityInfo,
-        const std::shared_ptr<ApplicationInfo> &appInfo);
+    bool CheckLoadAbilityConditions(const sptr<IRemoteObject> &token,
+        const std::shared_ptr<AbilityInfo> &abilityInfo, const std::shared_ptr<ApplicationInfo> &appInfo);
 
     /**
      * query bundle info for the given bundleName
@@ -1445,7 +1461,7 @@ private:
      */
     void MakeProcessName(const std::shared_ptr<AbilityInfo> &abilityInfo,
         const std::shared_ptr<ApplicationInfo> &appInfo, const HapModuleInfo &hapModuleInfo, int32_t appIndex,
-        const std::string &specifiedProcessFlag, std::string &processName) const;
+        const std::string &specifiedProcessFlag, std::string &processName, bool isCallerSetProcess) const;
 
     /**
      * Build a process's name based on the info given
@@ -1912,7 +1928,7 @@ private:
     std::vector<LoadAbilityTaskFunc> loadAbilityTaskFuncList_;
     sptr<IKiaInterceptor> kiaInterceptor_;
     std::shared_ptr<MultiUserConfigurationMgr> multiUserConfigurationMgr_;
-    int32_t willKillPidsNum_;
+    std::atomic<int32_t> willKillPidsNum_ = 0;
     std::shared_ptr<AAFwk::TaskHandlerWrap> delayKillTaskHandler_;
     std::unordered_set<std::string> nwebPreloadSet_ {};
 };

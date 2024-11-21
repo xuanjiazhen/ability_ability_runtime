@@ -734,9 +734,8 @@ void MainThread::ScheduleLaunchAbility(const AbilityInfo &info, const sptr<IRemo
         tmpWatchdog->SetBgWorkingThreadStatus(IsBgWorkingThread(info));
         tmpWatchdog = nullptr;
     }
-    FreezeUtil::LifecycleFlow flow = { token, FreezeUtil::TimeoutState::LOAD };
-    std::string entry = "MainThread::ScheduleLaunchAbility; the load lifecycle.";
-    FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
+    std::string entry = "MainThread::ScheduleLaunchAbility";
+    FreezeUtil::GetInstance().AddLifecycleEvent(token, entry);
 
     wptr<MainThread> weak = this;
     auto task = [weak, abilityRecord]() {
@@ -1297,7 +1296,7 @@ CJUncaughtExceptionInfo MainThread::CreateCjExceptionInfo(const std::string &bun
 void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, const Configuration &config)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "HandleLaunchApplication:begin");
+    FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "HandleLaunchApplication begin");
     if (!CheckForHandleLaunchApplication(appLaunchData)) {
         TAG_LOGE(AAFwkTag::APPKIT, "CheckForHandleLaunchApplication failed");
         return;
@@ -1521,9 +1520,6 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
                 return appThread->NotifyDeviceDisConnect();
             };
             runtime->SetDeviceDisconnectCallback(cb);
-        }
-        if (appLaunchData.IsNeedPreloadModule()) {
-            PreloadModule(entryHapModuleInfo, runtime);
         }
         auto perfCmd = appLaunchData.GetPerfCmd();
 
@@ -1751,7 +1747,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         TAG_LOGE(AAFwkTag::APPKIT, "applicationImpl_->PerformAppReady failed");
         return;
     }
-    FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "HandleLaunchApplication:end");
+    FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "HandleLaunchApplication end");
     // L1 needs to add corresponding interface
     ApplicationEnvImpl *pAppEvnIml = ApplicationEnvImpl::GetInstance();
 
@@ -1790,6 +1786,9 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         HandleNWebPreload();
     }
 #endif
+    if (appLaunchData.IsNeedPreloadModule()) {
+        PreloadModule(entryHapModuleInfo, application_->GetRuntime());
+    }
 }
 
 #if defined(NWEB) && defined(NWEB_GRAPHIC)
@@ -1808,6 +1807,10 @@ void MainThread::HandleNWebPreload()
         Rosen::RSSurfaceNodeConfig config;
         config.SurfaceNodeName = NWEB_SURFACE_NODE_NAME;
         preloadSurfaceNode_ = Rosen::RSSurfaceNode::Create(config, false);
+        if (!preloadSurfaceNode_) {
+            TAG_LOGE(AAFwkTag::APPKIT, "preload surface node is nullptr");
+            return;
+        }
         auto surface = preloadSurfaceNode_->GetSurface();
         if (!surface) {
             TAG_LOGE(AAFwkTag::APPKIT, "preload surface is nullptr");
@@ -1832,7 +1835,7 @@ void MainThread::HandleNWebPreload()
 }
 #endif
 
-void MainThread::ProcessMainAbility(const AbilityInfo &info, std::unique_ptr<AbilityRuntime::Runtime>& runtime)
+void MainThread::ProcessMainAbility(const AbilityInfo &info, const std::unique_ptr<AbilityRuntime::Runtime>& runtime)
 {
     std::string srcPath(info.package);
     if (!info.isModuleJson) {
@@ -1861,28 +1864,15 @@ void MainThread::ProcessMainAbility(const AbilityInfo &info, std::unique_ptr<Abi
 }
 
 void MainThread::PreloadModule(const AppExecFwk::HapModuleInfo &entryHapModuleInfo,
-    std::unique_ptr<AbilityRuntime::Runtime>& runtime)
+    const std::unique_ptr<AbilityRuntime::Runtime>& runtime)
 {
     TAG_LOGI(AAFwkTag::APPKIT, "preload module %{public}s", entryHapModuleInfo.moduleName.c_str());
-    bool useCommonTrunk = false;
-    for (const auto &md : entryHapModuleInfo.metadata) {
-        if (md.name == "USE_COMMON_CHUNK") {
-            useCommonTrunk = md.value == "true";
-            break;
-        }
+    auto callback = []() {};
+    bool isAsyncCallback = false;
+    application_->AddAbilityStage(entryHapModuleInfo, callback, isAsyncCallback);
+    if (isAsyncCallback) {
+        return;
     }
-    bool isEsmode = entryHapModuleInfo.compileMode == AppExecFwk::CompileMode::ES_MODULE;
-    std::string srcPath(entryHapModuleInfo.name);
-    std::string moduleName(entryHapModuleInfo.moduleName);
-    moduleName.append("::").append("AbilityStage");
-    srcPath.append("/assets/js/");
-    if (entryHapModuleInfo.srcPath.empty()) {
-        srcPath.append("AbilityStage.abc");
-    } else {
-        srcPath.append(entryHapModuleInfo.srcPath);
-        srcPath.append("/AbilityStage.abc");
-    }
-    runtime->PreloadModule(moduleName, srcPath, entryHapModuleInfo.hapPath, isEsmode, useCommonTrunk);
     for (const auto &info : entryHapModuleInfo.abilityInfos) {
         if (info.name == entryHapModuleInfo.mainAbility) {
             ProcessMainAbility(info, runtime);
@@ -2168,9 +2158,8 @@ void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &
 
     auto abilityToken = abilityRecord->GetToken();
     CHECK_POINTER_LOG(abilityToken, "abilityRecord->GetToken failed");
-    FreezeUtil::LifecycleFlow flow = { abilityToken, FreezeUtil::TimeoutState::LOAD };
-    std::string entry = "MainThread::HandleLaunchAbility; the load lifecycle.";
-    FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
+    std::string entry = "MainThread::HandleLaunchAbility";
+    FreezeUtil::GetInstance().AddLifecycleEvent(abilityToken, entry);
 
     abilityRecordMgr_->SetToken(abilityToken);
     abilityRecordMgr_->AddAbilityRecord(abilityToken, abilityRecord);
@@ -2341,7 +2330,7 @@ void MainThread::HandleForegroundApplication()
     }
 
     if (!applicationImpl_->PerformForeground()) {
-        FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "HandleForegroundApplication fail");
+        FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "HandleForegroundApplication; fail");
         TAG_LOGE(AAFwkTag::APPKIT, "applicationImpl_->PerformForeground() failed");
     }
 

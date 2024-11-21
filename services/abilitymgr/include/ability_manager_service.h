@@ -503,6 +503,14 @@ public:
         int resultCode = DEFAULT_INVAL_VALUE, const Want *resultWant = nullptr) override;
 
     /**
+     * CloseUIExtensionAbilityBySCB, terminate the specified ui extension ability by SCB.
+     *
+     * @param token the ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int CloseUIExtensionAbilityBySCB(const sptr<IRemoteObject> token) override;
+
+    /**
      *  CloseUIAbilityBySCB, close the special ability by scb.
      *
      * @param sessionInfo the session info of the ability to terminate.
@@ -2073,7 +2081,7 @@ private:
     void StartKeepAliveApps(int32_t userId);
 
     void StartAutoStartupApps();
-    void RetryStartAutoStartupApps(const std::vector<AutoStartupInfo> &infoList, int32_t retryCount);
+    void StartAutoStartupApps(std::queue<AutoStartupInfo> infoList);
     void SubscribeScreenUnlockedEvent();
     void UnSubscribeScreenUnlockedEvent();
     void RetrySubscribeScreenUnlockedEvent(int32_t retryCount);
@@ -2151,6 +2159,14 @@ private:
      * @return Returns whether the caller is allowed to start ServiceExtension.
      */
     int CheckCallServiceExtensionPermission(const AbilityRequest &abilityRequest);
+
+    /**
+     * Check if Caller is allowed to start AutoFillExtension.
+     *
+     * @param abilityRequest, abilityRequest.
+     * @return Returns whether the caller is allowed to start ServiceExtension.
+     */
+    int CheckCallAutoFillExtensionPermission(const AbilityRequest &abilityRequest);
 
     /**
      * Check if Caller is allowed to start other Extension(Stage).

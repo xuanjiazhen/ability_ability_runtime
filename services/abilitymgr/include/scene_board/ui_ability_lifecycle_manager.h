@@ -104,7 +104,7 @@ public:
      * @param token ability's token.
      * @param state the state of ability lift cycle.
      */
-    void OnAbilityRequestDone(const sptr<IRemoteObject> &token, int32_t state) const;
+    void OnAbilityRequestDone(const sptr<IRemoteObject> &token, int32_t state);
 
     /**
      * Check whether the UIAbility is alive.
@@ -402,6 +402,7 @@ private:
     void PrintTimeOutLog(std::shared_ptr<AbilityRecord> ability, uint32_t msgId, bool isHalf = false);
     void DelayCompleteTerminate(const std::shared_ptr<AbilityRecord> &abilityRecord);
     void CompleteTerminate(const std::shared_ptr<AbilityRecord> &abilityRecord);
+    void CompleteTerminateLocked(const std::shared_ptr<AbilityRecord> &abilityRecord);
     bool IsContainsAbilityInner(const sptr<IRemoteObject> &token) const;
     bool CheckProperties(const std::shared_ptr<AbilityRecord> &abilityRecord, const AbilityRequest &abilityRequest,
         AppExecFwk::LaunchMode launchMode) const;
@@ -424,12 +425,13 @@ private:
     int MoveAbilityToFront(const AbilityRequest &abilityRequest, const std::shared_ptr<AbilityRecord> &abilityRecord,
         std::shared_ptr<AbilityRecord> callerAbility, std::shared_ptr<StartOptions> startOptions = nullptr);
     int SendSessionInfoToSCB(std::shared_ptr<AbilityRecord> &callerAbility, sptr<SessionInfo> &sessionInfo);
-    int StartAbilityBySpecifed(const AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &callerAbility);
+    int StartAbilityBySpecifed(const AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &callerAbility,
+        int32_t requestId);
     std::shared_ptr<AbilityRecord> GetReusedSpecifiedAbility(const AAFwk::Want &want, const std::string &flag);
     void EraseSpecifiedAbilityRecord(const std::shared_ptr<AbilityRecord> &abilityRecord);
 
     void SetLastExitReason(std::shared_ptr<AbilityRecord> &abilityRecord) const;
-    void SetRevicerInfo(const AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &abilityRecord) const;
+    void SetReceiverInfo(const AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &abilityRecord) const;
 
     bool CheckPrepareTerminateEnable(const std::shared_ptr<AbilityRecord> &abilityRecord);
     bool GetContentAndTypeId(uint32_t msgId, std::string &msgContent, int &typeId) const;
@@ -451,11 +453,13 @@ private:
     int32_t DoCallerProcessAttachment(std::shared_ptr<AbilityRecord> abilityRecord);
     std::shared_ptr<AbilityRecord> GenerateAbilityRecord(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
         bool &isColdStart);
+    std::shared_ptr<AbilityRecord> FindRecordFromTmpMap(const AbilityRequest &abilityRequest);
 
     int32_t userId_ = -1;
     mutable ffrt::mutex sessionLock_;
     std::unordered_map<int32_t, std::shared_ptr<AbilityRecord>> sessionAbilityMap_;
     std::unordered_map<int64_t, std::shared_ptr<AbilityRecord>> tmpAbilityMap_;
+    std::unordered_map<std::shared_ptr<AbilityRecord>, std::list<AbilityRequest>> callRequestCache_;
     std::list<std::shared_ptr<AbilityRecord>> terminateAbilityList_;
     sptr<IRemoteObject> rootSceneSession_;
     std::map<SpecifiedInfo, std::shared_ptr<AbilityRecord>, key_compare> specifiedAbilityMap_;

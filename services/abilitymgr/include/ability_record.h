@@ -262,6 +262,7 @@ struct AbilityRequest {
     uint32_t callerAccessTokenId = -1;
     sptr<IAbilityConnection> connect = nullptr;
 
+    std::vector<AppExecFwk::SupportWindowMode> supportWindowModes;
     std::shared_ptr<AbilityStartSetting> startSetting = nullptr;
     std::shared_ptr<ProcessOptions> processOptions = nullptr;
     std::shared_ptr<StartWindowOption> startWindowOption = nullptr;
@@ -272,6 +273,7 @@ struct AbilityRequest {
 
     AppExecFwk::ExtensionAbilityType extensionType = AppExecFwk::ExtensionAbilityType::UNSPECIFIED;
     AppExecFwk::ExtensionProcessMode extensionProcessMode = AppExecFwk::ExtensionProcessMode::UNDEFINED;
+    std::string customProcess;
 
     sptr<SessionInfo> sessionInfo;
     uint32_t specifyTokenId = 0;
@@ -551,8 +553,6 @@ public:
      * @return true : ready ,false: not ready
      */
     bool IsReady() const;
-    void SetLoadState(AbilityLoadState loadState);
-    AbilityLoadState GetLoadState() const;
 
     void UpdateRecoveryInfo(bool hasRecoverInfo);
 
@@ -835,6 +835,10 @@ public:
      */
     bool IsConnectListEmpty();
 
+    size_t GetConnectedListSize();
+
+    size_t GetConnectingListSize();
+
     void RemoveCallerRequestCode(std::shared_ptr<AbilityRecord> callerAbilityRecord, int32_t requestCode);
 
     /**
@@ -1008,6 +1012,8 @@ public:
     void SetStartToBackground(const bool flag);
     bool IsStartToForeground() const;
     void SetStartToForeground(const bool flag);
+    bool IsCallerSetProcess() const;
+    void SetCallerSetProcess(const bool flag);
     void SetSessionInfo(sptr<SessionInfo> sessionInfo);
     void UpdateSessionInfo(sptr<IRemoteObject> sessionToken);
     void SetMinimizeReason(bool fromUser);
@@ -1122,16 +1128,6 @@ public:
         return securityFlag_;
     }
 
-    FreezeStrategy GetFreezeStrategy() const
-    {
-        return freezeStrategy_;
-    }
-
-    void SetFreezeStrategy(FreezeStrategy value)
-    {
-        freezeStrategy_ = value;
-    }
-
 protected:
     void SendEvent(uint32_t msg, uint32_t timeOut, int32_t param = -1, bool isExtension = false);
 
@@ -1244,7 +1240,7 @@ private:
     std::weak_ptr<AbilityRecord> nextAbilityRecord_ = {};  // ability that started by this ability
     int64_t startTime_ = 0;                           // records first time of ability start
     int64_t restartTime_ = 0;                         // the time of last trying restart
-    std::atomic<AbilityLoadState> loadState_ = AbilityLoadState::INIT;  // ability thread attach state
+    bool isReady_ = false;                            // is ability thread attached?
     bool isWindowStarted_ = false;                     // is window hotstart or coldstart?
     bool isWindowAttached_ = false;                   // Is window of this ability attached?
     bool isLauncherAbility_ = false;                  // is launcher?
@@ -1301,6 +1297,7 @@ private:
     bool isStartedByCall_ = false;
     bool isStartToBackground_ = false;
     bool isStartToForeground_ = false;
+    std::atomic_bool isCallerSetProcess_ = false;
     int32_t appIndex_ = 0;
     bool minimizeReason_ = false;
 
@@ -1358,7 +1355,6 @@ private:
     LaunchDebugInfo launchDebugInfo_;
     std::string instanceKey_ = "";
     bool securityFlag_ = false;
-    std::atomic<FreezeStrategy> freezeStrategy_{FreezeStrategy::NOTIFY_FREEZE_MGR};
 };
 }  // namespace AAFwk
 }  // namespace OHOS

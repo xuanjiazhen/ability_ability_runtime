@@ -434,24 +434,23 @@ HWTEST_F(AppMgrServiceInnerTest, CheckLoadAbilityConditions_001, TestSize.Level0
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner, nullptr);
 
-    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
-    loadParam->token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    OHOS::sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
 
-    appMgrServiceInner->CheckLoadAbilityConditions(nullptr, nullptr, nullptr, nullptr);
+    appMgrServiceInner->CheckLoadAbilityConditions(nullptr, nullptr, nullptr);
 
-    appMgrServiceInner->CheckLoadAbilityConditions(nullptr, nullptr, abilityInfo_, nullptr);
+    appMgrServiceInner->CheckLoadAbilityConditions(nullptr, abilityInfo_, nullptr);
 
-    appMgrServiceInner->CheckLoadAbilityConditions(nullptr, nullptr, nullptr, applicationInfo_);
+    appMgrServiceInner->CheckLoadAbilityConditions(nullptr, nullptr, applicationInfo_);
 
-    appMgrServiceInner->CheckLoadAbilityConditions(nullptr, loadParam, nullptr, nullptr);
+    appMgrServiceInner->CheckLoadAbilityConditions(token, nullptr, nullptr);
 
-    appMgrServiceInner->CheckLoadAbilityConditions(nullptr, loadParam, abilityInfo_, nullptr);
+    appMgrServiceInner->CheckLoadAbilityConditions(token, abilityInfo_, nullptr);
 
-    appMgrServiceInner->CheckLoadAbilityConditions(nullptr, nullptr, abilityInfo_, applicationInfo_);
+    appMgrServiceInner->CheckLoadAbilityConditions(nullptr, abilityInfo_, applicationInfo_);
 
-    appMgrServiceInner->CheckLoadAbilityConditions(nullptr, loadParam, nullptr, applicationInfo_);
+    appMgrServiceInner->CheckLoadAbilityConditions(token, nullptr, applicationInfo_);
 
-    appMgrServiceInner->CheckLoadAbilityConditions(nullptr, loadParam, abilityInfo_, applicationInfo_);
+    appMgrServiceInner->CheckLoadAbilityConditions(token, abilityInfo_, applicationInfo_);
 
     EXPECT_NE(appMgrServiceInner, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "CheckLoadAbilityConditions_001 end");
@@ -472,10 +471,10 @@ HWTEST_F(AppMgrServiceInnerTest, MakeProcessName_001, TestSize.Level0)
     HapModuleInfo hapModuleInfo;
     hapModuleInfo.moduleName = "module789";
     std::string processName = "test_processName";
-    appMgrServiceInner->MakeProcessName(nullptr, nullptr, hapModuleInfo, 1, "", processName);
-    appMgrServiceInner->MakeProcessName(nullptr, applicationInfo_, hapModuleInfo, 1, "", processName);
-    appMgrServiceInner->MakeProcessName(abilityInfo_, nullptr, hapModuleInfo, 1, "", processName);
-    appMgrServiceInner->MakeProcessName(abilityInfo_, applicationInfo_, hapModuleInfo, 1, "", processName);
+    appMgrServiceInner->MakeProcessName(nullptr, nullptr, hapModuleInfo, 1, "", processName, false);
+    appMgrServiceInner->MakeProcessName(nullptr, applicationInfo_, hapModuleInfo, 1, "", processName, false);
+    appMgrServiceInner->MakeProcessName(abilityInfo_, nullptr, hapModuleInfo, 1, "", processName, false);
+    appMgrServiceInner->MakeProcessName(abilityInfo_, applicationInfo_, hapModuleInfo, 1, "", processName, false);
 
     EXPECT_NE(appMgrServiceInner, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "MakeProcessName_001 end");
@@ -598,17 +597,21 @@ HWTEST_F(AppMgrServiceInnerTest, LaunchApplication_001, TestSize.Level0)
 
     appRecord->SetEmptyKeepAliveAppState(true);
     appRecord->SetKeepAliveEnableState(false);
+    appRecord->SetKeepAliveDkv(false);
     appMgrServiceInner->LaunchApplication(appRecord);
 
     appRecord->SetKeepAliveEnableState(true);
+    appRecord->SetKeepAliveDkv(true);
     appRecord->SetEmptyKeepAliveAppState(false);
     appMgrServiceInner->LaunchApplication(appRecord);
 
     appRecord->SetKeepAliveEnableState(true);
+    appRecord->SetKeepAliveDkv(true);
     appRecord->SetEmptyKeepAliveAppState(true);
     appMgrServiceInner->LaunchApplication(appRecord);
 
     appRecord->SetKeepAliveEnableState(false);
+    appRecord->SetKeepAliveDkv(false);
     appRecord->SetEmptyKeepAliveAppState(false);
     appMgrServiceInner->LaunchApplication(appRecord);
 
@@ -777,18 +780,22 @@ HWTEST_F(AppMgrServiceInnerTest, ApplicationTerminated_001, TestSize.Level0)
     appMgrServiceInner->ApplicationTerminated(recordId_);
 
     appRecord->SetKeepAliveEnableState(false);
+    appRecord->SetKeepAliveDkv(false);
     appRecord->SetEmptyKeepAliveAppState(true);
     appMgrServiceInner->ApplicationTerminated(recordId_);
 
     appRecord->SetKeepAliveEnableState(true);
+    appRecord->SetKeepAliveDkv(true);
     appRecord->SetEmptyKeepAliveAppState(false);
     appMgrServiceInner->ApplicationTerminated(recordId_);
 
     appRecord->SetKeepAliveEnableState(true);
+    appRecord->SetKeepAliveDkv(true);
     appRecord->SetEmptyKeepAliveAppState(true);
     appMgrServiceInner->ApplicationTerminated(recordId_);
 
     appRecord->SetKeepAliveEnableState(false);
+    appRecord->SetKeepAliveDkv(false);
     appRecord->SetEmptyKeepAliveAppState(false);
     appMgrServiceInner->ApplicationTerminated(recordId_);
 
@@ -1523,6 +1530,7 @@ HWTEST_F(AppMgrServiceInnerTest, KillProcessByAbilityToken_001, TestSize.Level0)
     appMgrServiceInner->KillProcessByAbilityToken(token);
 
     appRecord->SetKeepAliveEnableState(true);
+    appRecord->SetKeepAliveDkv(true);
     appRecord->SetEmptyKeepAliveAppState(true);
     appMgrServiceInner->KillProcessByAbilityToken(token);
 
@@ -3845,6 +3853,7 @@ HWTEST_F(AppMgrServiceInnerTest, SendAppLaunchEvent_001, TestSize.Level0)
     recordId_ += 1;
     appRecord->SetState(ApplicationState::APP_STATE_CREATE);
     appRecord->SetKeepAliveEnableState(false);
+    appRecord->SetKeepAliveDkv(false);
     appRecord->SetEmptyKeepAliveAppState(false);
     Want want;
     appRecord->SetSpecifiedAbilityFlagAndWant(-1, want, "");
@@ -4803,6 +4812,7 @@ HWTEST_F(AppMgrServiceInnerTest, SetJITPermissions_001, TestSize.Level0)
     uint32_t accessTokenId = 0;
     AppSpawnStartMsg startMsg = {0};
     AppspawnUtil::SetJITPermissions(accessTokenId, startMsg.jitPermissionsList);
+    EXPECT_EQ(startMsg.jitPermissionsList.size(), 0);
     TAG_LOGI(AAFwkTag::TEST, "SetJITPermissions_001 end");
 }
 

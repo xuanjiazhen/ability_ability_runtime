@@ -816,20 +816,20 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_MakeProcessN
     std::string specifiedProcessFlag = "akeProcessName";
     std::string processName = "akeProcessName";
     appMgrServiceInner->MakeProcessName(abilityInfo_, applicationInfo_, hapModuleInfo,
-                                        appIndex, specifiedProcessFlag, processName);
+                                        appIndex, specifiedProcessFlag, processName, false);
     abilityInfo_->process = "akeProcessName";
     appMgrServiceInner->MakeProcessName(abilityInfo_, applicationInfo_, hapModuleInfo,
-                                        appIndex, specifiedProcessFlag, processName);
+                                        appIndex, specifiedProcessFlag, processName, false);
     abilityInfo_->process = "";
     appIndex = 1;
     appMgrServiceInner->MakeProcessName(abilityInfo_, applicationInfo_, hapModuleInfo,
-                                        appIndex, specifiedProcessFlag, processName);
+                                        appIndex, specifiedProcessFlag, processName, false);
     abilityInfo_ = nullptr;
     appMgrServiceInner->MakeProcessName(abilityInfo_, applicationInfo_, hapModuleInfo,
-                                        appIndex, specifiedProcessFlag, processName);
+                                        appIndex, specifiedProcessFlag, processName, false);
     applicationInfo_ = nullptr;
     appMgrServiceInner->MakeProcessName(abilityInfo_, applicationInfo_, hapModuleInfo,
-                                        appIndex, specifiedProcessFlag, processName);
+                                        appIndex, specifiedProcessFlag, processName, false);
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_MakeProcessName_0100 end");
 }
 
@@ -937,6 +937,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_LaunchApplic
     appMgrServiceInner->LaunchApplication(appRecord);
     appRecord->SetEmptyKeepAliveAppState(true);
     appRecord->SetKeepAliveEnableState(false);
+    appRecord->SetKeepAliveDkv(false);
     appMgrServiceInner->LaunchApplication(appRecord);
     appRecord->SetKeepAliveEnableState(true);
     appRecord->SetEmptyKeepAliveAppState(false);
@@ -1578,6 +1579,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_ClearAppRunn
     appRecord->SetUid(uid);
     appRecord->SetKeepAliveBundle(true);
     appRecord->SetKeepAliveEnableState(true);
+    appRecord->SetKeepAliveDkv(true);
     appRecord->SetSingleton(true);
     appMgrServiceInner->ClearAppRunningDataForKeepAlive(appRecord);
 
@@ -1759,6 +1761,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, KillProcessByAbilityToken_001, TestSize.L
 
     appRecord->GetPriorityObject()->SetPid(1);
     appRecord->SetKeepAliveEnableState(true);
+    appRecord->SetKeepAliveDkv(true);
     appRecord->SetEmptyKeepAliveAppState(true);
     appMgrServiceInner->KillProcessByAbilityToken(token);
 

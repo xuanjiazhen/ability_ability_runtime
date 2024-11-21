@@ -22,7 +22,6 @@
 
 #include "accesstoken_kit.h"
 #include "app_death_recipient.h"
-#include "app_exception_manager.h"
 #include "app_mgr_constants.h"
 #include "app_utils.h"
 #include "hilog_tag_wrapper.h"
@@ -51,7 +50,7 @@ constexpr const char* SCENEBOARD_ABILITY_NAME = "com.ohos.sceneboard.MainAbility
 constexpr const char* TASK_SCENE_BOARD_ATTACH_TIMEOUT = "sceneBoardAttachTimeoutTask";
 constexpr const char* TASK_ATTACHED_TO_STATUS_BAR = "AttachedToStatusBar";
 constexpr const char* TASK_BLOCK_PROCESS_CACHE_BY_PIDS = "BlockProcessCacheByPids";
-constexpr const char* POWER_OFF_ABILITY = "BlockProcessCacheByPids";
+constexpr const char* POWER_OFF_ABILITY = "PoweroffAbility";
 constexpr int32_t SCENE_BOARD_ATTACH_TIMEOUT_TASK_TIME = 1000;
 constexpr int32_t LOAD_TASK_TIMEOUT = 30000; // ms
 };  // namespace
@@ -289,6 +288,15 @@ int32_t AmsMgrScheduler::KillProcessWithAccount(
     }
     return amsMgrServiceInner_->KillApplicationByUserId(bundleName, appIndex, accountId, clearPageStack,
         "KillProcessWithAccount");
+}
+
+int32_t AmsMgrScheduler::KillProcessesInBatch(const std::vector<int32_t> &pids)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "pids.size=%{public}zu", pids.size());
+    if (!IsReady()) {
+        return ERR_INVALID_OPERATION;
+    }
+    return amsMgrServiceInner_->KillProcessesInBatch(pids);
 }
 
 void AmsMgrScheduler::AbilityAttachTimeOut(const sptr<IRemoteObject> &token)
@@ -752,24 +760,13 @@ bool AmsMgrScheduler::IsProcessAttached(sptr<IRemoteObject> token)
     return amsMgrServiceInner_->IsProcessAttached(token);
 }
 
-void AmsMgrScheduler::SetAppExceptionCallback(sptr<IRemoteObject> callback)
+bool AmsMgrScheduler::IsCallerKilling(const std::string& callerKey)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "AmsMgrService is not ready.");
-        return;
+        return false;
     }
-    pid_t callingPid = IPCSkeleton::GetCallingPid();
-    pid_t procPid = getprocpid();
-    if (callingPid != procPid) {
-        TAG_LOGE(AAFwkTag::APPMGR, "not allow other process to call");
-        return;
-    }
-
-    if (callback == nullptr) {
-        TAG_LOGW(AAFwkTag::APPMGR, "callback null");
-    }
-    auto exceptionCallback = iface_cast<IAppExceptionCallback>(callback);
-    return AppExceptionManager::GetInstance().SetExceptionCallback(exceptionCallback);
+    return amsMgrServiceInner_->IsCallerKilling(callerKey);
 }
 } // namespace AppExecFwk
 }  // namespace OHOS

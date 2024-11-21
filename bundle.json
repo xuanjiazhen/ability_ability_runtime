@@ -89,6 +89,7 @@
             "os_account",
             "power_manager",
             "preferences",
+            "previewer",
             "qos_manager",
             "relational_store",
             "resource_management",
@@ -159,6 +160,15 @@
               ]
             },
             "name": "//foundation/ability/ability_runtime/interfaces/inner_api/wantagent:wantagent_innerkits"
+          },
+          {
+            "header": {
+              "header_base": "//foundation/ability/ability_runtime/frameworks/cj/ffi/want_agent/include",
+              "header_files": [
+                "cj_want_agent_ffi.h"
+              ]
+            },
+            "name": "//foundation/ability/ability_runtime/frameworks/cj/ffi/want_agent:cj_want_agent_ffi"
           },
           {
             "header": {

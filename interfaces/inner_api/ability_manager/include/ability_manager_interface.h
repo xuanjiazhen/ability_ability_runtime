@@ -37,8 +37,8 @@
 #include "iability_controller.h"
 #include "iability_manager_collaborator.h"
 #include "iacquire_share_data_callback_interface.h"
-#include "insight_intent_execute_param.h"
-#include "insight_intent_execute_result.h"
+#include "insight_intent/insight_intent_execute_param.h"
+#include "insight_intent/insight_intent_execute_result.h"
 #include "iprepare_terminate_callback_interface.h"
 #include "keep_alive_info.h"
 #include "mission_info.h"
@@ -52,9 +52,9 @@
 #include "start_options.h"
 #include "user_callback.h"
 #include "system_memory_attr.h"
-#include "ui_extension_ability_connect_info.h"
-#include "ui_extension_host_info.h"
-#include "ui_extension_session_info.h"
+#include "ui_extension/ui_extension_ability_connect_info.h"
+#include "ui_extension/ui_extension_host_info.h"
+#include "ui_extension/ui_extension_session_info.h"
 #include "ui_extension_window_command.h"
 #include "uri.h"
 #include "want.h"
@@ -494,6 +494,17 @@ public:
      */
     virtual int TerminateUIExtensionAbility(const sptr<SessionInfo> &extensionSessionInfo,
         int resultCode, const Want *resultWant = nullptr)
+    {
+        return 0;
+    }
+
+    /**
+     * CloseUIExtensionAbilityBySCB, terminate the specified ui extension ability by SCB.
+     *
+     * @param token the ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int CloseUIExtensionAbilityBySCB(const sptr<IRemoteObject> token)
     {
         return 0;
     }

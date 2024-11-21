@@ -355,6 +355,36 @@ int32_t AmsMgrProxy::KillProcessWithAccount(
     return reply.ReadInt32();
 }
 
+int32_t AmsMgrProxy::KillProcessesInBatch(const std::vector<int32_t> &pids)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        return ERR_INVALID_DATA;
+    }
+
+    if (!data.WriteUint32(pids.size())) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write size failed");
+        return ERR_FLATTEN_OBJECT;
+    }
+    for (const auto &pid: pids) {
+        if (!data.WriteInt32(pid)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Write pid failed");
+            return ERR_FLATTEN_OBJECT;
+        }
+    }
+
+    int32_t ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::KILL_PROCESSES_IN_BATCH),
+        data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest err: %{public}d", ret);
+        return ret;
+    }
+
+    return reply.ReadInt32();
+}
+
 int32_t AmsMgrProxy::KillApplication(const std::string &bundleName, bool clearPageStack, int32_t appIndex)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "start");
@@ -1344,26 +1374,26 @@ bool AmsMgrProxy::IsProcessAttached(sptr<IRemoteObject> token)
     return reply.ReadBool();
 }
 
-void AmsMgrProxy::SetAppExceptionCallback(sptr<IRemoteObject> callback)
+bool AmsMgrProxy::IsCallerKilling(const std::string& callerKey)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
-        return;
+        return false;
     }
-    if (!data.WriteRemoteObject(callback.GetRefPtr())) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write callback");
-        return;
+    if (!data.WriteString(callerKey)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write callerKey");
+        return false;
     }
 
-    auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::SET_APP_EXCEPTION_CALLBACK),
-        data, reply, option);
+    auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::IS_CALLER_KILLING), data, reply, option);
     if (ret != NO_ERROR) {
         TAG_LOGE(AAFwkTag::APPMGR, "Send request failed, error code is %{public}d.", ret);
-        return;
+        return false;
     }
+    return reply.ReadBool();
 }
 } // namespace AppExecFwk
 } // namespace OHOS

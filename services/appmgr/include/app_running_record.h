@@ -871,6 +871,10 @@ public:
 
     bool IsPreloaded() const;
 
+    void SetPreloadMode(PreloadMode mode);
+
+    PreloadMode GetPreloadMode();
+
     /**
      * @brief Obtains the app record assign tokenId.
      *
@@ -934,6 +938,7 @@ public:
     bool GetIsGPU();
     void SetGPUPid(pid_t gpuPid);
     pid_t GetGPUPid();
+    pid_t GetPid();
 
     inline void SetStrictMode(bool strictMode)
     {
@@ -961,6 +966,7 @@ public:
     void SetProcessCaching(bool isCaching);
     bool IsCaching();
     void SetNeedPreloadModule(bool isNeedPreloadModule);
+    bool GetNeedPreloadModule();
 
     /**
      * ScheduleForegroundRunning, Notify application to switch to foreground.
@@ -1004,22 +1010,22 @@ public:
         return delayConfiguration_;
     }
 
-    inline void SetClearSession(bool isClearSession)
+    inline void SetKillReason(std::string killReason)
     {
-        isClearSession_ = isClearSession;
+        killReason_ = killReason;
     }
 
-    inline bool IsClearSession() const
+    inline std::string GetKillReason() const
     {
-        return isClearSession_;
+        return killReason_;
     }
 
     void AddAppLifecycleEvent(const std::string &msg);
 
     void SetNWebPreload(const bool isAllowedNWebPreload);
-    
+
     void SetIsUnSetPermission(bool isUnSetPermission);
-    
+
     bool IsUnSetPermission();
 private:
     /**
@@ -1065,6 +1071,7 @@ private:
             return reinterpret_cast<size_t>(remoteObj.GetRefPtr());
         }
     };
+    bool IsWindowIdsEmpty();
 
     bool isKeepAliveRdb_ = false;  // Only resident processes can be set to true, please choose carefully
     bool isKeepAliveBundle_ = false;
@@ -1124,6 +1131,7 @@ private:
     int64_t restartTimeMillis_ = 0; // The time of last trying app restart
     bool jitEnabled_ = false;
     PreloadState preloadState_ = PreloadState::NONE;
+    PreloadMode preloadMode_ = PreloadMode::PRESS_DOWN;
     int32_t exitReason_ = 0;
     std::string exitMsg_ = "";
 
@@ -1156,6 +1164,7 @@ private:
     ExtensionAbilityType extensionType_ = ExtensionAbilityType::UNSPECIFIED;
 
     std::set<uint32_t> windowIds_;
+    ffrt::mutex windowIdsLock_;
     std::map<pid_t, std::shared_ptr<ChildProcessRecord>> childProcessRecordMap_;
     ffrt::mutex childProcessRecordMapLock_;
 
@@ -1177,10 +1186,10 @@ private:
     bool hasUIAbilityLaunched_ = false;
     bool isKia_ = false;
     bool isNeedPreloadModule_ = false;
-    bool isClearSession_ = false;
     std::shared_ptr<Configuration> delayConfiguration_ = std::make_shared<Configuration>();
     bool isAllowedNWebPreload_ = false;
     bool isUnSetPermission_ = false;
+    std::string killReason_ = "";
 };
 
 }  // namespace AppExecFwk
