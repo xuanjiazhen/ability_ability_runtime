@@ -427,7 +427,12 @@ void AbilityManagerService::InitPushTask()
             auto task = []() {
                 ApplicationUtil::AppFwkBootEventCallback(BOOTEVENT_BOOT_COMPLETED, "true", nullptr);
             };
-            handler->SubmitTask(task, "BootCompletedDelayTask", BOOTEVENT_COMPLETED_DELAY_TIME);
+            if (handler != nullptr) {
+                handler->SubmitTask(task, "BootCompletedDelayTask", BOOTEVENT_COMPLETED_DELAY_TIME);
+            } else {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "handler null");
+                return;
+            }
         } else {
             WatchParameter(BOOTEVENT_BOOT_COMPLETED, ApplicationUtil::AppFwkBootEventCallback, nullptr);
             TAG_LOGI(AAFwkTag::ABILITYMGR, "init call, InitPushTask suc");
@@ -864,7 +869,7 @@ bool AbilityManagerService::StartAbilityInChain(StartAbilityParams &params, int 
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::shared_ptr<StartAbilityHandler> reqHandler;
     for (const auto &item : startAbilityChain_) {
-        if (item.second->MatchStartRequest(params)) {
+        if (item.second != nullptr && item.second->MatchStartRequest(params)) {
             reqHandler = item.second;
             break;
         }
@@ -1140,7 +1145,9 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
             TAG_LOGE(AAFwkTag::ABILITYMGR, "preStartFreeInstall failed");
             return freeInstallResult;
         }
-
+        if (freeInstallManager_ == nullptr) {
+            return ERR_INVALID_VALUE;
+        }
         if (isStartFreeInstallByWant) {
             return freeInstallManager_->StartFreeInstall(localWant, validUserId, requestCode,
                 callerToken, true, specifyTokenId);
@@ -2114,6 +2121,10 @@ int32_t AbilityManagerService::OpenAtomicService(AAFwk::Want& want, const StartO
 
 int AbilityManagerService::SetWantForSessionInfo(sptr<SessionInfo> sessionInfo)
 {
+    if (sessionInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionInfo null");
+        return ERR_INVALID_VALUE;
+    }
     if (!(sessionInfo->want).GetElement().GetAbilityName().empty() &&
         !(sessionInfo->want).GetElement().GetModuleName().empty()) {
         return ERR_OK;
@@ -2207,6 +2218,10 @@ int AbilityManagerService::StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionI
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call.");
 
     auto currentUserId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    if (sessionInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionInfo null");
+        return ERR_INVALID_VALUE;
+    }
     if (sessionInfo->userId == DEFAULT_INVAL_VALUE) {
         sessionInfo->userId = currentUserId;
     }
@@ -2306,6 +2321,7 @@ int32_t AbilityManagerService::StartUIAbilityBySCBDefaultCommon(AbilityRequest &
         }
     }
 
+    CHECK_POINTER_AND_RETURN(sessionInfo, ERR_INVALID_VALUE);
     ReportAbilityStartInfoToRSS(abilityInfo);
     ReportAbilityAssociatedStartInfoToRSS(abilityInfo, RES_TYPE_SCB_START_ABILITY, sessionInfo->callerToken);
     auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
@@ -2767,6 +2783,10 @@ int AbilityManagerService::UnloadUIExtensionAbility(const std::shared_ptr<AAFwk:
     std::string &hostBundleName)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
+    if (abilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "abiliityRecord null");
+        return ERR_INVALID_VALUE;
+    }
     auto connectManager = GetConnectManagerByToken(abilityRecord->GetToken());
     if (connectManager == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "connectManager null");
