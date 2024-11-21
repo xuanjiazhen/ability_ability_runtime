@@ -66,21 +66,14 @@ bool AppScheduler::Init(const std::weak_ptr<AppStateCallback> &callback)
     return true;
 }
 
-int AppScheduler::LoadAbility(sptr<IRemoteObject> token, sptr<IRemoteObject> preToken,
-    const AppExecFwk::AbilityInfo &abilityInfo, const AppExecFwk::ApplicationInfo &applicationInfo,
-    const Want &want, int32_t abilityRecordId, const std::string &instanceKey)
+int AppScheduler::LoadAbility(const AbilityRuntime::LoadParam &loadParam, const AppExecFwk::AbilityInfo &abilityInfo,
+    const AppExecFwk::ApplicationInfo &applicationInfo, const Want &want)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
     /* because the errcode type of AppMgr Client API will be changed to int,
      * so must to covert the return result  */
-    AbilityRuntime::LoadParam loadParam;
-    loadParam.abilityRecordId = abilityRecordId;
-    loadParam.isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
-    loadParam.token = token;
-    loadParam.preToken = preToken;
-    loadParam.instanceKey = instanceKey;
     int ret = static_cast<int>(IN_PROCESS_CALL(
         appMgrClient_->LoadAbility(abilityInfo, applicationInfo, want, loadParam)));
     if (ret != ERR_OK) {
@@ -276,11 +269,12 @@ int AppScheduler::KillProcessesByAccessTokenId(const uint32_t accessTokenId)
     return ERR_OK;
 }
 
-int AppScheduler::KillApplicationByUid(const std::string &bundleName, int32_t uid)
+int AppScheduler::KillApplicationByUid(const std::string &bundleName, int32_t uid,
+    const std::string& reason)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "[%{public}s(%{public}s)] enter", __FILE__, __FUNCTION__);
     CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
-    int ret = (int)appMgrClient_->KillApplicationByUid(bundleName, uid);
+    int ret = (int)appMgrClient_->KillApplicationByUid(bundleName, uid, reason);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "fail kill app");
         return INNER_ERR;
@@ -316,6 +310,9 @@ void AppScheduler::OnAppStateChanged(const AppExecFwk::AppProcessData &appData)
     info.processName = appData.processName;
     info.state = static_cast<AppState>(appData.appState);
     info.pid = appData.pid;
+    info.appIndex = appData.appIndex;
+    info.instanceKey = appData.instanceKey;
+    info.bundleName = appData.bundleName;
     callback->OnAppStateChanged(info);
 }
 

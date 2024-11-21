@@ -468,7 +468,7 @@ void MissionList::GetActiveAbilityList(int32_t uid, std::vector<std::string> &ab
     }
 }
 
-void MissionList::SignRestartAppFlag(const std::string &bundleName)
+void MissionList::SignRestartAppFlag(int32_t uid, const std::string &instanceKey)
 {
     for (auto it = missions_.begin(); it != missions_.end();) {
         auto mission = *it;
@@ -481,7 +481,11 @@ void MissionList::SignRestartAppFlag(const std::string &bundleName)
             it++;
             continue;
         }
-        if (abilityRecord->GetApplicationInfo().bundleName != bundleName) {
+        if (abilityRecord->GetUid() != uid) {
+            it++;
+            continue;
+        }
+        if (abilityRecord->GetInstanceKey() != instanceKey) {
             it++;
             continue;
         }

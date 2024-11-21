@@ -185,16 +185,19 @@ public:
      *
      * @param  bundleName, bundle name in Application record.
      * @param  uid, uid.
+     * @param  reason, caller function name.
      * @return ERR_OK, return back success, others fail.
      */
-    virtual AppMgrResultCode KillApplicationByUid(const std::string &bundleName, const int uid);
+    virtual AppMgrResultCode KillApplicationByUid(const std::string &bundleName, const int uid,
+        const std::string& reason = "KillApplicationByUid");
 
     /**
      * Kill the application self.
      *
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual AppMgrResultCode KillApplicationSelf(const bool clearPageStack = false);
+    virtual AppMgrResultCode KillApplicationSelf(const bool clearPageStack = false,
+        const std::string& reason = "KillApplicationSelf");
 
     /**
      * ClearUpApplicationData, call ClearUpApplicationData() through proxy project,
@@ -860,20 +863,20 @@ public:
     virtual AppMgrResultCode BlockProcessCacheByPids(const std::vector<int32_t> &pids);
 
     /**
-     * Request to clean uiability from user.
-     *
-     * @param token the token of ability.
-     * @return Returns true if clean success, others return false.
-     */
-    bool CleanAbilityByUserRequest(const sptr<IRemoteObject> &token);
-
-    /**
      * whether killed for upgrade web.
      *
      * @param bundleName the bundle name is killed for upgrade web.
      * @return Returns true is killed for upgrade web, others return false.
      */
     bool IsKilledForUpgradeWeb(const std::string &bundleName);
+
+    /**
+     * Request to clean uiability from user.
+     *
+     * @param token the token of ability.
+     * @return Returns true if clean success, others return false.
+     */
+    bool CleanAbilityByUserRequest(const sptr<IRemoteObject> &token);
 
     /**
      * whether the abilities of process specified by pid type only UIAbility.

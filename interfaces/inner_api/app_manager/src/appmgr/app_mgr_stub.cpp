@@ -345,6 +345,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerSeventh(uint32_t code, MessageParcel &da
             return HandleRegisterKiaInterceptor(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::CHECK_IS_KIA_PROCESS):
             return HandleCheckIsKiaProcess(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::KILL_APP_SELF_WITH_INSTANCE_KEY):
+            return HandleKillAppSelfWithInstanceKey(data, reply);
     }
     return INVALID_FD;
 }
@@ -1465,8 +1467,9 @@ int32_t AppMgrStub::HandleUpdateRenderState(MessageParcel &data, MessageParcel &
 int32_t AppMgrStub::HandleSignRestartAppFlag(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
-    std::string bundleName = data.ReadString();
-    auto ret = SignRestartAppFlag(bundleName);
+    auto uid = data.ReadInt32();
+    auto instanceKey = data.ReadString();
+    auto ret = SignRestartAppFlag(uid, instanceKey);
     if (!reply.WriteInt32(ret)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write ret error.");
         return IPC_STUB_ERR;
@@ -1686,6 +1689,20 @@ int32_t AppMgrStub::HandleCheckIsKiaProcess(MessageParcel &data, MessageParcel &
         return result;
     }
     reply.WriteBool(isKia);
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleKillAppSelfWithInstanceKey(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
+    auto instanceKey = data.ReadString();
+    auto clearPageStack = data.ReadBool();
+    auto reason = data.ReadString();
+    auto result = KillAppSelfWithInstanceKey(instanceKey, clearPageStack, reason);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "fail to write result.");
+        return ERR_INVALID_VALUE;
+    }
     return NO_ERROR;
 }
 }  // namespace AppExecFwk

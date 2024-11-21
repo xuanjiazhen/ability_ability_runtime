@@ -729,11 +729,12 @@ public:
 
     /**
      * @brief mark a process which is going restart.
-     * @param bundleName the bundleName of the process.
+     * @param uid the uid of the process.
+     * @param instanceKey the instance key of the process.
      *
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t SignRestartAppFlag(const std::string &bundleName)
+    virtual int32_t SignRestartAppFlag(int32_t uid, const std::string &instanceKey)
     {
         return 0;
     }
@@ -798,16 +799,6 @@ public:
     virtual void SetAppAssertionPauseState(bool flag) {}
 
     /**
-     * Start native child process, callde by ChildProcessManager.
-     * @param libName lib file name to be load in child process
-     * @param childProcessCount current started child process count
-     * @param callback callback for notify start result
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    virtual int32_t StartNativeChildProcess(const std::string &libName, int32_t childProcessCount,
-        const sptr<IRemoteObject> &callback) = 0;
-
-    /**
      * set browser channel for caller
      */
     virtual void SaveBrowserChannel(sptr<IRemoteObject> browser) = 0;
@@ -822,6 +813,16 @@ public:
     {
         return 0;
     }
+
+    /**
+     * Start native child process, callde by ChildProcessManager.
+     * @param libName lib file name to be load in child process
+     * @param childProcessCount current started child process count
+     * @param callback callback for notify start result
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t StartNativeChildProcess(const std::string &libName, int32_t childProcessCount,
+        const sptr<IRemoteObject> &callback) = 0;
 
     /**
      * Notify that the process depends on web by itself.
@@ -854,6 +855,12 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t GetSupportedProcessCachePids(const std::string &bundleName, std::vector<int32_t> &pidList) = 0;
+
+    virtual int32_t KillAppSelfWithInstanceKey(const std::string &instanceKey, bool clearPageStack,
+        const std::string& reason)
+    {
+        return 0;
+    }
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

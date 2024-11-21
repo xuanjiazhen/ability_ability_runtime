@@ -172,10 +172,13 @@ void UIAbilityThread::AttachInner(const std::shared_ptr<AppExecFwk::OHOSApplicat
     FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
     ErrCode err = AbilityManagerClient::GetInstance()->AttachAbilityThread(this, token_);
     if (err != ERR_OK) {
+        entry = std::string("AbilityThread::Attach failed ipc error: ") + std::to_string(err);
+        FreezeUtil::GetInstance().AddLifecycleEvent(flow, entry);
         TAG_LOGE(AAFwkTag::UIABILITY, "err: %{public}d", err);
         return;
     }
     FreezeUtil::GetInstance().DeleteLifecycleEvent(flow);
+    FreezeUtil::GetInstance().DeleteAppLifecycleEvent(0);
 }
 
 void UIAbilityThread::Attach(const std::shared_ptr<AppExecFwk::OHOSApplication> &application,
@@ -384,6 +387,7 @@ bool UIAbilityThread::SchedulePrepareTerminateAbility()
         TAG_LOGI(AAFwkTag::UIABILITY, "ret: %{public}d", ret);
         return ret;
     }
+    isPrepareTerminateAbilityDone_.store(false);
     wptr<UIAbilityThread> weak = this;
     auto task = [weak]() {
         TAG_LOGI(AAFwkTag::UIABILITY, "prepare terminate task");

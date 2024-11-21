@@ -29,9 +29,11 @@ namespace AAFwk {
 using namespace OHOS::EventFwk;
 using namespace std::chrono;
 using namespace std::placeholders;
+constexpr const char* PENDING_WANT_MANAGER = "PendingWantManager";
 
 PendingWantManager::PendingWantManager()
 {
+    taskHandler_ = TaskHandlerWrap::CreateQueueHandler(PENDING_WANT_MANAGER);
 }
 
 PendingWantManager::~PendingWantManager()
@@ -599,25 +601,25 @@ int32_t PendingWantManager::GetWantSenderInfo(const sptr<IWantSender> &target, s
 
 void PendingWantManager::ClearPendingWantRecord(const std::string &bundleName, int32_t uid)
 {
-    auto abilityManagerService = DelayedSingleton<AbilityManagerService>::GetInstance();
-    CHECK_POINTER(abilityManagerService);
-    auto handler = abilityManagerService->GetTaskHandler();
-    CHECK_POINTER(handler);
+    CHECK_POINTER(taskHandler_);
+    TAG_LOGI(AAFwkTag::WANTAGENT, "begin");
     auto task = [bundleName, uid, self = shared_from_this()]() { self->ClearPendingWantRecordTask(bundleName, uid); };
-    handler->SubmitTask(task);
+    taskHandler_->SubmitTask(task);
 }
 
 void PendingWantManager::ClearPendingWantRecordTask(const std::string &bundleName, int32_t uid)
 {
+    TAG_LOGI(AAFwkTag::WANTAGENT, "begin");
     std::lock_guard<ffrt::mutex> locker(mutex_);
     auto iter = wantRecords_.begin();
     while (iter != wantRecords_.end()) {
         bool hasBundle = false;
         const auto &pendingRecord = iter->second;
         if ((pendingRecord != nullptr)) {
-            auto wantInfos = pendingRecord->GetKey()->GetAllWantsInfos();
-            for (const auto &wantInfo: wantInfos) {
-                if (wantInfo.want.GetBundle() == bundleName && uid == pendingRecord->GetUid()) {
+            std::vector<std::string> bundleNameVec;
+            pendingRecord->GetKey()->GetAllBundleNames(bundleNameVec);
+            for (const auto &bundleItem: bundleNameVec) {
+                if (bundleItem == bundleName && uid == pendingRecord->GetUid()) {
                     hasBundle = true;
                     break;
                 }
@@ -685,6 +687,7 @@ void PendingWantManager::Dump(std::vector<std::string> &info)
     std::string dumpInfo = "    PendingWantRecords:";
     info.push_back(dumpInfo);
 
+    std::lock_guard<ffrt::mutex> locker(mutex_);
     for (const auto &item : wantRecords_) {
         const auto &pendingKey = item.first;
         dumpInfo = "        PendWantRecord ID #" + std::to_string(pendingKey->GetCode()) +
@@ -717,6 +720,7 @@ void PendingWantManager::DumpByRecordId(std::vector<std::string> &info, const st
     std::string dumpInfo = "    PendingWantRecords:";
     info.push_back(dumpInfo);
 
+    std::lock_guard<ffrt::mutex> locker(mutex_);
     for (const auto &item : wantRecords_) {
         const auto &pendingKey = item.first;
         if (args == std::to_string(pendingKey->GetCode())) {

@@ -17,6 +17,7 @@
 
 #include "ability_util.h"
 #include "in_process_call_wrapper.h"
+#include "utils/app_mgr_util.h"
 
 namespace OHOS {
 namespace AAFwk {

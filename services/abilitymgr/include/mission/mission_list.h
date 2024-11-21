@@ -222,7 +222,7 @@ public:
     int32_t GetMissionCount() const;
     void GetActiveAbilityList(int32_t uid, std::vector<std::string> &abilityList, int32_t pid = NO_PID);
     
-    void SignRestartAppFlag(const std::string &bundleName);
+    void SignRestartAppFlag(int32_t uid, const std::string &instanceKey);
 
 private:
     std::string GetTypeName();

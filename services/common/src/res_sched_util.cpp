@@ -18,6 +18,7 @@
 #include <string>
 
 #include "ability_info.h"
+#include "ui_extension_utils.h"
 #include "hilog_tag_wrapper.h"
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
 #include "res_sched_client.h"
@@ -82,14 +83,31 @@ void ResSchedUtil::ReportAbilityAssociatedStartInfoToRSS(
 #endif
 }
 
+std::string ResSchedUtil::GetThawReasonByAbilityType(const AbilityInfo &abilityInfo)
+{
+    std::string reason;
+    if (abilityInfo.type == AppExecFwk::AbilityType::PAGE) {
+        reason = "THAW_BY_START_PAGE_ABILITY";
+    } else if (abilityInfo.type == AppExecFwk::AbilityType::EXTENSION &&
+               abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::SERVICE) {
+        reason = "THAW_BY_START_SERVICE_EXTENSION";
+    } else if (abilityInfo.type == AppExecFwk::AbilityType::EXTENSION &&
+               AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo.extensionAbilityType)) {
+        reason = "THAW_BY_START_UI_EXTENSION";
+    } else {
+        reason = "THAW_BY_START_NOT_PAGE_ABILITY";
+    }
+    return reason;
+}
+
 void ResSchedUtil::ReportEventToRSS(const int32_t uid, const std::string &bundleName, const std::string &reason,
-    const int32_t callerPid)
+    const int32_t pid, const int32_t callerPid)
 {
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
     uint32_t resType = ResourceSchedule::ResType::SYNC_RES_TYPE_THAW_ONE_APP;
     nlohmann::json payload;
     payload.emplace("uid", uid);
-    payload.emplace("pid", -1);
+    payload.emplace("pid", pid);
     payload.emplace("bundleName", bundleName);
     payload.emplace("reason", reason);
     payload.emplace("callerPid", callerPid);
@@ -153,7 +171,8 @@ bool ResSchedUtil::CheckShouldForceKillProcess(int32_t pid)
 #endif
 }
 
-void ResSchedUtil::ReportLoadingEventToRss(LoadingStage stage, int32_t pid, int32_t uid, int64_t timeDuration)
+void ResSchedUtil::ReportLoadingEventToRss(LoadingStage stage, int32_t pid, int32_t uid,
+    int64_t timeDuration, int64_t abilityRecordId)
 {
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
     uint32_t resType = ResourceSchedule::ResType::RES_TYPE_KEY_PERF_SCENE;
@@ -165,10 +184,28 @@ void ResSchedUtil::ReportLoadingEventToRss(LoadingStage stage, int32_t pid, int3
     if (timeDuration > 0) { // millisecond
         eventParams.emplace("timeoutDuration", std::to_string(timeDuration));
     }
+    if (abilityRecordId > 0) {
+        eventParams.emplace("abilityRecordId", std::to_string(abilityRecordId));
+    }
+
     int64_t type = static_cast<int64_t>(stage);
     TAG_LOGD(AAFwkTag::DEFAULT, "call");
     ResourceSchedule::ResSchedClient::GetInstance().ReportData(resType, type, eventParams);
 #endif
+}
+
+std::unordered_set<std::string> ResSchedUtil::GetNWebPreloadSet() const
+{
+    uint32_t resType = ResourceSchedule::ResType::SYNC_RES_TYPE_GET_NWEB_PRELOAD_SET;
+    nlohmann::json payload;
+    nlohmann::json reply;
+    ResourceSchedule::ResSchedClient::GetInstance().ReportSyncEvent(resType, 0, payload, reply);
+    if (!reply.contains("NWebPreloadSet")) {
+        TAG_LOGW(AAFwkTag::DEFAULT, "does not get preload process set");
+        return {};
+    }
+    auto jsonObj = reply["NWebPreloadSet"];
+    return { jsonObj.begin(), jsonObj.end() };
 }
 } // namespace AAFwk
 } // namespace OHOS

@@ -87,7 +87,7 @@ ErrCode AbilityContext::TerminateAbility()
     ErrCode err = ERR_OK;
     switch (info->type) {
         case AppExecFwk::AbilityType::PAGE:
-            TAG_LOGD(AAFwkTag::CONTEXT, "page type, ability: %{public}s", info->name.c_str());
+            TAG_LOGD(AAFwkTag::CONTEXT, "type:page, ability: %{public}s", info->name.c_str());
 #ifdef SUPPORT_SCREEN
             if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
                 auto sessionToken = GetSessionToken();
@@ -132,7 +132,7 @@ std::string AbilityContext::GetCallingBundle()
     return callingBundleName_;
 }
 
-std::shared_ptr<ElementName> AbilityContext::GetElementName()
+std::shared_ptr<AppExecFwk::ElementName> AbilityContext::GetElementName()
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
     std::shared_ptr<AbilityInfo> info = GetAbilityInfo();
@@ -141,11 +141,8 @@ std::shared_ptr<ElementName> AbilityContext::GetElementName()
         return nullptr;
     }
 
-    std::shared_ptr<ElementName> elementName = std::make_shared<ElementName>();
-    elementName->SetAbilityName(info->name);
-    elementName->SetBundleName(info->bundleName);
-    elementName->SetDeviceID(info->deviceId);
-    elementName->SetModuleName(info->moduleName);
+    std::shared_ptr<ElementName> elementName =
+        std::make_shared<ElementName>(info->deviceId, info->bundleName, info->name, info->moduleName);
     TAG_LOGD(AAFwkTag::CONTEXT, "end");
     return elementName;
 }
@@ -153,11 +150,8 @@ std::shared_ptr<ElementName> AbilityContext::GetElementName()
 std::shared_ptr<ElementName> AbilityContext::GetCallingAbility()
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
-    std::shared_ptr<ElementName> elementName = std::make_shared<ElementName>();
-    elementName->SetAbilityName(callingAbilityName_);
-    elementName->SetBundleName(callingBundleName_);
-    elementName->SetDeviceID(callingDeviceId_);
-    elementName->SetModuleName(callingModuleName_);
+    std::shared_ptr<ElementName> elementName = std::make_shared<ElementName>(
+            callingDeviceId_, callingBundleName_, callingAbilityName_, callingModuleName_);
     TAG_LOGD(AAFwkTag::CONTEXT, "end");
     return elementName;
 }

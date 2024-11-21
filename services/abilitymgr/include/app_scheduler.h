@@ -40,6 +40,9 @@ namespace OHOS {
 namespace AppExecFwk {
 class Configuration;
 }
+namespace AbilityRuntime {
+struct LoadParam;
+}
 namespace AAFwk {
 /**
  * @enum AppAbilityState
@@ -74,6 +77,9 @@ struct AppInfo {
     std::string processName;
     AppState state;
     pid_t pid = 0;
+    int32_t appIndex = 0;
+    std::string instanceKey = "";
+    std::string bundleName = "";
 };
 /**
  * @class AppStateCallback
@@ -139,16 +145,14 @@ public:
     /**
      * load ability with token, ability info and application info.
      *
-     * @param token, the token of ability.
-     * @param preToken, the token of ability's caller.
+     * @param loadParam, the loadParam of ability.
      * @param abilityInfo, ability info.
      * @param applicationInfo, application info.
      * @param want ability want
      * @return true on success ,false on failure.
      */
-    int LoadAbility(sptr<IRemoteObject> token, sptr<IRemoteObject> preToken,
-        const AppExecFwk::AbilityInfo &abilityInfo, const AppExecFwk::ApplicationInfo &applicationInfo,
-        const Want &want, int32_t abilityRecordId, const std::string &instanceKey);
+    int LoadAbility(const AbilityRuntime::LoadParam &loadParam, const AppExecFwk::AbilityInfo &abilityInfo,
+        const AppExecFwk::ApplicationInfo &applicationInfo, const Want &want);
 
     /**
      * terminate ability with token.
@@ -266,9 +270,11 @@ public:
      *
      * @param bundleName name of bundle.
      * @param uid uid of bundle.
+     * @param  reason, caller function name.
      * @return 0 if success.
      */
-    int KillApplicationByUid(const std::string &bundleName, int32_t uid);
+    int KillApplicationByUid(const std::string &bundleName, int32_t uid,
+        const std::string& reason = "KillApplicationByUid");
 
      /**
      * update the application info after new module installed.

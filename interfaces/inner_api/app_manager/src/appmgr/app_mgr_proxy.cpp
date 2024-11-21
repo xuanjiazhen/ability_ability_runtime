@@ -1750,7 +1750,7 @@ int32_t AppMgrProxy::UpdateRenderState(pid_t renderPid, int32_t state)
     return reply.ReadInt32();
 }
 
-int32_t AppMgrProxy::SignRestartAppFlag(const std::string &bundleName)
+int32_t AppMgrProxy::SignRestartAppFlag(int32_t uid, const std::string &instanceKey)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     MessageParcel data;
@@ -1760,7 +1760,8 @@ int32_t AppMgrProxy::SignRestartAppFlag(const std::string &bundleName)
         TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
         return IPC_PROXY_ERR;
     }
-    PARCEL_UTIL_WRITE_RET_INT(data, String, bundleName);
+    PARCEL_UTIL_WRITE_RET_INT(data, Int32, uid);
+    PARCEL_UTIL_WRITE_RET_INT(data, String, instanceKey);
 
     PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::SIGN_RESTART_APP_FLAG, data, reply, option);
     return reply.ReadInt32();
@@ -2071,6 +2072,24 @@ int32_t AppMgrProxy::CheckIsKiaProcess(pid_t pid, bool &isKia)
     }
     isKia = reply.ReadBool();
     return ERR_OK;
+}
+
+int32_t AppMgrProxy::KillAppSelfWithInstanceKey(const std::string &instanceKey, bool clearPageStack,
+    const std::string& reason)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return ERR_INVALID_VALUE;
+    }
+    PARCEL_UTIL_WRITE_RET_INT(data, String, instanceKey);
+    PARCEL_UTIL_WRITE_RET_INT(data, Bool, clearPageStack);
+    PARCEL_UTIL_WRITE_RET_INT(data, String, reason);
+
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::KILL_APP_SELF_WITH_INSTANCE_KEY, data, reply, option);
+    return reply.ReadInt32();
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

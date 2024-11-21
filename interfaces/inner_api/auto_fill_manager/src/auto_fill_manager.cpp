@@ -206,6 +206,9 @@ int32_t AutoFillManager::CreateAutoFillExtension(Ace::UIContent *uiContent,
         want.SetParam(WANT_PARAMS_AUTO_FILL_POPUP_WINDOW_KEY, true);
         Ace::CustomPopupUIExtensionConfig popupConfig;
         AutoFillManagerUtil::ConvertToPopupUIExtensionConfig(request.config, popupConfig);
+        if (!isSmartAutoFill) {
+            popupConfig.isAutoCancel = false;
+        }
         sessionId = uiContent->CreateCustomPopupUIExtension(want, callback, popupConfig);
     } else if (autoFillWindowType == AutoFill::AutoFillWindowType::MODAL_WINDOW) {
         want.SetParam(WANT_PARAMS_AUTO_FILL_POPUP_WINDOW_KEY, false);
@@ -344,6 +347,12 @@ bool AutoFillManager::IsPreviousRequestFinished(Ace::UIContent *uiContent)
         if (extensionCallback->GetWindowType() == AutoFill::AutoFillWindowType::MODAL_WINDOW &&
             extensionCallback->GetInstanceId() == uiContent->GetInstanceId()) {
             return false;
+        }
+        if (extensionCallback->GetWindowType() == AutoFill::AutoFillWindowType::POPUP_WINDOW &&
+            extensionCallback->GetInstanceId() == uiContent->GetInstanceId()) {
+            TAG_LOGI(AAFwkTag::AUTOFILLMGR, "autofill popup window exist!");
+            extensionCallback->CloseUIExtension();
+            return true;
         }
     }
     return true;

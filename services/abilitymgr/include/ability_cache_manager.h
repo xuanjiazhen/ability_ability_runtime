@@ -100,10 +100,11 @@ public:
     void RemoveLauncherDeathRecipient();
 
     /**
-     * Sign the restart flag by bundleName of ability from ability cache manager.
-     * @param bundleName the ability bundleName to be searched in cache manager.
+     * Sign the restart flag by uid of ability from ability cache manager.
+     * @param uid the ability uid to be searched in cache manager.
+     * @param instanceKey the instance key of the process.
      */
-    void SignRestartAppFlag(const std::string &bundleName);
+    void SignRestartAppFlag(int32_t uid, const std::string &instanceKey);
 
     /**
      * Delete the invalid ability by bundleName from ability cache manager.

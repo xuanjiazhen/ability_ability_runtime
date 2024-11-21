@@ -25,24 +25,24 @@
 namespace OHOS {
 namespace AAFwk {
 typedef struct RestartAppKey {
-    std::string bundleName;
-    int32_t userId = 100;
+    int32_t uid = 0;
+    std::string instanceKey = "";
 
-    RestartAppKey(std::string restartBundleName, int32_t restartUserId)
+    RestartAppKey(std::string callingInstanceKey, int32_t callingUid)
     {
-        bundleName = restartBundleName;
-        userId = restartUserId;
+        instanceKey = callingInstanceKey;
+        uid = callingUid;
     }
     bool operator ==(const struct RestartAppKey &other) const
     {
-        return bundleName == other.bundleName && userId == other.userId;
+        return instanceKey == other.instanceKey && uid == other.uid;
     }
 } RestartAppKeyType;
 
 struct RestartAppKeyHash {
     size_t operator()(const RestartAppKeyType &p) const
     {
-        return std::hash<std::string>()(p.bundleName) ^ std::hash<int>()(p.userId);
+        return std::hash<std::string>()(p.instanceKey) ^ std::hash<int>()(p.uid);
     }
 };
 
@@ -53,13 +53,11 @@ struct RestartAppKeyHash {
 class RestartAppManager {
 public:
     using RestartAppMapType = std::unordered_map<RestartAppKeyType, time_t, RestartAppKeyHash>;
-
     virtual ~RestartAppManager() = default;
     static RestartAppManager &GetInstance();
 
     bool IsRestartAppFrequent(const RestartAppKeyType &key, time_t time);
     void AddRestartAppHistory(const RestartAppKeyType &key, time_t time);
-    bool IsForegroundToRestartApp() const;
 
 private:
     RestartAppManager() = default;

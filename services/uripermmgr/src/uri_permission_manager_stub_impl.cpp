@@ -124,11 +124,11 @@ int UriPermissionManagerStubImpl::GrantUriPermission(const Uri &uri, unsigned in
     const std::string targetBundleName, int32_t appIndex, uint32_t initiatorTokenId, int32_t abilityId)
 {
     TAG_LOGI(AAFwkTag::URIPERMMGR, "Uri:%{private}s", uri.ToString().c_str());
-    if (!UPMSUtils::IsSAOrSystemAppCall()) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "not SA/SystemApp");
-        return CHECK_PERMISSION_FAILED;
-    }
     std::vector<Uri> uriVec = { uri };
+    if (UPMSUtils::IsSystemAppCall(initiatorTokenId) && uriVec[0].GetScheme() != "file") {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "Only support file uri");
+        return ERR_CODE_INVALID_URI_TYPE;
+    }
     return GrantUriPermission(uriVec, flag, targetBundleName, appIndex, initiatorTokenId, abilityId);
 }
 
@@ -537,7 +537,7 @@ int UriPermissionManagerStubImpl::RevokeAllUriPermissions(uint32_t tokenId)
         return CHECK_PERMISSION_FAILED;
     }
     std::string callerAuthority = "";
-    UPMSUtils::GetBundleNameByTokenId(tokenId, callerAuthority);
+    UPMSUtils::GetAlterableBundleNameByTokenId(tokenId, callerAuthority);
     std::map<uint32_t, std::vector<std::string>> uriLists;
     {
         std::lock_guard<std::mutex> guard(mutex_);
@@ -592,9 +592,10 @@ int UriPermissionManagerStubImpl::RevokeUriPermissionManually(const Uri &uri, co
         return ERR_CODE_INVALID_URI_TYPE;
     }
     uint32_t targetTokenId = 0;
-    if (UPMSUtils::GetTokenIdByBundleName(bundleName, appIndex, targetTokenId) != ERR_OK) {
+    auto ret = UPMSUtils::GetTokenIdByBundleName(bundleName, appIndex, targetTokenId);
+    if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "get tokenId by bundleName fail");
-        return INNER_ERR;
+        return ret;
     }
 
     auto uriStr = uri.ToString();
@@ -603,7 +604,7 @@ int UriPermissionManagerStubImpl::RevokeUriPermissionManually(const Uri &uri, co
     // uri belong to caller or caller is target.
     auto callerTokenId = IPCSkeleton::GetCallingTokenID();
     std::string callerAuthority = "";
-    UPMSUtils::GetBundleNameByTokenId(callerTokenId, callerAuthority);
+    UPMSUtils::GetAlterableBundleNameByTokenId(callerTokenId, callerAuthority);
     bool isRevokeSelfUri = (callerTokenId == targetTokenId || callerAuthority == uriAuthority);
     std::vector<std::string> uriList;
     {
@@ -806,8 +807,8 @@ std::vector<bool> UriPermissionManagerStubImpl::CheckUriPermission(TokenIdPermis
     std::vector<Uri> mediaUris;
     std::vector<int32_t> mediaUriIndexs;
     bool isFoundationCall = UPMSUtils::IsFoundationCall();
-    std::string callerBundleName;
-    UPMSUtils::GetBundleNameByTokenId(tokenId, callerBundleName);
+    std::string callerAlterableBundleName;
+    UPMSUtils::GetAlterableBundleNameByTokenId(tokenId, callerAlterableBundleName);
     for (size_t i = 0; i < uriVec.size(); i++) {
         auto uri = uriVec[i];
         auto &&scheme = uri.GetScheme();
@@ -831,7 +832,7 @@ std::vector<bool> UriPermissionManagerStubImpl::CheckUriPermission(TokenIdPermis
             mediaUriIndexs.emplace_back(i);
             continue;
         }
-        result[i] = (authority == callerBundleName);
+        result[i] = (authority == callerAlterableBundleName);
     }
     if (!mediaUris.empty()) {
         auto mediaUriResult = MediaPermissionManager::GetInstance().CheckUriPermission(mediaUris, tokenId, flag);
