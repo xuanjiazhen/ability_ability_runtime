@@ -145,8 +145,11 @@ sptr<IOverlayManager> BundleMgrService::GetOverlayManagerProxy()
 }
 
 ErrCode  BundleMgrService::GetDependentBundleInfo(const std::string &sharedBundleName, BundleInfo &sharedBundleInfo,
-        GetDependentBundleInfoFlag flag)
+    GetDependentBundleInfoFlag flag)
 {
+    sharedBundleInfo.name = "test_bundleName";
+    sharedBundleInfo.applicationInfo.name = "test_appName";
+    sharedBundleInfo.applicationInfo.bundleType = AppExecFwk::BundleType::SHARED;
     return ERR_OK;
 }
 }  // namespace AppExecFwk

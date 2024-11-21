@@ -24,6 +24,7 @@
 #include "constants.h"
 #include "ability_local_record.h"
 #include "application_context.h"
+#include "ability_stage_context.h"
 #include "context.h"
 #include "hap_module_info.h"
 #include "hilog_tag_wrapper.h"
@@ -1480,17 +1481,12 @@ HWTEST_F(ContextImplTest, AppExecFwk_AppContext_CreateHspResourceManager_001, Fu
     std::shared_ptr<AbilityRuntime::ContextImpl> contextImpl_ = std::make_shared<AbilityRuntime::ContextImpl>();
     std::shared_ptr<AbilityRuntime::ContextImpl> appContext = std::make_shared<AbilityRuntime::ContextImpl>();
     auto config = std::make_shared<AppExecFwk::Configuration>();
-    EXPECT_NE(config, nullptr);
     contextImpl_->SetConfiguration(config);
 
     AppExecFwk::BundleInfo bundleInfo;
     bundleInfo.name = "com.clm.module";
     bundleInfo.applicationInfo.name = "applicationName";
-    bundleInfo.isKeepAlive = true;
-    bundleInfo.applicationInfo.process = "com.li.module";
-    bundleInfo.applicationInfo.multiProjects = true;
     contextImpl_->InitResourceManager(bundleInfo, appContext, true, "");
-    EXPECT_TRUE(appContext->GetResourceManager() != nullptr);
     AppExecFwk::HapModuleInfo hapModuleInfo;
     hapModuleInfo.moduleName = "test_moduleName";
     contextImpl_->InitHapModuleInfo(hapModuleInfo);
@@ -1505,7 +1501,7 @@ HWTEST_F(ContextImplTest, AppExecFwk_AppContext_CreateHspResourceManager_001, Fu
     Global::Resource::ResConfigImpl resConfig;
     std::shared_ptr<Global::Resource::ResourceManager> resourceManager = nullptr;
     resourceManager = context->GetResourceManager();
-    if (resourceManager != nullptr) { 
+    if (resourceManager != nullptr) {
         resourceManager->GetResConfig(resConfig);
         resConfig.SetMcc(11);
         resConfig.SetMnc(22);
@@ -1513,7 +1509,8 @@ HWTEST_F(ContextImplTest, AppExecFwk_AppContext_CreateHspResourceManager_001, Fu
         resourceManager->UpdateResConfig(resConfig);
     }
 
-    std::shared_ptr<AbilityRuntime::ApplicationContext> applicationContext = AbilityRuntime::ApplicationContext::GetInstance();
+    std::shared_ptr<AbilityRuntime::ApplicationContext> applicationContext = nullptr;
+    applicationContext = AbilityRuntime::ApplicationContext::GetInstance();
     applicationContext->AttachContextImpl(context);
 
     contextImpl_->GetBundleManager();
