@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -215,6 +215,13 @@ public:
     int GetArea() override;
 
     /**
+     * @brief Get process name
+     *
+     * @return process name.
+     */
+    std::string GetProcessName() override;
+
+    /**
      * @brief set the ResourceManager.
      *
      * @param the ResourceManager has been initialized.
@@ -392,6 +399,8 @@ public:
 
     void AppHasDarkRes(bool &darkRes);
 
+    void SetProcessName(const std::string &processName);
+
     static const int EL_DEFAULT = 1;
 
 protected:
@@ -496,6 +505,7 @@ private:
     volatile bool resetFlag_ = false;
 
     std::shared_ptr<AppExecFwk::OverlayEventSubscriber> overlaySubscriber_;
+    std::string processName_;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS
