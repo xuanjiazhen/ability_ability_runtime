@@ -23,7 +23,7 @@
 #include "cj_ability_stage_object.h"
 #include <string>
 #include "cj_ability_delegator.h"
-#include "cj_ability_delegator_registry.h"
+#include "ability_delegator_registry.h"
 #include "cj_application_context.h"
 #include "application_context.h"
 #include "runner_runtime/cj_test_runner.h"
@@ -106,7 +106,7 @@ void CjAbilityStageTest::SetUp(void)
     auto testRunner = CJTestRunner::Create(AbilityRuntime::Runtime::Create(options), delegatorArgs_, bundleInfo);
     auto commonDelegator_ = std::make_shared<CJAbilityDelegatorImpl>(
         std::make_shared<AbilityRuntime::ContextImpl>(), std::move(testRunner), nullptr);
-    CJAbilityDelegatorRegistry::RegisterInstance(commonDelegator_, delegatorArgs_);
+    AbilityDelegatorRegistry::RegisterInstance(commonDelegator_, delegatorArgs_);
     
     RegisterCJAbilityStageFuncs(g_registerFunc);
     std::string moduleName = "0";

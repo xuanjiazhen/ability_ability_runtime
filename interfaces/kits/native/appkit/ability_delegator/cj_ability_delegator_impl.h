@@ -37,10 +37,11 @@
 #include "shell_cmd_result.h"
 #include "test_runner.h"
 #include "want.h"
+#include "ability_delegator.h"
 
 namespace OHOS {
 namespace AppExecFwk {
-class CJAbilityDelegatorImpl : public std::enable_shared_from_this<CJAbilityDelegatorImpl> {
+class CJAbilityDelegatorImpl : public std::enable_shared_from_this<CJAbilityDelegatorImpl>, public AbilityDelegator {
 public:
     enum class AbilityState : uint8_t {
         /**
@@ -71,6 +72,8 @@ public:
     using ClearFunc = std::function<void(const std::shared_ptr<ACJDelegatorAbilityProperty>&)>;
 
 public:
+    static std::shared_ptr<CJAbilityDelegatorImpl> Create(const std::shared_ptr<AbilityRuntime::Context>& context,
+        std::unique_ptr<TestRunner>& runner, const sptr<IRemoteObject>& observer);
     /**
     * A constructor used to create a CJAbilityDelegatorImpl instance with the input
     * parameter passed.
@@ -79,7 +82,7 @@ public:
     * @param runner Indicates the TestRunner object.
     * @param observer Indicates the TestObserver object.
     */
-    CJAbilityDelegatorImpl(const std::shared_ptr<AbilityRuntime::Context>& context, std::unique_ptr<TestRunner> runner,
+    CJAbilityDelegatorImpl(const std::shared_ptr<AbilityRuntime::Context>& context, std::unique_ptr<TestRunner>& runner,
         const sptr<IRemoteObject>& observer);
 
     /**

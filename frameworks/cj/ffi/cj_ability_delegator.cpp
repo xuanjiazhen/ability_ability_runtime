@@ -14,7 +14,7 @@
  */
 
 #include "cj_ability_delegator.h"
-#include "cj_ability_delegator_registry.h"
+#include "ability_delegator_registry.h"
 #include "application_context.h"
 #include "cj_application_context.h"
 #include "cj_utils_ffi.h"
@@ -591,7 +591,7 @@ int64_t FFIAbilityDelegatorWaitAbilityStageMonitorWithTimeout(
 
 int64_t FFIAbilityDelegatorRegistryGetAbilityDelegator()
 {
-    auto delegator = OHOS::AppExecFwk::CJAbilityDelegatorRegistry::GetAbilityDelegator();
+    auto delegator = OHOS::AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator();
     if (delegator == nullptr) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "null delegatorImpl");
         return INVALID_CODE;

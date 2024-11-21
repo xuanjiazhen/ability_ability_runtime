@@ -16,6 +16,8 @@
 #include <gtest/gtest.h>
 
 #include "ability_delegator_registry.h"
+#include "ability_delegator.h"
+#include "js_ability_delegator_impl.h"
 #include "ability_runtime/context/context_impl.h"
 #include "app_loader.h"
 #include "hilog_tag_wrapper.h"
@@ -85,7 +87,7 @@ HWTEST_F(AbilityDelegatorRegistryModuleTest,
         abilityArgs,
         true);
     std::shared_ptr<AbilityDelegator> abilityDelegator =
-        std::make_shared<AbilityDelegator>(nullptr, std::move(testRunner), nullptr);
+        std::make_shared<JSAbilityDelegatorImpl>(nullptr, std::move(testRunner), nullptr);
     AbilityDelegatorRegistry::RegisterInstance(abilityDelegator, abilityArgs);
 
     EXPECT_EQ(AbilityDelegatorRegistry::GetAbilityDelegator(), abilityDelegator);

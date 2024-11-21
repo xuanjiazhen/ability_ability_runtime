@@ -17,8 +17,11 @@
 #define OHOS_ABILITY_RUNTIME_ABILITY_DELEGATOR_REGISTRY_H
 
 #include <memory>
+
 #include "ability_delegator.h"
 #include "ability_delegator_args.h"
+#include "cj_ability_delegator_impl.h"
+#include "js_ability_delegator_impl.h"
 
 namespace OHOS {
 namespace AppExecFwk {

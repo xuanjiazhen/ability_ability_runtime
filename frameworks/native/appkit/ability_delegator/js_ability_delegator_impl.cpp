@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "ability_delegator.h"
+#include "js_ability_delegator_impl.h"
 
 #include "hilog_tag_wrapper.h"
 #include "ohos_application.h"
@@ -23,15 +23,21 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-AbilityDelegator::AbilityDelegator(const std::shared_ptr<AbilityRuntime::Context> &context,
-    std::unique_ptr<TestRunner> runner, const sptr<IRemoteObject> &observer)
+std::shared_ptr<JSAbilityDelegatorImply> JSAbilityDelegatorImpl::Create(
+    const std::shared_ptr<AbilityRuntime::Context>& context, std::unique_ptr<TestRunner>& runner,
+    const sptr<IRemoteObject>& observer)
+{
+    return std::make_shared<JSAbilityDelegatorImpl>(context, runner, observer);
+}
+
+JSAbilityDelegatorImpl::JSAbilityDelegatorImpl(const std::shared_ptr<AbilityRuntime::Context>& context,
+    std::unique_ptr<TestRunner>& runner, const sptr<IRemoteObject>& observer)
     : appContext_(context), testRunner_(std::move(runner)), observer_(observer)
 {}
 
-AbilityDelegator::~AbilityDelegator()
-{}
+JSAbilityDelegatorImpl::~JSAbilityDelegatorImpl() {}
 
-void AbilityDelegator::AddAbilityMonitor(const std::shared_ptr<IAbilityMonitor> &monitor)
+void JSAbilityDelegatorImpl::AddAbilityMonitor(const std::shared_ptr<IAbilityMonitor> &monitor)
 {
     if (!monitor) {
         TAG_LOGW(AAFwkTag::DELEGATOR, "invalid params");
@@ -48,7 +54,7 @@ void AbilityDelegator::AddAbilityMonitor(const std::shared_ptr<IAbilityMonitor> 
     abilityMonitors_.emplace_back(monitor);
 }
 
-void AbilityDelegator::AddAbilityStageMonitor(const std::shared_ptr<IAbilityStageMonitor> &monitor)
+void JSAbilityDelegatorImpl::AddAbilityStageMonitor(const std::shared_ptr<IAbilityStageMonitor> &monitor)
 {
     if (!monitor) {
         TAG_LOGW(AAFwkTag::DELEGATOR, "invalid params");
@@ -63,7 +69,7 @@ void AbilityDelegator::AddAbilityStageMonitor(const std::shared_ptr<IAbilityStag
     abilityStageMonitors_.emplace_back(monitor);
 }
 
-void AbilityDelegator::RemoveAbilityMonitor(const std::shared_ptr<IAbilityMonitor> &monitor)
+void JSAbilityDelegatorImpl::RemoveAbilityMonitor(const std::shared_ptr<IAbilityMonitor> &monitor)
 {
     if (!monitor) {
         TAG_LOGW(AAFwkTag::DELEGATOR, "invalid params");
@@ -77,7 +83,7 @@ void AbilityDelegator::RemoveAbilityMonitor(const std::shared_ptr<IAbilityMonito
     }
 }
 
-void AbilityDelegator::RemoveAbilityStageMonitor(const std::shared_ptr<IAbilityStageMonitor> &monitor)
+void JSAbilityDelegatorImpl::RemoveAbilityStageMonitor(const std::shared_ptr<IAbilityStageMonitor> &monitor)
 {
     if (!monitor) {
         TAG_LOGW(AAFwkTag::DELEGATOR, "invalid params");
@@ -90,26 +96,26 @@ void AbilityDelegator::RemoveAbilityStageMonitor(const std::shared_ptr<IAbilityS
     }
 }
 
-void AbilityDelegator::ClearAllMonitors()
+void JSAbilityDelegatorImpl::ClearAllMonitors()
 {
     std::unique_lock<std::mutex> lck(mutexMonitor_);
     abilityMonitors_.clear();
 }
 
-size_t AbilityDelegator::GetMonitorsNum()
+size_t JSAbilityDelegatorImpl::GetMonitorsNum()
 {
     std::unique_lock<std::mutex> lck(mutexMonitor_);
     return abilityMonitors_.size();
 }
 
-size_t AbilityDelegator::GetStageMonitorsNum()
+size_t JSAbilityDelegatorImpl::GetStageMonitorsNum()
 {
     std::unique_lock<std::mutex> lck(mutexStageMonitor_);
     return abilityStageMonitors_.size();
 }
 
 
-std::shared_ptr<ADelegatorAbilityProperty> AbilityDelegator::WaitAbilityMonitor(
+std::shared_ptr<ADelegatorAbilityProperty> JSAbilityDelegatorImpl::WaitAbilityMonitor(
     const std::shared_ptr<IAbilityMonitor> &monitor)
 {
     if (!monitor) {
@@ -128,7 +134,7 @@ std::shared_ptr<ADelegatorAbilityProperty> AbilityDelegator::WaitAbilityMonitor(
     return obtainedAbility;
 }
 
-std::shared_ptr<DelegatorAbilityStageProperty> AbilityDelegator::WaitAbilityStageMonitor(
+std::shared_ptr<DelegatorAbilityStageProperty> JSAbilityDelegatorImpl::WaitAbilityStageMonitor(
     const std::shared_ptr<IAbilityStageMonitor> &monitor)
 {
     if (!monitor) {
@@ -145,7 +151,7 @@ std::shared_ptr<DelegatorAbilityStageProperty> AbilityDelegator::WaitAbilityStag
     return stage;
 }
 
-std::shared_ptr<ADelegatorAbilityProperty> AbilityDelegator::WaitAbilityMonitor(
+std::shared_ptr<ADelegatorAbilityProperty> JSAbilityDelegatorImpl::WaitAbilityMonitor(
     const std::shared_ptr<IAbilityMonitor> &monitor, const int64_t timeoutMs)
 {
     if (!monitor) {
@@ -164,7 +170,7 @@ std::shared_ptr<ADelegatorAbilityProperty> AbilityDelegator::WaitAbilityMonitor(
     return obtainedAbility;
 }
 
-std::shared_ptr<DelegatorAbilityStageProperty> AbilityDelegator::WaitAbilityStageMonitor(
+std::shared_ptr<DelegatorAbilityStageProperty> JSAbilityDelegatorImpl::WaitAbilityStageMonitor(
     const std::shared_ptr<IAbilityStageMonitor> &monitor, const int64_t timeoutMs)
 {
     if (!monitor) {
@@ -180,29 +186,29 @@ std::shared_ptr<DelegatorAbilityStageProperty> AbilityDelegator::WaitAbilityStag
     return stage;
 }
 
-std::shared_ptr<AbilityRuntime::Context> AbilityDelegator::GetAppContext() const
+std::shared_ptr<AbilityRuntime::Context> JSAbilityDelegatorImpl::GetAppContext() const
 {
     return appContext_;
 }
 
-AbilityDelegator::AbilityState AbilityDelegator::GetAbilityState(const sptr<IRemoteObject> &token)
+JSAbilityDelegatorImpl::AbilityState JSAbilityDelegatorImpl::GetAbilityState(const sptr<IRemoteObject> &token)
 {
     if (!token) {
         TAG_LOGW(AAFwkTag::DELEGATOR, "invalid params");
-        return AbilityDelegator::AbilityState::UNINITIALIZED;
+        return JSAbilityDelegatorImpl::AbilityState::UNINITIALIZED;
     }
 
     std::unique_lock<std::mutex> lck(mutexAbilityProperties_);
     auto existedProperty = FindPropertyByToken(token);
     if (!existedProperty) {
         TAG_LOGW(AAFwkTag::DELEGATOR, "unknown ability token");
-        return AbilityDelegator::AbilityState::UNINITIALIZED;
+        return JSAbilityDelegatorImpl::AbilityState::UNINITIALIZED;
     }
 
     return ConvertAbilityState(existedProperty->lifecycleState_);
 }
 
-std::shared_ptr<ADelegatorAbilityProperty> AbilityDelegator::GetCurrentTopAbility()
+std::shared_ptr<ADelegatorAbilityProperty> JSAbilityDelegatorImpl::GetCurrentTopAbility()
 {
     AppExecFwk::ElementName elementName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility();
     std::string bundleName = elementName.GetBundleName();
@@ -229,12 +235,12 @@ std::shared_ptr<ADelegatorAbilityProperty> AbilityDelegator::GetCurrentTopAbilit
     return existedProperty;
 }
 
-std::string AbilityDelegator::GetThreadName() const
+std::string JSAbilityDelegatorImpl::GetThreadName() const
 {
     return {};
 }
 
-void AbilityDelegator::Prepare()
+void JSAbilityDelegatorImpl::Prepare()
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "Enter");
     if (!testRunner_) {
@@ -259,7 +265,7 @@ void AbilityDelegator::Prepare()
     }
 }
 
-void AbilityDelegator::OnRun()
+void JSAbilityDelegatorImpl::OnRun()
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "Enter");
     if (!testRunner_) {
@@ -271,7 +277,7 @@ void AbilityDelegator::OnRun()
     testRunner_->Run();
 }
 
-ErrCode AbilityDelegator::StartAbility(const AAFwk::Want &want)
+ErrCode JSAbilityDelegatorImpl::StartAbility(const AAFwk::Want &want)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "Enter");
 
@@ -286,7 +292,7 @@ ErrCode AbilityDelegator::StartAbility(const AAFwk::Want &want)
     return AbilityManagerClient::GetInstance()->StartAbility(realWant);
 }
 
-bool AbilityDelegator::DoAbilityForeground(const sptr<IRemoteObject> &token)
+bool JSAbilityDelegatorImpl::DoAbilityForeground(const sptr<IRemoteObject> &token)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "called");
 
@@ -304,7 +310,7 @@ bool AbilityDelegator::DoAbilityForeground(const sptr<IRemoteObject> &token)
     return true;
 }
 
-bool AbilityDelegator::DoAbilityBackground(const sptr<IRemoteObject> &token)
+bool JSAbilityDelegatorImpl::DoAbilityBackground(const sptr<IRemoteObject> &token)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "Enter");
 
@@ -322,7 +328,7 @@ bool AbilityDelegator::DoAbilityBackground(const sptr<IRemoteObject> &token)
     return true;
 }
 
-std::unique_ptr<ShellCmdResult> AbilityDelegator::ExecuteShellCommand(const std::string &cmd, const int64_t timeoutSec)
+std::unique_ptr<ShellCmdResult> JSAbilityDelegatorImpl::ExecuteShellCommand(const std::string &cmd, const int64_t timeoutSec)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "command : %{public}s, timeout : %{public}" PRId64, cmd.data(), timeoutSec);
 
@@ -341,7 +347,7 @@ std::unique_ptr<ShellCmdResult> AbilityDelegator::ExecuteShellCommand(const std:
     return std::make_unique<ShellCmdResult>(result);
 }
 
-void AbilityDelegator::Print(const std::string &msg)
+void JSAbilityDelegatorImpl::Print(const std::string &msg)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "Enter");
 
@@ -361,7 +367,7 @@ void AbilityDelegator::Print(const std::string &msg)
     testObserver->TestStatus(realMsg, 0);
 }
 
-void AbilityDelegator::PostPerformStart(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
+void JSAbilityDelegatorImpl::PostPerformStart(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "called");
 
@@ -389,7 +395,7 @@ void AbilityDelegator::PostPerformStart(const std::shared_ptr<ADelegatorAbilityP
     }
 }
 
-void AbilityDelegator::PostPerformStageStart(const std::shared_ptr<DelegatorAbilityStageProperty> &abilityStage)
+void JSAbilityDelegatorImpl::PostPerformStageStart(const std::shared_ptr<DelegatorAbilityStageProperty> &abilityStage)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "called");
     if (!abilityStage) {
@@ -411,7 +417,7 @@ void AbilityDelegator::PostPerformStageStart(const std::shared_ptr<DelegatorAbil
     }
 }
 
-void AbilityDelegator::PostPerformScenceCreated(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
+void JSAbilityDelegatorImpl::PostPerformScenceCreated(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "called");
 
@@ -439,7 +445,7 @@ void AbilityDelegator::PostPerformScenceCreated(const std::shared_ptr<ADelegator
     }
 }
 
-void AbilityDelegator::PostPerformScenceRestored(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
+void JSAbilityDelegatorImpl::PostPerformScenceRestored(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "called");
 
@@ -467,7 +473,7 @@ void AbilityDelegator::PostPerformScenceRestored(const std::shared_ptr<ADelegato
     }
 }
 
-void AbilityDelegator::PostPerformScenceDestroyed(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
+void JSAbilityDelegatorImpl::PostPerformScenceDestroyed(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "called");
 
@@ -495,7 +501,7 @@ void AbilityDelegator::PostPerformScenceDestroyed(const std::shared_ptr<ADelegat
     }
 }
 
-void AbilityDelegator::PostPerformForeground(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
+void JSAbilityDelegatorImpl::PostPerformForeground(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "called");
 
@@ -523,7 +529,7 @@ void AbilityDelegator::PostPerformForeground(const std::shared_ptr<ADelegatorAbi
     }
 }
 
-void AbilityDelegator::PostPerformBackground(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
+void JSAbilityDelegatorImpl::PostPerformBackground(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "called");
 
@@ -551,7 +557,7 @@ void AbilityDelegator::PostPerformBackground(const std::shared_ptr<ADelegatorAbi
     }
 }
 
-void AbilityDelegator::PostPerformStop(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
+void JSAbilityDelegatorImpl::PostPerformStop(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "Enter");
 
@@ -582,22 +588,22 @@ void AbilityDelegator::PostPerformStop(const std::shared_ptr<ADelegatorAbilityPr
     CallClearFunc(ability);
 }
 
-AbilityDelegator::AbilityState AbilityDelegator::ConvertAbilityState(
+JSAbilityDelegatorImpl::AbilityState JSAbilityDelegatorImpl::ConvertAbilityState(
     const AbilityLifecycleExecutor::LifecycleState lifecycleState)
 {
-    AbilityDelegator::AbilityState abilityState {AbilityDelegator::AbilityState::UNINITIALIZED};
+    JSAbilityDelegatorImpl::AbilityState abilityState {JSAbilityDelegatorImpl::AbilityState::UNINITIALIZED};
     switch (lifecycleState) {
         case AbilityLifecycleExecutor::LifecycleState::STARTED_NEW:
-            abilityState = AbilityDelegator::AbilityState::STARTED;
+            abilityState = JSAbilityDelegatorImpl::AbilityState::STARTED;
             break;
         case AbilityLifecycleExecutor::LifecycleState::FOREGROUND_NEW:
-            abilityState = AbilityDelegator::AbilityState::FOREGROUND;
+            abilityState = JSAbilityDelegatorImpl::AbilityState::FOREGROUND;
             break;
         case AbilityLifecycleExecutor::LifecycleState::BACKGROUND_NEW:
-            abilityState = AbilityDelegator::AbilityState::BACKGROUND;
+            abilityState = JSAbilityDelegatorImpl::AbilityState::BACKGROUND;
             break;
         case AbilityLifecycleExecutor::LifecycleState::STOPED_NEW:
-            abilityState = AbilityDelegator::AbilityState::STOPPED;
+            abilityState = JSAbilityDelegatorImpl::AbilityState::STOPPED;
             break;
         default:
             TAG_LOGE(AAFwkTag::DELEGATOR, "Unknown lifecycleState");
@@ -607,7 +613,7 @@ AbilityDelegator::AbilityState AbilityDelegator::ConvertAbilityState(
     return abilityState;
 }
 
-void AbilityDelegator::ProcessAbilityProperties(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
+void JSAbilityDelegatorImpl::ProcessAbilityProperties(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "Enter");
 
@@ -630,7 +636,7 @@ void AbilityDelegator::ProcessAbilityProperties(const std::shared_ptr<ADelegator
     abilityProperties_.emplace_back(ability);
 }
 
-void AbilityDelegator::RemoveAbilityProperty(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
+void JSAbilityDelegatorImpl::RemoveAbilityProperty(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
 {
     TAG_LOGD(AAFwkTag::DELEGATOR, "called");
 
@@ -648,7 +654,7 @@ void AbilityDelegator::RemoveAbilityProperty(const std::shared_ptr<ADelegatorAbi
     });
 }
 
-std::shared_ptr<ADelegatorAbilityProperty> AbilityDelegator::FindPropertyByToken(const sptr<IRemoteObject> &token)
+std::shared_ptr<ADelegatorAbilityProperty> JSAbilityDelegatorImpl::FindPropertyByToken(const sptr<IRemoteObject> &token)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "Enter");
 
@@ -672,7 +678,7 @@ std::shared_ptr<ADelegatorAbilityProperty> AbilityDelegator::FindPropertyByToken
     return {};
 }
 
-std::shared_ptr<ADelegatorAbilityProperty> AbilityDelegator::FindPropertyByName(const std::string &name)
+std::shared_ptr<ADelegatorAbilityProperty> JSAbilityDelegatorImpl::FindPropertyByName(const std::string &name)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "find property by %{public}s", name.c_str());
 
@@ -696,7 +702,7 @@ std::shared_ptr<ADelegatorAbilityProperty> AbilityDelegator::FindPropertyByName(
     return {};
 }
 
-void AbilityDelegator::FinishUserTest(const std::string &msg, const int64_t resultCode)
+void JSAbilityDelegatorImpl::FinishUserTest(const std::string &msg, const int64_t resultCode)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "msg: %{public}s, code: %{public}" PRId64, msg.data(), resultCode);
 
@@ -724,7 +730,7 @@ void AbilityDelegator::FinishUserTest(const std::string &msg, const int64_t resu
     }
 }
 
-void AbilityDelegator::RegisterClearFunc(ClearFunc func)
+void JSAbilityDelegatorImpl::RegisterClearFunc(ClearFunc func)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "Enter");
     if (!func) {
@@ -735,7 +741,7 @@ void AbilityDelegator::RegisterClearFunc(ClearFunc func)
     clearFunc_ = func;
 }
 
-inline void AbilityDelegator::CallClearFunc(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
+inline void JSAbilityDelegatorImpl::CallClearFunc(const std::shared_ptr<ADelegatorAbilityProperty> &ability)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "Enter");
     if (clearFunc_) {

@@ -15,7 +15,7 @@
 
 #include "cj_ability_stage.h"
 
-#include "cj_ability_delegator_registry.h"
+#include "ability_delegator_registry.h"
 #include "cj_runtime.h"
 #include "context_impl.h"
 #include "hilog_tag_wrapper.h"
@@ -147,7 +147,7 @@ void CJAbilityStage::OnCreate(const AAFwk::Want& want) const
     TAG_LOGD(AAFwkTag::APPKIT, "CJAbilityStage::OnCreate");
     cjAbilityStageObject_->OnCreate();
 
-    auto delegator = OHOS::AppExecFwk::CJAbilityDelegatorRegistry::GetAbilityDelegator();
+    auto delegator = OHOS::AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator();
     if (delegator) {
         delegator->PostPerformStageStart(CreateStageProperty());
     }

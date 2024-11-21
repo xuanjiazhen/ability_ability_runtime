@@ -14,7 +14,7 @@
  */
 
 #include "cj_ability_delegator_args.h"
-#include "cj_ability_delegator_registry.h"
+#include "ability_delegator_registry.h"
 #include "hilog_tag_wrapper.h"
 #include "cj_utils_ffi.h"
 
@@ -48,7 +48,7 @@ std::string CJAbilityDelegatorArgs::GetTestRunnerClassName()
 extern "C" {
 int64_t FfiAbilityDelegatorRegistryGetArguments()
 {
-    auto delegatorArgs = OHOS::AppExecFwk::CJAbilityDelegatorRegistry::GetArguments();
+    auto delegatorArgs = OHOS::AppExecFwk::AbilityDelegatorRegistry::GetArguments();
     if (delegatorArgs == nullptr) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "null cj delegatorArgs");
         return INVALID_ARG;

@@ -16,7 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_CJ_ABILITY_DELEGATOR_FFI_H
 #define OHOS_ABILITY_RUNTIME_CJ_ABILITY_DELEGATOR_FFI_H
 
-#include "cj_ability_delegator_registry.h"
+#include "ability_delegator_registry.h"
 #include "cj_ability_monitor.h"
 #include "cj_ability_stage_monitor.h"
 #include "cj_macro.h"

@@ -18,6 +18,7 @@
 #define private public
 #include "js_test_runner.h"
 #include "ability_delegator.h"
+#include "js_ability_delegator_impl.h"
 #include "ability_manager_client.h"
 #include "ability_runtime/context/context_impl.h"
 #undef private
@@ -123,7 +124,7 @@ HWTEST_F(JsTestRunnerModuleTest, Js_Test_Runner_Module_Test_0100, Function | Med
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub);
     std::shared_ptr<AbilityDelegator> abilityDelegator =
-        std::make_shared<AbilityDelegator>(context, std::move(testRunner), iRemoteObj);
+        std::make_shared<JSAbilityDelegatorImpl>(context, std::move(testRunner), iRemoteObj);
     AbilityDelegatorRegistry::RegisterInstance(abilityDelegator, abilityArgs);
 
     JsTestRunner* jsRunnerdrive = nullptr;
@@ -162,7 +163,7 @@ HWTEST_F(JsTestRunnerModuleTest, Js_Test_Runner_Module_Test_0200, Function | Med
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub);
     std::shared_ptr<AbilityDelegator> abilityDelegator =
-        std::make_shared<AbilityDelegator>(context, std::move(testRunner), iRemoteObj);
+        std::make_shared<JSAbilityDelegatorImpl>(context, std::move(testRunner), iRemoteObj);
     AbilityDelegatorRegistry::RegisterInstance(abilityDelegator, abilityArgs);
 
     sptr<IRemoteObject> shobserver = sptr<IRemoteObject>(new MockTestObserverStub);

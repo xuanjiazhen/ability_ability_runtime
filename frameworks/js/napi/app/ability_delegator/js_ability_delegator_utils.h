@@ -20,6 +20,7 @@
 #include "ability_delegator.h"
 #include "ability_delegator_args.h"
 #include "js_ability_delegator.h"
+#include "js_ability_delegator_impl.h"
 #include "native_engine/native_engine.h"
 #include "shell_cmd_result.h"
 

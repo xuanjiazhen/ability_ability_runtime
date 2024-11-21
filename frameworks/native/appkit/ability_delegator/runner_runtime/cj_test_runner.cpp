@@ -17,7 +17,7 @@
 
 #include <regex>
 
-#include "cj_ability_delegator_registry.h"
+#include "ability_delegator_registry.h"
 #include "hilog_tag_wrapper.h"
 #include "runner_runtime/cj_test_runner_object.h"
 
@@ -100,7 +100,7 @@ void CJTestRunner::Run()
 void CJTestRunner::ReportFinished(const std::string &msg)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "Enter");
-    auto delegator = CJAbilityDelegatorRegistry::GetAbilityDelegator();
+    auto delegator = AbilityDelegatorRegistry::GetAbilityDelegator();
     if (!delegator) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "null delegator");
         return;
@@ -112,7 +112,7 @@ void CJTestRunner::ReportFinished(const std::string &msg)
 void CJTestRunner::ReportStatus(const std::string &msg)
 {
     TAG_LOGD(AAFwkTag::DELEGATOR, "Enter");
-    auto delegator = CJAbilityDelegatorRegistry::GetAbilityDelegator();
+    auto delegator = AbilityDelegatorRegistry::GetAbilityDelegator();
     if (!delegator) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "null delegator");
         return;

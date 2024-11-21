@@ -15,7 +15,7 @@
 
 #include "cj_ability_delegator_impl.h"
 
-#include "cj_ability_delegator_registry.h"
+#include "ability_delegator_registry.h"
 #include "ability_manager_client.h"
 #include "hilog_tag_wrapper.h"
 #include "itest_observer.h"
@@ -23,8 +23,15 @@
 
 namespace OHOS {
 namespace AppExecFwk {
+std::shared_ptr<CJAbilityDelegatorImpl> CJAbilityDelegatorImpl::Create(
+    const std::shared_ptr<AbilityRuntime::Context>& context, std::unique_ptr<TestRunner>& runner,
+    const sptr<IRemoteObject>& observer)
+{
+    return std::make_shared<CJAbilityDelegatorImpl>(context, runner, observer);
+}
+
 CJAbilityDelegatorImpl::CJAbilityDelegatorImpl(const std::shared_ptr<AbilityRuntime::Context>& context,
-    std::unique_ptr<TestRunner> runner, const sptr<IRemoteObject>& observer)
+    std::unique_ptr<TestRunner>& runner, const sptr<IRemoteObject>& observer)
     : appContext_(context), testRunner_(std::move(runner)), observer_(observer)
 {}
 
@@ -274,7 +281,7 @@ ErrCode CJAbilityDelegatorImpl::StartAbility(const AAFwk::Want& want)
     TAG_LOGI(AAFwkTag::DELEGATOR, "Enter");
 
     auto realWant(want);
-    auto delegatorArgs = CJAbilityDelegatorRegistry::GetArguments();
+    auto delegatorArgs = AbilityDelegatorRegistry::GetArguments();
     if (delegatorArgs && delegatorArgs->FindDebugFlag()) {
         TAG_LOGI(AAFwkTag::DELEGATOR, "start with debug");
         realWant.SetParam("debugApp", true);
@@ -704,7 +711,7 @@ void CJAbilityDelegatorImpl::FinishUserTest(const std::string& msg, const int64_
         return;
     }
 
-    auto delegatorArgs = CJAbilityDelegatorRegistry::GetArguments();
+    auto delegatorArgs = AbilityDelegatorRegistry::GetArguments();
     if (!delegatorArgs) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "invalid args");
         return;
