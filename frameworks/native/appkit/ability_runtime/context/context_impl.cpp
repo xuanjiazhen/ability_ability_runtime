@@ -1495,12 +1495,13 @@ bool CheckContext(const std::shared_ptr<Context> inputContext, std::string &bund
     return true;
 }
 
-int32_t ContextImpl::CreateHspModuleResourceManagerInner(const std::shared_ptr<Context> inputContext,
+int32_t ContextImpl::CreateHspModuleResourceManager(const std::shared_ptr<Context> inputContext,
     std::shared_ptr<Global::Resource::ResourceManager> &resourceManager)
 {
     std::string bundleName;
     std::string moduleName;
-    if (!CheckContext(inputContext, bundleName, moduleName)) {
+    if (!CheckContext(inputContext, bundleName, moduleName))
+    {
         TAG_LOGD(AAFwkTag::APPKIT, "Context is error");
         return ERR_INVALID_VALUE;
     }
@@ -1511,26 +1512,20 @@ int32_t ContextImpl::CreateHspModuleResourceManagerInner(const std::shared_ptr<C
         return ERR_INVALID_VALUE;
     }
 
-    int accountId = GetCurrentAccountId();
-    if (accountId == 0) {
-        accountId = GetCurrentActiveAccountId();
-    }
-
-    AppExecFwk::BundleInfo bundleInfo;
-    GetBundleInfo(bundleName, bundleInfo, accountId);
-    if (bundleInfo.name.empty() || bundleInfo.applicationInfo.name.empty()) {
-        TAG_LOGW(AAFwkTag::APPKIT, "GetBundleInfo is error");
-        ErrCode ret = bundleMgr_->GetDependentBundleInfo(bundleName, bundleInfo,
-            AppExecFwk::GetDependentBundleInfoFlag::GET_ALL_DEPENDENT_BUNDLE_INFO);
-        if (ret != ERR_OK) {
-            TAG_LOGE(AAFwkTag::APPKIT, "GetDependentBundleInfo failed:%{public}d", ret);
+    if (bundleMgr_ == nullptr) {
+        int errCode = GetBundleManager();
+        if (errCode != ERR_OK) {
+            TAG_LOGE(AAFwkTag::APPKIT, "failed, errCode: %{public}d", errCode);
             return ERR_INVALID_VALUE;
         }
     }
 
-    if (bundleInfo.applicationInfo.bundleType != AppExecFwk::BundleType::APP_SERVICE_FWK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "input bundleName:%{public}s is not system hsp", bundleName.c_str());
-        return ERR_ABILITY_RUNTIME_EXTERNAL_NOT_SYSTEM_HSP;
+    AppExecFwk::BundleInfo bundleInfo;
+    ErrCode ret = bundleMgr_->GetDependentBundleInfo(bundleName, bundleInfo,
+        AppExecFwk::GetDependentBundleInfoFlag::GET_ALL_DEPENDENT_BUNDLE_INFO);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "GetDependentBundleInfo failed:%{public}d", ret);
+        return ERR_INVALID_VALUE;
     }
 
     std::string selfBundleName = GetBundleName();

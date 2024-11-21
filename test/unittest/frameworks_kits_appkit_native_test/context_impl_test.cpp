@@ -1467,15 +1467,15 @@ HWTEST_F(ContextImplTest, SetSupportedProcessCacheSelf_001, Function | MediumTes
 
 
 /**
- * @tc.number: AppExecFwk_AppContext_CreateHspModuleResourceManagerInner_001
- * @tc.name: CreateHspModuleResourceManagerInner
- * @tc.desc: Test whether CreateHspModuleResourceManagerInner is called normally.
+ * @tc.number: AppExecFwk_AppContext_CreateHspResourceManager_001
+ * @tc.name: CreateHspResourceManager
+ * @tc.desc: Test whether CreateHspResourceManager is called normally.
  * @tc.type: FUNC
  * @tc.require: issueI5HQEM
  */
-HWTEST_F(ContextImplTest, AppExecFwk_AppContext_CreateHspModuleResourceManagerInner_001, Function | MediumTest | Level1)
+HWTEST_F(ContextImplTest, AppExecFwk_AppContext_CreateHspResourceManager_001, Function | MediumTest | Level1)
 {
-    GTEST_LOG_(INFO) << "AppExecFwk_AppContext_CreateHspModuleResourceManagerInner_001 start";
+    GTEST_LOG_(INFO) << "AppExecFwk_AppContext_CreateHspResourceManager_001 start";
 
     std::shared_ptr<AbilityRuntime::ContextImpl> contextImpl_ = std::make_shared<AbilityRuntime::ContextImpl>();
     std::shared_ptr<AbilityRuntime::ContextImpl> appContext = std::make_shared<AbilityRuntime::ContextImpl>();
@@ -1500,11 +1500,75 @@ HWTEST_F(ContextImplTest, AppExecFwk_AppContext_CreateHspModuleResourceManagerIn
     applicationInfo->bundleName = "com.module";
     context->SetApplicationInfo(applicationInfo);
     context->InitHapModuleInfo(hapModuleInfo);
-    contextImpl_->InitResourceManager(bundleInfo, context, true, "");
+    contextImpl_->InitResourceManager(bundleInfo, context, true, "test_moduleName");
+
     Global::Resource::ResConfigImpl resConfig;
-    
     std::shared_ptr<Global::Resource::ResourceManager> resourceManager = nullptr;
     resourceManager = context->GetResourceManager();
+    if (resourceManager != nullptr) { 
+        resourceManager->GetResConfig(resConfig);
+        resConfig.SetMcc(11);
+        resConfig.SetMnc(22);
+        resConfig.SetThemeId(33);
+        resourceManager->UpdateResConfig(resConfig);
+    }
+
+    std::shared_ptr<AbilityRuntime::ApplicationContext> applicationContext = AbilityRuntime::ApplicationContext::GetInstance();
+    applicationContext->AttachContextImpl(context);
+
+    contextImpl_->GetBundleManager();
+    sptr<IRemoteObject> bundleService = new (std::nothrow) BundleMgrService();
+    if (bundleService != nullptr) {
+        contextImpl_->bundleMgr_->bundleMgr_ = iface_cast<IBundleMgr>(bundleService);
+    }
+
+    std::shared_ptr<Global::Resource::ResourceManager> resourceManager2 = nullptr;
+    contextImpl_->CreateHspModuleResourceManager(applicationContext, resourceManager2);
+    EXPECT_STREQ(resourceManager2->bundleInfo.first.c_str(), "test_bundleName");
+    EXPECT_STREQ(resourceManager2->bundleInfo.second.c_str(), "test_moduleName");
+    Global::Resource::ResConfigImpl resConfig2;
+    resourceManager2->GetResConfig(resConfig2);
+    EXPECT_EQ(resConfig2.GetMcc(), 11);
+    EXPECT_EQ(resConfig2.GetMnc(), 22);
+    EXPECT_EQ(resConfig2.GetThemeId(), 33);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_AppContext_CreateHspResourceManager_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_AppContext_CreateHspResourceManager_002
+ * @tc.name: CreateHspResourceManager
+ * @tc.desc: Test whether CreateHspResourceManager is called normally.
+ * @tc.type: FUNC
+ * @tc.require: issueI5HQEM
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_AppContext_CreateHspResourceManager_002, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_AppContext_CreateHspResourceManager_002 start";
+
+    std::shared_ptr<AbilityRuntime::ContextImpl> contextImpl_ = std::make_shared<AbilityRuntime::ContextImpl>();
+    std::shared_ptr<AbilityRuntime::AbilityStageContext> abilityStageContext = nullptr;
+    abilityStageContext = std::make_shared<AbilityRuntime::AbilityStageContext>();
+
+    AppExecFwk::BundleInfo bundleInfo;
+    bundleInfo.name = "com.clm.module";
+    bundleInfo.applicationInfo.name = "applicationName";
+    bundleInfo.isKeepAlive = true;
+    bundleInfo.applicationInfo.process = "com.li.module";
+    bundleInfo.applicationInfo.multiProjects = true;
+    AppExecFwk::HapModuleInfo hapModuleInfo;
+    hapModuleInfo.moduleName = "test_moduleName";
+    std::shared_ptr<AbilityRuntime::ContextImpl> context = std::make_shared<AbilityRuntime::ContextImpl>();
+    std::shared_ptr<AppExecFwk::ApplicationInfo> applicationInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
+    applicationInfo->bundleName = "com.module";
+    context->SetApplicationInfo(applicationInfo);
+    context->InitHapModuleInfo(hapModuleInfo);
+    contextImpl_->InitResourceManager(bundleInfo, context, true, "test_moduleName");
+
+    abilityStageContext->SetParentContext(context);
+    std::shared_ptr<Global::Resource::ResourceManager> resourceManager = nullptr;
+    Global::Resource::ResConfigImpl resConfig;
+    resourceManager = abilityStageContext->GetResourceManager();
     if (resourceManager != nullptr) {
         resourceManager->GetResConfig(resConfig);
         resConfig.SetMcc(11);
@@ -1520,16 +1584,14 @@ HWTEST_F(ContextImplTest, AppExecFwk_AppContext_CreateHspModuleResourceManagerIn
     }
 
     std::shared_ptr<Global::Resource::ResourceManager> resourceManager2 = nullptr;
-    contextImpl_->CreateHspModuleResourceManagerInner(context, resourceManager2);
-    EXPECT_STREQ(resourceManager2->bundleInfo.first.c_str(), "test_bundleName");
-    EXPECT_STREQ(resourceManager2->bundleInfo.second.c_str(), "test_moduleName");
+    contextImpl_->CreateHspModuleResourceManager(abilityStageContext, resourceManager2);
     Global::Resource::ResConfigImpl resConfig2;
     resourceManager2->GetResConfig(resConfig2);
     EXPECT_EQ(resConfig2.GetMcc(), 11);
     EXPECT_EQ(resConfig2.GetMnc(), 22);
     EXPECT_EQ(resConfig2.GetThemeId(), 33);
 
-    GTEST_LOG_(INFO) << "AppExecFwk_AppContext_CreateHspModuleResourceManagerInner_001 end";
+    GTEST_LOG_(INFO) << "AppExecFwk_AppContext_CreateHspResourceManager_002 end";
 }
 }  // namespace AppExecFwk
 }
