@@ -18,7 +18,6 @@
 #include "gtest/gtest.h"
 #include "cj_ability_delegator.h"
 #include "ability_delegator_registry.h"
-#include "ability_delegator_registry.h"
 #include "cj_application_context.h"
 #include "application_context.h"
 #include "runner_runtime/cj_test_runner.h"
