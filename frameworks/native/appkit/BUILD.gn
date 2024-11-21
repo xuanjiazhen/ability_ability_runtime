@@ -435,6 +435,7 @@ ohos_shared_library("appkit_delegator") {
 
   sources = [
     "${ability_runtime_native_path}/appkit/ability_delegator/ability_delegator.cpp",
+    "${ability_runtime_native_path}/appkit/ability_delegator/js_ability_delegator_impl.cpp",
     "${ability_runtime_native_path}/appkit/ability_delegator/ability_delegator_args.cpp",
     "${ability_runtime_native_path}/appkit/ability_delegator/ability_delegator_registry.cpp",
     "${ability_runtime_native_path}/appkit/ability_delegator/delegator_thread.cpp",
