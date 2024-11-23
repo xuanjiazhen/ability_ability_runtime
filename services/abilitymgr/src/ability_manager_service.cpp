@@ -428,7 +428,7 @@ void AbilityManagerService::InitPushTask()
                 ApplicationUtil::AppFwkBootEventCallback(BOOTEVENT_BOOT_COMPLETED, "true", nullptr);
             };
             if (handler != nullptr) {
-                handler->SubmitTask(task, "BootCompletedDelayTask", BOOTEVENT_COMPLETED_DELAY_TIME);
+                handler->SubmitTaskJust(task, "BootCompletedDelayTask", BOOTEVENT_COMPLETED_DELAY_TIME);
             } else {
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "handler null");
                 return;
@@ -1076,10 +1076,12 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
     if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
         return ERR_APP_CLONE_INDEX_INVALID;
     }
-    auto checkRet = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(const_cast<Want &>(want),
-        validUserId, appIndex, callerToken);
-    if (checkRet != ERR_OK) {
-        return checkRet;
+    if (!isForegroundToRestartApp) {
+        auto checkRet = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(const_cast<Want &>(want),
+            validUserId, appIndex, callerToken);
+        if (checkRet != ERR_OK) {
+            return checkRet;
+        }
     }
     StartAbilityInfoWrap threadLocalInfo(want, validUserId, appIndex, callerToken);
     auto shouldBlockFunc = [aams = shared_from_this()]() { return aams->ShouldBlockAllAppStart(); };
@@ -9370,7 +9372,7 @@ void AbilityManagerService::InitFocusListener()
         }
     };
     if (taskHandler_) {
-        taskHandler_->SubmitTask(registerTask, "RegisterFocusListenerTask", REGISTER_FOCUS_DELAY);
+        taskHandler_->SubmitTaskJust(registerTask, "RegisterFocusListenerTask", REGISTER_FOCUS_DELAY);
     }
 }
 
