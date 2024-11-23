@@ -24,10 +24,10 @@
 namespace OHOS {
 namespace AppExecFwk {
 std::shared_ptr<CJAbilityDelegatorImpl> CJAbilityDelegatorImpl::Create(
-    const std::shared_ptr<AbilityRuntime::Context>& context, std::unique_ptr<TestRunner>& runner,
+    const std::shared_ptr<AbilityRuntime::Context>& context, std::unique_ptr<TestRunner> runner,
     const sptr<IRemoteObject>& observer)
 {
-    return std::make_shared<CJAbilityDelegatorImpl>(context, runner, observer);
+    return std::make_shared<CJAbilityDelegatorImpl>(context, std::move(runner), observer);
 }
 
 CJAbilityDelegatorImpl::CJAbilityDelegatorImpl(const std::shared_ptr<AbilityRuntime::Context>& context,

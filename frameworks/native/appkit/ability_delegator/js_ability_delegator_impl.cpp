@@ -23,15 +23,15 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-std::shared_ptr<JSAbilityDelegatorImply> JSAbilityDelegatorImpl::Create(
-    const std::shared_ptr<AbilityRuntime::Context>& context, std::unique_ptr<TestRunner>& runner,
+std::shared_ptr<JSAbilityDelegatorImpl> JSAbilityDelegatorImpl::Create(
+    const std::shared_ptr<AbilityRuntime::Context>& context, std::unique_ptr<TestRunner> runner,
     const sptr<IRemoteObject>& observer)
 {
-    return std::make_shared<JSAbilityDelegatorImpl>(context, runner, observer);
+    return std::make_shared<JSAbilityDelegatorImpl>(context, std::move(runner), observer);
 }
 
 JSAbilityDelegatorImpl::JSAbilityDelegatorImpl(const std::shared_ptr<AbilityRuntime::Context>& context,
-    std::unique_ptr<TestRunner>& runner, const sptr<IRemoteObject>& observer)
+    std::unique_ptr<TestRunner> runner, const sptr<IRemoteObject>& observer)
     : appContext_(context), testRunner_(std::move(runner)), observer_(observer)
 {}
 

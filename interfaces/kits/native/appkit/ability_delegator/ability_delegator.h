@@ -16,12 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_ABILITY_DELEGATOR_H
 #define OHOS_ABILITY_RUNTIME_ABILITY_DELEGATOR_H
 
-#include "ability_delegator_registry.h"
-#include "ability_manager_client.h"
 #include "context.h"
-#include "hilog_tag_wrapper.h"
-#include "itest_observer.h"
-#include "ohos_application.h"
 #include "runtime.h"
 #include "test_runner.h"
 
@@ -30,11 +25,73 @@ namespace AppExecFwk {
 
 class AbilityDelegator {
 public:
+    enum class AbilityState : uint8_t {
+        /**
+         * Indicates that the ability has not been initialized.
+         */
+        UNINITIALIZED = 0,
+        /**
+         * Indicates that the ability is in the started state.
+         */
+        STARTED,
+        /**
+         * Indicates that the ability is in the foreground state.
+         */
+        FOREGROUND,
+        /**
+         * Indicates that the ability is in the background state.
+         */
+        BACKGROUND,
+        /**
+         * Indicates that the ability is in the stopped state.
+         */
+        STOPPED
+    };
+
+public:
     static std::shared_ptr<AbilityDelegator> Create(const std::unique_ptr<AbilityRuntime::Runtime>& runtime,
-        const std::shared_ptr<AbilityRuntime::Context>& context, std::unique_ptr<TestRunner>& runner,
+        const std::shared_ptr<AbilityRuntime::Context>& context, std::unique_ptr<TestRunner> runner,
         const sptr<IRemoteObject>& observer);
+
     AbilityDelegator() = default;
+
     virtual ~AbilityDelegator() = default;
+
+    /**
+     * Clears all monitors.
+     */
+    virtual void ClearAllMonitors();
+
+    /**
+     * Obtains the number of monitors.
+     *
+     * @return the number of monitors.
+     */
+    virtual size_t GetMonitorsNum();
+
+    /**
+     * Obtains the number of stage monitors.
+     *
+     * @return the number of stage monitors.
+     */
+    virtual size_t GetStageMonitorsNum();
+
+    /**
+     * Obtains the name of the thread.
+     *
+     * @return the name of the thread.
+     */
+    virtual std::string GetThreadName() const;
+
+    /**
+     * Notifies TestRunner to prepare.
+     */
+    virtual void Prepare();
+
+    /**
+     * Notifies TestRunner to run.
+     */
+    virtual void OnRun();
 };
 } // namespace AppExecFwk
 } // namespace OHOS

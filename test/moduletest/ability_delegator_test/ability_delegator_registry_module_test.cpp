@@ -16,7 +16,6 @@
 #include <gtest/gtest.h>
 
 #include "ability_delegator_registry.h"
-#include "ability_delegator.h"
 #include "js_ability_delegator_impl.h"
 #include "ability_runtime/context/context_impl.h"
 #include "app_loader.h"
@@ -86,7 +85,7 @@ HWTEST_F(AbilityDelegatorRegistryModuleTest,
         std::shared_ptr<OHOSApplication>(ApplicationLoader::GetInstance().GetApplicationByName())->GetRuntime(),
         abilityArgs,
         true);
-    std::shared_ptr<AbilityDelegator> abilityDelegator =
+    std::shared_ptr<JSAbilityDelegatorImpl> abilityDelegator =
         std::make_shared<JSAbilityDelegatorImpl>(nullptr, std::move(testRunner), nullptr);
     AbilityDelegatorRegistry::RegisterInstance(abilityDelegator, abilityArgs);
 

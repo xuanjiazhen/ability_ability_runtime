@@ -591,7 +591,7 @@ int64_t FFIAbilityDelegatorWaitAbilityStageMonitorWithTimeout(
 
 int64_t FFIAbilityDelegatorRegistryGetAbilityDelegator()
 {
-    auto delegator = OHOS::AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator();
+    auto delegator = OHOS::AppExecFwk::AbilityDelegatorRegistry::GetCJAbilityDelegator();
     if (delegator == nullptr) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "null delegatorImpl");
         return INVALID_CODE;

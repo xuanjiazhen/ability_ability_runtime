@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace AppExecFwk {
 std::shared_ptr<AbilityDelegator> AbilityDelegator::Create(const std::unique_ptr<AbilityRuntime::Runtime>& runtime,
-    const std::shared_ptr<AbilityRuntime::Context>& context, std::unique_ptr<TestRunner>& runner,
+    const std::shared_ptr<AbilityRuntime::Context>& context, std::unique_ptr<TestRunner> runner,
     const sptr<IRemoteObject>& observer)
 {
     if (!runtime) {
@@ -41,7 +41,26 @@ std::shared_ptr<AbilityDelegator> AbilityDelegator::Create(const std::unique_ptr
     }
 }
 
-AbilityDelegator::~AbilityDelegator() {}
+void AbilityDelegator::ClearAllMonitors() {}
+
+size_t AbilityDelegator::GetMonitorsNum()
+{
+    return 0;
+}
+
+size_t AbilityDelegator::GetStageMonitorsNum()
+{
+    return 0;
+}
+
+std::string AbilityDelegator::GetThreadName() const
+{
+    return "";
+}
+
+void AbilityDelegator::Prepare() {}
+
+void AbilityDelegator::OnRun() {}
 
 } // namespace AppExecFwk
 } // namespace OHOS

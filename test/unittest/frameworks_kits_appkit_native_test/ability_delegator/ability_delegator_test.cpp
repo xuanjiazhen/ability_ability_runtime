@@ -20,7 +20,6 @@
 #include <map>
 
 #define private public
-#include "ability_delegator.h"
 #include "js_ability_delegator_impl.h"
 #include "ability_manager_client.h"
 #include "context_impl.h"
@@ -90,11 +89,11 @@ public:
     void MakeMockObjects() const;
 
 public:
-    static std::shared_ptr<AbilityDelegator> commonDelegator_;
+    static std::shared_ptr<JSAbilityDelegatorImpl> commonDelegator_;
     static std::shared_ptr<AbilityDelegatorArgs> delegatorArgs_;
 };
 
-std::shared_ptr<AbilityDelegator> AbilityDelegatorTest::commonDelegator_ = nullptr;
+std::shared_ptr<JSAbilityDelegatorImpl> AbilityDelegatorTest::commonDelegator_ = nullptr;
 std::shared_ptr<AbilityDelegatorArgs> AbilityDelegatorTest::delegatorArgs_ = nullptr;
 
 void AbilityDelegatorTest::SetUpTestCase()
@@ -1421,7 +1420,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_3500, Function | MediumTes
         abilityArgs,
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub);
-    std::shared_ptr<AbilityDelegator> abilityDelegator =
+    std::shared_ptr<JSAbilityDelegatorImpl> abilityDelegator =
         std::make_shared<JSAbilityDelegatorImpl>(context, std::move(testRunner), iRemoteObj);
     AbilityDelegatorRegistry::RegisterInstance(abilityDelegator, abilityArgs);
 
@@ -1466,7 +1465,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_3600, Function | MediumTes
         abilityArgs,
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub2);
-    std::shared_ptr<AbilityDelegator> abilityDelegator =
+    std::shared_ptr<JSAbilityDelegatorImpl> abilityDelegator =
         std::make_shared<JSAbilityDelegatorImpl>(context, std::move(testRunner), iRemoteObj);
     AbilityDelegatorRegistry::RegisterInstance(abilityDelegator, abilityArgs);
 

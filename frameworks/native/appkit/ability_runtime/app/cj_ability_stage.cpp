@@ -147,7 +147,7 @@ void CJAbilityStage::OnCreate(const AAFwk::Want& want) const
     TAG_LOGD(AAFwkTag::APPKIT, "CJAbilityStage::OnCreate");
     cjAbilityStageObject_->OnCreate();
 
-    auto delegator = OHOS::AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator();
+    auto delegator = OHOS::AppExecFwk::AbilityDelegatorRegistry::GetCJAbilityDelegator();
     if (delegator) {
         delegator->PostPerformStageStart(CreateStageProperty());
     }

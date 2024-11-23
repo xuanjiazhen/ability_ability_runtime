@@ -43,29 +43,6 @@ namespace OHOS {
 namespace AppExecFwk {
 class JSAbilityDelegatorImpl : public std::enable_shared_from_this<JSAbilityDelegatorImpl>, public AbilityDelegator {
 public:
-    enum class AbilityState : uint8_t {
-        /**
-         * Indicates that the ability has not been initialized.
-         */
-        UNINITIALIZED = 0,
-        /**
-         * Indicates that the ability is in the started state.
-         */
-        STARTED,
-        /**
-         * Indicates that the ability is in the foreground state.
-         */
-        FOREGROUND,
-        /**
-         * Indicates that the ability is in the background state.
-         */
-        BACKGROUND,
-        /**
-         * Indicates that the ability is in the stopped state.
-         */
-        STOPPED
-    };
-
     /**
      * Definition of cleanup function.
      */
@@ -121,21 +98,21 @@ public:
     /**
      * Clears all monitors.
      */
-    void ClearAllMonitors();
+    void ClearAllMonitors() override;
 
     /**
      * Obtains the number of monitors.
      *
      * @return the number of monitors.
      */
-    size_t GetMonitorsNum();
+    size_t GetMonitorsNum() override;
 
     /**
      * Obtains the number of stage monitors.
      *
      * @return the number of stage monitors.
      */
-    size_t GetStageMonitorsNum();
+    size_t GetStageMonitorsNum() override;
 
     /**
      * Waits for the specified monitor and return the obtained ability.
@@ -201,17 +178,17 @@ public:
      *
      * @return the name of the thread.
      */
-    std::string GetThreadName() const;
+    std::string GetThreadName() const override;
 
     /**
      * Notifies TestRunner to prepare.
      */
-    void Prepare();
+    void Prepare() override;
 
     /**
      * Notifies TestRunner to run.
      */
-    void OnRun();
+    void OnRun() override;
 
     /**
      * Starts an ability based on the given Want.

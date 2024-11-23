@@ -18,7 +18,6 @@
 #include <map>
 
 #define private public
-#include "ability_delegator.h"
 #include "js_ability_delegator_impl.h"
 #include "ability_manager_client.h"
 #undef private
