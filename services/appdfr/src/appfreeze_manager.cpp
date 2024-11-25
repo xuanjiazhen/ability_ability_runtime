@@ -36,6 +36,8 @@
 #include "hilog_tag_wrapper.h"
 #include "time_util.h"
 
+#include "parameters.h"
+
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
@@ -56,6 +58,9 @@ static constexpr int64_t NANOSECONDS = 1000000000;  // NANOSECONDS mean 10^9 nan
 static constexpr int64_t MICROSECONDS = 1000000;    // MICROSECONDS mean 10^6 millias second
 constexpr uint64_t SEC_TO_MILLISEC = 1000;
 const std::string LOG_FILE_PATH = "data/log/eventlog";
+static bool g_betaVersion = OHOS::system::GetParameter("const.logsystem.versiontype", "unknown") == "beta";
+static bool g_developMode = (OHOS::system::GetParameter("persist.hiview.leak_detector", "unknown") == "enable") ||
+                            (OHOS::system::GetParameter("persist.hiview.leak_detector". "unknown") == "true"); 
 }
 std::shared_ptr<AppfreezeManager> AppfreezeManager::instance_ = nullptr;
 ffrt::mutex AppfreezeManager::singletonMutex_;
@@ -630,6 +635,10 @@ void AppfreezeManager::ResetAppfreezeState(int32_t pid, const std::string& bundl
 
 bool AppfreezeManager::IsValidFreezeFilter(int32_t pid, const std::string& bundleName)
 {
+    if (g_betaVersion || g_developMode) {
+        TAG_LOGI(AAFwkTag::APPDFR, "current device is beta or development do not report appfreeze");
+        return true;
+    }
     std::lock_guard<ffrt::mutex> lock(freezeFilterMutex_);
     if (appfreezeFilterMap_.find(bundleName) != appfreezeFilterMap_.end()) {
         return false;
