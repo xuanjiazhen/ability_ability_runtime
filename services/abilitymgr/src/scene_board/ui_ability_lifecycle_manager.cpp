@@ -55,6 +55,7 @@ constexpr int KILL_TIMEOUT_MULTIPLE = 3;
 #endif
 constexpr int32_t DEFAULT_USER_ID = 0;
 constexpr int32_t MAX_FIND_UIEXTENSION_CALLER_TIMES = 10;
+constexpr int32_t START_UI_ABILITY_PER_SECOND_UPPER_LIMIT = 20;
 
 FreezeUtil::TimeoutState MsgId2State(uint32_t msgId)
 {
@@ -256,6 +257,10 @@ void UIAbilityLifecycleManager::AddCallerRecord(AbilityRequest &abilityRequest, 
 void UIAbilityLifecycleManager::CheckSpecified(AbilityRequest &abilityRequest,
     std::shared_ptr<AbilityRecord> uiAbilityRecord)
 {
+    if (!uiAbilityRecord) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "uiAbilityRecord null");
+        return;
+    }
     if (abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED && !specifiedInfoQueue_.empty()) {
         SpecifiedInfo specifiedInfo = specifiedInfoQueue_.front();
         specifiedInfoQueue_.pop();
@@ -379,9 +384,37 @@ int UIAbilityLifecycleManager::AbilityWindowConfigTransactionDone(const sptr<IRe
     return ERR_OK;
 }
 
+bool UIAbilityLifecycleManager::AddStartCallerTimestamp(int32_t callerUid)
+{
+    int64_t curTimeNs = AbilityUtil::GetSysTimeNs();
+    int64_t aSecondEarlier = curTimeNs - AbilityUtil::NANOSECONDS;
+    if (callerUid < 0) {
+        callerUid = IPCSkeleton::GetCallingUid();
+    }
+    std::lock_guard<ffrt::mutex> guard(startUIAbilityCallerTimestampsLock_);
+    if (startUIAbilityCallerTimestamps_.find(callerUid) == startUIAbilityCallerTimestamps_.end()) {
+        startUIAbilityCallerTimestamps_[callerUid] = { curTimeNs };
+        return true;
+    }
+    std::vector<int64_t> &callerTimestamps = startUIAbilityCallerTimestamps_[callerUid];
+    auto it = callerTimestamps.begin();
+    while (it != callerTimestamps.end() && *it < aSecondEarlier) {
+        it = callerTimestamps.erase(it);
+    }
+    if (callerTimestamps.size() >= START_UI_ABILITY_PER_SECOND_UPPER_LIMIT) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller %{public}d exceeds limit", callerUid);
+        return false;
+    }
+    callerTimestamps.emplace_back(curTimeNs);
+    return true;
+}
+
 int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &abilityRequest)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (!AddStartCallerTimestamp(abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_UID, -1))) {
+        return ERR_INVALID_VALUE;
+    }
     abilityRequest.want.SetParam(IS_SHELL_CALL, AAFwk::PermissionVerification::GetInstance()->IsShellCall());
     std::string callerKey = std::to_string(IPCSkeleton::GetCallingPid()) + ":" +
         std::to_string(IPCSkeleton::GetCallingUid());
@@ -766,6 +799,7 @@ void UIAbilityLifecycleManager::EraseAbilityRecord(const std::shared_ptr<Ability
 void UIAbilityLifecycleManager::EraseSpecifiedAbilityRecord(const std::shared_ptr<AbilityRecord> &abilityRecord)
 {
     for (auto iter = specifiedAbilityMap_.begin(); iter != specifiedAbilityMap_.end(); iter++) {
+        CHECK_POINTER_AND_RETURN(abilityRecord, nullptr);
         auto abilityInfo = abilityRecord->GetAbilityInfo();
         if (iter->second != nullptr && iter->second->GetToken()->AsObject() == abilityRecord->GetToken()->AsObject() &&
             iter->first.abilityName == abilityInfo.name && iter->first.bundleName == abilityInfo.bundleName &&
@@ -1252,6 +1286,7 @@ void UIAbilityLifecycleManager::CompleteBackground(const std::shared_ptr<Ability
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    CHECK_POINTER_AND_RETURN(abilityRecord, nullptr);
     if (abilityRecord->GetAbilityState() != AbilityState::BACKGROUNDING) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed, state: %{public}d, not complete background",
             abilityRecord->GetAbilityState());
@@ -1592,6 +1627,7 @@ int32_t UIAbilityLifecycleManager::GetReusedCollaboratorPersistentId(const Abili
 bool UIAbilityLifecycleManager::CheckProperties(const std::shared_ptr<AbilityRecord> &abilityRecord,
     const AbilityRequest &abilityRequest, AppExecFwk::LaunchMode launchMode) const
 {
+    CHECK_POINTER_AND_RETURN(abilityRecord, nullptr);
     const auto& abilityInfo = abilityRecord->GetAbilityInfo();
     int32_t appIndex = 0;
     (void)AbilityRuntime::StartupUtil::GetAppIndex(abilityRequest.want, appIndex);

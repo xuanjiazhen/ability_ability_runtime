@@ -4023,6 +4023,10 @@ void AbilityManagerService::SetMinimizedDuringFreeInstall(const sptr<SessionInfo
                 sessionId.c_str());
             return;
         }
+        if (it->second == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "it->second null");
+            return;
+        }
         it->second->isMinimizedDuringFreeInstall = true;
     }
 }
@@ -4851,6 +4855,11 @@ void AbilityManagerService::CancelWantSender(const sptr<IWantSender> &sender)
         return;
     }
     bool isSystemApp = false;
+
+    if (record == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "record null");
+        return;
+    }
     if (record->GetKey() != nullptr && !record->GetKey()->GetBundleName().empty()) {
         AppExecFwk::BundleInfo bundleInfo;
         bool bundleMgrResult = IN_PROCESS_CALL(bms->GetBundleInfo(record->GetKey()->GetBundleName(),
@@ -6399,6 +6408,7 @@ int AbilityManagerService::GenerateAbilityRequest(const Want &want, int requestC
     }
     request.abilityInfo = abilityInfo->abilityInfo;
     request.extensionProcessMode = abilityInfo->extensionProcessMode;
+    request.customProcess = abilityInfo->customProcess;
 
     if (request.abilityInfo.applicationInfo.codePath == std::to_string(CollaboratorType::RESERVE_TYPE)) {
         request.collaboratorType = CollaboratorType::RESERVE_TYPE;
