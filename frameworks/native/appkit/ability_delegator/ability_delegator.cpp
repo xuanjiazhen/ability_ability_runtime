@@ -31,10 +31,10 @@ std::shared_ptr<AbilityDelegator> AbilityDelegator::Create(const std::unique_ptr
 
     switch (runtime->GetLanguage()) {
         case AbilityRuntime::Runtime::Language::JS:
-            return JSAbilityDelegatorImpl::Create(context, runner, observer);
+            return JSAbilityDelegatorImpl::Create(context, std::move(runner), observer);
 #ifdef CJ_FRONTEND
         case AbilityRuntime::Runtime::Language::CJ:
-            return CJAbilityDelegatorImpl::Create(context, runner, observer);
+            return CJAbilityDelegatorImpl::Create(context, std::move(runner), observer);
 #endif
         default:
             return std::make_shared<AbilityDelegator>();

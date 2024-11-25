@@ -31,7 +31,7 @@ std::shared_ptr<CJAbilityDelegatorImpl> CJAbilityDelegatorImpl::Create(
 }
 
 CJAbilityDelegatorImpl::CJAbilityDelegatorImpl(const std::shared_ptr<AbilityRuntime::Context>& context,
-    std::unique_ptr<TestRunner>& runner, const sptr<IRemoteObject>& observer)
+    std::unique_ptr<TestRunner> runner, const sptr<IRemoteObject>& observer)
     : appContext_(context), testRunner_(std::move(runner)), observer_(observer)
 {}
 
