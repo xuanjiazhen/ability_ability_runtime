@@ -59,7 +59,7 @@ public:
      * @param runner Indicates the TestRunner object.
      * @param observer Indicates the TestObserver object.
      */
-    JSAbilityDelegatorImpl(const std::shared_ptr<AbilityRuntime::Context> &context, std::unique_ptr<TestRunner>& runner,
+    JSAbilityDelegatorImpl(const std::shared_ptr<AbilityRuntime::Context> &context, std::unique_ptr<TestRunner> runner,
         const sptr<IRemoteObject> &observer);
 
     /**
