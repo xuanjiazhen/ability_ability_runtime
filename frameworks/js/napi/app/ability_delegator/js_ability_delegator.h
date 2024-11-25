@@ -17,7 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_JS_ABILITY_DELEGATOR_H
 
 #include <string>
-#include "ability_delegator.h"
+#include "js_ability_delegator_impl.h"
 #include "ability_monitor.h"
 #include "ability_stage_monitor.h"
 #include "js_ability_delegator_registry.h"

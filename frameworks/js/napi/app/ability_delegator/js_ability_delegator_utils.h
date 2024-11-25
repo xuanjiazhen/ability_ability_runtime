@@ -17,7 +17,6 @@
 #define OHOS_ABILITY_RUNTIME_JS_ABILITY_DELEGATOR_UTILS_H
 
 #include "js_runtime_utils.h"
-#include "ability_delegator.h"
 #include "ability_delegator_args.h"
 #include "js_ability_delegator.h"
 #include "js_ability_delegator_impl.h"
