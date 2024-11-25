@@ -328,7 +328,8 @@ bool JSAbilityDelegatorImpl::DoAbilityBackground(const sptr<IRemoteObject> &toke
     return true;
 }
 
-std::unique_ptr<ShellCmdResult> JSAbilityDelegatorImpl::ExecuteShellCommand(const std::string &cmd, const int64_t timeoutSec)
+std::unique_ptr<ShellCmdResult> JSAbilityDelegatorImpl::ExecuteShellCommand(
+    const std::string &cmd, const int64_t timeoutSec)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "command : %{public}s, timeout : %{public}" PRId64, cmd.data(), timeoutSec);
 

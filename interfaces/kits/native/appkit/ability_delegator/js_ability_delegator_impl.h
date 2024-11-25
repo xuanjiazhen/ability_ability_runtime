@@ -304,7 +304,8 @@ public:
     void RegisterClearFunc(ClearFunc func);
 
 private:
-    JSAbilityDelegatorImpl::AbilityState ConvertAbilityState(const AbilityLifecycleExecutor::LifecycleState lifecycleState);
+    JSAbilityDelegatorImpl::AbilityState ConvertAbilityState(
+        const AbilityLifecycleExecutor::LifecycleState lifecycleState);
     void ProcessAbilityProperties(const std::shared_ptr<ADelegatorAbilityProperty> &ability);
     void RemoveAbilityProperty(const std::shared_ptr<ADelegatorAbilityProperty> &ability);
     std::shared_ptr<ADelegatorAbilityProperty> FindPropertyByToken(const sptr<IRemoteObject> &token);
