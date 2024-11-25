@@ -39,7 +39,6 @@ ohos_unittest("cj_application_context_test") {
   ]
 
   configs = [
-    "${c_utils_base_path}:utils_config",
     "${ability_runtime_path}/frameworks/cj/ffi:cj_ability_public_config",
   ]
   cflags = []
