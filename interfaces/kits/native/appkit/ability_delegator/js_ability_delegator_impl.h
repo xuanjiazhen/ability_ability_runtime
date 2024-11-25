@@ -50,7 +50,7 @@ public:
 
 public:
     static std::shared_ptr<JSAbilityDelegatorImpl> Create(const std::shared_ptr<AbilityRuntime::Context>& context,
-        std::unique_ptr<TestRunner>& runner, const sptr<IRemoteObject>& observer);
+        std::unique_ptr<TestRunner> runner, const sptr<IRemoteObject>& observer);
 
     /**
      * A constructor used to create a JSAbilityDelegatorImpl instance with the input parameter passed.
