@@ -189,7 +189,7 @@ HWTEST_F(AbilityRecordFirstTest, AbilityRecord_GrantPermissionToShell_001, TestS
     std::vector<std::string> uriVec;
     UriUtils::GetInstance().GetUriListFromWant(want, uriVec);
     std::string targetPkg = "";
-    bool ret = abilityRecord_->GrantPermissionToShell(uriVec, flag, targetPkg);
+    bool ret = UriUtils::GetInstance().GrantShellUriPermission(uriVec, flag, targetPkg);
     EXPECT_FALSE(ret);
 }
 
@@ -209,7 +209,7 @@ HWTEST_F(AbilityRecordFirstTest, AbilityRecord_GrantPermissionToShell_002, TestS
     std::vector<std::string> uriVec;
     UriUtils::GetInstance().GetUriListFromWant(want, uriVec);
     std::string targetPkg = "";
-    bool ret = abilityRecord_->GrantPermissionToShell(uriVec, flag, targetPkg);
+    bool ret = UriUtils::GetInstance().GrantShellUriPermission(uriVec, flag, targetPkg);
     EXPECT_TRUE(ret);
 }
 
