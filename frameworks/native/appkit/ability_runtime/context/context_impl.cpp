@@ -1474,5 +1474,77 @@ void ContextImpl::PrintTokenInfo() const
             tokenProxyObject->GetHandle(), remoteDescriptor.c_str());
     }
 }
+
+bool CheckContext(const std::shared_ptr<Context> inputContext, std::string &bundleName, std::string &moduleName)
+{
+    if (inputContext == nullptr) {
+        TAG_LOGD(AAFwkTag::APPKIT, "Context is error");
+        return false;
+    }
+
+    if (inputContext->GetHapModuleInfo() == nullptr) {
+        std::shared_ptr<Global::Resource::ResourceManager> resourceManager = nullptr;
+        resourceManager = inputContext->GetResourceManager();
+        if (resourceManager != nullptr) {
+            moduleName = resourceManager->bundleInfo.second;
+        }
+    } else {
+        moduleName = inputContext->GetHapModuleInfo()->moduleName;
+    }
+    bundleName = inputContext->GetBundleName();
+    return true;
+}
+
+int32_t ContextImpl::CreateHspModuleResourceManager(const std::shared_ptr<Context> inputContext,
+    std::shared_ptr<Global::Resource::ResourceManager> &resourceManager)
+{
+    std::string bundleName;
+    std::string moduleName;
+    if (!CheckContext(inputContext, bundleName, moduleName)) {
+        TAG_LOGD(AAFwkTag::APPKIT, "Context is error");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (bundleName.empty() || moduleName.empty()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "bundleName is %{public}s, moduleName is %{public}s",
+            bundleName.c_str(), moduleName.c_str());
+        return ERR_INVALID_VALUE;
+    }
+
+    if (bundleMgr_ == nullptr) {
+        int errCode = GetBundleManager();
+        if (errCode != ERR_OK) {
+            TAG_LOGE(AAFwkTag::APPKIT, "failed, errCode: %{public}d", errCode);
+            return ERR_INVALID_VALUE;
+        }
+    }
+
+    AppExecFwk::BundleInfo bundleInfo;
+    ErrCode ret = bundleMgr_->GetDependentBundleInfo(bundleName, bundleInfo,
+        AppExecFwk::GetDependentBundleInfoFlag::GET_ALL_DEPENDENT_BUNDLE_INFO);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "GetDependentBundleInfo failed:%{public}d", ret);
+        return ERR_INVALID_VALUE;
+    }
+
+    std::string selfBundleName = GetBundleName();
+    if (bundleInfo.applicationInfo.codePath == std::to_string(TYPE_RESERVE) ||
+        bundleInfo.applicationInfo.codePath == std::to_string(TYPE_OTHERS)) {
+        resourceManager = InitOthersResourceManagerInner(bundleInfo, selfBundleName == bundleName, moduleName);
+        if (resourceManager == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "InitOthersResourceManagerInner create resourceManager failed");
+        }
+        return ERR_INVALID_VALUE;
+    }
+
+    resourceManager = InitResourceManagerInner(bundleInfo, selfBundleName == bundleName, moduleName);
+    if (resourceManager == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "InitResourceManagerInner create resourceManager failed");
+        return ERR_INVALID_VALUE;
+    }
+
+    UpdateResConfig(inputContext->GetResourceManager(), resourceManager);
+    return ERR_OK;
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS

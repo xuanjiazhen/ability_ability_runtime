@@ -253,6 +253,9 @@ public:
 
     int32_t CreateSystemHspModuleResourceManager(const std::string &bundleName, const std::string &moduleName,
         std::shared_ptr<Global::Resource::ResourceManager> &resourceManager) override;
+    
+    int32_t CreateHspModuleResourceManager(const std::shared_ptr<Context> inputContext,
+        std::shared_ptr<Global::Resource::ResourceManager> &resourceManager) override;
 
     /**
     * @brief Obtains an IBundleMgr instance.
