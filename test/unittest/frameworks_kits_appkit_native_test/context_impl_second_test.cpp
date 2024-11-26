@@ -70,7 +70,8 @@ void ContextImplSecondTest::SetUp(void)
 void ContextImplSecondTest::TearDown(void)
 {}
 
-bool CheckContext(const std::shared_ptr<AbilityRuntime::Context> inputContext, std::string &bundleName, std::string &moduleName)
+bool CheckContext(const std::shared_ptr<AbilityRuntime::Context> inputContext,
+    std::string &bundleName, std::string &moduleName)
 {
     if (inputContext == nullptr) {
         TAG_LOGD(AAFwkTag::APPKIT, "Context is error");
