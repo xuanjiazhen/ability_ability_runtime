@@ -1776,8 +1776,10 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
             abilityRequest.want.RemoveParam(Want::PARAM_RESV_WINDOW_FOCUSED);
         }
         if (startOptions.GetDisplayID() == 0) {
-            abilityRequest.want.SetParam(Want::PARAM_RESV_DISPLAY_ID,
-                static_cast<int32_t>(Rosen::DisplayManager::GetInstance().GetDefaultDisplayId()));
+            sptr<Rosen::Display> display = Rosen::DisplayManager::GetInstance().GetPrimaryDisplaySync();
+            int32_t displayId = display != nullptr ? static_cast<int32_t>(display->GetId()) :
+                static_cast<int32_t>(Rosen::DisplayManager::GetInstance().GetDefaultDisplayId());
+            abilityRequest.want.SetParam(Want::PARAM_RESV_DISPLAY_ID, displayId);
         } else {
             abilityRequest.want.SetParam(Want::PARAM_RESV_DISPLAY_ID, startOptions.GetDisplayID());
         }
@@ -1878,8 +1880,10 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
     }
 #endif
     if (startOptions.GetDisplayID() == 0) {
-        abilityRequest.want.SetParam(Want::PARAM_RESV_DISPLAY_ID,
-            static_cast<int32_t>(Rosen::DisplayManager::GetInstance().GetDefaultDisplayId()));
+        sptr<Rosen::Display> display = Rosen::DisplayManager::GetInstance().GetPrimaryDisplaySync();
+        int32_t displayId = display != nullptr ? static_cast<int32_t>(display->GetId()) :
+            static_cast<int32_t>(Rosen::DisplayManager::GetInstance().GetDefaultDisplayId());
+        abilityRequest.want.SetParam(Want::PARAM_RESV_DISPLAY_ID, displayId);
     } else {
         abilityRequest.want.SetParam(Want::PARAM_RESV_DISPLAY_ID, startOptions.GetDisplayID());
     }

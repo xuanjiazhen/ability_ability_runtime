@@ -1049,7 +1049,9 @@ void UIAbility::ContinuationRestore(const AAFwk::Want &want)
 void UIAbility::OnStartForSupportGraphics(const AAFwk::Want &want)
 {
     if (abilityInfo_->type == AppExecFwk::AbilityType::PAGE) {
-        int32_t defualtDisplayId = static_cast<int32_t>(Rosen::DisplayManager::GetInstance().GetDefaultDisplayId());
+        sptr<Rosen::Display> display = Rosen::DisplayManager::GetInstance().GetPrimaryDisplaySync();
+        int32_t defualtDisplayId = display != nullptr ? static_cast<int32_t>(display->GetId()) :
+            static_cast<int32_t>(Rosen::DisplayManager::GetInstance().GetDefaultDisplayId());
         int32_t displayId = want.GetIntParam(AAFwk::Want::PARAM_RESV_DISPLAY_ID, defualtDisplayId);
         TAG_LOGD(AAFwkTag::UIABILITY, "abilityName: %{public}s, displayId: %{public}d",
             abilityInfo_->name.c_str(), displayId);
@@ -1061,7 +1063,6 @@ void UIAbility::OnStartForSupportGraphics(const AAFwk::Want &want)
 
         // Update resMgr, Configuration
         TAG_LOGD(AAFwkTag::UIABILITY, "displayId: %{public}d", displayId);
-        auto display = Rosen::DisplayManager::GetInstance().GetDisplayById(displayId);
         if (display) {
             float density = display->GetVirtualPixelRatio();
             int32_t width = display->GetWidth();

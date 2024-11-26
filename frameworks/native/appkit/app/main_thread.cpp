@@ -2199,7 +2199,9 @@ void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &
 #endif
     };
 #ifdef SUPPORT_SCREEN
-    Rosen::DisplayId defaultDisplayId = Rosen::DisplayManager::GetInstance().GetDefaultDisplayId();
+    sptr<Rosen::Display> display = Rosen::DisplayManager::GetInstance().GetPrimaryDisplaySync();
+    Rosen::DisplayId defaultDisplayId = display != nullptr ? display->GetId() :
+        Rosen::DisplayManager::GetInstance().GetDefaultDisplayId();
     Rosen::DisplayId displayId = defaultDisplayId;
     if (abilityRecord->GetWant() != nullptr) {
         displayId = static_cast<uint64_t>(abilityRecord->GetWant()->GetIntParam(

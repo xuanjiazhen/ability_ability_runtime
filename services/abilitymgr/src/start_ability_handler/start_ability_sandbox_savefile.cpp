@@ -109,11 +109,14 @@ int StartAbilitySandboxSavefile::StartAbility(StartAbilityParams &params, int re
 
     if (params.startOptions) {
         if (params.startOptions->GetDisplayID() == 0) {
-            abilityRequest.want.SetParam(Want::PARAM_RESV_DISPLAY_ID,
-                static_cast<int32_t>(Rosen::DisplayManager::GetInstance().GetDefaultDisplayId()));
+            sptr<Rosen::Display> display = Rosen::DisplayManager::GetInstance().GetPrimaryDisplaySync();
+            int32_t displayId = display !hu= nullptr ? static_cast<int32_t>(display->GetId()) :
+                static_cast<int32_t>(Rosen::DisplayManager::GetInstance().GetDefaultDisplayId());
+            abilityRequest.want.SetParam(Want::PARAM_RESV_DISPLAY_ID, displayId);
         } else {
             abilityRequest.want.SetParam(Want::PARAM_RESV_DISPLAY_ID, params.startOptions->GetDisplayID());
         }
+        abilityRequest.want.SetParam(Want::PARAM_RESV_WINDOW_MODE, params.startOptions->GetWindowMode());
         abilityRequest.want.SetParam(Want::PARAM_RESV_WINDOW_MODE, params.startOptions->GetWindowMode());
     }
 
