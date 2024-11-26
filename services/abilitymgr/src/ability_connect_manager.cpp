@@ -455,8 +455,8 @@ void AbilityConnectManager::GetConnectRecordListFromMap(
     const sptr<IAbilityConnection> &connect, std::list<std::shared_ptr<ConnectionRecord>> &connectRecordList)
 {
     std::lock_guard lock(connectMapMutex_);
-    if (connectMap_ == null) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "connectMap_ null");
+    if (connect == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "connect null");
         return;
     }
     auto connectMapIter = connectMap_.find(connect->AsObject());
@@ -734,7 +734,10 @@ int AbilityConnectManager::DisconnectAbilityLocked(const sptr<IAbilityConnection
             }
 
             result = DisconnectRecordNormal(list, connectRecord, callerDied);
-            if (result != ERR_OK && callerDied) {
+            if (result == ERR_OK) {
+                EventInfo eventInfo = BuildEventInfo(abilityRecord);
+                EventReport::SendDisconnectServiceEvent(EventName::DISCONNECT_SERVICE, eventInfo);
+            } else if (callerDied) {
                 DisconnectRecordForce(list, connectRecord);
                 result = ERR_OK;
             }
@@ -742,9 +745,6 @@ int AbilityConnectManager::DisconnectAbilityLocked(const sptr<IAbilityConnection
             if (result != ERR_OK) {
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "fail , ret = %{public}d", result);
                 break;
-            } else {
-                EventInfo eventInfo = BuildEventInfo(abilityRecord);
-                EventReport::SendDisconnectServiceEvent(EventName::DISCONNECT_SERVICE, eventInfo);
             }
         }
     }
@@ -1427,9 +1427,9 @@ std::list<std::shared_ptr<ConnectionRecord>> AbilityConnectManager::GetConnectRe
 {
     std::lock_guard guard(connectMapMutex_);
     std::list<std::shared_ptr<ConnectionRecord>> connectList;
-    if (connectMap_ == null) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "connectMap_ null");
-        return;
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "callback null");
+        return connectList;
     }
     auto connectMapIter = connectMap_.find(callback->AsObject());
     if (connectMapIter != connectMap_.end()) {

@@ -55,6 +55,7 @@ using AAFwk::FdGuard;
 class AbilityRunningRecord;
 class AppMgrServiceInner;
 class AppRunningRecord;
+class AppRunningManager;
 
 class MultiUserConfigurationMgr {
 public:
@@ -591,7 +592,7 @@ public:
      * @brief indicates one process will go dying.
      * Then the process won't be reused.
      */
-    void SetTerminating();
+    void SetTerminating(std::shared_ptr<AppRunningManager> appRunningMgr);
 
     /**
      * @brief Whether the process is dying.
@@ -981,6 +982,8 @@ public:
     bool IsCaching();
     void SetNeedPreloadModule(bool isNeedPreloadModule);
     bool GetNeedPreloadModule();
+    void SetNeedLimitPrio(bool isNeedLimitPrio);
+    bool GetNeedLimitPrio();
 
     /**
      * ScheduleForegroundRunning, Notify application to switch to foreground.
@@ -1041,6 +1044,8 @@ public:
     void SetIsUnSetPermission(bool isUnSetPermission);
 
     bool IsUnSetPermission();
+    
+    void UnSetPolicy();
 private:
     /**
      * SearchTheModuleInfoNeedToUpdated, Get an uninitialized abilityStage data.
@@ -1201,6 +1206,7 @@ private:
     bool hasUIAbilityLaunched_ = false;
     bool isKia_ = false;
     bool isNeedPreloadModule_ = false;
+    bool isNeedLimitPrio_ = false;
     std::shared_ptr<Configuration> delayConfiguration_ = std::make_shared<Configuration>();
     bool isAllowedNWebPreload_ = false;
     bool isUnSetPermission_ = false;

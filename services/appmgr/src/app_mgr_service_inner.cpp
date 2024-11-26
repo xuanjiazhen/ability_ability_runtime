@@ -551,8 +551,10 @@ void AppMgrServiceInner::HandlePreloadApplication(const PreloadRequest &request)
         appRecord->SetPreloadState(PreloadState::PRELOADING);
         appRecord->SetPreloadMode(request.preloadMode);
         appRecord->SetNeedPreloadModule(request.preloadMode == AppExecFwk::PreloadMode::PRELOAD_MODULE);
+        appRecord->SetNeedLimitPrio(request.preloadMode != PreloadMode::PRESS_DOWN);
         LoadAbilityNoAppRecord(appRecord, false, appInfo, abilityInfo, processName, specifiedProcessFlag, bundleInfo,
             hapModuleInfo, want, appExistFlag, true, request.preloadMode);
+        appRecord->SetNeedLimitPrio(false);
     }
 }
 
@@ -3948,7 +3950,7 @@ void AppMgrServiceInner::ClearAppRunningData(const std::shared_ptr<AppRunningRec
 
     auto appInfo = appRecord->GetApplicationInfo();
     if (appInfo != nullptr && !appRunningManager_->IsAppExist(appInfo->accessTokenId)) {
-        appRunningManager_->UnSetPolicy(appRecord);
+        appRecord->UnSetPolicy();
         TAG_LOGW(AAFwkTag::APPMGR, "before OnAppStopped");
         OnAppStopped(appRecord);
     }
@@ -4296,12 +4298,13 @@ void AppMgrServiceInner::RestartKeepAliveProcess(std::shared_ptr<AppRunningRecor
     auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
     BundleInfo bundleInfo;
     auto userId = GetUserIdByUid(appRecord->GetUid());
-    auto flags = BundleFlag::GET_BUNDLE_DEFAULT | BundleFlag::GET_BUNDLE_WITH_REQUESTED_PERMISSION;
-    if (!IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfo(
-        appRecord->GetBundleName(),
-        static_cast<BundleFlag>(flags),
-        bundleInfo, userId))) {
-        TAG_LOGE(AAFwkTag::APPMGR, "getBundleInfo fail");
+    auto flags = static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION)
+        | static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE)
+        | static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_ABILITY)
+        | static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_EXTENSION_ABILITY);
+    if (IN_PROCESS_CALL(bundleMgrHelper->GetCloneBundleInfo(appRecord->GetBundleName(), flags,
+        appRecord->GetAppIndex(), bundleInfo, userId)) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "getCloneBundleInfo fail");
         return;
     }
     std::vector<BundleInfo> infos;
@@ -5026,14 +5029,7 @@ void AppMgrServiceInner::KillApplicationByRecord(const std::shared_ptr<AppRunnin
     }
 
     auto pid = appRecord->GetPid();
-    appRecord->SetTerminating();
-    if (!appRunningManager_) {
-        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
-        return;
-    }
-    if (appRunningManager_->CheckAppRunningRecordIsLast(appRecord)) {
-        appRunningManager_->UnSetPolicy(appRecord);
-    }
+    appRecord->SetTerminating(appRunningManager_);
     appRecord->ScheduleProcessSecurityExit();
 
     auto startTime = SystemTimeMillisecond();
