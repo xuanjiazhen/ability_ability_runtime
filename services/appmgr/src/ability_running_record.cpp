@@ -31,17 +31,29 @@ AbilityRunningRecord::~AbilityRunningRecord()
 
 const std::string &AbilityRunningRecord::GetName() const
 {
+    if (info_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "GetName info_ nullptr");
+        return "";
+    }
     return info_->name;
 }
 
 const std::string &AbilityRunningRecord::GetBundleName() const
 {
+    if (info_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "GetBundleName info_ nullptr");
+        return "";
+    }
     return info_->bundleName;
 }
 
 const std::string &AbilityRunningRecord::GetModuleName() const
 {
-    return info_->moduleName;
+    if (info_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "GetModuleName info_ nullptr");
+        return "";
+    }
+        return info_->moduleName;
 }
 
 const std::shared_ptr<AbilityInfo> &AbilityRunningRecord::GetAbilityInfo() const
