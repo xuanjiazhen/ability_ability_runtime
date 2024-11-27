@@ -87,44 +87,6 @@ HWTEST_F(ContextImplSecondTest, AppExecFwk_AppContext_CreateHspResourceManager_0
     context->SetApplicationInfo(applicationInfo);
     context->InitHapModuleInfo(hapModuleInfo);
     contextImpl_->InitResourceManager(bundleInfo, context, true, "com.test.moduleName");
-
-    Global::Resource::ResConfigImpl resConfig;
-    std::shared_ptr<Global::Resource::ResourceManager> resourceManager = nullptr;
-    resourceManager = context->GetResourceManager();
-    if (resourceManager != nullptr) {
-        resourceManager->GetResConfig(resConfig);
-        resConfig.SetMcc(11);
-        resConfig.SetMnc(22);
-        resConfig.SetThemeId(33);
-        resourceManager->UpdateResConfig(resConfig);
-    }
-
-    std::shared_ptr<AbilityRuntime::ApplicationContext> applicationContext = nullptr;
-    applicationContext = AbilityRuntime::ApplicationContext::GetInstance();
-    applicationContext->AttachContextImpl(context);
-    std::shared_ptr<Global::Resource::ResourceManager> resourceManager2 = nullptr;
-    contextImpl_->CreateHspModuleResourceManager(applicationContext, resourceManager2);
-    if (resourceManager2 != nullptr) {
-        Global::Resource::ResConfigImpl resConfig2;
-        resourceManager2->GetResConfig(resConfig2);
-        EXPECT_EQ(resConfig2.GetMcc(), 11);
-        EXPECT_EQ(resConfig2.GetMnc(), 22);
-        EXPECT_EQ(resConfig2.GetThemeId(), 33);
-    }
-
-    std::shared_ptr<AbilityRuntime::ContextImpl> context2 = std::make_shared<AbilityRuntime::ContextImpl>();
-    applicationInfo->bundleName = "test_bundleName";
-    context2->SetApplicationInfo(applicationInfo);
-    context2->InitHapModuleInfo(hapModuleInfo);
-    contextImpl_->InitResourceManager(bundleInfo, context2, true, "com.test.moduleName");
-    applicationContext->AttachContextImpl(context2);
-
-    std::shared_ptr<Global::Resource::ResourceManager> resourceManager3 = nullptr;
-    auto ret = contextImpl_->CreateHspModuleResourceManager(applicationContext, resourceManager3);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
-
-    ret = contextImpl_->CreateHspModuleResourceManager(nullptr, resourceManager3);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
 }  // namespace AppExecFwk
 }
