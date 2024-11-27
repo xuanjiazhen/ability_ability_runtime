@@ -214,6 +214,7 @@ ohos_unittest("context_impl_second_test") {
 
   include_dirs = [
     "${ability_runtime_services_path}/common/include",
+    "${ability_runtime_test_path}/mock/common/include",
     "${resource_management_path}/frameworks/resmgr/include",
   ]
 
@@ -222,6 +223,7 @@ ohos_unittest("context_impl_second_test") {
     "${ability_runtime_native_path}/appkit/app/app_loader.cpp",
     "${ability_runtime_native_path}/appkit/app/application_cleaner.cpp",
     "${ability_runtime_native_path}/appkit/app/ohos_application.cpp",
+    "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include/mock_bundle_manager.cpp",
     "context_impl_second_test.cpp",
   ]
 
@@ -254,6 +256,7 @@ ohos_unittest("context_impl_second_test") {
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
+    "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
