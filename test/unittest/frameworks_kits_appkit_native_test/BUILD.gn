@@ -223,7 +223,6 @@ ohos_unittest("context_impl_second_test") {
     "${ability_runtime_native_path}/appkit/app/app_loader.cpp",
     "${ability_runtime_native_path}/appkit/app/application_cleaner.cpp",
     "${ability_runtime_native_path}/appkit/app/ohos_application.cpp",
-    "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include/mock_bundle_manager.cpp",
     "context_impl_second_test.cpp",
   ]
 
