@@ -51,6 +51,7 @@ ohos_unittest("context_impl_second_test") {
   ]
 
   configs = [ ":module_private_config" ]
+  configs += [ "${ability_runtime_services_path}/common:common_config" ]
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
@@ -97,6 +98,4 @@ group("unittest") {
   deps = []
 
   deps += [ ":context_impl_second_test" ]
-
-  deps += [ "ability_delegator:unittest" ]
 }
