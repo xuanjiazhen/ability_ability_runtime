@@ -49,6 +49,9 @@ constexpr char EVENT_PROCESS_NAME[] = "PROCESS_NAME";
 constexpr char EVENT_STACK[] = "STACK";
 constexpr char BINDER_INFO[] = "BINDER_INFO";
 constexpr char APP_RUNNING_UNIQUE_ID[] = "APP_RUNNING_UNIQUE_ID";
+constexpr char TERMINAL_BINDER_PID[] = "TERMINAL_BINDER_PID";
+constexpr char TERMINAL_BINDER_TID[] = "TERMINAL_BINDER_TID";
+constexpr char TERMINAL_BINDER_STACK[] = "TERMINAL_BINDER_STACK";
 constexpr char FREEZE_MEMORY[] = "FREEZE_MEMORY";
 constexpr int MAX_LAYER = 8;
 constexpr int FREEZEMAP_SIZE_MAX = 20;
@@ -270,15 +273,22 @@ int AppfreezeManager::AcquireStack(const FaultData& faultData,
     faultNotifyData.eventId = faultData.eventId;
     std::string binderInfo;
     std::string binderPidsStr;
-    std::set<int> pids = GetBinderPeerPids(binderInfo, pid);
+    std::string terminalBinderData;
+    AppfreezeManager::TerminalBinder terminalBinder = {0, 0, false};
+    std::set<int> pids = GetBinderPeerPids(binderInfo, pid, terminalBinder);
     for (auto& pidTemp : pids) {
         TAG_LOGI(AAFwkTag::APPDFR, "pidTemp pids:%{public}d", pidTemp);
-        if (pidTemp != pid) {
-            std::string content = "PeerBinder catcher stacktrace for pid : " + std::to_string(pidTemp) + "\n";
-            content += CatcherStacktrace(pidTemp);
-            binderInfo += content;
-            binderPidsStr += " " + std::to_string(pidTemp);
+        if (pidTemp == pid) {
+            continue;
         }
+        std::string content = "PeerBinder catcher stacktrace for pid : " + std::to_string(pidTemp) + "\n";
+        content += CatcherStacktrace(pidTemp);
+        binderPidsStr += " " + std::to_string(pidTemp);
+        if (pidTemp == terminalBinder.pid) {
+            content = "Terminal binder data:\n" + content + "Terminal binder ends here!\n";
+            terminalBinderData += std::to_string(terminalBinder.pid) + " " + std::to_string(terminalBinder.tid);
+        }
+        binderInfo += content;
     }
 
     if (pids.empty()) {
@@ -288,7 +298,7 @@ int AppfreezeManager::AcquireStack(const FaultData& faultData,
     std::string fileName = faultData.errorObject.name + "_" +
         AbilityRuntime::TimeUtil::FormatTime("%Y%m%d%H%M%S") + "_" + std::to_string(appInfo.pid) + "_binder";
     std::string fullStackPath = WriteToFile(fileName, binderInfo);
-    binderInfo = fullStackPath + "," + binderPidsStr;
+    binderInfo = fullStackPath + "," + binderPidsStr + "," + terminalBinderData;
 
     ret = NotifyANR(faultNotifyData, appInfo, binderInfo, memoryContent);
     return ret;
@@ -323,9 +333,10 @@ int AppfreezeManager::NotifyANR(const FaultData& faultData, const AppfreezeManag
     return 0;
 }
 
-std::map<int, std::set<int>> AppfreezeManager::BinderParser(std::ifstream& fin, std::string& stack) const
+std::map<int, std::list<AppfreezeManager::PeerBinderInfo>> AppfreezeManager::BinderParser(std::ifstream& fin,
+    std::string& stack) const
 {
-    std::map<int, std::set<int>> binderInfo;
+    std::map<int, std::list<AppfreezeManager::PeerBinderInfo>> binderInfos;
     const int decimal = 10;
     std::string line;
     bool isBinderMatchup = false;
@@ -333,11 +344,7 @@ std::map<int, std::set<int>> AppfreezeManager::BinderParser(std::ifstream& fin, 
     stack += "BinderCatcher --\n\n";
     while (getline(fin, line)) {
         stack += line + "\n";
-        if (isBinderMatchup) {
-            continue;
-        }
-
-        if (line.find("async\t") != std::string::npos) {
+        if (isBinderMatchup || line.find("async\t") != std::string::npos) {
             continue;
         }
 
@@ -351,38 +358,41 @@ std::map<int, std::set<int>> AppfreezeManager::BinderParser(std::ifstream& fin, 
         auto SplitPhase = [](const std::string& str, uint16_t index) -> std::string {
             std::vector<std::string> strings;
             SplitStr(str, ":", strings);
-            if (index < strings.size()) {
-                return strings[index];
-            }
-            return "";
+            return index < strings.size() ? strings[index] : "";
         };
 
         if (strList.size() >= 7) { // 7: valid array size
-            // 2: peer id,
-            std::string server = SplitPhase(strList[2], 0);
+            AppfreezeManager::PeerBinderInfo info = {0};
             // 0: local id,
-            std::string client = SplitPhase(strList[0], 0);
+            std::string clientPid = SplitPhase(strList[0], 0);
+            std::string clientTid = SplitPhase(strList[0], 1);
+            // 2: peer id,
+            std::string serverPid = SplitPhase(strList[2], 0);
+            std::string serverTid = SplitPhase(strList[2], 1);
             // 5: wait time, s
             std::string wait = SplitPhase(strList[5], 1);
-            if (server == "" || client == "" || wait == "") {
+            if (clientPid == "" || clientTid == "" || serverPid == "" || serverTid == "" || wait == "") {
                 continue;
             }
-            int serverNum = std::strtol(server.c_str(), nullptr, decimal);
-            int clientNum = std::strtol(client.c_str(), nullptr, decimal);
-            int waitNum = std::strtol(wait.c_str(), nullptr, decimal);
-            TAG_LOGI(AAFwkTag::APPDFR, "server:%{public}d, client:%{public}d, wait:%{public}d", serverNum, clientNum,
-                waitNum);
-            binderInfo[clientNum].insert(serverNum);
+            info.clientPid = std::strtol(clientPid.c_str(), nullptr, decimal);
+            info.clientTid = std::strtol(clientTid.c_str(), nullptr, decimal);
+            info.serverPid = std::strtol(serverPid.c_str(), nullptr, decimal);
+            info.serverTid = std::strtol(serverTid.c_str(), nullptr, decimal);
+            int waitTime = std::strtol(wait.c_str(), nullptr, decimal);
+            TAG_LOGI(AAFwkTag::APPDFR, "server:%{public}d, client:%{public}d, wait:%{public}d", info.serverPid,
+                info.clientPid, waitTime);
+            binderInfos[info.clientPid].push_back(info);
         }
         if (line.find("context") != line.npos) {
             isBinderMatchup = true;
         }
     }
-    TAG_LOGI(AAFwkTag::APPDFR, "binderInfo size: %{public}zu", binderInfo.size());
-    return binderInfo;
+    TAG_LOGI(AAFwkTag::APPDFR, "binderInfo size: %{public}zu", binderInfos.size());
+    return binderInfos;
 }
 
-std::set<int> AppfreezeManager::GetBinderPeerPids(std::string& stack, int pid) const
+std::set<int> AppfreezeManager::GetBinderPeerPids(std::string& stack, int pid, AppfreezeManager::TerminalBinder&
+    terminalBinder) const
 {
     std::set<int> pids;
     std::ifstream fin;
@@ -400,33 +410,40 @@ std::set<int> AppfreezeManager::GetBinderPeerPids(std::string& stack, int pid) c
     }
 
     stack += "\n\nPeerBinderCatcher -- pid==" + std::to_string(pid) + "\n\n";
-    std::map<int, std::set<int>> binderInfo = BinderParser(fin, stack);
+    std::map<int, std::list<AppfreezeManager::PeerBinderInfo>> binderInfos = BinderParser(fin, stack);
     fin.close();
 
-    if (binderInfo.size() == 0 || binderInfo.find(pid) == binderInfo.end()) {
+    if (binderInfos.size() == 0 || binderInfos.find(pid) == binderInfos.end()) {
         return pids;
     }
 
-    ParseBinderPids(binderInfo, pids, pid, 0);
+    ParseBinderPids(binderInfos, pids, pid, 0, terminalBinder);
     for (auto& each : pids) {
         TAG_LOGD(AAFwkTag::APPDFR, "each pids:%{public}d", each);
     }
     return pids;
 }
 
-void AppfreezeManager::ParseBinderPids(const std::map<int, std::set<int>>& binderInfo,
-    std::set<int>& pids, int pid, int layer) const
+void AppfreezeManager::ParseBinderPids(const std::map<int, std::list<AppfreezeManager::PeerBinderInfo>>& binderInfos,
+    std::set<int>& pids, int pid, int layer, AppfreezeManager::TerminalBinder& terminalBinder) const
 {
-    auto it = binderInfo.find(pid);
+    auto it = binderInfos.find(pid);
     layer++;
-    if (layer >= MAX_LAYER) {
+    if (layer >= MAX_LAYER || it == binderInfos.end()) {
         return;
     }
-    if (it != binderInfo.end()) {
-        for (auto& each : it->second) {
-            pids.insert(each);
-            ParseBinderPids(binderInfo, pids, each, layer);
+
+    bool isGetLayerBinder = false;
+    for (auto& each : it->second) {
+        if (!terminalBinder.firstLayerInit || (!isGetLayerBinder && each.clientPid == terminalBinder.pid &&
+            each.clientTid == terminalBinder.tid)) {
+            terminalBinder.pid = each.serverPid;
+            terminalBinder.tid = each.serverTid;
+            terminalBinder.firstLayerInit = true;
+            isGetLayerBinder = true;
         }
+        pids.insert(each.serverPid);
+        ParseBinderPids(binderInfos, pids, each.serverPid, layer, terminalBinder);
     }
 }
 

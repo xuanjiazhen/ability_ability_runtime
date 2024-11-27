@@ -174,9 +174,10 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_005, TestSize.Level1)
     ids.insert(0);
     binderInfo.insert(std::pair<int, std::set<int>>(1, ids));
     std::set<int> pids;
-    appfreezeManager->ParseBinderPids(binderInfo, pids, 2, 8);
+    AppfreezeManager::TerminalBinder terminalBinder = {0, 0, false};
+    appfreezeManager->ParseBinderPids(binderInfo, pids, 2, 8, terminalBinder);
     EXPECT_EQ(pids.size(), 0);
-    appfreezeManager->ParseBinderPids(binderInfo, pids, 1, 0);
+    appfreezeManager->ParseBinderPids(binderInfo, pids, 1, 0, terminalBinder);
     EXPECT_EQ(pids.size(), 2);
 }
 
