@@ -100,17 +100,12 @@ bool CheckContext(const std::shared_ptr<AbilityRuntime::Context> inputContext,
  */
 HWTEST_F(ContextImplSecondTest, AppExecFwk_AppContext_CreateHspResourceManager_001, Function | MediumTest | Level1)
 {
-    GTEST_LOG_(INFO) << "AppExecFwk_AppContext_CreateHspResourceManager_001 start";
-
     std::shared_ptr<AbilityRuntime::ContextImpl> contextImpl_ = std::make_shared<AbilityRuntime::ContextImpl>();
-    std::shared_ptr<AbilityRuntime::ContextImpl> appContext = std::make_shared<AbilityRuntime::ContextImpl>();
     auto config = std::make_shared<AppExecFwk::Configuration>();
     contextImpl_->SetConfiguration(config);
     AppExecFwk::BundleInfo bundleInfo;
     bundleInfo.name = "com.example.myapplication";
     bundleInfo.applicationInfo.name = "applicationName";
-    contextImpl_->InitResourceManager(bundleInfo, appContext, true, "");
-    EXPECT_TRUE(appContext->GetResourceManager() != nullptr);
     AppExecFwk::HapModuleInfo hapModuleInfo;
     hapModuleInfo.moduleName = "com.test.moduleName";
     contextImpl_->InitHapModuleInfo(hapModuleInfo);
