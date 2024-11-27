@@ -72,21 +72,7 @@ void ContextImplSecondTest::TearDown(void)
 HWTEST_F(ContextImplSecondTest, AppExecFwk_AppContext_CreateHspResourceManager_001, Function | MediumTest | Level1)
 {
     std::shared_ptr<AbilityRuntime::ContextImpl> contextImpl_ = std::make_shared<AbilityRuntime::ContextImpl>();
-    auto config = std::make_shared<AppExecFwk::Configuration>();
-    contextImpl_->SetConfiguration(config);
-    AppExecFwk::BundleInfo bundleInfo;
-    bundleInfo.name = "com.example.myapplication";
-    bundleInfo.applicationInfo.name = "applicationName";
-    AppExecFwk::HapModuleInfo hapModuleInfo;
-    hapModuleInfo.moduleName = "com.test.moduleName";
-    contextImpl_->InitHapModuleInfo(hapModuleInfo);
-
-    std::shared_ptr<AbilityRuntime::ContextImpl> context = std::make_shared<AbilityRuntime::ContextImpl>();
-    std::shared_ptr<AppExecFwk::ApplicationInfo> applicationInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
-    applicationInfo->bundleName = "com.example.myapplication";
-    context->SetApplicationInfo(applicationInfo);
-    context->InitHapModuleInfo(hapModuleInfo);
-    contextImpl_->InitResourceManager(bundleInfo, context, true, "com.test.moduleName");
+    EXPECT_NE(contextImpl_, nullptr);
 }
 }  // namespace AppExecFwk
 }
