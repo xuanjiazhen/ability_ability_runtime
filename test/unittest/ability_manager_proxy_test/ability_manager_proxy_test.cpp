@@ -359,8 +359,7 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_0011, TestSize.Level1)
         .Times(1)
         .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
     sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
-    PacMap saveData;
-    auto res = proxy_->AbilityTransitionDone(token, 1, saveData);
+    auto res = proxy_->AbilityTransitionDone(token, 1);
 
     EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::ABILITY_TRANSITION_DONE), mock_->code_);
     EXPECT_EQ(res, NO_ERROR);
@@ -380,8 +379,7 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_012, TestSize.Level1)
         .Times(1)
         .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeErrorSendRequest));
     sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
-    PacMap saveData;
-    auto res = proxy_->AbilityTransitionDone(token, 1, saveData);
+    auto res = proxy_->AbilityTransitionDone(token, 1);
 
     EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::ABILITY_TRANSITION_DONE), mock_->code_);
     EXPECT_NE(res, NO_ERROR);

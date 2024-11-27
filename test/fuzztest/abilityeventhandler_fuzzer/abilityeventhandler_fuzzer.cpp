@@ -130,9 +130,6 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     abilitySchedulerProxy->ScheduleConnectAbility(*want);
     abilitySchedulerProxy->ScheduleDisconnectAbility(*want);
     abilitySchedulerProxy->ScheduleCommandAbility(*want, boolParam, intParam);
-    abilitySchedulerProxy->ScheduleSaveAbilityState();
-    PacMap inState;
-    abilitySchedulerProxy->ScheduleRestoreAbilityState(inState);
     Uri uri(stringParam);
     abilitySchedulerProxy->GetFileTypes(uri, stringParam);
     abilitySchedulerProxy->OpenFile(uri, stringParam);

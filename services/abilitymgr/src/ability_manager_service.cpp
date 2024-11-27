@@ -5955,7 +5955,7 @@ void AbilityManagerService::DumpSysState(
     }
 }
 
-int AbilityManagerService::AbilityTransitionDone(const sptr<IRemoteObject> &token, int state, const PacMap &saveData)
+int AbilityManagerService::AbilityTransitionDone(const sptr<IRemoteObject> &token, int state)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled() && !VerificationAllToken(token)) {
@@ -6013,14 +6013,14 @@ int AbilityManagerService::AbilityTransitionDone(const sptr<IRemoteObject> &toke
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         auto uiAbilityManager = GetUIAbilityManagerByUserId(ownerMissionUserId);
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
-        return uiAbilityManager->AbilityTransactionDone(token, state, saveData);
+        return uiAbilityManager->AbilityTransactionDone(token, state);
     } else {
         auto missionListManager = GetMissionListManagerByUserId(ownerMissionUserId);
         if (!missionListManager) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "missionListManager null userId=%{public}d", ownerMissionUserId);
             return ERR_INVALID_VALUE;
         }
-        return missionListManager->AbilityTransactionDone(token, state, saveData);
+        return missionListManager->AbilityTransactionDone(token, state);
     }
 }
 

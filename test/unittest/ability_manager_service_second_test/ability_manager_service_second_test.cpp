@@ -1531,8 +1531,7 @@ HWTEST_F(AbilityManagerServiceSecondTest, AbilityTransitionDone_001, TestSize.Le
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
     abilityMs_->subManagersHelper_->currentUIAbilityManager_ = std::make_shared<UIAbilityLifecycleManager>();
-    PacMap saveData;
-    EXPECT_EQ(abilityMs_->AbilityTransitionDone(nullptr, 1, saveData), ERR_INVALID_VALUE);
+    EXPECT_EQ(abilityMs_->AbilityTransitionDone(nullptr, 1), ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest AbilityTransitionDone_001 end");
 }
 

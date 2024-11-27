@@ -349,43 +349,6 @@ HWTEST_F(AbilitySchedulerProxyTest, ability_scheduler_proxy_operating_016, TestS
 
 /*
  * Feature: AbilitySchedulerProxy
- * Function: ScheduleSaveAbilityState
- * SubFunction: NA
- * FunctionPoints: AbilitySchedulerProxy ScheduleSaveAbilityState
- * EnvConditions: NA
- * CaseDescription: verify ScheduleSaveAbilityState Normal case
- */
-HWTEST_F(AbilitySchedulerProxyTest, ability_scheduler_proxy_operating_017, TestSize.Level1)
-{
-    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
-        .Times(1)
-        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilitySchedulerMock::InvokeSendRequest));
-    abilitySchedulerProxy_->ScheduleSaveAbilityState();
-
-    EXPECT_EQ(IAbilityScheduler::SCHEDULE_SAVE_ABILITY_STATE, mock_->code_);
-}
-
-/*
- * Feature: AbilitySchedulerProxy
- * Function: ScheduleRestoreAbilityState
- * SubFunction: NA
- * FunctionPoints: AbilitySchedulerProxy ScheduleRestoreAbilityState
- * EnvConditions: NA
- * CaseDescription: verify ScheduleRestoreAbilityState Normal case
- */
-HWTEST_F(AbilitySchedulerProxyTest, ability_scheduler_proxy_operating_018, TestSize.Level1)
-{
-    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
-        .Times(1)
-        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilitySchedulerMock::InvokeSendRequest));
-    PacMap pacmap;
-    abilitySchedulerProxy_->ScheduleRestoreAbilityState(pacmap);
-
-    EXPECT_EQ(IAbilityScheduler::SCHEDULE_RESTORE_ABILITY_STATE, mock_->code_);
-}
-
-/*
- * Feature: AbilitySchedulerProxy
  * Function: Call
  * SubFunction: NA
  * FunctionPoints: AbilitySchedulerProxy Call

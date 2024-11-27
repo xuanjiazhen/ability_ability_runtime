@@ -208,16 +208,6 @@ public:
     virtual void OnNewWant(const AAFwk::Want &want);
 
     /**
-     * @brief Restores data and states of an ability when it is restored by the system. This method should be
-     * implemented by a Page ability. This method is called if an ability was destroyed at a certain time due to
-     * resource reclaim or was unexpectedly destroyed and the onSaveAbilityState(ohos.utils.PacMap) method was called to
-     * save its user data and states. Generally, this method is called after the onStart(ohos.aafwk.content.Want)
-     * method.
-     * @param inState Indicates the PacMap object used for storing data and states. This parameter can not be null.
-     */
-    virtual void OnRestoreAbilityState(const AppExecFwk::PacMap &inState);
-
-    /**
      * @brief Sets the want object that can be obtained by calling getWant().
      * @param Want information of other ability
      */

@@ -59,8 +59,6 @@ public:
     virtual void ScheduleCommandAbility(const Want& want, bool restart, int startId) {};
     virtual void ScheduleCommandAbilityWindow(const Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo,
         AAFwk::WindowCommand winCmd) {};
-    virtual void ScheduleSaveAbilityState() {};
-    virtual void ScheduleRestoreAbilityState(const PacMap& inState) {};
     virtual std::vector<std::string> GetFileTypes(const Uri& uri, const std::string& mimeTypeFilter)
     {
         return std::vector<std::string>();

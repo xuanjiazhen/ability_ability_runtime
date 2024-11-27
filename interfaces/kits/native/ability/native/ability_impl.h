@@ -83,21 +83,6 @@ public:
      */
     int GetCurrentState();
 
-    /**
-     * @brief Save data and states of an ability when it is restored by the system. and Calling information back to
-     * Ability. This method should be implemented by a Page ability.
-     *
-     */
-    void DispatchSaveAbilityState();
-
-    /**
-     * @brief Restores data and states of an ability when it is restored by the system. and Calling information back
-     * to Ability. This method should be implemented by a Page ability.
-     * @param instate The Want object to connect to.
-     *
-     */
-    void DispatchRestoreAbilityState(const PacMap &inState);
-
     // Page Service Ability has different AbilityTransaction
     virtual void HandleAbilityTransaction(const Want &want, const AAFwk::LifeCycleStateInfo &targetState,
         sptr<AAFwk::SessionInfo> sessionInfo = nullptr);
@@ -453,20 +438,6 @@ protected:
     void SetLifeCycleStateInfo(const AAFwk::LifeCycleStateInfo &info);
 
     /**
-     * @brief Check if it needs to restore the data to the ability.
-     *
-     * @return Return true if success, otherwise return false.
-     */
-    bool CheckAndRestore();
-
-    /**
-     * @brief Check if it needs to save the data to the ability.
-     *
-     * @return Return true if success, otherwise return false.
-     */
-    bool CheckAndSave();
-
-    /**
      * @brief Get share wantParam.
      *
      * @param WantParams
@@ -474,8 +445,6 @@ protected:
      * @return Return the result of share.
      */
     int32_t Share(WantParams &wantParam);
-
-    PacMap &GetRestoreData();
 
     bool isStageBasedModel_ = false;
     int lifecycleState_ = AAFwk::ABILITY_STATE_INITIAL;
@@ -489,9 +458,6 @@ protected:
 private:
     std::shared_ptr<ApplicationImpl> applicationImpl_;
     std::shared_ptr<ContextDeal> contextDeal_;
-    bool hasSaveData_ = false;
-    bool needSaveDate_ = false;
-    PacMap restoreData_;
 
 private:
     void AfterFocusedCommon(bool isFocused);

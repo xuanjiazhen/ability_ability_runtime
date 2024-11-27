@@ -104,8 +104,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     DelayedSingleton<MissionInfoMgr>::GetInstance()->taskDataPersistenceMgr_ =
         DelayedSingleton<TaskDataPersistenceMgr>::GetInstance();
     std::shared_ptr<MissionList> missionList = std::make_shared<MissionList>();
-    PacMap pacMap;
-    missionListManager->AbilityTransactionDone(token, intParam, pacMap);
+    missionListManager->AbilityTransactionDone(token, intParam);
     missionListManager->DispatchState(abilityRecord, intParam);
     missionListManager->DispatchForeground(abilityRecord, boolParam);
     missionListManager->CompleteForegroundSuccess(abilityRecord);

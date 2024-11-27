@@ -59,7 +59,7 @@ public:
      * @param state,.the state of ability lift cycle.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode AbilityTransitionDone(sptr<IRemoteObject> token, int state, const PacMap &saveData);
+    ErrCode AbilityTransitionDone(sptr<IRemoteObject> token, int state);
 
     /**
      * AbilityWindowConfigTransitionDone, ability call this interface after lift cycle was changed.

@@ -73,7 +73,7 @@ public:
 
     int AttachAbilityThread(const sptr<IAbilityScheduler>& scheduler, const sptr<IRemoteObject>& token) override;
 
-    int AbilityTransitionDone(const sptr<IRemoteObject>& token, int state, const PacMap& saveData) override;
+    int AbilityTransitionDone(const sptr<IRemoteObject>& token, int state) override;
     int ScheduleConnectAbilityDone(const sptr<IRemoteObject>& token, const sptr<IRemoteObject>& remoteObject) override;
     int ScheduleDisconnectAbilityDone(const sptr<IRemoteObject>& token) override;
     int ScheduleCommandAbilityDone(const sptr<IRemoteObject>& token) override;

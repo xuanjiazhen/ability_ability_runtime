@@ -35,7 +35,6 @@ public:
     MOCK_METHOD3(ScheduleCommandAbilityWindow, void(const Want &, const sptr<SessionInfo> &, WindowCommand));
     MOCK_METHOD0(AsObject, sptr<IRemoteObject>());
     MOCK_METHOD0(ScheduleSaveAbilityState, void());
-    MOCK_METHOD1(ScheduleRestoreAbilityState, void(const PacMap& inState));
     MOCK_METHOD1(ScheduleNewWant, void(const Want& want));
     MOCK_METHOD2(ScheduleRegisterObserver, bool(const Uri& uri, const sptr<AAFwk::IDataAbilityObserver>& dataObserver));
     MOCK_METHOD2(

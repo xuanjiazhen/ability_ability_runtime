@@ -52,7 +52,7 @@ ErrCode AbilityManagerClient::AttachAbilityThread(
     return -1;
 }
 
-ErrCode AbilityManagerClient::AbilityTransitionDone(sptr<IRemoteObject> token, int state, const PacMap& saveData)
+ErrCode AbilityManagerClient::AbilityTransitionDone(sptr<IRemoteObject> token, int state)
 {
     return -1;
 }

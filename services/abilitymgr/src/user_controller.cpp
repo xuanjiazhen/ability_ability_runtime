@@ -17,7 +17,6 @@
 
 #include "ability_manager_service.h"
 #include "hilog_tag_wrapper.h"
-#include "mock_session_manager_service.h"
 #include "os_account_manager_wrapper.h"
 #include "scene_board_judgement.h"
 
@@ -208,10 +207,6 @@ int32_t UserController::LogoutUser(int32_t userId)
         return -1;
     }
     abilityManagerService->RemoveLauncherDeathRecipient(userId);
-    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "SceneBoard exit normally.");
-        Rosen::MockSessionManagerService::GetInstance().NotifyNotKillService();
-    }
     auto appScheduler = DelayedSingleton<AppScheduler>::GetInstance();
     if (!appScheduler) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null appScheduler");

@@ -84,10 +84,6 @@ int AbilitySchedulerStub::OnRemoteRequestInnerFirst(
             return PrepareTerminateAbilityInner(data, reply);
         case SCHEDULE_ABILITY_COMMAND_WINDOW:
             return CommandAbilityWindowInner(data, reply);
-        case SCHEDULE_SAVE_ABILITY_STATE:
-            return SaveAbilityStateInner(data, reply);
-        case SCHEDULE_RESTORE_ABILITY_STATE:
-            return RestoreAbilityStateInner(data, reply);
         case SCHEDULE_GETFILETYPES:
             return GetFileTypesInner(data, reply);
         case SCHEDULE_OPENFILE:
@@ -256,23 +252,6 @@ int AbilitySchedulerStub::CommandAbilityWindowInner(MessageParcel &data, Message
     sptr<SessionInfo> sessionInfo(data.ReadParcelable<SessionInfo>());
     int32_t winCmd = data.ReadInt32();
     ScheduleCommandAbilityWindow(*want, sessionInfo, static_cast<WindowCommand>(winCmd));
-    return NO_ERROR;
-}
-
-int AbilitySchedulerStub::SaveAbilityStateInner(MessageParcel &data, MessageParcel &reply)
-{
-    ScheduleSaveAbilityState();
-    return NO_ERROR;
-}
-
-int AbilitySchedulerStub::RestoreAbilityStateInner(MessageParcel &data, MessageParcel &reply)
-{
-    std::shared_ptr<PacMap> pacMap(data.ReadParcelable<PacMap>());
-    if (pacMap == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null pacMap");
-        return ERR_INVALID_VALUE;
-    }
-    ScheduleRestoreAbilityState(*pacMap);
     return NO_ERROR;
 }
 

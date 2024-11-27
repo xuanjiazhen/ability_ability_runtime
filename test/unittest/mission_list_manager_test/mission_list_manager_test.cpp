@@ -1888,11 +1888,10 @@ HWTEST_F(MissionListManagerTest, AbilityTransactionDone_001, TestSize.Level1)
     std::shared_ptr<MissionList> missionList = std::make_shared<MissionList>();
     sptr<IRemoteObject> token = abilityRecord->GetToken();
     int state = 0;
-    PacMap saveData;
     missionList->missions_.push_back(mission);
     missionListManager->terminateAbilityList_.clear();
     missionListManager->defaultSingleList_ = missionList;
-    int res = missionListManager->AbilityTransactionDone(token, state, saveData);
+    int res = missionListManager->AbilityTransactionDone(token, state);
     EXPECT_EQ(res, INNER_ERR);
     missionListManager.reset();
 }
@@ -1914,11 +1913,10 @@ HWTEST_F(MissionListManagerTest, AbilityTransactionDone_002, TestSize.Level1)
     std::shared_ptr<MissionList> missionList = std::make_shared<MissionList>();
     sptr<IRemoteObject> token = abilityRecord->GetToken();
     int state = 6;
-    PacMap saveData;
     missionList->missions_.push_back(mission);
     missionListManager->terminateAbilityList_.push_back(abilityRecord);
     missionListManager->defaultSingleList_ = missionList;
-    int res = missionListManager->AbilityTransactionDone(token, state, saveData);
+    int res = missionListManager->AbilityTransactionDone(token, state);
     EXPECT_EQ(res, ERR_INVALID_VALUE);
     missionListManager.reset();
 }

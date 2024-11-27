@@ -208,27 +208,6 @@ HWTEST_F(UIAbilityBaseTest, AbilityRuntime_OnNewWant_0100, Function | MediumTest
 }
 
 /**
- * @tc.number: AbilityRuntime_OnRestoreAbilityState_0100
- * @tc.name: OnRestoreAbilityState
- * @tc.desc: Test whether onnewwant can be called normally.
- */
-HWTEST_F(UIAbilityBaseTest, AbilityRuntime_OnRestoreAbilityState_0100, Function | MediumTest | Level1)
-{
-    GTEST_LOG_(INFO) << "AbilityRuntime_OnRestoreAbilityState_0100 start";
-    std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
-    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
-    std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
-    std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
-    sptr<IRemoteObject> token = nullptr;
-    sptr<IRemoteObject> abilityToken = sptr<IRemoteObject>(new AbilityRuntime::FAAbilityThread());
-    auto abilityRecord = std::make_shared<AbilityLocalRecord>(abilityInfo, abilityToken, nullptr, 0);
-    ability_->Init(abilityRecord, application, handler, token);
-    PacMap inState;
-    ability_->OnRestoreAbilityState(inState);
-    GTEST_LOG_(INFO) << "AbilityRuntime_OnRestoreAbilityState_0100 end";
-}
-
-/**
  * @tc.number: AbilityRuntime_TerminateAbility_0100
  * @tc.name: GetWindow
  * @tc.desc: Test whether GetWindow is called normally.

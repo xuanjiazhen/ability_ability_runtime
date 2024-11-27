@@ -118,17 +118,6 @@ public:
     bool SchedulePrepareTerminateAbility() override;
 
     /**
-     * @brief Provide operating system SaveabilityState information to the observer
-     */
-    void ScheduleSaveAbilityState() override;
-
-    /**
-     * @brief Provide operating system RestoreAbilityState information to the observer
-     * @param state Indicates resotre ability state used to dispatchRestoreAbilityState.
-     */
-    void ScheduleRestoreAbilityState(const AppExecFwk::PacMap &state) override;
-
-    /**
      * @brief ScheduleUpdateConfiguration, scheduling update configuration.
      * @param config Indicates the updated configuration information
      */
@@ -502,12 +491,6 @@ private:
      */
     void HandleCommandExtensionWindow(
         const Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo, AAFwk::WindowCommand winCmd);
-
-    /**
-     * @brief Handle the restoreAbility state.
-     * @param state Indicates save ability state used to dispatchRestoreAbilityState.
-     */
-    void HandleRestoreAbilityState(const AppExecFwk::PacMap &state);
 
     /**
      * @brief Handle the scheduling update configuration

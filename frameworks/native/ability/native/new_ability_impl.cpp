@@ -40,7 +40,7 @@ void NewAbilityImpl::HandleAbilityTransaction(const Want &want, const AAFwk::Lif
     if ((lifecycleState_ == targetState.state) && !targetState.isNewWant) {
         if (ability_ != nullptr && targetState.state == AAFwk::ABILITY_STATE_FOREGROUND_NEW) {
             ability_->RequestFocus(want);
-            AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_, targetState.state, GetRestoreData());
+            AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_, targetState.state);
         }
         TAG_LOGE(AAFwkTag::ABILITY, "lifeCycleStat:org=Dst");
         return;
@@ -52,7 +52,6 @@ void NewAbilityImpl::HandleAbilityTransaction(const Want &want, const AAFwk::Lif
         if (lifecycleState_ == AAFwk::ABILITY_STATE_INITIAL) {
             ability_->SetStartAbilitySetting(targetState.setting);
             Start(want, sessionInfo);
-            CheckAndRestore();
         }
     }
 
@@ -75,7 +74,7 @@ void NewAbilityImpl::HandleShareData(const int32_t &uniqueId)
 void NewAbilityImpl::AbilityTransactionCallback(const AbilityLifeCycleState &state)
 {
     TAG_LOGI(AAFwkTag::ABILITY, "notify ams");
-    auto ret = AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_, state, GetRestoreData());
+    auto ret = AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_, state);
     if (ret == ERR_OK && state == AAFwk::ABILITY_STATE_FOREGROUND_NEW) {
         FreezeUtil::GetInstance().DeleteLifecycleEvent(token_);
         FreezeUtil::GetInstance().DeleteAppLifecycleEvent(0);

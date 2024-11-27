@@ -91,17 +91,6 @@ public:
     bool SchedulePrepareTerminateAbility() override;
 
     /**
-     * @brief Provide operating system SaveabilityState information to the observer
-     */
-    void ScheduleSaveAbilityState() override;
-
-    /**
-     * @brief Provide operating system RestoreAbilityState information to the observer
-     * @param state Indicates resotre ability state used to dispatchRestoreAbilityState.
-     */
-    void ScheduleRestoreAbilityState(const AppExecFwk::PacMap &state) override;
-
-    /**
      * @brief Send the result code and data to be returned by this Page ability to the caller.
      * When a Page ability is destroyed, the caller overrides the AbilitySlice#onAbilityResult(int, int, Want) method to
      * receive the result set in the current method. This method can be called only after the ability has been

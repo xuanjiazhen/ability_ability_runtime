@@ -1108,12 +1108,7 @@ int AbilityManagerStub::AbilityTransitionDoneInner(MessageParcel &data, MessageP
 {
     auto token = data.ReadRemoteObject();
     int targetState = data.ReadInt32();
-    std::unique_ptr<PacMap> saveData(data.ReadParcelable<PacMap>());
-    if (!saveData) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "saveData null");
-        return ERR_INVALID_VALUE;
-    }
-    int32_t result = AbilityTransitionDone(token, targetState, *saveData);
+    int32_t result = AbilityTransitionDone(token, targetState);
     reply.WriteInt32(result);
     return NO_ERROR;
 }

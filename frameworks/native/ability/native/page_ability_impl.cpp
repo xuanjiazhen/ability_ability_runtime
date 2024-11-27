@@ -43,7 +43,7 @@ void PageAbilityImpl::HandleAbilityTransaction(const Want &want, const AAFwk::Li
     if ((lifecycleState_ == targetState.state) && !targetState.isNewWant) {
         if (targetState.state == AAFwk::ABILITY_STATE_FOREGROUND_NEW) {
             ability_->RequestFocus(want);
-            AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_, targetState.state, GetRestoreData());
+            AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_, targetState.state);
         }
         TAG_LOGE(AAFwkTag::ABILITY, "lifeCycleStat:org=Dst");
         return;
@@ -61,7 +61,6 @@ void PageAbilityImpl::HandleAbilityTransaction(const Want &want, const AAFwk::Li
     if (lifecycleState_ == AAFwk::ABILITY_STATE_INITIAL) {
         ability_->SetStartAbilitySetting(targetState.setting);
         Start(want, sessionInfo);
-        CheckAndRestore();
     }
 
     if (lifecycleState_ == AAFwk::ABILITY_STATE_ACTIVE &&
@@ -69,14 +68,9 @@ void PageAbilityImpl::HandleAbilityTransaction(const Want &want, const AAFwk::Li
         Inactive();
     }
 
-    if (targetState.state == AAFwk::ABILITY_STATE_BACKGROUND_NEW ||
-        targetState.state == AAFwk::ABILITY_STATE_BACKGROUND) {
-        CheckAndSave();
-    }
-
     if (AbilityTransaction(want, targetState)) {
         TAG_LOGI(AAFwkTag::ABILITY, "done, notify ams");
-        AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_, targetState.state, GetRestoreData());
+        AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_, targetState.state);
     }
 }
 

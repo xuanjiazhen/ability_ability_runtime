@@ -404,11 +404,6 @@ void UIAbility::OnNewWant(const AAFwk::Want &want)
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
 }
 
-void UIAbility::OnRestoreAbilityState(const AppExecFwk::PacMap &inState)
-{
-    TAG_LOGD(AAFwkTag::UIABILITY, "called");
-}
-
 void UIAbility::SetWant(const AAFwk::Want &want)
 {
     std::lock_guard<std::mutex> lock(wantMutexlock_);

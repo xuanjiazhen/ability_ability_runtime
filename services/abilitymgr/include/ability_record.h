@@ -699,19 +699,7 @@ public:
 
     void CommandAbilityWindow(const sptr<SessionInfo> &sessionInfo, WindowCommand winCmd);
 
-    /**
-     * save ability state.
-     *
-     */
-    void SaveAbilityState();
-    void SaveAbilityState(const PacMap &inState);
     void SaveAbilityWindowConfig(const WindowConfig &windowConfig);
-
-    /**
-     * restore ability state.
-     *
-     */
-    void RestoreAbilityState();
 
     /**
      * notify top active ability updated.
@@ -1287,7 +1275,6 @@ private:
 
     bool isLauncherRoot_ = false;
 
-    PacMap stateDatas_;             // ability saved ability state data
     WindowConfig windowConfig_;
     bool isRestarting_ = false;     // is restarting ?
     AppState appState_ = AppState::BEGIN;

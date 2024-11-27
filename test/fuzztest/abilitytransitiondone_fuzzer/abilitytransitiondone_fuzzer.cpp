@@ -67,7 +67,6 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     auto connectManager = new AbilityConnectManager(userId);
     auto dataManager = new DataAbilityManager();
     int state = AbilityLifeCycleState::ABILITY_STATE_INITIAL;
-    PacMap saveData;
     if (!abilitymgr) {
         return false;
     }
@@ -101,7 +100,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
         dataManager->AbilityTransitionDone(dataToken, state);
     }
 
-    if (abilitymgr->AbilityTransitionDone(token, state, saveData) != 0) {
+    if (abilitymgr->AbilityTransitionDone(token, state) != 0) {
         return false;
     }
 

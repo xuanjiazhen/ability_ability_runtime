@@ -166,10 +166,9 @@ public:
      *
      * @param token the ability token
      * @param state the ability state
-     * @param saveData the saved data
      * @return execute error code
      */
-    int AbilityTransactionDone(const sptr<IRemoteObject> &token, int state, const PacMap &saveData) override;
+    int AbilityTransactionDone(const sptr<IRemoteObject> &token, int state) override;
 
     /**
      * @brief search the ability from terminating list

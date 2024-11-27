@@ -127,16 +127,6 @@ bool AbilityThread::SchedulePrepareTerminateAbility()
     return false;
 }
 
-void AbilityThread::ScheduleSaveAbilityState()
-{
-    TAG_LOGD(AAFwkTag::ABILITY, "called");
-}
-
-void AbilityThread::ScheduleRestoreAbilityState(const PacMap &state)
-{
-    TAG_LOGD(AAFwkTag::ABILITY, "called");
-}
-
 void AbilityThread::SendResult(int requestCode, int resultCode, const Want &resultData)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");

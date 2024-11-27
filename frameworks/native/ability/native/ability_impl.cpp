@@ -220,31 +220,6 @@ bool AbilityImpl::IsStageBasedModel() const
     return isStageBasedModel_;
 }
 
-void AbilityImpl::DispatchSaveAbilityState()
-{
-    TAG_LOGD(AAFwkTag::ABILITY, "called");
-    if (ability_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY,
-            "null ability_");
-        return;
-    }
-
-    needSaveDate_ = true;
-    TAG_LOGD(AAFwkTag::ABILITY, "end");
-}
-
-void AbilityImpl::DispatchRestoreAbilityState(const PacMap &inState)
-{
-    TAG_LOGD(AAFwkTag::ABILITY, "called");
-    if (ability_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "null ability_");
-        return;
-    }
-
-    hasSaveData_ = true;
-    restoreData_ = inState;
-}
-
 void AbilityImpl::HandleAbilityTransaction(const Want &want, const AAFwk::LifeCycleStateInfo &targetState,
     sptr<AAFwk::SessionInfo> sessionInfo)
 {}
@@ -422,48 +397,6 @@ void AbilityImpl::SetLifeCycleStateInfo(const AAFwk::LifeCycleStateInfo &info)
     ability_->SetLifeCycleStateInfo(info);
 }
 
-bool AbilityImpl::CheckAndRestore()
-{
-    TAG_LOGD(AAFwkTag::ABILITY, "start");
-    if (!hasSaveData_) {
-        TAG_LOGE(AAFwkTag::ABILITY, "false hasSaveData_");
-        return false;
-    }
-
-    if (ability_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "null ability_");
-        return false;
-    }
-    ability_->OnRestoreAbilityState(restoreData_);
-
-    return true;
-}
-
-bool AbilityImpl::CheckAndSave()
-{
-    TAG_LOGD(AAFwkTag::ABILITY, "start");
-    if (!needSaveDate_) {
-        TAG_LOGE(AAFwkTag::ABILITY, "false needSaveDate_");
-        return false;
-    }
-
-    if (ability_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "null ability_");
-        return false;
-    }
-
-    ability_->OnSaveAbilityState(restoreData_);
-
-    needSaveDate_ = false;
-
-    return true;
-}
-
-PacMap &AbilityImpl::GetRestoreData()
-{
-    return restoreData_;
-}
-
 void AbilityImpl::SetCallingContext(const std::string &deviceId, const std::string &bundleName,
     const std::string &abilityName, const std::string &moduleName)
 {
@@ -634,9 +567,8 @@ void AbilityImpl::WindowLifeCycleImpl::AfterForeground()
 
     if (needNotifyAMS) {
         TAG_LOGI(AAFwkTag::ABILITY, "window notify ams");
-        PacMap restoreData;
         auto ret = AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_,
-            AbilityLifeCycleState::ABILITY_STATE_FOREGROUND_NEW, restoreData);
+            AbilityLifeCycleState::ABILITY_STATE_FOREGROUND_NEW);
         if (ret == ERR_OK) {
             FreezeUtil::GetInstance().DeleteLifecycleEvent(token_);
             FreezeUtil::GetInstance().DeleteAppLifecycleEvent(0);
@@ -656,9 +588,8 @@ void AbilityImpl::WindowLifeCycleImpl::AfterBackground()
     FreezeUtil::GetInstance().AddLifecycleEvent(token_, entry);
 
     TAG_LOGI(AAFwkTag::ABILITY, "window after background");
-    PacMap restoreData;
     auto ret = AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_,
-        AbilityLifeCycleState::ABILITY_STATE_BACKGROUND_NEW, restoreData);
+        AbilityLifeCycleState::ABILITY_STATE_BACKGROUND_NEW);
     if (ret == ERR_OK) {
         FreezeUtil::GetInstance().DeleteLifecycleEvent(token_);
         FreezeUtil::GetInstance().DeleteAppLifecycleEvent(0);
@@ -686,12 +617,11 @@ void AbilityImpl::WindowLifeCycleImpl::AfterUnfocused()
 void AbilityImpl::WindowLifeCycleImpl::ForegroundFailed(int32_t type)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
-    PacMap restoreData;
     switch (type) {
         case static_cast<int32_t>(OHOS::Rosen::WMError::WM_ERROR_INVALID_OPERATION): {
             TAG_LOGD(AAFwkTag::ABILITY, "window was freezed");
             AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_,
-                AbilityLifeCycleState::ABILITY_STATE_WINDOW_FREEZED, restoreData);
+                AbilityLifeCycleState::ABILITY_STATE_WINDOW_FREEZED);
             break;
         }
         case static_cast<int32_t>(OHOS::Rosen::WMError::WM_ERROR_INVALID_WINDOW_MODE_OR_SIZE): {
@@ -703,17 +633,17 @@ void AbilityImpl::WindowLifeCycleImpl::ForegroundFailed(int32_t type)
 
             TAG_LOGD(AAFwkTag::ABILITY, "stage mode, schedule foreground invalid mode");
             AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_,
-                AbilityLifeCycleState::ABILITY_STATE_INVALID_WINDOW_MODE, restoreData);
+                AbilityLifeCycleState::ABILITY_STATE_INVALID_WINDOW_MODE);
             break;
         }
         case static_cast<int32_t>(OHOS::Rosen::WMError::WM_DO_NOTHING): {
             AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_,
-                AbilityLifeCycleState::ABILITY_STATE_DO_NOTHING, restoreData);
+                AbilityLifeCycleState::ABILITY_STATE_DO_NOTHING);
             break;
         }
         default: {
             AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_,
-                AbilityLifeCycleState::ABILITY_STATE_FOREGROUND_FAILED, restoreData);
+                AbilityLifeCycleState::ABILITY_STATE_FOREGROUND_FAILED);
         }
     }
 }
@@ -744,9 +674,8 @@ void AbilityImpl::WindowLifeCycleImpl::BackgroundFailed(int32_t type)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
     if (type == static_cast<int32_t>(OHOS::Rosen::WMError::WM_DO_NOTHING)) {
-        PacMap restoreData;
         AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_,
-            AbilityLifeCycleState::ABILITY_STATE_BACKGROUND_FAILED, restoreData);
+            AbilityLifeCycleState::ABILITY_STATE_BACKGROUND_FAILED);
     }
 }
 

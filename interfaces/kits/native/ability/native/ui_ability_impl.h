@@ -52,19 +52,6 @@ public:
     bool PrepareTerminateAbility();
 
     /**
-     * @brief Save data and states of an ability when it is restored by the system. and Calling information back to
-     * Ability. This method should be implemented by a Page ability.
-     */
-    void DispatchSaveAbilityState();
-
-    /**
-     * @brief Restores data and states of an ability when it is restored by the system. and Calling information back
-     * to Ability. This method should be implemented by a Page ability.
-     * @param instate The Want object to connect to.
-     */
-    void DispatchRestoreAbilityState(const AppExecFwk::PacMap &inState);
-
-    /**
      * @brief Page Service Ability has different AbilityTransaction
      * @param want Indicates the Want containing information about the ability.
      * @param targetState The life cycle state to switch to.
@@ -211,9 +198,7 @@ protected:
     void Stop(bool &isAsyncCallback);
     void StopCallback();
     void SetLifeCycleStateInfo(const AAFwk::LifeCycleStateInfo &info);
-    bool CheckAndRestore();
     int32_t Share(AAFwk::WantParams &wantParam);
-    AppExecFwk::PacMap &GetRestoreData();
 
     bool isStageBasedModel_ = false;
     int32_t lifecycleState_ = AAFwk::ABILITY_STATE_INITIAL;
@@ -227,10 +212,6 @@ protected:
 private:
     void AfterFocusedCommon(bool isFocused);
     void UpdateSilentForeground(const AAFwk::LifeCycleStateInfo &targetState, sptr<AAFwk::SessionInfo> sessionInfo);
-
-    bool hasSaveData_ = false;
-    bool needSaveDate_ = false;
-    AppExecFwk::PacMap restoreData_;
 
 #ifdef SUPPORT_SCREEN
 private:

@@ -691,66 +691,6 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_New_Foreground_Background_004, TestSi
 
 /*
  * Feature: UIAbilityImpl
- * Function: DispatchRestoreAbilityState
- * SubFunction: NA
- * FunctionPoints: DispatchRestoreAbilityState
- * EnvConditions: NA
- * CaseDescription: Test the abnormal behavior of the UIAbilityImpl::DispatchRestoreAbilityState
- */
-HWTEST_F(UIAbilityImplTest, AbilityRuntime_DispatchRestoreAbilityState_001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "AbilityRuntime_DispatchRestoreAbilityState_001 start";
-    std::shared_ptr<MockUIAbilityimpl> mockUIAbilityimpl = std::make_shared<MockUIAbilityimpl>();
-    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
-    std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
-    abilityInfo->name = "uiAbility";
-    sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
-    EXPECT_NE(token, nullptr);
-    if (token != nullptr) {
-        auto record = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
-        std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
-        std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
-        std::shared_ptr<UIAbility> uiability = std::make_shared<UIAbility>();
-        mockUIAbilityimpl->Init(application, record, uiability, handler, token);
-
-        PacMap inState;
-        mockUIAbilityimpl->DispatchRestoreAbilityState(inState);
-    }
-    GTEST_LOG_(INFO) << "AbilityRuntime_DispatchRestoreAbilityState_001 end";
-}
-
-/*
- * Feature: UIAbilityImpl
- * Function: DispatchRestoreAbilityState
- * SubFunction: NA
- * FunctionPoints: DispatchRestoreAbilityState
- * EnvConditions: NA
- * CaseDescription: Test the abnormal behavior of the UIAbilityImpl::DispatchRestoreAbilityState
- */
-HWTEST_F(UIAbilityImplTest, AbilityRuntime_DispatchRestoreAbilityState_002, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "AbilityRuntime_DispatchRestoreAbilityState_002 start";
-    std::shared_ptr<MockUIAbilityimpl> mockUIAbilityimpl = std::make_shared<MockUIAbilityimpl>();
-    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
-    std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
-    abilityInfo->name = "uiAbility";
-    sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
-    EXPECT_NE(token, nullptr);
-    if (token != nullptr) {
-        auto record = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
-        std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
-        std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
-        std::shared_ptr<UIAbility> uiability = nullptr;
-        mockUIAbilityimpl->Init(application, record, uiability, handler, token);
-
-        PacMap inState;
-        mockUIAbilityimpl->DispatchRestoreAbilityState(inState);
-    }
-    GTEST_LOG_(INFO) << "AbilityRuntime_DispatchRestoreAbilityState_002 end";
-}
-
-/*
- * Feature: UIAbilityImpl
  * Function: SendResult
  * SubFunction: NA
  * FunctionPoints: SendResult
@@ -823,42 +763,6 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_NewWant_001, TestSize.Level1)
         }
     }
     GTEST_LOG_(INFO) << "AbilityRuntime_NewWant_001 end";
-}
-
-/*
- * Feature: UIAbilityImpl
- * Function: CheckAndRestore
- * SubFunction: NA
- * FunctionPoints: CheckAndRestore
- * EnvConditions: NA
- * CaseDescription: Test the normal behavior of the UIAbilityImpl::CheckAndRestore
- */
-HWTEST_F(UIAbilityImplTest, AbilityRuntime_CheckAndRestore_001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "AbilityRuntime_CheckAndRestore_001 start";
-    std::shared_ptr<MockUIAbilityimpl> mockUIAbilityimpl = std::make_shared<MockUIAbilityimpl>();
-    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
-    std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
-    abilityInfo->name = "uiAbility";
-    sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
-    EXPECT_NE(token, nullptr);
-    if (token != nullptr) {
-        auto record = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
-        std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
-        std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
-        std::shared_ptr<UIAbility> uiability;
-        MockUIAbility *pMocKUIAbility = new (std::nothrow) MockUIAbility();
-        EXPECT_NE(pMocKUIAbility, nullptr);
-        if (pMocKUIAbility != nullptr) {
-            uiability.reset(pMocKUIAbility);
-            mockUIAbilityimpl->Init(application, record, uiability, handler, token);
-            EXPECT_FALSE(mockUIAbilityimpl->CheckAndRestore());
-            PacMap inState;
-            mockUIAbilityimpl->DispatchRestoreAbilityState(inState);
-            EXPECT_TRUE(mockUIAbilityimpl->CheckAndRestore());
-        }
-    }
-    GTEST_LOG_(INFO) << "AbilityRuntime_CheckAndRestore_001 end";
 }
 
 /**
@@ -1277,33 +1181,6 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_StopCallback_0400, TestSize.Level1)
 }
 
 /**
- * @tc.number: AbilityRuntime_DispatchSaveAbilityState_0100
- * @tc.name: DispatchSaveAbilityState
- * @tc.desc: uiability is nullptr, Verify DispatchSaveAbilityState failed.
- */
-HWTEST_F(UIAbilityImplTest, AbilityRuntime_DispatchSaveAbilityState_0100, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "AbilityRuntime_DispatchSaveAbilityState_0100 start";
-    EXPECT_NE(abilityImpl_, nullptr);
-    abilityImpl_->DispatchSaveAbilityState();
-    GTEST_LOG_(INFO) << "AbilityRuntime_DispatchSaveAbilityState_0100 end";
-}
-
-/**
- * @tc.number: AbilityRuntime_DispatchRestoreAbilityState_0100
- * @tc.name: DispatchRestoreAbilityState
- * @tc.desc: uiability is nullptr, Verify DispatchRestoreAbilityState failed.
- */
-HWTEST_F(UIAbilityImplTest, AbilityRuntime_DispatchRestoreAbilityState_0100, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "AbilityRuntime_DispatchRestoreAbilityState_0100 start";
-    EXPECT_NE(abilityImpl_, nullptr);
-    PacMap inState;
-    abilityImpl_->DispatchRestoreAbilityState(inState);
-    GTEST_LOG_(INFO) << "AbilityRuntime_DispatchRestoreAbilityState_0100 end";
-}
-
-/**
  * @tc.number: AbilityRuntime_HandleAbilityTransaction_0100
  * @tc.name: HandleAbilityTransaction
  * @tc.desc: Verify HandleAbilityTransaction succeeded.
@@ -1400,53 +1277,6 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_SetLifeCycleStateInfo_0200, TestSize.
     info.isNewWant = true;
     abilityImpl_->SetLifeCycleStateInfo(info);
     GTEST_LOG_(INFO) << "AbilityRuntime_SetLifeCycleStateInfo_0200 end";
-}
-
-/**
- * @tc.number: AbilityRuntime_CheckAndRestore_0100
- * @tc.name: CheckAndRestore
- * @tc.desc: hasSaveData_ is false, Verify CheckAndRestore failed.
- */
-HWTEST_F(UIAbilityImplTest, AbilityRuntime_CheckAndRestore_0100, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "AbilityRuntime_CheckAndRestore_0100 start";
-    abilityImpl_->hasSaveData_ = false;
-    auto result = abilityImpl_->CheckAndRestore();
-    EXPECT_FALSE(result);
-    GTEST_LOG_(INFO) << "AbilityRuntime_CheckAndRestore_0100 end";
-}
-
-/**
- * @tc.number: AbilityRuntime_CheckAndRestore_0200
- * @tc.name: CheckAndRestore
- * @tc.desc: uiability is nullptr, Verify CheckAndRestore failed.
- */
-HWTEST_F(UIAbilityImplTest, AbilityRuntime_CheckAndRestore_0200, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "AbilityRuntime_CheckAndRestore_0200 start";
-    abilityImpl_->hasSaveData_ = true;
-    abilityImpl_->ability_ = nullptr;
-    auto result = abilityImpl_->CheckAndRestore();
-    EXPECT_FALSE(result);
-    GTEST_LOG_(INFO) << "AbilityRuntime_CheckAndRestore_0200 end";
-}
-
-/**
- * @tc.number: AbilityRuntime_GetRestoreData_0100
- * @tc.name: GetRestoreData
- * @tc.desc: Verify GetRestoreData succeeded.
- */
-HWTEST_F(UIAbilityImplTest, AbilityRuntime_GetRestoreData_0100, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "AbilityRuntime_GetRestoreData_0100 start";
-    PacMap pacMap;
-    std::string key = "key";
-    pacMap.PutIntValue(key, 1);
-    abilityImpl_->restoreData_ = pacMap;
-    auto result = abilityImpl_->GetRestoreData();
-    auto value = result.GetIntValue(key, 0);
-    EXPECT_EQ(value, 1);
-    GTEST_LOG_(INFO) << "AbilityRuntime_GetRestoreData_0100 end";
 }
 
 /**

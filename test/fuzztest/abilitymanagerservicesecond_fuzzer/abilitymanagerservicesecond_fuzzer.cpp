@@ -128,8 +128,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     abilityms->DumpMissionInner(stringParam, info);
     abilityms->DumpStateInner(stringParam, info);
     abilityms->DumpSysState(stringParam, info, boolParam, boolParam, intParam);
-    PacMap saveData;
-    abilityms->AbilityTransitionDone(token, intParam, saveData);
+    abilityms->AbilityTransitionDone(token, intParam);
     sptr<IRemoteObject> remoteObject = GetFuzzAbilityToken();
     abilityms->ScheduleConnectAbilityDone(token, remoteObject);
     abilityms->ScheduleDisconnectAbilityDone(token);

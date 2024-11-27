@@ -147,19 +147,6 @@ int32_t UIAbilityImpl::Share(AAFwk::WantParams &wantParam)
     return ability_->OnShare(wantParam);
 }
 
-void UIAbilityImpl::DispatchSaveAbilityState()
-{
-    TAG_LOGD(AAFwkTag::UIABILITY, "called");
-    needSaveDate_ = true;
-}
-
-void UIAbilityImpl::DispatchRestoreAbilityState(const AppExecFwk::PacMap &inState)
-{
-    TAG_LOGD(AAFwkTag::UIABILITY, "called");
-    hasSaveData_ = true;
-    restoreData_ = inState;
-}
-
 void UIAbilityImpl::HandleAbilityTransaction(
     const AAFwk::Want &want, const AAFwk::LifeCycleStateInfo &targetState, sptr<AAFwk::SessionInfo> sessionInfo)
 {
@@ -175,14 +162,12 @@ void UIAbilityImpl::HandleAbilityTransaction(
     if ((lifecycleState_ == targetState.state) && !targetState.isNewWant) {
         if (ability_ != nullptr && targetState.state == AAFwk::ABILITY_STATE_FOREGROUND_NEW) {
             ability_->RequestFocus(want);
-            AAFwk::AbilityManagerClient::GetInstance()->AbilityTransitionDone(
-                token_, targetState.state, GetRestoreData());
+            AAFwk::AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_, targetState.state);
         }
         if (ability_ != nullptr && targetState.state == AAFwk::ABILITY_STATE_BACKGROUND_NEW) {
             TAG_LOGW(AAFwkTag::UIABILITY, "OnBackground is called when current state is already background");
             Background();
-            AAFwk::AbilityManagerClient::GetInstance()->AbilityTransitionDone(
-                token_, targetState.state, GetRestoreData());
+            AAFwk::AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_, targetState.state);
         }
         TAG_LOGE(AAFwkTag::UIABILITY, "Org lifeCycleState equals to dst lifeCycleState");
         return;
@@ -194,7 +179,6 @@ void UIAbilityImpl::HandleAbilityTransaction(
         if (lifecycleState_ == AAFwk::ABILITY_STATE_INITIAL) {
             ability_->SetStartAbilitySetting(targetState.setting);
             Start(want, sessionInfo);
-            CheckAndRestore();
         }
     }
 
@@ -222,7 +206,7 @@ void UIAbilityImpl::AbilityTransactionCallback(const AAFwk::AbilityLifeCycleStat
         std::string entry = "AbilityManagerClient::AbilityTransitionDone";
         FreezeUtil::GetInstance().AddLifecycleEvent(token_, entry);
     }
-    auto ret = AAFwk::AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_, state, GetRestoreData());
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_, state);
     if (ret == ERR_OK && state == AAFwk::ABILITY_STATE_FOREGROUND_NEW) {
         FreezeUtil::GetInstance().DeleteLifecycleEvent(token_);
         FreezeUtil::GetInstance().DeleteAppLifecycleEvent(0);
@@ -283,28 +267,6 @@ void UIAbilityImpl::SetLifeCycleStateInfo(const AAFwk::LifeCycleStateInfo &info)
         return;
     }
     ability_->SetLifeCycleStateInfo(info);
-}
-
-bool UIAbilityImpl::CheckAndRestore()
-{
-    TAG_LOGD(AAFwkTag::UIABILITY, "called");
-    if (!hasSaveData_) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "hasSaveData_: false");
-        return false;
-    }
-
-    if (ability_ == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null ability_");
-        return false;
-    }
-    ability_->OnRestoreAbilityState(restoreData_);
-    TAG_LOGD(AAFwkTag::UIABILITY, "end");
-    return true;
-}
-
-AppExecFwk::PacMap &UIAbilityImpl::GetRestoreData()
-{
-    return restoreData_;
 }
 
 void UIAbilityImpl::SetCallingContext(const std::string &deviceId, const std::string &bundleName,
@@ -439,9 +401,8 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterForeground()
         entry = "AbilityManagerClient::AbilityTransitionDone";
         FreezeUtil::GetInstance().AddLifecycleEvent(token_, entry);
         owner->lifecycleState_ = AAFwk::ABILITY_STATE_BACKGROUND_NEW;
-        AppExecFwk::PacMap restoreData;
         auto ret = AAFwk::AbilityManagerClient::GetInstance()->AbilityTransitionDone(
-            token_, AAFwk::AbilityLifeCycleState::ABILITY_STATE_FOREGROUND_NEW, restoreData);
+            token_, AAFwk::AbilityLifeCycleState::ABILITY_STATE_FOREGROUND_NEW);
         if (ret == ERR_OK) {
             FreezeUtil::GetInstance().DeleteLifecycleEvent(token_);
             FreezeUtil::GetInstance().DeleteAppLifecycleEvent(0);
@@ -456,9 +417,8 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterBackground()
     std::string entry = "UIAbilityImpl::WindowLifeCycleImpl::AfterBackground";
     FreezeUtil::GetInstance().AddLifecycleEvent(token_, entry);
 
-    AppExecFwk::PacMap restoreData;
     auto ret = AAFwk::AbilityManagerClient::GetInstance()->AbilityTransitionDone(
-        token_, AAFwk::AbilityLifeCycleState::ABILITY_STATE_BACKGROUND_NEW, restoreData);
+        token_, AAFwk::AbilityLifeCycleState::ABILITY_STATE_BACKGROUND_NEW);
     if (ret == ERR_OK) {
         FreezeUtil::GetInstance().DeleteLifecycleEvent(token_);
         FreezeUtil::GetInstance().DeleteAppLifecycleEvent(0);
@@ -490,28 +450,27 @@ void UIAbilityImpl::WindowLifeCycleImpl::ForegroundFailed(int32_t type)
     TAG_LOGE(AAFwkTag::UIABILITY, "scb call, ForegroundFailed");
     std::string entry = "UIAbilityImpl::WindowLifeCycleImpl::ForegroundFailed; GoForeground failed";
     FreezeUtil::GetInstance().AppendLifecycleEvent(token_, entry);
-    AppExecFwk::PacMap restoreData;
     switch (type) {
         case static_cast<int32_t>(OHOS::Rosen::WMError::WM_ERROR_INVALID_OPERATION): {
             TAG_LOGD(AAFwkTag::UIABILITY, "window is freezed");
             AAFwk::AbilityManagerClient::GetInstance()->AbilityTransitionDone(
-                token_, AAFwk::AbilityLifeCycleState::ABILITY_STATE_WINDOW_FREEZED, restoreData);
+                token_, AAFwk::AbilityLifeCycleState::ABILITY_STATE_WINDOW_FREEZED);
             break;
         }
         case static_cast<int32_t>(OHOS::Rosen::WMError::WM_ERROR_INVALID_WINDOW_MODE_OR_SIZE): {
             TAG_LOGD(AAFwkTag::UIABILITY, "invalid stage mode");
             AAFwk::AbilityManagerClient::GetInstance()->AbilityTransitionDone(
-                token_, AAFwk::AbilityLifeCycleState::ABILITY_STATE_INVALID_WINDOW_MODE, restoreData);
+                token_, AAFwk::AbilityLifeCycleState::ABILITY_STATE_INVALID_WINDOW_MODE);
             break;
         }
         case static_cast<int32_t>(OHOS::Rosen::WMError::WM_DO_NOTHING): {
             AAFwk::AbilityManagerClient::GetInstance()->AbilityTransitionDone(
-                token_, AAFwk::AbilityLifeCycleState::ABILITY_STATE_DO_NOTHING, restoreData);
+                token_, AAFwk::AbilityLifeCycleState::ABILITY_STATE_DO_NOTHING);
             break;
         }
         default: {
             AAFwk::AbilityManagerClient::GetInstance()->AbilityTransitionDone(
-                token_, AAFwk::AbilityLifeCycleState::ABILITY_STATE_FOREGROUND_FAILED, restoreData);
+                token_, AAFwk::AbilityLifeCycleState::ABILITY_STATE_FOREGROUND_FAILED);
             break;
         }
     }
@@ -544,9 +503,8 @@ void UIAbilityImpl::WindowLifeCycleImpl::BackgroundFailed(int32_t type)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
     if (type == static_cast<int32_t>(OHOS::Rosen::WMError::WM_DO_NOTHING)) {
-        AppExecFwk::PacMap restoreData;
         AAFwk::AbilityManagerClient::GetInstance()->AbilityTransitionDone(
-            token_, AAFwk::AbilityLifeCycleState::ABILITY_STATE_BACKGROUND_FAILED, restoreData);
+            token_, AAFwk::AbilityLifeCycleState::ABILITY_STATE_BACKGROUND_FAILED);
     }
 }
 

@@ -91,11 +91,11 @@ ErrCode AbilityManagerClient::AttachAbilityThread(
     return abms->AttachAbilityThread(scheduler, token);
 }
 
-ErrCode AbilityManagerClient::AbilityTransitionDone(sptr<IRemoteObject> token, int state, const PacMap &saveData)
+ErrCode AbilityManagerClient::AbilityTransitionDone(sptr<IRemoteObject> token, int state)
 {
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    return abms->AbilityTransitionDone(token, state, saveData);
+    return abms->AbilityTransitionDone(token, state);
 }
 
 ErrCode AbilityManagerClient::AbilityWindowConfigTransitionDone(

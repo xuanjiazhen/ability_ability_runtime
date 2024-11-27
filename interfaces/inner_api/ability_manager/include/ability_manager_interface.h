@@ -700,7 +700,7 @@ public:
      * @param state,.the state of ability life cycle.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int AbilityTransitionDone(const sptr<IRemoteObject> &token, int state, const PacMap &saveData) = 0;
+    virtual int AbilityTransitionDone(const sptr<IRemoteObject> &token, int state) = 0;
 
     /**
      * AbilityWindowConfigTransitionDone, ability call this interface after life cycle was changed.

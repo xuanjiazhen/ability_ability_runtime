@@ -1281,11 +1281,6 @@ void AbilityRecord::BackgroundAbility(const Closure &task)
         TAG_LOGI(AAFwkTag::ABILITYMGR, "debug mode, no need to handle");
     }
 
-    if (!IsTerminating() || IsRestarting()) {
-        // schedule save ability state before moving to background.
-        SaveAbilityState();
-    }
-
     // schedule background after updating AbilityState and sending timeout message to avoid ability async callback
     // earlier than above actions.
 #ifdef SUPPORT_SCREEN
@@ -1772,32 +1767,10 @@ void AbilityRecord::CommandAbilityWindow(const sptr<SessionInfo> &sessionInfo, W
     lifecycleDeal_->CommandAbilityWindow(GetWant(), sessionInfo, winCmd);
 }
 
-void AbilityRecord::SaveAbilityState()
-{
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
-    CHECK_POINTER(lifecycleDeal_);
-    lifecycleDeal_->SaveAbilityState();
-}
-
-void AbilityRecord::SaveAbilityState(const PacMap &inState)
-{
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
-    stateDatas_ = inState;
-}
-
 void AbilityRecord::SaveAbilityWindowConfig(const WindowConfig &windowConfig)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
     windowConfig_ = windowConfig;
-}
-
-void AbilityRecord::RestoreAbilityState()
-{
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
-    CHECK_POINTER(lifecycleDeal_);
-    lifecycleDeal_->RestoreAbilityState(stateDatas_);
-    stateDatas_.Clear();
-    isRestarting_ = false;
 }
 
 int AbilityRecord::GetRequestCode() const

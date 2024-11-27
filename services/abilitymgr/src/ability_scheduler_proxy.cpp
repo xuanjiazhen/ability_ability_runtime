@@ -244,38 +244,6 @@ void AbilitySchedulerProxy::ScheduleCommandAbilityWindow(const Want &want, const
     }
 }
 
-void AbilitySchedulerProxy::ScheduleSaveAbilityState()
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option(MessageOption::TF_ASYNC);
-    if (!WriteInterfaceToken(data)) {
-        return;
-    }
-    int32_t err = SendTransactCmd(IAbilityScheduler::SCHEDULE_SAVE_ABILITY_STATE, data, reply, option);
-    if (err != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "fail, err: %{public}d", err);
-    }
-}
-
-void AbilitySchedulerProxy::ScheduleRestoreAbilityState(const PacMap &inState)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option(MessageOption::TF_ASYNC);
-    if (!WriteInterfaceToken(data)) {
-        return;
-    }
-    if (!data.WriteParcelable(&inState)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "writeParcelable err");
-        return;
-    }
-    int32_t err = SendTransactCmd(IAbilityScheduler::SCHEDULE_RESTORE_ABILITY_STATE, data, reply, option);
-    if (err != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "fail, err: %{public}d", err);
-    }
-}
-
 /**
  * @brief Obtains the MIME types of files supported.
  *

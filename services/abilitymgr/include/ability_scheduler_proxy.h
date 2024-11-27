@@ -93,16 +93,6 @@ public:
      */
     bool SchedulePrepareTerminateAbility() override;
 
-    /*
-     * ScheduleSaveAbilityState, scheduling save ability state.
-     */
-    void ScheduleSaveAbilityState() override;
-
-    /*
-     * ScheduleRestoreAbilityState, scheduling restore ability state.
-     */
-    void ScheduleRestoreAbilityState(const PacMap &inState) override;
-
     /**
      * @brief Obtains the MIME types of files supported.
      *
