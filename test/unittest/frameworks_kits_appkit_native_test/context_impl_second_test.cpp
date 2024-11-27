@@ -147,6 +147,16 @@ HWTEST_F(ContextImplSecondTest, AppExecFwk_AppContext_CreateHspResourceManager_0
         EXPECT_EQ(resConfig2.GetMnc(), 22);
         EXPECT_EQ(resConfig2.GetThemeId(), 33);
     }
+
+    std::shared_ptr<AbilityRuntime::ContextImpl> context2 = std::make_shared<AbilityRuntime::ContextImpl>();
+    applicationInfo->bundleName = "test_bundleName";
+    context2->SetApplicationInfo(applicationInfo);
+    context2->InitHapModuleInfo(hapModuleInfo);
+    applicationContext->AttachContextImpl(context2);
+
+    std::shared_ptr<Global::Resource::ResourceManager> resourceManager3 = nullptr;
+    auto ret = contextImpl_->CreateHspModuleResourceManager(applicationContext, resourceManager3);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
 }  // namespace AppExecFwk
 }
