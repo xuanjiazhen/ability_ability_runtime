@@ -240,8 +240,8 @@ public:
     virtual int32_t CreateSystemHspModuleResourceManager(const std::string &bundleName,
         const std::string &moduleName, std::shared_ptr<Global::Resource::ResourceManager> &resourceManager) = 0;
         
-    virtual int32_t CreateHspModuleResourceManager(const std::shared_ptr<Context> inputContext,
-         std::shared_ptr<Global::Resource::ResourceManager> &resourceManager)
+    virtual int32_t CreateHspModuleResourceManager(const std::string &bundleName,
+        const std::string &moduleName, std::shared_ptr<Global::Resource::ResourceManager> &resourceManager)
     {
         return ERR_INVALID_VALUE;
     }
