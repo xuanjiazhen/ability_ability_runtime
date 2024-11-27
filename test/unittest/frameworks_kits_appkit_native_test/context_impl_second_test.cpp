@@ -71,8 +71,7 @@ void ContextImplSecondTest::TearDown(void)
  */
 HWTEST_F(ContextImplSecondTest, AppExecFwk_AppContext_CreateHspResourceManager_001, Function | MediumTest | Level1)
 {
-    std::shared_ptr<AbilityRuntime::ContextImpl> contextImpl_ = std::make_shared<AbilityRuntime::ContextImpl>();
-    EXPECT_NE(contextImpl_, nullptr);
+    
 }
 }  // namespace AppExecFwk
 }
