@@ -73,8 +73,7 @@ void ContextImplSecondTest::TearDown(void)
  */
 HWTEST_F(ContextImplSecondTest, AppExecFwk_AppContext_CreateHspResourceManager_001, Function | MediumTest | Level1)
 {
-    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetBundleName_001 start";
-    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetBundleName_001 end";
+    
 }
 }  // namespace AppExecFwk
 }
