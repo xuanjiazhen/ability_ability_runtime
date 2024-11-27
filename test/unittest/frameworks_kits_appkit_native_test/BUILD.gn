@@ -985,6 +985,9 @@ group("unittest") {
     ":overlay_event_subscriber_test",
   ]
 
-  deps += [ "ability_delegator:unittest" ]
+  deps += [
+    "ability_delegator:unittest",
+    "context_impl_second_test:unittest",
+  ]
 }
 ###############################################################################
