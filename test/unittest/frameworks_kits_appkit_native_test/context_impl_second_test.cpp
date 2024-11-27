@@ -28,6 +28,8 @@
 #include "context.h"
 #include "hap_module_info.h"
 #include "iremote_object.h"
+#include "mock_ability_token.h"
+#include "mock_bundle_manager.h"
 #include "system_ability_definition.h"
 #include "sys_mgr_client.h"
 #include "res_config_impl.h"
@@ -40,10 +42,11 @@ using namespace OHOS::AppExecFwk;
 
 class ContextImplSecondTest : public testing::Test {
 public:
-    ContextImplSecondTest()
+    ContextImplSecondTest() : contextImpl_(nullptr)
     {}
     ~ContextImplSecondTest()
     {}
+    std::shared_ptr<AbilityRuntime::ContextImpl> contextImpl_ = nullptr;
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
     void SetUp();
@@ -57,7 +60,15 @@ void ContextImplSecondTest::TearDownTestCase(void)
 {}
 
 void ContextImplSecondTest::SetUp(void)
-{}
+{
+    contextImpl_ = std::make_shared<AbilityRuntime::ContextImpl>();
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    EXPECT_NE(config, nullptr);
+    contextImpl_->SetConfiguration(config);
+    sptr<IRemoteObject> bundleObject = new (std::nothrow) BundleMgrService();
+    DelayedSingleton<SysMrgClient>::GetInstance()->RegisterSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID,
+        bundleObject);
+}
 
 void ContextImplSecondTest::TearDown(void)
 {}
@@ -71,7 +82,10 @@ void ContextImplSecondTest::TearDown(void)
  */
 HWTEST_F(ContextImplSecondTest, AppExecFwk_AppContext_CreateHspResourceManager_001, Function | MediumTest | Level1)
 {
-    
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetBundleName_001 start";
+    std::string bundleName = contextImpl_->GetBundleName();
+    EXPECT_STREQ(bundleName.c_str(), "");
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetBundleName_001 end";
 }
 }  // namespace AppExecFwk
 }
