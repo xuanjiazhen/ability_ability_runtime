@@ -1495,22 +1495,15 @@ bool CheckContext(const std::shared_ptr<Context> inputContext, std::string &bund
     return true;
 }
 
-int32_t ContextImpl::CreateHspModuleResourceManager(const std::shared_ptr<Context> inputContext,
-    std::shared_ptr<Global::Resource::ResourceManager> &resourceManager)
+int32_t ContextImpl::CreateHspModuleResourceManager(const std::string &bundleName,
+    const std::string &moduleName, std::shared_ptr<Global::Resource::ResourceManager> &resourceManager)
 {
-    std::string bundleName;
-    std::string moduleName;
-    if (!CheckContext(inputContext, bundleName, moduleName)) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Context is error");
-        return ERR_INVALID_VALUE;
-    }
-
     if (bundleName.empty() || moduleName.empty()) {
         TAG_LOGE(AAFwkTag::APPKIT, "bundleName is %{public}s, moduleName is %{public}s",
             bundleName.c_str(), moduleName.c_str());
         return ERR_INVALID_VALUE;
     }
-
+    
     int errCode = GetBundleManager();
     if (errCode != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "The bundleMgr_ is nullptr");
@@ -1531,8 +1524,9 @@ int32_t ContextImpl::CreateHspModuleResourceManager(const std::shared_ptr<Contex
         resourceManager = InitOthersResourceManagerInner(bundleInfo, selfBundleName == bundleName, moduleName);
         if (resourceManager == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "InitOthersResourceManagerInner create resourceManager failed");
+            return ERR_INVALID_VALUE;
         }
-        return ERR_INVALID_VALUE;
+        return ERR_OK;
     }
 
     resourceManager = InitResourceManagerInner(bundleInfo, selfBundleName == bundleName, moduleName);
@@ -1541,7 +1535,7 @@ int32_t ContextImpl::CreateHspModuleResourceManager(const std::shared_ptr<Contex
         return ERR_INVALID_VALUE;
     }
 
-    UpdateResConfig(inputContext->GetResourceManager(), resourceManager);
+    UpdateResConfig(GetResourceManager(), resourceManager);
     return ERR_OK;
 }
 }  // namespace AbilityRuntime
