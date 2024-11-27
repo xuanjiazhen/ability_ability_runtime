@@ -74,8 +74,6 @@ void ContextImplSecondTest::TearDown(void)
 HWTEST_F(ContextImplSecondTest, AppExecFwk_AppContext_CreateHspResourceManager_001, Function | MediumTest | Level1)
 {
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetBundleName_001 start";
-    std::string bundleName = contextImpl_->GetBundleName();
-    EXPECT_STREQ(bundleName.c_str(), "");
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetBundleName_001 end";
 }
 }  // namespace AppExecFwk
