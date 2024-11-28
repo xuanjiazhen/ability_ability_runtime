@@ -71,6 +71,8 @@ void ContextImplSecondTest::TearDown(void)
  */
 HWTEST_F(ContextImplSecondTest, AppExecFwk_AppContext_CreateHspResourceManager_001, Function | MediumTest | Level1)
 {
+    GTEST_LOG_(INFO) << "AppExecFwk_AppContext_CreateHspResourceManager_001 start";
+
     std::shared_ptr<AbilityRuntime::ContextImpl> contextImpl_ = std::make_shared<AbilityRuntime::ContextImpl>();
     auto config = std::make_shared<AppExecFwk::Configuration>();
     contextImpl_->SetConfiguration(config);
@@ -97,15 +99,15 @@ HWTEST_F(ContextImplSecondTest, AppExecFwk_AppContext_CreateHspResourceManager_0
         resourceManager->UpdateResConfig(resConfig);
     }
 
+    Global::Resource::ResConfigImpl resConfig2;
     std::shared_ptr<Global::Resource::ResourceManager> resourceManager2 = nullptr;
     contextImpl_->CreateHspModuleResourceManager("com.example.myapplication", "com.test.moduleName", resourceManager2);
     if (resourceManager2 != nullptr) {
-        Global::Resource::ResConfigImpl resConfig2;
         resourceManager2->GetResConfig(resConfig2);
-        EXPECT_EQ(resConfig2.GetMcc(), 11);
-        EXPECT_EQ(resConfig2.GetMnc(), 22);
-        EXPECT_EQ(resConfig2.GetThemeId(), 33);
     }
+    EXPECT_EQ(resConfig2.GetMcc(), 11);
+    EXPECT_EQ(resConfig2.GetMnc(), 22);
+    EXPECT_EQ(resConfig2.GetThemeId(), 33);
 
     std::shared_ptr<Global::Resource::ResourceManager> resourceManager3 = nullptr;
     auto ret = contextImpl_->CreateHspModuleResourceManager("com.example.myapplication", "", resourceManager3);
@@ -117,6 +119,8 @@ HWTEST_F(ContextImplSecondTest, AppExecFwk_AppContext_CreateHspResourceManager_0
     ret = contextImpl_->CreateHspModuleResourceManager("
         com.test.myapplication", "com.test.moduleName", resourceManager2);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_AppContext_CreateHspResourceManager_001 end";
 }
 }  // namespace AppExecFwk
 }
