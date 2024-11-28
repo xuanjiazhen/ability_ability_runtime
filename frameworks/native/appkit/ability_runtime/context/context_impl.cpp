@@ -1475,26 +1475,6 @@ void ContextImpl::PrintTokenInfo() const
     }
 }
 
-bool CheckContext(const std::shared_ptr<Context> inputContext, std::string &bundleName, std::string &moduleName)
-{
-    if (inputContext == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Context is error");
-        return false;
-    }
-
-    if (inputContext->GetHapModuleInfo() == nullptr) {
-        std::shared_ptr<Global::Resource::ResourceManager> resourceManager = nullptr;
-        resourceManager = inputContext->GetResourceManager();
-        if (resourceManager != nullptr) {
-            moduleName = resourceManager->bundleInfo.second;
-        }
-    } else {
-        moduleName = inputContext->GetHapModuleInfo()->moduleName;
-    }
-    bundleName = inputContext->GetBundleName();
-    return true;
-}
-
 int32_t ContextImpl::CreateHspModuleResourceManager(const std::string &bundleName,
     const std::string &moduleName, std::shared_ptr<Global::Resource::ResourceManager> &resourceManager)
 {
