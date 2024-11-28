@@ -101,6 +101,7 @@ void AbilityBundleEventCallback::HandleUpdatedModuleInfo(const std::string &bund
         }
         sharedThis->abilityEventHelper_.HandleModuleInfoUpdated(bundleName, uid);
     };
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for handle module info updated");
     taskHandler_->SubmitTask(task);
 }
 
@@ -121,6 +122,7 @@ void AbilityBundleEventCallback::HandleAppUpgradeCompleted(int32_t uid)
         }
         abilityMgr->AppUpgradeCompleted(uid);
     };
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for app upgrade completed");
     taskHandler_->SubmitTask(task);
 }
 
@@ -134,6 +136,7 @@ void AbilityBundleEventCallback::HandleRestartResidentProcessDependedOnWeb()
         }
         abilityMgr->HandleRestartResidentProcessDependedOnWeb();
     };
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for handle restart resident process depended on web");
     taskHandler_->SubmitTask(task);
 }
 } // namespace AAFwk

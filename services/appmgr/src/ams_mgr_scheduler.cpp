@@ -106,6 +106,7 @@ void AmsMgrScheduler::LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInf
                 inner->SetSceneBoardAttachFlag(true);
             }
         };
+        TAG_LOGI(AAFwkTag::APPMGR, "submit task for set scene board attach flag");
         amsHandler_->SubmitTask(timeoutTask, TASK_SCENE_BOARD_ATTACH_TIMEOUT, SCENE_BOARD_ATTACH_TIMEOUT_TASK_TIME);
     }
 
@@ -122,6 +123,7 @@ void AmsMgrScheduler::LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInf
         taskAttr.insertHead_ = true;
     }
 
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for load ability");
     amsHandler_->SubmitTask(loadAbilityFunc, taskAttr);
 }
 
@@ -138,6 +140,7 @@ void AmsMgrScheduler::UpdateAbilityState(const sptr<IRemoteObject> &token, const
     std::function<void()> updateAbilityStateFunc = [amsMgrServiceInner = amsMgrServiceInner_, token, state] () {
         amsMgrServiceInner->UpdateAbilityState(token, state);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for update ability state");
     amsHandler_->SubmitTask(updateAbilityStateFunc, AAFwk::TaskAttribute{
         .taskName_ = TASK_UPDATE_ABILITY_STATE,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
@@ -157,6 +160,7 @@ void AmsMgrScheduler::UpdateExtensionState(const sptr<IRemoteObject> &token, con
     std::function<void()> updateExtensionStateFunc = [amsMgrServiceInner = amsMgrServiceInner_, token, state]() {
         amsMgrServiceInner->UpdateExtensionState(token, state);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for update extension state");
     amsHandler_->SubmitTask(updateExtensionStateFunc, AAFwk::TaskAttribute{
         .taskName_ = TASK_UPDATE_EXTENSION_STATE,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
@@ -176,6 +180,7 @@ void AmsMgrScheduler::TerminateAbility(const sptr<IRemoteObject> &token, bool cl
     std::function<void()> terminateAbilityFunc = [amsMgrServiceInner = amsMgrServiceInner_, token, clearMissionFlag]() {
         amsMgrServiceInner->TerminateAbility(token, clearMissionFlag);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for terminate ability");
     amsHandler_->SubmitTask(terminateAbilityFunc, AAFwk::TaskAttribute{
         .taskName_ = TASK_TERMINATE_ABILITY,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
@@ -194,6 +199,7 @@ void AmsMgrScheduler::RegisterAppStateCallback(const sptr<IAppStateCallback> &ca
     std::function<void()> registerAppStateCallbackFunc = [amsMgrServiceInner = amsMgrServiceInner_, callback]() {
         amsMgrServiceInner->RegisterAppStateCallback(callback);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for register app state callback");
     amsHandler_->SubmitTask(registerAppStateCallbackFunc, TASK_REGISTER_APP_STATE_CALLBACK);
 }
 
@@ -211,6 +217,7 @@ void AmsMgrScheduler::KillProcessByAbilityToken(const sptr<IRemoteObject> &token
     std::function<void()> killProcessByAbilityTokenFunc = [amsMgrServiceInner = amsMgrServiceInner_, token]() {
         amsMgrServiceInner->KillProcessByAbilityToken(token);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for kill process by ability token");
     amsHandler_->SubmitTask(killProcessByAbilityTokenFunc, TASK_KILL_PROCESS_BY_ABILITY_TOKEN);
 }
 
@@ -237,6 +244,7 @@ void AmsMgrScheduler::KillProcessesByUserId(int32_t userId)
     std::function<void()> killProcessesByUserIdFunc = [amsMgrServiceInner = amsMgrServiceInner_, userId]() {
         amsMgrServiceInner->KillProcessesByUserId(userId);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for kill process by user id");
     amsHandler_->SubmitTask(killProcessesByUserIdFunc, TASK_KILL_PROCESSES_BY_USERID);
 }
 
@@ -256,6 +264,7 @@ void AmsMgrScheduler::KillProcessesByPids(std::vector<int32_t> &pids)
     std::function<void()> killProcessesByPidsFunc = [amsMgrServiceInner = amsMgrServiceInner_, pids]() mutable {
         amsMgrServiceInner->KillProcessesByPids(pids);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for kill process by ability pids");
     amsHandler_->SubmitTask(killProcessesByPidsFunc, TASK_KILL_PROCESSES_BY_PIDS);
 }
 
@@ -275,6 +284,7 @@ void AmsMgrScheduler::AttachPidToParent(const sptr<IRemoteObject> &token, const 
     std::function<void()> attachPidToParentFunc = [amsMgrServiceInner = amsMgrServiceInner_, token, callerToken]() {
         amsMgrServiceInner->AttachPidToParent(token, callerToken);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for attach pid to parent");
     amsHandler_->SubmitTask(attachPidToParentFunc, TASK_ATTACH_PID_TO_PARENT);
 }
 
@@ -313,6 +323,7 @@ void AmsMgrScheduler::AbilityAttachTimeOut(const sptr<IRemoteObject> &token)
     auto task = [amsMgrServiceInner = amsMgrServiceInner_, token]() {
         amsMgrServiceInner->HandleAbilityAttachTimeOut(token);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for handle ability attach timeout");
     amsHandler_->SubmitTask(task, "AbilityAttachTimeOut");
 }
 
@@ -328,6 +339,7 @@ void AmsMgrScheduler::PrepareTerminate(const sptr<IRemoteObject> &token, bool cl
         return;
     }
     auto task = [=]() { amsMgrServiceInner_->PrepareTerminate(token, clearMissionFlag); };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for prepare terminate");
     amsHandler_->SubmitTask(task, {
         .taskName_ = "PrepareTerminate",
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
@@ -437,6 +449,7 @@ void AmsMgrScheduler::StartSpecifiedAbility(const AAFwk::Want &want, const AppEx
         return;
     }
     auto task = [=]() { amsMgrServiceInner_->StartSpecifiedAbility(want, abilityInfo, requestId); };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for start specified ability");
     amsHandler_->SubmitTask(task, {
         .taskName_ = "StartSpecifiedAbility",
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
@@ -456,6 +469,7 @@ void AmsMgrScheduler::StartSpecifiedProcess(const AAFwk::Want &want, const AppEx
         return;
     }
     auto task = [=]() { amsMgrServiceInner_->StartSpecifiedProcess(want, abilityInfo, requestId); };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for start specified process");
     amsHandler_->SubmitTask(task, {
         .taskName_ = "StartSpecifiedProcess",
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
@@ -472,6 +486,7 @@ void AmsMgrScheduler::RegisterStartSpecifiedAbilityResponse(const sptr<IStartSpe
         return;
     }
     auto task = [=]() { amsMgrServiceInner_->RegisterStartSpecifiedAbilityResponse(response); };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for register specified ability response");
     amsHandler_->SubmitTask(task, "RegisterStartSpecifiedAbilityResponse");
 }
 
@@ -661,6 +676,7 @@ void AmsMgrScheduler::ClearProcessByToken(sptr<IRemoteObject> token)
     std::function<void()> clearProcessByTokenFunc = [amsMgrServiceInner = amsMgrServiceInner_, token]() {
         amsMgrServiceInner->ClearProcessByToken(token);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for clear process by token");
     amsHandler_->SubmitTask(clearProcessByTokenFunc, TASK_CLEAR_PROCESS_BY_ABILITY_TOKEN);
 }
 
@@ -692,6 +708,7 @@ void AmsMgrScheduler::AttachedToStatusBar(const sptr<IRemoteObject> &token)
     }
     std::function<void()> attachedToStatusBarFunc =
         std::bind(&AppMgrServiceInner::AttachedToStatusBar, amsMgrServiceInner_, token);
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for attached To status bar");
     amsHandler_->SubmitTask(attachedToStatusBarFunc, TASK_ATTACHED_TO_STATUS_BAR);
 }
 
@@ -711,6 +728,7 @@ void AmsMgrScheduler::BlockProcessCacheByPids(const std::vector<int32_t> &pids)
     std::function<void()> blockProcCacheFunc = [amsMgrServiceInner = amsMgrServiceInner_, pids]() mutable {
         amsMgrServiceInner->BlockProcessCacheByPids(pids);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for block process cache by pids");
     amsHandler_->SubmitTask(blockProcCacheFunc, TASK_BLOCK_PROCESS_CACHE_BY_PIDS);
 }
 

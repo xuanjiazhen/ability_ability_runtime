@@ -287,6 +287,7 @@ void AutoFillManager::SetTimeOutEvent(uint32_t eventId)
     };
     ffrt::task_attr ffrtTaskAttr;
     ffrtTaskAttr.delay(AUTO_FILL_REQUEST_TIME_OUT_VALUE * MILL_TO_MICRO);
+    TAG_LOGI(AAFwkTag::AUTOFILLMGR, "submit task for execute handle timeout");
     auto ffrtTaskHandle = ffrt::submit_h(std::move(taskWrap), {}, {}, ffrtTaskAttr);
     if (ffrtTaskHandle == nullptr) {
         TAG_LOGE(AAFwkTag::AUTOFILLMGR, "null ffrtTaskHandle");

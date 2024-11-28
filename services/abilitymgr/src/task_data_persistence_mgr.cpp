@@ -78,6 +78,7 @@ bool TaskDataPersistenceMgr::SaveMissionInfo(const InnerMissionInfo &missionInfo
             missionDataStorage->SaveMissionInfo(missionInfo);
         }
     };
+    TAG_LOGI(AAFwkLogTag::ABILITYMGR, "submit task for save mission info");
     handler_->SubmitTask(SaveMissionInfoFunc, SAVE_MISSION_INFO);
     return true;
 }
@@ -97,6 +98,7 @@ bool TaskDataPersistenceMgr::DeleteMissionInfo(int missionId)
             missionDataStorage->DeleteMissionInfo(missionId);
         }
     };
+    TAG_LOGI(AAFwkLogTag::ABILITYMGR, "submit task for delete mission info");
     handler_->SubmitTask(DeleteMissionInfoFunc, DELETE_MISSION_INFO);
     return true;
 }
@@ -132,6 +134,7 @@ bool TaskDataPersistenceMgr::SaveMissionSnapshot(int missionId, const MissionSna
             missionDataStorage->SaveMissionSnapshot(missionId, snapshot);
         }
     };
+    TAG_LOGI(AAFwkLogTag::ABILITYMGR, "submit task for save mission snapshot");
     handler_->SubmitTask(SaveMissionSnapshotFunc, SAVE_MISSION_SNAPSHOT);
     return true;
 }

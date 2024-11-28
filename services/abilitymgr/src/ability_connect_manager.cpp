@@ -297,6 +297,7 @@ void AbilityConnectManager::EnqueueStartServiceReq(const AbilityRequest &ability
 
         int connectTimeout =
             AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * CONNECT_TIMEOUT_MULTIPLE;
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for erase abilityUri");
         taskHandler_->SubmitTask(callback, std::string("start_service_timeout:") + abilityUri,
             connectTimeout);
     }
@@ -559,6 +560,7 @@ void AbilityConnectManager::ReportEventToRSS(const AppExecFwk::AbilityInfo &abil
     const int32_t callerPid = (callerAbility != nullptr) ? callerAbility->GetPid() : IPCSkeleton::GetCallingPid();
     TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}d_%{public}s_%{public}d reason=%{public}s callerPid=%{public}d", uid,
         bundleName.c_str(), pid, reason.c_str(), callerPid);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for reportEvent to RSS");
     taskHandler_->SubmitTask([uid, bundleName, reason, pid, callerPid]() {
         ResSchedUtil::GetInstance().ReportEventToRSS(uid, bundleName, reason, pid, callerPid);
     });
@@ -672,6 +674,7 @@ void AbilityConnectManager::HandleActiveAbility(std::shared_ptr<AbilityRecord> &
             }
             manager->CompleteConnectTask(connectRecord);
         };
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for complete connect");
         taskHandler_->SubmitTask(task, TaskQoS::USER_INTERACTIVE);
     } else if (targetService->GetConnectingListSize() <= 1) {
         ConnectAbility(targetService);
@@ -948,6 +951,7 @@ int AbilityConnectManager::AbilityTransitionDone(const sptr<IRemoteObject> &toke
                     acm->ProcessPreload(abilityRecord);
                 };
                 if (taskHandler_ != nullptr) {
+                    TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for process preload");
                     taskHandler_->SubmitTask(preloadTask);
                 }
             }
@@ -1479,6 +1483,7 @@ void AbilityConnectManager::PostRestartResidentTask(const AbilityRequest &abilit
         restartIntervalTime = AmsConfigurationParameter::GetInstance().GetRestartIntervalTime();
     }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "PostRestartResidentTask, time:%{public}d", restartIntervalTime);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for handle restart resident");
     taskHandler_->SubmitTask(task, taskName, restartIntervalTime);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "PostRestartResidentTask end");
 }
@@ -1554,6 +1559,7 @@ void AbilityConnectManager::PostTimeOutTask(const std::shared_ptr<AbilityRecord>
             connectManager->HandleConnectTimeoutTask(abilityRecord);
         }
     };
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for handle timeout");
     taskHandler_->SubmitTask(timeoutTask, taskName, delayTime);
 }
 
@@ -1729,6 +1735,7 @@ int AbilityConnectManager::DispatchForeground(const std::shared_ptr<AbilityRecor
     abilityRecord->RemoveForegroundTimeoutTask();
     auto self(shared_from_this());
     auto task = [self, abilityRecord]() { self->CompleteForeground(abilityRecord); };
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for complete foreground");
     taskHandler_->SubmitTask(task, TaskQoS::USER_INTERACTIVE);
 
     return ERR_OK;
@@ -1743,6 +1750,7 @@ int AbilityConnectManager::DispatchBackground(const std::shared_ptr<AbilityRecor
 
     auto self(shared_from_this());
     auto task = [self, abilityRecord]() { self->CompleteBackground(abilityRecord); };
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for complete background");
     taskHandler_->SubmitTask(task, TaskQoS::USER_INTERACTIVE);
 
     return ERR_OK;
@@ -1818,6 +1826,7 @@ void AbilityConnectManager::CommandAbility(const std::shared_ptr<AbilityRecord> 
         };
         int commandTimeout =
             AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * COMMAND_TIMEOUT_MULTIPLE;
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for handle command timeout");
         taskHandler_->SubmitTask(timeoutTask, taskName, commandTimeout);
         // scheduling command ability
         abilityRecord->CommandAbility();
@@ -1844,6 +1853,7 @@ void AbilityConnectManager::CommandAbilityWindow(const std::shared_ptr<AbilityRe
         };
         int commandWindowTimeout =
             AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * COMMAND_WINDOW_TIMEOUT_MULTIPLE;
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for handle command window timeout");
         taskHandler_->SubmitTask(timeoutTask, taskName, commandWindowTimeout);
         // scheduling command ability
         abilityRecord->CommandAbilityWindow(sessionInfo, winCmd);
@@ -2014,6 +2024,7 @@ void AbilityConnectManager::OnCallBackDied(const wptr<IRemoteObject> &remote)
     CHECK_POINTER(object);
     if (taskHandler_) {
         auto task = [object, connectManager = shared_from_this()]() { connectManager->HandleCallBackDiedTask(object); };
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for handle callback died");
         taskHandler_->SubmitTask(task, TASK_ON_CALLBACK_DIED);
     }
 }
@@ -2088,6 +2099,7 @@ void AbilityConnectManager::OnAbilityDied(const std::shared_ptr<AbilityRecord> &
         auto task = [abilityRecord, connectManager = shared_from_this(), currentUserId]() {
             connectManager->HandleAbilityDiedTask(abilityRecord, currentUserId);
         };
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for handle ability died");
         taskHandler_->SubmitTask(task, TASK_ON_ABILITY_DIED);
     }
 }
@@ -2896,6 +2908,7 @@ void AbilityConnectManager::OnUIExtWindowDied(const wptr<IRemoteObject> &remote)
         auto task = [object, connectManager = shared_from_this()]() {
             connectManager->HandleUIExtWindowDiedTask(object);
         };
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for handle UIExtWindow died");
         taskHandler_->SubmitTask(task);
     }
 }
@@ -3004,6 +3017,7 @@ void AbilityConnectManager::HandleProcessFrozen(const std::vector<int32_t> &pidL
             abilityRecord->GetAbilityInfo().bundleName != FROZEN_WHITE_DIALOG &&
             abilityRecord->IsConnectListEmpty() &&
             !abilityRecord->GetKeepAlive()) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for terminate record");
             taskHandler->SubmitTask([weakThis, record = abilityRecord]() {
                     auto connectManager = weakThis.lock();
                     if (record && connectManager) {
@@ -3044,6 +3058,7 @@ void AbilityConnectManager::PostExtensionDelayDisconnectTask(const std::shared_p
         TAG_LOGW(AAFwkTag::ABILITYMGR, "auto disconnect the Extension's connection");
         selfObj->HandleExtensionDisconnectTask(connectRecord);
     };
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for handle extension disconnect");
     taskHandler_->SubmitTask(task, taskName, delayTime);
 }
 

@@ -49,6 +49,7 @@ void WindowVisibilityChangedListener::OnWindowVisibilityChanged(
         }
         serviceInner->HandleWindowVisibilityChanged(windowVisibilityInfos);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for window visibility changed");
     taskHandler_->SubmitTask(task, "OnWindowVisibilityChanged");
 }
 #endif // SUPPORT_SCREEN

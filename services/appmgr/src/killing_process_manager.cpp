@@ -60,6 +60,7 @@ void KillingProcessManager::AddKillingCallerKey(const std::string& callerKey)
     auto task = [callerKey] () {
         KillingProcessManager::GetInstance().RemoveKillingCallerKey(callerKey);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for remove killing caller key");
     taskHandler->SubmitTaskJust(task, "clearCallerKey", CLEAR_CALLER_KEY_DELAY_TIME);
 }
 

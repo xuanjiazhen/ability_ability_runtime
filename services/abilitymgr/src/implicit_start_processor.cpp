@@ -59,6 +59,7 @@ void SendAbilityEvent(const EventName &eventName, HiSysEventType type, const Eve
         TAG_LOGI(AAFwkTag::ABILITYMGR, "task handler null.");
         return;
     }
+    TAG_LOGI(AAFwkLogTag::ABILITYMGR, "submit task for implicit start send ability event");
     taskHandler->SubmitTask([eventName, type, eventInfo]() {
         EventReport::SendAbilityEvent(eventName, type, eventInfo);
     });

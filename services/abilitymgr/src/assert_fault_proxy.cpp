@@ -177,6 +177,7 @@ void ModalSystemAssertUIExtension::TryNotifyOneWaitingThread()
         auto notifyTask = [] () {
             ModalSystemAssertUIExtension::GetInstance().TryNotifyOneWaitingThreadInner();
         };
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for try notify one waiting thread");
         handler->SubmitTask(notifyTask, "TryNotifyOneWaitingThread");
     }
 }

@@ -604,6 +604,7 @@ void PendingWantManager::ClearPendingWantRecord(const std::string &bundleName, i
     CHECK_POINTER(taskHandler_);
     TAG_LOGI(AAFwkTag::WANTAGENT, "begin");
     auto task = [bundleName, uid, self = shared_from_this()]() { self->ClearPendingWantRecordTask(bundleName, uid); };
+    TAG_LOGI(AAFwkLogTag::WANTAGENT, "submit task for clear pending want record");
     taskHandler_->SubmitTask(task);
 }
 

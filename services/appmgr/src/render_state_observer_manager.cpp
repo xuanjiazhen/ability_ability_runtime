@@ -52,6 +52,7 @@ int32_t RenderStateObserverManager::RegisterRenderStateObserver(const sptr<IRend
         }
         self->HandleRegisterRenderStateObserver(observer);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for register render state observer");
     handler_->SubmitTask(task);
     return ERR_OK;
 }
@@ -100,6 +101,7 @@ int32_t RenderStateObserverManager::UnregisterRenderStateObserver(const sptr<IRe
         }
         self->HandleUnregisterRenderStateObserver(observer);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for unregister render state observer");
     handler_->SubmitTask(task);
     return ERR_OK;
 }
@@ -133,6 +135,7 @@ int32_t RenderStateObserverManager::OnRenderStateChanged(const std::shared_ptr<R
         }
         self->HandleOnRenderStateChanged(renderRecord, state);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for render state observer");
     handler_->SubmitTask(task);
     return ERR_OK;
 }

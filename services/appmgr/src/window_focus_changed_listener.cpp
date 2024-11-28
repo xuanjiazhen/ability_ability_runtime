@@ -44,6 +44,7 @@ void WindowFocusChangedListener::OnFocused(const sptr<FocusChangeInfo> &focusCha
             }
             owner->HandleFocused(focusChangeInfo);
         };
+        TAG_LOGI(AAFwkTag::APPMGR, "submit task for window focus changed");
         taskHandler_->SubmitTask(task, "WindowFocusChangedListener::OnFocused");
     }
 }
@@ -64,6 +65,7 @@ void WindowFocusChangedListener::OnUnfocused(const sptr<FocusChangeInfo> &focusC
             }
             owner->HandleUnfocused(focusChangeInfo);
         };
+        TAG_LOGI(AAFwkTag::APPMGR, "submit task for window unfocused changed");
         taskHandler_->SubmitTask(task, "WindowFocusChangedListener::OnUnfocused");
     }
 }

@@ -1274,6 +1274,7 @@ int MissionListManager::DispatchForeground(const std::shared_ptr<AbilityRecord> 
             }
             selfObj->CompleteForegroundSuccess(abilityRecord);
         };
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for foreground successful");
         taskHandler->SubmitTask(task);
     } else {
         auto task = [self, abilityRecord, state]() {
@@ -1284,6 +1285,7 @@ int MissionListManager::DispatchForeground(const std::shared_ptr<AbilityRecord> 
             }
             selfObj->CompleteForegroundFailed(abilityRecord, state);
         };
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for foreground failed");
         taskHandler->SubmitTask(task);
     }
     return ERR_OK;

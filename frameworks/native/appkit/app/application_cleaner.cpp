@@ -99,6 +99,7 @@ void ApplicationCleaner::ClearTempData()
         }
     };
 
+    TAG_LOGI(AAFwkTag::APPKIT, "submit task for clean temp data");
     if (CheckFileSize(rootDir)) {
         ffrt::submit(cleanTemp);
     } else {

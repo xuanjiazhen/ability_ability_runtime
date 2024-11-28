@@ -209,6 +209,7 @@ void SendAbilityEvent(const EventName &eventName, HiSysEventType type, const Eve
         TAG_LOGI(AAFwkTag::ABILITYMGR, "task handler null");
         return;
     }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for send ability event");
     taskHandler->SubmitTask([eventName, type, eventInfo]() {
         EventReport::SendAbilityEvent(eventName, type, eventInfo);
         });
@@ -411,15 +412,18 @@ void AbilityManagerService::InitPushTask()
     }
 
     auto initStartupFlagTask = [aams = shared_from_this()]() { aams->InitStartupFlag(); };
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for init startup flag");
     taskHandler_->SubmitTask(initStartupFlagTask, "InitStartupFlag");
 #ifdef SUPPORT_SCREEN
     auto initPrepareTerminateConfigTask = [aams = shared_from_this()]() { aams->InitPrepareTerminateConfig(); };
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for init prepare terminate config");
     taskHandler_->SubmitTask(initPrepareTerminateConfigTask, "InitPrepareTerminateConfig");
 #endif // SUPPORT_SCREEN
 
     auto initExtensionConfigTask = []() {
         DelayedSingleton<ExtensionConfig>::GetInstance()->LoadExtensionConfiguration();
     };
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for load extension configuration");
     taskHandler_->SubmitTask(initExtensionConfigTask, "InitExtensionConfigTask");
 
     auto bootCompletedTask = [handler = taskHandler_]() {
@@ -427,6 +431,7 @@ void AbilityManagerService::InitPushTask()
             auto task = []() {
                 ApplicationUtil::AppFwkBootEventCallback(BOOTEVENT_BOOT_COMPLETED, "true", nullptr);
             };
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for boot event completion with status true");
             handler->SubmitTaskJust(task, "BootCompletedDelayTask", BOOTEVENT_COMPLETED_DELAY_TIME);
         } else {
             WatchParameter(BOOTEVENT_BOOT_COMPLETED, ApplicationUtil::AppFwkBootEventCallback, nullptr);
@@ -437,6 +442,7 @@ void AbilityManagerService::InitPushTask()
         TAG_LOGE(AAFwkTag::ABILITYMGR, "parse json fail");
     }
     isParamStartAbilityEnable_ = system::GetBoolParameter(PARAM_PREVENT_STARTABILITY, false);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for boot completed");
     taskHandler_->SubmitTask(bootCompletedTask, "BootCompletedTask");
 }
 
@@ -2697,6 +2703,7 @@ void AbilityManagerService::ReportEventToRSS(const AppExecFwk::AbilityInfo &abil
     const int32_t callerPid = (callerAbility != nullptr) ? callerAbility->GetPid() : IPCSkeleton::GetCallingPid();
     TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}d_%{public}s reason=%{public}s callerPid=%{public}d", uid,
         bundleName.c_str(), reason.c_str(), callerPid);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for report event to RSS");
     taskHandler_->SubmitTask([reason, uid, bundleName, callerPid]() {
         ResSchedUtil::GetInstance().ReportEventToRSS(uid, bundleName, reason, -1, callerPid);
     });
@@ -6706,6 +6713,7 @@ int AbilityManagerService::PreLoadAppDataAbilities(const std::string &bundleName
         return ERR_INVALID_STATE;
     }
 
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for preload app data abilities");
     taskHandler_->SubmitTask([weak = weak_from_this(), bundleName, userId]() {
         auto pthis = weak.lock();
         if (pthis == nullptr) {
@@ -7179,6 +7187,7 @@ void AbilityManagerService::StartAutoStartupApps(std::queue<AutoStartupInfo> inf
         }
         obj->StartAutoStartupApps(infoQueue);
     };
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for next start auto startup apps");
     taskHandler_->SubmitTask(nextStartAutoStartupAppsTask, "StartAutoStartupApps", START_AUTO_START_APP_DELAY_TIME);
 }
 
@@ -7212,6 +7221,7 @@ void AbilityManagerService::SubscribeScreenUnlockedEvent()
             abilityMgr->UnSubscribeScreenUnlockedEvent();
             DelayedSingleton<ResidentProcessManager>::GetInstance()->StartFailedResidentAbilities();
         };
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for start failed resident abilities");
         taskHandler->SubmitTask(screenUnlockTask, "ScreenUnlockTask");
         auto delayStartAutoStartupAppTask = [abilityManager]() {
             auto abilityMgr = abilityManager.lock();
@@ -7221,6 +7231,7 @@ void AbilityManagerService::SubscribeScreenUnlockedEvent()
             }
             abilityMgr->StartAutoStartupApps();
         };
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for delay start auto startup apps");
         taskHandler->SubmitTask(delayStartAutoStartupAppTask, "DelayStartAutoStartupApps",
             START_AUTO_START_APP_DELAY_TIME);
     };
@@ -7256,6 +7267,7 @@ void AbilityManagerService::RetrySubscribeScreenUnlockedEvent(int32_t retryCount
         }
     };
     constexpr int delaytime = 200;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for retry subscribe screen unlocked event");
     taskHandler_->SubmitTask(retrySubscribeScreenUnlockedEventTask, "RetrySubscribeScreenUnlockedEvent", delaytime);
 }
 
@@ -8239,11 +8251,13 @@ void AbilityManagerService::SwitchToUser(int32_t oldUserId, int32_t userId, sptr
     bool isBoot = oldUserId == U0_USER_ID ? true : false;
     StartHighestPriorityAbility(userId, isBoot, isAppRecovery);
      if (taskHandler_) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for start resident apps");
         taskHandler_->SubmitTask([abilityMs = shared_from_this(), userId]() {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "StartResidentApps userId:%{public}d", userId);
             abilityMs->StartResidentApps(userId);
         });
         if (system::GetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false)) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for start keep alive apps");
             taskHandler_->SubmitTask([abilityMs = shared_from_this(), userId]() {
                 TAG_LOGI(AAFwkTag::ABILITYMGR, "StartKeepAliveApps userId:%{public}d", userId);
                 abilityMs->StartKeepAliveApps(userId);
@@ -9308,6 +9322,7 @@ int AbilityManagerService::PrepareTerminateAbility(const sptr<IRemoteObject> &to
         callback->DoPrepareTerminate();
     };
     if (taskHandler_) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for do prepare terminate");
         taskHandler_->SubmitTask(timeoutTask, "PrepareTermiante_" + std::to_string(abilityRecord->GetAbilityRecordId()),
             GlobalConstant::PREPARE_TERMINATE_TIMEOUT_TIME);
     }
@@ -9357,6 +9372,7 @@ void AbilityManagerService::InitFocusListener()
         }
     };
     if (taskHandler_) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for register focus listener");
         taskHandler_->SubmitTaskJust(registerTask, "RegisterFocusListenerTask", REGISTER_FOCUS_DELAY);
     }
 }

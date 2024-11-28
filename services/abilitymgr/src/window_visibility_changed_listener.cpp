@@ -48,6 +48,7 @@ void WindowVisibilityChangedListener::OnWindowVisibilityChanged(
         }
         owner->HandleWindowVisibilityChanged(windowVisibilityInfos);
     };
+    TAG_LOGI(AAFwkLogTag::ABILITYMGR, "submit task for handle window visibility changed");
     taskHandler_->SubmitTask(task);
 }
 } // namespace AAFwk

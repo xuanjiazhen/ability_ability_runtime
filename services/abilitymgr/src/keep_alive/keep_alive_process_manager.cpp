@@ -77,6 +77,7 @@ void KeepAliveProcessManager::StartKeepAliveProcessWithMainElementPerBundle(cons
         return;
     }
 
+    TAG_LOGI(AAFwkTag::KEEP_ALIVE, "submit task for after start keep alive app");
     ffrt::submit([bundleInfo, mainElementName, userId]() {
         KeepAliveProcessManager::GetInstance().AfterStartKeepAliveApp(bundleInfo, mainElementName, userId);
     });
@@ -107,6 +108,7 @@ void KeepAliveProcessManager::AfterStartKeepAliveApp(const AppExecFwk::BundleInf
     std::shared_ptr<bool> isCanceled = std::make_shared<bool>(false);
     ffrt::condition_variable taskCv;
     ffrt::mutex taskMutex;
+    TAG_LOGI(AAFwkTag::KEEP_ALIVE, "submit task for checking status bar");
     ffrt::submit([&isCreated, &taskCv, &taskMutex, isCanceled,
         accessTokenId = bundleInfo.applicationInfo.accessTokenId, uid = bundleInfo.uid]() {
         while (!DelayedSingleton<AbilityManagerService>::GetInstance()->IsInStatusBar(accessTokenId, uid)) {

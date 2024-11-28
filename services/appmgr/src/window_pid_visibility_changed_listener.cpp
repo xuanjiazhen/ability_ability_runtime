@@ -51,6 +51,7 @@ void WindowPidVisibilityChangedListener::NotifyWindowPidVisibilityChanged(
         }
         serviceInner->HandleWindowPidVisibilityChanged(windowPidVisibilityInfo);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for window pid visibility changed");
     taskHandler_->SubmitTask(task, "NotifyWindowPidVisibilityChanged");
 }
 #endif // SUPPORT_SCREEN

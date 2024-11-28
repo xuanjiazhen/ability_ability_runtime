@@ -168,6 +168,7 @@ int DataObsMgrService::NotifyChange(const Uri &uri)
     }
 
     ChangeInfo changeInfo = { ChangeInfo::ChangeType::OTHER, { uri } };
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "submit task for notify change");
     handler_->SubmitTask([this, uri, changeInfo]() {
         if (const_cast<Uri &>(uri).GetScheme() == SHARE_PREFERENCES) {
             dataObsMgrInnerPref_->HandleNotifyChange(uri);
@@ -288,6 +289,7 @@ Status DataObsMgrService::NotifyChangeExt(const ChangeInfo &changeInfo)
         ++taskCount_;
     }
 
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "submit task for notify change ext");
     handler_->SubmitTask([this, changes]() {
         dataObsMgrInnerExt_->HandleNotifyChange(changes);
         for (auto &uri : changes.uris_) {

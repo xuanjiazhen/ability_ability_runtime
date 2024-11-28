@@ -88,6 +88,7 @@ void FreeInstallObserverManager::OnInstallFinished(int32_t recordId, const std::
 
     auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
     CHECK_POINTER_LOG(handler, "Fail to get Ability task handler.");
+    TAG_LOGI(AAFwkLogTag::FREE_INSTALL, "submit task for handle install finished");
     handler->SubmitTask(task);
 }
 
@@ -106,6 +107,7 @@ void FreeInstallObserverManager::OnInstallFinishedByUrl(int32_t recordId, const 
 
     auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
     CHECK_POINTER_LOG(handler, "ability task handler get failed");
+    TAG_LOGI(AAFwkLogTag::FREE_INSTALL, "submit task for handle install finished by url");
     handler->SubmitTask(task);
 }
 

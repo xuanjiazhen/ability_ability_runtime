@@ -113,6 +113,7 @@ int ConnectionRecord::DisconnectAbility()
             };
             int disconnectTimeout =
                 AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * DISCONNECT_TIMEOUT_MULTIPLE;
+            TAG_LOGI(AAFwkLogTag::CONNECTION, "submit task for disconnect");
             handler->SubmitTask(disconnectTask, taskName, disconnectTimeout);
         }
         /* schedule disconnect to target ability */
@@ -151,6 +152,7 @@ void ConnectionRecord::CompleteConnect(int resultCode)
         TAG_LOGW(AAFwkTag::CONNECTION, "null remoteObject: %{public}s", element.GetURI().c_str());
         if (handler) {
             SetConnectState(ConnectionState::DISCONNECTING);
+            TAG_LOGI(AAFwkLogTag::CONNECTION, "submit task for schedule disconnect ability done");
             handler->SubmitTask([service = targetService_]() {
                 DelayedSingleton<AbilityManagerService>::GetInstance()->ScheduleDisconnectAbilityDone(
                     service->GetToken());
@@ -160,6 +162,7 @@ void ConnectionRecord::CompleteConnect(int resultCode)
     }
 
     if (callback && handler) {
+        TAG_LOGI(AAFwkLogTag::CONNECTION, "submit task for complete connect");
         handler->SubmitTask([callback, element, remoteObject, resultCode] {
             TAG_LOGD(AAFwkTag::CONNECTION, "OnAbilityConnectDone");
             callback->OnAbilityConnectDone(element, remoteObject, resultCode);
@@ -192,6 +195,7 @@ void ConnectionRecord::CompleteDisconnect(int resultCode, bool isCallerDied, boo
         TAG_LOGE(AAFwkTag::CONNECTION, "null handler");
         return;
     }
+    TAG_LOGI(AAFwkLogTag::CONNECTION, "submit task for complete disconnect");
     handler->SubmitTask(onDisconnectDoneTask);
     DelayedSingleton<ConnectionStateManager>::GetInstance()->RemoveConnection(shared_from_this(), isCallerDied);
     TAG_LOGD(AAFwkTag::CONNECTION, "result: %{public}d, connectState:%{public}d", resultCode, state_);
