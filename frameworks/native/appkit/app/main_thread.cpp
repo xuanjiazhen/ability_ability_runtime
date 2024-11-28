@@ -49,6 +49,7 @@
 #include "dump_ipc_helper.h"
 #include "dump_runtime_helper.h"
 #include "exit_reason.h"
+#include "extractor.h"
 #include "extension_ability_info.h"
 #include "extension_module_loader.h"
 #include "extension_plugin_info.h"
@@ -81,6 +82,7 @@
 #include "parameters.h"
 #include "resource_manager.h"
 #include "runtime.h"
+#include "startup_utils.h"
 #include "sys_mgr_client.h"
 #include "system_ability_definition.h"
 #include "task_handler_client.h"
@@ -156,6 +158,8 @@ constexpr char EVENT_KEY_APP_RUNING_UNIQUE_ID[] = "APP_RUNNING_UNIQUE_ID";
 constexpr char DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
 constexpr char PRODUCT_ASSERT_FAULT_DIALOG_ENABLED[] = "persisit.sys.abilityms.support_assert_fault_dialog";
 constexpr char KILL_REASON[] = "Kill Reason:Js Error";
+constexpr const char* PROFILE_FILE_PREFIX = "$profile:";
+constexpr const char* PROFILE_PATH = "resources/base/profile/";
 
 const int32_t JSCRASH_TYPE = 3;
 const std::string JSVM_TYPE = "ARK";
@@ -1344,6 +1348,9 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     AppExecFwk::HapModuleInfo entryHapModuleInfo;
     if (!bundleInfo.hapModuleInfos.empty()) {
         for (auto hapModuleInfo : bundleInfo.hapModuleInfos) {
+            std::string config = "";
+            GetStartupConfigString(hapModuleInfo, config);
+            TAG_LOGI(AAFwkTag::APPKIT, "zhuhantest config: %{public}s", config.c_str());
             if (hapModuleInfo.moduleType == AppExecFwk::ModuleType::ENTRY) {
                 findEntryHapModuleInfo = true;
                 entryHapModuleInfo = hapModuleInfo;
@@ -3562,6 +3569,45 @@ void MainThread::HandleCacheProcess()
         }
         runtime->ForceFullGC();
     }
+}
+
+ErrCode MainThread::GetStartupConfigString(const AppExecFwk::HapModuleInfo &hapModuleInfo, std::string &config)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::APPKIT, "start");
+    std::string appStartup = hapModuleInfo.appStartup;
+    if (appStartup.empty()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "appStartup invalid");
+        return AbilityRuntime::ERR_STARTUP_CONFIG_NOT_FOUND;
+    }
+
+    size_t pos = appStartup.rfind(PROFILE_FILE_PREFIX);
+    if ((pos == std::string::npos) || (pos == appStartup.length() - strlen(PROFILE_FILE_PREFIX))) {
+        TAG_LOGE(AAFwkTag::APPKIT, "appStartup %{public}s is invalid", appStartup.c_str());
+        return AbilityRuntime::ERR_STARTUP_CONFIG_PATH_ERROR;
+    }
+    std::string profileName = appStartup.substr(pos + strlen(PROFILE_FILE_PREFIX));
+    std::string hapPath = hapModuleInfo.hapPath;
+    std::unique_ptr<uint8_t[]> startupConfig = nullptr;
+    size_t len = 0;
+    std::string profilePath = PROFILE_PATH + profileName;
+    std::string loadPath = OHOS::AbilityBase::ExtractorUtil::GetLoadFilePath(hapPath);
+    bool newCreate = false;
+    std::shared_ptr<OHOS::AbilityBase::Extractor> extractor = OHOS::AbilityBase::ExtractorUtil::GetExtractor(loadPath, newCreate);
+    if (!extractor->ExtractToBufByName(profilePath, startupConfig, len)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to get startup config, profilePath: %{private}s, hapPath: %{private}s",
+            profilePath.c_str(), hapPath.c_str());
+        return AbilityRuntime::ERR_STARTUP_CONFIG_PATH_ERROR;
+    }
+    std::string configData(startupConfig.get(), startupConfig.get() + len);
+    nlohmann::json profileJson = nlohmann::json::parse(configData, nullptr, false);
+    if (profileJson.is_discarded()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "bad profile file");
+        return AbilityRuntime::ERR_STARTUP_CONFIG_PARSE_ERROR;
+    }
+    config = profileJson.dump();
+
+    return ERR_OK;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
