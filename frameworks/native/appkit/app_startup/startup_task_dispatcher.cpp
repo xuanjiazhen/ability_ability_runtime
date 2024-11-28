@@ -42,7 +42,7 @@ int32_t StartupTaskDispatcher::Run(const std::shared_ptr<OnCompletedCallback> &c
             TAG_LOGE(AAFwkTag::STARTUP, "startup task %{public}s null", iter.first.c_str());
             return ERR_STARTUP_INTERNAL_ERROR;
         }
-        inDegreeMap_.emplace(iter.first, iter.second->getDependenciesCount());
+        inDegreeMap_.emplace(iter.first, iter.second->GetDependenciesCount());
         if (iter.second->GetWaitOnMainThread()) {
             mainThreadAwaitCount_++;
         }
@@ -171,6 +171,10 @@ int32_t StartupTaskDispatcher::RunTaskInit(const std::string &name, const std::s
     });
     StartupTask::State state = task->GetState();
     if (state == StartupTask::State::CREATED) {
+        int32_t result = task->RunTaskPreInit(callback);
+        if (result != ERR_OK) {
+            return result;
+        }
         return task->RunTaskInit(std::move(callback));
     } else if (state == StartupTask::State::INITIALIZED) {
         callback->Call(task->GetResult());

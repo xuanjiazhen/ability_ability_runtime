@@ -51,6 +51,11 @@ void StartupTaskManager::SetConfig(const std::shared_ptr<StartupConfig> &config)
     config_ = config;
 }
 
+size_t StartupTaskManager::GetStartupTaskCount() const
+{
+    return tasks_.size();
+}
+
 int32_t StartupTaskManager::Prepare()
 {
     TAG_LOGD(AAFwkTag::STARTUP, "id: %{public}u, task number: %{public}zu", startupTaskManagerId_, tasks_.size());
@@ -135,6 +140,10 @@ void StartupTaskManager::AddAsyncTimeoutTimer()
     int32_t timeoutMs = StartupConfig::DEFAULT_AWAIT_TIMEOUT_MS;
     if (config_ != nullptr) {
         timeoutMs = config_->GetAwaitTimeoutMs();
+    }
+    if (timeoutMs == StartupConfig::NO_AWAIT_TIMEOUT) {
+        // some native tasks does not time out, no need to add timeout timer.
+        return;
     }
     TAG_LOGD(AAFwkTag::STARTUP, "id: %{public}d, add timeout timer: %{public}d", startupTaskManagerId_, timeoutMs);
     auto callback = [weak = weak_from_this()]() {

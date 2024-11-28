@@ -39,6 +39,8 @@ public:
 
     void SetConfig(const std::shared_ptr<StartupConfig> &config);
 
+    size_t GetStartupTaskCount() const;
+
     int32_t Prepare();
 
     int32_t Run(const std::shared_ptr<OnCompletedCallback> &mainThreadAwaitCallback);

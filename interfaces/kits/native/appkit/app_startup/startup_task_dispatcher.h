@@ -21,6 +21,7 @@
 #include "startup_sort_result.h"
 #include "startup_task_result.h"
 #include "startup_utils.h"
+#include "startup_task.h"
 
 namespace OHOS {
 namespace AbilityRuntime {

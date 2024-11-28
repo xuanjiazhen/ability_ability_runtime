@@ -66,6 +66,8 @@ private:
     bool isCalled_ = false;
 };
 using StartupTaskResultCallback = AppExecFwk::AbilityTransactionCallbackInfo<const std::shared_ptr<StartupTaskResult>>;
+void OnCallback(std::unique_ptr<StartupTaskResultCallback> callback, int32_t resultCode,
+    const std::string& resultMessage = "");
 } // namespace AbilityRuntime
 } // namespace OHOS
 
