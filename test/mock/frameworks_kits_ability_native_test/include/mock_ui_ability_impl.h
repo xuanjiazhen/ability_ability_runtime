@@ -59,11 +59,6 @@ public:
         return ability_;
     }
 
-    bool CheckAndRestore()
-    {
-        return UIAbilityImpl::CheckAndRestore();
-    }
-
 #ifdef SUPPORT_GRAPHICS
     void ImplForeground(const Want &want)
     {

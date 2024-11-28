@@ -1189,7 +1189,7 @@ std::shared_ptr<Mission> MissionListManager::GetMissionById(int missionId) const
     return defaultStandardList_->GetMissionById(missionId);
 }
 
-int MissionListManager::AbilityTransactionDone(const sptr<IRemoteObject> &token, int state, const PacMap &saveData)
+int MissionListManager::AbilityTransactionDone(const sptr<IRemoteObject> &token, int state)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     int targetState = AbilityRecord::ConvertLifeCycleToAbilityState(static_cast<AbilityLifeCycleState>(state));
@@ -1205,10 +1205,6 @@ int MissionListManager::AbilityTransactionDone(const sptr<IRemoteObject> &token,
     abilityRecord->RemoveSignatureInfo();
     std::string element = abilityRecord->GetElementName().GetURI();
     TAG_LOGD(AAFwkTag::ABILITYMGR, "ability: %{public}s, state: %{public}s", element.c_str(), abilityState.c_str());
-
-    if (targetState == AbilityState::BACKGROUND) {
-        abilityRecord->SaveAbilityState(saveData);
-    }
 
     return DispatchState(abilityRecord, targetState);
 }

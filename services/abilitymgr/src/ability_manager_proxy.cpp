@@ -1357,7 +1357,7 @@ int AbilityManagerProxy::AttachAbilityThread(const sptr<IAbilityScheduler> &sche
     return reply.ReadInt32();
 }
 
-int AbilityManagerProxy::AbilityTransitionDone(const sptr<IRemoteObject> &token, int state, const PacMap &saveData)
+int AbilityManagerProxy::AbilityTransitionDone(const sptr<IRemoteObject> &token, int state)
 {
     int error;
     MessageParcel data;
@@ -1370,12 +1370,6 @@ int AbilityManagerProxy::AbilityTransitionDone(const sptr<IRemoteObject> &token,
     if (!data.WriteRemoteObject(token) || !data.WriteInt32(state)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "token or state write fail");
         return ERR_INVALID_VALUE;
-    }
-    if (!data.WriteParcelable(&saveData)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "saveData write fail");
-        AbilityRuntime::FreezeUtil::GetInstance().AppendLifecycleEvent(token,
-            "AbilityTransitionDone; write saveData failed");
-        return INNER_ERR;
     }
 
     error = SendRequest(AbilityManagerInterfaceCode::ABILITY_TRANSITION_DONE, data, reply, option);

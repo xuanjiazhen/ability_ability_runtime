@@ -107,7 +107,7 @@ public:
     {
         return 0;
     }
-    virtual int AbilityTransitionDone(const sptr<IRemoteObject>& token, int state, const PacMap& saveData) override
+    virtual int AbilityTransitionDone(const sptr<IRemoteObject>& token, int state) override
     {
         return 0;
     }

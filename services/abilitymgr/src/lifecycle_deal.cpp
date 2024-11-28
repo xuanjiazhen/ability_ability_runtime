@@ -110,22 +110,6 @@ void LifecycleDeal::CommandAbilityWindow(const Want &want, const sptr<SessionInf
     abilityScheduler->ScheduleCommandAbilityWindow(want, sessionInfo, winCmd);
 }
 
-void LifecycleDeal::SaveAbilityState()
-{
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
-    auto abilityScheduler = GetScheduler();
-    CHECK_POINTER(abilityScheduler);
-    abilityScheduler->ScheduleSaveAbilityState();
-}
-
-void LifecycleDeal::RestoreAbilityState(const PacMap &inState)
-{
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
-    auto abilityScheduler = GetScheduler();
-    CHECK_POINTER(abilityScheduler);
-    abilityScheduler->ScheduleRestoreAbilityState(inState);
-}
-
 bool LifecycleDeal::ForegroundNew(const Want &want, LifeCycleStateInfo &stateInfo,
     sptr<SessionInfo> sessionInfo)
 {

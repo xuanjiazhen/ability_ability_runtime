@@ -70,16 +70,6 @@ public:
         return ability_;
     }
 
-    bool CheckAndSave()
-    {
-        return AbilityImpl::CheckAndSave();
-    }
-
-    bool CheckAndRestore()
-    {
-        return AbilityImpl::CheckAndRestore();
-    }
-
 #ifdef SUPPORT_GRAPHICS
     void ImplForeground(const Want& want)
     {

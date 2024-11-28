@@ -82,16 +82,6 @@ void AbilityImpl::Inactive()
     GTEST_LOG_(INFO) << "Mock AbilityImpl::Inactive called";
 }
 
-void AbilityImpl::DispatchSaveAbilityState()
-{
-    GTEST_LOG_(INFO) << "Mock AbilityImpl::DispatchSaveAbilityState called";
-}
-
-void AbilityImpl::DispatchRestoreAbilityState(const PacMap& inState)
-{
-    GTEST_LOG_(INFO) << "Mock AbilityImpl::DispatchRestoreAbilityState called";
-}
-
 void AbilityImpl::HandleAbilityTransaction(const Want& want, const AAFwk::LifeCycleStateInfo& targetState,
     sptr<AAFwk::SessionInfo> sessionInfo)
 {

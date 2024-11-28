@@ -50,11 +50,6 @@ public:
         WindowCommand winCmd) override
     {}
 
-    void ScheduleSaveAbilityState() override
-    {}
-    void ScheduleRestoreAbilityState(const PacMap& inState) override
-    {}
-
     std::vector<std::string> GetFileTypes(const Uri& uri, const std::string& mimeTypeFilter) override
     {
         std::vector<std::string> types;

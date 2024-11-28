@@ -50,10 +50,6 @@ public:
     void ScheduleCommandAbilityWindow(const Want &want, const sptr<SessionInfo> &sessionInfo,
         WindowCommand winCmd) override;
 
-    void ScheduleSaveAbilityState() override;
-
-    void ScheduleRestoreAbilityState(const PacMap& inState) override;
-
     std::vector<std::string> GetFileTypes(const Uri& uri, const std::string& mimeTypeFilter) override;
 
     int OpenFile(const Uri& uri, const std::string& mode) override;

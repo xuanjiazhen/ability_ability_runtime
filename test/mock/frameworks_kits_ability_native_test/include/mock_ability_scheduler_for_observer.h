@@ -40,7 +40,6 @@ public:
     MOCK_METHOD3(ScheduleCommandAbilityWindow, void(const AAFwk::Want &, const sptr<AAFwk::SessionInfo> &,
         AAFwk::WindowCommand));
     MOCK_METHOD0(ScheduleSaveAbilityState, void());
-    MOCK_METHOD1(ScheduleRestoreAbilityState, void(const PacMap&));
     MOCK_METHOD1(ScheduleUpdateConfiguration, void(const AppExecFwk::Configuration&));
     MOCK_METHOD2(GetFileTypes, std::vector<std::string>(const Uri&, const std::string&));
     MOCK_METHOD2(OpenFile, int(const Uri&, const std::string&));

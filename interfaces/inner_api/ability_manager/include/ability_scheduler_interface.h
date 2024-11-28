@@ -96,16 +96,6 @@ public:
      */
     virtual bool SchedulePrepareTerminateAbility() = 0;
 
-    /*
-     * ScheduleSaveAbilityState, scheduling save ability state.
-     */
-    virtual void ScheduleSaveAbilityState() = 0;
-
-    /*
-     * ScheduleRestoreAbilityState, scheduling restore ability state.
-     */
-    virtual void ScheduleRestoreAbilityState(const PacMap &inState) = 0;
-
     /**
      * @brief Obtains the MIME types of files supported.
      *
@@ -322,14 +312,8 @@ public:
 
         SCHEDULE_ABILITY_COMMAND_WINDOW,
 
-        // ipc id for scheduling save ability state
-        SCHEDULE_SAVE_ABILITY_STATE,
-
-        // ipc id for scheduling restore ability state
-        SCHEDULE_RESTORE_ABILITY_STATE,
-
         // ipc id for scheduling getFileTypes
-        SCHEDULE_GETFILETYPES,
+        SCHEDULE_GETFILETYPES = 8,
 
         // ipc id for scheduling openFile
         SCHEDULE_OPENFILE,

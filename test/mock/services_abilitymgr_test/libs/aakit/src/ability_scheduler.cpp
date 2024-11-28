@@ -67,12 +67,6 @@ void AbilityScheduler::ScheduleCommandAbilityWindow(const Want &want, const sptr
     WindowCommand winCmd)
 {}
 
-void AbilityScheduler::ScheduleSaveAbilityState()
-{}
-
-void AbilityScheduler::ScheduleRestoreAbilityState(const PacMap& inState)
-{}
-
 std::vector<std::string> AbilityScheduler::GetFileTypes(const Uri& uri, const std::string& mimeTypeFilter)
 {
     std::vector<std::string> values;

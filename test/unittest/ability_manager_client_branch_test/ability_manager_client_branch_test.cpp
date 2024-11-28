@@ -2150,8 +2150,7 @@ HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_AbilityTransitionD
     GTEST_LOG_(INFO) << "AbilityTransitionDone_0100 start";
     sptr<IRemoteObject> token = nullptr;
     int state = 1;
-    PacMap saveData;
-    auto result = client_->AbilityTransitionDone(token, state, saveData);
+    auto result = client_->AbilityTransitionDone(token, state);
     EXPECT_EQ(ERR_OK, result);
     GTEST_LOG_(INFO) << "AbilityTransitionDone_0100 end";
 }

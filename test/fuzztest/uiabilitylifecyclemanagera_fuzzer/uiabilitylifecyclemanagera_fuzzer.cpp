@@ -113,8 +113,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     uIAbilityLifecycleManager->StartUIAbility(abilityRequest, sessionInfo, sceneFlag, boolParam);
     sptr<IRemoteObject> token = GetFuzzAbilityToken();
     int intParam = static_cast<int>(GetU32Data(data));
-    AppExecFwk::PacMap saveData;
-    uIAbilityLifecycleManager->AbilityTransactionDone(token, intParam, saveData);
+    uIAbilityLifecycleManager->AbilityTransactionDone(token, intParam);
     sptr<IAbilityScheduler> scheduler;
     uIAbilityLifecycleManager->AttachAbilityThread(scheduler, token);
     int32_t int32Param = static_cast<int32_t>(GetU32Data(data));

@@ -347,58 +347,6 @@ HWTEST_F(AbilityRecoveryUnitTest, ScheduleRecoverAbility_003, TestSize.Level1)
 }
 
 /**
- * @tc.name: ScheduleRestoreAbilityState_001
- * @tc.desc: Test ScheduleRestoreAbilityState when enableFlag is false.
- * @tc.type: FUNC
- * @tc.require: I5UL6H
- */
-HWTEST_F(AbilityRecoveryUnitTest, ScheduleRestoreAbilityState_001, TestSize.Level1)
-{
-    EXPECT_FALSE(abilityRecovery_->ScheduleRestoreAbilityState(StateReason::DEVELOPER_REQUEST, want_));
-}
-
-/**
- * @tc.name: ScheduleRestoreAbilityState_002
- * @tc.desc: Test ScheduleRestoreAbilityState when StateReason is not support save.
- * @tc.type: FUNC
- * @tc.require: I5UL6H
- */
-HWTEST_F(AbilityRecoveryUnitTest, ScheduleRestoreAbilityState_002, TestSize.Level1)
-{
-    abilityRecovery_->EnableAbilityRecovery(true, RestartFlag::ALWAYS_RESTART, SaveOccasionFlag::SAVE_WHEN_ERROR,
-        SaveModeFlag::SAVE_WITH_FILE);
-    EXPECT_FALSE(abilityRecovery_->ScheduleRestoreAbilityState(StateReason::LIFECYCLE, want_));
-}
-
-/**
- * @tc.name: ScheduleRestoreAbilityState_003
- * @tc.desc: Test ScheduleRestoreAbilityState when no saved state.
- * @tc.type: FUNC
- * @tc.require: I5UL6H
- */
-HWTEST_F(AbilityRecoveryUnitTest, ScheduleRestoreAbilityState_003, TestSize.Level1)
-{
-    abilityRecovery_->EnableAbilityRecovery(true, RestartFlag::ALWAYS_RESTART, SaveOccasionFlag::SAVE_WHEN_ERROR,
-        SaveModeFlag::SAVE_WITH_FILE);
-    abilityRecovery_->abilityInfo_.reset();
-    EXPECT_FALSE(abilityRecovery_->ScheduleRestoreAbilityState(StateReason::CPP_CRASH, want_));
-}
-
-/**
- * @tc.name: ScheduleRestoreAbilityState_004
- * @tc.desc: Test ScheduleRestoreAbilityState check the ret as expected.
- * @tc.require: I5UL6H
- */
-HWTEST_F(AbilityRecoveryUnitTest, ScheduleRestoreAbilityState_004, TestSize.Level1)
-{
-    abilityRecovery_->EnableAbilityRecovery(true, RestartFlag::ALWAYS_RESTART, SaveOccasionFlag::SAVE_WHEN_ERROR,
-        SaveModeFlag::SAVE_WITH_SHARED_MEMORY);
-    abilityRecovery_->hasTryLoad_ = true;
-    abilityRecovery_->hasLoaded_ = true;
-    EXPECT_TRUE(abilityRecovery_->ScheduleRestoreAbilityState(StateReason::CPP_CRASH, want_));
-}
-
-/**
  * @tc.name: LoadSavedState_001
  * @tc.desc: Test LoadSavedState when abilityInfo is nullptr.
  * @tc.type: FUNC

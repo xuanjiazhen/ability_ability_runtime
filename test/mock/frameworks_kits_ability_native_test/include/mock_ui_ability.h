@@ -68,11 +68,6 @@ public:
         state_ = ON_BACKGROUND;
     }
 
-    void OnRestoreAbilityState(const PacMap &inState)
-    {
-        GTEST_LOG_(INFO) << "Mock UIAbility::OnRestoreAbilityState called";
-    }
-
     void OnConfigurationUpdated(const Configuration &config)
     {
         GTEST_LOG_(INFO) << "Mock UIAbility::OnConfigurationUpdated called";

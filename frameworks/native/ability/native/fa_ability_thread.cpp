@@ -631,38 +631,6 @@ void FAAbilityThread::HandleCommandExtensionWindow(
     extensionImpl_->CommandExtensionWindow(want, sessionInfo, winCmd);
 }
 
-void FAAbilityThread::HandleRestoreAbilityState(const AppExecFwk::PacMap &state)
-{
-    TAG_LOGD(AAFwkTag::FA, "begin");
-    if (abilityImpl_ == nullptr) {
-        TAG_LOGE(AAFwkTag::FA, "null abilityImpl_");
-        return;
-    }
-
-    abilityImpl_->DispatchRestoreAbilityState(state);
-}
-
-void FAAbilityThread::ScheduleSaveAbilityState()
-{
-    TAG_LOGD(AAFwkTag::FA, "begin");
-    if (abilityImpl_ == nullptr) {
-        TAG_LOGE(AAFwkTag::FA, "null abilityImpl_");
-        return;
-    }
-
-    abilityImpl_->DispatchSaveAbilityState();
-}
-
-void FAAbilityThread::ScheduleRestoreAbilityState(const AppExecFwk::PacMap &state)
-{
-    TAG_LOGD(AAFwkTag::FA, "begin");
-    if (abilityImpl_ == nullptr) {
-        TAG_LOGE(AAFwkTag::FA, "null abilityImpl_");
-        return;
-    }
-    abilityImpl_->DispatchRestoreAbilityState(state);
-}
-
 void FAAbilityThread::ScheduleUpdateConfiguration(const AppExecFwk::Configuration &config)
 {
     TAG_LOGD(AAFwkTag::FA, "begin");

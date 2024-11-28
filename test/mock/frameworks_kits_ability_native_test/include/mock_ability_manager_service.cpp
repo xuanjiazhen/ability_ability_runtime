@@ -113,8 +113,7 @@ void MockAbilityManagerService::DumpSysState(
     const std::string& args, std::vector<std::string>& state, bool isClient, bool isUserID, int UserID)
 {}
 
-int MockAbilityManagerService::AbilityTransitionDone(
-    const sptr<IRemoteObject>& token, int state, const PacMap& saveData)
+int MockAbilityManagerService::AbilityTransitionDone(const sptr<IRemoteObject>& token, int state)
 {
     return 0;
 }

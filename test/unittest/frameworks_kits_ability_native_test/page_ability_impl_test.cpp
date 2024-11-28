@@ -550,61 +550,6 @@ HWTEST_F(PageAbilityImplTest, AaFwk_PageAbilityImpl_HandleAbilityTransaction_090
 }
 
 /**
- * @tc.number: AaFwk_PageAbilityImpl_DispatchSaveAbilityState_0100
- * @tc.name: DispatchSaveAbilityState
- * @tc.desc: Test the normal behavior of the AbilityImpl::DisoatcgSaveAbilityState
- */
-HWTEST_F(PageAbilityImplTest, AaFwk_PageAbilityImpl_DispatchSaveAbilityState_0100, Function | MediumTest | Level1)
-{
-    GTEST_LOG_(INFO) << "AaFwk_PageAbilityImpl_DispatchSaveAbilityState_0100 start";
-
-    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
-    ASSERT_NE(application, nullptr);
-    std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
-    abilityInfo->name = "pageAbility";
-    sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
-    auto record = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
-
-    std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
-    std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
-
-    std::shared_ptr<Ability> ability = std::make_shared<MockPageAbility>();
-
-    pageAbilityImpl_->Init(application, record, ability, handler, token);
-    pageAbilityImpl_->DispatchSaveAbilityState();
-
-    GTEST_LOG_(INFO) << "AaFwk_PageAbilityImpl_DispatchSaveAbilityState_0100 end";
-}
-
-/**
- * @tc.number: AaFwk_PageAbilityImpl_DispatchRestoreAbilityState_0100
- * @tc.name: DispatchRestoreAbilityState
- * @tc.desc: Test the abnormal behavior of the AbilityImpl::DispatchRestoreAbilityState
- */
-HWTEST_F(PageAbilityImplTest, AaFwk_PageAbilityImpl_DispatchRestoreAbilityState_0100, Function | MediumTest | Level1)
-{
-    GTEST_LOG_(INFO) << "AaFwk_PageAbilityImpl_DispatchRestoreAbilityState_0100 start";
-
-    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
-    ASSERT_NE(application, nullptr);
-    std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
-    abilityInfo->name = "pageAbility";
-    sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
-    auto record = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
-
-    std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
-    std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
-
-    std::shared_ptr<Ability> ability = std::make_shared<MockPageAbility>();
-    pageAbilityImpl_->Init(application, record, ability, handler, token);
-
-    PacMap inState;
-    pageAbilityImpl_->DispatchRestoreAbilityState(inState);
-
-    GTEST_LOG_(INFO) << "AaFwk_PageAbilityImpl_DispatchRestoreAbilityState_0100 end";
-}
-
-/**
  * @tc.number: AaFwk_PageAbilityImpl_SendResult_0100
  * @tc.name: SendResult
  * @tc.desc: Test the normal behavior of the AbilityImpl::SendResult

@@ -31,7 +31,6 @@ public:
     MOCK_METHOD3(ScheduleCommandAbilityWindow, void(const Want &, const sptr<SessionInfo> &, WindowCommand));
     MOCK_METHOD0(SchedulePrepareTerminateAbility, bool());
     MOCK_METHOD0(ScheduleSaveAbilityState, void());
-    MOCK_METHOD1(ScheduleRestoreAbilityState, void(const PacMap&));
     MOCK_METHOD2(GetFileTypes, std::vector<std::string>(const Uri&, const std::string&));
     MOCK_METHOD2(OpenFile, int(const Uri&, const std::string&));
     MOCK_METHOD2(Insert, int(const Uri&, const NativeRdb::ValuesBucket&));
