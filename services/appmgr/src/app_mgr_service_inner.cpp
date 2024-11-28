@@ -1073,7 +1073,7 @@ bool AppMgrServiceInner::GetBundleAndHapInfo(const AbilityInfo &abilityInfo,
     }
 
     auto userId = GetUserIdByUid(appInfo->uid);
-    TAG_LOGD(AAFwkTag::APPMGR, "UserId:%{public}d.", userId);
+    TAG_LOGD(AAFwkTag::APPMGR, "UserId:%{public}d, bundleName:%{public}s", userId, appInfo->bundleName.c_str());
     int32_t bundleMgrResult;
     if (appIndex == 0) {
         bundleMgrResult = IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfoV9(appInfo->bundleName,
@@ -1487,6 +1487,7 @@ int32_t AppMgrServiceInner::UpdateApplicationInfoInstalled(const std::string &bu
         return ERR_NO_INIT;
     }
     auto userId = GetUserIdByUid(uid);
+    TAG_LOGD(AAFwkTag::APPMGR, "userId:%{public}d, bundleName:%{public}s", userId, bundleName.c_str());
     ApplicationInfo appInfo;
     HITRACE_METER_NAME(HITRACE_TAG_APP, "BMS->GetApplicationInfo");
     bool bundleMgrResult = bundleMgrHelper->GetApplicationInfo(bundleName,
@@ -1900,6 +1901,7 @@ int32_t AppMgrServiceInner::ClearUpApplicationDataByUserId(const std::string &bu
         TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
         return ERR_INVALID_OPERATION;
     }
+    TAG_LOGD(AAFwkTag::APPMGR, "userId:%{public}d, bundleName:%{public}s", userId, bundleName.c_str());
 
     // request to clear user information permission.
     auto tokenId = AccessToken::AccessTokenKit::GetHapTokenID(userId, bundleName, appCloneIndex);
@@ -2008,6 +2010,7 @@ int32_t AppMgrServiceInner::GetRunningMultiAppInfoByBundleName(const std::string
         return ERR_INVALID_VALUE;
     }
     ApplicationInfo appInfo;
+    TAG_LOGD(AAFwkTag::APPMGR, "bundleName:%{public}s", bundleName.c_str());
     auto queryRet = IN_PROCESS_CALL(bundleMgrHelper->GetApplicationInfo(bundleName,
         ApplicationFlag::GET_BASIC_APPLICATION_INFO, currentUserId_, appInfo));
     if (!queryRet) {
@@ -2090,6 +2093,7 @@ int32_t AppMgrServiceInner::GetAllRunningInstanceKeysByBundleNameInner(const std
         return ERR_INVALID_VALUE;
     }
     ApplicationInfo appInfo;
+    TAG_LOGD(AAFwkTag::APPMGR, "userId:%{public}d, bundleName:%{public}s", userId, bundleName.c_str());
     auto queryRet = IN_PROCESS_CALL(bundleMgrHelper->GetApplicationInfo(bundleName,
         ApplicationFlag::GET_BASIC_APPLICATION_INFO, userId, appInfo));
     if (!queryRet) {

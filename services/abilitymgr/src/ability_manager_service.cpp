@@ -2330,6 +2330,8 @@ bool AbilityManagerService::CheckCallingTokenId(const std::string &bundleName, i
     CHECK_POINTER_AND_RETURN(bundleMgrHelper, false);
     auto validUserId = GetValidUserId(userId);
     AppExecFwk::ApplicationInfo appInfo;
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "bundleName:%{public}s, appIndex:%{public}d, validUserId:%{public}d",
+        bundleName.c_str(), appIndex, validUserId);
     IN_PROCESS_CALL_WITHOUT_RET(bundleMgrHelper->GetApplicationInfoWithAppIndex(bundleName,
         appIndex, validUserId, appInfo));
     auto accessTokenId = IPCSkeleton::GetCallingTokenID();
@@ -2384,7 +2386,7 @@ void AbilityManagerService::AppUpgradeCompleted(int32_t uid)
         TAG_LOGI(AAFwkTag::ABILITYMGR, "not current user");
         return;
     }
-
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "bundleName:%{public}s, userId:%{public}d", bundleName.c_str(), userId);
     AppExecFwk::BundleInfo bundleInfo;
     std::string bundleName;
     int32_t appIndex;
@@ -3119,6 +3121,7 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
         auto bms = AbilityUtil::GetBundleManagerHelper();
         CHECK_POINTER_AND_RETURN(bms, ERR_INVALID_VALUE);
         AppExecFwk::BundleInfo bundleInfo;
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "userId:%{public}d", userId);
         if (!IN_PROCESS_CALL(bms->GetBundleInfo(extensionSessionInfo->want.GetBundle(),
             AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, bundleInfo, GetValidUserId(userId)))) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "verifyPermission failed get application info");
@@ -3835,6 +3838,7 @@ int AbilityManagerService::StartRemoteAbility(const Want &want, int requestCode,
 
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     uint32_t accessToken = IPCSkeleton::GetCallingTokenID();
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "callerUid: %{public}d, accessToken: %{public}d", callerUid, accessToken);
     UriUtils::GetInstance().FilterUriWithPermissionDms(remoteWant, accessToken);
     DistributedClient dmsClient;
     int result = dmsClient.StartRemoteAbility(remoteWant, callerUid, requestCode, accessToken);
@@ -6731,6 +6735,7 @@ void AbilityManagerService::PreLoadAppDataAbilitiesTask(const std::string &bundl
     CHECK_POINTER(bms);
 
     AppExecFwk::BundleInfo bundleInfo;
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "bundleName:%{public}s, userId:%{public}d", bundleName.c_str(), userId);
     bool ret = IN_PROCESS_CALL(
         bms->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, bundleInfo, userId));
     if (!ret) {
@@ -7914,7 +7919,7 @@ void AbilityManagerService::ScheduleClearRecoveryPageStack()
     std::string bundleName;
     auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_IS_NULLPTR(bms);
-
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "callerUid:%{public}d, bundleName:%{public}s", callerUid, bundleName.c_str());
     if (IN_PROCESS_CALL(bms->GetNameForUid(callerUid, bundleName)) != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "scheduleClearRecoveryPageStack get bundleName failed");
         return;
@@ -8412,6 +8417,7 @@ int AbilityManagerService::StartUserTest(const Want &want, const sptr<IRemoteObj
     auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bms, START_USER_TEST_FAIL);
     AppExecFwk::BundleInfo bundleInfo;
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "bundleName:%{public}s", bundleName.c_str());
     if (!IN_PROCESS_CALL(
         bms->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, U0_USER_ID))) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get bundleInfo by U0_USER_ID %{public}d", U0_USER_ID);
@@ -10218,6 +10224,7 @@ int AbilityManagerService::VerifyPermission(const std::string &permission, int p
     int account = -1;
     DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->GetOsAccountLocalIdFromUid(uid, account);
     AppExecFwk::ApplicationInfo appInfo;
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "bundleName:%{public}s", bundleName.c_str());
     if (!IN_PROCESS_CALL(bms->GetApplicationInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT,
         account, appInfo))) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "verifyPermission get application info failed");
@@ -11510,6 +11517,7 @@ int32_t AbilityManagerService::CheckRestartAppWant(const AAFwk::Want &want, int3
     CHECK_POINTER_AND_RETURN(bms, GET_ABILITY_SERVICE_FAILED);
     auto abilityInfoFlag = AbilityRuntime::StartupUtil::BuildAbilityInfoFlag();
     AppExecFwk::AbilityInfo abilityInfo;
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "appIndex:%{public}d", appIndex);
     auto queryResult = IN_PROCESS_CALL(
         bms->QueryCloneAbilityInfo(want.GetElement(), abilityInfoFlag, appIndex, abilityInfo, userId));
     if (queryResult != ERR_OK || abilityInfo.name.empty() || abilityInfo.bundleName.empty() ||
