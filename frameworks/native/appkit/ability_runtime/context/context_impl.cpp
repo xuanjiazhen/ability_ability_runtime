@@ -1524,9 +1524,8 @@ int32_t ContextImpl::CreateHspModuleResourceManager(const std::string &bundleNam
         resourceManager = InitOthersResourceManagerInner(bundleInfo, selfBundleName == bundleName, moduleName);
         if (resourceManager == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "InitOthersResourceManagerInner create resourceManager failed");
-            return ERR_INVALID_VALUE;
         }
-        return ERR_OK;
+        return ERR_INVALID_VALUE;
     }
 
     resourceManager = InitResourceManagerInner(bundleInfo, selfBundleName == bundleName, moduleName);
