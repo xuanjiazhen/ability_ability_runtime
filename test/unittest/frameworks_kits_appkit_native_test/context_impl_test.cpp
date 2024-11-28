@@ -18,6 +18,7 @@
 
 #define private public
 #include "context_impl.h"
+#include "bundle_mgr_helper.h"
 #undef private
 
 #include "constants.h"
@@ -31,6 +32,7 @@
 #include "mock_bundle_manager.h"
 #include "system_ability_definition.h"
 #include "sys_mgr_client.h"
+#include "res_config_impl.h"
 
 namespace OHOS {
 namespace AppExecFwk {
