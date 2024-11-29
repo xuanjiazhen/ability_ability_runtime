@@ -3022,6 +3022,7 @@ void AbilityManagerService::SetPickerElementName(const sptr<SessionInfo> &extens
 
 void AbilityManagerService::SetAutoFillElementName(const sptr<SessionInfo> &extensionSessionInfo)
 {
+#ifdef SUPPORT_AUTO_FILL
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     CHECK_POINTER_IS_NULLPTR(extensionSessionInfo);
     std::vector<std::string> argList;
@@ -3040,6 +3041,7 @@ void AbilityManagerService::SetAutoFillElementName(const sptr<SessionInfo> &exte
     }
     extensionSessionInfo->want.SetElementName(argList[INDEX_ZERO], argList[INDEX_TWO]);
     extensionSessionInfo->want.SetModuleName(argList[INDEX_ONE]);
+#endif // SUPPORT_AUTO_FILL
 }
 
 int AbilityManagerService::CheckUIExtensionUsage(AppExecFwk::UIExtensionUsage uiExtensionUsage,
