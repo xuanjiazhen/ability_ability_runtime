@@ -24,6 +24,7 @@
 #include "ability_manager_client.h"
 #include "ability_thread.h"
 #include "free_install_observer_stub.h"
+#include "hilog_tag_wrapper.h"
 #include "iability_callback.h"
 #include "ipc_object_stub.h"
 #include "mock_context.h"
@@ -1681,6 +1682,22 @@ HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_StartUIServiceExtensionAbi
     EXPECT_EQ(ret, ERR_OK);
 }
 
+/**
+ * @tc.number: Ability_Context_Impl_ChangeAbilityVisibility_0100
+ * @tc.name: ChangeAbilityVisibility
+ * @tc.desc: ChangeAbilityVisibility
+ */
+HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_ChangeAbilityVisibility_0100, Function | MediumTest | Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "Ability_Context_Impl_ChangeAbilityVisibility_0100 start");
+
+    std::shared_ptr <AbilityContextImpl> contextImpl = std::make_shared<AbilityContextImpl>();
+    ASSERT_NE(contextImpl, nullptr);
+    bool isShow = false;
+    EXPECT_EQ(contextImpl->ChangeAbilityVisibility(isShow), ERR_OK);
+    EXPECT_FALSE(isShow);
+
+    TAG_LOGI(AAFwkTag::TEST, "Ability_Context_Impl_AbilityContext_0100 start");
+}
 } // namespace AppExecFwk
 } // namespace OHOS
-
