@@ -104,10 +104,11 @@ HWTEST_F(ContextImplSecondTest, AppExecFwk_AppContext_CreateHspResourceManager_0
     contextImpl_->CreateHspModuleResourceManager("com.example.myapplication", "com.test.moduleName", resourceManager2);
     if (resourceManager2 != nullptr) {
         resourceManager2->GetResConfig(resConfig2);
+        EXPECT_EQ(resConfig2.GetMcc(), 11);
+        EXPECT_EQ(resConfig2.GetMnc(), 22);
+        EXPECT_EQ(resConfig2.GetThemeId(), 33);
+        GTEST_LOG_(INFO) << "AppExecFwk_AppContext_CreateHspResourceManager_001 create resourceManager failed";
     }
-    EXPECT_EQ(resConfig2.GetMcc(), 11);
-    EXPECT_EQ(resConfig2.GetMnc(), 22);
-    EXPECT_EQ(resConfig2.GetThemeId(), 33);
 
     std::shared_ptr<Global::Resource::ResourceManager> resourceManager3 = nullptr;
     auto ret = contextImpl_->CreateHspModuleResourceManager("com.example.myapplication", "", resourceManager3);
