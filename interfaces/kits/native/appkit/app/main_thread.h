@@ -39,6 +39,7 @@
 #include "resource_manager.h"
 #include "runtime.h"
 #include "watchdog.h"
+#include "hilog_tag_wrapper.h"
 
 #ifdef CJ_FRONTEND
 #include "cj_envsetup.h"
@@ -60,6 +61,53 @@ using HspList = std::vector<BaseSharedBundleInfo>;
 enum class MainThreadState { INIT, ATTACH, READY, RUNNING };
 struct BundleInfo;
 class ContextDeal;
+
+struct StartupTask {
+    std::string name;
+    std::string srcEntry;
+    std::vector<std::string> dependencies;
+    bool excludeFromAutoStart;
+    std::string runOnThread;
+    bool waitOnMainThread;
+    std::string ohmurl;
+    std::string moduleType;
+    std::string taskType;
+    void printSelf() {
+        TAG_LOGE(AAFwkTag::APPKIT, "liuzongze StartupTask:");
+        TAG_LOGE(AAFwkTag::APPKIT, "liuzongze name:%s", name.c_str());
+        TAG_LOGE(AAFwkTag::APPKIT, "liuzongze srcEntry:%s", srcEntry.c_str());
+        TAG_LOGE(AAFwkTag::APPKIT, "liuzongze dependencies:%s", dependencies.size() > 0 ? dependencies[0].c_str() : "null");
+        TAG_LOGE(AAFwkTag::APPKIT, "liuzongze excludeFromAutoStart:%d", excludeFromAutoStart);
+        TAG_LOGE(AAFwkTag::APPKIT, "liuzongze runOnThread:%s", runOnThread.c_str());
+        TAG_LOGE(AAFwkTag::APPKIT, "liuzongze waitOnMainThread:%d", waitOnMainThread);
+        TAG_LOGE(AAFwkTag::APPKIT, "liuzongze ohmurl:%s", ohmurl.c_str());
+        TAG_LOGE(AAFwkTag::APPKIT, "liuzongze moduleType:%s", moduleType.c_str());
+        TAG_LOGE(AAFwkTag::APPKIT, "liuzongze taskType:%s", taskType.c_str());
+    }
+};
+
+struct AppPreloadHintStartupTask {
+    std::string name;
+    std::string srcEntry;
+    std::vector<std::string> dependencies;
+    bool excludeFromAutoStart;
+    std::string runOnThread;
+    std::string ohmurl;
+    std::string moduleType;
+    std::string taskType;
+    void printSelf() {
+        TAG_LOGE(AAFwkTag::APPKIT, "liuzongze StartupTask:");
+        TAG_LOGE(AAFwkTag::APPKIT, "liuzongze name:%s", name.c_str());
+        TAG_LOGE(AAFwkTag::APPKIT, "liuzongze srcEntry:%s", srcEntry.c_str());
+        TAG_LOGE(AAFwkTag::APPKIT, "liuzongze dependencies:%s", dependencies.size() > 0 ? dependencies[0].c_str() : "null");
+        TAG_LOGE(AAFwkTag::APPKIT, "liuzongze excludeFromAutoStart:%d", excludeFromAutoStart);
+        TAG_LOGE(AAFwkTag::APPKIT, "liuzongze runOnThread:%s", runOnThread.c_str());
+        TAG_LOGE(AAFwkTag::APPKIT, "liuzongze ohmurl:%s", ohmurl.c_str());
+        TAG_LOGE(AAFwkTag::APPKIT, "liuzongze moduleType:%s", moduleType.c_str());
+        TAG_LOGE(AAFwkTag::APPKIT, "liuzongze taskType:%s", taskType.c_str());
+    }
+};
+
 // class Global::Resource::ResourceManager;
 class AppMgrDeathRecipient : public IRemoteObject::DeathRecipient {
 public:
@@ -640,6 +688,19 @@ private:
 #if defined(NWEB) && defined(NWEB_GRAPHIC)
     void HandleNWebPreload();
 #endif
+
+    bool AnalyzeStartupConfig(const std::string &startupConfig, ModuleType moduleType);
+    std::shared_ptr<StartupTask> AnalyzeStartupTasks(const nlohmann::json &startupTaskJson, ModuleType moduleType);
+    std::shared_ptr<AppPreloadHintStartupTask> AnalyzeAppPreloadHintStartupTasks(
+        const nlohmann::json &preloadStartupTaskJson, ModuleType moduleType);
+    void SetOptionalParameters(
+        const nlohmann::json &module,
+        std::shared_ptr<StartupTask> startupTask,
+        ModuleType moduleType);
+    void SetOptionalParameters(
+        const nlohmann::json &module,
+        std::shared_ptr<AppPreloadHintStartupTask> appPreloadHintStartupTask,
+        ModuleType moduleType);
 
     class MainHandler : public EventHandler {
     public:
