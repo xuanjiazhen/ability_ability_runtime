@@ -850,7 +850,9 @@ void JsUIAbility::DoOnForeground(const Want &want)
 void JsUIAbility::DoOnForegroundForSceneIsNull(const Want &want)
 {
     scene_ = std::make_shared<Rosen::WindowScene>();
-    int32_t displayId = static_cast<int32_t>(Rosen::DisplayManager::GetInstance().GetDefaultDisplayId());
+    sptr<Rosen::Display> display = Rosen::DisplayManager::GetInstance().GetPrimaryDisplaySync();
+    int32_t displayId = display != nullptr ? static_cast<int32_t>(display->GetId()) :
+        static_cast<int32_t>(Rosen::DisplayManager::GetInstance().GetDefaultDisplayId());
     if (setting_ != nullptr) {
         std::string strDisplayId = setting_->GetProperty(OHOS::AppExecFwk::AbilityStartSetting::WINDOW_DISPLAY_ID_KEY);
         std::regex formatRegex("[0-9]{0,9}$");

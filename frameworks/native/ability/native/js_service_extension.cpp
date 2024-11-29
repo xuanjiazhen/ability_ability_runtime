@@ -303,7 +303,9 @@ void JsServiceExtension::OnStart(const AAFwk::Want &want)
     auto context = GetContext();
     if (context != nullptr) {
 #ifdef SUPPORT_GRAPHICS
-        int32_t  displayId = static_cast<int32_t>(Rosen::DisplayManager::GetInstance().GetDefaultDisplayId());
+        sptr<Rosen::Display> display = Rosen::DisplayManager::GetInstance().GetPrimaryDisplaySync();
+        int32_t displayId = display != nullptr ? static_cast<int32_t>(display->GetId()) :
+            static_cast<int32_t>(Rosen::DisplayManager::GetInstance().GetDefaultDisplayId());
         displayId = want.GetIntParam(Want::PARAM_RESV_DISPLAY_ID, displayId);
         TAG_LOGD(AAFwkTag::SERVICE_EXT, "displayId %{public}d", displayId);
         auto configUtils = std::make_shared<ConfigurationUtils>();
