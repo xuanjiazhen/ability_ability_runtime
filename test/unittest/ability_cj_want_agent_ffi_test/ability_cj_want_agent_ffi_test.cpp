@@ -250,10 +250,10 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentGetUid_0010, TestSize
  */
 HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentCancel_0010, TestSize.Level1)
 {
-    int64_t cjWantAgent_ = -1;
+    int64_t cjWantAgent = -1;
     int32_t err = 0;
     int32_t *errCode = &err;
-    FfiWantAgent::FfiWantAgentCancel(cjWantAgent_, errCode);
+    FfiWantAgent::FfiWantAgentCancel(cjWantAgent, errCode);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 }
 
