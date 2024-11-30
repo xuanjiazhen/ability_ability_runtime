@@ -39,21 +39,23 @@ using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::AbilityRuntime;
 
-namespace OHOS{
-namespace AbilityRuntime{
+namespace OHOS {
+namespace AbilityRuntime {
 class CjWantAgentFfiTest : public testing::Test {
 public:
-    static void SetUpTestCase(void);
-    static void TearDownTestCase(void);
+    static void SetUpTestCase();
+    static void TearDownTestCase();
     void SetUp();
     void TearDown();
-    void testcall();
 };
-void CjWantAgentFfiTest::SetUpTestCase(){}
-void CjWantAgentFfiTest::TearDownTestCase(){}
-void CjWantAgentFfiTest::SetUp(){}
-void CjWantAgentFfiTest::TearDown(){}
-void CjWantAgentFfiTest::testcall(){}
+void CjWantAgentFfiTest::SetUpTestCase()
+{}
+void CjWantAgentFfiTest::TearDownTestCase()
+{}
+void CjWantAgentFfiTest::SetUp()
+{}
+void CjWantAgentFfiTest::TearDown()
+{}
 
 /**
  * @tc.name: CjWantAgentFfiTestOnGetBundleName_0010
@@ -66,9 +68,9 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnGetBundleName_0010, TestSize.Le
     std::shared_ptr<WantAgent::WantAgent> wantAgent = std::make_shared<WantAgent::WantAgent>(pendingWant);
     auto cjWantAgent = std::make_shared<FfiWantAgent::CJWantAgent>(wantAgent);
     int32_t err = -1;
-    int32_t *errCode_ = &err;
-    std::string bundleName = cjWantAgent->OnGetBundleName(errCode_);
-    EXPECT_EQ(*errCode_, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_WANTAGENT);
+    int32_t *errCode = &err;
+    std::string bundleName = cjWantAgent->OnGetBundleName(errCode);
+    EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_WANTAGENT);
     EXPECT_EQ(bundleName, "");
 }
 
@@ -83,10 +85,10 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnGetUid_0010, TestSize.Level1)
     std::shared_ptr<WantAgent::WantAgent> wantAgent = std::make_shared<WantAgent::WantAgent>(pendingWant);
     auto cjWantAgent = std::make_shared<FfiWantAgent::CJWantAgent>(wantAgent);
     int err = -2;
-    int* errCode_ = &err;
-    int32_t uid_ = cjWantAgent->OnGetUid(errCode_);
-    EXPECT_EQ(*errCode_, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_WANTAGENT);
-    EXPECT_EQ(uid_, -1);
+    int* errCode = &err;
+    int32_t uid = cjWantAgent->OnGetUid(errCode);
+    EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_WANTAGENT);
+    EXPECT_EQ(uid, -1);
 }
 
 /**
@@ -100,9 +102,9 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnCancel_0010, TestSize.Level1)
     std::shared_ptr<WantAgent::WantAgent> wantAgent = std::make_shared<WantAgent::WantAgent>(pendingWant);
     auto cjWantAgent = std::make_shared<FfiWantAgent::CJWantAgent>(wantAgent);
     int32_t err = -1;
-    int32_t *errCode_ = &err;
-    cjWantAgent->OnCancel(errCode_);
-    EXPECT_EQ(*errCode_, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+    int32_t *errCode = &err;
+    cjWantAgent->OnCancel(errCode);
+    EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 }
 
 /**
@@ -124,9 +126,9 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnTrigger_0010, TestSize.Level1)
     std::shared_ptr<WantAgent::WantAgent> wantAgent = std::make_shared<WantAgent::WantAgent>(pendingWant);
     auto cjWantAgent = std::make_shared<FfiWantAgent::CJWantAgent>(wantAgent);
     int32_t err = -1;
-    int32_t *errCode_ = &err;
-    cjWantAgent->OnTrigger(cjtriggerInfo, callback_, errCode_);
-    EXPECT_EQ(*errCode_, NO_ERROR);
+    int32_t *errCode = &err;
+    cjWantAgent->OnTrigger(cjtriggerInfo, callback_, errCode);
+    EXPECT_EQ(*errCode, NO_ERROR);
     free(cjtriggerInfo.extraInfos);
     free(cjtriggerInfo.permission);
 }
@@ -142,10 +144,10 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnGetOperationType_0010, TestSize
     std::shared_ptr<WantAgent::WantAgent> wantAgent = std::make_shared<WantAgent::WantAgent>(pendingWant);
     auto cjWantAgent = std::make_shared<FfiWantAgent::CJWantAgent>(wantAgent);
     int32_t err = -1;
-    int32_t *errCode_ = &err;
+    int32_t *errCode = &err;
     int oprationType = 0;
-    *errCode_ = cjWantAgent->OnGetOperationType(errCode_);
-    EXPECT_EQ(*errCode_, NO_ERROR);
+    *errCode_ = cjWantAgent->OnGetOperationType(errCode);
+    EXPECT_EQ(*errCode, NO_ERROR);
     EXPECT_NE(oprationType, -1);
 }
 
@@ -156,15 +158,15 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnGetOperationType_0010, TestSize
  */
 HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnEqual_0010, TestSize.Level1)
 {
-    int32_t err =-1;
-    int32_t *errCode_ = &err;
+    int32_t err = -1;
+    int32_t *errCode = &err;
     auto second_ = std::make_shared<WantAgent::WantAgent>();
     auto pendingWant_ = std::make_shared<OHOS::AbilityRuntime::WantAgent::PendingWant>();
     auto wantAgent_ = std::make_shared<WantAgent::WantAgent>(pendingWant_);
     auto cjWantAgent = std::make_shared<FfiWantAgent::CJWantAgent>(wantAgent_);
-    bool result_ = cjWantAgent->OnEqual(second_, errCode_);
-    EXPECT_EQ(*errCode_, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
-    EXPECT_EQ(result_, false);
+    bool result = cjWantAgent->OnEqual(second_, errCode);
+    EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+    EXPECT_EQ(result, false);
 }
 
 /**
@@ -176,17 +178,17 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnSendFinished_0010, TestSize.Lev
 {
     auto cjtriggerCompletecb = std::make_shared<FfiWantAgent::CJTriggerCompleteCallBack>();
     AAFwk::Want want_;
-    int resultCode_ = 1;
-    std::string resultData_ = "resultData";
+    int resultCode = 1;
+    std::string resultData = "resultData";
     AAFwk::WantParams resultExtras_;
     cjtriggerCompletecb->SetWantAgentInstance(1);
     FfiWantAgent::CJCompleteData mydata_;
-    auto cb_ = [&mydata_](const FfiWantAgent::CJCompleteData &data) -> void {
+    auto cb = [&mydata_](const FfiWantAgent::CJCompleteData &data) -> void {
         mydata_.finalCode = data.finalCode;
     };
-    cjtriggerCompletecb->SetCallbackInfo(cb_);
-    cjtriggerCompletecb->OnSendFinished(want_, resultCode_, resultData_, resultExtras_);
-    EXPECT_EQ(mydata_.finalCode, resultCode_);
+    cjtriggerCompletecb->SetCallbackInfo(cb);
+    cjtriggerCompletecb->OnSendFinished(want_, resultCode, resultData, resultExtras_);
+    EXPECT_EQ(mydata_.finalCode, resultCode);
 }
 
 /**
@@ -201,13 +203,13 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentGetWantAgent_0010, Te
         .actionType = 1,
         .extraInfos = strdup("extroinfo"),
         .requestCode = 1,
-        .wants = {.head = nullptr,.size = 0}
+        .wants = {.head = nullptr, .size = 0}
     };
     int32_t err = -1;
-    int32_t *errCode_ = &err;
-    int64_t ret_ = FfiWantAgent::FfiWantAgentGetWantAgent(cjWantAgentInfo, errCode_);
-    EXPECT_EQ(ret_, -1);
-    EXPECT_EQ(*errCode_, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+    int32_t *errCode = &err;
+    int64_t ret = FfiWantAgent::FfiWantAgentGetWantAgent(cjWantAgentInfo, errCode);
+    EXPECT_EQ(ret, -1);
+    EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
     free(cjWantAgentInfo.extraInfos);
 }
 
@@ -220,10 +222,10 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentGetBoundleName_0010, 
 {
     int64_t cjWantAgent_ = -1;
     int32_t err = 0;
-    int32_t *errCode_ = &err;
-    char* name_ = FfiWantAgent::FfiWantAgentGetBoundleName(cjWantAgent_, errCode_);
-    EXPECT_EQ(*errCode_, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
-    EXPECT_EQ(name_, NULL);
+    int32_t *errCode = &err;
+    char* name = FfiWantAgent::FfiWantAgentGetBoundleName(cjWantAgent_, errCode);
+    EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+    EXPECT_EQ(name, NULL);
 }
 
 /**
@@ -235,10 +237,10 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentGetUid_0010, TestSize
 {
     int64_t cjWantAgent_ = -1;
     int32_t err = 0;
-    int32_t *errCode_ = &err;
-    int32_t ret_ = FfiWantAgent::FfiWantAgentGetUid(cjWantAgent_, errCode_);
-    EXPECT_EQ(*errCode_, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
-    EXPECT_EQ(ret_, -1);
+    int32_t *errCode = &err;
+    int32_t ret = FfiWantAgent::FfiWantAgentGetUid(cjWantAgent_, errCode);
+    EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+    EXPECT_EQ(ret, -1);
 }
 
 /**
@@ -250,9 +252,9 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentCancel_0010, TestSize
 {
     int64_t cjWantAgent_ = -1;
     int32_t err = 0;
-    int32_t *errCode_ = &err;
-    FfiWantAgent::FfiWantAgentCancel(cjWantAgent_, errCode_);
-    EXPECT_EQ(*errCode_, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+    int32_t *errCode = &err;
+    FfiWantAgent::FfiWantAgentCancel(cjWantAgent_, errCode);
+    EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 }
 
 /**
@@ -262,9 +264,9 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentCancel_0010, TestSize
  */
 HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentTrigger_0010, TestSize.Level1)
 {
-    int64_t cjWantAgent_ = -1;
+    int64_t cjWantAgent = -1;
     int32_t err = -1;
-    int32_t *errCode_ = &err;
+    int32_t *errCode = &err;
     void (*callback_)(FfiWantAgent::CJCompleteData) = [](FfiWantAgent::CJCompleteData data){};
     FfiWantAgent::CJTriggerInfo triggerInfo{
         .code = 0,
@@ -273,8 +275,8 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentTrigger_0010, TestSiz
         .permission = nullptr,
         .want = nullptr
     };
-    FfiWantAgent::FfiWantAgentTrigger(cjWantAgent_, triggerInfo, callback_, errCode_);
-    EXPECT_EQ(*errCode_, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+    FfiWantAgent::FfiWantAgentTrigger(cjWantAgent, triggerInfo, callback_, errCode);
+    EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 }
 
 /**
@@ -286,10 +288,10 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentOnGetOperationType_00
 {
     int64_t cjWantAgent = -1;
     int32_t err = -1;
-    int32_t *errCode_ = &err;
-    int32_t ret_ = FfiWantAgent::FfiWantAgentGetOperationType(cjWantAgent, errCode_);
-    EXPECT_EQ(ret_,-1);
-    EXPECT_EQ(*errCode_, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+    int32_t *errCode = &err;
+    int32_t ret = FfiWantAgent::FfiWantAgentGetOperationType(cjWantAgent, errCode);
+    EXPECT_EQ(ret, -1);
+    EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 }
 
 /**
@@ -301,10 +303,10 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentGetOperationType_0010
 {
     ino64_t cjWantAgent = -1;
     int32_t err = -1;
-    int32_t *errCode_ = &err;
-    int32_t ret_ = FfiWantAgent::FfiWantAgentGetOperationType(cjWantAgent, errCode_);
-    EXPECT_EQ(ret_,-1);
-    EXPECT_EQ(*errCode_, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+    int32_t *errCode = &err;
+    int32_t ret = FfiWantAgent::FfiWantAgentGetOperationType(cjWantAgent, errCode);
+    EXPECT_EQ(ret, -1);
+    EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 }
 
 /**
@@ -317,10 +319,11 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentEqual_0010, TestSize.
     int64_t cjWantAgent = -1;
     int64_t cjWantAgent2 = -1;
     int32_t err = -1;
-    int32_t *errCode_ = &err;
-    bool ret_ = FfiWantAgent::FfiWantAgentEqual(cjWantAgent, cjWantAgent2, errCode_);
-    EXPECT_EQ(ret_, false);
-    EXPECT_EQ(*errCode_, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+    int32_t *errCode = &err;
+    bool ret = FfiWantAgent::FfiWantAgentEqual(cjWantAgent, cjWantAgent2, errCode);
+    EXPECT_EQ(ret, false);
+    EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 }
-}// namespace AbilityRuntime
-}// namespace OHOS
+
+}  // namespace AbilityRuntime
+}  // namespace OHOS
