@@ -1484,5 +1484,43 @@ HWTEST_F(JsRuntimeTest, UpdatePkgContextInfoJson_0100, TestSize.Level1)
     jsRuntime->UpdatePkgContextInfoJson(moduleName, hapPath, packageName);
     EXPECT_EQ(jsRuntime->pkgContextInfoJsonStringMap_[moduleName], "test2");
 }
+
+/**
+ * @tc.name: JsRuntimePreloadModule_0100
+ * @tc.desc: JsRuntime test for JsRuntimePreloadModule.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, JsRuntimePreloadModule_0100, TestSize.Level1)
+{
+    std::unique_ptr<JsRuntime> jsRuntime = JsRuntime::Create(options_);
+    EXPECT_TRUE(jsRuntime != nullptr);
+    std::string moduleName = TEST_MODULE_NAME;
+    std::string srcPath = TEST_LIB_PATH;
+    std::string hapPath = TEST_HAP_PATH;
+    bool isEsMode = true;
+    bool useCommonTrunk = true;
+    jsRuntime->PreloadModule(moduleName, srcPath, hapPath, isEsMode, useCommonTrunk);
+    EXPECT_EQ(jsRuntime->preloadList_.size(), 1);
+    jsRuntime.reset();
+}
+
+/**
+ * @tc.name: JsRuntimePreloadMainAbility_0100
+ * @tc.desc: JsRuntime test for JsRuntimePreloadMainAbility.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, JsRuntimePreloadMainAbility_0100, TestSize.Level1)
+{
+    std::unique_ptr<JsRuntime> jsRuntime = JsRuntime::Create(options_);
+    EXPECT_TRUE(jsRuntime != nullptr);
+    std::string moduleName = TEST_MODULE_NAME;
+    std::string srcPath = TEST_MODULE_PATH;
+    std::string hapPath = TEST_HAP_PATH;
+    std::string srcEntrance = TEST_LIB_PATH;
+    bool isEsMode = true;
+    jsRuntime->PreloadMainAbility(moduleName, srcPath, hapPath, isEsMode, srcEntrance);
+    EXPECT_EQ(jsRuntime->preloadList_.size(), 1);
+    jsRuntime.reset();
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
