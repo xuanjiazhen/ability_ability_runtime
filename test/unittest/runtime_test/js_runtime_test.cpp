@@ -1484,5 +1484,27 @@ HWTEST_F(JsRuntimeTest, UpdatePkgContextInfoJson_0100, TestSize.Level1)
     jsRuntime->UpdatePkgContextInfoJson(moduleName, hapPath, packageName);
     EXPECT_EQ(jsRuntime->pkgContextInfoJsonStringMap_[moduleName], "test2");
 }
+
+/**
+ * @tc.name: JsRuntimePreloadMainAbility_0100
+ * @tc.desc: JsRuntime test for JsRuntimePreloadMainAbility.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, JsRuntimePreloadMainAbility_0100, TestSize.Level1){
+    std::unique_ptr<Runtime> jsRuntime = JsRuntime::Create(options_);
+    EXPECT_TRUE(jsRuntime != nullptr);
+    std::string moduleName = TEST_MODULE_NAME;
+    std::string srcPath = TEST_MODULE_PATH;
+    std::string hapPath = TEST_HAP_PATH;
+    std::string srcEntrance = TEST_LIB_PATH;
+    bool isEsMode = true;
+    std::unique_ptr<NativeReference> ref = (static_cast<AbilityRuntime::JsRuntime&>(*jsRuntime)).LoadModule(moduleName,
+        srcPath, hapPath, isEsMode, false,srcEntrance);
+    EXPECT_EQ(ref, nullptr);
+    std::map<std::string, std::unique_ptr<NativeReference>> preloadListTest_;
+    preloadListTest_.emplace(std::make_pair(moduleName+"::"+srcPath, std::move(ref)));
+    EXPECT_EQ(preloadListTest_.size(), 1);
+    jsRuntime.reset();
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
