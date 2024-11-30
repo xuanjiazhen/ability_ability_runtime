@@ -1486,24 +1486,38 @@ HWTEST_F(JsRuntimeTest, UpdatePkgContextInfoJson_0100, TestSize.Level1)
 }
 
 /**
+ * @tc.name: JsRuntimePreloadModule_0100
+ * @tc.desc: JsRuntime test for JsRuntimePreloadModule.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, JsRuntimePreloadModule_0100, TestSize.Level1){
+    std::unique_ptr<JsRuntime> jsRuntime = JsRuntime::Create(options_);
+    EXPECT_TRUE(jsRuntime != nullptr);
+    std::string moduleName =TEST_MODULE_NAME;
+    std::string srcPath = TEST_LIB_PATH;
+    std::string hapPath = TEST_HAP_PATH;
+    bool isEsMode = true;
+    bool useCommonTrunk = true;
+    jsRuntime->PreloadModule(moduleName, srcPath, hapPath, isEsMode, useCommonTrunk);
+    EXPECT_EQ(jsRuntime->preloadList_.size(), 1);
+    jsRuntime.reset();
+}
+
+/**
  * @tc.name: JsRuntimePreloadMainAbility_0100
  * @tc.desc: JsRuntime test for JsRuntimePreloadMainAbility.
  * @tc.type: FUNC
  */
 HWTEST_F(JsRuntimeTest, JsRuntimePreloadMainAbility_0100, TestSize.Level1){
-    std::unique_ptr<Runtime> jsRuntime = JsRuntime::Create(options_);
+    std::unique_ptr<JsRuntime> jsRuntime = JsRuntime::Create(options_);
     EXPECT_TRUE(jsRuntime != nullptr);
     std::string moduleName = TEST_MODULE_NAME;
     std::string srcPath = TEST_MODULE_PATH;
     std::string hapPath = TEST_HAP_PATH;
     std::string srcEntrance = TEST_LIB_PATH;
     bool isEsMode = true;
-    std::unique_ptr<NativeReference> ref = (static_cast<AbilityRuntime::JsRuntime&>(*jsRuntime)).LoadModule(moduleName,
-        srcPath, hapPath, isEsMode, false,srcEntrance);
-    EXPECT_EQ(ref, nullptr);
-    std::map<std::string, std::unique_ptr<NativeReference>> preloadListTest_;
-    preloadListTest_.emplace(std::make_pair(moduleName+"::"+srcPath, std::move(ref)));
-    EXPECT_EQ(preloadListTest_.size(), 1);
+    jsRuntime->PreloadMainAbility(moduleName, srcPath, hapPath, isEsMode, srcEntrance);
+    EXPECT_EQ(jsRuntime->preloadList_.size(), 1);
     jsRuntime.reset();
 }
 } // namespace AbilityRuntime
