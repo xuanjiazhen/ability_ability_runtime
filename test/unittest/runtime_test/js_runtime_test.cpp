@@ -1490,10 +1490,11 @@ HWTEST_F(JsRuntimeTest, UpdatePkgContextInfoJson_0100, TestSize.Level1)
  * @tc.desc: JsRuntime test for JsRuntimePreloadModule.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimePreloadModule_0100, TestSize.Level1){
+HWTEST_F(JsRuntimeTest, JsRuntimePreloadModule_0100, TestSize.Level1)
+{
     std::unique_ptr<JsRuntime> jsRuntime = JsRuntime::Create(options_);
     EXPECT_TRUE(jsRuntime != nullptr);
-    std::string moduleName =TEST_MODULE_NAME;
+    std::string moduleName = TEST_MODULE_NAME;
     std::string srcPath = TEST_LIB_PATH;
     std::string hapPath = TEST_HAP_PATH;
     bool isEsMode = true;
@@ -1508,7 +1509,8 @@ HWTEST_F(JsRuntimeTest, JsRuntimePreloadModule_0100, TestSize.Level1){
  * @tc.desc: JsRuntime test for JsRuntimePreloadMainAbility.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimePreloadMainAbility_0100, TestSize.Level1){
+HWTEST_F(JsRuntimeTest, JsRuntimePreloadMainAbility_0100, TestSize.Level1)
+{
     std::unique_ptr<JsRuntime> jsRuntime = JsRuntime::Create(options_);
     EXPECT_TRUE(jsRuntime != nullptr);
     std::string moduleName = TEST_MODULE_NAME;
