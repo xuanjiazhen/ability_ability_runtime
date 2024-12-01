@@ -880,6 +880,7 @@ ohos_unittest("idle_time_test") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "graphic_2d:librender_service_client",
+    "graphic_2d:render_service_client_src",
     "hilog:libhilog",
     "ipc:ipc_core",
     "napi:ace_napi",

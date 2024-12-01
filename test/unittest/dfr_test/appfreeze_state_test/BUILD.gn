@@ -94,6 +94,7 @@ ohos_unittest("appfreeze_state_test") {
     "faultloggerd:libfaultloggerd",
     "ffrt:libffrt",
     "graphic_2d:librender_service_client",
+    "graphic_2d:render_service_client_src",
     "hicollie:libhicollie",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
