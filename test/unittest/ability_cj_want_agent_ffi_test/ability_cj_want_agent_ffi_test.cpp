@@ -66,7 +66,7 @@ void CjWantAgentFfiTest::TearDown()
  */
 HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnGetBundleName_0010, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState start");
+    TAG_LOGI(AAFwkTag::TEST, "OnGetBundleName start");
     auto pendingWant = std::make_shared<OHOS::AbilityRuntime::WantAgent::PendingWant>();
     std::shared_ptr<WantAgent::WantAgent> wantAgent = std::make_shared<WantAgent::WantAgent>(pendingWant);
     auto cjWantAgent = std::make_shared<FfiWantAgent::CJWantAgent>(wantAgent);
@@ -75,7 +75,7 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnGetBundleName_0010, TestSize.Le
     std::string bundleName = cjWantAgent->OnGetBundleName(errCode);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_WANTAGENT);
     EXPECT_EQ(bundleName, "");
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState end");
+    TAG_LOGI(AAFwkTag::TEST, "OnGetBundleName end");
 }
 
 /**
@@ -85,7 +85,7 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnGetBundleName_0010, TestSize.Le
  */
 HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnGetUid_0010, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState start");
+    TAG_LOGI(AAFwkTag::TEST, "OnGetUid start");
     auto pendingWant = std::make_shared<OHOS::AbilityRuntime::WantAgent::PendingWant>();
     std::shared_ptr<WantAgent::WantAgent> wantAgent = std::make_shared<WantAgent::WantAgent>(pendingWant);
     auto cjWantAgent = std::make_shared<FfiWantAgent::CJWantAgent>(wantAgent);
@@ -94,7 +94,7 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnGetUid_0010, TestSize.Level1)
     int32_t uid = cjWantAgent->OnGetUid(errCode);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_WANTAGENT);
     EXPECT_EQ(uid, -1);
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState end");
+    TAG_LOGI(AAFwkTag::TEST, "OnGetUid end");
 }
 
 /**
@@ -104,7 +104,7 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnGetUid_0010, TestSize.Level1)
  */
 HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnCancel_0010, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState start");
+    TAG_LOGI(AAFwkTag::TEST, "OnCancel start");
     auto pendingWant = std::make_shared<OHOS::AbilityRuntime::WantAgent::PendingWant>();
     std::shared_ptr<WantAgent::WantAgent> wantAgent = std::make_shared<WantAgent::WantAgent>(pendingWant);
     auto cjWantAgent = std::make_shared<FfiWantAgent::CJWantAgent>(wantAgent);
@@ -112,7 +112,7 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnCancel_0010, TestSize.Level1)
     int32_t *errCode = &err;
     cjWantAgent->OnCancel(errCode);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState end");
+    TAG_LOGI(AAFwkTag::TEST, "OnCancel end");
 }
 
 /**
@@ -122,7 +122,7 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnCancel_0010, TestSize.Level1)
  */
 HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnTrigger_0010, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState start");
+    TAG_LOGI(AAFwkTag::TEST, "OnTrigger start");
     FfiWantAgent::CJTriggerInfo cjtriggerInfo{
         .hasWant = false,
         .extraInfos = strdup("extroinfo"),
@@ -140,7 +140,7 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnTrigger_0010, TestSize.Level1)
     EXPECT_EQ(*errCode, NO_ERROR);
     free(cjtriggerInfo.extraInfos);
     free(cjtriggerInfo.permission);
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState end");
+    TAG_LOGI(AAFwkTag::TEST, "OnTrigger end");
 }
 
 /**
@@ -150,7 +150,7 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnTrigger_0010, TestSize.Level1)
  */
 HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnGetOperationType_0010, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState start");
+    TAG_LOGI(AAFwkTag::TEST, "OnGetOperationType start");
     auto pendingWant = std::make_shared<OHOS::AbilityRuntime::WantAgent::PendingWant>();
     std::shared_ptr<WantAgent::WantAgent> wantAgent = std::make_shared<WantAgent::WantAgent>(pendingWant);
     auto cjWantAgent = std::make_shared<FfiWantAgent::CJWantAgent>(wantAgent);
@@ -160,7 +160,7 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnGetOperationType_0010, TestSize
     *errCode = cjWantAgent->OnGetOperationType(errCode);
     EXPECT_EQ(*errCode, NO_ERROR);
     EXPECT_NE(oprationType, -1);
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState end");
+    TAG_LOGI(AAFwkTag::TEST, "OnGetOperationType end");
 }
 
 /**
@@ -170,7 +170,7 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnGetOperationType_0010, TestSize
  */
 HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnEqual_0010, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState start");
+    TAG_LOGI(AAFwkTag::TEST, "OnEqual start");
     int32_t err = -1;
     int32_t *errCode = &err;
     auto second = std::make_shared<WantAgent::WantAgent>();
@@ -180,7 +180,7 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnEqual_0010, TestSize.Level1)
     bool result = cjWantAgent->OnEqual(second, errCode);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
     EXPECT_EQ(result, false);
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState end");
+    TAG_LOGI(AAFwkTag::TEST, "OnEqual end");
 }
 
 /**
@@ -190,7 +190,7 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnEqual_0010, TestSize.Level1)
  */
 HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnSendFinished_0010, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState start");
+    TAG_LOGI(AAFwkTag::TEST, "OnSendFinished start");
     auto cjtriggerCompletecb = std::make_shared<FfiWantAgent::CJTriggerCompleteCallBack>();
     AAFwk::Want want;
     int resultCode = 1;
@@ -204,7 +204,7 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnSendFinished_0010, TestSize.Lev
     cjtriggerCompletecb->SetCallbackInfo(cb);
     cjtriggerCompletecb->OnSendFinished(want, resultCode, resultData, resultExtras);
     EXPECT_EQ(mydata.finalCode, resultCode);
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState end");
+    TAG_LOGI(AAFwkTag::TEST, "OnSendFinished end");
 }
 
 /**
@@ -214,7 +214,7 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnSendFinished_0010, TestSize.Lev
  */
 HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentGetWantAgent_0010, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState start");
+    TAG_LOGI(AAFwkTag::TEST, "FfiWantAgentGetWantAgent start");
     FfiWantAgent::CJWantAgentInfo cjWantAgentInfo{
         .actionFlags = {.head = nullptr, .size = 0},
         .actionType = 1,
@@ -228,7 +228,7 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentGetWantAgent_0010, Te
     EXPECT_EQ(ret, -1);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
     free(cjWantAgentInfo.extraInfos);
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState end");
+    TAG_LOGI(AAFwkTag::TEST, "FfiWantAgentGetWantAgent end");
 }
 
 /**
@@ -238,14 +238,14 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentGetWantAgent_0010, Te
  */
 HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentGetBoundleName_0010, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState start");
+    TAG_LOGI(AAFwkTag::TEST, "FfiWantAgentGetBoundleName start");
     int64_t cjWantAgent = -1;
     int32_t err = 0;
     int32_t *errCode = &err;
     char* name = FfiWantAgent::FfiWantAgentGetBoundleName(cjWantAgent, errCode);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
     EXPECT_EQ(name, NULL);
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState end");
+    TAG_LOGI(AAFwkTag::TEST, "FfiWantAgentGetBoundleName end");
 }
 
 /**
@@ -255,14 +255,14 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentGetBoundleName_0010, 
  */
 HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentGetUid_0010, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState start");
+    TAG_LOGI(AAFwkTag::TEST, "FfiWantAgentGetUid start");
     int64_t cjWantAgent = -1;
     int32_t err = 0;
     int32_t *errCode = &err;
     int32_t ret = FfiWantAgent::FfiWantAgentGetUid(cjWantAgent, errCode);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
     EXPECT_EQ(ret, -1);
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState end");
+    TAG_LOGI(AAFwkTag::TEST, "FfiWantAgentGetUid end");
 }
 
 /**
@@ -272,13 +272,13 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentGetUid_0010, TestSize
  */
 HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentCancel_0010, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState start");
+    TAG_LOGI(AAFwkTag::TEST, "FfiWantAgentCancel start");
     int64_t cjWantAgent = -1;
     int32_t err = 0;
     int32_t *errCode = &err;
     FfiWantAgent::FfiWantAgentCancel(cjWantAgent, errCode);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState end");
+    TAG_LOGI(AAFwkTag::TEST, "FfiWantAgentCancel end");
 }
 
 /**
@@ -288,7 +288,7 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentCancel_0010, TestSize
  */
 HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentTrigger_0010, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState start");
+    TAG_LOGI(AAFwkTag::TEST, "FfiWantAgentTrigger start");
     int64_t cjWantAgent = -1;
     int32_t err = -1;
     int32_t *errCode = &err;
@@ -302,7 +302,7 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentTrigger_0010, TestSiz
     };
     FfiWantAgent::FfiWantAgentTrigger(cjWantAgent, triggerInfo, callback, errCode);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState end");
+    TAG_LOGI(AAFwkTag::TEST, "FfiWantAgentTrigger end");
 }
 
 /**
@@ -312,14 +312,14 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentTrigger_0010, TestSiz
  */
 HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentOnGetOperationType_0010, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState start");
+    TAG_LOGI(AAFwkTag::TEST, "FfiWantAgentOnGetOperationType start");
     int64_t cjWantAgent = -1;
     int32_t err = -1;
     int32_t *errCode = &err;
     int32_t ret = FfiWantAgent::FfiWantAgentGetOperationType(cjWantAgent, errCode);
     EXPECT_EQ(ret, -1);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState end");
+    TAG_LOGI(AAFwkTag::TEST, "FfiWantAgentOnGetOperationType end");
 }
 
 /**
@@ -329,14 +329,14 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentOnGetOperationType_00
  */
 HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentGetOperationType_0010, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState start");
+    TAG_LOGI(AAFwkTag::TEST, "FfiWantAgentGetOperationType start");
     ino64_t cjWantAgent = -1;
     int32_t err = -1;
     int32_t *errCode = &err;
     int32_t ret = FfiWantAgent::FfiWantAgentGetOperationType(cjWantAgent, errCode);
     EXPECT_EQ(ret, -1);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState end");
+    TAG_LOGI(AAFwkTag::TEST, "FfiWantAgentGetOperationType end");
 }
 
 /**
@@ -346,7 +346,7 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentGetOperationType_0010
  */
 HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentEqual_0010, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState start");
+    TAG_LOGI(AAFwkTag::TEST, "FfiTestFfiWantAgentEqual start");
     int64_t cjWantAgent = -1;
     int64_t cjWantAgent2 = -2;
     int32_t err = -1;
@@ -354,7 +354,7 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentEqual_0010, TestSize.
     bool ret = FfiWantAgent::FfiWantAgentEqual(cjWantAgent, cjWantAgent2, errCode);
     EXPECT_EQ(ret, false);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
-    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState end");
+    TAG_LOGI(AAFwkTag::TEST, "FfiTestFfiWantAgentEqual end");
 }
 
 }  // namespace AbilityRuntime
