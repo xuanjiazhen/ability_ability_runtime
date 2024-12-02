@@ -22,6 +22,7 @@
         "SystemCapability.Ability.AppStartup",
         "SystemCapability.Ability.AppExtension.PhotoEditorExtension"
       ],
+      
       "features": [
         "ability_runtime_auto_fill_ability",
         "ability_runtime_graphics",
