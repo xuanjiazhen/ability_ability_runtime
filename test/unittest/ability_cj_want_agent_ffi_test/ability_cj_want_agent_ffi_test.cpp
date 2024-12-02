@@ -221,10 +221,10 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentGetWantAgent_0010, Te
  */
 HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentGetBoundleName_0010, TestSize.Level1)
 {
-    int64_t cjWantAgent_ = -1;
+    int64_t cjWantAgent = -1;
     int32_t err = 0;
     int32_t *errCode = &err;
-    char* name = FfiWantAgent::FfiWantAgentGetBoundleName(cjWantAgent_, errCode);
+    char* name = FfiWantAgent::FfiWantAgentGetBoundleName(cjWantAgent, errCode);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
     EXPECT_EQ(name, NULL);
 }
