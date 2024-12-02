@@ -34,6 +34,7 @@
 #include "cj_common_ffi.h"
 
 #include <memory>
+#include <functional>
 
 using namespace testing;
 using namespace testing::ext;
@@ -120,14 +121,14 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnTrigger_0010, TestSize.Level1)
         .permission = strdup("Permission"),
         .code = 1
     };
-    std::function<void(FfiWantAgent::CJCompleteData)> callback_ =
+    std::function<void(FfiWantAgent::CJCompleteData)> callback =
         [](FfiWantAgent::CJCompleteData) {};
     auto pendingWant = std::make_shared<OHOS::AbilityRuntime::WantAgent::PendingWant>();
     std::shared_ptr<WantAgent::WantAgent> wantAgent = std::make_shared<WantAgent::WantAgent>(pendingWant);
     auto cjWantAgent = std::make_shared<FfiWantAgent::CJWantAgent>(wantAgent);
     int32_t err = -1;
     int32_t *errCode = &err;
-    cjWantAgent->OnTrigger(cjtriggerInfo, callback_, errCode);
+    cjWantAgent->OnTrigger(cjtriggerInfo, callback, errCode);
     EXPECT_EQ(*errCode, NO_ERROR);
     free(cjtriggerInfo.extraInfos);
     free(cjtriggerInfo.permission);
@@ -146,7 +147,7 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnGetOperationType_0010, TestSize
     int32_t err = -1;
     int32_t *errCode = &err;
     int oprationType = 0;
-    *errCode_ = cjWantAgent->OnGetOperationType(errCode);
+    *errCode = cjWantAgent->OnGetOperationType(errCode);
     EXPECT_EQ(*errCode, NO_ERROR);
     EXPECT_NE(oprationType, -1);
 }
@@ -160,11 +161,11 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnEqual_0010, TestSize.Level1)
 {
     int32_t err = -1;
     int32_t *errCode = &err;
-    auto second_ = std::make_shared<WantAgent::WantAgent>();
-    auto pendingWant_ = std::make_shared<OHOS::AbilityRuntime::WantAgent::PendingWant>();
-    auto wantAgent_ = std::make_shared<WantAgent::WantAgent>(pendingWant_);
-    auto cjWantAgent = std::make_shared<FfiWantAgent::CJWantAgent>(wantAgent_);
-    bool result = cjWantAgent->OnEqual(second_, errCode);
+    auto second = std::make_shared<WantAgent::WantAgent>();
+    auto pendingWant = std::make_shared<OHOS::AbilityRuntime::WantAgent::PendingWant>();
+    auto wantAgent = std::make_shared<WantAgent::WantAgent>(pendingWant);
+    auto cjWantAgent = std::make_shared<FfiWantAgent::CJWantAgent>(wantAgent);
+    bool result = cjWantAgent->OnEqual(second, errCode);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
     EXPECT_EQ(result, false);
 }
@@ -177,18 +178,18 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnEqual_0010, TestSize.Level1)
 HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnSendFinished_0010, TestSize.Level1)
 {
     auto cjtriggerCompletecb = std::make_shared<FfiWantAgent::CJTriggerCompleteCallBack>();
-    AAFwk::Want want_;
+    AAFwk::Want want;
     int resultCode = 1;
     std::string resultData = "resultData";
-    AAFwk::WantParams resultExtras_;
+    AAFwk::WantParams resultExtras;
     cjtriggerCompletecb->SetWantAgentInstance(1);
-    FfiWantAgent::CJCompleteData mydata_;
+    FfiWantAgent::CJCompleteData mydata;
     auto cb = [&mydata_](const FfiWantAgent::CJCompleteData &data) -> void {
-        mydata_.finalCode = data.finalCode;
+        mydata.finalCode = data.finalCode;
     };
     cjtriggerCompletecb->SetCallbackInfo(cb);
-    cjtriggerCompletecb->OnSendFinished(want_, resultCode, resultData, resultExtras_);
-    EXPECT_EQ(mydata_.finalCode, resultCode);
+    cjtriggerCompletecb->OnSendFinished(want, resultCode, resultData, resultExtras);
+    EXPECT_EQ(mydata.finalCode, resultCode);
 }
 
 /**
@@ -235,10 +236,10 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentGetBoundleName_0010, 
  */
 HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentGetUid_0010, TestSize.Level1)
 {
-    int64_t cjWantAgent_ = -1;
+    int64_t cjWantAgent = -1;
     int32_t err = 0;
     int32_t *errCode = &err;
-    int32_t ret = FfiWantAgent::FfiWantAgentGetUid(cjWantAgent_, errCode);
+    int32_t ret = FfiWantAgent::FfiWantAgentGetUid(cjWantAgent, errCode);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
     EXPECT_EQ(ret, -1);
 }
@@ -267,7 +268,7 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentTrigger_0010, TestSiz
     int64_t cjWantAgent = -1;
     int32_t err = -1;
     int32_t *errCode = &err;
-    void (*callback_)(FfiWantAgent::CJCompleteData) = [](FfiWantAgent::CJCompleteData data){};
+    void (*callback)(FfiWantAgent::CJCompleteData) = [](FfiWantAgent::CJCompleteData data){};
     FfiWantAgent::CJTriggerInfo triggerInfo{
         .code = 0,
         .extraInfos = nullptr,
@@ -275,7 +276,7 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentTrigger_0010, TestSiz
         .permission = nullptr,
         .want = nullptr
     };
-    FfiWantAgent::FfiWantAgentTrigger(cjWantAgent, triggerInfo, callback_, errCode);
+    FfiWantAgent::FfiWantAgentTrigger(cjWantAgent, triggerInfo, callback, errCode);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 }
 
