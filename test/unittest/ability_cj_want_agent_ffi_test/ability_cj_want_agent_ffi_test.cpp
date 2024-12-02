@@ -15,23 +15,24 @@
 
 #include <gtest/gtest.h>
 
-#include "cj_want_agent_ffi.h"
-#include "want_agent_helper.h"
-#include "want_agent_info.h"
-#include "trigger_info.h"
-#include "want_agent.h"
-#include "pending_want.h"
-#include "want_sender_interface.h"
-#include "want_agent_client.h"
-#include "message_parcel.h"
 #include "cj_want_agent_utils.h"
-#include "want_sender_info.h"
-#include "errors.h"
-#include "want.h"
-#include "ffi_remote_data.h"
+#include "cj_want_agent_ffi.h"
 #include "context_impl.h"
 #include "cj_ability_runtime_error.h"
 #include "cj_common_ffi.h"
+#include "errors.h"
+#include "ffi_remote_data.h"
+#include "hilog_tag_wrapper.h"
+#include "message_parcel.h"
+#include "pending_want.h"
+#include "trigger_info.h"
+#include "want_agent_helper.h"
+#include "want_agent_info.h"
+#include "want_agent.h"
+#include "want_sender_interface.h"
+#include "want_agent_client.h"
+#include "want_sender_info.h"
+#include "want.h"
 
 #include <memory>
 #include <functional>
