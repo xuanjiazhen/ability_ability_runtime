@@ -264,7 +264,7 @@ void JsUIExtension::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> se
         launchParam.launchReason = AAFwk::LaunchReason::LAUNCHREASON_INSIGHT_INTENT;
     }
     int32_t screenMode = want.GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
-    if (screenMode == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
+    if (IsEmbeddableStart(screenMode)) {
         napi_value argv[] = {napiWant, CreateJsLaunchParam(env, launchParam) };
         CallObjectMethod("onCreate", argv, ARGC_TWO);
     } else {
@@ -682,8 +682,8 @@ bool JsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFw
         napi_create_reference(env, nativeContentSession, 1, &ref);
         contentSessions_.emplace(compId, std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference*>(ref)));
         int32_t screenMode = want.GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
-        if (screenMode == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-            screenMode_ = AAFwk::EMBEDDED_FULL_SCREEN_MODE;
+        if (IsEmbeddableStart(screenMode)) {
+            screenMode_ = screenMode;
             auto jsAppWindowStage = CreateAppWindowStage(uiWindow, sessionInfo);
             if (jsAppWindowStage == nullptr) {
                 TAG_LOGE(AAFwkTag::UI_EXT, "JsAppWindowStage is nullptr");
@@ -801,7 +801,7 @@ void JsUIExtension::DestroyWindow(const sptr<AAFwk::SessionInfo> &sessionInfo)
     }
     if (contentSessions_.find(componentId) != contentSessions_.end() && contentSessions_[componentId] != nullptr) {
         HandleScope handleScope(jsRuntime_);
-        if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
+        if (IsEmbeddableStart(screenMode_)) {
             screenMode_ = AAFwk::IDLE_SCREEN_MODE;
             CallObjectMethod("onWindowStageDestroy");
         } else {
@@ -1048,6 +1048,11 @@ void JsUIExtension::ConfigurationUpdated()
     napi_value napiConfiguration = OHOS::AppExecFwk::WrapConfiguration(env, *fullConfig);
     CallObjectMethod("onConfigurationUpdate", &napiConfiguration, ARGC_ONE);
 }
+
+auto IsEmbeddableStart = [] (int32_t screenMode) {
+    return screenMode == AAFwk::EMBEDDED_FULL_SCREEN_MODE ||
+            screenMode == AAFwk::EMBEDDED_HALF_SCREEN_MODE;
+};
 
 #ifdef SUPPORT_GRAPHICS
 void JsUIExtension::OnDisplayInfoChange(
