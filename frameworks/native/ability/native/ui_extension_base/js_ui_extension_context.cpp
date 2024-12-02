@@ -386,7 +386,8 @@ napi_value JsUIExtensionContext::OnOpenLinkInner(napi_env env, const AAFwk::Want
     return result;
 }
 
-int32_t JsUIExtensionContext::GetScreenMode(const AAFwk::Want &want) {
+int32_t JsUIExtensionContext::GetScreenMode(const AAFwk::Want &want)
+{
     return want.GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
 }
 
