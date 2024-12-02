@@ -318,7 +318,7 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentGetOperationType_0010
 HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestFfiWantAgentEqual_0010, TestSize.Level1)
 {
     int64_t cjWantAgent = -1;
-    int64_t cjWantAgent2 = -1;
+    int64_t cjWantAgent2 = -2;
     int32_t err = -1;
     int32_t *errCode = &err;
     bool ret = FfiWantAgent::FfiWantAgentEqual(cjWantAgent, cjWantAgent2, errCode);

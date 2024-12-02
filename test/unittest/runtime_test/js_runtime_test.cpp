@@ -1492,6 +1492,7 @@ HWTEST_F(JsRuntimeTest, UpdatePkgContextInfoJson_0100, TestSize.Level1)
  */
 HWTEST_F(JsRuntimeTest, JsRuntimePreloadModule_0100, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState start");
     std::unique_ptr<JsRuntime> jsRuntime = JsRuntime::Create(options_);
     EXPECT_TRUE(jsRuntime != nullptr);
     std::string moduleName = TEST_MODULE_NAME;
@@ -1502,6 +1503,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimePreloadModule_0100, TestSize.Level1)
     jsRuntime->PreloadModule(moduleName, srcPath, hapPath, isEsMode, useCommonTrunk);
     EXPECT_EQ(jsRuntime->preloadList_.size(), 1);
     jsRuntime.reset();
+    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState end");
 }
 
 /**
@@ -1511,6 +1513,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimePreloadModule_0100, TestSize.Level1)
  */
 HWTEST_F(JsRuntimeTest, JsRuntimePreloadMainAbility_0100, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState start");
     std::unique_ptr<JsRuntime> jsRuntime = JsRuntime::Create(options_);
     EXPECT_TRUE(jsRuntime != nullptr);
     std::string moduleName = TEST_MODULE_NAME;
@@ -1521,6 +1524,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimePreloadMainAbility_0100, TestSize.Level1)
     jsRuntime->PreloadMainAbility(moduleName, srcPath, hapPath, isEsMode, srcEntrance);
     EXPECT_EQ(jsRuntime->preloadList_.size(), 1);
     jsRuntime.reset();
+    TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState end");
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
