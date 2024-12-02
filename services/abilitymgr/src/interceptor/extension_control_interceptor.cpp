@@ -53,7 +53,8 @@ ErrCode ExtensionControlInterceptor::DoProcess(AbilityInterceptorParam param)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "third party app block extension call");
         return EXTENSION_BLOCKED_BY_THIRD_PARTY_APP_FLAG;
     }
-    if (targetAbilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::SERVICE &&
+    if ((targetAbilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::SERVICE ||
+         targetAbilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::DATASHARE) &&
         !DelayedSingleton<ExtensionConfig>::GetInstance()->IsExtensionStartServiceEnable(
             callerAbilityInfo.extensionTypeName, param.want.GetElement().GetURI())) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "service list block extension call");
