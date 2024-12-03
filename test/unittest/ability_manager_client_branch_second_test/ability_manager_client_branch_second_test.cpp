@@ -24,6 +24,7 @@
 #undef protected
 
 #include "hilog_tag_wrapper.h"
+#include "mock_ability_token.h"
 #include "mock_ability_connect_callback.h"
 #include "mock_ability_manager_collaborator.h"
 #include "session/host/include/session.h"
@@ -124,6 +125,119 @@ HWTEST_F(AbilityManagerClientBranchSecondTest, AbilityManagerClient_TerminateMis
     }
     EXPECT_NE(client_, nullptr);
     GTEST_LOG_(INFO) << "AbilityManagerClient_TerminateMission_0100 end";
+}
+
+/**
+ * @tc.number: StartAbilityOnlyUIAbility_0100
+ * @tc.name: StartAbilityOnlyUIAbility
+ * @tc.desc: StartAbilityOnlyUIAbility
+ */
+HWTEST_F(AbilityManagerClientBranchSecondTest, StartAbilityOnlyUIAbility_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityOnlyUIAbility_0100 start");
+
+    std::shared_ptr<AAFwk::AbilityManagerClient> abilityManagerClient = AAFwk::AbilityManagerClient::GetInstance();
+    ASSERT_NE(abilityManagerClient, nullptr);
+    AAFwk::Want want;
+    sptr<IRemoteObject> callerToken = nullptr;
+    uint32_t specifyTokenId = 0;
+    EXPECT_NE(abilityManagerClient->StartAbilityOnlyUIAbility(want, callerToken, specifyTokenId), ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityOnlyUIAbility_0100 end");
+}
+
+/**
+ * @tc.number: BackToCallerAbilityWithResult_0100
+ * @tc.name: BackToCallerAbilityWithResult
+ * @tc.desc: BackToCallerAbilityWithResult
+ */
+HWTEST_F(AbilityManagerClientBranchSecondTest, BackToCallerAbilityWithResult_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "BackToCallerAbilityWithResult_0100 start");
+
+    std::shared_ptr<AAFwk::AbilityManagerClient> abilityManagerClient = AAFwk::AbilityManagerClient::GetInstance();
+    ASSERT_NE(abilityManagerClient, nullptr);
+    AAFwk::Want resultWant;
+    sptr<IRemoteObject> token = nullptr;
+    int32_t resultCode = 0;
+    int64_t callerRequestCode = 0;
+    EXPECT_EQ(abilityManagerClient->BackToCallerAbilityWithResult(token, resultCode, &resultWant, callerRequestCode),
+        ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "BackToCallerAbilityWithResult_0100 end");
+}
+
+/**
+ * @tc.number: TerminateUIServiceExtensionAbility_0100
+ * @tc.name: TerminateUIServiceExtensionAbility
+ * @tc.desc: TerminateUIServiceExtensionAbility
+ */
+HWTEST_F(AbilityManagerClientBranchSecondTest, TerminateUIServiceExtensionAbility_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "TerminateUIServiceExtensionAbility_0100 start");
+
+    std::shared_ptr<AAFwk::AbilityManagerClient> abilityManagerClient = AAFwk::AbilityManagerClient::GetInstance();
+    ASSERT_NE(abilityManagerClient, nullptr);
+    sptr<IRemoteObject> token = nullptr;
+    EXPECT_NE(abilityManagerClient->TerminateUIServiceExtensionAbility(token), ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "TerminateUIServiceExtensionAbility_0100 end");
+}
+
+/**
+ * @tc.number: CloseUIExtensionAbilityBySCB_0100
+ * @tc.name: CloseUIExtensionAbilityBySCB
+ * @tc.desc: CloseUIExtensionAbilityBySCB
+ */
+HWTEST_F(AbilityManagerClientBranchSecondTest, CloseUIExtensionAbilityBySCB_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CloseUIExtensionAbilityBySCB_0100 start");
+
+    std::shared_ptr<AAFwk::AbilityManagerClient> abilityManagerClient = AAFwk::AbilityManagerClient::GetInstance();
+    ASSERT_NE(abilityManagerClient, nullptr);
+    sptr<IRemoteObject> token = nullptr;
+    EXPECT_EQ(abilityManagerClient->CloseUIExtensionAbilityBySCB(token), ERR_INVALID_VALUE);
+    token = new AppExecFwk::MockAbilityToken();
+    EXPECT_NE(abilityManagerClient->CloseUIExtensionAbilityBySCB(token), ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "CloseUIExtensionAbilityBySCB_0100 end");
+}
+
+/**
+ * @tc.number: ConnectUIServiceExtesnionAbility_0100
+ * @tc.name: ConnectUIServiceExtesnionAbility
+ * @tc.desc: ConnectUIServiceExtesnionAbility
+ */
+HWTEST_F(AbilityManagerClientBranchSecondTest, ConnectUIServiceExtesnionAbility_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ConnectUIServiceExtesnionAbility_0100 start");
+
+    std::shared_ptr<AAFwk::AbilityManagerClient> abilityManagerClient = AAFwk::AbilityManagerClient::GetInstance();
+    ASSERT_NE(abilityManagerClient, nullptr);
+    AAFwk::Want want;
+    sptr<IAbilityConnection> connect = nullptr;
+    sptr<IRemoteObject> callerToken = nullptr;
+    int32_t userId = 0;
+    EXPECT_NE(abilityManagerClient->ConnectUIServiceExtesnionAbility(want, connect, callerToken, userId), ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "ConnectUIServiceExtesnionAbility_0100 end");
+}
+
+/**
+ * @tc.number: BlockAllAppStartTest_0100
+ * @tc.name: BlockAllAppStart
+ * @tc.desc: BlockAllAppStart
+ */
+HWTEST_F(AbilityManagerClientBranchSecondTest, BlockAllAppStartTest_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "BlockAllAppStartTest_0100 start");
+
+    std::shared_ptr<AAFwk::AbilityManagerClient> abilityManagerClient = AAFwk::AbilityManagerClient::GetInstance();
+    ASSERT_NE(abilityManagerClient, nullptr);
+    bool flag = false;
+    EXPECT_NE(abilityManagerClient->BlockAllAppStart(flag), ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "BlockAllAppStartTest_0100 end");
 }
 }  // namespace AAFwk
 }  // namespace OHOS
