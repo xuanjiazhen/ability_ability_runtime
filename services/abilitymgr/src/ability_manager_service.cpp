@@ -3071,6 +3071,7 @@ void AbilityManagerService::SetPickerElementName(const sptr<SessionInfo> &extens
 
 void AbilityManagerService::SetAutoFillElementName(const sptr<SessionInfo> &extensionSessionInfo)
 {
+#ifdef SUPPORT_AUTO_FILL
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     CHECK_POINTER_IS_NULLPTR(extensionSessionInfo);
     std::vector<std::string> argList;
@@ -3089,6 +3090,7 @@ void AbilityManagerService::SetAutoFillElementName(const sptr<SessionInfo> &exte
     }
     extensionSessionInfo->want.SetElementName(argList[INDEX_ZERO], argList[INDEX_TWO]);
     extensionSessionInfo->want.SetModuleName(argList[INDEX_ONE]);
+#endif // SUPPORT_AUTO_FILL
 }
 
 int AbilityManagerService::CheckUIExtensionUsage(AppExecFwk::UIExtensionUsage uiExtensionUsage,
@@ -9530,6 +9532,8 @@ int AbilityManagerService::CheckCallServiceExtensionPermission(const AbilityRequ
     }
     return result;
 }
+
+#ifdef SUPPORT_AUTO_FILL
 int AbilityManagerService::CheckCallAutoFillExtensionPermission(const AbilityRequest &abilityRequest)
 {
     if (!abilityRequest.appInfo.isSystemApp) {
@@ -9549,6 +9553,7 @@ int AbilityManagerService::CheckCallAutoFillExtensionPermission(const AbilityReq
     }
     return ERR_OK;
 }
+#endif // SUPPORT_AUTO_FILL
 
 int AbilityManagerService::CheckCallOtherExtensionPermission(const AbilityRequest &abilityRequest)
 {
@@ -9570,10 +9575,12 @@ int AbilityManagerService::CheckCallOtherExtensionPermission(const AbilityReques
     if (extensionType == AppExecFwk::ExtensionAbilityType::ADS_SERVICE) {
         return ERR_OK;
     }
+#ifdef SUPPORT_AUTO_FILL
     if (extensionType == AppExecFwk::ExtensionAbilityType::AUTO_FILL_PASSWORD ||
         extensionType == AppExecFwk::ExtensionAbilityType::AUTO_FILL_SMART) {
         return CheckCallAutoFillExtensionPermission(abilityRequest);
     }
+#endif // SUPPORT_AUTO_FILL
     if (AAFwk::UIExtensionUtils::IsUIExtension(extensionType)) {
         return CheckUIExtensionPermission(abilityRequest);
     }
