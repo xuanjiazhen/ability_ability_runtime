@@ -123,7 +123,7 @@ HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnCancel_0010, TestSize.Level1)
 HWTEST_F(CjWantAgentFfiTest, CjWantAgentFfiTestOnTrigger_0010, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "OnTrigger start");
-    FfiWantAgent::CJTriggerInfo cjtriggerInfo{
+    FfiWantAgent::CJTriggerInfo cjtriggerInfo {
         .hasWant = false,
         .extraInfos = strdup("extroinfo"),
         .permission = strdup("Permission"),
