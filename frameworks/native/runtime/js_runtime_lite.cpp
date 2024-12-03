@@ -45,6 +45,7 @@ const std::string VERSION = "version";
 const std::string ENTRY_PATH = "entryPath";
 const std::string IS_SO = "isSO";
 const std::string DEPENDENCY_ALIAS = "dependencyAlias";
+
 int32_t PrintVmLog(int32_t, int32_t, const char*, const char*, const char* message)
 {
     TAG_LOGI(AAFwkTag::JSRUNTIME, "ArkLog: %{public}s", message);
