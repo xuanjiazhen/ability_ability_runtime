@@ -758,7 +758,7 @@ napi_value JSAbilityDelegator::OnGetAbilityState(napi_env env, NapiCallbackInfo&
         TAG_LOGE(AAFwkTag::DELEGATOR, "null delegator");
         return CreateJsNull(env);
     }
-    AbilityDelegator::AbilityState lifeState = delegator->GetAbilityState(remoteObject);
+    JSAbilityDelegatorImpl::AbilityState lifeState = delegator->GetAbilityState(remoteObject);
     AbilityLifecycleState abilityLifeState = AbilityLifecycleState::UNINITIALIZED;
     AbilityLifecycleStateToJs(lifeState, abilityLifeState);
     return CreateJsValue(env, static_cast<int>(abilityLifeState));
@@ -1100,20 +1100,20 @@ napi_value JSAbilityDelegator::CreateAbilityObject(napi_env env, const sptr<IRem
 }
 
 void JSAbilityDelegator::AbilityLifecycleStateToJs(
-    const AbilityDelegator::AbilityState &lifeState, AbilityLifecycleState &abilityLifeState)
+    const JSAbilityDelegatorImpl::AbilityState &lifeState, AbilityLifecycleState &abilityLifeState)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "lifeState: %{public}d", static_cast<int32_t>(lifeState));
     switch (lifeState) {
-        case AbilityDelegator::AbilityState::STARTED:
+        case JSAbilityDelegatorImpl::AbilityState::STARTED:
             abilityLifeState = AbilityLifecycleState::CREATE;
             break;
-        case AbilityDelegator::AbilityState::FOREGROUND:
+        case JSAbilityDelegatorImpl::AbilityState::FOREGROUND:
             abilityLifeState = AbilityLifecycleState::FOREGROUND;
             break;
-        case AbilityDelegator::AbilityState::BACKGROUND:
+        case JSAbilityDelegatorImpl::AbilityState::BACKGROUND:
             abilityLifeState = AbilityLifecycleState::BACKGROUND;
             break;
-        case AbilityDelegator::AbilityState::STOPPED:
+        case JSAbilityDelegatorImpl::AbilityState::STOPPED:
             abilityLifeState = AbilityLifecycleState::DESTROY;
             break;
         default:

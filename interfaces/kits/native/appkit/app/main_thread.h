@@ -575,8 +575,8 @@ private:
      * @param record User Test info.
      *
      */
-    bool PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &record, bool isStageBased,
-        const AppExecFwk::HapModuleInfo &entryHapModuleInfo);
+    bool PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord>& record, bool isStageBased,
+        const AppExecFwk::HapModuleInfo& entryHapModuleInfo);
 
     /**
      * @brief Set current process extension type

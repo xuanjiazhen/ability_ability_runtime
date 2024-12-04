@@ -14,15 +14,23 @@
  */
 
 #include "ability_delegator_registry.h"
+#include <memory>
 
 namespace OHOS {
 namespace AppExecFwk {
 std::shared_ptr<AbilityDelegator> AbilityDelegatorRegistry::abilityDelegator_ {};
 std::shared_ptr<AbilityDelegatorArgs> AbilityDelegatorRegistry::abilityDelegatorArgs_ {};
 
-std::shared_ptr<AbilityDelegator> AbilityDelegatorRegistry::GetAbilityDelegator()
+std::shared_ptr<JSAbilityDelegatorImpl> AbilityDelegatorRegistry::GetAbilityDelegator()
 {
-    return abilityDelegator_;
+    auto p = reinterpret_cast<JSAbilityDelegatorImpl*>(abilityDelegator_.get());
+    return std::shared_ptr<JSAbilityDelegatorImpl>(abilityDelegator_, p);
+}
+
+std::shared_ptr<CJAbilityDelegatorImpl> AbilityDelegatorRegistry::GetCJAbilityDelegator()
+{
+    auto p = reinterpret_cast<CJAbilityDelegatorImpl*>(abilityDelegator_.get());
+    return std::shared_ptr<CJAbilityDelegatorImpl>(abilityDelegator_, p);
 }
 
 std::shared_ptr<AbilityDelegatorArgs> AbilityDelegatorRegistry::GetArguments()

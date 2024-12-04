@@ -17,8 +17,10 @@
 #define OHOS_ABILITY_RUNTIME_ABILITY_DELEGATOR_REGISTRY_H
 
 #include <memory>
-#include "ability_delegator.h"
+
 #include "ability_delegator_args.h"
+#include "cj_ability_delegator_impl.h"
+#include "js_ability_delegator_impl.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -29,7 +31,14 @@ public:
      *
      * @return the AbilityDelegator object initialized when the application is started.
      */
-    static std::shared_ptr<AbilityDelegator> GetAbilityDelegator();
+    static std::shared_ptr<JSAbilityDelegatorImpl> GetAbilityDelegator();
+
+    /**
+     * Obtains the AbilityDelegator object of the application.
+     *
+     * @return the AbilityDelegator object initialized when the application is started.
+     */
+    static std::shared_ptr<CJAbilityDelegatorImpl> GetCJAbilityDelegator();
 
     /**
      * Obtains test parameters stored in the AbilityDelegatorArgs object.

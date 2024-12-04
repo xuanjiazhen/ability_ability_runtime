@@ -20,7 +20,7 @@
 #include <map>
 
 #define private public
-#include "ability_delegator.h"
+#include "js_ability_delegator_impl.h"
 #include "ability_manager_client.h"
 #include "context_impl.h"
 #undef private
@@ -89,11 +89,11 @@ public:
     void MakeMockObjects() const;
 
 public:
-    static std::shared_ptr<AbilityDelegator> commonDelegator_;
+    static std::shared_ptr<JSAbilityDelegatorImpl> commonDelegator_;
     static std::shared_ptr<AbilityDelegatorArgs> delegatorArgs_;
 };
 
-std::shared_ptr<AbilityDelegator> AbilityDelegatorTest::commonDelegator_ = nullptr;
+std::shared_ptr<JSAbilityDelegatorImpl> AbilityDelegatorTest::commonDelegator_ = nullptr;
 std::shared_ptr<AbilityDelegatorArgs> AbilityDelegatorTest::delegatorArgs_ = nullptr;
 
 void AbilityDelegatorTest::SetUpTestCase()
@@ -114,7 +114,7 @@ void AbilityDelegatorTest::SetUpTestCase()
     delegatorArgs_ = std::make_shared<AbilityDelegatorArgs>(want);
     AbilityRuntime::Runtime::Options options;
     auto testRunner = TestRunner::Create(AbilityRuntime::Runtime::Create(options), delegatorArgs_, true);
-    commonDelegator_ = std::make_shared<AbilityDelegator>(std::make_shared<AbilityRuntime::ContextImpl>(),
+    commonDelegator_ = std::make_shared<JSAbilityDelegatorImpl>(std::make_shared<AbilityRuntime::ContextImpl>(),
         std::move(testRunner), sptr<IRemoteObject>(new AAFwk::MockTestObserverStub));
 }
 
@@ -206,7 +206,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_0100, Function | MediumTes
         abilityArgs,
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
 
     abilityDelegator.ClearAllMonitors();
     std::shared_ptr<IAbilityMonitor> imotor = std::make_shared<IAbilityMonitor>(ABILITY_NAME);
@@ -245,7 +245,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_0200, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
 
     std::shared_ptr<IAbilityMonitor> imotor = std::make_shared<IAbilityMonitor>(ABILITY_NAME);
     abilityDelegator.ClearAllMonitors();
@@ -280,7 +280,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_0300, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
 
     EXPECT_EQ(abilityDelegator.GetAppContext()->GetBundleName(), "");
 }
@@ -310,11 +310,11 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_0400, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
 
     int abilityState = static_cast<int>(abilityDelegator.GetAbilityState(nullptr));
 
-    EXPECT_EQ(abilityState, static_cast<int>(AbilityDelegator::AbilityState::UNINITIALIZED));
+    EXPECT_EQ(abilityState, static_cast<int>(JSAbilityDelegatorImpl::AbilityState::UNINITIALIZED));
 }
 
 /**
@@ -342,7 +342,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_0500, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
 
     sptr<IRemoteObject> token = sptr<IRemoteObject>(new MockAbilityDelegatorStub);
     std::shared_ptr<ADelegatorAbilityProperty> abilityProperty = std::make_shared<ADelegatorAbilityProperty>();
@@ -352,7 +352,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_0500, Function | MediumTes
     abilityDelegator.abilityProperties_.emplace_front(abilityProperty);
     int abilityState = static_cast<int>(abilityDelegator.GetAbilityState(token));
 
-    EXPECT_EQ(abilityState, static_cast<int>(AbilityDelegator::AbilityState::STARTED));
+    EXPECT_EQ(abilityState, static_cast<int>(JSAbilityDelegatorImpl::AbilityState::STARTED));
 }
 
 /**
@@ -380,12 +380,12 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_0600, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
 
     sptr<IRemoteObject> token = sptr<IRemoteObject>(new MockAbilityDelegatorStub);
     int abilityState = static_cast<int>(abilityDelegator.GetAbilityState(token));
 
-    EXPECT_EQ(abilityState, static_cast<int>(AbilityDelegator::AbilityState::UNINITIALIZED));
+    EXPECT_EQ(abilityState, static_cast<int>(JSAbilityDelegatorImpl::AbilityState::UNINITIALIZED));
 }
 
 /**
@@ -413,7 +413,7 @@ HWTEST_F(AbilityDelegatorTest2, Ability_Delegator_Test_070, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub2());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
     sptr<IRemoteObject> token = sptr<IRemoteObject>(new MockAbilityDelegatorStub2);
     std::shared_ptr<ADelegatorAbilityProperty> ability = std::make_shared<ADelegatorAbilityProperty>();
     ability->token_ = token;
@@ -464,7 +464,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_0800, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
 
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         sptr<IRemoteObject> token = sptr<IRemoteObject>(new MockAbilityDelegatorStub);
@@ -499,7 +499,7 @@ HWTEST_F(AbilityDelegatorTest2, Ability_Delegator_Test_0900, Function | MediumTe
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub2());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
 
     sptr<IRemoteObject> token = sptr<IRemoteObject>(new MockAbilityDelegatorStub2);
 
@@ -531,7 +531,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_1000, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
 
     EXPECT_FALSE(abilityDelegator.DoAbilityForeground(nullptr));
 }
@@ -561,7 +561,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_1100, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
 
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         sptr<IRemoteObject> token = sptr<IRemoteObject>(new MockAbilityDelegatorStub);
@@ -596,7 +596,7 @@ HWTEST_F(AbilityDelegatorTest2, Ability_Delegator_Test_1200, Function | MediumTe
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub2());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
 
     sptr<IRemoteObject> token = sptr<IRemoteObject>(new MockAbilityDelegatorStub2);
 
@@ -628,7 +628,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_1300, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
 
     EXPECT_FALSE(abilityDelegator.DoAbilityBackground(nullptr));
 }
@@ -658,7 +658,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_1400, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
 
     EXPECT_EQ(abilityDelegator.ExecuteShellCommand("", TIMEOUT), nullptr);
 }
@@ -688,7 +688,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_1500, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
     abilityDelegator.observer_ = nullptr;
 
     EXPECT_EQ(abilityDelegator.ExecuteShellCommand(CMD, TIMEOUT), nullptr);
@@ -719,7 +719,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_1600, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
     sptr<IRemoteObject> shobserver = sptr<IRemoteObject>(new MockTestObserverStub);
     abilityDelegator.observer_ = shobserver;
 
@@ -751,7 +751,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_1700, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
     sptr<IRemoteObject> shobserver = sptr<IRemoteObject>(new MockTestObserverStub);
     abilityDelegator.observer_ = nullptr;
     abilityDelegator.Print(PRINT_MSG);
@@ -784,7 +784,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_1800, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
     sptr<IRemoteObject> shobserver = sptr<IRemoteObject>(new MockTestObserverStub);
     abilityDelegator.observer_ = shobserver;
     abilityDelegator.Print(PRINT_MSG);
@@ -817,7 +817,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_1900, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
 
     sptr<IRemoteObject> token = sptr<IRemoteObject>(new MockAbilityDelegatorStub);
     std::shared_ptr<ADelegatorAbilityProperty> ability = std::make_shared<ADelegatorAbilityProperty>();
@@ -856,7 +856,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_2000, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
     sptr<IRemoteObject> token = sptr<IRemoteObject>(new MockAbilityDelegatorStub);
     std::shared_ptr<ADelegatorAbilityProperty> ability = std::make_shared<ADelegatorAbilityProperty>();
     ability->token_ = token;
@@ -894,7 +894,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_2100, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
     std::shared_ptr<MockIabilityMonitor> mockMonitor = std::make_shared<MockIabilityMonitor>(ABILITY_NAME);
     abilityDelegator.abilityMonitors_.emplace_back(mockMonitor);
     abilityDelegator.PostPerformStart(nullptr);
@@ -927,7 +927,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_2200, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
     std::shared_ptr<MockIabilityMonitor> mockMonitor = std::make_shared<MockIabilityMonitor>(ABILITY_NAME);
     abilityDelegator.abilityMonitors_.clear();
     abilityDelegator.abilityMonitors_.emplace_back(mockMonitor);
@@ -967,7 +967,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_23400, Function | MediumTe
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
     std::shared_ptr<MockIabilityMonitor> mockMonitor = std::make_shared<MockIabilityMonitor>(ABILITY_NAME);
     abilityDelegator.abilityMonitors_.emplace_back(mockMonitor);
     abilityDelegator.PostPerformScenceCreated(nullptr);
@@ -1000,7 +1000,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_2400, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
     std::shared_ptr<MockIabilityMonitor> mockMonitor = std::make_shared<MockIabilityMonitor>(ABILITY_NAME);
     abilityDelegator.abilityMonitors_.clear();
     abilityDelegator.abilityMonitors_.emplace_back(mockMonitor);
@@ -1040,7 +1040,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_2500, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
     std::shared_ptr<MockIabilityMonitor> mockMonitor = std::make_shared<MockIabilityMonitor>(ABILITY_NAME);
     abilityDelegator.abilityMonitors_.emplace_back(mockMonitor);
     abilityDelegator.PostPerformScenceRestored(nullptr);
@@ -1073,7 +1073,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_2600, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
     std::shared_ptr<MockIabilityMonitor> mockMonitor = std::make_shared<MockIabilityMonitor>(ABILITY_NAME);
     abilityDelegator.abilityMonitors_.clear();
     abilityDelegator.abilityMonitors_.emplace_back(mockMonitor);
@@ -1113,7 +1113,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_2700, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
     std::shared_ptr<MockIabilityMonitor> mockMonitor = std::make_shared<MockIabilityMonitor>(ABILITY_NAME);
     abilityDelegator.abilityMonitors_.emplace_back(mockMonitor);
     abilityDelegator.PostPerformScenceDestroyed(nullptr);
@@ -1146,7 +1146,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_2800, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
     std::shared_ptr<MockIabilityMonitor> mockMonitor = std::make_shared<MockIabilityMonitor>(ABILITY_NAME);
     abilityDelegator.abilityMonitors_.clear();
     abilityDelegator.abilityMonitors_.emplace_back(mockMonitor);
@@ -1186,7 +1186,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_2900, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
     std::shared_ptr<MockIabilityMonitor> mockMonitor = std::make_shared<MockIabilityMonitor>(ABILITY_NAME);
     abilityDelegator.abilityMonitors_.emplace_back(mockMonitor);
     abilityDelegator.PostPerformForeground(nullptr);
@@ -1219,7 +1219,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_3000, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
     abilityDelegator.abilityMonitors_.clear();
     std::shared_ptr<MockIabilityMonitor> mockMonitor = std::make_shared<MockIabilityMonitor>(ABILITY_NAME);
     abilityDelegator.abilityMonitors_.emplace_back(mockMonitor);
@@ -1259,7 +1259,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_3100, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
     abilityDelegator.abilityMonitors_.clear();
     std::shared_ptr<MockIabilityMonitor> mockMonitor = std::make_shared<MockIabilityMonitor>(ABILITY_NAME);
     abilityDelegator.abilityMonitors_.emplace_back(mockMonitor);
@@ -1298,7 +1298,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_3200, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
     abilityDelegator.abilityMonitors_.clear();
     std::shared_ptr<MockIabilityMonitor> mockMonitor = std::make_shared<MockIabilityMonitor>(ABILITY_NAME);
     abilityDelegator.abilityMonitors_.emplace_back(mockMonitor);
@@ -1338,7 +1338,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_3300, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
     abilityDelegator.abilityMonitors_.clear();
     std::shared_ptr<MockIabilityMonitor> mockMonitor = std::make_shared<MockIabilityMonitor>(ABILITY_NAME);
     abilityDelegator.abilityMonitors_.emplace_back(mockMonitor);
@@ -1377,7 +1377,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_3400, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub());
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
     abilityDelegator.abilityMonitors_.clear();
     std::shared_ptr<MockIabilityMonitor> mockMonitor = std::make_shared<MockIabilityMonitor>(ABILITY_NAME);
     abilityDelegator.abilityMonitors_.emplace_back(mockMonitor);
@@ -1420,8 +1420,8 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_3500, Function | MediumTes
         abilityArgs,
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub);
-    std::shared_ptr<AbilityDelegator> abilityDelegator =
-        std::make_shared<AbilityDelegator>(context, std::move(testRunner), iRemoteObj);
+    std::shared_ptr<JSAbilityDelegatorImpl> abilityDelegator =
+        std::make_shared<JSAbilityDelegatorImpl>(context, std::move(testRunner), iRemoteObj);
     AbilityDelegatorRegistry::RegisterInstance(abilityDelegator, abilityArgs);
 
     abilityDelegator->abilityMonitors_.clear();
@@ -1465,8 +1465,8 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_3600, Function | MediumTes
         abilityArgs,
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new MockAbilityDelegatorStub2);
-    std::shared_ptr<AbilityDelegator> abilityDelegator =
-        std::make_shared<AbilityDelegator>(context, std::move(testRunner), iRemoteObj);
+    std::shared_ptr<JSAbilityDelegatorImpl> abilityDelegator =
+        std::make_shared<JSAbilityDelegatorImpl>(context, std::move(testRunner), iRemoteObj);
     AbilityDelegatorRegistry::RegisterInstance(abilityDelegator, abilityArgs);
 
     abilityDelegator->abilityMonitors_.clear();
@@ -1508,10 +1508,10 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_3700, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new AAFwk::MockTestObserverStub);
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
 
     EXPECT_EQ((int)(abilityDelegator.ConvertAbilityState(AbilityLifecycleExecutor::LifecycleState::STARTED_NEW)),
-        (int)(AbilityDelegator::AbilityState::STARTED));
+        (int)(JSAbilityDelegatorImpl::AbilityState::STARTED));
 }
 
 /**
@@ -1539,10 +1539,10 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_3800, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new AAFwk::MockTestObserverStub);
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
 
     EXPECT_EQ((int)(abilityDelegator.ConvertAbilityState(AbilityLifecycleExecutor::LifecycleState::FOREGROUND_NEW)),
-        (int)(AbilityDelegator::AbilityState::FOREGROUND));
+        (int)(JSAbilityDelegatorImpl::AbilityState::FOREGROUND));
 }
 
 /**
@@ -1570,10 +1570,10 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_3900, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new AAFwk::MockTestObserverStub);
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
 
     EXPECT_EQ((int)(abilityDelegator.ConvertAbilityState(AbilityLifecycleExecutor::LifecycleState::BACKGROUND_NEW)),
-        (int)(AbilityDelegator::AbilityState::BACKGROUND));
+        (int)(JSAbilityDelegatorImpl::AbilityState::BACKGROUND));
 }
 
 /**
@@ -1601,10 +1601,10 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_4000, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new AAFwk::MockTestObserverStub);
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
 
     EXPECT_EQ((int)(abilityDelegator.ConvertAbilityState(AbilityLifecycleExecutor::LifecycleState::STOPED_NEW)),
-        (int)(AbilityDelegator::AbilityState::STOPPED));
+        (int)(JSAbilityDelegatorImpl::AbilityState::STOPPED));
 }
 
 /**
@@ -1632,10 +1632,10 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_4100, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new AAFwk::MockTestObserverStub);
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
 
     EXPECT_EQ((int)(abilityDelegator.ConvertAbilityState(AbilityLifecycleExecutor::LifecycleState::UNINITIALIZED)),
-        (int)(AbilityDelegator::AbilityState::UNINITIALIZED));
+        (int)(JSAbilityDelegatorImpl::AbilityState::UNINITIALIZED));
 }
 
 /**
@@ -1664,7 +1664,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_4200, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new AAFwk::MockTestObserverStub);
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
     abilityDelegator.testRunner_ = nullptr;
     abilityDelegator.Prepare();
 
@@ -1697,7 +1697,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_4300, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new AAFwk::MockTestObserverStub);
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
     std::unique_ptr<TestRunner> tptr{ new MockTestRunner };
     abilityDelegator.testRunner_ = std::move(tptr);
     abilityDelegator.Prepare();
@@ -1731,7 +1731,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_4400, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new AAFwk::MockTestObserverStub);
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
     abilityDelegator.testRunner_ = nullptr;
     abilityDelegator.OnRun();
 
@@ -1764,7 +1764,7 @@ HWTEST_F(AbilityDelegatorTest, Ability_Delegator_Test_4500, Function | MediumTes
         std::make_shared<AbilityDelegatorArgs>(want),
         true);
     sptr<IRemoteObject> iRemoteObj = sptr<IRemoteObject>(new AAFwk::MockTestObserverStub);
-    AbilityDelegator abilityDelegator(context, std::move(testRunner), iRemoteObj);
+    JSAbilityDelegatorImpl abilityDelegator(context, std::move(testRunner), iRemoteObj);
     std::unique_ptr<TestRunner> tptr{ new MockTestRunner };
     abilityDelegator.testRunner_ = std::move(tptr);
     abilityDelegator.OnRun();
@@ -1847,7 +1847,7 @@ HWTEST_F(AbilityDelegatorTest, InputParamTest_0100, TestSize.Level1)
     AAFwk::Want want;
     auto testRunner = TestRunner::Create(AbilityRuntime::Runtime::Create(options),
         std::make_shared<AbilityDelegatorArgs>(want), true);
-    auto delegator = std::make_shared<AbilityDelegator>(std::make_shared<AbilityRuntime::ContextImpl>(),
+    auto delegator = std::make_shared<JSAbilityDelegatorImpl>(std::make_shared<AbilityRuntime::ContextImpl>(),
         std::move(testRunner), nullptr);
     std::string msg("");
     int64_t resultCode = 0;

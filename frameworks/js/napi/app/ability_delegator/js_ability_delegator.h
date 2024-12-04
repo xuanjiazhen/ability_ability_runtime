@@ -17,7 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_JS_ABILITY_DELEGATOR_H
 
 #include <string>
-#include "ability_delegator.h"
+#include "js_ability_delegator_impl.h"
 #include "ability_monitor.h"
 #include "ability_stage_monitor.h"
 #include "js_ability_delegator_registry.h"
@@ -273,7 +273,7 @@ private:
         napi_env env, napi_value value, std::shared_ptr<AbilityStageMonitor> &monitor, bool &isExisted);
     napi_value ParseAbilityPara(napi_env env, napi_value value, sptr<OHOS::IRemoteObject> &remoteObject);
     void AbilityLifecycleStateToJs(
-        const AbilityDelegator::AbilityState &lifeState, AbilityLifecycleState &abilityLifeState);
+        const JSAbilityDelegatorImpl::AbilityState &lifeState, AbilityLifecycleState &abilityLifeState);
     napi_value ParseAbilityMonitorPara(
         napi_env env, NapiCallbackInfo& info, std::shared_ptr<AbilityMonitor> &monitor, bool isSync);
     napi_value ParseAbilityStageMonitorPara(napi_env env, NapiCallbackInfo& info,

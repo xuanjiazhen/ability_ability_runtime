@@ -25,7 +25,7 @@
 
 #include "ability_manager_client.h"
 #include "constants.h"
-#include "ability_delegator.h"
+#include "js_ability_delegator_impl.h"
 #include "ability_delegator_registry.h"
 #include "ability_loader.h"
 #include "ability_thread.h"
@@ -2096,8 +2096,8 @@ bool MainThread::PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &
     if (isStageBased) { // Stage model
         TAG_LOGD(AAFwkTag::APPKIT, "Stage model");
         auto testRunner = TestRunner::Create(application_->GetRuntime(), args, false);
-        auto delegator = std::make_shared<AbilityDelegator>(
-            application_->GetAppContext(), std::move(testRunner), record->observer);
+        auto delegator = AbilityDelegator::Create(application_->GetRuntime(), application_->GetAppContext(),
+            std::move(testRunner), record->observer);
         AbilityDelegatorRegistry::RegisterInstance(delegator, args);
         delegator->Prepare();
     } else { // FA model
@@ -2127,7 +2127,7 @@ bool MainThread::PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &
             TAG_LOGE(AAFwkTag::APPKIT, "Failed to Initialize testRunner");
             return false;
         }
-        auto delegator = std::make_shared<AbilityDelegator>(
+        auto delegator = std::make_shared<OHOS::AppExecFwk::JSAbilityDelegatorImpl>(
             application_->GetAppContext(), std::move(testRunner), record->observer);
         AbilityDelegatorRegistry::RegisterInstance(delegator, args);
         delegator->Prepare();

@@ -26,6 +26,7 @@
 #include "app_loader.h"
 #include "event_runner.h"
 #include "hilog_tag_wrapper.h"
+#include "js_ability_delegator_impl.h"
 #include "js_runtime.h"
 #include "mock_ability_delegator_stub.h"
 #include "ohos_application.h"
@@ -94,8 +95,8 @@ HWTEST_F(AbilityDelegatorRegistryTest, Ability_Delegator_Registry_Test_0100, Fun
     std::shared_ptr<AbilityDelegatorArgs> abilityArgs = std::make_shared<AbilityDelegatorArgs>(want);
 
     std::unique_ptr<TestRunner> testRunner = TestRunner::Create(nullptr, abilityArgs, true);
-    std::shared_ptr<AbilityDelegator> abilityDelegator =
-        std::make_shared<AbilityDelegator>(nullptr, std::move(testRunner), nullptr);
+    std::shared_ptr<JSAbilityDelegatorImpl> abilityDelegator =
+        std::make_shared<JSAbilityDelegatorImpl>(nullptr, std::move(testRunner), nullptr);
     AbilityDelegatorRegistry::RegisterInstance(abilityDelegator, abilityArgs);
 
     EXPECT_EQ(AbilityDelegatorRegistry::GetAbilityDelegator(), abilityDelegator);
