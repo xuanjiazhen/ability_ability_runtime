@@ -604,6 +604,8 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
 
     // 4. Other cases , need to connect the service ability
     auto connectRecord = ConnectionRecord::CreateConnectionRecord(callerToken, targetService, connect);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "service:%{public}s, recordId: %{public}d",
+        targetService->GetURI().c_str(), connectRecord->GetRecordId());
     CHECK_POINTER_AND_RETURN(connectRecord, ERR_INVALID_VALUE);
     connectRecord->AttachCallerInfo();
     connectRecord->SetConnectState(ConnectionState::CONNECTING);
@@ -771,6 +773,9 @@ void AbilityConnectManager::TerminateRecord(std::shared_ptr<AbilityRecord> abili
 int AbilityConnectManager::DisconnectRecordNormal(ConnectListType &list,
     std::shared_ptr<ConnectionRecord> connectRecord, bool callerDied) const
 {
+    std::shared_ptr<AbilityRecord> targetService;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "service:%{public}s, recordId: %{public}d",
+        targetService->GetURI().c_str(), connectRecord->GetRecordId());
     auto result = connectRecord->DisconnectAbility();
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "fail:%{public}d", result);
@@ -829,7 +834,7 @@ int AbilityConnectManager::AttachAbilityThreadLocked(
     }
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     std::string element = abilityRecord->GetURI();
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "ability:%{public}s", element.c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "AttachAbilityThreadLocked ability:%{public}s", element.c_str());
     if (taskHandler_ != nullptr) {
         int recordId = abilityRecord->GetRecordId();
         std::string taskName = std::string("LoadTimeout_") + std::to_string(recordId);
