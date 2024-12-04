@@ -480,6 +480,7 @@ bool AppRecovery::GetMissionIds(std::string path, std::vector<int32_t> &missionI
     while ((ptr = readdir(dir)) != nullptr) {
         if (ptr == nullptr) {
             TAG_LOGE(AAFwkTag::RECOVERY, "read dir error.");
+            closedir(dir);
             return false;
         }
         if (strcmp(ptr->d_name, ".") == 0 || strcmp(ptr->d_name, "..") == 0) {
