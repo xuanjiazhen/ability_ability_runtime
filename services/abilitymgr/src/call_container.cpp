@@ -142,6 +142,7 @@ void CallContainer::OnConnectionDied(const wptr<IRemoteObject> &remote)
     auto task = [abilityManagerService, callRecord]() {
         abilityManagerService->OnCallConnectDied(callRecord);
     };
+    TAG_LOGI(AAFwkLogTag::ABILITYMGR, "submit task for call connection died");
     handler->SubmitTask(task);
 }
 

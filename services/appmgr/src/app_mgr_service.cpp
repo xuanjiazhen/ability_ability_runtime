@@ -159,6 +159,7 @@ ErrCode AppMgrService::Init()
     std::function<void()> initAppMgrServiceInnerTask = [appMgrServiceInner = appMgrServiceInner_]() {
         appMgrServiceInner->Init();
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for init app manager service inner");
     taskHandler_->SubmitTask(initAppMgrServiceInnerTask, TASK_INIT_APPMGRSERVICEINNER);
 
     ErrCode openErr = appMgrServiceInner_->OpenAppSpawnConnection();
@@ -196,6 +197,7 @@ void AppMgrService::AttachApplication(const sptr<IRemoteObject> &app)
     std::function<void()> attachApplicationFunc = [appMgrServiceInner = appMgrServiceInner_, pid, appScheduler]() {
         appMgrServiceInner->AttachApplication(pid, appScheduler);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for attach application");
     taskHandler_->SubmitTask(attachApplicationFunc, AAFwk::TaskAttribute{
         .taskName_ = TASK_ATTACH_APPLICATION,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
@@ -226,6 +228,7 @@ void AppMgrService::ApplicationForegrounded(const int32_t recordId)
     std::function<void()> applicationForegroundedFunc = [appMgrServiceInner = appMgrServiceInner_, recordId]() {
         appMgrServiceInner->ApplicationForegrounded(recordId);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for application foregrounded");
     taskHandler_->SubmitTask(applicationForegroundedFunc, AAFwk::TaskAttribute{
         .taskName_ = TASK_APPLICATION_FOREGROUNDED,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
@@ -246,6 +249,7 @@ void AppMgrService::ApplicationBackgrounded(const int32_t recordId)
     std::function<void()> applicationBackgroundedFunc = [appMgrServiceInner = appMgrServiceInner_, recordId]() {
         appMgrServiceInner->ApplicationBackgrounded(recordId);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for application backgrounded");
     taskHandler_->SubmitTask(applicationBackgroundedFunc, AAFwk::TaskAttribute{
         .taskName_ = TASK_APPLICATION_BACKGROUNDED,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
@@ -263,6 +267,7 @@ void AppMgrService::ApplicationTerminated(const int32_t recordId)
     std::function<void()> applicationTerminatedFunc = [appMgrServiceInner = appMgrServiceInner_, recordId]() {
         appMgrServiceInner->ApplicationTerminated(recordId);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for application terminated");
     taskHandler_->SubmitTask(applicationTerminatedFunc, AAFwk::TaskAttribute{
         .taskName_ = TASK_APPLICATION_TERMINATED,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
@@ -285,6 +290,7 @@ void AppMgrService::AbilityCleaned(const sptr<IRemoteObject> &token)
     std::function<void()> abilityCleanedFunc = [appMgrServiceInner = appMgrServiceInner_, token]() {
         appMgrServiceInner->AbilityTerminated(token);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for ability cleaned");
     taskHandler_->SubmitTask(abilityCleanedFunc, AAFwk::TaskAttribute{
         .taskName_ = TASK_ABILITY_CLEANED,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
@@ -316,6 +322,7 @@ void AppMgrService::StartupResidentProcess(const std::vector<AppExecFwk::BundleI
     std::function <void()> startupResidentProcess = [appMgrServiceInner = appMgrServiceInner_, bundleInfos]() {
         appMgrServiceInner->LoadResidentProcess(bundleInfos);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for load resident process");
     taskHandler_->SubmitTask(startupResidentProcess, AAFwk::TaskAttribute{
         .taskName_ = TASK_STARTUP_RESIDENT_PROCESS,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
@@ -564,6 +571,7 @@ void AppMgrService::AddAbilityStageDone(const int32_t recordId)
     std::function <void()> addAbilityStageDone = [appMgrServiceInner = appMgrServiceInner_, recordId]() {
         appMgrServiceInner->AddAbilityStageDone(recordId);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for add ability stage done");
     taskHandler_->SubmitTask(addAbilityStageDone, AAFwk::TaskAttribute{
         .taskName_ = TASK_ADD_ABILITY_STAGE_DONE,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
@@ -637,6 +645,7 @@ int AppMgrService::StartUserTestProcess(const AAFwk::Want &want, const sptr<IRem
         want, observer, bundleInfo, userId]() {
         appMgrServiceInner->StartUserTestProcess(want, observer, bundleInfo, userId);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for start user test process");
     taskHandler_->SubmitTask(startUserTestProcessFunc, TASK_START_USER_TEST_PROCESS);
     return ERR_OK;
 }
@@ -675,6 +684,7 @@ int AppMgrService::FinishUserTest(const std::string &msg, const int64_t &resultC
         resultCode, bundleName, callingPid]() {
         appMgrServiceInner->FinishUserTest(msg, resultCode, bundleName, callingPid);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for finish user test");
     taskHandler_->SubmitTask(finishUserTestProcessFunc, TASK_FINISH_USER_TEST);
     return ERR_OK;
 }
@@ -947,6 +957,7 @@ void AppMgrService::ScheduleAcceptWantDone(const int32_t recordId, const AAFwk::
     auto task = [appMgrServiceInner = appMgrServiceInner_, recordId, want, flag]() {
         appMgrServiceInner->ScheduleAcceptWantDone(recordId, want, flag);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for schedule accept want done");
     taskHandler_->SubmitTask(task, "ScheduleAcceptWantDone");
 }
 
@@ -963,6 +974,7 @@ void AppMgrService::ScheduleNewProcessRequestDone(const int32_t recordId, const 
     auto task = [appMgrServiceInner = appMgrServiceInner_, recordId, want, flag]() {
         appMgrServiceInner->ScheduleNewProcessRequestDone(recordId, want, flag);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for schedule new process request done");
     taskHandler_->SubmitTask(task, AAFwk::TaskAttribute{
         .taskName_ = "ScheduleNewProcessRequestDone",
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
@@ -1021,6 +1033,7 @@ void AppMgrService::AttachRenderProcess(const sptr<IRemoteObject> &scheduler)
     auto fun = [appMgrServiceInner = appMgrServiceInner_, pid, scheduler]() {
         appMgrServiceInner->AttachRenderProcess(pid, iface_cast<IRenderScheduler>(scheduler));
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for attach render process");
     taskHandler_->SubmitTask(fun, AAFwk::TaskAttribute{
         .taskName_ = TASK_ATTACH_RENDER_PROCESS,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
@@ -1448,6 +1461,7 @@ void AppMgrService::AttachChildProcess(const sptr<IRemoteObject> &childScheduler
     std::function<void()> task = [appMgrServiceInner = appMgrServiceInner_, pid, childScheduler]() {
         appMgrServiceInner->AttachChildProcess(pid, iface_cast<IChildScheduler>(childScheduler));
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for attach child process");
     taskHandler_->SubmitTask(task, AAFwk::TaskAttribute{
         .taskName_ = TASK_ATTACH_CHILD_PROCESS,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
@@ -1468,6 +1482,7 @@ void AppMgrService::ExitChildProcessSafely()
     std::function<void()> task = [appMgrServiceInner = appMgrServiceInner_, pid]() {
         appMgrServiceInner->ExitChildProcessSafelyByChildPid(pid);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for exit child process safely");
     taskHandler_->SubmitTask(task, AAFwk::TaskAttribute{
         .taskName_ = TASK_EXIT_CHILD_PROCESS_SAFELY,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE

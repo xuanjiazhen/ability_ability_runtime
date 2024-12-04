@@ -201,6 +201,7 @@ ErrCode DisposedRuleInterceptor::StartNonBlockRule(const Want &want, AppExecFwk:
             interceptor->disposedObserverMap_.erase(iter);
         }
     };
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for unregister application state observer");
     taskHandler_->SubmitTask(unregisterTask, UNREGISTER_TIMEOUT_OBSERVER_TASK, UNREGISTER_OBSERVER_MICRO_SECONDS);
     return ERR_OK;
 }
@@ -243,6 +244,7 @@ void DisposedRuleInterceptor::UnregisterObserver(const std::string &bundleName)
             interceptor->disposedObserverMap_.erase(iter);
         }
     };
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "submit task for unregister observer");
     taskHandler_->SubmitTask(unregisterTask, UNREGISTER_EVENT_TASK);
 }
 

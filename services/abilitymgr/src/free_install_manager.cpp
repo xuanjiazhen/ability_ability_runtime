@@ -567,6 +567,7 @@ void FreeInstallManager::PostUpgradeAtomicServiceTask(int resultCode, const Want
 
         auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
         CHECK_POINTER_LOG(handler, "Fail to get Ability task handler.");
+        TAG_LOGI(AAFwkLogTag::FREE_INSTALL, "submit task for upgrade atomic service");
         handler->SubmitTask(updateAtmoicServiceTask, "UpdateAtmoicServiceTask");
     }
 }

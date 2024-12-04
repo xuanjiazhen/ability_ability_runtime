@@ -160,6 +160,7 @@ int AppfreezeInner::AppfreezeHandle(const FaultData& faultData, bool onlyMainThr
         handlinglist_.emplace_back(faultData);
         constexpr int HANDLING_MIN_SIZE = 1;
         if (handlinglist_.size() <= HANDLING_MIN_SIZE) {
+            TAG_LOGI(AAFwkTag::APPDFR, "submit task for acquire stack");
             ffrt::submit(reportFreeze, {}, {}, ffrt::task_attr().name("reportAppFreeze"));
         }
     }

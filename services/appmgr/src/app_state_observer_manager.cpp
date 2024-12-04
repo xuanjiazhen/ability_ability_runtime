@@ -212,6 +212,7 @@ void AppStateObserverManager::OnAppStarted(const std::shared_ptr<AppRunningRecor
         TAG_LOGD(AAFwkTag::APPMGR, "OnAppStarted come.");
         self->HandleOnAppStarted(appRecord);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for handle app started");
     handler_->SubmitTask(task);
 }
 
@@ -231,6 +232,7 @@ void AppStateObserverManager::OnAppStopped(const std::shared_ptr<AppRunningRecor
         TAG_LOGD(AAFwkTag::APPMGR, "OnAppStopped come.");
         self->HandleOnAppStopped(appRecord);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for handle app stopped");
     handler_->SubmitTask(task);
 }
 
@@ -256,6 +258,7 @@ void AppStateObserverManager::OnAppStateChanged(
         self->dummyCode_ = __LINE__;
         self->HandleAppStateChanged(appRecord, state, needNotifyApp, isFromWindowFocusChanged);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for handle app state changed");
     handler_->SubmitTask(task);
 }
 
@@ -275,6 +278,7 @@ void AppStateObserverManager::OnProcessDied(const std::shared_ptr<AppRunningReco
         TAG_LOGD(AAFwkTag::APPMGR, "OnProcessDied come.");
     self->HandleOnAppProcessDied(appRecord);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for handle app process died");
     handler_->SubmitTask(task);
 }
 
@@ -294,6 +298,7 @@ void AppStateObserverManager::OnRenderProcessDied(const std::shared_ptr<RenderRe
         TAG_LOGD(AAFwkTag::APPMGR, "OnRenderProcessDied come.");
         self->HandleOnRenderProcessDied(renderRecord);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for handle render process died");
     handler_->SubmitTask(task);
 }
 
@@ -313,6 +318,7 @@ void AppStateObserverManager::OnChildProcessDied(std::shared_ptr<ChildProcessRec
         TAG_LOGD(AAFwkTag::APPMGR, "OnChildProcessDied come.");
         self->HandleOnChildProcessDied(childRecord);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for handle child process died");
     handler_->SubmitTask(task);
 }
 
@@ -332,6 +338,7 @@ void AppStateObserverManager::OnProcessStateChanged(const std::shared_ptr<AppRun
         TAG_LOGD(AAFwkTag::APPMGR, "OnProcessStateChanged come.");
         self->HandleOnProcessStateChanged(appRecord);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for handle process state changed");
     handler_->SubmitTask(task);
 }
 
@@ -351,6 +358,7 @@ void AppStateObserverManager::OnWindowShow(const std::shared_ptr<AppRunningRecor
         TAG_LOGD(AAFwkTag::APPMGR, "OnWindowShow come.");
         self->HandleOnWindowShow(appRecord);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for handle window show");
     handler_->SubmitTask(task);
 }
 
@@ -370,6 +378,7 @@ void AppStateObserverManager::OnWindowHidden(const std::shared_ptr<AppRunningRec
         TAG_LOGD(AAFwkTag::APPMGR, "OnWindowHidden come.");
         self->HandleOnWindowHidden(appRecord);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for handle window hidden");
     handler_->SubmitTask(task);
 }
 
@@ -388,6 +397,7 @@ void AppStateObserverManager::OnProcessCreated(const std::shared_ptr<AppRunningR
         }
         self->HandleOnAppProcessCreated(appRecord, isPreload);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for handle app process created");
     handler_->SubmitTask(task);
 }
 
@@ -407,6 +417,7 @@ void AppStateObserverManager::OnProcessReused(const std::shared_ptr<AppRunningRe
         TAG_LOGD(AAFwkTag::APPMGR, "OnProcessReused come.");
         self->HandleOnProcessResued(appRecord);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for handle process resued");
     handler_->SubmitTask(task);
 }
 
@@ -426,6 +437,7 @@ void AppStateObserverManager::OnRenderProcessCreated(const std::shared_ptr<Rende
         TAG_LOGD(AAFwkTag::APPMGR, "OnRenderProcessCreated come.");
         self->HandleOnRenderProcessCreated(renderRecord);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for handle render process created");
     handler_->SubmitTask(task);
 }
 
@@ -445,6 +457,7 @@ void AppStateObserverManager::OnChildProcessCreated(std::shared_ptr<ChildProcess
         TAG_LOGD(AAFwkTag::APPMGR, "OnChildProcessCreated come.");
         self->HandleOnChildProcessCreated(childRecord);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for handle child process created");
     handler_->SubmitTask(task);
 }
 
@@ -465,6 +478,7 @@ void AppStateObserverManager::StateChangedNotifyObserver(
         TAG_LOGD(AAFwkTag::APPMGR, "StateChangedNotifyObserver come.");
         self->HandleStateChangedNotifyObserver(abilityStateData, isAbility, isFromWindowFocusChanged);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for notify observer when state changed");
     handler_->SubmitTask(task);
 }
 
@@ -1078,6 +1092,7 @@ void AppStateObserverManager::OnPageShow(const PageStateData pageStateData)
         TAG_LOGD(AAFwkTag::APPMGR, "OnProcessCreated come.");
         self->HandleOnPageShow(pageStateData);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for handle page show");
     handler_->SubmitTask(task);
 }
 
@@ -1098,6 +1113,7 @@ void AppStateObserverManager::OnPageHide(const PageStateData pageStateData)
         TAG_LOGD(AAFwkTag::APPMGR, "OnProcessCreated come.");
         self->HandleOnPageHide(pageStateData);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for handle page hide");
     handler_->SubmitTask(task);
 }
 
@@ -1142,6 +1158,7 @@ void AppStateObserverManager::OnAppCacheStateChanged(const std::shared_ptr<AppRu
         TAG_LOGD(AAFwkTag::APPMGR, "OnAppCacheStateChanged come.");
         self->HandleOnAppCacheStateChanged(appRecord, state);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for handle app cache state changed");
     handler_->SubmitTask(task);
 }
 

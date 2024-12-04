@@ -2558,6 +2558,7 @@ void MainThread::HandleSignal(int signal, [[maybe_unused]] siginfo_t *siginfo, v
         }
         case SignalType::SIGNAL_FORCE_FULLGC: {
             auto forceFullGCFunc = []() { MainThread::ForceFullGC(); };
+            TAG_LOGI(AAFwkTag::APPKIT, "submit task for force full GC");
             ffrt::submit(forceFullGCFunc);
             break;
         }
@@ -2637,6 +2638,7 @@ void MainThread::HandleDumpHeap(bool isPrivate)
         }
     };
 
+    TAG_LOGI(AAFwkTag::APPKIT, "submit task for handle dump heap");
     ffrt::submit(taskFork, {}, {}, ffrt::task_attr().qos(ffrt::qos_user_initiated));
     runtime->DumpCpuProfile();
 }

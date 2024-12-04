@@ -130,6 +130,7 @@ bool CallRecord::SchedulerConnectDone()
         abilityInfo.name, abilityInfo.moduleName);
     auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
     CHECK_POINTER_AND_RETURN(handler, false);
+    TAG_LOGI(AAFwkLogTag::ABILITYMGR, "submit task for scheduler connect done");
     handler->SubmitTask([callback, remoteObject, launchMode = abilityInfo.launchMode, element]() {
         callback->OnAbilityConnectDone(element,
             remoteObject, static_cast<int32_t>(launchMode));
@@ -156,6 +157,7 @@ bool CallRecord::SchedulerDisconnectDone()
         abilityInfo.name, abilityInfo.moduleName);
     auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
     CHECK_POINTER_AND_RETURN(handler, false);
+    TAG_LOGI(AAFwkLogTag::ABILITYMGR, "submit task for scheduler disconnect done");
     handler->SubmitTask([callback, element]() {
         callback->OnAbilityDisconnectDone(element,  ERR_OK);
         });
@@ -174,6 +176,7 @@ void CallRecord::OnCallStubDied(const wptr<IRemoteObject> &remote)
     auto task = [abilityManagerService, callRecord = shared_from_this()]() {
         abilityManagerService->OnCallConnectDied(callRecord);
     };
+    TAG_LOGI(AAFwkLogTag::ABILITYMGR, "submit task for on call stub died");
     handler->SubmitTask(task);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "callstub is died. id:%{public}d, end", recordId_);
 }

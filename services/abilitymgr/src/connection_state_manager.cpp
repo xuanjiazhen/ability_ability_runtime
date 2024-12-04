@@ -67,6 +67,7 @@ void ConnectionStateManager::Init(const std::shared_ptr<TaskHandlerWrap> &handle
         }
         self->InitAppStateObserver();
     };
+    TAG_LOGI(AAFwkLogTag::CONNECTION, "submit task for init connection state manager");
     handler->SubmitTask(initConnectionStateManagerTask, "InitConnectionStateManager");
 }
 
@@ -531,6 +532,7 @@ void ConnectionStateManager::InitAppStateObserver()
                 }
                 self->InitAppStateObserver();
             };
+            TAG_LOGI(AAFwkLogTag::CONNECTION, "submit task for init app state observer");
             handler_->SubmitTaskJust(initConnectionStateManagerTask, "InitConnectionStateManager", DELAY_TIME);
             retry_++;
         }

@@ -912,6 +912,7 @@ void AbilityRecord::PostCancelStartingWindowHotTask()
     auto taskName = std::to_string(missionId_) + "_hot";
     int foregroundTimeout =
         AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * FOREGROUND_TIMEOUT_MULTIPLE;
+    TAG_LOGI(AAFwkLogTag::ABILITYMGR, "submit task for cancel starting window hot");
     handler->SubmitTask(delayTask, taskName, foregroundTimeout);
 }
 
@@ -941,6 +942,7 @@ void AbilityRecord::PostCancelStartingWindowColdTask()
     };
     auto taskName = std::to_string(missionId_) + "_cold";
     int loadTimeout = AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * LOAD_TIMEOUT_MULTIPLE;
+    TAG_LOGI(AAFwkLogTag::ABILITYMGR, "submit task for cancel starting window cold");
     handler->SubmitTask(delayTask, taskName, loadTimeout);
 }
 
@@ -1201,6 +1203,7 @@ void AbilityRecord::InitColdStartingWindowResource(
             }
             self->startingWindowBg_.reset();
         };
+        TAG_LOGI(AAFwkLogTag::ABILITYMGR, "submit task for init cold starting window");
         handler->SubmitTask(delayTask, "release_bg", RELEASE_STARTING_BG_TIMEOUT);
     }
 }
@@ -1259,6 +1262,7 @@ void AbilityRecord::BackgroundAbility(const Closure &task)
                 backgroundTimeout = AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() *
                     INSIGHT_INTENT_TIMEOUT_MULTIPLE;
             }
+            TAG_LOGI(AAFwkLogTag::ABILITYMGR, "submit task for background ability");
             handler->SubmitTask(task, "background_" + std::to_string(recordId_), backgroundTimeout, false);
 
             if (abilityInfo_.type == AppExecFwk::AbilityType::PAGE) {
@@ -1653,6 +1657,7 @@ void AbilityRecord::Terminate(const Closure &task)
                 terminateTimeout =
                     AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * TERMINATE_TIMEOUT_ASANENABLED;
             }
+            TAG_LOGI(AAFwkLogTag::ABILITYMGR, "submit task for terminate");
             handler->SubmitTask(task, "terminate_" + std::to_string(recordId_), terminateTimeout);
             ResSchedUtil::GetInstance().ReportLoadingEventToRss(LoadingStage::DESTROY_BEGIN, GetPid(), GetUid(),
                 terminateTimeout, GetRecordId());
@@ -2559,11 +2564,13 @@ void AbilityRecord::OnSchedulerDied(const wptr<IRemoteObject> &remote)
     auto task = [ability = shared_from_this()]() {
         DelayedSingleton<AbilityManagerService>::GetInstance()->OnAbilityDied(ability);
     };
+    TAG_LOGI(AAFwkLogTag::ABILITYMGR, "submit task for on scheduler died");
     handler->SubmitTask(task);
     auto uriTask = [want = GetWant(), ability = shared_from_this()]() {
         ability->SaveResultToCallers(-1, &want);
         ability->SendResultToCallers(true);
     };
+    TAG_LOGI(AAFwkLogTag::ABILITYMGR, "submit task for scheduler save and send result to callers");
     handler->SubmitTask(uriTask);
 #ifdef SUPPORT_GRAPHICS
     NotifyAnimationAbilityDied();
@@ -2592,14 +2599,17 @@ void AbilityRecord::OnProcessDied()
         DelayedSingleton<AbilityManagerService>::GetInstance()->OnAbilityDied(ability);
     };
     if (IsSceneBoard()) {
+        TAG_LOGI(AAFwkLogTag::ABILITYMGR, "submit task for ability died with scene board delay");
         handler->SubmitTask(task, RESTART_SCENEBOARD_DELAY);
     } else {
+        TAG_LOGI(AAFwkLogTag::ABILITYMGR, "submit task for on process died");
         handler->SubmitTask(task);
     }
     auto uriTask = [want = GetWant(), ability = shared_from_this()]() {
         ability->SaveResultToCallers(-1, &want);
         ability->SendResultToCallers(true);
     };
+    TAG_LOGI(AAFwkLogTag::ABILITYMGR, "submit task for process save and send result to callers");
     handler->SubmitTask(uriTask);
 #ifdef SUPPORT_GRAPHICS
     NotifyAnimationAbilityDied();

@@ -398,6 +398,7 @@ void AppMgrServiceInner::Init()
     if (securityModeManager_) {
         securityModeManager_->Init();
     }
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for get nweb preload set");
     otherTaskHandler_->SubmitTask([pThis = shared_from_this()]() {
         pThis->nwebPreloadSet_ = AAFwk::ResSchedUtil::GetInstance().GetNWebPreloadSet();
         }, NWEB_PRELOAD_DELAY);
@@ -803,6 +804,7 @@ void AppMgrServiceInner::AfterLoadAbility(std::shared_ptr<AppRunningRecord> appR
         }
     };
     if (taskHandler_) {
+        TAG_LOGI(AAFwkTag::APPMGR, "submit task for report load");
         taskHandler_->SubmitTask(reportLoadTask, "reportLoadTask");
     }
 
@@ -1001,6 +1003,7 @@ void AppMgrServiceInner::LoadAbilityNoAppRecord(const std::shared_ptr<AppRunning
     }
     // As taskHandler_ is busy now, the task should be submit to other task queue.
     if (otherTaskHandler_ != nullptr) {
+        TAG_LOGI(AAFwkTag::APPMGR, "submit task for app state changed");
         otherTaskHandler_->SubmitTaskJust([appRecord, abilityInfo, pThis = shared_from_this()]() {
             pThis->OnAppStateChanged(appRecord, ApplicationState::APP_STATE_SET_COLD_START, false, false);
             pThis->SendAppStartupTypeEvent(appRecord, abilityInfo, AppStartType::COLD);
@@ -1694,6 +1697,7 @@ void AppMgrServiceInner::SendProcessExitEventTask(
     auto sendEventTask = [inner = shared_from_this(), appRecord, exitTime, count] () {
         inner->SendProcessExitEventTask(appRecord, exitTime, count);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for send process exit event");
     taskHandler_->SubmitTaskJust(sendEventTask, PROCESS_EXIT_EVENT_TASK, KILL_PROCESS_DELAYTIME_MICRO_SECONDS);
 }
 
@@ -3505,6 +3509,7 @@ int32_t AppMgrServiceInner::CreateStartMsg(const std::string &processName, uint3
         return ERR_NO_INIT;
     }
 
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for add mount permission");
     AAFwk::AutoSyncTaskHandle autoSync(otherTaskHandler_->SubmitTask([&]() {
         AddMountPermission(bundleInfo.applicationInfo.accessTokenId, startMsg.permissions);
         }, AAFwk::TaskAttribute{
@@ -4050,6 +4055,7 @@ void AppMgrServiceInner::TerminateApplication(const std::shared_ptr<AppRunningRe
             TAG_LOGE(AAFwkTag::APPMGR, "taskHandler_ null");
             return;
         }
+        TAG_LOGI(AAFwkTag::APPMGR, "submit task for terminate application");
         taskHandler_->SubmitTaskJust(timeoutTask, "DelayKillProcess", AMSEventHandler::KILL_PROCESS_TIMEOUT);
     }
     appRunningManager_->RemoveAppRunningRecordById(appRecord->GetRecordId());
@@ -5028,6 +5034,7 @@ void AppMgrServiceInner::KillApplicationByRecord(const std::shared_ptr<AppRunnin
             return;
         }
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for kill application by record");
     taskHandler_->SubmitTaskJust(timeoutTask, "DelayKillProcess", AMSEventHandler::KILL_PROCESS_TIMEOUT);
 }
 
@@ -5820,6 +5827,7 @@ void AppMgrServiceInner::InitWindowPidVisibilityChangedListener()
         TAG_LOGE(AAFwkTag::APPMGR, "Task handler is nullptr.");
         return;
     }
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for register pid visibility listener");
     taskHandler_->SubmitTaskJust(registerTask, "RegisterPidVisibilityListener.", REGISTER_PID_VISIBILITY_DELAY);
 }
 
@@ -6017,6 +6025,7 @@ void AppMgrServiceInner::AppRecoveryNotifyApp(int32_t pid, const std::string& bu
         }
     };
     constexpr int32_t timeOut = 2000;
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for wait save");
     taskHandler_->SubmitTaskJust(waitSaveTask, timeOutName, timeOut);
 }
 
@@ -6104,6 +6113,7 @@ int32_t AppMgrServiceInner::SubmitDfxFaultTask(const FaultData &faultData, const
     auto task = [pid, innerService = shared_from_this()]() {
         AppExecFwk::AppfreezeManager::GetInstance()->DeleteStack(pid);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for delete stack");
     dfxTaskHandler_->SubmitTaskJust(task, "DeleteStack", delayTime);
 
     return ERR_OK;
@@ -6198,6 +6208,7 @@ int32_t AppMgrServiceInner::KillFaultApp(int32_t pid, const std::string &bundleN
     };
     constexpr int32_t waitTime = 3500;
     // wait 3.5s before kill application
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for kill fault app");
     taskHandler_->SubmitTaskJust(killAppTask, "killAppTask", waitTime);
     return ERR_OK;
 }
@@ -6264,6 +6275,7 @@ int32_t AppMgrServiceInner::TransformedNotifyAppFault(const AppFaultDataBySA &fa
         auto timeoutNotifyApp = [this, pid, uid, bundleName, processName, transformedFaultData]() {
             this->TimeoutNotifyApp(pid, uid, bundleName, processName, transformedFaultData);
         };
+        TAG_LOGI(AAFwkTag::APPMGR, "submit task for notify app");
         dfxTaskHandler_->SubmitTask(timeoutNotifyApp, transformedFaultData.timeoutMarkers, timeout);
     }
     record->NotifyAppFault(transformedFaultData);
@@ -6311,6 +6323,7 @@ bool AppMgrServiceInner::SetAppFreezeFilter(int32_t pid)
             AppExecFwk::AppfreezeManager::GetInstance()->ResetAppfreezeState(pid, bundleName);
         };
         constexpr int32_t waitTime = 120000; // wait 2min
+        TAG_LOGI(AAFwkTag::APPMGR, "submit task for reset app freeze");
         dfxTaskHandler_->SubmitTaskJust(resetAppfreezeTask, "resetAppfreezeTask", waitTime);
         return cancelResult;
     }
@@ -7109,6 +7122,7 @@ void AppMgrServiceInner::ClearResidentProcessAppRunningData(const std::shared_pt
             return;
         }
         if (appRecord->CanRestartResidentProc()) {
+            TAG_LOGI(AAFwkTag::APPMGR, "submit task for restart process");
             taskHandler_->SubmitTask(restartProcess, "RestartResidentProcess");
         } else {
             auto findRestartResidentTask = [appRecord](const std::shared_ptr<AppRunningRecord> &appRunningRecord) {
@@ -7962,6 +7976,7 @@ int32_t AppMgrServiceInner::NotifyMemorySizeStateChanged(bool isMemorySizeSuffic
         innerServicer->NotifyStartResidentProcess(exitBundleInfos);
         innerServicer->NotifyStartKeepAliveProcess(exitBundleInfos);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for start exit keep alive process");
     taskHandler_->SubmitTask(StartExitKeepAliveProcessTask, "startexitkeepaliveprocess");
     return ERR_OK;
 }
@@ -8321,6 +8336,7 @@ void AppMgrServiceInner::RestartResidentProcessDependedOnWeb()
         innerServicer->NotifyStartResidentProcess(exitBundleInfos);
         innerServicer->NotifyStartKeepAliveProcess(exitBundleInfos);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for restart resident process");
     taskHandler_->SubmitTask(RestartResidentProcessDependedOnWebTask, "RestartResidentProcessDependedOnWeb");
 }
 
@@ -8372,6 +8388,7 @@ bool AppMgrServiceInner::CleanAbilityByUserRequest(const sptr<IRemoteObject> &to
         self->DecreaseWillKillPidsNum();
         TAG_LOGD(AAFwkTag::APPMGR, "pid:%{public}d killed", targetPid);
     };
+    TAG_LOGI(AAFwkTag::APPMGR, "submit task for delay kill ability");
     delayKillTaskHandler_->SubmitTaskJust(delayKillTask, "delayKillUIAbility", delayTime);
 
     return true;
