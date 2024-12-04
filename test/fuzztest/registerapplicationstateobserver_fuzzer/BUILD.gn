@@ -38,7 +38,6 @@ ohos_fuzztest("RegisterApplicationStateObserverFuzzTest") {
   configs = [ "${ability_runtime_services_path}/appmgr:appmgr_config" ]
 
   deps = [
-    "${ability_runtime_innerkits_path}/uri_permission:uri_permission_mgr",
     "${ability_runtime_services_path}/appmgr:libappms",
   ]
 
@@ -64,6 +63,9 @@ ohos_fuzztest("RegisterApplicationStateObserverFuzzTest") {
       "i18n:intl_util",
       "window_manager:libwm",
     ]
+  }
+  if (ability_runtime_upms) {
+    deps += [ "${ability_runtime_innerkits_path}/uri_permission:uri_permission_mgr" ]
   }
 }
 
