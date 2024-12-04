@@ -58,6 +58,7 @@ using Closure = std::function<void()>;
 class AbilityRecord;
 class ConnectionRecord;
 class CallContainer;
+struct EventInfo;
 
 constexpr const char* ABILITY_TOKEN_NAME = "AbilityToken";
 constexpr const char* LAUNCHER_BUNDLE_NAME = "com.ohos.launcher";
@@ -1179,6 +1180,8 @@ private:
 
     void SetDebugAppByWaitingDebugFlag();
     void AfterLoaded();
+
+    EventInfo BuildEventInfo();
 
 #ifdef SUPPORT_SCREEN
     std::shared_ptr<Want> GetWantFromMission() const;
