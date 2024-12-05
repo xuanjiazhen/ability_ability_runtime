@@ -214,6 +214,11 @@ void SendAbilityEvent(const EventName &eventName, HiSysEventType type, const Eve
         EventReport::SendAbilityEvent(eventName, type, eventInfo);
         });
 }
+
+auto IsEmbeddableStart = [] (int32_t screenMode) {
+    return screenMode == AAFwk::EMBEDDED_FULL_SCREEN_MODE ||
+            screenMode == AAFwk::EMBEDDED_HALF_SCREEN_MODE;
+};
 } // namespace
 
 using namespace std::chrono;
@@ -3097,11 +3102,6 @@ int AbilityManagerService::CheckUIExtensionUsage(AppExecFwk::UIExtensionUsage ui
     return ERR_OK;
 }
 
-auto g_isEmbeddableStart = [] (int32_t screenMode) {
-    return screenMode == AAFwk::EMBEDDED_FULL_SCREEN_MODE ||
-            screenMode == AAFwk::EMBEDDED_HALF_SCREEN_MODE;
-};
-
 int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &extensionSessionInfo, int32_t userId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -3112,7 +3112,7 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
 
     if (extensionSessionInfo->want.HasParameter(AAFwk::SCREEN_MODE_KEY)) {
         int32_t screenMode = extensionSessionInfo->want.GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
-        if (!g_isEmbeddableStart(screenMode)) {
+        if (!IsEmbeddableStart(screenMode)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "only support embedded pull-ups");
             return ERR_INVALID_VALUE;
         }
@@ -11145,7 +11145,7 @@ int32_t AbilityManagerService::GenerateEmbeddableUIAbilityRequest(
 {
     int32_t screenMode = want.GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
     int32_t result = ERR_OK;
-    if (g_isEmbeddableStart(screenMode)) {
+    if (IsEmbeddableStart(screenMode)) {
         result = GenerateAbilityRequest(want, -1, request, callerToken, userId);
         request.abilityInfo.isModuleJson = true;
         request.abilityInfo.isStageBasedModel = true;
