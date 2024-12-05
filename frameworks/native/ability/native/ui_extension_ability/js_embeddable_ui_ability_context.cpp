@@ -361,7 +361,7 @@ napi_value JsEmbeddableUIAbilityContext::OnStartExtensionAbility(napi_env env, N
 napi_value JsEmbeddableUIAbilityContext::OnStartExtensionAbilityWithAccount(napi_env env, NapiCallbackInfo& info)
 {
     if (IsEmbeddableStart(screenMode_)) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Start extensionin with account in embedded screen mode");
+        TAG_LOGE(AAFwkTag::UI_EXT, "Start extension with account in embedded screen mode");
         ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
         return CreateJsUndefined(env);
     }
