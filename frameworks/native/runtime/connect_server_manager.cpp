@@ -265,7 +265,6 @@ void ConnectServerManager::SetPerformanceCheckCallBack()
     }
     setPerformanceCheckCallback([this](bool status, std::string message) {
         if (setPerformanceCheckStatus_ != nullptr) {
-            TAG_LOGE(AAFwkTag::JSRUNTIME, "zhangtao ConnectServerManager::SetPerformanceCheckCallBack 2222");
             setPerformanceCheckStatus_(status, message); 
         } else {
             TAG_LOGE(AAFwkTag::JSRUNTIME, "null setPerformanceCheckStatus_");
