@@ -97,6 +97,7 @@ declare_args() {
   ability_runtime_relational = true
   ability_runtime_ces = true
   ability_runtime_resource = true
+  ability_runtime_action_extension = false
   ability_runtime_appspawn = true
   ability_runtime_auto_fill = true
   ability_fault_and_exit_test = false
