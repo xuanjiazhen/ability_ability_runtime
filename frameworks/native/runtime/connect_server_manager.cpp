@@ -254,7 +254,6 @@ void ConnectServerManager::SetProfilerCallBack()
 
 void ConnectServerManager::SetPerformanceCheckCallBack()
 {
-    TAG_LOGE(AAFwkTag::JSRUNTIME, "zhangtao ConnectServerManager::SetPerformanceCheckCallBack 111");
     LoadConnectServerDebuggerSo();
     auto setPerformanceCheckCallback = reinterpret_cast<SetPerformanceCheckCallback>(
         dlsym(handlerConnectServerSo_, "SetPerformanceCheckCallback"));
