@@ -110,6 +110,7 @@
             "zlib"
   ],
           "third_party": [
+            "googletest",
             "libjpeg-turbo"
           ]
       },
