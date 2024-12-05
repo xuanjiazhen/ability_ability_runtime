@@ -184,6 +184,7 @@ private:
     OHOS::AppExecFwk::AbilityType GetAbilityInfoType() const;
 
     void OnAbilityResultInner(int requestCode, int resultCode, const AAFwk::Want &resultData);
+    int32_t GetScreenMode(const AAFwk::Want &want);
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS

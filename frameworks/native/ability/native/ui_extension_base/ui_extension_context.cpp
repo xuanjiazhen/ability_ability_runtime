@@ -251,6 +251,11 @@ void UIExtensionContext::OnAbilityResultInner(int requestCode, int resultCode, c
     TAG_LOGD(AAFwkTag::UI_EXT, "end");
 }
 
+int32_t JsUIExtensionContext::GetScreenMode(const AAFwk::Want &want)
+{
+    return want.GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
+}
+
 int UIExtensionContext::GenerateCurRequestCode()
 {
     std::lock_guard lock(requestCodeMutex_);
