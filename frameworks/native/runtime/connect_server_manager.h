@@ -60,7 +60,9 @@ public:
         const std::function<void(void)> &stopRecordFunc);
     void SetRecordResults(const std::string &jsonArrayStr);
     void RegistConnectServerCallback(const ServerConnectCallback &connectServerCallback);
-
+    void SetPerformanceCheckCallBack();
+    void SetPerformanceCheckStatusCallback(const std::function<void(bool, std::string)> &setPerformanceCheckStatus);
+    void SendPreformanceMessage(const std::string& message);
 private:
     ConnectServerManager() = default;
     ~ConnectServerManager();
@@ -76,6 +78,7 @@ private:
     std::function<void(int32_t)> createLayoutInfo_;
     std::function<void(int32_t)> setStatus_;
     std::function<void(int32_t)> setArkUIStateProfilerStatus_;
+    std::function<void(int32_t, std::string)> setPerformanceCheckStatus_;
     std::vector<ServerConnectCallback> connectServerCallbacks_;
     ConnectServerManager(const ConnectServerManager&) = delete;
     ConnectServerManager(ConnectServerManager&&) = delete;

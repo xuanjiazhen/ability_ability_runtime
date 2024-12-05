@@ -51,6 +51,7 @@ using StopServer = void (*)(const std::string&);
 using StoreMessage = void (*)(int32_t, const std::string&);
 using StoreInspectorInfo = void (*)(const std::string&, const std::string&);
 using SetProfilerCallback = void (*)(const std::function<void(bool)> &setArkUIStateProfilerStatus);
+using SetPerformanceCheckCallback = void (*)(const std::function<void(bool, std::string)> &setPerformanceCheckStatus);
 using SetSwitchCallBack = void (*)(const std::function<void(bool)> &setStatus,
     const std::function<void(int32_t)> &createLayoutInfo, int32_t instanceId);
 using SetConnectCallback = void (*)(const std::function<void(bool)>);
@@ -251,11 +252,33 @@ void ConnectServerManager::SetProfilerCallBack()
     });
 }
 
+void ConnectServerManager::SetPerformanceCheckCallBack()
+{
+    TAG_LOGE(AAFwkTag::JSRUNTIME, "zhangtao ConnectServerManager::SetPerformanceCheckCallBack 111");
+    LoadConnectServerDebuggerSo();
+    auto setPerformanceCheckCallback = reinterpret_cast<SetPerformanceCheckCallback>(
+        dlsym(handlerConnectServerSo_, "SetPerformanceCheckCallback"));
+    if (setPerformanceCheckCallback == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME,
+                 "ConnectServerManager::AddInstance failed to find symbol 'SetPerformanceCheckCallbackSetPerformanceCheckCallback'");
+        return;
+    }
+    setPerformanceCheckCallback([this](bool status, std::string message) {
+        if (setPerformanceCheckStatus_ != nullptr) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "zhangtao ConnectServerManager::SetPerformanceCheckCallBack 2222");
+            setPerformanceCheckStatus_(status, message); 
+        } else {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "null setPerformanceCheckStatus_");
+        }
+    });
+}
+
 bool ConnectServerManager::SendInstanceMessage(int32_t tid, int32_t instanceId, const std::string& instanceName)
 {
     TAG_LOGI(AAFwkTag::JSRUNTIME, "called");
     ConnectServerManager::Get().SetSwitchCallback(instanceId);
     ConnectServerManager::Get().SetProfilerCallBack();
+    ConnectServerManager::Get().SetPerformanceCheckCallBack();
     std::string message = GetInstanceMapMessage("addInstance", instanceId, instanceName, tid);
     LoadConnectServerDebuggerSo();
     auto storeMessage = reinterpret_cast<StoreMessage>(dlsym(handlerConnectServerSo_, "StoreMessage"));
@@ -289,6 +312,7 @@ bool ConnectServerManager::AddInstance(int32_t tid, int32_t instanceId, const st
 
     ConnectServerManager::Get().SetSwitchCallback(instanceId);
     ConnectServerManager::Get().SetProfilerCallBack();
+    ConnectServerManager::Get().SetPerformanceCheckCallBack();
     LoadConnectServerDebuggerSo();
     // Get the message including information of new instance, which will be send to IDE.
     std::string message = GetInstanceMapMessage("addInstance", instanceId, instanceName, tid);
@@ -401,6 +425,11 @@ void ConnectServerManager::SetStateProfilerCallback(const std::function<void(boo
     setArkUIStateProfilerStatus_ = setArkUIStateProfilerStatus;
 }
 
+void ConnectServerManager::SetPerformanceCheckStatusCallback(const std::function<void(bool, std::string)> &setPerformanceCheckStatus)
+{
+    setPerformanceCheckStatus_ = setPerformanceCheckStatus;
+}
+
 void ConnectServerManager::SendArkUIStateProfilerMessage(const std::string &message)
 {
     TAG_LOGI(AAFwkTag::JSRUNTIME, "called");
@@ -470,4 +499,23 @@ void ConnectServerManager::RegistConnectServerCallback(const ServerConnectCallba
     TAG_LOGD(AAFwkTag::JSRUNTIME, "regist succeed");
 }
 
+void ConnectServerManager::SendPreformanceMessage(const std::string& message)
+{
+    auto waitForConnection = reinterpret_cast<WaitForConnection>(dlsym(handlerConnectServerSo_, "WaitForConnection"));
+    if (waitForConnection == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null WaitForConnection");
+        return;
+    }
+
+    if (waitForConnection()) {
+        return;
+    }
+
+    auto sendMessage = reinterpret_cast<SendMessage>(dlsym(handlerConnectServerSo_, "SendMessage"));
+    if (sendMessage == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null sendMessage");
+        return;
+    }
+    sendMessage(message);
+}
 } // namespace OHOS::AbilityRuntime
