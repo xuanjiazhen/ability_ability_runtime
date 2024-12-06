@@ -87,6 +87,9 @@ private:
     napi_value OnOpenLink(napi_env env, NapiCallbackInfo& info);
     napi_value OnOpenLinkInner(napi_env env, const AAFwk::Want& want,
         int requestCode, const std::string& startTime, const std::string& url);
+    void InitDisplayId(AAFwk::Want &want, std::weak_ptr<AbilityRuntime::Context> weak);
+    void InitDisplayId(AAFwk::Want &want, AAFwk::StartOptions &startOptions,
+        std::weak_ptr<UIExtensionContext> weak);
 };
 
 class JSUIExtensionConnection : public AbilityConnectCallback {

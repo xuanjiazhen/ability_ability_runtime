@@ -85,7 +85,7 @@ HWTEST_F(StartOptionsTest, start_options_test_001, TestSize.Level1)
     auto ret2 = fourthStartOptions.ReadFromParcel(parcel);
     EXPECT_EQ(ret2, true);
     EXPECT_EQ(fourthStartOptions.GetWindowMode(), AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_FULLSCREEN);
-    EXPECT_EQ(fourthStartOptions.GetDisplayID(), TEST_DISPLAY_ID);
+    EXPECT_EQ(fourthstartOptions.GetDisplayID(), TEST_DISPLAY_ID);
 }
 
 /**
