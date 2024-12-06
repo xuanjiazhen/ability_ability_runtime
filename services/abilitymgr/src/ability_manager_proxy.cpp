@@ -3390,6 +3390,40 @@ void AbilityManagerProxy::CompleteFirstFrameDrawing(int32_t sessionId)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
     }
 }
+
+
+int32_t AbilityManagerProxy::OnCollaborateDone(const sptr<IRemoteObject> &token, int32_t &resultCode)
+{
+    if (token == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null token");
+        return INNER_ERR;
+    }
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write writeInterfaceToken fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteRemoteObject(token)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "token write fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteInt32(resultCode)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "requestCode write fail");
+        return INNER_ERR;
+    }
+
+    int32_t error = SendRequest(AbilityManagerInterfaceCode::ON_COLLABORATE_DONE, data, reply, option);
+    if (error != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request err: %{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
 #endif
 
 int AbilityManagerProxy::GetAbilityRunningInfos(std::vector<AbilityRunningInfo> &info)

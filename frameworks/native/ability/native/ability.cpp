@@ -1695,6 +1695,12 @@ FormState Ability::OnAcquireFormState(const Want &want)
     return FormState::DEFAULT;
 }
 
+int32_t Ability::OnCollaborate(WantParams &wantParams)
+{
+    TAG_LOGD(AAFwkTag::ABILITY, "called");
+    return ERR_OK;
+}
+
 void Ability::SetSceneListener(const sptr<Rosen::IWindowLifeCycle> &listener)
 {
     sceneListener_ = listener;

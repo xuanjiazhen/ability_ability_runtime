@@ -1100,6 +1100,14 @@ public:
 
     ErrCode GetDialogSessionInfo(const std::string &dialogSessionId, sptr<DialogSessionInfo> &info);
     ErrCode SendDialogResult(const Want &want, const std::string &dialogSessionId, bool isAllow);
+
+    /**
+     * Notify collaborate finished.
+     * @param token Ability token.
+     * @param resultCode The resultCode of the ability to collaborate.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode OnCollaborateDone(const sptr<IRemoteObject> token, int32_t resultCode);
 #endif
 
     /**

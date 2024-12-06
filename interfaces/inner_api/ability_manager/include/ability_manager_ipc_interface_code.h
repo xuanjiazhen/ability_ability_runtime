@@ -578,6 +578,9 @@ enum class AbilityManagerInterfaceCode {
     GET_APPLICATIONS_KEEP_ALIVE_BY_EDM = 6124,
 
     GET_INTENT_EXEMPTION_INFO = 6125,
+    
+    // ipc id for collaborate done
+    ON_COLLABORATE_DONE = 6126,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
