@@ -133,6 +133,8 @@ private:
     std::shared_ptr<UISessionAbilityResultListener> listener_;
     sptr<JsFreeInstallObserver> freeInstallObserver_ = nullptr;
     bool isFirstTriggerBindModal_ = true;
+    void InitDisplayId(AAFwk::Want &want);
+    void InitDisplayId(AAFwk::Want &want, AAFwk::StartOptions &startOptions, napi_env &env, NapiCallbackInfo& info);
 };
 
 class JsUIExtensionContentSession::CallbackWrapper {
