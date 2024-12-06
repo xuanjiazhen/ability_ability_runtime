@@ -901,5 +901,28 @@ HWTEST_F(JsUIServiceExtensionTest, OnSendData_0100, TestSize.Level1)
 
     TAG_LOGI(AAFwkTag::TEST, "OnSendData_0100 end");
 }
+
+/**
+ * @tc.number: InitdisplayId_0100
+ * @tc.name: InitdisplayId
+ * @tc.desc: JSUIServiceExtensionContext InitdisplayId
+ */
+HWTEST_F(JsUIServiceExtensionTest, InitdisplayId_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "InitdisplayId start");
+
+    std::shared_ptr<UIServiceExtensionContext> uiServiceExtensionContext =
+        std::make_shared<UIServiceExtensionContext>();
+    JSUIServiceExtensionContext jsUIServiceExtensionContext(uiServiceExtensionContext);
+
+    AAFwk::Want want;
+    AAFwk::StartOptions startOptions;
+    startOptions.SetDisplayID(1);
+
+    jsUIServiceExtensionContext.InitDisplayId(want, startOptions, uiServiceExtensionContext);
+    EXPECT_TRUE(startOptions.GetDisplayID() != 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "InitdisplayId_0100 end");
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
