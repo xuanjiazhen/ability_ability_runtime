@@ -286,6 +286,53 @@ napi_value JsApplicationContextUtils::OnCreateSystemHspModuleResourceManager(nap
     return CreateJsResourceManager(env, resourceManager, nullptr);
 }
 
+napi_value JsApplicationContextUtils::CreateHspModuleResourceManager(napi_env env, napi_callback_info info)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "calling CreateHspModuleResourceManager");
+    GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils,
+        OnCreateHspModuleResourceManager, APPLICATION_CONTEXT_NAME);
+}
+
+napi_value JsApplicationContextUtils::OnCreateHspModuleResourceManager(napi_env env, NapiCallbackInfo& info)
+{
+    auto applicationContext = applicationContext_.lock();
+    if (!applicationContext) {
+        TAG_LOGW(AAFwkTag::APPKIT, "applicationContext is already released");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        return CreateJsUndefined(env);
+    }
+
+    std::string bundleName = "";
+    if (!ConvertFromJsValue(env, info.argv[0], bundleName)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Parse bundleName failed");
+        ThrowInvalidParamError(env, "Parse param bundleName failed, bundleName must be string.");
+        return CreateJsUndefined(env);
+    }
+
+    std::string moduleName = "";
+    if (!ConvertFromJsValue(env, info.argv[1], moduleName)) {
+        TAG_LOGD(AAFwkTag::APPKIT, "Parse module name failed.");
+        ThrowInvalidParamError(env, "Parse param moduleName failed, moduleName must be string.");
+        return CreateJsUndefined(env);
+    }
+ 
+    std::shared_ptr<Global::Resource::ResourceManager> resourceManager = nullptr;
+    int32_t retCode = applicationContext->CreateHspModuleResourceManager(bundleName, moduleName, resourceManager);
+    if (resourceManager == nullptr && retCode == ERR_ABILITY_RUNTIME_EXTERNAL_NOT_SYSTEM_HSP) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to create resourceManager");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_NOT_SYSTEM_HSP);
+        return CreateJsUndefined(env);
+    }
+
+    if (resourceManager == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to create resourceManager");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        return CreateJsUndefined(env);
+    }
+
+    return CreateJsResourceManager(env, resourceManager, nullptr);
+}
+
 napi_value JsApplicationContextUtils::CreateModuleResourceManager(napi_env env, napi_callback_info info)
 {
     GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils,
@@ -1683,6 +1730,8 @@ void JsApplicationContextUtils::BindNativeApplicationContextOne(napi_env env, na
     BindNativeFunction(env, object, "createModuleContext", MD_NAME, JsApplicationContextUtils::CreateModuleContext);
     BindNativeFunction(env, object, "createSystemHspModuleResourceManager", MD_NAME,
         JsApplicationContextUtils::CreateSystemHspModuleResourceManager);
+    BindNativeFunction(env, object, "createHspModuleResourceManager", MD_NAME,
+        JsApplicationContextUtils::CreateHspModuleResourceManager);
     BindNativeFunction(env, object, "createModuleResourceManager", MD_NAME,
         JsApplicationContextUtils::CreateModuleResourceManager);
     BindNativeFunction(env, object, "on", MD_NAME, JsApplicationContextUtils::On);
