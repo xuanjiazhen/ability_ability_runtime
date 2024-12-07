@@ -215,7 +215,6 @@ ohos_unittest("context_impl_second_test") {
   include_dirs = [
     "${ability_runtime_services_path}/common/include",
     "${ability_runtime_test_path}/mock/common/include",
-    "${resource_management_path}/frameworks/resmgr/include",
   ]
 
   sources = [
@@ -239,8 +238,6 @@ ohos_unittest("context_impl_second_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
-    "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -261,6 +258,8 @@ ohos_unittest("context_impl_second_test") {
     "ipc:ipc_core",
     "napi:ace_napi",
     "resource_management:global_resmgr",
+    "googletest:gtest_main",
+    "samgr_proxy:samgr_proxy",
   ]
 
   if (ability_runtime_graphics) {
