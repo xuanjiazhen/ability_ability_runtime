@@ -822,7 +822,7 @@ napi_value JSAbilityDelegator::OnStartAbility(napi_env env, NapiCallbackInfo& in
         }
         int result = delegator->StartAbility(want);
         if (result) {
-            task.Reject(env, CreateJsError(env, result, "startAbility failed."));
+            task.Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(result)));
         } else {
             ResolveWithNoError(env, task);
         }
