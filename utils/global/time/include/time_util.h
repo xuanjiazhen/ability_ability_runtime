@@ -76,6 +76,15 @@ constexpr int32_t DECIMAL_BASE = 10;
     auto milliSecs = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch());
     return milliSecs.count();
 }
+
+[[maybe_unused]] static std::string GetCurrentTime()
+{
+    struct timespec tn;
+    clock_gettime(CLOCK_REALTIME, &tn);
+    uint64_t uTime = static_cast<uint64_t>(tn.tv_sec) * NANO_SECOND_PER_SEC +
+        static_cast<uint64_t>(tn.tv_nsec);
+    return std::to_string(uTime);
+}
 }  // namespace TimeUtil
 }  // namespace OHOS::AbilityRuntime
 #endif  // OHOS_ABILITY_RUNTIME_TIME_UTIL_H
