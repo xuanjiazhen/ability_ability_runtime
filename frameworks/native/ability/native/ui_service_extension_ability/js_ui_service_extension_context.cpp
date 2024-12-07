@@ -94,6 +94,38 @@ public:
 private:
     std::weak_ptr<UIServiceExtensionContext> context_;
 
+    void InitDisplayId(AAFwk::Want &want, AAFwk::StartOptions &startOptions,
+        std::weak_ptr<UIServiceExtensionContext> weak)
+    {
+        auto context = weak.lock();
+        if (!context) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "null context");
+            return;
+        }
+
+        auto window = context->GetWindow();
+        if (window == nullptr) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "null window");
+            return;
+        }
+
+        if (startOptions.GetDisplayID() != 0) {
+            TAG_LOGI(AAFwkTag::UI_EXT, "startOption displayId %{public}d", startOptions.GetDisplayID());
+            want.SetParam(AAFwk::Want::PARAM_RESV_DISPLAY_ID,
+                static_cast<int32_t>(startOptions.GetDisplayID()));
+        }
+
+        auto displayId = want.GetIntParam(AAFwk::Want::PARAM_RESV_DISPLAY_ID, 0);
+        if (displayId != 0) {
+            TAG_LOGI(AAFwkTag::UI_EXT, "want displayId %{public}d", displayId);
+            startOptions.SetDisplayID(displayId);
+            return;
+        }
+
+        TAG_LOGI(AAFwkTag::UI_EXT, "window displayId %{public}d", window.GetDisplayId());
+        startOptions.SetDisplayID(window.GetDisplayId());
+    }
+
     napi_value OnStartAbility(napi_env env, NapiCallbackInfo& info)
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -111,6 +143,7 @@ private:
             ThrowInvalidParamError(env, "Parse param want failed, want must be Want.");
             return CreateJsUndefined(env);
         }
+        InitDisplayId(want, startOptions, context_);
         auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
         NapiAsyncTask::ExecuteCallback execute = [weak = context_, want, startOptions, unwrapArgc, innerErrCode]() {
             TAG_LOGD(AAFwkTag::UI_EXT, "JSUIServiceExtensionContext OnStartAbility");
