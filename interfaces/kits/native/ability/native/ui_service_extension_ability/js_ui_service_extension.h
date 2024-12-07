@@ -175,6 +175,9 @@ private:
 
     void ListenWMS();
 
+    void InitDisplayId(AAFwk::Want &want, AAFwk::StartOptions &startOptions,
+        std::weak_ptr<UIServiceExtensionContext> weak);
+
     JsRuntime& jsRuntime_;
     std::unique_ptr<NativeReference> jsObj_;
     std::shared_ptr<AbilityContext> aContext_ = nullptr;
