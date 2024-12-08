@@ -67,5 +67,7 @@ ohos_unittest("child_main_thread_first_test") {
 
 group("unittest") {
   testonly = true
-  deps = [ ":child_main_thread_first_test" ]
+  if (ability_runtime_child_process) {
+    deps = [ ":child_main_thread_first_test" ]
+  }
 }

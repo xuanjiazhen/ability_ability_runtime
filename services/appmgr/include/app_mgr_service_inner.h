@@ -46,8 +46,10 @@
 #include "appexecfwk_errors.h"
 #include "bundle_info.h"
 #include "bundle_mgr_helper.h"
+#ifdef SUPPORT_CHILD_PROCESS
 #include "child_process_info.h"
 #include "child_process_request.h"
+#endif // SUPPORT_CHILD_PROCESS
 #include "cpp/mutex.h"
 #include "event_report.h"
 #include "fault_data.h"
@@ -444,6 +446,7 @@ public:
      */
     virtual int32_t GetAllRenderProcesses(std::vector<RenderProcessInfo> &info);
 
+#ifdef SUPPORT_CHILD_PROCESS
     /**
      * GetAllChildrenProcesses, call GetAllChildrenProcesses() through proxy project.
      * Obtains information about children processes that are running on the device.
@@ -452,6 +455,7 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info);
+#endif // SUPPORT_CHILD_PROCESS
 
     /**
      * NotifyMemoryLevel, Notify applications background the current memory level.
@@ -1165,6 +1169,7 @@ public:
      */
     int32_t UnregisterAppForegroundStateObserver(const sptr<IAppForegroundStateObserver> &observer);
 
+#ifdef SUPPORT_CHILD_PROCESS
     /**
      * Start child process, called by ChildProcessManager.
      *
@@ -1207,6 +1212,7 @@ public:
      */
     virtual int32_t StartNativeChildProcess(const pid_t hostPid,
         const std::string &libName, int32_t childProcessCount, const sptr<IRemoteObject> &callback);
+#endif // SUPPORT_CHILD_PROCESS
 
     /**
      * To clear the process by ability token.
@@ -1612,7 +1618,9 @@ private:
      */
     void GetRenderProcesses(const std::shared_ptr<AppRunningRecord> &appRecord, std::vector<RenderProcessInfo> &info);
 
+#ifdef SUPPORT_CHILD_PROCESS
     void GetChildrenProcesses(const std::shared_ptr<AppRunningRecord> &appRecord, std::vector<ChildProcessInfo> &info);
+#endif // SUPPORT_CHILD_PROCESS
 
     int StartRenderProcessImpl(const std::shared_ptr<RenderRecord> &renderRecord,
         const std::shared_ptr<AppRunningRecord> appRecord, pid_t &renderPid, bool isGPU = false);
@@ -1645,6 +1653,7 @@ private:
     void ClearResidentProcessAppRunningData(const std::shared_ptr<AppRunningRecord> &appRecord);
     void ClearNonResidentKeepAliveAppRunningData(const std::shared_ptr<AppRunningRecord> &appRecord);
 
+#ifdef SUPPORT_CHILD_PROCESS
     int32_t StartChildProcessPreCheck(pid_t callingPid, int32_t childProcessType);
 
     int32_t StartChildProcessImpl(const std::shared_ptr<ChildProcessRecord> childProcessRecord,
@@ -1667,6 +1676,7 @@ private:
 
     void PresetMaxChildProcess(std::shared_ptr<AppRunningRecord> appRecord,
         int32_t &maxChildProcess);
+#endif // SUPPORT_CHILD_PROCESS
 
     void AfterLoadAbility(std::shared_ptr<AppRunningRecord> appRecord, std::shared_ptr<AbilityInfo> abilityInfo,
         std::shared_ptr<AbilityRuntime::LoadParam> loadParam);
@@ -1762,8 +1772,10 @@ private:
     void NotifyAppRunningStatusEvent(
         const std::string &bundle, int32_t uid, AbilityRuntime::RunningStatus runningStatus);
 
+#ifdef SUPPORT_CHILD_PROCESS
     void GetRunningCloneAppInfo(const std::shared_ptr<AppRunningRecord> &appRecord,
         RunningMultiAppInfo &info);
+#endif // SUPPORT_CHILD_PROCESS
 
     void GetRunningMultiInstanceKeys(const std::shared_ptr<AppRunningRecord> &appRecord,
         std::vector<std::string> &instanceKeys);
@@ -1872,10 +1884,12 @@ private:
     int32_t ProcessKia(bool isKia, std::shared_ptr<AppRunningRecord> appRecord,
         const std::string& watermarkBusinessName, bool isWatermarkEnabled);
     bool CheckAppRecordAndPriorityObject(const std::shared_ptr<AppRunningRecord> &appRecord);
+#ifdef SUPPORT_CHILD_PROCESS
     void GetAppCloneInfo(const std::shared_ptr<AppRunningRecord> &appRecord,
         RunningMultiAppInfo &info);
     void GetMultiInstanceInfo(const std::shared_ptr<AppRunningRecord> &appRecord,
         RunningMultiAppInfo &info);
+#endif //SUPPORT_CHILD_PROCESS
     int32_t GetAllRunningInstanceKeysByBundleNameInner(const std::string &bundleName,
         std::vector<std::string> &instanceKeys, int32_t userId);
     int32_t KillProcessByPidInner(const pid_t pid, const std::string& reason,
@@ -1922,7 +1936,9 @@ private:
     std::shared_ptr<AppDebugManager> appDebugManager_;
     ffrt::mutex killedProcessMapLock_;
     mutable std::map<int64_t, std::string> killedProcessMap_;
+#ifdef SUPPORT_CHILD_PROCESS
     ffrt::mutex startChildProcessLock_;
+#endif //SUPPORT_CHILD_PROCESS
     std::vector<std::string> serviceExtensionWhiteList_;
     std::shared_ptr<AbilityRuntime::AppRunningStatusModule> appRunningStatusModule_;
     std::shared_ptr<AdvancedSecurityModeManager> securityModeManager_;
