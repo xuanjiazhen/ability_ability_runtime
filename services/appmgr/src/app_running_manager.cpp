@@ -1395,6 +1395,7 @@ void AppRunningManager::GetAbilityTokensByBundleName(
     }
 }
 
+#ifdef SUPPORT_CHILD_PROCESS
 std::shared_ptr<AppRunningRecord> AppRunningManager::GetAppRunningRecordByChildProcessPid(const pid_t pid)
 {
     std::lock_guard guard(runningRecordMapMutex_);
@@ -1470,6 +1471,7 @@ std::shared_ptr<ChildProcessRecord> AppRunningManager::OnChildProcessRemoteDied(
     }
     return nullptr;
 }
+#endif //SUPPORT_CHILD_PROCESS
 
 int32_t AppRunningManager::SignRestartAppFlag(int32_t uid, const std::string &instanceKey)
 {

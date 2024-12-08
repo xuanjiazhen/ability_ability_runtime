@@ -450,9 +450,6 @@ group("unittest") {
       "cache_process_manager_test:unittest",
       "call_record_test:unittest",
       "capi_ability_runtime_application_context_test:unittest",
-      "child_process_capi_test:unittest",
-      "child_process_manager_second_test:unittest",
-      "child_process_manager_test:unittest",
       "cj_ability_connect_callback_object_test:unittest",
       "cj_ability_context_object_test:unittest",
       "cj_ability_delegator_test:unittest",
@@ -627,6 +624,15 @@ group("unittest") {
         "auto_fill_manager_test:unittest",
         "auto_fill_manager_util_test:unittest",
         "js_auto_fill_extension_test:unittest",
+      ]
+    }
+    if (ability_runtime_child_process) {
+      deps += [
+        "child_main_thread_first_test:unittest",
+        "child_main_thread_test:unittest",
+        "child_process_capi_test:unittest",
+        "child_process_manager_second_test:unittest",
+        "child_process_manager_test:unittest",
       ]
     }
 
