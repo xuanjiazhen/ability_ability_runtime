@@ -147,7 +147,8 @@ int AbilityConnectManager::StopServiceAbility(const AbilityRequest &abilityReque
 int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityRequest)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "ability_name:%{public}s", abilityRequest.want.GetElement().GetURI().c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Start ability_name:%{public}s",
+        abilityRequest.want.GetElement().GetURI().c_str());
 
     int32_t ret = AbilityPermissionUtil::GetInstance().CheckMultiInstanceKeyForExtension(abilityRequest);
     if (ret != ERR_OK) {
