@@ -65,10 +65,9 @@ FreezeUtil::TimeoutState MsgId2State(uint32_t msgId)
     return FreezeUtil::TimeoutState::UNKNOWN;
 }
 
-auto g_deleteLifecycleEventTask = [](const sptr<Token> &token, FreezeUtil::TimeoutState state) {
+auto g_deleteLifecycleEventTask = [](const sptr<Token> &token) {
     CHECK_POINTER_LOG(token, "token is nullptr.");
-    FreezeUtil::LifecycleFlow flow = { token->AsObject(), state };
-    FreezeUtil::GetInstance().DeleteLifecycleEvent(flow);
+    FreezeUtil::GetInstance().DeleteLifecycleEvent(token->AsObject());
 };
 }
 
@@ -250,8 +249,7 @@ int UIAbilityLifecycleManager::AttachAbilityThread(const sptr<IAbilityScheduler>
     CHECK_POINTER_AND_RETURN_LOG(handler, ERR_INVALID_VALUE, "Fail to get AbilityEventHandler.");
     handler->RemoveEvent(AbilityManagerService::LOAD_TIMEOUT_MSG, abilityRecord->GetAbilityRecordId());
     abilityRecord->SetLoading(false);
-    FreezeUtil::LifecycleFlow flow = {token, FreezeUtil::TimeoutState::LOAD};
-    FreezeUtil::GetInstance().DeleteLifecycleEvent(flow);
+    FreezeUtil::GetInstance().DeleteLifecycleEvent(token);
 
     abilityRecord->SetScheduler(scheduler);
     if (DoProcessAttachment(abilityRecord) != ERR_OK) {
@@ -467,7 +465,7 @@ int UIAbilityLifecycleManager::DispatchForeground(const std::shared_ptr<AbilityR
 
     TAG_LOGD(AAFwkTag::ABILITYMGR, "ForegroundLifecycle: end.");
     handler->RemoveEvent(AbilityManagerService::FOREGROUND_TIMEOUT_MSG, abilityRecord->GetAbilityRecordId());
-    g_deleteLifecycleEventTask(abilityRecord->GetToken(), FreezeUtil::TimeoutState::FOREGROUND);
+    g_deleteLifecycleEventTask(abilityRecord->GetToken());
     FreezeUtil::GetInstance().DeleteAppLifecycleEvent(abilityRecord->GetPid());
     auto self(weak_from_this());
     if (success) {
@@ -518,7 +516,7 @@ int UIAbilityLifecycleManager::DispatchBackground(const std::shared_ptr<AbilityR
     TAG_LOGD(AAFwkTag::ABILITYMGR, "end.");
     // remove background timeout task.
     handler->CancelTask("background_" + std::to_string(abilityRecord->GetAbilityRecordId()));
-    g_deleteLifecycleEventTask(abilityRecord->GetToken(), FreezeUtil::TimeoutState::BACKGROUND);
+    g_deleteLifecycleEventTask(abilityRecord->GetToken());
     FreezeUtil::GetInstance().DeleteAppLifecycleEvent(abilityRecord->GetPid());
     auto self(shared_from_this());
     auto task = [self, abilityRecord]() { self->CompleteBackground(abilityRecord); };
@@ -1104,23 +1102,23 @@ void UIAbilityLifecycleManager::PrintTimeOutLog(std::shared_ptr<AbilityRecord> a
         .bundleName = ability->GetAbilityInfo().bundleName,
     };
     FreezeUtil::TimeoutState state = MsgId2State(msgId);
+    FreezeUtil::LifecycleFlow flow;
     if (state != FreezeUtil::TimeoutState::UNKNOWN) {
-        FreezeUtil::LifecycleFlow flow;
         if (ability->GetToken() != nullptr) {
             flow.token = ability->GetToken()->AsObject();
             flow.state = state;
         }
-        info.msg = msgContent + "\nserver:\n" + FreezeUtil::GetInstance().GetLifecycleEvent(flow)
-            + "\nserver app:\n" + FreezeUtil::GetInstance().GetAppLifecycleEvent(processInfo.pid_);
+        info.msg = msgContent + "\nserver actions for ability:\n" +
+            FreezeUtil::GetInstance().GetLifecycleEvent(flow.token)
+            + "\nserver actions for app:\n" + FreezeUtil::GetInstance().GetAppLifecycleEvent(processInfo.pid_);
         if (!isHalf) {
-            FreezeUtil::GetInstance().DeleteLifecycleEvent(flow);
+            FreezeUtil::GetInstance().DeleteLifecycleEvent(flow.token);
             FreezeUtil::GetInstance().DeleteAppLifecycleEvent(processInfo.pid_);
         }
-        AppExecFwk::AppfreezeManager::GetInstance()->LifecycleTimeoutHandle(info, flow);
     } else {
         info.msg = msgContent;
-        AppExecFwk::AppfreezeManager::GetInstance()->LifecycleTimeoutHandle(info);
     }
+    AppExecFwk::AppfreezeManager::GetInstance()->LifecycleTimeoutHandle(info, flow);
 }
 
 bool UIAbilityLifecycleManager::GetContentAndTypeId(uint32_t msgId, std::string &msgContent, int &typeId) const
