@@ -890,5 +890,10 @@ std::shared_ptr<Context> ApplicationContext::CreateAreaModeContext(int areaMode)
 {
     return contextImpl_ ? contextImpl_->CreateAreaModeContext(areaMode) : nullptr;
 }
+
+std::shared_ptr<Context> ApplicationContext::CreateDisplayContext(uint64_t displayId)
+{
+    return contextImpl_ ? contextImpl_->CreateDisplayContext(displayId) : nullptr;
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS
