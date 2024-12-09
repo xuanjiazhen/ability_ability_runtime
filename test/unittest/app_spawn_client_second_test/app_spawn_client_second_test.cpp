@@ -228,6 +228,7 @@ HWTEST_F(AppSpawnClientSecondTest, AppspawnSetExtMsgMore_006, TestSize.Level0)
     ASSERT_EQ(ret, 0);
 }
 
+#ifdef SUPPORT_CHILD_PROCESS
 // Scenario7: Test when maxChildProcess is 0 then function returns 0.
 HWTEST_F(AppSpawnClientSecondTest, AppspawnSetExtMsgMore_007, TestSize.Level0)
 {
@@ -257,6 +258,7 @@ HWTEST_F(AppSpawnClientSecondTest, AppspawnSetExtMsgMore_008, TestSize.Level0)
     ret = appSpawnClient.AppspawnSetExtMsgMore(startMsg, reqHandle);
     ASSERT_EQ(ret, 0);
 }
+#endif // SUPPORT_CHILD_PROCESS
 
 // Scenario9: Test when fds is empty then function returns 0.
 HWTEST_F(AppSpawnClientSecondTest, AppspawnSetExtMsgMore_009, TestSize.Level0)
@@ -562,6 +564,7 @@ HWTEST_F(AppSpawnClientSecondTest,
     EXPECT_NE(ret, ERR_OK);
 }
 
+#ifdef SUPPORT_CHILD_PROCESS
 // Scenario1: Test when childProcessType is CHILD_PROCESS_TYPE_NOT_CHILD then AppSpawnReqMsgSetAppFlag is called.
 HWTEST_F(AppSpawnClientSecondTest, SetChildProcessTypeStartFlag_001, TestSize.Level0)
 {
@@ -585,6 +588,7 @@ HWTEST_F(AppSpawnClientSecondTest, SetChildProcessTypeStartFlag_002, TestSize.Le
     ret = asc->SetChildProcessTypeStartFlag(reqHandle, childProcessType);
     EXPECT_EQ(ret, ERR_OK);
 }
+#endif // SUPPORT_CHILD_PROCESS
 
 // Scenario1: Test when startMsg.procName is null return ERR_INVALID_VALUE.
 HWTEST_F(AppSpawnClientSecondTest, GetRenderProcessTerminationStatus_001, TestSize.Level0)
