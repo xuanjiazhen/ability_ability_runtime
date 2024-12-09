@@ -26,7 +26,9 @@
 
 #include "appexecfwk_errors.h"
 #include "appspawn.h"
+#ifdef SUPPORT_CHILD_PROCESS
 #include "child_process_info.h"
+#endif  // SUPPORT_CHILD_PROCESS
 #include "data_group_info.h"
 #include "nocopyable.h"
 #include "shared/base_shared_bundle_info.h"
@@ -238,7 +240,9 @@ private:
     AppSpawnClientHandle handle_ = nullptr;
     SpawnConnectionState state_ = SpawnConnectionState::STATE_NOT_CONNECT;
 
+#ifdef SUPPORT_CHILD_PROCESS
     int32_t SetChildProcessTypeStartFlag(const AppSpawnReqMsgHandle &reqHandle, int32_t childProcessType);
+#endif  // SUPPORT_CHILD_PROCESS
 
     int32_t SetExtMsgFds(const AppSpawnReqMsgHandle &reqHandle, const std::map<std::string, int32_t> &fds);
 

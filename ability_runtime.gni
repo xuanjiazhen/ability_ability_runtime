@@ -99,6 +99,7 @@ declare_args() {
   ability_runtime_resource = true
   ability_runtime_appspawn = true
   ability_runtime_auto_fill = true
+  ability_runtime_child_process = false
   ability_fault_and_exit_test = false
   ability_command_for_test = false
   ability_runtime_feature_coverage = false
