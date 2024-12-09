@@ -1478,7 +1478,6 @@ void ContextImpl::PrintTokenInfo() const
 int32_t ContextImpl::CreateHspModuleResourceManager(const std::string &bundleName,
     const std::string &moduleName, std::shared_ptr<Global::Resource::ResourceManager> &resourceManager)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "ContextImpl::CreateHspModuleResourceManager");
     if (bundleName.empty() || moduleName.empty()) {
         TAG_LOGE(AAFwkTag::APPKIT, "bundleName is %{public}s, moduleName is %{public}s",
             bundleName.c_str(), moduleName.c_str());
@@ -1494,8 +1493,6 @@ int32_t ContextImpl::CreateHspModuleResourceManager(const std::string &bundleNam
     AppExecFwk::BundleInfo bundleInfo;
     ErrCode ret = bundleMgr_->GetDependentBundleInfo(bundleName, bundleInfo,
         AppExecFwk::GetDependentBundleInfoFlag::GET_ALL_DEPENDENT_BUNDLE_INFO);
-    TAG_LOGD(AAFwkTag::APPKIT, "ContextImpl::CreateHspModuleResourceManager ret:%d", ret);
-    TAG_LOGD(AAFwkTag::APPKIT, "ContextImpl::CreateHspModuleResourceManager uid:%s", bundleInfo.name.c_str());
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "GetDependentBundleInfo failed:%{public}d", ret);
         return ERR_INVALID_VALUE;
@@ -1515,7 +1512,7 @@ int32_t ContextImpl::CreateHspModuleResourceManager(const std::string &bundleNam
         TAG_LOGE(AAFwkTag::APPKIT, "InitResourceManagerInner create resourceManager failed");
         return ERR_INVALID_VALUE;
     }
-    TAG_LOGD(AAFwkTag::APPKIT, "ContextImpl::CreateHspModuleResourceManager ok!");
+
     UpdateResConfig(GetResourceManager(), resourceManager);
     return ERR_OK;
 }
