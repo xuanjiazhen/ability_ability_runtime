@@ -318,7 +318,11 @@ napi_value JsApplicationContextUtils::OnCreateHspModuleResourceManager(napi_env 
  
     std::shared_ptr<Global::Resource::ResourceManager> resourceManager = nullptr;
     int32_t retCode = applicationContext->CreateHspModuleResourceManager(bundleName, moduleName, resourceManager);
-
+    if (resourceManager == nullptr && retCode == ERR_ABILITY_RUNTIME_EXTERNAL_NOT_SYSTEM_HSP) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null resourceManager");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_NOT_SYSTEM_HSP);
+        return CreateJsUndefined(env);
+    }
     if (resourceManager == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "Failed to create resourceManager");
         AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
