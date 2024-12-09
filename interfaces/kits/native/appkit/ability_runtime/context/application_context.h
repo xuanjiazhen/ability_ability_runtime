@@ -87,7 +87,7 @@ public:
     int32_t CreateSystemHspModuleResourceManager(const std::string &bundleName,
         const std::string &moduleName, std::shared_ptr<Global::Resource::ResourceManager> &resourceManager) override;
     int32_t CreateHspModuleResourceManager(const std::string &bundleName,
-        const std::string &moduleName, std::shared_ptr<Global::Resource::ResourceManager> &resourceManager) override;    
+        const std::string &moduleName, std::shared_ptr<Global::Resource::ResourceManager> &resourceManager) override;
     std::shared_ptr<AppExecFwk::ApplicationInfo> GetApplicationInfo() const override;
     void SetApplicationInfo(const std::shared_ptr<AppExecFwk::ApplicationInfo> &info);
     std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager() const override;
