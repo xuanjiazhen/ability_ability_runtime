@@ -22,7 +22,6 @@ group("innerkits_target") {
     "deps_wrapper:ability_deps_wrapper",
     "error_utils:ability_runtime_error_util",
     "quick_fix:quickfix_manager",
-    "uri_permission:uri_permission_mgr",
     "wantagent:wantagent_innerkits",
   ]
   if (ability_runtime_child_process) {
@@ -30,5 +29,8 @@ group("innerkits_target") {
   }
   if (ability_runtime_auto_fill) {
     deps += [ "auto_fill_manager:auto_fill_manager" ]
+  }
+  if (ability_runtime_upms) {
+    deps += [ "uri_permission:uri_permission_mgr" ]
   }
 }
