@@ -84,6 +84,10 @@ sptr<Rosen::WindowOption> UIServiceExtension::GetWindowOption(
         TAG_LOGE(AAFwkTag::UISERVC_EXT, "null option");
         return nullptr;
     }
+    if (extensionWindowConfig == nullptr) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "ExtensionWindowConfig is nullptr");
+        return nullptr;
+    }
     if (extensionWindowConfig->windowAttribute == Rosen::ExtensionWindowAttribute::SUB_WINDOW) {
         if (hostWindowId == 0) {
             TAG_LOGE(AAFwkTag::UISERVC_EXT, "hostWindowId = 0");
