@@ -76,7 +76,9 @@
 #include "ui_extension_utils.h"
 #include "ui_service_extension_connection_constants.h"
 #include "unlock_screen_manager.h"
+#ifdef SUPPORT_UPMS
 #include "uri_permission_manager_client.h"
+#endif // SUPPORT_UPMS
 #include "uri_utils.h"
 #include "view_data.h"
 #include "xcollie/watchdog.h"
@@ -89,6 +91,7 @@
 #include "utils/update_caller_info_util.h"
 #include "utils/want_utils.h"
 #include "utils/window_options_utils.h"
+#include "insight_intent_execute_manager.h"
 #ifdef SUPPORT_GRAPHICS
 #include "dialog_session_manager.h"
 #include "application_anr_listener.h"
@@ -4284,7 +4287,8 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     AbilityUtil::RemoveShowModeKey(const_cast<Want &>(want));
     bool isEnterpriseAdmin = AAFwk::UIExtensionUtils::IsEnterpriseAdmin(extensionType);
-    if (!isEnterpriseAdmin && !JudgeMultiUserConcurrency(userId)) {
+    if (extensionType != AppExecFwk::ExtensionAbilityType::SERVICE &&
+        !isEnterpriseAdmin && !JudgeMultiUserConcurrency(userId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "multi-user non-concurrent unsatisfied");
         return ERR_CROSS_USER;
     }
@@ -7792,6 +7796,19 @@ int AbilityManagerService::GetProcessRunningInfos(std::vector<AppExecFwk::Runnin
     return DelayedSingleton<AppScheduler>::GetInstance()->GetProcessRunningInfos(info);
 }
 
+int32_t AbilityManagerService::GetAllIntentExemptionInfo(std::vector<AppExecFwk::IntentExemptionInfo> &info) 
+{
+    const auto exemptionData =
+        DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->GetAllIntentExemptionInfo();
+    for (auto& data : exemptionData) {
+        AppExecFwk::IntentExemptionInfo tmpInfo;
+        tmpInfo.uid_ = data.first;
+        tmpInfo.duration_ = INTENT_EXEMPTION_DURATION;
+        info.push_back(tmpInfo);
+    }
+    return ERR_OK;
+}
+
 int AbilityManagerService::GetProcessRunningInfosByUserId(
     std::vector<AppExecFwk::RunningProcessInfo> &info, int32_t userId)
 {
@@ -10881,8 +10898,11 @@ int32_t AbilityManagerService::StartAbilityByCallWithInsightIntent(const Want &w
     }  else {
         result = StartAbilityByCall(want, connect, callerToken);
     }
-
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "startAbilityByCallWithInsightIntent %{public}d", result);
+    ResSchedUtil::GetInstance().ReportAbilityIntentExemptionInfoToRSS(abilityRequest.uid, 0);
+    DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->SetIntentExemptionInfo(
+        abilityRequest.uid);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "startAbilityByCallWithInsightIntent %{public}d uid:%{public}d",
+        result, abilityRequest.uid);
     return result;
 }
 
@@ -11075,11 +11095,13 @@ void AbilityManagerService::OnAppRemoteDied(const std::vector<sptr<IRemoteObject
 int32_t AbilityManagerService::OpenFile(const Uri& uri, uint32_t flag)
 {
     auto accessTokenId = IPCSkeleton::GetCallingTokenID();
+#ifdef SUPPORT_UPMS
     if (!IN_PROCESS_CALL(AAFwk::UriPermissionManagerClient::GetInstance().VerifyUriPermission(
         uri, flag, accessTokenId))) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "premission check failed");
         return -1;
     }
+#endif // SUPPORT_UPMS
     auto collaborator = GetCollaborator(CollaboratorType::RESERVE_TYPE);
     if (collaborator == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "collaborator getCollaborator null");
@@ -11707,6 +11729,11 @@ bool AbilityManagerService::ShouldPreventStartAbility(const AbilityRequest &abil
     }
     if (callerAbilityInfo.type != AppExecFwk::AbilityType::PAGE) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Is not UI Ability Pass");
+        return false;
+    }
+    if (DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckIntentIsExemption(
+        abilityRecord->GetUid())) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Is Exemption Pass");
         return false;
     }
     if (!CheckProcessIsBackground(abilityRecord->GetPid(), abilityRecord->GetAbilityState())) {
