@@ -2061,5 +2061,106 @@ int32_t AppMgrProxy::GetSupportedProcessCachePids(const std::string &bundleName,
     }
     return reply.ReadInt32();
 }
+<<<<<<< HEAD
+=======
+
+int32_t AppMgrProxy::RegisterKiaInterceptor(const sptr<IKiaInterceptor> &interceptor)
+{
+    if (interceptor == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "interceptor is nullptr.");
+        return ERR_INVALID_VALUE;
+    }
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!data.WriteRemoteObject(interceptor->AsObject())) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write interceptor failed.");
+        return ERR_INVALID_VALUE;
+    }
+
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::REGISTER_KIA_INTERCEPTOR, data, reply, option);
+    return reply.ReadInt32();
+}
+
+int32_t AppMgrProxy::CheckIsKiaProcess(pid_t pid, bool &isKia)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!data.WriteInt32(pid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write pid failed.");
+        return ERR_INVALID_VALUE;
+    }
+
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::CHECK_IS_KIA_PROCESS, data, reply, option);
+    int32_t ret = reply.ReadInt32();
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "failed,ret=%{public}d.", ret);
+        return ret;
+    }
+    isKia = reply.ReadBool();
+    return ERR_OK;
+}
+
+int32_t AppMgrProxy::KillAppSelfWithInstanceKey(const std::string &instanceKey, bool clearPageStack,
+    const std::string& reason)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return ERR_INVALID_VALUE;
+    }
+    PARCEL_UTIL_WRITE_RET_INT(data, String, instanceKey);
+    PARCEL_UTIL_WRITE_RET_INT(data, Bool, clearPageStack);
+    PARCEL_UTIL_WRITE_RET_INT(data, String, reason);
+
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::KILL_APP_SELF_WITH_INSTANCE_KEY, data, reply, option);
+    return reply.ReadInt32();
+}
+
+void AppMgrProxy::UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return;
+    }
+    PARCEL_UTIL_WRITE_NORET(data, Int32, specifiedId);
+    PARCEL_UTIL_WRITE_NORET(data, String, instanceKey);
+
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    PARCEL_UTIL_SENDREQ_NORET(AppMgrInterfaceCode::UPDATE_INSTANCE_KEY_BY_SPECIFIED_ID, data, reply, option);
+}
+
+int32_t AppMgrProxy::HasAppRecord(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return ERR_FLATTEN_OBJECT;
+    }
+    PARCEL_UTIL_WRITE_RET_INT(data, Parcelable, &want);
+    PARCEL_UTIL_WRITE_RET_INT(data, Parcelable, &abilityInfo);
+
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::UPDATE_INSTANCE_KEY_BY_SPECIFIED_ID, data, reply, option);
+    result = reply.ReadBool();
+    return ERR_OK;
+}
+>>>>>>> 801e62a5a2 (ui first for specified ability)
 }  // namespace AppExecFwk
 }  // namespace OHOS

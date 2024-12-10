@@ -229,6 +229,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerFourth(uint32_t code, MessageParcel &dat
             return HandleGetProcessMemoryByPid(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::IS_TERMINATING_BY_PID):
             return HandleIsTerminatingByPid(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::HAS_APP_RECORD):
+            return HandleHasAppRecord(data, reply);
     }
     return INVALID_FD;
 }
@@ -1693,5 +1695,79 @@ int32_t AppMgrStub::GetSupportedProcessCachePids(const std::string &bundleName,
 {
     return NO_ERROR;
 }
+<<<<<<< HEAD
+=======
+
+int32_t AppMgrStub::HandleRegisterKiaInterceptor(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
+    sptr<IKiaInterceptor> interceptor = iface_cast<IKiaInterceptor>(data.ReadRemoteObject());
+    if (interceptor == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "interceptor is nullptr.");
+        return ERR_INVALID_VALUE;
+    }
+
+    reply.WriteInt32(RegisterKiaInterceptor(interceptor));
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleCheckIsKiaProcess(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
+    int pid = data.ReadInt32();
+    bool isKia = false;
+    int result = CheckIsKiaProcess(pid, isKia);
+    reply.WriteInt32(result);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "failed,result=%{public}d.", result);
+        return result;
+    }
+    reply.WriteBool(isKia);
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleKillAppSelfWithInstanceKey(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
+    auto instanceKey = data.ReadString();
+    auto clearPageStack = data.ReadBool();
+    auto reason = data.ReadString();
+    auto result = KillAppSelfWithInstanceKey(instanceKey, clearPageStack, reason);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "fail to write result.");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleUpdateInstanceKeyBySpecifiedId(MessageParcel &data, MessageParcel &reply)
+{
+    auto specifiedId = data.ReadInt32();
+    auto instanceKey = data.ReadString();
+    UpdateInstanceKeyBySpecifiedId(specifiedId, instanceKey);
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleHasAppRecord(MessageParcel &data, MessageParcel &reply)
+{
+    std::unique_ptr<AAFwk::Want> want(data.ReadParcelable<AAFwk::Want>());
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "want is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    std::unique_ptr<AbilityInfo> abilityInfo(data.ReadParcelable<AbilityInfo>());
+    if (abilityInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "abilityInfo is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+
+    bool exist = false;
+    auto ret = HasAppRecord(*want, *abilityInfo, exist);
+    if (ret == ERR_OK) {
+        reply.WriteBool(exist);
+    }
+    return ret;
+}
+>>>>>>> 801e62a5a2 (ui first for specified ability)
 }  // namespace AppExecFwk
 }  // namespace OHOS

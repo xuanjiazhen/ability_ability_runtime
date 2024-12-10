@@ -868,13 +868,23 @@ std::string AppMgrServiceInner::GetSpecifiedProcessFlag(std::shared_ptr<AbilityI
         TAG_LOGE(AAFwkTag::APPMGR, "want is nullptr.");
         return "";
     }
-    std::string specifiedProcessFlag = "";
-    bool isUIAbility = (abilityInfo->type == AppExecFwk::AbilityType::PAGE && abilityInfo->isStageBasedModel);
-    bool isSpecifiedProcess = abilityInfo->isolationProcess &&
+    return GetSpecifiedProcessFlag(*abilityInfo, *want);
+}
+
+std::string AppMgrServiceInner::GetSpecifiedProcessFlag(const AbilityInfo &abilityInfo, const AAFwk::Want &want)
+{
+    std::string specifiedProcessFlag;
+    bool isUIAbility = (abilityInfo.type == AppExecFwk::AbilityType::PAGE && abilityInfo.isStageBasedModel);
+    bool isSpecifiedProcess = abilityInfo.isolationProcess &&
         AAFwk::AppUtils::GetInstance().IsStartSpecifiedProcess() && isUIAbility;
     if (isSpecifiedProcess) {
+<<<<<<< HEAD
         specifiedProcessFlag = want->GetStringParam(PARAM_SPECIFIED_PROCESS_FLAG);
         TAG_LOGI(AAFwkTag::APPMGR, "specifiedProcessFlag = %{public}s", specifiedProcessFlag.c_str());
+=======
+        specifiedProcessFlag = want.GetStringParam(PARAM_SPECIFIED_PROCESS_FLAG);
+        TAG_LOGI(AAFwkTag::APPMGR, "specifiedProcessFlag: %{public}s", specifiedProcessFlag.c_str());
+>>>>>>> 801e62a5a2 (ui first for specified ability)
     }
     return specifiedProcessFlag;
 }
@@ -8075,5 +8085,94 @@ int32_t AppMgrServiceInner::GetSupportedProcessCachePids(const std::string &bund
     }
     return ERR_OK;
 }
+<<<<<<< HEAD
+=======
+
+int AppMgrServiceInner::RegisterKiaInterceptor(const sptr<IKiaInterceptor> &interceptor)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "call");
+    if (!AAFwk::AppUtils::GetInstance().IsStartOptionsWithAnimation() ||
+        !AAFwk::PermissionVerification::GetInstance()->VerifySuperviseKiaServicePermission()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "no kia permission.");
+        return ERR_PERMISSION_DENIED;
+    }
+    if (interceptor == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "interceptor is nullptr.");
+        return ERR_INVALID_VALUE;
+    }
+    kiaInterceptor_ = interceptor;
+    return ERR_OK;
+}
+
+int32_t AppMgrServiceInner::CheckIsKiaProcess(pid_t pid, bool &isKia)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "call");
+    if (!AAFwk::AppUtils::GetInstance().IsStartOptionsWithAnimation() ||
+        !AAFwk::PermissionVerification::GetInstance()->VerifySuperviseKiaServicePermission()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "no kia permission.");
+        return ERR_PERMISSION_DENIED;
+    }
+    if (!appRunningManager_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    return appRunningManager_->CheckIsKiaProcess(pid, isKia);
+}
+
+void AppMgrServiceInner::UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey)
+{
+    if (!appRunningManager_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ is nullptr");
+        return;
+    }
+    appRunningManager_->UpdateInstanceKeyBySpecifiedId(specifiedId, instanceKey);
+}
+
+void AppMgrServiceInner::SendAppSpawnUninstallDebugHapMsg(int32_t userId)
+{
+    if (remoteClientManager_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null remoteClientManager_");
+        return;
+    }
+    auto spawnClient = remoteClientManager_->GetSpawnClient();
+    if (spawnClient == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null spawnClient");
+        return;
+    }
+    auto errCode = spawnClient->SendAppSpawnUninstallDebugHapMsg(userId);
+    if (FAILED(errCode)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "SendAppSpawnUninstallDebugHapMsg failed, errCode %{public}08x", errCode);
+    }
+}
+
+bool AppMgrServiceInner::HasAppRecord(const AAFwk::Want &want, const AbilityInfo &abilityInfo)
+{
+    if (!CheckRemoteClient() || !appRunningManager_) {
+        return false;
+    }
+    auto appInfo = std::make_shared<ApplicationInfo>(abilityInfo.applicationInfo);
+    if (UserRecordManager::GetInstance().IsLogoutUser(GetUserIdByUid(appInfo->uid))) {
+        TAG_LOGE(AAFwkTag::APPMGR, "disable start process in logout user");
+        return false;
+    }
+    int32_t appIndex = 0;
+    (void)AbilityRuntime::StartupUtil::GetAppIndex(want, appIndex);
+    BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    if (!GetBundleAndHapInfo(abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex)) {
+        return false;
+    }
+
+    auto abilityInfoPtr = std::make_shared<AbilityInfo>(abilityInfo);
+    auto specifiedProcessFlag = GetSpecifiedProcessFlag(abilityInfo, want);
+    std::string processName;
+    MakeProcessName(abilityInfoPtr, appInfo, hapModuleInfo, appIndex, specifiedProcessFlag, processName, false);
+
+    auto instanceKey = want.GetStringParam(Want::APP_INSTANCE_KEY);
+    auto appRecord = appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name, processName, appInfo->uid,
+        bundleInfo, "", nullptr, instanceKey);
+    return appRecord != nullptr;
+}
+>>>>>>> 801e62a5a2 (ui first for specified ability)
 } // namespace AppExecFwk
 }  // namespace OHOS

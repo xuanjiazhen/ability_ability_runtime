@@ -807,6 +807,22 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t GetSupportedProcessCachePids(const std::string &bundleName, std::vector<int32_t> &pidList) = 0;
+<<<<<<< HEAD
+=======
+
+    virtual int32_t KillAppSelfWithInstanceKey(const std::string &instanceKey, bool clearPageStack,
+        const std::string& reason)
+    {
+        return 0;
+    }
+
+    virtual void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey) {}
+
+    virtual int32_t HasAppRecord(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result)
+    {
+        return 0;
+    }
+>>>>>>> 801e62a5a2 (ui first for specified ability)
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

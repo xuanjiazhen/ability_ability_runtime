@@ -117,6 +117,11 @@ enum class AppMgrInterfaceCode {
     GET_All_RUNNING_INSTANCE_KEYS_BY_SELF = 93,
     GET_APP_INDEX_BY_PID = 94,
     IS_TERMINATING_BY_PID = 95,
+<<<<<<< HEAD
+=======
+    UPDATE_INSTANCE_KEY_BY_SPECIFIED_ID = 96,
+    HAS_APP_RECORD = 97,
+>>>>>>> 801e62a5a2 (ui first for specified ability)
 };
 } // AppExecFwk
 } // OHOS

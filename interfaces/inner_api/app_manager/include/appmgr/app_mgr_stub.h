@@ -157,7 +157,13 @@ private:
     int32_t HandleNotifyProcessDependedOnWeb(MessageParcel &data, MessageParcel &reply);
     int32_t HandleKillProcessDependedOnWeb(MessageParcel &data, MessageParcel &reply);
     int32_t HandleRestartResidentProcessDependedOnWeb(MessageParcel &data, MessageParcel &reply);
+<<<<<<< HEAD
     int32_t HandleGetAppIndexByPid(MessageParcel &data, MessageParcel &reply);
+=======
+    int32_t HandleKillAppSelfWithInstanceKey(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleUpdateInstanceKeyBySpecifiedId(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleHasAppRecord(MessageParcel &data, MessageParcel &reply);
+>>>>>>> 801e62a5a2 (ui first for specified ability)
     int32_t OnRemoteRequestInner(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     int32_t OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);

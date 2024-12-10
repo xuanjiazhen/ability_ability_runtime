@@ -1704,5 +1704,70 @@ int32_t AppMgrService::GetSupportedProcessCachePids(const std::string &bundleNam
     }
     return appMgrServiceInner_->GetSupportedProcessCachePids(bundleName, pidList);
 }
+<<<<<<< HEAD
+=======
+
+int32_t AppMgrService::RegisterKiaInterceptor(const sptr<IKiaInterceptor> &interceptor)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "Called");
+    if (!appMgrServiceInner_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    return appMgrServiceInner_->RegisterKiaInterceptor(interceptor);
+}
+
+int32_t AppMgrService::CheckIsKiaProcess(pid_t pid, bool &isKia)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "Called");
+    if (!appMgrServiceInner_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    return appMgrServiceInner_->CheckIsKiaProcess(pid, isKia);
+}
+
+int32_t AppMgrService::KillAppSelfWithInstanceKey(const std::string &instanceKey, bool clearPageStack,
+    const std::string& reason)
+{
+    if (!appMgrServiceInner_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    return appMgrServiceInner_->KillAppSelfWithInstanceKey(instanceKey, clearPageStack, reason);
+}
+
+void AppMgrService::UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey)
+{
+    if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not foundation");
+        return;
+    }
+    if (!appMgrServiceInner_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
+        return;
+    }
+    appMgrServiceInner_->UpdateInstanceKeyBySpecifiedId(specifiedId, instanceKey);
+}
+
+int32_t AppMgrService::HasAppRecord(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result)
+{
+    if (!IsReady()) {
+        return ERR_INVALID_OPERATION;
+    }
+    pid_t callingPid = IPCSkeleton::GetCallingPid();
+    pid_t pid = getprocpid();
+    if (callingPid != pid) {
+        TAG_LOGE(AAFwkTag::APPMGR, "other process");
+        return ERR_INVALID_OPERATION;
+    }
+    if (!appMgrServiceInner_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    result = appMgrServiceInner_->HasAppRecord(want, abilityInfo);
+    return ERR_OK;
+}
+>>>>>>> 801e62a5a2 (ui first for specified ability)
 }  // namespace AppExecFwk
 }  // namespace OHOS

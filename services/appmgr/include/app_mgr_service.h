@@ -593,7 +593,16 @@ public:
 
     virtual void RestartResidentProcessDependedOnWeb() override;
 
+<<<<<<< HEAD
     int32_t GetAppIndexByPid(pid_t pid, int32_t &appIndex) override;
+=======
+    virtual int32_t KillAppSelfWithInstanceKey(const std::string &instanceKey, bool clearPageStack,
+        const std::string& reason) override;
+
+    virtual void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey) override;
+
+    int32_t HasAppRecord(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result) override;
+>>>>>>> 801e62a5a2 (ui first for specified ability)
 private:
     /**
      * Init, Initialize application services.
