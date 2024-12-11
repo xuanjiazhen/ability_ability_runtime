@@ -27,6 +27,9 @@
 #undef private
 #undef protected
 #include "js_runtime_utils.h"
+#include "js_error_utils.h"
+#include "napi_common_want.h"
+#include "napi_common_util.h"
 #include "native_engine/impl/ark/ark_native_engine.h"
 #include "native_engine/impl/ark/ark_native_deferred.h"
 #include "native_engine/native_engine.h"
@@ -398,6 +401,421 @@ HWTEST_F(UIExtensionContextTest, AbilityRuntime_UIExtensionContext_0107, TestSiz
     jsUIExtensionContext_->InitDisplayId(want);
     auto displayId = want.GetIntParam(AAFwk::Want::PARAM_RESV_DISPLAY_ID, 0);
     EXPECT_EQ(displayId, 0);
+}
+
+HWTEST_F(UIExtensionContextTest, AbilityRuntime_UIExtensionContext_0108, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0108 start";
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    auto err = JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    EXPECT_EQ(err, napi_status::napi_ok);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+
+    NapiCallbackInfo info{1};
+    AAFwk::Want want;
+    info.argv[0] = AppExecFwk::WrapWant(env, want);
+    auto res = jsUIExtensionContext_->OnStartUIServiceExtension(env, info);
+    EXPECT_NE(res, nullptr);
+
+    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0108 end";
+}
+
+HWTEST_F(UIExtensionContextTest, AbilityRuntime_UIExtensionContext_0109, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0109 start";
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    auto err = JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    EXPECT_EQ(err, napi_status::napi_ok);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+
+    NapiCallbackInfo info{1};
+    AAFwk::Want want;
+    info.argv[0] = AppExecFwk::WrapWant(env, want);
+    auto res = jsUIExtensionContext_->OnStartAbility(env, info);
+    EXPECT_NE(res, nullptr);
+
+    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0109 end";
+}
+
+HWTEST_F(UIExtensionContextTest, AbilityRuntime_UIExtensionContext_0110, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0110 start";
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    auto err = JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    EXPECT_EQ(err, napi_status::napi_ok);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+
+    NapiCallbackInfo info{0};
+    auto res = jsUIExtensionContext_->OnStartAbility(env, info);
+    EXPECT_NE(res, nullptr);
+
+    info.argc = 1;
+    napi_create_uint32(env, 0, &info.argv[0]);
+    res = jsUIExtensionContext_->OnStartAbility(env, info);
+    EXPECT_NE(res, nullptr);
+
+    jsUIExtensionContext_->context_.reset();
+    AAFwk::Want want;
+    info.argv[0] = AppExecFwk::WrapWant(env, want);
+    res = jsUIExtensionContext_->OnStartAbility(env, info);
+    EXPECT_NE(res, nullptr);
+    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0110 end";
+}
+
+HWTEST_F(UIExtensionContextTest, AbilityRuntime_UIExtensionContext_0111, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0111 start";
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    auto err = JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    EXPECT_EQ(err, napi_status::napi_ok);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+
+    NapiCallbackInfo info{0};
+    auto res = jsUIExtensionContext_->OnTerminateSelf(env, info);
+    EXPECT_NE(res, nullptr);
+
+    jsUIExtensionContext_->context_.reset();
+    res = jsUIExtensionContext_->OnTerminateSelf(env, info);
+    EXPECT_NE(res, nullptr);
+    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0111 end";
+}
+
+HWTEST_F(UIExtensionContextTest, AbilityRuntime_UIExtensionContext_0112, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0112 start";
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    auto err = JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    EXPECT_EQ(err, napi_status::napi_ok);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+
+    NapiCallbackInfo info{1};
+    AAFwk::Want want;
+    napi_value abilityResult = AppExecFwk::WrapAbilityResult(env, 100, want);
+    info.argv[0] = abilityResult;
+    sptr<Rosen::Window> window = new Rosen::Window();
+    abilityContextImpl_->SetWindow(window);
+    auto res = jsUIExtensionContext_->OnTerminateSelfWithResult(env, info);
+    EXPECT_NE(res, nullptr);
+
+    jsUIExtensionContext_->context_.reset();
+    res = jsUIExtensionContext_->OnTerminateSelfWithResult(env, info);
+    EXPECT_NE(res, nullptr);
+    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0112 end";
+}
+
+HWTEST_F(UIExtensionContextTest, AbilityRuntime_UIExtensionContext_0113, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0113 start";
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    auto err = JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    EXPECT_EQ(err, napi_status::napi_ok);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+
+    NapiCallbackInfo info{0};
+    auto res = jsUIExtensionContext_->OnTerminateSelfWithResult(env, info);
+    EXPECT_NE(res, nullptr);
+
+    info.argc = 1;
+    napi_value resultCode = 0;
+    napi_create_int32(env, 100, &resultCode);
+    res = jsUIExtensionContext_->OnTerminateSelfWithResult(env, info);
+    EXPECT_NE(res, nullptr);
+
+    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0113 end";
+}
+
+HWTEST_F(UIExtensionContextTest, AbilityRuntime_UIExtensionContext_0114, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0114 start";
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    auto err = JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    EXPECT_EQ(err, napi_status::napi_ok);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+
+    NapiCallbackInfo info{1};
+    AAFwk::Want want;
+    info.argv[0] = AppExecFwk::WrapWant(env, want);
+    auto res = jsUIExtensionContext_->OnStartAbilityForResult(env, info);
+
+    napi_value startOptions = AppExecFwk::CreateJSObject(env);
+    napi_value jsValue = AppExecFwk::WrapInt32ToJS(env, 0);
+    AppExecFwk::SetPropertyValueByPropertyName(env, startOptions, "displayId", jsValue);
+    info.argc = 2;
+    info.argv[1] = startOptions;
+    res = jsUIExtensionContext_->OnStartAbilityForResult(env, info);
+    EXPECT_NE(res, nullptr);
+
+    jsUIExtensionContext_->context_.reset();
+    res = jsUIExtensionContext_->OnStartAbilityForResult(env, info);
+    EXPECT_NE(res, nullptr);
+
+    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0114 end";
+}
+
+HWTEST_F(UIExtensionContextTest, AbilityRuntime_UIExtensionContext_0115, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0115 start";
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    auto err = JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    EXPECT_EQ(err, napi_status::napi_ok);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+
+    NapiCallbackInfo info{0};
+    auto res = jsUIExtensionContext_->OnStartAbilityForResult(env, info);
+    EXPECT_NE(res, nullptr);
+
+    info.argc = 1;
+    res = jsUIExtensionContext_->OnStartAbilityForResult(env, info);
+    EXPECT_NE(res, nullptr);
+
+    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0115 end";
+}
+
+HWTEST_F(UIExtensionContextTest, AbilityRuntime_UIExtensionContext_0116, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0116 start";
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    auto err = JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    EXPECT_EQ(err, napi_status::napi_ok);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+
+    NapiCallbackInfo info{0};
+    auto res = jsUIExtensionContext_->OnStartAbilityForResultAsCaller(env, info);
+    EXPECT_NE(res, nullptr);
+
+    info.argc = 1;
+    res = jsUIExtensionContext_->OnStartAbilityForResultAsCaller(env, info);
+    EXPECT_NE(res, nullptr);
+
+    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0116 end";
+}
+
+HWTEST_F(UIExtensionContextTest, AbilityRuntime_UIExtensionContext_0117, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0117 start";
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    auto err = JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    EXPECT_EQ(err, napi_status::napi_ok);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+
+    NapiCallbackInfo info{1};
+    AAFwk::Want want;
+    info.argv[0] = AppExecFwk::WrapWant(env, want);
+    auto res = jsUIExtensionContext_->OnStartAbilityForResultAsCaller(env, info);
+    EXPECT_NE(res, nullptr);
+
+    napi_value startOptions = AppExecFwk::CreateJSObject(env);
+    napi_value jsValue = AppExecFwk::WrapInt32ToJS(env, 0);
+    AppExecFwk::SetPropertyValueByPropertyName(env, startOptions, "displayId", jsValue);
+    info.argc = 2;
+    info.argv[1] = startOptions;
+    res = jsUIExtensionContext_->OnStartAbilityForResultAsCaller(env, info);
+    EXPECT_NE(res, nullptr);
+
+    jsUIExtensionContext_->context_.reset();
+    res = jsUIExtensionContext_->OnStartAbilityForResultAsCaller(env, info);
+    EXPECT_NE(res, nullptr);
+
+    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0117 end";
+}
+
+HWTEST_F(UIExtensionContextTest, AbilityRuntime_UIExtensionContext_0118, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0118 start";
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    auto err = JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    EXPECT_EQ(err, napi_status::napi_ok);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+
+    NapiCallbackInfo info{0};
+    auto res = jsUIExtensionContext_->OnConnectAbility(env, info);
+    EXPECT_TRUE(AppExecFwk::IsTypeForNapiValue(env, res, napi_undefined));
+
+    info.argc = 2;
+    AAFwk::Want want;
+    info.argv[0] = AppExecFwk::WrapWant(env, want);
+    res = jsUIExtensionContext_->OnConnectAbility(env, info);
+    EXPECT_TRUE(AppExecFwk::IsTypeForNapiValue(env, res, napi_undefined));
+
+    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0118 end";
+}
+
+HWTEST_F(UIExtensionContextTest, AbilityRuntime_UIExtensionContext_0119, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0119 start";
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    auto err = JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    EXPECT_EQ(err, napi_status::napi_ok);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+
+    NapiCallbackInfo info{2};
+    AAFwk::Want want;
+    info.argv[0] = AppExecFwk::WrapWant(env, want);
+    info.argv[1] = AppExecFwk::CreateJSObject(env);
+    auto res = jsUIExtensionContext_->OnConnectAbility(env, info);
+    EXPECT_TRUE(AppExecFwk::IsTypeForNapiValue(env, res, napi_number));
+
+    jsUIExtensionContext_->context_.reset();
+    res = jsUIExtensionContext_->OnConnectAbility(env, info);
+    EXPECT_TRUE(AppExecFwk::IsTypeForNapiValue(env, res, napi_number));
+
+    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0119 end";
+}
+
+HWTEST_F(UIExtensionContextTest, AbilityRuntime_UIExtensionContext_0120, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0120 start";
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    auto err = JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    EXPECT_EQ(err, napi_status::napi_ok);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+
+    NapiCallbackInfo info{0};
+    auto res = jsUIExtensionContext_->OnDisconnectAbility(env, info);
+    EXPECT_NE(res, nullptr);
+
+    info.argc = 1;
+    res = jsUIExtensionContext_->OnDisconnectAbility(env, info);
+    EXPECT_NE(res, nullptr);
+
+    info.argv[0] = AppExecFwk::WrapInt32ToJS(env, 1);
+    res = jsUIExtensionContext_->OnDisconnectAbility(env, info);
+    EXPECT_EQ(res, nullptr);
+
+    jsUIExtensionContext_->context_.reset();
+    res = jsUIExtensionContext_->OnDisconnectAbility(env, info);
+    EXPECT_EQ(res, nullptr);
+
+    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0120 end";
+}
+
+HWTEST_F(UIExtensionContextTest, AbilityRuntime_UIExtensionContext_0121, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0121 start";
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    auto err = JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    EXPECT_EQ(err, napi_status::napi_ok);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+
+    NapiCallbackInfo info{0};
+    auto res = jsUIExtensionContext_->OnReportDrawnCompleted(env, info);
+
+    jsUIExtensionContext_->context_.reset();
+    res = jsUIExtensionContext_->OnReportDrawnCompleted(env, info);
+    EXPECT_NE(res, nullptr);
+
+    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0121 end";
+}
+
+HWTEST_F(UIExtensionContextTest, AbilityRuntime_UIExtensionContext_0122, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0122 start";
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    auto err = JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    EXPECT_EQ(err, napi_status::napi_ok);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+
+    jsUIExtensionContext_->context_.reset();
+    NapiCallbackInfo info{0};
+    auto res = jsUIExtensionContext_->OnOpenAtomicService(env, info);
+    EXPECT_NE(res, nullptr);
+
+    info.argc = 1;
+    res = jsUIExtensionContext_->OnOpenAtomicService(env, info);
+    EXPECT_NE(res, nullptr);
+
+    info.argc = 2;
+    std::string str = "123456";
+    info.argv[0] = AppExecFwk::WrapStringToJS(env, str);
+    info.argv[1] = AppExecFwk::CreateJSObject(env);
+    jsUIExtensionContext_->freeInstallObserver_ = nullptr;
+    res = jsUIExtensionContext_->OnOpenAtomicService(env, info);
+    EXPECT_NE(res, nullptr);
+
+    jsUIExtensionContext_->context_.reset();
+    res = jsUIExtensionContext_->OnOpenAtomicService(env, info);
+    EXPECT_NE(res, nullptr);
+
+    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0122 end";
+}
+
+HWTEST_F(UIExtensionContextTest, AbilityRuntime_UIExtensionContext_0123, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0123 start";
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    auto err = JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    EXPECT_EQ(err, napi_status::napi_ok);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+
+    NapiCallbackInfo info{2};
+    std::string str = "123456";
+    info.argv[0] = AppExecFwk::WrapStringToJS(env, str);
+    info.argv[1] = AppExecFwk::CreateJSObject(env);
+    auto res = jsUIExtensionContext_->OnOpenAtomicService(env, info);
+    EXPECT_NE(res, nullptr);
+
+    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0123 end";
+}
+
+HWTEST_F(UIExtensionContextTest, AbilityRuntime_UIExtensionContext_0124, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0124 start";
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    auto err = JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    EXPECT_EQ(err, napi_status::napi_ok);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+
+    napi_callback_info info = {};
+    EXPECT_EQ(JsUIExtensionContext::StartAbility(env, info), nullptr);
+    EXPECT_EQ(JsUIExtensionContext::OpenLink(env, info), nullptr);
+    EXPECT_EQ(JsUIExtensionContext::TerminateSelf(env, info), nullptr);
+    EXPECT_EQ(JsUIExtensionContext::TerminateSelfWithResult(env, info), nullptr);
+    EXPECT_EQ(JsUIExtensionContext::StartAbilityForResult(env, info), nullptr);
+    EXPECT_EQ(JsUIExtensionContext::StartAbilityForResultAsCaller(env, info), nullptr);
+    EXPECT_EQ(JsUIExtensionContext::ConnectAbility(env, info), nullptr);
+    EXPECT_EQ(JsUIExtensionContext::DisconnectAbility(env, info), nullptr);
+    EXPECT_EQ(JsUIExtensionContext::ReportDrawnCompleted(env, info), nullptr);
+    EXPECT_EQ(JsUIExtensionContext::OpenAtomicService(env, info), nullptr);
+    EXPECT_EQ(JsUIExtensionContext::StartUIServiceExtension(env, info), nullptr);
+    EXPECT_EQ(JsUIExtensionContext::ConnectUIServiceExtension(env, info), nullptr);
+    EXPECT_EQ(JsUIExtensionContext::DisconnectUIServiceExtension(env, info), nullptr);
+
+    EXPECT_EQ(JsUIExtensionContext::CreateJsUIExtensionContext(env, nullptr), nullptr);
+    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+    GTEST_LOG_(INFO) << "AbilityRuntime_UIExtensionContext_0124 end";
 }
 }  // namespace AAFwk
 }  // namespace OHOS
