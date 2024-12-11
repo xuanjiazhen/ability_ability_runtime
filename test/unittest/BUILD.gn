@@ -612,11 +612,11 @@ group("unittest") {
 
     if (ability_runtime_action_extension) {
       deps += [
-        "js_ui_service_host_proxy_test:unittest",
         "js_ui_service_extension_connection_test:unittest",
         "js_ui_service_extension_context_first_test:unittest",
         "js_ui_service_extension_context_second_test:unittest",
         "js_ui_service_extension_test:unittest",
+        "js_ui_service_host_proxy_test:unittest",
         "js_ui_service_proxy_test:unittest",
         "ui_service_extension_test:unittest",
         "ui_service_host_proxy_test:unittest",
