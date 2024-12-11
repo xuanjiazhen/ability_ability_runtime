@@ -58,6 +58,7 @@ public:
     static napi_value CreateModuleContext(napi_env env, napi_callback_info info);
     static napi_value CreateSystemHspModuleResourceManager(napi_env env, napi_callback_info info);
     static napi_value CreateModuleResourceManager(napi_env env, napi_callback_info info);
+    static napi_value CreateHspModuleResourceManager(napi_env env, napi_callback_info info);
     static napi_value SetAutoStartup(napi_env env, napi_callback_info info);
     static napi_value CancelAutoStartup(napi_env env, napi_callback_info info);
     static napi_value IsAutoStartup(napi_env env, napi_callback_info info);
@@ -141,6 +142,7 @@ private:
     napi_value OnCreateModuleContext(napi_env env, NapiCallbackInfo& info);
     napi_value CreateJsModuleContext(napi_env env, const std::shared_ptr<Context>& moduleContext);
     napi_value OnCreateSystemHspModuleResourceManager(napi_env env, NapiCallbackInfo& info);
+    napi_value OnCreateHspModuleResourceManager(napi_env env, NapiCallbackInfo& info);
     napi_value OnGetApplicationContext(napi_env env, NapiCallbackInfo& info);
     bool CheckCallerIsSystemApp();
     static void BindNativeApplicationContextOne(napi_env env, napi_value object);

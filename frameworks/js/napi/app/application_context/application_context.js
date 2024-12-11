@@ -125,6 +125,10 @@ class ApplicationContext {
     return this.__context_impl__.createSystemHspModuleResourceManager(bundleName, moduleName);
   }
 
+  createHspModuleResourceManager(bundleName, moduleName) {
+    return this.__context_impl__.createHspModuleResourceManager(bundleName, moduleName);
+  }
+
   createModuleResourceManager(bundleName, moduleName) {
     return this.__context_impl__.createModuleResourceManager(bundleName, moduleName);
   }

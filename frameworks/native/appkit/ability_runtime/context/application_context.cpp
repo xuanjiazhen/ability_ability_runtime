@@ -515,6 +515,13 @@ int32_t ApplicationContext::CreateSystemHspModuleResourceManager(const std::stri
         contextImpl_->CreateSystemHspModuleResourceManager(bundleName, moduleName, resourceManager) : ERR_INVALID_VALUE;
 }
 
+int32_t ApplicationContext::CreateHspModuleResourceManager(const std::string &bundleName,
+    const std::string &moduleName, std::shared_ptr<Global::Resource::ResourceManager> &resourceManager)
+{
+    return contextImpl_ ?
+        contextImpl_->CreateHspModuleResourceManager(bundleName, moduleName, resourceManager) : ERR_INVALID_VALUE;
+}
+
 std::shared_ptr<AppExecFwk::ApplicationInfo> ApplicationContext::GetApplicationInfo() const
 {
     return (contextImpl_ != nullptr) ? contextImpl_->GetApplicationInfo() : nullptr;
