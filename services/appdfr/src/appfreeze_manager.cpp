@@ -300,7 +300,7 @@ int AppfreezeManager::NotifyANR(const FaultData& faultData, const AppfreezeManag
     } else {
         ret = HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::AAFWK, faultData.errorObject.name,
             OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, EVENT_UID, appInfo.uid, EVENT_PID, appInfo.pid,
-            EVENT_TID, faultData.tid,
+            EVENT_TID, faultData.tid > 0 ? faultData.tid : appInfo.pid,
             EVENT_PACKAGE_NAME, appInfo.bundleName, EVENT_PROCESS_NAME, appInfo.processName, EVENT_MESSAGE,
             faultData.errorObject.message, EVENT_STACK, faultData.errorObject.stack, BINDER_INFO, binderInfo,
             APP_RUNNING_UNIQUE_ID, appRunningUniqueId, FREEZE_MEMORY, memoryContent);
