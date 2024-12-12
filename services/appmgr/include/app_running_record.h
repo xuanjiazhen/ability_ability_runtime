@@ -1182,6 +1182,7 @@ private:
     int32_t callerTokenId_ = -1;
     int32_t assignTokenId_ = 0;
     ProcessType processType_ = ProcessType::NORMAL;
+    ProcessType uiextensionProcessType_ = ProcessType::EXTENSION;
     ExtensionAbilityType extensionType_ = ExtensionAbilityType::UNSPECIFIED;
 
     std::set<uint32_t> windowIds_;
