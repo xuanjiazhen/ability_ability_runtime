@@ -308,9 +308,6 @@ MappingInfo SourceMap::Find(int32_t row, int32_t col, const SourceMapData& targe
     int32_t left = 0;
     int32_t right = static_cast<int32_t>(targetMap.afterPos_.size()) - 1;
     int32_t res = 0;
-    if (row > targetMap.afterPos_[targetMap.afterPos_.size() - 1].afterRow) {
-        return MappingInfo { row + 1, col + 1, key };
-    }
     while (right - left >= 0) {
         int32_t mid = (right + left) / 2;
         if ((targetMap.afterPos_[mid].afterRow == row && targetMap.afterPos_[mid].afterColumn > col) ||
