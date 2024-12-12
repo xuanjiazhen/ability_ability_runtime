@@ -887,10 +887,12 @@ void AppRunningRecord::StateChangedNotifyObserver(const std::shared_ptr<AbilityR
     if (applicationInfo && applicationInfo->bundleType == AppExecFwk::BundleType::ATOMIC_SERVICE) {
         abilityStateData.isAtomicService = true;
     }
-    if (abilityInfo->type == AbilityType::EXTENSION) {
+    if (abilityInfo->type == AbilityType::EXTENSION && AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo->extensionAbilityType)) {
         abilityStateData.extensionAbilityType = static_cast<int32_t>(abilityInfo->extensionAbilityType);
+        abilityStateData.processType = static_cast<int32_t>(uiextensionProcessType_);
+    } else {
+        abilityStateData.processType = static_cast<int32_t>(processType_);
     }
-    abilityStateData.processType = static_cast<int32_t>(processType_);
     auto serviceInner = appMgrServiceInner_.lock();
     if (serviceInner) {
         serviceInner->StateChangedNotifyObserver(abilityStateData, isAbility, isFromWindowFocusChanged);
@@ -1643,10 +1645,11 @@ void AppRunningRecord::SetProcessAndExtensionType(
 
     if (AAFwk::UIExtensionUtils::IsUIExtension(extensionType_) &&
          extensionProcessMode == PROCESS_MODE_RUN_WITH_MAIN_PROCESS) {
-        processType_ = ProcessType::NORMAL;
+        uiextensionProcessType_ = ProcessType::NORMAL;
     } else {
-        processType_ = ProcessType::EXTENSION;
+        uiextensionProcessType_ = ProcessType::EXTENSION;
     }
+    processType_ = ProcessType::EXTENSION;
     return;
 }
 
