@@ -1578,7 +1578,10 @@ void UvWorkOnAbilityConnectDone(uv_work_t *work, int status)
     napi_create_string_utf8(cbInfo.env, "rpc", NAPI_AUTO_LENGTH, &rpcInfo);
     napi_value funcArgv[1] = { rpcInfo };
     napi_value returnValue;
-    napi_call_function(cbInfo.env, globalValue, func, 1, funcArgv, &returnValue);
+    napi_status status = napi_call_function(cbInfo.env, globalValue, func, 1, funcArgv, &returnValue);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "call js func failed: %{public}d", status);
+    }
 
     napi_value result[ARGS_TWO] = {nullptr};
     result[PARAM0] =
@@ -1593,8 +1596,11 @@ void UvWorkOnAbilityConnectDone(uv_work_t *work, int status)
     napi_value callResult = nullptr;
     napi_get_reference_value(cbInfo.env, cbInfo.callback, &callback);
 
-    napi_call_function(
+    napi_status status = napi_call_function(
         cbInfo.env, undefined, callback, ARGS_TWO, &result[PARAM0], &callResult);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "call js func failed: %{public}d", status);
+    }
     if (cbInfo.callback != nullptr) {
         napi_delete_reference(cbInfo.env, cbInfo.callback);
     }

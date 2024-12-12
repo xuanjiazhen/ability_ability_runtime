@@ -103,7 +103,10 @@ napi_value JsExtensionCommon::CallObjectMethod(const char* name, napi_value cons
     }
     TAG_LOGD(AAFwkTag::EXT, "(%{public}s), success", name);
     napi_value result = nullptr;
-    napi_call_function(env, obj, method, argc, argv, &result);
+    napi_status status = napi_call_function(env, obj, method, argc, argv, &result);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::EXT, "call js func failed: %{public}d", status);
+    }
     return result;
 }
 }

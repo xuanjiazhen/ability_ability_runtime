@@ -1563,7 +1563,10 @@ void JSServiceExtensionConnection::CallJsFailed(int32_t errorCode)
         return;
     }
     napi_value argv[] = {CreateJsValue(env_, errorCode)};
-    napi_call_function(env_, obj, method, ARGC_ONE, argv, nullptr);
+    napi_status status = napi_call_function(env_, obj, method, ARGC_ONE, argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "call js func failed: %{public}d", status);
+    }
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "end");
 }
 }  // namespace AbilityRuntime

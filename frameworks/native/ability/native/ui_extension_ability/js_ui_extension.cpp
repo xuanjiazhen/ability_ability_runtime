@@ -398,7 +398,10 @@ bool JsUIExtension::CallPromise(napi_value result, AppExecFwk::AbilityTransactio
     napi_create_function(env, "promiseCallback", strlen("promiseCallback"), PromiseCallback,
         callbackInfo, &promiseCallback);
     napi_value argv[1] = { promiseCallback };
-    napi_call_function(env, result, then, 1, argv, nullptr);
+    napi_status status = napi_call_function(env, result, then, 1, argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "call js func failed: %{public}d", status);
+    }
     TAG_LOGD(AAFwkTag::UI_EXT, "exit");
     return true;
 }
@@ -854,11 +857,17 @@ napi_value JsUIExtension::CallObjectMethod(const char *name, napi_value const *a
     }
     if (withResult) {
         napi_value result = nullptr;
-        napi_call_function(env, obj, method, argc, argv, &result);
+        napi_status status = napi_call_function(env, obj, method, argc, argv, &result);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "call js func failed: %{public}d", status);
+        }
         return handleEscape.Escape(result);
     }
     TAG_LOGD(AAFwkTag::UI_EXT, "JsUIExtension CallFunction(%{public}s), success", name);
-    napi_call_function(env, obj, method, argc, argv, nullptr);
+    napi_status status = napi_call_function(env, obj, method, argc, argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "call js func failed: %{public}d", status);
+    }
     return nullptr;
 }
 
@@ -889,7 +898,10 @@ napi_value JsUIExtension::CallOnConnect(const AAFwk::Want &want)
         return nullptr;
     }
     napi_value remoteNative = nullptr;
-    napi_call_function(env, obj, method, ARGC_ONE, argv, &remoteNative);
+    napi_status status = napi_call_function(env, obj, method, ARGC_ONE, argv, &remoteNative);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "call js func failed: %{public}d", status);
+    }
     if (remoteNative == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "remoteNative is nullptr");
     }
@@ -921,13 +933,17 @@ napi_value JsUIExtension::CallOnDisconnect(const AAFwk::Want &want, bool withRes
         return nullptr;
     }
 
+    napi_status status = napi_ok;
     if (withResult) {
         napi_value result = nullptr;
-        napi_call_function(env, obj, method, ARGC_ONE, argv, &result);
+        status = napi_call_function(env, obj, method, ARGC_ONE, argv, &result);
         return handleEscape.Escape(result);
     } else {
-        napi_call_function(env, obj, method, ARGC_ONE, argv, nullptr);
+        status = napi_call_function(env, obj, method, ARGC_ONE, argv, nullptr);
         return nullptr;
+    }
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "call js func failed: %{public}d", status);
     }
 }
 
@@ -981,7 +997,10 @@ void JsUIExtension::Dump(const std::vector<std::string> &params, std::vector<std
         }
     }
     napi_value dumpInfo = nullptr;
-    napi_call_function(env, obj, method, ARGC_ONE, argv, &dumpInfo);
+    napi_status status = napi_call_function(env, obj, method, ARGC_ONE, argv, &dumpInfo);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "call js func failed: %{public}d", status);
+    }
     if (dumpInfo == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "dumpInfo is nullptr");
         return;

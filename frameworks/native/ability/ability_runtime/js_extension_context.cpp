@@ -46,7 +46,10 @@ void JsExtensionContext::ConfigurationUpdated(napi_env env, const std::shared_pt
 
     TAG_LOGD(AAFwkTag::CONTEXT, "call onUpdateConfiguration");
     napi_value argv[] = { CreateJsConfiguration(env, *config) };
-    napi_call_function(env, object, method, 1, argv, nullptr);
+    napi_status status = napi_call_function(env, object, method, 1, argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "call js func failed: %{public}d", status);
+    }
 }
 
 napi_value CreateJsExtensionContext(napi_env env, const std::shared_ptr<ExtensionContext>& context,

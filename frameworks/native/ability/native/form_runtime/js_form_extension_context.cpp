@@ -468,7 +468,10 @@ void JSFormExtensionConnection::HandleOnAbilityConnectDone(const AppExecFwk::Ele
         TAG_LOGE(AAFwkTag::FORM_EXT, "get onConnect error");
         return;
     }
-    napi_call_function(env_, obj, methodOnConnect, ARGC_TWO, argv, nullptr);
+    napi_status status = napi_call_function(env_, obj, methodOnConnect, ARGC_TWO, argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "call js func failed: %{public}d", status);
+    }
 }
 
 void JSFormExtensionConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
@@ -530,7 +533,10 @@ void JSFormExtensionConnection::HandleOnAbilityDisconnectDone(const AppExecFwk::
         g_connects.erase(item);
         TAG_LOGD(AAFwkTag::FORM_EXT, "erase size:%{public}zu", g_connects.size());
     }
-    napi_call_function(env_, obj, method, ARGC_ONE, argv, nullptr);
+    napi_status status = napi_call_function(env_, obj, method, ARGC_ONE, argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "call js func failed: %{public}d", status);
+    }
 }
 
 void JSFormExtensionConnection::SetJsConnectionObject(napi_value jsConnectionObject)
@@ -565,7 +571,10 @@ void JSFormExtensionConnection::CallJsFailed(int32_t errorCode)
         return;
     }
     napi_value argv[] = {CreateJsValue(env_, errorCode)};
-    napi_call_function(env_, obj, method, ARGC_ONE, argv, nullptr);
+    napi_status status = napi_call_function(env_, obj, method, ARGC_ONE, argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "call js func failed: %{public}d", status);
+    }
     TAG_LOGD(AAFwkTag::FORM_EXT, "CallJsFailed exit");
 }
 } // namespace AbilityRuntime

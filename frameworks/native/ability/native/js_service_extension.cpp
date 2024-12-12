@@ -409,7 +409,10 @@ sptr<IRemoteObject> JsServiceExtension::OnConnect(const AAFwk::Want &want,
         napi_create_function(env, "promiseCallback", strlen("promiseCallback"),
             OnConnectPromiseCallback, callbackInfo, &promiseCallback);
         napi_value argv[1] = { promiseCallback };
-        napi_call_function(env, result, then, 1, argv, nullptr);
+        napi_status status = napi_call_function(env, result, then, 1, argv, nullptr);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::SERVICE_EXT, "call js func failed: %{public}d", status);
+        }
         callResult = true;
     } while (false);
 
@@ -744,7 +747,10 @@ bool JsServiceExtension::CallPromise(napi_value result, AppExecFwk::AbilityTrans
     napi_create_function(env, "promiseCallback", strlen("promiseCallback"), PromiseCallback,
         callbackInfo, &promiseCallback);
     napi_value argv[1] = { promiseCallback };
-    napi_call_function(env, result, then, 1, argv, nullptr);
+    napi_status status = napi_call_function(env, result, then, 1, argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "call js func failed: %{public}d", status);
+    }
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "end");
     return true;
 }
@@ -824,7 +830,10 @@ void JsServiceExtension::Dump(const std::vector<std::string> &params, std::vecto
     }
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "success");
     napi_value dumpInfo = nullptr;
-    napi_call_function(env, obj, method, ARGC_ONE, argv, &dumpInfo);
+    napi_status status = napi_call_function(env, obj, method, ARGC_ONE, argv, &dumpInfo);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "call js func failed: %{public}d", status);
+    }
     if (dumpInfo == nullptr) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null dumpInfo");
         return;

@@ -351,7 +351,10 @@ bool JsAutoFillExtension::CallPromise(napi_value result, AppExecFwk::AbilityTran
     napi_create_function(env, "promiseCallback", strlen("promiseCallback"), PromiseCallback,
         callbackInfo, &promiseCallback);
     napi_value argv[1] = { promiseCallback };
-    napi_call_function(env, result, then, 1, argv, nullptr);
+    napi_status status = napi_call_function(env, result, then, 1, argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "call js func failed: %{public}d", status);
+    }
     return true;
 }
 
@@ -646,11 +649,17 @@ napi_value JsAutoFillExtension::CallObjectMethod(const char *name, napi_value co
     }
     if (withResult) {
         napi_value result = nullptr;
-        napi_call_function(env, obj, method, argc, argv, &result);
+        napi_status status = napi_call_function(env, obj, method, argc, argv, &result);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "call js func failed: %{public}d", status);
+        }
         return handleEscape.Escape(result);
     }
     TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "Call func: (%{public}s) success", name);
-    napi_call_function(env, obj, method, argc, argv, nullptr);
+    napi_status status = napi_call_function(env, obj, method, argc, argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "call js func failed: %{public}d", status);
+    }
     return nullptr;
 }
 

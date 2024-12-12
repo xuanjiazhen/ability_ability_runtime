@@ -71,7 +71,10 @@ void JsErrorObserver::CallJsFunction(napi_value obj, const char* methodName, nap
         return;
     }
     napi_value callResult = nullptr;
-    napi_call_function(env_, obj, method, argc, argv, &callResult);
+    napi_status status = napi_call_function(env_, obj, method, argc, argv, &callResult);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "call js func failed: %{public}d", status);
+    }
 }
 
 void JsErrorObserver::AddJsObserverObject(const int32_t observerId, napi_value jsObserverObject, bool isSync)
