@@ -889,11 +889,11 @@ void AppRunningRecord::StateChangedNotifyObserver(const std::shared_ptr<AbilityR
     }
     if (abilityInfo->type == AbilityType::EXTENSION) {
         abilityStateData.extensionAbilityType = static_cast<int32_t>(abilityInfo->extensionAbilityType);
-        if (AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo->extensionAbilityType)) {
-            abilityStateData.processType = static_cast<int32_t>(uiextensionProcessType_);
-        } else {
-            abilityStateData.processType = static_cast<int32_t>(processType_);
-        }
+        abilityStateData.processType = AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo->extensionAbilityType)
+                                           ? static_cast<int32_t>(uiextensionProcessType_)
+                                           : static_cast<int32_t>(processType_);
+    } else {
+        abilityStateData.processType = static_cast<int32_t>(processType_);
     }
     auto serviceInner = appMgrServiceInner_.lock();
     if (serviceInner) {
