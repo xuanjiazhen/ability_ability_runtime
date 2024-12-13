@@ -52,7 +52,7 @@ bool UriPermissionManagerStubImpl::VerifyUriPermission(const Uri &uri, uint32_t 
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     // verify if tokenId have uri permission record
-    TAG_LOGI(AAFwkTag::URIPERMMGR, "uri:%{private}s, flag:%{public}u, tokenId:%{public}u",
+    TAG_LOGI(AAFwkTag::URIPERMMGR, "uri:%{private}s, flag:%{public}u, tokenId:%{private}u",
         uri.ToString().c_str(), flag, tokenId);
     if (!UPMSUtils::IsSAOrSystemAppCall()) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "not SA/SystemApp");
@@ -377,7 +377,8 @@ int32_t UriPermissionManagerStubImpl::GrantUriPermissionPrivilegedInner(const st
     int32_t hideSensitiveType)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::URIPERMMGR, "callerTokenId:%{public}u, targetTokenId:%{public}u", callerTokenId, targetTokenId);
+    TAG_LOGI(AAFwkTag::URIPERMMGR, "callerTokenId:%{private}u, targetTokenId:%{private}u",
+        callerTokenId, targetTokenId);
     std::vector<std::string> uriStrVec;
     std::vector<std::string> mediaUriVec;
     int32_t validUriCount = 0;
@@ -423,7 +424,7 @@ std::vector<bool> UriPermissionManagerStubImpl::CheckUriAuthorization(const std:
     uint32_t flag, uint32_t tokenId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::URIPERMMGR, "tokenId:%{public}u, flag:%{public}u, uris:%{public}zu",
+    TAG_LOGI(AAFwkTag::URIPERMMGR, "tokenId:%{private}u, flag:%{public}u, uris:%{public}zu",
         tokenId, flag, uriStrVec.size());
     if (!UPMSUtils::IsSAOrSystemAppCall()) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "not SA/SystemApp");
@@ -547,7 +548,7 @@ void UriPermissionManagerStubImpl::RevokeMapUriPermission(uint32_t tokenId)
 
 int UriPermissionManagerStubImpl::RevokeAllUriPermissions(uint32_t tokenId)
 {
-    TAG_LOGI(AAFwkTag::URIPERMMGR, "RevokeAllUriPermissions, tokenId:%{public}u", tokenId);
+    TAG_LOGI(AAFwkTag::URIPERMMGR, "RevokeAllUriPermissions, tokenId:%{private}u", tokenId);
     if (!UPMSUtils::IsFoundationCall()) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "No permission to revoke all uri permission");
         return CHECK_PERMISSION_FAILED;
@@ -627,7 +628,7 @@ int32_t UriPermissionManagerStubImpl::RevokeUriPermissionManuallyInner(Uri &uri,
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto callerTokenId = IPCSkeleton::GetCallingTokenID();
-    TAG_LOGI(AAFwkTag::URIPERMMGR, "callerTokenId: %{public}u, targetTokenId:%{public}u",
+    TAG_LOGI(AAFwkTag::URIPERMMGR, "callerTokenId: %{private}u, targetTokenId:%{private}u",
         callerTokenId, targetTokenId);
     
     if (uri.GetScheme() == "content" || UPMSUtils::IsDocsCloudUri(uri)) {

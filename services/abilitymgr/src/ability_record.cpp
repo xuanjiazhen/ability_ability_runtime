@@ -3257,7 +3257,7 @@ void AbilityRecord::GrantUriPermission(Want &want, std::string targetBundleName,
 {
     // only for UIAbility and send result
     if (specifyTokenId_ > 0) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "specifyTokenId: %{public}u, cleaned", specifyTokenId_);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "specifyTokenId: %{private}u, cleaned", specifyTokenId_);
         tokenId = specifyTokenId_;
         specifyTokenId_ = 0;
     }
@@ -3271,7 +3271,7 @@ void AbilityRecord::GrantUriPermission(Want &want, std::string targetBundleName,
     }
     auto callerTokenId = tokenId > 0 ? tokenId :
         static_cast<uint32_t>(want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "callerTokenId:%{public}u, tokenId:%{public}u", callerTokenId, tokenId);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "callerTokenId:%{private}u, tokenId:%{private}u", callerTokenId, tokenId);
 
     UriUtils::GetInstance().GrantUriPermission(want, targetBundleName, appIndex_, isSandboxApp,
         callerTokenId, collaboratorType_);
