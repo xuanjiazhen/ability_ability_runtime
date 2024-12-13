@@ -22,12 +22,16 @@
 #include "js_runtime_utils.h"
 #include "singleton.h"
 #include "dfx_jsnapi.h"
+#include "if_system_ability_manager.h"
+#include "iservice_registry.h"
 
 namespace OHOS {
 namespace AppExecFwk {
 const char *MODULE_NAME = "hiviewdfx.jsLeakWatcher";
 const char *CHECK = "check";
 const char *REQUIRE_NAPI = "requireNapi";
+const int USER_ID = 100;
+const char *FUT_VERSION = "com.huawei.hmos.fut";
 
 DumpRuntimeHelper::DumpRuntimeHelper(const std::shared_ptr<OHOSApplication> &application)
     : application_(application)
@@ -54,6 +58,49 @@ void DumpRuntimeHelper::SetAppFreezeFilterCallback()
     };
     auto vm = (static_cast<AbilityRuntime::JsRuntime&>(*runtime)).GetEcmaVm();
     panda::DFXJSNApi::SetAppFreezeFilterCallback(vm, appfreezeFilterCallback);
+}
+
+void DumpRuntimeHelper::CheckFutVersion()
+{
+    if (application_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "OHOSApplication is nullptr");
+        return;
+    }
+    auto& runtime = application_->GetRuntime();
+    if (runtime == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "bundleMgrProxy is nullptr!");
+        return;
+    }
+
+    sptr<AppExecFwk::IBundleMgr> bundleMgrProxy = GetBundleMgrProxy();
+    if (bundleMgrProxy == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "bundleMgrProxy is nullptr!");
+        return;
+    }
+    AppExecFwk::BundleInfo bundleInfo;
+    bool isBundleInstalled = bundleMgrProxy->GetBundleInfo(FUT_VERSION,
+        AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, USER_ID);
+    TAG_LOGI(AAFwkTag::APPKIT, "Get Bundle install %{public}d", isBundleInstalled); 
+
+    auto vm = (static_cast<AbilityRuntime::JsRuntime&>(*runtime)).GetEcmaVm();
+    panda::DFXJSNApi::SetFutVersion(vm, isBundleInstalled);
+}
+
+sptr<AppExecFwk::IBundleMgr> DumpRuntimeHelper::GetBundleMgrProxy()
+{
+    sptr<ISystemAbilityManager> systemAbilityManager = 
+        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (!systemAbilityManager) {
+        TAG_LOGE(AAFwk::APPKIT, "GetBundleMgrProxy, systemAbilityManager is null");
+        return nullptr;
+    }
+    sptr<IRemoteObject> remoteObject = systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+    if (!remoteObject) {
+        TAG_LOGE(AAFwkTag::APPKIT, "GetBundleMgrProxy, remoteObject is null");
+        return nullptr;
+    }
+    sptr<AppExecFwk::IBundleMgr> bundleMgrProxy = iface_cast<AppExecFwk::IBundleMgr>(remoteObject);
+    return bundleMgrProxy;
 }
 
 void DumpRuntimeHelper::DumpJsHeap(const OHOS::AppExecFwk::JsHeapDumpInfo &info)

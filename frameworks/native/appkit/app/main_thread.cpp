@@ -1678,6 +1678,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
 
             auto helper = std::make_shared<DumpRuntimeHelper>(application_);
             helper->SetAppFreezeFilterCallback();
+            helper->CheckFutVersion();
         }
 #ifdef CJ_FRONTEND
     }
