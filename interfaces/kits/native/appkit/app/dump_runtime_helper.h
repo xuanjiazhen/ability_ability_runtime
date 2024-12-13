@@ -20,6 +20,7 @@
 #include "napi_common_want.h"
 #include "ohos_application.h"
 #include "runtime.h"
+#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -28,10 +29,11 @@ public:
     explicit DumpRuntimeHelper(const std::shared_ptr<OHOSApplication> &application);
     ~DumpRuntimeHelper() = default;
     void SetAppFreezeFilterCallback();
+    void CheckFutVersion();
     void DumpJsHeap(const OHOS::AppExecFwk::JsHeapDumpInfo &info);
 private:
     std::shared_ptr<OHOSApplication> application_ = nullptr;
-
+    sptr<AppExecFwk::IBundleMgr> GetBundleMgrProxy();
     void GetCheckList(const std::unique_ptr<AbilityRuntime::Runtime> &runtime, std::string &checkList);
     void WriteCheckList(const std::string &checkList);
     napi_value GetJsLeakModule(napi_env env, napi_value global);
