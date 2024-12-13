@@ -2071,5 +2071,19 @@ ErrCode AbilityManagerClient::UpdateAssociateConfigList(const std::map<std::stri
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->UpdateAssociateConfigList(configs, exportConfigs, flag);
 }
+
+#ifdef SUPPORT_SCREEN
+ErrCode AbilityManagerClient::OnCollaborateDone(const sptr<IRemoteObject> token, int32_t resultCode)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    if (token == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null token");
+        return INNER_ERR;
+    }
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->OnCollaborateDone(token, resultCode);
+}
+#endif
 } // namespace AAFwk
 } // namespace OHOS

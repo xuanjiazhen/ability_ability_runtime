@@ -270,6 +270,9 @@ constexpr int32_t MAX_BUFFER = 2048;
 constexpr int32_t API12 = 12;
 constexpr int32_t API_VERSION_MOD = 100;
 constexpr const char* WHITE_LIST = "white_list";
+constexpr const char* SUPPORT_COLLABORATE_INDEX = "ohos.extra.param.key.supportCollaborateIndex";
+constexpr const char* COLLABORATE_KEY = "ohos.dms.collabToken";
+constexpr const char* IS_REMOTE_CALL_COLLABORATE = "isRemoteCallCollaborate";
 
 const bool REGISTER_RESULT =
     SystemAbility::MakeAndRegisterAbility(DelayedSingleton<AbilityManagerService>::GetInstance().get());
@@ -3879,6 +3882,9 @@ bool AbilityManagerService::CheckIfOperateRemote(const Want &want)
         TAG_LOGD(AAFwkTag::ABILITYMGR, "CheckIfOperateRemote: DeviceId or BundleName or GetAbilityName empty");
         return false;
     }
+#ifdef SUPPORT_SCREEN
+    (const_cast<Want &>(want)).SetParam(IS_REMOTE_CALL_COLLABORATE, CheckIsRemote(deviceId));
+#endif
     return CheckIsRemote(deviceId);
 }
 
@@ -12611,5 +12617,32 @@ int32_t AbilityManagerService::QueryKeepAliveApplicationsByEDM(int32_t appType, 
     return KeepAliveProcessManager::GetInstance().QueryKeepAliveApplications(
         appType, userId, list, true);
 }
+
+#ifdef SUPPORT_SCREEN
+int32_t AbilityManagerService::OnCollaborateDone(const sptr<IRemoteObject> &token, int32_t &resultCode)
+{
+    if (token == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "no token");
+        return ERR_INVALID_VALUE;
+    }
+    auto abilityRecord = Token::GetAbilityRecordByToken(token);
+    if (abilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "no such bundle matched token");
+        return ERR_INVALID_VALUE;
+    }
+    auto want = abilityRecord->GetWant();
+    auto wantParam = want.GetParams().GetWantParams(SUPPORT_COLLABORATE_INDEX);
+    want.RemoveParam(SUPPORT_COLLABORATE_INDEX);
+    auto collabToken = wantParam.GetStringParam(COLLABORATE_KEY);
+    wantParam.Remove(COLLABORATE_KEY);
+
+    auto uid = abilityRecord->GetUid();
+    auto callerPid = abilityRecord->GetPid();
+    auto accessTokenId = abilityRecord->GetAbilityInfo().applicationInfo.accessTokenId;
+    DistributedClient dmsClient;
+    dmsClient.OnCollaborateDone(collabToken, resultCode, callerPid, uid, accessTokenId);
+    return ERR_OK;
+}
+#endif
 }  // namespace AAFwk
 }  // namespace OHOS

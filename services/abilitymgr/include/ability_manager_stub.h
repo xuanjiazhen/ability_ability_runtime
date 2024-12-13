@@ -288,6 +288,10 @@ private:
     int StartAbilityForResultAsCallerForOptionsInner(MessageParcel &data, MessageParcel &reply);
 
     int32_t StartAbilityOnlyUIAbilityInner(MessageParcel &data, MessageParcel &reply);
+    
+#ifdef SUPPORT_SCREEN
+    int OnCollaborateInner(MessageParcel &data, MessageParcel &reply);
+#endif
 
     //insight intent related
     int32_t StartAbilityByInsightIntentInner(MessageParcel &data, MessageParcel &reply);

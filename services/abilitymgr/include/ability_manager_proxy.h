@@ -866,6 +866,14 @@ public:
 
     virtual int UnregisterAbilityFirstFrameStateObserver(
         const sptr<IAbilityFirstFrameStateObserver> &observer) override;
+
+    /**
+     * Notify collaborate finished.
+     * @param token Ability token.
+     * @param resultCode The resultCode of the ability to collaborate.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t OnCollaborateDone(const sptr<IRemoteObject> &token, int32_t &resultCode) override;
 #endif
     /**
      * @brief Get the ability running information.
