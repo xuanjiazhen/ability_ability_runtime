@@ -105,6 +105,7 @@ public:
     std::string GetGroupDir(std::string groupId) override;
     std::string GetDistributedFilesDir() override;
     std::string GetCloudFileDir() override;
+    std::string GetShareFilesDir() override;
     sptr<IRemoteObject> GetToken() override;
     void SetToken(const sptr<IRemoteObject> &token) override;
     void SwitchArea(int mode) override;
