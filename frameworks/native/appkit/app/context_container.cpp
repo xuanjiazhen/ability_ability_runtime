@@ -24,6 +24,7 @@
 #include "constants.h"
 #include "hilog_tag_wrapper.h"
 #include "parameters.h"
+#include "time_util.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -344,10 +345,14 @@ void ContextContainer::LoadResources(BundleInfo &bundleInfo,
             continue;
         }
         loadPath = std::regex_replace(loadPath, pattern, AbilityBase::Constants::LOCAL_BUNDLES);
-        TAG_LOGD(AAFwkTag::APPKIT, "loadPath: %{private}s", loadPath.c_str());
+        int64_t timeStart = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
         if (!resourceManager->AddResource(loadPath.c_str())) {
             TAG_LOGE(AAFwkTag::APPKIT, "AddResource failed");
         }
+        int64_t timeEnd = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
+        TAG_LOGI(AAFwkTag::APPKIT,
+            "loadPath: %{private}s, time: %{public}s",
+            loadPath.c_str(), std::to_string(timeEnd - timeStart).c_str());
     }
 
     resConfig->SetLocaleInfo("zh", "Hans", "CN");

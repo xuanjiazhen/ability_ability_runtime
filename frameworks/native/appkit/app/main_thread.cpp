@@ -59,6 +59,7 @@
 #include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
 #include "resource_config_helper.h"
+#include "time_util.h"
 #ifdef SUPPORT_SCREEN
 #include "locale_config.h"
 #include "ace_forward_compatibility.h"
@@ -1064,15 +1065,23 @@ void MainThread::OnStartAbility(const std::string &bundleName,
         TAG_LOGD(AAFwkTag::APPKIT, "ModuleResPath: %{public}s", loadPath.c_str());
         // getOverlayPath
         if (overlayModuleInfos_.empty()) {
+            int64_t timeStart = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
             if (!resourceManager->AddResource(loadPath.c_str())) {
                 TAG_LOGE(AAFwkTag::APPKIT, "AddResource failed");
             }
+            int64_t timeEnd = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
+            TAG_LOGI(AAFwkTag::UIABILITY,
+                "AddResource time: %{public}s", std::to_string(timeEnd - timeStart).c_str());
         } else {
             std::vector<std::string> overlayPaths = GetOverlayPaths(bundleName, overlayModuleInfos_);
-            TAG_LOGD(AAFwkTag::APPKIT, "OverlayPaths size:%{public}zu", overlayPaths.size());
+            int64_t timeStart = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
             if (!resourceManager->AddResource(loadPath, overlayPaths)) {
                 TAG_LOGE(AAFwkTag::APPKIT, "AddResource failed");
             }
+            int64_t timeEnd = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
+            TAG_LOGI(AAFwkTag::UIABILITY,
+                "AddResource OverlayPaths size:%{public}zu, time: %{public}s",
+                overlayPaths.size(), std::to_string(timeEnd - timeStart).c_str());
             SubscribeOverlayChange(bundleName, loadPath, resourceManager, entryHapModuleInfo);
         }
         std::string hqfPath = entryHapModuleInfo.hqfInfo.hqfFilePath;
@@ -1182,14 +1191,22 @@ void MainThread::HandleOnOverlayChanged(const EventFwk::CommonEventData &data,
     } else {
         if (isEnable) {
             std::vector<std::string> overlayPaths = GetAddOverlayPaths(overlayModuleInfos);
+            int64_t timeStart = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
             if (!resourceManager->AddResource(loadPath, overlayPaths)) {
                 TAG_LOGE(AAFwkTag::APPKIT, "AddResource failed");
             }
+            int64_t timeEnd = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
+            TAG_LOGI(AAFwkTag::UIABILITY,
+                "AddResource time: %{public}s", std::to_string(timeEnd - timeStart).c_str());
         } else {
             std::vector<std::string> overlayPaths = GetRemoveOverlayPaths(overlayModuleInfos);
+            int64_t timeStart = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
             if (!resourceManager->RemoveResource(loadPath, overlayPaths)) {
                 TAG_LOGE(AAFwkTag::APPKIT, "RemoveResource failed");
             }
+            int64_t timeEnd = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
+            TAG_LOGI(AAFwkTag::UIABILITY,
+                "RemoveResource time: %{public}s", std::to_string(timeEnd - timeStart).c_str());
         }
     }
 }

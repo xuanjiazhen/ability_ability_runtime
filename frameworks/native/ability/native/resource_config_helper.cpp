@@ -17,6 +17,7 @@
 #include "configuration_convertor.h"
 #include "hitrace_meter.h"
 #include "application_configuration_manager.h"
+#include "time_util.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -105,13 +106,17 @@ void ResourceConfigHelper::UpdateResConfig(
 #endif
     UpdateResConfig(resConfig);
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "resourceManager->UpdateResConfig");
+    int64_t timeStart = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
     Global::Resource::RState ret = resourceManager->UpdateResConfig(*resConfig);
+    int64_t timeEnd = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
     if (ret != Global::Resource::RState::SUCCESS) {
         TAG_LOGE(AAFwkTag::ABILITY, "update resConfig failed:%{public}d", static_cast<int>(ret));
         return;
     }
-    TAG_LOGD(AAFwkTag::ABILITY, "current colorMode: %{public}d, hasPointerDevice: %{public}d",
-             resConfig->GetColorMode(), resConfig->GetInputDevice());
+    TAG_LOGI(AAFwkTag::ABILITY,
+        "current colorMode: %{public}d, hasPointerDevice: %{public}d, time: %{public}s",
+        resConfig->GetColorMode(), resConfig->GetInputDevice(),
+        std::to_string(timeEnd - timeStart).c_str());
 }
 
 void ResourceConfigHelper::UpdateResConfig(std::unique_ptr<Global::Resource::ResConfig> &resConfig)

@@ -33,6 +33,7 @@
 #include "ipc_object_proxy.h"
 #include "ipc_singleton.h"
 #include "js_runtime_utils.h"
+#include "time_util.h"
 #ifdef SUPPORT_SCREEN
 #include "locale_config.h"
 #endif
@@ -922,9 +923,13 @@ void ContextImpl::GetOverlayPath(std::shared_ptr<Global::Resource::ResourceManag
         TAG_LOGD(AAFwkTag::APPKIT, "Get overlay paths from bms failed.");
     }
     if (overlayModuleInfos.size() == 0) {
+        int64_t timeStart = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
         if (!resourceManager->AddResource(loadPath.c_str())) {
             TAG_LOGE(AAFwkTag::APPKIT, "moduleResPath: %{private}s", loadPath.c_str());
         }
+        int64_t timeEnd = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
+        TAG_LOGI(AAFwkTag::UIABILITY,
+            "AddResource time: %{public}s", std::to_string(timeEnd - timeStart).c_str());
     } else {
         std::vector<std::string> overlayPaths;
         for (auto it : overlayModuleInfos) {
@@ -940,10 +945,13 @@ void ContextImpl::GetOverlayPath(std::shared_ptr<Global::Resource::ResourceManag
             }
         }
         TAG_LOGD(AAFwkTag::APPKIT, "OverlayPaths size:%{public}zu.", overlayPaths.size());
+        int64_t timeStart = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
         if (!resourceManager->AddResource(loadPath, overlayPaths)) {
             TAG_LOGE(AAFwkTag::APPKIT, "AddResource failed");
         }
-
+        int64_t timeEnd = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
+        TAG_LOGI(AAFwkTag::UIABILITY,
+            "AddResource time: %{public}s", std::to_string(timeEnd - timeStart).c_str());
         if (currentBundle) {
             SubscribeToOverlayEvents(resourceManager, bundleName, moduleName, loadPath, overlayModuleInfos);
         }
