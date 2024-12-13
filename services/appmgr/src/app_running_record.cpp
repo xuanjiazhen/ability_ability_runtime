@@ -44,6 +44,8 @@ constexpr const char *EVENT_KEY_VERSION_NAME = "VERSION_NAME";
 constexpr const char *EVENT_KEY_VERSION_CODE = "VERSION_CODE";
 constexpr const char *EVENT_KEY_BUNDLE_NAME = "BUNDLE_NAME";
 constexpr const char *EVENT_KEY_SUPPORT_STATE = "SUPPORT_STATE";
+constexpr uint32_t PROCESS_MODE_RUN_WITH_MAIN_PROCESS =
+    1 << static_cast<uint32_t>(AppExecFwk::ExtensionProcessMode::RUN_WITH_MAIN_PROCESS);
 }
 
 int64_t AppRunningRecord::appEventId_ = 0;
@@ -540,7 +542,7 @@ void AppRunningRecord::AddAbilityStage()
     }
     HapModuleInfo abilityStage;
     if (GetTheModuleInfoNeedToUpdated(mainBundleName_, abilityStage)) {
-        auto timeout = AMSEventHandler::ADD_ABILITY_STAGE_INFO_TIMEOUT;
+        auto timeout = GetAddStageTimeout();
         SendEvent(AMSEventHandler::ADD_ABILITY_STAGE_INFO_HALF_TIMEOUT_MSG, timeout / HALF_TIMEOUT);
         SendEvent(AMSEventHandler::ADD_ABILITY_STAGE_INFO_TIMEOUT_MSG, timeout);
         TAG_LOGI(AAFwkTag::APPMGR, "Current module : [%{public}s] | bundle : [%{public}s]",
@@ -566,7 +568,7 @@ bool AppRunningRecord::AddAbilityStageBySpecifiedAbility(const std::string &bund
             AMSEventHandler::ADD_ABILITY_STAGE_INFO_TIMEOUT_MSG)) {
             TAG_LOGI(
                 AAFwkTag::APPMGR, "ADD_ABILITY_STAGE_INFO_TIMEOUT_MSG not exist");
-            auto timeout = AMSEventHandler::ADD_ABILITY_STAGE_INFO_TIMEOUT;
+            auto timeout = GetAddStageTimeout();
             SendEvent(AMSEventHandler::ADD_ABILITY_STAGE_INFO_HALF_TIMEOUT_MSG, timeout / HALF_TIMEOUT);
             SendEvent(AMSEventHandler::ADD_ABILITY_STAGE_INFO_TIMEOUT_MSG, timeout);
         }
@@ -590,7 +592,7 @@ void AppRunningRecord::AddAbilityStageBySpecifiedProcess(const std::string &bund
 
     HapModuleInfo hapModuleInfo;
     if (GetTheModuleInfoNeedToUpdated(bundleName, hapModuleInfo)) {
-        auto timeout = AMSEventHandler::ADD_ABILITY_STAGE_INFO_TIMEOUT;
+        auto timeout = GetAddStageTimeout();
         SendEvent(AMSEventHandler::ADD_ABILITY_STAGE_INFO_HALF_TIMEOUT_MSG, timeout / HALF_TIMEOUT);
         SendEvent(AMSEventHandler::ADD_ABILITY_STAGE_INFO_TIMEOUT_MSG, timeout);
         if (appLifeCycleDeal_ == nullptr) {
@@ -798,8 +800,9 @@ void AppRunningRecord::AddModule(std::shared_ptr<ApplicationInfo> appInfo,
 
     std::shared_ptr<ModuleRunningRecord> moduleRecord;
 
-    auto initModuleRecord = [=](const std::shared_ptr<ModuleRunningRecord> &moduleRecord) {
+    auto initModuleRecord = [&](const std::shared_ptr<ModuleRunningRecord> &moduleRecord) {
         moduleRecord->Init(hapModuleInfo);
+        moduleRecord->SetAppIndex(appIndex_);
         moduleRecord->SetAppMgrServiceInner(appMgrServiceInner_);
         moduleRecord->SetApplicationClient(appLifeCycleDeal_);
     };
@@ -885,11 +888,10 @@ void AppRunningRecord::StateChangedNotifyObserver(const std::shared_ptr<AbilityR
     if (applicationInfo && applicationInfo->bundleType == AppExecFwk::BundleType::ATOMIC_SERVICE) {
         abilityStateData.isAtomicService = true;
     }
-    if (isAbility && abilityInfo->type == AbilityType::EXTENSION &&
-        abilityInfo->extensionAbilityType != ExtensionAbilityType::UI) {
-        TAG_LOGD(AAFwkTag::APPMGR, "extensionType:%{public}d, not notify", abilityInfo->extensionAbilityType);
-        return;
+    if (abilityInfo->type == AbilityType::EXTENSION) {
+        abilityStateData.extensionAbilityType = static_cast<int32_t>(abilityInfo->extensionAbilityType);
     }
+    abilityStateData.processType = static_cast<int32_t>(processType_);
     auto serviceInner = appMgrServiceInner_.lock();
     if (serviceInner) {
         serviceInner->StateChangedNotifyObserver(abilityStateData, isAbility, isFromWindowFocusChanged);
@@ -981,7 +983,8 @@ void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, cons
         TAG_LOGE(AAFwkTag::APPMGR, "can not find ability record");
         return;
     }
-    if (state == AbilityState::ABILITY_STATE_CREATE) {
+    if (state == AbilityState::ABILITY_STATE_CREATE &&
+        !AAFwk::UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo()->extensionAbilityType)) {
         StateChangedNotifyObserver(
             abilityRecord, static_cast<int32_t>(AbilityState::ABILITY_STATE_CREATE), true, false);
         return;
@@ -1028,7 +1031,10 @@ void AppRunningRecord::AbilityForeground(const std::shared_ptr<AbilityRunningRec
         }
 
         moduleRecord->OnAbilityStateChanged(ability, AbilityState::ABILITY_STATE_FOREGROUND);
-        StateChangedNotifyObserver(ability, static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND), true, false);
+        if (!AAFwk::UIExtensionUtils::IsUIExtension(ability->GetAbilityInfo()->extensionAbilityType)) {
+            StateChangedNotifyObserver(
+                ability, static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND), true, false);
+        }
         auto serviceInner = appMgrServiceInner_.lock();
         if (serviceInner) {
             serviceInner->OnAppStateChanged(shared_from_this(), curState_, false, false);
@@ -1039,11 +1045,9 @@ void AppRunningRecord::AbilityForeground(const std::shared_ptr<AbilityRunningRec
         || curState_ == ApplicationState::APP_STATE_FOREGROUND) {
         auto pendingState = pendingState_;
         SetApplicationPendingState(ApplicationPendingState::FOREGROUNDING);
-        if (pendingState == ApplicationPendingState::READY) {
-            if (!ScheduleForegroundRunning()) {
-                AbilityRuntime::FreezeUtil::GetInstance().AppendLifecycleEvent(ability->GetToken(),
-                    "ScheduleForegroundRunning fail");
-            }
+        if (pendingState == ApplicationPendingState::READY && !ScheduleForegroundRunning()) {
+            AbilityRuntime::FreezeUtil::GetInstance().AppendLifecycleEvent(ability->GetToken(),
+                "ScheduleForegroundRunning fail");
         }
         foregroundingAbilityTokens_.insert(ability->GetToken());
         TAG_LOGD(AAFwkTag::APPMGR, "foregroundingAbility size: %{public}d",
@@ -1077,31 +1081,34 @@ void AppRunningRecord::AbilityBackground(const std::shared_ptr<AbilityRunningRec
         return;
     }
     moduleRecord->OnAbilityStateChanged(ability, AbilityState::ABILITY_STATE_BACKGROUND);
-    StateChangedNotifyObserver(ability, static_cast<int32_t>(AbilityState::ABILITY_STATE_BACKGROUND), true, false);
-    if (curState_ == ApplicationState::APP_STATE_FOREGROUND || curState_ == ApplicationState::APP_STATE_CACHED) {
-        int32_t foregroundSize = 0;
-        auto abilitiesMap = GetAbilities();
-        for (const auto &item : abilitiesMap) {
-            const auto &abilityRecord = item.second;
-            if (abilityRecord && abilityRecord->GetState() == AbilityState::ABILITY_STATE_FOREGROUND &&
-                abilityRecord->GetAbilityInfo() &&
-                (abilityRecord->GetAbilityInfo()->type == AppExecFwk::AbilityType::PAGE
-                || AAFwk::UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo()->extensionAbilityType))) {
-                foregroundSize++;
-                break;
-            }
-        }
-
-        // Then schedule application background when all ability is not foreground.
-        if (foregroundSize == 0 && mainBundleName_ != LAUNCHER_NAME && IsWindowIdsEmpty()) {
-            auto pendingState = pendingState_;
-            SetApplicationPendingState(ApplicationPendingState::BACKGROUNDING);
-            if (pendingState == ApplicationPendingState::READY) {
-                ScheduleBackgroundRunning();
-            }
-        }
-    } else {
+    if (!AAFwk::UIExtensionUtils::IsUIExtension(ability->GetAbilityInfo()->extensionAbilityType)) {
+        StateChangedNotifyObserver(
+            ability, static_cast<int32_t>(AbilityState::ABILITY_STATE_BACKGROUND), true, false);
+    }
+    if (curState_ != ApplicationState::APP_STATE_FOREGROUND && curState_ != ApplicationState::APP_STATE_CACHED) {
         TAG_LOGW(AAFwkTag::APPMGR, "wrong state");
+        return;
+    }
+    int32_t foregroundSize = 0;
+    auto abilitiesMap = GetAbilities();
+    for (const auto &item : abilitiesMap) {
+        const auto &abilityRecord = item.second;
+        if (abilityRecord && abilityRecord->GetState() == AbilityState::ABILITY_STATE_FOREGROUND &&
+            abilityRecord->GetAbilityInfo() &&
+            (abilityRecord->GetAbilityInfo()->type == AppExecFwk::AbilityType::PAGE
+            || AAFwk::UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo()->extensionAbilityType))) {
+            foregroundSize++;
+            break;
+        }
+    }
+
+    // Then schedule application background when all ability is not foreground.
+    if (foregroundSize == 0 && mainBundleName_ != LAUNCHER_NAME && IsWindowIdsEmpty()) {
+        auto pendingState = pendingState_;
+        SetApplicationPendingState(ApplicationPendingState::BACKGROUNDING);
+        if (pendingState == ApplicationPendingState::READY) {
+            ScheduleBackgroundRunning();
+        }
     }
 }
 
@@ -1178,8 +1185,10 @@ void AppRunningRecord::PopForegroundingAbilityTokens()
         auto moduleRecord = GetModuleRunningRecordByToken(*iter);
         if (moduleRecord != nullptr) {
             moduleRecord->OnAbilityStateChanged(ability, AbilityState::ABILITY_STATE_FOREGROUND);
-            StateChangedNotifyObserver(ability, static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND),
-                true, false);
+            if (!AAFwk::UIExtensionUtils::IsUIExtension(ability->GetAbilityInfo()->extensionAbilityType)) {
+                StateChangedNotifyObserver(
+                    ability, static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND), true, false);
+            }
         } else {
             TAG_LOGW(AAFwkTag::APPMGR, "null moduleRecord");
         }
@@ -1202,7 +1211,7 @@ void AppRunningRecord::TerminateAbility(const sptr<IRemoteObject> &token, const 
     if (abilityRecord) {
         TAG_LOGI(AAFwkTag::APPMGR, "TerminateAbility:%{public}s", abilityRecord->GetName().c_str());
     }
-    if (!isTimeout) {
+    if (!isTimeout && !AAFwk::UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo()->extensionAbilityType)) {
         StateChangedNotifyObserver(
             abilityRecord, static_cast<int32_t>(AbilityState::ABILITY_STATE_TERMINATED), true, false);
     }
@@ -1608,7 +1617,8 @@ std::shared_ptr<UserTestRecord> AppRunningRecord::GetUserTestInfo()
     return userTestRecord_;
 }
 
-void AppRunningRecord::SetProcessAndExtensionType(const std::shared_ptr<AbilityInfo> &abilityInfo)
+void AppRunningRecord::SetProcessAndExtensionType(
+    const std::shared_ptr<AbilityInfo> &abilityInfo, uint32_t extensionProcessMode)
 {
     if (abilityInfo == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null abilityInfo");
@@ -1631,7 +1641,13 @@ void AppRunningRecord::SetProcessAndExtensionType(const std::shared_ptr<AbilityI
         processType_ = ProcessType::NORMAL;
         return;
     }
-    processType_ = ProcessType::EXTENSION;
+
+    if (AAFwk::UIExtensionUtils::IsUIExtension(extensionType_) &&
+         extensionProcessMode == PROCESS_MODE_RUN_WITH_MAIN_PROCESS) {
+        processType_ = ProcessType::NORMAL;
+    } else {
+        processType_ = ProcessType::EXTENSION;
+    }
     return;
 }
 
@@ -1697,7 +1713,7 @@ void AppRunningRecord::ScheduleAcceptWant(const std::string &moduleName)
 
 void AppRunningRecord::ScheduleAcceptWantDone()
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "bundle %{public}s", mainBundleName_.c_str());
+    TAG_LOGI(AAFwkTag::APPMGR, "ScheduleAcceptWantDone, bundle %{public}s", mainBundleName_.c_str());
     RemoveEvent(AMSEventHandler::START_SPECIFIED_ABILITY_HALF_TIMEOUT_MSG);
     RemoveEvent(AMSEventHandler::START_SPECIFIED_ABILITY_TIMEOUT_MSG);
 }
@@ -2031,10 +2047,10 @@ void AppRunningRecord::ChangeWindowVisibility(const sptr<OHOS::Rosen::WindowVisi
     if (GetPriorityObject() == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null priorityObject");
         return;
-    } else {
-        if (info->pid_ != GetPid()) {
-            return;
-        }
+    }
+
+    if (info->pid_ != GetPid()) {
+        return;
     }
 
     std::lock_guard windowIdsLock(windowIdsLock_);
@@ -2082,8 +2098,8 @@ void AppRunningRecord::OnWindowVisibilityChanged(
         }
     }
 
-    TAG_LOGI(AAFwkTag::APPMGR, "window id empty: %{public}d, pState: %{public}d, cState: %{public}d",
-        IsWindowIdsEmpty(), pendingState_, curState_);
+    TAG_LOGI(AAFwkTag::APPMGR, "wnd call, %{public}s_%{public}d, isEmpty_%{public}d, c_%{public}d -> p_%{public}d",
+        GetBundleName().c_str(), GetPid(), IsWindowIdsEmpty(), curState_, pendingState_);
     if (pendingState_ == ApplicationPendingState::READY) {
         if (!IsWindowIdsEmpty() && curState_ != ApplicationState::APP_STATE_FOREGROUND) {
             SetApplicationPendingState(ApplicationPendingState::FOREGROUNDING);
@@ -2190,7 +2206,7 @@ std::shared_ptr<AppRunningRecord> AppRunningRecord::GetParentAppRecord()
     return parentAppRecord_.lock();
 }
 
-int32_t AppRunningRecord::ChangeAppGcState(const int32_t state)
+int32_t AppRunningRecord::ChangeAppGcState(int32_t state)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (appLifeCycleDeal_ == nullptr) {
@@ -2200,7 +2216,7 @@ int32_t AppRunningRecord::ChangeAppGcState(const int32_t state)
     return appLifeCycleDeal_->ChangeAppGcState(state);
 }
 
-void AppRunningRecord::SetAttachDebug(const bool &isAttachDebug)
+void AppRunningRecord::SetAttachDebug(bool isAttachDebug)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     isAttachDebug_ = isAttachDebug;
@@ -2237,7 +2253,7 @@ ApplicationScheduleState AppRunningRecord::GetApplicationScheduleState() const
     return scheduleState_;
 }
 
-void AppRunningRecord::AddChildProcessRecord(pid_t pid, const std::shared_ptr<ChildProcessRecord> record)
+void AppRunningRecord::AddChildProcessRecord(pid_t pid, std::shared_ptr<ChildProcessRecord> record)
 {
     if (!record) {
         TAG_LOGE(AAFwkTag::APPMGR, "null record");
@@ -2251,13 +2267,13 @@ void AppRunningRecord::AddChildProcessRecord(pid_t pid, const std::shared_ptr<Ch
     childProcessRecordMap_.emplace(pid, record);
 }
 
-void AppRunningRecord::RemoveChildProcessRecord(const std::shared_ptr<ChildProcessRecord> record)
+void AppRunningRecord::RemoveChildProcessRecord(std::shared_ptr<ChildProcessRecord> record)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "pid: %{public}d", record->GetPid());
     if (!record) {
         TAG_LOGE(AAFwkTag::APPMGR, "null record");
         return;
     }
+    TAG_LOGI(AAFwkTag::APPMGR, "pid: %{public}d", record->GetPid());
     auto pid = record->GetPid();
     if (pid <= 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "pid <= 0");
@@ -2267,7 +2283,7 @@ void AppRunningRecord::RemoveChildProcessRecord(const std::shared_ptr<ChildProce
     childProcessRecordMap_.erase(pid);
 }
 
-std::shared_ptr<ChildProcessRecord> AppRunningRecord::GetChildProcessRecordByPid(const pid_t pid)
+std::shared_ptr<ChildProcessRecord> AppRunningRecord::GetChildProcessRecordByPid(pid_t pid)
 {
     std::lock_guard lock(childProcessRecordMapLock_);
     auto iter = childProcessRecordMap_.find(pid);
@@ -2600,9 +2616,9 @@ bool AppRunningRecord::IsCaching()
 
 void AppRunningRecord::AddAppLifecycleEvent(const std::string &msg)
 {
-    auto prioObject = GetPriorityObject();
-    if (prioObject && prioObject->GetPid() != 0) {
-        AbilityRuntime::FreezeUtil::GetInstance().AddAppLifecycleEvent(prioObject->GetPid(), msg);
+    pid_t pid = GetPid();
+    if (pid != 0) {
+        AbilityRuntime::FreezeUtil::GetInstance().AddAppLifecycleEvent(pid, msg);
     }
 }
 
@@ -2655,6 +2671,14 @@ void AppRunningRecord::UnSetPolicy()
     }
     SetIsUnSetPermission(true);
     AAFwk::UriPermissionManagerClient::GetInstance().ClearPermissionTokenByMap(appInfo->accessTokenId);
+}
+
+uint32_t AppRunningRecord::GetAddStageTimeout() const
+{
+    if (IsEmptyKeepAliveApp()) {
+        return AMSEventHandler::ADD_ABILITY_STAGE_EMPTY_RESIDENT_TIMEOUT;
+    }
+    return AMSEventHandler::ADD_ABILITY_STAGE_INFO_TIMEOUT;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

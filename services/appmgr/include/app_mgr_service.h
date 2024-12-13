@@ -788,6 +788,8 @@ public:
         const std::string& reason) override;
 
     virtual void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey) override;
+
+    int32_t HasAppRecord(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result) override;
 private:
     /**
      * Init, Initialize application services.
@@ -909,6 +911,16 @@ private:
      * @return Return ERR_OK if success, others fail.
      */
     int32_t IsAppRunning(const std::string &bundleName, int32_t appCloneIndex, bool &isRunning) override;
+
+    /**
+     * Check whether the process of the application under the specified user exists.
+     *
+     * @param bundleName Indicates the bundle name of the bundle.
+     * @param userId the userId of the bundle.
+     * @param isRunning Obtain the running status of the application, the result is true if running, false otherwise.
+     * @return Return ERR_OK if success, others fail.
+     */
+    int32_t IsAppRunningByBundleNameAndUserId(const std::string &bundleName, int32_t userId, bool &isRunning) override;
 
     /**
      * Whether the current application process is the last surviving process.

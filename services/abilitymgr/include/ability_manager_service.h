@@ -1028,7 +1028,8 @@ public:
         uint32_t specifyTokenId = 0,
         bool isForegroundToRestartApp = false,
         bool isImplicit = false,
-        bool isUIAbilityOnly = false);
+        bool isUIAbilityOnly = false,
+        bool isAppCloneSelector = false);
 
     int StartAbilityInner(
         const Want &want,
@@ -1040,7 +1041,8 @@ public:
         uint32_t specifyTokenId = 0,
         bool isForegroundToRestartApp = false,
         bool isImplicit = false,
-        bool isUIAbilityOnly = false);
+        bool isUIAbilityOnly = false,
+        bool isAppCloneSelector = false);
 
     int32_t StartExtensionAbilityInner(
         const Want &want,
@@ -1115,7 +1117,8 @@ public:
         sptr<IRemoteObject> asCallerSourceToken,
         int32_t userId = DEFAULT_INVAL_VALUE,
         int requestCode = DEFAULT_INVAL_VALUE,
-        bool isImplicit = false);
+        bool isImplicit = false,
+        bool isAppCloneSelector = false);
 
     int ImplicitStartAbilityAsCaller(
         const Want &want,
@@ -1430,10 +1433,9 @@ public:
 
     /**
      * Upgrade app completed event.
-     * @param bundleName.
      * @param uid.
      */
-    void AppUpgradeCompleted(const std::string &bundleName, int32_t uid);
+    void AppUpgradeCompleted(int32_t uid);
 
     /**
      * Record app exit reason.
@@ -1828,7 +1830,7 @@ public:
     int32_t UpdateKeepAliveEnableState(const std::string &bundleName, const std::string &moduleName,
         const std::string &mainElement, bool updateEnable, int32_t userId);
 
-    bool IsInStatusBar(uint32_t accessTokenId);
+    bool IsInStatusBar(uint32_t accessTokenId, int32_t uid);
 
     /**
      * Set keep-alive flag for application under a specific user.
@@ -1934,7 +1936,7 @@ private:
      * start highest priority ability.
      *
      */
-    void StartHighestPriorityAbility(int32_t userId, bool isBoot, bool isAppRecovery = false);
+    int StartHighestPriorityAbility(int32_t userId, bool isBoot, bool isAppRecovery = false);
     /**
      * connect bms.
      *
@@ -2039,8 +2041,7 @@ private:
     void StartFreezingScreen();
     void StopFreezingScreen();
     void UserStarted(int32_t userId);
-    void SwitchToUser(int32_t userId);
-    void SwitchToUser(int32_t oldUserId, int32_t userId, sptr<IUserCallback> callback,
+    int SwitchToUser(int32_t oldUserId, int32_t userId, sptr<IUserCallback> callback,
         bool isAppRecovery = false);
     void SwitchManagers(int32_t userId, bool switchUser = true);
     void StartUserApps();
@@ -2392,6 +2393,8 @@ private:
      * @param abilityName. The abilityName of the blocked hap.
      */
     void ShowDeveloperModeDialog(const std::string &bundleName, const std::string &abilityName);
+
+    void StartKeepAliveAppsInner(int32_t userId);
 
     sptr<WindowVisibilityChangedListener> windowVisibilityChangedListener_;
     std::shared_ptr<TaskHandlerWrap> taskHandler_;

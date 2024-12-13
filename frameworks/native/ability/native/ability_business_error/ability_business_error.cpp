@@ -52,7 +52,7 @@ constexpr const char* ERROR_MSG_FREE_INSTALL_TIMEOUT = "Installation-free timed 
 constexpr const char* ERROR_MSG_FREE_INSTALL_OTHERS = "Installation-free is not allowed for other applications.";
 constexpr const char* ERROR_MSG_FREE_INSTALL_CROSS_DEVICE = "Cross-device installation-free is not supported.";
 constexpr const char* ERROR_MSG_INVALID_URI_FLAG = "Invalid URI flag.";
-constexpr const char* ERROR_MSG_INVALID_URI_TYPE = "Only support file URI.";
+constexpr const char* ERROR_MSG_INVALID_URI_TYPE = "Invalid URI type.";
 constexpr const char* ERROR_MSG_GRANT_URI_PERMISSION = "A sandbox application cannot grant URI permission.";
 constexpr const char* ERROR_MSG_GET_BUNDLE_INFO_FAILED = "Get target application info failed.";
 constexpr const char* ERROR_MSG_OPERATION_NOT_SUPPORTED = "Operation not supported.";
@@ -99,7 +99,7 @@ constexpr const char* ERROR_MSG_INVALID_APP_INSTANCE_KEY = "The app instance key
 constexpr const char* ERROR_MSG_UPPER_LIMIT = "The number of app instances reaches the limit.";
 constexpr const char* ERROR_MSG_APP_INSTANCE_KEY_NOT_SUPPORT = "The APP_INSTANCE_KEY cannot be specified.";
 constexpr const char* ERROR_MSG_CREATE_NEW_INSTANCE_NOT_SUPPORT = "Creating a new instance is not supported.";
-constexpr const char* ERROR_MSG_UI_ABILITY_IS_STARTING = "The UIAbility is in starting state.";
+constexpr const char* ERROR_MSG_UI_ABILITY_IS_STARTING = "The UIAbility is being started.";
 
 // follow ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST of appexecfwk_errors.h in bundle_framework
 constexpr int32_t ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST = 8521220;

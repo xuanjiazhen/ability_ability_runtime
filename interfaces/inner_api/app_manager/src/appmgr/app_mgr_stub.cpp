@@ -229,6 +229,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerFourth(uint32_t code, MessageParcel &dat
             return HandleGetProcessMemoryByPid(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::IS_TERMINATING_BY_PID):
             return HandleIsTerminatingByPid(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::HAS_APP_RECORD):
+            return HandleHasAppRecord(data, reply);
     }
     return INVALID_FD;
 }
@@ -301,6 +303,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerSixth(uint32_t code, MessageParcel &data
             return HandleGetAllUIExtensionRootHostPid(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::GET_ALL_UI_EXTENSION_PROVIDER_PID):
             return HandleGetAllUIExtensionProviderPid(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::IS_APP_RUNNING_BY_BUNDLE_NAME_AND_USER_ID):
+            return HandleIsAppRunningByBundleNameAndUserId(data, reply);
     }
     return INVALID_FD;
 }
@@ -911,6 +915,7 @@ int32_t AppMgrStub::HandleStartRenderProcess(MessageParcel &data, MessageParcel 
 
 int32_t AppMgrStub::HandleAttachRenderProcess(MessageParcel &data, MessageParcel &reply)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     sptr<IRemoteObject> scheduler = data.ReadRemoteObject();
     AttachRenderProcess(scheduler);
     return NO_ERROR;
@@ -1149,7 +1154,7 @@ int32_t AppMgrStub::HandleGetRunningProcessInfoByPid(MessageParcel &data, Messag
     RunningProcessInfo processInfo;
     auto pid = static_cast<pid_t>(data.ReadInt32());
     auto result = GetRunningProcessInfoByPid(pid, processInfo);
-    if (reply.WriteParcelable(&processInfo)) {
+    if (!reply.WriteParcelable(&processInfo)) {
         TAG_LOGE(AAFwkTag::APPMGR, "failed");
         return ERR_INVALID_VALUE;
     }
@@ -1370,6 +1375,23 @@ int32_t AppMgrStub::HandleIsAppRunning(MessageParcel &data, MessageParcel &reply
     bool isRunning = false;
     int32_t appCloneIndex = data.ReadInt32();
     int32_t result = IsAppRunning(bundleName, appCloneIndex, isRunning);
+    if (!reply.WriteBool(isRunning)) {
+        return ERR_INVALID_VALUE;
+    }
+    if (!reply.WriteInt32(result)) {
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleIsAppRunningByBundleNameAndUserId(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    std::string bundleName = data.ReadString();
+    bool isRunning = false;
+    int32_t userId = data.ReadInt32();
+    int32_t result = IsAppRunningByBundleNameAndUserId(bundleName, userId, isRunning);
     if (!reply.WriteBool(isRunning)) {
         return ERR_INVALID_VALUE;
     }
@@ -1732,6 +1754,27 @@ int32_t AppMgrStub::HandleUpdateInstanceKeyBySpecifiedId(MessageParcel &data, Me
     auto instanceKey = data.ReadString();
     UpdateInstanceKeyBySpecifiedId(specifiedId, instanceKey);
     return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleHasAppRecord(MessageParcel &data, MessageParcel &reply)
+{
+    std::unique_ptr<AAFwk::Want> want(data.ReadParcelable<AAFwk::Want>());
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "want is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    std::unique_ptr<AbilityInfo> abilityInfo(data.ReadParcelable<AbilityInfo>());
+    if (abilityInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "abilityInfo is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+
+    bool exist = false;
+    auto ret = HasAppRecord(*want, *abilityInfo, exist);
+    if (ret == ERR_OK) {
+        reply.WriteBool(exist);
+    }
+    return ret;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -907,19 +907,6 @@ HWTEST_F(AbilityManagerServiceThirdTest, CheckCollaboratorType_001, TestSize.Lev
 
 /*
  * Feature: AbilityManagerService
- * Function: CheckUserIdActive
- * SubFunction: NA
- * FunctionPoints: AbilityManagerService CheckUserIdActive
- */
-HWTEST_F(AbilityManagerServiceThirdTest, CheckUserIdActive_001, TestSize.Level1)
-{
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    EXPECT_NE(abilityMs_, nullptr);
-    abilityMs_->CheckUserIdActive(USER_ID_U100);
-}
-
-/*
- * Feature: AbilityManagerService
  * Function: RegisterSessionHandler
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService RegisterSessionHandler
@@ -1813,9 +1800,8 @@ HWTEST_F(AbilityManagerServiceThirdTest, IsDmsAlive_001, TestSize.Level1)
 HWTEST_F(AbilityManagerServiceThirdTest, AppUpgradeCompleted_001, TestSize.Level1)
 {
     auto abilityMs = std::make_shared<AbilityManagerService>();
-    std::string bundleName = "test";
     int32_t uid = 0;
-    abilityMs->AppUpgradeCompleted(bundleName, uid);
+    abilityMs->AppUpgradeCompleted(uid);
     EXPECT_TRUE(abilityMs != nullptr);
 }
 
@@ -1828,9 +1814,8 @@ HWTEST_F(AbilityManagerServiceThirdTest, AppUpgradeCompleted_002, TestSize.Level
 {
     AAFwk::IsMockSaCall::IsMockSaCallWithPermission();
     auto abilityMs = std::make_shared<AbilityManagerService>();
-    std::string bundleName = "test";
     int32_t uid = 1;
-    abilityMs->AppUpgradeCompleted(bundleName, uid);
+    abilityMs->AppUpgradeCompleted(uid);
     EXPECT_TRUE(abilityMs != nullptr);
 }
 

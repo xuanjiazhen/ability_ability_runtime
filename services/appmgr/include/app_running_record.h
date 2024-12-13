@@ -697,7 +697,7 @@ public:
     void SetUserTestInfo(const std::shared_ptr<UserTestRecord> &record);
     std::shared_ptr<UserTestRecord> GetUserTestInfo();
 
-    void SetProcessAndExtensionType(const std::shared_ptr<AbilityInfo> &abilityInfo);
+    void SetProcessAndExtensionType(const std::shared_ptr<AbilityInfo> &abilityInfo, uint32_t extensionProcessMode = 0);
     void SetSpecifiedAbilityFlagAndWant(int requestId, const AAFwk::Want &want, const std::string &moduleName);
     void SetScheduleNewProcessRequestState(int32_t requestId, const AAFwk::Want &want, const std::string &moduleName);
     /**
@@ -861,9 +861,9 @@ public:
      *
      * @return Is the status change completed.
      */
-    int32_t ChangeAppGcState(const int32_t state);
+    int32_t ChangeAppGcState(int32_t state);
 
-    void SetAttachDebug(const bool &isAttachDebug);
+    void SetAttachDebug(bool isAttachDebug);
     bool isAttachDebug() const;
 
     void SetApplicationPendingState(ApplicationPendingState pendingState);
@@ -874,9 +874,9 @@ public:
 
     void GetSplitModeAndFloatingMode(bool &isSplitScreenMode, bool &isFloatingWindowMode);
 
-    void AddChildProcessRecord(pid_t pid, const std::shared_ptr<ChildProcessRecord> record);
-    void RemoveChildProcessRecord(const std::shared_ptr<ChildProcessRecord> record);
-    std::shared_ptr<ChildProcessRecord> GetChildProcessRecordByPid(const pid_t pid);
+    void AddChildProcessRecord(pid_t pid, std::shared_ptr<ChildProcessRecord> record);
+    void RemoveChildProcessRecord(std::shared_ptr<ChildProcessRecord> record);
+    std::shared_ptr<ChildProcessRecord> GetChildProcessRecordByPid(pid_t pid);
     std::map<pid_t, std::shared_ptr<ChildProcessRecord>> GetChildProcessRecordMap();
     int32_t GetChildProcessCount();
 
@@ -1044,7 +1044,7 @@ public:
     void SetIsUnSetPermission(bool isUnSetPermission);
 
     bool IsUnSetPermission();
-    
+
     void UnSetPolicy();
 private:
     /**
@@ -1081,6 +1081,7 @@ private:
     void RemoveEvent(uint32_t msg);
 
     void RemoveModuleRecord(const std::shared_ptr<ModuleRunningRecord> &record, bool isExtensionDebug = false);
+    uint32_t GetAddStageTimeout() const;
 
 private:
     class RemoteObjHash {

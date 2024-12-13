@@ -835,6 +835,7 @@ int AppMgrProxy::StartRenderProcess(const std::string &renderParam,
 
 void AppMgrProxy::AttachRenderProcess(const sptr<IRemoteObject> &renderScheduler)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!renderScheduler) {
         TAG_LOGE(AAFwkTag::APPMGR, "renderScheduler is null");
         return;
@@ -1610,6 +1611,26 @@ int32_t AppMgrProxy::IsAppRunning(const std::string &bundleName, int32_t appClon
     return reply.ReadInt32();
 }
 
+int32_t AppMgrProxy::IsAppRunningByBundleNameAndUserId(const std::string &bundleName, int32_t userId, bool &isRunning)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return ERR_INVALID_DATA;
+    }
+    PARCEL_UTIL_WRITE_RET_INT(data, String, bundleName);
+    PARCEL_UTIL_WRITE_RET_INT(data, Int32, userId);
+
+    MessageParcel reply;
+    MessageOption option;
+
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::IS_APP_RUNNING_BY_BUNDLE_NAME_AND_USER_ID, data, reply, option);
+    isRunning = reply.ReadBool();
+    return reply.ReadInt32();
+}
+
 int32_t AppMgrProxy::StartChildProcess(pid_t &childPid, const ChildProcessRequest &request)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
@@ -1697,7 +1718,7 @@ bool AppMgrProxy::IsFinalAppProcess()
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
-        return ERR_INVALID_DATA;
+        return false;
     }
 
     MessageParcel reply;
@@ -2125,6 +2146,23 @@ void AppMgrProxy::UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::strin
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
     PARCEL_UTIL_SENDREQ_NORET(AppMgrInterfaceCode::UPDATE_INSTANCE_KEY_BY_SPECIFIED_ID, data, reply, option);
+}
+
+int32_t AppMgrProxy::HasAppRecord(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return ERR_FLATTEN_OBJECT;
+    }
+    PARCEL_UTIL_WRITE_RET_INT(data, Parcelable, &want);
+    PARCEL_UTIL_WRITE_RET_INT(data, Parcelable, &abilityInfo);
+
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::UPDATE_INSTANCE_KEY_BY_SPECIFIED_ID, data, reply, option);
+    result = reply.ReadBool();
+    return ERR_OK;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

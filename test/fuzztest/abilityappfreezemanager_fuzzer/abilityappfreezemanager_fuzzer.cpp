@@ -70,7 +70,9 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     freeze->ResetAppfreezeState(pid, bundleName);
     freeze->IsValidFreezeFilter(pid, bundleName);
     std::string stack(data, size);
-    freeze->GetBinderPeerPids(stack, pid);
+    std::set<int> asyncPids;
+    AppfreezeManager::TerminalBinder terminalBinder = {0, 0, false};
+    freeze->GetBinderPeerPids(stack, pid, asyncPids, terminalBinder);
     std::string ret(data, size);
     freeze->FindStackByPid(ret, pid);
     std::string faultType(data, size);
@@ -102,7 +104,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         return 0;
     }
 
-    char* ch = (char*)malloc(size + 1);
+    char* ch = static_cast<char*>(malloc(size + 1));
     if (ch == nullptr) {
         std::cout << "malloc failed." << std::endl;
         return 0;

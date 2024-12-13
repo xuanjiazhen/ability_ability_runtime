@@ -75,8 +75,10 @@ public:
         bool withFocus = true) {return WMError::WM_OK;}
     virtual WMError Hide(uint32_t reason = 0, bool withAnimation = false,
         bool isFromInnerkits = true) {return WMError::WM_OK;}
-    virtual WMError MoveTo(int32_t x, int32_t y, bool isMoveToGlobal = false) {return WMError::WM_OK;}
-    virtual WMError Resize(uint32_t width, uint32_t height) {return WMError::WM_OK;}
+    virtual WMError MoveTo(int32_t x, int32_t y, bool isMoveToGlobal = false,
+        MoveConfiguration moveConfiguration = {}) {return WMError::WM_OK;}
+    virtual WMError Resize(uint32_t width, uint32_t height,
+        const RectAnimationConfig& rectAnimationConfig) {return WMError::WM_OK;}
     virtual WMError SetKeepScreenOn(bool keepScreenOn) {return WMError::WM_OK;}
     virtual bool IsKeepScreenOn() const {return false;}
     virtual WMError SetTurnScreenOn(bool turnScreenOn) {return WMError::WM_OK;}
@@ -117,9 +119,9 @@ public:
     virtual WMError UnregisterWindowChangeListener(
         const sptr<IWindowChangeListener>& listener) {return WMError::WM_ERROR_NULLPTR;}
     virtual WMError RegisterAvoidAreaChangeListener(
-        sptr<IAvoidAreaChangedListener>& listener) {return WMError::WM_ERROR_NULLPTR;}
+        const sptr<IAvoidAreaChangedListener>& listener) {return WMError::WM_ERROR_NULLPTR;}
     virtual WMError UnregisterAvoidAreaChangeListener(
-        sptr<IAvoidAreaChangedListener>& listener) {return WMError::WM_ERROR_NULLPTR;}
+        const sptr<IAvoidAreaChangedListener>& listener) {return WMError::WM_ERROR_NULLPTR;}
     virtual WMError RegisterDragListener(
         const sptr<IWindowDragListener>& listener) {return WMError::WM_ERROR_NULLPTR;}
     virtual WMError UnregisterDragListener(

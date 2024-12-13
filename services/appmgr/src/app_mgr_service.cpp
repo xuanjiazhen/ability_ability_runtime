@@ -1011,7 +1011,8 @@ int32_t AppMgrService::StartRenderProcess(const std::string &renderParam, int32_
 
 void AppMgrService::AttachRenderProcess(const sptr<IRemoteObject> &scheduler)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "call");
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::APPMGR, "AttachRenderProcess");
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return;
@@ -1167,7 +1168,7 @@ bool AppMgrService::JudgeAppSelfCalled(int32_t recordId)
 bool AppMgrService::IsSharedBundleRunning(const std::string &bundleName, uint32_t versionCode)
 {
     if (!IsReady()) {
-        return ERR_INVALID_OPERATION;
+        return false;
     }
     return appMgrServiceInner_->IsSharedBundleRunning(bundleName, versionCode);
 }
@@ -1240,7 +1241,7 @@ bool AppMgrService::SetAppFreezeFilter(int32_t pid)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return ERR_INVALID_OPERATION;
+        return false;
     }
 
     auto ret = appMgrServiceInner_->SetAppFreezeFilter(pid);
@@ -1398,6 +1399,15 @@ int32_t AppMgrService::IsAppRunning(const std::string &bundleName, int32_t appCl
         return ERR_INVALID_OPERATION;
     }
     return appMgrServiceInner_->IsAppRunning(bundleName, appCloneIndex, isRunning);
+}
+
+int32_t AppMgrService::IsAppRunningByBundleNameAndUserId(const std::string &bundleName, int32_t userId,
+    bool &isRunning)
+{
+    if (!IsReady()) {
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->IsAppRunningByBundleNameAndUserId(bundleName, userId, isRunning);
 }
 
 int32_t AppMgrService::StartChildProcess(pid_t &childPid, const ChildProcessRequest &request)
@@ -1725,6 +1735,25 @@ void AppMgrService::UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::str
         return;
     }
     appMgrServiceInner_->UpdateInstanceKeyBySpecifiedId(specifiedId, instanceKey);
+}
+
+int32_t AppMgrService::HasAppRecord(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result)
+{
+    if (!IsReady()) {
+        return ERR_INVALID_OPERATION;
+    }
+    pid_t callingPid = IPCSkeleton::GetCallingPid();
+    pid_t pid = getprocpid();
+    if (callingPid != pid) {
+        TAG_LOGE(AAFwkTag::APPMGR, "other process");
+        return ERR_INVALID_OPERATION;
+    }
+    if (!appMgrServiceInner_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    result = appMgrServiceInner_->HasAppRecord(want, abilityInfo);
+    return ERR_OK;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
