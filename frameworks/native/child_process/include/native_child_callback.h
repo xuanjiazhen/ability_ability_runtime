@@ -18,6 +18,7 @@
 
 #include "native_child_notify_stub.h"
 #include "native_child_process.h"
+#include "child_callback_manager.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
