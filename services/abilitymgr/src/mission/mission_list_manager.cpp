@@ -68,26 +68,6 @@ constexpr int32_t TRACE_ATOMIC_SERVICE_ID = 201;
 const std::string TRACE_ATOMIC_SERVICE = "StartAtomicService";
 constexpr int GET_TARGET_MISSION_OVER = 200;
 constexpr int32_t MAX_FIND_UIEXTENSION_CALLER_TIMES = 10;
-std::string GetCurrentTime()
-{
-    struct timespec tn;
-    clock_gettime(CLOCK_REALTIME, &tn);
-    uint64_t uTime = static_cast<uint64_t>(tn.tv_sec) * NANO_SECOND_PER_SEC +
-        static_cast<uint64_t>(tn.tv_nsec);
-    return std::to_string(uTime);
-}
-
-FreezeUtil::TimeoutState MsgId2State(uint32_t msgId)
-{
-    if (msgId == AbilityManagerService::LOAD_TIMEOUT_MSG) {
-        return FreezeUtil::TimeoutState::LOAD;
-    } else if (msgId == AbilityManagerService::FOREGROUND_TIMEOUT_MSG) {
-        return FreezeUtil::TimeoutState::FOREGROUND;
-    } else if (msgId == AbilityManagerService::BACKGROUND_TIMEOUT_MSG) {
-        return FreezeUtil::TimeoutState::BACKGROUND;
-    }
-    return FreezeUtil::TimeoutState::UNKNOWN;
-}
 
 auto g_deleteLifecycleEventTask = [](const sptr<Token> &token) {
     CHECK_POINTER_LOG(token, "token is nullptr.");
@@ -189,7 +169,7 @@ int MissionListManager::StartAbility(AbilityRequest &abilityRequest)
     abilityRequest.callerAccessTokenId = IPCSkeleton::GetCallingTokenID();
     int ret = StartAbility(currentTopAbility, callerAbility, abilityRequest);
     if (ret == 0 && !abilityRequest.abilityInfo.visible) {
-        SendKeyEvent(abilityRequest);
+        MissionUtil::SendKeyEvent(abilityRequest);
     }
     NotifyStartAbilityResult(abilityRequest, ret);
     if (callerAbility != nullptr) {
@@ -352,7 +332,7 @@ void MissionListManager::StartWaitingAbility()
         waitingAbilityQueue_.pop();
         auto callerAbility = GetAbilityRecordByTokenInner(abilityRequest.callerToken);
         if (StartAbility(topAbility, callerAbility, abilityRequest) == 0 && !abilityRequest.abilityInfo.visible) {
-            SendKeyEvent(abilityRequest);
+            MissionUtil::SendKeyEvent(abilityRequest);
         }
         return;
     }
@@ -482,34 +462,10 @@ int MissionListManager::StartAbilityLocked(const std::shared_ptr<AbilityRecord> 
     return ERR_OK;
 }
 
-static int32_t CallType2StartMethod(int32_t callType)
-{
-    switch (callType) {
-        case AbilityCallType::INVALID_TYPE:
-            return static_cast<int32_t>(StartMethod::START_NORMAL);
-        case AbilityCallType::CALL_REQUEST_TYPE:
-            return static_cast<int32_t>(StartMethod::START_CALL);
-        default:
-            break;
-    }
-    return -1;
-}
-
-static bool CallTypeFilter(int32_t callType)
-{
-    switch (callType) {
-        case AbilityCallType::CALL_REQUEST_TYPE:
-            return true;
-        default:
-            break;
-    }
-    return false;
-}
-
 bool MissionListManager::HandleReusedMissionAndAbility(const AbilityRequest &abilityRequest,
     std::shared_ptr<Mission> &targetMission, std::shared_ptr<AbilityRecord> &targetRecord)
 {
-    auto startMethod = CallType2StartMethod(abilityRequest.callType);
+    auto startMethod = MissionUtil::CallType2StartMethod(abilityRequest.callType);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "HandleReusedMissionAndAbility called startMethod is %{public}d.", startMethod);
     auto reUsedMission = GetReusedMission(abilityRequest);
     if (!reUsedMission) {
@@ -531,7 +487,7 @@ bool MissionListManager::HandleReusedMissionAndAbility(const AbilityRequest &abi
      *      2. start by call, and call to foreground again
      */
     if (!(targetMission->IsStartByCall()
-        && (!CallTypeFilter(startMethod) ||
+        && (!MissionUtil::CallTypeFilter(startMethod) ||
             abilityRequest.want.GetBoolParam(Want::PARAM_RESV_CALL_TO_FOREGROUND, false)))) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "mission exists. No update required");
         return true;
@@ -542,23 +498,15 @@ bool MissionListManager::HandleReusedMissionAndAbility(const AbilityRequest &abi
     InnerMissionInfo info;
     if (DelayedSingleton<MissionInfoMgr>::GetInstance()->GetInnerMissionInfoById(
         targetMission->GetMissionId(), info) == 0) {
-        info.missionInfo.time = GetCurrentTime();
+        info.missionInfo.time = TimeUtil::GetCurrentTime();
         info.missionInfo.runningState = 0;
-        info.startMethod = CallType2StartMethod(abilityRequest.callType);
+        info.startMethod = MissionUtil::CallType2StartMethod(abilityRequest.callType);
         DelayedSingleton<MissionInfoMgr>::GetInstance()->UpdateMissionInfo(info);
         targetMission->UpdateMissionId(missionId, info.startMethod);
         targetMission->UpdateMissionTime(info.missionInfo.time);
     }
 
     return true;
-}
-
-std::string MissionListManager::GetMissionName(const AbilityRequest &abilityRequest) const
-{
-    int32_t appIndex = 0;
-    (void)AbilityRuntime::StartupUtil::GetAppIndex(abilityRequest.want, appIndex);
-    return AbilityUtil::ConvertBundleNameSingleton(abilityRequest.abilityInfo.bundleName,
-        abilityRequest.abilityInfo.name, abilityRequest.abilityInfo.moduleName, appIndex);
 }
 
 bool MissionListManager::CreateOrReusedMissionInfo(const AbilityRequest &abilityRequest, InnerMissionInfo &info) const
@@ -572,7 +520,7 @@ bool MissionListManager::CreateOrReusedMissionInfo(const AbilityRequest &ability
         needFind = true;
     }
 
-    std::string missionName = GetMissionName(abilityRequest);
+    std::string missionName = MissionUtil::GetMissionName(abilityRequest);
     auto mgr = DelayedSingleton<MissionInfoMgr>::GetInstance();
     if (needFind && mgr &&
         mgr->FindReusedMissionInfo(missionName, abilityRequest.specifiedFlag, isFindRecentStandard, info)
@@ -683,12 +631,12 @@ void MissionListManager::BuildInnerMissionInfo(InnerMissionInfo &info, const std
 {
     info.missionName = missionName;
     info.launchMode = static_cast<int32_t>(abilityRequest.abilityInfo.launchMode);
-    info.startMethod = CallType2StartMethod(abilityRequest.callType);
+    info.startMethod = MissionUtil::CallType2StartMethod(abilityRequest.callType);
     info.bundleName = abilityRequest.abilityInfo.bundleName;
     info.uid = abilityRequest.uid;
     info.missionInfo.runningState = 0;
     info.missionInfo.continuable = abilityRequest.abilityInfo.continuable;
-    info.missionInfo.time = GetCurrentTime();
+    info.missionInfo.time = TimeUtil::GetCurrentTime();
     info.missionInfo.iconPath = abilityRequest.appInfo.iconPath;
     info.missionInfo.want = abilityRequest.want;
     info.missionInfo.unclearable = abilityRequest.abilityInfo.unclearableMission;
@@ -789,7 +737,7 @@ std::shared_ptr<Mission> MissionListManager::GetReusedMission(const AbilityReque
     }
 
     std::shared_ptr<Mission> reUsedMission = nullptr;
-    std::string missionName = GetMissionName(abilityRequest);
+    std::string missionName = MissionUtil::GetMissionName(abilityRequest);
 
     // find launcher first.
     if (abilityRequest.abilityInfo.applicationInfo.isLauncherApp) {
@@ -821,7 +769,7 @@ std::shared_ptr<Mission> MissionListManager::GetReusedSpecifiedMission(const Abi
 
     // specified mission name format is same as singleton.
     std::shared_ptr<Mission> reUsedMission = nullptr;
-    std::string missionName = GetMissionName(abilityRequest);
+    std::string missionName = MissionUtil::GetMissionName(abilityRequest);
     std::string flag = abilityRequest.specifiedFlag;
 
     // find launcher first.
@@ -856,7 +804,7 @@ std::shared_ptr<Mission> MissionListManager::GetReusedStandardMission(const Abil
     }
 
     // all mission name format is same.
-    std::string missionName = GetMissionName(abilityRequest);
+    std::string missionName = MissionUtil::GetMissionName(abilityRequest);
     std::shared_ptr<Mission> reUsedMission = nullptr;
 
     // find launcher first, if find it in launcher list, no need to find in other list.
@@ -1318,7 +1266,7 @@ void MissionListManager::CompleteForegroundSuccess(const std::shared_ptr<Ability
 
     auto mission = GetMissionById(abilityRecord->GetMissionId());
     if (mission) {
-        auto currentTime = GetCurrentTime();
+        auto currentTime = TimeUtil::GetCurrentTime();
         mission->UpdateMissionTime(currentTime);
         InnerMissionInfo info;
         if (DelayedSingleton<MissionInfoMgr>::GetInstance()->GetInnerMissionInfoById(
@@ -2225,8 +2173,8 @@ void MissionListManager::PrintTimeOutLog(const std::shared_ptr<AbilityRecord> &a
     }
     int typeId = AppExecFwk::AppfreezeManager::TypeAttribute::NORMAL_TIMEOUT;
     std::string msgContent = "ability:" + ability->GetAbilityInfo().name + " ";
-    FreezeUtil::TimeoutState state = MsgId2State(msgId);
-    if (!GetContentAndTypeId(msgId, msgContent, typeId)) {
+    FreezeUtil::TimeoutState state = MissionUtil::MsgId2State(msgId);
+    if (!MissionUtil::GetContentAndTypeId(msgId, msgContent, typeId)) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "msgId invalid");
         return;
     }
@@ -2261,35 +2209,6 @@ void MissionListManager::PrintTimeOutLog(const std::shared_ptr<AbilityRecord> &a
         info.msg = msgContent;
     }
     AppExecFwk::AppfreezeManager::GetInstance()->LifecycleTimeoutHandle(info, flow);
-}
-
-bool MissionListManager::GetContentAndTypeId(uint32_t msgId, std::string &msgContent, int &typeId) const
-{
-    switch (msgId) {
-        case AbilityManagerService::LOAD_TIMEOUT_MSG:
-            msgContent += "load timeout";
-            typeId = AppExecFwk::AppfreezeManager::TypeAttribute::CRITICAL_TIMEOUT;
-            break;
-        case AbilityManagerService::ACTIVE_TIMEOUT_MSG:
-            msgContent += "active timeout";
-            break;
-        case AbilityManagerService::INACTIVE_TIMEOUT_MSG:
-            msgContent += "inactive timeout";
-            break;
-        case AbilityManagerService::FOREGROUND_TIMEOUT_MSG:
-            msgContent += "foreground timeout";
-            typeId = AppExecFwk::AppfreezeManager::TypeAttribute::CRITICAL_TIMEOUT;
-            break;
-        case AbilityManagerService::BACKGROUND_TIMEOUT_MSG:
-            msgContent += "background timeout";
-            break;
-        case AbilityManagerService::TERMINATE_TIMEOUT_MSG:
-            msgContent += "terminate timeout";
-            break;
-        default:
-            return false;
-    }
-    return true;
 }
 
 void MissionListManager::UpdateMissionSnapshot(const std::shared_ptr<AbilityRecord>& abilityRecord) const
@@ -3648,7 +3567,7 @@ void MissionListManager::OnStartSpecifiedAbilityTimeoutResponse(const AAFwk::Wan
     auto currentTopAbility = GetCurrentTopAbilityLocked();
     auto callerAbility = GetAbilityRecordByTokenInner(abilityRequest.callerToken);
     if (StartAbility(currentTopAbility, callerAbility, abilityRequest) == 0 && !abilityRequest.abilityInfo.visible) {
-        SendKeyEvent(abilityRequest);
+        MissionUtil::SendKeyEvent(abilityRequest);
     }
 }
 
@@ -4254,16 +4173,6 @@ void MissionListManager::CallRequestDone(const std::shared_ptr<AbilityRecord> &a
         return;
     }
     abilityRecord->CallRequestDone(callStub);
-}
-
-void MissionListManager::SendKeyEvent(const AbilityRequest &abilityRequest)
-{
-    auto abilityInfo = abilityRequest.abilityInfo;
-    EventInfo eventInfo;
-    eventInfo.abilityName = abilityInfo.name;
-    eventInfo.bundleName = abilityInfo.bundleName;
-    eventInfo.moduleName = abilityInfo.moduleName;
-    EventReport::SendKeyEvent(EventName::START_PRIVATE_ABILITY, HiSysEventType::BEHAVIOR, eventInfo);
 }
 
 void MissionListManager::SignRestartAppFlag(int32_t uid, const std::string &instanceKey)
