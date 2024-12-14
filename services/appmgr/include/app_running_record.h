@@ -716,6 +716,9 @@ public:
      * Called when one specified request is finished to set the request id to -1
      */
     void ResetSpecifiedRequestId();
+    
+    void SchedulePrepareTerminate(const std::string moduleName, int &prepareTermination, bool &isExist);
+
     /**
      * call the scheduler to go acceptWant procedure
      */

@@ -45,6 +45,18 @@ static napi_status SetEnumItem(napi_env env, napi_value object, const char* name
     return napi_ok;
 }
 
+static napi_value InitAbilityStagePrepareTerminationObject(napi_env env) {
+    TAG_LOGD(AAFwkTag::JSNAPI, "InitAbilityStagePrepareTerminationObject Begin");
+    napi_value object;
+    NAPI_CALL(env, napi_create_object(env, &object));
+
+    NAPI_CALL(env, SetEnumItem(env, object, "TERMINATE_IMMEDIATELY",
+        AbilityStage::PrepareTermination::TERMINATE_IMMEDIATELY));
+    NAPI_CALL(env, SetEnumItem(env, object, "CANCEL", AbilityStage::PrepareTermination::CANCEL));
+    TAG_LOGD(AAFwkTag::JSNAPI, "InitAbilityStagePrepareTerminationObject End");
+    return object;
+}
+
 static napi_value InitLaunchReasonObject(napi_env env)
 {
     TAG_LOGD(AAFwkTag::JSNAPI, "called");
@@ -177,6 +189,12 @@ static napi_value AbilityConstantInit(napi_env env, napi_value exports)
         return nullptr;
     }
 
+    napi_value prepareTermination = InitAbilityStagePrepareTerminationObject(env);
+    if (prepareTermination == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null prepareTermination");
+        return nullptr;
+    }
+
     napi_value lastExitReason = InitLastExitReasonObject(env);
     if (lastExitReason == nullptr) {
         TAG_LOGE(AAFwkTag::JSNAPI, "null lastExitReason");
@@ -221,6 +239,7 @@ static napi_value AbilityConstantInit(napi_env env, napi_value exports)
 
     napi_property_descriptor exportObjs[] = {
         DECLARE_NAPI_PROPERTY("LaunchReason", launchReason),
+        DECLARE_NAPI_PROPERTY("PrepareTermination", prepareTermination),
         DECLARE_NAPI_PROPERTY("LastExitReason", lastExitReason),
         DECLARE_NAPI_PROPERTY("OnContinueResult", onContinueResult),
         DECLARE_NAPI_PROPERTY("ContinueState", continueState),

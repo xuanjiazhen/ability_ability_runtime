@@ -210,6 +210,42 @@ void JsAbilityStage::OnDestroy() const
     napi_call_function(env, obj, methodOnDestroy, 0, nullptr, nullptr);
 }
 
+bool JsAbilityStage::OnPrepareTerminate(int &prepareTermination) const
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    AbilityStage::OnPrepareTerminate(prepareTermination);
+
+    if (!jsAbilityStageObj_) {
+        TAG_LOGW(AAFwkTag::APPKIT, "Not found AbilityStage.js");
+        return false;
+    }
+
+    HandleScope handleScope(jsRuntime_);
+    auto env = jsRuntime_.GetNapiEnv();
+
+    napi_value obj = jsAbilityStageObj_->GetNapiValue();
+    if (!CheckTypeForNapiValue(env, obj, napi_object)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Fail to get AbilityStage object");
+        return false;
+    }
+
+    napi_value methodOnPrepareTerminate = nullptr;
+    napi_get_named_property(env, obj, "onPrepareTerminate", &methodOnPrepareTerminate);
+    if (methodOnPrepareTerminate == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null methodOnPrepareTerminate");
+        return false;
+    }
+
+    napi_value result = nullptr;
+    napi_call_function(env, obj, methodOnPrepareTerminate, 0, nullptr, &result);
+    bool flag = AAFwkTag::UnwrapInt32FromJS2(env, result, prepareTermination);
+    if (!flag) {
+        TAG_LOGE(AAFwkTag::APPKIT, "fail to unwrap prepareTermination result");
+        return false;
+    }
+    return true;
+}
+
 std::string JsAbilityStage::OnAcceptWant(const AAFwk::Want &want)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
@@ -242,7 +278,6 @@ std::string JsAbilityStage::OnAcceptWant(const AAFwk::Want &want)
     napi_call_function(env, obj, methodOnAcceptWant, 1, argv, &flagNative);
     return AppExecFwk::UnwrapStringFromJS(env, flagNative);
 }
-
 
 std::string JsAbilityStage::OnNewProcessRequest(const AAFwk::Want &want)
 {

@@ -230,6 +230,17 @@ void AppLifeCycleDeal::ScheduleAcceptWant(const AAFwk::Want &want, const std::st
     appThread->ScheduleAcceptWant(want, moduleName);
 }
 
+void AppLifeCycleDeal::ScheduleTerminate(const std::string &moduleName, int &prepareTermination, bool &isExist)
+{
+    auto appThread = GetApplicationClient();
+    if (!appThread) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null appThread");
+        return;
+    }
+
+    appThread->SchedulePrepareTerminate(moduleName, prepareTermination, isExist);
+}
+
 void AppLifeCycleDeal::ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName)
 {
     auto appThread = GetApplicationClient();

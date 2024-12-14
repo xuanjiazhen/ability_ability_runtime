@@ -268,6 +268,8 @@ public:
      */
     virtual void RegisterStartSpecifiedAbilityResponse(const sptr<IStartSpecifiedAbilityResponse> &response) override;
 
+    virtual void PrepareTerminateApp(const pid_t pid, int &prepareTermination, bool &isExist) override;
+
     /**
      * Start specified process.
      *

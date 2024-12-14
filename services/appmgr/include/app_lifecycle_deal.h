@@ -191,6 +191,8 @@ public:
      * @param want the moduleName of which being scheduled.
      */
     void ScheduleAcceptWant(const AAFwk::Want &want, const std::string &moduleName);
+    
+    void ScheduleTerminate(const std::string &moduleName, int &prepareTermination, bool &isExist);
 
     void ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName);
 

@@ -682,6 +682,18 @@ void OHOSApplication::ScheduleAcceptWant(const AAFwk::Want &want, const std::str
     }
 }
 
+void OHOSApplication::SchedulePrepareTerminate(const std::string moduleName, int &prepareTermination, bool &isExist)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    auto iter = abilityStages_.find(moduleName);
+    if (iter != abilityStages_.end()) {
+        auto abilityStage = iter->second;
+        if (abilityStage) {
+            isExist = abilityStage->OnPrepareTerminate(prepareTermination);
+        }
+    }
+}
+
 void OHOSApplication::ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName,
     std::string &flag)
 {
