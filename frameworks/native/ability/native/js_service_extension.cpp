@@ -562,6 +562,7 @@ bool JsServiceExtension::OnInsightIntentExecuteDone(uint64_t intentId,
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null token");
         return false;
     }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "----------wzb--------JsServiceExtension::OnInsightIntentExecuteDone---> AbilityManagerClient::GetInstance()->ExecuteInsightIntentDone");
     auto ret = AAFwk::AbilityManagerClient::GetInstance()->ExecuteInsightIntentDone(token, intentId, result);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "Notify execute done failed");

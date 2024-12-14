@@ -19,6 +19,7 @@
 #include "ability_info.h"
 #include "ability_manager_client.h"
 #include "ability_start_setting.h"
+#include "array_wrapper.h"
 #include "configuration_utils.h"
 #include "connection_manager.h"
 #include "context.h"
@@ -42,6 +43,7 @@
 #include "napi_common_configuration.h"
 #include "napi_common_want.h"
 #include "napi_remote_object.h"
+#include "string_wrapper.h"
 #include "ui_extension_window_command.h"
 #include "want_params_wrapper.h"
 
@@ -444,6 +446,8 @@ void JsUIExtension::OnCommandWindow(const AAFwk::Want &want, const sptr<AAFwk::S
         TAG_LOGE(AAFwkTag::UI_EXT, "null sessionInfo");
         return;
     }
+    TAG_LOGE(AAFwkTag::UI_EXT, "---wzb---JsUIExtension::OnCommandWindow---- begin. persistentId: %{private}d, winCmd: %{public}d",
+        sessionInfo->persistentId, winCmd);
     TAG_LOGD(AAFwkTag::UI_EXT, "begin. persistentId: %{private}d, winCmd: %{public}d",
         sessionInfo->persistentId, winCmd);
     Extension::OnCommandWindow(want, sessionInfo, winCmd);
@@ -473,6 +477,7 @@ bool JsUIExtension::ForegroundWindowWithInsightIntent(const AAFwk::Want &want,
     const sptr<AAFwk::SessionInfo> &sessionInfo, bool needForeground)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGE(AAFwkTag::UI_EXT, "----------------wzb---------------JsUIExtension::ForegroundWindowWithInsightIntent--called");
     TAG_LOGD(AAFwkTag::UI_EXT, "called");
     if (!HandleSessionCreate(want, sessionInfo)) {
         TAG_LOGE(AAFwkTag::UI_EXT, "HandleSessionCreate failed");
@@ -487,12 +492,22 @@ bool JsUIExtension::ForegroundWindowWithInsightIntent(const AAFwk::Want &want,
     }
 
     auto uiExtension = std::static_pointer_cast<JsUIExtension>(shared_from_this());
-    executorCallback->Push([uiExtension, sessionInfo, needForeground](AppExecFwk::InsightIntentExecuteResult result) {
+    executorCallback->Push([uiExtension, sessionInfo, needForeground, want](AppExecFwk::InsightIntentExecuteResult result) {
         TAG_LOGI(AAFwkTag::UI_EXT, "Execute post insightintent");
         if (uiExtension == nullptr) {
             TAG_LOGE(AAFwkTag::UI_EXT, "null uiExtension");
             return;
         }
+        // 授权
+        for(auto uri: result.uris)
+        {
+            TAG_LOGE(AAFwkTag::UI_EXT, "---------------wzb----------JsUIExtension::ForegroundWindowWithInsightIntent----result.uris:%{public}s---", uri.c_str());
+        }
+        TAG_LOGE(AAFwkTag::UI_EXT, "---------------wzb----------JsUIExtension::ForegroundWindowWithInsightIntent----result.flags:%{public}d---", result.flags);
+        InsightIntentExecuteParam executeParam;
+        InsightIntentExecuteParam::GenerateFromWant(want, executeParam);
+        uint64_t insightIntentId = executeParam.insightIntentId_;
+        uiExtension->ExecuteInsightIntentDone(insightIntentId, result);
 
         uiExtension->PostInsightIntentExecuted(sessionInfo, result, needForeground);
     });
@@ -526,10 +541,21 @@ bool JsUIExtension::ForegroundWindowWithInsightIntent(const AAFwk::Want &want,
     return true;
 }
 
+void JsUIExtension::ExecuteInsightIntentDone(uint64_t intentId, const InsightIntentExecuteResult &result)
+{
+    TAG_LOGE(AAFwkTag::UI_EXT, "intentId %{public}" PRIu64"", intentId);
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->ExecuteInsightIntentDone(token_, intentId, result);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "----------wzb--------JsUIExtension::ExecuteInsightIntentDone---> AbilityManagerClient::GetInstance()->ExecuteInsightIntentDone");
+        TAG_LOGE(AAFwkTag::UIABILITY, "notify execute done failed");
+    }
+}
+
 void JsUIExtension::PostInsightIntentExecuted(const sptr<AAFwk::SessionInfo> &sessionInfo,
     const AppExecFwk::InsightIntentExecuteResult &result, bool needForeground)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGE(AAFwkTag::UI_EXT, "-------wzb---------------JsUIExtension::PostInsightIntentExecuted insightintent executed");
     TAG_LOGD(AAFwkTag::UI_EXT, "Post insightintent executed");
     if (needForeground) {
         // If uiextensionability is started for the first time or need move background to foreground.
@@ -577,6 +603,7 @@ void JsUIExtension::OnCommandWindowDone(const sptr<AAFwk::SessionInfo> &sessionI
 void JsUIExtension::OnInsightIntentExecuteDone(const sptr<AAFwk::SessionInfo> &sessionInfo,
     const AppExecFwk::InsightIntentExecuteResult &result)
 {
+    TAG_LOGE(AAFwkTag::UI_EXT, "-------wzb------------- JsUIExtension::OnInsightIntentExecuteDone--------1");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (sessionInfo == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "Invalid sessionInfo");
@@ -597,6 +624,26 @@ void JsUIExtension::OnInsightIntentExecuteDone(const sptr<AAFwk::SessionInfo> &s
                 resultParams.SetParam("result", pWantParams);
             }
         }
+        // 授予权限
+        // auto callerabilityRecord = Token::GetAbilityRecordByToken(sessionInfo->callerToken);
+        // if (!callerabilityRecord) {
+        //     TAG_LOGE(AAFwkTag::UI_EXT, "callerabilityRecord is null");
+        // }
+        // std::string callerBundleName = callerabilityRecord->GetAbilityInfo().bundleName;
+        // TAG_LOGE(AAFwkTag::ABILITYMGR, "----------wzb--------AbilityManagerService::ExecuteInsightIntentDone---callerBundleName%{public}s", callerBundleName.c_str());
+
+        auto size = result.uris.size();
+        sptr<IArray> uriArray = new (std::nothrow) Array(size, g_IID_IString);
+        if (uriArray == nullptr) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "new uriArray failed");
+            return;
+        }
+        for (std::size_t i = 0; i < size; i++) {
+            uriArray->Set(i, String::Box(result.uris[i]));
+        }
+        resultParams.SetParam("uris", uriArray);
+        resultParams.SetParam("flags", Integer::Box(result.flags));
+
         sptr<AAFwk::IWantParams> pWantParams = WantParamWrapper::Box(resultParams);
         if (pWantParams != nullptr) {
             params.SetParam(INSIGHT_INTENT_EXECUTE_RESULT, pWantParams);
@@ -604,6 +651,7 @@ void JsUIExtension::OnInsightIntentExecuteDone(const sptr<AAFwk::SessionInfo> &s
 
         Rosen::WMError ret = res->second->TransferExtensionData(params);
         if (ret == Rosen::WMError::WM_OK) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "-----wzb-------------TransferExtensionData success");
             TAG_LOGD(AAFwkTag::UI_EXT, "TransferExtensionData success");
         } else {
             TAG_LOGE(AAFwkTag::UI_EXT, "TransferExtensionData failed, ret=%{public}d", ret);
@@ -612,7 +660,7 @@ void JsUIExtension::OnInsightIntentExecuteDone(const sptr<AAFwk::SessionInfo> &s
         res->second->Show();
         foregroundWindows_.emplace(componentId);
     }
-    TAG_LOGD(AAFwkTag::UI_EXT, "end");
+    TAG_LOGE(AAFwkTag::UI_EXT, "--------wzb------------- JsUIExtension::OnInsightIntentExecuteDone--------end");
 }
 
 void JsUIExtension::OnCommand(const AAFwk::Want &want, bool restart, int startId)
@@ -640,6 +688,7 @@ void JsUIExtension::OnForeground(const Want &want, sptr<AAFwk::SessionInfo> sess
     Extension::OnForeground(want, sessionInfo);
 
     if (InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "---wzb---JsUIExtension::OnForeground");
         bool finish = ForegroundWindowWithInsightIntent(want, sessionInfo, true);
         if (finish) {
             return;

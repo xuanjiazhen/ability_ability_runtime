@@ -39,6 +39,9 @@ struct InsightIntentExecuteRecord {
     sptr<IRemoteObject::DeathRecipient> deathRecipient = nullptr;
     InsightIntentExecuteState state = InsightIntentExecuteState::UNKNOWN;
     std::string bundleName;
+        std::string callerBundleName;
+    std::vector<std::string> paramUrisVec;
+    int32_t flags = 0;
 };
 
 class InsightIntentExecuteConnection : public AbilityConnectionStub {
@@ -72,9 +75,9 @@ class InsightIntentExecuteManager : public std::enable_shared_from_this<InsightI
 DECLARE_DELAYED_SINGLETON(InsightIntentExecuteManager)
 public:
     int32_t CheckAndUpdateParam(uint64_t key, const sptr<IRemoteObject> &callerToken,
-        const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param);
+        const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, const std::string &callerBundleName);
 
-    int32_t CheckAndUpdateWant(Want &want, AppExecFwk::ExecuteMode executeMode);
+    int32_t CheckAndUpdateWant(Want &want, AppExecFwk::ExecuteMode executeMode, const std::string &callerBundleName);
 
     int32_t RemoveExecuteIntent(uint64_t intentId);
 
@@ -85,7 +88,17 @@ public:
 
     int32_t GetBundleName(uint64_t intentId, std::string &bundleName) const;
 
+    int32_t GetCallerBundleName(uint64_t intentId, std::string &callerBundleName) const;
+
+    int32_t GetCallerToken(uint64_t intentId, sptr<IRemoteObject> &callerToken) const;
+
     static int32_t GenerateWant(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, Want &want);
+
+    static int32_t AddWantUirsAndFlagsFromParam(
+        const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, Want &want);
+
+    static int32_t GetParamUrisAndFlagsFromUiExtensionWant(const Want &want,
+        std::vector<std::string> & paramUrisVec, int32_t &flags);
 
     std::map<int32_t, int64_t> GetAllIntentExemptionInfo() const;
 
@@ -100,7 +113,8 @@ private:
     std::map<int32_t, int64_t> intentExemptionDeadlineTime_;
 
     int32_t AddRecord(uint64_t key, const sptr<IRemoteObject> &callerToken, const std::string &bundleName,
-        uint64_t &intentId);
+        uint64_t &intentId, const std::string &callerBundleName,
+        const std::vector<std::string> &paramUrisVec, int32_t flags);
 
     static int32_t IsValidCall(const Want &want);
 

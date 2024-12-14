@@ -30,6 +30,7 @@ namespace {
 constexpr size_t INSIGHT_INTENT_EXECUTE_RECORDS_MAX_SIZE = 256;
 constexpr char EXECUTE_INSIGHT_INTENT_PERMISSION[] = "ohos.permission.EXECUTE_INSIGHT_INTENT";
 constexpr int32_t OPERATION_DURATION = 10000;
+constexpr const char* PARAMS_STREAM = "ability.params.stream";
 }
 using namespace AppExecFwk;
 
@@ -49,8 +50,10 @@ InsightIntentExecuteManager::InsightIntentExecuteManager() = default;
 InsightIntentExecuteManager::~InsightIntentExecuteManager() = default;
 
 int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const sptr<IRemoteObject> &callerToken,
-    const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param)
+    const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, const std::string &callerBundleName)
 {
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "----------wzb--------InsightIntentExecuteManager::CheckAndUpdateParam   call");
+
     int32_t result = CheckCallerPermission();
     if (result != ERR_OK) {
         return result;
@@ -69,7 +72,7 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
         return ERR_INVALID_VALUE;
     }
     uint64_t intentId = 0;
-    result = AddRecord(key, callerToken, param->bundleName_, intentId);
+    result = AddRecord(key, callerToken, param->bundleName_, intentId, callerBundleName, param->uris_, param->flags_);
     if (result != ERR_OK) {
         return result;
     }
@@ -78,15 +81,44 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
     return ERR_OK;
 }
 
-int32_t InsightIntentExecuteManager::CheckAndUpdateWant(Want &want, ExecuteMode executeMode)
+
+int32_t InsightIntentExecuteManager::CheckAndUpdateWant(Want &want, ExecuteMode executeMode, const std::string &callerBundleName)
 {
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "----------wzb-----InsightIntentExecuteManager::CheckAndUpdateWant----1");
+    auto uriVec = want.GetStringArrayParam("ability.params.stream");
+    for (auto uri : uriVec) {
+        if (!uri.empty())
+        {
+            continue;
+        }
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "----------wzb-----CheckAndUpdateWant, want.Geturi: %{public}s", uri.c_str());
+    }
+    auto uriVecTemp = want.GetStringArrayParam(INSIGHT_INTENT_EXECUTE_PARAM_URI);
+    uriVec.insert(uriVec.begin(), uriVecTemp.begin(), uriVecTemp.end());
+    for (auto uri : uriVecTemp) {
+        if (!uri.empty())
+        {
+            continue;
+        }
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "----------wzb-----CheckAndUpdateWant, want.uriVecTemp: %{public}s", uri.c_str());
+    }
+    want.SetParam("ability.params.stream", uriVec);
+
+
+    auto myflags = want.GetIntParam(INSIGHT_INTENT_EXECUTE_PARAM_FLAGS, 0);
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "----------wzb-----CheckAndUpdateWant, want.myflags111 : %{public}d", myflags);
+
+    myflags |= want.GetFlags();
+    want.SetFlags(myflags);
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "----------wzb-----CheckAndUpdateWant, want.myflags222 : %{public}d", myflags);
+
     int32_t result = IsValidCall(want);
     if (result != ERR_OK) {
         return result;
     }
     uint64_t intentId = 0;
     ElementName elementName = want.GetElement();
-    result = AddRecord(0, nullptr, want.GetBundle(), intentId);
+    result = AddRecord(0, nullptr, want.GetBundle(), intentId, callerBundleName, uriVecTemp, myflags);
     if (result != ERR_OK) {
         return result;
     }
@@ -106,8 +138,11 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateWant(Want &want, ExecuteMode 
 }
 
 int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteObject> &callerToken,
-    const std::string &bundleName, uint64_t &intentId)
+    const std::string &bundleName, uint64_t &intentId, const std::string &callerBundleName,
+    const std::vector<std::string> &paramUrisVec, int32_t flags)
 {
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "----------wzb--------InsightIntentExecuteManager::AddRecord   call");
+
     std::lock_guard<ffrt::mutex> lock(mutex_);
     intentId = ++intentIdCount_;
     auto record = std::make_shared<InsightIntentExecuteRecord>();
@@ -115,6 +150,9 @@ int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteO
     record->state = InsightIntentExecuteState::EXECUTING;
     record->callerToken = callerToken;
     record->bundleName = bundleName;
+    record->callerBundleName = callerBundleName;
+    record->paramUrisVec = paramUrisVec;
+    record->flags = flags;
     if (callerToken != nullptr) {
         record->deathRecipient = sptr<InsightIntentExecuteRecipient>::MakeSptr(intentId);
         callerToken->AddDeathRecipient(record->deathRecipient);
@@ -126,12 +164,13 @@ int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteO
         // save the latest INSIGHT_INTENT_EXECUTE_RECORDS_MAX_SIZE records
         records_.erase(intentId - INSIGHT_INTENT_EXECUTE_RECORDS_MAX_SIZE);
     }
-    TAG_LOGD(AAFwkTag::INTENT, "init done, records_ size: %{public}zu", records_.size());
+    TAG_LOGE(AAFwkTag::INTENT, "init done, records_ size: %{public}zu", records_.size());
     return ERR_OK;
 }
 
 int32_t InsightIntentExecuteManager::RemoveExecuteIntent(uint64_t intentId)
 {
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "----------wzb--------InsightIntentExecuteManager::ExecuteIntentDone   call");
     std::lock_guard<ffrt::mutex> lock(mutex_);
     records_.erase(intentId);
     return ERR_OK;
@@ -206,9 +245,94 @@ int32_t InsightIntentExecuteManager::GetBundleName(uint64_t intentId, std::strin
     return ERR_OK;
 }
 
+
+int32_t InsightIntentExecuteManager::GetCallerToken(uint64_t intentId, sptr<IRemoteObject> &callerToken) const
+{
+    std::lock_guard<ffrt::mutex> lock(mutex_);
+    auto result = records_.find(intentId);
+    if (result == records_.end()) {
+        TAG_LOGE(AAFwkTag::INTENT, "intent not found, id: %{public}" PRIu64, intentId);
+        return ERR_INVALID_VALUE;
+    }
+    if (result->second == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null intent record,id: %{public}" PRIu64, intentId);
+        return ERR_INVALID_VALUE;
+    }
+    callerToken = result->second->callerToken;
+    return ERR_OK;
+}
+
+int32_t InsightIntentExecuteManager::GetCallerBundleName(uint64_t intentId, std::string &callerBundleName) const
+{
+    std::lock_guard<ffrt::mutex> lock(mutex_);
+    auto result = records_.find(intentId);
+    if (result == records_.end()) {
+        TAG_LOGE(AAFwkTag::INTENT, "intent not found, id: %{public}" PRIu64, intentId);
+        return ERR_INVALID_VALUE;
+    }
+    if (result->second == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null intent record,id: %{public}" PRIu64, intentId);
+        return ERR_INVALID_VALUE;
+    }
+    callerBundleName = result->second->callerBundleName;
+    return ERR_OK;
+}
+
+int32_t InsightIntentExecuteManager::GetParamUrisAndFlagsFromUiExtensionWant(const Want &want,
+    std::vector<std::string> & paramUrisVec, int32_t &flags)
+{
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "----------wzb--------InsightIntentExecuteManager::GetParamUrisFromUiExtensionWant   call");
+    paramUrisVec = want.GetStringArrayParam(INSIGHT_INTENT_EXECUTE_PARAM_URI);
+    flags = want.GetIntParam(INSIGHT_INTENT_EXECUTE_PARAM_FLAGS, 0);
+    return ERR_OK;
+}
+
+int32_t InsightIntentExecuteManager::AddWantUirsAndFlagsFromParam(
+    const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, Want &want)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "----------wzb----InsightIntentExecuteManager::AddWantUirsAndFlagsFromParam- %{public}d", param->flags_);
+    if(param->uris_.size() > 0) {
+        auto uriVec = want.GetStringArrayParam(PARAMS_STREAM);
+        for(auto uri : param->uris_) {
+            if(!uri.empty())
+            {
+                uriVec.insert(uriVec.begin(), uri);
+            }
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "----------wzb-----AddWantUirsAndFlagsFromParam, param.uri: %{public}s", uri.c_str());
+        }
+        for(auto uri : uriVec) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "----------wzb-----AddWantUirsAndFlagsFromParam, uriVec.uri: %{public}s", uri.c_str());
+        }
+
+        // want.SetUri(uriVec[0]);
+        // want.SetFlags(param.flags_);
+
+        want.RemoveParam(PARAMS_STREAM);
+        want.SetParam(PARAMS_STREAM, uriVec);
+
+        auto uriVec2 = want.GetStringArrayParam(PARAMS_STREAM);
+        for(auto uri : uriVec2) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "----------wzb-----AddWantUirsAndFlagsFromParam, after SetParam uriVec.uri: %{public}s", uri.c_str());
+        }
+
+        auto flags = want.GetFlags();
+        flags |= param->flags_;
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "----------wzb----- flages %{public}d", flags);
+        want.SetFlags(flags);
+
+    } else {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "----------wzb----- no uri");
+    }
+
+    return ERR_OK;
+}
+
 int32_t InsightIntentExecuteManager::GenerateWant(
     const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, Want &want)
 {
+    TAG_LOGE(AAFwkTag::INTENT, "-----------------------wzb-----------------InsightIntentExecuteManager::GenerateWant1");
+
     if (param == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "null param");
         return ERR_INVALID_VALUE;
@@ -248,7 +372,9 @@ int32_t InsightIntentExecuteManager::GenerateWant(
         want.SetParam(Want::PARAM_RESV_DISPLAY_ID, param->displayId_);
         TAG_LOGD(AAFwkTag::INTENT, "Generate want with displayId: %{public}d", param->displayId_);
     }
-    return ERR_OK;
+
+    return AddWantUirsAndFlagsFromParam(param, want);
+    // return ERR_OK;
 }
 
 int32_t InsightIntentExecuteManager::IsValidCall(const Want &want)

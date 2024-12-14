@@ -63,6 +63,24 @@ bool UnwrapExecuteResult(napi_env env, napi_value param, InsightIntentExecuteRes
         }
     }
 
+    TAG_LOGE(AAFwkTag::JSNAPI, "----------wzb---------napi_common_execute_result.cpp----UnwrapExecuteResult---- ");
+
+    std::vector<std::string> uris;
+    if (!UnwrapStringArrayByPropertyName(env, param, "uris", uris)) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "unwrap uris is null");
+    }
+    executeResult.uris = uris;
+    for(auto uri : uris) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "--------wzb--------UnwrapExecuteResult.....uri is %{public}s", uri.c_str());
+    }
+
+    int32_t flags = 0;
+    if (!UnwrapInt32ByPropertyName(env, param, "flags", flags)) {
+        TAG_LOGI(AAFwkTag::JSNAPI, "unwrap flags is null");
+    }
+    executeResult.flags = flags;
+    TAG_LOGE(AAFwkTag::JSNAPI, "--------wzb--------UnwrapExecuteResult.....executeResult.flags is %{public}d", flags);
+
     return true;
 }
 }  // namespace AbilityRuntime

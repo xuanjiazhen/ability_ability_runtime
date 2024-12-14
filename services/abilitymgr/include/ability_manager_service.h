@@ -1624,11 +1624,11 @@ public:
      */
     int32_t OnExecuteIntent(AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &targetRecord);
 
-    int32_t StartAbilityWithInsightIntent(const Want &want, int32_t userId = DEFAULT_INVAL_VALUE,
-        int requestCode = DEFAULT_INVAL_VALUE);
+    int32_t StartAbilityWithInsightIntent(const Want &want, const std::shared_ptr<InsightIntentExecuteParam> &paramPtr,
+        int32_t userId = DEFAULT_INVAL_VALUE, int requestCode = DEFAULT_INVAL_VALUE);
 
     int32_t StartAbilityByCallWithInsightIntent(const Want &want, const sptr<IRemoteObject> &callerToken,
-        const InsightIntentExecuteParam &param);
+        const std::shared_ptr<InsightIntentExecuteParam> &paramPtr);
 
     /**
      * @brief Check if ability controller can start.
@@ -2307,6 +2307,7 @@ private:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t StartExtensionAbilityWithInsightIntent(const Want &want,
+        const std::shared_ptr<InsightIntentExecuteParam> &paramPtr,
         AppExecFwk::ExtensionAbilityType extensionType = AppExecFwk::ExtensionAbilityType::UNSPECIFIED);
 
     bool IsAbilityStarted(AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &targetRecord,
@@ -2485,6 +2486,9 @@ private:
     void SetAbilityRequestSessionInfo(AbilityRequest &abilityRequest, AppExecFwk::ExtensionAbilityType extensionType);
 
     bool ShouldBlockAllAppStart();
+
+    void InsightIntentGrantUriPermission(const std::vector<std::string> &uris, int32_t flags,
+        const std::string &targetBundleName, uint64_t appIndex, uint32_t initiatorTokenId);
 
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
     std::shared_ptr<BackgroundTaskObserver> bgtaskObserver_;

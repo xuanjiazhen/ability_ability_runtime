@@ -291,6 +291,7 @@ void JsInsightIntentExecutor::ReplyFailed(InsightIntentExecutorAsyncCallback* ca
 void JsInsightIntentExecutor::ReplySucceeded(InsightIntentExecutorAsyncCallback* callback,
     std::shared_ptr<AppExecFwk::InsightIntentExecuteResult> resultCpp)
 {
+    TAG_LOGE(AAFwkTag::INTENT, "-------------wzb---------------JsInsightIntentExecutor::ReplySucceeded---called");
     TAG_LOGD(AAFwkTag::INTENT, "called");
     if (callback == nullptr) {
         return;
@@ -300,12 +301,17 @@ void JsInsightIntentExecutor::ReplySucceeded(InsightIntentExecutorAsyncCallback*
         return;
     }
     resultCpp->innerErr = InsightIntentInnerErr::INSIGHT_INTENT_ERR_OK;
+    for (auto uri : resultCpp->uris) {
+        TAG_LOGE(AAFwkTag::INTENT, "--------------------wzb-------JsInsightIntentExecutor::ReplySucceeded-----uri:%{public}s", uri.c_str());
+    }
     callback->Call(*resultCpp);
     delete callback;
 }
 
 void JsInsightIntentExecutor::ReplyFailedInner(InsightIntentInnerErr innerErr)
 {
+    TAG_LOGE(AAFwkTag::INTENT, "--------------wzb-----------------called");
+
     TAG_LOGD(AAFwkTag::INTENT, "called");
     state_ = JsInsightIntentExecutor::State::INVALID;
     auto* callback = callback_.release();
@@ -314,7 +320,7 @@ void JsInsightIntentExecutor::ReplyFailedInner(InsightIntentInnerErr innerErr)
 
 void JsInsightIntentExecutor::ReplySucceededInner(std::shared_ptr<AppExecFwk::InsightIntentExecuteResult> resultCpp)
 {
-    TAG_LOGD(AAFwkTag::INTENT, "called");
+    TAG_LOGE(AAFwkTag::INTENT, "called");
     state_ = JsInsightIntentExecutor::State::EXECUTATION_DONE;
     auto* callback = callback_.release();
     JsInsightIntentExecutor::ReplySucceeded(callback, resultCpp);
@@ -363,6 +369,7 @@ bool JsInsightIntentExecutor::HandleResultReturnedFromJsFunc(napi_value resultJs
             STATE_PATTERN_NAIVE_STATE_SET_AND_RETURN(State::INVALID, false);
         }
         TAG_LOGD(AAFwkTag::INTENT, "Call succeed");
+        TAG_LOGE(AAFwkTag::INTENT, "-----wzb---------------Call succeed");
         ReplySucceededInner(resultCpp);
     }
     return true;
@@ -457,6 +464,7 @@ bool JsInsightIntentExecutor::ExecuteInsightIntentUIExtension(
         ReplyFailedInner();
         return false;
     }
+    TAG_LOGE(AAFwkTag::INTENT, "---------------wzb--------------ExecuteInsightIntentUIExtension-----1");
 
     return HandleResultReturnedFromJsFunc(result);
 }

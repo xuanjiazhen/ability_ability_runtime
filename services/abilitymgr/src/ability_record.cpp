@@ -3253,6 +3253,21 @@ void AbilityRecord::DumpAbilityInfoDone(std::vector<std::string> &infos)
     dumpCondition_.notify_all();
 }
 
+void AbilityRecord::InsightIntentGrantUriPermissionForUiExtension()
+{
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "---------wzb------- AbilityRecord::GrantUriPermission");
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    std::string element = GetElementName().GetURI();
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "SUPPORT_GRAPHICS: ability record: %{public}s", element.c_str());
+    {
+        std::lock_guard guard(wantLock_);
+        GrantUriPermission(want_, abilityInfo_.applicationInfo.bundleName, false, 0);
+        // InsightIntentGrantUriPermission(uriVec, flag, abilityInfo_.applicationInfo.bundleName, appIndex_, callerTokenId);
+    }
+
+    return;
+}
+
 void AbilityRecord::GrantUriPermission(Want &want, std::string targetBundleName, bool isSandboxApp, uint32_t tokenId)
 {
     // only for UIAbility and send result
@@ -3275,6 +3290,16 @@ void AbilityRecord::GrantUriPermission(Want &want, std::string targetBundleName,
 
     UriUtils::GetInstance().GrantUriPermission(want, targetBundleName, appIndex_, isSandboxApp,
         callerTokenId, collaboratorType_);
+}
+
+void AbilityRecord::InsightIntentGrantUriPermission(const std::vector<std::string> &uriVec, uint32_t flag,
+    const std::string &targetBundleName, int32_t callerTokenId)
+{
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "---------wzb------- AbilityRecord::InsightIntentGrantUriPermission");
+    if (uriVec.empty() || flag == 0 || targetBundleName.empty()) {
+        return;
+    }
+    UriUtils::GetInstance().InsightIntentGrantUriPermission(uriVec, flag, targetBundleName, appIndex_, callerTokenId);
 }
 
 #ifdef WITH_DLP

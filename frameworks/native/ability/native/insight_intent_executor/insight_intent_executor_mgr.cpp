@@ -33,6 +33,7 @@ InsightIntentExecutorMgr::~InsightIntentExecutorMgr()
 bool InsightIntentExecutorMgr::ExecuteInsightIntent(Runtime& runtime, const InsightIntentExecutorInfo& executeInfo,
     std::unique_ptr<InsightIntentExecutorAsyncCallback> callback)
 {
+    TAG_LOGE(AAFwkTag::INTENT, "------------------wzb----------------------InsightIntentExecutorMgr::ExecuteInsightIntent----called");
     TAG_LOGD(AAFwkTag::INTENT, "called");
     auto executeParam = executeInfo.executeParam;
     if (executeParam == nullptr || executeParam->insightIntentParam_ == nullptr) {

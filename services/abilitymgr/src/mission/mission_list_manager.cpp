@@ -155,6 +155,8 @@ int32_t MissionListManager::GetMissionCount() const
 
 int MissionListManager::StartAbility(AbilityRequest &abilityRequest)
 {
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----------wzb----------MissionListManager::StartAbility---1---");
+
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::lock_guard guard(managerLock_);
     bool isReachToSingleLimit = CheckSingleLimit(abilityRequest);
@@ -163,6 +165,7 @@ int MissionListManager::StartAbility(AbilityRequest &abilityRequest)
             SINGLE_MAX_INSTANCE_COUNT);
         return ERR_REACH_UPPER_LIMIT;
     }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----------wzb----------MissionListManager::StartAbility---2---");
 
     auto currentTopAbility = GetCurrentTopAbilityLocked();
     if (currentTopAbility && !currentTopAbility->GetRestartAppFlag()) {
@@ -177,6 +180,7 @@ int MissionListManager::StartAbility(AbilityRequest &abilityRequest)
             return START_ABILITY_WAITING;
         }
     }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----------wzb----------MissionListManager::StartAbility---3---");
 
     auto callerAbility = GetAbilityRecordByTokenInner(abilityRequest.callerToken);
     if (callerAbility) {
@@ -185,17 +189,22 @@ int MissionListManager::StartAbility(AbilityRequest &abilityRequest)
         TAG_LOGD(AAFwkTag::ABILITYMGR, "callerAbility is: %{public}s, state: %{public}s",
             element.c_str(), AbilityRecord::ConvertAbilityState(state).c_str());
     }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----------wzb----------MissionListManager::StartAbility---4---");
 
     abilityRequest.callerAccessTokenId = IPCSkeleton::GetCallingTokenID();
     int ret = StartAbility(currentTopAbility, callerAbility, abilityRequest);
     if (ret == 0 && !abilityRequest.abilityInfo.visible) {
         SendKeyEvent(abilityRequest);
     }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----------wzb----------MissionListManager::StartAbility---5---");
+
     NotifyStartAbilityResult(abilityRequest, ret);
     if (callerAbility != nullptr) {
         ResSchedUtil::GetInstance().ReportAbilityAssociatedStartInfoToRSS(abilityRequest.abilityInfo,
             RES_TYPE_MISSION_LIST_START_ABILITY, callerAbility->GetUid(), callerAbility->GetPid());
     }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----------wzb----------MissionListManager::StartAbility---6---");
+
     return ret;
 }
 
@@ -211,6 +220,7 @@ int MissionListManager::StartAbility(const std::shared_ptr<AbilityRecord> &curre
             abilityRequest.want, abilityRequest.abilityInfo);
         return 0;
     }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----------wzb----------MissionListManager::StartAbility2---1---");
 
     return StartAbilityLocked(currentTopAbility, callerAbility, abilityRequest);
 }
@@ -418,6 +428,8 @@ int MissionListManager::GetTargetMission(const AbilityRequest &abilityRequest, s
 int MissionListManager::StartAbilityLocked(const std::shared_ptr<AbilityRecord> &currentTopAbility,
     const std::shared_ptr<AbilityRecord> &callerAbility, const AbilityRequest &abilityRequest)
 {
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----------wzb----------MissionListManager::StartAbilityLocked---1---");
+
     std::string connector = "##";
     auto element = abilityRequest.want.GetElement();
     std::string traceName = __PRETTY_FUNCTION__ + connector + element.GetBundleName() + connector +
@@ -427,6 +439,7 @@ int MissionListManager::StartAbilityLocked(const std::shared_ptr<AbilityRecord> 
     // 1. choose target mission list
     auto targetList = GetTargetMissionList(callerAbility, abilityRequest);
     CHECK_POINTER_AND_RETURN(targetList, ERR_INVALID_CALLER);
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----------wzb----------MissionListManager::StartAbilityLocked---2---");
 
     // 2. get target mission
     std::shared_ptr<Mission> targetMission;
@@ -435,6 +448,7 @@ int MissionListManager::StartAbilityLocked(const std::shared_ptr<AbilityRecord> 
     if (ret != GET_TARGET_MISSION_OVER) {
         return ret;
     }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----------wzb----------MissionListManager::StartAbilityLocked---3---");
 
     // 3. move mission to target list
     bool isCallerFromLauncher = (callerAbility && callerAbility->IsLauncherAbility());
@@ -442,6 +456,7 @@ int MissionListManager::StartAbilityLocked(const std::shared_ptr<AbilityRecord> 
 
     // 4. move target list to top
     MoveMissionListToTop(targetList);
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----------wzb----------MissionListManager::StartAbilityLocked---4---");
 
     // 5. schedule target ability
     if (!currentTopAbility) {
@@ -466,19 +481,26 @@ int MissionListManager::StartAbilityLocked(const std::shared_ptr<AbilityRecord> 
             }
         }
     }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----------wzb----------MissionListManager::StartAbilityLocked---5---");
 
     NotifyAbilityToken(targetAbilityRecord->GetToken(), abilityRequest);
 
     TAG_LOGD(AAFwkTag::ABILITYMGR, "StartAbilityLocked, abilityRequest.");
     targetAbilityRecord->SetSpecifyTokenId(abilityRequest.specifyTokenId);
     targetAbilityRecord->SetAbilityForegroundingFlag();
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----------wzb----------MissionListManager::StartAbilityLocked---6---");
 
 #ifdef SUPPORT_SCREEN
     std::shared_ptr<StartOptions> startOptions = nullptr;
     targetAbilityRecord->ProcessForegroundAbility(false, abilityRequest, startOptions, callerAbility);
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----------wzb----------MissionListManager::StartAbilityLocked---7---");
+
 #else
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----------wzb----------MissionListManager::StartAbilityLocked---7-1---");
     targetAbilityRecord->ProcessForegroundAbility(0);
 #endif
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----------wzb----------MissionListManager::StartAbilityLocked---8---");
+
     return ERR_OK;
 }
 
@@ -3296,6 +3318,7 @@ int MissionListManager::ResolveLocked(const AbilityRequest &abilityRequest)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s, resolve ability_name:", __func__);
         return RESOLVE_CALL_ABILITY_INNER_ERR;
     }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-------------------wzb---------MissionListManager::ResolveLocked-----1");
 
     return CallAbilityLocked(abilityRequest);
 }
@@ -3310,6 +3333,8 @@ bool MissionListManager::IsAbilityStarted(AbilityRequest &abilityRequest,
 
 int MissionListManager::CallAbilityLocked(const AbilityRequest &abilityRequest)
 {
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-------------------wzb---------MissionListManager::CallAbilityLocked-----1");
+
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call ability");
     std::lock_guard guard(managerLock_);
 
@@ -3335,6 +3360,16 @@ int MissionListManager::CallAbilityLocked(const AbilityRequest &abilityRequest)
 
     targetAbilityRecord->AddCallerRecord(abilityRequest.callerToken, abilityRequest.requestCode, abilityRequest.want);
     targetAbilityRecord->SetLaunchReason(LaunchReason::LAUNCHREASON_CALL);
+    // if start by intent
+    if (InsightIntentExecuteParam::IsInsightIntentExecute(abilityRequest.want))
+    {
+        // 授权
+        // void AbilityRecord::InsightIntentGrantUriPermission(const std::vector<std::string> &uriVec, uint32_t flag,
+        // const std::string &targetBundleName, int32_t callerTokenId)
+        //
+        // targetAbilityRecord->InsightIntentGrantUriPermission();
+        targetAbilityRecord->InsightIntentGrantUriPermissionForUiExtension();
+    }
 
     // mission is first created, add mission to default call mission list.
     // other keep in current mission list.
@@ -3345,6 +3380,7 @@ int MissionListManager::CallAbilityLocked(const AbilityRequest &abilityRequest)
             defaultStandardList_->AddMissionToTop(targetMission);
         }
     }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-------------------wzb---------MissionListManager::CallAbilityLocked-----2");
 
     NotifyAbilityToken(targetAbilityRecord->GetToken(), abilityRequest);
 
@@ -3365,8 +3401,12 @@ int MissionListManager::CallAbilityLocked(const AbilityRequest &abilityRequest)
 #ifdef SUPPORT_SCREEN
             std::shared_ptr<StartOptions> startOptions = nullptr;
             auto callerAbility = GetAbilityRecordByTokenInner(abilityRequest.callerToken);
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "-------------------wzb---------MissionListManager::CallAbilityLocked-----3");
+
             targetAbilityRecord->ProcessForegroundAbility(false, abilityRequest, startOptions, callerAbility);
 #else
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "-------------------wzb---------MissionListManager::CallAbilityLocked-----4");
+
             targetAbilityRecord->ProcessForegroundAbility(0);
 #endif
         }
@@ -3388,11 +3428,15 @@ int MissionListManager::CallAbilityLocked(const AbilityRequest &abilityRequest)
         }
     }
     if (isStartToForeground) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "-------------------wzb---------MissionListManager::CallAbilityLocked-----4");
+
         targetAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
     } else {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "set pending BACKGROUND");
         targetAbilityRecord->SetPendingState(AbilityState::BACKGROUND);
     }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-------------------wzb---------MissionListManager::CallAbilityLocked-----5");
+
     return targetAbilityRecord->LoadAbility();
 }
 
