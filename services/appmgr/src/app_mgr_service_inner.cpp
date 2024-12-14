@@ -4754,6 +4754,24 @@ void AppMgrServiceInner::ScheduleAcceptWantDone(
     }
 }
 
+void AppMgrServiceInner::SchedulePrepareTerminate(const pid_t pid, int &prepareTermination, bool &isExist)
+{
+    auto appRecord = appRunningManager_->GetAppRunningRecordByPid(pid);
+    if (!appRecord) {
+        TAG_LOGE(AAFwkTag::APPMGR, "get appRecord fail");
+        return;
+    }
+    BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    auto appInfo = std::make_shared<ApplicationInfo>(abilityInfo.applicationInfo);
+    int32_t appIndex = appRecord->GetAppIndex();
+    if (!GetBundleAndHapInfo(abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "GetBundleAndHapInfo fail");
+        return;
+    }
+    appRecord->SchedulePrepareTerminate(hapModuleInfo.moduleName, prepareTermination, isExist);
+}
+
 void AppMgrServiceInner::HandleStartSpecifiedAbilityTimeOut(std::shared_ptr<AppRunningRecord> appRecord)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "startSpecifiedAbility timeOut");
