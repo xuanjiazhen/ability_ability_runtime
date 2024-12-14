@@ -15,12 +15,12 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#define private public
-#define protected public
+#define PRIVATE PUBLIC
+#define PROTECTED PUBLIC
 #include "js_ui_extension_base.h"
 #include "js_environment.h"
-#undef private
-#undef protected
+#undef PRIVATE
+#undef PROTECTED
 #include "ark_native_engine.h"
 #include "mock_iremote_object.h"
 #include "context.h"
@@ -39,13 +39,13 @@
 #include "element_name.h"
 #include "operation.h"
 
-#include<memory>
+#include <memory>
 
 using namespace testing;
 using namespace testing::ext;
 using EventRunner = OHOS::AppExecFwk::EventRunner;
 
-namespace OHOS{
+namespace OHOS {
 namespace AbilityRuntime {
 namespace {
     const std::string TEST_MODULENAME = "com.example.moduleName";
@@ -156,6 +156,8 @@ void JsUiExtensionBaseTest::TearDown()
  */
 HWTEST_F(JsUiExtensionBaseTest, Init_0100, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Init_0100 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     auto abilityinfo = std::make_shared<AppExecFwk::AbilityInfo>();
@@ -177,6 +179,8 @@ HWTEST_F(JsUiExtensionBaseTest, Init_0100, TestSize.Level1)
     auto test = jueb_ptr->Init(abilityrecord, application, handler, tokenn);
     EXPECT_EQ(jueb_ptr->token_, abilityrecord->token_);
     EXPECT_EQ(test, nullptr);
+
+    TAG_LOGI(AAFwkTag::TEST, "Init_0100 end");
 }
 
 /**
@@ -186,6 +190,8 @@ HWTEST_F(JsUiExtensionBaseTest, Init_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, BindContext_0100, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "BindContext_0100 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     jueb_ptr->jsObj_ = std::make_shared<NativeReferenceMock>();
@@ -204,6 +210,8 @@ HWTEST_F(JsUiExtensionBaseTest, BindContext_0100, TestSize.Level1)
     jueb_ptr->context_ = std::make_shared<UIExtensionContext>();
     jueb_ptr->BindContext();
     EXPECT_EQ(jueb_ptr->shellContextRef_, nullptr);
+
+    TAG_LOGI(AAFwkTag::TEST, "BindContext_0100 end");
 }
 
 /**
@@ -213,10 +221,12 @@ HWTEST_F(JsUiExtensionBaseTest, BindContext_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnStart_0100, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "OnStart_0100 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     AAFwk::Want want;
-    want.parameters_.params_.emplace(INSIGHT_INTENT_EXECUTE_PARAM_NAME, nullptr);
+    want.parameters_.params_.emplace("ohos.insightIntent.executeParam.name", nullptr);
     AAFwk::LaunchParam launchParam;
     sptr<AAFwk::SessionInfo> sessionInfo = new AAFwk::SessionInfo();
     void* jsEngine = new int(1);
@@ -239,7 +249,9 @@ HWTEST_F(JsUiExtensionBaseTest, OnStart_0100, TestSize.Level1)
     want.operation_.moduleName_ = TEST_MODULENAME;
     want.operation_.deviceId_ = TEST_DEVICEID;
     jueb_ptr->OnStart(want, launchParam, sessionInfo);
-    EXPECT_EQ(launchParam.launchReason,AAFwk::LaunchReason::LAUNCHREASON_INSIGHT_INTENT);
+    EXPECT_EQ(launchParam.launchReason, AAFwk::LaunchReason::LAUNCHREASON_INSIGHT_INTENT);
+
+    TAG_LOGI(AAFwkTag::TEST, "OnStart_0100 end");
 }
 
 /**
@@ -249,6 +261,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnStart_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnStop_2_0100, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "OnStop_2_0100 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     AppExecFwk::AbilityTransactionCallbackInfo<> *callbackInfo = nullptr;
@@ -256,6 +270,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnStop_2_0100, TestSize.Level1)
     jueb_ptr->jsObj_ = nullptr;
     jueb_ptr->OnStop(callbackInfo, isAsyncCallback);
     EXPECT_EQ(isAsyncCallback, false);
+
+    TAG_LOGI(AAFwkTag::TEST, "OnStop_2_0100 end");
 }
 
 /**
@@ -265,6 +281,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnStop_2_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnStop_2_0200, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "OnStop_2_0200 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     AppExecFwk::AbilityTransactionCallbackInfo<> *callbackInfo = AppExecFwk::AbilityTransactionCallbackInfo<>::Create();
@@ -283,6 +301,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnStop_2_0200, TestSize.Level1)
     jueb_ptr->jsRuntime_.jsEnv_->engine_ = engine;
     jueb_ptr->OnStop(callbackInfo, isAsyncCallback);
     EXPECT_EQ(isAsyncCallback, false);
+
+    TAG_LOGI(AAFwkTag::TEST, "OnStop_2_0200 end");
 }
 
 /**
@@ -292,6 +312,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnStop_2_0200, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnStopCallBack_0100, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "OnStopCallBack_0100 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     jueb_ptr->context_ = std::make_shared<UIExtensionContext>();
@@ -318,6 +340,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnStopCallBack_0100, TestSize.Level1)
     jueb_ptr->context_->applicationContext_->callbacks_.push_back(jsablcb);
     jueb_ptr->OnStopCallBack();
     EXPECT_EQ(jueb_ptr->context_->applicationContext_->callbacks_.size(), 1);
+
+    TAG_LOGI(AAFwkTag::TEST, "OnStopCallBack_0100 end");
 }
 
 /**
@@ -327,6 +351,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnStopCallBack_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, CheckPromise_0100, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "CheckPromise_0100 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     napi_value result = jueb_ptr->CallObjectMethod("onDestroy", nullptr, 0, true);
@@ -344,6 +370,8 @@ HWTEST_F(JsUiExtensionBaseTest, CheckPromise_0100, TestSize.Level1)
     jueb_ptr->jsRuntime_.jsEnv_->engine_ = engine;
     bool test = jueb_ptr->CheckPromise(result);
     EXPECT_EQ(test, false);
+
+    TAG_LOGI(AAFwkTag::TEST, "CheckPromise_0100 end");
 }
 
 /**
@@ -353,11 +381,15 @@ HWTEST_F(JsUiExtensionBaseTest, CheckPromise_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, CheckPromise_0200, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "CheckPromise_0200 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     napi_value result =  jueb_ptr->CallObjectMethod("onDestroy", nullptr, 0, true);
     bool promise = jueb_ptr->CheckPromise(result);
     EXPECT_EQ(promise, false);
+
+    TAG_LOGI(AAFwkTag::TEST, "CheckPromise_0200 end");
 }
 
 /**
@@ -367,11 +399,15 @@ HWTEST_F(JsUiExtensionBaseTest, CheckPromise_0200, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, CheckPromise_0300, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "CheckPromise_0300 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     napi_value result =  nullptr;
     bool promise = jueb_ptr->CheckPromise(result);
     EXPECT_EQ(promise, false);
+
+    TAG_LOGI(AAFwkTag::TEST, "CheckPromise_0300 end");
 }
 
 /**
@@ -381,6 +417,8 @@ HWTEST_F(JsUiExtensionBaseTest, CheckPromise_0300, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, CallPromise_0100, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "CallPromise_0100 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     napi_value result =  jueb_ptr->CallObjectMethod("TEST", nullptr, 0, true);
@@ -399,6 +437,8 @@ HWTEST_F(JsUiExtensionBaseTest, CallPromise_0100, TestSize.Level1)
     jueb_ptr->jsRuntime_.jsEnv_->engine_ = engine;
     auto test = jueb_ptr->CallPromise(result, callbackInfo);
     EXPECT_EQ(test, false);
+
+    TAG_LOGI(AAFwkTag::TEST, "CallPromise_0100 end");
 }
 
 /**
@@ -408,6 +448,8 @@ HWTEST_F(JsUiExtensionBaseTest, CallPromise_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0100, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "OnCommandWindow_0100 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     AAFwk::Want want;
@@ -425,6 +467,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0100, TestSize.Level1)
     jueb_ptr->context_->token_ = sptr<MockIRemoteObject>::MakeSptr();
     jueb_ptr->OnCommandWindow(want, sessionInfo, AAFwk::WIN_CMD_FOREGROUND);
     EXPECT_EQ(jueb_ptr->foregroundWindows_.size(), 1);
+
+    TAG_LOGI(AAFwkTag::TEST, "OnCommandWindow_0100 end");
 }
 
 /**
@@ -434,6 +478,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0200, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "OnCommandWindow_0200 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     AAFwk::Want want;
@@ -446,6 +492,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0200, TestSize.Level1)
     jueb_ptr->foregroundWindows_.insert(sessionInfo->uiExtensionComponentId);
     jueb_ptr->OnCommandWindow(want, sessionInfo, wincmd);
     EXPECT_EQ(jueb_ptr->foregroundWindows_.size(), 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "OnCommandWindow_0200 end");
 }
 
 /**
@@ -455,6 +503,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0200, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0300, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "OnCommandWindow_0300 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     AAFwk::Want want;
@@ -475,6 +525,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0300, TestSize.Level1)
     EXPECT_EQ(jueb_ptr->uiWindowMap_.size(), 0);
     EXPECT_EQ(jueb_ptr->contentSessions_.size(), 0);
     EXPECT_EQ(jueb_ptr->abilityResultListeners_->listeners_.size(), 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "OnCommandWindow_0300 end");
 }
 
 
@@ -485,6 +537,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0300, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, ForegroundWindowWithInsightIntent_0100, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "ForegroundWindowWithInsightIntent_0100 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     AAFwk::Want want;
@@ -502,6 +556,8 @@ HWTEST_F(JsUiExtensionBaseTest, ForegroundWindowWithInsightIntent_0100, TestSize
     jueb_ptr->contentSessions_.emplace(sessionInfo->uiExtensionComponentId, ptr);
     bool test = jueb_ptr->ForegroundWindowWithInsightIntent(want, sessionInfo, needForeground);
     EXPECT_EQ(test, true);
+
+    TAG_LOGI(AAFwkTag::TEST, "ForegroundWindowWithInsightIntent_0100 end");
 }
 
 /**
@@ -511,6 +567,8 @@ HWTEST_F(JsUiExtensionBaseTest, ForegroundWindowWithInsightIntent_0100, TestSize
  */
 HWTEST_F(JsUiExtensionBaseTest, ForegroundWindowWithInsightIntent_0200, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "ForegroundWindowWithInsightIntent_0200 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     AAFwk::Want want;
@@ -519,6 +577,8 @@ HWTEST_F(JsUiExtensionBaseTest, ForegroundWindowWithInsightIntent_0200, TestSize
     bool needForeground = false;
     bool test = jueb_ptr->ForegroundWindowWithInsightIntent(want, sessionInfo, needForeground);
     EXPECT_EQ(test, false);
+
+    TAG_LOGI(AAFwkTag::TEST, "ForegroundWindowWithInsightIntent_0200 end");
 }
 
 /**
@@ -528,6 +588,8 @@ HWTEST_F(JsUiExtensionBaseTest, ForegroundWindowWithInsightIntent_0200, TestSize
  */
 HWTEST_F(JsUiExtensionBaseTest, PostInsightIntentExecuted_0100, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "PostInsightIntentExecuted_0100 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     sptr<AAFwk::SessionInfo> sessionInfo = new AAFwk::SessionInfo();
@@ -539,7 +601,9 @@ HWTEST_F(JsUiExtensionBaseTest, PostInsightIntentExecuted_0100, TestSize.Level1)
     sptr<Rosen::Window> uiwindow = new Rosen::Window();
     jueb_ptr->uiWindowMap_.emplace(sessionInfo->uiExtensionComponentId, uiwindow);
     jueb_ptr->PostInsightIntentExecuted(sessionInfo, result, needForeground);
-    EXPECT_EQ(jueb_ptr->foregroundWindows_.size(),1);
+    EXPECT_EQ(jueb_ptr->foregroundWindows_.size(), 1);
+
+    TAG_LOGI(AAFwkTag::TEST, "PostInsightIntentExecuted_0100 end");
 }
 
 /**
@@ -549,6 +613,8 @@ HWTEST_F(JsUiExtensionBaseTest, PostInsightIntentExecuted_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnCommandWindowDone_0100, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "OnCommandWindowDone_0100 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     sptr<AAFwk::SessionInfo> sessionInfo = new AAFwk::SessionInfo();
@@ -561,6 +627,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindowDone_0100, TestSize.Level1)
     jueb_ptr->context_->token_ = sptr<MockIRemoteObject>::MakeSptr();
     jueb_ptr->OnCommandWindowDone(sessionInfo, winCmd);
     EXPECT_NE(jueb_ptr, nullptr);
+
+    TAG_LOGI(AAFwkTag::TEST, "OnCommandWindowDone_0100 end");
 }
 
 /**
@@ -570,6 +638,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindowDone_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnCommandWindowDone_0200, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "OnCommandWindowDone_0200 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     sptr<AAFwk::SessionInfo> sessionInfo = new AAFwk::SessionInfo();
@@ -579,6 +649,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindowDone_0200, TestSize.Level1)
     jueb_ptr->context_->token_ = sptr<MockIRemoteObject>::MakeSptr();
     jueb_ptr->OnCommandWindowDone(sessionInfo, winCmd);
     EXPECT_NE(jueb_ptr, nullptr);
+
+    TAG_LOGI(AAFwkTag::TEST, "OnCommandWindowDone_0200 end");
 }
 
 /**
@@ -588,6 +660,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindowDone_0200, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnCommandWindowDone_0300, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "OnCommandWindowDone_0300 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     sptr<AAFwk::SessionInfo> sessionInfo = new AAFwk::SessionInfo();
@@ -599,6 +673,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindowDone_0300, TestSize.Level1)
     jueb_ptr->context_->token_ = sptr<MockIRemoteObject>::MakeSptr();
     jueb_ptr->OnCommandWindowDone(sessionInfo, winCmd);
     EXPECT_NE(jueb_ptr, nullptr);
+
+    TAG_LOGI(AAFwkTag::TEST, "OnCommandWindowDone_0300 end");
 }
 
 /**
@@ -608,6 +684,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindowDone_0300, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnInsightIntentExecuteDone_0100, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "OnInsightIntentExecuteDone_0100 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     sptr<AAFwk::SessionInfo> sessionInfo = new AAFwk::SessionInfo();
@@ -619,6 +697,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnInsightIntentExecuteDone_0100, TestSize.Level1
     jueb_ptr->uiWindowMap_.emplace(sessionInfo->uiExtensionComponentId, uiwindow);
     jueb_ptr->OnInsightIntentExecuteDone(sessionInfo, result);
     EXPECT_EQ(jueb_ptr->foregroundWindows_.size(), 1);
+
+    TAG_LOGI(AAFwkTag::TEST, "OnInsightIntentExecuteDone_0100 end");
 }
 
 /**
@@ -628,12 +708,16 @@ HWTEST_F(JsUiExtensionBaseTest, OnInsightIntentExecuteDone_0100, TestSize.Level1
  */
 HWTEST_F(JsUiExtensionBaseTest, OnInsightIntentExecuteDone_0200, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "OnInsightIntentExecuteDone_0200 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     sptr<AAFwk::SessionInfo> sessionInfo = new AAFwk::SessionInfo();
     AppExecFwk::InsightIntentExecuteResult result;
     jueb_ptr->OnInsightIntentExecuteDone(sessionInfo, result);
     EXPECT_EQ(jueb_ptr->foregroundWindows_.size(), 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "OnInsightIntentExecuteDone_0200 end");
 }
 
 /**
@@ -643,6 +727,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnInsightIntentExecuteDone_0200, TestSize.Level1
  */
 HWTEST_F(JsUiExtensionBaseTest, OnCommand_0100, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "OnCommand_0100 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     AAFwk::Want want;
@@ -665,6 +751,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommand_0100, TestSize.Level1)
     want.operation_.deviceId_ = TEST_DEVICEID;
     want.operation_.bundleName_ = TEST_BUNDLENAME;
     jueb_ptr->OnCommand(want, restart, startId);
+
+    TAG_LOGI(AAFwkTag::TEST, "OnCommand_0100 end");
 }
 
 /**
@@ -674,6 +762,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommand_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnForeground_0100, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "OnForeground_0100 start");
+
     std::unique_ptr<JsRuntime> rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     AAFwk::Want want;
@@ -692,6 +782,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnForeground_0100, TestSize.Level1)
     jueb_ptr->uiWindowMap_.emplace(sessionInfo->uiExtensionComponentId, uiwindow);
     jueb_ptr->OnForeground(want, sessionInfo);
     EXPECT_EQ(jueb_ptr->foregroundWindows_.size(), 1);
+
+    TAG_LOGI(AAFwkTag::TEST, "OnForeground_0100 end");
 }
 
 /**
@@ -701,6 +793,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnForeground_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, CallJsOnSessionCreate_0100, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "CallJsOnSessionCreate_0100 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     void* jsEngine = new int(1);
@@ -728,6 +822,8 @@ HWTEST_F(JsUiExtensionBaseTest, CallJsOnSessionCreate_0100, TestSize.Level1)
     bool test = jueb_ptr->CallJsOnSessionCreate(want, sessionInfo, uiwindow, uiExtensionComponentId);
     EXPECT_EQ(jueb_ptr->contentSessions_.size(), 1);
     EXPECT_EQ(test, true);
+
+    TAG_LOGI(AAFwkTag::TEST, "CallJsOnSessionCreate_0100 end");
 }
 
 /**
@@ -737,6 +833,8 @@ HWTEST_F(JsUiExtensionBaseTest, CallJsOnSessionCreate_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, CallJsOnSessionCreate_0200, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "CallJsOnSessionCreate_0200 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     AAFwk::Want want;
@@ -745,6 +843,8 @@ HWTEST_F(JsUiExtensionBaseTest, CallJsOnSessionCreate_0200, TestSize.Level1)
     sptr<Rosen::Window> uiwindow = new Rosen::Window();
     bool test =  jueb_ptr->CallJsOnSessionCreate(want, sessionInfo, uiwindow, uiExtensionComponentId);
     EXPECT_EQ(test, false);
+
+    TAG_LOGI(AAFwkTag::TEST, "CallJsOnSessionCreate_0200 end");
 }
 
 /**
@@ -754,6 +854,8 @@ HWTEST_F(JsUiExtensionBaseTest, CallJsOnSessionCreate_0200, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, CreateWindowOption_0100, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "CreateWindowOption_0100 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     sptr<AAFwk::SessionInfo> sessionInfo = new AAFwk::SessionInfo();
@@ -766,6 +868,8 @@ HWTEST_F(JsUiExtensionBaseTest, CreateWindowOption_0100, TestSize.Level1)
     jueb_ptr->context_->abilityInfo_->name = TEST_NAME;
     auto test = jueb_ptr->CreateWindowOption(sessionInfo);
     EXPECT_NE(test, nullptr);
+
+    TAG_LOGI(AAFwkTag::TEST, "CreateWindowOption_0100 end");
 }
 
 /**
@@ -775,6 +879,8 @@ HWTEST_F(JsUiExtensionBaseTest, CreateWindowOption_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0100, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "HandleSessionCreate_0100 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     AAFwk::Want want;
@@ -783,7 +889,9 @@ HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0100, TestSize.Level1)
     sptr<Rosen::Window> uiwindow = new Rosen::Window();
     jueb_ptr->uiWindowMap_.emplace(sessionInfo->uiExtensionComponentId, uiwindow);
     bool test = jueb_ptr->HandleSessionCreate(want, sessionInfo);
-    EXPECT_EQ(test,true);
+    EXPECT_EQ(test, true);
+
+    TAG_LOGI(AAFwkTag::TEST, "HandleSessionCreate_0100 end");
 }
 
 /**
@@ -793,13 +901,17 @@ HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0200, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "HandleSessionCreate_0200 start");
+
     AAFwk::Want want;
     sptr<AAFwk::SessionInfo> sessionInfo = new AAFwk::SessionInfo();
     sessionInfo->uiExtensionComponentId = 1;
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     bool test = jueb_ptr->HandleSessionCreate(want, sessionInfo);
-    EXPECT_EQ(test,false);
+    EXPECT_EQ(test, false);
+
+    TAG_LOGI(AAFwkTag::TEST, "HandleSessionCreate_0200 end");
 }
 
 /**
@@ -809,6 +921,8 @@ HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0200, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0300, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "HandleSessionCreate_0300 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     AAFwk::Want want;
@@ -839,7 +953,9 @@ HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0300, TestSize.Level1)
     want.operation_.bundleName_ = TEST_BUNDLENAME;
     want.operation_.abilityName_ = TEST_ABILITYNAME;
     bool test = jueb_ptr->HandleSessionCreate(want, sessionInfo);
-    EXPECT_EQ(test,true);
+    EXPECT_EQ(test, true);
+
+    TAG_LOGI(AAFwkTag::TEST, "HandleSessionCreate_0300 end");
 }
 
 /**
@@ -849,6 +965,8 @@ HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0300, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, ForegroundWindow_0100, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "ForegroundWindow_0100 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     AAFwk::Want want;
@@ -856,8 +974,10 @@ HWTEST_F(JsUiExtensionBaseTest, ForegroundWindow_0100, TestSize.Level1)
     sessionInfo->uiExtensionComponentId = 1;
     sptr<Rosen::Window> uiwindow = new Rosen::Window();
     jueb_ptr->uiWindowMap_.emplace(sessionInfo->uiExtensionComponentId, uiwindow);
-    jueb_ptr->ForegroundWindow(want,sessionInfo);
+    jueb_ptr->ForegroundWindow(want, sessionInfo);
     EXPECT_EQ(jueb_ptr->foregroundWindows_.size(), 1);
+
+    TAG_LOGI(AAFwkTag::TEST, "ForegroundWindow_0100 end");
 }
 
 /**
@@ -867,15 +987,19 @@ HWTEST_F(JsUiExtensionBaseTest, ForegroundWindow_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, BackgroundWindow_0100, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "BackgroundWindow_0100 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     auto sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
     sessionInfo->uiExtensionComponentId = 1;
     sptr<Rosen::Window> uiwindow = new Rosen::Window();
-    jueb_ptr->uiWindowMap_.emplace( sessionInfo->uiExtensionComponentId, uiwindow);
+    jueb_ptr->uiWindowMap_.emplace(sessionInfo->uiExtensionComponentId, uiwindow);
     jueb_ptr->foregroundWindows_.insert(sessionInfo->uiExtensionComponentId);
     jueb_ptr->BackgroundWindow(sessionInfo);
     EXPECT_EQ(jueb_ptr->foregroundWindows_.size(), 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "BackgroundWindow_0100 end");
 }
 
 /**
@@ -885,6 +1009,8 @@ HWTEST_F(JsUiExtensionBaseTest, BackgroundWindow_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, DestroyWindow_0100, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "DestroyWindow_0100 start");
+
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     auto sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
@@ -902,6 +1028,8 @@ HWTEST_F(JsUiExtensionBaseTest, DestroyWindow_0100, TestSize.Level1)
     EXPECT_EQ(jueb_ptr->contentSessions_.size(), 0);
     EXPECT_EQ(jueb_ptr->foregroundWindows_.size(), 0);
     EXPECT_EQ(jueb_ptr->abilityResultListeners_->listeners_.size(), 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "DestroyWindow_0100 end");
 }
 
 } // namespace AbilityRuntime

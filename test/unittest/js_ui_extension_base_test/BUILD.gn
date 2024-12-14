@@ -34,13 +34,13 @@ ohos_unittest("js_ui_extension_base_test") {
     "${ability_runtime_path}/js_environment/interfaces/inner_api",
     "${ability_runtime_test_path}/mock/services_appmgr_test/include",
     "${ability_runtime_path}/frameworks/js/napi/inner/napi_common",
-    "${ability_runtime_path}/test/mock/frameworks_kits_runtime_test"
-
+    "${ability_runtime_path}/test/mock/frameworks_kits_runtime_test",
   ]
 
-  sources = [ "js_ui_extension_base_test.cpp",
-              "mock_iremote_object.h"
-   ]
+  sources = [
+    "js_ui_extension_base_test.cpp",
+    "mock_iremote_object.h",
+  ]
 
   configs = []
 
@@ -49,7 +49,7 @@ ohos_unittest("js_ui_extension_base_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:ui_extension",
     "${ability_runtime_native_path}/appkit:app_context",
-    "${ability_runtime_native_path}/appkit:appkit_native"
+    "${ability_runtime_native_path}/appkit:appkit_native",
   ]
 
   external_deps = [
@@ -57,16 +57,16 @@ ohos_unittest("js_ui_extension_base_test") {
     "ability_runtime:ability_manager",
     "ability_runtime:js_environment",
     "ability_runtime:runtime",
-    "eventhandler:libeventhandler",
     "c_utils:utils",
     "ets_runtime:libark_jsruntime",
+    "eventhandler:libeventhandler",
     "ffrt:libffrt",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "libuv:uv",
-    "googletest:gtest_main",
-    "googletest:gmock_main",
     "napi:ace_napi",
   ]
 }
@@ -76,3 +76,4 @@ group("unittest") {
 
   deps = [ ":js_ui_extension_base_test" ]
 }
+
