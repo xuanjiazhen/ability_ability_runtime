@@ -92,8 +92,7 @@ public:
     static napi_value NapiTrigger(napi_env env, napi_callback_info info);
     static napi_value NapiGetWantAgent(napi_env env, napi_callback_info info);
     static napi_value NapiGetOperationType(napi_env env, napi_callback_info info);
-    static napi_value WrapWantAgent(napi_env env, WantAgent *wantAgent);
-    static void UnwrapWantAgent(napi_env env, napi_value jsParam, void** result);
+    static napi_value WrapWantAgent(napi_env env, AbilityRuntime::WantAgent::WantAgent *wantAgent);
     static napi_value NapiSetWantAgentMultithreading(napi_env env, napi_callback_info info);
 
 private:
