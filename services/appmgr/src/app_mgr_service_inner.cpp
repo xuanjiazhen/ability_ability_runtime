@@ -45,6 +45,7 @@
 #include "datetime_ex.h"
 #include "distributed_data_mgr.h"
 #include "exit_resident_process_manager.h"
+#include "extension_ability_info.h"
 #include "freeze_util.h"
 #include "global_constant.h"
 #include "hilog_tag_wrapper.h"
@@ -195,7 +196,6 @@ constexpr const char* UBSAN_FLAG_NAME = "ubsanEnabled";
 constexpr const char* UIEXTENSION_ABILITY_ID = "ability.want.params.uiExtensionAbilityId";
 constexpr const char* UIEXTENSION_ROOT_HOST_PID = "ability.want.params.uiExtensionRootHostPid";
 constexpr const char* MEMMGR_PROC_NAME = "memmgrservice";
-constexpr const char* STRICT_MODE = "strictMode";
 constexpr const char* ISOLATED_SANDBOX = "isolatedSandbox";
 constexpr const char* RENDER_PROCESS_NAME = ":render";
 constexpr const char* RENDER_PROCESS_TYPE = "render";
@@ -1016,11 +1016,9 @@ void AppMgrServiceInner::LoadAbilityNoAppRecord(const std::shared_ptr<AppRunning
     if (want != nullptr) {
         (void)AbilityRuntime::StartupUtil::GetAppIndex(*want, bundleIndex);
     }
-    bool strictMode = (want == nullptr) ? false : want->GetBoolParam(STRICT_MODE, false);
-    appRecord->SetStrictMode(strictMode);
     StartProcess(abilityInfo->applicationName, processName, startFlags, appRecord,
         appInfo->uid, bundleInfo, appInfo->bundleName, bundleIndex, appExistFlag, isPreload, preloadMode,
-        abilityInfo->moduleName, abilityInfo->name, strictMode, token, want, abilityInfo->extensionAbilityType);
+        abilityInfo->moduleName, abilityInfo->name, token, want, abilityInfo->extensionAbilityType);
     if (isShellCall) {
         std::string perfCmd = (want == nullptr) ? "" : want->GetStringParam(PERF_CMD);
         bool isSandboxApp = (want == nullptr) ? false : want->GetBoolParam(ENTER_SANDBOX, false);
@@ -2667,6 +2665,7 @@ std::shared_ptr<AppRunningRecord> AppMgrServiceInner::CreateAppRunningRecord(
     }
 
     appRecord->SetProcessAndExtensionType(abilityInfo, loadParam->extensionProcessMode);
+    appRecord->SetExtensionParam(loadParam->extensionLoadParam);
     appRecord->SetKeepAliveEnableState(bundleInfo.isKeepAlive);
     appRecord->SetKeepAliveDkv(loadParam->isKeepAlive);
     appRecord->SetEmptyKeepAliveAppState(false);
@@ -3442,7 +3441,14 @@ int32_t AppMgrServiceInner::CreatNewStartMsg(const Want &want, const AbilityInfo
     uint32_t startFlags = AppspawnUtil::BuildStartFlags(want, abilityInfo);
     auto uid = appInfo->uid;
     auto bundleType = appInfo->bundleType;
-    auto ret = CreateStartMsg(processName, startFlags, uid, bundleInfo, appIndex, bundleType, startMsg, nullptr);
+    CreateStartMsgParam startMsgParam;
+    startMsgParam.processName = processName;
+    startMsgParam.startFlags = startFlags;
+    startMsgParam.uid = uid;
+    startMsgParam.bundleInfo = bundleInfo;
+    startMsgParam.bundleIndex = appIndex;
+    startMsgParam.bundleType = bundleType;
+    auto ret = CreateStartMsg(startMsg, startMsgParam);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "createStartMsg fail");
     }
@@ -3508,9 +3514,7 @@ void AppMgrServiceInner::SetAppInfo(const BundleInfo &bundleInfo, AppSpawnStartM
     SetAppEnvInfo(bundleInfo, startMsg);
 }
 
-int32_t AppMgrServiceInner::CreateStartMsg(const std::string &processName, uint32_t startFlags, const int uid,
-    const BundleInfo &bundleInfo, const int32_t bundleIndex, BundleType bundleType, AppSpawnStartMsg &startMsg,
-    std::shared_ptr<AAFwk::Want> want, const std::string &moduleName, const std::string &abilityName, bool strictMode)
+int32_t AppMgrServiceInner::CreateStartMsg(AppSpawnStartMsg &startMsg, const CreateStartMsgParam &param)
 {
     if (!remoteClientManager_ || !otherTaskHandler_) {
         TAG_LOGE(AAFwkTag::APPMGR, "remoteClientManager or otherTaskHandler null");
@@ -3523,6 +3527,7 @@ int32_t AppMgrServiceInner::CreateStartMsg(const std::string &processName, uint3
         return ERR_NO_INIT;
     }
 
+    auto &bundleInfo = param.bundleInfo;
     AAFwk::AutoSyncTaskHandle autoSync(otherTaskHandler_->SubmitTask([&]() {
         AddMountPermission(bundleInfo.applicationInfo.accessTokenId, startMsg.permissions);
         }, AAFwk::TaskAttribute{
@@ -3539,25 +3544,33 @@ int32_t AppMgrServiceInner::CreateStartMsg(const std::string &processName, uint3
     }
     startMsg.hspList = hspList;
 
-    auto userId = GetUserIdByUid(uid);
+    auto userId = GetUserIdByUid(param.uid);
     DataGroupInfoList dataGroupInfoList;
     bool result = bundleMgrHelper->QueryDataGroupInfos(bundleInfo.name, userId, dataGroupInfoList);
     if (!result || dataGroupInfoList.empty()) {
         TAG_LOGD(AAFwkTag::APPMGR, "the bundle has no groupInfos.");
     }
-    QueryExtensionSandBox(moduleName, abilityName, bundleInfo, startMsg, dataGroupInfoList, strictMode, want);
+    QueryExtensionSandBox(param.moduleName, param.abilityName, bundleInfo, startMsg, dataGroupInfoList, param.want);
+    startMsg.strictMode = param.strictMode;
     startMsg.bundleName = bundleInfo.name;
     startMsg.renderParam = RENDER_PARAM;
-    startMsg.flags = startFlags;
-    startMsg.bundleIndex = bundleIndex;
-    startMsg.procName = processName;
+    startMsg.flags = param.startFlags;
+    startMsg.bundleIndex = param.bundleIndex;
+    startMsg.procName = param.processName;
+    if (param.extensionAbilityType == ExtensionAbilityType::INPUTMETHOD) {
+        startMsg.isolatedSandboxFlagLegacy = true;
+    } else {
+        startMsg.isolatedNetworkFlag = !param.extensionParam.networkEnableFlags;
+        startMsg.isolatedSELinuxFlag = !param.extensionParam.saEnableFlags;
+        startMsg.extensionTypeName = ConvertToExtensionTypeName(param.extensionAbilityType);
+    }
 
-    SetAtomicServiceInfo(bundleType, startMsg);
+    SetAtomicServiceInfo(param.bundleType, startMsg);
     SetOverlayInfo(bundleInfo.name, userId, startMsg);
     SetAppInfo(bundleInfo, startMsg);
     AppspawnUtil::SetJITPermissions(bundleInfo.applicationInfo.accessTokenId, startMsg.jitPermissionsList);
     TAG_LOGI(AAFwkTag::APPMGR, "apl: %{public}s, bundleName: %{public}s, startFlags: %{public}d, userId: %{public}d",
-        startMsg.apl.c_str(), bundleInfo.name.c_str(), startFlags, userId);
+        startMsg.apl.c_str(), bundleInfo.name.c_str(), param.startFlags, userId);
 
     autoSync.Sync();
     return ERR_OK;
@@ -3574,7 +3587,7 @@ void AppMgrServiceInner::PresetMaxChildProcess(std::shared_ptr<AppRunningRecord>
 }
 
 void AppMgrServiceInner::QueryExtensionSandBox(const std::string &moduleName, const std::string &abilityName,
-    const BundleInfo &bundleInfo, AppSpawnStartMsg &startMsg, DataGroupInfoList &dataGroupInfoList, bool strictMode,
+    const BundleInfo &bundleInfo, AppSpawnStartMsg &startMsg, DataGroupInfoList &dataGroupInfoList,
     std::shared_ptr<AAFwk::Want> want)
 {
     std::vector<ExtensionAbilityInfo> extensionInfos;
@@ -3582,13 +3595,12 @@ void AppMgrServiceInner::QueryExtensionSandBox(const std::string &moduleName, co
         extensionInfos.insert(extensionInfos.end(), hapModuleInfo.extensionInfos.begin(),
             hapModuleInfo.extensionInfos.end());
     }
-    startMsg.strictMode = strictMode;
     auto isExist = (want == nullptr) ? false : want->HasParameter(ISOLATED_SANDBOX);
     bool isolatedSandbox = false;
     if (isExist) {
         isolatedSandbox = (want == nullptr) ? false : want->GetBoolParam(ISOLATED_SANDBOX, false);
     }
-    auto infoExisted = [&moduleName, &abilityName, &strictMode, &isExist, &isolatedSandbox](
+    auto infoExisted = [&moduleName, &abilityName, &isExist, &isolatedSandbox](
                            const ExtensionAbilityInfo &info) {
         auto ret = info.moduleName == moduleName && info.name == abilityName && info.needCreateSandbox;
         if (isExist) {
@@ -3620,8 +3632,7 @@ void AppMgrServiceInner::StartProcess(const std::string &appName, const std::str
     std::shared_ptr<AppRunningRecord> appRecord, const int uid, const BundleInfo &bundleInfo,
     const std::string &bundleName, const int32_t bundleIndex, bool appExistFlag, bool isPreload,
     AppExecFwk::PreloadMode preloadMode, const std::string &moduleName, const std::string &abilityName,
-    bool strictMode, sptr<IRemoteObject> token, std::shared_ptr<AAFwk::Want> want,
-    ExtensionAbilityType ExtensionAbilityType)
+    sptr<IRemoteObject> token, std::shared_ptr<AAFwk::Want> want, ExtensionAbilityType extensionAbilityType)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR, "bundleName: %{public}s, isPreload: %{public}d", bundleName.c_str(), isPreload);
@@ -3644,8 +3655,20 @@ void AppMgrServiceInner::StartProcess(const std::string &appName, const std::str
     auto appInfo = appRecord->GetApplicationInfo();
     auto bundleType = appInfo ? appInfo->bundleType : BundleType::APP;
     PresetMaxChildProcess(appRecord, startMsg.maxChildProcess);
-    auto ret = CreateStartMsg(processName, startFlags, uid, bundleInfo, bundleIndex, bundleType, startMsg, want,
-        moduleName, abilityName, strictMode);
+    CreateStartMsgParam startMsgParam;
+    startMsgParam.processName = processName;
+    startMsgParam.startFlags = startFlags;
+    startMsgParam.uid = uid;
+    startMsgParam.bundleInfo = bundleInfo;
+    startMsgParam.bundleIndex = bundleIndex;
+    startMsgParam.bundleType = bundleType;
+    startMsgParam.want = want;
+    startMsgParam.moduleName = moduleName;
+    startMsgParam.abilityName = abilityName;
+    startMsgParam.strictMode = appRecord->GetExtensionParam().strictMode;
+    startMsgParam.extensionAbilityType = extensionAbilityType;
+    startMsgParam.extensionParam = appRecord->GetExtensionParam();
+    auto ret = CreateStartMsg(startMsg, startMsgParam);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "createStartMsg fail");
         appRunningManager_->RemoveAppRunningRecordById(appRecord->GetRecordId());
@@ -3699,7 +3722,7 @@ void AppMgrServiceInner::StartProcess(const std::string &appName, const std::str
     appRecord->SetStartMsg(startMsg);
     appRecord->SetAppMgrServiceInner(weak_from_this());
     appRecord->SetSpawned();
-    if (AAFwk::UIExtensionUtils::IsUIExtension(ExtensionAbilityType)) {
+    if (AAFwk::UIExtensionUtils::IsUIExtension(extensionAbilityType)) {
         TAG_LOGD(AAFwkTag::APPMGR, "Add UIExtension LauncherItem.");
         AddUIExtensionLauncherItem(want, appRecord, token);
     }
