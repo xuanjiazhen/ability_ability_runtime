@@ -76,4 +76,3 @@ group("unittest") {
 
   deps = [ ":js_ui_extension_base_test" ]
 }
-

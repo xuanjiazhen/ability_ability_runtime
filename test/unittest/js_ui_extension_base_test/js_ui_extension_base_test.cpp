@@ -124,7 +124,6 @@ public:
     MOCK_METHOD0(SetDeleteSelf, void());
     MOCK_METHOD0(GetRefCount, uint32_t());
     MOCK_METHOD0(GetFinalRun, bool());
-
     NativeEngine* create_engine()
     {
         void* jsEngine = new int(1);
@@ -138,7 +137,6 @@ public:
         NativeEngine *engine = new MockArkNativeEngine(vm, jsEngine);
         return engine;
     }
-
     napi_env create_env()
     {
         NativeEngine* engine = NativeReferenceMock().create_engine();
@@ -252,7 +250,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnStart_0100, TestSize.Level1)
     want.operation_.moduleName_ = TEST_MODULENAME;
     want.operation_.deviceId_ = TEST_DEVICEID;
     jueb_ptr->OnStart(want, launchParam, sessionInfo);
-    EXPECT_EQ(launchParam.launchReason, AAFwk::LaunchReason::LAUNCHREASON_INSIGHT_INTENT);
+    EXPECT_EQ(launchParam.launchReason, 9);
 
     TAG_LOGI(AAFwkTag::TEST, "OnStart_0100 end");
 }
@@ -731,7 +729,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnForeground_0100, TestSize.Level1)
     std::unique_ptr<JsRuntime> rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     AAFwk::Want want;
-    want.parameters_.params_.emplace(INSIGHT_INTENT_EXECUTE_PARAM_NAME, nullptr);
+    want.parameters_.params_.emplace("ohos.insightIntent.executeParam.name", nullptr);
     sptr<AAFwk::SessionInfo> sessionInfo = new AAFwk::SessionInfo();
     sessionInfo->uiExtensionComponentId = 1;
     sptr<Rosen::Window> uiwindow = new Rosen::Window();
