@@ -21,23 +21,24 @@
 #include "js_environment.h"
 #undef private
 #undef protected
+
+#include "ability_handler.h"
+#include "ability_local_record.h"
 #include "ark_native_engine.h"
-#include "mock_iremote_object.h"
 #include "context.h"
 #include "context_impl.h"
-#include "napi_common_util.h"
-#include "ability_handler.h"
+#include "element_name.h"
 #include "js_runtime.h"
 #include "js_runtime_lite.h"
-#include "ability_local_record.h"
 #include "mock_ability_token.h"
-#include "ohos_application.h"
-#include "window.h"
-#include "window_option.h"
-#include "want_params.h"
+#include "mock_iremote_object.h"
 #include "mock_runtime.h"
-#include "element_name.h"
+#include "napi_common_util.h"
+#include "ohos_application.h"
 #include "operation.h"
+#include "window.h"
+#include "want_params.h"
+#include "window_option.h"
 
 #include <memory>
 
