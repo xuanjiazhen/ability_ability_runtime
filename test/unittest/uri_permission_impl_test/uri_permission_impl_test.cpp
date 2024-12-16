@@ -886,5 +886,133 @@ HWTEST_F(UriPermissionImplTest, CheckUriAuthorization_005, TestSize.Level1)
     std::vector<bool> expectRes(1, true);
     EXPECT_EQ(res, expectRes);
 }
+
+
+/*
+ * Feature: UriPermissionManagerStubImpl
+ * Function: ClearAllContentUriPermissionsTest
+ * SubFunction: NA
+ * FunctionPoints: Clear all content uri permission, caller is denied.
+*/
+HWTEST_F(UriPermissionImplTest, UPMS_ClearAllContentUriPermissionsTest_001, TestSize.Level1)
+{
+    auto upms = std::make_unique<UriPermissionManagerStubImpl>();
+    ASSERT_NE(upms, nullptr);
+    IPCSkeleton::callerUId = 0;
+    auto ret = upms->ClearAllContentUriPermissions();
+    EXPECT_EQ(ret, CHECK_PERMISSION_FAILED);
+}
+
+/*
+ * Feature: UriPermissionManagerStubImpl
+ * Function: ClearAllContentUriPermissionsTest
+ * SubFunction: NA
+ * FunctionPoints: Clear all content uri permission by broker.
+*/
+HWTEST_F(UriPermissionImplTest, UPMS_ClearAllContentUriPermissionsTest_002, TestSize.Level1)
+{
+    auto upms = std::make_unique<UriPermissionManagerStubImpl>();
+    ASSERT_NE(upms, nullptr);
+    uint32_t callerTokenId = 1001;
+    uint32_t targetTokenId = 1002;
+    std::string uri1 = "content://texmp_001.txt";
+    std::string uri2 = "content://texmp_002.txt";
+    upms->AddTempUriPermission(uri1, 1, callerTokenId, targetTokenId);
+    upms->AddTempUriPermission(uri2, 1, callerTokenId, targetTokenId);
+
+    // broker call
+    IPCSkeleton::callerUId = BROKER_UID;
+    auto ret = upms->ClearAllContentUriPermissions();
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(upms->uriMap_.empty(), true);
+}
+
+/*
+ * Feature: UriPermissionManagerStubImpl
+ * Function: ClearAllContentUriPermissionsTest
+ * SubFunction: NA
+ * FunctionPoints: Clear all content uri permission by broker, file uri can't ber remove.
+*/
+HWTEST_F(UriPermissionImplTest, UPMS_ClearAllContentUriPermissionsTest_003, TestSize.Level1)
+{
+    auto upms = std::make_unique<UriPermissionManagerStubImpl>();
+    ASSERT_NE(upms, nullptr);
+    uint32_t callerTokenId = 1001;
+    uint32_t targetTokenId = 1002;
+    std::string uri = "file://texmp_001.txt";
+    upms->AddTempUriPermission(uri, 1, callerTokenId, targetTokenId);
+
+    // broker call
+    IPCSkeleton::callerUId = BROKER_UID;
+    auto ret = upms->ClearAllContentUriPermissions();
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(upms->uriMap_.empty(), false);
+}
+
+/*
+ * Feature: UriPermissionManagerStubImpl
+ * Function: RevokeContentUriPermissions
+ * SubFunction: NA
+ * FunctionPoints: Revoke content uri permission, caller is denied.
+*/
+HWTEST_F(UriPermissionImplTest, UPMS_RevokeContentUriPermissions_001, TestSize.Level1)
+{
+    auto upms = std::make_unique<UriPermissionManagerStubImpl>();
+    ASSERT_NE(upms, nullptr);
+    IPCSkeleton::callerUId = 0;
+    std::string uri = "file://texmp_001.txt";
+    std::vector<std::string> uris = { uri };
+    auto ret = upms->RevokeContentUriPermissions(uris);
+    EXPECT_EQ(ret, CHECK_PERMISSION_FAILED);
+}
+
+/*
+ * Feature: UriPermissionManagerStubImpl
+ * Function: RevokeContentUriPermissions
+ * SubFunction: NA
+ * FunctionPoints: Revoke content uri permission, file uri can't ber remove.
+*/
+HWTEST_F(UriPermissionImplTest, UPMS_RevokeContentUriPermissions_002, TestSize.Level1)
+{
+    auto upms = std::make_unique<UriPermissionManagerStubImpl>();
+    ASSERT_NE(upms, nullptr);
+    uint32_t callerTokenId = 1001;
+    uint32_t targetTokenId = 1002;
+    std::string uri1 = "content://texmp_001.txt";
+    std::string uri2 = "content://texmp_002.txt";
+    upms->AddTempUriPermission(uri1, 1, callerTokenId, targetTokenId);
+    upms->AddTempUriPermission(uri2, 1, callerTokenId, targetTokenId);
+
+    // broker call
+    IPCSkeleton::callerUId = BROKER_UID;
+    std::vector<std::string> uris = { uri1, uri2 };
+    auto ret = upms->RevokeContentUriPermissions(uris);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(upms->uriMap_.empty(), true);
+}
+
+/*
+ * Feature: UriPermissionManagerStubImpl
+ * Function: RevokeContentUriPermissions
+ * SubFunction: NA
+ * FunctionPoints: Revoke content uri permission, file uri can't ber remove.
+*/
+HWTEST_F(UriPermissionImplTest, UPMS_RevokeContentUriPermissions_003, TestSize.Level1)
+{
+    auto upms = std::make_unique<UriPermissionManagerStubImpl>();
+    ASSERT_NE(upms, nullptr);
+    uint32_t callerTokenId = 1001;
+    uint32_t targetTokenId = 1002;
+    std::string uri = "file://texmp_001.txt";
+    upms->AddTempUriPermission(uri, 1, callerTokenId, targetTokenId);
+
+    // broker call
+    IPCSkeleton::callerUId = BROKER_UID;
+    std::vector<std::string> uris = { uri };
+    auto ret = upms->RevokeContentUriPermissions(uris);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(upms->uriMap_.empty(), false);
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS

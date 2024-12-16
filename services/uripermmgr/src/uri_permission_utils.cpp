@@ -32,6 +32,7 @@ namespace {
 constexpr int32_t DEFAULT_USER_ID = 0;
 constexpr int32_t API_VERSION_MOD = 100;
 constexpr int32_t FOUNDATION_UID = 5523;
+constexpr int32_t BROKER_UID = 5557;
 constexpr const char* NET_WORK_ID_MARK = "?networkid=";
 }
 
@@ -119,6 +120,11 @@ int32_t UPMSUtils::GetCurrentAccountId()
         return DEFAULT_USER_ID;
     }
     return osActiveAccountIds.front();
+}
+
+bool UPMSUtils::IsBrokerCall()
+{
+    return IPCSkeleton::GetCallingUid() == BROKER_UID;
 }
 
 bool UPMSUtils::IsFoundationCall()

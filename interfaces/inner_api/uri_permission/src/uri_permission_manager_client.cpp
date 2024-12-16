@@ -254,5 +254,28 @@ int32_t UriPermissionManagerClient::Active(const std::vector<PolicyInfo> &policy
     return INNER_ERR;
 }
 #endif // ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
+
+int32_t UriPermissionManagerClient::RevokeContentUriPermissions(const std::vector<std::string> &uriVec)
+{
+    TAG_LOGD(AAFwkTag::URIPERMMGR, "call");
+    if (uriVec.empty() || uriVec.size() > MAX_URI_COUNT) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "uriVec empty or exceed maxSize %{public}d", MAX_URI_COUNT);
+        return ERR_URI_LIST_OUT_OF_RANGE;
+    }
+    auto uriPermMgr = ConnectUriPermService();
+    if (uriPermMgr) {
+        return uriPermMgr->RevokeContentUriPermissions(uriVec);
+    }
+    return INNER_ERR;
+}
+
+int32_t UriPermissionManagerClient::ClearAllContentUriPermissions()
+{
+    auto uriPermMgr = ConnectUriPermService();
+    if (uriPermMgr) {
+        return uriPermMgr->ClearAllContentUriPermissions();
+    }
+    return INNER_ERR;
+}
 }  // namespace AAFwk
 }  // namespace OHOS

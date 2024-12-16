@@ -109,6 +109,18 @@ public:
 
     virtual int32_t ClearPermissionTokenByMap(uint32_t tokenId) = 0;
 
+    /**
+     * @brief revoke content uri permissions.
+     *
+     * @param uriVec The content uri, size should be no more then 500.
+     */
+    virtual int32_t RevokeContentUriPermissions(const std::vector<std::string> &uriVec) = 0;
+    
+    /**
+     * @brief clear all content uri permissions.
+     */
+    virtual int32_t ClearAllContentUriPermissions() = 0;
+
 #ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
     virtual int32_t Active(const std::vector<PolicyInfo> &policy, std::vector<uint32_t> &result) = 0;
 #endif // ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
@@ -137,6 +149,13 @@ public:
 
         //ipc id for ClearPermissionTokenByMap
         ON_CLEAR_PERMISSION_TOKEN_BY_MAP,
+        
+        //ipc id for RevokeContentUriPermissions
+        ON_REVOKE_CONTENT_URI_PERMISSIONS,
+
+        //ipc id for ClearAllContenUriPermissions
+        ON_CLEAR_ALL_CONTENT_URI_PERMISSIONS,
+
 #ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
         //ipc id for Active
         ON_ACTIVE,

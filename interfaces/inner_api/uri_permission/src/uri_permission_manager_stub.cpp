@@ -56,6 +56,12 @@ int UriPermissionManagerStub::OnRemoteRequest(
         case UriPermMgrCmd::ON_CLEAR_PERMISSION_TOKEN_BY_MAP : {
             return HandleClearPermissionTokenByMap(data, reply);
         }
+        case UriPermMgrCmd::ON_REVOKE_CONTENT_URI_PERMISSIONS : {
+            return HandleRevokeContentUriPermissions(data, reply);
+        }
+        case UriPermMgrCmd::ON_CLEAR_ALL_CONTENT_URI_PERMISSIONS : {
+            return HandleClearAllContentUriPermissions(data, reply);
+        }
 #ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
         case UriPermMgrCmd::ON_ACTIVE : {
             return HandleActive(data, reply);
@@ -229,5 +235,35 @@ int UriPermissionManagerStub::HandleActive(MessageParcel &data, MessageParcel &r
     return res;
 }
 #endif // ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
+
+int32_t UriPermissionManagerStub::HandleRevokeContentUriPermissions(MessageParcel &data, MessageParcel &reply)
+{
+    auto size = data.ReadUint32();
+    if (size == 0 || size > MAX_URI_COUNT) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "uriVec empty or exceed maxSize %{public}d", MAX_URI_COUNT);
+        return ERR_URI_LIST_OUT_OF_RANGE;
+    }
+    std::vector<std::string> uriVec;
+    for (uint32_t i = 0; i < size; i++) {
+        auto uri = data.ReadString();
+        uriVec.emplace_back(uri);
+    }
+    auto result = RevokeContentUriPermissions(uriVec);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "Write res failed");
+        return ERR_DEAD_OBJECT;
+    }
+    return ERR_OK;
+}
+
+int32_t UriPermissionManagerStub::HandleClearAllContentUriPermissions(MessageParcel &data, MessageParcel &reply)
+{
+    auto result = ClearAllContentUriPermissions();
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "Write res failed");
+        return ERR_DEAD_OBJECT;
+    }
+    return ERR_OK;
+}
 }  // namespace AAFwk
 }  // namespace OHOS
