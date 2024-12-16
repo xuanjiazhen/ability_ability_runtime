@@ -72,7 +72,6 @@ constexpr const char* FROZEN_WHITE_DIALOG = "com.huawei.hmos.huaweicast";
 constexpr char BUNDLE_NAME_DIALOG[] = "com.ohos.amsdialog";
 constexpr char ABILITY_NAME_ASSERT_FAULT_DIALOG[] = "AssertFaultDialog";
 constexpr const char* WANT_PARAMS_APP_RESTART_FLAG = "ohos.aafwk.app.restart";
-constexpr const char* STRICT_MODE = "strictMode";
 
 constexpr uint32_t PROCESS_MODE_RUN_WITH_MAIN_PROCESS =
     1 << static_cast<uint32_t>(AppExecFwk::ExtensionProcessMode::RUN_WITH_MAIN_PROCESS);
@@ -1488,14 +1487,14 @@ bool AbilityConnectManager::IsStrictMode(std::shared_ptr<AbilityRecord> abilityR
 {
     CHECK_POINTER_AND_RETURN(abilityRecord, false);
     const auto &want = abilityRecord->GetWant();
-    bool strictMode = want.GetBoolParam(STRICT_MODE, false);
+    bool strictMode = want.GetBoolParam(OHOS::AAFwk::STRICT_MODE, false);
     if (abilityRecord->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::INPUTMETHOD) {
         return strictMode;
     }
     if (!NeedExtensionControl(abilityRecord)) {
         return false;
     }
-    if (!want.HasParameter(STRICT_MODE)) {
+    if (!want.HasParameter(OHOS::AAFwk::STRICT_MODE)) {
         return true;
     }
     return strictMode;

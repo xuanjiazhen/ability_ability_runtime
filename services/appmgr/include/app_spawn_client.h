@@ -29,7 +29,6 @@
 #include "bundle_info.h"
 #include "child_process_info.h"
 #include "data_group_info.h"
-#include "extension_load_param.h"
 #include "nocopyable.h"
 #include "shared/base_shared_bundle_info.h"
 
@@ -120,7 +119,8 @@ struct CreateStartMsgParam {
     std::string abilityName;
     std::string processName;
     bool strictMode = false;
-    AbilityRuntime::ExtensionLoadParam extensionParam;
+    bool networkEnableFlags = true;
+    bool saEnableFlags = true;
     ExtensionAbilityType extensionAbilityType;
 };
 

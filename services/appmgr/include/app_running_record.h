@@ -36,7 +36,6 @@
 #include "app_scheduler_proxy.h"
 #include "app_record_id.h"
 #include "child_process_record.h"
-#include "extension_load_param.h"
 #include "fault_data.h"
 #include "fd_guard.h"
 #include "profile.h"
@@ -956,14 +955,33 @@ public:
     pid_t GetGPUPid();
     pid_t GetPid();
     
-    void SetExtensionParam(AbilityRuntime::ExtensionLoadParam extensionParam)
+    inline void SetStrictMode(bool strictMode)
     {
-        extensionParam_ = extensionParam;
+        isStrictMode_ = strictMode;
     }
 
-    AbilityRuntime::ExtensionLoadParam GetExtensionParam()
+    inline bool IsStrictMode()
     {
-        return extensionParam_;
+        return isStrictMode_;
+    }
+
+    inline void SetNetworkEnableFlags(bool enable) {
+        networkEnableFlags_ = enable;
+    }
+
+    inline bool GetNetworkEnableFlags()
+    {
+        return networkEnableFlags_;
+    }
+
+    inline void SetSAEnableFlags(bool enable)
+    {
+        saEnableFlags_ = enable;
+    }
+
+    inline bool GetSAEnableFlags()
+    {
+        return saEnableFlags_;
     }
 
     inline void SetIsDependedOnArkWeb(bool isDepend)
@@ -1202,7 +1220,8 @@ private:
     bool isGPU_ = false;
     pid_t gpuPid_ = 0;
     bool isStrictMode_ = false;
-    AbilityRuntime::ExtensionLoadParam extensionParam_;
+    bool networkEnableFlags_ = true;
+    bool saEnableFlags_ = true;
     bool isAttachedToStatusBar = false;
     bool isDependedOnArkWeb_ = false;
     bool isUserRequestCleaning_ = false;

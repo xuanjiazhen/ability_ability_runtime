@@ -2665,7 +2665,9 @@ std::shared_ptr<AppRunningRecord> AppMgrServiceInner::CreateAppRunningRecord(
     }
 
     appRecord->SetProcessAndExtensionType(abilityInfo, loadParam->extensionProcessMode);
-    appRecord->SetExtensionParam(loadParam->extensionLoadParam);
+    appRecord->SetStrictMode(loadParam->extensionLoadParam.strictMode);
+    appRecord->SetNetworkEnableFlags(loadParam->extensionLoadParam.networkEnableFlags);
+    appRecord->SetSAEnableFlags(loadParam->extensionLoadParam.saEnableFlags);
     appRecord->SetKeepAliveEnableState(bundleInfo.isKeepAlive);
     appRecord->SetKeepAliveDkv(loadParam->isKeepAlive);
     appRecord->SetEmptyKeepAliveAppState(false);
@@ -3560,8 +3562,8 @@ int32_t AppMgrServiceInner::CreateStartMsg(AppSpawnStartMsg &startMsg, const Cre
     if (param.extensionAbilityType == ExtensionAbilityType::INPUTMETHOD) {
         startMsg.isolatedSandboxFlagLegacy = true;
     } else {
-        startMsg.isolatedNetworkFlag = !param.extensionParam.networkEnableFlags;
-        startMsg.isolatedSELinuxFlag = !param.extensionParam.saEnableFlags;
+        startMsg.isolatedNetworkFlag = !param.networkEnableFlags;
+        startMsg.isolatedSELinuxFlag = !param.saEnableFlags;
         startMsg.extensionTypeName = ConvertToExtensionTypeName(param.extensionAbilityType);
     }
 
@@ -3665,9 +3667,10 @@ void AppMgrServiceInner::StartProcess(const std::string &appName, const std::str
     startMsgParam.want = want;
     startMsgParam.moduleName = moduleName;
     startMsgParam.abilityName = abilityName;
-    startMsgParam.strictMode = appRecord->GetExtensionParam().strictMode;
+    startMsgParam.strictMode = appRecord->IsStrictMode();
+    startMsgParam.networkEnableFlags = appRecord->GetNetworkEnableFlags();
+    startMsgParam.saEnableFlags = appRecord->GetSAEnableFlags();
     startMsgParam.extensionAbilityType = extensionAbilityType;
-    startMsgParam.extensionParam = appRecord->GetExtensionParam();
     auto ret = CreateStartMsg(startMsg, startMsgParam);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "createStartMsg fail");
