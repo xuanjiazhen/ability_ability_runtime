@@ -203,13 +203,16 @@ bool JsInsightIntentExecutor::CallJsFunctionWithResult(
         TAG_LOGE(AAFwkTag::INTENT, "null method");
         return false;
     }
-    napi_call_function(
+    napi_status status = napi_call_function(
         env,
         obj,
         method,
         argc,
         argv,
         &result);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::INTENT, "call js func failed: %{public}d", status);
+    }
     return true;
 }
 
@@ -344,7 +347,7 @@ bool JsInsightIntentExecutor::HandleResultReturnedFromJsFunc(napi_value resultJs
             ResolveCbCpp, callback, &resolveCbJs);
         constexpr size_t argcThen = 1;
         napi_value argvThen[argcThen] = { resolveCbJs };
-        napi_call_function(env, resultJs, then, argcThen, argvThen, nullptr);
+        napi_status status = napi_call_function(env, resultJs, then, argcThen, argvThen, nullptr);
 
         napi_value promiseCatch = nullptr;
         napi_get_named_property(env, resultJs, "catch", &promiseCatch);
@@ -353,7 +356,10 @@ bool JsInsightIntentExecutor::HandleResultReturnedFromJsFunc(napi_value resultJs
             RejectCbCpp, callback, &rejectCbJs);
         constexpr size_t argcCatch = 1;
         napi_value argvCatch[argcCatch] = { rejectCbJs };
-        napi_call_function(env, resultJs, promiseCatch, argcCatch, argvCatch, nullptr);
+        status = napi_call_function(env, resultJs, promiseCatch, argcCatch, argvCatch, nullptr);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::INTENT, "call js func failed: %{public}d", status);
+        }
     } else {
         TAG_LOGI(AAFwkTag::INTENT, "Not promise");
         auto resultCpp = JsInsightIntentExecutor::GetResultFromJs(env, resultJs);

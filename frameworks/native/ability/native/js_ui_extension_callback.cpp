@@ -173,7 +173,10 @@ void JsUIExtensionCallback::CallJsResult(int32_t resultCode, const AAFwk::Want &
     }
 
     napi_value argv[] = { abilityResult };
-    napi_call_function(env_, obj, method, ArraySize(argv), argv, nullptr);
+    napi_status status = napi_call_function(env_, obj, method, ArraySize(argv), argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "call js func failed: %{public}d", status);
+    }
     TAG_LOGI(AAFwkTag::UI_EXT, "end");
 }
 
@@ -224,7 +227,10 @@ void JsUIExtensionCallback::CallJsError(int32_t number)
     }
 
     napi_value argv[] = { nativeNumber, nativeName, nativeMessage };
-    napi_call_function(env_, obj, method, ArraySize(argv), argv, nullptr);
+    napi_status status = napi_call_function(env_, obj, method, ArraySize(argv), argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "call js func failed: %{public}d", status);
+    }
     TAG_LOGI(AAFwkTag::UI_EXT, "end");
 }
 }  // namespace AbilityRuntime

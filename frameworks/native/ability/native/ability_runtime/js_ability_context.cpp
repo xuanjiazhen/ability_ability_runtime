@@ -1934,7 +1934,10 @@ void JsAbilityContext::ConfigurationUpdated(napi_env env, std::shared_ptr<Native
     }
 
     napi_value argv[] = {CreateJsConfiguration(env, *config)};
-    napi_call_function(env, object, method, ARGC_ONE, argv, nullptr);
+    napi_status status = napi_call_function(env, object, method, ARGC_ONE, argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "call js func failed: %{public}d", status);
+    }
 }
 
 void JsAbilityContext::AddFreeInstallObserver(napi_env env, const AAFwk::Want &want, napi_value callback,
@@ -2303,7 +2306,10 @@ void JSAbilityConnection::CallJsFailed(int32_t errorCode)
     }
 
     napi_value argv[] = {CreateJsValue(env_, errorCode)};
-    napi_call_function(env_, obj, method, ARGC_ONE, argv, nullptr);
+    napi_status status = napi_call_function(env_, obj, method, ARGC_ONE, argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "call js func failed: %{public}d", status);
+    }
     TAG_LOGD(AAFwkTag::CONTEXT, "end");
 }
 
@@ -2329,7 +2335,10 @@ napi_value JSAbilityConnection::CallObjectMethod(const char* name, napi_value co
         return nullptr;
     }
     napi_value result = nullptr;
-    napi_call_function(env_, obj, method, argc, argv, &result);
+    napi_status status = napi_call_function(env_, obj, method, argc, argv, &result);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "call js func failed: %{public}d", status);
+    }
     TAG_LOGD(AAFwkTag::CONTEXT, "callFunction(%{public}s) ok", name);
     return result;
 }

@@ -1243,7 +1243,10 @@ int32_t JsUIAbility::OnSaveState(int32_t reason, WantParams &wantParams)
     napi_value jsReason = CreateJsValue(env, reason);
     napi_value args[] = { jsReason, jsWantParams };
     napi_value result = nullptr;
-    napi_call_function(env, obj, methodOnSaveState, 2, args, &result); // 2:args size
+    napi_status status = napi_call_function(env, obj, methodOnSaveState, 2, args, &result); // 2:args size
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "call js func failed: %{public}d", status);
+    }
     OHOS::AppExecFwk::UnwrapWantParams(env, jsWantParams, wantParams);
 
     int32_t numberResult = 0;
@@ -1416,7 +1419,10 @@ sptr<IRemoteObject> JsUIAbility::CallRequest()
     }
 
     napi_value remoteJsObj = nullptr;
-    napi_call_function(env, obj, method, 0, nullptr, &remoteJsObj);
+    napi_status status = napi_call_function(env, obj, method, 0, nullptr, &remoteJsObj);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "call js func failed: %{public}d", status);
+    }
     if (remoteJsObj == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null remoteJsObj");
         return nullptr;
@@ -1520,7 +1526,10 @@ bool JsUIAbility::CallPromise(napi_value result, AppExecFwk::AbilityTransactionC
     napi_create_function(env, "promiseCallback", strlen("promiseCallback"), PromiseCallback,
         callbackInfo, &promiseCallback);
     napi_value argv[1] = { promiseCallback };
-    napi_call_function(env, result, then, 1, argv, nullptr);
+    napi_status status = napi_call_function(env, result, then, 1, argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "call js func failed: %{public}d", status);
+    }
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
     return true;
 }
@@ -1550,7 +1559,10 @@ bool JsUIAbility::CallPromise(napi_value result, AppExecFwk::AbilityTransactionC
     napi_create_function(env, nullptr, NAPI_AUTO_LENGTH, OnContinuePromiseCallback,
         callbackInfo, &promiseCallback);
     napi_value argv[2] = { promiseCallback, promiseCallback };
-    napi_call_function(env, result, then, PROMISE_CALLBACK_PARAM_NUM, argv, nullptr);
+    napi_status status = napi_call_function(env, result, then, PROMISE_CALLBACK_PARAM_NUM, argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "call js func failed: %{public}d", status);
+    }
     TAG_LOGI(AAFwkTag::UIABILITY, "end");
     return true;
 }
@@ -1654,7 +1666,10 @@ sptr<IRemoteObject> JsUIAbility::SetNewRuleFlagToCallee(napi_env env, napi_value
     }
     auto flag = CreateJsValue(env, IsUseNewStartUpRule());
     napi_value argv[1] = { flag };
-    napi_call_function(env, remoteJsObj, setFlagMethod, 1, argv, nullptr);
+    napi_status status = napi_call_function(env, remoteJsObj, setFlagMethod, 1, argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "call js func failed: %{public}d", status);
+    }
 
     auto remoteObj = NAPI_ohos_rpc_getNativeRemoteObject(env, remoteJsObj);
     if (remoteObj == nullptr) {

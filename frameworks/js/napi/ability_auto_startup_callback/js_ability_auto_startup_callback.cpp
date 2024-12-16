@@ -124,7 +124,10 @@ void JsAbilityAutoStartupCallBack::JSCallFunctionWorker(const AutoStartupInfo &i
         }
 
         napi_value argv[] = { CreateJsAutoStartupInfo(env_, info) };
-        napi_call_function(env_, obj, funcObject, ArraySize(argv), argv, nullptr);
+        napi_status status = napi_call_function(env_, obj, funcObject, ArraySize(argv), argv, nullptr);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "call js func failed: %{public}d", status);
+        }
     }
 }
 

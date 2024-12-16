@@ -204,7 +204,10 @@ void JsFreeInstallObserver::CallCallback(napi_ref callback, int32_t resultCode)
     napi_value argv[] = { value };
     napi_value func = nullptr;
     napi_get_reference_value(env_, callback, &func);
-    napi_call_function(env_, CreateJsUndefined(env_), func, ArraySize(argv), argv, nullptr);
+    napi_status status = napi_call_function(env_, CreateJsUndefined(env_), func, ArraySize(argv), argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::FREE_INSTALL, "call js func failed: %{public}d", status);
+    }
 }
 
 void JsFreeInstallObserver::CallCallback(napi_ref callback, napi_value abilityResult)
@@ -220,7 +223,10 @@ void JsFreeInstallObserver::CallCallback(napi_ref callback, napi_value abilityRe
     };
     napi_value func = nullptr;
     napi_get_reference_value(env_, callback, &func);
-    napi_call_function(env_, CreateJsUndefined(env_), func, ArraySize(argv), argv, nullptr);
+    napi_status status = napi_call_function(env_, CreateJsUndefined(env_), func, ArraySize(argv), argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::FREE_INSTALL, "call js func failed: %{public}d", status);
+    }
 }
 
 void JsFreeInstallObserver::CallPromise(napi_deferred deferred, int32_t resultCode)

@@ -850,7 +850,10 @@ napi_value GetWantAsync(napi_env env, napi_value *args, const size_t argCallback
                 result[PARAM1] = WrapUndefinedToJS(env);
             }
             napi_get_reference_value(env, asyncCallbackInfo->cbInfo.callback, &callback);
-            napi_call_function(env, undefined, callback, ARGS_TWO, &result[PARAM0], &callResult);
+            napi_status status = napi_call_function(env, undefined, callback, ARGS_TWO, &result[PARAM0], &callResult);
+            if (status != napi_ok) {
+                TAG_LOGE(AAFwkTag::JSNAPI, "call js func failed: %{public}d", status);
+            }
 
             if (asyncCallbackInfo->cbInfo.callback != nullptr) {
                 TAG_LOGD(AAFwkTag::JSNAPI, "Delete GetWantAsync callback reference.");
@@ -1266,7 +1269,10 @@ void BackgroundRunningCallbackCompletedCB(napi_env env, napi_status status, void
     }
 
     napi_get_reference_value(env, asyncCallbackInfo->cbInfo.callback, &callback);
-    napi_call_function(env, undefined, callback, ARGS_TWO, result, &callResult);
+    napi_status status = napi_call_function(env, undefined, callback, ARGS_TWO, result, &callResult);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "call js func failed: %{public}d", status);
+    }
 
     if (asyncCallbackInfo->cbInfo.callback != nullptr) {
         napi_delete_reference(env, asyncCallbackInfo->cbInfo.callback);

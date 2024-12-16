@@ -781,7 +781,10 @@ int32_t JsAbility::OnContinue(WantParams &wantParams)
 
     napi_value jsWantParams = OHOS::AppExecFwk::WrapWantParams(env, wantParams);
     napi_value result = nullptr;
-    napi_call_function(env, obj, methodOnCreate, 1, &jsWantParams, &result);
+    napi_status status = napi_call_function(env, obj, methodOnCreate, 1, &jsWantParams, &result);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::ABILITY, "call js func failed: %{public}d", status);
+    }
 
     OHOS::AppExecFwk::UnwrapWantParams(env, jsWantParams, wantParams);
 
@@ -824,7 +827,10 @@ int32_t JsAbility::OnSaveState(int32_t reason, WantParams &wantParams)
     napi_value jsReason = CreateJsValue(env, reason);
     napi_value args[] = { jsReason, jsWantParams };
     napi_value result = nullptr;
-    napi_call_function(env, obj, methodOnSaveState, 2, args, &result); // 2:args size
+    napi_status status = napi_call_function(env, obj, methodOnSaveState, 2, args, &result); // 2:args size
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::ABILITY, "call js func failed: %{public}d", status);
+    }
     OHOS::AppExecFwk::UnwrapWantParams(env, jsWantParams, wantParams);
 
     int32_t numberResult = 0;
@@ -975,7 +981,10 @@ sptr<IRemoteObject> JsAbility::CallRequest()
     }
 
     napi_value remoteJsObj = nullptr;
-    napi_call_function(env, obj, method, 0, nullptr, &remoteJsObj);
+    napi_status status = napi_call_function(env, obj, method, 0, nullptr, &remoteJsObj);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::ABILITY, "call js func failed: %{public}d", status);
+    }
     if (remoteJsObj == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "null remoteJsObj");
         return nullptr;
@@ -1013,10 +1022,16 @@ napi_value JsAbility::CallObjectMethod(const char *name, napi_value const *argv,
     }
     if (withResult) {
         napi_value result = nullptr;
-        napi_call_function(env, obj, methodOnCreate, argc, argv, &result);
+        napi_status status = napi_call_function(env, obj, methodOnCreate, argc, argv, &result);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::ABILITY, "call js func failed: %{public}d", status);
+        }
         return handleEscape.Escape(result);
     }
-    napi_call_function(env, obj, methodOnCreate, argc, argv, nullptr);
+    napi_status status = napi_call_function(env, obj, methodOnCreate, argc, argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::ABILITY, "call js func failed: %{public}d", status);
+    }
     TAG_LOGI(AAFwkTag::ABILITY, "end:%{public}s", name);
     return nullptr;
 }
@@ -1061,7 +1076,10 @@ bool JsAbility::CallPromise(napi_value result, AppExecFwk::AbilityTransactionCal
     napi_create_function(env, "promiseCallback", strlen("promiseCallback"), PromiseCallback,
         callbackInfo, &promiseCallback);
     napi_value argv[1] = { promiseCallback };
-    napi_call_function(env, result, then, 1, argv, nullptr);
+    napi_status status = napi_call_function(env, result, then, 1, argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::ABILITY, "call js func failed: %{public}d", status);
+    }
     TAG_LOGD(AAFwkTag::ABILITY, "callPromise complete");
     return true;
 }
@@ -1127,7 +1145,10 @@ bool JsAbility::AddDumpInfo(napi_env env, napi_value obj, const std::vector<std:
 
     napi_value dumpInfo = nullptr;
     if (method != nullptr) {
-        napi_call_function(env, obj, method, 1, argv, &dumpInfo);
+        napi_status status = napi_call_function(env, obj, method, 1, argv, &dumpInfo);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::ABILITY, "call js func failed: %{public}d", status);
+        }
     }
 
     if (dumpInfo == nullptr) {
@@ -1173,7 +1194,10 @@ sptr<IRemoteObject> JsAbility::SetNewRuleFlagToCallee(napi_env env, napi_value r
     }
     auto flag = CreateJsValue(env, IsUseNewStartUpRule());
     napi_value argv[1] = { flag };
-    napi_call_function(env, remoteJsObj, setFlagMethod, 1, argv, nullptr);
+    napi_status status = napi_call_function(env, remoteJsObj, setFlagMethod, 1, argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::ABILITY, "call js func failed: %{public}d", status);
+    }
 
     auto remoteObj = NAPI_ohos_rpc_getNativeRemoteObject(env, remoteJsObj);
     if (remoteObj == nullptr) {

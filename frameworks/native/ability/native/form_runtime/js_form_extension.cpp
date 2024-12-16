@@ -349,7 +349,10 @@ napi_value JsFormExtension::CallObjectMethod(const char* name, const char *bakNa
     }
     TAG_LOGD(AAFwkTag::FORM_EXT, "CallFunction(%{public}s), ok", name);
     napi_value result = nullptr;
-    napi_call_function(env, obj, method, argc, argv, &result);
+    napi_status status = napi_call_function(env, obj, method, argc, argv, &result);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "call js func failed: %{public}d", status);
+    }
     return handleEscape.Escape(result);
 }
 

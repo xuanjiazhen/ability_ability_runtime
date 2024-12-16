@@ -112,7 +112,10 @@ napi_value JSAbilityMonitor::CallLifecycleCBFunction(const std::string &function
 
     napi_value argv[] = { nativeAbilityObj };
     napi_value callResult = nullptr;
-    napi_call_function(env_, obj, method, ArraySize(argv), argv, &callResult);
+    napi_status status = napi_call_function(env_, obj, method, ArraySize(argv), argv, &callResult);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "call js func failed: %{public}d", status);
+    }
     return callResult;
 }
 }  // namespace AbilityDelegatorJs

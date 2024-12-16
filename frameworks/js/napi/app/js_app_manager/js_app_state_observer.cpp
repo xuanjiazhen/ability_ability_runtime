@@ -331,7 +331,10 @@ void JSAppStateObserver::CallJsFunction(
         return;
     }
     napi_value callResult = nullptr;
-    napi_call_function(env_, value, method, argc, argv, &callResult);
+    napi_status status = napi_call_function(env_, value, method, argc, argv, &callResult);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::APPMGR, "call js func failed: %{public}d", status);
+    }
     TAG_LOGD(AAFwkTag::APPMGR, "end");
 }
 

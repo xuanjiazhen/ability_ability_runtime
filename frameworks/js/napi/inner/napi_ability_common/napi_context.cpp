@@ -94,7 +94,10 @@ static void SetShowOnLockScreenAsyncCompleteCB(napi_env env, napi_status status,
     result[PARAM0] = GetCallbackErrorValue(env, showOnLockScreenCB->cbBase.errCode);
     napi_get_null(env, &result[PARAM1]);
     napi_get_reference_value(env, showOnLockScreenCB->cbBase.cbInfo.callback, &callback);
-    napi_call_function(env, undefined, callback, ARGS_TWO, &result[PARAM0], &callResult);
+    napi_status status = napi_call_function(env, undefined, callback, ARGS_TWO, &result[PARAM0], &callResult);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "call js func failed: %{public}d", status);
+    }
 
     if (showOnLockScreenCB->cbBase.cbInfo.callback != nullptr) {
         napi_delete_reference(env, showOnLockScreenCB->cbBase.cbInfo.callback);
@@ -306,7 +309,10 @@ static void SetWakeUpScreenAsyncCompleteCB(napi_env env, napi_status status, voi
     result[PARAM0] = GetCallbackErrorValue(env, setWakeUpScreenCB->cbBase.errCode);
     napi_get_null(env, &result[PARAM1]);
     napi_get_reference_value(env, setWakeUpScreenCB->cbBase.cbInfo.callback, &callback);
-    napi_call_function(env, undefined, callback, ARGS_TWO, &result[PARAM0], &callResult);
+    napi_status status = napi_call_function(env, undefined, callback, ARGS_TWO, &result[PARAM0], &callResult);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "call js func failed: %{public}d", status);
+    }
 
     if (setWakeUpScreenCB->cbBase.cbInfo.callback != nullptr) {
         napi_delete_reference(env, setWakeUpScreenCB->cbBase.cbInfo.callback);
@@ -684,7 +690,10 @@ void RequestPermissionsFromUserCompleteAsyncCallbackWork(napi_env env, napi_stat
 
         if (asyncCallbackInfo->cbInfo.callback != nullptr) {
             napi_get_reference_value(env, asyncCallbackInfo->cbInfo.callback, &callback);
-            napi_call_function(env, undefined, callback, ARGS_TWO, revParam, &callResult);
+            napi_status status = napi_call_function(env, undefined, callback, ARGS_TWO, revParam, &callResult);
+            if (status != napi_ok) {
+                TAG_LOGE(AAFwkTag::JSNAPI, "call js func failed: %{public}d", status);
+            }
             napi_delete_reference(env, asyncCallbackInfo->cbInfo.callback);
         } else if (asyncCallbackInfo->cbInfo.deferred != nullptr) {
             napi_reject_deferred(env, asyncCallbackInfo->cbInfo.deferred, revParam[PARAM0]);

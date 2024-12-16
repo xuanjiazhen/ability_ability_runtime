@@ -118,7 +118,10 @@ void JsMissionListener::CallJsMethodInner(const std::string &methodName, int32_t
         }
         napi_value argv[] = { CreateJsValue(env_, missionId) };
         napi_value callResult = nullptr;
-        napi_call_function(env_, obj, method, ArraySize(argv), argv, &callResult);
+        napi_status status = napi_call_function(env_, obj, method, ArraySize(argv), argv, &callResult);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::MISSION, "call js func failed: %{public}d", status);
+        }
     }
 }
 
@@ -178,7 +181,10 @@ void JsMissionListener::CallJsMissionIconUpdated(int32_t missionId, const std::s
 
         napi_value argv[] = { nativeMissionId, nativeIcon };
         napi_value callResult = nullptr;
-        napi_call_function(env_, obj, method, ArraySize(argv), argv, &callResult);
+        napi_status status = napi_call_function(env_, obj, method, ArraySize(argv), argv, &callResult);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::MISSION, "call js func failed: %{public}d", status);
+        }
     }
 }
 #endif

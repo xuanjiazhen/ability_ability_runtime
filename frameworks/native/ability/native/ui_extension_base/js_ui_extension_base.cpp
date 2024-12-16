@@ -788,15 +788,19 @@ napi_value JsUIExtensionBase::CallObjectMethod(const char *name, napi_value cons
         TAG_LOGE(AAFwkTag::UI_EXT, "get '%{public}s' object failed", name);
         return nullptr;
     }
+    napi_status status = napi_ok;
     if (withResult) {
         napi_value result = nullptr;
-        napi_call_function(env, obj, method, argc, argv, &result);
+        status = napi_call_function(env, obj, method, argc, argv, &result);
         return handleEscape.Escape(result);
     }
     TAG_LOGD(AAFwkTag::UI_EXT, "CallFunction(%{public}s), success", name);
     napi_value result = nullptr;
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    napi_call_function(env, obj, method, argc, argv, &result);
+    status = napi_call_function(env, obj, method, argc, argv, &result);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "call js func failed: %{public}d", status);
+    }
     return result;
 }
 

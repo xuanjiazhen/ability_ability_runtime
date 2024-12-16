@@ -115,7 +115,10 @@ napi_value JsChildProcess::CallObjectMethod(const char *name, napi_value const *
         TAG_LOGE(AAFwkTag::PROCESSMGR, "Get '%{public}s' failed", name);
         return nullptr;
     }
-    napi_call_function(env, obj, methodOnCreate, argc, argv, nullptr);
+    napi_status status = napi_call_function(env, obj, methodOnCreate, argc, argv, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "call js func failed: %{public}d", status);
+    }
     return nullptr;
 }
 }  // namespace AbilityRuntime

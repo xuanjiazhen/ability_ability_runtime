@@ -316,7 +316,10 @@ private:
         napi_value value = jsReleaseCallBackObj_->GetNapiValue();
         napi_value callback = jsReleaseCallBackObj_->GetNapiValue();
         napi_value args[] = { CreateJsValue(releaseCallBackEngine_, str) };
-        napi_call_function(releaseCallBackEngine_, value, callback, 1, args, nullptr);
+        napi_status status = napi_call_function(releaseCallBackEngine_, value, callback, 1, args, nullptr);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::DEFAULT, "call js func failed: %{public}d", status);
+        }
         callee_ = nullptr;
         StateReset();
     }
@@ -351,7 +354,10 @@ private:
         napi_value value = jsRemoteStateChangedObj_->GetNapiValue();
         napi_value callback = jsRemoteStateChangedObj_->GetNapiValue();
         napi_value args[] = { CreateJsValue(remoteStateChanegdEngine_, str) };
-        napi_call_function(remoteStateChanegdEngine_, value, callback, 1, args, nullptr);
+        napi_status status = napi_call_function(remoteStateChanegdEngine_, value, callback, 1, args, nullptr);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::DEFAULT, "call js func failed: %{public}d", status);
+        }
         StateReset();
         TAG_LOGD(AAFwkTag::DEFAULT, "end");
     }
