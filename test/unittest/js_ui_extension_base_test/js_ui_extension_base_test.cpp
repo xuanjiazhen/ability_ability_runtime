@@ -15,12 +15,12 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#define PRIVATE PUBLIC
-#define PROTECTED PUBLIC
+#define private public
+#define protected public
 #include "js_ui_extension_base.h"
 #include "js_environment.h"
-#undef PRIVATE
-#undef PROTECTED
+#undef private
+#undef protected
 #include "ark_native_engine.h"
 #include "mock_iremote_object.h"
 #include "context.h"
@@ -56,29 +56,6 @@ namespace {
     const std::string TEST_DEVICEID = "deviceId";
     const std::string TEST_ABILITYNAME = "com.example.abilityname";
 }
-
-class NativeReferenceMock : public NativeReference {
-public:
-    NativeReferenceMock() = default;
-    virtual ~NativeReferenceMock() = default;
-    MOCK_METHOD0(Ref, uint32_t());
-    MOCK_METHOD0(Unref, uint32_t());
-    MOCK_METHOD0(Get, napi_value());
-    MOCK_METHOD0(GetData, void*());
-    virtual operator napi_value() override
-    {
-        return reinterpret_cast<napi_value>(this);
-    }
-    MOCK_METHOD0(SetDeleteSelf, void());
-    MOCK_METHOD0(GetRefCount, uint32_t());
-    MOCK_METHOD0(GetFinalRun, bool());
-    napi_value GetNapiValue() override
-    {
-        napi_env env{nullptr};
-        napi_value object = AppExecFwk::CreateJSObject(env);
-        return object;
-    }
-};
 
 napi_env env_ = nullptr;
 panda::ecmascript::EcmaVM* vm_ = nullptr;
@@ -129,6 +106,49 @@ public:
         napi_value ret = ArkNativeEngine::CreatePromise(deferred);
         *deferred = new (std::nothrow) MockDeferred;
         return ret;
+    }
+};
+
+class NativeReferenceMock : public NativeReference {
+public:
+    NativeReferenceMock() = default;
+    virtual ~NativeReferenceMock() = default;
+    MOCK_METHOD0(Ref, uint32_t());
+    MOCK_METHOD0(Unref, uint32_t());
+    MOCK_METHOD0(Get, napi_value());
+    MOCK_METHOD0(GetData, void*());
+    virtual operator napi_value() override
+    {
+        return reinterpret_cast<napi_value>(this);
+    }
+    MOCK_METHOD0(SetDeleteSelf, void());
+    MOCK_METHOD0(GetRefCount, uint32_t());
+    MOCK_METHOD0(GetFinalRun, bool());
+
+    NativeEngine* create_engine()
+    {
+        void* jsEngine = new int(1);
+        panda::RuntimeOption option;
+        option.SetGcType(panda::RuntimeOption::GC_TYPE::GEN_GC);
+        const int64_t poolSize = 0x1000000;
+        option.SetGcPoolSize(poolSize);
+        option.SetLogLevel(panda::RuntimeOption::LOG_LEVEL::ERROR);
+        option.SetDebuggerLibraryPath("");
+        panda::ecmascript::EcmaVM* vm = panda::JSNApi::CreateJSVM(option);
+        NativeEngine *engine = new MockArkNativeEngine(vm, jsEngine);
+        return engine;
+    }
+
+    napi_env create_env()
+    {
+        NativeEngine* engine = NativeReferenceMock().create_engine();
+        return reinterpret_cast<napi_env>(engine);
+    }
+    napi_value GetNapiValue() override
+    {
+        napi_env env = create_env();
+        napi_value object = AppExecFwk::CreateJSObject(env);
+        return object;
     }
 };
 
@@ -195,21 +215,12 @@ HWTEST_F(JsUiExtensionBaseTest, BindContext_0100, TestSize.Level1)
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     jueb_ptr->jsObj_ = std::make_shared<NativeReferenceMock>();
-    void* jsEngine = new int(1);
-    panda::RuntimeOption option;
-    option.SetGcType(panda::RuntimeOption::GC_TYPE::GEN_GC);
-    const int64_t poolSize = 0x1000000;
-    option.SetGcPoolSize(poolSize);
-    option.SetLogLevel(panda::RuntimeOption::LOG_LEVEL::ERROR);
-    option.SetDebuggerLibraryPath("");
-    panda::ecmascript::EcmaVM* vm = panda::JSNApi::CreateJSVM(option);
-    NativeEngine *engine = new MockArkNativeEngine(vm, jsEngine);
-    EXPECT_NE(engine, nullptr);
     jueb_ptr->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jueb_ptr->jsRuntime_.jsEnv_->engine_ = engine;
+    auto nativeRefenceMock = std::make_shared<NativeReferenceMock>();
+    jueb_ptr->jsRuntime_.jsEnv_->engine_ = nativeRefenceMock->create_engine();
     jueb_ptr->context_ = std::make_shared<UIExtensionContext>();
     jueb_ptr->BindContext();
-    EXPECT_EQ(jueb_ptr->shellContextRef_, nullptr);
+    EXPECT_NE(jueb_ptr->shellContextRef_, nullptr);
 
     TAG_LOGI(AAFwkTag::TEST, "BindContext_0100 end");
 }
@@ -229,18 +240,10 @@ HWTEST_F(JsUiExtensionBaseTest, OnStart_0100, TestSize.Level1)
     want.parameters_.params_.emplace("ohos.insightIntent.executeParam.name", nullptr);
     AAFwk::LaunchParam launchParam;
     sptr<AAFwk::SessionInfo> sessionInfo = new AAFwk::SessionInfo();
-    void* jsEngine = new int(1);
-    panda::RuntimeOption option;
-    option.SetGcType(panda::RuntimeOption::GC_TYPE::GEN_GC);
-    const int64_t poolSize = 0x1000000;
-    option.SetGcPoolSize(poolSize);
-    option.SetLogLevel(panda::RuntimeOption::LOG_LEVEL::ERROR);
-    option.SetDebuggerLibraryPath("");
-    panda::ecmascript::EcmaVM* vm = panda::JSNApi::CreateJSVM(option);
-    NativeEngine *engine = new MockArkNativeEngine(vm, jsEngine);
-    EXPECT_NE(engine, nullptr);
-    jueb_ptr->jsRuntime_.jsEnv_ =std::make_shared<JsEnv::JsEnvironment>();
-    jueb_ptr->jsRuntime_.jsEnv_->engine_ = engine;
+    jueb_ptr->jsObj_ = std::make_shared<NativeReferenceMock>();
+    jueb_ptr->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    auto nativeRefenceMock = std::make_shared<NativeReferenceMock>();
+    jueb_ptr->jsRuntime_.jsEnv_->engine_ = nativeRefenceMock->create_engine();
     jueb_ptr->context_ = std::make_shared<UIExtensionContext>();
     jueb_ptr->context_->config_ = std::make_shared<AppExecFwk::Configuration>();
     jueb_ptr->shellContextRef_ = std::make_shared<NativeReferenceMock>();
@@ -287,18 +290,10 @@ HWTEST_F(JsUiExtensionBaseTest, OnStop_2_0200, TestSize.Level1)
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     AppExecFwk::AbilityTransactionCallbackInfo<> *callbackInfo = AppExecFwk::AbilityTransactionCallbackInfo<>::Create();
     bool isAsyncCallback = true;
-    void* jsEngine = new int(1);
-    panda::RuntimeOption option;
-    option.SetGcType(panda::RuntimeOption::GC_TYPE::GEN_GC);
-    const int64_t poolSize = 0x1000000;
-    option.SetGcPoolSize(poolSize);
-    option.SetLogLevel(panda::RuntimeOption::LOG_LEVEL::ERROR);
-    option.SetDebuggerLibraryPath("");
-    panda::ecmascript::EcmaVM* vm = panda::JSNApi::CreateJSVM(option);
-    NativeEngine *engine = new MockArkNativeEngine(vm, jsEngine);
-    EXPECT_NE(engine, nullptr);
-    jueb_ptr->jsRuntime_.jsEnv_ =std::make_shared<JsEnv::JsEnvironment>();
-    jueb_ptr->jsRuntime_.jsEnv_->engine_ = engine;
+    jueb_ptr->jsObj_ = std::make_shared<NativeReferenceMock>();
+    jueb_ptr->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    auto nativeRefenceMock = std::make_shared<NativeReferenceMock>();
+    jueb_ptr->jsRuntime_.jsEnv_->engine_ = nativeRefenceMock->create_engine();
     jueb_ptr->OnStop(callbackInfo, isAsyncCallback);
     EXPECT_EQ(isAsyncCallback, false);
 
@@ -323,18 +318,11 @@ HWTEST_F(JsUiExtensionBaseTest, OnStopCallBack_0100, TestSize.Level1)
     auto conImpl = std::make_shared<AbilityRuntime::ContextImpl>();
     sptr<IRemoteObject> token = new AppExecFwk::MockAbilityToken();
     conImpl->SetToken(token);
-    void* jsEngine = new int(1);
-    panda::RuntimeOption option;
-    option.SetGcType(panda::RuntimeOption::GC_TYPE::GEN_GC);
-    const int64_t poolSize = 0x1000000;
-    option.SetGcPoolSize(poolSize);
-    option.SetLogLevel(panda::RuntimeOption::LOG_LEVEL::ERROR);
-    option.SetDebuggerLibraryPath("");
-    panda::ecmascript::EcmaVM* vm = panda::JSNApi::CreateJSVM(option);
-    NativeEngine *engine = new MockArkNativeEngine(vm, jsEngine);
-    EXPECT_NE(engine, nullptr);
-    jueb_ptr->jsRuntime_.jsEnv_ =std::make_shared<JsEnv::JsEnvironment>();
-    jueb_ptr->jsRuntime_.jsEnv_->engine_ = engine;
+    jueb_ptr->jsObj_ = std::make_shared<NativeReferenceMock>();
+    jueb_ptr->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    auto nativeRefenceMock = std::make_shared<NativeReferenceMock>();
+    jueb_ptr->jsRuntime_.jsEnv_->engine_ = nativeRefenceMock->create_engine();
+
     napi_env env = jueb_ptr->jsRuntime_.GetNapiEnv();
     auto jsablcb = std::make_shared<JsAbilityLifecycleCallback>(env);
     jueb_ptr->context_->applicationContext_->callbacks_.push_back(jsablcb);
@@ -356,18 +344,10 @@ HWTEST_F(JsUiExtensionBaseTest, CheckPromise_0100, TestSize.Level1)
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     napi_value result = jueb_ptr->CallObjectMethod("onDestroy", nullptr, 0, true);
-    void* jsEngine = new int(1);
-    panda::RuntimeOption option;
-    option.SetGcType(panda::RuntimeOption::GC_TYPE::GEN_GC);
-    const int64_t poolSize = 0x1000000;
-    option.SetGcPoolSize(poolSize);
-    option.SetLogLevel(panda::RuntimeOption::LOG_LEVEL::ERROR);
-    option.SetDebuggerLibraryPath("");
-    panda::ecmascript::EcmaVM* vm = panda::JSNApi::CreateJSVM(option);
-    NativeEngine *engine = new MockArkNativeEngine(vm, jsEngine);
-    EXPECT_NE(engine, nullptr);
-    jueb_ptr->jsRuntime_.jsEnv_ =std::make_shared<JsEnv::JsEnvironment>();
-    jueb_ptr->jsRuntime_.jsEnv_->engine_ = engine;
+    jueb_ptr->jsObj_ = std::make_shared<NativeReferenceMock>();
+    jueb_ptr->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    auto nativeRefenceMock = std::make_shared<NativeReferenceMock>();
+    jueb_ptr->jsRuntime_.jsEnv_->engine_ = nativeRefenceMock->create_engine();
     bool test = jueb_ptr->CheckPromise(result);
     EXPECT_EQ(test, false);
 
@@ -423,18 +403,10 @@ HWTEST_F(JsUiExtensionBaseTest, CallPromise_0100, TestSize.Level1)
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
     napi_value result =  jueb_ptr->CallObjectMethod("TEST", nullptr, 0, true);
     AppExecFwk::AbilityTransactionCallbackInfo<> *callbackInfo = AppExecFwk::AbilityTransactionCallbackInfo<>::Create();
-    void* jsEngine = new int(1);
-    panda::RuntimeOption option;
-    option.SetGcType(panda::RuntimeOption::GC_TYPE::GEN_GC);
-    const int64_t poolSize = 0x1000000;
-    option.SetGcPoolSize(poolSize);
-    option.SetLogLevel(panda::RuntimeOption::LOG_LEVEL::ERROR);
-    option.SetDebuggerLibraryPath("");
-    panda::ecmascript::EcmaVM* vm = panda::JSNApi::CreateJSVM(option);
-    NativeEngine *engine = new MockArkNativeEngine(vm, jsEngine);
-    EXPECT_NE(engine, nullptr);
-    jueb_ptr->jsRuntime_.jsEnv_ =std::make_shared<JsEnv::JsEnvironment>();
-    jueb_ptr->jsRuntime_.jsEnv_->engine_ = engine;
+    jueb_ptr->jsObj_ = std::make_shared<NativeReferenceMock>();
+    jueb_ptr->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    auto nativeRefenceMock = std::make_shared<NativeReferenceMock>();
+    jueb_ptr->jsRuntime_.jsEnv_->engine_ = nativeRefenceMock->create_engine();
     auto test = jueb_ptr->CallPromise(result, callbackInfo);
     EXPECT_EQ(test, false);
 
@@ -734,18 +706,10 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommand_0100, TestSize.Level1)
     AAFwk::Want want;
     bool restart = false;
     int32_t startId = 1;
-    void* jsEngine = new int(1);
-    panda::RuntimeOption option;
-    option.SetGcType(panda::RuntimeOption::GC_TYPE::GEN_GC);
-    const int64_t poolSize = 0x1000000;
-    option.SetGcPoolSize(poolSize);
-    option.SetLogLevel(panda::RuntimeOption::LOG_LEVEL::ERROR);
-    option.SetDebuggerLibraryPath("");
-    panda::ecmascript::EcmaVM* vm = panda::JSNApi::CreateJSVM(option);
-    NativeEngine *engine = new MockArkNativeEngine(vm, jsEngine);
-    EXPECT_NE(engine, nullptr);
-    jueb_ptr->jsRuntime_.jsEnv_ =std::make_shared<JsEnv::JsEnvironment>();
-    jueb_ptr->jsRuntime_.jsEnv_->engine_ = engine;
+    jueb_ptr->jsObj_ = std::make_shared<NativeReferenceMock>();
+    jueb_ptr->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    auto nativeRefenceMock = std::make_shared<NativeReferenceMock>();
+    jueb_ptr->jsRuntime_.jsEnv_->engine_ = nativeRefenceMock->create_engine();
     want.operation_.abilityName_ = TEST_ABILITYNAME;
     want.operation_.moduleName_ = TEST_MODULENAME;
     want.operation_.deviceId_ = TEST_DEVICEID;
@@ -797,18 +761,10 @@ HWTEST_F(JsUiExtensionBaseTest, CallJsOnSessionCreate_0100, TestSize.Level1)
 
     auto rt_ptr =  std::make_unique<JsRuntime>();
     auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
-    void* jsEngine = new int(1);
-    panda::RuntimeOption option;
-    option.SetGcType(panda::RuntimeOption::GC_TYPE::GEN_GC);
-    const int64_t poolSize = 0x1000000;
-    option.SetGcPoolSize(poolSize);
-    option.SetLogLevel(panda::RuntimeOption::LOG_LEVEL::ERROR);
-    option.SetDebuggerLibraryPath("");
-    panda::ecmascript::EcmaVM* vm = panda::JSNApi::CreateJSVM(option);
-    NativeEngine *engine = new MockArkNativeEngine(vm, jsEngine);
-    EXPECT_NE(engine, nullptr);
+    jueb_ptr->jsObj_ = std::make_shared<NativeReferenceMock>();
     jueb_ptr->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jueb_ptr->jsRuntime_.jsEnv_->engine_ = engine;
+    auto nativeRefenceMock = std::make_shared<NativeReferenceMock>();
+    jueb_ptr->jsRuntime_.jsEnv_->engine_ = nativeRefenceMock->create_engine();
     AAFwk::Want want;
     sptr<AAFwk::SessionInfo> sessionInfo = new AAFwk::SessionInfo();
     uint32_t uiExtensionComponentId = 1;
@@ -936,18 +892,10 @@ HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0300, TestSize.Level1)
     jueb_ptr->context_->applicationInfo_->bundleName = TEST_BUNDLENAME;
     jueb_ptr->context_->abilityInfo_ = std::make_shared<AbilityInfo>();
     jueb_ptr->context_->abilityInfo_->name = TEST_NAME;
-    void* jsEngine = new int(1);
-    panda::RuntimeOption option;
-    option.SetGcType(panda::RuntimeOption::GC_TYPE::GEN_GC);
-    const int64_t poolSize = 0x1000000;
-    option.SetGcPoolSize(poolSize);
-    option.SetLogLevel(panda::RuntimeOption::LOG_LEVEL::ERROR);
-    option.SetDebuggerLibraryPath("");
-    panda::ecmascript::EcmaVM* vm = panda::JSNApi::CreateJSVM(option);
-    NativeEngine *engine = new MockArkNativeEngine(vm, jsEngine);
-    EXPECT_NE(engine, nullptr);
+    jueb_ptr->jsObj_ = std::make_shared<NativeReferenceMock>();
     jueb_ptr->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jueb_ptr->jsRuntime_.jsEnv_->engine_ = engine;
+    auto nativeRefenceMock = std::make_shared<NativeReferenceMock>();
+    jueb_ptr->jsRuntime_.jsEnv_->engine_ = nativeRefenceMock->create_engine();
     want.operation_.moduleName_ = TEST_MODULENAME;
     want.operation_.deviceId_ = TEST_DEVICEID;
     want.operation_.bundleName_ = TEST_BUNDLENAME;
