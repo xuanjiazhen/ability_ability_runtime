@@ -176,6 +176,11 @@ int AppfreezeManager::MergeNotifyInfo(FaultData& faultNotifyData, const Appfreez
     if (appInfo.isOccurException) {
         faultNotifyData.errorObject.message += "\nnotifyAppFault exception.\n";
     }
+    if (appInfo.gpuPid != 0) {
+        auto res = CatcherStacktrace(appInfo.gpuPid);
+        faultNotifyData.errorObject.message += "gpu process appfreeze stack:";
+        faultNotifyData.errorObject.message += res;
+    }
     if (faultNotifyData.errorObject.name == AppFreezeType::APP_INPUT_BLOCK) {
         AcquireStack(faultNotifyData, appInfo, memoryContent);
     } else {

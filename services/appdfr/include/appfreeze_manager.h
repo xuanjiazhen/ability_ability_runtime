@@ -41,6 +41,7 @@ public:
         std::string bundleName;
         std::string processName;
         bool isOccurException = false;
+        int gpuPid = 0;
     };
 
     enum TypeAttribute {
