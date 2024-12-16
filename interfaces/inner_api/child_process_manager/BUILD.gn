@@ -32,7 +32,6 @@ ohos_shared_library("child_process_manager") {
 
   sources = [
     "${ability_runtime_native_path}/ability/native/child_process_manager/child_process.cpp",
-    "${ability_runtime_native_path}/ability/native/child_process_manager/child_process_manager.cpp",
     "${ability_runtime_native_path}/ability/native/child_process_manager/child_process_manager_error_utils.cpp",
     "${ability_runtime_native_path}/ability/native/child_process_manager/js_child_process.cpp",
     "${ability_runtime_native_path}/ability/native/child_process_manager/native_args_child_process.cpp",
@@ -62,6 +61,9 @@ ohos_shared_library("child_process_manager") {
   ]
 
   defines = []
+  if (ability_runtime_child_process) {
+    sources += [ "${ability_runtime_native_path}/ability/native/child_process_manager/child_process_manager.cpp" ]
+  }
   if (background_task_mgr_continuous_task_enable) {
     defines += [ "BGTASKMGR_CONTINUOUS_TASK_ENABLE" ]
   }

@@ -299,6 +299,7 @@ int32_t AppMgrProxy::GetAllRenderProcesses(std::vector<RenderProcessInfo> &info)
     return result;
 }
 
+#ifdef SUPPORT_CHILD_PROCESS
 int AppMgrProxy::GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info)
 {
     MessageParcel data;
@@ -318,6 +319,7 @@ int AppMgrProxy::GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info)
     int result = reply.ReadInt32();
     return result;
 }
+#endif // SUPPORT_CHILD_PROCESS
 
 int32_t AppMgrProxy::JudgeSandboxByPid(pid_t pid, bool &isSandbox)
 {
@@ -1610,6 +1612,7 @@ int32_t AppMgrProxy::IsAppRunning(const std::string &bundleName, int32_t appClon
     return reply.ReadInt32();
 }
 
+#ifdef SUPPORT_CHILD_PROCESS
 int32_t AppMgrProxy::StartChildProcess(pid_t &childPid, const ChildProcessRequest &request)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
@@ -1690,6 +1693,7 @@ void AppMgrProxy::ExitChildProcessSafely()
 
     PARCEL_UTIL_SENDREQ_NORET(AppMgrInterfaceCode::EXIT_CHILD_PROCESS_SAFELY, data, reply, option);
 }
+#endif // SUPPORT_CHILD_PROCESS
 
 bool AppMgrProxy::IsFinalAppProcess()
 {
@@ -1930,6 +1934,7 @@ void AppMgrProxy::SetAppAssertionPauseState(bool flag)
     PARCEL_UTIL_SENDREQ_NORET(AppMgrInterfaceCode::SET_APP_ASSERT_PAUSE_STATE_SELF, data, reply, option);
 }
 
+#ifdef SUPPORT_CHILD_PROCESS
 int32_t AppMgrProxy::StartNativeChildProcess(const std::string &libName, int32_t childProcessCount,
     const sptr<IRemoteObject> &callback)
 {
@@ -1953,6 +1958,7 @@ int32_t AppMgrProxy::StartNativeChildProcess(const std::string &libName, int32_t
     PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::START_NATIVE_CHILD_PROCESS, data, reply, option);
     return reply.ReadInt32();
 }
+#endif // SUPPORT_CHILD_PROCESS
 
 int32_t AppMgrProxy::CheckCallingIsUserTestMode(const pid_t pid, bool &isUserTest)
 {
