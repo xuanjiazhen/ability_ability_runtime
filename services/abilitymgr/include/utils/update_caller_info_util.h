@@ -41,6 +41,7 @@ private:
     void UpdateCallerBundleName(Want& want, const std::string &bundleName);
     void UpdateCallerAbilityName(Want& want, const std::string &abilityName);
     void UpdateCallerAppCloneIndex(Want& want, int32_t appIndex);
+    void UpdateStrictMode(Want &want);
 
     DISALLOW_COPY_AND_MOVE(UpdateCallerInfoUtil);
 };

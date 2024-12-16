@@ -16,6 +16,7 @@
 #include "utils/update_caller_info_util.h"
 
 #include "ability_util.h"
+#include "ability_manager_constants.h"
 #include "ability_record.h"
 #include "accesstoken_kit.h"
 #include "app_scheduler.h"
@@ -70,6 +71,7 @@ void UpdateCallerInfoUtil::UpdateCallerInfo(Want& want, const sptr<IRemoteObject
     want.RemoveParam(WANT_PARAMS_APP_RESTART_FLAG);
     want.RemoveParam(IS_SHELL_CALL);
     want.RemoveParam(Want::PARAMS_REAL_CALLER_KEY);
+    UpdateStrictMode(want);
 
     auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
     if (!abilityRecord) {
@@ -328,6 +330,14 @@ void UpdateCallerInfoUtil::UpdateCallerAppCloneIndex(Want& want, int32_t appInde
 {
     want.RemoveParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX);
     want.SetParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX, appIndex);
+}
+
+void UpdateCallerInfoUtil::UpdateStrictMode(Want &want)
+{
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall() &&
+        !AAFwk::PermissionVerification::GetInstance()->IsShellCall()) {
+        want.RemoveParam(OHOS::AAFwk::STRICT_MODE);
+    }
 }
 }  // namespace AAFwk
 }  // namespace OHOS

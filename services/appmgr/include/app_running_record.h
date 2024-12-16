@@ -954,7 +954,7 @@ public:
     void SetGPUPid(pid_t gpuPid);
     pid_t GetGPUPid();
     pid_t GetPid();
-
+    
     inline void SetStrictMode(bool strictMode)
     {
         isStrictMode_ = strictMode;
@@ -963,6 +963,25 @@ public:
     inline bool IsStrictMode()
     {
         return isStrictMode_;
+    }
+
+    inline void SetNetworkEnableFlags(bool enable) {
+        networkEnableFlags_ = enable;
+    }
+
+    inline bool GetNetworkEnableFlags()
+    {
+        return networkEnableFlags_;
+    }
+
+    inline void SetSAEnableFlags(bool enable)
+    {
+        saEnableFlags_ = enable;
+    }
+
+    inline bool GetSAEnableFlags()
+    {
+        return saEnableFlags_;
     }
 
     inline void SetIsDependedOnArkWeb(bool isDepend)
@@ -1201,6 +1220,8 @@ private:
     bool isGPU_ = false;
     pid_t gpuPid_ = 0;
     bool isStrictMode_ = false;
+    bool networkEnableFlags_ = true;
+    bool saEnableFlags_ = true;
     bool isAttachedToStatusBar = false;
     bool isDependedOnArkWeb_ = false;
     bool isUserRequestCleaning_ = false;
