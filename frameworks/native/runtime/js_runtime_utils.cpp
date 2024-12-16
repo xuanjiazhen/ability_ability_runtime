@@ -240,7 +240,10 @@ bool NapiAsyncTask::StartWithDefaultQos(const std::string &name, napi_env env)
     work_ = reinterpret_cast<napi_async_work>(engine->CreateAsyncWork(name,
         reinterpret_cast<NativeAsyncExecuteCallback>(Execute),
         reinterpret_cast<NativeAsyncCompleteCallback>(Complete), this));
-    napi_queue_async_work_with_qos(env, work_, napi_qos_default);
+    napi_status status = napi_queue_async_work_with_qos(env, work_, napi_qos_default);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "run task err: %{public}d", status);
+    }
     return true;
 }
 
@@ -381,7 +384,10 @@ bool NapiAsyncTask::Start(const std::string &name, napi_env env)
     work_ = reinterpret_cast<napi_async_work>(engine->CreateAsyncWork(name,
         reinterpret_cast<NativeAsyncExecuteCallback>(Execute),
         reinterpret_cast<NativeAsyncCompleteCallback>(Complete), this));
-    napi_queue_async_work(env, work_);
+    napi_status status = napi_queue_async_work(env, work_);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "run task err: %{public}d", status);
+    }
     return true;
 }
 
@@ -398,7 +404,10 @@ bool NapiAsyncTask::StartHighQos(const std::string &name, napi_env env)
     work_ = reinterpret_cast<napi_async_work>(engine->CreateAsyncWork(name,
         reinterpret_cast<NativeAsyncExecuteCallback>(Execute),
         reinterpret_cast<NativeAsyncCompleteCallback>(Complete), this));
-    napi_queue_async_work_with_qos(env, work_, napi_qos_user_initiated);
+    napi_status status = napi_queue_async_work_with_qos(env, work_, napi_qos_user_initiated);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "run task err: %{public}d", status);
+    }
     return true;
 }
 
@@ -415,7 +424,10 @@ bool NapiAsyncTask::StartLowQos(const std::string &name, napi_env env)
     work_ = reinterpret_cast<napi_async_work>(engine->CreateAsyncWork(name,
         reinterpret_cast<NativeAsyncExecuteCallback>(Execute),
         reinterpret_cast<NativeAsyncCompleteCallback>(Complete), this));
-    napi_queue_async_work_with_qos(env, work_, napi_qos_utility);
+    napi_status status = napi_queue_async_work_with_qos(env, work_, napi_qos_utility);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "run task err: %{public}d", status);
+    }
     return true;
 }
 

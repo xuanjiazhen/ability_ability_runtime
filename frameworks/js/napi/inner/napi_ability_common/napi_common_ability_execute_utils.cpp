@@ -863,7 +863,11 @@ napi_value GetWantAsync(napi_env env, napi_value *args, const size_t argCallback
         },
         static_cast<void *>(asyncCallbackInfo),
         &asyncCallbackInfo->asyncWork);
-    napi_queue_async_work_with_qos(env, asyncCallbackInfo->asyncWork, napi_qos_user_initiated);
+    napi_status status =
+        napi_queue_async_work_with_qos(env, asyncCallbackInfo->asyncWork, napi_qos_user_initiated);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "run task err: %{public}d", status);
+    }
     napi_value result = nullptr;
     napi_get_null(env, &result);
 
@@ -908,7 +912,11 @@ napi_value GetWantPromise(napi_env env, AsyncCallbackInfo *asyncCallbackInfo)
         },
         static_cast<void *>(asyncCallbackInfo),
         &asyncCallbackInfo->asyncWork);
-    napi_queue_async_work_with_qos(env, asyncCallbackInfo->asyncWork, napi_qos_user_initiated);
+    napi_status status =
+        napi_queue_async_work_with_qos(env, asyncCallbackInfo->asyncWork, napi_qos_user_initiated);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "run task err: %{public}d", status);
+    }
 
     return promise;
 }
@@ -1417,7 +1425,10 @@ napi_value CancelBackgroundRunningAsync(
         BackgroundRunningCallbackCompletedCB,
         static_cast<void *>(asyncCallbackInfo),
         &asyncCallbackInfo->asyncWork);
-    napi_queue_async_work(env, asyncCallbackInfo->asyncWork);
+    napi_status status = napi_queue_async_work(env, asyncCallbackInfo->asyncWork);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "run task err: %{public}d", status);
+    }
     napi_value result = nullptr;
     napi_get_null(env, &result);
 
@@ -1447,7 +1458,10 @@ napi_value CancelBackgroundRunningPromise(napi_env env, AsyncCallbackInfo *async
         BackgroundRunningPromiseCompletedCB,
         static_cast<void *>(asyncCallbackInfo),
         &asyncCallbackInfo->asyncWork);
-    napi_queue_async_work(env, asyncCallbackInfo->asyncWork);
+    napi_status status = napi_queue_async_work(env, asyncCallbackInfo->asyncWork);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "run task err: %{public}d", status);
+    }
 
     return promise;
 }
