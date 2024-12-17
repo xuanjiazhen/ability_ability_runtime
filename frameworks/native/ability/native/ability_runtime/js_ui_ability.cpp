@@ -1180,6 +1180,7 @@ void JsUIAbility::CheckAndHandleCollaboration(const std::shared_ptr<AAFwk::Want>
     if (GetCollaborativeState(abilityInfo_->uid)) {
         OHOS::AAFwk::WantParams params = want->GetParams();
         int32_t resultCode = OnCollaborate(params);
+        TAG_LOGE(AAFwkTag::UIABILITY, "collaborate resultCode = %{public}d", reresultCode);
         AAFwk::AbilityManagerClient::GetInstance()->OnCollaborateDone(AbilityContext::token_, resultCode);
     }
 }

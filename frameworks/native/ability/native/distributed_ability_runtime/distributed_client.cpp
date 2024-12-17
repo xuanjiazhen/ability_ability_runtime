@@ -564,9 +564,12 @@ int32_t DistributedClient::OnCollaborateDone(
     PARCEL_WRITE_HELPER(data, Int32, uid);
     PARCEL_WRITE_HELPER(data, Int32, accessTokenId);
 
+    TAG_LOGD(AAFwkTag::DISTRIBUTED, "distributed collaborate uid: %{public}d, callerPid: %{public}d, resultCode: %{public}d, collabToken: %{public}s, accessTokenId: %{public}d", uid, callerPid, resultCode, collabToken.c_str(), accessTokenId);
+
     MessageParcel reply;
     PARCEL_TRANSACT_SYNC_RET_INT(remote,
         static_cast<uint32_t>(NOTIFY_ON_COLLABORATE_DONE), data, reply);
+    TAG_LOGD(AAFwkTag::DISTRIBUTED, "distributed collaborate ERR_OK")
     return ERR_OK;
 }
 }  // namespace AAFwk

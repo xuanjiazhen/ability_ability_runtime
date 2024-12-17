@@ -12639,6 +12639,7 @@ int32_t AbilityManagerService::OnCollaborateDone(const sptr<IRemoteObject> &toke
     auto uid = abilityRecord->GetUid();
     auto callerPid = abilityRecord->GetPid();
     auto accessTokenId = abilityRecord->GetAbilityInfo().applicationInfo.accessTokenId;
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "collaborate uid: %{public}d, callerPid: %{public}d, resultCode: %{public}d, collabToken: %{public}s, accessTokenId: %{public}d", uid, callerPid, resultCode, collabToken.c_str(), accessTokenId);
     DistributedClient dmsClient;
     dmsClient.OnCollaborateDone(collabToken, resultCode, callerPid, uid, accessTokenId);
     return ERR_OK;
