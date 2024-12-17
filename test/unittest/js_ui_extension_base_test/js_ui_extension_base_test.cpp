@@ -993,5 +993,235 @@ HWTEST_F(JsUiExtensionBaseTest, DestroyWindow_0100, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "DestroyWindow_0100 end");
 }
 
+/**
+ * @tc.name:  CallObjectMethod_0100
+ * @tc.desc: basic function test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsUiExtensionBaseTest, CallObjectMethod_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CallObjectMethod_0100 start");
+
+    auto rt_ptr =  std::make_unique<JsRuntime>();
+    auto jueb_ptr = std::make_shared<JsUIExtensionBase>(std::move(rt_ptr));
+    jueb_ptr->jsObj_ = std::make_shared<NativeReferenceMock>();
+    jueb_ptr->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    auto nativeRefenceMock = std::make_shared<NativeReferenceMock>();
+    jueb_ptr->jsRuntime_.jsEnv_->engine_ = nativeRefenceMock->create_engine();
+    auto vv = std::make_shared<NativeReferenceMock>();
+    napi_value argv[] = { vv->GetNapiValue() };
+    auto test = jueb_ptr->CallObjectMethod("test", argv, 1,false);
+    EXPECT_NE(test, nullptr);
+
+    TAG_LOGI(AAFwkTag::TEST, "CallObjectMethod_0100 end");
+}
+
+/**
+ * @tc.name:  OnConfigurationUpdated_0100
+ * @tc.desc: basic function test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsUiExtensionBaseTest, OnConfigurationUpdated_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnConfigurationUpdated_0100 start");
+
+    auto jsrt_ptr =  std::make_unique<AbilityRuntime::JsRuntime>();
+    auto jueb_ptr = std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(jsrt_ptr));
+    AppExecFwk::Configuration configuration;
+    jueb_ptr->context_ = std::make_shared<AbilityRuntime::UIExtensionContext>();
+    jueb_ptr->context_->config_ = std::make_shared<AppExecFwk::Configuration>();
+    std::shared_ptr<Global::Resource::ResourceManager> resourceManager(Global::Resource::CreateResourceManager());
+    jueb_ptr->context_->resourceManager_ = resourceManager;
+    jueb_ptr->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    auto nativeRefenceMock = std::make_shared<NativeReferenceMock>();
+    jueb_ptr->jsRuntime_.jsEnv_->engine_ = nativeRefenceMock->create_engine();
+    jueb_ptr->shellContextRef_ = nativeRefenceMock;
+    jueb_ptr->OnConfigurationUpdated(configuration);
+
+    TAG_LOGI(AAFwkTag::TEST, "OnConfigurationUpdated_0100 end");
+}
+
+/**
+ * @tc.name:  Dump_0100
+ * @tc.desc: basic function test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsUiExtensionBaseTest, Dump_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "Dump_0100 start");
+
+    std::string item {"test"};
+    std::vector<std::string> param;
+    param.push_back(item);
+    std::vector<std::string> info;
+    auto jsrt_ptr =  std::make_unique<AbilityRuntime::JsRuntime>();
+    auto jueb_ptr = std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(jsrt_ptr));
+    jueb_ptr->jsObj_ = std::make_shared<NativeReferenceMock>();
+    jueb_ptr->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    auto nativeRefenceMock = std::make_shared<NativeReferenceMock>();
+    jueb_ptr->jsRuntime_.jsEnv_->engine_ = nativeRefenceMock->create_engine();
+    jueb_ptr->Dump(param, info);
+    EXPECT_NE(info.size(), 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "Dump_0100 end");
+}
+
+/**
+ * @tc.name:  OnAbilityResult_0100
+ * @tc.desc: basic function test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsUiExtensionBaseTest, OnAbilityResult_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnAbilityResult_0100 start");
+    int32_t requestcode = 1;
+    int32_t resultcode = 1;
+    AAFwk::Want resultdata;
+    auto jsrt_ptr =  std::make_unique<AbilityRuntime::JsRuntime>();
+    auto jueb_ptr = std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(jsrt_ptr));
+    jueb_ptr->context_ = std::make_shared<UIExtensionContext>();
+    auto runtimetask = [](int,const AAFwk::Want&,bool){};
+    jueb_ptr->context_->resultCallbacks_.emplace(requestcode, runtimetask);
+    jueb_ptr->abilityResultListeners_ = std::make_shared<AbilityResultListeners>();
+    auto abilityResultListener = std::make_shared<UISessionAbilityResultListener>();
+    abilityResultListener->resultCallbacks_.emplace(requestcode, runtimetask);
+    jueb_ptr->abilityResultListeners_->listeners_.emplace(requestcode, abilityResultListener);
+    jueb_ptr->OnAbilityResult(requestcode, resultcode, resultdata);
+    EXPECT_EQ(jueb_ptr->context_->resultCallbacks_.size(), 0);
+    EXPECT_EQ(jueb_ptr->abilityResultListeners_->listeners_.at(requestcode)->resultCallbacks_.size(), 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "OnAbilityResult_0100 end");
+}
+
+/**
+ * @tc.name:  SetAbilityInfo_0100
+ * @tc.desc: basic function test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsUiExtensionBaseTest, SetAbilityInfo_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SetAbilityInfo_0100 start");
+
+    auto jsrt_ptr =  std::make_unique<AbilityRuntime::JsRuntime>();
+    auto jueb_ptr = std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(jsrt_ptr));
+    jueb_ptr->abilityInfo_ = nullptr;
+    auto abilityinfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    jueb_ptr->SetAbilityInfo(abilityinfo);
+    EXPECT_NE(jueb_ptr->abilityInfo_, nullptr);
+
+    TAG_LOGI(AAFwkTag::TEST, "SetAbilityInfo_0100 end");
+}
+
+/**
+ * @tc.name:  SetContext_0100
+ * @tc.desc: basic function test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsUiExtensionBaseTest, SetContext_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SetContext_0100 start");
+
+    auto jsrt_ptr =  std::make_unique<AbilityRuntime::JsRuntime>();
+    auto jueb_ptr = std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(jsrt_ptr));
+    jueb_ptr->context_ = nullptr;
+    auto context = std::make_shared<UIExtensionContext>();
+    jueb_ptr->SetContext(context);
+    EXPECT_NE(jueb_ptr->context_, nullptr);
+
+    TAG_LOGI(AAFwkTag::TEST, "SetContext_0100 end");
+}
+
+/**
+ * @tc.name:  ConfigurationUpdated_0100
+ * @tc.desc: basic function test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsUiExtensionBaseTest, ConfigurationUpdated_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ConfigurationUpdated_0100 start");
+
+    auto jsrt_ptr =  std::make_unique<AbilityRuntime::JsRuntime>();
+    auto jueb_ptr = std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(jsrt_ptr));
+    jueb_ptr->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    auto nativeRefenceMock = std::make_shared<NativeReferenceMock>();
+    jueb_ptr->jsRuntime_.jsEnv_->engine_ = nativeRefenceMock->create_engine();
+    jueb_ptr->context_ = std::make_shared<UIExtensionContext>();
+    jueb_ptr->context_->config_ = std::make_shared<AppExecFwk::Configuration>();
+    jueb_ptr->shellContextRef_ = nativeRefenceMock;
+    jueb_ptr->ConfigurationUpdated();
+
+    TAG_LOGI(AAFwkTag::TEST, "ConfigurationUpdated_0100 end");
+}
+
+/**
+ * @tc.name:  OnDisplayInfoChange_0100
+ * @tc.desc: basic function test.
+ * @tc.type: FUNC
+ */
+#ifdef SUPPORT_GRAPHICS
+HWTEST_F(JsUiExtensionBaseTest, OnDisplayInfoChange_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, " OnDisplayInfoChange_0100 start");
+
+    auto jsrt_ptr =  std::make_unique<AbilityRuntime::JsRuntime>();
+    auto jueb_ptr = std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(jsrt_ptr));
+    jueb_ptr->context_ = std::make_shared<UIExtensionContext>();
+    jueb_ptr->context_->config_ = std::make_shared<AppExecFwk::Configuration>();
+    std::shared_ptr<Global::Resource::ResourceManager> resourceManager(Global::Resource::CreateResourceManager());
+    jueb_ptr->context_->resourceManager_ = resourceManager;
+    sptr<IRemoteObject> token = new MockIRemoteObject();
+    Rosen::DisplayId displayId = 1;
+    float density { 2.0 };
+    Rosen::DisplayOrientation orientation = Rosen::DisplayOrientation::LANDSCAPE;
+    std::string str = "Newthread";
+    auto runner = AppExecFwk::EventRunner::Create(str);
+    auto handler = std::make_shared<AppExecFwk::AbilityHandler>(runner);
+    jueb_ptr->handler_ = handler;
+    jueb_ptr->OnDisplayInfoChange(token, displayId, density, orientation);
+
+    TAG_LOGI(AAFwkTag::TEST, " OnDisplayInfoChange_0100 end");
+}
+#endif
+
+/**
+ * @tc.name:  RegisterDisplayInfoChangedListener_0100
+ * @tc.desc: basic function test.
+ * @tc.type: FUNC
+ */
+#ifdef SUPPORT_GRAPHICS
+HWTEST_F(JsUiExtensionBaseTest, RegisterDisplayInfoChangedListener_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RegisterDisplayInfoChangedListener_0100 start");
+
+    auto jsrt_ptr =  std::make_unique<AbilityRuntime::JsRuntime>();
+    auto jueb_ptr = std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(jsrt_ptr));
+    jueb_ptr->context_ = std::make_shared<UIExtensionContext>();
+    jueb_ptr->context_->token_ = new MockIRemoteObject();
+    jueb_ptr->RegisterDisplayInfoChangedListener();
+
+    TAG_LOGI(AAFwkTag::TEST, "RegisterDisplayInfoChangedListener_0100 end");
+}
+#endif
+
+/**
+ * @tc.name:  UnregisterDisplayInfoChangedListener_0100
+ * @tc.desc: basic function test.
+ * @tc.type: FUNC
+ */
+#ifdef SUPPORT_GRAPHICS
+HWTEST_F(JsUiExtensionBaseTest, UnregisterDisplayInfoChangedListener_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterDisplayInfoChangedListener_0100 start");
+
+    auto jsrt_ptr =  std::make_unique<AbilityRuntime::JsRuntime>();
+    auto jueb_ptr = std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(jsrt_ptr));
+    jueb_ptr->context_ = std::make_shared<UIExtensionContext>();
+    jueb_ptr->context_->token_ = new MockIRemoteObject();
+    jueb_ptr->UnregisterDisplayInfoChangedListener();
+
+    TAG_LOGI(AAFwkTag::TEST, "RegisterDisplayInfoChangedListener_0100 end");
+}
+#endif
+
 } // namespace AbilityRuntime
 } // namespace OHOS
