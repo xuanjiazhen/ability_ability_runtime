@@ -6051,6 +6051,11 @@ void AppMgrServiceInner::ParseInfoToAppfreeze(const FaultData &faultData, int32_
             .processName = processName,
             .isOccurException = isOccurException,
         };
+        auto appRecord = GetAppRunningRecordByPid(pid);
+        int gpu_pid = appRecord->GetGPUPid();
+        if (gpu_pid != 0) {
+            info.gpuPid = gpu_pid;
+        }
         AppExecFwk::AppfreezeManager::GetInstance()->AppfreezeHandleWithStack(faultData, info);
     }
 
