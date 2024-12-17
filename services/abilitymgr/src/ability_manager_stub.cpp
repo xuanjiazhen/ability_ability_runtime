@@ -1827,7 +1827,10 @@ int AbilityManagerStub::CancelWantSenderInner(MessageParcel &data, MessageParcel
         TAG_LOGE(AAFwkTag::ABILITYMGR, "wantSender null");
         return ERR_INVALID_VALUE;
     }
-    CancelWantSender(wantSender);
+
+    uint32_t flags = data.ReadUint32();
+
+    CancelWantSender(wantSender, flags);
     return NO_ERROR;
 }
 

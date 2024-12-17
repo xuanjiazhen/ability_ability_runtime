@@ -832,7 +832,7 @@ public:
 
     virtual int SendWantSender(sptr<IWantSender> target, const SenderInfo &senderInfo) = 0;
 
-    virtual void CancelWantSender(const sptr<IWantSender> &sender) = 0;
+    virtual void CancelWantSender(const sptr<IWantSender> &sender, uint32_t flags = 0) = 0;
 
     virtual int GetPendingWantUid(const sptr<IWantSender> &target) = 0;
 
