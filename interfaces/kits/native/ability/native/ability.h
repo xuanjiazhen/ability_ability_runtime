@@ -960,6 +960,13 @@ public:
     virtual void OnTopActiveAbilityChanged(bool topActive);
 
     /**
+     * @brief Called when distributed system tring to collaborate remote ability.
+     * @param wantParams wantParams with collaborative info.
+     * @return Returns whether the ability agree to collaborate.
+     */
+    virtual int32_t OnCollaborate(WantParams &wantParams);
+
+    /**
      * @brief Inflates UI controls by using windowOption.
      *
      * @param windowOption Indicates the window option defined by the user.

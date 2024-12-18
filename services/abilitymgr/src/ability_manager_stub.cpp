@@ -767,6 +767,9 @@ int AbilityManagerStub::OnRemoteRequestInnerNineteenth(uint32_t code, MessagePar
     if (interfaceCode == AbilityManagerInterfaceCode::UPDATE_ASSOCIATE_CONFIG_LIST) {
         return UpdateAssociateConfigListInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::ON_COLLABORATE_DONE) {
+        return OnCollaborateInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -3222,6 +3225,23 @@ int AbilityManagerStub::UnregisterAbilityFirstFrameStateObserverInner(MessagePar
         return IPC_STUB_ERR;
     }
     return NO_ERROR;
+}
+
+int AbilityManagerStub::OnCollaborateInner(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    sptr<IRemoteObject> token = data.ReadRemoteObject();
+    if (token == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read ability token fail");
+        return ERR_NULL_OBJECT;
+    }
+    int32_t resultCode = data.ReadInt32();
+    int32_t result = OnCollaborateDone(token, resultCode);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
+        return ERR_INVALID_VALUE;
+    }
+    return result;
 }
 #endif
 

@@ -1845,5 +1845,20 @@ HWTEST_F(AbilityManagerServiceSecondTest, CheckCallAutoFillExtensionPermission_0
     EXPECT_EQ(abilityMs_->CheckCallAutoFillExtensionPermission(abilityRequest_), ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "testcase end.");
 }
+
+/**
+ * @tc.name: AbilityManagerService OnCollaborateDone_001
+ * @tc.desc: OnCollaborateDone
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceSecondTest, OnCollaborateDone_001, TestSize.Level1)
+{
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    TAG_LOGI(AAFwkTag::TEST, "testcase begin.");
+    sptr<IRemoteObject> token(new IPCObjectStub());
+    int32_t resultCode = 0;
+    EXPECT_EQ(abilityMs_->OnCollaborateDone(token, resultCode), ERR_NOT_SYSTEM_APP);
+    TAG_LOGI(AAFwkTag::TEST, "testcase end.");
+}
 }  // namespace AAFwk
 }  // namespace OHOS
