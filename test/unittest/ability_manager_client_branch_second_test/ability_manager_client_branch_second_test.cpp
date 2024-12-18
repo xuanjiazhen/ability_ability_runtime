@@ -125,5 +125,22 @@ HWTEST_F(AbilityManagerClientBranchSecondTest, AbilityManagerClient_TerminateMis
     EXPECT_NE(client_, nullptr);
     GTEST_LOG_(INFO) << "AbilityManagerClient_TerminateMission_0100 end";
 }
+
+/**
+ * @tc.number: AbilityManagerClient_OnCollaborateDone_0100
+ * @tc.name: OnCollaborateDone
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchSecondTest, AbilityManagerClient_OnCollaborateDone_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityManagerClient_OnCollaborateDone_0100 start";
+
+    sptr<IRemoteObject> token_(new IPCObjectStub());
+    int32_t resultCode = 0;
+    auto result = AbilityManagerClient::GetInstance()->OnCollaborateDone(token_, resultCode);
+    EXPECT_EQ(result, ERR_OK);
+
+    GTEST_LOG_(INFO) << "AbilityManagerClient_OnCollaborateDone_0100 end";
+}
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -3704,5 +3704,20 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_TerminateMissionInner_001, T
     auto res = stub_->TerminateMissionInner(data, reply);
     EXPECT_EQ(res, NO_ERROR);
 }
+
+/**
+ * @tc.name: AbilityManagerStub_OnCollaborateInner_001
+ * @tc.desc: OnCollaborateInner
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_OnCollaborateInner_001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    OHOS::sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) AppExecFwk::MockAbilityToken());
+    data.WriteRemoteObject(token);
+    auto res = stub_->OnCollaborateInner(data, reply);
+    EXPECT_EQ(res, ERR_OK);
+}
 } // namespace AAFwk
 } // namespace OHOS

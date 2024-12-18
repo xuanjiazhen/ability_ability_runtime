@@ -293,6 +293,13 @@ public:
         const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
         std::unique_ptr<InsightIntentExecutorAsyncCallback> callback) override;
 
+    /**
+     * @brief Called when distributed system tring to collaborate remote ability.
+     * @param wantParams wantParams with collaborative info.
+     * @return Returns whether the ability agree to collaborate.
+     */
+    int32_t OnCollaborate(WantParams &wantParams) override;
+
 protected:
     void DoOnForeground(const Want &want) override;
     void ContinuationRestore(const Want &want) override;
@@ -306,7 +313,13 @@ private:
     inline bool GetInsightIntentExecutorInfo(const Want &want,
         const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
         InsightIntentExecutorInfo& executeInfo);
-
+    void CheckAndHandleCollaboration(const std::shared_ptr<AAFwk::Want> want);
+    void SetCollaborativeState(int32_t uid, bool isCallback);
+    bool GetCollaborativeState(int32_t uid);
+    mutable std::mutex callbackMutex_;
+    std::map<int32_t, bool> onCollaborateCallbacks_;
+    std::shared_ptr<AAFwk::Want> want_ = nullptr;
+    std::mutex wantMutexlock_;
     std::shared_ptr<NativeReference> jsWindowStageObj_;
     int32_t windowMode_ = 0;
 #endif

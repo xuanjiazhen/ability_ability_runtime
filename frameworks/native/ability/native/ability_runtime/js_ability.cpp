@@ -579,6 +579,12 @@ bool JsAbility::OnPrepareTerminate()
     return ret;
 }
 
+int32_t JsAbility::OnCollaborate(WantParams &wantParams)
+{
+    TAG_LOGD(AAFwkTag::ABILITY, "called");
+    return ERR_OK;
+}
+
 std::unique_ptr<NativeReference> JsAbility::CreateAppWindowStage()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);

@@ -80,6 +80,7 @@ public:
     void OnBackground() override;
     bool OnBackPress() override;
     bool OnPrepareTerminate() override;
+    int32_t OnCollaborate(WantParams &wantParams) override;
 
     std::shared_ptr<NativeReference> GetJsWindowStage();
     const JsRuntime& GetJsRuntime();

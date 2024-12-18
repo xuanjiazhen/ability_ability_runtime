@@ -2784,5 +2784,22 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_TerminateMission_001, Test
     EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::TERMINATE_MISSION), mock_->code_);
     EXPECT_EQ(res, NO_ERROR);
 }
+
+/**
+ * @tc.name: AbilityManagerProxy_OnCollaborateDone_001
+ * @tc.desc: OnCollaborateDone
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_OnCollaborateDone_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    int32_t resultCode = 0;
+    OHOS::sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    auto res = proxy_->OnCollaborateDone(token, resultCode);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::ON_COLLABORATE_DONE), mock_->code_);
+    EXPECT_EQ(res, ERR_OK);
+}
 } // namespace AAFwk
 } // namespace OHOS
