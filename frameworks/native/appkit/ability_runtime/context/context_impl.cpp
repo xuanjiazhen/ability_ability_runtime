@@ -27,6 +27,9 @@
 #include "configuration_convertor.h"
 #include "constants.h"
 #include "directory_ex.h"
+#ifdef SUPPORT_GRAPHICS
+#include "display_manager.h"
+#endif
 #include "file_ex.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
@@ -46,6 +49,27 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+namespace {
+#ifdef SUPPORT_GRAPHICS
+bool GetDisplayConfig(uint64_t displayId, float &density, std::string &directionStr)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "get display by id %{public}" PRIu64, displayId);
+    auto display = Rosen::DisplayManager::GetInstance().GetDisplayById(displayId);
+    if (display == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "display %{public}" PRIu64 " failed", displayId);
+        return false;
+    }
+
+    density = display->GetVirtualPixelRatio();
+    int32_t width = display->GetWidth();
+    int32_t height = display->GetHeight();
+    directionStr = AppExecFwk::GetDirectionStr(height, width);
+    TAG_LOGD(AAFwkTag::APPKIT, "displayId: %{public}" PRIu64 ", density: %{public}f, direction: %{public}s",
+        displayId, density, directionStr.c_str());
+    return true;
+}
+#endif
+}
 using namespace OHOS::AbilityBase::Constants;
 
 const std::string PATTERN_VERSION = std::string(FILE_SEPARATOR) + "v\\d+" + FILE_SEPARATOR;
@@ -1488,15 +1512,15 @@ void ContextImpl::PrintTokenInfo() const
     }
 }
 
-std::shared_ptr<Context> ContextImpl::CreateAreaModeContext(int areaMode)
+void ContextImpl::ShallowCopySelf(std::shared_ptr<ContextImpl> &contextImpl)
 {
-    std::shared_ptr<ContextImpl> contextImpl = std::make_shared<ContextImpl>();
     contextImpl->token_ = token_;
     contextImpl->applicationInfo_ = applicationInfo_;
     contextImpl->parentContext_ = parentContext_;
     contextImpl->resourceManager_ = resourceManager_;
     contextImpl->hapModuleInfo_ = hapModuleInfo_;
     contextImpl->config_ = config_;
+    contextImpl->currArea_ = currArea_;
     contextImpl->overlayModuleInfos_ = overlayModuleInfos_;
     {
         std::lock_guard<std::mutex> lock(checkedDirSetLock_);
@@ -1512,6 +1536,12 @@ std::shared_ptr<Context> ContextImpl::CreateAreaModeContext(int areaMode)
     }
     contextImpl->resetFlag_ = resetFlag_;
     contextImpl->processName_ = processName_;
+}
+
+std::shared_ptr<Context> ContextImpl::CreateAreaModeContext(int areaMode)
+{
+    std::shared_ptr<ContextImpl> contextImpl = std::make_shared<ContextImpl>();
+    ShallowCopySelf(contextImpl);
     contextImpl->SwitchArea(areaMode);
     return contextImpl;
 }
@@ -1558,5 +1588,83 @@ int32_t ContextImpl::CreateHspModuleResourceManager(const std::string &bundleNam
     UpdateResConfig(GetResourceManager(), resourceManager);
     return ERR_OK;
 }
+
+#ifdef SUPPORT_GRAPHICS
+bool ContextImpl::UpdateDisplayConfiguration(std::shared_ptr<ContextImpl> &contextImpl, uint64_t displayId,
+    float density, std::string direction)
+{
+    if (contextImpl == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null contextImpl");
+        return false;
+    }
+
+    contextImpl->config_ = std::make_shared<AppExecFwk::Configuration>(*config_);
+    auto configuration = contextImpl->config_;
+    if (configuration == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to create configuration");
+        return false;
+    }
+
+    configuration->AddItem(AppExecFwk::ConfigurationInner::APPLICATION_DISPLAYID, std::to_string(displayId));
+    configuration->AddItem(displayId, AppExecFwk::ConfigurationInner::APPLICATION_DENSITYDPI,
+        AppExecFwk::GetDensityStr(density));
+    configuration->AddItem(displayId, AppExecFwk::ConfigurationInner::APPLICATION_DIRECTION, direction);
+
+    std::unique_ptr<Global::Resource::ResConfig> resConfig(Global::Resource::CreateResConfig());
+    if (resConfig == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null resConfig");
+        return false;
+    }
+    auto resourceManager = GetResourceManager();
+    if (resourceManager == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null resource manager");
+        return false;
+    }
+    resourceManager->GetResConfig(*resConfig);
+    resConfig->SetScreenDensity(density);
+    resConfig->SetDirection(AppExecFwk::ConvertDirection(direction));
+    contextImpl->resourceManager_->UpdateResConfig(*resConfig);
+
+    return true;
+}
+
+std::shared_ptr<Context> ContextImpl::CreateDisplayContext(uint64_t displayId)
+{
+    float density;
+    std::string direction;
+    if (!GetDisplayConfig(displayId, density, direction)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to get display config");
+        return nullptr;
+    }
+
+    std::shared_ptr<ContextImpl> contextImpl = std::make_shared<ContextImpl>();
+    if (contextImpl == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to create contextImpl");
+        return nullptr;
+    }
+    ShallowCopySelf(contextImpl);
+
+    AppExecFwk::BundleInfo bundleInfo;
+    bool currentBundle = false;
+    auto applicationInfo = contextImpl->GetApplicationInfo();
+    if (applicationInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to get application info");
+        return nullptr;
+    }
+    auto result = GetBundleInfo(applicationInfo->bundleName, bundleInfo, currentBundle);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to get bundle info");
+        return nullptr;
+    }
+    InitResourceManager(bundleInfo, contextImpl, true);
+
+    if (!UpdateDisplayConfiguration(contextImpl, displayId, density, direction)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to Update display configuration");
+        return nullptr;
+    }
+
+    return contextImpl;
+}
+#endif
 }  // namespace AbilityRuntime
 }  // namespace OHOS

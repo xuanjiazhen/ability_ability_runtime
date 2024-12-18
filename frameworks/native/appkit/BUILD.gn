@@ -351,6 +351,7 @@ ohos_shared_library("app_context") {
       "i18n:intl_util",
       "icu:shared_icuuc",
     ]
+    public_external_deps += [ "window_manager:libdm" ]
   }
 
   innerapi_tags = [ "platformsdk" ]
