@@ -1119,6 +1119,11 @@ public:
 
     void SetDebugUIExtension();
 
+    void GrantUriPermission();
+
+    void GrantUriPermission(const std::vector<std::string> &uriVec, int32_t flag,
+        const std::string &targetBundleName, uint32_t callerTokenId);
+
     inline std::string GetInstanceKey() const
     {
         return instanceKey_;
