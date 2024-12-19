@@ -25,6 +25,7 @@
 
 #include "ability_info.h"
 #include "free_install_observer_manager.h"
+#include "start_options.h"
 #include "want.h"
 
 namespace OHOS {
@@ -47,6 +48,7 @@ struct FreeInstallInfo {
     int resultCode = 0;
     bool isOpenAtomicServiceShortUrl = false;
     std::shared_ptr<Want> originalWant = nullptr;
+    std::shared_ptr<StartOptions> startOptions = nullptr;
 };
 
 /**
@@ -89,7 +91,7 @@ public:
      */
     int StartFreeInstall(const Want &want, int32_t userId, int requestCode, const sptr<IRemoteObject> &callerToken,
         bool isAsync = false, uint32_t specifyTokenId = 0, bool isOpenAtomicServiceShortUrl = false,
-        std::shared_ptr<Want> originalWant = nullptr);
+        std::shared_ptr<Want> originalWant = nullptr, std::shared_ptr<StartOptions> startOptions = nullptr);
 
     /**
      * Start to remote free install.
@@ -216,7 +218,8 @@ private:
     void NotifyFreeInstallResult(int32_t recordId, const Want &want, int resultCode, bool isAsync = false);
     FreeInstallInfo BuildFreeInstallInfo(const Want &want, int32_t userId, int requestCode,
         const sptr<IRemoteObject> &callerToken, bool isAsync, uint32_t specifyTokenId = 0,
-        bool isOpenAtomicServiceShortUrl = false, std::shared_ptr<Want> originalWant = nullptr);
+        bool isOpenAtomicServiceShortUrl = false, std::shared_ptr<Want> originalWant = nullptr,
+        std::shared_ptr<StartOptions> startOptions = nullptr);
     std::time_t GetTimeStamp();
 
     void RemoveFreeInstallInfo(const std::string &bundleName, const std::string &abilityName,

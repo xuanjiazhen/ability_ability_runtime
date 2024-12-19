@@ -80,14 +80,14 @@ bool FreeInstallManager::IsTopAbility(const sptr<IRemoteObject> &callerToken)
 
 int FreeInstallManager::StartFreeInstall(const Want &want, int32_t userId, int requestCode,
     const sptr<IRemoteObject> &callerToken, bool isAsync, uint32_t specifyTokenId, bool isOpenAtomicServiceShortUrl,
-    std::shared_ptr<Want> originalWant)
+    std::shared_ptr<Want> originalWant, std::shared_ptr<StartOptions> startOptions)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!VerifyStartFreeInstallPermission(callerToken)) {
         return NOT_TOP_ABILITY;
     }
     FreeInstallInfo info = BuildFreeInstallInfo(want, userId, requestCode, callerToken,
-        isAsync, specifyTokenId, isOpenAtomicServiceShortUrl, originalWant);
+        isAsync, specifyTokenId, isOpenAtomicServiceShortUrl, originalWant, startOptions);
     {
         std::lock_guard<ffrt::mutex> lock(freeInstallListLock_);
         freeInstallList_.push_back(info);
@@ -166,7 +166,7 @@ int FreeInstallManager::RemoteFreeInstall(const Want &want, int32_t userId, int 
 
 FreeInstallInfo FreeInstallManager::BuildFreeInstallInfo(const Want &want, int32_t userId, int requestCode,
     const sptr<IRemoteObject> &callerToken, bool isAsync, uint32_t specifyTokenId, bool isOpenAtomicServiceShortUrl,
-    std::shared_ptr<Want> originalWant)
+    std::shared_ptr<Want> originalWant, std::shared_ptr<StartOptions> startOptions)
 {
     FreeInstallInfo info = {
         .want = want,
@@ -175,7 +175,8 @@ FreeInstallInfo FreeInstallManager::BuildFreeInstallInfo(const Want &want, int32
         .callerToken = callerToken,
         .specifyTokenId = specifyTokenId,
         .isOpenAtomicServiceShortUrl = isOpenAtomicServiceShortUrl,
-        .originalWant = originalWant
+        .originalWant = originalWant,
+        .startOptions = startOptions
     };
     if (!isAsync) {
         auto promise = std::make_shared<std::promise<int32_t>>();
@@ -364,8 +365,13 @@ void FreeInstallManager::StartAbilityByFreeInstall(FreeInstallInfo &info, std::s
         result = UpdateElementName(info.want, info.userId);
     }
     if (result == ERR_OK) {
-        result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbilityByFreeInstall(info.want,
-            info.callerToken, info.userId, info.requestCode);
+        if (info.startOptions == nullptr) {
+            result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbilityByFreeInstall(info.want,
+                info.callerToken, info.userId, info.requestCode);
+        } else {
+            result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbility(info.want, *info.startOptions,
+                info.callerToken, info.userId, info.requestCode);
+        }
     }
     IPCSkeleton::SetCallingIdentity(identity);
     int32_t recordId = GetRecordIdByToken(info.callerToken);

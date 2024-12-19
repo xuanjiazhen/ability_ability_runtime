@@ -1769,7 +1769,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         }
         TAG_LOGD(AAFwkTag::ABILITYMGR, "is start free install");
         return freeInstallManager_->StartFreeInstall(localWant, validUserId, requestCode,
-            callerToken, true, specifyTokenId);
+            callerToken, true, specifyTokenId, false, nullptr, std::make_shared<AAFwk::StartOptions>(startOptions));
     }
     if (!JudgeMultiUserConcurrency(validUserId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "multi-user non-concurrent unsatisfied");
