@@ -166,6 +166,15 @@ public:
     int TerminateAbility(const sptr<IRemoteObject> &token, bool clearMissionFlag);
 
     /**
+     * Prepare terminate application
+     *
+     * @param pid Process ID
+     * @param prepareTelrmination PrepareTermination Enum
+     * @param isExist whether this callback event exist
+     */
+    void AppScheduler::PrepareTerminateApp(const pid_t pid, int &prepareTermination, bool &isExist);
+
+    /**
      * move ability to foreground.
      *
      * @param token, the token of ability.

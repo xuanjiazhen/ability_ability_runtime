@@ -445,6 +445,16 @@ void AmsMgrScheduler::StartSpecifiedAbility(const AAFwk::Want &want, const AppEx
     });
 }
 
+void AmsMgrScheduler::PrepareTerminateApp(const pid_t pid, int &prepareTermination, bool &isExist)
+{
+    if (!IsReady()) {
+        TAG_LOGW(AAFwkTag::APPMGR, "not ready");
+        return;
+    }
+
+    amsMgrServiceInner_->SchedulePrepareTerminate(pid, prepareTermination, isExist);
+}
+
 void AmsMgrScheduler::StartSpecifiedProcess(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
     int32_t requestId)
 {

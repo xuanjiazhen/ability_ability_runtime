@@ -48,6 +48,11 @@ public:
     virtual ~AbilityStage() = default;
     virtual void OnCreate(const AAFwk::Want &want) const;
     virtual void OnDestroy() const;
+    enum class PrepareTermination {
+        TERMINATE_IMMEDIATELY = 0,
+        CANCEL = 1,
+    }
+    virtual bool OnPrepareTerminate(int &prepareTermination) const;
     virtual std::string OnAcceptWant(const AAFwk::Want &want);
     virtual std::string OnNewProcessRequest(const AAFwk::Want &want);
     virtual void Init(const std::shared_ptr<Context> &context,
