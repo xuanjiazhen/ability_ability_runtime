@@ -41,6 +41,7 @@ constexpr const char* TASK_ABILITY_BEHAVIOR_ANALYSIS = "AbilityBehaviorAnalysisT
 constexpr const char* TASK_KILL_PROCESS_BY_ABILITY_TOKEN = "KillProcessByAbilityTokenTask";
 constexpr const char* TASK_KILL_PROCESSES_BY_USERID = "KillProcessesByUserIdTask";
 constexpr const char* TASK_KILL_PROCESSES_BY_PIDS = "KillProcessesByPids";
+constexpr const char* TASK_KILL_PROCESS_WITH_REASON = "KillProcessWithReason";
 constexpr const char* TASK_ATTACH_PID_TO_PARENT = "AttachPidToParent";
 constexpr const char* TASK_KILL_APPLICATION = "KillApplicationTask";
 constexpr const char* TASK_CLEAR_PROCESS_BY_ABILITY_TOKEN = "ClearProcessByAbilityTokenTask";
@@ -247,7 +248,9 @@ void AmsMgrScheduler::KillProcessesByPids(std::vector<int32_t> &pids)
         return;
     }
 
+    // 获取通信对端的pid
     pid_t callingPid = IPCSkeleton::GetCallingPid();
+    // 获取当前进程的全局id，即从init命名空间看到的id
     pid_t pid = getprocpid();
     if (callingPid != pid) {
         TAG_LOGE(AAFwkTag::APPMGR, "not allow other process to call");
@@ -258,6 +261,17 @@ void AmsMgrScheduler::KillProcessesByPids(std::vector<int32_t> &pids)
         amsMgrServiceInner->KillProcessesByPids(pids);
     };
     amsHandler_->SubmitTask(killProcessesByPidsFunc, TASK_KILL_PROCESSES_BY_PIDS);
+}
+
+int32_t AmsMgrScheduler::KillProcessWithReason(int32_t pid, const KillProcessReason &reason)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "pid=%{public}d, reason=%{public}d, subReason=%{public}d,
+        msg=%{public}s", pid, reason.killReason, reason.subKillReason, reason.killMsg);
+    if (!IsReady()) {
+        return ERR_INVALID_OPERATION;
+    }
+
+    return amsMgrServiceInner_->KillProcessWithReason(pid, reason);
 }
 
 void AmsMgrScheduler::AttachPidToParent(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &callerToken)

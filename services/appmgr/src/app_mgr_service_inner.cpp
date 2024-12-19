@@ -2968,11 +2968,51 @@ void AppMgrServiceInner::KillProcessesByPids(std::vector<int32_t> &pids)
             TAG_LOGE(AAFwkTag::APPMGR, "appRecord null");
             continue;
         }
-        auto result = KillProcessByPid(pid, "KillProcessesByPids");
+        auto result = KillProcessByPid(pid, "KillProcessByPid");
         if (result < 0) {
             TAG_LOGW(AAFwkTag::APPMGR, "fail, pid:%{public}d", pid);
         }
     }
+}
+
+int32_t AppMgrServiceInner::KillProcessWithReason(int32_t pid, const KillProcessReason &reason)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "call");
+    if (!appRunningManager_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
+        return ERR_NO_INIT;
+    }
+
+    auto isCallingPerm = AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+        AAFwk::PermissionConstants::PERMISSION_KILL_APP_PROCESSES);
+    if (!isCallingPerm) {
+        TAG_LOGE(AAFwkTag::APPMGR, "permission verification fail");
+        return ERR_PERMISSION_DENIED;
+    }
+
+    auto appRecord = GetAppRunningRecordByPid(pid);
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRecord null");
+        return ERR_INVALID_OPERATION;
+    }
+    std::string bundleName = appRecord->GetBundleName();
+    ProcessExitDetailInfo processExitInfo;
+    processExitInfo.pid = pid;
+    proocessExitInfo.uid = appRecord->GetUid();
+    // TODO get and set pssValue and rssValue
+    processExitInfo.reason = reason;
+    processExitInfo.processName = appRecord->GetProcessName();
+    processExitInfo.timeStamp = AbilityRuntime::TimeUtil::FormatTime("%Y/%m/%d-%H:%M:%S")
+
+    auto result = KillProcessByPid(pid, "KillProcessWithReason");
+    if (result < 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "fail, pid:%{public}d", pid);
+        return result;
+    }
+    // record process killed reason
+
+    (void)DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->AddKillProcessReason(
+        bundleName, processExitInfo);
 }
 
 void AppMgrServiceInner::AttachPidToParent(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &callerToken)

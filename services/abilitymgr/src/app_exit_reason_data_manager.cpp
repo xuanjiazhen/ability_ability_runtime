@@ -35,6 +35,16 @@ const std::string JSON_KEY_RECOVER_INFO_LIST = "recover_info_list";
 const std::string JSON_KEY_SESSION_ID_LIST = "session_id_list";
 const std::string JSON_KEY_EXTENSION_NAME = "extension_name";
 const std::string SEPARATOR = ":";
+const std::string JSON_KEY_PROCESS_EXIT_DETAIL_INFO_LIST = "process_exit_detail_info_list";
+const std::string KEY_KILL_PROCESS_REASON_PREFIX = "kill_process_reason";
+const std::string JSON_KEY_KILL_REASON = "kill_reason";
+const std::string JSON_KEY_SUB_KILL_REASON = "sub_kill_reason";
+const std::string JSON_KEY_KILL_MSG = "kill_msg";
+const std::string JSON_KEY_PID = "pid";
+const std::string JSON_KEY_UID = "uid";
+const std::string JSON_KEY_PROCESS_NAME = "process_name";
+const std::string JSON_KEY_PSS_VALUE = "pss_value";
+const std::string JSON_KEY_RSS_VALUE = "rss_value";
 } // namespace
 AppExitReasonDataManager::AppExitReasonDataManager() {}
 
@@ -641,6 +651,118 @@ DistributedKv::Value AppExitReasonDataManager::ConvertAppExitReasonInfoToValueOf
     };
     DistributedKv::Value value(jsonObject.dump());
     return value;
+}
+
+DistributedKv::Value AppExitReasonDataManager::ConvertProcessExitDetailInfoToValue(
+    const std::vector<ProcessExitDetailInfo> &detailInfos)
+{
+    auto size = detailInfos.size();
+    nlohmann::json infosJsonArray = nlohmann::json::array();
+
+    for (size_t i = 0; i < size; i++) {
+        nlohmann::json tmpJsonObject = nlohmann::json {
+            { JSON_KEY_PID, detailInfos[i].pid },
+            { JSON_KEY_UID, detailInfos[i].uid },
+            { JSON_KEY_KILL_REASON, detailInfos[i].reason.killReason },
+            { JSON_KEY_SUB_KILL_REASON, detailInfos[i].reason.subKillReason },
+            { JSON_KEY_KILL_MSG, detailInfos[i].reason.killMsg },
+            { JSON_KEY_PSS_VALUE, detailInfos[i].pssValue },
+            { JSON_KEY_RSS_VALUE, detailInfos[i].rssValue },
+            { JSON_KEY_PROCESS_NAME, detailInfos[i].processName },
+        };
+        infosJsonArray.emplace_back(tmpJsonObject);
+    }
+
+    jsonObject[JSON_KEY_PROCESS_EXIT_DETAIL_INFO_LIST] = infosJsonArray;
+    DistributedKv::Value value(jsonObject.dump());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "value: %{public}s", value.ToString().c_str());
+    return value;
+}
+
+void AppExitReasonDataManager::ConvertProcessExitDetailInfoFromValue(const DistributedKv::Value &value,
+    std::vector<ProcessExitDetailInfo> &detailInfos)
+{
+    nlohmann::json jsonObject = nlohmann::json::parse(value.ToString(), nullptr, false);
+    nlohmann::json tmpJsonDetailInfoObj;
+    ProcessExitDetailInfo tmpDetailInfo;
+    if (jsonObject.is_discarded()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "parse json sting failed");
+        return;
+    }
+    if (jsonObject.contains(JSON_KEY_PROCESS_EXIT_DETAIL_INFO_LIST)
+        && jsonObject[JSON_KEY_PROCESS_EXIT_DETAIL_INFO_LIST].is_array()) {
+        detailInfos.clear();
+        auto size = jsonObject[JSON_KEY_PROCESS_EXIT_DETAIL_INFO_LIST].size();
+        for (size_t i = 0; i < size; i++) {
+            tmpJsonDetailInfoObj = jsonObject[JSON_KEY_PROCESS_EXIT_DETAIL_INFO_LIST][i];
+            if (tmpJsonDetailInfoObj.is_object()) {
+                if (tmpJsonDetailInfoObj[JSON_KEY_KILL_REASON].is_number_integer()) {
+                    tmpDetailInfo.killReason = tmpJsonDetailInfoObj[JSON_KEY_KILL_REASON];
+                }
+                if (tmpJsonDetailInfoObj[JSON_KEY_SUB_KILL_REASON].is_number_integer()) {
+                    tmpDetailInfo.subKillReason = tmpJsonDetailInfoObj[JSON_KEY_SUB_KILL_REASON];
+                }
+                if (tmpJsonDetailInfoObj[JSON_KEY_KILL_MSG].is_string()) {
+                    tmpDetailInfo.killMsg = tmpJsonDetailInfoObj[JSON_KEY_KILL_MSG];
+                }
+                if (tmpJsonDetailInfoObj[JSON_KEY_PID].is_number_integer()) {
+                    tmpDetailInfo.pid = tmpJsonDetailInfoObj[JSON_KEY_PID];
+                }
+                if (tmpJsonDetailInfoObj[JSON_KEY_UID].is_number_integer()) {
+                    tmpDetailInfo.uid = tmpJsonDetailInfoObj[JSON_KEY_UID];
+                }
+                if (tmpJsonDetailInfoObj[JSON_KEY_PROCESS_NAME].is_string()) {
+                    tmpDetailInfo.processName = tmpJsonDetailInfoObj[JSON_KEY_PROCESS_NAME];
+                }
+                if (tmpJsonDetailInfoObj[JSON_KEY_PSS_VALUE].is_number_integer()) {
+                    tmpDetailInfo.pssValue = tmpJsonDetailInfoObj[JSON_KEY_PSS_VALUE];
+                }
+                if (tmpJsonDetailInfoObj[JSON_KEY_RSS_VALUE].is_number_integer()) {
+                    tmpDetailInfo.rssValue = tmpJsonDetailInfoObj[JSON_KEY_RSS_VALUE];
+                }
+                detailInfos.emplace_back(tmpDetailInfo);
+            }
+        }
+    }
+}
+
+int32_t AppExitReasonDataManager::AddKillProcessReason(const std::string &bundleName, const ProcessExitDetailInfo &processExitInfo)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+        "AddKillProcessReason bundleName %{public}d pid %{public}d killReason %{public}d",
+        bundleName, processExitInfo.pid, processExitInfo.reason.killReason);
+    {
+        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        if (!CheckKvStore()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStore");
+            return ERR_NO_INIT;
+        }
+    }
+    std::string keyStr = KEY_KILL_PROCESS_REASON_PREFIX + SEPARATOR + bundleName;
+    DistributedKv::Key key(keyStr);
+    DistributedKv::Value value;
+    DistributedKv::Status status = kvStorePtr_->Get(key, value);
+    if (status != DistributedKv::Status::SUCCESS && status != DistributedKv::Status::KEY_NOT_FOUND) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "AddKillProcessReason get error: %{public}d", status);
+        return ERR_INVALID_VALUE;
+    }
+    std::vector<ProcessExitDetailInfo> detailInfos;
+    if (status == DistributedKv::Status::SUCCESS) {
+        ConvertProcessExitDetailInfoFromValue(value, detailInfos);
+    }
+    detailInfos.emplace_back(processExitInfo);
+    value = ConvertProcessExitDetailInfoToValue(detailInfos);
+    {
+        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        status = kvStorePtr_->Put(key, value);
+    }
+    if (status != DistributedKv::Status::SUCCESS) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "error : %{public}d", status);
+        return ERR_INVALID_OPERATION;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "AddKillProcessReason finish");
+    return ERR_OK;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

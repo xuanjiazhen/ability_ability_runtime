@@ -138,6 +138,7 @@ int32_t AppExitReasonHelper::RecordProcessExitReason(const int32_t pid, const st
         GetActiveAbilityList(uid, abilityLists, pid);
     }
 
+    // 将reason和exitMsg记录在app record中
     auto ret = DelayedSingleton<AppScheduler>::GetInstance()->NotifyAppMgrRecordExitReason(pid, exitReason.reason,
         exitReason.exitMsg);
     if (ret != ERR_OK) {
@@ -245,6 +246,20 @@ bool AppExitReasonHelper::IsExitReasonValid(const ExitReason &exitReason)
 {
     const Reason reason = exitReason.reason;
     return reason >= REASON_MIN && reason <= REASON_MAX;
+}
+
+bool AppExitReasonHelper::IsKillProcessReasonValid(const KillProcessReason &reason)
+{
+    return reason.killReason >= KillReason::KILLREASON_MIN && reason.killReason <= KillReason::KILLREASON_MAX;
+}
+
+int32_t AppExitReasonHelper::RecordKillProcessReason(const int32_t pid, const KillProcessReason &reason)
+{
+    if (!IsKillProcessReasonValid(reason)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "killReason invalid");
+        return ERR_INVALID_VALUE;
+    }
+    return DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->SetKillProcessReason(pid, reason);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -36,6 +36,7 @@ public:
     int32_t RecordProcessExtensionExitReason(
         const int32_t pid, const std::string &bundleName, const ExitReason &exitReason);
     int32_t RecordProcessExitReason(const int32_t pid, const ExitReason &exitReason);
+    int32_t RecordKillProcessReason(const int32_t pid, const KillProcessReason &reason);
 
 private:
     int32_t RecordProcessExitReason(const int32_t pid, const std::string bundleName, const int32_t uid,
@@ -44,6 +45,7 @@ private:
     void GetActiveAbilityListFromUIAbilityManager(int32_t uid, std::vector<std::string> &abilityLists,
         const int32_t pid);
     bool IsExitReasonValid(const ExitReason &exitReason);
+    bool IsKillProcessReasonValid(const KillProcessReason &reason);
 
     std::shared_ptr<SubManagersHelper> subManagersHelper_;
 };

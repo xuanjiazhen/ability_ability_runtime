@@ -175,6 +175,8 @@ int32_t AmsMgrStub::OnRemoteRequestInnerThird(uint32_t code, MessageParcel &data
             return HandleClearProcessByToken(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::KILL_PROCESSES_BY_PIDS):
             return HandleKillProcessesByPids(data, reply);
+        case static_cast<uint32_t>(IAmsMgr::Message::KILL_PROCESS_WITH_REASON):
+            return HandleKillProcessWithReason(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::ATTACH_PID_TO_PARENT):
             return HandleAttachPidToParent(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::IS_MEMORY_SIZE_SUFFICIENT):
@@ -325,6 +327,26 @@ ErrCode AmsMgrStub::HandleKillProcessesByPids(MessageParcel &data, MessageParcel
     }
 
     KillProcessesByPids(pids);
+    return NO_ERROR;
+}
+
+ErrCode AmsMgrStub::HandleKillProcessWithReason(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    int32_t pid = data.ReadInt32();
+    // 调用到 KillProcessReason::Unmarshalling
+    KillProcessReason *reason = data.ReadParcelable<KillProcessReason>();
+    if (reason == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "reason is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+
+    TAG_LOGW(AAFwkTag::APPMGR,
+        "KillProcessWithReason,callingPid=%{public}d,pid=%{public}d,reason=%{public}d",
+        IPCSkeleton::GetCallingPid(), pid, reason.killReason);
+    int32_t result = KillProcessWithReason(pid, reason);
+    reply.WriteInt32(result);
+    delete reason;
     return NO_ERROR;
 }
 

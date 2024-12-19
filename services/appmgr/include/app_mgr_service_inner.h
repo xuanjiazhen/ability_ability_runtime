@@ -205,6 +205,15 @@ public:
     virtual int32_t KillProcessesInBatch(const std::vector<int32_t> &pids);
 
     /**
+     * kill the process with reason
+     *
+     * @param pid id of process.
+     * @param  reason, kill proocess reason.
+     * @return ERR_OK if success.
+     */
+    virtual int32_t KillProcessWithReason(int32_t pid, const KillProcessReason &reason);
+
+    /**
      * Set child and parent relationship
      * @param token child process
      * @param callerToken parent process
@@ -1951,6 +1960,8 @@ private:
     std::atomic<int32_t> willKillPidsNum_ = 0;
     std::shared_ptr<AAFwk::TaskHandlerWrap> delayKillTaskHandler_;
     std::unordered_set<std::string> nwebPreloadSet_ {};
+    ffrt::mutex killedProcessReasonMapLock_;
+    mutable std::map<int64_t, KillProcessReason> killedProcessReasonMap_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

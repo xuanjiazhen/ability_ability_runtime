@@ -201,6 +201,14 @@ public:
         const std::string& reason = "KillApplicationSelf");
 
     /**
+     * kill the process with reason
+     *
+     * @param pid id of process.
+     * @param  reason, kill proocess reason.
+     * @return 0 if success.
+     */
+    virtual AppMgrResultCode KillProcessWithReason(int32_t pid, const KillProcessReason &reason);
+    /**
      * ClearUpApplicationData, call ClearUpApplicationData() through proxy project,
      * clear the application data.
      *

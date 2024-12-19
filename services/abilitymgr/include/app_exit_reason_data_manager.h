@@ -22,6 +22,7 @@
 
 #include "ability_util.h"
 #include "distributed_kv_data_manager.h"
+#include "kill_process_reason.h"
 #include "exit_reason.h"
 #include "singleton.h"
 
@@ -58,6 +59,10 @@ public:
         const std::vector<std::string> &extensionList, const AAFwk::ExitReason &exitReason);
 
     bool GetUIExtensionAbilityExitReason(const std::string &keyEx, AAFwk::ExitReason &exitReason);
+
+    int32_t AddKillProcessReason(const std::string &bundleName, const int32_t pid, const KillProcessReason &reason);
+    // int32_t GetKillProcessReason();
+    // int32_t DeleteKillProcessReason();
 
 private:
     DistributedKv::Status GetKvStore();

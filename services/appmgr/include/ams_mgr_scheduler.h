@@ -201,6 +201,15 @@ public:
         const std::string& reason = "KillApplicationSelf") override;
 
     /**
+     * kill the process with reason
+     *
+     * @param pid id of process.
+     * @param  reason, kill proocess reason.
+     * @return ERR_OK if success.
+     */
+    virtual int32_t KillProcessWithReason(int32_t pid, const KillProcessReason &reason) override;
+
+    /**
      * Get application info by process id.
      *
      * @param pid Process id.
