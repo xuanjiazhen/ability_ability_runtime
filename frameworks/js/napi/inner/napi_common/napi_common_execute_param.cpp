@@ -95,6 +95,18 @@ bool UnwrapExecuteParam(napi_env env, napi_value param, InsightIntentExecutePara
         executeParam.displayId_ = displayId;
     }
 
+    TAG_LOGE(AAFwkTag::JSNAPI, "----------wzb---------napi_common_execute_param.cpp -----UnwrapExecuteParam---- ");
+    std::vector<std::string> uris;
+    if (!UnwrapStringArrayByPropertyName(env, param, "uris", uris)) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "Wrong argument uris fail");
+    }
+    executeParam.uris_ = uris;
+
+    int32_t flags = 0;
+    if (!UnwrapInt32ByPropertyName(env, param, "flags", flags)) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "Wrong argument flags fail");
+    }
+    executeParam.flags_ = flags;
     return true;
 }
 }  // namespace AbilityRuntime

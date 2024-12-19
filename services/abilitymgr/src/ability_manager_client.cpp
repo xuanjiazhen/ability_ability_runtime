@@ -1862,6 +1862,7 @@ ErrCode AbilityManagerClient::ExecuteInsightIntentDone(sptr<IRemoteObject> token
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "----------wzb--------AbilityManagerClient::ExecuteInsightIntentDone---> abms->ExecuteInsightIntentDone");
     return abms->ExecuteInsightIntentDone(token, intentId, result);
 }
 

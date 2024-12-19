@@ -51,6 +51,9 @@ public:
         bool isSandboxApp, uint32_t callerTokenId, int32_t collaboratorType);
 
     void CheckUriPermission(uint32_t callerTokenId, Want &want);
+
+    void InsightIntentGrantUriPermission(const std::vector<std::string> &uriVec, uint32_t flag,
+        const std::string &targetBundleName, int32_t appIndex, int32_t initiatorTokenId);
 private:
     UriUtils();
     ~UriUtils();

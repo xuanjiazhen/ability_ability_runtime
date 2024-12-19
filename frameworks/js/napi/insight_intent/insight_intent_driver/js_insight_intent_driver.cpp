@@ -88,12 +88,14 @@ public:
 
     static napi_value Execute(napi_env env, napi_callback_info info)
     {
+        TAG_LOGE(AAFwkTag::INTENT, "------------wzb----------JsInsightIntentDriver::Execute0--1");
         GET_NAPI_INFO_AND_CALL(env, info, JsInsightIntentDriver, OnExecute);
     }
 
 private:
     napi_value OnExecute(napi_env env, NapiCallbackInfo& info)
     {
+        TAG_LOGE(AAFwkTag::INTENT, "---------------wzb---------JsInsightIntentDriver::OnExecute---called");
         TAG_LOGD(AAFwkTag::INTENT, "called");
         if (info.argc < ARGC_ONE) {
             TAG_LOGE(AAFwkTag::INTENT, "invalid argc");
@@ -131,6 +133,7 @@ private:
         }
         auto client = std::make_shared<JsInsightIntentExecuteCallbackClient>(env, nativeDeferred, callbackRef);
         uint64_t key = InsightIntentHostClient::GetInstance()->AddInsightIntentExecute(client);
+        TAG_LOGE(AAFwkTag::INTENT, "---------------wzb---------JsInsightIntentDriver::OnExecute---called");
         auto err = AbilityManagerClient::GetInstance()->ExecuteIntent(key,
             InsightIntentHostClient::GetInstance(), param);
         if (err != 0) {

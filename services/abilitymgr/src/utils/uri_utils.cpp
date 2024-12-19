@@ -337,6 +337,31 @@ void UriUtils::CheckUriPermission(uint32_t callerTokenId, Want &want)
     }
 }
 
+void UriUtils::InsightIntentGrantUriPermission(const std::vector<std::string> &uriVec, uint32_t flag,
+    const std::string &targetBundleName, int32_t appIndex, int32_t initiatorTokenId)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "-----wzb----------UriUtils::InsightIntentGrantUriPermission---called");
+
+    std::vector<Uri> permissionUris;
+    for (auto &uriStr: uriVec) {
+        Uri uri(uriStr);
+        permissionUris.emplace_back(uri);
+    }
+    if (permissionUris.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "------wzb------uris not permissioned.");
+        return;
+    }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "------wzb------uris .");
+
+    auto ret = IN_PROCESS_CALL(UriPermissionManagerClient::GetInstance().GrantUriPermission(permissionUris,
+        flag, targetBundleName, appIndex, initiatorTokenId));
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed, err:%{public}d", ret);
+    }
+
+    return;
+}
+
 bool UriUtils::IsSandboxApp(uint32_t tokenId)
 {
     auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(tokenId);
@@ -402,6 +427,8 @@ void UriUtils::GrantUriPermission(Want &want, std::string targetBundleName, int3
 bool UriUtils::GrantUriPermissionInner(std::vector<std::string> uriVec, uint32_t callerTokenId,
     const std::string &targetBundleName, int32_t appIndex, Want &want)
 {
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "---------------------wzb-----------------GrantUriPermissionInner----1.");
+
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     uint32_t flag = want.GetFlags();
     auto checkResults = IN_PROCESS_CALL(UriPermissionManagerClient::GetInstance().CheckUriAuthorization(
