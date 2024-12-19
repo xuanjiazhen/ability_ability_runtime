@@ -64,7 +64,8 @@ void AppRunningManager::initConfig(const Configuration &config)
 }
 
 std::shared_ptr<AppRunningRecord> AppRunningManager::CreateAppRunningRecord(
-    const std::shared_ptr<ApplicationInfo> &appInfo, const std::string &processName, const BundleInfo &bundleInfo)
+    const std::shared_ptr<ApplicationInfo> &appInfo, const std::string &processName, const BundleInfo &bundleInfo,
+    const std::string &instanceKey)
 {
     if (!appInfo) {
         TAG_LOGE(AAFwkTag::APPMGR, "param error");
@@ -96,6 +97,7 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CreateAppRunningRecord(
     appRecord->SetSignCode(signCode);
     appRecord->SetJointUserId(bundleInfo.jointUserId);
     appRecord->SetAppIdentifier(bundleInfo.signatureInfo.appIdentifier);
+    appRecord->SetInstanceKey(instanceKey);
     {
         std::lock_guard guard(runningRecordMapMutex_);
         appRunningRecordMap_.emplace(recordId, appRecord);
@@ -109,7 +111,7 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CreateAppRunningRecord(
 
 std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExist(const std::string &appName,
     const std::string &processName, const int uid, const BundleInfo &bundleInfo,
-    const std::string &specifiedProcessFlag)
+    const std::string &specifiedProcessFlag, const std::string &instanceKey)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR,
@@ -139,7 +141,7 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExis
     }
     for (const auto &item : appRunningMap) {
         const auto &appRecord = item.second;
-        if (appRecord && appRecord->GetProcessName() == processName &&
+        if (appRecord && appRecord->GetProcessName() == processName && appRecord->GetInstanceKey() == instanceKey &&
             (specifiedProcessFlag.empty() ||
             appRecord->GetSpecifiedProcessFlag() == specifiedProcessFlag) &&
             !(appRecord->IsTerminating()) && !(appRecord->IsKilling()) && !(appRecord->GetRestartAppFlag()) &&
@@ -360,6 +362,43 @@ bool AppRunningManager::ProcessExitByBundleNameAndUid(
     }
 
     return (pids.empty() ? false : true);
+}
+
+bool AppRunningManager::ProcessExitByTokenIdAndInstance(uint32_t accessTokenId, const std::string &instanceKey,
+    std::list<pid_t> &pids)
+{
+    auto appRunningMap = GetAppRunningRecordMap();
+    for (const auto &item : appRunningMap) {
+        const auto &appRecord = item.second;
+        if (appRecord == nullptr) {
+            continue;
+        }
+        auto appInfo = appRecord->GetApplicationInfo();
+        if (appInfo == nullptr) {
+            continue;
+        }
+        if (appInfo->accessTokenId != accessTokenId) {
+            continue;
+        }
+        if (appInfo->multiAppMode.multiAppModeType != MultiAppModeType::MULTI_INSTANCE) {
+            TAG_LOGI(AAFwkTag::APPMGR, "not multi-instance");
+        }
+        if (appRecord->GetInstanceKey() != instanceKey) {
+            continue;
+        }
+        if (appRecord->GetPriorityObject() == nullptr) {
+            continue;
+        }
+        pid_t pid = appRecord->GetPriorityObject()->GetPid();
+        if (pid <= 0) {
+            continue;
+        }
+        pids.push_back(pid);
+        appRecord->SetKilling();
+        appRecord->ScheduleProcessSecurityExit();
+    }
+
+    return pids.empty() ? false : true;
 }
 
 bool AppRunningManager::GetPidsByBundleNameUserIdAndAppIndex(const std::string &bundleName,
@@ -743,11 +782,10 @@ int32_t AppRunningManager::AssignRunningProcessInfoByAppRecord(
     auto appInfo = appRecord->GetApplicationInfo();
     if (appInfo) {
         info.bundleType = static_cast<int32_t>(appInfo->bundleType);
+        info.appMode = appInfo->multiAppMode.multiAppModeType;
     }
-    if (appInfo && (static_cast<int32_t>(appInfo->multiAppMode.multiAppModeType) ==
-            static_cast<int32_t>(MultiAppModeType::APP_CLONE))) {
-            info.appCloneIndex = appRecord->GetAppIndex();
-    }
+    info.appCloneIndex = appRecord->GetAppIndex();
+    info.instanceKey = appRecord->GetInstanceKey();
     return ERR_OK;
 }
 
@@ -1372,13 +1410,13 @@ std::shared_ptr<ChildProcessRecord> AppRunningManager::OnChildProcessRemoteDied(
     return nullptr;
 }
 
-int32_t AppRunningManager::SignRestartAppFlag(int32_t uid)
+int32_t AppRunningManager::SignRestartAppFlag(int32_t uid, const std::string &instanceKey)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     std::lock_guard guard(runningRecordMapMutex_);
     for (const auto &item : appRunningRecordMap_) {
         const auto &appRecord = item.second;
-        if (appRecord == nullptr || appRecord->GetUid() != uid) {
+        if (appRecord == nullptr || appRecord->GetUid() != uid || appRecord->GetInstanceKey() != instanceKey) {
             continue;
         }
         TAG_LOGD(AAFwkTag::APPMGR, "sign");
@@ -1681,6 +1719,18 @@ void AppRunningManager::SetMultiUserConfigurationMgr(
     const std::shared_ptr<MultiUserConfigurationMgr>& multiUserConfigurationMgr)
 {
     multiUserConfigurationMgr_ = multiUserConfigurationMgr;
+}
+
+void AppRunningManager::UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey)
+{
+    auto appRunningMap = GetAppRunningRecordMap();
+    for (const auto& item : appRunningMap) {
+        const auto& appRecord = item.second;
+        if (appRecord && appRecord->GetSpecifiedRequestId() == specifiedId) {
+            TAG_LOGI(AAFwkTag::APPMGR, "set instanceKey:%{public}s", instanceKey.c_str());
+            appRecord->SetInstanceKey(instanceKey);
+        }
+    }
 }
 
 bool AppRunningManager::CheckAppRunningRecordIsLast(const std::shared_ptr<AppRunningRecord> &appRecord)

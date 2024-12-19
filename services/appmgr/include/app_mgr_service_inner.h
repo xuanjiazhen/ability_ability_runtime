@@ -305,6 +305,8 @@ public:
 
     virtual int32_t KillApplicationSelf(const std::string& reason = "KillApplicationSelf");
 
+    int32_t KillAppSelfWithInstanceKey(const std::string &instanceKey, const std::string& reason);
+
     /**
      * KillApplicationByUserId, kill the application by user ID.
      *
@@ -499,15 +501,13 @@ public:
     int32_t StartNativeProcessForDebugger(const AAFwk::Want &want);
 
     std::shared_ptr<AppRunningRecord> CreateAppRunningRecord(
-        sptr<IRemoteObject> token,
-        sptr<IRemoteObject> preToken,
+        std::shared_ptr<AbilityRuntime::LoadParam> loadParam,
         std::shared_ptr<ApplicationInfo> appInfo,
         std::shared_ptr<AbilityInfo> abilityInfo,
         const std::string &processName,
         const BundleInfo &bundleInfo,
         const HapModuleInfo &hapModuleInfo,
-        std::shared_ptr<AAFwk::Want> want,
-        int32_t abilityRecordId);
+        std::shared_ptr<AAFwk::Want> want);
 
     /**
      * OnStop, Application management service stopped.
@@ -1142,9 +1142,7 @@ public:
 
     int32_t UpdateRenderState(pid_t renderPid, int32_t state);
 
-    int32_t SignRestartAppFlag(int32_t uid);
-
-    int32_t GetAppIndexByPid(pid_t pid, int32_t &appIndex) const;
+    int32_t SignRestartAppFlag(int32_t uid, const std::string &instanceKey);
 
     void SetAppAssertionPauseState(bool flag);
 
@@ -1221,6 +1219,8 @@ public:
     bool IsProcessAttached(sptr<IRemoteObject> token) const;
 
     void NotifyAppPreCache(int32_t pid, int32_t userId);
+
+    void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey);
 
     /**
      * Get pids of processes which belong to specific bundle name and support process cache feature.

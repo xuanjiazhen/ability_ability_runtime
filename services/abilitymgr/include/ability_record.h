@@ -1065,6 +1065,11 @@ public:
 
     void RemoveConnectWant();
 
+    inline std::string GetInstanceKey() const
+    {
+        return instanceKey_;
+    }
+
     void UpdateDmsCallerInfo(Want &want);
 
     void SetSecurityFlag(bool securityFlag)
@@ -1301,6 +1306,7 @@ private:
     ffrt::mutex connectWantLock_;
     bool isLaunching_ = true;
     LaunchDebugInfo launchDebugInfo_;
+    std::string instanceKey_ = "";
     bool securityFlag_ = false;
 };
 }  // namespace AAFwk

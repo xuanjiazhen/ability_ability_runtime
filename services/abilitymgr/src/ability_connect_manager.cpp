@@ -822,8 +822,8 @@ void AbilityConnectManager::OnAppStateChanged(const AppInfo &info)
 {
     auto serviceMap = GetServiceMap();
     std::for_each(serviceMap.begin(), serviceMap.end(), [&info](ServiceMapType::reference service) {
-        if (service.second && (info.processName == service.second->GetAbilityInfo().process ||
-                                  info.processName == service.second->GetApplicationInfo().bundleName)) {
+        if (service.second && info.bundleName == service.second->GetApplicationInfo().bundleName &&
+            info.appIndex == service.second->GetAppIndex() && info.instanceKey == service.second->GetInstanceKey()) {
             auto appName = service.second->GetApplicationInfo().name;
             auto uid = service.second->GetAbilityInfo().applicationInfo.uid;
             auto isExist = [&appName, &uid](
@@ -837,8 +837,8 @@ void AbilityConnectManager::OnAppStateChanged(const AppInfo &info)
 
     auto cacheAbilityList = AbilityCacheManager::GetInstance().GetAbilityList();
     std::for_each(cacheAbilityList.begin(), cacheAbilityList.end(), [&info](std::shared_ptr<AbilityRecord> &service) {
-        if (service && (info.processName == service->GetAbilityInfo().process ||
-            info.processName == service->GetApplicationInfo().bundleName)) {
+        if (service && info.bundleName == service->GetApplicationInfo().bundleName &&
+            info.appIndex == service->GetAppIndex() && info.instanceKey == service->GetInstanceKey()) {
             auto appName = service->GetApplicationInfo().name;
             auto uid = service->GetAbilityInfo().applicationInfo.uid;
             auto isExist = [&appName, &uid](const AppData &appData) {
@@ -3020,18 +3020,19 @@ int32_t AbilityConnectManager::GetUIExtensionSessionInfo(const sptr<IRemoteObjec
     return uiExtensionAbilityRecordMgr_->GetUIExtensionSessionInfo(token, uiExtensionSessionInfo);
 }
 
-void AbilityConnectManager::SignRestartAppFlag(int32_t uid)
+void AbilityConnectManager::SignRestartAppFlag(int32_t uid, const std::string &instanceKey)
 {
     {
         std::lock_guard lock(serviceMapMutex_);
         for (auto &[key, abilityRecord] : serviceMap_) {
-            if (abilityRecord == nullptr || abilityRecord->GetUid() != uid) {
+            if (abilityRecord == nullptr || abilityRecord->GetUid() != uid ||
+                abilityRecord->GetInstanceKey() != instanceKey) {
                 continue;
             }
             abilityRecord->SetRestartAppFlag(true);
         }
     }
-    AbilityCacheManager::GetInstance().SignRestartAppFlag(uid);
+    AbilityCacheManager::GetInstance().SignRestartAppFlag(uid, instanceKey);
 }
 
 std::shared_ptr<AAFwk::AbilityRecord> AbilityConnectManager::GetUIExtensionRootHostInfo(const sptr<IRemoteObject> token)

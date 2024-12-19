@@ -681,7 +681,7 @@ public:
      */
     virtual int32_t UpdateRenderState(pid_t renderPid, int32_t state) = 0;
 
-    virtual int32_t SignRestartAppFlag(int32_t uid)
+    virtual int32_t SignRestartAppFlag(int32_t uid, const std::string &instanceKey)
     {
         return 0;
     }
@@ -789,16 +789,12 @@ public:
         return;
     }
 
-    /**
-     * Get appIndex of pid.
-     * @param pid The pid.
-     * @param appIndex appIndex of pid.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    virtual int32_t GetAppIndexByPid(pid_t pid, int32_t &appIndex)
+    virtual int32_t KillAppSelfWithInstanceKey(const std::string &instanceKey, const std::string& reason)
     {
         return 0;
     }
+
+    virtual void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey) {}
 
     /**
      * Get pids of processes which belong to specific bundle name and support process cache feature.
