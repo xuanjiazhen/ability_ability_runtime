@@ -656,7 +656,7 @@ public:
 
     virtual int SendWantSender(sptr<IWantSender> target, const SenderInfo &senderInfo) override;
 
-    virtual void CancelWantSender(const sptr<IWantSender> &sender) override;
+    virtual void CancelWantSender(const sptr<IWantSender> &sender, uint32_t flags = 0) override;
 
     virtual int GetPendingWantUid(const sptr<IWantSender> &target) override;
 

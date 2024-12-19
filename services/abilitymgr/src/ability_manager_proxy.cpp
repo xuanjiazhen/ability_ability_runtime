@@ -2108,7 +2108,7 @@ int AbilityManagerProxy::SendWantSender(sptr<IWantSender> target, const SenderIn
     return reply.ReadInt32();
 }
 
-void AbilityManagerProxy::CancelWantSender(const sptr<IWantSender> &sender)
+void AbilityManagerProxy::CancelWantSender(const sptr<IWantSender> &sender, uint32_t flags)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -2120,6 +2120,12 @@ void AbilityManagerProxy::CancelWantSender(const sptr<IWantSender> &sender)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "sender write fail");
         return;
     }
+
+    if (!data.WriteUint32(flags)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "flags write failed");
+        return;
+    }
+
     auto error = SendRequest(AbilityManagerInterfaceCode::CANCEL_PENDING_WANT_SENDER, data, reply, option);
     if (error != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
