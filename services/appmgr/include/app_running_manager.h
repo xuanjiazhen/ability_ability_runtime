@@ -58,8 +58,8 @@ public:
      *
      * @return AppRunningRecord pointer if success get or create.
      */
-    std::shared_ptr<AppRunningRecord> CreateAppRunningRecord(
-        const std::shared_ptr<ApplicationInfo> &appInfo, const std::string &processName, const BundleInfo &bundleInfo);
+    std::shared_ptr<AppRunningRecord> CreateAppRunningRecord(const std::shared_ptr<ApplicationInfo> &appInfo,
+        const std::string &processName, const BundleInfo &bundleInfo, const std::string &instanceKey);
 
     /**
      * CheckAppRunningRecordIsExist, Get process record by application name and process Name.
@@ -72,7 +72,7 @@ public:
      */
     std::shared_ptr<AppRunningRecord> CheckAppRunningRecordIsExist(const std::string &appName,
         const std::string &processName, const int uid, const BundleInfo &bundleInfo,
-        const std::string &specifiedProcessFlag = "");
+        const std::string &specifiedProcessFlag = "", const std::string &instanceKey = "");
 
 #ifdef APP_NO_RESPONSE_DIALOG
     /**
@@ -253,6 +253,8 @@ public:
     int32_t ProcessUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo);
 
     bool ProcessExitByBundleNameAndUid(const std::string &bundleName, const int uid, std::list<pid_t> &pids);
+    bool ProcessExitByTokenIdAndInstance(uint32_t accessTokenId, const std::string &instanceKey,
+        std::list<pid_t> &pids);
     bool GetPidsByUserId(int32_t userId, std::list<pid_t> &pids);
 
     void PrepareTerminate(const sptr<IRemoteObject> &token, bool clearMissionFlag = false);
@@ -309,7 +311,7 @@ public:
      */
     int32_t GetAllAppRunningRecordCountByBundleName(const std::string &bundleName);
 
-    int32_t SignRestartAppFlag(int32_t uid);
+    int32_t SignRestartAppFlag(int32_t uid, const std::string &instanceKey);
 
     int32_t GetAppRunningUniqueIdByPid(pid_t pid, std::string &appRunningUniqueId);
 
@@ -346,6 +348,8 @@ public:
     bool HandleUserRequestClean(const sptr<IRemoteObject> &abilityToken, pid_t &pid, int32_t &uid);
 
     void SetMultiUserConfigurationMgr(const std::shared_ptr<MultiUserConfigurationMgr>& multiUserConfigurationMgr);
+
+    void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey);
 
     bool CheckAppRunningRecordIsLast(const std::shared_ptr<AppRunningRecord> &appRecord);
 

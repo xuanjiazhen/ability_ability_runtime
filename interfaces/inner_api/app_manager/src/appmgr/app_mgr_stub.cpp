@@ -341,8 +341,10 @@ int32_t AppMgrStub::OnRemoteRequestInnerSeventh(uint32_t code, MessageParcel &da
             return HandleRestartResidentProcessDependedOnWeb(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::GET_ALL_CHILDREN_PROCESSES):
             return HandleGetAllChildrenProcesses(data, reply);
-        case static_cast<uint32_t>(AppMgrInterfaceCode::GET_APP_INDEX_BY_PID):
-            return HandleGetAppIndexByPid(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::KILL_APP_SELF_WITH_INSTANCE_KEY):
+            return HandleKillAppSelfWithInstanceKey(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_INSTANCE_KEY_BY_SPECIFIED_ID):
+            return HandleUpdateInstanceKeyBySpecifiedId(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::GET_SUPPORTED_PROCESS_CACHE_PIDS):
             return HandleGetSupportedProcessCachePids(data, reply);
     }
@@ -1482,7 +1484,8 @@ int32_t AppMgrStub::HandleSignRestartAppFlag(MessageParcel &data, MessageParcel 
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     auto uid = data.ReadInt32();
-    auto ret = SignRestartAppFlag(uid);
+    auto instanceKey = data.ReadString();
+    auto ret = SignRestartAppFlag(uid, instanceKey);
     if (!reply.WriteInt32(ret)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write ret error.");
         return IPC_STUB_ERR;
@@ -1652,20 +1655,24 @@ int32_t AppMgrStub::HandleRestartResidentProcessDependedOnWeb(MessageParcel &dat
     return NO_ERROR;
 }
 
-int32_t AppMgrStub::HandleGetAppIndexByPid(MessageParcel &data, MessageParcel &reply)
+int32_t AppMgrStub::HandleKillAppSelfWithInstanceKey(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "call");
-    auto pid = data.ReadInt32();
-    int32_t appIndex = -1;
-    int32_t result = GetAppIndexByPid(pid, appIndex);
+    auto instanceKey = data.ReadString();
+    auto reason = data.ReadString();
+    auto result = KillAppSelfWithInstanceKey(instanceKey, reason);
     if (!reply.WriteInt32(result)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "fail to write GetAppIndexByPid result.");
-        return IPC_STUB_ERR;
+        TAG_LOGE(AAFwkTag::APPMGR, "fail to write result.");
+        return ERR_INVALID_VALUE;
     }
-    if (!reply.WriteInt32(appIndex)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "fail to write appIndex.");
-        return IPC_STUB_ERR;
-    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleUpdateInstanceKeyBySpecifiedId(MessageParcel &data, MessageParcel &reply)
+{
+    auto specifiedId = data.ReadInt32();
+    auto instanceKey = data.ReadString();
+    UpdateInstanceKeyBySpecifiedId(specifiedId, instanceKey);
     return NO_ERROR;
 }
 

@@ -609,7 +609,7 @@ public:
      */
     virtual int32_t UpdateRenderState(pid_t renderPid, int32_t state) override;
 
-    int32_t SignRestartAppFlag(int32_t uid) override;
+    int32_t SignRestartAppFlag(int32_t uid, const std::string &instanceKey) override;
 
     int32_t GetAppRunningUniqueIdByPid(pid_t pid, std::string &appRunningUniqueId) override;
 
@@ -675,7 +675,9 @@ public:
 
     virtual void RestartResidentProcessDependedOnWeb() override;
 
-    virtual int32_t GetAppIndexByPid(pid_t pid, int32_t &appIndex) override;
+    virtual int32_t KillAppSelfWithInstanceKey(const std::string &instanceKey, const std::string& reason) override;
+
+    virtual void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey) override;
 
     /**
      * Get pids of processes which belong to specific bundle name and support process cache feature.

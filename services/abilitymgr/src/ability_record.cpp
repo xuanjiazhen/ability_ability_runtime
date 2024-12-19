@@ -230,6 +230,9 @@ std::shared_ptr<AbilityRecord> AbilityRecord::CreateAbilityRecord(const AbilityR
     abilityRecord->SetSecurityFlag(abilityRequest.want.GetBoolParam(DLP_PARAMS_SECURITY_FLAG, false));
     abilityRecord->SetCallerAccessTokenId(abilityRequest.callerAccessTokenId);
     abilityRecord->sessionInfo_ = abilityRequest.sessionInfo;
+    if (abilityRequest.sessionInfo != nullptr) {
+        abilityRecord->instanceKey_ = abilityRequest.sessionInfo->instanceKey;
+    }
     if (!abilityRecord->Init()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed to init new ability record");
         return nullptr;

@@ -131,7 +131,7 @@ void DoSomethingInterestingWithMyAPIaddb(const char* data, size_t size)
     manager->OnChildProcessRemoteDied(remote);
     manager->GetAllAppRunningRecordCountByBundleName(jsonStr);
     auto uid = static_cast<int32_t>(GetU32Data(data));
-    manager->SignRestartAppFlag(uid);
+    manager->SignRestartAppFlag(uid, jsonStr);
     manager->GetAppRunningUniqueIdByPid(pidApps, jsonStr);
     std::vector<pid_t> hostPids;
     manager->GetAllUIExtensionRootHostPid(pidApps, hostPids);
@@ -175,7 +175,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
     std::string jsonStr(data, size);
     BundleInfo bundleInfo;
-    manager->CreateAppRunningRecord(appInfo, jsonStr, bundleInfo);
+    manager->CreateAppRunningRecord(appInfo, jsonStr, bundleInfo, "");
     int uid = static_cast<int>(GetU32Data(data));
     manager->CheckAppRunningRecordIsExist(jsonStr, jsonStr, uid, bundleInfo, jsonStr);
     manager->CheckAppRunningRecordIsExistByBundleName(jsonStr);
