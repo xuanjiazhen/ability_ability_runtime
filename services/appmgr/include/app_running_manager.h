@@ -36,6 +36,7 @@
 #include "record_query_result.h"
 #include "refbase.h"
 #include "running_process_info.h"
+#include "multi_user_config_mgr.h"
 
 namespace OHOS {
 namespace Rosen {
