@@ -22,6 +22,9 @@
 namespace OHOS {
 namespace AbilityRuntime {
 
+bool UnwrapResultOfExecuteResult(napi_env env, napi_value param,
+    AppExecFwk::InsightIntentExecuteResult &executeResult);
+
 bool UnwrapExecuteResult(napi_env env, napi_value param, AppExecFwk::InsightIntentExecuteResult &executeResult);
 
 }  // namespace AbilityRuntime
