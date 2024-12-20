@@ -49,6 +49,7 @@ using SendMessage = void (*)(const std::string&);
 using StopServer = void (*)(const std::string&);
 using StoreMessage = void (*)(int32_t, const std::string&);
 using SetProfilerCallback = void (*)(const std::function<void(bool)> &setStateProfilerStatus);
+using SetPerformanceCheckCallback = void (*)(const std::function<void(bool, std::string)> &setPerformanceCheckStatus);
 using SetSwitchCallBack = void (*)(const std::function<void(bool)> &setSwitchStatus,
     const std::function<void(int32_t)> &createLayoutInfo, int32_t instanceId);
 using SetConnectCallback = void (*)(const std::function<void(bool)>);
@@ -230,10 +231,30 @@ void ConnectServerManager::SetProfilerCallBack(const std::function<void(bool)> &
     setProfilerCallback(setStateProfilerStatus);
 }
 
+void ConnectServerManager::SetPerformanceCheckCallBack()
+{
+    LoadConnectServerDebuggerSo();
+    auto setPerformanceCheckCallback = reinterpret_cast<SetPerformanceCheckCallback>(
+        dlsym(handlerConnectServerSo_, "SetPerformanceCheckCallback"));
+    if (setPerformanceCheckCallback == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME,
+                 "ConnectServerManager::AddInstance failed to find symbol SetPerformanceCheckCallback");
+        return;
+    }
+    setPerformanceCheckCallback([this](bool status, std::string message) {
+        if (setPerformanceCheckStatus_ != nullptr) {
+            setPerformanceCheckStatus_(status, message);
+        } else {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "null setPerformanceCheckStatus_");
+        }
+    });
+}
+
 bool ConnectServerManager::SendInstanceMessage(int32_t tid, int32_t instanceId, const std::string& instanceName)
 {
     TAG_LOGI(AAFwkTag::JSRUNTIME, "called");
     ConnectServerManager::Get().SendInstanceMessageCallback(instanceId);
+    ConnectServerManager::Get().SetPerformanceCheckCallBack();
     std::string message = GetInstanceMapMessage("addInstance", instanceId, instanceName, tid);
     LoadConnectServerDebuggerSo();
     auto storeMessage = reinterpret_cast<StoreMessage>(dlsym(handlerConnectServerSo_, "StoreMessage"));
@@ -264,6 +285,7 @@ bool ConnectServerManager::AddInstance(int32_t tid, int32_t instanceId, const st
     TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
 
     ConnectServerManager::Get().AddInstanceCallback(instanceId);
+    ConnectServerManager::Get().SetPerformanceCheckCallBack();
     LoadConnectServerDebuggerSo();
     // Get the message including information of new instance, which will be send to IDE.
     std::string message = GetInstanceMapMessage("addInstance", instanceId, instanceName, tid);
@@ -349,6 +371,33 @@ void ConnectServerManager::SendInspector(const std::string& jsonTreeStr, const s
     }
     sendMessage(jsonTreeStr);
     sendMessage(jsonSnapshotStr);
+}
+
+void ConnectServerManager::SetPerformanceCheckStatusCallback(
+    const std::function<void(bool, std::string)> &setPerformanceCheckStatus)
+{
+    setPerformanceCheckStatus_ = setPerformanceCheckStatus;
+}
+
+void ConnectServerManager::SendPreformanceMessage(const std::string& message)
+{
+    LoadConnectServerDebuggerSo();
+    auto waitForConnection = reinterpret_cast<WaitForConnection>(dlsym(handlerConnectServerSo_, "WaitForConnection"));
+    if (waitForConnection == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null WaitForConnection");
+        return;
+    }
+
+    if (waitForConnection()) {
+        return;
+    }
+
+    auto sendMessage = reinterpret_cast<SendMessage>(dlsym(handlerConnectServerSo_, "SendMessage"));
+    if (sendMessage == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null sendMessage");
+        return;
+    }
+    sendMessage(message);
 }
 
 void ConnectServerManager::SendStateProfilerMessage(const std::string &message)

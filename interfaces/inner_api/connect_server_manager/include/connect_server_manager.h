@@ -58,6 +58,9 @@ public:
     bool SetRecordCallback(const std::function<void(void)> &startRecordFunc,
         const std::function<void(void)> &stopRecordFunc);
     void SetRecordResults(const std::string &jsonArrayStr);
+    void SetPerformanceCheckCallBack();
+    void SetPerformanceCheckStatusCallback(const std::function<void(bool, std::string)> &setPerformanceCheckStatus);
+    void SendPreformanceMessage(const std::string& message);
     void RegisterConnectServerCallback(const ServerConnectCallback &connectServerCallback);
     void RegisterSendInstanceMessageCallback(const SendInstanceMessageCallBack &sendInstanceMessageCallback);
     void RegisterAddInstanceCallback(const AddInstanceCallBack &addInstanceCallback);
@@ -76,6 +79,7 @@ private:
     static std::mutex sendInstanceMessageCallbackMutex_;
     std::atomic<bool> isConnected_ = false;
     std::unordered_map<int32_t, std::pair<std::string, int32_t>> instanceMap_;
+    std::function<void(int32_t, std::string)> setPerformanceCheckStatus_;
     std::vector<ServerConnectCallback> connectServerCallbacks_;
 
     std::vector<AddInstanceCallBack> addInstanceCallbacks_;
