@@ -18,6 +18,7 @@
 #include "configuration_convertor.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "time_util.h"
 #ifdef SUPPORT_GRAPHICS
 #include "window.h"
 #endif
@@ -206,9 +207,13 @@ void ConfigurationUtils::UpdateDisplayResConfig(std::shared_ptr<ResourceManager>
     resourceManager->GetResConfig(*resConfig);
     resConfig->SetScreenDensity(density);
     resConfig->SetDirection(ConvertDirection(direction));
+    int64_t timeStart = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
     resourceManager->UpdateResConfig(*resConfig);
-    TAG_LOGD(AAFwkTag::ABILITY, "update resConfig finished, density: %{public}f, direction: %{public}d",
-        resConfig->GetScreenDensity(), resConfig->GetDirection());
+    int64_t timeEnd = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
+    TAG_LOGD(AAFwkTag::ABILITY,
+        "update resConfig finished, density: %{public}f, direction: %{public}d, time: %{public}s",
+        resConfig->GetScreenDensity(),
+        resConfig->GetDirection()std::to_string(timeEnd - timeStart).c_str());
 }
 #endif
 } // namespace AbilityRuntime

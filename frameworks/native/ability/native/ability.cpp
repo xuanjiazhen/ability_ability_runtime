@@ -46,6 +46,7 @@
 #include "system_ability_definition.h"
 #include "task_handler_client.h"
 #include "values_bucket.h"
+#include "time_util.h"
 
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
 #include "background_task_mgr_helper.h"
@@ -511,10 +512,12 @@ void Ability::OnConfigurationUpdatedNotify(const Configuration &configuration)
         if (!hasPointerDevice.empty()) {
             resConfig->SetInputDevice(ConvertHasPointerDevice(hasPointerDevice));
         }
+        int64_t timeStart = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
         resourceManager->UpdateResConfig(*resConfig);
+        int64_t timeEnd = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
         TAG_LOGI(AAFwkTag::ABILITY,
-            "colorMode:%{public}d,hasPointerDevice:%{publis}d",
-            resConfig->GetColorMode(), resConfig->GetInputDevice());
+            "colorMode:%{public}d, hasPointerDevice:%{publis}d, time: %{public}s",
+            resConfig->GetColorMode(), resConfig->GetInputDevice(), std::to_string(timeEnd - timeStart).c_str());
     }
 
     if (abilityContext_ != nullptr && application_ != nullptr) {
@@ -1902,9 +1905,12 @@ void Ability::OnChange(Rosen::DisplayId displayId)
             resourceManager->GetResConfig(*resConfig);
             resConfig->SetScreenDensity(density);
             resConfig->SetDirection(ConvertDirection(height, width));
+            int64_t timeStart = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
             resourceManager->UpdateResConfig(*resConfig);
-            TAG_LOGI(AAFwkTag::ABILITY, "notify ResourceManager, Density:%{public}f, Direction:%{public}d",
-                resConfig->GetScreenDensity(), resConfig->GetDirection());
+            int64_t timeEnd = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
+            TAG_LOGI(AAFwkTag::ABILITY,
+                "notify ResourceManager, Density:%{public}f, Direction:%{public}d, time:%{public}s",
+                resConfig->GetScreenDensity(), resConfig->GetDirection(), std::to_string(timeEnd - timeStart).c_str());
         }
     }
 
@@ -2170,9 +2176,13 @@ bool Ability::UpdateResMgrAndConfiguration(int32_t displayId)
         resourceManager->GetResConfig(*resConfig);
         resConfig->SetScreenDensity(density);
         resConfig->SetDirection(ConvertDirection(height, width));
+        int64_t timeStart = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
         resourceManager->UpdateResConfig(*resConfig);
-        TAG_LOGD(AAFwkTag::ABILITY, "notify ResourceManager, Density:%{public}f, Direction:%{public}d",
-            resConfig->GetScreenDensity(), resConfig->GetDirection());
+        int64_t timeEnd = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
+        TAG_LOGD(AAFwkTag::ABILITY,
+            "notify ResourceManager, Density:%{public}f, Direction:%{public}d, time: %{public}s",
+            resConfig->GetScreenDensity(), resConfig->GetDirection(),
+            std::to_string(timeEnd - timeStart).c_str());
     }
     return true;
 }

@@ -60,6 +60,7 @@
 #include "system_ability_definition.h"
 #include "source_map.h"
 #include "source_map_operator.h"
+#include "time_util.h"
 
 #ifdef SUPPORT_SCREEN
 #include "hot_reloader.h"
@@ -1091,7 +1092,11 @@ bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath
         panda::JSNApi::LoadAotFile(vm, moduleName_);
         auto resourceManager = AbilityBase::ExtractResourceManager::GetExtractResourceManager().GetGlobalObject();
         if (resourceManager) {
+            int64_t timeStart = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
             resourceManager->AddResource(loadPath.c_str());
+            int64_t timeEnd = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
+            TAG_LOGI(AAFwkTag::UIABILITY, "loadPath: %{public}s, time: %{public}s",
+                loadPath.c_str(), std::to_string(timeEnd - timeStart).c_str());
         }
     }
 
