@@ -30,11 +30,7 @@ config("auto_fill_manager_public_config") {
 ohos_shared_library("auto_fill_manager") {
   public_configs = [ ":auto_fill_manager_public_config" ]
 
-  sources = [
-    "src/auto_fill_extension_callback.cpp",
-    "src/auto_fill_manager.cpp",
-    "src/auto_fill_manager_util.cpp",
-  ]
+  sources = []
 
   deps = [
     "${ability_runtime_innerkits_path}/runtime:runtime",
@@ -54,6 +50,13 @@ ohos_shared_library("auto_fill_manager") {
     "ipc:ipc_core",
   ]
 
+  if (ability_runtime_auto_fill) {
+    sources += [
+      "src/auto_fill_extension_callback.cpp",
+      "src/auto_fill_manager.cpp",
+      "src/auto_fill_manager_util.cpp",
+    ]
+  }
   if (ability_runtime_graphics) {
     external_deps += [ "ace_engine:ace_uicontent" ]
     defines = [ "SUPPORT_GRAPHICS" ]
