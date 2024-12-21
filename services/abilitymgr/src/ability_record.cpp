@@ -739,13 +739,11 @@ void AbilityRecord::ProcessForegroundAbility(bool isRecent, const AbilityRequest
         auto taskName = std::to_string(missionId_) + "_hot";
         handler->CancelTask(taskName);
 
+        StartingWindowTask(isRecent, !isWindowStarted_, abilityRequest, startOptions);
+        AnimationTask(isRecent, abilityRequest, startOptions, callerAbility);
         if (isWindowStarted_) {
-            StartingWindowTask(isRecent, false, abilityRequest, startOptions);
-            AnimationTask(isRecent, abilityRequest, startOptions, callerAbility);
             PostCancelStartingWindowHotTask();
         } else {
-            StartingWindowTask(isRecent, true, abilityRequest, startOptions);
-            AnimationTask(isRecent, abilityRequest, startOptions, callerAbility);
             PostCancelStartingWindowColdTask();
         }
         PostForegroundTimeoutTask();
@@ -3268,6 +3266,17 @@ void AbilityRecord::DumpAbilityInfoDone(std::vector<std::string> &infos)
     dumpCondition_.notify_all();
 }
 
+void AbilityRecord::InsightIntentGrantUriPermission()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    std::string element = GetElementName().GetURI();
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "SUPPORT_GRAPHICS: ability record: %{public}s", element.c_str());
+    {
+        std::lock_guard guard(wantLock_);
+        GrantUriPermission(want_, abilityInfo_.applicationInfo.bundleName, false, 0);
+    }
+}
+
 #ifdef SUPPORT_UPMS
 void AbilityRecord::GrantUriPermission(Want &want, std::string targetBundleName, bool isSandboxApp, uint32_t tokenId)
 {
@@ -3293,6 +3302,15 @@ void AbilityRecord::GrantUriPermission(Want &want, std::string targetBundleName,
         callerTokenId, collaboratorType_);
 }
 #endif // SUPPORT_UPMS
+
+void AbilityRecord::InsightIntentGrantUriPermission(const std::vector<std::string> &uriVec, uint32_t flag,
+    const std::string &targetBundleName, int32_t callerTokenId)
+{
+    if (uriVec.empty() || flag == 0 || targetBundleName.empty()) {
+        return;
+    }
+    UriUtils::GetInstance().InsightIntentGrantUriPermission(uriVec, flag, targetBundleName, appIndex_, callerTokenId);
+}
 
 #ifdef WITH_DLP
 void AbilityRecord::HandleDlpAttached()

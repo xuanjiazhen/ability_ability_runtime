@@ -2304,7 +2304,9 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityWithInsightIntent_0100, Tes
     int32_t userId = 1;
     int requestCode = 0;
     auto abilityMs = std::make_shared<AbilityManagerService>();
-    auto res = abilityMs->StartAbilityWithInsightIntent(want, userId, requestCode);
+    InsightIntentExecuteParam param;
+    auto paramPtr = std::make_shared<InsightIntentExecuteParam>(param);
+    auto res = abilityMs->StartAbilityWithInsightIntent(want, paramPtr, userId, requestCode);
     EXPECT_EQ(res, ERR_INVALID_CALLER);
 }
 
@@ -2318,7 +2320,9 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartExtensionAbilityWithInsightIntent_
     Want want;
     AppExecFwk::ExtensionAbilityType extensionType = AppExecFwk::ExtensionAbilityType::UNSPECIFIED;
     auto abilityMs = std::make_shared<AbilityManagerService>();
-    auto res = abilityMs->StartExtensionAbilityWithInsightIntent(want, extensionType);
+    InsightIntentExecuteParam param;
+    auto paramPtr = std::make_shared<InsightIntentExecuteParam>(param);
+    auto res = abilityMs->StartExtensionAbilityWithInsightIntent(want, paramPtr, extensionType);
     EXPECT_EQ(res, CHECK_PERMISSION_FAILED);
 }
 
@@ -2333,7 +2337,8 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityByCallWithInsightIntent_010
     InsightIntentExecuteParam param;
     sptr<IRemoteObject> callerToken = MockToken(AbilityType::PAGE);
     auto abilityMs = std::make_shared<AbilityManagerService>();
-    auto res = abilityMs->StartAbilityByCallWithInsightIntent(want, callerToken, param);
+    auto paramPtr = std::make_shared<InsightIntentExecuteParam>(param);
+    auto res = abilityMs->StartAbilityByCallWithInsightIntent(want, callerToken, paramPtr);
     EXPECT_EQ(res, RESOLVE_ABILITY_ERR);
 }
 } // namespace AAFwk

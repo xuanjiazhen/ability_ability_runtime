@@ -10855,13 +10855,30 @@ int32_t AbilityManagerService::DetachAppDebug(const std::string &bundleName)
     return IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->DetachAppDebug(bundleName));
 }
 
+std::string AbilityManagerService::InsightIntentGetcallerBundleName()
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    auto bundleMgr = AbilityUtil::GetBundleManagerHelper();
+    std::string callerBundlename;
+    if (bundleMgr != nullptr) {
+       IN_PROCESS_CALL(bundleMgr->GetNameForUid(callerUid, callerBundlename));
+    }
+    return callerBundlename;
+}
+
 int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObject> &callerToken,
     const InsightIntentExecuteParam &param)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    auto callerBundlename = InsightIntentGetcallerBundleName();
+    if (callerBundlename.empty()) {
+        return ERR_INVALID_VALUE;
+    }
+
     auto paramPtr = std::make_shared<InsightIntentExecuteParam>(param);
     int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateParam(key, callerToken,
-        paramPtr);
+        paramPtr, callerBundlename);
     if (ret != ERR_OK) {
         return ret;
     }
@@ -10875,11 +10892,11 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
     switch (param.executeMode_) {
         case AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND:
             TAG_LOGD(AAFwkTag::ABILITYMGR, "ExecuteMode UI_ABILITY_FOREGROUND.");
-            ret = StartAbilityWithInsightIntent(want);
+            ret = StartAbilityWithInsightIntent(want, paramPtr);
             break;
         case AppExecFwk::ExecuteMode::UI_ABILITY_BACKGROUND: {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "ExecuteMode UI_ABILITY_BACKGROUND.");
-            ret = StartAbilityByCallWithInsightIntent(want, callerToken, param);
+            ret = StartAbilityByCallWithInsightIntent(want, callerToken, paramPtr);
             break;
         }
         case AppExecFwk::ExecuteMode::UI_EXTENSION_ABILITY:
@@ -10888,7 +10905,7 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
             break;
         case AppExecFwk::ExecuteMode::SERVICE_EXTENSION_ABILITY:
             TAG_LOGD(AAFwkTag::ABILITYMGR, "ExecuteMode SERVICE_EXTENSION_ABILITY.");
-            ret = StartExtensionAbilityWithInsightIntent(want, AppExecFwk::ExtensionAbilityType::SERVICE);
+            ret = StartExtensionAbilityWithInsightIntent(want, paramPtr, AppExecFwk::ExtensionAbilityType::SERVICE);
             break;
         default:
             TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid executeMode");
@@ -10937,7 +10954,8 @@ int32_t AbilityManagerService::OnExecuteIntent(AbilityRequest &abilityRequest,
     return ERR_OK;
 }
 
-int32_t AbilityManagerService::StartAbilityWithInsightIntent(const Want &want, int32_t userId, int requestCode)
+int32_t AbilityManagerService::StartAbilityWithInsightIntent(const Want &want,
+    const std::shared_ptr<InsightIntentExecuteParam> &paramPtr, int32_t userId, int requestCode)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     bool startWithAccount = want.GetBoolParam(START_ABILITY_TYPE, false);
@@ -10958,14 +10976,14 @@ int32_t AbilityManagerService::StartAbilityWithInsightIntent(const Want &want, i
 }
 
 int32_t AbilityManagerService::StartExtensionAbilityWithInsightIntent(const Want &want,
-    AppExecFwk::ExtensionAbilityType extensionType)
+    const std::shared_ptr<InsightIntentExecuteParam> &paramPtr, AppExecFwk::ExtensionAbilityType extensionType)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     return StartExtensionAbilityInner(want, nullptr, DEFAULT_INVAL_VALUE, extensionType, true);
 }
 
 int32_t AbilityManagerService::StartAbilityByCallWithInsightIntent(const Want &want,
-    const sptr<IRemoteObject> &callerToken, const InsightIntentExecuteParam &param)
+    const sptr<IRemoteObject> &callerToken, const std::shared_ptr<InsightIntentExecuteParam> &paramPtr)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call startAbilityByCallWithInsightIntent");
     sptr<IAbilityConnection> connect = sptr<AbilityBackgroundConnection>::MakeSptr();
@@ -11042,6 +11060,11 @@ int32_t AbilityManagerService::ExecuteInsightIntentDone(const sptr<IRemoteObject
             "bundleName %{public}s and %{public}s mismatch", bundleName.c_str(), bundleNameStored.c_str());
         return ERR_INVALID_VALUE;
     }
+
+    std::string callerBundleName;
+    DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->GetCallerBundleName(intentId, callerBundleName);
+    uint32_t initiatorTokenId = abilityRecord->GetApplicationInfo().accessTokenId;
+    abilityRecord->InsightIntentGrantUriPermission(result.uris, result.flags, callerBundleName, initiatorTokenId);
 
     return DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->ExecuteIntentDone(
         intentId, result.innerErr, result);

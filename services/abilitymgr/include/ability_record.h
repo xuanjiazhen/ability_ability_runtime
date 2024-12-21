@@ -1127,6 +1127,11 @@ public:
 
     void SetDebugUIExtension();
 
+    void InsightIntentGrantUriPermission();
+
+    void InsightIntentGrantUriPermission(const std::vector<std::string> &uriVec, uint32_t flag,
+        const std::string &targetBundleName, int32_t callerTokenId);
+
     inline std::string GetInstanceKey() const
     {
         return instanceKey_;
