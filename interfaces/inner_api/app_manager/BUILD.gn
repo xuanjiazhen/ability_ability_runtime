@@ -81,10 +81,6 @@ ohos_shared_library("app_manager") {
     "src/appmgr/app_state_data.cpp",
     "src/appmgr/application_state_observer_proxy.cpp",
     "src/appmgr/application_state_observer_stub.cpp",
-    "src/appmgr/child_process_args.cpp",
-    "src/appmgr/child_process_info.cpp",
-    "src/appmgr/child_process_options.cpp",
-    "src/appmgr/child_process_request.cpp",
     "src/appmgr/child_scheduler_proxy.cpp",
     "src/appmgr/child_scheduler_stub.cpp",
     "src/appmgr/configuration_observer_proxy.cpp",
@@ -115,13 +111,24 @@ ohos_shared_library("app_manager") {
     "src/appmgr/system_memory_attr.cpp",
   ]
 
+  defines = [ "AMS_LOG_TAG = \"AppexecfwkCore\"" ]
+  defines += [ "AMS_LOG_DOMAIN = 0xD001306" ]
+
+  if (ability_runtime_child_process) {
+    defines += [ "SUPPORT_CHILD_PROCESS" ]
+    sources += [
+      "src/appmgr/child_process_args.cpp",
+      "src/appmgr/child_process_info.cpp",
+      "src/appmgr/child_process_options.cpp",
+      "src/appmgr/child_process_request.cpp",
+    ]
+  }
+
   public_configs = [
     ":appmgr_core_config",
     ":appmgr_sdk_config",
   ]
 
-  defines = [ "AMS_LOG_TAG = \"AppexecfwkCore\"" ]
-  defines += [ "AMS_LOG_DOMAIN = 0xD001306" ]
   cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
