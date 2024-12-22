@@ -2710,9 +2710,20 @@ int32_t UIAbilityLifecycleManager::TryPrepareTerminateByPids(const std::vector<i
         std::vector<sptr<IRemoteObject>> tokens;
         IN_PROCESS_CALL_WITHOUT_RET(
             DelayedSingleton<AppScheduler>::GetInstance()->GetAbilityRecordsByProcessID(pid, tokens));
+        int prepareTermination;
+        bool isExist;
+        DelayedSingleton<AppScheduler>::GetInstance()->PrepareTerminateApp(pid, prepareTermination, isExist);
+        if (isExist && static_cast<AppExecFwk::PrepareTermination>(prepareTermination) ==
+            AppExecFwk::PrepareTermination::CANCEL) {
+            continue;
+        }
+        if (!AAFwk::PermissionVerification::GetInstance()->VerifyPrepareTerminatePermission()) {
+            TAG_LOGD(AAFwkTag::APPMGR, "failed, please apply permission ohos.permission.PREPARE_APP_TERMINATE");
+            continue;
+        }
         for (const auto& token: tokens) {
             auto abilityRecord = Token::GetAbilityRecordByToken(token);
-            if (PrepareTerminateAbility(abilityRecord)) {
+            if (!isExist && PrepareTerminateAbility(abilityRecord)) {
                 TAG_LOGI(AAFwkTag::ABILITYMGR, "terminate blocked");
                 continue;
             }

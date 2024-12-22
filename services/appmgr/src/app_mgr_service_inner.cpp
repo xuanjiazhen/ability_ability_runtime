@@ -4806,6 +4806,46 @@ void AppMgrServiceInner::ScheduleAcceptWantDone(
     }
 }
 
+void AppMgrServiceInner::SchedulePrepareTerminate(const pid_t pid, int &prepareTermination, bool &isExist)
+{
+    auto appRecord = GetAppRunningRecordByPid(pid);
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "get appRecord fail");
+        return;
+    }
+
+    BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    auto abilityRecordList = appRecord->GetAbilities();
+    std::shared_ptr<AbilityInfo> abilityInfo = nullptr;
+    std::shared_ptr<ApplicationInfo> appInfo = nullptr;
+
+    for (auto it = abilityRecordList.begin(); it != abilityRecordList.end(); ++it) {
+        if (it->second == nullptr) {
+            TAG_LOGW(AAFwkTag::APPMGR, "no abilityRecord");
+            continue;
+        }
+        abilityInfo = it->second->GetAbilityInfo();
+        if (abilityInfo == nullptr) {
+            TAG_LOGW(AAFwkTag::APPMGR, "no abilityInfo");
+            continue;
+        }
+        appInfo = std::make_shared<ApplicationInfo>(abilityInfo->applicationInfo);
+        if (appInfo == nullptr) {
+            TAG_LOGW(AAFwkTag::APPMGR, "no appInfo");
+            continue;
+        }
+        break;
+    }
+
+    int32_t appIndex = appRecord->GetAppIndex();
+    if (!GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "GetBundleAndHapInfo fail");
+        return;
+    }
+    appRecord->SchedulePrepareTerminate(hapModuleInfo.moduleName, prepareTermination, isExist);
+}
+
 void AppMgrServiceInner::HandleStartSpecifiedAbilityTimeOut(std::shared_ptr<AppRunningRecord> appRecord)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "startSpecifiedAbility timeOut");

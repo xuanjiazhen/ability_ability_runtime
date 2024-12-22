@@ -665,6 +665,28 @@ void AmsMgrProxy::SetAbilityForegroundingFlagToAppRecord(const pid_t pid)
     }
 }
 
+void AmsMgrProxy::PrepareTerminateApp(const pid_t pid, int &prepareTermination, bool &isExist)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        return;
+    }
+
+    if (!data.WriteInt32(pid) || !data.WriteInt32(prepareTermination) ||
+        !data.WriteBool(isExist)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write PrepareTerminateApp data failed.");
+        return;
+    }
+
+    auto ret = SendTransactCmd(
+        static_cast<uint32_t>(IAmsMgr::Message::PREPARE_TERMINATE_APP), data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest PrepareTerminateApp err: %{public}d", ret);
+    }
+}
+
 void AmsMgrProxy::StartSpecifiedAbility(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
     int32_t requestId)
 {
