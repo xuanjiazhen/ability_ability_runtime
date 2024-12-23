@@ -223,7 +223,11 @@ std::shared_ptr<StartAbilityInfo> StartAbilityInfo::CreateStartAbilityInfo(const
     if (appIndex > 0 && appIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
         IN_PROCESS_CALL_WITHOUT_RET(bms->QueryCloneAbilityInfo(want.GetElement(), abilityInfoFlag, appIndex,
             request->abilityInfo, userId));
-        request->customProcess = request->abilityInfo.process;
+        if (!AppUtils::GetInstance().IsMultiProcessModel() && request->abilityInfo.isStageBasedModel) {
+            request->abilityInfo.process = "";
+        } else {
+            request->customProcess = request->abilityInfo.process;
+        }
         if (request->abilityInfo.name.empty() || request->abilityInfo.bundleName.empty()) {
             FindExtensionInfo(want, abilityInfoFlag, userId, appIndex, request);
         }
@@ -235,7 +239,11 @@ std::shared_ptr<StartAbilityInfo> StartAbilityInfo::CreateStartAbilityInfo(const
         IN_PROCESS_CALL_WITHOUT_RET(bms->GetSandboxAbilityInfo(want, appIndex,
             abilityInfoFlag, userId, request->abilityInfo));
     }
-    request->customProcess = request->abilityInfo.process;
+    if (!AppUtils::GetInstance().IsMultiProcessModel() && request->abilityInfo.isStageBasedModel) {
+        request->abilityInfo.process = "";
+    } else {
+        request->customProcess = request->abilityInfo.process;
+    }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "abilityInfo customProcess: %{public}s", request->customProcess.c_str());
     if (request->abilityInfo.name.empty() || request->abilityInfo.bundleName.empty()) {
         // try to find extension
@@ -300,7 +308,9 @@ std::shared_ptr<StartAbilityInfo> StartAbilityInfo::CreateStartExtensionInfo(con
         return abilityInfo;
     }
     abilityInfo->extensionProcessMode = extensionInfo.extensionProcessMode;
-    abilityInfo->customProcess = extensionInfo.customProcess;
+    if (AppUtils::GetInstance().IsMultiProcessModel()) {
+        abilityInfo->customProcess = extensionInfo.customProcess;
+    }
     // For compatibility translates to AbilityInfo
     AbilityRuntime::StartupUtil::InitAbilityInfoFromExtension(extensionInfo, abilityInfo->abilityInfo);
 
@@ -322,7 +332,9 @@ void StartAbilityInfo::FindExtensionInfo(const Want &want, int32_t flags, int32_
         abilityInfo->status = RESOLVE_ABILITY_ERR;
         return;
     }
-    abilityInfo->customProcess = extensionInfo.customProcess;
+    if (AppUtils::GetInstance().IsMultiProcessModel()) {
+        abilityInfo->customProcess = extensionInfo.customProcess;
+    }
     if (AbilityRuntime::StartupUtil::IsSupportAppClone(extensionInfo.type)) {
         abilityInfo->extensionProcessMode = extensionInfo.extensionProcessMode;
         // For compatibility translates to AbilityInfo
