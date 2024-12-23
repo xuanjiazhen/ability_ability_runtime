@@ -579,7 +579,6 @@ config("ability_start_setting_config") {
   visibility = [ ":*" ]
   include_dirs = [
     "${ability_runtime_path}/interfaces/kits/native/appkit/app",
-    "${c_utils_base_path}/include",
     "${ability_runtime_innerkits_path}/ability_manager/include",
   ]
 }

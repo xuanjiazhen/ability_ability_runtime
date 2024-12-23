@@ -60,10 +60,10 @@ ohos_source_set("appmgr_test_source") {
   public_configs = [ ":appmgr_test_config" ]
 
   public_deps = [
-    "${c_utils_base_path}:utils",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
+  public_external_deps = [ "c_utils:utils" ]
 
   cflags = []
   if (target_cpu == "arm") {
