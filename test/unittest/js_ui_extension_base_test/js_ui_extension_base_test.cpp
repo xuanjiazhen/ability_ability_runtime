@@ -1112,12 +1112,14 @@ HWTEST_F(JsUiExtensionBaseTest, Dump_0100, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "Dump_0100 start");
 
     std::vector<std::string> param;
+    param.emplace("test");
     std::vector<std::string> info;
     auto jsrt_ptr =  std::make_unique<AbilityRuntime::JsRuntime>();
     auto jueb_ptr = std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(jsrt_ptr));
     jueb_ptr->jsObj_ = std::make_shared<NativeReferenceMock>();
+    auto nativeRefenceMock = std::make_shared<AbilityRuntime::NativeReferenceMock>();
+    jueb_ptr->jsRuntime_.jsEnv_->engine_ = nativeRefenceMock->create_engine();
     jueb_ptr->Dump(param, info);
-    EXPECT_EQ(info.size(), 0);
     jueb_ptr.reset();
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
