@@ -1119,8 +1119,6 @@ HWTEST_F(JsUiExtensionBaseTest, Dump_0100, TestSize.Level1)
     std::vector<std::string> info;
     jueb_ptr->jsObj_ = std::make_shared<AbilityRuntime::NativeReferenceMock>();
     jueb_ptr->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    auto nativeRefenceMock = std::make_shared<AbilityRuntime::NativeReferenceMock>();
-    jueb_ptr->jsRuntime_.jsEnv_->engine_ = nativeRefenceMock->create_engine();
     jueb_ptr->Dump(param, info);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
