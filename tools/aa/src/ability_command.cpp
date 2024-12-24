@@ -22,6 +22,7 @@
 #include "app_mgr_client.h"
 #include "hilog_tag_wrapper.h"
 #include "iservice_registry.h"
+#include "kill_process_reason.h"
 #include "mission_snapshot.h"
 #include "bool_wrapper.h"
 #include "parameters.h"
@@ -173,6 +174,7 @@ ErrCode AbilityManagerShellCommand::CreateCommandMap()
 #ifdef ABILITY_FAULT_AND_EXIT_TEST
         {"forceexitapp", [this]() { return this->RunAsForceExitAppCommand(); }},
         {"notifyappfault", [this]() { return this->RunAsNotifyAppFaultCommand(); }},
+        {"kill-process-with-reason", [this]() { return this->KillProcessWithReason(); }},
 #endif
     };
 
@@ -575,6 +577,25 @@ ErrCode AbilityManagerShellCommand::RunAsForceStop()
     }
     return result;
 }
+
+ErrCode AbilityManagerShellCommand::KillProcessWithReason()
+{
+    TAG_LOGI(AAFwkTag::AA_TOOL, "enter");
+    if (argList_.empty()) {
+        resultReceiver_.append(HELP_MSG_KILL_PROCESS_WITH_REASON);
+        return OHOS::ERR_INVALID_VALUE;
+    }
+    int32_t pid = std::stoi(argList_[0]);
+    AAFwk::KillProcessReason reason;
+    reason.killReason = 1;
+    reason.subKillReason = 111;
+    reason.killMsg = "ddddddddddddddddddddd";
+
+    TAG_LOGI(AAFwkTag::AA_TOOL, "pid: %{public}d", pid);
+    auto appMgrClient = std::make_shared<AppMgrClient>();
+    ErrCode result = appMgrClient->KillProcessWithReason(pid, reason);
+}
+
 
 Reason AbilityManagerShellCommand::CovertExitReason(std::string& reasonStr)
 {

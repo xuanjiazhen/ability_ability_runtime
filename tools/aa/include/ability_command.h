@@ -150,6 +150,7 @@ const std::string HELP_MSG_APPDEBUG_APP_DEBUG =
     "  -g, --get                                   get wait debug mode application bundle name and persist flag\n";
 
 const std::string HELP_MSG_FORCE_STOP = "usage: aa force-stop <bundle-name> [-p pid] [-r kill-reason]\n";
+const std::string HELP_MSG_KILL_PROCESS_WITH_REASON = "usage: aa kill-process-with-reason -p pid\n";
 const std::string HELP_MSG_FORCE_TIMEOUT =
     "usage: aa force-timeout <ability-name> <INITIAL|INACTIVE|COMMAND|FOREGROUND|BACKGROUND|TERMINATING>\n"
     "usage: aa force-timeout clean.";
@@ -223,6 +224,7 @@ private:
     ErrCode RunAsStopService();
     ErrCode RunAsDumpsysCommand();
     ErrCode RunAsForceStop();
+    ErrCode KillProcessWithReason();
     bool SwitchOptionForAppDebug(int32_t option, std::string &bundleName, bool &isPersist, bool &isCancel, bool &isGet);
     bool ParseAppDebugParameter(std::string &bundleName, bool &isPersist, bool &isCancel, bool &isGet);
     ErrCode RunAsAppDebugDebugCommand();
