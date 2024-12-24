@@ -755,6 +755,7 @@ sptr<SessionInfo> UIAbilityLifecycleManager::CreateSessionInfo(const AbilityRequ
     sptr<SessionInfo> sessionInfo = new SessionInfo();
     sessionInfo->callerToken = abilityRequest.callerToken;
     sessionInfo->want = abilityRequest.want;
+    sessionInfo->supportWindowModes = abilityRequest.supportWindowModes;
     if (abilityRequest.startSetting != nullptr) {
         sessionInfo->startSetting = abilityRequest.startSetting;
     }
@@ -766,6 +767,16 @@ sptr<SessionInfo> UIAbilityLifecycleManager::CreateSessionInfo(const AbilityRequ
 int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &sessionInfo,
     const AbilityRequest &abilityRequest) const
 {
+    CHECK_POINTER_AND_RETURN(sessionInfo, ERR_INVALID_VALUE);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "windowLeft=%{public}d,windowTop=%{public}d,"
+        "windowHeight=%{public}d,windowWidth=%{public}d,windowMode=%{public}d,"
+        "supportWindowModes.size=%{public}zu",
+        (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_LEFT, 0),
+        (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_TOP, 0),
+        (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_HEIGHT, 0),
+        (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_WIDTH, 0),
+        (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_MODE, 0),
+        (sessionInfo->supportWindowModes).size());
     auto abilityRecord = GetAbilityRecordByToken(abilityRequest.callerToken);
     if (abilityRecord != nullptr) {
         auto callerSessionInfo = abilityRecord->GetSessionInfo();

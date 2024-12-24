@@ -18,6 +18,7 @@
 
 #include <string>
 
+#include "ability_info.h"
 #include "ability_window_configuration.h"
 #include "parcel.h"
 namespace OHOS {
@@ -29,6 +30,7 @@ public:
     bool windowTopUsed_ = false;
     bool windowWidthUsed_ = false;
     bool windowHeightUsed_ = false;
+    std::vector<AppExecFwk::SupportWindowMode> supportWindowModes_;
 
     StartOptions() = default;
     ~StartOptions() = default;
