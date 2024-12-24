@@ -127,6 +127,8 @@ int32_t AmsMgrStub::OnRemoteRequestInnerSecond(uint32_t code, MessageParcel &dat
             return HandleSetAbilityForegroundingFlagToAppRecord(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::START_SPECIFIED_ABILITY):
             return HandleStartSpecifiedAbility(data, reply);
+        case static_cast<uint32_t>(IAmsMgr::Message::PREPARE_TERMINATE_APP):
+            return HandlePrepareTerminateApp(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::REGISTER_START_SPECIFIED_ABILITY_RESPONSE):
             return HandleRegisterStartSpecifiedAbilityResponse(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::GET_APPLICATION_INFO_BY_PROCESS_ID):
@@ -490,6 +492,23 @@ int32_t AmsMgrStub::HandleSetAbilityForegroundingFlagToAppRecord(MessageParcel &
     RunningProcessInfo processInfo;
     auto pid = static_cast<pid_t>(data.ReadInt32());
     SetAbilityForegroundingFlagToAppRecord(pid);
+    return NO_ERROR;
+}
+
+int32_t AmsMgrStub::HandlePrepareTerminateApp(MessageParcel &data, MessageParcel &reply)
+{
+    auto pid = static_cast<pid_t>(data.ReadInt32());
+    int32_t prepareTermination = 0;
+    bool isExist = false;
+    PrepareTerminateApp(pid, prepareTermination, isExist);
+    if (!reply.WriteInt32(prepareTermination)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write HandlePrepareTerminateApp prepareTermination failed.");
+        return ERR_INVALID_VALUE;
+    }
+    if (!reply.WriteBool(isExist)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write HandlePrepareTerminateApp isExist failed.");
+        return ERR_INVALID_VALUE;
+    }
     return NO_ERROR;
 }
 

@@ -427,6 +427,8 @@ private:
     void SetReceiverInfo(const AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &abilityRecord) const;
 
     bool CheckPrepareTerminateEnable(const std::shared_ptr<AbilityRecord> &abilityRecord);
+    bool CheckPrepareTerminateAppEnable();
+
     bool GetContentAndTypeId(uint32_t msgId, std::string &msgContent, int &typeId) const;
 
     bool CheckSessionInfo(sptr<SessionInfo> sessionInfo) const;

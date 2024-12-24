@@ -1699,6 +1699,15 @@ bool AppRunningRecord::IsStartSpecifiedAbility() const
     return specifiedRequestId_ != -1;
 }
 
+void AppRunningRecord::SchedulePrepareTerminate(int32_t &prepareTermination, bool &isExist)
+{
+    if (appLifeCycleDeal_ == nullptr) {
+        TAG_LOGW(AAFwkTag::APPMGR, "null appLifeCycleDeal_");
+        return;
+    }
+    appLifeCycleDeal_->SchedulePrepareTerminate(moduleName_, prepareTermination, isExist);
+}
+
 void AppRunningRecord::ScheduleAcceptWant(const std::string &moduleName)
 {
     auto timeOUt = AMSEventHandler::START_SPECIFIED_ABILITY_TIMEOUT;

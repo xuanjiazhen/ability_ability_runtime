@@ -2310,6 +2310,19 @@ bool UIAbilityLifecycleManager::PrepareTerminateAbility(const std::shared_ptr<Ab
     return future.get();
 }
 
+bool UIAbilityLifecycleManager::CheckPrepareTerminateAppEnable()
+{
+    if (!AAFwk::PermissionVerification::GetInstance()->VerifyPrepareTerminatePermission()) {
+        TAG_LOGI(AAFwkTag::DEFAULT, "Permission %{public}s denied", PermissionConstants::PERMISSION_PREPARE_TERMINATE);
+        return false;
+    }
+    if (!AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Not supported device");
+        return false;
+    }
+    return true;
+}
+
 bool UIAbilityLifecycleManager::CheckPrepareTerminateEnable(const std::shared_ptr<AbilityRecord> &abilityRecord)
 {
     if (abilityRecord == nullptr || abilityRecord->IsTerminating()) {
@@ -2710,6 +2723,20 @@ int32_t UIAbilityLifecycleManager::TryPrepareTerminateByPids(const std::vector<i
         std::vector<sptr<IRemoteObject>> tokens;
         IN_PROCESS_CALL_WITHOUT_RET(
             DelayedSingleton<AppScheduler>::GetInstance()->GetAbilityRecordsByProcessID(pid, tokens));
+        int32_t prepareTermination = 0;
+        bool isExist = false;
+        DelayedSingleton<AppScheduler>::GetInstance()->PrepareTerminateApp(pid, prepareTermination, isExist);
+        if (isExist) {
+            if (!CheckPrepareTerminateAppEnable() || static_cast<AppExecFwk::PrepareTermination>(prepareTermination)
+                == AppExecFwk::PrepareTermination::CANCEL) {
+                continue;
+            }
+            // Terminate immediately by default
+            for (const auto& token: tokens) {
+                TerminateSession(Token::GetAbilityRecordByToken(token));
+            }
+            continue;
+        }
         for (const auto& token: tokens) {
             auto abilityRecord = Token::GetAbilityRecordByToken(token);
             if (PrepareTerminateAbility(abilityRecord)) {

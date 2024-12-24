@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 ohos_shared_library("contextconstant_napi") {
-  include_dirs = []
+  include_dirs = [ "${ability_runtime_innerkits_path}/app_manager/include/appmgr" ]
 
   sources = [ "application_context_constant_module.cpp" ]
 

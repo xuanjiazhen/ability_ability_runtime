@@ -14,6 +14,7 @@
  */
 #include "napi/native_api.h"
 #include "napi/native_common.h"
+#include "app_mgr_constants.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -35,6 +36,18 @@ static napi_status SetEnumItem(napi_env env, napi_value object, const char* name
     NAPI_CALL_BASE(env, status = napi_set_property(env, object, itemValue, itemName), status);
 
     return napi_ok;
+}
+
+static napi_value InitAbilityStagePrepareTerminationObject(napi_env env)
+{
+    napi_value object;
+    NAPI_CALL(env, napi_create_object(env, &object));
+
+    NAPI_CALL(env, SetEnumItem(env, object, "TERMINATE_IMMEDIATELY",
+        static_cast<int32_t>(AppExecFwk::PrepareTermination::TERMINATE_IMMEDIATELY)));
+    NAPI_CALL(env, SetEnumItem(env, object, "CANCEL",
+        static_cast<int32_t>(AppExecFwk::PrepareTermination::CANCEL)));
+    return object;
 }
 
 static napi_value InitAreaModeObject(napi_env env)
@@ -84,11 +97,14 @@ static napi_value ApplicationContextConstantInit(napi_env env, napi_value export
     NAPI_ASSERT(env, processMode != nullptr, "failed to create ProcessMode object");
     napi_value startupVisibility = InitStartupVisibilityObject(env);
     NAPI_ASSERT(env, startupVisibility != nullptr, "failed to create StartupVisibility object");
+    napi_value prepareTermination = InitAbilityStagePrepareTerminationObject(env);
+    NAPI_ASSERT(env, prepareTermination != nullptr, "failed to create PrepareTermination object");
 
     napi_property_descriptor exportObjs[] = {
         DECLARE_NAPI_PROPERTY("AreaMode", areaMode),
         DECLARE_NAPI_PROPERTY("ProcessMode", processMode),
         DECLARE_NAPI_PROPERTY("StartupVisibility", startupVisibility),
+        DECLARE_NAPI_PROPERTY("PrepareTermination", prepareTermination),
     };
 
     napi_status status = napi_define_properties(env, exports, sizeof(exportObjs) / sizeof(exportObjs[0]), exportObjs);

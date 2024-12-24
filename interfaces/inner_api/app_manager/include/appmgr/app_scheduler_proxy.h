@@ -188,6 +188,9 @@ public:
      */
     virtual void ScheduleAcceptWant(const AAFwk::Want &want, const std::string &moduleName) override;
 
+    virtual void SchedulePrepareTerminate(const std::string &moduleName,
+        int32_t &prepareTermination, bool &isExist) override;
+
     virtual void ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName) override;
 
     /**
