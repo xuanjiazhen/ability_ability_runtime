@@ -1214,28 +1214,28 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
             TAG_LOGE(AAFwkTag::ABILITYMGR, "checkCallPermission error, result:%{public}d", result);
             return result;
         }
-        Want newWant = abilityRequest.want;
-        AbilityInterceptorParam afterCheckParam = AbilityInterceptorParam(newWant, requestCode, GetUserId(),
-            true, callerToken, std::make_shared<AppExecFwk::AbilityInfo>(abilityInfo), isStartAsCaller, appIndex);
-        result = afterCheckExecuter_ == nullptr ? ERR_INVALID_VALUE :
-            afterCheckExecuter_->DoProcess(afterCheckParam);
-        bool isReplaceWantExist = newWant.GetBoolParam("queryWantFromErms", false);
-        newWant.RemoveParam("queryWantFromErms");
-        if (result != ERR_OK && isReplaceWantExist == false) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "doProcess failed or replaceWant absent");
-            return result;
-        }
-    #ifdef SUPPORT_SCREEN
-        if (result != ERR_OK && isReplaceWantExist && callerBundleName != BUNDLE_NAME_DIALOG) {
-            return DialogSessionManager::GetInstance().HandleErmsResult(abilityRequest, GetUserId(), newWant);
-        }
-        if (result == ERR_OK &&
-            DialogSessionManager::GetInstance().IsCreateCloneSelectorDialog(abilityInfo.bundleName, GetUserId())) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "create clone selector dialog");
-            return CreateCloneSelectorDialog(abilityRequest, GetUserId());
-        }
-    #endif // SUPPORT_SCREEN
     }
+    Want newWant = abilityRequest.want;
+    AbilityInterceptorParam afterCheckParam = AbilityInterceptorParam(newWant, requestCode, GetUserId(),
+        true, callerToken, std::make_shared<AppExecFwk::AbilityInfo>(abilityInfo), isStartAsCaller, appIndex);
+    result = afterCheckExecuter_ == nullptr ? ERR_INVALID_VALUE :
+        afterCheckExecuter_->DoProcess(afterCheckParam);
+    bool isReplaceWantExist = newWant.GetBoolParam("queryWantFromErms", false);
+    newWant.RemoveParam("queryWantFromErms");
+    if (result != ERR_OK && isReplaceWantExist == false) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "doProcess failed or replaceWant absent");
+        return result;
+    }
+#ifdef SUPPORT_SCREEN
+    if (result != ERR_OK && isReplaceWantExist && callerBundleName != BUNDLE_NAME_DIALOG) {
+        return DialogSessionManager::GetInstance().HandleErmsResult(abilityRequest, GetUserId(), newWant);
+    }
+    if (result == ERR_OK &&
+        DialogSessionManager::GetInstance().IsCreateCloneSelectorDialog(abilityInfo.bundleName, GetUserId())) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "create clone selector dialog");
+        return CreateCloneSelectorDialog(abilityRequest, GetUserId());
+    }
+#endif // SUPPORT_SCREEN
 
     if (!AbilityUtil::IsSystemDialogAbility(abilityInfo.bundleName, abilityInfo.name)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "PreLoadAppDataAbilities:%{public}s.", abilityInfo.bundleName.c_str());
