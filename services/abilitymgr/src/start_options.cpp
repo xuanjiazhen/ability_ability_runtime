@@ -20,6 +20,8 @@
 
 namespace OHOS {
 namespace AAFwk {
+constexpr int MAX_SUPPOPRT_WINDOW_MODES_SIZE = 10;
+
 StartOptions::StartOptions(const StartOptions &other)
 {
     windowMode_ = other.windowMode_;
@@ -35,6 +37,7 @@ StartOptions::StartOptions(const StartOptions &other)
     windowHeightUsed_ = other.windowHeightUsed_;
     processOptions = other.processOptions;
     windowFocused_ = other.windowFocused_;
+    supportWindowModes_ = other.supportWindowModes_;
 }
 
 StartOptions &StartOptions::operator=(const StartOptions &other)
@@ -53,6 +56,7 @@ StartOptions &StartOptions::operator=(const StartOptions &other)
         windowHeightUsed_ = other.windowHeightUsed_;
         processOptions = other.processOptions;
         windowFocused_ = other.windowFocused_;
+        supportWindowModes_ = other.supportWindowModes_;
     }
     return *this;
 }
@@ -72,6 +76,14 @@ bool StartOptions::ReadFromParcel(Parcel &parcel)
     windowWidthUsed_ = parcel.ReadBool();
     windowHeightUsed_ = parcel.ReadBool();
     processOptions.reset(parcel.ReadParcelable<ProcessOptions>());
+    auto size = parcel.ReadInt32();
+    if (size > MAX_SUPPOPRT_WINDOW_MODES_SIZE) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "supportWindowModes size exceeds max");
+        return false;
+    }
+    for (int i = 0; i < size; i++) {
+        supportWindowModes_.emplace_back(AppExecFwk::SupportWindowMode(parcel.ReadInt32()));
+    }
     return true;
 }
 
@@ -107,6 +119,10 @@ bool StartOptions::Marshalling(Parcel &parcel) const
     if (!parcel.WriteParcelable(processOptions.get())) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Write processOptions failed.");
         return false;
+    }
+    parcel.WriteInt32(supportWindowModes_.size());
+    for (auto windowMode : supportWindowModes_) {
+        parcel.WriteInt32(static_cast<int32_t>(windowMode));
     }
     return true;
 }
