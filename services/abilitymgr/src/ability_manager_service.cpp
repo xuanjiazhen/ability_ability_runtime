@@ -68,6 +68,7 @@
 #include "status_bar_delegate_interface.h"
 #include "string_wrapper.h"
 #include "ui_extension_utils.h"
+#include "ui_service_extension_connection_constants.h"
 #include "unlock_screen_manager.h"
 #include "uri_permission_manager_client.h"
 #include "uri_utils.h"
@@ -169,6 +170,7 @@ constexpr size_t INDEX_TWO = 2;
 constexpr size_t ARGC_THREE = 3;
 constexpr static char WANT_PARAMS_VIEW_DATA_KEY[] = "ohos.ability.params.viewData";
 constexpr const char* WANT_PARAMS_APP_RESTART_FLAG = "ohos.aafwk.app.restart";
+constexpr const char* WANT_PARAMS_HOST_WINDOW_ID_KEY = "ohos.extra.param.key.hostwindowid";
 
 constexpr int32_t FOUNDATION_UID = 5523;
 constexpr const char* FRS_BUNDLE_NAME = "com.ohos.formrenderservice";
@@ -186,6 +188,7 @@ constexpr const char* IS_SHELL_CALL = "isShellCall";
 
 constexpr char ASSERT_FAULT_DETAIL[] = "assertFaultDialogDetail";
 constexpr char PRODUCT_ASSERT_FAULT_DIALOG_ENABLED[] = "persisit.sys.abilityms.support_assert_fault_dialog";
+constexpr const char* ABILITYMS_ENABLE_UISERVICE = "const.abilityms.enable_uiservice";
 
 constexpr int32_t RESOURCE_SCHEDULE_UID = 1096;
 constexpr int32_t UPDATE_CONFIG_FLAG_COVER = 1;
@@ -2403,7 +2406,8 @@ int AbilityManagerService::CheckOptExtensionAbility(const Want &want, AbilityReq
     }
 
     if (abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::DATASHARE ||
-        abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::SERVICE) {
+        abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::SERVICE ||
+        abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
         result = CheckCallServiceExtensionPermission(abilityRequest);
         if (result != ERR_OK) {
             return result;
@@ -2588,8 +2592,15 @@ int AbilityManagerService::StartExtensionAbility(const Want &want, const sptr<IR
     int32_t userId, AppExecFwk::ExtensionAbilityType extensionType)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (extensionType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
+        if (!system::GetBoolParameter(ABILITYMS_ENABLE_UISERVICE, false)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "uiServiceExtensionAbility disable");
+            return ERR_CAPABILITY_NOT_SUPPORT;
+        }
+    }
     InsightIntentExecuteParam::RemoveInsightIntent(const_cast<Want &>(want));
-    if (extensionType == AppExecFwk::ExtensionAbilityType::VPN) {
+    if (extensionType == AppExecFwk::ExtensionAbilityType::VPN ||
+        extensionType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
         return StartExtensionAbilityInner(want, callerToken, userId, extensionType, false);
     }
     return StartExtensionAbilityInner(want, callerToken, userId, extensionType, true);
@@ -3147,6 +3158,7 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
     }
     ReportEventToRSS(abilityRequest.abilityInfo, abilityRequest.callerToken);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "Start extension begin, name is %{public}s.", abilityInfo.name.c_str());
+    SetAbilityRequestSessionInfo(abilityRequest, extensionType);
     UriUtils::GetInstance().CheckUriPermissionForUIExtension(abilityRequest.want,
         abilityRequest.abilityInfo.extensionAbilityType);
     eventInfo.errCode = connectManager->StartAbility(abilityRequest);
@@ -3460,6 +3472,39 @@ int AbilityManagerService::TerminateAbilityWithFlag(const sptr<IRemoteObject> &t
         return uiAbilityManager->CloseUIAbility(abilityRecord, resultCode, resultWant, false);
     }
     return ERR_INVALID_VALUE;
+}
+
+int32_t AbilityManagerService::TerminateUIServiceExtensionAbility(const sptr<IRemoteObject> &token)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (!VerificationAllToken(token)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s verificationAllToken failed", __func__);
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!IsCallerSceneBoard()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "no sceneboard, no allowed");
+        return ERR_WRONG_INTERFACE_CALL;
+    }
+
+    auto abilityRecord = Token::GetAbilityRecordByToken(token);
+    CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
+
+    auto type = abilityRecord->GetAbilityInfo().type;
+    auto extensionAbilityType = abilityRecord->GetAbilityInfo().extensionAbilityType;
+
+    if (type != AppExecFwk::AbilityType::EXTENSION  ||
+        extensionAbilityType != AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
+            return ERR_INVALID_VALUE;
+    }
+
+    auto userId = GetValidUserId(DEFAULT_INVAL_VALUE);
+    auto connectManager = GetConnectManagerByUserId(userId);
+    if (!connectManager) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "connectManager null. userId=%{public}d", userId);
+        return ERR_INVALID_VALUE;
+    }
+    return connectManager->TerminateAbility(token);
 }
 
 int AbilityManagerService::TerminateUIExtensionAbility(const sptr<SessionInfo> &extensionSessionInfo, int resultCode,
@@ -3832,6 +3877,10 @@ int AbilityManagerService::ConnectAbilityCommon(
         "Connect ability called, element uri: %{public}s.", want.GetElement().GetURI().c_str());
     CHECK_POINTER_AND_RETURN(connect, ERR_INVALID_VALUE);
     CHECK_POINTER_AND_RETURN(connect->AsObject(), ERR_INVALID_VALUE);
+    if (extensionType != AppExecFwk::ExtensionAbilityType::UI_SERVICE && want.HasParameter(UISERVICEHOSTPROXY_KEY)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "error to have UISERVICEHOSTPROXY_KEY");
+        return ERR_WRONG_INTERFACE_CALL;
+    }
     if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE && IsCrossUserCall(userId)) {
         CHECK_CALLER_IS_SYSTEM_APP;
     }
@@ -4071,6 +4120,10 @@ int AbilityManagerService::ConnectLocalAbility(const Want &want, const int32_t u
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Generate ability request error.");
         return result;
     }
+    result = CheckPermissionForUIService(extensionType, want, abilityRequest);
+    if (result != ERR_OK) {
+        return result;
+    }
 
     auto abilityInfo = abilityRequest.abilityInfo;
     threadLocalInfo.SetStartAbilityInfo(abilityInfo);
@@ -4156,6 +4209,7 @@ int AbilityManagerService::ConnectLocalAbility(const Want &want, const int32_t u
         return ERR_INVALID_VALUE;
     }
 
+    SetAbilityRequestSessionInfo(abilityRequest, targetExtensionType);
     if (targetExtensionType != AppExecFwk::ExtensionAbilityType::REMOTE_NOTIFICATION) {
         // this extension type is reported in connectManager instead of here
         ReportEventToRSS(abilityInfo, callerToken);
@@ -5777,6 +5831,35 @@ int AbilityManagerService::AbilityTransitionDone(const sptr<IRemoteObject> &toke
         }
         return missionListManager->AbilityTransactionDone(token, state, saveData);
     }
+}
+
+int AbilityManagerService::AbilityWindowConfigTransitionDone(
+    const sptr<IRemoteObject> &token, const WindowConfig &windowConfig)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled() && !VerificationAllToken(token)) {
+        return ERR_INVALID_VALUE;
+    }
+    auto abilityRecord = Token::GetAbilityRecordByToken(token);
+    CHECK_POINTER_AND_RETURN_LOG(abilityRecord, ERR_INVALID_VALUE, "ability record null.");
+    if (!JudgeSelfCalled(abilityRecord)) {
+        return CHECK_PERMISSION_FAILED;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ability:%{public}s", abilityRecord->GetURI().c_str());
+    auto abilityInfo = abilityRecord->GetAbilityInfo();
+    auto type = abilityInfo.extensionAbilityType;
+    if (type != AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid type");
+        return ERR_INVALID_VALUE;
+    }
+    auto userId = abilityRecord->GetApplicationInfo().uid / BASE_USER_RANGE;
+    auto connectManager = GetConnectManagerByUserId(userId);
+    if(!connectManager) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "connectManager null userId=%{public}d", userId);
+        return ERR_INVALID_VALUE;
+    }
+    return connectManager->AbilityWindowConfigTransactionDone(token, windowConfig);
 }
 
 int AbilityManagerService::ScheduleConnectAbilityDone(
@@ -8706,6 +8789,29 @@ int AbilityManagerService::CheckStaticCfgPermission(const AppExecFwk::AbilityReq
     return CheckStaticCfgPermissionForSkill(abilityRequest, tokenId);
 }
 
+int AbilityManagerService::CheckPermissionForUIService(AppExecFwk::ExtensionAbilityType extensionType,
+    const Want &want, const AbilityRequest &abilityRequest)
+{
+    AppExecFwk::ExtensionAbilityType targetExtType = abilityRequest.abilityInfo.extensionAbilityType;
+    if (targetExtType != AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
+        return ERR_OK;
+    }
+    if (!want.HasParameter(UISERVICEHOSTPROXY_KEY)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "need UISERVICEHOSTPROXY_KEY connect UI_SERVICE");
+        return ERR_WRONG_INTERFACE_CALL;
+    }
+    if (extensionType != AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "interface not support connect UI_SERVICE");
+        return ERR_WRONG_INTERFACE_CALL;
+    }
+    if (!system::GetBoolParameter(ABILITYMS_ENABLE_UISERVICE, false)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ABILITYMS_ENABLE_UISERVICE false");
+        return ERR_CAPABILITY_NOT_SUPPORT;
+    }
+
+    return ERR_OK;
+}
+
 bool AbilityManagerService::IsNeedTimeoutForTest(const std::string &abilityName, const std::string &state) const
 {
     for (auto iter = timeoutMap_.begin(); iter != timeoutMap_.end(); iter++) {
@@ -9334,7 +9440,8 @@ int AbilityManagerService::CheckCallServicePermission(const AbilityRequest &abil
         auto extensionType = abilityRequest.abilityInfo.extensionAbilityType;
         TAG_LOGD(AAFwkTag::ABILITYMGR, "extensionType is %{public}d.", static_cast<int>(extensionType));
         if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE ||
-            extensionType == AppExecFwk::ExtensionAbilityType::DATASHARE) {
+            extensionType == AppExecFwk::ExtensionAbilityType::DATASHARE ||
+            extensionType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
             return CheckCallServiceExtensionPermission(abilityRequest);
         } else {
             return CheckCallOtherExtensionPermission(abilityRequest);
@@ -9421,6 +9528,19 @@ int AbilityManagerService::CheckCallServiceExtensionPermission(const AbilityRequ
         if (stopContinuousTaskFlag) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "Do not have permission to start ServiceExtension");
             return CHECK_PERMISSION_FAILED;
+        }
+    }
+
+    if (abilityRequest.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "background startup UI_SERVICE");
+        verificationInfo.isBackgroundCall = true;
+        std::shared_ptr<AbilityRecord> callerAbility = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
+        if (callerAbility) {
+            verificationInfo.apiTargetVersion = callerAbility->GetApplicationInfo().apiTargetVersion;
+        }
+        if (IsCallFromBackground(abilityRequest, verificationInfo.isBackgroundCall) != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "not background startup UI_SERVICE");
+            return ERR_INVALID_VALUE;
         }
     }
 
@@ -12293,6 +12413,37 @@ int32_t AbilityManagerService::TerminateMission(int32_t missionId)
     }
 
     return missionListManager->ClearMission(missionId);
+}
+
+void AbilityManagerService::SetAbilityRequestSessionInfo(AbilityRequest &abilityRequest,
+    AppExecFwk::ExtensionAbilityType extensionType)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "called");
+    if (extensionType != AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
+        return;
+    }
+
+    abilityRequest.want.RemoveParam(WANT_PARAMS_HOST_WINDOW_ID_KEY);
+    auto callerAbilityRecord = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
+    CHECK_POINTER_LOG(callerAbilityRecord, "callerAbilityRecord is nullptr");
+    sptr<SessionInfo> callerSessionInfo = callerAbilityRecord->GetSessionInfo();
+    CHECK_POINTER_LOG(callerSessionInfo, "callerSessionInfo is nullptr");
+
+    if (callerAbilityRecord->GetAbilityInfo().type == AbilityType::PAGE) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "UIAbility Caller");
+        abilityRequest.want.SetParam(WANT_PARAMS_HOST_WINDOW_ID_KEY, callerSessionInfo->persistentId);
+    } else if (AAFwk::UIExtensionUtils::IsUIExtension(callerAbilityRecord->GetAbilityInfo().extensionAbilityType)) {
+        int32_t mainWindowId = -1;
+        auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().
+            GetSceneSessionManagerLiteProxy();
+        CHECK_POINTER_LOG(sceneSessionManager, "sceneSessionManager is nullptr");
+        auto err = sceneSessionManager->GetRootMainWindowId(static_cast<int32_t>(callerSessionInfo->hostWindowId),mainWindowId);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "callerSessionInfo->hostWindowId = %{public}d, mainWindowId = %{public}d, err = %{public}d",
+            callerSessionInfo->hostWindowId, mainWindowId, err);
+        abilityRequest.want.SetParam(WANT_PARAMS_HOST_WINDOW_ID_KEY, mainWindowId);
+    } else {
+        abilityRequest.want.SetParam(WANT_PARAMS_HOST_WINDOW_ID_KEY, 0);
+    }
 }
 
 void AbilityManagerService::EnableListForSCBRecovery(int32_t userId) const
