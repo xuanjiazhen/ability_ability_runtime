@@ -3294,7 +3294,7 @@ void AbilityRecord::GrantUriPermission(Want &want, std::string targetBundleName,
     UriUtils::GetInstance().GrantUriPermission(want, targetBundleName, appIndex_, isSandboxApp,
         callerTokenId, collaboratorType_);
 }
-#endif // SUPPORT_UPMS
+
 void AbilityRecord::GrantUriPermission(const std::vector<std::string> &uriVec, int32_t flag,
     const std::string &targetBundleName, uint32_t callerTokenId)
 {
@@ -3303,6 +3303,7 @@ void AbilityRecord::GrantUriPermission(const std::vector<std::string> &uriVec, i
     }
     UriUtils::GetInstance().GrantUriPermission(uriVec, flag, targetBundleName, appIndex_, callerTokenId);
 }
+#endif // SUPPORT_UPMS
 
 void AbilityRecord::GrantUriPermission()
 {
