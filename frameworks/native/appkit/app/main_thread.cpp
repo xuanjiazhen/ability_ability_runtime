@@ -1516,6 +1516,9 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
             };
             runtime->SetDeviceDisconnectCallback(cb);
         }
+        if (appLaunchData.NeedPreloadModule()) {
+            PreloadModule(entryHapModuleInfo, runtime);
+        }
         auto perfCmd = appLaunchData.GetPerfCmd();
         int32_t pid = -1;
         std::string processName = "";
@@ -1818,6 +1821,65 @@ void MainThread::HandleNWebPreload()
     TAG_LOGI(AAFwkTag::APPKIT, "postIdleTask success");
 }
 #endif
+
+void MainThread::ProcessMainAbility(const AbilityInfo &info, std::unique_ptr<AbilityRuntime::Runtime>& runtime)
+{
+    std::string srcPath(info.package);
+    if (!info.isModuleJson) {
+    /* temporary compatibility api8 + config.json */
+        srcPath.append("/assets/js/");
+        if (!info.srcPath.empty()) {
+            srcPath.append(info.srcPath);
+        }
+        srcPath.append("/").append(info.name).append(".abc");
+    } else {
+        if (info.srcEntrance.empty()) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "empty srcEntrance");
+            return;
+        }
+        srcPath.append("/");
+        srcPath.append(info.srcEntrance);
+        srcPath.erase(srcPath.rfind("."));
+        srcPath.append(".abc");
+        TAG_LOGD(AAFwkTag::UIABILITY, "jsAbility srcPath: %{public}s", srcPath.c_str());
+    }
+
+    std::string moduleName(info.moduleName);
+    moduleName.append("::").append(info.name);
+    isEsmode = info.compileMode == AppExecFwk::CompileMode::ES_MODULE;
+    runtime->PreloadMainAbility(moduleName, srcPath, info.hapPath, isEsmode, info.srcEntrance);
+}
+
+void MainThread::PreloadModule(const AppExecFwk::HapModuleInfo &entryHapModuleInfo,
+    std::unique_ptr<AbilityRuntime::Runtime>& runtime)
+{
+    TAG_LOGI(AAFwkTag::APPKIT, "preload module %{public}s", entryHapModuleInfo.moduleName.c_str());
+    bool useCommonTrunk = false;
+    for (const auto &md : entryHapModuleInfo.metadata) {
+        if (md.name == "USE_COMMON_CHUNK") {
+            useCommonTrunk = md.value == "true";
+            break;
+        }
+    }
+    bool isEsmode = entryHapModuleInfo.compileMode == AppExecFwk::CompileMode::ES_MODULE;
+    std::string srcPath(entryHapModuleInfo.name);
+    std::string moduleName(entryHapModuleInfo.moduleName);
+    moduleName.append("::").append("AbilityStage");
+    srcPath.append("/assets/js/");
+    if (entryHapModuleInfo.srcPath.empty()) {
+        srcPath.append("AbilityStage.abc");
+    } else {
+        srcPath.append(entryHapModuleInfo.srcPath);
+        srcPath.append("/AbilityStage.abc");
+    }
+    runtime->PreloadModule(moduleName,srcPath, entryHapModuleInfo.hapPath, isEsmode, useCommonTrunk);
+    for (const auto &info : entryHapModuleInfo.abilityInfos) {
+        if (info.name == entryHapModuleInfo.mainAbility) {
+            ProcessMainAbility(info, runtime);
+            return;
+        }
+    }
+}
 
 #ifdef ABILITY_LIBRARY_LOADER
 void MainThread::CalcNativeLiabraryEntries(const BundleInfo &bundleInfo, std::string &nativeLibraryPath)
