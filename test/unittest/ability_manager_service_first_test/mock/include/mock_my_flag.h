@@ -24,7 +24,39 @@ public:
         IS_SHELL_CALL,
         IS_SA_AND_SHELL_CALL,
     };
+
+    static void Init()
+    {
+        flag_ = 0;
+        permissionFileAccessManager_ = false;
+        permissionWriteImageVideo_ = false;
+        permissionReadImageVideo_ = false;
+        permissionAllMedia_ = false;
+        permissionWriteAudio_ = false;
+        permissionReadAudio_ = false;
+        permissionProxyAuthorization_ = false;
+        permissionAll_ = false;
+        permissionPrivileged_ = false;
+        permissionReadWriteDownload_ = false;
+        permissionReadWriteDesktop_ = false;
+        permissionReadWriteDocuments_ = false;
+        permissionSetLaunchReason_ = false;
+    }
+
     static int flag_;
+    static bool permissionFileAccessManager_;
+    static bool permissionWriteImageVideo_;
+    static bool permissionReadImageVideo_;
+    static bool permissionWriteAudio_;
+    static bool permissionReadAudio_;
+    static bool permissionAllMedia_;
+    static bool permissionProxyAuthorization_;
+    static bool permissionAll_;
+    static bool permissionPrivileged_;
+    static bool permissionReadWriteDownload_;
+    static bool permissionReadWriteDesktop_;
+    static bool permissionReadWriteDocuments_;
+    static bool permissionSetLaunchReason_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

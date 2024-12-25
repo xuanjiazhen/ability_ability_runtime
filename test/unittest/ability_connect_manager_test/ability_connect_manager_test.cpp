@@ -1455,6 +1455,33 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_StartAbilityLocked_001, Test
 
 /*
  * Feature: AbilityConnectManager
+ * Function: StartAbilityLocked
+ * SubFunction: StartAbilityLocked
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager StartAbilityLocked
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_StartAbilityLocked_002, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.deviceId = "id";
+    abilityRequest.abilityInfo.bundleName = "bundle";
+    abilityRequest.abilityInfo.name = "name";
+    abilityRequest.abilityInfo.moduleName = "module";
+    std::string stringUri = "id/bundle/module/name";
+    std::string message = "set launch reason message";
+    abilityRequest.want.SetParam(Want::PARM_LAUNCH_REASON_MESSAGE, message);
+    abilityRecord->currentState_ = AbilityState::ACTIVE;
+    abilityRecord->SetPreAbilityRecord(serviceRecord1_);
+    connectManager->serviceMap_.emplace(stringUri, abilityRecord);
+    int res = connectManager->StartAbilityLocked(abilityRequest);
+    EXPECT_EQ(res, ERR_OK);
+}
+
+/*
+ * Feature: AbilityConnectManager
  * Function: GetOrCreateServiceRecord
  * SubFunction: GetOrCreateServiceRecord
  * FunctionPoints: NA

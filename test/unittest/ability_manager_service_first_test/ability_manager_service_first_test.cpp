@@ -2336,5 +2336,38 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityByCallWithInsightIntent_010
     auto res = abilityMs->StartAbilityByCallWithInsightIntent(want, callerToken, param);
     EXPECT_EQ(res, RESOLVE_ABILITY_ERR);
 }
+
+/**
+ * @tc.name: AbilityManagerServiceFirstTest_RemoveUnauthorizedLaunchReasonMessage_0100
+ * @tc.desc: Test RemoveUnauthorizedLaunchReasonMessage.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, RemoveUnauthorizedLaunchReasonMessage_0100, TestSize.Level1)
+{
+    Want want;
+    AbilityRequest abilityRequest;
+    abilityRequest.appInfo.bundleName = "com.test.demo";
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.type = AbilityType::PAGE;
+    std::shared_ptr<AbilityRecord> callerAbilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto callerToken = callerAbilityRecord->GetToken();
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    abilityMs->RemoveUnauthorizedLaunchReasonMessage(want, abilityRequest, callerToken);
+    EXPECT_EQ(want.GetStringParam(Want::PARM_LAUNCH_REASON_MESSAGE), std::string());
+
+    MyFlag::permissionSetLaunchReason_ = false;
+    MyFlag::flag_ = MyFlag::IS_SA_CALL;
+    std::string message = "set launch reason message";
+    want.SetParam(Want::PARM_LAUNCH_REASON_MESSAGE, message);
+    abilityRequest.want = want;
+    abilityMs->RemoveUnauthorizedLaunchReasonMessage(want, abilityRequest, callerToken);
+    EXPECT_EQ(want.GetStringParam(Want::PARM_LAUNCH_REASON_MESSAGE), std::string());
+
+    MyFlag::permissionSetLaunchReason_ = true;
+    want.SetParam(Want::PARM_LAUNCH_REASON_MESSAGE, message);
+    abilityRequest.want = want;
+    abilityMs->RemoveUnauthorizedLaunchReasonMessage(want, abilityRequest, callerToken);
+    EXPECT_NE(want.GetStringParam(Want::PARM_LAUNCH_REASON_MESSAGE), std::string());
+}
 } // namespace AAFwk
 } // namespace OHOS
