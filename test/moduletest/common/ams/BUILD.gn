@@ -48,12 +48,12 @@ ohos_source_set("appmgr_mst_source") {
     "${ability_runtime_services_path}/common:perm_verification",
     "${bundlefwk_inner_api_path}/appexecfwk_base:appexecfwk_base",
     "${bundlefwk_inner_api_path}/appexecfwk_core:appexecfwk_core",
-    "${c_utils_base_path}:utils",
     "${distributedschedule_path}/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
     "//third_party/icu/icu4c:shared_icuuc",
   ]
+  public_external_deps = [ "c_utils:utils" ]
 
   external_deps = [
     "ability_base:configuration",
