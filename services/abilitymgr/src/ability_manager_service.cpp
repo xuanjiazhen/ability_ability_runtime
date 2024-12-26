@@ -190,6 +190,7 @@ constexpr char PRODUCT_ASSERT_FAULT_DIALOG_ENABLED[] = "persisit.sys.abilityms.s
 constexpr int32_t RESOURCE_SCHEDULE_UID = 1096;
 constexpr int32_t UPDATE_CONFIG_FLAG_COVER = 1;
 constexpr int32_t UPDATE_CONFIG_FLAG_APPEND = 2;
+constexpr int32_t RETRY_COUNT = 20;
 
 const std::unordered_set<std::string> COMMON_PICKER_TYPE = {
     "share", "action"
@@ -6864,22 +6865,32 @@ void AbilityManagerService::SubscribeScreenUnlockedEvent()
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED);
     EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
     subscribeInfo.SetThreadMode(EventFwk::CommonEventSubscribeInfo::COMMON);
-    auto callback = [abilityManager = weak_from_this()]() {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "On screen unlocked.");
+    screenSubscriber_ = std::make_shared<AbilityRuntime::AbilityManagerEventSubscriber>(subscribeInfo,
+        GetScreenUnlockCallback(), GetUserScreenUnlockCallback());
+    bool subResult = EventFwk::CommonEventManager::SubscribeCommonEvent(screenSubscriber_);
+    if (!subResult) {
+        RetrySubscribeScreenUnlockedEvent(RETRY_COUNT);
+    }
+}
+
+std::function<void()> AbilityManagerService::GetScreenUnlockCallback()
+{
+    auto screenUnlockCallback = [abilityManager = weak_from_this()]() {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "on screen unlocked");
         auto abilityMgr = abilityManager.lock();
         if (abilityMgr == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "Invalid abilityMgr pointer.");
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid abilityMgr pointer");
             return;
         }
         auto taskHandler = abilityMgr->GetTaskHandler();
         if (taskHandler == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "Invalid taskHandler pointer.");
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid taskHandler pointer");
             return;
         }
         auto startAutoStartupAppsTask = [abilityManager]() {
             auto abilityMgr = abilityManager.lock();
             if (abilityMgr == nullptr) {
-                TAG_LOGE(AAFwkTag::ABILITYMGR, "Invalid abilityMgr pointer.");
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid abilityMgr pointer");
                 return;
             }
             abilityMgr->RemoveScreenUnlockInterceptor();
@@ -6888,22 +6899,21 @@ void AbilityManagerService::SubscribeScreenUnlockedEvent()
         };
         taskHandler->SubmitTask(startAutoStartupAppsTask, "StartAutoStartupApps");
     };
+    return screenUnlockCallback;
+}
+
+std::function<void()> AbilityManagerService::GetUserScreenUnlockCallback()
+{
     auto userScreenUnlockCallback = [abilityManager = weak_from_this()]() {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "On user screen unlocked.");
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "on user screen unlocked");
         auto abilityMgr = abilityManager.lock();
         if (abilityMgr == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "Invalid abilityMgr pointer.");
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid abilityMgr pointer");
             return;
         }
         abilityMgr->RemoveScreenUnlockInterceptor();
     };
-    screenSubscriber_ = std::make_shared<AbilityRuntime::AbilityManagerEventSubscriber>(subscribeInfo, callback,
-        userScreenUnlockCallback);
-    bool subResult = EventFwk::CommonEventManager::SubscribeCommonEvent(screenSubscriber_);
-    if (!subResult) {
-        constexpr int retryCount = 20;
-        RetrySubscribeScreenUnlockedEvent(retryCount);
-    }
+    return userScreenUnlockCallback;
 }
 
 void AbilityManagerService::UnSubscribeScreenUnlockedEvent()

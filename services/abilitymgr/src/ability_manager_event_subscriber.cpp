@@ -21,9 +21,9 @@
 namespace OHOS {
 namespace AbilityRuntime {
 AbilityManagerEventSubscriber::AbilityManagerEventSubscriber(
-    const EventFwk::CommonEventSubscribeInfo &subscribeInfo, const std::function<void()> &callback,
+    const EventFwk::CommonEventSubscribeInfo &subscribeInfo, const std::function<void()> &screenUnlockCallback,
     const std::function<void()> &userScreenUnlockCallback)
-    : EventFwk::CommonEventSubscriber(subscribeInfo), callback_(callback),
+    : EventFwk::CommonEventSubscriber(subscribeInfo), screenUnlockCallback_(screenUnlockCallback),
     userScreenUnlockCallback_(userScreenUnlockCallback)
 {}
 
@@ -32,14 +32,24 @@ void AbilityManagerEventSubscriber::OnReceiveEvent(const EventFwk::CommonEventDa
     const AAFwk::Want &want = data.GetWant();
     std::string action = want.GetAction();
     TAG_LOGD(AAFwkTag::ABILITYMGR, "The action: %{public}s.", action.c_str());
-    if (action == EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED) {
-        if (callback_ != nullptr) {
-            callback_();
+    if (userScreenUnlockCallback_ == nullptr || screenUnlockCallback_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "nullptr callback");
+        return;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto handleEvent = [&](const std::string &event) {
+        if (eventSet_.find(event) != eventSet_.end()) {
+            screenUnlockCallback_();
+            eventSet_.clear();
+        } else {
+            eventSet_.insert(action);
         }
-    } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED) {
-        if (userScreenUnlockCallback_ != nullptr) {
-            userScreenUnlockCallback_();
-        }
+    };
+    if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED) {
+        handleEvent(EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED);
+        userScreenUnlockCallback_();
+    } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED) {
+        handleEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED);
     }
 }
 } // namespace AbilityRuntime
