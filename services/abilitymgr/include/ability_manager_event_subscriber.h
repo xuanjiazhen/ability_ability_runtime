@@ -16,6 +16,9 @@
 #ifndef OHOS_ABILITY_RUNTIME_ABILITY_MANAGER_EVENT_SUBSCRIBER_H
 #define OHOS_ABILITY_RUNTIME_ABILITY_MANAGER_EVENT_SUBSCRIBER_H
 
+#include <mutex>
+#include <unordered_set>
+
 #include "common_event_data.h"
 #include "common_event_subscribe_info.h"
 #include "common_event_subscriber.h"
@@ -35,6 +38,8 @@ public:
 private:
     std::function<void()> callback_;
     std::function<void()> userScreenUnlockCallback_;
+    std::unordered_set<std::string> eventSet_;
+    std::mutex mutex_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
