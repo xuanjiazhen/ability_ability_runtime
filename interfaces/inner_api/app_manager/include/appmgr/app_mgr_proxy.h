@@ -588,6 +588,23 @@ public:
      */
     int32_t IsAppRunningByBundleNameAndUserId(const std::string &bundleName, int32_t userId, bool &isRunning) override;
 
+    /**
+     * Check whether the pid of the same bundle.
+     *
+     * @param pid The calling app pid.
+     * @param want, The start want.
+     * @return Return true if allowed, others fail.
+     */
+    virtual bool IsApplicationPid(pid_t pid, const std::string &bundleName) override;
+
+    /**
+     * Check whether the process is foreground.
+     *
+     * @param pid The calling app pid.
+     * @return Return true if yes, others no.
+     */
+    virtual bool IsProcessForeground(pid_t pid) override;
+
 #ifdef SUPPORT_CHILD_PROCESS
     /**
      * Start child process, called by ChildProcessManager.

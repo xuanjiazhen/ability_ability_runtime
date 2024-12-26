@@ -128,6 +128,23 @@ public:
         int32_t userId, bool &isRunning);
 
     /**
+     * Check whether the pid of the same bundle.
+     *
+     * @param pid The calling app pid.
+     * @param want, The start want.
+     * @return Return true if allowed, others fail.
+     */
+    bool IsApplicationPid(pid_t pid, const std::string &bundleName);
+
+    /**
+     * Check whether the process is foreground.
+     *
+     * @param pid The calling app pid.
+     * @return Return true if yes, others no.
+     */
+    virtual bool IsProcessForeground(pid_t pid);
+
+    /**
      * GetAppRunningRecordByPid, Get process record by application pid.
      *
      * @param pid, the application pid.

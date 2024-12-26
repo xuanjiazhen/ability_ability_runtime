@@ -12838,5 +12838,48 @@ int32_t AbilityManagerService::QueryKeepAliveApplicationsByEDM(int32_t appType, 
     return KeepAliveProcessManager::GetInstance().QueryKeepAliveApplications(
         appType, userId, list, true);
 }
+
+int AbilityManagerService::StartSelfUIAbility(const Want &want)
+{
+    if (!AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not supported");
+        return ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    if (!PermissionVerification::GetInstance()->VerifyStartSelfUIAbility()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "permission denied");
+        return CHECK_PERMISSION_FAILED;
+    }
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+    if (!bundleMgrHelper) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null bundleMgrHelper");
+        return INNER_ERR;
+    }
+    AppExecFwk::AbilityInfo abilityInfo;
+    if (!IN_PROCESS_CALL(bundleMgrHelper->QueryAbilityInfo(want,
+        AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, GetUserId(), abilityInfo))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "bundle or ability not exist");
+        return ERR_NOT_ALLOW_IMPLICIT_START;
+    }
+
+    if (abilityInfo.type != AppExecFwk::AbilityType::PAGE) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not UIAbility");
+        return RESOLVE_CALL_ABILITY_TYPE_ERR;
+    }
+
+    auto callingPid = IPCSkeleton::GetCallingPid();
+    if (!IN_PROCESS_CALL(DelayedSingleton<AppExecFwk::AppMgrClient>::
+        GetInstance()->IsApplicationPid(callingPid, want.GetBundle()))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "cannot start other app");
+        return ERR_START_OTHER_APP_FAILED;
+    }
+
+    if (!IN_PROCESS_CALL(DelayedSingleton<AppExecFwk::AppMgrClient>::
+        GetInstance()->IsProcessForeground(callingPid))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller not foreground");
+        return NOT_TOP_ABILITY;
+    }
+
+    return StartAbility(want);
+}
 }  // namespace AAFwk
 }  // namespace OHOS

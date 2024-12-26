@@ -99,6 +99,8 @@ public:
         int32_t appCloneIndex, bool &isRunning));
     MOCK_METHOD3(IsAppRunningByBundleNameAndUserId, int32_t(const std::string &bundleName,
         int32_t userId, bool &isRunning));
+    MOCK_METHOD2(IsApplicationPid, bool(pid_t pid, const std::string &bundleName));
+    MOCK_METHOD1(IsProcessForeground, bool(pid_t pid));
 #ifdef SUPPORT_CHILD_PROCESS
     MOCK_METHOD2(StartChildProcess, int32_t(pid_t &childPid, const ChildProcessRequest &request));
     MOCK_METHOD1(GetChildProcessInfoForSelf, int32_t(ChildProcessInfo &info));

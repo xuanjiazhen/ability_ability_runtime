@@ -1849,5 +1849,33 @@ void AppRunningManager::UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std:
         }
     }
 }
+
+bool AppRunningManager::IsApplicationPid(pid_t pid, const std::string &bundleName)
+{
+    auto appRecord = GetAppRunningRecordByPid(pid);
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRecord not found");
+        return false;
+    }
+    if (appRecord->GetBundleName() != bundleName) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not the same bundle");
+        return false;
+    }
+    return true;
+}
+
+bool AppRunningManager::IsProcessForeground(pid_t pid)
+{
+    auto appRecord = GetAppRunningRecordByPid(pid);
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRecord not found");
+        return false;
+    }
+    if (appRecord->GetState() != ApplicationState::APP_STATE_FOREGROUND) {
+        TAG_LOGE(AAFwkTag::APPMGR, "process not foreground");
+        return false;
+    }
+    return true;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

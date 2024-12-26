@@ -8754,5 +8754,37 @@ bool AppMgrServiceInner::HasAppRecord(const AAFwk::Want &want, const AbilityInfo
         bundleInfo, specifiedProcessFlag, nullptr, instanceKey, abilityInfo.process);
     return appRecord != nullptr;
 }
+
+bool AppMgrServiceInner::IsApplicationPid(pid_t pid, const std::string &bundleName)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "Called, pid=%{public}d,bundle=%{public}s", pid, bundleName.c_str());
+    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not foundation call");
+        return false;
+    }
+
+    if (appRunningManager_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
+        return false;
+    }
+
+    return appRunningManager_->IsApplicationPid(pid, bundleName);
+}
+
+bool AppMgrServiceInner::IsProcessForeground(pid_t pid)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "Called, pid=%{public}d", pid);
+    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not foundation call");
+        return false;
+    }
+
+    if (appRunningManager_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
+        return false;
+    }
+
+    return appRunningManager_->IsProcessForeground(pid);
+}
 } // namespace AppExecFwk
 }  // namespace OHOS

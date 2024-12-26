@@ -1460,5 +1460,25 @@ AppMgrResultCode AppMgrClient::SendAppSpawnUninstallDebugHapMsg(int32_t userId)
     amsService->SendAppSpawnUninstallDebugHapMsg(userId);
     return AppMgrResultCode::RESULT_OK;
 }
+
+bool AppMgrClient::IsApplicationPid(pid_t pid, const std::string &bundleName)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service != nullptr) {
+        return service->IsApplicationPid(pid, bundleName);
+    }
+    TAG_LOGE(AAFwkTag::APPMGR, "null service");
+    return false;
+}
+
+bool AppMgrClient::IsProcessForeground(pid_t pid)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service != nullptr) {
+        return service->IsProcessForeground(pid);
+    }
+    TAG_LOGE(AAFwkTag::APPMGR, "null service");
+    return false;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -1764,5 +1764,21 @@ int32_t AppMgrService::HasAppRecord(const AAFwk::Want &want, const AbilityInfo &
     result = appMgrServiceInner_->HasAppRecord(want, abilityInfo);
     return ERR_OK;
 }
+
+bool AppMgrService::IsApplicationPid(pid_t pid, const std::string &bundleName)
+{
+    if (!IsReady()) {
+        return false;
+    }
+    return appMgrServiceInner_->IsApplicationPid(pid, bundleName);
+}
+
+bool AppMgrService::IsProcessForeground(pid_t pid)
+{
+    if (!IsReady()) {
+        return false;
+    }
+    return appMgrServiceInner_->IsProcessForeground(pid);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -311,6 +311,10 @@ int32_t AppMgrStub::OnRemoteRequestInnerSixth(uint32_t code, MessageParcel &data
             return HandleGetAllUIExtensionProviderPid(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::IS_APP_RUNNING_BY_BUNDLE_NAME_AND_USER_ID):
             return HandleIsAppRunningByBundleNameAndUserId(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::IS_APPLICATION_PID):
+            return HandleIsApplicationPid(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::IS_PROCESS_FOREGROUND):
+            return HandleIsProcessForeground(data, reply);
     }
     return INVALID_FD;
 }
@@ -1791,6 +1795,31 @@ int32_t AppMgrStub::HandleHasAppRecord(MessageParcel &data, MessageParcel &reply
         reply.WriteBool(exist);
     }
     return ret;
+}
+
+int32_t AppMgrStub::HandleIsApplicationPid(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    int32_t pid = data.ReadInt32();
+    std::string bundleName = data.ReadString();
+    bool result = IsApplicationPid(pid, bundleName);
+    if (!reply.WriteBool(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write result failed");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleIsProcessForeground(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    int32_t pid = data.ReadInt32();
+    bool result = IsProcessForeground(pid);
+    if (!reply.WriteBool(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write result failed");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
