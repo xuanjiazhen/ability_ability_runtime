@@ -34,7 +34,6 @@ ohos_unittest("ability_record_first_test") {
 
   configs = [
     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
-    "${ability_runtime_services_path}/uripermmgr:upms_config",
   ]
   cflags = []
   if (target_cpu == "arm") {
