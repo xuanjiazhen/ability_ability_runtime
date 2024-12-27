@@ -47,6 +47,7 @@
 using namespace testing;
 using namespace testing::ext;
 
+
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
@@ -62,8 +63,8 @@ namespace {
 typedef struct napi_env__* napi_env;
 typedef struct napi_value__* napi_value;
 
-napi_env env_ = nullptr;
-panda::ecmascript::EcmaVM* vm_ = nullptr;
+napi_env g_env = nullptr;
+panda::ecmascript::EcmaVM* g_vm = nullptr;
 
 class MockDeferred : public NativeDeferred {
 public:
@@ -71,11 +72,11 @@ public:
     {
         resolved_ = true;
         if (nref_ != nullptr) {
-            napi_delete_reference(env_, nref_);
+            napi_delete_reference(g_env, nref_);
             nref_ = nullptr;
         }
         if (data != nullptr) {
-            napi_create_reference(env_, data, 1, &nref_);
+            napi_create_reference(g_env, data, 1, &nref_);
         }
     }
 
@@ -122,7 +123,7 @@ public:
     MOCK_METHOD0(Unref, uint32_t());
     MOCK_METHOD0(Get, napi_value());
     MOCK_METHOD0(GetData, void*());
-    virtual operator napi_value() override
+    operator napi_value() override
     {
         return reinterpret_cast<napi_value>(this);
     }
@@ -154,33 +155,31 @@ public:
 JsUiExtensionBaseTest::JsUiExtensionBaseTest()
 {
 }
-
 JsUiExtensionBaseTest::~JsUiExtensionBaseTest()
 {
 }
-
 void JsUiExtensionBaseTest::SetUpTestCase()
 {
     panda::RuntimeOption pandaOption;
-    vm_ = panda::JSNApi::CreateJSVM(pandaOption);
-    if (vm_ == nullptr) {
+    g_vm = panda::JSNApi::CreateJSVM(pandaOption);
+    if (g_vm == nullptr) {
         TAG_LOGE(AAFwkTag::TEST, "Create vm failed.");
         return;
     }
 
-    env_ = reinterpret_cast<napi_env>(new ArkNativeEngine(vm_, nullptr));
+    g_env = reinterpret_cast<napi_env>(new ArkNativeEngine(g_vm, nullptr));
 }
 
 void JsUiExtensionBaseTest::TearDownTestCase()
 {
-    if (env_ != nullptr) {
-        delete reinterpret_cast<NativeEngine*>(env_);
-        env_ = nullptr;
+    if (g_env != nullptr) {
+        delete reinterpret_cast<NativeEngine*>(g_env);
+        g_env = nullptr;
     }
 
-    if (vm_ != nullptr) {
-        panda::JSNApi::DestroyJSVM(vm_);
-        vm_ = nullptr;
+    if (g_vm != nullptr) {
+        panda::JSNApi::DestroyJSVM(g_vm);
+        g_vm = nullptr;
     }
 }
 
@@ -231,10 +230,9 @@ HWTEST_F(JsUiExtensionBaseTest, Init_0100, TestSize.Level1)
     std::shared_ptr<NativeReferenceMock> nativeRefenceMock = std::make_shared<NativeReferenceMock>();
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
 
-    jsUiExtensionBase->jsRuntime_.jsEnv_->vm_ = vm_;
-    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env_);
-    jsUiExtensionBase->jsRuntime_.modules_.emplace(
-        "com.example.moduleName/com.example.srcentrance.abc", nativeRefenceMock.get());
+    jsUiExtensionBase->jsRuntime_.jsEnv_->vm_ = g_vm;
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
+    jsUiExtensionBase->jsRuntime_.modules_.emplace("com.example.moduleName/com.example.srcentrance.abc", nativeRefenceMock.get());
 
     jsUiExtensionBase->Init(abilityrecord, application, handler, token2);
     EXPECT_EQ(jsUiExtensionBase->token_, abilityrecord->token_);
@@ -255,7 +253,7 @@ HWTEST_F(JsUiExtensionBaseTest, BindContext_0100, TestSize.Level1)
 
     jsUiExtensionBase->jsObj_ = std::make_shared<NativeReferenceMock>();
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env_);
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
     jsUiExtensionBase->context_ = std::make_shared<UIExtensionContext>();
     jsUiExtensionBase->BindContext();
     EXPECT_EQ(jsUiExtensionBase->shellContextRef_, nullptr);
@@ -280,7 +278,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnStart_0100, TestSize.Level1)
 
     jsUiExtensionBase->jsObj_ = std::make_shared<NativeReferenceMock>();
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env_);
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
     jsUiExtensionBase->context_ = std::make_shared<UIExtensionContext>();
     jsUiExtensionBase->context_->config_ = std::make_shared<AppExecFwk::Configuration>();
     jsUiExtensionBase->shellContextRef_ = std::make_shared<NativeReferenceMock>();
@@ -318,7 +316,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnStart_0200, TestSize.Level1)
         resourceManager(Global::Resource::CreateResourceManager());
     jsUiExtensionBase->context_->resourceManager_ = resourceManager;
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env_);
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
     jsUiExtensionBase->shellContextRef_ = std::make_shared<NativeReferenceMock>();
 
     AAFwk::Want want;
@@ -371,7 +369,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnStop_2_0200, TestSize.Level1)
 
     jsUiExtensionBase->jsObj_ = std::make_shared<NativeReferenceMock>();
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env_);
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
     jsUiExtensionBase->OnStop(callbackInfo, isAsyncCallback);
 
     EXPECT_EQ(isAsyncCallback, false);
@@ -401,7 +399,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnStopCallBack_0100, TestSize.Level1)
 
     jsUiExtensionBase->jsObj_ = std::make_shared<NativeReferenceMock>();
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env_);
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
 
     napi_env env = jsUiExtensionBase->jsRuntime_.GetNapiEnv();
     std::shared_ptr<AbilityRuntime::JsAbilityLifecycleCallback> jsablcb =
@@ -444,19 +442,18 @@ HWTEST_F(JsUiExtensionBaseTest, CheckPromise_0200, TestSize.Level1)
     std::unique_ptr<MockDeferred> deferred = std::make_unique<MockDeferred>();
     NativeDeferred* deferredPtr = deferred.get();
     std::shared_ptr<MockArkNativeEngine> mockArkNativeEngine =
-        std::make_shared<MockArkNativeEngine>(vm_, nullptr);
+        std::make_shared<MockArkNativeEngine>(g_vm, nullptr);
     ASSERT_NE(mockArkNativeEngine, nullptr);
     napi_value promise = mockArkNativeEngine->CreatePromise(&deferredPtr);
     EXPECT_NE(promise, nullptr);
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env_);
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
 
     bool test = jsUiExtensionBase->CheckPromise(promise);
     EXPECT_EQ(test, true);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     GTEST_LOG_(INFO) << "CheckPromise_0200 end";
-
 }
 
 /**
@@ -468,17 +465,17 @@ HWTEST_F(JsUiExtensionBaseTest, CallPromise_0100, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "CallPromise_0100 start";
 
-     std::unique_ptr<MockDeferred> deferred = std::make_unique<MockDeferred>();
+    std::unique_ptr<MockDeferred> deferred = std::make_unique<MockDeferred>();
     NativeDeferred* deferredPtr = deferred.get();
     std::shared_ptr<MockArkNativeEngine> mockArkNativeEngine =
-        std::make_shared<MockArkNativeEngine>(vm_, nullptr);
+        std::make_shared<MockArkNativeEngine>(g_vm, nullptr);
     ASSERT_NE(mockArkNativeEngine, nullptr);
     napi_value promise = mockArkNativeEngine->CreatePromise(&deferredPtr);
     EXPECT_NE(promise, nullptr);
     AppExecFwk::AbilityTransactionCallbackInfo<> *callbackInfo =
         AppExecFwk::AbilityTransactionCallbackInfo<>::Create();
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env_);
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
 
     auto test = jsUiExtensionBase->CallPromise(promise, callbackInfo);
     EXPECT_EQ(test, true);
@@ -559,8 +556,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0300, TestSize.Level1)
     sessionInfo->uiExtensionComponentId = 1;
     AAFwk::WindowCommand wincmd = AAFwk::WIN_CMD_DESTROY;
 
-    jsUiExtensionBase->abilityResultListeners_ =
-        std::make_shared<AbilityRuntime::AbilityResultListeners>();
+    jsUiExtensionBase->abilityResultListeners_ = std::make_shared<AbilityRuntime::AbilityResultListeners>();
     std::shared_ptr<AbilityRuntime::UISessionAbilityResultListener> listener =
         std::make_shared<AbilityRuntime::UISessionAbilityResultListener>();
     std::shared_ptr<NativeReferenceMock> ptr = std::make_shared<NativeReferenceMock>();
@@ -571,8 +567,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0300, TestSize.Level1)
     jsUiExtensionBase->uiWindowMap_.emplace(sessionInfo->uiExtensionComponentId, uiwindow);
     jsUiExtensionBase->contentSessions_.emplace(sessionInfo->uiExtensionComponentId, ptr);
     jsUiExtensionBase->foregroundWindows_.insert(sessionInfo->uiExtensionComponentId);
-    jsUiExtensionBase->abilityResultListeners_->listeners_.emplace(
-        sessionInfo->uiExtensionComponentId, listener);
+    jsUiExtensionBase->abilityResultListeners_->listeners_.emplace(sessionInfo->uiExtensionComponentId, listener);
 
     jsUiExtensionBase->OnCommandWindow(want, sessionInfo, wincmd);
     EXPECT_EQ(jsUiExtensionBase->foregroundWindows_.size(), 0);
@@ -730,7 +725,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommand_0100, TestSize.Level1)
     want.operation_.bundleName_ = TEST_BUNDLENAME;
 
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env_);
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
     jsUiExtensionBase->OnCommand(want, restart, startId);
     EXPECT_NE(jsUiExtensionBase, nullptr);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
@@ -767,7 +762,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnForeground_0100, TestSize.Level1)
     EXPECT_EQ(jsUiExtensionBase->foregroundWindows_.size(), 1);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-     GTEST_LOG_(INFO) << "OnForeground_0100 end";
+    GTEST_LOG_(INFO) << "OnForeground_0100 end";
 }
 
 /**
@@ -781,7 +776,7 @@ HWTEST_F(JsUiExtensionBaseTest, CallJsOnSessionCreate_0100, TestSize.Level1)
 
     jsUiExtensionBase->jsObj_ = std::make_shared<NativeReferenceMock>();
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env_);
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
 
     sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
     uint32_t uiExtensionComponentId = 1;
@@ -839,7 +834,7 @@ HWTEST_F(JsUiExtensionBaseTest, CallJsOnSessionCreate_0300, TestSize.Level1)
     AAFwk::Want want;
 
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env_);
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
 
     bool test = jsUiExtensionBase->CallJsOnSessionCreate(want, sessionInfo,
         uiwindow, uiExtensionComponentId);
@@ -1086,7 +1081,7 @@ HWTEST_F(JsUiExtensionBaseTest, CallObjectMethod_0100, TestSize.Level1)
 
     jsUiExtensionBase->jsObj_ = std::make_shared<NativeReferenceMock>();
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env_);
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
     auto vv = std::make_shared<NativeReferenceMock>();
     napi_value argv[] = { vv->GetNapiValue() };
     auto test = jsUiExtensionBase->CallObjectMethod("onDestroy", argv, 1, true);
@@ -1112,7 +1107,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnConfigurationUpdated_0100, TestSize.Level1)
     std::shared_ptr<Global::Resource::ResourceManager> resourceManager(Global::Resource::CreateResourceManager());
     jsUiExtensionBase->context_->resourceManager_ = resourceManager;
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env_);
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
     jsUiExtensionBase->shellContextRef_ = std::make_shared<NativeReferenceMock>();
 
     jsUiExtensionBase->OnConfigurationUpdated(configuration);
