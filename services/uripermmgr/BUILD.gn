@@ -155,11 +155,10 @@ ohos_static_library("libupms_static") {
     "samgr:samgr_proxy",
     "storage_service:storage_manager_sa_proxy",
   ]
-  if (ability_runtime_upms) {
-    deps += [
-      "${ability_runtime_innerkits_path}/uri_permission:uri_permission_mgr",
-    ]
-  }
+
+  deps += [
+    "${ability_runtime_innerkits_path}/uri_permission:uri_permission_mgr",
+  ]
 
   if (ability_runtime_feature_sandboxmanager) {
     external_deps += [ "sandbox_manager:libsandbox_manager_sdk" ]
