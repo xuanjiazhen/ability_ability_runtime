@@ -1063,6 +1063,16 @@ int32_t AppMgrService::GetConfiguration(Configuration& config)
     return ERR_OK;
 }
 
+int32_t AppMgrService::GetConfigurationByUserId(Configuration& config, int32_t userId)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    config = *(appMgrServiceInner_->GetConfigurationByUserId(userId));
+    return ERR_OK;
+}
+
 int32_t AppMgrService::UpdateConfiguration(const Configuration& config, const int32_t userId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);

@@ -418,6 +418,15 @@ public:
     virtual int32_t GetConfiguration(Configuration& config) override;
 
     /**
+     * GetConfigurationByUserId
+     *
+     * @param config to retrieve configuration data.
+     * @param userId to user id.
+     * @return ERR_OK ,return back success，others fail.
+     */
+    virtual int32_t GetConfigurationByUserId(Configuration& config, int32_t userId) override;
+
+    /**
      * UpdateConfiguration, ANotify application update system environment changes.
      *
      * @param config System environment change parameters.

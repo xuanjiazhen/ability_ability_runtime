@@ -740,6 +740,8 @@ public:
 
     std::shared_ptr<AppExecFwk::Configuration> GetConfiguration();
 
+    std::shared_ptr<AppExecFwk::Configuration> GetConfigurationByUserId(int32_t userId);
+
     int32_t RegisterConfigurationObserver(const sptr<IConfigurationObserver>& observer);
 
     int32_t UnregisterConfigurationObserver(const sptr<IConfigurationObserver>& observer);
