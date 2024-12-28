@@ -63,6 +63,7 @@
 #include "istart_specified_ability_response.h"
 #include "kia_interceptor_interface.h"
 #include "kill_process_config.h"
+#include "kill_process_reason.h"
 #include "record_query_result.h"
 #include "refbase.h"
 #include "remote_client_manager.h"
@@ -205,6 +206,15 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int32_t KillProcessesInBatch(const std::vector<int32_t> &pids);
+
+    /**
+     * kill the process with reason
+     *
+     * @param pid id of process.
+     * @param  reason, kill proocess reason.
+     * @return ERR_OK if success.
+     */
+    virtual int32_t KillProcessWithReason(int32_t pid, const AAFwk::KillProcessReason &reason);
 
     /**
      * Set child and parent relationship

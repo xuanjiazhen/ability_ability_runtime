@@ -244,6 +244,22 @@ AppMgrResultCode AppMgrClient::KillProcessesByPids(std::vector<int32_t> &pids)
     return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
 }
 
+AppMgrResultCode AppMgrClient::KillProcessWithReason(int32_t pid, const AAFwk::KillProcessReason &reason)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service != nullptr) {
+        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        if (amsService != nullptr) {
+            int32_t result = amsService->KillProcessWithReason(pid, reason);
+            if (result == ERR_OK) {
+                return AppMgrResultCode::RESULT_OK;
+            }
+            return AppMgrResultCode::ERROR_SERVICE_NOT_READY;
+        }
+    }
+    return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+}
+
 AppMgrResultCode AppMgrClient::AttachPidToParent(const sptr<IRemoteObject> &token,
     const sptr<IRemoteObject> &callerToken)
 {

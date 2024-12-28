@@ -130,7 +130,7 @@ namespace {
         return ERR_PERMISSION_DENIED;                                                                           \
     }
 
-#define CHECK_POINTER_AND_RETURN_LOG(object, log)      \
+#define CHECK_POINTER_WITH_LOG(object, log)      \
     if (!object) {                                     \
         TAG_LOGE(AAFwkTag::APPMGR, "%{public}s", log); \
         return;                                        \
@@ -1144,7 +1144,7 @@ void AppMgrServiceInner::AttachApplication(const pid_t pid, const sptr<IAppSched
     }
     AbilityRuntime::FreezeUtil::GetInstance().AddAppLifecycleEvent(pid, "ServiceInner::AttachApplication");
     auto appRecord = GetAppRunningRecordByPid(pid);
-    CHECK_POINTER_AND_RETURN_LOG(appRecord, "no such appRecord");
+    CHECK_POINTER_WITH_LOG(appRecord, "no such appRecord");
     auto applicationInfo = appRecord->GetApplicationInfo();
     AAFwk::EventInfo eventInfo;
     if (!applicationInfo) {
@@ -1165,7 +1165,7 @@ void AppMgrServiceInner::AttachApplication(const pid_t pid, const sptr<IAppSched
     }
     TAG_LOGI(AAFwkTag::APPMGR, "attach pid:%{public}d, bundle:%{public}s", pid, eventInfo.bundleName.c_str());
     sptr<AppDeathRecipient> appDeathRecipient = sptr<AppDeathRecipient>::MakeSptr();
-    CHECK_POINTER_AND_RETURN_LOG(appDeathRecipient, "Failed to create death recipient.");
+    CHECK_POINTER_WITH_LOG(appDeathRecipient, "Failed to create death recipient.");
     appDeathRecipient->SetTaskHandler(taskHandler_);
     appDeathRecipient->SetAppMgrServiceInner(shared_from_this());
     auto object = appScheduler->AsObject();
@@ -1205,7 +1205,7 @@ bool AppMgrServiceInner::IsAllowedNWebPreload(const std::string &processName)
 
 void AppMgrServiceInner::NotifyAppAttachFailed(std::shared_ptr<AppRunningRecord> appRecord)
 {
-    CHECK_POINTER_AND_RETURN_LOG(appRecord, "AppRecord null.");
+    CHECK_POINTER_WITH_LOG(appRecord, "AppRecord null.");
     std::vector<sptr<IRemoteObject>> abilityTokens;
     for (const auto &token : appRecord->GetAbilities()) {
         abilityTokens.emplace_back(token.first);
@@ -1222,7 +1222,7 @@ void AppMgrServiceInner::NotifyAppAttachFailed(std::shared_ptr<AppRunningRecord>
 
 void AppMgrServiceInner::NotifyLoadAbilityFailed(sptr<IRemoteObject> token)
 {
-    CHECK_POINTER_AND_RETURN_LOG(token, "token null.");
+    CHECK_POINTER_WITH_LOG(token, "token null.");
     std::vector<sptr<IRemoteObject>> abilityTokens;
     abilityTokens.emplace_back(token);
     std::lock_guard lock(appStateCallbacksLock_);
@@ -1235,7 +1235,7 @@ void AppMgrServiceInner::NotifyLoadAbilityFailed(sptr<IRemoteObject> token)
 
 void AppMgrServiceInner::LaunchApplication(const std::shared_ptr<AppRunningRecord> &appRecord)
 {
-    CHECK_POINTER_AND_RETURN_LOG(appRecord, "appRecord null");
+    CHECK_POINTER_WITH_LOG(appRecord, "appRecord null");
     appRecord->AddAppLifecycleEvent("ServiceInner::LaunchApplication");
     auto applicationInfo = appRecord->GetApplicationInfo();
     std::string bundleName = "";
@@ -3011,11 +3011,55 @@ void AppMgrServiceInner::KillProcessesByPids(std::vector<int32_t> &pids)
             TAG_LOGE(AAFwkTag::APPMGR, "appRecord null");
             continue;
         }
-        auto result = KillProcessByPid(pid, "KillProcessesByPids");
+        auto result = KillProcessByPid(pid, "KillProcessByPid");
         if (result < 0) {
             TAG_LOGW(AAFwkTag::APPMGR, "fail, pid:%{public}d", pid);
         }
     }
+}
+
+int32_t AppMgrServiceInner::KillProcessWithReason(int32_t pid, const AAFwk::KillProcessReason &reason)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "call");
+    if (!appRunningManager_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
+        return ERR_NO_INIT;
+    }
+
+    auto isCallingPerm = AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+        AAFwk::PermissionConstants::PERMISSION_KILL_APP_PROCESSES);
+    if (!isCallingPerm) {
+        TAG_LOGE(AAFwkTag::APPMGR, "permission verification fail");
+        return ERR_PERMISSION_DENIED;
+    }
+
+    auto appRecord = GetAppRunningRecordByPid(pid);
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRecord null");
+        return ERR_INVALID_OPERATION;
+    }
+    std::string bundleName = appRecord->GetBundleName();
+    AAFwk::ProcessExitDetailInfo processExitInfo;
+    processExitInfo.pid = pid;
+    processExitInfo.uid = appRecord->GetUid();
+    // TODO get and set pssValue and rssValue
+    processExitInfo.reason = reason;
+    processExitInfo.processName = appRecord->GetProcessName();
+    processExitInfo.timeStamp = AbilityRuntime::TimeUtil::FormatTime("%Y/%m/%d-%H:%M:%S");
+
+    auto result = KillProcessByPid(pid, "KillProcessWithReason");
+    if (result < 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "fail, pid:%{public}d", pid);
+        return result;
+    }
+    // record process killed reason
+
+    result = DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->AddKillProcessReason(
+        bundleName, processExitInfo);
+    if (result != 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AddKillProcessReason fail, ret:%{public}d", result);
+    }
+    return ERR_OK;
 }
 
 void AppMgrServiceInner::AttachPidToParent(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &callerToken)
@@ -8388,7 +8432,7 @@ int32_t AppMgrServiceInner::NotifyProcessDependedOnWeb()
 void AppMgrServiceInner::KillProcessDependedOnWeb()
 {
     TAG_LOGI(AAFwkTag::APPMGR, "call");
-    CHECK_POINTER_AND_RETURN_LOG(appRunningManager_, "appRunningManager_ is nullptr");
+    CHECK_POINTER_WITH_LOG(appRunningManager_, "appRunningManager_ is nullptr");
     for (const auto &item : appRunningManager_->GetAppRunningRecordMap()) {
         const auto &appRecord = item.second;
         if (!appRecord || !appRecord->GetSpawned() ||
@@ -8418,7 +8462,7 @@ void AppMgrServiceInner::RestartResidentProcessDependedOnWeb()
 
     auto RestartResidentProcessDependedOnWebTask = [bundleNames, innerServicerWeak = weak_from_this()]() {
         auto innerServicer = innerServicerWeak.lock();
-        CHECK_POINTER_AND_RETURN_LOG(innerServicer, "get AppMgrServiceInner failed");
+        CHECK_POINTER_WITH_LOG(innerServicer, "get AppMgrServiceInner failed");
         std::vector<AppExecFwk::BundleInfo> exitBundleInfos;
         ExitResidentProcessManager::GetInstance().QueryExitBundleInfos(bundleNames, exitBundleInfos);
 
@@ -8471,7 +8515,7 @@ bool AppMgrServiceInner::CleanAbilityByUserRequest(const sptr<IRemoteObject> &to
     TAG_LOGD(AAFwkTag::APPMGR, "delayTime:%{public}d", delayTime);
     auto delayKillTask = [targetPid, innerServicerWeak = weak_from_this()]() {
         auto self = innerServicerWeak.lock();
-        CHECK_POINTER_AND_RETURN_LOG(self, "get AppMgrServiceInner failed");
+        CHECK_POINTER_WITH_LOG(self, "get AppMgrServiceInner failed");
         self->KillProcessByPid(targetPid, KILL_REASON_USER_REQUEST);
         self->DecreaseWillKillPidsNum();
         TAG_LOGD(AAFwkTag::APPMGR, "pid:%{public}d killed", targetPid);

@@ -278,6 +278,15 @@ public:
     int KillApplicationByUid(const std::string &bundleName, int32_t uid,
         const std::string& reason = "KillApplicationByUid");
 
+    /**
+     * kill the process with reason
+     *
+     * @param pid id of process.
+     * @param  reason, kill proocess reason.
+     * @return 0 if success.
+     */
+    int AppScheduler::KillProcessWithReason(int32_t pid, const KillProcessReason &reason);
+
      /**
      * update the application info after new module installed.
      *

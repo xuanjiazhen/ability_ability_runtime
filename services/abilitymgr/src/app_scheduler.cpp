@@ -290,6 +290,19 @@ int AppScheduler::KillApplicationByUid(const std::string &bundleName, int32_t ui
     return ERR_OK;
 }
 
+int AppScheduler::KillProcessWithReason(int32_t pid, const KillProcessReason &reason)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
+    CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
+    int ret = (int)appMgrClient_->KillProcessWithReason(pid, reason);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed kill process");
+        return INNER_ERR;
+    }
+
+    return ERR_OK;
+}
+
 void AppScheduler::AttachTimeOut(const sptr<IRemoteObject> &token)
 {
     CHECK_POINTER(appMgrClient_);

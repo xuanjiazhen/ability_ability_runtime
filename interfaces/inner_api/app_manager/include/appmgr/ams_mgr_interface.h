@@ -26,6 +26,7 @@
 #include "iremote_broker.h"
 #include "iremote_object.h"
 #include "istart_specified_ability_response.h"
+#include "kill_process_reason.h"
 #include "running_process_info.h"
 
 namespace OHOS {
@@ -377,6 +378,15 @@ public:
     virtual bool IsAttachDebug(const std::string &bundleName) = 0;
 
     /**
+     * KillProcessWithReason, call KillProcessWithReason() through proxy object, kill the process.
+     *
+     * @param  pid, process id.
+     * @param  reason, kill process reason.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int32_t KillProcessWithReason(int32_t pid, const AAFwk::KillProcessReason &reason) = 0;
+
+    /**
      * @brief Set resident process enable status.
      * @param bundleName The application bundle name.
      * @param enable The current updated enable status.
@@ -526,6 +536,7 @@ public:
         SET_KEEP_ALIVE_DKV,
         KILL_PROCESSES_IN_BATCH,
         SEND_APP_SPAWN_UNINSTALL_DEBUG_HAP_MSG,
+        KILL_PROCESS_WITH_REASON,
         // Add enumeration values above
         END
     };

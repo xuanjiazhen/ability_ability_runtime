@@ -43,6 +43,7 @@ ohos_shared_library("libappms") {
   sources = [
     "${ability_runtime_path}/tools/aa/src/shell_command_result.cpp",
     "${ability_runtime_path}/tools/aa/src/test_observer_proxy.cpp",
+    "${ability_runtime_abilitymgr_path}/src/app_exit_reason_data_manager.cpp",
     "src/ability_running_record.cpp",
     "src/advanced_security_mode_manager.cpp",
     "src/ams_mgr_scheduler.cpp",

@@ -22,6 +22,7 @@
 
 #include "ability_util.h"
 #include "distributed_kv_data_manager.h"
+#include "kill_process_reason.h"
 #include "exit_reason.h"
 #include "singleton.h"
 
@@ -63,6 +64,8 @@ public:
 
     bool GetUIExtensionAbilityExitReason(const std::string &keyEx, AAFwk::ExitReason &exitReason);
 
+    int32_t AddKillProcessReason(const std::string &bundleName, const AAFwk::ProcessExitDetailInfo &processExitInfo);
+
 private:
     DistributedKv::Status GetKvStore();
     bool CheckKvStore();
@@ -71,6 +74,10 @@ private:
     void ConvertAppExitReasonInfoFromValue(const DistributedKv::Value &value, AAFwk::ExitReason &exitReason,
         int64_t &time_stamp, std::vector<std::string> &abilityList);
     void ConvertAccessTokenIdFromValue(const DistributedKv::Value &value, uint32_t &accessTokenId);
+    DistributedKv::Value ConvertProcessExitDetailInfoToValue(
+        const std::vector<AAFwk::ProcessExitDetailInfo> &detailInfos);
+    void ConvertProcessExitDetailInfoFromValue(const DistributedKv::Value &value,
+        std::vector<AAFwk::ProcessExitDetailInfo> &detailInfos);
     void UpdateAppExitReason(uint32_t accessTokenId, const std::vector<std::string> &abilityList,
         const AAFwk::ExitReason &exitReason);
     void InnerDeleteAppExitReason(const std::string &keyName);

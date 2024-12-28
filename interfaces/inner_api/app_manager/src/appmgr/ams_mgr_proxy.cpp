@@ -286,6 +286,34 @@ void AmsMgrProxy::KillProcessesByPids(std::vector<int32_t> &pids)
     TAG_LOGD(AAFwkTag::APPMGR, "end");
 }
 
+int32_t AmsMgrProxy::KillProcessWithReason(int32_t pid, const AAFwk::KillProcessReason &reason)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "start");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write token failed");
+        return ERR_INVALID_DATA;
+    }
+    if (!data.WriteInt32(pid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "parcel pid failed");
+        return ERR_FLATTEN_OBJECT;
+    }
+    if (!data.WriteParcelable(&reason)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write reason failed");
+        return ERR_FLATTEN_OBJECT;
+    }
+    int32_t ret =
+        SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::KILL_PROCESS_WITH_REASON), data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest err: %{public}d", ret);
+        return ret;
+    }
+    TAG_LOGD(AAFwkTag::APPMGR, "end");
+    return reply.ReadInt32();
+}
+
 void AmsMgrProxy::AttachPidToParent(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &callerToken)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "start");
