@@ -28,7 +28,7 @@ namespace AbilityRuntime {
 class AbilityManagerEventSubscriber : public EventFwk::CommonEventSubscriber {
 public:
     explicit AbilityManagerEventSubscriber(
-        const EventFwk::CommonEventSubscribeInfo &subscribeInfo,
+        const EventFwk::CommonEventSubscribeInfo &subscribeInfo, const std::function<void()> &callback,
         const std::function<void()> &userScreenUnlockCallback);
 
     ~AbilityManagerEventSubscriber() override = default;
@@ -36,6 +36,7 @@ public:
     void OnReceiveEvent(const EventFwk::CommonEventData &data) override;
 
 private:
+    std::function<void()> callback_;
     std::function<void()> userScreenUnlockCallback_;
     std::unordered_set<std::string> eventSet_;
     std::mutex mutex_;
