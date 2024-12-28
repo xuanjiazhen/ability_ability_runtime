@@ -59,9 +59,6 @@ namespace {
     const std::string TEST_ABILITYNAME = "com.example.abilityname";
 }
 
-typedef struct napi_env__* napi_env;
-typedef struct napi_value__* napi_value;
-
 napi_env g_env = nullptr;
 panda::ecmascript::EcmaVM* g_vm = nullptr;
 
@@ -147,29 +144,50 @@ public:
     static void TearDownTestCase();
     void SetUp();
     void TearDown();
+
+    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase = nullptr;
 };
 
 JsUiExtensionBaseTest::JsUiExtensionBaseTest()
 {
 }
-
 JsUiExtensionBaseTest::~JsUiExtensionBaseTest()
 {
 }
 void JsUiExtensionBaseTest::SetUpTestCase()
 {
+    panda::RuntimeOption pandaOption;
+    g_vm = panda::JSNApi::CreateJSVM(pandaOption);
+    if (g_vm == nullptr) {
+        TAG_LOGE(AAFwkTag::TEST, "Create vm failed.");
+        return;
+    }
+
+    g_env = reinterpret_cast<napi_env>(new ArkNativeEngine(g_vm, nullptr));
 }
 
 void JsUiExtensionBaseTest::TearDownTestCase()
 {
+    if (g_env != nullptr) {
+        delete reinterpret_cast<NativeEngine*>(g_env);
+        g_env = nullptr;
+    }
+
+    if (g_vm != nullptr) {
+        panda::JSNApi::DestroyJSVM(g_vm);
+        g_vm = nullptr;
+    }
 }
 
 void JsUiExtensionBaseTest::SetUp()
 {
+    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
+    jsUiExtensionBase = std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
 }
 
 void JsUiExtensionBaseTest::TearDown()
 {
+    jsUiExtensionBase.reset();
 }
 
 /**
@@ -179,15 +197,7 @@ void JsUiExtensionBaseTest::TearDown()
  */
 HWTEST_F(JsUiExtensionBaseTest, Init_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "Init_0100 start";
-
-    panda::RuntimeOption pandaOption;
-    panda::ecmascript::EcmaVM* vm = panda::JSNApi::CreateJSVM(pandaOption);
-    napi_env env = reinterpret_cast<napi_env>(new ArkNativeEngine(vm, nullptr));
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "Init_0100 start.");
 
     std::shared_ptr<AppExecFwk::AbilityInfo> abilityinfo = std::make_shared<AppExecFwk::AbilityInfo>();
     ASSERT_TRUE(abilityinfo != nullptr);
@@ -215,21 +225,18 @@ HWTEST_F(JsUiExtensionBaseTest, Init_0100, TestSize.Level1)
 
     std::shared_ptr<NativeReferenceMock> nativeRefenceMock = std::make_shared<NativeReferenceMock>();
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jsUiExtensionBase->jsRuntime_.jsEnv_->vm_ = vm;
-    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env);
+
+    jsUiExtensionBase->jsRuntime_.jsEnv_->vm_ = g_vm;
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
     jsUiExtensionBase->jsRuntime_.modules_.emplace("com.example.moduleName/com.example.srcentrance.abc",
         nativeRefenceMock.get());
 
     jsUiExtensionBase->Init(abilityrecord, application, handler, token2);
     EXPECT_EQ(jsUiExtensionBase->token_, abilityrecord->token_);
     EXPECT_EQ(jsUiExtensionBase->jsRuntime_.moduleName_, jsUiExtensionBase->abilityInfo_->moduleName);
-    delete reinterpret_cast<NativeEngine*>(env);
-    env = nullptr;
-    panda::JSNApi::DestroyJSVM(vm);
-    vm = nullptr;
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "Init_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "Init_0100 end.");
 }
 
 /**
@@ -239,29 +246,17 @@ HWTEST_F(JsUiExtensionBaseTest, Init_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, BindContext_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "BindContext_0100 start";
-
-    panda::RuntimeOption pandaOption;
-    panda::ecmascript::EcmaVM* vm = panda::JSNApi::CreateJSVM(pandaOption);
-    napi_env env = reinterpret_cast<napi_env>(new ArkNativeEngine(vm, nullptr));
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "BindContext_0100 start.");
 
     jsUiExtensionBase->jsObj_ = std::make_shared<NativeReferenceMock>();
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env);
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
     jsUiExtensionBase->context_ = std::make_shared<UIExtensionContext>();
     jsUiExtensionBase->BindContext();
     EXPECT_EQ(jsUiExtensionBase->shellContextRef_, nullptr);
-    delete reinterpret_cast<NativeEngine*>(env);
-    env = nullptr;
-    panda::JSNApi::DestroyJSVM(vm);
-    vm = nullptr;
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "BindContext_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "BindContext_0100 end.");
 }
 
 /**
@@ -271,27 +266,19 @@ HWTEST_F(JsUiExtensionBaseTest, BindContext_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnStart_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "OnStart_0100 start";
-
-    panda::RuntimeOption pandaOption;
-    panda::ecmascript::EcmaVM* vm = panda::JSNApi::CreateJSVM(pandaOption);
-    napi_env env = reinterpret_cast<napi_env>(new ArkNativeEngine(vm, nullptr));
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
-
-    jsUiExtensionBase->jsObj_ = std::make_shared<NativeReferenceMock>();
-    jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env);
-    jsUiExtensionBase->context_ = std::make_shared<UIExtensionContext>();
-    jsUiExtensionBase->context_->config_ = std::make_shared<AppExecFwk::Configuration>();
-    jsUiExtensionBase->shellContextRef_ = std::make_shared<NativeReferenceMock>();
+    TAG_LOGE(AAFwkTag::TEST, "OnStart_0100 start.");
 
     AAFwk::Want want;
     want.parameters_.params_.emplace("ohos.insightIntent.executeParam.name", nullptr);
     AAFwk::LaunchParam launchParam;
     sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
+
+    jsUiExtensionBase->jsObj_ = std::make_shared<NativeReferenceMock>();
+    jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
+    jsUiExtensionBase->context_ = std::make_shared<UIExtensionContext>();
+    jsUiExtensionBase->context_->config_ = std::make_shared<AppExecFwk::Configuration>();
+    jsUiExtensionBase->shellContextRef_ = std::make_shared<NativeReferenceMock>();
 
     want.operation_.abilityName_ = TEST_NAME;
     want.operation_.bundleName_ = TEST_BUNDLENAME;
@@ -300,13 +287,9 @@ HWTEST_F(JsUiExtensionBaseTest, OnStart_0100, TestSize.Level1)
 
     jsUiExtensionBase->OnStart(want, launchParam, sessionInfo);
     EXPECT_EQ(launchParam.launchReason, 9);
-    delete reinterpret_cast<NativeEngine*>(env);
-    env = nullptr;
-    panda::JSNApi::DestroyJSVM(vm);
-    vm = nullptr;
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "OnStart_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "OnStart_0100 end.");
 }
 
 /**
@@ -317,15 +300,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnStart_0100, TestSize.Level1)
 #ifdef SUPPORT_GRAPHICS
 HWTEST_F(JsUiExtensionBaseTest, OnStart_0200, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "OnStart_0200 start";
-
-    panda::RuntimeOption pandaOption;
-    panda::ecmascript::EcmaVM* vm = panda::JSNApi::CreateJSVM(pandaOption);
-    napi_env env = reinterpret_cast<napi_env>(new ArkNativeEngine(vm, nullptr));
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "OnStart_0200 start.");
 
     sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
     sessionInfo->displayId = 1;
@@ -338,7 +313,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnStart_0200, TestSize.Level1)
         resourceManager(Global::Resource::CreateResourceManager());
     jsUiExtensionBase->context_->resourceManager_ = resourceManager;
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env);
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
     jsUiExtensionBase->shellContextRef_ = std::make_shared<NativeReferenceMock>();
 
     AAFwk::Want want;
@@ -351,13 +326,9 @@ HWTEST_F(JsUiExtensionBaseTest, OnStart_0200, TestSize.Level1)
 
     jsUiExtensionBase->OnStart(want, launchParam, sessionInfo);
     EXPECT_EQ(launchParam.launchReason, 9);
-    delete reinterpret_cast<NativeEngine*>(env);
-    env = nullptr;
-    panda::JSNApi::DestroyJSVM(vm);
-    vm = nullptr;
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "OnStart_0200 end";
+    TAG_LOGE(AAFwkTag::TEST, "OnStart_0200 start.");
 }
 #endif
 
@@ -368,11 +339,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnStart_0200, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnStop_2_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "OnStop_2_0100 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "OnStop_2_0100 start.");
 
     AppExecFwk::AbilityTransactionCallbackInfo<> *callbackInfo = nullptr;
     bool isAsyncCallback = true;
@@ -381,7 +348,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnStop_2_0100, TestSize.Level1)
     EXPECT_EQ(isAsyncCallback, false);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "OnStop_2_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "OnStop_2_0100 end.");
 }
 
 /**
@@ -391,15 +358,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnStop_2_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnStop_2_0200, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "OnStop_2_0200 start";
-
-    panda::RuntimeOption pandaOption;
-    panda::ecmascript::EcmaVM* vm = panda::JSNApi::CreateJSVM(pandaOption);
-    napi_env env = reinterpret_cast<napi_env>(new ArkNativeEngine(vm, nullptr));
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "OnStop_2_0200 start.");
 
     AppExecFwk::AbilityTransactionCallbackInfo<> *callbackInfo =
         AppExecFwk::AbilityTransactionCallbackInfo<>::Create();
@@ -407,17 +366,13 @@ HWTEST_F(JsUiExtensionBaseTest, OnStop_2_0200, TestSize.Level1)
 
     jsUiExtensionBase->jsObj_ = std::make_shared<NativeReferenceMock>();
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env);
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
     jsUiExtensionBase->OnStop(callbackInfo, isAsyncCallback);
 
     EXPECT_EQ(isAsyncCallback, false);
-    delete reinterpret_cast<NativeEngine*>(env);
-    env = nullptr;
-    panda::JSNApi::DestroyJSVM(vm);
-    vm = nullptr;
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "OnStop_2_0200 end";
+    TAG_LOGE(AAFwkTag::TEST, "OnStop_2_0200 end.");
 }
 
 /**
@@ -427,15 +382,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnStop_2_0200, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnStopCallBack_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "OnStopCallBack_0100 start";
-
-    panda::RuntimeOption pandaOption;
-    panda::ecmascript::EcmaVM* vm = panda::JSNApi::CreateJSVM(pandaOption);
-    napi_env env = reinterpret_cast<napi_env>(new ArkNativeEngine(vm, nullptr));
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "OnStopCallBack_0100 start.");
 
     jsUiExtensionBase->context_ = std::make_shared<UIExtensionContext>();
     jsUiExtensionBase->context_->token_ = sptr<MockIRemoteObject>::MakeSptr();
@@ -449,21 +396,18 @@ HWTEST_F(JsUiExtensionBaseTest, OnStopCallBack_0100, TestSize.Level1)
 
     jsUiExtensionBase->jsObj_ = std::make_shared<NativeReferenceMock>();
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env);
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
 
+    napi_env env = jsUiExtensionBase->jsRuntime_.GetNapiEnv();
     std::shared_ptr<AbilityRuntime::JsAbilityLifecycleCallback> jsablcb =
         std::make_shared<AbilityRuntime::JsAbilityLifecycleCallback>(env);
     jsUiExtensionBase->context_->applicationContext_->callbacks_.push_back(jsablcb);
 
     jsUiExtensionBase->OnStopCallBack();
     EXPECT_EQ(jsUiExtensionBase->context_->applicationContext_->callbacks_.size(), 1);
-    delete reinterpret_cast<NativeEngine*>(env);
-    env = nullptr;
-    panda::JSNApi::DestroyJSVM(vm);
-    vm = nullptr;
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "OnStopCallBack_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "OnStopCallBack_0100 end.");
 }
 
 
@@ -474,17 +418,13 @@ HWTEST_F(JsUiExtensionBaseTest, OnStopCallBack_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, CheckPromise_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "CheckPromise_0100 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "CheckPromise_0100 start.");
 
     napi_value result = jsUiExtensionBase->CallObjectMethod("onCreate", nullptr, 0, true);
     bool test = jsUiExtensionBase->CheckPromise(result);
     EXPECT_EQ(test, false);
 
-    GTEST_LOG_(INFO) << "CheckPromise_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "CheckPromise_0100 end.");
 }
 
 /**
@@ -494,34 +434,23 @@ HWTEST_F(JsUiExtensionBaseTest, CheckPromise_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, CheckPromise_0200, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "CheckPromise_0200 start";
+    TAG_LOGE(AAFwkTag::TEST, "CheckPromise_0200 start.");
 
-    panda::RuntimeOption pandaOption;
-    panda::ecmascript::EcmaVM* vm = panda::JSNApi::CreateJSVM(pandaOption);
-    MockArkNativeEngine *mockArkNativeEngine = new MockArkNativeEngine(vm, nullptr);
     std::unique_ptr<MockDeferred> deferred = std::make_unique<MockDeferred>();
     NativeDeferred* deferredPtr = deferred.get();
+    std::shared_ptr<MockArkNativeEngine> mockArkNativeEngine =
+        std::make_shared<MockArkNativeEngine>(g_vm, nullptr);
+    ASSERT_NE(mockArkNativeEngine, nullptr);
     napi_value promise = mockArkNativeEngine->CreatePromise(&deferredPtr);
     EXPECT_NE(promise, nullptr);
-    napi_env env = reinterpret_cast<napi_env>(mockArkNativeEngine);
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
-
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env);
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
 
     bool test = jsUiExtensionBase->CheckPromise(promise);
     EXPECT_EQ(test, true);
-    delete reinterpret_cast<NativeEngine*>(env);
-    env = nullptr;
-    mockArkNativeEngine = nullptr;
-    panda::JSNApi::DestroyJSVM(vm);
-    vm = nullptr;
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "CheckPromise_0200 end";
+    TAG_LOGE(AAFwkTag::TEST, "CheckPromise_0200 end.");
 }
 
 /**
@@ -531,36 +460,25 @@ HWTEST_F(JsUiExtensionBaseTest, CheckPromise_0200, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, CallPromise_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "CallPromise_0100 start";
+    TAG_LOGE(AAFwkTag::TEST, "CallPromise_0100 start.");
 
-    panda::RuntimeOption pandaOption;
-    panda::ecmascript::EcmaVM* vm = panda::JSNApi::CreateJSVM(pandaOption);
-    MockArkNativeEngine *mockArkNativeEngine = new MockArkNativeEngine(vm, nullptr);
     std::unique_ptr<MockDeferred> deferred = std::make_unique<MockDeferred>();
     NativeDeferred* deferredPtr = deferred.get();
+    std::shared_ptr<MockArkNativeEngine> mockArkNativeEngine =
+        std::make_shared<MockArkNativeEngine>(g_vm, nullptr);
+    ASSERT_NE(mockArkNativeEngine, nullptr);
     napi_value promise = mockArkNativeEngine->CreatePromise(&deferredPtr);
     EXPECT_NE(promise, nullptr);
-    napi_env env = reinterpret_cast<napi_env>(mockArkNativeEngine);
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
-
     AppExecFwk::AbilityTransactionCallbackInfo<> *callbackInfo =
         AppExecFwk::AbilityTransactionCallbackInfo<>::Create();
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env);
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
 
     auto test = jsUiExtensionBase->CallPromise(promise, callbackInfo);
     EXPECT_EQ(test, true);
-    delete reinterpret_cast<NativeEngine*>(env);
-    env = nullptr;
-    mockArkNativeEngine = nullptr;
-    panda::JSNApi::DestroyJSVM(vm);
-    vm = nullptr;
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "CallPromise_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "CallPromise_0100 end.");
 }
 
 /**
@@ -570,11 +488,7 @@ HWTEST_F(JsUiExtensionBaseTest, CallPromise_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "OnCommandWindow_0100 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "OnCommandWindow_0100 start.");
 
     AAFwk::Want want;
     sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
@@ -596,7 +510,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0100, TestSize.Level1)
     EXPECT_EQ(jsUiExtensionBase->foregroundWindows_.size(), 1);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "OnCommandWindow_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "OnCommandWindow_0100 end.");
 }
 
 /**
@@ -606,11 +520,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0200, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "OnCommandWindow_0200 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "OnCommandWindow_0200 start.");
 
     AAFwk::Want want;
     sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
@@ -626,7 +536,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0200, TestSize.Level1)
     EXPECT_EQ(jsUiExtensionBase->foregroundWindows_.size(), 0);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "OnCommandWindow_0200  end";
+    TAG_LOGE(AAFwkTag::TEST, "OnCommandWindow_0200 end.");
 }
 
 /**
@@ -636,11 +546,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0200, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0300, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "OnCommandWindow_0300 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "OnCommandWindow_0300 start.");
 
     AAFwk::Want want;
     sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
@@ -667,7 +573,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0300, TestSize.Level1)
     EXPECT_EQ(jsUiExtensionBase->abilityResultListeners_->listeners_.size(), 0);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "OnCommandWindow_0300 end";
+    TAG_LOGE(AAFwkTag::TEST, "OnCommandWindow_0300 end.");
 }
 
 
@@ -678,11 +584,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0300, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, ForegroundWindowWithInsightIntent_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "ForegroundWindowWithInsightIntent_0100 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "ForegroundWindowWithInsightIntent_0100 start.");
 
     AAFwk::Want want;
     sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
@@ -704,7 +606,7 @@ HWTEST_F(JsUiExtensionBaseTest, ForegroundWindowWithInsightIntent_0100, TestSize
     EXPECT_EQ(test, true);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "ForegroundWindowWithInsightIntent_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "ForegroundWindowWithInsightIntent_0100 end.");
 }
 
 /**
@@ -714,11 +616,7 @@ HWTEST_F(JsUiExtensionBaseTest, ForegroundWindowWithInsightIntent_0100, TestSize
  */
 HWTEST_F(JsUiExtensionBaseTest, ForegroundWindowWithInsightIntent_0200, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "ForegroundWindowWithInsightIntent_0200 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "ForegroundWindowWithInsightIntent_0200 start.");
 
     AAFwk::Want want;
     sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
@@ -729,7 +627,7 @@ HWTEST_F(JsUiExtensionBaseTest, ForegroundWindowWithInsightIntent_0200, TestSize
     EXPECT_EQ(test, false);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "ForegroundWindowWithInsightIntent_0200 end";
+    TAG_LOGE(AAFwkTag::TEST, "ForegroundWindowWithInsightIntent_0200 end.");
 }
 
 /**
@@ -739,11 +637,7 @@ HWTEST_F(JsUiExtensionBaseTest, ForegroundWindowWithInsightIntent_0200, TestSize
  */
 HWTEST_F(JsUiExtensionBaseTest, OnCommandWindowDone_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "OnCommandWindowDone_0100 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "OnCommandWindowDone_0100 start.");
 
     sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
     sessionInfo->uiExtensionComponentId = 1;
@@ -759,7 +653,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindowDone_0100, TestSize.Level1)
     EXPECT_NE(jsUiExtensionBase, nullptr);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "OnCommandWindowDone_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "OnCommandWindowDone_0100 end.");
 }
 
 /**
@@ -769,11 +663,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindowDone_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnCommandWindowDone_0200, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "OnCommandWindowDone_0200 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "OnCommandWindowDone_0200 start.");
 
     sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
     sessionInfo->uiExtensionComponentId = 1;
@@ -786,7 +676,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindowDone_0200, TestSize.Level1)
     EXPECT_NE(jsUiExtensionBase, nullptr);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "OnCommandWindowDone_0200 end";
+    TAG_LOGE(AAFwkTag::TEST, "OnCommandWindowDone_0200 end.");
 }
 
 /**
@@ -796,11 +686,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindowDone_0200, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnCommandWindowDone_0300, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "OnCommandWindowDone_0300 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "OnCommandWindowDone_0300 start.");
 
     sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
     sessionInfo->uiExtensionComponentId = 1;
@@ -815,7 +701,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindowDone_0300, TestSize.Level1)
     EXPECT_NE(jsUiExtensionBase, nullptr);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "OnCommandWindowDone_0300 end";
+    TAG_LOGE(AAFwkTag::TEST, "OnCommandWindowDone_0300 end.");
 }
 
 /**
@@ -825,15 +711,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindowDone_0300, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnCommand_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "OnCommand_0100 start";
-
-    panda::RuntimeOption pandaOption;
-    panda::ecmascript::EcmaVM* vm = panda::JSNApi::CreateJSVM(pandaOption);
-    napi_env env = reinterpret_cast<napi_env>(new ArkNativeEngine(vm, nullptr));
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "OnCommand_0100 start.");
 
     AAFwk::Want want;
     bool restart = false;
@@ -844,16 +722,12 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommand_0100, TestSize.Level1)
     want.operation_.bundleName_ = TEST_BUNDLENAME;
 
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env);
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
     jsUiExtensionBase->OnCommand(want, restart, startId);
     EXPECT_NE(jsUiExtensionBase, nullptr);
-    delete reinterpret_cast<NativeEngine*>(env);
-    env = nullptr;
-    panda::JSNApi::DestroyJSVM(vm);
-    vm = nullptr;
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "OnCommand_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "OnCommand_0100 end.");
 }
 
 /**
@@ -863,11 +737,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommand_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnForeground_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "OnForeground_0100 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "OnForeground_0100 start.");
 
     AAFwk::Want want;
     want.parameters_.params_.emplace("ohos.insightIntent.executeParam.name", nullptr);
@@ -883,12 +753,46 @@ HWTEST_F(JsUiExtensionBaseTest, OnForeground_0100, TestSize.Level1)
     jsUiExtensionBase->context_->token_ = sptr<MockIRemoteObject>::MakeSptr();
     std::shared_ptr<NativeReferenceMock> ptr = std::make_shared<NativeReferenceMock>();
     jsUiExtensionBase->contentSessions_.emplace(sessionInfo->uiExtensionComponentId, ptr);
+    jsUiExtensionBase->uiWindowMap_.emplace(sessionInfo->uiExtensionComponentId, uiwindow);
 
     jsUiExtensionBase->OnForeground(want, sessionInfo);
     EXPECT_EQ(jsUiExtensionBase->foregroundWindows_.size(), 1);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "OnForeground_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "OnForeground_0100 end.");
+}
+
+/**
+ * @tc.name: CallJsOnSessionCreate_0100
+ * @tc.desc: basic function test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsUiExtensionBaseTest, CallJsOnSessionCreate_0100, TestSize.Level1)
+{
+    TAG_LOGE(AAFwkTag::TEST, "CallJsOnSessionCreate_0100 start.");
+
+    jsUiExtensionBase->jsObj_ = std::make_shared<NativeReferenceMock>();
+    jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
+
+    sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
+    uint32_t uiExtensionComponentId = 1;
+    sptr<Rosen::Window> uiwindow = sptr<Rosen::Window>::MakeSptr();
+    AAFwk::Want want;
+    want.operation_.SetModuleName(TEST_MODULENAME);
+    want.operation_.SetBundleName(TEST_BUNDLENAME);
+    want.operation_.SetAbilityName(TEST_ABILITYNAME);
+    want.operation_.SetDeviceId(TEST_DEVICEID);
+    jsUiExtensionBase->abilityResultListeners_ = std::make_shared<AbilityResultListeners>();
+    jsUiExtensionBase->context_ = std::make_shared<UIExtensionContext>();
+
+    bool test = jsUiExtensionBase->CallJsOnSessionCreate(want, sessionInfo,
+        uiwindow, uiExtensionComponentId);
+    EXPECT_EQ(jsUiExtensionBase->contentSessions_.size(), 1);
+    EXPECT_EQ(test, true);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+    TAG_LOGE(AAFwkTag::TEST, "CallJsOnSessionCreate_0100 end.");
 }
 
 /**
@@ -896,13 +800,9 @@ HWTEST_F(JsUiExtensionBaseTest, OnForeground_0100, TestSize.Level1)
  * @tc.desc: basic function test.
  * @tc.type: FUNC
  */
-HWTEST_F(JsUiExtensionBaseTest, CallJsOnSessionCreate_0100, TestSize.Level1)
+HWTEST_F(JsUiExtensionBaseTest, CallJsOnSessionCreate_0200, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "CCallJsOnSessionCreate_0200 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "CallJsOnSessionCreate_0200 start.");
 
     AAFwk::Want want;
     sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
@@ -913,7 +813,31 @@ HWTEST_F(JsUiExtensionBaseTest, CallJsOnSessionCreate_0100, TestSize.Level1)
     EXPECT_EQ(test, false);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "CCallJsOnSessionCreate_0200 end";
+    TAG_LOGE(AAFwkTag::TEST, "CallJsOnSessionCreate_0200 end.");
+}
+
+/**
+ * @tc.name:  CallJsOnSessionCreate_0300
+ * @tc.desc: basic function test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsUiExtensionBaseTest, CallJsOnSessionCreate_0300, TestSize.Level1)
+{
+    TAG_LOGE(AAFwkTag::TEST, "CallJsOnSessionCreate_0300 start.");
+
+    sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
+    uint32_t uiExtensionComponentId = 1;
+    sptr<Rosen::Window> uiwindow = sptr<Rosen::Window>::MakeSptr();
+    AAFwk::Want want;
+
+    jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
+
+    bool test = jsUiExtensionBase->CallJsOnSessionCreate(want, sessionInfo,
+        uiwindow, uiExtensionComponentId);
+    EXPECT_EQ(test, true);
+
+    TAG_LOGE(AAFwkTag::TEST, "CallJsOnSessionCreate_0300 end.");
 }
 
 /**
@@ -923,11 +847,7 @@ HWTEST_F(JsUiExtensionBaseTest, CallJsOnSessionCreate_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, CreateWindowOption_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "CreateWindowOption_0100 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "CreateWindowOption_0100 start.");
 
     sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
     sessionInfo->hostWindowId = 1;
@@ -942,7 +862,7 @@ HWTEST_F(JsUiExtensionBaseTest, CreateWindowOption_0100, TestSize.Level1)
     EXPECT_NE(test, nullptr);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "CreateWindowOption_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "CreateWindowOption_0100 end.");
 }
 
 /**
@@ -952,17 +872,13 @@ HWTEST_F(JsUiExtensionBaseTest, CreateWindowOption_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "HandleSessionCreate_0100 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "HandleSessionCreate_0100 start.");
 
     AAFwk::Want want;
     sptr<AAFwk::SessionInfo> sessionInfo = nullptr;
     EXPECT_EQ(jsUiExtensionBase->HandleSessionCreate(want, sessionInfo), false);
 
-    GTEST_LOG_(INFO) << "HandleSessionCreate_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "HandleSessionCreate_0100 end.");
 }
 
 /**
@@ -972,18 +888,14 @@ HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0200, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "HandleSessionCreate_0200 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "HandleSessionCreate_0200 start.");
 
     AAFwk::Want want;
     sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
     sessionInfo->uiExtensionComponentId = 0;
     EXPECT_EQ(jsUiExtensionBase->HandleSessionCreate(want, sessionInfo), false);
 
-    GTEST_LOG_(INFO) << "HandleSessionCreate_0200 end";
+    TAG_LOGE(AAFwkTag::TEST, "HandleSessionCreate_0200 end.");
 }
 
 /**
@@ -993,11 +905,7 @@ HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0200, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0300, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "HandleSessionCreate_0300 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "HandleSessionCreate_0300 start.");
 
     AAFwk::Want want;
     sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
@@ -1009,7 +917,7 @@ HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0300, TestSize.Level1)
     EXPECT_EQ(test, true);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "HandleSessionCreate_0300 end";
+    TAG_LOGE(AAFwkTag::TEST, "HandleSessionCreate_0300 end.");
 }
 
 /**
@@ -1019,22 +927,19 @@ HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0300, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0400, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "HandleSessionCreate_0400 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "HandleSessionCreate_0400 start.");
 
     AAFwk::Want want;
     sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
     sessionInfo->uiExtensionComponentId = 1;
 
+    jsUiExtensionBase->uiWindowMap_.clear();
     jsUiExtensionBase->context_ = nullptr;
     bool test = jsUiExtensionBase->HandleSessionCreate(want, sessionInfo);
     EXPECT_EQ(test, false);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "HandleSessionCreate_0400 end";
+    TAG_LOGE(AAFwkTag::TEST, "HandleSessionCreate_0400 end.");
 }
 
 /**
@@ -1044,23 +949,20 @@ HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0400, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0500, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "HandleSessionCreate_0500 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "HandleSessionCreate_0500 start.");
 
     AAFwk::Want want;
     sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
     sessionInfo->uiExtensionComponentId = 1;
 
+    jsUiExtensionBase->uiWindowMap_.clear();
     jsUiExtensionBase->context_ = std::make_shared<UIExtensionContext>();
     jsUiExtensionBase->context_->abilityInfo_ = nullptr;
     bool test = jsUiExtensionBase->HandleSessionCreate(want, sessionInfo);
     EXPECT_EQ(test, false);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "HandleSessionCreate_0500 end";
+    TAG_LOGE(AAFwkTag::TEST, "HandleSessionCreate_0500 end.");
 }
 
 /**
@@ -1070,15 +972,12 @@ HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0500, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0600, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "HandleSessionCreate_0600 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "HandleSessionCreate_0600 start.");
 
     AAFwk::Want want;
     sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
     sessionInfo->uiExtensionComponentId = 1;
+    jsUiExtensionBase->uiWindowMap_.clear();
     jsUiExtensionBase->context_ = std::make_shared<UIExtensionContext>();
     jsUiExtensionBase->context_->abilityInfo_ = std::make_shared<AppExecFwk::AbilityInfo>();
 
@@ -1086,7 +985,7 @@ HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0600, TestSize.Level1)
     EXPECT_EQ(test, false);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "HandleSessionCreate_0600 end";
+    TAG_LOGE(AAFwkTag::TEST, "HandleSessionCreate_0600 end.");
 }
 
 /**
@@ -1096,11 +995,7 @@ HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0600, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, ForegroundWindow_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "ForegroundWindow_0100 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "ForegroundWindow_0100 start.");
 
     AAFwk::Want want;
     auto sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
@@ -1112,7 +1007,7 @@ HWTEST_F(JsUiExtensionBaseTest, ForegroundWindow_0100, TestSize.Level1)
     EXPECT_EQ(jsUiExtensionBase->foregroundWindows_.size(), 1);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "ForegroundWindow_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "ForegroundWindow_0100 end.");
 }
 
 /**
@@ -1122,11 +1017,7 @@ HWTEST_F(JsUiExtensionBaseTest, ForegroundWindow_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, BackgroundWindow_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "BackgroundWindow_0100 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "BackgroundWindow_0100 start.");
 
     sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
     sessionInfo->uiExtensionComponentId = 1;
@@ -1139,7 +1030,7 @@ HWTEST_F(JsUiExtensionBaseTest, BackgroundWindow_0100, TestSize.Level1)
     EXPECT_EQ(jsUiExtensionBase->foregroundWindows_.size(), 0);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "BackgroundWindow_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "BackgroundWindow_0100 end.");
 }
 
 /**
@@ -1149,11 +1040,7 @@ HWTEST_F(JsUiExtensionBaseTest, BackgroundWindow_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, DestroyWindow_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "DestroyWindow_0100 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "DestroyWindow_0100 start.");
 
     auto sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
     sessionInfo->uiExtensionComponentId = 1;
@@ -1177,7 +1064,7 @@ HWTEST_F(JsUiExtensionBaseTest, DestroyWindow_0100, TestSize.Level1)
     EXPECT_EQ(jsUiExtensionBase->abilityResultListeners_->listeners_.size(), 0);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "DestroyWindow_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "DestroyWindow_0100 end.");
 }
 
 /**
@@ -1187,30 +1074,18 @@ HWTEST_F(JsUiExtensionBaseTest, DestroyWindow_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, CallObjectMethod_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "CallObjectMethod_0100 start";
-
-    panda::RuntimeOption pandaOption;
-    panda::ecmascript::EcmaVM* vm = panda::JSNApi::CreateJSVM(pandaOption);
-    napi_env env = reinterpret_cast<napi_env>(new ArkNativeEngine(vm, nullptr));
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "CallObjectMethod_0100 start.");
 
     jsUiExtensionBase->jsObj_ = std::make_shared<NativeReferenceMock>();
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env);
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
     auto vv = std::make_shared<NativeReferenceMock>();
     napi_value argv[] = { vv->GetNapiValue() };
     auto test = jsUiExtensionBase->CallObjectMethod("onDestroy", argv, 1, true);
     EXPECT_EQ(test, nullptr);
-    delete reinterpret_cast<NativeEngine*>(env);
-    env = nullptr;
-    panda::JSNApi::DestroyJSVM(vm);
-    vm = nullptr;
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "CallObjectMethod_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "CallObjectMethod_0100 end.");
 }
 
 /**
@@ -1220,15 +1095,7 @@ HWTEST_F(JsUiExtensionBaseTest, CallObjectMethod_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnConfigurationUpdated_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "COnConfigurationUpdated_0100 start";
-
-    panda::RuntimeOption pandaOption;
-    panda::ecmascript::EcmaVM* vm = panda::JSNApi::CreateJSVM(pandaOption);
-    napi_env env = reinterpret_cast<napi_env>(new ArkNativeEngine(vm, nullptr));
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "OnConfigurationUpdated_0100 start.");
 
     AppExecFwk::Configuration configuration;
     jsUiExtensionBase->context_ = std::make_shared<UIExtensionContext>();
@@ -1237,17 +1104,13 @@ HWTEST_F(JsUiExtensionBaseTest, OnConfigurationUpdated_0100, TestSize.Level1)
     std::shared_ptr<Global::Resource::ResourceManager> resourceManager(Global::Resource::CreateResourceManager());
     jsUiExtensionBase->context_->resourceManager_ = resourceManager;
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env);
+    jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(g_env);
     jsUiExtensionBase->shellContextRef_ = std::make_shared<NativeReferenceMock>();
 
     jsUiExtensionBase->OnConfigurationUpdated(configuration);
-    delete reinterpret_cast<NativeEngine*>(env);
-    env = nullptr;
-    panda::JSNApi::DestroyJSVM(vm);
-    vm = nullptr;
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "OnConfigurationUpdated_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "OnConfigurationUpdated_0100 end.");
 }
 
 /**
@@ -1257,11 +1120,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnConfigurationUpdated_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, Dump_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "CDump_0100 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "Dump_0100 start.");
 
     std::vector<std::string> param;
     param.emplace_back("-h");
@@ -1271,7 +1130,7 @@ HWTEST_F(JsUiExtensionBaseTest, Dump_0100, TestSize.Level1)
     EXPECT_NE(info.size(), 1);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "CDump_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "Dump_0100 end.");
 }
 
 /**
@@ -1281,11 +1140,7 @@ HWTEST_F(JsUiExtensionBaseTest, Dump_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, OnAbilityResult_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "OnAbilityResult_0100 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "OnAbilityResult_0100 start.");
 
     int32_t requestcode = 1;
     int32_t resultcode = 1;
@@ -1300,7 +1155,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnAbilityResult_0100, TestSize.Level1)
     EXPECT_EQ(jsUiExtensionBase->context_->resultCallbacks_.size(), 0);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "OnAbilityResult_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "OnAbilityResult_0100 end.");
 }
 
 /**
@@ -1310,11 +1165,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnAbilityResult_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, SetAbilityInfo_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "SetAbilityInfo_0100 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "SetAbilityInfo_0100 start.");
 
     jsUiExtensionBase->abilityInfo_ = nullptr;
     auto abilityinfo = std::make_shared<AppExecFwk::AbilityInfo>();
@@ -1322,7 +1173,7 @@ HWTEST_F(JsUiExtensionBaseTest, SetAbilityInfo_0100, TestSize.Level1)
     EXPECT_NE(jsUiExtensionBase->abilityInfo_, nullptr);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "SetAbilityInfo_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "SetAbilityInfo_0100 end.");
 }
 
 /**
@@ -1332,11 +1183,7 @@ HWTEST_F(JsUiExtensionBaseTest, SetAbilityInfo_0100, TestSize.Level1)
  */
 HWTEST_F(JsUiExtensionBaseTest, SetContext_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "SetContext_0100 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "SetContext_0100 start.");
 
     jsUiExtensionBase->context_ = nullptr;
     auto context = std::make_shared<UIExtensionContext>();
@@ -1344,7 +1191,55 @@ HWTEST_F(JsUiExtensionBaseTest, SetContext_0100, TestSize.Level1)
     EXPECT_NE(jsUiExtensionBase->context_, nullptr);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "SetContext_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "SetContext_0100 end.");
+}
+
+/**
+ * @tc.name:  OnInsightIntentExecuteDone_0100
+ * @tc.desc: basic function test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsUiExtensionBaseTest, OnInsightIntentExecuteDone_0100, TestSize.Level1)
+{
+    TAG_LOGE(AAFwkTag::TEST, "OnInsightIntentExecuteDone_0100 start.");
+
+    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
+    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
+        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
+    sessionInfo->uiExtensionComponentId = 1;
+    AppExecFwk::InsightIntentExecuteResult result;
+
+    sptr<Rosen::Window> uiwindow =  sptr<Rosen::Window>::MakeSptr();
+    jsUiExtensionBase->uiWindowMap_.emplace(1, uiwindow);
+    jsUiExtensionBase->OnInsightIntentExecuteDone(sessionInfo, result);
+    EXPECT_FALSE(jsUiExtensionBase->foregroundWindows_.empty());
+
+    TAG_LOGE(AAFwkTag::TEST, "OnInsightIntentExecuteDone_0100 end.");
+}
+
+/**
+ * @tc.name:  PostInsightIntentExecuted_0100
+ * @tc.desc: basic function test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsUiExtensionBaseTest, PostInsightIntentExecuted_0100, TestSize.Level1)
+{
+    TAG_LOGE(AAFwkTag::TEST, "PostInsightIntentExecuted start.");
+
+    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
+    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
+        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
+    sessionInfo->uiExtensionComponentId = 1;
+
+    AppExecFwk::InsightIntentExecuteResult result;
+    bool needForeground = true;
+    jsUiExtensionBase->token_ = sptr<MockIRemoteObject>::MakeSptr();
+    jsUiExtensionBase->PostInsightIntentExecuted(sessionInfo, result, needForeground);
+    EXPECT_TRUE(jsUiExtensionBase->foregroundWindows_.empty());
+
+    TAG_LOGE(AAFwkTag::TEST, "PostInsightIntentExecuted start.");
 }
 
 /**
@@ -1355,11 +1250,7 @@ HWTEST_F(JsUiExtensionBaseTest, SetContext_0100, TestSize.Level1)
 #ifdef SUPPORT_GRAPHICS
 HWTEST_F(JsUiExtensionBaseTest, OnDisplayInfoChange_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "OnDisplayInfoChange_0100 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "OnDisplayInfoChange_0100 start.");
 
     jsUiExtensionBase->context_ = std::make_shared<AbilityRuntime::UIExtensionContext>();
     jsUiExtensionBase->context_->config_ = std::make_shared<AppExecFwk::Configuration>();
@@ -1376,7 +1267,7 @@ HWTEST_F(JsUiExtensionBaseTest, OnDisplayInfoChange_0100, TestSize.Level1)
     jsUiExtensionBase->OnDisplayInfoChange(token, displayId, density, orientation);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "OnDisplayInfoChange_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "OnDisplayInfoChange_0100 end.");
 }
 #endif
 
@@ -1388,18 +1279,14 @@ HWTEST_F(JsUiExtensionBaseTest, OnDisplayInfoChange_0100, TestSize.Level1)
 #ifdef SUPPORT_GRAPHICS
 HWTEST_F(JsUiExtensionBaseTest, RegisterDisplayInfoChangedListener_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RegisterDisplayInfoChangedListener_0100start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "RegisterDisplayInfoChangedListener_0100 start.");
 
     jsUiExtensionBase->context_ = std::make_shared<UIExtensionContext>();
     jsUiExtensionBase->context_->token_ = sptr<MockIRemoteObject>::MakeSptr();
     jsUiExtensionBase->RegisterDisplayInfoChangedListener();
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "RegisterDisplayInfoChangedListener_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "RegisterDisplayInfoChangedListener_0100 end.");
 }
 #endif
 
@@ -1411,11 +1298,7 @@ HWTEST_F(JsUiExtensionBaseTest, RegisterDisplayInfoChangedListener_0100, TestSiz
 #ifdef SUPPORT_GRAPHICS
 HWTEST_F(JsUiExtensionBaseTest, UnregisterDisplayInfoChangedListener_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "UnregisterDisplayInfoChangedListener_0100 start";
-
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    std::shared_ptr<AbilityRuntime::JsUIExtensionBase> jsUiExtensionBase =
-        std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    TAG_LOGE(AAFwkTag::TEST, "RUnregisterDisplayInfoChangedListener_0100 start.");
 
     jsUiExtensionBase->context_ = std::make_shared<UIExtensionContext>();
     jsUiExtensionBase->context_->token_ = sptr<MockIRemoteObject>::MakeSptr();
@@ -1423,7 +1306,7 @@ HWTEST_F(JsUiExtensionBaseTest, UnregisterDisplayInfoChangedListener_0100, TestS
     jsUiExtensionBase->UnregisterDisplayInfoChangedListener();
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    GTEST_LOG_(INFO) << "UnregisterDisplayInfoChangedListener_0100 end";
+    TAG_LOGE(AAFwkTag::TEST, "UnregisterDisplayInfoChangedListener_0100 end.");
 }
 #endif
 
