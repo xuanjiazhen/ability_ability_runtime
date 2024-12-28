@@ -26,6 +26,7 @@ public:
     static DmsUtil &GetInstance();
 
     void UpdateFlagForCollaboration(const Want &want);
+    bool GetFlagForCollaboration(const Want &want);
 
 private:
     DmsUtil() = default;
