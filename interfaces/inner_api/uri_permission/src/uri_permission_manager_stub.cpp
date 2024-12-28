@@ -67,6 +67,19 @@ int UriPermissionManagerStub::OnRemoteRequest(
     return errCode;
 }
 
+int32_t UriPermissionManagerStub::ReadBatchUris(MessageParcel &data, std::vector<Uri> &uriVec)
+{
+    auto size = data.ReadUint32();
+    if (size == 0 || size > MAX_URI_COUNT) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "uriVec empty or exceed maxSize %{public}d", MAX_URI_COUNT);
+        return ERR_URI_LIST_OUT_OF_RANGE;
+    }
+    for (uint32_t i = 0; i < size; i++) {
+        uriVec.emplace_back(data.ReadString());
+    }
+    return ERR_OK;
+}
+
 int UriPermissionManagerStub::HandleRevokeAllUriPermission(MessageParcel &data, MessageParcel &reply)
 {
     auto tokenId = data.ReadUint32();
@@ -93,19 +106,10 @@ int UriPermissionManagerStub::HandleGrantUriPermission(MessageParcel &data, Mess
 
 int UriPermissionManagerStub::HandleBatchGrantUriPermission(MessageParcel &data, MessageParcel &reply)
 {
-    auto size = data.ReadUint32();
-    if (size == 0 || size > MAX_URI_COUNT) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "uriVec empty or exceed maxSize %{public}d", MAX_URI_COUNT);
-        return ERR_URI_LIST_OUT_OF_RANGE;
-    }
     std::vector<Uri> uriVec;
-    for (uint32_t i = 0; i < size; i++) {
-        std::unique_ptr<Uri> uri(data.ReadParcelable<Uri>());
-        if (!uri) {
-            TAG_LOGE(AAFwkTag::URIPERMMGR, "read uri failed");
-            return ERR_DEAD_OBJECT;
-        }
-        uriVec.emplace_back(*uri);
+    auto ret = ReadBatchUris(data, uriVec);
+    if (ret != ERR_OK) {
+        return ret;
     }
     auto flag = data.ReadUint32();
     auto targetBundleName = data.ReadString();
@@ -118,19 +122,10 @@ int UriPermissionManagerStub::HandleBatchGrantUriPermission(MessageParcel &data,
 
 int32_t UriPermissionManagerStub::HandleGrantUriPermissionPrivileged(MessageParcel &data, MessageParcel &reply)
 {
-    auto size = data.ReadUint32();
-    if (size == 0 || size > MAX_URI_COUNT) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "uriVec empty or exceed maxSize %{public}d", MAX_URI_COUNT);
-        return ERR_URI_LIST_OUT_OF_RANGE;
-    }
     std::vector<Uri> uriVec;
-    for (uint32_t i = 0; i < size; i++) {
-        std::unique_ptr<Uri> uri(data.ReadParcelable<Uri>());
-        if (!uri) {
-            TAG_LOGE(AAFwkTag::URIPERMMGR, "read uri failed");
-            return ERR_DEAD_OBJECT;
-        }
-        uriVec.emplace_back(*uri);
+    auto ret = ReadBatchUris(data, uriVec);
+    if (ret != ERR_OK) {
+        return ret;
     }
     auto flag = data.ReadUint32();
     auto targetBundleName = data.ReadString();
