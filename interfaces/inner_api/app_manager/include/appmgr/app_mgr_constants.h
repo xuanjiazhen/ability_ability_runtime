@@ -58,6 +58,11 @@ enum class AbilityState {
     ABILITY_STATE_DISCONNECTED,
 };
 
+enum class PrepareTermination {
+    TERMINATE_IMMEDIATELY = 0,
+    CANCEL,
+};
+
 enum class ExtensionState {
     EXTENSION_STATE_CREATE = 0,
     EXTENSION_STATE_READY,
