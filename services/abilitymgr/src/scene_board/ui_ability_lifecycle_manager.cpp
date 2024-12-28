@@ -20,6 +20,7 @@
 #include "app_exit_reason_data_manager.h"
 #include "app_mgr_util.h"
 #include "app_utils.h"
+#include "dms_util.h"
 #include "ffrt.h"
 #include "global_constant.h"
 #include "hitrace_meter.h"
@@ -1075,6 +1076,10 @@ int UIAbilityLifecycleManager::CallAbilityLocked(const AbilityRequest &abilityRe
             uiAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
             uiAbilityRecord->ProcessForegroundAbility(sessionInfo->callingTokenId);
             return NotifySCBPendingActivation(sessionInfo, abilityRequest);
+        } else {
+            if ((persistentId != 0) && DmsUtil::GetInstance().GetFlagForCollaboration(abilityRequest.want)) {
+                uiAbilityRecord->SetCollaborateWant(abilityRequest.want);
+            }
         }
         return ERR_OK;
     } else if (ret == ResolveResultType::NG_INNER_ERROR) {

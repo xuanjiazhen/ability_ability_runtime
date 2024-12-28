@@ -3694,5 +3694,12 @@ void AbilityRecord::SetDebugUIExtension()
     launchDebugInfo_.isDebugAppSet = true;
     launchDebugInfo_.debugApp = true;
 }
+
+void AbilityRecord::SetCollaborateWant(const Want &want)
+{
+    std::lock_guard guard(collaborateWantLock_);
+    CHECK_POINTER(lifecycleDeal_);
+    lifecycleDeal_->SetCollaborateWant(want);
+}
 }  // namespace AAFwk
 }  // namespace OHOS

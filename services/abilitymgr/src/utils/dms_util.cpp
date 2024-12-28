@@ -36,5 +36,15 @@ void DmsUtil::UpdateFlagForCollaboration(const Want &want)
         (const_cast<Want &>(want)).RemoveParam(IS_CALLING_FROM_DMS);
     }
 }
+
+bool DmsUtil::GetFlagForCollaboration(const Want &want)
+{
+    auto ret = false;
+    if ((want.GetFlags() & Want::FLAG_ABILITY_ON_COLLABORATE) == Want::FLAG_ABILITY_ON_COLLABORATE &&
+        IPCSkeleton::GetCallingUid() == DMS_UID) {
+        ret = true;
+    }
+    return ret;
+}
 } // namespace AAFwk
 } // namespace OHOS

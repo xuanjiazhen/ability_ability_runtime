@@ -63,7 +63,6 @@ const std::string METHOD_NAME = "WindowScene::GoForeground";
 #ifdef SUPPORT_SCREEN
 const int32_t BASE_DISPLAY_ID_NUM (10);
 constexpr const char* IS_CALLING_FROM_DMS = "supportCollaborativeCallingFromDmsInAAFwk";
-constexpr const char* SUPPORT_COLLABORATE_INDEX = "ohos.extra.param.key.supportCollaborateIndex";
 constexpr const char* COLLABORATE_KEY = "ohos.dms.collabToken";
 enum CollaborateResult {
     ACCEPT = 0,
@@ -1151,7 +1150,7 @@ void JsUIAbility::HandleCollaboration(const Want &want)
         (abilityInfo_->launchMode != AppExecFwk::LaunchMode::SPECIFIED)) {
         (const_cast<Want &>(want)).RemoveParam(IS_CALLING_FROM_DMS);
         SetWant(want);
-        OHOS::AAFwk::WantParams param = want.GetParams().GetWantParams(SUPPORT_COLLABORATE_INDEX);
+        OHOS::AAFwk::WantParams param = want.GetParams();
         int32_t resultCode = OnCollaborate(param);
         auto abilityContext = GetAbilityContext();
         if (abilityContext == nullptr) {

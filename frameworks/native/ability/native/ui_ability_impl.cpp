@@ -842,5 +842,16 @@ void UIAbilityImpl::ExecuteInsightIntentBackgroundAlreadyStart(const Want &want,
     ability_->ExecuteInsightIntentBackground(want, executeParam, std::move(callback));
 }
 #endif
+
+void UIAbilityImpl::ScheduleCollaborate(const Want &want)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    if (ability_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null ability_");
+        return;
+    }
+    auto wantParams = want.GetParams();
+    ability_->OnCollaborate(wantParams);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

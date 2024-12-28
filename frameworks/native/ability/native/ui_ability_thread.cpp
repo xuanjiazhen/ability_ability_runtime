@@ -679,5 +679,15 @@ void UIAbilityThread::UpdateSessionToken(sptr<IRemoteObject> sessionToken)
     currentAbility_->UpdateSessionToken(sessionToken);
 #endif //SUPPORT_SCREEN
 }
+
+void UIAbilityThread::ScheduleCollaborate(const Want &want)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    if (abilityImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityImpl_");
+        return;
+    }
+    abilityImpl_->ScheduleCollaborate(want);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
