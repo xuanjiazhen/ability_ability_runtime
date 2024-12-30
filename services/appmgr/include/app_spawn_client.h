@@ -44,6 +44,16 @@ const int32_t MAX_FLAG_INDEX = 32;
 const int32_t MAX_PROC_NAME_LEN = 256;
 const int32_t START_FLAG_BASE = 1;
 const int32_t MAX_COST_TIME = 500;
+
+struct DataGroupInfoWithDir : public DataGroupInfo {
+    DataGroupInfoWithDir() : DataGroupInfo(), dir("") {}
+    DataGroupInfoWithDir(const DataGroupInfo& baseInfo, const std::string& directory)
+        : DataGroupInfo(baseInfo), dir(directory) {}
+
+    std::string dir;
+};
+using DataGroupInfoWithDirList = std::vector<DataGroupInfoWithDir>;
+
 struct AppSpawnStartMsg {
     int32_t uid;
     int32_t gid;
@@ -66,7 +76,7 @@ struct AppSpawnStartMsg {
     uint32_t hapFlags = 0; // whether is pre installed hap
     HspList hspList; // list of harmony shared package
     std::string overlayInfo; // overlay hap resource path list
-    DataGroupInfoList dataGroupInfoList; // list of harmony shared package
+    DataGroupInfoWithDirList dataGroupInfoList; // list of harmony shared package
     uint32_t mountPermissionFlags;
     std::set<std::string> permissions;
     std::map<std::string, std::string> appEnv; // environment variable to be set to the process

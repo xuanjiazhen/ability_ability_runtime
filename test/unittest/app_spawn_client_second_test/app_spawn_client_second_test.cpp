@@ -334,7 +334,7 @@ HWTEST_F(AppSpawnClientSecondTest, AppspawnSetExtMsg_002, TestSize.Level0)
     startMsg.renderParam = "test";
     BaseSharedBundleInfo bsbi;
     startMsg.hspList.push_back(bsbi);
-    DataGroupInfo dgi;
+    DataGroupInfoWithDir dgi;
     startMsg.dataGroupInfoList.push_back(dgi);
     startMsg.overlayInfo = "testOverlayinfo";
     startMsg.appEnv["one"] = "testAppEnv";
@@ -366,7 +366,7 @@ HWTEST_F(AppSpawnClientSecondTest, AppspawnCreateDefaultMsg_002, TestSize.Level0
     startMsg.uid = 1;
     startMsg.gid = 1;
     startMsg.gids.push_back(1);
-    DataGroupInfo dgi;
+    DataGroupInfoWithDir dgi;
     startMsg.dataGroupInfoList.push_back(dgi);
     startMsg.code = MSG_APP_SPAWN;
     startMsg.procName = "testProcName";

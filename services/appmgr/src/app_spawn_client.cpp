@@ -31,8 +31,8 @@ constexpr const char* HSPLIST_MODULES = "modules";
 constexpr const char* HSPLIST_VERSIONS = "versions";
 constexpr const char* DATAGROUPINFOLIST_DATAGROUPID = "dataGroupId";
 constexpr const char* DATAGROUPINFOLIST_GID = "gid";
+constexpr const char* DATAGROUPINFOLIST_UUID = "uuid";
 constexpr const char* DATAGROUPINFOLIST_DIR = "dir";
-constexpr const char* JSON_DATA_APP = "/data/app/el2/";
 constexpr const char* JSON_GROUP = "/group/";
 constexpr const char* VERSION_PREFIX = "v";
 constexpr const char* APPSPAWN_CLIENT_USER_NAME = "APP_MANAGER_SERVICE";
@@ -126,15 +126,18 @@ AppSpawnClientHandle AppSpawnClient::GetAppSpawnClientHandle() const
     return nullptr;
 }
 
-static std::string DumpDataGroupInfoListToJson(const DataGroupInfoList &dataGroupInfoList)
+static std::string DumpDataGroupInfoListToJson(const DataGroupInfoWithDirList &dataGroupInfoList)
 {
     nlohmann::json dataGroupInfoListJson;
     for (auto& dataGroupInfo : dataGroupInfoList) {
-        dataGroupInfoListJson[DATAGROUPINFOLIST_DATAGROUPID].emplace_back(dataGroupInfo.dataGroupId);
-        dataGroupInfoListJson[DATAGROUPINFOLIST_GID].emplace_back(std::to_string(dataGroupInfo.gid));
-        std::string dir = JSON_DATA_APP + std::to_string(dataGroupInfo.userId)
+        nlohmann::json dataGroupInfoJson;
+        dataGroupInfoJson[DATAGROUPINFOLIST_DATAGROUPID] = dataGroupInfo.dataGroupId;
+        dataGroupInfoJson[DATAGROUPINFOLIST_GID] = std::to_string(dataGroupInfo.gid);
+        dataGroupInfoJson[DATAGROUPINFOLIST_UUID] = dataGroupInfo.uuid;
+        std::string dir = dataGroupInfo.dir + std::to_string(dataGroupInfo.userId)
             + JSON_GROUP + dataGroupInfo.uuid;
-        dataGroupInfoListJson[DATAGROUPINFOLIST_DIR].emplace_back(dir);
+        dataGroupInfoJson[DATAGROUPINFOLIST_DIR] = dir;
+        dataGroupInfoListJson.emplace_back(dataGroupInfoJson);
     }
     return dataGroupInfoListJson.dump();
 }

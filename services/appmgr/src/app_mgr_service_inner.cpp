@@ -253,6 +253,14 @@ constexpr const char* KEY_WATERMARK_BUSINESS_NAME = "com.ohos.param.watermarkBus
 constexpr const char* KEY_IS_WATERMARK_ENABLED = "com.ohos.param.isWatermarkEnabled";
 
 constexpr const char* PROC_SELF_TASK_PATH = "/proc/self/task/";
+constexpr const char* JSON_DATA_APP_DIR_EL2 = "/data/app/el2/";
+constexpr const char* JSON_DATA_APP_DIR_EL3 = "/data/app/el3/";
+constexpr const char* JSON_DATA_APP_DIR_EL4 = "/data/app/el4/";
+constexpr const char* JSON_DATA_APP_DIR_EL5 = "/data/app/el5/";
+constexpr size_t JSON_DATA_APP_INDEX_EL2 = 0;
+constexpr size_t JSON_DATA_APP_INDEX_EL3 = 1;
+constexpr size_t JSON_DATA_APP_INDEX_EL4 = 2;
+constexpr size_t JSON_DATA_APP_INDEX_EL5 = 3;
 
 constexpr int32_t ROOT_UID = 0;
 constexpr int32_t FOUNDATION_UID = 5523;
@@ -368,6 +376,41 @@ std::pair<int, std::string> GetEventTypeAndMsg(int32_t eventId)
             break;
     }
     return result;
+}
+
+std::string GetDataGroupInfoDir(const size_t index)
+{
+    std::string dataGroupInfoDir;
+    switch (index) {
+        case JSON_DATA_APP_INDEX_EL2:
+            dataGroupInfoDir = JSON_DATA_APP_DIR_EL2;
+            break;
+        case JSON_DATA_APP_INDEX_EL3:
+            dataGroupInfoDir = JSON_DATA_APP_DIR_EL3;
+            break;
+        case JSON_DATA_APP_INDEX_EL4:
+            dataGroupInfoDir = JSON_DATA_APP_DIR_EL4;
+            break;
+        case JSON_DATA_APP_INDEX_EL5:
+            dataGroupInfoDir = JSON_DATA_APP_DIR_EL5;
+            break;
+        default:
+            break;
+    }
+    return dataGroupInfoDir;
+}
+
+void ConvertToDataGroupInfoWithDir(
+    DataGroupInfoList& dataGroupInfoList, DataGroupInfoWithDirList& dataGroupInfoWithDirList)
+{
+    if (!AAFwk::PermissionVerification::GetInstance()->VerifyProtectScreenLockDataPermission() &&
+        !dataGroupInfoList.empty()) {
+        dataGroupInfoList.erase(dataGroupInfoList.end());
+    }
+
+    for (size_t i = 0; i < dataGroupInfoList.size(); ++i) {
+        dataGroupInfoWithDirList.emplace_back(DataGroupInfoWithDir(dataGroupInfoList[i], GetDataGroupInfoDir(i)));
+    }
 }
 }  // namespace
 
@@ -3590,7 +3633,10 @@ int32_t AppMgrServiceInner::CreateStartMsg(const CreateStartMsgParam &param, App
     if (!result || dataGroupInfoList.empty()) {
         TAG_LOGD(AAFwkTag::APPMGR, "the bundle has no groupInfos.");
     }
-    QueryExtensionSandBox(param.moduleName, param.abilityName, bundleInfo, startMsg, dataGroupInfoList, param.want);
+    DataGroupInfoWithDirList dataGroupInfoWithDirList;
+    ConvertToDataGroupInfoWithDir(dataGroupInfoList, dataGroupInfoWithDirList);
+    QueryExtensionSandBox(
+        param.moduleName, param.abilityName, bundleInfo, startMsg, dataGroupInfoWithDirList, param.want);
     SetStartMsgStrictMode(startMsg, param);
     startMsg.bundleName = bundleInfo.name;
     startMsg.renderParam = RENDER_PARAM;
@@ -3633,7 +3679,7 @@ void AppMgrServiceInner::PresetMaxChildProcess(std::shared_ptr<AppRunningRecord>
 #endif // SUPPORT_CHILD_PROCESS
 
 void AppMgrServiceInner::QueryExtensionSandBox(const std::string &moduleName, const std::string &abilityName,
-    const BundleInfo &bundleInfo, AppSpawnStartMsg &startMsg, DataGroupInfoList &dataGroupInfoList,
+    const BundleInfo &bundleInfo, AppSpawnStartMsg &startMsg, DataGroupInfoWithDirList &dataGroupInfoList,
     std::shared_ptr<AAFwk::Want> want)
 {
     std::vector<ExtensionAbilityInfo> extensionInfos;
@@ -3655,7 +3701,7 @@ void AppMgrServiceInner::QueryExtensionSandBox(const std::string &moduleName, co
         return ret;
     };
     auto infoIter = std::find_if(extensionInfos.begin(), extensionInfos.end(), infoExisted);
-    DataGroupInfoList extensionDataGroupInfoList;
+    DataGroupInfoWithDirList extensionDataGroupInfoList;
     if (infoIter != extensionInfos.end()) {
         startMsg.isolatedExtension = true;
         startMsg.extensionSandboxPath = infoIter->moduleName + "-" + infoIter->name;
