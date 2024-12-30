@@ -112,7 +112,7 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
         abilityRequest.abilityInfo.name.c_str(), sessionInfo->instanceKey.c_str());
     auto isCallBySCB = sessionInfo->want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, true);
     if (!isCallBySCB) {
-        RemoveAbilityRequest(abilityRequest);
+        RemoveAbilityRequest(abilityRequest, sessionInfo->tmpSpecifiedId);
     }
     sessionInfo->want.RemoveParam(ServerConstant::IS_CALL_BY_SCB);
     abilityRequest.sessionInfo = sessionInfo;
@@ -458,28 +458,28 @@ int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &ability
 
     auto abilityInfo = abilityRequest.abilityInfo;
     bool isUIAbility = (abilityInfo.type == AppExecFwk::AbilityType::PAGE && abilityInfo.isStageBasedModel);
+    auto requestId = requestId_++;
     // When 'processMode' is set to new process mode, the priority is higher than 'isolationProcess'.
     bool isNewProcessMode = abilityRequest.processOptions &&
         ProcessOptions::IsNewProcessMode(abilityRequest.processOptions->processMode);
     if (!isNewProcessMode && abilityInfo.isolationProcess && AppUtils::GetInstance().IsStartSpecifiedProcess()
         && isUIAbility) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "StartSpecifiedProcess");
-        specifiedRequestMap_.emplace(specifiedRequestId_, abilityRequest);
+        specifiedRequestMap_.emplace(requestId, abilityRequest);
         DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedProcess(abilityRequest.want, abilityInfo,
-            specifiedRequestId_);
-        ++specifiedRequestId_;
+            requestId);
         return ERR_OK;
     }
     auto isSpecified = (abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED);
     if (isSpecified) {
-        auto specifiedRequest = std::make_shared<SpecifiedRequest>(specifiedRequestId_++, abilityRequest);
+        auto specifiedRequest = std::make_shared<SpecifiedRequest>(requestId, abilityRequest);
         specifiedRequest->preCreateProcessName = true;
         AddSpecifiedRequest(specifiedRequest);
         return ERR_OK;
     }
 
     auto callerAbility = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
-    if (abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SINGLETON && (callerAbility == nullptr ||
+    if (abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SINGLETON && (callerAbility != nullptr &&
         callerAbility->GetApplicationInfo().apiTargetVersion % API_VERSION_MOD >= API16)) {
         if (HasAbilityRequest(abilityRequest)) {
             TAG_LOGW(AAFwkTag::ABILITYMGR, "multi start request");
@@ -490,11 +490,12 @@ int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &ability
             TAG_LOGW(AAFwkTag::ABILITYMGR, "ability is starting");
             return ERR_UI_ABILITY_IS_STARTING;
         }
-        AddAbilityRequest(abilityRequest);
+        AddAbilityRequest(abilityRequest, requestId);
     }
 
     auto sessionInfo = CreateSessionInfo(abilityRequest);
     sessionInfo->requestCode = abilityRequest.requestCode;
+    sessionInfo->tmpSpecifiedId = requestId;
     auto isCreating = abilityRequest.want.GetBoolParam(Want::CREATE_APP_INSTANCE_KEY, false);
     if (abilityInfo.applicationInfo.multiAppMode.multiAppModeType != AppExecFwk::MultiAppModeType::MULTI_INSTANCE ||
         !isCreating) {
@@ -521,15 +522,15 @@ int32_t UIAbilityLifecycleManager::NotifySCBToRecoveryAfterInterception(const Ab
     if (!isNewProcessMode && abilityInfo.isolationProcess && AppUtils::GetInstance().IsStartSpecifiedProcess()
         && isUIAbility) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "StartSpecifiedProcess");
-        specifiedRequestMap_.emplace(specifiedRequestId_, abilityRequest);
+        specifiedRequestMap_.emplace(requestId_, abilityRequest);
         DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedProcess(abilityRequest.want, abilityInfo,
-            specifiedRequestId_);
-        ++specifiedRequestId_;
+            requestId_);
+        ++requestId_;
         return ERR_OK;
     }
     auto isSpecified = (abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED);
     if (isSpecified) {
-        auto specifiedRequest = std::make_shared<SpecifiedRequest>(specifiedRequestId_++, abilityRequest);
+        auto specifiedRequest = std::make_shared<SpecifiedRequest>(requestId_++, abilityRequest);
         specifiedRequest->preCreateProcessName = true;
         AddSpecifiedRequest(specifiedRequest);
         return ERR_OK;
@@ -1978,7 +1979,7 @@ void UIAbilityLifecycleManager::StartSpecifiedAbilityBySCB(const Want &want)
     }
     abilityRequest.isFromIcon = true;
     std::lock_guard guard(sessionLock_);
-    AddSpecifiedRequest(std::make_shared<SpecifiedRequest>(specifiedRequestId_++, abilityRequest));
+    AddSpecifiedRequest(std::make_shared<SpecifiedRequest>(requestId_++, abilityRequest));
 }
 
 void UIAbilityLifecycleManager::NotifyRestartSpecifiedAbility(const AbilityRequest &request,
@@ -3046,7 +3047,7 @@ std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::FindRecordFromSessionM
 
 bool UIAbilityLifecycleManager::HasAbilityRequest(const AbilityRequest &abilityRequest)
 {
-    for (const auto &item : startAbilityCheckList_) {
+    for (const auto &[requestId, item] : startAbilityCheckList_) {
         if (item && CompareTwoRequest(*item, abilityRequest)) {
             return true;
         }
@@ -3054,26 +3055,28 @@ bool UIAbilityLifecycleManager::HasAbilityRequest(const AbilityRequest &abilityR
     return false;
 }
 
-void UIAbilityLifecycleManager::AddAbilityRequest(const AbilityRequest &abilityRequest)
+void UIAbilityLifecycleManager::AddAbilityRequest(const AbilityRequest &abilityRequest, int32_t requestId)
 {
     auto newRequest = std::make_shared<AbilityRequest>(abilityRequest);
-    startAbilityCheckList_.push_back(newRequest);
-    auto taskHandler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
-    CHECK_POINTER(taskHandler);
-    taskHandler->SubmitTask([wThis = weak_from_this(), wRequest = std::weak_ptr<AbilityRequest>(newRequest)]() {
+    startAbilityCheckList_.emplace(requestId, newRequest);
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask([wThis = weak_from_this(), requestId]() {
         auto pThis = wThis.lock();
-        auto request = wRequest.lock();
-        if (pThis && request) {
+        if (pThis) {
             std::lock_guard guard(pThis->sessionLock_);
-            pThis->startAbilityCheckList_.remove(request);
+            if (pThis->startAbilityCheckList_.erase(requestId)) {
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call timeout");
+            }
         }
-        }, GlobalConstant::COLDSTART_TIMEOUT_MULTIPLE * GlobalConstant::TIMEOUT_UNIT_TIME);
+    }, GlobalConstant::CONCURRENT_START_TIMEOUT * GlobalConstant::TIMEOUT_UNIT_TIME);
 }
 
-void UIAbilityLifecycleManager::RemoveAbilityRequest(const AbilityRequest &abilityRequest)
+void UIAbilityLifecycleManager::RemoveAbilityRequest(const AbilityRequest &abilityRequest, int32_t requestId)
 {
+    if (startAbilityCheckList_.erase(requestId)) {
+        return;
+    }
     for (auto iter = startAbilityCheckList_.begin(); iter != startAbilityCheckList_.end(); ++iter) {
-        auto item = *iter;
+        auto item = iter->second;
         if (item && CompareTwoRequest(*item, abilityRequest)) {
             startAbilityCheckList_.erase(iter);
             return;
