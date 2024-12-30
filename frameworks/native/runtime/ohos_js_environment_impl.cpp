@@ -27,6 +27,8 @@ namespace AbilityRuntime {
 namespace {
     std::shared_ptr<AppExecFwk::EventHandler> g_eventHandler = nullptr;
 }
+using RegisterIntl = bool (*)(napi_env);
+
 void OHOSJsEnvironmentImpl::PostTaskToHandler(void* handler, uv_io_cb func, void* work, int status, int priority)
 {
     TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
@@ -119,6 +121,29 @@ void OHOSJsEnvironmentImpl::InitTimerModule(NativeEngine* engine)
     auto ret = JsSysModule::Timer::RegisterTime(reinterpret_cast<napi_env>(engine));
     if (!ret) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "Register timer failed");
+    }
+}
+
+void OHOSJsEnvironmentImpl::InitIntlModule(NativeEngine* engine)
+{
+    TAG_LOGE(AAFwkTag::JSRUNTIME, "ReplaceBuildInAPI: OHOSJsEnvironmentImpl::InitIntlModule");
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
+    void *intlUtilHandle = dlopen("libintl_util.z.so", RTLD_NOW);
+    if (intlUtilHandle == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "ReplaceBuildInAPI: load libintl_util.z.so failed");
+        return;
+    }
+    RegisterIntl registerIntl = (RegisterIntl)dlsym(intlUtilHandle, "RegisterIntl");
+
+    bool ret = false;
+    if (registerIntl) {
+        ret = registerIntl(reinterpret_cast<napi_env>(engine));
+    } else {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "ReplaceBuildInAPI: registerIntl is null");
+    }
+    // dlclose(intlUtilHandle);
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "ReplaceBuildInAPI: Register intl failed");
     }
 }
 
