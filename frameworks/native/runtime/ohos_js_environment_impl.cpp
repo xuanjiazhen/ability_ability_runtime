@@ -27,6 +27,8 @@ namespace AbilityRuntime {
 namespace {
     std::shared_ptr<AppExecFwk::EventHandler> g_eventHandler = nullptr;
 }
+using RegisterIntl = bool (*)(napi_env);
+
 void OHOSJsEnvironmentImpl::PostTaskToHandler(void* handler, uv_io_cb func, void* work, int status, int priority)
 {
     TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
@@ -119,6 +121,26 @@ void OHOSJsEnvironmentImpl::InitTimerModule(NativeEngine* engine)
     auto ret = JsSysModule::Timer::RegisterTime(reinterpret_cast<napi_env>(engine));
     if (!ret) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "Register timer failed");
+    }
+}
+
+void OHOSJsEnvironmentImpl::InitIntlModule(NativeEngine* engine)
+{
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
+    void *intlHandle = dlopen("libintl.z.so", RTLD_NOW);
+    if (intlHandle == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "load libintl.z.so failed");
+        return;
+    }
+    RegisterIntl registerIntl = (RegisterIntl)dlsym(intlHandle, "RegisterIntl");
+
+    bool ret = false;
+    if (registerIntl) {
+        ret = registerIntl(reinterpret_cast<napi_env>(engine));
+    }
+    dlclose(intlHandle);
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "Register intl failed");
     }
 }
 
