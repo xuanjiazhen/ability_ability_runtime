@@ -122,6 +122,26 @@ void OHOSJsEnvironmentImpl::InitTimerModule(NativeEngine* engine)
     }
 }
 
+void OHOSJsEnvironmentImpl::InitIntlModule(NativeEngine* engine)
+{
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
+    void *intlHandle = dlopen("libintl.z.so", RTLD_NOW);
+    if (intlHandle == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "load libintl.z.so failed");
+        return;
+    }
+    RegisterIntl registerIntl = (RegisterIntl)dlsym(intlHandle, "RegisterIntl");
+
+    bool ret = false;
+    if (registerIntl) {
+        ret = registerIntl(reinterpret_cast<napi_env>(engine));
+    }
+    dlclose(intlHandle);
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "Register intl failed");
+    }
+}
+
 void OHOSJsEnvironmentImpl::InitConsoleModule(NativeEngine* engine)
 {
     TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
