@@ -181,8 +181,9 @@ void JsUiExtensionBaseTest::TearDownTestCase()
 
 void JsUiExtensionBaseTest::SetUp()
 {
-    auto runtime = std::make_unique<AbilityRuntime::JsRuntime>();
-    jsUiExtensionBase = std::make_shared<AbilityRuntime::JsUIExtensionBase>(std::move(runtime));
+    Runtime::Options options;
+    std::unique_ptr<AbilityRuntime::Runtime> runtime = AbilityRuntime::Runtime::Create(options);
+    jsUiExtensionBase = std::make_shared<AbilityRuntime::JsUIExtensionBase>(runtime);
 }
 
 void JsUiExtensionBaseTest::TearDown()
