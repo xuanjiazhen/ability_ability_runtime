@@ -1019,6 +1019,27 @@ public:
     bool IsUnSetPermission();
 
     void UnSetPolicy();
+
+    inline void SetPssValue(int32_t pssValue)
+    {
+        pssValue_ = pssValue;
+    }
+
+    inline int32_t GetPssValue() const
+    {
+        return pssValue_;
+    }
+
+    inline void SetRssValue(int32_t rssValue)
+    {
+        rssValue_ = rssValue;
+    }
+
+    inline int32_t GetRssValue() const
+    {
+        return rssValue_;
+    }
+
 private:
     /**
      * SearchTheModuleInfoNeedToUpdated, Get an uninitialized abilityStage data.
@@ -1190,6 +1211,8 @@ private:
     bool isAllowedNWebPreload_ = false;
     bool isUnSetPermission_ = false;
     std::string killReason_ = "";
+    int32_t pssValue_ = 0;
+    int32_t rssValue_ = 0;
 };
 
 }  // namespace AppExecFwk

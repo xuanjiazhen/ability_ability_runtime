@@ -36,6 +36,16 @@ const std::string JSON_KEY_SESSION_ID_LIST = "session_id_list";
 const std::string JSON_KEY_EXTENSION_NAME = "extension_name";
 const std::string JSON_KEY_ACCESSTOKENId = "access_token_id";
 const std::string SEPARATOR = ":";
+const std::string JSON_KEY_PROCESS_EXIT_DETAIL_INFO_LIST = "process_exit_detail_info_list";
+const std::string KEY_KILL_PROCESS_REASON_PREFIX = "process_exit_detail_info_";
+const std::string JSON_KEY_KILL_REASON = "kill_reason";
+const std::string JSON_KEY_SUB_KILL_REASON = "sub_kill_reason";
+const std::string JSON_KEY_KILL_MSG = "kill_msg";
+const std::string JSON_KEY_PID = "pid";
+const std::string JSON_KEY_UID = "uid";
+const std::string JSON_KEY_PROCESS_NAME = "process_name";
+const std::string JSON_KEY_PSS_VALUE = "pss_value";
+const std::string JSON_KEY_RSS_VALUE = "rss_value";
 } // namespace
 AppExitReasonDataManager::AppExitReasonDataManager() {}
 
@@ -815,5 +825,56 @@ DistributedKv::Value AppExitReasonDataManager::ConvertAppExitReasonInfoToValueOf
     DistributedKv::Value value(jsonObject.dump());
     return value;
 }
+
+DistributedKv::Value AppExitReasonDataManager::ConvertProcessExitDetailInfoToValue(
+    const AAFwk::ExitReason &exitReason, const AppExecFwk::RunningProcessInfo &processInfo)
+{
+    nlohmann::json jsonObject = nlohmann::json {
+        { JSON_KEY_PID, processInfo.pid_ },
+        { JSON_KEY_UID, processInfo.uid_ },
+        { JSON_KEY_KILL_REASON, exitReason.reason },
+        { JSON_KEY_SUB_KILL_REASON, exitReason.subReason },
+        { JSON_KEY_KILL_MSG, exitReason.exitMsg },
+        { JSON_KEY_PSS_VALUE, processInfo.pssValue },
+        { JSON_KEY_RSS_VALUE, processInfo.rssValue },
+        { JSON_KEY_PROCESS_NAME, processInfo.processName_ },
+    };
+
+    DistributedKv::Value value(jsonObject.dump());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "value: %{public}s", value.ToString().c_str());
+    return value;
+}
+
+int32_t AppExitReasonDataManager::SetProcessExitDetailInfo(const AAFwk::ExitReason &exitReason,
+    const AppExecFwk::RunningProcessInfo &processInfo)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+        "SetProcessExitDetailInfo processName %{public}s pid %{public}d reason %{public}d",
+        processInfo.processName_.c_str(), processInfo.pid_, exitReason.reason);
+    {
+        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        if (!CheckKvStore()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStore");
+            return ERR_NO_INIT;
+        }
+    }
+    std::string keyStr = KEY_KILL_PROCESS_REASON_PREFIX + SEPARATOR + processInfo.processName_ +
+        SEPARATOR + std::to_string(processInfo.pid_);
+    DistributedKv::Key key(keyStr);
+    DistributedKv::Value value = ConvertProcessExitDetailInfoToValue(exitReason, processInfo);
+    DistributedKv::Status status;
+    {
+        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        status = kvStorePtr_->Put(key, value);
+    }
+    if (status != DistributedKv::Status::SUCCESS) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "error : %{public}d", status);
+        return ERR_INVALID_OPERATION;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetProcessExitDetailInfo finish");
+    return ERR_OK;
+}
+
 } // namespace AbilityRuntime
 } // namespace OHOS

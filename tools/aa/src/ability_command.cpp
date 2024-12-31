@@ -173,6 +173,7 @@ ErrCode AbilityManagerShellCommand::CreateCommandMap()
 #ifdef ABILITY_FAULT_AND_EXIT_TEST
         {"forceexitapp", [this]() { return this->RunAsForceExitAppCommand(); }},
         {"notifyappfault", [this]() { return this->RunAsNotifyAppFaultCommand(); }},
+        {"kill-process-with-reason", [this]() { return this->KillProcessWithReason(); }},
 #endif
     };
 
@@ -575,6 +576,21 @@ ErrCode AbilityManagerShellCommand::RunAsForceStop()
     }
     return result;
 }
+
+ErrCode AbilityManagerShellCommand::KillProcessWithReason()
+{
+    TAG_LOGI(AAFwkTag::AA_TOOL, "enter");
+    if (argList_.empty()) {
+        resultReceiver_.append(HELP_MSG_KILL_PROCESS_WITH_REASON);
+        return OHOS::ERR_INVALID_VALUE;
+    }
+    int32_t pid = std::stoi(argList_[0]);
+    ExitReason reason = {1, 111, "ddddddddddddddddddddd"};
+
+    TAG_LOGI(AAFwkTag::AA_TOOL, "pid: %{public}d", pid);
+    ErrCode result = AbilityManagerClient::GetInstance()->->KillProcessWithReason(pid, reason);
+}
+
 
 Reason AbilityManagerShellCommand::CovertExitReason(std::string& reasonStr)
 {
