@@ -77,6 +77,10 @@ int32_t AppSchedulerHost::OnRemoteRequestInnerFirst(uint32_t code, MessageParcel
             return HandleScheduleForegroundApplication(data, reply);
         case static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_BACKGROUND_APPLICATION_TRANSACTION):
             return HandleScheduleBackgroundApplication(data, reply);
+        case static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_VISIBILITY_RUNNING_TRANSACTION):
+            return HandleScheduleVisibilityApplication(data, reply);
+        case static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_UNVISIBILITY_RUNNING_TRANSACTION):
+            return HandleScheduleUnvisibilityApplication(data, reply);
         case static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_TERMINATE_APPLICATION_TRANSACTION):
             return HandleScheduleTerminateApplication(data, reply);
         case static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_LOWMEMORY_APPLICATION_TRANSACTION):
@@ -168,6 +172,20 @@ int32_t AppSchedulerHost::HandleScheduleBackgroundApplication(MessageParcel &dat
 {
     HITRACE_METER(HITRACE_TAG_APP);
     ScheduleBackgroundApplication();
+    return NO_ERROR;
+}
+
+int32_t AppSchedulerHost::HandleScheduleVisibilityApplication(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    ScheduleVisibilityApplication();
+    return NO_ERROR;
+}
+
+int32_t AppSchedulerHost::HandleScheduleUnvisibilityApplication(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    ScheduleUnvisibilityApplication();
     return NO_ERROR;
 }
 

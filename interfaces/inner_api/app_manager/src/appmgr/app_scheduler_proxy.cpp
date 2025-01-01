@@ -82,6 +82,42 @@ void AppSchedulerProxy::ScheduleBackgroundApplication()
     }
 }
 
+void AppSchedulerProxy::ScheduleVisibilityApplication()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    if (!WriteInterfaceToken(data)) {
+        return;
+    }
+    int32_t ret =
+        SendTransactCmd(static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_VISIBILITY_RUNNING_TRANSACTION),
+            data,
+            reply,
+            option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is wrong, error code: %{public}d", ret);
+    }
+}
+
+void AppSchedulerProxy::ScheduleUnvisibilityApplication()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    if (!WriteInterfaceToken(data)) {
+        return;
+    }
+    int32_t ret =
+        SendTransactCmd(static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_UNVISIBILITY_RUNNING_TRANSACTION),
+            data,
+            reply,
+            option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is wrong, error code: %{public}d", ret);
+    }
+}
+
 void AppSchedulerProxy::ScheduleTerminateApplication(bool isLastProcess)
 {
     MessageParcel data;

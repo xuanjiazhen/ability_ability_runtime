@@ -46,6 +46,12 @@ enum class ApplicationScheduleState {
     SCHEDULE_BACKGROUNDING,
 };
 
+enum class ApplicationVisibilityState {
+    APP_STATE_READY = 0,
+    APP_STATE_VISIBILITY,
+    APP_STATE_UNVISIBILITY,
+};
+
 enum class AbilityState {
     ABILITY_STATE_CREATE = 0,
     ABILITY_STATE_READY,

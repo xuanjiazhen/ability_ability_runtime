@@ -50,6 +50,22 @@ public:
     virtual void ScheduleBackgroundApplication() = 0;
 
     /**
+     * ScheduleVisibilityApplication, call ScheduleVisibilityApplication() through proxy project,
+     * Notify application to switch to visibility.
+     *
+     * @return
+     */
+    virtual void ScheduleVisibilityApplication() = 0;
+
+    /**
+     * ScheduleUnvisibilityApplication, call ScheduleUnvisibilityApplication() through proxy project,
+     * Notify application to switch to unvisibility.
+     *
+     * @return
+     */
+    virtual void ScheduleUnvisibilityApplication() = 0;
+
+    /**
      * ScheduleTerminateApplication, call ScheduleTerminateApplication() through proxy project,
      * Notify application to terminate.
      *
@@ -346,6 +362,8 @@ public:
         SCHEDULE_CACHE_PROCESS,
         SCHEDULE_CLEAR_PAGE_STACK,
         SCHEDULE_PREPARE_TERMINATE,
+        SCHEDULE_VISIBILITY_RUNNING_TRANSACTION,
+        SCHEDULE_UNVISIBILITY_RUNNING_TRANSACTION,
     };
 };
 }  // namespace AppExecFwk

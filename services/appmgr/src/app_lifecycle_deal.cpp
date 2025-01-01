@@ -120,6 +120,28 @@ void AppLifeCycleDeal::ScheduleBackgroundRunning()
     appThread->ScheduleBackgroundApplication();
 }
 
+void AppLifeCycleDeal::ScheduleVisibilityRunning()
+{
+    auto appThread = GetApplicationClient();
+    if (!appThread) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null appThread");
+        return;
+    }
+
+    appThread->ScheduleVisibilityApplication();
+}
+
+void AppLifeCycleDeal::ScheduleUnvisibilityRunning()
+{
+    auto appThread = GetApplicationClient();
+    if (!appThread) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null appThread");
+        return;
+    }
+
+    appThread->ScheduleUnvisibilityApplication();
+}
+
 void AppLifeCycleDeal::ScheduleTrimMemory(int32_t timeLevel)
 {
     auto appThread = GetApplicationClient();

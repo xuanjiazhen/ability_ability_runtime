@@ -97,6 +97,22 @@ public:
     void ScheduleBackgroundRunning();
 
     /**
+     * ScheduleVisibilityRunning, call ScheduleVisibilityApplication() through proxy project,
+     * Notify application to switch to visibility.
+     *
+     * @return
+     */
+    void ScheduleVisibilityRunning();
+
+    /**
+     * ScheduleUnvisibilityRunning, call ScheduleUnvisibilityApplication() through proxy project,
+     * Notify application to switch to unvisibility.
+     *
+     * @return
+     */
+    void ScheduleUnvisibilityRunning();
+
+    /**
      * ScheduleTrimMemory, call ScheduleShrinkMemory() through proxy project,
      * Notifies the application of the memory seen.
      *

@@ -45,6 +45,22 @@ public:
     virtual void ScheduleBackgroundApplication() override;
 
     /**
+     * ScheduleVisibilityApplication, call ScheduleVisibilityApplication() through proxy project,
+     * Notify application to switch to visibility.
+     *
+     * @return
+     */
+    virtual void ScheduleVisibilityApplication() override;
+
+    /**
+     * ScheduleUnvisibilityApplication, call ScheduleUnvisibilityApplication() through proxy project,
+     * Notify application to switch to unvisibility.
+     *
+     * @return
+     */
+    virtual void ScheduleUnvisibilityApplication() override;
+
+    /**
      * ScheduleTerminateApplication, call ScheduleTerminateApplication() through proxy project,
      * Notify application to terminate.
      *

@@ -485,6 +485,38 @@ void MainThread::ScheduleBackgroundApplication()
 
 /**
  *
+ * @brief Schedule the visibility lifecycle of application.
+ *
+ */
+void MainThread::ScheduleVisibilityApplication()
+{
+    auto tmpWatchdog = watchdog_;
+    if (tmpWatchdog == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null Watch dog");
+        return;
+    }
+    tmpWatchdog->SetBackgroundStatus(false);
+    tmpWatchdog = nullptr;
+}
+
+/**
+ *
+ * @brief Schedule the unvisibility lifecycle of application.
+ *
+ */
+void MainThread::ScheduleUnvisibilityApplication()
+{
+    auto tmpWatchdog = watchdog_;
+    if (tmpWatchdog == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null Watch dog");
+        return;
+    }
+    tmpWatchdog->SetBackgroundStatus(true);
+    tmpWatchdog = nullptr;
+}
+
+/**
+ *
  * @brief Schedule the terminate lifecycle of application.
  *
  * @param isLastProcess When it is the last application process, pass in true.

@@ -531,6 +531,7 @@ void AppRunningRecord::LaunchPendingAbilities()
         moduleRecord->LaunchPendingAbilities();
     }
 }
+
 bool AppRunningRecord::ScheduleForegroundRunning()
 {
     SetApplicationScheduleState(ApplicationScheduleState::SCHEDULE_FOREGROUNDING);
@@ -572,6 +573,20 @@ void AppRunningRecord::ScheduleBackgroundRunning()
         appLifeCycleDeal_->ScheduleBackgroundRunning();
     }
     isAbilityForegrounding_.store(false);
+}
+
+void AppRunningRecord::ScheduleVisibilityRunning()
+{
+    if (appLifeCycleDeal_) {
+        appLifeCycleDeal_->ScheduleVisibilityRunning();
+    }
+}
+
+void AppRunningRecord::ScheduleUnvisibilityRunning()
+{
+    if (appLifeCycleDeal_) {
+        appLifeCycleDeal_->ScheduleUnvisibilityRunning();
+    }
 }
 
 void AppRunningRecord::ScheduleProcessSecurityExit()
@@ -1962,17 +1977,33 @@ void AppRunningRecord::OnWindowVisibilityChanged(
             windowIds_.emplace(info->windowId_);
         }
     }
+    WindowVisibilityChangedWithpendState();
+}
 
+void AppRunningRecord::WindowVisibilityChangedWithpendState()
+{
     TAG_LOGI(AAFwkTag::APPMGR, "wnd call, %{public}s_%{public}d, isEmpty_%{public}d, c_%{public}d -> p_%{public}d",
         GetBundleName().c_str(), GetPid(), IsWindowIdsEmpty(), curState_, pendingState_);
     if (pendingState_ == ApplicationPendingState::READY) {
-        if (!IsWindowIdsEmpty() && curState_ != ApplicationState::APP_STATE_FOREGROUND) {
-            SetApplicationPendingState(ApplicationPendingState::FOREGROUNDING);
-            ScheduleForegroundRunning();
+        if (!IsWindowIdsEmpty()) {
+            if (curState_ != ApplicationState::APP_STATE_FOREGROUND) {
+                SetApplicationPendingState(ApplicationPendingState::FOREGROUNDING);
+                ScheduleForegroundRunning();
+            }
+            if (curVisibilityState_ != ApplicationVisibilityState::APP_STATE_VISIBILITY) {
+                curVisibilityState_ = ApplicationVisibilityState::APP_STATE_VISIBILITY;
+                ScheduleVisibilityRunning();
+            }
         }
-        if (IsWindowIdsEmpty() && IsAbilitiesBackground() && curState_ == ApplicationState::APP_STATE_FOREGROUND) {
-            SetApplicationPendingState(ApplicationPendingState::BACKGROUNDING);
-            ScheduleBackgroundRunning();
+        if (IsWindowIdsEmpty() && IsAbilitiesBackground()) {
+            if (curState_ == ApplicationState::APP_STATE_FOREGROUND) {
+                SetApplicationPendingState(ApplicationPendingState::BACKGROUNDING);
+                ScheduleBackgroundRunning();
+            }
+            if (curVisibilityState_ != ApplicationVisibilityState::APP_STATE_UNVISIBILITY) {
+                curVisibilityState_ = ApplicationVisibilityState::APP_STATE_UNVISIBILITY;
+                ScheduleUnvisibilityRunning();
+            }
         }
     } else {
         if (!IsWindowIdsEmpty()) {

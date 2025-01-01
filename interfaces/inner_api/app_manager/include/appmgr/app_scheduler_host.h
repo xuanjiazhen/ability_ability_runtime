@@ -38,6 +38,8 @@ public:
 private:
     int32_t HandleScheduleForegroundApplication(MessageParcel &data, MessageParcel &reply);
     int32_t HandleScheduleBackgroundApplication(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleScheduleVisibilityApplication(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleScheduleUnvisibilityApplication(MessageParcel &data, MessageParcel &reply);
     int32_t HandleScheduleTerminateApplication(MessageParcel &data, MessageParcel &reply);
     int32_t HandleScheduleLowMemory(MessageParcel &data, MessageParcel &reply);
     int32_t HandleScheduleShrinkMemory(MessageParcel &data, MessageParcel &reply);

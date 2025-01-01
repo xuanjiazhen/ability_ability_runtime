@@ -33,6 +33,8 @@ public:
 
     MOCK_METHOD0(ScheduleForegroundApplication, bool());
     MOCK_METHOD0(ScheduleBackgroundApplication, void());
+    MOCK_METHOD0(ScheduleVisibilityApplication, void());
+    MOCK_METHOD0(ScheduleUnvisibilityApplication, void());
     MOCK_METHOD1(ScheduleTerminateApplication, void(bool));
     MOCK_METHOD2(ScheduleLaunchApplication, void(const AppExecFwk::AppLaunchData&, const Configuration& config));
     MOCK_METHOD4(ScheduleLaunchAbility, void(const AppExecFwk::AbilityInfo&, const sptr<IRemoteObject>&,

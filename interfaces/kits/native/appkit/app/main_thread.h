@@ -150,6 +150,20 @@ public:
 
     /**
      *
+     * @brief Schedule the visibility lifecycle of application.
+     *
+     */
+    void ScheduleVisibilityApplication() override;
+
+    /**
+     *
+     * @brief Schedule the unvisibility lifecycle of application.
+     *
+     */
+    void ScheduleUnvisibilityApplication() override;
+
+    /**
+     *
      * @brief Schedule the terminate lifecycle of application.
      *
      * @param isLastProcess When it is the last application process, pass in true.
