@@ -4434,6 +4434,15 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
         return result;
     }
 
+    if (!PermissionVerification::GetInstance()->IsSACall()) {
+        EventInfo eventInfo;
+        eventInfo.bundleName = abilityRequest.want.GetElement().GetBundleName();
+        eventInfo.moduleName = abilityRequest.want.GetElement().GetModuleName();
+        eventInfo.abilityName = abilityRequest.want.GetElement().GetAbilityName();
+        eventInfo.extensionType = static_cast<int32_t>(targetExtensionType);
+        EventReport::SendStartAbilityOtherExtensionEvent(EventName::START_ABILITY_OTHER_EXTENSION, eventInfo);
+    }
+    
     if (!ExtensionPermissionsUtil::CheckSAPermission(targetExtensionType)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "SA doesn't have target extension permission");
         return CHECK_PERMISSION_FAILED;
