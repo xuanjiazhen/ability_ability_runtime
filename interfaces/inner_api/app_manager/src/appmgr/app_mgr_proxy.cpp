@@ -999,6 +999,34 @@ int32_t AppMgrProxy::GetConfiguration(Configuration& config)
     return reply.ReadInt32();
 }
 
+int32_t AppMgrProxy::GetConfigurationByUserId(Configuration& config, int32_t userId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "parcel data failed");
+        return ERR_INVALID_DATA;
+    }
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "parcel userId failed");
+        return ERR_INVALID_DATA;
+    }
+    int32_t ret = SendRequest(AppMgrInterfaceCode::GET_CONFIGURATION_BY_USER_ID, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        return ret;
+    }
+
+    std::unique_ptr<Configuration> info(reply.ReadParcelable<Configuration>());
+    if (!info) {
+        TAG_LOGE(AAFwkTag::APPMGR, "read configuration failed.");
+        return ERR_UNKNOWN_OBJECT;
+    }
+    config = *info;
+    return reply.ReadInt32();
+}
+
 int32_t AppMgrProxy::RegisterConfigurationObserver(const sptr<IConfigurationObserver>& observer)
 {
     if (!observer) {

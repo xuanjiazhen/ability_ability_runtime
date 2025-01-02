@@ -159,6 +159,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerSecond(uint32_t code, MessageParcel &dat
             return HandleGetRenderProcessTerminationStatus(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::GET_CONFIGURATION):
             return HandleGetConfiguration(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::GET_CONFIGURATION_BY_USER_ID):
+            return HandleGetConfigurationByUserId(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_CONFIGURATION):
             return HandleUpdateConfiguration(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::REGISTER_CONFIGURATION_OBSERVER):
@@ -964,6 +966,25 @@ int32_t AppMgrStub::HandleGetConfiguration(MessageParcel &data, MessageParcel &r
 {
     Configuration config;
     int ret = GetConfiguration(config);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AppMgrStub GetConfiguration error");
+        return ERR_INVALID_VALUE;
+    }
+    if (!reply.WriteParcelable(&config)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AppMgrStub GetConfiguration error");
+        return ERR_INVALID_VALUE;
+    }
+    if (!reply.WriteInt32(ret)) {
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleGetConfigurationByUserId(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t userId = data.ReadInt32();
+    Configuration config;
+    int ret = GetConfigurationByUserId(config, userId);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "AppMgrStub GetConfiguration error");
         return ERR_INVALID_VALUE;

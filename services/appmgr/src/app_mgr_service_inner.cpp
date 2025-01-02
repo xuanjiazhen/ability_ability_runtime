@@ -5108,6 +5108,17 @@ std::shared_ptr<AppExecFwk::Configuration> AppMgrServiceInner::GetConfiguration(
     return configuration_;
 }
 
+std::shared_ptr<AppExecFwk::Configuration> AppMgrServiceInner::GetConfigurationByUserId(int32_t userId)
+{
+    Configuration userConfig = multiUserConfigurationMgr_->GetConfigurationByUserId(userId);
+    std::vector<std::string> diffVe;
+    userConfig.CompareDifferent(diffVe, *configuration_);
+    if(diffVe.size() != 0) {
+        userConfig.Merge(diffVe, *configuration_);
+    }
+    return std::make_shared<AppExecFwk::Configuration>(userConfig);
+}
+
 void AppMgrServiceInner::KillApplicationByRecord(const std::shared_ptr<AppRunningRecord> &appRecord)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "Kill application by appRecord.");

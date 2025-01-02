@@ -415,6 +415,8 @@ public:
 
     virtual int32_t GetConfiguration(Configuration& config) override;
 
+    virtual int32_t GetConfigurationByUserId(Configuration& config, int32_t userId) override;
+
     virtual int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1) override;
 
     virtual int32_t UpdateConfigurationByBundleName(const Configuration &config, const std::string &name,
