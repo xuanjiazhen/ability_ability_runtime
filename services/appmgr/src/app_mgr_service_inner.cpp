@@ -748,7 +748,7 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         appRunningManager_->UpdateConfigurationDelayed(appRecord);
         if (!isProcCache) {
             SendAppStartupTypeEvent(appRecord, abilityInfo, AppStartType::MULTI_INSTANCE);
-            if (appRecord->IsPreloaded() && appRecord->GetPreloadMode() != PRESS_DOWN) {
+            if (appRecord->IsPreloaded() && appRecord->GetPreloadMode() != PreloadMode::PRESS_DOWN) {
                 appRecord->SetPreloadState(PreloadState::NONE);
                 SendAppStartupTypeEvent(appRecord, abilityInfo, AppStartType::WARM,
                     static_cast<int32_t>(appRecord->GetPreloadMode()));
