@@ -419,6 +419,8 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterForeground()
         TAG_LOGE(AAFwkTag::UIABILITY, "null owner");
         return;
     }
+    owner->ability_->OnDidForeground();
+    
     std::string entry = "UIAbilityImpl::WindowLifeCycleImpl::AfterForeground";
     FreezeUtil::GetInstance().AddLifecycleEvent(token_, entry);
 
@@ -463,6 +465,13 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterBackground()
         FreezeUtil::GetInstance().DeleteLifecycleEvent(token_);
         FreezeUtil::GetInstance().DeleteAppLifecycleEvent(0);
     }
+    
+    auto owner = owner_.lock();
+    if (owner == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null owner");
+        return;
+    }
+    owner->ability_->OnDidBackground();
 }
 
 void UIAbilityImpl::WindowLifeCycleImpl::AfterFocused()
@@ -578,6 +587,7 @@ bool UIAbilityImpl::AbilityTransaction(const AAFwk::Want &want, const AAFwk::Lif
             if (targetState.isNewWant) {
                 NewWant(want);
             }
+            ability_->OnWillForeground();
 #ifdef SUPPORT_SCREEN
             if (!InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
                 HandleForegroundNewState(want, ret);
@@ -591,6 +601,7 @@ bool UIAbilityImpl::AbilityTransaction(const AAFwk::Want &want, const AAFwk::Lif
             if (lifecycleState_ != AAFwk::ABILITY_STATE_STARTED_NEW) {
                 ret = false;
             }
+            ability_->OnWillBackground();
 #ifdef SUPPORT_GRAPHICS
             if (!InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
                 Background();
