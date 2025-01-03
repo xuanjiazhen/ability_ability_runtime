@@ -748,7 +748,7 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         appRunningManager_->UpdateConfigurationDelayed(appRecord);
         if (!isProcCache) {
             SendAppStartupTypeEvent(appRecord, abilityInfo, AppStartType::MULTI_INSTANCE);
-            if (appRecord->isPreloaded() && appRecord->GetPreloadMode() != PRESS_DOWN) {
+            if (appRecord->IsPreloaded() && appRecord->GetPreloadMode() != PRESS_DOWN) {
                 appRecord->SetPreloadState(PreloadState::NONE);
                 SendAppStartupTypeEvent(appRecord, abilityInfo, AppStartType::WARM,
                     static_cast<int32_t>(appRecord->GetPreloadMode()));
@@ -756,7 +756,7 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         } else {
             SendAppStartupTypeEvent(appRecord, abilityInfo, AppStartType::PROCESS_CACHE_LAUNCH);
             SendAppStartupTypeEvent(appRecord, abilityInfo, AppStartType::WARM,
-                    static_cast<int32_t>(AppStartReason::SUGGEST_CACHE));
+                static_cast<int32_t>(AppStartReason::SUGGEST_CACHE));
         }
 
         int32_t requestProcCode = (want == nullptr) ? 0 : want->GetIntParam(Want::PARAM_RESV_REQUEST_PROC_CODE, 0);
