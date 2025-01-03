@@ -344,6 +344,14 @@ public:
         const bool clearPageStack = false, const std::string& reason = "KillApplicationByUserId");
 
     /**
+     * update process rss and pss value.
+     *
+     * @param procMemStates, the memory states of all apps.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int UpdateProcessMemoryState(std::vector<ProcessMemoryState *> &procMemState);
+
+    /**
      * ClearUpApplicationData, clear the application data.
      *
      * @param bundleName, bundle name in Application record.

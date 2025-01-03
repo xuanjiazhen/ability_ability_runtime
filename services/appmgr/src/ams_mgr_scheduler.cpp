@@ -395,6 +395,15 @@ int32_t AmsMgrScheduler::KillApplicationSelf(const bool clearPageStack, const st
     return amsMgrServiceInner_->KillApplicationSelf(clearPageStack, reason);
 }
 
+int32_t AmsMgrScheduler::UpdateProcessMemoryState(std::vector<ProcessMemoryState *> &procMemState)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "procMemState.size = %{public}d", procMemState.size());
+    if (!IsReady()) {
+        return ERR_INVALID_OPERATION;
+    }
+    return amsMgrServiceInner_->UpdateProcessMemoryState(procMemState);
+}
+
 bool AmsMgrScheduler::IsReady() const
 {
     if (!amsMgrServiceInner_) {

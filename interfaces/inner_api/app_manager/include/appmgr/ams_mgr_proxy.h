@@ -182,6 +182,15 @@ public:
         const std::string& reason = "KillApplicationSelf") override;
 
     /**
+     * UpdateProcessMemoryState, call UpdateProcessMemoryState() through proxy object,
+     * update process rss and pss value.
+     *
+     * @param procMemStates, the memory states of all apps.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int UpdateProcessMemoryState(std::vector<ProcessMemoryState> &procMemState) override;
+
+    /**
      * Get application info by process id.
      *
      * @param pid Process id.

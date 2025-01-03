@@ -286,6 +286,14 @@ public:
      */
     int KillApplicationByUid(const std::string &bundleName, int32_t uid,
         const std::string& reason = "KillApplicationByUid");
+    
+    /**
+     * update process rss and pss value.
+     *
+     * @param procMemStates, the memory states of all apps.
+     * @return ERR_OK, return back success, others fail.
+     */
+    int UpdateProcessMemoryState(std::vector<ProcessMemoryState> &procMemState);
 
      /**
      * update the application info after new module installed.

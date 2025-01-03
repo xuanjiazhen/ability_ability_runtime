@@ -290,6 +290,19 @@ int AppScheduler::KillApplicationByUid(const std::string &bundleName, int32_t ui
     return ERR_OK;
 }
 
+int AppScheduler::UpdateProcessMemoryState(std::vector<ProcessMemoryState> &procMemState)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
+    CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
+    int ret = (int)appMgrClient_->UpdateProcessMemoryState(procMemState);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "UpdateProcessMemoryState failed");
+        return INNER_ERR;
+    }
+
+    return ERR_OK;
+}
+
 void AppScheduler::AttachTimeOut(const sptr<IRemoteObject> &token)
 {
     CHECK_POINTER(appMgrClient_);

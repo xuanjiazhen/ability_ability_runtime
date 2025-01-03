@@ -585,10 +585,10 @@ ErrCode AbilityManagerShellCommand::KillProcessWithReason()
         return OHOS::ERR_INVALID_VALUE;
     }
     int32_t pid = std::stoi(argList_[0]);
-    ExitReason reason = {1, 111, "ddddddddddddddddddddd"};
+    ExitReason reason = {Reason::REASON_NORMAL, 111, "ddddddddddddddddddddd"};
 
     TAG_LOGI(AAFwkTag::AA_TOOL, "pid: %{public}d", pid);
-    ErrCode result = AbilityManagerClient::GetInstance()->->KillProcessWithReason(pid, reason);
+    ErrCode result = AbilityManagerClient::GetInstance()->KillProcessWithReason(pid, reason);
 }
 
 

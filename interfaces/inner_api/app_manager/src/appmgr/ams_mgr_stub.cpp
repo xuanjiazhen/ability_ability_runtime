@@ -34,6 +34,7 @@ namespace AppExecFwk {
 namespace {
 constexpr int32_t MAX_APP_DEBUG_COUNT = 100;
 constexpr int32_t MAX_KILL_PROCESS_PID_COUNT = 100;
+constexpr int32_t MAX_PROCESS_STATE_COUNT = 1000;
 }
 
 AmsMgrStub::AmsMgrStub()
@@ -113,6 +114,8 @@ int32_t AmsMgrStub::OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data
             return HandleKillApplicationByUid(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::KILL_APPLICATION_SELF):
             return HandleKillApplicationSelf(data, reply);
+        case static_cast<uint32_t>(IAmsMgr::Message::UPDATE_PROCESS_MEMORY_STATE):
+            return HandleUpdateProcessMemoryState(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::GET_RUNNING_PROCESS_INFO_BY_TOKEN):
             return HandleGetRunningProcessInfoByToken(data, reply);
     }
@@ -452,6 +455,35 @@ ErrCode AmsMgrStub::HandleKillApplicationSelf(MessageParcel &data, MessageParcel
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "result write failed.");
         return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+ErrCode AmsMgrStub::HandleUpdateProcessMemoryState(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    TAG_LOGW(AAFwkTag::APPMGR, "HandleUpdateProcessMemoryState,callingPid=%{public}d", IPCSkeleton::GetCallingPid());
+    auto size = data.ReadUint32();
+    if (size == 0 || size > MAX_PROCESS_STATE_COUNT) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Invalid size");
+        return ERR_INVALID_VALUE;
+    }
+    std::vector<ProcessMemoryState *> states;
+    ProcessMemoryState * tmpState = nullptr;
+    for (uint32_t i = 0; i < size; i++) {
+        tmpState = data.ReadParcelable<ProcessMemoryState>();
+        if (tmpState == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "tmpState is nullptr.");
+            for (auto state : states) {
+                delete state;
+            }
+            return ERR_INVALID_VALUE;
+        }
+        states.emplace_back(tmpState);
+    }
+    UpdateProcessMemoryState(states);
+    for (auto state : states) {
+        delete state;
     }
     return NO_ERROR;
 }

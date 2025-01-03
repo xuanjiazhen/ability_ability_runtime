@@ -26,6 +26,7 @@
 #include "iremote_broker.h"
 #include "iremote_object.h"
 #include "istart_specified_ability_response.h"
+#include "process_memory_state.h"
 #include "running_process_info.h"
 
 namespace OHOS {
@@ -110,6 +111,15 @@ public:
      * @param pids, the pid list of processes are going to be killed.
      */
     virtual void KillProcessesByPids(std::vector<int32_t> &pids) {}
+
+    /**
+     * UpdateProcessMemoryState, call UpdateProcessMemoryState() through proxy object,
+     * update process rss and pss value.
+     *
+     * @param procMemStates, the memory states of all apps.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int UpdateProcessMemoryState(std::vector<ProcessMemoryState> &procMemState) = 0;
 
     /**
      * Set child and parent relationship
@@ -536,6 +546,7 @@ public:
         KILL_PROCESSES_IN_BATCH,
         SEND_APP_SPAWN_UNINSTALL_DEBUG_HAP_MSG,
         PREPARE_TERMINATE_APP,
+        UPDATE_PROCESS_MEMORY_STATE,
         // Add enumeration values above
         END
     };

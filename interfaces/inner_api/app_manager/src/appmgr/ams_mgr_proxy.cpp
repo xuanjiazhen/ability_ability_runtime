@@ -566,6 +566,35 @@ int32_t AmsMgrProxy::KillApplicationSelf(const bool clearPageStack, const std::s
     return reply.ReadInt32();
 }
 
+int AmsMgrProxy::UpdateProcessMemoryState(std::vector<ProcessMemoryState> &procMemState)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "start");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write token failed");
+        return;
+    }
+    if (!data.WriteUint32(procMemState.size())) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write size failed");
+        return;
+    }
+    for (const auto &perState: procMemState) {
+        if (!data.WriteParcelable(&perState)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Write perState failed");
+            return;
+        }
+    }
+    int32_t ret =
+        SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::UPDATE_PROCESS_MEMORY_STATE), data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest err: %{public}d", ret);
+    }
+    TAG_LOGD(AAFwkTag::APPMGR, "end");
+}
+
 void AmsMgrProxy::AbilityAttachTimeOut(const sptr<IRemoteObject> &token)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "beginning");

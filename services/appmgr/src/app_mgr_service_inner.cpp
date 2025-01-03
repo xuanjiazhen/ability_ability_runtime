@@ -1671,6 +1671,16 @@ int32_t AppMgrServiceInner::KillApplicationByUid(const std::string &bundleName, 
     return result;
 }
 
+int AppMgrServiceInner::UpdateProcessMemoryState(std::vector<ProcessMemoryState *> &procMemState)
+{
+    for (auto state : procMemState) {
+        auto appRecord = GetAppRunningRecordByPid(state->pid);
+        appRecord->SetRssValue(state->rssValue);
+        appRecord->SetpssValue(state->rssValue);
+    }
+    return ERR_OK;
+}
+
 void AppMgrServiceInner::SendProcessExitEventTask(
     const std::shared_ptr<AppRunningRecord> &appRecord, time_t exitTime, int32_t count)
 {

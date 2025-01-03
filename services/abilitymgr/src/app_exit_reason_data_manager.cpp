@@ -835,8 +835,8 @@ DistributedKv::Value AppExitReasonDataManager::ConvertProcessExitDetailInfoToVal
         { JSON_KEY_KILL_REASON, exitReason.reason },
         { JSON_KEY_SUB_KILL_REASON, exitReason.subReason },
         { JSON_KEY_KILL_MSG, exitReason.exitMsg },
-        { JSON_KEY_PSS_VALUE, processInfo.pssValue },
         { JSON_KEY_RSS_VALUE, processInfo.rssValue },
+        { JSON_KEY_PSS_VALUE, processInfo.pssValue },
         { JSON_KEY_PROCESS_NAME, processInfo.processName_ },
     };
 
@@ -875,6 +875,8 @@ int32_t AppExitReasonDataManager::SetProcessExitDetailInfo(const AAFwk::ExitReas
     TAG_LOGI(AAFwkTag::ABILITYMGR, "SetProcessExitDetailInfo finish");
     return ERR_OK;
 }
+
+
 
 } // namespace AbilityRuntime
 } // namespace OHOS
