@@ -130,8 +130,10 @@ sptr<IWantSender> PendingWantManager::GetWantSenderLocked(const int32_t callingU
         pendingKey->SetCode(PendingRecordIdCreate());
         wantRecords_.insert(std::make_pair(pendingKey, rec));
         TAG_LOGI(AAFwkTag::WANTAGENT,
-            "wantRecords_ size %{public}zu, bundleName=%{public}s, flags=%{public}d, type=%{public}d",
-            wantRecords_.size(), pendingKey->GetBundleName().c_str(), pendingKey->GetFlags(), pendingKey->GetType());
+            "wantRecords_ size %{public}zu, bundleName=%{public}s, flags=%{public}d, type=%{public}d,"
+            "requestCode=%{public}d, key size %{public}zu, value size %{public}zu",
+            wantRecords_.size(), pendingKey->GetBundleName().c_str(), pendingKey->GetFlags(), pendingKey->GetType(),
+            pendingKey->GetRequestCode(), sizeof(*pendingKey), sizeof(*rec));
         return rec;
     }
     return nullptr;
