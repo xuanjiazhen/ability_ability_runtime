@@ -22,12 +22,27 @@
 #include "js_runtime_utils.h"
 #include "singleton.h"
 #include "dfx_jsnapi.h"
+#include <sys/statvfs.h>
+#include <sys/stat.h>
+#include <sys/xattr.h>
+#include "parameters.h"
 
 namespace OHOS {
 namespace AppExecFwk {
 const char *MODULE_NAME = "hiviewdfx.jsLeakWatcher";
 const char *CHECK = "check";
 const char *REQUIRE_NAPI = "requireNapi";
+
+static bool g_betaVersion = OHOS::system::GetParameter("const.logsystem.versiontype", "unknown") == "beta";
+static bool g_developMode = (OHOS::system::GetParameter("persist.hiview.leak_detector", "unknown") == "enable") ||
+                            (OHOS::system::GetParameter("persist.hiview.leak_detector", "unknown") == "true");
+static bool g_futVersion = OHOS::system::GetParameter("const.product.dfx.fans.stage", 0) == 1;
+static int g_oomDumpProcessQuota = 0;
+static uint64_t g_lastOOMDumpTime = 0;
+static constexpr const char* const EVENT_XATTR_NAME = "user.appevent";
+static constexpr const char* const OOM_QUOTA_XATTR_NAME = "user.oomdump.quota";
+static constexpr const char* const HIAPPEVENT_PATH = "user.appevent";
+static constexpr const char* const EVENT_XATTR_NAME = "user.appevent";
 
 DumpRuntimeHelper::DumpRuntimeHelper(const std::shared_ptr<OHOSApplication> &application)
     : application_(application)
