@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -266,6 +266,19 @@ bool PermissionVerification::VerifyStartRecentAbilityPermission() const
         return true;
     }
     return VerifyMissionPermission();
+}
+
+bool PermissionVerification::VerifyProtectScreenLockDataPermission() const
+{
+    if (VerifyCallingPermission(PermissionConstants::PERMISSION_PROTECT_SCREEN_LOCK_DATA)) {
+        TAG_LOGI(AAFwkTag::DEFAULT,
+            "Permission %{public}s granted", PermissionConstants::PERMISSION_PROTECT_SCREEN_LOCK_DATA);
+        return true;
+    }
+
+    TAG_LOGE(AAFwkTag::DEFAULT,
+        "Permission %{public}s denied", PermissionConstants::PERMISSION_PROTECT_SCREEN_LOCK_DATA);
+    return false;
 }
 
 int PermissionVerification::CheckCallDataAbilityPermission(const VerificationInfo &verificationInfo, bool isShell) const

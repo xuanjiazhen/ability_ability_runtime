@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1028,8 +1028,8 @@ HWTEST_F(AppMgrServiceInnerTest, QueryExtensionSandBox_001, TestSize.Level0)
     hapModuleInfo.extensionInfos.emplace_back(extensionAbilityInfo);
     bundleInfo.hapModuleInfos.emplace_back(hapModuleInfo);
     AppSpawnStartMsg startMsg;
-    DataGroupInfoList dataGroupInfoList;
-    DataGroupInfo dataGroupInfo;
+    DataGroupInfoWithDirList dataGroupInfoList;
+    DataGroupInfoWithDir dataGroupInfo;
     dataGroupInfo.dataGroupId = "test1";
     dataGroupInfoList.emplace_back(dataGroupInfo);
     appMgrServiceInner->QueryExtensionSandBox(moduleName, extensionName, bundleInfo, startMsg, dataGroupInfoList,
@@ -1064,8 +1064,8 @@ HWTEST_F(AppMgrServiceInnerTest, QueryExtensionSandBox_002, TestSize.Level0)
     hapModuleInfo.extensionInfos.emplace_back(extensionAbilityInfo);
     bundleInfo.hapModuleInfos.emplace_back(hapModuleInfo);
     AppSpawnStartMsg startMsg;
-    DataGroupInfoList dataGroupInfoList;
-    DataGroupInfo dataGroupInfo;
+    DataGroupInfoWithDirList dataGroupInfoList;
+    DataGroupInfoWithDir dataGroupInfo;
     dataGroupInfo.dataGroupId = "test3";
     dataGroupInfoList.emplace_back(dataGroupInfo);
     appMgrServiceInner->QueryExtensionSandBox(moduleName, extensionName, bundleInfo, startMsg, dataGroupInfoList,
@@ -1097,7 +1097,7 @@ HWTEST_F(AppMgrServiceInnerTest, QueryExtensionSandBox_003, TestSize.Level0)
     extensionAbilityInfo.moduleName = "entry";
     extensionAbilityInfo.needCreateSandbox = false;
     AppSpawnStartMsg startMsg;
-    DataGroupInfoList dataGroupInfoList;
+    DataGroupInfoWithDirList dataGroupInfoList;
     appMgrServiceInner->QueryExtensionSandBox(moduleName, extensionName, bundleInfo, startMsg, dataGroupInfoList,
         nullptr);
     EXPECT_EQ(startMsg.dataGroupInfoList.size(), 0);
@@ -1127,7 +1127,7 @@ HWTEST_F(AppMgrServiceInnerTest, QueryExtensionSandBox_004, TestSize.Level0)
     extensionAbilityInfo.moduleName = "entry";
     extensionAbilityInfo.needCreateSandbox = true;
     AppSpawnStartMsg startMsg;
-    DataGroupInfoList dataGroupInfoList;
+    DataGroupInfoWithDirList dataGroupInfoList;
     appMgrServiceInner->QueryExtensionSandBox(moduleName, extensionName, bundleInfo, startMsg, dataGroupInfoList,
         nullptr);
     EXPECT_EQ(startMsg.dataGroupInfoList.size(), 0);

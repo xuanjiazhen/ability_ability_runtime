@@ -1833,7 +1833,7 @@ private:
         std::shared_ptr<AbilityRuntime::LoadParam> loadParam);
 
     void QueryExtensionSandBox(const std::string &moduleName, const std::string &abilityName,
-        const BundleInfo &bundleInfo, AppSpawnStartMsg &startMsg, DataGroupInfoList& dataGroupInfoList,
+        const BundleInfo &bundleInfo, AppSpawnStartMsg &startMsg, DataGroupInfoWithDirList& dataGroupInfoList,
         std::shared_ptr<AAFwk::Want> want);
 
     int32_t StartPerfProcessByStartMsg(AppSpawnStartMsg &startMsg, const std::string& perfCmd,
