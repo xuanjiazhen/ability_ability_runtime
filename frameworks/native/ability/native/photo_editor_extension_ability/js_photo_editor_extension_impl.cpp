@@ -80,7 +80,7 @@ JsPhotoEditorExtensionImpl::JsPhotoEditorExtensionImpl(const std::unique_ptr<Run
     : JsUIExtensionBase(runtime)
 {}
 
-void JsPhotoEditorExtensionImpl::BindContext()
+void JsPhotoEditorExtensionImpl::BindContext(const std::shared_ptr<AAFwk::Want> want)
 {
     HandleScope handleScope(jsRuntime_);
     if (jsObj_ == nullptr) {

@@ -37,7 +37,7 @@ public:
     }
 
 protected:
-    void BindContext() override;
+    void BindContext(const std::shared_ptr<AAFwk::Want> want) override;
     void OnForeground(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo) override;
 
 private:
