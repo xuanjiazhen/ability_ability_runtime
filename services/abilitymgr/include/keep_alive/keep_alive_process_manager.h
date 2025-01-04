@@ -101,6 +101,8 @@ public:
      */
     bool GetKeepAliveBundleInfosForUser(std::vector<AppExecFwk::BundleInfo> &bundleInfos, int32_t userId);
 
+    int32_t StartKeepAliveMainAbility(const KeepAliveAbilityInfo &info);
+
 private:
     KeepAliveProcessManager();
     ~KeepAliveProcessManager();
@@ -109,7 +111,6 @@ private:
     int32_t CheckPermissionForEDM();
     void StartKeepAliveProcessWithMainElementPerBundle(const AppExecFwk::BundleInfo &bundleInfo,
         int32_t userId);
-    int32_t StartAbility(const KeepAliveAbilityInfo &info);
     void AfterStartKeepAliveApp(const AppExecFwk::BundleInfo &bundleInfo,
         const std::string &mainElementName, int32_t userId);
     bool IsRunningAppInStatusBar(std::shared_ptr<AbilityManagerService> abilityMgr,

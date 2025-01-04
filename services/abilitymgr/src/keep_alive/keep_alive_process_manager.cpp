@@ -28,6 +28,8 @@ namespace AAFwk {
 namespace {
 constexpr char PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED[] = "const.product.enterprisefeature.setting.enabled";
 constexpr char FOUNDATION_PROCESS_NAME[] = "foundation";
+constexpr int MAX_RETRY_TIMES = 3;
+constexpr int RETRY_INTERVAL_MICRO_SECONDS = 200000; // 200ms
 } // namespace
 
 constexpr int32_t CREATE_STATUS_BAR_TIMEOUT_SECONDS = 5; // 5s
@@ -70,19 +72,34 @@ void KeepAliveProcessManager::StartKeepAliveProcessWithMainElementPerBundle(cons
         .userId = userId,
         .appCloneIndex = bundleInfo.appIndex,
     };
-    auto ret = StartAbility(info);
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::KEEP_ALIVE, "startAbility failed:%{public}d, unsetting keep-alive", ret);
-        (void)SetApplicationKeepAlive(bundleInfo.name, userId, false, true);
+    auto ret = StartKeepAliveMainAbility(info);
+    if (ret == ERR_OK || ret == ERR_UI_ABILITY_IS_STARTING) {
+        const char* msg = ret == ERR_OK ? "start ok" : "already starting";
+        TAG_LOGI(AAFwkTag::KEEP_ALIVE, "%{public}s", msg);
+        ffrt::submit([bundleInfo, mainElementName, userId]() {
+            KeepAliveProcessManager::GetInstance().AfterStartKeepAliveApp(bundleInfo, mainElementName, userId);
+        });
         return;
     }
 
-    ffrt::submit([bundleInfo, mainElementName, userId]() {
+    TAG_LOGE(AAFwkTag::KEEP_ALIVE, "StartKeepAliveMainAbility failed:%{public}d, retry", ret);
+    ffrt::submit([bundleInfo, mainElementName, userId, info, ret]() mutable {
+        for (int tried = 0; tried < MAX_RETRY_TIMES && ret != ERR_OK && ret != ERR_UI_ABILITY_IS_STARTING; tried++) {
+            usleep(RETRY_INTERVAL_MICRO_SECONDS);
+            TAG_LOGI(AAFwkTag::KEEP_ALIVE, "retry attempt:%{public}d", tried + 1);
+            ret = KeepAliveProcessManager::GetInstance().StartKeepAliveMainAbility(info);
+            TAG_LOGI(AAFwkTag::KEEP_ALIVE, "retry result:%{public}d", ret);
+        }
+        if (ret != ERR_OK && ret != ERR_UI_ABILITY_IS_STARTING) {
+            TAG_LOGE(AAFwkTag::KEEP_ALIVE, "reach max retry, failed:%{public}d, unsetting keep-alive", ret);
+            KeepAliveProcessManager::GetInstance().SetApplicationKeepAlive(bundleInfo.name, userId, false, true);
+            return;
+        }
         KeepAliveProcessManager::GetInstance().AfterStartKeepAliveApp(bundleInfo, mainElementName, userId);
     });
 }
 
-int32_t KeepAliveProcessManager::StartAbility(const KeepAliveAbilityInfo &info)
+int32_t KeepAliveProcessManager::StartKeepAliveMainAbility(const KeepAliveAbilityInfo &info)
 {
     Want want;
     want.SetElementName(info.bundleName, info.abilityName);
