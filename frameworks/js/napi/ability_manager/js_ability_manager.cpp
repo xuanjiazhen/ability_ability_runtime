@@ -683,13 +683,17 @@ private:
         TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
         int ret = 0;
         if (queryERMSObserver_ == nullptr) {
-            queryERMSObserver_ = new JsQueryERMSObserver(env);
+            queryERMSObserver_ = sptr<JsQueryERMSObserver>::MakeSptr(env);
         }
-        queryERMSObserver_->AddJsObserverObject(appId, startTime, result);
+        ret = queryERMSObserver_->AddJsObserverObject(appId, startTime, result);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "addJsObserverObject error:%{public}d", ret);
+            return ret;
+        }
 
         ret = AbilityManagerClient::GetInstance()->AddQueryERMSObserver(token, queryERMSObserver_);
         if (ret != ERR_OK) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "addQueryERMSObserver error");
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "addQueryERMSObserver error:%{public}d", ret);
             AtomicServiceStartupRule rule;
             queryERMSObserver_->OnQueryFinished(appId, startTime, rule, AAFwk::INNER_ERR);
             return ret;
@@ -732,6 +736,7 @@ private:
         auto ret = AddQueryERMSObserver(env, token, appId, startTime, &result);
         if (ret != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "AddQueryERMSObserver failed, ret=%{public}d", ret);
+            ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
             return CreateJsUndefined(env);
         }
         NapiAsyncTask::Schedule("JsAbilityManager::OnQueryAtomicServiceStartupRule", env,
