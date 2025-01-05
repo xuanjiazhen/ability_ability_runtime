@@ -85,7 +85,7 @@ void JsQueryERMSObserver::CallPromise(napi_deferred deferred, const AtomicServic
     napi_reject_deferred(env_, deferred, error);
 }
 
-void JsQueryERMSObserver::AddJsObserverObject(const std::string &appId, const std::string &startTime,
+int32_t JsQueryERMSObserver::AddJsObserverObject(const std::string &appId, const std::string &startTime,
     napi_value* result)
 {
     TAG_LOGD(AAFwkTag::QUERY_ERMS, "call");
@@ -94,7 +94,7 @@ void JsQueryERMSObserver::AddJsObserverObject(const std::string &appId, const st
         for (auto it = jsObserverObjectList_.begin(); it != jsObserverObjectList_.end(); ++it) {
             if (it->appId == appId && it->startTime == startTime) {
                 TAG_LOGW(AAFwkTag::QUERY_ERMS, "The jsObject has been added");
-                return;
+                return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
             }
         }
     }
@@ -109,6 +109,7 @@ void JsQueryERMSObserver::AddJsObserverObject(const std::string &appId, const st
 
     std::unique_lock<std::mutex> lock(jsObserverObjectListLock_);
     jsObserverObjectList_.emplace_back(object);
+    return ERR_OK;
 }
 
 napi_value JsQueryERMSObserver::CreateJsAtomicServiceStartupRule(napi_env env,

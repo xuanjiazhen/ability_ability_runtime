@@ -63,8 +63,9 @@ public:
      * @param appId Query ERMS app id.
      * @param startTime The start time.
      * @param result the promise to return.
+     * @return add result.
      */
-    void AddJsObserverObject(const std::string &appId, const std::string &startTime, napi_value* result);
+    int32_t AddJsObserverObject(const std::string &appId, const std::string &startTime, napi_value* result);
 
 private:
     /**
