@@ -1807,6 +1807,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         }
 
         if (!runPreloadSo) {
+            TAG_LOGD(AAFwkTag::APPKIT, "TryPreReadLib pre dlopen web so");
             OHOS::NWeb::NWebHelper::TryPreReadLib(isFirstStartUpWeb, app->GetAppContext()->GetBundleCodeDir());
         }
     }).detach();
