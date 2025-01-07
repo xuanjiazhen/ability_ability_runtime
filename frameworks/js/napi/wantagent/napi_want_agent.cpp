@@ -217,7 +217,7 @@ void TriggerCompleteCallBack::OnSendFinished(
     dataWorker->env = triggerCompleteInfo_.env;
     dataWorker->nativeRef = std::move(triggerCompleteInfo_.nativeRef);
     if (triggerCompleteInfo_.wantAgent != nullptr) {
-        dataWorker->wantAgent = new WantAgent(triggerCompleteInfo_.wantAgent->GetPendingWant());
+        dataWorker->wantAgent = new WantAgent(triggerCompleteInfo_.wantAgent->GetPendingWant(), *triggerCompleteInfo_.wantAgent->GetWantTriggerInfo());
     }
     work->data = static_cast<void *>(dataWorker);
     int ret = uv_queue_work(loop, work, [](uv_work_t *work) {}, OnSendFinishedUvAfterWorkCallback);
@@ -757,7 +757,7 @@ int32_t JsWantAgent::UnWrapTriggerInfoParam(napi_env env, napi_callback_info inf
     napi_ref ref = nullptr;
     napi_create_reference(env, argv[ARGC_TWO], 1, &ref);
     triggerObj->SetCallbackInfo(env, reinterpret_cast<NativeReference*>(ref));
-    triggerObj->SetWantAgentInstance(std::make_shared<WantAgent>(pWantAgent->GetPendingWant()));
+    triggerObj->SetWantAgentInstance(std::make_shared<WantAgent>(pWantAgent->GetPendingWant(), *(pWantAgent->GetWantTriggerInfo())));
 
     return BUSINESS_ERROR_CODE_OK;
 }
@@ -1060,7 +1060,7 @@ napi_value JsWantAgent::OnGetWantAgent(napi_env env, napi_callback_info info)
         WantAgent* pWantAgent = nullptr;
         napi_value jsWantAgent = nullptr;
         if (wantAgent) {
-            pWantAgent = new WantAgent(wantAgent->GetPendingWant());
+            pWantAgent = new WantAgent(wantAgent->GetPendingWant(), *wantAgent->GetWantTriggerInfo());
         }
         jsWantAgent = OHOS::AppExecFwk::WrapWantAgent(env, pWantAgent, nullptr);
         if (jsWantAgent == nullptr && pWantAgent != nullptr) {
@@ -1215,14 +1215,18 @@ void JsWantAgent::SetOnNapiGetWantAgentCallback(std::shared_ptr<WantAgentWantsPa
         } else {
             WantAgent* pWantAgent = nullptr;
             if (wantAgent == nullptr) {
+                //直接cancel,需求编码时改成减引用计数接口
+                WantAgentHelper::Cancel(wantAgent);
                 result = ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
                 task.Reject(env, CreateJsError(env, result, AbilityRuntimeErrorUtil::GetErrMessage(result)));
                 return;
             } else {
-                pWantAgent = new (std::nothrow) WantAgent(wantAgent->GetPendingWant());
+                pWantAgent = new (std::nothrow) WantAgent(wantAgent->GetPendingWant(), *(wantAgent->GetWantTriggerInfo()), true); //添加标识
             }
 
-            if (pWantAgent == nullptr) {
+            if (pWantAgent == nullptr) { //需删除服务侧内存
+                //直接cancel,需求编码时改成减引用计数接口
+                WantAgentHelper::Cancel(wantAgent);
                 TAG_LOGE(AAFwkTag::WANTAGENT, "null pWantAgent");
                 result = ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
                 task.Reject(env, CreateJsError(env, result, AbilityRuntimeErrorUtil::GetErrMessage(result)));

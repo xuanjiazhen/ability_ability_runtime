@@ -15,13 +15,25 @@
 
 #include "hilog_tag_wrapper.h"
 #include "want_agent.h"
+#include "want_agent_helper.h"
 
 namespace OHOS::AbilityRuntime::WantAgent {
 bool WantAgent::isMultithreadingSupported_ = false;
 
-WantAgent::WantAgent(const std::shared_ptr<PendingWant> &pendingWant)
+WantAgent::WantAgent(const std::shared_ptr<PendingWant> &pendingWant, AAFwk::WantTriggerInfo wantTriggerInfo, bool free_flag)
 {
     pendingWant_ = pendingWant;
+    wantTriggerInfo_ = wantTriggerInfo;
+    free_flag_ = free_flag;
+}
+
+WantAgent::~WantAgent()
+{
+    if (free_flag_) {
+        std::shared_ptr<WantAgent> wantAgent = std::make_shared<WantAgent>(pendingWant_, wantTriggerInfo_);
+        WantAgentHelper::Cancel(wantAgent);
+        TAG_LOGI(AAFwkTag::WANTAGENT, "ljj:free server want record");
+    }
 }
 
 std::shared_ptr<PendingWant> WantAgent::GetPendingWant()
@@ -34,10 +46,25 @@ void WantAgent::SetPendingWant(const std::shared_ptr<PendingWant> &pendingWant)
     pendingWant_ = pendingWant;
 }
 
+void WantAgent::SetWantTriggerInfo(AAFwk::WantTriggerInfo wantTriggerInfo)
+{
+    wantTriggerInfo_ = wantTriggerInfo;
+}
+
+AAFwk::WantTriggerInfo *WantAgent::GetWantTriggerInfo()
+{
+    return &wantTriggerInfo_;
+}
+
 bool WantAgent::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteParcelable(pendingWant_.get())) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "parcel WriteString failed");
+        return false;
+    }
+
+    if (!parcel.WriteParcelable(&wantTriggerInfo_)) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "Failed to write wantTriggerInfo_");
         return false;
     }
 
@@ -52,7 +79,15 @@ WantAgent *WantAgent::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
     std::shared_ptr<PendingWant> pendingWant(parcel.ReadParcelable<PendingWant>());
+
+    std::unique_ptr<AAFwk::WantTriggerInfo> WantTriggerRequest(parcel.ReadParcelable<AAFwk::WantTriggerInfo>());
+    if (WantTriggerRequest == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null WantTriggerRequest");
+        return nullptr;
+    }
+
     agent->SetPendingWant(pendingWant);
+    agent->SetWantTriggerInfo(*WantTriggerRequest);
 
     return agent;
 }

@@ -39,7 +39,7 @@ WantAgentClient::WantAgentClient() {}
 WantAgentClient::~WantAgentClient() {}
 
 ErrCode WantAgentClient::GetWantSender(
-    const WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, sptr<IWantSender> &wantSender,
+    const WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, int32_t &appUid, int32_t &callerUid, sptr<IWantSender> &wantSender,
     int32_t uid)
 {
     auto abms = GetAbilityManager();
@@ -77,6 +77,9 @@ ErrCode WantAgentClient::GetWantSender(
         return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_WANTAGENT;
     }
     wantSender = iface_cast<IWantSender>(reply.ReadRemoteObject());
+    appUid = reply.ReadInt32();
+    callerUid = reply.ReadInt32();
+    TAG_LOGW(AAFwkTag::WANTAGENT, "ljj:GetWantSender appUid=%{public}d, callerUid=%{public}d", appUid, callerUid);
     return ERR_OK;
 }
 

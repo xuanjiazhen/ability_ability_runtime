@@ -38,6 +38,18 @@ struct WantSenderInfo : public Parcelable {
     virtual bool Marshalling(Parcel &parcel) const override;
     static WantSenderInfo *Unmarshalling(Parcel &parcel);
 };
+
+struct WantTriggerInfo : public Parcelable {
+    WantSenderInfo wantSenderInfo;
+    sptr<IRemoteObject> callerToken;
+    int32_t callerTokenID;
+    int32_t appUid;
+    int32_t callerUid;
+
+    bool ReadFromParcel(Parcel &parcel);
+    virtual bool Marshalling(Parcel &parcel) const override;
+    static WantTriggerInfo *Unmarshalling(Parcel &parcel);
+};
 }  // namespace AAFwk
 }  // namespace OHOS
 

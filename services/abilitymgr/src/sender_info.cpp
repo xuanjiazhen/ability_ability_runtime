@@ -48,6 +48,14 @@ bool SenderInfo::ReadFromParcel(Parcel &parcel)
     if (parcel.ReadBool()) {
         startOptions = parcel.ReadParcelable<StartOptions>();
     }
+
+    std::unique_ptr<AAFwk::WantTriggerInfo> WantTriggerRequest(parcel.ReadParcelable<AAFwk::WantTriggerInfo>());
+    if (WantTriggerRequest == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null WantTriggerRequest");
+        return false;
+    }
+
+    wantTriggerInfo = *WantTriggerRequest;
     return true;
 }
 
@@ -113,6 +121,12 @@ bool SenderInfo::Marshalling(Parcel &parcel) const
             return false;
         }
     }
+
+    if (!parcel.WriteParcelable(&wantTriggerInfo)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to write wantTriggerInfo");
+        return false;
+    }
+
     return true;
 }
 }  // namespace AAFwk

@@ -68,6 +68,8 @@ public:
     virtual int GetConnectionData(std::vector<AbilityRuntime::ConnectionData> &connectionData);
 
     virtual void CancelWantSenderByFlags(const sptr<IWantSender> &sender, uint32_t flags);
+    virtual sptr<IWantSender> GetWantSenderExt(
+        const WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken,int32_t &appUid, int32_t &callerUid, int32_t uid = -1) = 0;
 
 private:
     int TerminateAbilityInner(MessageParcel &data, MessageParcel &reply);

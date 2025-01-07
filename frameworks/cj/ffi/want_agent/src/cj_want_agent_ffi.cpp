@@ -162,7 +162,7 @@ int64_t FfiWantAgentGetWantAgent(CJWantAgentInfo info, int32_t* errCode)
             return -1;
         }
         auto nativeWantAgent = OHOS::FFI::FFIData::Create<CJWantAgent>(
-            std::make_shared<OHOS::AbilityRuntime::WantAgent::WantAgent>(wantAgent->GetPendingWant()));
+            std::make_shared<OHOS::AbilityRuntime::WantAgent::WantAgent>(wantAgent->GetPendingWant(), *wantAgent->GetWantTriggerInfo()));
         return nativeWantAgent->GetID();
     }
 }

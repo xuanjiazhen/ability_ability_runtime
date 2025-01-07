@@ -23,6 +23,7 @@
 #include "want_agent_client.h"
 #include "want_sender_info.h"
 #include "want_sender_interface.h"
+#include "ipc_skeleton.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS::AppExecFwk;
@@ -110,24 +111,25 @@ ErrCode WantAgentHelper::GetWantAgent(
     int requestCode = paramsInfo.GetRequestCode();
     WantAgentConstant::OperationType operationType = paramsInfo.GetOperationType();
     ErrCode result;
+    AAFwk::WantTriggerInfo wantTriggerInfo;
     switch (operationType) {
         case WantAgentConstant::OperationType::START_ABILITY:
-            result = PendingWant::GetAbility(context, requestCode, wants[0], flags, extraInfo, pendingWant);
+            result = PendingWant::GetAbility(context, requestCode, wants[0], flags, extraInfo, pendingWant, wantTriggerInfo);  //如何返回服务测数据？
             break;
         case WantAgentConstant::OperationType::START_ABILITIES:
-            result = PendingWant::GetAbilities(context, requestCode, wants, flags, extraInfo, pendingWant);
+            result = PendingWant::GetAbilities(context, requestCode, wants, flags, extraInfo, pendingWant, wantTriggerInfo);
             break;
         case WantAgentConstant::OperationType::START_SERVICE:
-            result = PendingWant::GetService(context, requestCode, wants[0], flags, pendingWant);
+            result = PendingWant::GetService(context, requestCode, wants[0], flags, pendingWant, wantTriggerInfo);
             break;
         case WantAgentConstant::OperationType::START_FOREGROUND_SERVICE:
-            result = PendingWant::GetForegroundService(context, requestCode, wants[0], flags, pendingWant);
+            result = PendingWant::GetForegroundService(context, requestCode, wants[0], flags, pendingWant, wantTriggerInfo);
             break;
         case WantAgentConstant::OperationType::SEND_COMMON_EVENT:
-            result = PendingWant::GetCommonEvent(context, requestCode, wants[0], flags, pendingWant);
+            result = PendingWant::GetCommonEvent(context, requestCode, wants[0], flags, pendingWant, wantTriggerInfo);
             break;
         case WantAgentConstant::OperationType::START_SERVICE_EXTENSION:
-            result = PendingWant::GetServiceExtension(context, requestCode, wants[0], flags, pendingWant);
+            result = PendingWant::GetServiceExtension(context, requestCode, wants[0], flags, pendingWant, wantTriggerInfo);
             break;
         default:
             TAG_LOGE(AAFwkTag::WANTAGENT, "operation type is error");
@@ -138,7 +140,7 @@ ErrCode WantAgentHelper::GetWantAgent(
     if (pendingWant == nullptr) {
         return result;
     }
-    wantAgent = std::make_shared<WantAgent>(pendingWant);
+    wantAgent = std::make_shared<WantAgent>(pendingWant, wantTriggerInfo);
     return ERR_OK;
 }
 
@@ -163,18 +165,22 @@ std::shared_ptr<WantAgent> WantAgentHelper::GetWantAgent(const WantAgentInfo &pa
         wantsInfo.want.SetParams(*paramsInfo.GetExtraInfo());
     }
 
-    WantSenderInfo wantSenderInfo;
-    wantSenderInfo.allWants.push_back(wantsInfo);
-    wantSenderInfo.bundleName = want->GetOperation().GetBundleName();
-    wantSenderInfo.flags = FlagsTransformer(paramsInfo.GetFlags());
-    wantSenderInfo.type = static_cast<int32_t>(paramsInfo.GetOperationType());
-    wantSenderInfo.userId = userId;
+    AAFwk::WantTriggerInfo wantTriggerInfo;
+    wantTriggerInfo.wantSenderInfo.allWants.push_back(wantsInfo);
+    wantTriggerInfo.wantSenderInfo.bundleName = want->GetOperation().GetBundleName();
+    wantTriggerInfo.wantSenderInfo.flags = FlagsTransformer(paramsInfo.GetFlags());
+    wantTriggerInfo.wantSenderInfo.type = static_cast<int32_t>(paramsInfo.GetOperationType());
+    wantTriggerInfo.wantSenderInfo.userId = userId;
+
+    wantTriggerInfo.callerToken = nullptr;
+    wantTriggerInfo.callerTokenID = IPCSkeleton::GetSelfTokenID();
     sptr<IWantSender> target = nullptr;
-    WantAgentClient::GetInstance().GetWantSender(wantSenderInfo, nullptr, target, uid);
+    WantAgentClient::GetInstance().GetWantSender(wantTriggerInfo.wantSenderInfo, wantTriggerInfo.callerToken, wantTriggerInfo.appUid, wantTriggerInfo.callerUid, target, uid);
     if (target == nullptr) {
         return nullptr;
     }
-    std::shared_ptr<WantAgent> agent = std::make_shared<WantAgent>(std::make_shared<PendingWant>(target));
+
+    std::shared_ptr<WantAgent> agent = std::make_shared<WantAgent>(std::make_shared<PendingWant>(target), wantTriggerInfo, true); //share_ptr 增加创建者标识，无人引用时触发cancel, 排查内部使用方式，拷贝方式使用会被提前释放
 
     return agent;
 }
@@ -197,15 +203,16 @@ ErrCode WantAgentHelper::TriggerWantAgent(std::shared_ptr<WantAgent> agent,
         return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
     }
     std::shared_ptr<PendingWant> pendingWant = agent->GetPendingWant();
-    WantAgentConstant::OperationType type = GetType(agent);
+    AAFwk::WantTriggerInfo *wantTriggerInfo = agent->GetWantTriggerInfo();
+    WantAgentConstant::OperationType type = GetType(agent); // 如果server端已经被释放，可能失败
     sptr<CompletedDispatcher> dispatcher = nullptr;
     if (callback != nullptr) {
         dispatcher = new (std::nothrow) CompletedDispatcher(pendingWant, callback, nullptr);
     }
-    return Send(pendingWant, type, dispatcher, paramsInfo);
+    return Send(pendingWant, wantTriggerInfo, type, dispatcher, paramsInfo);
 }
 
-ErrCode WantAgentHelper::Send(const std::shared_ptr<PendingWant> &pendingWant,
+ErrCode WantAgentHelper::Send(const std::shared_ptr<PendingWant> &pendingWant, AAFwk::WantTriggerInfo *wantTriggerInfo,
     WantAgentConstant::OperationType type, const sptr<CompletedDispatcher> &callBack, const TriggerInfo &paramsInfo)
 {
     TAG_LOGD(AAFwkTag::WANTAGENT, "call");
@@ -220,7 +227,7 @@ ErrCode WantAgentHelper::Send(const std::shared_ptr<PendingWant> &pendingWant,
         paramsInfo.GetPermission(),
         paramsInfo.GetExtraInfo(),
         paramsInfo.GetStartOptions(),
-        pendingWant->GetTarget());
+        pendingWant->GetTarget(), wantTriggerInfo);
 }
 
 ErrCode WantAgentHelper::Cancel(const std::shared_ptr<WantAgent> agent, uint32_t flags)

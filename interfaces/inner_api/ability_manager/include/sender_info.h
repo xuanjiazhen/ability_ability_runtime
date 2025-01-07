@@ -22,6 +22,7 @@
 
 #include "start_options.h"
 #include "want.h"
+#include "want_sender_info.h"
 
 #include "want_receiver_interface.h"
 
@@ -34,6 +35,7 @@ struct SenderInfo : public Parcelable {
     sptr<IWantReceiver> finishedReceiver;
     std::string requiredPermission;
     sptr<StartOptions> startOptions;
+    WantTriggerInfo wantTriggerInfo;
 
     bool ReadFromParcel(Parcel &parcel);
     virtual bool Marshalling(Parcel &parcel) const override;
