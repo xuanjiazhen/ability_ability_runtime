@@ -72,7 +72,7 @@ StartupManager::StartupManager()
 StartupManager::~StartupManager() = default;
 
 int32_t StartupManager::PreloadAppHintStartup(const AppExecFwk::BundleInfo& bundleInfo,
-    const AppExecFwk::HapModuleInfo& entryInfo, const std::string &preloadModuleName)
+    const AppExecFwk::HapModuleInfo& entryInfo, const std::string &preloadModuleName, bool &runPreloadSo)
 {
     moduleStartupConfigInfos_.clear();
     if (entryInfo.appStartup.empty()) {
@@ -113,6 +113,7 @@ int32_t StartupManager::PreloadAppHintStartup(const AppExecFwk::BundleInfo& bund
         }
         self->PreloadAppHintStartupTask();
     });
+    runPreloadSo = true;
     return ERR_OK;
 }
 

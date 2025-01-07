@@ -230,7 +230,7 @@ public:
 #endif
 
     void PreloadAppStartup(const BundleInfo &bundleInfo, const HapModuleInfo &entryHapModuleInfo,
-        const std::string &preloadModuleName);
+        const std::string &preloadModuleName, bool &runPreloadSo);
 
 private:
     void UpdateAppContextResMgr(const Configuration &config);

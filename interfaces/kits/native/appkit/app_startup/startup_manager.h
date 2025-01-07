@@ -61,7 +61,7 @@ DECLARE_DELAYED_SINGLETON(StartupManager)
 
 public:
     int32_t PreloadAppHintStartup(const AppExecFwk::BundleInfo& bundleInfo,
-        const AppExecFwk::HapModuleInfo& entryInfo, const std::string &preloadModuleName);
+        const AppExecFwk::HapModuleInfo& entryInfo, const std::string &preloadModuleName, bool &runPreloadSo);
 
     int32_t LoadAppStartupTaskConfig(bool &needRunAutoStartupTask);
 

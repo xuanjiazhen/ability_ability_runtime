@@ -1476,8 +1476,9 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
 #ifdef CJ_FRONTEND
     }
 #endif
-
-    application_->PreloadAppStartup(bundleInfo, entryHapModuleInfo, appLaunchData.GetPreloadModuleName());
+    bool runPreloadSo = false;
+    application_->PreloadAppStartup(bundleInfo, entryHapModuleInfo, appLaunchData.GetPreloadModuleName(),
+        runPreloadSo);
 
     if (isStageBased) {
         // Create runtime
@@ -1787,7 +1788,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     // start nwebspawn process
     std::weak_ptr<OHOSApplication> weakApp = application_;
     wptr<IAppMgr> weakMgr = appMgr_;
-    std::thread([weakApp, weakMgr] {
+    std::thread([weakApp, weakMgr, runPreloadSo] {
         auto app = weakApp.lock();
         auto appmgr = weakMgr.promote();
         if (app == nullptr || appmgr == nullptr) {
@@ -1804,7 +1805,10 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         if (!isFirstStartUpWeb) {
             appmgr->PreStartNWebSpawnProcess();
         }
-        OHOS::NWeb::NWebHelper::TryPreReadLib(isFirstStartUpWeb, app->GetAppContext()->GetBundleCodeDir());
+
+        if (!runPreloadSo) {
+            OHOS::NWeb::NWebHelper::TryPreReadLib(isFirstStartUpWeb, app->GetAppContext()->GetBundleCodeDir());
+        }
     }).detach();
 #endif
 #if defined(NWEB) && defined(NWEB_GRAPHIC)
