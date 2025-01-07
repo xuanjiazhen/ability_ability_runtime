@@ -74,7 +74,7 @@ public:
         const std::shared_ptr<OHOS::AbilityRuntime::ApplicationContext> &context, int requestCode,
         const std::shared_ptr<AAFwk::Want> &want, unsigned int flags,
         const std::shared_ptr<AAFwk::WantParams> &options,
-        std::shared_ptr<PendingWant> &pendingWant);
+        std::shared_ptr<PendingWant> &pendingWant, AAFwk::WantTriggerInfo &wantTriggerInfo);
 
     /**
      * Like GetAbility(Context, int, Want, int)}, but allows an
@@ -116,7 +116,7 @@ public:
         const std::shared_ptr<OHOS::AbilityRuntime::ApplicationContext> &context, int requestCode,
         std::vector<std::shared_ptr<AAFwk::Want>> &wants, unsigned int flags,
         const std::shared_ptr<AAFwk::WantParams> &options,
-        std::shared_ptr<PendingWant> &pendingWant);
+        std::shared_ptr<PendingWant> &pendingWant, AAFwk::WantTriggerInfo &wantTriggerInfo);
 
     /**
      * Retrieve a PendingWant that will perform a common event.
@@ -134,7 +134,7 @@ public:
     static ErrCode GetCommonEvent(
         const std::shared_ptr<OHOS::AbilityRuntime::ApplicationContext> &context, int requestCode,
         const std::shared_ptr<AAFwk::Want> &want, unsigned int flags,
-        std::shared_ptr<PendingWant> &pendingWant);
+        std::shared_ptr<PendingWant> &pendingWant, AAFwk::WantTriggerInfo &wantTriggerInfo);
 
     /**
      * Note that current user will be interpreted at the time the
@@ -143,7 +143,7 @@ public:
     static ErrCode GetCommonEventAsUser(
         const std::shared_ptr<OHOS::AbilityRuntime::ApplicationContext> &context,
         int requestCode, const std::shared_ptr<AAFwk::Want> &want, unsigned int flags, int uid,
-        std::shared_ptr<PendingWant> &pendingWant);
+        std::shared_ptr<PendingWant> &pendingWant, AAFwk::WantTriggerInfo &wantTriggerInfo);
 
     /**
      * Retrieve a PendingWant that will start a service.
@@ -161,12 +161,12 @@ public:
     static ErrCode GetService(
         const std::shared_ptr<OHOS::AbilityRuntime::ApplicationContext> &context,
         int requestCode, const std::shared_ptr<AAFwk::Want> &want, unsigned int flags,
-        std::shared_ptr<PendingWant> &pendingWant);
+        std::shared_ptr<PendingWant> &pendingWant, AAFwk::WantTriggerInfo &wantTriggerInfo);
 
     static ErrCode GetServiceExtension(
         const std::shared_ptr<OHOS::AbilityRuntime::ApplicationContext> &context,
         int requestCode, const std::shared_ptr<AAFwk::Want> &want, unsigned int flags,
-        std::shared_ptr<PendingWant> &pendingWant);
+        std::shared_ptr<PendingWant> &pendingWant, AAFwk::WantTriggerInfo &wantTriggerInfo);
 
     /**
      * Retrieve a PendingWant that will start a foreground service.
@@ -184,7 +184,7 @@ public:
     static ErrCode GetForegroundService(
         const std::shared_ptr<OHOS::AbilityRuntime::ApplicationContext> &context,
         int requestCode, const std::shared_ptr<AAFwk::Want> &want, unsigned int flags,
-        std::shared_ptr<PendingWant> &pendingWant);
+        std::shared_ptr<PendingWant> &pendingWant, AAFwk::WantTriggerInfo &wantTriggerInfo);
 
     /**
      * @description: Marshals a Want into a Parcel.
@@ -227,12 +227,12 @@ public:
     ErrCode Send(int resultCode, const std::shared_ptr<AAFwk::Want> &want,
         const sptr<CompletedDispatcher> &onCompleted, const std::string &requiredPermission,
         const std::shared_ptr<AAFwk::WantParams> &options, const std::shared_ptr<AAFwk::StartOptions> &startOptions,
-        const sptr<AAFwk::IWantSender> &target);
+        const sptr<AAFwk::IWantSender> &target, AAFwk::WantTriggerInfo *wantTriggerInfo);
 
     int SendAndReturnResult(int resultCode, const std::shared_ptr<AAFwk::Want> &want,
         const sptr<CompletedDispatcher> &onCompleted, const std::string &requiredPermission,
         const std::shared_ptr<AAFwk::WantParams> &options, const std::shared_ptr<AAFwk::StartOptions> &startOptions,
-        const sptr<AAFwk::IWantSender> &target);
+        const sptr<AAFwk::IWantSender> &target, AAFwk::WantTriggerInfo *wantTriggerInfo);
 
     ErrCode GetBundleName(const sptr<AAFwk::IWantSender> &target, std::string &bundleName);
 
@@ -284,7 +284,7 @@ private:
         const std::shared_ptr<OHOS::AbilityRuntime::ApplicationContext> &context,
         int requestCode, const std::shared_ptr<AAFwk::Want> &want, unsigned int flags,
         WantAgentConstant::OperationType serviceKind,
-        std::shared_ptr<PendingWant> &pendingWant);
+        std::shared_ptr<PendingWant> &pendingWant, AAFwk::WantTriggerInfo &wantTriggerInfo);
 };
 }  // namespace OHOS::AbilityRuntime::WantAgent
 #endif  // OHOS_ABILITY_RUNTIME_PENDING_WANT_H

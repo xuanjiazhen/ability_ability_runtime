@@ -218,7 +218,33 @@ int32_t PendingWantManager::SendWantSender(sptr<IWantSender> target, const Sende
         TAG_LOGE(AAFwkTag::WANTAGENT, "target object null or a proxy");
         return ERR_INVALID_VALUE;
     }
-    sptr<PendingWantRecord> record = iface_cast<PendingWantRecord>(obj);
+    // sptr<PendingWantRecord> record = iface_cast<PendingWantRecord>(obj);
+    // 新增参数校验
+    AAFwk::WantTriggerInfo wantTriggerInfo = senderInfo.wantTriggerInfo;
+    WantSenderInfo wantSenderInfo = senderInfo.wantTriggerInfo.wantSenderInfo;
+    std::shared_ptr<PendingWantKey> pendingKey = std::make_shared<PendingWantKey>();
+    pendingKey->SetBundleName(wantSenderInfo.bundleName);
+    pendingKey->SetRequestWho(wantSenderInfo.resultWho);
+    pendingKey->SetRequestCode(wantSenderInfo.requestCode);
+    pendingKey->SetFlags(wantSenderInfo.flags);
+    pendingKey->SetUserId(wantSenderInfo.userId);
+    pendingKey->SetType(wantSenderInfo.type);
+    if (wantSenderInfo.allWants.size() > 0) {
+        pendingKey->SetRequestWant(wantSenderInfo.allWants.back().want);
+        pendingKey->SetRequestResolvedType(wantSenderInfo.allWants.back().resolvedTypes);
+        pendingKey->SetAllWantsInfos(wantSenderInfo.allWants);
+    }
+
+    sptr<PendingWantRecord> record =
+        new (std::nothrow) PendingWantRecord(shared_from_this(), wantTriggerInfo.appUid, wantTriggerInfo.callerTokenID,
+        wantTriggerInfo.callerToken, pendingKey);
+    if(record == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT,
+            "ljj:record create failed, requestCode=%{public}d, bundleName=%{public}s, flags=%{public}d, type=%{public}d",
+            pendingKey->GetRequestCode(), pendingKey->GetBundleName().c_str(), pendingKey->GetFlags(), pendingKey->GetType());
+    }
+    record->SetCallerUid(wantTriggerInfo.callerUid);
+
     SenderInfo info = senderInfo;
     return record->SenderInner(info);
 }

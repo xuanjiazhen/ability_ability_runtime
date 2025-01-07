@@ -24,7 +24,7 @@
 namespace OHOS {
 namespace AppExecFwk {
 using namespace OHOS::AbilityRuntime;
-
+using namespace OHOS::AAFwk;
 inline void *DetachCallbackFunc(napi_env env, void *value, void *)
 {
     return value;
@@ -47,7 +47,8 @@ napi_value AttachWantAgentFunc(napi_env env, void *value, void *)
     }
 
     auto wantAgent = new AbilityRuntime::WantAgent::WantAgent(
-        reinterpret_cast<AbilityRuntime::WantAgent::WantAgent*>(value)->GetPendingWant());
+        reinterpret_cast<AbilityRuntime::WantAgent::WantAgent*>(value)->GetPendingWant(),
+        *(reinterpret_cast<AbilityRuntime::WantAgent::WantAgent*>(value)->GetWantTriggerInfo()));
     if (wantAgent == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "new wantAgent failed");
         return jsObject;
@@ -122,7 +123,7 @@ napi_value WrapWantAgent(napi_env env, AbilityRuntime::WantAgent::WantAgent* wan
     napi_coerce_to_native_binding_object(env, result, DetachCallbackFunc, AttachWantAgentFunc, wantAgent, nullptr);
 
     napi_finalize finalize = [](napi_env env, void* data, void* hint) {
-        TAG_LOGD(AAFwkTag::WANTAGENT, "delete wantAgent");
+        TAG_LOGI(AAFwkTag::WANTAGENT, "delete wantAgent"); //js生命周期结束，delete触发析构
         auto agent = static_cast<AbilityRuntime::WantAgent::WantAgent*>(data);
         delete agent;
         agent = nullptr;

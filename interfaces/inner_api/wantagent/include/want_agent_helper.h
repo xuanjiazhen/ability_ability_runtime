@@ -188,7 +188,7 @@ private:
     virtual ~WantAgentHelper() = default;
 
 private:
-    static ErrCode Send(const std::shared_ptr<PendingWant> &pendingWant,
+    static ErrCode Send(const std::shared_ptr<PendingWant> &pendingWant, AAFwk::WantTriggerInfo *wantTriggerInfo,
         WantAgentConstant::OperationType type,
         const sptr<CompletedDispatcher> &callBack,
         const TriggerInfo &paramsInfo);

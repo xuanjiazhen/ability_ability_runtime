@@ -1805,11 +1805,24 @@ int AbilityManagerStub::GetWantSenderInner(MessageParcel &data, MessageParcel &r
     }
 
     int32_t uid = data.ReadInt32();
-    sptr<IWantSender> wantSender = GetWantSender(*wantSenderInfo, callerToken, uid);
+    int32_t appUid = -1;
+    int32_t callerUid = -1;
+    sptr<IWantSender> wantSender = GetWantSenderExt(*wantSenderInfo, callerToken, appUid, callerUid, uid);
     if (!reply.WriteRemoteObject(((wantSender == nullptr) ? nullptr : wantSender->AsObject()))) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed reply wantSender to client, for write parcel error");
         return ERR_INVALID_VALUE;
     }
+
+    if (!reply.WriteRemoteObject(((wantSender == nullptr) ? nullptr : wantSender->AsObject()))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed reply wantSender to client, for write parcel error");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!data.WriteInt32(appUid) || !data.WriteInt32(callerUid)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "appUid or callerUid write fail");
+        return ERR_INVALID_VALUE;
+    }
+
     return NO_ERROR;
 }
 
@@ -1825,6 +1838,11 @@ int AbilityManagerStub::SendWantSenderInner(MessageParcel &data, MessageParcel &
         TAG_LOGE(AAFwkTag::ABILITYMGR, "senderInfo null");
         return ERR_INVALID_VALUE;
     }
+
+    TAG_LOGI(AAFwkTag::WANTAGENT, "ljj:after trigger wantTriggerInfo: type=%{public}d, bundle=%{public}s, callerTokenID=%{public}d, appUid=%{public}d, callerUid=%{public}d",
+             senderInfo->wantTriggerInfo.wantSenderInfo.type, senderInfo->wantTriggerInfo.wantSenderInfo.bundleName.c_str(),
+             senderInfo->wantTriggerInfo.callerTokenID, senderInfo->wantTriggerInfo.appUid, senderInfo->wantTriggerInfo.callerUid);
+
     int32_t result = SendWantSender(wantSender, *senderInfo);
     reply.WriteInt32(result);
     return NO_ERROR;

@@ -79,5 +79,75 @@ bool WantSenderInfo::Marshalling(Parcel &parcel) const
     parcel.WriteInt32(userId);
     return true;
 }
+
+bool WantTriggerInfo::ReadFromParcel(Parcel &parcel)
+{
+    std::unique_ptr<WantSenderInfo> SenderInforRequest(parcel.ReadParcelable<WantSenderInfo>());
+    if (SenderInforRequest == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null SenderInforRequest");
+        return false;
+    }
+    wantSenderInfo = *SenderInforRequest;
+    TAG_LOGI(AAFwkTag::WANTAGENT, "ljj:ReadFromParcel type=%{public}d, %{public}s", wantSenderInfo.type, wantSenderInfo.bundleName.c_str());
+
+    if (parcel.ReadBool()) {
+        callerToken = (static_cast<MessageParcel*>(&parcel))->ReadRemoteObject();
+        if (callerToken == nullptr) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "callerToken read failed");
+            return false;
+        }
+    }
+
+    callerTokenID = parcel.ReadInt32();
+    appUid = parcel.ReadInt32();
+    callerUid = parcel.ReadInt32();
+
+    return true;
+}
+
+WantTriggerInfo *WantTriggerInfo::Unmarshalling(Parcel &parcel)
+{
+    WantTriggerInfo *info = new (std::nothrow) WantTriggerInfo();
+    if (info == nullptr) {
+        return nullptr;
+    }
+
+    if (!info->ReadFromParcel(parcel)) {
+        delete info;
+        info = nullptr;
+    }
+    return info;
+}
+
+bool WantTriggerInfo::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteParcelable(&wantSenderInfo)) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "Failed to write wantSenderInfo");
+        return false;
+    }
+
+    if (callerToken) {
+        if (!parcel.WriteBool(true)) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "true write failed");
+            return false;
+        }
+        if (!(static_cast<MessageParcel*>(&parcel))->WriteRemoteObject(callerToken)) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "callerToken write failed");
+            return false;
+        }
+    } else {
+        if (!parcel.WriteBool(false)) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "false write failed");
+            return false;
+        }
+    }
+
+    parcel.WriteInt32(callerTokenID);
+    parcel.WriteInt32(appUid);
+    parcel.WriteInt32(callerUid);
+
+    return true;
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS

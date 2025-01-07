@@ -937,6 +937,9 @@ public:
 
     virtual void CancelWantSenderByFlags(const sptr<IWantSender> &sender, uint32_t flags) override;
 
+    virtual sptr<IWantSender> GetWantSenderExt(const WantSenderInfo &wantSenderInfo,
+        const sptr<IRemoteObject> &callerToken, int32_t &appUid_, int32_t &callerUid_, int32_t uid) override;
+
     virtual int LockMissionForCleanup(int32_t missionId) override;
 
     virtual int UnlockMissionForCleanup(int32_t missionId) override;

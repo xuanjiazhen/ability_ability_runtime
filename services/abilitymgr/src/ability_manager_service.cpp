@@ -4865,6 +4865,69 @@ sptr<IWantSender> AbilityManagerService::GetWantSender(
     return pendingWantManager->GetWantSender(callerUid, appUid, isSystemApp, wantSenderInfo, callerToken, appIndex);
 }
 
+sptr<IWantSender> AbilityManagerService::GetWantSenderExt(
+    const WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, int32_t &appUid_, int32_t &callerUid_,
+    int32_t uid)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    auto pendingWantManager = GetCurrentPendingWantManager();
+    CHECK_POINTER_AND_RETURN(pendingWantManager, nullptr);
+
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN(bms, nullptr);
+
+    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t userId = wantSenderInfo.userId;
+    int32_t bundleMgrResult = 0;
+
+    if (userId < 0) {
+        if (DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->
+            GetOsAccountLocalIdFromUid(callerUid, userId) != 0) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "getOsAccountLocalIdFromUid failed uid=%{public}d", callerUid);
+            return nullptr;
+        }
+    }
+    //sa caller and has uid，no need find from bms.
+    bool isSpecifyUidBySa = (uid != -1) && (AAFwk::PermissionVerification::GetInstance()->IsSACall());
+
+    int32_t appUid = -1;
+    int32_t appIndex = 0;
+    std::string bundleName = "";
+    if (!wantSenderInfo.allWants.empty()) {
+        bundleName = wantSenderInfo.allWants.back().want.GetElement().GetBundleName();
+    }
+    if (!bundleName.empty()) {
+        if (!isSpecifyUidBySa) {
+            AppExecFwk::BundleInfo bundleInfo;
+            MultiAppUtils::GetRunningMultiAppIndex(bundleName, callerUid, appIndex);
+            bundleMgrResult = IN_PROCESS_CALL(bms->GetCloneBundleInfo(bundleName,
+                static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION),
+                appIndex, bundleInfo, userId));
+            if (bundleMgrResult == ERR_OK) {
+                appUid = bundleInfo.uid;
+            }
+        } else {
+            appUid = uid;
+        }
+        TAG_LOGD(AAFwkTag::ABILITYMGR,
+            "bundleName: %{public}s, uid: %{public}d, userId: %{public}d, appIndex: %{public}d", bundleName.c_str(),
+            appUid, userId, appIndex);
+    }
+    if (!CheckSenderWantInfo(callerUid, wantSenderInfo)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "check bundleName failed");
+        return nullptr;
+    }
+
+    bool isSystemApp = AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall();
+
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "bundleName: %{public}s, appIndex: %{public}d, isSystemApp: %{public}d",
+        wantSenderInfo.bundleName.c_str(), appIndex, isSystemApp);
+    appUid_ = appUid;
+    callerUid_ = callerUid;
+    TAG_LOGW(AAFwkTag::ABILITYMGR, "ljj:GetWantSenderExt appUid=%{public}d, callerUid=%{public}d", appUid_, callerUid_);
+    return pendingWantManager->GetWantSender(callerUid, appUid, isSystemApp, wantSenderInfo, callerToken, appIndex);
+}
+
 int AbilityManagerService::SendWantSender(sptr<IWantSender> target, const SenderInfo &senderInfo)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");

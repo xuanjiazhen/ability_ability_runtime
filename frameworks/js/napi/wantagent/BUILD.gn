@@ -38,6 +38,7 @@ ohos_shared_library("wantagent") {
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_services_path}/abilitymgr:wantagent_manager",
   ]
 
   external_deps = [
