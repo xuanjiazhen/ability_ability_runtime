@@ -2752,6 +2752,31 @@ void AbilityManagerService::ReportEventToRSS(const AppExecFwk::AbilityInfo &abil
     });
 }
 
+void AbilityManagerService::ReportOtherCallerConnectEvent(const AppExecFwk::AbilityInfo &abilityInfo,
+    sptr<IRemoteObject> callerToken)
+{
+    if (PermissionVerification::GetInstance()->IsSACall()) {
+        return;
+    }
+    if (type != AppExecFwk::AbilityType::EXTENSION ||
+        targetExtensionType == AppExecFwk::ExtensionAbilityType::SERVICE) {
+        return;
+    }
+
+    EventInfo eventInfo;
+    eventInfo.bundleName = abilityRequest.want.GetElement().GetBundleName();
+    eventInfo.moduleName = abilityRequest.want.GetElement().GetModuleName();
+    eventInfo.abilityName = abilityRequest.want.GetElement().GetAbilityName();
+    eventInfo.extensionType = static_cast<int32_t>(targetExtensionType);
+    
+    auto callerAbility = Token::GetAbilityRecordByToken(callerToken);
+    const int32_t callerPid = (callerAbility != nullptr) ? callerAbility->GetPid() : IPCSkeleton::GetCallingPid();
+    eventInfo.pid = callerPid;
+    eventInfo.uid = callerAbility->GetUid();
+
+    EventReport::SendStartAbilityOtherExtensionEvent(EventName::START_ABILITY_OTHER_EXTENSION, eventInfo);
+}
+
 int32_t AbilityManagerService::StartExtensionAbility(const Want &want, const sptr<IRemoteObject> &callerToken,
     int32_t userId, AppExecFwk::ExtensionAbilityType extensionType)
 {
@@ -4437,6 +4462,8 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
         return result;
     }
 
+    ReportOtherCallerConnectEvent(abilityInfo, callerToken);
+    
     if (!ExtensionPermissionsUtil::CheckSAPermission(targetExtensionType)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "SA doesn't have target extension permission");
         return CHECK_PERMISSION_FAILED;
