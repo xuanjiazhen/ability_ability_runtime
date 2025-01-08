@@ -22,18 +22,20 @@
 #include "pending_want.h"
 #include "want.h"
 #include "want_params.h"
+#include "want_sender_info.h"
 
 namespace OHOS::AbilityRuntime::WantAgent {
 class WantAgent final : public std::enable_shared_from_this<WantAgent>, public Parcelable {
 public:
     WantAgent() {};
-    virtual ~WantAgent() = default;
+    virtual ~WantAgent();
+
     /**
      * Constructor.
      *
      * @param obj The proxy object.
      */
-    explicit WantAgent(const std::shared_ptr<PendingWant> &pendingWant);
+    explicit WantAgent(const std::shared_ptr<PendingWant> &pendingWant, AAFwk::WantTriggerInfo wantTriggerInfo, bool free_flag = false);
 
     /**
      * Gets proxy obj.
@@ -48,6 +50,10 @@ public:
      * @param obj The proxy object.
      */
     void SetPendingWant(const std::shared_ptr<PendingWant> &pendingWant);
+
+    void SetWantTriggerInfo(AAFwk::WantTriggerInfo wantTriggerInfo);
+
+    AAFwk::WantTriggerInfo *GetWantTriggerInfo();
 
     /**
      * @description: Marshals a Want into a Parcel.
@@ -65,8 +71,25 @@ public:
      */
     static WantAgent *Unmarshalling(Parcel &parcel);
 
+    /**
+     * Get isMultithreadingSupported_
+     *
+     * @return Return isMultithreadingSupported_
+     */
+    static bool GetIsMultithreadingSupported();
+
+    /**
+     * Set isMultithreadingSupported_
+     *
+     * @param isMultithreadingSupported Indicates the WantAgent support multithreading or not.
+     */
+    static void SetIsMultithreadingSupported(bool isMultithreadingSupported);
+
 private:
-    std::shared_ptr<PendingWant> pendingWant_;
+    std::shared_ptr<PendingWant> pendingWant_; // 改成传递数据
+    AAFwk::WantTriggerInfo wantTriggerInfo_;
+    bool free_flag_;
+    static bool isMultithreadingSupported_;
 };
 }  // namespace OHOS::AbilityRuntime::WantAgent
 #endif  // OHOS_ABILITY_RUNTIME_WANT_AGENT_H

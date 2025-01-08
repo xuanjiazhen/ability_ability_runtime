@@ -20,6 +20,7 @@
 #include "hitrace_meter.h"
 #include "want_agent_client.h"
 #include "want_sender_info.h"
+#include "ipc_skeleton.h"
 
 using namespace OHOS::AppExecFwk;
 using namespace OHOS::AAFwk;
@@ -49,7 +50,8 @@ std::shared_ptr<PendingWant> PendingWant::GetAbility(
     int requestCode, const std::shared_ptr<Want> &want, unsigned int flags)
 {
     std::shared_ptr<PendingWant> pendingWant = nullptr;
-    GetAbility(context, requestCode, want, flags, nullptr, pendingWant);
+    AAFwk::WantTriggerInfo wantTriggerInfo;
+    GetAbility(context, requestCode, want, flags, nullptr, pendingWant, wantTriggerInfo);
     return pendingWant;
 }
 
@@ -57,7 +59,7 @@ ErrCode PendingWant::GetAbility(
     const std::shared_ptr<OHOS::AbilityRuntime::ApplicationContext> &context, int requestCode,
     const std::shared_ptr<AAFwk::Want> &want, unsigned int flags,
     const std::shared_ptr<AAFwk::WantParams> &options,
-    std::shared_ptr<PendingWant> &pendingWant)
+    std::shared_ptr<PendingWant> &pendingWant, AAFwk::WantTriggerInfo &wantTriggerInfo)
 {
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
@@ -71,15 +73,16 @@ ErrCode PendingWant::GetAbility(
         wantsInfo.want.SetParams(*options);
     }
 
-    WantSenderInfo wantSenderInfo;
-    wantSenderInfo.type = static_cast<int32_t>(WantAgentConstant::OperationType::START_ABILITY);
-    wantSenderInfo.allWants.push_back(wantsInfo);
-    wantSenderInfo.bundleName = context->GetBundleName();
-    wantSenderInfo.flags = flags;
-    wantSenderInfo.userId = -1; // -1 : invalid user id
-    wantSenderInfo.requestCode = requestCode;
+    wantTriggerInfo.wantSenderInfo.type = static_cast<int32_t>(WantAgentConstant::OperationType::START_ABILITY);
+    wantTriggerInfo.wantSenderInfo.allWants.push_back(wantsInfo);
+    wantTriggerInfo.wantSenderInfo.bundleName = context->GetBundleName();
+    wantTriggerInfo.wantSenderInfo.flags = flags;
+    wantTriggerInfo.wantSenderInfo.userId = -1; // -1 : invalid user id
+    wantTriggerInfo.wantSenderInfo.requestCode = requestCode;
+    wantTriggerInfo.callerToken = nullptr;
+    wantTriggerInfo.callerTokenID = IPCSkeleton::GetSelfTokenID();
     sptr<IWantSender> target = nullptr;
-    ErrCode result = WantAgentClient::GetInstance().GetWantSender(wantSenderInfo, nullptr, target);
+    ErrCode result = WantAgentClient::GetInstance().GetWantSender(wantTriggerInfo.wantSenderInfo, wantTriggerInfo.callerToken, wantTriggerInfo.appUid, wantTriggerInfo.callerUid, target);
     if (result != ERR_OK) {
         return result;
     }
@@ -92,26 +95,26 @@ std::shared_ptr<PendingWant> PendingWant::GetAbilities(
     std::vector<std::shared_ptr<Want>> &wants, unsigned int flags)
 {
     std::shared_ptr<PendingWant> pendingWant = nullptr;
-    GetAbilities(context, requestCode, wants, flags, nullptr, pendingWant);
+    AAFwk::WantTriggerInfo wantTriggerInfo;
+    GetAbilities(context, requestCode, wants, flags, nullptr, pendingWant, wantTriggerInfo);
     return pendingWant;
 }
 
 ErrCode PendingWant::GetAbilities(
     const std::shared_ptr<OHOS::AbilityRuntime::ApplicationContext> &context, int requestCode,
     std::vector<std::shared_ptr<Want>> &wants, unsigned int flags, const std::shared_ptr<WantParams> &options,
-    std::shared_ptr<PendingWant> &pendingWant)
+    std::shared_ptr<PendingWant> &pendingWant, AAFwk::WantTriggerInfo &wantTriggerInfo)
 {
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
         return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
     }
 
-    WantSenderInfo wantSenderInfo;
-    wantSenderInfo.type = static_cast<int32_t>(WantAgentConstant::OperationType::START_ABILITIES);
-    wantSenderInfo.bundleName = context->GetBundleName();
-    wantSenderInfo.flags = flags;
-    wantSenderInfo.userId = -1; // -1 : invalid user id
-    wantSenderInfo.requestCode = requestCode;
+    wantTriggerInfo.wantSenderInfo.type = static_cast<int32_t>(WantAgentConstant::OperationType::START_ABILITIES);
+    wantTriggerInfo.wantSenderInfo.bundleName = context->GetBundleName();
+    wantTriggerInfo.wantSenderInfo.flags = flags;
+    wantTriggerInfo.wantSenderInfo.userId = -1; // -1 : invalid user id
+    wantTriggerInfo.wantSenderInfo.requestCode = requestCode;
     for (auto want : wants) {
         WantsInfo wantsInfo;
         if (want != nullptr) {
@@ -121,10 +124,12 @@ ErrCode PendingWant::GetAbilities(
         if (options != nullptr && !options->IsEmpty()) {
             wantsInfo.want.SetParams(*options);
         }
-        wantSenderInfo.allWants.push_back(wantsInfo);
+        wantTriggerInfo.wantSenderInfo.allWants.push_back(wantsInfo);
     }
+    wantTriggerInfo.callerToken = nullptr;
+    wantTriggerInfo.callerTokenID = IPCSkeleton::GetSelfTokenID();
     sptr<IWantSender> target = nullptr;
-    ErrCode result = WantAgentClient::GetInstance().GetWantSender(wantSenderInfo, nullptr, target);
+    ErrCode result = WantAgentClient::GetInstance().GetWantSender(wantTriggerInfo.wantSenderInfo, wantTriggerInfo.callerToken, wantTriggerInfo.appUid, wantTriggerInfo.callerUid, target);
     if (result != ERR_OK) {
         return result;
     }
@@ -135,15 +140,15 @@ ErrCode PendingWant::GetAbilities(
 ErrCode PendingWant::GetCommonEvent(
     const std::shared_ptr<OHOS::AbilityRuntime::ApplicationContext> &context,
     int requestCode, const std::shared_ptr<Want> &want, unsigned int flags,
-    std::shared_ptr<PendingWant> &pendingWant)
+    std::shared_ptr<PendingWant> &pendingWant, AAFwk::WantTriggerInfo &wantTriggerInfo)
 {
-    return GetCommonEventAsUser(context, requestCode, want, flags, 0, pendingWant);
+    return GetCommonEventAsUser(context, requestCode, want, flags, 0, pendingWant, wantTriggerInfo);
 }
 
 ErrCode PendingWant::GetCommonEventAsUser(
     const std::shared_ptr<OHOS::AbilityRuntime::ApplicationContext> &context,
     int requestCode, const std::shared_ptr<Want> &want, unsigned int flags, int uid,
-    std::shared_ptr<PendingWant> &pendingWant)
+    std::shared_ptr<PendingWant> &pendingWant, AAFwk::WantTriggerInfo &wantTriggerInfo)
 {
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
@@ -156,15 +161,16 @@ ErrCode PendingWant::GetCommonEventAsUser(
     }
     wantsInfo.resolvedTypes = want != nullptr ? want->GetType() : "";
 
-    WantSenderInfo wantSenderInfo;
-    wantSenderInfo.type = static_cast<int32_t>(WantAgentConstant::OperationType::SEND_COMMON_EVENT);
-    wantSenderInfo.allWants.push_back(wantsInfo);
-    wantSenderInfo.bundleName = context->GetBundleName();
-    wantSenderInfo.flags = flags;
-    wantSenderInfo.userId = -1; // -1 : invalid user id
-    wantSenderInfo.requestCode = requestCode;
+    wantTriggerInfo.wantSenderInfo.type = static_cast<int32_t>(WantAgentConstant::OperationType::SEND_COMMON_EVENT);
+    wantTriggerInfo.wantSenderInfo.allWants.push_back(wantsInfo);
+    wantTriggerInfo.wantSenderInfo.bundleName = context->GetBundleName();
+    wantTriggerInfo.wantSenderInfo.flags = flags;
+    wantTriggerInfo.wantSenderInfo.userId = -1; // -1 : invalid user id
+    wantTriggerInfo.wantSenderInfo.requestCode = requestCode;
+    wantTriggerInfo.callerToken = nullptr;
+    wantTriggerInfo.callerTokenID = IPCSkeleton::GetSelfTokenID();
     sptr<IWantSender> target = nullptr;
-    ErrCode result = WantAgentClient::GetInstance().GetWantSender(wantSenderInfo, nullptr, target);
+    ErrCode result = WantAgentClient::GetInstance().GetWantSender(wantTriggerInfo.wantSenderInfo, wantTriggerInfo.callerToken, wantTriggerInfo.appUid, wantTriggerInfo.callerUid, target);
     if (result != ERR_OK) {
         return result;
     }
@@ -175,36 +181,36 @@ ErrCode PendingWant::GetCommonEventAsUser(
 ErrCode PendingWant::GetService(
     const std::shared_ptr<OHOS::AbilityRuntime::ApplicationContext> &context,
     int requestCode, const std::shared_ptr<AAFwk::Want> &want, unsigned int flags,
-    std::shared_ptr<PendingWant> &pendingWant)
+    std::shared_ptr<PendingWant> &pendingWant, AAFwk::WantTriggerInfo &wantTriggerInfo)
 {
     return BuildServicePendingWant(context, requestCode, want, flags,
-        WantAgentConstant::OperationType::START_SERVICE, pendingWant);
+        WantAgentConstant::OperationType::START_SERVICE, pendingWant, wantTriggerInfo);
 }
 
 ErrCode PendingWant::GetServiceExtension(
     const std::shared_ptr<OHOS::AbilityRuntime::ApplicationContext> &context,
     int requestCode, const std::shared_ptr<AAFwk::Want> &want, unsigned int flags,
-    std::shared_ptr<PendingWant> &pendingWant)
+    std::shared_ptr<PendingWant> &pendingWant, AAFwk::WantTriggerInfo &wantTriggerInfo)
 {
     return BuildServicePendingWant(context, requestCode, want, flags,
-        WantAgentConstant::OperationType::START_SERVICE_EXTENSION, pendingWant);
+        WantAgentConstant::OperationType::START_SERVICE_EXTENSION, pendingWant, wantTriggerInfo);
 }
 
 ErrCode PendingWant::GetForegroundService(
     const std::shared_ptr<OHOS::AbilityRuntime::ApplicationContext> &context, int requestCode,
     const std::shared_ptr<Want> &want, unsigned int flags,
-    std::shared_ptr<PendingWant> &pendingWant)
+    std::shared_ptr<PendingWant> &pendingWant, AAFwk::WantTriggerInfo &wantTriggerInfo)
 {
     return BuildServicePendingWant(
         context, requestCode, want, flags, WantAgentConstant::OperationType::START_FOREGROUND_SERVICE,
-        pendingWant);
+        pendingWant, wantTriggerInfo);
 }
 
 ErrCode PendingWant::BuildServicePendingWant(
     const std::shared_ptr<OHOS::AbilityRuntime::ApplicationContext> &context,
     int requestCode, const std::shared_ptr<Want> &want,
     unsigned int flags, WantAgentConstant::OperationType serviceKind,
-    std::shared_ptr<PendingWant> &pendingWant)
+    std::shared_ptr<PendingWant> &pendingWant, AAFwk::WantTriggerInfo &wantTriggerInfo)
 {
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
@@ -217,15 +223,16 @@ ErrCode PendingWant::BuildServicePendingWant(
     }
     wantsInfo.resolvedTypes = want != nullptr ? want->GetType() : "";
 
-    WantSenderInfo wantSenderInfo;
-    wantSenderInfo.type = static_cast<int32_t>(serviceKind);
-    wantSenderInfo.allWants.push_back(wantsInfo);
-    wantSenderInfo.bundleName = context->GetBundleName();
-    wantSenderInfo.flags = flags;
-    wantSenderInfo.userId = -1; // -1 : invalid user id
-    wantSenderInfo.requestCode = requestCode;
+    wantTriggerInfo.wantSenderInfo.type = static_cast<int32_t>(serviceKind);
+    wantTriggerInfo.wantSenderInfo.allWants.push_back(wantsInfo);
+    wantTriggerInfo.wantSenderInfo.bundleName = context->GetBundleName();
+    wantTriggerInfo.wantSenderInfo.flags = flags;
+    wantTriggerInfo.wantSenderInfo.userId = -1; // -1 : invalid user id
+    wantTriggerInfo.wantSenderInfo.requestCode = requestCode;
+    wantTriggerInfo.callerToken = nullptr;
+    wantTriggerInfo.callerTokenID = IPCSkeleton::GetSelfTokenID();
     sptr<IWantSender> target = nullptr;
-    ErrCode result = WantAgentClient::GetInstance().GetWantSender(wantSenderInfo, nullptr, target);
+    ErrCode result = WantAgentClient::GetInstance().GetWantSender(wantTriggerInfo.wantSenderInfo, wantTriggerInfo.callerToken, wantTriggerInfo.appUid, wantTriggerInfo.callerUid, target);
     if (result != ERR_OK) {
         return result;
     }
@@ -240,46 +247,52 @@ ErrCode PendingWant::Cancel(const sptr<AAFwk::IWantSender> &target, uint32_t fla
 
 void PendingWant::Send(const sptr<AAFwk::IWantSender> &target)
 {
-    Send(0, nullptr, nullptr, "", nullptr, nullptr, target);
+    AAFwk::WantTriggerInfo wantTriggerInfo;
+    Send(0, nullptr, nullptr, "", nullptr, nullptr, target, &wantTriggerInfo);
 }
 
 void PendingWant::Send(int resultCode, const sptr<AAFwk::IWantSender> &target)
 {
-    Send(resultCode, nullptr, nullptr, "", nullptr, nullptr, target);
+    AAFwk::WantTriggerInfo wantTriggerInfo;
+    Send(resultCode, nullptr, nullptr, "", nullptr, nullptr, target, &wantTriggerInfo);
 }
 
 void PendingWant::Send(int resultCode, const std::shared_ptr<Want> &want,
     const sptr<AAFwk::IWantSender> &target)
 {
-    Send(resultCode, want, nullptr, "", nullptr, nullptr, target);
+    AAFwk::WantTriggerInfo wantTriggerInfo;
+    Send(resultCode, want, nullptr, "", nullptr, nullptr, target, &wantTriggerInfo);
 }
 
 void PendingWant::Send(
     int resultCode, const sptr<CompletedDispatcher> &onCompleted, const sptr<AAFwk::IWantSender> &target)
 {
-    Send(resultCode, nullptr, onCompleted, "", nullptr, nullptr, target);
+    AAFwk::WantTriggerInfo wantTriggerInfo;
+    Send(resultCode, nullptr, onCompleted, "", nullptr, nullptr, target, &wantTriggerInfo);
 }
 
 void PendingWant::Send(int resultCode, const std::shared_ptr<Want> &want,
     const sptr<CompletedDispatcher> &onCompleted, const sptr<AAFwk::IWantSender> &target)
 {
-    Send(resultCode, want, onCompleted, "", nullptr, nullptr, target);
+    AAFwk::WantTriggerInfo wantTriggerInfo;
+    Send(resultCode, want, onCompleted, "", nullptr, nullptr, target, &wantTriggerInfo);
 }
 
 void PendingWant::Send(int resultCode, const std::shared_ptr<Want> &want,
     const sptr<CompletedDispatcher> &onCompleted, const std::string &requiredPermission,
     const sptr<AAFwk::IWantSender> &target)
 {
-    Send(resultCode, want, onCompleted, requiredPermission, nullptr, nullptr, target);
+    AAFwk::WantTriggerInfo wantTriggerInfo;
+    Send(resultCode, want, onCompleted, requiredPermission, nullptr, nullptr, target, &wantTriggerInfo);
 }
 
 ErrCode PendingWant::Send(int resultCode, const std::shared_ptr<Want> &want,
     const sptr<CompletedDispatcher> &onCompleted, const std::string &requiredPermission,
     const std::shared_ptr<WantParams> &options, const std::shared_ptr<StartOptions> &startOptions,
-    const sptr<AAFwk::IWantSender> &target)
+    const sptr<AAFwk::IWantSender> &target, AAFwk::WantTriggerInfo *wantTriggerInfo)
 {
     int result =
-        SendAndReturnResult(resultCode, want, onCompleted, requiredPermission, options, startOptions, target);
+        SendAndReturnResult(resultCode, want, onCompleted, requiredPermission, options, startOptions, target, wantTriggerInfo);
     if (result != 0) {
         return ERR_ABILITY_RUNTIME_EXTERNAL_SERVICE_BUSY;
     }
@@ -289,7 +302,7 @@ ErrCode PendingWant::Send(int resultCode, const std::shared_ptr<Want> &want,
 int PendingWant::SendAndReturnResult(int resultCode, const std::shared_ptr<Want> &want,
     const sptr<CompletedDispatcher> &onCompleted, const std::string &requiredPermission,
     const std::shared_ptr<WantParams> &options, const std::shared_ptr<StartOptions> &startOptions,
-    const sptr<AAFwk::IWantSender> &target)
+    const sptr<AAFwk::IWantSender> &target, AAFwk::WantTriggerInfo *wantTriggerInfo)
 {
     TAG_LOGD(AAFwkTag::WANTAGENT, "call");
     SenderInfo senderInfo;
@@ -306,6 +319,12 @@ int PendingWant::SendAndReturnResult(int resultCode, const std::shared_ptr<Want>
     senderInfo.requiredPermission = requiredPermission;
     senderInfo.code = resultCode;
     senderInfo.finishedReceiver = onCompleted;
+    senderInfo.wantTriggerInfo = *wantTriggerInfo;
+
+    TAG_LOGI(AAFwkTag::WANTAGENT, "ljj:trigger wantTriggerInfo: type=%{public}d, bundle=%{public}s, callerTokenID=%{public}d, appUid=%{public}d, callerUid=%{public}d",
+             senderInfo.wantTriggerInfo.wantSenderInfo.type, senderInfo.wantTriggerInfo.wantSenderInfo.bundleName.c_str(),
+             senderInfo.wantTriggerInfo.callerTokenID, senderInfo.wantTriggerInfo.appUid, senderInfo.wantTriggerInfo.callerUid);
+
     return WantAgentClient::GetInstance().SendWantSender(target, senderInfo);
 }
 

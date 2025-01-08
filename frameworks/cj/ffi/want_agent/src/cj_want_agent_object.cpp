@@ -108,7 +108,7 @@ napi_value FfiConvertWantAgent2Napi(napi_env env, int64_t id)
         TAG_LOGE(AAFwkTag::WANTAGENT, "cj wantagent nullptr");
         return undefined;
     }
-    WantAgent* agent = new WantAgent(cjWantAgent->wantAgent_->GetPendingWant());
+    WantAgent* agent = new WantAgent(cjWantAgent->wantAgent_->GetPendingWant(), *cjWantAgent->wantAgent_->GetWantTriggerInfo());
     if (agent == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "cj wantaget malloc failed");
         return undefined;
@@ -128,7 +128,7 @@ int64_t FfiCreateWantAgentFromNapi(napi_env env, napi_value wantAgent)
         return INVALID_REMOTE_DATA_ID;
     }
 
-    auto nativeWantAgent = FFIData::Create<CJWantAgent>(std::make_shared<WantAgent>(napiAgent->GetPendingWant()));
+    auto nativeWantAgent = FFIData::Create<CJWantAgent>(std::make_shared<WantAgent>(napiAgent->GetPendingWant(), *napiAgent->GetWantTriggerInfo()));
     if (nativeWantAgent == nullptr) {
         return INVALID_REMOTE_DATA_ID;
     }
