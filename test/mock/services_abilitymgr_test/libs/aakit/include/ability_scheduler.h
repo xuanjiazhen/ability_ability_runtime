@@ -65,7 +65,7 @@ public:
 
     int Delete(const Uri& uri, const NativeRdb::DataAbilityPredicates& predicates) override;
 
-    std::shared_ptr<NativeRdb::AbsSharedResultSet> Query(
+    std::shared_ptr<NativeRdb::ResultSet> Query(
         const Uri& uri, std::vector<std::string>& columns, const NativeRdb::DataAbilityPredicates& predicates) override;
 
     std::shared_ptr<AppExecFwk::PacMap> Call(

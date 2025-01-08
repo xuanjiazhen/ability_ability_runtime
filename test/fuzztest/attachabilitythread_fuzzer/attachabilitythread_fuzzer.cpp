@@ -94,7 +94,7 @@ public:
     {
         return {};
     }
-    std::shared_ptr<NativeRdb::AbsSharedResultSet> Query(const Uri& uri,
+    std::shared_ptr<NativeRdb::ResultSet> Query(const Uri& uri,
         std::vector<std::string>& columns, const NativeRdb::DataAbilityPredicates& predicates) override
     {
         return {};

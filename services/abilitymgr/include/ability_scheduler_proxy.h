@@ -22,7 +22,7 @@
 
 namespace OHOS {
 namespace NativeRdb {
-class AbsSharedResultSet;
+class ResultSet;
 class DataAbilityPredicates;
 class ValuesBucket;
 }  // namespace NativeRdb
@@ -194,7 +194,7 @@ public:
      *
      * @return Returns the query result.
      */
-    virtual std::shared_ptr<NativeRdb::AbsSharedResultSet> Query(
+    virtual std::shared_ptr<NativeRdb::ResultSet> Query(
         const Uri &uri, std::vector<std::string> &columns, const NativeRdb::DataAbilityPredicates &predicates) override;
 
     /**

@@ -28,7 +28,7 @@ using Uri = OHOS::Uri;
 
 namespace OHOS {
 namespace NativeRdb {
-class AbsSharedResultSet;
+class ResultSet;
 class DataAbilityPredicates;
 class ValuesBucket;
 }  // namespace NativeRdb
@@ -191,7 +191,7 @@ public:
      *
      * @return Returns the query result.
      */
-    std::shared_ptr<NativeRdb::AbsSharedResultSet> Query(
+    std::shared_ptr<NativeRdb::ResultSet> Query(
         Uri &uri, std::vector<std::string> &columns, const NativeRdb::DataAbilityPredicates &predicates);
 
     /**

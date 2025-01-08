@@ -100,7 +100,7 @@ int AbilityScheduler::Delete(const Uri& uri, const NativeRdb::DataAbilityPredica
     return -1;
 }
 
-std::shared_ptr<NativeRdb::AbsSharedResultSet> AbilityScheduler::Query(
+std::shared_ptr<NativeRdb::ResultSet> AbilityScheduler::Query(
     const Uri& uri, std::vector<std::string>& columns, const NativeRdb::DataAbilityPredicates& predicates)
 {
     return nullptr;

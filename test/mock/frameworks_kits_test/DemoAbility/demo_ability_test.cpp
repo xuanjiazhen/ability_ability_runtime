@@ -197,12 +197,11 @@ std::string DemoAbility::GetType(const Uri& uri)
     return type;
 }
 
-std::shared_ptr<NativeRdb::AbsSharedResultSet> DemoAbility::Query(
+std::shared_ptr<NativeRdb::ResultSet> DemoAbility::Query(
     const Uri& uri, const std::vector<std::string>& columns, const NativeRdb::DataAbilityPredicates& predicates)
 {
     GTEST_LOG_(INFO) << "DemoAbility::Query called";
-    std::shared_ptr<NativeRdb::AbsSharedResultSet> resultset = std::make_shared<NativeRdb::AbsSharedResultSet>(
-        "resultset");
+    std::shared_ptr<NativeRdb::ResultSet> resultset = std::make_shared<NativeRdb::ResultSet>();
     return resultset;
 }
 

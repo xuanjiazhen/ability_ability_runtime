@@ -221,7 +221,7 @@ public:
      * @param predicates Indicates filter criteria. You should define the processing logic when this parameter is null.
      * @return Returns the query result.
      */
-    std::shared_ptr<NativeRdb::AbsSharedResultSet> Query(
+    std::shared_ptr<NativeRdb::ResultSet> Query(
         const Uri &uri, std::vector<std::string> &columns, const NativeRdb::DataAbilityPredicates &predicates) override;
 
     /**

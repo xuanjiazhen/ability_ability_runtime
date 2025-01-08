@@ -127,7 +127,7 @@ public:
      *
      * @return Returns the query result.
      */
-    std::shared_ptr<NativeRdb::AbsSharedResultSet> Query(
+    std::shared_ptr<NativeRdb::ResultSet> Query(
         const Uri &uri, std::vector<std::string> &columns, const NativeRdb::DataAbilityPredicates &predicates);
 
     /**

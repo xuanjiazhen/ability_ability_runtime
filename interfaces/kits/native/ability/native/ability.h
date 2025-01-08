@@ -56,7 +56,7 @@
 
 namespace OHOS {
 namespace NativeRdb {
-class AbsSharedResultSet;
+class ResultSet;
 class DataAbilityPredicates;
 class ValueObject;
 class ValuesBucket;
@@ -595,7 +595,7 @@ public:
      *
      * @return Returns the queried data.
      */
-    virtual std::shared_ptr<NativeRdb::AbsSharedResultSet> Query(
+    virtual std::shared_ptr<NativeRdb::ResultSet> Query(
         const Uri &uri, const std::vector<std::string> &columns, const NativeRdb::DataAbilityPredicates &predicates);
 
     /**
@@ -1310,7 +1310,7 @@ private:
 
     int ChangeRef2Value(std::vector<std::shared_ptr<DataAbilityResult>> &results, int numRefs, int index);
 
-    bool CheckAssertQueryResult(std::shared_ptr<NativeRdb::AbsSharedResultSet> &queryResult,
+    bool CheckAssertQueryResult(std::shared_ptr<NativeRdb::ResultSet> &queryResult,
         std::shared_ptr<NativeRdb::ValuesBucket> &&valuesBucket);
 
     void DispatchLifecycleOnForeground(const Want &want);

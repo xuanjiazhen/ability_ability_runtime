@@ -512,7 +512,7 @@ HWTEST_F(IpcAbilitySchedulerModuleTest, Query_001, TestSize.Level1)
             const NativeRdb::DataAbilityPredicates& pred) {
                 testResult = (columns == testColumns);
                 sem.Post();
-                return std::make_shared<NativeRdb::AbsSharedResultSet>("DataAbilityTest");
+                return std::make_shared<NativeRdb::ResultSet>();
         };
 
         EXPECT_CALL(*stub, Query(_, _, _)).Times(1).WillOnce(Invoke(mockHandler));

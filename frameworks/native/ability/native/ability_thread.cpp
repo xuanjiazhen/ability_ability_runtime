@@ -187,7 +187,7 @@ int AbilityThread::Delete(const Uri &uri, const NativeRdb::DataAbilityPredicates
     return ERR_INVALID_VALUE;
 }
 
-std::shared_ptr<NativeRdb::AbsSharedResultSet> AbilityThread::Query(
+std::shared_ptr<NativeRdb::ResultSet> AbilityThread::Query(
     const Uri &uri, std::vector<std::string> &columns, const NativeRdb::DataAbilityPredicates &predicates)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
