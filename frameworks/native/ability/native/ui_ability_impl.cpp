@@ -475,7 +475,7 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterDidForeground()
         return;
     }
     if (owner->ability_ == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null ability");
+        TAG_LOGE(AAFwkTag::UIABILITY, "null ability_");
         return;
     }
     owner->ability_->OnDidForeground();
@@ -490,7 +490,7 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterDidBackground()
         return;
     }
     if (owner->ability_ == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null ability");
+        TAG_LOGE(AAFwkTag::UIABILITY, "null ability_");
         return;
     }
     owner->ability_->OnDidBackground();
@@ -595,6 +595,24 @@ void UIAbilityImpl::Background()
 }
 #endif
 
+void UIAbilityImpl::OnWillForeground()
+{
+    if (ability_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null ability_");
+        return;
+    }
+    ability_->OnWillForeground();
+}
+
+void UIAbilityImpl::OnWillBackground()
+{
+    if (ability_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null ability_");
+        return;
+    }
+    ability_->OnWillBackground();
+}
+
 bool UIAbilityImpl::AbilityTransaction(const AAFwk::Want &want, const AAFwk::LifeCycleStateInfo &targetState)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -609,7 +627,7 @@ bool UIAbilityImpl::AbilityTransaction(const AAFwk::Want &want, const AAFwk::Lif
             if (targetState.isNewWant) {
                 NewWant(want);
             }
-            ability_->OnWillForeground();
+            OnWillForeground();
 #ifdef SUPPORT_SCREEN
             if (!InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
                 HandleForegroundNewState(want, ret);
@@ -623,7 +641,7 @@ bool UIAbilityImpl::AbilityTransaction(const AAFwk::Want &want, const AAFwk::Lif
             if (lifecycleState_ != AAFwk::ABILITY_STATE_STARTED_NEW) {
                 ret = false;
             }
-            ability_->OnWillBackground();
+            OnWillBackground();
 #ifdef SUPPORT_GRAPHICS
             if (!InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
                 Background();
