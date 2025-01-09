@@ -263,6 +263,8 @@ private:
         void AfterUnfocused() override;
         void ForegroundFailed(int32_t type) override;
         void BackgroundFailed(int32_t type) override;
+        void AfterDidForeground() override;
+        void AfterDidBackground() override;
 
     private:
         sptr<IRemoteObject> token_ = nullptr;

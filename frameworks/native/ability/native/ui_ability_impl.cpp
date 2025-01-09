@@ -419,7 +419,6 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterForeground()
         TAG_LOGE(AAFwkTag::UIABILITY, "null owner");
         return;
     }
-    owner->ability_->OnDidForeground();
     
     std::string entry = "UIAbilityImpl::WindowLifeCycleImpl::AfterForeground";
     FreezeUtil::GetInstance().AddLifecycleEvent(token_, entry);
@@ -465,7 +464,20 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterBackground()
         FreezeUtil::GetInstance().DeleteLifecycleEvent(token_);
         FreezeUtil::GetInstance().DeleteAppLifecycleEvent(0);
     }
-    
+}
+
+void UIAbilityImpl::WindowLifeCycleImpl::AfterDidForeground()
+{
+    auto owner = owner_.lock();
+    if (owner == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null owner");
+        return;
+    }
+        owner->ability_->OnDidForeground();
+}
+
+void UIAbilityImpl::WindowLifeCycleImpl::AfterDidBackground()
+{
     auto owner = owner_.lock();
     if (owner == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null owner");
