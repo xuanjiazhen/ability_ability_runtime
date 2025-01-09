@@ -468,6 +468,7 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterBackground()
 
 void UIAbilityImpl::WindowLifeCycleImpl::AfterDidForeground()
 {
+    TAG_LOGI(AAFwkTag::UIABILITY, "wnd call, AfterDidForeground");
     auto owner = owner_.lock();
     if (owner == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null owner");
@@ -482,6 +483,7 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterDidForeground()
 
 void UIAbilityImpl::WindowLifeCycleImpl::AfterDidBackground()
 {
+    TAG_LOGI(AAFwkTag::UIABILITY, "wnd call, AfterDidBackground");
     auto owner = owner_.lock();
     if (owner == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null owner");
