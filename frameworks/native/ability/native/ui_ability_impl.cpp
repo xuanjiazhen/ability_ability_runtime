@@ -473,6 +473,10 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterDidForeground()
         TAG_LOGE(AAFwkTag::UIABILITY, "null owner");
         return;
     }
+    if (owner->ability_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null ability");
+        return;
+    }
     owner->ability_->OnDidForeground();
 }
 
@@ -481,6 +485,10 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterDidBackground()
     auto owner = owner_.lock();
     if (owner == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null owner");
+        return;
+    }
+    if (owner->ability_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null ability");
         return;
     }
     owner->ability_->OnDidBackground();
