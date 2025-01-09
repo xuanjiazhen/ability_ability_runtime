@@ -473,7 +473,7 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterDidForeground()
         TAG_LOGE(AAFwkTag::UIABILITY, "null owner");
         return;
     }
-        owner->ability_->OnDidForeground();
+    owner->ability_->OnDidForeground();
 }
 
 void UIAbilityImpl::WindowLifeCycleImpl::AfterDidBackground()
