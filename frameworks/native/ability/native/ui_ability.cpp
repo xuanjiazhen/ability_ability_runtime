@@ -678,26 +678,22 @@ void UIAbility::OnBackground()
 
 void UIAbility::OnWillForeground()
 {
-    TAG_LOGI(AAFwkTag::UIABILITY, "OnWillForeground is called");
-    return;
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnWillForeground is called");
 }
 
 void UIAbility::OnDidForeground()
 {
-    TAG_LOGI(AAFwkTag::UIABILITY, "OnDidForeground is called");
-    return;
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnDidForeground is called");
 }
 
 void UIAbility::OnWillBackground()
 {
-    TAG_LOGI(AAFwkTag::UIABILITY, "OnWillBackground is called");
-    return;
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnWillBackground is called");
 }
 
 void UIAbility::OnDidBackground()
 {
-    TAG_LOGI(AAFwkTag::UIABILITY, "OnDidBackground is called");
-    return;
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnDidBackground is called");
 }
 
 void UIAbility::OnAfterFocusedCommon(bool isFocused)
