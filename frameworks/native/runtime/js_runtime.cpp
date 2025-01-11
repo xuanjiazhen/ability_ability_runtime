@@ -804,7 +804,7 @@ bool JsRuntime::CreateJsEnv(const Options& options)
         pandaOption.SetEnableAOT(aotEnabled);
         pandaOption.SetProfileDir(SANDBOX_ARK_PROIFILE_PATH);
     }
-
+    pandaOption.SetApiVersion(options.apiTargetVersion);
     OHOSJsEnvLogger::RegisterJsEnvLogger();
     jsEnv_ = std::make_shared<JsEnv::JsEnvironment>(std::make_unique<OHOSJsEnvironmentImpl>(options.eventRunner));
     if (jsEnv_ == nullptr || !jsEnv_->Initialize(pandaOption, static_cast<void*>(this))) {
