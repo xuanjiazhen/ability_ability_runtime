@@ -756,6 +756,9 @@ void JsUIAbility::OnDidForeground()
     CallObjectMethod("onDidForeground");
     AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
 
+    if (scene_ != nullptr) {
+        scene_->GoResume();
+    }
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 
@@ -955,6 +958,8 @@ void JsUIAbility::DoOnForeground(const Want &want)
         TAG_LOGI(AAFwkTag::UIABILITY, "silent foreground, do not show window");
         return;
     }
+    
+    OnWillForeground();
 
     TAG_LOGD(AAFwkTag::UIABILITY, "move scene to foreground, sceneFlag_: %{public}d", UIAbility::sceneFlag_);
     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, METHOD_NAME);

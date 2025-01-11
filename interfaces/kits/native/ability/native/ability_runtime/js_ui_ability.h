@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -236,8 +236,8 @@ public:
     void RequestFocus(const Want &want) override;
 
     /**
-     * @brief Called when this ability enters the <b>STATE_BACKGROUND</b> state.
-     * The ability in the <b>STATE_BACKGROUND</b> state is invisible.
+     * @brief Called after wms show event.
+     * The ability in the <b>STATE_FOREGROUND</b> state is invisible.
      * You can override this function to implement your own processing logic.
      */
     void OnBackground() override;
@@ -257,14 +257,14 @@ public:
     void OnDidForeground() override;
 
     /**
-     * @brief Called when this ability enters the <b>STATE_BACKGROUND</b> state.
+     * @brief Called before OnBackground.
      * The ability in the <b>STATE_BACKGROUND</b> state is invisible.
      * You can override this function to implement your own processing logic.
      */
     void OnWillBackground() override;
 
     /**
-     * @brief Called when this ability enters the <b>STATE_BACKGROUND</b> state.
+     * @brief Called after wms hiden event.
      * The ability in the <b>STATE_BACKGROUND</b> state is invisible.
      * You can override this function to implement your own processing logic.
      */
