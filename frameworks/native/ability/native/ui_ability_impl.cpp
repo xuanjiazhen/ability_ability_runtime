@@ -428,6 +428,7 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterForeground()
         TAG_LOGE(AAFwkTag::UIABILITY, "null owner");
         return;
     }
+
     std::string entry = "UIAbilityImpl::WindowLifeCycleImpl::AfterForeground";
     FreezeUtil::GetInstance().AddLifecycleEvent(token_, entry);
 
@@ -472,6 +473,36 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterBackground()
         FreezeUtil::GetInstance().DeleteLifecycleEvent(token_);
         FreezeUtil::GetInstance().DeleteAppLifecycleEvent(0);
     }
+}
+
+void UIAbilityImpl::WindowLifeCycleImpl::AfterDidForeground()
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "wnd call, AfterDidForeground");
+    auto owner = owner_.lock();
+    if (owner == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null owner");
+        return;
+    }
+    if (owner->ability_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null ability_");
+        return;
+    }
+    owner->ability_->OnDidForeground();
+}
+
+void UIAbilityImpl::WindowLifeCycleImpl::AfterDidBackground()
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "wnd call, AfterDidBackground");
+    auto owner = owner_.lock();
+    if (owner == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null owner");
+        return;
+    }
+    if (owner->ability_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null ability_");
+        return;
+    }
+    owner->ability_->OnDidBackground();
 }
 
 void UIAbilityImpl::WindowLifeCycleImpl::AfterFocused()
@@ -573,6 +604,24 @@ void UIAbilityImpl::Background()
 }
 #endif
 
+void UIAbilityImpl::OnWillForeground()
+{
+    if (ability_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null ability_");
+        return;
+    }
+    ability_->OnWillForeground();
+}
+
+void UIAbilityImpl::OnWillBackground()
+{
+    if (ability_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null ability_");
+        return;
+    }
+    ability_->OnWillBackground();
+}
+
 bool UIAbilityImpl::AbilityTransaction(const AAFwk::Want &want, const AAFwk::LifeCycleStateInfo &targetState)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -587,6 +636,7 @@ bool UIAbilityImpl::AbilityTransaction(const AAFwk::Want &want, const AAFwk::Lif
             if (targetState.isNewWant) {
                 NewWant(want);
             }
+            OnWillForeground();
 #ifdef SUPPORT_SCREEN
             if (!InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
                 HandleForegroundNewState(want, ret);
@@ -600,6 +650,7 @@ bool UIAbilityImpl::AbilityTransaction(const AAFwk::Want &want, const AAFwk::Lif
             if (lifecycleState_ != AAFwk::ABILITY_STATE_STARTED_NEW) {
                 ret = false;
             }
+            OnWillBackground();
 #ifdef SUPPORT_GRAPHICS
             if (!InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
                 Background();

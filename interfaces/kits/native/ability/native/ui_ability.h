@@ -411,6 +411,34 @@ public:
     virtual void OnBackground();
 
     /**
+     * @brief Called when this ability enters the <b>STATE_FOREGROUND</b> state.
+     * The ability in the <b>STATE_FOREGROUND</b> state is invisible.
+     * You can override this function to implement your own processing logic.
+     */
+    virtual void OnWillForeground();
+
+    /**
+     * @brief Called when this ability enters the <b>STATE_FOREGROUND</b> state.
+     * The ability in the <b>STATE_FOREGROUND</b> state is invisible.
+     * You can override this function to implement your own processing logic.
+     */
+    virtual void OnDidForeground();
+
+    /**
+     * @brief Called when this ability enters the <b>STATE_BACKGROUND</b> state.
+     * The ability in the <b>STATE_BACKGROUND</b> state is invisible.
+     * You can override this function to implement your own processing logic.
+     */
+    virtual void OnWillBackground();
+
+    /**
+     * @brief Called when this ability enters the <b>STATE_BACKGROUND</b> state.
+     * The ability in the <b>STATE_BACKGROUND</b> state is invisible.
+     * You can override this function to implement your own processing logic.
+     */
+    virtual void OnDidBackground();
+
+    /**
      * @brief Called after window stage focused or unfocused
      * You can override this function to implement your own processing logic.
      */
