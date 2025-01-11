@@ -437,9 +437,10 @@ public:
      *  CloseUIAbilityBySCB, close the special ability by scb.
      *
      * @param sessionInfo the session info of the ability to terminate.
+     * @param sceneFlag the reason info of the ability to terminate.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode CloseUIAbilityBySCB(sptr<SessionInfo> sessionInfo);
+    ErrCode CloseUIAbilityBySCB(sptr<SessionInfo> sessionInfo, uint32_t sceneFlag = 0);
 
     /**
      * SendResultToAbility with want, return resultWant from ability manager service.
