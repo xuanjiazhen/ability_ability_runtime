@@ -33,7 +33,9 @@
 #include "permission_verification.h"
 #include "singleton.h"
 #include "task_handler_wrap.h"
+#ifdef SUPPORT_UPMS
 #include "uri_permission_manager_client.h"
+#endif // SUPPORT_UPMS
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -67,11 +69,15 @@ public:
     void OnProcessStateChanged(const std::shared_ptr<AppRunningRecord> &appRecord);
     void OnWindowShow(const std::shared_ptr<AppRunningRecord> &appRecord);
     void OnWindowHidden(const std::shared_ptr<AppRunningRecord> &appRecord);
-    void OnRenderProcessCreated(const std::shared_ptr<RenderRecord> &RenderRecord);
+    void OnRenderProcessCreated(const std::shared_ptr<RenderRecord> &RenderRecord, const bool isPreload);
+#ifdef SUPPORT_CHILD_PROCESS
     void OnChildProcessCreated(std::shared_ptr<ChildProcessRecord> childRecord);
+#endif // SUPPORT_CHILD_PROCESS
     void OnProcessDied(const std::shared_ptr<AppRunningRecord> &appRecord);
     void OnRenderProcessDied(const std::shared_ptr<RenderRecord> &renderRecord);
+#ifdef SUPPORT_CHILD_PROCESS
     void OnChildProcessDied(std::shared_ptr<ChildProcessRecord> childRecord);
+#endif // SUPPORT_CHILD_PROCESS
     void OnProcessReused(const std::shared_ptr<AppRunningRecord> &appRecord);
     void OnPageShow(const PageStateData pageStateData);
     void OnPageHide(const PageStateData pageStateData);
@@ -86,11 +92,15 @@ private:
     void HandleStateChangedNotifyObserver(
         const AbilityStateData abilityStateData, bool isAbility, bool isFromWindowFocusChanged);
     void HandleOnAppProcessCreated(const std::shared_ptr<AppRunningRecord> &appRecord, bool isPreload);
-    void HandleOnRenderProcessCreated(const std::shared_ptr<RenderRecord> &RenderRecord);
+    void HandleOnRenderProcessCreated(const std::shared_ptr<RenderRecord> &RenderRecord, const bool isPreload);
+#ifdef SUPPORT_CHILD_PROCESS
     void HandleOnChildProcessCreated(std::shared_ptr<ChildProcessRecord> childRecord);
+#endif // SUPPORT_CHILD_PROCESS
     void HandleOnAppProcessDied(const std::shared_ptr<AppRunningRecord> &appRecord);
     void HandleOnRenderProcessDied(const std::shared_ptr<RenderRecord> &RenderRecord);
+#ifdef SUPPORT_CHILD_PROCESS
     void HandleOnChildProcessDied(std::shared_ptr<ChildProcessRecord> childRecord);
+#endif // SUPPORT_CHILD_PROCESS
     bool ObserverExist(const sptr<IRemoteBroker> &observer);
     bool IsAppForegroundObserverExist(const sptr<IRemoteBroker> &observer);
     bool IsAbilityForegroundObserverExist(const sptr<IRemoteBroker> &observer);
@@ -101,7 +111,9 @@ private:
     AbilityforegroundObserverSet GetAbilityforegroundObserverSetCopy();
     ProcessData WrapProcessData(const std::shared_ptr<AppRunningRecord> &appRecord);
     ProcessData WrapRenderProcessData(const std::shared_ptr<RenderRecord> &renderRecord);
+#ifdef SUPPORT_CHILD_PROCESS
     int32_t WrapChildProcessData(ProcessData &processData, std::shared_ptr<ChildProcessRecord> childRecord);
+#endif // SUPPORT_CHILD_PROCESS
     void OnObserverDied(const wptr<IRemoteObject> &remote, const ObserverType &type);
     AppStateData WrapAppStateData(const std::shared_ptr<AppRunningRecord> &appRecord,
     const ApplicationState state);
@@ -117,12 +129,13 @@ private:
     std::shared_ptr<AAFwk::TaskHandlerWrap> handler_;
     int32_t dummyCode_ = 0;
     ffrt::mutex observerLock_;
-    std::map<sptr<IRemoteObject>, sptr<IRemoteObject::DeathRecipient>> recipientMap_;
     AppStateObserverMap appStateObserverMap_;
     ffrt::mutex appForegroundObserverLock_;
     AppForegroundStateObserverSet appForegroundStateObserverSet_;
     ffrt::mutex abilityforegroundObserverLock_;
     AbilityforegroundObserverSet abilityforegroundObserverSet_;
+    ffrt::mutex recipientMapMutex_;
+    std::map<sptr<IRemoteObject>, sptr<IRemoteObject::DeathRecipient>> recipientMap_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

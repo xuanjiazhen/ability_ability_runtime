@@ -576,6 +576,17 @@ enum class AbilityManagerInterfaceCode {
 
     // get keep-alive applications by EDM
     GET_APPLICATIONS_KEEP_ALIVE_BY_EDM = 6124,
+
+    GET_INTENT_EXEMPTION_INFO = 6125,
+
+    // add query ERMS observer
+    ADD_QUERY_ERMS_OBSERVER = 6130,
+
+    // query atomic service startup rule
+    QUERY_ATOMIC_SERVICE_STARTUP_RULE = 6131,
+
+    // start seld uiability
+    NDK_START_SELF_UI_ABILITY = 6132,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

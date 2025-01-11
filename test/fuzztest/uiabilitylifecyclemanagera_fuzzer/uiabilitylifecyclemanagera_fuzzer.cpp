@@ -120,8 +120,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     int32_t int32Param = static_cast<int32_t>(GetU32Data(data));
     uIAbilityLifecycleManager->OnAbilityRequestDone(token, int32Param);
     uIAbilityLifecycleManager->IsContainsAbility(token);
-    std::shared_ptr<AbilityRecord> abilityRecord;
-    uIAbilityLifecycleManager->NotifySCBToMinimizeUIAbility(abilityRecord, token);
+    uIAbilityLifecycleManager->NotifySCBToMinimizeUIAbility(token);
     std::shared_ptr<AbilityRecord> abilityRecord1;
     uIAbilityLifecycleManager->MinimizeUIAbility(abilityRecord1, boolParam, sceneFlag);
     sptr<SessionInfo> sessionInfo1;
@@ -165,7 +164,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
         return 0;
     }
 
-    char *ch = (char *)malloc(size + 1);
+    char *ch = static_cast<char*>(malloc(size + 1));
     if (ch == nullptr) {
         std::cout << "malloc failed." << std::endl;
         return 0;

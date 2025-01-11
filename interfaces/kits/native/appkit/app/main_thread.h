@@ -278,6 +278,9 @@ public:
 
     void ScheduleAcceptWant(const AAFwk::Want &want, const std::string &moduleName) override;
 
+    void SchedulePrepareTerminate(const std::string &moduleName,
+        int32_t &prepareTermination, bool &isExist) override;
+
     void ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName) override;
 
     /**
@@ -356,6 +359,13 @@ public:
      * @return Returns 0 on success, error code on failure.
      */
     int32_t ScheduleDumpFfrt(std::string& result) override;
+
+    /**
+     *
+     * @brief Set watchdog background status of application.
+     *
+     */
+    void SetWatchdogBackgroundStatus(bool status) override;
 
 private:
     /**
@@ -568,6 +578,7 @@ private:
      */
     void LoadAllExtensions(NativeEngine &nativeEngine);
 
+    void LoadAllExtensions();
     /**
      *
      * @brief Ability Delegator Prepare.
@@ -576,7 +587,7 @@ private:
      *
      */
     bool PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &record, bool isStageBased,
-        const AppExecFwk::HapModuleInfo &entryHapModuleInfo);
+        const AppExecFwk::HapModuleInfo &entryHapModuleInfo, uint32_t targetVersion);
 
     /**
      * @brief Set current process extension type

@@ -26,7 +26,9 @@
 #include "application_info.h"
 #include "bundle_info.h"
 #include "child_process_info.h"
+#ifdef SUPPORT_CHILD_PROCESS
 #include "child_process_request.h"
+#endif // SUPPORT_CHILD_PROCESS
 #include "fault_data.h"
 #include "kia_interceptor_interface.h"
 #include "iapp_state_callback.h"
@@ -681,6 +683,7 @@ public:
     virtual int32_t IsAppRunningByBundleNameAndUserId(const std::string &bundleName, int32_t userId,
         bool &isRunning) = 0;
 
+#ifdef SUPPORT_CHILD_PROCESS
     /**
      * Start child process, called by ChildProcessManager.
      *
@@ -708,6 +711,7 @@ public:
      * Exit child process, called by itself.
      */
     virtual void ExitChildProcessSafely() = 0;
+#endif // SUPPORT_CHILD_PROCESS
 
     /**
      * Whether the current application process is the last surviving process.
@@ -839,6 +843,7 @@ public:
         return 0;
     }
 
+#ifdef SUPPORT_CHILD_PROCESS
     /**
      * Start native child process, callde by ChildProcessManager.
      * @param libName lib file name to be load in child process
@@ -848,6 +853,7 @@ public:
      */
     virtual int32_t StartNativeChildProcess(const std::string &libName, int32_t childProcessCount,
         const sptr<IRemoteObject> &callback) = 0;
+#endif // SUPPORT_CHILD_PROCESS
 
     /**
      * Notify that the process depends on web by itself.
@@ -888,6 +894,11 @@ public:
     }
 
     virtual void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey) {}
+
+    virtual int32_t HasAppRecord(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result)
+    {
+        return 0;
+    }
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

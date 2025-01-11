@@ -57,7 +57,7 @@ AppRunningManager::~AppRunningManager()
 
 std::shared_ptr<AppRunningRecord> AppRunningManager::CreateAppRunningRecord(
     const std::shared_ptr<ApplicationInfo> &appInfo, const std::string &processName, const BundleInfo &bundleInfo,
-    const std::string &instanceKey)
+    const std::string &instanceKey, const std::string &customProcessFlag)
 {
     if (!appInfo) {
         TAG_LOGE(AAFwkTag::APPMGR, "param error");
@@ -90,6 +90,7 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CreateAppRunningRecord(
     appRecord->SetJointUserId(bundleInfo.jointUserId);
     appRecord->SetAppIdentifier(bundleInfo.signatureInfo.appIdentifier);
     appRecord->SetInstanceKey(instanceKey);
+    appRecord->SetCustomProcessFlag(customProcessFlag);
     {
         std::lock_guard guard(runningRecordMapMutex_);
         appRunningRecordMap_.emplace(recordId, appRecord);
@@ -662,7 +663,7 @@ void AppRunningManager::HandleAbilityAttachTimeOut(const sptr<IRemoteObject> &to
 
     if ((isPage || appRecord->IsLastAbilityRecord(token)) && (!appRecord->IsKeepAliveApp() ||
         !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient())) {
-        appRecord->SetTerminating(shared_from_this());
+        appRecord->SetTerminating();
     }
 
     std::weak_ptr<AppRunningRecord> appRecordWptr(appRecord);
@@ -708,7 +709,7 @@ void AppRunningManager::PrepareTerminate(const sptr<IRemoteObject> &token, bool 
             return;
         }
         TAG_LOGI(AAFwkTag::APPMGR, "ability is the last:%{public}s", appRecord->GetName().c_str());
-        appRecord->SetTerminating(shared_from_this());
+        appRecord->SetTerminating();
         std::string killReason = clearMissionFlag ? "Kill Reason:ClearSession" : "";
         appRecord->SetKillReason(killReason);
     }
@@ -723,14 +724,16 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
         return;
     }
 
-    auto killProcess = [appRecord, token, inner = appMgrServiceInner]() {
-        if (appRecord == nullptr || token == nullptr || inner == nullptr) {
+    std::weak_ptr<AppRunningRecord> appRecordWeakPtr(appRecord);
+    auto killProcess = [appRecordWeakPtr, token, inner = appMgrServiceInner]() {
+        auto appRecordSptr = appRecordWeakPtr.lock();
+        if (appRecordSptr == nullptr || token == nullptr || inner == nullptr) {
             TAG_LOGE(AAFwkTag::APPMGR, "parameter error");
             return;
         }
-        appRecord->RemoveTerminateAbilityTimeoutTask(token);
+        appRecordSptr->RemoveTerminateAbilityTimeoutTask(token);
         TAG_LOGD(AAFwkTag::APPMGR, "The ability is the last, kill application");
-        auto priorityObject = appRecord->GetPriorityObject();
+        auto priorityObject = appRecordSptr->GetPriorityObject();
         if (priorityObject == nullptr) {
             TAG_LOGE(AAFwkTag::APPMGR, "null priorityObject");
             return;
@@ -744,7 +747,7 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
         if (result < 0) {
             TAG_LOGW(AAFwkTag::APPMGR, "failed, pid: %{public}d", pid);
         }
-        inner->NotifyAppStatus(appRecord->GetBundleName(), appRecord->GetAppIndex(),
+        inner->NotifyAppStatus(appRecordSptr->GetBundleName(), appRecordSptr->GetAppIndex(),
             CommonEventSupport::COMMON_EVENT_PACKAGE_RESTARTED);
         };
 
@@ -782,7 +785,7 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
             return;
         }
         TAG_LOGI(AAFwkTag::APPMGR, "Terminate last ability in app:%{public}s.", appRecord->GetName().c_str());
-        appRecord->SetTerminating(shared_from_this());
+        appRecord->SetTerminating();
         if (clearMissionFlag && appMgrServiceInner != nullptr) {
             auto delayTime = appRecord->ExtensionAbilityRecordExists() ?
                 AMSEventHandler::DELAY_KILL_EXTENSION_PROCESS_TIMEOUT : AMSEventHandler::DELAY_KILL_PROCESS_TIMEOUT;
@@ -1412,6 +1415,7 @@ void AppRunningManager::GetAbilityTokensByBundleName(
     }
 }
 
+#ifdef SUPPORT_CHILD_PROCESS
 std::shared_ptr<AppRunningRecord> AppRunningManager::GetAppRunningRecordByChildProcessPid(const pid_t pid)
 {
     std::lock_guard guard(runningRecordMapMutex_);
@@ -1487,6 +1491,7 @@ std::shared_ptr<ChildProcessRecord> AppRunningManager::OnChildProcessRemoteDied(
     }
     return nullptr;
 }
+#endif //SUPPORT_CHILD_PROCESS
 
 int32_t AppRunningManager::SignRestartAppFlag(int32_t uid, const std::string &instanceKey)
 {

@@ -26,6 +26,9 @@
 #ifdef WITH_DLP
 #include "dlp_file_kits.h"
 #endif // WITH_DLP
+#ifdef APP_DOMAIN_VERIFY_ENABLED
+#include "app_domain_verify_mgr_client.h"
+#endif // APP_DOMAIN_VERIFY_ENABLED
 
 namespace OHOS {
 namespace AAFwk {
@@ -44,6 +47,7 @@ const int NFC_QUERY_LENGTH = 2;
 const std::string OPEN_LINK_APP_LINKING_ONLY = "appLinkingOnly";
 const std::string HTTP_SCHEME_NAME = "http";
 const std::string HTTPS_SCHEME_NAME = "https";
+const std::string FILE_SCHEME_NAME = "file";
 const std::string APP_CLONE_INDEX = "ohos.extra.param.key.appCloneIndex";
 constexpr const char* SUPPORT_ACTION_START_SELECTOR = "persist.sys.ability.support.action_start_selector";
 
@@ -122,6 +126,7 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "implicit start ability by type: %{public}d", request.callType);
+    bool isNfcCalling = (IPCSkeleton::GetCallingUid() == NFC_CALLER_UID);
     auto sysDialogScheduler = DelayedSingleton<SystemDialogScheduler>::GetInstance();
     CHECK_POINTER_AND_RETURN(sysDialogScheduler, ERR_INVALID_VALUE);
 
@@ -131,13 +136,12 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
     }
     std::vector<DialogAppInfo> dialogAppInfos;
     request.want.RemoveParam(APP_CLONE_INDEX);
-    bool findDefaultApp = false;
+    GenerateRequestParam genReqParam;
     int32_t ret = ERR_OK;
     if (isAppCloneSelector) {
         ret = GenerateAbilityRequestByAppIndexes(userId, request, dialogAppInfos);
     } else {
-        ret = GenerateAbilityRequestByAction(userId, request, dialogAppInfos, false, findDefaultApp,
-            isAppCloneSelector);
+        ret = GenerateAbilityRequestByAction(userId, request, dialogAppInfos, genReqParam);
     }
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "generate request failed");
@@ -168,9 +172,14 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
     AddIdentity(tokenId, identity);
     if (dialogAppInfos.size() == 0 &&
         (request.want.GetFlags() & Want::FLAG_START_WITHOUT_TIPS) == Want::FLAG_START_WITHOUT_TIPS) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "hint dialog generate fail");
-            return ERR_IMPLICIT_START_ABILITY_FAIL;
-        }
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "implicit start ability fail");
+        return ERR_IMPLICIT_START_ABILITY_FAIL;
+    }
+    if (dialogAppInfos.size() == 0 && request.want.HasParameter(OPEN_LINK_APP_LINKING_ONLY) &&
+        (request.want.GetUriString() == "" || request.want.GetUri().GetScheme() != FILE_SCHEME_NAME)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "implicit start ability fail");
+        return ERR_IMPLICIT_START_ABILITY_FAIL;
+    }
     if (dialogAppInfos.size() == 0 && AppUtils::GetInstance().IsSelectorDialogDefaultPossion()) {
         ret = sysDialogScheduler->GetSelectorDialogWant(dialogAppInfos, request.want, want, request.callerToken);
         if (ret != ERR_OK) {
@@ -202,9 +211,8 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
             return ERR_IMPLICIT_START_ABILITY_FAIL;
         }
         std::vector<DialogAppInfo> dialogAllAppInfos;
-        bool isMoreHapList = true;
-        ret = GenerateAbilityRequestByAction(userId, request, dialogAllAppInfos, isMoreHapList, findDefaultApp,
-            isAppCloneSelector);
+        genReqParam.isMoreHapList = true;
+        ret = GenerateAbilityRequestByAction(userId, request, dialogAllAppInfos, genReqParam);
         if (ret != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "request failed");
             return ret;
@@ -229,10 +237,14 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
     //There is a default opening method add Only one application supports
     bool defaultPicker = false;
     defaultPicker = request.want.GetBoolParam(SHOW_DEFAULT_PICKER_FLAG, defaultPicker);
+    if (isNfcCalling && dialogAppInfos.size() == 1 && !dialogAppInfos[0].isAppLink) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "ImplicitQueryInfos, is nfc calling.");
+        defaultPicker = true;
+    }
     if (dialogAppInfos.size() == 1 && !defaultPicker) {
         auto info = dialogAppInfos.front();
         // Compatible with the action's sunset scene
-        if (!IsActionImplicitStart(request.want, findDefaultApp)) {
+        if (!IsActionImplicitStart(request.want, genReqParam.findDefaultApp)) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "ImplicitQueryInfos success,target ability: %{public}s",
                 info.abilityName.data());
             return IN_PROCESS_CALL(startAbilityTask(info.bundleName, info.abilityName));
@@ -370,9 +382,61 @@ void ImplicitStartProcessor::OnlyKeepReserveApp(std::vector<AppExecFwk::AbilityI
     }
 }
 
-int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId,
-    AbilityRequest &request, std::vector<DialogAppInfo> &dialogAppInfos, bool isMoreHapList, bool &findDefaultApp,
-    bool &isAppCloneSelector)
+#ifdef APP_DOMAIN_VERIFY_ENABLED
+static bool IsApplinkExist(const std::vector<AppExecFwk::AbilityInfo> &abilityInfos)
+{
+    if (!abilityInfos.size()) {
+        return false;
+    }
+    for (const auto &info : abilityInfos) {
+        if (info.linkType == AppExecFwk::LinkType::APP_LINK) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool ImplicitStartProcessor::NeedQueryFromAG(const AbilityRequest &request, bool applinkExist)
+{
+    bool isOpenLink = request.want.HasParameter(OPEN_LINK_APP_LINKING_ONLY);
+    if (!isOpenLink) {
+        return false;
+    }
+    bool appLinkingOnly = request.want.GetBoolParam(OPEN_LINK_APP_LINKING_ONLY, false);
+    if (appLinkingOnly) {
+        return false;
+    }
+    std::string linkUriScheme = request.want.GetUri().GetScheme();
+    if (linkUriScheme != HTTPS_SCHEME_NAME && linkUriScheme != HTTP_SCHEME_NAME) {
+        return false;
+    }
+    if (applinkExist) {
+        return false;
+    }
+    return true;
+}
+
+int ImplicitStartProcessor::ImplicitStartAG(int32_t userId, AbilityRequest &request,
+    std::vector<DialogAppInfo> &dialogAppInfos, GenerateRequestParam &genReqParam, bool &queryAGSuccess)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}s", __func__);
+    std::string linkUri = request.want.GetUri().ToString();
+    Want agWant;
+    auto ret = 0;
+    ret = OHOS::AppDomainVerify::AppDomainVerifyMgrClient::GetInstance()->QueryAppDetailsWant(linkUri, agWant);
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "QueryAppDetailsWant failed, ret:%{public}d", ret);
+        return ret;
+    }
+    queryAGSuccess = true;
+    request.want = agWant;
+    genReqParam.fromImplicitStartAG = true;
+    return GenerateAbilityRequestByAction(userId, request, dialogAppInfos, genReqParam);
+}
+#endif // APP_DOMAIN_VERIFY_ENABLED
+
+int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId, AbilityRequest &request,
+    std::vector<DialogAppInfo> &dialogAppInfos, GenerateRequestParam &genReqParam)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}s.", __func__);
@@ -419,7 +483,8 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId,
     }
 
     IN_PROCESS_CALL_WITHOUT_RET(bundleMgrHelper->ImplicitQueryInfos(
-        request.want, abilityInfoFlag, userId, withDefault, abilityInfos, extensionInfos, findDefaultApp));
+        request.want, abilityInfoFlag, userId, withDefault, abilityInfos, extensionInfos,
+        genReqParam.findDefaultApp));
 
     OnlyKeepReserveApp(abilityInfos, extensionInfos, request);
     if (isOpenLink && extensionInfos.size() > 0) {
@@ -435,6 +500,18 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId,
         return ERR_IMPLICIT_START_ABILITY_FAIL;
     }
 
+#ifdef APP_DOMAIN_VERIFY_ENABLED
+    ErrCode result = ERR_OK;
+    bool applinkExist = IsApplinkExist(abilityInfos);
+    bool queryAGSuccess = false;
+    if (!genReqParam.fromImplicitStartAG && NeedQueryFromAG(request, applinkExist)) {
+        result = static_cast<int>(ImplicitStartAG(userId, request, dialogAppInfos, genReqParam, queryAGSuccess));
+        if (queryAGSuccess) {
+            return result;
+        }
+    }
+#endif // APP_DOMAIN_VERIFY_ENABLED
+
     if (!appLinkingOnly) {
         ProcessLinkType(abilityInfos);
     }
@@ -449,7 +526,7 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId,
     if (abilityInfos.size() + extensionInfos.size() > 1) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "filter applications by erms");
         bool ret = FilterAbilityList(request.want, abilityInfos, extensionInfos, userId);
-        FindAppClone(abilityInfos, extensionInfos, isAppCloneSelector);
+        FindAppClone(abilityInfos, extensionInfos, genReqParam.isAppCloneSelector);
         if (!ret) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "FilterAbilityList failed");
         }
@@ -465,9 +542,9 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId,
     std::vector<AppExecFwk::AbilityInfo> implicitAbilityInfos;
     std::vector<AppExecFwk::ExtensionAbilityInfo> implicitExtensionInfos;
     std::vector<std::string> infoNames;
-    if (!AppUtils::GetInstance().IsSelectorDialogDefaultPossion() && isMoreHapList) {
+    if (!AppUtils::GetInstance().IsSelectorDialogDefaultPossion() && genReqParam.isMoreHapList) {
         IN_PROCESS_CALL_WITHOUT_RET(bundleMgrHelper->ImplicitQueryInfos(implicitwant, abilityInfoFlag, userId,
-            withDefault, implicitAbilityInfos, implicitExtensionInfos, findDefaultApp));
+            withDefault, implicitAbilityInfos, implicitExtensionInfos, genReqParam.findDefaultApp));
         if (implicitAbilityInfos.size() != 0 && typeName != TYPE_ONLY_MATCH_WILDCARD) {
             for (auto implicitAbilityInfo : implicitAbilityInfos) {
                 infoNames.emplace_back(implicitAbilityInfo.bundleName + "#" +
@@ -496,7 +573,7 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId,
                 .info = info,
                 .userId = userId,
                 .isExtension = isExtension,
-                .isMoreHapList = isMoreHapList,
+                .isMoreHapList = genReqParam.isMoreHapList,
                 .withDefault = withDefault,
                 .typeName = typeName,
                 .infoNames = infoNames,
@@ -886,12 +963,14 @@ void ImplicitStartProcessor::AddAbilityInfoToDialogInfos(const AddInfoParam &par
     dialogAppInfo.visible = param.info.visible;
     dialogAppInfo.appIndex = param.info.applicationInfo.appIndex;
     dialogAppInfo.multiAppMode = param.info.applicationInfo.multiAppMode;
+    dialogAppInfo.isAppLink = (param.info.linkType == AppExecFwk::LinkType::APP_LINK);
     dialogAppInfos.emplace_back(dialogAppInfo);
 }
 
 bool ImplicitStartProcessor::IsExistDefaultApp(int32_t userId, const std::string &typeName)
 {
     auto defaultMgr = GetDefaultAppProxy();
+    CHECK_POINTER_AND_RETURN_LOG(defaultMgr, false, "defaultMgr null");
     AppExecFwk::BundleInfo bundleInfo;
     TAG_LOGD(AAFwkTag::ABILITYMGR, "userId: %{public}d, typeName: %{public}s", userId, typeName.c_str());
     ErrCode ret =
@@ -969,7 +1048,7 @@ int32_t ImplicitStartProcessor::FindAppClone(std::vector<AppExecFwk::AbilityInfo
     if (abilityInfos.size() > 0 && extensionInfos.size() > 0) {
         return ERR_OK;
     }
-    
+
     bool isExitAbilityAppClone = FindAbilityAppClone(abilityInfos);
     bool isExitExtensionAppClone = FindExtensionAppClone(extensionInfos);
     if ((abilityInfos.size() == 0 && FindExtensionAppClone(extensionInfos)) ||

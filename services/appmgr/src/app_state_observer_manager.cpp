@@ -297,6 +297,7 @@ void AppStateObserverManager::OnRenderProcessDied(const std::shared_ptr<RenderRe
     handler_->SubmitTask(task);
 }
 
+#ifdef SUPPORT_CHILD_PROCESS
 void AppStateObserverManager::OnChildProcessDied(std::shared_ptr<ChildProcessRecord> childRecord)
 {
     if (handler_ == nullptr) {
@@ -315,6 +316,7 @@ void AppStateObserverManager::OnChildProcessDied(std::shared_ptr<ChildProcessRec
     };
     handler_->SubmitTask(task);
 }
+#endif // SUPPORT_CHILD_PROCESS
 
 void AppStateObserverManager::OnProcessStateChanged(const std::shared_ptr<AppRunningRecord> &appRecord)
 {
@@ -410,25 +412,27 @@ void AppStateObserverManager::OnProcessReused(const std::shared_ptr<AppRunningRe
     handler_->SubmitTask(task);
 }
 
-void AppStateObserverManager::OnRenderProcessCreated(const std::shared_ptr<RenderRecord> &renderRecord)
+void AppStateObserverManager::OnRenderProcessCreated(const std::shared_ptr<RenderRecord> &renderRecord,
+    const bool isPreload)
 {
     if (handler_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null handler");
         return;
     }
 
-    auto task = [weak = weak_from_this(), renderRecord]() {
+    auto task = [weak = weak_from_this(), renderRecord, isPreload]() {
         auto self = weak.lock();
         if (self == nullptr) {
             TAG_LOGE(AAFwkTag::APPMGR, "null self");
             return;
         }
         TAG_LOGD(AAFwkTag::APPMGR, "OnRenderProcessCreated come.");
-        self->HandleOnRenderProcessCreated(renderRecord);
+        self->HandleOnRenderProcessCreated(renderRecord, isPreload);
     };
     handler_->SubmitTask(task);
 }
 
+#ifdef SUPPORT_CHILD_PROCESS
 void AppStateObserverManager::OnChildProcessCreated(std::shared_ptr<ChildProcessRecord> childRecord)
 {
     if (handler_ == nullptr) {
@@ -447,6 +451,7 @@ void AppStateObserverManager::OnChildProcessCreated(std::shared_ptr<ChildProcess
     };
     handler_->SubmitTask(task);
 }
+#endif // SUPPORT_CHILD_PROCESS
 
 void AppStateObserverManager::StateChangedNotifyObserver(
     const AbilityStateData abilityStateData, bool isAbility, bool isFromWindowFocusChanged)
@@ -612,7 +617,7 @@ void AppStateObserverManager::HandleOnAppProcessCreated(const std::shared_ptr<Ap
     }
     ProcessData data = WrapProcessData(appRecord);
     data.isPreload = isPreload;
-    data.isPreloadModule = appRecord->GetNeedLimitPrio();
+    data.isPreloadModule = appRecord->GetNeedPreloadModule();
     if (data.bundleName == XIAOYI_BUNDLE_NAME && data.extensionType == ExtensionAbilityType::SERVICE) {
         TAG_LOGI(AAFwkTag::APPMGR, "change processType to NORMAL");
         data.processType = ProcessType::NORMAL;
@@ -645,13 +650,15 @@ void AppStateObserverManager::HandleOnProcessResued(const std::shared_ptr<AppRun
     }
 }
 
-void AppStateObserverManager::HandleOnRenderProcessCreated(const std::shared_ptr<RenderRecord> &renderRecord)
+void AppStateObserverManager::HandleOnRenderProcessCreated(const std::shared_ptr<RenderRecord> &renderRecord,
+    const bool isPreload)
 {
     if (!renderRecord) {
         TAG_LOGE(AAFwkTag::APPMGR, "null renderRecord");
         return;
     }
     ProcessData data = WrapRenderProcessData(renderRecord);
+    data.isPreload = isPreload;
     TAG_LOGD(AAFwkTag::APPMGR,
         "RenderProcess Create, bundle:%{public}s, pid:%{public}d, uid:%{public}d, processType:%{public}d, "
         "processName:%{public}s, renderUid:%{public}d",
@@ -659,6 +666,7 @@ void AppStateObserverManager::HandleOnRenderProcessCreated(const std::shared_ptr
     HandleOnProcessCreated(data);
 }
 
+#ifdef SUPPORT_CHILD_PROCESS
 void AppStateObserverManager::HandleOnChildProcessCreated(std::shared_ptr<ChildProcessRecord> childRecord)
 {
     if (!childRecord) {
@@ -676,6 +684,7 @@ void AppStateObserverManager::HandleOnChildProcessCreated(std::shared_ptr<ChildP
         data.bundleName.c_str(), data.pid, data.uid, data.processType, data.processName.c_str());
     HandleOnProcessCreated(data);
 }
+#endif // SUPPORT_CHILD_PROCESS
 
 void AppStateObserverManager::HandleOnProcessCreated(const ProcessData &data)
 {
@@ -782,6 +791,7 @@ void AppStateObserverManager::HandleOnRenderProcessDied(const std::shared_ptr<Re
     HandleOnProcessDied(data);
 }
 
+#ifdef SUPPORT_CHILD_PROCESS
 void AppStateObserverManager::HandleOnChildProcessDied(std::shared_ptr<ChildProcessRecord> childRecord)
 {
     if (!childRecord) {
@@ -799,6 +809,7 @@ void AppStateObserverManager::HandleOnChildProcessDied(std::shared_ptr<ChildProc
         data.bundleName.c_str(), data.pid, data.uid, data.processType, data.processName.c_str());
     HandleOnProcessDied(data);
 }
+#endif // SUPPORT_CHILD_PROCESS
 
 void AppStateObserverManager::HandleOnProcessDied(const ProcessData &data)
 {
@@ -853,6 +864,7 @@ ProcessData AppStateObserverManager::WrapRenderProcessData(const std::shared_ptr
     return processData;
 }
 
+#ifdef SUPPORT_CHILD_PROCESS
 int32_t AppStateObserverManager::WrapChildProcessData(ProcessData &processData,
     std::shared_ptr<ChildProcessRecord> childRecord)
 {
@@ -874,6 +886,7 @@ int32_t AppStateObserverManager::WrapChildProcessData(ProcessData &processData,
     processData.processType = childRecord->GetProcessType();
     return ERR_OK;
 }
+#endif // SUPPORT_CHILD_PROCESS
 
 bool AppStateObserverManager::ObserverExist(const sptr<IRemoteBroker> &observer)
 {
@@ -928,6 +941,7 @@ void AppStateObserverManager::AddObserverDeathRecipient(const sptr<IRemoteBroker
         TAG_LOGE(AAFwkTag::APPMGR, "null observer");
         return;
     }
+    std::lock_guard lock(recipientMapMutex_);
     auto it = recipientMap_.find(observer->AsObject());
     if (it != recipientMap_.end()) {
         TAG_LOGE(AAFwkTag::APPMGR, "Death recipient added");
@@ -970,6 +984,7 @@ void AppStateObserverManager::RemoveObserverDeathRecipient(const sptr<IRemoteBro
         TAG_LOGE(AAFwkTag::APPMGR, "null observer");
         return;
     }
+    std::lock_guard lock(recipientMapMutex_);
     auto it = recipientMap_.find(observer->AsObject());
     if (it != recipientMap_.end()) {
         it->first->RemoveDeathRecipient(it->second);
@@ -1030,7 +1045,7 @@ AppStateData AppStateObserverManager::WrapAppStateData(const std::shared_ptr<App
     appStateData.state = static_cast<int32_t>(state);
     appStateData.uid = appRecord->GetUid();
     appStateData.extensionType = appRecord->GetExtensionType();
-    appStateData.isPreloadModule = appRecord->GetNeedLimitPrio();
+    appStateData.isPreloadModule = appRecord->GetNeedPreloadModule();
     if (appRecord->GetApplicationInfo() != nullptr) {
         appStateData.accessTokenId = static_cast<uint32_t>(appRecord->GetApplicationInfo()->accessTokenId);
     }

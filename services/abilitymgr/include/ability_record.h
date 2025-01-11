@@ -258,6 +258,7 @@ struct AbilityRequest {
     int callerUid = -1;
     AbilityCallType callType = AbilityCallType::INVALID_TYPE;
     sptr<IRemoteObject> callerToken = nullptr;
+    int32_t callerTokenRecordId = -1;
     sptr<IRemoteObject> asCallerSourceToken = nullptr;
     uint32_t callerAccessTokenId = -1;
     sptr<IAbilityConnection> connect = nullptr;
@@ -281,6 +282,13 @@ struct AbilityRequest {
     std::string reservedBundleName;
     bool isFromIcon = false;
     bool isShellCall = false;
+
+    // ERMS embedded atomic service
+    bool isQueryERMS = false;
+    std::string appId;
+    std::string startTime;
+    bool isEmbeddedAllowed = false;
+
     std::pair<bool, LaunchReason> IsContinuation() const
     {
         auto flags = want.GetFlags();
@@ -988,6 +996,7 @@ public:
     AppState GetAppState() const;
 
     void SetLaunchReason(const LaunchReason &reason);
+    void SetLaunchReasonMessage(const std::string &launchReasonMessage);
     void SetLastExitReason(const ExitReason &exitReason);
     void ContinueAbility(const std::string &deviceId, uint32_t versionCode);
     void NotifyContinuationResult(int32_t result);
@@ -1089,6 +1098,10 @@ public:
 
     std::string GetCustomProcessFlag() const;
 
+    void SetExtensionProcessMode(const uint32_t &extensionProcessMode);
+
+    uint32_t GetExtensionProcessMode() const;
+
     void SetURI(const std::string &uri);
     std::string GetURI() const;
 
@@ -1114,6 +1127,13 @@ public:
 
     void SetDebugUIExtension();
 
+#ifdef SUPPORT_UPMS
+    void GrantUriPermission();
+
+    void GrantUriPermission(const std::vector<std::string> &uriVec, int32_t flag,
+        const std::string &targetBundleName, uint32_t callerTokenId);
+#endif // SUPPORT_UPMS
+
     inline std::string GetInstanceKey() const
     {
         return instanceKey_;
@@ -1134,6 +1154,8 @@ public:
         return securityFlag_;
     }
 
+    void ScheduleCollaborate(const Want &want);
+
 protected:
     void SendEvent(uint32_t msg, uint32_t timeOut, int32_t param = -1, bool isExtension = false);
 
@@ -1149,7 +1171,9 @@ private:
      */
     void GetAbilityTypeString(std::string &typeStr);
     void OnSchedulerDied(const wptr<IRemoteObject> &remote);
+#ifdef SUPPORT_UPMS
     void GrantUriPermission(Want &want, std::string targetBundleName, bool isSandboxApp, uint32_t tokenId);
+#endif // SUPPORT_UPMS
     int32_t GetCurrentAccountId() const;
 
     /**
@@ -1294,6 +1318,7 @@ private:
     bool isStartToForeground_ = false;
     std::atomic_bool isCallerSetProcess_ = false;
     std::string customProcessFlag_ = "";
+    uint32_t extensionProcessMode_ = 0;
     int32_t appIndex_ = 0;
     bool minimizeReason_ = false;
 
@@ -1350,6 +1375,7 @@ private:
     LaunchDebugInfo launchDebugInfo_;
     std::string instanceKey_ = "";
     bool securityFlag_ = false;
+    std::mutex collaborateWantLock_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

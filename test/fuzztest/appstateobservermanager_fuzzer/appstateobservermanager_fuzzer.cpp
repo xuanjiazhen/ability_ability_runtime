@@ -59,7 +59,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     appStateObserverManager->HandleAppStateChanged(appRecord, state, needNotifyApp, isFromWindowFocusChanged);
     appStateObserverManager->HandleOnAppProcessDied(appRecord);
     std::shared_ptr<RenderRecord> renderRecord;
-    appStateObserverManager->HandleOnRenderProcessCreated(renderRecord);
+    appStateObserverManager->HandleOnRenderProcessCreated(renderRecord, false);
     appStateObserverManager->HandleOnRenderProcessDied(renderRecord);
     ProcessData processData;
     appStateObserverManager->HandleOnProcessCreated(processData);
@@ -86,7 +86,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         return 0;
     }
 
-    char* ch = (char*)malloc(size + 1);
+    char* ch = static_cast<char*>(malloc(size + 1));
     if (ch == nullptr) {
         std::cout << "malloc failed." << std::endl;
         return 0;

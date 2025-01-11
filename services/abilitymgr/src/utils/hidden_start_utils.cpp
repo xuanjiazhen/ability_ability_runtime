@@ -25,12 +25,12 @@
 namespace OHOS {
 namespace AAFwk {
 namespace {
-constexpr const char* APP_TURBO_SERVICE = "app_turbo_service";
+constexpr const char* TASK_MANAGER_SERVICE = "task_manager_service";
 }
 
 bool HiddenStartUtils::IsHiddenStart(const Want &want, const StartOptions &options)
 {
-    if (!PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(APP_TURBO_SERVICE)) {
+    if (!PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(TASK_MANAGER_SERVICE)) {
         return false;
     }
 
@@ -56,23 +56,6 @@ int32_t HiddenStartUtils::CheckHiddenStartSupported(const Want &want, const Star
         options.processOptions->processMode != ProcessMode::NEW_HIDDEN_PROCESS) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "this processMode is not supported in hidden start");
         return ERR_INVALID_VALUE;
-    }
-
-    std::string bundleName = want.GetElement().GetBundleName();
-    bool isRunning = false;
-    auto appMgr = AppMgrUtil::GetAppMgr();
-    if (appMgr == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "AppMgrUtil::GetAppMgr failed");
-        return ERR_INVALID_VALUE;
-    }
-    auto result = appMgr->IsAppRunning(bundleName, 0, isRunning);
-    if (result != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Query for app running failed, error code: %{public}d", result);
-        return result;
-    }
-    if (isRunning) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "ability is running now");
-        return ERR_ABILITY_ALREADY_RUNNING;
     }
 
     return ERR_OK;

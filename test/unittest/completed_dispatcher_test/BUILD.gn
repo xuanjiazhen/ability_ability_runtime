@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 import("//build/test.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
-module_output_path = "ans_standard/wantagent"
+module_output_path = "ability_runtime/wantagent"
 
 ohos_unittest("completed_dispatcher_test") {
   module_out_path = module_output_path
@@ -30,8 +30,6 @@ ohos_unittest("completed_dispatcher_test") {
   deps = [
     "${ability_runtime_services_path}/abilitymgr:abilityms",
     "${ability_runtime_services_path}/abilitymgr:wantagent_manager",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -46,6 +44,8 @@ ohos_unittest("completed_dispatcher_test") {
     "c_utils:utils",
     "common_event_service:cesfwk_core",
     "eventhandler:libeventhandler",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_core",
     "napi:ace_napi",

@@ -16,6 +16,8 @@
 #ifndef OHOS_ABILITY_RUNTIME_CJ_ABILITY_CONTEXT_UTILS_H
 #define OHOS_ABILITY_RUNTIME_CJ_ABILITY_CONTEXT_UTILS_H
 
+#include <cstdint>
+
 extern "C" {
 using WantHandle = void*;
 
@@ -37,6 +39,8 @@ struct CJNewStartOptions {
     int32_t windowTop;
     int32_t windowWidth;
     int32_t windowHeight;
+    int32_t processMode;
+    int32_t startupVisibility;
 };
 
 struct CJAtomicServiceOptions {

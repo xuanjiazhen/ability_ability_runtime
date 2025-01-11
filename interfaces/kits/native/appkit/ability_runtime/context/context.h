@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -240,12 +240,24 @@ public:
     virtual int32_t CreateSystemHspModuleResourceManager(const std::string &bundleName,
         const std::string &moduleName, std::shared_ptr<Global::Resource::ResourceManager> &resourceManager) = 0;
 
+    virtual int32_t CreateHspModuleResourceManager(const std::string &bundleName,
+        const std::string &moduleName, std::shared_ptr<Global::Resource::ResourceManager> &resourceManager)
+    {
+        return ERR_INVALID_VALUE;
+    }
     /**
      * @brief Get file area
      *
      * @return file area.
      */
     virtual int GetArea() = 0;
+
+    /**
+     * @brief Get process name
+     *
+     * @return process name.
+     */
+    virtual std::string GetProcessName() = 0;
 
     /**
      * @brief Obtains the configuration of application.
@@ -267,6 +279,27 @@ public:
      * @return Returns the Device Type.
      */
     virtual Global::Resource::DeviceType GetDeviceType() const = 0;
+
+    /**
+     * @brief Create a area mode context.
+     *
+     * @param areaMode Indicates the area mode.
+     *
+     * @return Returns the context with the specified area mode.
+     */
+    virtual std::shared_ptr<Context> CreateAreaModeContext(int areaMode) = 0;
+
+#ifdef SUPPORT_GRAPHICS
+    /**
+     * @brief Create a context by displayId. This Context updates the density and direction properties
+     * based on the displayId, while other property values remain the same as in the original Context.
+     *
+     * @param displayId Indicates the displayId.
+     *
+     * @return Returns the context with the specified displayId.
+     */
+    virtual std::shared_ptr<Context> CreateDisplayContext(uint64_t displayId) = 0;
+#endif
 
     /**
      * @brief Getting derived class

@@ -22,6 +22,7 @@
 #include "hitrace_meter.h"
 #include "insight_intent_execute_manager.h"
 #include "insight_intent_utils.h"
+#include "ipc_capacity_wrap.h"
 #include "permission_constants.h"
 #include "utils/app_mgr_util.h"
 #include "uri_utils.h"
@@ -79,19 +80,18 @@ bool FreeInstallManager::IsTopAbility(const sptr<IRemoteObject> &callerToken)
 }
 
 int FreeInstallManager::StartFreeInstall(const Want &want, int32_t userId, int requestCode,
-    const sptr<IRemoteObject> &callerToken, bool isAsync, uint32_t specifyTokenId, bool isOpenAtomicServiceShortUrl,
-    std::shared_ptr<Want> originalWant)
+    const sptr<IRemoteObject> &callerToken, std::shared_ptr<FreeInstallParams> param)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!VerifyStartFreeInstallPermission(callerToken)) {
         return NOT_TOP_ABILITY;
     }
-    FreeInstallInfo info = BuildFreeInstallInfo(want, userId, requestCode, callerToken,
-        isAsync, specifyTokenId, isOpenAtomicServiceShortUrl, originalWant);
+    FreeInstallInfo info = BuildFreeInstallInfo(want, userId, requestCode, callerToken, param);
     {
         std::lock_guard<ffrt::mutex> lock(freeInstallListLock_);
         freeInstallList_.push_back(info);
     }
+    bool isAsync = param != nullptr ? param->isAsync : false;
     int32_t recordId = GetRecordIdByToken(callerToken);
     sptr<AtomicServiceStatusCallback> callback = new AtomicServiceStatusCallback(weak_from_this(), isAsync, recordId);
     auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
@@ -140,7 +140,7 @@ int FreeInstallManager::RemoteFreeInstall(const Want &want, int32_t userId, int 
     if (!isSaCall && !isFromRemote && !IsTopAbility(callerToken)) {
         return NOT_TOP_ABILITY;
     }
-    FreeInstallInfo info = BuildFreeInstallInfo(want, userId, requestCode, callerToken, false);
+    FreeInstallInfo info = BuildFreeInstallInfo(want, userId, requestCode, callerToken);
     {
         std::lock_guard<ffrt::mutex> lock(freeInstallListLock_);
         freeInstallList_.push_back(info);
@@ -149,7 +149,9 @@ int FreeInstallManager::RemoteFreeInstall(const Want &want, int32_t userId, int 
     sptr<AtomicServiceStatusCallback> callback = new AtomicServiceStatusCallback(weak_from_this(), false, recordId);
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     uint32_t accessToken = IPCSkeleton::GetCallingTokenID();
+#ifdef SUPPORT_UPMS
     UriUtils::GetInstance().CheckUriPermission(accessToken, info.want);
+#endif // SUPPORT_UPMS
     DistributedClient dmsClient;
     auto result = dmsClient.StartRemoteFreeInstall(info.want, callerUid, info.requestCode, accessToken, callback);
     if (result != ERR_NONE) {
@@ -165,19 +167,22 @@ int FreeInstallManager::RemoteFreeInstall(const Want &want, int32_t userId, int 
 }
 
 FreeInstallInfo FreeInstallManager::BuildFreeInstallInfo(const Want &want, int32_t userId, int requestCode,
-    const sptr<IRemoteObject> &callerToken, bool isAsync, uint32_t specifyTokenId, bool isOpenAtomicServiceShortUrl,
-    std::shared_ptr<Want> originalWant)
+    const sptr<IRemoteObject> &callerToken, std::shared_ptr<FreeInstallParams> param)
 {
+    if (param == nullptr) {
+        param = std::make_shared<FreeInstallParams>();
+    }
     FreeInstallInfo info = {
         .want = want,
         .userId = userId,
         .requestCode = requestCode,
         .callerToken = callerToken,
-        .specifyTokenId = specifyTokenId,
-        .isOpenAtomicServiceShortUrl = isOpenAtomicServiceShortUrl,
-        .originalWant = originalWant
+        .specifyTokenId = param->specifyTokenId,
+        .isOpenAtomicServiceShortUrl = param->isOpenAtomicServiceShortUrl,
+        .originalWant = param->originalWant,
+        .startOptions = param->startOptions
     };
-    if (!isAsync) {
+    if (!param->isAsync) {
         auto promise = std::make_shared<std::promise<int32_t>>();
         info.promise = promise;
     }
@@ -223,6 +228,7 @@ int FreeInstallManager::NotifyDmsCallback(const Want &want, int resultCode)
         if (want.GetElement().GetAbilityName().compare(abilityName) == 0) {
             TAG_LOGI(AAFwkTag::FREE_INSTALL, "Handle DMS");
             MessageParcel data;
+            AAFwk::ExtendMaxIpcCapacityForInnerWant(data);
             if (!data.WriteInterfaceToken(DMS_FREE_INSTALL_CALLBACK_TOKEN)) {
                 TAG_LOGE(AAFwkTag::FREE_INSTALL, "write interface token failed");
                 return ERR_INVALID_VALUE;
@@ -364,8 +370,13 @@ void FreeInstallManager::StartAbilityByFreeInstall(FreeInstallInfo &info, std::s
         result = UpdateElementName(info.want, info.userId);
     }
     if (result == ERR_OK) {
-        result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbilityByFreeInstall(info.want,
-            info.callerToken, info.userId, info.requestCode);
+        if (info.startOptions == nullptr) {
+            result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbilityByFreeInstall(info.want,
+                info.callerToken, info.userId, info.requestCode);
+        } else {
+            result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbility(info.want, *info.startOptions,
+                info.callerToken, info.userId, info.requestCode);
+        }
     }
     IPCSkeleton::SetCallingIdentity(identity);
     int32_t recordId = GetRecordIdByToken(info.callerToken);
@@ -396,6 +407,12 @@ void FreeInstallManager::StartAbilityByPreInstall(int32_t recordId, FreeInstallI
     TAG_LOGD(AAFwkTag::FREE_INSTALL, "identity: %{public}s", identity.c_str());
     IPCSkeleton::SetCallingIdentity(identity);
     TAG_LOGI(AAFwkTag::FREE_INSTALL, "preInstall result: %{public}d", result);
+    if (info.isOpenAtomicServiceShortUrl) {
+        auto url = info.want.GetUriString();
+        DelayedSingleton<FreeInstallObserverManager>::GetInstance()->OnInstallFinishedByUrl(recordId,
+            startTime, url, result);
+        return;
+    }
     DelayedSingleton<FreeInstallObserverManager>::GetInstance()->OnInstallFinished(
         recordId, bundleName, abilityName, startTime, result);
 }

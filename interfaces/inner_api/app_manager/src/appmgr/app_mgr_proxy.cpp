@@ -18,6 +18,7 @@
 #include "appexecfwk_errors.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "ipc_capacity_wrap.h"
 #include "ipc_types.h"
 #include "iremote_object.h"
 #include "parcel_util.h"
@@ -303,6 +304,7 @@ int AppMgrProxy::GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info)
 {
     MessageParcel data;
     MessageParcel reply;
+#ifdef SUPPORT_CHILD_PROCESS
     MessageOption option(MessageOption::TF_SYNC);
     if (!WriteInterfaceToken(data)) {
         return ERR_FLATTEN_OBJECT;
@@ -315,6 +317,7 @@ int AppMgrProxy::GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info)
         TAG_LOGE(AAFwkTag::APPMGR, "GetParcelableInfos fail, error: %{public}d", error);
         return error;
     }
+#endif // SUPPORT_CHILD_PROCESS
     int result = reply.ReadInt32();
     return result;
 }
@@ -702,6 +705,7 @@ void AppMgrProxy::ScheduleAcceptWantDone(const int32_t recordId, const AAFwk::Wa
 {
     MessageParcel data;
     MessageParcel reply;
+    AAFwk::ExtendMaxIpcCapacityForInnerWant(data);
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "WriteInterfaceToken failed");
         return;
@@ -723,6 +727,7 @@ void AppMgrProxy::ScheduleNewProcessRequestDone(const int32_t recordId, const AA
 {
     MessageParcel data;
     MessageParcel reply;
+    AAFwk::ExtendMaxIpcCapacityForInnerWant(data);
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "WriteInterfaceToken failed");
         return;
@@ -1631,6 +1636,7 @@ int32_t AppMgrProxy::IsAppRunningByBundleNameAndUserId(const std::string &bundle
     return reply.ReadInt32();
 }
 
+#ifdef SUPPORT_CHILD_PROCESS
 int32_t AppMgrProxy::StartChildProcess(pid_t &childPid, const ChildProcessRequest &request)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
@@ -1711,6 +1717,7 @@ void AppMgrProxy::ExitChildProcessSafely()
 
     PARCEL_UTIL_SENDREQ_NORET(AppMgrInterfaceCode::EXIT_CHILD_PROCESS_SAFELY, data, reply, option);
 }
+#endif // SUPPORT_CHILD_PROCESS
 
 bool AppMgrProxy::IsFinalAppProcess()
 {
@@ -1951,6 +1958,7 @@ void AppMgrProxy::SetAppAssertionPauseState(bool flag)
     PARCEL_UTIL_SENDREQ_NORET(AppMgrInterfaceCode::SET_APP_ASSERT_PAUSE_STATE_SELF, data, reply, option);
 }
 
+#ifdef SUPPORT_CHILD_PROCESS
 int32_t AppMgrProxy::StartNativeChildProcess(const std::string &libName, int32_t childProcessCount,
     const sptr<IRemoteObject> &callback)
 {
@@ -1974,6 +1982,7 @@ int32_t AppMgrProxy::StartNativeChildProcess(const std::string &libName, int32_t
     PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::START_NATIVE_CHILD_PROCESS, data, reply, option);
     return reply.ReadInt32();
 }
+#endif // SUPPORT_CHILD_PROCESS
 
 int32_t AppMgrProxy::CheckCallingIsUserTestMode(const pid_t pid, bool &isUserTest)
 {
@@ -2146,6 +2155,23 @@ void AppMgrProxy::UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::strin
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
     PARCEL_UTIL_SENDREQ_NORET(AppMgrInterfaceCode::UPDATE_INSTANCE_KEY_BY_SPECIFIED_ID, data, reply, option);
+}
+
+int32_t AppMgrProxy::HasAppRecord(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return ERR_FLATTEN_OBJECT;
+    }
+    PARCEL_UTIL_WRITE_RET_INT(data, Parcelable, &want);
+    PARCEL_UTIL_WRITE_RET_INT(data, Parcelable, &abilityInfo);
+
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::UPDATE_INSTANCE_KEY_BY_SPECIFIED_ID, data, reply, option);
+    result = reply.ReadBool();
+    return ERR_OK;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

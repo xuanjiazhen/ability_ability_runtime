@@ -18,11 +18,13 @@
 #include <regex>
 
 #include "ability_manager_service.h"
+#include "ability_manager_constants.h"
 #include "ability_permission_util.h"
 #include "ability_resident_process_rdb.h"
 #include "appfreeze_manager.h"
 #include "app_exit_reason_data_manager.h"
 #include "assert_fault_callback_death_mgr.h"
+#include "extension_ability_info.h"
 #include "global_constant.h"
 #include "hitrace_meter.h"
 #include "int_wrapper.h"
@@ -71,6 +73,9 @@ constexpr char BUNDLE_NAME_DIALOG[] = "com.ohos.amsdialog";
 constexpr char ABILITY_NAME_ASSERT_FAULT_DIALOG[] = "AssertFaultDialog";
 constexpr const char* WANT_PARAMS_APP_RESTART_FLAG = "ohos.aafwk.app.restart";
 
+constexpr uint32_t PROCESS_MODE_RUN_WITH_MAIN_PROCESS =
+    1 << static_cast<uint32_t>(AppExecFwk::ExtensionProcessMode::RUN_WITH_MAIN_PROCESS);
+
 const std::string XIAOYI_BUNDLE_NAME = "com.huawei.hmos.vassistant";
 
 bool IsSpecialAbility(const AppExecFwk::AbilityInfo &abilityInfo)
@@ -99,8 +104,10 @@ AbilityConnectManager::~AbilityConnectManager()
 
 int AbilityConnectManager::StartAbility(const AbilityRequest &abilityRequest)
 {
+#ifdef SUPPORT_UPMS
     // grant uri permission to service extension and ui extension, must call out of serialMutext_.
     UriUtils::GetInstance().GrantUriPermissionForUIOrServiceExtension(abilityRequest);
+#endif // SUPPORT_UPMS
     std::lock_guard guard(serialMutex_);
     return StartAbilityLocked(abilityRequest);
 }
@@ -175,6 +182,11 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
     CHECK_POINTER_AND_RETURN(targetService, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "startAbility:%{public}s", targetService->GetURI().c_str());
 
+    std::string value = abilityRequest.want.GetStringParam(Want::PARM_LAUNCH_REASON_MESSAGE);
+    if (UIExtensionUtils::IsUIExtension(abilityRequest.abilityInfo.extensionAbilityType) && !value.empty()) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "set launchReasonMessage:%{public}s", value.c_str());
+        targetService->SetLaunchReasonMessage(value);
+    }
     targetService->AddCallerRecord(abilityRequest.callerToken, abilityRequest.requestCode, abilityRequest.want);
 
     targetService->SetLaunchReason(LaunchReason::LAUNCHREASON_START_EXTENSION);
@@ -211,7 +223,7 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
     } else if (IsUIExtensionAbility(targetService)) {
         DoForegroundUIExtension(targetService, abilityRequest);
     } else {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "targetService activating");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "TargetService not active, state: %{public}d", targetService->GetAbilityState());
         EnqueueStartServiceReq(abilityRequest);
         return ERR_OK;
     }
@@ -484,14 +496,14 @@ int32_t AbilityConnectManager::GetOrCreateTargetServiceRecord(
 }
 
 int AbilityConnectManager::PreloadUIExtensionAbilityLocked(const AbilityRequest &abilityRequest,
-    std::string &hostBundleName)
+    std::string &hostBundleName, int32_t hostPid)
 {
     std::lock_guard guard(serialMutex_);
-    return PreloadUIExtensionAbilityInner(abilityRequest, hostBundleName);
+    return PreloadUIExtensionAbilityInner(abilityRequest, hostBundleName, hostPid);
 }
 
 int AbilityConnectManager::PreloadUIExtensionAbilityInner(const AbilityRequest &abilityRequest,
-    std::string &hostBundleName)
+    std::string &hostBundleName, int32_t hostPid)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     if (!UIExtensionUtils::IsUIExtension(abilityRequest.abilityInfo.extensionAbilityType)) {
@@ -507,7 +519,7 @@ int AbilityConnectManager::PreloadUIExtensionAbilityInner(const AbilityRequest &
     CHECK_POINTER_AND_RETURN(uiExtensionAbilityRecordMgr_, ERR_NULL_OBJECT);
     int32_t extensionRecordId = INVALID_EXTENSION_RECORD_ID;
     ret = uiExtensionAbilityRecordMgr_->CreateExtensionRecord(abilityRequest, hostBundleName,
-        extensionRecord, extensionRecordId);
+        extensionRecord, extensionRecordId, hostPid);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "CreateExtensionRecord ERR");
         return ret;
@@ -519,7 +531,14 @@ int AbilityConnectManager::PreloadUIExtensionAbilityInner(const AbilityRequest &
     std::string extensionRecordKey = element.GetURI() + std::to_string(targetService->GetUIExtensionAbilityId());
     targetService->SetURI(extensionRecordKey);
     AddToServiceMap(extensionRecordKey, targetService);
-    LoadAbility(targetService);
+
+    auto updateRecordCallback = [hostPid, mgr = shared_from_this()](
+        const std::shared_ptr<AbilityRecord>& targetService) {
+        if (mgr != nullptr) {
+            mgr->UpdateUIExtensionInfo(targetService, hostPid);
+        }
+    };
+    LoadAbility(targetService, updateRecordCallback);
     return ERR_OK;
 }
 
@@ -573,8 +592,10 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     CHECK_POINTER_AND_RETURN(connect, ERR_INVALID_VALUE);
     auto connectObject = connect->AsObject();
+#ifdef SUPPORT_UPMS
     // grant uri to service extension by connect, must call out of serialMutex_
     UriUtils::GetInstance().GrantUriPermissionForServiceExtension(abilityRequest);
+#endif // SUPPORT_UPMS
     std::lock_guard guard(serialMutex_);
 
     // 1. get target service ability record, and check whether it has been loaded.
@@ -940,9 +961,17 @@ int AbilityConnectManager::AbilityTransitionDone(const sptr<IRemoteObject> &toke
         }
         case AbilityState::FOREGROUND: {
             abilityRecord->RemoveSignatureInfo();
+            if (IsUIExtensionAbility(abilityRecord)) {
+                DelayedSingleton<AppScheduler>::GetInstance()->UpdateExtensionState(
+                    token, AppExecFwk::ExtensionState::EXTENSION_STATE_FOREGROUND);
+            }
             return DispatchForeground(abilityRecord);
         }
         case AbilityState::BACKGROUND: {
+            if (IsUIExtensionAbility(abilityRecord)) {
+                DelayedSingleton<AppScheduler>::GetInstance()->UpdateExtensionState(
+                    token, AppExecFwk::ExtensionState::EXTENSION_STATE_BACKGROUND);
+            }
             return DispatchBackground(abilityRecord);
         }
         case AbilityState::INITIAL: {
@@ -1025,6 +1054,7 @@ int AbilityConnectManager::ScheduleConnectAbilityDoneLocked(
     // There may be multiple callers waiting for the connection result
     auto connectRecordList = abilityRecord->GetConnectRecordList();
     for (auto &connectRecord : connectRecordList) {
+        CHECK_POINTER_CONTINUE(connectRecord);
         connectRecord->ScheduleConnectAbilityDone();
         if (abilityRecord->GetAbilityInfo().type == AbilityType::EXTENSION &&
             abilityRecord->GetAbilityInfo().extensionAbilityType != AppExecFwk::ExtensionAbilityType::SERVICE) {
@@ -1122,7 +1152,7 @@ int AbilityConnectManager::ScheduleDisconnectAbilityDoneLocked(const sptr<IRemot
     // complete disconnect and remove record from conn map
     connect->ScheduleDisconnectAbilityDone();
     abilityRecord->RemoveConnectRecordFromList(connect);
-    if (abilityRecord->IsConnectListEmpty() && abilityRecord->IsNeverStarted()) {
+    if (abilityRecord->IsConnectListEmpty() && abilityRecord->GetStartId() == 0) {
         if (IsUIExtensionAbility(abilityRecord) && CheckUIExtensionAbilitySessionExist(abilityRecord)) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "exist ui extension component, don't terminate when disconnect");
         } else if (abilityRecord->GetAbilityInfo().extensionAbilityType ==
@@ -1405,7 +1435,8 @@ std::list<std::shared_ptr<ConnectionRecord>> AbilityConnectManager::GetConnectRe
     return connectList;
 }
 
-void AbilityConnectManager::LoadAbility(const std::shared_ptr<AbilityRecord> &abilityRecord)
+void AbilityConnectManager::LoadAbility(const std::shared_ptr<AbilityRecord> &abilityRecord,
+    std::function<void(const std::shared_ptr<AbilityRecord>&)> updateRecordCallback)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     CHECK_POINTER(abilityRecord);
@@ -1433,8 +1464,9 @@ void AbilityConnectManager::LoadAbility(const std::shared_ptr<AbilityRecord> &ab
             }
         }
     }
-
-    UpdateUIExtensionInfo(abilityRecord);
+    if (updateRecordCallback != nullptr) {
+        updateRecordCallback(abilityRecord);
+    }
     AbilityRuntime::LoadParam loadParam;
     loadParam.abilityRecordId = abilityRecord->GetRecordId();
     loadParam.isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
@@ -1443,8 +1475,74 @@ void AbilityConnectManager::LoadAbility(const std::shared_ptr<AbilityRecord> &ab
     loadParam.instanceKey = abilityRecord->GetInstanceKey();
     loadParam.isCallerSetProcess = abilityRecord->IsCallerSetProcess();
     loadParam.customProcessFlag = abilityRecord->GetCustomProcessFlag();
+    loadParam.extensionProcessMode = abilityRecord->GetExtensionProcessMode();
+    SetExtensionLoadParam(loadParam, abilityRecord);
     DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility(
         loadParam, abilityRecord->GetAbilityInfo(), abilityRecord->GetApplicationInfo(), abilityRecord->GetWant());
+}
+
+void AbilityConnectManager::SetExtensionLoadParam(AbilityRuntime::LoadParam &loadParam,
+    std::shared_ptr<AbilityRecord> abilityRecord)
+{
+    CHECK_POINTER(abilityRecord);
+    if (!IsStrictMode(abilityRecord)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "SetExtensionLoadParam, strictMode:false");
+        return;
+    }
+    auto &extensionParam = loadParam.extensionLoadParam;
+    extensionParam.strictMode = true;
+    extensionParam.networkEnableFlags = DelayedSingleton<ExtensionConfig>::GetInstance()->IsExtensionNetworkEnable(
+        abilityRecord->GetAbilityInfo().extensionTypeName);
+    extensionParam.saEnableFlags = DelayedSingleton<ExtensionConfig>::GetInstance()->IsExtensionSAEnable(
+        abilityRecord->GetAbilityInfo().extensionTypeName);
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+        "SetExtensionLoadParam, networkEnableFlags:%{public}d, saEnableFlags:%{public}d, strictMode:%{public}d",
+        extensionParam.networkEnableFlags, extensionParam.saEnableFlags, extensionParam.strictMode);
+}
+
+bool AbilityConnectManager::IsStrictMode(std::shared_ptr<AbilityRecord> abilityRecord)
+{
+    CHECK_POINTER_AND_RETURN(abilityRecord, false);
+    const auto &want = abilityRecord->GetWant();
+    bool strictMode = want.GetBoolParam(OHOS::AAFwk::STRICT_MODE, false);
+    if (abilityRecord->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::INPUTMETHOD) {
+        return strictMode;
+    }
+    if (!NeedExtensionControl(abilityRecord)) {
+        return false;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "SetExtensionLoadParam, not SACall, force enable strictMode");
+        return true;
+    }
+    if (!want.HasParameter(OHOS::AAFwk::STRICT_MODE)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "SetExtensionLoadParam, no striteMode param, force enable strictMode");
+        return true;
+    }
+    return strictMode;
+}
+
+bool AbilityConnectManager::NeedExtensionControl(std::shared_ptr<AbilityRecord> abilityRecord)
+{
+    CHECK_POINTER_AND_RETURN(abilityRecord, false);
+    auto extensionType = abilityRecord->GetAbilityInfo().extensionAbilityType;
+    if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE ||
+        extensionType == AppExecFwk::ExtensionAbilityType::DATASHARE) {
+        return false;
+    }
+    if (!abilityRecord->GetCustomProcessFlag().empty()) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "SetExtensionLoadParam, customProces not empty");
+        return false;
+    }
+    if (abilityRecord->GetExtensionProcessMode() == PROCESS_MODE_RUN_WITH_MAIN_PROCESS) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "SetExtensionLoadParam, extensionProcesMode:runWithMain");
+        return false;
+    }
+    if (abilityRecord->GetAbilityInfo().applicationInfo.allowMultiProcess) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "SetExtensionLoadParam, allowMultiProcess:1");
+        return false;
+    }
+    return true;
 }
 
 void AbilityConnectManager::PostRestartResidentTask(const AbilityRequest &abilityRequest)
@@ -3203,7 +3301,8 @@ EventInfo AbilityConnectManager::BuildEventInfo(const std::shared_ptr<AbilityRec
     return eventInfo;
 }
 
-void AbilityConnectManager::UpdateUIExtensionInfo(const std::shared_ptr<AbilityRecord> &abilityRecord)
+void AbilityConnectManager::UpdateUIExtensionInfo(const std::shared_ptr<AbilityRecord> &abilityRecord,
+    int32_t hostPid)
 {
     if (abilityRecord == nullptr ||
         !UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
@@ -3220,7 +3319,7 @@ void AbilityConnectManager::UpdateUIExtensionInfo(const std::shared_ptr<AbilityR
     }
     if (abilityRecord->GetWant().GetBoolParam(IS_PRELOAD_UIEXTENSION_ABILITY, false)) {
         // Applicable only to preloadUIExtension scenarios
-        auto rootHostPid = IPCSkeleton::GetCallingPid();
+        auto rootHostPid = (hostPid == AAFwk::DEFAULT_INVAL_VALUE) ? IPCSkeleton::GetCallingPid() : hostPid;
         wantParams.SetParam(UIEXTENSION_ROOT_HOST_PID, AAFwk::Integer::Box(rootHostPid));
     }
     abilityRecord->UpdateUIExtensionInfo(wantParams);
@@ -3282,11 +3381,12 @@ int32_t AbilityConnectManager::ReportAbilityStartInfoToRSS(const AppExecFwk::Abi
     return ERR_OK;
 }
 
-void AbilityConnectManager::UninstallApp(const std::string &bundleName)
+void AbilityConnectManager::UninstallApp(const std::string &bundleName, int32_t uid)
 {
     std::lock_guard lock(serviceMapMutex_);
     for (const auto &[key, abilityRecord]: serviceMap_) {
-        if (abilityRecord && abilityRecord->GetAbilityInfo().bundleName == bundleName) {
+        if (abilityRecord && abilityRecord->GetAbilityInfo().bundleName == bundleName &&
+            abilityRecord->GetUid() == uid) {
             abilityRecord->SetKeepAliveBundle(false);
         }
     }

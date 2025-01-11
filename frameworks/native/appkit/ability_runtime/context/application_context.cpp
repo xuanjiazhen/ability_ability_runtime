@@ -784,6 +784,11 @@ int ApplicationContext::GetArea()
     return contextImpl_->GetArea();
 }
 
+std::string ApplicationContext::GetProcessName()
+{
+    return (contextImpl_ != nullptr) ? contextImpl_->GetProcessName() : "";
+}
+
 std::shared_ptr<AppExecFwk::Configuration> ApplicationContext::GetConfiguration() const
 {
     return (contextImpl_ != nullptr) ? contextImpl_->GetConfiguration() : nullptr;
@@ -813,6 +818,17 @@ void ApplicationContext::RegisterProcessSecurityExit(AppProcessExitCallback appP
 {
     appProcessExitCallback_ = appProcessExitCallback;
 }
+
+#ifdef SUPPORT_GRAPHICS
+void ApplicationContext::RegisterGetDisplayConfig(GetDisplayConfigCallback getDisplayConfigCallback)
+{
+    if (contextImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null contextImpl_");
+        return;
+    }
+    contextImpl_->RegisterGetDisplayConfig(getDisplayConfigCallback);
+}
+#endif
 
 std::string ApplicationContext::GetAppRunningUniqueId() const
 {
@@ -896,5 +912,17 @@ std::string ApplicationContext::GetDataDir()
     TAG_LOGD(AAFwkTag::APPKIT, "GetDataDir is %{public}s", dataDir_.c_str());
     return dataDir_;
 }
+
+std::shared_ptr<Context> ApplicationContext::CreateAreaModeContext(int areaMode)
+{
+    return contextImpl_ ? contextImpl_->CreateAreaModeContext(areaMode) : nullptr;
+}
+
+#ifdef SUPPORT_GRAPHICS
+std::shared_ptr<Context> ApplicationContext::CreateDisplayContext(uint64_t displayId)
+{
+    return contextImpl_ ? contextImpl_->CreateDisplayContext(displayId) : nullptr;
+}
+#endif
 }  // namespace AbilityRuntime
 }  // namespace OHOS

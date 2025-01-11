@@ -407,6 +407,9 @@ int AbilityManagerStub::OnRemoteRequestInnerTenth(uint32_t code, MessageParcel &
     if (interfaceCode == AbilityManagerInterfaceCode::GET_PROCESS_RUNNING_INFO) {
         return GetProcessRunningInfosInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::GET_INTENT_EXEMPTION_INFO) {
+        return GetAllIntentExemptionInfoInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::SET_ABILITY_CONTROLLER) {
         return SetAbilityControllerInner(data, reply);
     }
@@ -782,6 +785,15 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentieth(uint32_t code, MessageParc
     }
     if (interfaceCode == AbilityManagerInterfaceCode::GET_APPLICATIONS_KEEP_ALIVE_BY_EDM) {
         return QueryKeepAliveApplicationsByEDMInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::ADD_QUERY_ERMS_OBSERVER) {
+        return AddQueryERMSObserverInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::QUERY_ATOMIC_SERVICE_STARTUP_RULE) {
+        return QueryAtomicServiceStartupRuleInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::NDK_START_SELF_UI_ABILITY) {
+        return StartSelfUIAbilityInner(data, reply);
     }
     return ERR_CODE_NOT_EXIST;
 }
@@ -1387,7 +1399,8 @@ int AbilityManagerStub::PreloadUIExtensionAbilityInner(MessageParcel &data, Mess
     }
     std::string hostBundleName = Str16ToStr8(data.ReadString16());
     int32_t userId = data.ReadInt32();
-    int32_t result = PreloadUIExtensionAbility(*want, hostBundleName, userId);
+    int32_t hostPid = data.ReadInt32();
+    int32_t result = PreloadUIExtensionAbility(*want, hostBundleName, userId, hostPid);
     reply.WriteInt32(result);
     return NO_ERROR;
 }
@@ -1824,7 +1837,11 @@ int AbilityManagerStub::CancelWantSenderInner(MessageParcel &data, MessageParcel
         TAG_LOGE(AAFwkTag::ABILITYMGR, "wantSender null");
         return ERR_INVALID_VALUE;
     }
-    CancelWantSender(wantSender);
+
+    uint32_t flags = data.ReadUint32();
+
+    CancelWantSenderByFlags(wantSender, flags);
+
     return NO_ERROR;
 }
 
@@ -2448,6 +2465,22 @@ int AbilityManagerStub::GetProcessRunningInfosInner(MessageParcel &data, Message
     return NO_ERROR;
 }
 
+int AbilityManagerStub::GetAllIntentExemptionInfoInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::vector<AppExecFwk::IntentExemptionInfo> infos;
+    auto result = GetAllIntentExemptionInfo(infos);
+    reply.WriteInt32(infos.size());
+    for (auto &it : infos) {
+        if (!reply.WriteParcelable(&it)) {
+            return ERR_INVALID_VALUE;
+        }
+    }
+    if (!reply.WriteInt32(result)) {
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
 int AbilityManagerStub::StartSyncRemoteMissionsInner(MessageParcel &data, MessageParcel &reply)
 {
     std::string deviceId = data.ReadString();
@@ -2722,6 +2755,11 @@ int AbilityManagerStub::GetConnectionData(std::vector<AbilityRuntime::Connection
 {
     // should implement in child
     return NO_ERROR;
+}
+
+void AbilityManagerStub::CancelWantSenderByFlags(const sptr<IWantSender> &sender, uint32_t flags)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "called");
 }
 
 #ifdef ABILITY_COMMAND_FOR_TEST
@@ -4193,6 +4231,68 @@ int AbilityManagerStub::QueryKeepAliveApplicationsByEDMInner(MessageParcel &data
         return ERR_INVALID_VALUE;
     }
     return result;
+}
+
+int32_t AbilityManagerStub::AddQueryERMSObserverInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> callerToken = data.ReadRemoteObject();
+    if (callerToken == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null callerToken");
+        return ERR_INVALID_VALUE;
+    }
+    sptr<AbilityRuntime::IQueryERMSObserver> observer =
+        iface_cast<AbilityRuntime::IQueryERMSObserver>(data.ReadRemoteObject());
+    if (observer == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "observer null");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t result = AddQueryERMSObserver(callerToken, observer);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
+        return INNER_ERR;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::QueryAtomicServiceStartupRuleInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> callerToken = data.ReadRemoteObject();
+    if (callerToken == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null callerToken");
+        return ERR_INVALID_VALUE;
+    }
+    std::string appId = data.ReadString();
+    std::string startTime = data.ReadString();
+    AtomicServiceStartupRule rule;
+    int32_t result = QueryAtomicServiceStartupRule(callerToken, appId, startTime, rule);
+    if (!reply.WriteBool(rule.isOpenAllowed)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write isOpenAllowed fail");
+        return INNER_ERR;
+    }
+    if (!reply.WriteBool(rule.isEmbeddedAllowed)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write isEmbeddedAllowed fail");
+        return INNER_ERR;
+    }
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
+        return INNER_ERR;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::StartSelfUIAbilityInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<Want> want = data.ReadParcelable<Want>();
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t result = StartSelfUIAbility(*want);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
+        return INNER_ERR;
+    }
+    return NO_ERROR;
 }
 } // namespace AAFwk
 } // namespace OHOS

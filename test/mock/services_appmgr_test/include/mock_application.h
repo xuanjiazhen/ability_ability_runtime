@@ -41,6 +41,8 @@ public:
     MOCK_METHOD1(ScheduleAbilityStage, void(const HapModuleInfo&));
     MOCK_METHOD1(ScheduleUpdateApplicationInfoInstalled, void(const ApplicationInfo&));
     MOCK_METHOD2(ScheduleAcceptWant, void(const AAFwk::Want& want, const std::string& moduleName));
+    MOCK_METHOD3(SchedulePrepareTerminate, void(const std::string &moduleName,
+        int32_t &prepareTermination, bool &isExist));
     MOCK_METHOD2(ScheduleNewProcessRequest, void(const AAFwk::Want& want, const std::string& moduleName));
     MOCK_METHOD3(ScheduleNotifyLoadRepairPatch, int32_t(const std::string& bundleName,
         const sptr<IQuickFixCallback>& callback, const int32_t recordId));
@@ -61,6 +63,7 @@ public:
     MOCK_METHOD0(IsMemorySizeSufficent, bool());
     MOCK_METHOD1(ScheduleJsHeapMemory, void(OHOS::AppExecFwk::JsHeapDumpInfo &info));
     MOCK_METHOD1(ScheduleDumpFfrt, int32_t(std::string& result));
+    MOCK_METHOD1(SetWatchdogBackgroundStatus, void(bool status));
     MOCK_METHOD0(ScheduleClearPageStack, void());
     MOCK_METHOD0(ScheduleCacheProcess, void());
 

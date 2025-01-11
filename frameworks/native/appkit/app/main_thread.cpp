@@ -38,8 +38,10 @@
 #include "application_env_impl.h"
 #include "bundle_mgr_proxy.h"
 #include "hitrace_meter.h"
+#ifdef SUPPORT_CHILD_PROCESS
 #include "child_main_thread.h"
 #include "child_process_manager.h"
+#endif // SUPPORT_CHILD_PROCESS
 #include "configuration_convertor.h"
 #include "common_event_manager.h"
 #include "global_constant.h"
@@ -438,7 +440,8 @@ bool MainThread::ScheduleForegroundApplication()
         }
         appThread->HandleForegroundApplication();
     };
-    if (!mainHandler_->PostTask(task, "MainThread:ForegroundApplication")) {
+    if (!mainHandler_->PostTask(task, "MainThread:ForegroundApplication", 0,
+        AppExecFwk::EventQueue::Priority::IMMEDIATE)) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
     }
     auto tmpWatchdog = watchdog_;
@@ -468,7 +471,8 @@ void MainThread::ScheduleBackgroundApplication()
         }
         appThread->HandleBackgroundApplication();
     };
-    if (!mainHandler_->PostTask(task, "MainThread:BackgroundApplication")) {
+    if (!mainHandler_->PostTask(task, "MainThread:BackgroundApplication", 0,
+        AppExecFwk::EventQueue::Priority::IMMEDIATE)) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
     }
 
@@ -499,7 +503,8 @@ void MainThread::ScheduleTerminateApplication(bool isLastProcess)
         }
         appThread->HandleTerminateApplication(isLastProcess);
     };
-    if (!mainHandler_->PostTask(task, "MainThread:TerminateApplication")) {
+    if (!mainHandler_->PostTask(task, "MainThread:TerminateApplication", 0,
+        AppExecFwk::EventQueue::Priority::IMMEDIATE)) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
     }
 }
@@ -545,7 +550,8 @@ void MainThread::ScheduleMemoryLevel(const int level)
         }
         appThread->HandleMemoryLevel(level);
     };
-    if (!mainHandler_->PostTask(task, "MainThread:MemoryLevel")) {
+    if (!mainHandler_->PostTask(task, "MainThread:MemoryLevel", 0,
+        AppExecFwk::EventQueue::Priority::IMMEDIATE)) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
     }
 }
@@ -613,7 +619,8 @@ void MainThread::ScheduleProcessSecurityExit()
         }
         appThread->HandleProcessSecurityExit();
     };
-    bool result = mainHandler_->PostTask(task, "MainThread:ProcessSecurityExit");
+    bool result = mainHandler_->PostTask(task, "MainThread:ProcessSecurityExit", 0,
+        AppExecFwk::EventQueue::Priority::IMMEDIATE);
     if (!result) {
         TAG_LOGE(AAFwkTag::APPKIT, "post task failed");
     }
@@ -666,7 +673,8 @@ void MainThread::ScheduleLaunchApplication(const AppLaunchData &data, const Conf
         appThread->HandleInitAssertFaultTask(data.GetDebugApp(), data.GetApplicationInfo().debug);
         appThread->HandleLaunchApplication(data, config);
     };
-    if (!mainHandler_->PostTask(task, "MainThread:LaunchApplication")) {
+    if (!mainHandler_->PostTask(task, "MainThread:LaunchApplication", 0,
+        AppExecFwk::EventQueue::Priority::IMMEDIATE)) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
     }
 }
@@ -707,7 +715,7 @@ void MainThread::ScheduleAbilityStage(const HapModuleInfo &abilityStage)
         }
         appThread->HandleAbilityStage(abilityStage);
     };
-    if (!mainHandler_->PostTask(task, "MainThread:AbilityStage")) {
+    if (!mainHandler_->PostTask(task, "MainThread:AbilityStage", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE)) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
     }
 }
@@ -747,7 +755,8 @@ void MainThread::ScheduleLaunchAbility(const AbilityInfo &info, const sptr<IRemo
         }
         appThread->HandleLaunchAbility(abilityRecord);
     };
-    if (!mainHandler_->PostTask(task, "MainThread:LaunchAbility")) {
+    if (!mainHandler_->PostTask(task, "MainThread:LaunchAbility", 0,
+        AppExecFwk::EventQueue::Priority::IMMEDIATE)) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
     }
 }
@@ -773,7 +782,8 @@ void MainThread::ScheduleCleanAbility(const sptr<IRemoteObject> &token, bool isC
         }
         appThread->HandleCleanAbility(token, isCacheProcess);
     };
-    if (!mainHandler_->PostTask(task, "MainThread:CleanAbility")) {
+    if (!mainHandler_->PostTask(task, "MainThread:CleanAbility", 0,
+        AppExecFwk::EventQueue::Priority::IMMEDIATE)) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
     }
 }
@@ -810,7 +820,8 @@ void MainThread::ScheduleConfigurationUpdated(const Configuration &config)
         }
         appThread->HandleConfigurationUpdated(config);
     };
-    if (!mainHandler_->PostTask(task, "MainThread:ConfigurationUpdated")) {
+    if (!mainHandler_->PostTask(task, "MainThread:ConfigurationUpdated", 0,
+        AppExecFwk::EventQueue::Priority::IMMEDIATE)) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
     }
 }
@@ -1019,6 +1030,8 @@ bool MainThread::InitResourceManager(std::shared_ptr<Global::Resource::ResourceM
         icu::Locale preferredLocale =
             icu::Locale::forLanguageTag(Global::I18n::PreferredLanguage::GetAppPreferredLanguage(), status);
         resConfig->SetPreferredLocaleInfo(preferredLocale);
+        AbilityRuntime::ApplicationConfigurationManager::GetInstance().SetLanguageSetLevel(
+            AbilityRuntime::SetLevel::Application);
     }
 #endif
     std::string colormode = config.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE);
@@ -1411,6 +1424,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     // create contextImpl
     std::shared_ptr<AbilityRuntime::ContextImpl> contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
     contextImpl->SetApplicationInfo(std::make_shared<ApplicationInfo>(appInfo));
+    contextImpl->SetProcessName(processInfo.GetProcessName());
     std::shared_ptr<AbilityRuntime::ApplicationContext> applicationContext =
         AbilityRuntime::ApplicationContext::GetInstance();
     int32_t appIndex = appLaunchData.GetAppIndex();
@@ -1463,6 +1477,8 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     }
 #endif
 
+    application_->PreloadAppStartup(bundleInfo, entryHapModuleInfo, appLaunchData.GetPreloadModuleName());
+
     if (isStageBased) {
         // Create runtime
         auto hapPath = entryHapModuleInfo.hapPath;
@@ -1491,11 +1507,13 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
             options.isErrorInfoEnhance = appLaunchData.GetErrorInfoEnhance();
         }
         options.jitEnabled = appLaunchData.IsJITEnabled();
+#ifdef SUPPORT_CHILD_PROCESS
         AbilityRuntime::ChildProcessManager::GetInstance().SetForkProcessJITEnabled(appLaunchData.IsJITEnabled());
         TAG_LOGD(AAFwkTag::APPKIT, "isStartWithDebug:%{public}d, debug:%{public}d, isNativeStart:%{public}d",
             appLaunchData.GetDebugApp(), appInfo.debug, appLaunchData.isNativeStart());
         AbilityRuntime::ChildProcessManager::GetInstance().SetForkProcessDebugOption(appInfo.bundleName,
             appLaunchData.GetDebugApp(), appInfo.debug, appLaunchData.isNativeStart());
+#endif // SUPPORT_CHILD_PROCESS
         if (!bundleInfo.hapModuleInfos.empty()) {
             for (auto hapModuleInfo : bundleInfo.hapModuleInfos) {
                 options.hapModulePath[hapModuleInfo.moduleName] = hapModuleInfo.hapPath;
@@ -1595,6 +1613,13 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
                 faultData.faultType = FaultDataType::JS_ERROR;
                 faultData.errorObject = appExecErrorObj;
                 DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->NotifyAppFault(faultData);
+                auto napiEnv =
+                    (static_cast<AbilityRuntime::JsRuntime&>(*appThread->application_->GetRuntime())).GetNapiEnv();
+                if (NapiErrorManager::GetInstance()->NotifyUncaughtException(
+                    napiEnv, summary, appExecErrorObj.name,
+                    appExecErrorObj.message, appExecErrorObj.stack)) {
+                    return;
+                }
                 if (ApplicationDataManager::GetInstance().NotifyUnhandledException(summary) &&
                     ApplicationDataManager::GetInstance().NotifyExceptionObject(appExecErrorObj)) {
                     return;
@@ -1678,14 +1703,16 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
 
             auto helper = std::make_shared<DumpRuntimeHelper>(application_);
             helper->SetAppFreezeFilterCallback();
-        }
 #ifdef CJ_FRONTEND
-    }
+        } else {
+            LoadAllExtensions();
+        }
 #endif
+    }
 
     auto usertestInfo = appLaunchData.GetUserTestInfo();
     if (usertestInfo) {
-        if (!PrepareAbilityDelegator(usertestInfo, isStageBased, entryHapModuleInfo)) {
+        if (!PrepareAbilityDelegator(usertestInfo, isStageBased, entryHapModuleInfo, bundleInfo.targetVersion)) {
             TAG_LOGE(AAFwkTag::APPKIT, "PrepareAbilityDelegator failed");
             return;
         }
@@ -2055,6 +2082,12 @@ void MainThread::HandleAbilityStage(const HapModuleInfo &abilityStage)
 
 void MainThread::LoadAllExtensions(NativeEngine &nativeEngine)
 {
+    (void)nativeEngine;
+    return LoadAllExtensions();
+}
+
+void MainThread::LoadAllExtensions()
+{
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPKIT, "LoadAllExtensions");
     auto extensionPlugins = AbilityRuntime::ExtensionPluginInfo::GetInstance().GetExtensionPlugins();
@@ -2084,7 +2117,7 @@ void MainThread::LoadAllExtensions(NativeEngine &nativeEngine)
 }
 
 bool MainThread::PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &record, bool isStageBased,
-    const AppExecFwk::HapModuleInfo &entryHapModuleInfo)
+    const AppExecFwk::HapModuleInfo &entryHapModuleInfo, uint32_t targetVersion)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "enter, isStageBased = %{public}d", isStageBased);
     if (!record) {
@@ -2095,9 +2128,10 @@ bool MainThread::PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &
     if (isStageBased) { // Stage model
         TAG_LOGD(AAFwkTag::APPKIT, "Stage model");
         auto testRunner = TestRunner::Create(application_->GetRuntime(), args, false);
-        auto delegator = std::make_shared<AbilityDelegator>(
-            application_->GetAppContext(), std::move(testRunner), record->observer);
+        auto delegator = IAbilityDelegator::Create(application_->GetRuntime(), application_->GetAppContext(),
+            std::move(testRunner), record->observer);
         AbilityDelegatorRegistry::RegisterInstance(delegator, args);
+        delegator->SetApiTargetVersion(targetVersion);
         delegator->Prepare();
     } else { // FA model
         TAG_LOGD(AAFwkTag::APPKIT, "FA model");
@@ -2129,6 +2163,7 @@ bool MainThread::PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &
         auto delegator = std::make_shared<AbilityDelegator>(
             application_->GetAppContext(), std::move(testRunner), record->observer);
         AbilityDelegatorRegistry::RegisterInstance(delegator, args);
+        delegator->SetApiTargetVersion(targetVersion);
         delegator->Prepare();
     }
     return true;
@@ -2197,12 +2232,13 @@ void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &
 #endif
     };
 #ifdef SUPPORT_SCREEN
-    Rosen::DisplayId defaultDisplayId = static_cast<Rosen::DisplayId>(
-        AAFwk::DisplayUtil::GetDefaultDisplayId());
-    Rosen::DisplayId displayId = defaultDisplayId;
+    Rosen::DisplayId displayId = Rosen::DISPLAY_ID_INVALID;
     if (abilityRecord->GetWant() != nullptr) {
         displayId = static_cast<uint64_t>(abilityRecord->GetWant()->GetIntParam(
-            AAFwk::Want::PARAM_RESV_DISPLAY_ID, defaultDisplayId));
+            AAFwk::Want::PARAM_RESV_DISPLAY_ID, static_cast<uint32_t>(Rosen::DISPLAY_ID_INVALID)));
+    }
+    if (displayId == Rosen::DISPLAY_ID_INVALID) {
+        displayId = static_cast<Rosen::DisplayId>(AAFwk::DisplayUtil::GetDefaultDisplayId());
     }
     Rosen::DisplayManager::GetInstance().AddDisplayIdFromAms(displayId, abilityRecord->GetToken());
     TAG_LOGD(AAFwkTag::APPKIT, "add displayId: %{public}" PRIu64, displayId);
@@ -2713,8 +2749,10 @@ void MainThread::Start()
 
 void MainThread::StartChild(const std::map<std::string, int32_t> &fds)
 {
+#ifdef SUPPORT_CHILD_PROCESS
     TAG_LOGI(AAFwkTag::APPKIT, "MainThread StartChild, fds size:%{public}zu", fds.size());
     ChildMainThread::Start(fds);
+#endif  // SUPPORT_CHILD_PROCESS
 }
 
 void MainThread::PreloadExtensionPlugin()
@@ -2972,9 +3010,21 @@ void MainThread::ScheduleAcceptWant(const AAFwk::Want &want, const std::string &
         }
         appThread->HandleScheduleAcceptWant(want, moduleName);
     };
-    if (!mainHandler_->PostTask(task, "MainThread:AcceptWant")) {
+    if (!mainHandler_->PostTask(task, "MainThread:AcceptWant", 0,
+        AppExecFwk::EventQueue::Priority::IMMEDIATE)) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
     }
+}
+
+void MainThread::SchedulePrepareTerminate(const std::string &moduleName,
+    int32_t &prepareTermination, bool &isExist)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    if (!application_) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null application_");
+        return;
+    }
+    application_->SchedulePrepareTerminate(moduleName, prepareTermination, isExist);
 }
 
 void MainThread::HandleScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName)
@@ -3008,7 +3058,8 @@ void MainThread::ScheduleNewProcessRequest(const AAFwk::Want &want, const std::s
         }
         appThread->HandleScheduleNewProcessRequest(want, moduleName);
     };
-    if (!mainHandler_->PostTask(task, "MainThread:ScheduleNewProcessRequest")) {
+    if (!mainHandler_->PostTask(task, "MainThread:ScheduleNewProcessRequest", 0,
+        AppExecFwk::EventQueue::Priority::IMMEDIATE)) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
     }
 }
@@ -3176,7 +3227,7 @@ int32_t MainThread::ScheduleNotifyAppFault(const FaultData &faultData)
         }
         appThread->NotifyAppFault(faultData);
     };
-    mainHandler_->PostTask(task, "MainThread:NotifyAppFault");
+    mainHandler_->PostTask(task, "MainThread:NotifyAppFault", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     return NO_ERROR;
 }
 
@@ -3468,6 +3519,22 @@ int32_t MainThread::ScheduleDumpFfrt(std::string& result)
 
 /**
  *
+ * @brief Set watchdog background status of applicaton.
+ *
+ */
+void MainThread::SetWatchdogBackgroundStatus(bool status)
+{
+    auto tmpWatchdog = watchdog_;
+    if (tmpWatchdog == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null Watch dog");
+        return;
+    }
+    tmpWatchdog->SetBackgroundStatus(status);
+    tmpWatchdog = nullptr;
+}
+
+/**
+ *
  * @brief Notify application to prepare for process caching.
  *
  */
@@ -3487,7 +3554,8 @@ void MainThread::ScheduleCacheProcess()
         TAG_LOGE(AAFwkTag::APPKIT, "null handler");
         return;
     }
-    if (!mainHandler_->PostTask(task, "MainThread:ScheduleCacheProcess")) {
+    if (!mainHandler_->PostTask(task, "MainThread:ScheduleCacheProcess", 0,
+        AppExecFwk::EventQueue::Priority::IMMEDIATE)) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
     }
 }
@@ -3500,6 +3568,7 @@ void MainThread::ParseAppConfigurationParams(const std::string configuration, Co
         TAG_LOGE(AAFwkTag::ABILITYMGR, "empty config");
         return;
     }
+    TAG_LOGI(AAFwkTag::APPKIT, "ParseAppConfigurationParams config:%{public}s", appConfig.GetName().c_str());
     nlohmann::json configurationJson = nlohmann::json::parse(configuration, nullptr, false);
     if (configurationJson.is_discarded()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "discarded error");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -171,6 +171,11 @@ std::string MockAbilityRuntimeContext::GetGroupDir(std::string groupId)
     return {};
 }
 
+std::string MockAbilityRuntimeContext::GetProcessName()
+{
+    return {};
+}
+
 int32_t MockAbilityRuntimeContext::GetSystemDatabaseDir(const std::string &groupId, bool checkExist,
     std::string &databaseDir)
 {
@@ -182,5 +187,17 @@ int32_t MockAbilityRuntimeContext::GetSystemPreferencesDir(const std::string &gr
 {
     return 0;
 }
+
+std::shared_ptr<Context> MockAbilityRuntimeContext::CreateAreaModeContext(int areaMode)
+{
+    return {};
+}
+
+#ifdef SUPPORT_GRAPHICS
+std::shared_ptr<Context> MockAbilityRuntimeContext::CreateDisplayContext(uint64_t displayId)
+{
+    return {};
+}
+#endif
 }  // namespace AbilityRuntime
 }  // namespace OHOS

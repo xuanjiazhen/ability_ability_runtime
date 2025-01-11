@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -147,6 +147,11 @@ int AbilityContextImpl::GetArea()
         return ContextImpl::EL_DEFAULT;
     }
     return stageContext_->GetArea();
+}
+
+std::string AbilityContextImpl::GetProcessName()
+{
+    return stageContext_ ? stageContext_->GetProcessName() : "";
 }
 
 ErrCode AbilityContextImpl::StartAbility(const AAFwk::Want& want, int requestCode)
@@ -1092,5 +1097,17 @@ std::shared_ptr<AAFwk::Want> AbilityContextImpl::GetWant()
     }
     return abilityCallback->GetWant();
 }
+
+std::shared_ptr<Context> AbilityContextImpl::CreateAreaModeContext(int areaMode)
+{
+    return stageContext_ ? stageContext_->CreateAreaModeContext(areaMode) : nullptr;
+}
+
+#ifdef SUPPORT_GRAPHICS
+std::shared_ptr<Context> AbilityContextImpl::CreateDisplayContext(uint64_t displayId)
+{
+    return stageContext_ ? stageContext_->CreateDisplayContext(displayId) : nullptr;
+}
+#endif
 } // namespace AbilityRuntime
 } // namespace OHOS

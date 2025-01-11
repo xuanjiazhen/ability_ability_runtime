@@ -183,6 +183,8 @@ public:
 
     void ScheduleAcceptWant(const AAFwk::Want &want, const std::string &moduleName, std::string &flag);
 
+    void SchedulePrepareTerminate(const std::string &moduleName, int32_t &prepareTermination, bool &isExist);
+
     void ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName, std::string &flag);
 
     virtual std::shared_ptr<Configuration> GetConfiguration() const;
@@ -222,6 +224,13 @@ public:
         const AppExecFwk::HapModuleInfo &hapModuleInfo);
 
     void CleanEmptyAbilityStage();
+
+#ifdef SUPPORT_GRAPHICS
+    bool GetDisplayConfig(uint64_t displayId, float &density, std::string &directionStr);
+#endif
+
+    void PreloadAppStartup(const BundleInfo &bundleInfo, const HapModuleInfo &entryHapModuleInfo,
+        const std::string &preloadModuleName);
 
 private:
     void UpdateAppContextResMgr(const Configuration &config);

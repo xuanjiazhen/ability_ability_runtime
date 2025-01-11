@@ -65,6 +65,7 @@
 #include "task_handler_wrap.h"
 #include "uri.h"
 #include "user_controller.h"
+#include "intent_exemption_info.h"
 #ifdef SUPPORT_GRAPHICS
 #include "implicit_start_processor.h"
 #include "system_dialog_scheduler.h"
@@ -112,6 +113,14 @@ public:
     virtual void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string& deviceId) override;
 
     ServiceRunningState QueryServiceState() const;
+
+    /**
+     * StartSelfUIAbility with want, start self uiability only on 2-in-1 devices.
+     *
+     * @param want, the want of the ability to start.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int StartSelfUIAbility(const Want &want) override;
 
     /**
      * StartAbility with want, send want to ability manager service.
@@ -417,7 +426,7 @@ public:
     int RequestModalUIExtension(const Want &want) override;
 
     int PreloadUIExtensionAbility(const Want &want, std::string &hostBundleName,
-        int32_t userId = DEFAULT_INVAL_VALUE) override;
+        int32_t userId = DEFAULT_INVAL_VALUE, int32_t hostPid = DEFAULT_INVAL_VALUE) override;
 
     int UnloadUIExtensionAbility(const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, std::string &bundleName);
 
@@ -926,6 +935,8 @@ public:
 
     virtual int GetConnectionData(std::vector<AbilityRuntime::ConnectionData> &connectionData) override;
 
+    virtual void CancelWantSenderByFlags(const sptr<IWantSender> &sender, uint32_t flags) override;
+
     virtual int LockMissionForCleanup(int32_t missionId) override;
 
     virtual int UnlockMissionForCleanup(int32_t missionId) override;
@@ -1057,7 +1068,7 @@ public:
     int RequestModalUIExtensionInner(Want want);
 
     int PreloadUIExtensionAbilityInner(const Want &want, std::string &bundleName,
-        int32_t userId = DEFAULT_INVAL_VALUE);
+        int32_t userId = DEFAULT_INVAL_VALUE, int32_t hostPid = DEFAULT_INVAL_VALUE);
 
     int StartAbilityForOptionWrap(
         const Want &want,
@@ -1137,6 +1148,7 @@ public:
     virtual int GetAbilityRunningInfos(std::vector<AbilityRunningInfo> &info) override;
     virtual int GetExtensionRunningInfos(int upperLimit, std::vector<ExtensionRunningInfo> &info) override;
     virtual int GetProcessRunningInfos(std::vector<AppExecFwk::RunningProcessInfo> &info) override;
+    virtual int GetAllIntentExemptionInfo(std::vector<AppExecFwk::IntentExemptionInfo> &info) override;
     int GetProcessRunningInfosByUserId(std::vector<AppExecFwk::RunningProcessInfo> &info, int32_t userId);
     void GetAbilityRunningInfo(std::vector<AbilityRunningInfo> &info, std::shared_ptr<AbilityRecord> &abilityRecord);
     void GetExtensionRunningInfo(std::shared_ptr<AbilityRecord> &abilityRecord, const int32_t userId,
@@ -1870,6 +1882,28 @@ public:
     virtual int32_t QueryKeepAliveApplicationsByEDM(int32_t appType, int32_t userId,
         std::vector<KeepAliveInfo> &list) override;
 
+    /**
+     * Add query ERMS observer.
+     *
+     * @param callerToken, The caller ability token.
+     * @param observer, The observer of the ability to query ERMS.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t AddQueryERMSObserver(sptr<IRemoteObject> callerToken,
+        sptr<AbilityRuntime::IQueryERMSObserver> observer) override;
+
+    /**
+     * Query atomic service ERMS rule.
+     *
+     * @param callerToken, The caller ability token.
+     * @param appId, The appId of the atomic service.
+     * @param startTime, The startTime of the query.
+     * @param rule, The returned ERMS rule.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t QueryAtomicServiceStartupRule(sptr<IRemoteObject> callerToken,
+        const std::string &appId, const std::string &startTime, AtomicServiceStartupRule &rule) override;
+
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;
     static constexpr uint32_t ACTIVE_TIMEOUT_MSG = 1;
@@ -2087,6 +2121,8 @@ private:
     void UnSubscribeScreenUnlockedEvent();
     void RetrySubscribeScreenUnlockedEvent(int32_t retryCount);
     void RemoveScreenUnlockInterceptor();
+    void RemoveUnauthorizedLaunchReasonMessage(const Want &want, AbilityRequest &abilityRequest,
+        const sptr<IRemoteObject> &callerToken);
 
     int VerifyAccountPermission(int32_t userId);
 
@@ -2126,6 +2162,8 @@ private:
 
     void ReportEventToRSS(const AppExecFwk::AbilityInfo &abilityInfo, sptr<IRemoteObject> callerToken);
 
+    void ReportAppConnectOtherExtensionEvent(const AppExecFwk::AbilityInfo &abilityInfo, const Want &want);
+
     void ReportAppRecoverResult(const int32_t appId, const AppExecFwk::ApplicationInfo &appInfo,
         const std::string& abilityName, const std::string& result);
 
@@ -2161,6 +2199,7 @@ private:
      */
     int CheckCallServiceExtensionPermission(const AbilityRequest &abilityRequest);
 
+#ifdef SUPPORT_AUTO_FILL
     /**
      * Check if Caller is allowed to start AutoFillExtension.
      *
@@ -2168,7 +2207,7 @@ private:
      * @return Returns whether the caller is allowed to start ServiceExtension.
      */
     int CheckCallAutoFillExtensionPermission(const AbilityRequest &abilityRequest);
-
+#endif // SUPPORT_AUTO_FILL
     /**
      * Check if Caller is allowed to start other Extension(Stage).
      *
@@ -2394,6 +2433,8 @@ private:
      */
     void ShowDeveloperModeDialog(const std::string &bundleName, const std::string &abilityName);
 
+    void StartKeepAliveAppsInner(int32_t userId);
+
     sptr<WindowVisibilityChangedListener> windowVisibilityChangedListener_;
     std::shared_ptr<TaskHandlerWrap> taskHandler_;
     std::shared_ptr<AbilityEventHandler> eventHandler_;
@@ -2481,6 +2522,8 @@ private:
     void SetAbilityRequestSessionInfo(AbilityRequest &abilityRequest, AppExecFwk::ExtensionAbilityType extensionType);
 
     bool ShouldBlockAllAppStart();
+
+    std::string InsightIntentGetcallerBundleName();
 
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
     std::shared_ptr<BackgroundTaskObserver> bgtaskObserver_;

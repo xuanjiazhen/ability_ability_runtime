@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_JS_UI_EXTENSION_CONTENT_SESSION_H
 #define OHOS_ABILITY_RUNTIME_JS_UI_EXTENSION_CONTENT_SESSION_H
 
+#include "ability_result_listener.h"
 #include "native_engine/native_engine.h"
 #include "js_free_install_observer.h"
 #include "js_runtime_utils.h"
@@ -26,25 +27,6 @@
 namespace OHOS {
 namespace AbilityRuntime {
 using RuntimeTask = std::function<void(int, const AAFwk::Want&, bool)>;
-
-class AbilityResultListener {
-public:
-    AbilityResultListener() = default;
-    virtual ~AbilityResultListener() = default;
-    virtual void OnAbilityResult(int requestCode, int resultCode, const AAFwk::Want &resultData) = 0;
-    virtual bool IsMatch(int requestCode) = 0;
-};
-
-class AbilityResultListeners {
-public:
-    AbilityResultListeners() = default;
-    virtual ~AbilityResultListeners() = default;
-    void AddListener(const uint64_t &uiExtensionComponentId, std::shared_ptr<AbilityResultListener> listener);
-    void RemoveListener(const uint64_t &uiExtensionComponentId);
-    void OnAbilityResult(int requestCode, int resultCode, const AAFwk::Want &resultData);
-private:
-    std::map<uint64_t, std::shared_ptr<AbilityResultListener>> listeners_;
-};
 
 class UISessionAbilityResultListener : public AbilityResultListener {
 public:
@@ -87,6 +69,7 @@ public:
     static napi_value SetReceiveDataCallback(napi_env env, napi_callback_info info);
     static napi_value SetReceiveDataForResultCallback(napi_env env, napi_callback_info info);
     static napi_value LoadContent(napi_env env, napi_callback_info info);
+    static napi_value LoadContentByName(napi_env env, napi_callback_info info);
     static napi_value SetWindowBackgroundColor(napi_env env, napi_callback_info info);
     static napi_value SetWindowPrivacyMode(napi_env env, napi_callback_info info);
     static napi_value StartAbilityByType(napi_env env, napi_callback_info info);
@@ -103,6 +86,7 @@ protected:
     napi_value OnSetReceiveDataCallback(napi_env env, NapiCallbackInfo& info);
     napi_value OnSetReceiveDataForResultCallback(napi_env env, NapiCallbackInfo& info);
     napi_value OnLoadContent(napi_env env, NapiCallbackInfo& info);
+    napi_value OnLoadContentByName(napi_env env, NapiCallbackInfo& info);
     napi_value OnSetWindowBackgroundColor(napi_env env, NapiCallbackInfo& info);
     napi_value OnSetWindowPrivacyMode(napi_env env, NapiCallbackInfo& info);
     napi_value OnStartAbilityByType(napi_env env, NapiCallbackInfo& info);
@@ -133,6 +117,10 @@ private:
     std::shared_ptr<UISessionAbilityResultListener> listener_;
     sptr<JsFreeInstallObserver> freeInstallObserver_ = nullptr;
     bool isFirstTriggerBindModal_ = true;
+#ifdef SUPPORT_SCREEN
+    void InitDisplayId(AAFwk::Want &want);
+    void InitDisplayId(AAFwk::Want &want, AAFwk::StartOptions &startOptions, napi_env &env, NapiCallbackInfo& info);
+#endif
 };
 
 class JsUIExtensionContentSession::CallbackWrapper {

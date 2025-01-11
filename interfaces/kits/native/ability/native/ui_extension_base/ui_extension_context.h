@@ -85,6 +85,16 @@ public:
      */
     virtual ErrCode DisconnectAbility(
         const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback) const;
+
+    /**
+     * @brief Start service extension ability.
+     *
+     * @param want The want indicates a service extension ability.
+     * @param accountId The account id.
+     * @return ErrCode ERR_OK on success, others on failure.
+     */
+    ErrCode StartServiceExtensionAbility(const AAFwk::Want &want, int32_t accountId = -1);
+
     /**
      * Start other ability for result.
      *
@@ -152,13 +162,15 @@ public:
 
     ErrCode OpenAtomicService(AAFwk::Want& want, const AAFwk::StartOptions &options, int requestCode,
         RuntimeTask &&task);
-    
+
     ErrCode AddFreeInstallObserver(const sptr<AbilityRuntime::IFreeInstallObserver> &observer);
 
     void InsertResultCallbackTask(int requestCode, RuntimeTask&& task);
 
     void RemoveResultCallbackTask(int requestCode);
 
+    int32_t GetScreenMode() const;
+    void SetScreenMode(int32_t screenMode);
     using SelfType = UIExtensionContext;
     static const size_t CONTEXT_TYPE_ID;
 #ifdef SUPPORT_SCREEN
@@ -176,6 +188,7 @@ private:
     static int32_t curRequestCode_;
     static std::mutex requestCodeMutex_;
     std::mutex mutexlock_;
+    int32_t screenMode_ = AAFwk::IDLE_SCREEN_MODE;
     /**
      * @brief Get Current Ability Type
      *

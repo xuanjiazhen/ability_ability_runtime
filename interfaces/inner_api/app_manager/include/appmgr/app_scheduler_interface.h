@@ -195,6 +195,16 @@ public:
      */
     virtual void ScheduleAcceptWant(const AAFwk::Want &want, const std::string &moduleName) = 0;
 
+    /**
+     * @brief Schedule prepare terminate application
+     *
+     * @param moduleName module name
+     * @param prepareTermination the return enum type PrepareTermination
+     * @param isExist whether the onPrepareTerminate exists
+     */
+    virtual void SchedulePrepareTerminate(const std::string &moduleName,
+        int32_t &prepareTermination, bool &isExist) = 0;
+
     virtual void ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName) = 0;
 
     /**
@@ -303,6 +313,14 @@ public:
      */
     virtual int32_t ScheduleDumpFfrt(std::string& result) = 0;
 
+    /**
+     * SetWatchdogBackgroundStatus, call SetWatchdogBackgroundStatus(bool status) through proxy project,
+     * Notify application to set watchdog background status.
+     *
+     * @return
+     */
+    virtual void SetWatchdogBackgroundStatus(bool status) = 0;
+
     enum class Message {
         SCHEDULE_FOREGROUND_APPLICATION_TRANSACTION = 0,
         SCHEDULE_BACKGROUND_APPLICATION_TRANSACTION,
@@ -335,6 +353,8 @@ public:
         SCHEDULE_DUMP_FFRT,
         SCHEDULE_CACHE_PROCESS,
         SCHEDULE_CLEAR_PAGE_STACK,
+        SCHEDULE_PREPARE_TERMINATE,
+        WATCHDOG_BACKGROUND_STATUS_TRANSACTION,
     };
 };
 }  // namespace AppExecFwk

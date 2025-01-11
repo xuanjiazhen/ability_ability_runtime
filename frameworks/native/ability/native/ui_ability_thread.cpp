@@ -335,7 +335,8 @@ bool UIAbilityThread::ScheduleAbilityTransaction(
 
         abilityThread->HandleAbilityTransaction(want, lifeCycleStateInfo, sessionInfo);
     };
-    bool ret = abilityHandler_->PostTask(task, "UIAbilityThread:AbilityTransaction");
+    bool ret = abilityHandler_->PostTask(task, "UIAbilityThread:AbilityTransaction", 0,
+        AppExecFwk::EventQueue::Priority::IMMEDIATE);
     if (!ret) {
         TAG_LOGE(AAFwkTag::UIABILITY, "postTask error");
         return false;
@@ -678,6 +679,32 @@ void UIAbilityThread::UpdateSessionToken(sptr<IRemoteObject> sessionToken)
 #ifdef SUPPORT_SCREEN
     currentAbility_->UpdateSessionToken(sessionToken);
 #endif //SUPPORT_SCREEN
+}
+
+void UIAbilityThread::ScheduleCollaborate(const Want &want)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    if (abilityImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityImpl_");
+        return;
+    }
+    wptr<UIAbilityThread> weak = this;
+    auto task = [weak, want]() {
+        auto abilityThread = weak.promote();
+        if (abilityThread == nullptr) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "null abilityThread");
+            return;
+        }
+        if (abilityThread->abilityImpl_ != nullptr) {
+            abilityThread->abilityImpl_->ScheduleCollaborate(want);
+            return;
+        }
+    };
+    bool ret = abilityHandler_->PostTask(task, "UIAbilityThread:ScheduleCollaborate");
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "postTask error");
+        return;
+    }
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

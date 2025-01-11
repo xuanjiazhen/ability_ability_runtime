@@ -64,8 +64,8 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     std::shared_ptr<AMSEventHandler> eventHandler;
     ModuleRunningRecord moduleRecord(info, eventHandler);
     HapModuleInfo hapInfo;
-    moduleRecord.Init(hapInfo);
     std::weak_ptr<AppMgrServiceInner> inner;
+    moduleRecord.Init(hapInfo, 0, inner, nullptr);
     moduleRecord.SetAppMgrServiceInner(inner);
     ModuleRecordState moduleState = ModuleRecordState::UNKNOWN_STATE;
     moduleRecord.SetModuleRecordState(moduleState);
@@ -116,7 +116,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         return 0;
     }
 
-    char* ch = (char*)malloc(size + 1);
+    char* ch = static_cast<char*>(malloc(size + 1));
     if (ch == nullptr) {
         std::cout << "malloc failed." << std::endl;
         return 0;

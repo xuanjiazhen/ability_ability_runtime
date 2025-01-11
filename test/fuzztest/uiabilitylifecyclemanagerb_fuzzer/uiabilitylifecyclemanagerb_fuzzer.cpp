@@ -118,7 +118,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     std::list<SessionInfo> sessionInfos;
     std::vector<int32_t> sessionIds;
     uIAbilityLifecycleManager->UpdateSessionInfoBySCB(sessionInfos, sessionIds);
-    uIAbilityLifecycleManager->IsCallerInStatusBar();
+    uIAbilityLifecycleManager->IsCallerInStatusBar("");
     std::vector<int32_t> pids;
     uIAbilityLifecycleManager->TryPrepareTerminateByPids(pids);
     sptr<IRemoteObject> token = GetFuzzAbilityToken();
@@ -152,7 +152,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
         return 0;
     }
 
-    char *ch = (char *)malloc(size + 1);
+    char *ch = static_cast<char*>(malloc(size + 1));
     if (ch == nullptr) {
         std::cout << "malloc failed." << std::endl;
         return 0;

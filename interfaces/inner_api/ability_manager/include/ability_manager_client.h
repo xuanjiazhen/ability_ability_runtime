@@ -29,6 +29,7 @@
 #include "system_memory_attr.h"
 #include "ui_extension_window_command.h"
 #include "want.h"
+#include "intent_exemption_info.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -42,6 +43,14 @@ public:
     virtual ~AbilityManagerClient();
     static std::shared_ptr<AbilityManagerClient> GetInstance();
     void RemoveDeathRecipient();
+
+    /**
+     * StartSelfUIAbility with want, start self uiability only on 2-in-1 devices.
+     *
+     * @param want, the want of the ability to start.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode StartSelfUIAbility(const Want &want);
 
     /**
      * AttachAbilityThread, ability call this interface after loaded.
@@ -334,7 +343,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode PreloadUIExtensionAbility(const Want &want, std::string &hostBundleName,
-        int32_t userId = DEFAULT_INVAL_VALUE);
+        int32_t userId = DEFAULT_INVAL_VALUE, int32_t hostPid = DEFAULT_INVAL_VALUE);
 
     ErrCode ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow);
 
@@ -1614,6 +1623,30 @@ public:
      */
     ErrCode UpdateAssociateConfigList(const std::map<std::string, std::list<std::string>>& configs,
         const std::list<std::string>& exportConfigs, int32_t flag);
+
+    ErrCode GetAllIntentExemptionInfo(std::vector<AppExecFwk::IntentExemptionInfo>& info);
+
+    /**
+     * Add query ERMS observer.
+     *
+     * @param callerToken, The caller ability token.
+     * @param observer, The observer of the ability to query ERMS.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode AddQueryERMSObserver(sptr<IRemoteObject> callerToken,
+        sptr<AbilityRuntime::IQueryERMSObserver> observer);
+
+    /**
+     * Query atomic service ERMS rule.
+     *
+     * @param callerToken, The caller ability token.
+     * @param appId, The appId of the atomic service.
+     * @param startTime, The startTime of the query.
+     * @param rule, The returned ERMS rule.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode QueryAtomicServiceStartupRule(sptr<IRemoteObject> callerToken,
+        const std::string &appId, const std::string &startTime, AtomicServiceStartupRule &rule);
 
 private:
     AbilityManagerClient();

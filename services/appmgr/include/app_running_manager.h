@@ -60,7 +60,8 @@ public:
      * @return AppRunningRecord pointer if success get or create.
      */
     std::shared_ptr<AppRunningRecord> CreateAppRunningRecord(const std::shared_ptr<ApplicationInfo> &appInfo,
-        const std::string &processName, const BundleInfo &bundleInfo, const std::string &instanceKey);
+        const std::string &processName, const BundleInfo &bundleInfo, const std::string &instanceKey,
+        const std::string &customProcessFlag = "");
 
     /**
      * CheckAppRunningRecordIsExist, Get process record by application name and process Name.
@@ -315,9 +316,11 @@ public:
      */
     void GetAbilityTokensByBundleName(const std::string &bundleName, std::vector<sptr<IRemoteObject>> &abilityTokens);
 
+#ifdef SUPPORT_CHILD_PROCESS
     std::shared_ptr<AppRunningRecord> GetAppRunningRecordByChildProcessPid(const pid_t pid);
     std::shared_ptr<ChildProcessRecord> OnChildProcessRemoteDied(const wptr<IRemoteObject> &remote);
     bool IsChildProcessReachLimit(uint32_t accessTokenId);
+#endif //SUPPORT_CHILD_PROCESS
 
     /**
      * @brief Obtain number of app through bundlename.

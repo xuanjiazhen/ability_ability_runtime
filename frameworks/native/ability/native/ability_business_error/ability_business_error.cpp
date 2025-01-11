@@ -52,7 +52,7 @@ constexpr const char* ERROR_MSG_FREE_INSTALL_TIMEOUT = "Installation-free timed 
 constexpr const char* ERROR_MSG_FREE_INSTALL_OTHERS = "Installation-free is not allowed for other applications.";
 constexpr const char* ERROR_MSG_FREE_INSTALL_CROSS_DEVICE = "Cross-device installation-free is not supported.";
 constexpr const char* ERROR_MSG_INVALID_URI_FLAG = "Invalid URI flag.";
-constexpr const char* ERROR_MSG_INVALID_URI_TYPE = "Only support file URI.";
+constexpr const char* ERROR_MSG_INVALID_URI_TYPE = "Invalid URI type.";
 constexpr const char* ERROR_MSG_GRANT_URI_PERMISSION = "A sandbox application cannot grant URI permission.";
 constexpr const char* ERROR_MSG_GET_BUNDLE_INFO_FAILED = "Get target application info failed.";
 constexpr const char* ERROR_MSG_OPERATION_NOT_SUPPORTED = "Operation not supported.";
@@ -60,7 +60,7 @@ constexpr const char* ERROR_MSG_CHILD_PROCESS_NUMBER_EXCEEDS_UPPER_BOUND =
     "The number of child processes exceeds the upper limit.";
 constexpr const char* ERROR_MSG_RESTART_APP_INCORRECT_ABILITY =
     "The target to restart does not belong to the current application or is not a UIAbility.";
-constexpr const char* ERROR_MSG_RESTART_APP_FREQUENT = "Restart too frequently. Try again at least 10s later.";
+constexpr const char* ERROR_MSG_RESTART_APP_FREQUENT = "Restart too frequently. Try again at least 3s later.";
 constexpr const char* ERROR_MSG_INVALID_CALLER = "The caller has been released.";
 constexpr const char* ERROR_MSG_NO_MISSION_ID = "The specified mission does not exist.";
 constexpr const char* ERROR_MSG_NO_MISSION_LISTENER = "The specified mission listener does not exist.";

@@ -36,6 +36,8 @@ ohos_unittest("dialog_session_manager_test") {
     "${ability_runtime_path}/frameworks/native/appkit/ability_bundle_manager_helper/bundle_mgr_helper.cpp",
     "${ability_runtime_path}/services/abilitymgr/src/dialog_session/dialog_session_info.cpp",
     "${ability_runtime_path}/services/abilitymgr/src/dialog_session/dialog_session_manager.cpp",
+    "${ability_runtime_path}/services/abilitymgr/src/query_erms_manager.cpp",
+    "${ability_runtime_path}/services/abilitymgr/src/query_erms_observer_manager.cpp",
     "${ability_runtime_path}/services/abilitymgr/src/utils/start_ability_utils.cpp",
     "dialog_session_manager_test.cpp",
   ]
@@ -45,12 +47,11 @@ ohos_unittest("dialog_session_manager_test") {
   cflags = []
 
   deps = [
-    "${ability_base_path}:base",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_path}/utils/server/startup:startup_util",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
     "${ability_runtime_services_path}/common:app_util",
-    "//third_party/googletest:gmock_main",
+    "${ability_runtime_services_path}/common:task_handler_wrap",
   ]
 
   external_deps = [
@@ -60,6 +61,7 @@ ohos_unittest("dialog_session_manager_test") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
+    "googletest:gmock_main",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",

@@ -67,6 +67,8 @@ public:
 
     virtual int GetConnectionData(std::vector<AbilityRuntime::ConnectionData> &connectionData);
 
+    virtual void CancelWantSenderByFlags(const sptr<IWantSender> &sender, uint32_t flags);
+
 private:
     int TerminateAbilityInner(MessageParcel &data, MessageParcel &reply);
     int BackToCallerInner(MessageParcel &data, MessageParcel &reply);
@@ -91,6 +93,7 @@ private:
     int KillProcessInner(MessageParcel &data, MessageParcel &reply);
     int UninstallAppInner(MessageParcel &data, MessageParcel &reply);
     int32_t UpgradeAppInner(MessageParcel &data, MessageParcel &reply);
+    int StartSelfUIAbilityInner(MessageParcel &data, MessageParcel &reply);
     int StartAbilityInner(MessageParcel &data, MessageParcel &reply);
     int StartAbilityInnerSpecifyTokenId(MessageParcel &data, MessageParcel &reply);
     int StartAbilityByUIContentSessionAddCallerInner(MessageParcel &data, MessageParcel &reply);
@@ -172,6 +175,7 @@ private:
     int GetAbilityRunningInfosInner(MessageParcel &data, MessageParcel &reply);
     int GetExtensionRunningInfosInner(MessageParcel &data, MessageParcel &reply);
     int GetProcessRunningInfosInner(MessageParcel &data, MessageParcel &reply);
+    int GetAllIntentExemptionInfoInner(MessageParcel &data, MessageParcel &reply);
 
     int StartSyncRemoteMissionsInner(MessageParcel &data, MessageParcel &reply);
     int StopSyncRemoteMissionsInner(MessageParcel &data, MessageParcel &reply);
@@ -308,6 +312,9 @@ private:
     int32_t QueryKeepAliveApplicationsInner(MessageParcel &data, MessageParcel &reply);
     int32_t SetApplicationKeepAliveByEDMInner(MessageParcel &data, MessageParcel &reply);
     int32_t QueryKeepAliveApplicationsByEDMInner(MessageParcel &data, MessageParcel &reply);
+    int32_t AddQueryERMSObserverInner(MessageParcel &data, MessageParcel &reply);
+    int32_t QueryAtomicServiceStartupRuleInner(MessageParcel &data, MessageParcel &reply);
+
     int OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);
     int OnRemoteRequestInnerSecond(uint32_t code, MessageParcel &data,

@@ -290,7 +290,10 @@ ohos_shared_library("abilitykit_native") {
     "${ability_runtime_native_path}/ability/native/free_install_observer_stub.cpp",
     "${ability_runtime_native_path}/ability/native/insight_intent_host_client.cpp",
     "${ability_runtime_native_path}/ability/native/js_free_install_observer.cpp",
+    "${ability_runtime_native_path}/ability/native/js_query_erms_observer.cpp",
     "${ability_runtime_native_path}/ability/native/new_ability_impl.cpp",
+    "${ability_runtime_native_path}/ability/native/query_erms_observer_proxy.cpp",
+    "${ability_runtime_native_path}/ability/native/query_erms_observer_stub.cpp",
     "${ability_runtime_native_path}/ability/native/service_ability_impl.cpp",
     "${ability_runtime_native_path}/appkit/app/app_context.cpp",
     "${ability_runtime_native_path}/appkit/app/context_container.cpp",
@@ -388,7 +391,12 @@ ohos_shared_library("abilitykit_native") {
       "${ability_runtime_path}/frameworks/cj/ffi",
       "${ability_runtime_path}/frameworks/cj/ffi/application_context/include",
     ]
-    deps += [ "${ability_runtime_path}/frameworks/cj/ffi:cj_ability_ffi" ]
+    public_configs += [ "${ability_runtime_path}/frameworks/cj/ffi/context:cj_context_ffi_public_config" ]
+    deps += [
+      "${ability_runtime_innerkits_path}/ability_manager:process_options",
+      "${ability_runtime_path}/frameworks/cj/ffi:cj_ability_ffi",
+      "${ability_runtime_path}/frameworks/cj/ffi/context:cj_context_ffi",
+    ]
     external_deps += [
       "ace_engine:ace_uicontent",
       "bundle_framework:cj_bundle_manager_ffi",
@@ -511,6 +519,22 @@ ohos_shared_library("extensionkit_native") {
     "jsoncpp:jsoncpp",
   ]
 
+  if (cj_frontend) {
+    sources += [
+      "${ability_runtime_native_path}/ability/native/cj_extension_common.cpp",
+      "${ability_runtime_native_path}/ability/native/cj_ui_extension_object.cpp",
+    ]
+
+    include_dirs +=
+        [ "${ability_runtime_path}/cj_environment/interfaces/inner_api" ]
+
+    deps += [ "${ability_runtime_path}/frameworks/cj/ffi:cj_ability_ffi" ]
+
+    external_deps += [
+      "napi:cj_bind_ffi",
+      "napi:cj_bind_native",
+    ]
+  }
   if (ability_runtime_graphics) {
     external_deps += [ "ability_base:session_info" ]
     public_external_deps += [
@@ -747,8 +771,13 @@ ohos_shared_library("ability_thread") {
     "napi:ace_napi",
   ]
 
+  defines = []
+  if (ability_runtime_auto_fill) {
+    defines += [ "SUPPORT_AUTO_FILL" ]
+  }
+
   if (ability_runtime_graphics) {
-    defines = [ "SUPPORT_SCREEN" ]
+    defines += [ "SUPPORT_SCREEN" ]
     external_deps += [ "window_manager:libwm" ]
   }
 
@@ -1362,18 +1391,27 @@ group("extension_blocklist_config") {
 
 group("extension_module") {
   deps = [
-    ":action_extension_module",
-    ":auto_fill_extension_module",
     ":embedded_ui_extension_module",
-    ":photo_editor_extension_module",
     ":service_extension_module",
-    ":share_extension_module",
     ":ui_extension_module",
-    ":ui_service_extension_module",
   ]
-
+  if (ability_runtime_action_extension) {
+    deps += [ ":action_extension_module" ]
+  }
+  if (ability_runtime_auto_fill) {
+    deps += [ ":auto_fill_extension_module" ]
+  }
   if (ability_runtime_graphics) {
     deps += [ ":form_extension_module" ]
+  }
+  if (ability_runtime_photo_editor_extension) {
+    deps += [ ":photo_editor_extension_module" ]
+  }
+  if (ability_runtime_share_extension) {
+    deps += [ ":share_extension_module" ]
+  }
+  if (ability_runtime_ui_service_extension) {
+    deps += [ ":ui_service_extension_module" ]
   }
 }
 
@@ -1381,6 +1419,7 @@ config("ui_extension_public_config") {
   visibility = [ ":*" ]
   include_dirs = [
     "${ability_runtime_path}/interfaces/inner_api/insight_intent/insight_intent_context",
+    "${ability_runtime_path}/interfaces/inner_api/ability_manager/include/insight_intent",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ability_runtime",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/insight_intent_executor",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_extension_ability",
@@ -1437,6 +1476,29 @@ ohos_shared_library("ui_extension") {
     "window_manager:extensionwindow_napi",
     "window_manager:windowstage_kit",
   ]
+
+  if (cj_frontend) {
+    sources += [
+      "${ability_runtime_native_path}/ability/native/ui_extension_base/cj_ui_extension_base.cpp",
+      "${ability_runtime_native_path}/ability/native/ui_extension_base/cj_ui_extension_content_session.cpp",
+      "${ability_runtime_native_path}/ability/native/ui_extension_base/cj_ui_extension_context.cpp",
+    ]
+
+    include_dirs += [
+      "${ability_runtime_path}/cj_environment/interfaces/inner_api",
+      "${ability_runtime_path}/frameworks/cj/ffi",
+    ]
+
+    deps += [
+      ":extensionkit_native",
+      "${ability_runtime_path}/frameworks/cj/ffi:cj_ability_ffi",
+    ]
+
+    external_deps += [
+      "napi:cj_bind_ffi",
+      "napi:cj_bind_native",
+    ]
+  }
 
   if (ability_runtime_graphics) {
     defines = [ "SUPPORT_SCREEN" ]
@@ -1531,6 +1593,11 @@ ohos_shared_library("share_extension") {
     "napi:ace_napi",
   ]
 
+  if (cj_frontend) {
+    sources += [ "${ability_runtime_native_path}/ability/native/share_extension_ability/cj_share_extension.cpp" ]
+
+    external_deps += [ "napi:cj_bind_native" ]
+  }
   if (ability_runtime_graphics) {
     external_deps += [ "window_manager:libwm" ]
   }
@@ -1582,6 +1649,11 @@ ohos_shared_library("action_extension") {
     "napi:ace_napi",
   ]
 
+  if (cj_frontend) {
+    sources += [ "${ability_runtime_native_path}/ability/native/action_extension_ability/cj_action_extension.cpp" ]
+
+    external_deps += [ "napi:cj_bind_native" ]
+  }
   if (ability_runtime_graphics) {
     external_deps += [ "window_manager:libwm" ]
   }
@@ -1797,6 +1869,17 @@ ohos_shared_library("embedded_ui_extension") {
     "napi:ace_napi",
   ]
 
+  if (cj_frontend) {
+    sources += [ "${ability_runtime_native_path}/ability/native/embedded_ui_extension_ability/cj_embedded_ui_extension.cpp" ]
+
+    deps += [ "${ability_runtime_path}/frameworks/cj/ffi:cj_ability_ffi" ]
+
+    external_deps += [
+      "napi:cj_bind_ffi",
+      "napi:cj_bind_native",
+    ]
+  }
+
   if (ability_runtime_graphics) {
     external_deps += [ "window_manager:libwm" ]
   }
@@ -1864,15 +1947,7 @@ config("auto_fill_extension_config") {
 ohos_shared_library("auto_fill_extension") {
   public_configs = [ ":auto_fill_extension_config" ]
 
-  sources = [
-    "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/auto_fill_extension.cpp",
-    "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/auto_fill_extension_context.cpp",
-    "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/js_auto_fill_extension.cpp",
-    "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/js_auto_fill_extension_context.cpp",
-    "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/js_auto_fill_extension_util.cpp",
-    "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/js_fill_request_callback.cpp",
-    "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/js_save_request_callback.cpp",
-  ]
+  sources = []
 
   deps = [
     ":abilitykit_native",
@@ -1902,6 +1977,17 @@ ohos_shared_library("auto_fill_extension") {
     "ipc:ipc_napi",
     "napi:ace_napi",
   ]
+  if (ability_runtime_auto_fill) {
+    sources += [
+      "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/auto_fill_extension.cpp",
+      "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/auto_fill_extension_context.cpp",
+      "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/js_auto_fill_extension.cpp",
+      "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/js_auto_fill_extension_context.cpp",
+      "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/js_auto_fill_extension_util.cpp",
+      "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/js_fill_request_callback.cpp",
+      "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/js_save_request_callback.cpp",
+    ]
+  }
 
   if (ability_runtime_graphics) {
     external_deps += [ "window_manager:libwm" ]
@@ -1920,7 +2006,6 @@ ohos_shared_library("auto_fill_extension_module") {
   ]
 
   deps = [
-    ":auto_fill_extension",
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/appkit:appkit_native",
   ]
@@ -1939,6 +2024,9 @@ ohos_shared_library("auto_fill_extension_module") {
     "napi:ace_napi",
     "window_manager:libwm",
   ]
+  if (ability_runtime_auto_fill) {
+    deps += [ ":auto_fill_extension" ]
+  }
   if (ability_runtime_graphics) {
     external_deps += []
   }
@@ -2005,6 +2093,22 @@ ohos_shared_library("photo_editor_extension") {
     "ipc:ipc_napi",
     "napi:ace_napi",
   ]
+
+  if (cj_frontend) {
+    sources += [
+      "${ability_runtime_native_path}/ability/native/photo_editor_extension_ability/cj_photo_editor_extension.cpp",
+      "${ability_runtime_native_path}/ability/native/photo_editor_extension_ability/cj_photo_editor_extension_context.cpp",
+      "${ability_runtime_native_path}/ability/native/photo_editor_extension_ability/cj_photo_editor_extension_impl.cpp",
+    ]
+
+    deps += [ "${ability_runtime_path}/frameworks/cj/ffi:cj_ability_ffi" ]
+
+    external_deps += [
+      "image_framework:cj_image_ffi",
+      "napi:cj_bind_ffi",
+      "napi:cj_bind_native",
+    ]
+  }
 
   if (ability_runtime_graphics) {
     external_deps += [ "window_manager:libwm" ]

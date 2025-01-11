@@ -86,6 +86,7 @@ napi_value WantConstantInit(napi_env env, napi_value exports)
     SetNamedProperty(env, Flags, 0x00000200, "FLAG_START_FOREGROUND_ABILITY");
     SetNamedProperty(env, Flags, 0x00000400, "FLAG_ABILITY_CONTINUATION_REVERSIBLE");
     SetNamedProperty(env, Flags, 0x00000800, "FLAG_INSTALL_ON_DEMAND");
+    SetNamedProperty(env, Flags, 0x00002000, "FLAG_ABILITY_ON_COLLABORATE");
     SetNamedProperty(env, Flags, 0x80000000, "FLAG_INSTALL_WITH_BACKGROUND_MODE");
     SetNamedProperty(env, Flags, 0x00008000, "FLAG_ABILITY_CLEAR_MISSION");
     SetNamedProperty(env, Flags, 0x10000000, "FLAG_ABILITY_NEW_MISSION");
@@ -106,6 +107,7 @@ napi_value WantConstantInit(napi_env env, napi_value exports)
     SetNamedProperty(env, params, "ohos.dlp.params.index", "DLP_PARAMS_INDEX");
 #endif // WITH_DLP
     SetNamedProperty(env, params, "ability.params.backToOtherMissionStack", "ABILITY_BACK_TO_OTHER_MISSION_STACK");
+    SetNamedProperty(env, params, "ohos.params.launchReasonMessage", "LAUNCH_REASON_MESSAGE");
     SetNamedProperty(env, params, "ohos.ability.params.abilityRecoveryRestart", "ABILITY_RECOVERY_RESTART");
     SetNamedProperty(env, params, "ohos.ability.params.asssertFaultSessionId", "ASSERT_FAULT_SESSION_ID");
     SetNamedProperty(env, params, "ohos.extra.param.key.contentTitle", "CONTENT_TITLE_KEY");

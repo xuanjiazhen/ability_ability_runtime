@@ -33,6 +33,11 @@ constexpr const char* EXTENSION_AUTO_DISCONNECT_TIME = "auto_disconnect_time";
 constexpr const char* EXTENSION_THIRD_PARTY_APP_BLOCKED_FLAG_NAME = "third_party_app_blocked_flag";
 constexpr const char* EXTENSION_SERVICE_BLOCKED_LIST_NAME = "service_blocked_list";
 constexpr const char* EXTENSION_SERVICE_STARTUP_ENABLE_FLAG = "service_startup_enable_flag";
+constexpr const char* EXTENSION_NETWORK_ENABLE_FLAG = "network_acesss_enable_flag";
+constexpr const char* EXTENSION_SA_ENABLE_FLAG = "sa_acesss_enable_flag";
+
+constexpr const bool EXTENSION_NETWORK_ENABLE_FLAG_DEFAULT = true;
+constexpr const bool EXTENSION_SA_ENABLE_FLAG_DEFAULT = true;
 
 const int32_t DEFAULT_EXTENSION_AUTO_DISCONNECT_TIME = -1;
 }
@@ -59,7 +64,7 @@ void ExtensionConfig::LoadExtensionConfiguration()
     LoadExtensionConfig(jsonBuf);
 }
 
-int32_t ExtensionConfig::GetExtensionAutoDisconnectTime(std::string extensionTypeName)
+int32_t ExtensionConfig::GetExtensionAutoDisconnectTime(const std::string &extensionTypeName)
 {
     if (extensionAutoDisconnectTimeMap_.find(extensionTypeName) != extensionAutoDisconnectTimeMap_.end()) {
         return extensionAutoDisconnectTimeMap_[extensionTypeName];
@@ -67,7 +72,7 @@ int32_t ExtensionConfig::GetExtensionAutoDisconnectTime(std::string extensionTyp
     return DEFAULT_EXTENSION_AUTO_DISCONNECT_TIME;
 }
 
-bool ExtensionConfig::IsExtensionStartThirdPartyAppEnable(std::string extensionTypeName)
+bool ExtensionConfig::IsExtensionStartThirdPartyAppEnable(const std::string &extensionTypeName)
 {
     if (thirdPartyAppEnableFlags_.find(extensionTypeName) != thirdPartyAppEnableFlags_.end()) {
         return thirdPartyAppEnableFlags_[extensionTypeName];
@@ -75,7 +80,7 @@ bool ExtensionConfig::IsExtensionStartThirdPartyAppEnable(std::string extensionT
     return true;
 }
 
-bool ExtensionConfig::IsExtensionStartServiceEnable(std::string extensionTypeName, std::string targetUri)
+bool ExtensionConfig::IsExtensionStartServiceEnable(const std::string &extensionTypeName, const std::string &targetUri)
 {
     AppExecFwk::ElementName targetElementName;
     if (serviceEnableFlags_.find(extensionTypeName) != serviceEnableFlags_.end() &&
@@ -113,6 +118,8 @@ void ExtensionConfig::LoadExtensionConfig(const nlohmann::json &object)
         LoadExtensionAutoDisconnectTime(jsonObject, extensionTypeName);
         LoadExtensionThirdPartyAppBlockedList(jsonObject, extensionTypeName);
         LoadExtensionServiceBlockedList(jsonObject, extensionTypeName);
+        LoadExtensionNetworkEnable(jsonObject, extensionTypeName);
+        LoadExtensionSAEnable(jsonObject, extensionTypeName);
     }
 }
 
@@ -174,6 +181,52 @@ void ExtensionConfig::LoadExtensionServiceBlockedList(const nlohmann::json &obje
     serviceBlockedLists_[extensionTypeName] = serviceBlockedList;
     TAG_LOGD(AAFwkTag::ABILITYMGR, "The size of %{public}s extension's service blocked list is %{public}zu",
         extensionTypeName.c_str(), serviceBlockedList.size());
+}
+
+void ExtensionConfig::LoadExtensionNetworkEnable(const nlohmann::json &object,
+    const std::string &extensionTypeName)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "LoadExtensionNetworkEnable call");
+    if (!object.contains(EXTENSION_NETWORK_ENABLE_FLAG) || !object.at(EXTENSION_NETWORK_ENABLE_FLAG).is_boolean()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "network enable flag null");
+        return;
+    }
+    std::lock_guard lock(networkEnableMutex_);
+    networkEnableFlags_[extensionTypeName] = object.at(EXTENSION_NETWORK_ENABLE_FLAG).get<bool>();
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "The %{public}s extension's network enable flag is %{public}d",
+        extensionTypeName.c_str(), networkEnableFlags_[extensionTypeName]);
+}
+
+void ExtensionConfig::LoadExtensionSAEnable(const nlohmann::json &object,
+    const std::string &extensionTypeName)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "LoadExtensionSAEnable call");
+    if (!object.contains(EXTENSION_SA_ENABLE_FLAG) || !object.at(EXTENSION_SA_ENABLE_FLAG).is_boolean()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "sa enable flag null");
+        return;
+    }
+    std::lock_guard lock(saEnableMutex_);
+    saEnableFlags_[extensionTypeName] = object.at(EXTENSION_SA_ENABLE_FLAG).get<bool>();
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "The %{public}s extension's sa enable flag is %{public}d",
+        extensionTypeName.c_str(), saEnableFlags_[extensionTypeName]);
+}
+
+bool ExtensionConfig::IsExtensionNetworkEnable(const std::string &extensionTypeName)
+{
+    std::lock_guard lock(networkEnableMutex_);
+    if (networkEnableFlags_.find(extensionTypeName) != networkEnableFlags_.end()) {
+        return networkEnableFlags_[extensionTypeName];
+    }
+    return EXTENSION_NETWORK_ENABLE_FLAG_DEFAULT;
+}
+
+bool ExtensionConfig::IsExtensionSAEnable(const std::string &extensionTypeName)
+{
+    std::lock_guard lock(saEnableMutex_);
+    if (saEnableFlags_.find(extensionTypeName) != saEnableFlags_.end()) {
+        return saEnableFlags_[extensionTypeName];
+    }
+    return EXTENSION_SA_ENABLE_FLAG_DEFAULT;
 }
 
 bool ExtensionConfig::ReadFileInfoJson(const std::string &filePath, nlohmann::json &jsonBuf)

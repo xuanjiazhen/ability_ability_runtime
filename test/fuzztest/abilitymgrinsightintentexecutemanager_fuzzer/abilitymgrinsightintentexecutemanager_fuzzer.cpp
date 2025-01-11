@@ -98,7 +98,8 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     Minfos->RemoteDied(intentId);
     std::string jsonStr(data, size);
     Minfos->GetBundleName(intentId, jsonStr);
-    Minfos->AddRecord(key, callerToken, jsonStr, intentId);
+    std::string callerBundleName = "com.example.fuzzTest";
+    Minfos->AddRecord(key, callerToken, jsonStr, intentId, callerBundleName);
     Minfos->GenerateWant(paramPtr, want);
     Minfos->IsValidCall(want);
     Minfos->CheckCallerPermission();
@@ -120,7 +121,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         return 0;
     }
 
-    char* ch = (char*)malloc(size + 1);
+    char* ch = static_cast<char*>(malloc(size + 1));
     if (ch == nullptr) {
         std::cout << "malloc failed." << std::endl;
         return 0;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -69,6 +69,8 @@ constexpr const char* PERMISSION_SUPERVISE_KIA_SERVICE = "ohos.permission.SUPERV
 constexpr const char* PERMISSION_GET_TELEPHONY_STATE = "ohos.permission.GET_TELEPHONY_STATE";
 constexpr const char* PERMISSION_MANAGE_APP_KEEP_ALIVE = "ohos.permission.MANAGE_APP_KEEP_ALIVE";
 constexpr const char* PERMISSION_MANAGE_APP_KEEP_ALIVE_INTERNAL = "ohos.permission.MANAGE_APP_KEEP_ALIVE_INTERNAL";
+constexpr const char* PERMISSION_SET_LAUNCH_REASON_MESSAGE = "ohos.permission.SET_LAUNCH_REASON_MESSAGE";
+constexpr const char* PERMISSION_NDK_START_SELF_UI_ABILITY = "ohos.permission.NDK_START_SELF_UI_ABILITY";
 } // namespace PermissionConstants
 } // namespace AAFwk
 } // namespace OHOS

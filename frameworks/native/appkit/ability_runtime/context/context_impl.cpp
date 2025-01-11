@@ -46,6 +46,10 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+#ifdef SUPPORT_GRAPHICS
+std::mutex ContextImpl::getDisplayConfigCallbackMutex_;
+GetDisplayConfigCallback ContextImpl::getDisplayConfigCallback_ = nullptr;
+#endif
 using namespace OHOS::AbilityBase::Constants;
 
 const std::string PATTERN_VERSION = std::string(FILE_SEPARATOR) + "v\\d+" + FILE_SEPARATOR;
@@ -400,21 +404,14 @@ std::shared_ptr<Context> ContextImpl::CreateModuleContext(const std::string &bun
     std::shared_ptr<Context> inputContext)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::APPKIT, "begin");
     if (bundleName.empty() || moduleName.empty()) {
         return nullptr;
     }
 
-    TAG_LOGD(AAFwkTag::APPKIT, "length: %{public}zu, bundleName: %{public}s",
-        (size_t)bundleName.length(), bundleName.c_str());
-
-    int accountId = GetCurrentAccountId();
-    if (accountId == 0) {
-        accountId = GetCurrentActiveAccountId();
-    }
+    TAG_LOGD(AAFwkTag::APPKIT, "bundleName: %{public}s", bundleName.c_str());
 
     AppExecFwk::BundleInfo bundleInfo;
-    GetBundleInfo(bundleName, bundleInfo, accountId, inputContext);
+    GetBundleInfo(bundleName, bundleInfo, inputContext);
     if (bundleInfo.name.empty() || bundleInfo.applicationInfo.name.empty()) {
         TAG_LOGE(AAFwkTag::APPKIT, "GetBundleInfo error");
         ErrCode ret = bundleMgr_->GetDependentBundleInfo(bundleName, bundleInfo,
@@ -425,7 +422,7 @@ std::shared_ptr<Context> ContextImpl::CreateModuleContext(const std::string &bun
         }
     }
 
-    std::shared_ptr<ContextImpl> appContext = std::make_shared<ContextImpl>();
+    auto appContext = std::make_shared<ContextImpl>();
     if (bundleInfo.applicationInfo.codePath != std::to_string(TYPE_RESERVE) &&
         bundleInfo.applicationInfo.codePath != std::to_string(TYPE_OTHERS)) {
         TAG_LOGD(AAFwkTag::APPKIT, "modulename: %{public}s, bundleName: %{public}s",
@@ -442,6 +439,7 @@ std::shared_ptr<Context> ContextImpl::CreateModuleContext(const std::string &bun
     }
 
     appContext->SetConfiguration(config_);
+    appContext->SetProcessName(processName_);
     bool self = false;
     if (inputContext) {
         self = (bundleName == inputContext->GetBundleName());
@@ -512,12 +510,8 @@ int32_t ContextImpl::CreateSystemHspModuleResourceManager(const std::string &bun
         return ERR_INVALID_VALUE;
     }
 
-    int accountId = GetCurrentAccountId();
-    if (accountId == 0) {
-        accountId = GetCurrentActiveAccountId();
-    }
     AppExecFwk::BundleInfo bundleInfo;
-    GetBundleInfo(bundleName, bundleInfo, accountId);
+    GetBundleInfo(bundleName, bundleInfo);
     if (bundleInfo.name.empty() || bundleInfo.applicationInfo.name.empty()) {
         TAG_LOGW(AAFwkTag::APPKIT, "GetBundleInfo error");
         ErrCode ret = bundleMgr_->GetDependentBundleInfo(bundleName, bundleInfo,
@@ -600,7 +594,7 @@ int32_t ContextImpl::GetBundleInfo(const std::string &bundleName, AppExecFwk::Bu
 }
 
 void ContextImpl::GetBundleInfo(const std::string &bundleName, AppExecFwk::BundleInfo &bundleInfo,
-    const int &accountId, std::shared_ptr<Context> inputContext)
+    std::shared_ptr<Context> inputContext)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "begin");
     if (bundleMgr_ == nullptr) {
@@ -614,13 +608,12 @@ void ContextImpl::GetBundleInfo(const std::string &bundleName, AppExecFwk::Bundl
     if (bundleName == GetBundleNameWithContext(inputContext)) {
         bundleMgr_->GetBundleInfoForSelf(
             (static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE) +
-            static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_ABILITY) +
-            static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION) +
-            static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_DISABLE) +
-            static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_SIGNATURE_INFO) +
-            static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_EXTENSION_ABILITY) +
-            static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_METADATA)), bundleInfo);
+            static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION)), bundleInfo);
     } else {
+        int accountId = GetCurrentAccountId();
+        if (accountId == 0) {
+            accountId = GetCurrentActiveAccountId();
+        }
         bundleMgr_->GetBundleInfoV9(bundleName,
             static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION) +
             static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE),
@@ -644,6 +637,11 @@ int ContextImpl::GetArea()
     }
     TAG_LOGD(AAFwkTag::APPKIT, "end");
     return mode;
+}
+
+std::string ContextImpl::GetProcessName()
+{
+    return processName_;
 }
 
 std::string ContextImpl::GetBaseDir() const
@@ -733,6 +731,7 @@ int32_t ContextImpl::CreateBundleContext(std::shared_ptr<Context> &context, cons
     std::shared_ptr<ContextImpl> appContext = std::make_shared<ContextImpl>();
     appContext->SetFlags(CONTEXT_CREATE_BY_SYSTEM_APP);
     appContext->SetConfiguration(config_);
+    appContext->SetProcessName(processName_);
 
     // init resourceManager.
     InitResourceManager(bundleInfo, appContext, false, "", inputContext);
@@ -779,6 +778,7 @@ std::shared_ptr<Context> ContextImpl::CreateBundleContext(const std::string &bun
     std::shared_ptr<ContextImpl> appContext = std::make_shared<ContextImpl>();
     appContext->SetFlags(CONTEXT_CREATE_BY_SYSTEM_APP);
     appContext->SetConfiguration(config_);
+    appContext->SetProcessName(processName_);
 
     // init resourceManager.
     InitResourceManager(bundleInfo, appContext);
@@ -880,7 +880,7 @@ std::shared_ptr<Global::Resource::ResourceManager> ContextImpl::InitResourceMana
                 } else if (bundleInfo.applicationInfo.bundleType == AppExecFwk::BundleType::SHARED) {
                     loadPath = std::regex_replace(loadPath, hsp_pattern, hsp_sandbox);
                 } else if (bundleInfo.applicationInfo.bundleType == AppExecFwk::BundleType::APP_SERVICE_FWK) {
-                    TAG_LOGD(AAFwkTag::APPKIT, "System hsp path, not need translate");
+                    loadPath = std::regex_replace(loadPath, hsp_pattern, hsp_sandbox);
                 } else {
                     loadPath = std::regex_replace(loadPath, outer_pattern, LOCAL_BUNDLES);
                 }
@@ -1010,12 +1010,7 @@ void ContextImpl::UpdateResConfig(std::shared_ptr<Global::Resource::ResourceMana
     UErrorCode status = U_ZERO_ERROR;
     icu::Locale locale = icu::Locale::forLanguageTag(Global::I18n::LocaleConfig::GetSystemLocale(), status);
     resConfig->SetLocaleInfo(locale);
-    if (resConfig->GetLocaleInfo() != nullptr) {
-        TAG_LOGD(AAFwkTag::APPKIT,
-            "ContextImpl::InitResourceManager language: %{public}s, script: %{public}s, region: %{public}s,",
-            resConfig->GetLocaleInfo()->getLanguage(), resConfig->GetLocaleInfo()->getScript(),
-            resConfig->GetLocaleInfo()->getCountry());
-    } else {
+    if (resConfig->GetLocaleInfo() == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null LocaleInfo");
     }
 #endif
@@ -1219,6 +1214,11 @@ void ContextImpl::AppHasDarkRes(bool &darkRes)
     currentResMgr->GetResConfig(*resConfig);
     darkRes = resConfig->GetAppDarkRes();
     TAG_LOGD(AAFwkTag::APPKIT, "darkRes %{public}d", darkRes);
+}
+
+void ContextImpl::SetProcessName(const std::string &processName)
+{
+    processName_ = processName;
 }
 
 void ContextImpl::KillProcessBySelf(const bool clearPageStack)
@@ -1474,5 +1474,188 @@ void ContextImpl::PrintTokenInfo() const
             tokenProxyObject->GetHandle(), remoteDescriptor.c_str());
     }
 }
+
+void ContextImpl::ShallowCopySelf(std::shared_ptr<ContextImpl> &contextImpl)
+{
+    contextImpl->token_ = token_;
+    contextImpl->applicationInfo_ = applicationInfo_;
+    contextImpl->parentContext_ = parentContext_;
+    contextImpl->resourceManager_ = resourceManager_;
+    contextImpl->hapModuleInfo_ = hapModuleInfo_;
+    contextImpl->config_ = config_;
+    contextImpl->currArea_ = currArea_;
+    contextImpl->overlayModuleInfos_ = overlayModuleInfos_;
+    {
+        std::lock_guard<std::mutex> lock(checkedDirSetLock_);
+        contextImpl->checkedDirSet_ = checkedDirSet_;
+    }
+    {
+        std::lock_guard<std::mutex> lock(bundleManagerMutex_);
+        contextImpl->bundleMgr_ = bundleMgr_;
+    }
+    {
+        std::lock_guard<std::mutex> lock(overlayMgrProxyMutex_);
+        contextImpl->overlayMgrProxy_ = overlayMgrProxy_;
+    }
+    contextImpl->resetFlag_ = resetFlag_;
+    contextImpl->processName_ = processName_;
+}
+
+std::shared_ptr<Context> ContextImpl::CreateAreaModeContext(int areaMode)
+{
+    std::shared_ptr<ContextImpl> contextImpl = std::make_shared<ContextImpl>();
+    if (contextImpl == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to create contextImpl");
+        return nullptr;
+    }
+    ShallowCopySelf(contextImpl);
+    contextImpl->SwitchArea(areaMode);
+    return contextImpl;
+}
+
+int32_t ContextImpl::CreateHspModuleResourceManager(const std::string &bundleName,
+    const std::string &moduleName, std::shared_ptr<Global::Resource::ResourceManager> &resourceManager)
+{
+    if (bundleName.empty() || moduleName.empty()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "bundleName is %{public}s, moduleName is %{public}s",
+            bundleName.c_str(), moduleName.c_str());
+        return ERR_INVALID_VALUE;
+    }
+
+    int errCode = GetBundleManager();
+    if (errCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "The bundleMgr_ is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+
+    AppExecFwk::BundleInfo bundleInfo;
+    ErrCode ret = bundleMgr_->GetDependentBundleInfo(bundleName, bundleInfo,
+        AppExecFwk::GetDependentBundleInfoFlag::GET_ALL_DEPENDENT_BUNDLE_INFO);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "GetDependentBundleInfo failed:%{public}d", ret);
+        return ERR_INVALID_VALUE;
+    }
+
+    std::string selfBundleName = GetBundleName();
+    if (bundleInfo.applicationInfo.codePath == std::to_string(TYPE_RESERVE) ||
+        bundleInfo.applicationInfo.codePath == std::to_string(TYPE_OTHERS)) {
+        resourceManager = InitOthersResourceManagerInner(bundleInfo, selfBundleName == bundleName, moduleName);
+        if (resourceManager == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "InitOthersResourceManagerInner create resourceManager failed");
+        }
+        return ERR_INVALID_VALUE;
+    }
+
+    resourceManager = InitResourceManagerInner(bundleInfo, selfBundleName == bundleName, moduleName);
+    if (resourceManager == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "InitResourceManagerInner create resourceManager failed");
+        return ERR_INVALID_VALUE;
+    }
+
+    UpdateResConfig(GetResourceManager(), resourceManager);
+    return ERR_OK;
+}
+bool ContextImpl::UpdateDisplayConfiguration(std::shared_ptr<ContextImpl> &contextImpl, uint64_t displayId,
+    float density, std::string direction)
+{
+    if (contextImpl == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null contextImpl");
+        return false;
+    }
+
+    std::shared_ptr<AppExecFwk::Configuration> newConfiguration = nullptr;
+    if (config_ == nullptr) {
+        newConfiguration = std::make_shared<AppExecFwk::Configuration>();
+    } else {
+        newConfiguration = std::make_shared<AppExecFwk::Configuration>(*config_);
+    }
+    if (newConfiguration == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to create configuration");
+        return false;
+    }
+    newConfiguration->AddItem(AppExecFwk::ConfigurationInner::APPLICATION_DISPLAYID, std::to_string(displayId));
+    newConfiguration->AddItem(displayId, AppExecFwk::ConfigurationInner::APPLICATION_DENSITYDPI,
+        AppExecFwk::GetDensityStr(density));
+    newConfiguration->AddItem(displayId, AppExecFwk::ConfigurationInner::APPLICATION_DIRECTION, direction);
+    contextImpl->config_ = newConfiguration;
+
+    std::unique_ptr<Global::Resource::ResConfig> resConfig(Global::Resource::CreateResConfig());
+    if (resConfig == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null resConfig");
+        return false;
+    }
+    auto resourceManager = GetResourceManager();
+    if (resourceManager == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null resource manager");
+        return false;
+    }
+    resourceManager->GetResConfig(*resConfig);
+    resConfig->SetScreenDensity(density);
+    resConfig->SetDirection(AppExecFwk::ConvertDirection(direction));
+    if (contextImpl->resourceManager_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null resource manager");
+        return false;
+    }
+    contextImpl->resourceManager_->UpdateResConfig(*resConfig);
+    return true;
+}
+
+#ifdef SUPPORT_GRAPHICS
+std::shared_ptr<Context> ContextImpl::CreateDisplayContext(uint64_t displayId)
+{
+    float density;
+    std::string direction;
+    if (!GetDisplayConfig(displayId, density, direction)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to get display config");
+        return nullptr;
+    }
+    std::shared_ptr<ContextImpl> contextImpl = std::make_shared<ContextImpl>();
+    if (contextImpl == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to create contextImpl");
+        return nullptr;
+    }
+    ShallowCopySelf(contextImpl);
+
+    auto appContext = ApplicationContext::GetInstance();
+    if (appContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to get application context");
+        return nullptr;
+    }
+    std::string currentBundleName = appContext->GetBundleName();
+    AppExecFwk::BundleInfo bundleInfo;
+    bool currentBundle = true;
+    auto result = GetBundleInfo(currentBundleName, bundleInfo, currentBundle);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to get bundle info");
+        return nullptr;
+    }
+    InitResourceManager(bundleInfo, contextImpl, true);
+    if (contextImpl->resourceManager_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to init resource manager");
+        return nullptr;
+    }
+    if (!UpdateDisplayConfiguration(contextImpl, displayId, density, direction)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to Update display configuration");
+        return nullptr;
+    }
+    return contextImpl;
+}
+
+void ContextImpl::RegisterGetDisplayConfig(GetDisplayConfigCallback getDisplayConfigCallback)
+{
+    std::lock_guard<std::mutex> lock(getDisplayConfigCallbackMutex_);
+    getDisplayConfigCallback_ = getDisplayConfigCallback;
+}
+
+bool ContextImpl::GetDisplayConfig(uint64_t displayId, float &density, std::string &directionStr)
+{
+    std::lock_guard<std::mutex> lock(getDisplayConfigCallbackMutex_);
+    if (getDisplayConfigCallback_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null ability GetDisplayConfig callback");
+        return false;
+    }
+    return getDisplayConfigCallback_(displayId, density, directionStr);
+}
+#endif
 }  // namespace AbilityRuntime
 }  // namespace OHOS

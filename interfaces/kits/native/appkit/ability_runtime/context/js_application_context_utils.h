@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -90,6 +90,7 @@ public:
     napi_value OnGetGroupDir(napi_env env, NapiCallbackInfo& info);
     napi_value OnGetBundleCodeDir(napi_env env, NapiCallbackInfo& info);
     napi_value OnGetCloudFileDir(napi_env env, NapiCallbackInfo& info);
+    napi_value OnGetProcessName(napi_env env, NapiCallbackInfo &info);
     napi_value OnKillProcessBySelf(napi_env env, NapiCallbackInfo& info);
     napi_value OnGetRunningProcessInformation(napi_env env, NapiCallbackInfo& info);
     napi_value OnSetColorMode(napi_env env, NapiCallbackInfo& info);
@@ -114,6 +115,7 @@ public:
     static napi_value GetGroupDir(napi_env env, napi_callback_info info);
     static napi_value GetBundleCodeDir(napi_env env, napi_callback_info info);
     static napi_value GetCloudFileDir(napi_env env, napi_callback_info info);
+    static napi_value GetProcessName(napi_env env, napi_callback_info info);
     static napi_value GetApplicationContext(napi_env env, napi_callback_info info);
     static napi_value KillProcessBySelf(napi_env env, napi_callback_info info);
     static napi_value SetColorMode(napi_env env, napi_callback_info info);
@@ -129,6 +131,8 @@ public:
     static napi_value GetCurrentInstanceKey(napi_env env, napi_callback_info info);
     static napi_value GetAllRunningInstanceKeys(napi_env env, napi_callback_info info);
     static napi_value SetFontSizeScale(napi_env env, napi_callback_info info);
+    static napi_value CreateAreaModeContext(napi_env env, napi_callback_info info);
+    static napi_value CreateDisplayContext(napi_env env, napi_callback_info info);
 
 protected:
     std::weak_ptr<ApplicationContext> applicationContext_;
@@ -142,6 +146,9 @@ private:
     napi_value CreateJsModuleContext(napi_env env, const std::shared_ptr<Context>& moduleContext);
     napi_value OnCreateSystemHspModuleResourceManager(napi_env env, NapiCallbackInfo& info);
     napi_value OnGetApplicationContext(napi_env env, NapiCallbackInfo& info);
+    napi_value OnCreateAreaModeContext(napi_env env, NapiCallbackInfo &info);
+    napi_value OnCreateDisplayContext(napi_env env, NapiCallbackInfo &info);
+    napi_value CreateJsContext(napi_env env, const std::shared_ptr<Context> &context);
     bool CheckCallerIsSystemApp();
     static void BindNativeApplicationContextOne(napi_env env, napi_value object);
     static void BindNativeApplicationContextTwo(napi_env env, napi_value object);

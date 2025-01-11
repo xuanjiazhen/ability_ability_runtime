@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -49,6 +49,7 @@ public:
     int32_t GetSystemPreferencesDir(const std::string &groupId, bool checkExist, std::string &preferencesDir) override;
     void SwitchArea(int mode) override;
     int GetArea() override;
+    std::string GetProcessName() override;
     std::string GetBundleName() const override;
     std::shared_ptr<AppExecFwk::ApplicationInfo> GetApplicationInfo() const override;
     std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager() const override;
@@ -59,6 +60,10 @@ public:
         const std::string &bundleName, const std::string &moduleName) override;
     int32_t CreateSystemHspModuleResourceManager(const std::string &bundleName,
         const std::string &moduleName, std::shared_ptr<Global::Resource::ResourceManager> &resourceManager) override;
+    std::shared_ptr<Context> CreateAreaModeContext(int areaMode) override;
+#ifdef SUPPORT_GRAPHICS
+    std::shared_ptr<Context> CreateDisplayContext(uint64_t displayId) override;
+#endif
 
     std::string GetBundleCodePath() const override;
     ErrCode StartAbility(const AAFwk::Want &want, int requestCode) override;

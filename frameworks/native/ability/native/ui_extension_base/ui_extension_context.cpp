@@ -117,6 +117,18 @@ ErrCode UIExtensionContext::DisconnectAbility(
     return ret;
 }
 
+ErrCode UIExtensionContext::StartServiceExtensionAbility(const AAFwk::Want& want, int32_t accountId)
+{
+    TAG_LOGI(AAFwkTag::UI_EXT, "Start service extension %{public}s, accountId: %{public}d",
+        want.GetElement().GetURI().c_str(), accountId);
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
+        want, token_, accountId, AppExecFwk::ExtensionAbilityType::SERVICE);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Start service extension failed %{public}d", ret);
+    }
+    return ret;
+}
+
 ErrCode UIExtensionContext::StartAbilityForResult(const AAFwk::Want &want, int requestCode, RuntimeTask &&task)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "begin");
@@ -249,6 +261,16 @@ void UIExtensionContext::OnAbilityResultInner(int requestCode, int resultCode, c
         resultCallbacks_.erase(requestCode);
     }
     TAG_LOGD(AAFwkTag::UI_EXT, "end");
+}
+
+int32_t UIExtensionContext::GetScreenMode() const
+{
+    return screenMode_;
+}
+
+void UIExtensionContext::SetScreenMode(int32_t screenMode)
+{
+    screenMode_ = screenMode;
 }
 
 int UIExtensionContext::GenerateCurRequestCode()

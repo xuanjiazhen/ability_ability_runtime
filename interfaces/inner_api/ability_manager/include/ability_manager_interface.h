@@ -44,6 +44,7 @@
 #include "mission_info.h"
 #include "mission_listener_interface.h"
 #include "mission_snapshot.h"
+#include "query_erms_observer_interface.h"
 #include "remote_mission_listener_interface.h"
 #include "remote_on_listener_interface.h"
 #include "running_process_info.h"
@@ -63,6 +64,7 @@
 #include "want_sender_interface.h"
 #include "dialog_session_info.h"
 #include "window_config.h"
+#include "intent_exemption_info.h"
 #ifdef SUPPORT_SCREEN
 #include "window_manager_service_handler.h"
 #include "ability_first_frame_state_observer_interface.h"
@@ -84,6 +86,7 @@ using UIExtensionSessionInfo = AbilityRuntime::UIExtensionSessionInfo;
 #ifdef SUPPORT_SCREEN
 using IAbilityFirstFrameStateObserver = AppExecFwk::IAbilityFirstFrameStateObserver;
 #endif
+using AtomicServiceStartupRule = AbilityRuntime::AtomicServiceStartupRule;
 
 constexpr const char* ABILITY_MANAGER_SERVICE_NAME = "AbilityManagerService";
 const int DEFAULT_INVAL_VALUE = -1;
@@ -97,6 +100,17 @@ constexpr const char* FROM_REMOTE_KEY = "freeInstallFromRemote";
 class IAbilityManager : public OHOS::IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.aafwk.AbilityManager")
+
+    /**
+     * StartSelfUIAbility with want, start self uiability only on 2-in-1 devices.
+     *
+     * @param want, the want of the ability to start.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int StartSelfUIAbility(const Want &want)
+    {
+        return 0;
+    }
 
     /**
      * StartAbility with want, send want to ability manager service.
@@ -367,7 +381,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int PreloadUIExtensionAbility(const Want &want, std::string &hostBundleName,
-        int32_t userId = DEFAULT_INVAL_VALUE)
+        int32_t userId = DEFAULT_INVAL_VALUE, int32_t hostPid = DEFAULT_INVAL_VALUE)
     {
         return 0;
     }
@@ -1953,6 +1967,39 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t QueryKeepAliveApplicationsByEDM(int32_t appType, int32_t userId, std::vector<KeepAliveInfo> &list)
+    {
+        return 0;
+    }
+
+    virtual int32_t GetAllIntentExemptionInfo(std::vector<AppExecFwk::IntentExemptionInfo> &info)
+    {
+        return 0;
+    }
+
+    /**
+     * Add query ERMS observer.
+     *
+     * @param callerToken, The caller ability token.
+     * @param observer, The observer of the ability to query ERMS.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t AddQueryERMSObserver(sptr<IRemoteObject> callerToken,
+        sptr<AbilityRuntime::IQueryERMSObserver> observer)
+    {
+        return 0;
+    }
+
+    /**
+     * Query atomic service ERMS rule.
+     *
+     * @param callerToken, The caller ability token.
+     * @param appId, The appId of the atomic service.
+     * @param startTime, The startTime of the query.
+     * @param rule, The returned ERMS rule.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t QueryAtomicServiceStartupRule(sptr<IRemoteObject> callerToken,
+        const std::string &appId, const std::string &startTime, AtomicServiceStartupRule &rule)
     {
         return 0;
     }

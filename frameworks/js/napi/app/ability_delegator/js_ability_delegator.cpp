@@ -44,6 +44,7 @@ constexpr size_t ARGC_TWO = 2;
 constexpr size_t INDEX_ZERO = 0;
 constexpr size_t INDEX_ONE = 1;
 constexpr size_t INDEX_TWO = 2;
+constexpr size_t API16 = 16;
 
 using namespace OHOS::AbilityRuntime;
 std::map<std::shared_ptr<NativeReference>, std::shared_ptr<AbilityMonitor>> g_monitorRecord;
@@ -108,11 +109,16 @@ napi_value AttachAppContext(napi_env env, void *value, void *)
     napi_value object = CreateJsBaseContext(env, ptr, true);
     napi_coerce_to_native_binding_object(env, object, DetachCallbackFunc, AttachAppContext, value, nullptr);
     auto workContext = new (std::nothrow) std::weak_ptr<AbilityRuntime::Context>(ptr);
-    napi_wrap(env, object, workContext,
+    napi_status status = napi_wrap(env, object, workContext,
         [](napi_env, void *data, void *) {
             TAG_LOGI(AAFwkTag::DELEGATOR, "finalizer called");
             delete static_cast<std::weak_ptr<AbilityRuntime::Context> *>(data);
         }, nullptr, nullptr);
+    if (status != napi_ok && workContext != nullptr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "napi_wrap Failed: %{public}d", status);
+        delete workContext;
+        return nullptr;
+    }
     return object;
 }
 
@@ -730,11 +736,16 @@ napi_value JSAbilityDelegator::OnGetAppContext(napi_env env, NapiCallbackInfo& i
         return CreateJsNull(env);
     }
     napi_coerce_to_native_binding_object(env, value, DetachCallbackFunc, AttachAppContext, workContext, nullptr);
-    napi_wrap(env, value, workContext,
+    napi_status status = napi_wrap(env, value, workContext,
         [](napi_env, void *data, void *) {
             TAG_LOGI(AAFwkTag::DELEGATOR, "finalizer called");
             delete static_cast<std::weak_ptr<AbilityRuntime::Context> *>(data);
         }, nullptr, nullptr);
+    if (status != napi_ok && workContext != nullptr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "napi_wrap Failed: %{public}d", status);
+        delete workContext;
+        return CreateJsNull(env);
+    }
     return value;
 }
 
@@ -822,7 +833,13 @@ napi_value JSAbilityDelegator::OnStartAbility(napi_env env, NapiCallbackInfo& in
         }
         int result = delegator->StartAbility(want);
         if (result) {
-            task.Reject(env, CreateJsError(env, result, "startAbility failed."));
+            uint32_t apiTargetVersion = delegator->GetApiTargetVersion();
+            if (apiTargetVersion >= API16) {
+                task.Reject(env,
+                    CreateJsError(env, static_cast<int>(GetJsErrorCodeByNativeError(result)), "startAbility failed."));
+            } else {
+                task.Reject(env, CreateJsError(env, result, "startAbility failed."));
+            }
         } else {
             ResolveWithNoError(env, task);
         }

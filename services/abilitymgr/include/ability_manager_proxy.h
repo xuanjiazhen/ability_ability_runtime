@@ -20,6 +20,7 @@
 #include "auto_startup_info.h"
 #include "iremote_proxy.h"
 #include "mission_info.h"
+#include "intent_exemption_info.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -35,6 +36,14 @@ public:
 
     virtual ~AbilityManagerProxy()
     {}
+
+    /**
+     * StartSelfUIAbility with want, start self uiability only on 2-in-1 devices.
+     *
+     * @param want, the want of the ability to start.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int StartSelfUIAbility(const Want &want) override;
 
     /**
      * StartAbility with want, send want to ability manager service.
@@ -278,7 +287,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int PreloadUIExtensionAbility(const Want &want, std::string &hostBundleName,
-        int32_t userId = DEFAULT_INVAL_VALUE) override;
+        int32_t userId = DEFAULT_INVAL_VALUE, int32_t hostPid = DEFAULT_INVAL_VALUE) override;
 
     int ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow) override;
 
@@ -1545,6 +1554,35 @@ public:
     virtual int32_t QueryKeepAliveApplicationsByEDM(int32_t appType, int32_t userId,
         std::vector<KeepAliveInfo> &list) override;
 
+    /**
+     * Get intent exemption info.
+     * @param list List of intent exemption info.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetAllIntentExemptionInfo(std::vector<AppExecFwk::IntentExemptionInfo> &info) override;
+
+    /**
+     * Add query ERMS observer.
+     *
+     * @param callerToken, The caller ability token.
+     * @param observer, The observer of the ability to query ERMS.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t AddQueryERMSObserver(sptr<IRemoteObject> callerToken,
+        sptr<AbilityRuntime::IQueryERMSObserver> observer) override;
+
+    /**
+     * Query atomic service ERMS rule.
+     *
+     * @param callerToken, The caller ability token.
+     * @param appId, The appId of the atomic service.
+     * @param startTime, The startTime of the query.
+     * @param rule, The returned ERMS rule.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t QueryAtomicServiceStartupRule(sptr<IRemoteObject> callerToken,
+        const std::string &appId, const std::string &startTime, AtomicServiceStartupRule &rule) override;
+
 private:
     template <typename T>
     int GetParcelableInfos(MessageParcel &reply, std::vector<T> &parcelableInfos);
@@ -1557,6 +1595,7 @@ private:
         const sptr<SessionInfo> &sessionInfo, int32_t userId, int requestCode);
     bool UpdateAssociateConfigInner(const std::map<std::string, std::list<std::string>>& configs,
         MessageParcel& data);
+    bool ExtendMaxIpcCapacityForWant(const Want &want, MessageParcel &data);
 
 private:
     static inline BrokerDelegator<AbilityManagerProxy> delegator_;

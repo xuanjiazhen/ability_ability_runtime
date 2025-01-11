@@ -468,6 +468,7 @@ AppMgrResultCode AppMgrClient::GetAllRenderProcesses(std::vector<RenderProcessIn
 
 AppMgrResultCode AppMgrClient::GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info)
 {
+#ifdef SUPPORT_CHILD_PROCESS
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "service is nullptr");
@@ -478,6 +479,7 @@ AppMgrResultCode AppMgrClient::GetAllChildrenProcesses(std::vector<ChildProcessI
         TAG_LOGE(AAFwkTag::APPMGR, "service->GetAllChildrenProcesses failed,result=%{public}d", result);
         return AppMgrResultCode::ERROR_SERVICE_NOT_READY;
     }
+#endif // SUPPORT_CHILD_PROCESS
     return AppMgrResultCode::RESULT_OK;
 }
 
@@ -678,6 +680,22 @@ void AppMgrClient::StartSpecifiedAbility(const AAFwk::Want &want, const AppExecF
         return;
     }
     amsService->StartSpecifiedAbility(want, abilityInfo, requestId);
+}
+
+void AppMgrClient::PrepareTerminateApp(const pid_t pid, int32_t &prepareTermination, bool &isExist)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "service is nullptr");
+        return;
+    }
+    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+    if (amsService == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "amsService is nullptr");
+        return;
+    }
+    amsService->PrepareTerminateApp(pid, prepareTermination, isExist);
 }
 
 void AppMgrClient::SetKeepAliveEnableState(const std::string &bundleName, bool enable, int32_t uid)

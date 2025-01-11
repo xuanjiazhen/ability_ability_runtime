@@ -19,12 +19,12 @@
 #include "ability_info.h"
 #include "ability_manager_client.h"
 #include "ability_start_setting.h"
+#include "array_wrapper.h"
 #include "configuration_utils.h"
 #include "connection_manager.h"
 #include "context.h"
 #include "hitrace_meter.h"
 #include "hilog_tag_wrapper.h"
-#include "insight_intent_executor_info.h"
 #include "insight_intent_executor_mgr.h"
 #include "int_wrapper.h"
 #include "js_data_struct_converter.h"
@@ -42,6 +42,7 @@
 #include "napi_common_configuration.h"
 #include "napi_common_want.h"
 #include "napi_remote_object.h"
+#include "string_wrapper.h"
 #include "ui_extension_window_command.h"
 #include "want_params_wrapper.h"
 
@@ -51,6 +52,12 @@ using namespace OHOS::AppExecFwk;
 namespace {
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
+
+bool IsEmbeddableStart(int32_t screenMode)
+{
+    return screenMode == AAFwk::EMBEDDED_FULL_SCREEN_MODE ||
+        screenMode == AAFwk::EMBEDDED_HALF_SCREEN_MODE;
+}
 }
 
 napi_value AttachUIExtensionContext(napi_env env, void *value, void *extValue)
@@ -149,7 +156,8 @@ void JsUIExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
     auto env = jsRuntime_.GetNapiEnv();
 
     jsObj_ = jsRuntime_.LoadModule(
-        moduleName, srcPath, abilityInfo_->hapPath, abilityInfo_->compileMode == CompileMode::ES_MODULE);
+        moduleName, srcPath, abilityInfo_->hapPath, abilityInfo_->compileMode == CompileMode::ES_MODULE, false,
+        abilityInfo_->srcEntrance);
     if (jsObj_ == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null jsObj_");
         return;
@@ -199,6 +207,7 @@ void JsUIExtension::BindContext(napi_env env, napi_value obj, std::shared_ptr<AA
         return;
     }
     int32_t screenMode = want->GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
+    context->SetScreenMode(screenMode);
     napi_value contextObj = nullptr;
     CreateJSContext(env, contextObj, context, screenMode);
     if (shellContextRef_ == nullptr) {
@@ -241,7 +250,7 @@ void JsUIExtension::BindContext(napi_env env, napi_value obj, std::shared_ptr<AA
 void JsUIExtension::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::UI_EXT, "begin");
+    TAG_LOGD(AAFwkTag::UI_EXT, "OnStart begin");
     Extension::OnStart(want);
     auto context = GetContext();
 #ifdef SUPPORT_GRAPHICS
@@ -264,7 +273,7 @@ void JsUIExtension::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> se
         launchParam.launchReason = AAFwk::LaunchReason::LAUNCHREASON_INSIGHT_INTENT;
     }
     int32_t screenMode = want.GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
-    if (screenMode == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
+    if (IsEmbeddableStart(screenMode)) {
         napi_value argv[] = {napiWant, CreateJsLaunchParam(env, launchParam) };
         CallObjectMethod("onCreate", argv, ARGC_TWO);
     } else {
@@ -462,6 +471,34 @@ void JsUIExtension::OnCommandWindow(const AAFwk::Want &want, const sptr<AAFwk::S
     OnCommandWindowDone(sessionInfo, winCmd);
 }
 
+bool JsUIExtension::ForegroundWindowInitInsightIntentExecutorInfo(const AAFwk::Want &want,
+    const sptr<AAFwk::SessionInfo> &sessionInfo, InsightIntentExecutorInfo &executorInfo)
+{
+    auto context = GetContext();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null context");
+        return false;
+    }
+    if (sessionInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null sessionInfo");
+        return false;
+    }
+    std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo = context->GetAbilityInfo();
+    if (abilityInfo != nullptr) {
+        executorInfo.hapPath = abilityInfo->hapPath;
+        executorInfo.windowMode = abilityInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE;
+    }
+    executorInfo.token = context->GetToken();
+    executorInfo.pageLoader = contentSessions_[sessionInfo->uiExtensionComponentId];
+    executorInfo.executeParam = std::make_shared<InsightIntentExecuteParam>();
+    InsightIntentExecuteParam::GenerateFromWant(want, *executorInfo.executeParam);
+    executorInfo.executeParam->executeMode_ = UI_EXTENSION_ABILITY;
+    executorInfo.srcEntry = want.GetStringParam(INSIGHT_INTENT_SRC_ENTRY);
+    TAG_LOGD(AAFwkTag::UI_EXT, "executorInfo, insightIntentId: %{public}" PRIu64,
+        executorInfo.executeParam->insightIntentId_);
+    return true;
+}
+
 bool JsUIExtension::ForegroundWindowWithInsightIntent(const AAFwk::Want &want,
     const sptr<AAFwk::SessionInfo> &sessionInfo, bool needForeground)
 {
@@ -480,35 +517,27 @@ bool JsUIExtension::ForegroundWindowWithInsightIntent(const AAFwk::Want &want,
     }
 
     auto uiExtension = std::static_pointer_cast<JsUIExtension>(shared_from_this());
-    executorCallback->Push([uiExtension, sessionInfo, needForeground](AppExecFwk::InsightIntentExecuteResult result) {
+    executorCallback->Push(
+        [uiExtension, sessionInfo, needForeground, want](AppExecFwk::InsightIntentExecuteResult result) {
         TAG_LOGI(AAFwkTag::UI_EXT, "Execute post insightintent");
         if (uiExtension == nullptr) {
             TAG_LOGE(AAFwkTag::UI_EXT, "null uiExtension");
             return;
         }
 
+        InsightIntentExecuteParam executeParam;
+        InsightIntentExecuteParam::GenerateFromWant(want, executeParam);
+        if (result.uris.size() > 0) {
+            uiExtension->ExecuteInsightIntentDone(executeParam.insightIntentId_, result);
+        }
         uiExtension->PostInsightIntentExecuted(sessionInfo, result, needForeground);
     });
 
-    auto context = GetContext();
-    if (context == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "null context");
+    InsightIntentExecutorInfo executorInfo;
+    if (!ForegroundWindowInitInsightIntentExecutorInfo(want, sessionInfo, executorInfo)) {
         return false;
     }
-    InsightIntentExecutorInfo executorInfo;
-    std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo = context->GetAbilityInfo();
-    if (abilityInfo != nullptr) {
-        executorInfo.hapPath = abilityInfo->hapPath;
-        executorInfo.windowMode = abilityInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE;
-    }
-    executorInfo.token = context->GetToken();
-    executorInfo.pageLoader = contentSessions_[sessionInfo->uiExtensionComponentId];
-    executorInfo.executeParam = std::make_shared<InsightIntentExecuteParam>();
-    InsightIntentExecuteParam::GenerateFromWant(want, *executorInfo.executeParam);
-    executorInfo.executeParam->executeMode_ = UI_EXTENSION_ABILITY;
-    executorInfo.srcEntry = want.GetStringParam(INSIGHT_INTENT_SRC_ENTRY);
-    TAG_LOGD(AAFwkTag::UI_EXT, "executorInfo, insightIntentId: %{public}" PRIu64,
-        executorInfo.executeParam->insightIntentId_);
+
     int32_t ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
         jsRuntime_, executorInfo, std::move(executorCallback));
     if (!ret) {
@@ -517,6 +546,15 @@ bool JsUIExtension::ForegroundWindowWithInsightIntent(const AAFwk::Want &want,
     }
     TAG_LOGD(AAFwkTag::UI_EXT, "end");
     return true;
+}
+
+void JsUIExtension::ExecuteInsightIntentDone(uint64_t intentId, const InsightIntentExecuteResult &result)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "intentId %{public}" PRIu64"", intentId);
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->ExecuteInsightIntentDone(token_, intentId, result);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "notify execute done failed");
+    }
 }
 
 void JsUIExtension::PostInsightIntentExecuted(const sptr<AAFwk::SessionInfo> &sessionInfo,
@@ -590,6 +628,18 @@ void JsUIExtension::OnInsightIntentExecuteDone(const sptr<AAFwk::SessionInfo> &s
                 resultParams.SetParam("result", pWantParams);
             }
         }
+
+        auto size = result.uris.size();
+        sptr<IArray> uriArray = new (std::nothrow) Array(size, g_IID_IString);
+        if (uriArray == nullptr) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "new uriArray failed");
+            return;
+        }
+        for (std::size_t i = 0; i < size; i++) {
+            uriArray->Set(i, String::Box(result.uris[i]));
+        }
+        resultParams.SetParam("uris", uriArray);
+        resultParams.SetParam("flags", Integer::Box(result.flags));
         sptr<AAFwk::IWantParams> pWantParams = WantParamWrapper::Box(resultParams);
         if (pWantParams != nullptr) {
             params.SetParam(INSIGHT_INTENT_EXECUTE_RESULT, pWantParams);
@@ -628,7 +678,7 @@ void JsUIExtension::OnCommand(const AAFwk::Want &want, bool restart, int startId
 void JsUIExtension::OnForeground(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::UI_EXT, "begin");
+    TAG_LOGD(AAFwkTag::UI_EXT, "OnForeground begin");
     CHECK_POINTER(sessionInfo);
     Extension::OnForeground(want, sessionInfo);
 
@@ -682,8 +732,8 @@ bool JsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFw
         napi_create_reference(env, nativeContentSession, 1, &ref);
         contentSessions_.emplace(compId, std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference*>(ref)));
         int32_t screenMode = want.GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
-        if (screenMode == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-            screenMode_ = AAFwk::EMBEDDED_FULL_SCREEN_MODE;
+        if (IsEmbeddableStart(screenMode)) {
+            screenMode_ = screenMode;
             auto jsAppWindowStage = CreateAppWindowStage(uiWindow, sessionInfo);
             if (jsAppWindowStage == nullptr) {
                 TAG_LOGE(AAFwkTag::UI_EXT, "null JsAppWindowStage");
@@ -726,6 +776,7 @@ sptr<Rosen::Window> JsUIExtension::CreateUIWindow(const std::shared_ptr<UIExtens
     option->SetUIExtensionUsage(static_cast<uint32_t>(sessionInfo->uiExtensionUsage));
     option->SetDensity(sessionInfo->density);
     option->SetIsDensityFollowHost(sessionInfo->isDensityFollowHost);
+    option->SetDisplayId(sessionInfo->displayId);
     HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::Create");
     return Rosen::Window::Create(option, GetContext(), sessionInfo->sessionToken);
 }
@@ -801,7 +852,7 @@ void JsUIExtension::DestroyWindow(const sptr<AAFwk::SessionInfo> &sessionInfo)
     }
     if (contentSessions_.find(componentId) != contentSessions_.end() && contentSessions_[componentId] != nullptr) {
         HandleScope handleScope(jsRuntime_);
-        if (screenMode_ == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
+        if (IsEmbeddableStart(screenMode_)) {
             screenMode_ = AAFwk::IDLE_SCREEN_MODE;
             CallObjectMethod("onWindowStageDestroy");
         } else {

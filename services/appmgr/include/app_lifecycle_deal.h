@@ -191,6 +191,8 @@ public:
      * @param want the moduleName of which being scheduled.
      */
     void ScheduleAcceptWant(const AAFwk::Want &want, const std::string &moduleName);
+    
+    void SchedulePrepareTerminate(const std::string &moduleName, int32_t &prepareTermination, bool &isExist);
 
     void ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName);
 
@@ -283,6 +285,14 @@ public:
     void ScheduleCacheProcess();
 
     int DumpFfrt(std::string& result);
+
+    /**
+     * SetWatchdogBackgroundStatusRunning , call SetWatchdogBackgroundStatusRunning(bool status) through proxy project,
+     * Notify application to set watchdog background status.
+     *
+     * @return
+     */
+    void SetWatchdogBackgroundStatusRunning(bool status);
 
 private:
     mutable std::mutex schedulerMutex_;

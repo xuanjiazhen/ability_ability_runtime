@@ -27,7 +27,6 @@ ohos_fuzztest("ExtensionRecordManageraFuzzTest") {
   include_dirs = [
     "${ability_runtime_innerkits_path}/ability_manager/include",
     "${ability_runtime_innerkits_path}/dataobs_manager/include",
-    "${multimodalinput_path}/interfaces/native/innerkits/event/include",
   ]
   cflags = [
     "-g",
@@ -64,11 +63,9 @@ ohos_fuzztest("ExtensionRecordManageraFuzzTest") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
-    "${ability_runtime_innerkits_path}/uri_permission:uri_permission_mgr",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_path}/utils/server/startup:startup_util",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
-    "//third_party/jsoncpp:jsoncpp",
   ]
 
   external_deps = [
@@ -89,7 +86,9 @@ ohos_fuzztest("ExtensionRecordManageraFuzzTest") {
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
+    "input:libmmi-client",
     "ipc:ipc_core",
+    "jsoncpp:jsoncpp",
     "kv_store:distributeddata_inner",
     "os_account:os_account_innerkits",
     "relational_store:native_dataability",
@@ -104,6 +103,14 @@ ohos_fuzztest("ExtensionRecordManageraFuzzTest") {
     external_deps += [
       "i18n:intl_util",
       "window_manager:libwm",
+    ]
+  }
+  if (ability_runtime_child_process) {
+    defines = [ "SUPPORT_CHILD_PROCESS" ]
+  }
+  if (ability_runtime_upms) {
+    deps += [
+      "${ability_runtime_innerkits_path}/uri_permission:uri_permission_mgr",
     ]
   }
   cflags_cc = []

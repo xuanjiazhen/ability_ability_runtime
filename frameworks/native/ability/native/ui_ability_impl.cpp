@@ -405,7 +405,8 @@ void UIAbilityImpl::AfterFocusedCommon(bool isFocused)
     };
 
     if (handler_) {
-        handler_->PostTask(task);
+        handler_->PostTask(task, "UIAbilityImpl::AfterFocusedCommon", 0,
+            AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
@@ -842,5 +843,15 @@ void UIAbilityImpl::ExecuteInsightIntentBackgroundAlreadyStart(const Want &want,
     ability_->ExecuteInsightIntentBackground(want, executeParam, std::move(callback));
 }
 #endif
+
+void UIAbilityImpl::ScheduleCollaborate(const Want &want)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    if (ability_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null ability_");
+        return;
+    }
+    ability_->HandleCollaboration(want);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

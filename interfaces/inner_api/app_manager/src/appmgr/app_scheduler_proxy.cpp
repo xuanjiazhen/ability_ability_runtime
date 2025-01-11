@@ -19,6 +19,7 @@
 #include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "ipc_capacity_wrap.h"
 #include "ipc_types.h"
 #include "iremote_object.h"
 #include "app_scheduler_const.h"
@@ -193,6 +194,7 @@ void AppSchedulerProxy::ScheduleLaunchAbility(const AbilityInfo &info, const spt
 {
     MessageParcel data;
     MessageParcel reply;
+    AAFwk::ExtendMaxIpcCapacityForInnerWant(data);
     MessageOption option(MessageOption::TF_ASYNC);
     if (!WriteInterfaceToken(data)) {
         return;
@@ -412,6 +414,7 @@ void AppSchedulerProxy::ScheduleAcceptWant(const AAFwk::Want &want, const std::s
 {
     MessageParcel data;
     MessageParcel reply;
+    AAFwk::ExtendMaxIpcCapacityForInnerWant(data);
     MessageOption option(MessageOption::TF_ASYNC);
     if (!WriteInterfaceToken(data)) {
         return;
@@ -427,10 +430,42 @@ void AppSchedulerProxy::ScheduleAcceptWant(const AAFwk::Want &want, const std::s
     }
 }
 
+void AppSchedulerProxy::SchedulePrepareTerminate(const std::string &moduleName,
+    int32_t &prepareTermination, bool &isExist)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "token write error");
+        return;
+    }
+    if (!data.WriteString(moduleName)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write SchedulePrepareTerminate moduleName failed.");
+        return;
+    }
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Remote() is NULL");
+        return;
+    }
+    int32_t ret = remote->SendRequest(
+        static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_PREPARE_TERMINATE), data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest SchedulePrepareTerminate err: %{public}d", ret);
+        return;
+    }
+    prepareTermination = reply.ReadInt32();
+    isExist = reply.ReadBool();
+    TAG_LOGD(AAFwkTag::APPMGR, "Get SchedulePrepareTerminate reply success");
+}
+
 void AppSchedulerProxy::ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName)
 {
     MessageParcel data;
     MessageParcel reply;
+    AAFwk::ExtendMaxIpcCapacityForInnerWant(data);
     MessageOption option(MessageOption::TF_ASYNC);
     if (!WriteInterfaceToken(data)) {
         return;
@@ -764,6 +799,28 @@ int32_t AppSchedulerProxy::ScheduleDumpFfrt(std::string& result)
         return DumpErrorCode::ERR_INTERNAL_ERROR;
     }
     return DumpErrorCode::ERR_OK;
+}
+
+void AppSchedulerProxy::SetWatchdogBackgroundStatus(bool status)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    if (!WriteInterfaceToken(data)) {
+        return;
+    }
+    if (!data.WriteBool(status)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write bool failed.");
+        return;
+    }
+    int32_t ret =
+        SendTransactCmd(static_cast<uint32_t>(IAppScheduler::Message::WATCHDOG_BACKGROUND_STATUS_TRANSACTION),
+            data,
+            reply,
+            option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is wrong, error code: %{public}d", ret);
+    }
 }
 
 int32_t AppSchedulerProxy::SendTransactCmd(uint32_t code, MessageParcel &data,

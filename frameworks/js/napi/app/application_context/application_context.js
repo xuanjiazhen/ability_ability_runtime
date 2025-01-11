@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -208,7 +208,15 @@ class ApplicationContext {
   getAllRunningInstanceKeys() {
     return this.__context_impl__.getAllRunningInstanceKeys();
   }
-  
+
+  createAreaModeContext(areaMode) {
+    return this.__context_impl__.createAreaModeContext(areaMode);
+  }
+
+  createDisplayContext(displayId) {
+    return this.__context_impl__.createDisplayContext(displayId);
+  }
+
   set area(mode) {
     return this.__context_impl__.switchArea(mode);
   }
@@ -263,6 +271,10 @@ class ApplicationContext {
 
   get eventHub() {
     return this.__context_impl__.eventHub;
+  }
+
+  get processName() {
+    return this.__context_impl__.processName;
   }
 
   get stageMode() {

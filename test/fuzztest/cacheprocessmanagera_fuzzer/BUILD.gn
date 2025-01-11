@@ -28,7 +28,6 @@ ohos_fuzztest("CacheProcessManageraFuzzTest") {
     "${ability_runtime_innerkits_path}/ability_manager/include",
     "${ability_runtime_services_path}/appmgr/include",
     "${ability_runtime_innerkits_path}/dataobs_manager/include",
-    "${multimodalinput_path}/interfaces/native/innerkits/event/include",
   ]
   cflags = [
     "-g",
@@ -52,13 +51,11 @@ ohos_fuzztest("CacheProcessManageraFuzzTest") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
-    "${ability_runtime_innerkits_path}/uri_permission:uri_permission_mgr",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
     "${ability_runtime_services_path}/appmgr:libappms",
     "${ability_runtime_services_path}/common:app_util",
     "${ability_runtime_services_path}/common:res_sched_util",
-    "//third_party/jsoncpp:jsoncpp",
   ]
 
   external_deps = [
@@ -76,7 +73,9 @@ ohos_fuzztest("CacheProcessManageraFuzzTest") {
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "hitrace:libhitracechain",
+    "input:libmmi-client",
     "ipc:ipc_core",
+    "jsoncpp:jsoncpp",
     "kv_store:distributeddata_inner",
     "napi:ace_napi",
     "os_account:os_account_innerkits",
@@ -90,6 +89,11 @@ ohos_fuzztest("CacheProcessManageraFuzzTest") {
     external_deps += [
       "i18n:intl_util",
       "window_manager:libwm",
+    ]
+  }
+  if (ability_runtime_upms) {
+    deps += [
+      "${ability_runtime_innerkits_path}/uri_permission:uri_permission_mgr",
     ]
   }
 }

@@ -112,7 +112,6 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     sptr<IAbilityConnection> connect = new MyAbilityConnection();
     std::vector<std::string> info;
     std::shared_ptr<AbilityRecord> targetService = GetFuzzAbilityRecord();
-    bool boolParam = *data % ENABLE;
 
     // fuzz for ApplicationAnrListener
     auto applicationAnrListener = std::make_shared<ApplicationAnrListener>();
@@ -125,7 +124,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     freeInstallManager->IsTopAbility(token);
     freeInstallManager->StartFreeInstall(*want, int32Param, intParam, token);
     freeInstallManager->RemoteFreeInstall(*want, int32Param, intParam, token);
-    freeInstallManager->BuildFreeInstallInfo(*want, int32Param, intParam, token, boolParam);
+    freeInstallManager->BuildFreeInstallInfo(*want, int32Param, intParam, token);
     freeInstallManager->StartRemoteFreeInstall(*want, intParam, int32Param, token);
     freeInstallManager->NotifyDmsCallback(*want, intParam);
     freeInstallManager->NotifyFreeInstallResult(*want, intParam);
@@ -202,7 +201,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         return 0;
     }
 
-    char* ch = (char*)malloc(size + 1);
+    char* ch = static_cast<char*>(malloc(size + 1));
     if (ch == nullptr) {
         std::cout << "malloc failed." << std::endl;
         return 0;

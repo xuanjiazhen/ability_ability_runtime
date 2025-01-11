@@ -205,7 +205,7 @@ public:
     static ErrCode IsEquals(
         const std::shared_ptr<PendingWant> &targetPendingWant, const std::shared_ptr<PendingWant> &otherPendingWant);
 
-    ErrCode Cancel(const sptr<AAFwk::IWantSender> &target);
+    ErrCode Cancel(const sptr<AAFwk::IWantSender> &target, uint32_t flags = 0);
 
     void Send(const sptr<AAFwk::IWantSender> &target);
 
@@ -264,7 +264,7 @@ private:
     std::mutex lock_object;
     sptr<AAFwk::IWantSender> target_ = nullptr;
     sptr<AAFwk::IWantReceiver> cancelReceiver_ = nullptr;
-    sptr<IRemoteObject> whitelistToken_ = nullptr;
+    sptr<IRemoteObject> allowListToken_ = nullptr;
     std::vector<std::shared_ptr<CancelListener>> cancelListeners_;
 
     class CancelReceiver : public AAFwk::WantReceiverStub {

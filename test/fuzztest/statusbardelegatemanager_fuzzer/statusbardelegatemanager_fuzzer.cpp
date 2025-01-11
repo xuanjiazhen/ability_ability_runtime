@@ -41,7 +41,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     sptr<AbilityRuntime::IStatusBarDelegate> delegate; 
     statusBarDelegate->RegisterStatusBarDelegate(delegate);
     statusBarDelegate->GetStatusBarDelegate();
-    statusBarDelegate->IsCallerInStatusBar();
+    statusBarDelegate->IsCallerInStatusBar("");
     std::shared_ptr<AbilityRecord> abilityRecord;
     statusBarDelegate->DoProcessAttachment(abilityRecord);
     return true;
@@ -62,7 +62,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         return 0;
     }
 
-    char* ch = (char*)malloc(size + 1);
+    char* ch = static_cast<char*>(malloc(size + 1));
     if (ch == nullptr) {
         std::cout << "malloc failed." << std::endl;
         return 0;

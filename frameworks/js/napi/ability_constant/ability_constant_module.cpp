@@ -20,6 +20,7 @@
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "recovery_param.h"
+#include "ability_stage_constant.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -27,6 +28,11 @@ enum class MemoryLevel {
     MEMORY_LEVEL_MODERATE = 0,
     MEMORY_LEVEL_LOW = 1,
     MEMORY_LEVEL_CRITICAL = 2,
+};
+
+enum CollaborateResult {
+    ACCEPT = 0,
+    REJECT,
 };
 
 static napi_status SetEnumItem(napi_env env, napi_value object, const char* name, int32_t value)
@@ -166,6 +172,30 @@ static napi_value InitMemoryLevelObject(napi_env env)
     return object;
 }
 
+// AbilityConstant.CollaborateResult
+static napi_value InitCollaborateResultEnum(napi_env env)
+{
+    TAG_LOGD(AAFwkTag::JSNAPI, "called");
+    napi_value object;
+    NAPI_CALL(env, napi_create_object(env, &object));
+    NAPI_CALL(env, SetEnumItem(env, object, "ACCEPT", CollaborateResult::ACCEPT));
+    NAPI_CALL(env, SetEnumItem(env, object, "REJECT", CollaborateResult::REJECT));
+    return object;
+}
+
+static napi_value InitAbilityStagePrepareTerminationObject(napi_env env)
+{
+    TAG_LOGD(AAFwkTag::JSNAPI, "called");
+    napi_value object;
+    NAPI_CALL(env, napi_create_object(env, &object));
+
+    NAPI_CALL(env, SetEnumItem(env, object, "TERMINATE_IMMEDIATELY",
+        static_cast<int32_t>(AppExecFwk::PrepareTermination::TERMINATE_IMMEDIATELY)));
+    NAPI_CALL(env, SetEnumItem(env, object, "CANCEL",
+        static_cast<int32_t>(AppExecFwk::PrepareTermination::CANCEL)));
+    return object;
+}
+
 /*
  * The module initialization.
  */
@@ -219,6 +249,18 @@ static napi_value AbilityConstantInit(napi_env env, napi_value exports)
         return nullptr;
     }
 
+    napi_value collaborateResult = InitCollaborateResultEnum(env);
+    if (collaborateResult == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null collaborateResult");
+        return nullptr;
+    }
+
+    napi_value prepareTermination = InitAbilityStagePrepareTerminationObject(env);
+    if (prepareTermination == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null prepareTermination");
+        return nullptr;
+    }
+
     napi_property_descriptor exportObjs[] = {
         DECLARE_NAPI_PROPERTY("LaunchReason", launchReason),
         DECLARE_NAPI_PROPERTY("LastExitReason", lastExitReason),
@@ -228,6 +270,8 @@ static napi_value AbilityConstantInit(napi_env env, napi_value exports)
         DECLARE_NAPI_PROPERTY("MemoryLevel", memoryLevel),
         DECLARE_NAPI_PROPERTY("OnSaveResult", saveResult),
         DECLARE_NAPI_PROPERTY("StateType", stateType),
+        DECLARE_NAPI_PROPERTY("CollaborateResult", collaborateResult),
+        DECLARE_NAPI_PROPERTY("PrepareTermination", prepareTermination),
     };
     napi_status status = napi_define_properties(env, exports, sizeof(exportObjs) / sizeof(exportObjs[0]), exportObjs);
     if (status != napi_ok) {

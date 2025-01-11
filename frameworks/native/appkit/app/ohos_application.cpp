@@ -29,17 +29,20 @@
 #include "application_cleaner.h"
 #include "application_impl.h"
 #include "bundle_mgr_helper.h"
+#include "configuration_convertor.h"
 #include "configuration_utils.h"
 #include "context_impl.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "iservice_registry.h"
 #include "runtime.h"
+#include "startup_manager.h"
 #include "system_ability_definition.h"
 #include "syspara/parameter.h"
 #include "ui_ability.h"
 #include "application_configuration_manager.h"
 #ifdef SUPPORT_GRAPHICS
+#include "display_manager.h"
 #include "window.h"
 #endif
 
@@ -191,6 +194,17 @@ void OHOSApplication::SetApplicationContext(
         }
         applicationSptr->OnUpdateConfigurationForAll(config);
     });
+#ifdef SUPPORT_GRAPHICS
+    abilityRuntimeContext_->RegisterGetDisplayConfig([applicationWptr](uint64_t displayId,
+        float &density, std::string &directionStr) -> bool {
+        std::shared_ptr<OHOSApplication> applicationSptr = applicationWptr.lock();
+        if (applicationSptr == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null applicationSptr");
+            return false;
+        }
+        return applicationSptr->GetDisplayConfig(displayId, density, directionStr);
+    });
+#endif
 }
 
 /**
@@ -371,6 +385,7 @@ std::shared_ptr<AbilityRuntime::Context> OHOSApplication::AddAbilityStage(
         stageContext->SetParentContext(abilityRuntimeContext_);
         stageContext->InitHapModuleInfo(abilityInfo);
         stageContext->SetConfiguration(GetConfiguration());
+        stageContext->SetProcessName(GetProcessName());
         std::shared_ptr<AppExecFwk::HapModuleInfo> hapModuleInfo = stageContext->GetHapModuleInfo();
         if (hapModuleInfo == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "null hapModuleInfo");
@@ -681,6 +696,19 @@ void OHOSApplication::ScheduleAcceptWant(const AAFwk::Want &want, const std::str
     }
 }
 
+void OHOSApplication::SchedulePrepareTerminate(const std::string &moduleName,
+    int32_t &prepareTermination, bool &isExist)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    auto iter = abilityStages_.find(moduleName);
+    if (iter == abilityStages_.end() || iter->second == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "%{public}s is not in abilityStage", moduleName.c_str());
+        return;
+    }
+    isExist = iter->second->OnPrepareTerminate(prepareTermination);
+    TAG_LOGD(AAFwkTag::APPKIT, "OnPrepareTerminate isExist = %{public}d", isExist);
+}
+
 void OHOSApplication::ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName,
     std::string &flag)
 {
@@ -806,6 +834,23 @@ void OHOSApplication::CleanEmptyAbilityStage()
     }
 }
 
+void OHOSApplication::PreloadAppStartup(const BundleInfo &bundleInfo,
+    const HapModuleInfo &entryHapModuleInfo, const std::string &preloadModuleName)
+{
+    if (!IsMainProcess(bundleInfo.applicationInfo.name, bundleInfo.applicationInfo.process)) {
+        TAG_LOGD(AAFwkTag::STARTUP, "not main process");
+        return;
+    }
+
+    std::shared_ptr<AbilityRuntime::StartupManager> startupManager =
+        DelayedSingleton<AbilityRuntime::StartupManager>::GetInstance();
+    if (startupManager == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "failed to get startupManager");
+        return;
+    }
+    startupManager->PreloadAppHintStartup(bundleInfo, entryHapModuleInfo, preloadModuleName);
+}
+
 bool OHOSApplication::IsUpdateColorNeeded(Configuration &config, AbilityRuntime::SetLevel level)
 {
     std::string colorMode = config.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE);
@@ -911,5 +956,24 @@ bool OHOSApplication::IsMainProcess(const std::string &bundleName, const std::st
     TAG_LOGD(AAFwkTag::APPKIT, "not main process");
     return false;
 }
+
+#ifdef SUPPORT_GRAPHICS
+bool OHOSApplication::GetDisplayConfig(uint64_t displayId, float &density, std::string &directionStr)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "get display by id %{public}" PRIu64, displayId);
+    auto display = Rosen::DisplayManager::GetInstance().GetDisplayById(displayId);
+    if (display == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "display %{public}" PRIu64 " failed", displayId);
+        return false;
+    }
+    density = display->GetVirtualPixelRatio();
+    int32_t width = display->GetWidth();
+    int32_t height = display->GetHeight();
+    directionStr = AppExecFwk::GetDirectionStr(height, width);
+    TAG_LOGD(AAFwkTag::APPKIT, "displayId: %{public}" PRIu64 ", density: %{public}f, direction: %{public}s",
+        displayId, density, directionStr.c_str());
+    return true;
+}
+#endif
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,6 +31,9 @@ namespace AAFwk {
 class Want;
 }
 namespace AbilityRuntime {
+#ifdef SUPPORT_GRAPHICS
+using GetDisplayConfigCallback = std::function<bool(uint64_t displayId, float &density, std::string &directionStr)>;
+#endif
 class ContextImpl : public Context {
 public:
     ContextImpl() = default;
@@ -215,6 +218,13 @@ public:
     int GetArea() override;
 
     /**
+     * @brief Get process name
+     *
+     * @return process name.
+     */
+    std::string GetProcessName() override;
+
+    /**
      * @brief set the ResourceManager.
      *
      * @param the ResourceManager has been initialized.
@@ -254,6 +264,8 @@ public:
     int32_t CreateSystemHspModuleResourceManager(const std::string &bundleName, const std::string &moduleName,
         std::shared_ptr<Global::Resource::ResourceManager> &resourceManager) override;
 
+    int32_t CreateHspModuleResourceManager(const std::string &bundleName,
+        const std::string &moduleName, std::shared_ptr<Global::Resource::ResourceManager> &resourceManager) override;
     /**
     * @brief Obtains an IBundleMgr instance.
     * You can use this instance to obtain information about the application bundle.
@@ -386,15 +398,40 @@ public:
      */
     Global::Resource::DeviceType GetDeviceType() const override;
 
+    /**
+     * @brief Create a area mode context.
+     *
+     * @param areaMode Indicates the area mode.
+     *
+     * @return Returns the context with the specified area mode.
+     */
+    std::shared_ptr<Context> CreateAreaModeContext(int areaMode) override;
+
+#ifdef SUPPORT_GRAPHICS
+    /**
+     * @brief Create a context by displayId. This Context updates the density and direction properties
+     * based on the displayId, while other property values remain the same as in the original Context.
+     *
+     * @param displayId Indicates the displayId.
+     *
+     * @return Returns the context with the specified displayId.
+     */
+    std::shared_ptr<Context> CreateDisplayContext(uint64_t displayId) override;
+    void RegisterGetDisplayConfig(GetDisplayConfigCallback getDisplayConfigCallback);
+#endif
+
     int32_t SetSupportedProcessCacheSelf(bool isSupport);
 
     void PrintTokenInfo() const;
 
     void AppHasDarkRes(bool &darkRes);
 
+    void SetProcessName(const std::string &processName);
+
     static const int EL_DEFAULT = 1;
 
 protected:
+    // Adding a new attribute requires adding a copy in the ShallowCopySelf function
     sptr<IRemoteObject> token_;
 
 private:
@@ -470,11 +507,18 @@ private:
     void UpdateResConfig(std::shared_ptr<Global::Resource::ResourceManager> src,
         std::shared_ptr<Global::Resource::ResourceManager> &resourceManager);
     int32_t GetBundleInfo(const std::string &bundleName, AppExecFwk::BundleInfo &bundleInfo, bool &currentBundle);
-    void GetBundleInfo(const std::string &bundleName, AppExecFwk::BundleInfo &bundleInfo, const int &accountId,
+    void GetBundleInfo(const std::string &bundleName, AppExecFwk::BundleInfo &bundleInfo,
         std::shared_ptr<Context> inputContext = nullptr);
     ErrCode GetOverlayMgrProxy();
     void UnsubscribeToOverlayEvents();
+    void ShallowCopySelf(std::shared_ptr<ContextImpl> &contextImpl);
+    bool UpdateDisplayConfiguration(std::shared_ptr<ContextImpl> &contextImpl, uint64_t displayId,
+        float density, std::string direction);
+#ifdef SUPPORT_GRAPHICS
+    bool GetDisplayConfig(uint64_t displayId, float &density, std::string &directionStr);
+#endif
 
+    // Adding a new attribute requires adding a copy in the ShallowCopySelf function
     static Global::Resource::DeviceType deviceType_;
     std::shared_ptr<AppExecFwk::ApplicationInfo> applicationInfo_ = nullptr;
     std::shared_ptr<Context> parentContext_ = nullptr;
@@ -497,6 +541,11 @@ private:
 
     std::mutex overlaySubscriberMutex_;
     std::shared_ptr<AppExecFwk::OverlayEventSubscriber> overlaySubscriber_;
+    std::string processName_;
+#ifdef SUPPORT_GRAPHICS
+    static std::mutex getDisplayConfigCallbackMutex_;
+    static GetDisplayConfigCallback getDisplayConfigCallback_;
+#endif
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,8 +31,12 @@ constexpr const char* HSPLIST_MODULES = "modules";
 constexpr const char* HSPLIST_VERSIONS = "versions";
 constexpr const char* DATAGROUPINFOLIST_DATAGROUPID = "dataGroupId";
 constexpr const char* DATAGROUPINFOLIST_GID = "gid";
+constexpr const char* DATAGROUPINFOLIST_UUID = "uuid";
 constexpr const char* DATAGROUPINFOLIST_DIR = "dir";
-constexpr const char* JSON_DATA_APP = "/data/app/el2/";
+constexpr const char* JSON_DATA_APP_DIR_EL2 = "/data/app/el2/";
+constexpr const char* JSON_DATA_APP_DIR_EL3 = "/data/app/el3/";
+constexpr const char* JSON_DATA_APP_DIR_EL4 = "/data/app/el4/";
+constexpr const char* JSON_DATA_APP_DIR_EL5 = "/data/app/el5/";
 constexpr const char* JSON_GROUP = "/group/";
 constexpr const char* VERSION_PREFIX = "v";
 constexpr const char* APPSPAWN_CLIENT_USER_NAME = "APP_MANAGER_SERVICE";
@@ -126,16 +130,30 @@ AppSpawnClientHandle AppSpawnClient::GetAppSpawnClientHandle() const
     return nullptr;
 }
 
-static std::string DumpDataGroupInfoListToJson(const DataGroupInfoList &dataGroupInfoList)
+static std::string DumpDataGroupInfoListToJson(const DataGroupInfoList &dataGroupInfoList, bool isScreenLockDataProtect)
 {
+    TAG_LOGD(AAFwkTag::APPMGR, "dataGroupInfoList size: %{public}zu", dataGroupInfoList.size());
     nlohmann::json dataGroupInfoListJson;
     for (auto& dataGroupInfo : dataGroupInfoList) {
-        dataGroupInfoListJson[DATAGROUPINFOLIST_DATAGROUPID].emplace_back(dataGroupInfo.dataGroupId);
-        dataGroupInfoListJson[DATAGROUPINFOLIST_GID].emplace_back(std::to_string(dataGroupInfo.gid));
-        std::string dir = JSON_DATA_APP + std::to_string(dataGroupInfo.userId)
-            + JSON_GROUP + dataGroupInfo.uuid;
-        dataGroupInfoListJson[DATAGROUPINFOLIST_DIR].emplace_back(dir);
+        nlohmann::json dataGroupInfoJson;
+        dataGroupInfoJson[DATAGROUPINFOLIST_DATAGROUPID] = dataGroupInfo.dataGroupId;
+        dataGroupInfoJson[DATAGROUPINFOLIST_GID] = std::to_string(dataGroupInfo.gid);
+        dataGroupInfoJson[DATAGROUPINFOLIST_UUID] = dataGroupInfo.uuid;
+        std::string dir = std::to_string(dataGroupInfo.userId) + JSON_GROUP + dataGroupInfo.uuid;
+        dataGroupInfoJson[DATAGROUPINFOLIST_DIR] = JSON_DATA_APP_DIR_EL2 + dir;
+        dataGroupInfoListJson.emplace_back(dataGroupInfoJson);
+
+        dataGroupInfoJson[DATAGROUPINFOLIST_DIR] = JSON_DATA_APP_DIR_EL3 + dir;
+        dataGroupInfoListJson.emplace_back(dataGroupInfoJson);
+
+        dataGroupInfoJson[DATAGROUPINFOLIST_DIR] = JSON_DATA_APP_DIR_EL4 + dir;
+        dataGroupInfoListJson.emplace_back(dataGroupInfoJson);
+        if (isScreenLockDataProtect) {
+            dataGroupInfoJson[DATAGROUPINFOLIST_DIR] = JSON_DATA_APP_DIR_EL5 + dir;
+            dataGroupInfoListJson.emplace_back(dataGroupInfoJson);
+        }
     }
+    TAG_LOGD(AAFwkTag::APPMGR, "dataGroupInfoListJson %{public}s", dataGroupInfoListJson.dump().c_str());
     return dataGroupInfoListJson.dump();
 }
 
@@ -229,9 +247,8 @@ int32_t AppSpawnClient::SetStartFlags(const AppSpawnStartMsg &startMsg, AppSpawn
         }
     }
     if (startMsg.strictMode) {
-        ret = AppSpawnReqMsgSetAppFlag(reqHandle, APP_FLAGS_ISOLATED_SANDBOX);
-        if (ret != 0) {
-            TAG_LOGE(AAFwkTag::APPMGR, "fail, ret: %{public}d", ret);
+        ret = SetStrictMode(startMsg, reqHandle);
+        if (ret != ERR_OK) {
             return ret;
         }
     }
@@ -249,13 +266,53 @@ int32_t AppSpawnClient::SetStartFlags(const AppSpawnStartMsg &startMsg, AppSpawn
             return ret;
         }
     }
+#ifdef SUPPORT_CHILD_PROCESS
     ret = SetChildProcessTypeStartFlag(reqHandle, startMsg.childProcessType);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "fail, ret: %{public}d", ret);
         return ret;
     }
+#endif // SUPPORT_CHILD_PROCESS
     ret = SetIsolationModeFlag(startMsg, reqHandle);
     return ret;
+}
+
+int32_t AppSpawnClient::SetStrictMode(const AppSpawnStartMsg &startMsg, const AppSpawnReqMsgHandle &reqHandle)
+{
+    int32_t ret = ERR_OK;
+    TAG_LOGD(AAFwkTag::APPMGR, "SetStrictMode");
+    if (startMsg.isolatedSandboxFlagLegacy) {
+        TAG_LOGD(AAFwkTag::APPMGR, "SetIsolatedSandBoxLegacy");
+        ret = AppSpawnReqMsgSetAppFlag(reqHandle, APP_FLAGS_ISOLATED_SANDBOX);
+        if (ret != 0) {
+            TAG_LOGE(AAFwkTag::APPMGR, "SetIsolatedSandBoxLegacy fail, ret: %{public}d", ret);
+            return ret;
+        }
+    }
+    if (startMsg.isolatedNetworkFlag) {
+        TAG_LOGD(AAFwkTag::APPMGR, "Set isolatedNetwork");
+        ret = AppSpawnReqMsgSetAppFlag(reqHandle, APP_FLAGS_ISOLATED_NETWORK);
+        if (ret != 0) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Set isolatedNetwork fail, ret: %{public}d", ret);
+            return ret;
+        }
+    }
+    if (startMsg.isolatedSELinuxFlag) {
+        TAG_LOGD(AAFwkTag::APPMGR, "Set isolatedSELinux,extType:%{public}s:", startMsg.extensionTypeName.c_str());
+        ret = AppSpawnReqMsgSetAppFlag(reqHandle, APP_FLAGS_ISOLATED_SELINUX_LABEL);
+        if (ret != 0) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Set isolatedSELinuxFlag fail, ret: %{public}d", ret);
+            return ret;
+        }
+    }
+    if (startMsg.isolatedNetworkFlag || startMsg.isolatedSELinuxFlag) {
+        ret = AppSpawnReqMsgAddStringInfo(reqHandle, MSG_EXT_NAME_EXTENSION_TYPE, startMsg.extensionTypeName.c_str());
+        if (ret != 0) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Set extensionTypeName fail, ret: %{public}d", ret);
+            return ret;
+        }
+    }
+    return ERR_OK;
 }
 
 int32_t AppSpawnClient::AppspawnSetExtMsg(const AppSpawnStartMsg &startMsg, AppSpawnReqMsgHandle reqHandle)
@@ -278,7 +335,7 @@ int32_t AppSpawnClient::AppspawnSetExtMsg(const AppSpawnStartMsg &startMsg, AppS
 
     if (!startMsg.dataGroupInfoList.empty()) {
         ret = AppSpawnReqMsgAddStringInfo(reqHandle, MSG_EXT_NAME_DATA_GROUP,
-            DumpDataGroupInfoListToJson(startMsg.dataGroupInfoList).c_str());
+            DumpDataGroupInfoListToJson(startMsg.dataGroupInfoList, startMsg.isScreenLockDataProtect).c_str());
         if (ret) {
             TAG_LOGE(AAFwkTag::APPMGR, "fail, ret: %{public}d", ret);
             return ret;
@@ -332,6 +389,7 @@ int32_t AppSpawnClient::AppspawnSetExtMsgMore(const AppSpawnStartMsg &startMsg, 
         }
     }
 
+#ifdef SUPPORT_CHILD_PROCESS
     std::string maxChildProcessStr = std::to_string(startMsg.maxChildProcess);
     ret = AppSpawnReqMsgAddStringInfo(reqHandle, MSG_EXT_NAME_MAX_CHILD_PROCCESS_MAX, maxChildProcessStr.c_str());
     if (ret) {
@@ -339,6 +397,7 @@ int32_t AppSpawnClient::AppspawnSetExtMsgMore(const AppSpawnStartMsg &startMsg, 
         return ret;
     }
     TAG_LOGD(AAFwkTag::APPMGR, "Send maxChildProcess %{public}s success", maxChildProcessStr.c_str());
+#endif // SUPPORT_CHILD_PROCESS
 
     if (!startMsg.extensionSandboxPath.empty()) {
         ret = AppSpawnReqMsgAddStringInfo(reqHandle, MSG_EXT_NAME_APP_EXTENSION,
@@ -597,6 +656,7 @@ int32_t AppSpawnClient::GetRenderProcessTerminationStatus(const AppSpawnStartMsg
     return ret;
 }
 
+#ifdef SUPPORT_CHILD_PROCESS
 int32_t AppSpawnClient::SetChildProcessTypeStartFlag(const AppSpawnReqMsgHandle &reqHandle,
     int32_t childProcessType)
 {
@@ -606,6 +666,7 @@ int32_t AppSpawnClient::SetChildProcessTypeStartFlag(const AppSpawnReqMsgHandle 
     }
     return ERR_OK;
 }
+#endif // SUPPORT_CHILD_PROCESS
 
 int32_t AppSpawnClient::SetExtMsgFds(const AppSpawnReqMsgHandle &reqHandle,
     const std::map<std::string, int32_t> &fds)

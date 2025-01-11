@@ -21,6 +21,7 @@
 namespace OHOS {
 namespace AAFwk {
 constexpr const int32_t NO_PID = -1;
+constexpr const char* STRICT_MODE = "strictMode";
 }  // namespace AAFwk
 }  // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_ABILITY_MANAGER_CONSTANTS

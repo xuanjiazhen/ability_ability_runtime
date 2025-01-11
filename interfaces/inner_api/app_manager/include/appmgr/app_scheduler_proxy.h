@@ -188,6 +188,16 @@ public:
      */
     virtual void ScheduleAcceptWant(const AAFwk::Want &want, const std::string &moduleName) override;
 
+    /**
+     * @brief Schedule prepare terminate application
+     *
+     * @param moduleName module name
+     * @param prepareTermination the return enum type PrepareTermination
+     * @param isExist whether the onPrepareTerminate exists
+     */
+    virtual void SchedulePrepareTerminate(const std::string &moduleName,
+        int32_t &prepareTermination, bool &isExist) override;
+
     virtual void ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName) override;
 
     /**
@@ -293,6 +303,14 @@ public:
      * @return Returns 0 on success, error code on failure.
      */
     virtual int32_t ScheduleDumpFfrt(std::string& result) override;
+
+    /**
+     * SetWatchdogBackgroundStatus, call SetWatchdogBackgroundStatus(bool status) through proxy project,
+     * Notify application to set watchdog background status.
+     *
+     * @return
+     */
+    virtual void SetWatchdogBackgroundStatus(bool status) override;
 
 private:
     bool WriteInterfaceToken(MessageParcel &data);

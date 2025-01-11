@@ -230,6 +230,18 @@ void AppLifeCycleDeal::ScheduleAcceptWant(const AAFwk::Want &want, const std::st
     appThread->ScheduleAcceptWant(want, moduleName);
 }
 
+void AppLifeCycleDeal::SchedulePrepareTerminate(const std::string &moduleName,
+    int32_t &prepareTermination, bool &isExist)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    auto appThread = GetApplicationClient();
+    if (!appThread) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null appThread");
+        return;
+    }
+    appThread->SchedulePrepareTerminate(moduleName, prepareTermination, isExist);
+}
+
 void AppLifeCycleDeal::ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName)
 {
     auto appThread = GetApplicationClient();
@@ -402,6 +414,16 @@ int AppLifeCycleDeal::DumpFfrt(std::string& result)
         return DumpErrorCode::ERR_INTERNAL_ERROR;
     }
     return appThread->ScheduleDumpFfrt(result);
+}
+
+void AppLifeCycleDeal::SetWatchdogBackgroundStatusRunning(bool status)
+{
+    auto appThread = GetApplicationClient();
+    if (!appThread) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null appThread");
+        return;
+    }
+    appThread->SetWatchdogBackgroundStatus(status);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

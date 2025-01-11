@@ -26,7 +26,9 @@
 #include "bundle_mgr_interface.h"
 #include "child_scheduler_interface.h"
 #include "child_scheduler_stub.h"
+#ifdef SUPPORT_CHILD_PROCESS
 #include "child_process_info.h"
+#endif // SUPPORT_CHILD_PROCESS
 #include "event_handler.h"
 #include "ipc_singleton.h"
 #include "js_runtime.h"
@@ -64,7 +66,9 @@ private:
     std::shared_ptr<ChildProcessInfo> processInfo_ = nullptr;
     std::unique_ptr<AbilityRuntime::Runtime> runtime_ = nullptr;
     std::string nativeLibModuleName_;
+#ifdef SUPPORT_CHILD_PROCESS
     std::shared_ptr<ChildProcessArgs> processArgs_ = nullptr;
+#endif // SUPPORT_CHILD_PROCESS
 
     DISALLOW_COPY_AND_MOVE(ChildMainThread);
 };

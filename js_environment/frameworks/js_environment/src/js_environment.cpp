@@ -15,6 +15,8 @@
 
 #include "js_environment.h"
 
+#include <chrono>
+
 #include "console.h"
 #include "ffrt.h"
 #include "hilog_tag_wrapper.h"
@@ -129,8 +131,10 @@ void JsEnvironment::InitSourceMap(const std::shared_ptr<JsEnv::SourceMapOperator
         return;
     }
 
-    if (sourceMapOperator_ != nullptr) {
+    if (sourceMapOperator_ != nullptr && sourceMapOperator_->GetHasFile()) {
         sourceMapOperator_->InitSourceMap();
+    } else {
+        sourceMapOperator_->SetInitStatus(InitStatus::EXECUTED_SUCCESSFULLY);
     }
 
     auto translateBySourceMapFunc = [&](const std::string& rawStack) -> std::string {
@@ -142,9 +146,9 @@ void JsEnvironment::InitSourceMap(const std::shared_ptr<JsEnv::SourceMapOperator
     };
     engine_->RegisterTranslateBySourceMap(translateBySourceMapFunc);
 
-    auto translateUrlBySourceMapFunc = [&](std::string& url, int& line, int& column) -> bool {
+    auto translateUrlBySourceMapFunc = [&](std::string& url, int& line, int& column, std::string& packageName) -> bool {
         if (sourceMapOperator_ != nullptr && sourceMapOperator_->GetInitStatus()) {
-            return sourceMapOperator_->TranslateUrlPositionBySourceMap(url, line, column);
+            return sourceMapOperator_->TranslateUrlPositionBySourceMap(url, line, column, packageName);
         }
         return false;
     };
@@ -172,8 +176,12 @@ bool JsEnvironment::LoadScript(const std::string& path, std::vector<uint8_t>* bu
     if (buffer == nullptr) {
         return engine_->RunScriptPath(path.c_str());
     }
-
-    return engine_->RunScriptBuffer(path.c_str(), *buffer, isBundle) != nullptr;
+    auto start = std::chrono::high_resolution_clock::now();
+    bool ret = engine_->RunScriptBuffer(path.c_str(), *buffer, isBundle) != nullptr;
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    TAG_LOGI(AAFwkTag::JSENV, "timing: %{public}lld", duration_ms);
+    return ret;
 }
 
 bool JsEnvironment::StartDebugger(
@@ -257,7 +265,13 @@ bool JsEnvironment::LoadScript(const std::string& path, uint8_t* buffer, size_t 
         return false;
     }
 
-    return engine_->RunScriptBuffer(path, buffer, len, isBundle);
+    auto start = std::chrono::high_resolution_clock::now();
+    bool ret = engine_->RunScriptBuffer(path, buffer, len, isBundle);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    TAG_LOGI(AAFwkTag::JSENV, "timing: %{public}lld", duration_ms);
+
+    return ret;
 }
 
 void JsEnvironment::StartProfiler(const char* libraryPath, uint32_t instanceId, PROFILERTYPE profiler,

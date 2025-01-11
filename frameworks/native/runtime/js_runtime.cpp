@@ -1304,7 +1304,6 @@ bool JsRuntime::PopPreloadObj(const std::string& key, std::unique_ptr<NativeRefe
         preloadList_.erase(key);
         return true;
     }
-
     preloadList_.erase(key);
     return false;
 }
@@ -1497,18 +1496,18 @@ void JsRuntime::InitWorkerModule(const Options& options)
     jsEnv_->InitWorkerModule(workerInfo);
 }
 
-void JsRuntime::ReInitJsEnvImpl(const Options& options)
-{
-    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    CHECK_POINTER(jsEnv_);
-    jsEnv_->ReInitJsEnvImpl(std::make_unique<OHOSJsEnvironmentImpl>(options.eventRunner));
-}
-
 void JsRuntime::SetModuleLoadChecker(const std::shared_ptr<ModuleCheckerDelegate> moduleCheckerDelegate) const
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     CHECK_POINTER(jsEnv_);
     jsEnv_->SetModuleLoadChecker(moduleCheckerDelegate);
+}
+
+void JsRuntime::ReInitJsEnvImpl(const Options& options)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    CHECK_POINTER(jsEnv_);
+    jsEnv_->ReInitJsEnvImpl(std::make_unique<OHOSJsEnvironmentImpl>(options.eventRunner));
 }
 
 void JsRuntime::SetRequestAotCallback()
@@ -1548,6 +1547,12 @@ void JsRuntime::SetDeviceDisconnectCallback(const std::function<bool()> &cb)
     TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
     CHECK_POINTER(jsEnv_);
     jsEnv_->SetDeviceDisconnectCallback(cb);
+}
+
+void JsRuntime::SetStopPreloadSoCallback(const std::function<void()> &callback)
+{
+    auto vm = GetEcmaVm();
+    panda::JSNApi::SetStopPreLoadSoCallback(vm, callback);
 }
 
 std::string JsRuntime::GetSystemKitPath()

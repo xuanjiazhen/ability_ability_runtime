@@ -35,7 +35,9 @@ constexpr static char CUSTOM_EXTENSION[] = "ExtensionAbility";
 constexpr static char USER_AUTH_EXTENSION[] = "UserAuthExtensionAbility";
 constexpr static char ACTION_EXTENSION[] = "ActionExtensionAbility";
 constexpr static char SHARE_EXTENSION[] = "ShareExtensionAbility";
+#ifdef SUPPORT_AUTO_FILL
 constexpr static char AUTO_FILL_EXTENSION[] = "AutoFillExtensionAbility";
+#endif  // SUPPORT_AUTO_FILL
 constexpr static char EMBEDDED_UI_EXTENSION[] = "EmbeddedUIExtensionAbility";
 constexpr static char PHOTO_EDITOR_EXTENSION[] = "PhotoEditorExtensionAbility";
 constexpr static char VPN_EXTENSION[] = "VpnExtension";
@@ -53,14 +55,17 @@ constexpr static char INPUTMETHOD_EXTENSION[] = "InputMethodExtensionAbility";
 constexpr static char APP_ACCOUNT_AUTHORIZATION_EXTENSION[] = "AppAccountAuthorizationExtension";
 constexpr static char FENCE_EXTENSION[] = "FenceExtension";
 constexpr static char CALLER_INFO_QUERY_EXTENSION[] = "CallerInfoQueryExtension";
+constexpr static char ASSET_ACCELERATION_EXTENSION[] = "AssetAccelerationExtension";
 }
 
 const std::map<AppExecFwk::ExtensionAbilityType, std::string> UI_EXTENSION_NAME_MAP = {
 #ifdef SUPPORT_GRAPHICS
     { AppExecFwk::ExtensionAbilityType::SHARE, SHARE_EXTENSION },
     { AppExecFwk::ExtensionAbilityType::ACTION, ACTION_EXTENSION },
+#ifdef SUPPORT_AUTO_FILL
     { AppExecFwk::ExtensionAbilityType::AUTO_FILL_PASSWORD, AUTO_FILL_EXTENSION },
     { AppExecFwk::ExtensionAbilityType::AUTO_FILL_SMART, AUTO_FILL_EXTENSION },
+#endif  // SUPPORT_AUTO_FILL
     { AppExecFwk::ExtensionAbilityType::EMBEDDED_UI, EMBEDDED_UI_EXTENSION },
     { AppExecFwk::ExtensionAbilityType::PHOTO_EDITOR, PHOTO_EDITOR_EXTENSION }
 #endif //SUPPORT_GRAPHICS
@@ -127,48 +132,37 @@ void ExtensionAbilityThread::CreateExtensionAbilityName(
 {
     if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::STATICSUBSCRIBER) {
         abilityName = STATIC_SUBSCRIBER_EXTENSION;
-    }
-    if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::DRIVER) {
+    } else if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::DRIVER) {
         abilityName = BASE_DRIVER_EXTENSION;
-    }
-    if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::DATASHARE) {
+    } else if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::DATASHARE) {
         abilityName = DATA_SHARE_EXT_ABILITY;
-    }
-    if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::WORK_SCHEDULER) {
+    } else if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::WORK_SCHEDULER) {
         abilityName = WORK_SCHEDULER_EXTENSION;
-    }
-    if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::ACCESSIBILITY) {
+    } else if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::ACCESSIBILITY) {
         abilityName = ACCESSIBILITY_EXTENSION;
-    }
-    if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::WALLPAPER) {
+    } else if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::WALLPAPER) {
         abilityName = WALLPAPER_EXTENSION;
-    }
-    if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::FILEACCESS_EXTENSION) {
+    } else if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::FILEACCESS_EXTENSION) {
         abilityName = FILEACCESS_EXT_ABILITY;
-    }
-    if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::ENTERPRISE_ADMIN) {
+    } else if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::ENTERPRISE_ADMIN) {
         abilityName = ENTERPRISE_ADMIN_EXTENSION;
-    }
-    if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::INPUTMETHOD) {
+    } else if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::INPUTMETHOD) {
         abilityName = INPUTMETHOD_EXTENSION;
-    }
-    if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::APP_ACCOUNT_AUTHORIZATION) {
+    } else if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::APP_ACCOUNT_AUTHORIZATION) {
         abilityName = APP_ACCOUNT_AUTHORIZATION_EXTENSION;
-    }
-    if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::FENCE) {
+    } else if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::FENCE) {
         abilityName = FENCE_EXTENSION;
-    }
-    if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::CALLER_INFO_QUERY) {
+    } else if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::CALLER_INFO_QUERY) {
         abilityName = CALLER_INFO_QUERY_EXTENSION;
+    } else if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::ASSET_ACCELERATION) {
+        abilityName = ASSET_ACCELERATION_EXTENSION;
     }
 #ifdef SUPPORT_GRAPHICS
-    if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::SYSDIALOG_USERAUTH) {
+    else if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::SYSDIALOG_USERAUTH) {
         abilityName = USER_AUTH_EXTENSION;
-    }
-    if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::VPN) {
+    } else if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::VPN) {
         abilityName = VPN_EXTENSION;
-    }
-    if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::UNSPECIFIED &&
+    } else if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::UNSPECIFIED &&
         abilityInfo->type == AppExecFwk::AbilityType::EXTENSION) {
         abilityName = abilityInfo->extensionTypeName + CUSTOM_EXTENSION;
     }
@@ -402,7 +396,7 @@ bool ExtensionAbilityThread::ScheduleAbilityTransaction(
         }
         abilityThread->HandleExtensionTransaction(want, lifeCycleStateInfo, sessionInfo);
     };
-    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::HIGH);
+    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     if (!ret) {
         TAG_LOGE(AAFwkTag::EXT, "PostTask error");
         return false;
@@ -426,7 +420,7 @@ void ExtensionAbilityThread::ScheduleConnectAbility(const Want &want)
         }
         abilityThread->HandleConnectExtension(want);
     };
-    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::HIGH);
+    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     if (!ret) {
         TAG_LOGE(AAFwkTag::EXT, "PostTask error");
     }
@@ -449,7 +443,7 @@ void ExtensionAbilityThread::ScheduleDisconnectAbility(const Want &want)
         }
         abilityThread->HandleDisconnectExtension(want);
     };
-    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::HIGH);
+    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     if (!ret) {
         TAG_LOGE(AAFwkTag::EXT, "PostTask error");
     }
@@ -480,7 +474,7 @@ void ExtensionAbilityThread::ScheduleCommandAbilityInner(const Want &want, bool 
         }
         abilityThread->HandleCommandExtension(want, restart, startId);
     };
-    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::HIGH);
+    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     if (!ret) {
         TAG_LOGE(AAFwkTag::EXT, "PostTask error");
     }
@@ -497,7 +491,7 @@ void ExtensionAbilityThread::ScheduleInsightIntentInner(const Want &want)
         }
         abilityThread->HandleInsightIntent(want);
     };
-    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::HIGH);
+    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     if (!ret) {
         TAG_LOGE(AAFwkTag::EXT, "PostTask error");
     }
@@ -520,7 +514,7 @@ void ExtensionAbilityThread::ScheduleCommandAbilityWindow(
         }
         abilityThread->HandleCommandExtensionWindow(want, sessionInfo, winCmd);
     };
-    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::HIGH);
+    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     if (!ret) {
         TAG_LOGE(AAFwkTag::EXT, "PostTask error");
     }
@@ -549,7 +543,7 @@ void ExtensionAbilityThread::SendResult(int requestCode, int resultCode, const W
         }
         abilityThread->extensionImpl_->SendResult(requestCode, resultCode, want);
     };
-    bool ret = abilityHandler_->PostTask(task);
+    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     if (!ret) {
         TAG_LOGE(AAFwkTag::EXT, "PostTask error");
     }

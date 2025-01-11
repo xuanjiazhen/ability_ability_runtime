@@ -26,7 +26,6 @@ ohos_fuzztest("FaultDataFuzzTest") {
   include_dirs = [
     "${ability_runtime_innerkits_path}/ability_manager/include",
     "${ability_runtime_innerkits_path}/dataobs_manager/include",
-    "${multimodalinput_path}/interfaces/native/innerkits/event/include",
   ]
   cflags = [
     "-g",
@@ -49,10 +48,8 @@ ohos_fuzztest("FaultDataFuzzTest") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
-    "${ability_runtime_innerkits_path}/uri_permission:uri_permission_mgr",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
-    "//third_party/jsoncpp:jsoncpp",
   ]
 
   external_deps = [
@@ -67,6 +64,7 @@ ohos_fuzztest("FaultDataFuzzTest") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "jsoncpp:jsoncpp",
     "kv_store:distributeddata_inner",
     "napi:ace_napi",
     "os_account:os_account_innerkits",
@@ -80,6 +78,11 @@ ohos_fuzztest("FaultDataFuzzTest") {
     external_deps += [
       "i18n:intl_util",
       "window_manager:libwm",
+    ]
+  }
+  if (ability_runtime_upms) {
+    deps += [
+      "${ability_runtime_innerkits_path}/uri_permission:uri_permission_mgr",
     ]
   }
 }

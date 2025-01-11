@@ -223,7 +223,7 @@ ErrCode WantAgentHelper::Send(const std::shared_ptr<PendingWant> &pendingWant,
         pendingWant->GetTarget());
 }
 
-ErrCode WantAgentHelper::Cancel(const std::shared_ptr<WantAgent> agent)
+ErrCode WantAgentHelper::Cancel(const std::shared_ptr<WantAgent> agent, uint32_t flags)
 {
     if (agent == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
@@ -236,7 +236,7 @@ ErrCode WantAgentHelper::Cancel(const std::shared_ptr<WantAgent> agent)
         return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
     }
 
-    return pendingWant->Cancel(pendingWant->GetTarget());
+    return pendingWant->Cancel(pendingWant->GetTarget(), flags);
 }
 
 ErrCode WantAgentHelper::IsEquals(
@@ -467,7 +467,7 @@ ErrCode WantAgentHelper::GetType(const std::shared_ptr<WantAgent> &agent, int32_
 ErrCode WantAgentHelper::GetWant(const std::shared_ptr<WantAgent> &agent, std::shared_ptr<AAFwk::Want> &want)
 {
     if ((agent == nullptr) || (agent->GetPendingWant() == nullptr)) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "WantAgent or PendingWant invalid input param.");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param.");
         return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_WANTAGENT;
     }
 

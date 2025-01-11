@@ -108,7 +108,8 @@ public:
      * @param hostBundleName, the caller application bundle name.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int PreloadUIExtensionAbilityInner(const AbilityRequest &abilityRequest, std::string &hostBundleName);
+    int PreloadUIExtensionAbilityInner(const AbilityRequest &abilityRequest, std::string &hostBundleName,
+        int32_t hostPid = AAFwk::DEFAULT_INVAL_VALUE);
 
     /**
      * PreloadUIExtensionAbilityLocked, preload uiextension ability.
@@ -117,7 +118,8 @@ public:
      * @param hostBundleName, the caller application bundle name.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int PreloadUIExtensionAbilityLocked(const AbilityRequest &abilityRequest, std::string &hostBundleName);
+    int PreloadUIExtensionAbilityLocked(const AbilityRequest &abilityRequest, std::string &hostBundleName,
+        int32_t hostPid = AAFwk::DEFAULT_INVAL_VALUE);
 
     /**
      * UnloadUIExtensionAbility, unload uiextension ability.
@@ -328,7 +330,7 @@ public:
     void SignRestartAppFlag(int32_t uid, const std::string &instanceKey);
 
     std::shared_ptr<AAFwk::AbilityRecord> GetUIExtensionRootHostInfo(const sptr<IRemoteObject> token);
-    void UninstallApp(const std::string &bundleName);
+    void UninstallApp(const std::string &bundleName, int32_t uid);
 
     int32_t UpdateKeepAliveEnableState(const std::string &bundleName, const std::string &moduleName,
         const std::string &mainElement, bool updateEnable);
@@ -377,7 +379,8 @@ private:
      *
      * @param abilityRecord, the ptr of the ability to load.
      */
-    void LoadAbility(const std::shared_ptr<AbilityRecord> &abilityRecord);
+    void LoadAbility(const std::shared_ptr<AbilityRecord> &abilityRecord,
+        std::function<void(const std::shared_ptr<AbilityRecord>&)> updateRecordCallback = nullptr);
 
     /**
      * ConnectAbility.Schedule connect ability
@@ -617,7 +620,8 @@ private:
         std::shared_ptr<AbilityRecord> &targetService, bool &isLoadedAbility);
     void HandleNotifyAssertFaultDialogDied(const std::shared_ptr<AbilityRecord> &abilityRecord);
     EventInfo BuildEventInfo(const std::shared_ptr<AbilityRecord> &abilityRecord);
-    void UpdateUIExtensionInfo(const std::shared_ptr<AbilityRecord> &abilityRecord);
+    void UpdateUIExtensionInfo(const std::shared_ptr<AbilityRecord> &abilityRecord,
+        int32_t hostPid = AAFwk::DEFAULT_INVAL_VALUE);
     std::string GenerateBundleName(const AbilityRequest &abilityRequest) const;
 
     bool AddToServiceMap(const std::string &key, std::shared_ptr<AbilityRecord> abilityRecord);
@@ -634,6 +638,10 @@ private:
     int32_t ReportAbilityStartInfoToRSS(const AppExecFwk::AbilityInfo &abilityInfo);
     void ReportEventToRSS(const AppExecFwk::AbilityInfo &abilityInfo,
         const std::shared_ptr<AbilityRecord> abilityRecord, sptr<IRemoteObject> callerToken);
+        
+    void SetExtensionLoadParam(AbilityRuntime::LoadParam &loadParam, std::shared_ptr<AbilityRecord> abilityRecord);
+    bool IsStrictMode(std::shared_ptr<AbilityRecord> abilityRecord);
+    bool NeedExtensionControl(std::shared_ptr<AbilityRecord> abilityRecord);
 
 private:
     const std::string TASK_ON_CALLBACK_DIED = "OnCallbackDiedTask";

@@ -19,6 +19,8 @@
 #include "ability_util.h"
 #include "freeze_util.h"
 #include "hitrace_meter.h"
+#include "ipc_capacity_wrap.h"
+#include "server_constant.h"
 #include "status_bar_delegate_interface.h"
 
 namespace OHOS {
@@ -44,6 +46,17 @@ bool AbilityManagerProxy::WriteInterfaceToken(MessageParcel &data)
         return false;
     }
     return true;
+}
+
+bool AbilityManagerProxy::ExtendMaxIpcCapacityForWant(const Want &want, MessageParcel &data)
+{
+    auto isCallBySCB = want.GetBoolParam(AbilityRuntime::ServerConstant::IS_CALL_BY_SCB, true);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "isCallBySCB:%{public}d", isCallBySCB);
+    if (!isCallBySCB) {
+        AAFwk::ExtendMaxIpcCapacityForInnerWant(data);
+        return true;
+    }
+    return false;
 }
 
 int AbilityManagerProxy::StartAbility(const Want &want, int32_t userId, int requestCode)
@@ -676,7 +689,8 @@ int AbilityManagerProxy::RequestModalUIExtension(const Want &want)
     return reply.ReadInt32();
 }
 
-int AbilityManagerProxy::PreloadUIExtensionAbility(const Want &want, std::string &hostBundleName, int32_t userId)
+int AbilityManagerProxy::PreloadUIExtensionAbility(const Want &want, std::string &hostBundleName,
+    int32_t userId, int32_t hostPid)
 {
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
@@ -691,6 +705,7 @@ int AbilityManagerProxy::PreloadUIExtensionAbility(const Want &want, std::string
     }
 
     PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Int32, userId);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Int32, hostPid);
     int error;
     MessageParcel reply;
     MessageOption option;
@@ -803,6 +818,7 @@ int AbilityManagerProxy::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool
         return INNER_ERR;
     }
     if (sessionInfo) {
+        ExtendMaxIpcCapacityForWant(sessionInfo->want, data);
         if (!data.WriteBool(true) || !data.WriteParcelable(sessionInfo)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "flag and sessionInfo write fail");
             return INNER_ERR;
@@ -1060,6 +1076,7 @@ int AbilityManagerProxy::CloseUIAbilityBySCB(const sptr<SessionInfo> &sessionInf
     }
 
     if (sessionInfo) {
+        ExtendMaxIpcCapacityForWant(sessionInfo->want, data);
         if (!data.WriteBool(true) || !data.WriteParcelable(sessionInfo)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "flag and sessionInfo write fail");
             return INNER_ERR;
@@ -1682,6 +1699,7 @@ int AbilityManagerProxy::MinimizeUIAbilityBySCB(const sptr<SessionInfo> &session
         return INNER_ERR;
     }
     if (sessionInfo) {
+        ExtendMaxIpcCapacityForWant(sessionInfo->want, data);
         if (!data.WriteBool(true) || !data.WriteParcelable(sessionInfo)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "flag and sessionInfo write fail");
             return INNER_ERR;
@@ -3464,6 +3482,29 @@ int AbilityManagerProxy::GetProcessRunningInfos(std::vector<AppExecFwk::RunningP
     return reply.ReadInt32();
 }
 
+int AbilityManagerProxy::GetAllIntentExemptionInfo(std::vector<AppExecFwk::IntentExemptionInfo> &info)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!WriteInterfaceToken(data)) {
+        return INNER_ERR;
+    }
+
+    auto error = SendRequest(AbilityManagerInterfaceCode::GET_INTENT_EXEMPTION_INFO, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request, error:%{public}d", error);
+        return error;
+    }
+    error = GetParcelableInfos<AppExecFwk::IntentExemptionInfo>(reply, info);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "getParcelable error:%{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
+
 int AbilityManagerProxy::StartSyncRemoteMissions(const std::string& devId, bool fixConflict, int64_t tag)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "called");
@@ -4416,6 +4457,7 @@ void AbilityManagerProxy::CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInf
         return;
     }
     if (sessionInfo) {
+        ExtendMaxIpcCapacityForWant(sessionInfo->want, data);
         if (!data.WriteBool(true) || !data.WriteParcelable(sessionInfo)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "flag and sessionInfo write fail");
             return;
@@ -4765,6 +4807,7 @@ int AbilityManagerProxy::PrepareTerminateAbilityBySCB(const sptr<SessionInfo> &s
         return INNER_ERR;
     }
     if (sessionInfo) {
+        ExtendMaxIpcCapacityForWant(sessionInfo->want, data);
         if (!data.WriteBool(true) || !data.WriteParcelable(sessionInfo)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "flag and sessionInfo write fail");
             return INNER_ERR;
@@ -5526,6 +5569,7 @@ int AbilityManagerProxy::CleanUIAbilityBySCB(const sptr<SessionInfo> &sessionInf
     }
 
     if (sessionInfo) {
+        ExtendMaxIpcCapacityForWant(sessionInfo->want, data);
         if (!data.WriteBool(true) || !data.WriteParcelable(sessionInfo)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "write flag or sessionInfo fail");
             return INNER_ERR;
@@ -5877,6 +5921,110 @@ int32_t AbilityManagerProxy::QueryKeepAliveApplicationsByEDM(int32_t appType, in
         return ret;
     }
 
+    return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::AddQueryERMSObserver(sptr<IRemoteObject> callerToken,
+    sptr<AbilityRuntime::IQueryERMSObserver> observer)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (callerToken == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null callerToken");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (observer == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteRemoteObject(callerToken)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write callerToken fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteRemoteObject(observer->AsObject())) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "observer write fail");
+        return INNER_ERR;
+    }
+
+    auto error = SendRequest(AbilityManagerInterfaceCode::ADD_QUERY_ERMS_OBSERVER, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::QueryAtomicServiceStartupRule(sptr<IRemoteObject> callerToken,
+    const std::string &appId, const std::string &startTime, AtomicServiceStartupRule &rule)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (callerToken == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null callerToken");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteRemoteObject(callerToken)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write callerToken fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteString(appId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write appId fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteString(startTime)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write startTime fail");
+        return INNER_ERR;
+    }
+
+    auto error = SendRequest(AbilityManagerInterfaceCode::QUERY_ATOMIC_SERVICE_STARTUP_RULE, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        return error;
+    }
+    rule.isOpenAllowed = reply.ReadBool();
+    rule.isEmbeddedAllowed = reply.ReadBool();
+    return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::StartSelfUIAbility(const Want &want)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteParcelable(&want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write want fail");
+        return INNER_ERR;
+    }
+
+    auto error = SendRequest(AbilityManagerInterfaceCode::NDK_START_SELF_UI_ABILITY, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        return error;
+    }
     return reply.ReadInt32();
 }
 } // namespace AAFwk

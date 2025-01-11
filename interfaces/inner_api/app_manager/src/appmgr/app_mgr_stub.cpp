@@ -23,7 +23,9 @@
 #include "app_scheduler_interface.h"
 #include "appexecfwk_errors.h"
 #include "bundle_info.h"
+#ifdef SUPPORT_CHILD_PROCESS
 #include "child_process_request.h"
+#endif // SUPPORT_CHILD_PROCESS
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "iapp_state_callback.h"
@@ -229,6 +231,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerFourth(uint32_t code, MessageParcel &dat
             return HandleGetProcessMemoryByPid(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::IS_TERMINATING_BY_PID):
             return HandleIsTerminatingByPid(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::HAS_APP_RECORD):
+            return HandleHasAppRecord(data, reply);
     }
     return INVALID_FD;
 }
@@ -263,8 +267,10 @@ int32_t AppMgrStub::OnRemoteRequestInnerFifth(uint32_t code, MessageParcel &data
             return HandleUnregisterAbilityForegroundStateObserver(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::IS_APPLICATION_RUNNING):
             return HandleIsApplicationRunning(data, reply);
+    #ifdef SUPPORT_CHILD_PROCESS
         case static_cast<uint32_t>(AppMgrInterfaceCode::START_CHILD_PROCESS):
             return HandleStartChildProcess(data, reply);
+    #endif // SUPPORT_CHILD_PROCESS
     }
     return INVALID_FD;
 }
@@ -277,12 +283,14 @@ int32_t AppMgrStub::OnRemoteRequestInnerSixth(uint32_t code, MessageParcel &data
         case static_cast<uint32_t>(AppMgrInterfaceCode::SET_CONTINUOUSTASK_PROCESS):
             return HandleSetContinuousTaskProcess(data, reply);
     #endif
+    #ifdef SUPPORT_CHILD_PROCESS
         case static_cast<uint32_t>(AppMgrInterfaceCode::GET_CHILD_PROCCESS_INFO_FOR_SELF):
             return HandleGetChildProcessInfoForSelf(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::ATTACH_CHILD_PROCESS):
             return HandleAttachChildProcess(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::EXIT_CHILD_PROCESS_SAFELY):
             return HandleExitChildProcessSafely(data, reply);
+    #endif // SUPPORT_CHILD_PROCESS
         case static_cast<uint32_t>(AppMgrInterfaceCode::IS_FINAL_APP_PROCESS):
             return HandleIsFinalAppProcess(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::APP_CLEAR_UP_APPLICATION_DATA_BY_SELF):
@@ -327,8 +335,10 @@ int32_t AppMgrStub::OnRemoteRequestInnerSeventh(uint32_t code, MessageParcel &da
             return HandleGetRunningProcessesByBundleType(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::SET_APP_ASSERT_PAUSE_STATE_SELF):
             return HandleSetAppAssertionPauseState(data, reply);
+    #ifdef SUPPORT_CHILD_PROCESS
         case static_cast<uint32_t>(AppMgrInterfaceCode::START_NATIVE_CHILD_PROCESS):
             return HandleStartNativeChildProcess(data, reply);
+    #endif // SUPPORT_CHILD_PROCESS
         case static_cast<uint32_t>(AppMgrInterfaceCode::SAVE_BROWSER_CHANNEL):
             return HandleSaveBrowserChannel(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::IS_APP_RUNNING):
@@ -341,8 +351,10 @@ int32_t AppMgrStub::OnRemoteRequestInnerSeventh(uint32_t code, MessageParcel &da
             return HandleKillProcessDependedOnWeb(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::RESTART_RESIDENT_PROCESS_DEPENDED_ON_WEB):
             return HandleRestartResidentProcessDependedOnWeb(data, reply);
+    #ifdef SUPPORT_CHILD_PROCESS
         case static_cast<uint32_t>(AppMgrInterfaceCode::GET_ALL_CHILDREN_PROCESSES):
             return HandleGetAllChildrenProcesses(data, reply);
+    #endif // SUPPORT_CHILD_PROCESS
         case static_cast<uint32_t>(AppMgrInterfaceCode::GET_SUPPORTED_PROCESS_CACHE_PIDS):
             return HandleGetSupportedProcessCachePids(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::REGISTER_KIA_INTERCEPTOR):
@@ -569,6 +581,7 @@ int32_t AppMgrStub::HandleGetAllRenderProcesses(MessageParcel &data, MessageParc
     return NO_ERROR;
 }
 
+#ifdef SUPPORT_CHILD_PROCESS
 int32_t AppMgrStub::HandleGetAllChildrenProcesses(MessageParcel &data, MessageParcel &reply)
 {
     HITRACE_METER(HITRACE_TAG_APP);
@@ -587,6 +600,7 @@ int32_t AppMgrStub::HandleGetAllChildrenProcesses(MessageParcel &data, MessagePa
     }
     return NO_ERROR;
 }
+#endif // SUPPORT_CHILD_PROCESS
 
 int32_t AppMgrStub::HandleJudgeSandboxByPid(MessageParcel &data, MessageParcel &reply)
 {
@@ -1152,7 +1166,7 @@ int32_t AppMgrStub::HandleGetRunningProcessInfoByPid(MessageParcel &data, Messag
     RunningProcessInfo processInfo;
     auto pid = static_cast<pid_t>(data.ReadInt32());
     auto result = GetRunningProcessInfoByPid(pid, processInfo);
-    if (reply.WriteParcelable(&processInfo)) {
+    if (!reply.WriteParcelable(&processInfo)) {
         TAG_LOGE(AAFwkTag::APPMGR, "failed");
         return ERR_INVALID_VALUE;
     }
@@ -1399,6 +1413,7 @@ int32_t AppMgrStub::HandleIsAppRunningByBundleNameAndUserId(MessageParcel &data,
     return NO_ERROR;
 }
 
+#ifdef SUPPORT_CHILD_PROCESS
 int32_t AppMgrStub::HandleStartChildProcess(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
@@ -1448,6 +1463,7 @@ int32_t AppMgrStub::HandleExitChildProcessSafely(MessageParcel &data, MessagePar
     ExitChildProcessSafely();
     return NO_ERROR;
 }
+#endif // SUPPORT_CHILD_PROCESS
 
 int32_t AppMgrStub::HandleIsFinalAppProcess(MessageParcel &data, MessageParcel &reply)
 {
@@ -1638,6 +1654,7 @@ int32_t AppMgrStub::HandleCheckCallingIsUserTestMode(MessageParcel &data, Messag
     return NO_ERROR;
 }
 
+#ifdef SUPPORT_CHILD_PROCESS
 int32_t AppMgrStub::HandleStartNativeChildProcess(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
@@ -1652,6 +1669,7 @@ int32_t AppMgrStub::HandleStartNativeChildProcess(MessageParcel &data, MessagePa
 
     return NO_ERROR;
 }
+#endif // SUPPORT_CHILD_PROCESS
 
 int32_t AppMgrStub::HandleNotifyProcessDependedOnWeb(MessageParcel &data, MessageParcel &reply)
 {
@@ -1752,6 +1770,27 @@ int32_t AppMgrStub::HandleUpdateInstanceKeyBySpecifiedId(MessageParcel &data, Me
     auto instanceKey = data.ReadString();
     UpdateInstanceKeyBySpecifiedId(specifiedId, instanceKey);
     return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleHasAppRecord(MessageParcel &data, MessageParcel &reply)
+{
+    std::unique_ptr<AAFwk::Want> want(data.ReadParcelable<AAFwk::Want>());
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "want is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    std::unique_ptr<AbilityInfo> abilityInfo(data.ReadParcelable<AbilityInfo>());
+    if (abilityInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "abilityInfo is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+
+    bool exist = false;
+    auto ret = HasAppRecord(*want, *abilityInfo, exist);
+    if (ret == ERR_OK) {
+        reply.WriteBool(exist);
+    }
+    return ret;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

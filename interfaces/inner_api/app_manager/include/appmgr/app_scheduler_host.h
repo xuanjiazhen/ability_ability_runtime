@@ -51,6 +51,7 @@ private:
     int32_t HandleScheduleProcessSecurityExit(MessageParcel &data, MessageParcel &reply);
     int32_t HandleScheduleClearPageStack(MessageParcel &data, MessageParcel &reply);
     int32_t HandleScheduleAcceptWant(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleSchedulePrepareTerminate(MessageParcel &data, MessageParcel &reply);
     int32_t HandleScheduleNewProcessRequest(MessageParcel &data, MessageParcel &reply);
     int32_t HandleNotifyLoadRepairPatch(MessageParcel &data, MessageParcel &reply);
     int32_t HandleNotifyHotReloadPage(MessageParcel &data, MessageParcel &reply);
@@ -67,6 +68,7 @@ private:
     int32_t HandleScheduleDumpIpcStat(MessageParcel &data, MessageParcel &reply);
     int32_t HandleScheduleCacheProcess(MessageParcel &data, MessageParcel &reply);
     int32_t HandleScheduleDumpFfrt(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleSetWatchdogBackgroundStatus(MessageParcel &data, MessageParcel &reply);
     int32_t OnRemoteRequestInner(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);
     int32_t OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data,

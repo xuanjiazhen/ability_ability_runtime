@@ -17,7 +17,7 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
-StartupListener::StartupListener(OnCompletedCallbackFunc &callback) : onCompletedCallback_(std::move(callback))
+StartupListener::StartupListener(OnCompletedCallbackFunc callback) : onCompletedCallback_(std::move(callback))
 {}
 
 StartupListener::~StartupListener() = default;

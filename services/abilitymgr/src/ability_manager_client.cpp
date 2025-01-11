@@ -311,13 +311,14 @@ ErrCode AbilityManagerClient::RequestModalUIExtension(const Want &want)
     return abms->RequestModalUIExtension(want);
 }
 
-ErrCode AbilityManagerClient::PreloadUIExtensionAbility(const Want &want, std::string &hostBundleName, int32_t userId)
+ErrCode AbilityManagerClient::PreloadUIExtensionAbility(const Want &want, std::string &hostBundleName,
+    int32_t userId, int32_t hostPid)
 {
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "elementName:%{public}s, hostBundleName:%{public}s.",
         want.GetElement().GetURI().c_str(), hostBundleName.c_str());
-    return abms->PreloadUIExtensionAbility(want, hostBundleName, userId);
+    return abms->PreloadUIExtensionAbility(want, hostBundleName, userId, hostPid);
 }
 
 ErrCode AbilityManagerClient::ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow)
@@ -1135,6 +1136,13 @@ ErrCode AbilityManagerClient::GetProcessRunningInfos(std::vector<AppExecFwk::Run
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->GetProcessRunningInfos(info);
+}
+
+ErrCode AbilityManagerClient::GetAllIntentExemptionInfo(std::vector<AppExecFwk::IntentExemptionInfo> &info)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->GetAllIntentExemptionInfo(info);
 }
 
 ErrCode AbilityManagerClient::RequestDialogService(
@@ -2063,6 +2071,32 @@ ErrCode AbilityManagerClient::UpdateAssociateConfigList(const std::map<std::stri
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->UpdateAssociateConfigList(configs, exportConfigs, flag);
+}
+
+ErrCode AbilityManagerClient::AddQueryERMSObserver(sptr<IRemoteObject> callerToken,
+    sptr<AbilityRuntime::IQueryERMSObserver> observer)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->AddQueryERMSObserver(callerToken, observer);
+}
+
+ErrCode AbilityManagerClient::QueryAtomicServiceStartupRule(sptr<IRemoteObject> callerToken,
+    const std::string &appId, const std::string &startTime, AtomicServiceStartupRule &rule)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->QueryAtomicServiceStartupRule(callerToken, appId, startTime, rule);
+}
+
+ErrCode AbilityManagerClient::StartSelfUIAbility(const Want &want)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->StartSelfUIAbility(want);
 }
 } // namespace AAFwk
 } // namespace OHOS

@@ -26,6 +26,7 @@
 #include "iremote_object.h"
 #include "irender_scheduler.h"
 #include "ability_running_record.h"
+#include "render_record.h"
 #include "ability_state_data.h"
 #include "application_info.h"
 #include "task_handler_wrap.h"
@@ -35,7 +36,9 @@
 #include "app_mgr_constants.h"
 #include "app_scheduler_proxy.h"
 #include "app_record_id.h"
+#ifdef SUPPORT_CHILD_PROCESS
 #include "child_process_record.h"
+#endif // SUPPORT_CHILD_PROCESS
 #include "fault_data.h"
 #include "fd_guard.h"
 #include "profile.h"
@@ -66,67 +69,6 @@ public:
 private:
     std::map<int32_t, Configuration> multiUserConfiguration_;
     std::mutex multiUserConfigurationMutex_;
-};
-
-/**
- * @class RenderRecord
- * Record nweb render process info.
- */
-class RenderRecord {
-public:
-    RenderRecord(pid_t hostPid, const std::string &renderParam,
-                 FdGuard &&ipcFd, FdGuard &&sharedFd, FdGuard &&crashFd,
-                 const std::shared_ptr<AppRunningRecord> &host);
-
-    virtual ~RenderRecord();
-
-    static std::shared_ptr<RenderRecord>
-    CreateRenderRecord(pid_t hostPid, const std::string &renderParam,
-                       FdGuard &&ipcFd, FdGuard &&sharedFd, FdGuard &&crashFd,
-                       const std::shared_ptr<AppRunningRecord> &host);
-
-    void SetPid(pid_t pid);
-    pid_t GetPid() const ;
-    pid_t GetHostPid() const;
-    void SetUid(int32_t uid);
-    int32_t GetUid() const;
-    int32_t GetHostUid() const;
-    std::string GetHostBundleName() const;
-    std::string GetRenderParam() const;
-    std::string GetProcessName() const;
-    int32_t GetIpcFd() const;
-    int32_t GetSharedFd() const;
-    int32_t GetCrashFd() const;
-    ProcessType GetProcessType() const;
-    std::shared_ptr<AppRunningRecord> GetHostRecord() const;
-    sptr<IRenderScheduler> GetScheduler() const;
-    void SetScheduler(const sptr<IRenderScheduler> &scheduler);
-    void SetDeathRecipient(const sptr<AppDeathRecipient> recipient);
-    void RegisterDeathRecipient();
-    void SetState(int32_t state);
-    int32_t GetState() const;
-    void SetProcessType(ProcessType type);
-
-private:
-    void SetHostUid(const int32_t hostUid);
-    void SetHostBundleName(const std::string &hostBundleName);
-    void SetProcessName(const std::string &hostProcessName);
-
-    pid_t pid_ = 0;
-    pid_t hostPid_ = 0;
-    int32_t uid_ = 0;
-    int32_t hostUid_ = 0;
-    std::string hostBundleName_;
-    std::string renderParam_;
-    std::string processName_;
-    FdGuard ipcFd_;
-    FdGuard sharedFd_;
-    FdGuard crashFd_;
-    int32_t state_ = 0;
-    ProcessType processType_ = ProcessType::RENDER;
-    std::weak_ptr<AppRunningRecord> host_; // nweb host
-    sptr<IRenderScheduler> renderScheduler_ = nullptr;
-    sptr<AppDeathRecipient> deathRecipient_ = nullptr;
 };
 
 class AppRunningRecord : public std::enable_shared_from_this<AppRunningRecord> {
@@ -592,7 +534,7 @@ public:
      * @brief indicates one process will go dying.
      * Then the process won't be reused.
      */
-    void SetTerminating(std::shared_ptr<AppRunningManager> appRunningMgr);
+    void SetTerminating();
 
     /**
      * @brief Whether the process is dying.
@@ -697,7 +639,7 @@ public:
     void SetUserTestInfo(const std::shared_ptr<UserTestRecord> &record);
     std::shared_ptr<UserTestRecord> GetUserTestInfo();
 
-    void SetProcessAndExtensionType(const std::shared_ptr<AbilityInfo> &abilityInfo);
+    void SetProcessAndExtensionType(const std::shared_ptr<AbilityInfo> &abilityInfo, uint32_t extensionProcessMode = 0);
     void SetSpecifiedAbilityFlagAndWant(int requestId, const AAFwk::Want &want, const std::string &moduleName);
     void SetScheduleNewProcessRequestState(int32_t requestId, const AAFwk::Want &want, const std::string &moduleName);
     /**
@@ -716,6 +658,9 @@ public:
      * Called when one specified request is finished to set the request id to -1
      */
     void ResetSpecifiedRequestId();
+    
+    void SchedulePrepareTerminate(int32_t &prepareTermination, bool &isExist);
+
     /**
      * call the scheduler to go acceptWant procedure
      */
@@ -823,6 +768,7 @@ public:
 #ifdef SUPPORT_SCREEN
     void ChangeWindowVisibility(const sptr<OHOS::Rosen::WindowVisibilityInfo> &info);
     void OnWindowVisibilityChanged(const std::vector<sptr<OHOS::Rosen::WindowVisibilityInfo>> &windowVisibilityInfos);
+    void OnWindowVisibilityChangedWithPendingState();
 #endif //SUPPORT_SCREEN
     bool IsAbilitiesBackground();
 
@@ -874,11 +820,13 @@ public:
 
     void GetSplitModeAndFloatingMode(bool &isSplitScreenMode, bool &isFloatingWindowMode);
 
+#ifdef SUPPORT_CHILD_PROCESS
     void AddChildProcessRecord(pid_t pid, std::shared_ptr<ChildProcessRecord> record);
     void RemoveChildProcessRecord(std::shared_ptr<ChildProcessRecord> record);
     std::shared_ptr<ChildProcessRecord> GetChildProcessRecordByPid(pid_t pid);
     std::map<pid_t, std::shared_ptr<ChildProcessRecord>> GetChildProcessRecordMap();
     int32_t GetChildProcessCount();
+#endif //SUPPORT_CHILD_PROCESS
 
     void SetPreloadState(PreloadState state);
 
@@ -889,6 +837,10 @@ public:
     void SetPreloadMode(PreloadMode mode);
 
     PreloadMode GetPreloadMode();
+
+    void SetPreloadModuleName(const std::string& preloadModuleName);
+
+    std::string GetPreloadModuleName() const;
 
     /**
      * @brief Obtains the app record assign tokenId.
@@ -949,8 +901,8 @@ public:
 
     void SetBrowserHost(sptr<IRemoteObject> browser);
     sptr<IRemoteObject> GetBrowserHost();
-    void SetIsGPU(bool gpu);
-    bool GetIsGPU();
+    void SetHasGPU(bool gpu);
+    bool HasGPU();
     void SetGPUPid(pid_t gpuPid);
     pid_t GetGPUPid();
     pid_t GetPid();
@@ -960,9 +912,29 @@ public:
         isStrictMode_ = strictMode;
     }
 
-    inline bool IsStrictMode()
+    inline bool IsStrictMode() const
     {
         return isStrictMode_;
+    }
+
+    inline void SetNetworkEnableFlags(bool enable)
+    {
+        networkEnableFlags_ = enable;
+    }
+
+    inline bool GetNetworkEnableFlags() const
+    {
+        return networkEnableFlags_;
+    }
+
+    inline void SetSAEnableFlags(bool enable)
+    {
+        saEnableFlags_ = enable;
+    }
+
+    inline bool GetSAEnableFlags() const
+    {
+        return saEnableFlags_;
     }
 
     inline void SetIsDependedOnArkWeb(bool isDepend)
@@ -998,6 +970,13 @@ public:
      * @return
      */
     void ScheduleBackgroundRunning();
+
+    /**
+     * SetWatchdogBackgroundStatusRunning, Notify application to set watchdog background status.
+     *
+     * @return
+     */
+    void SetWatchdogBackgroundStatusRunning(bool status);
 
     void SetUserRequestCleaning();
     bool IsUserRequestCleaning() const;
@@ -1040,6 +1019,8 @@ public:
     void AddAppLifecycleEvent(const std::string &msg);
 
     void SetNWebPreload(const bool isAllowedNWebPreload);
+
+    bool IsNWebPreload() const;
 
     void SetIsUnSetPermission(bool isUnSetPermission);
 
@@ -1103,6 +1084,7 @@ private:
     ApplicationState curState_ = ApplicationState::APP_STATE_CREATE;  // current state of this process
     ApplicationPendingState pendingState_ = ApplicationPendingState::READY;
     ApplicationScheduleState scheduleState_ = ApplicationScheduleState::SCHEDULE_READY;
+    WatchdogVisibilityState watchdogVisibilityState_ = WatchdogVisibilityState::WATCHDOG_STATE_READY;
     bool isFocused_ = false; // if process is focused.
     /**
      * If there is an ability is foregrounding, this flag will be true,
@@ -1153,6 +1135,7 @@ private:
     bool jitEnabled_ = false;
     PreloadState preloadState_ = PreloadState::NONE;
     PreloadMode preloadMode_ = PreloadMode::PRESS_DOWN;
+    std::string preloadModuleName_;
     int32_t exitReason_ = 0;
     std::string exitMsg_ = "";
 
@@ -1186,8 +1169,10 @@ private:
 
     std::set<uint32_t> windowIds_;
     ffrt::mutex windowIdsLock_;
+#ifdef SUPPORT_CHILD_PROCESS
     std::map<pid_t, std::shared_ptr<ChildProcessRecord>> childProcessRecordMap_;
     ffrt::mutex childProcessRecordMapLock_;
+#endif //SUPPORT_CHILD_PROCESS
 
     bool isRestartApp_ = false; // Only app calling RestartApp can be set to true
     bool isAssertPause_ = false;
@@ -1198,9 +1183,11 @@ private:
     SupportProcessCacheState procCacheSupportState_ = SupportProcessCacheState::UNSPECIFIED;
     bool processCacheBlocked = false; // temporarily block process cache feature
     sptr<IRemoteObject> browserHost_;
-    bool isGPU_ = false;
+    bool hasGPU_ = false;
     pid_t gpuPid_ = 0;
     bool isStrictMode_ = false;
+    bool networkEnableFlags_ = true;
+    bool saEnableFlags_ = true;
     bool isAttachedToStatusBar = false;
     bool isDependedOnArkWeb_ = false;
     bool isUserRequestCleaning_ = false;
