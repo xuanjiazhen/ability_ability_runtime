@@ -529,7 +529,7 @@ public:
      * @param sessionInfo the session info of the ability to terminate.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int CloseUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo)
+    virtual int CloseUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, uint32_t sceneFlag = 0)
     {
         return 0;
     }
