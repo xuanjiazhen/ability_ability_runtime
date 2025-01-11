@@ -2350,6 +2350,7 @@ private:
     void InitInterceptor();
     void InitInterceptorForScreenUnlock();
     void InitPushTask();
+    void InitAppSpawnMsgPipe();
     void InitDeepLinkReserve();
 
     bool CheckSenderWantInfo(int32_t callerUid, const WantSenderInfo &wantSenderInfo);

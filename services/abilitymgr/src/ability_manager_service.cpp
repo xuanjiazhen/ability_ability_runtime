@@ -279,6 +279,7 @@ constexpr const char* WHITE_LIST = "white_list";
 constexpr const char* SUPPORT_COLLABORATE_INDEX = "ohos.extra.param.key.supportCollaborateIndex";
 constexpr const char* COLLABORATE_KEY = "ohos.dms.collabToken";
 constexpr const char* IS_CALLING_FROM_DMS = "supportCollaborativeCallingFromDmsInAAFwk";
+constexpr const char* APPSPAWN_STARTED = "startup.service.ctl.appspawn.pid";
 
 const bool REGISTER_RESULT =
     SystemAbility::MakeAndRegisterAbility(DelayedSingleton<AbilityManagerService>::GetInstance().get());
@@ -378,6 +379,8 @@ bool AbilityManagerService::Init()
 
     SubscribeScreenUnlockedEvent();
     appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(subManagersHelper_);
+
+    InitAppSpawnMsgPipe();
     TAG_LOGI(AAFwkTag::ABILITYMGR, "init success");
     return true;
 }
@@ -418,6 +421,27 @@ void AbilityManagerService::InitInterceptorForScreenUnlock()
     if (interceptorExecuter_) {
         interceptorExecuter_->AddInterceptor("ScreenUnlock", std::make_shared<ScreenUnlockInterceptor>());
     }
+}
+
+void AbilityManagerService::InitAppSpawnMsgPipe()
+{
+    if (taskHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "taskHandler_ null");
+        return;
+    }
+    // 是阻塞式的吗，是否需要放到ffrt线程中执行？
+    auto setAppSpawnPipeTask = [](){
+        while (true) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "WatchParameter appspawn start");
+            int ret = WatchParameter(APPSPAWN_STARTED, ApplicationUtil::AppSpawnStartCallback, nullptr);
+            if (ret != 0) {
+                TAG_LOGE(AAFwkTag::APPMGR, "watch parameter %{public}s fail with %{public}d",
+                    APPSPAWN_STARTED, ret);
+                return;
+            }
+        } 
+    };
+    taskHandler_->SubmitTask(setPipeTask, "SetAppSpawnPipeTask");
 }
 
 void AbilityManagerService::InitPushTask()
