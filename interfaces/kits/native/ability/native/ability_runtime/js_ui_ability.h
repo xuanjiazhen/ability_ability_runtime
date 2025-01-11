@@ -235,6 +235,34 @@ public:
      * You can override this function to implement your own processing logic.
      */
     void OnBackground() override;
+    
+    /**
+     * @brief Called when this ability enters the <b>STATE_FOREGROUND</b> state.
+     * The ability in the <b>STATE_FOREGROUND</b> state is invisible.
+     * You can override this function to implement your own processing logic.
+     */
+    void OnWillForeground() override;
+
+    /**
+     * @brief Called when this ability enters the <b>STATE_FOREGROUND</b> state.
+     * The ability in the <b>STATE_FOREGROUND</b> state is invisible.
+     * You can override this function to implement your own processing logic.
+     */
+    void OnDidForeground() override;
+
+    /**
+     * @brief Called when this ability enters the <b>STATE_BACKGROUND</b> state.
+     * The ability in the <b>STATE_BACKGROUND</b> state is invisible.
+     * You can override this function to implement your own processing logic.
+     */
+    void OnWillBackground() override;
+
+    /**
+     * @brief Called when this ability enters the <b>STATE_BACKGROUND</b> state.
+     * The ability in the <b>STATE_BACKGROUND</b> state is invisible.
+     * You can override this function to implement your own processing logic.
+     */
+    void OnDidBackground() override;
 
     /**
      * Called when back press is dispatched.
