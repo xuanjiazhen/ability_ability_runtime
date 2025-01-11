@@ -386,6 +386,7 @@ ohos_shared_library("abilitykit_native") {
       "${ability_runtime_native_path}/ability/native/ability_runtime/cj_ability_connect_callback_object.cpp",
       "${ability_runtime_native_path}/ability/native/ability_runtime/cj_ability_context.cpp",
       "${ability_runtime_native_path}/ability/native/ability_runtime/cj_ability_context_object.cpp",
+      "${ability_runtime_native_path}/ability/native/ability_runtime/cj_caller_complex.cpp",
     ]
     include_dirs += [
       "${ability_runtime_path}/interfaces/kits/native/ability/native/ability_runtime",
@@ -399,6 +400,7 @@ ohos_shared_library("abilitykit_native") {
     ]
     external_deps += [
       "ace_engine:ace_uicontent",
+      "ipc:cj_ipc_ffi",
       "napi:cj_bind_ffi",
       "napi:cj_bind_native",
     ]
@@ -758,6 +760,7 @@ ohos_shared_library("uiabilitykit_native") {
     ]
     defines = [ "CJ_FRONTEND" ]
     external_deps += [
+      "ipc:cj_ipc_ffi",
       "napi:cj_bind_ffi",
       "napi:cj_bind_native",
       "window_manager:cj_window_ffi",

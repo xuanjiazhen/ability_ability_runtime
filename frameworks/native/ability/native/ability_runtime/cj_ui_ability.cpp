@@ -37,6 +37,7 @@
 #include "cj_runtime.h"
 #include "cj_ability_object.h"
 #include "cj_ability_context.h"
+#include "remote_object_impl.h"
 #include "time_util.h"
 #ifdef SUPPORT_SCREEN
 #include "scene_board_judgement.h"
@@ -851,7 +852,23 @@ void CJUIAbility::OnAbilityResult(int requestCode, int resultCode, const Want &r
 
 sptr<IRemoteObject> CJUIAbility::CallRequest()
 {
-    return nullptr;
+    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    if (cjAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext_");
+        return nullptr;
+    }
+    if (remoteCallee_ != nullptr) {
+        TAG_LOGD(AAFwkTag::UIABILITY, "some remoteCallee_");
+        return remoteCallee_;
+    }
+    auto ret = cjAbilityObj_->OnCallRequest();
+    if (ret.data <= 0) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "invalid callee");
+        return nullptr;
+    }
+    remoteCallee_ = SetNewRuleFlagToCallee(ret);
+    TAG_LOGD(AAFwkTag::UIABILITY, "end");
+    return remoteCallee_;
 }
 
 std::shared_ptr<AppExecFwk::ACJDelegatorAbilityProperty> CJUIAbility::CreateADelegatorAbilityProperty()
@@ -898,6 +915,21 @@ std::shared_ptr<CJAbilityObject> CJUIAbility::GetCJAbility()
         TAG_LOGE(AAFwkTag::UIABILITY, "null cjAbilityObj_");
     }
     return cjAbilityObj_;
+}
+
+sptr<IRemoteObject> CJUIAbility::SetNewRuleFlagToCallee(RetDataI64 remoteCjObjId)
+{
+    if (remoteCjObjId.data <= 0) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null callee");
+        return nullptr;
+    }
+    auto flag = IsUseNewStartUpRule();
+    cjAbilityObj_->OnSetCalleeFlag(flag);
+    auto remoteObj = CJ_rpc_getNativeRemoteObject(remoteCjObjId);
+    if (remoteObj == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null remoteObj");
+    }
+    return remoteObj;
 }
 
 bool CJUIAbility::CheckSatisfyTargetAPIVersion(int32_t version)

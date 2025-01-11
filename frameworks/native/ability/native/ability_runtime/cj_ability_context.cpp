@@ -470,6 +470,16 @@ int32_t CJAbilityContext::ChangeAbilityVisibility(bool isShow)
     return context_->ChangeAbilityVisibility(isShow);
 }
 
+int32_t CJAbilityContext::StartAbilityByCall(const AAFwk::Want& want, const std::shared_ptr<CallerCallBack> &callback,
+        int32_t accountId)
+{
+    if (context_ == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+    }
+    return context_->StartAbilityByCall(want, callback, accountId);
+}
+
 void CjUIExtensionCallback::SetSessionId(int32_t sessionId)
 {
     sessionId_ = sessionId;
