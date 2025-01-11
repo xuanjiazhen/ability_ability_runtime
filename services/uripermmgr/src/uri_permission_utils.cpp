@@ -117,6 +117,7 @@ int32_t UPMSUtils::GetCurrentAccountId()
         TAG_LOGE(AAFwkTag::URIPERMMGR, "the QueryActiveOsAccountIds is empty, no accounts.");
         return DEFAULT_USER_ID;
     }
+    TAG_LOGD(AAFwkTag::URIPERMMGR, "osActiveAccountId: %{public}d", osActiveAccountIds.front());
     return osActiveAccountIds.front();
 }
 

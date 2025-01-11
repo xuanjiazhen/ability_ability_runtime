@@ -668,6 +668,7 @@ int ContextImpl::GetCurrentAccountId() const
         return userId;
     }
     instance->GetOsAccountLocalIdFromProcess(userId);
+    TAG_LOGD(AAFwkTag::APPKIT, "userId: %{public}d", userId);
     return userId;
 }
 
@@ -690,6 +691,7 @@ int ContextImpl::GetCurrentActiveAccountId() const
         TAG_LOGE(AAFwkTag::APPKIT, "no accounts");
         return 0;
     }
+    TAG_LOGD(AAFwkTag::APPKIT, "accountId: %{public}d", accountIds[0]);
     return accountIds[0];
 }
 
