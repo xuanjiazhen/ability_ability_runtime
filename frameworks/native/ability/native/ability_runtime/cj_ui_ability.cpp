@@ -946,7 +946,23 @@ void CJUIAbility::OnAbilityResult(int requestCode, int resultCode, const Want &r
 
 sptr<IRemoteObject> CJUIAbility::CallRequest()
 {
-    return nullptr;
+    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    if (cjAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext_");
+        return nullptr;
+    }
+    if (remoteCallee_ != nullptr) {
+        TAG_LOGD(AAFwkTag::UIABILITY, "some remoteCallee_");
+        return remoteCallee_;
+    }
+    auto ret = cjAbilityObj_->OnCallRequest();
+    if (ret < 0) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "invalid callee");
+        return nullptr;
+    }
+    remoteCallee_ = SetNewRuleFlagToCallee(ret);
+    TAG_LOGD(AAFwkTag::UIABILITY, "end");
+    return remoteCallee_;
 }
 
 std::shared_ptr<AppExecFwk::ACJDelegatorAbilityProperty> CJUIAbility::CreateADelegatorAbilityProperty()
@@ -993,6 +1009,27 @@ std::shared_ptr<CJAbilityObject> CJUIAbility::GetCJAbility()
         TAG_LOGE(AAFwkTag::UIABILITY, "null cjAbilityObj_");
     }
     return cjAbilityObj_;
+}
+
+sptr<IRemoteObject> CJUIAbility::SetNewRuleFlagToCallee(int64_t remoteCjObjId)
+{
+    auto remoteCjObj = nullptr;
+    // TODO:
+    // auto remoteCjObj = OHOS::FFI::FFIData::GetData<TODO:>(remoteCjObjId);
+    if (remoteCjObj == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null callee");
+        return nullptr;
+    }
+    auto flag = IsUseNewStartUpRule();
+    cjAbilityObj_->OnSetCalleeFlag(flag);
+    // TODO:
+    // auto remoteObj = NAPI_ohos_rpc_getNativeRemoteObject(remoteCjObj);
+    auto remoteObj = nullptr;
+    if (remoteObj == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null remoteObj");
+        return nullptr;
+    }
+    return remoteObj;
 }
 
 bool CJUIAbility::CheckSatisfyTargetAPIVersion(int32_t version)

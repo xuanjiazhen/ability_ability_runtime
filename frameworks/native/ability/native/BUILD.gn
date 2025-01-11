@@ -385,6 +385,7 @@ ohos_shared_library("abilitykit_native") {
       "${ability_runtime_native_path}/ability/native/ability_runtime/cj_ability_connect_callback_object.cpp",
       "${ability_runtime_native_path}/ability/native/ability_runtime/cj_ability_context.cpp",
       "${ability_runtime_native_path}/ability/native/ability_runtime/cj_ability_context_object.cpp",
+      "${ability_runtime_native_path}/ability/native/ability_runtime/cj_caller_complex.cpp",
     ]
     include_dirs += [
       "${ability_runtime_path}/interfaces/kits/native/ability/native/ability_runtime",

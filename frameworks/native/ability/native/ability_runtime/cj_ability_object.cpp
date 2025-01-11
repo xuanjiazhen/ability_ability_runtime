@@ -277,6 +277,24 @@ int32_t CJAbilityObject::OnShare(WantParams &wantParams) const
     return ERR_OK;
 }
 
+int64_t CJAbilityObject::OnCallRequest() const
+{
+    if (g_cjAbilityFuncs == nullptr || g_cjAbilityFuncs->cjAbilityOnCallRequest == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null cjAbilityFunc");
+        return -1;
+    }
+    return g_cjAbilityFuncs->cjAbilityOnCallRequest(id_);
+}
+
+void CJAbilityObject::OnSetCalleeFlag(bool flag) const
+{
+    if (g_cjAbilityFuncs == nullptr || g_cjAbilityFuncs->cjAbilityOnSetCalleeFlag == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null cjAbilityFunc");
+        return;
+    }
+    return g_cjAbilityFuncs->cjAbilityOnSetCalleeFlag(id_, flag);
+}
+
 void CJAbilityObject::Init(AbilityHandle ability) const
 {
     if (g_cjAbilityFuncs == nullptr) {

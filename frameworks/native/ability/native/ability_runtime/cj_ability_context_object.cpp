@@ -18,6 +18,7 @@
 #include <regex>
 
 #include "ability_business_error.h"
+#include "ability_runtime/cj_caller_complex.h"
 #include "accesstoken_kit.h"
 #include "bundle_manager_convert.h"
 #include "cj_ability_connect_callback_object.h"
@@ -48,6 +49,7 @@ constexpr int64_t NOT_SUPPORT = 1;
 constexpr int64_t MAX_REQUEST_CODE = 562949953421311;
 constexpr size_t MAX_REQUEST_CODE_LENGTH = 15;
 constexpr int32_t BASE_REQUEST_CODE_NUM = 10;
+constexpr int32_t CALLER_TIME_OUT = 10; // 10s
 // g_cjAbilityCallbacks is used to save cangjie functions.
 // It is assigned by the global variable REGISTER_ABILITY_CONTEXT_CALLBACK on the cangjie side which invokes
 // RegisterCJAbilityCallbacks. And it is never released.
@@ -141,6 +143,95 @@ static bool CheckUrl(std::string& urlValue)
     }
 
     return true;
+}
+
+class StartAbilityByCallParameters {
+public:
+    int err = 0;
+    sptr<IRemoteObject> remoteCallee = nullptr;
+    std::shared_ptr<CallerCallBack> callerCallBack = nullptr;
+    std::mutex mutexlock;
+    std::condition_variable condition;
+};
+
+void GenerateCallerCallBack(std::shared_ptr<StartAbilityByCallParameters> calls,
+    std::shared_ptr<CallerCallBack> callerCallBack)
+{
+    if (calls == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null calls");
+        return;
+    }
+    if (callerCallBack == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null callerCallBack");
+        return;
+    }
+    auto callBackDone = [calldata = calls] (const sptr<IRemoteObject> &obj) {
+        TAG_LOGD(AAFwkTag::CONTEXT, "callBackDone called start");
+        std::unique_lock<std::mutex> lock(calldata->mutexlock);
+        calldata->remoteCallee = obj;
+        calldata->condition.notify_all();
+        TAG_LOGD(AAFwkTag::CONTEXT, "callBackDone called end");
+    };
+
+    auto releaseListen = [](const std::string &str) {
+        TAG_LOGI(AAFwkTag::CONTEXT, "releaseListen is called %{public}s", str.c_str());
+    };
+
+    callerCallBack->SetCallBack(callBackDone);
+    callerCallBack->SetOnRelease(releaseListen);
+}
+
+void StartAbilityByCallExecuteDone(std::shared_ptr<StartAbilityByCallParameters> calldata)
+{
+    if (calldata == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null calldata");
+        return;
+    }
+    std::unique_lock<std::mutex> lock(calldata->mutexlock);
+    if (calldata->remoteCallee != nullptr) {
+        TAG_LOGI(AAFwkTag::CONTEXT, "not null callExecute callee");
+        return;
+    }
+
+    if (calldata->condition.wait_for(lock, std::chrono::seconds(CALLER_TIME_OUT)) == std::cv_status::timeout) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "callExecute waiting callee timeout");
+        calldata->err = -1;
+    }
+    TAG_LOGD(AAFwkTag::CONTEXT, "end");
+}
+
+int32_t StartAbilityByCallComplete(std::shared_ptr<AbilityContext> abilityContext,
+    std::shared_ptr<StartAbilityByCallParameters> calldata, std::shared_ptr<CallerCallBack> callerCallBack, int64_t* callerId)
+{
+    if (calldata == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null calldata");
+        return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
+    }
+    if (calldata->err != 0) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "err: %{public}d", calldata->err);
+        TAG_LOGD(AAFwkTag::CONTEXT, "clear failed call of startup is called");
+        abilityContext->ClearFailedCallConnection(callerCallBack);
+        return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
+    }
+    if (abilityContext == nullptr || callerCallBack == nullptr || calldata->remoteCallee == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null callComplete params error %{public}s",
+            abilityContext == nullptr ? "context" : (calldata->remoteCallee == nullptr ? "remoteCallee" : "callerCallBack"));
+        TAG_LOGD(AAFwkTag::CONTEXT, "callComplete end");
+        return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
+    }
+    auto releaseCallAbilityFunc = [abilityContext] (const std::shared_ptr<CallerCallBack> &callback) -> ErrCode {
+        auto contextForRelease = abilityContext;
+        if (contextForRelease == nullptr) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "null releaseCallAbilityFunction");
+            return -1;
+        }
+        return contextForRelease->ReleaseCall(callback);
+    };
+    if (callerId == nullptr) {
+        return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
+    }
+    *callerId = CreateCjCallerComplex(releaseCallAbilityFunc, calldata->remoteCallee, callerCallBack);
+    return SUCCESS_CODE;
 }
 
 extern "C" {
@@ -783,6 +874,38 @@ int32_t FFIAbilityContextHideAbility(int64_t id)
     }
     auto innerErrCod = context->ChangeAbilityVisibility(false);
     return static_cast<int32_t>(GetJsErrorCodeByNativeError(innerErrCod));
+}
+
+int32_t FFIAbilityContextStartAbilityByCall(int64_t id, WantHandle wantHandle, int64_t* callerId)
+{
+    auto context = FFIData::GetData<CJAbilityContext>(id);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null CJAbilityContext");
+        return ERR_INVALID_INSTANCE_CODE;
+    }
+    int32_t userId = DEFAULT_INVAL_VALUE;
+    AAFwk::Want* want = reinterpret_cast<AAFwk::Want*>(wantHandle);
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null wantHandle");
+        return ERR_INVALID_INSTANCE_CODE;
+    }
+    std::shared_ptr<StartAbilityByCallParameters> calls = std::make_shared<StartAbilityByCallParameters>();
+    auto callerCallBack = std::make_shared<CallerCallBack>();
+    if (calls == nullptr || callerCallBack == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null callerCallBack or calls");
+        return ERR_INVALID_INSTANCE_CODE;
+    }
+    GenerateCallerCallBack(calls, callerCallBack);
+    auto ret = context->StartAbilityByCall(*want, callerCallBack, userId);
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "startAbility failed");
+        return ret;
+    }
+    if (calls->remoteCallee == nullptr) {
+        TAG_LOGI(AAFwkTag::CONTEXT, "null remoteCallee");
+        StartAbilityByCallExecuteDone(calls);
+    }
+    return StartAbilityByCallComplete(context->GetAbilityContext(), calls, callerCallBack, callerId);
 }
 
 #define EXPORT __attribute__((visibility("default")))
