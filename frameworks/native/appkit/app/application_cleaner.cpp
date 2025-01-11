@@ -142,6 +142,7 @@ int ApplicationCleaner::GetRootPath(std::vector<std::string> &rootPath)
     if (instance->GetOsAccountLocalIdFromProcess(userId) != RESULT_OK) {
         return RESULT_ERR;
     }
+    TAG_LOGD(AAFwkTag::APPKIT, "userId: %{public}d", userId);
 
     rootPath.clear();
     auto baseDir = context_->GetBaseDir();
