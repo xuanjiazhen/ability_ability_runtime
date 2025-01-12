@@ -1309,7 +1309,9 @@ int AbilityRecord::TerminateAbility()
 #endif // WITH_DLP
     AAFwk::EventInfo eventInfo;
     eventInfo.bundleName = GetAbilityInfo().bundleName;
+    eventInfo.bundleName = GetAbilityInfo().moduleName;
     eventInfo.abilityName = GetAbilityInfo().name;
+    eventInfo.appIndex = abilityInfo_.applicationInfo.appIndex;
     if (clearMissionFlag_) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "deleteAbilityRecoverInfo before clearMission");
         (void)DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->
@@ -1322,7 +1324,7 @@ int AbilityRecord::TerminateAbility()
     eventInfo.errCode = DelayedSingleton<AppScheduler>::GetInstance()->TerminateAbility(token_, clearMissionFlag_);
     if (eventInfo.errCode != ERR_OK) {
         AAFwk::EventReport::SendAbilityEvent(
-            AAFwk::EventName::TERMINATE_ABILITY_ERROR, HiSysEventType::FAULT, eventInfo);
+            AAFwk::EventName::TERMINATE_ABILITY_SYSTEM_ERROR, HiSysEventType::FAULT, eventInfo);
     }
     return eventInfo.errCode;
 }

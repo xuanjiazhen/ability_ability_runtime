@@ -59,6 +59,8 @@ struct EventInfo {
     int32_t exitReason = -1;
     bool isPreload = false;
     int32_t preloadMode = 0;
+    int32_t appIndex = -1;
+    std::string lifeCycleState;
 };
 
 enum class EventName {
@@ -69,6 +71,8 @@ enum class EventName {
     STOP_EXTENSION_ERROR,
     CONNECT_SERVICE_ERROR,
     DISCONNECT_SERVICE_ERROR,
+    START_ABILITY_SYSTEM_ERROR,
+    TERMINATE_ABILITY_SYSTEM_ERROR,
 
     // ability behavior event
     START_ABILITY,
@@ -142,8 +146,10 @@ private:
     static void LogAbilityOnForegroundEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
     static void LogAbilityOnBackgroundEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
     static void LogAbilityOnActiveEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
+    static void LogAbilityOnInactiveEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
     static void LogStartStandardEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
     static void LogStartAbilityByAppLinking(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
+    static void LogAbilitySystemErrorEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
 };
 }  // namespace AAFWK
 }  // namespace OHOS

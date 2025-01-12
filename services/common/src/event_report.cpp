@@ -59,6 +59,8 @@ constexpr const char *EVENT_KEY_PID = "PID";
 constexpr const char *EVENT_KEY_REASON = "REASON";
 constexpr const char *EVENT_KEY_SUB_REASON = "SUB_REASON";
 constexpr const char *INVALID_EVENT_NAME = "INVALIDEVENTNAME";
+constexpr const char *EVENT_KEY_APP_INDEX = "APP_INDEX";
+constexpr const char *EVENT_KEY_LIFE_CYCLE_STATE = "LIFE_CYCLE_STATE";
 
 constexpr const int32_t DEFAULT_EXTENSION_TYPE = -1;
 }
@@ -119,6 +121,7 @@ void EventReport::LogErrorEvent(const std::string &name, HiSysEventType type, co
         name,
         type,
         EVENT_KEY_USERID, eventInfo.userId,
+        EVENT_KEY_APP_INDEX, eventInfo.appIndex,
         EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
         EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
         EVENT_KEY_ABILITY_NAME, eventInfo.abilityName,
@@ -132,6 +135,7 @@ void EventReport::LogStartAbilityEvent(const std::string &name, HiSysEventType t
         name,
         type,
         EVENT_KEY_USERID, eventInfo.userId,
+        EVENT_KEY_APP_INDEX, eventInfo.appIndex,
         EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
         EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
         EVENT_KEY_ABILITY_NAME, eventInfo.abilityName);
@@ -143,6 +147,7 @@ void EventReport::LogTerminateAbilityEvent(const std::string &name, HiSysEventTy
         HiSysEvent::Domain::AAFWK,
         name,
         type,
+        EVENT_KEY_APP_INDEX, eventInfo.appIndex,
         EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
         EVENT_KEY_ABILITY_NAME, eventInfo.abilityName);
 }
@@ -153,11 +158,13 @@ void EventReport::LogAbilityOnForegroundEvent(const std::string &name, HiSysEven
         HiSysEvent::Domain::AAFWK,
         name,
         type,
+        EVENT_KEY_APP_INDEX, eventInfo.appIndex,
         EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
         EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
         EVENT_KEY_ABILITY_NAME, eventInfo.abilityName,
         EVENT_KEY_BUNDLE_TYPE, eventInfo.bundleType,
-        EVENT_KEY_CALLER_BUNDLE_NAME, eventInfo.callerBundleName);
+        EVENT_KEY_CALLER_BUNDLE_NAME, eventInfo.callerBundleName,
+        EVENT_KEY_LIFE_CYCLE_STATE, eventInfo.lifeCycleState);
 }
 
 void EventReport::LogAbilityOnBackgroundEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
@@ -166,10 +173,12 @@ void EventReport::LogAbilityOnBackgroundEvent(const std::string &name, HiSysEven
         HiSysEvent::Domain::AAFWK,
         name,
         type,
+        EVENT_KEY_APP_INDEX, eventInfo.appIndex,
         EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
         EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
         EVENT_KEY_ABILITY_NAME, eventInfo.abilityName,
-        EVENT_KEY_BUNDLE_TYPE, eventInfo.bundleType);
+        EVENT_KEY_BUNDLE_TYPE, eventInfo.bundleType,
+        EVENT_KEY_LIFE_CYCLE_STATE, eventInfo.lifeCycleState);
 }
 
 void EventReport::LogAbilityOnActiveEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
@@ -184,6 +193,18 @@ void EventReport::LogAbilityOnActiveEvent(const std::string &name, HiSysEventTyp
         EVENT_KEY_ABILITY_TYPE, eventInfo.abilityType,
         EVENT_KEY_BUNDLE_TYPE, eventInfo.bundleType,
         EVENT_KEY_CALLER_BUNDLE_NAME, eventInfo.callerBundleName);
+}
+
+void EventReport::LogAbilityOnInactiveEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
+{
+    HiSysEventWrite(
+        HiSysEvent::Domain::AAFWK,
+        name,
+        type,
+        EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
+        EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
+        EVENT_KEY_ABILITY_NAME, eventInfo.abilityName,
+        EVENT_KEY_BUNDLE_TYPE, eventInfo.bundleType);
 }
 
 void EventReport::LogStartStandardEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
@@ -218,6 +239,19 @@ void EventReport::LogStartAbilityByAppLinking(const std::string &name, HiSysEven
     }
 }
 
+void EventReport::LogAbilitySystemErrorEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
+{
+    HiSysEventWrite(
+        HiSysEvent::Domain::AAFWK,
+        name,
+        type,
+        EVENT_KEY_ERROR_CODE, eventInfo.errCode,
+        EVENT_KEY_APP_INDEX, eventInfo.appIndex,
+        EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
+        EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
+        EVENT_KEY_ABILITY_NAME, eventInfo.abilityName);
+}
+
 void EventReport::SendAbilityEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -242,8 +276,10 @@ void EventReport::SendAbilityEvent(const EventName &eventName, HiSysEventType ty
             LogAbilityOnForegroundEvent(name, type, eventInfo);
             break;
         case EventName::ABILITY_ONBACKGROUND:
-        case EventName::ABILITY_ONINACTIVE:
             LogAbilityOnBackgroundEvent(name, type, eventInfo);
+            break;
+        case EventName::ABILITY_ONINACTIVE:
+            LogAbilityOnInactiveEvent(name, type, eventInfo);
             break;
         case EventName::ABILITY_ONACTIVE:
             LogAbilityOnActiveEvent(name, type, eventInfo);
@@ -253,6 +289,10 @@ void EventReport::SendAbilityEvent(const EventName &eventName, HiSysEventType ty
             break;
         case EventName::START_ABILITY_BY_APP_LINKING:
             LogStartAbilityByAppLinking(name, type, eventInfo);
+            break;
+        case EventName::START_ABILITY_SYSTEM_ERROR:
+        case EventName::TERMINATE_ABILITY_SYSTEM_ERROR:
+            LogAbilitySystemErrorEvent(name, type, eventInfo);
             break;
         default:
             break;
@@ -671,6 +711,7 @@ std::string EventReport::ConvertEventName(const EventName &eventName)
         // fault event
         "START_ABILITY_ERROR", "TERMINATE_ABILITY_ERROR", "START_EXTENSION_ERROR",
         "STOP_EXTENSION_ERROR", "CONNECT_SERVICE_ERROR", "DISCONNECT_SERVICE_ERROR",
+        "START_ABILITY_SYSTEM_ERROR", "TERMINATE_ABILITY_SYSTEM_ERROR",
 
         // ability behavior event
         "START_ABILITY", "TERMINATE_ABILITY", "CLOSE_ABILITY",
