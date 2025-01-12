@@ -7326,7 +7326,18 @@ void AbilityManagerService::SubscribeScreenUnlockedEvent()
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED);
     EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
     subscribeInfo.SetThreadMode(EventFwk::CommonEventSubscribeInfo::COMMON);
-    auto userScreenUnlockCallback = [abilityManager = weak_from_this()]() {
+    screenSubscriber_ = std::make_shared<AbilityRuntime::AbilityManagerEventSubscriber>(subscribeInfo,
+        GetScreenUnlockCallback(), GetUserScreenUnlockCallback());
+    bool subResult = EventFwk::CommonEventManager::SubscribeCommonEvent(screenSubscriber_);
+    if (!subResult) {
+        constexpr int retryCount = 20;
+        RetrySubscribeScreenUnlockedEvent(retryCount);
+    }
+}
+
+std::function<void()> AbilityManagerService::GetScreenUnlockCallback()
+{
+    auto callback = [abilityManager = weak_from_this()]() {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "user screen unlocked.");
         auto abilityMgr = abilityManager.lock();
         if (abilityMgr == nullptr) {
@@ -7360,13 +7371,21 @@ void AbilityManagerService::SubscribeScreenUnlockedEvent()
         taskHandler->SubmitTask(delayStartAutoStartupAppTask, "DelayStartAutoStartupApps",
             START_AUTO_START_APP_DELAY_TIME);
     };
-    screenSubscriber_ = std::make_shared<AbilityRuntime::AbilityManagerEventSubscriber>(subscribeInfo,
-        userScreenUnlockCallback);
-    bool subResult = EventFwk::CommonEventManager::SubscribeCommonEvent(screenSubscriber_);
-    if (!subResult) {
-        constexpr int retryCount = 20;
-        RetrySubscribeScreenUnlockedEvent(retryCount);
-    }
+    return callback;
+}
+
+std::function<void()> AbilityManagerService::GetUserScreenUnlockCallback()
+{
+    auto userScreenUnlockCallback = [abilityManager = weak_from_this()]() {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "On user screen unlocked.");
+        auto abilityMgr = abilityManager.lock();
+        if (abilityMgr == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Invalid abilityMgr pointer.");
+            return;
+        }
+        abilityMgr->RemoveScreenUnlockInterceptor();
+    };
+    return userScreenUnlockCallback;
 }
 
 void AbilityManagerService::UnSubscribeScreenUnlockedEvent()
