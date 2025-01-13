@@ -220,14 +220,10 @@ public:
         const std::shared_ptr<NativeReference> &windowStage) {}
     virtual void OnAbilityWillSaveState(const std::shared_ptr<NativeReference> &ability) {}
     virtual void OnAbilitySaveState(const std::shared_ptr<NativeReference> &ability) {}
-    virtual void OnWillForeground(const std::shared_ptr<NativeReference> &ability)
-    {}
-    virtual void OnDidForeground(const std::shared_ptr<NativeReference> &ability)
-    {}
-    virtual void OnWillBackground(const std::shared_ptr<NativeReference> &ability)
-    {}
-    virtual void OnDidBackground(const std::shared_ptr<NativeReference> &ability)
-    {}
+    virtual void OnWillForeground(const std::shared_ptr<NativeReference> &ability) {}
+    virtual void OnDidForeground(const std::shared_ptr<NativeReference> &ability) {}
+    virtual void OnWillBackground(const std::shared_ptr<NativeReference> &ability) {}
+    virtual void OnDidBackground(const std::shared_ptr<NativeReference> &ability) {}
 };
 
 class JsAbilityLifecycleCallback : public AbilityLifecycleCallback,
