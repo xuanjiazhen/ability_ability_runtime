@@ -95,20 +95,25 @@ bool UnwrapExecuteParam(napi_env env, napi_value param, InsightIntentExecutePara
         executeParam.displayId_ = displayId;
     }
     if (IsExistsByPropertyName(env, param, "uris")) {
-        std::vector<std::string> uris;
-        if (!UnwrapStringArrayByPropertyName(env, param, "uris", uris)) {
+        auto unWrapRes = UnwrapStringArrayByPropertyName(env, param, "uris", executeParam.uris_);
+        executeParam.uris_.erase(std::remove(executeParam.uris_.begin(), executeParam.uris_.end(), ""),
+            executeParam.uris_.end());
+        if (!unWrapRes) {
             TAG_LOGE(AAFwkTag::JSNAPI, "Wrong argument uris fail");
             return false;
         }
-        executeParam.uris_ = uris;
     }
+
     if (IsExistsByPropertyName(env, param, "flags")) {
         int32_t flags = 0;
         if (!UnwrapInt32ByPropertyName(env, param, "flags", flags)) {
             TAG_LOGE(AAFwkTag::JSNAPI, "Wrong argument flags fail");
             return false;
         }
-        executeParam.flags_ = flags;
+        if (flags >= Want::FLAG_AUTH_READ_URI_PERMISSION && flags <=
+            (Want::FLAG_AUTH_READ_URI_PERMISSION | Want::FLAG_AUTH_WRITE_URI_PERMISSION)) {
+            executeParam.flags_ = flags;
+        }
     }
 
     return true;

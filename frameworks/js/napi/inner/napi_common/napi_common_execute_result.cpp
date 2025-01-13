@@ -14,7 +14,6 @@
  */
 
 #include "napi_common_execute_result.h"
-
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_execute_result.h"
 #include "napi_common_util.h"
@@ -73,12 +72,13 @@ bool UnwrapExecuteResult(napi_env env, napi_value param, InsightIntentExecuteRes
     }
 
     if (IsExistsByPropertyName(env, param, "uris")) {
-        std::vector<std::string> uris;
-        if (!UnwrapStringArrayByPropertyName(env, param, "uris", uris)) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "unwrap uris is null");
+        auto unWrapRes = UnwrapStringArrayByPropertyName(env, param, "uris", executeResult.uris);
+        executeResult.uris.erase(std::remove(executeResult.uris.begin(), executeResult.uris.end(), ""),
+            executeResult.uris.end());
+        if (!unWrapRes) {
+            TAG_LOGE(AAFwkTag::JSNAPI, "unwrap uris is wrong");
             return false;
         }
-        executeResult.uris = uris;
     }
 
     if (IsExistsByPropertyName(env, param, "flags")) {
@@ -87,7 +87,10 @@ bool UnwrapExecuteResult(napi_env env, napi_value param, InsightIntentExecuteRes
             TAG_LOGE(AAFwkTag::JSNAPI, "unwrap flags is null");
             return false;
         }
-        executeResult.flags = flags;
+        if (flags >= Want::FLAG_AUTH_READ_URI_PERMISSION && flags <=
+            (Want::FLAG_AUTH_READ_URI_PERMISSION | Want::FLAG_AUTH_WRITE_URI_PERMISSION)) {
+            executeResult.flags = flags;
+        }
     }
 
     return true;
