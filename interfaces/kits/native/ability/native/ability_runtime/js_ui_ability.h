@@ -257,7 +257,7 @@ public:
     void OnDidForeground() override;
 
     /**
-     * @brief Called before OnBaceground.
+     * @brief Called before OnBackground.
      * The ability in the <b>STATE_BACKGROUND</b> state is invisible.
      * You can override this function to implement your own processing logic.
      */
