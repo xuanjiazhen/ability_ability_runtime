@@ -479,6 +479,7 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterDidForeground()
         return;
     }
     owner->ability_->OnDidForeground();
+    TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 
 void UIAbilityImpl::WindowLifeCycleImpl::AfterDidBackground()
@@ -494,6 +495,7 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterDidBackground()
         return;
     }
     owner->ability_->OnDidBackground();
+    TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 
 void UIAbilityImpl::WindowLifeCycleImpl::AfterFocused()
