@@ -427,7 +427,6 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterForeground()
         TAG_LOGE(AAFwkTag::UIABILITY, "null owner");
         return;
     }
-
     std::string entry = "UIAbilityImpl::WindowLifeCycleImpl::AfterForeground";
     FreezeUtil::GetInstance().AddLifecycleEvent(token_, entry);
 
