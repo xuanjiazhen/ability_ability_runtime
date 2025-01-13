@@ -411,28 +411,28 @@ public:
     virtual void OnBackground();
 
     /**
-     * @brief Called when this ability enters the <b>STATE_FOREGROUND</b> state.
+     * @brief Called before GoForeground.
      * The ability in the <b>STATE_FOREGROUND</b> state is invisible.
      * You can override this function to implement your own processing logic.
      */
     virtual void OnWillForeground();
 
     /**
-     * @brief Called when this ability enters the <b>STATE_FOREGROUND</b> state.
+     * @brief Called after showEvent.
      * The ability in the <b>STATE_FOREGROUND</b> state is invisible.
      * You can override this function to implement your own processing logic.
      */
     virtual void OnDidForeground();
 
     /**
-     * @brief Called when this ability enters the <b>STATE_BACKGROUND</b> state.
+     * @brief Called before OnBackground.
      * The ability in the <b>STATE_BACKGROUND</b> state is invisible.
      * You can override this function to implement your own processing logic.
      */
     virtual void OnWillBackground();
 
     /**
-     * @brief Called when this ability enters the <b>STATE_BACKGROUND</b> state.
+     * @brief Called after hidenEvent.
      * The ability in the <b>STATE_BACKGROUND</b> state is invisible.
      * You can override this function to implement your own processing logic.
      */
