@@ -232,7 +232,6 @@ protected:
 private:
     void AfterFocusedCommon(bool isFocused);
     void UpdateSilentForeground(const AAFwk::LifeCycleStateInfo &targetState, sptr<AAFwk::SessionInfo> sessionInfo);
-    void OnWillForeground();
     void OnWillBackground();
 
     bool hasSaveData_ = false;
