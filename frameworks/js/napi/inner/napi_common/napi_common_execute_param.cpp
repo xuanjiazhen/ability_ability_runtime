@@ -22,6 +22,39 @@
 namespace OHOS {
 namespace AbilityRuntime {
 using namespace OHOS::AppExecFwk;
+
+bool UnwrapExecuteParamUrisAndFlags(napi_env env, napi_value param, InsightIntentExecuteParam &executeParam)
+{
+    if (!IsTypeForNapiValue(env, param, napi_object)) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "invalid params");
+        return false;
+    }
+
+    if (IsExistsByPropertyName(env, param, "uris")) {
+        if (!UnwrapStringArrayByPropertyName(env, param, "uris", executeParam.uris_)) {
+            TAG_LOGE(AAFwkTag::JSNAPI, "Wrong argument uris fail");
+            return false;
+        }
+        executeParam.uris_.erase(std::remove(executeParam.uris_.begin(), executeParam.uris_.end(), ""),
+            executeParam.uris_.end());
+    }
+    if (IsExistsByPropertyName(env, param, "flags")) {
+        int32_t flags = 0;
+        if (!UnwrapInt32ByPropertyName(env, param, "flags", flags)) {
+            TAG_LOGE(AAFwkTag::JSNAPI, "Wrong argument flags fail");
+            return false;
+        }
+        if (flags == Want::FLAG_AUTH_READ_URI_PERMISSION || flags == Want::FLAG_AUTH_WRITE_URI_PERMISSION ||
+            flags == (Want::FLAG_AUTH_READ_URI_PERMISSION | Want::FLAG_AUTH_WRITE_URI_PERMISSION)) {
+            executeParam.flags_ = flags;
+        } else {
+            TAG_LOGE(AAFwkTag::JSNAPI, "invalid flags");
+            return false;
+        }
+    }
+    return true;
+}
+
 bool UnwrapExecuteParam(napi_env env, napi_value param, InsightIntentExecuteParam &executeParam)
 {
     if (!IsTypeForNapiValue(env, param, napi_object)) {
@@ -94,24 +127,8 @@ bool UnwrapExecuteParam(napi_env env, napi_value param, InsightIntentExecutePara
         TAG_LOGI(AAFwkTag::JSNAPI, "displayId %{public}d", displayId);
         executeParam.displayId_ = displayId;
     }
-    if (IsExistsByPropertyName(env, param, "uris")) {
-        std::vector<std::string> uris;
-        if (!UnwrapStringArrayByPropertyName(env, param, "uris", uris)) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "Wrong argument uris fail");
-            return false;
-        }
-        executeParam.uris_ = uris;
-    }
-    if (IsExistsByPropertyName(env, param, "flags")) {
-        int32_t flags = 0;
-        if (!UnwrapInt32ByPropertyName(env, param, "flags", flags)) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "Wrong argument flags fail");
-            return false;
-        }
-        executeParam.flags_ = flags;
-    }
 
-    return true;
+    return UnwrapExecuteParamUrisAndFlags(env, param, executeParam);
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

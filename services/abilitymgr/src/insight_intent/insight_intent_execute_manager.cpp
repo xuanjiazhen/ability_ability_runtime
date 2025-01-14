@@ -84,11 +84,18 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateWant(Want &want, ExecuteMode 
 {
     auto uriVec = want.GetStringArrayParam(AbilityConfig::PARAMS_STREAM);
     auto uriVecTemp = want.GetStringArrayParam(INSIGHT_INTENT_EXECUTE_PARAM_URI);
+    uriVecTemp.erase(std::remove(uriVecTemp.begin(), uriVecTemp.end(), ""), uriVecTemp.end());
     uriVec.insert(uriVec.begin(), uriVecTemp.begin(), uriVecTemp.end());
     want.SetParam(AbilityConfig::PARAMS_STREAM, uriVec);
     auto myflags = want.GetIntParam(INSIGHT_INTENT_EXECUTE_PARAM_FLAGS, 0);
-    myflags |= want.GetFlags();
-    want.SetFlags(myflags);
+    if (myflags == Want::FLAG_AUTH_READ_URI_PERMISSION || myflags == Want::FLAG_AUTH_WRITE_URI_PERMISSION ||
+        myflags == (Want::FLAG_AUTH_READ_URI_PERMISSION | Want::FLAG_AUTH_WRITE_URI_PERMISSION)) {
+        myflags |= want.GetFlags();
+        want.SetFlags(myflags);
+    } else {
+        TAG_LOGE(AAFwkTag::INTENT, "invalid flags");
+        return ERR_INVALID_VALUE;
+    }
 
     int32_t result = IsValidCall(want);
     if (result != ERR_OK) {
