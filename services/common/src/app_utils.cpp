@@ -68,6 +68,9 @@ constexpr const char* COLLABORATOR_BROKER_RESERVE_UID = "const.sys.abilityms.col
 constexpr const char* MAX_CHILD_PROCESS = "const.max_native_child_process";
 constexpr const char* SUPPORT_MULTI_INSTANCE = "const.abilityms.support_multi_instance";
 constexpr const char* MIGRATE_CLIENT_BUNDLE_NAME = "const.sys.abilityms.migrate_client_bundle_name";
+constexpr const char* IS_OPEN_EVENT_PRIORITY = "persist.sys.abilityms.open_event_priority";
+constexpr uint32_t API16 = 16;
+constexpr uint32_t API_VERSION_MOD = 100;
 }
 
 AppUtils::~AppUtils() {}
@@ -461,6 +464,16 @@ std::string AppUtils::GetMigrateClientBundleName()
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "migrateClientBundleName_ is %{public}s", migrateClientBundleName_.value.c_str());
     return migrateClientBundleName_.value;
+}
+
+bool AppUtils::IsOpenEventPriorityInApi16(uint32_t apiTargetVersion)
+{
+    return apiTargetVersion % API_VERSION_MOD >= API16 ? true : false;
+}
+
+bool AppUtils::GetOpenEventPriorityConfiguration()
+{
+    return system::GetBoolParameter(IS_OPEN_EVENT_PRIORITY, false);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

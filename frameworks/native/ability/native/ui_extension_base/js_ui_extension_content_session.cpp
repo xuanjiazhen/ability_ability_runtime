@@ -16,6 +16,7 @@
 #include "js_ui_extension_content_session.h"
 
 #include "ability_manager_client.h"
+#include "app_utils.h"
 #include "accesstoken_kit.h"
 #include "event_handler.h"
 #include "hilog_tag_wrapper.h"
@@ -868,25 +869,44 @@ napi_value JsUIExtensionContentSession::OnSetWindowPrivacyMode(napi_env env, Nap
 
     napi_value lastParam = (info.argc > ARGC_ONE) ? info.argv[INDEX_ONE] : nullptr;
     napi_value result = nullptr;
-    std::unique_ptr<NapiAsyncTask> napiAsyncTask = CreateEmptyAsyncTask(env, lastParam, &result);
-    auto asyncTask = [uiWindow = uiWindow_, isPrivacyMode, env, task = napiAsyncTask.get()]() {
-        if (uiWindow == nullptr) {
-            TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow");
-            task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
-            return;
-        }
-        auto ret = uiWindow->SetPrivacyMode(isPrivacyMode);
-        if (ret == Rosen::WMError::WM_OK) {
-            task->ResolveWithNoError(env, CreateJsUndefined(env));
+    if (AAFwk::AppUtils::GetInstance().GetOpenEventPriorityConfiguration()) {
+        std::unique_ptr<NapiAsyncTask> napiAsyncTask = CreateEmptyAsyncTask(env, lastParam, &result);
+        auto asyncTask = [uiWindow = uiWindow_, isPrivacyMode, env, task = napiAsyncTask.get()]() {
+            if (uiWindow == nullptr) {
+                TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow");
+                task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                return;
+            }
+            auto ret = uiWindow->SetPrivacyMode(isPrivacyMode);
+            if (ret == Rosen::WMError::WM_OK) {
+                task->ResolveWithNoError(env, CreateJsUndefined(env));
+            } else {
+                task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+            }
+            delete task;
+        };
+        if (napi_status::napi_ok != napi_send_event(env, asyncTask, napi_eprio_vip)) {
+            napiAsyncTask->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
         } else {
-            task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+            napiAsyncTask.release();
         }
-        delete task;
-    };
-    if (napi_status::napi_ok != napi_send_event(env, asyncTask, napi_eprio_vip)) {
-        napiAsyncTask->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
     } else {
-        napiAsyncTask.release();
+        NapiAsyncTask::CompleteCallback complete =
+            [uiWindow = uiWindow_, isPrivacyMode](napi_env env, NapiAsyncTask& task, int32_t status) {
+                if (uiWindow == nullptr) {
+                    TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow");
+                    task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                    return;
+                }
+                auto ret = uiWindow->SetPrivacyMode(isPrivacyMode);
+                if (ret == Rosen::WMError::WM_OK) {
+                    task.ResolveWithNoError(env, CreateJsUndefined(env));
+                } else {
+                    task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                }
+            };
+        NapiAsyncTask::Schedule("JsUIExtensionContentSession::OnSetWindowPrivacyMode",
+            env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
     }
     return result;
 }

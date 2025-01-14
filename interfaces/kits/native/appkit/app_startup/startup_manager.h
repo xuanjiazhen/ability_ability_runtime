@@ -120,6 +120,7 @@ private:
     std::shared_ptr<StartupConfig> defaultConfig_;
     std::shared_ptr<AppExecFwk::EventHandler> mainHandler_;
     std::shared_ptr<AppExecFwk::EventHandler> preloadHandler_;
+    uint32_t apiTargetVersion_;
 
     static int32_t AddStartupTask(const std::string &name, std::map<std::string, std::shared_ptr<StartupTask>> &taskMap,
         std::map<std::string, std::shared_ptr<AppStartupTask>> &allTasks);

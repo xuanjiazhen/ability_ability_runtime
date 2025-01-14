@@ -367,6 +367,8 @@ private:
     bool startUpNewRule_ = false;
     bool isSilentForeground_ = false;
     std::atomic<bool> useAppSettedRecoveryValue_ = false;
+    bool isOpenEventPriority = false;
+    bool isApiGreaterOrEqual16 = false;
 
 #ifdef SUPPORT_SCREEN
 public:

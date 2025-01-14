@@ -24,6 +24,7 @@
 #include <unistd.h>
 
 #include "ability_manager_client.h"
+#include "app_utils.h"
 #include "constants.h"
 #include "ability_delegator.h"
 #include "ability_delegator_registry.h"
@@ -715,8 +716,14 @@ void MainThread::ScheduleAbilityStage(const HapModuleInfo &abilityStage)
         }
         appThread->HandleAbilityStage(abilityStage);
     };
-    if (!mainHandler_->PostTask(task, "MainThread:AbilityStage", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE)) {
-        TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
+    if (isOpenEventPriority && isApiGreaterOrEqual16) {
+        if (!mainHandler_->PostTask(task, "MainThread:AbilityStage", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE)) {
+            TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed with immediate");
+        }
+    } else {
+        if (!mainHandler_->PostTask(task, "MainThread:AbilityStage")) {
+            TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
+        }
     }
 }
 
@@ -820,9 +827,15 @@ void MainThread::ScheduleConfigurationUpdated(const Configuration &config)
         }
         appThread->HandleConfigurationUpdated(config);
     };
-    if (!mainHandler_->PostTask(task, "MainThread:ConfigurationUpdated", 0,
-        AppExecFwk::EventQueue::Priority::IMMEDIATE)) {
-        TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
+    if (isOpenEventPriority && isApiGreaterOrEqual16) {
+        if (!mainHandler_->PostTask(task, "MainThread:ConfigurationUpdated", 0,
+            AppExecFwk::EventQueue::Priority::IMMEDIATE)) {
+            TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed with immediate");
+        }
+    } else {
+        if (!mainHandler_->PostTask(task, "MainThread:ConfigurationUpdated")) {
+            TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
+        }
     }
 }
 
@@ -995,7 +1008,8 @@ bool MainThread::InitCreate(
     application_->SetProcessInfo(processInfo_);
     contextDeal->SetApplicationInfo(applicationInfo_);
     contextDeal->SetBundleCodePath(applicationInfo_->codePath);  // BMS need to add cpath
-
+    isOpenEventPriority = AppUtils::GetInstance().GetOpenEventPriorityConfiguration();
+    isApiGreaterOrEqual16 = AppUtils::GetInstance().IsOpenEventPriorityInApi16(appInfo.apiTargetVersion);
     return true;
 }
 
