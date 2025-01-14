@@ -747,9 +747,7 @@ int AbilityConnectManager::DisconnectAbilityLocked(const sptr<IAbilityConnection
             }
         }
     }
-    for (auto&& connectRecord : list) {
-        RemoveConnectionRecordFromMap(connectRecord);
-    }
+    RemoveConnectionRecordListFromMap(list, connect);
 
     return result;
 }
@@ -2015,6 +2013,26 @@ bool AbilityConnectManager::IsAbilityConnected(const std::shared_ptr<AbilityReco
         return true;
     };
     return std::any_of(connectRecordList.begin(), connectRecordList.end(), isMatch);
+}
+
+void AbilityConnectManager::RemoveConnectionRecordListFromMap(const ConnectListType &connectRecordList, const sptr<IAbilityConnection> &connect)
+{
+    std::lock_guard lock(connectMapMutex_);
+    // disconnect ability enter call
+    if (connect != nullptr) {
+        auto connectObj = connect->AsObject();
+        if (connectMap_.count(connectObj) > 0) {
+            auto &connectList = connectMap_[connectObj];
+            for (auto &connection : connectRecordList) {
+                connectList.remove(connection);
+                if (connectList.empty()) {
+                    RemoveConnectDeathRecipient(connectObj);
+                    connectMap_.erase(connectObj);
+                    return;
+                }
+            }
+        }
+    }
 }
 
 void AbilityConnectManager::RemoveConnectionRecordFromMap(std::shared_ptr<ConnectionRecord> connection)

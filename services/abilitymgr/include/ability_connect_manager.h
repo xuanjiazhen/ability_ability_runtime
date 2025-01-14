@@ -469,6 +469,14 @@ private:
         const std::list<std::shared_ptr<ConnectionRecord>> &connectRecordList);
 
     /**
+     * RemoveConnectionRecordListFromMap.
+     *
+     * @param connectRecordList, the list of the connect record ptr.
+     * @param connect, callback object.
+     */
+    void RemoveConnectionRecordListFromMap(const ConnectListType &connectRecordList, const sptr<IAbilityConnection> &connect);
+
+    /**
      * RemoveConnectionRecordFromMap.
      *
      * @param connect, the ptr of the connect record.
