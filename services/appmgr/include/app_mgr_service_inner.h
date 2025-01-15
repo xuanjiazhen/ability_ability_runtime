@@ -1641,6 +1641,7 @@ private:
     ffrt::mutex renderUidSetLock_;
     ffrt::mutex exceptionLock_;
     ffrt::mutex browserHostLock_;
+    ffrt::mutex restartResidentTaskListMutex_;
     sptr<IStartSpecifiedAbilityResponse> startSpecifiedAbilityResponse_;
     ffrt::mutex configurationObserverLock_;
     std::vector<ConfigurationObserverWithUserId> configurationObservers_;
