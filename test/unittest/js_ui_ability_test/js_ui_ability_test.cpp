@@ -14,12 +14,6 @@
  */
 
 #include <gtest/gtest.h>
-//#include <singleton.h>
-// #include <uv.h>
-// #include "ability_context.h"
-// #include "ability_context_impl.h"
-// #include "ability_business_error.h"
-//#include "errors.h"
 #include "hilog_wrapper.h"
 #define private public
 #define protected public
@@ -27,13 +21,6 @@
 #undef private
 #undef protected
 #include "js_runtime_utils.h"
-// #include "native_engine/impl/ark/ark_native_engine.h"
-// #include "native_engine/impl/ark/ark_native_deferred.h"
-// #include "native_engine/native_engine.h"
-// #include "js_runtime_lite.h"
-// #include "napi_common_want.h"
-
-//#include "mock_parse_requestcode.h"
 
 using namespace testing;
 using namespace testing::ext;
