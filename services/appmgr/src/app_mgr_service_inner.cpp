@@ -3427,6 +3427,7 @@ void AppMgrServiceInner::StartProcessVerifyPermission(const BundleInfo &bundleIn
     }
 }
 
+#ifdef ABILITY_PLATFORM_PC
 int AppMgrServiceInner::CheckPermissionForPC(const BundleInfo &bundleInfo)
 {
     auto token = bundleInfo.applicationInfo.accessTokenId;
@@ -3452,6 +3453,7 @@ int AppMgrServiceInner::CheckPermissionForPC(const BundleInfo &bundleInfo)
         bundleInfo.uid, token);
     return result;
 }
+#endif //ABILITY_PLATFORM_PC
 
 int32_t AppMgrServiceInner::CreatNewStartMsg(const Want &want, const AbilityInfo &abilityInfo,
     const std::shared_ptr<ApplicationInfo> &appInfo, const std::string &processName, AppSpawnStartMsg &startMsg)
