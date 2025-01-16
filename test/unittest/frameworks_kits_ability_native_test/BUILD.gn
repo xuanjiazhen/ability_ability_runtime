@@ -275,6 +275,7 @@ ohos_unittest("ability_context_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_path}/interfaces/inner_api/runtime:runtime",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
   ]
 
@@ -2412,6 +2413,7 @@ ohos_unittest("ability_handler_test") {
     "${ability_runtime_native_path}/appkit:app_context_utils",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_path}/interfaces/inner_api/runtime:runtime",
   ]
 
   external_deps = [
@@ -2765,7 +2767,10 @@ ohos_unittest("form_extension_module_loader_test") {
 
   configs = [ "${ability_runtime_services_path}/common:common_config" ]
 
-  deps = [ "${ability_runtime_native_path}/ability/native:form_extension" ]
+  deps = [
+    "${ability_runtime_native_path}/ability/native:form_extension",
+    "${ability_runtime_path}/interfaces/inner_api/runtime:runtime",
+  ]
 
   external_deps = [
     "ability_base:configuration",

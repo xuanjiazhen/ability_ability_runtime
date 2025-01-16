@@ -43,10 +43,6 @@ config("runtime_public_config") {
   ]
 }
 
-config("runtime_all_deps_config") {
-  include_dirs = [ "include" ]
-}
-
 ohos_shared_library("runtime") {
   branch_protector_ret = "pac_ret"
 
@@ -54,6 +50,7 @@ ohos_shared_library("runtime") {
     "${ability_runtime_path}/services/abilitymgr/include",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper",
     "${ability_runtime_utils_path}/global/constant",
+    "include",
   ]
 
   sources = [
@@ -80,8 +77,6 @@ ohos_shared_library("runtime") {
     ":runtime_public_config",
     "${ability_runtime_services_path}/common:common_config",
   ]
-
-  all_dependent_configs = [ ":runtime_all_deps_config" ]
 
   deps = [
     "${ability_runtime_innerkits_path}/connect_server_manager:connect_server_manager",
