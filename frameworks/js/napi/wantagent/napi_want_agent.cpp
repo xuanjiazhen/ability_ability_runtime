@@ -651,29 +651,32 @@ napi_value JsWantAgent::OnCancel(napi_env env, napi_callback_info info)
     }
 
     std::shared_ptr<WantAgent> wantAgent = std::make_shared<WantAgent>(*pWantAgent);
+    std::shared_ptr<ErrCode> errCode = std::make_shared<ErrCode>(ERR_OK);
+    auto execute = [wantAgent, errCode] () {
+        TAG_LOGD(AAFwkTag::WANTAGENT, "called");
+        *errCode = WantAgentHelper::Cancel(wantAgent);
+    };
+
     NapiAsyncTask::CompleteCallback complete;
-    SetOnCancelCallback(wantAgent, complete);
+    SetOnCancelCallback(wantAgent, errCode, complete);
 
     napi_value result = nullptr;
     NapiAsyncTask::Schedule("JsWantAgent::OnCancel",
-        env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
+        env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
     return result;
 }
 
-void JsWantAgent::SetOnCancelCallback(std::shared_ptr<WantAgent> wantAgent,
+void JsWantAgent::SetOnCancelCallback(std::shared_ptr<WantAgent> wantAgent, std::shared_ptr<ErrCode> result,
     NapiAsyncTask::CompleteCallback &complete)
 {
-    complete = [wantAgent](napi_env env, NapiAsyncTask &task, int32_t status) {
-            TAG_LOGD(AAFwkTag::WANTAGENT, "called");
+    complete = [wantAgent, result](napi_env env, NapiAsyncTask &task, int32_t status) {
 #ifdef ENABLE_ERRCODE
-            ErrCode result = WantAgentHelper::Cancel(wantAgent);
-            if (result != NO_ERROR) {
+            if (*result != NO_ERROR) {
                 task.Reject(env, CreateJsError(env, result, AbilityRuntimeErrorUtil::GetErrMessage(result)));
             } else {
                 task.ResolveWithNoError(env, CreateJsUndefined(env));
             }
 #else
-            WantAgentHelper::Cancel(wantAgent);
             task.Resolve(env, CreateJsUndefined(env));
 #endif
         };
