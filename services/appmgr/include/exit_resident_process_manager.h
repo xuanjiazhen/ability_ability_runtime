@@ -36,8 +36,8 @@ struct ExitResidentProcessInfo {
     ExitResidentProcessInfo() = default;
     ExitResidentProcessInfo(const std::string &bundleName, int32_t uid)
         : bundleName(bundleName), uid(uid) {}
-    std::string bundleName;
     int32_t uid = 0;
+    std::string bundleName;
 };
 
 class ExitResidentProcessManager {
