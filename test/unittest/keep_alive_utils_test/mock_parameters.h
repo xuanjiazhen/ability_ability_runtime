@@ -32,9 +32,6 @@ bool GetBoolParameter(const std::string& key, bool def)
     return g_returnFlag;
 }
 
-
-
 } // namespace system
 } // namespace OHOS
-
 #endif // MOCK_PARAMETERS_H
