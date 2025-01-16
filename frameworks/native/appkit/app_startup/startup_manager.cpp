@@ -18,6 +18,7 @@
 #include <set>
 #include <nlohmann/json.hpp>
 
+#include "app_utils.h"
 #include "hilog_tag_wrapper.h"
 #include "extractor.h"
 #include "hitrace_meter.h"
@@ -113,6 +114,7 @@ int32_t StartupManager::PreloadAppHintStartup(const AppExecFwk::BundleInfo& bund
         }
         self->PreloadAppHintStartupTask();
     });
+    apiTargetVersion_ = bundleInfo.targetVersion;
     return ERR_OK;
 }
 
@@ -310,7 +312,13 @@ int32_t StartupManager::PostMainThreadTask(const std::function<void()> &task)
         TAG_LOGE(AAFwkTag::STARTUP, "null mainHandler");
         return ERR_STARTUP_INTERNAL_ERROR;
     }
-    mainHandler_->PostTask(task, "StartupManager:PostMainThreadTask", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    if (AAFwk::AppUtils::GetInstance().GetOpenEventPriorityConfiguration() &&
+        AAFwk::AppUtils::GetInstance().IsOpenEventPriorityInApi16(apiTargetVersion_)) {
+        mainHandler_->PostTask(task, "StartupManager:PostMainThreadTask", 0,
+            AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    } else {
+        mainHandler_->PostTask(task);
+    }
     return ERR_OK;
 }
 

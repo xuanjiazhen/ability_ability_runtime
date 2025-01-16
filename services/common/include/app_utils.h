@@ -256,6 +256,20 @@ public:
      */
     std::string GetMigrateClientBundleName();
 
+    /**
+     * IsOpenEventPriorityInApi16, is open event priority in api16.
+     *
+     * @return Is open event priority in api16.
+     */
+    bool IsOpenEventPriorityInApi16(uint32_t apiTargetVersion);
+
+    /**
+     * GetOpenEventPriorityConfiguration, get open event priority int configuration.
+     *
+     * @return return open event priority int configuration.
+     */
+    bool GetOpenEventPriorityConfiguration();
+
 private:
     /**
      * LoadResidentProcessInExtremeMemory, load resident process in extreme low memory.

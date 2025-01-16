@@ -17,6 +17,7 @@
 
 #include "ability_lifecycle.h"
 #include "ability_recovery.h"
+#include "app_utils.h"
 #include "configuration_convertor.h"
 #include "display_util.h"
 #include "display_info.h"
@@ -120,6 +121,11 @@ void UIAbility::Init(std::shared_ptr<AppExecFwk::AbilityLocalRecord> record,
     abilityLifecycleExecutor_->DispatchLifecycleState(AppExecFwk::AbilityLifecycleExecutor::LifecycleState::INITIAL);
     if (abilityContext_ != nullptr) {
         abilityContext_->RegisterAbilityCallback(weak_from_this());
+    }
+    isOpenEventPriority = AAFwk::AppUtils::GetInstance().GetOpenEventPriorityConfiguration();
+    if (abilityInfo_ != nullptr) {
+        isApiGreaterOrEqual16 = AAFwk::AppUtils::GetInstance().IsOpenEventPriorityInApi16(
+            abilityInfo_->applicationInfo.apiTargetVersion);
     }
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
@@ -1001,7 +1007,11 @@ void UIAbility::UpdateConfiguration(Rosen::DisplayId to, float density, int32_t 
             }
             ability->OnConfigurationUpdated(configuration);
         };
-        handler_->PostTask(task, "UIAbility::UpdateConfiguration", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        if (isOpenEventPriority && isApiGreaterOrEqual16) {
+            handler_->PostTask(task, "UIAbility::UpdateConfiguration", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        } else {
+            handler_->PostTask(task);
+        }
     }
 }
 
@@ -1138,8 +1148,12 @@ void UIAbility::OnChangeForUpdateConfiguration(const AppExecFwk::Configuration &
             }
             ability->OnConfigurationUpdated(configuration);
         };
-        handler_->PostTask(task, "UIAbility::OnChangeForUpdateConfiguration", 0,
-            AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        if (isOpenEventPriority && isApiGreaterOrEqual16) {
+            handler_->PostTask(task, "UIAbility::OnChangeForUpdateConfiguration", 0,
+                AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        } else {
+            handler_->PostTask(task);
+        }
     }
 }
 
