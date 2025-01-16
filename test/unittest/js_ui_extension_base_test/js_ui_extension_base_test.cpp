@@ -1401,7 +1401,8 @@ HWTEST_F(JsUiExtensionBaseTest, DestroyWindow_0100, TestSize.Level1)
     jsUiExtensionBase->foregroundWindows_.insert(sessionInfo->uiExtensionComponentId);
     jsUiExtensionBase->abilityResultListeners_ = std::make_shared<AbilityResultListeners>();
     auto abilityResultListener = std::make_shared<UISessionAbilityResultListener>();
-    jsUiExtensionBase->abilityResultListeners_->listeners_.emplace(sessionInfo->uiExtensionComponentId, abilityResultListener);
+    jsUiExtensionBase->abilityResultListeners_->listeners_.emplace(sessionInfo->uiExtensionComponentId,
+        abilityResultListener);
     jsUiExtensionBase->DestroyWindow(sessionInfo);
     EXPECT_EQ(jsUiExtensionBase->uiWindowMap_.size(), 0);
     EXPECT_EQ(jsUiExtensionBase->contentSessions_.size(), 0);
