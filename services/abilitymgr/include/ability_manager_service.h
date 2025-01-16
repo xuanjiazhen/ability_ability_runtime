@@ -1997,6 +1997,9 @@ private:
         uint32_t sceneFlag, bool &isColdStart);
     int32_t PreStartInner(const FreeInstallInfo& taskInfo);
     void RemovePreStartSession(const std::string& sessionId);
+    void GetCallerBundleName(EventInfo &eventInfo);
+    void SendPreloadUIExtensionDotInformation(const Want &want, int32_t userId, int32_t errCode, bool isSystem);
+    void SendConnectUIServiceInformation(EventInfo &eventInfo);
 
     int32_t ConnectLocalAbility(
         const Want &want,
