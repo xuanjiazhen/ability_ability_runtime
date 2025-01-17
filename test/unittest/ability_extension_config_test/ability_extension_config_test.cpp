@@ -249,9 +249,11 @@ HWTEST_F(AbilityExtensionConfigTest, ReadFileInfoJson_001, TestSize.Level1)
 HWTEST_F(AbilityExtensionConfigTest, LoadExtensionNetworkEnable_001, TestSize.Level1)
 {
     json jsOnFile;
-    jsOnFile[EXTENSION_NETWORK_ENABLE_FLAG] = true;
+    jsOnFile[EXTENSION_NETWORK_ENABLE_FLAG] = false;
+    ASSERT_NE(extensionConfig_, nullptr);
+    extensionConfig_->configMap_.clear();
     extensionConfig_->LoadExtensionNetworkEnable(jsOnFile, "form");
-    EXPECT_TRUE(extensionConfig_->networkEnableFlags_["form"]);
+    EXPECT_FALSE(extensionConfig_->configMap_["form"].networkEnableFlag);
 }
 
 /*
@@ -262,10 +264,12 @@ HWTEST_F(AbilityExtensionConfigTest, LoadExtensionNetworkEnable_001, TestSize.Le
 HWTEST_F(AbilityExtensionConfigTest, LoadExtensionSAEnable_001, TestSize.Level1)
 {
     json jsOnFile;
-    jsOnFile[EXTENSION_SA_ENABLE_FLAG] = true;
+    jsOnFile[EXTENSION_SA_ENABLE_FLAG] = false;
     auto extType = "form";
+    ASSERT_NE(extensionConfig_, nullptr);
+    extensionConfig_->configMap_.clear();
     extensionConfig_->LoadExtensionSAEnable(jsOnFile, extType);
-    EXPECT_TRUE(extensionConfig_->saEnableFlags_[extType]);
+    EXPECT_FALSE(extensionConfig_->configMap_[extType].saEnableFlag);
 }
 
 /*
@@ -275,12 +279,12 @@ HWTEST_F(AbilityExtensionConfigTest, LoadExtensionSAEnable_001, TestSize.Level1)
  */
 HWTEST_F(AbilityExtensionConfigTest, IsExtensionNetworkEnable_001, TestSize.Level1)
 {
-    json jsOnFile;
-    jsOnFile[EXTENSION_NETWORK_ENABLE_FLAG] = true;
     auto extType = "form";
-    extensionConfig_->networkEnableFlags_[extType] = true;
+    ASSERT_NE(extensionConfig_, nullptr);
+    extensionConfig_->configMap_.clear();
+    extensionConfig_->configMap_[extType].networkEnableFlag = false;
     bool enable = extensionConfig_->IsExtensionNetworkEnable(extType);
-    EXPECT_TRUE(enable);
+    EXPECT_FALSE(enable);
 }
 
 /*
@@ -290,12 +294,12 @@ HWTEST_F(AbilityExtensionConfigTest, IsExtensionNetworkEnable_001, TestSize.Leve
  */
 HWTEST_F(AbilityExtensionConfigTest, IsExtensionSAEnable_001, TestSize.Level1)
 {
-    json jsOnFile;
-    jsOnFile[EXTENSION_SA_ENABLE_FLAG] = true;
     auto extType = "form";
-    extensionConfig_->saEnableFlags_[extType] = true;
+    ASSERT_NE(extensionConfig_, nullptr);
+    extensionConfig_->configMap_.clear();
+    extensionConfig_->configMap_[extType].saEnableFlag = false;
     bool enable = extensionConfig_->IsExtensionSAEnable(extType);
-    EXPECT_TRUE(enable);
+    EXPECT_FALSE(enable);
 }
 }
 }
