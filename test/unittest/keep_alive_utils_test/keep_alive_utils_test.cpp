@@ -96,7 +96,6 @@ HWTEST_F(KeepAliveUtilsTest, NotifyDisableKeepAliveProcesses_0100, TestSize.Leve
         std::make_shared<AAFwk::KeepAliveUtils>();
     keepAliveUtils->NotifyDisableKeepAliveProcesses(bundleInfos, userId);
     EXPECT_NE(keepAliveUtils, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     GTEST_LOG_(INFO) << "NotifyDisableKeepAliveProcesses_0100 end";
 }
@@ -134,7 +133,6 @@ HWTEST_F(KeepAliveUtilsTest, NotifyDisableKeepAliveProcesses_0200, TestSize.Leve
         std::make_shared<AAFwk::KeepAliveUtils>();
     keepAliveUtils->NotifyDisableKeepAliveProcesses(bundleInfos, userId);
     EXPECT_NE(keepAliveUtils, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     GTEST_LOG_(INFO) << "NotifyDisableKeepAliveProcesses_0200 end";
 }
@@ -157,7 +155,6 @@ HWTEST_F(KeepAliveUtilsTest, IsKeepAliveBundle_0100, TestSize.Level1)
         std::make_shared<AAFwk::KeepAliveUtils>();
     auto test = keepAliveUtils->IsKeepAliveBundle(bundleInfo, userId, type);
     EXPECT_EQ(test, false);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     GTEST_LOG_(INFO) << "IsKeepAliveBundle_0100 end";
 }
@@ -180,7 +177,6 @@ HWTEST_F(KeepAliveUtilsTest, IsKeepAliveBundle_0200, TestSize.Level1)
     auto test = keepAliveUtils->IsKeepAliveBundle(bundleInfo, userId, type);
     EXPECT_EQ(test, true);
     EXPECT_EQ(type, AAFwk::KeepAliveType::RESIDENT_PROCESS);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     GTEST_LOG_(INFO) << "IsKeepAliveBundle_0200 end";
 }
@@ -202,7 +198,6 @@ HWTEST_F(KeepAliveUtilsTest, IsKeepAliveBundle_0300, TestSize.Level1)
         std::make_shared<AAFwk::KeepAliveUtils>();
     auto test = keepAliveUtils->IsKeepAliveBundle(bundleInfo, userId, type);
     EXPECT_EQ(test, false);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     GTEST_LOG_(INFO) << "IsKeepAliveBundle_0300 end";
 }
