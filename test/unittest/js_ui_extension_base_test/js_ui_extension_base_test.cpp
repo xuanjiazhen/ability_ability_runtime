@@ -362,21 +362,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnStart_0300, TestSize.Level1)
 }
 
 /**
- * @tc.name: OnStop_1_0100
- * @tc.desc: basic function test.
- * @tc.type: FUNC
- */
-HWTEST_F(JsUiExtensionBaseTest, OnStop_1_0100, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "OnStop_1_0100 start");
-
-    jsUiExtensionBase->OnStop();
-    EXPECT_NE(jsUiExtensionBase, nullptr);
-
-    TAG_LOGI(AAFwkTag::TEST, "OnStop_1_0100 end");
-}
-
-/**
  * @tc.name: OnStop_2_0100
  * @tc.desc: basic function test.
  * @tc.type: FUNC
