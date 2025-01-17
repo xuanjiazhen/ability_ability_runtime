@@ -1661,7 +1661,7 @@ private:
 #endif // SUPPORT_CHILD_PROCESS
 
 #ifdef ABILITY_PLATFORM_CHECK_PERMISSION
-    int CheckPermissionForPC(const BundleInfo &bundleInfo);
+    int CheckStablePermission(const BundleInfo &bundleInfo);
     bool CilulateCheckDeviceStatus(Security::AccessToken::PermissionStateFull &status,
         std::string deviceid);
 #endif //ABILITY_PLATFORM_CHECK_PERMISSION
