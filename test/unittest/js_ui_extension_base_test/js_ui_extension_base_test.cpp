@@ -140,8 +140,6 @@ public:
 
     NativeEngine* create_engine()
     {
-        // panda::RuntimeOption options;
-        // panda::ecmascript::EcmaVM* vm = panda::JSNApi::CreateJSVM(options);
         panda::ecmascript::EcmaVM* vm = NativeReferenceMock().create_vm();
         NativeEngine *engine = new MockArkNativeEngine(vm, nullptr);
         return engine;
@@ -195,23 +193,16 @@ HWTEST_F(JsUiExtensionBaseTest, Init_0100, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "Init_0100 start");
 
     std::shared_ptr<AppExecFwk::AbilityInfo> abilityinfo = std::make_shared<AppExecFwk::AbilityInfo>();
-    ASSERT_TRUE(abilityinfo != nullptr);
     std::shared_ptr<AAFwk::Want> want = std::make_shared<AAFwk::Want>();
-    ASSERT_TRUE(want != nullptr);
     int32_t abilityRecordId = 1;
     sptr<IRemoteObject> token1 = sptr<MockIRemoteObject>::MakeSptr();
-    ASSERT_TRUE(token1 != nullptr);
     std::shared_ptr<AppExecFwk::AbilityLocalRecord> abilityrecord =
         std::make_shared<AppExecFwk::AbilityLocalRecord>(abilityinfo, token1, want, abilityRecordId);
-    ASSERT_TRUE(abilityrecord != nullptr);
     std::shared_ptr<AppExecFwk::OHOSApplication> application =
         std::make_shared<AppExecFwk::OHOSApplication>();
-    ASSERT_TRUE(application != nullptr);
     std::shared_ptr<AppExecFwk::AbilityHandler> handler =
         std::make_shared<AppExecFwk::AbilityHandler>(nullptr);
-    ASSERT_TRUE(handler != nullptr);
     sptr<IRemoteObject> token2 = sptr<MockIRemoteObject>::MakeSptr();
-    ASSERT_TRUE(token2 != nullptr);
 
     jsUiExtensionBase->abilityInfo_ = abilityinfo;
     jsUiExtensionBase->abilityInfo_->moduleName = TEST_MODULENAME;
