@@ -223,7 +223,6 @@ HWTEST_F(JsUiExtensionBaseTest, Init_0100, TestSize.Level1)
     EXPECT_EQ(jsUiExtensionBase->token_, abilityrecord->token_);
     EXPECT_EQ(jsUiExtensionBase->jsRuntime_.moduleName_,
         jsUiExtensionBase->abilityInfo_->moduleName);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "Init_0100 end");
 }
@@ -244,7 +243,6 @@ HWTEST_F(JsUiExtensionBaseTest, BindContext_0100, TestSize.Level1)
     jsUiExtensionBase->context_ = std::make_shared<UIExtensionContext>();
     jsUiExtensionBase->BindContext();
     EXPECT_NE(jsUiExtensionBase->shellContextRef_, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "BindContext_0100 end");
 }
@@ -261,7 +259,6 @@ HWTEST_F(JsUiExtensionBaseTest, BindContext_0200, TestSize.Level1)
     jsUiExtensionBase->jsObj_ = nullptr;
     jsUiExtensionBase->BindContext();
     EXPECT_EQ(jsUiExtensionBase->shellContextRef_, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "BindContext_0200 end");
 }
@@ -283,7 +280,6 @@ HWTEST_F(JsUiExtensionBaseTest, BindContext_0300, TestSize.Level1)
 
     jsUiExtensionBase->BindContext();
     EXPECT_EQ(jsUiExtensionBase->shellContextRef_, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "BindContext_0300 end");
 }
@@ -305,7 +301,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnStart_0100, TestSize.Level1)
     jsUiExtensionBase->context_ = nullptr;
     jsUiExtensionBase->OnStart(want, launchParam, sessionInfo);
     EXPECT_EQ(launchParam.launchReason, 9);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnStart_0100 end");
 }
@@ -327,7 +322,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnStart_0200, TestSize.Level1)
     jsUiExtensionBase->context_ = std::make_shared<UIExtensionContext>();
     jsUiExtensionBase->OnStart(want, launchParam, sessionInfo);
     EXPECT_EQ(launchParam.launchReason, 9);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnStart_0200 end");
 }
@@ -363,7 +357,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnStart_0300, TestSize.Level1)
     want.operation_.deviceId_ = TEST_DEVICEID;
     jsUiExtensionBase->OnStart(want, launchParam, sessionInfo);
     EXPECT_EQ(launchParam.launchReason, 9);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnStart_0300 end");
 }
@@ -379,7 +372,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnStop_1_0100, TestSize.Level1)
 
     jsUiExtensionBase->OnStop();
     EXPECT_NE(jsUiExtensionBase, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnStop_1_0100 end");
 }
@@ -398,7 +390,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnStop_2_0100, TestSize.Level1)
     jsUiExtensionBase->jsObj_ = nullptr;
     jsUiExtensionBase->OnStop(callbackInfo, isAsyncCallback);
     EXPECT_EQ(isAsyncCallback, false);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnStop_2_0100 end");
 }
@@ -421,7 +412,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnStop_2_0200, TestSize.Level1)
     jsUiExtensionBase->OnStop(callbackInfo, isAsyncCallback);
     EXPECT_EQ(isAsyncCallback, false);
     EXPECT_TRUE(callbackInfo->callbackStack_.empty());
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnStop_2_0200 end");
 }
@@ -453,7 +443,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnStopCallBack_0100, TestSize.Level1)
     jsUiExtensionBase->context_->applicationContext_->callbacks_.push_back(jsablcb);
     jsUiExtensionBase->OnStopCallBack();
     EXPECT_FALSE(jsUiExtensionBase->context_->applicationContext_->callbacks_.empty());
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnStopCallBack_0100 end");
 }
@@ -468,10 +457,8 @@ HWTEST_F(JsUiExtensionBaseTest, OnStopCallBack_0200, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "OnStopCallBack_0200 start");
 
     jsUiExtensionBase->context_ = nullptr;
-
     jsUiExtensionBase->OnStopCallBack();
     EXPECT_FALSE(jsUiExtensionBase->context_->applicationContext_->callbacks_.empty());
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnStopCallBack_0200 end");
 }
@@ -488,7 +475,6 @@ HWTEST_F(JsUiExtensionBaseTest, CheckPromise_0100, TestSize.Level1)
     napi_value result =  nullptr;
     bool promise = jsUiExtensionBase->CheckPromise(result);
     EXPECT_EQ(promise, false);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "CheckPromise_0100 end");
 }
@@ -516,7 +502,6 @@ HWTEST_F(JsUiExtensionBaseTest, CheckPromise_0200, TestSize.Level1)
 
     bool test = jsUiExtensionBase->CheckPromise(promise);
     EXPECT_EQ(test, true);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGE(AAFwkTag::TEST, "CheckPromise_0200 end.");
 }
@@ -538,7 +523,6 @@ HWTEST_F(JsUiExtensionBaseTest, CallPromise_0100, TestSize.Level1)
 
     bool test = jsUiExtensionBase->CallPromise(promise, callbackInfo);
     EXPECT_EQ(test, false);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "CallPromise_0100 end");
 }
@@ -568,7 +552,6 @@ HWTEST_F(JsUiExtensionBaseTest, CallPromise_0200, TestSize.Level1)
 
     auto test = jsUiExtensionBase->CallPromise(promise, callbackInfo);
     EXPECT_EQ(test, true);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGE(AAFwkTag::TEST, "CallPromise_0200 end.");
 }
@@ -587,7 +570,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0100, TestSize.Level1)
     AAFwk::WindowCommand wincmd = AAFwk::WIN_CMD_FOREGROUND;
     jsUiExtensionBase->OnCommandWindow(want, sessionInfo, AAFwk::WIN_CMD_FOREGROUND);
     EXPECT_TRUE(jsUiExtensionBase->foregroundWindows_.empty());
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnCommandWindow_0100 end");
 }
@@ -614,7 +596,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0200, TestSize.Level1)
     jsUiExtensionBase->context_->token_ = sptr<MockIRemoteObject>::MakeSptr();
     jsUiExtensionBase->OnCommandWindow(want, sessionInfo, AAFwk::WIN_CMD_FOREGROUND);
     EXPECT_EQ(jsUiExtensionBase->foregroundWindows_.size(), 1);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnCommandWindow_0300 end");
 }
@@ -638,7 +619,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0300, TestSize.Level1)
     jsUiExtensionBase->foregroundWindows_.insert(sessionInfo->uiExtensionComponentId);
     jsUiExtensionBase->OnCommandWindow(want, sessionInfo, wincmd);
     EXPECT_EQ(jsUiExtensionBase->foregroundWindows_.size(), 0);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnCommandWindow_0300 end");
 }
@@ -670,7 +650,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0400, TestSize.Level1)
     EXPECT_EQ(jsUiExtensionBase->uiWindowMap_.size(), 0);
     EXPECT_EQ(jsUiExtensionBase->contentSessions_.size(), 0);
     EXPECT_EQ(jsUiExtensionBase->abilityResultListeners_->listeners_.size(), 0);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnCommandWindow_0400 end");
 }
@@ -693,7 +672,6 @@ HWTEST_F(JsUiExtensionBaseTest, ForegroundWindowInitInsightIntentExecutorInfo_01
     jsUiExtensionBase->context_->token_ = sptr<MockIRemoteObject>::MakeSptr();
     jsUiExtensionBase->ForegroundWindowInitInsightIntentExecutorInfo(want, sessionInfo, executorInfo);
     EXPECT_EQ(executorInfo.token, jsUiExtensionBase->context_->token_);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "ForegroundWindowInitInsightIntentExecutorInfo_0100 end");
 }
@@ -712,7 +690,6 @@ HWTEST_F(JsUiExtensionBaseTest, ForegroundWindowInitInsightIntentExecutorInfo_02
     InsightIntentExecutorInfo executorInfo;
     jsUiExtensionBase->ForegroundWindowInitInsightIntentExecutorInfo(want, sessionInfo, executorInfo);
     EXPECT_EQ(executorInfo.token, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "ForegroundWindowInitInsightIntentExecutorInfo_0200 end");
 }
@@ -732,7 +709,6 @@ HWTEST_F(JsUiExtensionBaseTest, ForegroundWindowInitInsightIntentExecutorInfo_03
     jsUiExtensionBase->context_ = nullptr;
     jsUiExtensionBase->ForegroundWindowInitInsightIntentExecutorInfo(want, sessionInfo, executorInfo);
     EXPECT_EQ(executorInfo.token, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "ForegroundWindowInitInsightIntentExecutorInfo_0300 end");
 }
@@ -754,7 +730,6 @@ HWTEST_F(JsUiExtensionBaseTest, ForegroundWindowInitInsightIntentExecutorInfo_04
     jsUiExtensionBase->context_->abilityInfo_ = nullptr;
     jsUiExtensionBase->ForegroundWindowInitInsightIntentExecutorInfo(want, sessionInfo, executorInfo);
     EXPECT_TRUE(executorInfo.hapPath.empty());
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "ForegroundWindowInitInsightIntentExecutorInfo_0400 end");
 }
@@ -783,7 +758,6 @@ HWTEST_F(JsUiExtensionBaseTest, ForegroundWindowWithInsightIntent_0100, TestSize
     jsUiExtensionBase->contentSessions_.emplace(sessionInfo->uiExtensionComponentId, ptr);
     bool test = jsUiExtensionBase->ForegroundWindowWithInsightIntent(want, sessionInfo, needForeground);
     EXPECT_EQ(test, true);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "ForegroundWindowWithInsightIntent_0100 end");
 }
@@ -800,7 +774,6 @@ HWTEST_F(JsUiExtensionBaseTest, ForegroundWindowWithInsightIntent_0200, TestSize
     AAFwk::Want want;
     sptr<AAFwk::SessionInfo> sessionInfo = nullptr;
     EXPECT_EQ(jsUiExtensionBase->ForegroundWindowWithInsightIntent(want, sessionInfo, false), false);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "ForegroundWindowWithInsightIntent_0200 end");
 }
@@ -819,7 +792,6 @@ HWTEST_F(JsUiExtensionBaseTest, ExecuteInsightIntentDone_0100, TestSize.Level1)
     jsUiExtensionBase->token_ = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
     jsUiExtensionBase->ExecuteInsightIntentDone(intentId, result);
     EXPECT_NE(jsUiExtensionBase, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "ExecuteInsightIntentDone_0100 end");
 }
@@ -844,7 +816,6 @@ HWTEST_F(JsUiExtensionBaseTest, PostInsightIntentExecuted_0100, TestSize.Level1)
     jsUiExtensionBase->uiWindowMap_.emplace(sessionInfo->uiExtensionComponentId, uiwindow);
     jsUiExtensionBase->PostInsightIntentExecuted(sessionInfo, result, needForeground);
     EXPECT_EQ(jsUiExtensionBase->foregroundWindows_.size(), 1);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "PostInsightIntentExecuted_0100 end");
 }
@@ -864,7 +835,6 @@ HWTEST_F(JsUiExtensionBaseTest, PostInsightIntentExecuted_0200, TestSize.Level1)
     jsUiExtensionBase->token_ = nullptr;
     jsUiExtensionBase->PostInsightIntentExecuted(sessionInfo, result, needForeground);
     EXPECT_TRUE(jsUiExtensionBase->foregroundWindows_.empty());
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "PostInsightIntentExecuted_0200 end");
 }
@@ -888,7 +858,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindowDone_0100, TestSize.Level1)
     jsUiExtensionBase->context_->token_ = sptr<MockIRemoteObject>::MakeSptr();
     jsUiExtensionBase->OnCommandWindowDone(sessionInfo, winCmd);
     EXPECT_NE(jsUiExtensionBase, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnCommandWindowDone_0100 end");
 }
@@ -909,7 +878,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindowDone_0200, TestSize.Level1)
     jsUiExtensionBase->context_->token_ = sptr<MockIRemoteObject>::MakeSptr();
     jsUiExtensionBase->OnCommandWindowDone(sessionInfo, winCmd);
     EXPECT_NE(jsUiExtensionBase, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnCommandWindowDone_0200 end");
 }
@@ -932,7 +900,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindowDone_0300, TestSize.Level1)
     jsUiExtensionBase->context_->token_ = sptr<MockIRemoteObject>::MakeSptr();
     jsUiExtensionBase->OnCommandWindowDone(sessionInfo, winCmd);
     EXPECT_NE(jsUiExtensionBase, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnCommandWindowDone_0300 end");
 }
@@ -952,7 +919,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindowDone_0400, TestSize.Level1)
     jsUiExtensionBase->context_ = nullptr;
     jsUiExtensionBase->OnCommandWindowDone(sessionInfo, winCmd);
     EXPECT_NE(jsUiExtensionBase, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnCommandWindowDone_0400 end");
 }
@@ -975,7 +941,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnInsightIntentExecuteDone_0100, TestSize.Level1
     jsUiExtensionBase->uiWindowMap_.emplace(sessionInfo->uiExtensionComponentId, uiwindow);
     jsUiExtensionBase->OnInsightIntentExecuteDone(sessionInfo, result);
     EXPECT_EQ(jsUiExtensionBase->foregroundWindows_.size(), 1);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnInsightIntentExecuteDone_0100 end");
 }
@@ -993,7 +958,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnInsightIntentExecuteDone_0200, TestSize.Level1
     AppExecFwk::InsightIntentExecuteResult result;
     jsUiExtensionBase->OnInsightIntentExecuteDone(sessionInfo, result);
     EXPECT_TRUE(jsUiExtensionBase->foregroundWindows_.empty());
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnInsightIntentExecuteDone_0200 end");
 }
@@ -1011,7 +975,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnInsightIntentExecuteDone_0300, TestSize.Level1
     AppExecFwk::InsightIntentExecuteResult result;
     jsUiExtensionBase->OnInsightIntentExecuteDone(sessionInfo, result);
     EXPECT_TRUE(jsUiExtensionBase->foregroundWindows_.empty());
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnInsightIntentExecuteDone_0300 end");
 }
@@ -1030,7 +993,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommand_0100, TestSize.Level1)
     int32_t startId = 1;
     jsUiExtensionBase->OnCommand(want, restart, startId);
     EXPECT_NE(jsUiExtensionBase, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnCommand_0100 end");
 }
@@ -1052,7 +1014,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommand_0200, TestSize.Level1)
     jsUiExtensionBase->jsRuntime_.jsEnv_->engine_ = nativeRefenceMock->create_engine();
     jsUiExtensionBase->OnCommand(want, restart, startId);
     EXPECT_NE(jsUiExtensionBase, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnCommand_0200 end");
 }
@@ -1082,7 +1043,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnForeground_0100, TestSize.Level1)
     jsUiExtensionBase->uiWindowMap_.emplace(sessionInfo->uiExtensionComponentId, uiwindow);
     jsUiExtensionBase->OnForeground(want, sessionInfo);
     EXPECT_EQ(jsUiExtensionBase->foregroundWindows_.size(), 1);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnForeground_0100 end");
 }
@@ -1103,7 +1063,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnForeground_0200, TestSize.Level1)
     jsUiExtensionBase->uiWindowMap_.emplace(sessionInfo->uiExtensionComponentId, uiwindow);
     jsUiExtensionBase->OnForeground(want, sessionInfo);
     EXPECT_EQ(jsUiExtensionBase->foregroundWindows_.size(), 1);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnForeground_0200 end");
 }
@@ -1149,7 +1108,6 @@ HWTEST_F(JsUiExtensionBaseTest, CallJsOnSessionCreate_0100, TestSize.Level1)
     bool test = jsUiExtensionBase->CallJsOnSessionCreate(want, sessionInfo, uiwindow, uiExtensionComponentId);
     EXPECT_EQ(jsUiExtensionBase->contentSessions_.size(), 1);
     EXPECT_EQ(test, true);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "CallJsOnSessionCreate_0100 end");
 }
@@ -1169,7 +1127,6 @@ HWTEST_F(JsUiExtensionBaseTest, CallJsOnSessionCreate_0200, TestSize.Level1)
     sptr<Rosen::Window> uiwindow = sptr<Rosen::Window>::MakeSptr();
     bool test =  jsUiExtensionBase->CallJsOnSessionCreate(want, sessionInfo, uiwindow, uiExtensionComponentId);
     EXPECT_EQ(test, false);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "CallJsOnSessionCreate_0200 end");
 }
@@ -1193,7 +1150,6 @@ HWTEST_F(JsUiExtensionBaseTest, CreateWindowOption_0100, TestSize.Level1)
     jsUiExtensionBase->context_->abilityInfo_->name = TEST_NAME;
     auto test = jsUiExtensionBase->CreateWindowOption(sessionInfo);
     EXPECT_NE(test, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "CreateWindowOption_0100 end");
 }
@@ -1214,7 +1170,6 @@ HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0100, TestSize.Level1)
     jsUiExtensionBase->uiWindowMap_.emplace(sessionInfo->uiExtensionComponentId, uiwindow);
     bool test = jsUiExtensionBase->HandleSessionCreate(want, sessionInfo);
     EXPECT_EQ(test, true);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "HandleSessionCreate_0100 end");
 }
@@ -1233,7 +1188,6 @@ HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0200, TestSize.Level1)
     sessionInfo->uiExtensionComponentId = 0;
     bool test = jsUiExtensionBase->HandleSessionCreate(want, sessionInfo);
     EXPECT_EQ(test, false);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "HandleSessionCreate_0200 end");
 }
@@ -1253,7 +1207,6 @@ HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0300, TestSize.Level1)
     jsUiExtensionBase->context_ = nullptr;
     bool test = jsUiExtensionBase->HandleSessionCreate(want, sessionInfo);
     EXPECT_EQ(test, false);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "HandleSessionCreate_0300 end");
 }
@@ -1274,7 +1227,6 @@ HWTEST_F(JsUiExtensionBaseTest, HandleSessionCreate_0400, TestSize.Level1)
     jsUiExtensionBase->context_->abilityInfo_ = nullptr;
     bool test = jsUiExtensionBase->HandleSessionCreate(want, sessionInfo);
     EXPECT_EQ(test, false);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "HandleSessionCreate_0400 end");
 }
@@ -1292,7 +1244,6 @@ HWTEST_F(JsUiExtensionBaseTest, ForegroundWindow_0100, TestSize.Level1)
     sptr<AAFwk::SessionInfo> sessionInfo = nullptr;
     jsUiExtensionBase->ForegroundWindow(want, sessionInfo);
     EXPECT_TRUE(jsUiExtensionBase->foregroundWindows_.empty());
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "ForegroundWindow_0100 end");
 }
@@ -1333,7 +1284,6 @@ HWTEST_F(JsUiExtensionBaseTest, BackgroundWindow_0100, TestSize.Level1)
     jsUiExtensionBase->foregroundWindows_.insert(sessionInfo->uiExtensionComponentId);
     jsUiExtensionBase->BackgroundWindow(sessionInfo);
     EXPECT_EQ(jsUiExtensionBase->foregroundWindows_.size(), 0);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "BackgroundWindow_0100 end");
 }
@@ -1351,7 +1301,6 @@ HWTEST_F(JsUiExtensionBaseTest, BackgroundWindow_0200, TestSize.Level1)
     jsUiExtensionBase->foregroundWindows_.insert(1);
     jsUiExtensionBase->BackgroundWindow(sessionInfo);
     EXPECT_NE(jsUiExtensionBase->foregroundWindows_.size(), 0);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "BackgroundWindow_0200 end");
 }
@@ -1369,7 +1318,6 @@ HWTEST_F(JsUiExtensionBaseTest, BackgroundWindow_0300, TestSize.Level1)
     jsUiExtensionBase->foregroundWindows_.insert(1);
     jsUiExtensionBase->BackgroundWindow(sessionInfo);
     EXPECT_NE(jsUiExtensionBase->foregroundWindows_.size(), 0);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "BackgroundWindow_0300 end");
 }
@@ -1399,7 +1347,6 @@ HWTEST_F(JsUiExtensionBaseTest, DestroyWindow_0100, TestSize.Level1)
     EXPECT_EQ(jsUiExtensionBase->contentSessions_.size(), 0);
     EXPECT_EQ(jsUiExtensionBase->foregroundWindows_.size(), 0);
     EXPECT_EQ(jsUiExtensionBase->abilityResultListeners_->listeners_.size(), 0);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "DestroyWindow_0100 end");
 }
@@ -1457,7 +1404,6 @@ HWTEST_F(JsUiExtensionBaseTest, CallObjectMethod_0100, TestSize.Level1)
     napi_value argv[] = { vv->GetNapiValue() };
     auto test = jsUiExtensionBase->CallObjectMethod("onTest", argv, 1, true);
     EXPECT_EQ(test, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "CallObjectMethod_0100 end");
 }
@@ -1476,7 +1422,6 @@ HWTEST_F(JsUiExtensionBaseTest, CallObjectMethod_0200, TestSize.Level1)
     napi_value argv[] = { vv->GetNapiValue() };
     auto test = jsUiExtensionBase->CallObjectMethod("onCreate", argv, 1, true);
     EXPECT_EQ(test, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "CallObjectMethod_0200 end");
 }
@@ -1495,7 +1440,6 @@ HWTEST_F(JsUiExtensionBaseTest, CallObjectMethod_0300, TestSize.Level1)
     napi_value argv[] = { vv->GetNapiValue() };
     auto test = jsUiExtensionBase->CallObjectMethod("onCreate", argv, 1, true);
     EXPECT_EQ(test, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "CallObjectMethod_0300 end");
 }
@@ -1513,7 +1457,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnConfigurationUpdated_0100, TestSize.Level1)
     jsUiExtensionBase->context_ = nullptr;
     jsUiExtensionBase->OnConfigurationUpdated(configuration);
     EXPECT_NE(jsUiExtensionBase, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnConfigurationUpdated_0100 end");
 }
@@ -1533,7 +1476,6 @@ HWTEST_F(JsUiExtensionBaseTest, Dump_0100, TestSize.Level1)
     jsUiExtensionBase->jsObj_ = nullptr;
     jsUiExtensionBase->Dump(params, info);
     EXPECT_TRUE(info.empty());
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "Dump_0100 end");
 }
@@ -1556,7 +1498,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnAbilityResult_0100, TestSize.Level1)
     jsUiExtensionBase->abilityResultListeners_->listeners_.emplace(requestcode, nullptr);
     jsUiExtensionBase->OnAbilityResult(requestcode, resultcode, resultdata);
     EXPECT_EQ(jsUiExtensionBase->context_->resultCallbacks_.size(), 0);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnAbilityResult_0100 end");
 }
@@ -1575,7 +1516,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnAbilityResult_0200, TestSize.Level1)
     jsUiExtensionBase->context_ = nullptr;
     jsUiExtensionBase->OnAbilityResult(requestcode, resultcode, resultdata);
     EXPECT_NE(jsUiExtensionBase, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "OnAbilityResult_0200 end");
 }
@@ -1593,7 +1533,6 @@ HWTEST_F(JsUiExtensionBaseTest, SetAbilityInfo_0100, TestSize.Level1)
     auto abilityinfo = std::make_shared<AppExecFwk::AbilityInfo>();
     jsUiExtensionBase->SetAbilityInfo(abilityinfo);
     EXPECT_NE(jsUiExtensionBase->abilityInfo_, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "SetAbilityInfo_0100 end");
 }
@@ -1611,7 +1550,6 @@ HWTEST_F(JsUiExtensionBaseTest, SetContext_0100, TestSize.Level1)
     auto context = std::make_shared<UIExtensionContext>();
     jsUiExtensionBase->SetContext(context);
     EXPECT_NE(jsUiExtensionBase->context_, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "SetContext_0100 end");
 }
@@ -1628,7 +1566,6 @@ HWTEST_F(JsUiExtensionBaseTest, ConfigurationUpdated_0100, TestSize.Level1)
     jsUiExtensionBase->context_ = nullptr;
     jsUiExtensionBase->ConfigurationUpdated();
     EXPECT_NE(jsUiExtensionBase, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "ConfigurationUpdated_0100 end");
 }
@@ -1653,7 +1590,6 @@ HWTEST_F(JsUiExtensionBaseTest, OnDisplayInfoChange_0100, TestSize.Level1)
     auto handler = std::make_shared<AppExecFwk::AbilityHandler>(nullptr);
     jsUiExtensionBase->handler_ = handler;
     jsUiExtensionBase->OnDisplayInfoChange(token, displayId, density, orientation);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, " OnDisplayInfoChange_0100 end");
 }
@@ -1671,7 +1607,6 @@ HWTEST_F(JsUiExtensionBaseTest, RegisterDisplayInfoChangedListener_0100, TestSiz
     jsUiExtensionBase->context_->token_ = sptr<MockIRemoteObject>::MakeSptr();
     jsUiExtensionBase->RegisterDisplayInfoChangedListener();
     EXPECT_NE(jsUiExtensionBase, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "RegisterDisplayInfoChangedListener_0100 end");
 }
@@ -1689,7 +1624,6 @@ HWTEST_F(JsUiExtensionBaseTest, UnregisterDisplayInfoChangedListener_0100, TestS
     jsUiExtensionBase->context_->token_ = sptr<MockIRemoteObject>::MakeSptr();
     jsUiExtensionBase->UnregisterDisplayInfoChangedListener();
     EXPECT_NE(jsUiExtensionBase, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     TAG_LOGI(AAFwkTag::TEST, "RegisterDisplayInfoChangedListener_0100 end");
 }
