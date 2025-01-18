@@ -49,6 +49,9 @@ bool ExtensionPermissionsUtil::CheckSAPermission(const AppExecFwk::ExtensionAbil
     } else if (extensionType == AppExecFwk::ExtensionAbilityType::BACKUP) {
         checkRet = PermissionVerification::GetInstance()->VerifyCallingPermission(
             "ohos.permission.CONNECT_BACKUP_EXTENSION");
+    } else if (extensionType == AppExecFwk::ExtensionAbilityType::DISTRIBUTED) {
+        checkRet = PermissionVerification::GetInstance()->VerifyCallingPermission(
+            "ohos.permission.CONNECT_DISTRIBUTED_EXTENSION");
     } else if (extensionType == AppExecFwk::ExtensionAbilityType::ENTERPRISE_ADMIN) {
         checkRet = PermissionVerification::GetInstance()->VerifyCallingPermission(
             "ohos.permission.CONNECT_ENTERPRISE_ADMIN_EXTENSION");

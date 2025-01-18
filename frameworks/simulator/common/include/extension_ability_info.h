@@ -57,6 +57,7 @@ enum class ExtensionAbilityType {
     DRIVER = 18,
     APP_ACCOUNT_AUTHORIZATION = 19,
     FENCE = 24,
+    DISTRIBUTED = 27,
     UNSPECIFIED = 255,
     UI = 256,
     HMS_ACCOUNT = 257,

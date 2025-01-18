@@ -2771,6 +2771,7 @@ void AbilityManagerService::ReportAppConnectOtherExtensionEvent(const AppExecFwk
         AppExecFwk::ExtensionAbilityType::STATICSUBSCRIBER,
         AppExecFwk::ExtensionAbilityType::WALLPAPER,
         AppExecFwk::ExtensionAbilityType::BACKUP,
+        AppExecFwk::ExtensionAbilityType::DISTRIBUTED,
         AppExecFwk::ExtensionAbilityType::ENTERPRISE_ADMIN,
         AppExecFwk::ExtensionAbilityType::PRINT,
         AppExecFwk::ExtensionAbilityType::VPN,
