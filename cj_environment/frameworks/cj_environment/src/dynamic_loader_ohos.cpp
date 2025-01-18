@@ -120,6 +120,61 @@ static void InitSharedLibsSonames()
 }
 
 extern "C" {
+void DynamicInitNewNamespace(Dl_namespace* ns, void* parent, const char* entries, const char* name)
+{
+    if (!ns || !entries || !name) {
+        LOGE("Invaild args for init namespace.");
+        return;
+    }
+    if (HasInited.count(std::string(name))) {
+        return;
+    }
+    dlns_init(ns, name);
+    auto status = dlns_create2(ns, entries, 0);
+    std::string errMsg;
+    if (status != 0) {
+        switch (status) {
+            case FILE_EXISTS:
+                errMsg = "dlns_create failed: File exists";
+                break;
+            case INVALID_ARGUMENT:
+                errMsg = "dlns_create failed: Invalid argument";
+                break;
+            case OUT_OF_MEMORY:
+                errMsg = "dlns_create failed: Out of memory";
+                break;
+            default:
+                errMsg = "dlns_create failed, status: " + std::to_string(status);
+        }
+        if (sprintf_s(g_dlError, sizeof(g_dlError), errMsg.c_str()) == -1) {
+            LOGE("Fail to generate error msg.");
+            return;
+        }
+        return;
+    }
+    if (parent) {
+        dlns_inherit((Dl_namespace*)parent, ns, "allow_all_shared_libs");
+    }
+    Dl_namespace current;
+    dlns_get(nullptr, &current);
+    if (strcmp(name, "moduleNs_default") != 0) {
+        dlns_inherit(ns, &current, "allow_all_shared_libs");
+    } else {
+        InitSharedLibsSonames();
+        dlns_inherit(ns, &current, g_sharedLibsSonames);
+        if (g_sharedLibsSonames != nullptr) {
+            delete[] g_sharedLibsSonames;
+            g_sharedLibsSonames = nullptr;
+        }
+    }
+    Dl_namespace ndk;
+    dlns_get("ndk", &ndk);
+    dlns_inherit(ns, &ndk, "allow_all_shared_libs");
+    dlns_inherit(&ndk, &current, "allow_all_shared_libs");
+    dlns_inherit(&current, &ndk, "allow_all_shared_libs");
+    HasInited.insert(std::string(name));
+}
+
 void DynamicInitNamespace(Dl_namespace* ns, void* parent, const char* entries, const char* name)
 {
     if (!ns || !entries || !name) {
@@ -176,7 +231,10 @@ void DynamicInitNamespace(Dl_namespace* ns, void* parent, const char* entries, c
 void* DynamicLoadLibrary(Dl_namespace *ns, const char* dlPath, unsigned int mode)
 {
     if (ns == nullptr) {
-        dlns_get("cj_app", ns);
+        int ret = dlns_get("cj_app", ns);
+        if (ret != 0) {
+            dlns_get("moduleNs_default", ns)
+        }
     }
 
     auto result = dlopen_ns(ns, dlPath, mode | RTLD_GLOBAL | RTLD_NOW);
