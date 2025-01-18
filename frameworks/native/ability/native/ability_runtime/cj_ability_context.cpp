@@ -241,7 +241,8 @@ void CJAbilityContext::DisconnectAbility(const AAFwk::Want& want, int64_t connec
         return;
     }
     auto connection = new CJAbilityConnectCallback(connectionId);
-    context_->ConnectAbility(want, connection);
+    int32_t accountId = -1;
+    context_->DisconnectAbility(want, connection, accountId);
 }
 
 int32_t CJAbilityContext::StartAbilityForResult(const AAFwk::Want& want, int32_t requestCode, RuntimeTask&& task)

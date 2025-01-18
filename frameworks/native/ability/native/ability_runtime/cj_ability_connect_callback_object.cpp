@@ -18,6 +18,7 @@
 #include "cj_remote_object_ffi.h"
 #include "cj_macro.h"
 #include "hilog_tag_wrapper.h"
+#include "remote_object_impl.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -124,13 +125,8 @@ void CJAbilityConnectCallback::OnAbilityConnectDone(
     }
 
     ElementNameHandle elementNameHandle = const_cast<AppExecFwk::ElementName*>(&element);
-    // The cj side is responsible for the release.
-    auto cjRemoteObj = FFI::FFIData::Create<AppExecFwk::CJRemoteObject>(remoteObject);
-    if (cjRemoteObj == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null cjRemoteObj");
-        return;
-    }
-    g_cjAbilityConnectCallbackFuncs->onConnect(callbackId_, elementNameHandle, cjRemoteObj->GetID(), resultCode);
+    RetDataI64 cjRemoteObj = CJ_rpc_CreateRemoteObject(remoteObject);
+    g_cjAbilityConnectCallbackFuncs->onConnect(callbackId_, elementNameHandle, cjRemoteObj, resultCode);
 }
 
 void CJAbilityConnectCallback::OnAbilityDisconnectDone(const AppExecFwk::ElementName& element, int resultCode)

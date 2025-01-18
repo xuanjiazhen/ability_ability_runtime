@@ -456,7 +456,7 @@ int32_t FFIAbilityContextConnectAbility(int64_t id, WantHandle want, int64_t con
     }
     auto actualWant = reinterpret_cast<AAFwk::Want*>(want);
     auto res = context->ConnectAbility(*actualWant, connection);
-    return res ? SUCCESS_CODE : ERR_INVALID_INSTANCE_CODE;
+    return res ? SUCCESS_CODE : static_cast<int32_t>(GetJsErrorCodeByNativeError(res));
 }
 
 int32_t FFIAbilityContextConnectAbilityWithAccount(int64_t id, WantHandle want, int32_t accountId, int64_t connection)
@@ -479,7 +479,7 @@ int32_t FFIAbilityContextDisconnectAbility(int64_t id, WantHandle want, int64_t 
         return ERR_INVALID_INSTANCE_CODE;
     }
     auto actualWant = reinterpret_cast<AAFwk::Want*>(want);
-    context->ConnectAbility(*actualWant, connection);
+    context->DisconnectAbility(*actualWant, connection);
     return SUCCESS_CODE;
 }
 
@@ -965,7 +965,7 @@ int32_t FFIAbilityContextStartAbilityByCall(int64_t id, WantHandle wantHandle,
     auto ret = context->StartAbilityByCall(*want, callerCallBack, userId);
     if (ret != 0) {
         TAG_LOGE(AAFwkTag::CONTEXT, "startAbility failed");
-        return ret;
+        return static_cast<int32_t>(GetJsErrorCodeByNativeError(ret));
     }
     if (calls->remoteCallee == nullptr) {
         TAG_LOGI(AAFwkTag::CONTEXT, "null remoteCallee");
