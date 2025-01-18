@@ -53,7 +53,7 @@ void RegisterCJUncaughtExceptionHandlerTest(const CJUncaughtExceptionInfo &handl
  */
 HWTEST_F(CjEnvironmentTest, CJEnvironment_GetInstance_0100, TestSize.Level1)
 {
-    auto cJEnvironment = std::make_shared<CJEnvironment>();
+    auto cJEnvironment = std::make_shared<CJEnvironment>(NSMode::APP);
     CJEnvironment *ret = nullptr;
     ret = cJEnvironment->GetInstance();
     EXPECT_NE(ret, nullptr);
@@ -179,7 +179,7 @@ HWTEST_F(CjEnvironmentTest, CJEnvironment_StopRuntime_0100, TestSize.Level1)
 HWTEST_F(CjEnvironmentTest, CJEnvironment_RegisterCJUncaughtExceptionHandler_0100, TestSize.Level1)
 {
     // using RegisterUncaughtExceptionType = void (*)(const CJUncaughtExceptionInfo& handle);
-    CJEnvironment cJEnvironment;
+    CJEnvironment cJEnvironment(NSmode::APP);
     CJUncaughtExceptionInfo handle;
     handle.hapPath = "/test1/";
     handle.uncaughtTask = [](const char* summary, const CJErrorObject errorObj) {};
@@ -194,11 +194,11 @@ HWTEST_F(CjEnvironmentTest, CJEnvironment_RegisterCJUncaughtExceptionHandler_010
         .RegisterCJUncaughtExceptionHandler = RegisterCJUncaughtExceptionHandlerTest,
     };
 
-    CJEnvironment::lazyApis_ = api;
+    CJEnvironment::lazyApis_ = new CJRuntimeAPI(api);
 
     cJEnvironment.RegisterCJUncaughtExceptionHandler(handle);
 
-    EXPECT_NE(cJEnvironment.lazyApis_.RegisterCJUncaughtExceptionHandler, nullptr);
+    EXPECT_NE(cJEnvironment.lazyApis_->RegisterCJUncaughtExceptionHandler, nullptr);
 }
 
 /**
