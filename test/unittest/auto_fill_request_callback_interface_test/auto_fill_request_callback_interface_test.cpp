@@ -53,7 +53,6 @@ class MockIFillRequestCallback : public AbilityRuntime::IFillRequestCallback {
 public:
     MOCK_METHOD(void, OnFillRequestSuccess, (const AbilityBase::ViewData& viewData), (override));
     MOCK_METHOD(void, OnFillRequestFailed, (int32_t errCode, const std::string& fillContent, bool isPopup), (override));
-    MOCK_METHOD(void, onPopupConfigWillUpdate, (AbilityRuntime::AutoFill::AutoFillCustomConfig & config), (override));
 };
 
 /**
