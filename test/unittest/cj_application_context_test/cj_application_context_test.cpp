@@ -72,27 +72,20 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
-protected:
-    std::shared_ptr<AbilityRuntime::ApplicationContext> appContext_;
-    std::shared_ptr<CJApplicationContext> cjAppContext_;
+    std::shared_ptr<CJApplicationContext> InitCJApplicationContext();
 };
-
-void CjApplicationContextTest::SetUpTestCase()
-{}
-
-void CjApplicationContextTest::TearDownTestCase()
-{}
-
-void CjApplicationContextTest::SetUp()
+void CjApplicationContextTest::SetUpTestCase() {}
+void CjApplicationContextTest::TearDownTestCase() {}
+void CjApplicationContextTest::SetUp() {}
+void CjApplicationContextTest::TearDown() {}
+std::shared_ptr<CJApplicationContext> CjApplicationContextTest::InitCJApplicationContext()
 {
     // Create an ApplicationContext object
-    appContext_ = std::make_shared<AbilityRuntime::ApplicationContext>();
+    auto appContext = std::make_shared<AbilityRuntime::ApplicationContext>();
+    std::weak_ptr<AbilityRuntime::ApplicationContext> wp(appContext);
     // Create an CJApplicationContext object
-    cjAppContext_ = std::make_shared<CJApplicationContext>(appContext_);
+    return std::make_shared<CJApplicationContext>(std::move(wp));
 }
-
-void CjApplicationContextTest::TearDown()
-{}
 
 /**
  * @tc.name: CJApplicationContextTestGetArea_001
@@ -101,8 +94,9 @@ void CjApplicationContextTest::TearDown()
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestGetArea_001, TestSize.Level1)
 {
+    auto cjAppContext = InitCJApplicationContext();
     // 测试 GetArea 函数
-    int area = cjAppContext_->GetArea();
+    int area = cjAppContext->GetArea();
     EXPECT_EQ(area, 1);
 }
 
@@ -114,17 +108,17 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestGetArea_001, TestSize
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestGetApplicationInfo_001, TestSize.Level1)
 {
     std::shared_ptr<ContextImpl> contextImpl = std::make_shared<ContextImpl>();
-    appContext_->AttachContextImpl(contextImpl);
+    auto appContext = std::make_shared<AbilityRuntime::ApplicationContext>();
+    appContext->AttachContextImpl(contextImpl);
     auto appInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
     appInfo->name = "TestApp";
     appInfo->bundleName = "com.example.testapp";
-    appContext_->SetApplicationInfo(appInfo);
-    EXPECT_NE(appInfo, nullptr);
+    appContext->SetApplicationInfo(appInfo);
+    std::weak_ptr<AbilityRuntime::ApplicationContext> wp(appContext);
 
-    cjAppContext_ = std::make_shared<CJApplicationContext>(appContext_);
+    auto cjAppContext = std::make_shared<CJApplicationContext>(std::move(wp));
     // 测试 GetApplicationInfo 函数
-    cjAppContext_->GetApplicationInfo();
-    EXPECT_TRUE(cjAppContext_ != nullptr);
+    EXPECT_NE(cjAppContext->GetApplicationInfo(), nullptr);
 }
 
 /**
@@ -135,7 +129,8 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestGetApplicationInfo_00
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestIsAbilityLifecycleCallbackEmpty_001, TestSize.Level1)
 {
-    bool result = cjAppContext_->IsAbilityLifecycleCallbackEmpty();
+    auto cjAppContext = InitCJApplicationContext();
+    bool result = cjAppContext->IsAbilityLifecycleCallbackEmpty();
     EXPECT_EQ(result, true);
 }
 
@@ -146,12 +141,13 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestIsAbilityLifecycleCal
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnOnEnvironment_001, TestSize.Level1)
 {
+    auto cjAppContext = InitCJApplicationContext();
     auto cfgCallback = [](AbilityRuntime::CConfiguration) {};
     auto memCallback = [](int32_t) {};
-    EXPECT_EQ(cjAppContext_->OnOnEnvironment(cfgCallback, memCallback, true, nullptr), -1);
+    EXPECT_EQ(cjAppContext->OnOnEnvironment(cfgCallback, memCallback, true, nullptr), -1);
 
-    cjAppContext_->envCallback_ = nullptr;
-    EXPECT_EQ(cjAppContext_->OnOnEnvironment(cfgCallback, memCallback, true, nullptr), -1);
+    cjAppContext->envCallback_ = nullptr;
+    EXPECT_EQ(cjAppContext->OnOnEnvironment(cfgCallback, memCallback, true, nullptr), -1);
 }
 
 /**
@@ -165,12 +161,13 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnOnAbilityLifecycle_
     bool isSync = true;
     int32_t err = 0;
     int32_t *errCode = &err;
-    cjAppContext_->applicationContext_.reset();
-    cjAppContext_->callback_ = std::make_shared<AbilityRuntime::CjAbilityLifecycleCallbackImpl>();
-    EXPECT_EQ(cjAppContext_->OnOnAbilityLifecycle(cFuncIds, isSync, errCode), -1);
+    auto cjAppContext = InitCJApplicationContext();
+    cjAppContext->applicationContext_.reset();
+    cjAppContext->callback_ = std::make_shared<AbilityRuntime::CjAbilityLifecycleCallbackImpl>();
+    EXPECT_EQ(cjAppContext->OnOnAbilityLifecycle(cFuncIds, isSync, errCode), -1);
 
-    cjAppContext_->applicationContext_ = std::make_shared<AbilityRuntime::ApplicationContext>();
-    EXPECT_EQ(cjAppContext_->OnOnAbilityLifecycle(cFuncIds, isSync, errCode), -1);
+    cjAppContext->applicationContext_ = std::make_shared<AbilityRuntime::ApplicationContext>();
+    EXPECT_EQ(cjAppContext->OnOnAbilityLifecycle(cFuncIds, isSync, errCode), -1);
 }
 
 /**
@@ -182,11 +179,13 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnOnApplicationStateC
 {
     auto foregroundCallback = []() {};
     auto backgroundCallback = []() {};
-    int32_t *errCode = nullptr;
-    EXPECT_EQ(cjAppContext_->OnOnApplicationStateChange(foregroundCallback, backgroundCallback, errCode), 0);
+    int32_t err = 0;
+    int32_t *errCode = &err;
+    auto cjAppContext = InitCJApplicationContext();
+    EXPECT_EQ(cjAppContext->OnOnApplicationStateChange(foregroundCallback, backgroundCallback, errCode), 0);
 
-    cjAppContext_->applicationStateCallback_ = nullptr;
-    EXPECT_EQ(cjAppContext_->OnOnApplicationStateChange(foregroundCallback, backgroundCallback, errCode), 1);
+    cjAppContext->applicationStateCallback_ = nullptr;
+    EXPECT_EQ(cjAppContext->OnOnApplicationStateChange(foregroundCallback, backgroundCallback, errCode), 1);
 }
 
 /**
@@ -199,17 +198,18 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnOffEnvironment_001,
     int32_t callbackId = 10;
     int32_t err = 0;
     int32_t *errCode = &err;
-    cjAppContext_->applicationContext_.reset();
-    cjAppContext_->envCallback_ = std::make_shared<CjEnvironmentCallback>();
-    cjAppContext_->OnOffEnvironment(callbackId, errCode);
+    auto cjAppContext = InitCJApplicationContext();
+    cjAppContext->applicationContext_.reset();
+    cjAppContext->envCallback_ = std::make_shared<CjEnvironmentCallback>();
+    cjAppContext->OnOffEnvironment(callbackId, errCode);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 
-    cjAppContext_->applicationContext_ = std::make_shared<AbilityRuntime::ApplicationContext>();
-    cjAppContext_->OnOffEnvironment(callbackId, errCode);
+    cjAppContext->applicationContext_ = std::make_shared<AbilityRuntime::ApplicationContext>();
+    cjAppContext->OnOffEnvironment(callbackId, errCode);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 
-    cjAppContext_->envCallback_ = nullptr;
-    cjAppContext_->OnOffEnvironment(callbackId, errCode);
+    cjAppContext->envCallback_ = nullptr;
+    cjAppContext->OnOffEnvironment(callbackId, errCode);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 }
 
@@ -223,17 +223,18 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnOffAbilityLifecycle
     int32_t callbackId = 10;
     int32_t err = 0;
     int32_t *errCode = &err;
-    cjAppContext_->applicationContext_.reset();
-    cjAppContext_->callback_ = std::make_shared<AbilityRuntime::CjAbilityLifecycleCallbackImpl>();
-    cjAppContext_->OnOffAbilityLifecycle(callbackId, errCode);
+    auto cjAppContext = InitCJApplicationContext();
+    cjAppContext->applicationContext_.reset();
+    cjAppContext->callback_ = std::make_shared<AbilityRuntime::CjAbilityLifecycleCallbackImpl>();
+    cjAppContext->OnOffAbilityLifecycle(callbackId, errCode);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 
-    cjAppContext_->applicationContext_ = std::make_shared<AbilityRuntime::ApplicationContext>();
-    cjAppContext_->OnOffAbilityLifecycle(callbackId, errCode);
+    cjAppContext->applicationContext_ = std::make_shared<AbilityRuntime::ApplicationContext>();
+    cjAppContext->OnOffAbilityLifecycle(callbackId, errCode);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 
-    cjAppContext_->callback_ = nullptr;
-    cjAppContext_->OnOffAbilityLifecycle(callbackId, errCode);
+    cjAppContext->callback_ = nullptr;
+    cjAppContext->OnOffAbilityLifecycle(callbackId, errCode);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 }
 
@@ -247,17 +248,17 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnOffApplicationState
     int32_t callbackId = 10;
     int32_t err = 0;
     int32_t *errCode = &err;
-    cjAppContext_->applicationContext_.reset();
-    cjAppContext_->OnOffApplicationStateChange(callbackId, errCode);
+    auto cjAppContext = InitCJApplicationContext();
+    cjAppContext->OnOffApplicationStateChange(callbackId, errCode);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 
-    cjAppContext_->applicationContext_ = std::make_shared<AbilityRuntime::ApplicationContext>();
-    cjAppContext_->applicationStateCallback_ = std::make_shared<CjApplicationStateChangeCallback>();
-    cjAppContext_->OnOffApplicationStateChange(callbackId, errCode);
+    cjAppContext->applicationContext_ = std::make_shared<AbilityRuntime::ApplicationContext>();
+    cjAppContext->applicationStateCallback_ = std::make_shared<CjApplicationStateChangeCallback>();
+    cjAppContext->OnOffApplicationStateChange(callbackId, errCode);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 
-    cjAppContext_->applicationStateCallback_ = nullptr;
-    cjAppContext_->OnOffApplicationStateChange(callbackId, errCode);
+    cjAppContext->applicationStateCallback_ = nullptr;
+    cjAppContext->OnOffApplicationStateChange(callbackId, errCode);
     EXPECT_EQ(*errCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 }
 
@@ -268,11 +269,12 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnOffApplicationState
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnAbilityCreate_001, TestSize.Level1)
 {
-    std::shared_ptr<MockCjAbilityLifecycleCallback> mock = std::make_shared<MockCjAbilityLifecycleCallback>();
+    auto cjAppContext = InitCJApplicationContext();
+    auto mock = std::make_shared<MockCjAbilityLifecycleCallback>();
     EXPECT_CALL(*mock, OnAbilityCreate(_)).Times(1);
-    cjAppContext_->RegisterAbilityLifecycleCallback(mock);
-    cjAppContext_->DispatchOnAbilityCreate(10);
-    cjAppContext_->UnregisterAbilityLifecycleCallback(mock);
+    cjAppContext->RegisterAbilityLifecycleCallback(mock);
+    cjAppContext->DispatchOnAbilityCreate(10);
+    cjAppContext->UnregisterAbilityLifecycleCallback(mock);
 }
 
 /**
@@ -282,14 +284,15 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnAbilityCrea
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnWindowStageCreate_001, TestSize.Level1)
 {
-    std::shared_ptr<MockCjAbilityLifecycleCallback> mock = std::make_shared<MockCjAbilityLifecycleCallback>();
+    auto cjAppContext = InitCJApplicationContext();
+    auto mock = std::make_shared<MockCjAbilityLifecycleCallback>();
     EXPECT_CALL(*mock, OnWindowStageCreate(_, _)).Times(1);
-    cjAppContext_->RegisterAbilityLifecycleCallback(mock);
+    cjAppContext->RegisterAbilityLifecycleCallback(mock);
     auto win = std::make_shared<Rosen::WindowScene>();
     auto winStage = new Rosen::CJWindowStageImpl(win);
     WindowStagePtr windowStage = reinterpret_cast<WindowStagePtr>(winStage);
-    cjAppContext_->DispatchOnWindowStageCreate(10, windowStage);
-    cjAppContext_->UnregisterAbilityLifecycleCallback(mock);
+    cjAppContext->DispatchOnWindowStageCreate(10, windowStage);
+    cjAppContext->UnregisterAbilityLifecycleCallback(mock);
 }
 
 /**
@@ -299,14 +302,15 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnWindowStage
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchWindowStageFocus_001, TestSize.Level1)
 {
-    std::shared_ptr<MockCjAbilityLifecycleCallback> mock = std::make_shared<MockCjAbilityLifecycleCallback>();
+    auto cjAppContext = InitCJApplicationContext();
+    auto mock = std::make_shared<MockCjAbilityLifecycleCallback>();
     EXPECT_CALL(*mock, OnWindowStageActive(_, _)).Times(1);
-    cjAppContext_->RegisterAbilityLifecycleCallback(mock);
+    cjAppContext->RegisterAbilityLifecycleCallback(mock);
     auto win = std::make_shared<Rosen::WindowScene>();
     auto winStage = new Rosen::CJWindowStageImpl(win);
     WindowStagePtr windowStage = reinterpret_cast<WindowStagePtr>(winStage);
-    cjAppContext_->DispatchWindowStageFocus(10, windowStage);
-    cjAppContext_->UnregisterAbilityLifecycleCallback(mock);
+    cjAppContext->DispatchWindowStageFocus(10, windowStage);
+    cjAppContext->UnregisterAbilityLifecycleCallback(mock);
 }
 
 /**
@@ -316,14 +320,15 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchWindowStageFo
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchWindowStageUnfocus_001, TestSize.Level1)
 {
-    std::shared_ptr<MockCjAbilityLifecycleCallback> mock = std::make_shared<MockCjAbilityLifecycleCallback>();
+    auto cjAppContext = InitCJApplicationContext();
+    auto mock = std::make_shared<MockCjAbilityLifecycleCallback>();
     EXPECT_CALL(*mock, OnWindowStageInactive(_, _)).Times(1);
-    cjAppContext_->RegisterAbilityLifecycleCallback(mock);
+    cjAppContext->RegisterAbilityLifecycleCallback(mock);
     auto win = std::make_shared<Rosen::WindowScene>();
     auto winStage = new Rosen::CJWindowStageImpl(win);
     WindowStagePtr windowStage = reinterpret_cast<WindowStagePtr>(winStage);
-    cjAppContext_->DispatchWindowStageUnfocus(10, windowStage);
-    cjAppContext_->UnregisterAbilityLifecycleCallback(mock);
+    cjAppContext->DispatchWindowStageUnfocus(10, windowStage);
+    cjAppContext->UnregisterAbilityLifecycleCallback(mock);
 }
 
 /**
@@ -333,14 +338,15 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchWindowStageUn
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnWindowStageDestroy_001, TestSize.Level1)
 {
-    std::shared_ptr<MockCjAbilityLifecycleCallback> mock = std::make_shared<MockCjAbilityLifecycleCallback>();
+    auto cjAppContext = InitCJApplicationContext();
+    auto mock = std::make_shared<MockCjAbilityLifecycleCallback>();
     EXPECT_CALL(*mock, OnWindowStageDestroy(_, _)).Times(1);
-    cjAppContext_->RegisterAbilityLifecycleCallback(mock);
+    cjAppContext->RegisterAbilityLifecycleCallback(mock);
     auto win = std::make_shared<Rosen::WindowScene>();
     auto winStage = new Rosen::CJWindowStageImpl(win);
     WindowStagePtr windowStage = reinterpret_cast<WindowStagePtr>(winStage);
-    cjAppContext_->DispatchOnWindowStageDestroy(10, windowStage);
-    cjAppContext_->UnregisterAbilityLifecycleCallback(mock);
+    cjAppContext->DispatchOnWindowStageDestroy(10, windowStage);
+    cjAppContext->UnregisterAbilityLifecycleCallback(mock);
 }
 
 /**
@@ -350,11 +356,12 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnWindowStage
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnAbilityDestroy_001, TestSize.Level1)
 {
-    std::shared_ptr<MockCjAbilityLifecycleCallback> mock = std::make_shared<MockCjAbilityLifecycleCallback>();
+    auto cjAppContext = InitCJApplicationContext();
+    auto mock = std::make_shared<MockCjAbilityLifecycleCallback>();
     EXPECT_CALL(*mock, OnAbilityDestroy(_)).Times(1);
-    cjAppContext_->RegisterAbilityLifecycleCallback(mock);
-    cjAppContext_->DispatchOnAbilityDestroy(10);
-    cjAppContext_->UnregisterAbilityLifecycleCallback(mock);
+    cjAppContext->RegisterAbilityLifecycleCallback(mock);
+    cjAppContext->DispatchOnAbilityDestroy(10);
+    cjAppContext->UnregisterAbilityLifecycleCallback(mock);
 }
 
 /**
@@ -364,11 +371,12 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnAbilityDest
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnAbilityForeground_001, TestSize.Level1)
 {
-    std::shared_ptr<MockCjAbilityLifecycleCallback> mock = std::make_shared<MockCjAbilityLifecycleCallback>();
+    auto cjAppContext = InitCJApplicationContext();
+    auto mock = std::make_shared<MockCjAbilityLifecycleCallback>();
     EXPECT_CALL(*mock, OnAbilityForeground(_)).Times(1);
-    cjAppContext_->RegisterAbilityLifecycleCallback(mock);
-    cjAppContext_->DispatchOnAbilityForeground(10);
-    cjAppContext_->UnregisterAbilityLifecycleCallback(mock);
+    cjAppContext->RegisterAbilityLifecycleCallback(mock);
+    cjAppContext->DispatchOnAbilityForeground(10);
+    cjAppContext->UnregisterAbilityLifecycleCallback(mock);
 }
 
 /**
@@ -378,11 +386,12 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnAbilityFore
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnAbilityBackground_001, TestSize.Level1)
 {
-    std::shared_ptr<MockCjAbilityLifecycleCallback> mock = std::make_shared<MockCjAbilityLifecycleCallback>();
+    auto cjAppContext = InitCJApplicationContext();
+    auto mock = std::make_shared<MockCjAbilityLifecycleCallback>();
     EXPECT_CALL(*mock, OnAbilityBackground(_)).Times(1);
-    cjAppContext_->RegisterAbilityLifecycleCallback(mock);
-    cjAppContext_->DispatchOnAbilityBackground(10);
-    cjAppContext_->UnregisterAbilityLifecycleCallback(mock);
+    cjAppContext->RegisterAbilityLifecycleCallback(mock);
+    cjAppContext->DispatchOnAbilityBackground(10);
+    cjAppContext->UnregisterAbilityLifecycleCallback(mock);
 }
 
 /**
@@ -392,11 +401,12 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnAbilityBack
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextDispatchOnAbilityContinue_001, TestSize.Level1)
 {
-    std::shared_ptr<MockCjAbilityLifecycleCallback> mock = std::make_shared<MockCjAbilityLifecycleCallback>();
+    auto cjAppContext = InitCJApplicationContext();
+    auto mock = std::make_shared<MockCjAbilityLifecycleCallback>();
     EXPECT_CALL(*mock, OnAbilityContinue(_)).Times(1);
-    cjAppContext_->RegisterAbilityLifecycleCallback(mock);
-    cjAppContext_->DispatchOnAbilityContinue(10);
-    cjAppContext_->UnregisterAbilityLifecycleCallback(mock);
+    cjAppContext->RegisterAbilityLifecycleCallback(mock);
+    cjAppContext->DispatchOnAbilityContinue(10);
+    cjAppContext->UnregisterAbilityLifecycleCallback(mock);
 }
 
 /**
@@ -406,11 +416,12 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextDispatchOnAbilityContinue
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnAbilityWillCreate_001, TestSize.Level1)
 {
-    std::shared_ptr<MockCjAbilityLifecycleCallback> mock = std::make_shared<MockCjAbilityLifecycleCallback>();
+    auto cjAppContext = InitCJApplicationContext();
+    auto mock = std::make_shared<MockCjAbilityLifecycleCallback>();
     EXPECT_CALL(*mock, OnAbilityWillCreate(_)).Times(1);
-    cjAppContext_->RegisterAbilityLifecycleCallback(mock);
-    cjAppContext_->DispatchOnAbilityWillCreate(10);
-    cjAppContext_->UnregisterAbilityLifecycleCallback(mock);
+    cjAppContext->RegisterAbilityLifecycleCallback(mock);
+    cjAppContext->DispatchOnAbilityWillCreate(10);
+    cjAppContext->UnregisterAbilityLifecycleCallback(mock);
 }
 
 /**
@@ -420,14 +431,15 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnAbilityWill
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnWindowStageWillCreate_001, TestSize.Level1)
 {
-    std::shared_ptr<MockCjAbilityLifecycleCallback> mock = std::make_shared<MockCjAbilityLifecycleCallback>();
+    auto cjAppContext = InitCJApplicationContext();
+    auto mock = std::make_shared<MockCjAbilityLifecycleCallback>();
     EXPECT_CALL(*mock, OnWindowStageWillCreate(_, _)).Times(1);
-    cjAppContext_->RegisterAbilityLifecycleCallback(mock);
+    cjAppContext->RegisterAbilityLifecycleCallback(mock);
     auto win = std::make_shared<Rosen::WindowScene>();
     auto winStage = new Rosen::CJWindowStageImpl(win);
     WindowStagePtr windowStage = reinterpret_cast<WindowStagePtr>(winStage);
-    cjAppContext_->DispatchOnWindowStageWillCreate(10, windowStage);
-    cjAppContext_->UnregisterAbilityLifecycleCallback(mock);
+    cjAppContext->DispatchOnWindowStageWillCreate(10, windowStage);
+    cjAppContext->UnregisterAbilityLifecycleCallback(mock);
 }
 
 /**
@@ -437,14 +449,15 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnWindowStage
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnWindowStageWillDestroy_001, TestSize.Level1)
 {
-    std::shared_ptr<MockCjAbilityLifecycleCallback> mock = std::make_shared<MockCjAbilityLifecycleCallback>();
+    auto cjAppContext = InitCJApplicationContext();
+    auto mock = std::make_shared<MockCjAbilityLifecycleCallback>();
     EXPECT_CALL(*mock, OnWindowStageWillDestroy(_, _)).Times(1);
-    cjAppContext_->RegisterAbilityLifecycleCallback(mock);
+    cjAppContext->RegisterAbilityLifecycleCallback(mock);
     auto win = std::make_shared<Rosen::WindowScene>();
     auto winStage = new Rosen::CJWindowStageImpl(win);
     WindowStagePtr windowStage = reinterpret_cast<WindowStagePtr>(winStage);
-    cjAppContext_->DispatchOnWindowStageWillDestroy(10, windowStage);
-    cjAppContext_->UnregisterAbilityLifecycleCallback(mock);
+    cjAppContext->DispatchOnWindowStageWillDestroy(10, windowStage);
+    cjAppContext->UnregisterAbilityLifecycleCallback(mock);
 }
 
 /**
@@ -454,11 +467,12 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnWindowStage
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnAbilityWillDestroy_001, TestSize.Level1)
 {
-    std::shared_ptr<MockCjAbilityLifecycleCallback> mock = std::make_shared<MockCjAbilityLifecycleCallback>();
+    auto cjAppContext = InitCJApplicationContext();
+    auto mock = std::make_shared<MockCjAbilityLifecycleCallback>();
     EXPECT_CALL(*mock, OnAbilityWillDestroy(_)).Times(1);
-    cjAppContext_->RegisterAbilityLifecycleCallback(mock);
-    cjAppContext_->DispatchOnAbilityWillDestroy(10);
-    cjAppContext_->UnregisterAbilityLifecycleCallback(mock);
+    cjAppContext->RegisterAbilityLifecycleCallback(mock);
+    cjAppContext->DispatchOnAbilityWillDestroy(10);
+    cjAppContext->UnregisterAbilityLifecycleCallback(mock);
 }
 
 /**
@@ -468,11 +482,12 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnAbilityWill
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnAbilityWillForeground_001, TestSize.Level1)
 {
-    std::shared_ptr<MockCjAbilityLifecycleCallback> mock = std::make_shared<MockCjAbilityLifecycleCallback>();
+    auto cjAppContext = InitCJApplicationContext();
+    auto mock = std::make_shared<MockCjAbilityLifecycleCallback>();
     EXPECT_CALL(*mock, OnAbilityWillForeground(_)).Times(1);
-    cjAppContext_->RegisterAbilityLifecycleCallback(mock);
-    cjAppContext_->DispatchOnAbilityWillForeground(10);
-    cjAppContext_->UnregisterAbilityLifecycleCallback(mock);
+    cjAppContext->RegisterAbilityLifecycleCallback(mock);
+    cjAppContext->DispatchOnAbilityWillForeground(10);
+    cjAppContext->UnregisterAbilityLifecycleCallback(mock);
 }
 
 /**
@@ -482,11 +497,12 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnAbilityWill
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnAbilityWillBackground_001, TestSize.Level1)
 {
-    std::shared_ptr<MockCjAbilityLifecycleCallback> mock = std::make_shared<MockCjAbilityLifecycleCallback>();
+    auto cjAppContext = InitCJApplicationContext();
+    auto mock = std::make_shared<MockCjAbilityLifecycleCallback>();
     EXPECT_CALL(*mock, OnAbilityWillBackground(_)).Times(1);
-    cjAppContext_->RegisterAbilityLifecycleCallback(mock);
-    cjAppContext_->DispatchOnAbilityWillBackground(10);
-    cjAppContext_->UnregisterAbilityLifecycleCallback(mock);
+    cjAppContext->RegisterAbilityLifecycleCallback(mock);
+    cjAppContext->DispatchOnAbilityWillBackground(10);
+    cjAppContext->UnregisterAbilityLifecycleCallback(mock);
 }
 
 /**
@@ -496,11 +512,12 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnAbilityWill
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnNewWant_001, TestSize.Level1)
 {
-    std::shared_ptr<MockCjAbilityLifecycleCallback> mock = std::make_shared<MockCjAbilityLifecycleCallback>();
+    auto cjAppContext = InitCJApplicationContext();
+    auto mock = std::make_shared<MockCjAbilityLifecycleCallback>();
     EXPECT_CALL(*mock, OnNewWant(_)).Times(1);
-    cjAppContext_->RegisterAbilityLifecycleCallback(mock);
-    cjAppContext_->DispatchOnNewWant(10);
-    cjAppContext_->UnregisterAbilityLifecycleCallback(mock);
+    cjAppContext->RegisterAbilityLifecycleCallback(mock);
+    cjAppContext->DispatchOnNewWant(10);
+    cjAppContext->UnregisterAbilityLifecycleCallback(mock);
 }
 
 /**
@@ -510,11 +527,12 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnNewWant_001
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnWillNewWant_001, TestSize.Level1)
 {
-    std::shared_ptr<MockCjAbilityLifecycleCallback> mock = std::make_shared<MockCjAbilityLifecycleCallback>();
+    auto cjAppContext = InitCJApplicationContext();
+    auto mock = std::make_shared<MockCjAbilityLifecycleCallback>();
     EXPECT_CALL(*mock, OnWillNewWant(_)).Times(1);
-    cjAppContext_->RegisterAbilityLifecycleCallback(mock);
-    cjAppContext_->DispatchOnWillNewWant(10);
-    cjAppContext_->UnregisterAbilityLifecycleCallback(mock);
+    cjAppContext->RegisterAbilityLifecycleCallback(mock);
+    cjAppContext->DispatchOnWillNewWant(10);
+    cjAppContext->UnregisterAbilityLifecycleCallback(mock);
 }
 
 /**
@@ -524,11 +542,12 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnWillNewWant
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnAbilityWillContinue_001, TestSize.Level1)
 {
-    std::shared_ptr<MockCjAbilityLifecycleCallback> mock = std::make_shared<MockCjAbilityLifecycleCallback>();
+    auto cjAppContext = InitCJApplicationContext();
+    auto mock = std::make_shared<MockCjAbilityLifecycleCallback>();
     EXPECT_CALL(*mock, OnAbilityWillContinue(_)).Times(1);
-    cjAppContext_->RegisterAbilityLifecycleCallback(mock);
-    cjAppContext_->DispatchOnAbilityWillContinue(10);
-    cjAppContext_->UnregisterAbilityLifecycleCallback(mock);
+    cjAppContext->RegisterAbilityLifecycleCallback(mock);
+    cjAppContext->DispatchOnAbilityWillContinue(10);
+    cjAppContext->UnregisterAbilityLifecycleCallback(mock);
 }
 
 /**
@@ -538,14 +557,15 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnAbilityWill
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnWindowStageWillRestore_001, TestSize.Level1)
 {
-    std::shared_ptr<MockCjAbilityLifecycleCallback> mock = std::make_shared<MockCjAbilityLifecycleCallback>();
+    auto cjAppContext = InitCJApplicationContext();
+    auto mock = std::make_shared<MockCjAbilityLifecycleCallback>();
     EXPECT_CALL(*mock, OnWindowStageWillRestore(_, _)).Times(1);
-    cjAppContext_->RegisterAbilityLifecycleCallback(mock);
+    cjAppContext->RegisterAbilityLifecycleCallback(mock);
     auto win = std::make_shared<Rosen::WindowScene>();
     auto winStage = new Rosen::CJWindowStageImpl(win);
     WindowStagePtr windowStage = reinterpret_cast<WindowStagePtr>(winStage);
-    cjAppContext_->DispatchOnWindowStageWillRestore(10, windowStage);
-    cjAppContext_->UnregisterAbilityLifecycleCallback(mock);
+    cjAppContext->DispatchOnWindowStageWillRestore(10, windowStage);
+    cjAppContext->UnregisterAbilityLifecycleCallback(mock);
 }
 
 /**
@@ -555,14 +575,15 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnWindowStage
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnWindowStageRestore_001, TestSize.Level1)
 {
-    std::shared_ptr<MockCjAbilityLifecycleCallback> mock = std::make_shared<MockCjAbilityLifecycleCallback>();
+    auto cjAppContext = InitCJApplicationContext();
+    auto mock = std::make_shared<MockCjAbilityLifecycleCallback>();
     EXPECT_CALL(*mock, OnWindowStageRestore(_, _)).Times(1);
-    cjAppContext_->RegisterAbilityLifecycleCallback(mock);
+    cjAppContext->RegisterAbilityLifecycleCallback(mock);
     auto win = std::make_shared<Rosen::WindowScene>();
     auto winStage = new Rosen::CJWindowStageImpl(win);
     WindowStagePtr windowStage = reinterpret_cast<WindowStagePtr>(winStage);
-    cjAppContext_->DispatchOnWindowStageRestore(10, windowStage);
-    cjAppContext_->UnregisterAbilityLifecycleCallback(mock);
+    cjAppContext->DispatchOnWindowStageRestore(10, windowStage);
+    cjAppContext->UnregisterAbilityLifecycleCallback(mock);
 }
 
 /**
@@ -572,11 +593,12 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnWindowStage
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnAbilityWillSaveState_001, TestSize.Level1)
 {
-    std::shared_ptr<MockCjAbilityLifecycleCallback> mock = std::make_shared<MockCjAbilityLifecycleCallback>();
+    auto cjAppContext = InitCJApplicationContext();
+    auto mock = std::make_shared<MockCjAbilityLifecycleCallback>();
     EXPECT_CALL(*mock, OnAbilityWillSaveState(_)).Times(1);
-    cjAppContext_->RegisterAbilityLifecycleCallback(mock);
-    cjAppContext_->DispatchOnAbilityWillSaveState(10);
-    cjAppContext_->UnregisterAbilityLifecycleCallback(mock);
+    cjAppContext->RegisterAbilityLifecycleCallback(mock);
+    cjAppContext->DispatchOnAbilityWillSaveState(10);
+    cjAppContext->UnregisterAbilityLifecycleCallback(mock);
 }
 
 /**
@@ -586,11 +608,12 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnAbilityWill
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnAbilitySaveState_001, TestSize.Level1)
 {
-    std::shared_ptr<MockCjAbilityLifecycleCallback> mock = std::make_shared<MockCjAbilityLifecycleCallback>();
+    auto cjAppContext = InitCJApplicationContext();
+    auto mock = std::make_shared<MockCjAbilityLifecycleCallback>();
     EXPECT_CALL(*mock, OnAbilitySaveState(_)).Times(1);
-    cjAppContext_->RegisterAbilityLifecycleCallback(mock);
-    cjAppContext_->DispatchOnAbilitySaveState(10);
-    cjAppContext_->UnregisterAbilityLifecycleCallback(mock);
+    cjAppContext->RegisterAbilityLifecycleCallback(mock);
+    cjAppContext->DispatchOnAbilitySaveState(10);
+    cjAppContext->UnregisterAbilityLifecycleCallback(mock);
 }
 
 /**
@@ -600,10 +623,11 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestDispatchOnAbilitySave
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnGetRunningProcessInformation_001, TestSize.Level1)
 {
-    cjAppContext_->applicationContext_.reset();
-    int err = 0;
-    int* errorCode = &err;
-    auto info = cjAppContext_->OnGetRunningProcessInformation(errorCode);
+    auto cjAppContext = InitCJApplicationContext();
+    cjAppContext->applicationContext_.reset();
+    int32_t err = 0;
+    int32_t* errorCode = &err;
+    auto info = cjAppContext->OnGetRunningProcessInformation(errorCode);
     EXPECT_EQ(*errorCode, ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST);
     EXPECT_EQ(info, nullptr);
 }
@@ -615,16 +639,17 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnGetRunningProcessIn
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnOnKillProcessBySelf_001, TestSize.Level1)
 {
-    cjAppContext_->applicationContext_.reset();
-    int err = 0;
-    int* errorCode = &err;
-    cjAppContext_->OnKillProcessBySelf(true, errorCode);
+    auto cjAppContext = InitCJApplicationContext();
+    cjAppContext->applicationContext_.reset();
+    int32_t err = 0;
+    int32_t* errorCode = &err;
+    cjAppContext->OnKillProcessBySelf(true, errorCode);
     EXPECT_EQ(*errorCode, ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST);
 
     auto applicationContext = std::make_shared<ApplicationContext>();
-    cjAppContext_ = std::make_shared<CJApplicationContext>(applicationContext);
+    cjAppContext = std::make_shared<CJApplicationContext>(applicationContext);
     err = 0;
-    cjAppContext_->OnKillProcessBySelf(true, errorCode);
+    cjAppContext->OnKillProcessBySelf(true, errorCode);
     EXPECT_EQ(*errorCode, 0);
 }
 
@@ -635,15 +660,16 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnOnKillProcessBySelf
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnGetCurrentAppCloneIndex_001, TestSize.Level1)
 {
-    cjAppContext_->applicationContext_.reset();
-    int err = 0;
-    int* errorCode = &err;
-    auto index = cjAppContext_->OnGetCurrentAppCloneIndex(errorCode);
+    auto cjAppContext = InitCJApplicationContext();
+    cjAppContext->applicationContext_.reset();
+    int32_t err = 0;
+    int32_t* errorCode = &err;
+    auto index = cjAppContext->OnGetCurrentAppCloneIndex(errorCode);
     EXPECT_EQ(*errorCode, ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST);
 
     auto applicationContext = std::make_shared<ApplicationContext>();
-    cjAppContext_ = std::make_shared<CJApplicationContext>(applicationContext);
-    index = cjAppContext_->OnGetCurrentAppCloneIndex(errorCode);
+    cjAppContext = std::make_shared<CJApplicationContext>(applicationContext);
+    index = cjAppContext->OnGetCurrentAppCloneIndex(errorCode);
     EXPECT_EQ(*errorCode, ERR_ABILITY_RUNTIME_EXTERNAL_NOT_APP_CLONE);
     EXPECT_EQ(index, -1);
 }
@@ -655,15 +681,16 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnGetCurrentAppCloneI
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnRestartApp_001, TestSize.Level1)
 {
-    cjAppContext_->applicationContext_.reset();
-    int err = 0;
-    int* errorCode = &err;
-    cjAppContext_->OnRestartApp(AAFwk::Want(), errorCode);
+    auto cjAppContext = InitCJApplicationContext();
+    cjAppContext->applicationContext_.reset();
+    int32_t err = 0;
+    int32_t* errorCode = &err;
+    cjAppContext->OnRestartApp(AAFwk::Want(), errorCode);
     EXPECT_EQ(*errorCode, ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST);
 
     auto applicationContext = std::make_shared<ApplicationContext>();
-    cjAppContext_ = std::make_shared<CJApplicationContext>(applicationContext);
-    cjAppContext_->OnRestartApp(AAFwk::Want(), errorCode);
+    cjAppContext = std::make_shared<CJApplicationContext>(applicationContext);
+    cjAppContext->OnRestartApp(AAFwk::Want(), errorCode);
     EXPECT_EQ(*errorCode, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
 }
 
@@ -674,16 +701,17 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnRestartApp_001, Tes
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnClearUpApplicationData_001, TestSize.Level1)
 {
-    cjAppContext_->applicationContext_.reset();
-    int err = 0;
-    int* errorCode = &err;
-    cjAppContext_->OnClearUpApplicationData(errorCode);
+    auto cjAppContext = InitCJApplicationContext();
+    cjAppContext->applicationContext_.reset();
+    int32_t err = 0;
+    int32_t* errorCode = &err;
+    cjAppContext->OnClearUpApplicationData(errorCode);
     EXPECT_EQ(*errorCode, ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST);
 
     auto applicationContext = std::make_shared<ApplicationContext>();
-    cjAppContext_ = std::make_shared<CJApplicationContext>(applicationContext);
+    cjAppContext = std::make_shared<CJApplicationContext>(applicationContext);
     err = 0;
-    cjAppContext_->OnClearUpApplicationData(errorCode);
+    cjAppContext->OnClearUpApplicationData(errorCode);
     EXPECT_EQ(*errorCode, 0);
 }
 
@@ -694,15 +722,16 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnClearUpApplicationD
  */
 HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnSetSupportedProcessCacheSelf_001, TestSize.Level1)
 {
-    cjAppContext_->applicationContext_.reset();
-    int err = 0;
-    int* errorCode = &err;
-    cjAppContext_->OnSetSupportedProcessCacheSelf(true, errorCode);
+    auto cjAppContext = InitCJApplicationContext();
+    cjAppContext->applicationContext_.reset();
+    int32_t err = 0;
+    int32_t* errorCode = &err;
+    cjAppContext->OnSetSupportedProcessCacheSelf(true, errorCode);
     EXPECT_EQ(*errorCode, ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST);
 
     auto applicationContext = std::make_shared<ApplicationContext>();
-    cjAppContext_ = std::make_shared<CJApplicationContext>(applicationContext);
-    cjAppContext_->OnSetSupportedProcessCacheSelf(true, errorCode);
+    cjAppContext = std::make_shared<CJApplicationContext>(applicationContext);
+    cjAppContext->OnSetSupportedProcessCacheSelf(true, errorCode);
     EXPECT_EQ(*errorCode, ERR_ABILITY_RUNTIME_EXTERNAL_INTERNAL_ERROR);
 }
 }  // namespace AbilityRuntime
