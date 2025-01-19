@@ -15,6 +15,8 @@
 
 #include "uri_permission_manager_stub.h"
 
+#include <sstream>
+
 #include "ability_manager_errors.h"
 #include "hilog_tag_wrapper.h"
 
@@ -22,7 +24,38 @@ namespace OHOS {
 namespace AAFwk {
 namespace {
 const int MAX_URI_COUNT = 500;
+
+int32_t UnMarshallUris(std::stringstream &ss, std::vector<std::string> &uris)
+{
+    uint32_t size = 0;
+    ss.read(reinterpret_cast<char*>(&size), sizeof(size));
+    for (uint32_t i = 0; i < size; i++) {
+        uint32_t uriLen = 0;
+        ss.read(reinterpret_cast<char*>(&uriLen), sizeof(uriLen));
+        char buf[4096] = { 0 };
+        ss.read(buf, uriLen);
+        std::string uri;
+        uri.assign(buf, uriLen);
+        uris.emplace_back(uri);
+    }
+    return ERR_OK;
 }
+
+bool ReadBatchUriByRawData(MessageParcel &data, std::vector<std::string> &uriVec)
+{
+    uint32_t urisDataSize = data.ReadUint32();
+    const void *urisRawData = data.ReadRawData(urisDataSize);
+    if (urisRawData == nullptr) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "read raw data uris failed");
+        return false;
+    }
+    std::stringstream ss;
+    ss.write(reinterpret_cast<char*>(const_cast<void*>(urisRawData)), urisDataSize);
+    UnMarshallUris(ss, uriVec);
+    return true;
+}
+}
+
 int UriPermissionManagerStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
@@ -67,6 +100,24 @@ int UriPermissionManagerStub::OnRemoteRequest(
     return errCode;
 }
 
+int32_t UriPermissionManagerStub::ReadBatchUris(MessageParcel &data, std::vector<Uri> &uriVec)
+{
+    uint32_t size = data.ReadUint32();
+    if (size == 0 || size > MAX_URI_COUNT) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "out of range: %{public}u", size);
+        return ERR_URI_LIST_OUT_OF_RANGE;
+    }
+    std::vector<std::string> uris;
+    if (!ReadBatchUriByRawData(data, uris)) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "read uris failed");
+        return ERR_DEAD_OBJECT;
+    }
+    for (auto &uri : uris) {
+        uriVec.emplace_back(uri);
+    }
+    return ERR_OK;
+}
+
 int UriPermissionManagerStub::HandleRevokeAllUriPermission(MessageParcel &data, MessageParcel &reply)
 {
     auto tokenId = data.ReadUint32();
@@ -93,19 +144,10 @@ int UriPermissionManagerStub::HandleGrantUriPermission(MessageParcel &data, Mess
 
 int UriPermissionManagerStub::HandleBatchGrantUriPermission(MessageParcel &data, MessageParcel &reply)
 {
-    auto size = data.ReadUint32();
-    if (size == 0 || size > MAX_URI_COUNT) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "uriVec empty or exceed maxSize %{public}d", MAX_URI_COUNT);
-        return ERR_URI_LIST_OUT_OF_RANGE;
-    }
     std::vector<Uri> uriVec;
-    for (uint32_t i = 0; i < size; i++) {
-        std::unique_ptr<Uri> uri(data.ReadParcelable<Uri>());
-        if (!uri) {
-            TAG_LOGE(AAFwkTag::URIPERMMGR, "read uri failed");
-            return ERR_DEAD_OBJECT;
-        }
-        uriVec.emplace_back(*uri);
+    auto ret = ReadBatchUris(data, uriVec);
+    if (ret != ERR_OK) {
+        return ret;
     }
     auto flag = data.ReadUint32();
     auto targetBundleName = data.ReadString();
@@ -118,19 +160,10 @@ int UriPermissionManagerStub::HandleBatchGrantUriPermission(MessageParcel &data,
 
 int32_t UriPermissionManagerStub::HandleGrantUriPermissionPrivileged(MessageParcel &data, MessageParcel &reply)
 {
-    auto size = data.ReadUint32();
-    if (size == 0 || size > MAX_URI_COUNT) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "uriVec empty or exceed maxSize %{public}d", MAX_URI_COUNT);
-        return ERR_URI_LIST_OUT_OF_RANGE;
-    }
     std::vector<Uri> uriVec;
-    for (uint32_t i = 0; i < size; i++) {
-        std::unique_ptr<Uri> uri(data.ReadParcelable<Uri>());
-        if (!uri) {
-            TAG_LOGE(AAFwkTag::URIPERMMGR, "read uri failed");
-            return ERR_DEAD_OBJECT;
-        }
-        uriVec.emplace_back(*uri);
+    auto ret = ReadBatchUris(data, uriVec);
+    if (ret != ERR_OK) {
+        return ret;
     }
     auto flag = data.ReadUint32();
     auto targetBundleName = data.ReadString();
@@ -179,9 +212,8 @@ int32_t UriPermissionManagerStub::HandleCheckUriAuthorization(MessageParcel &dat
         return ERR_URI_LIST_OUT_OF_RANGE;
     }
     std::vector<std::string> uriVec;
-    for (uint32_t i = 0; i < size; i++) {
-        auto uri = data.ReadString();
-        uriVec.emplace_back(uri);
+    if (!ReadBatchUriByRawData(data, uriVec)) {
+        return ERR_DEAD_OBJECT;
     }
     auto flag = data.ReadUint32();
     auto tokenId = data.ReadUint32();

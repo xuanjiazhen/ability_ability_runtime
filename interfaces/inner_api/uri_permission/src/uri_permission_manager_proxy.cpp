@@ -15,6 +15,8 @@
 
 #include "uri_permission_manager_proxy.h"
 
+#include <sstream>
+
 #include "ability_manager_errors.h"
 #include "hilog_tag_wrapper.h"
 #include "parcel.h"
@@ -24,9 +26,54 @@ namespace AAFwk {
 namespace {
 const int MAX_URI_COUNT = 500;
 const uint32_t CYCLE_LIMIT = 1000;
+
+int32_t MarshallUris(std::stringstream &ss, const std::vector<std::string> &uris)
+{
+    uint32_t size = uris.size();
+    ss.write(reinterpret_cast<char*>(&size), sizeof(size));
+    for (uint32_t i = 0; i < size; i++) {
+        uint32_t uriLen = uris[i].length();
+        ss.write(reinterpret_cast<char*>(&uriLen), sizeof(uriLen));
+        ss.write(uris[i].c_str(), uriLen);
+    }
+    return ERR_OK;
 }
+
+bool WriteUriByRawData(MessageParcel &data, const std::vector<std::string> &uriVec)
+{
+    std::stringstream ss;
+    MarshallUris(ss, uriVec);
+    if (!data.WriteUint32(ss.str().length())) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "Write uris failed");
+        return false;
+    }
+    if (!data.WriteRawData(reinterpret_cast<const void*>(ss.str().data()), ss.str().length())) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "Write raw data failed");
+        return false;
+    }
+    return true;
+}
+}
+
 UriPermissionManagerProxy::UriPermissionManagerProxy(const sptr<IRemoteObject> &impl)
     : IRemoteProxy<IUriPermissionManager>(impl) {}
+
+bool UriPermissionManagerProxy::WriteBatchUris(MessageParcel &data, const std::vector<Uri> &uriVec)
+{
+    std::vector<std::string> uriStrVec;
+    for (auto &uri : uriVec) {
+        uriStrVec.emplace_back(uri.ToString());
+    }
+    if (!data.WriteUint32(uriStrVec.size())) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "Write uri size failed");
+        return false;
+    }
+    if (!WriteUriByRawData(data, uriStrVec)) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "Write uri by raw data failed");
+        return false;
+    }
+    return true;
+}
 
 int UriPermissionManagerProxy::GrantUriPermission(const Uri &uri, unsigned int flag,
     const std::string targetBundleName, int32_t appIndex, uint32_t initiatorTokenId)
@@ -80,15 +127,9 @@ int UriPermissionManagerProxy::GrantUriPermission(const std::vector<Uri> &uriVec
         TAG_LOGE(AAFwkTag::URIPERMMGR, "Write interfaceToken failed");
         return INNER_ERR;
     }
-    if (!data.WriteUint32(uriVec.size())) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "Write uriVec size failed");
+    if (!WriteBatchUris(data, uriVec)) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "Write Batch uris failed");
         return INNER_ERR;
-    }
-    for (const auto &uri : uriVec) {
-        if (!data.WriteParcelable(&uri)) {
-            TAG_LOGE(AAFwkTag::URIPERMMGR, "Write uri failed");
-            return INNER_ERR;
-        }
     }
     if (!data.WriteUint32(flag)) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "Write flag failed");
@@ -129,15 +170,8 @@ int32_t UriPermissionManagerProxy::GrantUriPermissionPrivileged(const std::vecto
         TAG_LOGE(AAFwkTag::URIPERMMGR, "Write interfaceToken failed");
         return INNER_ERR;
     }
-    if (!data.WriteUint32(uriVec.size())) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "Write uriVec size failed");
+    if (!WriteBatchUris(data, uriVec)) {
         return INNER_ERR;
-    }
-    for (const auto &uri : uriVec) {
-        if (!data.WriteParcelable(&uri)) {
-            TAG_LOGE(AAFwkTag::URIPERMMGR, "Write uri failed");
-            return INNER_ERR;
-        }
     }
     if (!data.WriteUint32(flag)) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "Write flag failed");
@@ -267,14 +301,12 @@ std::vector<bool> UriPermissionManagerProxy::CheckUriAuthorization(const std::ve
         return result;
     }
     if (!data.WriteUint32(uriVec.size())) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "Write uriVec size failed");
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "Write uris size failed");
         return result;
     }
-    for (const auto &uri : uriVec) {
-        if (!data.WriteString(uri)) {
-            TAG_LOGE(AAFwkTag::URIPERMMGR, "Write uri failed");
-            return result;
-        }
+    if (!WriteUriByRawData(data, uriVec)) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "Write raw data uris failed");
+        return result;
     }
     if (!data.WriteUint32(flag)) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "Write flag failed");
