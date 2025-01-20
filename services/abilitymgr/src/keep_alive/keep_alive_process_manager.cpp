@@ -76,12 +76,6 @@ void KeepAliveProcessManager::StartKeepAliveProcessWithMainElementPerBundle(cons
         (void)SetApplicationKeepAlive(bundleInfo.name, userId, false, true);
         return;
     }
-    auto abilityMgr = DelayedSingleton<AbilityManagerService>::GetInstance();
-    // not support statusbar and don't need check after 5s
-    if (abilityMgr && !abilityMgr->IsSupportStatusBar(bundleInfo.uid)) {
-        TAG_LOGI(AAFwkTag::KEEP_ALIVE, "not support statusBar, don't need check when keep alive");
-        return;
-    }
 
     ffrt::submit([bundleInfo, mainElementName, userId]() {
         KeepAliveProcessManager::GetInstance().AfterStartKeepAliveApp(bundleInfo, mainElementName, userId);
@@ -175,8 +169,7 @@ int32_t KeepAliveProcessManager::SetApplicationKeepAlive(const std::string &bund
     CHECK_POINTER_AND_RETURN(appMgrClient, INNER_ERR);
 
     bool localEnable = IsKeepAliveBundle(bundleName, userId);
-    bool isSupportStatusBar = abilityMgr->IsSupportStatusBar(bundleInfo.uid);
-    if (isSupportStatusBar && updateEnable) {
+    if (updateEnable) {
         std::string mainElementName;
         CHECK_TRUE_RETURN_RET(!MainElementUtils::CheckMainUIAbility(bundleInfo, mainElementName),
             ERR_NO_MAIN_ABILITY, "bundle has no main uiability");

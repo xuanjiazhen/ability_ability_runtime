@@ -31,7 +31,6 @@ public:
     int32_t RegisterStatusBarDelegate(sptr<AbilityRuntime::IStatusBarDelegate> delegate);
     bool IsCallerInStatusBar(const std::string &instanceKey);
     bool IsInStatusBar(uint32_t accessTokenId);
-    bool IsSupportStatusBar();
     int32_t DoProcessAttachment(std::shared_ptr<AbilityRecord> abilityRecord);
     int32_t DoCallerProcessAttachment(std::shared_ptr<AbilityRecord> abilityRecord);
 

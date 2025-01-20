@@ -15,7 +15,6 @@
 
 #include <gtest/gtest.h>
 
-#include "errors.h"
 #include "keep_alive_process_manager.h"
 
 #include "ability_keep_alive_service.h"
@@ -55,9 +54,7 @@ void KeepAliveProcessManagerTest::TearDownTestCase(void)
 void KeepAliveProcessManagerTest::SetUp()
 {}
 void KeepAliveProcessManagerTest::TearDown()
-{
-    AbilityManagerService::isSupportStatusBarResult = true;
-}
+{}
 
 /*
  * Feature: KeepAliveProcessManager
@@ -643,134 +640,6 @@ HWTEST_F(KeepAliveProcessManagerTest, SetApplicationKeepAlive_020, TestSize.Leve
         updataEnable, isByEDM);
     EXPECT_EQ(result, ERR_TARGET_BUNDLE_NOT_EXIST);
     GTEST_LOG_(INFO) << "KeepAliveProcessManagerTest SetApplicationKeepAlive_020 end";
-}
-
-/*
- * Feature: KeepAliveProcessManager
- * Function: SetApplicationKeepAlive
- * SubFunction: NA
- * FunctionPoints:KeepAliveProcessManager SetApplicationKeepAlive
- * EnvConditions: NA
- * CaseDescription: Verify SetApplicationKeepAlive
- */
-HWTEST_F(KeepAliveProcessManagerTest, SetApplicationKeepAlive_021, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "KeepAliveProcessManagerTest SetApplicationKeepAlive_021 start";
-    std::string bundleName = "bundleName";
-    int32_t userId = -1;
-    bool updataEnable = true;
-    bool isByEDM = false;
-    system::SetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, true);
-    EXPECT_EQ(system::GetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false), true);
-    MyFlag::isAllowedToUseSystemAPIFlag_ = true;
-    MyFlag::verifyCallingPermissionFlag_ = true;
-    AbilityManagerService::userId_ = 100;
-    BundleMgrHelper::getBundleInfoResult = true;
-    AbilityKeepAliveService::callIsKeepAliveResult = false;
-    MainElementUtils::checkMainUIAbilityResult = false;
-    AbilityManagerService::isSupportStatusBarResult = false;
-    auto result = KeepAliveProcessManager::GetInstance().SetApplicationKeepAlive(bundleName, userId,
-        updataEnable, isByEDM);
-    EXPECT_EQ(result, ERR_OK);
-    GTEST_LOG_(INFO) << "KeepAliveProcessManagerTest SetApplicationKeepAlive_021 end";
-}
-
-/*
- * Feature: KeepAliveProcessManager
- * Function: SetApplicationKeepAlive
- * SubFunction: NA
- * FunctionPoints:KeepAliveProcessManager SetApplicationKeepAlive
- * EnvConditions: NA
- * CaseDescription: Verify SetApplicationKeepAlive
- */
-HWTEST_F(KeepAliveProcessManagerTest, SetApplicationKeepAlive_022, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "KeepAliveProcessManagerTest SetApplicationKeepAlive_022 start";
-    std::string bundleName = "bundleName";
-    int32_t userId = -1;
-    bool updataEnable = true;
-    bool isByEDM = false;
-    system::SetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, true);
-    EXPECT_EQ(system::GetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false), true);
-    MyFlag::isAllowedToUseSystemAPIFlag_ = true;
-    MyFlag::verifyCallingPermissionFlag_ = true;
-    AbilityManagerService::userId_ = 100;
-    BundleMgrHelper::getBundleInfoResult = true;
-    AbilityKeepAliveService::callIsKeepAliveResult = false;
-    MainElementUtils::checkMainUIAbilityResult = true;
-    MainElementUtils::checkStatusBarAbilityResult = false;
-    AbilityManagerService::isSupportStatusBarResult = false;
-    auto result = KeepAliveProcessManager::GetInstance().SetApplicationKeepAlive(bundleName, userId,
-        updataEnable, isByEDM);
-    EXPECT_EQ(result, ERR_OK);
-    GTEST_LOG_(INFO) << "KeepAliveProcessManagerTest SetApplicationKeepAlive_022 end";
-}
-
-/*
- * Feature: KeepAliveProcessManager
- * Function: SetApplicationKeepAlive
- * SubFunction: NA
- * FunctionPoints:KeepAliveProcessManager SetApplicationKeepAlive
- * EnvConditions: NA
- * CaseDescription: Verify SetApplicationKeepAlive
- */
-HWTEST_F(KeepAliveProcessManagerTest, SetApplicationKeepAlive_023, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "KeepAliveProcessManagerTest SetApplicationKeepAlive_023 start";
-    std::string bundleName = "bundleName";
-    int32_t userId = -1;
-    bool updataEnable = true;
-    bool isByEDM = false;
-    system::SetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, true);
-    EXPECT_EQ(system::GetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false), true);
-    MyFlag::isAllowedToUseSystemAPIFlag_ = true;
-    MyFlag::verifyCallingPermissionFlag_ = true;
-    AbilityManagerService::userId_ = 100;
-    BundleMgrHelper::getBundleInfoResult = true;
-    AbilityKeepAliveService::callIsKeepAliveResult = false;
-    MainElementUtils::checkMainUIAbilityResult = true;
-    MainElementUtils::checkStatusBarAbilityResult = true;
-    AppMgrClient::isAppRunningReturnCode = ERR_OK;
-    AppMgrClient::isAppRunningReturnValue = true;
-    AbilityManagerService::isSupportStatusBarResult = false;
-    auto result = KeepAliveProcessManager::GetInstance().SetApplicationKeepAlive(bundleName, userId,
-        updataEnable, isByEDM);
-    EXPECT_EQ(result, ERR_OK);
-    GTEST_LOG_(INFO) << "KeepAliveProcessManagerTest SetApplicationKeepAlive_023 end";
-}
-
-/*
- * Feature: KeepAliveProcessManager
- * Function: SetApplicationKeepAlive
- * SubFunction: NA
- * FunctionPoints:KeepAliveProcessManager SetApplicationKeepAlive
- * EnvConditions: NA
- * CaseDescription: Verify SetApplicationKeepAlive
- */
-HWTEST_F(KeepAliveProcessManagerTest, SetApplicationKeepAlive_024, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "KeepAliveProcessManagerTest SetApplicationKeepAlive_024 start";
-    std::string bundleName = "bundleName";
-    int32_t userId = -1;
-    bool updataEnable = true;
-    bool isByEDM = false;
-    system::SetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, true);
-    EXPECT_EQ(system::GetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false), true);
-    MyFlag::isAllowedToUseSystemAPIFlag_ = true;
-    MyFlag::verifyCallingPermissionFlag_ = true;
-    AbilityManagerService::userId_ = 100;
-    BundleMgrHelper::getBundleInfoResult = true;
-    AbilityKeepAliveService::callIsKeepAliveResult = false;
-    MainElementUtils::checkMainUIAbilityResult = true;
-    MainElementUtils::checkStatusBarAbilityResult = true;
-    AppMgrClient::isAppRunningReturnCode = ERR_OK;
-    AppMgrClient::isAppRunningReturnValue = true;
-    AbilityManagerService::isInStatusBarResult = false;
-    AbilityManagerService::isSupportStatusBarResult = false;
-    auto result = KeepAliveProcessManager::GetInstance().SetApplicationKeepAlive(bundleName, userId,
-        updataEnable, isByEDM);
-    EXPECT_EQ(result, ERR_OK);
-    GTEST_LOG_(INFO) << "KeepAliveProcessManagerTest SetApplicationKeepAlive_024 end";
 }
 }  // namespace AAFwk
 }  // namespace OHOS
