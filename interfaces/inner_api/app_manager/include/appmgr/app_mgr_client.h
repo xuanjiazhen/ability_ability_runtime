@@ -150,7 +150,8 @@ public:
      * @param  uid, uid.
      * @return Returns RESULT_OK on success, others on failure.
      */
-    virtual AppMgrResultCode UpdateApplicationInfoInstalled(const std::string &bundleName, const int uid);
+    virtual AppMgrResultCode UpdateApplicationInfoInstalled(const std::string &bundleName, const int uid,
+        const std::string &moduleName);
 
     /**
      * KillApplication, call KillApplication() through proxy object, kill the application.
@@ -199,6 +200,14 @@ public:
      */
     virtual AppMgrResultCode KillApplicationSelf(const bool clearPageStack = false,
         const std::string& reason = "KillApplicationSelf");
+
+    /**
+     * update process rss and pss value.
+     *
+     * @param procMemStates, the memory states of all apps.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int32_t UpdateProcessMemoryState(const std::vector<ProcessMemoryState> &procMemState);
 
     /**
      * ClearUpApplicationData, call ClearUpApplicationData() through proxy project,
@@ -364,6 +373,16 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t GetRunningProcessInfoByPid(const pid_t pid, OHOS::AppExecFwk::RunningProcessInfo &info) const;
+
+    /**
+     * Get running process information by child process pid.
+     *
+     * @param childPid child process id.
+     * @param info Output parameters, return runningProcessInfo.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetRunningProcessInfoByChildProcessPid(const pid_t childPid,
+        OHOS::AppExecFwk::RunningProcessInfo &info) const;
 
     /**
      * Notify that the ability stage has been updated

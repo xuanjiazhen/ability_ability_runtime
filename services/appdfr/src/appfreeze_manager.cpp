@@ -61,6 +61,7 @@ static constexpr uint16_t FREE_ASYNC_MAX = 1000;
 static constexpr int64_t NANOSECONDS = 1000000000;  // NANOSECONDS mean 10^9 nano second
 static constexpr int64_t MICROSECONDS = 1000000;    // MICROSECONDS mean 10^6 millias second
 constexpr uint64_t SEC_TO_MILLISEC = 1000;
+constexpr uint32_t BUFFER_SIZE = 1024;
 const std::string LOG_FILE_PATH = "data/log/eventlog";
 static bool g_betaVersion = OHOS::system::GetParameter("const.logsystem.versiontype", "unknown") == "beta";
 static bool g_developMode = (OHOS::system::GetParameter("persist.hiview.leak_detector", "unknown") == "enable") ||
@@ -128,7 +129,8 @@ int AppfreezeManager::AppfreezeHandle(const FaultData& faultData, const Appfreez
         faultData.errorObject.name.c_str(), appInfo.bundleName.c_str());
     std::string memoryContent = "";
     CollectFreezeSysMemory(memoryContent);
-    if (faultData.errorObject.name == AppFreezeType::APP_INPUT_BLOCK) {
+    if (faultData.errorObject.name == AppFreezeType::APP_INPUT_BLOCK ||
+        faultData.errorObject.name == AppFreezeType::THREAD_BLOCK_3S) {
         AcquireStack(faultData, appInfo, memoryContent);
     } else {
         NotifyANR(faultData, appInfo, "", memoryContent);
@@ -176,7 +178,8 @@ int AppfreezeManager::MergeNotifyInfo(FaultData& faultNotifyData, const Appfreez
     if (appInfo.isOccurException) {
         faultNotifyData.errorObject.message += "\nnotifyAppFault exception.\n";
     }
-    if (faultNotifyData.errorObject.name == AppFreezeType::APP_INPUT_BLOCK) {
+    if (faultNotifyData.errorObject.name == AppFreezeType::APP_INPUT_BLOCK ||
+        faultNotifyData.errorObject.name == AppFreezeType::THREAD_BLOCK_3S) {
         AcquireStack(faultNotifyData, appInfo, memoryContent);
     } else {
         NotifyANR(faultNotifyData, appInfo, "", memoryContent);
@@ -219,15 +222,16 @@ std::string AppfreezeManager::WriteToFile(const std::string& fileName, std::stri
     }
     std::string stackPath = realPath + "/" + fileName;
     constexpr mode_t defaultLogFileMode = 0644;
-    auto fd = open(stackPath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, defaultLogFileMode);
-    if (fd < 0) {
-        TAG_LOGI(AAFwkTag::APPDFR, "stackPath create failed");
+    FILE* fp = fopen(stackPath.c_str(), "w+");
+    chmod(stackPath.c_str(), defaultLogFileMode);
+    if (fp == nullptr) {
+        TAG_LOGI(AAFwkTag::APPDFR, "stackPath create failed, errno: %{public}d", errno);
         return "";
     } else {
         TAG_LOGI(AAFwkTag::APPDFR, "stackPath: %{public}s", stackPath.c_str());
     }
-    OHOS::SaveStringToFd(fd, content);
-    close(fd);
+    OHOS::SaveStringToFile(stackPath, content, true);
+    (void)fclose(fp);
     return stackPath;
 }
 

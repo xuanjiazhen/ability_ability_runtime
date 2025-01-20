@@ -18,8 +18,10 @@
 
 #include <memory>
 
+#include "ffrt.h"
 #include "iremote_object.h"
 #include "nocopyable.h"
+#include "permission_verification.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -33,6 +35,18 @@ struct AbilityRequest;
  * the struct to open abilities.
  */
 class Want;
+
+class StartSelfUIAbilityRecordGuard {
+public:
+    StartSelfUIAbilityRecordGuard() = delete;
+
+    StartSelfUIAbilityRecordGuard(pid_t pid, int32_t tokenId);
+
+    ~StartSelfUIAbilityRecordGuard();
+
+private:
+    pid_t pid_;
+};
 
 /**
  * @class AbilityPermissionUtil
@@ -87,6 +101,44 @@ public:
 
     int32_t CheckStartRecentAbility(const Want &want, AbilityRequest &request);
 
+    /**
+     * Check StartByCallPermission, check HasFloatingWindow.
+     * @param verificationInfo verificationInfo.
+     * @param callerToken The caller token.
+     * @return Whether the caller has permission to start.
+     */
+    int32_t CheckStartByCallPermissionOrHasFloatingWindow(
+        const PermissionVerification::VerificationInfo &verificationInfo, const sptr<IRemoteObject> &callerToken);
+
+    /**
+     * Check CallServiceExtensionPermission, check HasFloatingWindow.
+     * @param verificationInfo verificationInfo.
+     * @param callerToken The caller token.
+     * @return Whether the caller has permission to start.
+     */
+    int32_t CheckCallServiceExtensionPermissionOrHasFloatingWindow(
+        const PermissionVerification::VerificationInfo &verificationInfo, const sptr<IRemoteObject> &callerToken);
+
+    /**
+     * Check CheckCallAbilityPermission, check HasFloatingWindow.
+     * @param verificationInfo verificationInfo.
+     * @param callerToken The caller token.
+     * @param isCallByShortcut isCallByShortcut.
+     * @return Whether the caller has permission to start.
+     */
+    int32_t CheckCallAbilityPermissionOrHasFloatingWindow(
+        const PermissionVerification::VerificationInfo &verificationInfo, const sptr<IRemoteObject> &callerToken,
+        bool isCallByShortcut);
+
+    /**
+     * Check HasFloatingWindow.
+     * @param callerToken The caller token.
+     * @return Whether the caller has floatingWindow.
+     */
+    int32_t CheckStartCallHasFloatingWindow(const sptr<IRemoteObject> &callerToken);
+
+    bool IsStartSelfUIAbility();
+
 private:
     /**
      * AbilityPermissionUtil, the private constructor.
@@ -124,6 +176,17 @@ private:
      */
     int32_t UpdateInstanceKey(Want &want, const std::string &originInstanceKey,
         const std::vector<std::string> &instanceKeyArray, const std::string &instanceKey);
+
+    void AddStartSelfUIAbilityRecord(pid_t pid, int32_t tokenId);
+
+    void RemoveStartSelfUIAbilityRecord(pid_t pid);
+
+    int GetTokenIdByPid(pid_t pid);
+
+    std::vector<std::vector<int32_t>> startSelfUIAbilityRecords_;
+    ffrt::mutex startSelfUIAbilityRecordsMutex_;
+
+    friend class StartSelfUIAbilityRecordGuard;
 
     DISALLOW_COPY_AND_MOVE(AbilityPermissionUtil);
 };

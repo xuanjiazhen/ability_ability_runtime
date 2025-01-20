@@ -258,13 +258,14 @@ AppMgrResultCode AppMgrClient::AttachPidToParent(const sptr<IRemoteObject> &toke
     return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
 }
 
-AppMgrResultCode AppMgrClient::UpdateApplicationInfoInstalled(const std::string &bundleName, const int uid)
+AppMgrResultCode AppMgrClient::UpdateApplicationInfoInstalled(const std::string &bundleName, const int uid,
+    const std::string &moduleName)
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
         sptr<IAmsMgr> amsService = service->GetAmsMgr();
         if (amsService != nullptr) {
-            int32_t result = amsService->UpdateApplicationInfoInstalled(bundleName, uid);
+            int32_t result = amsService->UpdateApplicationInfoInstalled(bundleName, uid, moduleName);
             if (result == ERR_OK) {
                 return AppMgrResultCode::RESULT_OK;
             }
@@ -354,6 +355,16 @@ AppMgrResultCode AppMgrClient::KillApplicationSelf(const bool clearPageStack, co
         }
     }
     return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+}
+
+int32_t AppMgrClient::UpdateProcessMemoryState(const std::vector<AppExecFwk::ProcessMemoryState> &procMemState)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return service->UpdateProcessMemoryState(procMemState);
 }
 
 AppMgrResultCode AppMgrClient::ClearUpApplicationData(const std::string &bundleName, int32_t appCloneIndex,
@@ -612,6 +623,17 @@ int32_t AppMgrClient::GetRunningProcessInfoByPid(const pid_t pid, OHOS::AppExecF
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
     return service->GetRunningProcessInfoByPid(pid, info);
+}
+
+int32_t AppMgrClient::GetRunningProcessInfoByChildProcessPid(const pid_t childPid,
+    OHOS::AppExecFwk::RunningProcessInfo &info) const
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return service->GetRunningProcessInfoByChildProcessPid(childPid, info);
 }
 
 void AppMgrClient::SetAbilityForegroundingFlagToAppRecord(const pid_t pid) const

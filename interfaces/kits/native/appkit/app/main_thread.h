@@ -212,7 +212,7 @@ public:
      * @param appInfo The latest application info obtained from bms for update abilityRuntimeContext.
      *
      */
-    void ScheduleUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo) override;
+    void ScheduleUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo, const std::string &moduleName) override;
 
     /**
      * Notify application to launch ability stage.
@@ -418,7 +418,7 @@ private:
      * @param appInfo The latest application info obtained from bms for update abilityRuntimeContext.
      *
      */
-    void HandleUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo);
+    void HandleUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo, const std::string &moduleName);
 
     /**
      *
@@ -587,7 +587,7 @@ private:
      *
      */
     bool PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &record, bool isStageBased,
-        const AppExecFwk::HapModuleInfo &entryHapModuleInfo);
+        const AppExecFwk::HapModuleInfo &entryHapModuleInfo, uint32_t targetVersion);
 
     /**
      * @brief Set current process extension type

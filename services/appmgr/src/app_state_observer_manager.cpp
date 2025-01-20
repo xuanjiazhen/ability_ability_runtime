@@ -617,16 +617,17 @@ void AppStateObserverManager::HandleOnAppProcessCreated(const std::shared_ptr<Ap
     }
     ProcessData data = WrapProcessData(appRecord);
     data.isPreload = isPreload;
-    data.isPreloadModule = appRecord->GetNeedLimitPrio();
+    data.isPreloadModule = appRecord->GetNeedPreloadModule();
     if (data.bundleName == XIAOYI_BUNDLE_NAME && data.extensionType == ExtensionAbilityType::SERVICE) {
         TAG_LOGI(AAFwkTag::APPMGR, "change processType to NORMAL");
         data.processType = ProcessType::NORMAL;
     }
     TAG_LOGI(AAFwkTag::APPMGR,
         "bundle:%{public}s, pid:%{public}d, uid:%{public}d, processType:%{public}d, "
-        "extensionType:%{public}d, processName:%{public}s, renderUid:%{public}d, isTestMode:%{public}d",
+        "extensionType:%{public}d, processName:%{public}s, renderUid:%{public}d, isTestMode:%{public}d, "
+        "callerPid:%{public}d, callerUid:%{public}d",
         data.bundleName.c_str(), data.pid, data.uid, data.processType, data.extensionType, data.processName.c_str(),
-        data.renderUid, data.isTestMode);
+        data.renderUid, data.isTestMode, data.callerPid, data.callerUid);
     HandleOnProcessCreated(data);
 }
 
@@ -848,6 +849,8 @@ ProcessData AppStateObserverManager::WrapProcessData(const std::shared_ptr<AppRu
     processData.exitReason = appRecord->GetExitReason();
     processData.exitMsg = appRecord->GetExitMsg();
     processData.gpuPid = appRecord->GetGPUPid();
+    processData.callerPid = appRecord->GetCallerPid();
+    processData.callerUid = appRecord->GetCallerUid();
     return processData;
 }
 
@@ -1045,7 +1048,7 @@ AppStateData AppStateObserverManager::WrapAppStateData(const std::shared_ptr<App
     appStateData.state = static_cast<int32_t>(state);
     appStateData.uid = appRecord->GetUid();
     appStateData.extensionType = appRecord->GetExtensionType();
-    appStateData.isPreloadModule = appRecord->GetNeedLimitPrio();
+    appStateData.isPreloadModule = appRecord->GetNeedPreloadModule();
     if (appRecord->GetApplicationInfo() != nullptr) {
         appStateData.accessTokenId = static_cast<uint32_t>(appRecord->GetApplicationInfo()->accessTokenId);
     }

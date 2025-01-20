@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,8 +31,12 @@ constexpr const char* HSPLIST_MODULES = "modules";
 constexpr const char* HSPLIST_VERSIONS = "versions";
 constexpr const char* DATAGROUPINFOLIST_DATAGROUPID = "dataGroupId";
 constexpr const char* DATAGROUPINFOLIST_GID = "gid";
+constexpr const char* DATAGROUPINFOLIST_UUID = "uuid";
 constexpr const char* DATAGROUPINFOLIST_DIR = "dir";
-constexpr const char* JSON_DATA_APP = "/data/app/el2/";
+constexpr const char* JSON_DATA_APP_DIR_EL2 = "/data/app/el2/";
+constexpr const char* JSON_DATA_APP_DIR_EL3 = "/data/app/el3/";
+constexpr const char* JSON_DATA_APP_DIR_EL4 = "/data/app/el4/";
+constexpr const char* JSON_DATA_APP_DIR_EL5 = "/data/app/el5/";
 constexpr const char* JSON_GROUP = "/group/";
 constexpr const char* VERSION_PREFIX = "v";
 constexpr const char* APPSPAWN_CLIENT_USER_NAME = "APP_MANAGER_SERVICE";
@@ -126,16 +130,30 @@ AppSpawnClientHandle AppSpawnClient::GetAppSpawnClientHandle() const
     return nullptr;
 }
 
-static std::string DumpDataGroupInfoListToJson(const DataGroupInfoList &dataGroupInfoList)
+static std::string DumpDataGroupInfoListToJson(const DataGroupInfoList &dataGroupInfoList, bool isScreenLockDataProtect)
 {
+    TAG_LOGD(AAFwkTag::APPMGR, "dataGroupInfoList size: %{public}zu", dataGroupInfoList.size());
     nlohmann::json dataGroupInfoListJson;
     for (auto& dataGroupInfo : dataGroupInfoList) {
-        dataGroupInfoListJson[DATAGROUPINFOLIST_DATAGROUPID].emplace_back(dataGroupInfo.dataGroupId);
-        dataGroupInfoListJson[DATAGROUPINFOLIST_GID].emplace_back(std::to_string(dataGroupInfo.gid));
-        std::string dir = JSON_DATA_APP + std::to_string(dataGroupInfo.userId)
-            + JSON_GROUP + dataGroupInfo.uuid;
-        dataGroupInfoListJson[DATAGROUPINFOLIST_DIR].emplace_back(dir);
+        nlohmann::json dataGroupInfoJson;
+        dataGroupInfoJson[DATAGROUPINFOLIST_DATAGROUPID] = dataGroupInfo.dataGroupId;
+        dataGroupInfoJson[DATAGROUPINFOLIST_GID] = std::to_string(dataGroupInfo.gid);
+        dataGroupInfoJson[DATAGROUPINFOLIST_UUID] = dataGroupInfo.uuid;
+        std::string dir = std::to_string(dataGroupInfo.userId) + JSON_GROUP + dataGroupInfo.uuid;
+        dataGroupInfoJson[DATAGROUPINFOLIST_DIR] = JSON_DATA_APP_DIR_EL2 + dir;
+        dataGroupInfoListJson.emplace_back(dataGroupInfoJson);
+
+        dataGroupInfoJson[DATAGROUPINFOLIST_DIR] = JSON_DATA_APP_DIR_EL3 + dir;
+        dataGroupInfoListJson.emplace_back(dataGroupInfoJson);
+
+        dataGroupInfoJson[DATAGROUPINFOLIST_DIR] = JSON_DATA_APP_DIR_EL4 + dir;
+        dataGroupInfoListJson.emplace_back(dataGroupInfoJson);
+        if (isScreenLockDataProtect) {
+            dataGroupInfoJson[DATAGROUPINFOLIST_DIR] = JSON_DATA_APP_DIR_EL5 + dir;
+            dataGroupInfoListJson.emplace_back(dataGroupInfoJson);
+        }
     }
+    TAG_LOGD(AAFwkTag::APPMGR, "dataGroupInfoListJson %{public}s", dataGroupInfoListJson.dump().c_str());
     return dataGroupInfoListJson.dump();
 }
 
@@ -317,7 +335,7 @@ int32_t AppSpawnClient::AppspawnSetExtMsg(const AppSpawnStartMsg &startMsg, AppS
 
     if (!startMsg.dataGroupInfoList.empty()) {
         ret = AppSpawnReqMsgAddStringInfo(reqHandle, MSG_EXT_NAME_DATA_GROUP,
-            DumpDataGroupInfoListToJson(startMsg.dataGroupInfoList).c_str());
+            DumpDataGroupInfoListToJson(startMsg.dataGroupInfoList, startMsg.isScreenLockDataProtect).c_str());
         if (ret) {
             TAG_LOGE(AAFwkTag::APPMGR, "fail, ret: %{public}d", ret);
             return ret;

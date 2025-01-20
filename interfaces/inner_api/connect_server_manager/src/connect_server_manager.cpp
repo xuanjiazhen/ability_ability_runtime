@@ -46,12 +46,10 @@ std::string GetInstanceMapMessage(
 using StartServer = void (*)(const std::string&);
 using StartServerForSocketPair = bool (*)(int);
 using SendMessage = void (*)(const std::string&);
-using SendLayoutMessage = void (*)(const std::string&);
 using StopServer = void (*)(const std::string&);
 using StoreMessage = void (*)(int32_t, const std::string&);
-using StoreInspectorInfo = void (*)(const std::string&, const std::string&);
-using SetProfilerCallback = void (*)(const std::function<void(bool)> &setArkUIStateProfilerStatus);
-using SetSwitchCallBack = void (*)(const std::function<void(bool)> &setStatus,
+using SetProfilerCallback = void (*)(const std::function<void(bool)> &setStateProfilerStatus);
+using SetSwitchCallBack = void (*)(const std::function<void(bool)> &setSwitchStatus,
     const std::function<void(int32_t)> &createLayoutInfo, int32_t instanceId);
 using SetConnectCallback = void (*)(const std::function<void(bool)>);
 using RemoveMessage = void (*)(int32_t);
@@ -62,7 +60,9 @@ using SetRecordCallBack = void (*)(const std::function<void(void)> &startRecordF
 std::mutex g_debuggerMutex;
 std::mutex g_loadsoMutex;
 std::mutex ConnectServerManager::instanceMutex_;
-std::mutex ConnectServerManager::callbackMutex_;
+std::mutex ConnectServerManager::connectServerCallbackMutex_;
+std::mutex ConnectServerManager::addInstanceCallbackMutex_;
+std::mutex ConnectServerManager::sendInstanceMessageCallbackMutex_;
 std::unordered_map<int, std::pair<void*, const DebuggerPostTask>> g_debuggerInfo;
 
 ConnectServerManager::~ConnectServerManager()
@@ -112,7 +112,7 @@ void ConnectServerManager::StartConnectServer(const std::string& bundleName, int
     }
     startServerForSocketPair(socketFd);
 
-    std::lock_guard<std::mutex> lock(callbackMutex_);
+    std::lock_guard<std::mutex> lock(connectServerCallbackMutex_);
     for (const auto &callback : connectServerCallbacks_) {
         if (callback != nullptr) {
             callback();
@@ -138,7 +138,6 @@ void ConnectServerManager::StopConnectServer(bool isCloseSo)
         handlerConnectServerSo_ = nullptr;
     }
 }
-
 
 bool ConnectServerManager::StoreInstanceMessage(int32_t tid, int32_t instanceId, const std::string& instanceName)
 {
@@ -206,7 +205,8 @@ void ConnectServerManager::SetConnectedCallback()
     });
 }
 
-void ConnectServerManager::SetSwitchCallback(int32_t instanceId)
+void ConnectServerManager::SetSwitchCallback(const std::function<void(bool)> &setSwitchStatus,
+    const std::function<void(int32_t)> &createLayoutInfo, int32_t instanceId)
 {
     LoadConnectServerDebuggerSo();
     auto setSwitchCallBack = reinterpret_cast<SetSwitchCallBack>(
@@ -215,24 +215,10 @@ void ConnectServerManager::SetSwitchCallback(int32_t instanceId)
         TAG_LOGE(AAFwkTag::JSRUNTIME, "null setSwitchCallBack");
         return;
     }
-    setSwitchCallBack(
-        [this](bool status) {
-            if (setStatus_ != nullptr) {
-                setStatus_(status);
-            } else {
-                TAG_LOGE(AAFwkTag::JSRUNTIME, "null setStatus_");
-            }
-        },
-        [this](int32_t containerId) {
-            if (createLayoutInfo_ != nullptr) {
-                createLayoutInfo_(containerId);
-            } else {
-                TAG_LOGE(AAFwkTag::JSRUNTIME, "null createLayoutInfo_");
-            }
-        }, instanceId);
+    setSwitchCallBack(setSwitchStatus, createLayoutInfo, instanceId);
 }
 
-void ConnectServerManager::SetProfilerCallBack()
+void ConnectServerManager::SetProfilerCallBack(const std::function<void(bool)> &setStateProfilerStatus)
 {
     LoadConnectServerDebuggerSo();
     auto setProfilerCallback = reinterpret_cast<SetProfilerCallback>(
@@ -241,20 +227,13 @@ void ConnectServerManager::SetProfilerCallBack()
         TAG_LOGE(AAFwkTag::JSRUNTIME, "null setProfilerCallback");
         return;
     }
-    setProfilerCallback([this](bool status) {
-        if (setArkUIStateProfilerStatus_ != nullptr) {
-            setArkUIStateProfilerStatus_(status);
-        } else {
-            TAG_LOGE(AAFwkTag::JSRUNTIME, "null etArkUIStateProfilerStatus_");
-        }
-    });
+    setProfilerCallback(setStateProfilerStatus);
 }
 
 bool ConnectServerManager::SendInstanceMessage(int32_t tid, int32_t instanceId, const std::string& instanceName)
 {
     TAG_LOGI(AAFwkTag::JSRUNTIME, "called");
-    ConnectServerManager::Get().SetSwitchCallback(instanceId);
-    ConnectServerManager::Get().SetProfilerCallBack();
+    ConnectServerManager::Get().SendInstanceMessageCallback(instanceId);
     std::string message = GetInstanceMapMessage("addInstance", instanceId, instanceName, tid);
     LoadConnectServerDebuggerSo();
     auto storeMessage = reinterpret_cast<StoreMessage>(dlsym(handlerConnectServerSo_, "StoreMessage"));
@@ -265,7 +244,6 @@ bool ConnectServerManager::SendInstanceMessage(int32_t tid, int32_t instanceId, 
     storeMessage(instanceId, message);
     return true;
 }
-
 
 bool ConnectServerManager::AddInstance(int32_t tid, int32_t instanceId, const std::string& instanceName)
 {
@@ -285,8 +263,7 @@ bool ConnectServerManager::AddInstance(int32_t tid, int32_t instanceId, const st
 
     TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
 
-    ConnectServerManager::Get().SetSwitchCallback(instanceId);
-    ConnectServerManager::Get().SetProfilerCallBack();
+    ConnectServerManager::Get().AddInstanceCallback(instanceId);
     LoadConnectServerDebuggerSo();
     // Get the message including information of new instance, which will be send to IDE.
     std::string message = GetInstanceMapMessage("addInstance", instanceId, instanceName, tid);
@@ -365,50 +342,25 @@ void ConnectServerManager::RemoveInstance(int32_t instanceId)
 void ConnectServerManager::SendInspector(const std::string& jsonTreeStr, const std::string& jsonSnapshotStr)
 {
     TAG_LOGI(AAFwkTag::JSRUNTIME, "called");
-    auto sendLayoutMessage = reinterpret_cast<SendMessage>(dlsym(handlerConnectServerSo_, "SendLayoutMessage"));
-    if (sendLayoutMessage == nullptr) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "null sendLayoutMessage");
+    auto sendMessage = reinterpret_cast<SendMessage>(dlsym(handlerConnectServerSo_, "SendMessage"));
+    if (sendMessage == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null sendMessage");
         return;
     }
-
-    sendLayoutMessage(jsonTreeStr);
-    sendLayoutMessage(jsonSnapshotStr);
-    auto storeInspectorInfo = reinterpret_cast<StoreInspectorInfo>(
-        dlsym(handlerConnectServerSo_, "StoreInspectorInfo"));
-    if (storeInspectorInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "null StoreInspectorInfo");
-        return;
-    }
-    storeInspectorInfo(jsonTreeStr, jsonSnapshotStr);
+    sendMessage(jsonTreeStr);
+    sendMessage(jsonSnapshotStr);
 }
 
-void ConnectServerManager::SetLayoutInspectorCallback(
-    const std::function<void(int32_t)>& createLayoutInfo, const std::function<void(bool)>& setStatus)
-{
-    createLayoutInfo_ = createLayoutInfo;
-    setStatus_ = setStatus;
-}
-
-std::function<void(int32_t)> ConnectServerManager::GetLayoutInspectorCallback()
-{
-    return createLayoutInfo_;
-}
-
-void ConnectServerManager::SetStateProfilerCallback(const std::function<void(bool)> &setArkUIStateProfilerStatus)
-{
-    setArkUIStateProfilerStatus_ = setArkUIStateProfilerStatus;
-}
-
-void ConnectServerManager::SendArkUIStateProfilerMessage(const std::string &message)
+void ConnectServerManager::SendStateProfilerMessage(const std::string &message)
 {
     TAG_LOGI(AAFwkTag::JSRUNTIME, "called");
-    auto sendProfilerMessage = reinterpret_cast<SendMessage>(dlsym(handlerConnectServerSo_, "SendProfilerMessage"));
-    if (sendProfilerMessage == nullptr) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "null sendProfilerMessage");
+    auto sendMessage = reinterpret_cast<SendMessage>(dlsym(handlerConnectServerSo_, "SendMessage"));
+    if (sendMessage == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null sendMessage");
         return;
     }
 
-    sendProfilerMessage(message);
+    sendMessage(message);
 }
 
 DebuggerPostTask ConnectServerManager::GetDebuggerPostTask(int32_t tid)
@@ -443,21 +395,21 @@ void ConnectServerManager::SetRecordResults(const std::string &jsonArrayStr)
         TAG_LOGE(AAFwkTag::JSRUNTIME, "No connected server");
         return;
     }
-    auto sendLayoutMessage = reinterpret_cast<SendMessage>(dlsym(handlerConnectServerSo_, "SendLayoutMessage"));
-    if (sendLayoutMessage == nullptr) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "null sendLayoutMessage");
+    auto sendMessage = reinterpret_cast<SendMessage>(dlsym(handlerConnectServerSo_, "SendMessage"));
+    if (sendMessage == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null sendMessage");
         return;
     }
-    sendLayoutMessage(jsonArrayStr);
+    sendMessage(jsonArrayStr);
 }
 
-void ConnectServerManager::RegistConnectServerCallback(const ServerConnectCallback &connectServerCallback)
+void ConnectServerManager::RegisterConnectServerCallback(const ServerConnectCallback &connectServerCallback)
 {
     if (connectServerCallback == nullptr) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "null callback");
         return;
     }
-    std::lock_guard<std::mutex> lock(callbackMutex_);
+    std::lock_guard<std::mutex> lock(connectServerCallbackMutex_);
     for (const auto &callback : connectServerCallbacks_) {
         if (callback == connectServerCallback) {
             TAG_LOGE(AAFwkTag::JSRUNTIME, "callback exist");
@@ -465,7 +417,61 @@ void ConnectServerManager::RegistConnectServerCallback(const ServerConnectCallba
         }
     }
     connectServerCallbacks_.emplace_back(connectServerCallback);
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "regist succeed");
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "register connectServerCallback succeed");
 }
 
+void ConnectServerManager::RegisterSendInstanceMessageCallback(
+    const SendInstanceMessageCallBack &sendInstanceMessageCallback)
+{
+    if (sendInstanceMessageCallback == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null callback");
+        return;
+    }
+    std::lock_guard<std::mutex> lock(sendInstanceMessageCallbackMutex_);
+    for (const auto &callback : sendInstanceMessageCallbacks_) {
+        if (callback == sendInstanceMessageCallback) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "callback exist");
+            return;
+        }
+    }
+    sendInstanceMessageCallbacks_.emplace_back(sendInstanceMessageCallback);
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "register sendInstanceMessageCallback succeed");
+}
+
+void ConnectServerManager::SendInstanceMessageCallback(const int32_t instanceId)
+{
+    std::lock_guard<std::mutex> lock(sendInstanceMessageCallbackMutex_);
+    for (const auto &callback : sendInstanceMessageCallbacks_) {
+        if (callback != nullptr) {
+            callback(instanceId);
+        }
+    }
+}
+
+void ConnectServerManager::RegisterAddInstanceCallback(const AddInstanceCallBack &addInstanceCallback)
+{
+    if (addInstanceCallback == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null callback");
+        return;
+    }
+    std::lock_guard<std::mutex> lock(addInstanceCallbackMutex_);
+    for (const auto &callback : addInstanceCallbacks_) {
+        if (callback == addInstanceCallback) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "callback exist");
+            return;
+        }
+    }
+    addInstanceCallbacks_.emplace_back(addInstanceCallback);
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "register addInstanceCallback succeed");
+}
+
+void ConnectServerManager::AddInstanceCallback(const int32_t instanceId)
+{
+    std::lock_guard<std::mutex> lock(addInstanceCallbackMutex_);
+    for (const auto &callback : addInstanceCallbacks_) {
+        if (callback != nullptr) {
+            callback(instanceId);
+        }
+    }
+}
 } // namespace OHOS::AbilityRuntime

@@ -28,7 +28,8 @@
         "ability_runtime_power",
         "ability_runtime_app_no_response_dialog",
         "ability_runtime_app_no_response_bundlename",
-        "ability_runtime_start_window_options_with_pixelmap"
+        "ability_runtime_start_window_options_with_pixelmap",
+        "ability_runtime_check_internet_permission"
       ],
       "adapted_system_type": [
           "standard"
@@ -252,6 +253,15 @@
               ]
             },
             "name": "//foundation/ability/ability_runtime/frameworks/js/napi/inner/napi_ability_common:napi_ability_common"
+          },
+          {
+            "header": {
+              "header_base": "//foundation/ability/ability_runtime/frameworks/js/napi/inner/napi_wantagent_common",
+              "header_files": [
+                "napi_common_want_agent.h"
+              ]
+            },
+            "name": "//foundation/ability/ability_runtime/frameworks/js/napi/inner/napi_wantagent_common:napi_wantagent_common"
           },
           {
             "header": {
@@ -541,6 +551,15 @@
               ]
             },
             "name": "//foundation/ability/ability_runtime/interfaces/inner_api/app_manager:app_state_data"
+          },
+          {
+            "header": {
+              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/connect_server_manager/include",
+              "header_files": [
+                "connect_server_manager.h"
+              ]
+            },
+            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/connect_server_manager:connect_server_manager"
           }
         ],
         "test": [

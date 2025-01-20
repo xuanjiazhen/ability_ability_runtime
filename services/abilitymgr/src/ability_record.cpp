@@ -189,7 +189,7 @@ void LaunchDebugInfo::Update(const OHOS::AAFwk::Want &want)
 
 AbilityRecord::AbilityRecord(const Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
     const AppExecFwk::ApplicationInfo &applicationInfo, int requestCode)
-    : want_(want), abilityInfo_(abilityInfo), requestCode_(requestCode)
+    : want_(want), requestCode_(requestCode), abilityInfo_(abilityInfo)
 {
     abilityInfo_.applicationInfo = applicationInfo;
     recordId_ = abilityRecordId++;
@@ -3391,7 +3391,7 @@ int32_t AbilityRecord::GetCurrentAccountId() const
         TAG_LOGE(AAFwkTag::ABILITYMGR, "empty QueryActiveOsAccountIds");
         return DEFAULT_USER_ID;
     }
-
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "osActiveAccountId: %{public}d", osActiveAccountIds.front());
     return osActiveAccountIds.front();
 }
 

@@ -39,6 +39,7 @@
 namespace OHOS {
 namespace AppExecFwk {
 constexpr int32_t CYCLE_LIMIT = 1000;
+constexpr int32_t MAX_PROCESS_STATE_COUNT = 1000;
 
 AppMgrStub::AppMgrStub() {}
 
@@ -86,6 +87,10 @@ int32_t AppMgrStub::OnRemoteRequestInner(uint32_t code, MessageParcel &data,
         return retCode;
     }
     retCode = OnRemoteRequestInnerSeventh(code, data, reply, option);
+    if (retCode != INVALID_FD) {
+        return retCode;
+    }
+    retCode = OnRemoteRequestInnerEighth(code, data, reply, option);
     if (retCode != INVALID_FD) {
         return retCode;
     }
@@ -225,6 +230,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerFourth(uint32_t code, MessageParcel &dat
             return HandleGetBundleNameByPid(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::GET_RUNNING_PROCESS_INFO_BY_PID):
             return HandleGetRunningProcessInfoByPid(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::GET_RUNNING_PROCESS_INFO_BY_CHILD_PROCESS_PID):
+            return HandleGetRunningProcessInfoByChildProcessPid(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::APP_GET_ALL_RENDER_PROCESSES):
             return HandleGetAllRenderProcesses(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::GET_PROCESS_MEMORY_BY_PID):
@@ -363,8 +370,18 @@ int32_t AppMgrStub::OnRemoteRequestInnerSeventh(uint32_t code, MessageParcel &da
             return HandleCheckIsKiaProcess(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::KILL_APP_SELF_WITH_INSTANCE_KEY):
             return HandleKillAppSelfWithInstanceKey(data, reply);
+    }
+    return INVALID_FD;
+}
+
+int32_t AppMgrStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel &data,
+    MessageParcel &reply, MessageOption &option)
+{
+    switch (static_cast<uint32_t>(code)) {
         case static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_INSTANCE_KEY_BY_SPECIFIED_ID):
             return HandleUpdateInstanceKeyBySpecifiedId(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_PROCESS_MEMORY_STATE):
+            return HandleUpdateProcessMemoryState(data, reply);
     }
     return INVALID_FD;
 }
@@ -1177,6 +1194,22 @@ int32_t AppMgrStub::HandleGetRunningProcessInfoByPid(MessageParcel &data, Messag
     return NO_ERROR;
 }
 
+int32_t AppMgrStub::HandleGetRunningProcessInfoByChildProcessPid(MessageParcel &data, MessageParcel &reply)
+{
+    RunningProcessInfo processInfo;
+    auto childPid = static_cast<pid_t>(data.ReadInt32());
+    auto result = GetRunningProcessInfoByChildProcessPid(childPid, processInfo);
+    if (!reply.WriteParcelable(&processInfo)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "failed");
+        return ERR_INVALID_VALUE;
+    }
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "fail to write result.");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
 int32_t AppMgrStub::HandleNotifyFault(MessageParcel &data, MessageParcel &reply)
 {
     std::unique_ptr<FaultData> faultData(data.ReadParcelable<FaultData>());
@@ -1791,6 +1824,29 @@ int32_t AppMgrStub::HandleHasAppRecord(MessageParcel &data, MessageParcel &reply
         reply.WriteBool(exist);
     }
     return ret;
+}
+
+ErrCode AppMgrStub::HandleUpdateProcessMemoryState(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    TAG_LOGD(AAFwkTag::APPMGR, "HandleUpdateProcessMemoryState,callingPid=%{public}d", IPCSkeleton::GetCallingPid());
+    std::vector<ProcessMemoryState> states;
+    auto size = data.ReadUint32();
+    if (size <= 0 || size > MAX_PROCESS_STATE_COUNT) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Invalid size");
+        return ERR_INVALID_VALUE;
+    }
+    for (uint32_t i = 0; i < size; i++) {
+        std::unique_ptr<ProcessMemoryState> tmpState(data.ReadParcelable<ProcessMemoryState>());
+        if (tmpState == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "tmpState is nullptr.");
+            return ERR_INVALID_VALUE;
+        }
+        states.emplace_back(*tmpState);
+    }
+    auto ret = UpdateProcessMemoryState(states);
+    reply.WriteInt32(ret);
+    return NO_ERROR;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -294,7 +294,7 @@ public:
      * @param  uid, uid.
      * @return 0 if success.
      */
-    int UpdateApplicationInfoInstalled(const std::string &bundleName, const int32_t uid);
+    int UpdateApplicationInfoInstalled(const std::string &bundleName, const int32_t uid, const std::string &moduleName);
 
     /**
      * Ability attach timeout. If start ability encounter failure, attach timeout to terminate.
@@ -327,6 +327,16 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     void GetRunningProcessInfoByPid(const pid_t pid, OHOS::AppExecFwk::RunningProcessInfo &info) const;
+
+    /**
+     * Get running process information by child process pid.
+     *
+     * @param childPid child process id.
+     * @param info Output parameters, return runningProcessInfo.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    void GetRunningProcessInfoByChildProcessPid(const pid_t childPid,
+        OHOS::AppExecFwk::RunningProcessInfo &info) const;
 
     /**
      * Set AbilityForegroundingFlag of an app-record to true.
@@ -635,12 +645,12 @@ protected:
     virtual void NotifyAppPreCache(int32_t pid, int32_t userId) override;
 
 private:
-    std::mutex lock_;
     bool isInit_  {false};
+    AppAbilityState appAbilityState_ = AppAbilityState::ABILITY_STATE_UNDEFINED;
     std::weak_ptr<AppStateCallback> callback_;
     std::unique_ptr<AppExecFwk::AppMgrClient> appMgrClient_;
-    AppAbilityState appAbilityState_ = AppAbilityState::ABILITY_STATE_UNDEFINED;
     sptr<StartSpecifiedAbilityResponse> startSpecifiedAbilityResponse_;
+    std::mutex lock_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

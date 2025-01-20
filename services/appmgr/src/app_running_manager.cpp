@@ -333,6 +333,7 @@ bool AppRunningManager::GetPidsByUserId(int32_t userId, std::list<pid_t> &pids)
             int32_t id = -1;
             if ((DelayedSingleton<OsAccountManagerWrapper>::GetInstance()->
                 GetOsAccountLocalIdFromUid(appRecord->GetUid(), id) == 0) && (id == userId)) {
+                TAG_LOGD(AAFwkTag::APPMGR, "GetOsAccountLocalIdFromUid id: %{public}d", id);
                 pid_t pid = appRecord->GetPid();
                 if (pid > 0) {
                     pids.push_back(pid);
@@ -345,7 +346,8 @@ bool AppRunningManager::GetPidsByUserId(int32_t userId, std::list<pid_t> &pids)
     return (!pids.empty());
 }
 
-int32_t AppRunningManager::ProcessUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo)
+int32_t AppRunningManager::ProcessUpdateApplicationInfoInstalled(
+    const ApplicationInfo& appInfo, const std::string& moduleName)
 {
     auto appRunningMap = GetAppRunningRecordMap();
     int32_t result = ERR_OK;
@@ -357,7 +359,7 @@ int32_t AppRunningManager::ProcessUpdateApplicationInfoInstalled(const Applicati
         auto appInfoList = appRecord->GetAppInfoList();
         for (auto iter : appInfoList) {
             if (iter->bundleName == appInfo.bundleName && iter->uid == appInfo.uid) {
-                appRecord->UpdateApplicationInfoInstalled(appInfo);
+                appRecord->UpdateApplicationInfoInstalled(appInfo, moduleName);
                 break;
             }
         }
@@ -663,7 +665,7 @@ void AppRunningManager::HandleAbilityAttachTimeOut(const sptr<IRemoteObject> &to
 
     if ((isPage || appRecord->IsLastAbilityRecord(token)) && (!appRecord->IsKeepAliveApp() ||
         !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient())) {
-        appRecord->SetTerminating(shared_from_this());
+        appRecord->SetTerminating();
     }
 
     std::weak_ptr<AppRunningRecord> appRecordWptr(appRecord);
@@ -709,7 +711,7 @@ void AppRunningManager::PrepareTerminate(const sptr<IRemoteObject> &token, bool 
             return;
         }
         TAG_LOGI(AAFwkTag::APPMGR, "ability is the last:%{public}s", appRecord->GetName().c_str());
-        appRecord->SetTerminating(shared_from_this());
+        appRecord->SetTerminating();
         std::string killReason = clearMissionFlag ? "Kill Reason:ClearSession" : "";
         appRecord->SetKillReason(killReason);
     }
@@ -751,7 +753,7 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
             CommonEventSupport::COMMON_EVENT_PACKAGE_RESTARTED);
         };
 
-    if (clearMissionFlag && appRecord->IsDebugApp()) {
+    if (clearMissionFlag && appRecord->IsDebug()) {
         killProcess();
         return;
     }
@@ -785,7 +787,7 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
             return;
         }
         TAG_LOGI(AAFwkTag::APPMGR, "Terminate last ability in app:%{public}s.", appRecord->GetName().c_str());
-        appRecord->SetTerminating(shared_from_this());
+        appRecord->SetTerminating();
         if (clearMissionFlag && appMgrServiceInner != nullptr) {
             auto delayTime = appRecord->ExtensionAbilityRecordExists() ?
                 AMSEventHandler::DELAY_KILL_EXTENSION_PROCESS_TIMEOUT : AMSEventHandler::DELAY_KILL_PROCESS_TIMEOUT;
@@ -831,6 +833,21 @@ int32_t AppRunningManager::GetRunningProcessInfoByPid(const pid_t pid, OHOS::App
     return AssignRunningProcessInfoByAppRecord(appRecord, info);
 }
 
+int32_t AppRunningManager::GetRunningProcessInfoByChildProcessPid(const pid_t childPid,
+    OHOS::AppExecFwk::RunningProcessInfo &info)
+{
+    if (childPid <= 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid process pid:%{public}d", childPid);
+        return ERR_INVALID_OPERATION;
+    }
+    auto appRecord = GetAppRunningRecordByPid(childPid);
+    if (appRecord == nullptr) {
+        TAG_LOGI(AAFwkTag::APPMGR, "null appRecord, try get by child pid");
+        appRecord = GetAppRunningRecordByChildProcessPid(childPid);
+    }
+    return AssignRunningProcessInfoByAppRecord(appRecord, info);
+}
+
 int32_t AppRunningManager::AssignRunningProcessInfoByAppRecord(
     std::shared_ptr<AppRunningRecord> appRecord, AppExecFwk::RunningProcessInfo &info) const
 {
@@ -862,6 +879,8 @@ int32_t AppRunningManager::AssignRunningProcessInfoByAppRecord(
     }
     info.appCloneIndex = appRecord->GetAppIndex();
     info.instanceKey = appRecord->GetInstanceKey();
+    info.rssValue = appRecord->GetRssValue();
+    info.pssValue = appRecord->GetPssValue();
     return ERR_OK;
 }
 
@@ -1794,12 +1813,6 @@ int32_t AppRunningManager::UpdateConfigurationDelayed(const std::shared_ptr<AppR
         it->second = false;
     }
     return result;
-}
-
-void AppRunningManager::SetMultiUserConfigurationMgr(
-    const std::shared_ptr<MultiUserConfigurationMgr>& multiUserConfigurationMgr)
-{
-    multiUserConfigurationMgr_ = multiUserConfigurationMgr;
 }
 
 int32_t AppRunningManager::CheckIsKiaProcess(pid_t pid, bool &isKia)

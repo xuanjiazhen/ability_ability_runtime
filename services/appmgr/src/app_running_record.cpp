@@ -54,29 +54,6 @@ constexpr uint32_t PROCESS_MODE_RUN_WITH_MAIN_PROCESS =
 int64_t AppRunningRecord::appEventId_ = 0;
 
 
-void MultiUserConfigurationMgr::Insert(const int32_t userId, const Configuration& config)
-{
-    std::lock_guard<std::mutex> guard(multiUserConfigurationMutex_);
-    auto it = multiUserConfiguration_.find(userId);
-    if (it != multiUserConfiguration_.end()) {
-        std::vector<std::string> diffVe;
-        it->second.CompareDifferent(diffVe, config);
-        it->second.Merge(diffVe, config);
-    } else {
-        multiUserConfiguration_[userId] = config;
-    }
-}
-
-Configuration MultiUserConfigurationMgr::GetConfigurationByUserId(const int32_t userId)
-{
-    std::lock_guard<std::mutex> guard(multiUserConfigurationMutex_);
-    auto it = multiUserConfiguration_.find(userId);
-    if (it == multiUserConfiguration_.end()) {
-        return {};
-    }
-    return it->second;
-}
-
 AppRunningRecord::AppRunningRecord(
     const std::shared_ptr<ApplicationInfo> &info, const int32_t recordId, const std::string &processName)
     : appRecordId_(recordId), processName_(processName)
@@ -373,7 +350,7 @@ void AppRunningRecord::LaunchApplication(const Configuration &config)
     appLifeCycleDeal_->LaunchApplication(launchData, config);
 }
 
-void AppRunningRecord::UpdateApplicationInfoInstalled(const ApplicationInfo &appInfo)
+void AppRunningRecord::UpdateApplicationInfoInstalled(const ApplicationInfo &appInfo, const std::string &moduleName)
 {
     if (!isStageBasedModel_) {
         TAG_LOGI(AAFwkTag::APPMGR, "Current version than supports");
@@ -384,7 +361,7 @@ void AppRunningRecord::UpdateApplicationInfoInstalled(const ApplicationInfo &app
         TAG_LOGE(AAFwkTag::APPMGR, "null appLifeCycleDeal_");
         return;
     }
-    appLifeCycleDeal_->UpdateApplicationInfoInstalled(appInfo);
+    appLifeCycleDeal_->UpdateApplicationInfoInstalled(appInfo, moduleName);
 }
 
 void AppRunningRecord::AddAbilityStage()
@@ -1307,19 +1284,12 @@ bool AppRunningRecord::IsLastPageAbilityRecord(const sptr<IRemoteObject> &token)
     return pageAbilitySize == 1;
 }
 
-void AppRunningRecord::SetTerminating(std::shared_ptr<AppRunningManager> appRunningMgr)
+void AppRunningRecord::SetTerminating()
 {
     isTerminating = true;
     auto prioObject = GetPriorityObject();
     if (prioObject) {
         AbilityRuntime::FreezeUtil::GetInstance().DeleteAppLifecycleEvent(prioObject->GetPid());
-    }
-    if (appRunningMgr == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "appRunningMgr null");
-        return;
-    }
-    if (appRunningMgr->CheckAppRunningRecordIsLast(shared_from_this())) {
-        UnSetPolicy();
     }
 }
 
@@ -1711,6 +1681,15 @@ void AppRunningRecord::SetStartMsg(const AppSpawnStartMsg &msg)
 AppSpawnStartMsg AppRunningRecord::GetStartMsg()
 {
     return startMsg_;
+}
+
+bool AppRunningRecord::IsDebug()
+{
+    if (IsDebugApp() || isNativeDebug_ || !perfCmd_.empty() || IsAttachDebug() || IsAssertionPause()) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "debugApp, no need to handle");
+        return true;
+    }
+    return false;
 }
 
 void AppRunningRecord::SetDebugApp(bool isDebugApp)
@@ -2106,7 +2085,7 @@ void AppRunningRecord::SetAttachDebug(bool isAttachDebug)
     isAttachDebug_ ? appLifeCycleDeal_->AttachAppDebug() : appLifeCycleDeal_->DetachAppDebug();
 }
 
-bool AppRunningRecord::isAttachDebug() const
+bool AppRunningRecord::IsAttachDebug() const
 {
     return isAttachDebug_;
 }

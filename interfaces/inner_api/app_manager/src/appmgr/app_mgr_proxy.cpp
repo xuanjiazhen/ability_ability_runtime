@@ -26,6 +26,7 @@
 namespace OHOS {
 namespace AppExecFwk {
 constexpr int32_t CYCLE_LIMIT = 1000;
+constexpr int32_t MAX_PROCESS_STATE_COUNT = 1000;
 AppMgrProxy::AppMgrProxy(const sptr<IRemoteObject> &impl) : IRemoteProxy<IAppMgr>(impl)
 {}
 
@@ -1295,6 +1296,34 @@ int32_t AppMgrProxy::GetRunningProcessInfoByPid(const pid_t pid, OHOS::AppExecFw
     return reply.ReadInt32();
 }
 
+int32_t AppMgrProxy::GetRunningProcessInfoByChildProcessPid(const pid_t childPid,
+    OHOS::AppExecFwk::RunningProcessInfo &info)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "start");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        return ERR_INVALID_DATA;
+    }
+
+    if (!data.WriteInt32(static_cast<int32_t>(childPid))) {
+        TAG_LOGE(AAFwkTag::APPMGR, "parcel childPid failed.");
+        return ERR_INVALID_DATA;
+    }
+
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::GET_RUNNING_PROCESS_INFO_BY_CHILD_PROCESS_PID,
+        data, reply, option);
+
+    std::unique_ptr<AppExecFwk::RunningProcessInfo> processInfo(reply.ReadParcelable<AppExecFwk::RunningProcessInfo>());
+    if (processInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "recv process info failded");
+        return ERR_INVALID_DATA;
+    }
+    info = *processInfo;
+    return reply.ReadInt32();
+}
+
 int32_t AppMgrProxy::NotifyAppFault(const FaultData &faultData)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "called");
@@ -2172,6 +2201,37 @@ int32_t AppMgrProxy::HasAppRecord(const AAFwk::Want &want, const AbilityInfo &ab
     PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::UPDATE_INSTANCE_KEY_BY_SPECIFIED_ID, data, reply, option);
     result = reply.ReadBool();
     return ERR_OK;
+}
+
+int32_t AppMgrProxy::UpdateProcessMemoryState(const std::vector<ProcessMemoryState> &procMemState)
+{
+    MessageParcel data;
+    MessageParcel reply;
+
+    auto size = procMemState.size();
+    if (size == 0 || size > MAX_PROCESS_STATE_COUNT) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Invalid size");
+        return ERR_FLATTEN_OBJECT;
+    }
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write token failed");
+        return IPC_PROXY_ERR;
+    }
+    if (!data.WriteUint32(size)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write size failed");
+        return ERR_FLATTEN_OBJECT;
+    }
+    for (const auto &perState: procMemState) {
+        if (!data.WriteParcelable(&perState)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Write perState failed");
+            return ERR_FLATTEN_OBJECT;
+        }
+    }
+    if (!SendTransactCmd(AppMgrInterfaceCode::UPDATE_PROCESS_MEMORY_STATE, data, reply)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest err");
+        return IPC_PROXY_ERR;
+    }
+    return reply.ReadInt32();
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

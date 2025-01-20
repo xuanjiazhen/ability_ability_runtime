@@ -215,7 +215,13 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
         if (IsUIExtensionAbility(targetService)) {
             targetService->SetLaunchReason(LaunchReason::LAUNCHREASON_START_ABILITY);
         }
-        LoadAbility(targetService);
+        auto updateRecordCallback = [mgr = shared_from_this()](
+            const std::shared_ptr<AbilityRecord>& targetService) {
+            if (mgr != nullptr) {
+                mgr->UpdateUIExtensionInfo(targetService, AAFwk::DEFAULT_INVAL_VALUE);
+            }
+        };
+        LoadAbility(targetService, updateRecordCallback);
     } else if (targetService->IsAbilityState(AbilityState::ACTIVE) && !IsUIExtensionAbility(targetService)) {
         // It may have been started through connect
         targetService->SetWant(abilityRequest.want);
@@ -223,7 +229,7 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
     } else if (IsUIExtensionAbility(targetService)) {
         DoForegroundUIExtension(targetService, abilityRequest);
     } else {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "targetService activating");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "TargetService not active, state: %{public}d", targetService->GetAbilityState());
         EnqueueStartServiceReq(abilityRequest);
         return ERR_OK;
     }
@@ -652,7 +658,13 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
 
     if (!isLoadedAbility) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "targetService has not been loaded");
-        LoadAbility(targetService);
+        auto updateRecordCallback = [mgr = shared_from_this()](
+            const std::shared_ptr<AbilityRecord>& targetService) {
+            if (mgr != nullptr) {
+                mgr->UpdateUIExtensionInfo(targetService, AAFwk::DEFAULT_INVAL_VALUE);
+            }
+        };
+        LoadAbility(targetService, updateRecordCallback);
     } else if (targetService->IsAbilityState(AbilityState::ACTIVE)) {
         targetService->SetWant(abilityRequest.want);
         HandleActiveAbility(targetService, connectRecord);
@@ -3381,11 +3393,12 @@ int32_t AbilityConnectManager::ReportAbilityStartInfoToRSS(const AppExecFwk::Abi
     return ERR_OK;
 }
 
-void AbilityConnectManager::UninstallApp(const std::string &bundleName)
+void AbilityConnectManager::UninstallApp(const std::string &bundleName, int32_t uid)
 {
     std::lock_guard lock(serviceMapMutex_);
     for (const auto &[key, abilityRecord]: serviceMap_) {
-        if (abilityRecord && abilityRecord->GetAbilityInfo().bundleName == bundleName) {
+        if (abilityRecord && abilityRecord->GetAbilityInfo().bundleName == bundleName &&
+            abilityRecord->GetUid() == uid) {
             abilityRecord->SetKeepAliveBundle(false);
         }
     }

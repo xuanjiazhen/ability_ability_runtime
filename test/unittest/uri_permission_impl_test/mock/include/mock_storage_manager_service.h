@@ -278,7 +278,12 @@ public:
         return E_OK;
     }
     
-    virtual int32_t UpdateKeyContext(uint32_t userId) override
+    virtual int32_t UpdateKeyContext(uint32_t userId, bool needRemoveTmpKey = false) override
+    {
+        return E_OK;
+    }
+
+    int32_t GetUserNeedActiveStatus(uint32_t userId, bool &needActive) override
     {
         return E_OK;
     }

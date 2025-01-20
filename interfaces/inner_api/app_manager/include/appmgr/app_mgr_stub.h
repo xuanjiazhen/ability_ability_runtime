@@ -127,6 +127,7 @@ private:
     int32_t HandleIsTerminatingByPid(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetBundleNameByPid(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetRunningProcessInfoByPid(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleGetRunningProcessInfoByChildProcessPid(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetProcessMemoryByPid(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetRunningProcessInformation(MessageParcel &data, MessageParcel &reply);
     int32_t HandleChangeAppGcState(MessageParcel &data, MessageParcel &reply);
@@ -184,7 +185,10 @@ private:
         MessageParcel &reply, MessageOption &option);
     int32_t OnRemoteRequestInnerSeventh(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);
+    int32_t OnRemoteRequestInnerEighth(uint32_t code, MessageParcel &data,
+        MessageParcel &reply, MessageOption &option);
     int32_t HandleGetSupportedProcessCachePids(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleUpdateProcessMemoryState(MessageParcel &data, MessageParcel &reply);
     DISALLOW_COPY_AND_MOVE(AppMgrStub);
 };
 }  // namespace AppExecFwk

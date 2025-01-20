@@ -28,9 +28,9 @@ struct VerificationInfo {
     bool visible = false;
     bool isBackgroundCall = true;
     bool associatedWakeUp = false;
+    bool withContinuousTask = false;
     uint32_t accessTokenId = 0;
     int32_t apiTargetVersion = 0;
-    bool withContinuousTask = false;
     uint32_t specifyTokenId = 0;
 };
 
@@ -117,7 +117,7 @@ struct VerificationInfo {
 
     bool VerifySuperviseKiaServicePermission() const;
 
-    bool VerifyStartSelfUIAbility() const;
+    bool VerifyStartSelfUIAbility(int tokenId) const;
 
 private:
     DISALLOW_COPY_AND_MOVE(PermissionVerification);

@@ -23,6 +23,12 @@
 
 namespace OHOS {
 namespace AppExecFwk {
+std::shared_ptr<AbilityDelegator> AbilityDelegator::Create(const std::shared_ptr<AbilityRuntime::Context>& context,
+    std::unique_ptr<TestRunner> runner, const sptr<IRemoteObject>& observer)
+{
+    return std::make_shared<AbilityDelegator>(context, std::move(runner), observer);
+}
+
 AbilityDelegator::AbilityDelegator(const std::shared_ptr<AbilityRuntime::Context> &context,
     std::unique_ptr<TestRunner> runner, const sptr<IRemoteObject> &observer)
     : appContext_(context), testRunner_(std::move(runner)), observer_(observer)

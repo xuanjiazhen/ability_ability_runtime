@@ -75,6 +75,7 @@ constexpr const char* TASK_EXIT_CHILD_PROCESS_SAFELY = "ExitChildProcessSafelyTa
 #endif // SUPPORT_CHILD_PROCESS
 constexpr const char* FOUNDATION_PROCESS = "foundation";
 constexpr int32_t USER_UID = 2000;
+constexpr const char* HIVIEW_PROCESS_NAME = "hiview";
 }  // namespace
 
 REGISTER_SYSTEM_ABILITY_BY_ID(AppMgrService, APP_MGR_SERVICE_ID, true);
@@ -1214,6 +1215,16 @@ int32_t AppMgrService::GetRunningProcessInfoByPid(const pid_t pid, OHOS::AppExec
     return appMgrServiceInner_->GetRunningProcessInfoByPid(pid, info);
 }
 
+int32_t AppMgrService::GetRunningProcessInfoByChildProcessPid(const pid_t childPid,
+    OHOS::AppExecFwk::RunningProcessInfo &info)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->GetRunningProcessInfoByChildProcessPid(childPid, info);
+}
+
 int32_t AppMgrService::NotifyAppFault(const FaultData &faultData)
 {
     if (!IsReady()) {
@@ -1400,6 +1411,7 @@ int32_t AppMgrService::IsApplicationRunning(const std::string &bundleName, bool 
 
 int32_t AppMgrService::IsAppRunning(const std::string &bundleName, int32_t appCloneIndex, bool &isRunning)
 {
+    isRunning = false;
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
@@ -1409,6 +1421,7 @@ int32_t AppMgrService::IsAppRunning(const std::string &bundleName, int32_t appCl
 int32_t AppMgrService::IsAppRunningByBundleNameAndUserId(const std::string &bundleName, int32_t userId,
     bool &isRunning)
 {
+    isRunning = false;
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
@@ -1763,6 +1776,28 @@ int32_t AppMgrService::HasAppRecord(const AAFwk::Want &want, const AbilityInfo &
     }
     result = appMgrServiceInner_->HasAppRecord(want, abilityInfo);
     return ERR_OK;
+}
+
+int32_t AppMgrService::UpdateProcessMemoryState(const std::vector<ProcessMemoryState> &procMemState)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "procMemState.size = %{public}zu", procMemState.size());
+    if (!IsReady()) {
+        return ERR_INVALID_OPERATION;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall() &&
+        !AAFwk::PermissionVerification::GetInstance()->IsShellCall()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "caller is not sa or shell");
+        return ERR_PERMISSION_DENIED;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
+        HIVIEW_PROCESS_NAME)) {
+        TAG_LOGW(AAFwkTag::APPMGR, "caller not sa dfx");
+    }
+    if (!appMgrServiceInner_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    return appMgrServiceInner_->UpdateProcessMemoryState(procMemState);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
