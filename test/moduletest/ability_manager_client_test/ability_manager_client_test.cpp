@@ -301,23 +301,6 @@ HWTEST_F(AbilityManagerClientTest, StartSelfUIAbility_0100, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbility_0100 end");
 }
 
-#ifdef ABILITY_COMMAND_FOR_TEST
-/**
- * @tc.name: ForceTimeoutForTest_0100
- * @tc.desc: OpenLink
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerClientTest, ForceTimeoutForTest_0100, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbility_0100 start");
-    std::string abilityName = "com.example.abilityName";
-    std::string state = "com.example.state";
-    auto result = AbilityManagerClient::GetInstance()->ForceTimeoutForTest(abilityName, state);
-    EXPECT_EQ(result, ERR_OK);
-    TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbility_0100 end");
-}
-#endif
-
 /**
  * @tc.name: KillProcessWithReason_0100
  * @tc.desc: OpenLink
