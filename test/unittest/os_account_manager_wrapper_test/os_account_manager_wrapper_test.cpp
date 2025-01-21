@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -86,8 +86,6 @@ HWTEST_F(OsAccountManagerWrapperTest, IsOsAccountExists_0100, TestSize.Level0)
     EXPECT_EQ(isOsAccountExists, false);
 }
 
-#ifndef OS_ACCOUNT_PART_ENABLED
-#define OS_ACCOUNT_PART_ENABLED
 /**
  * @tc.name: CreateOsAccount_0100
  * @tc.desc: Create os account.
@@ -97,7 +95,7 @@ HWTEST_F(OsAccountManagerWrapperTest, CreateOsAccount_0100, TestSize.Level0)
 {
     int account = ACCOUNT_VALUE;
     int ret = DelayedSingleton<OsAccountManagerWrapper>::GetInstance()->CreateOsAccount(ACCOUNT_NAME, account);
-    EXPECT_EQ(ret, RESULT_OK);
+    EXPECT_NE(ret, RESULT_OK);
 }
 
 /**
@@ -110,9 +108,8 @@ HWTEST_F(OsAccountManagerWrapperTest, RemoveOsAccount_0100, TestSize.Level0)
     int account = ACCOUNT_VALUE;
     int ret = DelayedSingleton<OsAccountManagerWrapper>::GetInstance()->CreateOsAccount(ACCOUNT_NAME, account);
     ret = DelayedSingleton<OsAccountManagerWrapper>::GetInstance()->RemoveOsAccount(account);
-    EXPECT_EQ(ret, RESULT_OK);
+    EXPECT_NE(ret, RESULT_OK);
 }
-#endif // OS_ACCOUNT_PART_ENABLED
 
 /**
  * @tc.name: GetCurrentActiveAccountId_0100

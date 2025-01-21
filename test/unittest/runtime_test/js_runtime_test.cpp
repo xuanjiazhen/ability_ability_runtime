@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1556,6 +1556,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimePreloadMainAbility_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "PreloadMainAbility_0100 start");
     std::unique_ptr<JsRuntime> jsRuntime = JsRuntime::Create(options_);
+    jsRuntime->DoCleanWorkAfterStageCleaned();
     EXPECT_TRUE(jsRuntime != nullptr);
     std::string moduleName = TEST_MODULE_NAME;
     std::string srcPath = TEST_MODULE_PATH;
