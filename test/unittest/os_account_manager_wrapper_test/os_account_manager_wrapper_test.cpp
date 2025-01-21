@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "account_error_no.h"
 #include "os_account_manager_wrapper.h"
 
 using namespace testing;
@@ -95,7 +96,7 @@ HWTEST_F(OsAccountManagerWrapperTest, CreateOsAccount_0100, TestSize.Level0)
 {
     int account = ACCOUNT_VALUE;
     int ret = DelayedSingleton<OsAccountManagerWrapper>::GetInstance()->CreateOsAccount(ACCOUNT_NAME, account);
-    EXPECT_NE(ret, RESULT_OK);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED);
 }
 
 /**
@@ -107,8 +108,9 @@ HWTEST_F(OsAccountManagerWrapperTest, RemoveOsAccount_0100, TestSize.Level0)
 {
     int account = ACCOUNT_VALUE;
     int ret = DelayedSingleton<OsAccountManagerWrapper>::GetInstance()->CreateOsAccount(ACCOUNT_NAME, account);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED);
     ret = DelayedSingleton<OsAccountManagerWrapper>::GetInstance()->RemoveOsAccount(account);
-    EXPECT_NE(ret, RESULT_OK);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**

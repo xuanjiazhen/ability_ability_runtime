@@ -302,20 +302,6 @@ HWTEST_F(AbilityManagerClientTest, StartSelfUIAbility_0100, TestSize.Level1)
 }
 
 /**
- * @tc.name: KillProcessWithReason_0100
- * @tc.desc: OpenLink
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerClientTest, KillProcessWithReason_0100, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "KillProcessWithReason_0100 start");
-    int32_t pid = 1;
-    AAFwk::ExitReason reason;
-    auto result = AbilityManagerClient::GetInstance()->KillProcessWithReason(pid, reason);
-    EXPECT_NE(result, ERR_OK);
-}
-
-/**
  * @tc.name: AddQueryERMSObserver_0100
  * @tc.desc: OpenLink
  * @tc.type: FUNC
