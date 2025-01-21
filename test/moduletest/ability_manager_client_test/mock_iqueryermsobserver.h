@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef BASE_ABILITYRUNTIME_MOCK_IQUERYERMSOBSERVER_H
+#define BASE_ABILITYRUNTIME_MOCK_IQUERYERMSOBSERVER_H
 
 #include "query_erms_observer_interface.h"
 
@@ -37,3 +39,4 @@ public:
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
+#endif
