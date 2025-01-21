@@ -343,7 +343,8 @@ HWTEST_F(AbilityManagerClientTest, QueryAtomicServiceStartupRule_0100, TestSize.
     std::string appId = "0100";
     std::string startTime = "12:00";
     AtomicServiceStartupRule rule;
-    auto result = AbilityManagerClient::GetInstance()->QueryAtomicServiceStartupRule(callertoken, appId, startTime, rule);
+    auto result = AbilityManagerClient::GetInstance()->QueryAtomicServiceStartupRule(callertoken, 
+        appId, startTime, rule);
     EXPECT_NE(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "QueryAtomicServiceStartupRule_0100 end");
 }
