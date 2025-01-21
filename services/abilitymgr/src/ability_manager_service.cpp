@@ -8845,6 +8845,14 @@ bool AbilityManagerService::JudgeMultiUserConcurrency(const int32_t userId)
     return true;
 }
 
+void AbilityManagerService::SendIntentReport(EventInfo &eventInfo, int32_t errCode, const std::string &intentName)
+{
+    eventInfo.errCode = errCode;
+    eventInfo.callerBundleName = InsightIntentGetcallerBundleName();
+    eventInfo.intentName = intentName;
+    EventReport::SendExecuteIntentEvent(EventName::EXECUTE_INSIGHT_INTENT_ERROR, HiSysEventType::FAULT, eventInfo);
+}
+
 #ifdef ABILITY_COMMAND_FOR_TEST
 int AbilityManagerService::ForceTimeoutForTest(const std::string &abilityName, const std::string &state)
 {
@@ -11025,24 +11033,38 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
     if (ret != ERR_OK) {
         return ret;
     }
-
+    EventInfo eventInfo = BuildEventInfo(want, GetUserId());
     switch (param.executeMode_) {
         case AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND:
             TAG_LOGD(AAFwkTag::ABILITYMGR, "ExecuteMode UI_ABILITY_FOREGROUND.");
             ret = StartAbilityWithInsightIntent(want);
+            if (ret != ERR_OK) {
+                eventInfo.errReason = "StartAbilityWithInsightIntent error";
+                SendIntentReport(eventInfo, ret, param.insightIntentName_);
+            }
             break;
         case AppExecFwk::ExecuteMode::UI_ABILITY_BACKGROUND: {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "ExecuteMode UI_ABILITY_BACKGROUND.");
             ret = StartAbilityByCallWithInsightIntent(want, callerToken, param);
+            if (ret != ERR_OK) {
+                eventInfo.errReason = "StartAbilityByCallWithInsightIntent error";
+                SendIntentReport(eventInfo, ret, param.insightIntentName_);
+            }
             break;
         }
         case AppExecFwk::ExecuteMode::UI_EXTENSION_ABILITY:
             TAG_LOGW(AAFwkTag::ABILITYMGR, "executeMode UI_EXTENSION_ABILITY not supported");
             ret = ERR_INVALID_OPERATION;
+            eventInfo.errReason = "executeMode UI_EXTENSION_ABILITY not supported";
+            SendIntentReport(eventInfo, ret, param.insightIntentName_);
             break;
         case AppExecFwk::ExecuteMode::SERVICE_EXTENSION_ABILITY:
             TAG_LOGD(AAFwkTag::ABILITYMGR, "ExecuteMode SERVICE_EXTENSION_ABILITY.");
             ret = StartExtensionAbilityWithInsightIntent(want, AppExecFwk::ExtensionAbilityType::SERVICE);
+            if (ret != ERR_OK) {
+                eventInfo.errReason = "StartExtensionAbilityWithInsightIntent error";
+                SendIntentReport(eventInfo, ret, param.insightIntentName_);
+            }
             break;
         default:
             TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid executeMode");
@@ -11104,10 +11126,6 @@ int32_t AbilityManagerService::StartAbilityWithInsightIntent(const Want &want, i
     EventInfo eventInfo = BuildEventInfo(want, userId);
     SendAbilityEvent(EventName::START_ABILITY, HiSysEventType::BEHAVIOR, eventInfo);
     int32_t ret = StartAbilityWrap(want, nullptr, requestCode, false, userId);
-    if (ret != ERR_OK) {
-        eventInfo.errCode = ret;
-        SendAbilityEvent(EventName::START_ABILITY_ERROR, HiSysEventType::FAULT, eventInfo);
-    }
     return ret;
 }
 
