@@ -855,7 +855,10 @@ ohos_shared_library("form_extension_module") {
   configs = [ ":ability_config" ]
   public_configs = [ ":ability_public_config" ]
 
-  deps = [ ":form_extension" ]
+  deps = [
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    ":form_extension",
+  ]
 
   external_deps = [
     "ability_base:configuration",
@@ -1117,7 +1120,10 @@ ohos_shared_library("ui_service_extension_module") {
   sources = [ "${ability_runtime_native_path}/ability/native/ui_service_extension_ability/ui_service_extension_module_loader.cpp" ]
 
   configs = [ ":ability_config" ]
-  deps = [ ":ui_service_extension" ]
+  deps = [
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    ":ui_service_extension",
+  ]
 
   external_deps = [
     "ability_base:configuration",
@@ -1276,7 +1282,10 @@ ohos_shared_library("service_extension_module") {
   configs = [ ":ability_config" ]
   public_configs = [ ":ability_public_config" ]
 
-  deps = [ ":service_extension" ]
+  deps = [
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    ":service_extension",
+  ]
 
   external_deps = [
     "ability_base:configuration",
