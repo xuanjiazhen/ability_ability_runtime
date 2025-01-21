@@ -23,23 +23,17 @@ public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.aafwk.IQueryERMSObserver");
 
     void OnQueryFinished(const std::string &appId, const std::string &startTime,
-        const AtomicServiceStartupRule &rule, int resultCode);
-    sptr<IRemoteObject> AsObject();
+                         const AtomicServiceStartupRule &rule, int resultCode)
+    {
+        return;
+    }
+    sptr<IRemoteObject> AsObject()
+    {
+        return nullptr;
+    }
     enum {
         ON_QUERY_FINISHED = 1,
     };
 };
-
-void IQueryERMSObserverMock::OnQueryFinished(const std::string &appId, const std::string &startTime,
-        const AtomicServiceStartupRule &rule, int resultCode)
-{
-    return;
-}
-
-sptr<IRemoteObject> IQueryERMSObserverMock::AsObject()
-{
-    return nullptr;
-}
-
 } // namespace AbilityRuntime
 } // namespace OHOS
