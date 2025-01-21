@@ -566,7 +566,7 @@ HWTEST_F(AmsAppRunningRecordModuleTest, StartSpecifiedAbility_001, TestSize.Leve
     service_->StartSpecifiedAbility(want, *abilityInfo);
 
     mockApplication->Wait();
-    EXPECT_TRUE(record->IsStartSpecifiedAbility());
+    EXPECT_TRUE(record->GetSpecifiedRequest() != nullptr);
 }
 
 /*
@@ -617,7 +617,7 @@ HWTEST_F(AmsAppRunningRecordModuleTest, StartSpecifiedAbility_002, TestSize.Leve
     service_->StartSpecifiedAbility(want, *abilityInfo1);
 
     mockApplication->Wait();
-    EXPECT_TRUE(record->IsStartSpecifiedAbility());
+    EXPECT_TRUE(record->GetSpecifiedRequest() != nullptr);
 }
 
 /*

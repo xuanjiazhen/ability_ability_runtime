@@ -417,6 +417,7 @@ AppMgrServiceInner::~AppMgrServiceInner()
 void AppMgrServiceInner::StartSpecifiedProcess(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
     int32_t requestId)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR, "call.");
     BundleInfo bundleInfo;
     HapModuleInfo hapModuleInfo;
@@ -441,24 +442,40 @@ void AppMgrServiceInner::StartSpecifiedProcess(const AAFwk::Want &want, const Ap
     auto mainAppRecord = appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name, processName, appInfo->uid,
         bundleInfo, "", nullptr, instanceKey, customProcessFlag);
     if (mainAppRecord != nullptr) {
-        TAG_LOGD(AAFwkTag::APPMGR, "main process exists.");
-        mainAppRecord->SetScheduleNewProcessRequestState(requestId, want, hapModuleInfo.moduleName);
+        TAG_LOGI(AAFwkTag::APPMGR, "main process exists.");
+        auto request = std::make_shared<SpecifiedRequest>(requestId, want, hapModuleInfo.moduleName);
+        request->isSpecifiedProcess = true;
+        mainAppRecord->SetSpecifiedRequest(request);
+
         auto moduleRecord = mainAppRecord->GetModuleRecordByModuleName(appInfo->bundleName, hapModuleInfo.moduleName);
         if (!moduleRecord) {
-            TAG_LOGD(AAFwkTag::APPMGR, "module record is nullptr, add modules");
+            TAG_LOGI(AAFwkTag::APPMGR, "module record is nullptr, add modules");
             std::vector<HapModuleInfo> hapModules = { hapModuleInfo };
             mainAppRecord->AddModules(appInfo, hapModules);
-            mainAppRecord->AddAbilityStageBySpecifiedProcess(appInfo->bundleName);
+            if (mainAppRecord->GetApplicationClient() != nullptr) {
+                mainAppRecord->AddAbilityStageBySpecifiedProcess(appInfo->bundleName);
+            }
             return;
         }
         TAG_LOGD(AAFwkTag::APPMGR, "schedule new process request.");
         mainAppRecord->ScheduleNewProcessRequest(want, hapModuleInfo.moduleName);
         return;
     }
-    TAG_LOGD(AAFwkTag::APPMGR, "main process do not exists.");
+    TAG_LOGI(AAFwkTag::APPMGR, "main process do not exists.");
     if (startSpecifiedAbilityResponse_) {
         startSpecifiedAbilityResponse_->OnNewProcessRequestResponse(want, "", requestId);
     }
+}
+
+void AppMgrServiceInner::NotifySpecifiedStage(int32_t requestId, SpecifiedStage stage)
+{
+    auto callback = startSpecifiedAbilityResponse_;
+    if (callback == nullptr) {
+        return;
+    }
+    AAFwk::TaskHandlerWrap::GetFfrtHandler()->SubmitTask([requestId, stage, callback]() {
+        callback->OnSpecifiedStage(requestId, stage);
+        });
 }
 
 int32_t AppMgrServiceInner::PreloadApplication(const std::string &bundleName, int32_t userId,
@@ -1279,19 +1296,31 @@ void AppMgrServiceInner::LaunchApplication(const std::shared_ptr<AppRunningRecor
         return;
     }
     appRecord->LaunchPendingAbilities();
-    if (appRecord->IsStartSpecifiedAbility()) {
-        TAG_LOGI(AAFwkTag::APPMGR, "start specified ability");
-        auto moduleRecordList = appRecord->GetAllModuleRecord();
-        for (const auto &iter : moduleRecordList) {
-            iter->SetModuleRecordState(ModuleRecordState::INITIALIZED_STATE);
-        }
-        appRecord->AddAbilityStageBySpecifiedAbility(appRecord->GetBundleName());
-    }
+    AddAbilityStageForSpecified(appRecord);
 
     if (appRecord->IsPreloading()) {
         appRecord->SetPreloadState(PreloadState::PRELOADED);
     }
     SendAppLaunchEvent(appRecord);
+}
+
+void AppMgrServiceInner::AddAbilityStageForSpecified(std::shared_ptr<AppRunningRecord> appRecord)
+{
+    CHECK_POINTER_AND_RETURN_LOG(appRecord, "appRecord null");
+    auto request = appRecord->GetSpecifiedRequest();
+    if (request != nullptr) {
+        if (request->isSpecifiedProcess) {
+            appRecord->AddAbilityStageBySpecifiedProcess(appRecord->GetBundleName());
+        } else {
+            TAG_LOGI(AAFwkTag::APPMGR, "start specified ability");
+            auto moduleRecordList = appRecord->GetAllModuleRecord();
+            for (const auto &iter : moduleRecordList) {
+                iter->SetModuleRecordState(ModuleRecordState::INITIALIZED_STATE);
+            }
+            appRecord->AddAbilityStageBySpecifiedAbility(appRecord->GetBundleName());
+            NotifySpecifiedStage(request->requestId, SpecifiedStage::ADD_ABILITY_STAGE);
+        }
+    }
 }
 
 void AppMgrServiceInner::AddAbilityStageDone(const int32_t recordId)
@@ -4219,18 +4248,6 @@ void AppMgrServiceInner::HandleAddAbilityStageTimeOut(std::shared_ptr<AppRunning
         return;
     }
 
-    if (appRecord->IsStartSpecifiedAbility() && startSpecifiedAbilityResponse_) {
-        startSpecifiedAbilityResponse_->OnTimeoutResponse(appRecord->GetSpecifiedWant(),
-            appRecord->GetSpecifiedRequestId());
-    }
-    appRecord->ResetSpecifiedRequestId();
-
-    if (appRecord->IsNewProcessRequest() && startSpecifiedAbilityResponse_) {
-        startSpecifiedAbilityResponse_->OnNewProcessRequestTimeoutResponse(appRecord->GetNewProcessRequestWant(),
-            appRecord->GetNewProcessRequestId());
-    }
-    appRecord->ResetNewProcessRequestId();
-
     KillApplicationByRecord(appRecord);
 }
 
@@ -4866,10 +4883,10 @@ void AppMgrServiceInner::StartSpecifiedAbility(const AAFwk::Want &want, const Ap
         appRecord->SendEventForSpecifiedAbility();
         appRecord->SetAppIndex(appIndex);
         uint32_t startFlags = AppspawnUtil::BuildStartFlags(want, abilityInfo);
+        NotifySpecifiedStage(requestId, SpecifiedStage::CREATE_PROCESS);
         StartProcess(appInfo->name, processName, startFlags, appRecord, appInfo->uid, bundleInfo, appInfo->bundleName,
             appIndex, appExistFlag);
-
-        appRecord->SetSpecifiedAbilityFlagAndWant(requestId, want, hapModuleInfo.moduleName);
+        appRecord->SetSpecifiedRequest(std::make_shared<SpecifiedRequest>(requestId, want, hapModuleInfo.moduleName));
         appRecord->AddModules(appInfo, hapModules);
     } else {
         TAG_LOGD(AAFwkTag::APPMGR, "process is exist");
@@ -4877,13 +4894,13 @@ void AppMgrServiceInner::StartSpecifiedAbility(const AAFwk::Want &want, const Ap
         if (isDebugApp && !appRecord->IsDebugApp()) {
             ProcessAppDebug(appRecord, isDebugApp);
         }
-
-        appRecord->SetSpecifiedAbilityFlagAndWant(requestId, want, hapModuleInfo.moduleName);
+        appRecord->SetSpecifiedRequest(std::make_shared<SpecifiedRequest>(requestId, want, hapModuleInfo.moduleName));
         auto moduleRecord = appRecord->GetModuleRecordByModuleName(appInfo->bundleName, hapModuleInfo.moduleName);
         if (!moduleRecord) {
             TAG_LOGD(AAFwkTag::APPMGR, "module record is nullptr, add modules");
             appRecord->AddModules(appInfo, hapModules);
             appRecord->AddAbilityStageBySpecifiedAbility(appInfo->bundleName);
+            NotifySpecifiedStage(requestId, SpecifiedStage::ADD_ABILITY_STAGE);
         } else if (!appRecord->AddAbilityStageBySpecifiedAbility(appInfo->bundleName)) {
             TAG_LOGD(AAFwkTag::APPMGR, "schedule accept want");
             appRecord->ScheduleAcceptWant(hapModuleInfo.moduleName);
@@ -4912,10 +4929,12 @@ void AppMgrServiceInner::ScheduleAcceptWantDone(
     }
     appRecord->ScheduleAcceptWantDone();
 
-    if (startSpecifiedAbilityResponse_) {
-        startSpecifiedAbilityResponse_->OnAcceptWantResponse(want, flag,
-            appRecord->GetSpecifiedRequestId());
+    auto request = appRecord->GetSpecifiedRequest();
+    if (startSpecifiedAbilityResponse_ && request) {
+        startSpecifiedAbilityResponse_->OnAcceptWantResponse(request->want, flag,
+            request->requestId);
     }
+    appRecord->SetSpecifiedRequest(nullptr);
 }
 
 void AppMgrServiceInner::SchedulePrepareTerminate(const pid_t pid, int32_t &prepareTermination, bool &isExist)
@@ -4937,12 +4956,6 @@ void AppMgrServiceInner::HandleStartSpecifiedAbilityTimeOut(std::shared_ptr<AppR
         return;
     }
 
-    if (appRecord->IsStartSpecifiedAbility() && startSpecifiedAbilityResponse_) {
-        startSpecifiedAbilityResponse_->OnTimeoutResponse(appRecord->GetSpecifiedWant(),
-            appRecord->GetSpecifiedRequestId());
-    }
-    appRecord->ResetSpecifiedRequestId();
-
     KillApplicationByRecord(appRecord);
 }
 
@@ -4958,11 +4971,12 @@ void AppMgrServiceInner::ScheduleNewProcessRequestDone(
     }
     appRecord->ScheduleNewProcessRequestDone();
 
-    if (startSpecifiedAbilityResponse_) {
-        startSpecifiedAbilityResponse_->OnNewProcessRequestResponse(want, flag,
-            appRecord->GetNewProcessRequestId());
+    auto request = appRecord->GetSpecifiedRequest();
+    if (startSpecifiedAbilityResponse_ && request) {
+        startSpecifiedAbilityResponse_->OnNewProcessRequestResponse(request->want, flag,
+            request->requestId);
     }
-    appRecord->ResetNewProcessRequestId();
+    appRecord->SetSpecifiedRequest(nullptr);
 }
 
 void AppMgrServiceInner::HandleStartSpecifiedProcessTimeout(std::shared_ptr<AppRunningRecord> appRecord)
@@ -4973,11 +4987,12 @@ void AppMgrServiceInner::HandleStartSpecifiedProcessTimeout(std::shared_ptr<AppR
         return;
     }
 
+    auto request = appRecord->GetSpecifiedRequest();
     if (startSpecifiedAbilityResponse_) {
-        startSpecifiedAbilityResponse_->OnNewProcessRequestTimeoutResponse(appRecord->GetNewProcessRequestWant(),
-            appRecord->GetNewProcessRequestId());
+        startSpecifiedAbilityResponse_->OnNewProcessRequestTimeoutResponse(request->want,
+            request->requestId);
     }
-    appRecord->ResetNewProcessRequestId();
+    appRecord->SetSpecifiedRequest(nullptr);
 }
 
 std::vector<std::string> AppMgrServiceInner::DealWithUserConfiguration(
@@ -5168,6 +5183,18 @@ void AppMgrServiceInner::KillApplicationByRecord(const std::shared_ptr<AppRunnin
     appRecord->SetTerminating();
     appRecord->ScheduleProcessSecurityExit();
 
+    auto request = appRecord->GetSpecifiedRequest();
+    if (startSpecifiedAbilityResponse_ && request) {
+        if (request->isSpecifiedProcess) {
+            startSpecifiedAbilityResponse_->OnNewProcessRequestTimeoutResponse(request->want,
+                request->requestId);
+        } else {
+            startSpecifiedAbilityResponse_->OnTimeoutResponse(request->want,
+                request->requestId);
+        }
+    }
+    appRecord->SetSpecifiedRequest(nullptr);
+
     auto startTime = SystemTimeMillisecond();
     std::list<pid_t> pids = {pid};
     if (WaitForRemoteProcessExit(pids, startTime)) {
@@ -5191,6 +5218,10 @@ void AppMgrServiceInner::SendHiSysEvent(int32_t innerEventId, std::shared_ptr<Ap
     TAG_LOGD(AAFwkTag::APPMGR, "called AppMgrServiceInner SendHiSysEvent!");
     if (!appRecord) {
         TAG_LOGE(AAFwkTag::APPMGR, "appRecord null");
+        return;
+    }
+    if (appRecord->IsTerminating()) {
+        TAG_LOGW(AAFwkTag::APPMGR, "app is terminating: %{public}d", appRecord->GetPid());
         return;
     }
     const int bufferLen = 128;
@@ -8781,35 +8812,6 @@ void AppMgrServiceInner::SendAppSpawnUninstallDebugHapMsg(int32_t userId)
     if (FAILED(errCode)) {
         TAG_LOGE(AAFwkTag::APPMGR, "SendAppSpawnUninstallDebugHapMsg failed, errCode %{public}08x", errCode);
     }
-}
-
-bool AppMgrServiceInner::HasAppRecord(const AAFwk::Want &want, const AbilityInfo &abilityInfo)
-{
-    if (!CheckRemoteClient() || !appRunningManager_) {
-        return false;
-    }
-    auto appInfo = std::make_shared<ApplicationInfo>(abilityInfo.applicationInfo);
-    if (UserRecordManager::GetInstance().IsLogoutUser(GetUserIdByUid(appInfo->uid))) {
-        TAG_LOGE(AAFwkTag::APPMGR, "disable start process in logout user");
-        return false;
-    }
-    int32_t appIndex = 0;
-    (void)AbilityRuntime::StartupUtil::GetAppIndex(want, appIndex);
-    BundleInfo bundleInfo;
-    HapModuleInfo hapModuleInfo;
-    if (!GetBundleAndHapInfo(abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex)) {
-        return false;
-    }
-
-    auto abilityInfoPtr = std::make_shared<AbilityInfo>(abilityInfo);
-    auto specifiedProcessFlag = GetSpecifiedProcessFlag(abilityInfo, want);
-    std::string processName;
-    MakeProcessName(abilityInfoPtr, appInfo, hapModuleInfo, appIndex, specifiedProcessFlag, processName, false);
-
-    auto instanceKey = want.GetStringParam(Want::APP_INSTANCE_KEY);
-    auto appRecord = appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name, processName, appInfo->uid,
-        bundleInfo, "", nullptr, instanceKey);
-    return appRecord != nullptr;
 }
 } // namespace AppExecFwk
 }  // namespace OHOS

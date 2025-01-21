@@ -78,7 +78,7 @@ class AppRunningRecord;
 struct AppEventData {
     uint32_t eventId = 0;
     int64_t param = 0;
-    std::weak_ptr<AppRunningRecord> appRecord;
+    std::shared_ptr<AppRunningRecord> appRecord;
 
     AppEventData(uint32_t eventId, int64_t param, std::shared_ptr<AppRunningRecord> appRecord)
         : eventId(eventId), param(param), appRecord(appRecord) {}

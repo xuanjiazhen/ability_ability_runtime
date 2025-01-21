@@ -909,11 +909,6 @@ public:
 
     virtual void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey) {}
 
-    virtual int32_t HasAppRecord(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result)
-    {
-        return 0;
-    }
-
     /**
      * UpdateProcessMemoryState, call UpdateProcessMemoryState() through proxy object,
      * update process rss and pss value.

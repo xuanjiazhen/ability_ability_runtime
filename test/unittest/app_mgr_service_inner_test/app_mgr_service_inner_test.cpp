@@ -615,11 +615,11 @@ HWTEST_F(AppMgrServiceInnerTest, LaunchApplication_001, TestSize.Level0)
     appRecord->SetEmptyKeepAliveAppState(false);
     appMgrServiceInner->LaunchApplication(appRecord);
 
-    Want want;
-    appRecord->SetSpecifiedAbilityFlagAndWant(-1, want, "");
+    appRecord->SetSpecifiedRequest(nullptr);
     appMgrServiceInner->LaunchApplication(appRecord);
 
-    appRecord->SetSpecifiedAbilityFlagAndWant(1, want, "");
+    auto request = std::make_shared<SpecifiedRequest>(1, Want(), "");
+    appRecord->SetSpecifiedRequest(request);
     appMgrServiceInner->LaunchApplication(appRecord);
 
     appMgrServiceInner->LaunchApplication(appRecord);
@@ -1934,7 +1934,7 @@ HWTEST_F(AppMgrServiceInnerTest, HandleAddAbilityStageTimeOut_001, TestSize.Leve
         appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(applicationInfo_, processName, bundleInfo, "");
     EXPECT_NE(appRecord, nullptr);
 
-    appRecord->specifiedRequestId_ = 1;
+    appRecord->specifiedRequest_ = std::make_shared<SpecifiedRequest>(1, Want(), "");
     appMgrServiceInner->HandleAddAbilityStageTimeOut(appRecord);
 
     sptr<IStartSpecifiedAbilityResponse> response;
@@ -2562,14 +2562,14 @@ HWTEST_F(AppMgrServiceInnerTest, HandleStartSpecifiedAbilityTimeOut_001, TestSiz
         appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(applicationInfo_, processName, bundleInfo, "");
     EXPECT_NE(appRecord, nullptr);
 
-    appRecord->specifiedRequestId_ = 1;
+    appRecord->specifiedRequest_ = std::make_shared<SpecifiedRequest>(1, Want(), "");
     appMgrServiceInner->HandleStartSpecifiedAbilityTimeOut(appRecord);
 
     sptr<IStartSpecifiedAbilityResponse> response;
     appMgrServiceInner->startSpecifiedAbilityResponse_ = response;
     appMgrServiceInner->HandleStartSpecifiedAbilityTimeOut(appRecord);
 
-    appRecord->specifiedRequestId_ = -1;
+    appRecord->specifiedRequest_ = nullptr;
     appMgrServiceInner->HandleStartSpecifiedAbilityTimeOut(appRecord);
 
     TAG_LOGI(AAFwkTag::TEST, "HandleStartSpecifiedAbilityTimeOut_001 end");
@@ -3822,8 +3822,7 @@ HWTEST_F(AppMgrServiceInnerTest, SendAppLaunchEvent_001, TestSize.Level0)
     appRecord->SetKeepAliveEnableState(false);
     appRecord->SetKeepAliveDkv(false);
     appRecord->SetEmptyKeepAliveAppState(false);
-    Want want;
-    appRecord->SetSpecifiedAbilityFlagAndWant(-1, want, "");
+    appRecord->SetSpecifiedRequest(nullptr);
     appMgrServiceInner->SendAppLaunchEvent(appRecord);
     appRecord->SetCallerPid(appRecord2->GetPriorityObject()->GetPid());
     appMgrServiceInner->SendAppLaunchEvent(appRecord);

@@ -60,6 +60,16 @@ class AppMgrServiceInner;
 class AppRunningRecord;
 class AppRunningManager;
 
+struct SpecifiedRequest {
+    bool isSpecifiedProcess = false;
+    int32_t requestId = 0;
+    std::string moduleName;
+    AAFwk::Want want;
+
+    SpecifiedRequest(int32_t requestId, const AAFwk::Want &want, const std::string &moduleName)
+        : requestId(requestId), moduleName(moduleName), want(want) {}
+};
+
 class AppRunningRecord : public std::enable_shared_from_this<AppRunningRecord> {
 public:
     static int64_t appEventId_;
@@ -629,25 +639,9 @@ public:
     std::shared_ptr<UserTestRecord> GetUserTestInfo();
 
     void SetProcessAndExtensionType(const std::shared_ptr<AbilityInfo> &abilityInfo, uint32_t extensionProcessMode = 0);
-    void SetSpecifiedAbilityFlagAndWant(int requestId, const AAFwk::Want &want, const std::string &moduleName);
-    void SetScheduleNewProcessRequestState(int32_t requestId, const AAFwk::Want &want, const std::string &moduleName);
-    /**
-     * Is processing new process request
-     */
-    bool IsNewProcessRequest() const;
-    /**
-     * Is processing specified ability request
-     */
-    bool IsStartSpecifiedAbility() const;
-    /**
-     * Get the specified requestId, -1 for none specified
-     */
-    int32_t GetSpecifiedRequestId() const;
-    /**
-     * Called when one specified request is finished to set the request id to -1
-     */
-    void ResetSpecifiedRequestId();
-    
+    void SetSpecifiedRequest(std::shared_ptr<SpecifiedRequest> specifiedRequest);
+    std::shared_ptr<SpecifiedRequest> GetSpecifiedRequest() const;
+
     void SchedulePrepareTerminate(int32_t &prepareTermination, bool &isExist);
 
     /**
@@ -661,13 +655,6 @@ public:
     void ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName);
     void ScheduleNewProcessRequestDone();
     void ApplicationTerminated();
-    /**
-     * Get the want param for specified request
-     */
-    AAFwk::Want GetSpecifiedWant() const;
-    AAFwk::Want GetNewProcessRequestWant() const;
-    int32_t GetNewProcessRequestId() const;
-    void ResetNewProcessRequestId();
     bool IsDebug();
     void SetDebugApp(bool isDebugApp);
     /**
@@ -1137,8 +1124,6 @@ private:
     int32_t appRecordId_ = 0;
     int32_t mainUid_;
     int restartResidentProcCount_ = 0;
-    int32_t specifiedRequestId_ = -1;
-    int32_t newProcessRequestId_ = -1;
     int32_t exitReason_ = 0;
     int32_t appIndex_ = 0; // render record
     int32_t requestProcCode_ = 0; // render record
@@ -1177,9 +1162,7 @@ private:
     std::string appIdentifier_;
 
     mutable std::mutex specifiedMutex_;
-    AAFwk::Want specifiedWant_;
-    std::string moduleName_;
-    AAFwk::Want newProcessRequestWant_;
+    std::shared_ptr<SpecifiedRequest> specifiedRequest_;
 
     std::string perfCmd_;
     std::string preloadModuleName_;

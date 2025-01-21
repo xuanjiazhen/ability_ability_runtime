@@ -7927,6 +7927,17 @@ void AbilityManagerService::OnStartSpecifiedProcessTimeoutResponse(const AAFwk::
     }
 }
 
+void AbilityManagerService::OnSpecifiedStage(int32_t requestId, AppExecFwk::SpecifiedStage stage)
+{
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "OnSpecifiedStage %{public}d", requestId);
+        auto uiAbilityManager = GetCurrentUIAbilityManager();
+        CHECK_POINTER(uiAbilityManager);
+        uiAbilityManager->OnSpecifiedStage(requestId, stage);
+        return;
+    }
+}
+
 int AbilityManagerService::GetAbilityRunningInfos(std::vector<AbilityRunningInfo> &info)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -7994,7 +8005,7 @@ int AbilityManagerService::GetProcessRunningInfos(std::vector<AppExecFwk::Runnin
     return DelayedSingleton<AppScheduler>::GetInstance()->GetProcessRunningInfos(info);
 }
 
-int32_t AbilityManagerService::GetAllIntentExemptionInfo(std::vector<AppExecFwk::IntentExemptionInfo> &info) 
+int32_t AbilityManagerService::GetAllIntentExemptionInfo(std::vector<AppExecFwk::IntentExemptionInfo> &info)
 {
     const auto exemptionData =
         DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->GetAllIntentExemptionInfo();
@@ -13005,7 +13016,7 @@ bool AbilityManagerService::CheckCrossUser(const int32_t userId, AppExecFwk::Ext
     }
     if (AppUtils::GetInstance().IsConnectSupportCrossUser() && (extensionType == AppExecFwk::ExtensionAbilityType::DATASHARE
         || extensionType == AppExecFwk::ExtensionAbilityType::SERVICE)) {
-        return true;    
+        return true;
     }
     return false;
 }
