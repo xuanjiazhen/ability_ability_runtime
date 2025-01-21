@@ -34,6 +34,7 @@ public:
 
 private:
     DISALLOW_COPY_AND_MOVE(UriPermissionManagerStub);
+    int32_t ReadBatchUris(MessageParcel &data, std::vector<Uri> &uriVec);
 
     int HandleRevokeAllUriPermission(MessageParcel &data, MessageParcel &reply);
     int HandleGrantUriPermission(MessageParcel &data, MessageParcel &reply);
