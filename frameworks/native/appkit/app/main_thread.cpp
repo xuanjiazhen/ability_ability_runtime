@@ -183,6 +183,20 @@ constexpr uint32_t NWEB_SURFACE_SIZE = 1;
 constexpr int32_t PRELOAD_TASK_DELAY_TIME = 2000;  //millisecond
 #endif
 
+constexpr const char* STARTUP_TASKS = "startupTasks";
+constexpr const char* PRELOAD_STARTUP_TASKS = "appPreloadHintStartupTasks";
+constexpr const char* NAME = "name";
+constexpr const char* SRC_ENTRY = "srcEntry";
+constexpr const char* DEPENDENCIES = "dependencies";
+constexpr const char* EXCLUDE_FROM_AUTO_START = "excludeFromAutoStart";
+constexpr const char* RUN_ON_THREAD = "runOnThread";
+constexpr const char* WAIT_ON_MAIN_THREAD = "waitOnMainThread";
+constexpr const char* CONFIG_ENTRY = "configEntry";
+constexpr const char* TASK_POOL = "taskPool";
+constexpr const char* TASK_POOL_LOWER = "taskpool";
+constexpr const char* MAIN_THREAD = "mainThread";
+constexpr const char* OHMURL = "ohmurl";
+
 extern "C" int DFX_SetAppRunningUniqueId(const char* appRunningId, size_t len) __attribute__((weak));
 } // namespace
 
@@ -3646,6 +3660,186 @@ void MainThread::HandleCacheProcess()
             return;
         }
         runtime->ForceFullGC();
+    }
+}
+
+bool MainThread::AnalyzeStartupConfig(const std::string &startupConfig, ModuleType moduleType){
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::APPKIT, "start");
+    if (startupConfig.empty()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "startupConfig invalid");
+        return false;
+    }
+
+    nlohmann::json startupConfigJson = nlohmann::json::parse(startupConfig, nullptr, false);
+    if (startupConfigJson.is_discarded()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to parse json string");
+        return false;
+    }
+    
+    if (moduleType == ModuleType::ENTRY) {
+        if (!(startupConfigJson.contains(CONFIG_ENTRY) && startupConfigJson[CONFIG_ENTRY].is_string())) {
+            TAG_LOGE(AAFwkTag::APPKIT, "no config entry.");
+            return false;
+        }
+        // 加载 configEntry js对象
+        // TODO
+    }
+
+    if (startupConfigJson.contains(STARTUP_TASKS) && startupConfigJson[STARTUP_TASKS].is_array()) {
+        std::vector<std::shared_ptr<StartupTask>> startupTasks;
+        for (const auto& module : startupConfigJson.at(STARTUP_TASKS).get<nlohmann::json>()) {
+            if (!module.contains(SRC_ENTRY) || !module[SRC_ENTRY].is_string() ||
+            !module.contains(NAME) || !module[NAME].is_string()) {
+                TAG_LOGE(AAFwkTag::APPKIT, "Invalid module data");
+                return false;
+            }
+            auto task = AnalyzeStartupTasks(module, moduleType);
+            if (task == nullptr) {
+                return false;
+            }
+            task->printSelf();
+            startupTasks.push_back(task);
+        }
+    }
+    if (startupConfigJson.contains(PRELOAD_STARTUP_TASKS) && startupConfigJson[PRELOAD_STARTUP_TASKS].is_array()) {
+        std::vector<std::shared_ptr<AppPreloadHintStartupTask>> appPreloadHintStartupTask;
+        for (const auto& module : startupConfigJson.at(PRELOAD_STARTUP_TASKS).get<nlohmann::json>()) {
+            if (!module.contains(SRC_ENTRY) || !module[SRC_ENTRY].is_string() ||
+            !module.contains(NAME) || !module[NAME].is_string()) {
+                TAG_LOGE(AAFwkTag::APPKIT, "Invalid module data");
+                return false;
+            }
+            auto task = AnalyzeAppPreloadHintStartupTasks(module, moduleType);
+            if (task == nullptr) {
+                return false;
+            }
+            task->printSelf();
+            appPreloadHintStartupTask.push_back(task);
+        }
+    }
+
+    return true;
+}
+
+std::shared_ptr<StartupTask> MainThread::AnalyzeStartupTasks(const nlohmann::json &startupTaskJson, ModuleType moduleType)
+{
+    if (!startupTaskJson.contains(SRC_ENTRY) || !startupTaskJson[SRC_ENTRY].is_string() ||
+    !startupTaskJson.contains(NAME) || !startupTaskJson[NAME].is_string()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Invalid startupTaskJson data");
+        return nullptr;
+    }
+    // 加载 startupTasks js对象
+    // TODO
+    auto startupTask = std::make_shared<StartupTask>();
+    startupTask->srcEntry = startupTaskJson.at(SRC_ENTRY).get<std::string>();
+    startupTask->name = startupTaskJson.at(NAME).get<std::string>();
+    startupTask->taskType = "StartupTask";
+    if (moduleType == ModuleType::ENTRY) {
+        startupTask->moduleType = "entry";
+    } else if (moduleType == ModuleType::SHARED) {
+        startupTask->moduleType = "shared";
+        startupTask->excludeFromAutoStart = true;
+    }
+    SetOptionalParameters(startupTaskJson, startupTask, moduleType);
+    return startupTask;
+}
+
+std::shared_ptr<AppPreloadHintStartupTask> MainThread::AnalyzeAppPreloadHintStartupTasks(
+    const nlohmann::json &preloadStartupTaskJson, ModuleType moduleType)
+{
+    if (!preloadStartupTaskJson.contains(SRC_ENTRY) || !preloadStartupTaskJson[SRC_ENTRY].is_string() ||
+    !preloadStartupTaskJson.contains(NAME) || !preloadStartupTaskJson[NAME].is_string()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Invalid startupTaskJson data");
+        return nullptr;
+    }
+    // 加载 AppPreloadHintStartupTasks js对象
+    // TODO
+    auto appPreloadHintStartupTask = std::make_shared<AppPreloadHintStartupTask>();
+    appPreloadHintStartupTask->srcEntry = preloadStartupTaskJson.at(SRC_ENTRY).get<std::string>();
+    appPreloadHintStartupTask->name = preloadStartupTaskJson.at(NAME).get<std::string>();
+    appPreloadHintStartupTask->taskType = "AppPreloadHintStartupTask";
+    if (moduleType == ModuleType::ENTRY) {
+        appPreloadHintStartupTask->moduleType = "entry";
+    } else if (moduleType == ModuleType::SHARED) {
+        appPreloadHintStartupTask->moduleType = "shared";
+        appPreloadHintStartupTask->excludeFromAutoStart = true;
+    }
+    SetOptionalParameters(preloadStartupTaskJson, appPreloadHintStartupTask, moduleType);
+    return appPreloadHintStartupTask;
+}
+
+void MainThread::SetOptionalParameters(
+    const nlohmann::json &module,
+    std::shared_ptr<StartupTask> startupTask,
+    ModuleType moduleType)
+{
+    if (module.contains(DEPENDENCIES) && module[DEPENDENCIES].is_array()) {
+        std::vector<std::string> dependencies;
+        for (const auto& dependency : module.at(DEPENDENCIES)) {
+            if (dependency.is_string()) {
+                dependencies.push_back(dependency.get<std::string>());
+            }
+        }
+        startupTask->dependencies = dependencies;
+    }
+
+    if (module.contains(RUN_ON_THREAD) && module[RUN_ON_THREAD].is_string()) {
+        std::string profileName = module.at(RUN_ON_THREAD).get<std::string>();
+        if (profileName == TASK_POOL || profileName == TASK_POOL_LOWER) {
+            startupTask->runOnThread = profileName;
+        } else {
+            startupTask->runOnThread = MAIN_THREAD;
+        }
+    }
+
+    if (module.contains(WAIT_ON_MAIN_THREAD) && module[WAIT_ON_MAIN_THREAD].is_boolean()) {
+        startupTask->waitOnMainThread = module.at(WAIT_ON_MAIN_THREAD).get<bool>();
+    } else {
+        startupTask->waitOnMainThread = true;
+    }
+
+    if (module.contains(OHMURL) && module[OHMURL].is_string()) {
+        startupTask->ohmurl = module.at(OHMURL).get<std::string>();
+    }
+
+    if (moduleType != ModuleType::ENTRY) {
+        return;
+    }
+    if (module.contains(EXCLUDE_FROM_AUTO_START) && module[EXCLUDE_FROM_AUTO_START].is_boolean()) {
+        startupTask->excludeFromAutoStart = module.at(EXCLUDE_FROM_AUTO_START).get<bool>();
+    } else {
+        startupTask->excludeFromAutoStart = false;
+    }
+}
+
+void MainThread::SetOptionalParameters(
+    const nlohmann::json &module,
+    std::shared_ptr<AppPreloadHintStartupTask> appPreloadHintStartupTask,
+    ModuleType moduleType)
+{
+    if (module.contains(DEPENDENCIES) && module[DEPENDENCIES].is_array()) {
+        std::vector<std::string> dependencies;
+        for (const auto& dependency : module.at(DEPENDENCIES)) {
+            if (dependency.is_string()) {
+                dependencies.push_back(dependency.get<std::string>());
+            }
+        }
+        appPreloadHintStartupTask->dependencies = dependencies;
+    }
+
+    appPreloadHintStartupTask->runOnThread = TASK_POOL;
+    if (module.contains(OHMURL) && module[OHMURL].is_string()) {
+        appPreloadHintStartupTask->ohmurl = module.at(OHMURL).get<std::string>();
+    }
+
+    if (moduleType != ModuleType::ENTRY) {
+        return;
+    }
+    if (module.contains(EXCLUDE_FROM_AUTO_START) && module[EXCLUDE_FROM_AUTO_START].is_boolean()) {
+        appPreloadHintStartupTask->excludeFromAutoStart = module.at(EXCLUDE_FROM_AUTO_START).get<bool>();
+    } else {
+        appPreloadHintStartupTask->excludeFromAutoStart = false;
     }
 }
 }  // namespace AppExecFwk
