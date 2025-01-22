@@ -611,6 +611,7 @@ public:
     bool IsStartSpecifiedAbility() const;
     int32_t GetSpecifiedRequestId() const;
     void ResetSpecifiedRequestId();
+    void SchedulePrepareTerminate(int32_t &prepareTermination, bool &isExist);
     void ScheduleAcceptWant(const std::string &moduleName);
     void ScheduleAcceptWantDone();
     void ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName);

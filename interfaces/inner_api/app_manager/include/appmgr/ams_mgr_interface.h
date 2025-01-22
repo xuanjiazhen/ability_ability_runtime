@@ -213,6 +213,22 @@ public:
 
     virtual void RegisterStartSpecifiedAbilityResponse(const sptr<IStartSpecifiedAbilityResponse> &response) = 0;
 
+    /**
+     * Prepare terminate application
+     *
+     * @param pid Process ID
+     * @param prepareTelrmination PrepareTermination Enum
+     * @param isExist whether this callback event exist
+     */
+    virtual void PrepareTerminateApp(const pid_t pid, int32_t &prepareTermination, bool &isExist) = 0;
+
+    /**
+     * Start specified process.
+     *
+     * @param want Want contains information wish to start.
+     * @param abilityInfo Ability information.
+     * @param requestId for callback
+     */
     virtual void StartSpecifiedProcess(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
         int32_t requestId = 0) = 0;
 
@@ -452,6 +468,7 @@ public:
         IS_PROCESS_ATTACHED,
         ENABLE_START_PROCESS_FLAG_BY_USER_ID,
         KILL_PROCESSES_IN_BATCH,
+        PREPARE_TERMINATE_APP,
     };
 };
 }  // namespace AppExecFwk
