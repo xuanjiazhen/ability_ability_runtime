@@ -119,7 +119,7 @@ private:
         AbilityRuntime::NapiAsyncTask::ExecuteCallback &execute);
     void SetOnGetUidCallback(std::shared_ptr<WantAgent> wantAgent,
         AbilityRuntime::NapiAsyncTask::CompleteCallback &complete);
-    void SetOnCancelCallback(std::shared_ptr<WantAgent> wantAgent,
+    void SetOnCancelCallback(std::shared_ptr<WantAgent> wantAgent, std::shared_ptr<ErrCode> result,
         AbilityRuntime::NapiAsyncTask::CompleteCallback &complete);
     void SetOnNapiGetWantAgentCallback(std::shared_ptr<WantAgentWantsParas> spParas,
         AbilityRuntime::NapiAsyncTask::CompleteCallback &complete);
