@@ -1854,11 +1854,12 @@ bool AppRunningManager::CheckAppRunningRecordIsLast(const std::shared_ptr<AppRun
 void AppRunningManager::UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey)
 {
     auto appRunningMap = GetAppRunningRecordMap();
-    for (const auto& item : appRunningMap) {
-        const auto& appRecord = item.second;
-        if (appRecord && appRecord->GetSpecifiedRequestId() == specifiedId) {
+    for (const auto& [id, appRecord] : appRunningMap) {
+        std::shared_ptr<SpecifiedRequest> request = (appRecord ? appRecord->GetSpecifiedRequest() : nullptr);
+        if (request && request->requestId == specifiedId) {
             TAG_LOGI(AAFwkTag::APPMGR, "set instanceKey:%{public}s", instanceKey.c_str());
             appRecord->SetInstanceKey(instanceKey);
+            break;
         }
     }
 }

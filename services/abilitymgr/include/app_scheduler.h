@@ -121,13 +121,14 @@ public:
     StartSpecifiedAbilityResponse() = default;
     virtual ~StartSpecifiedAbilityResponse() = default;
 
-    virtual void OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag,
+    void OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag,
         int32_t requestId) override;
-    virtual void OnTimeoutResponse(const AAFwk::Want &want, int32_t requestId) override;
+    void OnTimeoutResponse(const AAFwk::Want &want, int32_t requestId) override;
 
-    virtual void OnNewProcessRequestResponse(const AAFwk::Want &want, const std::string &flag,
+    void OnNewProcessRequestResponse(const AAFwk::Want &want, const std::string &flag,
         int32_t requestId) override;
-    virtual void OnNewProcessRequestTimeoutResponse(const AAFwk::Want &want, int32_t requestId) override;
+    void OnNewProcessRequestTimeoutResponse(const AAFwk::Want &want, int32_t requestId) override;
+    void OnSpecifiedStage(int32_t requestId, AppExecFwk::SpecifiedStage stage) override;
 };
 
 /**

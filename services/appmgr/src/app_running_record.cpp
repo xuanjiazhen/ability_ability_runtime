@@ -441,15 +441,13 @@ void AppRunningRecord::AddAbilityStageDone()
     RemoveEvent(AMSEventHandler::ADD_ABILITY_STAGE_INFO_TIMEOUT_MSG);
     RemoveEvent(AMSEventHandler::ADD_ABILITY_STAGE_INFO_HALF_TIMEOUT_MSG);
 
-    // Should proceed to the next notification
-    if (IsStartSpecifiedAbility()) {
-        ScheduleAcceptWant(moduleName_);
-        return;
-    }
-
-    if (IsNewProcessRequest()) {
-        TAG_LOGD(AAFwkTag::APPMGR, "ScheduleNewProcessRequest.");
-        ScheduleNewProcessRequest(GetNewProcessRequestWant(), moduleName_);
+    auto request = GetSpecifiedRequest();
+    if (request) {
+        if (request->isSpecifiedProcess) {
+            ScheduleNewProcessRequest(request->want, request->moduleName);
+        } else {
+            ScheduleAcceptWant(request->moduleName);
+        }
         return;
     }
 
@@ -1368,7 +1366,11 @@ bool AppRunningRecord::GetTheModuleInfoNeedToUpdated(const std::string bundleNam
     if (moduleInfoVectorIter == hapModules_.end() || moduleInfoVectorIter->second.empty()) {
         return result;
     }
-    std::string moduleName = moduleName_;
+    auto request = GetSpecifiedRequest();
+    if (request == nullptr) {
+        return false;
+    }
+    std::string moduleName = request->moduleName;
     auto findCondition = [moduleName](const std::shared_ptr<ModuleRunningRecord> &record) {
         if (record) {
             return (moduleName.empty() || (moduleName == record->GetModuleName())) &&
@@ -1468,52 +1470,16 @@ void AppRunningRecord::SetProcessAndExtensionType(
     return;
 }
 
-void AppRunningRecord::SetSpecifiedAbilityFlagAndWant(
-    int requestId, const AAFwk::Want &want, const std::string &moduleName)
+void AppRunningRecord::SetSpecifiedRequest(std::shared_ptr<SpecifiedRequest> specifiedRequest)
 {
     std::lock_guard lock(specifiedMutex_);
-    if (specifiedRequestId_ != -1) {
-        TAG_LOGW(AAFwkTag::APPMGR, "specifiedRequestId: %{public}d", specifiedRequestId_);
-    }
-    specifiedRequestId_ = requestId;
-    specifiedWant_ = want;
-    moduleName_ = moduleName;
+    specifiedRequest_ = specifiedRequest;
 }
 
-int32_t AppRunningRecord::GetSpecifiedRequestId() const
+std::shared_ptr<SpecifiedRequest> AppRunningRecord::GetSpecifiedRequest() const
 {
     std::lock_guard lock(specifiedMutex_);
-    return specifiedRequestId_;
-}
-
-void AppRunningRecord::ResetSpecifiedRequestId()
-{
-    std::lock_guard lock(specifiedMutex_);
-    specifiedRequestId_ = -1;
-}
-
-void AppRunningRecord::SetScheduleNewProcessRequestState(int32_t requestId,
-    const AAFwk::Want &want, const std::string &moduleName)
-{
-    std::lock_guard lock(specifiedMutex_);
-    if (newProcessRequestId_ != -1) {
-        TAG_LOGW(AAFwkTag::APPMGR, "newProcessRequestId: %{public}d", newProcessRequestId_);
-    }
-    newProcessRequestId_ = requestId;
-    newProcessRequestWant_ = want;
-    moduleName_ = moduleName;
-}
-
-bool AppRunningRecord::IsNewProcessRequest() const
-{
-    std::lock_guard lock(specifiedMutex_);
-    return newProcessRequestId_ != -1;
-}
-
-bool AppRunningRecord::IsStartSpecifiedAbility() const
-{
-    std::lock_guard lock(specifiedMutex_);
-    return specifiedRequestId_ != -1;
+    return specifiedRequest_;
 }
 
 void AppRunningRecord::SchedulePrepareTerminate(int32_t &prepareTermination, bool &isExist)
@@ -1540,11 +1506,12 @@ void AppRunningRecord::ScheduleAcceptWant(const std::string &moduleName)
     auto timeOUt = AMSEventHandler::START_SPECIFIED_ABILITY_TIMEOUT;
     SendEvent(AMSEventHandler::START_SPECIFIED_ABILITY_HALF_TIMEOUT_MSG, timeOUt / HALF_TIMEOUT);
     SendEvent(AMSEventHandler::START_SPECIFIED_ABILITY_TIMEOUT_MSG, timeOUt);
-    if (appLifeCycleDeal_ == nullptr) {
-        TAG_LOGW(AAFwkTag::APPMGR, "null appLifeCycleDeal_");
+    auto request = GetSpecifiedRequest();
+    if (appLifeCycleDeal_ == nullptr || request == nullptr) {
+        TAG_LOGW(AAFwkTag::APPMGR, "null appLifeCycleDeal_ or request");
         return;
     }
-    appLifeCycleDeal_->ScheduleAcceptWant(GetSpecifiedWant(), moduleName);
+    appLifeCycleDeal_->ScheduleAcceptWant(request->want, moduleName);
 }
 
 void AppRunningRecord::ScheduleAcceptWantDone()
@@ -1579,30 +1546,6 @@ void AppRunningRecord::ApplicationTerminated()
 
     RemoveEvent(AMSEventHandler::TERMINATE_APPLICATION_HALF_TIMEOUT_MSG);
     RemoveEvent(AMSEventHandler::TERMINATE_APPLICATION_TIMEOUT_MSG);
-}
-
-AAFwk::Want AppRunningRecord::GetSpecifiedWant() const
-{
-    std::lock_guard lock(specifiedMutex_);
-    return specifiedWant_;
-}
-
-AAFwk::Want AppRunningRecord::GetNewProcessRequestWant() const
-{
-    std::lock_guard lock(specifiedMutex_);
-    return newProcessRequestWant_;
-}
-
-int32_t AppRunningRecord::GetNewProcessRequestId() const
-{
-    std::lock_guard lock(specifiedMutex_);
-    return newProcessRequestId_;
-}
-
-void AppRunningRecord::ResetNewProcessRequestId()
-{
-    std::lock_guard lock(specifiedMutex_);
-    newProcessRequestId_ = -1;
 }
 
 int32_t AppRunningRecord::UpdateConfiguration(const Configuration &config)

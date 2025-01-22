@@ -935,8 +935,6 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_LaunchApplic
     appMgrServiceInner->LaunchApplication(appRecord);
     appRecord->SetState(ApplicationState::APP_STATE_FOREGROUND);
     appRecord->SetEmptyKeepAliveAppState(false);
-    appRecord->specifiedRequestId_ = 1;
-    appMgrServiceInner->LaunchApplication(appRecord);
     appRecord->SetEmptyKeepAliveAppState(true);
     appRecord->SetKeepAliveEnableState(false);
     appRecord->SetKeepAliveDkv(false);
@@ -950,10 +948,10 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_LaunchApplic
     appRecord->SetKeepAliveEnableState(false);
     appRecord->SetEmptyKeepAliveAppState(false);
     appMgrServiceInner->LaunchApplication(appRecord);
-    Want want;
-    appRecord->SetSpecifiedAbilityFlagAndWant(-1, want, "");
+    auto request = std::make_shared<SpecifiedRequest>(1, AAFwk::Want(), "");
+    appRecord->SetSpecifiedRequest(nullptr);
     appMgrServiceInner->LaunchApplication(appRecord);
-    appRecord->SetSpecifiedAbilityFlagAndWant(1, want, "");
+    appRecord->SetSpecifiedRequest(request);
     appMgrServiceInner->LaunchApplication(appRecord);
     appRecord->SetState(ApplicationState::APP_STATE_CREATE);
     appMgrServiceInner->LaunchApplication(appRecord);

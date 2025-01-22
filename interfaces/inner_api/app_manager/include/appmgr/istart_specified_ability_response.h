@@ -22,6 +22,11 @@
 
 namespace OHOS {
 namespace AppExecFwk {
+enum class SpecifiedStage : uint8_t {
+    CREATE_PROCESS = 0,
+    ADD_ABILITY_STAGE = 1
+};
+
 class IStartSpecifiedAbilityResponse : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.appexecfwk.startSpecifiedAbilityResponse");
@@ -45,6 +50,8 @@ public:
         int32_t requestId) = 0;
 
     virtual void OnNewProcessRequestTimeoutResponse(const AAFwk::Want &want, int32_t requestId) = 0;
+
+    virtual void OnSpecifiedStage(int32_t requestId, SpecifiedStage stage) {}
 
     enum class Message {
         ON_ACCEPT_WANT_RESPONSE = 0,

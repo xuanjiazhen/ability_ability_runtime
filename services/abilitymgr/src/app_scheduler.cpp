@@ -398,6 +398,11 @@ void StartSpecifiedAbilityResponse::OnNewProcessRequestTimeoutResponse(const AAF
     DelayedSingleton<AbilityManagerService>::GetInstance()->OnStartSpecifiedProcessTimeoutResponse(want, requestId);
 }
 
+void StartSpecifiedAbilityResponse::OnSpecifiedStage(int32_t requestId, AppExecFwk::SpecifiedStage stage)
+{
+    DelayedSingleton<AbilityManagerService>::GetInstance()->OnSpecifiedStage(requestId, stage);
+}
+
 int AppScheduler::GetProcessRunningInfos(std::vector<AppExecFwk::RunningProcessInfo> &info)
 {
     CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);

@@ -1716,79 +1716,6 @@ HWTEST_F(AmsAppRunningRecordTest, UpdateConfiguration_002, TestSize.Level1)
 
 /*
  * Feature: AMS
- * Function: SetSpecifiedAbilityFlagAndWant
- * SubFunction: SetSpecifiedAbilityFlagAndWant
- * FunctionPoints: check params
- * EnvConditions: Mobile that can run ohos test framework
- * CaseDescription: Remove ModuleRecord
- */
-HWTEST_F(AmsAppRunningRecordTest, SetSpecifiedAbilityFlagAndWant_001, TestSize.Level1)
-{
-    auto appInfo = std::make_shared<ApplicationInfo>();
-    appInfo->name = GetTestAppName();
-    appInfo->bundleName = GetTestAppName();
-    int32_t recordId = 11;
-    std::string processName = "processName";
-    auto record = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
-
-    int32_t requestId = 1;
-    AAFwk::Want want;
-    std::string moduleName = "module123";
-    record->SetSpecifiedAbilityFlagAndWant(requestId, want, moduleName);
-    EXPECT_TRUE(record->GetSpecifiedRequestId() == requestId);
-    EXPECT_TRUE(record->moduleName_ == moduleName);
-}
-
-/*
- * Feature: AMS
- * Function: IsStartSpecifiedAbility
- * SubFunction: IsStartSpecifiedAbility
- * FunctionPoints: check params
- * EnvConditions: Mobile that can run ohos test framework
- * CaseDescription: Remove ModuleRecord
- */
-HWTEST_F(AmsAppRunningRecordTest, IsStartSpecifiedAbility_001, TestSize.Level1)
-{
-    auto appInfo = std::make_shared<ApplicationInfo>();
-    appInfo->name = GetTestAppName();
-    appInfo->bundleName = GetTestAppName();
-    int32_t recordId = 11;
-    std::string processName = "processName";
-    auto record = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
-
-    int32_t requestId = 1;
-    AAFwk::Want want;
-    std::string moduleName = "module123";
-    record->SetSpecifiedAbilityFlagAndWant(requestId, want, moduleName);
-    EXPECT_TRUE(record->GetSpecifiedRequestId() == requestId);
-}
-
-/*
- * Feature: AMS
- * Function: GetSpecifiedWant
- * SubFunction: GetSpecifiedWant
- * FunctionPoints: check params
- * EnvConditions: Mobile that can run ohos test framework
- * CaseDescription: Remove ModuleRecord
- */
-HWTEST_F(AmsAppRunningRecordTest, GetSpecifiedWant_001, TestSize.Level1)
-{
-    auto appInfo = std::make_shared<ApplicationInfo>();
-    appInfo->name = GetTestAppName();
-    appInfo->bundleName = GetTestAppName();
-    int32_t recordId = 11;
-    std::string processName = "processName";
-    auto record = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
-
-    Want want;
-    want.SetElementName("DemoDeviceId", "DemoBundleName", "DemoAbilityName");
-    std::string moduleName = "module123";
-    record->SetSpecifiedAbilityFlagAndWant(1, want, moduleName);
-    EXPECT_TRUE(record->GetSpecifiedWant().GetBundle() == want.GetBundle());
-}
-
-/*
- * Feature: AMS
  * Function: RegisterStartSpecifiedAbilityResponse
  * SubFunction: RegisterStartSpecifiedAbilityResponse
  * FunctionPoints: check params
@@ -1903,7 +1830,8 @@ HWTEST_F(AmsAppRunningRecordTest, Specified_LaunchApplication_001, TestSize.Leve
         loadParam, appInfo, abilityInfo, GetTestProcessName(), bundleInfo, hapModuleInfo, nullptr);
 
     record->SetApplicationClient(GetMockedAppSchedulerClient());
-    record->specifiedRequestId_ = 1;
+    auto request = std::make_shared<SpecifiedRequest>(1, Want(), "");
+    record->SetSpecifiedRequest(request);
     EXPECT_CALL(*mockAppSchedulerClient_, ScheduleLaunchApplication(_, _)).Times(1);
     service_->LaunchApplication(record);
     auto ability = record->GetAbilityRunningRecordByToken(GetMockToken());
@@ -2476,7 +2404,7 @@ HWTEST_F(AmsAppRunningRecordTest, AddAbilityStageDone_001, TestSize.Level1)
         AAFwk::EventWrap(AMSEventHandler::ADD_ABILITY_STAGE_INFO_TIMEOUT_MSG, 1), 0);
     record->AddAbilityStageDone();
 
-    record->specifiedRequestId_ = 1;
+    record->specifiedRequest_ = std::make_shared<SpecifiedRequest>(1, Want(), "");
     record->AddAbilityStageDone();
 
     TAG_LOGI(AAFwkTag::TEST, "AmsAppRunningRecordTest AddAbilityStageDone_001 end");

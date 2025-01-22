@@ -1456,8 +1456,6 @@ public:
      */
     void SendAppSpawnUninstallDebugHapMsg(int32_t userId);
 
-    bool HasAppRecord(const AAFwk::Want &want, const AbilityInfo &abilityInfo);
-
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
@@ -1862,7 +1860,7 @@ private:
     int32_t CreateStartMsg(const CreateStartMsgParam &param, AppSpawnStartMsg &startMsg);
 
     void SetStartMsgStrictMode(AppSpawnStartMsg &startMsg, const CreateStartMsgParam &param);
-    
+
     void SetAppRunningRecordStrictMode(std::shared_ptr<AppRunningRecord> appRecord,
         std::shared_ptr<AbilityRuntime::LoadParam> loadParam);
 
@@ -1954,7 +1952,9 @@ private:
         const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid, const int32_t callerUid);
     int32_t SubmitDfxFaultTask(const FaultData &faultData, const std::string &bundleName,
         const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid);
-    
+    void NotifySpecifiedStage(int32_t requestId, SpecifiedStage stage);
+    void AddAbilityStageForSpecified(std::shared_ptr<AppRunningRecord> appRecord);
+
     bool isInitAppWaitingDebugListExecuted_ = false;
     std::atomic<bool> sceneBoardAttachFlag_ = true;
     std::atomic<int32_t> willKillPidsNum_ = 0;

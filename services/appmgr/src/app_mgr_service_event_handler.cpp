@@ -64,7 +64,7 @@ bool AppEventUtil::HasEvent(std::shared_ptr<AppRunningRecord> appRecord, uint32_
     }
     std::lock_guard lock(appEventListMutex_);
     for (const auto &item : appEventList_) {
-        if (item.appRecord.lock() == appRecord && item.eventId == eventId) {
+        if (item.appRecord == appRecord && item.eventId == eventId) {
             return true;
         }
     }
@@ -76,7 +76,7 @@ std::shared_ptr<AppRunningRecord> AppEventUtil::RemoveEvent(uint32_t eventId, in
     std::lock_guard lock(appEventListMutex_);
     for (auto it = appEventList_.begin(); it != appEventList_.end(); ++it) {
         if (it->eventId == eventId && it->param == param) {
-            auto result = it->appRecord.lock();
+            auto result = it->appRecord;
             appEventList_.erase(it);
             return result;
         }
@@ -89,7 +89,7 @@ std::list<AppEventData> AppEventUtil::RemoveEvent(std::shared_ptr<AppRunningReco
     std::list<AppEventData> result;
     std::lock_guard lock(appEventListMutex_);
     for (auto it = appEventList_.begin(); it != appEventList_.end();) {
-        auto appRecordItem = it->appRecord.lock();
+        auto appRecordItem = it->appRecord;
         if (appRecordItem == nullptr) {
             it = appEventList_.erase(it);
             continue;
