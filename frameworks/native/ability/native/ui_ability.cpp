@@ -24,6 +24,8 @@
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "js_ui_ability.h"
+#include "ability_context_impl.h"
+#include "application_configuration_manager.h"
 #ifdef CJ_FRONTEND
 #include "cj_ui_ability.h"
 #endif
@@ -161,6 +163,50 @@ void UIAbility::UnregisterAbilityLifecycleObserver(const std::shared_ptr<AppExec
 void UIAbility::AttachAbilityContext(const std::shared_ptr<AbilityRuntime::AbilityContext> &abilityContext)
 {
     abilityContext_ = abilityContext;
+    auto uiAbility = std::static_pointer_cast<UIAbility>(shared_from_this());
+    std::weak_ptr<UIAbility> abilityWptr = uiAbility;
+    abilityContext_->RegisterAbilityConfigUpdateCallback(
+        [abilityWptr, abilityContext = abilityContext_](AppExecFwk::Configuration &config) {
+        std::shared_ptr<UIAbility> abilitySptr = abilityWptr.lock();
+        if (abilitySptr == nullptr || abilityContext == nullptr) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "null abilitySptr or null abilityContext");
+            return;
+        }
+        if (abilityContext->GetAbilityConfiguration() == nullptr) {
+            auto abilityResourceMgr = abilityContext->CreateModuleContext(
+                abilityContext->GetAbilityInfo()->moduleName)->GetResourceManager();
+            abilityContext->SetAbilityResourceManager(abilityResourceMgr);
+            AbilityRuntime::ApplicationConfigurationManager::GetInstance().
+                AddIgnoreContext(abilityContext, abilityResourceMgr);
+        }
+        abilityContext->SetAbilityConfiguration(config);
+        if (config.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE).
+            compare(AppExecFwk::ConfigurationInner::COLOR_MODE_AUTO) == 0) {
+            config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE,
+                AbilityRuntime::ApplicationConfigurationManager::GetInstance().GetColorMode());
+            if (AbilityRuntime::ApplicationConfigurationManager::GetInstance().
+                GetColorModeSetLevel() > AbilityRuntime::SetLevel::System) {
+                config.AddItem(AAFwk::GlobalConfigurationKey::COLORMODE_IS_SET_BY_APP,
+                    AppExecFwk::ConfigurationInner::IS_SET_BY_APP);
+            }
+            abilityContext->GetAbilityConfiguration()->
+                RemoveItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE);
+            abilityContext->GetAbilityConfiguration()->
+                RemoveItem(AAFwk::GlobalConfigurationKey::COLORMODE_IS_SET_BY_APP);
+            TAG_LOGI(AAFwkTag::UIABILITY, "abilityConfiguration_ color remove");
+        }
+        ResourceConfigHelper resourceConfig;
+        abilitySptr->InitConfigurationProperties(config, resourceConfig);
+        resourceConfig.SetISAbilityColor(true);
+        auto resourceManager = abilityContext->GetResourceManager();
+        resourceConfig.UpdateResConfig(config, resourceManager);
+        auto diffConfiguration = std::make_shared<AppExecFwk::Configuration>(config);
+        auto windowScene = abilitySptr->GetScene();
+        if (windowScene) {
+            windowScene->UpdateConfiguration(diffConfiguration);
+        }
+        abilitySptr->OnConfigurationUpdated(config);
+    });
 }
 
 void UIAbility::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
@@ -223,7 +269,8 @@ void UIAbility::OnStop()
         return;
     }
     abilityLifecycleExecutor_->DispatchLifecycleState(AppExecFwk::AbilityLifecycleExecutor::LifecycleState::INITIAL);
-
+    AbilityRuntime::ApplicationConfigurationManager::GetInstance().
+        DeleteIgnoreContext(abilityContext_);
     if (lifecycle_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null lifecycle_");
         return;
@@ -319,16 +366,33 @@ void UIAbility::NotifyContinuationResult(const AAFwk::Want &want, bool success)
 void UIAbility::OnConfigurationUpdatedNotify(const AppExecFwk::Configuration &configuration)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "begin");
-    ResourceConfigHelper resourceConfig;
-    InitConfigurationProperties(configuration, resourceConfig);
-    auto resourceManager = GetResourceManager();
-    resourceConfig.UpdateResConfig(configuration, resourceManager);
-
+    TAG_LOGE(AAFwkTag::UIABILITY, "lmz configuration: %{public}s", configuration.GetName().c_str());
+    auto newConfig = AppExecFwk::Configuration(configuration);
+    auto abilityConfig = GetAbilityContext()->GetAbilityConfiguration();
+    if (abilityConfig != nullptr) {
+        newConfig.FilterDuplicates(*abilityConfig);
+        TAG_LOGE(AAFwkTag::UIABILITY, "lmz newConfig: %{public}s", newConfig.GetName().c_str());
+        auto diffConfiguration = std::make_shared<AppExecFwk::Configuration>(newConfig);
+        auto windowScene = GetScene();
+        if (windowScene) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "LMZ INNER");
+            windowScene->UpdateConfiguration(diffConfiguration);
+            ResourceConfigHelper resourceConfig;
+            InitConfigurationProperties(newConfig, resourceConfig);
+            auto resourceManager = abilityContext_->GetResourceManager();
+            resourceConfig.UpdateResConfig(newConfig, resourceManager);
+        }
+    } else {
+        ResourceConfigHelper resourceConfig;
+        InitConfigurationProperties(configuration, resourceConfig);
+        auto resourceManager = GetResourceManager();
+        resourceConfig.UpdateResConfig(configuration, resourceManager);
+    }
     if (abilityContext_ != nullptr && application_ != nullptr) {
         abilityContext_->SetConfiguration(application_->GetConfiguration());
     }
     // Notify Ability Subclass
-    OnConfigurationUpdated(configuration);
+    OnConfigurationUpdated(newConfig);
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 
