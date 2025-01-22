@@ -80,6 +80,7 @@ constexpr uint8_t SYSCAP_MAX_SIZE = 100;
 constexpr int64_t DEFAULT_GC_POOL_SIZE = 0x10000000; // 256MB
 constexpr int32_t DEFAULT_INTER_VAL = 500;
 constexpr int32_t API8 = 8;
+constexpr int32_t API_VERSION_MOD = 100;
 const std::string SANDBOX_ARK_CACHE_PATH = "/data/storage/ark-cache/";
 const std::string SANDBOX_ARK_PROIFILE_PATH = "/data/storage/ark-profile";
 const std::string DEBUGGER = "@Debugger";
@@ -1097,7 +1098,8 @@ bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath
     }
 
     auto func = [&](std::string modulePath, const std::string abcPath) {
-        bool useSafeMempry = apiTargetVersion_ == 0 || apiTargetVersion_ > API8;
+        bool useSafeMempry = apiTargetVersion_ == 0 || apiTargetVersion_ % API_VERSION_MOD > API8;
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "useSafeMempry: %{public}d", useSafeMempry);
         if (!extractor->IsHapCompress(modulePath) && useSafeMempry) {
             auto safeData = extractor->GetSafeData(modulePath);
             if (!safeData) {
