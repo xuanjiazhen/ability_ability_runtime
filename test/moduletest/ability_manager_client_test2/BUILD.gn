@@ -19,19 +19,20 @@ module_output_path = "ability_runtime/mstabilitymgrservice"
 ohos_moduletest("ability_manager_client_test2") {
   module_out_path = module_output_path
 
-  sources = [ "ability_manager_client_test2.cpp",
-              "${ability_runtime_path}/services/abilitymgr/src/ability_manager_client.cpp"
+  sources = [
+    "${ability_runtime_path}/services/abilitymgr/src/ability_manager_client.cpp",
+    "ability_manager_client_test2.cpp",
   ]
 
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
 
   defines = []
-  defines += ["ABILITY_COMMAND_FOR_TEST"]
+  defines += [ "ABILITY_COMMAND_FOR_TEST" ]
 
   deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:mission_info",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
     "${ability_runtime_services_path}/abilitymgr:mission_list",
-    "${ability_runtime_innerkits_path}/ability_manager:mission_info"
   ]
 
   external_deps = [
@@ -44,8 +45,8 @@ ohos_moduletest("ability_manager_client_test2") {
     "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
-    "ipc:ipc_core",
     "hitrace:hitrace_meter",
+    "ipc:ipc_core",
     "window_manager:libmodal_system_ui_extension_client",
     "window_manager:libwsutils",
     "window_manager:scene_session",
