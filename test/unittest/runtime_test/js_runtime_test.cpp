@@ -1080,7 +1080,6 @@ HWTEST_F(JsRuntimeTest, JsRuntimeStartProfilerTest_0100, TestSize.Level1)
     debugOption.isStartWithNative = false;
     jsRuntime->StartProfiler(debugOption);
     ASSERT_NE(jsRuntime, nullptr);
-    jsRuntime.reset();
     TAG_LOGI(AAFwkTag::TEST, "StartProfilerTest_0100 end");
 }
 
