@@ -16,6 +16,7 @@
 #include "cj_environment.h"
 
 #include <string>
+#include <filesystem>
 
 #include "cj_hilog.h"
 #include "cj_invoker.h"
@@ -26,6 +27,25 @@
 #ifdef WITH_EVENT_HANDLER
 #include "event_handler.h"
 #endif
+
+#ifdef APP_USE_ARM64
+#define APP_LIB_NAME "arm64"
+#elif defined(APP_USE_ARM)
+#define APP_LIB_NAME "arm"
+#elif defined(APP_USE_X86_64)
+#define APP_LIB_NAME "x86_64"
+#else
+#error unsupported platform
+#endif
+
+namespace {
+const std::string SANDBOX_LIB_PATH = "/data/storage/el1/bundle/libs/" APP_LIB_NAME;
+const std::string CJ_RT_PATH = SANDBOX_LIB_PATH + "/runtime";
+const std::string CJ_LIB_PATH = SANDBOX_LIB_PATH + "/ohos";
+const std::string CJ_SYSLIB_PATH = "/system/lib64:/system/lib64/platformsdk";
+const std::string CJ_CHIPSDK_PATH = "/system/lib64/chipset-pub-sdk";
+const std::string CJ_SDK_PATH = "/system/lib64/platformsdk/cjsdk";
+} // namespace
 
 namespace OHOS {
 namespace {
@@ -142,32 +162,81 @@ bool HasHigherPriorityTaskWrapper()
 {
     return CJEnvironment::GetInstance()->HasHigherPriorityTask();
 }
+
+CJEnvironment* instance_ = nullptr;
 } // namespace
 
-const char *CJEnvironment::cjAppNSName = "cj_app";
+const char *CJEnvironment::cjAppNSName = "moduleNs_default";
 const char *CJEnvironment::cjSDKNSName = "cj_sdk";
 const char *CJEnvironment::cjSysNSName = "cj_system";
 const char *CJEnvironment::cjChipSDKNSName = "cj_chipsdk";
+const char *CJEnvironment::cjNewAppNSName = "moduleNs_default";
+const char *CJEnvironment::cjNewSDKNSName = "cj_sdk_new";
+const char *CJEnvironment::cjNewSysNSName = "default";
 
-CJRuntimeAPI CJEnvironment::lazyApis_ {};
-
-CJEnvironment* CJEnvironment::GetInstance()
+static std::make_shared<AppExecFwk::EventHandler> GetGHandler()
 {
-    static CJEnvironment cjEnv;
-#ifdef WITH_EVENT_HANDLER
     if (g_handler == nullptr) {
         g_handler = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
     }
+    return g_handler;
+}
+
+void CJEnvironment::InitSpawnEnv()
+{
+#ifdef WITH_EVENT_HANDLER
+    GetGHandler();
 #endif
-    return &cjEnv;
+    instance_ = new CJEnvironment(NSMode::SINK);
+    instance_->PreloadLibs();
+}
+
+void CJEnvironment::PreloadLibs()
+{
+    LOGI("start Preloadlibs");
+    LoadCJLibrary(SDK, "libohos.ability.so");
+    LoadCJLibrary(SDK, "libohos.component.so");
+    LoadCJLibrary(SDK, "libohos.window.so");
+}
+
+void CJEnvironment::SetAppPath(const std::string& appPath)
+{
+    auto mode = DetectAppNSMode();
+    if (instance_) {
+        if (instance_->nsMode_ == mode) {
+            instance_->InitCJNS(appPath);
+            return;
+        }
+        delete instance_;
+    }
+    instance_ = new CJEnvironment(mode);
+    instance_->InitCJNS(appPath);
+}
+
+CJEnvironment::CJEnvironment(NSMode mode) : nsMode_(mode)
+{
+    InitRuntimeNS();
+    LoadRuntimeApis();
+}
+
+CJEnvironment::~CJEnvironment()
+{
+    StopRuntime();
+
+    delete lazyApis_;
+}
+
+CJEnvironment* CJEnvironment::GetInstance()
+{
+    return instance_;
 }
 
 bool CJEnvironment::LoadRuntimeApis()
 {
-    static bool isRuntimeApiLoaded {false};
     if (isRuntimeApiLoaded) {
         return true;
     }
+    lazyApis_ = new CJRuntimeAPI();
 #ifdef __WINDOWS__
 #define RTLIB_NAME "libcangjie-runtime.dll"
 #else
@@ -175,15 +244,8 @@ bool CJEnvironment::LoadRuntimeApis()
 #endif
 #ifdef __OHOS__
     Dl_namespace ns;
-    dlns_get(CJEnvironment::cjSDKNSName, &ns);
+    dlns_get(nsMode_ == NSMode::APP ? cjSDKNSName : cjNewSDKNSName, &ns);
     std::string runtimeLibName = "libcangjie-runtime";
-    if (sanitizerKind_ == SanitizerKind::ASAN) {
-        runtimeLibName += "_asan";
-    } else if (sanitizerKind_ == SanitizerKind::TSAN) {
-        runtimeLibName += "_tsan";
-    } else if (sanitizerKind_ == SanitizerKind::HWASAN) {
-        runtimeLibName += "_hwasan";
-    }
     runtimeLibName += ".so";
     auto dso = DynamicLoadLibrary(&ns, runtimeLibName.c_str(), 1);
 #else
@@ -194,17 +256,17 @@ bool CJEnvironment::LoadRuntimeApis()
         return false;
     }
 #undef RTLIB_NAME
-    if (!LoadSymbolInitCJRuntime(dso, lazyApis_) ||
-        !LoadSymbolInitUIScheduler(dso, lazyApis_) ||
-        !LoadSymbolRunUIScheduler(dso, lazyApis_) ||
-        !LoadSymbolFiniCJRuntime(dso, lazyApis_) ||
-        !LoadSymbolInitCJLibrary(dso, lazyApis_) ||
-        !LoadSymbolRegisterEventHandlerCallbacks(dso, lazyApis_)) {
+    if (!LoadSymbolInitCJRuntime(dso, *lazyApis_) ||
+        !LoadSymbolInitUIScheduler(dso, *lazyApis_) ||
+        !LoadSymbolRunUIScheduler(dso, *lazyApis_) ||
+        !LoadSymbolFiniCJRuntime(dso, *lazyApis_) ||
+        !LoadSymbolInitCJLibrary(dso, *lazyApis_) ||
+        !LoadSymbolRegisterEventHandlerCallbacks(dso, *lazyApis_)) {
         LOGE("load symbol failed");
         return false;
     }
 #ifdef __OHOS__
-    if (!LoadSymbolRegisterCJUncaughtExceptionHandler(dso, lazyApis_)) {
+    if (!LoadSymbolRegisterCJUncaughtExceptionHandler(dso, *lazyApis_)) {
         LOGE("load symbol RegisterCJUncaughtExceptionHandler failed");
         return false;
     }
@@ -215,7 +277,7 @@ bool CJEnvironment::LoadRuntimeApis()
 
 void CJEnvironment::RegisterCJUncaughtExceptionHandler(const CJUncaughtExceptionInfo& handle)
 {
-    lazyApis_.RegisterCJUncaughtExceptionHandler(handle);
+    lazyApis_->RegisterCJUncaughtExceptionHandler(handle);
 }
 
 bool CJEnvironment::PostTask(TaskFuncType task)
@@ -226,7 +288,7 @@ bool CJEnvironment::PostTask(TaskFuncType task)
         return false;
     }
 
-    bool postDone = g_handler->PostTask(task, "spawn-main-task-from-cj", 0, AppExecFwk::EventQueue::Priority::HIGH);
+    bool postDone = GetGHandler()->PostTask(task, "spawn-main-task-from-cj", 0, AppExecFwk::EventQueue::Priority::HIGH);
     if (!postDone) {
         LOGE("event handler support cj ui scheduler");
         return false;
@@ -239,7 +301,7 @@ bool CJEnvironment::PostTask(TaskFuncType task)
 bool CJEnvironment::HasHigherPriorityTask()
 {
 #ifdef WITH_EVENT_HANDLER
-    return g_handler->HasPreferEvent(static_cast<int>(AppExecFwk::EventQueue::Priority::HIGH));
+    return GetGHandler()->HasPreferEvent(static_cast<int>(AppExecFwk::EventQueue::Priority::HIGH));
 #endif
     return false;
 }
@@ -266,14 +328,29 @@ void CJEnvironment::InitCJAppNS(const std::string& path)
 #ifdef __OHOS__
     LOGI("InitCJAppNS: %{public}s", path.c_str());
     Dl_namespace ndk;
+    Dl_namespace sdk;
     Dl_namespace ns;
+    Dl_namespace current;
     DynamicInitNamespace(&ns, nullptr, path.c_str(), CJEnvironment::cjAppNSName);
     dlns_get("ndk", &ndk);
-    dlns_inherit(&ns, &ndk, "allow_all_shared_libs");
-    Dl_namespace current;
     dlns_get(nullptr, &current);
+    dlns_get(cjSDKNSName, &sdk);
+    dlns_inherit(&ns, &ndk, "allow_all_shared_libs");
     dlns_inherit(&ndk, &current, "allow_all_shared_libs");
     dlns_inherit(&current, &ndk, "allow_all_shared_libs");
+    dlns_inherit(&ns, &sdk, "allow_all_shared_libs");
+#endif
+}
+
+void CJEnvironment::InitNewCJAppNS(const std::string& path)
+{
+#ifdef __OHOS__
+    LOGI("InitNewCJAppNS: %{public}s", path.c_str());
+    Dl_namespace ns;
+    Dl_namespace sdk;
+    dlns_get(cjNewSDKNSName, &sdk);
+    DynamicInitNewNamespace(&ns, nullptr, path.c_str(), CJEnvironment::cjNewAppNSName);
+    dlns_inherit(&ns, &sdk, "allow_all_shared_libs");
 #endif
 }
 
@@ -282,10 +359,17 @@ void CJEnvironment::InitCJSDKNS(const std::string& path)
 {
 #ifdef __OHOS__
     LOGI("InitCJSDKNS: %{public}s", path.c_str());
-    Dl_namespace cj_app;
     Dl_namespace ns;
-    dlns_get(CJEnvironment::cjAppNSName, &cj_app);
-    DynamicInitNamespace(&ns, &cj_app, path.c_str(), CJEnvironment::cjSDKNSName);
+    DynamicInitNamespace(&ns, nullptr, path.c_str(), cjSDKNSName);
+#endif
+}
+
+void CJEnvironment::InitNewCJSDKNS(const std::string& path)
+{
+#ifdef __OHOS__
+    LOGI("InitNewCJSDKNS: %{public}s", path.c_str());
+    Dl_namespace ns;
+    DynamicInitNewNamespace(&ns, nullptr, path.c_str(), cjNewSDKNSName);
 #endif
 }
 
@@ -297,8 +381,8 @@ void CJEnvironment::InitCJSysNS(const std::string& path)
     Dl_namespace cj_sdk;
     Dl_namespace ndk;
     Dl_namespace ns;
-    dlns_get(CJEnvironment::cjSDKNSName, &cj_sdk);
-    DynamicInitNamespace(&ns, &cj_sdk, path.c_str(), CJEnvironment::cjSysNSName);
+    dlns_get(cjSDKNSName, &cj_sdk);
+    DynamicInitNamespace(&ns, &cj_sdk, path.c_str(), cjSysNSName);
     dlns_get("ndk", &ndk);
     dlns_inherit(&ns, &ndk, "allow_all_shared_libs");
 #endif
@@ -342,13 +426,13 @@ bool CJEnvironment::StartRuntime()
         }
     };
 
-    auto status = lazyApis_.InitCJRuntime(&rtParams);
+    auto status = lazyApis_->InitCJRuntime(&rtParams);
     if (status != E_OK) {
         LOGE("init cj runtime failed: %{public}d", status);
         return false;
     }
 
-    lazyApis_.RegisterEventHandlerCallbacks(PostTaskWrapper, HasHigherPriorityTaskWrapper);
+    lazyApis_->RegisterEventHandlerCallbacks(PostTaskWrapper, HasHigherPriorityTaskWrapper);
 
     isRuntimeStarted_ = true;
     return true;
@@ -364,7 +448,7 @@ void CJEnvironment::StopRuntime()
         StopUIScheduler();
     }
 
-    auto code = lazyApis_.FiniCJRuntime();
+    auto code = lazyApis_->FiniCJRuntime();
     if (code == E_OK) {
         isRuntimeStarted_ = false;
     }
@@ -376,7 +460,7 @@ bool CJEnvironment::StartUIScheduler()
         return true;
     }
 
-    uiScheduler_ = lazyApis_.InitUIScheduler();
+    uiScheduler_ = lazyApis_->InitUIScheduler();
     if (!uiScheduler_) {
         LOGE("init cj ui scheduler failed");
         return false;
@@ -404,7 +488,7 @@ void* CJEnvironment::LoadCJLibrary(const char* dlName)
     }
 
     LOGI("LoadCJLibrary InitCJLibrary: %{public}s", dlName);
-    auto status = lazyApis_.InitCJLibrary(dlName);
+    auto status = lazyApis_->InitCJLibrary(dlName);
     if (status != E_OK) {
         LOGE("InitCJLibrary failed: %{public}s", dlName);
         UnLoadCJLibrary(handle);
@@ -421,16 +505,16 @@ void* CJEnvironment::LoadCJLibrary(OHOS::CJEnvironment::LibraryKind kind, const 
     Dl_namespace ns;
     switch (kind) {
         case APP:
-            dlns_get(CJEnvironment::cjAppNSName, &ns);
+            dlns_get(nsMode_ == NSMode::APP ? CJEnvironment::cjAppNSName : CJEnvironment::cjNewAppNSName, &ns);
             break;
         case SYSTEM:
-            dlns_get(CJEnvironment::cjSysNSName, &ns);
+            dlns_get(nsMode_ == NSMode::APP ? CJEnvironment::cjSysNSName : CJEnvironment::cjNewSysNSName, &ns);
             break;
         case SDK:
-            dlns_get(CJEnvironment::cjSDKNSName, &ns);
+            dlns_get(nsMode_ == NSMode::APP ? CJEnvironment::cjSDKNSName : CJEnvironment::cjNewSDKNSName, &ns);
             break;
     }
-    auto handle = DynamicLoadLibrary(&ns, dlName, 1);
+    auto handle = DynamicLoadLibrary(&ns, dlName, 0);
 #else
     auto handle = DynamicLoadLibrary(dlName, 1);
 #endif
@@ -461,7 +545,7 @@ bool CJEnvironment::StartDebugger()
 {
 #ifdef __OHOS__
     Dl_namespace ns;
-    dlns_get(CJEnvironment::cjSysNSName, &ns);
+    dlns_get(nsMode_ == NSMode::APP ? CJEnvironment::cjSysNSName : CJEnvironment::cjNewSysNSName, &ns);
     auto handle = DynamicLoadLibrary(&ns, DEBUGGER_LIBNAME, 0);
 #else
     auto handle = DynamicLoadLibrary(DEBUGGER_LIBNAME, 0);
@@ -482,20 +566,57 @@ bool CJEnvironment::StartDebugger()
     return true;
 }
 
-CJ_EXPORT extern "C" CJEnvMethods* OHOS_GetCJEnvInstance()
+CJEnvironment::NSMode CJEnvironment::DetectAppNSMode()
+{
+    std::filesystem::path runtimePath(CJ_RT_PATH + "/libcangjie-runtime.so");
+    if (std::filesystem::exists(runtimePath)) {
+        return NSMode::APP;
+    } else {
+        return NSMode::SINK;
+    }
+}
+
+void CJEnvironment::InitRuntimeNS()
+{
+#ifdef __OHOS__
+    if (nsMode_ == NSMode::APP) {
+        InitCJChipSDKNS(CJ_CHIPSDK_PATH);
+        InitCJSDKNS(CJ_RT_PATH + ":" + CJ_LIB_PATH);
+        InitCJSysNS(CJ_SYSLIB_PATH);
+    } else {
+        InitNewCJSDKNS(CJ_SDK_PATH);
+    }
+#endif
+}
+
+void CJEnvironment::InitCJNS(const std::string& appPath)
+{
+#ifdef __OHOS__
+    if (nsMode_ == NSMode::APP) {
+        InitCJAppNS(appPath.empty() ? SANDBOX_LIB_PATH : appPath);
+    } else {
+        InitNewCJAppNS(appPath.empty() ? SANDBOX_LIB_PATH : appPath);
+    }
+#endif
+    StartRuntime();
+    StartUIScheduler();
+}
+
+CJEnvMethods* CJEnvironment::CreateEnvMethods()
 {
     static CJEnvMethods gCJEnvMethods {
         .initCJAppNS = [](const std::string& path) {
-            CJEnvironment::GetInstance()->InitCJAppNS(path);
+            // to keep compatibility with older version
+            CJEnvironment::SetAppPath(path);
         },
         .initCJSDKNS = [](const std::string& path) {
-            CJEnvironment::GetInstance()->InitCJSDKNS(path);
+            // @deprecated
         },
         .initCJSysNS = [](const std::string& path) {
-            CJEnvironment::GetInstance()->InitCJSysNS(path);
+            // @deprecated
         },
         .initCJChipSDKNS = [](const std::string& path) {
-            CJEnvironment::GetInstance()->InitCJChipSDKNS(path);
+            // @deprecated
         },
         .startRuntime = [] {
             return CJEnvironment::GetInstance()->StartRuntime();
@@ -529,5 +650,15 @@ CJ_EXPORT extern "C" CJEnvMethods* OHOS_GetCJEnvInstance()
         }
     };
     return &gCJEnvMethods;
+}
+
+CJ_EXPORT extern "C" void OHOS_InitSpawnEnv()
+{
+    CJEnvironment::InitSpawnEnv();
+}
+
+CJ_EXPORT extern "C" CJEnvMethods* OHOS_GetCJEnvInstance()
+{
+    return CJEnvironment::CreateEnvMethods();
 }
 }
