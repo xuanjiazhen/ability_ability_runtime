@@ -174,6 +174,8 @@ public:
      */
     void ConfigurationUpdated();
 
+    void OnAbilityConfigurationUpdated(const AppExecFwk::Configuration& configuration);
+
 private:
     virtual void BindContext(napi_env env, napi_value obj, std::shared_ptr<AAFwk::Want> want);
     void CreateJSContext(napi_env env, napi_value &contextObj,
