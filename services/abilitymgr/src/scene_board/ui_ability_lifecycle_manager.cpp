@@ -19,6 +19,8 @@
 #include "appfreeze_manager.h"
 #include "app_exit_reason_data_manager.h"
 #include "app_utils.h"
+#include "ffrt.h"
+#include "global_constant.h"
 #include "hitrace_meter.h"
 #include "permission_constants.h"
 #include "process_options.h"
@@ -28,6 +30,7 @@
 #include "session/host/include/zidl/session_interface.h"
 #include "startup_util.h"
 #include "ui_extension_utils.h"
+#include "ability_stage_constant.h"
 #ifdef SUPPORT_GRAPHICS
 #include "ability_first_frame_state_observer_manager.h"
 #endif
@@ -2093,7 +2096,7 @@ bool UIAbilityLifecycleManager::PrepareTerminateAbility(const std::shared_ptr<Ab
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Not support prepare terminate.");
         return false;
     }
-    // execute onPrepareToTerminate util timeout
+    // execute onPrepareToTerminate until timeout
     auto taskHandler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
     if (taskHandler == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Fail to get AbilityTaskHandler.");
@@ -2489,25 +2492,83 @@ int32_t UIAbilityLifecycleManager::DoProcessAttachment(std::shared_ptr<AbilityRe
     return statusBarDelegateManager->DoProcessAttachment(abilityRecord);
 }
 
+void UIAbilityLifecycleManager::HandlerPrepareTerminateApp(const int32_t &pid,
+    std::vector<sptr<IRemoteObject>> &remainingTokens, const sptr<IRemoteObject> &token)
+{
+    auto prepareTermination = std::make_shared<int32_t>(0);
+    auto isExist = std::make_shared<bool>(false);
+    auto promise = std::make_shared<std::promise<bool>>();
+    auto future = promise->get_future();
+    ffrt::submit([promise, pid, prepareTermination, isExist]() {
+        if (prepareTermination == nullptr || isExist == nullptr) {
+            promise->set_value(false);
+            return;
+        }
+        DelayedSingleton<AppScheduler>::GetInstance()->PrepareTerminateApp(pid, *prepareTermination, *isExist);
+        promise->set_value(true);
+    });
+    std::future_status status = future.wait_for(std::chrono::milliseconds(
+        GlobalConstant::PREPARE_TERMINATE_TIMEOUT_TIME));
+    if (status == std::future_status::timeout) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "onPrepareTermination timeout");
+        remainingTokens.emplace_back(token);
+    } else if (!future.get() || prepareTermination == nullptr || isExist == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "PrepareTerminateApp error");
+        remainingTokens.emplace_back(token);
+    } else if (!*isExist) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "onPrepareTermination is not exist");
+        remainingTokens.emplace_back(token);
+    } else if (static_cast<AppExecFwk::PrepareTermination>(*prepareTermination)
+        == AppExecFwk::PrepareTermination::CANCEL) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "PrepareTerminate cancel");
+    } else {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "PrepareTerminate immediately");
+        TerminateSession(Token::GetAbilityRecordByToken(token));
+    }
+}
+
+std::vector<sptr<IRemoteObject>> UIAbilityLifecycleManager::PrepareTerminateAppAndGetRemaining(
+    int32_t pid, std::vector<sptr<IRemoteObject>> tokens)
+{
+    if (!AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Not supported device");
+        return tokens;
+    }
+    std::vector<sptr<IRemoteObject>> remainingTokens;
+    for (const auto& token: tokens) {
+        if (token == nullptr) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "token is nullptr");
+            continue;
+        }
+        auto abilityRecord = Token::GetAbilityRecordByToken(token);
+        if (!CheckPrepareTerminateEnable(abilityRecord)) {
+            remainingTokens.emplace_back(token);
+            continue;
+        }
+        HandlerPrepareTerminateApp(pid, remainingTokens, token);
+    }
+    return remainingTokens;
+}
+
 int32_t UIAbilityLifecycleManager::TryPrepareTerminateByPids(const std::vector<int32_t>& pids)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "do prepare terminate.");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "prepare terminate app");
     IN_PROCESS_CALL_WITHOUT_RET(DelayedSingleton<AppScheduler>::GetInstance()->BlockProcessCacheByPids(pids));
-    for (const auto& pid: pids) {
+    for (const auto &pid : pids) {
         std::unordered_set<std::shared_ptr<AbilityRecord>> abilitysToTerminate;
         std::vector<sptr<IRemoteObject>> tokens;
         IN_PROCESS_CALL_WITHOUT_RET(
             DelayedSingleton<AppScheduler>::GetInstance()->GetAbilityRecordsByProcessID(pid, tokens));
-        for (const auto& token: tokens) {
+        for (const auto &token : PrepareTerminateAppAndGetRemaining(pid, tokens)) {
             auto abilityRecord = Token::GetAbilityRecordByToken(token);
-            if (PrepareTerminateAbility(abilityRecord)) {
+            if (abilityRecord == nullptr || PrepareTerminateAbility(abilityRecord)) {
                 TAG_LOGI(AAFwkTag::ABILITYMGR, "Terminate is blocked.");
                 continue;
             }
             abilitysToTerminate.emplace(abilityRecord);
         }
-        for (const auto& abilityRecord: abilitysToTerminate) {
+        for (const auto &abilityRecord : abilitysToTerminate) {
             TerminateSession(abilityRecord);
         }
     }
