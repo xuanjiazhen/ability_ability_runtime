@@ -299,6 +299,38 @@ bool IsCjApplication(const BundleInfo &bundleInfo)
     return false;
 }
 
+bool IsStsAbility(const std::string& info)
+{
+    std::string stsCheckFlag = ".sts";
+    if (info.length() < stsCheckFlag.length()) {
+        return false;
+    }
+    return info.substr(info.length() - stsCheckFlag.length()) == stsCheckFlag;
+}
+
+bool IsStsApplication(const BundleInfo &bundleInfo)
+{
+    bool findEntryHapModuleInfo = false;
+    AppExecFwk::HapModuleInfo entryHapModuleInfo;
+    if (!bundleInfo.hapModuleInfos.empty()) {
+        for (auto hapModuleInfo : bundleInfo.hapModuleInfos) {
+            if (hapModuleInfo.moduleType == AppExecFwk::ModuleType::ENTRY) {
+                findEntryHapModuleInfo = true;
+                entryHapModuleInfo = hapModuleInfo;
+                break;
+            }
+        }
+        if (!findEntryHapModuleInfo) {
+            TAG_LOGW(AAFwkTag::APPMGR, "not find hap module");
+            entryHapModuleInfo = bundleInfo.hapModuleInfos.back();
+        }
+        if (entryHapModuleInfo.srcEntrance.length() > 0) {
+            return IsStsAbility(entryHapModuleInfo.abilityInfos.front().srcEntrance);
+        }
+    }
+    return false;
+}
+
 std::string GetEventName(int32_t eventId)
 {
     switch (eventId) {
@@ -3520,6 +3552,7 @@ void AppMgrServiceInner::StartProcess(const std::string &appName, const std::str
         return;
     }
     bool isCJApp = IsCjApplication(bundleInfo);
+    bool isStsApp = IsStsApplication(bundleInfo);
     if (!remoteClientManager_ || !remoteClientManager_->GetSpawnClient()) {
         TAG_LOGE(AAFwkTag::APPMGR, "appSpawnClient null");
         appRunningManager_->RemoveAppRunningRecordById(appRecord->GetRecordId());
@@ -3557,6 +3590,14 @@ void AppMgrServiceInner::StartProcess(const std::string &appName, const std::str
         }
         SendCreateAtomicServiceProcessEvent(appRecord, bundleType, moduleName, abilityName);
         errCode = remoteClientManager_->GetCJSpawnClient()->StartProcess(startMsg, pid);
+    } else if (isStsApp) {
+        if (!remoteClientManager_->GetStaticSpawnClient()) {
+            TAG_LOGE(AAFwkTag::APPMGR, "sts appSpawnClient null");
+            appRunningManager_->RemoveAppRunningRecordById(appRecord->GetRecordId());
+            return;
+        }
+        SendCreateAtomicServiceProcessEvent(appRecord, bundleType, moduleName, abilityName);
+        errCode = remoteClientManager_->GetStaticSpawnClient()->StartProcess(startMsg, pid);
     } else {
         SendCreateAtomicServiceProcessEvent(appRecord, bundleType, moduleName, abilityName);
         errCode = remoteClientManager_->GetSpawnClient()->StartProcess(startMsg, pid);
