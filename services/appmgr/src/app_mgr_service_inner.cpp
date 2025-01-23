@@ -1639,7 +1639,7 @@ int32_t AppMgrServiceInner::ClearUpApplicationDataByUserId(const std::string &bu
     // request to clear user information permission.
     auto tokenId = AccessToken::AccessTokenKit::GetHapTokenID(userId, bundleName, appCloneIndex);
     int32_t result = AccessToken::AccessTokenKit::ClearUserGrantedPermissionState(tokenId);
-    if (result) {
+    if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "ClearUserGrantedPermissionState failed, ret:%{public}d", result);
         return AAFwk::ERR_APP_CLONE_INDEX_INVALID;
     }
@@ -5983,6 +5983,7 @@ int32_t AppMgrServiceInner::GetCurrentAccountId() const
         TAG_LOGE(AAFwkTag::APPMGR, "QueryActiveOsAccountIds empty");
         return DEFAULT_USER_ID;
     }
+    TAG_LOGD(AAFwkTag::APPMGR, "osActiveAccountId: %{public}d", osActiveAccountIds.front());
     return osActiveAccountIds.front();
 }
 
@@ -6758,6 +6759,7 @@ int32_t AppMgrServiceInner::GetChildProcessInfo(const std::shared_ptr<ChildProce
         TAG_LOGE(AAFwkTag::APPMGR, "GetOsAccountLocalIdFromUid failed,errcode=%{public}d", errCode);
         return errCode;
     }
+    TAG_LOGD(AAFwkTag::APPMGR, "GetOsAccountLocalIdFromUid userId: %{public}d", userId);
     info.userId = userId;
     info.pid = childProcessRecord->GetPid();
     info.hostPid = childProcessRecord->GetHostPid();

@@ -405,7 +405,7 @@ int32_t LocalCallContainer::GetCurrentUserId()
 
         osAccount->GetOsAccountLocalIdFromProcess(currentUserId_);
     }
-
+    TAG_LOGD(AAFwkTag::LOCAL_CALL, "currentUserId %{public}d", currentUserId_);
     return currentUserId_;
 }
 
