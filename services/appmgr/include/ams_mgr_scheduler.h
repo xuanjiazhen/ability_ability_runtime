@@ -219,6 +219,8 @@ public:
 
     virtual void RegisterStartSpecifiedAbilityResponse(const sptr<IStartSpecifiedAbilityResponse> &response) override;
 
+    virtual void PrepareTerminateApp(const pid_t pid, int32_t &prepareTermination, bool &isExist) override;
+
     virtual void StartSpecifiedProcess(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
         int32_t requestId = 0) override;
 
