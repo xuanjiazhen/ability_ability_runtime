@@ -24,7 +24,7 @@ namespace system {
 bool g_returnFlag{true};
 void SetBoolParameter(const std::string& key, bool def)
 {
-     g_returnFlag = def;
+    g_returnFlag = def;
 }
 
 bool GetBoolParameter(const std::string& key, bool def)

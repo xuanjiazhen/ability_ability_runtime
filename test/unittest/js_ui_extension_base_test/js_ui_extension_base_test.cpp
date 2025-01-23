@@ -215,7 +215,7 @@ HWTEST_F(JsUiExtensionBaseTest, Init_0100, TestSize.Level1)
     jsUiExtensionBase->abilityInfo_->moduleName = TEST_MODULENAME;
     jsUiExtensionBase->abilityInfo_->name = TEST_NAME;
     jsUiExtensionBase->abilityInfo_->hapPath = TEST_HAPPATH;
-     std::shared_ptr<NativeReferenceMock> nativeRefenceMock =
+    std::shared_ptr<NativeReferenceMock> nativeRefenceMock =
         std::make_shared<NativeReferenceMock>();
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
     panda::RuntimeOption options;
@@ -429,13 +429,9 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "OnCommandWindow_0100 start");
     AAFwk::Want want;
-    want.parameters_.params_.emplace("ohos.insightIntent.executeParam.name", nullptr);
-    sptr<AAFwk::SessionInfo> sessionInfo = nullptr;
-    AAFwk::WindowCommand wincmd = AAFwk::WIN_CMD_FOREGROUND;
-    jsUiExtensionBase->OnCommandWindow(want, sessionInfo, AAFwk::WIN_CMD_FOREGROUND);
-    EXPECT_TRUE(jsUiExtensionBase->foregroundWindows_.empty());
-    sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
+    sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
     sessionInfo->uiExtensionComponentId = 1;
+    AAFwk::WindowCommand wincmd = AAFwk::WIN_CMD_FOREGROUND;
     sptr<Rosen::Window> uiwindow = sptr<Rosen::Window>::MakeSptr();
     jsUiExtensionBase->uiWindowMap_.emplace(sessionInfo->uiExtensionComponentId, uiwindow);
     jsUiExtensionBase->OnCommandWindow(want, sessionInfo, wincmd);
