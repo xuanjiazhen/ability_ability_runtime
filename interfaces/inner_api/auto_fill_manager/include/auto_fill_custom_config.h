@@ -69,18 +69,18 @@ struct PopupLength {
  
 struct AutoFillCustomConfig {
     bool isShowInSubWindow = true;
-    std::string inspectorId;
     std::int32_t nodeId = -1;
     std::optional<bool> isAutoCancel;
     std::optional<bool> isEnableArrow;
+    std::optional<int32_t> backgroundColor;
+    std::optional<int32_t> maskColor;
     std::optional<PopupSize> targetSize;
     std::optional<PopupOffset> targetOffset;
     std::optional<PopupLength> targetSpace;
     std::optional<PopupLength> arrowOffset;
     std::optional<PopupPlacement> placement;
-    std::optional<int32_t> backgroundColor;
-    std::optional<int32_t> maskColor;
     std::function<void(const std::string&)> onStateChange;
+    std::string inspectorId;
 };
 
 enum class AutoFillCommand {

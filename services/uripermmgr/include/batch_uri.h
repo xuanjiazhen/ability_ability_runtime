@@ -64,18 +64,33 @@ public:
         std::vector<PolicyInfo> &bundlePolicyInfoVec);
 
     int32_t GetPermissionedUriCount();
-    
+
     // media
     int32_t GetMediaUriToGrant(std::vector<std::string> &uriVec);
+
+    int32_t validUriCount = 0;
+    int32_t totalUriCount = 0;
+
+    // target's uri
+    int32_t targetBundleUriCount = 0;
+    std::vector<bool> isTargetBundleUri;
+
+    // result of CheckUriPermission
+    std::vector<bool> result;
+    std::vector<bool> isDocsUriVec;
+
+    // for check proxy uri permission
+    std::vector<int32_t> proxyIndexsByMap;
+    std::vector<int32_t> proxyIndexsByPolicy;
 
     // media uri
     std::vector<Uri> mediaUris;
     std::vector<int32_t> mediaIndexs;
-    
+
     // content uri
     std::vector<Uri> contentUris;
     std::vector<int32_t> contentIndexs;
-    
+
     // docs and bundle uri
     std::vector<Uri> otherUris;
     std::vector<int32_t> otherIndexs;
@@ -83,21 +98,6 @@ public:
 
     // caller's uri
     std::vector<PolicyInfo> selfBundlePolicyInfos;
-
-    // for check proxy uri permission
-    std::vector<int32_t> proxyIndexsByMap;
-    std::vector<int32_t> proxyIndexsByPolicy;
-    
-    // result of CheckUriPermission
-    std::vector<bool> result;
-    std::vector<bool> isDocsUriVec;
-
-    // target's uri
-    int32_t targetBundleUriCount = 0;
-    std::vector<bool> isTargetBundleUri;
-
-    int32_t validUriCount = 0;
-    int32_t totalUriCount = 0;
 };
 } // OHOS
 } // AAFwk

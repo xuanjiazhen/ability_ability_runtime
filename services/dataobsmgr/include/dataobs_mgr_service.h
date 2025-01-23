@@ -73,7 +73,6 @@ private:
     Status DeepCopyChangeInfo(const ChangeInfo &src, ChangeInfo &dst) const;
 private:
     static constexpr std::uint32_t TASK_COUNT_MAX = 50;
-    ffrt::mutex taskCountMutex_;
     std::uint32_t taskCount_ = 0;
     std::shared_ptr<TaskHandlerWrap> handler_;
 
@@ -82,6 +81,8 @@ private:
     std::shared_ptr<DataObsMgrInner> dataObsMgrInner_;
     std::shared_ptr<DataObsMgrInnerExt> dataObsMgrInnerExt_;
     std::shared_ptr<DataObsMgrInnerPref> dataObsMgrInnerPref_;
+
+    ffrt::mutex taskCountMutex_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

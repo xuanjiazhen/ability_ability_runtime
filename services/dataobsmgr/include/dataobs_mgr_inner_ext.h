@@ -84,8 +84,8 @@ private:
 
     static constexpr uint32_t OBS_NUM_MAX = 50;
 
-    ffrt::mutex nodeMutex_;
     std::shared_ptr<Node> root_;
+    ffrt::mutex nodeMutex_;
     std::map<sptr<IRemoteObject>, std::shared_ptr<DeathRecipientRef>> obsRecipientRefs;
 };
 }  // namespace AAFwk

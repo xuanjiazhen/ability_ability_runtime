@@ -73,14 +73,14 @@ private:
     void ResetStatus();
     void NotifyServiceDiedToObservers();
 
-    std::mutex observerLock_; // observer lock
     bool isRegistered_ = false; // mark whether register observer to abilityms.
     sptr<IConnectionObserver> observer_; // observer stub
-    std::unordered_set<std::shared_ptr<ConnectionObserver>> userObservers_; // all registered observers.
 
-    std::mutex proxyLock_; // proxy lock.
     std::shared_ptr<ServiceProxyAdapter> serviceAdapter_; // abilityms proxy adapter, send request code.
     sptr<IRemoteObject::DeathRecipient> deathRecipient_; // abilityms death recipient.
+    std::mutex proxyLock_; // proxy lock.
+    std::mutex observerLock_; // observer lock
+    std::unordered_set<std::shared_ptr<ConnectionObserver>> userObservers_; // all registered observers.
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

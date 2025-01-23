@@ -122,11 +122,11 @@ private:
     };
 
 private:
+    bool saLoadFinished_ = false;
+    sptr<IUriPermissionManager> uriPermMgr_ = nullptr;
     std::mutex mutex_;
     std::mutex saLoadMutex_;
     std::condition_variable loadSaVariable_;
-    bool saLoadFinished_ = false;
-    sptr<IUriPermissionManager> uriPermMgr_ = nullptr;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
