@@ -195,12 +195,14 @@ std::vector<Uri> UriUtils::GetPermissionedUriList(const std::vector<std::string>
     // process uri
     size_t startIndex = 0;
     if (!want.GetUriString().empty()) {
-        if (checkResults[startIndex]) {
-            permissionedUris.emplace_back(want.GetUri());
-        } else if (want.GetUri().GetScheme() == "file") {
-            // erase uri param
-            want.SetUri("");
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "erase uri param.");
+        if (want.GetUri().GetScheme() == "file") {
+            if (checkResults[startIndex]) {
+                permissionedUris.emplace_back(want.GetUri());
+            } else {
+                // erase uri param
+                want.SetUri("");
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "erase uri param.");
+            }
         }
         startIndex = 1;
     }
@@ -208,10 +210,10 @@ std::vector<Uri> UriUtils::GetPermissionedUriList(const std::vector<std::string>
     std::vector<std::string> paramStreamUris;
     for (size_t index = startIndex; index < checkResults.size(); index++) {
         auto uri = Uri(uriVec[index]);
-        if (checkResults[index]) {
-            permissionedUris.emplace_back(uri);
+        if (uri.GetScheme() != "file") {
             paramStreamUris.emplace_back(uriVec[index]);
-        } else if (uri.GetScheme() != "file") {
+        } else if (checkResults[index]) {
+            permissionedUris.emplace_back(uri);
             paramStreamUris.emplace_back(uriVec[index]);
         }
     }

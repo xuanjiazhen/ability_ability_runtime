@@ -98,6 +98,10 @@ public:
     int RevokeUriPermissionManually(const Uri &uri, const std::string bundleName,
         int32_t appIndex = 0) override;
 
+    int32_t RevokeContentUriPermissions(const std::vector<std::string> &uriVec) override;
+
+    int32_t ClearAllContentUriPermissions() override;
+
 private:
     template<typename T>
     void ConnectManager(sptr<T> &mgr, int32_t serviceId);

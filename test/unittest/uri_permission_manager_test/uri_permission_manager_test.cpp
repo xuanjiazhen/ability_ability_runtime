@@ -363,5 +363,53 @@ HWTEST_F(UriPermissionManagerTest, UriPermissionManager_GrantUriPermissionPrivil
     auto res = upmc.GrantUriPermissionPrivileged(uriVec, flag, bundleName, appIndex, 0, 0);
     EXPECT_EQ(res, CHECK_PERMISSION_FAILED);
 }
+
+/*
+ * Feature: UriPermissionManagerClient
+ * Function: ClearAllContentUriPermissionsTest
+ * SubFunction: ClearAllContentUriPermissionsTest
+ * FunctionPoints: ClearAllContentUriPermissionsTest
+ * CaseDescription: Verify UriPermissionManagerClient ClearAllContentUriPermissionsTest
+ */
+HWTEST_F(UriPermissionManagerTest, UriPermissionManager_ClearAllContentUriPermissionsTest_001, TestSize.Level1)
+{
+    auto& upmc = AAFwk::UriPermissionManagerClient::GetInstance();
+    auto res = upmc.ClearAllContentUriPermissions();
+    EXPECT_EQ(res, CHECK_PERMISSION_FAILED);
+}
+
+/*
+ * Feature: UriPermissionManagerClient
+ * Function: RevokeContentUriPermissions
+ * SubFunction: RevokeContentUriPermissions
+ * FunctionPoints: RevokeContentUriPermissions
+ * CaseDescription: Verify UriPermissionManagerClient RevokeContentUriPermissions
+ */
+HWTEST_F(UriPermissionManagerTest, UriPermissionManager_RevokeContentUriPermissions_001, TestSize.Level1)
+{
+    auto& upmc = AAFwk::UriPermissionManagerClient::GetInstance();
+
+    std::string uri = "content://texmp_001.txt";
+    std::vector<std::string> uris = { uri };
+    auto res = upmc.RevokeContentUriPermissions(uris);
+    EXPECT_EQ(res, CHECK_PERMISSION_FAILED);
+}
+
+/*
+ * Feature: UriPermissionManagerClient
+ * Function: RevokeContentUriPermissions
+ * SubFunction: RevokeContentUriPermissions
+ * FunctionPoints: RevokeContentUriPermissions, uris is more then 500
+ * CaseDescription: Verify UriPermissionManagerClient RevokeContentUriPermissions
+ */
+HWTEST_F(UriPermissionManagerTest, UriPermissionManager_RevokeContentUriPermissions_002, TestSize.Level1)
+{
+    auto& upmc = AAFwk::UriPermissionManagerClient::GetInstance();
+
+    std::string uri = "content://texmp_001.txt";
+    std::vector<std::string> uris(501, uri);
+    auto res = upmc.RevokeContentUriPermissions(uris);
+    EXPECT_EQ(res, ERR_URI_LIST_OUT_OF_RANGE);
+}
 }  // namespace AAFwk
 }  // namespace OHOS

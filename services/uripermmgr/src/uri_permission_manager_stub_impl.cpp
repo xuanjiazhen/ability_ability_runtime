@@ -816,5 +816,49 @@ int32_t UriPermissionManagerStubImpl::Active(const std::vector<PolicyInfo> &poli
     return ERR_OK;
 }
 #endif // ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
+
+int32_t UriPermissionManagerStubImpl::RevokeContentUriPermissions(const std::vector<std::string> &uriVec)
+{
+    TAG_LOGI(AAFwkTag::URIPERMMGR, "RevokeContentUriPermissions call");
+    if (!UPMSUtils::IsBrokerCall()) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "No Permission");
+        return CHECK_PERMISSION_FAILED;
+    }
+
+    std::lock_guard<std::mutex> guard(mutex_);
+    for (auto &uriStr: uriVec) {
+        Uri uri(uriStr);
+        if (uri.GetScheme() != "content") {
+            TAG_LOGD(AAFwkTag::URIPERMMGR, "invalid uri: %{public}s", uri.GetScheme().c_str());
+            continue;
+        }
+        auto search = uriMap_.find(uriStr);
+        if (search != uriMap_.end()) {
+            uriMap_.erase(search);
+        }
+    }
+    return ERR_OK;
+}
+
+int32_t UriPermissionManagerStubImpl::ClearAllContentUriPermissions()
+{
+    TAG_LOGI(AAFwkTag::URIPERMMGR, "ClearAllContentUriPermissions call");
+    if (!UPMSUtils::IsBrokerCall()) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "No Permission");
+        return CHECK_PERMISSION_FAILED;
+    }
+    std::lock_guard<std::mutex> guard(mutex_);
+    for (auto iter = uriMap_.begin(); iter != uriMap_.end();) {
+        Uri uri(iter->first);
+        if (uri.GetScheme() == "content") {
+            iter = uriMap_.erase(iter);
+            continue;
+        }
+        TAG_LOGD(AAFwkTag::URIPERMMGR, "invalid uri: %{public}s", uri.GetScheme().c_str());
+        iter++;
+    }
+    return ERR_OK;
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS

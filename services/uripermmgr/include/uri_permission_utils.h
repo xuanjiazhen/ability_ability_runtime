@@ -29,6 +29,7 @@ public:
     static bool SendSystemAppGrantUriPermissionEvent(uint32_t callerTokenId, uint32_t targetTokenId,
         const std::vector<Uri> &uriVec, const std::vector<bool> &resVec);
     static int32_t GetCurrentAccountId();
+    static bool IsBrokerCall();
     static bool IsFoundationCall();
     static bool IsSAOrSystemAppCall();
     static bool IsSystemAppCall();

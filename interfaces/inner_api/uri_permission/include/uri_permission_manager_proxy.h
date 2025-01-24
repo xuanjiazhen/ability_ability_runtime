@@ -48,6 +48,9 @@ public:
     virtual int32_t Active(const std::vector<PolicyInfo> &policy, std::vector<uint32_t> &result) override;
 #endif // ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
 
+    virtual int32_t RevokeContentUriPermissions(const std::vector<std::string> &uriVec) override;
+    virtual int32_t ClearAllContentUriPermissions() override;
+
 private:
     static inline BrokerDelegator<UriPermissionManagerProxy> delegator_;
     int32_t SendTransactCmd(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);

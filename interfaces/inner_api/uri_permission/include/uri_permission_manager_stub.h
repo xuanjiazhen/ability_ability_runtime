@@ -47,6 +47,8 @@ private:
 #ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
     int HandleActive(MessageParcel &data, MessageParcel &reply);
 #endif // ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
+    int32_t HandleRevokeContentUriPermissions(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleClearAllContentUriPermissions(MessageParcel &data, MessageParcel &reply);
 };
 }  // namespace AAFwk
 }  // namespace OHOS

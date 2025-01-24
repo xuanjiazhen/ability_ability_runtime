@@ -385,5 +385,56 @@ int UriPermissionManagerProxy::Active(const std::vector<PolicyInfo> &policy, std
     return INNER_ERR;
 }
 #endif // ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
+
+int32_t UriPermissionManagerProxy::RevokeContentUriPermissions(const std::vector<std::string> &uriVec)
+{
+    TAG_LOGD(AAFwkTag::URIPERMMGR, "call");
+    if (uriVec.empty() || uriVec.size() > MAX_URI_COUNT) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "uriVec empty or exceed maxSize %{public}d", MAX_URI_COUNT);
+        return ERR_URI_LIST_OUT_OF_RANGE;
+    }
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(IUriPermissionManager::GetDescriptor())) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "Write interfaceToken failed");
+        return INNER_ERR;
+    }
+    if (!data.WriteUint32(uriVec.size())) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "Write uriVec size failed");
+        return INNER_ERR;
+    }
+    for (const auto &uri : uriVec) {
+        if (!data.WriteString(uri)) {
+            TAG_LOGE(AAFwkTag::URIPERMMGR, "Write uri failed");
+            return INNER_ERR;
+        }
+    }
+    
+    MessageParcel reply;
+    MessageOption option;
+    int32_t result = SendTransactCmd(UriPermMgrCmd::ON_REVOKE_CONTENT_URI_PERMISSIONS, data, reply, option);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "SendRequest error:%{public}d", result);
+        return result;
+    }
+    return reply.ReadUint32();
+}
+
+int32_t UriPermissionManagerProxy::ClearAllContentUriPermissions()
+{
+    TAG_LOGD(AAFwkTag::URIPERMMGR, "call");
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(IUriPermissionManager::GetDescriptor())) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "Write interfaceToken failed");
+        return INNER_ERR;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int result = SendTransactCmd(UriPermMgrCmd::ON_CLEAR_ALL_CONTENT_URI_PERMISSIONS, data, reply, option);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "SendRequest error:%{public}d", result);
+        return result;
+    }
+    return reply.ReadUint32();
+}
 }  // namespace AAFwk
 }  // namespace OHOS
