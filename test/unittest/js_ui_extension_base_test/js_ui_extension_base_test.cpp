@@ -19,24 +19,19 @@
 #define private public
 #define protected public
 #include "js_environment.h"
+#include "js_runtime.h"
 #include "js_ui_extension_base.h"
 #undef private
 #undef protected
-
 #include "ability_handler.h"
 #include "ability_local_record.h"
 #include "ability_manager_client.h"
 #include "ark_native_engine.h"
 #include "context.h"
 #include "context_impl.h"
-#include "element_name.h"
 #include "hilog_wrapper.h"
-#include "js_runtime.h"
-#include "js_runtime_lite.h"
-#include "js_ui_extension_context.h"
 #include "mock_ability_token.h"
 #include "mock_iremote_object.h"
-#include "mock_runtime.h"
 #include "napi_common_util.h"
 #include "napi_common_want.h"
 #include "ohos_application.h"
@@ -62,7 +57,6 @@ namespace {
     const std::string TEST_DEVICEID = "com.example.deviceId";
     const std::string TEST_ABILITYNAME = "com.example.abilityname";
 }
-
 
 napi_env env_ = nullptr;
 panda::ecmascript::EcmaVM* vm_ = nullptr;
@@ -215,7 +209,7 @@ HWTEST_F(JsUiExtensionBaseTest, Init_0100, TestSize.Level1)
     jsUiExtensionBase->abilityInfo_->moduleName = TEST_MODULENAME;
     jsUiExtensionBase->abilityInfo_->name = TEST_NAME;
     jsUiExtensionBase->abilityInfo_->hapPath = TEST_HAPPATH;
-    std::shared_ptr<NativeReferenceMock> nativeRefenceMock =
+     std::shared_ptr<NativeReferenceMock> nativeRefenceMock =
         std::make_shared<NativeReferenceMock>();
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
     panda::RuntimeOption options;
@@ -429,9 +423,13 @@ HWTEST_F(JsUiExtensionBaseTest, OnCommandWindow_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "OnCommandWindow_0100 start");
     AAFwk::Want want;
-    sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
-    sessionInfo->uiExtensionComponentId = 1;
+    want.parameters_.params_.emplace("ohos.insightIntent.executeParam.name", nullptr);
+    sptr<AAFwk::SessionInfo> sessionInfo = nullptr;
     AAFwk::WindowCommand wincmd = AAFwk::WIN_CMD_FOREGROUND;
+    jsUiExtensionBase->OnCommandWindow(want, sessionInfo, AAFwk::WIN_CMD_FOREGROUND);
+    EXPECT_TRUE(jsUiExtensionBase->foregroundWindows_.empty());
+    sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
+    sessionInfo->uiExtensionComponentId = 1;
     sptr<Rosen::Window> uiwindow = sptr<Rosen::Window>::MakeSptr();
     jsUiExtensionBase->uiWindowMap_.emplace(sessionInfo->uiExtensionComponentId, uiwindow);
     jsUiExtensionBase->OnCommandWindow(want, sessionInfo, wincmd);
@@ -1028,6 +1026,5 @@ HWTEST_F(JsUiExtensionBaseTest, UnregisterDisplayInfoChangedListener_0100, TestS
 
     TAG_LOGI(AAFwkTag::TEST, "RegisterDisplayInfoChangedListener_0100 end");
 }
-
 } // namespace AbilityRuntime
 } // namespace OHOS
