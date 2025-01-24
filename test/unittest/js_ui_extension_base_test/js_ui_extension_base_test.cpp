@@ -209,7 +209,7 @@ HWTEST_F(JsUiExtensionBaseTest, Init_0100, TestSize.Level1)
     jsUiExtensionBase->abilityInfo_->moduleName = TEST_MODULENAME;
     jsUiExtensionBase->abilityInfo_->name = TEST_NAME;
     jsUiExtensionBase->abilityInfo_->hapPath = TEST_HAPPATH;
-     std::shared_ptr<NativeReferenceMock> nativeRefenceMock =
+    std::shared_ptr<NativeReferenceMock> nativeRefenceMock =
         std::make_shared<NativeReferenceMock>();
     jsUiExtensionBase->jsRuntime_.jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
     panda::RuntimeOption options;
