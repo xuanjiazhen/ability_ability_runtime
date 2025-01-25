@@ -49,7 +49,16 @@ template("errormanager") {
 
     subsystem_name = "ability"
     part_name = "ability_runtime"
+
+    # Add public headers
+    public_configs = [ ":errormanager_public_config" ]
   }
+}
+
+# Add new config for public headers
+config("errormanager_public_config") {
+  visibility = [ ":*" ]
+  include_dirs = [ "." ]
 }
 
 errormanager("errormanager_napi") {

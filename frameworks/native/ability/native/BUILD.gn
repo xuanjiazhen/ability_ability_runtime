@@ -700,6 +700,7 @@ ohos_shared_library("uiabilitykit_native") {
     ":configuration_helper",
     ":continuation_ipc",
     ":ui_extension",
+    "${ability_runtime_path}/frameworks/js/napi/app/error_manager:errormanager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
