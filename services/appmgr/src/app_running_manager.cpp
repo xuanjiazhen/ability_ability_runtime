@@ -569,7 +569,7 @@ void AppRunningManager::HandleAbilityAttachTimeOut(const sptr<IRemoteObject> &to
 
     if ((isSCB || appRecord->IsLastAbilityRecord(token)) && (!appRecord->IsKeepAliveApp() ||
         !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficent())) {
-        appRecord->SetTerminating(shared_from_this());
+        appRecord->SetTerminating();
     }
 
     auto timeoutTask = [appRecord, token]() {
@@ -614,7 +614,7 @@ void AppRunningManager::PrepareTerminate(const sptr<IRemoteObject> &token, bool 
             return;
         }
         TAG_LOGI(AAFwkTag::APPMGR, "The ability is the last in the app:%{public}s.", appRecord->GetName().c_str());
-        appRecord->SetTerminating(shared_from_this());
+        appRecord->SetTerminating();
     }
 }
 
@@ -680,7 +680,7 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
             return;
         }
         TAG_LOGI(AAFwkTag::APPMGR, "Terminate last ability in app:%{public}s.", appRecord->GetName().c_str());
-        appRecord->SetTerminating(shared_from_this());
+        appRecord->SetTerminating();
         if (clearMissionFlag && appMgrServiceInner != nullptr) {
             auto delayTime = appRecord->ExtensionAbilityRecordExists() ?
                 AMSEventHandler::DELAY_KILL_EXTENSION_PROCESS_TIMEOUT : AMSEventHandler::DELAY_KILL_PROCESS_TIMEOUT;

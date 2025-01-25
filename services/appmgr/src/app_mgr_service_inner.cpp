@@ -2456,6 +2456,10 @@ void AppMgrServiceInner::TerminateAbility(const sptr<IRemoteObject> &token, bool
     if (appRunningManager_) {
         std::shared_ptr<AppMgrServiceInner> appMgrServiceInner = shared_from_this();
         appRunningManager_->TerminateAbility(token, clearMissionFlag, appMgrServiceInner);
+        if (appRecord->IsTerminating() && appRunningManager_->CheckAppRunningRecordIsLast(appRecord)) {
+            TAG_LOGD(AAFwkTag::APPMGR, "clear uri permission");
+            appRecord->UnSetPolicy();
+        }
     }
 }
 
@@ -4766,7 +4770,7 @@ void AppMgrServiceInner::KillApplicationByRecord(const std::shared_ptr<AppRunnin
     }
 
     auto pid = appRecord->GetPriorityObject()->GetPid();
-    appRecord->SetTerminating(appRunningManager_);
+    appRecord->SetTerminating();
     appRecord->ScheduleProcessSecurityExit();
 
     auto startTime = SystemTimeMillisecond();
