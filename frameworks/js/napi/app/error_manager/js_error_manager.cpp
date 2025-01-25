@@ -199,6 +199,11 @@ static std::string GetContent(napi_env env, napi_value exception, const std::str
     return content;
 }
 
+[[maybe_unused]] void FreezeCallback()
+{
+    TAG_LOGW(AAFwkTag::JSNAPI, "test by csw");
+}
+
 static napi_value CreateGlobalObject(napi_env env, WorkItem *item)
 {
     napi_value objValue = nullptr;
