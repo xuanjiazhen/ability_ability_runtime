@@ -25,6 +25,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 enum class UnhandledRejectionEvent : uint32_t { REJECT = 0, HANDLE };
 napi_value JsErrorManagerInit(napi_env env, napi_value exportObj);
+void FreezeCallback();
 }  // namespace AbilityRuntime
 }  // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_JS_ERROR_MANAGER_H

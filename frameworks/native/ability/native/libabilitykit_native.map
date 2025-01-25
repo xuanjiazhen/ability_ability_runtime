@@ -17,6 +17,7 @@
       *OHOS::AbilityRuntime::CreateJsCallerComplex*;
       *OHOS::AbilityRuntime::FreeInstallObserverStub*;
       *OHOS::AppExecFwk::AbilityTransactionCallbackInfo*;
+      "OHOS::AbilityRuntime::FreezeCallback()";
       "OHOS::AppExecFwk::CompleteAsyncCallbackWork(napi_env__*, napi_status, void*)";
       "OHOS::AppExecFwk::CompletePromiseCallbackWork(napi_env__*, napi_status, void*)";
       "OHOS::AppExecFwk::ConvertStringVector(napi_env__*, napi_value__*)";

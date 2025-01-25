@@ -42,8 +42,13 @@
 #include "string_ex.h"
 #include "string_wrapper.h"
 #include "want_params.h"
-
+#include "js_error_manager.h"
 namespace OHOS {
+
+namespace AbilityRuntime {
+    extern void FreezeCallback();
+};
+
 namespace AppExecFwk {
 std::mutex g_mutex;
 std::atomic<bool> g_blocked = false;
@@ -183,6 +188,7 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
             TAG_LOGE(AAFwkTag::RECOVERY, "block main thread failed");
             return false;
         }
+        AbilityRuntime::FreezeCallback();
 #ifdef SUPPORT_SCREEN
         OHOS::AbilityRuntime::JsUIAbility& jsAbility = static_cast<AbilityRuntime::JsUIAbility&>(*abilityPtr);
         AbilityRuntime::JsRuntime& runtime = const_cast<AbilityRuntime::JsRuntime&>(jsAbility.GetJsRuntime());
