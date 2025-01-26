@@ -17,6 +17,7 @@
 #include <cstring>
 #include <fcntl.h>
 
+#include <iterator>
 #include <sys/stat.h>
 
 #include "ohos_application.h"
@@ -257,6 +258,11 @@ void OHOSApplication::OnConfigurationUpdated(Configuration config, AbilityRuntim
         auto diffSyncConfiguration = std::make_shared<AppExecFwk::Configuration>(config);
         Rosen::Window::UpdateConfigurationSyncForAll(diffSyncConfiguration);
     #endif
+    #ifdef SUPPORT_GRAPHICS
+        auto diffConfiguration = std::make_shared<AppExecFwk::Configuration>(config);
+        TAG_LOGI(AAFwkTag::APPKIT, "lmz Outter");
+        Rosen::Window::UpdateConfigurationForAll(diffConfiguration);
+    #endif
     // Notify all abilities
     for (const auto &abilityToken : abilityRecordMgr_->GetAllTokens()) {
         auto abilityRecord = abilityRecordMgr_->GetAbilityItem(abilityToken);
@@ -270,10 +276,6 @@ void OHOSApplication::OnConfigurationUpdated(Configuration config, AbilityRuntim
             abilityStage->OnConfigurationUpdated(config);
         }
     }
-#ifdef SUPPORT_GRAPHICS
-    auto diffConfiguration = std::make_shared<AppExecFwk::Configuration>(config);
-    Rosen::Window::UpdateConfigurationForAll(diffConfiguration);
-#endif
     abilityRuntimeContext_->DispatchConfigurationUpdated(*configuration_);
     abilityRuntimeContext_->SetConfiguration(configuration_);
 }
