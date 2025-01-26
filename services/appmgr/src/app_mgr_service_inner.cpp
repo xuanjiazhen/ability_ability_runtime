@@ -25,6 +25,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "cj_hilog.h"
 #include "ability_manager_errors.h"
 #include "ability_window_configuration.h"
 #include "accesstoken_kit.h"
