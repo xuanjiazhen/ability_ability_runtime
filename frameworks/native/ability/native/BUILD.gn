@@ -582,6 +582,7 @@ ohos_shared_library("cj_extensionkit_native") {
     "napi:ace_napi",
     "napi:cj_bind_ffi",
     "napi:cj_bind_native",
+    "ipc:ipc_napi"
   ]
 
   public_deps = [ ":abilitykit_utils" ]
@@ -1604,6 +1605,7 @@ ohos_shared_library("cj_ui_extension") {
     "window_manager:embeddablewindowstage_kit",
     "window_manager:extensionwindow_napi",
     "window_manager:windowstage_kit",
+    "ipc:ipc_napi"
   ]
 
   if (ability_runtime_graphics) {
@@ -1845,6 +1847,7 @@ ohos_shared_library("cj_action_extension") {
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "napi:cj_bind_native",
+    "ipc:ipc_napi"
   ]
 
   if (ability_runtime_graphics) {
@@ -2113,6 +2116,7 @@ ohos_shared_library("cj_embedded_ui_extension") {
     "hitrace:hitrace_meter",
     "napi:cj_bind_ffi",
     "napi:cj_bind_native",
+    "ipc:ipc_napi"
   ]
 
   if (ability_runtime_graphics) {
@@ -2387,6 +2391,7 @@ ohos_shared_library("cj_photo_editor_extension") {
     "image_framework:image_native",
     "napi:cj_bind_ffi",
     "napi:cj_bind_native",
+    "ipc:ipc_napi"
   ]
 
   if (ability_runtime_graphics) {
