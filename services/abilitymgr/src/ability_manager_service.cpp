@@ -8668,6 +8668,12 @@ int AbilityManagerService::StartUserTest(const Want &want, const sptr<IRemoteObj
         return ERR_NOT_IN_APP_PROVISION_MODE;
     }
 
+    auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
+    if (!isShellCall) {
+        TAG_LOGE(AAFwkTag::APPMGR, "isShellCall false, permission verification fail");
+        return ERR_PERMISSION_DENIED;
+    }
+
     return DelayedSingleton<AppScheduler>::GetInstance()->StartUserTest(want, observer, bundleInfo, GetUserId());
 }
 
@@ -8848,6 +8854,12 @@ bool AbilityManagerService::JudgeMultiUserConcurrency(const int32_t userId)
 #ifdef ABILITY_COMMAND_FOR_TEST
 int AbilityManagerService::ForceTimeoutForTest(const std::string &abilityName, const std::string &state)
 {
+    auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
+    if (!isShellCall) {
+        TAG_LOGE(AAFwkTag::APPMGR, "isShellCall false, permission verification fail");
+        return ERR_PERMISSION_DENIED;
+    }
+
     if (abilityName.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityName empty");
         return INVALID_DATA;
@@ -9142,32 +9154,6 @@ AppExecFwk::ElementName AbilityManagerService::GetTopAbility(bool isNeedLocalDev
     if (ret) {
         return elementName;
     }
-    if (!token) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "token null");
-        return elementName;
-    }
-    auto abilityRecord = Token::GetAbilityRecordByToken(token);
-    if (abilityRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s abilityRecord null", __func__);
-        return elementName;
-    }
-    elementName = abilityRecord->GetElementName();
-    bool isDeviceEmpty = elementName.GetDeviceID().empty();
-    std::string localDeviceId;
-    if (isDeviceEmpty && isNeedLocalDeviceId && GetLocalDeviceId(localDeviceId)) {
-        elementName.SetDeviceID(localDeviceId);
-    }
-#endif
-    return elementName;
-}
-
-AppExecFwk::ElementName AbilityManagerService::GetElementNameByToken(sptr<IRemoteObject> token,
-    bool isNeedLocalDeviceId)
-{
-    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}s start.", __func__);
-    AppExecFwk::ElementName elementName = {};
-#ifdef SUPPORT_GRAPHICS
     if (!token) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "token null");
         return elementName;
