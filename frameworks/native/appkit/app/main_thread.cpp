@@ -755,7 +755,7 @@ void MainThread::ScheduleLaunchAbility(const AbilityInfo &info, const sptr<IRemo
             return;
         }
         appThread->HandleLaunchAbility(abilityRecord);
-        OHOS::AppExecFwk::EventHandler::SetVsyncLazyMode(true);
+        mainHandler_->SetVsyncLazyMode(true);
     };
     if (!mainHandler_->PostTask(task, "MainThread:LaunchAbility")) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
