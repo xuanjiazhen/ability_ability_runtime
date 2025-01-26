@@ -3583,7 +3583,7 @@ void AppMgrServiceInner::StartProcess(const std::string &appName, const std::str
     pid_t pid = 0;
     ErrCode errCode = ERR_OK;
     if (isCJApp) {
-        TAG_LOGI("Bootstrap CJAPP Spawn.");
+        TAG_LOGI(AAFwkTag::APPMGR, "Bootstrap CJAPP Spawn.");
         if (!remoteClientManager_->GetCJSpawnClient()) {
             TAG_LOGE(AAFwkTag::APPMGR, "appSpawnClient null");
             appRunningManager_->RemoveAppRunningRecordById(appRecord->GetRecordId());
@@ -3592,7 +3592,7 @@ void AppMgrServiceInner::StartProcess(const std::string &appName, const std::str
         SendCreateAtomicServiceProcessEvent(appRecord, bundleType, moduleName, abilityName);
         errCode = remoteClientManager_->GetCJSpawnClient()->StartProcess(startMsg, pid);
     } else if (isStsApp) {
-        TAG_LOGI("Bootstrap Static Spawn.");
+        TAG_LOGI(AAFwkTag::APPMGR, "Bootstrap Static Spawn.");
         if (!remoteClientManager_->GetStaticSpawnClient()) {
             TAG_LOGE(AAFwkTag::APPMGR, "sts appSpawnClient null");
             appRunningManager_->RemoveAppRunningRecordById(appRecord->GetRecordId());
@@ -3601,7 +3601,7 @@ void AppMgrServiceInner::StartProcess(const std::string &appName, const std::str
         SendCreateAtomicServiceProcessEvent(appRecord, bundleType, moduleName, abilityName);
         errCode = remoteClientManager_->GetStaticSpawnClient()->StartProcess(startMsg, pid);
     } else {
-        TAG_LOGI("Bootstrap App Spawn.");
+        TAG_LOGI(AAFwkTag::APPMGR, "Bootstrap App Spawn.");
         SendCreateAtomicServiceProcessEvent(appRecord, bundleType, moduleName, abilityName);
         errCode = remoteClientManager_->GetSpawnClient()->StartProcess(startMsg, pid);
     }
