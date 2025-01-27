@@ -54,14 +54,19 @@ AppSpawnClient::AppSpawnClient(const char* serviceName)
     std::string serviceName__ = serviceName;
     if (serviceName__ == APPSPAWN_SERVER_NAME) {
         serviceName_ = APPSPAWN_SERVER_NAME;
+        TAG_LOGI(AAFwkTag::APPMGR, "APPSPAWN SERVER NAME");
     } else if (serviceName__ == CJAPPSPAWN_SERVER_NAME) {
         serviceName_ = CJAPPSPAWN_SERVER_NAME;
+        TAG_LOGI(AAFwkTag::APPMGR, "CJ APPSPAWN SERVER NAME");
     } else if (serviceName__ == NWEBSPAWN_SERVER_NAME) {
         serviceName_ = NWEBSPAWN_SERVER_NAME;
+        TAG_LOGI(AAFwkTag::APPMGR, "NWEB SPAWN SERVER NAME");
     } else if (serviceName__ == NATIVESPAWN_SERVER_NAME) {
         serviceName_ = NATIVESPAWN_SERVER_NAME;
+        TAG_LOGI(AAFwkTag::APPMGR, "NATIVE SPAWN SERVER NAME");
     } else if (serviceName__ == STATICSPAWN_SERVER_NAME) {
         serviceName_ = STATICSPAWN_SERVER_NAME;
+        TAG_LOGI(AAFwkTag::APPMGR, "STATIC SPAWN SERVER NAME");
     } else {
         TAG_LOGE(AAFwkTag::APPMGR, "unknown service name");
         serviceName_ = NWEBSPAWN_SERVER_NAME;
@@ -469,9 +474,10 @@ int32_t AppSpawnClient::PreStartNWebSpawnProcess()
 
 int32_t AppSpawnClient::StartProcess(const AppSpawnStartMsg &startMsg, pid_t &pid)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "StartProcess");
+    TAG_LOGI(AAFwkTag::APPMGR, "StartProcess");
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     if (!VerifyMsg(startMsg)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Valid failed");
         return ERR_INVALID_VALUE;
     }
 
@@ -481,6 +487,7 @@ int32_t AppSpawnClient::StartProcess(const AppSpawnStartMsg &startMsg, pid_t &pi
 
     ret = OpenConnection();
     if (ret != 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Connection failed");
         return ret;
     }
 
@@ -492,6 +499,7 @@ int32_t AppSpawnClient::StartProcess(const AppSpawnStartMsg &startMsg, pid_t &pi
 
     ret = AppspawnCreateDefaultMsg(startMsg, reqHandle);
     if (ret != 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Connection msg failed.");
         return ret; // create msg failed
     }
 
