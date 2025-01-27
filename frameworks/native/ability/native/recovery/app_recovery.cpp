@@ -43,6 +43,13 @@
 #include "string_wrapper.h"
 #include "want_params.h"
 
+// Add function declaration
+namespace OHOS {
+namespace AbilityRuntime {
+[[maybe_unused]] void FreezeCallback();
+} // namespace AbilityRuntime
+} // namespace OHOS
+
 namespace OHOS {
 namespace AppExecFwk {
 std::mutex g_mutex;
@@ -183,6 +190,9 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
             TAG_LOGE(AAFwkTag::RECOVERY, "block main thread failed");
             return false;
         }
+
+        AbilityRuntime::FreezeCallback();
+
 #ifdef SUPPORT_SCREEN
         OHOS::AbilityRuntime::JsUIAbility& jsAbility = static_cast<AbilityRuntime::JsUIAbility&>(*abilityPtr);
         AbilityRuntime::JsRuntime& runtime = const_cast<AbilityRuntime::JsRuntime&>(jsAbility.GetJsRuntime());
