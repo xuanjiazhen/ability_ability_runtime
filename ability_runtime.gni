@@ -205,4 +205,9 @@ declare_args() {
   } else {
     app_mgr_service_hicollie_enable = false
   }
+
+  if (defined(global_parts_info) &&
+      !defined(global_parts_info.multimedia_media_library)) {
+    ability_runtime_upms = false
+  }
 }
