@@ -30,6 +30,12 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+
+[[maybe_unused]] void FreezeCallback()
+{
+    TAG_LOGW(AAFwkTag::JSNAPI, "freeze test callback");
+}
+
 namespace {
 struct JsLoopObserver {
     std::shared_ptr<AppExecFwk::EventRunner> mainRunner;
