@@ -284,7 +284,7 @@ int32_t UriPermissionManagerStubImpl::GrantBatchUriPermissionImpl(const std::vec
         return INNER_ERR;
     }
     std::vector<int32_t> funcResult;
-    auto resVec = storageManager_->CreateShareFile(uriVec, targetTokenId, flag, funcResult);
+    storageManager_->CreateShareFile(uriVec, targetTokenId, flag, funcResult);
     auto resVec = funcResult;
     if (resVec.size() == 0) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "CreateShareFile failed, storageManager resVec empty");
