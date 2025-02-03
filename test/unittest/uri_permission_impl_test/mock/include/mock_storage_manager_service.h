@@ -17,7 +17,7 @@
 
 #include "gmock/gmock.h"
 #include "iremote_stub.h"
-#include "istorage_manager.h"
+#include "out/rk3568/gen/foundation/filemanagement/storage_service/services/storage_manager/istorage_manager.h"
 
 namespace OHOS {
 namespace StorageManager {

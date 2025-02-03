@@ -16,8 +16,8 @@
 #include <gtest/gtest.h>
 
 #include "event_report.h"
-#include "istorage_manager.h"
-#include "storage_manager_proxy.h"
+#include "out/rk3568/gen/foundation/filemanagement/storage_service/services/storage_manager/istorage_manager.h"
+#include "out/rk3568/gen/foundation/filemanagement/storage_service/services/storage_manager/storage_manager_proxy.h"
 #include "system_ability_definition.h"
 #include "tokenid_kit.h"
 #define private public

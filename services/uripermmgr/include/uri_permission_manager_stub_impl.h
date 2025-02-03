@@ -22,7 +22,7 @@
 #include <unordered_set>
 #include "app_mgr_interface.h"
 #include "batch_uri.h"
-#include "istorage_manager.h"
+#include "out/rk3568/gen/foundation/filemanagement/storage_service/services/storage_manager/istorage_manager.h"
 #include "tokenid_permission.h"
 #include "uri.h"
 #include "uri_permission_manager_stub.h"
