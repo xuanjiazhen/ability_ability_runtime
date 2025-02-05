@@ -506,7 +506,7 @@ int32_t AppSpawnClient::StartProcess(const AppSpawnStartMsg &startMsg, pid_t &pi
     TAG_LOGD(AAFwkTag::APPMGR, "AppspawnSendMsg");
     AppSpawnResult result = {0};
     ret = AppSpawnClientSendMsg(handle_, reqHandle, &result);
-
+    TAG_LOGI(AAFwkTag::APPMGR, "Return value: %{public}d, result marker: %{public}d", ret, result.result);
     int64_t costTime = AbilityRuntime::TimeUtil::SystemTimeMillisecond() - startTime;
     if (costTime > MAX_COST_TIME) {
         TAG_LOGW(AAFwkTag::APPMGR, "StartProcess cost %{public}" PRId64 "ms!", costTime);

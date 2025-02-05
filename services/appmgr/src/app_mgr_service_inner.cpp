@@ -3565,6 +3565,7 @@ void AppMgrServiceInner::StartProcess(const std::string &appName, const std::str
         TAG_LOGI(AAFwkTag::APPMGR, "Static Spawn Client Start Process.");
         TAG_LOGI(AAFwkTag::APPMGR, "ErrCode %{public}08x", errCode);
         errCode = remoteClientManager_->GetStaticSpawnClient()->StartProcess(startMsg, pid);
+        TAG_LOGI(AAFwkTag::APPMGR, "After ErrCode %{public}08x", errCode);
     } else if (isCJApp) {
         TAG_LOGI(AAFwkTag::APPMGR, "Bootstrap CJAPP Spawn.");
         if (!remoteClientManager_->GetCJSpawnClient()) {
