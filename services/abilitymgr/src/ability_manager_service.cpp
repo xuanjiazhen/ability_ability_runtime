@@ -106,6 +106,7 @@
 #ifdef SUPPORT_SCREEN
 #include "utils/dms_util.h"
 #endif
+#include "kernel_kill_listener.h"
 
 using OHOS::AppExecFwk::ElementName;
 using OHOS::Security::AccessToken::AccessTokenKit;
@@ -340,6 +341,14 @@ void AbilityManagerService::OnStart()
     std::unordered_map<std::string, std::string> payload;
     payload["pid"] = std::to_string(pid);
     OHOS::ConcurrentTask::ConcurrentTaskClient::GetInstance().RequestAuth(payload);
+
+    auto kernelKillListener = std::make_shared<KernelKillListener>();
+    HiviewDFX::ListenerRule domainNameRule("KERNEL_VENDOR", "PROCESS_KILL", HiviewDFX::RuleType::WHOLE_WORD);
+    std::vector<HiviewDFX::ListenerRule> listenerRules;
+    listenerRules.push_back(domainNameRule);
+    if (HiviewDFX::HiSysEventManager::AddListener(kernelKillListener, listenerRules)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "add kernelKill listener failed");
+    }
 }
 
 bool AbilityManagerService::Init()
