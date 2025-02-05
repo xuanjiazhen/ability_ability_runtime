@@ -61,6 +61,7 @@ bool FaultData::ReadFromParcel(Parcel &parcel)
     state = parcel.ReadUint32();
     eventId = parcel.ReadInt32();
     tid = parcel.ReadInt32();
+    stuckTimeout = parcel.ReadUint32();
     if (parcel.ReadBool()) {
         token = (static_cast<MessageParcel*>(&parcel))->ReadRemoteObject();
     }
@@ -75,6 +76,25 @@ FaultData *FaultData::Unmarshalling(Parcel &parcel)
         info = nullptr;
     }
     return info;
+}
+
+bool FaultData::WriteContent(Parcel &parcel) const
+{
+    if (!parcel.WriteInt32(eventId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "EventId [%{public}u] write int32 failed.", eventId);
+        return false;
+    }
+
+    if (!parcel.WriteInt32(tid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Tid [%{public}u] write int32 failed.", tid);
+        return false;
+    }
+
+    if (!parcel.WriteUint32(stuckTimeout)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "stuckTimeout [%{public}u] write uint32 failed.", stuckTimeout);
+        return false;
+    }
+    return true;
 }
 
 bool FaultData::Marshalling(Parcel &parcel) const
@@ -124,16 +144,6 @@ bool FaultData::Marshalling(Parcel &parcel) const
         return false;
     }
 
-    if (!parcel.WriteInt32(eventId)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "EventId [%{public}u] write int32 failed.", eventId);
-        return false;
-    }
-
-    if (!parcel.WriteInt32(tid)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Tid [%{public}u] write int32 failed.", tid);
-        return false;
-    }
-
     if (token == nullptr) {
         if (!parcel.WriteBool(false)) {
             TAG_LOGE(AAFwkTag::APPMGR, "Token falge [false] write bool failed.");
@@ -145,7 +155,7 @@ bool FaultData::Marshalling(Parcel &parcel) const
             return false;
         }
     }
-    return true;
+    return WriteContent(parcel);
 }
 
 bool AppFaultDataBySA::ReadFromParcel(Parcel &parcel)
