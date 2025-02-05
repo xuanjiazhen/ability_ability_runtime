@@ -1955,6 +1955,7 @@ private:
         const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid, const int32_t callerUid);
     int32_t SubmitDfxFaultTask(const FaultData &faultData, const std::string &bundleName,
         const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid);
+    void SendAbilityEvent(const std::shared_ptr<AbilityRunningRecord> &abilityRecord, const AbilityState &state);
     void AddAbilityStageForSpecified(std::shared_ptr<AppRunningRecord> appRecord);
 
     bool isInitAppWaitingDebugListExecuted_ = false;
