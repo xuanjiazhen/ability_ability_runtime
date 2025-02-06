@@ -59,6 +59,8 @@ const char RUN_UISCHEDULER_SYMBOL_NAME[] = "RunUIScheduler";
 const char FINI_CJRUNTIME_SYMBOL_NAME[] = "FiniCJRuntime";
 const char INIT_CJLIBRARY_SYMBOL_NAME[] = "InitCJLibrary";
 const char REGISTER_EVENTHANDLER_CALLBACKS_NAME[] = "RegisterEventHandlerCallbacks";
+const char REGISTER_EXTERNAL_VM_SYMBOL_NAME[] = "RegisterExternalVMInRuntime";
+const char REGISTER_SUBSTACKINFO_CALLBACKS_NAME[] = "RegisterSubStackInfoCallbacks";
 
 using InitCJRuntimeType = int(*)(const struct RuntimeParam*);;
 using InitUISchedulerType = void*(*)();
@@ -66,6 +68,8 @@ using RunUISchedulerType = int(*)(unsigned long long);
 using FiniCJRuntimeType = int(*)();
 using InitCJLibraryType = int(*)(const char*);
 using RegisterEventHandlerType = void(*)(PostTaskType, HasHigherPriorityType);
+using RegisterExternalVMType = void(*)(unsigned long long);
+using RegisterSubStackInfoType = void(*)(RegisterSubStackInfoFuncType, UpdateStackInfoFuncType);
 
 #ifdef __OHOS__
 const char REGISTER_UNCAUGHT_EXCEPTION_NAME[] = "RegisterUncaughtExceptionHandler";
@@ -139,6 +143,32 @@ bool LoadSymbolRegisterEventHandlerCallbacks(void* handle, CJRuntimeAPI& apis)
         return false;
     }
     apis.RegisterEventHandlerCallbacks = reinterpret_cast<RegisterEventHandlerType>(symbol);
+    return true;
+}
+
+bool LoadSymbolRegisterSubStackInfoCallbacks(void* handle, CJRuntimeAPI& apis)
+{
+    auto symbol = DynamicFindSymbol(handle, REGISTER_SUBSTACKINFO_CALLBACKS_NAME);
+    if (symbol == nullptr) {
+        LOGE("runtime api not found: %{public}s", REGISTER_SUBSTACKINFO_CALLBACKS_NAME);
+        // return true for compatible.
+        apis.RegisterSubStackInfoCallbacks = nullptr;
+        return true;
+    }
+    apis.RegisterSubStackInfoCallbacks = reinterpret_cast<RegisterSubStackInfoType>(symbol);
+    return true;
+}
+
+bool LoadSymbolRegisterExternalVM(void* handle, CJRuntimeAPI& apis)
+{
+    auto symbol = DynamicFindSymbol(handle, REGISTER_EXTERNAL_VM_SYMBOL_NAME);
+    if (symbol == nullptr) {
+        LOGE("runtime api not found: %{public}s", REGISTER_EXTERNAL_VM_SYMBOL_NAME);
+        // return true for compatible.
+        apis.RegisterExternalVMInRuntime = nullptr;
+        return true;
+    }
+    apis.RegisterExternalVMInRuntime = reinterpret_cast<RegisterExternalVMType>(symbol);
     return true;
 }
 
@@ -273,7 +303,9 @@ bool CJEnvironment::LoadRuntimeApis()
         !LoadSymbolRunUIScheduler(dso, *lazyApis_) ||
         !LoadSymbolFiniCJRuntime(dso, *lazyApis_) ||
         !LoadSymbolInitCJLibrary(dso, *lazyApis_) ||
-        !LoadSymbolRegisterEventHandlerCallbacks(dso, *lazyApis_)) {
+        !LoadSymbolRegisterEventHandlerCallbacks(dso, *lazyApis_) ||
+        !LoadSymbolRegisterSubStackInfoCallbacks(dso, *lazyApis_) ||
+        !LoadSymbolRegisterExternalVM(dso, *lazyApis_)) {
         LOGE("load symbol failed");
         return false;
     }
@@ -285,6 +317,22 @@ bool CJEnvironment::LoadRuntimeApis()
 #endif
     isRuntimeApiLoaded = true;
     return true;
+}
+
+void CJEnvironment::RegisterExternalVMInRuntime(unsigned long long externalVM)
+{
+    if (lazyApis_->RegisterExternalVMInRuntime == nullptr) {
+        return;
+    }
+    lazyApis_->RegisterExternalVMInRuntime(externalVM);
+}
+
+void CJEnvironment::RegisterSubStackInfoCallbacks(RegisterSubStackInfoFuncType rFunc, UpdateStackInfoFuncType uFunc)
+{
+    if (lazyApis_->RegisterSubStackInfoCallbacks == nullptr) {
+        return;
+    }
+    lazyApis_->RegisterSubStackInfoCallbacks(rFunc, uFunc);
 }
 
 void CJEnvironment::RegisterCJUncaughtExceptionHandler(const CJUncaughtExceptionInfo& handle)
@@ -661,6 +709,12 @@ CJEnvMethods* CJEnvironment::CreateEnvMethods()
         },
         .startDebugger = []() {
             return CJEnvironment::GetInstance()->StartDebugger();
+        },
+        .registerExternalVMInRuntime = [](unsigned long long externalVM) {
+            CJEnvironment::GetInstance()->RegisterExternalVMInRuntime(externalVM);
+        },
+        .registerSubStackInfoCallbacks = [](RegisterSubStackInfoFuncType rFunc, UpdateStackInfoFuncType uFunc) {
+            CJEnvironment::GetInstance()->RegisterSubStackInfoCallbacks(rFunc, uFunc);
         },
         .registerCJUncaughtExceptionHandler = [](const CJUncaughtExceptionInfo& handle) {
             return CJEnvironment::GetInstance()->RegisterCJUncaughtExceptionHandler(handle);

@@ -59,6 +59,8 @@ public:
     
     bool StartRuntime();
     void StopRuntime();
+    void RegisterExternalVMInRuntime(unsigned long long externalVM);
+    void RegisterSubStackInfoCallbacks(RegisterSubStackInfoFuncType rFunc, UpdateStackInfoFuncType uFunc);
     void RegisterCJUncaughtExceptionHandler(const CJUncaughtExceptionInfo& handle);
     bool IsUISchedulerStarted()
     {

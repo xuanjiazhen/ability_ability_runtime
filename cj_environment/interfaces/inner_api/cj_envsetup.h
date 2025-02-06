@@ -19,6 +19,9 @@
 #include <string>
 
 namespace OHOS {
+using RegisterSubStackInfoFuncType = void(*)(unsigned long long, void *);
+using UpdateStackInfoFuncType = void(*)(unsigned long long, unsigned long long, unsigned int);
+
 struct CJErrorObject {
     const char* name;
     const char* message;
@@ -49,6 +52,8 @@ struct CJEnvMethods {
     void* (*getSymbol)(void* handle, const char* symbol) = nullptr;
     void* (*loadCJLibrary)(const char* dllName) = nullptr;
     bool (*startDebugger)() = nullptr;
+    void (*registerExternalVMInRuntime)(unsigned long long externalVM) = nullptr;
+    void (*registerSubStackInfoCallbacks)(RegisterSubStackInfoFuncType rFunc, UpdateStackInfoFuncType uFunc) = nullptr;
     void (*registerCJUncaughtExceptionHandler)(const CJUncaughtExceptionInfo& uncaughtExceptionInfo) = nullptr;
     void (*setSanitizerKindRuntimeVersion)(SanitizerKind kind) = nullptr;
     bool (*checkLoadCJLibrary)() = nullptr;
