@@ -1024,9 +1024,11 @@ void AppMgrServiceInner::LoadAbilityNoAppRecord(const std::shared_ptr<AppRunning
     if (want != nullptr) {
         (void)AbilityRuntime::StartupUtil::GetAppIndex(*want, bundleIndex);
     }
-    StartProcess(abilityInfo->applicationName, processName, startFlags, appRecord,
+    if(StartProcess(abilityInfo->applicationName, processName, startFlags, appRecord,
         appInfo->uid, bundleInfo, appInfo->bundleName, bundleIndex, appExistFlag, isPreload, preloadMode,
-        abilityInfo->moduleName, abilityInfo->name, token, want, abilityInfo->extensionAbilityType);
+        abilityInfo->moduleName, abilityInfo->name, token, want, abilityInfo->extensionAbilityType) != ERR_OK) {
+        NotifyLoadAbilityFailed(token);
+    }
     if (isShellCall) {
         std::string perfCmd = (want == nullptr) ? "" : want->GetStringParam(PERF_CMD);
         bool isSandboxApp = (want == nullptr) ? false : want->GetBoolParam(ENTER_SANDBOX, false);
@@ -3709,8 +3711,8 @@ void AppMgrServiceInner::QueryExtensionSandBox(const std::string &moduleName, co
     startMsg.isScreenLockDataProtect = isScreenLockDataProtect;
 }
 
-void AppMgrServiceInner::StartProcess(const std::string &appName, const std::string &processName, uint32_t startFlags,
-    std::shared_ptr<AppRunningRecord> appRecord, const int uid, const BundleInfo &bundleInfo,
+int32_t AppMgrServiceInner::StartProcess(const std::string &appName, const std::string &processName,
+    uint32_t startFlags, std::shared_ptr<AppRunningRecord> appRecord, const int uid, const BundleInfo &bundleInfo,
     const std::string &bundleName, const int32_t bundleIndex, bool appExistFlag, bool isPreload,
     AppExecFwk::PreloadMode preloadMode, const std::string &moduleName, const std::string &abilityName,
     sptr<IRemoteObject> token, std::shared_ptr<AAFwk::Want> want, ExtensionAbilityType extensionAbilityType)
@@ -3719,7 +3721,7 @@ void AppMgrServiceInner::StartProcess(const std::string &appName, const std::str
     TAG_LOGD(AAFwkTag::APPMGR, "bundleName: %{public}s, isPreload: %{public}d", bundleName.c_str(), isPreload);
     if (!appRecord) {
         TAG_LOGE(AAFwkTag::APPMGR, "appRecord null");
-        return;
+        return ERR_INVALID_VALUE;
     }
     bool isCJApp = IsCjApplication(bundleInfo);
     if (!remoteClientManager_ || !remoteClientManager_->GetSpawnClient()) {
@@ -3729,7 +3731,7 @@ void AppMgrServiceInner::StartProcess(const std::string &appName, const std::str
             SendProcessStartFailedEvent(appRecord, ProcessStartFailedReason::GET_SPAWN_CLIENT_FAILED,
                 PROCESS_START_FAILED_SUB_REASON_UNKNOWN);
         }
-        return;
+        return ERR_GET_SPAWN_CLIENT_FAILED;
     }
 
     AppSpawnStartMsg startMsg;
@@ -3759,7 +3761,7 @@ void AppMgrServiceInner::StartProcess(const std::string &appName, const std::str
         if (!isCJApp) {
             SendProcessStartFailedEvent(appRecord, ProcessStartFailedReason::CREATE_START_MSG_FAILED, ret);
         }
-        return;
+        return ERR_CREATE_START_MSG_FAILED;
     };
 
     SetProcessJITState(appRecord);
@@ -3770,7 +3772,7 @@ void AppMgrServiceInner::StartProcess(const std::string &appName, const std::str
         if (!remoteClientManager_->GetCJSpawnClient()) {
             TAG_LOGE(AAFwkTag::APPMGR, "appSpawnClient null");
             appRunningManager_->RemoveAppRunningRecordById(appRecord->GetRecordId());
-            return;
+            return ERR_GET_SPAWN_CLIENT_FAILED;
         }
         SendCreateAtomicServiceProcessEvent(appRecord, bundleType, moduleName, abilityName);
         errCode = remoteClientManager_->GetCJSpawnClient()->StartProcess(startMsg, pid);
@@ -3785,7 +3787,7 @@ void AppMgrServiceInner::StartProcess(const std::string &appName, const std::str
             SendProcessStartFailedEvent(appRecord, ProcessStartFailedReason::APPSPAWN_FAILED,
                 static_cast<int32_t>(errCode));
         }
-        return;
+        return ERR_SAPAWN_PROCESS_FAILED;
     }
 
     #ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
@@ -3818,6 +3820,7 @@ void AppMgrServiceInner::StartProcess(const std::string &appName, const std::str
     PerfProfile::GetInstance().SetAppForkEndTime(GetTickCount());
     SendProcessStartEvent(appRecord, isPreload, preloadMode);
     ProcessAppDebug(appRecord, appRecord->IsDebugApp());
+    return ERR_OK;
 }
 
 void AppMgrServiceInner::SetProcessJITState(const std::shared_ptr<AppRunningRecord> appRecord)
