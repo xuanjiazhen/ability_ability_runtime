@@ -20,7 +20,10 @@ config("cj_ability_public_config") {
     ":*",
     "../../../test/unittest/*",
   ]
-  include_dirs = [ "application_context/include" ]
+  include_dirs = [
+    "application_context/include",
+    "${ability_runtime_path}/frameworks/cj/ffi/context",
+  ]
 }
 
 ohos_shared_library("cj_ability_ffi") {
