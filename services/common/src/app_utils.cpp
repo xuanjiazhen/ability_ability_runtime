@@ -60,6 +60,7 @@ constexpr const char* START_ABILITY_WITHOUT_CALLERTOKEN_PATH =
     "/etc/ability_runtime/start_ability_without_caller_token.json";
 constexpr const char* START_ABILITY_WITHOUT_CALLERTOKEN_TITLE = "startAbilityWithoutCallerToken";
 constexpr const char* MAX_CHILD_PROCESS = "const.max_native_child_process";
+constexpr const char* CONNECT_SUPPORT_CROSS_USER = "const.abilityms.connect_support_cross_user";
 }
 
 AppUtils::~AppUtils() {}
@@ -400,6 +401,17 @@ int32_t AppUtils::MaxChildProcess()
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "MaxChildProcess: %{public}d", maxChildProcess_.value);
     return maxChildProcess_.value;
+}
+
+bool AppUtils::IsConnectSupportCrossUser()
+{
+    std::lock_guard guard(isConnectSupportCrossUserMutex_);
+    if (!isConnectSupportCrossUser_.isLoaded) {
+        isConnectSupportCrossUser_.value = system::GetBoolParameter(CONNECT_SUPPORT_CROSS_USER, false);
+        isConnectSupportCrossUser_.isLoaded = true;
+    }
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isConnectSupportCrossUser_.value);
+    return isConnectSupportCrossUser_.value;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
