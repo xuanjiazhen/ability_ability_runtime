@@ -28,6 +28,7 @@ constexpr int32_t CHILD_PROCESS_TYPE_JS = 0;
 constexpr int32_t CHILD_PROCESS_TYPE_NATIVE = 1;
 constexpr int32_t CHILD_PROCESS_TYPE_ARK = 2;
 constexpr int32_t CHILD_PROCESS_TYPE_NATIVE_ARGS = 3;
+constexpr int32_t CHILD_PROCESS_TYPE_CJ = 4;
 
 struct ChildProcessInfo : public Parcelable {
     bool jitEnabled = false;
