@@ -86,7 +86,7 @@ int32_t CJChildProcessManager::OnStartArkChildProcess(const std::string& srcEntr
 
     auto innerErrorCode = std::make_shared<ChildProcessManagerErrorCode>(ChildProcessManagerErrorCode::ERR_OK);
     *innerErrorCode = ChildProcessManager::GetInstance().StartChildProcessWithArgs(
-        srcEntry, result, AppExecFwk::CHILD_PROCESS_TYPE_ARK, args, options);
+        srcEntry, result, AppExecFwk::CHILD_PROCESS_TYPE_CJ_ARK, args, options);
     if (*innerErrorCode != ChildProcessManagerErrorCode::ERR_OK) {
         return static_cast<int32_t>(ChildProcessManagerErrorUtil::GetAbilityErrorCode(*innerErrorCode));
     }

@@ -16,7 +16,6 @@
 #ifndef OHOS_ABILITY_RUNTIME_CJ_CHILD_PROCESS_MANAGER_H
 #define OHOS_ABILITY_RUNTIME_CJ_CHILD_PROCESS_MANAGER_H
 
-#include <cstdalign>
 #include <unistd.h>
 
 #include "child_process_manager.h"
@@ -32,22 +31,11 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
-namespace {
-enum {
-    MODE_SELF_FORK = 0,
-    MODE_APP_SPAWN_FORK = 1,
-};
-struct CJChildProcessParam {
-    std::string srcEntry;
-    AppExecFwk::ChildProcessArgs args;
-    AppExecFwk::ChildProcessOptions options;
-    int32_t childProcessType;
-};
+
 struct CArrStrInt32 {
     CArrString keys;
     CArrI32 values;
-}
-} // namespace
+};
 
 extern "C" {
 CJ_EXPORT int32_t FFICJStartChildProcess(const char* srcEntry, const int32_t startMode, pid_t* result);

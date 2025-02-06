@@ -298,7 +298,8 @@ void ChildMainThread::InitNativeLib(const BundleInfo &bundleInfo)
     if (processInfo_->childProcessType != CHILD_PROCESS_TYPE_NATIVE &&
         processInfo_->childProcessType != CHILD_PROCESS_TYPE_NATIVE_ARGS) {
 #ifdef CJ_FRONTEND
-        if (processInfo_->childProcessType == CHILD_PROCESS_TYPE_CJ) {
+        if (processInfo_->childProcessType == CHILD_PROCESS_TYPE_CJ ||
+            processInfo_->childProcessType == CHILD_PROCESS_TYPE_CJ_ARK) {
             AbilityRuntime::CJRuntime::SetAppLibPath(appLibPaths);
         } else {
 #endif

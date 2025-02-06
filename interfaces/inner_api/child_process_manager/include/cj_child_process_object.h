@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_CJ_CHILD_PROCESS_OBJECT_H
 #include <cstdint>
 #include <memory>
+
 #include "child_process_args.h"
 
 #ifdef WINDOWS_PLATFORM
@@ -25,22 +26,22 @@
 #define CJ_EXPORT __attribute__((visibility("default")))
 #endif
 
-namespace {
-    struct CArrInt32 {
-        int32_t* head;
-        int64_t size;
-    };
 
-    struct CArrString {
-        char** head;
-        int64_t size;
-    };
-
-    struct CArrStrInt32 {
-        CArrString keys;
-        CArrInt32 values;
-    };
+struct CArrInt32 {
+    int32_t* head;
+    int64_t size;
 };
+
+struct CArrString {
+    char** head;
+    int64_t size;
+};
+
+struct CArrStrInt32 {
+    CArrString keys;
+    CArrInt32 values;
+};
+
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -49,14 +50,15 @@ class CJChildProcessObject {
 public:
     explicit CJChildProcessObject(int64_t id) : id_(id) {}
     ~CJChildProcessObject();
-    static std::shared_ptr<CJChildProcessObject> Create(const std::string &index);
+    static std::shared_ptr<CJChildProcessObject> Create(const std::string& index);
     void OnStart(std::shared_ptr<AppExecFwk::ChildProcessArgs> args = nullptr);
+
 private:
     int64_t id_ = 0;
-    CArrStrInt32 toCMap(const std::map<std::string, int32_t> &fds);
+    CArrStrInt32 toCMap(const std::map<std::string, int32_t>& fds);
 };
-}  // namespace AbilityRuntime
-}  // namespace OHOS
+} // namespace AbilityRuntime
+} // namespace OHOS
 
 extern "C" {
 struct CJChildProcessFuncs {

@@ -17,27 +17,28 @@
 #define OHOS_ABILITY_RUNTIME_CJ_CHILD_PROCESS_IMPL_H
 
 #include <cstdint>
+
 #include "child_process.h"
-#include "cj_runtime.h"
 #include "cj_child_process_object.h"
+#include "cj_runtime.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 class CJChildProcessImpl : public ChildProcess {
 public:
-    explicit CJChildProcessImpl(CJRuntime &cjRuntime);
+    explicit CJChildProcessImpl(CJRuntime& cjRuntime);
     ~CJChildProcessImpl() override = default
 
-    static std::shared_ptr<ChildProcess> Create(const std::unique_ptr<Runtime> &runtime);
+        static std::shared_ptr<ChildProcess> Create(const std::unique_ptr<Runtime>& runtime);
 
-    bool Init(const std::shared_ptr<ChildProcessStartInfo> &info) override;
+    bool Init(const std::shared_ptr<ChildProcessStartInfo>& info) override;
     void OnStart() override;
     void OnStart(std::shared_ptr<AppExecFwk::ChildProcessArgs> args) override;
 
 private:
-    CJRuntime &cjRuntime_;
+    CJRuntime& cjRuntime_;
     std::shared_ptr<CJChildProcessObject> CJChildProcessObj_;
 };
-}  // namespace AbilityRuntime
-}  // namespace OHOS
+} // namespace AbilityRuntime
+} // namespace OHOS
 #endif
