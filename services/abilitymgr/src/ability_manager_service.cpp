@@ -4191,8 +4191,7 @@ int AbilityManagerService::ConnectLocalAbility(const Want &want, const int32_t u
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     StartAbilityInfoWrap threadLocalInfo;
     AbilityUtil::RemoveShowModeKey(const_cast<Want &>(want));
-    bool isEnterpriseAdmin = AAFwk::UIExtensionUtils::IsEnterpriseAdmin(extensionType);
-    if (!isEnterpriseAdmin && !JudgeMultiUserConcurrency(userId)) {
+    if (!CheckCrossUser(userId, extensionType)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Multi-user non-concurrent mode is not satisfied.");
         return ERR_CROSS_USER;
     }
@@ -12616,6 +12615,18 @@ int32_t AbilityManagerService::UpdateAssociateConfigList(const std::map<std::str
         }
     }
     return ERR_OK;
+}
+
+bool AbilityManagerService::CheckCrossUser(const int32_t userId, AppExecFwk::ExtensionAbilityType extensionType)
+{
+    if (AAFwk::UIExtensionUtils::IsEnterpriseAdmin(extensionType) || JudgeMultiUserConcurrency(userId)) {
+        return true;
+    }
+    if (AppUtils::GetInstance().IsConnectSupportCrossUser() && (extensionType == AppExecFwk::ExtensionAbilityType::DATASHARE
+        || extensionType == AppExecFwk::ExtensionAbilityType::SERVICE)) {
+        return true;    
+    }
+    return false;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
