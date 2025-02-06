@@ -42,8 +42,8 @@ void KernelKillListener::OnEvent(std::shared_ptr<HiviewDFX::HiSysEventRecord> re
     }
     ExitReason exitReason = {Reason::REASON_APP_FREEZE, "Kill Reason: kernel kill"};
     AbilityManagerService::GetPubInstance()->RecordProcessExitReason(pid, exitReason);
-    TAG_LOGE(AAFwkTag::ABILITYMGR, "record kernel kill reason, pid : %{public}lu, uid: %{public}lu, packageName : "
-        "%{public}s", pid, uid, packageName.c_str());
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "record kernel kill reason, pid : %lld, uid : %lld, packageName : %{public}s",
+        pid, uid, packageName.c_str());
 }
 
 void KernelKillListener::OnServiceDied()
