@@ -27,9 +27,9 @@ namespace AbilityRuntime {
 class CJChildProcessImpl : public ChildProcess {
 public:
     explicit CJChildProcessImpl(CJRuntime& cjRuntime);
-    ~CJChildProcessImpl() override = default
+    ~CJChildProcessImpl() override = default;
 
-        static std::shared_ptr<ChildProcess> Create(const std::unique_ptr<Runtime>& runtime);
+    static std::shared_ptr<ChildProcess> Create(const std::unique_ptr<Runtime>& runtime);
 
     bool Init(const std::shared_ptr<ChildProcessStartInfo>& info) override;
     void OnStart() override;

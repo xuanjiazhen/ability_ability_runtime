@@ -177,7 +177,8 @@ bool ChildMainThread::ScheduleLoadChild()
             TAG_LOGE(AAFwkTag::APPKIT, "null childMainThread");
             return;
         }
-        if (childProcessType == CHILD_PROCESS_TYPE_ARK) {
+        if (childProcessType == CHILD_PROCESS_TYPE_ARK ||
+            childProcessType == CHILD_PROCESS_TYPE_CJ_ARK) {
             childMainThread->HandleLoadArkTs();
         } else if (childProcessType == CHILD_PROCESS_TYPE_NATIVE_ARGS) {
             childMainThread->HandleLoadNative();

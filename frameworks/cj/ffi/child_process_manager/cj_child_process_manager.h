@@ -56,7 +56,7 @@ public:
 private:
     static int32_t StartChildProcessSelfForkTask(pid_t& result, const std::string& srcEntry);
     static int32_t StartChildProcessAppSpawnForkTask(pid_t& result, const std::string& srcEntry);
-}
+};
 } // namespace AbilityRuntime
 } // namespace OHOS
 

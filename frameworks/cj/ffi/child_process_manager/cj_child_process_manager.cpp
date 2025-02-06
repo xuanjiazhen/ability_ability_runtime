@@ -52,7 +52,7 @@ int32_t CJChildProcessManager::OnStartChildProcess(const std::string& srcEntry, 
 int32_t CJChildProcessManager::StartChildProcessSelfForkTask(pid_t& result, const std::string& srcEntry)
 {
     ChildProcessManagerErrorCode errorCode =
-        ChildProcessManager::GetInstance().StartChildProcessBySelfFork(srcEntry, pid);
+        ChildProcessManager::GetInstance().StartChildProcessBySelfFork(srcEntry, result);
     if (errorCode != ChildProcessManagerErrorCode::ERR_OK) {
         return static_cast<int32_t>(ChildProcessManagerErrorUtil::GetAbilityErrorCode(errorCode));
     }

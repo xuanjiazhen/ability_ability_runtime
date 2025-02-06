@@ -40,7 +40,7 @@ namespace AbilityRuntime {
 CJChildProcessObject::~CJChildProcessObject()
 {
     if (g_cjChildProcessFuncs.cjChildProcessRelease) {
-        g_cjChildProcessFuncs.cjChildProcessCreate(id_);
+        g_cjChildProcessFuncs.cjChildProcessRelease(id_);
     }
     id_ = 0;
 }
@@ -74,7 +74,7 @@ CArrStrInt32 CJChildProcessObject::toCMap(const std::map<std::string, int32_t>& 
     int64_t i = 0;
     for (auto& fd : fdsMap) {
         keysHead[i] = CreateCStringFromString(fd.first);
-        valuesHead = fd.second;
+        valuesHead[i] = fd.second;
         i++;
     }
     fds.keys.head = keysHead;
