@@ -66,12 +66,14 @@ ohos_shared_library("child_process_manager") {
       "${ability_runtime_native_path}/ability/native/child_process_manager/native_child_ipc_process.cpp",
     ]
     if (cj_frontend) {
-      sources += ["${ability_runtime_native_path}/ability/native/child_process_manager/cj_child_process_impl.cpp",
-      "${ability_runtime_native_path}/ability/native/child_process_manager/cj_child_process_object.cpp",
+      sources += [
+        "${ability_runtime_native_path}/ability/native/child_process_manager/cj_child_process_impl.cpp",
+        "${ability_runtime_native_path}/ability/native/child_process_manager/cj_child_process_object.cpp",
       ]
-      include_dirs = ["${ability_runtime_path}/cj_environment/interfaces/inner_api"]
-      deps += ["${ability_runtime_path}/framework/cj/ffi:cj_ability_ffi"]
-      defines += ["CJ_FRONTEND"]
+      include_dirs =
+          [ "${ability_runtime_path}/cj_environment/interfaces/inner_api" ]
+      deps += [ "${ability_runtime_path}/frameworks/cj/ffi:cj_ability_ffi" ]
+      defines += [ "CJ_FRONTEND" ]
     }
   }
   if (background_task_mgr_continuous_task_enable) {

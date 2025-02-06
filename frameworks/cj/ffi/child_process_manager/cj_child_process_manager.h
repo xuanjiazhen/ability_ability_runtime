@@ -16,11 +16,12 @@
 #ifndef OHOS_ABILITY_RUNTIME_CJ_CHILD_PROCESS_MANAGER_H
 #define OHOS_ABILITY_RUNTIME_CJ_CHILD_PROCESS_MANAGER_H
 
-#include <unistd.h>
 #include <cstdalign>
-#include "cj_common_ffi.h"
+#include <unistd.h>
+
 #include "child_process_manager.h"
 #include "child_process_manager_error_utils.h"
+#include "cj_common_ffi.h"
 #include "hilog_tag_wrapper.h"
 
 #ifdef WINDOWS_PLATFORM
@@ -46,11 +47,12 @@ struct CArrStrInt32 {
     CArrString keys;
     CArrI32 values;
 }
-}
+} // namespace
 
 extern "C" {
 CJ_EXPORT int32_t FFICJStartChildProcess(const char* srcEntry, const int32_t startMode, pid_t* result);
-CJ_EXPORT int32_t FFICJStartArkChildProcess(const char* srcEntry, const char* entryParams, const CArrStrInt32 fds, const bool isolationMode, pid_t* result);
+CJ_EXPORT int32_t FFICJStartArkChildProcess(
+    const char* srcEntry, const char* entryParams, const CArrStrInt32 fds, const bool isolationMode, pid_t* result);
 };
 
 class CJChildProcessManager {
@@ -60,13 +62,14 @@ public:
 
     static int32_t OnStartChildProcess(const std::string& srcEntry, const int32_t startMode, pid_t& result);
 
-    static int32_t OnStartArkChildProcess(const std::string& srcEntry, const std::string& entryParams, const std::map<std::string, int32_t>& fds, const bool isolationMode, pid_t& result);
+    static int32_t OnStartArkChildProcess(const std::string& srcEntry, const std::string& entryParams,
+        const std::map<std::string, int32_t>& fds, const bool isolationMode, pid_t& result);
 
 private:
     static int32_t StartChildProcessSelfForkTask(pid_t& result, const std::string& srcEntry);
     static int32_t StartChildProcessAppSpawnForkTask(pid_t& result, const std::string& srcEntry);
 }
-}  // namespace AbilityRuntime
-}  // namespace OHOS
+} // namespace AbilityRuntime
+} // namespace OHOS
 
 #endif

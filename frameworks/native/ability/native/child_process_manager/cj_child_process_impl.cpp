@@ -14,18 +14,19 @@
  */
 
 #include "cj_child_process_impl.h"
+
 #include "hilog_tag_wrapper.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 std::shared_ptr<ChildProcess> CJChildProcessImpl::Create(const std::unique_ptr<Runtime>& runtime)
 {
-    return std::make_shared<CJChildProcessImpl>(static_cast<CJRuntime &>(*runtime));
+    return std::make_shared<CJChildProcessImpl>(static_cast<CJRuntime&>(*runtime));
 }
 
-CJChildProcessImpl::CJChildProcessImpl(CJRuntime &cjRuntime) : cjRuntime_(cjRuntime) {}
+CJChildProcessImpl::CJChildProcessImpl(CJRuntime& cjRuntime) : cjRuntime_(cjRuntime) {}
 
-bool CJChildProcessImpl::Init(const std::shared_ptr<ChildProcessStartInfo> &info)
+bool CJChildProcessImpl::Init(const std::shared_ptr<ChildProcessStartInfo>& info)
 {
     TAG_LOGI(AAFwkTag::PROCESSMGR, "called");
     if (info == nullptr) {
@@ -76,5 +77,5 @@ void CJChildProcessImpl::OnStart(std::shared_ptr<AppExecFwk::ChildProcessArgs> a
     ChildProcess::OnStart(args);
     CJChildProcessObj_->OnStart(args);
 }
-}  // namespace AbilityRuntime
-}  // namespace OHOS
+} // namespace AbilityRuntime
+} // namespace OHOS

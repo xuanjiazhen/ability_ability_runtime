@@ -14,12 +14,14 @@
  */
 
 #include "cj_child_process_object.h"
-#include "hilog_tag_wrapper.h"
+
 #include <string>
+
 #include "cj_utils_ffi.h"
+#include "hilog_tag_wrapper.h"
 
 namespace {
-    CJChildProcessFuncs g_cjChildProcessFuncs = {}; 
+CJChildProcessFuncs g_cjChildProcessFuncs = {};
 }
 
 void RegisterCJChildProcessFuncs(void (*registerFunc)(CJChildProcessFuncs*))
@@ -43,18 +45,19 @@ CJChildProcessObject::~CJChildProcessObject()
     id_ = 0;
 }
 
-std::shared_ptr<CJChildProcessObject> CJChildProcessObject::Create(const std::string &index) {
+std::shared_ptr<CJChildProcessObject> CJChildProcessObject::Create(const std::string& index)
+{
     if (!g_cjChildProcessFuncs.cjChildProcessCreate) {
         TAG_LOGE(AAFwkTag::PROCESSMGR, "null cjChildProcessCreate");
         return nullptr;
     }
-    int64_t id = g_cjChildProcessFuncs.cjChildProcessCreate(index);
+    int64_t id = g_cjChildProcessFuncs.cjChildProcessCreate(index.c_str());
     return std::make_shared<CJChildProcessObject>(id);
 }
 
-CArrStrInt32 CJChildProcessObject::toCMap(const std::map<std::string, int32_t> &fdsMap)
+CArrStrInt32 CJChildProcessObject::toCMap(const std::map<std::string, int32_t>& fdsMap)
 {
-    CArrStrInt32 fds = {.keys = { .head = nullptr, .size = 0}, .values = { .head = nullptr, .size = 0}};
+    CArrStrInt32 fds = { .keys = { .head = nullptr, .size = 0 }, .values = { .head = nullptr, .size = 0 } };
     char** keysHead = static_cast<char**>(malloc(sizeof(char*) * fdsMap.size()));
     if (keysHead == nullptr) {
         TAG_LOGE(AAFwkTag::PROCESSMGR, "malloc keysHead failed");
@@ -65,11 +68,11 @@ CArrStrInt32 CJChildProcessObject::toCMap(const std::map<std::string, int32_t> &
     if (valuesHead == nullptr) {
         TAG_LOGE(AAFwkTag::PROCESSMGR, "malloc valuesHead failed");
         free(keysHead);
-        return fds;        
+        return fds;
     }
 
     int64_t i = 0;
-    for (auto &fd : fdsMap) {
+    for (auto& fd : fdsMap) {
         keysHead[i] = CreateCStringFromString(fd.first);
         valuesHead = fd.second;
         i++;
@@ -81,7 +84,7 @@ CArrStrInt32 CJChildProcessObject::toCMap(const std::map<std::string, int32_t> &
     return fds;
 }
 
-void  CJChildProcessObject::OnStart(std::shared_ptr<AppExecFwk::ChildProcessArgs> args)
+void CJChildProcessObject::OnStart(std::shared_ptr<AppExecFwk::ChildProcessArgs> args)
 {
     TAG_LOGD(AAFwkTag::PROCESSMGR, "called");
     if (!args) {
@@ -101,5 +104,5 @@ void  CJChildProcessObject::OnStart(std::shared_ptr<AppExecFwk::ChildProcessArgs
         return;
     }
 }
-}
-}
+} // namespace AbilityRuntime
+} // namespace OHOS
