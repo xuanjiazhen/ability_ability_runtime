@@ -34,7 +34,6 @@ ohos_shared_library("particleability") {
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/dataobs_manager:dataobs_manager",
     "${ability_runtime_innerkits_path}/napi_base_context:napi_base_context",
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_innerkits_path}/wantagent:wantagent_innerkits",
@@ -52,6 +51,7 @@ ohos_shared_library("particleability") {
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
+    "datamgr_service:dataobs_manager",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",

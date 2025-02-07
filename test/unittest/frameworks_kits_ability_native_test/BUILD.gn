@@ -514,7 +514,6 @@ ohos_unittest("data_ability_helper_impl_test") {
   ]
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
-    "${ability_runtime_innerkits_path}/dataobs_manager:dataobs_manager",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:data_ability_helper",
     "${ability_runtime_native_path}/appkit:app_context",
@@ -529,6 +528,7 @@ ohos_unittest("data_ability_helper_impl_test") {
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
+    "datamgr_service:dataobs_manager",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "googletest:gmock",
@@ -797,7 +797,6 @@ ohos_unittest("ability_thread_test") {
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
-    "${ability_runtime_innerkits_path}/dataobs_manager:dataobs_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
@@ -805,7 +804,6 @@ ohos_unittest("ability_thread_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
-    "${ability_runtime_services_path}/dataobsmgr:dataobsms_static",
   ]
 
   external_deps = [
@@ -821,6 +819,7 @@ ohos_unittest("ability_thread_test") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
+    "datamgr_service:dataobs_manager",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "googletest:gmock_main",
@@ -881,7 +880,6 @@ ohos_unittest("fa_ability_thread_test") {
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
-    "${ability_runtime_innerkits_path}/dataobs_manager:dataobs_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
@@ -889,7 +887,6 @@ ohos_unittest("fa_ability_thread_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
-    "${ability_runtime_services_path}/dataobsmgr:dataobsms_static",
   ]
 
   external_deps = [
@@ -905,6 +902,7 @@ ohos_unittest("fa_ability_thread_test") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
+    "datamgr_service:dataobs_manager",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "googletest:gmock_main",
@@ -1002,7 +1000,6 @@ ohos_unittest("ui_ability_thread_test") {
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
-    "${ability_runtime_innerkits_path}/dataobs_manager:dataobs_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
@@ -1011,7 +1008,6 @@ ohos_unittest("ui_ability_thread_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
-    "${ability_runtime_services_path}/dataobsmgr:dataobsms_static",
   ]
 
   external_deps = [
@@ -1026,6 +1022,7 @@ ohos_unittest("ui_ability_thread_test") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
+    "datamgr_service:dataobs_manager",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "googletest:gmock_main",
@@ -2460,7 +2457,6 @@ ohos_unittest("ability_impl_factory_test") {
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
-    "${ability_runtime_innerkits_path}/dataobs_manager:dataobs_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/ability/native:ability_thread",
@@ -2491,6 +2487,7 @@ ohos_unittest("ability_impl_factory_test") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
+    "datamgr_service:dataobs_manager",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
