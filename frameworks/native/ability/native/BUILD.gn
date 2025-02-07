@@ -680,6 +680,7 @@ ohos_shared_library("uiabilitykit_native") {
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ability_runtime",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_extension_ability",
     "${ability_runtime_path}/utils/global/time/include",
+    "${ability_runtime_path}/frameworks/js/napi/app/error_manager",
   ]
 
   sources = [
@@ -713,6 +714,8 @@ ohos_shared_library("uiabilitykit_native") {
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_services_path}/common:event_report",
+    "${ability_runtime_napi_path}/app/error_manager:errormanager",
+    "${ability_runtime_napi_path}/app/error_manager:errormanager_napi",
   ]
 
   external_deps = [
