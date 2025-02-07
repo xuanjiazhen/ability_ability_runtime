@@ -116,18 +116,15 @@ void NapiThrow(napi_env env, int32_t errCode)
     napi_throw(env, CreateErrorValue(env, errCode));
 }
 
-auto OnSendFinishedUvAfterWorkCallback = [](uv_work_t* work, int status) {
+auto OnSendFinishedUvAfterWorkCallback = [] (TriggerReceiveDataWorker* dataWorkerData) {
     TAG_LOGI(AAFwkTag::WANTAGENT, "called");
-    TriggerReceiveDataWorker* dataWorkerData = static_cast<TriggerReceiveDataWorker *>(work->data);
     if (dataWorkerData == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "null dataWorkerData");
-        delete work;
         return;
     }
     if (dataWorkerData->resultData == "canceled") {
         delete dataWorkerData;
         dataWorkerData = nullptr;
-        delete work;
         return;
     }
     napi_value args[ARGC_TWO] = {0};
@@ -137,7 +134,6 @@ auto OnSendFinishedUvAfterWorkCallback = [](uv_work_t* work, int status) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "null objValueFirst");
         delete dataWorkerData;
         dataWorkerData = nullptr;
-        delete work;
         return;
     }
     napi_value objValueSecond = nullptr;
@@ -146,7 +142,6 @@ auto OnSendFinishedUvAfterWorkCallback = [](uv_work_t* work, int status) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "null objValueSecond");
         delete dataWorkerData;
         dataWorkerData = nullptr;
-        delete work;
         return;
     }
 
@@ -178,7 +173,6 @@ auto OnSendFinishedUvAfterWorkCallback = [](uv_work_t* work, int status) {
     napi_call_function(dataWorkerData->env, value, callback, ARGC_TWO, args, nullptr);
     delete dataWorkerData;
     dataWorkerData = nullptr;
-    delete work;
 };
 
 void TriggerCompleteCallBack::OnSendFinished(
@@ -189,25 +183,9 @@ void TriggerCompleteCallBack::OnSendFinished(
         return;
     }
 
-    uv_loop_t* loop = nullptr;
-#if NAPI_VERSION >= NUMBER_OF_PARAMETERS_TWO
-    napi_get_uv_event_loop(triggerCompleteInfo_.env, &loop);
-#endif  // NAPI_VERSION >= 2
-    if (loop == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "null loop");
-        return;
-    }
-
-    uv_work_t* work = new (std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "null work");
-        return;
-    }
     TriggerReceiveDataWorker* dataWorker = new (std::nothrow) TriggerReceiveDataWorker();
     if (dataWorker == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "null dataWorker");
-        delete work;
-        work = nullptr;
         return;
     }
     dataWorker->want = want;
@@ -219,13 +197,11 @@ void TriggerCompleteCallBack::OnSendFinished(
     if (triggerCompleteInfo_.wantAgent != nullptr) {
         dataWorker->wantAgent = new WantAgent(triggerCompleteInfo_.wantAgent->GetPendingWant());
     }
-    work->data = static_cast<void *>(dataWorker);
-    int ret = uv_queue_work(loop, work, [](uv_work_t *work) {}, OnSendFinishedUvAfterWorkCallback);
-    if (ret != 0) {
+    auto ret = napi_send_event(triggerCompleteInfo_.env,
+        [dataWorker] () {OnSendFinishedUvAfterWorkCallback(dataWorker);}, napi_eprio_high);
+    if (ret != napi_status::napi_ok) {
         delete dataWorker;
         dataWorker = nullptr;
-        delete work;
-        work = nullptr;
     }
 }
 
