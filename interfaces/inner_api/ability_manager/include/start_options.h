@@ -90,7 +90,7 @@ private:
     bool withAnimation_ = true;
     bool windowFocused_ = true;
     int32_t windowMode_ = AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_UNDEFINED;
-    int32_t displayId_ = -1;
+    int32_t displayId_ = DEFAULT_DISPLAY_ID;
     int32_t windowLeft_ = 0;
     int32_t windowTop_ = 0;
     int32_t windowWidth_ = 0;
