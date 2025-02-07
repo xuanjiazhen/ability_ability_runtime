@@ -185,6 +185,8 @@ public:
     sptr<IAppScheduler> GetApplicationClient() const;
 
     void ScheduleAcceptWant(const AAFwk::Want &want, const std::string &moduleName);
+    
+    void SchedulePrepareTerminate(const std::string &moduleName, int32_t &prepareTermination, bool &isExist);
 
     void ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName);
 

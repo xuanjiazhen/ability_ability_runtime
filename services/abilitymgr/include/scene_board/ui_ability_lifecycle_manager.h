@@ -25,6 +25,7 @@
 
 #include "ability_manager_constants.h"
 #include "ability_record.h"
+#include "ability_stage_constant.h"
 #include "isession_handler_interface.h"
 
 namespace OHOS {
@@ -427,6 +428,20 @@ private:
     void SetRevicerInfo(const AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &abilityRecord) const;
 
     bool CheckPrepareTerminateEnable(const std::shared_ptr<AbilityRecord> &abilityRecord);
+
+    void HandlerPrepareTerminateApp(const int32_t &pid,
+        std::vector<sptr<IRemoteObject>> &remainingTokens, const sptr<IRemoteObject> &token);
+
+    /**
+     * @brief Execute PrepareTerminateApp when it is implemented
+     *
+     * @param pid process id
+     * @param tokens the tokens of ability records
+     * @return Returns the tokens that still need to execute PrepareTerminate.
+     */
+    std::vector<sptr<IRemoteObject>> PrepareTerminateAppAndGetRemaining(
+        int32_t pid, std::vector<sptr<IRemoteObject>> tokens);
+
     bool GetContentAndTypeId(uint32_t msgId, std::string &msgContent, int &typeId) const;
 
     bool CheckSessionInfo(sptr<SessionInfo> sessionInfo) const;
