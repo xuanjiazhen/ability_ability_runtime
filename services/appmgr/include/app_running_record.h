@@ -547,7 +547,7 @@ public:
 
     bool ExtensionAbilityRecordExists();
 
-    void SetTerminating(std::shared_ptr<AppRunningManager> appRunningMgr);
+    void SetTerminating();
 
     bool IsTerminating();
 
