@@ -47,7 +47,7 @@ static void ResolveGrantUriPermissionTask(napi_env env, NapiAsyncTask &task, int
 {
     TAG_LOGI(AAFwkTag::URIPERMMGR, "ResolveGrantUriPermissionTask");
     if (errCode == ERR_OK) {
-        task.ResolveWithNoError(env, CreateJsNumber(env, 0));
+        task.ResolveWithNoError(env, CreateJsUndefined(env));
         return;
     }
     if (errCode == AAFwk::CHECK_PERMISSION_FAILED || errCode == AAFwk::ERR_CODE_INVALID_URI_FLAG ||
