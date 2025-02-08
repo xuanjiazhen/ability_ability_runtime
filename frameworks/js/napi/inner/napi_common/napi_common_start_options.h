@@ -16,7 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_NAPI_COMMON_START_OPTIONS_H
 #define OHOS_ABILITY_RUNTIME_NAPI_COMMON_START_OPTIONS_H
 
-#include "napi_common_data.h"
+#include "napi/native_api.h"
 #include "start_options.h"
 
 namespace OHOS {
