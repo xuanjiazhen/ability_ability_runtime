@@ -62,6 +62,7 @@ HWTEST_F(JsUiAbilityTest, JSUIAbility_OnWillForeground_0100, TestSize.Level1)
     ability->OnWillForeground();
     GTEST_LOG_(INFO) << "JSUIAbility_OnWillForeground_0100 end";
 }
+
 /**
  * @tc.name: JSUIAbility_OnDidForeground_0100
  * @tc.desc: OnDidForeground test
