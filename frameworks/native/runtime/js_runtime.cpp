@@ -605,15 +605,15 @@ void JsRuntime::PostPreload(const Options& options)
     TAG_LOGD(AAFwkTag::JSRUNTIME, "ASMM JIT Verify PostFork, jitEnabled: %{public}d", options.jitEnabled);
     postOption.SetEnableJIT(options.jitEnabled);
     postOption.SetAOTCompileStatusMap(options.aotCompileStatusMap);
-    {
-        HITRACE_METER_NAME(HITRACE_TAG_APP, "panda::JSNApi::PostFork");
-        panda::JSNApi::PostFork(vm, postOption);
-    }
     reinterpret_cast<NativeEngine*>(env)->ReinitUVLoop();
     uv_loop_s* loop = nullptr;
     napi_get_uv_event_loop(env, &loop);
     panda::JSNApi::SetLoop(vm, loop);
     DFXJSNApi::RegisterAsyncDetectCallBack(vm);
+    {
+        HITRACE_METER_NAME(HITRACE_TAG_APP, "panda::JSNApi::PostFork");
+        panda::JSNApi::PostFork(vm, postOption);
+    }
 }
 
 void JsRuntime::LoadAotFile(const Options& options)
