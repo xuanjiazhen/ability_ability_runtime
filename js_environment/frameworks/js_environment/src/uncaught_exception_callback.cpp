@@ -22,6 +22,7 @@
 #ifdef SUPPORT_GRAPHICS
 #include "ui_content.h"
 #endif // SUPPORT_GRAPHICS
+#include "elf_builder.h"
 #include "unwinder.h"
 
 namespace OHOS {
@@ -113,8 +114,12 @@ std::string NapiUncaughtExceptionCallback::GetBuildId(std::string nativeStack)
     while (std::getline(ss, tempStr)) {
         auto spitlPos = tempStr.rfind(" ");
         if (spitlPos != std::string::npos) {
-            auto elfFile = std::make_shared<HiviewDFX::DfxElf>(tempStr.substr(spitlPos + 1));
-            std::string buildId = elfFile->GetBuildId();
+            HiviewDFX::RegularElfBuilder builder(tempStr.substr(spitlPos + 1));
+            auto elfFile = builder.Create();
+            std::string buildId = "";
+            if (elfFile != nullptr) {
+                buildId = elfFile->GetBuildId();
+            }
             if (i != 0 && !buildId.empty()) {
                 addBuildId += tempStr + "(" + buildId + ")" + "\n";
             } else {
