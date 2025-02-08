@@ -61,6 +61,8 @@ public:
 
     std::shared_ptr<AppSpawnClient> GetCJSpawnClient();
 
+    std::shared_ptr<AppSpawnClient> GetStaticSpawnClient();
+
     std::shared_ptr<AppSpawnClient> GetNativeSpawnClient();
 
 private:
@@ -69,6 +71,7 @@ private:
     std::shared_ptr<AppSpawnClient> nwebSpawnClient_;
     std::shared_ptr<AppSpawnClient> cjAppSpawnClient_;
     std::shared_ptr<AppSpawnClient> nativeSpawnClient_;
+    std::shared_ptr<AppSpawnClient> staticSpawnClient_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

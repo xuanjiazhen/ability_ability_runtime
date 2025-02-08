@@ -3735,6 +3735,7 @@ int32_t AppMgrServiceInner::StartProcess(const std::string &appName, const std::
         return ERR_INVALID_VALUE;
     }
     bool isCJApp = IsCjApplication(bundleInfo);
+    bool isStsApp = true;
     if (!remoteClientManager_ || !remoteClientManager_->GetSpawnClient()) {
         TAG_LOGE(AAFwkTag::APPMGR, "appSpawnClient null");
         appRunningManager_->RemoveAppRunningRecordById(appRecord->GetRecordId());
@@ -3779,7 +3780,23 @@ int32_t AppMgrServiceInner::StartProcess(const std::string &appName, const std::
     PerfProfile::GetInstance().SetAppForkStartTime(GetTickCount());
     pid_t pid = 0;
     ErrCode errCode = ERR_OK;
-    if (isCJApp) {
+    if (isStsApp) {
+        TAG_LOGI(AAFwkTag::APPMGR, "Bootstrap Static Spawn.");
+        if (remoteClientManager_ == nullptr) {
+            TAG_LOGI(AAFwkTag::APPMGR, "Rwmote Client Manager is null.");
+        }
+        if (!remoteClientManager_->GetStaticSpawnClient()) {
+            TAG_LOGE(AAFwkTag::APPMGR, "sts appSpawnClient null");
+            appRunningManager_->RemoveAppRunningRecordById(appRecord->GetRecordId());
+            return;
+        }
+        TAG_LOGI(AAFwkTag::APPMGR, "Send Static Process Event.");
+        SendCreateAtomicServiceProcessEvent(appRecord, bundleType, moduleName, abilityName);
+        TAG_LOGI(AAFwkTag::APPMGR, "Static Spawn Client Start Process.");
+        TAG_LOGI(AAFwkTag::APPMGR, "ErrCode %{public}08x", errCode);
+        errCode = remoteClientManager_->GetStaticSpawnClient()->StartProcess(startMsg, pid);
+        TAG_LOGI(AAFwkTag::APPMGR, "After ErrCode %{public}08x", errCode);
+    } else if (isCJApp) {
         if (!remoteClientManager_->GetCJSpawnClient()) {
             TAG_LOGE(AAFwkTag::APPMGR, "appSpawnClient null");
             appRunningManager_->RemoveAppRunningRecordById(appRecord->GetRecordId());
