@@ -25,7 +25,8 @@ namespace AppExecFwk {
 RemoteClientManager::RemoteClientManager()
     : appSpawnClient_(std::make_shared<AppSpawnClient>()), nwebSpawnClient_(std::make_shared<AppSpawnClient>(true)),
     cjAppSpawnClient_(std::make_shared<AppSpawnClient>("cjappspawn")),
-    nativeSpawnClient_(std::make_shared<AppSpawnClient>("nativespawn"))
+    nativeSpawnClient_(std::make_shared<AppSpawnClient>("nativespawn")),
+    staticSpawnClient_(std::make_shared<AppSpawnClient>("staticspawn"))
 {}
 
 RemoteClientManager::~RemoteClientManager()
@@ -66,6 +67,14 @@ std::shared_ptr<AppSpawnClient> RemoteClientManager::GetCJSpawnClient()
 {
     if (cjAppSpawnClient_) {
         return cjAppSpawnClient_;
+    }
+    return nullptr;
+}
+
+std::shared_ptr<AppSpawnClient> RemoteClientManager::GetStaticSpawnClient()
+{
+    if (staticSpawnClient_) {
+        return staticSpawnClient_;
     }
     return nullptr;
 }
