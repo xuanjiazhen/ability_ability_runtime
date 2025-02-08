@@ -616,5 +616,22 @@ HWTEST_F(AbilityAutoStartupDataManagerTest, IsEqual_accessTokenId_100, TestSize.
     EXPECT_FALSE(result);
     GTEST_LOG_(INFO) << "IsEqual_accessTokenId_100 end";
 }
+
+/**
+ * Feature: AbilityAutoStartupDataManager
+ * Function: IsEqual
+ * SubFunction: NA
+ * FunctionPoints: AbilityAutoStartupDataManager IsEqual
+ */
+HWTEST_F(AbilityAutoStartupDataManagerTest, IsEqual_accessTokenId_30000, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "IsEqual_userId_100 start";
+    AbilityAutoStartupDataManager abilityAutoStartupDataManager;
+    DistributedKv::Key key;
+    std::string accessTokenId = "123";
+    auto result = abilityAutoStartupDataManager.IsEqual(key, accessTokenId);
+    EXPECT_FALSE(result);
+    GTEST_LOG_(INFO) << "IsEqual_accessTokenId_100 end";
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
