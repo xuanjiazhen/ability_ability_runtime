@@ -57,7 +57,8 @@ napi_value CreateJsWant(napi_env env, const AAFwk::Want &want);
 napi_value CreateJsWantParams(napi_env env, const AAFwk::WantParams &wantParams);
 
 template<class TBase, class T, class NativeT>
-bool InnerWrapJsWantParams(napi_env env, napi_value object, const std::string &key, const AAFwk::WantParams &wantParams);
+bool InnerWrapJsWantParams(
+    napi_env env, napi_value object, const std::string &key, const AAFwk::WantParams &wantParams);
 
 bool InnerWrapJsWantParamsWantParams(
     napi_env env, napi_value object, const std::string &key, const AAFwk::WantParams &wantParams);
