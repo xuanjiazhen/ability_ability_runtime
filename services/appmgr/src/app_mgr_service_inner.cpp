@@ -3788,7 +3788,7 @@ int32_t AppMgrServiceInner::StartProcess(const std::string &appName, const std::
         if (!remoteClientManager_->GetStaticSpawnClient()) {
             TAG_LOGE(AAFwkTag::APPMGR, "sts appSpawnClient null");
             appRunningManager_->RemoveAppRunningRecordById(appRecord->GetRecordId());
-            return;
+            return AAFwk::ERR_GET_SPAWN_CLIENT_FAILED;
         }
         TAG_LOGI(AAFwkTag::APPMGR, "Send Static Process Event.");
         SendCreateAtomicServiceProcessEvent(appRecord, bundleType, moduleName, abilityName);
