@@ -324,6 +324,14 @@
               "header_files": [
               ]
             },
+            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:cj_abilitykit_native"
+          },
+          {
+            "header": {
+              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/",
+              "header_files": [
+              ]
+            },
             "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:data_ability_helper"
           },
           {
