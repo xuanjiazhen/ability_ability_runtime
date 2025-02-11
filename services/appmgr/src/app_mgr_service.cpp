@@ -1801,5 +1801,23 @@ int32_t AppMgrService::UpdateProcessMemoryState(const std::vector<ProcessMemoryS
     }
     return appMgrServiceInner_->UpdateProcessMemoryState(procMemState);
 }
+
+int32_t AppMgrService::GetKilledProcessInfo(int pid, int uid, KilledProcessInfo &info)
+{
+    if (!IsReady()) {
+        return ERR_INVALID_OPERATION;
+    }
+    pid_t callingPid = IPCSkeleton::GetCallingPid();
+    pid_t currentPid = getprocpid();
+    if (callingPid != currentPid) {
+        TAG_LOGE(AAFwkTag::APPMGR, "other process");
+        return ERR_INVALID_OPERATION;
+    }
+    if (!appMgrServiceInner_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    return appMgrServiceInner_->GetKilledProcessInfo(pid, uid, info);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

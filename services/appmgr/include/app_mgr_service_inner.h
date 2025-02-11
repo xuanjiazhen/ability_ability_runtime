@@ -63,6 +63,7 @@
 #include "istart_specified_ability_response.h"
 #include "kia_interceptor_interface.h"
 #include "kill_process_config.h"
+#include "killed_process_info.h"
 #include "process_memory_state.h"
 #include "record_query_result.h"
 #include "refbase.h"
@@ -1457,6 +1458,7 @@ public:
     void SendAppSpawnUninstallDebugHapMsg(int32_t userId);
 
     bool IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo);
+    int32_t GetKilledProcessInfo(int pid, int uid, KilledProcessInfo &info);
 
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
