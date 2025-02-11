@@ -2499,6 +2499,20 @@ int32_t AbilityManagerService::RecordProcessExitReason(const int32_t pid, const 
     return appExitReasonHelper_->RecordProcessExitReason(pid, exitReason);
 }
 
+int32_t AbilityManagerService::RecordProcessExitReason(int32_t pid, int32_t uid, const ExitReason &exitReason)
+{
+    if (IPCSkeleton::GetCallingUid() != RESOURCE_SCHEDULE_UID) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not expected caller");
+        return CHECK_PERMISSION_FAILED;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "[EXIT_REASON_TAG] pid:%{public}d, reason:%{public}d, exitMsg:%{public}s",
+        pid, exitReason.reason, exitReason.exitMsg.c_str());
+
+    CHECK_POINTER_AND_RETURN(appExitReasonHelper_, ERR_NULL_OBJECT);
+    return appExitReasonHelper_->RecordProcessExitReason(pid, uid, exitReason);
+}
+
 int32_t AbilityManagerService::ForceExitApp(const int32_t pid, const ExitReason &exitReason)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "forceExitApp pid:%{public}d, reason:%{public}d, exitMsg:%{public}s",
@@ -7994,7 +8008,7 @@ int AbilityManagerService::GetProcessRunningInfos(std::vector<AppExecFwk::Runnin
     return DelayedSingleton<AppScheduler>::GetInstance()->GetProcessRunningInfos(info);
 }
 
-int32_t AbilityManagerService::GetAllIntentExemptionInfo(std::vector<AppExecFwk::IntentExemptionInfo> &info) 
+int32_t AbilityManagerService::GetAllIntentExemptionInfo(std::vector<AppExecFwk::IntentExemptionInfo> &info)
 {
     const auto exemptionData =
         DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->GetAllIntentExemptionInfo();
@@ -13031,7 +13045,7 @@ bool AbilityManagerService::CheckCrossUser(const int32_t userId, AppExecFwk::Ext
     }
     if (AppUtils::GetInstance().IsConnectSupportCrossUser() && (extensionType == AppExecFwk::ExtensionAbilityType::DATASHARE
         || extensionType == AppExecFwk::ExtensionAbilityType::SERVICE)) {
-        return true;    
+        return true;
     }
     return false;
 }
