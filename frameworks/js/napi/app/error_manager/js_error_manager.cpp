@@ -27,6 +27,7 @@
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
 #include "napi/native_api.h"
+#include "app_recovery.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -57,9 +58,11 @@ struct GlobalObserverItem {
 static std::set<GlobalObserverItem> globalObserverList;
 static std::set<GlobalObserverItem> globalPromiseList;
 static std::map<napi_env, std::vector<std::pair<int32_t, std::shared_ptr<NativeReference>>>> observerList;
+static std::vector<GlobalObserverItem> freezeList;
 static std::mutex globalErrorMtx;
 static std::mutex globalPromiseMtx;
 static std::recursive_mutex errorMtx;
+static std::mutex freezeMtx;
 static std::shared_ptr<JsLoopObserver> loopObserver_;
 static std::once_flag registerCallbackFlag;
 constexpr int32_t INDEX_ZERO = 0;
@@ -69,6 +72,7 @@ constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_THREE = 3;
 constexpr const char* ON_OFF_TYPE = "error";
+constexpr const char* FREEZE_TYPE = "freeze";
 constexpr const char* GLOBAL_ON_OFF_TYPE = "globalErrorOccurred";
 constexpr const char* ON_OFF_TYPE_UNHANDLED_REJECTION = "unhandledRejection";
 constexpr const char* GLOBAL_ON_OFF_TYPE_UNHANDLED_REJECTION = "globalUnhandledRejectionDetected";
@@ -405,6 +409,35 @@ static bool ErrorManagerWorkerCallback(napi_env env, napi_value exception, std::
     return true;
 }
 
+static void FreezeCallback()
+{
+    std::lock_guard<std::mutex> lock(freezeMtx);
+    if (freezeList.empty()) {
+        TAG_LOGI(AAFwkTag::JSNAPI, "not register freeze callback");
+        return;
+    }
+    napi_value global = nullptr;
+    if (napi_get_global(freezeList[INDEX_ZERO].env, &global) != napi_ok) {
+        TAG_LOGI(AAFwkTag::JSNAPI, "Get Global Failed");
+        return;
+    }
+
+    size_t argc = ARGC_ONE;
+    napi_value args[] = {};
+
+    napi_value function = nullptr;
+    if (napi_get_reference_value(freezeList[INDEX_ZERO].env, freezeList[INDEX_ZERO].ref, &function) != napi_ok) {
+        TAG_LOGI(AAFwkTag::JSNAPI, "Get Callback Failed");
+        return;
+    }
+
+    napi_value result = nullptr;
+    if (napi_call_function(freezeList[INDEX_ZERO].env, global, function, argc, args, &result) != napi_ok) {
+        TAG_LOGI(AAFwkTag::JSNAPI, "Do Callback Failed");
+        return;
+    }
+}
+
 static bool ErrorManagerMainWorkerCallback(
     napi_env env, std::string summary, std::string name, std::string message, std::string stack)
 {
@@ -574,6 +607,19 @@ private:
             }
             return OnOnAll(env, argv[INDEX_ONE]);
         }
+        if (type == FREEZE_TYPE) {
+            if (!AppExecFwk::EventRunner::IsAppMainThread()) {
+                TAG_LOGE(AAFwkTag::JSNAPI, "not mainThread");
+                ThrowInvalidCallerError(env);
+                return CreateJsUndefined(env);
+            }
+            if (argc != ARGC_TWO) {
+                TAG_LOGE(AAFwkTag::JSNAPI, "invalid argc");
+                ThrowInvalidNumParametersError(env);
+                return CreateJsUndefined(env);
+            }
+            return OnOnFreeze(env, argv[INDEX_ONE])
+        }
         return OnOnOld(env, argc, argv);
     }
 
@@ -698,6 +744,19 @@ private:
             }
             return OnOffAllError(env, argv[ARGC_ONE]);
         }
+        if (type == FREEZE_TYPE) {
+            if (!AppExecFwk::EventRunner::IsAppMainThread()) {
+                TAG_LOGE(AAFwkTag::JSNAPI, "not mainThread");
+                ThrowInvalidCallerError(env);
+                return CreateJsUndefined(env);
+            }
+            if (argc != ARGC_TWO) {
+                TAG_LOGE(AAFwkTag::JSNAPI, "invalid argc");
+                ThrowInvalidNumParametersError(env);
+                return CreateJsUndefined(env);
+            }
+            return OnOffFreeze(env, argv[INDEX_ONE])
+        }
         return OnOffOld(env, argc, argv);
     }
 
@@ -717,6 +776,24 @@ private:
                 globalObserverList.erase(iter);
                 break;
             }
+        }
+        GlobalObserverItem item;
+        NAPI_CALL(env, napi_create_reference(env, function, INITITAL_REFCOUNT_ONE, &item.ref));
+        item.env = env;
+        globalObserverList.insert(item);
+        return CreateJsUndefined(env);
+    }
+
+    napi_value OnOnFreeze(napi_env env, napi_value function)
+    {
+        if (!ValidateFunction(env, function)) {
+            return nullptr;
+        }
+        std::lock_guard<std::mutex> lock(freezeMtx);
+        auto iter = freezeList.begin();
+        while (iter != freezeList.end()) {
+            NAPI_CALL(env, napi_delete_reference(env, iter.ref));
+            iter = freezeList.erase(iter);
         }
         GlobalObserverItem item;
         NAPI_CALL(env, napi_create_reference(env, function, INITITAL_REFCOUNT_ONE, &item.ref));
@@ -778,6 +855,38 @@ private:
         }
         TAG_LOGI(AAFwkTag::JSNAPI, "remove observer failed");
 
+        return CreateJsUndefined(env);
+    }
+
+    napi_value OnOffAllError(napi_env env, napi_value function)
+    {
+        auto res = CreateJsUndefined(env);
+        if (function == nullptr) {
+            std::lock_guard<std::mutex> lock(freezeMtx);
+            for (auto &iter : freezeList) {
+                NAPI_CALL(env, napi_delete_reference(env, iter.ref));
+            }
+            freezeList.clear();
+            return res;
+        }
+        if (!ValidateFunction(env, function)) {
+            return nullptr;
+        }
+
+        std::lock_guard<std::mutex> lock(freezeMtx);
+        auto iter = freezeList.begin();
+        while (iter != freezeList.end()) {
+            napi_value observer = nullptr;
+            NAPI_CALL(env, napi_get_reference_value(env, iter.ref, &observer));
+            bool equals = false;
+            NAPI_CALL(env, napi_strict_equals(env, observer, function, &equals));
+            if (equals) {
+                NAPI_CALL(env, napi_delete_reference(env, iter.ref));
+                globalObserverList.erase(iter);
+                return res;
+            }
+        }
+        LOGI(AAFwkTag::JSNAPI, "remove observer failed");
         return CreateJsUndefined(env);
     }
 

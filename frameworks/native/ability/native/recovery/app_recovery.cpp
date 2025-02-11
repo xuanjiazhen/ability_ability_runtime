@@ -159,9 +159,45 @@ bool AppRecovery::RemoveAbility(const sptr<IRemoteObject>& tokenId)
     return true;
 }
 
+void AppRecovery::SetFreezeCallback(FreezeFunction freezeCallback)
+{
+    if (!this->freezeCallback) {
+        this->freezeCallback = freezeCallback;
+    }
+}
+
+void AppRecovery::HandleFreezeCallback()
+{
+    auto abilityPtr = ability_.lock();
+    if (!abilityPtr || !abilityPtr->GetAbilityContext()) {
+        TAG_LOGE(AAFwkTag::RECOVERY, "null ability or context");
+        return;
+    }
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (!BlockMainThreadLocked()) {
+        TAG_LOGE(AAFwkTag::RECOVERY, "block main thread failed");
+        return;
+    }
+#ifdef SUPPORT_SCREEN
+        OHOS::AbilityRuntime::JsUIAbility& jsAbility = static_cast<AbilityRuntime::JsUIAbility&>(*abilityPtr);
+        AbilityRuntime::JsRuntime& runtime = const_cast<AbilityRuntime::JsRuntime&>(jsAbility.GetJsRuntime());
+        panda::ecmascript::EcmaVM* vm = runtime.GetEcmaVm();
+        if (!panda::JSNApi::CheckAndSetAllowCrossThreadExecution(vm)) {
+            TAG_LOGE(AAFwkTag::RECOVERY, "VM is in gc process");
+            return false;
+        }
+#endif
+    if (this->freezeCallback) {
+        freezeCallback();
+    } else {
+        TAG_LOGI(AAFwkTag::RECOVERY, "freezeCallback is null");
+    }
+}
+
 bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
 {
     TAG_LOGD(AAFwkTag::RECOVERY, "begin");
+    HandleFreezeCallback();
     if (!isEnable_) {
         TAG_LOGE(AAFwkTag::RECOVERY, "not enabled");
         return false;
