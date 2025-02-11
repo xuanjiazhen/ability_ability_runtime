@@ -36,10 +36,11 @@ public:
     int32_t RecordProcessExtensionExitReason(
         const int32_t pid, const std::string &bundleName, const ExitReason &exitReason);
     int32_t RecordProcessExitReason(const int32_t pid, const ExitReason &exitReason);
+    int32_t RecordProcessExitReason(int32_t pid, int32_t uid, const ExitReason &exitReason);
 
 private:
     int32_t RecordProcessExitReason(const int32_t pid, const std::string bundleName, const int32_t uid,
-        const uint32_t accessTokenId, const ExitReason &exitReason);
+        const uint32_t accessTokenId, const ExitReason &exitReason, bool searchDead);
     void GetActiveAbilityList(int32_t uid, std::vector<std::string> &abilityLists, const int32_t pid);
     void GetActiveAbilityListFromUIAbilityManager(int32_t uid, std::vector<std::string> &abilityLists,
         const int32_t pid);

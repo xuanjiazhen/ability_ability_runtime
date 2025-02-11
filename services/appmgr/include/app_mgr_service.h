@@ -596,6 +596,16 @@ public:
     int32_t GetAppIndexByPid(pid_t pid, int32_t &appIndex) override;
 
     int32_t IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result) override;
+
+    /**
+     * Get killed process info by process id and uid.
+     *
+     * @param pid Process id.
+     * @param uid Process uid.
+     * @param info result KilledProcessInfo.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t GetKilledProcessInfo(int pid, int uid, KilledProcessInfo &info) override;
 private:
     /**
      * Init, Initialize application services.
