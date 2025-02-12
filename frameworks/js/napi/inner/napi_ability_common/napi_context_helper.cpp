@@ -139,11 +139,11 @@ napi_value SetShowOnLockScreenPromise(napi_env env, ShowOnLockScreenCB *cbData)
     return promise;
 }
 
-static void showOnLockScreenAsyncCB(napi_env env, ShowOnLockScreenCB *showOnLockScreenCB) 
+void showOnLockScreenAsyncCB(napi_env env, ShowOnLockScreenCB *showOnLockScreenCB) 
 {
-    ShowOnLockScreenCB *showOnLockScreenCB = static_cast<ShowOnLockScreenCB *>(data);
     showOnLockScreenCB->cbBase.errCode = NO_ERROR;
-    if (showOnLockScreenCB->cbBase.ability == nullptr) {
+    if (showOnLockScreenCB->cbBase.ability == nullptr)
+    {
         TAG_LOGE(AAFwkTag::JSNAPI, "null ability");
         showOnLockScreenCB->cbBase.errCode = NAPI_ERR_ACE_ABILITY;
     } else {
@@ -253,10 +253,11 @@ napi_value SetWakeUpScreenPromise(napi_env env, SetWakeUpScreenCB *cbData)
     return promise;
 }
 
-static void SetWakeUpScreenAsyncCB(napi_env env, SetWakeUpScreenCB *setWakeUpScreenCB) {
+void SetWakeUpScreenAsyncCB(napi_env env, SetWakeUpScreenCB *setWakeUpScreenCB) {
     TAG_LOGI(AAFwkTag::JSNAPI, "complete called");
     setWakeUpScreenCB->cbBase.errCode = NO_ERROR;
-    if (setWakeUpScreenCB->cbBase.ability == nullptr) {
+    if (setWakeUpScreenCB->cbBase.ability == nullptr)
+    {
         TAG_LOGE(AAFwkTag::JSNAPI, "null ability");
         setWakeUpScreenCB->cbBase.errCode = NAPI_ERR_ACE_ABILITY;
     } else {
