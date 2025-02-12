@@ -222,7 +222,8 @@ static napi_value SetWakeUpScreenAsync(napi_env env, napi_value *args, SetWakeUp
     NAPI_CALL(env, napi_create_reference(env, args[PARAM1], 1, &cbData->cbBase.cbInfo.callback));
 
     auto res = napi_send_event(env,
-        [env, cbData] () {SetWakeUpScreenAsyncCompleteCB(env, cbData);});
+        [env, cbData] () {SetWakeUpScreenAsyncCompleteCB(env, cbData);},
+        napi_eprio_high);
     if (res != napi_status::napi_ok) {
         TAG_LOGE(AAFwkTag::JSNAPI, "napi_send_event failed");
     }
@@ -576,10 +577,9 @@ bool UnwrapRequestPermissionsFromUser(
     return true;
 }
 
-void RequestPermissionsFromUserExecuteCallbackWork(napi_env env, void *data)
+void RequestPermissionsFromUserExecuteCallbackWork(napi_env env, AsyncJSCallbackInfo *asyncCallbackInfo)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
-    AsyncJSCallbackInfo *asyncCallbackInfo = static_cast<AsyncJSCallbackInfo *>(data);
     if (asyncCallbackInfo == nullptr) {
         TAG_LOGE(AAFwkTag::JSNAPI, "null asyncCallbackInfo");
         return;
@@ -603,10 +603,11 @@ void RequestPermissionsFromUserExecuteCallbackWork(napi_env env, void *data)
         asyncCallbackInfo->ability, permissionParam, asyncCallbackInfo->cbInfo);
 }
 
-void RequestPermissionsFromUserCompleteAsyncCallbackWork(napi_env env, AsyncJSCallbackInfo *asyncCallbackInfo)
+void RequestPermissionsFromUserCompleteAsyncCallbackWork(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
-
+    
+    AsyncJSCallbackInfo *asyncCallbackInfo = static_cast<AsyncJSCallbackInfo *>(data);
     if (asyncCallbackInfo == nullptr) {
         TAG_LOGE(AAFwkTag::JSNAPI, "null asyncCallbackInfo");
         return;
@@ -666,7 +667,7 @@ napi_value NAPI_RequestPermissionsFromUserWrap(
         asyncCallbackInfo->cbInfo.deferred = deferred;
 
         auto res = napi_send_event(env,
-            [env, asyncCallbackInfo] () {RequestPermissionsFromUserCompleteAsyncCallbackWork(env, asyncCallbackInfo);},
+            [env, asyncCallbackInfo] () {RequestPermissionsFromUserExecuteCallbackWork(env, asyncCallbackInfo);},
             napi_eprio_immediate);
         if (res != napi_status::napi_ok) {
             TAG_LOGE(AAFwkTag::JSNAPI, "napi_send_event failed");
