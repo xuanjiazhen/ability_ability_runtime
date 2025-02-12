@@ -691,7 +691,10 @@ sptr<Rosen::WindowOption> JsUIExtensionBase::CreateWindowOption(const sptr<AAFwk
     option->SetUIExtensionUsage(static_cast<uint32_t>(sessionInfo->uiExtensionUsage));
     option->SetDensity(sessionInfo->density);
     option->SetIsDensityFollowHost(sessionInfo->isDensityFollowHost);
-
+    if (context_->isNotAllow != -1) {
+        bool isNotAllow = context_->isNotAllow == 1 ? true : false;
+        option->SetConstrainedModal(isNotAllow);
+    }
     return option;
 }
 
