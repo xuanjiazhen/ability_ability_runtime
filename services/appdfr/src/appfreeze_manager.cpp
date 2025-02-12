@@ -159,25 +159,25 @@ int AppfreezeManager::MergeNotifyInfo(FaultData& faultNotifyData, const Appfreez
     std::string fileName = faultNotifyData.errorObject.name + "_" +
         AbilityRuntime::TimeUtil::FormatTime("%Y%m%d%H%M%S") + "_" + std::to_string(appInfo.pid) + "_stack";
     std::string catcherStack = "";
-    std::string catchJsonStack = "";
-    std::string fullStackPath = "";
+    auto time = GetMilliseconds();
+    std::string timeStamp = "\nStartTimestamp:" + AbilityRuntime::TimeUtil::FormatTime("%Y-%m-%d %H:%M:%S") +
+        ":" + std::to_string(start % SEC_TO_MILLISEC);
+    faultNotifyData.errorObject.message += timeStamp;
     if (faultNotifyData.errorObject.name == AppFreezeType::LIFECYCLE_HALF_TIMEOUT
         || faultNotifyData.errorObject.name == AppFreezeType::LIFECYCLE_TIMEOUT) {
         catcherStack += CatcherStacktrace(appInfo.pid);
-        fullStackPath = WriteToFile(fileName, catcherStack);
-        faultNotifyData.errorObject.stack = fullStackPath;
     } else {
-        auto start = GetMilliseconds();
-        std::string timeStamp = "\nTimestamp:" + AbilityRuntime::TimeUtil::FormatTime("%Y-%m-%d %H:%M:%S") +
-            ":" + std::to_string(start % SEC_TO_MILLISEC);
-        faultNotifyData.errorObject.message += timeStamp;
-        catchJsonStack += CatchJsonStacktrace(appInfo.pid, faultNotifyData.errorObject.name);
-        fullStackPath = WriteToFile(fileName, catchJsonStack);
-        faultNotifyData.errorObject.stack = fullStackPath;
+        catcherStack += CatchJsonStacktrace(appInfo.pid, faultNotifyData.errorObject.name);
     }
+    time = GetMilliseconds();
+    timeStamp = "\nEndTimestamp:" + AbilityRuntime::TimeUtil::FormatTime("%Y-%m-%d %H:%M:%S") +
+        ":" + std::to_string(start % SEC_TO_MILLISEC);
+    std::string fullStackPath = WriteToFile(fileName, catcherStack);
+    faultNotifyData.errorObject.stack = fullStackPath;
     if (appInfo.isOccurException) {
         faultNotifyData.errorObject.message += "\nnotifyAppFault exception.\n";
     }
+    faultNotifyData.errorObject.message += timeStamp;
     if (faultNotifyData.errorObject.name == AppFreezeType::APP_INPUT_BLOCK ||
         faultNotifyData.errorObject.name == AppFreezeType::THREAD_BLOCK_3S) {
         AcquireStack(faultNotifyData, appInfo, memoryContent);
