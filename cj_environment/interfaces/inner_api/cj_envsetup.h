@@ -19,6 +19,8 @@
 #include <string>
 
 namespace OHOS {
+using UpdateStackInfoFuncType = void(*)(unsigned long long, void *, unsigned int);
+
 struct CJErrorObject {
     const char* name;
     const char* message;
@@ -49,6 +51,8 @@ struct CJEnvMethods {
     void* (*getSymbol)(void* handle, const char* symbol) = nullptr;
     void* (*loadCJLibrary)(const char* dllName) = nullptr;
     bool (*startDebugger)() = nullptr;
+    void (*registerArkVMInRuntime)(unsigned long long arkVM) = nullptr;
+    void (*registerStackInfoCallbacks)(UpdateStackInfoFuncType uFunc) = nullptr;
     void (*registerCJUncaughtExceptionHandler)(const CJUncaughtExceptionInfo& uncaughtExceptionInfo) = nullptr;
     void (*setSanitizerKindRuntimeVersion)(SanitizerKind kind) = nullptr;
     bool (*checkLoadCJLibrary)() = nullptr;
