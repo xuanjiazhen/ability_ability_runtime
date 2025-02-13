@@ -569,6 +569,7 @@ group("unittest") {
       "restart_app_manager_test:unittest",
       "running_infos_test:unittest",
       "runtime_test:unittest",
+      "screen_unlock_interceptor_test:unittest",
       "sender_info_test:unittest",
       "service_extension_context_test:unittest",
       "service_router_mgr_service_test:unittest",
