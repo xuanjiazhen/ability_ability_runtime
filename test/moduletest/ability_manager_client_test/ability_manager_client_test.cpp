@@ -350,8 +350,7 @@ HWTEST_F(AbilityManagerClientTest, QueryAtomicServiceStartupRule_0100, TestSize.
  */
 HWTEST_F(AbilityManagerClientTest, KillProcessWithReason_0100, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, 
-        "KillProcessWithReason_0100 and KillProcessWithPrepareTerminateDone start");
+    TAG_LOGI(AAFwkTag::TEST, "KillProcessWithReason_0100 start");
 
     std::string moduleName = "com.ohos.example.moduleName";
     int32_t prepareTermination = 1;
@@ -364,8 +363,7 @@ HWTEST_F(AbilityManagerClientTest, KillProcessWithReason_0100, TestSize.Level1)
     auto result = AbilityManagerClient::GetInstance()->KillProcessWithReason(pid, reason);
     EXPECT_NE(result, ERR_OK);
 
-    TAG_LOGI(AAFwkTag::TEST, 
-        "KillProcessWithReason_0100 and KillProcessWithPrepareTerminateDone end");
+    TAG_LOGI(AAFwkTag::TEST, "KillProcessWithReason_0100 end");
 }
 }  // namespace AAFwk
 }  // namespace OHOS
