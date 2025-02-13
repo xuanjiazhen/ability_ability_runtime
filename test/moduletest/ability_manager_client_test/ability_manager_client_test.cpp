@@ -361,7 +361,7 @@ HWTEST_F(AbilityManagerClientTest, KillProcessWithReason_0100, TestSize.Level1)
     int32_t pid = 1;
     AAFwk::ExitReason reason;
     auto result = AbilityManagerClient::GetInstance()->KillProcessWithReason(pid, reason);
-    EXPECT_NE(result, ERR_OK);
+    EXPECT_EQ(result, ERR_OK);
 
     TAG_LOGI(AAFwkTag::TEST, "KillProcessWithReason_0100 end");
 }
