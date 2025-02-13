@@ -1705,7 +1705,7 @@ napi_value GetProcessNameAsync(napi_env env, napi_value *args, const size_t argC
     }
     napi_value resourceName = nullptr;
     NAPI_CALL(env, napi_create_string_latin1(env, __func__, NAPI_AUTO_LENGTH, &resourceName));
-    
+
     napi_valuetype valuetype = napi_undefined;
     NAPI_CALL(env, napi_typeof(env, args[argCallback], &valuetype));
     if (valuetype == napi_function) {
