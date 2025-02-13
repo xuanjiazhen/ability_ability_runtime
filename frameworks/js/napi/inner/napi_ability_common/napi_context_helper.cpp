@@ -116,7 +116,7 @@ napi_value SetShowOnLockScreenAsync(napi_env env, napi_value *args, ShowOnLockSc
     return result;
 }
 
-void SetShowOnLockScreenAsyncCB(napi_env env, ShowOnLockScreenCB *showOnLockScreenCB)
+static void SetShowOnLockScreenAsyncCB(napi_env env, ShowOnLockScreenCB *showOnLockScreenCB)
 {
     showOnLockScreenCB->cbBase.errCode = NO_ERROR;
     if (showOnLockScreenCB->cbBase.ability == nullptr) {
@@ -232,7 +232,7 @@ static napi_value SetWakeUpScreenAsync(napi_env env, napi_value *args, SetWakeUp
     return result;
 }
 
-void SetWakeUpScreenAsyncCB(napi_env env, SetWakeUpScreenCB *setWakeUpScreenCB)
+static void SetWakeUpScreenAsyncCB(napi_env env, SetWakeUpScreenCB *setWakeUpScreenCB)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "complete called");
     setWakeUpScreenCB->cbBase.errCode = NO_ERROR;
@@ -577,9 +577,10 @@ bool UnwrapRequestPermissionsFromUser(
     return true;
 }
 
-void RequestPermissionsFromUserExecuteCallbackWork(napi_env env, AsyncJSCallbackInfo *asyncCallbackInfo)
+void RequestPermissionsFromUserExecuteCallbackWork(napi_env env, void *data)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
+    AsyncJSCallbackInfo *asyncCallbackInfo = static_cast<AsyncJSCallbackInfo *>(data);
     if (asyncCallbackInfo == nullptr) {
         TAG_LOGE(AAFwkTag::JSNAPI, "null asyncCallbackInfo");
         return;
@@ -606,7 +607,7 @@ void RequestPermissionsFromUserExecuteCallbackWork(napi_env env, AsyncJSCallback
 void RequestPermissionsFromUserCompleteAsyncCallbackWork(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
-    
+
     AsyncJSCallbackInfo *asyncCallbackInfo = static_cast<AsyncJSCallbackInfo *>(data);
     if (asyncCallbackInfo == nullptr) {
         TAG_LOGE(AAFwkTag::JSNAPI, "null asyncCallbackInfo");
@@ -666,12 +667,19 @@ napi_value NAPI_RequestPermissionsFromUserWrap(
         NAPI_CALL(env, napi_create_promise(env, &deferred, &promise));
         asyncCallbackInfo->cbInfo.deferred = deferred;
 
-        auto res = napi_send_event(env,
-            [env, asyncCallbackInfo] () {RequestPermissionsFromUserExecuteCallbackWork(env, asyncCallbackInfo);},
-            napi_eprio_immediate);
-        if (res != napi_status::napi_ok) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "napi_send_event failed");
-        }
+        napi_value resourceName = nullptr;
+        NAPI_CALL(env, napi_create_string_latin1(env, "NAPI_RequestPermissionsFromUserPromise",
+            NAPI_AUTO_LENGTH, &resourceName));
+        NAPI_CALL(env,
+            napi_create_async_work(env,
+                nullptr,
+                resourceName,
+                RequestPermissionsFromUserExecuteCallbackWork,
+                RequestPermissionsFromUserCompleteAsyncCallbackWork,
+                static_cast<void *>(asyncCallbackInfo),
+                &asyncCallbackInfo->asyncWork));
+
+        NAPI_CALL(env, napi_queue_async_work_with_qos(env, asyncCallbackInfo->asyncWork, napi_qos_user_initiated));
 
         return promise;
     }
@@ -699,9 +707,10 @@ void GetAppInfoExecuteCB(napi_env env, void *data)
     TAG_LOGI(AAFwkTag::JSNAPI, "end");
 }
 
-void GetAppInfoAsyncCompleteCB(napi_env env, AppInfoCB *appInfoCB)
+void GetAppInfoAsyncCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
+    AppInfoCB *appInfoCB = static_cast<AppInfoCB *>(data);
     napi_value callback = nullptr;
     napi_value undefined = nullptr;
     napi_value result[ARGS_TWO] = {nullptr};
@@ -732,27 +741,33 @@ napi_value GetApplicationInfoAsync(napi_env env, napi_value *args, const size_t 
         TAG_LOGE(AAFwkTag::JSNAPI, "null param");
         return nullptr;
     }
+    napi_value resourceName = nullptr;
+    NAPI_CALL(env, napi_create_string_latin1(env, __func__, NAPI_AUTO_LENGTH, &resourceName));
 
     napi_valuetype valuetype = napi_undefined;
     NAPI_CALL(env, napi_typeof(env, args[argCallback], &valuetype));
     if (valuetype == napi_function) {
         NAPI_CALL(env, napi_create_reference(env, args[argCallback], 1, &appInfoCB->cbBase.cbInfo.callback));
     }
-    auto res = napi_send_event(env,
-        [env, appInfoCB] () {GetAppInfoAsyncCompleteCB(env, appInfoCB);},
-        napi_eprio_immediate);
-    if (res != napi_status::napi_ok) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "napi_send_event failed");
-    }
+    NAPI_CALL(env,
+        napi_create_async_work(env,
+            nullptr,
+            resourceName,
+            GetAppInfoExecuteCB,
+            GetAppInfoAsyncCompleteCB,
+            static_cast<void *>(appInfoCB),
+            &appInfoCB->cbBase.asyncWork));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, appInfoCB->cbBase.asyncWork, napi_qos_user_initiated));
     napi_value result = nullptr;
     NAPI_CALL(env, napi_get_null(env, &result));
     TAG_LOGI(AAFwkTag::JSNAPI, "end");
     return result;
 }
 
-void GetAppInfoPromiseCompleteCB(napi_env env, AppInfoCB *appInfoCB)
+void GetAppInfoPromiseCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
+    AppInfoCB *appInfoCB = static_cast<AppInfoCB *>(data);
     if (appInfoCB == nullptr) {
         TAG_LOGE(AAFwkTag::JSNAPI, "null appInfoCB");
         return;
@@ -780,17 +795,22 @@ napi_value GetApplicationInfoPromise(napi_env env, AppInfoCB *appInfoCB)
         TAG_LOGE(AAFwkTag::JSNAPI, "null appInfoCB");
         return nullptr;
     }
+    napi_value resourceName = nullptr;
+    NAPI_CALL(env, napi_create_string_latin1(env, __func__, NAPI_AUTO_LENGTH, &resourceName));
     napi_deferred deferred;
     napi_value promise = nullptr;
     NAPI_CALL(env, napi_create_promise(env, &deferred, &promise));
     appInfoCB->cbBase.deferred = deferred;
 
-    auto res = napi_send_event(env,
-        [env, appInfoCB] () {GetAppInfoPromiseCompleteCB(env, appInfoCB);},
-        napi_eprio_immediate);
-    if (res != napi_status::napi_ok) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "napi_send_event failed");
-    }
+    NAPI_CALL(env,
+        napi_create_async_work(env,
+            nullptr,
+            resourceName,
+            GetAppInfoExecuteCB,
+            GetAppInfoPromiseCompleteCB,
+            static_cast<void *>(appInfoCB),
+            &appInfoCB->cbBase.asyncWork));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, appInfoCB->cbBase.asyncWork, napi_qos_user_initiated));
     TAG_LOGI(AAFwkTag::JSNAPI, "end");
     return promise;
 }
@@ -1193,9 +1213,10 @@ void GetProcessInfoExecuteCB(napi_env env, void *data)
     TAG_LOGI(AAFwkTag::JSNAPI, "execute end");
 }
 
-void GetProcessInfoAsyncCompleteCB(napi_env env, ProcessInfoCB *processInfoCB)
+void GetProcessInfoAsyncCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "complete");
+    ProcessInfoCB *processInfoCB = static_cast<ProcessInfoCB *>(data);
     napi_value callback = nullptr;
     napi_value undefined = nullptr;
     napi_value result[ARGS_TWO] = {nullptr};
@@ -1227,27 +1248,33 @@ napi_value GetProcessInfoAsync(napi_env env, napi_value *args, const size_t argC
         TAG_LOGE(AAFwkTag::JSNAPI, "null param");
         return nullptr;
     }
+    napi_value resourceName = nullptr;
+    NAPI_CALL(env, napi_create_string_latin1(env, __func__, NAPI_AUTO_LENGTH, &resourceName));
 
     napi_valuetype valuetype = napi_undefined;
     NAPI_CALL(env, napi_typeof(env, args[argCallback], &valuetype));
     if (valuetype == napi_function) {
         NAPI_CALL(env, napi_create_reference(env, args[argCallback], 1, &processInfoCB->cbBase.cbInfo.callback));
     }
-    auto res = napi_send_event(env,
-        [env, processInfoCB] () {GetProcessInfoAsyncCompleteCB(env, processInfoCB);},
-        napi_eprio_immediate);
-    if (res != napi_status::napi_ok) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "napi_send_event failed");
-    }
+    NAPI_CALL(env,
+        napi_create_async_work(env,
+            nullptr,
+            resourceName,
+            GetProcessInfoExecuteCB,
+            GetProcessInfoAsyncCompleteCB,
+            static_cast<void *>(processInfoCB),
+            &processInfoCB->cbBase.asyncWork));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, processInfoCB->cbBase.asyncWork, napi_qos_user_initiated));
     napi_value result = nullptr;
     NAPI_CALL(env, napi_get_null(env, &result));
     TAG_LOGI(AAFwkTag::JSNAPI, "end");
     return result;
 }
 
-void GetProcessInfoPromiseCompleteCB(napi_env env, ProcessInfoCB *processInfoCB)
+void GetProcessInfoPromiseCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "complete");
+    ProcessInfoCB *processInfoCB = static_cast<ProcessInfoCB *>(data);
     napi_value result = nullptr;
     if (processInfoCB->cbBase.errCode == NAPI_ERR_NO_ERROR) {
         result = WrapProcessInfo(env, processInfoCB);
@@ -1270,17 +1297,22 @@ napi_value GetProcessInfoPromise(napi_env env, ProcessInfoCB *processInfoCB)
         TAG_LOGE(AAFwkTag::JSNAPI, "null processInfoCB");
         return nullptr;
     }
+    napi_value resourceName = nullptr;
+    NAPI_CALL(env, napi_create_string_latin1(env, __func__, NAPI_AUTO_LENGTH, &resourceName));
     napi_deferred deferred;
     napi_value promise = nullptr;
     NAPI_CALL(env, napi_create_promise(env, &deferred, &promise));
     processInfoCB->cbBase.deferred = deferred;
 
-    auto res = napi_send_event(env,
-        [env, processInfoCB] () {GetProcessInfoPromiseCompleteCB(env, processInfoCB);},
-        napi_eprio_immediate);
-    if (res != napi_status::napi_ok) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "napi_send_event failed");
-    }
+    NAPI_CALL(env,
+        napi_create_async_work(env,
+            nullptr,
+            resourceName,
+            GetProcessInfoExecuteCB,
+            GetProcessInfoPromiseCompleteCB,
+            static_cast<void *>(processInfoCB),
+            &processInfoCB->cbBase.asyncWork));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, processInfoCB->cbBase.asyncWork, napi_qos_user_initiated));
     TAG_LOGI(AAFwkTag::JSNAPI, "end");
     return promise;
 }
@@ -1427,9 +1459,10 @@ void GetElementNameExecuteCB(napi_env env, void *data)
     TAG_LOGI(AAFwkTag::JSNAPI, "end");
 }
 
-void GetElementNameAsyncCompleteCB(napi_env env, ElementNameCB *elementNameCB)
+void GetElementNameAsyncCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "complete");
+    ElementNameCB *elementNameCB = static_cast<ElementNameCB *>(data);
     napi_value callback = nullptr;
     napi_value undefined = nullptr;
     napi_value result[ARGS_TWO] = {nullptr};
@@ -1453,9 +1486,10 @@ void GetElementNameAsyncCompleteCB(napi_env env, ElementNameCB *elementNameCB)
     TAG_LOGI(AAFwkTag::JSNAPI, "complete end");
 }
 
-void GetElementNamePromiseCompleteCB(napi_env env, ElementNameCB *elementNameCB)
+void GetElementNamePromiseCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "complete");
+    ElementNameCB *elementNameCB = static_cast<ElementNameCB *>(data);
     napi_value result = nullptr;
     if (elementNameCB->cbBase.errCode == NAPI_ERR_NO_ERROR) {
         result = WrapElementName(env, elementNameCB);
@@ -1478,17 +1512,22 @@ napi_value GetElementNamePromise(napi_env env, ElementNameCB *elementNameCB)
         TAG_LOGE(AAFwkTag::JSNAPI, "null elementNameCB");
         return nullptr;
     }
+    napi_value resourceName = nullptr;
+    NAPI_CALL(env, napi_create_string_latin1(env, __func__, NAPI_AUTO_LENGTH, &resourceName));
     napi_deferred deferred;
     napi_value promise = nullptr;
     NAPI_CALL(env, napi_create_promise(env, &deferred, &promise));
     elementNameCB->cbBase.deferred = deferred;
 
-    auto res = napi_send_event(env,
-        [env, elementNameCB] () {GetElementNamePromiseCompleteCB(env, elementNameCB);},
-        napi_eprio_immediate);
-    if (res != napi_status::napi_ok) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "napi_send_event failed");
-    }
+    NAPI_CALL(env,
+        napi_create_async_work(env,
+            nullptr,
+            resourceName,
+            GetElementNameExecuteCB,
+            GetElementNamePromiseCompleteCB,
+            static_cast<void *>(elementNameCB),
+            &elementNameCB->cbBase.asyncWork));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, elementNameCB->cbBase.asyncWork, napi_qos_user_initiated));
     TAG_LOGI(AAFwkTag::JSNAPI, "end");
     return promise;
 }
@@ -1500,18 +1539,23 @@ napi_value GetElementNameAsync(napi_env env, napi_value *args, const size_t argC
         TAG_LOGE(AAFwkTag::JSNAPI, "null param");
         return nullptr;
     }
+    napi_value resourceName = nullptr;
+    NAPI_CALL(env, napi_create_string_latin1(env, __func__, NAPI_AUTO_LENGTH, &resourceName));
 
     napi_valuetype valuetype = napi_undefined;
     NAPI_CALL(env, napi_typeof(env, args[argCallback], &valuetype));
     if (valuetype == napi_function) {
         NAPI_CALL(env, napi_create_reference(env, args[argCallback], 1, &elementNameCB->cbBase.cbInfo.callback));
     }
-    auto res = napi_send_event(env,
-        [env, elementNameCB] () {GetElementNameAsyncCompleteCB(env, elementNameCB);},
-        napi_eprio_immediate);
-    if (res != napi_status::napi_ok) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "napi_send_event failed");
-    }
+    NAPI_CALL(env,
+        napi_create_async_work(env,
+            nullptr,
+            resourceName,
+            GetElementNameExecuteCB,
+            GetElementNameAsyncCompleteCB,
+            static_cast<void *>(elementNameCB),
+            &elementNameCB->cbBase.asyncWork));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, elementNameCB->cbBase.asyncWork, napi_qos_user_initiated));
     napi_value result = nullptr;
     NAPI_CALL(env, napi_get_null(env, &result));
     TAG_LOGI(AAFwkTag::JSNAPI, "end");
@@ -1606,9 +1650,10 @@ napi_value WrapProcessName(napi_env env, const ProcessNameCB *processNameCB)
     return result;
 }
 
-void GetProcessNameAsyncCompleteCB(napi_env env, ProcessNameCB *processNameCB)
+void GetProcessNameAsyncCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "complete");
+    ProcessNameCB *processNameCB = static_cast<ProcessNameCB *>(data);
     napi_value callback = nullptr;
     napi_value undefined = nullptr;
     napi_value result[ARGS_TWO] = {nullptr};
@@ -1632,9 +1677,10 @@ void GetProcessNameAsyncCompleteCB(napi_env env, ProcessNameCB *processNameCB)
     TAG_LOGI(AAFwkTag::JSNAPI, "complete end");
 }
 
-void GetProcessNamePromiseCompleteCB(napi_env env, ProcessNameCB *processNameCB)
+void GetProcessNamePromiseCompleteCB(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "complete");
+    ProcessNameCB *processNameCB = static_cast<ProcessNameCB *>(data);
     napi_value result = nullptr;
     if (processNameCB->cbBase.errCode == NAPI_ERR_NO_ERROR) {
         result = WrapProcessName(env, processNameCB);
@@ -1657,18 +1703,23 @@ napi_value GetProcessNameAsync(napi_env env, napi_value *args, const size_t argC
         TAG_LOGE(AAFwkTag::JSNAPI, "null param");
         return nullptr;
     }
+    napi_value resourceName = nullptr;
+    NAPI_CALL(env, napi_create_string_latin1(env, __func__, NAPI_AUTO_LENGTH, &resourceName));
     
     napi_valuetype valuetype = napi_undefined;
     NAPI_CALL(env, napi_typeof(env, args[argCallback], &valuetype));
     if (valuetype == napi_function) {
         NAPI_CALL(env, napi_create_reference(env, args[argCallback], 1, &processNameCB->cbBase.cbInfo.callback));
     }
-    auto res = napi_send_event(env,
-        [env, processNameCB] () {GetProcessNameAsyncCompleteCB(env, processNameCB);},
-        napi_eprio_immediate);
-    if (res != napi_status::napi_ok) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "napi_send_event failed");
-    }
+    NAPI_CALL(env,
+        napi_create_async_work(env,
+            nullptr,
+            resourceName,
+            GetProcessNameExecuteCB,
+            GetProcessNameAsyncCompleteCB,
+            static_cast<void *>(processNameCB),
+            &processNameCB->cbBase.asyncWork));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, processNameCB->cbBase.asyncWork, napi_qos_user_initiated));
     napi_value result = nullptr;
     NAPI_CALL(env, napi_get_null(env, &result));
     TAG_LOGI(AAFwkTag::JSNAPI, "end");
@@ -1682,17 +1733,22 @@ napi_value GetProcessNamePromise(napi_env env, ProcessNameCB *processNameCB)
         TAG_LOGE(AAFwkTag::JSNAPI, "null processNameCB");
         return nullptr;
     }
+    napi_value resourceName = nullptr;
+    NAPI_CALL(env, napi_create_string_latin1(env, __func__, NAPI_AUTO_LENGTH, &resourceName));
     napi_deferred deferred;
     napi_value promise = nullptr;
     NAPI_CALL(env, napi_create_promise(env, &deferred, &promise));
     processNameCB->cbBase.deferred = deferred;
 
-    auto res = napi_send_event(env,
-        [env, processNameCB] () {GetProcessNamePromiseCompleteCB(env, processNameCB);},
-        napi_eprio_immediate);
-    if (res != napi_status::napi_ok) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "napi_send_event failed");
-    }
+    NAPI_CALL(env,
+        napi_create_async_work(env,
+            nullptr,
+            resourceName,
+            GetProcessNameExecuteCB,
+            GetProcessNamePromiseCompleteCB,
+            static_cast<void *>(processNameCB),
+            &processNameCB->cbBase.asyncWork));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, processNameCB->cbBase.asyncWork, napi_qos_user_initiated));
     TAG_LOGI(AAFwkTag::JSNAPI, "end");
     return promise;
 }
