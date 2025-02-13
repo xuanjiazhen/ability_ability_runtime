@@ -51,6 +51,8 @@ config("ability_config") {
   defines += [ "AMS_LOG_DOMAIN = 0xD001300" ]
   if (target_cpu == "arm64") {
     defines += [ "_ARM64_" ]
+  } else if (target_cpu == "loongarch64") {
+    defines += [ "_LOONGARCH64_" ]
   }
 
   if (target_cpu == "arm64") {
@@ -59,6 +61,8 @@ config("ability_config") {
     defines += [ "APP_USE_ARM" ]
   } else if (target_cpu == "x86_64") {
     defines += [ "APP_USE_X86_64" ]
+  } else if (target_cpu == "loongarch64") {
+    defines += [ "APP_USE_LOONGARCH64" ]
   }
 
   if (ability_runtime_graphics) {
@@ -2012,6 +2016,8 @@ config("embedded_ui_extension_module_config") {
   defines += [ "AMS_LOG_DOMAIN = 0xD001300" ]
   if (target_cpu == "arm64") {
     defines += [ "_ARM64_" ]
+  } else if (target_cpu == "loongarch64") {
+    defines += [ "_LOONGARCH64_" ]
   }
 
   if (target_cpu == "arm64") {
@@ -2020,6 +2026,8 @@ config("embedded_ui_extension_module_config") {
     defines += [ "APP_USE_ARM" ]
   } else if (target_cpu == "x86_64") {
     defines += [ "APP_USE_X86_64" ]
+  } else if (target_cpu == "loongarch64") {
+    defines += [ "APP_USE_LOONGARCH64" ]
   }
 
   if (ability_runtime_graphics) {
