@@ -103,6 +103,9 @@ class UIExtensionContext extends ExtensionContext {
   setColorMode(colorMode) {
     this.__context_impl__.setColorMode(colorMode);
   };
+  setHostPageOverlayForbidden(isNotAllow) {
+    return this.__context_impl__.setHostPageOverlayForbidden(isNotAllow);
+  }
 }
 
 export default UIExtensionContext;
