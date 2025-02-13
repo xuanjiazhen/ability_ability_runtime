@@ -105,9 +105,12 @@ private:
     AppfreezeManager& operator=(const AppfreezeManager&) = delete;
     AppfreezeManager(const AppfreezeManager&) = delete;
     uint64_t GetMilliseconds();
-    std::map<int, std::list<AppfreezeManager::PeerBinderInfo>> BinderParser(std::ifstream& fin, std::string& stack,
+    AppfreezeManager::PeerBinderInfo GetPeerBinderInfo(const std::string& clientPid,
+        const std::string& clientTid, const std::string& serverPid, const std::string& serverTid,
+        const std::string& wait) const;
+    std::map<int, std::list<AppfreezeManager::PeerBinderInfo>> BinderParser(FILE* fp, std::string& stack,
         std::set<int>& asyncPids) const;
-    std::map<int, std::list<AppfreezeManager::PeerBinderInfo>> BinderLineParser(std::ifstream& fin, std::string& stack,
+    std::map<int, std::list<AppfreezeManager::PeerBinderInfo>> BinderLineParser(FILE* fp, std::string& stack,
         std::map<uint32_t, uint32_t>& asyncBinderMap,
         std::vector<std::pair<uint32_t, uint64_t>>& freeAsyncSpacePairs) const;
     std::vector<std::string> GetFileToList(std::string line) const;
