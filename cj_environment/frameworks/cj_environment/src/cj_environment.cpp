@@ -199,9 +199,18 @@ void CJEnvironment::InitSpawnEnv()
 void CJEnvironment::PreloadLibs()
 {
     LOGI("start Preloadlibs");
-    LoadCJLibrary(SDK, "libohos.ability.so");
-    LoadCJLibrary(SDK, "libohos.component.so");
-    LoadCJLibrary(SDK, "libohos.window.so");
+    auto lib = LoadCJLibrary(SDK, "libohos.ability.so");
+    if (lib) {
+        preloadLibs_.emplace_back(lib);
+    }
+    lib = LoadCJLibrary(SDK, "libohos.component.so");
+    if (lib) {
+        preloadLibs_.emplace_back(lib);
+    }
+    lib = LoadCJLibrary(SDK, "libohos.window.so");
+    if (lib) {
+        preloadLibs_.emplace_back(lib);
+    }
 }
 
 void CJEnvironment::SetAppPath(const std::string& appPath)
@@ -236,6 +245,10 @@ CJEnvironment::~CJEnvironment()
     StopRuntime();
 
     delete lazyApis_;
+
+    for (auto lib : preloadLibs_) {
+        dlclose(lib);
+    }
 }
 
 CJEnvironment* CJEnvironment::GetInstance()

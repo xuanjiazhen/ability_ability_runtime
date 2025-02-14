@@ -120,6 +120,7 @@ private:
     void* uiScheduler_ {nullptr};
     SanitizerKind sanitizerKind_ {SanitizerKind::NONE};
     NSMode nsMode_;
+    std::vector<void*> preloadLibs_;
 };
 
 }
