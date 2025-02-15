@@ -842,10 +842,11 @@ public:
     /**
      * @brief logout user.
      * @param accountId accountId.
+     * @param callback callback.
      *
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int LogoutUser(int32_t userId) override;
+    virtual int LogoutUser(int32_t userId, const sptr<IUserCallback> &callback) override;
 
     virtual int SetMissionContinueState(const sptr<IRemoteObject> &token, const AAFwk::ContinueState &state) override;
 

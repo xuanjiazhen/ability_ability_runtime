@@ -272,6 +272,7 @@ public:
     bool ProcessExitByTokenIdAndInstance(uint32_t accessTokenId, const std::string &instanceKey, std::list<pid_t> &pids,
         bool clearPageStack);
     bool GetPidsByUserId(int32_t userId, std::list<pid_t> &pids);
+    bool GetProcessInfosByUserId(int32_t userId, std::map<pid_t, std::string> &processInfos);
 
     void PrepareTerminate(const sptr<IRemoteObject> &token, bool clearMissionFlag = false);
 

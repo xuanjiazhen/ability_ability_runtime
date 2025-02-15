@@ -1668,6 +1668,17 @@ void AppRunningRecord::RemoveRenderPid(pid_t renderPid)
     renderPidSet_.erase(renderPid);
 }
 
+void AppRunningRecord::GetRenderProcessInfos(std::map<pid_t, std::string> &processInfos)
+{
+    std::lock_guard renderRecordMapLock(renderRecordMapLock_);
+    for (auto &iter : renderRecordMap_) {
+        auto renderRecord = iter.second;
+        if (renderRecord && renderRecord->GetPid() > 0) {
+            processInfos.insert({renderRecord->GetPid(), renderRecord->GetProcessName()});
+        }
+    }
+}
+
 bool AppRunningRecord::ConstainsRenderPid(pid_t renderPid)
 {
     std::lock_guard renderPidSetLock(renderPidSetLock_);
@@ -2183,6 +2194,17 @@ int32_t AppRunningRecord::GetChildProcessCount()
 {
     std::lock_guard lock(childProcessRecordMapLock_);
     return childProcessRecordMap_.size();
+}
+
+void AppRunningRecord::GetChildProcessInfos(std::map<pid_t, std::string> &processInfos)
+{
+    std::lock_guard lock(childProcessRecordMapLock_);
+    for (auto &iter : childProcessRecordMap_) {
+        auto childRecord = iter.second;
+        if (childRecord && childRecord->GetPid() > 0) {
+            processInfos.insert({childRecord->GetPid(), childRecord->GetProcessName()});
+        }
+    }
 }
 #endif //SUPPORT_CHILD_PROCESS
 

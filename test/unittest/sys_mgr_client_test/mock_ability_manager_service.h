@@ -166,7 +166,7 @@ public:
         return 0;
     }
 
-    int LogoutUser(int32_t userId) override
+    int LogoutUser(int32_t userId, const sptr<IUserCallback> &callback = nullptr) override
     {
         return 0;
     }
