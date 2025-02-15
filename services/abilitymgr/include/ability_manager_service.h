@@ -2065,6 +2065,7 @@ private:
     int StartAbilityPrechainInterceptor(StartAbilityParams &params);
     bool StartAbilityInChain(StartAbilityParams &params, int &result);
     void InitWindowVisibilityChangedListener();
+    void AddKernelKillListener();
     void FreeWindowVisibilityChangedListener();
     bool CheckProcessIsBackground(int32_t pid, AbilityState currentState);
 
