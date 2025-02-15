@@ -211,6 +211,8 @@ public:
     {}
 
     ErrCode CreateMessageMap() override;
+    std::string GetAaToolErrorInfo(int32_t errorCode, std::string message, std::string cause,
+        std::vector<std::string> solutions);
     bool IsTestCommandIntegrity(const std::map<std::string, std::string>& params);
     ErrCode StartUserTest(const std::map<std::string, std::string>& params);
 
