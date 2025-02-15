@@ -1994,7 +1994,7 @@ void Ability::OnDisplayMove(Rosen::DisplayId from, Rosen::DisplayId to)
         auto task = [ability = shared_from_this(), configuration = *configuration]() {
             ability->OnConfigurationUpdated(configuration);
         };
-        handler_->PostTask(task, "Ability:OnDisplayMove");
+        handler_->PostTask(task, "Ability:OnDisplayMoves");
     }
 }
 
