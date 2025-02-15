@@ -263,7 +263,7 @@ int MockAbilityDelegatorStub2::StopUser(int userId, const sptr<IUserCallback>& c
     return 0;
 }
 
-int MockAbilityDelegatorStub2::LogoutUser(int32_t userId)
+int MockAbilityDelegatorStub2::LogoutUser(int32_t userId, sptr<IUserCallback> callback)
 {
     return 0;
 }
