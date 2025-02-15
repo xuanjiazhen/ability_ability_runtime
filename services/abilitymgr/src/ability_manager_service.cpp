@@ -7606,7 +7606,7 @@ int AbilityManagerService::ReleaseRemoteAbility(const sptr<IRemoteObject> &conne
 }
 
 int AbilityManagerService::StartAbilityByCall(const Want &want, const sptr<IAbilityConnection> &connect,
-    const sptr<IRemoteObject> &callerToken, int32_t accountId)
+    const sptr<IRemoteObject> &callerToken, int32_t accountId, std::string &errMsg)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     CHECK_POINTER_AND_RETURN(connect, ERR_INVALID_VALUE);

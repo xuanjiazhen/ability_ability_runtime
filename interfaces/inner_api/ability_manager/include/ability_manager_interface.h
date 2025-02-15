@@ -1006,7 +1006,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int StartAbilityByCall(const Want &want, const sptr<IAbilityConnection> &connect,
-        const sptr<IRemoteObject> &callerToken, int32_t accountId = DEFAULT_INVAL_VALUE) = 0;
+        const sptr<IRemoteObject> &callerToken, int32_t accountId = DEFAULT_INVAL_VALUE, std::string &errMsg) = 0;
 
     /**
      * CallRequestDone, after invoke callRequest, ability will call this interface to return callee.
