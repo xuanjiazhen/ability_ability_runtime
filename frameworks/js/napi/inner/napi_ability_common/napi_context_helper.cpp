@@ -135,7 +135,6 @@ static void SetShowOnLockScreenAsyncCB(napi_env env, ShowOnLockScreenCB *showOnL
             napi_reject_deferred(env, showOnLockScreenCB->cbBase.deferred, result);
         }
 
-        napi_delete_async_work(env, showOnLockScreenCB->cbBase.asyncWork);
         delete showOnLockScreenCB;
         showOnLockScreenCB = nullptr;
         TAG_LOGI(AAFwkTag::JSNAPI, "complete end");
@@ -251,7 +250,6 @@ static void SetWakeUpScreenAsyncCB(napi_env env, SetWakeUpScreenCB *setWakeUpScr
             napi_reject_deferred(env, setWakeUpScreenCB->cbBase.deferred, result);
         }
 
-        napi_delete_async_work(env, setWakeUpScreenCB->cbBase.asyncWork);
         delete setWakeUpScreenCB;
         setWakeUpScreenCB = nullptr;
         TAG_LOGI(AAFwkTag::JSNAPI, "complete end");
