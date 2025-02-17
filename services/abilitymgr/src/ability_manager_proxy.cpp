@@ -1064,7 +1064,7 @@ int AbilityManagerProxy::CloseUIExtensionAbilityBySCB(const sptr<IRemoteObject> 
     return reply.ReadInt32();
 }
 
-int AbilityManagerProxy::CloseUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo)
+int AbilityManagerProxy::CloseUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, uint32_t sceneFlag)
 {
     int error;
     MessageParcel data;
@@ -1086,6 +1086,10 @@ int AbilityManagerProxy::CloseUIAbilityBySCB(const sptr<SessionInfo> &sessionInf
             TAG_LOGE(AAFwkTag::ABILITYMGR, "flag write fail");
             return INNER_ERR;
         }
+    }
+    if (!data.WriteUint32(sceneFlag)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "sceneFlag write fail");
+        return INNER_ERR;
     }
 
     error = SendRequest(AbilityManagerInterfaceCode::CLOSE_UI_ABILITY_BY_SCB, data, reply, option);

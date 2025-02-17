@@ -1802,7 +1802,8 @@ int AbilityManagerStub::CloseUIAbilityBySCBInner(MessageParcel &data, MessagePar
     if (data.ReadBool()) {
         sessionInfo = data.ReadParcelable<SessionInfo>();
     }
-    int32_t result = CloseUIAbilityBySCB(sessionInfo);
+    uint32_t sceneFlag = data.ReadUint32();
+    int32_t result = CloseUIAbilityBySCB(sessionInfo, sceneFlag);
     reply.WriteInt32(result);
     return NO_ERROR;
 }
