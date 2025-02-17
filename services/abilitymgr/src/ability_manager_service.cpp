@@ -7857,11 +7857,14 @@ int AbilityManagerService::StopUser(int userId, const sptr<IUserCallback> &callb
     return 0;
 }
 
-int AbilityManagerService::LogoutUser(int32_t userId)
+int AbilityManagerService::LogoutUser(int32_t userId, const sptr<IUserCallback> &callback)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "LogoutUser in service:%{public}d", userId);
     if (IPCSkeleton::GetCallingUid() != ACCOUNT_MGR_SERVICE_UID) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "permission verification failed, not account process");
+        if (callback != nullptr) {
+            callback->OnLogoutUserDone(userId, CHECK_PERMISSION_FAILED);
+        }
         return CHECK_PERMISSION_FAILED;
     }
 
@@ -7872,7 +7875,7 @@ int AbilityManagerService::LogoutUser(int32_t userId)
     }
 
     if (userController_) {
-        auto ret = userController_->LogoutUser(userId);
+        auto ret = userController_->LogoutUser(userId, callback);
         TAG_LOGD(AAFwkTag::ABILITYMGR, "logout user return = %{public}d", ret);
         return ret;
     }

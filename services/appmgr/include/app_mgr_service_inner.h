@@ -75,6 +75,7 @@
 #include "app_jsheap_mem_info.h"
 #include "running_multi_info.h"
 #include "multi_user_config_mgr.h"
+#include "user_callback.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -190,7 +191,8 @@ public:
      * @param isNeedSendAppSpawnMsg, true send appSpawn message otherwise not send.
      * @return
      */
-    virtual void KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg = false);
+    virtual void KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg = false,
+        const sptr<OHOS::AAFwk::IUserCallback> &callback = nullptr);
 
     /**
      * KillProcessesByPids, only in process call is allowed,
@@ -1577,6 +1579,8 @@ private:
      */
     bool WaitForRemoteProcessExit(std::list<pid_t> &pids, const int64_t startTime);
 
+    bool WaitForRemoteProcessExit(std::map<pid_t, std::string> &processInfos, const int64_t startTime);
+
      /**
      * WaitProcessesExitAndKill, Wait for the process to exit normally, and kill it if time out.
      *
@@ -1588,23 +1592,11 @@ private:
      */
     int32_t WaitProcessesExitAndKill(std::list<pid_t> &pids, const int64_t startTime, const std::string& reason);
 
-    /**
-     * ProcessExist, Judge whether the process exists.
-     *
-     * @param pids, process number collection to exit.
-     *
-     * @return true, return back existed，others non-existent.
-     */
-    bool ProcessExist(pid_t pid);
+    int32_t WaitProcessesExitAndKill(std::map<pid_t, std::string> &processInfos, const int64_t startTime,
+        const std::string& reason, int32_t userId, sptr<AAFwk::IUserCallback> callback);
 
-    /**
-     * CheckAllProcessExit, Determine whether all processes exits .
-     *
-     * @param pids, process number collection to exit.
-     *
-     * @return true, Returns that no process exist in the list.
-     */
-    bool CheckAllProcessExit(std::list<pid_t> &pids);
+    void DoAllProcessExitCallback(std::map<pid_t, std::string> &processInfos, int32_t userId,
+        sptr<AAFwk::IUserCallback> callback);
 
     /**
      * SystemTimeMillisecond, Get system time.

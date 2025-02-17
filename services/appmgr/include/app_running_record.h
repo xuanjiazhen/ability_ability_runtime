@@ -685,6 +685,8 @@ public:
     void AddRenderRecord(const std::shared_ptr<RenderRecord> &record);
     void RemoveRenderRecord(const std::shared_ptr<RenderRecord> &record);
     void RemoveRenderPid(pid_t pid);
+    void GetRenderProcessInfos(std::map<pid_t, std::string> &processInfos);
+    void GetChildProcessInfos(std::map<pid_t, std::string> &processInfos);
     bool ConstainsRenderPid(pid_t renderPid);
     std::shared_ptr<RenderRecord> GetRenderRecordByPid(const pid_t pid);
     std::map<int32_t, std::shared_ptr<RenderRecord>> GetRenderRecordMap();

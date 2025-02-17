@@ -124,9 +124,11 @@ public:
      *
      * @param userId, the user id.
      * @param isNeedSendAppSpawnMsg, true send appSpawn message otherwise not send.
+     * @param callback, callback function for logout user.
      * @return Returns RESULT_OK on success, others on failure.
      */
-    virtual AppMgrResultCode KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg = false);
+    virtual AppMgrResultCode KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg = false,
+        const sptr<AAFwk::IUserCallback> &callback = nullptr);
 
     /**
      * KillProcessesByPids, only in process call is allowed,
