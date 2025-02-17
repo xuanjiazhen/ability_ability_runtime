@@ -23,6 +23,7 @@
 #include "app_mgr_constants.h"
 #include "iremote_object.h"
 #include "want.h"
+#include "hilog_tag_wrapper.h"
 
 namespace OHOS {
 namespace AppExecFwk {
