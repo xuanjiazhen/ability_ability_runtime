@@ -175,6 +175,8 @@ constexpr const char* DMS_CALLING_UID = "ohos.dms.callingUid";
 
 constexpr const char* DEBUG_APP = "debugApp";
 constexpr const char* NATIVE_DEBUG = "nativeDebug";
+constexpr const char* DEBUG_FROM = "ohos.param.debugFrom";
+const std::string DEBUG_FROM_LOCAL = "local";
 constexpr const char* AUTO_FILL_PASSWORD_TYPE = "autoFill/password";
 constexpr const char* AUTO_FILL_SMART_TYPE = "autoFill/smart";
 constexpr size_t INDEX_ZERO = 0;
@@ -520,13 +522,20 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
         want.HasParameter(Want::PARAM_RESV_WINDOW_TOP) ||
         want.HasParameter(Want::PARAM_RESV_WINDOW_HEIGHT) ||
         want.HasParameter(Want::PARAM_RESV_WINDOW_WIDTH));
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "isDebugApp=%{public}d, hasWindowOptions=%{public}d, isNativeDebugApp=%{public}d",
-        static_cast<int>(isDebugApp), static_cast<int>(hasWindowOptions), static_cast<int>(isNativeDebugApp));
-    bool checkDeveloperModeFlag = (isDebugApp || hasWindowOptions || isNativeDebugApp);
+    std::string debugFrom = want.GetStringParam(DEBUG_FROM);
+    TAG_LOGD(AAFwkTag::ABILITYMGR,
+        "isDebugApp=%{public}d, hasWindowOptions=%{public}d, isNativeDebugApp=%{public}d, debugFrom=%{public}s",
+        static_cast<int>(isDebugApp), static_cast<int>(hasWindowOptions), static_cast<int>(isNativeDebugApp),
+        debugFrom.c_str());
+    bool checkDeveloperModeFlag = (isDebugApp || hasWindowOptions || isNativeDebugApp ||
+        DEBUG_FROM_LOCAL.compare(debugFrom) == 0);
     if (checkDeveloperModeFlag) {
-        if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "not developer Mode");
-            return ERR_NOT_DEVELOPER_MODE;
+        if (DEBUG_FROM_LOCAL.compare(debugFrom) != 0) {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "not local debugging, need verify developer mode");
+            if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "not developer Mode");
+                return ERR_NOT_DEVELOPER_MODE;
+            }
         }
         int32_t err = ERR_OK;
         if (userId == DEFAULT_INVAL_VALUE) {
@@ -8649,6 +8658,17 @@ int AbilityManagerService::StartUserTest(const Want &want, const sptr<IRemoteObj
     if (checkResult != ERR_OK) {
         return checkResult;
     }
+    bool isDebugApp = want.GetBoolParam(DEBUG_APP, false);
+    std::string debugFrom = want.GetStringParam(DEBUG_FROM);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "isDebugApp=%{public}d, debugFrom=%{public}s",
+        static_cast<int>(isDebugApp), debugFrom.c_str());
+    if (debugFrom.compare(DEBUG_FROM_LOCAL) != 0 && isDebugApp) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "not local debugging, need verify developer mode");
+        if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "not developer Mode");
+            return ERR_NOT_DEVELOPER_MODE;
+        }
+    }
     int32_t appIndex = 0;
     if (!StartAbilityUtils::GetAppIndex(want, nullptr, appIndex) || appIndex != 0) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Not support app clone");
@@ -8670,7 +8690,6 @@ int AbilityManagerService::StartUserTest(const Want &want, const sptr<IRemoteObj
         }
     }
 
-    bool isDebugApp = want.GetBoolParam(DEBUG_APP, false);
     if (isDebugApp && bundleInfo.applicationInfo.appProvisionType != AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "release app not support debug");
         return ERR_NOT_IN_APP_PROVISION_MODE;
@@ -10965,7 +10984,7 @@ std::shared_ptr<AbilityDebugDeal> AbilityManagerService::ConnectInitAbilityDebug
     return abilityDebugDeal_;
 }
 
-int32_t AbilityManagerService::AttachAppDebug(const std::string &bundleName)
+int32_t AbilityManagerService::AttachAppDebug(const std::string &bundleName, const std::string &debugFrom)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
@@ -10987,7 +11006,7 @@ int32_t AbilityManagerService::AttachAppDebug(const std::string &bundleName)
     }
 
     ConnectInitAbilityDebugDeal();
-    return IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->AttachAppDebug(bundleName));
+    return IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->AttachAppDebug(bundleName, debugFrom));
 }
 
 int32_t AbilityManagerService::DetachAppDebug(const std::string &bundleName)

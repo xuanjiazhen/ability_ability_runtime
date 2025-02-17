@@ -444,7 +444,8 @@ int32_t AppSchedulerHost::HandleScheduleChangeAppGcState(MessageParcel &data, Me
 int32_t AppSchedulerHost::HandleAttachAppDebug(MessageParcel &data, MessageParcel &reply)
 {
     HITRACE_METER(HITRACE_TAG_APP);
-    AttachAppDebug();
+    auto debugFrom = data.ReadString();
+    AttachAppDebug(debugFrom);
     return NO_ERROR;
 }
 

@@ -179,6 +179,7 @@ const std::string DEFAULT_APP_FONT_SIZE_SCALE = "nonFollowSystem";
 const std::string SYSTEM_DEFAULT_FONTSIZE_SCALE = "1.0";
 const int32_t TYPE_RESERVE = 1;
 const int32_t TYPE_OTHERS = 2;
+const std::string DEBUG_FROM_LOCAL = "local";
 
 #if defined(NWEB)
 constexpr int32_t PRELOAD_DELAY_TIME = 2000;  //millisecond
@@ -1564,15 +1565,16 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         debugOption.isDebugApp = appInfo.debug;
         debugOption.isStartWithNative = appLaunchData.isNativeStart();
         debugOption.appProvisionType = applicationInfo_->appProvisionType;
+        debugOption.debugFrom = appLaunchData.GetDebugFrom();
         if (perfCmd.find(PERFCMD_PROFILE) != std::string::npos ||
             perfCmd.find(PERFCMD_DUMPHEAP) != std::string::npos) {
             TAG_LOGD(AAFwkTag::APPKIT, "perfCmd is %{public}s", perfCmd.c_str());
             debugOption.perfCmd = perfCmd;
+            runtime->SetDebugOption(debugOption);
             runtime->StartProfiler(debugOption);
         } else {
-            if (isDeveloperMode_) {
-                runtime->StartDebugMode(debugOption);
-            }
+            runtime->SetDebugOption(debugOption);
+            runtime->StartDebugMode(debugOption);
         }
 
         std::vector<HqfInfo> hqfInfos = appInfo.appQuickFix.deployedAppqfInfo.hqfInfos;
@@ -3482,10 +3484,21 @@ int32_t MainThread::ChangeAppGcState(int32_t state)
     return NO_ERROR;
 }
 
-void MainThread::AttachAppDebug()
+void MainThread::AttachAppDebug(const std::string &debugFrom)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
     SetAppDebug(AbilityRuntime::AppFreezeState::AppFreezeFlag::ATTACH_DEBUG_MODE, true);
+
+    if (debugFrom.compare(DEBUG_FROM_LOCAL) != 0) {
+        TAG_LOGE(AAFwkTag::APPKIT, "no local debug");
+        return;
+    }
+    auto &runtime = application_->GetRuntime();
+    if (runtime == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
+        return;
+    }
+    runtime->StartLocalDebugMode();
 }
 
 void MainThread::DetachAppDebug()

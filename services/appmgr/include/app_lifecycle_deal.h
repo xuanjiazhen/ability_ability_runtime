@@ -257,7 +257,7 @@ public:
      *
      * @return ERR_OK, return back success, others fail.
      */
-    int32_t AttachAppDebug();
+    int32_t AttachAppDebug(const std::string &debugFrom);
 
     /**
      * @brief detach a debugging process.

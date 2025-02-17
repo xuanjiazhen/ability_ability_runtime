@@ -1612,7 +1612,7 @@ public:
      * @param bundleName The application bundle name.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t AttachAppDebug(const std::string &bundleName) override;
+    int32_t AttachAppDebug(const std::string &bundleName, const std::string &debugFrom) override;
 
     /**
      * @brief Detach app debug.
