@@ -2562,6 +2562,8 @@ private:
     ffrt::mutex collaboratorMapLock_;
     ffrt::mutex abilityDebugDealLock_;
     ffrt::mutex shouldBlockAllAppStartMutex_;
+    ffrt::mutex startAbilityChainLock_;
+    mutable ffrt::mutex timeoutMapLock_;
     std::mutex whiteListMutex_;
 };
 }  // namespace AAFwk
