@@ -16,12 +16,12 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 module_output_path = "ability_runtime/mstabilitymgrservice"
 
-ohos_moduletest("ability_manager_client_test2") {
+ohos_moduletest("ability_manager_client_other_test") {
   module_out_path = module_output_path
 
   sources = [
     "${ability_runtime_path}/services/abilitymgr/src/ability_manager_client.cpp",
-    "ability_manager_client_test2.cpp",
+    "ability_manager_client_other_test.cpp",
   ]
 
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
@@ -61,5 +61,5 @@ ohos_moduletest("ability_manager_client_test2") {
 group("moduletest") {
   testonly = true
 
-  deps = [ ":ability_manager_client_test2" ]
+  deps = [ ":ability_manager_client_other_test" ]
 }
