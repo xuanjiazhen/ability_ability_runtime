@@ -343,10 +343,13 @@ int AbilityRecord::LoadAbility(bool isShellCall)
     }
 
     sptr<Token> callerToken = nullptr;
-    if (!callerList_.empty() && callerList_.back()) {
-        auto caller = callerList_.back()->GetCaller();
-        if (caller) {
-            callerToken = caller->GetToken();
+    {
+        std::lock_guard guard(callerListLock_);
+        if (!callerList_.empty() && callerList_.back()) {
+            auto caller = callerList_.back()->GetCaller();
+            if (caller) {
+                callerToken = caller->GetToken();
+            }
         }
     }
 
@@ -2139,6 +2142,7 @@ void AbilityRecord::RemoveCallerRequestCode(std::shared_ptr<AbilityRecord> calle
         TAG_LOGI(AAFwkTag::ABILITYMGR, "null record");
         return;
     }
+    std::lock_guard guard(callerListLock_);
     for (auto it = callerList_.begin(); it != callerList_.end(); it++) {
         if ((*it)->GetCaller() == callerAbilityRecord) {
             (*it)->RemoveHistoryRequestCode(requestCode);
@@ -2169,7 +2173,7 @@ void AbilityRecord::AddCallerRecord(const sptr<IRemoteObject> &callerToken, int 
     auto isExist = [&abilityRecord](const std::shared_ptr<CallerRecord> &callerRecord) {
         return (callerRecord->GetCaller() == abilityRecord);
     };
-
+    std::lock_guard guard(callerListLock_);
     auto record = std::find_if(callerList_.begin(), callerList_.end(), isExist);
     auto newCallerRecord = std::make_shared<CallerRecord>(requestCode, abilityRecord);
     if (record != callerList_.end()) {
@@ -2228,6 +2232,7 @@ void AbilityRecord::AddSystemAbilityCallerRecord(const sptr<IRemoteObject> &call
         std::shared_ptr<SystemAbilityCallerRecord> saCaller = callerRecord->GetSaCaller();
         return (saCaller != nullptr && saCaller->GetSrcAbilityId() == srcAbilityId);
     };
+    std::lock_guard guard(callerListLock_);
     auto record = std::find_if(callerList_.begin(), callerList_.end(), isExist);
     if (record != callerList_.end()) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "find same system ability caller record");
@@ -2248,11 +2253,13 @@ void AbilityRecord::RecordSaCallerInfo(const Want &want)
 
 std::list<std::shared_ptr<CallerRecord>> AbilityRecord::GetCallerRecordList() const
 {
+    std::lock_guard guard(callerListLock_);
     return callerList_;
 }
 
 std::shared_ptr<AbilityRecord> AbilityRecord::GetCallerRecord() const
 {
+    std::lock_guard guard(callerListLock_);
     if (callerList_.empty()) {
         return nullptr;
     }
@@ -2264,6 +2271,7 @@ std::shared_ptr<AbilityRecord> AbilityRecord::GetCallerRecord() const
 
 std::shared_ptr<CallerAbilityInfo> AbilityRecord::GetCallerInfo() const
 {
+    std::lock_guard guard(callerListLock_);
     if (callerList_.empty() || callerList_.back() == nullptr) {
         return saCallerInfo_;
     }
@@ -3370,12 +3378,15 @@ void AbilityRecord::GrantUriPermission(Want &want, std::string targetBundleName,
         tokenId = specifyTokenId_;
         specifyTokenId_ = 0;
     }
-    // reject sandbox to grant uri permission by start ability
-    if (!callerList_.empty() && callerList_.back()) {
-        auto caller = callerList_.back()->GetCaller();
-        if (caller && caller->appIndex_ > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "sandbox can not grant UriPermission");
-            return;
+    {
+        std::lock_guard guard(callerListLock_);
+        // reject sandbox to grant uri permission by start ability
+        if (!callerList_.empty() && callerList_.back()) {
+            auto caller = callerList_.back()->GetCaller();
+            if (caller && caller->appIndex_ > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "sandbox can not grant UriPermission");
+                return;
+            }
         }
     }
     auto callerTokenId = tokenId > 0 ? tokenId :

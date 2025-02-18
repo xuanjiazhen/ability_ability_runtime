@@ -154,7 +154,9 @@ private:
         };
         NapiAsyncTask::CompleteCallback complete =
         [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
-            if (*innerErrCode == ERR_OK) {
+            if (innerErrCode == nullptr) {
+                task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+            } else if (*innerErrCode == ERR_OK) {
                 task.ResolveWithNoError(env, CreateJsUndefined(env));
             } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
                 task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
@@ -385,7 +387,7 @@ private:
             return CreateJsUndefined(env);
         }
         int64_t connectId = connection->GetConnectionId();
-        auto innerErrorCode = std::make_shared<int>(ERR_OK);
+        auto innerErrorCode = std::make_shared<int32_t>(ERR_OK);
         auto execute = GetConnectAbilityExecFunc(want, connection, connectId, innerErrorCode);
         NapiAsyncTask::CompleteCallback complete = [this, connection, connectId, innerErrorCode](napi_env env,
             NapiAsyncTask& task, int32_t status) {
@@ -694,6 +696,5 @@ void JSUIServiceExtensionConnection::CallJsFailed(int32_t errorCode)
     napi_call_function(env_, obj, method, ARGC_ONE, argv, nullptr);
     TAG_LOGD(AAFwkTag::UISERVC_EXT, "CallJsFailed end");
 }
-
 } // namespace AbilityRuntime
 }  // namespace OHOS

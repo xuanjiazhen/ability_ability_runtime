@@ -1368,6 +1368,7 @@ void UIAbilityLifecycleManager::CompleteBackground(const std::shared_ptr<Ability
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    CHECK_POINTER(abilityRecord);
     if (abilityRecord->GetAbilityState() != AbilityState::BACKGROUNDING) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed, state: %{public}d, not complete background",
             abilityRecord->GetAbilityState());
@@ -1706,6 +1707,7 @@ int32_t UIAbilityLifecycleManager::GetReusedCollaboratorPersistentId(const Abili
 bool UIAbilityLifecycleManager::CheckProperties(const std::shared_ptr<AbilityRecord> &abilityRecord,
     const AbilityRequest &abilityRequest, AppExecFwk::LaunchMode launchMode) const
 {
+    CHECK_POINTER_RETURN_BOOL(abilityRecord);
     const auto& abilityInfo = abilityRecord->GetAbilityInfo();
     int32_t appIndex = 0;
     (void)AbilityRuntime::StartupUtil::GetAppIndex(abilityRequest.want, appIndex);

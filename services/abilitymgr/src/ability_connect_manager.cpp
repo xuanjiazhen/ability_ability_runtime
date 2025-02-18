@@ -400,7 +400,7 @@ int32_t AbilityConnectManager::GetOrCreateExtensionRecord(const AbilityRequest &
     AppExecFwk::ElementName element(abilityRequest.abilityInfo.deviceId, abilityRequest.abilityInfo.bundleName,
         abilityRequest.abilityInfo.name, abilityRequest.abilityInfo.moduleName);
     CHECK_POINTER_AND_RETURN(uiExtensionAbilityRecordMgr_, ERR_NULL_OBJECT);
-    if (uiExtensionAbilityRecordMgr_->IsBelongToManager(abilityRequest.abilityInfo)) {
+    if (uiExtensionAbilityRecordMgr_->IsBelongToManager(abilityRequest.abilityInfo) && extensionRecord != nullptr) {
         int32_t ret = uiExtensionAbilityRecordMgr_->GetOrCreateExtensionRecord(
             abilityRequest, hostBundleName, extensionRecord, isLoaded);
         if (ret != ERR_OK) {
@@ -488,6 +488,10 @@ void AbilityConnectManager::GetConnectRecordListFromMap(
     const sptr<IAbilityConnection> &connect, std::list<std::shared_ptr<ConnectionRecord>> &connectRecordList)
 {
     std::lock_guard lock(connectMapMutex_);
+    if (connect == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "connect null");
+        return;
+    }
     auto connectMapIter = connectMap_.find(connect->AsObject());
     if (connectMapIter != connectMap_.end()) {
         connectRecordList = connectMapIter->second;
@@ -547,6 +551,10 @@ int AbilityConnectManager::PreloadUIExtensionAbilityInner(const AbilityRequest &
     std::shared_ptr<AbilityRecord> targetService = extensionRecord->abilityRecord_;
     AppExecFwk::ElementName element(abilityRequest.abilityInfo.deviceId, abilityRequest.abilityInfo.bundleName,
         abilityRequest.abilityInfo.name, abilityRequest.abilityInfo.moduleName);
+    if (targetService == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "targetService null");
+        return ERR_INVALID_VALUE;
+    }
     std::string extensionRecordKey = element.GetURI() + std::to_string(targetService->GetUIExtensionAbilityId());
     targetService->SetURI(extensionRecordKey);
     AddToServiceMap(extensionRecordKey, targetService);
@@ -1444,6 +1452,10 @@ std::list<std::shared_ptr<ConnectionRecord>> AbilityConnectManager::GetConnectRe
 {
     std::lock_guard guard(connectMapMutex_);
     std::list<std::shared_ptr<ConnectionRecord>> connectList;
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "callback null");
+        return connectList;
+    }
     auto connectMapIter = connectMap_.find(callback->AsObject());
     if (connectMapIter != connectMap_.end()) {
         connectList = connectMapIter->second;
@@ -1470,6 +1482,10 @@ void AbilityConnectManager::LoadAbility(const std::shared_ptr<AbilityRecord> &ab
     sptr<Token> token = abilityRecord->GetToken();
     sptr<Token> perToken = nullptr;
     if (abilityRecord->IsCreateByConnect()) {
+        if (abilityRecord->GetConnectingRecord() == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityRecord->GetConnectingRecord() fail");
+            return;
+        }
         perToken = iface_cast<Token>(abilityRecord->GetConnectingRecord()->GetToken());
     } else {
         auto callerList = abilityRecord->GetCallerRecordList();
@@ -1803,6 +1819,10 @@ int AbilityConnectManager::DispatchInactive(const std::shared_ptr<AbilityRecord>
         ConnectAbility(abilityRecord);
     } else if (abilityRecord->GetWant().GetBoolParam(IS_PRELOAD_UIEXTENSION_ABILITY, false)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "IS_PRELOAD_UIEXTENSION_ABILITY");
+        if (uiExtensionAbilityRecordMgr_ == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "uiExtensionAbilityRecordMgr_ null");
+            return ERR_INVALID_VALUE;
+        }
         auto ret = uiExtensionAbilityRecordMgr_->AddPreloadUIExtensionRecord(abilityRecord);
         if (ret != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "AddPreloadUIExtensionRecord error");
@@ -2046,6 +2066,10 @@ void AbilityConnectManager::RemoveConnectionRecordFromMap(std::shared_ptr<Connec
         auto &connectList = connectCallback.second;
         auto connectRecord = std::find(connectList.begin(), connectList.end(), connection);
         if (connectRecord != connectList.end()) {
+            if (*connectRecord == nullptr) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "*connectRecord null");
+                return;
+            }
             TAG_LOGD(AAFwkTag::ABILITYMGR, "connrecord(%{public}d)", (*connectRecord)->GetRecordId());
             connectList.remove(connection);
             if (connectList.empty()) {
@@ -2138,6 +2162,10 @@ void AbilityConnectManager::HandleCallBackDiedTask(const sptr<IRemoteObject> &co
         if (it != connectMap_.end()) {
             ConnectListType connectRecordList = it->second;
             for (auto &connRecord : connectRecordList) {
+                if (connRecord == nullptr) {
+                    TAG_LOGE(AAFwkTag::ABILITYMGR, "connRecord null");
+                    return;
+                }
                 connRecord->ClearConnCallBack();
             }
         } else {
@@ -2302,6 +2330,10 @@ void AbilityConnectManager::ClearPreloadUIExtensionRecord(const std::shared_ptr<
     CHECK_POINTER(abilityRecord);
     auto extensionRecordId = abilityRecord->GetUIExtensionAbilityId();
     std::string hostBundleName;
+    if (uiExtensionAbilityRecordMgr_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "uiExtensionAbilityRecordMgr_ null");
+        return;
+    }
     auto ret = uiExtensionAbilityRecordMgr_->GetHostBundleNameForExtensionId(extensionRecordId, hostBundleName);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "GetHostBundleNameForExtensionId fail");
@@ -2374,6 +2406,7 @@ void AbilityConnectManager::HandleAbilityDiedTask(
     abilityRecord->SetConnRemoteObject(nullptr);
     ConnectListType connlist = abilityRecord->GetConnectRecordList();
     for (auto &connectRecord : connlist) {
+        CHECK_POINTER(connectRecord);
         TAG_LOGW(AAFwkTag::ABILITYMGR, "record complete disconnect. recordId:%{public}d",
             connectRecord->GetRecordId());
         RemoveExtensionDelayDisconnectTask(connectRecord);
@@ -2741,6 +2774,10 @@ void AbilityConnectManager::GetExtensionRunningInfo(std::shared_ptr<AbilityRecor
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     ExtensionRunningInfo extensionInfo;
     AppExecFwk::RunningProcessInfo processInfo;
+    if (abilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityRecord null");
+        return;
+    }
     extensionInfo.extension = abilityRecord->GetElementName();
     extensionInfo.type = abilityRecord->GetAbilityInfo().extensionAbilityType;
     DelayedSingleton<AppScheduler>::GetInstance()->
@@ -3114,6 +3151,10 @@ void AbilityConnectManager::GetUIExtensionCallerTokenList(const std::shared_ptr<
     std::list<sptr<IRemoteObject>> &callerList)
 {
     CHECK_POINTER(uiExtensionAbilityRecordMgr_);
+    if (uiExtensionAbilityRecordMgr_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "uiExtensionAbilityRecordMgr_ null");
+        return;
+    }
     uiExtensionAbilityRecordMgr_->GetCallerTokenList(abilityRecord, callerList);
 }
 

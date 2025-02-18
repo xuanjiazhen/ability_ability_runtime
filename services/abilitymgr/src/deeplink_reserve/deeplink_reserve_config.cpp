@@ -223,7 +223,7 @@ void DeepLinkReserveConfig::LoadReservedUrilItem(const nlohmann::json &jsonUriOb
 
 bool DeepLinkReserveConfig::LoadReservedUriList(const nlohmann::json &object)
 {
-    if (!object.contains(DEEPLINK_RESERVED_URI_NAME)) {
+    if (!object.contains(DEEPLINK_RESERVED_URI_NAME) && !object.at(DEEPLINK_RESERVED_URI_NAME).is_array()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "uri config absent");
         return false;
     }
