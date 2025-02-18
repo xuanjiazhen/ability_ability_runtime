@@ -166,8 +166,10 @@ constexpr const char* KEY_VISIBLE_ID = "ohos.anco.param.visible";
 constexpr const char* START_ABILITY_TYPE = "ABILITY_INNER_START_WITH_ACCOUNT";
 constexpr const char* BUNDLE_NAME_DIALOG = "com.ohos.amsdialog";
 constexpr const char* STR_PHONE = "phone";
+constexpr const char* BROKER_NAME = "broker";
 constexpr const char* PARAM_RESV_ANCO_CALLER_UID = "ohos.anco.param.callerUid";
 constexpr const char* PARAM_RESV_ANCO_CALLER_BUNDLENAME = "ohos.anco.param.callerBundleName";
+constexpr const char* PARAM_RESV_ANCO_IS_NEED_UPDATE_NAME = "ohos.anco.param.isNeedUpdateName";
 // Distributed continued session Id
 constexpr const char* DMS_CONTINUED_SESSION_ID = "ohos.dms.continueSessionId";
 constexpr const char* DMS_PERSISTENT_ID = "ohos.dms.persistentId";
@@ -1313,6 +1315,10 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
             TAG_LOGW(AAFwkTag::ABILITYMGR, "startAbilityInner, remove continueSessionId and persistentId");
             abilityRequest.want.RemoveParam(DMS_CONTINUED_SESSION_ID);
             abilityRequest.want.RemoveParam(DMS_PERSISTENT_ID);
+        }
+        if (abilityRequest.want.GetBoolParam(PARAM_RESV_ANCO_IS_NEED_UPDATE_NAME, false)) {
+            abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_ABILITY_NAME, SHELL_ASSISTANT);
+            abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, );
         }
         auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
