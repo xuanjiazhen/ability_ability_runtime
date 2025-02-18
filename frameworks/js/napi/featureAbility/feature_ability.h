@@ -224,7 +224,7 @@ napi_value GetDataAbilityHelperPromise(napi_env env, DataAbilityHelperCB *dataAb
  * @param env The environment that the Node-API call is invoked under.
  * @param data Point to asynchronous processing of data.
  */
-void GetDataAbilityHelperAsyncCompleteCB(napi_env env, napi_status status, void *data);
+void GetDataAbilityHelperAsyncCompleteCB(napi_env env, DataAbilityHelperCB *data);
 
 /**
  * @brief The callback at the end of the Promise callback.

@@ -1006,8 +1006,6 @@ napi_value GetDataAbilityHelperAsync(
         TAG_LOGE(AAFwkTag::FA, "null param");
         return nullptr;
     }
-    napi_value resourceName = nullptr;
-    NAPI_CALL(env, napi_create_string_latin1(env, __func__, NAPI_AUTO_LENGTH, &resourceName));
 
     napi_valuetype valuetype = napi_undefined;
     NAPI_CALL(env, napi_typeof(env, args[argCallback], &valuetype));
@@ -1015,16 +1013,12 @@ napi_value GetDataAbilityHelperAsync(
         NAPI_CALL(env, napi_create_reference(env, args[argCallback], 1, &dataAbilityHelperCB->cbBase.cbInfo.callback));
     }
 
-    NAPI_CALL(env,
-        napi_create_async_work(env, nullptr, resourceName,
-            [](napi_env env, void *data) {
-                TAG_LOGI(AAFwkTag::FA, "worker pool thread execute");
-            },
-            GetDataAbilityHelperAsyncCompleteCB,
-            static_cast<void *>(dataAbilityHelperCB),
-            &dataAbilityHelperCB->cbBase.asyncWork));
-    NAPI_CALL(env, napi_queue_async_work_with_qos(env, dataAbilityHelperCB->cbBase.asyncWork,
-        napi_qos_user_initiated));
+    auto res = napi_send_event(env,
+        [env, dataAbilityHelperCB] () {GetDataAbilityHelperAsyncCompleteCB(env, dataAbilityHelperCB);},
+        napi_eprio_immediate);
+    if (res != napi_status::napi_ok) {
+        TAG_LOGE(AAFwkTag::FA, "napi_send_event failed");
+    }
     napi_value result = nullptr;
     NAPI_CALL(env, napi_get_null(env, &result));
     TAG_LOGI(AAFwkTag::FA, "end");
@@ -1059,10 +1053,9 @@ napi_value GetDataAbilityHelperPromise(napi_env env, DataAbilityHelperCB *dataAb
     return promise;
 }
 
-void GetDataAbilityHelperAsyncCompleteCB(napi_env env, napi_status status, void *data)
+void GetDataAbilityHelperAsyncCompleteCB(napi_env env, DataAbilityHelperCB *dataAbilityHelperCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
-    DataAbilityHelperCB *dataAbilityHelperCB = static_cast<DataAbilityHelperCB *>(data);
     if (dataAbilityHelperCB == nullptr) {
         TAG_LOGE(AAFwkTag::FA, "null dataAbilityHelperCB");
         return;
