@@ -449,6 +449,23 @@ HWTEST_F(UIExtensionContextTest, StartUIServiceExtension_0100, TestSize.Level1)
 }
 
 /**
+ * @tc.number: SetScreenMode_0100
+ * @tc.name: SetScreenMode
+ * @tc.desc: SetScreenMode.
+ */
+HWTEST_F(UIExtensionContextTest, SetScreenMode_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SetScreenMode_0100 start");
+
+    auto context = std::make_shared<UIExtensionContext>();
+    int32_t mode = 1;
+    context->SetScreenMode(mode);
+    EXPECT_EQ(context->screenMode_, mode);
+
+    TAG_LOGI(AAFwkTag::TEST, "SetScreenMode_0100 end");
+}
+
+/**
  * @tc.number: GetScreenMode_0100
  * @tc.name: GetScreenMode
  * @tc.desc: GetScreenMode.
@@ -456,12 +473,13 @@ HWTEST_F(UIExtensionContextTest, StartUIServiceExtension_0100, TestSize.Level1)
 HWTEST_F(UIExtensionContextTest, GetScreenMode_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "GetScreenMode_0100 start");
+
     auto context = std::make_shared<UIExtensionContext>();
-    EXPECT_NE(context, nullptr);
-    int32_t screenMode = 2;
-    context->SetScreenMode(screenMode);
-    auto ans = context->GetScreenMode();
-    EXPECT_EQ(ans, screenMode);
+    int32_t mode = 1;
+    context->screenMode_ = mode;
+    auto test = context->GetScreenMode();
+    EXPECT_EQ(test, mode);
+
     TAG_LOGI(AAFwkTag::TEST, "GetScreenMode_0100 end");
 }
 

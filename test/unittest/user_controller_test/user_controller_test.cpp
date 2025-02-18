@@ -53,7 +53,6 @@ class TestUserCallback : public UserCallbackStub {
 public:
     void OnStopUserDone(int userId, int errcode) override;
     void OnStartUserDone(int userId, int errcode) override;
-    void OnLogoutUserDone(int userId, int errcode) override;
 
     int errCode_ = -1;
 };
@@ -64,8 +63,6 @@ void TestUserCallback::OnStartUserDone(int userId, int errcode)
 }
 
 void TestUserCallback::OnStopUserDone(int userId, int errcode) {}
-
-void TestUserCallback::OnLogoutUserDone(int userId, int errcode) {}
 
 /**
  * @tc.name: UserItemSetState_0100
@@ -162,7 +159,7 @@ HWTEST_F(UserControllerTest, StopUserTest_0300, TestSize.Level0)
 HWTEST_F(UserControllerTest, LogoutUserTest_0100, TestSize.Level0)
 {
     UserController userController;
-    auto result = userController.LogoutUser(-1, nullptr);
+    auto result = userController.LogoutUser(-1);
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         EXPECT_EQ(result, INVALID_USERID_VALUE);
     }
@@ -178,7 +175,7 @@ HWTEST_F(UserControllerTest, LogoutUserTest_0100, TestSize.Level0)
 HWTEST_F(UserControllerTest, LogoutUserTest_0200, TestSize.Level0)
 {
     UserController userController;
-    auto result = userController.LogoutUser(666, nullptr);
+    auto result = userController.LogoutUser(666);
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         EXPECT_EQ(result, INVALID_USERID_VALUE);
     }
@@ -195,7 +192,7 @@ HWTEST_F(UserControllerTest, LogoutUserTest_0300, TestSize.Level0)
 {
     UserController userController;
     userController.GetOrCreateUserItem(1000);
-    auto result = userController.LogoutUser(1000, nullptr);
+    auto result = userController.LogoutUser(1000);
     EXPECT_TRUE(result = 1000);
 }
 
