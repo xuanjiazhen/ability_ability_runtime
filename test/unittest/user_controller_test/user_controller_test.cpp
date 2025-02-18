@@ -159,7 +159,7 @@ HWTEST_F(UserControllerTest, StopUserTest_0300, TestSize.Level0)
 HWTEST_F(UserControllerTest, LogoutUserTest_0100, TestSize.Level0)
 {
     UserController userController;
-    auto result = userController.LogoutUser(-1);
+    auto result = userController.LogoutUser(-1, nullptr);
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         EXPECT_EQ(result, INVALID_USERID_VALUE);
     }
@@ -175,7 +175,7 @@ HWTEST_F(UserControllerTest, LogoutUserTest_0100, TestSize.Level0)
 HWTEST_F(UserControllerTest, LogoutUserTest_0200, TestSize.Level0)
 {
     UserController userController;
-    auto result = userController.LogoutUser(666);
+    auto result = userController.LogoutUser(666, nullptr);
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         EXPECT_EQ(result, INVALID_USERID_VALUE);
     }
@@ -192,7 +192,7 @@ HWTEST_F(UserControllerTest, LogoutUserTest_0300, TestSize.Level0)
 {
     UserController userController;
     userController.GetOrCreateUserItem(1000);
-    auto result = userController.LogoutUser(1000);
+    auto result = userController.LogoutUser(1000, nullptr);
     EXPECT_TRUE(result = 1000);
 }
 
