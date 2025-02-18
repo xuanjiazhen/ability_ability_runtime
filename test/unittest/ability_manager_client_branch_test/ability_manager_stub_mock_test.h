@@ -229,7 +229,7 @@ public:
     {
         return 0;
     }
-    int LogoutUser(int32_t userId, sptr<IUserCallback> callback = nullptr) override
+    int LogoutUser(int32_t userId) override
     {
         return 0;
     }
