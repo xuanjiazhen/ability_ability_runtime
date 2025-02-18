@@ -1497,7 +1497,7 @@ HWTEST_F(JsRuntimeTest, RegisterQuickFixQueryFunc_0200, TestSize.Level1)
  * @tc.desc: JsRuntime test for UpdatePkgContextInfoJson and UpdatePkgContextInfoJsonEx.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, UpdatePkgContextInfoJson_0100, TestSize.Level1)
+HWTEST_F(JsRuntimeTest, UpdatePkgContextInfoJson_0100andUpdatePkgContextInfoJsonEx_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "UpdatePkgContextInfoJson_0100 start");
     auto jsRuntime = std::make_unique<JsRuntime>();
@@ -1509,6 +1509,9 @@ HWTEST_F(JsRuntimeTest, UpdatePkgContextInfoJson_0100, TestSize.Level1)
     panda::RuntimeOption options;
     jsRuntime->jsEnv_->vm_ = panda::JSNApi::CreateJSVM(options);
     jsRuntime->UpdatePkgContextInfoJsonEx(moduleName, hapPath, packageName);
+    panda::JSNApi::DestroyJSVM(jsRuntime->jsEnv_->vm_);
+    jsRuntime->jsEnv_->vm_ = nullptr;
+    EXPECT_EQ(jsRuntime->jsEnv_->vm_, nullptr);
 
     jsRuntime->pkgContextInfoJsonStringMap_.insert(std::make_pair(moduleName, "test2"));
     jsRuntime->UpdatePkgContextInfoJson(moduleName, hapPath, packageName);
@@ -1521,7 +1524,7 @@ HWTEST_F(JsRuntimeTest, UpdatePkgContextInfoJson_0100, TestSize.Level1)
  * @tc.desc: JsRuntime test for JsRuntimePreloadModule and DoCleanWorkAfterStageCleaned.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimePreloadModule_0100, TestSize.Level1)
+HWTEST_F(JsRuntimeTest, JsRuntimePreloadModule_0100andDoCleanWorkAfterStageCleaned_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "PreloadModule_0100 start");
     std::unique_ptr<JsRuntime> jsRuntime = JsRuntime::Create(options_);
@@ -1543,12 +1546,11 @@ HWTEST_F(JsRuntimeTest, JsRuntimePreloadModule_0100, TestSize.Level1)
  * @tc.desc: JsRuntime test for JsRuntimePreloadMainAbility and SetStopPreloadSoCallback.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimePreloadMainAbility_0100, TestSize.Level1)
+HWTEST_F(JsRuntimeTest, JsRuntimePreloadMainAbility_0100andSetStopPreloadSoCallback_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "PreloadMainAbility_0100 start");
     std::unique_ptr<JsRuntime> jsRuntime = JsRuntime::Create(options_);
     EXPECT_TRUE(jsRuntime != nullptr);
-    jsRuntime->DoCleanWorkAfterStageCleaned();
     std::string moduleName = TEST_MODULE_NAME;
     std::string srcPath = TEST_MODULE_PATH;
     std::string hapPath = TEST_HAP_PATH;
@@ -1556,10 +1558,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimePreloadMainAbility_0100, TestSize.Level1)
     bool isEsMode = true;
     jsRuntime->PreloadMainAbility(moduleName, srcPath, hapPath, isEsMode, srcEntrance);
 
-    auto callBack = []() {return;};
-    jsRuntime->jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
-    panda::RuntimeOption options;
-    jsRuntime->jsEnv_->vm_ = panda::JSNApi::CreateJSVM(options);
+    auto callBack = []() {};
     jsRuntime->SetStopPreloadSoCallback(callBack);
     EXPECT_EQ(jsRuntime->preloadList_.size(), 1);
     jsRuntime.reset();
