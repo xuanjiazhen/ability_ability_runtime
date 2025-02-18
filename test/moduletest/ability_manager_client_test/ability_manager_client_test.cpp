@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,19 +15,26 @@
 
 #include <gtest/gtest.h>
 
+#define private public
+#define protected public
 #include "ability_manager_client.h"
+#undef private
+#undef protected
 #include "ability_manager_errors.h"
 #include "ability_state_data.h"
 #include "element_name.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_object_stub.h"
+#include "scene_board_judgement.h"
 #include "start_options.h"
 #include "status_bar_delegate_proxy.h"
 #include "ui_extension/ui_extension_session_info.h"
 #include "want.h"
+#include "mock_iqueryermsobserver.h"
 
 using namespace testing;
 using namespace testing::ext;
+using AtomicServiceStartupRule = OHOS::AbilityRuntime::AtomicServiceStartupRule;
 
 namespace OHOS {
 namespace AAFwk {
@@ -149,6 +156,7 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_RegisterStatusBarDelegat
     sptr<IRemoteObject> impl(new IPCObjectStub());
     sptr<AbilityRuntime::IStatusBarDelegate> delegate(new AbilityRuntime::StatusBarDelegateProxy(impl));
     auto result = AbilityManagerClient::GetInstance()->RegisterStatusBarDelegate(delegate);
+    EXPECT_EQ(result, ERR_WRONG_INTERFACE_CALL);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_RegisterStatusBarDelegate_001 result %{public}d", result);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_RegisterStatusBarDelegate_001 end");
 }
@@ -161,7 +169,9 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_RegisterStatusBarDelegat
 HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_ScheduleClearRecoveryPageStack_001, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_ScheduleClearRecoveryPageStack_001 start");
-    AbilityManagerClient::GetInstance()->ScheduleClearRecoveryPageStack();
+    std::shared_ptr<AbilityManagerClient> client = AbilityManagerClient::GetInstance();
+    client->ScheduleClearRecoveryPageStack();
+    EXPECT_TRUE(client != nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_ScheduleClearRecoveryPageStack_001 end");
 }
 
@@ -177,6 +187,9 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_IsValidMissionIds_001, T
     missionIds.push_back(ABILITYID);
     std::vector<MissionValidResult> results;
     auto result = AbilityManagerClient::GetInstance()->IsValidMissionIds(missionIds, results);
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        EXPECT_EQ(result, ERR_INVALID_VALUE);
+    }
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_IsValidMissionIds_001 result %{public}d", result);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_IsValidMissionIds_001 end");
 }
@@ -191,6 +204,7 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_GetForegroundUIAbilities
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_GetForegroundUIAbilities_001 start");
     std::vector<AppExecFwk::AbilityStateData> list;
     auto result = AbilityManagerClient::GetInstance()->GetForegroundUIAbilities(list);
+    EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_GetForegroundUIAbilities_001 result %{public}d", result);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_GetForegroundUIAbilities_001 end");
 }
@@ -207,6 +221,7 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_GetUIExtensionSessionInf
     UIExtensionSessionInfo uiExtensionSessionInfo;
     auto result = AbilityManagerClient::GetInstance()->GetUIExtensionSessionInfo(token_,
         uiExtensionSessionInfo, USER_ID);
+    EXPECT_NE(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_GetUIExtensionSessionInfo_001 result %{public}d", result);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_GetUIExtensionSessionInfo_001 end");
 }
@@ -223,6 +238,7 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_StartShortCut_001, TestS
     StartOptions startOptions;
     SetWant(want, "bundleName");
     auto result = AbilityManagerClient::GetInstance()->StartShortcut(want, startOptions);
+    EXPECT_EQ(result, ERR_NOT_SYSTEM_APP);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_StartShortCut_001 result %{public}d", result);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_StartShortCut_001 end");
 }
@@ -235,9 +251,11 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_StartShortCut_001, TestS
 HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_NotifyFrozenProcessByRSS_001, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_NotifyFrozenProcessByRSS_001 start");
+    std::shared_ptr<AbilityManagerClient> client = AbilityManagerClient::GetInstance();
     std::vector<int32_t> pidList;
     pidList.push_back(19082);
-    AbilityManagerClient::GetInstance()->NotifyFrozenProcessByRSS(pidList, UID);
+    client->NotifyFrozenProcessByRSS(pidList, UID);
+    EXPECT_TRUE(client != nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_NotifyFrozenProcessByRSS_001 end");
 }
 
@@ -251,6 +269,7 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_PreStartMission_001, Tes
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_PreStartMission_001 start");
     auto result = AbilityManagerClient::GetInstance()->PreStartMission("com.ix.hiservcie", "entry",
         "ServiceAbility", "2024-07-19 10:00:00");
+    EXPECT_NE(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_PreStartMission_001 result %{public}d", result);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_PreStartMission_001 end");
 }
@@ -268,8 +287,86 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_OpenLink, TestSize.Level
     SetWant(want, "bundleName");
     auto result = AbilityManagerClient::GetInstance()->OpenLink(want, token_,
         USER_ID, REQUESTCODE);
+    EXPECT_EQ(result, ERR_INVALID_CALLER);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_OpenLink result %{public}d", result);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_OpenLink end");
+}
+
+/**
+ * @tc.name: AbilityManagerClient_StartSelfUIAbility_0100
+ * @tc.desc: StartSelfUIAbility
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, StartSelfUIAbility_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbility_0100 start");
+    AAFwk::Want want;
+    auto result = AbilityManagerClient::GetInstance()->StartSelfUIAbility(want);
+    sptr<IRemoteObject> token_(new IPCObjectStub());
+    AbilityManagerClient::GetInstance()->SubmitSaveRecoveryInfo(token_);
+    EXPECT_NE(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbility_0100 end");
+}
+
+/**
+ * @tc.name: AddQueryERMSObserver_0100
+ * @tc.name: AbilityManagerClient_AddQueryERMSObserver_0100
+ * @tc.desc: AddQueryERMSObserver
+ */
+HWTEST_F(AbilityManagerClientTest, AddQueryERMSObserver_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AddQueryERMSObserver_0100start");
+
+    sptr<IRemoteObject> callertoken(new IPCObjectStub());
+    sptr<AbilityRuntime::IQueryERMSObserver> observer(new AbilityRuntime::IQueryERMSObserverMock());
+    auto result = AbilityManagerClient::GetInstance()->AddQueryERMSObserver(callertoken, observer);
+    EXPECT_NE(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AddQueryERMSObserver_0100 end");
+}
+
+/**
+  * @tc.name: AbilityManagerClient_QueryAtomicServiceStartupRule_0100
+ * @tc.desc: QueryAtomicServiceStartupRule
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, QueryAtomicServiceStartupRule_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "QueryAtomicServiceStartupRule_0100 start");
+    sptr<IRemoteObject> callertoken(new IPCObjectStub());
+    std::string appId = "0100";
+    std::string startTime = "12:00";
+    AtomicServiceStartupRule rule;
+    auto result = AbilityManagerClient::GetInstance()->QueryAtomicServiceStartupRule(callertoken,
+        appId, startTime, rule);
+    EXPECT_NE(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "QueryAtomicServiceStartupRule_0100 end");
+}
+
+/**
+ * @tc.name: AbilityManagerClient_KillProcessWithReason_0100
+ * @tc.name: AbilityManagerClient_KillProcessWithPrepareTerminateDone_0100
+ * @tc.desc: KillProcessWithReason and KillProcessWithPrepareTerminateDone
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, KillProcessWithReason_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "KillProcessWithReason_0100 start");
+
+    std::string moduleName = "com.ohos.example.moduleName";
+    int32_t prepareTermination = 1;
+    bool isExist = false;
+    AbilityManagerClient::GetInstance()->KillProcessWithPrepareTerminateDone(moduleName,
+        prepareTermination, isExist);
+
+    int32_t pid = 1;
+    AAFwk::ExitReason reason;
+    std::shared_ptr<AbilityManagerClient> client = std::make_shared<AbilityManagerClient>();
+    client->KillProcessWithReason(pid, reason);
+    EXPECT_TRUE(client != nullptr);
+    auto result = AbilityManagerClient::GetInstance()->KillProcessWithReason(pid, reason);
+    EXPECT_EQ(result, ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "KillProcessWithReason_0100 end");
 }
 }  // namespace AAFwk
 }  // namespace OHOS

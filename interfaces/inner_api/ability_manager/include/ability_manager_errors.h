@@ -661,6 +661,26 @@ enum {
      */
     ERR_UI_ABILITY_IS_STARTING = 2097280,
 
+    /*
+     * Result (2097281) for setSessionManagerService failed.
+     */
+    SET_SMS_FAILED = 2097281,
+
+    /*
+     * Result (2097282) for get appSpawn client failed.
+     */
+    ERR_GET_SPAWN_CLIENT_FAILED = 2097282,
+
+    /*
+     * Result (2097283) for create start msg failed.
+     */
+    ERR_CREATE_START_MSG_FAILED = 2097283,
+
+    /*
+     * Result (2097284) for create apawn process failed.
+     */
+    ERR_SAPAWN_PROCESS_FAILED = 2097284,
+
     /**
      * Native error(3000000) for target bundle not exist.
      */
@@ -836,6 +856,11 @@ enum NativeFreeInstallError {
      * Result(29360205) for continue freeinstall failed.
      */
     CONTINUE_FREE_INSTALL_FAILED = 29360205,
+
+    /*
+     * Result(29360206) for atomic service minimized.
+     */
+    ATOMIC_SERVICE_MINIMIZED = 29360206,
 
     /**
      * Undefine error code.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -383,6 +383,9 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_KillProcessesByUserId_001, TestSize.Leve
 
     int ret = appMgrClient->KillProcessesByUserId(ERROR_USER_ID);
     EXPECT_EQ(ret, AppMgrResultCode::RESULT_OK);
+
+    ret = appMgrClient->KillProcessesByUserId(ERROR_USER_ID, true);
+    EXPECT_EQ(ret, AppMgrResultCode::RESULT_OK);
 }
 
 /**
@@ -656,7 +659,8 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_UpdateApplicationInfoInstalled_001, Test
 
     std::string bundleName = "";
     int uid = 1;
-    appMgrClient->UpdateApplicationInfoInstalled(bundleName, uid);
+    std::string moduleName = "";
+    appMgrClient->UpdateApplicationInfoInstalled(bundleName, uid, moduleName);
 }
 
 /**
@@ -1470,19 +1474,6 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_KillProcessDependedOnWeb_001, TestSize.L
     EXPECT_NE(appMgrClient, nullptr);
     appMgrClient->KillProcessDependedOnWeb();
     EXPECT_NE(appMgrClient->GetRemoteObject(), nullptr);
-}
-
-/**
- * @tc.name: AppMgrClient_SendAppSpawnUninstallDebugHapMsg_001
- * @tc.desc: SendAppSpawnUninstallDebugHapMsg
- * @tc.type: FUNC
- */
-HWTEST_F(AppMgrClientTest, AppMgrClient_SendAppSpawnUninstallDebugHapMsg_001, TestSize.Level0)
-{
-    auto appMgrClient = std::make_unique<AppMgrClient>();
-    EXPECT_NE(appMgrClient, nullptr);
-    int ret = appMgrClient->SendAppSpawnUninstallDebugHapMsg(ERROR_USER_ID);
-    EXPECT_EQ(ret, AppMgrResultCode::RESULT_OK);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

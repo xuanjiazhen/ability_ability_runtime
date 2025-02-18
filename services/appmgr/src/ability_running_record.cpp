@@ -23,7 +23,7 @@ constexpr const char* SCENEBOARD_ABILITY_NAME = "com.ohos.sceneboard.MainAbility
 }
 AbilityRunningRecord::AbilityRunningRecord(std::shared_ptr<AbilityInfo> info,
     sptr<IRemoteObject> token, int32_t abilityRecordId)
-    : info_(info), token_(token), abilityRecordId_(abilityRecordId)
+    : abilityRecordId_(abilityRecordId), info_(info), token_(token)
 {}
 
 AbilityRunningRecord::~AbilityRunningRecord()
@@ -150,6 +150,14 @@ bool AbilityRunningRecord::IsSceneBoard() const
         return false;
     }
     return info_->name == SCENEBOARD_ABILITY_NAME && info_->bundleName == BUNDLE_NAME_SCENEBOARD;
+}
+void AbilityRunningRecord::SetPersistentId(const int32_t persistentId)
+{
+    persistentId_ = persistentId;
+}
+int32_t AbilityRunningRecord::GetPersistentId() const
+{
+    return persistentId_;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

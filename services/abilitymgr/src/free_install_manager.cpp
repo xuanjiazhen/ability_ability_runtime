@@ -374,8 +374,8 @@ void FreeInstallManager::StartAbilityByFreeInstall(FreeInstallInfo &info, std::s
             result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbilityByFreeInstall(info.want,
                 info.callerToken, info.userId, info.requestCode);
         } else {
-            result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbility(info.want, *info.startOptions,
-                info.callerToken, info.userId, info.requestCode);
+            result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartUIAbilityForOptionWrap(info.want,
+                *info.startOptions, info.callerToken, false, info.userId, info.requestCode);
         }
     }
     IPCSkeleton::SetCallingIdentity(identity);
@@ -399,7 +399,8 @@ void FreeInstallManager::StartAbilityByPreInstall(int32_t recordId, FreeInstallI
     if (result == ERR_OK) {
         result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartUIAbilityByPreInstall(info);
     }
-    if (result != ERR_OK && info.isStartUIAbilityBySCBCalled) {
+    if (result != ERR_OK && result != ATOMIC_SERVICE_MINIMIZED && info.isStartUIAbilityBySCBCalled) {
+        TAG_LOGE(AAFwkTag::FREE_INSTALL, "StartUIAbilityByPreInstall failed: %{public}d", result);
         DelayedSingleton<AbilityManagerService>::GetInstance()->NotifySCBToHandleAtomicServiceException(
             info.want.GetStringParam(KEY_SESSION_ID),
             result, "start ability failed");

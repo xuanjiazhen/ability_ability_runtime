@@ -276,7 +276,7 @@ int DialogSessionManager::SendDialogResult(const Want &want, const std::string &
         return INNER_ERR;
     }
     int ret = abilityMgr->StartAbilityAsCallerDetails(targetWant, callerToken, callerToken, dialogCallerInfo->userId,
-        dialogCallerInfo->requestCode, false, dialogCallerInfo->type == SelectorType::APP_CLONE_SELECTOR);
+        dialogCallerInfo->requestCode, false);
     if (ret == ERR_OK) {
         ClearDialogContext(dialogSessionId);
         abilityMgr->RemoveSelectorIdentity(dialogCallerInfo->targetWant.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
@@ -478,13 +478,13 @@ int32_t DialogSessionManager::HandleErmsResultBySCB(AbilityRequest &abilityReque
 bool DialogSessionManager::IsCreateCloneSelectorDialog(const std::string &bundleName, int32_t userId)
 {
     if (StartAbilityUtils::isWantWithAppCloneIndex) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "want with app clone index");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "no clone index");
         StartAbilityUtils::isWantWithAppCloneIndex = false;
         return false;
     }
     auto appIndexes = StartAbilityUtils::GetCloneAppIndexes(bundleName, userId);
     if (appIndexes.empty()) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "application not create clone index");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "not create clone index");
         return false;
     }
     return true;

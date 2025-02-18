@@ -48,6 +48,7 @@ const uint8_t NUMBER_OF_PARAMETERS_SIX = 6;
 const uint8_t NUMBER_OF_PARAMETERS_SEVEN = 7;
 const uint8_t NUMBER_OF_PARAMETERS_EIGHT = 8;
 const uint8_t NUMBER_OF_PARAMETERS_NINE = 9;
+const uint8_t NUMBER_OF_PARAMETERS_TEN = 10;
 
 class TriggerCompleteCallBack;
 
@@ -92,8 +93,7 @@ public:
     static napi_value NapiTrigger(napi_env env, napi_callback_info info);
     static napi_value NapiGetWantAgent(napi_env env, napi_callback_info info);
     static napi_value NapiGetOperationType(napi_env env, napi_callback_info info);
-    static napi_value WrapWantAgent(napi_env env, WantAgent *wantAgent);
-    static void UnwrapWantAgent(napi_env env, napi_value jsParam, void** result);
+    static napi_value NapiSetWantAgentMultithreading(napi_env env, napi_callback_info info);
 
 private:
     napi_value OnEqual(napi_env env, napi_callback_info info);
@@ -108,6 +108,7 @@ private:
     napi_value OnNapiTrigger(napi_env env, napi_callback_info info);
     napi_value OnNapiGetWantAgent(napi_env env, napi_callback_info info);
     napi_value OnNapiGetOperationType(napi_env env, napi_callback_info info);
+    napi_value OnNapiSetWantAgentMultithreading(napi_env env, napi_callback_info info);
     int32_t UnWrapTriggerInfoParam(napi_env env, napi_callback_info info,
         std::shared_ptr<WantAgent> &wantAgent, TriggerInfo &triggerInfo,
         std::shared_ptr<TriggerCompleteCallBack> &triggerObj);

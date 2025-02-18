@@ -93,19 +93,13 @@ bool StringStartWith(const std::string& str, const std::string& startStr)
     return ((str.length() >= startStrLen) && (str.compare(0, startStrLen, startStr) == 0));
 }
 
-void SourceMap::Init(bool isModular, const std::string& hapPath)
+void SourceMap::Init(bool& hasFile, const std::string& hapPath)
 {
-    isModular_ = isModular;
-    hapPath_ = hapPath;
-    if (isModular_) {
-        std::string sourceMapData;
-        ReadSourceMapData(hapPath_, MEGER_SOURCE_MAP_PATH, sourceMapData);
-        SplitSourceMap(sourceMapData);
-    } else {
-        if (!nonModularMap_) {
-            nonModularMap_ = std::make_shared<SourceMapData>();
-        }
+    std::string sourceMapData;
+    if (ReadSourceMapData(hapPath, MEGER_SOURCE_MAP_PATH, sourceMapData)) {
+        hasFile = true;
     }
+    SplitSourceMap(sourceMapData);
 }
 
 std::string SourceMap::TranslateBySourceMap(const std::string& stackStr)
@@ -609,6 +603,7 @@ void SourceMap::GetPackageName(const SourceMapData& targetMap, std::string& pack
         auto last = packageInfo.rfind('|');
         if (last != std::string::npos) {
             packageName = packageInfo.substr(FLAG_PACKAGE_INFO_SIZE, last - FLAG_PACKAGE_INFO_SIZE);
+            return;
         }
     }
     if (!entryPackageInfo.empty()) {

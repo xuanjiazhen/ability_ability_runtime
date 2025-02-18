@@ -32,6 +32,7 @@
 #include "session_info.h"
 #include "startup_util.h"
 #include "ability_manager_service.h"
+#include "ability_scheduler_mock.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -2425,7 +2426,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartAbilityBySpecifed_001, TestSize.Lev
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
     AbilityRequest request;
     std::shared_ptr<AbilityRecord> callerAbility = nullptr;
-    uiAbilityLifecycleManager->StartAbilityBySpecifed(request, callerAbility, 0);
+    uiAbilityLifecycleManager->StartAbilityBySpecifed(request, callerAbility, 0, "");
     uiAbilityLifecycleManager.reset();
 }
 
@@ -2857,6 +2858,9 @@ HWTEST_F(UIAbilityLifecycleManagerTest, IsAbilityStarted_002, TestSize.Level1)
     abilityRequest.sessionInfo = sessionInfo;
     auto targetRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(sessionInfo->persistentId, targetRecord);
+    EXPECT_EQ(uiAbilityLifecycleManager->IsAbilityStarted(abilityRequest, targetRecord), false);
+    sptr<IAbilityScheduler> scheduler = new AbilitySchedulerMock();
+    targetRecord->SetScheduler(scheduler);
     EXPECT_EQ(uiAbilityLifecycleManager->IsAbilityStarted(abilityRequest, targetRecord), true);
 }
 
@@ -3300,7 +3304,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, PrepareTerminateAbility_001, TestSize.Le
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
     std::shared_ptr<AbilityRecord> abilityRecord = nullptr;
-    bool boolValue = uiAbilityLifecycleManager->PrepareTerminateAbility(abilityRecord);
+    bool boolValue = uiAbilityLifecycleManager->PrepareTerminateAbility(abilityRecord, false);
     EXPECT_FALSE(boolValue);
 }
 
@@ -3314,7 +3318,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, PrepareTerminateAbility_002, TestSize.Le
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
     std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
-    bool boolValue = uiAbilityLifecycleManager->PrepareTerminateAbility(abilityRecord);
+    bool boolValue = uiAbilityLifecycleManager->PrepareTerminateAbility(abilityRecord, false);
     EXPECT_FALSE(boolValue);
 }
 
@@ -3946,85 +3950,6 @@ HWTEST_F(UIAbilityLifecycleManagerTest, ResolveAbility_004, TestSize.Level1)
     targetAbility->isReady_ = true;
     EXPECT_EQ(uiAbilityLifecycleManager->ResolveAbility(targetAbility, abilityRequest),
         ResolveResultType::OK_HAS_REMOTE_OBJ);
-}
-
-/**
- * @tc.name: UIAbilityLifecycleManager_CheckPrepareTerminateEnable_0100
- * @tc.desc: CheckPrepareTerminateEnable
- * @tc.type: FUNC
- */
-HWTEST_F(UIAbilityLifecycleManagerTest, CheckPrepareTerminateEnable_001, TestSize.Level1)
-{
-    auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
-    EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<AbilityRecord> abilityRecord = nullptr;
-    EXPECT_EQ(uiAbilityLifecycleManager->CheckPrepareTerminateEnable(abilityRecord), false);
-}
-
-/**
- * @tc.name: UIAbilityLifecycleManager_CheckPrepareTerminateEnable_0200
- * @tc.desc: CheckPrepareTerminateEnable
- * @tc.type: FUNC
- */
-HWTEST_F(UIAbilityLifecycleManagerTest, CheckPrepareTerminateEnable_002, TestSize.Level1)
-{
-    auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
-    EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
-    abilityRecord->isTerminating_ = true;
-    EXPECT_EQ(uiAbilityLifecycleManager->CheckPrepareTerminateEnable(abilityRecord), false);
-}
-
-/**
- * @tc.name: UIAbilityLifecycleManager_CheckPrepareTerminateEnable_0300
- * @tc.desc: CheckPrepareTerminateEnable
- * @tc.type: FUNC
- */
-HWTEST_F(UIAbilityLifecycleManagerTest, CheckPrepareTerminateEnable_003, TestSize.Level1)
-{
-    auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
-    EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    AbilityRequest abilityRequest;
-    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
-    abilityRequest.abilityInfo.isStageBasedModel = false;
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
-    abilityRecord->isTerminating_ = false;
-    EXPECT_EQ(uiAbilityLifecycleManager->CheckPrepareTerminateEnable(abilityRecord), false);
-}
-
-/**
- * @tc.name: UIAbilityLifecycleManager_CheckPrepareTerminateEnable_0400
- * @tc.desc: CheckPrepareTerminateEnable
- * @tc.type: FUNC
- */
-HWTEST_F(UIAbilityLifecycleManagerTest, CheckPrepareTerminateEnable_004, TestSize.Level1)
-{
-    auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
-    EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    AbilityRequest abilityRequest;
-    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::SERVICE;
-    abilityRequest.abilityInfo.isStageBasedModel = true;
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
-    abilityRecord->isTerminating_ = false;
-    EXPECT_EQ(uiAbilityLifecycleManager->CheckPrepareTerminateEnable(abilityRecord), false);
-}
-
-/**
- * @tc.name: UIAbilityLifecycleManager_CheckPrepareTerminateEnable_0500
- * @tc.desc: CheckPrepareTerminateEnable
- * @tc.type: FUNC
- */
-HWTEST_F(UIAbilityLifecycleManagerTest, CheckPrepareTerminateEnable_005, TestSize.Level1)
-{
-    auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
-    EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    AbilityRequest abilityRequest;
-    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
-    abilityRequest.abilityInfo.isStageBasedModel = true;
-    abilityRequest.appInfo.accessTokenId = IPCSkeleton::GetCallingTokenID();
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
-    abilityRecord->isTerminating_ = false;
-    EXPECT_EQ(uiAbilityLifecycleManager->CheckPrepareTerminateEnable(abilityRecord), false);
 }
 
 /**

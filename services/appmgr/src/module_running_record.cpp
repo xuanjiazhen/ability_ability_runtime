@@ -74,7 +74,8 @@ std::shared_ptr<AbilityRunningRecord> ModuleRunningRecord::GetAbilityRunningReco
 }
 
 std::shared_ptr<AbilityRunningRecord> ModuleRunningRecord::AddAbility(sptr<IRemoteObject> token,
-    std::shared_ptr<AbilityInfo> abilityInfo, std::shared_ptr<AAFwk::Want> want, int32_t abilityRecordId)
+    std::shared_ptr<AbilityInfo> abilityInfo, std::shared_ptr<AAFwk::Want> want, int32_t abilityRecordId,
+    int32_t persistentId)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "Add ability.");
     if (!token || !abilityInfo) {
@@ -87,6 +88,7 @@ std::shared_ptr<AbilityRunningRecord> ModuleRunningRecord::AddAbility(sptr<IRemo
     }
     auto abilityRecord = std::make_shared<AbilityRunningRecord>(abilityInfo, token, abilityRecordId);
     abilityRecord->SetWant(want);
+    abilityRecord->SetPersistentId(persistentId);
     if (appInfo_) {
         abilityRecord->SetIsSingleUser(appInfo_->singleton);
     }
@@ -264,7 +266,7 @@ void ModuleRunningRecord::TerminateAbility(const std::shared_ptr<AppRunningRecor
     }
 
     if (appLifeCycleDeal_) {
-        if (!(appRecord->IsDebugApp() || appRecord->isAttachDebug())) {
+        if (!(appRecord->IsDebugApp() || appRecord->IsAttachDebug())) {
             SendEvent(AMSEventHandler::TERMINATE_ABILITY_TIMEOUT_MSG,
                 AMSEventHandler::TERMINATE_ABILITY_TIMEOUT, abilityRecord);
         }

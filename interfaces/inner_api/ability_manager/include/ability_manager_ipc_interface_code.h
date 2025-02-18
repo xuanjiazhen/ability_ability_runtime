@@ -517,6 +517,8 @@ enum class AbilityManagerInterfaceCode {
     REGISTER_STATUS_BAR_DELEGATE = 5100,
     KILL_PROCESS_WITH_PREPARE_TERMINATE = 5101,
 
+    KILL_PROCESS_WITH_REASON = 5200,
+
     FORCE_EXIT_APP = 6001,
     RECORD_APP_EXIT_REASON = 6002,
     RECORD_PROCESS_EXIT_REASON = 6003,
@@ -587,6 +589,18 @@ enum class AbilityManagerInterfaceCode {
 
     // start seld uiability
     NDK_START_SELF_UI_ABILITY = 6132,
+
+    // prepare terminate done
+    PREPARE_TERMINATE_ABILITY_DONE = 6133,
+
+    // kill process with prepare terminate done
+    KILL_PROCESS_WITH_PREPARE_TERMINATE_DONE = 6134,
+
+    // register hidden start observer
+    REGISTER_HIDDEN_START_OBSERVER = 6135,
+
+    // Unregister hidden start observer
+    UNREGISTER_HIDDEN_START_OBSERVER = 6136,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

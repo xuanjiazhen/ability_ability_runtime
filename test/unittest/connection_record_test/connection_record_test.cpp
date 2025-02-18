@@ -97,7 +97,7 @@ void ConnectionRecordTest::SetUp(void)
     std::string bundleName = "com.ix.hiservcie";
     AbilityRequest abilityRequest = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName);
     service_ = AbilityRecord::CreateAbilityRecord(abilityRequest);
-    connectionRecord_ = std::make_shared<ConnectionRecord>(service_->GetToken(), service_, callback_);
+    connectionRecord_ = std::make_shared<ConnectionRecord>(service_->GetToken(), service_, callback_, nullptr);
 }
 
 void ConnectionRecordTest::TearDown(void)
@@ -248,6 +248,7 @@ HWTEST_F(ConnectionRecordTest, AaFwk_ConnectionRecord_009, TestSize.Level1)
 
     connectionRecord_->SetConnectState(ConnectionState::CONNECTING);
     connectionRecord_->ScheduleConnectAbilityDone();
+    EXPECT_TRUE(connectionRecord_ != nullptr);
 }
 
 /*

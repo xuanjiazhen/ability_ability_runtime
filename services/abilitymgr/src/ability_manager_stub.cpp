@@ -666,6 +666,9 @@ int AbilityManagerStub::OnRemoteRequestInnerSeventeenth(uint32_t code, MessagePa
     if (interfaceCode == AbilityManagerInterfaceCode::KILL_PROCESS_WITH_PREPARE_TERMINATE) {
         return KillProcessWithPrepareTerminateInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::KILL_PROCESS_WITH_REASON) {
+        return KillProcessWithReasonInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::REGISTER_AUTO_STARTUP_SYSTEM_CALLBACK) {
         return RegisterAutoStartupSystemCallbackInner(data, reply);
     }
@@ -794,6 +797,18 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentieth(uint32_t code, MessageParc
     }
     if (interfaceCode == AbilityManagerInterfaceCode::NDK_START_SELF_UI_ABILITY) {
         return StartSelfUIAbilityInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::PREPARE_TERMINATE_ABILITY_DONE) {
+        return PrepareTerminateAbilityDoneInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::KILL_PROCESS_WITH_PREPARE_TERMINATE_DONE) {
+        return KillProcessWithPrepareTerminateDoneInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::REGISTER_HIDDEN_START_OBSERVER) {
+        return RegisterHiddenStartObserverInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::UNREGISTER_HIDDEN_START_OBSERVER) {
+        return UnregisterHiddenStartObserverInner(data, reply);
     }
     return ERR_CODE_NOT_EXIST;
 }
@@ -3463,6 +3478,22 @@ int32_t AbilityManagerStub::KillProcessWithPrepareTerminateInner(MessageParcel &
     return NO_ERROR;
 }
 
+int32_t AbilityManagerStub::KillProcessWithReasonInner(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t pid = data.ReadInt32();
+    std::unique_ptr<ExitReason> reason(data.ReadParcelable<ExitReason>());
+    if (reason == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "reason null");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t result = KillProcessWithReason(pid, *reason);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
 int32_t AbilityManagerStub::RegisterAutoStartupSystemCallbackInner(MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> callback = data.ReadRemoteObject();
@@ -4292,6 +4323,58 @@ int32_t AbilityManagerStub::StartSelfUIAbilityInner(MessageParcel &data, Message
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
         return INNER_ERR;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::PrepareTerminateAbilityDoneInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call PrepareTerminateAbilityDoneInner");
+    sptr<IRemoteObject> token = nullptr;
+    if (data.ReadBool()) {
+        token = data.ReadRemoteObject();
+    }
+    bool isTerminate = data.ReadBool();
+    PrepareTerminateAbilityDone(token, isTerminate);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::KillProcessWithPrepareTerminateDoneInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call KillProcessWithPrepareTerminateDoneInner");
+    std::string moduleName = data.ReadString();
+    int32_t prepareTermination = data.ReadInt32();
+    bool isExist = data.ReadBool();
+    KillProcessWithPrepareTerminateDone(moduleName, prepareTermination, isExist);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::RegisterHiddenStartObserverInner(MessageParcel &data, MessageParcel &reply)
+{
+    auto callback = iface_cast<IHiddenStartObserver>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Callback is null.");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t result = RegisterHiddenStartObserver(callback);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Fail to write result.");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::UnregisterHiddenStartObserverInner(MessageParcel &data, MessageParcel &reply)
+{
+    auto callback = iface_cast<IHiddenStartObserver>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Callback is null.");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t result = UnregisterHiddenStartObserver(callback);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Fail to write result.");
+        return ERR_INVALID_VALUE;
     }
     return NO_ERROR;
 }

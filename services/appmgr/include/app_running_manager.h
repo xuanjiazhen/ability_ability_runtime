@@ -61,7 +61,7 @@ public:
      */
     std::shared_ptr<AppRunningRecord> CreateAppRunningRecord(const std::shared_ptr<ApplicationInfo> &appInfo,
         const std::string &processName, const BundleInfo &bundleInfo, const std::string &instanceKey,
-        const std::string &customProcessFlag = "");
+        const std::string &customProcessFlag = "", int32_t persistentId = 0);
 
     /**
      * CheckAppRunningRecordIsExist, Get process record by application name and process Name.
@@ -263,7 +263,7 @@ public:
      * @param appInfo The latest application info obtained from bms for update abilityRuntimeContext.
      *
      */
-    int32_t ProcessUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo);
+    int32_t ProcessUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo, const std::string &moduleName);
 
     bool ProcessExitByBundleNameAndUid(
         const std::string &bundleName, const int uid, std::list<pid_t> &pids, const KillProcessConfig &config = {});
@@ -279,6 +279,7 @@ public:
 
     void GetRunningProcessInfoByToken(const sptr<IRemoteObject> &token, AppExecFwk::RunningProcessInfo &info);
     int32_t GetRunningProcessInfoByPid(const pid_t pid, OHOS::AppExecFwk::RunningProcessInfo &info);
+    int32_t GetRunningProcessInfoByChildProcessPid(const pid_t childPid, OHOS::AppExecFwk::RunningProcessInfo &info);
 
     void ClipStringContent(const std::regex &re, const std::string &source, std::string &afterCutStr);
     std::shared_ptr<AppRunningRecord> GetAppRunningRecordByRenderPid(const pid_t pid);
@@ -365,8 +366,6 @@ public:
 
     bool HandleUserRequestClean(const sptr<IRemoteObject> &abilityToken, pid_t &pid, int32_t &uid);
 
-    void SetMultiUserConfigurationMgr(const std::shared_ptr<MultiUserConfigurationMgr>& multiUserConfigurationMgr);
-
     int32_t CheckIsKiaProcess(pid_t pid, bool &isKia);
 
     bool CheckAppRunningRecordIsLast(const std::shared_ptr<AppRunningRecord> &appRecord);
@@ -390,7 +389,6 @@ private:
 
     std::mutex updateConfigurationDelayedLock_;
     std::map<const int32_t, bool> updateConfigurationDelayedMap_;
-    std::shared_ptr<MultiUserConfigurationMgr> multiUserConfigurationMgr_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

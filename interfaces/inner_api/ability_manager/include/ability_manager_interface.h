@@ -69,6 +69,7 @@
 #include "window_manager_service_handler.h"
 #include "ability_first_frame_state_observer_interface.h"
 #endif
+#include "ihidden_start_observer.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -1536,6 +1537,11 @@ public:
         return 0;
     }
 
+    virtual int32_t KillProcessWithReason(int32_t pid, const ExitReason &reason)
+    {
+        return 0;
+    }
+
     /**
      * @brief Register auto start up callback for system api.
      * @param callback The point of JsAbilityAutoStartupCallBack.
@@ -2001,6 +2007,46 @@ public:
      */
     virtual int32_t QueryAtomicServiceStartupRule(sptr<IRemoteObject> callerToken,
         const std::string &appId, const std::string &startTime, AtomicServiceStartupRule &rule)
+    {
+        return 0;
+    }
+
+    /**
+     * PrepareTerminateAbilityDone, called when PrepareTerminateAbility call is done.
+     *
+     * @param token, the token of the ability to terminate.
+     * @param isTerminate, indicates whether the ability should be terminated.
+     */
+    virtual void PrepareTerminateAbilityDone(const sptr<IRemoteObject> &token, bool isTerminate)
+    {}
+
+    /**
+     * KillProcessWithPrepareTerminateDone, called when KillProcessWithPrepareTerminate call is done.
+     *
+     * @param moduleName, the module name of the application.
+     * @param prepareTermination, the result of prepareTermination call of the module.
+     * @param isExist, whether the prepareTerminate functions are implemented.
+     */
+    virtual void KillProcessWithPrepareTerminateDone(const std::string &moduleName,
+        int32_t prepareTermination, bool isExist)
+    {}
+
+    /**
+     * Register hidden start observer.
+     * @param observer, ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RegisterHiddenStartObserver(const sptr<IHiddenStartObserver> &observer)
+    {
+        return 0;
+    }
+
+    /**
+     * Unregister hidden start observer.
+     * @param observer, ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t UnregisterHiddenStartObserver(const sptr<IHiddenStartObserver> &observer)
     {
         return 0;
     }

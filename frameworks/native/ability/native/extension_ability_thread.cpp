@@ -30,6 +30,7 @@ using AbilityManagerClient = OHOS::AAFwk::AbilityManagerClient;
 namespace {
 #ifdef SUPPORT_GRAPHICS
 constexpr static char FORM_EXTENSION[] = "FormExtension";
+constexpr static char FORM_EDIT_EXTENSION[] = "FormEditExtensionAbility";
 constexpr static char UI_EXTENSION[] = "UIExtensionAbility";
 constexpr static char CUSTOM_EXTENSION[] = "ExtensionAbility";
 constexpr static char USER_AUTH_EXTENSION[] = "UserAuthExtensionAbility";
@@ -67,7 +68,8 @@ const std::map<AppExecFwk::ExtensionAbilityType, std::string> UI_EXTENSION_NAME_
     { AppExecFwk::ExtensionAbilityType::AUTO_FILL_SMART, AUTO_FILL_EXTENSION },
 #endif  // SUPPORT_AUTO_FILL
     { AppExecFwk::ExtensionAbilityType::EMBEDDED_UI, EMBEDDED_UI_EXTENSION },
-    { AppExecFwk::ExtensionAbilityType::PHOTO_EDITOR, PHOTO_EDITOR_EXTENSION }
+    { AppExecFwk::ExtensionAbilityType::PHOTO_EDITOR, PHOTO_EDITOR_EXTENSION },
+    { AppExecFwk::ExtensionAbilityType::FORM_EDIT, FORM_EDIT_EXTENSION }
 #endif //SUPPORT_GRAPHICS
 };
 
@@ -396,7 +398,7 @@ bool ExtensionAbilityThread::ScheduleAbilityTransaction(
         }
         abilityThread->HandleExtensionTransaction(want, lifeCycleStateInfo, sessionInfo);
     };
-    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::HIGH);
     if (!ret) {
         TAG_LOGE(AAFwkTag::EXT, "PostTask error");
         return false;
@@ -420,7 +422,7 @@ void ExtensionAbilityThread::ScheduleConnectAbility(const Want &want)
         }
         abilityThread->HandleConnectExtension(want);
     };
-    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::HIGH);
     if (!ret) {
         TAG_LOGE(AAFwkTag::EXT, "PostTask error");
     }
@@ -443,7 +445,7 @@ void ExtensionAbilityThread::ScheduleDisconnectAbility(const Want &want)
         }
         abilityThread->HandleDisconnectExtension(want);
     };
-    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::HIGH);
     if (!ret) {
         TAG_LOGE(AAFwkTag::EXT, "PostTask error");
     }
@@ -474,7 +476,7 @@ void ExtensionAbilityThread::ScheduleCommandAbilityInner(const Want &want, bool 
         }
         abilityThread->HandleCommandExtension(want, restart, startId);
     };
-    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::HIGH);
     if (!ret) {
         TAG_LOGE(AAFwkTag::EXT, "PostTask error");
     }
@@ -491,7 +493,7 @@ void ExtensionAbilityThread::ScheduleInsightIntentInner(const Want &want)
         }
         abilityThread->HandleInsightIntent(want);
     };
-    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::HIGH);
     if (!ret) {
         TAG_LOGE(AAFwkTag::EXT, "PostTask error");
     }
@@ -514,7 +516,7 @@ void ExtensionAbilityThread::ScheduleCommandAbilityWindow(
         }
         abilityThread->HandleCommandExtensionWindow(want, sessionInfo, winCmd);
     };
-    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::HIGH);
     if (!ret) {
         TAG_LOGE(AAFwkTag::EXT, "PostTask error");
     }
@@ -543,7 +545,7 @@ void ExtensionAbilityThread::SendResult(int requestCode, int resultCode, const W
         }
         abilityThread->extensionImpl_->SendResult(requestCode, resultCode, want);
     };
-    bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    bool ret = abilityHandler_->PostTask(task);
     if (!ret) {
         TAG_LOGE(AAFwkTag::EXT, "PostTask error");
     }

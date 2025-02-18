@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -97,11 +97,13 @@ public:
     /**
      * KillProcessesByUserId, call KillProcessesByUserId() through proxy object,
      * kill the processes by userId.
+     * Send appSpawn uninstall debug hap message.
      *
      * @param userId, the user id.
+     * @param isNeedSendAppSpawnMsg, true send appSpawn message otherwise not send.
      * @return
      */
-    virtual void KillProcessesByUserId(int32_t userId) = 0;
+    virtual void KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg = false) = 0;
 
     /**
      * KillProcessesByPids, only in process call is allowed,
@@ -146,7 +148,8 @@ public:
      * @param  uid, uid.
      * @return ERR_OK, return back success, others fail.
      */
-    virtual int UpdateApplicationInfoInstalled(const std::string &bundleName, const int uid) = 0;
+    virtual int UpdateApplicationInfoInstalled(const std::string &bundleName, const int uid,
+        const std::string &moduleName) = 0;
 
     /**
      * KillApplication, call KillApplication() through proxy object, kill the application.
@@ -250,10 +253,9 @@ public:
      * Prepare terminate application
      *
      * @param pid Process ID
-     * @param prepareTelrmination PrepareTermination Enum
-     * @param isExist whether this callback event exist
+     * @param moduleName Module name
      */
-    virtual void PrepareTerminateApp(const pid_t pid, int32_t &prepareTermination, bool &isExist) = 0;
+    virtual void PrepareTerminateApp(const pid_t pid, const std::string &moduleName) = 0;
 
     /**
      * Start specified process.
@@ -472,13 +474,6 @@ public:
         return false;
     }
 
-    /**
-     * Send appSpawn uninstall debug hap message.
-     *
-     * @param userId, the user id.
-     */
-    virtual void SendAppSpawnUninstallDebugHapMsg(int32_t userId) = 0;
-
     enum class Message {
         LOAD_ABILITY = 0,
         TERMINATE_ABILITY,
@@ -534,7 +529,6 @@ public:
         ENABLE_START_PROCESS_FLAG_BY_USER_ID,
         SET_KEEP_ALIVE_DKV,
         KILL_PROCESSES_IN_BATCH,
-        SEND_APP_SPAWN_UNINSTALL_DEBUG_HAP_MSG,
         PREPARE_TERMINATE_APP,
         // Add enumeration values above
         END

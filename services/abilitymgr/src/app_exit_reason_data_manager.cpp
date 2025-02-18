@@ -28,6 +28,7 @@ constexpr int32_t MAX_TIMES = 5;           // 5 * 100ms = 500ms
 constexpr const char *APP_EXIT_REASON_STORAGE_DIR = "/data/service/el1/public/database/app_exit_reason";
 const std::string JSON_KEY_REASON = "reason";
 const std::string JSON_KEY_EXIT_MSG = "exit_msg";
+const std::string JSON_KEY_KILL_MSG = "kill_msg";
 const std::string JSON_KEY_TIME_STAMP = "time_stamp";
 const std::string JSON_KEY_ABILITY_LIST = "ability_list";
 const std::string KEY_RECOVER_INFO_PREFIX = "recover_info";
@@ -36,6 +37,13 @@ const std::string JSON_KEY_SESSION_ID_LIST = "session_id_list";
 const std::string JSON_KEY_EXTENSION_NAME = "extension_name";
 const std::string JSON_KEY_ACCESSTOKENId = "access_token_id";
 const std::string SEPARATOR = ":";
+const std::string KEY_KILL_PROCESS_REASON_PREFIX = "process_exit_detail_info";
+const std::string JSON_KEY_SUB_KILL_REASON = "sub_kill_reason";
+const std::string JSON_KEY_PID = "pid";
+const std::string JSON_KEY_UID = "uid";
+const std::string JSON_KEY_PROCESS_NAME = "process_name";
+const std::string JSON_KEY_PSS_VALUE = "pss_value";
+const std::string JSON_KEY_RSS_VALUE = "rss_value";
 } // namespace
 AppExitReasonDataManager::AppExitReasonDataManager() {}
 
@@ -86,15 +94,18 @@ bool AppExitReasonDataManager::CheckKvStore()
 }
 
 int32_t AppExitReasonDataManager::SetAppExitReason(const std::string &bundleName, uint32_t accessTokenId,
-    const std::vector<std::string> &abilityList, const AAFwk::ExitReason &exitReason)
+    const std::vector<std::string> &abilityList, const AAFwk::ExitReason &exitReason,
+    const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg, bool cacheFlag)
 {
-    auto accessTokenIdStr = std::to_string(accessTokenId);
     if (bundleName.empty() || accessTokenId == Security::AccessToken::INVALID_TOKENID) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid value");
         return ERR_INVALID_VALUE;
     }
-
     TAG_LOGD(AAFwkTag::ABILITYMGR, "bundleName: %{public}s, tokenId: %{private}u", bundleName.c_str(), accessTokenId);
+    std::string keyStr = std::to_string(accessTokenId);
+    if (cacheFlag) {
+        keyStr += std::to_string(processInfo.uid_);
+    }
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
         if (!CheckKvStore()) {
@@ -103,8 +114,8 @@ int32_t AppExitReasonDataManager::SetAppExitReason(const std::string &bundleName
         }
     }
 
-    DistributedKv::Key key(accessTokenIdStr);
-    DistributedKv::Value value = ConvertAppExitReasonInfoToValue(abilityList, exitReason);
+    DistributedKv::Key key(keyStr);
+    DistributedKv::Value value = ConvertAppExitReasonInfoToValue(abilityList, exitReason, processInfo, withKillMsg);
     DistributedKv::Status status;
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
@@ -127,7 +138,8 @@ int32_t AppExitReasonDataManager::DeleteAppExitReason(const std::string &bundleN
         TAG_LOGE(AAFwkTag::ABILITYMGR, "get GetOsAccountLocalIdFromUid failed");
         return ERR_INVALID_VALUE;
     }
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "bundleName: %{public}s, appIndex: %{public}d", bundleName.c_str(), appIndex);
+    TAG_LOGD(AAFwkTag::ABILITYMGR,
+        "userId: %{public}d, bundleName: %{public}s, appIndex: %{public}d", userId, bundleName.c_str(), appIndex);
     uint32_t accessTokenId = Security::AccessToken::AccessTokenKit::GetHapTokenID(userId, bundleName, appIndex);
     return DeleteAppExitReason(bundleName, accessTokenId);
 }
@@ -159,7 +171,8 @@ int32_t AppExitReasonDataManager::DeleteAppExitReason(const std::string &bundleN
 
     for (const auto &item : allEntries) {
         const auto &keyValue = item.key.ToString();
-        if (keyValue != accessTokenIdStr && keyValue.find(keyUiExten) == std::string::npos) {
+        if (keyValue.find(accessTokenIdStr) == std::string::npos &&
+            keyValue.find(keyUiExten) == std::string::npos) {
             continue;
         }
 
@@ -176,7 +189,8 @@ int32_t AppExitReasonDataManager::DeleteAppExitReason(const std::string &bundleN
 }
 
 int32_t AppExitReasonDataManager::GetAppExitReason(const std::string &bundleName, uint32_t accessTokenId,
-    const std::string &abilityName, bool &isSetReason, AAFwk::ExitReason &exitReason)
+    const std::string &abilityName, bool &isSetReason, AAFwk::ExitReason &exitReason,
+    AppExecFwk::RunningProcessInfo &processInfo, int64_t &time_stamp, bool &withKillMsg)
 {
     auto accessTokenIdStr = std::to_string(accessTokenId);
     if (bundleName.empty() || accessTokenId == Security::AccessToken::INVALID_TOKENID) {
@@ -201,16 +215,15 @@ int32_t AppExitReasonDataManager::GetAppExitReason(const std::string &bundleName
     }
 
     std::vector<std::string> abilityList;
-    int64_t time_stamp;
-    isSetReason = false;
     for (const auto &item : allEntries) {
         if (item.key.ToString() == accessTokenIdStr) {
-            ConvertAppExitReasonInfoFromValue(item.value, exitReason, time_stamp, abilityList);
+            ConvertAppExitReasonInfoFromValue(item.value, exitReason, time_stamp, abilityList, processInfo,
+                withKillMsg);
             auto pos = std::find(abilityList.begin(), abilityList.end(), abilityName);
             if (pos != abilityList.end()) {
                 isSetReason = true;
                 abilityList.erase(std::remove(abilityList.begin(), abilityList.end(), abilityName), abilityList.end());
-                UpdateAppExitReason(accessTokenId, abilityList, exitReason);
+                UpdateAppExitReason(accessTokenId, abilityList, exitReason, processInfo, withKillMsg);
             }
             TAG_LOGI(AAFwkTag::ABILITYMGR, "current bundle name: %{public}s, tokenId:%{private}u, reason: %{public}d,"
                 "  exitMsg: %{public}s, abilityName:%{public}s isSetReason:%{public}d",
@@ -227,7 +240,7 @@ int32_t AppExitReasonDataManager::GetAppExitReason(const std::string &bundleName
 }
 
 void AppExitReasonDataManager::UpdateAppExitReason(uint32_t accessTokenId, const std::vector<std::string> &abilityList,
-    const AAFwk::ExitReason &exitReason)
+    const AAFwk::ExitReason &exitReason, const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg)
 {
     if (kvStorePtr_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStorePtr_");
@@ -245,7 +258,7 @@ void AppExitReasonDataManager::UpdateAppExitReason(uint32_t accessTokenId, const
         return;
     }
 
-    DistributedKv::Value value = ConvertAppExitReasonInfoToValue(abilityList, exitReason);
+    DistributedKv::Value value = ConvertAppExitReasonInfoToValue(abilityList, exitReason, processInfo, withKillMsg);
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
         status = kvStorePtr_->Put(key, value);
@@ -255,14 +268,72 @@ void AppExitReasonDataManager::UpdateAppExitReason(uint32_t accessTokenId, const
     }
 }
 
+int32_t AppExitReasonDataManager::UpdateSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName)
+{
+    std::vector<DistributedKv::Entry> allEntries;
+    DistributedKv::Status status = DistributedKv::SUCCESS;
+    {
+        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        if (!CheckKvStore()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStore");
+            return ERR_NO_INIT;
+        }
+        status = kvStorePtr_->GetEntries(nullptr, allEntries);
+    }
+    if (status != DistributedKv::Status::SUCCESS) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get entries error: %{public}d", status);
+        {
+            std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+            status = RestoreKvStore(status);
+        }
+        return ERR_INVALID_VALUE;
+    }
+    auto ret = 0;
+    AAFwk::ExitReason exitReason = {};
+    int64_t time_stamp = 0;
+    std::vector<std::string> abilityList;
+    AppExecFwk::RunningProcessInfo processInfo = {};
+    bool withKillMsg = false;
+    int32_t accessTokenId = 0;
+    for (const auto &item : allEntries) {
+        size_t pos = item.key.ToString().find(std::to_string(uid));
+        if (pos != std::string::npos) {
+            accessTokenId = std::stoi(item.key.ToString().substr(0, pos));
+            ConvertAppExitReasonInfoFromValue(item.value, exitReason, time_stamp, abilityList, processInfo,
+                withKillMsg);
+            exitReason = { AAFwk::REASON_SIGNAL, "signal:" + std::to_string(signal) };
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "key: %{public}s", item.key.ToString().c_str());
+            ret = SetAppExitReason(bundleName, accessTokenId, abilityList, exitReason, processInfo, false, false);
+            if (ret != 0) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "SetAppExitReason failed, ret: %{public}d", ret);
+                return ERR_INVALID_VALUE;
+            }
+        }
+    }
+    return ret;
+}
+
 DistributedKv::Value AppExitReasonDataManager::ConvertAppExitReasonInfoToValue(
-    const std::vector<std::string> &abilityList, const AAFwk::ExitReason &exitReason)
+    const std::vector<std::string> &abilityList, const AAFwk::ExitReason &exitReason,
+    const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg)
 {
     std::chrono::milliseconds nowMs =
         std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+    std::string killMsg = "";
+    std::string exitMsg = exitReason.exitMsg;
+    if (withKillMsg) {
+        killMsg = exitReason.exitMsg;
+    }
     nlohmann::json jsonObject = nlohmann::json {
+        { JSON_KEY_PID, processInfo.pid_ },
+        { JSON_KEY_UID, processInfo.uid_ },
         { JSON_KEY_REASON, exitReason.reason },
-        { JSON_KEY_EXIT_MSG, exitReason.exitMsg },
+        { JSON_KEY_SUB_KILL_REASON, exitReason.subReason },
+        { JSON_KEY_EXIT_MSG, exitMsg },
+        { JSON_KEY_KILL_MSG, killMsg },
+        { JSON_KEY_RSS_VALUE, processInfo.rssValue },
+        { JSON_KEY_PSS_VALUE, processInfo.pssValue },
+        { JSON_KEY_PROCESS_NAME, processInfo.processName_ },
         { JSON_KEY_TIME_STAMP, nowMs.count() },
         { JSON_KEY_ABILITY_LIST, abilityList },
     };
@@ -272,18 +343,29 @@ DistributedKv::Value AppExitReasonDataManager::ConvertAppExitReasonInfoToValue(
 }
 
 void AppExitReasonDataManager::ConvertAppExitReasonInfoFromValue(const DistributedKv::Value &value,
-    AAFwk::ExitReason &exitReason, int64_t &time_stamp, std::vector<std::string> &abilityList)
+    AAFwk::ExitReason &exitReason, int64_t &time_stamp, std::vector<std::string> &abilityList,
+    AppExecFwk::RunningProcessInfo &processInfo, bool &withKillMsg)
 {
     nlohmann::json jsonObject = nlohmann::json::parse(value.ToString(), nullptr, false);
     if (jsonObject.is_discarded()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "parse json sting failed");
         return;
     }
-    if (jsonObject.contains(JSON_KEY_REASON) && jsonObject[JSON_KEY_REASON].is_number_integer()) {
-        exitReason.reason = jsonObject.at(JSON_KEY_REASON).get<AAFwk::Reason>();
+    if (jsonObject.contains(JSON_KEY_PID) && jsonObject[JSON_KEY_PID].is_number_integer()) {
+        processInfo.pid_ = jsonObject.at(JSON_KEY_PID).get<int32_t>();
     }
-    if (jsonObject.contains(JSON_KEY_EXIT_MSG) && jsonObject[JSON_KEY_EXIT_MSG].is_string()) {
-        exitReason.exitMsg = jsonObject.at(JSON_KEY_EXIT_MSG).get<std::string>();
+    if (jsonObject.contains(JSON_KEY_UID) && jsonObject[JSON_KEY_UID].is_number_integer()) {
+        processInfo.uid_ = jsonObject.at(JSON_KEY_UID).get<int32_t>();
+    }
+    ConvertReasonFromValue(jsonObject, exitReason, withKillMsg);
+    if (jsonObject.contains(JSON_KEY_RSS_VALUE) && jsonObject[JSON_KEY_RSS_VALUE].is_number_integer()) {
+        processInfo.rssValue = jsonObject.at(JSON_KEY_RSS_VALUE).get<int32_t>();
+    }
+    if (jsonObject.contains(JSON_KEY_PSS_VALUE) && jsonObject[JSON_KEY_PSS_VALUE].is_number_integer()) {
+        processInfo.pssValue = jsonObject.at(JSON_KEY_PSS_VALUE).get<int32_t>();
+    }
+    if (jsonObject.contains(JSON_KEY_PROCESS_NAME) && jsonObject[JSON_KEY_PROCESS_NAME].is_string()) {
+        processInfo.processName_ = jsonObject.at(JSON_KEY_PROCESS_NAME).get<std::string>();
     }
     if (jsonObject.contains(JSON_KEY_TIME_STAMP) && jsonObject[JSON_KEY_TIME_STAMP].is_number_integer()) {
         time_stamp = jsonObject.at(JSON_KEY_TIME_STAMP).get<int64_t>();
@@ -296,6 +378,26 @@ void AppExitReasonDataManager::ConvertAppExitReasonInfoFromValue(const Distribut
                 abilityList.emplace_back(jsonObject[JSON_KEY_ABILITY_LIST][i]);
             }
         }
+    }
+}
+
+void AppExitReasonDataManager::ConvertReasonFromValue(const nlohmann::json &jsonObject, AAFwk::ExitReason &exitReason,
+    bool &withKillMsg)
+{
+    if (jsonObject.contains(JSON_KEY_REASON) && jsonObject[JSON_KEY_REASON].is_number_integer()) {
+        exitReason.reason = jsonObject.at(JSON_KEY_REASON).get<AAFwk::Reason>();
+    }
+    if (jsonObject.contains(JSON_KEY_SUB_KILL_REASON) && jsonObject[JSON_KEY_SUB_KILL_REASON].is_number_integer()) {
+        exitReason.subReason = jsonObject.at(JSON_KEY_SUB_KILL_REASON).get<int32_t>();
+    }
+    if (jsonObject.contains(JSON_KEY_EXIT_MSG) && jsonObject[JSON_KEY_EXIT_MSG].is_string()
+        && !jsonObject[JSON_KEY_EXIT_MSG].empty()) {
+        exitReason.exitMsg = jsonObject.at(JSON_KEY_EXIT_MSG).get<std::string>();
+    }
+    if (jsonObject.contains(JSON_KEY_KILL_MSG) && jsonObject[JSON_KEY_KILL_MSG].is_string()
+        && !jsonObject[JSON_KEY_KILL_MSG].empty()) {
+        exitReason.exitMsg = jsonObject.at(JSON_KEY_KILL_MSG).get<std::string>();
+        withKillMsg = true;
     }
 }
 
@@ -571,7 +673,8 @@ uint32_t AppExitReasonDataManager::GetTokenIdBySessionID(const int32_t sessionId
 }
 
 int32_t AppExitReasonDataManager::SetUIExtensionAbilityExitReason(
-    const std::string &bundleName, const std::vector<std::string> &extensionList, const AAFwk::ExitReason &exitReason)
+    const std::string &bundleName, const std::vector<std::string> &extensionList, const AAFwk::ExitReason &exitReason,
+    const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     if (bundleName.empty()) {
@@ -590,7 +693,8 @@ int32_t AppExitReasonDataManager::SetUIExtensionAbilityExitReason(
     for (const auto &extension : extensionList) {
         std::string keyEx = bundleName + SEPARATOR + extension;
         DistributedKv::Key key(keyEx);
-        DistributedKv::Value value = ConvertAppExitReasonInfoToValueOfExtensionName(extension, exitReason);
+        DistributedKv::Value value = ConvertAppExitReasonInfoToValueOfExtensionName(extension, exitReason,
+            processInfo, withKillMsg);
         DistributedKv::Status status;
         {
             std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
@@ -606,7 +710,8 @@ int32_t AppExitReasonDataManager::SetUIExtensionAbilityExitReason(
 }
 
 bool AppExitReasonDataManager::GetUIExtensionAbilityExitReason(const std::string &keyEx,
-    AAFwk::ExitReason &exitReason)
+    AAFwk::ExitReason &exitReason, AppExecFwk::RunningProcessInfo &processInfo, int64_t &time_stamp,
+    bool &withKillMsg)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     {
@@ -624,11 +729,11 @@ bool AppExitReasonDataManager::GetUIExtensionAbilityExitReason(const std::string
         return false;
     }
     std::vector<std::string> abilityList;
-    int64_t time_stamp;
     bool isHaveReason = false;
     for (const auto &item : allEntries) {
         if (item.key.ToString() == keyEx) {
-            ConvertAppExitReasonInfoFromValue(item.value, exitReason, time_stamp, abilityList);
+            ConvertAppExitReasonInfoFromValue(item.value, exitReason, time_stamp, abilityList,
+                processInfo, withKillMsg);
             isHaveReason = true;
             InnerDeleteAppExitReason(keyEx);
             break;
@@ -799,21 +904,60 @@ DistributedKv::Value AppExitReasonDataManager::ConvertAccessTokenIdToValue(uint3
     TAG_LOGI(AAFwkTag::ABILITYMGR, "ConvertAccessTokenIdToValue value: %{public}s", value.ToString().c_str());
     return value;
 }
- 
+
 DistributedKv::Value AppExitReasonDataManager::ConvertAppExitReasonInfoToValueOfExtensionName(
-    const std::string &extensionListName, const AAFwk::ExitReason &exitReason)
+    const std::string &extensionListName, const AAFwk::ExitReason &exitReason,
+    const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     std::chrono::milliseconds nowMs =
         std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+    std::string killMsg = "";
+    std::string exitMsg = exitReason.exitMsg;
+    if (withKillMsg) {
+        killMsg = exitReason.exitMsg;
+    }
     nlohmann::json jsonObject = nlohmann::json {
+        { JSON_KEY_PID, processInfo.pid_ },
+        { JSON_KEY_UID, processInfo.uid_ },
         { JSON_KEY_REASON, exitReason.reason },
-        { JSON_KEY_EXIT_MSG, exitReason.exitMsg },
+        { JSON_KEY_SUB_KILL_REASON, exitReason.subReason },
+        { JSON_KEY_EXIT_MSG, exitMsg },
+        { JSON_KEY_KILL_MSG, killMsg },
+        { JSON_KEY_RSS_VALUE, processInfo.rssValue },
+        { JSON_KEY_PSS_VALUE, processInfo.pssValue },
+        { JSON_KEY_PROCESS_NAME, processInfo.processName_ },
         { JSON_KEY_TIME_STAMP, nowMs.count() },
         { JSON_KEY_EXTENSION_NAME, extensionListName },
     };
+
     DistributedKv::Value value(jsonObject.dump());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "value: %{public}s", value.ToString().c_str());
     return value;
+}
+
+DistributedKv::Status AppExitReasonDataManager::RestoreKvStore(DistributedKv::Status status)
+{
+    if (status != DistributedKv::Status::DATA_CORRUPTED) {
+        return status;
+    }
+    DistributedKv::Options options = {
+        .createIfMissing = true,
+        .encrypt = false,
+        .autoSync = true,
+        .syncable = false,
+        .securityLevel = DistributedKv::SecurityLevel::S2,
+        .area = DistributedKv::EL1,
+        .kvStoreType = DistributedKv::KvStoreType::SINGLE_VERSION,
+        .baseDir = APP_EXIT_REASON_STORAGE_DIR,
+    };
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "corrupted, deleting db");
+    dataManager_.DeleteKvStore(appId_, storeId_, options.baseDir);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "deleted corrupted db, recreating db");
+    status = dataManager_.GetSingleKvStore(options, appId_, storeId_, kvStorePtr_);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "recreate db result:%{public}d", status);
+    
+    return status;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

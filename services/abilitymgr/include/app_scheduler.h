@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -114,6 +114,12 @@ public:
      * @param abilityTokens abilities in died process.
      */
     virtual void OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abilityTokens) {}
+    
+    virtual void OnStartProcessFailed(sptr<IRemoteObject> token) {}
+
+    virtual void OnCacheExitInfo(uint32_t accessTokenId, const AAFwk::LastExitDetailInfo &exitInfo,
+        const std::string &bundleName, const std::vector<std::string> &abilityNames,
+        const std::vector<std::string> &uiExtensionNames) {}
 };
 
 class StartSpecifiedAbilityResponse : public AppExecFwk::StartSpecifiedAbilityResponseStub {
@@ -169,10 +175,9 @@ public:
      * Prepare terminate application
      *
      * @param pid Process ID
-     * @param prepareTelrmination PrepareTermination Enum
-     * @param isExist whether this callback event exist
+     * @param moduleName Module name
      */
-    void PrepareTerminateApp(const pid_t pid, int32_t &prepareTermination, bool &isExist);
+    void PrepareTerminateApp(const pid_t pid, const std::string &moduleName);
 
     /**
      * move ability to foreground.
@@ -216,10 +221,12 @@ public:
     /**
      * KillProcessesByUserId, call KillProcessesByUserId() through proxy object,
      * kill the process by user id.
+     * Send appSpawn uninstall debug hap message.
      *
      * @param userId, the user id.
+     * @param isNeedSendAppSpawnMsg, true send appSpawn message otherwise not send.
      */
-    void KillProcessesByUserId(int32_t userId);
+    void KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg = false);
 
     /**
      * KillProcessesByPids, only in process call is allowed,
@@ -294,7 +301,7 @@ public:
      * @param  uid, uid.
      * @return 0 if success.
      */
-    int UpdateApplicationInfoInstalled(const std::string &bundleName, const int32_t uid);
+    int UpdateApplicationInfoInstalled(const std::string &bundleName, const int32_t uid, const std::string &moduleName);
 
     /**
      * Ability attach timeout. If start ability encounter failure, attach timeout to terminate.
@@ -327,6 +334,16 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     void GetRunningProcessInfoByPid(const pid_t pid, OHOS::AppExecFwk::RunningProcessInfo &info) const;
+
+    /**
+     * Get running process information by child process pid.
+     *
+     * @param childPid child process id.
+     * @param info Output parameters, return runningProcessInfo.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    void GetRunningProcessInfoByChildProcessPid(const pid_t childPid,
+        OHOS::AppExecFwk::RunningProcessInfo &info) const;
 
     /**
      * Set AbilityForegroundingFlag of an app-record to true.
@@ -579,13 +596,6 @@ public:
 
     bool IsCallerKilling(const std::string& callerKey) const;
 
-    /**
-     * Send appSpawn uninstall debug hap message.
-     *
-     * @param userId, the user id.
-     */
-    void SendAppSpawnUninstallDebugHapMsg(int32_t userId);
-
 protected:
     /**
      * OnAbilityRequestDone, app manager service call this interface after ability request done.
@@ -627,6 +637,8 @@ protected:
      */
     virtual void OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abilityTokens) override;
 
+    virtual void OnStartProcessFailed(sptr<IRemoteObject> token) override;
+
     /**
      * @brief Notify abilityms app process pre cache
      * @param pid process pid.
@@ -634,13 +646,25 @@ protected:
      */
     virtual void NotifyAppPreCache(int32_t pid, int32_t userId) override;
 
+    /**
+     * @brief Notify abilityms exit info
+     * @param accessTokenId accessTokenId.
+     * @param exitInfo exit info before app died.
+     * @param bundleName app bundleName.
+     * @param abilityNames abilityNames in app.
+     * @param uiExtensionNames uiExtensionNames in app.
+     */
+    virtual void OnCacheExitInfo(uint32_t accessTokenId, const AAFwk::LastExitDetailInfo &exitInfo,
+        const std::string &bundleName, const std::vector<std::string> &abilityNames,
+        const std::vector<std::string> &uiExtensionNames) override;
+
 private:
-    std::mutex lock_;
     bool isInit_  {false};
+    AppAbilityState appAbilityState_ = AppAbilityState::ABILITY_STATE_UNDEFINED;
     std::weak_ptr<AppStateCallback> callback_;
     std::unique_ptr<AppExecFwk::AppMgrClient> appMgrClient_;
-    AppAbilityState appAbilityState_ = AppAbilityState::ABILITY_STATE_UNDEFINED;
     sptr<StartSpecifiedAbilityResponse> startSpecifiedAbilityResponse_;
+    std::mutex lock_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

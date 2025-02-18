@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -65,6 +65,7 @@ namespace {
 constexpr int32_t RECORD_ID = 1;
 constexpr int32_t APP_DEBUG_INFO_PID = 0;
 constexpr int32_t APP_DEBUG_INFO_UID = 0;
+constexpr const char* PERMISSION_PROTECT_SCREEN_LOCK_DATA_TEST = "ohos.permission.PROTECT_SCREEN_LOCK_DATA";
 }
 static int recordId_ = 0;
 class AppMgrServiceInnerTest : public testing::Test {
@@ -526,6 +527,49 @@ HWTEST_F(AppMgrServiceInnerTest, MakeProcessName_002, TestSize.Level0)
 }
 
 /**
+ * @tc.name: QueryExtensionSandBox_001
+ * @tc.desc: query extension sandBox without permission.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, QueryExtensionSandBox_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "QueryExtensionSandBox_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+    const string moduleName = "entry";
+    const string abilityName = "abilityName";
+    BundleInfo bundleInfo;
+    AppSpawnStartMsg startMsg;
+    DataGroupInfoList dataGroupInfoList;
+    appMgrServiceInner->QueryExtensionSandBox(moduleName, abilityName, bundleInfo, startMsg, dataGroupInfoList,
+        nullptr);
+    EXPECT_FALSE(startMsg.isScreenLockDataProtect);
+    TAG_LOGI(AAFwkTag::TEST, "QueryExtensionSandBox_001 end");
+}
+
+/**
+ * @tc.name: QueryExtensionSandBox_002
+ * @tc.desc: query extension sandBox with permission.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, QueryExtensionSandBox_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "QueryExtensionSandBox_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+    const string moduleName = "entry";
+    const string abilityName = "abilityName";
+    BundleInfo bundleInfo;
+    bundleInfo.reqPermissions.push_back(PERMISSION_PROTECT_SCREEN_LOCK_DATA_TEST);
+    AppSpawnStartMsg startMsg;
+    DataGroupInfoList dataGroupInfoList;
+    appMgrServiceInner->QueryExtensionSandBox(moduleName, abilityName, bundleInfo, startMsg, dataGroupInfoList,
+        nullptr);
+    EXPECT_TRUE(startMsg.isScreenLockDataProtect);
+    TAG_LOGI(AAFwkTag::TEST, "QueryExtensionSandBox_002 end");
+}
+
+/**
  * @tc.name: GetBundleAndHapInfo_001
  * @tc.desc: get bundle and hapInfo.
  * @tc.type: FUNC
@@ -622,7 +666,6 @@ HWTEST_F(AppMgrServiceInnerTest, LaunchApplication_001, TestSize.Level0)
     appRecord->SetSpecifiedAbilityFlagAndWant(1, want, "");
     appMgrServiceInner->LaunchApplication(appRecord);
 
-    appMgrServiceInner->configuration_ = nullptr;
     appMgrServiceInner->LaunchApplication(appRecord);
     TAG_LOGI(AAFwkTag::TEST, "LaunchApplication_001 end");
 }
@@ -1555,6 +1598,8 @@ HWTEST_F(AppMgrServiceInnerTest, KillProcessesByUserId_001, TestSize.Level0)
 
     appMgrServiceInner->appRunningManager_ = nullptr;
     appMgrServiceInner->KillProcessesByUserId(0);
+
+    appMgrServiceInner->KillProcessesByUserId(0, true);
 
     TAG_LOGI(AAFwkTag::TEST, "KillProcessesByUserId_001 end");
 }
@@ -2679,7 +2724,6 @@ HWTEST_F(AppMgrServiceInnerTest, InitGlobalConfiguration_001, TestSize.Level0)
 
     appMgrServiceInner->InitGlobalConfiguration();
 
-    appMgrServiceInner->configuration_ = nullptr;
     appMgrServiceInner->InitGlobalConfiguration();
 
     TAG_LOGI(AAFwkTag::TEST, "InitGlobalConfiguration_001 end");

@@ -33,6 +33,7 @@
 #include "hitrace_meter.h"
 #include "image_source.h"
 #include "keep_alive_process_manager.h"
+#include "last_exit_detail_info.h"
 #include "multi_instance_utils.h"
 #include "os_account_manager_wrapper.h"
 #include "ui_service_extension_connection_constants.h"
@@ -189,7 +190,7 @@ void LaunchDebugInfo::Update(const OHOS::AAFwk::Want &want)
 
 AbilityRecord::AbilityRecord(const Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
     const AppExecFwk::ApplicationInfo &applicationInfo, int requestCode)
-    : want_(want), abilityInfo_(abilityInfo), requestCode_(requestCode)
+    : want_(want), requestCode_(requestCode), abilityInfo_(abilityInfo)
 {
     abilityInfo_.applicationInfo = applicationInfo;
     recordId_ = abilityRecordId++;
@@ -294,9 +295,14 @@ int32_t AbilityRecord::GetUid()
     return uid_;
 }
 
-int32_t AbilityRecord::GetPid()
+pid_t AbilityRecord::GetPid()
 {
     return pid_;
+}
+
+void AbilityRecord::SetPid(pid_t pid)
+{
+    pid_ = pid;
 }
 
 void AbilityRecord::LoadUIAbility()
@@ -355,6 +361,10 @@ int AbilityRecord::LoadAbility(bool isShellCall)
     loadParam.instanceKey = instanceKey_;
     loadParam.isCallerSetProcess = IsCallerSetProcess();
     loadParam.customProcessFlag = customProcessFlag_;
+    auto sessionInfo = GetSessionInfo();
+    if (sessionInfo != nullptr) {
+        loadParam.persistentId = sessionInfo->persistentId;
+    }
     want_.RemoveParam(Want::PARAM_APP_KEEP_ALIVE_ENABLED);
     if (KeepAliveProcessManager::GetInstance().IsKeepAliveBundle(abilityInfo_.applicationInfo.bundleName, -1)) {
         want_.SetParam(Want::PARAM_APP_KEEP_ALIVE_ENABLED, true);
@@ -1015,7 +1025,7 @@ std::shared_ptr<Global::Resource::ResourceManager> AbilityRecord::CreateResource
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     UErrorCode status = U_ZERO_ERROR;
-    icu::Locale locale = icu::Locale::forLanguageTag(Global::I18n::LocaleConfig::GetSystemLocale(), status);
+    icu::Locale locale = icu::Locale::forLanguageTag(Global::I18n::LocaleConfig::GetEffectiveLanguage(), status);
     std::unique_ptr<Global::Resource::ResConfig> resConfig(Global::Resource::CreateResConfig());
     resConfig->SetLocaleInfo(locale);
     AppExecFwk::Configuration cfg;
@@ -1290,14 +1300,60 @@ void AbilityRecord::BackgroundAbility(const Closure &task)
     isLaunching_ = false;
 }
 
-bool AbilityRecord::PrepareTerminateAbility()
+bool AbilityRecord::PrepareTerminateAbility(bool isSCBCall)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     if (lifecycleDeal_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null lifecycleDeal_");
         return false;
     }
-    return lifecycleDeal_->PrepareTerminateAbility();
+    if (!isSCBCall) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "triggered by user clicking window x");
+        return lifecycleDeal_->PrepareTerminateAbility();
+    }
+    // execute onPrepareToTerminate until timeout
+    std::unique_lock<std::mutex> lock(isPrepareTerminateAbilityMutex_);
+    isPrepareTerminateAbilityCalled_.store(true);
+    isPrepareTerminate_ = false;
+    isPrepareTerminateAbilityDone_.store(false);
+    auto condition = [weak = weak_from_this()] {
+        auto self = weak.lock();
+        if (self == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null self");
+            return false;
+        }
+        return self->isPrepareTerminateAbilityDone_.load();
+    };
+    auto task = [weak = weak_from_this()]() {
+        auto self = weak.lock();
+        if (self == nullptr || !self->lifecycleDeal_ || !self->lifecycleDeal_->PrepareTerminateAbility()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "PrepareTerminateAbility error");
+            self->isPrepareTerminateAbilityDone_.store(true);
+            self->isPrepareTerminateAbilityCalled_.store(false);
+            self->isPrepareTerminateAbilityCv_.notify_all();
+        }
+    };
+    ffrt::submit(task);
+    if (!isPrepareTerminateAbilityCv_.wait_for(lock,
+        std::chrono::milliseconds(GlobalConstant::PREPARE_TERMINATE_TIMEOUT_TIME), condition)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "wait timeout");
+        return false;
+    }
+    return isPrepareTerminate_;
+}
+
+void AbilityRecord::PrepareTerminateAbilityDone(bool isTerminate)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call PrepareTerminateAbilityDone");
+    std::unique_lock<std::mutex> lock(isPrepareTerminateAbilityMutex_);
+    if (!isPrepareTerminateAbilityCalled_.load()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "prepare terminate not called");
+        return;
+    }
+    isPrepareTerminate_ = isTerminate;
+    isPrepareTerminateAbilityDone_.store(true);
+    isPrepareTerminateAbilityCalled_.store(false);
+    isPrepareTerminateAbilityCv_.notify_one();
 }
 
 int AbilityRecord::TerminateAbility()
@@ -1495,7 +1551,7 @@ void AbilityRecord::SetScheduler(const sptr<IAbilityScheduler> &scheduler)
         if (schedulerObject == nullptr || !schedulerObject->AddDeathRecipient(schedulerDeathRecipient_)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "AddDeathRecipient failed");
         }
-        pid_ = static_cast<int32_t>(IPCSkeleton::GetCallingPid()); // set pid when ability attach to service.
+        SetPid(IPCSkeleton::GetCallingPid()); // set pid when ability attach to service.
         AfterLoaded();
         // add collaborator mission bind pid
         NotifyMissionBindPid();
@@ -1515,7 +1571,7 @@ void AbilityRecord::SetScheduler(const sptr<IAbilityScheduler> &scheduler)
             }
         }
         scheduler_ = scheduler;
-        pid_ = 0;
+        SetPid(0);
     }
 }
 
@@ -1629,8 +1685,11 @@ void AbilityRecord::Inactivate()
     CHECK_POINTER(lifecycleDeal_);
 
     if (!IsDebug()) {
-        int inactiveTimeout =
-            AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * INACTIVE_TIMEOUT_MULTIPLE;
+        bool useOldMultiple = abilityInfo_.name == AbilityConfig::LAUNCHER_ABILITY_NAME ||
+            abilityInfo_.name == AbilityConfig::CALLUI_ABILITY_NAME;
+        auto timeoutMultiple = useOldMultiple ? INACTIVE_TIMEOUT_MULTIPLE : INACTIVE_TIMEOUT_MULTIPLE_NEW;
+        auto inactiveTimeout =
+            AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * timeoutMultiple;
         SendEvent(AbilityManagerService::INACTIVE_TIMEOUT_MSG, inactiveTimeout);
     }
 
@@ -2006,10 +2065,22 @@ void SystemAbilityCallerRecord::SendResultToSystemAbility(int requestCode,
         TAG_LOGE(AAFwkTag::ABILITYMGR, "writeParcelable failed");
         return;
     }
-    data.WriteInt32(callerUid);
-    data.WriteInt32(requestCode);
-    data.WriteUint32(accessToken);
-    data.WriteInt32(resultCode);
+    if (!data.WriteInt32(callerUid)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write callerUid failed");
+        return;
+    }
+    if (!data.WriteInt32(requestCode)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write requestCode failed");
+        return;
+    }
+    if (!data.WriteUint32(accessToken)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write accessToken failed");
+        return;
+    }
+    if (!data.WriteInt32(resultCode)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write resultCode failed");
+        return;
+    }
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
     int result = callerToken->SendRequest(ISystemAbilityTokenCallback::SEND_RESULT, data, reply, option);
@@ -2927,10 +2998,26 @@ void AbilityRecord::SetLaunchReasonMessage(const std::string &launchReasonMessag
     lifeCycleStateInfo_.launchParam.launchReasonMessage = launchReasonMessage;
 }
 
-void AbilityRecord::SetLastExitReason(const ExitReason &exitReason)
+void AbilityRecord::SetLastExitReason(const ExitReason &exitReason, const AppExecFwk::RunningProcessInfo &processInfo,
+    const int64_t timestamp, bool withKillMsg)
 {
+    std::string exitMsg = exitReason.exitMsg;
+    std::string killMsg = "";
+    if (withKillMsg) {
+        killMsg = exitReason.exitMsg;
+    }
+    LastExitDetailInfo lastExitDetailInfo = {};
+    lastExitDetailInfo.pid = processInfo.pid_;
+    lastExitDetailInfo.uid = processInfo.uid_;
+    lastExitDetailInfo.exitSubReason = exitReason.subReason;
+    lastExitDetailInfo.rss = processInfo.rssValue;
+    lastExitDetailInfo.pss = processInfo.pssValue;
+    lastExitDetailInfo.timestamp = timestamp;
+    lastExitDetailInfo.processName = processInfo.processName_;
+    lastExitDetailInfo.exitMsg = killMsg;
     lifeCycleStateInfo_.launchParam.lastExitReason = CovertAppExitReasonToLastReason(exitReason.reason);
-    lifeCycleStateInfo_.launchParam.lastExitMessage = exitReason.exitMsg;
+    lifeCycleStateInfo_.launchParam.lastExitMessage = exitMsg;
+    lifeCycleStateInfo_.launchParam.lastExitDetailInfo = lastExitDetailInfo;
 }
 
 LastExitReason AbilityRecord::CovertAppExitReasonToLastReason(const Reason exitReason)
@@ -2950,6 +3037,10 @@ LastExitReason AbilityRecord::CovertAppExitReasonToLastReason(const Reason exitR
             return LASTEXITREASON_RESOURCE_CONTROL;
         case REASON_UPGRADE:
             return LASTEXITREASON_UPGRADE;
+        case REASON_USER_REQUEST:
+            return LASTEXITREASON_USER_REQUEST;
+        case REASON_SIGNAL:
+            return LASTEXITREASON_SIGNAL;
         case REASON_UNKNOWN:
         default:
             return LASTEXITREASON_UNKNOWN;
@@ -3391,7 +3482,7 @@ int32_t AbilityRecord::GetCurrentAccountId() const
         TAG_LOGE(AAFwkTag::ABILITYMGR, "empty QueryActiveOsAccountIds");
         return DEFAULT_USER_ID;
     }
-
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "osActiveAccountId: %{public}d", osActiveAccountIds.front());
     return osActiveAccountIds.front();
 }
 

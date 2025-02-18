@@ -117,7 +117,7 @@ public:
      *
      * @return
      */
-    virtual void ScheduleUpdateApplicationInfoInstalled(const ApplicationInfo &) override;
+    virtual void ScheduleUpdateApplicationInfoInstalled(const ApplicationInfo &, const std::string &) override;
 
     /**
      * Notify application to launch ability stage.
@@ -192,11 +192,8 @@ public:
      * @brief Schedule prepare terminate application
      *
      * @param moduleName module name
-     * @param prepareTermination the return enum type PrepareTermination
-     * @param isExist whether the onPrepareTerminate exists
      */
-    virtual void SchedulePrepareTerminate(const std::string &moduleName,
-        int32_t &prepareTermination, bool &isExist) override;
+    virtual void SchedulePrepareTerminate(const std::string &moduleName) override;
 
     virtual void ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName) override;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -120,11 +120,13 @@ public:
     /**
      * KillProcessesByUserId, call KillProcessesByUserId() through proxy object,
      * kill the processes by user id.
+     * Send appSpawn uninstall debug hap message.
      *
      * @param userId, the user id.
+     * @param isNeedSendAppSpawnMsg, true send appSpawn message otherwise not send.
      * @return Returns RESULT_OK on success, others on failure.
      */
-    virtual AppMgrResultCode KillProcessesByUserId(int32_t userId);
+    virtual AppMgrResultCode KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg = false);
 
     /**
      * KillProcessesByPids, only in process call is allowed,
@@ -150,7 +152,8 @@ public:
      * @param  uid, uid.
      * @return Returns RESULT_OK on success, others on failure.
      */
-    virtual AppMgrResultCode UpdateApplicationInfoInstalled(const std::string &bundleName, const int uid);
+    virtual AppMgrResultCode UpdateApplicationInfoInstalled(const std::string &bundleName, const int uid,
+        const std::string &moduleName);
 
     /**
      * KillApplication, call KillApplication() through proxy object, kill the application.
@@ -199,6 +202,14 @@ public:
      */
     virtual AppMgrResultCode KillApplicationSelf(const bool clearPageStack = false,
         const std::string& reason = "KillApplicationSelf");
+
+    /**
+     * update process rss and pss value.
+     *
+     * @param procMemStates, the memory states of all apps.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int32_t UpdateProcessMemoryState(const std::vector<ProcessMemoryState> &procMemState);
 
     /**
      * ClearUpApplicationData, call ClearUpApplicationData() through proxy project,
@@ -366,6 +377,16 @@ public:
     virtual int32_t GetRunningProcessInfoByPid(const pid_t pid, OHOS::AppExecFwk::RunningProcessInfo &info) const;
 
     /**
+     * Get running process information by child process pid.
+     *
+     * @param childPid child process id.
+     * @param info Output parameters, return runningProcessInfo.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetRunningProcessInfoByChildProcessPid(const pid_t childPid,
+        OHOS::AppExecFwk::RunningProcessInfo &info) const;
+
+    /**
      * Notify that the ability stage has been updated
      * @param recordId, the app record.
      */
@@ -447,10 +468,9 @@ public:
      * Prepare terminate application
      *
      * @param pid Process ID
-     * @param prepareTelrmination PrepareTermination Enum
-     * @param isExist whether this callback event exist
+     * @param moduleName Module name
      */
-    virtual void PrepareTerminateApp(const pid_t pid, int32_t &prepareTermination, bool &isExist);
+    virtual void PrepareTerminateApp(const pid_t pid, const std::string &moduleName);
 
     /**
      * Start specified process.
@@ -920,14 +940,6 @@ public:
      */
     virtual AppMgrResultCode IsAppRunningByBundleNameAndUserId(const std::string &bundleName, int32_t userId,
         bool &isRunning);
-
-    /**
-     * Send appSpawn uninstall debug hap message.
-     *
-     * @param userId, the user id.
-     * @return Returns RESULT_OK on success, others on failure.
-     */
-    virtual AppMgrResultCode SendAppSpawnUninstallDebugHapMsg(int32_t userId);
 
 private:
     void SetServiceManager(std::unique_ptr<AppServiceManager> serviceMgr);

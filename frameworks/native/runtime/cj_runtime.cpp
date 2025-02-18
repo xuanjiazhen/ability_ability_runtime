@@ -27,23 +27,9 @@
 
 using namespace OHOS::AbilityRuntime;
 
-#ifdef APP_USE_ARM64
-#define APP_LIB_NAME "arm64"
-#elif defined(APP_USE_ARM)
-#define APP_LIB_NAME "arm"
-#elif defined(APP_USE_X86_64)
-#define APP_LIB_NAME "x86_64"
-#else
-#error unsupported platform
-#endif
 
 namespace {
 const std::string DEBUGGER = "@Debugger";
-const std::string SANDBOX_LIB_PATH = "/data/storage/el1/bundle/libs/" APP_LIB_NAME;
-const std::string CJ_RT_PATH = SANDBOX_LIB_PATH + "/runtime";
-const std::string CJ_LIB_PATH = SANDBOX_LIB_PATH + "/ohos";
-const std::string CJ_SYSLIB_PATH = "/system/lib64:/system/lib64/platformsdk:/system/lib64/module:/system/lib64/ndk";
-const std::string CJ_CHIPSDK_PATH = "/system/lib64/chipset-pub-sdk";
 } // namespace
 
 #define LIB_NAME "libcj_environment.z.so"
@@ -95,10 +81,8 @@ void CJRuntime::SetAppLibPath(const AppLibPathMap& appLibPaths)
         TAG_LOGE(AAFwkTag::CJRUNTIME, "null cjEnv");
         return;
     }
-    cjEnv->initCJChipSDKNS(CJ_CHIPSDK_PATH);
+
     cjEnv->initCJAppNS(appPath);
-    cjEnv->initCJSDKNS(CJ_RT_PATH + ":" + CJ_LIB_PATH);
-    cjEnv->initCJSysNS(CJ_SYSLIB_PATH);
 }
 
 bool CJRuntime::Initialize(const Options& options)
@@ -193,6 +177,44 @@ void CJRuntime::SetSanitizerVersion(SanitizerKind kind)
     cjEnv->setSanitizerKindRuntimeVersion(kind);
 }
 
+bool CJRuntime::RegisterCangjieCallback()
+{
+    constexpr char CANGJIE_DEBUGGER_LIB_PATH[] = "libark_connect_inspector.z.so";
+    auto handlerConnectServerSo = dlopen(CANGJIE_DEBUGGER_LIB_PATH, RTLD_NOLOAD | RTLD_NOW);
+    if (handlerConnectServerSo == nullptr) {
+            TAG_LOGE(AAFwkTag::CJRUNTIME, "null handlerConnectServerSo: %{public}s", dlerror());
+            return false;
+    }
+    using SendMsgCB = const std::function<void(const std::string& message)>;
+    using SetCangjieCallback = void(*)(const std::function<void(const std::string& message, SendMsgCB)>);
+    using CangjieCallback = void(*)(const std::string& message, SendMsgCB);
+    auto setCangjieCallback = reinterpret_cast<SetCangjieCallback>(dlsym(handlerConnectServerSo, "SetCangjieCallback"));
+    if (setCangjieCallback == nullptr) {
+        TAG_LOGE(AAFwkTag::CJRUNTIME, "null setCangjieCallback: %{public}s", dlerror());
+        return false;
+    }
+    #define RTLIB_NAME "libcangjie-runtime.so"
+    Dl_namespace ns;
+    dlns_get("cj_app_sdk", &ns);
+    auto dso = dlopen_ns(&ns, RTLIB_NAME, 1 | RTLD_GLOBAL | RTLD_NOW);
+    if (!dso) {
+        TAG_LOGE(AAFwkTag::CJRUNTIME, "load library failed: %{public}s", RTLIB_NAME);
+        return false;
+    }
+    TAG_LOGE(AAFwkTag::CJRUNTIME, "load libcangjie-runtime.so success");
+    #define PROFILERAGENT "ProfilerAgent"
+    CangjieCallback cangjieCallback = reinterpret_cast<CangjieCallback>(dlsym(dso, "ProfilerAgent"));
+    if (cangjieCallback == nullptr) {
+        TAG_LOGE(AAFwkTag::CJRUNTIME, "runtime api not found: %{public}s", PROFILERAGENT);
+        return false;
+    }
+    TAG_LOGE(AAFwkTag::CJRUNTIME, "find runtime api success");
+    setCangjieCallback(cangjieCallback);
+    dlclose(handlerConnectServerSo);
+    handlerConnectServerSo = nullptr;
+    return true;
+}
+
 void CJRuntime::StartDebugMode(const DebugOption dOption)
 {
     if (debugModel_) {
@@ -203,20 +225,22 @@ void CJRuntime::StartDebugMode(const DebugOption dOption)
     bool isStartWithDebug = dOption.isStartWithDebug;
     bool isDebugApp = dOption.isDebugApp;
     const std::string bundleName = bundleName_;
+    int32_t instanceId = instanceId_;
     std::string inputProcessName = bundleName_ != dOption.processName ? dOption.processName : "";
 
     TAG_LOGI(AAFwkTag::CJRUNTIME, "StartDebugMode %{public}s", bundleName_.c_str());
 
     HdcRegister::Get().StartHdcRegister(bundleName_, inputProcessName, isDebugApp,
-        [bundleName, isStartWithDebug, isDebugApp](int socketFd, std::string option) {
+        [bundleName, isStartWithDebug, isDebugApp, instanceId](int socketFd, std::string option) {
             TAG_LOGI(AAFwkTag::CJRUNTIME, "hdcRegister callback call, socket fd: %{public}d, option: %{public}s.",
                 socketFd, option.c_str());
             if (option.find(DEBUGGER) == std::string::npos) {
-                if (!isDebugApp) {
-                    ConnectServerManager::Get().StopConnectServer(false);
-                }
+                ConnectServerManager::Get().StopConnectServer(false);
+                TAG_LOGI(AAFwkTag::CJRUNTIME, "start SendInstanceMessage");
+                ConnectServerManager::Get().SendInstanceMessage(instanceId, instanceId, bundleName);
                 ConnectServerManager::Get().SendDebuggerInfo(isStartWithDebug, isDebugApp);
                 ConnectServerManager::Get().StartConnectServer(bundleName, socketFd, false);
+                CJRuntime::RegisterCangjieCallback();
             } else {
                 TAG_LOGE(AAFwkTag::CJRUNTIME, "debugger service unexpected option: %{public}s", option.c_str());
             }

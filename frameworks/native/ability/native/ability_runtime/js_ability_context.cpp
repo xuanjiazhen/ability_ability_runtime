@@ -407,6 +407,11 @@ napi_value JsAbilityContext::SetRestoreEnabled(napi_env env, napi_callback_info 
     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnSetRestoreEnabled);
 }
 
+napi_value JsAbilityContext::SetColorMode(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnSetColorMode);
+}
+
 void JsAbilityContext::ClearFailedCallConnection(
     const std::weak_ptr<AbilityContext>& abilityContext, const std::shared_ptr<CallerCallBack> &callback)
 {
@@ -2035,10 +2040,12 @@ napi_value CreateJsAbilityContext(napi_env env, std::shared_ptr<AbilityContext> 
     BindNativeFunction(env, object, "disconnectUIServiceExtensionAbility", moduleName,
         JsAbilityContext::DisconnectUIServiceExtension);
     BindNativeFunction(env, object, "setRestoreEnabled", moduleName, JsAbilityContext::SetRestoreEnabled);
+    BindNativeFunction(env, object, "setColorMode", moduleName, JsAbilityContext::SetColorMode);
 
 #ifdef SUPPORT_GRAPHICS
     BindNativeFunction(env, object, "setMissionLabel", moduleName, JsAbilityContext::SetMissionLabel);
     BindNativeFunction(env, object, "setMissionIcon", moduleName, JsAbilityContext::SetMissionIcon);
+    BindNativeFunction(env, object, "setAbilityInstanceInfo", moduleName, JsAbilityContext::SetAbilityInstanceInfo);
 #endif
     return object;
 }
@@ -2440,6 +2447,11 @@ napi_value JsAbilityContext::SetMissionIcon(napi_env env, napi_callback_info inf
     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnSetMissionIcon);
 }
 
+napi_value JsAbilityContext::SetAbilityInstanceInfo(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnSetAbilityInstanceInfo);
+}
+
 napi_value JsAbilityContext::OnSetMissionLabel(napi_env env, NapiCallbackInfo& info)
 {
     TAG_LOGI(AAFwkTag::CONTEXT, "info.argc: %{public}d", static_cast<int>(info.argc));
@@ -2519,6 +2531,49 @@ napi_value JsAbilityContext::OnSetMissionIcon(napi_env env, NapiCallbackInfo& in
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnSetMissionIcon",
         env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
+    return result;
+}
+
+napi_value JsAbilityContext::OnSetAbilityInstanceInfo(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGI(AAFwkTag::CONTEXT, "info.argc: %{public}d", static_cast<int>(info.argc));
+    if (info.argc < ARGC_TWO) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "not enough params");
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    std::string label;
+    if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], label) || label.empty()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse label failed");
+        ThrowInvalidParamError(env, "Invalid label.");
+        return CreateJsUndefined(env);
+    }
+    auto icon = OHOS::Media::PixelMapNapi::GetPixelMap(env, info.argv[INDEX_ONE]);
+    if (icon == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse icon failed");
+        ThrowInvalidParamError(env, "Parse icon failed.");
+        return CreateJsUndefined(env);
+    }
+    NapiAsyncTask::CompleteCallback complete =
+        [weak = context_, label, icon](napi_env env, NapiAsyncTask& task, int32_t status) {
+            auto context = weak.lock();
+            if (!context) {
+                TAG_LOGW(AAFwkTag::CONTEXT, "null context");
+                task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+                return;
+            }
+            auto errCode = context->SetAbilityInstanceInfo(label, icon);
+            if (errCode == ERR_OK) {
+                task.Resolve(env, CreateJsUndefined(env));
+            } else {
+                task.Reject(env, CreateJsErrorByNativeErr(env, errCode));
+            }
+    };
+
+    napi_value result = nullptr;
+    NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnSetMissionLabel",
+        env, CreateAsyncTaskWithLastParam(env, nullptr, nullptr, std::move(complete), &result));
     return result;
 }
 #endif
@@ -2785,6 +2840,32 @@ napi_value JsAbilityContext::OnSetRestoreEnabled(napi_env env, NapiCallbackInfo&
     }
 
     abilityContext->SetRestoreEnabled(enabled);
+    return CreateJsUndefined(env);
+}
+
+napi_value JsAbilityContext::OnSetColorMode(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "OnSetColorMode called");
+    // only support one params
+    if (info.argc == ARGC_ZERO) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Not enough params");
+        ThrowInvalidParamError(env, "Not enough params.");
+        return CreateJsUndefined(env);
+    }
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "context is already released");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return CreateJsUndefined(env);
+    }
+
+    int32_t colorMode = -1;
+    if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], colorMode)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Parse colorMode failed");
+        ThrowInvalidParamError(env, "Parse param colorMode failed, colorMode must be number.");
+        return CreateJsUndefined(env);
+    }
+    context->SetAbilityColorMode(colorMode);
     return CreateJsUndefined(env);
 }
 

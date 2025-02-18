@@ -212,7 +212,7 @@ public:
      * @param appInfo The latest application info obtained from bms for update abilityRuntimeContext.
      *
      */
-    void ScheduleUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo) override;
+    void ScheduleUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo, const std::string &moduleName) override;
 
     /**
      * Notify application to launch ability stage.
@@ -278,8 +278,7 @@ public:
 
     void ScheduleAcceptWant(const AAFwk::Want &want, const std::string &moduleName) override;
 
-    void SchedulePrepareTerminate(const std::string &moduleName,
-        int32_t &prepareTermination, bool &isExist) override;
+    void SchedulePrepareTerminate(const std::string &moduleName) override;
 
     void ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName) override;
 
@@ -381,6 +380,8 @@ private:
 
     void HandleJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info);
 
+    void HandleSchedulePrepareTerminate(const std::string &moduleName);
+
     void PreloadModule(const AppExecFwk::HapModuleInfo &entryHapModuleInfo,
         const std::unique_ptr<AbilityRuntime::Runtime>& runtime);
 
@@ -418,7 +419,7 @@ private:
      * @param appInfo The latest application info obtained from bms for update abilityRuntimeContext.
      *
      */
-    void HandleUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo);
+    void HandleUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo, const std::string &moduleName);
 
     /**
      *
@@ -652,6 +653,10 @@ private:
     void HandleNWebPreload();
 #endif
 
+#if defined(NWEB)
+    void PreLoadWebLib();
+#endif
+
     class MainHandler : public EventHandler {
     public:
         MainHandler(const std::shared_ptr<EventRunner> &runner, const sptr<MainThread> &thread);
@@ -762,6 +767,7 @@ private:
     void *handleAppLib_ = nullptr;  // the handler of ACE Library.
     constexpr static std::string applicationLibraryPath = "/hos/lib/libapplication_native.z.so";
 #endif  // APPLICATION_LIBRARY_LOADER
+
     DISALLOW_COPY_AND_MOVE(MainThread);
 };
 }  // namespace AppExecFwk

@@ -267,6 +267,8 @@ public:
      */
     int32_t GetActiveUIExtensionList(const std::string &bundleName, std::vector<std::string> &extensionList);
 
+    void OnLoadAbilityFailed(std::shared_ptr<AbilityRecord> abilityRecord);
+
     /**
      * OnAbilityDied.
      *
@@ -334,6 +336,11 @@ public:
 
     int32_t UpdateKeepAliveEnableState(const std::string &bundleName, const std::string &moduleName,
         const std::string &mainElement, bool updateEnable);
+
+    /**
+     * Handle extension disconnect task.
+     */
+    void HandleExtensionDisconnectTask(const std::shared_ptr<ConnectionRecord> &connectRecord);
 
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t CONNECT_TIMEOUT_MSG = 1;
@@ -457,6 +464,7 @@ private:
         std::shared_ptr<ConnectionRecord> &connectRecord);
     void HandleCommandDestroy(const sptr<SessionInfo> &sessionInfo);
     void TerminateOrCacheAbility(std::shared_ptr<AbilityRecord> abilityRecord);
+    void CancelLoadTimeoutTask(std::shared_ptr<AbilityRecord> abilityRecord);
 
     /**
      * IsAbilityConnected.
@@ -492,6 +500,8 @@ private:
      */
     void GetOrCreateServiceRecord(const AbilityRequest &abilityRequest, const bool isCreatedByConnect,
         std::shared_ptr<AbilityRecord> &targetAbilityRecord, bool &isLoadedAbility);
+
+    void RemoveServiceFromMapSafe(const std::string &serviceKey);
 
     /**
      * GetConnectRecordListFromMap.
@@ -562,6 +572,7 @@ private:
     void ProcessPreload(const std::shared_ptr<AbilityRecord> &record) const;
 
     void HandleInactiveTimeout(const std::shared_ptr<AbilityRecord> &ability);
+    void CleanActivatingTimeoutAbility(std::shared_ptr<AbilityRecord> abilityRecord);
     void MoveToTerminatingMap(const std::shared_ptr<AbilityRecord>& abilityRecord);
 
     void DoForegroundUIExtension(std::shared_ptr<AbilityRecord> abilityRecord, const AbilityRequest &abilityRequest);
@@ -591,11 +602,6 @@ private:
      * Remove the extension's disconnect task.
      */
     void RemoveExtensionDelayDisconnectTask(const std::shared_ptr<ConnectionRecord> &connectRecord);
-
-    /**
-     * Handle extension disconnect task.
-     */
-    void HandleExtensionDisconnectTask(const std::shared_ptr<ConnectionRecord> &connectRecord);
 
 private:
     void TerminateRecord(std::shared_ptr<AbilityRecord> abilityRecord);
@@ -647,37 +653,31 @@ private:
     const std::string TASK_ON_CALLBACK_DIED = "OnCallbackDiedTask";
     const std::string TASK_ON_ABILITY_DIED = "OnAbilityDiedTask";
 
-    ffrt::mutex serialMutex_;
+    int userId_;
+    uint32_t sceneBoardTokenId_ = 0;
 
-    std::mutex connectMapMutex_;
     ConnectMapType connectMap_;
-
-    ffrt::mutex serviceMapMutex_;
     ServiceMapType serviceMap_;
-    std::list<std::shared_ptr<AbilityRecord>> terminatingExtensionList_;
-
-    std::mutex recipientMapMutex_;
     RecipientMapType recipientMap_;
-
-    std::mutex uiExtRecipientMapMutex_;
     RecipientMapType uiExtRecipientMap_;
-
+    UIExtensionMapType uiExtensionMap_;
+    WindowExtensionMapType windowExtensionMap_;
+    
+    std::list<std::shared_ptr<AbilityRecord>> terminatingExtensionList_;
     std::shared_ptr<TaskHandlerWrap> taskHandler_;
     std::shared_ptr<EventHandlerWrap> eventHandler_;
-    int userId_;
     std::vector<AbilityRequest> restartResidentTaskList_;
-
-    std::mutex startServiceReqListLock_;
     std::unordered_map<std::string, std::shared_ptr<std::list<AbilityRequest>>> startServiceReqList_;
-
-    std::mutex uiExtensionMapMutex_;
-    UIExtensionMapType uiExtensionMap_;
-
-    std::mutex windowExtensionMapMutex_;
-    WindowExtensionMapType windowExtensionMap_;
-
+ 
     std::unique_ptr<UIExtensionAbilityConnectManager> uiExtensionAbilityRecordMgr_ = nullptr;
-    uint32_t sceneBoardTokenId_ = 0;
+    ffrt::mutex serialMutex_;
+    std::mutex connectMapMutex_;
+    ffrt::mutex serviceMapMutex_;
+    std::mutex recipientMapMutex_;
+    std::mutex uiExtRecipientMapMutex_;
+    std::mutex uiExtensionMapMutex_;
+    std::mutex windowExtensionMapMutex_;
+    std::mutex startServiceReqListLock_;
 
     DISALLOW_COPY_AND_MOVE(AbilityConnectManager);
 };

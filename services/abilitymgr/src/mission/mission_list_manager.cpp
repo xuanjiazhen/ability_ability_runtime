@@ -4159,12 +4159,15 @@ void MissionListManager::SetLastExitReason(std::shared_ptr<AbilityRecord> &abili
     ExitReason exitReason;
     bool isSetReason;
     auto accessTokenId = abilityRecord->GetAbilityInfo().applicationInfo.accessTokenId;
+    AppExecFwk::RunningProcessInfo processInfo;
+    int64_t time_stamp = 0;
+    bool withKillMsg = false;
     DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->GetAppExitReason(
         abilityRecord->GetAbilityInfo().bundleName, accessTokenId, abilityRecord->GetAbilityInfo().name,
-        isSetReason, exitReason);
+        isSetReason, exitReason, processInfo, time_stamp, withKillMsg);
 
     if (isSetReason) {
-        abilityRecord->SetLastExitReason(exitReason);
+        abilityRecord->SetLastExitReason(exitReason, processInfo, time_stamp, withKillMsg);
     }
 }
 
@@ -4219,7 +4222,7 @@ int MissionListManager::PrepareClearMissionLocked(int missionId, const std::shar
             prepareTerminateTimeout);
     }
 
-    bool res = abilityRecord->PrepareTerminateAbility();
+    bool res = abilityRecord->PrepareTerminateAbility(false);
     if (res) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "stop terminating");
         handler->CancelTask("PrepareTermiante_" + std::to_string(abilityRecord->GetAbilityRecordId()));

@@ -470,7 +470,7 @@ ErrCode AbilityManagerClient::CloseAbility(sptr<IRemoteObject> token, int result
     return abms->CloseAbility(token, resultCode, resultWant);
 }
 
-ErrCode AbilityManagerClient::CloseUIAbilityBySCB(sptr<SessionInfo> sessionInfo, uint32_t sceneFlag)
+ErrCode AbilityManagerClient::CloseUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool isUserRequestedExit, uint32_t sceneFlag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (sessionInfo == nullptr) {
@@ -1549,7 +1549,7 @@ AppExecFwk::ElementName AbilityManagerClient::GetTopAbility(bool isNeedLocalDevi
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "get sceneSessionManager failed");
                 return elementName;
             }
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, GetTopAbility element");
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "call GetTopAbility");
             (void)sceneSessionManager->GetFocusSessionElement(elementName);
             return elementName;
         }
@@ -1746,6 +1746,14 @@ ErrCode AbilityManagerClient::KillProcessWithPrepareTerminate(const std::vector<
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->KillProcessWithPrepareTerminate(pids);
+}
+
+ErrCode AbilityManagerClient::KillProcessWithReason(int32_t pid, const ExitReason &reason)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call, pid:%{public}d", pid);
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->KillProcessWithReason(pid, reason);
 }
 
 ErrCode AbilityManagerClient::RegisterAutoStartupSystemCallback(sptr<IRemoteObject> callback)
@@ -1997,7 +2005,7 @@ void AbilityManagerClient::NotifyFrozenProcessByRSS(const std::vector<int32_t> &
     return abms->NotifyFrozenProcessByRSS(pidList, uid);
 }
 
-ErrCode AbilityManagerClient::CleanUIAbilityBySCB(sptr<SessionInfo> sessionInfo)
+ErrCode AbilityManagerClient::CleanUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool isUserRequestedExit)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (sessionInfo == nullptr) {
@@ -2097,6 +2105,39 @@ ErrCode AbilityManagerClient::StartSelfUIAbility(const Want &want)
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->StartSelfUIAbility(want);
+}
+
+void AbilityManagerClient::PrepareTerminateAbilityDone(sptr<IRemoteObject> token, bool isTerminate)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call PrepareTerminateAbilityDone");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN(abms);
+    return abms->PrepareTerminateAbilityDone(token, isTerminate);
+}
+
+void AbilityManagerClient::KillProcessWithPrepareTerminateDone(const std::string &moduleName,
+    int32_t prepareTermination, bool isExist)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call KillProcessWithPrepareTerminateDone");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN(abms);
+    return abms->KillProcessWithPrepareTerminateDone(moduleName, prepareTermination, isExist);
+}
+
+ErrCode AbilityManagerClient::RegisterHiddenStartObserver(const sptr<IHiddenStartObserver> &observer)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call RegisterHiddenStartObserver");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->RegisterHiddenStartObserver(observer);
+}
+
+ErrCode AbilityManagerClient::UnregisterHiddenStartObserver(const sptr<IHiddenStartObserver> &observer)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call UnregisterHiddenStartObserver");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->UnregisterHiddenStartObserver(observer);
 }
 } // namespace AAFwk
 } // namespace OHOS

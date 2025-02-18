@@ -311,7 +311,8 @@ HWTEST_F(SourceMapTest, JsEnv_SourceMap_1500, Function | MediumTest | Level1)
     std::string stackStr = "at anonymous (entry/src/main/ets/pages/Index.ets:111:13)";
 
     auto mapObj = std::make_shared<SourceMap>();
-    mapObj->Init(true, "");
+    bool hasFile = true;
+    mapObj->Init(hasFile, "");
     mapObj->SplitSourceMap(sourceMaps);
     std::string stack = mapObj->TranslateBySourceMap(stackStr);
     EXPECT_TRUE(mapObj != nullptr);
@@ -332,7 +333,8 @@ HWTEST_F(SourceMapTest, JsEnv_SourceMap_1600, Function | MediumTest | Level1)
     std::string stackStr = "at anonymous (entry/src/main/ets/pages/Index.ets:111:13)";
 
     auto mapObj = std::make_shared<SourceMap>();
-    mapObj->Init(true, sourceMaps);
+    bool hasFile = true;
+    mapObj->Init(hasFile, sourceMaps);
     std::string stack = mapObj->TranslateBySourceMap(stackStr);
     size_t pos = stack.find(stackStr);
     EXPECT_NE(pos, std::string::npos);
@@ -363,7 +365,8 @@ HWTEST_F(SourceMapTest, JsEnv_SourceMap_1700, Function | MediumTest | Level1)
     std::string stackStr = "at anonymous (entry/src/main/ets/pages/Index.ets:111:13)";
 
     auto mapObj = std::make_shared<SourceMap>();
-    mapObj->Init(true, sourceMaps);
+    bool hasFile = true;
+    mapObj->Init(hasFile, sourceMaps);
     std::string stack = mapObj->TranslateBySourceMap(stackStr);
     size_t pos = stack.find(stackStr);
     EXPECT_NE(pos, std::string::npos);
@@ -394,7 +397,8 @@ HWTEST_F(SourceMapTest, JsEnv_SourceMap_1800, Function | MediumTest | Level1)
     std::string stackStr = "123/Index.ets:111:13";
 
     auto mapObj = std::make_shared<SourceMap>();
-    mapObj->Init(true, sourceMaps);
+    bool hasFile = true;
+    mapObj->Init(hasFile, sourceMaps);
     std::string stack = mapObj->TranslateBySourceMap(stackStr);
     size_t pos = stack.find(stackStr);
     EXPECT_NE(pos, std::string::npos);
@@ -407,9 +411,10 @@ HWTEST_F(SourceMapTest, JsEnv_SourceMap_1900, Function | MediumTest | Level1)
     GTEST_LOG_(INFO) << "JsEnv_SourceMap_1900 start";
     SourceMapData targetMap;
     std::string packageName;
-    targetMap.entryPackageInfo_.emplace_back("SourceMap1");
+    targetMap.entryPackageInfo_.emplace_back("    \"entry-package-info\": \"entry|1.0.0\n");
+    targetMap.packageInfo_.emplace_back("");
     SourceMap::GetPackageName(targetMap, packageName);
-    EXPECT_STREQ("SourceMap1", packageName.c_str());
+    EXPECT_STREQ("entry", packageName.c_str());
     GTEST_LOG_(INFO) << "JsEnv_SourceMap_1900 end";
 }
 
@@ -418,9 +423,10 @@ HWTEST_F(SourceMapTest, JsEnv_SourceMap_2000, Function | MediumTest | Level1)
     GTEST_LOG_(INFO) << "JsEnv_SourceMap_2000 start";
     SourceMapData targetMap;
     std::string packageName;
-    targetMap.packageInfo_.emplace_back("SourceMap");
+    targetMap.entryPackageInfo_.emplace_back("    \"entry-package-info\": \"entrypackageinfo|1.0.0\n");
+    targetMap.packageInfo_.emplace_back("    \"package-info\": \"packageinfo|1.0.0\n");
     SourceMap::GetPackageName(targetMap, packageName);
-    EXPECT_STREQ("SourceMap", packageName.c_str());
+    EXPECT_STREQ("packageinfo", packageName.c_str());
     GTEST_LOG_(INFO) << "JsEnv_SourceMap_2000 end";
 }
 } // namespace AppExecFwk

@@ -90,16 +90,21 @@ void KeepAliveProcessManager::StartKeepAliveProcessWithMainElementPerBundle(cons
         .abilityName = mainElementName,
         .userId = userId,
         .appCloneIndex = bundleInfo.appIndex,
+        .uid = bundleInfo.uid,
     };
+    auto isMultiInstance =
+        bundleInfo.applicationInfo.multiAppMode.multiAppModeType == AppExecFwk::MultiAppModeType::MULTI_INSTANCE;
     auto ret = StartKeepAliveMainAbility(info);
     if (ret == ERR_OK) {
         TAG_LOGI(AAFwkTag::KEEP_ALIVE, "start ok");
-        AfterStartKeepAliveApp(bundleInfo, userId);
+        AfterStartKeepAliveApp(bundleInfo.name, bundleInfo.applicationInfo.accessTokenId,
+            bundleInfo.uid, userId, isMultiInstance);
         return;
     }
 
     TAG_LOGE(AAFwkTag::KEEP_ALIVE, "StartKeepAliveMainAbility failed:%{public}d, retry", ret);
-    ffrt::submit([bundleInfo, userId, info, ret]() mutable {
+    ffrt::submit([bundleName = bundleInfo.name, accessTokenId = bundleInfo.applicationInfo.accessTokenId,
+        uid = bundleInfo.uid, userId, info, ret, isMultiInstance]() mutable {
         for (int tried = 0; tried < MAX_RETRY_TIMES && ret != ERR_OK; tried++) {
             usleep(RETRY_INTERVAL_MICRO_SECONDS);
             TAG_LOGI(AAFwkTag::KEEP_ALIVE, "retry attempt:%{public}d", tried + 1);
@@ -108,10 +113,11 @@ void KeepAliveProcessManager::StartKeepAliveProcessWithMainElementPerBundle(cons
         }
         if (ret != ERR_OK) {
             TAG_LOGE(AAFwkTag::KEEP_ALIVE, "reach max retry, failed:%{public}d, unsetting keep-alive", ret);
-            KeepAliveProcessManager::GetInstance().SetApplicationKeepAlive(bundleInfo.name, userId, false, true, true);
+            KeepAliveProcessManager::GetInstance().SetApplicationKeepAlive(bundleName, userId, false, true, true);
             return;
         }
-        KeepAliveProcessManager::GetInstance().AfterStartKeepAliveApp(bundleInfo, userId);
+        KeepAliveProcessManager::GetInstance().AfterStartKeepAliveApp(bundleName, accessTokenId, uid, userId,
+            isMultiInstance);
     });
 }
 
@@ -126,20 +132,28 @@ int32_t KeepAliveProcessManager::StartKeepAliveMainAbility(const KeepAliveAbilit
     StartOptions options;
     options.processOptions = std::make_shared<ProcessOptions>();
     options.processOptions->isRestartKeepAlive = true;
-    options.processOptions->startupVisibility = StartupVisibility::STARTUP_HIDE;
+    options.processOptions->startupVisibility =
+        DelayedSingleton<AbilityManagerService>::GetInstance()->IsSupportStatusBar(info.uid) ?
+        StartupVisibility::STARTUP_HIDE : StartupVisibility::STARTUP_SHOW;
     auto ret = IN_PROCESS_CALL(DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbility(want,
         options, nullptr, info.userId, DEFAULT_INVAL_VALUE));
     MainElementUtils::UpdateMainElement(info.bundleName, info.moduleName, info.abilityName, true, info.userId);
     return ret;
 }
 
-void KeepAliveProcessManager::AfterStartKeepAliveApp(const AppExecFwk::BundleInfo &bundleInfo, int32_t userId)
+void KeepAliveProcessManager::AfterStartKeepAliveApp(const std::string &bundleName,
+    uint32_t accessTokenId, int32_t uid, int32_t userId, bool isMultiInstance)
 {
-    auto task = [accessTokenId = bundleInfo.applicationInfo.accessTokenId, uid = bundleInfo.uid,
-        bundleName = bundleInfo.name, userId]() {
+    // not support statusbar and don't need check after 5s
+    if (!DelayedSingleton<AbilityManagerService>::GetInstance()->IsSupportStatusBar(uid)) {
+        TAG_LOGI(AAFwkTag::KEEP_ALIVE, "not support statusBar, don't need check when keep alive");
+        return;
+    }
+
+    auto task = [bundleName, accessTokenId, uid, userId, isMultiInstance]() {
         bool isStatusBarCreated =
-            DelayedSingleton<AbilityManagerService>::GetInstance()->IsInStatusBar(accessTokenId, uid);
-        (void)KeepAliveProcessManager::GetInstance().RemoveCheckStatusBarTask(uid);
+            DelayedSingleton<AbilityManagerService>::GetInstance()->IsInStatusBar(accessTokenId, uid, isMultiInstance);
+        (void)KeepAliveProcessManager::GetInstance().RemoveCheckStatusBarTask(uid, false);
         if (isStatusBarCreated) {
             TAG_LOGI(AAFwkTag::KEEP_ALIVE, "status bar is created");
             return;
@@ -151,18 +165,17 @@ void KeepAliveProcessManager::AfterStartKeepAliveApp(const AppExecFwk::BundleInf
 
     std::lock_guard<ffrt::mutex> lock(checkStatusBarTasksMutex_);
     auto iter = std::find_if(checkStatusBarTasks_.begin(), checkStatusBarTasks_.end(),
-        [uid = bundleInfo.uid](const std::shared_ptr<CheckStatusBarTask> &curTask) {
-        if (curTask != nullptr) {
-            return curTask->uid_ == uid;
-        }
-        return false;
+        [uid](const std::shared_ptr<CheckStatusBarTask> &curTask) {
+        return curTask != nullptr && curTask->GetUid() == uid;
     });
     if (iter != checkStatusBarTasks_.end()) {
         TAG_LOGI(AAFwkTag::KEEP_ALIVE, "exists same task, canceling");
-        (*iter)->Cancel();
+        if (*iter != nullptr) {
+            (*iter)->Cancel();
+        }
         checkStatusBarTasks_.erase(iter);
     }
-    auto checkStatusBarTask = std::make_shared<CheckStatusBarTask>(bundleInfo.uid, std::move(task));
+    auto checkStatusBarTask = std::make_shared<CheckStatusBarTask>(uid, std::move(task));
     checkStatusBarTasks_.push_back(checkStatusBarTask);
     ffrt::task_attr attr;
     attr.delay(CREATE_STATUS_BAR_TIMEOUT_MICRO_SECONDS);
@@ -173,32 +186,20 @@ void KeepAliveProcessManager::AfterStartKeepAliveApp(const AppExecFwk::BundleInf
         }, attr);
 }
 
-void KeepAliveProcessManager::RemoveCheckStatusBarTask(int32_t uid)
+void KeepAliveProcessManager::RemoveCheckStatusBarTask(int32_t uid, bool shouldCancel)
 {
     std::lock_guard<ffrt::mutex> lock(checkStatusBarTasksMutex_);
     auto iter = std::find_if(checkStatusBarTasks_.begin(), checkStatusBarTasks_.end(),
         [uid](const std::shared_ptr<CheckStatusBarTask> &curTask) {
-        return curTask->uid_ == uid;
+        return curTask != nullptr && curTask->GetUid() == uid;
     });
     if (iter == checkStatusBarTasks_.end()) {
         TAG_LOGI(AAFwkTag::KEEP_ALIVE, "not exist");
         return;
     }
-    checkStatusBarTasks_.erase(iter);
-}
-
-void KeepAliveProcessManager::CancelAndRemoveCheckStatusBarTask(int32_t uid)
-{
-    std::lock_guard<ffrt::mutex> lock(checkStatusBarTasksMutex_);
-    auto iter = std::find_if(checkStatusBarTasks_.begin(), checkStatusBarTasks_.end(),
-        [uid](const std::shared_ptr<CheckStatusBarTask> &curTask) {
-        return curTask->uid_ == uid;
-    });
-    if (iter == checkStatusBarTasks_.end()) {
-        TAG_LOGI(AAFwkTag::KEEP_ALIVE, "not exist");
-        return;
+    if (*iter != nullptr && shouldCancel) {
+        (*iter)->Cancel();
     }
-    (*iter)->Cancel();
     checkStatusBarTasks_.erase(iter);
 }
 
@@ -229,13 +230,15 @@ int32_t KeepAliveProcessManager::SetApplicationKeepAlive(const std::string &bund
         std::string mainElementName;
         CHECK_TRUE_RETURN_RET(!MainElementUtils::CheckMainUIAbility(bundleInfo, mainElementName),
             ERR_NO_MAIN_ABILITY, "bundle has no main uiability");
-        CHECK_TRUE_RETURN_RET(!MainElementUtils::CheckStatusBarAbility(bundleInfo),
-            ERR_NO_STATUS_BAR_ABILITY, "app has no status bar");
-        bool isRunning = false;
-        result = IN_PROCESS_CALL(appMgrClient->IsAppRunningByBundleNameAndUserId(bundleName, userId, isRunning));
-        CHECK_RET_RETURN_RET(result, "IsAppRunning failed");
-        CHECK_TRUE_RETURN_RET((isRunning && !IsRunningAppInStatusBar(bundleInfo)),
-            ERR_NOT_ATTACHED_TO_STATUS_BAR, "app is not attached to status bar");
+        if (DelayedSingleton<AbilityManagerService>::GetInstance()->IsSupportStatusBar(bundleInfo.uid)) {
+            CHECK_TRUE_RETURN_RET(!MainElementUtils::CheckStatusBarAbility(bundleInfo),
+                ERR_NO_STATUS_BAR_ABILITY, "app has no status bar");
+            bool isRunning = false;
+            result = IN_PROCESS_CALL(appMgrClient->IsAppRunningByBundleNameAndUserId(bundleName, userId, isRunning));
+            CHECK_RET_RETURN_RET(result, "IsAppRunning failed");
+            CHECK_TRUE_RETURN_RET((isRunning && !IsRunningAppInStatusBar(bundleInfo)),
+                ERR_NOT_ATTACHED_TO_STATUS_BAR, "app is not attached to status bar");
+        }
     }
 
     KeepAliveInfo info;
@@ -248,7 +251,9 @@ int32_t KeepAliveProcessManager::SetApplicationKeepAlive(const std::string &bund
     IN_PROCESS_CALL_WITHOUT_RET(appMgrClient->SetKeepAliveDkv(bundleName, updateEnable, 0));
     if (!updateEnable && localEnable) {
         TAG_LOGI(AAFwkTag::KEEP_ALIVE, "unsetting keep-alive");
-        if (!isInner) { CancelAndRemoveCheckStatusBarTask(bundleInfo.uid); }
+        if (!isInner) {
+            RemoveCheckStatusBarTask(bundleInfo.uid, true);
+        }
         std::vector<AppExecFwk::BundleInfo> bundleInfos{ bundleInfo };
         KeepAliveUtils::NotifyDisableKeepAliveProcesses(bundleInfos, userId);
     }
@@ -262,8 +267,10 @@ bool KeepAliveProcessManager::IsRunningAppInStatusBar(const AppExecFwk::BundleIn
         TAG_LOGE(AAFwkTag::KEEP_ALIVE, "bundle has no main uiability");
         return false;
     }
+    auto isMultiInstance =
+        bundleInfo.applicationInfo.multiAppMode.multiAppModeType == AppExecFwk::MultiAppModeType::MULTI_INSTANCE;
     return DelayedSingleton<AbilityManagerService>::GetInstance()->IsInStatusBar(
-        bundleInfo.applicationInfo.accessTokenId, bundleInfo.uid);
+        bundleInfo.applicationInfo.accessTokenId, bundleInfo.uid, isMultiInstance);
 }
 
 void KeepAliveProcessManager::OnAppStateChanged(const AppInfo &info)

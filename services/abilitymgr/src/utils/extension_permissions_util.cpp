@@ -24,6 +24,10 @@ namespace AAFwk {
 bool ExtensionPermissionsUtil::CheckSAPermission(const AppExecFwk::ExtensionAbilityType &extensionType)
 {
     auto checkRet = false;
+    if (extensionType == AppExecFwk::ExtensionAbilityType::ASSET_ACCELERATION) {
+        return PermissionVerification::GetInstance()->VerifyCallingPermission(
+            "ohos.permission.CONNECT_ASSET_ACCELERATION_EXTENSION");
+    }
     if (!PermissionVerification::GetInstance()->IsSACall()) {
         return true;
     }
@@ -88,7 +92,7 @@ bool ExtensionPermissionsUtil::CheckSAPermissionMore(const AppExecFwk::Extension
         checkRet = PermissionVerification::GetInstance()->VerifyCallingPermission(
             "ohos.permission.CONNECT_VOIP_EXTENSION");
     } else {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "No need connect permission for extension type %{public}d.", extensionType);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "No permission needed for type %{public}d.", extensionType);
         return true;
     }
 

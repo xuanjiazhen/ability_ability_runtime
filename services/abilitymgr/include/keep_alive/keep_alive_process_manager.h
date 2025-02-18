@@ -29,16 +29,19 @@ namespace AAFwk {
 using AbilityKeepAliveService = AbilityRuntime::AbilityKeepAliveService;
 
 struct KeepAliveAbilityInfo {
+    int32_t userId = 0;
+    int32_t appCloneIndex = 0;
+    int32_t uid = 0;
     std::string bundleName;
     std::string moduleName;
     std::string abilityName;
-    int32_t userId = 0;
-    int32_t appCloneIndex = 0;
 };
 
 class CheckStatusBarTask {
 public:
-    explicit CheckStatusBarTask(int32_t uid, std::function<void(void)>&& task)
+    CheckStatusBarTask() = delete;
+
+    CheckStatusBarTask(int32_t uid, std::function<void(void)>&& task)
         : uid_(uid), task_(task) {};
 
     ~CheckStatusBarTask() {};
@@ -47,10 +50,13 @@ public:
 
     void Run();
 
-public:
-    int32_t uid_;
+    inline int32_t GetUid()
+    {
+        return uid_;
+    }
 
 private:
+    int32_t uid_;
     ffrt::mutex cancelMutex_;
     std::function<void(void)> task_;
 };
@@ -77,7 +83,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t SetApplicationKeepAlive(const std::string &bundleName, int32_t userId, bool updateEnable,
-        bool isByEDM = false, bool isInnser = false);
+        bool isByEDM, bool isInner);
 
     /**
      * @brief Query keep-alive applications.
@@ -87,7 +93,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t QueryKeepAliveApplications(int32_t appType, int32_t userId, std::vector<KeepAliveInfo> &infoList,
-        bool isByEDM = false);
+        bool isByEDM);
 
     /**
      * If bundle has right main element, start the main element
@@ -122,7 +128,7 @@ public:
 
     int32_t StartKeepAliveMainAbility(const KeepAliveAbilityInfo &info);
 
-    void RemoveCheckStatusBarTask(int32_t uid);
+    void RemoveCheckStatusBarTask(int32_t uid, bool shouldCancel);
 
 private:
     KeepAliveProcessManager();
@@ -132,9 +138,9 @@ private:
     int32_t CheckPermissionForEDM();
     void StartKeepAliveProcessWithMainElementPerBundle(const AppExecFwk::BundleInfo &bundleInfo,
         int32_t userId);
-    void AfterStartKeepAliveApp(const AppExecFwk::BundleInfo &bundleInfo, int32_t userId);
+    void AfterStartKeepAliveApp(const std::string &bundleName, uint32_t accessTokenId, int32_t uid, int32_t userId,
+        bool isMultiInstance);
     bool IsRunningAppInStatusBar(const AppExecFwk::BundleInfo &bundleInfo);
-    void CancelAndRemoveCheckStatusBarTask(int32_t uid);
 
     ffrt::mutex checkStatusBarTasksMutex_;
     std::vector<std::shared_ptr<CheckStatusBarTask>> checkStatusBarTasks_;

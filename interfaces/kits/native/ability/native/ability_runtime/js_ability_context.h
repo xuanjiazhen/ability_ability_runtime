@@ -73,6 +73,7 @@ public:
     static napi_value ConnectUIServiceExtension(napi_env env, napi_callback_info info);
     static napi_value DisconnectUIServiceExtension(napi_env env, napi_callback_info info);
     static napi_value SetRestoreEnabled(napi_env env, napi_callback_info info);
+    static napi_value SetColorMode(napi_env env, napi_callback_info info);
 
     static void ConfigurationUpdated(napi_env env, std::shared_ptr<NativeReference> &jsContext,
         const std::shared_ptr<AppExecFwk::Configuration> &config);
@@ -86,10 +87,12 @@ public:
 public:
     static napi_value SetMissionLabel(napi_env env, napi_callback_info info);
     static napi_value SetMissionIcon(napi_env env, napi_callback_info info);
+    static napi_value SetAbilityInstanceInfo(napi_env env, napi_callback_info info);
 
 private:
     napi_value OnSetMissionLabel(napi_env env, NapiCallbackInfo& info);
     napi_value OnSetMissionIcon(napi_env env, NapiCallbackInfo& info);
+    napi_value OnSetAbilityInstanceInfo(napi_env env, NapiCallbackInfo& info);
 #endif
 
 private:
@@ -140,6 +143,7 @@ private:
         std::weak_ptr<AbilityContext> weakContext, sptr<JSUIServiceExtAbilityConnection> connection,
         std::shared_ptr<NapiAsyncTask> uasyncTaskShared, const AAFwk::Want& want);
     napi_value OnDisconnectUIServiceExtension(napi_env env, NapiCallbackInfo& info);
+    napi_value OnSetColorMode(napi_env env, NapiCallbackInfo& info);
 
     static bool UnWrapWant(napi_env env, napi_value argv, AAFwk::Want& want);
     static napi_value WrapWant(napi_env env, const AAFwk::Want& want);

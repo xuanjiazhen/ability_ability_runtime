@@ -49,7 +49,7 @@ public:
      *
      * @return
      */
-    void UpdateApplicationInfoInstalled(const ApplicationInfo &appInfo);
+    void UpdateApplicationInfoInstalled(const ApplicationInfo &appInfo, const std::string &moduleName);
 
     /**
      * AddAbilityStageInfo, call ScheduleAbilityStageInfo() through proxy project,
@@ -192,7 +192,7 @@ public:
      */
     void ScheduleAcceptWant(const AAFwk::Want &want, const std::string &moduleName);
     
-    void SchedulePrepareTerminate(const std::string &moduleName, int32_t &prepareTermination, bool &isExist);
+    void SchedulePrepareTerminate(const std::string &moduleName);
 
     void ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName);
 

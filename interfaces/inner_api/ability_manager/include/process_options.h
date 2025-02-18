@@ -53,11 +53,12 @@ public:
     static bool IsValidProcessMode(ProcessMode value);
     static bool IsNoAttachmentMode(ProcessMode value);
     static bool IsAttachToStatusBarItemMode(ProcessMode value);
+    static bool IsNewHiddenProcessMode(ProcessMode value);
 
+    bool isRestartKeepAlive = false;
     ProcessMode processMode = ProcessMode::UNSPECIFIED;
     StartupVisibility startupVisibility = StartupVisibility::UNSPECIFIED;
     std::string processName;
-    bool isRestartKeepAlive = false;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

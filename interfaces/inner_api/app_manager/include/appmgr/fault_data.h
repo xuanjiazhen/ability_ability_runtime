@@ -56,6 +56,7 @@ public:
  */
 struct FaultData : public Parcelable {
     bool ReadFromParcel(Parcel &parcel);
+    bool WriteContent(Parcel &parcel) const;
     virtual bool Marshalling(Parcel &parcel) const override;
     static FaultData *Unmarshalling(Parcel &parcel);
     // error object
@@ -68,6 +69,7 @@ struct FaultData : public Parcelable {
     uint32_t state = 0;
     int32_t eventId = -1;
     int32_t tid = -1;
+    uint32_t stuckTimeout = 0;
     sptr<IRemoteObject> token = nullptr;
 };
 
@@ -77,19 +79,19 @@ struct FaultData : public Parcelable {
  */
 struct AppFaultDataBySA : public Parcelable {
     bool ReadFromParcel(Parcel &parcel);
+    bool waitSaveState = false;
+    bool notifyApp = false;
+    bool forceExit = false;
     virtual bool Marshalling(Parcel &parcel) const override;
     static AppFaultDataBySA *Unmarshalling(Parcel &parcel);
     // error object
     ErrorObject errorObject;
     FaultDataType faultType = FaultDataType::UNKNOWN;
     int32_t pid = -1;
-    std::string timeoutMarkers;
-    bool waitSaveState = false;
-    bool notifyApp = false;
-    bool forceExit = false;
     uint32_t state = 0;
     int32_t eventId = -1;
     sptr<IRemoteObject> token = nullptr;
+    std::string timeoutMarkers;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

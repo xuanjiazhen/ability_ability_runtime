@@ -151,6 +151,13 @@
             "multimedia.audio",
             "multimedia.media"
         ],
+        "AssetAccelerationExtension": [
+            "backgroundTaskManager",
+            "resourceschedule.backgroundTaskManager",
+            "multimedia.camera",
+            "multimedia.audio",
+            "multimedia.media"
+        ],
         "DataShareExtension": [],
         "PushExtension": [
             "notification",
@@ -366,6 +373,7 @@
             "telephony.radio",
             "telephony.sim",
             "telephony.sms",
+            "telephony.voipCall",
             "update",
             "userIAM.faceAuth",
             "userIAM.userAuth",

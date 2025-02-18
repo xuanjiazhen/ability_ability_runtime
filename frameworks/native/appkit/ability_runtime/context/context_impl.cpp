@@ -672,6 +672,7 @@ int ContextImpl::GetCurrentAccountId() const
         return userId;
     }
     instance->GetOsAccountLocalIdFromProcess(userId);
+    TAG_LOGD(AAFwkTag::APPKIT, "userId: %{public}d", userId);
     return userId;
 }
 
@@ -686,7 +687,7 @@ int ContextImpl::GetCurrentActiveAccountId() const
     }
     ErrCode ret = instance->QueryActiveOsAccountIds(accountIds);
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "ContextImpl::GetCurrentActiveAccountId error");
+        TAG_LOGE(AAFwkTag::APPKIT, "ContextImpl::GetCurrentActiveAccountId error. ret: %{public}d", ret);
         return 0;
     }
 
@@ -694,6 +695,7 @@ int ContextImpl::GetCurrentActiveAccountId() const
         TAG_LOGE(AAFwkTag::APPKIT, "no accounts");
         return 0;
     }
+    TAG_LOGD(AAFwkTag::APPKIT, "accountId: %{public}d", accountIds[0]);
     return accountIds[0];
 }
 
@@ -1008,7 +1010,7 @@ void ContextImpl::UpdateResConfig(std::shared_ptr<Global::Resource::ResourceMana
     }
 #ifdef SUPPORT_SCREEN
     UErrorCode status = U_ZERO_ERROR;
-    icu::Locale locale = icu::Locale::forLanguageTag(Global::I18n::LocaleConfig::GetSystemLocale(), status);
+    icu::Locale locale = icu::Locale::forLanguageTag(Global::I18n::LocaleConfig::GetEffectiveLanguage(), status);
     resConfig->SetLocaleInfo(locale);
     if (resConfig->GetLocaleInfo() == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null LocaleInfo");

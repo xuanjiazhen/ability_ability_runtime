@@ -485,6 +485,16 @@ public:
     virtual int32_t GetRunningProcessInfoByPid(const pid_t pid, OHOS::AppExecFwk::RunningProcessInfo &info) override;
 
     /**
+     * Get running process information by child process pid.
+     *
+     * @param childPid child process id.
+     * @param info Output parameters, return runningProcessInfo.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetRunningProcessInfoByChildProcessPid(const pid_t childPid,
+        OHOS::AppExecFwk::RunningProcessInfo &info) override;
+
+    /**
      * get memorySize by pid.
      *
      * @param pid process id.
@@ -771,7 +781,16 @@ public:
 
     virtual void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey) override;
 
-    int32_t HasAppRecord(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result) override;
+    int32_t IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result) override;
+
+    /**
+     * UpdateProcessMemoryState, call UpdateProcessMemoryState() through proxy object,
+     * update process rss and pss value.
+     *
+     * @param procMemStates, the memory states of all apps.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int32_t UpdateProcessMemoryState(const std::vector<ProcessMemoryState> &procMemState) override;
 private:
     bool SendTransactCmd(AppMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     bool WriteInterfaceToken(MessageParcel &data);

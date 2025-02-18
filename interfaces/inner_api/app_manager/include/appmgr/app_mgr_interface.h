@@ -40,6 +40,7 @@
 #include "irender_state_observer.h"
 #include "memory_level_info.h"
 #include "page_state_data.h"
+#include "process_memory_state.h"
 #include "render_process_info.h"
 #include "running_process_info.h"
 #include "system_memory_attr.h"
@@ -571,6 +572,19 @@ public:
     }
 
     /**
+     * Get running process information by child process pid.
+     *
+     * @param childPid child process id.
+     * @param info Output parameters, return runningProcessInfo.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetRunningProcessInfoByChildProcessPid(const pid_t childPid,
+        OHOS::AppExecFwk::RunningProcessInfo &info)
+    {
+        return 0;
+    }
+
+    /**
      * get memorySize by pid.
      *
      * @param pid process id.
@@ -895,7 +909,19 @@ public:
 
     virtual void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey) {}
 
-    virtual int32_t HasAppRecord(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result)
+    virtual int32_t IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result)
+    {
+        return 0;
+    }
+
+    /**
+     * UpdateProcessMemoryState, call UpdateProcessMemoryState() through proxy object,
+     * update process rss and pss value.
+     *
+     * @param procMemStates, the memory states of all apps.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int32_t UpdateProcessMemoryState(const std::vector<ProcessMemoryState> &procMemState)
     {
         return 0;
     }

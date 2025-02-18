@@ -30,6 +30,7 @@
 #include "ui_extension_window_command.h"
 #include "want.h"
 #include "intent_exemption_info.h"
+#include "ihidden_start_observer.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -437,10 +438,11 @@ public:
      *  CloseUIAbilityBySCB, close the special ability by scb.
      *
      * @param sessionInfo the session info of the ability to terminate.
+     * @param isUserRequestedExit determine whether it is a user request to exit.
      * @param sceneFlag the reason info of the ability to terminate.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode CloseUIAbilityBySCB(sptr<SessionInfo> sessionInfo, uint32_t sceneFlag = 0);
+    ErrCode CloseUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool isUserRequestedExit = false, uint32_t sceneFlag = 0);
 
     /**
      * SendResultToAbility with want, return resultWant from ability manager service.
@@ -1001,6 +1003,15 @@ public:
     ErrCode RegisterStatusBarDelegate(sptr<AbilityRuntime::IStatusBarDelegate> delegate);
 
     ErrCode KillProcessWithPrepareTerminate(const std::vector<int32_t>& pids);
+
+    /**
+     * kill the process with reason
+     *
+     * @param pid id of process.
+     * @param  reason, kill process reason.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode KillProcessWithReason(int32_t pid, const ExitReason &reason);
 
     /**
      * @brief Register auto start up callback for system api.
@@ -1586,7 +1597,7 @@ public:
      * @param sessionInfo the session info of the ability to clean.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode CleanUIAbilityBySCB(sptr<SessionInfo> sessionInfo);
+    ErrCode CleanUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool isUserRequestedExit = false);
 
     /**
      * Open link of ability and atomic service.
@@ -1649,6 +1660,37 @@ public:
     ErrCode QueryAtomicServiceStartupRule(sptr<IRemoteObject> callerToken,
         const std::string &appId, const std::string &startTime, AtomicServiceStartupRule &rule);
 
+    /**
+     * PrepareTerminateAbilityDone, called when PrepareTerminateAbility call is done.
+     *
+     * @param token, the token of the ability to terminate.
+     * @param callback callback.
+     */
+    void PrepareTerminateAbilityDone(sptr<IRemoteObject> token, bool isTerminate);
+
+    /**
+     * KillProcessWithPrepareTerminateDone, called when KillProcessWithPrepareTerminate call is done.
+     *
+     * @param moduleName, the module name of the application.
+     * @param prepareTermination, the result of prepareTermination call of the module.
+     * @param isExist, whether the prepareTerminate functions are implemented.
+     */
+    void KillProcessWithPrepareTerminateDone(const std::string &moduleName, int32_t prepareTermination, bool isExist);
+
+    /**
+     * Register hidden start observer.
+     * @param observer, ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode RegisterHiddenStartObserver(const sptr<IHiddenStartObserver> &observer);
+
+    /**
+     * Unregister hidden start observer.
+     * @param observer, ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode UnregisterHiddenStartObserver(const sptr<IHiddenStartObserver> &observer);
+
 private:
     AbilityManagerClient();
     DISALLOW_COPY_AND_MOVE(AbilityManagerClient);
@@ -1667,11 +1709,11 @@ private:
     void HandleDlpApp(Want &want);
 
     static std::once_flag singletonFlag_;
-    std::recursive_mutex mutex_;
-    std::mutex topAbilityMutex_;
     static std::shared_ptr<AbilityManagerClient> instance_;
     sptr<IAbilityManager> proxy_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
+    std::recursive_mutex mutex_;
+    std::mutex topAbilityMutex_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
