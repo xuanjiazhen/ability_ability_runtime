@@ -394,7 +394,6 @@ HWTEST_F(CjEnvironmentTest, CjEnvironmentTestInitNewCJAppNS_001andInitCJSDKNS_01
     cJEnvironment.InitNewCJAppNS("");
     cJEnvironment.InitCJSDKNS("com/ohos/unittest/test/");
     EXPECT_EQ(cJEnvironment.isLoadCJLibrary_, false);
-
 }
 
 /**

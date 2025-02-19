@@ -241,8 +241,8 @@ group("unittest") {
   deps = []
 
   deps += [
-    ":ability_context_impl_test",
     ":ability_context_changeabilityvisibility_test",
+    ":ability_context_impl_test",
     ":caller_call_back_ut_test",
     ":dialog_callback_test",
     ":local_call_container_ut_test",

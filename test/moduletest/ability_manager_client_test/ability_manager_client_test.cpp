@@ -348,7 +348,7 @@ HWTEST_F(AbilityManagerClientTest, QueryAtomicServiceStartupRule_0100, TestSize.
  * @tc.desc: KillProcessWithReason and KillProcessWithPrepareTerminateDone
  * @tc.type: FUNC
  */
-HWTEST_F(AbilityManagerClientTest, KillProcessWithReason_0100andKillProcessWithPrepareTerminateDone_0100, TestSize.Level1)
+HWTEST_F(AbilityManagerClientTest, KillProcessWithReason_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "KillProcessWithReason_0100 start");
 
