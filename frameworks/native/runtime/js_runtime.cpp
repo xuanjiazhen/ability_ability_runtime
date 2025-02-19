@@ -335,6 +335,10 @@ void JsRuntime::StartProfiler(const DebugOption dOption)
             TAG_LOGE(AAFwkTag::JSRUNTIME, "not support release app");
             return;
         }
+        if (appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_RELEASE) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "not support release app");
+            return;
+        }
         if (option.find(DEBUGGER) == std::string::npos) {
             // if has old connect server, stop it
             ConnectServerManager::Get().StopConnectServer(false);
