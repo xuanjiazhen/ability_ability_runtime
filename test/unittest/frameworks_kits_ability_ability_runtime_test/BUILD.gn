@@ -73,14 +73,14 @@ ohos_unittest("ability_context_impl_test") {
   }
 }
 
-ohos_unittest("ability_context_test1") {
+ohos_unittest("ability_context_changeabilityvisibility_test") {
   module_out_path = module_out_path
 
   include_dirs = [
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/",
   ]
 
-  sources = [ "ability_context_test.cpp" ]
+  sources = [ "ability_context_changeabilityvisibility_test.cpp" ]
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
@@ -241,8 +241,8 @@ group("unittest") {
   deps = []
 
   deps += [
+    ":ability_context_changeabilityvisibility_test",
     ":ability_context_impl_test",
-    ":ability_context_test1",
     ":caller_call_back_ut_test",
     ":dialog_callback_test",
     ":local_call_container_ut_test",

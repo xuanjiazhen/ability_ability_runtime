@@ -475,7 +475,7 @@ private:
     std::unique_ptr<NativeReference> mockContentStorage_ = nullptr;
 };
 
-class AbilityContextTest : public testing::Test {
+class AbilityContextChangeAbilityVisibilityTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
@@ -483,28 +483,28 @@ public:
     void TearDown();
 };
 
-void AbilityContextTest::SetUpTestCase(void)
+void AbilityContextChangeAbilityVisibilityTest::SetUpTestCase(void)
 {
 }
 
-void AbilityContextTest::TearDownTestCase(void)
+void AbilityContextChangeAbilityVisibilityTest::TearDownTestCase(void)
 {
 }
 
-void AbilityContextTest::SetUp(void)
+void AbilityContextChangeAbilityVisibilityTest::SetUp(void)
 {
 }
 
-void AbilityContextTest::TearDown(void)
+void AbilityContextChangeAbilityVisibilityTest::TearDown(void)
 {
 }
 
 /**
- * @tc.name: AbilityContextTest_ChangeAbilityVisibility_0100
+ * @tc.name: AbilityContextChangeAbilityVisibilityTest_ChangeAbilityVisibility_0100
  * @tc.desc: ChangeAbilityVisibility.
  * @tc.type: FUNC
  */
-HWTEST_F(AbilityContextTest, AbilityContext_ChangeAbilityVisibility_0100, Function | MediumTest | Level1)
+HWTEST_F(AbilityContextChangeAbilityVisibilityTest, ChangeAbilityVisibility_0100, Function | MediumTest | Level1)
 {
     MockAbilityContext  mockAbilityContext;
     EXPECT_EQ(mockAbilityContext.ChangeAbilityVisibility(true), 0);

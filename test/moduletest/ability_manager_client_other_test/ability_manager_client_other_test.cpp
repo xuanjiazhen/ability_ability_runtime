@@ -60,10 +60,12 @@ void AbilityManagerClientTest2::TearDown()
 HWTEST_F(AbilityManagerClientTest2, ForceTimeoutForTest_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbility_0100 start");
+
     std::string abilityName = "com.example.abilityName";
     std::string state = "com.example.state";
     auto result = AbilityManagerClient::GetInstance()->ForceTimeoutForTest(abilityName, state);
     EXPECT_NE(result, ERR_OK);
+
     TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbility_0100 end");
 }
 }  // namespace AAFwk
