@@ -108,6 +108,8 @@ ohos_shared_library("appkit_native") {
   sources = [
     "${ability_runtime_native_path}/appkit/ability_runtime/app/ability_stage.cpp",
     "${ability_runtime_native_path}/appkit/ability_runtime/app/js_ability_stage.cpp",
+    "${ability_runtime_native_path}/appkit/ability_runtime/app/sts_ability_stage.cpp",
+    "${ability_runtime_native_path}/appkit/ability_runtime/app/sts_ability_stage_context.cpp",
     "${ability_runtime_native_path}/appkit/ability_runtime/app/js_ability_stage_context.cpp",
     "${ability_runtime_native_path}/appkit/app/ability_record_mgr.cpp",
     "${ability_runtime_native_path}/appkit/app/app_loader.cpp",
