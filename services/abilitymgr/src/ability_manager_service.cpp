@@ -12646,6 +12646,12 @@ int AbilityManagerService::StartSelfUIAbility(const Want &want)
     return ERR_CAPABILITY_NOT_SUPPORT;
 }
 
+int AbilityManagerService::StartSelfUIAbilityWithStartOptions(const Want &want, const StartOptions &options)
+{
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "not supported");
+    return ERR_CAPABILITY_NOT_SUPPORT;
+}
+
 bool AbilityManagerService::CheckCrossUser(const int32_t userId, AppExecFwk::ExtensionAbilityType extensionType)
 {
     if (AAFwk::UIExtensionUtils::IsEnterpriseAdmin(extensionType) || JudgeMultiUserConcurrency(userId)) {
