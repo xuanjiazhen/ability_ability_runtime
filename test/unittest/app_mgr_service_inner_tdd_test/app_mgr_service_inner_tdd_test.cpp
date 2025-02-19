@@ -23,6 +23,7 @@
 #undef private
 #include "app_scheduler.h"
 #include "app_mgr_event.h"
+#include "app_spawn_client.h"
 #include "event_handler.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_skeleton.h"
@@ -41,6 +42,9 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace AppExecFwk {
+namespace{
+    constexpr int32_t DEFAULT_USERID = 100;
+}
 class AppMgrServiceInnerTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -1220,6 +1224,31 @@ HWTEST_F(AppMgrServiceInnerTest, SetAppEnvInfo_004, TestSize.Level1)
     std::string ubsanEnabled = "ubsanEnabled";
     EXPECT_EQ(startMsg.appEnv.find(ubsanEnabled)->second, "1");
     TAG_LOGI(AAFwkTag::TEST, "SetAppEnvInfo_004 end");
+}
+
+ /**
+ * @tc.name: SetStartMsgCustomSandboxFlag_001
+ * @tc.type: FUNC
+ * @tc.Function: SetStartMsgCustomSandboxFlag
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerTest, SetStartMsgCustomSandboxFlag_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerTest SetStartMsgCustomSandboxFlag_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    AppSpawnStartMsg startMsg;
+    startMsg.bundleName = "com.test.bundle";
+    appMgrServiceInner->remoteClientManager_ = nullptr;
+    appMgrServiceInner->SetStartMsgCustomSandboxFlag(startMsg, DEFAULT_USERID);
+    EXPECT_FALSE(startMsg.isCustomSandboxFlag);
+
+    appMgrServiceInner->remoteClientManager_ = std::make_shared<RemoteClientManager>();
+    EXPECT_NE(appMgrServiceInner->remoteClientManager_, nullptr);
+    appMgrServiceInner->SetStartMsgCustomSandboxFlag(startMsg, DEFAULT_USERID);
+    EXPECT_FALSE(startMsg.isCustomSandboxFlag);
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerTest SetStartMsgCustomSandboxFlag_001 end");
 }
 } // namespace AppExecFwk
 } // namespace OHOS
