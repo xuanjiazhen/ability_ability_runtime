@@ -37,7 +37,7 @@ public:
 
 private:
     CJRuntime& cjRuntime_;
-    std::shared_ptr<CJChildProcessObject> CJChildProcessObj_;
+    std::shared_ptr<CJChildProcessObject> cjChildProcessObj_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -52,9 +52,9 @@ bool CJChildProcessImpl::Init(const std::shared_ptr<ChildProcessStartInfo>& info
         TAG_LOGD(AAFwkTag::PROCESSMGR, "AppLib is Loaded");
     }
 
-    CJChildProcessObj_ = CJChildProcessObject::Create(srcPath);
-    if (CJChildProcessObj_ == nullptr) {
-        TAG_LOGE(AAFwkTag::PROCESSMGR, "null CJChildProcessObj_");
+    cjChildProcessObj_ = CJChildProcessObject::Create(srcPath);
+    if (cjChildProcessObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "null cjChildProcessObj_");
         return false;
     }
     return true;
@@ -64,7 +64,7 @@ void CJChildProcessImpl::OnStart()
 {
     TAG_LOGI(AAFwkTag::PROCESSMGR, "called");
     ChildProcess::OnStart();
-    CJChildProcessObj_->OnStart();
+    cjChildProcessObj_->OnStart();
 }
 
 void CJChildProcessImpl::OnStart(std::shared_ptr<AppExecFwk::ChildProcessArgs> args)
@@ -75,7 +75,7 @@ void CJChildProcessImpl::OnStart(std::shared_ptr<AppExecFwk::ChildProcessArgs> a
         return;
     }
     ChildProcess::OnStart(args);
-    CJChildProcessObj_->OnStart(args);
+    cjChildProcessObj_->OnStart(args);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

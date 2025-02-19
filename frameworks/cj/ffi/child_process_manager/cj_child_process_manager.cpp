@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,13 +14,24 @@
  */
 
 #include "cj_child_process_manager.h"
-
+#include "cj_common_ffi.h"
 #include <unistd.h>
+
+#ifdef WINDOWS_PLATFORM
+#define CJ_EXPORT __declspec(dllexport)
+#else
+#define CJ_EXPORT __attribute__((visibility("default")))
+#endif
 
 namespace OHOS {
 namespace AbilityRuntime {
 
 namespace {
+struct CArrStrInt32 {
+    CArrString keys;
+    CArrI32 values;
+};
+
 enum {
     MODE_SELF_FORK = 0,
     MODE_APP_SPAWN_FORK = 1,
@@ -43,10 +54,8 @@ int32_t CJChildProcessManager::OnStartChildProcess(const std::string& srcEntry, 
 
     if (startMode == MODE_SELF_FORK) {
         return StartChildProcessSelfForkTask(result, srcEntry);
-    } else {
-        return StartChildProcessAppSpawnForkTask(result, srcEntry);
     }
-    return 0;
+    return StartChildProcessAppSpawnForkTask(result, srcEntry);
 }
 
 int32_t CJChildProcessManager::StartChildProcessSelfForkTask(pid_t& result, const std::string& srcEntry)

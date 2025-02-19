@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,28 +20,10 @@
 
 #include "child_process_manager.h"
 #include "child_process_manager_error_utils.h"
-#include "cj_common_ffi.h"
 #include "hilog_tag_wrapper.h"
-
-#ifdef WINDOWS_PLATFORM
-#define CJ_EXPORT __declspec(dllexport)
-#else
-#define CJ_EXPORT __attribute__((visibility("default")))
-#endif
 
 namespace OHOS {
 namespace AbilityRuntime {
-
-struct CArrStrInt32 {
-    CArrString keys;
-    CArrI32 values;
-};
-
-extern "C" {
-CJ_EXPORT int32_t FFICJStartChildProcess(const char* srcEntry, const int32_t startMode, pid_t* result);
-CJ_EXPORT int32_t FFICJStartArkChildProcess(
-    const char* srcEntry, const char* entryParams, const CArrStrInt32 fds, const bool isolationMode, pid_t* result);
-};
 
 class CJChildProcessManager {
 public:
