@@ -1235,6 +1235,7 @@ void JsWantAgent::SetOnNapiGetWantAgentCallback(std::shared_ptr<WantAgentWantsPa
     };
 }
 
+/* test */
 napi_value JsWantAgent::OnNapiGetOperationType(napi_env env, napi_callback_info info)
 {
     TAG_LOGI(AAFwkTag::WANTAGENT, "called");
