@@ -72,7 +72,7 @@ void DumpRuntimeHelper::SetAppFreezeFilterCallback()
         TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
         return;
     }
-    auto appfreezeFilterCallback = [this] (const int32_t pid) -> bool {
+    auto appfreezeFilterCallback = [this] (const int32_t pid, const bool needDecreaseQuota) -> bool {
         if (OHOS::system::GetParameter("hiview.oomdump.switch"), "unknown") == "disable" {
             TAG_LOGi(AAFwkTag::APPKIT, "oom dump is disabled");
             return false;
@@ -82,7 +82,7 @@ void DumpRuntimeHelper::SetAppFreezeFilterCallback()
             TAG_LOGE(AAFwkTag::APPKIT, "null client");
             return false;
         }
-        if (!g_betaVersion && !g_developMode) {
+        if (!g_betaVersion && !g_developMode && needDecreaseQuota) {
             if (!CheckOOMDumpOpt()) {
                 TAG_LOGI(AAFwkTag::APPKIT, "CheckOOMDumpOpt failed");
                 return false;
