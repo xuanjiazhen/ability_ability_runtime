@@ -669,6 +669,9 @@ int AbilityManagerStub::OnRemoteRequestInnerSeventeenth(uint32_t code, MessagePa
     if (interfaceCode == AbilityManagerInterfaceCode::KILL_PROCESS_WITH_REASON) {
         return KillProcessWithReasonInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::KILL_PROCESS_FOR_PERMISSION_UPDATE) {
+        return KillProcessForPermissionUpdateInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::REGISTER_AUTO_STARTUP_SYSTEM_CALLBACK) {
         return RegisterAutoStartupSystemCallbackInner(data, reply);
     }
@@ -4380,6 +4383,17 @@ int32_t AbilityManagerStub::UnregisterHiddenStartObserverInner(MessageParcel &da
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Fail to write result.");
         return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::KillProcessForPermissionUpdateInner(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t accessTokenId = data.ReadInt32();
+    int32_t result = KillProcessForPermissionUpdate(accessTokenId);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return IPC_STUB_ERR;
     }
     return NO_ERROR;
 }

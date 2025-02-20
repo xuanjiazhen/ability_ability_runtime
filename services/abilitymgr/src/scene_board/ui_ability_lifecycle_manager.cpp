@@ -3387,5 +3387,12 @@ void UIAbilityLifecycleManager::HandleForegroundCollaborate(
         abilityRecord->ScheduleCollaborate(abilityRequest.want);
     }
 }
+
+void HandleProcessKilledForPermissionUpdate(const std::shared_ptr<AbilityRecord> &abilityRecord)
+{
+    NotifySCBToHandleException(abilityRecord,
+        static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_PERMISSION_UPDATE),
+        "kill process for permission update");
+}
 }  // namespace AAFwk
 }  // namespace OHOS
