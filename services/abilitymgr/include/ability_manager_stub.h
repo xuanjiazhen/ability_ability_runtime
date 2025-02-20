@@ -315,6 +315,7 @@ private:
     int32_t QueryKeepAliveApplicationsByEDMInner(MessageParcel &data, MessageParcel &reply);
     int32_t AddQueryERMSObserverInner(MessageParcel &data, MessageParcel &reply);
     int32_t QueryAtomicServiceStartupRuleInner(MessageParcel &data, MessageParcel &reply);
+    int32_t KillProcessForPermissionUpdateInner(MessageParcel &data, MessageParcel &reply);
 
     int OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);

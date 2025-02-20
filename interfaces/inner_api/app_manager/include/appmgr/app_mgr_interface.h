@@ -380,6 +380,15 @@ public:
     virtual int GetAbilityRecordsByProcessID(const int pid, std::vector<sptr<IRemoteObject>> &tokens) = 0;
 
     /**
+     *  Get processIds by accessTokenId.
+     *
+     * @param accessTokenId The accessTokenId.
+     * @param pids The vector containing processIds.
+     * @return Returns true on success, others on failure.
+     */
+    virtual int32_t GetPidsByAccessTokenId(uint32_t accessTokenId, std::vector<sptr<IRemoteObject>> &pids) = 0;
+
+    /**
      * Prestart nwebspawn process.
      *
      * @return Returns ERR_OK on success, others on failure.

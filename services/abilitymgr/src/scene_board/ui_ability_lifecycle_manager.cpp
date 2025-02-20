@@ -1766,7 +1766,7 @@ void UIAbilityLifecycleManager::SetRootSceneSession(const sptr<IRemoteObject> &r
 }
 
 void UIAbilityLifecycleManager::NotifySCBToHandleException(const std::shared_ptr<AbilityRecord> &abilityRecord,
-    int32_t errorCode, const std::string& errorReason)
+    int32_t errorCode, const std::string& errorReason, bool needClearCallerLink)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     if (abilityRecord == nullptr) {

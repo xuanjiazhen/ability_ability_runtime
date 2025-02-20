@@ -990,6 +990,20 @@ int AppMgrService::GetAbilityRecordsByProcessID(const int pid, std::vector<sptr<
     return appMgrServiceInner_->GetAbilityRecordsByProcessID(pid, tokens);
 }
 
+int AppMgrService::GetPidsByAccessTokenId(uint32_t accessTokenId, std::vector<sptr<IRemoteObject>> &pids)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();//是否禁止？
+    if (!isSaCall) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null Sacall");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->GetPidsByAccessTokenId(accessTokenId, pids);
+}
+
 int32_t AppMgrService::PreStartNWebSpawnProcess()
 {
     TAG_LOGI(AAFwkTag::APPMGR, "PreStartNWebSpawnProcess");

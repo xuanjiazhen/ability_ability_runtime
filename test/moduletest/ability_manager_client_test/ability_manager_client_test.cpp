@@ -348,5 +348,19 @@ HWTEST_F(AbilityManagerClientTest, KillProcessWithReason_0100, TestSize.Level1)
     auto result = AbilityManagerClient::GetInstance()->KillProcessWithReason(pid, reason);
     EXPECT_EQ(result, ERR_OK);
 }
+
+/**
+ * @tc.name: KillProcessForPermissionUpdate_0100
+ * @tc.desc: KillProcessForPermissionUpdate
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, KillProcessForPermissionUpdate_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "KillProcessForPermissionUpdate_0100 start");
+    uint32_t accessTokenId = 1;
+    auto result = AbilityManagerClient::GetInstance()->KillProcessForPermissionUpdate(accessTokenId);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "KillProcessForPermissionUpdate_0100 end");
+}
 }  // namespace AAFwk
 }  // namespace OHOS

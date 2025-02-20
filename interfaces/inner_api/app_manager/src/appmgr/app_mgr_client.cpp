@@ -837,6 +837,17 @@ int AppMgrClient::GetAbilityRecordsByProcessID(const int pid, std::vector<sptr<I
     return service->GetAbilityRecordsByProcessID(pid, tokens);
 }
 
+int AppMgrClient::GetPidsByAccessTokenId(uint32_t accessTokenId, std::vector<sptr<IRemoteObject>> &pids)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "service is nullptr");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+
+    return service->GetPidsByAccessTokenId(accessTokenId, pids);
+}
+
 int AppMgrClient::GetApplicationInfoByProcessID(const int pid, AppExecFwk::ApplicationInfo &application, bool &debug)
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());

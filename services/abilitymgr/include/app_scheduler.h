@@ -434,6 +434,15 @@ public:
     int GetAbilityRecordsByProcessID(const int pid, std::vector<sptr<IRemoteObject>> &tokens);
 
     /**
+     *  Get processIds by accessTokenId.
+     *
+     * @param accessTokenId The accessTokenId.
+     * @param pids The vector containing processIds.
+     * @return Returns true on success, others on failure.
+     */
+    virtual int32_t GetPidsByAccessTokenId(uint32_t accessTokenId, std::vector<sptr<IRemoteObject>> &pids);
+
+    /**
      *  Get the application info by process ID.
      *
      * @param pid The process id.

@@ -1485,5 +1485,25 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_SendAppSpawnUninstallDebugHapMsg_001, Te
     int ret = appMgrClient->SendAppSpawnUninstallDebugHapMsg(ERROR_USER_ID);
     EXPECT_EQ(ret, AppMgrResultCode::RESULT_OK);
 }
+
+/**
+ * @tc.name: AppMgrClient_GetPidsByAccessTokenId_001
+ * @tc.desc: GetPidsByAccessTokenId.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, AppMgrClient_GetPidsByAccessTokenId_001, TestSize.Level0)
+{
+    uint32_t accessTokenId = 1;
+    std::vector<pid_t> pids;
+
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    EXPECT_NE(appMgrClient, nullptr);
+
+    auto result = appMgrClient->ConnectAppMgrService();
+    EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
+
+    appMgrClient->GetPidsByAccessTokenId(accessTokenId, pids);
+    EXPECT_EQ(pids.size(), APP_NUMBER_ZERO);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -1908,6 +1908,15 @@ public:
     int StartUIAbilityForOptionWrap(const Want &want, const StartOptions &options, sptr<IRemoteObject> callerToken,
         bool isPendingWantCaller, int32_t userId, int requestCode, uint32_t callerTokenId = 0, bool isImplicit = false,
         bool isCallByShortcut = false);
+    
+    /**
+     * KillProcessForPermissionUpdate, call KillProcessForPermissionUpdate() through proxy object,
+     * force kill the application by accessTokenId, notify reason to SCB.
+     *
+     * @param  accessTokenId, accessTokenId.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int32_t KillProcessForPermissionUpdate(uint32_t accessTokenId) override;
 
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;

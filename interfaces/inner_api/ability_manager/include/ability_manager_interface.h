@@ -2002,6 +2002,18 @@ public:
     {
         return 0;
     }
+
+    /**
+     * KillProcessForPermissionUpdate, call KillProcessForPermissionUpdate() through proxy object,
+     * force kill the application by accessTokenId, notify reason to SCB.
+     *
+     * @param  accessTokenId, accessTokenId.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int32_t KillProcessForPermissionUpdate(uint32_t accessTokenId)
+    {
+        return 0;
+    }
 };
 }  // namespace AAFwk
 }  // namespace OHOS
