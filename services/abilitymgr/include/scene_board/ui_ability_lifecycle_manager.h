@@ -374,6 +374,8 @@ public:
 
     void TryPrepareTerminateByPidsDone(const std::string &moduleName, int32_t prepareTermination, bool isExist);
 
+    void HandleProcessKilledForPermissionUpdate(const std::shared_ptr<AbilityRecord> &abilityRecord);
+
 private:
     int32_t GetPersistentIdByAbilityRequest(const AbilityRequest &abilityRequest, bool &reuse) const;
     int32_t GetReusedSpecifiedPersistentId(const AbilityRequest &abilityRequest, bool &reuse) const;

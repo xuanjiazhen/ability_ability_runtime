@@ -773,6 +773,36 @@ int AppMgrProxy::GetAbilityRecordsByProcessID(const int pid, std::vector<sptr<IR
     return reply.ReadInt32();
 }
 
+int AppMgrProxy::GetPidsByAccessTokenId(uint32_t accessTokenId, std::vector<pid_t> &pids)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+
+    if (!WriteInterfaceToken(data)) {
+        return ERR_FLATTEN_OBJECT;
+    }
+    if (!data.WriteInt32(accessTokenId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write accessTokenId failed");
+        return ERR_FLATTEN_OBJECT;
+    }
+    if (!SendTransactCmd(AppMgrInterfaceCode::APP_GET_PIDS_BY_ACCESSTOKEN_ID, data, reply)) {
+        return ERR_NULL_OBJECT;
+    }
+    int32_t infoSize = reply.ReadInt32();
+    if (infoSize > CYCLE_LIMIT) {
+        TAG_LOGE(AAFwkTag::APPMGR, "infoSize is too large");
+        return ERR_INVALID_VALUE;
+    }
+    // 怎么装进去的 reply.ReadInt32()是什么
+    pids.clear();
+    for (int32_t i = 0; i < infoSize; i++) {
+        auto curPid = reply.ReadInt32();
+        pids.emplace_back(curPid);
+    }
+    return reply.ReadInt32();
+}
+
 int AppMgrProxy::PreStartNWebSpawnProcess()
 {
     TAG_LOGI(AAFwkTag::APPMGR, "PreStartNWebSpawnProcess");

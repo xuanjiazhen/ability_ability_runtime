@@ -13123,5 +13123,59 @@ int32_t AbilityManagerService::UnregisterHiddenStartObserver(const sptr<IHiddenS
     }
     return HiddenStartObserverManager::GetInstance().UnregisterObserver(observer);
 }
+
+int32_t AbilityManagerService::KillProcessForPermissionUpdate(uint32_t accessTokenId)
+{
+    // 权限校验
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Call KillProcessForPermissionUpdate");
+    auto isCallingPerm = PermissionVerification::GetInstance()->VerifyCallingPermission(
+        PermissionConstants::PERMISSION_KILL_APP_PROCESSES);
+    if (!isCallingPerm) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "no permission to kill processes.");
+        return ERR_PERMISSION_DENIED;
+    }
+
+    //通过tokenid找到pids，声明要杀死的pids数组
+    std::vector<pid_t> pidsToBeKilled;
+
+    // 调用AppMgrServiceInner的方法GetPidsByAccessTokenId，需要保证从app_mgr中正确暴露出来
+    IN_PROCESS_CALL_WITHOUT_RET(
+            DelayedSingleton<AppScheduler>::GetInstance()->GetPidsByAccessTokenId(accessTokenId, pidsToBeKilled));
+    if (pidsToBeKilled.empty()) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "no pids matching the given accessTokenId.");
+        return ERR_OK;
+    }
+
+    //声明要通知的abilityRecords暂存容器
+    std::unordered_set<std::shared_ptr<AbilityRecord>> abilityRecordsToBeNotified;
+
+    //遍历pidsToBeKilled，找到每个pid对应的abilityRecord
+    for (const auto &pid : pidsToBeKilled) {
+        std::vector<sptr<IRemoteObject>> tokens;
+        // 从pid拿到abilityToken
+        IN_PROCESS_CALL_WITHOUT_RET(
+            DelayedSingleton<AppScheduler>::GetInstance()->GetAbilityRecordsByProcessID(pid, tokens));
+        for(const auto &token : tokens) {
+            //从abilityToken拿到abilityRecord
+            auto abilityRecord = Token::GetAbilityRecordByToken(token);
+            CHECK_POINTER_AND_RETURN_LOG(abilityRecord, ERR_NULL_OBJECT, "abilityRecord nullptr");
+            //将找到的abilityRecord插入暂存容器
+            abilityRecordsToBeNotified.emplace(abilityRecord);
+        }
+    }
+
+    //按照pid粒度杀死进程 accesstokenId
+    IN_PROCESS_CALL_WITHOUT_RET(DelayedSingleton<AppScheduler>::GetInstance()->KillProcessesByPids(pidsToBeKilled));
+
+    //遍历暂存容器，通知SCB
+    //想要调用UIAbilityLifecycleManager类的方法
+    auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
+    CHECK_POINTER_AND_RETURN_LOG(uiAbilityManager, ERR_NULL_OBJECT, "uiAbilityLifecycleManager nullptr");
+    for (const auto &abilityRecord : abilityRecordsToBeNotified) {
+            //通知SCB 调用UIAbilityLifecycleManager类中的NotifySCBToHandleException方法 这是私有方法
+            uiAbilityManager->HandleProcessKilledForPermissionUpdate(abilityRecord);
+        }
+    return ERR_OK;
+}
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -492,6 +492,18 @@ int AppScheduler::GetAbilityRecordsByProcessID(const int pid, std::vector<sptr<I
     return ERR_OK;
 }
 
+int32_t GetPidsByAccessTokenId(uint32_t accessTokenId, std::vector<pid_t> &pids)
+{
+    CHECK_POINTER_AND_RETURN_LOG(appMgrClient_, ERR_NULL_OBJECT, "appMgrClient_ nullptr");
+    auto ret = static_cast<int>(appMgrClient_->GetPidsByAccessTokenId(accessTokenId, pids));
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetPidsByAccessTokenId failed");
+        return ret;
+    }
+
+    return ERR_OK;
+}
+
 int AppScheduler::GetApplicationInfoByProcessID(const int pid, AppExecFwk::ApplicationInfo &application, bool &debug)
 {
     CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
