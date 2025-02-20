@@ -821,6 +821,10 @@ bool JsRuntime::CreateJsEnv(const Options& options)
         TAG_LOGE(AAFwkTag::JSRUNTIME, "Init jsEnv failed");
         return false;
     }
+    
+    if (options.isUnique) {
+        jsEnv_->GetNativeEngine()->MarkFormThread();
+    }
 
     return true;
 }
