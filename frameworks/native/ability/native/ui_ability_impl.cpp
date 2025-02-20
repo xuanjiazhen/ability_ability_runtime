@@ -490,8 +490,6 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterDidForeground()
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 
-
-
 void UIAbilityImpl::WindowLifeCycleImpl::AfterDidBackground()
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "wnd call, AfterDidBackground");
