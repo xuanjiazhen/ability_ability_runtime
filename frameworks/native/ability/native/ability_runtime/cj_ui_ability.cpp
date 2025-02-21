@@ -37,7 +37,6 @@
 #include "cj_runtime.h"
 #include "cj_ability_object.h"
 #include "cj_ability_context.h"
-#include "remote_object_impl.h"
 #include "time_util.h"
 #ifdef SUPPORT_SCREEN
 #include "scene_board_judgement.h"
@@ -66,6 +65,9 @@ using CFFICreateCJWindowStage = int64_t (*)(std::shared_ptr<Rosen::WindowScene>&
 const char* CJ_ABILITY_LIBNAME = "libcj_ability_ffi.z.so";
 const char* CJ_APP_CTX_FUNC = "OHOS_CjAppCtxFunc";
 const char* CJ_APP_CTX_WINDOW_FUNC = "OHOS_CjAppCtxWindowFunc";
+
+const char* CJ_IPC_LIBNAME = "libcj_ipc_ffi.z.so";
+const char* FUNC_GET_NATIVE_REMOTEOBJECT = "OHOS_CallGetNativeRemoteObject";
 
 sptr<Rosen::CJWindowStageImpl> CreateCJWindowStage(std::shared_ptr<Rosen::WindowScene> windowScene)
 {
@@ -917,6 +919,26 @@ std::shared_ptr<CJAbilityObject> CJUIAbility::GetCJAbility()
     return cjAbilityObj_;
 }
 
+sptr<IRemoteObject> CallGetNativeRemoteObject(RetDataI64 remoteCjObjId)
+{
+    void* handle = dlopen(CJ_IPC_LIBNAME, RTLD_LAZY);
+    if (handle == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null handle");
+        return nullptr;
+    }
+    using GetNativeRemoteObjectFunc = void (*)(RetDataI64, void*);
+    auto func = reinterpret_cast<GetNativeRemoteObjectFunc>(dlsym(handle, FUNC_GET_NATIVE_REMOTEOBJECT));
+    if (func == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null func");
+        dlclose(handle);
+        return nullptr;
+    }
+    sptr<IRemoteObject> remoteObject;
+    func(remoteCjObjId, &remoteObject);
+    dlclose(handle);
+    return remoteObject;
+}
+
 sptr<IRemoteObject> CJUIAbility::SetNewRuleFlagToCallee(RetDataI64 remoteCjObjId)
 {
     if (remoteCjObjId.data <= 0) {
@@ -925,7 +947,7 @@ sptr<IRemoteObject> CJUIAbility::SetNewRuleFlagToCallee(RetDataI64 remoteCjObjId
     }
     auto flag = IsUseNewStartUpRule();
     cjAbilityObj_->OnSetCalleeFlag(flag);
-    auto remoteObj = CJ_rpc_getNativeRemoteObject(remoteCjObjId);
+    auto remoteObj = CallGetNativeRemoteObject(remoteCjObjId);
     if (remoteObj == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null remoteObj");
     }

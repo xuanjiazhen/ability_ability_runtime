@@ -18,7 +18,6 @@
 #include "ability_business_error.h"
 #include "cj_ability_connect_callback_object.h"
 #include "cj_common_ffi.h"
-#include "cj_common_ffi.h"
 #include "cj_utils_ffi.h"
 #include "hilog_tag_wrapper.h"
 #include "string_wrapper.h"

@@ -18,10 +18,13 @@
 #include "cj_remote_object_ffi.h"
 #include "cj_macro.h"
 #include "hilog_tag_wrapper.h"
-#include "remote_object_impl.h"
+#include <dlfcn.h>
 
 namespace OHOS {
 namespace AbilityRuntime {
+const char* CJ_IPC_LIBNAME = "libcj_ipc_ffi.z.so";
+const char* FUNC_CREATE_REMOTEOBJECT = "OHOS_CallCreateRemoteObject";
+
 struct CJUIExtensionConnectionKey {
     AAFwk::Want want;
     int64_t id;
@@ -115,6 +118,27 @@ CJAbilityConnectCallback::~CJAbilityConnectCallback()
     g_cjAbilityConnectCallbackFuncs->release(callbackId_);
 }
 
+
+RetDataI64 CallCreateRemoteObject(sptr<IRemoteObject> remoteObject)
+{
+    RetDataI64 ret;
+    void* handle = dlopen(CJ_IPC_LIBNAME, RTLD_LAZY);
+    if (handle == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null handle");
+        return ret;
+    }
+    using CreateRemoteObjectFunc = RetDataI64 (*)(void *);
+    auto func = reinterpret_cast<CreateRemoteObjectFunc>(dlsym(handle, FUNC_CREATE_REMOTEOBJECT));
+    if (func == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null func");
+        dlclose(handle);
+        return ret;
+    }
+    ret = func(&remoteObject);
+    dlclose(handle);
+    return ret;
+}
+
 void CJAbilityConnectCallback::OnAbilityConnectDone(
     const AppExecFwk::ElementName& element, const sptr<IRemoteObject>& remoteObject, int resultCode)
 {
@@ -125,7 +149,7 @@ void CJAbilityConnectCallback::OnAbilityConnectDone(
     }
 
     ElementNameHandle elementNameHandle = const_cast<AppExecFwk::ElementName*>(&element);
-    RetDataI64 cjRemoteObj = CJ_rpc_CreateRemoteObject(remoteObject);
+    RetDataI64 cjRemoteObj = CallCreateRemoteObject(remoteObject);
     g_cjAbilityConnectCallbackFuncs->onConnect(callbackId_, elementNameHandle, cjRemoteObj, resultCode);
 }
 

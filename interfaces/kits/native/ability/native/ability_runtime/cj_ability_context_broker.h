@@ -84,8 +84,6 @@ CJ_EXPORT int32_t FFIAbilityContextOpenAtomicService(int64_t id, char* cAppId,
     CJAtomicServiceOptions cAtomicServiceOptions, int32_t requestCode, int64_t lambdaId);
 CJ_EXPORT int32_t FFIAbilityContextShowAbility(int64_t id);
 CJ_EXPORT int32_t FFIAbilityContextHideAbility(int64_t id);
-CJ_EXPORT int32_t FFIAbilityContextStartAbilityByCall(int64_t id, WantHandle wantHandle,
-    int64_t* callerId, RetDataI64* remoteId);
 }
 
 #endif // OHOS_ABILITY_RUNTIME_CJ_ABILITY_CONTEXT_BROKER_H
