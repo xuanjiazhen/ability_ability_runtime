@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,7 @@
 #include "runner_runtime/cj_test_runner.h"
 #endif
 #include "runner_runtime/js_test_runner.h"
+#include "runner_runtime/sts_test_runner.h"
 #include "runtime.h"
 #include "sys_mgr_client.h"
 #include "system_ability_definition.h"
