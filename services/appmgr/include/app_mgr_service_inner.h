@@ -1460,6 +1460,7 @@ public:
     bool IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo);
     int32_t GetKilledProcessInfo(int pid, int uid, KilledProcessInfo &info);
 
+    int32_t GetPidsByAccessTokenId(const uint32_t accessTokenId, std::vector<pid_t> &pids);
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
@@ -1922,7 +1923,6 @@ private:
     bool IsSceneBoardCall();
     void CheckCleanAbilityByUserRequest(const std::shared_ptr<AppRunningRecord> &appRecord,
         const std::shared_ptr<AbilityRunningRecord> &abilityRecord, const AbilityState state);
-    void GetPidsByAccessTokenId(const uint32_t accessTokenId, std::vector<pid_t> &pids);
     void MakeIsolateSandBoxProcessName(const std::shared_ptr<AbilityInfo> &abilityInfo,
         const HapModuleInfo &hapModuleInfo, std::string &processName) const;
     int32_t DealWithUserConfiguration(const Configuration &config, const int32_t userId, int32_t &notifyUserId);

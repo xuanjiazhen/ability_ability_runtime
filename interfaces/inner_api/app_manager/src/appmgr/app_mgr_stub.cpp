@@ -154,6 +154,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerSecond(uint32_t code, MessageParcel &dat
             return HandleScheduleNewProcessRequestDone(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::APP_GET_ABILITY_RECORDS_BY_PROCESS_ID):
             return HandleGetAbilityRecordsByProcessID(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::APP_GET_PIDS_BY_ACCESSTOKEN_ID):
+            return HandleGetPidsByAccessTokenId(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::PRE_START_NWEBSPAWN_PROCESS):
             return HandlePreStartNWebSpawnProcess(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::START_RENDER_PROCESS):
@@ -908,6 +910,25 @@ int32_t AppMgrStub::HandleGetAbilityRecordsByProcessID(MessageParcel &data, Mess
     }
     if (!reply.WriteInt32(result)) {
         return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleGetPidsByAccessTokenId(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    int32_t accessTokenId = data.ReadInt32();
+    std::vector<pid_t> pids;
+    auto result = GetPidsByAccessTokenId(accessTokenId, pids);
+    reply.WriteInt32(pids.size());
+    for (auto &it : pids) {
+        if (!reply.WriteInt32(it)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "failed to write query result.");
+            return ERR_FLATTEN_OBJECT;
+        }
+    }
+    if (!reply.WriteInt32(result)) {
+        return IPC_STUB_ERR;
     }
     return NO_ERROR;
 }
