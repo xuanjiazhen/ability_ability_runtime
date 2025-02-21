@@ -170,6 +170,7 @@ constexpr const char* BUNDLE_NAME_DIALOG = "com.ohos.amsdialog";
 constexpr const char* STR_PHONE = "phone";
 constexpr const char* PARAM_RESV_ANCO_CALLER_UID = "ohos.anco.param.callerUid";
 constexpr const char* PARAM_RESV_ANCO_CALLER_BUNDLENAME = "ohos.anco.param.callerBundleName";
+constexpr const char* PARAM_RESV_ANCO_IS_NEED_UPDATE_NAME = "ohos.anco.param.isNeedUpdateName";
 // Distributed continued session Id
 constexpr const char* DMS_CONTINUED_SESSION_ID = "ohos.dms.continueSessionId";
 constexpr const char* DMS_PERSISTENT_ID = "ohos.dms.persistentId";
@@ -205,6 +206,7 @@ constexpr const char* DLP_PARAMS_SECURITY_FLAG = "ohos.dlp.params.securityFlag";
 constexpr char PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED[] = "const.product.enterprisefeature.setting.enabled";
 
 constexpr int32_t RESOURCE_SCHEDULE_UID = 1096;
+constexpr int32_t HIVIEW_UID = 1201;
 constexpr int32_t UPDATE_CONFIG_FLAG_COVER = 1;
 constexpr int32_t UPDATE_CONFIG_FLAG_APPEND = 2;
 constexpr int32_t START_AUTO_START_APP_DELAY_TIME = 200;
@@ -1095,7 +1097,8 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
     AbilityUtil::RemoveWindowModeKey(const_cast<Want &>(want));
     if (callerToken != nullptr && !VerificationAllToken(callerToken) && !isSendDialogResult) {
         auto isSpecificSA = AAFwk::PermissionVerification::GetInstance()->
-            CheckSpecificSystemAbilityAccessPermission(DMS_PROCESS_NAME);
+            CheckSpecificSystemAbilityAccessPermission(DMS_PROCESS_NAME) ||
+            AAFwk::PermissionVerification::GetInstance()->VerifyFusionAccessPermission();
         if (!isSpecificSA) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s verificationAllToken failed", __func__);
             return ERR_INVALID_CALLER;
@@ -1315,6 +1318,12 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
             TAG_LOGW(AAFwkTag::ABILITYMGR, "startAbilityInner, remove continueSessionId and persistentId");
             abilityRequest.want.RemoveParam(DMS_CONTINUED_SESSION_ID);
             abilityRequest.want.RemoveParam(DMS_PERSISTENT_ID);
+        }
+        if (abilityRequest.want.GetBoolParam(PARAM_RESV_ANCO_IS_NEED_UPDATE_NAME, false) &&
+                PermissionVerification::GetInstance()->VerifyFusionAccessPermission()) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "startAbilityInner, update name for fusion");
+            abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_ABILITY_NAME, std::string(""));
+            abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, std::string(""));
         }
         auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
@@ -2507,6 +2516,20 @@ int32_t AbilityManagerService::RecordProcessExitReason(const int32_t pid, const 
 
     CHECK_POINTER_AND_RETURN(appExitReasonHelper_, ERR_NULL_OBJECT);
     return appExitReasonHelper_->RecordProcessExitReason(pid, exitReason, false);
+}
+
+int32_t AbilityManagerService::RecordProcessExitReason(int32_t pid, int32_t uid, const ExitReason &exitReason)
+{
+    if (IPCSkeleton::GetCallingUid() != HIVIEW_UID) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not expected caller");
+        return ERR_NO_PERMISSION_CALLER;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "[EXIT_REASON_TAG] pid:%{public}d, reason:%{public}d, exitMsg:%{public}s",
+        pid, exitReason.reason, exitReason.exitMsg.c_str());
+
+    CHECK_POINTER_AND_RETURN(appExitReasonHelper_, ERR_NULL_APP_EXIT_REASON_HELPER);
+    return appExitReasonHelper_->RecordProcessExitReason(pid, uid, exitReason);
 }
 
 int32_t AbilityManagerService::ForceExitApp(const int32_t pid, const ExitReason &exitReason)
@@ -6519,6 +6542,7 @@ int AbilityManagerService::GenerateAbilityRequest(const Want &want, int requestC
         if (!StartAbilityUtils::IsCallFromAncoShellOrBroker(callerToken)) {
             localWant.RemoveParam(PARAM_RESV_ANCO_CALLER_UID);
             localWant.RemoveParam(PARAM_RESV_ANCO_CALLER_BUNDLENAME);
+            localWant.RemoveParam(PARAM_RESV_ANCO_IS_NEED_UPDATE_NAME);
             localWant.SetParam(Want::PARAM_RESV_CALLER_TOKEN, static_cast<int32_t>(IPCSkeleton::GetCallingTokenID()));
             localWant.SetParam(Want::PARAM_RESV_CALLER_UID, IPCSkeleton::GetCallingUid());
         }
@@ -8024,7 +8048,7 @@ int AbilityManagerService::GetProcessRunningInfos(std::vector<AppExecFwk::Runnin
     return DelayedSingleton<AppScheduler>::GetInstance()->GetProcessRunningInfos(info);
 }
 
-int32_t AbilityManagerService::GetAllIntentExemptionInfo(std::vector<AppExecFwk::IntentExemptionInfo> &info) 
+int32_t AbilityManagerService::GetAllIntentExemptionInfo(std::vector<AppExecFwk::IntentExemptionInfo> &info)
 {
     const auto exemptionData =
         DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->GetAllIntentExemptionInfo();
@@ -13092,7 +13116,7 @@ bool AbilityManagerService::CheckCrossUser(const int32_t userId, AppExecFwk::Ext
     }
     if (AppUtils::GetInstance().IsConnectSupportCrossUser() && (extensionType == AppExecFwk::ExtensionAbilityType::DATASHARE
         || extensionType == AppExecFwk::ExtensionAbilityType::SERVICE)) {
-        return true;    
+        return true;
     }
     return false;
 }

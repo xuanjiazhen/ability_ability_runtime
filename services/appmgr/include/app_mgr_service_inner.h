@@ -63,6 +63,7 @@
 #include "istart_specified_ability_response.h"
 #include "kia_interceptor_interface.h"
 #include "kill_process_config.h"
+#include "killed_process_info.h"
 #include "process_memory_state.h"
 #include "process_util.h"
 #include "record_query_result.h"
@@ -1457,6 +1458,7 @@ public:
     void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey);
 
     bool IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo);
+    int32_t GetKilledProcessInfo(int pid, int uid, KilledProcessInfo &info);
 
     int32_t GetPidsByAccessTokenId(const uint32_t accessTokenId, std::vector<pid_t> &pids);
 private:
