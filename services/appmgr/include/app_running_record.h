@@ -799,7 +799,7 @@ public:
      */
     int32_t ChangeAppGcState(int32_t state);
 
-    void SetAttachDebug(bool isAttachDebug);
+    void SetAttachDebug(bool isAttachDebug, bool debugFrom);
     bool IsAttachDebug() const;
 
     void SetApplicationPendingState(ApplicationPendingState pendingState);
@@ -1046,6 +1046,13 @@ public:
         return reasonExist_;
     }
 
+    void SetDebugFrom(bool debugFrom);
+
+    bool GetDebugFrom() const
+    {
+        return debugFrom_;
+    }
+
 private:
     /**
      * SearchTheModuleInfoNeedToUpdated, Get an uninitialized abilityStage data.
@@ -1220,6 +1227,7 @@ private:
     int32_t rssValue_ = 0;
     int32_t pssValue_ = 0;
     bool reasonExist_ = false;
+    bool debugFrom_ = false;
 };
 
 }  // namespace AppExecFwk

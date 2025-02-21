@@ -27,7 +27,7 @@ class HdcRegister final {
 public:
     static HdcRegister& Get();
     void StartHdcRegister(const std::string& bundleName, const std::string& processName, bool debugApp,
-        HdcRegisterCallback callback);
+        bool isLocalDebug, HdcRegisterCallback callback);
 
 private:
     HdcRegister() = default;
