@@ -1599,7 +1599,7 @@ public:
      * @param sceneFlag the reason info of the ability to terminate.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode CleanUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool isUserRequestedExit = false, sceneFlag = 0);
+    ErrCode CleanUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool isUserRequestedExit = false, uint32_t sceneFlag = 0);
 
     /**
      * Open link of ability and atomic service.
