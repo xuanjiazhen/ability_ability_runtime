@@ -4116,7 +4116,8 @@ int32_t AbilityManagerStub::CleanUIAbilityBySCBInner(MessageParcel &data, Messag
     if (data.ReadBool()) {
         sessionInfo = data.ReadParcelable<SessionInfo>();
     }
-    int32_t result = CleanUIAbilityBySCB(sessionInfo);
+    uint32_t sceneFlag = data.ReadUint32();
+    int32_t result = CleanUIAbilityBySCB(sessionInfo, sceneFlag);
     reply.WriteInt32(result);
     return NO_ERROR;
 }
