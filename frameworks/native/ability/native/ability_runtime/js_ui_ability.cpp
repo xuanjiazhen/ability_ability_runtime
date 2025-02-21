@@ -755,7 +755,10 @@ void JsUIAbility::OnDidForeground()
     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
     CallObjectMethod("onDidForeground");
     AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
-
+    
+    if (scene_ != nullptr) {
+        scene_->GoResume();
+    }
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 
