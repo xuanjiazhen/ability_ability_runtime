@@ -819,7 +819,7 @@ public:
      * @param sceneFlag the reason info of the ability to terminate.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t CleanUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, sceneFlag = 0) override;
+    virtual int32_t CleanUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, uint32_t sceneFlag = 0) override;
 
     std::shared_ptr<TaskHandlerWrap> GetTaskHandler() const
     {
