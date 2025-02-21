@@ -1475,5 +1475,26 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_KillProcessDependedOnWeb_001, TestSize.L
     appMgrClient->KillProcessDependedOnWeb();
     EXPECT_NE(appMgrClient->GetRemoteObject(), nullptr);
 }
+
+/**
+ * @tc.name: AppMgrClient_GetPidsByAccessTokenId_001
+ * @tc.desc: GetPidsByAccessTokenId.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, AppMgrClient_GetPidsByAccessTokenId_001, TestSize.Level0)
+{
+    uint32_t accessTokenId = 1;
+    std::vector<pid_t> pids;
+
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    EXPECT_NE(appMgrClient, nullptr);
+
+    auto result = appMgrClient->ConnectAppMgrService();
+    EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
+
+    int32_t result = appMgrClient->GetPidsByAccessTokenId(accessTokenId, pids);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(pids.size(), APP_NUMBER_ZERO);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
