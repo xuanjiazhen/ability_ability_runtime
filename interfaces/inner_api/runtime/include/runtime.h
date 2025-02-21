@@ -75,6 +75,7 @@ public:
         bool isDebugApp = true;
         bool isStartWithDebug = false;
         bool isStartWithNative = false;
+        std::string debugFrom = "remote";
     };
 
     static std::unique_ptr<Runtime> Create(const Options& options);
@@ -87,6 +88,8 @@ public:
     virtual Language GetLanguage() const = 0;
 
     virtual void StartDebugMode(const DebugOption debugOption) = 0;
+    virtual void SetDebugOption(const DebugOption debugOption) {};
+    virtual void StartLocalDebugMode() {};
     virtual void DumpHeapSnapshot(bool isPrivate) = 0;
     virtual void DumpCpuProfile() = 0;
     virtual void DestroyHeapProfiler() = 0;

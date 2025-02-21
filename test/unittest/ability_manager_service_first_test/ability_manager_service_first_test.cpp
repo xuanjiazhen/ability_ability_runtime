@@ -1428,7 +1428,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, AttachAppDebug_001, TestSize.Level1)
 {
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     std::string bundleName;
-    abilityMs_->AttachAppDebug(bundleName);
+    abilityMs_->AttachAppDebug(bundleName, "remote");
     EXPECT_NE(abilityMs_, nullptr);
 }
 

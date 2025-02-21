@@ -130,6 +130,11 @@ bool AppLaunchData::MarshallingExtend(Parcel &parcel) const
         TAG_LOGE(AAFwkTag::APPMGR, "Marshalling, Failed to write preloadModuleName.");
         return false;
     }
+
+    if (!parcel.WriteString(debugFrom_)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Marshalling, Failed to write debugFrom.");
+        return false;
+    }
     return true;
 }
 
@@ -180,6 +185,7 @@ bool AppLaunchData::ReadFromParcel(Parcel &parcel)
     isNeedPreloadModule_ = parcel.ReadBool();
     isAllowedNWebPreload_ = parcel.ReadBool();
     preloadModuleName_ = parcel.ReadString();
+    debugFrom_ = parcel.ReadString();
     return true;
 }
 
@@ -289,6 +295,16 @@ void AppLaunchData::SetNWebPreload(const bool isAllowedNWebPreload)
 bool AppLaunchData::IsAllowedNWebPreload() const
 {
     return isAllowedNWebPreload_;
+}
+
+void AppLaunchData::SetDebugFrom(const std::string debugFrom)
+{
+    debugFrom_ = debugFrom;
+}
+
+std::string AppLaunchData::GetDebugFrom() const
+{
+    return debugFrom_;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -98,6 +98,7 @@ const std::string SINCE_VERSION = "sinceVersion";
 
 constexpr char DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
 const std::string MERGE_SOURCE_MAP_PATH = "ets/sourceMaps.map";
+const std::string DEBUG_FROM_LOCAL = "local";
 static auto PermissionCheckFunc = []() {
     Security::AccessToken::AccessTokenID callerToken = IPCSkeleton::GetCallingTokenID();
 
@@ -160,7 +161,9 @@ std::unique_ptr<JsRuntime> JsRuntime::Create(const Options& options)
 void JsRuntime::StartDebugMode(const DebugOption dOption)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
+    bool isLocalDebug = dOption.debugFrom.compare(DEBUG_FROM_LOCAL) == 0;
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "localDebug %{public}d", isLocalDebug);
+    if (!isLocalDebug && !system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "developer Mode false");
         return;
     }
@@ -183,7 +186,7 @@ void JsRuntime::StartDebugMode(const DebugOption dOption)
     uint32_t instanceId = instanceId_;
     auto weak = jsEnv_;
     std::string inputProcessName = bundleName_ != dOption.processName ? dOption.processName : "";
-    HdcRegister::Get().StartHdcRegister(bundleName_, inputProcessName, isDebugApp, [bundleName,
+    HdcRegister::Get().StartHdcRegister(bundleName_, inputProcessName, isDebugApp, isLocalDebug, [bundleName,
             isStartWithDebug, instanceId, weak, isDebugApp, appProvisionType] (int socketFd, std::string option) {
             TAG_LOGI(AAFwkTag::JSRUNTIME, "HdcRegister msg, fd= %{public}d, option= %{public}s",
                 socketFd, option.c_str());
@@ -333,7 +336,7 @@ void JsRuntime::StartProfiler(const DebugOption dOption)
     auto weak = jsEnv_;
     uint32_t instanceId = instanceId_;
     std::string inputProcessName = bundleName_ != dOption.processName ? dOption.processName : "";
-    HdcRegister::Get().StartHdcRegister(bundleName_, inputProcessName, isDebugApp,
+    HdcRegister::Get().StartHdcRegister(bundleName_, inputProcessName, isDebugApp, false,
         [bundleName, isStartWithDebug, instanceId, weak, isDebugApp, appProvisionType](int socketFd, std::string option) {
         TAG_LOGI(AAFwkTag::JSRUNTIME, "HdcRegister msg, fd= %{public}d, option= %{public}s", socketFd, option.c_str());
         if (weak == nullptr) {
@@ -1670,5 +1673,15 @@ void JsRuntime::UpdatePkgContextInfoJson(const std::string& moduleName, const st
     panda::JSNApi::UpdatePkgNameList(vm, packageNameList);
 }
 
+void JsRuntime::SetDebugOption(const DebugOption debugOption)
+{
+    debugOption_ = debugOption;
+}
+
+void JsRuntime::StartLocalDebugMode()
+{
+    debugOption_.debugFrom = DEBUG_FROM_LOCAL;
+    StartDebugMode(debugOption_);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

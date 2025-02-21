@@ -1418,7 +1418,7 @@ public:
      * @param bundleName The application bundle name.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode AttachAppDebug(const std::string &bundleName);
+    ErrCode AttachAppDebug(const std::string &bundleName, const std::string debugFrom = "remote");
 
     /**
      * @brief Detach app debug.

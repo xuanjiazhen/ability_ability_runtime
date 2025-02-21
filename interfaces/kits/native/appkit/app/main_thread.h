@@ -311,7 +311,7 @@ public:
      */
     int32_t ScheduleChangeAppGcState(int32_t state) override;
 
-    void AttachAppDebug() override;
+    void AttachAppDebug(const std::string &debugFrom) override;
     void DetachAppDebug() override;
     bool NotifyDeviceDisConnect();
 

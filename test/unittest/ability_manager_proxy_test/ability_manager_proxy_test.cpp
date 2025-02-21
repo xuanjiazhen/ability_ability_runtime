@@ -2550,7 +2550,7 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_AttachAppDebug_0100, TestS
 {
     EXPECT_NE(proxy_, nullptr);
     std::string bundleName = "bundleName";
-    auto result = proxy_->AttachAppDebug(bundleName);
+    auto result = proxy_->AttachAppDebug(bundleName, "remote");
     EXPECT_EQ(result, NO_ERROR);
 }
 

@@ -104,7 +104,7 @@ public:
         return 0;
     }
 
-    void AttachAppDebug() override
+    void AttachAppDebug(const std::string &debugFrom) override
     {}
 
     void DetachAppDebug() override
