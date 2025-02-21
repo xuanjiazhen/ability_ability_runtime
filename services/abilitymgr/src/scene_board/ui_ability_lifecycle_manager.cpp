@@ -1864,6 +1864,12 @@ void UIAbilityLifecycleManager::OnAbilityDied(std::shared_ptr<AbilityRecord> abi
         NotifySCBToHandleException(abilityRecord, static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_DIED),
             "onAbilityDied");
     }
+    //与上方的异常处理什么关系,是否处理的都是UIAbility
+    if(abilityRecord->GetkillForPermissionUpdateFlag()){
+        NotifySCBToHandleException(abilityRecord,
+        static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_PERMISSION_UPDATE),
+        "kill process for permission update");
+    }
     DelayedSingleton<AppScheduler>::GetInstance()->AttachTimeOut(abilityRecord->GetToken());
     DispatchTerminate(abilityRecord);
 }
