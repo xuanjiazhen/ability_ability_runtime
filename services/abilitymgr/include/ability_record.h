@@ -1116,6 +1116,9 @@ public:
     void SetRestartAppFlag(bool isRestartApp);
     bool GetRestartAppFlag() const;
 
+    void SetkillForPermissionUpdateFlag(bool iskillForPermissionUpdate);
+    bool GetkillForPermissionUpdateFlag() const;
+
     void UpdateUIExtensionInfo(const WantParams &wantParams);
 
     void SetSpecifyTokenId(const uint32_t specifyTokenId);
@@ -1381,6 +1384,7 @@ private:
     std::atomic_bool isPrepareTerminateAbilityCalled_ = false;
     std::atomic_bool isPrepareTerminateAbilityDone_ = false;
     bool isPrepareTerminate_ = false;
+    bool iskillForPermissionUpdate_ = false;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
