@@ -111,9 +111,9 @@ HWTEST_F(JsRuntimeTest, JsperfProfilerCommandParse_100, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI581SE
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeTestCreate_0100, TestSize.Level0)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test_0100 start");
+    TAG_LOGI(AAFwkTag::TEST, "Create_0100 start");
     options_.preload = true;
     std::unique_ptr<JsRuntime> jsRuntime1 = JsRuntime::Create(options_);
     EXPECT_TRUE(jsRuntime1 != nullptr);
@@ -124,18 +124,18 @@ HWTEST_F(JsRuntimeTest, JsRuntimeTest_0100, TestSize.Level0)
     jsRuntime1.reset();
     jsRuntime2.reset();
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    TAG_LOGI(AAFwkTag::TEST, "Test_0100 end");
+    TAG_LOGI(AAFwkTag::TEST, "Create_0100 end");
 }
 
 /**
  * @tc.name: JsRuntimeTestSetAppLibPath_0100
- * @tc.desc: JsRuntime Test ofr SetAppLibPath
+ * @tc.desc: JsRuntime Test for SetAppLibPath
  * @tc.type: FUNC
  * @tc.require: issueI581RO
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeTest_0200, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeTestSetAppLibPath_0100, TestSize.Level0)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test_0200 start");
+    TAG_LOGI(AAFwkTag::TEST, "SetAppLibPath_0100 start");
     std::string appLibPathKey = TEST_BUNDLE_NAME + TEST_MODULE_NAME;
     std::string libPath = TEST_LIB_PATH;
 
@@ -145,7 +145,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeTest_0200, TestSize.Level0)
     appLibPaths[appLibPathKey].emplace_back(libPath);
     JsRuntime::SetAppLibPath(appLibPaths);
     EXPECT_NE(appLibPaths.size(), 0);
-    TAG_LOGI(AAFwkTag::TEST, "Test_0200 end");
+    TAG_LOGI(AAFwkTag::TEST, "SetAppLibPath_0100 end");
 }
 
 /**
@@ -1533,7 +1533,7 @@ HWTEST_F(JsRuntimeTest, UpdatePkgContextInfoJson_0100, TestSize.Level1)
  */
 HWTEST_F(JsRuntimeTest, JsRuntimePreloadModuleandDoCleanWorkAfterStageCleaned_0100, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "PreloadModule_0100 start");
+    TAG_LOGI(AAFwkTag::TEST, "PreloadModuleandDoCleanWorkAfterStageCleaned_0100 start");
     std::unique_ptr<JsRuntime> jsRuntime = JsRuntime::Create(options_);
     EXPECT_TRUE(jsRuntime != nullptr);
     jsRuntime->DoCleanWorkAfterStageCleaned();
@@ -1545,7 +1545,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimePreloadModuleandDoCleanWorkAfterStageCleaned_01
     jsRuntime->PreloadModule(moduleName, srcPath, hapPath, isEsMode, useCommonTrunk);
     EXPECT_EQ(jsRuntime->preloadList_.size(), 1);
     jsRuntime.reset();
-    TAG_LOGI(AAFwkTag::TEST, "PreloadModule_0100 end");
+    TAG_LOGI(AAFwkTag::TEST, "PreloadModuleandDoCleanWorkAfterStageCleaned_0100 end");
 }
 
 /**
@@ -1555,7 +1555,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimePreloadModuleandDoCleanWorkAfterStageCleaned_01
  */
 HWTEST_F(JsRuntimeTest, JsRuntimePreloadMainAbilityandSetStopPreloadSoCallback_0100, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "PreloadMainAbility_0100 start");
+    TAG_LOGI(AAFwkTag::TEST, "PreloadMainAbilityandSetStopPreloadSoCallback_0100 start");
     std::unique_ptr<JsRuntime> jsRuntime = JsRuntime::Create(options_);
     EXPECT_TRUE(jsRuntime != nullptr);
     std::string moduleName = TEST_MODULE_NAME;
@@ -1569,7 +1569,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimePreloadMainAbilityandSetStopPreloadSoCallback_0
     jsRuntime->SetStopPreloadSoCallback(callBack);
     EXPECT_EQ(jsRuntime->preloadList_.size(), 1);
     jsRuntime.reset();
-    TAG_LOGI(AAFwkTag::TEST, "PreloadMainAbility_0100 end");
+    TAG_LOGI(AAFwkTag::TEST, "PreloadMainAbilityandSetStopPreloadSoCallback_0100 end");
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
