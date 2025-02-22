@@ -37,11 +37,14 @@ HdcRegister& HdcRegister::Get()
 }
 
 void HdcRegister::StartHdcRegister(const std::string& bundleName, const std::string& processName, bool debugApp,
-    HdcRegisterCallback callback)
+    bool isLocalDebug, HdcRegisterCallback callback)
 {
     TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
-
-    registerHandler_ = dlopen("libhdc_register.z.so", RTLD_LAZY);
+    if (isLocalDebug) {
+        registerHandler_ = dlopen("libdev_assistant.z.so", RTLD_LAZY);
+    } else {
+        registerHandler_ = dlopen("libhdc_register.z.so", RTLD_LAZY);
+    }
     if (registerHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "null registerHandler_");
         return;

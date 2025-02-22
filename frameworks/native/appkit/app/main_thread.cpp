@@ -1565,15 +1565,16 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         debugOption.isDebugApp = appInfo.debug;
         debugOption.isStartWithNative = appLaunchData.isNativeStart();
         debugOption.appProvisionType = applicationInfo_->appProvisionType;
+        debugOption.debugFrom = appLaunchData.GetDebugFrom();
+        debugOption.perfCmd = perfCmd;
+        debugOption.isDeveloperMode = isDeveloperMode_;
+        runtime->SetDebugOption(debugOption);
         if (perfCmd.find(PERFCMD_PROFILE) != std::string::npos ||
             perfCmd.find(PERFCMD_DUMPHEAP) != std::string::npos) {
             TAG_LOGD(AAFwkTag::APPKIT, "perfCmd is %{public}s", perfCmd.c_str());
-            debugOption.perfCmd = perfCmd;
             runtime->StartProfiler(debugOption);
         } else {
-            if (isDeveloperMode_) {
-                runtime->StartDebugMode(debugOption);
-            }
+            runtime->StartDebugMode(debugOption);
         }
 
         std::vector<HqfInfo> hqfInfos = appInfo.appQuickFix.deployedAppqfInfo.hqfInfos;
@@ -3484,10 +3485,40 @@ int32_t MainThread::ChangeAppGcState(int32_t state)
     return NO_ERROR;
 }
 
-void MainThread::AttachAppDebug()
+void MainThread::AttachAppDebug(bool debugFrom)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
     SetAppDebug(AbilityRuntime::AppFreezeState::AppFreezeFlag::ATTACH_DEBUG_MODE, true);
+
+    if (!debugFrom) {
+        TAG_LOGE(AAFwkTag::APPKIT, "no local debug");
+        return;
+    }
+    wptr<MainThread> weak = this;
+    auto task = [weak, debugFrom] {
+        auto appThread = weak.promote();
+        if (appThread == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
+            return;
+        }
+        appThread->OnAttachLocalDebug(debugFrom);
+    };
+}
+
+int32_t MainThread::OnAttachLocalDebug(bool debugFrom)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    if (application_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null application_");
+        return ERR_INVALID_VALUE;
+    }
+    auto &runtime = application_->GetRuntime();
+    if (runtime == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
+        return ERR_INVALID_VALUE;
+    }
+    runtime->StartLocalDebugMode();
+    return NO_ERROR;
 }
 
 void MainThread::DetachAppDebug()

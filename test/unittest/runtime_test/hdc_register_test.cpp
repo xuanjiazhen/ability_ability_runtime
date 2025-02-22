@@ -58,7 +58,7 @@ HWTEST_F(HdcRegisterTest, HdcRegisterTest_0100, TestSize.Level0)
     bool debugApp = true;
     auto &pHdcRegister = AbilityRuntime::HdcRegister::Get();
 
-    pHdcRegister.StartHdcRegister(bundleName, processName, debugApp, nullptr);
+    pHdcRegister.StartHdcRegister(bundleName, processName, debugApp, false, nullptr);
 
     EXPECT_NE(pHdcRegister.registerHandler_, nullptr);
 }
@@ -88,7 +88,7 @@ HWTEST_F(HdcRegisterTest, HdcRegisterTest_0300, TestSize.Level0)
     const std::string bundleName = "123";
     bool debugApp = true;
     auto &pHdcRegister = AbilityRuntime::HdcRegister::Get();
-    pHdcRegister.StartHdcRegister(bundleName, processName, debugApp, nullptr);
+    pHdcRegister.StartHdcRegister(bundleName, processName, debugApp, false, nullptr);
     pHdcRegister.StopHdcRegister();
 
     EXPECT_EQ(pHdcRegister.registerHandler_, nullptr);
