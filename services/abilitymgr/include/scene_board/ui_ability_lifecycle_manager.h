@@ -370,6 +370,8 @@ public:
 
     void EnableListForSCBRecovery();
 
+    void SetkillForPermissionUpdateFlag(uint32_t accessTokenId);
+
     void PrepareTerminateAbilityDone(std::shared_ptr<AbilityRecord> abilityRecord, bool isTerminate);
 
     void TryPrepareTerminateByPidsDone(const std::string &moduleName, int32_t prepareTermination, bool isExist);

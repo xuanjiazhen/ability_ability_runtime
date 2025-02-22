@@ -13138,5 +13138,29 @@ int32_t AbilityManagerService::UnregisterHiddenStartObserver(const sptr<IHiddenS
     }
     return HiddenStartObserverManager::GetInstance().UnregisterObserver(observer);
 }
+
+int32_t AbilityManagerService::KillProcessForPermissionUpdate(uint32_t accessTokenId)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Call KillProcessForPermissionUpdate");
+    auto isCallingPerm = PermissionVerification::GetInstance()->VerifyCallingPermission(
+        PermissionConstants::PERMISSION_KILL_APP_PROCESSES);
+    if (!isCallingPerm) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "no permission to kill processes.");
+        return ERR_PERMISSION_DENIED;
+    }
+
+    auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
+    CHECK_POINTER_AND_RETURN_LOG(uiAbilityManager, ERR_NULL_OBJECT, "uiAbilityLifecycleManager nullptr");
+    uiAbilityManager->SetkillForPermissionUpdateFlag(accessTokenId);
+
+    int32_t ret = 
+        DelayedSingleton<AppScheduler>::GetInstance()->KillProcessesByAccessTokenId(accessTokenId);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "KillProcessesByAccessTokenId error");
+        return ret;
+    }
+
+    return ERR_OK;
+}
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -1860,7 +1860,12 @@ void UIAbilityLifecycleManager::OnAbilityDied(std::shared_ptr<AbilityRecord> abi
 
     terminateAbilityList_.push_back(abilityRecord);
     abilityRecord->SetAbilityState(AbilityState::TERMINATING);
-    if (!abilityRecord->GetRestartAppFlag()) {
+    //与下方的异常处理保持什么关系
+    if (abilityRecord->GetkillForPermissionUpdateFlag()) {
+        NotifySCBToHandleException(abilityRecord,
+            static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_PERMISSION_UPDATE),
+            "kill process for permission update");
+    } else if (!abilityRecord->GetRestartAppFlag()) {
         NotifySCBToHandleException(abilityRecord, static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_DIED),
             "onAbilityDied");
     }
@@ -3379,6 +3384,27 @@ void UIAbilityLifecycleManager::PutSpecifiedFlag(int32_t requestId, const std::s
     };
     TaskHandlerWrap::GetFfrtHandler()->SubmitTaskJust(timeoutTask, "PutSpecifiedFlagTimeout",
         AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * GlobalConstant::COLDSTART_TIMEOUT_MULTIPLE);
+}
+
+void UIAbilityLifecycleManager::SetkillForPermissionUpdateFlag(uint32_t accessTokenId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Call");
+    for (auto it = sessionAbilityMap_.begin(); it != sessionAbilityMap_.end();) {
+        if (it->second == nullptr) {
+            it++;
+            continue;
+        }
+        auto &abilityInfo = it->second->GetAbilityInfo();
+        auto &applicationInfo = it->second->GetApplicationInfo();
+        if (applicationInfo.bundleType == AppExecFwk::BundleType::ATOMIC_SERVICE &&
+            abilityInfo.type == AppExecFwk::AbilityType::PAGE &&
+            applicationInfo.accessTokenId == accessTokenId) {
+                it->second->SetkillForPermissionUpdateFlag(true);
+            }
+        it++;
+    }
 }
 
 void UIAbilityLifecycleManager::HandleForegroundCollaborate(
