@@ -55,7 +55,7 @@ std::vector<bool> MediaPermissionManager::CheckUriPermission(const std::vector<U
     uint32_t callerTokenId, uint32_t flag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::URIPERMMGR, "uris:%{public}zu, callerTokenId:%{public}u, flag:%{public}u",
+    TAG_LOGI(AAFwkTag::URIPERMMGR, "uris:%{public}zu, callerTokenId:%{private}u, flag:%{public}u",
         uriVec.size(), callerTokenId, flag);
     std::vector<std::string> uriStrVec;
     std::vector<bool> results = std::vector<bool>(uriVec.size(), false);
