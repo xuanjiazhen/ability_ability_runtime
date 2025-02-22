@@ -507,6 +507,7 @@ group("unittest") {
       "dummy_values_bucket_test:unittest",
       "dump_utils_test:unittest",
       "dynamic_loader_ohos_test:unittest",
+      "ecological_rule_interceptor_test:unittest",
       "event_report_test:unittest",
       "exit_reason_test:unittest",
       "exit_resident_process_manager_test:unittest",
