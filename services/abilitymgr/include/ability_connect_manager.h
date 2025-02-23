@@ -665,7 +665,6 @@ private:
     bool IsStrictMode(std::shared_ptr<AbilityRecord> abilityRecord);
     bool NeedExtensionControl(std::shared_ptr<AbilityRecord> abilityRecord);
 
-
 private:
     const std::string TASK_ON_CALLBACK_DIED = "OnCallbackDiedTask";
     const std::string TASK_ON_ABILITY_DIED = "OnAbilityDiedTask";

@@ -6222,7 +6222,8 @@ int32_t AbilityManagerProxy::UnregisterHiddenStartObserver(const sptr<IHiddenSta
 int32_t AbilityManagerProxy::QueryPreLoadUIExtensionRecord(
     const std::string &abilityName, const std::string &bundleName,
     const std::string &moduleName, const std::string &hostBundleName,
-    int32_t &recordNum) {
+    int32_t &recordNum)
+{
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;

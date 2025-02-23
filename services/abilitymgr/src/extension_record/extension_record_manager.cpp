@@ -784,9 +784,9 @@ bool ExtensionRecordManager::IsFocused(
 int32_t ExtensionRecordManager::QueryPreLoadUIExtensionRecord(
     const std::string &abilityName, const std::string &bundleName,
     const std::string &moduleName, const std::string &hostBundleName,
-    int32_t &recordNum) {
+    int32_t &recordNum)
+{
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call.");
-
     if (abilityName.empty() || bundleName.empty() || moduleName.empty() ||
         hostBundleName.empty()) {
         recordNum = 0;
@@ -795,8 +795,8 @@ int32_t ExtensionRecordManager::QueryPreLoadUIExtensionRecord(
     auto extensionRecordMapKey =
         std::make_tuple(abilityName, bundleName, moduleName, hostBundleName);
     TAG_LOGD(AAFwkTag::ABILITYMGR,
-            "hostBundleName: %{public}s, bundleName: %{public}s, moduleName: %{public}s, abilityName: %{public}s",
-            hostBundleName.c_str(), bundleName.c_str(), moduleName.c_str(), abilityName.c_str());
+             "hostBundleName: %{public}s, bundleName: %{public}s, moduleName: %{public}s, abilityName: %{public}s",
+             hostBundleName.c_str(), bundleName.c_str(), moduleName.c_str(), abilityName.c_str());
     std::lock_guard<std::mutex> lock(preloadUIExtensionMapMutex_);
     auto item = preloadUIExtensionMap_.find(extensionRecordMapKey);
     if (item != preloadUIExtensionMap_.end()) {
