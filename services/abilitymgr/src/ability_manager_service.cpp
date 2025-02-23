@@ -13138,5 +13138,26 @@ int32_t AbilityManagerService::UnregisterHiddenStartObserver(const sptr<IHiddenS
     }
     return HiddenStartObserverManager::GetInstance().UnregisterObserver(observer);
 }
+
+int32_t AbilityManagerService::QueryPreLoadUIExtensionRecord(
+    const std::string &abilityName, const std::string &bundleName,
+    const std::string &moduleName, const std::string &hostBundleName,
+    int32_t &recordNum)
+{
+  TAG_LOGI(AAFwkTag::UI_EXT,
+           "call QueryPreLoadUIExtensionRecord.");
+  // check preload ui extension permission.
+  CHECK_CALLER_IS_SYSTEM_APP;
+  if (!PermissionVerification::GetInstance()->VerifyCallingPermission(
+          PermissionConstants::PERMISSION_PRELOAD_UI_EXTENSION_ABILITY)) {
+    TAG_LOGE(AAFwkTag::UI_EXT, "permission %{public}s verification failed",
+             PermissionConstants::PERMISSION_PRELOAD_UI_EXTENSION_ABILITY);
+    return ERR_PERMISSION_DENIED;
+    }
+    auto userId = GetUserId();
+    auto connectManager = GetConnectManagerByUserId(userId);
+    return connectManager->QueryPreLoadUIExtensionRecordInner(
+        abilityName, bundleName, moduleName, hostBundleName, recordNum);
+}
 }  // namespace AAFwk
 }  // namespace OHOS

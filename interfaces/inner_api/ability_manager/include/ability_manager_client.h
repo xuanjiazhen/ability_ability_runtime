@@ -1701,6 +1701,22 @@ public:
      */
     ErrCode UnregisterHiddenStartObserver(const sptr<IHiddenStartObserver> &observer);
 
+    /**
+     * Query preload uiextension record.
+     *
+     * @param abilityName, The uiextension abilityName.
+     * @param bundleName, The uiextension bundleName.
+     * @param moduleName, The uiextension moduleName.
+     * @param hostBundleName, The uiextension caller hostBundleName.
+     * @param recordNum, The returned count of uiextension.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode QueryPreLoadUIExtensionRecord(const std::string &abilityName,
+                                          const std::string &bundleName,
+                                          const std::string &moduleName,
+                                          const std::string &hostBundleName,
+                                          int32_t &recordNum);
+
 private:
     AbilityManagerClient();
     DISALLOW_COPY_AND_MOVE(AbilityManagerClient);

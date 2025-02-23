@@ -6218,5 +6218,49 @@ int32_t AbilityManagerProxy::UnregisterHiddenStartObserver(const sptr<IHiddenSta
     }
     return reply.ReadInt32();
 }
+
+int32_t AbilityManagerProxy::QueryPreLoadUIExtensionRecord(
+    const std::string &abilityName, const std::string &bundleName,
+    const std::string &moduleName, const std::string &hostBundleName,
+    int32_t &recordNum) {
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteString(abilityName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write abilityName fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteString(bundleName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write bundleName fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteString(moduleName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write moduleName fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteString(hostBundleName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write hostBundleName fail");
+        return INNER_ERR;
+    }
+
+    auto error =
+        SendRequest(AbilityManagerInterfaceCode::QUERY_PRELOAD_UIEXTENSION_RECORD,
+                    data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        return error;
+    }
+    recordNum = reply.ReadInt32();
+    return NO_ERROR;
+}
 } // namespace AAFwk
 } // namespace OHOS
