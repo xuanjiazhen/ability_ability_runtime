@@ -2072,8 +2072,8 @@ public:
      *
      * @param element, The uiextension ElementName.
      * @param hostBundleName, The uiextension caller hostBundleName.
-     * @param userId, The User Id.
      * @param recordNum, The returned count of uiextension.
+     * @param userId, The User Id.
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t QueryPreLoadUIExtensionRecord(const AppExecFwk::ElementName &element,
