@@ -2161,14 +2161,14 @@ ErrCode AbilityManagerClient::UnregisterHiddenStartObserver(const sptr<IHiddenSt
 
 ErrCode AbilityManagerClient::QueryPreLoadUIExtensionRecord(const AppExecFwk::ElementName &element,
                                                             const std::string &hostBundleName,
-                                                            int32_t userId = DEFAULT_INVAL_VALUE,
-                                                            int32_t &recordNum)
+                                                            int32_t &recordNum,
+                                                            int32_t userId)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call QueryPreLoadUIExtensionRecord");
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->QueryPreLoadUIExtensionRecord(
-        abilityName, bundleName, moduleName, hostBundleName, recordNum);
+        element, hostBundleName, recordNum, userId);
 }
 } // namespace AAFwk
 } // namespace OHOS

@@ -790,8 +790,11 @@ int32_t ExtensionRecordManager::QueryPreLoadUIExtensionRecord(const AppExecFwk::
         recordNum = 0;
         return ERR_INVALID_VALUE;
     }
+    std::string abilityName = element.GetAbilityName();
+    std::string bundleName = element.GetBundleName();
+    std::string moduleName = element.GetModuleName();
     auto extensionRecordMapKey =
-        std::make_tuple(element.GetAbilityName(), element.GetBundleName(), element.GetModuleName(), hostBundleName);
+        std::make_tuple(abilityName, bundleName, moduleName, hostBundleName);
     TAG_LOGD(AAFwkTag::UI_EXT,
              "hostBundleName: %{public}s, bundleName: %{public}s, moduleName: %{public}s, abilityName: %{public}s",
              hostBundleName.c_str(), bundleName.c_str(), moduleName.c_str(), abilityName.c_str());

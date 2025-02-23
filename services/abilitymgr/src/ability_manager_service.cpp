@@ -13141,8 +13141,8 @@ int32_t AbilityManagerService::UnregisterHiddenStartObserver(const sptr<IHiddenS
 
 int32_t AbilityManagerService::QueryPreLoadUIExtensionRecord(const AppExecFwk::ElementName &element,
                                                              const std::string &hostBundleName,
-                                                             int32_t userId,
-                                                             int32_t &recordNum)
+                                                             int32_t &recordNum,
+                                                             int32_t userId)
 {
   // check preload ui extension permission.
   CHECK_CALLER_IS_SYSTEM_APP;

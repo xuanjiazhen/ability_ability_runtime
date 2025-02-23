@@ -1712,8 +1712,8 @@ public:
      */
     ErrCode QueryPreLoadUIExtensionRecord(const AppExecFwk::ElementName &element,
                                           const std::string &hostBundleName,
-                                          int32_t userId = DEFAULT_INVAL_VALUE,
-                                          int32_t &recordNum);
+                                          int32_t &recordNum,
+                                          int32_t userId = DEFAULT_INVAL_VALUE);
 
 private:
     AbilityManagerClient();
