@@ -2164,7 +2164,7 @@ ErrCode AbilityManagerClient::QueryPreLoadUIExtensionRecord(const AppExecFwk::El
                                                             int32_t &recordNum,
                                                             int32_t userId)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "call QueryPreLoadUIExtensionRecord");
+    TAG_LOGD(AAFwkTag::UI_EXT, "call QueryPreLoadUIExtensionRecord");
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->QueryPreLoadUIExtensionRecord(
