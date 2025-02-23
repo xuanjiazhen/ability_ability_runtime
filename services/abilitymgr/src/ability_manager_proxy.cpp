@@ -6236,7 +6236,7 @@ int32_t AbilityManagerProxy::QueryPreLoadUIExtensionRecord(const AppExecFwk::Ele
     if (!data.WriteParcelable(&element)) {
         TAG_LOGE(AAFwkTag::UI_EXT, "write element fail");
         return ERR_INVALID_VALUE;
-    }    
+    }
 
     if (!data.WriteString(hostBundleName)) {
         TAG_LOGE(AAFwkTag::UI_EXT, "write hostBundleName fail");
