@@ -147,6 +147,44 @@ void NapiAsyncTask::Schedule(const std::string &name, napi_env env, std::unique_
     }
 }
 
+void NapiAsyncTask::ScheduleHighQos(const std::string &name, napi_env env, std::unique_ptr<NapiAsyncTask>&& task)
+{
+    if (task && task->StartHighQos(name, env)) {
+        task.release();
+    }
+}
+
+void NapiAsyncTask::ScheduleLowQos(const std::string &name, napi_env env, std::unique_ptr<NapiAsyncTask>&& task)
+{
+    if (task && task->StartLowQos(name, env)) {
+        task.release();
+    }
+}
+
+void NapiAsyncTask::ScheduleWithDefaultQos(const std::string &name, napi_env env, std::unique_ptr<NapiAsyncTask>&& task)
+{
+    if (task && task->StartWithDefaultQos(name, env)) {
+        task.release();
+    }
+}
+
+bool NapiAsyncTask::StartWithDefaultQos(const std::string &name, napi_env env)
+{
+    if (work_) {
+        napi_delete_async_work(env, work_);
+        work_ = nullptr;
+    }
+    if (env == nullptr) {
+        return false;
+    }
+    NativeEngine* engine = reinterpret_cast<NativeEngine*>(env);
+    work_ = reinterpret_cast<napi_async_work>(engine->CreateAsyncWork(name,
+        reinterpret_cast<NativeAsyncExecuteCallback>(Execute),
+        reinterpret_cast<NativeAsyncCompleteCallback>(Complete), this));
+    napi_queue_async_work_with_qos(env, work_, napi_qos_default);
+    return true;
+}
+
 void NapiAsyncTask::Resolve(napi_env env, napi_value value)
 {
     TAG_LOGD(AAFwkTag::ABILITY_SIM, "called");
@@ -282,6 +320,40 @@ bool NapiAsyncTask::Start(const std::string &name, napi_env env)
         reinterpret_cast<NativeAsyncExecuteCallback>(Execute),
         reinterpret_cast<NativeAsyncCompleteCallback>(Complete), this));
     napi_queue_async_work(env, work_);
+    return true;
+}
+
+bool NapiAsyncTask::StartHighQos(const std::string &name, napi_env env)
+{
+    if (work_) {
+        napi_delete_async_work(env, work_);
+        work_ = nullptr;
+    }
+    if (env == nullptr) {
+        return false;
+    }
+    NativeEngine* engine = reinterpret_cast<NativeEngine*>(env);
+    work_ = reinterpret_cast<napi_async_work>(engine->CreateAsyncWork(name,
+        reinterpret_cast<NativeAsyncExecuteCallback>(Execute),
+        reinterpret_cast<NativeAsyncCompleteCallback>(Complete), this));
+    napi_queue_async_work_with_qos(env, work_, napi_qos_user_initiated);
+    return true;
+}
+
+bool NapiAsyncTask::StartLowQos(const std::string &name, napi_env env)
+{
+    if (work_) {
+        napi_delete_async_work(env, work_);
+        work_ = nullptr;
+    }
+    if (env == nullptr) {
+        return false;
+    }
+    NativeEngine* engine = reinterpret_cast<NativeEngine*>(env);
+    work_ = reinterpret_cast<napi_async_work>(engine->CreateAsyncWork(name,
+        reinterpret_cast<NativeAsyncExecuteCallback>(Execute),
+        reinterpret_cast<NativeAsyncCompleteCallback>(Complete), this));
+    napi_queue_async_work_with_qos(env, work_, napi_qos_utility);
     return true;
 }
 
