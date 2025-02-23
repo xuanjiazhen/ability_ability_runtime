@@ -781,20 +781,18 @@ bool ExtensionRecordManager::IsFocused(
     return isFocused;
 }
 
-int32_t ExtensionRecordManager::QueryPreLoadUIExtensionRecord(
-    const std::string &abilityName, const std::string &bundleName,
-    const std::string &moduleName, const std::string &hostBundleName,
-    int32_t &recordNum)
+int32_t ExtensionRecordManager::QueryPreLoadUIExtensionRecord(const AppExecFwk::ElementName &element,
+                                                              const std::string &hostBundleName,
+                                                              int32_t &recordNum)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "call.");
-    if (abilityName.empty() || bundleName.empty() || moduleName.empty() ||
+    if (element.GetAbilityName().empty() || element.GetBundleName().empty() || element.GetModuleName().empty() ||
         hostBundleName.empty()) {
         recordNum = 0;
         return ERR_INVALID_VALUE;
     }
     auto extensionRecordMapKey =
-        std::make_tuple(abilityName, bundleName, moduleName, hostBundleName);
-    TAG_LOGD(AAFwkTag::ABILITYMGR,
+        std::make_tuple(element.GetAbilityName(), element.GetBundleName(), element.GetModuleName(), hostBundleName);
+    TAG_LOGD(AAFwkTag::UI_EXT,
              "hostBundleName: %{public}s, bundleName: %{public}s, moduleName: %{public}s, abilityName: %{public}s",
              hostBundleName.c_str(), bundleName.c_str(), moduleName.c_str(), abilityName.c_str());
     std::lock_guard<std::mutex> lock(preloadUIExtensionMapMutex_);
@@ -806,9 +804,9 @@ int32_t ExtensionRecordManager::QueryPreLoadUIExtensionRecord(
             return ERR_OK;
         }
     }
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "UIExtension is not preloaded.");
+    TAG_LOGD(AAFwkTag::UI_EXT, "UIExtension is not preloaded.");
     recordNum = 0;
-    return ERR_INVALID_VALUE;
+    return ERR_OK;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

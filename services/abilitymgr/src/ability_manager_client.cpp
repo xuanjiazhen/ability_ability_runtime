@@ -2159,13 +2159,12 @@ ErrCode AbilityManagerClient::UnregisterHiddenStartObserver(const sptr<IHiddenSt
     return abms->UnregisterHiddenStartObserver(observer);
 }
 
-ErrCode AbilityManagerClient::QueryPreLoadUIExtensionRecord(const std::string &abilityName,
-                                                            const std::string &bundleName,
-                                                            const std::string &moduleName,
+ErrCode AbilityManagerClient::QueryPreLoadUIExtensionRecord(const AppExecFwk::ElementName &element,
                                                             const std::string &hostBundleName,
+                                                            int32_t userId = DEFAULT_INVAL_VALUE,
                                                             int32_t &recordNum)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "call QueryPreLoadUIExtensionRecord");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call QueryPreLoadUIExtensionRecord");
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->QueryPreLoadUIExtensionRecord(

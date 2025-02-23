@@ -3476,14 +3476,13 @@ int32_t AbilityConnectManager::UpdateKeepAliveEnableState(const std::string &bun
     return ERR_OK;
 }
 
-int32_t AbilityConnectManager::QueryPreLoadUIExtensionRecordInner(
-    const std::string &abilityName, const std::string &bundleName,
-    const std::string &moduleName, const std::string &hostBundleName,
-    int32_t &recordNum)
+int32_t AbilityConnectManager::QueryPreLoadUIExtensionRecordInner(const AppExecFwk::ElementName &element,
+                                                                  const std::string &hostBundleName,
+                                                                  int32_t &recordNum)
 {
     CHECK_POINTER_AND_RETURN(uiExtensionAbilityRecordMgr_, ERR_NULL_OBJECT);
     return uiExtensionAbilityRecordMgr_->QueryPreLoadUIExtensionRecord(
-        abilityName, bundleName, moduleName, hostBundleName, recordNum);
+        element, hostBundleName, recordNum);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

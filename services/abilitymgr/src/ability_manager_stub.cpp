@@ -4278,7 +4278,7 @@ int AbilityManagerStub::QueryKeepAliveApplicationsByEDMInner(MessageParcel &data
     int32_t userId = data.ReadInt32();
     std::vector<KeepAliveInfo> list;
     int32_t result = QueryKeepAliveApplicationsByEDM(appType, userId, list);
-        reply.WriteInt32(list.size());
+    reply.WriteInt32(list.size());
     for (auto &it : list) {
         if (!reply.WriteParcelable(&it)) {
             return ERR_INVALID_VALUE;
@@ -4406,20 +4406,24 @@ int32_t AbilityManagerStub::UnregisterHiddenStartObserverInner(MessageParcel &da
 
 int32_t AbilityManagerStub::QueryPreLoadUIExtensionRecordInner(MessageParcel &data, MessageParcel &reply)
 {
-    std::string abilityName = data.ReadString();
-    std::string bundleName = data.ReadString();
-    std::string moduleName = data.ReadString();
+    std::unique_ptr<AppExecFwk::ElementName> element(data.ReadParcelable<AppExecFwk::ElementName>());
+    if (element == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "receive element null");
+        return ERR_INVALID_VALUE;
+    }
     std::string hostBundleName = data.ReadString();
+    int32_t userId = data.ReadInt32();
+
     int32_t recordNum;
     int32_t result = QueryPreLoadUIExtensionRecord(
-        abilityName, bundleName, moduleName, hostBundleName, recordNum);
+        *element, hostBundleName, userId, recordNum);
     if (!reply.WriteInt32(recordNum)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write recordNum fail");
+        TAG_LOGE(AAFwkTag::UI_EXT, "reply write recordNum fail");
         return INNER_ERR;
     }
 
     if (!reply.WriteInt32(result)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
+        TAG_LOGE(AAFwkTag::UI_EXT, "reply write fail");
         return INNER_ERR;
     }
     return NO_ERROR;

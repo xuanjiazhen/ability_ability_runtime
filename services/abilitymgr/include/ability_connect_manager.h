@@ -124,18 +124,14 @@ public:
     /**
      * Query preload uiextension record.
      *
-     * @param abilityName, The uiextension abilityName.
-     * @param bundleName, The uiextension bundleName.
-     * @param moduleName, The uiextension moduleName.
+     * @param element, The uiextension ElementName.
      * @param hostBundleName, The uiextension caller hostBundleName.
      * @param recordNum, The returned count of uiextension.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int QueryPreLoadUIExtensionRecordInner(const std::string &abilityName,
-                                      const std::string &bundleName,
-                                      const std::string &moduleName,
-                                      const std::string &hostBundleName,
-                                      int32_t &recordNum);
+    int QueryPreLoadUIExtensionRecordInner(const AppExecFwk::ElementName &element,
+                                           const std::string &hostBundleName,
+                                           int32_t &recordNum);
 
     /**
      * UnloadUIExtensionAbility, unload uiextension ability.
