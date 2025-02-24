@@ -42,6 +42,7 @@ public:
     bool IsChildProcessBySelfFork();
     ChildProcessManagerErrorCode StartChildProcessBySelfFork(const std::string &srcEntry, pid_t &pid);
     ChildProcessManagerErrorCode StartChildProcessByAppSpawnFork(const std::string &srcEntry, pid_t &pid);
+    ChildProcessManagerErrorCode StartCJChildProcessByAppSpawnFork(const std::string &srcEntry, pid_t &pid);
     ChildProcessManagerErrorCode StartChildProcessWithArgs(const std::string &srcEntry, pid_t &pid,
         int32_t childProcessType, const AppExecFwk::ChildProcessArgs &args,
         const AppExecFwk::ChildProcessOptions &options);

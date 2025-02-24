@@ -24,6 +24,9 @@
 #endif // SUPPORT_CHILD_PROCESS
 #include "constants.h"
 #include "hilog_tag_wrapper.h"
+#ifdef CJ_FRONTEND
+#include "cj_runtime.h"
+#endif
 #include "js_runtime.h"
 #include "native_lib_util.h"
 #include "sys_mgr_client.h"
@@ -174,7 +177,8 @@ bool ChildMainThread::ScheduleLoadChild()
             TAG_LOGE(AAFwkTag::APPKIT, "null childMainThread");
             return;
         }
-        if (childProcessType == CHILD_PROCESS_TYPE_ARK) {
+        if (childProcessType == CHILD_PROCESS_TYPE_ARK ||
+            childProcessType == CHILD_PROCESS_TYPE_CJ_ARK) {
             childMainThread->HandleLoadArkTs();
         } else if (childProcessType == CHILD_PROCESS_TYPE_NATIVE_ARGS) {
             childMainThread->HandleLoadNative();
@@ -294,7 +298,16 @@ void ChildMainThread::InitNativeLib(const BundleInfo &bundleInfo)
 
     if (processInfo_->childProcessType != CHILD_PROCESS_TYPE_NATIVE &&
         processInfo_->childProcessType != CHILD_PROCESS_TYPE_NATIVE_ARGS) {
-        AbilityRuntime::JsRuntime::SetAppLibPath(appLibPaths, isSystemApp);
+#ifdef CJ_FRONTEND
+        if (processInfo_->childProcessType == CHILD_PROCESS_TYPE_CJ ||
+            processInfo_->childProcessType == CHILD_PROCESS_TYPE_CJ_ARK) {
+            AbilityRuntime::CJRuntime::SetAppLibPath(appLibPaths);
+        } else {
+#endif
+            AbilityRuntime::JsRuntime::SetAppLibPath(appLibPaths, isSystemApp);
+#ifdef CJ_FRONTEND
+        }
+#endif
     } else {
         UpdateNativeChildLibModuleName(appLibPaths, isSystemApp);
     }

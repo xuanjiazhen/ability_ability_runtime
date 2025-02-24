@@ -21,6 +21,7 @@ group("cj_ability_packages") {
     "${ability_runtime_path}/frameworks/cj/ffi/app/errormanager:cj_errormanager_ffi",
     "${ability_runtime_path}/frameworks/cj/ffi/app/recovery:cj_app_recovery_ffi",
     "${ability_runtime_path}/frameworks/cj/ffi/ark_interop_helper:ark_interop_helper_ffi",
+    "${ability_runtime_path}/frameworks/cj/ffi/child_process_manager:cj_childprocessmanager_ffi",
     "${ability_runtime_path}/frameworks/cj/ffi/context:cj_context_ffi",
     "${ability_runtime_path}/frameworks/cj/ffi/want_agent:cj_want_agent_ffi",
     "${ability_runtime_path}/frameworks/native/ability:cj_ability_context_native",

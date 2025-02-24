@@ -14,7 +14,9 @@
  */
 
 #include "child_process.h"
-
+#ifdef CJ_FRONTEND
+#include "cj_child_process_impl.h"
+#endif
 #include "js_child_process.h"
 
 namespace OHOS {
@@ -27,6 +29,10 @@ std::shared_ptr<ChildProcess> ChildProcess::Create(const std::unique_ptr<Runtime
     switch (runtime->GetLanguage()) {
         case AbilityRuntime::Runtime::Language::JS:
             return AbilityRuntime::JsChildProcess::Create(runtime);
+#ifdef CJ_FRONTEND
+        case AbilityRuntime::Runtime::Language::CJ:
+            return AbilityRuntime::CJChildProcessImpl::Create(runtime);
+#endif
         default:
             return std::make_shared<ChildProcess>();
     }

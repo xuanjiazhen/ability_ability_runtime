@@ -41,6 +41,9 @@
 #include "hilog_tag_wrapper.h"
 #include "parameters.h"
 #include "runtime.h"
+#ifdef CJ_FRONTEND
+#include "cj_runtime.h"
+#endif
 #include "sys_mgr_client.h"
 #include "system_ability_definition.h"
 
@@ -105,6 +108,14 @@ ChildProcessManagerErrorCode ChildProcessManager::StartChildProcessByAppSpawnFor
     AppExecFwk::ChildProcessArgs args;
     AppExecFwk::ChildProcessOptions options;
     return StartChildProcessWithArgs(srcEntry, pid, AppExecFwk::CHILD_PROCESS_TYPE_JS, args, options);
+}
+
+ChildProcessManagerErrorCode ChildProcessManager::StartCJChildProcessByAppSpawnFork(
+    const std::string &srcEntry, pid_t &pid)
+{
+    AppExecFwk::ChildProcessArgs args;
+    AppExecFwk::ChildProcessOptions options;
+    return StartChildProcessWithArgs(srcEntry, pid, AppExecFwk::CHILD_PROCESS_TYPE_CJ, args, options);
 }
 
 ChildProcessManagerErrorCode ChildProcessManager::StartChildProcessWithArgs(
@@ -206,7 +217,8 @@ ChildProcessManagerErrorCode ChildProcessManager::PreCheck(int32_t childProcessT
         childProcessType != AppExecFwk::CHILD_PROCESS_TYPE_NATIVE_ARGS &&
         childProcessType != AppExecFwk::CHILD_PROCESS_TYPE_NATIVE) {
         TAG_LOGE(AAFwkTag::PROCESSMGR, "Not support child process.");
-        auto useNewErrorCode = childProcessType != AppExecFwk::CHILD_PROCESS_TYPE_JS;
+        auto useNewErrorCode = childProcessType != AppExecFwk::CHILD_PROCESS_TYPE_JS &&
+            childProcessType != AppExecFwk::CHILD_PROCESS_TYPE_CJ;
         return useNewErrorCode ? ChildProcessManagerErrorCode::ERR_MULTI_PROCESS_MODEL_DISABLED_NEW :
             ChildProcessManagerErrorCode::ERR_MULTI_PROCESS_MODEL_DISABLED;
     }
@@ -366,6 +378,14 @@ std::unique_ptr<AbilityRuntime::Runtime> ChildProcessManager::CreateRuntime(cons
         fromAppSpawn ? AppExecFwk::EventRunner::GetMainEventRunner() : AppExecFwk::EventRunner::Create();
     options.eventRunner = eventRunner;
 
+#ifdef CJ_FRONTEND
+    bool isCJApp = false;
+    if (!hapModuleInfo.abilityInfos.empty()) {
+        isCJApp = AbilityRuntime::CJRuntime::IsCJAbility(hapModuleInfo.abilityInfos.front().srcEntrance);
+    }
+    options.lang = isCJApp ? AbilityRuntime::Runtime::Language::CJ : AbilityRuntime::Runtime::Language::JS;
+#endif
+
     return AbilityRuntime::Runtime::Create(options);
 }
 
@@ -389,7 +409,8 @@ bool ChildProcessManager::GetBundleInfo(AppExecFwk::BundleInfo &bundleInfo)
     return (bundleMgr->GetBundleInfoForSelf(
         (static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE) +
         static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION) +
-        static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_METADATA)), bundleInfo) == ERR_OK);
+        static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_METADATA) +
+        static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_ABILITY)), bundleInfo) == ERR_OK);
 }
 
 bool ChildProcessManager::GetEntryHapModuleInfo(const AppExecFwk::BundleInfo &bundleInfo,
