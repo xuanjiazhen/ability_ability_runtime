@@ -236,21 +236,21 @@ public:
     void RequestFocus(const Want &want) override;
 
     /**
-     * @brief Called after wms show event.
-     * The ability in the <b>STATE_FOREGROUND</b> state is invisible.
+     * @brief Called when this ability enters the <b>STATE_BACKGROUND</b> state.
+     * The ability in the <b>STATE_BACKGROUND</b> state is invisible.
      * You can override this function to implement your own processing logic.
      */
     void OnBackground() override;
 
     /**
-     * @brief Called when this ability enters the <b>STATE_FOREGROUND</b> state.
+     * @brief Called before this ability enters the <b>STATE_FOREGROUND</b> state.
      * The ability in the <b>STATE_FOREGROUND</b> state is invisible.
      * You can override this function to implement your own processing logic.
      */
     void OnWillForeground() override;
 
     /**
-     * @brief Called when this ability enters the <b>STATE_FOREGROUND</b> state.
+     * @brief Called after wms show event.
      * The ability in the <b>STATE_FOREGROUND</b> state is invisible.
      * You can override this function to implement your own processing logic.
      */
