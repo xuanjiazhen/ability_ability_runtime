@@ -116,9 +116,6 @@ int32_t StartAbilityByCallComplete(std::shared_ptr<AbilityContext> abilityContex
         }
         return contextForRelease->ReleaseCall(callback);
     };
-    if (callerId == nullptr) {
-        return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
-    }
     return CreateCjCallerComplex(releaseCallAbilityFunc, calldata->remoteCallee,
         callerCallBack, callerId, remoteId);
 }
@@ -128,6 +125,9 @@ extern "C" {
 CJ_EXPORT int32_t FFIAbilityContextStartAbilityByCall(int64_t id, WantHandle wantHandle,
     int64_t* callerId, RetDataI64* remoteId)
 {
+    if (callerId == nullptr) {
+        return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
+    }
     auto context = FFIData::GetData<CJAbilityContext>(id);
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null CJAbilityContext");

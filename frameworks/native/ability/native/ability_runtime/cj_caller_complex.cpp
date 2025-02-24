@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -59,63 +59,60 @@ public:
         OBJ_RELEASE
     };
 
-    explicit CjCallerComplex(
-        ReleaseCallFunc releaseCallFunc, sptr<IRemoteObject> callee,
-        std::shared_ptr<CallerCallBack> callerCallBack) : releaseCallFunc_(releaseCallFunc),
-        callee_(callee),
-        callerCallBackObj_(callerCallBack), cjReleaseCallBackObj_(nullptr), cjRemoteStateChangedObj_(nullptr)
-    {
-        AddCjCallerComplex(this);
-        handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
-        currentState_ = OBJSTATE::OBJ_NORMAL;
-    };
-    virtual~CjCallerComplex()
-    {
-        Finalizer(this);
-        RemoveCjCallerComplex(this);
-    };
+    CjCallerComplex(ReleaseCallFunc releaseCallFunc, sptr<IRemoteObject> callee,
+        std::shared_ptr<CallerCallBack> callerCallBack);
+    int32_t ReleaseCall();
+    int32_t SetOnReleaseCallBack(const std::function<void(const char*)>& cjCallback);
+    int32_t SetOnRemoteStateChanged(const std::function<void(const char*)>& cjCallback);
+    bool ChangeCurrentState(OBJSTATE state);
 
-    static bool ReleaseObject(CjCallerComplex* data)
+    sptr<IRemoteObject> GetRemoteObject()
     {
-        TAG_LOGD(AAFwkTag::DEFAULT, "called");
-        if (data == nullptr) {
-            TAG_LOGE(AAFwkTag::DEFAULT, "null data");
-            return false;
-        }
-
-        if (!data->ChangeCurrentState(OBJSTATE::OBJ_RELEASE)) {
-            auto handler = data->GetEventHandler();
-            if (handler == nullptr) {
-                TAG_LOGE(AAFwkTag::DEFAULT, "null handler");
-                return false;
-            }
-            auto releaseObjTask = [pdata = data] () {
-                if (!FindCjCallerComplex(pdata)) {
-                    TAG_LOGE(AAFwkTag::DEFAULT, "argc not found");
-                    return;
-                }
-                ReleaseObject(pdata);
-            };
-
-            handler->PostTask(releaseObjTask, "FinalizerRelease");
-            return false;
-        } else {
-            // when the object is about to be destroyed, does not reset state
-            std::unique_ptr<CjCallerComplex> delObj(data);
-        }
-        TAG_LOGD(AAFwkTag::DEFAULT, "end");
-        return true;
+        return callee_;
     }
 
-    static void Finalizer(void* data)
+    std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler()
+    {
+        return handler_;
+    }
+
+    OBJSTATE GetCurrentState()
+    {
+        return currentState_;
+    }
+
+    void StateReset()
+    {
+        currentState_ = OBJSTATE::OBJ_NORMAL;
+    }
+
+private:
+    void OnReleaseNotify(const std::string &str);
+    void OnReleaseNotifyTask(const std::string &str);
+    void OnRemoteStateChangedNotify(const std::string &str);
+    void OnRemoteStateChangedNotifyTask(const std::string &str);
+
+private:
+    ReleaseCallFunc releaseCallFunc_;
+    sptr<IRemoteObject> callee_;
+
+    std::shared_ptr<CallerCallBack> callerCallBackObj_;
+    std::function<void(const char*)> cjReleaseCallBackObj_;
+    std::function<void(const char*)> cjRemoteStateChangedObj_;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_;
+    std::mutex stateMechanismMutex_;
+    OBJSTATE currentState_;
+};
+
+class CallerComplexMgr {
+public:
+    static void Finalizer(CjCallerComplex* ptr)
     {
         TAG_LOGD(AAFwkTag::DEFAULT, "called");
-        if (data == nullptr) {
+        if (ptr == nullptr) {
             TAG_LOGE(AAFwkTag::DEFAULT, "null data");
             return;
         }
-
-        auto ptr = static_cast<CjCallerComplex*>(data);
         if (!FindCjCallerComplex(ptr)) {
             TAG_LOGE(AAFwkTag::DEFAULT, "argc not found");
             return;
@@ -123,67 +120,7 @@ public:
 
         ReleaseObject(ptr);
         TAG_LOGD(AAFwkTag::DEFAULT, "end");
-    }
-
-    int32_t ReleaseCall()
-    {
-        TAG_LOGD(AAFwkTag::DEFAULT, "called");
-        if (callerCallBackObj_ == nullptr) {
-            TAG_LOGE(AAFwkTag::DEFAULT, "null CallBacker");
-            return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
-        }
-        if (!releaseCallFunc_) {
-            TAG_LOGE(AAFwkTag::DEFAULT, "null releaseFunc");
-            return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
-        }
-        callee_ = nullptr;
-        callerCallBackObj_->SetCallBack(nullptr);
-        int32_t innerErrorCode = releaseCallFunc_(callerCallBackObj_);
-        if (innerErrorCode != ERR_OK) {
-            TAG_LOGE(AAFwkTag::DEFAULT, "ReleaseAbility failed %{public}d", static_cast<int>(innerErrorCode));
-        }
-        return innerErrorCode;
-    }
-
-    int32_t SetOnReleaseCallBack(const std::function<void(const char*)>& cjCallback)
-    {
-        TAG_LOGD(AAFwkTag::DEFAULT, "start");
-        if (callerCallBackObj_ == nullptr) {
-            TAG_LOGE(AAFwkTag::DEFAULT, "null CallBacker");
-            return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
-        }
-        cjReleaseCallBackObj_ = cjCallback;
-        auto task = [notify = this] (const std::string &str) {
-            if (!FindCjCallerComplexAndChangeState(notify, OBJSTATE::OBJ_EXECUTION)) {
-                TAG_LOGE(AAFwkTag::DEFAULT, "address error");
-                return;
-            }
-            notify->OnReleaseNotify(str);
-        };
-        callerCallBackObj_->SetOnRelease(task);
-        TAG_LOGD(AAFwkTag::DEFAULT, "end");
-        return ERR_OK;
-    }
-
-    int32_t SetOnRemoteStateChanged(const std::function<void(const char*)>& cjCallback)
-    {
-        TAG_LOGD(AAFwkTag::DEFAULT, "begin");
-        if (callerCallBackObj_ == nullptr) {
-            TAG_LOGE(AAFwkTag::DEFAULT, "null callBacker");
-            return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
-        }
-        cjRemoteStateChangedObj_ = cjCallback;
-        auto task = [notify = this] (const std::string &str) {
-            TAG_LOGI(AAFwkTag::DEFAULT, "state changed");
-            if (!FindCjCallerComplexAndChangeState(notify, OBJSTATE::OBJ_EXECUTION)) {
-                TAG_LOGE(AAFwkTag::DEFAULT, "address error");
-                return;
-            }
-            notify->OnRemoteStateChangedNotify(str);
-        };
-        callerCallBackObj_->SetOnRemoteStateChanged(task);
-        TAG_LOGD(AAFwkTag::DEFAULT, "end");
-        return ERR_OK;
+        RemoveCjCallerComplex(ptr);
     }
 
     static bool AddCjCallerComplex(CjCallerComplex* ptr)
@@ -240,7 +177,7 @@ public:
         return ret;
     }
 
-    static bool FindCjCallerComplexAndChangeState(CjCallerComplex* ptr, OBJSTATE state)
+    static bool FindCjCallerComplexAndChangeState(CjCallerComplex* ptr, CjCallerComplex::OBJSTATE state)
     {
         if (ptr == nullptr) {
             TAG_LOGE(AAFwkTag::DEFAULT, "null ptr");
@@ -257,136 +194,216 @@ public:
         return ret;
     }
 
-    sptr<IRemoteObject> GetRemoteObject()
+    static CjCallerComplex* Create(ReleaseCallFunc releaseCallFunc, sptr<IRemoteObject> callee,
+        std::shared_ptr<CallerCallBack> callerCallBack)
     {
-        return callee_;
-    }
-
-    std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler()
-    {
-        return handler_;
-    }
-
-    bool ChangeCurrentState(OBJSTATE state)
-    {
-        auto ret = false;
-        if (stateMechanismMutex_.try_lock() == false) {
-            TAG_LOGE(AAFwkTag::DEFAULT, "mutex try_lock false");
-            return ret;
+        auto cjCaller = FFI::FFIData::Create<CjCallerComplex>(releaseCallFunc, callee, callerCallBack);
+        if (cjCaller != nullptr) {
+            AddCjCallerComplex(cjCaller);
         }
-
-        if (currentState_ == OBJSTATE::OBJ_NORMAL) {
-            currentState_ = state;
-            ret = true;
-            TAG_LOGD(AAFwkTag::DEFAULT, "currentState_:OBJ_NORMAL");
-        } else if (currentState_ == state) {
-            ret = true;
-            TAG_LOGD(AAFwkTag::DEFAULT, "currentState_:state");
-        } else {
-            ret = false;
-            TAG_LOGD(AAFwkTag::DEFAULT, "ret: false");
-        }
-
-        stateMechanismMutex_.unlock();
-        return ret;
+        return cjCaller;
     }
-
-    OBJSTATE GetCurrentState()
-    {
-        return currentState_;
-    }
-
-    void StateReset()
-    {
-        currentState_ = OBJSTATE::OBJ_NORMAL;
-    }
-
-private:
-
-    void OnReleaseNotify(const std::string &str)
-    {
-        TAG_LOGD(AAFwkTag::DEFAULT, "begin");
-        if (handler_ == nullptr) {
-            TAG_LOGE(AAFwkTag::DEFAULT, "null handler");
-            return;
-        }
-
-        auto task = [notify = this, &str] () {
-            if (!FindCjCallerComplex(notify)) {
-                TAG_LOGE(AAFwkTag::DEFAULT, "address error");
-                return;
-            }
-            notify->OnReleaseNotifyTask(str);
-        };
-        handler_->PostSyncTask(task, "OnReleaseNotify");
-        TAG_LOGD(AAFwkTag::DEFAULT, "end");
-    }
-
-    void OnReleaseNotifyTask(const std::string &str)
-    {
-        TAG_LOGD(AAFwkTag::DEFAULT, "begin");
-        if (cjReleaseCallBackObj_ == nullptr) {
-            TAG_LOGE(AAFwkTag::DEFAULT, "null cjReleaseObj");
-            return;
-        }
-        auto cString = CreateCStringFromString(str);
-        cjReleaseCallBackObj_(cString);
-        free(cString);
-        callee_ = nullptr;
-        StateReset();
-    }
-
-    void OnRemoteStateChangedNotify(const std::string &str)
-    {
-        TAG_LOGD(AAFwkTag::DEFAULT, "begin");
-        if (handler_ == nullptr) {
-            TAG_LOGE(AAFwkTag::DEFAULT, "null handler");
-            return;
-        }
-
-        auto task = [notify = this, &str] () {
-            if (!FindCjCallerComplex(notify)) {
-                TAG_LOGE(AAFwkTag::DEFAULT, "ptr not found");
-                return;
-            }
-            notify->OnRemoteStateChangedNotifyTask(str);
-        };
-        handler_->PostSyncTask(task, "OnRemoteStateChangedNotify");
-        TAG_LOGD(AAFwkTag::DEFAULT, "end");
-    }
-
-    void OnRemoteStateChangedNotifyTask(const std::string &str)
-    {
-        TAG_LOGD(AAFwkTag::DEFAULT, "begin");
-        if (cjRemoteStateChangedObj_ == nullptr) {
-            TAG_LOGE(AAFwkTag::DEFAULT, "null cjRemoteStateChangedObj");
-            return;
-        }
-        auto cString = CreateCStringFromString(str);
-        cjRemoteStateChangedObj_(cString);
-        free(cString);
-        StateReset();
-        TAG_LOGD(AAFwkTag::DEFAULT, "end");
-    }
-
-private:
-    ReleaseCallFunc releaseCallFunc_;
-    sptr<IRemoteObject> callee_;
-
-    std::shared_ptr<CallerCallBack> callerCallBackObj_;
-    std::function<void(const char*)> cjReleaseCallBackObj_;
-    std::function<void(const char*)> cjRemoteStateChangedObj_;
-    std::shared_ptr<AppExecFwk::EventHandler> handler_;
-    std::mutex stateMechanismMutex_;
-    OBJSTATE currentState_;
 
     static std::set<CjCallerComplex*> cjCallerComplexManagerList;
     static std::mutex cjCallerComplexMutex;
+private:
+    static bool ReleaseObject(CjCallerComplex* data)
+    {
+        TAG_LOGD(AAFwkTag::DEFAULT, "called");
+        if (data == nullptr) {
+            TAG_LOGE(AAFwkTag::DEFAULT, "null data");
+            return false;
+        }
+
+        if (!data->ChangeCurrentState(CjCallerComplex::OBJSTATE::OBJ_RELEASE)) {
+            auto handler = data->GetEventHandler();
+            if (handler == nullptr) {
+                TAG_LOGE(AAFwkTag::DEFAULT, "null handler");
+                return false;
+            }
+            auto releaseObjTask = [pdata = data] () {
+                if (!FindCjCallerComplex(pdata)) {
+                    TAG_LOGE(AAFwkTag::DEFAULT, "argc not found");
+                    return;
+                }
+                ReleaseObject(pdata);
+            };
+
+            handler->PostTask(releaseObjTask, "FinalizerRelease");
+            return false;
+        } else {
+            // when the object is about to be destroyed, does not reset state
+            std::unique_ptr<CjCallerComplex> delObj(data);
+        }
+        TAG_LOGD(AAFwkTag::DEFAULT, "end");
+        return true;
+    }
 };
 
-std::set<CjCallerComplex*> CjCallerComplex::cjCallerComplexManagerList;
-std::mutex CjCallerComplex::cjCallerComplexMutex;
+std::set<CjCallerComplex*> CallerComplexMgr::cjCallerComplexManagerList;
+std::mutex CallerComplexMgr::cjCallerComplexMutex;
 
+CjCallerComplex::CjCallerComplex(
+    ReleaseCallFunc releaseCallFunc, sptr<IRemoteObject> callee,
+    std::shared_ptr<CallerCallBack> callerCallBack) : releaseCallFunc_(releaseCallFunc),
+    callee_(callee),
+    callerCallBackObj_(callerCallBack), cjReleaseCallBackObj_(nullptr), cjRemoteStateChangedObj_(nullptr)
+{
+    handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
+    currentState_ = OBJSTATE::OBJ_NORMAL;
+};
+
+int32_t CjCallerComplex::ReleaseCall()
+{
+    TAG_LOGD(AAFwkTag::DEFAULT, "called");
+    if (callerCallBackObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "null CallBacker");
+        return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
+    }
+    if (!releaseCallFunc_) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "null releaseFunc");
+        return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
+    }
+    callee_ = nullptr;
+    callerCallBackObj_->SetCallBack(nullptr);
+    int32_t innerErrorCode = releaseCallFunc_(callerCallBackObj_);
+    if (innerErrorCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "ReleaseAbility failed %{public}d", static_cast<int>(innerErrorCode));
+    }
+    CallerComplexMgr::Finalizer(this);
+    return innerErrorCode;
+}
+
+int32_t CjCallerComplex::SetOnReleaseCallBack(const std::function<void(const char*)>& cjCallback)
+{
+    TAG_LOGD(AAFwkTag::DEFAULT, "start");
+    if (callerCallBackObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "null CallBacker");
+        return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
+    }
+    cjReleaseCallBackObj_ = cjCallback;
+    auto task = [notify = this] (const std::string &str) {
+        if (!CallerComplexMgr::FindCjCallerComplexAndChangeState(notify, OBJSTATE::OBJ_EXECUTION)) {
+            TAG_LOGE(AAFwkTag::DEFAULT, "address error");
+            return;
+        }
+        notify->OnReleaseNotify(str);
+    };
+    callerCallBackObj_->SetOnRelease(task);
+    TAG_LOGD(AAFwkTag::DEFAULT, "end");
+    return ERR_OK;
+}
+
+int32_t CjCallerComplex::SetOnRemoteStateChanged(const std::function<void(const char*)>& cjCallback)
+{
+    TAG_LOGD(AAFwkTag::DEFAULT, "begin");
+    if (callerCallBackObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "null callBacker");
+        return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
+    }
+    cjRemoteStateChangedObj_ = cjCallback;
+    auto task = [notify = this] (const std::string &str) {
+        TAG_LOGI(AAFwkTag::DEFAULT, "state changed");
+        if (!CallerComplexMgr::FindCjCallerComplexAndChangeState(notify, OBJSTATE::OBJ_EXECUTION)) {
+            TAG_LOGE(AAFwkTag::DEFAULT, "address error");
+            return;
+        }
+        notify->OnRemoteStateChangedNotify(str);
+    };
+    callerCallBackObj_->SetOnRemoteStateChanged(task);
+    TAG_LOGD(AAFwkTag::DEFAULT, "end");
+    return ERR_OK;
+}
+
+bool CjCallerComplex::ChangeCurrentState(OBJSTATE state)
+{
+    auto ret = false;
+    if (stateMechanismMutex_.try_lock() == false) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "mutex try_lock false");
+        return ret;
+    }
+
+    if (currentState_ == OBJSTATE::OBJ_NORMAL) {
+        currentState_ = state;
+        ret = true;
+        TAG_LOGD(AAFwkTag::DEFAULT, "currentState_:OBJ_NORMAL");
+    } else if (currentState_ == state) {
+        ret = true;
+        TAG_LOGD(AAFwkTag::DEFAULT, "currentState_:state");
+    } else {
+        ret = false;
+        TAG_LOGD(AAFwkTag::DEFAULT, "ret: false");
+    }
+
+    stateMechanismMutex_.unlock();
+    return ret;
+}
+
+void CjCallerComplex::OnReleaseNotify(const std::string &str)
+{
+    TAG_LOGD(AAFwkTag::DEFAULT, "begin");
+    if (handler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "null handler");
+        return;
+    }
+
+    auto task = [notify = this, &str] () {
+        if (!CallerComplexMgr::FindCjCallerComplex(notify)) {
+            TAG_LOGE(AAFwkTag::DEFAULT, "address error");
+            return;
+        }
+        notify->OnReleaseNotifyTask(str);
+    };
+    handler_->PostSyncTask(task, "OnReleaseNotify");
+    TAG_LOGD(AAFwkTag::DEFAULT, "end");
+}
+
+void CjCallerComplex::OnReleaseNotifyTask(const std::string &str)
+{
+    TAG_LOGD(AAFwkTag::DEFAULT, "begin");
+    if (cjReleaseCallBackObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "null cjReleaseObj");
+        return;
+    }
+    auto cString = CreateCStringFromString(str);
+    cjReleaseCallBackObj_(cString);
+    free(cString);
+    callee_ = nullptr;
+    StateReset();
+}
+
+void CjCallerComplex::OnRemoteStateChangedNotify(const std::string &str)
+{
+    TAG_LOGD(AAFwkTag::DEFAULT, "begin");
+    if (handler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "null handler");
+        return;
+    }
+
+    auto task = [notify = this, &str] () {
+        if (!CallerComplexMgr::FindCjCallerComplex(notify)) {
+            TAG_LOGE(AAFwkTag::DEFAULT, "ptr not found");
+            return;
+        }
+        notify->OnRemoteStateChangedNotifyTask(str);
+    };
+    handler_->PostSyncTask(task, "OnRemoteStateChangedNotify");
+    TAG_LOGD(AAFwkTag::DEFAULT, "end");
+}
+
+void CjCallerComplex::OnRemoteStateChangedNotifyTask(const std::string &str)
+{
+    TAG_LOGD(AAFwkTag::DEFAULT, "begin");
+    if (cjRemoteStateChangedObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "null cjRemoteStateChangedObj");
+        return;
+    }
+    auto cString = CreateCStringFromString(str);
+    cjRemoteStateChangedObj_(cString);
+    free(cString);
+    StateReset();
+    TAG_LOGD(AAFwkTag::DEFAULT, "end");
+}
 } // nameless
 
 int32_t CreateCjCallerComplex(
@@ -400,14 +417,19 @@ int32_t CreateCjCallerComplex(
             ((releaseCallFunc == nullptr) ? ("releaseCallFunc") : ("callerCallBack")));
         return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
     }
-
-    auto cjCaller = FFI::FFIData::Create<CjCallerComplex>(releaseCallFunc, callee, callerCallBack);
-    auto remoteObj = cjCaller->GetRemoteObject();
-    if (remoteObj == nullptr) {
-        TAG_LOGE(AAFwkTag::DEFAULT, "null remoteObj");
+    if (remoteId == nullptr || callerId == nullptr) {
         return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
     }
-    if (remoteId == nullptr || callerId == nullptr) {
+
+    auto cjCaller = CallerComplexMgr::Create(releaseCallFunc, callee, callerCallBack);
+    if (cjCaller == nullptr) {
+        return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
+    }
+    auto remoteObj = cjCaller->GetRemoteObject();
+    if (remoteObj == nullptr) {
+        // 这里的异常场景需要释放cjCaller
+        TAG_LOGE(AAFwkTag::DEFAULT, "null remoteObj");
+        CallerComplexMgr::Finalizer(cjCaller);
         return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
     }
     *remoteId = CreateCjCalleeRemoteObject(remoteObj);

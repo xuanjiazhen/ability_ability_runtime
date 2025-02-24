@@ -933,7 +933,7 @@ sptr<IRemoteObject> CallGetNativeRemoteObject(RetDataI64 remoteCjObjId)
         dlclose(handle);
         return nullptr;
     }
-    sptr<IRemoteObject> remoteObject;
+    sptr<IRemoteObject> remoteObject = nullptr;
     func(remoteCjObjId, &remoteObject);
     dlclose(handle);
     return remoteObject;

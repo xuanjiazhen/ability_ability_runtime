@@ -442,7 +442,7 @@ ohos_shared_library("abilitykit_native") {
   part_name = "ability_runtime"
 }
 
-ohos_shared_library("cj_abilitykit_native") {
+ohos_shared_library("cj_abilitykit_native_ffi") {
   sanitize = {
     integer_overflow = true
     ubsan = true
