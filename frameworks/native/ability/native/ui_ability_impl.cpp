@@ -606,15 +606,6 @@ void UIAbilityImpl::Background()
 }
 #endif
 
-void UIAbilityImpl::OnWillForeground()
-{
-    if (ability_ == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null ability_");
-        return;
-    }
-    ability_->OnWillForeground();
-}
-
 void UIAbilityImpl::OnWillBackground()
 {
     if (ability_ == nullptr) {
@@ -638,7 +629,6 @@ bool UIAbilityImpl::AbilityTransaction(const AAFwk::Want &want, const AAFwk::Lif
             if (targetState.isNewWant) {
                 NewWant(want);
             }
-            OnWillForeground();
 #ifdef SUPPORT_SCREEN
             if (!InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
                 HandleForegroundNewState(want, ret);
