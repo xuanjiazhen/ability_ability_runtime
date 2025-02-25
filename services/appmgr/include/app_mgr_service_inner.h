@@ -1956,6 +1956,8 @@ private:
         const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid);
     void AddAbilityStageForSpecified(std::shared_ptr<AppRunningRecord> appRecord);
     void SendAppSpawnUninstallDebugHapMsg(int32_t userId);
+    void SetJITPermissions(uint32_t accessTokenId, std::map<std::string, std::string> &jitPermissionsList);
+    int32_t GetKernelPermissions(uint32_t accessTokenId, std::vector<PermissionWithValue> &permissionsList);
 
     bool isInitAppWaitingDebugListExecuted_ = false;
     std::atomic<bool> sceneBoardAttachFlag_ = true;
@@ -2011,7 +2013,6 @@ private:
     std::shared_ptr<AAFwk::TaskHandlerWrap> delayKillTaskHandler_;
     std::unordered_set<std::string> nwebPreloadSet_ {};
 
-    int32_t GetKernelPermissions(uint32_t accessTokenId, std::vector<PermissionWithValue> &permissionsList);
     std::mutex childProcessRecordMapMutex_;
 };
 }  // namespace AppExecFwk
