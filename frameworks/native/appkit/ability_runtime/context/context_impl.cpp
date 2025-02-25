@@ -813,7 +813,7 @@ void ContextImpl::InitResourceManager(const AppExecFwk::BundleInfo &bundleInfo,
     }
 
     std::shared_ptr<Global::Resource::ResourceManager> resourceManager = InitResourceManagerInner(
-        bundleInfo, currentBundle, moduleName, inputContext);
+        bundleInfo, currentBundle, moduleName, inputContext, appContext);
     if (resourceManager == nullptr) {
         return;
     }
@@ -847,7 +847,7 @@ std::shared_ptr<Global::Resource::ResourceManager> ContextImpl::InitOthersResour
 
 std::shared_ptr<Global::Resource::ResourceManager> ContextImpl::InitResourceManagerInner(
     const AppExecFwk::BundleInfo &bundleInfo, bool currentBundle, const std::string& moduleName,
-    std::shared_ptr<Context> inputContext)
+    std::shared_ptr<Context> inputContext, std::shared_ptr<ContextImpl> appContext)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::shared_ptr<Global::Resource::ResourceManager> resourceManager = InitOthersResourceManagerInner(
@@ -889,7 +889,7 @@ std::shared_ptr<Global::Resource::ResourceManager> ContextImpl::InitResourceMana
 
                 TAG_LOGD(AAFwkTag::APPKIT, "loadPath: %{private}s", loadPath.c_str());
                 GetOverlayPath(resourceManager, bundleInfo.name, hapModuleInfo.moduleName, loadPath, currentBundle,
-                    inputContext);
+                    appContext, inputContext);
                 AddPatchResource(resourceManager, loadPath, hapModuleInfo.hqfInfo.hqfFilePath,
                     bundleInfo.applicationInfo.debug, inputContext);
             }
@@ -915,7 +915,7 @@ void ContextImpl::AddPatchResource(std::shared_ptr<Global::Resource::ResourceMan
 
 void ContextImpl::GetOverlayPath(std::shared_ptr<Global::Resource::ResourceManager> &resourceManager,
     const std::string &bundleName, const std::string &moduleName, std::string &loadPath, bool currentBundle,
-    std::shared_ptr<Context> inputContext)
+    const std::shared_ptr<ContextImpl> &appContext, std::shared_ptr<Context> inputContext)
 {
     // getOverlayPath
     std::vector<AppExecFwk::OverlayModuleInfo> overlayModuleInfos;
@@ -947,7 +947,12 @@ void ContextImpl::GetOverlayPath(std::shared_ptr<Global::Resource::ResourceManag
         }
 
         if (currentBundle) {
-            SubscribeToOverlayEvents(resourceManager, bundleName, moduleName, loadPath, overlayModuleInfos);
+            if (appContext != nullptr) {
+                appContext->SubscribeToOverlayEvents(resourceManager, bundleName,
+                    moduleName, loadPath, overlayModuleInfos);
+            } else {
+                SubscribeToOverlayEvents(resourceManager, bundleName, moduleName, loadPath, overlayModuleInfos);
+            }
         }
     }
 }
