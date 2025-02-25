@@ -92,7 +92,7 @@ static uint32_t BuildStartFlags(const AAFwk::Want &want, const AbilityInfo &abil
     return startFlags;
 }
 
-static void SetJITPermissions(uint32_t accessTokenId, JITPermissionsList &jitPermissionsList)
+static void SetJITPermissions(uint32_t accessTokenId, std::vector<std::string> &jitPermissionsList)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     std::vector<std::string> tmpPermissionList = {

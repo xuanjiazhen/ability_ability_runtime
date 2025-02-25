@@ -39,7 +39,7 @@ namespace AppExecFwk {
 enum class SpawnConnectionState { STATE_NOT_CONNECT, STATE_CONNECTED, STATE_CONNECT_FAILED };
 using HspList = std::vector<BaseSharedBundleInfo>;
 using DataGroupInfoList = std::vector<DataGroupInfo>;
-using JITPermissionsList = std::vector<std::string>;
+using JITPermissionsList = std::map<std::string, std::string>;
 const int32_t MAX_FLAG_INDEX = 32;
 const int32_t MAX_PROC_NAME_LEN = 256;
 const int32_t START_FLAG_BASE = 1;

@@ -3705,11 +3705,36 @@ int32_t AppMgrServiceInner::CreateStartMsg(const CreateStartMsgParam &param, App
     SetAtomicServiceInfo(param.bundleType, startMsg);
     SetOverlayInfo(bundleInfo.name, userId, startMsg);
     SetAppInfo(bundleInfo, startMsg);
-    AppspawnUtil::SetJITPermissions(bundleInfo.applicationInfo.accessTokenId, startMsg.jitPermissionsList);
+    std::vector<PermissionWithValue> permissionsList;
+    if (GetKernelPermissions(bundleInfo.applicationInfo.accessTokenId, permissionsList) == ERR_OK) {
+        for (int i = 0; i < permissionsList.size(); i++) {
+            startMsg.jitPermissionsList.emplace(permissionsList[i].name, permissionsList[i].value);
+        }
+    }
     TAG_LOGI(AAFwkTag::APPMGR, "apl: %{public}s, bundleName: %{public}s, startFlags: %{public}d, userId: %{public}d",
         startMsg.apl.c_str(), bundleInfo.name.c_str(), param.startFlags, userId);
 
     autoSync.Sync();
+    return ERR_OK;
+}
+
+int32_t AppMgrServiceInner::GetKernelPermissions(
+    uint32_t accessTokenId, std::vector<PermissionWithValue> &permissionsList) {
+    PermissionWithValue p1 = {
+        .name = "ohos.permission.kernel.ALLOW_WRITABLE_CODE_MEMORY",
+        .value = ""
+    };
+    PermissionWithValue p2 = {
+        .name = "ohos.permission.kernel.DISABLE_CODE_MEMORY_PROTECTION",
+        .value = "1"
+    };
+    PermissionWithValue p3 = {
+        .name = "ohos.permission.kernel.ALLOW_EXECUTABLE_FORT_MEMORY",
+        .value = "{\"cont\": \"1\"}"
+    };
+    permissionsList.emplace_back(p1);
+    permissionsList.emplace_back(p2);
+    permissionsList.emplace_back(p3);
     return ERR_OK;
 }
 

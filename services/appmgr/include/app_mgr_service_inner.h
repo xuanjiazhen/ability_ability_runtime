@@ -1887,6 +1887,13 @@ private:
     void NotifyLoadAbilityFailed(sptr<IRemoteObject> token);
 
     void NotifyStartProcessFailed(sptr<IRemoteObject> token);
+
+private:
+    struct PermissionWithValue {
+        public:
+                std::string name;
+                std::string value;
+    };
 private:
     /**
      * Notify application status.
@@ -2004,6 +2011,7 @@ private:
     std::shared_ptr<AAFwk::TaskHandlerWrap> delayKillTaskHandler_;
     std::unordered_set<std::string> nwebPreloadSet_ {};
 
+    int32_t GetKernelPermissions(uint32_t accessTokenId, std::vector<PermissionWithValue> &permissionsList);
     std::mutex childProcessRecordMapMutex_;
 };
 }  // namespace AppExecFwk

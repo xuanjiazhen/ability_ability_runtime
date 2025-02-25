@@ -4824,8 +4824,9 @@ HWTEST_F(AppMgrServiceInnerTest, SetJITPermissions_001, TestSize.Level0)
     TAG_LOGI(AAFwkTag::TEST, "SetJITPermissions_001 start");
     uint32_t accessTokenId = 0;
     AppSpawnStartMsg startMsg = {0};
-    AppspawnUtil::SetJITPermissions(accessTokenId, startMsg.jitPermissionsList);
-    EXPECT_EQ(startMsg.jitPermissionsList.size(), 0);
+    std::vector<std::string> list;
+    AppspawnUtil::SetJITPermissions(accessTokenId, list);
+    EXPECT_EQ(list.size(), 0);
     TAG_LOGI(AAFwkTag::TEST, "SetJITPermissions_001 end");
 }
 
