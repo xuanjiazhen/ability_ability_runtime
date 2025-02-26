@@ -1,0 +1,42 @@
+// export class BusinessError<T = void> {
+//    code: number;
+//    data: T;
+// }
+
+// type AsyncCallback<T, E = void> = (err: BusinessError<E>, data: T) => void;
+
+// export default class UIExtensionContentSession {
+//     static { loadLibrary("ui_extension") }
+//     public native terminateSelfSync(): void
+//     public terminateSelf(callback:AsyncCallback<void, void>):void{
+//     console.log("call terminateSelf callback 111");
+//     let p1 = taskpool.execute(this.terminateSelfSync);
+//         p1.then((e :NullishType)=>{
+//         let r: BusinessError = { code: 0, data: undefined };
+//         callback(r, undefined);
+//     });
+//         console.log("call terminateSelf callback 333");
+//     }
+// }
+
+export default class UIExtensionContentSession {
+    static { loadLibrary("ui_extension") }
+    public native terminateSelfSync(): void
+    public terminateSelf(callback:() => void):void{
+    console.log("call terminateSelf callback 111");
+    let p1 = taskpool.execute(this.terminateSelfSync);
+        p1.then((e :NullishType)=>{
+        callback();
+        });
+        console.log("call terminateSelf callback 333");
+    }
+}
+
+function main(){
+    let uiExtensionContentSession = new UIExtensionContentSession;
+    console.log("terminateSelf start.");
+    uiExtensionContentSession.terminateSelf(() => {
+        console.log("terminateSelf 111.");
+    });
+    console.log("terminateSelf end.");
+}
