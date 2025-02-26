@@ -1478,6 +1478,12 @@ public:
         std::vector<int32_t> &sessionIds);
 
     /**
+     * @brief Update session info.
+     * @param sessionInfo The session info need to be updated.
+     */
+    int32_t UpdateSessionTokenBySCB(sptr<SessionInfo> sessionInfo);
+
+    /**
      * @brief Restart app self.
      * @param want The ability type must be UIAbility.
      * @return Returns ERR_OK on success, others on failure.

@@ -11742,6 +11742,18 @@ int32_t AbilityManagerService::UpdateSessionInfoBySCB(std::list<SessionInfo> &se
     return uiAbilityManager->UpdateSessionInfoBySCB(sessionInfos, sessionIds);
 }
 
+int32_t AbilityManagerService::UpdateSessionTokenBySCB(sptr<SessionInfo> sessionInfo)
+{
+    if (!IsCallerSceneBoard()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "no sceneboard called, no allowed");
+        return ERR_WRONG_INTERFACE_CALL;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "UpdateSessionTokenBySCB");
+    auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
+    CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
+    return uiAbilityManager->UpdateSessionTokenBySCB(sessionInfo);
+}
+
 bool AbilityManagerService::CheckSenderWantInfo(int32_t callerUid, const WantSenderInfo &wantSenderInfo)
 {
     if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {

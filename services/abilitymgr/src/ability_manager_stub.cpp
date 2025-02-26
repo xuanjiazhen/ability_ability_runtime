@@ -663,6 +663,9 @@ int AbilityManagerStub::OnRemoteRequestInnerSeventeenth(uint32_t code, MessagePa
     if (interfaceCode == AbilityManagerInterfaceCode::UPDATE_SESSION_INFO) {
         return UpdateSessionInfoBySCBInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::UPDATE_SESSION_TOKEN) {
+        return UpdateSessionTokenBySCBInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::REGISTER_STATUS_BAR_DELEGATE) {
         return RegisterStatusBarDelegateInner(data, reply);
     }
@@ -3929,6 +3932,17 @@ int32_t AbilityManagerStub::UpdateSessionInfoBySCBInner(MessageParcel &data, Mes
     reply.WriteInt32(size);
     for (auto index = 0; index < size; index++) {
         reply.WriteInt32(sessionIds[index]);
+    }
+    return ERR_OK;
+}
+
+int32_t AbilityManagerStub::UpdateSessionTokenBySCBInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<SessionInfo> sessionInfo = nullptr;
+    sessionInfo = data.ReadParcelable<SessionInfo>();
+    auto result = UpdateSessionTokenBySCB(sessionInfo);
+    if (result != ERR_OK) {
+        return result;
     }
     return ERR_OK;
 }

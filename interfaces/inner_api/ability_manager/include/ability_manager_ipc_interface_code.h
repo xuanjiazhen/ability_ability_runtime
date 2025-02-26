@@ -546,6 +546,8 @@ enum class AbilityManagerInterfaceCode {
     REGISTER_SESSION_HANDLER = 6010,
     // ipc id for update session info
     UPDATE_SESSION_INFO = 6011,
+     // ipc id for update session token
+    UPDATE_SESSION_TOKEN = 6012,
 
     // ipc id for set application auto startup by EDM
     SET_APPLICATION_AUTO_STARTUP_BY_EDM = 6113,

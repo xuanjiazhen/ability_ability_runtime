@@ -1713,6 +1713,12 @@ public:
         std::vector<int32_t> &sessionIds) override;
 
     /**
+     * @brief Update session info.
+     * @param sessionInfo The session info need to be updated.
+     */
+    virtual int32_t UpdateSessionTokenBySCB(sptr<SessionInfo> sessionInfo) override;
+
+    /**
      * @brief Restart app self.
      * @param want The ability type must be UIAbility.
      * @param isAppRecovery True indicates that the app is restarted because of recovery.
