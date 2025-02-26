@@ -1725,6 +1725,15 @@ public:
     }
 
     /**
+     * @brief Update session info.
+     * @param sessionInfo The session info need to be updated.
+     */
+    virtual int32_t UpdateSessionTokenBySCB(sptr<SessionInfo> sessionInfo)
+    {
+        return 0;
+    }
+
+    /**
      * @brief Restart app self.
      * @param want The ability type must be UIAbility.
      * @param isAppRecovery True indicates that the app is restarted because of recovery.

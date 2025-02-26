@@ -5255,6 +5255,28 @@ int32_t AbilityManagerProxy::UpdateSessionInfoBySCB(std::list<SessionInfo> &sess
     return NO_ERROR;
 }
 
+int32_t AbilityManagerProxy::UpdateSessionTokenBySCB(sptr<SessionInfo> sessionInfo)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
+    }
+    if (!data.WriteParcelable(sessionInfo)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write sessionInfo fail");
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendRequest(AbilityManagerInterfaceCode::UPDATE_SESSION_TOKEN, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request fail:%{public}d", ret);
+        return ret;
+    }
+    return NO_ERROR;
+}
+
 ErrCode AbilityManagerProxy::SendRequest(AbilityManagerInterfaceCode code, MessageParcel &data, MessageParcel &reply,
     MessageOption& option)
 {

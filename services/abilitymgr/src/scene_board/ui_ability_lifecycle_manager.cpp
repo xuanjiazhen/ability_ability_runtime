@@ -3082,6 +3082,17 @@ int32_t UIAbilityLifecycleManager::UpdateSessionInfoBySCB(std::list<SessionInfo>
     return ERR_OK;
 }
 
+int32_t UIAbilityLifecycleManager::UpdateSessionTokenBySCB(sptr<SessionInfo> sessionInfo)
+{
+    auto abilityRecord = GetAbilityRecordById(sessionInfo->persistentId);
+    if (abilityRecord == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "SessionId not exist");
+        return MISSION_NOT_FOUND;
+    }
+    abilityRecord->UpdateSessionInfo(sessionInfo->sessionToken);
+    return ERR_OK;
+}
+
 void UIAbilityLifecycleManager::SignRestartAppFlag(int32_t uid, const std::string &instanceKey, bool isAppRecovery)
 {
     std::lock_guard<ffrt::mutex> guard(sessionLock_);

@@ -338,6 +338,12 @@ public:
      */
     int32_t UpdateSessionInfoBySCB(std::list<SessionInfo> &sessionInfos, std::vector<int32_t> &sessionIds);
 
+    /**
+     * @brief Update session info.
+     * @param sessionInfo The session info need to be updated.
+     */
+    int32_t UpdateSessionTokenBySCB(sptr<SessionInfo> sessionInfo);
+
     int32_t RegisterStatusBarDelegate(sptr<AbilityRuntime::IStatusBarDelegate> delegate);
 
     bool IsCallerInStatusBar(const std::string &instanceKey);
