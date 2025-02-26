@@ -704,6 +704,36 @@ enum {
      * Native error(3000000) for target bundle not exist.
      */
     ERR_CODE_NOT_EXIST = 3000000,
+
+    /*
+     * Result (3000001) for get connectManager by userId failed.
+     */
+    CONNECT_MAMAGER_NOT_FIND_BY_USERID = 3000001,
+
+    /*
+     * Result (3000002) for not containsAbility or not find abilityRecord by callerToken.
+     */
+    INVALID_CALLER_TOKEN = 3000002,
+
+    /*
+     * Result (3000003) for extension ability not exist.
+     */
+    EXTENSION_ABILITY_NOT_EXIST = 3000003,
+
+    /*
+     * Result (3000004) for extension ability info not query by uri.
+     */
+    EXTENSION_ABILITY_INFO_NOT_QUERY_BY_URI = 3000004,
+
+    /*
+     * Result (3000005) for cannot minimize or terminate except ui extension ability.
+     */
+    EXTENSION_TYPE_NOT_UI_EXTENSION = 3000005,
+
+    /*
+     * Result (3000006) for get Local deviceId failed.
+     */
+    GET_LOCAL_DEVICE_ID_FAILED = 3000006,
 };
 
 enum {
