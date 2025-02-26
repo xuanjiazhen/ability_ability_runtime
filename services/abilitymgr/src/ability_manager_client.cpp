@@ -1938,6 +1938,14 @@ int32_t AbilityManagerClient::UpdateSessionInfoBySCB(std::list<SessionInfo> &ses
     return abms->UpdateSessionInfoBySCB(sessionInfos, userId, sessionIds);
 }
 
+int32_t AbilityManagerClient::UpdateSessionTokenBySCB(sptr<SessionInfo> sessionInfo)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, UpdateSessionTokenBySCB");
+    return abms->UpdateSessionTokenBySCB(sessionInfo);
+}
+
 ErrCode AbilityManagerClient::GetUIExtensionRootHostInfo(const sptr<IRemoteObject> token,
     UIExtensionHostInfo &hostInfo, int32_t userId)
 {
