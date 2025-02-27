@@ -16,6 +16,7 @@
 #include <gmock/gmock.h>
 #include "native_child_process.h"
 #include "app_utils.h"
+#include "child_process_args_manager.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
