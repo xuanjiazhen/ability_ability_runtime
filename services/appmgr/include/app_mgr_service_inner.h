@@ -1887,13 +1887,6 @@ private:
     void NotifyLoadAbilityFailed(sptr<IRemoteObject> token);
 
     void NotifyStartProcessFailed(sptr<IRemoteObject> token);
-
-private:
-    struct PermissionWithValue {
-        public:
-                std::string name;
-                std::string value;
-    };
 private:
     /**
      * Notify application status.

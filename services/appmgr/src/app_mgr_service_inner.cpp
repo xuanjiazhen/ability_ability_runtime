@@ -3705,22 +3705,12 @@ int32_t AppMgrServiceInner::CreateStartMsg(const CreateStartMsgParam &param, App
     SetAtomicServiceInfo(param.bundleType, startMsg);
     SetOverlayInfo(bundleInfo.name, userId, startMsg);
     SetAppInfo(bundleInfo, startMsg);
-    SetJITPermissions(bundleInfo.applicationInfo.accessTokenId, startMsg.jitPermissionsList);
+    GetKernelPermissions(bundleInfo.applicationInfo.accessTokenId, startMsg.jitPermissionsList);
     TAG_LOGI(AAFwkTag::APPMGR, "apl: %{public}s, bundleName: %{public}s, startFlags: %{public}d, userId: %{public}d",
         startMsg.apl.c_str(), bundleInfo.name.c_str(), param.startFlags, userId);
 
     autoSync.Sync();
     return ERR_OK;
-}
-
-void AppMgrServiceInner::SetJITPermissions(uint32_t accessTokenId, JITPermissionsList &jitPermissionsList)
-{
-    std::vector<PermissionWithValue> permissionsList;
-    if (GetKernelPermissions(accessTokenId, permissionsList) == ERR_OK) {
-        for (int i = 0; i < permissionsList.size(); i++) {
-            jitPermissionsList.emplace(permissionsList[i].name, permissionsList[i].value);
-        }
-    }
 }
 
 int32_t AppMgrServiceInner::GetKernelPermissions(

@@ -182,12 +182,12 @@ static std::string DumpJITPermissionListToJson(const JITPermissionsList &jitPerm
     nlohmann::json jitPermissionsListJson;
     jitPermissionsListJson[JITPERMISSIONSLIST_NAME] = JITPERMISSIONSLIST_NAME_VALUE;
     jitPermissionsListJson[JITPERMISSIONSLIST_COUNT] = jitPermissionsList.size();
-    for (const auto &[permissionName, permissionValue] : jitPermissionsList) {
+    for (const auto& permissionWithValue : jitPermissionsList) {
         nlohmann::json temp;
-        if (permissionValue.empty()) {
-            temp[permissionName] = true;
+        if (permissionWithValue.value.empty()) {
+            temp[permissionWithValue.name] = true;
         } else {
-            temp[permissionName] = permissionValue;
+            temp[permissionWithValue.name] = permissionWithValue.value;
         }
         jitPermissionsListJson[JITPERMISSIONSLIST_PERMISSIONS_NAME].emplace_back(temp);
     }

@@ -953,11 +953,18 @@ HWTEST_F(AppSpawnClientTest, StartProcess_002, TestSize.Level0)
  */
 HWTEST_F(AppSpawnClientTest, DumpJITPermissionListToJson_001, TestSize.Level0)
 {
-    std::map<std::string, std::string> jitPermissionsMap = {
-        {"ohos.permission.jit1", "1"}, {"ohos.permission.jit2", "{\"cont\": \"1\"}"}
+    std::vector<PermissionWithValue> permissionsList;
+    PermissionWithValue p1 = {
+        .name = "ohos.permission.jit1",
+        .value = ""
     };
-
-    std::string jsonJITPermissions = DumpJITPermissionListToJson(jitPermissionsMap);
+    PermissionWithValue p2 = {
+        .name = "ohos.permission.jit2",
+        .value = "1"
+    };
+    permissionsList.emplace_back(p1);
+    permissionsList.emplace_back(p2);
+    std::string jsonJITPermissions = DumpJITPermissionListToJson(permissionsList);
 
     size_t pos = jsonJITPermissions.find("ohos.permission.jit1");
     ASSERT_NE(pos, std::string::npos);
