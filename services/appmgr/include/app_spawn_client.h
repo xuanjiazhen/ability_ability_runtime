@@ -37,9 +37,14 @@
 namespace OHOS {
 namespace AppExecFwk {
 enum class SpawnConnectionState { STATE_NOT_CONNECT, STATE_CONNECTED, STATE_CONNECT_FAILED };
+struct PermissionWithValue {
+    public:
+            std::string name;
+            std::string value;
+};
 using HspList = std::vector<BaseSharedBundleInfo>;
 using DataGroupInfoList = std::vector<DataGroupInfo>;
-using JITPermissionsList = std::vector<std::string>;
+using JITPermissionsList = std::vector<PermissionWithValue>;
 const int32_t MAX_FLAG_INDEX = 32;
 const int32_t MAX_PROC_NAME_LEN = 256;
 const int32_t START_FLAG_BASE = 1;

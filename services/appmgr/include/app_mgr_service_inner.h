@@ -1951,6 +1951,7 @@ private:
         const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid);
     void AddAbilityStageForSpecified(std::shared_ptr<AppRunningRecord> appRecord);
     void SendAppSpawnUninstallDebugHapMsg(int32_t userId);
+    int32_t GetKernelPermissions(uint32_t accessTokenId, std::vector<PermissionWithValue> &permissionsList);
 
     bool isInitAppWaitingDebugListExecuted_ = false;
     std::atomic<bool> sceneBoardAttachFlag_ = true;

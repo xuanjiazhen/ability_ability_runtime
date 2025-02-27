@@ -43,7 +43,7 @@ constexpr const char* APPSPAWN_CLIENT_USER_NAME = "APP_MANAGER_SERVICE";
 constexpr int32_t RIGHT_SHIFT_STEP = 1;
 constexpr int32_t START_FLAG_TEST_NUM = 1;
 constexpr const char* JITPERMISSIONSLIST_NAME = "name";
-constexpr const char* JITPERMISSIONSLIST_NAME_VALUE = "JITPermissions";
+constexpr const char* JITPERMISSIONSLIST_NAME_VALUE = "Permissions";
 constexpr const char* JITPERMISSIONSLIST_COUNT = "ohos.encaps.count";
 constexpr const char* JITPERMISSIONSLIST_PERMISSIONS_NAME = "permissions";
 constexpr const char* UNINSTALL_BUNDLE_NAME = "uninstallDebugHapMsg";
@@ -182,8 +182,14 @@ static std::string DumpJITPermissionListToJson(const JITPermissionsList &jitPerm
     nlohmann::json jitPermissionsListJson;
     jitPermissionsListJson[JITPERMISSIONSLIST_NAME] = JITPERMISSIONSLIST_NAME_VALUE;
     jitPermissionsListJson[JITPERMISSIONSLIST_COUNT] = jitPermissionsList.size();
-    for (auto& jitPermission : jitPermissionsList) {
-        jitPermissionsListJson[JITPERMISSIONSLIST_PERMISSIONS_NAME].emplace_back(jitPermission);
+    for (const auto& permissionWithValue : jitPermissionsList) {
+        nlohmann::json temp;
+        if (permissionWithValue.value.empty()) {
+            temp[permissionWithValue.name] = true;
+        } else {
+            temp[permissionWithValue.name] = permissionWithValue.value;
+        }
+        jitPermissionsListJson[JITPERMISSIONSLIST_PERMISSIONS_NAME].emplace_back(temp);
     }
     return jitPermissionsListJson.dump();
 }
