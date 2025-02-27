@@ -1949,7 +1949,6 @@ private:
         const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid);
     void AddAbilityStageForSpecified(std::shared_ptr<AppRunningRecord> appRecord);
     void SendAppSpawnUninstallDebugHapMsg(int32_t userId);
-    void SetJITPermissions(uint32_t accessTokenId, std::map<std::string, std::string> &jitPermissionsList);
     int32_t GetKernelPermissions(uint32_t accessTokenId, std::vector<PermissionWithValue> &permissionsList);
 
     bool isInitAppWaitingDebugListExecuted_ = false;
