@@ -82,8 +82,6 @@ ohos_shared_library("runtime") {
     "${ability_runtime_services_path}/common:common_config",
   ]
 
-  all_dependent_configs = [ ":runtime_all_deps_config" ]
-
   deps = [
     "${ability_runtime_innerkits_path}/connect_server_manager:connect_server_manager",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
