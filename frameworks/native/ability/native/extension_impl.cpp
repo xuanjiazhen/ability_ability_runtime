@@ -23,7 +23,7 @@
 #include "extension_context.h"
 #include "hilog_tag_wrapper.h"
 #include "ui_extension_utils.h"
-
+#include "configuration.h"
 
 namespace OHOS {
 namespace AbilityRuntime {

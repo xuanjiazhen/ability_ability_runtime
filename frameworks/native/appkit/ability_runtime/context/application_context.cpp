@@ -24,6 +24,7 @@
 #include "running_process_info.h"
 #include "exit_reason.h"
 #include "ability_util.h"
+#include "configuration.h"
 
 namespace OHOS {
 namespace AbilityRuntime {

@@ -19,6 +19,7 @@
 #include "hitrace_meter.h"
 #include "js_data_struct_converter.h"
 #include "js_runtime_utils.h"
+#include "configuration.h"
 
 namespace OHOS {
 namespace AbilityRuntime {

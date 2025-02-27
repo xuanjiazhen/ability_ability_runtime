@@ -19,13 +19,14 @@
 #include <map>
 #include <memory>
 
-#include "configuration.h"
-
 class NativeReference;
 typedef struct napi_env__* napi_env;
 typedef struct napi_value__* napi_value;
 
 namespace OHOS {
+namespace AppExecFwk {
+class Configuration;
+}
 namespace AbilityRuntime {
 class EnvironmentCallback {
 public:

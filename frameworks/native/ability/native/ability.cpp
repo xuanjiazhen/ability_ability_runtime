@@ -46,6 +46,7 @@
 #include "system_ability_definition.h"
 #include "task_handler_client.h"
 #include "values_bucket.h"
+#include "configuration.h"
 
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
 #include "background_task_mgr_helper.h"
@@ -58,6 +59,10 @@
 #include "key_event.h"
 #include "form_constants.h"
 #include "pointer_event.h"
+#include "form_provider_info.h"
+#include "ability_window.h"
+#include "window_option.h"
+#include "wm_common.h"
 #endif
 
 namespace OHOS {

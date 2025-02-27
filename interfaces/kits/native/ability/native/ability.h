@@ -26,7 +26,6 @@
 #include "ability_lifecycle_executor.h"
 #include "ability_lifecycle_interface.h"
 #include "ability_transaction_callback_info.h"
-#include "configuration.h"
 #include "context.h"
 #include "continuation_handler.h"
 #include "continuation_state.h"
@@ -41,17 +40,22 @@
 #include "want.h"
 
 #ifdef SUPPORT_SCREEN
-#include "ability_window.h"
 #include "display_manager.h"
-#include "form_provider_info.h"
 #include "form_state_info.h"
 #include "session_info.h"
-#include "window_option.h"
 #include "window_scene.h"
-#include "wm_common.h"
 #endif
 
 namespace OHOS {
+namespace Rosen {
+#ifdef SUPPORT_SCREEN
+class IWindowLifeCycle;
+class IDisplayMoveListener;
+class Window;
+class WindowOption;
+class WindowScene;
+#endif
+} // namespace Rosen
 namespace NativeRdb {
 class AbsSharedResultSet;
 class DataAbilityPredicates;
@@ -62,8 +66,8 @@ namespace AbilityRuntime {
 class Runtime;
 }
 #ifdef SUPPORT_SCREEN
-class KeyEvent;
 namespace MMI {
+class KeyEvent;
 class PointerEvent;
 }
 namespace Ace {
@@ -79,6 +83,8 @@ class OHOSApplication;
 class AbilityHandler;
 #ifdef SUPPORT_SCREEN
 class AbilityWindow;
+class FormProviderInfo;
+class FormAshmem;
 #endif
 class ILifeCycle;
 class ContinuationManager;

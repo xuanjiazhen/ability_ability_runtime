@@ -18,6 +18,7 @@
 
 #include "ability_info.h"
 #include "context_impl.h"
+#include "configuration.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
