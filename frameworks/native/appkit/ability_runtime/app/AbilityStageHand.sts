@@ -1,0 +1,99 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+declare namespace ConfigurationConstant {
+  export enum ColorMode {
+    COLOR_MODE_NOT_SET = -1,
+    COLOR_MODE_DARK = 0,
+    COLOR_MODE_LIGHT = 1
+  };
+ export enum Direction {
+	Direction = 0
+  };
+ export enum ScreenDensity {
+	ScreenDensity = 0
+  };
+}
+
+class AbilityInfo {}
+
+class HapModuleInfo {
+   name: string = "";
+   description: string  = "";
+   descriptionId: number;
+   icon: string  = "";
+   label: string = "";
+   labelId: number;
+   iconId: number;
+   backgroundImg: string = "";
+   supportedModes: number;
+   reqCapabilities: Array<string> = new Array<string>();
+   deviceTypes: Array<string> = new Array<string>();
+   abilityInfo: Array<AbilityInfo> = new Array<AbilityInfo>();
+   moduleName: string = "";
+   mainAbilityName: string = "";
+   installationFree: boolean = false;
+}
+
+class Configuration {
+  language?: string;
+  colorMode?: ConfigurationConstant.ColorMode;
+  direction?: ConfigurationConstant.Direction;
+  screenDensity?: ConfigurationConstant.ScreenDensity;
+  displayId : int;
+  hasPointerDevice: boolean;
+  fontId?: string;
+  fontSizeScale: double;
+  fontWeightScale: double;
+  mcc?: string;
+  mnc?: string;
+}
+
+class Context
+{
+	currentHapModuleInfo: HapModuleInfo = new HapModuleInfo();
+	config : Configuration = new Configuration();
+}
+
+class AbilityStageContext extends Context {
+	native stageContext : long;
+	currentHapModuleInfo: HapModuleInfo;
+	config : Configuration;
+	constructor(obj : Context) {
+	   this.currentHapModuleInfo = obj.currentHapModuleInfo;
+	   this.config = obj.config;
+	}
+	onUpdateConfiguration(config : Configuration) {
+	 this.config = config;
+	}
+}
+
+class AbilityStage {
+  context? : AbilityStageContext;
+  constructor() {console.println(" AbilityStage constructor"); }
+  onCreate() {
+    console.println("sts onCreate");
+  }
+  onDestroy() { console.println("AbilityStage onDestroy"); }
+  //onAcceptWant(want) {
+  //  console.println(" AbilityStage onDestroy");
+ // }
+ // onNewProcessRequest(want) {
+ //   hilog.sLogI(domainID, TAG, 'onNewProcessRequest, want:' + want.abilityName);
+ // }
+  onConfigurationUpdate(newConfig: Configuration) { }
+  onConfigurationUpdated(config : Configuration) { }
+ // onMemoryLevel(level) { }
+}
