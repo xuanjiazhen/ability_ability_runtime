@@ -161,13 +161,13 @@ private:
     };
 
 private:
-    std::map<std::string, std::list<GrantInfo>> uriMap_;
-    std::mutex mutex_;
-    std::mutex mgrMutex_;
     sptr<AppExecFwk::IAppMgr> appMgr_ = nullptr;
     sptr<StorageManager::IStorageManager> storageManager_ = nullptr;
-    std::set<uint32_t> permissionTokenMap_;
+    std::mutex mutex_;
+    std::mutex mgrMutex_;
     std::mutex ptMapMutex_;
+    std::set<uint32_t> permissionTokenMap_;
+    std::map<std::string, std::list<GrantInfo>> uriMap_;
 };
 }  // namespace OHOS::AAFwk
 #endif  // OHOS_ABILITY_RUNTIME_URI_PERMISSION_MANAGER_STUB_IMPL_H

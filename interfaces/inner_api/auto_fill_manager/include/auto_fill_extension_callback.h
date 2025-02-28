@@ -73,22 +73,22 @@ private:
     uint32_t GenerateCallbackId();
     Ace::UIContent* GetUIContent();
 
-    std::mutex requestCallbackMutex_;
-    std::shared_ptr<IFillRequestCallback> fillCallback_;
-    std::shared_ptr<ISaveRequestCallback> saveCallback_;
-    int32_t sessionId_ = -1;
-    std::atomic<int32_t> instanceId_ {-1};
-    uint32_t callbackId_ = 0;
-    AutoFill::AutoFillWindowType autoFillWindowType_ = AutoFill::AutoFillWindowType::MODAL_WINDOW;
-    AutoFill::AutoFillRequest request_;
     bool isReloadInModal_ = false;
     bool isSmartAutoFill_ = false;
     bool isOnResult_ = false;
-    AAFwk::Want want_;
+    int32_t sessionId_ = -1;
+    uint32_t callbackId_ = 0;
     int32_t errCode_ = 0;
-    std::mutex proxyMutex_;
+    std::atomic<int32_t> instanceId_ {-1};
+    AutoFill::AutoFillWindowType autoFillWindowType_ = AutoFill::AutoFillWindowType::MODAL_WINDOW;
+    std::shared_ptr<IFillRequestCallback> fillCallback_;
+    std::shared_ptr<ISaveRequestCallback> saveCallback_;
     std::shared_ptr<Ace::ModalUIExtensionProxy> modalUIExtensionProxy_;
+    std::mutex requestCallbackMutex_;
+    std::mutex proxyMutex_;
     std::mutex closeMutex_;
+    AutoFill::AutoFillRequest request_;
+    AAFwk::Want want_;
 };
 #endif // SUPPORT_GRAPHICS
 } // AbilityRuntime
