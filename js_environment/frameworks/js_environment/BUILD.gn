@@ -35,6 +35,7 @@ ohos_shared_library("js_environment") {
     "src/js_environment.cpp",
     "src/source_map.cpp",
     "src/uncaught_exception_callback.cpp",
+    "src/sts_enum_convert.cpp",
   ]
 
   configs = [ ":js_environment_config" ]
