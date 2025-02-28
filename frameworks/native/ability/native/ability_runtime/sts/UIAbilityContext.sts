@@ -14,6 +14,7 @@
  */
 
 import {Want} from './@ohos.app.ability.Want';
+import StartOptions from './@ohos.app.ability.StartOptions'
 
 export type MyFun = (e:int) => void;
 export class AsyncCallback {
@@ -34,6 +35,8 @@ export class AsyncCallback {
 export default class UIAbilityContext {
   public native startAbilitySync(want: Want, callback:AsyncCallback): int;
   public native startAbilitySync(want: Want): int;
+  public native nativeStartAbilityForResult(want: Want, callback:AsyncCallback): void;
+  public native nativeStartAbilityForResult(want: Want, startOptions: StartOptions, callback:AsyncCallback): void;
   public nativeContext : long;
 
   startAbility(want: Want, callback: MyFun):void{
@@ -71,6 +74,40 @@ export default class UIAbilityContext {
       });
       console.log("startAbility Promise 444");
     });
+    return p;
+  }
+
+  startAbilityForResult(want: Want, callback: MyFun):void{
+    console.log("call startAbility callback 111");
+    let myCall = new AsyncCallback(callback);
+    launch this.nativeStartAbilityForResult(want, myCall);
+    console.log("call startAbility callback 222");
+  }
+
+  startAbilityForResult(want: Want, startOptions: StartOptions, callback: MyFun):void{
+    console.log("call startAbility callback 111");
+    let myCall = new AsyncCallback(callback);
+    launch this.nativeStartAbilityForResult(want, myCall);
+    console.log("call startAbility callback 222");
+  }
+
+  startAbilityForResult(want: Want, startOptions?: StartOptions): Promise<void>{
+    console.log("call startAbility callback 111");
+    let p = new Promise<void>((resolve: ()=>void, reject:(err: int)=>void):void => {
+      let myCall = new AsyncCallback((err: int)=>{
+        if (err == 0) {
+          resolve();
+        } else {
+          reject(err);
+        }
+      });
+      if (startOptions) {
+        launch this.nativeStartAbilityForResult(want, startOptions, myCall);
+      } else {
+        launch this.nativeStartAbilityForResult(want, myCall);
+      }
+    });
+    console.log("call startAbility callback 222");
     return p;
   }
 }
