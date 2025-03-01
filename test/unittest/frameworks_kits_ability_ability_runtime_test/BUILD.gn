@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
-module_out_path = "ability_runtime/ability_call_test"
+module_output_path = "ability_runtime/ability_runtime/ability_call_test"
 
 ###############################################################################
 
@@ -23,7 +23,7 @@ config("module_private_config") {
 }
 
 ohos_unittest("ability_context_impl_test") {
-  module_out_path = module_out_path
+  module_out_path = module_output_path
 
   include_dirs = [
     "${ability_runtime_test_path}/mock/frameworks_kits_ability_ability_runtime_test/AMS",
@@ -74,7 +74,7 @@ ohos_unittest("ability_context_impl_test") {
 }
 
 ohos_unittest("ability_context_test1") {
-  module_out_path = module_out_path
+  module_out_path = module_output_path
 
   include_dirs = [
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/",
@@ -117,7 +117,7 @@ ohos_unittest("ability_context_test1") {
 }
 
 ohos_unittest("caller_call_back_ut_test") {
-  module_out_path = module_out_path
+  module_out_path = module_output_path
   sources = [ "caller_call_back_ut_test.cpp" ]
 
   deps = [
@@ -134,7 +134,7 @@ ohos_unittest("caller_call_back_ut_test") {
 }
 
 ohos_unittest("local_call_container_ut_test") {
-  module_out_path = module_out_path
+  module_out_path = module_output_path
 
   include_dirs = [ "${ability_runtime_test_path}/mock/frameworks_kits_ability_ability_runtime_test/AMS" ]
 
@@ -168,7 +168,7 @@ ohos_unittest("local_call_container_ut_test") {
 }
 
 ohos_unittest("local_call_record_ut_test") {
-  module_out_path = module_out_path
+  module_out_path = module_output_path
 
   include_dirs = [ "${ability_runtime_test_path}/mock/frameworks_kits_ability_ability_runtime_test/AMS" ]
 
@@ -202,7 +202,7 @@ ohos_unittest("local_call_record_ut_test") {
 }
 
 ohos_unittest("dialog_callback_test") {
-  module_out_path = module_out_path
+  module_out_path = module_output_path
 
   include_dirs = [
     "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include",

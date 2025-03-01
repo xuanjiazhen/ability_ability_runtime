@@ -17,7 +17,7 @@ import("//build/ohos.gni")
 import("//build/test.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 import("//foundation/ability/ability_runtime/cj_environment/cj_environment.gni")
-module_output_path = "ability_runtime/abilitymgr"
+module_output_path = "ability_runtime/ability_runtime/abilitymgr"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("AbilityFrameworksCjEnvironmentFuzzTest") {
