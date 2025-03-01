@@ -113,6 +113,28 @@ static ani_int startAbility([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_
     return -1;
 }
 
+static ani_object GetWantFromCpp([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object aniObj)
+{
+    AAFwk::Want *want = new (std::nothrow) AAFwk::Want();
+    want->SetElementName("LJJ:deviceId", "Ljj:bundleName", "LJJ:abilityName", "LJJ:moduleName");
+    want->SetFlags(100);
+    want->SetUri("Ljj:Uri");
+    want->SetAction("Ljj:Actions");
+    want->SetType("Ljj:Type");
+
+    return WrapWant(env, &want);
+}
+
+static ani_int SetWantToCpp([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object aniObj, ani_object wantObj)
+{
+    TAG_LOGE(AAFwkTag::UIABILITY, "setWantToCpp start");
+    AAFwk::Want *want = new (std::nothrow) AAFwk::Want();
+    OHOS::AppExecFwk::UnwrapWant(env, wantObj, *want);
+
+    TAG_LOGE(AAFwkTag::UIABILITY, "setWantToCpp end");
+    return -1;
+}
+
 ani_ref CreateStsAbilityContext(ani_env *env, const std::shared_ptr<AbilityContext> &context)
 {
     TAG_LOGE(AAFwkTag::UIABILITY, "start");
@@ -130,6 +152,10 @@ ani_ref CreateStsAbilityContext(ani_env *env, const std::shared_ptr<AbilityConte
             reinterpret_cast<ani_int*>(startAbilityByCall) },
         ani_native_function {
             "startAbilitySync", "L@ohos/app/ability/Want/Want;:I", reinterpret_cast<ani_int*>(startAbility) },
+        ani_native_function {
+            "getWantFromCpp", ":L@ohos/app/ability/Want/Want;", reinterpret_cast<ani_int*>(GetWantFromCpp) },
+        ani_native_function {
+            "setWantToCpp", "L@ohos/app/ability/Want/Want;:I", reinterpret_cast<ani_int*>(SetWantToCpp) },
     };
     if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);

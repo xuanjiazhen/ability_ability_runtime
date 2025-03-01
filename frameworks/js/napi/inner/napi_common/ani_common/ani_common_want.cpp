@@ -182,25 +182,33 @@ bool UnwrapWant(ani_env *env, ani_object param, AAFwk::Want &want)
     env->Object_GetFieldByName_Ref(param, "action", &actionRef);
     ani_string actionAni = reinterpret_cast<ani_string>(actionRef);
     std::string action = GetStdString(env, actionAni);
+    TAG_LOGE(AAFwkTag::UIABILITY, "Ljj: action %{public}s", action.c_str());
 
     ani_ref uriRef {};
     env->Object_GetFieldByName_Ref(param, "uri", &uriRef);
     ani_string uriAni = reinterpret_cast<ani_string>(uriRef);
     std::string uri = GetStdString(env, uriAni);
+    TAG_LOGE(AAFwkTag::UIABILITY, "Ljj: uri %{public}s", uri.c_str());
 
     ani_int flags {};
     env->Object_GetFieldByName_Int(param, "flags", &flags);
     want.SetFlags(flags);
+    TAG_LOGE(AAFwkTag::UIABILITY, "Ljj: flags %{public}u", want.GetFlags());
 
     ani_ref typeRef {};
     env->Object_GetFieldByName_Ref(param, "type", &typeRef);
     ani_string typeAni = reinterpret_cast<ani_string>(typeRef);
     std::string type = GetStdString(env, typeAni);
+    TAG_LOGE(AAFwkTag::UIABILITY, "Ljj: type %{public}s", type.c_str());
 
     ElementName natElementName;
     UnwrapElementName(env, param, natElementName);
     want.SetElementName(natElementName.GetDeviceID(), natElementName.GetBundleName(), natElementName.GetAbilityName(),
         natElementName.GetModuleName());
+    TAG_LOGE(AAFwkTag::UIABILITY, "Ljj: DeviceID %{public}s, BundleName %{public}s,
+             AbilityName %{public}s, ModuleName %{public}s",
+             natElementName.GetDeviceID().c_str(), natElementName.GetBundleName().c_str(),
+             natElementName.GetAbilityName().c_str(), natElementName.GetModuleName().c_str());
     // TODO
     return true;
 }

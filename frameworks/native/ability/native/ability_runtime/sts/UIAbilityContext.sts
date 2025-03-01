@@ -36,8 +36,15 @@ export default class UIAbilityContext {
   public native startAbilitySync(want: Want): int;
   public nativeContext : long;
 
+  public native getWantFromCpp(): Want;
+  public native setWantToCpp(want: Want): int;
+
   startAbility(want: Want, callback: MyFun):void{
     console.log("call startAbility callback 111");
+
+    let want = getWantFromCpp();
+    let ret = setWantToCpp(want);
+    console.log("ljj:ret" + ret);
     let myCall = new AsyncCallback(callback);
     let p1 = launch this.startAbilitySync(want, myCall);
     console.log("call startAbility callback 222");
