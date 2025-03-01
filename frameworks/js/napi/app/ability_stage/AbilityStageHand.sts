@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+import EventHub from "../event_hub/event_hub.sts";
+
 interface BaseContext {
     readonly area: int;
     readonly filesDir: string;
@@ -23,6 +25,7 @@ abstract class Context implements BaseContext{
     area: int = 0;
     filesDir: string = "";
     tempDir: string = "";
+    eventHub: EventHub = new EventHub();
 
     private applicationContext?: ApplicationContext;
 
@@ -62,7 +65,7 @@ class AbilityStageContext extends Context {
 
 // The subclass name must be STSAbilityStage
 abstract class AbilityStage {
-    stageContext?: AbilityStageContext;
+    context?: AbilityStageContext;
 
     onCreate() {
     }
