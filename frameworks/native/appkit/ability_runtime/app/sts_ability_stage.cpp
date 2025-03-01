@@ -203,7 +203,7 @@ void STSAbilityStage::OnCreate(const AAFwk::Want &want) const
         return;
     }
 
-    status = env->Object_CallMethod_Void(abilityStageObj, method);
+    status = env->Object_CallMethod_Void(stageObj_, method);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::ABILITY, "CALL Object_CallMethod FAILED: %{public}d", status);
         STSAbilityStageContext::ResetEnv(env);
@@ -430,7 +430,7 @@ void STSAbilityStage::SetJsAbilityStage(const std::shared_ptr<Context> &context)
     TAG_LOGE(AAFwkTag::ABILITY, "SetJsAbilityStage env:%{public}p", env);
     STSAbilityStageContext::ResetEnv(env);
 
-    ani_object stageCtxObj = STSAbilityStageContext::CreateStsAbilityStageContext(env, context);
+    ani_object stageCtxObj = STSAbilityStageContext::CreateStsAbilityStageContext(env, context, application_);
     if (stageCtxObj == nullptr) {
         STSAbilityStageContext::ResetEnv(env);
         TAG_LOGE(AAFwkTag::ABILITY, "CreateStsAbilityStageContext failed");
@@ -454,16 +454,15 @@ void STSAbilityStage::SetJsAbilityStage(const std::shared_ptr<Context> &context)
         return;
     }
 
-    ani_object stageObj = nullptr;
-    status = env->Object_New(stageCls, method, &stageObj);
+    status = env->Object_New(stageCls, method, &stageObj_);
     if (status != ANI_OK) {
         TAG_LOGI(AAFwkTag::ABILITY, "call Object_New stageObj failed");
         STSAbilityStageContext::ResetEnv(env);
         return;
     }
 
-    ani_field configField;
-    status = env->Class_FindField(stageCls, "context", &configField);
+    ani_field contextField;
+    status = env->Class_FindField(stageCls, "context", &contextField);
     if (status != ANI_OK) {
         TAG_LOGI(AAFwkTag::ABILITY, "Class_GetField context failed");
         STSAbilityStageContext::ResetEnv(env);
