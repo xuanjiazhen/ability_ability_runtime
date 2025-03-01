@@ -108,7 +108,7 @@ ohos_unittest("ability_record_test") {
 }
 
 ohos_unittest("ability_record_test_call") {
-  module_out_path = "ability_runtime/ability_call_test"
+  module_output_path = "ability_runtime/ability_runtime/ability_call_test"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
