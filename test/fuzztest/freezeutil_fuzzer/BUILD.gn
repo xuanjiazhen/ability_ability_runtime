@@ -16,7 +16,7 @@ import("//build/config/features.gni")
 import("//build/ohos.gni")
 import("//build/test.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
-module_output_path = "ability_runtime/freeze_util"
+module_output_path = "ability_runtime/ability_runtime/freeze_util"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("FreezeUtilFuzzTest") {
