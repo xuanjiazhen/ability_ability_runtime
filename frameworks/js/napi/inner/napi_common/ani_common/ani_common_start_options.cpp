@@ -19,51 +19,22 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-int32_t GetIntOrUndefined(ani_env *env, ani_object param, const char *name)
-{
-    ani_ref obj = nullptr;
-    ani_boolean isUndefined = true;
-    ani_int res = 0;
-    ani_status status = ANI_ERROR;
 
-    if ((status = env->Object_GetFieldByName_Ref(param, name, &obj)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
-        return 0;
-    }
-    if ((status = env->Reference_IsUndefined(obj, &isUndefined)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
-        return 0;
-    }
-    if (isUndefined) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "%{public}s : undefined", name);
-        return 0;
-    } 
-    if ((status = env->Object_CallMethodByName_Int(
-        reinterpret_cast<ani_object>(obj), "intValue", nullptr, &res)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
-        return 0;
-    }
-    return res;
-}
-
-bool AniUnwrapStartOptionsWithProcessOption(ani_env* env, ani_object param, AAFwk::StartOptions &startOptions)
+bool UnwrapStartOptionsWithProcessOption(ani_env* env, ani_object param, AAFwk::StartOptions &startOptions)
 {
-    AniUnwrapStartOptions(env, param, startOptions);
+    UnwrapStartOptions(env, param, startOptions);
     return true;
 }
 
-bool AniUnwrapStartOptions(ani_env* env, ani_object param, AAFwk::StartOptions &startOptions)
+bool UnwrapStartOptions(ani_env *env, ani_object param, AAFwk::StartOptions &startOptions)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::JSNAPI, "null env");
         return false;
     }
-
-    int32_t displayId = GetIntOrUndefined(env, param, "displayId");
+    ani_int displayId = GetIntOrUndefined(env, param, "displayId");
     startOptions.SetDisplayID(displayId);
-    TAG_LOGI(AAFwkTag::JSNAPI, "displayId %{public}d", displayId);
-
     return true;
 }
 }  // namespace AppExecFwk
