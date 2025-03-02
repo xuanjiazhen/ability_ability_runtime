@@ -18,5 +18,7 @@ group("ani_packages") {
   deps = [
     "${ability_runtime_path}/frameworks/ani/ability_delegator:ability_delegator_abc",
     "${ability_runtime_path}/frameworks/ani/ability_delegator:ability_delegator_registry_ani_kit",
+    "${ability_runtime_path}/frameworks/ani/launch_param:launch_param_abc",
+    "${ability_runtime_path}/frameworks/ani/launch_param:launch_param_ani_kit",
   ]
 }
