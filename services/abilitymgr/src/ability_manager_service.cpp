@@ -13127,15 +13127,10 @@ int AbilityManagerService::StartSelfUIAbility(const Want &want)
         });
     CHECK_TRUE_RETURN_RET(iter == processInfo.bundleNames.end(), ERR_START_OTHER_APP_FAILED, "cannot start other app");
 
+    (const_cast<Want &>(want)).RemoveParam(Want::PARAM_APP_CLONE_INDEX_KEY);
     if (processInfo.appMode == AppExecFwk::MultiAppModeType::APP_CLONE) {
-        if (want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY)) {
-            int32_t appIndex = 0;
-            CHECK_TRUE_RETURN_RET(AbilityRuntime::StartupUtil::GetAppIndex(want, appIndex) ||
-                appIndex != processInfo.appCloneIndex, ERR_START_OTHER_APP_FAILED, "cannot start a different clone");
-        } else {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "set appIndex: %{public}d", processInfo.appCloneIndex);
-            (const_cast<Want &>(want)).SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, processInfo.appCloneIndex);
-        }
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "set appIndex: %{public}d", processInfo.appCloneIndex);
+        (const_cast<Want &>(want)).SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, processInfo.appCloneIndex);
     }
 
     auto tokenId = abilityInfo.applicationInfo.accessTokenId;

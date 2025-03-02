@@ -319,8 +319,9 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_StartSelfUIAbility(AbilityBase_Want *
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
     AbilityBase_Element element = want->element;
-    if (element.bundleName == nullptr || element.abilityName == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "empty bundleName or abilityName");
+    if (element.bundleName == nullptr || element.abilityName == nullptr ||
+        element.moduleName == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null bundleName or abilityName or moduleName");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
     Want abilityWant;
