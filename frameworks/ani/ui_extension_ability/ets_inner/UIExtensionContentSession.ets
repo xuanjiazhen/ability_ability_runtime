@@ -36,7 +36,7 @@ class UIExtensionContentSession {
 
   terminateSelf( callback: AsyncCallback<void>):void{
     console.log("ability.finishTest terminateSelfSync start");
-       let p1 = launch this.terminateSelfSync();
+       let p1 = taskpool.execute(():undefined => {new UIExtensionContentSession().terminateSelfSync(); return undefined});
     console.log("ability.finishTest terminateSelfSync end");
            p1.then((e :NullishType)=>{
              console.log("ability.finishTest terminateSelfSync");
@@ -48,7 +48,7 @@ class UIExtensionContentSession {
    }
    terminateSelf():Promise<void>{
      let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void, reject: (error: Object) => void) => {
-         let p1 = launch this.terminateSelfSync();
+         let p1 = taskpool.execute(():undefined => {new UIExtensionContentSession().terminateSelfSync(); return undefined});
          p1.then((e :NullishType)=>{
            let PromiseLike = e as PromiseLike<void>;
            resolve(PromiseLike);
@@ -59,7 +59,7 @@ class UIExtensionContentSession {
    }
 
    setReceiveDataCallback(callback: (data: Record<string, Object>) => void): void{
-     let p1 = launch this.setReceiveDataCallbackSync();
+     let p1 = taskpool.execute(():undefined => {new UIExtensionContentSession().setReceiveDataCallbackSync(); return undefined});
          p1.then((e :NullishType)=>{
             let result = e as Record<string, Object>;
               callback(result);
