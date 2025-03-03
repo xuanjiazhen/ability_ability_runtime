@@ -27,6 +27,7 @@
 #include "request_constants.h"
 #include "session_info.h"
 #include "string_wrapper.h"
+#include "sts_ui_extension_callback.h"
 #ifdef SUPPORT_SCREEN
 #include "session/host/include/zidl/session_interface.h"
 #include "scene_board_judgement.h"
@@ -41,6 +42,15 @@ constexpr const char* START_ABILITY_TYPE = "ABILITY_INNER_START_WITH_ACCOUNT";
 constexpr const char* UIEXTENSION_TARGET_TYPE_KEY = "ability.want.params.uiExtensionTargetType";
 constexpr const char* FLAG_AUTH_READ_URI_PERMISSION = "ability.want.params.uriPermissionFlag";
 constexpr const char* DISPOSED_PROHIBIT_BACK = "APPGALLERY_APP_DISPOSED_PROHIBIT_BACK";
+
+bool IsSts(std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo)
+{
+    if (!abilityInfo) {
+        return false;
+    }
+
+    return abilityInfo->applicationInfo.applicationCodeLanguage == "ArkTS1.2";
+}
 
 struct RequestResult {
     int32_t resultCode {0};
@@ -921,6 +931,7 @@ ErrCode AbilityContextImpl::StartAbilityByType(const std::string &type,
     AAFwk::WantParams &wantParams, const std::shared_ptr<JsUIExtensionCallback> &uiExtensionCallbacks)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "call");
+    bool isSts = IsSts(abilityInfo_);
     auto uiContent = GetUIContent();
     if (uiContent == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null uiContent");
@@ -935,14 +946,35 @@ ErrCode AbilityContextImpl::StartAbilityByType(const std::string &type,
         wantParams.Remove(FLAG_AUTH_READ_URI_PERMISSION);
     }
     Ace::ModalUIExtensionCallbacks callback;
-    callback.onError = [uiExtensionCallbacks](int32_t arg, const std::string &str1, const std::string &str2) {
-        uiExtensionCallbacks->OnError(arg);
+    callback.onError = [uiExtensionCallbacks, isSts](int32_t arg, const std::string &str1, const std::string &str2) {
+        if (isSts && uiExtensionCallbacks) {
+            StsUIExtensionCallback* callbackPtr = static_cast<StsUIExtensionCallback*>(uiExtensionCallbacks.get());
+            if (callbackPtr) {
+                callbackPtr->OnError(arg);
+            }
+        } else {
+            uiExtensionCallbacks->OnError(arg);
+        }
     };
-    callback.onRelease = [uiExtensionCallbacks](int32_t arg) {
-        uiExtensionCallbacks->OnRelease(arg);
+    callback.onRelease = [uiExtensionCallbacks, isSts](int32_t arg) {
+        if (isSts && uiExtensionCallbacks) {
+            StsUIExtensionCallback* callbackPtr = static_cast<StsUIExtensionCallback*>(uiExtensionCallbacks.get());
+            if (callbackPtr) {
+                callbackPtr->OnRelease(arg);
+            }
+        } else {
+            uiExtensionCallbacks->OnRelease(arg);
+        }
     };
-    callback.onResult = [uiExtensionCallbacks](int32_t arg1, const OHOS::AAFwk::Want arg2) {
-        uiExtensionCallbacks->OnResult(arg1, arg2);
+    callback.onResult = [uiExtensionCallbacks, isSts](int32_t arg1, const OHOS::AAFwk::Want arg2) {
+        if (isSts && uiExtensionCallbacks) {
+            StsUIExtensionCallback* callbackPtr = static_cast<StsUIExtensionCallback*>(uiExtensionCallbacks.get());
+            if (callbackPtr) {
+                callbackPtr->OnResult(arg1, arg2);
+            }
+        } else {
+            uiExtensionCallbacks->OnResult(arg1, arg2);
+        }
     };
 
     Ace::ModalUIExtensionConfig config;
@@ -951,8 +983,17 @@ ErrCode AbilityContextImpl::StartAbilityByType(const std::string &type,
         TAG_LOGE(AAFwkTag::CONTEXT, "createModalUIExtension failed");
         return ERR_INVALID_VALUE;
     }
-    uiExtensionCallbacks->SetUIContent(uiContent);
-    uiExtensionCallbacks->SetSessionId(sessionId);
+
+    if (isSts && uiExtensionCallbacks) {
+        StsUIExtensionCallback* callbackPtr = static_cast<StsUIExtensionCallback*>(uiExtensionCallbacks.get());
+        if (callbackPtr) {
+            callbackPtr->SetUIContent(uiContent);
+            callbackPtr->SetSessionId(sessionId);
+        }
+    } else {
+        uiExtensionCallbacks->SetUIContent(uiContent);
+        uiExtensionCallbacks->SetSessionId(sessionId);
+    }
     return ERR_OK;
 }
 

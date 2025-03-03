@@ -36,6 +36,7 @@
 #include "ani_common/ani_common_ability_info.h"
 #include "open_link_options.h"
 #include "start_options.h"
+#include "sts_ui_extension_callback.h"
 #include "tokenid_kit.h"
 #include "ui_ability_servicehost_stub_impl.h"
 #include "ui_service_extension_connection_constants.h"
@@ -47,6 +48,19 @@ namespace AbilityRuntime {
 const char *INVOKE_METHOD_NAME = "invoke";
 std::mutex StsAbilityContext::requestCodeMutex_;
 
+std::string GetString(ani_env *env, ani_string str)
+{
+    std::string result;
+    if (env == nullptr) {
+        return result;
+    }
+    ani_size sz {};
+    env->String_GetUTF8Size(str, &sz);
+    result.resize(sz + 1);
+    env->String_GetUTF8SubString(str, 0, sz, result.data(), result.size(), &sz);
+    result.resize(sz);
+    return result;
+}
 
 AbilityRuntime::AbilityContext* StsAbilityContext::GetAbilityContext(ani_env *env, ani_object aniObj)
 {
@@ -350,6 +364,32 @@ void StsAbilityContext::reportDrawnCompletedSync(
     TAG_LOGE(AAFwkTag::UIABILITY, "reportDrawnCompletedSync end");
 }
 
+static void StartAbilityByTypeSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
+    [[maybe_unused]]ani_string aniType, [[maybe_unused]]ani_string aniWantParam,
+    [[maybe_unused]]ani_object startCallback, [[maybe_unused]]ani_object asyncCallback)
+{
+    TAG_LOGI(AAFwkTag::UIABILITY, "StartAbilityByTypeSync");
+    auto context = GetAbilityContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "GetAbilityContext failed.");
+        return;
+    }
+
+    std::string type = GetString(env, aniType);
+    if (type.empty()) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "StartAbilityByTypeSync type is invalid failed.");
+        return;
+    }
+    std::string jsonWantParam = GetString(env, aniWantParam);
+
+    TAG_LOGI(AAFwkTag::UIABILITY, "StartAbilityByTypeSync type is %{public}s, jsonStr is%{public}s", type.c_str(), jsonWantParam.c_str());
+    AAFwk::WantParams wantParam; // todo : unwrap from jsonWantParam.
+    std::shared_ptr<StsUIExtensionCallback> callback = std::make_shared<StsUIExtensionCallback>();
+    callback->SetStsCallbackObject(env, startCallback);
+    auto resultCode = context->StartAbilityByType(type, wantParam, callback);
+    TAG_LOGI(AAFwkTag::UIABILITY, "StartAbilityByTypeSync resultCode is %{public}d.", resultCode);
+    InvokeAsyncCallback(env, asyncCallback, WrapBusinessError(env, resultCode), nullptr);
+
 ani_ref CreateStsAbilityContext(ani_env *env, const std::shared_ptr<AbilityContext> &context)
 {
     TAG_LOGE(AAFwkTag::UIABILITY, "start");
@@ -380,6 +420,10 @@ ani_ref CreateStsAbilityContext(ani_env *env, const std::shared_ptr<AbilityConte
             reinterpret_cast<void*>(StsAbilityContext::TerminateSelfWithResult) },
         ani_native_function {
             "reportDrawnCompletedSync", ":V", reinterpret_cast<ani_int*>(StsAbilityContext::reportDrawnCompletedSync) },
+        ani_native_function {
+            "nativeStartAbilityByTypeSync",
+            "Lstd/core/String;Lstd/core/String;LAbilityStartCallback/AbilityStartCallback;LUIAbilityContext/AsyncCallback;:V",
+            reinterpret_cast<void*>(StartAbilityByTypeSync) },
     };
 
     if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {

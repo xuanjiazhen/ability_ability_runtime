@@ -141,6 +141,7 @@ export class UIAbilityContext {
   public native nativeStartAbilityForResult(want: Want, startOptions: StartOptions, callback:AsyncCallback<AbilityResult>): void;
   public native nativeTerminateSelfWithResult(parameter: AbilityResult, callback:AsyncCallback<AbilityResult>): void;
   public native reportDrawnCompletedSync(): void;
+  public native nativeStartAbilityByTypeSync(type: string, wantParam: string, startCallback: AbilityStartCallback, callback:AsyncCallback<void>): void;
 
   // startAbility(want: Want, callback: AsyncCallback<void>): void;
   startAbility(want: Want, callback: MyFun<AbilityResult>):void{
@@ -176,6 +177,32 @@ export class UIAbilityContext {
       }
     console.log("call startAbility callback 222");
     });
+    return p;
+  }
+
+  startAbilityByType(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback, callback: MyFun<void>):void{
+    console.log("call startAbilityByType callback 111");
+    let jsonStr = ""; //convert form value;
+    let myCall = new AsyncCallback<void>(callback);
+    launch this.nativeStartAbilityByTypeSync(type, jsonStr, startCallback, myCall);
+    console.log("call startAbilityByType callback 222");
+  }
+
+  startAbilityByType(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback): Promise<void>{
+    console.log("call startAbilityByType promis type 111..");
+    let p = new Promise<void>((resolve: ()=>void, reject:(err: BusinessError)=>void):void => {
+      let myCall = new AsyncCallback<void>((err: BusinessError)=>{
+        console.log("call startAbilityByType promis type callback 122");
+        if (err.code == 0) {
+          resolve();
+        } else {
+          reject(err);
+        }
+      });
+      let jsonStr = ""; //convert form value;
+      launch this.nativeStartAbilityByTypeSync(type, jsonStr, startCallback, myCall);
+    });
+    console.log("call startAbilityByType callback end...");
     return p;
   }
 
