@@ -194,9 +194,13 @@ bool CJRuntime::RegisterCangjieCallback()
         return false;
     }
     #define RTLIB_NAME "libcangjie-runtime.so"
-    Dl_namespace ns;
-    dlns_get("cj_app_sdk", &ns);
-    auto dso = dlopen_ns(&ns, RTLIB_NAME, 1 | RTLD_GLOBAL | RTLD_NOW);
+    #define LIBRARYKIND_SDK 1
+    auto cjEnv = OHOS::CJEnv::LoadInstance();
+    if (cjEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::CJRUNTIME, "null cjEnv");
+        return false;
+    }
+    auto dso = cjEnv -> loadLibrary(LIBRARYKIND_SDK, RTLIB_NAME);
     if (!dso) {
         TAG_LOGE(AAFwkTag::CJRUNTIME, "load library failed: %{public}s", RTLIB_NAME);
         return false;
