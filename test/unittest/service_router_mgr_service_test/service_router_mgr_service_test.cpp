@@ -14,10 +14,15 @@
  */
 
 #include <gtest/gtest.h>
+#define private public
 #include "service_router_mgr_service.h"
+#undef private
 
 #include "hilog_tag_wrapper.h"
 #include "hilog_wrapper.h"
+#include "ability_manager_errors.h"
+#include "accesstoken_kit.h"
+#include "tokenid_kit.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -63,10 +68,11 @@ std::shared_ptr<ServiceRouterMgrService> ServiceRouterMgrServiceTest::serviceRou
 HWTEST_F(ServiceRouterMgrServiceTest, StartUIExtensionAbility_001, Function | SmallTest | Level0)
 {
     TAG_LOGI(AAFwkTag::TEST, "StartUIExtensionAbility_001 start");
-    sptr<SessionInfo> sessionInfo = nullptr;
+    SessionInfo sessionInfo;
     int32_t userId = 1;
-    auto ret = serviceRouterMgrService_->StartUIExtensionAbility(sessionInfo, userId);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    int32_t funcResult = -1;
+    auto ret = serviceRouterMgrService_->StartUIExtensionAbility(sessionInfo, userId, funcResult);
+    EXPECT_EQ(ret, AAFwk::CHECK_PERMISSION_FAILED);
     TAG_LOGI(AAFwkTag::TEST, "StartUIExtensionAbility_001 result %{public}d", ret);
     TAG_LOGI(AAFwkTag::TEST, "StartUIExtensionAbility_001 end");
 }
@@ -80,9 +86,10 @@ HWTEST_F(ServiceRouterMgrServiceTest, ConnectUIExtensionAbility_001, Function | 
     TAG_LOGI(AAFwkTag::TEST, "ConnectUIExtensionAbility_001 start");
     Want want;
     sptr<IAbilityConnection> connect = nullptr;
-    sptr<SessionInfo> sessionInfo = nullptr;
+    SessionInfo sessionInfo;
     int32_t userId = 1;
-    auto ret = serviceRouterMgrService_->ConnectUIExtensionAbility(want, connect, sessionInfo, userId);
+    int32_t funcResult = -1;
+    auto ret = serviceRouterMgrService_->ConnectUIExtensionAbility(want, connect, sessionInfo, userId, funcResult);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "ConnectUIExtensionAbility_001 result %{public}d", ret);
     TAG_LOGI(AAFwkTag::TEST, "ConnectUIExtensionAbility_001 end");
@@ -96,28 +103,56 @@ HWTEST_F(ServiceRouterMgrServiceTest, QueryPurposeInfos_001, Function | SmallTes
 {
     TAG_LOGI(AAFwkTag::TEST, "QueryPurposeInfos_001 start");
     Want want;
+    int32_t funcResult = -1;
     std::vector<PurposeInfo> purposeInfos;
-    auto ret = serviceRouterMgrService_->QueryPurposeInfos(want, "", purposeInfos);
+    auto ret = serviceRouterMgrService_->QueryPurposeInfos(want, "", purposeInfos, funcResult);
     EXPECT_EQ(ret, RESULT_CODE);
     TAG_LOGI(AAFwkTag::TEST, "QueryPurposeInfos_001 result %{public}d", ret);
     TAG_LOGI(AAFwkTag::TEST, "QueryPurposeInfos_001 end");
 }
 
 /**
- * @tc.name: test QueryBusinessAbilityInfos_001
- * @tc.desc: QueryBusinessAbilityInfos
+ * @tc.name: test QueryBusinessAbilityInfosInner_001
+ * @tc.desc: QueryBusinessAbilityInfosInner
  */
 HWTEST_F(ServiceRouterMgrServiceTest, QueryBusinessAbilityInfos_001, Function | SmallTest | Level0)
 {
     TAG_LOGI(AAFwkTag::TEST, "QueryBusinessAbilityInfos_001 start");
     BusinessAbilityFilter filter;
+    int32_t funcResult = -1;
     filter.businessType = BusinessType::UNSPECIFIED;
     std::vector<BusinessAbilityInfo> abilityInfos;
-    auto ret = serviceRouterMgrService_->QueryBusinessAbilityInfos(filter, abilityInfos);
+    auto ret = serviceRouterMgrService_->QueryBusinessAbilityInfosInner(filter, abilityInfos, funcResult);
     EXPECT_EQ(ret, RESULT_CODE);
     TAG_LOGI(AAFwkTag::TEST, "QueryBusinessAbilityInfos_001 result %{public}d", ret);
     TAG_LOGI(AAFwkTag::TEST, "QueryBusinessAbilityInfos_001 end");
 }
-}
+
+/**
+ * @tc.name: test VerifySystemApp_001
+ * @tc.desc: VerifySystemApp
+ */
+HWTEST_F(ServiceRouterMgrServiceTest, VerifySystemApp_001, Function | SmallTest | Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "VerifySystemApp_001 start");
+    uint32_t callerToken = 3;
+    auto tokenType = OHOS::Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerToken);
+    tokenType = OHOS::Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE;
+    auto ret = serviceRouterMgrService_->VerifySystemApp();
+    EXPECT_TRUE(ret);
+    TAG_LOGI(AAFwkTag::TEST, "VerifySystemApp_001 end");
 }
 
+/**
+ * @tc.name: test VerifyCallingPermission_001
+ * @tc.desc: VerifyCallingPermission
+ */
+HWTEST_F(ServiceRouterMgrServiceTest, VerifyCallingPermission_001, Function | SmallTest | Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "VerifyCallingPermission_001 start");
+    auto ret = serviceRouterMgrService_->VerifyCallingPermission("");
+    EXPECT_FALSE(ret);
+    TAG_LOGI(AAFwkTag::TEST, "VerifyCallingPermission_001 end");
+}
+}
+}
