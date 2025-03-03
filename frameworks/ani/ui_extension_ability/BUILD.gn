@@ -115,10 +115,10 @@ ohos_shared_library("ui_extension_ability_ani_kit") {
 #}
 
 # TODO
-# generate_static_abc("ui_extension_ability_ani_abc") {
-#  arktsconfig = "${ability_runtime_path}/frameworks/ani/ui_extension_ability/ui_extension_ability_config.json"
-#  dst_file = "$target_out_dir/ui_extension_ability_ani.abc"
-#  out_puts = [ "$target_out_dir/ui_extension_ability_ani.abc" ]
-#  is_boot_abc = "True"
-# device_dst_file = "system/framework/ui_extension_ability_ani.abc"
-# }
+ generate_static_abc("ui_extension_ability_ani_abc") {
+  arktsconfig = "${ability_runtime_path}/frameworks/ani/ui_extension_ability/ui_extension_ability_config.json"
+  dst_file = "$target_out_dir/ui_extension_ability_ani.abc"
+  out_puts = [ "$target_out_dir/ui_extension_ability_ani.abc" ]
+  is_boot_abc = "True"
+  device_dst_file = "system/framework/ui_extension_ability_ani.abc"
+ }
