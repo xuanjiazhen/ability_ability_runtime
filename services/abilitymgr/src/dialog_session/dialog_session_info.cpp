@@ -16,6 +16,7 @@
 #include "dialog_session_info.h"
 
 #include "hilog_tag_wrapper.h"
+#include "number_convert_utils.h"
 #include "parcel_macro.h"
 
 namespace OHOS {
@@ -48,14 +49,15 @@ bool DialogAbilityInfo::ParseURI(const std::string &uri)
     bundleName = uriVec[index++];
     moduleName = uriVec[index++];
     abilityName = uriVec[index++];
-    bundleIconId = static_cast<int32_t>(std::stoi(uriVec[index++]));
-    bundleLabelId = static_cast<int32_t>(std::stoi(uriVec[index++]));
-    abilityIconId = static_cast<int32_t>(std::stoi(uriVec[index++]));
-    abilityLabelId = static_cast<int32_t>(std::stoi(uriVec[index++]));
-    visible = std::stoi(uriVec[index++]);
-    appIndex = static_cast<int32_t>(std::stoi(uriVec[index++]));
-    multiAppMode.multiAppModeType = static_cast<AppExecFwk::MultiAppModeType>(std::stoi(uriVec[index++]));
-    multiAppMode.maxCount = static_cast<int32_t>(std::stoi(uriVec[index++]));
+    bundleIconId = NumberConvertUtils::ConvertToIntNoResult(uriVec[index++]);
+    bundleLabelId = NumberConvertUtils::ConvertToIntNoResult(uriVec[index++]);
+    abilityIconId = NumberConvertUtils::ConvertToIntNoResult(uriVec[index++]);
+    abilityLabelId = NumberConvertUtils::ConvertToIntNoResult(uriVec[index++]);
+    visible = NumberConvertUtils::ConvertToIntNoResult(uriVec[index++]);
+    appIndex = NumberConvertUtils::ConvertToIntNoResult(uriVec[index++]);
+    multiAppMode.multiAppModeType = static_cast<AppExecFwk::MultiAppModeType>(
+        NumberConvertUtils::ConvertToIntNoResult(uriVec[index++]));
+    multiAppMode.maxCount = NumberConvertUtils::ConvertToIntNoResult(uriVec[index++]);
     return true;
 }
 

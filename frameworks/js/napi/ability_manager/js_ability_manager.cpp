@@ -251,8 +251,9 @@ private:
             ThrowInvalidParamError(env, "Parse param sessionId failed, must be a string.");
             return CreateJsUndefined(env);
         }
-        uint64_t assertSessionId = std::stoull(assertSessionStr);
-        if (assertSessionId == 0) {
+        uint64_t assertSessionId = 0;
+        auto res = std::from_chars(str.c_str(), str.c_str() + str.size(), assertSessionId);
+        if (res.ec != std::errc() || assertSessionId == 0) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "convert sessionId failed");
             ThrowInvalidParamError(env, "Parse param sessionId failed, value must not be equal to zero.");
             return CreateJsUndefined(env);

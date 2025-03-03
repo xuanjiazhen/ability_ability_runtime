@@ -134,6 +134,7 @@ ohos_shared_library("app_util") {
     "src/ability_manager_radar.cpp",
     "src/app_utils.cpp",
     "src/json_utils.cpp",
+    "src/number_convert_utils.cpp",
   ]
 
   external_deps = [
