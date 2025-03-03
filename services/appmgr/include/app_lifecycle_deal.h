@@ -192,7 +192,7 @@ public:
      */
     void ScheduleAcceptWant(const AAFwk::Want &want, const std::string &moduleName);
     
-    void SchedulePrepareTerminate(const std::string &moduleName, int32_t &prepareTermination, bool &isExist);
+    void SchedulePrepareTerminate(const std::string &moduleName);
 
     void ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName);
 
@@ -257,7 +257,7 @@ public:
      *
      * @return ERR_OK, return back success, others fail.
      */
-    int32_t AttachAppDebug();
+    int32_t AttachAppDebug(bool isDebugFromLocal);
 
     /**
      * @brief detach a debugging process.

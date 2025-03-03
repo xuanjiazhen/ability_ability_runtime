@@ -77,6 +77,7 @@ constexpr const char* FOUNDATION_PROCESS = "foundation";
 constexpr const char* BS_PROCESS_NAME = "bgtaskmgr_service";
 constexpr int32_t USER_UID = 2000;
 constexpr const char* HIVIEW_PROCESS_NAME = "hiview";
+constexpr const char* DEBUG_FROM = "ohos.param.debugFrom";
 }  // namespace
 
 REGISTER_SYSTEM_ABILITY_BY_ID(AppMgrService, APP_MGR_SERVICE_ID, true);
@@ -114,7 +115,9 @@ void AppMgrService::OnStart()
         return;
     }
     appMgrServiceState_.serviceRunningState = ServiceRunningState::STATE_RUNNING;
-    AddSystemAbilityListener(WINDOW_MANAGER_SERVICE_ID);
+    if (!AddSystemAbilityListener(WINDOW_MANAGER_SERVICE_ID)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "OnStart, add listener err");
+    }
     TAG_LOGI(AAFwkTag::APPMGR, "start service success");
     PerfProfile::GetInstance().SetAmsLoadEndTime(GetTickCount());
     PerfProfile::GetInstance().Dump();
@@ -1187,8 +1190,9 @@ int32_t AppMgrService::StartNativeProcessForDebugger(const AAFwk::Want &want)
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
-    auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
-    if (!isShellCall) {
+    bool isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
+    bool isLocalDebugCall = AAFwk::PermissionVerification::GetInstance()->VerifyStartLocalDebug();
+    if (!isShellCall && !isLocalDebugCall) {
         TAG_LOGE(AAFwkTag::APPMGR, "permission denied");
         return ERR_INVALID_OPERATION;
     }
@@ -1800,6 +1804,24 @@ int32_t AppMgrService::UpdateProcessMemoryState(const std::vector<ProcessMemoryS
         return ERR_INVALID_VALUE;
     }
     return appMgrServiceInner_->UpdateProcessMemoryState(procMemState);
+}
+
+int32_t AppMgrService::GetKilledProcessInfo(int pid, int uid, KilledProcessInfo &info)
+{
+    if (!IsReady()) {
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
+    }
+    pid_t callingPid = IPCSkeleton::GetCallingPid();
+    pid_t currentPid = getprocpid();
+    if (callingPid != currentPid) {
+        TAG_LOGE(AAFwkTag::APPMGR, "other process");
+        return AAFwk::ERR_NO_ALLOW_OUTSIDE_CALL;
+    }
+    if (!appMgrServiceInner_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
+        return AAFwk::ERR_NULL_APP_MGR_SERVICE_INNER;
+    }
+    return appMgrServiceInner_->GetKilledProcessInfo(pid, uid, info);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

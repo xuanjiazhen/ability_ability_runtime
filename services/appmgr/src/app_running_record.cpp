@@ -342,6 +342,7 @@ void AppRunningRecord::LaunchApplication(const Configuration &config)
     launchData.SetIsNeedPreloadModule(isNeedPreloadModule_);
     launchData.SetNWebPreload(isAllowedNWebPreload_);
     launchData.SetPreloadModuleName(preloadModuleName_);
+    launchData.SetDebugFromLocal(isDebugFromLocal_);
 
     TAG_LOGD(AAFwkTag::APPMGR, "%{public}s called,app is %{public}s.", __func__, GetName().c_str());
     AddAppLifecycleEvent("AppRunningRecord::LaunchApplication");
@@ -1528,8 +1529,7 @@ bool AppRunningRecord::IsStartSpecifiedAbility() const
     return specifiedRequestId_ != -1;
 }
 
-void AppRunningRecord::SchedulePrepareTerminate(const std::string &moduleName,
-    int32_t &prepareTermination, bool &isExist)
+void AppRunningRecord::SchedulePrepareTerminate(const std::string &moduleName)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (appLifeCycleDeal_ == nullptr) {
@@ -1552,7 +1552,7 @@ void AppRunningRecord::SchedulePrepareTerminate(const std::string &moduleName,
         TAG_LOGE(AAFwkTag::APPMGR, "moduleName not exist");
         return;
     }
-    appLifeCycleDeal_->SchedulePrepareTerminate(moduleName, prepareTermination, isExist);
+    appLifeCycleDeal_->SchedulePrepareTerminate(moduleName);
 }
 
 void AppRunningRecord::ScheduleAcceptWant(const std::string &moduleName)
@@ -1666,6 +1666,18 @@ void AppRunningRecord::RemoveRenderPid(pid_t renderPid)
 {
     std::lock_guard renderPidSetLock(renderPidSetLock_);
     renderPidSet_.erase(renderPid);
+}
+
+void AppRunningRecord::GetRenderProcessInfos(std::list<SimpleProcessInfo> &processInfos)
+{
+    std::lock_guard renderRecordMapLock(renderRecordMapLock_);
+    for (auto &item : renderRecordMap_) {
+        auto renderRecord = item.second;
+        if (renderRecord && renderRecord->GetPid() > 0) {
+            auto processInfo = SimpleProcessInfo(renderRecord->GetPid(), renderRecord->GetProcessName());
+            processInfos.emplace_back(processInfo);
+        }
+    }
 }
 
 bool AppRunningRecord::ConstainsRenderPid(pid_t renderPid)
@@ -2095,16 +2107,17 @@ int32_t AppRunningRecord::ChangeAppGcState(int32_t state)
     return appLifeCycleDeal_->ChangeAppGcState(state);
 }
 
-void AppRunningRecord::SetAttachDebug(bool isAttachDebug)
+void AppRunningRecord::SetAttachDebug(bool isAttachDebug, bool isDebugFromLocal)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     isAttachDebug_ = isAttachDebug;
+    isDebugFromLocal_ = isDebugFromLocal;
 
     if (appLifeCycleDeal_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null appLifeCycleDeal_");
         return;
     }
-    isAttachDebug_ ? appLifeCycleDeal_->AttachAppDebug() : appLifeCycleDeal_->DetachAppDebug();
+    isAttachDebug_ ? appLifeCycleDeal_->AttachAppDebug(isDebugFromLocal_) : appLifeCycleDeal_->DetachAppDebug();
 }
 
 bool AppRunningRecord::IsAttachDebug() const
@@ -2183,6 +2196,18 @@ int32_t AppRunningRecord::GetChildProcessCount()
 {
     std::lock_guard lock(childProcessRecordMapLock_);
     return childProcessRecordMap_.size();
+}
+
+void AppRunningRecord::GetChildProcessInfos(std::list<SimpleProcessInfo> &processInfos)
+{
+    std::lock_guard lock(childProcessRecordMapLock_);
+    for (auto &iter : childProcessRecordMap_) {
+        auto childRecord = iter.second;
+        if (childRecord && childRecord->GetPid() > 0) {
+            auto processInfo = SimpleProcessInfo(childRecord->GetPid(), childRecord->GetProcessName());
+            processInfos.emplace_back(processInfo);
+        }
+    }
 }
 #endif //SUPPORT_CHILD_PROCESS
 
@@ -2584,6 +2609,11 @@ uint32_t AppRunningRecord::GetAddStageTimeout() const
         return AMSEventHandler::ADD_ABILITY_STAGE_EMPTY_RESIDENT_TIMEOUT;
     }
     return AMSEventHandler::ADD_ABILITY_STAGE_INFO_TIMEOUT;
+}
+
+void AppRunningRecord::SetDebugFromLocal(bool isDebugFromLocal)
+{
+    isDebugFromLocal_ = isDebugFromLocal;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

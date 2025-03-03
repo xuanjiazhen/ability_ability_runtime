@@ -33,6 +33,7 @@
 #include "hitrace_meter.h"
 #include "image_source.h"
 #include "keep_alive_process_manager.h"
+#include "last_exit_detail_info.h"
 #include "multi_instance_utils.h"
 #include "os_account_manager_wrapper.h"
 #include "ui_service_extension_connection_constants.h"
@@ -88,6 +89,7 @@ const std::string UIEXTENSION_ABILITY_ID = "ability.want.params.uiExtensionAbili
 const std::string UIEXTENSION_ROOT_HOST_PID = "ability.want.params.uiExtensionRootHostPid";
 constexpr const char* PARAM_SEND_RESULT_CALLER_BUNDLENAME = "ohos.anco.param.sendResultCallderBundleName";
 constexpr const char* PARAM_SEND_RESULT_CALLER_TOKENID = "ohos.anco.param.sendResultCallerTokenId";
+constexpr const char* PARAM_RESV_ANCO_IS_NEED_UPDATE_NAME = "ohos.anco.param.isNeedUpdateName";
 constexpr const char* DLP_PARAMS_SECURITY_FLAG = "ohos.dlp.params.securityFlag";
 // Developer mode param
 constexpr const char* DEVELOPER_MODE_STATE = "const.security.developermode.state";
@@ -294,9 +296,14 @@ int32_t AbilityRecord::GetUid()
     return uid_;
 }
 
-int32_t AbilityRecord::GetPid()
+pid_t AbilityRecord::GetPid()
 {
     return pid_;
+}
+
+void AbilityRecord::SetPid(pid_t pid)
+{
+    pid_ = pid;
 }
 
 void AbilityRecord::LoadUIAbility()
@@ -335,15 +342,11 @@ int AbilityRecord::LoadAbility(bool isShellCall)
     if (isRestarting_) {
         restartTime_ = AbilityUtil::SystemTimeMillis();
     }
-
     sptr<Token> callerToken = nullptr;
-    if (!callerList_.empty() && callerList_.back()) {
-        auto caller = callerList_.back()->GetCaller();
-        if (caller) {
-            callerToken = caller->GetToken();
-        }
+    auto caller = GetCallerRecord();
+    if (caller) {
+        callerToken = caller->GetToken();
     }
-
     std::lock_guard guard(wantLock_);
     want_.SetParam(ABILITY_OWNER_USERID, ownerMissionUserId_);
     AbilityRuntime::LoadParam loadParam;
@@ -1015,7 +1018,7 @@ std::shared_ptr<Global::Resource::ResourceManager> AbilityRecord::CreateResource
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     UErrorCode status = U_ZERO_ERROR;
-    icu::Locale locale = icu::Locale::forLanguageTag(Global::I18n::LocaleConfig::GetSystemLocale(), status);
+    icu::Locale locale = icu::Locale::forLanguageTag(Global::I18n::LocaleConfig::GetEffectiveLanguage(), status);
     std::unique_ptr<Global::Resource::ResConfig> resConfig(Global::Resource::CreateResConfig());
     resConfig->SetLocaleInfo(locale);
     AppExecFwk::Configuration cfg;
@@ -1290,14 +1293,76 @@ void AbilityRecord::BackgroundAbility(const Closure &task)
     isLaunching_ = false;
 }
 
-bool AbilityRecord::PrepareTerminateAbility()
+bool AbilityRecord::PrepareTerminateAbility(bool isSCBCall)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     if (lifecycleDeal_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null lifecycleDeal_");
         return false;
     }
-    return lifecycleDeal_->PrepareTerminateAbility();
+    if (!isSCBCall) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "triggered by user clicking window x");
+        return lifecycleDeal_->PrepareTerminateAbility();
+    }
+    // execute onPrepareToTerminate until timeout
+    std::unique_lock<std::mutex> lock(isPrepareTerminateAbilityMutex_);
+    isPrepareTerminateAbilityCalled_.store(true);
+    isPrepareTerminate_ = false;
+    isPrepareTerminateAbilityDone_.store(false);
+    auto condition = [weak = weak_from_this()] {
+        auto self = weak.lock();
+        if (self == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null self");
+            return false;
+        }
+        return self->isPrepareTerminateAbilityDone_.load();
+    };
+    auto task = [weak = weak_from_this()]() {
+        auto self = weak.lock();
+        if (self == nullptr || !self->lifecycleDeal_ || !self->lifecycleDeal_->PrepareTerminateAbility()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "PrepareTerminateAbility error");
+            self->isPrepareTerminateAbilityDone_.store(true);
+            self->isPrepareTerminateAbilityCalled_.store(false);
+            self->isPrepareTerminateAbilityCv_.notify_all();
+        }
+    };
+    ffrt::submit(task);
+    if (!isPrepareTerminateAbilityCv_.wait_for(lock,
+        std::chrono::milliseconds(GlobalConstant::PREPARE_TERMINATE_TIMEOUT_TIME), condition)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "wait timeout");
+        return false;
+    }
+    return isPrepareTerminate_;
+}
+
+void AbilityRecord::PrepareTerminateAbilityDone(bool isTerminate)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call PrepareTerminateAbilityDone");
+    std::unique_lock<std::mutex> lock(isPrepareTerminateAbilityMutex_);
+    if (!isPrepareTerminateAbilityCalled_.load()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "prepare terminate not called");
+        return;
+    }
+    isPrepareTerminate_ = isTerminate;
+    isPrepareTerminateAbilityDone_.store(true);
+    isPrepareTerminateAbilityCalled_.store(false);
+    isPrepareTerminateAbilityCv_.notify_one();
+}
+
+void AbilityRecord::CancelPrepareTerminate()
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+        "canceling prepare terminate,bundle=%{public}s,module=%{public}s,ability=%{public}s",
+        abilityInfo_.bundleName.c_str(), abilityInfo_.moduleName.c_str(), abilityInfo_.name.c_str());
+    std::unique_lock<std::mutex> lock(isPrepareTerminateAbilityMutex_);
+    if (!isPrepareTerminateAbilityCalled_.load()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "prepare terminate not called");
+        return;
+    }
+    isPrepareTerminate_ = true; // no need to terminate again
+    isPrepareTerminateAbilityDone_.store(true);
+    isPrepareTerminateAbilityCalled_.store(false);
+    isPrepareTerminateAbilityCv_.notify_one();
 }
 
 int AbilityRecord::TerminateAbility()
@@ -1495,7 +1560,7 @@ void AbilityRecord::SetScheduler(const sptr<IAbilityScheduler> &scheduler)
         if (schedulerObject == nullptr || !schedulerObject->AddDeathRecipient(schedulerDeathRecipient_)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "AddDeathRecipient failed");
         }
-        pid_ = static_cast<int32_t>(IPCSkeleton::GetCallingPid()); // set pid when ability attach to service.
+        SetPid(IPCSkeleton::GetCallingPid()); // set pid when ability attach to service.
         AfterLoaded();
         // add collaborator mission bind pid
         NotifyMissionBindPid();
@@ -1515,7 +1580,7 @@ void AbilityRecord::SetScheduler(const sptr<IAbilityScheduler> &scheduler)
             }
         }
         scheduler_ = scheduler;
-        pid_ = 0;
+        SetPid(0);
     }
 }
 
@@ -1631,8 +1696,8 @@ void AbilityRecord::Inactivate()
     if (!IsDebug()) {
         bool useOldMultiple = abilityInfo_.name == AbilityConfig::LAUNCHER_ABILITY_NAME ||
             abilityInfo_.name == AbilityConfig::CALLUI_ABILITY_NAME;
-        uint32_t timeoutMultiple = useOldMultiple ? INACTIVE_TIMEOUT_MULTIPLE : INACTIVE_TIMEOUT_MULTIPLE_NEW;
-        uint32_t inactiveTimeout =
+        auto timeoutMultiple = useOldMultiple ? INACTIVE_TIMEOUT_MULTIPLE : INACTIVE_TIMEOUT_MULTIPLE_NEW;
+        auto inactiveTimeout =
             AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * timeoutMultiple;
         SendEvent(AbilityManagerService::INACTIVE_TIMEOUT_MSG, inactiveTimeout);
     }
@@ -1953,8 +2018,13 @@ void AbilityRecord::SaveResult(int resultCode, const Want *resultWant, std::shar
         if (callerSystemAbilityRecord != nullptr) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "caller is system ability");
             Want* newWant = const_cast<Want*>(resultWant);
-            callerSystemAbilityRecord->SetResultToSystemAbility(callerSystemAbilityRecord, *newWant,
-                resultCode);
+            if (want_.GetBoolParam(PARAM_RESV_ANCO_IS_NEED_UPDATE_NAME, false)) {
+                want_.RemoveParam(PARAM_RESV_ANCO_IS_NEED_UPDATE_NAME);
+                callerSystemAbilityRecord->SetResult(*newWant, resultCode);
+            } else {
+                callerSystemAbilityRecord->SetResultToSystemAbility(callerSystemAbilityRecord, *newWant,
+                    resultCode);
+            }
         }
     }
 }
@@ -2083,6 +2153,7 @@ void AbilityRecord::RemoveCallerRequestCode(std::shared_ptr<AbilityRecord> calle
         TAG_LOGI(AAFwkTag::ABILITYMGR, "null record");
         return;
     }
+    std::lock_guard guard(callerListLock_);
     for (auto it = callerList_.begin(); it != callerList_.end(); it++) {
         if ((*it)->GetCaller() == callerAbilityRecord) {
             (*it)->RemoveHistoryRequestCode(requestCode);
@@ -2113,7 +2184,7 @@ void AbilityRecord::AddCallerRecord(const sptr<IRemoteObject> &callerToken, int 
     auto isExist = [&abilityRecord](const std::shared_ptr<CallerRecord> &callerRecord) {
         return (callerRecord->GetCaller() == abilityRecord);
     };
-
+    std::lock_guard guard(callerListLock_);
     auto record = std::find_if(callerList_.begin(), callerList_.end(), isExist);
     auto newCallerRecord = std::make_shared<CallerRecord>(requestCode, abilityRecord);
     if (record != callerList_.end()) {
@@ -2155,7 +2226,8 @@ bool AbilityRecord::IsSystemAbilityCall(const sptr<IRemoteObject> &callerToken, 
     }
     AccessToken::NativeTokenInfo nativeTokenInfo;
     int32_t result = AccessToken::AccessTokenKit::GetNativeTokenInfo(tokenId, nativeTokenInfo);
-    if (result == ERR_OK && nativeTokenInfo.processName == DMS_PROCESS_NAME) {
+    if (result == ERR_OK && (nativeTokenInfo.processName == DMS_PROCESS_NAME ||
+        want_.GetBoolParam(PARAM_RESV_ANCO_IS_NEED_UPDATE_NAME, false))) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "system ability call");
         return true;
     }
@@ -2172,6 +2244,7 @@ void AbilityRecord::AddSystemAbilityCallerRecord(const sptr<IRemoteObject> &call
         std::shared_ptr<SystemAbilityCallerRecord> saCaller = callerRecord->GetSaCaller();
         return (saCaller != nullptr && saCaller->GetSrcAbilityId() == srcAbilityId);
     };
+    std::lock_guard guard(callerListLock_);
     auto record = std::find_if(callerList_.begin(), callerList_.end(), isExist);
     if (record != callerList_.end()) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "find same system ability caller record");
@@ -2192,11 +2265,13 @@ void AbilityRecord::RecordSaCallerInfo(const Want &want)
 
 std::list<std::shared_ptr<CallerRecord>> AbilityRecord::GetCallerRecordList() const
 {
+    std::lock_guard guard(callerListLock_);
     return callerList_;
 }
 
 std::shared_ptr<AbilityRecord> AbilityRecord::GetCallerRecord() const
 {
+    std::lock_guard guard(callerListLock_);
     if (callerList_.empty()) {
         return nullptr;
     }
@@ -2208,6 +2283,7 @@ std::shared_ptr<AbilityRecord> AbilityRecord::GetCallerRecord() const
 
 std::shared_ptr<CallerAbilityInfo> AbilityRecord::GetCallerInfo() const
 {
+    std::lock_guard guard(callerListLock_);
     if (callerList_.empty() || callerList_.back() == nullptr) {
         return saCallerInfo_;
     }
@@ -2608,6 +2684,7 @@ void AbilityRecord::OnSchedulerDied(const wptr<IRemoteObject> &remote)
 
 void AbilityRecord::OnProcessDied()
 {
+    CancelPrepareTerminate();
     std::lock_guard<ffrt::mutex> guard(lock_);
     if (!IsSceneBoard() && scheduler_ != nullptr) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "OnProcessDied: '%{public}s', attached.", abilityInfo_.name.c_str());
@@ -2942,10 +3019,26 @@ void AbilityRecord::SetLaunchReasonMessage(const std::string &launchReasonMessag
     lifeCycleStateInfo_.launchParam.launchReasonMessage = launchReasonMessage;
 }
 
-void AbilityRecord::SetLastExitReason(const ExitReason &exitReason)
+void AbilityRecord::SetLastExitReason(const ExitReason &exitReason, const AppExecFwk::RunningProcessInfo &processInfo,
+    const int64_t timestamp, bool withKillMsg)
 {
+    std::string exitMsg = exitReason.exitMsg;
+    std::string killMsg = "";
+    if (withKillMsg) {
+        killMsg = exitReason.exitMsg;
+    }
+    LastExitDetailInfo lastExitDetailInfo = {};
+    lastExitDetailInfo.pid = processInfo.pid_;
+    lastExitDetailInfo.uid = processInfo.uid_;
+    lastExitDetailInfo.exitSubReason = exitReason.subReason;
+    lastExitDetailInfo.rss = processInfo.rssValue;
+    lastExitDetailInfo.pss = processInfo.pssValue;
+    lastExitDetailInfo.timestamp = timestamp;
+    lastExitDetailInfo.processName = processInfo.processName_;
+    lastExitDetailInfo.exitMsg = killMsg;
     lifeCycleStateInfo_.launchParam.lastExitReason = CovertAppExitReasonToLastReason(exitReason.reason);
-    lifeCycleStateInfo_.launchParam.lastExitMessage = exitReason.exitMsg;
+    lifeCycleStateInfo_.launchParam.lastExitMessage = exitMsg;
+    lifeCycleStateInfo_.launchParam.lastExitDetailInfo = lastExitDetailInfo;
 }
 
 LastExitReason AbilityRecord::CovertAppExitReasonToLastReason(const Reason exitReason)
@@ -2965,6 +3058,10 @@ LastExitReason AbilityRecord::CovertAppExitReasonToLastReason(const Reason exitR
             return LASTEXITREASON_RESOURCE_CONTROL;
         case REASON_UPGRADE:
             return LASTEXITREASON_UPGRADE;
+        case REASON_USER_REQUEST:
+            return LASTEXITREASON_USER_REQUEST;
+        case REASON_SIGNAL:
+            return LASTEXITREASON_SIGNAL;
         case REASON_UNKNOWN:
         default:
             return LASTEXITREASON_UNKNOWN;
@@ -3295,12 +3392,10 @@ void AbilityRecord::GrantUriPermission(Want &want, std::string targetBundleName,
         specifyTokenId_ = 0;
     }
     // reject sandbox to grant uri permission by start ability
-    if (!callerList_.empty() && callerList_.back()) {
-        auto caller = callerList_.back()->GetCaller();
-        if (caller && caller->appIndex_ > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "sandbox can not grant UriPermission");
-            return;
-        }
+    auto caller = GetCallerRecord();
+    if (caller && caller->appIndex_ > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "sandbox can not grant UriPermission");
+        return;
     }
     auto callerTokenId = tokenId > 0 ? tokenId :
         static_cast<uint32_t>(want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
@@ -3611,6 +3706,16 @@ void AbilityRecord::SetRestartAppFlag(bool isRestartApp)
 bool AbilityRecord::GetRestartAppFlag() const
 {
     return isRestartApp_;
+}
+
+void AbilityRecord::SetKillForPermissionUpdateFlag(bool isKillForPermissionUpdate)
+{
+    isKillForPermissionUpdate_ = isKillForPermissionUpdate;
+}
+
+bool AbilityRecord::GetKillForPermissionUpdateFlag() const
+{
+    return isKillForPermissionUpdate_;
 }
 
 void AbilityRecord::UpdateUIExtensionInfo(const WantParams &wantParams)

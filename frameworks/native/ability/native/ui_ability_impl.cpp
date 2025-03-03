@@ -238,23 +238,24 @@ void UIAbilityImpl::ExecuteInsightIntentDone(uint64_t intentId, const InsightInt
     }
 }
 #ifdef SUPPORT_SCREEN
-void UIAbilityImpl::PrepareTerminateAbility(std::function<void(bool)> callback, bool &isAsync, bool &prepareTermination)
+bool UIAbilityImpl::PrepareTerminateAbility(std::function<void(bool)> callback, bool &isAsync)
 {
     if (ability_ == nullptr || callback == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "null ability_ or callback");
-        return;
+        return false;
     }
     auto *callbackInfo = AppExecFwk::AbilityTransactionCallbackInfo<bool>::Create();
     if (callbackInfo == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "null callbackInfo");
-        return;
+        return false;
     }
     callbackInfo->Push(callback);
-    ability_->OnPrepareTerminate(callbackInfo, isAsync, prepareTermination);
+    ability_->OnPrepareTerminate(callbackInfo, isAsync);
     TAG_LOGD(AAFwkTag::ABILITY, "end, isAsync=%{public}d", isAsync);
     if (!isAsync) {
         AppExecFwk::AbilityTransactionCallbackInfo<bool>::Destroy(callbackInfo);
     }
+    return true;
 }
 #endif
 void UIAbilityImpl::SendResult(int requestCode, int resultCode, const AAFwk::Want &resultData)
@@ -473,6 +474,38 @@ void UIAbilityImpl::WindowLifeCycleImpl::AfterBackground()
     }
 }
 
+void UIAbilityImpl::WindowLifeCycleImpl::AfterDidForeground()
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "wnd call, AfterDidForeground");
+    auto owner = owner_.lock();
+    if (owner == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null owner");
+        return;
+    }
+    if (owner->ability_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null ability_");
+        return;
+    }
+    owner->ability_->OnDidForeground();
+    TAG_LOGD(AAFwkTag::UIABILITY, "end");
+}
+
+void UIAbilityImpl::WindowLifeCycleImpl::AfterDidBackground()
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "wnd call, AfterDidBackground");
+    auto owner = owner_.lock();
+    if (owner == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null owner");
+        return;
+    }
+    if (owner->ability_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null ability_");
+        return;
+    }
+    owner->ability_->OnDidBackground();
+    TAG_LOGD(AAFwkTag::UIABILITY, "end");
+}
+
 void UIAbilityImpl::WindowLifeCycleImpl::AfterFocused()
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
@@ -572,6 +605,15 @@ void UIAbilityImpl::Background()
 }
 #endif
 
+void UIAbilityImpl::OnWillBackground()
+{
+    if (ability_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null ability_");
+        return;
+    }
+    ability_->OnWillBackground();
+}
+
 bool UIAbilityImpl::AbilityTransaction(const AAFwk::Want &want, const AAFwk::LifeCycleStateInfo &targetState)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -599,6 +641,7 @@ bool UIAbilityImpl::AbilityTransaction(const AAFwk::Want &want, const AAFwk::Lif
             if (lifecycleState_ != AAFwk::ABILITY_STATE_STARTED_NEW) {
                 ret = false;
             }
+            OnWillBackground();
 #ifdef SUPPORT_GRAPHICS
             if (!InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
                 Background();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,9 +13,28 @@
  * limitations under the License.
  */
 
-#ifndef FUZZTEST_OHOS_ABILITY_RUNTIME_REGISTERAPPLICATIONSTATEOBSERVER_FUZZER_H
-#define FUZZTEST_OHOS_ABILITY_RUNTIME_REGISTERAPPLICATIONSTATEOBSERVER_FUZZER_H
+#include "app_utils.h"
 
-#define FUZZ_PROJECT_NAME "registerapplicationstateobserver_fuzzer"
+#include "hilog_tag_wrapper.h"
 
-#endif
+namespace OHOS {
+namespace AAFwk {
+bool AppUtils::isStartOptionsWithAnimation_ = false;
+
+AppUtils::~AppUtils() {}
+
+AppUtils::AppUtils() {}
+
+AppUtils &AppUtils::GetInstance()
+{
+    static AppUtils utils;
+    return utils;
+}
+
+bool AppUtils::IsStartOptionsWithAnimation()
+{
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isStartOptionsWithAnimation_);
+    return isStartOptionsWithAnimation_;
+}
+}  // namespace AAFwk
+}  // namespace OHOS

@@ -1034,11 +1034,11 @@ HWTEST_F(UIAbilityThreadTest, AbilityRuntime_HandleShareData_0100, Function | Me
     GTEST_LOG_(INFO) << "AbilityRuntime_HandleShareData_0100 start";
     AbilityRuntime::UIAbilityThread *abilitythread = new (std::nothrow) AbilityRuntime::UIAbilityThread();
     EXPECT_NE(abilitythread, nullptr);
-    abilitythread->abilityImpl_ = nullptr;
+    abilitythread->abilityHandler_ = nullptr;
     auto ret = abilitythread->SchedulePrepareTerminateAbility();
     int32_t uniqueId = 1;
     abilitythread->HandleShareData(uniqueId);
-    EXPECT_EQ(ret, true);
+    EXPECT_EQ(ret, false);
     GTEST_LOG_(INFO) << "AbilityRuntime_HandleShareData_0100 end";
 }
 
@@ -1246,7 +1246,7 @@ HWTEST_F(UIAbilityThreadTest, AbilityRuntime_HandlePrepareTermianteAbility_0100,
     AbilityRuntime::UIAbilityThread *abilitythread = new (std::nothrow) AbilityRuntime::UIAbilityThread();
     EXPECT_NE(abilitythread, nullptr);
     EXPECT_EQ(abilitythread->abilityImpl_, nullptr);
-    abilitythread->HandlePrepareTermianteAbility(nullptr);
+    abilitythread->HandlePrepareTermianteAbility();
     GTEST_LOG_(INFO) << "AbilityRuntime_HandlePrepareTermianteAbility_0100 end";
 }
 
@@ -1262,7 +1262,7 @@ HWTEST_F(UIAbilityThreadTest, AbilityRuntime_HandlePrepareTermianteAbility_0200,
     EXPECT_NE(abilitythread, nullptr);
     abilitythread->abilityImpl_ = std::make_shared<AbilityRuntime::UIAbilityImpl>();
     EXPECT_NE(abilitythread->abilityImpl_, nullptr);
-    abilitythread->HandlePrepareTermianteAbility(nullptr);
+    abilitythread->HandlePrepareTermianteAbility();
     GTEST_LOG_(INFO) << "AbilityRuntime_HandlePrepareTermianteAbility_0200 end";
 }
 

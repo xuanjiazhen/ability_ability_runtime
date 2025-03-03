@@ -442,9 +442,17 @@ public:
     /**
      * prepare terminate ability.
      *
+     * @param isSCBCall, if the call is from SCB.
      * @return Returns true on stop terminating; returns false on terminate.
      */
-    bool PrepareTerminateAbility();
+    bool PrepareTerminateAbility(bool isSCBCall);
+
+    /**
+     * prepare terminate ability done.
+     *
+     * @param isTerminate, the result of the onPrepareToTerminate/onPrepareToTerminateAsync.
+     */
+    void PrepareTerminateAbilityDone(bool isTerminate);
 
     /**
      * terminate ability.
@@ -990,7 +998,8 @@ public:
 
     void SetLaunchReason(const LaunchReason &reason);
     void SetLaunchReasonMessage(const std::string &launchReasonMessage);
-    void SetLastExitReason(const ExitReason &exitReason);
+    void SetLastExitReason(const ExitReason &exitReason, const AppExecFwk::RunningProcessInfo &processsInfo,
+        const int64_t timestamp, bool withKillReason);
     void ContinueAbility(const std::string &deviceId, uint32_t versionCode);
     void NotifyContinuationResult(int32_t result);
 
@@ -999,7 +1008,8 @@ public:
 
     void SetUid(int32_t uid);
     int32_t GetUid();
-    int32_t GetPid();
+    pid_t GetPid();
+    void SetPid(pid_t pid);
     void SetSwitchingPause(bool state);
     bool IsSwitchingPause();
     void SetOwnerMissionUserId(int32_t userId);
@@ -1106,6 +1116,9 @@ public:
     void SetRestartAppFlag(bool isRestartApp);
     bool GetRestartAppFlag() const;
 
+    void SetKillForPermissionUpdateFlag(bool isKillForPermissionUpdate);
+    bool GetKillForPermissionUpdateFlag() const;
+
     void UpdateUIExtensionInfo(const WantParams &wantParams);
 
     void SetSpecifyTokenId(const uint32_t specifyTokenId);
@@ -1202,6 +1215,8 @@ private:
     void SetDebugAppByWaitingDebugFlag();
     void AfterLoaded();
 
+    void CancelPrepareTerminate();
+
 #ifdef SUPPORT_SCREEN
     std::shared_ptr<Want> GetWantFromMission() const;
     void SetShowWhenLocked(const AppExecFwk::AbilityInfo &abilityInfo, sptr<AbilityTransitionInfo> &info) const;
@@ -1282,7 +1297,7 @@ private:
 
     int32_t uiExtensionAbilityId_ = 0;                // uiextension ability id
     int32_t uid_ = 0;
-    int32_t pid_ = 0;
+    pid_t pid_ = 0;
     int32_t missionId_ = -1;
     int32_t ownerMissionUserId_ = -1;
     uint32_t extensionProcessMode_ = 0;       // new version
@@ -1320,6 +1335,7 @@ private:
 
     // page(ability) can be started by multi-pages(abilities), so need to store this ability's caller
     std::list<std::shared_ptr<CallerRecord>> callerList_ = {};
+    mutable ffrt::mutex callerListLock_;
 
     PacMap stateDatas_;             // ability saved ability state data
     WindowConfig windowConfig_;
@@ -1365,6 +1381,14 @@ private:
     ffrt::mutex lock_;
     ffrt::mutex connectWantLock_;
     std::mutex collaborateWantLock_;
+
+    bool isKillForPermissionUpdate_ = false;
+
+    std::mutex isPrepareTerminateAbilityMutex_;
+    std::condition_variable isPrepareTerminateAbilityCv_;
+    std::atomic_bool isPrepareTerminateAbilityCalled_ = false;
+    std::atomic_bool isPrepareTerminateAbilityDone_ = false;
+    bool isPrepareTerminate_ = false;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

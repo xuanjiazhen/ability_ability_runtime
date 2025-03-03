@@ -48,6 +48,7 @@
 #include "app_spawn_client.h"
 #include "app_malloc_info.h"
 #include "app_jsheap_mem_info.h"
+#include "simple_process_info.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -648,7 +649,7 @@ public:
      */
     void ResetSpecifiedRequestId();
 
-    void SchedulePrepareTerminate(const std::string &moduleName, int32_t &prepareTermination, bool &isExist);
+    void SchedulePrepareTerminate(const std::string &moduleName);
 
     /**
      * call the scheduler to go acceptWant procedure
@@ -685,6 +686,7 @@ public:
     void AddRenderRecord(const std::shared_ptr<RenderRecord> &record);
     void RemoveRenderRecord(const std::shared_ptr<RenderRecord> &record);
     void RemoveRenderPid(pid_t pid);
+    void GetRenderProcessInfos(std::list<SimpleProcessInfo> &processInfos);
     bool ConstainsRenderPid(pid_t renderPid);
     std::shared_ptr<RenderRecord> GetRenderRecordByPid(const pid_t pid);
     std::map<int32_t, std::shared_ptr<RenderRecord>> GetRenderRecordMap();
@@ -799,7 +801,7 @@ public:
      */
     int32_t ChangeAppGcState(int32_t state);
 
-    void SetAttachDebug(bool isAttachDebug);
+    void SetAttachDebug(bool isAttachDebug, bool isDebugFromLocal);
     bool IsAttachDebug() const;
 
     void SetApplicationPendingState(ApplicationPendingState pendingState);
@@ -816,6 +818,7 @@ public:
     std::shared_ptr<ChildProcessRecord> GetChildProcessRecordByPid(pid_t pid);
     std::map<pid_t, std::shared_ptr<ChildProcessRecord>> GetChildProcessRecordMap();
     int32_t GetChildProcessCount();
+    void GetChildProcessInfos(std::list<SimpleProcessInfo> &processInfos);
 #endif //SUPPORT_CHILD_PROCESS
 
     void SetPreloadState(PreloadState state);
@@ -1037,6 +1040,21 @@ public:
     {
         return pssValue_;
     }
+    inline void SetReasonExist(bool reasonExist)
+    {
+        reasonExist_ = reasonExist;
+    }
+    inline bool GetReasonExist() const
+    {
+        return reasonExist_;
+    }
+
+    void SetDebugFromLocal(bool isDebugFromLocal);
+
+    bool GetDebugFromLocal() const
+    {
+        return isDebugFromLocal_;
+    }
 
 private:
     /**
@@ -1151,7 +1169,7 @@ private:
     ProcessType processType_ = ProcessType::NORMAL;
     ExtensionAbilityType extensionType_ = ExtensionAbilityType::UNSPECIFIED;
     PreloadState preloadState_ = PreloadState::NONE;
-    PreloadMode preloadMode_ = PreloadMode::PRESS_DOWN;
+    PreloadMode preloadMode_ = PreloadMode::PRELOAD_NONE;
     SupportProcessCacheState procCacheSupportState_ = SupportProcessCacheState::UNSPECIFIED;
     int64_t startTimeMillis_ = 0;   // The time of app start(CLOCK_MONOTONIC)
     int64_t restartTimeMillis_ = 0; // The time of last trying app restart
@@ -1211,6 +1229,8 @@ private:
     std::string killReason_ = "";
     int32_t rssValue_ = 0;
     int32_t pssValue_ = 0;
+    bool reasonExist_ = false;
+    bool isDebugFromLocal_ = false;
 };
 
 }  // namespace AppExecFwk

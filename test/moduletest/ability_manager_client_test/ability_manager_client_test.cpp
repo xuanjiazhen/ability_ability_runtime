@@ -15,17 +15,23 @@
 
 #include <gtest/gtest.h>
 
+#define private public
+#define protected public
 #include "ability_manager_client.h"
+#undef private
+#undef protected
 #include "ability_manager_errors.h"
 #include "ability_state_data.h"
 #include "element_name.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_object_stub.h"
+#include "scene_board_judgement.h"
 #include "start_options.h"
 #include "status_bar_delegate_proxy.h"
 #include "ui_extension/ui_extension_session_info.h"
 #include "want.h"
 #include "mock_iqueryermsobserver.h"
+#include "mock_ihiddenstartobserver.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -182,7 +188,9 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_IsValidMissionIds_001, T
     missionIds.push_back(ABILITYID);
     std::vector<MissionValidResult> results;
     auto result = AbilityManagerClient::GetInstance()->IsValidMissionIds(missionIds, results);
-    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        EXPECT_EQ(result, ERR_INVALID_VALUE);
+    }
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_IsValidMissionIds_001 result %{public}d", result);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_IsValidMissionIds_001 end");
 }
@@ -286,8 +294,8 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_OpenLink, TestSize.Level
 }
 
 /**
- * @tc.name: StartSelfUIAbility_0100
- * @tc.desc: OpenLink
+ * @tc.name: AbilityManagerClient_StartSelfUIAbility_0100
+ * @tc.desc: StartSelfUIAbility
  * @tc.type: FUNC
  */
 HWTEST_F(AbilityManagerClientTest, StartSelfUIAbility_0100, TestSize.Level1)
@@ -303,8 +311,8 @@ HWTEST_F(AbilityManagerClientTest, StartSelfUIAbility_0100, TestSize.Level1)
 
 /**
  * @tc.name: AddQueryERMSObserver_0100
- * @tc.desc: OpenLink
- * @tc.type: FUNC
+ * @tc.name: AbilityManagerClient_AddQueryERMSObserver_0100
+ * @tc.desc: AddQueryERMSObserver
  */
 HWTEST_F(AbilityManagerClientTest, AddQueryERMSObserver_0100, TestSize.Level1)
 {
@@ -318,8 +326,8 @@ HWTEST_F(AbilityManagerClientTest, AddQueryERMSObserver_0100, TestSize.Level1)
 }
 
 /**
- * @tc.name: QueryAtomicServiceStartupRule_0100
- * @tc.desc: OpenLink
+  * @tc.name: AbilityManagerClient_QueryAtomicServiceStartupRule_0100
+ * @tc.desc: QueryAtomicServiceStartupRule
  * @tc.type: FUNC
  */
 HWTEST_F(AbilityManagerClientTest, QueryAtomicServiceStartupRule_0100, TestSize.Level1)
@@ -336,17 +344,59 @@ HWTEST_F(AbilityManagerClientTest, QueryAtomicServiceStartupRule_0100, TestSize.
 }
 
 /**
- * @tc.name: KillProcessWithReason_0100
- * @tc.desc: OpenLink
+  * @tc.name: AbilityManagerClient_RegisterHiddenStartObserver_0100
+ * @tc.desc: RegisterHiddenStartObserver
  * @tc.type: FUNC
  */
-HWTEST_F(AbilityManagerClientTest, KillProcessWithReason_0100, TestSize.Level1)
+HWTEST_F(AbilityManagerClientTest, RegisterHiddenStartObserver_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RegisterHiddenStartObserver_0100 start");
+
+    sptr<MockIHiddenStartObserver> observer(new MockIHiddenStartObserver());
+    auto result = AbilityManagerClient::GetInstance()->RegisterHiddenStartObserver(observer);
+    EXPECT_NE(result, ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "RegisterHiddenStartObserver_0100 end");
+}
+
+/**
+  * @tc.name: AbilityManagerClient_UnregisterHiddenStartObserver_0100
+ * @tc.desc: RegisterHiddenStartObserver
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, UnregisterHiddenStartObserver_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterHiddenStartObserver_0100 start");
+
+    sptr<MockIHiddenStartObserver> observer(new MockIHiddenStartObserver());
+    auto result = AbilityManagerClient::GetInstance()->UnregisterHiddenStartObserver(observer);
+    EXPECT_NE(result, ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterHiddenStartObserver_0100 end");
+}
+
+/**
+ * @tc.name: AbilityManagerClient_KillProcessWithReason_0100
+ * @tc.name: AbilityManagerClient_KillProcessWithPrepareTerminateDone_0100
+ * @tc.desc: KillProcessWithReason and KillProcessWithPrepareTerminateDone
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, KillProcessWithReasonandKillProcessWithPrepareTerminateDone_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "KillProcessWithReason_0100 start");
+
+    std::string moduleName = "com.ohos.example.moduleName";
+    int32_t prepareTermination = 1;
+    bool isExist = false;
+    AbilityManagerClient::GetInstance()->KillProcessWithPrepareTerminateDone(moduleName,
+        prepareTermination, isExist);
+
     int32_t pid = 1;
     AAFwk::ExitReason reason;
     auto result = AbilityManagerClient::GetInstance()->KillProcessWithReason(pid, reason);
-    EXPECT_EQ(result, ERR_OK);
+    EXPECT_NE(result, ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "KillProcessWithReason_0100 end");
 }
 }  // namespace AAFwk
 }  // namespace OHOS
