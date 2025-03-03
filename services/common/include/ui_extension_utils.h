@@ -66,7 +66,9 @@ inline std::unordered_set<AppExecFwk::ExtensionAbilityType> GetUiExtensionSet()
         AppExecFwk::ExtensionAbilityType::SYSPICKER_AUDIOPICKER,
         AppExecFwk::ExtensionAbilityType::SYS_VISUAL,
         AppExecFwk::ExtensionAbilityType::RECENT_PHOTO,
-        AppExecFwk::ExtensionAbilityType::FORM_EDIT
+        AppExecFwk::ExtensionAbilityType::FORM_EDIT,
+        AppExecFwk::ExtensionAbilityType::AWC_WEBPAGE,
+        AppExecFwk::ExtensionAbilityType::AWC_NEWSFEED
     };
 }
 
@@ -147,6 +149,15 @@ inline bool IsPublicForConstrainedEmbedded(const AppExecFwk::ExtensionAbilityTyp
         AppExecFwk::ExtensionAbilityType::RECENT_PHOTO
     };
     return publicForConstrainedEmbeddedSet.find(type) != publicForConstrainedEmbeddedSet.end();
+}
+
+inline bool IsPublicForModal(const AppExecFwk::extensionAbilityType type)
+{
+    const std::unordered_set<AppExecFwk::ExtensionAbilityType> publicForMoadalSet = {
+        AppExecFwk::ExtensionAbilityType::AWC_WEBPAGE,
+        AppExecFwk::ExtensionAbilityType::AWC_NEWSFEED
+    };
+    return publicForMoadalSet.find(type) != publicForMoadalSet.end();
 }
 
 inline bool IsEnterpriseAdmin(const AppExecFwk::ExtensionAbilityType type)
