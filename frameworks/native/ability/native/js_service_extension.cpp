@@ -602,6 +602,9 @@ napi_value JsServiceExtension::CallObjectMethod(const char* name, napi_value con
     if (status != napi_ok) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "call js func failed: %{public}d", status);
     }
+    if (result == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null result");
+    }
     return result;
 }
 

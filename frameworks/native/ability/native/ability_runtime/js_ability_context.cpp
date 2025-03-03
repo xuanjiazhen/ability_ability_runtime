@@ -2205,10 +2205,14 @@ void JSAbilityConnection::HandleOnAbilityConnectDone(const AppExecFwk::ElementNa
     // wrap RemoteObject
     napi_value napiRemoteObject = NAPI_ohos_rpc_CreateJsRemoteObject(env_, remoteObject);
     napi_value argv[] = { ConvertElement(element), napiRemoteObject };
+    napi_value result = nullptr;
     TAG_LOGI(AAFwkTag::CONTEXT, "Call onConnect");
-    napi_status status = napi_call_function(env_, obj, methodOnConnect, ARGC_TWO, argv, nullptr);
+    napi_status status = napi_call_function(env_, obj, methodOnConnect, ARGC_TWO, argv, &result);
     if (status != napi_ok) {
         TAG_LOGE(AAFwkTag::CONTEXT, "call js func failed %{public}d", status);
+    }
+    if (result == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null result");
     }
     TAG_LOGD(AAFwkTag::CONTEXT, "end");
 }
@@ -2273,10 +2277,14 @@ void JSAbilityConnection::HandleOnAbilityDisconnectDone(const AppExecFwk::Elemen
     }
 
     napi_value argv[] = { ConvertElement(element) };
+    napi_value result = nullptr;
     TAG_LOGI(AAFwkTag::CONTEXT, "Call onDisconnect");
-    napi_status status = napi_call_function(env_, obj, method, ARGC_ONE, argv, nullptr);
+    napi_status status = napi_call_function(env_, obj, method, ARGC_ONE, argv, &result);
     if (status != napi_ok) {
         TAG_LOGE(AAFwkTag::CONTEXT, "call js func failed %{public}d", status);
+    }
+    if (result == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null result");
     }
 }
 
