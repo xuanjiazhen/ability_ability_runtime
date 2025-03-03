@@ -35,6 +35,7 @@
 #include "hitrace_meter.h"
 #include "iservice_registry.h"
 #include "runtime.h"
+#include "sts_context_util.h"
 #include "system_ability_definition.h"
 #include "syspara/parameter.h"
 #include "ui_ability.h"
@@ -223,6 +224,117 @@ static void SetSupportedProcessCacheSync([[maybe_unused]]ani_env *env, [[maybe_u
     TAG_LOGI(AAFwkTag::APPKIT, "SetSupportedProcessCacheSync end");
 }
 
+static ani_object CreateModuleContextOneParam(ani_env *env, [[maybe_unused]]ani_object aniObj,
+    ani_string ani_moduleName)
+{
+    TAG_LOGI(AAFwkTag::APPKIT, "CreateModuleContextOneParam");
+    // get modulename
+    std::string moduleName;
+    ani_size sz {};
+    env->String_GetUTF8Size(ani_moduleName, &sz);
+    moduleName.resize(sz + 1);
+    env->String_GetUTF8SubString(ani_moduleName, 0, sz, moduleName.data(), moduleName.size(), &sz);
+    TAG_LOGI(AAFwkTag::APPKIT, "moduleName: %{public}s", moduleName.c_str());
+
+    if (abilityRuntimeContext_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "ability runtime nullptr");
+        return {};
+    }
+
+    auto nativeContext = abilityRuntimeContext_->CreateModuleContext(moduleName);
+    if (nativeContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "nativeContext nullptr");
+        return {};
+    }
+
+    ani_class contextClass = nullptr;
+    ani_status status = ANI_ERROR;
+    // TODO: for test, it should be @ohos/ability/Context actually
+    status = aniEnv->FindClass("LAbilityStageHand/Context;", &contextClass);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "find AbilityDelegator failed status : %{public}d", status);
+        return {};
+    }
+    TAG_LOGI(AAFwkTag::APPKIT, "find context class success");
+
+    ani_method method = nullptr;
+    status = aniEnv->Class_FindMethod(contextClass, "<ctor>", ":V", &method);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Class_FindMethod ctor failed status : %{public}d", status);
+        return {};
+    }
+    TAG_LOGI(AAFwkTag::APPKIT, "Class_FindMethod ctor success");
+
+    ani_object object = nullptr;
+    if (aniEnv->Object_New(contextClass, method, &object) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Object_New failed status : %{public}d", status);
+        return {};
+    }
+    TAG_LOGI(AAFwkTag::APPKIT, "Object_New success");
+
+    ContextUtil::StsCreatContext(env, abilityStageCtxCls, obj, GetApplicationCtxObjRef, nativeContext);
+    return object;
+}
+
+static ani_object CreateModuleContextTwoParam(ani_env *env, [[maybe_unused]]ani_object aniObj,
+    ani_string ani_bundleName, ani_string ani_moduleName)
+{
+    // get bundleName
+    std::string bundleName;
+    ani_size sz {};
+    env->String_GetUTF8Size(ani_bundleName, &sz);
+    bundleName.resize(sz + 1);
+    env->String_GetUTF8SubString(ani_bundleName, 0, sz, bundleName.data(), bundleName.size(), &sz);
+
+    // get moduleName
+    std::string moduleName;
+    ani_size sz {};
+    env->String_GetUTF8Size(ani_moduleName, &sz);
+    moduleName.resize(sz + 1);
+    env->String_GetUTF8SubString(ani_moduleName, 0, sz, moduleName.data(), moduleName.size(), &sz);
+
+    TAG_LOGI(AAFwkTag::APPKIT, "bundleName: %{public}s, moduleName: %{public}s", bundleName.c_str(), moduleName.c_str());
+
+    if (abilityRuntimeContext_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "ability runtime nullptr");
+        return {};
+    }
+
+    auto nativeContext = abilityRuntimeContext_->CreateModuleContext(bundleName, moduleName);
+    if (nativeContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "nativeContext nullptr");
+        return {};
+    }
+
+    ani_class contextClass = nullptr;
+    ani_status status = ANI_ERROR;
+    // TODO: for test, it should be @ohos/ability/Context actually
+    status = aniEnv->FindClass("LAbilityStageHand/Context;", &contextClass);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "find AbilityDelegator failed status : %{public}d", status);
+        return {};
+    }
+    TAG_LOGI(AAFwkTag::APPKIT, "find context class success");
+
+    ani_method method = nullptr;
+    status = aniEnv->Class_FindMethod(contextClass, "<ctor>", ":V", &method);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Class_FindMethod ctor failed status : %{public}d", status);
+        return {};
+    }
+    TAG_LOGI(AAFwkTag::APPKIT, "Class_FindMethod ctor success");
+
+    ani_object object = nullptr;
+    if (aniEnv->Object_New(contextClass, method, &object) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Object_New failed status : %{public}d", status);
+        return {};
+    }
+    TAG_LOGI(AAFwkTag::APPKIT, "Object_New success");
+
+    ContextUtil::StsCreatContext(env, abilityStageCtxCls, obj, GetApplicationCtxObjRef, nativeContext);
+    return object;
+}
+
 void OHOSApplication::InitAniApplicationContext()
 {
     TAG_LOGI(AAFwkTag::APPKIT, "init application context");
@@ -236,6 +348,11 @@ void OHOSApplication::InitAniApplicationContext()
     std::array applicationContextFunctions = {
         ani_native_function {"setSupportedProcessCacheSync", "Z:V",
             reinterpret_cast<void *>(SetSupportedProcessCacheSync)},
+        // TODO: for test, it should be @ohos/ability/Context actually
+        ani_native_function {"createModuleContext", "Lstd/core/String;:LAbilityStageHand/Context",
+            reinterpret_cast<void *>(CreateModuleContextOneParam)},
+        ani_native_function {"createModuleContext", "Lstd/core/String;:Lstd/core/String;:LAbilityStageHand/Context",
+            reinterpret_cast<void *>(CreateModuleContextTwoParam)},
     };
     aniEnv->Class_BindNativeMethods(applicationContextCls, applicationContextFunctions.data(),
         applicationContextFunctions.size());
