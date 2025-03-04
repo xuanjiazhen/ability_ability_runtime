@@ -75,7 +75,8 @@ generate_static_abc("configuration_abc") {
   arktsconfig = "${ability_runtime_path}/frameworks/ani/configuration/configuration_config.json"
   dst_file = "$target_out_dir/configuration.abc"
   out_puts = [ "$target_out_dir/configuration.abc" ]
+}
 
-  is_boot_abc = "True"
-  device_dst_file = "system/framework/configuration.abc"
+add_static_abc_to_bootpath("add_configuration_abc_bootpath") {
+  source = "system/framework/configuration.abc"
 }
