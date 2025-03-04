@@ -434,14 +434,14 @@ void CJEnvironment::InitNewCJAppNS(const std::string& path)
     Dl_namespace ns;
     DynamicInitNewNamespace(&ns, path.c_str(), CJEnvironment::cjNewAppNSName);
     Dl_namespace sdk;
+    Dl_namespace chip_sdk;
+    dlns_get(CJEnvironment::cjChipSDKNSName, &chip_sdk);
     if (nsMode_ == NSMode::APP) {
-        Dl_namespace chip_sdk;
-        dlns_get(CJEnvironment::cjSDKNSName, &sdk);
-        dlns_get(CJEnvironment::cjChipSDKNSName, &chip_sdk);
-        dlns_inherit(&ns, &chip_sdk, "libssl_openssl.z.so");
+        dlns_get(CJEnvironment::cjSDKNSName, &sdk);  
     } else {
         dlns_get(CJEnvironment::cjNewSDKNSName, &sdk);
     }
+    dlns_inherit(&ns, &chip_sdk, "libssl_openssl.z.so");
     dlns_inherit(&ns, &sdk, "allow_all_shared_libs");
 #endif
 }
@@ -671,8 +671,8 @@ CJEnvironment::NSMode CJEnvironment::DetectAppNSMode()
 void CJEnvironment::InitRuntimeNS()
 {
 #ifdef __OHOS__
+    InitNewCJChipSDKNS(CJ_CHIPSDK_PATH);
     if (nsMode_ == NSMode::APP) {
-        InitNewCJChipSDKNS(CJ_CHIPSDK_PATH);
         InitCJSDKNS(CJ_RT_PATH + ":" + CJ_LIB_PATH);
     } else {
         InitNewCJSDKNS(CJ_SDK_PATH);
