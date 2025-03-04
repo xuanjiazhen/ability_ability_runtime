@@ -60,6 +60,8 @@ config("appkit_public_config") {
     "${ability_runtime_path}/interfaces/kits/native/appkit/app",
     "${ability_runtime_path}/interfaces/kits/native/appkit/dfr",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper",
+    "${ability_runtime_path}/sts_environment/interfaces/inner_api",
+    "${ani_path}",
   ]
 
   if (ability_runtime_graphics) {
@@ -85,6 +87,7 @@ ohos_shared_library("appkit_native") {
     "${ability_runtime_path}/interfaces/kits/native/appkit/dfr",
     "${ability_runtime_path}/interfaces/kits/native/appkit/app/task",
     "${ability_runtime_path}/interfaces/kits/native/appkit/app_startup",
+    "${ability_runtime_path}/sts_environment/interfaces/inner_api",
     "${ability_runtime_innerkits_path}/deps_wrapper/include",
     "${ability_runtime_services_path}/common/include",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
@@ -94,6 +97,7 @@ ohos_shared_library("appkit_native") {
     "${ability_runtime_services_path}/abilitymgr/include",
     "${ability_runtime_napi_path}/inner/napi_common",
     "${ability_runtime_utils_path}/global/constant",
+    "${ani_path}",
   ]
 
   if (ability_runtime_graphics) {
