@@ -230,8 +230,7 @@ void AppLifeCycleDeal::ScheduleAcceptWant(const AAFwk::Want &want, const std::st
     appThread->ScheduleAcceptWant(want, moduleName);
 }
 
-void AppLifeCycleDeal::SchedulePrepareTerminate(const std::string &moduleName,
-    int32_t &prepareTermination, bool &isExist)
+void AppLifeCycleDeal::SchedulePrepareTerminate(const std::string &moduleName)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
     auto appThread = GetApplicationClient();
@@ -239,7 +238,7 @@ void AppLifeCycleDeal::SchedulePrepareTerminate(const std::string &moduleName,
         TAG_LOGE(AAFwkTag::APPMGR, "null appThread");
         return;
     }
-    appThread->SchedulePrepareTerminate(moduleName, prepareTermination, isExist);
+    appThread->SchedulePrepareTerminate(moduleName);
 }
 
 void AppLifeCycleDeal::ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName)
@@ -326,7 +325,7 @@ int32_t AppLifeCycleDeal::ChangeAppGcState(int32_t state)
     return appThread->ScheduleChangeAppGcState(state);
 }
 
-int32_t AppLifeCycleDeal::AttachAppDebug()
+int32_t AppLifeCycleDeal::AttachAppDebug(bool isDebugFromLocal)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     auto appThread = GetApplicationClient();
@@ -334,7 +333,7 @@ int32_t AppLifeCycleDeal::AttachAppDebug()
         TAG_LOGE(AAFwkTag::APPMGR, "null appThread");
         return ERR_INVALID_VALUE;
     }
-    appThread->AttachAppDebug();
+    appThread->AttachAppDebug(isDebugFromLocal);
     return ERR_OK;
 }
 

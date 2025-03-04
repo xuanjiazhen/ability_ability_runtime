@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -241,6 +241,34 @@ public:
      * You can override this function to implement your own processing logic.
      */
     void OnBackground() override;
+    
+    /**
+     * @brief Called before this ability enters the <b>STATE_FOREGROUND</b> state.
+     * The ability in the <b>STATE_FOREGROUND</b> state is invisible.
+     * You can override this function to implement your own processing logic.
+     */
+    void OnWillForeground() override;
+
+    /**
+     * @brief Called after wms show event.
+     * The ability in the <b>STATE_FOREGROUND</b> state is invisible.
+     * You can override this function to implement your own processing logic.
+     */
+    void OnDidForeground() override;
+
+    /**
+     * @brief Called before OnBackground.
+     * The ability in the <b>STATE_BACKGROUND</b> state is invisible.
+     * You can override this function to implement your own processing logic.
+     */
+    void OnWillBackground() override;
+
+    /**
+     * @brief Called after wms hiden event.
+     * The ability in the <b>STATE_BACKGROUND</b> state is invisible.
+     * You can override this function to implement your own processing logic.
+     */
+    void OnDidBackground() override;
 
     /**
      * Called when back press is dispatched.
@@ -252,10 +280,8 @@ public:
      * @brief Called when ability prepare terminate.
      * @param callbackInfo The callbackInfo is used when onPrepareToTerminateAsync is implemented.
      * @param isAsync The returned flag indicates if onPrepareToTerminateAsync is implemented.
-     * @param prepareTermination The flag indicates if the ability needs to stop terminating.
      */
-    void OnPrepareTerminate(AppExecFwk::AbilityTransactionCallbackInfo<bool> *callbackInfo,
-        bool &isAsync, bool &prepareTermination) override;
+    void OnPrepareTerminate(AppExecFwk::AbilityTransactionCallbackInfo<bool> *callbackInfo, bool &isAsync) override;
 
     /**
      * @brief Get JsWindow Stage

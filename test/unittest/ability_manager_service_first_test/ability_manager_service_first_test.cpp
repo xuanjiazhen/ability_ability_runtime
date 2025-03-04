@@ -1374,36 +1374,6 @@ HWTEST_F(AbilityManagerServiceFirstTest, VerifyAccountPermission_001, TestSize.L
 
 /*
  * Feature: AbilityManagerService
- * Function: CheckPrepareTerminateEnable
- * SubFunction: NA
- * FunctionPoints: AbilityManagerService CheckPrepareTerminateEnable
- * @tc.require: issueI7SX12
- */
-HWTEST_F(AbilityManagerServiceFirstTest, CheckPrepareTerminateEnable_001, TestSize.Level1)
-{
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    abilityMs_->isPrepareTerminateEnable_ = false;
-    bool res = abilityMs_->CheckPrepareTerminateEnable();
-    EXPECT_FALSE(res);
-}
-
-/*
- * Feature: AbilityManagerService
- * Function: CheckPrepareTerminateEnable
- * SubFunction: NA
- * FunctionPoints: AbilityManagerService CheckPrepareTerminateEnable
- * @tc.require: issueI7SX12
- */
-HWTEST_F(AbilityManagerServiceFirstTest, CheckPrepareTerminateEnable_002, TestSize.Level1)
-{
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    abilityMs_->isPrepareTerminateEnable_ = true;
-    bool res = abilityMs_->CheckPrepareTerminateEnable();
-    EXPECT_TRUE(res);
-}
-
-/*
- * Feature: AbilityManagerService
  * Function: ConnectRemoteAbility
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService ConnectRemoteAbility
@@ -1458,7 +1428,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, AttachAppDebug_001, TestSize.Level1)
 {
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     std::string bundleName;
-    abilityMs_->AttachAppDebug(bundleName);
+    abilityMs_->AttachAppDebug(bundleName, false);
     EXPECT_NE(abilityMs_, nullptr);
 }
 
@@ -1472,7 +1442,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, DetachAppDebug_001, TestSize.Level1)
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
     std::string bundleName;
-    auto result = abilityMs_->DetachAppDebug(bundleName);
+    auto result = abilityMs_->DetachAppDebug(bundleName, false);
     EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
 }
 

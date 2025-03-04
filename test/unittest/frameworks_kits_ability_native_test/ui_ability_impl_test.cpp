@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,7 @@
 #include "ui_ability_impl.h"
 #undef protected
 #undef private
+#include "ability_context_impl.h"
 #include "ability_handler.h"
 #include "context_deal.h"
 #include "locale_config.h"
@@ -97,6 +98,8 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_ScheduleUpdateConfiguration_001, Test
             contextDeal->SetApplicationContext(application);
             pMocKUIAbility->AttachBaseContext(contextDeal);
             application->AttachBaseContext(contextDeal);
+            auto abilityContext = std::make_shared<AbilityContextImpl>();
+            uiability->AttachAbilityContext(abilityContext);
             mockUIAbilityimpl->Init(application, record, uiability, handler, token);
 
             Configuration config;
@@ -145,6 +148,8 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_ScheduleUpdateConfiguration_002, Test
             contextDeal->SetApplicationContext(application);
             pMocKUIAbility->AttachBaseContext(contextDeal);
             application->AttachBaseContext(contextDeal);
+            auto abilityContext = std::make_shared<AbilityContextImpl>();
+            uiability->AttachAbilityContext(abilityContext);
             mockUIAbilityimpl->Init(application, record, uiability, handler, token);
 
             auto testNotify1 = pMocKUIAbility->OnConfigurationUpdated_;
@@ -203,6 +208,8 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_ScheduleUpdateConfiguration_003, Test
             contextDeal->SetApplicationContext(application);
             pMocKUIAbility->AttachBaseContext(contextDeal);
             application->AttachBaseContext(contextDeal);
+            auto abilityContext = std::make_shared<AbilityContextImpl>();
+            uiability->AttachAbilityContext(abilityContext);
             mockUIAbilityimpl->Init(application, record, uiability, handler, token);
 
             Configuration config;
@@ -2067,10 +2074,8 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_PrepareTerminateAbility_0100, TestSiz
     abilityImpl_->ExecuteInsightIntentDone(intentId, result);
     abilityImpl_->ability_ = nullptr;
     bool isAsync = false;
-    bool prepareTermination = false;
-    abilityImpl_->PrepareTerminateAbility(nullptr, isAsync, prepareTermination);
+    abilityImpl_->PrepareTerminateAbility(nullptr, isAsync);
     EXPECT_EQ(isAsync, false);
-    EXPECT_EQ(prepareTermination, false);
     GTEST_LOG_(INFO) << "AbilityRuntime_PrepareTerminateAbility_0100 end";
 }
 
@@ -2085,10 +2090,8 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_PrepareTerminateAbility_0200, TestSiz
     ASSERT_NE(abilityImpl_, nullptr);
     abilityImpl_->ability_ = std::make_shared<UIAbility>();
     bool isAsync = false;
-    bool prepareTermination = false;
-    abilityImpl_->PrepareTerminateAbility(nullptr, isAsync, prepareTermination);
+    abilityImpl_->PrepareTerminateAbility(nullptr, isAsync);
     EXPECT_EQ(isAsync, false);
-    EXPECT_EQ(prepareTermination, false);
     GTEST_LOG_(INFO) << "AbilityRuntime_PrepareTerminateAbility_0200 end";
 }
 
@@ -2300,6 +2303,40 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_UpdateSilentForeground_0100, TestSize
     abilityImpl->UpdateSilentForeground(targetState, sessionInfo);
     EXPECT_EQ(true, abilityImpl->ability_->CheckIsSilentForeground());
     GTEST_LOG_(INFO) << "AbilityRuntime_UpdateSilentForeground_0100 end";
+}
+
+/**
+ * @tc.number: AbilityRuntime_AfterDidForeground_0100
+ * @tc.name: AfterDidForeground
+ * @tc.desc: Verify AfterDidForeground succeeded.
+ */
+HWTEST_F(UIAbilityImplTest, AbilityRuntime_AfterDidForeground_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AfterDidForeground_0100 start";
+    sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    auto abilityImpl = std::make_shared<UIAbilityImpl>();
+    sptr<UIAbilityImpl::WindowLifeCycleImpl> impl =
+        new (std::nothrow) UIAbilityImpl::WindowLifeCycleImpl(token, abilityImpl);
+    ASSERT_NE(impl, nullptr);
+    impl->AfterDidForeground();
+    GTEST_LOG_(INFO) << "AbilityRuntime_AfterDidForeground_0100 end";
+}
+
+/**
+ * @tc.number: AbilityRuntime_AfterDidBackground_0100
+ * @tc.name: AfterDidBackground
+ * @tc.desc: Verify AfterDidBackground succeeded.
+ */
+HWTEST_F(UIAbilityImplTest, AbilityRuntime_AfterDidBackground_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AfterDidBackground_0100 start";
+    sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    auto abilityImpl = std::make_shared<UIAbilityImpl>();
+    sptr<UIAbilityImpl::WindowLifeCycleImpl> impl =
+        new (std::nothrow) UIAbilityImpl::WindowLifeCycleImpl(token, abilityImpl);
+    ASSERT_NE(impl, nullptr);
+    impl->AfterDidBackground();
+    GTEST_LOG_(INFO) << "AbilityRuntime_AfterDidBackground_0100 end";
 }
 } // namespace AppExecFwk
 } // namespace OHOS

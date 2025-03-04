@@ -154,6 +154,7 @@ constexpr char EVENT_KEY_TYPE[] = "TYPE";
 constexpr char EVENT_KEY_HAPPEN_TIME[] = "HAPPEN_TIME";
 constexpr char EVENT_KEY_REASON[] = "REASON";
 constexpr char EVENT_KEY_JSVM[] = "JSVM";
+constexpr char EVENT_KEY_CANGJIE[] = "CANGJIE";
 constexpr char EVENT_KEY_SUMMARY[] = "SUMMARY";
 constexpr char EVENT_KEY_PNAME[] = "PNAME";
 constexpr char EVENT_KEY_APP_RUNING_UNIQUE_ID[] = "APP_RUNNING_UNIQUE_ID";
@@ -164,6 +165,9 @@ constexpr char KILL_REASON[] = "Kill Reason:Js Error";
 const int32_t JSCRASH_TYPE = 3;
 const std::string JSVM_TYPE = "ARK";
 const std::string SIGNAL_HANDLER = "OS_SignalHandler";
+
+const int32_t CJERROR_TYPE = 9;
+const std::string CANGJIE_TYPE = "CJNATIVE";
 
 constexpr uint32_t CHECK_MAIN_THREAD_IS_ALIVE = 1;
 
@@ -591,7 +595,8 @@ void MainThread::ScheduleHeapMemory(const int32_t pid, OHOS::AppExecFwk::MallocI
 void MainThread::ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info)
 {
     TAG_LOGI(AAFwkTag::APPKIT, "pid: %{public}d, tid: %{public}d, needGc: %{public}d, needSnapshot: %{public}d,\n"
-        "needLeakobj: %{public}d", info.pid, info.tid, info.needGc, info.needSnapshot, info.needLeakobj);
+        "needLeakobj: %{public}d, needBinary: %{public}d",
+        info.pid, info.tid, info.needGc, info.needSnapshot, info.needLeakobj, info.needBinary);
     wptr<MainThread> weak = this;
     auto task = [weak, info]() {
         auto appThread = weak.promote();
@@ -1022,7 +1027,7 @@ bool MainThread::InitResourceManager(std::shared_ptr<Global::Resource::ResourceM
     std::unique_ptr<Global::Resource::ResConfig> resConfig(Global::Resource::CreateResConfig());
 #if defined(SUPPORT_GRAPHICS) && defined(SUPPORT_APP_PREFERRED_LANGUAGE)
     UErrorCode status = U_ZERO_ERROR;
-    icu::Locale systemLocale = icu::Locale::forLanguageTag(Global::I18n::LocaleConfig::GetSystemLocale(), status);
+    icu::Locale systemLocale = icu::Locale::forLanguageTag(Global::I18n::LocaleConfig::GetEffectiveLanguage(), status);
     resConfig->SetLocaleInfo(systemLocale);
 
     if (Global::I18n::PreferredLanguage::IsSetAppPreferredLanguage()) {
@@ -1264,15 +1269,16 @@ CJUncaughtExceptionInfo MainThread::CreateCjExceptionInfo(const std::string &bun
             std::string errName = errorObj.name ? errorObj.name : "[none]";
             std::string errMsg = errorObj.message ? errorObj.message : "[none]";
             std::string errStack = errorObj.stack ? errorObj.stack : "[none]";
-            HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::AAFWK, "CJ_ERROR",
+            std::string errSummary = summary + "\nException info: " + errMsg + "\n" + "Stacktrace:\n" + errStack;
+            HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::CJ_RUNTIME, "CJ_ERROR",
                 OHOS::HiviewDFX::HiSysEvent::EventType::FAULT,
                 EVENT_KEY_PACKAGE_NAME, bundleName,
                 EVENT_KEY_VERSION, std::to_string(versionCode),
-                EVENT_KEY_TYPE, JSCRASH_TYPE,
+                EVENT_KEY_TYPE, CJERROR_TYPE,
                 EVENT_KEY_HAPPEN_TIME, timet,
                 EVENT_KEY_REASON, errName,
                 EVENT_KEY_JSVM, JSVM_TYPE,
-                EVENT_KEY_SUMMARY, summary);
+                EVENT_KEY_SUMMARY, errSummary);
             ErrorObject appExecErrorObj = {
                 .name = errName,
                 .message = errMsg,
@@ -1559,15 +1565,16 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         debugOption.isDebugApp = appInfo.debug;
         debugOption.isStartWithNative = appLaunchData.isNativeStart();
         debugOption.appProvisionType = applicationInfo_->appProvisionType;
+        debugOption.isDebugFromLocal = appLaunchData.GetDebugFromLocal();
+        debugOption.perfCmd = perfCmd;
+        debugOption.isDeveloperMode = isDeveloperMode_;
+        runtime->SetDebugOption(debugOption);
         if (perfCmd.find(PERFCMD_PROFILE) != std::string::npos ||
             perfCmd.find(PERFCMD_DUMPHEAP) != std::string::npos) {
             TAG_LOGD(AAFwkTag::APPKIT, "perfCmd is %{public}s", perfCmd.c_str());
-            debugOption.perfCmd = perfCmd;
             runtime->StartProfiler(debugOption);
         } else {
-            if (isDeveloperMode_) {
-                runtime->StartDebugMode(debugOption);
-            }
+            runtime->StartDebugMode(debugOption);
         }
 
         std::vector<HqfInfo> hqfInfos = appInfo.appQuickFix.deployedAppqfInfo.hqfInfos;
@@ -2068,7 +2075,7 @@ void MainThread::HandleUpdateApplicationInfoInstalled(const ApplicationInfo& app
         return;
     }
     application_->UpdateApplicationInfoInstalled(appInfo);
-
+#ifndef CJ_FRONTEND
     auto& runtime = application_->GetRuntime();
     if (runtime == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
@@ -2089,10 +2096,11 @@ void MainThread::HandleUpdateApplicationInfoInstalled(const ApplicationInfo& app
         TAG_LOGE(AAFwkTag::APPKIT, "GetHapModuleInfo failed");
         return;
     }
-    runtime->UpdatePkgContextInfoJsonEx(hapModuleInfo.moduleName, hapModuleInfo.hapPath, hapModuleInfo.packageName);
+    runtime->UpdatePkgContextInfoJson(hapModuleInfo.moduleName, hapModuleInfo.hapPath, hapModuleInfo.packageName);
     TAG_LOGI(AAFwkTag::APPKIT,
-        "UpdatePkgContextInfoJsonEx moduleName: %{public}s, hapPath: %{public}s, packageName: %{public}s",
+        "UpdatePkgContextInfoJson moduleName: %{public}s, hapPath: %{public}s, packageName: %{public}s",
         hapModuleInfo.moduleName.c_str(), hapModuleInfo.hapPath.c_str(), hapModuleInfo.packageName.c_str());
+#endif
 }
 
 void MainThread::HandleAbilityStage(const HapModuleInfo &abilityStage)
@@ -3065,81 +3073,51 @@ void MainThread::ScheduleAcceptWant(const AAFwk::Want &want, const std::string &
     }
 }
 
-void MainThread::SchedulePrepareTerminate(const std::string &moduleName,
-    int32_t &prepareTermination, bool &isExist)
+void MainThread::SchedulePrepareTerminate(const std::string &moduleName)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "called");
-    wptr<MainThread> weak = this;
-    std::shared_ptr<int32_t> prepareTerminatePtr = std::make_shared<int32_t>(0);
-    std::shared_ptr<bool> isExistPtr = std::make_shared<bool>(false);
-    if (prepareTerminatePtr == nullptr || isExistPtr == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null, prepareTerminatePtr=%{public}d or isExistPtr=%{public}d",
-            (prepareTerminatePtr == nullptr), (isExistPtr == nullptr));
+    TAG_LOGD(AAFwkTag::APPKIT, "SchedulePrepareTerminate called");
+    if (getpid() == gettid()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "in app main thread");
+        HandleSchedulePrepareTerminate(moduleName);
         return;
     }
-    auto asyncTask = [weak, moduleName, prepareTerminatePtr, isExistPtr] {
+    wptr<MainThread> weak = this;
+    auto asyncTask = [weak, moduleName] {
         auto appThread = weak.promote();
         if (appThread == nullptr) {
-            TAG_LOGE(AAFwkTag::APPKIT, "null parameter");
+            TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
             return;
         }
-        appThread->HandleSchedulePrepareTerminate(moduleName, prepareTerminatePtr, *isExistPtr);
+        appThread->HandleSchedulePrepareTerminate(moduleName);
     };
     if (mainHandler_ == nullptr || !mainHandler_->PostTask(asyncTask, "MainThread::SchedulePrepareTerminate")) {
         TAG_LOGE(AAFwkTag::APPKIT, "post asynctask failed");
-        return;
     }
-
-    auto condition = [weak] {
-        auto appThread = weak.promote();
-        if (appThread == nullptr) {
-            TAG_LOGE(AAFwkTag::APPKIT, "null parameter");
-            return false;
-        }
-        return appThread->isPrepareTerminateDone_.load();
-    };
-    std::unique_lock<std::mutex> lock(mutex_);
-    isPrepareTerminateDone_ = false;
-    if (!cv_.wait_for(lock, std::chrono::milliseconds(AbilityRuntime::GlobalConstant::PREPARE_TERMINATE_TIMEOUT_TIME),
-        condition)) {
-        TAG_LOGW(AAFwkTag::APPKIT, "wait timeout");
-        return;
-    }
-    prepareTermination = *prepareTerminatePtr;
-    isExist = *isExistPtr;
-    TAG_LOGI(AAFwkTag::APPKIT, "end, prepareTermination=%{public}d,isExist=%{public}d", prepareTermination, isExist);
 }
 
-void MainThread::HandleSchedulePrepareTerminate(const std::string &moduleName,
-    std::shared_ptr<int32_t> prepareTerminationPtr, bool &isExist)
+void MainThread::HandleSchedulePrepareTerminate(const std::string &moduleName)
 {
-    if (prepareTerminationPtr == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null prepareTerminationPtr");
-        return;
-    }
-    std::unique_lock<std::mutex> lock(mutex_);
     if (!application_) {
         TAG_LOGE(AAFwkTag::APPKIT, "null application_");
         return;
     }
 
     wptr<MainThread> weak = this;
-    auto callback = [weak, prepareTerminationPtr] (int prepareTermination) {
+    auto callback = [weak, _moduleName = moduleName] (AppExecFwk::OnPrepareTerminationResult result) {
         auto appThread = weak.promote();
-        if (appThread == nullptr || prepareTerminationPtr == nullptr) {
-            TAG_LOGE(AAFwkTag::APPKIT, "null appThread or prepareTerminationPtr");
+        if (appThread == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
             return;
         }
-        TAG_LOGI(AAFwkTag::APPKIT, "in callback, prepareTermination=%{public}d", prepareTermination);
-        *prepareTerminationPtr = prepareTermination;
-        appThread->isPrepareTerminateDone_.store(true);
-        appThread->cv_.notify_all();
+        TAG_LOGI(AAFwkTag::APPKIT, "in callback, prepareTermination=%{public}d, isExist=%{public}d",
+            result.prepareTermination, result.isExist);
+        AbilityManagerClient::GetInstance()->KillProcessWithPrepareTerminateDone(_moduleName,
+            result.prepareTermination, result.isExist);
     };
     bool isAsync = false;
-    application_->SchedulePrepareTerminate(moduleName, callback, isAsync, *prepareTerminationPtr, isExist);
+    application_->SchedulePrepareTerminate(moduleName, callback, isAsync);
     if (!isAsync) {
-        TAG_LOGI(AAFwkTag::APPKIT, "sync call, isExist=%{public}d", isExist);
-        callback(*prepareTerminationPtr);
+        TAG_LOGI(AAFwkTag::APPKIT, "sync call");
     }
 }
 
@@ -3507,10 +3485,47 @@ int32_t MainThread::ChangeAppGcState(int32_t state)
     return NO_ERROR;
 }
 
-void MainThread::AttachAppDebug()
+void MainThread::AttachAppDebug(bool isDebugFromLocal)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
     SetAppDebug(AbilityRuntime::AppFreezeState::AppFreezeFlag::ATTACH_DEBUG_MODE, true);
+
+    if (!isDebugFromLocal) {
+        TAG_LOGE(AAFwkTag::APPKIT, "no local debug");
+        return;
+    }
+    wptr<MainThread> weak = this;
+    auto task = [weak] {
+        auto appThread = weak.promote();
+        if (appThread == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
+            return;
+        }
+        appThread->OnAttachLocalDebug(true);
+    };
+    if (mainHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null handler");
+        return;
+    }
+    if (!mainHandler_->PostTask(task, "MainThread:AttachAppDebug")) {
+        TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
+    }
+}
+
+int32_t MainThread::OnAttachLocalDebug(bool isDebugFromLocal)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    if (application_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null application_");
+        return ERR_INVALID_VALUE;
+    }
+    auto &runtime = application_->GetRuntime();
+    if (runtime == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
+        return ERR_INVALID_VALUE;
+    }
+    runtime->StartLocalDebugMode(isDebugFromLocal);
+    return NO_ERROR;
 }
 
 void MainThread::DetachAppDebug()

@@ -266,7 +266,7 @@ public:
 
     void GetActiveAbilityList(int32_t uid, std::vector<std::string> &abilityList, int32_t pid = NO_PID);
 
-    bool PrepareTerminateAbility(const std::shared_ptr<AbilityRecord> &abilityRecord);
+    bool PrepareTerminateAbility(const std::shared_ptr<AbilityRecord> &abilityRecord, bool isSCBCall);
     void SetSessionHandler(const sptr<ISessionHandler> &handler);
 
     /**
@@ -370,6 +370,12 @@ public:
 
     void EnableListForSCBRecovery();
 
+    void SetKillForPermissionUpdateFlag(uint32_t accessTokenId);
+
+    void PrepareTerminateAbilityDone(std::shared_ptr<AbilityRecord> abilityRecord, bool isTerminate);
+
+    void TryPrepareTerminateByPidsDone(const std::string &moduleName, int32_t prepareTermination, bool isExist);
+
 private:
     int32_t GetPersistentIdByAbilityRequest(const AbilityRequest &abilityRequest, bool &reuse) const;
     int32_t GetReusedSpecifiedPersistentId(const AbilityRequest &abilityRequest, bool &reuse) const;
@@ -392,7 +398,7 @@ private:
         AbilityState state = AbilityState::INITIAL);
     void HandleForegroundTimeout(const std::shared_ptr<AbilityRecord> &ability);
     void NotifySCBToHandleException(const std::shared_ptr<AbilityRecord> &ability, int32_t errorCode,
-        const std::string& errorReason);
+        const std::string& errorReason, bool needClearCallerLink = true);
     void MoveToBackground(const std::shared_ptr<AbilityRecord> &abilityRecord);
     void CompleteBackground(const std::shared_ptr<AbilityRecord> &abilityRecord);
     void PrintTimeOutLog(std::shared_ptr<AbilityRecord> ability, uint32_t msgId, bool isHalf = false);
@@ -429,8 +435,6 @@ private:
     void SetLastExitReason(std::shared_ptr<AbilityRecord> &abilityRecord) const;
     void SetReceiverInfo(const AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &abilityRecord) const;
 
-    bool CheckPrepareTerminateEnable(const std::shared_ptr<AbilityRecord> &abilityRecord);
-
     /**
      * @brief Execute PrepareTerminateApp when it is implemented
      *
@@ -458,6 +462,7 @@ private:
     int StartWithPersistentIdByDistributed(const AbilityRequest &abilityRequest, int32_t persistentId);
     void CheckCallerFromBackground(std::shared_ptr<AbilityRecord> callerAbility, sptr<SessionInfo> &sessionInfo);
     int32_t DoCallerProcessAttachment(std::shared_ptr<AbilityRecord> abilityRecord);
+    int32_t DoCallerProcessDetachment(std::shared_ptr<AbilityRecord> abilityRecord);
     std::shared_ptr<AbilityRecord> GenerateAbilityRecord(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
         bool &isColdStart);
     std::shared_ptr<AbilityRecord> FindRecordFromTmpMap(const AbilityRequest &abilityRequest);
@@ -488,6 +493,11 @@ private:
     void PutSpecifiedFlag(int32_t requestId, const std::string &flag);
     bool CheckPrepareTerminateTokens(const std::vector<sptr<IRemoteObject>> &tokens,
         uint32_t &tokenId, std::map<std::string, std::vector<sptr<IRemoteObject>>> &tokensPerModuleName);
+    void HandleAbilityStageOnPrepareTerminationTimeout(int32_t pid, const std::string &moduleName,
+        const std::vector<sptr<IRemoteObject>> &tokens);
+    std::vector<sptr<IRemoteObject>> PrepareTerminateAppAndGetRemainingInner(int32_t pid, const std::string &moduleName,
+        const std::vector<sptr<IRemoteObject>> &tokens);
+    void CancelPrepareTerminate(std::shared_ptr<AbilityRecord> abilityRecord);
 
     int32_t userId_ = -1;
     mutable ffrt::mutex sessionLock_;
@@ -509,6 +519,22 @@ private:
 
     std::map<std::string, std::list<std::shared_ptr<SpecifiedRequest>>> specifiedRequestList_;
     std::map<int32_t, std::string> specifiedFlagMap_;
+
+    struct PrepareTerminateByPidRecord {
+        pid_t pid_;
+        std::string moduleName_;
+        std::atomic_bool isTryPrepareTerminateByPidsDone_;
+        int32_t prepareTermination_;
+        bool isExist_;
+
+        PrepareTerminateByPidRecord(pid_t pid, const std::string &moduleName, bool done,
+            int32_t prepareTermination, bool isExist) : pid_(pid), moduleName_(moduleName),
+            isTryPrepareTerminateByPidsDone_(done), prepareTermination_(prepareTermination),
+            isExist_(isExist) {}
+    };
+    std::mutex isTryPrepareTerminateByPidsDoneMutex_;
+    std::condition_variable isTryPrepareTerminateByPidsCv_;
+    std::vector<std::shared_ptr<PrepareTerminateByPidRecord>> prepareTerminateByPidRecords_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -221,8 +221,6 @@ int32_t AmsMgrStub::OnRemoteRequestInnerFourth(uint32_t code, MessageParcel &dat
             return HandleSetKeepAliveDkv(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::KILL_PROCESSES_IN_BATCH):
             return HandleKillProcessesInBatch(data, reply);
-        case static_cast<uint32_t>(IAmsMgr::Message::SEND_APP_SPAWN_UNINSTALL_DEBUG_HAP_MSG):
-            return HandleSendAppSpawnUninstallDebugHapMsg(data);
     }
     return AAFwk::ERR_CODE_NOT_EXIST;
 }
@@ -308,8 +306,13 @@ ErrCode AmsMgrStub::HandleKillProcessesByUserId(MessageParcel &data, MessageParc
 {
     HITRACE_METER(HITRACE_TAG_APP);
     int32_t userId = data.ReadInt32();
+    sptr<AAFwk::IUserCallback> callback = nullptr;
+    bool isWithCallback = data.ReadBool();
+    if (isWithCallback) {
+        callback = iface_cast<AAFwk::IUserCallback>(data.ReadRemoteObject());
+    }
 
-    KillProcessesByUserId(userId);
+    KillProcessesByUserId(userId, callback);
     return NO_ERROR;
 }
 
@@ -500,17 +503,7 @@ int32_t AmsMgrStub::HandlePrepareTerminateApp(MessageParcel &data, MessageParcel
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     auto pid = static_cast<pid_t>(data.ReadInt32());
     auto moduleName = data.ReadString();
-    int32_t prepareTermination = 0;
-    bool isExist = false;
-    PrepareTerminateApp(pid, moduleName, prepareTermination, isExist);
-    if (!reply.WriteInt32(prepareTermination)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write prepareTermination failed.");
-        return ERR_INVALID_VALUE;
-    }
-    if (!reply.WriteBool(isExist)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write isExist failed.");
-        return ERR_INVALID_VALUE;
-    }
+    PrepareTerminateApp(pid, moduleName);
     return NO_ERROR;
 }
 
@@ -658,8 +651,9 @@ int32_t AmsMgrStub::HandleAttachAppDebug(MessageParcel &data, MessageParcel &rep
         TAG_LOGE(AAFwkTag::APPMGR, "Bundle name is empty.");
         return ERR_INVALID_VALUE;
     }
+    auto isDebugFromLocal = data.ReadBool();
 
-    auto result = AttachAppDebug(bundleName);
+    auto result = AttachAppDebug(bundleName, isDebugFromLocal);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Fail to write result.");
         return ERR_INVALID_VALUE;
@@ -923,14 +917,6 @@ int32_t AmsMgrStub::HandleIsCallerKilling(MessageParcel &data, MessageParcel &re
         TAG_LOGE(AAFwkTag::APPMGR, "Fail to write result");
         return ERR_INVALID_VALUE;
     }
-    return NO_ERROR;
-}
-
-ErrCode AmsMgrStub::HandleSendAppSpawnUninstallDebugHapMsg(MessageParcel &data)
-{
-    HITRACE_METER(HITRACE_TAG_APP);
-    auto userId = data.ReadInt32();
-    SendAppSpawnUninstallDebugHapMsg(userId);
     return NO_ERROR;
 }
 }  // namespace AppExecFwk

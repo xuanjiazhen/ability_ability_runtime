@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -313,7 +313,8 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_KillProcessesByUse
      * @tc.steps: step1. amsMgrScheduler isReady false
      * @tc.expected: step1. expect taskHandler_ time(0)
      */
-    amsMgrScheduler->KillProcessesByUserId(-1);
+    amsMgrScheduler->KillProcessesByUserId(-1, false, nullptr);
+    amsMgrScheduler->KillProcessesByUserId(-1, true, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_KillProcessesByUserId_001 end");
 }
 
@@ -334,7 +335,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_KillProcessesByUse
     MyFlag::flag_ = 0;
     EXPECT_CALL(*taskHandler_, SubmitTaskInner(_, _)).Times(0);
     IPCSkeleton::SetCallingUid(-1);
-    amsMgrScheduler->KillProcessesByUserId(-1);
+    amsMgrScheduler->KillProcessesByUserId(-1, false, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_KillProcessesByUserId_002 end");
 }
 
@@ -356,7 +357,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_KillProcessesByUse
     MyFlag::flag_ = 0;
     EXPECT_CALL(*taskHandler_, SubmitTaskInner(_, _)).Times(0);
     IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
-    amsMgrScheduler->KillProcessesByUserId(-1);
+    amsMgrScheduler->KillProcessesByUserId(-1, false, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_KillProcessesByUserId_003 end");
 }
 
@@ -379,7 +380,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_KillProcessesByUse
     MockNativeToken::SetNativeToken();
     MyFlag::flag_ = 1;
     EXPECT_CALL(*taskHandler_, SubmitTaskInner(_, _)).Times(AtLeast(1)).WillRepeatedly(Return(nullptr));
-    amsMgrScheduler->KillProcessesByUserId(-1);
+    amsMgrScheduler->KillProcessesByUserId(-1, false, nullptr);
     MyFlag::flag_ = 0;
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_KillProcessesByUserId_004 end");
 }
@@ -1266,7 +1267,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_AttachAppDebug_001
      * @tc.steps: step1. amsMgrScheduler isReady false
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
-    auto ret = amsMgrScheduler->AttachAppDebug("");
+    auto ret = amsMgrScheduler->AttachAppDebug("", false);
     EXPECT_EQ(ret, ERR_INVALID_OPERATION);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_AttachAppDebug_001 end");
 }
@@ -1288,7 +1289,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_AttachAppDebug_002
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
     MyFlag::flag_ = 0;
-    auto ret = amsMgrScheduler->AttachAppDebug("");
+    auto ret = amsMgrScheduler->AttachAppDebug("", false);
     EXPECT_EQ(ret, ERR_INVALID_OPERATION);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_AttachAppDebug_002 end");
 }
@@ -1310,7 +1311,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_AttachAppDebug_003
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
     MyFlag::flag_ = MyFlag::IS_SA_CALL;
-    auto ret = amsMgrScheduler->AttachAppDebug("");
+    auto ret = amsMgrScheduler->AttachAppDebug("", false);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_AttachAppDebug_003 end");
 }

@@ -729,6 +729,69 @@ void JsUIAbility::OnBackground()
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 
+void JsUIAbility::OnWillForeground()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", GetAbilityName().c_str());
+    UIAbility::OnWillForeground();
+
+    std::string methodName = "OnWillForeground";
+    HandleScope handleScope(jsRuntime_);
+    AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
+    CallObjectMethod("onWillForeground");
+    AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
+
+    TAG_LOGD(AAFwkTag::UIABILITY, "end");
+}
+
+void JsUIAbility::OnDidForeground()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", GetAbilityName().c_str());
+    UIAbility::OnDidForeground();
+
+    std::string methodName = "OnDidForeground";
+    HandleScope handleScope(jsRuntime_);
+    AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
+    CallObjectMethod("onDidForeground");
+    AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
+
+    if (scene_ != nullptr) {
+        scene_->GoResume();
+    }
+    TAG_LOGD(AAFwkTag::UIABILITY, "end");
+}
+
+void JsUIAbility::OnWillBackground()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", GetAbilityName().c_str());
+    UIAbility::OnWillBackground();
+
+    std::string methodName = "OnWillBackground";
+    HandleScope handleScope(jsRuntime_);
+    AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::BACKGROUND, methodName);
+    CallObjectMethod("onWillBackground");
+    AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::BACKGROUND, methodName);
+
+    TAG_LOGD(AAFwkTag::UIABILITY, "end");
+}
+
+void JsUIAbility::OnDidBackground()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", GetAbilityName().c_str());
+    UIAbility::OnDidBackground();
+
+    std::string methodName = "OnDidBackground";
+    HandleScope handleScope(jsRuntime_);
+    AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::BACKGROUND, methodName);
+    CallObjectMethod("onDidBackground");
+    AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::BACKGROUND, methodName);
+
+    TAG_LOGD(AAFwkTag::UIABILITY, "end");
+}
+
 bool JsUIAbility::OnBackPress()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -752,11 +815,11 @@ bool JsUIAbility::OnBackPress()
 }
 
 void JsUIAbility::OnPrepareTerminate(AppExecFwk::AbilityTransactionCallbackInfo<bool> *callbackInfo,
-    bool &isAsync, bool &prepareTermination)
+    bool &isAsync)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", GetAbilityName().c_str());
-    UIAbility::OnPrepareTerminate(callbackInfo, isAsync, prepareTermination);
+    UIAbility::OnPrepareTerminate(callbackInfo, isAsync);
     HandleScope handleScope(jsRuntime_);
     auto env = jsRuntime_.GetNapiEnv();
     napi_value onPrepareToTerminateAsyncResult = nullptr;
@@ -773,10 +836,11 @@ void JsUIAbility::OnPrepareTerminate(AppExecFwk::AbilityTransactionCallbackInfo<
     }
     if (onPrepareToTerminateResult != nullptr) {
         TAG_LOGI(AAFwkTag::UIABILITY, "sync call");
-        prepareTermination = false;
-        if (!ConvertFromJsValue(env, onPrepareToTerminateResult, prepareTermination)) {
+        bool isTerminate = false;
+        if (!ConvertFromJsValue(env, onPrepareToTerminateResult, isTerminate)) {
             TAG_LOGE(AAFwkTag::UIABILITY, "get js value failed");
         }
+        callbackInfo->Call(isTerminate);
         return;
     }
     TAG_LOGI(AAFwkTag::UIABILITY, "async call");
@@ -895,6 +959,8 @@ void JsUIAbility::DoOnForeground(const Want &want)
         return;
     }
 
+    OnWillForeground();
+    
     TAG_LOGD(AAFwkTag::UIABILITY, "move scene to foreground, sceneFlag_: %{public}d", UIAbility::sceneFlag_);
     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, METHOD_NAME);
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "scene_->GoForeground");
@@ -1386,17 +1452,30 @@ void JsUIAbility::OnConfigurationUpdated(const Configuration &configuration)
 
     HandleScope handleScope(jsRuntime_);
     auto env = jsRuntime_.GetNapiEnv();
+    auto abilityConfig = abilityContext_->GetAbilityConfiguration();
     auto fullConfig = abilityContext_->GetConfiguration();
     if (fullConfig == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null fullConfig");
         return;
     }
 
-    TAG_LOGD(AAFwkTag::UIABILITY, "fullConfig: %{public}s", fullConfig->GetName().c_str());
-    napi_value napiConfiguration = OHOS::AppExecFwk::WrapConfiguration(env, *fullConfig);
+    auto realConfig = AppExecFwk::Configuration(*fullConfig);
+
+    if (abilityConfig != nullptr) {
+        std::vector<std::string> changeKeyV;
+        realConfig.CompareDifferent(changeKeyV, *abilityConfig);
+        if (!changeKeyV.empty()) {
+            realConfig.Merge(changeKeyV, *abilityConfig);
+        }
+    }
+
+    TAG_LOGD(AAFwkTag::UIABILITY, "realConfig: %{public}s", realConfig.GetName().c_str());
+    napi_value napiConfiguration = OHOS::AppExecFwk::WrapConfiguration(env, realConfig);
+
     CallObjectMethod("onConfigurationUpdated", &napiConfiguration, 1);
     CallObjectMethod("onConfigurationUpdate", &napiConfiguration, 1);
-    JsAbilityContext::ConfigurationUpdated(env, shellContextRef_, fullConfig);
+    auto realConfigPtr = std::make_shared<Configuration>(realConfig);
+    JsAbilityContext::ConfigurationUpdated(env, shellContextRef_, realConfigPtr);
 }
 
 void JsUIAbility::OnMemoryLevel(int level)
@@ -1510,7 +1589,7 @@ sptr<IRemoteObject> JsUIAbility::CallRequest()
     }
 
     if (remoteCallee_ != nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null remoteCallee_");
+        TAG_LOGE(AAFwkTag::UIABILITY, "remoteCallee_ is exist");
         return remoteCallee_;
     }
 

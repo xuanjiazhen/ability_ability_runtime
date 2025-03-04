@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -218,15 +218,20 @@ AppMgrResultCode AppMgrClient::KillProcessByAbilityToken(const sptr<IRemoteObjec
     return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
 }
 
-AppMgrResultCode AppMgrClient::KillProcessesByUserId(int32_t userId)
+AppMgrResultCode AppMgrClient::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg,
+    sptr<AAFwk::IUserCallback> callback)
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
         sptr<IAmsMgr> amsService = service->GetAmsMgr();
         if (amsService != nullptr) {
-            amsService->KillProcessesByUserId(userId);
+            amsService->KillProcessesByUserId(userId, isNeedSendAppSpawnMsg, callback);
             return AppMgrResultCode::RESULT_OK;
         }
+    }
+    if (callback) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
+        callback->OnLogoutUserDone(userId, AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED);
     }
     return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
 }
@@ -704,8 +709,7 @@ void AppMgrClient::StartSpecifiedAbility(const AAFwk::Want &want, const AppExecF
     amsService->StartSpecifiedAbility(want, abilityInfo, requestId);
 }
 
-void AppMgrClient::PrepareTerminateApp(const pid_t pid, const std::string &moduleName,
-    int32_t &prepareTermination, bool &isExist)
+void AppMgrClient::PrepareTerminateApp(const pid_t pid, const std::string &moduleName)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
@@ -718,7 +722,7 @@ void AppMgrClient::PrepareTerminateApp(const pid_t pid, const std::string &modul
         TAG_LOGE(AAFwkTag::APPMGR, "amsService is nullptr");
         return;
     }
-    amsService->PrepareTerminateApp(pid, moduleName, prepareTermination, isExist);
+    amsService->PrepareTerminateApp(pid, moduleName);
 }
 
 void AppMgrClient::SetKeepAliveEnableState(const std::string &bundleName, bool enable, int32_t uid)
@@ -1024,12 +1028,12 @@ int32_t AppMgrClient::UnregisterAppDebugListener(const sptr<IAppDebugListener> &
     return amsService_->UnregisterAppDebugListener(listener);
 }
 
-int32_t AppMgrClient::AttachAppDebug(const std::string &bundleName)
+int32_t AppMgrClient::AttachAppDebug(const std::string &bundleName, bool isDebugFromLocal)
 {
     if (!IsAmsServiceReady()) {
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
-    return amsService_->AttachAppDebug(bundleName);
+    return amsService_->AttachAppDebug(bundleName, isDebugFromLocal);
 }
 
 int32_t AppMgrClient::DetachAppDebug(const std::string &bundleName)
@@ -1462,26 +1466,6 @@ AppMgrResultCode AppMgrClient::IsAppRunningByBundleNameAndUserId(const std::stri
         return AppMgrResultCode(service->IsAppRunningByBundleNameAndUserId(bundleName, userId, isRunning));
     }
     return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
-}
-
-AppMgrResultCode AppMgrClient::SendAppSpawnUninstallDebugHapMsg(int32_t userId)
-{
-    if (mgrHolder_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "null mgrHolder_");
-        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
-    }
-    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
-    if (service == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "null service");
-        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
-    }
-    sptr<IAmsMgr> amsService = service->GetAmsMgr();
-    if (amsService == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "null amsService");
-        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
-    }
-    amsService->SendAppSpawnUninstallDebugHapMsg(userId);
-    return AppMgrResultCode::RESULT_OK;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -101,11 +101,14 @@ public:
     /**
      * KillProcessesByUserId, call KillProcessesByUserId() through proxy object,
      * kill the processes by userId.
+     * Send appSpawn uninstall debug hap message.
      *
      * @param userId, the user id.
+     * @param isNeedSendAppSpawnMsg, true send appSpawn message otherwise not send.
      * @return
      */
-    virtual void KillProcessesByUserId(int32_t userId) override;
+    virtual void KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg = false,
+        sptr<AAFwk::IUserCallback> callback = nullptr) override;
 
     /**
      * KillProcessesByPids, only in process call is allowed,
@@ -269,8 +272,7 @@ public:
      */
     virtual void RegisterStartSpecifiedAbilityResponse(const sptr<IStartSpecifiedAbilityResponse> &response) override;
 
-    virtual void PrepareTerminateApp(const pid_t pid, const std::string &moduleName,
-        int32_t &prepareTermination, bool &isExist) override;
+    virtual void PrepareTerminateApp(const pid_t pid, const std::string &moduleName) override;
 
     /**
      * Start specified process.
@@ -320,7 +322,7 @@ public:
      * @param bundleName The application bundle name.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t AttachAppDebug(const std::string &bundleName) override;
+    int32_t AttachAppDebug(const std::string &bundleName, bool isDebugFromLocal) override;
 
     /**
      * @brief Detach app debug.
@@ -441,13 +443,6 @@ public:
     virtual bool IsProcessAttached(sptr<IRemoteObject> token) override;
 
     virtual bool IsCallerKilling(const std::string& callerKey) override;
-
-    /**
-     * Send appSpawn uninstall debug hap message.
-     *
-     * @param userId, the user id.
-     */
-    virtual void SendAppSpawnUninstallDebugHapMsg(int32_t userId) override;
 
 private:
     /**

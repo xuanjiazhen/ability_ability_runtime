@@ -76,8 +76,7 @@ public:
     {}
     void ScheduleAcceptWant(const AAFwk::Want& want, const std::string& moduleName) override
     {}
-    void SchedulePrepareTerminate(const std::string &moduleName,
-        int32_t &prepareTermination, bool &isExist) override
+    void SchedulePrepareTerminate(const std::string &moduleName) override
     {}
     void ScheduleNewProcessRequest(const AAFwk::Want& want, const std::string& moduleName) override
     {}
@@ -105,7 +104,7 @@ public:
         return 0;
     }
 
-    void AttachAppDebug() override
+    void AttachAppDebug(bool isDebugFromLocal) override
     {}
 
     void DetachAppDebug() override
