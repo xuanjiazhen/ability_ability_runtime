@@ -16,6 +16,7 @@
 #include "ability_resident_process_rdb.h"
 
 #include "hilog_tag_wrapper.h"
+#include "hitrace_meter.h"
 #include "parser_util.h"
 #include <charconv>
 
@@ -194,7 +195,14 @@ int32_t AmsResidentProcessRdb::GetResidentProcessEnable(const std::string &bundl
     }
 
     ScopeGuard stateGuard([absSharedResultSet] { absSharedResultSet->Close(); });
-    auto ret = absSharedResultSet->GoToFirstRow();
+    auto rowCount = 0;
+    auto ret = absSharedResultSet->GetRowCount(rowCount);
+    if (ret == NativeRdb::E_OK && rowCount == 0) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Record not found");
+        return Rdb_Record_Not_Found;
+    }
+
+    ret = absSharedResultSet->GoToFirstRow();
     if (ret != NativeRdb::E_OK) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "fail, ret: %{public}d", ret);
         return Rdb_Search_Record_Err;
@@ -252,38 +260,72 @@ int32_t AmsResidentProcessRdb::RemoveData(std::string &bundleName)
     return rdbMgr_->DeleteData(absRdbPredicates);
 }
 
-int32_t AmsResidentProcessRdb::GetResidentProcessRawData(const std::string &bundleName, const std::string &callerName)
+void AmsResidentProcessRdb::UpdateResidentProcessRawData()
 {
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "UpdateResidentProcessRawData");
+    auto start = std::chrono::system_clock::now();
     std::vector<std::tuple<std::string, std::string, std::string>> initList;
     ParserUtil::GetInstance().GetResidentProcessRawData(initList);
-
-    if (initList.empty() || bundleName.empty() || callerName.empty()) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "initList size : %{public}d bundleName : %{public}s callerName : %{public}s",
-            static_cast<int>(initList.size()), bundleName.c_str(), callerName.c_str());
-        return Rdb_Parameter_Err;
+    if (initList.empty()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "initList empty");
+        return;
     }
-
     for (auto const &item : initList) {
-        if (std::get<INDEX_BUNDLE_NAME>(item) == bundleName) {
-            std::string configList = std::get<INDEX_KEEP_ALIVE_CONFIGURED_LIST>(item);
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "match bundle : %{public}s  list : %{public}s", bundleName.c_str(),
-                configList.c_str());
-            // regardless of whether a caller is added or deleted in the configuration file,
-            // we need to update the database
-            NativeRdb::ValuesBucket valuesBucket;
-            valuesBucket.PutString(KEY_KEEP_ALIVE_CONFIGURED_LIST, configList);
-            NativeRdb::AbsRdbPredicates absRdbPredicates(ABILITY_RDB_TABLE_NAME);
-            absRdbPredicates.EqualTo(KEY_BUNDLE_NAME, bundleName);
-            if (rdbMgr_ != nullptr) {
-                rdbMgr_->UpdateData(valuesBucket, absRdbPredicates);
-            }
-            if (configList.find(callerName) != std::string::npos) {
-                return Rdb_OK;
-            }
+        auto &bundleName = std::get<INDEX_BUNDLE_NAME>(item);
+        if (bundleName.empty()) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "bundleName empty");
+            continue;
+        }
+        std::string configList = std::get<INDEX_KEEP_ALIVE_CONFIGURED_LIST>(item);
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "update bundle:%{public}s, list:%{public}s", bundleName.c_str(),
+            configList.c_str());
+        bool localEnable = false;
+        auto ret = GetResidentProcessEnable(bundleName, localEnable);
+        auto result = NativeRdb::E_ERROR;
+        if (ret == Rdb_Record_Not_Found) {
+            result = InsertSingleData(bundleName, localEnable, configList);
+        } else {
+            result = UpdateSingleData(bundleName, configList);
+        }
+        if (result != NativeRdb::E_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "insert Or update fail:%{public}d", result);
         }
     }
+    int64_t cost = std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::system_clock::now() - start).count(); // todo
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "UpdateResidentProcessRawData cost %{public}" PRId64 "mirco seconds", cost);
+}
 
-    return Rdb_Parameter_Err;
+int32_t AmsResidentProcessRdb::UpdateSingleData(const std::string &bundleName, const std::string &configList)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "update, bundle:%{public}s, configList:%{public}s", bundleName.c_str(),
+        configList.c_str());
+        NativeRdb::ValuesBucket valuesBucket;
+        valuesBucket.PutString(KEY_KEEP_ALIVE_CONFIGURED_LIST, configList);
+        NativeRdb::AbsRdbPredicates absRdbPredicates(ABILITY_RDB_TABLE_NAME);
+        absRdbPredicates.EqualTo(KEY_BUNDLE_NAME, bundleName);
+    if (!rdbMgr_) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "rdbMgr_ null");
+        return Rdb_Parameter_Err;
+    }
+    return rdbMgr_->UpdateData(valuesBucket, absRdbPredicates);
+}
+
+int32_t AmsResidentProcessRdb::InsertSingleData(const std::string &bundleName, bool enable,
+    const std::string &configList)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "insert, bundle:%{public}s, enable:%{public}d, configList:%{public}s",
+        bundleName.c_str(), enable, configList.c_str());
+    NativeRdb::ValuesBucket valuesBucket;
+    valuesBucket.PutString(KEY_BUNDLE_NAME, bundleName);
+    valuesBucket.PutString(KEY_KEEP_ALIVE_ENABLE, std::to_string(enable));
+    valuesBucket.PutString(KEY_KEEP_ALIVE_CONFIGURED_LIST, configList);
+    if (!rdbMgr_) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "rdbMgr_ null");
+        return Rdb_Parameter_Err;
+    }
+    return rdbMgr_->InsertData(valuesBucket);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

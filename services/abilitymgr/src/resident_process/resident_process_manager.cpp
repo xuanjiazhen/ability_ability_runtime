@@ -19,6 +19,7 @@
 #include "ability_resident_process_rdb.h"
 #include "ability_util.h"
 #include "ffrt.h"
+#include "hitrace_meter.h"
 #include "keep_alive_utils.h"
 #include "main_element_utils.h"
 
@@ -60,6 +61,11 @@ void ResidentProcessManager::Init()
     amsRdb.Init();
 }
 
+void ResidentProcessManager::UpdateResidentProcessRawData()
+{
+    AmsResidentProcessRdb::GetInstance().UpdateResidentProcessRawData();
+}
+
 void ResidentProcessManager::StartResidentProcess(const std::vector<AppExecFwk::BundleInfo> &bundleInfos)
 {
     DelayedSingleton<AppScheduler>::GetInstance()->StartupResidentProcess(bundleInfos);
@@ -68,6 +74,7 @@ void ResidentProcessManager::StartResidentProcess(const std::vector<AppExecFwk::
 void ResidentProcessManager::StartResidentProcessWithMainElement(std::vector<AppExecFwk::BundleInfo> &bundleInfos,
     int32_t userId)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::set<uint32_t> needEraseIndexSet;
 
     for (size_t i = 0; i < bundleInfos.size(); i++) {
@@ -83,6 +90,7 @@ void ResidentProcessManager::StartResidentProcessWithMainElement(std::vector<App
 void ResidentProcessManager::StartResidentProcessWithMainElementPerBundle(const AppExecFwk::BundleInfo &bundleInfo,
     size_t index, std::set<uint32_t> &needEraseIndexSet, int32_t userId)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (userId != 0 && !AmsConfigurationParameter::GetInstance().InResidentWhiteList(bundleInfo.name)) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "not in resident allow list");
         needEraseIndexSet.insert(index);
@@ -108,6 +116,7 @@ void ResidentProcessManager::StartResidentProcessWithMainElementPerBundleHap(
     const AppExecFwk::HapModuleInfo &hapModuleInfo, const std::string &processName,
     size_t index, std::set<uint32_t> &needEraseIndexSet, int32_t userId)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::string mainElement;
     bool isDataAbility = false;
     std::string uriStr;
@@ -143,6 +152,7 @@ void ResidentProcessManager::StartResidentProcessWithMainElementPerBundleHap(
 int32_t ResidentProcessManager::SetResidentProcessEnabled(
     const std::string &bundleName, const std::string &callerName, bool updateEnable)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "SetResidentProcessEnabled,bundle:%{public}s,caller:%{public}s,enable:%{public}d",
         bundleName.c_str(), callerName.c_str(), updateEnable);
     if (bundleName.empty() || callerName.empty()) {
@@ -151,10 +161,8 @@ int32_t ResidentProcessManager::SetResidentProcessEnabled(
     }
     auto &rdb = AmsResidentProcessRdb::GetInstance();
     auto rdbResult = rdb.VerifyConfigurationPermissions(bundleName, callerName);
-    auto configResult = rdb.GetResidentProcessRawData(bundleName, callerName);
-    if (rdbResult != Rdb_OK && configResult != Rdb_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "obtain permissions failed. result: %{public}d, configResult: %{public}d",
-            rdbResult, configResult);
+    if (rdbResult != Rdb_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "obtain permissions failed. result: %{public}d", rdbResult);
         return ERR_NO_RESIDENT_PERMISSION;
     }
 
@@ -191,6 +199,7 @@ int32_t ResidentProcessManager::SetResidentProcessEnabled(
 void ResidentProcessManager::UpdateResidentProcessesStatus(
     const std::string &bundleName, bool localEnable, bool updateEnable)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     if (bundleName.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "bundle name empty");
@@ -255,6 +264,7 @@ void ResidentProcessManager::OnAppStateChanged(const AppInfo &info)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "get bundle name by pid failed");
         return;
     }
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "bundle:%{public}s, uid:%{public}d", bundleName.c_str(), uid);
 
     bool localEnable = false;
     auto rdbResult = AmsResidentProcessRdb::GetInstance().GetResidentProcessEnable(bundleName, localEnable);
@@ -268,7 +278,7 @@ void ResidentProcessManager::OnAppStateChanged(const AppInfo &info)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "set keep alive enable state error");
         return;
     }
-    IN_PROCESS_CALL_WITHOUT_RET(appMgrClient->SetKeepAliveEnableState(bundleName, localEnable, 0));
+    IN_PROCESS_CALL_WITHOUT_RET(appMgrClient->SetKeepAliveEnableState(bundleName, localEnable, uid));
 }
 
 int32_t ResidentProcessManager::PutResidentAbility(const std::string &bundleName,
@@ -311,6 +321,7 @@ void ResidentProcessManager::RemoveResidentAbility(int32_t residentId)
 bool ResidentProcessManager::GetResidentBundleInfosForUser(std::vector<AppExecFwk::BundleInfo> &bundleInfos,
     int32_t userId)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
     CHECK_POINTER_AND_RETURN(bundleMgrHelper, false);
 

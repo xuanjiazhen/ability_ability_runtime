@@ -30,8 +30,10 @@ enum RdbResult : int32_t {
     Rdb_Parameter_Err,
     /* Failed to query permission settings for resident processes */
     Rdb_Permissions_Err,
-    /* Database query failed, key may not exist */
-    Rdb_Search_Record_Err
+    /* Database query failed */
+    Rdb_Search_Record_Err,
+    /* Recourd not found, key may not exist */
+    Rdb_Record_Not_Found
 };
 
 class ScopeGuard final {
@@ -79,8 +81,11 @@ public:
     int32_t GetResidentProcessEnable(const std::string &bundleName, bool &enable);
     int32_t UpdateResidentProcessEnable(const std::string &bundleName, bool enable);
     int32_t RemoveData(std::string &bundleName);
-    int32_t GetResidentProcessRawData(const std::string &bundleName, const std::string &callerName);
+    void UpdateResidentProcessRawData();
 private:
+    int32_t UpdateSingleData(const std::string &bundleName, const std::string &configList);
+    int32_t InsertSingleData(const std::string &bundleName, bool enable, const std::string &configList);
+
     std::unique_ptr<RdbDataManager> rdbMgr_ = nullptr;
 };
 } // namespace AbilityRuntime
