@@ -33,6 +33,7 @@
 #include "ability_event_handler.h"
 #include "ability_info.h"
 #include "ability_manager_event_subscriber.h"
+#include "ability_manager_param.h"
 #include "ability_manager_stub.h"
 #include "ability_keep_alive_service.h"
 #include "ams_configuration_parameter.h"
@@ -161,10 +162,7 @@ public:
     int StartAbilityWithSpecifyTokenIdInner(
         const Want &want,
         const sptr<IRemoteObject> &callerToken,
-        uint32_t specifyTokenId,
-        bool isPendingWantCaller,
-        int32_t userId = DEFAULT_INVAL_VALUE,
-        int requestCode = DEFAULT_INVAL_VALUE);
+        const StartAbilityDefaultParam &defaultParam);
 
     /**
      * Starts a new ability with specific start options and specialId, send want to ability manager service.
@@ -181,10 +179,7 @@ public:
         const Want &want,
         const StartOptions &startOptions,
         const sptr<IRemoteObject> &callerToken,
-        bool isPendingWantCaller,
-        int32_t userId = DEFAULT_INVAL_VALUE,
-        int requestCode = DEFAULT_INVAL_VALUE,
-        uint32_t specifyTokenId = 0);
+        const StartAbilityDefaultParam &defaultParam);
 
     /**
      * StartAbilityWithSpecifyTokenId with want and specialId, send want to ability manager service.
@@ -1052,6 +1047,11 @@ public:
         bool isImplicit = false,
         bool isUIAbilityOnly = false);
 
+    int StartAbilityWrap(
+        const Want &want,
+        const sptr<IRemoteObject> &callerToken,
+        const StartAbilityDefaultParam &defaultParam);
+
     int StartAbilityInner(
         const Want &want,
         const sptr<IRemoteObject> &callerToken,
@@ -1063,6 +1063,11 @@ public:
         bool isForegroundToRestartApp = false,
         bool isImplicit = false,
         bool isUIAbilityOnly = false);
+
+    int StartAbilityInner(
+        const Want &want,
+        const sptr<IRemoteObject> &callerToken,
+        const StartAbilityDefaultParam &defaultParam);
 
     int32_t StartExtensionAbilityInner(
         const Want &want,
@@ -1091,6 +1096,12 @@ public:
         bool isImplicit = false,
         bool isCallByShortcut = false);
 
+    int StartAbilityForOptionWrap(
+        const Want &want,
+        const StartOptions &startOptions,
+        const sptr<IRemoteObject> &callerToken,
+        const StartAbilityDefaultParam &defaultParam);
+
     int StartAbilityForOptionInner(
         const Want &want,
         const StartOptions &startOptions,
@@ -1102,6 +1113,12 @@ public:
         uint32_t specifyTokenId = 0,
         bool isImplicit = false,
         bool isCallByShortcut = false);
+
+    int StartAbilityForOptionInner(
+        const Want &want,
+        const StartOptions &startOptions,
+        const sptr<IRemoteObject> &callerToken,
+        const StartAbilityDefaultParam &defaultParam);
 
     int ImplicitStartAbility(
         const Want &want,
@@ -1928,6 +1945,9 @@ public:
     int StartUIAbilityForOptionWrap(const Want &want, const StartOptions &options, sptr<IRemoteObject> callerToken,
         bool isPendingWantCaller, int32_t userId, int requestCode, uint32_t callerTokenId = 0, bool isImplicit = false,
         bool isCallByShortcut = false);
+
+    int StartUIAbilityForOptionWrap(const Want &want, const StartOptions &options, sptr<IRemoteObject> callerToken,
+        const StartAbilityDefaultParam &defaultParam);
 
     /**
      * PrepareTerminateAbilityDone, called when PrepareTerminateAbility call is done.
