@@ -1213,6 +1213,8 @@ sptr<SessionInfo> UIAbilityLifecycleManager::CreateSessionInfo(const AbilityRequ
     sessionInfo->processOptions = abilityRequest.processOptions;
     sessionInfo->startWindowOption = abilityRequest.startWindowOption;
     sessionInfo->supportWindowModes = abilityRequest.supportWindowModes;
+    sessionInfo->isCheckCallerPid = abilityRequest.isCheckCallerPid;
+    sessionInfo->callerPid = abilityRequest.callerPid;
     if (abilityRequest.startSetting != nullptr) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Assign start setting to session.");
         sessionInfo->startSetting = abilityRequest.startSetting;
