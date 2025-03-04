@@ -142,7 +142,6 @@ class EntryAbility extends UIAbility {
     // console.log("config.mcc : " + this.context?.config?.mcc);
     // console.log("config.mnc : " + this.context?.config?.mnc);
   
-    // 调试中
     // console.log("config.colorMode : " + this.context?.config?.colorMode?.toString());
     // console.log("config.direction : " + this.context?.config?.direction?.toString());
     // console.log("config.screenDensity : " + this.context?.config?.screenDensity.toString());
