@@ -155,36 +155,42 @@ bool ServiceRouterMgrService::ServiceRouterMgrService::SubscribeCommonEvent()
     return true;
 }
 
-int32_t ServiceRouterMgrService::QueryBusinessAbilityInfos(const BusinessAbilityFilter &filter,
-    std::vector< BusinessAbilityInfo> &businessAbilityInfos)
+ErrCode ServiceRouterMgrService::QueryBusinessAbilityInfos(const BusinessAbilityFilter& filter,
+    std::vector<BusinessAbilityInfo>& businessAbilityInfos, int32_t& funcResult)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "coldStart");
     DelayUnloadTask();
-    return ServiceRouterDataMgr::GetInstance().QueryBusinessAbilityInfos(filter, businessAbilityInfos);
+    funcResult = ServiceRouterDataMgr::GetInstance().QueryBusinessAbilityInfos(filter, businessAbilityInfos);
+    return funcResult;
 }
 
-int32_t ServiceRouterMgrService::QueryPurposeInfos(const Want &want, const std::string purposeName,
-    std::vector<PurposeInfo> &purposeInfos)
+ErrCode ServiceRouterMgrService::QueryPurposeInfos(const Want& want, const std::string& purposeName,
+    std::vector<PurposeInfo>& purposeInfos, int32_t& funcResult)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "coldStart");
     DelayUnloadTask();
-    return ServiceRouterDataMgr::GetInstance().QueryPurposeInfos(want, purposeName, purposeInfos);
+    funcResult = ServiceRouterDataMgr::GetInstance().QueryPurposeInfos(want, purposeName, purposeInfos);
+    return funcResult;
 }
 
-int32_t ServiceRouterMgrService::StartUIExtensionAbility(const sptr<SessionInfo> &sessionInfo, int32_t userId)
+ErrCode ServiceRouterMgrService::StartUIExtensionAbility(const SessionInfo& sessionInfo, int32_t userId, int32_t& funcResult)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Called");
     DelayUnloadTask();
-    return IN_PROCESS_CALL(AbilityManagerClient::GetInstance()->StartUIExtensionAbility(sessionInfo, userId));
+    auto shard_sessionInfo = sptr<SessionInfo>::MakeSptr(sessionInfo);
+    funcResult = IN_PROCESS_CALL(AbilityManagerClient::GetInstance()->StartUIExtensionAbility(shard_sessionInfo, userId));
+    return funcResult;
 }
 
-int32_t ServiceRouterMgrService::ConnectUIExtensionAbility(const Want &want, const sptr<IAbilityConnection> &connect,
-    const sptr<SessionInfo> &sessionInfo, int32_t userId)
+ErrCode ServiceRouterMgrService::ConnectUIExtensionAbility(const Want& want, const sptr<IAbilityConnection>& connect,
+    const SessionInfo& sessionInfo, int32_t userId, int32_t& funcResult)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Called");
     DelayUnloadTask();
-    return IN_PROCESS_CALL(AbilityManagerClient::GetInstance()->
-        ConnectUIExtensionAbility(want, connect, sessionInfo, userId));
+    auto shard_sessionInfo = sptr<SessionInfo>::MakeSptr(sessionInfo);
+    funcResult = IN_PROCESS_CALL(AbilityManagerClient::GetInstance()->
+        ConnectUIExtensionAbility(want, connect, shard_sessionInfo, userId));
+    return funcResult;
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

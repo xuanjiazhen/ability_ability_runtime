@@ -18,6 +18,7 @@
 
 #include "hilog_tag_wrapper.h"
 #include "hilog_wrapper.h"
+#include "ability_manager_errors.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -63,10 +64,11 @@ std::shared_ptr<ServiceRouterMgrService> ServiceRouterMgrServiceTest::serviceRou
 HWTEST_F(ServiceRouterMgrServiceTest, StartUIExtensionAbility_001, Function | SmallTest | Level0)
 {
     TAG_LOGI(AAFwkTag::TEST, "StartUIExtensionAbility_001 start");
-    sptr<SessionInfo> sessionInfo = nullptr;
+    SessionInfo sessionInfo;
     int32_t userId = 1;
-    auto ret = serviceRouterMgrService_->StartUIExtensionAbility(sessionInfo, userId);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    int32_t funcResult = -1;
+    auto ret = serviceRouterMgrService_->StartUIExtensionAbility(sessionInfo, userId, funcResult);
+    EXPECT_EQ(ret, AAFwk::CHECK_PERMISSION_FAILED);
     TAG_LOGI(AAFwkTag::TEST, "StartUIExtensionAbility_001 result %{public}d", ret);
     TAG_LOGI(AAFwkTag::TEST, "StartUIExtensionAbility_001 end");
 }
@@ -80,9 +82,10 @@ HWTEST_F(ServiceRouterMgrServiceTest, ConnectUIExtensionAbility_001, Function | 
     TAG_LOGI(AAFwkTag::TEST, "ConnectUIExtensionAbility_001 start");
     Want want;
     sptr<IAbilityConnection> connect = nullptr;
-    sptr<SessionInfo> sessionInfo = nullptr;
+    SessionInfo sessionInfo;
     int32_t userId = 1;
-    auto ret = serviceRouterMgrService_->ConnectUIExtensionAbility(want, connect, sessionInfo, userId);
+    int32_t funcResult = -1;
+    auto ret = serviceRouterMgrService_->ConnectUIExtensionAbility(want, connect, sessionInfo, userId, funcResult);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "ConnectUIExtensionAbility_001 result %{public}d", ret);
     TAG_LOGI(AAFwkTag::TEST, "ConnectUIExtensionAbility_001 end");
@@ -96,8 +99,9 @@ HWTEST_F(ServiceRouterMgrServiceTest, QueryPurposeInfos_001, Function | SmallTes
 {
     TAG_LOGI(AAFwkTag::TEST, "QueryPurposeInfos_001 start");
     Want want;
+    int32_t funcResult = -1;
     std::vector<PurposeInfo> purposeInfos;
-    auto ret = serviceRouterMgrService_->QueryPurposeInfos(want, "", purposeInfos);
+    auto ret = serviceRouterMgrService_->QueryPurposeInfos(want, "", purposeInfos, funcResult);
     EXPECT_EQ(ret, RESULT_CODE);
     TAG_LOGI(AAFwkTag::TEST, "QueryPurposeInfos_001 result %{public}d", ret);
     TAG_LOGI(AAFwkTag::TEST, "QueryPurposeInfos_001 end");
@@ -111,9 +115,10 @@ HWTEST_F(ServiceRouterMgrServiceTest, QueryBusinessAbilityInfos_001, Function | 
 {
     TAG_LOGI(AAFwkTag::TEST, "QueryBusinessAbilityInfos_001 start");
     BusinessAbilityFilter filter;
+    int32_t funcResult = -1;
     filter.businessType = BusinessType::UNSPECIFIED;
     std::vector<BusinessAbilityInfo> abilityInfos;
-    auto ret = serviceRouterMgrService_->QueryBusinessAbilityInfos(filter, abilityInfos);
+    auto ret = serviceRouterMgrService_->QueryBusinessAbilityInfos(filter, abilityInfos, funcResult);
     EXPECT_EQ(ret, RESULT_CODE);
     TAG_LOGI(AAFwkTag::TEST, "QueryBusinessAbilityInfos_001 result %{public}d", ret);
     TAG_LOGI(AAFwkTag::TEST, "QueryBusinessAbilityInfos_001 end");
