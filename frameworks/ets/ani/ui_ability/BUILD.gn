@@ -28,7 +28,7 @@ generate_static_abc("ui_ability_abc") {
 ohos_prebuilt_etc("ui_ability_abc_etc") {
   source = "$target_out_dir/ui_ability.abc"
   module_install_dir = "framework"
-  subsystem_name = "ability"
-  part_name = "ability_runtime"
+  part_name = "ability"
+  subsystem_name = "ability_runtime"
   deps = [ ":ui_ability_abc" ]
 }
