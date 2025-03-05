@@ -267,14 +267,15 @@ bool STSEnvironment::StartRuntime()
         return false;
     }
     std::vector<EtsVMOption> etsVMOptions;
-    if (!LoadBootPathFile(etsVMOptions)) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "LoadBootPathFile failed");
-        return false;
-    }
+    // if (!LoadBootPathFile(etsVMOptions)) {
+    //     TAG_LOGE(AAFwkTag::STSRUNTIME, "LoadBootPathFile failed");
+    //     return false;
+    // }
     etsVMOptions.push_back({ EtsOptionType::ETS_BOOT_FILE, STS_STD_LIB_PATH });
     TAG_LOGE(AAFwkTag::STSRUNTIME, "etsVMOptions.size() = %{public}d", etsVMOptions.size());
-    // etsVMOptions.push_back({ EtsOptionType::ETS_BOOT_FILE, "/data/storage/el1/bundle/lib/modules.static.abc" });   // for Test
-    // etsVMOptions.push_back({ EtsOptionType::ETS_BOOT_FILE, "/system/lib/sts/EntryAbility.abc" });
+    etsVMOptions.push_back({ EtsOptionType::ETS_BOOT_FILE, "/system/etc/@ohos.app.ability.UIAbility.abc" });   // for Test
+    etsVMOptions.push_back({ EtsOptionType::ETS_BOOT_FILE, "/system/etc/fixarray.abc" });
+    etsVMOptions.push_back({ EtsOptionType::ETS_BOOT_FILE, "/system/etc/window_stage_ani.abc" });
     // etsVMOptions.push_back({ EtsOptionType::ETS_NATIVE_LIBRARY_PATH, (char*)strdup(std::string(appLibPath).c_str())
     // });
     // TODO: for test
