@@ -1671,6 +1671,8 @@ int AbilityManagerService::StartUIAbilityForOptionWrap(const Want &want, const S
 
     if (HiddenStartUtils::IsHiddenStart(want, options)) {
         ret = HiddenStartUtils::CheckHiddenStartSupported(want, options);
+    } else if (AbilityPermissionUtil::GetInstance::IsStartSelfUIAbility()) {
+        ret = checkStartSelfUIAbilityStartOptions(want, options);
     } else {
         ret = CheckProcessOptions(want, options, userId);
     }
@@ -1908,8 +1910,10 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
         auto abilityRecords = uiAbilityManager->GetAbilityRecordsByName(want.GetElement());
-        if (!abilityRecords.empty() && abilityRecords[0] && !startOptions.processOptions->isRestartKeepAlive &&
-            !ProcessOptions::IsAttachToStatusBarItemMode(startOptions.processOptions->processMode)) {
+        bool processOptionsAttachCheck = ProcessOptions::IsAttachToStatusBarItemMode(startOptions.processOptions->processMode)
+                                         || startOptions.processOptions->isStartFromNDK;
+        if (!abilityRecords.empty() && abilityRecords[0] && !startOptions.processOptions->isRestartKeepAlive
+            && !processOptionsAttachCheck) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "processMode is not attach to status bar item.");
             return ERR_ABILITY_ALREADY_RUNNING;
         }
@@ -11000,6 +11004,30 @@ int32_t AbilityManagerService::CheckProcessOptions(const Want &want, const Start
     return ERR_OK;
 }
 
+int32_t AbilityManagerService::checkStartSelfUIAbilityStartOptions(const Want &want, const StartOptions &startOptions)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (startOptions.processOptions == nullptr) {
+        return ERR_OK;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "start ability with process options");
+    bool isEnable = AppUtils::GetInstance().IsStartOptionsWithProcessOptions();
+    CHECK_TRUE_RETURN_RET(!Rosen::SceneBoardJudgement::IsSceneBoardEnabled() || !isEnable,
+        ERR_CAPABILITY_NOT_SUPPORT, "not support process options");
+
+    auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
+    CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
+
+    auto callerPid = IPCSkeleton::GetCallingPid();
+    AppExecFwk::RunningProcessInfo processInfo;
+    DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByPid(callerPid, processInfo);
+    CHECK_TRUE_RETURN_RET(!uiAbilityManager->IsCallerInStatusBar(processInfo.instanceKey), ERR_START_OPTIONS_CHECK_FAILED,
+        "not in status bar");
+
+    return ERR_OK;
+}
+
 int32_t AbilityManagerService::RegisterAppDebugListener(sptr<AppExecFwk::IAppDebugListener> listener)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
@@ -13173,6 +13201,10 @@ int AbilityManagerService::StartSelfUIAbility(const Want &want)
 int AbilityManagerService::StartSelfUIAbilityWithStartOptions(const Want &want, const StartOptions &options)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call StartSelfUIAbility with startOptions");
+
+    if(options.processOptions != nullptr) {
+       options.processOptions->isStartFromNDK = true; 
+    }
 
     StartSelfUIAbilityParam param = { want, options, true };
     return StartSelfUIAbilityInner(param);

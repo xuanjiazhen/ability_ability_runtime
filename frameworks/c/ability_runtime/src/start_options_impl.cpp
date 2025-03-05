@@ -141,6 +141,28 @@ AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::GetStartOptionsWindowWidth
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
+AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::SetStartOptionsStartVisibility(
+    AbilityRuntime_StartVisibility startVisibility)
+{
+    if (options.processOptions == nullptr) {
+        options.processOptions = std::make_shared<OHOS::AAFwk::ProcessOptions>();
+    }
+    options.processOptions->startupVisibility =
+        static_cast<OHOS::AAFwk::StartupVisibility>(startVisibility);
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::GetStartOptionsStartVisibility(
+    AbilityRuntime_StartVisibility &startVisibility)
+{
+    if (options.processOptions == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null processOptions")
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    startVisibility = static_cast<AbilityRuntime_StartVisibility>(options.processOptions->startupVisibility);    
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
 #ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
 AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::SetStartOptionsStartWindowIcon(
     OH_PixelmapNative *startWindowIcon)
@@ -333,4 +355,4 @@ AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::GetStartOptionsMaxWindowHe
         maxWindowHeight = options.GetMaxWindowHeight();
     }
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
-}
+}

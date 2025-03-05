@@ -180,6 +180,26 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWindowWidth(AbilityRun
     return startOptions->GetStartOptionsWindowWidth(windowWidth);
 }
 
+AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsStartVisibility(AbilityRuntime_StartOptions *startOptions,
+    AbilityRuntime_StartVisibility startVisibility)
+{
+    if (startOptions == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null startOptions");
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    return startOptions->SetStartOptionsStartVisibility(startVisibility);
+}
+
+AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsStartVisibility(AbilityRuntime_StartOptions *startOptions,
+    AbilityRuntime_StartOptions &startVisibility)
+{
+    if (startOptions == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null startOptions");
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    return startOptions->GetStartOptionsStartVisibility(startVisibility);
+}
+
 #ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
 AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsStartWindowIcon(AbilityRuntime_StartOptions *startOptions,
     OH_PixelmapNative *startWindowIcon)

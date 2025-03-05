@@ -75,6 +75,22 @@ typedef enum {
 } AbilityRuntime_AreaMode;
 
 /**
+ * @brief Start visibility
+ *
+ * @since 18
+ */
+typedef enum {
+    /**
+     * Indicates that the ability will hide after process startup.
+     */
+    ABILITY_RUNTIME_START_HIDE = 0,
+    /**
+     * Indicates that the ability will show after process startup.
+     */
+    ABILITY_RUNTIME_START_SHOW = 1,
+} AbilityRuntime_StartVisibility;
+
+/**
 * @brief Window mode.
 *
 * @since 18
@@ -115,4 +131,4 @@ typedef enum {
 #endif
 
 /** @} */
-#endif // ABILITY_RUNTIME_CONTEXT_CONSTANT_H
+#endif // ABILITY_RUNTIME_CONTEXT_CONSTANT_H
