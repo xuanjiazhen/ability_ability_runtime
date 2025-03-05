@@ -816,6 +816,9 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentieth(uint32_t code, MessageParc
     if (interfaceCode == AbilityManagerInterfaceCode::UNREGISTER_HIDDEN_START_OBSERVER) {
         return UnregisterHiddenStartObserverInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_WITH_START_OPTIONS) {
+        return StartSelfUIAbilityWithStartOptionsInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -4356,6 +4359,26 @@ int32_t AbilityManagerStub::StartSelfUIAbilityInner(MessageParcel &data, Message
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
         return INNER_ERR;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::StartSelfUIAbilityWithStartOptionsInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<Want> want = data.ReadParcelable<Want>();
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
+        return ERR_READ_WANT;
+    }
+    sptr<StartOptions> options = data.ReadParcelable<StartOptions>();
+    if (options == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "startOptions null");
+        return ERR_READ_START_OPTIONS;
+    }
+    int32_t result = StartSelfUIAbilityWithStartOptions(*want, *options);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write StartSelfUIAbilityWithStartOptions result fail");
+        return ERR_WRITE_START_SELF_UI_ABILITY_RESULT;
     }
     return NO_ERROR;
 }
