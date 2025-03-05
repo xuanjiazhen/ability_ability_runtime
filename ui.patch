@@ -1,0 +1,317 @@
+diff --git a/frameworks/native/ability/native/BUILD.gn b/frameworks/native/ability/native/BUILD.gn
+index 2920a05365..9d962e47cf 100644
+--- a/frameworks/native/ability/native/BUILD.gn
++++ b/frameworks/native/ability/native/BUILD.gn
+@@ -598,6 +598,8 @@ ohos_shared_library("uiabilitykit_native") {
+     "${ability_runtime_path}/utils/global/time/include",
+     "${ability_runtime_native_path}/ability/native/ability_runtime/abilityresult/include",
+     "${ability_runtime_napi_path}/inner/napi_common/ani_common",
++    "//foundation/window/window_manager/interfaces/kits/ani/window_runtime/window_stage_ani/include",
++    "//arkcompiler/runtime_core/static_core/plugins/ets/runtime/ani"
+   ]
+ 
+   sources = [
+@@ -649,6 +651,7 @@ ohos_shared_library("uiabilitykit_native") {
+     "ipc:ipc_core",
+     "ipc:ipc_napi",
+     "resource_management:global_resmgr",
++    "window_manager:windowstageani_kit",
+   ]
+   public_external_deps = [
+     "bundle_framework:appexecfwk_core",
+diff --git a/frameworks/native/ability/native/ability_runtime/sts_ui_ability.cpp b/frameworks/native/ability/native/ability_runtime/sts_ui_ability.cpp
+index e2aaa5eefa..b98ba5c63c 100644
+--- a/frameworks/native/ability/native/ability_runtime/sts_ui_ability.cpp
++++ b/frameworks/native/ability/native/ability_runtime/sts_ui_ability.cpp
+@@ -36,6 +36,7 @@
+ #include "sts_ability_context.h"
+ #include "sts_data_struct_converter.h"
+ #ifdef SUPPORT_SCREEN
++#include "ani_window_stage.h"
+ #include "distributed_client.h"
+ #include "scene_board_judgement.h"
+ #endif
+@@ -167,13 +168,15 @@ std::shared_ptr<STSNativeReference> LoadModule(ani_env *env)
+ void StsUIAbility::UpdateAbilityObj(
+     std::shared_ptr<AbilityInfo> abilityInfo, const std::string &moduleName, const std::string &srcPath)
+ {
++    TAG_LOGE(AAFwkTag::STSRUNTIME, "[sts] UpdateAbilityObj");
++
+     std::string key = moduleName + "::" + srcPath;
+     std::unique_ptr<NativeReference> moduleObj = nullptr;
+-    // stsAbilityObj_ = stsRuntime_.LoadModule(
+-    //     moduleName, srcPath, abilityInfo->hapPath, abilityInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE,
+-    //     false, abilityInfo->srcEntrance);
+-    auto env = stsRuntime_.GetAniEnv();
+-    stsAbilityObj_ = LoadModule(env);
++    stsAbilityObj_ = stsRuntime_.LoadModule(
++        moduleName, srcPath, abilityInfo->hapPath, abilityInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE,
++        false, abilityInfo->srcEntrance);
++    // auto env = stsRuntime_.GetAniEnv();
++    // stsAbilityObj_ = LoadModule(env);
+ }
+ 
+ void StsUIAbility::SetAbilityContext(std::shared_ptr<AbilityInfo> abilityInfo, std::shared_ptr<AAFwk::Want> want,
+@@ -384,8 +387,18 @@ void StsUIAbility::OnSceneCreated()
+         return;
+     }
+ 
+-    UpdateStsWindowStage(stsAppWindowStage->aniRef);
+-    stsWindowStageObj_ = std::shared_ptr<STSNativeReference>(stsAppWindowStage.release());
++    UpdateStsWindowStage(reinterpret_cast<ani_ref>(stsAppWindowStage));
++    stsWindowStageObj_ = std::make_shared<STSNativeReference>();
++    stsWindowStageObj_->aniObj = stsAppWindowStage;
++    ani_ref entryObjectRef = nullptr;
++    auto env = stsRuntime_.GetAniEnv();
++    if (env->GlobalReference_Create(stsAppWindowStage, &entryObjectRef) !=
++        ANI_OK) {
++      TAG_LOGE(AAFwkTag::UIABILITY, "GlobalReference_Create failed");
++      return;
++    }
++    stsWindowStageObj_->aniRef = entryObjectRef;
++
+     auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
+     if (applicationContext != nullptr) {
+         // TODO
+@@ -395,7 +408,7 @@ void StsUIAbility::OnSceneCreated()
+         std::string methodName = "OnSceneCreated";
+         AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
+         const char *signature = "L@ohos/window/window/WindowStage;:V";
+-        CallObjectMethod(false, "onWindowStageCreate", signature, stsAppWindowStage->aniRef);
++        CallObjectMethod(false, "onWindowStageCreate", signature, stsAppWindowStage);
+         AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
+     }
+ 
+@@ -576,40 +589,7 @@ bool StsUIAbility::OnBackPress()
+     return false;
+ }
+ 
+-ani_object CreateAniWindowStage(ani_env *env, std::shared_ptr<Rosen::WindowScene> &windowScene)
+-{
+-    if (env == nullptr) {
+-        TAG_LOGE(AAFwkTag::UIABILITY, "[ANI] null env");
+-        return nullptr;
+-    }
+-    TAG_LOGE(AAFwkTag::UIABILITY, "[ANI] create wstage");
+-
+-    ani_status ret;
+-    ani_class cls = nullptr;
+-    if ((ret = env->FindClass("Lwindow/window/WindowStage;", &cls)) != ANI_OK) {
+-        TAG_LOGE(AAFwkTag::UIABILITY, "[ANI] null env %{public}u", ret);
+-        return cls;
+-    }
+-
+-    long ptr = reinterpret_cast<long>(windowScene.get());
+-    ani_field contextField;
+-    if ((ret = env->Class_FindField(cls, "nativeWindowStage", &contextField)) != ANI_OK) {
+-        TAG_LOGE(AAFwkTag::UIABILITY, "[ANI] get field fail %{public}u", ret);
+-    }
+-
+-    ani_method initFunc = nullptr;
+-    if ((ret = env->Class_FindMethod(cls, "<ctor>", "J:V", &initFunc)) != ANI_OK) {
+-        TAG_LOGE(AAFwkTag::UIABILITY, "[ANI] get ctor fail %{public}u", ret);
+-    }
+-    ani_object obj = nullptr;
+-    if ((ret = env->Object_New(cls, initFunc, &obj, ptr)) != ANI_OK) {
+-        TAG_LOGE(AAFwkTag::UIABILITY, "[ANI] obj new fail %{public}u", ret);
+-    }
+-
+-    return obj;
+-}
+-
+-std::unique_ptr<STSNativeReference> StsUIAbility::CreateAppWindowStage()
++ani_object StsUIAbility::CreateAppWindowStage()
+ {
+     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+     auto env = stsRuntime_.GetAniEnv();
+@@ -629,12 +609,8 @@ std::unique_ptr<STSNativeReference> StsUIAbility::CreateAppWindowStage()
+         return nullptr;
+     }
+     // TODO
+-    std::unique_ptr<STSNativeReference> stsWindowStageObj = std::make_unique<STSNativeReference>();
+-    stsWindowStageObj->aniCls = nullptr;
+-    stsWindowStageObj->aniObj = stsWindowStage;
+-    stsWindowStageObj->aniRef = reinterpret_cast<ani_ref>(stsWindowStage);
+     TAG_LOGE(AAFwkTag::UIABILITY, "CreateAppWindowStage end");
+-    return nullptr;
++    return stsWindowStage;
+ }
+ 
+ void StsUIAbility::GetPageStackFromWant(const Want &want, std::string &pageStack)
+diff --git a/frameworks/native/appkit/ability_runtime/app/ability_stage.cpp b/frameworks/native/appkit/ability_runtime/app/ability_stage.cpp
+index ed8fcc95f5..2a9fe4ce7c 100644
+--- a/frameworks/native/appkit/ability_runtime/app/ability_stage.cpp
++++ b/frameworks/native/appkit/ability_runtime/app/ability_stage.cpp
+@@ -43,7 +43,8 @@ std::shared_ptr<AbilityStage> AbilityStage::Create(
+             return CJAbilityStage::Create(runtime, hapModuleInfo);
+ #endif
+         case Runtime::Language::STS:
+-            return STSAbilityStage::Create(runtime, hapModuleInfo);
++            //return STSAbilityStage::Create(runtime, hapModuleInfo);
++            return std::make_shared<AbilityStage>();
+         default:
+             return std::make_shared<AbilityStage>();
+     }
+diff --git a/frameworks/native/runtime/sts_runtime.cpp b/frameworks/native/runtime/sts_runtime.cpp
+index 4becc0cb5d..24785a245e 100644
+--- a/frameworks/native/runtime/sts_runtime.cpp
++++ b/frameworks/native/runtime/sts_runtime.cpp
+@@ -599,7 +599,7 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadModule(const std::string& mo
+     const std::string& modulePath, const std::string& hapPath, bool esmodule, bool useCommonChunk,
+     const std::string& srcEntrance)
+ {
+-    TAG_LOGD(AAFwkTag::STSRUNTIME, "Load module(%{public}s, %{private}s, %{private}s, %{public}s)",
++    TAG_LOGE(AAFwkTag::STSRUNTIME, "Load module(%{public}s, %{private}s, %{private}s, %{public}s)",
+         moduleName.c_str(), modulePath.c_str(), hapPath.c_str(), esmodule ? "true" : "false");
+     auto vm = stsEnv_->GetEtsVM();
+     //CHECK_POINTER_AND_RETURN(vm, std::unique_ptr<STSNativeReference>());
+@@ -620,7 +620,7 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadModule(const std::string& mo
+         path.erase(pos, path.size() - pos);
+         moduleName_ = path;
+     }
+-    TAG_LOGD(AAFwkTag::STSRUNTIME, "wangbing moduleName_(%{public}s, path %{private}s",
++    TAG_LOGE(AAFwkTag::STSRUNTIME, "wangbing moduleName_(%{public}s, path %{private}s",
+         moduleName_.c_str(),path.c_str());
+ 
+     std::string fileName;
+@@ -641,7 +641,7 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadModule(const std::string& mo
+ std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string& moduleName, const std::string& path, const std::string& hapPath,
+     const std::string& srcEntrance)
+ {
+-    TAG_LOGD(AAFwkTag::STSRUNTIME, "Load sts module(%{public}s, %{private}s, %{private}s, %{public}s)",
++    TAG_LOGE(AAFwkTag::STSRUNTIME, "Load sts module(%{public}s, %{private}s, %{private}s, %{public}s)",
+         moduleName.c_str(), path.c_str(), hapPath.c_str(), srcEntrance.c_str());
+     auto stsNativeReference = std::make_unique<STSNativeReference>();
+     ani_env* aniEnv = GetAniEnv();
+@@ -653,6 +653,9 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string&
+     // if (!RunScript(aniEnv, moduleName, path, hapPath, srcEntrance)) {
+     //     return std::make_unique<STSNativeReference>();
+     // }
++
++    TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass 1");
++
+     ani_class clsArray = nullptr;
+     if (aniEnv->FindClass("Lfixarray/GetPathArray;", &clsArray) != ANI_OK) {
+         TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass failed");
+@@ -664,7 +667,10 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string&
+         TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindStaticMethod failed");
+         return std::make_unique<STSNativeReference>();
+     };
+-    std::string modulePath = BUNDLE_INSTALL_PATH + moduleName_ + MERGE_ABC_PATH;
++    std::string modulePath = "/system/lib/modules_static.abc";
++
++    TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass 2______%{public}s", modulePath.c_str());
++
+     ani_string abcPath;
+     if (aniEnv->String_NewUTF8(modulePath.c_str(), modulePath.length(), &abcPath) != ANI_OK) {
+         TAG_LOGE(AAFwkTag::STSRUNTIME, "abilityPath String_NewUTF8 failed");
+@@ -674,16 +680,21 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string&
+         TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_CallStaticMethod_Ref failed");
+         return std::make_unique<STSNativeReference>();
+     };
++
++    TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass 2");
++
+     ani_class cls = nullptr;
+     if (aniEnv->FindClass("Lstd/core/AbcRuntimeLinker;", &cls) != ANI_OK) {
+         TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass AbcRuntimeLinker failed");
+         return std::make_unique<STSNativeReference>();
+     }
++    TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass 3");
+     ani_ref undefined_ref;
+     if (aniEnv->GetUndefined(&undefined_ref) != ANI_OK) {
+         TAG_LOGE(AAFwkTag::STSRUNTIME, "GetUndefined failed");
+         return std::make_unique<STSNativeReference>();
+     }
++    TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass 4");
+     ani_method method = nullptr;
+     if (aniEnv->Class_FindMethod(cls, "<ctor>", "Lstd/core/RuntimeLinker;[Lstd/core/String;:V", &method) != ANI_OK) {
+         TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindMethod ctor failed");
+@@ -694,26 +705,29 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string&
+         TAG_LOGE(AAFwkTag::STSRUNTIME, "Object_New AbcRuntimeLinker failed");
+         return std::make_unique<STSNativeReference>();
+     }
++     TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass 5");
+     ani_method loadClassMethod = nullptr;
+-    if (aniEnv->Class_FindMethod(cls, "loadClass", "Lstd/core/String;Z:Lstd/core/Class;", &loadClassMethod) != ANI_OK) {
++    if (aniEnv->Class_FindMethod(cls, "loadClass", nullptr, &loadClassMethod) != ANI_OK) {
+         TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindMethod loadClass failed");
+         return std::make_unique<STSNativeReference>();
+     }
+-    std::string entryPath = EntryPathManager::GetInstance().GetEntryPath(srcEntrance);
+-    // std::string entryPath = "entry/entryability/EntryAbility/EntryAbility";
++    //std::string entryPath = EntryPathManager::GetInstance().GetEntryPath(srcEntrance);
++    std::string entryPath = "entry/src/main/ets/entryability/EntryAbility/EntryAbility";
+     // std::string entryPath = "OpenHarmonyTestRunner/OpenHarmonyTestRunner";
+     ani_string entryClassStr;
+     aniEnv->String_NewUTF8(entryPath.c_str(), entryPath.length(), &entryClassStr);
+     ani_class entryClass = nullptr;
+     ani_ref entryClassRef = nullptr;
+     TAG_LOGI(AAFwkTag::STSRUNTIME, "load class: %{public}s", entryPath.c_str());
+-    if (aniEnv->Object_CallMethod_Ref(object, loadClassMethod, &entryClassRef, entryClassStr) != ANI_OK) {
++    if (aniEnv->Object_CallMethod_Ref(object, loadClassMethod, &entryClassRef, entryClassStr, false) != ANI_OK) {
+         TAG_LOGE(AAFwkTag::STSRUNTIME, "Object_CallMethod_Ref loadClassMethod failed");
+         return std::make_unique<STSNativeReference>();
+     } else {
+         entryClass = static_cast<ani_class>(entryClassRef);
+     }
+ 
++     TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass 6");
++
+     ani_method entryMethod = nullptr;
+     if (aniEnv->Class_FindMethod(entryClass, "<ctor>", ":V", &entryMethod) != ANI_OK) {
+         TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindMethod ctor failed");
+@@ -726,11 +740,14 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string&
+         return std::make_unique<STSNativeReference>();
+     }
+ 
++  TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass 7");
++
+     ani_ref entryObjectRef = nullptr;
+     if (aniEnv->GlobalReference_Create(entryObject, &entryObjectRef) != ANI_OK) {
+         TAG_LOGE(AAFwkTag::STSRUNTIME, "GlobalReference_Create failed");
+         return std::make_unique<STSNativeReference>();
+     }
++      TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass 8");
+     stsNativeReference->aniCls = entryClass;
+     stsNativeReference->aniObj = entryObject;
+     stsNativeReference->aniRef = entryObjectRef;
+diff --git a/interfaces/kits/native/ability/native/ability_runtime/sts_ui_ability.h b/interfaces/kits/native/ability/native/ability_runtime/sts_ui_ability.h
+index ca4a3f64e4..685eb117a0 100644
+--- a/interfaces/kits/native/ability/native/ability_runtime/sts_ui_ability.h
++++ b/interfaces/kits/native/ability/native/ability_runtime/sts_ui_ability.h
+@@ -302,7 +302,7 @@ private:
+ 
+ private:
+     ani_ref CallObjectMethod(bool withResult, const char* name, const char* signature, ...);
+-    std::unique_ptr<STSNativeReference> CreateAppWindowStage();
++    ani_object CreateAppWindowStage();
+     std::shared_ptr<AppExecFwk::ADelegatorAbilityProperty> CreateADelegatorAbilityProperty();
+     void SetAbilityContext(std::shared_ptr<AbilityInfo> abilityInfo,
+         std::shared_ptr<AAFwk::Want> want, const std::string &moduleName, const std::string &srcPath);
+diff --git a/sts_environment/frameworks/sts_environment/src/sts_environment.cpp b/sts_environment/frameworks/sts_environment/src/sts_environment.cpp
+index 8dc5563df7..9259ade5b9 100644
+--- a/sts_environment/frameworks/sts_environment/src/sts_environment.cpp
++++ b/sts_environment/frameworks/sts_environment/src/sts_environment.cpp
+@@ -267,14 +267,15 @@ bool STSEnvironment::StartRuntime()
+         return false;
+     }
+     std::vector<EtsVMOption> etsVMOptions;
+-    if (!LoadBootPathFile(etsVMOptions)) {
+-        TAG_LOGE(AAFwkTag::STSRUNTIME, "LoadBootPathFile failed");
+-        return false;
+-    }
++    // if (!LoadBootPathFile(etsVMOptions)) {
++    //     TAG_LOGE(AAFwkTag::STSRUNTIME, "LoadBootPathFile failed");
++    //     return false;
++    // }
+     etsVMOptions.push_back({ EtsOptionType::ETS_BOOT_FILE, STS_STD_LIB_PATH });
+     TAG_LOGE(AAFwkTag::STSRUNTIME, "etsVMOptions.size() = %{public}d", etsVMOptions.size());
+-    // etsVMOptions.push_back({ EtsOptionType::ETS_BOOT_FILE, "/data/storage/el1/bundle/lib/modules.static.abc" });   // for Test
+-    // etsVMOptions.push_back({ EtsOptionType::ETS_BOOT_FILE, "/system/lib/sts/EntryAbility.abc" });
++    etsVMOptions.push_back({ EtsOptionType::ETS_BOOT_FILE, "/system/etc/@ohos.app.ability.UIAbility.abc" });   // for Test
++    etsVMOptions.push_back({ EtsOptionType::ETS_BOOT_FILE, "/system/etc/fixarray.abc" });
++    etsVMOptions.push_back({ EtsOptionType::ETS_BOOT_FILE, "/system/etc/window_stage_ani.abc" });
+     // etsVMOptions.push_back({ EtsOptionType::ETS_NATIVE_LIBRARY_PATH, (char*)strdup(std::string(appLibPath).c_str())
+     // });
+     // TODO: for test

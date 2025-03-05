@@ -599,7 +599,7 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadModule(const std::string& mo
     const std::string& modulePath, const std::string& hapPath, bool esmodule, bool useCommonChunk,
     const std::string& srcEntrance)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "Load module(%{public}s, %{private}s, %{private}s, %{public}s)",
+    TAG_LOGE(AAFwkTag::STSRUNTIME, "Load module(%{public}s, %{private}s, %{private}s, %{public}s)",
         moduleName.c_str(), modulePath.c_str(), hapPath.c_str(), esmodule ? "true" : "false");
     auto vm = stsEnv_->GetEtsVM();
     //CHECK_POINTER_AND_RETURN(vm, std::unique_ptr<STSNativeReference>());
@@ -620,7 +620,7 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadModule(const std::string& mo
         path.erase(pos, path.size() - pos);
         moduleName_ = path;
     }
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "wangbing moduleName_(%{public}s, path %{private}s",
+    TAG_LOGE(AAFwkTag::STSRUNTIME, "wangbing moduleName_(%{public}s, path %{private}s",
         moduleName_.c_str(),path.c_str());
 
     std::string fileName;
@@ -641,7 +641,7 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadModule(const std::string& mo
 std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string& moduleName, const std::string& path, const std::string& hapPath,
     const std::string& srcEntrance)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "Load sts module(%{public}s, %{private}s, %{private}s, %{public}s)",
+    TAG_LOGE(AAFwkTag::STSRUNTIME, "Load sts module(%{public}s, %{private}s, %{private}s, %{public}s)",
         moduleName.c_str(), path.c_str(), hapPath.c_str(), srcEntrance.c_str());
     auto stsNativeReference = std::make_unique<STSNativeReference>();
     ani_env* aniEnv = GetAniEnv();
@@ -653,6 +653,9 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string&
     // if (!RunScript(aniEnv, moduleName, path, hapPath, srcEntrance)) {
     //     return std::make_unique<STSNativeReference>();
     // }
+
+    TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass 1");
+
     ani_class clsArray = nullptr;
     if (aniEnv->FindClass("Lfixarray/GetPathArray;", &clsArray) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass failed");
@@ -664,7 +667,10 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string&
         TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindStaticMethod failed");
         return std::make_unique<STSNativeReference>();
     };
-    std::string modulePath = BUNDLE_INSTALL_PATH + moduleName_ + MERGE_ABC_PATH;
+    std::string modulePath = "/system/lib/modules_static.abc";
+
+    TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass 2______%{public}s", modulePath.c_str());
+
     ani_string abcPath;
     if (aniEnv->String_NewUTF8(modulePath.c_str(), modulePath.length(), &abcPath) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "abilityPath String_NewUTF8 failed");
@@ -674,16 +680,21 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string&
         TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_CallStaticMethod_Ref failed");
         return std::make_unique<STSNativeReference>();
     };
+
+    TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass 2");
+
     ani_class cls = nullptr;
     if (aniEnv->FindClass("Lstd/core/AbcRuntimeLinker;", &cls) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass AbcRuntimeLinker failed");
         return std::make_unique<STSNativeReference>();
     }
+    TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass 3");
     ani_ref undefined_ref;
     if (aniEnv->GetUndefined(&undefined_ref) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "GetUndefined failed");
         return std::make_unique<STSNativeReference>();
     }
+    TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass 4");
     ani_method method = nullptr;
     if (aniEnv->Class_FindMethod(cls, "<ctor>", "Lstd/core/RuntimeLinker;[Lstd/core/String;:V", &method) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindMethod ctor failed");
@@ -695,12 +706,12 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string&
         return std::make_unique<STSNativeReference>();
     }
     ani_method loadClassMethod = nullptr;
-    if (aniEnv->Class_FindMethod(cls, "loadClass", "Lstd/core/String;Z:Lstd/core/Class;", &loadClassMethod) != ANI_OK) {
+    if (aniEnv->Class_FindMethod(cls, "loadClass", nullptr, &loadClassMethod) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindMethod loadClass failed");
         return std::make_unique<STSNativeReference>();
     }
-    std::string entryPath = EntryPathManager::GetInstance().GetEntryPath(srcEntrance);
-    // std::string entryPath = "entry/entryability/EntryAbility/EntryAbility";
+    //std::string entryPath = EntryPathManager::GetInstance().GetEntryPath(srcEntrance);
+    std::string entryPath = "entry/src/main/ets/entryability/EntryAbility/EntryAbility";
     // std::string entryPath = "OpenHarmonyTestRunner/OpenHarmonyTestRunner";
     ani_string entryClassStr;
     aniEnv->String_NewUTF8(entryPath.c_str(), entryPath.length(), &entryClassStr);
@@ -708,7 +719,7 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string&
     ani_ref entryClassRef = nullptr;
     ani_boolean isInit = false;
     TAG_LOGI(AAFwkTag::STSRUNTIME, "load class: %{public}s", entryPath.c_str());
-    if (aniEnv->Object_CallMethod_Ref(object, loadClassMethod, &entryClassRef, entryClassStr, isInit) != ANI_OK) {
+    if (aniEnv->Object_CallMethod_Ref(object, loadClassMethod, &entryClassRef, entryClassStr, false) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "Object_CallMethod_Ref loadClassMethod failed");
         return std::make_unique<STSNativeReference>();
     } else {
@@ -727,11 +738,14 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string&
         return std::make_unique<STSNativeReference>();
     }
 
+  TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass 7");
+
     ani_ref entryObjectRef = nullptr;
     if (aniEnv->GlobalReference_Create(entryObject, &entryObjectRef) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "GlobalReference_Create failed");
         return std::make_unique<STSNativeReference>();
     }
+      TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass 8");
     stsNativeReference->aniCls = entryClass;
     stsNativeReference->aniObj = entryObject;
     stsNativeReference->aniRef = entryObjectRef;
