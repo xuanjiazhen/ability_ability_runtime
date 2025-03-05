@@ -65,6 +65,7 @@ struct AbilityStateData : public Parcelable {
     std::string abilityName;
     std::string callerBundleName;
     std::string callerAbilityName;
+    int32_t callerAppCloneIndex = -1;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
