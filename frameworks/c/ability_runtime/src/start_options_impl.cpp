@@ -35,7 +35,11 @@ OHOS::AAFwk::StartOptions AbilityRuntime_StartOptions::GetInnerStartOptions()
 AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::SetStartOptionsWindowMode(AbilityRuntime_WindowMode windowMode)
 {
     if (windowMode < ABILITY_RUNTIME_WINDOW_MODE_UNDEFINED ||
+<<<<<<< HEAD
         windowMode > ABILITY_RUNTIME_WINDOW_MODE_FULL_SCREEN) {
+=======
+        windowMode > ABILITY_RUNTIME_WINDOW_MODE_FULLSCREEN) {
+>>>>>>> b943a6d056 (add visibility)
         TAG_LOGE(AAFwkTag::APPKIT, "windowMode=%{public}d is invalid", static_cast<int32_t>(windowMode));
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
@@ -141,6 +145,31 @@ AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::GetStartOptionsWindowWidth
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
+<<<<<<< HEAD
+=======
+AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::SetStartOptionsStartVisibility(
+    AbilityRuntime_StartVisibility startVisibility)
+{
+    if (options.processOptions == nullptr) {
+        options.processOptions = std::make_shared<OHOS::AAFwk::ProcessOptions>();
+    }
+    options.processOptions->startupVisibility =
+        static_cast<OHOS::AAFwk::StartupVisibility>(startVisibility);
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::GetStartOptionsStartVisibility(
+    AbilityRuntime_StartVisibility &startVisibility)
+{
+    if (options.processOptions == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null processOptions")
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    startVisibility = static_cast<AbilityRuntime_StartVisibility>(options.processOptions->startupVisibility);    
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+#ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
 AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::SetStartOptionsStartWindowIcon(
     OH_PixelmapNative *startWindowIcon)
 {
@@ -151,11 +180,17 @@ AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::SetStartOptionsStartWindow
     if (options.startWindowOption == nullptr) {
         options.startWindowOption = std::make_shared<OHOS::AAFwk::StartWindowOption>();
     }
+<<<<<<< HEAD
 #ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
     options.startWindowOption->startWindowIcon = startWindowIcon->GetInnerPixelmap();
     options.startWindowOption->hasStartWindow =
         (options.startWindowOption->startWindowIcon != nullptr);
 #endif
+=======
+    options.startWindowOption->startWindowIcon = startWindowIcon->GetInnerPixelmap();
+    options.startWindowOption->hasStartWindow =
+        (options.startWindowOption->startWindowIcon != nullptr);
+>>>>>>> b943a6d056 (add visibility)
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
@@ -170,15 +205,24 @@ AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::GetStartOptionsStartWindow
         TAG_LOGE(AAFwkTag::APPKIT, "startWindowIcon is not null");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
+<<<<<<< HEAD
 #ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
+=======
+>>>>>>> b943a6d056 (add visibility)
     if (options.startWindowOption->hasStartWindow) {
         std::unique_ptr<OH_PixelmapNative> icon = std::make_unique<OH_PixelmapNative>(
             options.startWindowOption->startWindowIcon);
         *startWindowIcon = icon.release();
     }
+<<<<<<< HEAD
 #endif
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
+=======
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+#endif
+>>>>>>> b943a6d056 (add visibility)
 
 AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::SetStartOptionsStartWindowBackgroundColor(
     const char* startWindowBackgroundColor)
@@ -225,6 +269,7 @@ AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::GetStartOptionsStartWindow
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
+<<<<<<< HEAD
 AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::SetStartOptionsSupportedWindowModes(
     AbilityRuntime_SupportedWindowMode* supportedWindowModes, size_t size)
 {
@@ -240,10 +285,27 @@ AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::SetStartOptionsSupportedWi
         }
         options.supportWindowModes_.push_back(
             static_cast<OHOS::AppExecFwk::SupportWindowMode>(supportedWindowModes[i]));
+=======
+AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::SetStartOptionsSupportWindowMode(
+    AbilityRuntime_SupportWindowMode* supportWindowModes, size_t size)
+{
+    if (supportWindowModes == nullptr || size == 0 || size > MAX_SUPPOPRT_WINDOW_MODES_SIZE) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null supportWindowModes or size is invalid");
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    for (size_t i = 0; i < size; ++i) {
+        if (supportWindowModes[i] < ABILITY_RUNTIME_SUPPORT_WINDOW_MODE_FULL_SCREEN ||
+            supportWindowModes[i] > ABILITY_RUNTIME_SUPPORT_WINDOW_MODE_FLOATING) {
+            TAG_LOGE(AAFwkTag::APPKIT, "invalild supportWindowMode:%{public}d", supportWindowModes[i]);
+            return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+        }
+        options.supportWindowModes_.push_back(static_cast<OHOS::AppExecFwk::SupportWindowMode>(supportWindowModes[i]));
+>>>>>>> b943a6d056 (add visibility)
     }
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
+<<<<<<< HEAD
 AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::GetStartOptionsSupportedWindowModes(
     AbilityRuntime_SupportedWindowMode **supportedWindowModes, size_t &size)
 {
@@ -253,10 +315,22 @@ AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::GetStartOptionsSupportedWi
     }
     if (*supportedWindowModes != nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "supportedWindowModes is not null");
+=======
+AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::GetStartOptionsSupportWindowMode(
+    AbilityRuntime_SupportWindowMode **supportWindowModes, size_t &size)
+{
+    if (supportWindowModes == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null supportWindowModes");
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    if (*supportWindowModes != nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "supportWindowModes is not null");
+>>>>>>> b943a6d056 (add visibility)
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
     if (!options.supportWindowModes_.empty()) {
         size = options.supportWindowModes_.size();
+<<<<<<< HEAD
         *supportedWindowModes = static_cast<AbilityRuntime_SupportedWindowMode*>(
             malloc(sizeof(AbilityRuntime_SupportedWindowMode) * options.supportWindowModes_.size()));
         if (*supportedWindowModes == nullptr) {
@@ -266,6 +340,16 @@ AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::GetStartOptionsSupportedWi
         for (size_t i = 0; i < size; ++i) {
             (*supportedWindowModes)[i] =
                 static_cast<AbilityRuntime_SupportedWindowMode>(options.supportWindowModes_[i]);
+=======
+        *supportWindowModes = static_cast<AbilityRuntime_SupportWindowMode*>(
+            malloc(sizeof(AbilityRuntime_SupportWindowMode) * options.supportWindowModes_.size()));
+        if (*supportWindowModes == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "supportWindowModes uninitialized");
+            return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        }
+        for (size_t i = 0; i < size; ++i) {
+            (*supportWindowModes)[i] = static_cast<AbilityRuntime_SupportWindowMode>(options.supportWindowModes_[i]);
+>>>>>>> b943a6d056 (add visibility)
         }
     }
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
@@ -337,4 +421,8 @@ AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::GetStartOptionsMaxWindowHe
         maxWindowHeight = options.GetMaxWindowHeight();
     }
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> b943a6d056 (add visibility)
