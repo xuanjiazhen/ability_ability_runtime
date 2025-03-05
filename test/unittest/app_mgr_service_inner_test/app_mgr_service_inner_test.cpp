@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -4780,8 +4780,9 @@ HWTEST_F(AppMgrServiceInnerTest, SetJITPermissions_001, TestSize.Level0)
     TAG_LOGI(AAFwkTag::TEST, "SetJITPermissions_001 start");
     uint32_t accessTokenId = 0;
     AppSpawnStartMsg startMsg = {0};
-    AppspawnUtil::SetJITPermissions(accessTokenId, startMsg.jitPermissionsList);
-    EXPECT_EQ(startMsg.jitPermissionsList.size(), 0);
+    std::vector<std::string> list;
+    AppspawnUtil::SetJITPermissions(accessTokenId, list);
+    EXPECT_EQ(list.size(), 0);
     TAG_LOGI(AAFwkTag::TEST, "SetJITPermissions_001 end");
 }
 

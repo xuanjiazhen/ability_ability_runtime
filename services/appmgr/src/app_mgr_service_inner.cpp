@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -48,6 +48,7 @@
 #include "extension_ability_info.h"
 #include "freeze_util.h"
 #include "global_constant.h"
+#include "hap_token_info.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "in_process_call_wrapper.h"
@@ -3601,12 +3602,29 @@ int32_t AppMgrServiceInner::CreateStartMsg(const CreateStartMsgParam &param, App
     SetAtomicServiceInfo(param.bundleType, startMsg);
     SetOverlayInfo(bundleInfo.name, userId, startMsg);
     SetAppInfo(bundleInfo, startMsg);
-    AppspawnUtil::SetJITPermissions(bundleInfo.applicationInfo.accessTokenId, startMsg.jitPermissionsList);
+    GetKernelPermissions(bundleInfo.applicationInfo.accessTokenId, startMsg.jitPermissionsMap);
     TAG_LOGI(AAFwkTag::APPMGR, "apl: %{public}s, bundleName: %{public}s, startFlags: %{public}d, userId: %{public}d",
         startMsg.apl.c_str(), bundleInfo.name.c_str(), param.startFlags, userId);
 
     autoSync.Sync();
     return ERR_OK;
+}
+
+void AppMgrServiceInner::GetKernelPermissions(uint32_t accessTokenId, JITPermissionsMap &permissionsMap)
+{
+    std::vector<Security::AccessToken::PermissionWithValue> permissionWithValueList;
+    AccessToken::AccessTokenKit::GetKernelPermissions(accessTokenId, permissionWithValueList);
+    for (const auto &item : permissionWithValueList) {
+        permissionsMap.emplace(item.permissionName, item.value);
+    }
+    std::vector<std::string> permissionslist;
+    AppspawnUtil::SetJITPermissions(accessTokenId, permissionslist);
+    for (const auto &item : permissionslist) {
+        auto it = permissionsMap.find(item);
+        if (it == permissionsMap.end()) {
+            permissionsMap.emplace(item, "");
+        }
+    }
 }
 
 void AppMgrServiceInner::SetStartMsgStrictMode(AppSpawnStartMsg &startMsg, const CreateStartMsgParam &param)
