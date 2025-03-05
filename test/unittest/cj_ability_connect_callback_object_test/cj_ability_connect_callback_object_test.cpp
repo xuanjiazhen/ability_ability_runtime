@@ -43,7 +43,7 @@ void (*g_registerFunc)(CJAbilityConnectCallbackFuncs *result) = [](CJAbilityConn
         g_cjRet += 1;
     }
     result->onConnect =
-        [](int64_t id, ElementNameHandle elementNameHandle, int64_t remoteObjectId, int32_t resultCode) {};
+        [](int64_t id, ElementNameHandle elementNameHandle, RetDataI64 remoteObjectId, int32_t resultCode) {};
     result->onDisconnect = [](int64_t id, ElementNameHandle elementNameHandle, int32_t resultCode) {};
     result->release = [](int64_t id) { id++; };
 };

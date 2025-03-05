@@ -64,6 +64,7 @@ ohos_unittest("cj_ability_object_test") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "napi:ace_napi",
+    "napi:cj_bind_ffi",
     "napi:cj_bind_native",
     "resource_management:global_resmgr",
     "window_manager:cj_window_ffi",

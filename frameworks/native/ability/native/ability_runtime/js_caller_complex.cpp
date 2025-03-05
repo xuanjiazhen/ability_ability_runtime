@@ -479,7 +479,6 @@ private:
     static std::set<JsCallerComplex*> jsCallerComplexManagerList;
     static std::mutex jsCallerComplexMutex;
 };
-
 std::set<JsCallerComplex*> JsCallerComplex::jsCallerComplexManagerList;
 std::mutex JsCallerComplex::jsCallerComplexMutex;
 } // nameless
