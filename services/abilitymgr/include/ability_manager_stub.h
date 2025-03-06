@@ -262,6 +262,7 @@ private:
 
     int32_t RegisterStatusBarDelegateInner(MessageParcel &data, MessageParcel &reply);
     int32_t KillProcessWithPrepareTerminateInner(MessageParcel &data, MessageParcel &reply);
+    int32_t KillProcessWithPrepareTerminateResult(MessageParcel &data, MessageParcel &reply);
 
     int32_t KillProcessWithReasonInner(MessageParcel &data, MessageParcel &reply);
 

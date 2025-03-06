@@ -153,6 +153,7 @@ abilityms_files = [
   "src/utils/modal_system_dialog_util.cpp",
   "src/utils/multi_app_utils.cpp",
   "src/utils/multi_instance_utils.cpp",
+  "src/utils/prepare_terminate_util.cpp",
   "src/utils/start_ability_utils.cpp",
   "src/utils/hidden_start_utils.cpp",
   "src/utils/state_utils.cpp",

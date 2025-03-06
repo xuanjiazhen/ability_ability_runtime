@@ -65,6 +65,7 @@
 #include "multi_app_utils.h"
 #include "os_account_manager_wrapper.h"
 #include "permission_constants.h"
+#include "prepare_terminate_util.h"
 #include "process_options.h"
 #include "recovery_param.h"
 #include "res_sched_util.h"
@@ -10845,6 +10846,28 @@ int32_t AbilityManagerService::KillProcessWithPrepareTerminate(const std::vector
     auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
     CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
     return uiAbilityManager->TryPrepareTerminateByPids(pids);
+}
+
+int32_t AbilityManagerService::KillProcessWithPrepareTerminate(int32_t pid, sptr<IAsyncResult> asyncResult)
+{
+    if (!IsCallerSceneBoard()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "no sceneboard called, no allowed");
+        return ERR_WRONG_INTERFACE_CALL;
+    }
+    auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
+    CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
+    std::shared_ptr<bool> delayResult;
+    if (asyncResult) {
+        delayResult = PrepareTerminateUtil::GetInstance().AddPrepareTerminateResult(pid);
+    }
+    auto ret = uiAbilityManager->TryPrepareTerminateByPids({pid});
+    if (delayResult) {
+        PrepareTerminateUtil::GetInstance().RemovePrepareTerminateResult(pid, delayResult);
+        TaskHandlerWrap::GetFfrtHandler()->SubmitTask([asyncResult, pid, delayResult] {
+            asyncResult->OnResult({pid, *delayResult});
+            });
+    }
+    return ret;
 }
 
 int32_t AbilityManagerService::KillProcessWithReason(int32_t pid, const ExitReason &reason)

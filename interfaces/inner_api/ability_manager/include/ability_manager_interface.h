@@ -29,6 +29,7 @@
 #include "ability_state.h"
 #include "ability_state_data.h"
 #include "app_debug_listener_interface.h"
+#include "async_result.h"
 #include "auto_startup_info.h"
 #include "dms_continueInfo.h"
 #include "exit_reason.h"
@@ -1552,6 +1553,11 @@ public:
     }
 
     virtual int32_t KillProcessWithPrepareTerminate(const std::vector<int32_t>& pids)
+    {
+        return 0;
+    }
+
+    virtual int32_t KillProcessWithPrepareTerminate(int32_t pid, sptr<IAsyncResult> asyncResult)
     {
         return 0;
     }

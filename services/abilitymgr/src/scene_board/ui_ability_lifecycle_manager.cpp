@@ -26,6 +26,7 @@
 #include "global_constant.h"
 #include "hitrace_meter.h"
 #include "permission_constants.h"
+#include "prepare_terminate_util.h"
 #include "process_options.h"
 #include "server_constant.h"
 #include "start_window_option.h"
@@ -2861,6 +2862,7 @@ std::vector<sptr<IRemoteObject>> UIAbilityLifecycleManager::PrepareTerminateAppA
     } else if (static_cast<AppExecFwk::PrepareTermination>(record->prepareTermination_) ==
         AppExecFwk::PrepareTermination::CANCEL) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "PrepareTerminate cancel");
+        PrepareTerminateUtil::GetInstance().PutResult(pid, false);
     } else {
         // Terminate immediately by default
         TAG_LOGI(AAFwkTag::ABILITYMGR, "PrepareTerminate immediately");
@@ -2900,10 +2902,12 @@ int32_t UIAbilityLifecycleManager::TryPrepareTerminateByPids(const std::vector<i
         std::vector<sptr<IRemoteObject>> tokens;
         IN_PROCESS_CALL_WITHOUT_RET(
             DelayedSingleton<AppScheduler>::GetInstance()->GetAbilityRecordsByProcessID(pid, tokens));
+        PrepareTerminateUtil::GetInstance().PutResult(pid, true);
         for (const auto &token : PrepareTerminateAppAndGetRemaining(pid, tokens)) {
             auto abilityRecord = Token::GetAbilityRecordByToken(token);
             if (PrepareTerminateAbility(abilityRecord, true)) {
                 TAG_LOGI(AAFwkTag::ABILITYMGR, "terminate blocked");
+                PrepareTerminateUtil::GetInstance().PutResult(pid, false);
                 continue;
             }
             abilitysToTerminate.emplace(abilityRecord);
