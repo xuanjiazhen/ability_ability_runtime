@@ -19,6 +19,7 @@
 #ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
 #include "pixelmap_native_impl.h"
 #endif
+#include "process_options.h"
 #include "securec.h"
 #include "start_window_option.h"
 

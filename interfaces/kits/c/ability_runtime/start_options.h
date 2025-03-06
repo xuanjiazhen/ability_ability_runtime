@@ -266,7 +266,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWindowWidth(AbilityRun
  * @since 18
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsStartVisibility(AbilityRuntime_StartOptions *startOptions,
-    AbilityRuntime_StartVisibility startVisibility)
+    AbilityRuntime_StartVisibility startVisibility);
 
 /**
  * @brief Get start visibility from start options.
@@ -279,7 +279,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsStartVisibility(Abilit
  * @since 18
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsStartVisibility(AbilityRuntime_StartOptions *startOptions,
-    AbilityRuntime_StartVisibility &startVisibility)
+    AbilityRuntime_StartVisibility &startVisibility);
 
 #ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
 /**
