@@ -1007,6 +1007,7 @@ public:
     ErrCode RegisterStatusBarDelegate(sptr<AbilityRuntime::IStatusBarDelegate> delegate);
 
     ErrCode KillProcessWithPrepareTerminate(const std::vector<int32_t>& pids);
+    ErrCode KillProcessWithPrepareTerminate(int32_t pid, sptr<IAsyncResult> asyncResult);
 
     /**
      * kill the process with reason

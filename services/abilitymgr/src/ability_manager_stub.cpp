@@ -816,6 +816,9 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentieth(uint32_t code, MessageParc
     if (interfaceCode == AbilityManagerInterfaceCode::UNREGISTER_HIDDEN_START_OBSERVER) {
         return UnregisterHiddenStartObserverInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::KILL_PROCESS_WITH_PREPARE_TERMINATE_RESULT) {
+        return KillProcessWithPrepareTerminateResult(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -3502,6 +3505,21 @@ int32_t AbilityManagerStub::KillProcessWithPrepareTerminateInner(MessageParcel &
         pids.emplace_back(data.ReadInt32());
     }
     int32_t result = KillProcessWithPrepareTerminate(pids);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "kill process fail");
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::KillProcessWithPrepareTerminateResult(MessageParcel &data, MessageParcel &reply)
+{
+    auto pid = data.ReadInt32();
+    sptr<IAsyncResult> callback;
+    if (data.ReadBool()) {
+        callback = iface_cast<IAsyncResult>(data.ReadRemoteObject());
+    }
+    
+    int32_t result = KillProcessWithPrepareTerminate(pid, callback);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "kill process fail");
     }

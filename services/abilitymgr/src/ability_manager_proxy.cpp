@@ -4727,6 +4727,40 @@ int32_t AbilityManagerProxy::KillProcessWithPrepareTerminate(const std::vector<i
     return ret;
 }
 
+int32_t AbilityManagerProxy::KillProcessWithPrepareTerminate(int32_t pid, sptr<IAsyncResult> asyncResult)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
+    }
+    if (!data.WriteInt32(pid)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write pid fail");
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
+    }
+    if (asyncResult != nullptr) {
+        if (!data.WriteBool(true) || !data.WriteRemoteObject(asyncResult->AsObject())) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "write callback fail");
+            return ERR_NATIVE_IPC_PARCEL_FAILED;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "write callback fail");
+            return ERR_NATIVE_IPC_PARCEL_FAILED;
+        }
+    }
+
+    auto ret = SendRequest(AbilityManagerInterfaceCode::KILL_PROCESS_WITH_PREPARE_TERMINATE_RESULT,
+        data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", ret);
+    }
+    return ret;
+}
+
 int32_t AbilityManagerProxy::KillProcessWithReason(int32_t pid, const ExitReason &reason)
 {
     MessageParcel data;

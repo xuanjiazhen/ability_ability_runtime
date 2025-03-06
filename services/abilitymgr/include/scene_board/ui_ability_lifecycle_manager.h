@@ -347,6 +347,7 @@ public:
     bool IsSupportStatusBar();
 
     int32_t TryPrepareTerminateByPids(const std::vector<int32_t>& pids);
+    // bool AddPrepareTerminateCallback(int32_t pid, );
 
     int ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow);
 

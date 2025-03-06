@@ -1562,6 +1562,7 @@ public:
     virtual int32_t RegisterStatusBarDelegate(sptr<AbilityRuntime::IStatusBarDelegate> delegate) override;
 
     virtual int32_t KillProcessWithPrepareTerminate(const std::vector<int32_t>& pids) override;
+    virtual int32_t KillProcessWithPrepareTerminate(int32_t pid, sptr<IAsyncResult> asyncResult) override;
 
     virtual int32_t KillProcessWithReason(int32_t pid, const ExitReason &reason) override;
 

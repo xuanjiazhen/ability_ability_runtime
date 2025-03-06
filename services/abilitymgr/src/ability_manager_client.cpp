@@ -1769,6 +1769,14 @@ ErrCode AbilityManagerClient::KillProcessWithPrepareTerminate(const std::vector<
     return abms->KillProcessWithPrepareTerminate(pids);
 }
 
+ErrCode AbilityManagerClient::KillProcessWithPrepareTerminate(int32_t pid, sptr<IAsyncResult> asyncResult)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->KillProcessWithPrepareTerminate(pid, asyncResult);
+}
+
 ErrCode AbilityManagerClient::KillProcessWithReason(int32_t pid, const ExitReason &reason)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call, pid:%{public}d", pid);
