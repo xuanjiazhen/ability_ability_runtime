@@ -191,7 +191,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsStartVisibility(Abilit
 }
 
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsStartVisibility(AbilityRuntime_StartOptions *startOptions,
-    AbilityRuntime_StartOptions &startVisibility)
+    AbilityRuntime_StartVisibility &startVisibility)
 {
     if (startOptions == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null startOptions");
