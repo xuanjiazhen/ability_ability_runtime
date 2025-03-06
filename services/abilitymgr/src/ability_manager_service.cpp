@@ -1671,7 +1671,7 @@ int AbilityManagerService::StartUIAbilityForOptionWrap(const Want &want, const S
 
     if (HiddenStartUtils::IsHiddenStart(want, options)) {
         ret = HiddenStartUtils::CheckHiddenStartSupported(want, options);
-    } else if (AbilityPermissionUtil::GetInstance::IsStartSelfUIAbility()) {
+    } else if (AbilityPermissionUtil::GetInstance().IsStartSelfUIAbility()) {
         ret = checkStartSelfUIAbilityStartOptions(want, options);
     } else {
         ret = CheckProcessOptions(want, options, userId);
@@ -13169,10 +13169,10 @@ int AbilityManagerService::StartSelfUIAbilityInner(StartSelfUIAbilityParam param
         });
     CHECK_TRUE_RETURN_RET(iter == processInfo.bundleNames.end(), ERR_START_OTHER_APP_FAILED, "cannot start other app");
 
-    param.want.RemoveParam(Want::PARAM_APP_CLONE_INDEX_KEY);
+    (const_cast<Want &>(param.want)).RemoveParam(Want::PARAM_APP_CLONE_INDEX_KEY);
     if (processInfo.appMode == AppExecFwk::MultiAppModeType::APP_CLONE) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "set appIndex: %{public}d", processInfo.appCloneIndex);
-        param.want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, processInfo.appCloneIndex);
+        (const_cast<Want &>(param.want)).SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, processInfo.appCloneIndex);
     }
 
     auto tokenId = abilityInfo.applicationInfo.accessTokenId;
@@ -13203,7 +13203,7 @@ int AbilityManagerService::StartSelfUIAbilityWithStartOptions(const Want &want, 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call StartSelfUIAbility with startOptions");
 
     if(options.processOptions != nullptr) {
-       options.processOptions->isStartFromNDK = true; 
+       options.processOptions->isStartFromNDK = true;
     }
 
     StartSelfUIAbilityParam param = { want, options, true };

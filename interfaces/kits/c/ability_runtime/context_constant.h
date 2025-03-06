@@ -75,7 +75,7 @@ typedef enum {
 } AbilityRuntime_AreaMode;
 
 /**
- * @brief Start visibility
+ * @brief Start visibility.
  *
  * @since 18
  */

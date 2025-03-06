@@ -465,7 +465,7 @@ HWTEST_F(AbilityManagerServiceSixthTest, CheckStartSelfUIAbilityStartOptions_001
 
     startOptions.processOptions = std::make_shared<ProcessOptions>();
     startOptions.processOptions->isStartFromNDK = true;
-    ret = abilityMs->CheckProcessOptions(want, startOptions, -1);
+    ret = abilityMs->CheckStartSelfUIAbilityStartOptions(want, startOptions);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest CheckStartSelfUIAbilityStartOptions_001 end");
 }
