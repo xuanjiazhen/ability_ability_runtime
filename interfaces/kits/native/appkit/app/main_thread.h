@@ -45,11 +45,6 @@
 #endif
 #define ABILITY_LIBRARY_LOADER
 
-#if defined(NWEB) && defined(NWEB_GRAPHIC)
-#include "nweb_preload.h"
-#include "ui/rs_surface_node.h"
-#endif
-
 class Runtime;
 namespace OHOS {
 namespace AppExecFwk {
@@ -651,12 +646,10 @@ private:
 
     int32_t OnAttachLocalDebug(bool isDebugFromLocal);
 
-#if defined(NWEB) && defined(NWEB_GRAPHIC)
-    void HandleNWebPreload();
-#endif
-
 #if defined(NWEB)
     void PreLoadWebLib();
+    void PorcessWebPreload(const std::map<std::string, std::string> configMap);
+    void BuildWebPreloadConfig(const AppLaunchData& appLaunchData, std::map<std::string, std::string>& configMap);
 #endif
 
     class MainHandler : public EventHandler {
@@ -694,10 +687,6 @@ private:
     std::string abilityLibraryType_ = ".so";
     static std::weak_ptr<OHOSApplication> applicationForDump_;
     bool isDeveloperMode_ = false;
-#if defined(NWEB) && defined(NWEB_GRAPHIC)
-    Rosen::RSSurfaceNode::SharedPtr preloadSurfaceNode_ = nullptr;
-    std::shared_ptr<NWeb::NWeb> preloadNWeb_ = nullptr;
-#endif
 
 #ifdef ABILITY_LIBRARY_LOADER
     /**
