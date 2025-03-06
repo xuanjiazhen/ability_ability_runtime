@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -528,9 +528,11 @@ public:
      *  CloseUIAbilityBySCB, close the special ability by scb.
      *
      * @param sessionInfo the session info of the ability to terminate.
+     * @param sceneFlag the reason info of the ability to terminate.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int CloseUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo)
+    virtual int CloseUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool isUserRequestedExit,
+        uint32_t sceneFlag = 0)
     {
         return 0;
     }
@@ -1009,6 +1011,12 @@ public:
     virtual int StartAbilityByCall(const Want &want, const sptr<IAbilityConnection> &connect,
         const sptr<IRemoteObject> &callerToken, int32_t accountId = DEFAULT_INVAL_VALUE) = 0;
 
+    virtual int StartAbilityByCallWithErrMsg(const Want &want, const sptr<IAbilityConnection> &connect,
+        const sptr<IRemoteObject> &callerToken, int32_t accountId, std::string &errMsg)
+    {
+        return 0;
+    };
+
     /**
      * CallRequestDone, after invoke callRequest, ability will call this interface to return callee.
      *
@@ -1461,6 +1469,18 @@ public:
     }
 
     /**
+     * Record the exit reason of a killed process.
+     * @param pid The process id.
+     * @param uid The process uid.
+     * @param exitReason The reason of process exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RecordProcessExitReason(int32_t pid, int32_t uid, const ExitReason &exitReason)
+    {
+        return 0;
+    }
+
+    /**
      * Set rootSceneSession by SCB.
      *
      * @param rootSceneSession Indicates root scene session of SCB.
@@ -1622,14 +1642,14 @@ public:
      * @param bundleName The application bundle name.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t AttachAppDebug(const std::string &bundleName) = 0;
+    virtual int32_t AttachAppDebug(const std::string &bundleName, bool isDebugFromLocal) = 0;
 
     /**
      * @brief Detach app debug.
      * @param bundleName The application bundle name.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t DetachAppDebug(const std::string &bundleName) = 0;
+    virtual int32_t DetachAppDebug(const std::string &bundleName, bool isDebugFromLocal) = 0;
 
     /**
      * @brief Execute intent.
@@ -1872,9 +1892,11 @@ public:
      *  Request to clean UIAbility from user.
      *
      * @param sessionInfo the session info of the ability to clean.
+     * @param sceneFlag the reason info of the ability to terminate.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t CleanUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo)
+    virtual int32_t CleanUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool isUserRequestedExit,
+        uint32_t sceneFlag = 0)
     {
         return 0;
     }
@@ -2031,6 +2053,18 @@ public:
     {}
 
     /**
+     * KillProcessForPermissionUpdate, call KillProcessForPermissionUpdate() through proxy object,
+     * force kill the application by accessTokenId, notify exception to SCB.
+     *
+     * @param  accessTokenId, accessTokenId.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int32_t KillProcessForPermissionUpdate(uint32_t accessTokenId)
+    {
+        return 0;
+    }
+
+    /**
      * Register hidden start observer.
      * @param observer, ability token.
      * @return Returns ERR_OK on success, others on failure.
@@ -2046,6 +2080,24 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UnregisterHiddenStartObserver(const sptr<IHiddenStartObserver> &observer)
+    {
+        return 0;
+    }
+    /**
+     * Query preload uiextension record.
+     *
+     * @param element, The uiextension ElementName.
+     * @param moduleName, The uiextension moduleName.
+     * @param hostBundleName, The uiextension caller hostBundleName.
+     * @param recordNum, The returned count of uiextension.
+     * @param userId, The User Id.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t QueryPreLoadUIExtensionRecord(const AppExecFwk::ElementName &element,
+                                                  const std::string &moduleName,
+                                                  const std::string &hostBundleName,
+                                                  int32_t &recordNum,
+                                                  int32_t userId = DEFAULT_INVAL_VALUE)
     {
         return 0;
     }

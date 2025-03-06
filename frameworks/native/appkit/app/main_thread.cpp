@@ -595,7 +595,8 @@ void MainThread::ScheduleHeapMemory(const int32_t pid, OHOS::AppExecFwk::MallocI
 void MainThread::ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info)
 {
     TAG_LOGI(AAFwkTag::APPKIT, "pid: %{public}d, tid: %{public}d, needGc: %{public}d, needSnapshot: %{public}d,\n"
-        "needLeakobj: %{public}d", info.pid, info.tid, info.needGc, info.needSnapshot, info.needLeakobj);
+        "needLeakobj: %{public}d, needBinary: %{public}d",
+        info.pid, info.tid, info.needGc, info.needSnapshot, info.needLeakobj, info.needBinary);
     wptr<MainThread> weak = this;
     auto task = [weak, info]() {
         auto appThread = weak.promote();
@@ -1564,15 +1565,16 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         debugOption.isDebugApp = appInfo.debug;
         debugOption.isStartWithNative = appLaunchData.isNativeStart();
         debugOption.appProvisionType = applicationInfo_->appProvisionType;
+        debugOption.isDebugFromLocal = appLaunchData.GetDebugFromLocal();
+        debugOption.perfCmd = perfCmd;
+        debugOption.isDeveloperMode = isDeveloperMode_;
+        runtime->SetDebugOption(debugOption);
         if (perfCmd.find(PERFCMD_PROFILE) != std::string::npos ||
             perfCmd.find(PERFCMD_DUMPHEAP) != std::string::npos) {
             TAG_LOGD(AAFwkTag::APPKIT, "perfCmd is %{public}s", perfCmd.c_str());
-            debugOption.perfCmd = perfCmd;
             runtime->StartProfiler(debugOption);
         } else {
-            if (isDeveloperMode_) {
-                runtime->StartDebugMode(debugOption);
-            }
+            runtime->StartDebugMode(debugOption);
         }
 
         std::vector<HqfInfo> hqfInfos = appInfo.appQuickFix.deployedAppqfInfo.hqfInfos;
@@ -2073,7 +2075,7 @@ void MainThread::HandleUpdateApplicationInfoInstalled(const ApplicationInfo& app
         return;
     }
     application_->UpdateApplicationInfoInstalled(appInfo);
-
+#ifndef CJ_FRONTEND
     auto& runtime = application_->GetRuntime();
     if (runtime == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
@@ -2094,10 +2096,11 @@ void MainThread::HandleUpdateApplicationInfoInstalled(const ApplicationInfo& app
         TAG_LOGE(AAFwkTag::APPKIT, "GetHapModuleInfo failed");
         return;
     }
-    runtime->UpdatePkgContextInfoJsonEx(hapModuleInfo.moduleName, hapModuleInfo.hapPath, hapModuleInfo.packageName);
+    runtime->UpdatePkgContextInfoJson(hapModuleInfo.moduleName, hapModuleInfo.hapPath, hapModuleInfo.packageName);
     TAG_LOGI(AAFwkTag::APPKIT,
-        "UpdatePkgContextInfoJsonEx moduleName: %{public}s, hapPath: %{public}s, packageName: %{public}s",
+        "UpdatePkgContextInfoJson moduleName: %{public}s, hapPath: %{public}s, packageName: %{public}s",
         hapModuleInfo.moduleName.c_str(), hapModuleInfo.hapPath.c_str(), hapModuleInfo.packageName.c_str());
+#endif
 }
 
 void MainThread::HandleAbilityStage(const HapModuleInfo &abilityStage)
@@ -3482,10 +3485,47 @@ int32_t MainThread::ChangeAppGcState(int32_t state)
     return NO_ERROR;
 }
 
-void MainThread::AttachAppDebug()
+void MainThread::AttachAppDebug(bool isDebugFromLocal)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
     SetAppDebug(AbilityRuntime::AppFreezeState::AppFreezeFlag::ATTACH_DEBUG_MODE, true);
+
+    if (!isDebugFromLocal) {
+        TAG_LOGE(AAFwkTag::APPKIT, "no local debug");
+        return;
+    }
+    wptr<MainThread> weak = this;
+    auto task = [weak] {
+        auto appThread = weak.promote();
+        if (appThread == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
+            return;
+        }
+        appThread->OnAttachLocalDebug(true);
+    };
+    if (mainHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null handler");
+        return;
+    }
+    if (!mainHandler_->PostTask(task, "MainThread:AttachAppDebug")) {
+        TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
+    }
+}
+
+int32_t MainThread::OnAttachLocalDebug(bool isDebugFromLocal)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    if (application_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null application_");
+        return ERR_INVALID_VALUE;
+    }
+    auto &runtime = application_->GetRuntime();
+    if (runtime == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
+        return ERR_INVALID_VALUE;
+    }
+    runtime->StartLocalDebugMode(isDebugFromLocal);
+    return NO_ERROR;
 }
 
 void MainThread::DetachAppDebug()

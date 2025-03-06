@@ -342,6 +342,7 @@ void AppRunningRecord::LaunchApplication(const Configuration &config)
     launchData.SetIsNeedPreloadModule(isNeedPreloadModule_);
     launchData.SetNWebPreload(isAllowedNWebPreload_);
     launchData.SetPreloadModuleName(preloadModuleName_);
+    launchData.SetDebugFromLocal(isDebugFromLocal_);
 
     TAG_LOGD(AAFwkTag::APPMGR, "%{public}s called,app is %{public}s.", __func__, GetName().c_str());
     AddAppLifecycleEvent("AppRunningRecord::LaunchApplication");
@@ -626,14 +627,13 @@ void AppRunningRecord::AddModules(
     }
 
     for (auto &iter : moduleInfos) {
-        AddModule(appInfo, nullptr, nullptr, iter, nullptr, 0, 0);
+        AddModule(appInfo, nullptr, nullptr, iter, nullptr, 0);
     }
 }
 
 void AppRunningRecord::AddModule(std::shared_ptr<ApplicationInfo> appInfo,
     std::shared_ptr<AbilityInfo> abilityInfo, sptr<IRemoteObject> token,
-    const HapModuleInfo &hapModuleInfo, std::shared_ptr<AAFwk::Want> want, int32_t abilityRecordId,
-    int32_t persistentId)
+    const HapModuleInfo &hapModuleInfo, std::shared_ptr<AAFwk::Want> want, int32_t abilityRecordId)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
 
@@ -668,7 +668,7 @@ void AppRunningRecord::AddModule(std::shared_ptr<ApplicationInfo> appInfo,
         TAG_LOGE(AAFwkTag::APPMGR, "null abilityInfo or token");
         return;
     }
-    moduleRecord->AddAbility(token, abilityInfo, want, abilityRecordId, persistentId);
+    moduleRecord->AddAbility(token, abilityInfo, want, abilityRecordId);
 
     return;
 }
@@ -2107,16 +2107,17 @@ int32_t AppRunningRecord::ChangeAppGcState(int32_t state)
     return appLifeCycleDeal_->ChangeAppGcState(state);
 }
 
-void AppRunningRecord::SetAttachDebug(bool isAttachDebug)
+void AppRunningRecord::SetAttachDebug(bool isAttachDebug, bool isDebugFromLocal)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     isAttachDebug_ = isAttachDebug;
+    isDebugFromLocal_ = isDebugFromLocal;
 
     if (appLifeCycleDeal_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null appLifeCycleDeal_");
         return;
     }
-    isAttachDebug_ ? appLifeCycleDeal_->AttachAppDebug() : appLifeCycleDeal_->DetachAppDebug();
+    isAttachDebug_ ? appLifeCycleDeal_->AttachAppDebug(isDebugFromLocal_) : appLifeCycleDeal_->DetachAppDebug();
 }
 
 bool AppRunningRecord::IsAttachDebug() const
@@ -2608,6 +2609,11 @@ uint32_t AppRunningRecord::GetAddStageTimeout() const
         return AMSEventHandler::ADD_ABILITY_STAGE_EMPTY_RESIDENT_TIMEOUT;
     }
     return AMSEventHandler::ADD_ABILITY_STAGE_INFO_TIMEOUT;
+}
+
+void AppRunningRecord::SetDebugFromLocal(bool isDebugFromLocal)
+{
+    isDebugFromLocal_ = isDebugFromLocal;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

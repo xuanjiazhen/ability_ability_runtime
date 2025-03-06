@@ -3541,7 +3541,7 @@ HWTEST_F(AppMgrServiceInnerTest, AttachAppDebug_001, TestSize.Level0)
     std::string bundleName;
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
     appMgrServiceInner->appDebugManager_ = std::make_shared<AppDebugManager>();
-    auto result = appMgrServiceInner->AttachAppDebug(bundleName);
+    auto result = appMgrServiceInner->AttachAppDebug(bundleName, false);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -3557,7 +3557,7 @@ HWTEST_F(AppMgrServiceInnerTest, AttachAppDebug_002, TestSize.Level0)
     std::string bundleName;
     appMgrServiceInner->appRunningManager_ = nullptr;
     appMgrServiceInner->appDebugManager_ = std::make_shared<AppDebugManager>();
-    auto result = appMgrServiceInner->AttachAppDebug(bundleName);
+    auto result = appMgrServiceInner->AttachAppDebug(bundleName, false);
     EXPECT_EQ(result, ERR_NO_INIT);
 }
 
@@ -4824,8 +4824,9 @@ HWTEST_F(AppMgrServiceInnerTest, SetJITPermissions_001, TestSize.Level0)
     TAG_LOGI(AAFwkTag::TEST, "SetJITPermissions_001 start");
     uint32_t accessTokenId = 0;
     AppSpawnStartMsg startMsg = {0};
-    AppspawnUtil::SetJITPermissions(accessTokenId, startMsg.jitPermissionsList);
-    EXPECT_EQ(startMsg.jitPermissionsList.size(), 0);
+    std::vector<std::string> permissionsList;
+    AppspawnUtil::SetJITPermissions(accessTokenId, permissionsList);
+    EXPECT_EQ(permissionsList.size(), 0);
     TAG_LOGI(AAFwkTag::TEST, "SetJITPermissions_001 end");
 }
 

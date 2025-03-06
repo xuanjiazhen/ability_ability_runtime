@@ -36,6 +36,7 @@
 #include "hitrace_meter.h"
 #include "iservice_registry.h"
 #include "runtime.h"
+#include "js_runtime.h"
 #include "startup_manager.h"
 #include "system_ability_definition.h"
 #include "syspara/parameter.h"
@@ -394,8 +395,8 @@ std::shared_ptr<AbilityRuntime::Context> OHOSApplication::AddAbilityStage(
             TAG_LOGE(AAFwkTag::APPKIT, "null hapModuleInfo");
             return nullptr;
         }
-        if (runtime_) {
-            runtime_->UpdatePkgContextInfoJson(
+        if (runtime_ && (runtime_->GetLanguage() == AbilityRuntime::Runtime::Language::JS)) {
+            static_cast<AbilityRuntime::JsRuntime&>(*runtime_).SetPkgContextInfoJson(
                 hapModuleInfo->moduleName, hapModuleInfo->hapPath, hapModuleInfo->packageName);
         }
         SetAppEnv(hapModuleInfo->appEnvironments);
@@ -884,14 +885,6 @@ bool OHOSApplication::IsUpdateColorNeeded(Configuration &config, AbilityRuntime:
 
     bool needUpdate = true;
 
-    if (level < AbilityRuntime::ApplicationConfigurationManager::GetInstance().GetColorModeSetLevel() ||
-        colorMode.empty()) {
-        config.RemoveItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE);
-        config.RemoveItem(AAFwk::GlobalConfigurationKey::COLORMODE_IS_SET_BY_SA);
-        TAG_LOGI(AAFwkTag::APPKIT, "color remove");
-        needUpdate = false;
-    }
-
     if (!colorMode.empty()) {
         config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE,
             AbilityRuntime::ApplicationConfigurationManager::GetInstance().SetColorModeSetLevel(level, colorMode));
@@ -900,6 +893,14 @@ bool OHOSApplication::IsUpdateColorNeeded(Configuration &config, AbilityRuntime:
             config.AddItem(AAFwk::GlobalConfigurationKey::COLORMODE_IS_SET_BY_APP,
                 AppExecFwk::ConfigurationInner::IS_SET_BY_APP);
         }
+    }
+
+    if (level < AbilityRuntime::ApplicationConfigurationManager::GetInstance().GetColorModeSetLevel() ||
+        colorMode.empty()) {
+        config.RemoveItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE);
+        config.RemoveItem(AAFwk::GlobalConfigurationKey::COLORMODE_IS_SET_BY_SA);
+        TAG_LOGI(AAFwkTag::APPKIT, "color remove");
+        needUpdate = false;
     }
 
     return needUpdate;

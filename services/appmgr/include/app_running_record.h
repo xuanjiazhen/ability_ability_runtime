@@ -275,7 +275,7 @@ public:
      */
     void AddModule(std::shared_ptr<ApplicationInfo> appInfo, std::shared_ptr<AbilityInfo> abilityInfo,
         sptr<IRemoteObject> token, const HapModuleInfo &hapModuleInfo,
-        std::shared_ptr<AAFwk::Want> want, int32_t abilityRecordId, int32_t persistentId = 0);
+        std::shared_ptr<AAFwk::Want> want, int32_t abilityRecordId);
 
     /**
      * @brief Batch adding modules whose stages will be loaded
@@ -801,7 +801,7 @@ public:
      */
     int32_t ChangeAppGcState(int32_t state);
 
-    void SetAttachDebug(bool isAttachDebug);
+    void SetAttachDebug(bool isAttachDebug, bool isDebugFromLocal);
     bool IsAttachDebug() const;
 
     void SetApplicationPendingState(ApplicationPendingState pendingState);
@@ -1049,6 +1049,13 @@ public:
         return reasonExist_;
     }
 
+    void SetDebugFromLocal(bool isDebugFromLocal);
+
+    bool GetDebugFromLocal() const
+    {
+        return isDebugFromLocal_;
+    }
+
 private:
     /**
      * SearchTheModuleInfoNeedToUpdated, Get an uninitialized abilityStage data.
@@ -1162,7 +1169,7 @@ private:
     ProcessType processType_ = ProcessType::NORMAL;
     ExtensionAbilityType extensionType_ = ExtensionAbilityType::UNSPECIFIED;
     PreloadState preloadState_ = PreloadState::NONE;
-    PreloadMode preloadMode_ = PreloadMode::PRESS_DOWN;
+    PreloadMode preloadMode_ = PreloadMode::PRELOAD_NONE;
     SupportProcessCacheState procCacheSupportState_ = SupportProcessCacheState::UNSPECIFIED;
     int64_t startTimeMillis_ = 0;   // The time of app start(CLOCK_MONOTONIC)
     int64_t restartTimeMillis_ = 0; // The time of last trying app restart
@@ -1223,6 +1230,7 @@ private:
     int32_t rssValue_ = 0;
     int32_t pssValue_ = 0;
     bool reasonExist_ = false;
+    bool isDebugFromLocal_ = false;
 };
 
 }  // namespace AppExecFwk

@@ -1116,6 +1116,9 @@ public:
     void SetRestartAppFlag(bool isRestartApp);
     bool GetRestartAppFlag() const;
 
+    void SetKillForPermissionUpdateFlag(bool isKillForPermissionUpdate);
+    bool GetKillForPermissionUpdateFlag() const;
+
     void UpdateUIExtensionInfo(const WantParams &wantParams);
 
     void SetSpecifyTokenId(const uint32_t specifyTokenId);
@@ -1211,6 +1214,8 @@ private:
 
     void SetDebugAppByWaitingDebugFlag();
     void AfterLoaded();
+
+    void CancelPrepareTerminate();
 
 #ifdef SUPPORT_SCREEN
     std::shared_ptr<Want> GetWantFromMission() const;
@@ -1330,6 +1335,7 @@ private:
 
     // page(ability) can be started by multi-pages(abilities), so need to store this ability's caller
     std::list<std::shared_ptr<CallerRecord>> callerList_ = {};
+    mutable ffrt::mutex callerListLock_;
 
     PacMap stateDatas_;             // ability saved ability state data
     WindowConfig windowConfig_;
@@ -1375,6 +1381,8 @@ private:
     ffrt::mutex lock_;
     ffrt::mutex connectWantLock_;
     std::mutex collaborateWantLock_;
+
+    bool isKillForPermissionUpdate_ = false;
 
     std::mutex isPrepareTerminateAbilityMutex_;
     std::condition_variable isPrepareTerminateAbilityCv_;

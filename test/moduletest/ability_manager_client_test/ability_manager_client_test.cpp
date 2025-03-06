@@ -20,6 +20,7 @@
 #include "ability_manager_client.h"
 #undef private
 #undef protected
+#include "ability_connect_callback_interface.h"
 #include "ability_manager_errors.h"
 #include "ability_state_data.h"
 #include "element_name.h"
@@ -31,6 +32,8 @@
 #include "ui_extension/ui_extension_session_info.h"
 #include "want.h"
 #include "mock_iqueryermsobserver.h"
+#include "mock_ihiddenstartobserver.h"
+#include "mock_sa_call.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -46,6 +49,23 @@ const int32_t UID = 10000;
 const int REQUESTCODE = 1008;
 const int ERR_BUNDLE_MANAGER_INVALID_UID = 8521233;
 }  // namespace
+
+class MockIAbilityConnection : public IAbilityConnection {
+public:
+    void OnAbilityConnectDone(const AppExecFwk::ElementName &element,
+        const sptr<IRemoteObject> &remoteObject, int resultCode)
+    {
+        return;
+    }
+    void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
+    {
+        return;
+    }
+    sptr<IRemoteObject> AsObject()
+    {
+        return nullptr;
+    }
+};
 
 class AbilityManagerClientTest : public testing::Test {
 public:
@@ -343,12 +363,74 @@ HWTEST_F(AbilityManagerClientTest, QueryAtomicServiceStartupRule_0100, TestSize.
 }
 
 /**
+  * @tc.name: AbilityManagerClient_RegisterHiddenStartObserver_0100
+ * @tc.desc: RegisterHiddenStartObserver
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, RegisterHiddenStartObserver_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RegisterHiddenStartObserver_0100 start");
+
+    sptr<MockIHiddenStartObserver> observer(new MockIHiddenStartObserver());
+    auto result = AbilityManagerClient::GetInstance()->RegisterHiddenStartObserver(observer);
+    EXPECT_NE(result, ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "RegisterHiddenStartObserver_0100 end");
+}
+
+/**
+  * @tc.name: AbilityManagerClient_UnregisterHiddenStartObserver_0100
+ * @tc.desc: RegisterHiddenStartObserver
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, UnregisterHiddenStartObserver_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterHiddenStartObserver_0100 start");
+
+    sptr<MockIHiddenStartObserver> observer(new MockIHiddenStartObserver());
+    auto result = AbilityManagerClient::GetInstance()->UnregisterHiddenStartObserver(observer);
+    EXPECT_NE(result, ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterHiddenStartObserver_0100 end");
+}
+
+/**
+ * @tc.name: KillProcessForPermissionUpdate_0100
+ * @tc.desc: KillProcessForPermissionUpdate ERR_PERMISSION_DENIED
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, KillProcessForPermissionUpdate_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "KillProcessForPermissionUpdate_0100 start");
+    uint32_t accessTokenId = 1;
+    auto result = AbilityManagerClient::GetInstance()->KillProcessForPermissionUpdate(accessTokenId);
+    EXPECT_EQ(result, ERR_PERMISSION_DENIED);
+    TAG_LOGI(AAFwkTag::TEST, "KillProcessForPermissionUpdate_0100 end");
+}
+
+/**
+ * @tc.name: KillProcessForPermissionUpdate_0200
+ * @tc.desc: KillProcessForPermissionUpdate has peimission
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, KillProcessForPermissionUpdate_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "KillProcessForPermissionUpdate_0200 start");
+    uint32_t accessTokenId = 1;
+    AAFwk::IsMockSaCall::IsMockKillAppProcessesPermission();
+    TAG_LOGI(AAFwkTag::TEST, "MockKillAppProcessesPermission");
+    auto result = AbilityManagerClient::GetInstance()->KillProcessForPermissionUpdate(accessTokenId);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "KillProcessForPermissionUpdate_0200 end");
+}
+
+/**
  * @tc.name: AbilityManagerClient_KillProcessWithReason_0100
  * @tc.name: AbilityManagerClient_KillProcessWithPrepareTerminateDone_0100
  * @tc.desc: KillProcessWithReason and KillProcessWithPrepareTerminateDone
  * @tc.type: FUNC
  */
-HWTEST_F(AbilityManagerClientTest, KillProcessWithReason_0100, TestSize.Level1)
+HWTEST_F(AbilityManagerClientTest, KillProcessWithReasonandKillProcessWithPrepareTerminateDone_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "KillProcessWithReason_0100 start");
 
@@ -360,13 +442,31 @@ HWTEST_F(AbilityManagerClientTest, KillProcessWithReason_0100, TestSize.Level1)
 
     int32_t pid = 1;
     AAFwk::ExitReason reason;
-    std::shared_ptr<AbilityManagerClient> client = std::make_shared<AbilityManagerClient>();
-    client->KillProcessWithReason(pid, reason);
-    EXPECT_TRUE(client != nullptr);
     auto result = AbilityManagerClient::GetInstance()->KillProcessWithReason(pid, reason);
-    EXPECT_EQ(result, ERR_OK);
+    EXPECT_NE(result, ERR_OK);
 
     TAG_LOGI(AAFwkTag::TEST, "KillProcessWithReason_0100 end");
+}
+
+/**
+ * @tc.name: AbilityManagerClient_StartAbilityByCallWithErrMsg_0100
+ * @tc.desc: StartAbilityByCallWithErrMsg
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, StartAbilityByCallWithErrMsg_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityByCallWithErrMsg_0100 start");
+
+    Want want;
+    sptr<IAbilityConnection> connect = sptr<MockIAbilityConnection>::MakeSptr();
+    sptr<IRemoteObject> callToken = sptr<AbilityRuntime::MockIRemoteObject>::MakeSptr();
+    int32_t accountId = 0x001;
+    std::string errMsg = "error";
+    auto result = AbilityManagerClient::GetInstance()->StartAbilityByCallWithErrMsg(want,
+        connect, callToken, accountId, errMsg);
+    EXPECT_NE(result, ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityByCallWithErrMsg_0100 end");
 }
 }  // namespace AAFwk
 }  // namespace OHOS

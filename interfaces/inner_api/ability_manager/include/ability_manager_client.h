@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -438,9 +438,12 @@ public:
      *  CloseUIAbilityBySCB, close the special ability by scb.
      *
      * @param sessionInfo the session info of the ability to terminate.
+     * @param isUserRequestedExit determine whether it is a user request to exit.
+     * @param sceneFlag the reason info of the ability to terminate.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode CloseUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool isUserRequestedExit = false);
+    ErrCode CloseUIAbilityBySCB(sptr<SessionInfo> sessionInfo,
+        bool isUserRequestedExit = false, uint32_t sceneFlag = 0);
 
     /**
      * SendResultToAbility with want, return resultWant from ability manager service.
@@ -891,6 +894,9 @@ public:
     ErrCode StartAbilityByCall(const Want &want, sptr<IAbilityConnection> connect,
         sptr<IRemoteObject> callToken, int32_t accountId = DEFAULT_INVAL_VALUE);
 
+    int32_t StartAbilityByCallWithErrMsg(const Want &want, sptr<IAbilityConnection> connect,
+        sptr<IRemoteObject> callToken, int32_t accountId, std::string &errMsg);
+
     /**
      * CallRequestDone, after invoke callRequest, ability will call this interface to return callee.
      *
@@ -1323,6 +1329,15 @@ public:
     int32_t RecordProcessExitReason(const int32_t pid, const ExitReason &exitReason);
 
     /**
+     * Record the exit reason of a killed process.
+     * @param pid The process id.
+     * @param uid The process uid.
+     * @param exitReason The reason of process exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode RecordProcessExitReason(int32_t pid, int32_t uid, const ExitReason &exitReason);
+
+    /**
      * Set rootSceneSession by SCB.
      *
      * @param rootSceneSession Indicates root scene session of SCB.
@@ -1406,14 +1421,14 @@ public:
      * @param bundleName The application bundle name.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode AttachAppDebug(const std::string &bundleName);
+    ErrCode AttachAppDebug(const std::string &bundleName, bool isDebugFromLocal = false);
 
     /**
      * @brief Detach app debug.
      * @param bundleName The application bundle name.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode DetachAppDebug(const std::string &bundleName);
+    ErrCode DetachAppDebug(const std::string &bundleName, bool isDebugFromLocal = false);
 
     /**
      * @brief Check if ability controller can start.
@@ -1593,9 +1608,12 @@ public:
      *  Request to clean UIAbility from user.
      *
      * @param sessionInfo the session info of the ability to clean.
+     * @param isUserRequestedExit determine whether it is a user request to exit.
+     * @param sceneFlag the reason info of the ability to terminate.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode CleanUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool isUserRequestedExit = false);
+    ErrCode CleanUIAbilityBySCB(sptr<SessionInfo> sessionInfo,
+        bool isUserRequestedExit = false, uint32_t sceneFlag = 0);
 
     /**
      * Open link of ability and atomic service.
@@ -1676,6 +1694,15 @@ public:
     void KillProcessWithPrepareTerminateDone(const std::string &moduleName, int32_t prepareTermination, bool isExist);
 
     /**
+     * KillProcessForPermissionUpdate
+     * force kill the application by accessTokenId, notify exception to SCB.
+     *
+     * @param  accessTokenId, accessTokenId.
+     * @return ERR_OK, return back success, others fail.
+     */
+    ErrCode KillProcessForPermissionUpdate(uint32_t accessTokenId);
+
+    /**
      * Register hidden start observer.
      * @param observer, ability token.
      * @return Returns ERR_OK on success, others on failure.
@@ -1688,6 +1715,22 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode UnregisterHiddenStartObserver(const sptr<IHiddenStartObserver> &observer);
+
+    /**
+     * Query preload uiextension record.
+     *
+     * @param element, The uiextension ElementName.
+     * @param moduleName, The uiextension moduleName.
+     * @param hostBundleName, The uiextension caller hostBundleName.
+     * @param recordNum, The returned count of uiextension.
+     * @param userId, The User Id.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode QueryPreLoadUIExtensionRecord(const AppExecFwk::ElementName &element,
+                                          const std::string &moduleName,
+                                          const std::string &hostBundleName,
+                                          int32_t &recordNum,
+                                          int32_t userId = DEFAULT_INVAL_VALUE);
 
 private:
     AbilityManagerClient();

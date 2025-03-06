@@ -519,11 +519,14 @@ enum class AbilityManagerInterfaceCode {
 
     KILL_PROCESS_WITH_REASON = 5200,
 
+    KILL_PROCESS_FOR_PERMISSION_UPDATE = 5300,
+
     FORCE_EXIT_APP = 6001,
     RECORD_APP_EXIT_REASON = 6002,
     RECORD_PROCESS_EXIT_REASON = 6003,
     UPGRADE_APP = 6004,
     MOVE_UI_ABILITY_TO_BACKGROUND = 6005,
+    RECORD_PROCESS_EXIT_REASON_PLUS = 6006,
 
     // ipc id for register auto startup system callback
     REGISTER_AUTO_STARTUP_SYSTEM_CALLBACK = 6101,
@@ -601,6 +604,9 @@ enum class AbilityManagerInterfaceCode {
 
     // Unregister hidden start observer
     UNREGISTER_HIDDEN_START_OBSERVER = 6136,
+
+    // Query preload uiextension record
+    QUERY_PRELOAD_UIEXTENSION_RECORD = 6137,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

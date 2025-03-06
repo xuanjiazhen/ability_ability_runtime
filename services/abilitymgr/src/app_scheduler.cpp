@@ -70,14 +70,14 @@ int AppScheduler::LoadAbility(const AbilityRuntime::LoadParam &loadParam, const 
     const AppExecFwk::ApplicationInfo &applicationInfo, const Want &want)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
     CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
     /* because the errcode type of AppMgr Client API will be changed to int,
      * so must to covert the return result  */
     int ret = static_cast<int>(IN_PROCESS_CALL(
         appMgrClient_->LoadAbility(abilityInfo, applicationInfo, want, loadParam)));
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "AppScheduler fail to LoadAbility. ret %d", ret);
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "AppScheduler fail to LoadAbility. ret %d", ret);
         return INNER_ERR;
     }
     return ERR_OK;
@@ -390,7 +390,7 @@ void StartSpecifiedAbilityResponse::OnAcceptWantResponse(
 void AppScheduler::PrepareTerminateApp(const pid_t pid, const std::string &moduleName)
 {
     CHECK_POINTER(appMgrClient_);
-    appMgrClient_->PrepareTerminateApp(pid, moduleName);
+    IN_PROCESS_CALL_WITHOUT_RET(appMgrClient_->PrepareTerminateApp(pid, moduleName));
 }
 
 void StartSpecifiedAbilityResponse::OnTimeoutResponse(const AAFwk::Want &want, int32_t requestId)
@@ -576,10 +576,10 @@ int32_t AppScheduler::UnregisterAppDebugListener(const sptr<AppExecFwk::IAppDebu
     return ERR_OK;
 }
 
-int32_t AppScheduler::AttachAppDebug(const std::string &bundleName)
+int32_t AppScheduler::AttachAppDebug(const std::string &bundleName, bool isDebugFromLocal)
 {
     CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
-    auto ret = static_cast<int32_t>(appMgrClient_->AttachAppDebug(bundleName));
+    auto ret = static_cast<int32_t>(appMgrClient_->AttachAppDebug(bundleName, isDebugFromLocal));
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "attach app debug failed");
         return INNER_ERR;
