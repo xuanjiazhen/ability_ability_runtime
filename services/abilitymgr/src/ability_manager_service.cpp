@@ -11044,7 +11044,7 @@ int32_t AbilityManagerService::CheckStartSelfUIAbilityStartOptions(const Want &w
 
     auto callerPid = IPCSkeleton::GetCallingPid();
     AppExecFwk::RunningProcessInfo processInfo;
-    DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByPid(callerPid, processInfo);
+    DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByChildProcessPid(callerPid, processInfo);
     CHECK_TRUE_RETURN_RET(!uiAbilityManager->IsCallerInStatusBar(processInfo.instanceKey), ERR_START_OPTIONS_CHECK_FAILED,
         "not in status bar");
 
