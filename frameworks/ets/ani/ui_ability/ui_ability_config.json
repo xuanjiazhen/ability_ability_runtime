@@ -19,6 +19,12 @@
         ],
 		    "UIAbilityContext": [
           "./ets/UIAbilityContext.ets"
+        ],
+        "abilityResult": [
+          "./ets/abilityResult.ets"
+        ],
+        "@ohos.base": [
+          "./ets/@ohos.base.ets"
         ]
       },
       "outDir": "../cache",
