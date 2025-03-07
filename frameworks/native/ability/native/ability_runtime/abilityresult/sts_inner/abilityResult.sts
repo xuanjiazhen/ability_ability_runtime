@@ -22,5 +22,5 @@ interface AbilityResult {
 
 class AbilityResultInner implements AbilityResult {
     resultCode: int;
-    want?: Want;
+    want?: Want | undefined = {};
 }
