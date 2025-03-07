@@ -73,6 +73,7 @@ typedef enum {
      */
     ABILITY_RUNTIME_AREA_MODE_EL5 = 4,
 } AbilityRuntime_AreaMode;
+
 /**
  * @brief Start visibility.
  *

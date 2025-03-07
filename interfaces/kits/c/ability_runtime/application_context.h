@@ -260,7 +260,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextGetCloudFileDir(
  * Returns {@link ABILITY_RUNTIME_ERROR_CODE_UPPER_LIMIT} if the number of app instances reached the limit.
  * Returns {@link ABILITY_RUNTIME_ERROR_CODE_APP_INSTANCE_KEY_NOT_SUPPORT} if the APP_INSTANCE_KEY cannot be specified.
  * For details, see {@link AbilityRuntime_ErrorCode}.
- * @since 18
+ * @since 16
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_StartSelfUIAbility(AbilityBase_Want *want);
 
@@ -293,7 +293,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_StartSelfUIAbility(AbilityBase_Want *
  * Returns {@link ABILITY_RUNTIME_ERROR_MULTI_INSTANCE_NOT_SUPPORTED} if the multi-instance is not supported.
  * Returns {@link ABILITY_RUNTIME_ERROR_CODE_APP_INSTANCE_KEY_NOT_SUPPORT} if the APP_INSTANCE_KEY cannot be specified.
  * For details, see {@link AbilityRuntime_ErrorCode}.
- * @since 18
+ * @since 16
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(AbilityBase_Want *want,
     AbilityRuntime_StartOptions *options);
