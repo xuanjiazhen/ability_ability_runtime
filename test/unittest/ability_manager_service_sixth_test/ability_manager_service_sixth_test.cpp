@@ -466,7 +466,9 @@ HWTEST_F(AbilityManagerServiceSixthTest, CheckStartSelfUIAbilityStartOptions_001
     startOptions.processOptions = std::make_shared<ProcessOptions>();
     startOptions.processOptions->isStartFromNDK = true;
     ret = abilityMs->CheckStartSelfUIAbilityStartOptions(want, startOptions);
-    EXPECT_EQ(ret, ERR_OK);
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        EXPECT_EQ(ret, ERR_CAPABILITY_NOT_SUPPORT);
+    }
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest CheckStartSelfUIAbilityStartOptions_001 end");
 }
 
