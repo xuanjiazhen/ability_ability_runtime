@@ -1933,10 +1933,10 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
         auto abilityRecords = uiAbilityManager->GetAbilityRecordsByName(want.GetElement());
-        bool processOptionsAttachCheck = ProcessOptions::IsAttachToStatusBarItemMode(startOptions.processOptions->processMode)
-                                         || startOptions.processOptions->isStartFromNDK;
-        if (!abilityRecords.empty() && abilityRecords[0] && !startOptions.processOptions->isRestartKeepAlive
-            && !processOptionsAttachCheck) {
+        bool processOptionsAttachCheck = ProcessOptions::IsAttachToStatusBarItemMode(startOptions.processOptions->processMode) ||
+                                         startOptions.processOptions->isStartFromNDK;
+        if (!abilityRecords.empty() && abilityRecords[0] &&
+            !startOptions.processOptions->isRestartKeepAlive && !processOptionsAttachCheck) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "processMode is not attach to status bar item.");
             return ERR_ABILITY_ALREADY_RUNNING;
         }
