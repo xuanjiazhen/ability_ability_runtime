@@ -1672,7 +1672,7 @@ int AbilityManagerService::StartUIAbilityForOptionWrap(const Want &want, const S
     if (HiddenStartUtils::IsHiddenStart(want, options)) {
         ret = HiddenStartUtils::CheckHiddenStartSupported(want, options);
     } else if (AbilityPermissionUtil::GetInstance().IsStartSelfUIAbility()) {
-        ret = checkStartSelfUIAbilityStartOptions(want, options);
+        ret = CheckStartSelfUIAbilityStartOptions(want, options);
     } else {
         ret = CheckProcessOptions(want, options, userId);
     }
@@ -11004,7 +11004,7 @@ int32_t AbilityManagerService::CheckProcessOptions(const Want &want, const Start
     return ERR_OK;
 }
 
-int32_t AbilityManagerService::checkStartSelfUIAbilityStartOptions(const Want &want, const StartOptions &startOptions)
+int32_t AbilityManagerService::CheckStartSelfUIAbilityStartOptions(const Want &want, const StartOptions &startOptions)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (startOptions.processOptions == nullptr) {
