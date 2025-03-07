@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import {Want} from './@ohos.app.ability.Want';
+import Want from './@ohos.app.ability.Want';
 
-interface AbilityResult {
+export interface AbilityResult {
     resultCode: int;
     want?: Want;
 }
 
 class AbilityResultInner implements AbilityResult {
     resultCode: int;
-    want?: Want;
+    want?: Want | undefined = {};
 }
