@@ -1694,10 +1694,10 @@ int AbilityManagerService::StartUIAbilityForOptionWrap(const Want &want, const S
 
     if (HiddenStartUtils::IsHiddenStart(want, options)) {
         ret = HiddenStartUtils::CheckHiddenStartSupported(want, options);
-    } else if (AbilityPermissionUtil::GetInstance().IsStartSelfUIAbility() &&
-               options.processOptions != nullptr &&
-               options.processOptions->isStartFromNDK) {
-        ret = CheckStartSelfUIAbilityStartOptions(want, options);
+    // } else if (AbilityPermissionUtil::GetInstance().IsStartSelfUIAbility() &&
+    //            options.processOptions != nullptr &&
+    //            options.processOptions->isStartFromNDK) {
+    //     ret = CheckStartSelfUIAbilityStartOptions(want, options);
     } else {
         ret = CheckProcessOptions(want, options, userId);
     }
@@ -1935,10 +1935,12 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
         auto abilityRecords = uiAbilityManager->GetAbilityRecordsByName(want.GetElement());
-        bool processOptionsAttachCheck = ProcessOptions::IsAttachToStatusBarItemMode(startOptions.processOptions->processMode) ||
-                                         startOptions.processOptions->isStartFromNDK;
-        if (!abilityRecords.empty() && abilityRecords[0] &&
-            !startOptions.processOptions->isRestartKeepAlive && !processOptionsAttachCheck) {
+        if (!abilityRecords.empty() && abilityRecords[0] && !startOptions.processOptions->isRestartKeepAlive &&
+            !ProcessOptions::IsAttachToStatusBarItemMode(startOptions.processOptions->processMode)) {
+        // bool processOptionsAttachCheck = ProcessOptions::IsAttachToStatusBarItemMode(startOptions.processOptions->processMode) ||
+        //                                  startOptions.processOptions->isStartFromNDK;
+        // if (!abilityRecords.empty() && abilityRecords[0] &&
+        //     !startOptions.processOptions->isRestartKeepAlive && !processOptionsAttachCheck) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "processMode is not attach to status bar item.");
             return ERR_ABILITY_ALREADY_RUNNING;
         }

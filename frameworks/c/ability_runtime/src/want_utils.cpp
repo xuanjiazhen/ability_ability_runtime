@@ -30,7 +30,7 @@ AbilityRuntime_ErrorCode CheckWant(AbilityBase_Want *want)
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
     AbilityBase_Element element = want->element;
-    if (element.bundleName == nullptr || element.abilityName == nullptr || element.moduleName == nullptr) {
+    if (element.bundleName == nullptr || element.abilityName == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "bundleName or abilityName or moduleName null");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
