@@ -29,6 +29,7 @@ ohos_unittest("capi_ability_runtime_application_context_test") {
 
   include_dirs = [
     "${ability_runtime_ndk_path}/ability_runtime",
+    "${ability_runtime_path}/frameworks/c/ability_runtime/include",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/",
   ]
 
