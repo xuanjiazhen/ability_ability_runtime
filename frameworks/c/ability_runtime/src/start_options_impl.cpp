@@ -22,6 +22,7 @@
 #include "process_options.h"
 #include "securec.h"
 #include "start_window_option.h"
+#include "ProcessOptions.h"
 
 constexpr int MAX_SUPPOPRT_WINDOW_MODES_SIZE = 10;
 
