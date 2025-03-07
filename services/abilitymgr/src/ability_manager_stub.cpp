@@ -816,6 +816,9 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentieth(uint32_t code, MessageParc
     if (interfaceCode == AbilityManagerInterfaceCode::UNREGISTER_HIDDEN_START_OBSERVER) {
         return UnregisterHiddenStartObserverInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::QUERY_PRELOAD_UIEXTENSION_RECORD) {
+        return QueryPreLoadUIExtensionRecordInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_WITH_START_OPTIONS) {
         return StartSelfUIAbilityWithStartOptionsInner(data, reply);
     }
@@ -1387,7 +1390,7 @@ int AbilityManagerStub::StartExtensionAbilityInner(MessageParcel &data, MessageP
 {
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "want null");
         return ERR_INVALID_VALUE;
     }
     sptr<IRemoteObject> callerToken = nullptr;
@@ -1527,7 +1530,7 @@ int AbilityManagerStub::StopExtensionAbilityInner(MessageParcel& data, MessagePa
 {
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null want");
         return ERR_INVALID_VALUE;
     }
     sptr<IRemoteObject> callerToken = nullptr;
@@ -1618,7 +1621,7 @@ int AbilityManagerStub::ConnectAbilityInner(MessageParcel &data, MessageParcel &
 {
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null want");
         return ERR_INVALID_VALUE;
     }
     sptr<IAbilityConnection> callback = nullptr;
@@ -1693,11 +1696,11 @@ int AbilityManagerStub::DisconnectAbilityInner(MessageParcel &data, MessageParce
 {
     sptr<IAbilityConnection> callback = iface_cast<IAbilityConnection>(data.ReadRemoteObject());
     if (callback == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "callback null");
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "callback null");
         return ERR_INVALID_VALUE;
     }
     int32_t result = DisconnectAbility(callback);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "disconnect ability ret = %d", result);
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "disconnect ability ret = %d", result);
     reply.WriteInt32(result);
     return NO_ERROR;
 }
@@ -4453,12 +4456,13 @@ int32_t AbilityManagerStub::QueryPreLoadUIExtensionRecordInner(MessageParcel &da
         TAG_LOGE(AAFwkTag::UI_EXT, "receive element null");
         return ERR_INVALID_VALUE;
     }
+    std::string moduleName = data.ReadString();
     std::string hostBundleName = data.ReadString();
     int32_t userId = data.ReadInt32();
 
     int32_t recordNum;
     int32_t result = QueryPreLoadUIExtensionRecord(
-        *element, hostBundleName, recordNum, userId);
+        *element, moduleName, hostBundleName, recordNum, userId);
     if (!reply.WriteInt32(recordNum)) {
         TAG_LOGE(AAFwkTag::UI_EXT, "reply write recordNum fail");
         return INNER_ERR;
@@ -4468,7 +4472,7 @@ int32_t AbilityManagerStub::QueryPreLoadUIExtensionRecordInner(MessageParcel &da
         TAG_LOGE(AAFwkTag::UI_EXT, "reply write fail");
         return INNER_ERR;
     }
-    return NO_ERROR;
+    return result;
 }
 } // namespace AAFwk
 } // namespace OHOS

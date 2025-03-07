@@ -244,8 +244,6 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextGetCloudFileDir(
  * @permission {@code ohos.permission.NDK_START_SELF_UI_ABILITY}
  * @param want The arguments passed to start self UIAbility.
  * For details, see {@link AbilityBase_Want}.
- * @param options The start options passed to start self UIAbility.
- * For details, see {@link AbilityRuntime_StartOptions}.
  * @return Returns {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the call is successful.
  * Returns {@link ABILITY_RUNTIME_ERROR_CODE_PERMISSION_DENIED} if the caller has no correct permission.
  * Returns {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the arguments provided is invalid.

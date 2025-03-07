@@ -19,13 +19,13 @@
 #include "ability_manager/include/start_options.h"
 #include "ability_runtime_common.h"
 #include "context_constant.h"
-#ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
-#include "pixelmap_native.h"
-#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct OH_PixelmapNative;
+typedef struct OH_PixelmapNative OH_PixelmapNative;
 
 struct AbilityRuntime_StartOptions {
 public:
@@ -48,10 +48,8 @@ public:
     AbilityRuntime_ErrorCode GetStartOptionsWindowWidth(int32_t &windowWidth);
     AbilityRuntime_ErrorCode SetStartOptionsStartVisibility(AbilityRuntime_StartVisibility startVisibility);
     AbilityRuntime_ErrorCode GetStartOptionsStartVisibility(AbilityRuntime_StartVisibility &startVisibility);
-#ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
     AbilityRuntime_ErrorCode SetStartOptionsStartWindowIcon(OH_PixelmapNative *startWindowIcon);
     AbilityRuntime_ErrorCode GetStartOptionsStartWindowIcon(OH_PixelmapNative **startWindowIcon);
-#endif
     AbilityRuntime_ErrorCode SetStartOptionsStartWindowBackgroundColor(const char *startWindowBackgroundColor);
     AbilityRuntime_ErrorCode GetStartOptionsStartWindowBackgroundColor(char **startWindowBackgroundColor,
         size_t &size);

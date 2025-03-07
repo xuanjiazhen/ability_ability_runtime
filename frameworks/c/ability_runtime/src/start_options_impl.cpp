@@ -19,7 +19,6 @@
 #ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
 #include "pixelmap_native_impl.h"
 #endif
-#include "process_options.h"
 #include "securec.h"
 #include "start_window_option.h"
 
@@ -169,7 +168,6 @@ AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::GetStartOptionsStartVisibi
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
-#ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
 AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::SetStartOptionsStartWindowIcon(
     OH_PixelmapNative *startWindowIcon)
 {
@@ -180,9 +178,11 @@ AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::SetStartOptionsStartWindow
     if (options.startWindowOption == nullptr) {
         options.startWindowOption = std::make_shared<OHOS::AAFwk::StartWindowOption>();
     }
+#ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
     options.startWindowOption->startWindowIcon = startWindowIcon->GetInnerPixelmap();
     options.startWindowOption->hasStartWindow =
         (options.startWindowOption->startWindowIcon != nullptr);
+#endif
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
@@ -197,14 +197,15 @@ AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::GetStartOptionsStartWindow
         TAG_LOGE(AAFwkTag::APPKIT, "startWindowIcon is not null");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
+#ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
     if (options.startWindowOption->hasStartWindow) {
         std::unique_ptr<OH_PixelmapNative> icon = std::make_unique<OH_PixelmapNative>(
             options.startWindowOption->startWindowIcon);
         *startWindowIcon = icon.release();
     }
+#endif
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
-#endif
 
 AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::SetStartOptionsStartWindowBackgroundColor(
     const char* startWindowBackgroundColor)

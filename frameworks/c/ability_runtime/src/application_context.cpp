@@ -22,6 +22,7 @@
 #include "hilog_tag_wrapper.h"
 #include "start_options_impl.h"
 #include "want_manager.h"
+#include "want_utils.h"
 
 using namespace OHOS::AbilityRuntime;
 using namespace OHOS::AAFwk;
@@ -273,17 +274,34 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextGetCloudFileDir(
     return WriteStringToBuffer(cloudFileDir, buffer, bufferSize, writeLength);
 }
 
-AbilityRuntime_ErrorCode CheckWant(AbilityBase_Want *want)
+AbilityRuntime_ErrorCode OH_AbilityRuntime_StartSelfUIAbility(AbilityBase_Want *want)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "CheckWant called");
-    if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null want");
+    TAG_LOGD(AAFwkTag::APPKIT, "startSelfUIAbility called");
+    auto ret = CheckWant(want);
+    if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPKIT, "CheckWant failed: %{public}d", ret);
+        return ret;
+    }
+    Want abilityWant;
+    AbilityBase_ErrorCode errCode = CWantManager::TransformToWant(*want, false, abilityWant);
+    if (errCode != ABILITY_BASE_ERROR_CODE_NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPKIT, "transform error:%{public}d", errCode);
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    AbilityBase_Element element = want->element;
-    if (element.bundleName == nullptr || element.abilityName == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "empty bundleName or abilityName");
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    return ConvertToCommonBusinessErrorCode(AbilityManagerClient::GetInstance()->StartSelfUIAbility(abilityWant));
+}
+
+AbilityRuntime_ErrorCode OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(AbilityBase_Want *want,
+    AbilityRuntime_StartOptions *options)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "startSelfUIAbility called");
+    auto ret = CheckWant(want);
+    if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPKIT, "CheckWant failed: %{public}d", ret);
+        return ret;
+    }
+    if (options == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null options");        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
         return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }

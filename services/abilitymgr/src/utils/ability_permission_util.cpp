@@ -198,7 +198,7 @@ int32_t AbilityPermissionUtil::CheckMultiInstance(Want &want, sptr<IRemoteObject
         if (callerRecord != nullptr) {
             return UpdateInstanceKey(want, instanceKey, instanceKeyArray, callerRecord->GetInstanceKey());
         }
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "ndk set instanceKey");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "native c call set instanceKey");
         return UpdateInstanceKey(want, instanceKey, instanceKeyArray, instanceKey);
     }
     // inter-app launch

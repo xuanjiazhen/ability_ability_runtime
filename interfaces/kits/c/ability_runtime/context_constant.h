@@ -73,11 +73,10 @@ typedef enum {
      */
     ABILITY_RUNTIME_AREA_MODE_EL5 = 4,
 } AbilityRuntime_AreaMode;
-
 /**
  * @brief Start visibility.
  *
- * @since 18
+ * @since 16
  */
 typedef enum {
     /**
@@ -93,7 +92,7 @@ typedef enum {
 /**
 * @brief Window mode.
 *
-* @since 18
+* @since 16
 */
 typedef enum {
     /**
@@ -109,7 +108,7 @@ typedef enum {
 /**
 * Support window mode
 *
-* @since 18
+* @since 16
 */
 typedef enum {
     /**

@@ -200,7 +200,6 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsStartVisibility(Abilit
     return startOptions->GetStartOptionsStartVisibility(startVisibility);
 }
 
-#ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
 AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsStartWindowIcon(AbilityRuntime_StartOptions *startOptions,
     OH_PixelmapNative *startWindowIcon)
 {
@@ -208,7 +207,10 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsStartWindowIcon(Abilit
         TAG_LOGE(AAFwkTag::APPKIT, "null startOptions");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
+#ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
     return startOptions->SetStartOptionsStartWindowIcon(startWindowIcon);
+#endif
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsStartWindowIcon(AbilityRuntime_StartOptions *startOptions,
@@ -218,9 +220,11 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsStartWindowIcon(Abilit
         TAG_LOGE(AAFwkTag::APPKIT, "null startOptions");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
+#ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
     return startOptions->GetStartOptionsStartWindowIcon(startWindowIcon);
-}
 #endif
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
 
 AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsStartWindowBackgroundColor(
     AbilityRuntime_StartOptions *startOptions, const char *startWindowBackgroundColor)
