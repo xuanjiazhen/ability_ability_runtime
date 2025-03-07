@@ -73,7 +73,7 @@ void DumpRuntimeHelper::SetAppFreezeFilterCallback()
         return;
     }
     auto appfreezeFilterCallback = [this] (const int32_t pid, const bool needDecreaseQuota) -> bool {
-        if (OHOS::system::GetParameter("hiview.oomdump.switch"), "unknown") == "disable" {
+        if (OHOS::system::GetParameter("hiview.oomdump.switch", "unknown") == "disable" {
             TAG_LOGi(AAFwkTag::APPKIT, "oom dump is disabled");
             return false;
         }
