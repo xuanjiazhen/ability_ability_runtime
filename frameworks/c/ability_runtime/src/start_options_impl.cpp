@@ -152,8 +152,8 @@ AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::GetStartOptionsWindowWidth
 AbilityRuntime_ErrorCode AbilityRuntime_StartOptions::SetStartOptionsStartVisibility(
     AbilityRuntime_StartVisibility startVisibility)
 {
-    if (startVisibility < ABILITY_RUNTIME_START_HIDE ||
-        startVisibility > ABILITY_RUNTIME_START_SHOW) {
+    if (startVisibility < ABILITY_RUNTIME_HIDE_UPON_START ||
+        startVisibility > ABILITY_RUNTIME_SHOW_UPON_START) {
         TAG_LOGE(AAFwkTag::APPKIT, "startVisibility=%{public}d is invalid", static_cast<int32_t>(startVisibility));
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
