@@ -52,6 +52,7 @@ constexpr const char* SUPPORT_BACK_TO_CALLER = "supportBackToCaller";
 constexpr const char* SUPPORT_SCB_CRASH_REBOOT = "supportSCBCrashReboot";
 constexpr const char* RESIDENT_WHITE_LIST = "normal_resident_apps";
 constexpr const char* SUPPORT_AA_KILL_WITH_REASON = "supportAAKillWithReason";
+constexpr const char* SUPPORT_CUSTOM_SANDBOX_FEATURE = "supportCustomSandbox";
 }  // namespace AmsConfig
 
 enum class SatrtUiMode { STATUSBAR = 1, NAVIGATIONBAR = 2, STARTUIBOTH = 3 };
@@ -70,6 +71,7 @@ public:
     enum { READ_OK = 0, READ_FAIL = 1, READ_JSON_FAIL = 2 };
 
     static AmsConfigurationParameter &GetInstance();
+
     /**
      * return true : ams no config file
      * return false : ams have config file
@@ -126,6 +128,8 @@ public:
 
     bool IsSupportAAKillWithReason() const;
 
+    bool IsSupportCustomSandbox() const;
+
     /**
      * set picker json object.
      */
@@ -163,6 +167,7 @@ private:
     void LoadUIExtensionPickerConfig(const std::string &filePath);
     int32_t LoadBackToCallerConfig(nlohmann::json& Object);
     int32_t LoadSupportAAKillWithReasonConfig(nlohmann::json& Object);
+    int32_t LoadSupportCustomSandboxConfig(nlohmann::json& Object);
     int32_t LoadSupportSCBCrashRebootConfig(nlohmann::json& Object);
     void LoadResidentWhiteListConfig(nlohmann::json& Object);
 
@@ -171,6 +176,7 @@ private:
     bool supportBackToCaller_ {true};
     bool supportSceneboardCrashReboot_{true};
     bool supportAAKillWithReason_{false};
+    bool supportCustomSandbox_{false};
 
     int maxRootLauncherRestartNum_ = 0;
     int maxResidentRestartNum_ = 0;
