@@ -209,7 +209,9 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
         }
 #endif
         if (this->freezeCallback) {
+            TAG_LOGI(AAFwkTag::RECOVERY, "Starting to execute freeze callback");
             this->freezeCallback();
+            TAG_LOGW(AAFwkTag::RECOVERY, "Freeze callback execution completed");
         }
         if (!ret) {
             return false;

@@ -65,6 +65,7 @@ static std::recursive_mutex errorMtx;
 static std::mutex freezeMtx;
 static std::shared_ptr<JsLoopObserver> loopObserver_;
 static std::once_flag registerCallbackFlag;
+static bool freezeCallbackRegistered = false;
 constexpr int32_t INDEX_ZERO = 0;
 constexpr int32_t INDEX_ONE = 1;
 constexpr int32_t INDEX_TWO = 2;
@@ -853,6 +854,11 @@ private:
         }
         NAPI_CALL(env, napi_create_reference(env, function, INITITAL_REFCOUNT_ONE, &freezeObserver.ref));
         freezeObserver.env = env;
+        if (!freezeCallbackRegistered) {
+            AppExecFwk::AppRecovery::GetInstance().SetFreezeCallback(FreezeCallback);
+            freezeCallbackRegistered = true;
+            TAG_LOGI(AAFwkTag::JSNAPI, "Freeze callback registered to AppRecovery successfully");
+        }
         return CreateJsUndefined(env);
     }
 
@@ -927,6 +933,11 @@ private:
         if (function == nullptr) {
             NAPI_CALL(env, napi_delete_reference(env, freezeObserver.ref));
             freezeObserver = {};
+            if (freezeCallbackRegistered) {
+                AppExecFwk::AppRecovery::GetInstance().SetFreezeCallback(nullptr);
+                freezeCallbackRegistered = false;
+                TAG_LOGI(AAFwkTag::JSNAPI, "Freeze callback unregistered from AppRecovery successfully");
+            }
             return res;
         }
         if (!ValidateFunction(env, function)) {
@@ -939,6 +950,11 @@ private:
         if (equals) {
             NAPI_CALL(env, napi_delete_reference(env, freezeObserver.ref));
             freezeObserver = {};
+            if (freezeCallbackRegistered) {
+                AppExecFwk::AppRecovery::GetInstance().SetFreezeCallback(nullptr);
+                freezeCallbackRegistered = false;
+                TAG_LOGI(AAFwkTag::JSNAPI, "Freeze callback unregistered from AppRecovery successfully");
+            }
             return res;
         }
         TAG_LOGI(AAFwkTag::JSNAPI, "remove observer failed");
@@ -1229,7 +1245,6 @@ napi_value JsErrorManagerInit(napi_env env, napi_value exportObj)
         NapiErrorManager::GetInstance()->RegisterOnErrorCallback(
             ErrorManagerWorkerCallback, ErrorManagerMainWorkerCallback);
         NapiErrorManager::GetInstance()->RegisterAllUnhandledRejectionCallback(PromiseManagerCallback);
-        AppExecFwk::AppRecovery::GetInstance().SetFreezeCallback(FreezeCallback);
     });
 
     TAG_LOGD(AAFwkTag::JSNAPI, "bind func ready");
