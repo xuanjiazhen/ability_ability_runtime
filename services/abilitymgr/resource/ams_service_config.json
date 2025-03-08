@@ -16,5 +16,6 @@
     },
     "supportBackToCaller": true,
     "supportSCBCrashReboot": true,
-    "supportAAKillWithReason": false
+    "supportAAKillWithReason": false,
+    "supportCustomSandbox":false
 }
