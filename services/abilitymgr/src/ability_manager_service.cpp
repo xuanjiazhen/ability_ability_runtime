@@ -1694,7 +1694,9 @@ int AbilityManagerService::StartUIAbilityForOptionWrap(const Want &want, const S
 
     if (HiddenStartUtils::IsHiddenStart(want, options)) {
         ret = HiddenStartUtils::CheckHiddenStartSupported(want, options);
-    } else if (AbilityPermissionUtil::GetInstance().IsStartSelfUIAbility()) {
+    } else if (AbilityPermissionUtil::GetInstance().IsStartSelfUIAbility() &&
+               options.processOptions != nullptr &&
+               options.processOptions->isStartFromNDK) {
         ret = CheckStartSelfUIAbilityStartOptions(want, options);
     } else {
         ret = CheckProcessOptions(want, options, userId);
