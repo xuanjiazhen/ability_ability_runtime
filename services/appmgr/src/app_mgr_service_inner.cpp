@@ -214,7 +214,7 @@ constexpr const char* GPU_PROCESS_TYPE = "gpu";
 constexpr const char* KILL_REASON_USER_REQUEST = "User Request";
 const std::string TOKEN_ID = "TOKEN_ID";
 const std::string CUSTOM_SANDBOX_KEY = "com.huawei.service.sandboxmode.custom";
-const std::string DEVELOPERMODE_STATE = "const.security.developermode.state";
+const std::string CUSTOM_SANDOX_SETTING_ENABLED = "persisit.sys.abilityms.custom_sandbox_setting";
 const int32_t SIGNAL_KILL = 9;
 constexpr int32_t USER_SCALE = 200000;
 #define ENUM_TO_STRING(s) #s
@@ -3740,7 +3740,7 @@ int32_t AppMgrServiceInner::CreateStartMsg(const CreateStartMsgParam &param, App
 
 void AppMgrServiceInner::SetStartMsgCustomSandboxFlag(AppSpawnStartMsg &startMsg, int32_t userId)
 {
-    if (!system::GetBoolParameter(DEVELOPERMODE_STATE, false) ||
+    if (!system::GetBoolParameter(CUSTOM_SANDOX_SETTING_ENABLED, false) ||
         !AAFwk::AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
         TAG_LOGE(AAFwkTag::APPMGR, "Not in PC mode or developer mode");
         return;
