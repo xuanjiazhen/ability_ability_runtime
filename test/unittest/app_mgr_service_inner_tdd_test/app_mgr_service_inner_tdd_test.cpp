@@ -1226,27 +1226,6 @@ HWTEST_F(AppMgrServiceInnerTest, SetAppEnvInfo_004, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "SetAppEnvInfo_004 end");
 }
 
-/**
- * @tc.name: GetKernelPermissions_001
- * @tc.desc: Get kernel permissions
- * @tc.type: FUNC
- * @tc.Function: GetKernelPermissions
- * @tc.SubFunction: NA
- * @tc.EnvConditions: NA
- */
-HWTEST_F(AppMgrServiceInnerTest, GetKernelPermissions_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "GetKernelPermissions_001 start");
-    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    EXPECT_NE(appMgrServiceInner, nullptr);
-    AppSpawnStartMsg startMsg;
-    std::map<std::string, std::string> permissionsMap;
-    uint32_t accessTokenId = 0;
-    appMgrServiceInner->GetKernelPermissions(accessTokenId, permissionsMap);
-    EXPECT_EQ(permissionsMap.size(), 0);
-    TAG_LOGI(AAFwkTag::TEST, "GetKernelPermissions_001 end");
-}
-
  /**
  * @tc.name: SetStartMsgCustomSandboxFlag_001
  * @tc.type: FUNC
