@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-export namespace AbilityConstant {
+declare namespace AbilityConstant  {
   export interface LaunchParam {
     launchReason: LaunchReason;
     launchReasonMessage?: string;
@@ -92,3 +92,5 @@ export namespace AbilityConstant {
     CANCEL = 1
   }
 }
+
+export default AbilityConstant;

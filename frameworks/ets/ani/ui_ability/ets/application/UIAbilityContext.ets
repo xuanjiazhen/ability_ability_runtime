@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 
-import Want from './@ohos.app.ability.Want';
-import StartOptions from './@ohos.app.ability.StartOptions';
-import { BusinessError, AsyncCallback } from './@ohos.base';
-import { AbilityResult } from './abilityResult';
+import Want from '../@ohos.app.ability.Want';
+import StartOptions from '../@ohos.app.ability.StartOptions';
+import { BusinessError, AsyncCallback } from '../@ohos.base';
+import { AbilityResult } from './ability/abilityResult';
+import AbilityStartCallback from './AbilityStartCallback';
 
 export class AsyncCallbackWrapper<T> {
   myFun_:AsyncCallback<T, void> = (err: BusinessError<void>, data: T) => {}
@@ -133,18 +134,21 @@ export class UIAbilityContext {
   public native nativeStartAbilityForResult(want: Want, startOptions: StartOptions, callback:AsyncCallbackWrapper<AbilityResult>): void;
   public native nativeTerminateSelfWithResult(parameter: AbilityResult, callback:AsyncCallbackWrapper<AbilityResult>): void;
   public native reportDrawnCompletedSync(): void;
+  public native nativeStartAbilityByTypeSync(type: string, wantParam: string, startCallback: AbilityStartCallback, callback:AsyncCallback<void>): void;
 
-  // startAbility(want: Want, callback: AsyncCallbackWrapper<void>): void;
-  startAbility(want: Want, callback: AsyncCallbackWrapper<void>):void{
+  // startAbility(want: Want, callback: AsyncCallback<void>): void;
+  startAbility(want: Want, callback: AsyncCallback<void>):void{
     console.log("call startAbility callback 111");
-    let p1 = launch this.nativeStartAbilitySync(want, callback);
+    let myCall = new AsyncCallbackWrapper<void>(callback);
+    let p1 = launch this.nativeStartAbilitySync(want, myCall);
     console.log("call startAbility callback 222");
   }
 
   // startAbility(want: Want, options: StartOptions, callback: AsyncCallbackWrapper<void>): void;
-  startAbility(want: Want, options: StartOptions, callback: AsyncCallbackWrapper<void>):void{
+  startAbility(want: Want, options: StartOptions, callback: AsyncCallback<void>):void{
     console.log("call startAbility callback 111");
-    let p1 = launch this.nativeStartAbilitySync(want, options, callback);
+    let myCall = new AsyncCallbackWrapper<void>(callback);
+    let p1 = launch this.nativeStartAbilitySync(want, options, myCall);
     console.log("call startAbility callback 222");
   }
 
@@ -248,5 +252,31 @@ export class UIAbilityContext {
       console.log("reportDrawnCompleted callback 333");
     });
     console.log("reportDrawnCompleted callback 444");
+  }
+
+  startAbilityByType(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback, callback: MyFun<void>):void{
+    console.log("call startAbilityByType callback 111");
+    let jsonStr = ""; //convert form value;
+    let myCall = new AsyncCallback<void>(callback);
+    launch this.nativeStartAbilityByTypeSync(type, jsonStr, startCallback, myCall);
+    console.log("call startAbilityByType callback 222");
+  }
+ 
+  startAbilityByType(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback): Promise<void>{
+    console.log("call startAbilityByType promis type 111..");
+    let p = new Promise<void>((resolve: ()=>void, reject:(err: BusinessError)=>void):void => {
+      let myCall = new AsyncCallback<void>((err: BusinessError)=>{
+        console.log("call startAbilityByType promis type callback 122");
+        if (err.code == 0) {
+          resolve();
+        } else {
+          reject(err);
+        }
+      });
+      let jsonStr = ""; //convert form value;
+      launch this.nativeStartAbilityByTypeSync(type, jsonStr, startCallback, myCall);
+    });
+    console.log("call startAbilityByType callback end...");
+    return p;
   }
 }
