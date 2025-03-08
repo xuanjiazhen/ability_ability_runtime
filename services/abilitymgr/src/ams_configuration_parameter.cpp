@@ -218,6 +218,7 @@ int AmsConfigurationParameter::LoadAmsConfiguration(const std::string &filePath)
     LoadBackToCallerConfig(amsJson);
     LoadSupportSCBCrashRebootConfig(amsJson);
     LoadSupportAAKillWithReasonConfig(amsJson);
+    LoadSupportCustomSandboxConfig(amsJson);
     SetPickerJsonObject(amsJson);
     LoadResidentWhiteListConfig(amsJson);
     amsJson.clear();
@@ -298,6 +299,18 @@ int32_t AmsConfigurationParameter::LoadSupportAAKillWithReasonConfig(nlohmann::j
     return READ_FAIL;
 }
 
+int32_t AmsConfigurationParameter::LoadSupportCustomSandboxConfig(nlohmann::json& Object)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "load SupportCustomSandbox config");
+    if (Object.contains(AmsConfig::SUPPORT_CUSTOM_SANDBOX_FEATURE) &&
+        Object.at(AmsConfig::SUPPORT_CUSTOM_SANDBOX_FEATURE).is_boolean()) {
+            supportCustomSandbox_ = Object.at(AmsConfig::SUPPORT_CUSTOM_SANDBOX_FEATURE).get<bool>();
+        return READ_OK;
+    }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "load SupportCustomSandbox failed");
+    return READ_FAIL;
+}
+
 bool AmsConfigurationParameter::IsSupportBackToCaller() const
 {
     return supportBackToCaller_;
@@ -306,6 +319,11 @@ bool AmsConfigurationParameter::IsSupportBackToCaller() const
 bool AmsConfigurationParameter::IsSupportAAKillWithReason() const
 {
     return supportAAKillWithReason_;
+}
+
+bool AmsConfigurationParameter::IsSupportCustomSandbox() const
+{
+    return supportCustomSandbox_;
 }
 
 int32_t AmsConfigurationParameter::LoadSupportSCBCrashRebootConfig(nlohmann::json& Object)
