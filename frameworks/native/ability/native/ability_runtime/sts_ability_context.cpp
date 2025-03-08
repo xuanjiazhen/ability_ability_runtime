@@ -29,6 +29,7 @@
 #include "hitrace_meter.h"
 #include "ipc_skeleton.h"
 #include "sts_data_struct_converter.h"
+#include "sts_ui_extension_callback.h"
 #include "mission_info.h"
 #include "ani_common/ani_common_want.h"
 #include "ani_common/ani_common_start_options.h"
@@ -55,7 +56,7 @@ AbilityRuntime::AbilityContext* StsAbilityContext::GetAbilityContext(ani_env *en
     ani_class cls = nullptr;
     ani_field contextField = nullptr;
     ani_status status = ANI_ERROR;
-    if ((status = env->FindClass("LUIAbilityContext/UIAbilityContext;", &cls)) != ANI_OK) {
+    if ((status = env->FindClass("Lapplication/UIAbilityContext/UIAbilityContext;", &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
         return nullptr;
     }
@@ -79,7 +80,7 @@ ani_object StsAbilityContext::SetAbilityContext(ani_env *env, const std::shared_
     ani_method method = nullptr;
     ani_field field = nullptr;
 
-    if ((status = env->FindClass("LUIAbilityContext/UIAbilityContext;", &cls)) != ANI_OK) {
+    if ((status = env->FindClass("Lapplication/UIAbilityContext/UIAbilityContext;", &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
     }
     if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
@@ -310,7 +311,7 @@ void StsAbilityContext::reportDrawnCompletedSync(
     ani_status status = ANI_ERROR;
     TAG_LOGE(AAFwkTag::UIABILITY, "reportDrawnCompletedSync 111");
 
-    if ((status = env->FindClass("LUIAbilityContext/UIAbilityContext;", &cls)) != ANI_OK) {
+    if ((status = env->FindClass("Lapplication/UIAbilityContext/UIAbilityContext;", &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
     }
     if ((status = env->Class_FindField(cls, "nativeContext", &contextField)) != ANI_OK) {
@@ -325,13 +326,55 @@ void StsAbilityContext::reportDrawnCompletedSync(
     TAG_LOGE(AAFwkTag::UIABILITY, "reportDrawnCompletedSync end");
 }
 
+std::string StsAbilityContext::GetString(ani_env *env, ani_string str)
+{
+    std::string result;
+    if (env == nullptr) {
+        return result;
+    }
+    ani_size sz {};
+    env->String_GetUTF8Size(str, &sz);
+    result.resize(sz + 1);
+    env->String_GetUTF8SubString(str, 0, sz, result.data(), result.size(), &sz);
+    result.resize(sz);
+    return result;
+}
+
+void StsAbilityContext::StartAbilityByTypeSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
+    [[maybe_unused]]ani_string aniType, [[maybe_unused]]ani_string aniWantParam,
+    [[maybe_unused]]ani_object startCallback, [[maybe_unused]]ani_object asyncCallback)
+{
+    TAG_LOGI(AAFwkTag::UIABILITY, "StartAbilityByTypeSync");
+    auto context = GetAbilityContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "GetAbilityContext failed.");
+        return;
+    }
+
+    std::string type = GetString(env, aniType);
+    if (type.empty()) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "StartAbilityByTypeSync type is invalid failed.");
+        return;
+    }
+    std::string jsonWantParam = GetString(env, aniWantParam);
+
+    TAG_LOGI(AAFwkTag::UIABILITY, "StartAbilityByTypeSync type is %{public}s, jsonStr is%{public}s", type.c_str(), jsonWantParam.c_str());
+    AAFwk::WantParams wantParam; // todo : unwrap from jsonWantParam.
+    std::shared_ptr<StsUIExtensionCallback> callback = std::make_shared<StsUIExtensionCallback>();
+    callback->SetStsCallbackObject(env, startCallback);
+    auto resultCode = context->StartAbilityByType(type, wantParam, callback);
+
+    TAG_LOGI(AAFwkTag::UIABILITY, "StartAbilityByTypeSync resultCode is %{public}d.", resultCode);
+    AsyncCallback(env, asyncCallback, WrapBusinessError(env, resultCode), nullptr);
+}
+
 ani_ref CreateStsAbilityContext(ani_env *env, const std::shared_ptr<AbilityContext> &context)
 {
     TAG_LOGE(AAFwkTag::UIABILITY, "start");
     ani_class cls = nullptr;
     ani_status status = ANI_ERROR;
 
-    if ((env->FindClass("LUIAbilityContext/UIAbilityContext;", &cls)) != ANI_OK) {
+    if ((env->FindClass("Lapplication/UIAbilityContext/UIAbilityContext;", &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
     }
 
@@ -351,10 +394,14 @@ ani_ref CreateStsAbilityContext(ani_env *env, const std::shared_ptr<AbilityConte
             "AsyncCallbackWrapper;:V",
             reinterpret_cast<void*>(StsAbilityContext::StartAbilityForResult2) },
         ani_native_function { "nativeTerminateSelfWithResult",
-            "LabilityResult/AbilityResult;LUIAbilityContext/AsyncCallbackWrapper;:V",
+            "Lability/abilityResult/AbilityResult;LUIAbilityContext/AsyncCallbackWrapper;:V",
             reinterpret_cast<void*>(StsAbilityContext::TerminateSelfWithResult) },
         ani_native_function {
             "reportDrawnCompletedSync", ":V", reinterpret_cast<ani_int*>(StsAbilityContext::reportDrawnCompletedSync) },
+        ani_native_function { "nativeStartAbilityByTypeSync",
+            "Lstd/core/String;Lstd/core/String;Lapplication/AbilityStartCallback/AbilityStartCallback;LUIAbilityContext/"
+            "AsyncCallback;:V",
+            reinterpret_cast<void*>(StsAbilityContext::StartAbilityByTypeSync) },
     };
 
     if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {

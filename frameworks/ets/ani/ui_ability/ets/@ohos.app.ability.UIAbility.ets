@@ -14,15 +14,8 @@
  */
 
 import {AbilityConstant} from './@ohos.app.ability.AbilityConstant';
-import {UIAbilityContext} from './UIAbilityContext';
+import {UIAbilityContext} from './application/UIAbilityContext';
 import Want from './@ohos.app.ability.Want';
-
-// class LaunchParamImpl implements AbilityConstant.LaunchParam {
-//   launchReason: AbilityConstant.LaunchReason;
-//   launchReasonMessage?: string|undefined;
-//   lastExitReason: AbilityConstant.LastExitReason;
-//   lastExitMessage: string = '';
-// }
 
 export default class UIAbility {
 
