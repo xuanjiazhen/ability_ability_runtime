@@ -3742,9 +3742,11 @@ int32_t AppMgrServiceInner::CreateStartMsg(const CreateStartMsgParam &param, App
 void AppMgrServiceInner::SetStartMsgCustomSandboxFlag(AppSpawnStartMsg &startMsg, int32_t userId)
 {
     bool supportCustomSandbox = AAFwk::AmsConfigurationParameter::GetInstance().IsSupportCustomSandbox();
-    if (!supportCustomSandbox || !AAFwk::AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Not in PC mode or developer mode");
+    if (!supportCustomSandbox) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Not in supportCustomSandbox mode");
         return;
+    } else {
+        TAG_LOGE(AAFwkTag::APPMGR, "in supportCustomSandbox mode");
     }
 
     if (remoteClientManager_ == nullptr) {
