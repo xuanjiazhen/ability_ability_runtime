@@ -43,7 +43,7 @@ ohos_unittest("app_mgr_service_inner_mock_test") {
     "src/window_manager.cpp",
   ]
 
-  deps = []
+  deps = [ "${ability_runtime_services_path}/abilitymgr:ams_configuration_parameter" ]
 
   external_deps = [
     "ability_base:want",

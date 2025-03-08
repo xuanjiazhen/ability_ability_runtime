@@ -324,7 +324,7 @@ ohos_source_set("abilityms_test_source") {
 group("unittest") {
   testonly = true
 
-  deps = []
+  deps = [ "${ability_runtime_services_path}/abilitymgr:ams_configuration_parameter" ]
   if (!use_libfuzzer) {
     deps += [
       "ability_auto_startup_data_manager_test:unittest",
