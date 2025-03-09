@@ -1937,8 +1937,8 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         auto abilityRecords = uiAbilityManager->GetAbilityRecordsByName(want.GetElement());
         if (!abilityRecords.empty() && abilityRecords[0] &&
             !startOptions.processOptions->isRestartKeepAlive &&
-            !(ProcessOptions::IsAttachToStatusBarItemMode(startOptions.processOptions->processMode) ||
-              startOptions.processOptions->isStartFromNDK)) {
+            !ProcessOptions::IsAttachToStatusBarItemMode(startOptions.processOptions->processMode) &&
+            !startOptions.processOptions->isStartFromNDK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "processMode is not attach to status bar item.");
             return ERR_ABILITY_ALREADY_RUNNING;
         }
