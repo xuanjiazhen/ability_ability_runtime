@@ -87,6 +87,7 @@ ohos_unittest("photo_editor_extension_module_loader_test") {
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:photo_editor_extension",
     "${ability_runtime_native_path}/ability/native:ui_extension",

@@ -29,6 +29,7 @@
 #include "mock_system_ability_manager.h"
 #include "sys_mgr_client.h"
 #include "system_ability_definition.h"
+#include "configuration.h"
 
 namespace OHOS {
 sptr<MockBundleInstallerService> mockBundleInstaller = new (std::nothrow) MockBundleInstallerService();

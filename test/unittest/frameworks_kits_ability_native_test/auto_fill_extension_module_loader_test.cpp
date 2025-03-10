@@ -16,6 +16,7 @@
 #include <dlfcn.h>
 #include <gtest/gtest.h>
 #include "auto_fill_extension_module_loader.h"
+#include "runtime.h"
 
 namespace OHOS {
 namespace AbilityRuntime {

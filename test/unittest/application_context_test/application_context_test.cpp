@@ -25,6 +25,7 @@
 #include "configuration_convertor.h"
 #include "ability_manager_errors.h"
 #include "exit_reason.h"
+#include "configuration.h"
 using namespace testing::ext;
 
 

@@ -32,6 +32,7 @@
 #include "process_info.h"
 #include "sys_mgr_client.h"
 #include "system_ability_definition.h"
+#include "configuration.h"
 #undef private
 #undef protected
 

@@ -18,6 +18,7 @@
 #define private public
 #include "service_extension_module_loader.h"
 #undef private
+#include "runtime.h"
 
 namespace OHOS {
 namespace AppExecFwk {

@@ -18,6 +18,7 @@
 #define private public
 #define protected public
 #include "ability.h"
+#include "key_event.h"
 #undef protected
 #undef private
 #include "ability_context_impl.h"
@@ -34,7 +35,6 @@
 #include "data_ability_predicates.h"
 #include "data_ability_result.h"
 #include "hilog_tag_wrapper.h"
-#include "key_event.h"
 #include "mock_lifecycle_observer.h"
 #include "mock_page_ability.h"
 #include "ohos_application.h"
@@ -43,6 +43,7 @@
 #include "uri.h"
 #include "values_bucket.h"
 #include "scene_board_judgement.h"
+#include "form_constants.h"
 
 namespace OHOS {
 namespace AppExecFwk {
