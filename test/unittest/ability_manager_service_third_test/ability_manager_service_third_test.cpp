@@ -559,6 +559,21 @@ HWTEST_F(AbilityManagerServiceThirdTest, ClearUserData_001, TestSize.Level1)
 
 /*
  * Feature: AbilityManagerService
+ * Function: HandleAllAbilitiesDieAheadByUserId
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService HandleAllAbilitiesDieAheadByUserId
+ */
+HWTEST_F(AbilityManagerServiceThirdTest, HandleAllAbilitiesDieAheadByUserId_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest HandleAllAbilitiesDieAheadByUserId_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs_, nullptr);
+    abilityMs_->HandleAllAbilitiesDieAheadByUserId(100);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest HandleAllAbilitiesDieAheadByUserId_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
  * Function: CallRequestDone
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService CallRequestDone

@@ -2161,6 +2161,21 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_HandleAbilityDiedTask_001, T
 
 /*
  * Feature: AbilityConnectManager
+ * Function: HandleAllAbilitiesDieAhead
+ * SubFunction: HandleAllAbilitiesDieAhead
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager HandleAllAbilitiesDieAhead
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_HandleAllAbilitiesDieAhead_001, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(100);
+    ASSERT_NE(connectManager, nullptr);
+    connectManager->HandleAllAbilitiesDieAhead();
+}
+
+/*
+ * Feature: AbilityConnectManager
  * Function: RestartAbility
  * SubFunction: RestartAbility
  * FunctionPoints: NA

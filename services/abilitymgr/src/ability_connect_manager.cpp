@@ -2401,6 +2401,46 @@ void AbilityConnectManager::KeepAbilityAlive(const std::shared_ptr<AbilityRecord
     }
 }
 
+void AbilityConnectManager::HandleAllAbilitiesDieAhead()
+{
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
+    std::lock_guard lock(serviceMapMutex_);
+    for (auto it = serviceMap_.begin(); it != serviceMap_.end(); ++it) {
+        auto abilityRecord = it->second;
+        CHECK_POINTER(abilityRecord);
+        TAG_LOGI(AAFwkTag::SERVICE_EXT, "ability will died: %{public}s", abilityRecord->GetURI().c_str());
+        if (abilityRecord->GetAbilityInfo().type != AbilityType::SERVICE &&
+            abilityRecord->GetAbilityInfo().type != AbilityType::EXTENSION) {
+            TAG_LOGW(AAFwkTag::SERVICE_EXT, "type not service");
+            continue;
+        }
+        if (eventHandler_ && abilityRecord->GetAbilityState() == AbilityState::INITIAL) {
+            abilityRecord->RemoveLoadTimeoutTask();
+        }
+        if (eventHandler_ && abilityRecord->GetAbilityState() == AbilityState::FOREGROUNDING) {
+            abilityRecord->RemoveForegroundTimeoutTask();
+        }
+        if (taskHandler_ && abilityRecord->GetAbilityState() == AbilityState::BACKGROUNDING) {
+            taskHandler_->CancelTask("background_" + std::to_string(abilityRecord->GetAbilityRecordId()));
+        }
+        if (taskHandler_ && abilityRecord->GetAbilityState() == AbilityState::TERMINATING) {
+            taskHandler_->CancelTask("terminate_" + std::to_string(abilityRecord->GetAbilityRecordId()));
+        }
+
+        abilityRecord->SetConnRemoteObject(nullptr);
+        ConnectListType connlist = abilityRecord->GetConnectRecordList();
+        for (auto &connectRecord : connlist) {
+            CHECK_POINTER_CONTINUE(connectRecord);
+            TAG_LOGW(AAFwkTag::SERVICE_EXT, "record complete disconnect. recordId:%{public}d",
+                connectRecord->GetRecordId());
+            RemoveExtensionDelayDisconnectTask(connectRecord);
+            connectRecord->CompleteDisconnectSync(ERR_OK, false, true);
+            abilityRecord->RemoveConnectRecordFromList(connectRecord);
+            RemoveConnectionRecordFromMap(connectRecord);
+        }
+    }
+}
+
 void AbilityConnectManager::HandleAbilityDiedTask(
     const std::shared_ptr<AbilityRecord> &abilityRecord, int32_t currentUserId)
 {
