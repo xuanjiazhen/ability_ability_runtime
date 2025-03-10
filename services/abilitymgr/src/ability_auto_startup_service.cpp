@@ -299,6 +299,7 @@ void AbilityAutoStartupService::ExecuteCallbacks(bool isCallOn, const AutoStartu
         " accessTokenId: %{public}s, userId: %{public}d",
         info.bundleName.c_str(), info.moduleName.c_str(),
         info.abilityName.c_str(), info.accessTokenId.c_str(), info.userId);
+    std::lock_guard<std::mutex> lock(autoStartUpMutex_);
     for (auto item : callbackVector_) {
         auto remoteSystemCallback = iface_cast<IAutoStartupCallBack>(item);
         if (remoteSystemCallback != nullptr) {
