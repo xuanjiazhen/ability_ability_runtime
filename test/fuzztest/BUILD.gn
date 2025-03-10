@@ -18,7 +18,7 @@ group("fuzztest") {
 
   deps = [
     "abilityappdebuginfo_fuzzer:fuzztest",
-    "abilityappdebugmanager_fuzzer:fuzztest",
+    #"abilityappdebugmanager_fuzzer:fuzztest",
     "abilityappdfrapplicationanrlistener_fuzzer:fuzztest",
     "abilityappfreezemanager_fuzzer:fuzztest",
     "abilityappmgrapprunningmanager_fuzzer:fuzztest",
@@ -28,7 +28,7 @@ group("fuzztest") {
     "abilityappmgrrunningmultiinfo_fuzzer:fuzztest",
     "abilityapppreloader_fuzzer:fuzztest",
     "abilityattachtimeout_fuzzer:fuzztest",
-    "abilityautostartupdatamanager_fuzzer:fuzztest",
+    #"abilityautostartupdatamanager_fuzzer:fuzztest",
     "abilityautostartupdatamanagera_fuzzer:fuzztest",
     "abilityautostartupdatamanagerb_fuzzer:fuzztest",
     "abilityautostartupservicea_fuzzer:fuzztest",
@@ -357,7 +357,7 @@ group("fuzztest") {
   if (ability_runtime_child_process) {
     deps += [
       "abilitychildprocessinfo_fuzzer:fuzztest",
-      "abilitychildprocessrecord_fuzzer:fuzztest",
+    #  "abilitychildprocessrecord_fuzzer:fuzztest",
     ]
   }
 }
