@@ -39,6 +39,9 @@ public:
         ani_env* env, ani_object aniObj, ani_object wantObj, ani_object startOptionsObj, ani_object callback);
     static void TerminateSelfWithResult(ani_env *env, ani_object aniObj, ani_object abilityResult, ani_object callback);
     static void reportDrawnCompletedSync([[maybe_unused]] ani_env* env, [[maybe_unused]] ani_class aniClass);
+    static void StartAbilityByTypeSync([[maybe_unused]] ani_env* env, [[maybe_unused]] ani_object aniObj,
+        [[maybe_unused]] ani_string aniType, [[maybe_unused]] ani_string aniWantParam,
+        [[maybe_unused]] ani_object startCallback, [[maybe_unused]] ani_object asyncCallback);
 
     static ani_object SetAbilityContext(ani_env* env, const std::shared_ptr<AbilityContext>& context);
     static AbilityRuntime::AbilityContext* GetAbilityContext(ani_env* env, ani_object aniObj);
@@ -52,7 +55,7 @@ private:
     static void StartAbilityForResultInner(ani_env *env, ani_object aniObj, ani_object wantObj,
         ani_object startOptionsObj, ani_object callback);
     static int32_t GenerateRequestCode();
-
+    static std::string GetString(ani_env *env, ani_string str);
     static std::mutex requestCodeMutex_;
 };
 ani_ref CreateStsAbilityContext(ani_env *env, const std::shared_ptr<AbilityContext> &context);
