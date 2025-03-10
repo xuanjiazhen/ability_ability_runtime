@@ -292,6 +292,12 @@ int32_t AbilityAutoStartupService::CheckAutoStartupData(const std::string &bundl
     return ERR_OK;
 }
 
+void AbilityAutoStartupService::GetCallbackVector(std::vector<sptr<IRemoteObject>>& callbackVector)
+{
+    std::lock_guard<std::mutex> lock(autoStartUpMutex_);
+    callbackVector = callbackVector_;
+}
+
 void AbilityAutoStartupService::ExecuteCallbacks(bool isCallOn, const AutoStartupInfo &info)
 {
     TAG_LOGD(AAFwkTag::AUTO_STARTUP,
@@ -299,7 +305,9 @@ void AbilityAutoStartupService::ExecuteCallbacks(bool isCallOn, const AutoStartu
         " accessTokenId: %{public}s, userId: %{public}d",
         info.bundleName.c_str(), info.moduleName.c_str(),
         info.abilityName.c_str(), info.accessTokenId.c_str(), info.userId);
-    for (auto item : callbackVector_) {
+    std::vector<sptr<IRemoteObject>> callbackVector;
+    GetCallbackVector(callbackVector);
+    for (auto item : callbackVector) {
         auto remoteSystemCallback = iface_cast<IAutoStartupCallBack>(item);
         if (remoteSystemCallback != nullptr) {
             if (isCallOn) {
