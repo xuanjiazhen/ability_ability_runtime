@@ -16,6 +16,7 @@
 #include <dlfcn.h>
 #include <gtest/gtest.h>
 #include "embedded_ui_extension_module_loader.h"
+#include "runtime"
 
 namespace OHOS {
 namespace AbilityRuntime {

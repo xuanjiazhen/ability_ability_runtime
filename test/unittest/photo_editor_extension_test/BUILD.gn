@@ -79,7 +79,10 @@ ohos_unittest("photo_editor_extension_module_loader_test") {
 
   cflags = []
 
-  include_dirs = [ "${ability_runtime_path}/interfaces/kits/native/ability/native/photo_editor_extension_ability" ]
+  include_dirs = [
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_path}/interfaces/kits/native/ability/native/photo_editor_extension_ability",
+  ]
 
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
