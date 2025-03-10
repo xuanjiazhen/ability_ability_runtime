@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
-//import AbilityMonitor from 'AbilityMonitor';
+//import AbilityMonitor from 'application.AbilityMonitor';
+
+class AbilityMonitor {}
 
 interface BaseContext {
     readonly area: int;
@@ -51,9 +53,11 @@ export default interface AbilityDelegator {
     executeShellCommand (cmd: String, callback: AsyncCallback<ShellCmdResult>) : void;
     executeShellCommand (cmd: String, timeoutSecs: int, callback: AsyncCallback<ShellCmdResult>) : void;
     executeShellCommand (cmd: string, timeoutSecs?: int) : Promise<ShellCmdResult>;
-    //addAbilityMonitor(monitor: AbilityMonitor, callback: AsyncCallback<void>): void
-    //addAbilityMonitor(monitor: AbilityMonitor): Promise<void>;
-    //addAbilityMonitorSync(monitor: AbilityMonitor): void;
+    addAbilityMonitor(monitor: AbilityMonitor, callback: AsyncCallback<void>): void
+    addAbilityMonitor(monitor: AbilityMonitor): Promise<void>;
+    addAbilityMonitorSync(monitor: AbilityMonitor): void;
+    startAbility(want: Want, callback: AsyncCallback<void>): void;
+    startAbility(want: Want): Promise<void>;
     // other api
 }
 
@@ -72,7 +76,8 @@ class AbilityDelegatorInner implements AbilityDelegator {
     public native finishTestSync(a: String, b: int): int;
     public native executeShellCommandsync(cmd: string, timeoutSecs: int): ShellCmdResult;
     public native getAppContext(): Context;
-    //public native addAbilityMonitorSync(monitor: AbilityMonitor): void;
+    public native addAbilityMonitorSync(monitor: AbilityMonitor): void;
+    public native startAbilitySync(want: Want) : int;
     // other api
 
     finishTest(msg: string, code: int, callback: AsyncCallback<void>):void{
@@ -153,25 +158,47 @@ class AbilityDelegatorInner implements AbilityDelegator {
         }
     }
 
-    //addAbilityMonitor(monitor: AbilityMonitor, callback: AsyncCallback<void>): void {
-    //    let p1 = taskpool.execute(():undefined => {new AbilityDelegatorInner().addAbilityMonitorSync(monitor);  return undefined});
-    //        p1.then((e :NullishType)=>{
-    //            let resultCode: Int  = e as Int;
-    //            let r: BusinessError = { code: resultCode.intValue(), data: undefined };
-    //            callback(r, undefined);
-    //        }, (err:Object): void => {
-    //        });
-	//
-    //}
-    //addAbilityMonitor(monitor: AbilityMonitor): Promise<void> {
-    //    let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void, reject: (error: Object) => void) => {
-    //        let p1 = taskpool.execute(():undefined => {new AbilityDelegatorInner().addAbilityMonitorSync(monitor);  return undefined});
-    //        p1.then((e :NullishType)=>{
-    //        let PromiseLike = e as PromiseLike<void>;
-    //        resolve(PromiseLike);
-    //        }, (err:Object): void => {
-    //        });
-    //    });
-    //    return p;
-    //}
+    addAbilityMonitor(monitor: AbilityMonitor, callback: AsyncCallback<void>): void {
+        let p1 = taskpool.execute(():undefined => {new AbilityDelegatorInner().addAbilityMonitorSync(monitor);  return undefined});
+            p1.then((e :NullishType)=>{
+                let resultCode: Int  = e as Int;
+                let r: BusinessError = { code: resultCode.intValue(), data: undefined };
+                callback(r, undefined);
+            }, (err:Object): void => {
+            });
+
+    }
+    addAbilityMonitor(monitor: AbilityMonitor): Promise<void> {
+        let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void, reject: (error: Object) => void) => {
+            let p1 = taskpool.execute(():undefined => {new AbilityDelegatorInner().addAbilityMonitorSync(monitor);  return undefined});
+            p1.then((e :NullishType)=>{
+            let PromiseLike = e as PromiseLike<void>;
+            resolve(PromiseLike);
+            }, (err:Object): void => {
+            });
+        });
+        return p;
+    }
+
+    startAbility(want: Want, callback: AsyncCallback<void>): void {
+        let p1 = taskpool.execute(():undefined => {new AbilityDelegatorInner().startAbilitySync(want);  return undefined});
+            p1.then((e :NullishType)=>{
+                let resultCode: Int  = e as Int;
+                let r: BusinessError = { code: resultCode.intValue(), data: undefined };
+                callback(r, undefined);
+            }, (err:Object): void => {
+            });
+
+    }
+    startAbility(want: Want): Promise<void> {
+        let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void, reject: (error: Object) => void) => {
+            let p1 = taskpool.execute(():undefined => {new AbilityDelegatorInner().startAbilitySync(want);  return undefined});
+            p1.then((e :NullishType)=>{
+            let PromiseLike = e as PromiseLike<void>;
+            resolve(PromiseLike);
+            }, (err:Object): void => {
+            });
+        });
+        return p;
+    }
 }
