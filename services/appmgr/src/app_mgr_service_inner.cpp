@@ -214,7 +214,9 @@ constexpr const char* GPU_PROCESS_TYPE = "gpu";
 constexpr const char* KILL_REASON_USER_REQUEST = "User Request";
 const std::string TOKEN_ID = "TOKEN_ID";
 const std::string CUSTOM_SANDBOX_KEY = "com.huawei.service.sandboxmode.custom";
-const std::string DEVELOPERMODE_STATE = "const.security.developermode.state";
+constexpr const char* AMS_CONFIG_FILE_PATH = "/system/etc/ams_service_config.json";
+constexpr const char* SERVICE_ITEM_AMS = "service_startup_config";
+constexpr const char* SUPPORT_CUSTOM_SANDBOX = "support_custom_sandbox";
 const int32_t SIGNAL_KILL = 9;
 constexpr int32_t USER_SCALE = 200000;
 #define ENUM_TO_STRING(s) #s
@@ -396,6 +398,7 @@ AppMgrServiceInner::AppMgrServiceInner()
 
 void AppMgrServiceInner::Init()
 {
+    LoadAmsConfiguration(AMS_CONFIG_FILE_PATH);
     InitGlobalConfiguration();
     AddWatchParameter();
     supportIsolationMode_ = OHOS::system::GetParameter(SUPPORT_ISOLATION_MODE, "false");
@@ -3738,11 +3741,91 @@ int32_t AppMgrServiceInner::CreateStartMsg(const CreateStartMsgParam &param, App
     return ERR_OK;
 }
 
+int AppMgrServiceInner::LoadAmsConfiguration(const std::string &filePath)
+{
+    int ret = 0;
+    if (filePath.empty()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "empty file path");
+        return -1;
+    }
+
+    if (access(filePath.c_str(), F_OK) != 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "can not access the file: %{private}s", filePath.c_str());
+        return -1;
+    }
+    std::ifstream inFile;
+    inFile.open(filePath, std::ios::in);
+    if (!inFile.is_open()) {
+        TAG_LOGI(AAFwkTag::APPMGR, "error");
+        return -1;
+    }
+
+    nlohmann::json amsJson;
+    inFile >> amsJson;
+    if (amsJson.is_discarded()) {
+        TAG_LOGI(AAFwkTag::APPMGR, "json discarded error ...");
+        inFile.close();
+        return -1;
+    }
+
+    ret = LoadAppConfigurationForStartUpService(amsJson);
+
+    amsJson.clear();
+    inFile.close();
+
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "json no have service item ...");
+        return -1;
+    }
+
+    TAG_LOGI(AAFwkTag::APPMGR, "reading ability manager service config success");
+    return 0;
+}
+
+int AppMgrServiceInner::LoadAppConfigurationForStartUpService(nlohmann::json& Object)
+{
+    if (!Object.contains(SERVICE_ITEM_AMS)) {
+        return -1;
+    }
+    UpdateStartUpServiceConfigInteger(Object, SUPPORT_CUSTOM_SANDBOX, customSandboxflag_);
+    return 0;
+}
+
+bool AppMgrServiceInner::CheckServiceConfigEnable(nlohmann::json& Object, const std::string &configName,
+    JsonValueType type)
+{
+    if (Object.contains(SERVICE_ITEM_AMS) &&
+        Object.at(SERVICE_ITEM_AMS).contains(configName)) {
+        switch (type) {
+            case JsonValueType::NUMBER: {
+                return Object.at(SERVICE_ITEM_AMS).at(configName).is_number();
+            }
+            case JsonValueType::STRING: {
+                return Object.at(SERVICE_ITEM_AMS).at(configName).is_string();
+            }
+            case JsonValueType::BOOLEAN: {
+                return Object.at(SERVICE_ITEM_AMS).at(configName).is_boolean();
+            }
+            default: {
+                return false;
+            }
+        }
+    }
+    return false;
+}
+
+void AppMgrServiceInner::UpdateStartUpServiceConfigInteger(nlohmann::json& Object,
+    const std::string &configName, int32_t &value)
+{
+    if (CheckServiceConfigEnable(Object, configName, JsonValueType::NUMBER)) {
+        value = Object.at(SERVICE_ITEM_AMS).at(configName).get<int>();
+    }
+}
+
 void AppMgrServiceInner::SetStartMsgCustomSandboxFlag(AppSpawnStartMsg &startMsg, int32_t userId)
 {
-    if (!system::GetBoolParameter(DEVELOPERMODE_STATE, false) ||
-        !AAFwk::AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Not in PC mode or developer mode");
+    if (CustomSandboxFlag() == 0 || !AAFwk::AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Not in PC Custom Sandbox");
         return;
     }
 

@@ -97,6 +97,15 @@ class WindowPidVisibilityChangedListener;
 using LoadAbilityTaskFunc = std::function<void()>;
 constexpr int32_t BASE_USER_RANGE = 200000;
 
+enum class JsonValueType {
+    NULLABLE,
+    BOOLEAN,
+    NUMBER,
+    OBJECT,
+    ARRAY,
+    STRING
+};
+
 class AppMgrServiceInner : public std::enable_shared_from_this<AppMgrServiceInner> {
 public:
     struct ConfigurationObserverWithUserId {
@@ -1953,7 +1962,17 @@ private:
     void AddAbilityStageForSpecified(std::shared_ptr<AppRunningRecord> appRecord);
     void GetKernelPermissions(uint32_t accessTokenId, JITPermissionsMap &permissionsMap);
     void SendAppSpawnUninstallDebugHapMsg(int32_t userId);
+    int CustomSandboxFlag() const
+    {
+        return customSandboxflag_;
+    }
 
+    int LoadAmsConfiguration(const std::string &filePath);
+    int LoadAppConfigurationForStartUpService(nlohmann::json& Object);
+    bool CheckServiceConfigEnable(nlohmann::json& Object, const std::string &configName, JsonValueType type);
+    void UpdateStartUpServiceConfigInteger(nlohmann::json& Object, const std::string &configName, int32_t &value);
+
+    int customSandboxflag_ {0};
     bool isInitAppWaitingDebugListExecuted_ = false;
     std::atomic<bool> sceneBoardAttachFlag_ = true;
     std::atomic<int32_t> willKillPidsNum_ = 0;
