@@ -114,6 +114,7 @@
             "libjpeg-turbo"
           ]
       },
+      
       "build": {
         "sub_component": [
           "//foundation/ability/ability_runtime/services:ams_target",
