@@ -475,7 +475,8 @@ int MissionListManager::StartAbilityLocked(const std::shared_ptr<AbilityRecord> 
 
 #ifdef SUPPORT_SCREEN
     std::shared_ptr<StartOptions> startOptions = nullptr;
-    targetAbilityRecord->ProcessForegroundAbility(false, abilityRequest, startOptions, callerAbility);
+    targetAbilityRecord->ProcessForegroundAbility(false, abilityRequest, startOptions, callerAbility,
+        static_cast<uint32_t>(WindowStateChangeReason::ABILITY_CALL));
 #else
     targetAbilityRecord->ProcessForegroundAbility(0);
 #endif
