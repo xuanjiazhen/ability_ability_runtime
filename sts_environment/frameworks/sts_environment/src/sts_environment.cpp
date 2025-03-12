@@ -36,7 +36,6 @@ const char STS_GET_CREATED_VMS[] = "ETS_GetCreatedVMs";
 const char STS_CREATE_VM[] = "ANI_CreateVM";
 const char STS_ANI_GET_CREATEDVMS[] = "ANI_GetCreatedVMs";
 const char STS_LIB_PATH[] = "libarkruntime.so";
-const char BOOT_PATH[] = "/system/framework/bootpath.json";
 
 using GetDefaultVMInitArgsSTSRuntimeType = ets_int (*)(EtsVMInitArgs* vmArgs);
 using GetCreatedVMsSTSRuntimeType = ets_int (*)(EtsVM** vmBuf, ets_size bufLen, ets_size* nVms);
@@ -49,42 +48,6 @@ const char* STSEnvironment::stsSysNSName = "sts_system";
 const char* STSEnvironment::stsChipSDKNSName = "sts_chipsdk";
 
 STSRuntimeAPI STSEnvironment::lazyApis_{};
-
-bool STSEnvironment::LoadBootPathFile(std::string& bootfiles)
-{
-    std::ifstream inFile;
-    inFile.open(BOOT_PATH, std::ios::in);
-    if (!inFile.is_open()) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "read json error");
-        return false;
-    }
-    nlohmann::json jsonObject = nlohmann::json::parse(inFile);
-    if (jsonObject.is_discarded()) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "json discarded error");
-        inFile.close();
-        return false;
-    }
-
-    if (jsonObject.is_null() || jsonObject.empty()) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "invalid json");
-        inFile.close();
-        return false;
-    }
-
-    for (const auto &[key, value] : jsonObject.items()) {
-      if (!value.is_null() && value.is_string()) {
-            std::string jsonValue = value.get<std::string>();
-            if (jsonValue.empty()) {
-                TAG_LOGE(AAFwkTag::STSRUNTIME, "json value of %{public}s is empty", key.c_str());
-                continue;
-            }
-            bootfiles += ":";
-            bootfiles += jsonValue.c_str();
-        }
-    }
-    inFile.close();
-    return true;
-}
 
 bool STSEnvironment::LoadRuntimeApis()
 {
@@ -246,18 +209,10 @@ bool STSEnvironment::StartRuntime()
         TAG_LOGE(AAFwkTag::STSRUNTIME, "LoadRuntimeApis failed");
         return false;
     }
-    std::string bootfiles = "/system/framework/arkoala.abc";
-    if (!LoadBootPathFile(bootfiles)) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME,"LoadBootPathFile failed");
-        return false;
-    }
 
     const std::string optionPrefix = "--ext:";
     // Create boot-panda-files options
     std::vector<ani_option> options;
-    std::string bootString = optionPrefix + "--boot-panda-files=" + bootfiles;
-    TAG_LOGI(AAFwkTag::STSRUNTIME, "bootString %{public}s", bootString.c_str());
-    options.push_back(ani_option{bootString.c_str(), nullptr});
 
     std::string bootStringAsyn = optionPrefix + "--coroutine-enable-features:ani-drain-queue";
     TAG_LOGI(AAFwkTag::STSRUNTIME, "bootStringAsyn %{public}s", bootStringAsyn.c_str());

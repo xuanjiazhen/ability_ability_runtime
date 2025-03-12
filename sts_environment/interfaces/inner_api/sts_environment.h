@@ -121,7 +121,6 @@ private:
     bool LoadSymbolGetCreatedVMs(void* handle, STSRuntimeAPI& apis);
     bool LoadSymbolCreateVM(void* handle, STSRuntimeAPI& apis);
     bool LoadSymbolANIGetCreatedVMs(void* handle, STSRuntimeAPI& apis);
-    bool LoadBootPathFile(std::string& bootfiles);
     void Schedule();
     static STSRuntimeAPI lazyApis_;
     bool isRuntimeStarted_{ false };
