@@ -63,7 +63,6 @@ HWTEST_F(MultiUserConfigMgrTest, SetOrUpdateConfigByUserId_0100, TestSize.Level1
     auto multiUserConfigurationMgr =
         std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
 
-    //1.multiUserConfiguration_.find(userId) != multiUserConfiguration_.end()
     multiUserConfigurationMgr->multiUserConfiguration_.emplace(
         std::make_pair(userId, config2));
     multiUserConfigurationMgr->SetOrUpdateConfigByUserId(
@@ -73,14 +72,12 @@ HWTEST_F(MultiUserConfigMgrTest, SetOrUpdateConfigByUserId_0100, TestSize.Level1
         AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE);
     EXPECT_EQ(item, English);
 
-    //2.multiUserConfigurationMgr->globalConfiguration_ = nullptr;
     multiUserConfigurationMgr->multiUserConfiguration_.clear();
     changeKeyV.clear();
     multiUserConfigurationMgr->globalConfiguration_ = nullptr;
     multiUserConfigurationMgr->SetOrUpdateConfigByUserId(
         userId, config1, changeKeyV);
 
-    //3.multiUserConfigurationMgr->globalConfiguration_ != nullptr;
     multiUserConfigurationMgr->globalConfiguration_ =
         std::make_shared<AppExecFwk::Configuration>();
     multiUserConfigurationMgr->SetOrUpdateConfigByUserId(
@@ -113,7 +110,7 @@ HWTEST_F(MultiUserConfigMgrTest, UpdateMultiUserConfiguration_0100, TestSize.Lev
     multiUserConfigurationMgr->multiUserConfiguration_.emplace(
         std::make_pair(1, config2));
     multiUserConfigurationMgr->UpdateMultiUserConfiguration(config1);
-    for(auto& item : multiUserConfigurationMgr->multiUserConfiguration_) {
+    for (auto& item : multiUserConfigurationMgr->multiUserConfiguration_) {
         auto result = item.second.GetItem(displayId2,
             AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE);
         EXPECT_EQ(result, English);
