@@ -15,6 +15,7 @@
 
 #include "mock_context_impl.h"
 #include "sys_mgr_client.h"
+#include "configuration.h"
 
 namespace OHOS {
 namespace AbilityRuntime {

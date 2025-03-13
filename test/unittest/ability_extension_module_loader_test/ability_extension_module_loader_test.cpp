@@ -18,6 +18,7 @@
 #include "extension_module_loader.h"
 #include "hilog_tag_wrapper.h"
 #include "request_info.h"
+#include "runtime.h"
 
 using namespace testing::ext;
 
