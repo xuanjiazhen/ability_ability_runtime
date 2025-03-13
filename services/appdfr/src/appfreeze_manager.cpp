@@ -63,6 +63,7 @@ static constexpr int64_t NANOSECONDS = 1000000000;  // NANOSECONDS mean 10^9 nan
 static constexpr int64_t MICROSECONDS = 1000000;    // MICROSECONDS mean 10^6 millias second
 constexpr uint64_t SEC_TO_MILLISEC = 1000;
 constexpr uint32_t BUFFER_SIZE = 1024;
+constexpr int64_t DUMP_STACK_INTERVAL = 3000; // 3s
 const std::string LOG_FILE_PATH = "data/log/eventlog";
 static bool g_betaVersion = OHOS::system::GetParameter("const.logsystem.versiontype", "unknown") == "beta";
 static bool g_developMode = (OHOS::system::GetParameter("persist.hiview.leak_detector", "unknown") == "enable") ||
@@ -528,6 +529,7 @@ std::string AppfreezeManager::CatchJsonStacktrace(int pid, const std::string& fa
     const std::string& stack) const
 {
     HITRACE_METER_FMT(HITRACE_TAG_APP, "CatchJsonStacktrace pid:%d", pid);
+    int64_t startTime = AbilityRuntime::TimeUtil::CurrentTimeMillis();
     HiviewDFX::DfxDumpCatcher dumplog;
     std::string msg;
     size_t defaultMaxFaultNum = 256;
@@ -539,6 +541,10 @@ std::string AppfreezeManager::CatchJsonStacktrace(int pid, const std::string& fa
             FindStackByPid(msg, pid);
         }
     } else {
+        if ((AbilityRuntime::TimeUtil::CurrentTimeMillis() - startTime) > DUMP_STACK_INTERVAL
+            && !stack.empty()) {
+            msg += "\nMain thread stack:" + stack;
+        }
         if (faultType == AppFreezeType::THREAD_BLOCK_3S) {
             std::lock_guard<ffrt::mutex> lock(catchStackMutex_);
             catchStackMap_[pid] = msg;
@@ -550,11 +556,15 @@ std::string AppfreezeManager::CatchJsonStacktrace(int pid, const std::string& fa
 std::string AppfreezeManager::CatcherStacktrace(int pid, const std::string& stack) const
 {
     HITRACE_METER_FMT(HITRACE_TAG_APP, "CatcherStacktrace pid:%d", pid);
+    int64_t startTime = AbilityRuntime::TimeUtil::CurrentTimeMillis();
     HiviewDFX::DfxDumpCatcher dumplog;
     std::string msg;
     if (dumplog.DumpCatchProcess(pid, msg) == -1) {
         msg = "Failed to dump stacktrace for " + std::to_string(pid) + "\n" + msg +
             "\nMain thread stack:" + stack;
+    } else if ((AbilityRuntime::TimeUtil::CurrentTimeMillis() - startTime) > DUMP_STACK_INTERVAL
+        && !stack.empty()) {
+        msg += "\nMain thread stack:" + stack;
     }
     return msg;
 }
