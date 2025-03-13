@@ -18,4 +18,5 @@ export type AsyncCallback<T, E = void> = (err: BusinessError<E>, data: T)=> void
 export class BusinessError<T = void> {
     code: int;
     data?: T;
+    message: string = "";
 }
