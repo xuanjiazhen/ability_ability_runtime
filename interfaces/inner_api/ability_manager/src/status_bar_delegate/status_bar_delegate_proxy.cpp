@@ -44,6 +44,7 @@ int32_t StatusBarDelegateProxy::CheckIfStatusBarItemExists(uint32_t accessTokenI
         TAG_LOGE(AAFwkTag::ABILITYMGR, "instanceKey write failed");
         return AAFwk::ERR_NATIVE_IPC_PARCEL_FAILED;
     }
+
     auto ret = SendRequest(StatusBarDelegateCmd::CHECK_IF_STATUS_BAR_ITEM_EXISTS, data, reply, option);
     if (ret != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Send request error: %{public}d", ret);
