@@ -3439,12 +3439,15 @@ std::vector<std::string> MainThread::GetRemoveOverlayPaths(const std::vector<Ove
     return removePaths;
 }
 
-int32_t MainThread::ScheduleChangeAppGcState(int32_t state)
+int32_t MainThread::ScheduleChangeAppGcState(int32_t state, uint64_t tid)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called, state is %{public}d", state);
     if (mainHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null mainHandler");
         return ERR_INVALID_VALUE;
+    }
+    if (tid > 0) {
+        ChangeAppGcState(state, tid);
     }
 
     wptr<MainThread> weak = this;
@@ -3465,7 +3468,7 @@ int32_t MainThread::ScheduleChangeAppGcState(int32_t state)
     return NO_ERROR;
 }
 
-int32_t MainThread::ChangeAppGcState(int32_t state)
+int32_t MainThread::ChangeAppGcState(int32_t state, uint64_t tid)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
     if (application_ == nullptr) {
@@ -3481,6 +3484,10 @@ int32_t MainThread::ChangeAppGcState(int32_t state)
         return NO_ERROR;
     }
     auto& nativeEngine = (static_cast<AbilityRuntime::JsRuntime&>(*runtime)).GetNativeEngine();
+    if (application_ == nullptr) {
+        TAG_LOGD(AAFwkTag::APPKIT, "tid is %{private}llu", tid);
+        nativeEngine.NotifyForceExpandState(tid, state);
+    }
     nativeEngine.NotifyForceExpandState(state);
     return NO_ERROR;
 }
