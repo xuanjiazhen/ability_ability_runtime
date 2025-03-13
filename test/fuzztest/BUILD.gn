@@ -275,6 +275,7 @@ group("fuzztest") {
     "getwantsender_fuzzer:fuzztest",
     "handledlpapp_fuzzer:fuzztest",
     "insightintentexecutecallbackstub_fuzzer:fuzztest",
+    "insightintentexecuteparam_fuzzer:fuzztest",
     "isramconstraineddevice_fuzzer:fuzztest",
     "jsabilityautostartupmanager_fuzzer:fuzztest",
     "jsabilityautostartupmanager_fuzzer:fuzztest",
