@@ -497,6 +497,25 @@ HWTEST_F(UIAbilityLifecycleManagerTest, UpdateAbilityRecordLaunchReason_004, Tes
 }
 
 /**
+ * @tc.name: UIAbilityLifecycleManager_UpdateAbilityRecordLaunchReason_0500
+ * @tc.desc: UpdateAbilityRecordLaunchReason
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, UpdateAbilityRecordLaunchReason_005, TestSize.Level1)
+{
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    EXPECT_NE(mgr, nullptr);
+
+    std::string message = "set launch reason message";
+    AbilityRequest abilityRequest;
+    abilityRequest.want.SetParam(Want::PARAM_ABILITY_RECOVERY_RESTART, true);
+    abilityRequest.want.SetParam(Want::PARM_LAUNCH_REASON_MESSAGE, message);
+    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    mgr->UpdateAbilityRecordLaunchReason(abilityRequest, abilityRecord);
+    EXPECT_NE(mgr, nullptr);
+}
+
+/**
  * @tc.name: UIAbilityLifecycleManager_EraseAbilityRecord_0100
  * @tc.desc: EraseAbilityRecord
  * @tc.type: FUNC
@@ -1926,6 +1945,24 @@ HWTEST_F(UIAbilityLifecycleManagerTest, CallAbilityLocked_002, TestSize.Level1)
     Want want;
     want.SetParam(Want::PARAM_RESV_CALL_TO_FOREGROUND, true);
     abilityRequest.want = want;
+    uiAbilityLifecycleManager->CallAbilityLocked(abilityRequest);
+    EXPECT_NE(uiAbilityLifecycleManager, nullptr);
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_CallAbilityLocked_0300
+ * @tc.desc: CallAbilityLocked
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, CallAbilityLocked_003, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
+    EXPECT_NE(uiAbilityLifecycleManager, nullptr);
+
+    AbilityRequest abilityRequest;
+    abilityRequest.callType = AbilityCallType::CALL_REQUEST_TYPE;
+    std::string message = "set launch reason message";
+    abilityRequest.want.SetParam(Want::PARM_LAUNCH_REASON_MESSAGE, message);
     uiAbilityLifecycleManager->CallAbilityLocked(abilityRequest);
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
 }

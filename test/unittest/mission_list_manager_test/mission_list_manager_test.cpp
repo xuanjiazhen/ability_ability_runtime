@@ -6312,6 +6312,25 @@ HWTEST_F(MissionListManagerTest, UpdateAbilityRecordLaunchReason_005, TestSize.L
 
 /*
  * Feature: MissionListManager
+ * Function: UpdateAbilityRecordLaunchReason
+ * SubFunction: NA
+ * FunctionPoints: MissionListManager UpdateAbilityRecordLaunchReason
+ * EnvConditions: NA
+ * CaseDescription: Verify UpdateAbilityRecordLaunchReason
+ */
+HWTEST_F(MissionListManagerTest, UpdateAbilityRecordLaunchReason_006, TestSize.Level1)
+{
+    constexpr int32_t userId = 3;
+    auto missionListManager = std::make_shared<MissionListManager>(userId);
+    AbilityRequest abilityRequest;
+    std::string message = "set launch reason message";
+    abilityRequest.want.SetParam(Want::PARM_LAUNCH_REASON_MESSAGE, message);
+    std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
+    EXPECT_TRUE(missionListManager->UpdateAbilityRecordLaunchReason(abilityRequest, abilityRecord));
+}
+
+/*
+ * Feature: MissionListManager
  * Function: IsValidMissionIds
  * SubFunction: NA
  * FunctionPoints: MissionListManager IsValidMissionIds

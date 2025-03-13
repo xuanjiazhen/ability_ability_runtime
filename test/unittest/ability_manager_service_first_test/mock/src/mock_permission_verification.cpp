@@ -18,6 +18,61 @@
 namespace OHOS {
 namespace AAFwk {
 
+namespace {
+constexpr const char* PERMISSION_FILE_ACCESS_MANAGER = "ohos.permission.FILE_ACCESS_MANAGER";
+constexpr const char* PERMISSION_WRITE_IMAGEVIDEO = "ohos.permission.WRITE_IMAGEVIDEO";
+constexpr const char* PERMISSION_READ_IMAGEVIDEO = "ohos.permission.READ_IMAGEVIDEO";
+constexpr const char* PERMISSION_WRITE_AUDIO = "ohos.permission.WRITE_AUDIO";
+constexpr const char* PERMISSION_READ_AUDIO = "ohos.permission.READ_AUDIO";
+constexpr const char* PERMISSION_PROXY_AUTHORIZATION_URI = "ohos.permission.PROXY_AUTHORIZATION_URI";
+constexpr const char* PERMISSION_GRANT_URI_PERMISSION_PRIVILEGED = "ohos.permission.GRANT_URI_PERMISSION_PRIVILEGED";
+constexpr const char* PERMISSION_READ_WRITE_DOWNLOAD = "ohos.permission.READ_WRITE_DOWNLOAD_DIRECTORY";
+constexpr const char* PERMISSION_READ_WRITE_DESKTON = "ohos.permission.READ_WRITE_DESKTOP_DIRECTORY";
+constexpr const char* PERMISSION_READ_WRITE_DOCUMENTS = "ohos.permission.READ_WRITE_DOCUMENTS_DIRECTORY";
+constexpr const char* PERMISSION_SET_LAUNCH_REASON_MESSAGE = "ohos.permission.SET_LAUNCH_REASON_MESSAGE";
+} // namespace
+
+bool PermissionVerification::VerifyPermissionByTokenId(const int &tokenId, const std::string &permissionName) const
+{
+    if (MyFlag::permissionAll_) {
+        return true;
+    }
+    if (permissionName == PERMISSION_FILE_ACCESS_MANAGER) {
+        return MyFlag::permissionFileAccessManager_;
+    }
+    if (permissionName == PERMISSION_WRITE_IMAGEVIDEO) {
+        return MyFlag::permissionWriteImageVideo_ || MyFlag::permissionAllMedia_;
+    }
+    if (permissionName == PERMISSION_READ_IMAGEVIDEO) {
+        return MyFlag::permissionReadImageVideo_ || MyFlag::permissionAllMedia_;
+    }
+    if (permissionName == PERMISSION_WRITE_AUDIO) {
+        return MyFlag::permissionWriteAudio_ || MyFlag::permissionAllMedia_;
+    }
+    if (permissionName == PERMISSION_READ_AUDIO) {
+        return MyFlag::permissionReadAudio_ || MyFlag::permissionAllMedia_;
+    }
+    if (permissionName == PERMISSION_PROXY_AUTHORIZATION_URI) {
+        return MyFlag::permissionProxyAuthorization_;
+    }
+    if (permissionName == PERMISSION_GRANT_URI_PERMISSION_PRIVILEGED) {
+        return MyFlag::permissionPrivileged_;
+    }
+    if (permissionName == PERMISSION_READ_WRITE_DOWNLOAD) {
+        return MyFlag::permissionReadWriteDownload_;
+    }
+    if (permissionName == PERMISSION_READ_WRITE_DESKTON) {
+        return MyFlag::permissionReadWriteDesktop_;
+    }
+    if (permissionName == PERMISSION_READ_WRITE_DOCUMENTS) {
+        return MyFlag::permissionReadWriteDocuments_;
+    }
+    if (permissionName == PERMISSION_SET_LAUNCH_REASON_MESSAGE) {
+        return MyFlag::permissionSetLaunchReason_;
+    }
+    return false;
+}
+
 bool PermissionVerification::VerifyCallingPermission(const std::string &permissionName) const
 {
     return !!(MyFlag::flag_);
