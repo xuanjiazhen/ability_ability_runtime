@@ -2798,7 +2798,10 @@ ohos_unittest("form_extension_module_loader_test") {
     "form_extension_module_loader_test.cpp",
   ]
 
-  configs = [ "${ability_runtime_services_path}/common:common_config" ]
+  configs = [
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_services_path}/common:common_config",
+  ]
 
   deps = [ "${ability_runtime_native_path}/ability/native:form_extension" ]
 
