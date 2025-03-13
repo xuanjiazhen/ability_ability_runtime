@@ -338,43 +338,43 @@ std::string STSAbilityStage::GetHapModuleProp(const std::string &propName) const
 
 void STSAbilityStage::SetJsAbilityStage(const std::shared_ptr<Context> &context)
 {
-    // if (context == nullptr) {
-    //     TAG_LOGE(AAFwkTag::ABILITY, "context nullptr");
-    //     return;
-    // }
-    // auto env = stsRuntime_.GetAniEnv();
-    // if (env == nullptr) {
-    //     TAG_LOGE(AAFwkTag::ABILITY, "env nullptr");
-    //     return;
-    // }
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "context nullptr");
+        return;
+    }
+    auto env = stsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "env nullptr");
+        return;
+    }
 
-    // TAG_LOGE(AAFwkTag::ABILITY, "SetJsAbilityStage env:%{public}p", env);
-    // STSAbilityStageContext::ResetEnv(env);
+    TAG_LOGE(AAFwkTag::ABILITY, "SetJsAbilityStage env:%{public}p", env);
+    STSAbilityStageContext::ResetEnv(env);
 
-	// ani_object stageCtxObj = STSAbilityStageContext::CreateStsAbilityStageContext(env, context, application_);
-    // if (stageCtxObj == nullptr) {
-    //     STSAbilityStageContext::ResetEnv(env);
-    //     TAG_LOGE(AAFwkTag::ABILITY, "CreateStsAbilityStageContext failed");
-    //     return;
-    // }
+	ani_object stageCtxObj = STSAbilityStageContext::CreateStsAbilityStageContext(env, context, application_);
+    if (stageCtxObj == nullptr) {
+        STSAbilityStageContext::ResetEnv(env);
+        TAG_LOGE(AAFwkTag::ABILITY, "CreateStsAbilityStageContext failed");
+        return;
+    }
 
-    // ani_status status = ANI_OK;
-    // ani_field contextField;
-    // status = env->Class_FindField(stsAbilityStageObj_->aniCls, "context", &contextField);
-    // if (status != ANI_OK) {
-    //     TAG_LOGI(AAFwkTag::ABILITY, "Class_GetField context failed");
-    //     STSAbilityStageContext::ResetEnv(env);
-    //     return;
-    // }
-    // ani_ref stageCtxObjRef = nullptr;
-    // if (env->GlobalReference_Create(stageCtxObj, &stageCtxObjRef) != ANI_OK) {
-    //     TAG_LOGE(AAFwkTag::ABILITY, "GlobalReference_Create stageCtxObj failed");
-    //     return;
-    // }
-    // if (env->Object_SetField_Ref(stsAbilityStageObj_->aniObj, contextField, stageCtxObjRef) != ANI_OK) {
-    //     TAG_LOGI(AAFwkTag::ABILITY, "zg Object_SetField_Ref stageCtxObj failed");
-    //     STSAbilityStageContext::ResetEnv(env);
-    // }
+    ani_status status = ANI_OK;
+    ani_field contextField;
+    status = env->Class_FindField(stsAbilityStageObj_->aniCls, "context", &contextField);
+    if (status != ANI_OK) {
+        TAG_LOGI(AAFwkTag::ABILITY, "Class_GetField context failed");
+        STSAbilityStageContext::ResetEnv(env);
+        return;
+    }
+    ani_ref stageCtxObjRef = nullptr;
+    if (env->GlobalReference_Create(stageCtxObj, &stageCtxObjRef) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY, "GlobalReference_Create stageCtxObj failed");
+        return;
+    }
+    if (env->Object_SetField_Ref(stsAbilityStageObj_->aniObj, contextField, stageCtxObjRef) != ANI_OK) {
+        TAG_LOGI(AAFwkTag::ABILITY, "Object_SetField_Ref stageCtxObj failed");
+        STSAbilityStageContext::ResetEnv(env);
+    }
 }
 
 }  // namespace AbilityRuntime

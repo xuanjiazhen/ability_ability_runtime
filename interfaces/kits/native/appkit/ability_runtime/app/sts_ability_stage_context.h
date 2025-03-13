@@ -25,7 +25,7 @@ class OHOSApplication;
 }
 namespace AbilityRuntime {
 
-constexpr const char* STS_ABILITY_STAGE_CONTEXT_CLASS_NAME = "LAbilityStageContext/AbilityStageContext;";
+constexpr const char* STS_ABILITY_STAGE_CONTEXT_CLASS_NAME = "Lapplication/AbilityStageContext/AbilityStageContext;";
 constexpr const char* STS_CONFIGURATION_CLASS_NAME = "L@ohos/app/ability/Configuration/ConfigurationInner;";
 constexpr const char* STS_HAPMODULEINFO_CLASS_NAME = "LAbilityStageHand/HapModuleInfo;";
 constexpr const char* STS_ABILITY_STAGE_CLASS_NAME = "LAbilityStageHand/AbilityStage;";
