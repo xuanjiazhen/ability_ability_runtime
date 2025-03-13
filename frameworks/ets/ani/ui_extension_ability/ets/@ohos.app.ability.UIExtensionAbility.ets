@@ -1,4 +1,4 @@
-import AbilityConstant from './@ohos.app.ability.AbilityConstant';
+import AbilityConstant from '@ohos.app.ability.AbilityConstant';
 import Want from '@ohos.app.ability.Want';
 import UIExtensionContentSession from './@ohos.app.ability.UIExtensionContentSession';
 //import UIExtensionContext from 'application.UIExtensionContext';
