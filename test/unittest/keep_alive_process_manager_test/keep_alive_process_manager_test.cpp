@@ -837,12 +837,12 @@ HWTEST_F(KeepAliveProcessManagerTest, RemoveCheckStatusBarTask_001, TestSize.Lev
 
     keepAliveProcessManager->checkStatusBarTasks_.push_back(checkStatusBarTask);
     keepAliveProcessManager->RemoveCheckStatusBarTask(2, shouldCancel);
-    for ( const auto &checkStatusBarTask1 : keepAliveProcessManager->checkStatusBarTasks_ ) {
+    for (const auto &checkStatusBarTask1 : keepAliveProcessManager->checkStatusBarTasks_) {
         EXPECT_NE(checkStatusBarTask1->task_, nullptr);
     }
     shouldCancel = true;
     keepAliveProcessManager->RemoveCheckStatusBarTask(uid, shouldCancel);
-    for ( const auto &checkStatusBarTask2 : keepAliveProcessManager->checkStatusBarTasks_ ) {
+    for (const auto &checkStatusBarTask2 : keepAliveProcessManager->checkStatusBarTasks_) {
         EXPECT_EQ(checkStatusBarTask2->task_, nullptr);
     }
     EXPECT_TRUE(keepAliveProcessManager->checkStatusBarTasks_.empty());
