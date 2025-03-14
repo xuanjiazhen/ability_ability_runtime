@@ -2156,7 +2156,7 @@ HWTEST_F(AppMgrServiceTest, RegisterApplicationStateObserver_0100, TestSize.Leve
 
     appMgrService->appMgrServiceInner_ = std::make_shared<AppMgrServiceInner>();
     std::vector<std::string> bundleNameList;
-    for (int i = 0 ; i < 130 ; i++ ) {
+    for (int i = 0 ; i < 130 ; i++) {
         bundleNameList.push_back("com.ohos.test" + std::to_string(i));
     }
     auto ret = appMgrService->RegisterApplicationStateObserver(nullptr, bundleNameList);
