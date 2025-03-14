@@ -33,7 +33,6 @@
 #include "ani_common/ani_common_want.h"
 #include "ani_common/ani_common_start_options.h"
 #include "ani_common/ani_common_configuration.h"
-#include "ani_common/ani_common_ability_info.h"
 #include "ani_common/ani_common_ability_result.h"
 #include "open_link_options.h"
 #include "start_options.h"
@@ -42,6 +41,7 @@
 #include "ui_service_extension_connection_constants.h"
 #include "uri.h"
 #include "want.h"
+#include "common_fun_ani.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -374,7 +374,7 @@ ani_ref CreateStsAbilityContext(ani_env *env, const std::shared_ptr<AbilityConte
 
     ani_field field = nullptr;
     auto abilityInfo = context->GetAbilityInfo();
-    ani_ref abilityInfoRef = OHOS::AppExecFwk::WrapAbilityInfo(env, *abilityInfo);
+    ani_ref abilityInfoRef = AppExecFwk::CommonFunAni::ConvertAbilityInfo(env, *abilityInfo);
     if ((status = env->Class_FindField(cls, "abilityInfo", &field)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
     }
