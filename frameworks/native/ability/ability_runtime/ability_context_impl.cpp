@@ -51,6 +51,17 @@ struct RequestResult {
     RequestDialogResultTask task;
 };
 
+
+AbilityContextImpl::AbilityContextImpl()
+{
+    TAG_LOGE(AAFwkTag::CONTEXT, "yzk AbilityContextImpl %{public}p", this); // TODO
+}
+
+AbilityContextImpl::~AbilityContextImpl()
+{
+    TAG_LOGE(AAFwkTag::CONTEXT, "yzk ~AbilityContextImpl %{public}p", this); // TODO
+}
+
 Global::Resource::DeviceType AbilityContextImpl::GetDeviceType() const
 {
     return (stageContext_ != nullptr) ? stageContext_->GetDeviceType() : Global::Resource::DeviceType::DEVICE_PHONE;

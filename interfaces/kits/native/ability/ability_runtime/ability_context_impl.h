@@ -29,8 +29,8 @@ namespace OHOS {
 namespace AbilityRuntime {
 class AbilityContextImpl : public AbilityContext {
 public:
-    AbilityContextImpl() = default;
-    virtual ~AbilityContextImpl() = default;
+    AbilityContextImpl();
+    virtual ~AbilityContextImpl();
 
     Global::Resource::DeviceType GetDeviceType() const override;
     std::string GetBaseDir() const override;
