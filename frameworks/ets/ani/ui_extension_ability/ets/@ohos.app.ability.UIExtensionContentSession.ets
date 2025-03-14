@@ -17,11 +17,11 @@
 // import type AbilityStartCallback from './application/AbilityStartCallback';
 //import type { AsyncCallback } from './@ohos.base';
 //import  { BusinessError } from './@ohos.base';
-// import type Want from './@ohos.app.ability.Want';
+import type Want from '@ohos.app.ability.Want';
 // import type StartOptions from './@ohos.app.ability.StartOptions';
 //import type uiExtensionHost from './@ohos.uiExtensionHost';
 // import type uiExtension from './@ohos.arkui.uiExtension';
-//import type LocalStorage from './LocalStorage';
+//import { LocalStorage } from '@ohos.arkui.component.CommonTsEtsApi';
 export type Callback<T> = (data: T)=> void;
 
 export class Result<T, E>{
@@ -32,6 +32,10 @@ export class Result<T, E>{
       this.error = error;
   }
 }
+export interface AbilityResult {
+    resultCode: int;
+    want?: Want;
+}
 
 export type AsyncCallback<T> = (err: BusinessError<T>, data: T)=> void;
 
@@ -40,14 +44,194 @@ export class BusinessError<T = void> {
     data: T;
 }
 
+type valueType = NullishType;
+class RecordWriter {
+  private buffer = new StringBuilder();
+  private store = new Set<Object>();
+  public write(obj: Object): String {
+    this.writeObject(obj);
+    return this.buffer.toString();
+  }
+  private writeObject(obj: NullishType): void {
+    if (obj === null) {
+      this.buffer.append('null');
+    } else if (obj === undefined) {
+      this.buffer.append('undefined');
+    } else if (obj instanceof String) {
+      this.buffer.append(JSON.stringify(obj as String));
+    } else if (this.writeValueType(obj)) {
+      // nothing to do
+    } else if (obj instanceof Array) {
+      this.writeArray(obj as Object as Array<valueType>);
+    } else if (obj instanceof Record) {
+      this.writeRecord(obj as Object as Record<string, valueType>);
+    } else {
+      const objType = Type.of(obj);
+      if (objType instanceof ArrayType) {
+        this.writeBuildArray(obj, Value.of(obj) as ArrayValue);
+      } else {
+        this.buffer.append('null');
+      }
+    }
+  }
+  private writeValueType(obj: Object): boolean {
+    if (obj instanceof Boolean) {
+      this.buffer.append(JSON.stringify(obj.unboxed()));
+      return true;
+    } else if (obj instanceof Byte) {
+      this.buffer.append(JSON.stringify(obj.unboxed()));
+      return true;
+    } else if (obj instanceof Char) {
+      this.buffer.append(JSON.stringify(obj.unboxed()));
+      return true;
+    } else if (obj instanceof Short) {
+      this.buffer.append(JSON.stringify(obj.unboxed()));
+      return true;
+    } else if (obj instanceof Int) {
+      this.buffer.append(JSON.stringify(obj.unboxed()));
+      return true;
+    } else if (obj instanceof Long) {
+      this.buffer.append(JSON.stringify(obj.unboxed()));
+      return true;
+    } else if (obj instanceof Float) {
+      this.buffer.append(JSON.stringify(obj.unboxed()));
+      return true;
+    } else if (obj instanceof Double) {
+      this.buffer.append(JSON.stringify(obj.unboxed()));
+      return true;
+    } else if (obj instanceof BigInt) {
+      this.buffer.append(JSON.stringify(obj));
+      return true;
+    } else {
+      return false;
+    }
+  }
+  private writeArray(arr: Array<valueType>): void {
+    this.buffer.append('[');
+    const length = arr.length as int;
+    this.checkReferencesCycle(arr);
+    this.store.add(arr);
+    for (let idx = 0; idx < length; idx++) {
+      if (arr[idx] == null) {
+        this.buffer.append('null');
+      } else {
+        this.writeObject(arr[idx]);
+      }
+      if (idx < length - 1) {
+        this.buffer.append(',');
+      }
+    }
+    this.store.delete(arr);
+    this.buffer.append(']');
+  }
+  private writeBuildArray(arr: Object, arrayValue: ArrayValue): void {
+    this.buffer.append('[');
+    const length = arrayValue.getLength() as int;
+    this.checkReferencesCycle(arr);
+    this.store.add(arr);
+    for (let idx = 0; idx < length; idx++) {
+      let member = arrayValue.getElement(idx).getData();
+      if (member == null) {
+        this.buffer.append('null');
+      } else {
+        this.writeObject(member);
+      }
+      if (idx < length - 1) {
+        this.buffer.append(',');
+      }
+    }
+    this.store.delete(arr);
+    this.buffer.append(']');
+  }
+  private writeRecord(rec: Record<string, valueType>): void {
+    this.buffer.append('{');
+    this.checkReferencesCycle(rec);
+    this.store.add(rec);
+    let isFirst = true;for (let key of rec.keys()) {
+      if (rec[key] !== undefined) {
+        if (!isFirst) {
+          this.buffer.append(',');
+        } else {
+          isFirst = false;
+        }
+        this.buffer.append(JSON.stringify(key as String));
+        this.buffer.append(':');
+        this.writeObject(rec[key]);
+      }
+    }
+    this.store.delete(rec);
+    this.buffer.append('}');
+  }
+  private checkReferencesCycle(obj: Object): void {
+    if (this.store.has(obj)) {
+      throw new TypeError('cyclic object value');
+    }
+  }
+}
+
+export class RecordSerializeTool {
+  public static stringify(obj: Record<string, valueType>): String {
+    return new RecordWriter().write(obj);
+  }
+  public static parse(text: string): Record<string, valueType> {
+    let jsonValue = JSONParser.parse(text);
+    let res = RecordSerializeTool.jsonValue2Object(jsonValue);
+    if (!(res instanceof Record)) {
+      throw new TypeError('RecordSerializeTool parse only used for Record');
+    }
+    return res as Record<string, valueType>;
+  }
+  private static jsonValue2Object(value: JSONValue): string | number | boolean | null |
+      Array<valueType> | Record<string, valueType> {
+    if (value instanceof JSONString) {
+      return value.value;
+    } else if (value instanceof JSONNumber) {
+      return new Double(value.value);
+    } else if (value instanceof JSONTrue) {
+      return new Boolean(true);
+    } else if (value instanceof JSONFalse) {
+      return new Boolean(false);
+    } else if (value instanceof JSONNull) {
+      return null;
+    } else if(value instanceof JSONArray){
+      let obj = value as JSONArray;
+      let values = obj.values;
+      let result: Array<valueType> = new Array<valueType>();
+      for (let i: int = 0; i < values.length; i++) {
+        result.push(RecordSerializeTool.jsonValue2Object(values[i]));
+      }
+      return result;
+    } else if (value instanceof JSONObject) {
+      let obj = value as JSONObject;
+      let keys: Array<JSONString> = obj.keys_;
+      let values: Array<JSONValue> = obj.values;
+      let result: Record<string, valueType> = new Record<string, valueType>();
+      for (let i: int = 0; i < keys.length; i++) {
+        result[keys[i].value] = RecordSerializeTool.jsonValue2Object(values[i]);
+      }
+      return result;
+    } else {
+      throw new TypeError('unknown JSONValue');
+    }
+  }
+}
+
 export default class UIExtensionContentSession {
   public nativeContextSession:long = 0;
-  //native sendData(data: Record<string, Object>): void;
+  native nativeSendData(data: string): void;
   //native loadContent(path: string, storage?: LocalStorage): void;
+  native loadContent(path: string): void;
   //public native setWindowBackgroundColor(color: string): void;
   //native getUIExtensionHostWindowProxy(): uiExtensionHost.UIExtensionHostWindowProxy;
   native setReceiveDataCallbackSync(): void;
   native terminateSelfSync(): void;
+  native terminateSelfWithResultSync(parameter: AbilityResult): int;
+
+  sendData(data: Record<string, Object>): void {
+    console.log("ability.finishTest sendData called");
+    let res = RecordSerializeTool.stringify(data as Object as Record<string, NullishType>);
+    this.nativeSendData(res);
+  }
 
   terminateSelf( callback: AsyncCallback<void>):void{
     console.log("ability.finishTest terminateSelfSync start");
@@ -81,4 +265,27 @@ export default class UIExtensionContentSession {
          }, (err:Object): void => {
          });
    }
+	
+    terminateSelfWithResult(parameter: AbilityResult, callback: AsyncCallback<void>):void{
+        console.log("finishTest terminateSelfWithResult callback start");
+        let p1 = taskpool.execute(():undefined => {this.terminateSelfWithResultSync(parameter);  return undefined});
+            p1.then((e :NullishType)=>{
+                let resultCode: Int  = e as Int;
+                let r: BusinessError = { code: resultCode.intValue(), data: undefined };
+                callback(r, undefined);
+            }, (err:Object): void => {
+            });
+    }
+    terminateSelfWithResult(parameter: AbilityResult):Promise<void>{
+        console.log("finishTest terminateSelfWithResult promise start");
+        let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void, reject: (error: Object) => void) => {
+            let p1 = taskpool.execute(():undefined => {this.terminateSelfWithResultSync(parameter);  return undefined});
+            p1.then((e :NullishType)=>{
+            let PromiseLike = e as PromiseLike<void>;
+            resolve(PromiseLike);
+            }, (err:Object): void => {
+            });
+        });
+        return p;
+    }
 }
