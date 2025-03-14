@@ -260,7 +260,6 @@ bool STSEnvironment::StartRuntime(napi_env napiEnv)
     options.push_back(ani_option{bootString.c_str(), nullptr});
 
     // std::string bootStringAsyn = optionPrefix + "--coroutine-enable-features:ani-drain-queue";
-    // TAG_LOGI(AAFwkTag::STSRUNTIME, "bootStringAsyn %{public}s", bootStringAsyn.c_str());
     // options.push_back(ani_option{bootStringAsyn.c_str(), nullptr});
     std::string schedulingExternal = optionPrefix + "--coroutine-enable-external-scheduling=true";
     ani_option schedulingExternalOption = {schedulingExternal.data(), nullptr};
