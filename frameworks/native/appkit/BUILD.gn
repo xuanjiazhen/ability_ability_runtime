@@ -97,6 +97,7 @@ ohos_shared_library("appkit_native") {
     "${ability_runtime_services_path}/abilitymgr/include",
     "${ability_runtime_napi_path}/inner/napi_common",
     "${ability_runtime_utils_path}/global/constant",
+    "${ability_runtime_napi_path}/inner/napi_common/ani_common",
   ]
 
   if (ability_runtime_graphics) {
@@ -177,6 +178,7 @@ ohos_shared_library("appkit_native") {
     "${ability_runtime_path}/js_environment/frameworks/js_environment:js_environment",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
   ]
 
   external_deps = [
