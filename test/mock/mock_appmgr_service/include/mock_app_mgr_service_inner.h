@@ -82,7 +82,11 @@ public:
     MOCK_METHOD2(DumpFfrt, int(const std::vector<int32_t>& pid, std::string& result));
     MOCK_METHOD1(RegisterKiaInterceptor, int32_t(const sptr<IKiaInterceptor> &interceptor));
     MOCK_METHOD2(CheckIsKiaProcess, int32_t(pid_t pid, bool &isKia));
-
+    MOCK_METHOD1(NotifyProcMemoryLevel, int32_t(const std::map<pid_t, MemoryLevel> &procLevelMap));
+    MOCK_METHOD2(DumpHeapMemory, int32_t(const int32_t pid, OHOS::AppExecFwk::MallocInfo &mallocInfo));
+    MOCK_METHOD2(RegisterApplicationStateObserver, int32_t(const sptr<IApplicationStateObserver> &observer,
+        const std::vector<std::string> &bundleNameList));
+    MOCK_METHOD1(GetProcessRunningInformation, int32_t(RunningProcessInfo &info));
     void StartSpecifiedAbility(const AAFwk::Want&, const AppExecFwk::AbilityInfo&, int32_t)
     {}
 
