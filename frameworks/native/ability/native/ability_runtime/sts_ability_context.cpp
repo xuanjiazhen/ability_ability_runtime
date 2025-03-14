@@ -331,7 +331,7 @@ void StsAbilityContext::reportDrawnCompletedSync(
     TAG_LOGE(AAFwkTag::UIABILITY, "reportDrawnCompletedSync end");
 }
 
-ani_ref CreateStsAbilityContext(ani_env *env, const std::shared_ptr<AbilityContext> &context)
+std::shared_ptr<STSNativeReference> CreateStsAbilityContext(ani_env *env, const std::shared_ptr<AbilityContext> &context)
 {
     TAG_LOGE(AAFwkTag::UIABILITY, "start");
     ani_class cls = nullptr;
@@ -391,7 +391,18 @@ ani_ref CreateStsAbilityContext(ani_env *env, const std::shared_ptr<AbilityConte
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
     }
     TAG_LOGE(AAFwkTag::UIABILITY, "end");
-    return contextObj;
+
+    ani_ref objectRef = nullptr;
+    if ((status = env->GlobalReference_Create(contextObj, &objectRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "GlobalReference_Create failed");
+        return std::make_unique<STSNativeReference>();
+    }
+
+    auto stsNativeReference = std::make_unique<STSNativeReference>();
+    stsNativeReference->aniCls = cls;
+    stsNativeReference->aniObj = contextObj;
+    stsNativeReference->aniRef = objectRef;
+    return stsNativeReference;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

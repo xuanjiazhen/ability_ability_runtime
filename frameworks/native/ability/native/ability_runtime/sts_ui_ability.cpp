@@ -109,6 +109,9 @@ StsUIAbility::StsUIAbility(STSRuntime &stsRuntime) : stsRuntime_(stsRuntime)
 StsUIAbility::~StsUIAbility()
 {
     TAG_LOGI(AAFwkTag::UIABILITY, "called");
+    if (abilityContext_ != nullptr) {
+        abilityContext_->Unbind();
+    }
 }
 
 void StsUIAbility::Init(std::shared_ptr<AppExecFwk::AbilityLocalRecord> record,
@@ -196,17 +199,19 @@ void StsUIAbility::SetAbilityContext(std::shared_ptr<AbilityInfo> abilityInfo, s
         return;
     }
 
-    ani_ref contextObj = CreateStsAbilityContext(env, abilityContext_);
-    ani_ref contextGlobalRef = nullptr;
+    shellContextRef_ = CreateStsAbilityContext(env, abilityContext_);
+    if (shellContextRef_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "shellContextRef_ null");
+        return;
+    }
+    abilityContext_->Bind(stsRuntime_, &(shellContextRef_->aniRef));
+
     ani_field field = nullptr;
     ani_status status = ANI_ERROR;
-    if ((status = env->GlobalReference_Create(contextObj, &contextGlobalRef)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
-    }
     if ((status = env->Class_FindField(stsAbilityObj_->aniCls, "context", &field)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
     }
-    if ((status = env->Object_SetField_Ref(stsAbilityObj_->aniObj, field, contextGlobalRef)) != ANI_OK) {
+    if ((status = env->Object_SetField_Ref(stsAbilityObj_->aniObj, field, shellContextRef_->aniRef)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
     }
     TAG_LOGI(AAFwkTag::UIABILITY, "End");

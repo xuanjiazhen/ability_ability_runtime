@@ -56,7 +56,7 @@ private:
     static int32_t GenerateRequestCode();
     static std::mutex requestCodeMutex_;
 };
-ani_ref CreateStsAbilityContext(ani_env *env, const std::shared_ptr<AbilityContext> &context);
+std::shared_ptr<STSNativeReference> CreateStsAbilityContext(ani_env *env, const std::shared_ptr<AbilityContext> &context);
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_SIMULATOR_STS_ABILITY_CONTEXT_H
