@@ -422,7 +422,7 @@ HWTEST_F(AbilityPermissionUtilTest, StartSelfUIAbilityRecordGuard_0100, TestSize
     EXPECT_FALSE(AbilityPermissionUtil::GetInstance().startSelfUIAbilityRecords_.empty());
 
     AbilityPermissionUtil::GetInstance().AddStartSelfUIAbilityRecord(pid, tokenId);
-    for(const auto &item : AbilityPermissionUtil::GetInstance().startSelfUIAbilityRecords_) {
+    for (const auto &item : AbilityPermissionUtil::GetInstance().startSelfUIAbilityRecords_) {
         EXPECT_EQ(item[2], 2);
     }
 }
