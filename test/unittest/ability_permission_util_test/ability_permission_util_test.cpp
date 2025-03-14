@@ -447,7 +447,7 @@ HWTEST_F(AbilityPermissionUtilTest, RemoveStartSelfUIAbilityRecord_0100, TestSiz
 
     AbilityPermissionUtil::GetInstance().startSelfUIAbilityRecords_.push_back({pid, 1, 2});
     AbilityPermissionUtil::GetInstance().RemoveStartSelfUIAbilityRecord(pid);
-    for(const auto &item : AbilityPermissionUtil::GetInstance().startSelfUIAbilityRecords_) {
+    for (const auto &item : AbilityPermissionUtil::GetInstance().startSelfUIAbilityRecords_) {
         EXPECT_EQ(item[2], 1);
     }
 }
