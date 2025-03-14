@@ -109,6 +109,9 @@ StsUIAbility::StsUIAbility(STSRuntime &stsRuntime) : stsRuntime_(stsRuntime)
 StsUIAbility::~StsUIAbility()
 {
     TAG_LOGI(AAFwkTag::UIABILITY, "called");
+    if (abilityContext_ != nullptr) {
+        abilityContext_->Unbind<ani_ref>();
+    }
 }
 
 void StsUIAbility::Init(std::shared_ptr<AppExecFwk::AbilityLocalRecord> record,
@@ -234,6 +237,7 @@ void StsUIAbility::CreateAniContext(
         shellContextRef_->aniCls = cls;
         shellContextRef_->aniObj = reinterpret_cast<ani_object>(contextGlobalRef);
         shellContextRef_->aniRef = contextGlobalRef;
+        abilityContext_->Bind(stsRuntime_, &(shellContextRef_->aniRef));
     }
     // no CreateAniEmbeddableUIAbilityContext
 }
