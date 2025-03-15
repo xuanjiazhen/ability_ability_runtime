@@ -48,6 +48,7 @@ StartOptions::StartOptions(const StartOptions &other)
     windowFocused_ = other.windowFocused_;
     startWindowOption = other.startWindowOption;
     supportWindowModes_ = other.supportWindowModes_;
+    disableDelegator_ = other.disableDelegator_;
 }
 
 StartOptions &StartOptions::operator=(const StartOptions &other)
@@ -76,6 +77,7 @@ StartOptions &StartOptions::operator=(const StartOptions &other)
         windowFocused_ = other.windowFocused_;
         startWindowOption = other.startWindowOption;
         supportWindowModes_ = other.supportWindowModes_;
+        disableDelegator_ = other.disableDelegator_;
     }
     return *this;
 }
@@ -94,6 +96,7 @@ bool StartOptions::ReadFromParcel(Parcel &parcel)
     SetMaxWindowWidth(parcel.ReadInt32());
     SetMaxWindowHeight(parcel.ReadInt32());
     SetWindowFocused(parcel.ReadBool());
+    SetDisableDelegator(parcel.ReadBool());
     windowLeftUsed_ = parcel.ReadBool();
     windowTopUsed_ = parcel.ReadBool();
     windowWidthUsed_ = parcel.ReadBool();
@@ -291,6 +294,16 @@ void StartOptions::SetWindowFocused(bool windowFocused)
 int32_t StartOptions::GetWindowFocused() const
 {
     return windowFocused_;
+}
+
+void StartOptions::SetDisableDelegator(bool disableDelegator)
+{
+    disableDelegator_ = disableDelegator;
+}
+
+int32_t StartOptions::GetDisableDelegator() const
+{
+    return disableDelegator_;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

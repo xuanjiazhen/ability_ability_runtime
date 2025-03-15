@@ -180,6 +180,10 @@ std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GenerateAbilityRecord(
         } else {
             sessionInfo->want.CloseAllFd();
         }
+        if (sessionInfo->disableDelegator && uiAbilityRecord != nullptr) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "update sessionToken");
+            uiAbilityRecord->UpdateSessionInfo(sessionInfo->sessionToken);
+        }
     } else {
         uiAbilityRecord = FindRecordFromTmpMap(abilityRequest);
         if (uiAbilityRecord == nullptr) {
@@ -1221,6 +1225,7 @@ sptr<SessionInfo> UIAbilityLifecycleManager::CreateSessionInfo(const AbilityRequ
     sessionInfo->callingTokenId = static_cast<uint32_t>(abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN,
         IPCSkeleton::GetCallingTokenID()));
     sessionInfo->instanceKey = abilityRequest.want.GetStringParam(Want::APP_INSTANCE_KEY);
+    sessionInfo->disableDelegator = abilityRequest.disableDelegator;
     return sessionInfo;
 }
 

@@ -225,6 +225,11 @@ bool UnwrapStartOptions(napi_env env, napi_value param, AAFwk::StartOptions &sta
         }
     }
 
+    bool disableDelegator = false;
+    if (UnwrapBooleanByPropertyName(env, param, "disableDelegator", disableDelegator)) {
+        startOptions.SetDisableDelegator(disableDelegator);
+    }
+
     return true;
 }
 
