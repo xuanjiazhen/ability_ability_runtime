@@ -285,9 +285,8 @@ int32_t UriPermissionManagerStubImpl::GrantBatchUriPermissionImpl(const std::vec
         TAG_LOGE(AAFwkTag::URIPERMMGR, "null ConnectManager");
         return INNER_ERR;
     }
-    std::vector<int32_t> funcResult;
-    storageManager_->CreateShareFile(uriVec, targetTokenId, flag, funcResult);
-    auto resVec = funcResult;
+    std::vector<int32_t> resVec;
+    storageManager_->CreateShareFile(uriVec, targetTokenId, flag, resVec);
     if (resVec.size() == 0) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "CreateShareFile failed, storageManager resVec empty");
         return INNER_ERR;
