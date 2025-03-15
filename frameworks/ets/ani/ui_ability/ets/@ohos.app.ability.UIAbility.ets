@@ -13,18 +13,25 @@
  * limitations under the License.
  */
 
-import {AbilityConstant} from './@ohos.app.ability.AbilityConstant';
-import {UIAbilityContext} from './UIAbilityContext';
+import AbilityConstant from './@ohos.app.ability.AbilityConstant';
+import UIAbilityContext from './application/UIAbilityContext';
 import Want from './@ohos.app.ability.Want';
 
-// class LaunchParamImpl implements AbilityConstant.LaunchParam {
-//   launchReason: AbilityConstant.LaunchReason;
-//   launchReasonMessage?: string|undefined;
-//   lastExitReason: AbilityConstant.LastExitReason;
-//   lastExitMessage: string = '';
-// }
-
 export default class UIAbility {
+  private isOnDestroyAsync: boolean = true;
+  private destroyCallbackPoint: long;
+  private native nativeOnDestroyCallback(): void;
+  private callOnDestroy(): boolean {
+    let p = this.onDestroyAsync();
+    if (this.isOnDestroyAsync) {
+      p.then<void>((a:undefined): void => {
+        this.nativeOnDestroyCallback();
+      });
+    } else {
+      this.onDestroy();
+    }
+    return this.isOnDestroyAsync;
+  }
 
   context: UIAbilityContext = new UIAbilityContext();
   launchWant: Want = new Want();
@@ -40,6 +47,10 @@ export default class UIAbility {
   }
   onDestroy(): void {
     console.log("onDestroy");
+  }
+  onDestroyAsync(): Promise<void> {
+    this.isOnDestroyAsync = false;
+    return new Promise<void>((resolve: (a: undefined)=>void, reject: (err: Error)=>void): void => {});
   }
   onForeground(): void{
     console.log("onForeground");

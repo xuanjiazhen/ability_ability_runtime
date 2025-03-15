@@ -13,20 +13,9 @@
  * limitations under the License.
  */
 
-export type Callback<T> = (data: T)=> void;
+import { AbilityResult } from '../ability/abilityResult';;
 
-export class Result<T, E>{
-  result:T;
-  error:E;
-  constructor(result: T , error: E) {
-      this.result = result;
-      this.error = error;
-  }
-}
-
-export type AsyncCallback<T> = (err: BusinessError<T>, data: T)=> void;
-
-export class BusinessError<T = void> {
-    code: number;
-    data: T;
+ export default class AbilityStartCallback {
+    onError(code: int, name: string, message: string) {}
+    onResult?:(parameter: AbilityResult)=>void = (parameter:AbilityResult) => {}
 }

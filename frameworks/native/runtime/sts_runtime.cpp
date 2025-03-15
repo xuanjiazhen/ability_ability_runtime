@@ -43,6 +43,7 @@
 #include "hitrace_meter.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
+#include "js_runtime.h"
 #include "module_checker_delegate.h"
 #include "ohos_sts_environment_impl.h"
 #include "parameters.h"
@@ -146,7 +147,7 @@ public:
                 return DEFAULT_ENTRY_ABILITY_CLASS;
             }
             TAG_LOGD(AAFwkTag::STSRUNTIME, "srcEntry as class: %{public}s", srcEntry.c_str());
-            return srcEntry;
+            return HandleOhmUrlSrcEntry(srcEntry);
         }
         TAG_LOGD(AAFwkTag::STSRUNTIME, "found srcEntry: %{public}s, output: %{public}s",
                  srcEntry.c_str(), iter->second.c_str());
@@ -167,14 +168,43 @@ private:
         return prefix == "./";
     }
 
+    static std::string HandleOhmUrlSrcEntry(const std::string &srcEntry)
+    {
+        size_t lastSlashPos = srcEntry.rfind('/');
+        if (lastSlashPos == std::string::npos) {
+            std::string fileName = srcEntry;
+            // If there is no slash, the entire string is processed directly.
+            HandleOhmUrlFileName(fileName);
+            return fileName;
+        }
+        std::string base = srcEntry.substr(0, lastSlashPos + 1);
+        std::string fileName = srcEntry.substr(lastSlashPos + 1);
+        HandleOhmUrlFileName(fileName);
+        return base + fileName;
+    }
+
+    static void HandleOhmUrlFileName(std::string &fileName)
+    {
+        size_t colonPos = fileName.rfind(':');
+        if (colonPos != std::string::npos) {
+            // <fileName>:<className>  =>  <fileName>/<className>
+            fileName.replace(colonPos, 1, "/");
+        } else {
+            // <fileName>  =>  <fileName>/<fileName>
+            fileName = fileName + "/" + fileName;
+        }
+    }
+
     std::map<std::string, std::string> entryPathMap_{};
 };
 } // namespace
 
 AppLibPathVec STSRuntime::appLibPaths_;
+AbilityRuntime::JsRuntime* STSRuntime::jsRuntime_ = nullptr;
 
-std::unique_ptr<STSRuntime> STSRuntime::Create(const Options& options)
+std::unique_ptr<STSRuntime> STSRuntime::Create(const Options& options, Runtime* jsRuntime)
 {
+    STSRuntime::jsRuntime_ = static_cast<AbilityRuntime::JsRuntime*>(jsRuntime);
     TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
     std::unique_ptr<STSRuntime> instance;
     // JsRuntimeLite::InitJsRuntimeLite(options);
@@ -467,7 +497,7 @@ bool STSRuntime::CreateStsEnv(const Options& options)
 {
     TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
     stsEnv_ = std::make_shared<StsEnv::STSEnvironment>(std::make_unique<OHOSStsEnvironmentImpl>(options.eventRunner));
-    if (stsEnv_ == nullptr || !stsEnv_->StartRuntime()) {
+    if (stsEnv_ == nullptr || !stsEnv_->StartRuntime(STSRuntime::jsRuntime_->GetNapiEnv())) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "Init StsEnv failed");
         return false;
     }

@@ -44,8 +44,10 @@ std::vector<std::unique_ptr<Runtime>> Runtime::CreateRuntimes(Runtime::Options& 
                 break;
 #endif
             case Runtime::Language::STS:
+                options.lang = Runtime::Language::JS;
+                runtimes.push_back(JsRuntime::Create(options));
                 options.lang = Runtime::Language::STS;
-                runtimes.push_back(STSRuntime::Create(options));
+                runtimes.push_back(STSRuntime::Create(options, &static_cast<AbilityRuntime::JsRuntime&>(*runtimes[0])));
                 break;
             default:
                 runtimes.push_back(std::unique_ptr<Runtime>());
@@ -55,8 +57,14 @@ std::vector<std::unique_ptr<Runtime>> Runtime::CreateRuntimes(Runtime::Options& 
     return runtimes;
 }
 
-std::unique_ptr<Runtime> Runtime::Create(const Runtime::Options& options)
+std::unique_ptr<Runtime> Runtime::Create(Runtime::Options& options)
 {
+    std::unique_ptr<JsRuntime> jsRuntime;
+    if (options.lang == Runtime::Language::STS) {
+        options.lang = Runtime::Language::JS;
+        jsRuntime = JsRuntime::Create(options);
+        options.lang = Runtime::Language::STS;
+    }
     switch (options.lang) {
         case Runtime::Language::JS:
             return JsRuntime::Create(options);
@@ -65,7 +73,7 @@ std::unique_ptr<Runtime> Runtime::Create(const Runtime::Options& options)
             return CJRuntime::Create(options);
 #endif
         case Runtime::Language::STS:
-            return STSRuntime::Create(options);
+            return STSRuntime::Create(options, jsRuntime.get());
         default:
             return std::unique_ptr<Runtime>();
     }
@@ -82,17 +90,6 @@ void Runtime::SavePreloaded(std::unique_ptr<Runtime>&& instance)
 std::unique_ptr<Runtime> Runtime::GetPreloaded()
 {
     return std::move(g_preloadedInstance);
-}
-
-Runtime::Language Runtime::ConvertLangToCode(const std::string& language)
-{
-    if (language == APPLICAITON_CODE_LANGUAGE_ARKTS_1_0) {
-        return Language::JS;
-    } else if (language == APPLICAITON_CODE_LANGUAGE_ARKTS_1_2) {
-        return Language::STS;
-    } else {
-        return Language::UNKNOWN;
-    }
 }
 
 } // namespace AbilityRuntime

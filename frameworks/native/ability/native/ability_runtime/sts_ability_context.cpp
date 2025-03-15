@@ -55,7 +55,7 @@ AbilityRuntime::AbilityContext* StsAbilityContext::GetAbilityContext(ani_env *en
     ani_class cls = nullptr;
     ani_field contextField = nullptr;
     ani_status status = ANI_ERROR;
-    if ((status = env->FindClass("LUIAbilityContext/UIAbilityContext;", &cls)) != ANI_OK) {
+    if ((status = env->FindClass("Lapplication/UIAbilityContext/UIAbilityContext;", &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
         return nullptr;
     }
@@ -79,7 +79,7 @@ ani_object StsAbilityContext::SetAbilityContext(ani_env *env, const std::shared_
     ani_method method = nullptr;
     ani_field field = nullptr;
 
-    if ((status = env->FindClass("LUIAbilityContext/UIAbilityContext;", &cls)) != ANI_OK) {
+    if ((status = env->FindClass("Lapplication/UIAbilityContext/UIAbilityContext;", &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
     }
     if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
@@ -117,7 +117,7 @@ bool StsAbilityContext::AsyncCallback(ani_env *env, ani_object call, ani_object 
     ani_status status = ANI_ERROR;
     ani_class clsCall = nullptr;
 
-    if ((status = env->FindClass("LUIAbilityContext/AsyncCallbackWrapper;", &clsCall)) != ANI_OK) {
+    if ((status = env->FindClass("Lapplication/UIAbilityContext/AsyncCallbackWrapper;", &clsCall)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
         return false;
     }
@@ -197,7 +197,7 @@ void StsAbilityContext::StartAbilityInner([[maybe_unused]] ani_env *env, [[maybe
     if ((want.GetFlags() & AAFwk::Want::FLAG_INSTALL_ON_DEMAND) == AAFwk::Want::FLAG_INSTALL_ON_DEMAND) {
         // TODO
     } else {
-        AsyncCallback(env, call, WrapBusinessError(env, 0), nullptr);
+        AsyncCallback(env, call, WrapBusinessError(env, static_cast<int>(resultCode)), nullptr);
     }
     TAG_LOGE(AAFwkTag::UIABILITY, "end");
 }
@@ -282,7 +282,23 @@ void StsAbilityContext::StartAbilityForResult2(ani_env *env, ani_object aniObj, 
     StartAbilityForResultInner(env, aniObj, wantObj, startOptionsObj, callback);
 }
 
-void StsAbilityContext::TerminateSelfWithResult(ani_env *env, ani_object aniObj, ani_object abilityResult, ani_object callback)
+void StsAbilityContext::TerminateSelf(
+    ani_env* env, ani_object aniObj, ani_object callback)
+{
+    TAG_LOGE(AAFwkTag::UIABILITY, "start");
+    auto context = StsAbilityContext::GetAbilityContext(env, aniObj);
+    ErrCode ret = ERR_INVALID_VALUE;
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "context null");
+        return;
+    }
+    ret = context->TerminateSelf();
+    AsyncCallback(env, callback, WrapBusinessError(env, static_cast<int32_t>(ret)), nullptr);
+    TAG_LOGE(AAFwkTag::UIABILITY, "end");
+}
+
+void StsAbilityContext::TerminateSelfWithResult(
+    ani_env* env, ani_object aniObj, ani_object abilityResult, ani_object callback)
 {
     TAG_LOGE(AAFwkTag::UIABILITY, "start");
 
@@ -295,33 +311,23 @@ void StsAbilityContext::TerminateSelfWithResult(ani_env *env, ani_object aniObj,
         context->SetTerminating(true);
     }
 
-    auto ret = context->TerminateAbilityWithResult(want, resultCode);
-    ani_object result = AppExecFwk::WrapAbilityResult(env, resultCode, want);
-    AsyncCallback(env, callback, WrapBusinessError(env, ret), result);
+    ErrCode ret = context->TerminateAbilityWithResult(want, resultCode);
+    AsyncCallback(env, callback, WrapBusinessError(env, static_cast<int32_t>(ret)), nullptr);
     TAG_LOGE(AAFwkTag::UIABILITY, "end");
 }
 
 void StsAbilityContext::reportDrawnCompletedSync(
-    [[maybe_unused]] ani_env* env, [[maybe_unused]] ani_class aniClass)
+    [[maybe_unused]] ani_env* env, [[maybe_unused]] ani_object aniObj, ani_object callback)
 {
-    ani_class cls = nullptr;
-    ani_long nativeContextLong;
-    ani_field contextField = nullptr;
-    ani_status status = ANI_ERROR;
+    auto context = GetAbilityContext(env, aniObj);
     TAG_LOGE(AAFwkTag::UIABILITY, "reportDrawnCompletedSync 111");
-
-    if ((status = env->FindClass("LUIAbilityContext/UIAbilityContext;", &cls)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+    ErrCode ret = ERR_INVALID_VALUE;
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "context null");
+        return;
     }
-    if ((status = env->Class_FindField(cls, "nativeContext", &contextField)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
-    }
-
-    if ((status = env->Object_GetField_Long(aniClass, contextField, &nativeContextLong)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
-    }
-    TAG_LOGE(AAFwkTag::UIABILITY, "reportDrawnCompletedSync 222");
-    ((AbilityRuntime::AbilityContext*)nativeContextLong)->ReportDrawnCompleted();
+    ret = context->ReportDrawnCompleted();
+    AsyncCallback(env, callback, WrapBusinessError(env, static_cast<int32_t>(ret)), nullptr);
     TAG_LOGE(AAFwkTag::UIABILITY, "reportDrawnCompletedSync end");
 }
 
@@ -331,30 +337,33 @@ ani_ref CreateStsAbilityContext(ani_env *env, const std::shared_ptr<AbilityConte
     ani_class cls = nullptr;
     ani_status status = ANI_ERROR;
 
-    if ((env->FindClass("LUIAbilityContext/UIAbilityContext;", &cls)) != ANI_OK) {
+    if ((env->FindClass("Lapplication/UIAbilityContext/UIAbilityContext;", &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
     }
 
     std::array functions = {
         ani_native_function { "nativeStartAbilitySync",
-            "L@ohos/app/ability/Want/Want;LUIAbilityContext/AsyncCallbackWrapper;:V",
+            "L@ohos/app/ability/Want/Want;Lapplication/UIAbilityContext/AsyncCallbackWrapper;:V",
             reinterpret_cast<void*>(StsAbilityContext::StartAbility1) },
         ani_native_function { "nativeStartAbilitySync",
-            "L@ohos/app/ability/Want/Want;L@ohos/app/ability/StartOptions/StartOptions;LUIAbilityContext/"
+            "L@ohos/app/ability/Want/Want;L@ohos/app/ability/StartOptions/StartOptions;Lapplication/UIAbilityContext/"
             "AsyncCallbackWrapper;:V",
             reinterpret_cast<void*>(StsAbilityContext::StartAbility2) },
         ani_native_function { "nativeStartAbilityForResult",
-            "L@ohos/app/ability/Want/Want;LUIAbilityContext/AsyncCallbackWrapper;:V",
+            "L@ohos/app/ability/Want/Want;Lapplication/UIAbilityContext/AsyncCallbackWrapper;:V",
             reinterpret_cast<void*>(StsAbilityContext::StartAbilityForResult1) },
         ani_native_function { "nativeStartAbilityForResult",
-            "L@ohos/app/ability/Want/Want;L@ohos/app/ability/StartOptions/StartOptions;LUIAbilityContext/"
+            "L@ohos/app/ability/Want/Want;L@ohos/app/ability/StartOptions/StartOptions;Lapplication/UIAbilityContext/"
             "AsyncCallbackWrapper;:V",
             reinterpret_cast<void*>(StsAbilityContext::StartAbilityForResult2) },
+        ani_native_function { "nativeTerminateSelfSync",
+            "Lapplication/UIAbilityContext/AsyncCallbackWrapper;:V",
+            reinterpret_cast<void*>(StsAbilityContext::TerminateSelf) },
         ani_native_function { "nativeTerminateSelfWithResult",
-            "LabilityResult/AbilityResult;LUIAbilityContext/AsyncCallbackWrapper;:V",
+            "Lability/abilityResult/AbilityResult;Lapplication/UIAbilityContext/AsyncCallbackWrapper;:V",
             reinterpret_cast<void*>(StsAbilityContext::TerminateSelfWithResult) },
-        ani_native_function {
-            "reportDrawnCompletedSync", ":V", reinterpret_cast<ani_int*>(StsAbilityContext::reportDrawnCompletedSync) },
+        ani_native_function { "nativeReportDrawnCompletedSync", "Lapplication/UIAbilityContext/AsyncCallbackWrapper;:V",
+            reinterpret_cast<ani_int*>(StsAbilityContext::reportDrawnCompletedSync) },
     };
 
     if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
