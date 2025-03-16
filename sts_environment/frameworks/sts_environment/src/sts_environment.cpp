@@ -49,7 +49,7 @@ const char* STSEnvironment::stsSysNSName = "sts_system";
 const char* STSEnvironment::stsChipSDKNSName = "sts_chipsdk";
 
 STSRuntimeAPI STSEnvironment::lazyApis_{};
-
+ 
 bool STSEnvironment::LoadBootPathFile(std::string& bootfiles)
 {
     std::ifstream inFile;
