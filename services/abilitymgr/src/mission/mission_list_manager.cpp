@@ -2181,6 +2181,7 @@ void MissionListManager::MoveToBackgroundTask(const std::shared_ptr<AbilityRecor
         self->PrintTimeOutLog(abilityRecord, AbilityManagerService::BACKGROUND_TIMEOUT_MSG);
         self->CompleteBackground(abilityRecord);
     };
+    abilityRecord->SetSceneFlag(4);
     abilityRecord->BackgroundAbility(task);
 }
 
@@ -3650,7 +3651,7 @@ void MissionListManager::NotifyStartSpecifiedAbility(AbilityRequest &abilityRequ
     }
 }
 
-void MissionListManager::OnStartSpecifiedAbilityTimeoutResponse(const AAFwk::Want &want)
+void MissionListManager::OnStartSpecifiedAbilityTimeoutResponse()
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     std::lock_guard guard(managerLock_);

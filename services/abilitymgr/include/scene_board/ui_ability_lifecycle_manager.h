@@ -208,29 +208,36 @@ public:
      * @param abilityRequest the flag of the ability to start.
      * @return Returns ERR_OK on success, others on failure.
      */
-    void OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag, int32_t requestId = 0);
+    void OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag, int32_t requestId);
 
     /**
      * OnStartSpecifiedProcessResponse.
      *
-     * @param want the want of the ability to start.
-     * @param abilityRequest target ability request.
+     * @param requestId target ability requestId.
      */
-    void OnStartSpecifiedProcessResponse(const AAFwk::Want &want, const std::string &flag, int32_t requestId = 0);
+    void OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId);
 
     /**
      * OnStartSpecifiedAbilityTimeoutResponse.
      *
-     * @param want the want of the ability to start.
+     * @param requestId the requestId of the ability to start.
      */
-    void OnStartSpecifiedAbilityTimeoutResponse(const AAFwk::Want &want, int32_t requestId = 0);
+    void OnStartSpecifiedAbilityTimeoutResponse(int32_t requestId);
 
     /**
      * OnStartSpecifiedProcessTimeoutResponse.
      *
-     * @param want the want of the ability to start.
+     * @param requestId the requestId of the ability to start.
      */
-    void OnStartSpecifiedProcessTimeoutResponse(const AAFwk::Want &want, int32_t requestId = 0);
+    void OnStartSpecifiedProcessTimeoutResponse(int32_t requestId);
+
+    /**
+     * OnStartSpecifiedFailed.
+     *
+     * @param requestId request id of the failed request.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    void OnStartSpecifiedFailed(int32_t requestId);
 
     /**
      * Start specified ability by SCB.
@@ -504,6 +511,7 @@ private:
     std::vector<sptr<IRemoteObject>> PrepareTerminateAppAndGetRemainingInner(int32_t pid, const std::string &moduleName,
         const std::vector<sptr<IRemoteObject>> &tokens);
     void CancelPrepareTerminate(std::shared_ptr<AbilityRecord> abilityRecord);
+    bool UpdateSpecifiedFlag(std::shared_ptr<AbilityRecord> abilityRequest, const std::string &flag);
 
     int32_t userId_ = -1;
     mutable ffrt::mutex sessionLock_;

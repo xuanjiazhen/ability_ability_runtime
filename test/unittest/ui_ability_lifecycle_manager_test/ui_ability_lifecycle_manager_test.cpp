@@ -2250,15 +2250,15 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnAcceptWantResponse_001, TestSize.Level
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
     Want want;
     std::string flag = "flag";
-    uiAbilityLifecycleManager->OnAcceptWantResponse(want, flag);
+    uiAbilityLifecycleManager->OnAcceptWantResponse(want, flag, 0);
 
     AbilityRequest abilityRequest;
-    uiAbilityLifecycleManager->OnAcceptWantResponse(want, flag);
+    uiAbilityLifecycleManager->OnAcceptWantResponse(want, flag, 0);
 
     abilityRequest.abilityInfo.launchMode = AppExecFwk::LaunchMode::SPECIFIED;
-    uiAbilityLifecycleManager->OnAcceptWantResponse(want, flag);
+    uiAbilityLifecycleManager->OnAcceptWantResponse(want, flag, 0);
 
-    uiAbilityLifecycleManager->OnAcceptWantResponse(want, "");
+    uiAbilityLifecycleManager->OnAcceptWantResponse(want, "", 0);
     uiAbilityLifecycleManager.reset();
 }
 
@@ -2289,11 +2289,11 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnAcceptWantResponse_002, TestSize.Level
     abilityRecord->SetAppIndex(1);
     abilityRecord->SetSpecifiedFlag(flag);
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(1, abilityRecord);
-    uiAbilityLifecycleManager->OnAcceptWantResponse(want, flag);
+    uiAbilityLifecycleManager->OnAcceptWantResponse(want, flag, 0);
 
     std::shared_ptr<AbilityRecord> callerAbility = InitAbilityRecord();
     abilityRequest.callerToken = callerAbility->GetToken()->AsObject();
-    uiAbilityLifecycleManager->OnAcceptWantResponse(want, flag);
+    uiAbilityLifecycleManager->OnAcceptWantResponse(want, flag, 0);
     uiAbilityLifecycleManager.reset();
 }
 #endif // WITH_DLP
@@ -2657,9 +2657,8 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnStartSpecifiedProcessResponse_001, Tes
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    Want want;
     std::string flag = "flag";
-    uiAbilityLifecycleManager->OnStartSpecifiedProcessResponse(want, flag);
+    uiAbilityLifecycleManager->OnStartSpecifiedProcessResponse(flag, 0);
     uiAbilityLifecycleManager.reset();
 }
 
@@ -2672,10 +2671,9 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnStartSpecifiedProcessResponse_002, Tes
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    Want want;
     std::string flag = "flag";
     int32_t requestId = 100;
-    uiAbilityLifecycleManager->OnStartSpecifiedProcessResponse(want, flag, requestId);
+    uiAbilityLifecycleManager->OnStartSpecifiedProcessResponse(flag, requestId);
     uiAbilityLifecycleManager.reset();
 }
 
@@ -2688,8 +2686,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnStartSpecifiedAbilityTimeoutResponse_0
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    Want want;
-    uiAbilityLifecycleManager->OnStartSpecifiedAbilityTimeoutResponse(want);
+    uiAbilityLifecycleManager->OnStartSpecifiedAbilityTimeoutResponse(0);
     uiAbilityLifecycleManager.reset();
 }
 
@@ -2702,10 +2699,28 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnStartSpecifiedAbilityTimeoutResponse_0
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    Want want;
     int32_t requestId = 100;
-    uiAbilityLifecycleManager->OnStartSpecifiedAbilityTimeoutResponse(want, requestId);
+    uiAbilityLifecycleManager->OnStartSpecifiedAbilityTimeoutResponse(requestId);
     uiAbilityLifecycleManager.reset();
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_OnStartSpecifiedFailed_0100
+ * @tc.desc: OnStartSpecifiedFailed
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, OnStartSpecifiedFailed_001, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
+    EXPECT_NE(uiAbilityLifecycleManager, nullptr);
+    int32_t requestId = 0;
+    uiAbilityLifecycleManager->OnStartSpecifiedFailed(requestId);
+    
+    auto &list = uiAbilityLifecycleManager->specifiedRequestList_[std::string()];
+    list.push_back(std::make_shared<SpecifiedRequest>(requestId, AbilityRequest()));
+
+    uiAbilityLifecycleManager->OnStartSpecifiedFailed(requestId);
+    EXPECT_TRUE(list.empty());
 }
 
 /**
@@ -2717,8 +2732,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnStartSpecifiedProcessTimeoutResponse_0
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    Want want;
-    uiAbilityLifecycleManager->OnStartSpecifiedProcessTimeoutResponse(want);
+    uiAbilityLifecycleManager->OnStartSpecifiedProcessTimeoutResponse(0);
     uiAbilityLifecycleManager.reset();
 }
 
@@ -2731,9 +2745,8 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnStartSpecifiedProcessTimeoutResponse_0
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    Want want;
     int32_t requestId = 100;
-    uiAbilityLifecycleManager->OnStartSpecifiedProcessTimeoutResponse(want, requestId);
+    uiAbilityLifecycleManager->OnStartSpecifiedProcessTimeoutResponse(requestId);
     uiAbilityLifecycleManager.reset();
 }
 
@@ -4260,6 +4273,32 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAbilityWithResult_006, TestS
     auto ret = uiAbilityLifecycleManager->BackToCallerAbilityWithResult(abilityRecord, resultCode,
         &resultWant, callerRequestCode);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_UpdateSpecifiedFlag_0100
+ * @tc.desc: UpdateSpecifiedFlag
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, UpdateSpecifiedFlag_0100, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
+    EXPECT_NE(uiAbilityLifecycleManager, nullptr);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.launchMode = AppExecFwk::LaunchMode::SPECIFIED;
+    abilityRequest.startRecent = true;
+    std::string flag = "specified";
+    abilityRequest.specifiedFlag = flag;
+
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    sessionInfo->persistentId = 1;
+    abilityRequest.sessionInfo = sessionInfo;
+    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    EXPECT_NE(abilityRecord, nullptr);
+    auto ret = uiAbilityLifecycleManager->UpdateSpecifiedFlag(abilityRecord, flag);
+    EXPECT_EQ(ret, true);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

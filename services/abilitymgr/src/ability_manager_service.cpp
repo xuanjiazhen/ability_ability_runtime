@@ -2048,7 +2048,8 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         abilityRequest.userId = oriValidUserId;
         abilityRequest.want.SetParam(ServerConstant::IS_CALL_BY_SCB, false);
         abilityRequest.processOptions = startOptions.processOptions;
-        if (IPCSkeleton::GetCallingTokenID() == abilityRequest.appInfo.accessTokenId) {
+        if (IPCSkeleton::GetCallingTokenID() == abilityRequest.appInfo.accessTokenId ||
+            AbilityPermissionUtil::GetInstance().IsStartSelfUIAbility()) {
             abilityRequest.startWindowOption = startOptions.startWindowOption;
         }
         abilityRequest.supportWindowModes = startOptions.supportWindowModes_;
@@ -3271,6 +3272,13 @@ int AbilityManagerService::CheckUIExtensionUsage(AppExecFwk::UIExtensionUsage ui
         TAG_LOGE(AAFwkTag::ABILITYMGR, "secureConstrainedEmbedded extension type error:%u.", extensionType);
         return ERR_INVALID_VALUE;
     }
+
+    if (AAFwk::UIExtensionUtils::IsOnlyForModal(extensionType) && 
+        uiExtensionUsage != UIExtensionUsage::MODAL) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "secureModal extension type error:%u.", extensionType);
+        return ERR_INVALID_VALUE;
+    }
+
     return ERR_OK;
 }
 
@@ -6195,8 +6203,9 @@ int AbilityManagerService::AbilityTransitionDone(const sptr<IRemoteObject> &toke
     }
     auto abilityRecord = Token::GetAbilityRecordByToken(token);
     CHECK_POINTER_AND_RETURN_LOG(abilityRecord, ERR_INVALID_VALUE, "Ability record is nullptr.");
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilityTransitionDone, ability: %{public}s, state:%{public}d",
-        abilityRecord->GetURI().c_str(), state);
+    auto callerPid = IPCSkeleton::GetCallingPid();
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilityTransitionDone, ability:%{public}s, state:%{public}d, callerPid:%{public}d",
+        abilityRecord->GetURI().c_str(), state, callerPid);
     if (!JudgeSelfCalled(abilityRecord)) {
         return CHECK_PERMISSION_FAILED;
     }
@@ -6236,8 +6245,7 @@ int AbilityManagerService::AbilityTransitionDone(const sptr<IRemoteObject> &toke
         std::string entry = "AbilityManagerService::AbilityTransitionDone; the end of background lifecycle.";
         FreezeUtil::GetInstance().AddLifecycleEvent(token, entry);
     } else if (targetState != AbilityState::INITIAL) {
-        std::string entry = "AbilityManagerService::AbilityTransitionDone; the end of foreground lifecycle."
-            " the end of foreground lifecycle.";
+        std::string entry = "AbilityManagerService::AbilityTransitionDone; the end of foreground lifecycle.";
         FreezeUtil::GetInstance().AddLifecycleEvent(token, entry);
     }
 
@@ -7522,7 +7530,11 @@ void AbilityManagerService::RemoveUnauthorizedLaunchReasonMessage(const Want &wa
     const sptr<IRemoteObject> &callerToken)
 {
     std::string value = want.GetStringParam(Want::PARM_LAUNCH_REASON_MESSAGE);
-    if (value.empty()) {
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "launchReasonMessage:%{public}s", value.c_str());
+    if (!AppUtils::GetInstance().IsSystemReasonMessage(value)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "value is not find, launchReasonMessage:%{public}s", value.c_str());
+        (const_cast<Want &>(want)).RemoveParam(Want::PARM_LAUNCH_REASON_MESSAGE);
+        abilityRequest.want.RemoveParam(Want::PARM_LAUNCH_REASON_MESSAGE);
         return;
     }
 
@@ -8004,41 +8016,51 @@ void AbilityManagerService::OnAcceptWantResponse(
     missionListManager->OnAcceptWantResponse(want, flag);
 }
 
-void AbilityManagerService::OnStartSpecifiedAbilityTimeoutResponse(const AAFwk::Want &want, int32_t requestId)
+void AbilityManagerService::OnStartSpecifiedAbilityTimeoutResponse(int32_t requestId)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s", want.GetElement().GetURI().c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "OnStartSpecifiedAbilityTimeoutResponse %{public}d", requestId);
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         auto uiAbilityManager = GetCurrentUIAbilityManager();
         CHECK_POINTER(uiAbilityManager);
-        uiAbilityManager->OnStartSpecifiedAbilityTimeoutResponse(want, requestId);
+        uiAbilityManager->OnStartSpecifiedAbilityTimeoutResponse(requestId);
         return;
     }
     auto missionListManager = GetCurrentMissionListManager();
     if (!missionListManager) {
         return;
     }
-    missionListManager->OnStartSpecifiedAbilityTimeoutResponse(want);
+    missionListManager->OnStartSpecifiedAbilityTimeoutResponse();
 }
 
-void AbilityManagerService::OnStartSpecifiedProcessResponse(const AAFwk::Want &want, const std::string &flag,
-    int32_t requestId)
+void AbilityManagerService::OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "flag = %{public}s", flag.c_str());
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         auto uiAbilityManager = GetCurrentUIAbilityManager();
         CHECK_POINTER(uiAbilityManager);
-        uiAbilityManager->OnStartSpecifiedProcessResponse(want, flag, requestId);
+        uiAbilityManager->OnStartSpecifiedProcessResponse(flag, requestId);
         return;
     }
 }
 
-void AbilityManagerService::OnStartSpecifiedProcessTimeoutResponse(const AAFwk::Want &want, int32_t requestId)
+void AbilityManagerService::OnStartSpecifiedProcessTimeoutResponse(int32_t requestId)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s", want.GetElement().GetURI().c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "OnStartSpecifiedProcessTimeoutResponse %{public}d", requestId);
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         auto uiAbilityManager = GetCurrentUIAbilityManager();
         CHECK_POINTER(uiAbilityManager);
-        uiAbilityManager->OnStartSpecifiedAbilityTimeoutResponse(want, requestId);
+        uiAbilityManager->OnStartSpecifiedProcessTimeoutResponse(requestId);
+        return;
+    }
+}
+
+void AbilityManagerService::OnStartSpecifiedFailed(int32_t requestId)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "On accept want response");
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        auto uiAbilityManager = GetCurrentUIAbilityManager();
+        CHECK_POINTER(uiAbilityManager);
+        uiAbilityManager->OnStartSpecifiedFailed(requestId);
         return;
     }
 }

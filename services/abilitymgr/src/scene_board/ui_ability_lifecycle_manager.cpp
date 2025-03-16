@@ -298,6 +298,7 @@ void UIAbilityLifecycleManager::CheckSpecified(int32_t requestId, std::shared_pt
 {
     auto iter = specifiedFlagMap_.find(requestId);
     if (iter != specifiedFlagMap_.end()) {
+        UpdateSpecifiedFlag(uiAbilityRecord, iter->second);
         uiAbilityRecord->SetSpecifiedFlag(iter->second);
         specifiedFlagMap_.erase(iter);
     }
@@ -1230,7 +1231,8 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
     TAG_LOGD(AAFwkTag::ABILITYMGR, "windowLeft=%{public}d,windowTop=%{public}d,"
         "windowHeight=%{public}d,windowWidth=%{public}d,windowMode=%{public}d,"
         "supportWindowModes.size=%{public}zu,minWindowWidth=%{public}d,"
-        "minWindowHeight=%{public}d,maxWindowWidth=%{public}d,maxWindowHeight=%{public}d",
+        "minWindowHeight=%{public}d,maxWindowWidth=%{public}d,maxWindowHeight=%{public}d,"
+        "specifiedFlag=%{public}s",
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_LEFT, 0),
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_TOP, 0),
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_HEIGHT, 0),
@@ -1240,9 +1242,16 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_MIN_WINDOW_WIDTH, 0),
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_MIN_WINDOW_HEIGHT, 0),
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_MAX_WINDOW_WIDTH, 0),
-        (sessionInfo->want).GetIntParam(Want::PARAM_RESV_MAX_WINDOW_HEIGHT, 0));
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "appCloneIndex:%{public}d, instanceKey:%{public}s",
-        (sessionInfo->want).GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0), sessionInfo->instanceKey.c_str());
+        (sessionInfo->want).GetIntParam(Want::PARAM_RESV_MAX_WINDOW_HEIGHT, 0),
+        sessionInfo->specifiedFlag.c_str());
+    bool hasStartWindowOption = (sessionInfo->startWindowOption != nullptr);
+    bool hasStartWindow = hasStartWindowOption ? sessionInfo->startWindowOption->hasStartWindow : false;
+    std::string backgroundColor =
+        hasStartWindowOption ? sessionInfo->startWindowOption->startWindowBackgroundColor : "";
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "appCloneIndex:%{public}d, instanceKey:%{public}s, "
+        "hasStartWindow:%{public}d, backgroundColor:%{public}s",
+        (sessionInfo->want).GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0), sessionInfo->instanceKey.c_str(),
+        hasStartWindow, backgroundColor.c_str());
     auto abilityRecord = GetAbilityRecordByToken(abilityRequest.callerToken);
     if (abilityRecord != nullptr && !abilityRecord->GetRestartAppFlag()) {
         auto callerSessionInfo = abilityRecord->GetSessionInfo();
@@ -1948,14 +1957,20 @@ void UIAbilityLifecycleManager::HandleLegacyAcceptWantDone(AbilityRequest &abili
     StartAbilityBySpecifed(abilityRequest, callerAbility, requestId, flag);
 }
 
-void UIAbilityLifecycleManager::OnStartSpecifiedAbilityTimeoutResponse(const AAFwk::Want &want, int32_t requestId)
+void UIAbilityLifecycleManager::OnStartSpecifiedAbilityTimeoutResponse(int32_t requestId)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SpecifiedAbilityTimeout %{public}d", requestId);
+    OnStartSpecifiedFailed(requestId);
+}
+
+void UIAbilityLifecycleManager::OnStartSpecifiedFailed(int32_t requestId)
 {
     std::lock_guard lock(sessionLock_);
     auto curRequest = GetSpecifiedRequest(requestId);
     if (curRequest == nullptr) {
         return;
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "SpecifiedAbilityTimeout %{public}d", requestId);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "OnStartSpecifiedFailed %{public}d", requestId);
     if (curRequest->persistentId != 0) {
         auto iter = sessionAbilityMap_.find(curRequest->persistentId);
         if (iter != sessionAbilityMap_.end() && iter->second != nullptr) {
@@ -1971,11 +1986,9 @@ void UIAbilityLifecycleManager::OnStartSpecifiedAbilityTimeoutResponse(const AAF
     }
 }
 
-void UIAbilityLifecycleManager::OnStartSpecifiedProcessResponse(const AAFwk::Want &want, const std::string &flag,
-    int32_t requestId)
+void UIAbilityLifecycleManager::OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "OnStartSpecifiedProcessResponse, %{public}d, %{public}s",
-        requestId, want.GetElement().GetURI().c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "OnStartSpecifiedProcessResponse, %{public}d", requestId);
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::lock_guard guard(sessionLock_);
     auto request = GetSpecifiedRequest(requestId);
@@ -2009,7 +2022,7 @@ void UIAbilityLifecycleManager::OnStartSpecifiedProcessResponse(const AAFwk::Wan
     NotifySCBPendingActivation(sessionInfo, abilityRequest);
 }
 
-void UIAbilityLifecycleManager::OnStartSpecifiedProcessTimeoutResponse(const AAFwk::Want &want, int32_t requestId)
+void UIAbilityLifecycleManager::OnStartSpecifiedProcessTimeoutResponse(int32_t requestId)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "OnStartSpecifiedProcessTimeoutResponse %{public}d", requestId);
     std::lock_guard guard(sessionLock_);
@@ -2113,7 +2126,8 @@ int UIAbilityLifecycleManager::SendSessionInfoToSCB(std::shared_ptr<AbilityRecor
         "windowLeft=%{public}d,windowTop=%{public}d,"
         "windowHeight=%{public}d,windowWidth=%{public}d,"
         "minWindowWidth=%{public}d,minWindowHeight=%{public}d,"
-        "maxWindowWidth=%{public}d,mixWindowHeight=%{public}d",
+        "maxWindowWidth=%{public}d,mixWindowHeight=%{public}d,"
+        "specifiedFlag=%{public}s",
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_LEFT, 0),
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_TOP, 0),
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_HEIGHT, 0),
@@ -2121,7 +2135,8 @@ int UIAbilityLifecycleManager::SendSessionInfoToSCB(std::shared_ptr<AbilityRecor
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_MIN_WINDOW_WIDTH, 0),
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_MIN_WINDOW_HEIGHT, 0),
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_MAX_WINDOW_WIDTH, 0),
-        (sessionInfo->want).GetIntParam(Want::PARAM_RESV_MAX_WINDOW_HEIGHT, 0));
+        (sessionInfo->want).GetIntParam(Want::PARAM_RESV_MAX_WINDOW_HEIGHT, 0),
+        sessionInfo->specifiedFlag.c_str());
     auto tmpSceneSession = iface_cast<Rosen::ISession>(rootSceneSession_);
     if (callerAbility != nullptr) {
         auto callerSessionInfo = callerAbility->GetSessionInfo();
@@ -3329,7 +3344,7 @@ void UIAbilityLifecycleManager::StartSpecifiedRequest(SpecifiedRequest &specifie
     auto timeoutTask = [requestId = specifiedRequest.requestId, wThis = weak_from_this()]() {
         auto pThis = wThis.lock();
         if (pThis) {
-            pThis->OnStartSpecifiedAbilityTimeoutResponse(Want(), requestId);
+            pThis->OnStartSpecifiedFailed(requestId);
         }
     };
     TaskHandlerWrap::GetFfrtHandler()->SubmitTaskJust(timeoutTask, "SpecifiedFinalTimeout",
@@ -3406,6 +3421,7 @@ bool UIAbilityLifecycleManager::HandleColdAcceptWantDone(const AAFwk::Want &want
         specifiedRequest.requestId, specifiedRequest.persistentId);
     auto uiAbilityRecord = iter->second;
     CHECK_POINTER_AND_RETURN(uiAbilityRecord, false);
+    UpdateSpecifiedFlag(uiAbilityRecord, flag);
     uiAbilityRecord->SetSpecifiedFlag(flag);
     auto isShellCall = specifiedRequest.abilityRequest.want.GetBoolParam(IS_SHELL_CALL, false);
     uiAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
@@ -3461,6 +3477,28 @@ void UIAbilityLifecycleManager::HandleForegroundCollaborate(
     if (abilityRecord->GetAbilityState() == AbilityState::FOREGROUND) {
         abilityRecord->ScheduleCollaborate(abilityRequest.want);
     }
+}
+
+bool UIAbilityLifecycleManager::UpdateSpecifiedFlag(std::shared_ptr<AbilityRecord> uiAbilityRecord,
+    const std::string &flag)
+{
+    if (uiAbilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "uiAbilityRecord is nullptr");
+        return false;
+    }
+    auto sessionInfo = uiAbilityRecord->GetSessionInfo();
+    if (sessionInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionInfo is nullptr");
+        return false;
+    }
+    auto session = iface_cast<Rosen::ISession>(sessionInfo->sessionToken);
+    if (session == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "session is nullptr");
+        return false;
+    }
+    session->UpdateFlag(flag);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call session UpdateFlag, specifiedFlag: %{public}s", flag.c_str());
+    return true;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
