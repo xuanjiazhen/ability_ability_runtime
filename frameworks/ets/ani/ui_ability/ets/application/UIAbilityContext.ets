@@ -19,7 +19,8 @@ import StartOptions from '../@ohos.app.ability.StartOptions';
 import { BusinessError, AsyncCallback } from '../@ohos.base';
 import { AbilityResult } from 'ability.abilityResult';
 import AbilityStartCallback from './AbilityStartCallback';
-import { Configuration } from '@ohos.app.ability.Configuration';
+import { Configuration } from '../@ohos.app.ability.Configuration';
+import window from '../@ohos.window';
 
 export class AsyncCallbackWrapper<T> {
   myFun_:AsyncCallback<T, void> = (err: BusinessError<void>, data: T) => {}
@@ -39,7 +40,7 @@ export default class UIAbilityContext {
   public nativeContext : long;
   public config?: Configuration;
   public abilityInfo?: AbilityInfo;
-  // public windowStage?: window.WindowStage;
+  public windowStage?: window.WindowStage;
 
   public native nativeStartAbilitySync(want: Want, callback: AsyncCallbackWrapper<void>): void;
   public native nativeStartAbilitySync(want: Want, options: StartOptions, callback:AsyncCallbackWrapper<void>): void;
