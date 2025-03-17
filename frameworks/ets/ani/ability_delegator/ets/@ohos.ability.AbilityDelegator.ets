@@ -15,20 +15,7 @@
 
 //import AbilityMonitor from 'AbilityMonitor';
 
-interface BaseContext {
-    readonly area: int;
-    readonly filesDir: string;
-    readonly tempDir: string;
-}
-
-abstract class Context implements BaseContext{
-    area: int = 0;
-    filesDir: string = "";
-    tempDir: string = "";
-}
-
-class ApplicationContext extends Context {
-}
+import Context from '../../app/ets/application/Context'
 
 class AbilityStage {}
 class Want {}

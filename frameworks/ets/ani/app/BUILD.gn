@@ -16,10 +16,14 @@ import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 generate_static_abc("ability_stage_abc") {
-  base_url = "./"
+  base_url = "./ets"
   files = [
-    "./@ohos.app.ability.AbilityStage.ets",
-    "./@ohos.app.ability.Configuration.ets",
+    "./ets/application/AbilityStageContext.ets",
+    "./ets/application/ApplicationContext.ets",
+    "./ets/application/BaseContext.ets",
+    "./ets/application/Context.ets",
+    "./ets/application/ExtensionContext.ets",
+    "./ets/@ohos.app.ability.AbilityStage.ets",
   ]
 
   dst_file = "$target_out_dir/AbilityStage.abc"

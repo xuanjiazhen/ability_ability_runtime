@@ -13,10 +13,15 @@
  * limitations under the License.
  */
 
-export default interface Configuration {
-    readonly language: string;
-}
+import { Configuration } from '../../ui_ability/ets/@ohos.app.ability.Configuration'
 
-class ConfigurationInner implements Configuration {
-    language: string = "";
+export default class AbilityStage {
+    onConfigurationUpdate(newConfig: Configuration): void {
+    }
+
+    onCreate(): void {
+    }
+
+    onDestroy(): void {
+    }
 }
