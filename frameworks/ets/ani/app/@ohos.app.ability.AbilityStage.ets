@@ -13,9 +13,12 @@
  * limitations under the License.
  */
 
-import Configuration from './@ohos.app.ability.Configuration'
+import { Configuration } from './@ohos.app.ability.Configuration'
+import AbilityStageContext from './application/AbilityStageContext'
 
 export default class AbilityStage {
+    context: AbilityStageContext = {};
+
     onConfigurationUpdate(newConfig: Configuration): void {
     }
 

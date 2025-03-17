@@ -14,9 +14,9 @@
  */
 
 import { Context } from './Context'
-import { Configuration } form '@ohos.app.ability.Configuration'
+import { Configuration } from '../@ohos.app.ability.Configuration'
 
 export default class AbilityStageContext extends Context {
-    public nativeContext:long = 0; 
-    config?: Configuration;
+    public stageContext: long = 0;
+    public config: Configuration = {};
 }

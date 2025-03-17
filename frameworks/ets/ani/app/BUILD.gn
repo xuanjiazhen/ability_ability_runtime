@@ -20,6 +20,12 @@ generate_static_abc("ability_stage_abc") {
   files = [
     "./@ohos.app.ability.AbilityStage.ets",
     "./@ohos.app.ability.Configuration.ets",
+    "./@ohos.app.ability.ConfigurationConstant.ets",
+    "./application/AbilityStageContext.ets",
+    "./application/Context.ets",
+    "./application/BaseContext.ets",
+    "./application/ApplicationContext.ets",
+    "./application/ExtensionContext.ets",
   ]
 
   dst_file = "$target_out_dir/AbilityStage.abc"

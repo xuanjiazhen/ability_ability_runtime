@@ -13,10 +13,32 @@
  * limitations under the License.
  */
 
-export default interface Configuration {
-    readonly language: string;
+import ConfigurationConstant from './@ohos.app.ability.ConfigurationConstant';
+
+export interface Configuration {
+    language?: string;
+    colorMode?: ConfigurationConstant.ColorMode;
+    direction?: ConfigurationConstant.Direction;
+    screenDensity?: ConfigurationConstant.ScreenDensity;
+    displayId: int;
+    hasPointerDevice: boolean;
+    fontId?: string;
+    fontSizeScale: double;
+    fontWeightScale: double;
+    mcc?: string;
+    mnc?: string;
 }
 
 class ConfigurationInner implements Configuration {
-    language: string = "";
+    public language?: string|undefined;
+    public colorMode?: ConfigurationConstant.ColorMode|undefined;
+    public direction?: ConfigurationConstant.Direction|undefined;
+    public screenDensity?: ConfigurationConstant.ScreenDensity|undefined;
+    public displayId: int;
+    public hasPointerDevice: boolean;
+    public fontId?: string|undefined;
+    public fontSizeScale: double;
+    public fontWeightScale: double;
+    public mcc?: string|undefined;
+    public mnc?: string|undefined;
 }
