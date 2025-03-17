@@ -21,8 +21,28 @@
 #endif // SUPPORT_SCREEN
 #include "want.h"
 #include "window.h"
+#include "ability_manager_client.h"
 
-ani_object NativeSetReceiveDataCallback(ani_env* env, ani_object obj)
+#include "ani_common_want.h"
+#include "ani_common_util.h"
+#include "array_wrapper.h"
+#include "bool_wrapper.h"
+#include "byte_wrapper.h"
+#include "double_wrapper.h"
+#include "float_wrapper.h"
+#include "hilog_tag_wrapper.h"
+#include "int_wrapper.h"
+#include "ipc_skeleton.h"
+#include "js_runtime_utils.h"
+#include "long_wrapper.h"
+#include "napi_remote_object.h"
+#include "remote_object_wrapper.h"
+#include "short_wrapper.h"
+#include "string_wrapper.h"
+#include "tokenid_kit.h"
+#include "want_params_wrapper.h"
+#include "zchar_wrapper.h"
+[[maybe_unused]] static ani_object NativeSetReceiveDataCallback(ani_env* env, ani_object obj)
 {
     if (env == nullptr) {
         TAG_LOGW(AAFwkTag::UI_EXT, "NativeGetUIExtensionHostWindowProxy null env");
@@ -31,7 +51,7 @@ ani_object NativeSetReceiveDataCallback(ani_env* env, ani_object obj)
     }
     ani_class cls;
     ani_status status = ANI_ERROR;
-    status = env->FindClass("LUIExtensionContentSession/UIExtensionContentSession;", &cls);
+    status = env->FindClass("L@ohos/app/ability/UIExtensionContentSession/UIExtensionContentSession;", &cls);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "NativeGetUIExtensionHostWindowProxy FindClass status : %{public}d", status);
     }
@@ -53,7 +73,8 @@ ani_object NativeSetReceiveDataCallback(ani_env* env, ani_object obj)
     }
     return stsContentSession->SetReceiveDataCallback(env, obj);
 }
-void NativeSendData(ani_env* env, ani_object obj)
+
+[[maybe_unused]]static void NativeSendData(ani_env* env, ani_object obj, ani_string data)
 {
     if (env == nullptr) {
         TAG_LOGW(AAFwkTag::UI_EXT, "NativeSendData null env");
@@ -61,7 +82,7 @@ void NativeSendData(ani_env* env, ani_object obj)
     }
     ani_class cls;
     ani_status status = ANI_ERROR;
-    status = env->FindClass("LUIExtensionContentSession/UIExtensionContentSession;", &cls);
+    status = env->FindClass("L@ohos/app/ability/UIExtensionContentSession/UIExtensionContentSession;", &cls);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "NativeSendData FindClass status : %{public}d", status);
     }
@@ -79,18 +100,20 @@ void NativeSendData(ani_env* env, ani_object obj)
         TAG_LOGE(AAFwkTag::UI_EXT, "NativeSendData stsContentSession is null");
         return;
     }
-    return stsContentSession->SendData(env, obj);
+    return stsContentSession->SendData(env, obj, data);
 }
 
-void NativeLoadContent(ani_env* env, ani_object obj, ani_string path, ani_object storage)
+[[maybe_unused]] static void NativeLoadContent(ani_env* env, ani_object obj, ani_string path)
 {
+    TAG_LOGE(AAFwkTag::UI_EXT, "StsUIExtensionContentSession::NativeLoadContent called");
+    ani_object storage = nullptr;
     if (env == nullptr) {
         TAG_LOGW(AAFwkTag::UI_EXT, "NativeLoadContent null env");
         return;
     }
     ani_class cls;
     ani_status status = ANI_ERROR;
-    status = env->FindClass("LUIExtensionContentSession/UIExtensionContentSession;", &cls);
+    status = env->FindClass("L@ohos/app/ability/UIExtensionContentSession/UIExtensionContentSession;", &cls);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "NativeLoadContent FindClass status : %{public}d", status);
     }
@@ -111,7 +134,7 @@ void NativeLoadContent(ani_env* env, ani_object obj, ani_string path, ani_object
     return stsContentSession->LoadContent(env, obj, path, storage);
 }
 
-void NativeTerminateSelf(ani_env* env, ani_object obj)
+[[maybe_unused]] static void NativeTerminateSelf(ani_env* env, ani_object obj, [[maybe_unused]] ani_object abilityResult, [[maybe_unused]] ani_object callback)
 {
     if (env == nullptr) {
         TAG_LOGW(AAFwkTag::UI_EXT, "NativeTerminateSelf null env");
@@ -119,7 +142,7 @@ void NativeTerminateSelf(ani_env* env, ani_object obj)
     }
     ani_class cls;
     ani_status status = ANI_ERROR;
-    status = env->FindClass("LUIExtensionContentSession/UIExtensionContentSession;", &cls);
+    status = env->FindClass("L@ohos/app/ability/UIExtensionContentSession/UIExtensionContentSession;", &cls);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "NativeTerminateSelf FindClass status : %{public}d", status);
     }
@@ -137,18 +160,64 @@ void NativeTerminateSelf(ani_env* env, ani_object obj)
         TAG_LOGE(AAFwkTag::UI_EXT, "NativeTerminateSelf stsContentSession is null");
         return;
     }
-    return stsContentSession->TerminateSelf();
+    stsContentSession->TerminateSelf();
+    OHOS::AAFwk::Want want;
+    int resultCode = 0;
+    OHOS::AppExecFwk::UnWrapAbilityResult(env, abilityResult, resultCode, want);
+    OHOS::AbilityRuntime::StsUIExtensionContentSession::AsyncCallback(env, callback, OHOS::AbilityRuntime::StsUIExtensionContentSession::WrapBusinessError(env, static_cast<int32_t>(resultCode)), nullptr);
+    TAG_LOGE(AAFwkTag::UI_EXT, "TerminateSelfWithResult end");
 }
 
-void NativeSetWindowBackgroundColor(ani_env* env, ani_object obj)
+[[maybe_unused]] static int NativeTerminateSelfWithResult(ani_env* env, ani_object obj, [[maybe_unused]] ani_object abilityResult, [[maybe_unused]] ani_object callback)
+{
+    TAG_LOGE(AAFwkTag::UI_EXT, "NativeTerminateSelfWithResult called");
+    int ret = 0;
+    if (env == nullptr) {
+        TAG_LOGW(AAFwkTag::UI_EXT, "NativeTerminateSelf null env");
+        return ret;
+    }
+    ani_class cls;
+    ani_status status = ANI_ERROR;
+    status = env->FindClass("L@ohos/app/ability/UIExtensionContentSession/UIExtensionContentSession;", &cls);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "NativeTerminateSelf FindClass status : %{public}d", status);
+        return ret;
+    }
+    OHOS::AbilityRuntime::StsUIExtensionContentSession *stsContentSession = nullptr;
+    ani_field stsContentSessionField;
+    status = env->Class_FindField(cls, "nativeContextSession", &stsContentSessionField);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "NativeTerminateSelf Class_FindFieldstatus : %{public}d", status);
+        return ret;
+    }
+    status = env->Object_GetField_Long(obj, stsContentSessionField, reinterpret_cast<ani_long*>(&stsContentSession));
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "NativeTerminateSelf Object_GetField_Long status : %{public}d", status);
+        return ret;
+    }
+    if (stsContentSession == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "NativeTerminateSelf stsContentSession is null");
+        return ret;
+    }
+
+    ret = stsContentSession->TerminateSelfWithResult();
+    OHOS::AAFwk::Want want;
+    int resultCode = 0;
+    OHOS::AppExecFwk::UnWrapAbilityResult(env, abilityResult, resultCode, want);
+    OHOS::AbilityRuntime::StsUIExtensionContentSession::AsyncCallback(env, callback, OHOS::AbilityRuntime::StsUIExtensionContentSession::WrapBusinessError(env, static_cast<int32_t>(ret)), nullptr);
+    return ret;
+    TAG_LOGE(AAFwkTag::UI_EXT, "TerminateSelfWithResult end");
+}
+
+[[maybe_unused]] static void NativeSetWindowBackgroundColor(ani_env* env, ani_object obj, ani_string color)
 {
     if (env == nullptr) {
-        TAG_LOGW(AAFwkTag::UI_EXT, "NativeTerminateSelfWithResult null env");
+        TAG_LOGW(AAFwkTag::UI_EXT, "NativeSetWindowBackgroundColor null env");
         return;
     }
     ani_class cls;
     ani_status status = ANI_ERROR;
-    status = env->FindClass("LUIExtensionContentSession/UIExtensionContentSession;", &cls);
+    status = env->FindClass("L@ohos/app/ability/UIExtensionContentSession/UIExtensionContentSession;", &cls);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "NativeSetWindowBackgroundColor FindClass status : %{public}d", status);
     }
@@ -166,10 +235,10 @@ void NativeSetWindowBackgroundColor(ani_env* env, ani_object obj)
         TAG_LOGE(AAFwkTag::UI_EXT, "NativeSetWindowBackgroundColor stsContentSession is null");
         return;
     }
-    return stsContentSession->SetWindowBackgroundColor("red");
+    return stsContentSession->SetWindowBackgroundColor(env, color);
 }
 
-ani_object NativeGetUIExtensionHostWindowProxy(ani_env* env, ani_object obj)
+[[maybe_unused]] static ani_object NativeGetUIExtensionHostWindowProxy(ani_env* env, ani_object obj)
 {
     if (env == nullptr) {
         TAG_LOGW(AAFwkTag::UI_EXT, "NativeGetUIExtensionHostWindowProxy null env");
@@ -178,7 +247,7 @@ ani_object NativeGetUIExtensionHostWindowProxy(ani_env* env, ani_object obj)
     }
     ani_class cls;
     ani_status status = ANI_ERROR;
-    status = env->FindClass("LUIExtensionContentSession/UIExtensionContentSession;", &cls);
+    status = env->FindClass("L@ohos/app/ability/UIExtensionContentSession/UIExtensionContentSession;", &cls);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "NativeGetUIExtensionHostWindowProxy FindClass status : %{public}d", status);
     }
@@ -206,10 +275,10 @@ namespace AbilityRuntime {
 StsUIExtensionContentSession::StsUIExtensionContentSession(
     sptr<AAFwk::SessionInfo> sessionInfo, sptr<Rosen::Window> uiWindow,
     std::weak_ptr<AbilityRuntime::Context> &context,
-    std::shared_ptr<AbilityResultListeners>& abilityResultListeners)
+    std::shared_ptr<StsAbilityResultListeners>& abilityResultListeners)
     : sessionInfo_(sessionInfo), uiWindow_(uiWindow), context_(context)
 {
-    listener_ = std::make_shared<UISessionAbilityResultListener>();
+    listener_ = std::make_shared<StsUISessionAbilityResultListener>();
     if (abilityResultListeners == nullptr || sessionInfo == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null params");
     } else {
@@ -225,14 +294,15 @@ StsUIExtensionContentSession::StsUIExtensionContentSession(sptr<AAFwk::SessionIn
 ani_object StsUIExtensionContentSession::CreateStsUIExtensionContentSession(ani_env* env,
     sptr<AAFwk::SessionInfo> sessionInfo, sptr<Rosen::Window> uiWindow,
     std::weak_ptr<AbilityRuntime::Context> context,
-    std::shared_ptr<AbilityResultListeners>& abilityResultListeners)
+    std::shared_ptr<StsAbilityResultListeners>& abilityResultListeners,
+    std::shared_ptr<StsUIExtensionContentSession> contentSessionPtr)
 {
     TAG_LOGE(AAFwkTag::UI_EXT, "CreateStsUIExtensionContentSession call");
     ani_object object = nullptr;
     ani_method method = nullptr;
     ani_class cls;
     ani_status status = ANI_ERROR;
-    status = env->FindClass("LUIExtensionContentSession/UIExtensionContentSession;", &cls);
+    status = env->FindClass("L@ohos/app/ability/UIExtensionContentSession/UIExtensionContentSession;", &cls);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "CreateStsUIExtensionContentSession FindClass status : %{public}d", status);
     }
@@ -248,18 +318,18 @@ ani_object StsUIExtensionContentSession::CreateStsUIExtensionContentSession(ani_
         TAG_LOGE(AAFwkTag::UI_EXT, "CreateStsUIExtensionContentSession null object");
         return nullptr;
     }
-
-    auto stsContentSession =
-        std::make_unique<StsUIExtensionContentSession>(sessionInfo, uiWindow, context, abilityResultListeners);
     std::array methods = {
         ani_native_function {"terminateSelfSync", ":V", reinterpret_cast<void *>(NativeTerminateSelf)},
-        ani_native_function {"sendData", nullptr, reinterpret_cast<void *>(NativeSendData)},
+        ani_native_function {"nativeSendData", nullptr, reinterpret_cast<void *>(NativeSendData)},
         ani_native_function {"loadContent", nullptr, reinterpret_cast<void *>(NativeLoadContent)},
-        ani_native_function {"setWindowBackgroundColor", nullptr,
-            reinterpret_cast<void *>(NativeSetWindowBackgroundColor)},
-        ani_native_function {"getUIExtensionHostWindowProxy", nullptr,
-            reinterpret_cast<void *>(NativeGetUIExtensionHostWindowProxy)},
-        ani_native_function {"setReceiveDataCallback", nullptr, reinterpret_cast<void *>(NativeSetReceiveDataCallback)}
+        ani_native_function {"terminateSelfWithResultSync", nullptr,
+            reinterpret_cast<void *>(NativeTerminateSelfWithResult)},
+        //ani_native_function {"setWindowBackgroundColor", nullptr,
+            // reinterpret_cast<void *>(NativeSetWindowBackgroundColor)},
+        // ani_native_function {"getUIExtensionHostWindowProxy", nullptr,
+        //     reinterpret_cast<void *>(NativeGetUIExtensionHostWindowProxy)},
+        // ani_native_function {"setReceiveDataCallback", nullptr,
+        // reinterpret_cast<void *>(NativeSetReceiveDataCallback)}
     };
     status = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (status != ANI_OK) {
@@ -270,7 +340,7 @@ ani_object StsUIExtensionContentSession::CreateStsUIExtensionContentSession(ani_
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "CreateStsUIExtensionContentSession Class_FindFieldstatus : %{public}d", status);
     }
-    status = env->Object_SetField_Long(object, nativeField, reinterpret_cast<ani_long>(stsContentSession.release()));
+    status = env->Object_SetField_Long(object, nativeField, reinterpret_cast<ani_long>(contentSessionPtr.get()));
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "CreateStsUIExtensionContentSession status : %{public}d", status);
     }
@@ -278,15 +348,19 @@ ani_object StsUIExtensionContentSession::CreateStsUIExtensionContentSession(ani_
     return object;
 }
 
-void StsUIExtensionContentSession::SendData(ani_env* env, ani_object object)
+void StsUIExtensionContentSession::SendData(ani_env* env, ani_object object, ani_string data)
 {
     TAG_LOGE(AAFwkTag::UI_EXT, "StsUIExtensionContentSession SendData call");
     AAFwk::WantParams params;
-    // if (!AppExecFwk::UnwrapWantParams(env, info.argv[INDEX_ZERO], params)) {
-    //     TAG_LOGE(AAFwkTag::UI_EXT, "parse param failed");
-    //     ThrowInvalidParamError(env, "OnSendData Failed to parse param! Data must be a Record<string, Object>.");
-    //     return CreateJsUndefined(env);
-    // }
+    std::string wantParamsString;
+    if (!AppExecFwk::GetStdString(env, data, wantParamsString)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "GetStdString failed");
+        return;
+    }
+    TAG_LOGE(AAFwkTag::UI_EXT, "StsUIExtensionContentSession::SendData GetStdString is %{public}s",
+        wantParamsString.c_str());
+    nlohmann::json wantParamsJson = nlohmann::json::parse(wantParamsString);
+    from_json(wantParamsJson, params);
 
     if (uiWindow_ == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow_");
@@ -304,31 +378,15 @@ void StsUIExtensionContentSession::SendData(ani_env* env, ani_object object)
 
 void StsUIExtensionContentSession::LoadContent(ani_env* env, ani_object object, ani_string path, ani_object storage)
 {
-    TAG_LOGD(AAFwkTag::UI_EXT, "StsUIExtensionContentSession::LoadContent called");
-    std::string contextPath;
-    ani_status status = ANI_ERROR;
-    ani_size bufferSize = 0U;
-    status = env->String_GetUTF8Size(path, &bufferSize);
-    if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "LoadContent String_GetUTF8Size, ret=%{public}d", status);
-        return;
-    }
+    TAG_LOGE(AAFwkTag::UI_EXT, "StsUIExtensionContentSession::LoadContent called");
 
-    char* utfBuffer = (char*)malloc(bufferSize * sizeof(char));
-    if (utfBuffer == nullptr) {
-        return;
-    }
-    ani_size substrOffset = 0U;
-    ani_size substrSize = bufferSize;
-    ani_size result = 0U;
-    status = env->String_GetUTF8SubString(path, substrOffset, substrSize, utfBuffer, bufferSize, &result);
-    if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "LoadContent String_GetUTF8, ret=%{public}d", status);
-        return;
-    }
-    contextPath = utfBuffer;
-    free(utfBuffer);
-    TAG_LOGD(AAFwkTag::UI_EXT, "contextPath: %{public}s", contextPath.c_str());
+    std::string contextPath;
+    ani_size sz {};
+    env->String_GetUTF8Size(path, &sz);
+    contextPath.resize(sz + 1);
+    env->String_GetUTF8SubString(path, 0, sz, contextPath.data(), contextPath.size(), &sz);
+    TAG_LOGE(AAFwkTag::UI_EXT, "StsUIExtensionContentSession::LoadContent called msgStr is %{public}s",
+        contextPath.c_str());
 
     if (uiWindow_ == nullptr || sessionInfo_ == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "uiWindow_ or sessionInfo_ is nullptr");
@@ -340,36 +398,66 @@ void StsUIExtensionContentSession::LoadContent(ani_env* env, ani_object object, 
         uiWindow_->TriggerBindModalUIExtension();
         isFirstTriggerBindModal_ = false;
     }
-    // sptr<IRemoteObject> parentToken = sessionInfo_->parentToken;
-    // Rosen::WMError ret = uiWindow_->NapiSetUIContent(contextPath, env, storage,
-    //     Rosen::BackupAndRestoreType::NONE, parentToken);
-    // if (ret == Rosen::WMError::WM_OK) {
-    //     TAG_LOGD(AAFwkTag::UI_EXT, "AniSetUIContent success");
-    // } else {
-    //     TAG_LOGE(AAFwkTag::UI_EXT, "AniSetUIContent failed, ret=%{public}d", ret);
-    // }
+    sptr<IRemoteObject> parentToken = sessionInfo_->parentToken;
+    Rosen::WMError ret = uiWindow_->NapiSetUIContent(contextPath, env, storage,
+        Rosen::BackupAndRestoreType::NONE, parentToken);
+    if (ret == Rosen::WMError::WM_OK) {
+        TAG_LOGD(AAFwkTag::UI_EXT, "AniSetUIContent success");
+    } else {
+        TAG_LOGE(AAFwkTag::UI_EXT, "AniSetUIContent failed, ret=%{public}d", ret);
+    }
     return;
 }
 
 void StsUIExtensionContentSession::TerminateSelf()
 {
     TAG_LOGE(AAFwkTag::UI_EXT, "StsUIExtensionContentSession TerminateSelf call");
-    //AAFwk::AbilityManagerClient::GetInstance()->TerminateUIExtensionAbility(sessionInfo_);
+    AAFwk::AbilityManagerClient::GetInstance()->TerminateUIExtensionAbility(sessionInfo_);
 }
 
-void StsUIExtensionContentSession::SetWindowBackgroundColor(std::string color)
+int StsUIExtensionContentSession::TerminateSelfWithResult()
 {
-    TAG_LOGE(AAFwkTag::UI_EXT, "StsUIExtensionContentSession SetWindowBackgroundColor call");
+    TAG_LOGE(AAFwkTag::UI_EXT, "StsUIExtensionContentSession TerminateSelfWithResult call");
+    return AAFwk::AbilityManagerClient::GetInstance()->TerminateUIExtensionAbility(sessionInfo_);
+}
+
+void StsUIExtensionContentSession::SetWindowBackgroundColor(ani_env* env, ani_string color)
+{
+    TAG_LOGE(AAFwkTag::UI_EXT, "leiboshi StsUIExtensionContentSession SetWindowBackgroundColor call");
+    std::string strColor;
+    ani_status status = ANI_ERROR;
+    ani_size bufferSize = 0U;
+    status = env->String_GetUTF8Size(color, &bufferSize);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "leiboshi LoadContent String_GetUTF8Size, ret=%{public}d", status);
+        return;
+    }
+
+    char* utfBuffer = (char*)malloc(bufferSize * sizeof(char));
+    if (utfBuffer == nullptr) {
+        return;
+    }
+    ani_size substrOffset = 0U;
+    ani_size substrSize = bufferSize;
+    ani_size result = 0U;
+    status = env->String_GetUTF8SubString(color, substrOffset, substrSize, utfBuffer, bufferSize, &result);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "leiboshi LoadContent String_GetUTF8, ret=%{public}d", status);
+        return;
+    }
+    strColor = utfBuffer;
+    free(utfBuffer);
     //Todo
-    // if (uiWindow_ == nullptr) {
-    //     TAG_LOGE(AAFwkTag::UI_EXT, "uiWindow_ is nullptr");
-    // }
-    // Rosen::WMError ret = uiWindow_->SetBackgroundColor(color);
-    // if (ret == Rosen::WMError::WM_OK) {
-    //     TAG_LOGD(AAFwkTag::UI_EXT, "SetBackgroundColor success");
-    // } else {
-    //     TAG_LOGE(AAFwkTag::UI_EXT, "SetBackgroundColor failed, ret=%{public}d", ret);
-    // }
+    if (uiWindow_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "leiboshi uiWindow_ is nullptr");
+         return;
+    }
+    Rosen::WMError ret = uiWindow_->SetBackgroundColor(strColor);
+    if (ret == Rosen::WMError::WM_OK) {
+        TAG_LOGD(AAFwkTag::UI_EXT, "leiboshi SetBackgroundColor success");
+    } else {
+        TAG_LOGE(AAFwkTag::UI_EXT, "leiboshi SetBackgroundColor failed, ret=%{public}d", ret);
+    }
 }
 
 ani_object StsUIExtensionContentSession::GetUIExtensionHostWindowProxy(ani_env* env, ani_object object)
@@ -397,7 +485,7 @@ ani_object StsUIExtensionContentSession::GetUIExtensionHostWindowProxy(ani_env* 
     return nullptr;
 }
 
-ani_object StsUIExtensionContentSession::SetReceiveDataCallback(ani_env* env, ani_object object)
+[[maybe_unused]] ani_object StsUIExtensionContentSession::SetReceiveDataCallback(ani_env* env, ani_object object)
 {
     TAG_LOGE(AAFwkTag::UI_EXT, "StsUIExtensionContentSession GetUIExtensionHostWindowProxy call");
     //Todo
@@ -420,6 +508,63 @@ ani_object StsUIExtensionContentSession::SetReceiveDataCallback(ani_env* env, an
     //     return nullptr;
     // }
     return nullptr;
+}
+ani_object StsUIExtensionContentSession::WrapBusinessError(ani_env *env, ani_int code)
+{
+    ani_class cls = nullptr;
+    ani_field field = nullptr;
+    ani_method method = nullptr;
+    ani_object obj = nullptr;
+    ani_status status = ANI_ERROR;
+    if ((status = env->FindClass("L@ohos/application/UIAbilityContext/BusinessError;", &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+        return nullptr;
+    }
+    if ((status = env->Class_FindMethod(cls, "<ctor>", nullptr, &method)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+        return nullptr;
+    }
+    if ((status = env->Object_New(cls, method, &obj)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+        return nullptr;
+    }
+    if ((status = env->Class_FindField(cls, "code", &field)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+        return nullptr;
+    }
+    if ((status = env->Object_SetField_Int(obj, field, code)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+        return nullptr;
+    }
+    return obj;
+}
+
+bool StsUIExtensionContentSession::AsyncCallback(ani_env *env, ani_object call, ani_object error, ani_object result)
+{
+    ani_status status = ANI_ERROR;
+    ani_class clsCall = nullptr;
+
+    if ((status = env->FindClass("L@ohos/application/UIAbilityContext/AsyncCallbackWrapper;", &clsCall)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+        return false;
+    }
+    ani_method method = nullptr;
+    const char *INVOKE_METHOD_NAME = "invoke";
+    if ((status = env->Class_FindMethod(
+        clsCall, INVOKE_METHOD_NAME, "L@ohos/application/UIAbilityContext/BusinessError;Lstd/core/Object;:V", &method)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+        return false;
+    }
+    if (result == nullptr) {
+        ani_ref nullRef = nullptr;
+        env->GetNull(&nullRef);
+        result = reinterpret_cast<ani_object>(nullRef);
+    }
+    if ((status = env->Object_CallMethod_Void(call, method, error, result)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+        return false;
+    }
+    return true;
 }
 }
 }
