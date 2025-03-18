@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { Context } from './Context'
+import { Context } from '../app/Context'
 
 export default class ApplicationContext extends Context {
     public native setSupportedProcessCacheSync(isSupported : boolean):void;
-    public nativeContext:long = 0;
+    public nativeApplicationContext:long = 0;
 
     setSupportedProcessCache(isSupported : boolean):void {
         console.log("call setSupportedProcessCache 111");
