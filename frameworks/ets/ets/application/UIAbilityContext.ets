@@ -13,13 +13,15 @@
  * limitations under the License.
  */
 
-import { AbilityInfo } from '../bundleManager/AbilityInfo';
+import { AbilityInfo } from 'bundleManager.AbilityInfo';
+// import { AbilityInfoInner } from 'bundleManager.AbilityInfoInner';
 import Want from '@ohos.app.ability.Want';
 import StartOptions from '../@ohos.app.ability.StartOptions';
-import { BusinessError, AsyncCallback } from '../@ohos.base';
+import { BusinessError, AsyncCallback } from '@ohos.base';
 import { AbilityResult } from 'ability.abilityResult';
 import AbilityStartCallback from './AbilityStartCallback';
 import { Configuration } from '@ohos.app.ability.Configuration';
+import window from '../@ohos.window';
 
 export class AsyncCallbackWrapper<T> {
   myFun_:AsyncCallback<T, void> = (err: BusinessError<void>, data: T) => {}
@@ -39,7 +41,7 @@ export default class UIAbilityContext {
   public nativeContext : long;
   public config?: Configuration;
   public abilityInfo?: AbilityInfo;
-  // public windowStage?: window.WindowStage;
+  public windowStage?: window.WindowStage;
 
   public native nativeStartAbilitySync(want: Want, callback: AsyncCallbackWrapper<void>): void;
   public native nativeStartAbilitySync(want: Want, options: StartOptions, callback:AsyncCallbackWrapper<void>): void;
@@ -64,11 +66,11 @@ export default class UIAbilityContext {
     console.log("call startAbility callback 222");
   }
 
-  startAbility(want: Want): Promise<int> {
-    let p = new Promise<int>((resolve: (data:int)=>void, reject:(err: BusinessError<void>)=>void):void => {
-    let myCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>)=>{
+  startAbility(want: Want): Promise<void> {
+    let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError<void>)=>void):void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>)=>{
         if (err.code == 0) {
-          resolve(1);
+          resolve(undefined);
         } else {
           reject(err);
         }
@@ -78,12 +80,12 @@ export default class UIAbilityContext {
     return p;
   }
 
-  startAbility(want: Want, options: StartOptions): Promise<int> {
+  startAbility(want: Want, options: StartOptions): Promise<void> {
     console.log("call startAbility callback 111");
-    let p = new Promise<int>((resolve: (data:int)=>void, reject:(err: BusinessError<void>)=>void):void => {
+    let p = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError<void>)=>void):void => {
       let myCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>)=>{
         if (err.code == 0) {
-          resolve(1);
+          resolve(undefined);
         } else {
           reject(err);
         }

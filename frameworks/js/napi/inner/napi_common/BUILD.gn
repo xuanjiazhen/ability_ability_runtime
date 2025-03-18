@@ -21,7 +21,10 @@ config("napi_common_public_config") {
 ohos_shared_library("napi_common") {
   branch_protector_ret = "pac_ret"
 
-  include_dirs = [ "${ability_runtime_napi_path}/featureAbility" ]
+  include_dirs = [
+    "${ability_runtime_path}/frameworks/ets/ani/enum_convert",
+    "${ability_runtime_napi_path}/featureAbility",
+  ]
 
   public_configs = [
     ":napi_common_public_config",
@@ -30,7 +33,6 @@ ohos_shared_library("napi_common") {
   ]
 
   sources = [
-    "ani_common/ani_common_ability_info.cpp",
     "ani_common/ani_common_ability_result.cpp",
     "ani_common/ani_common_configuration.cpp",
     "ani_common/ani_common_start_options.cpp",

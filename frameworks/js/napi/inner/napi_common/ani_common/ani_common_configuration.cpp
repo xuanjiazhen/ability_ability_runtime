@@ -17,6 +17,7 @@
 
 #include "configuration_convertor.h"
 #include "hilog_tag_wrapper.h"
+#include "ani_enum_convert.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -58,16 +59,30 @@ ani_object WrapConfiguration(ani_env *env, const AppExecFwk::Configuration &conf
     str = configuration.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE);
     ClassSetter(env, cls, object, SETTER_METHOD_NAME(language), GetAniString(env, str));
 
-    // ClassSetter(env, cls, object, SETTER_METHOD_NAME(colorMode), ConvertColorMode(configuration.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE)));
+    ani_enum_item colorModeItem {};
+    OHOS::AAFwk::AniEnumConvertUtil::EnumConvert_NativeToSts(env,
+        "L@ohos/app/ability/ConfigurationConstant/ConfigurationConstant/ColorMode;", 
+        ConvertColorMode(configuration.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE)), colorModeItem);
+    ClassSetter(env, cls, object, SETTER_METHOD_NAME(colorMode), colorModeItem);
 
     int32_t displayId = ConvertDisplayId(configuration.GetItem(ConfigurationInner::APPLICATION_DISPLAYID));
     ClassSetter(env, cls, object, SETTER_METHOD_NAME(displayId), displayId);
 
-    // std::string direction = configuration.GetItem(displayId, ConfigurationInner::APPLICATION_DIRECTION);
+    std::string direction = configuration.GetItem(displayId, ConfigurationInner::APPLICATION_DIRECTION);
     // ClassSetter(env, cls, object, SETTER_METHOD_NAME(direction), ConvertDirection(direction));
+    ani_enum_item directionItem {};
+    OHOS::AAFwk::AniEnumConvertUtil::EnumConvert_NativeToSts(env,
+        "L@ohos/app/ability/ConfigurationConstant/ConfigurationConstant/Direction;", 
+        ConvertDirection(direction), directionItem);
+    ClassSetter(env, cls, object, SETTER_METHOD_NAME(direction), directionItem);
 
-    // std::string density = configuration.GetItem(displayId, ConfigurationInner::APPLICATION_DENSITYDPI);
+    std::string density = configuration.GetItem(displayId, ConfigurationInner::APPLICATION_DENSITYDPI);
     // ClassSetter(env, cls, object, SETTER_METHOD_NAME(screenDensity), ConvertDensity(density));
+    ani_enum_item densityItem {};
+    OHOS::AAFwk::AniEnumConvertUtil::EnumConvert_NativeToSts(env,
+        "L@ohos/app/ability/ConfigurationConstant/ConfigurationConstant/ScreenDensity;", 
+        ConvertDensity(density), densityItem);
+    ClassSetter(env, cls, object, SETTER_METHOD_NAME(screenDensity), densityItem);
     
     std::string hasPointerDevice = configuration.GetItem(AAFwk::GlobalConfigurationKey::INPUT_POINTER_DEVICE);
     ClassSetter(env, cls, object, SETTER_METHOD_NAME(hasPointerDevice), hasPointerDevice == "true" ? true : false);
