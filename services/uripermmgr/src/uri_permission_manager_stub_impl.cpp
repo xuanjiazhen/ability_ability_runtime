@@ -274,7 +274,7 @@ int UriPermissionManagerStubImpl::AddTempUriPermission(const std::string &uri, u
     GrantInfo info = { flag, fromTokenId, targetTokenId, autoRemove, {} };
     info.AddAbilityId(abilityId);
     if (search == uriMap_.end()) {
-        TAG_LOGI(AAFwkTag::URIPERMMGR, "Insert an uri r/w permission.");
+        TAG_LOGD(AAFwkTag::URIPERMMGR, "Insert an uri r/w permission.");
         std::list<GrantInfo> infoList = { info };
         uriMap_.emplace(uri, infoList);
         return ERR_OK;
@@ -282,7 +282,7 @@ int UriPermissionManagerStubImpl::AddTempUriPermission(const std::string &uri, u
     auto& infoList = search->second;
     for (auto& item : infoList) {
         if (item.fromTokenId == fromTokenId && item.targetTokenId == targetTokenId) {
-            TAG_LOGI(AAFwkTag::URIPERMMGR,
+            TAG_LOGD(AAFwkTag::URIPERMMGR,
                 "Item: flag is %{public}u, autoRemove is %{public}u, ability size is %{public}zu.",
                 item.flag, item.autoRemove, item.abilityIds.size());
             item.AddAbilityId(abilityId);
@@ -305,7 +305,7 @@ int UriPermissionManagerStubImpl::AddTempUriPermission(const std::string &uri, u
             return ERR_OK;
         }
     }
-    TAG_LOGI(AAFwkTag::URIPERMMGR, "Insert a new uri permission record.");
+    TAG_LOGD(AAFwkTag::URIPERMMGR, "Insert a new uri permission record.");
     infoList.emplace_back(info);
     return ERR_OK;
 }
