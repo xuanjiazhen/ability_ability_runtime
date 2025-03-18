@@ -15,6 +15,7 @@
 
 #include "ability_runtime/cj_ability_object.h"
 
+#include "cj_common_ffi.h"
 #include "cj_utils_ffi.h"
 #include "hilog_tag_wrapper.h"
 #include "want_params_wrapper.h"
@@ -317,6 +318,24 @@ int32_t CJAbilityObject::OnShare(WantParams &wantParams) const
     free(cJReturnParams);
     wantParams = OHOS::AAFwk::WantParamWrapper::ParseWantParamsWithBrackets(returnParams);
     return ERR_OK;
+}
+
+RetDataI64 CJAbilityObject::OnCallRequest() const
+{
+    if (g_cjAbilityFuncs == nullptr || g_cjAbilityFuncs->cjAbilityOnCallRequest == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null cjAbilityFunc");
+        return RetDataI64{0, -1};
+    }
+    return g_cjAbilityFuncs->cjAbilityOnCallRequest(id_);
+}
+
+void CJAbilityObject::OnSetCalleeFlag(bool flag) const
+{
+    if (g_cjAbilityFuncs == nullptr || g_cjAbilityFuncs->cjAbilityOnSetCalleeFlag == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null cjAbilityFunc");
+        return;
+    }
+    return g_cjAbilityFuncs->cjAbilityOnSetCalleeFlag(id_, flag);
 }
 
 void CJAbilityObject::Init(AbilityHandle ability) const

@@ -19,13 +19,14 @@
 #include <cstdint>
 
 #include "ability_connect_callback.h"
+#include "cj_common_ffi.h"
 #include "cj_element_name_ffi.h"
 #include "want.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 struct CJAbilityConnectCallbackFuncs {
-    void (*onConnect)(int64_t id, ElementNameHandle elementNameHandle, int64_t remoteObjectId, int32_t resultCode);
+    void (*onConnect)(int64_t id, ElementNameHandle elementNameHandle, RetDataI64 remoteObjectId, int32_t resultCode);
     void (*onDisconnect)(int64_t id, ElementNameHandle elementNameHandle, int32_t resultCode);
     void (*release)(int64_t id);
     void (*onFailed)(int64_t id, int32_t resultCode);

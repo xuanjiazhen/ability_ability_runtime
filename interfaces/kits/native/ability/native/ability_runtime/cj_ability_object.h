@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "ability.h"
+#include "cj_common_ffi.h"
 #include "cj_runtime.h"
 #include "cj_utils_ffi.h"
 #include "configuration.h"
@@ -80,6 +81,8 @@ struct CJAbilityFuncs {
     CJNumberParmas (*cjAbilityOnSaveState)(int64_t id_, int32_t reason, const char* params);
     char* (*cjAbilityOnShare)(int64_t id_, const char* params);
     CJNumberParmas (*cjAbilityOnContinueWithParams)(int64_t id, const char* params);
+    RetDataI64 (*cjAbilityOnCallRequest)(int64_t id);
+    void (*cjAbilityOnSetCalleeFlag)(int64_t id, bool flag);
 };
 
 CJ_EXPORT void RegisterCJAbilityFuncs(void (*registerFunc)(CJAbilityFuncs*));
@@ -117,6 +120,8 @@ public:
     bool OnPrepareTerminate() const;
     int32_t OnSaveState(int32_t reason, WantParams &wantParams) const;
     int32_t OnShare(WantParams &wantParams) const;
+    RetDataI64 OnCallRequest() const;
+    void OnSetCalleeFlag(bool flag) const;
 
 private:
     int64_t id_ = 0;
