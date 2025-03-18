@@ -6669,8 +6669,8 @@ int32_t AppMgrServiceInner::KillFaultApp(int32_t pid, const std::string &bundleN
             return;
         }
     };
-    constexpr int32_t waitTime = 3500;
-    // wait 3.5s before kill application
+    constexpr int32_t waitTime = 2000;
+    // wait 2s before kill application
     CHECK_POINTER_AND_RETURN_VALUE(taskHandler_, ERR_NO_INIT);
     taskHandler_->SubmitTaskJust(killAppTask, "killAppTask", waitTime);
     return ERR_OK;
