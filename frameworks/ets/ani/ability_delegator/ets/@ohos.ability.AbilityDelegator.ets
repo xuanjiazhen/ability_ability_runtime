@@ -14,24 +14,14 @@
  */
 
 //import AbilityMonitor from 'AbilityMonitor';
+ import Want from '@ohos.app.ability.Want';
+ import { Context } from './application/Context';
 
-interface BaseContext {
-    readonly area: int;
-    readonly filesDir: string;
-    readonly tempDir: string;
+export class AbilityMonitor {
+    abilityName: string = "";
+    moduleName: string = "";
 }
 
-abstract class Context implements BaseContext{
-    area: int = 0;
-    filesDir: string = "";
-    tempDir: string = "";
-}
-
-class ApplicationContext extends Context {
-}
-
-class AbilityStage {}
-class Want {}
 type Callback<T> = (data: T)=> void;
 class Result<T, E>{
   result:T;

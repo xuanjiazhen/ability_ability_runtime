@@ -17,7 +17,7 @@ import { Configuration } from '@ohos.app.ability.Configuration'
 import AbilityStageContext from './application/AbilityStageContext'
 
 export default class AbilityStage {
-    context: AbilityStageContext = new AbilityStageContext();
+    context: AbilityStageContext = {};
 
     onConfigurationUpdate(newConfig: Configuration): void {
     }

@@ -65,9 +65,9 @@ ani_object CreateStsBaseContext(ani_env* aniEnv, ani_class contextClass,
 
 ani_object GetAppContext(ani_env* env, ani_class clss)
 {
-    TAG_LOGE(AAFwkTag::DELEGATOR, "GetAppContext call");
+    TAG_LOGI(AAFwkTag::DELEGATOR, "GetAppContext call");
     ani_class cls;
-    if (ANI_OK != env->FindClass("L@ohos/ability/AbilityDelegator/Context;", &cls)) {
+    if (ANI_OK != env->FindClass("LContext/Context;", &cls)) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "CreateStsBaseContext FindClass");
     }
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(AbilityRuntime::Runtime::Language::STS);
