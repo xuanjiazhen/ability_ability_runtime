@@ -23,6 +23,7 @@
 
 #include "ability_manager_client.h"
 #include "ability_manager_errors.h"
+#include "ability_business_error.h"
 #include "app_utils.h"
 #include "event_handler.h"
 #include "hilog_tag_wrapper.h"
@@ -33,7 +34,6 @@
 #include "ani_common/ani_common_want.h"
 #include "ani_common/ani_common_start_options.h"
 #include "ani_common/ani_common_configuration.h"
-#include "ani_common/ani_common_ability_info.h"
 #include "ani_common/ani_common_ability_result.h"
 #include "open_link_options.h"
 #include "start_options.h"
@@ -42,6 +42,7 @@
 #include "ui_service_extension_connection_constants.h"
 #include "uri.h"
 #include "want.h"
+#include "common_fun_ani.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -102,7 +103,12 @@ void StsAbilityContext::InheritWindowMode(ani_env *env, ani_object aniObj, AAFwk
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
 #ifdef SUPPORT_SCREEN
     // only split mode need inherit
-    auto windowMode = GetAbilityContext(env, aniObj)->GetCurrentWindowMode();
+    auto context = GetAbilityContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "context null");
+        return;
+    }
+    auto windowMode = context->GetCurrentWindowMode();
     if (AAFwk::AppUtils::GetInstance().IsInheritWindowSplitScreenMode() &&
         (windowMode == AAFwk::AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_PRIMARY ||
         windowMode == AAFwk::AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_SECONDARY)) {
@@ -139,10 +145,47 @@ bool StsAbilityContext::AsyncCallback(ani_env *env, ani_object call, ani_object 
     return true;
 }
 
-ani_object StsAbilityContext::WrapBusinessError(ani_env *env, ani_int code)
+std::string StsAbilityContext::GetErrMsg(int32_t err, const std::string& permission)
+{
+    auto errCode = GetJsErrorCodeByNativeError(err);
+    auto errMsg = (errCode == AbilityErrorCode::ERROR_CODE_PERMISSION_DENIED && !permission.empty())
+                      ? GetNoPermissionErrorMsg(permission)
+                      : GetErrorMsg(errCode);
+    TAG_LOGI(AAFwkTag::UIABILITY, "errMsg : %{public}d", errCode);
+    TAG_LOGI(AAFwkTag::UIABILITY, "errMsg : %{public}s", errMsg.c_str());
+    return errMsg;
+}
+
+ani_object StsAbilityContext::WrapError(ani_env *env, const std::string& msg){
+    ani_class cls = nullptr;
+    ani_method method = nullptr;
+    ani_object obj = nullptr;
+    ani_status status = ANI_ERROR;
+    ani_string aniMsg = AppExecFwk::GetAniString(env, msg);
+
+    ani_ref undefRef;
+    env->GetUndefined(&undefRef);
+    
+    if ((status = env->FindClass("Lescompat/Error;", &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+        return nullptr;
+    }
+    if ((status = env->Class_FindMethod(cls, "<ctor>", "Lstd/core/String;Lescompat/ErrorOptions;:V", &method)) !=
+        ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+        return nullptr;
+    }
+    
+    if ((status = env->Object_New(cls, method, &obj, aniMsg, undefRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+        return nullptr;
+    }
+    return obj;
+}
+
+ani_object StsAbilityContext::WrapBusinessError(ani_env *env, int32_t code)
 {
     ani_class cls = nullptr;
-    ani_field field = nullptr;
     ani_method method = nullptr;
     ani_object obj = nullptr;
     ani_status status = ANI_ERROR;
@@ -150,19 +193,17 @@ ani_object StsAbilityContext::WrapBusinessError(ani_env *env, ani_int code)
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
         return nullptr;
     }
-    if ((status = env->Class_FindMethod(cls, "<ctor>", nullptr, &method)) != ANI_OK) {
+    if ((status = env->Class_FindMethod(cls, "<ctor>", "DLescompat/Error;:V", &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
         return nullptr;
     }
-    if ((status = env->Object_New(cls, method, &obj)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+    ani_object error = WrapError(env, GetErrMsg(code));
+    if (error == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "error nulll");
         return nullptr;
     }
-    if ((status = env->Class_FindField(cls, "code", &field)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
-        return nullptr;
-    }
-    if ((status = env->Object_SetField_Int(obj, field, code)) != ANI_OK) {
+    ani_double dCode(code);
+    if ((status = env->Object_New(cls, method, &obj, dCode, error)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
         return nullptr;
     }
@@ -177,7 +218,11 @@ void StsAbilityContext::StartAbilityInner([[maybe_unused]] ani_env *env, [[maybe
     TAG_LOGE(AAFwkTag::UIABILITY, "start");
     AAFwk::Want want;
     OHOS::AppExecFwk::UnwrapWant(env, wantObj, want);
-
+    auto context = StsAbilityContext::GetAbilityContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "context null");
+        return;
+    }
     InheritWindowMode(env, aniObj, want);
 
     if ((want.GetFlags() & AAFwk::Want::FLAG_INSTALL_ON_DEMAND) == AAFwk::Want::FLAG_INSTALL_ON_DEMAND) {
@@ -189,9 +234,9 @@ void StsAbilityContext::StartAbilityInner([[maybe_unused]] ani_env *env, [[maybe
     if (opt != nullptr) {
         AAFwk::StartOptions startOptions;
         OHOS::AppExecFwk::UnwrapStartOptionsWithProcessOption(env, opt, startOptions);
-        resultCode = GetAbilityContext(env, aniObj)->StartAbility(want, startOptions, -1);
+        resultCode = context->StartAbility(want, startOptions, -1);
     } else {
-        resultCode = GetAbilityContext(env, aniObj)->StartAbility(want, -1);
+        resultCode = context->StartAbility(want, -1);
     }
 
     if ((want.GetFlags() & AAFwk::Want::FLAG_INSTALL_ON_DEMAND) == AAFwk::Want::FLAG_INSTALL_ON_DEMAND) {
@@ -374,7 +419,7 @@ ani_ref CreateStsAbilityContext(ani_env *env, const std::shared_ptr<AbilityConte
 
     ani_field field = nullptr;
     auto abilityInfo = context->GetAbilityInfo();
-    ani_ref abilityInfoRef = OHOS::AppExecFwk::WrapAbilityInfo(env, *abilityInfo);
+    ani_ref abilityInfoRef = AppExecFwk::CommonFunAni::ConvertAbilityInfo(env, *abilityInfo);
     if ((status = env->Class_FindField(cls, "abilityInfo", &field)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
     }

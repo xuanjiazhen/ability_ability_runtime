@@ -13,17 +13,9 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_ANICOMMON_ABILITY_INFO_H
-#define OHOS_ABILITY_RUNTIME_ANICOMMON_ABILITY_INFO_H
+declare namespace window {
+    export interface WindowStage {
+    }
+  }
 
-#include "ability_info.h"
-#include "ani_common_util.h"
-
-namespace OHOS {
-namespace AppExecFwk {
-
-ani_object WrapAbilityInfo(ani_env *env, const AbilityInfo &abilityInfo);
-
-}  // namespace AppExecFwk
-}  // namespace OHOS
-#endif  // OHOS_ABILITY_RUNTIME_ANICOMMON_ABILITY_INFO_H
+export default window;
