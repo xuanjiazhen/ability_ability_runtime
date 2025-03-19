@@ -31,6 +31,7 @@
 #include "mock_bundle_manager.h"
 #include "system_ability_definition.h"
 #include "sys_mgr_client.h"
+#include "running_process_info.h"
 
 namespace OHOS {
 namespace AppExecFwk {
