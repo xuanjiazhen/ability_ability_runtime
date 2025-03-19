@@ -22,6 +22,7 @@ import AbilityStartCallback from 'application.AbilityStartCallback';
 import { Configuration } from '@ohos.app.ability.Configuration';
 import Context from 'application.Context';
 import window from '@ohos.window';
+import { launch } from 'std/concurrency';
 
 export class AsyncCallbackWrapper<T> {
   myFun_:AsyncCallback<T, void> = (err: BusinessError<void>, data: T) => {}
@@ -53,16 +54,18 @@ export default class UIAbilityContext extends Context {
   private native nativeStartAbilityByTypeSync(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback): int;
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
-    let p1 = launch this.nativeStartAbilitySync(want, myCall);
+    let abilityStarter = (ctx: UIAbilityContext, w: Want, cb: AsyncCallbackWrapper<void>) => { ctx.nativeStartAbilitySync(w, cb); }
+    let p1 = launch<void, (ctx: UIAbilityContext, w: Want, cb: AsyncCallbackWrapper<void>) => void>(abilityStarter, this, want, myCall);
   }
 
   startAbility(want: Want, options: StartOptions, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
-    let p1 = launch this.nativeStartAbilitySync(want, options, myCall);
+    let abilityStarter = (ctx: UIAbilityContext, w: Want, o: StartOptions, cb: AsyncCallbackWrapper<void>) => { ctx.nativeStartAbilitySync(w, o, cb); }
+    let p1 = launch<void, (ctx: UIAbilityContext, w: Want, o: StartOptions, cb: AsyncCallbackWrapper<void>) => void>(abilityStarter, this, want, options, myCall);
   }
 
-  startAbility(want: Want): Promise<void> {
-    let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError<void>)=>void):void => {
+  startAbility(want: Want): Promise<int> {
+    let p = new Promise<int>((resolve: (data:int)=>void, reject:(err: BusinessError<void>)=>void):void => {
       let myCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>)=>{
         if (err.code == 0) {
           resolve(undefined);
@@ -70,7 +73,8 @@ export default class UIAbilityContext extends Context {
           reject(err);
         }
       });
-      launch this.nativeStartAbilitySync(want, myCall);
+      let abilityStarter = (ctx: UIAbilityContext, w: Want, cb: AsyncCallbackWrapper<void>) => { ctx.nativeStartAbilitySync(w, cb); }
+      launch<void, (ctx: UIAbilityContext, w: Want, cb: AsyncCallbackWrapper<void>) => void>(abilityStarter, this, want, myCall);
     });
     return p;
   }
@@ -84,19 +88,22 @@ export default class UIAbilityContext extends Context {
           reject(err);
         }
       });
-      launch this.nativeStartAbilitySync(want, options, myCall);
+      let abilityStarter = (ctx: UIAbilityContext, w: Want, o: StartOptions, cb: AsyncCallbackWrapper<void>) => { ctx.nativeStartAbilitySync(w, o, cb); }
+      launch<void, (ctx: UIAbilityContext, w: Want, o: StartOptions, cb: AsyncCallbackWrapper<void>) => void>(abilityStarter, this, want, options, myCall);
     });
     return p;
   }
 
   startAbilityForResult(want: Want, callback: AsyncCallback<AbilityResult, void>): void {
     let myCall = new AsyncCallbackWrapper<AbilityResult>(callback);
-    launch this.nativeStartAbilityForResult(want, myCall);
+    let abilityStarter = (ctx: UIAbilityContext, w: Want, cb: AsyncCallbackWrapper<AbilityResult>) => { ctx.nativeStartAbilityForResult(w, cb); }
+    launch<void, (ctx: UIAbilityContext, w: Want, cb: AsyncCallbackWrapper<AbilityResult>) => void>(abilityStarter, this, want, myCall);
   }
 
   startAbilityForResult(want: Want, startOptions: StartOptions, callback: AsyncCallback<AbilityResult, void>): void {
     let myCall = new AsyncCallbackWrapper<AbilityResult>(callback);
-    launch this.nativeStartAbilityForResult(want, startOptions, myCall);
+    let abilityStarter = (ctx: UIAbilityContext, w: Want, o: StartOptions, cb: AsyncCallbackWrapper<AbilityResult>) => { ctx.nativeStartAbilityForResult(w, o, cb); }
+    launch<void, (ctx: UIAbilityContext, w: Want, o: StartOptions, cb: AsyncCallbackWrapper<AbilityResult>) => void>(abilityStarter, this, want, startOptions, myCall);
   }
 
   startAbilityForResult(want: Want): Promise<AbilityResult>{
@@ -108,7 +115,8 @@ export default class UIAbilityContext extends Context {
           reject(err);
         }
       });
-      launch this.nativeStartAbilityForResult(want, myCall);
+      let abilityStarter = (ctx: UIAbilityContext, w: Want, cb: AsyncCallbackWrapper<AbilityResult>) => { ctx.nativeStartAbilityForResult(w, cb); }
+      launch<void, (ctx: UIAbilityContext, w: Want, cb: AsyncCallbackWrapper<AbilityResult>) => void>(abilityStarter, this, want, myCall);
     });
     return p;
   }
@@ -122,14 +130,16 @@ export default class UIAbilityContext extends Context {
           reject(err);
         }
       });
-      launch this.nativeStartAbilityForResult(want, startOptions, myCall);
+      let abilityStarter = (ctx: UIAbilityContext, w: Want, o: StartOptions, cb: AsyncCallbackWrapper<AbilityResult>) => { ctx.nativeStartAbilityForResult(w, o, cb); }
+      launch<void, (ctx: UIAbilityContext, w: Want, o: StartOptions, cb: AsyncCallbackWrapper<AbilityResult>) => void>(abilityStarter, this, want, startOptions, myCall);
     });
     return p;
   }
 
   terminateSelf(callback:AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
-    launch this.nativeTerminateSelfSync(myCall);
+    let abilityStarter = (ctx: UIAbilityContext, cb: AsyncCallbackWrapper<void>) => { ctx.nativeTerminateSelfSync(cb); }
+    launch<void, (ctx: UIAbilityContext, cb: AsyncCallbackWrapper<void>) => void>(abilityStarter, this, myCall);
   }
 
   terminateSelf(): Promise<void> {
@@ -141,14 +151,16 @@ export default class UIAbilityContext extends Context {
           reject(err);
         }
       });
-      launch this.nativeTerminateSelfSync(myCall);
+      let abilityStarter = (ctx: UIAbilityContext, cb: AsyncCallbackWrapper<void>) => { ctx.nativeTerminateSelfSync(cb); }
+      launch<void, (ctx: UIAbilityContext, cb: AsyncCallbackWrapper<void>) => void>(abilityStarter, this, myCall);
     });
     return p;
   }
 
   terminateSelfWithResult(parameter: AbilityResult, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
-    launch this.nativeTerminateSelfWithResult(parameter, myCall);
+    let abilityStarter = (ctx: UIAbilityContext, p: AbilityResult, cb: AsyncCallbackWrapper<void>) => { ctx.nativeTerminateSelfWithResult(p, cb); }
+    launch<void, (ctx: UIAbilityContext, p: AbilityResult, cb: AsyncCallbackWrapper<void>) => void>(abilityStarter, this, parameter, myCall);
   }
 
   terminateSelfWithResult(parameter: AbilityResult): Promise<void>{
@@ -160,14 +172,16 @@ export default class UIAbilityContext extends Context {
           reject(err);
         }
       });
-      launch this.nativeTerminateSelfWithResult(parameter, myCall);
+      let abilityStarter = (ctx: UIAbilityContext, p: AbilityResult, cb: AsyncCallbackWrapper<void>) => { ctx.nativeTerminateSelfWithResult(p, cb); }
+      launch<void, (ctx: UIAbilityContext, p: AbilityResult, cb: AsyncCallbackWrapper<void>) => void>(abilityStarter, this, parameter, myCall);
     });
     return p;
   }
 
   reportDrawnCompleted(callback:AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
-    launch this.nativeReportDrawnCompletedSync(myCall);
+    let abilityStarter = (ctx: UIAbilityContext, cb: AsyncCallbackWrapper<void>) => { ctx.nativeReportDrawnCompletedSync(cb); }
+    launch<void, (ctx: UIAbilityContext, cb: AsyncCallbackWrapper<void>) => void>(abilityStarter, this, myCall);
   }
 
   startAbilityByType(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback, callback: AsyncCallback<void>): void {
