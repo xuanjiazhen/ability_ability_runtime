@@ -129,8 +129,10 @@ void JsEnvironment::InitSourceMap(const std::shared_ptr<JsEnv::SourceMapOperator
         return;
     }
 
-    if (sourceMapOperator_ != nullptr) {
+    if (sourceMapOperator_ != nullptr && sourceMapOperator_->GetHasFile()) {
         sourceMapOperator_->InitSourceMap();
+    } else {
+        sourceMapOperator_->SetInitStatus(InitStatus::EXECUTED_SUCCESSFULLY);
     }
 
     auto translateBySourceMapFunc = [&](const std::string& rawStack) -> std::string {
@@ -142,9 +144,9 @@ void JsEnvironment::InitSourceMap(const std::shared_ptr<JsEnv::SourceMapOperator
     };
     engine_->RegisterTranslateBySourceMap(translateBySourceMapFunc);
 
-    auto translateUrlBySourceMapFunc = [&](std::string& url, int& line, int& column) -> bool {
+    auto translateUrlBySourceMapFunc = [&](std::string& url, int& line, int& column, std::string& packageName) -> bool {
         if (sourceMapOperator_ != nullptr && sourceMapOperator_->GetInitStatus()) {
-            return sourceMapOperator_->TranslateUrlPositionBySourceMap(url, line, column);
+            return sourceMapOperator_->TranslateUrlPositionBySourceMap(url, line, column, packageName);
         }
         return false;
     };
