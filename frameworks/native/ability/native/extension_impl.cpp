@@ -189,12 +189,13 @@ void ExtensionImpl::Start(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
     }
 
     TAG_LOGD(AAFwkTag::EXT, "ExtensionImpl::Start");
-    if (extension_->abilityInfo_->extensionAbilityType == AppExecFwk::ExtensionAbilityType::WINDOW ||
-        AAFwk::UIExtensionUtils::IsUIExtension(extension_->abilityInfo_->extensionAbilityType)) {
-        extension_->OnStart(want, sessionInfo);
-    } else {
+    // if (extension_->abilityInfo_->extensionAbilityType == AppExecFwk::ExtensionAbilityType::WINDOW ||
+    //     AAFwk::UIExtensionUtils::IsUIExtension(extension_->abilityInfo_->extensionAbilityType)) {
+    //     extension_->OnStart(want, sessionInfo);
+    // } else {
+        TAG_LOGE(AAFwkTag::EXT, "zzl ExtensionImpl::Start");
         extension_->OnStart(want);
-    }
+    // }
     lifecycleState_ = AAFwk::ABILITY_STATE_INACTIVE;
     TAG_LOGD(AAFwkTag::EXT, "ok");
 }

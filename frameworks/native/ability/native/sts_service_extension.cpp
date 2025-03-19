@@ -13,41 +13,237 @@
  * limitations under the License.
  */
 
-#include "sts_service_extension.h"
+ #include "sts_service_extension.h"
 
-#include "ability_business_error.h"
-#include "ability_handler.h"
-#include "ability_info.h"
-#include "ability_manager_client.h"
-#include "configuration_utils.h"
-#include "hitrace_meter.h"
-#include "hilog_tag_wrapper.h"
-#include "sts_runtime.h"
-#include "js_runtime_utils.h"
-#ifdef SUPPORT_GRAPHICS
-#include "iservice_registry.h"
-#include "system_ability_definition.h"
-#include "window_scene.h"
-#endif
+ #include "ability_business_error.h"
+ #include "ability_handler.h"
+ #include "ability_info.h"
+ #include "ability_manager_client.h"
+ #include "ani_common_want.h"
+ #include "configuration_utils.h"
+ #include "hitrace_meter.h"
+ #include "hilog_tag_wrapper.h"
+ #include "insight_intent_execute_param.h"
+ #include "insight_intent_execute_result.h"
+ #include "insight_intent_executor_info.h"
+ #include "insight_intent_executor_mgr.h"
+ #include "js_extension_common.h"
+ #include "js_extension_context.h"
+ #include "js_runtime_utils.h"
+ #include "js_service_extension_context.h"
+ #include "napi/native_api.h"
+ #include "napi/native_node_api.h"
+ #include "ani_remote_object.h"
+//  #include "napi_common_configuration.h"
+//  #include "napi_common_want.h"
+//  #include "napi_remote_object.h"
+ #ifdef SUPPORT_GRAPHICS
+ #include "iservice_registry.h"
+ #include "system_ability_definition.h"
+ #include "window_scene.h"
+ #endif
+ 
+ namespace OHOS {
+ namespace AbilityRuntime {
+ 
+ namespace {
 
-namespace OHOS {
-namespace AbilityRuntime {
-using namespace OHOS::AppExecFwk;
-
-ani_ref WrapWant(ani_env* env, const Want &want)
+void OnConnectPromiseCallback(ani_env* env, ani_object aniObj)
 {
-    TAG_LOGE(AAFwkTag::SERVICE_EXT, "WrapWant");
-    ani_class cls = nullptr;
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "PromiseCallback");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null env");
+        return;
+    }
+    ani_long connectCallbackPoint = 0;
     ani_status status = ANI_ERROR;
-    if ((status = env->FindClass("L@ohos/app/ability/Want/Want;", &cls)) != ANI_OK) {
+    if ((status = env->Object_GetFieldByName_Long(aniObj, "connectCallbackPoint", &connectCallbackPoint)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
+        return;
+    }
+    auto *callbackInfo = reinterpret_cast<AppExecFwk::AbilityTransactionCallbackInfo<sptr<IRemoteObject>>*>(connectCallbackPoint);
+    if (callbackInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null callbackInfo");
+        return;
+    }
+
+    callbackInfo->Call(remoteObject);
+    // AppExecFwk::AbilityTransactionCallbackInfo<>::Destroy(callbackInfo);
+}
+
+void OnDisconnectPromiseCallback(ani_env* env, ani_object aniObj)
+{
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "OnDisconnectPromiseCallback");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null env");
+        return;
+    }
+    ani_long disconnectCallbackPoint = 0;
+    ani_status status = ANI_ERROR;
+    if ((status = env->Object_GetFieldByName_Long(aniObj, "disconnectCallbackPoint", &disconnectCallbackPoint)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
+        return;
+    }
+    auto *callbackInfo = reinterpret_cast<AppExecFwk::AbilityTransactionCallbackInfo<> *>(disconnectCallbackPoint);
+    if (callbackInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null callbackInfo");
+        return;
+    }
+    callbackInfo->Call();
+    AppExecFwk::AbilityTransactionCallbackInfo<>::Destroy(callbackInfo);
+}
+
+[[maybe_unused]]ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
+{
+    TAG_LOGI(AAFwkTag::DELEGATOR, "ANI_Constructor");
+    ani_env *env = nullptr;
+    ani_status status = ANI_ERROR;
+    status = vm->GetEnv(ANI_VERSION_1, &env);
+    if (status != ANI_OK) {
+        TAG_LOGI(AAFwkTag::DELEGATOR, "GetEnv failed status : %{public}d", status);
+        return ANI_NOT_FOUND;
+    }
+
+    static const char *className = "LServiceExtensionAbility/ServiceExtensionAbilityInner;";
+    ani_class cls;
+    status = env->FindClass(className, &cls);
+    if (ANI_OK != status) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "FindClass is fail %{public}d", status);
+        return ANI_ERROR;
+    }
+
+    std::array functions = {
+        ani_native_function { "nativeOnConnectCallback", ":V", reinterpret_cast<void*>(OnConnectPromiseCallback) },
+        ani_native_function { "nativeOnDisconnectCallback", ":V", reinterpret_cast<void*>(OnDisconnectPromiseCallback) },
+    };
+
+    status = env->Class_BindNativeMethods(cls, functions.data(), functions.size());
+    if (ANI_OK != status) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Class_BindNativeMethods is fail %{public}d", status);
+        return ANI_ERROR;
+    };
+    *result = ANI_VERSION_1;
+    TAG_LOGI(AAFwkTag::DELEGATOR, "ANI_Constructor finish");
+    return ANI_OK;
+}
+ 
+ }
+ 
+ using namespace OHOS::AppExecFwk;
+ 
+ StsServiceExtension* StsServiceExtension::Create(const std::unique_ptr<Runtime>& runtime)
+ {
+     return new StsServiceExtension(static_cast<STSRuntime&>(*runtime));
+ }
+ 
+ StsServiceExtension::StsServiceExtension(STSRuntime& stsRuntime) : stsRuntime_(stsRuntime) {}
+ StsServiceExtension::~StsServiceExtension()
+ {
+     TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
+ }
+
+ void StsServiceExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
+    const std::shared_ptr<OHOSApplication> &application, std::shared_ptr<AbilityHandler> &handler,
+    const sptr<IRemoteObject> &token)
+{
+}
+  
+ #ifdef SUPPORT_GRAPHICS
+ void StsServiceExtension::SystemAbilityStatusChangeListener::OnAddSystemAbility(int32_t systemAbilityId,
+     const std::string& deviceId)
+ {
+ }
+ #endif //SUPPORT_GRAPHICS
+ 
+ void StsServiceExtension::OnStart(const AAFwk::Want &want)
+ {
+     //Extension::OnStart(want);
+     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+     TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
+ 
+     auto env = stsRuntime_.GetAniEnv();
+     if (!env) {
+         TAG_LOGE(AAFwkTag::SERVICE_EXT, "env not found Ability.sts");
+         return;
+     }
+ 
+     ani_ref wantRef = OHOS::AppExecFwk::WrapWant(env, want);
+     if (wantRef == nullptr) {
+         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null wantRef");
+         return;
+     }
+ 
+     const char* signature = "L@ohos/app/ability/Want/Want;:V";
+     CallObjectMethod(false, "onCreate", signature, wantRef);
+     TAG_LOGD(AAFwkTag::SERVICE_EXT, "end");
+ }
+ 
+ void StsServiceExtension::OnStop()
+ {
+     ServiceExtension::OnStop();
+     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+     TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
+     const char* signature = ":V";
+     CallObjectMethod(false, "onDestroy", signature);
+     TAG_LOGD(AAFwkTag::SERVICE_EXT, "end");
+ }
+ 
+sptr<IRemoteObject> StsServiceExtension::OnConnect(const AAFwk::Want &want)
+ {
+    TAG_LOGE(AAFwkTag::SERVICE_EXT, "zzl StsServiceExtension::OnConnect called");
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
+    auto env = stsRuntime_.GetAniEnv();
+    if (!env) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "env not found Ability.sts");
+        return nullptr;
+    }
+
+    ani_ref wantRef = OHOS::AppExecFwk::WrapWant(env, want);
+    if (wantRef == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null wantRef");
+        return nullptr;
+    }
+    const char* signature = "L@ohos/app/ability/Want/Want;:L@ohos/rpc/rpc/RemoteObject;";
+    ani_ref remoteObjRef = CallObjectMethod(false, "onConnect", signature, wantRef);
+    auto obj = reinterpret_cast<ani_object>(remoteObjRef);
+    sptr<IRemoteObject> remoteObj = AniGetNativeRemoteObject(env, obj);
+    if (remoteObj == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "remoteObj null");
+    }
+    return remoteObj;
+
+ }
+ 
+ sptr<IRemoteObject> StsServiceExtension::OnConnect(const AAFwk::Want &want,
+     AppExecFwk::AbilityTransactionCallbackInfo<sptr<IRemoteObject>> *callbackInfo, bool &isAsyncCallback)
+ {
+    auto env = stsRuntime_.GetAniEnv();
+    if (!env) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "env not found");
+        return nullptr;
+    }
+    if (callbackInfo == nullptr) {
+        isAsyncCallback = false;
+        return OnConnect(want);
+    }
+    const char* signature = "L@ohos/app/ability/Want/Want;:L@ohos/rpc/rpc/RemoteObject;";
+    ani_ref result = CallObjectMethod(true, "onConnect", signature, OHOS::AppExecFwk::WrapWant(env, want));
+    auto obj = reinterpret_cast<ani_object>(result);
+    sptr<IRemoteObject> remoteObj = AniGetNativeRemoteObject(env, obj);
+    if (remoteObj == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "remoteObj null");
+    }
+
+    ani_long connectCallbackPoint = (ani_long)callbackInfo;
+    ani_status status = ANI_ERROR;
+    ani_field field = nullptr;
+    ani_class cls = nullptr;
+    if ((status = env->FindClass("L@ohos/app/ability/ServiceExtensionAbility/ServiceExtensionAbility;", &cls))
+        != ANI_OK) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
         return nullptr;
     }
-    if (cls == nullptr) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null wantCls");
-        return nullptr;
-    }
-
     ani_method method = nullptr;
     if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
@@ -55,157 +251,25 @@ ani_ref WrapWant(ani_env* env, const Want &want)
     }
     ani_object object = nullptr;
     if ((status = env->Object_New(cls, method, &object)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
         return nullptr;
     }
-    if (object == nullptr) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null object");
+    if ((status = env->Class_FindField(cls, "connectCallbackPoint", &field)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+    }
+    if ((status = env->Object_SetField_Long(object, field, connectCallbackPoint)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+    }
+
+    isAsyncCallback = CallObjectMethod(true, "callOnConnect", "L@ohos/app/ability/Want/Want;:Z");
+    TAG_LOGI(AAFwkTag::UIABILITY, "callOnDestroy isAsyncCallback: %{public}d", isAsyncCallback);
+    if (!isAsyncCallback) {
         return nullptr;
     }
-    ani_field field = nullptr;
-    ani_string string = nullptr;
-    auto elementName = want.GetElement();
-
-    if ((status = env->Class_FindField(cls, "deviceId", &field)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
-        return nullptr;
-    }
-    env->String_NewUTF8(elementName.GetDeviceID().c_str(), elementName.GetDeviceID().size(), &string);
-    if ((status = env->Object_SetField_Ref(object, field, string)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
-        return nullptr;
-    }
-    if ((status = env->Class_FindField(cls, "bundleName", &field)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
-        return nullptr;
-    }
-    if ((status = env->String_NewUTF8(elementName.GetBundleName().c_str(),
-        elementName.GetBundleName().size(), &string)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
-        return nullptr;
-    }
-    if ((status = env->Object_SetField_Ref(object, field, string)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
-        return nullptr;
-    }
-    env->Class_FindField(cls, "abilityName", &field);
-    env->String_NewUTF8(elementName.GetAbilityName().c_str(), elementName.GetAbilityName().size(), &string);
-    env->Object_SetField_Ref(object, field, string);
-
-    env->Class_FindField(cls, "moduleName", &field);
-    env->String_NewUTF8(elementName.GetModuleName().c_str(), elementName.GetModuleName().size(), &string);
-    env->Object_SetField_Ref(object, field, string);
-
-    env->Class_FindField(cls, "uri", &field);
-    env->String_NewUTF8(want.GetUriString().c_str(), want.GetUriString().size(), &string);
-    env->Object_SetField_Ref(object, field, string);
-
-    env->Class_FindField(cls, "type", &field);
-    env->String_NewUTF8(want.GetType().c_str(), want.GetType().size(), &string);
-    env->Object_SetField_Ref(object, field, string);
-
-    if ((status = env->Class_FindField(cls, "flags", &field)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
-        return nullptr;
-    }
-    if ((status = env->Object_SetField_Int(object, field, want.GetFlags())) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
-        return nullptr;
-    }
-
-    env->Class_FindField(cls, "action", &field);
-    env->String_NewUTF8(want.GetAction().c_str(), want.GetAction().size(), &string);
-    env->Object_SetField_Ref(object, field, string);
-
-    ani_ref wantRef = nullptr;
-    if ((status = env->GlobalReference_Create(object, &wantRef)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
-        return nullptr;
-    }
-    return wantRef;
-}
-
-StsServiceExtension* StsServiceExtension::Create(const std::unique_ptr<Runtime>& runtime)
-{
-    return new StsServiceExtension(static_cast<STSRuntime&>(*runtime));
-}
-
-StsServiceExtension::StsServiceExtension(STSRuntime& stsRuntime) : stsRuntime_(stsRuntime)
-{
-    TAG_LOGD(AAFwkTag::SERVICE_EXT, "StsServiceExtension::StsServiceExtension");
-}
-
-StsServiceExtension::~StsServiceExtension()
-{
-    TAG_LOGD(AAFwkTag::SERVICE_EXT, "StsServiceExtension::~StsServiceExtension");
-}
-
-void StsServiceExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
-    const std::shared_ptr<OHOSApplication> &application, std::shared_ptr<AbilityHandler> &handler,
-    const sptr<IRemoteObject> &token)
-{
-    TAG_LOGD(AAFwkTag::SERVICE_EXT, "StsServiceExtension::Init");
-}
-
-void StsServiceExtension::SetAbilityContext(std::shared_ptr<AbilityInfo> abilityInfo,
-    std::shared_ptr<AAFwk::Want> want, const std::string &moduleName, const std::string &srcPath)
-{
-}
-
-void StsServiceExtension::OnStart(const AAFwk::Want &want)
-{
-    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
-
-    auto env = stsRuntime_.GetAniEnv();
-    if (!env) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "env not found Ability.sts");
-        return;
-    }
-
-    ani_ref wantRef = WrapWant(env, want);
-    if (wantRef == nullptr) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null wantRef");
-        return;
-    }
-
-    const char* signature = "L@ohos/app/ability/Want/Want;:V";
-    CallObjectMethod(false, "onCreate", signature, wantRef);
-    TAG_LOGD(AAFwkTag::SERVICE_EXT, "end");
-}
-
-void StsServiceExtension::OnStop()
-{
-    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
-    const char* signature = ":V";
-    CallObjectMethod(false, "onDestroy", signature);
-    TAG_LOGD(AAFwkTag::SERVICE_EXT, "end");
-}
-
-sptr<IRemoteObject> StsServiceExtension::OnConnect(const AAFwk::Want &want)
-{
-    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
-    auto env = stsRuntime_.GetAniEnv();
-    if (!env) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "env not found Ability.sts");
-        return nullptr;
-    }
-
-    ani_ref wantRef = WrapWant(env, want);
-    if (wantRef == nullptr) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null wantRef");
-        return nullptr;
-    }
-    const char* signature = "L@ohos/app/ability/Want/Want;:V";
-    CallObjectMethod(false, "onConnect", signature, wantRef);
-    TAG_LOGD(AAFwkTag::SERVICE_EXT, "end");
     return nullptr;
-}
-
-void StsServiceExtension::OnDisconnect(const AAFwk::Want &want)
-{
+ }
+ 
+ void StsServiceExtension::OnDisconnect(const AAFwk::Want &want)
+ {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
     auto env = stsRuntime_.GetAniEnv();
@@ -214,7 +278,7 @@ void StsServiceExtension::OnDisconnect(const AAFwk::Want &want)
         return;
     }
 
-    ani_ref wantRef = WrapWant(env, want);
+    ani_ref wantRef = OHOS::AppExecFwk::WrapWant(env, want);
     if (wantRef == nullptr) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null wantRef");
         return;
@@ -222,10 +286,57 @@ void StsServiceExtension::OnDisconnect(const AAFwk::Want &want)
     const char* signature  = "L@ohos/app/ability/Want/Want;:V";
     CallObjectMethod(false, "onDisconnect", signature, wantRef);
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "end");
-}
+ }
+ 
+ void StsServiceExtension::OnDisconnect(const AAFwk::Want &want,
+     AppExecFwk::AbilityTransactionCallbackInfo<> *callbackInfo, bool &isAsyncCallback)
+ {
+    auto env = stsRuntime_.GetAniEnv();
+    if (!env) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "env not found");
+        return;
+    }
 
-void StsServiceExtension::OnCommand(const AAFwk::Want &want, bool restart, int startId)
-{
+    if (callbackInfo == nullptr) {
+        isAsyncCallback = false;
+        OnDisconnect(want);
+        return;
+    }
+
+    ani_long disconnectCallbackPoint = (ani_long)callbackInfo;
+    ani_status status = ANI_ERROR;
+    ani_field field = nullptr;
+    ani_class cls = nullptr;
+    if ((status = env->FindClass("L@ohos/app/ability/ServiceExtensionAbility;", &cls))
+        != ANI_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
+        return;
+    }
+    ani_method method = nullptr;
+    if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
+        return;
+    }
+    ani_object object = nullptr;
+    if ((status = env->Object_New(cls, method, &object)) != ANI_OK) {
+        return;
+    }
+    if ((status = env->Class_FindField(cls, "disconnectCallbackPoint", &field)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+    }
+    if ((status = env->Object_SetField_Long(object, field, disconnectCallbackPoint)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+    }
+
+    isAsyncCallback = CallObjectMethod(true, "callOnDisconnect", "L@ohos/app/ability/Want/Want;:Z");
+    TAG_LOGI(AAFwkTag::UIABILITY, "callOnDisconnect isAsyncCallback: %{public}d", isAsyncCallback);
+    if (!isAsyncCallback) {
+        return;
+    }
+ }
+ 
+ void StsServiceExtension::OnCommand(const AAFwk::Want &want, bool restart, int startId)
+ {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
     auto env = stsRuntime_.GetAniEnv();
@@ -234,7 +345,7 @@ void StsServiceExtension::OnCommand(const AAFwk::Want &want, bool restart, int s
         return;
     }
 
-    ani_ref wantRef = WrapWant(env, want);
+    ani_ref wantRef = OHOS::AppExecFwk::WrapWant(env, want);
     if (wantRef == nullptr) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null wantRef");
     }
@@ -244,18 +355,36 @@ void StsServiceExtension::OnCommand(const AAFwk::Want &want, bool restart, int s
     CallObjectMethod(false, "onRequest", signature, wantRef, iStartId);
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "end");
     return;
-}
-
-ani_ref StsServiceExtension::CallObjectMethod(bool withResult, const char* name, const char* signature, ...)
+ }
+ 
+ bool StsServiceExtension::HandleInsightIntent(const AAFwk::Want &want)
+ {
+     return true;
+ }
+ 
+ bool StsServiceExtension::GetInsightIntentExecutorInfo(const Want &want,
+     const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &executeParam,
+     InsightIntentExecutorInfo &executorInfo)
+ {
+     return true;
+ }
+ 
+ bool StsServiceExtension::OnInsightIntentExecuteDone(uint64_t intentId,
+     const AppExecFwk::InsightIntentExecuteResult &result)
+ {
+    return true;
+ }
+ 
+ ani_ref StsServiceExtension::CallObjectMethod(bool withResult, const char* name, const char* signature, ...)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, std::string("CallObjectMethod:") + name);
     TAG_LOGI(AAFwkTag::SERVICE_EXT, "call sts, name: %{public}s", name);
     ani_class cls = nullptr;
     ani_status status = ANI_ERROR;
     auto env = stsRuntime_.GetAniEnv();
-    if ((status = env->FindClass("L@ohos/app/ability/ServiceExtensionAbility/ServiceExtensionAbility;", &cls))
+    if ((status = env->FindClass("L@ohos/app/ability/ServiceExtensionAbility;", &cls))
         != ANI_OK) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "zzl status : %{public}d", status);
         return nullptr;
     }
     if (cls == nullptr) {
@@ -271,24 +400,29 @@ ani_ref StsServiceExtension::CallObjectMethod(bool withResult, const char* name,
 
     ani_object object = nullptr;
     if ((status = env->Object_New(cls, method, &object)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null object");
         return nullptr;
     }
 
     if (object == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null object");
         return nullptr;
     }
 
     if ((status = env->Class_FindMethod(cls, name, signature, &method)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null Class_FindMethod");
         return nullptr;
     }
 
     if (method == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null Class_FindMethod");
         return nullptr;
     }
 
     ani_ref res = nullptr;
     va_list args;
     if (withResult) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "zzl withResult");
         va_start(args, signature);
         if ((status = env->Object_CallMethod_Ref_V(object, method, &res, args)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
@@ -296,6 +430,7 @@ ani_ref StsServiceExtension::CallObjectMethod(bool withResult, const char* name,
         va_end(args);
         return res;
     }
+    TAG_LOGE(AAFwkTag::SERVICE_EXT, "zzl null withResult");
     va_start(args, signature);
     if ((status = env->Object_CallMethod_Void_V(object, method, args)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
@@ -303,31 +438,40 @@ ani_ref StsServiceExtension::CallObjectMethod(bool withResult, const char* name,
     va_end(args);
     return nullptr;
 }
+ 
+ void StsServiceExtension::OnConfigurationUpdated(const AppExecFwk::Configuration& configuration)
+ {
+ }
+ 
+ void StsServiceExtension::ConfigurationUpdated()
+ {
+ }
+ 
+ void StsServiceExtension::Dump(const std::vector<std::string> &params, std::vector<std::string> &info)
+ {
+ }
+ 
+ #ifdef SUPPORT_GRAPHICS
+ void StsServiceExtension::OnCreate(Rosen::DisplayId displayId)
+ {
+     TAG_LOGD(AAFwkTag::SERVICE_EXT, "enter");
+ }
+ 
+ void StsServiceExtension::OnDestroy(Rosen::DisplayId displayId)
+ {
+     TAG_LOGD(AAFwkTag::SERVICE_EXT, "exit");
+ }
+ 
+ void StsServiceExtension::OnDisplayInfoChange(const sptr<IRemoteObject>& token, Rosen::DisplayId displayId,
+     float density, Rosen::DisplayOrientation orientation)
+ {
+ }
+ 
+ void StsServiceExtension::OnChange(Rosen::DisplayId displayId)
+ {
+ }
+ #endif
+ } // AbilityRuntime
+ } // OHOS
 
-void StsServiceExtension::TestServiceExtension(const std::unique_ptr<Runtime>& runtime)
-{
-    TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
-    StsServiceExtension* pTestServiceExtension = StsServiceExtension::Create(runtime);
-    if (pTestServiceExtension == nullptr) {
-        return;
-    }
-
-    Want want;
-    WantParams wantParams;
-    std::string paramName(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME);
-    std::string insightIntentId(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID);
-    want.SetParams(wantParams);
-    AppExecFwk::ElementName element;
-    element.SetBundleName("com.ohos.test");
-    want.SetElement(element);
-
-    pTestServiceExtension->OnStart(want);
-    pTestServiceExtension->OnStop();
-    pTestServiceExtension->OnCommand(want, false, 1);
-    pTestServiceExtension->OnConnect(want);
-    pTestServiceExtension->OnConnect(want);
-    pTestServiceExtension->OnDisconnect(want);
-    TAG_LOGD(AAFwkTag::SERVICE_EXT, "end");
-}
-} // AbilityRuntime
-} // OHOS
+ 
