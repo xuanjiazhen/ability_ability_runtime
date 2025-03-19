@@ -19,6 +19,7 @@ import { BusinessError } from '@ohos.base';
 import { AsyncCallbackCommonWrapper } from '../UIExtensionCommon';
 import hilog from '@ohos.hilog';
 import ExtensionContext from 'application.ExtensionContext';
+import { launch } from "std/concurrency";
 
 export class AsyncCallbackContextWrapper<T> {
   myFun_: AsyncCallback<T, void> = (err: BusinessError<void>, data: T) => {}
@@ -39,7 +40,8 @@ export default class UIExtensionContext extends ExtensionContext {
 
   terminateSelf(callback:AsyncCallback<void>): void {
     let myCall = new AsyncCallbackCommonWrapper<void>(callback);
-    launch this.terminateSelfSync(myCall);
+    let terminator = (ctx: UIExtensionContext, cb: AsyncCallbackCommonWrapper<void>) => { ctx.terminateSelfSync(cb); }
+    launch<void, (ctx: UIExtensionContext, cb: AsyncCallbackCommonWrapper<void>) => void>(terminator, this, myCall);
   }
 
   terminateSelf(): Promise<void> {
@@ -51,14 +53,16 @@ export default class UIExtensionContext extends ExtensionContext {
           reject(err);
         }
       });
-      launch this.terminateSelfSync(myCall);
+      let terminator = (ctx: UIExtensionContext, cb: AsyncCallbackCommonWrapper<void>) => { ctx.terminateSelfSync(cb); }
+      launch<void, (ctx: UIExtensionContext, cb: AsyncCallbackCommonWrapper<void>) => void>(terminator, this, myCall);
     });
     return p;
   }
 
   terminateSelfWithResult(parameter: AbilityResult, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackCommonWrapper<void>(callback);
-    launch this.terminateSelfWithResultSync(parameter, myCall);
+    let terminator = (ctx: UIExtensionContext, p: AbilityResult, cb: AsyncCallbackCommonWrapper<void>) => { ctx.terminateSelfWithResultSync(p, cb); }
+    launch<void, (ctx: UIExtensionContext, p: AbilityResult, cb: AsyncCallbackCommonWrapper<void>) => void>(terminator, this, parameter, myCall);
   }
 
   terminateSelfWithResult(parameter: AbilityResult): Promise<void> {
@@ -70,7 +74,8 @@ export default class UIExtensionContext extends ExtensionContext {
           reject(err);
         }
       });
-      launch this.terminateSelfWithResultSync(parameter, myCall);
+      let terminator = (ctx: UIExtensionContext, p: AbilityResult, cb: AsyncCallbackCommonWrapper<void>) => { ctx.terminateSelfWithResultSync(p, cb); }
+      launch<void, (ctx: UIExtensionContext, p: AbilityResult, cb: AsyncCallbackCommonWrapper<void>) => void>(terminator, this, parameter, myCall);
     });
     return p;
   }
