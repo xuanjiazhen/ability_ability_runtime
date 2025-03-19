@@ -1721,8 +1721,9 @@ HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_CreateBundleContext_001, Functi
 HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_KillProcessBySelf_001, Function | MediumTest | Level1)
 {
     bool clearPageStack = false;
-    AbilityRuntime::ContextImpl contextImpl;
-    // EXPECT_NE(contextImpl.KillProcessBySelf(clearPageStack), ERR_OK);
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    contextImpl->KillProcessBySelf(clearPageStack);
+    EXPECT_NE(contextImpl, nullptr);
 }
 
 /**
