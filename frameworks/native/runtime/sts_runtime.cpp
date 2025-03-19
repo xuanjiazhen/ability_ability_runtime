@@ -185,7 +185,7 @@ private:
 
     static void HandleOhmUrlFileName(std::string &fileName)
     {
-        size_t colonPos = fileName.rfind(':');
+        size_t colonPos = fileName.rfind(':'); 
         if (colonPos != std::string::npos) {
             // <fileName>:<className>  =>  <fileName>/<className>
             fileName.replace(colonPos, 1, "/");
