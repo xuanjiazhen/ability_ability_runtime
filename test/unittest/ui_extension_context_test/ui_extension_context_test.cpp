@@ -563,9 +563,7 @@ HWTEST_F(UIExtensionContextTest, SetAbilityConfiguration_0200, TestSize.Level1)
     config.AddItem(1002, AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE, English);
     context->SetAbilityConfiguration(config);
     auto result = context->abilityConfiguration_->GetItem(1002, AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE);
-
     EXPECT_EQ(result, English);
-
 }
 
 /**
