@@ -20,6 +20,7 @@ import uiExtensionHost from '@ohos.uiExtensionHost';
 import { LocalStorage } from '@ohos.arkui.stateManagement';
 import { AsyncCallbackCommonWrapper } from './UIExtensionCommon';
 import hilog from '@ohos.hilog';
+import { launch } from 'std/concurrency';
 
 export default class UIExtensionContentSession {
   nativeContextSession:long = 0;
@@ -46,7 +47,8 @@ export default class UIExtensionContentSession {
 
   terminateSelf(callback:AsyncCallback<void>): void {
     let myCall = new AsyncCallbackCommonWrapper<void>(callback);
-    launch this.terminateSelfSync(myCall);
+    let terminator = (s: UIExtensionContentSession, cb: AsyncCallbackCommonWrapper<void>) => { s.terminateSelfSync(cb); }
+    launch<void, (s: UIExtensionContentSession, cb: AsyncCallbackCommonWrapper<void>) => void>(terminator, this, myCall);
   }
 
   terminateSelf(): Promise<void> {
@@ -58,14 +60,16 @@ export default class UIExtensionContentSession {
           reject(err);
         }
       });
-      launch this.terminateSelfSync(myCall);
+    let terminator = (s: UIExtensionContentSession, cb: AsyncCallbackCommonWrapper<void>) => { s.terminateSelfSync(cb); }
+    launch<void, (s: UIExtensionContentSession, cb: AsyncCallbackCommonWrapper<void>) => void>(terminator, this, myCall);
     });
     return p;
   }
 
   terminateSelfWithResult(parameter: AbilityResult, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackCommonWrapper<void>(callback);
-    launch this.terminateSelfWithResultSync(parameter, myCall);
+    let terminator = (s: UIExtensionContentSession, p: AbilityResult, cb: AsyncCallbackCommonWrapper<void>) => { s.terminateSelfWithResultSync(p, cb); }
+    launch<void, (s: UIExtensionContentSession, p: AbilityResult, cb: AsyncCallbackCommonWrapper<void>) => void>(terminator, this, parameter, myCall);
   }
 
   terminateSelfWithResult(parameter: AbilityResult): Promise<void> {
@@ -77,7 +81,8 @@ export default class UIExtensionContentSession {
           reject(err);
         }
       });
-      launch this.terminateSelfWithResultSync(parameter, myCall);
+      let terminator = (s: UIExtensionContentSession, p: AbilityResult, cb: AsyncCallbackCommonWrapper<void>) => { s.terminateSelfWithResultSync(p, cb); }
+      launch<void, (s: UIExtensionContentSession, p: AbilityResult, cb: AsyncCallbackCommonWrapper<void>) => void>(terminator, this, parameter, myCall);
     });
     return p;
   }
