@@ -309,7 +309,7 @@ int MissionListManager::MoveMissionToFrontInner(int32_t missionId, bool isCaller
 
 #ifdef SUPPORT_SCREEN
     AbilityRequest abilityRequest;
-    targetAbilityRecord->ProcessForegroundAbility(isRecent, abilityRequest, startOptions, callerAbility);
+    targetAbilityRecord->ProcessForegroundAbility(isRecent, abilityRequest, startOptions, callerAbility, 4);
 #else
     targetAbilityRecord->ProcessForegroundAbility(0);
 #endif
@@ -475,7 +475,7 @@ int MissionListManager::StartAbilityLocked(const std::shared_ptr<AbilityRecord> 
 
 #ifdef SUPPORT_SCREEN
     std::shared_ptr<StartOptions> startOptions = nullptr;
-    targetAbilityRecord->ProcessForegroundAbility(false, abilityRequest, startOptions, callerAbility);
+    targetAbilityRecord->ProcessForegroundAbility(false, abilityRequest, startOptions, callerAbility, 4);
 #else
     targetAbilityRecord->ProcessForegroundAbility(0);
 #endif
@@ -1228,12 +1228,14 @@ int MissionListManager::DispatchState(const std::shared_ptr<AbilityRecord> &abil
             return DispatchBackground(abilityRecord);
         }
         case AbilityState::FOREGROUND: {
+            abilityRecord->SetSceneFlag(4);
             return DispatchForeground(abilityRecord, true);
         }
         case AbilityState::FOREGROUND_FAILED:
         case AbilityState::FOREGROUND_INVALID_MODE:
         case AbilityState::FOREGROUND_WINDOW_FREEZED:
         case AbilityState::FOREGROUND_DO_NOTHING: {
+            abilityRecord->SetSceneFlag(4);
             return DispatchForeground(abilityRecord, false, static_cast<AbilityState>(state));
         }
         default: {
