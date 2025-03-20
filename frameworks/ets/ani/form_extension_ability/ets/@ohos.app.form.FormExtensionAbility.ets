@@ -21,7 +21,7 @@ import Want from '@ohos.app.ability.Want';
 // // import { Configuration } from './@ohos.app.ability.Configuration';
 
 export default class FormExtensionAbility {
-    context: FormExtensionContext = new FormExtensionContext();
+    public context: FormExtensionContext = new FormExtensionContext();
     onAddForm(want: Want): formBindingData.FormBindingData{
         console.log(`FormExtensionAbility onAddForm, want: ${want.abilityName}`);
         let dataObj1: Record<string, string> = {

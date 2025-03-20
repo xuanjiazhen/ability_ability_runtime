@@ -61,8 +61,7 @@ private:
     std::unique_ptr<NativeReference> stsObj_;
     std::shared_ptr<STSNativeReference> stsAbilityObj_;
     STSRuntime &stsRuntime_;
-
-}; // namespace AbilityRuntime
+};
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_SIMULATOR_STS_ABILITY_CONTEXT_H

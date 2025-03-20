@@ -16,7 +16,6 @@
 #include "sts_form_extension.h"
 
 #include <vector>
-
 #include "ability_info.h"
 #include "ani.h"
 #include "ani_common/ani_common_want.h"
@@ -63,7 +62,6 @@ void STSFormExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
 
     std::string srcPath(abilityInfo->package);
     if (!abilityInfo->isModuleJson) {
-        /* temporary compatibility api8 + config.json */
         srcPath.append("/assets/js/");
         if (!abilityInfo->srcPath.empty()) {
             srcPath.append(abilityInfo->srcPath);
@@ -199,7 +197,7 @@ bool STSFormExtension::ConvertFromDataProxies(
         }
         ani_ref subscriberIdRef;
         if ((status = env->Object_GetField_Ref(
-                 static_cast<ani_object>(stringEntryRef), subscriberId, &subscriberIdRef)) != ANI_OK) {
+            static_cast<ani_object>(stringEntryRef), subscriberId, &subscriberIdRef)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::FORM_EXT, "Object_GetField_Ref status : %{public}d", status);
             return false;
         }
@@ -219,8 +217,8 @@ OHOS::AppExecFwk::FormProviderInfo STSFormExtension::OnCreate(const OHOS::AAFwk:
     ani_object aniWant = OHOS::AppExecFwk::WrapWant(env, want);
     ani_method function;
     if ((status = env->Class_FindMethod(stsAbilityObj_->aniCls, "<onAddForm>",
-             "L@ohos/app/ability/Want/Want;:L@ohos/app/form/formBindingData/formBindingData/FormBindingData;",
-             &function))) {
+        "L@ohos/app/ability/Want/Want;:L@ohos/app/form/formBindingData/formBindingData/FormBindingData;",
+        &function))) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod status : %{public}d", status);
         return formProviderInfo;
     }
@@ -303,7 +301,7 @@ void STSFormExtension::OnEvent(const int64_t formId, const std::string &message)
     }
     ani_method function;
     if ((status = env->Class_FindMethod(
-             stsAbilityObj_->aniCls, "<onFormEvent>", "Lstd/core/String;Lstd/core/String;:V", &function))) {
+        stsAbilityObj_->aniCls, "<onFormEvent>", "Lstd/core/String;Lstd/core/String;:V", &function))) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod status : %{public}d", status);
         return;
     }
@@ -330,12 +328,12 @@ void STSFormExtension::OnUpdate(const int64_t formId, const AAFwk::WantParams &w
     ani_ref aniWantParams = OHOS::AppExecFwk::WrapWantParams(env, wantParams);
     ani_method function;
     if ((status = env->Class_FindMethod(
-             stsAbilityObj_->aniCls, "<onUpdateForm>", "Lstd/core/String;Lescompat/Record;:V", &function))) {
+        stsAbilityObj_->aniCls, "<onUpdateForm>", "Lstd/core/String;Lescompat/Record;:V", &function))) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod status : %{public}d", status);
         return;
     }
     if ((status = env->Object_CallMethod_Void(
-             stsAbilityObj_->aniObj, function, formIdStr, static_cast<ani_object>(aniWantParams))) != ANI_OK) {
+        stsAbilityObj_->aniObj, function, formIdStr, static_cast<ani_object>(aniWantParams))) != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Object_New status : %{public}d", status);
         return;
     }
@@ -356,7 +354,7 @@ void STSFormExtension::OnCastToNormal(const int64_t formId)
     }
     ani_method function;
     if ((status = env->Class_FindMethod(
-             stsAbilityObj_->aniCls, "<onCastToNormalForm>", "Lstd/core/String;:V", &function))) {
+        stsAbilityObj_->aniCls, "<onCastToNormalForm>", "Lstd/core/String;:V", &function))) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod status : %{public}d", status);
         return;
     }
@@ -374,7 +372,7 @@ void STSFormExtension::OnVisibilityChange(const std::map<int64_t, int32_t> &form
     ani_status status = ANI_OK;
     ani_method function;
     if ((status = env->Class_FindMethod(
-             stsAbilityObj_->aniCls, "<onChangeFormVisibility>", "Lescompat/Record;:V", &function))) {
+        stsAbilityObj_->aniCls, "<onChangeFormVisibility>", "Lescompat/Record;:V", &function))) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod status : %{public}d", status);
         return;
     }
@@ -395,7 +393,7 @@ void STSFormExtension::OnVisibilityChange(const std::map<int64_t, int32_t> &form
     }
     ani_method recordSetMethod;
     if ((status = env->Class_FindMethod(
-             recordCls, "$_set", "Lstd/core/Object;Lstd/core/Object;:V", &recordSetMethod)) != ANI_OK) {
+        recordCls, "$_set", "Lstd/core/Object;Lstd/core/Object;:V", &recordSetMethod)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "Class_FindMethod failed status : %{public}d", status);
         return;
     }

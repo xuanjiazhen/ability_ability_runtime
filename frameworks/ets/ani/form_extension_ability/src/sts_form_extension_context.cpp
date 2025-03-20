@@ -17,7 +17,6 @@
 
 #include <algorithm>
 #include <iterator>
-
 #include "ani_common/ani_common_configuration.h"
 #include "form_extension_context.h"
 #include "hilog_tag_wrapper.h"
@@ -86,14 +85,6 @@ ani_ref STSFormExtensionContext::CreateStsExtensionContext(ani_env *env,
     std::array functions = {
         ani_native_function { "startAbility1", "L@ohos/app/ability/Want/Want;:V",
             reinterpret_cast<void *>(STSFormExtensionContext::startAbility1) },
-        // ani_native_function { "startAbility2", "L@ohos/app/ability/Want/Want;:V",
-        // reinterpret_cast<void*>(STSFormExtensionContext::StartAbility2) }, ani_native_function {
-        // "connectServiceExtensionAbility", "L@ohos/app/ability/Want/Want;LconnectOptions/ConnectOptions;:I",
-        //     reinterpret_cast<void*>(STSFormExtensionContext::connectServiceExtensionAbility) },
-        // ani_native_function { "disconnectServiceExtensionAbility1", "I:V",
-        // reinterpret_cast<void*>(STSFormExtensionContext::disconnectServiceExtensionAbility1) }, ani_native_function {
-        // "disconnectServiceExtensionAbility2", "I:V",
-        // reinterpret_cast<void*>(STSFormExtensionContext::disconnectServiceExtensionAbility2) },
     };
     if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "status : %{public}d", status);
