@@ -14,14 +14,13 @@
  */
 
 //import AbilityMonitor from 'AbilityMonitor';
-import Want from '@ohos.app.ability.Want';
-import { Context } from './application/Context';
-import { BusinessError, AsyncCallback } from '@ohos.base';
+ import Want from '@ohos.app.ability.Want';
+ import { Context } from './application/Context';
+ import {BusinessError, AsyncCallback} from '@ohos.base';
 
 export class AbilityMonitor {
-
-    abilityName: string= "";
-    moduleName: string= "";
+    abilityName: string = "";
+    moduleName: string = "";
 }
 
 export default interface AbilityDelegator {

@@ -18,8 +18,7 @@
  */
 
 // import { AbilityResult } from '../ability/abilityResult';
-// import { AsyncCallback } from '@ohos.base';
-// import { BusinessError } from '@ohos.base';
+import { BusinessError, AsyncCallback } from '@ohos.base';
 // import ConnectOptions from '../ability/connectOptions';
 // import ExtensionContext from './ExtensionContext';
 // import type Want from '../@ohos.app.ability.Want';
@@ -30,24 +29,6 @@
 // import type UIServiceProxy from './UIServiceProxy';
 // import type UIServiceExtensionConnectCallback from './UIServiceExtensionConnectCallback';
 //import hilog from './@ohos.hilog';
-
-export type Callback<T> = (data: T)=> void;
-
-export class Result<T, E>{
-  result:T;
-  error:E;
-  constructor(result: T , error: E) {
-      this.result = result;
-      this.error = error;
-  }
-}
-
-export type AsyncCallback<T> = (err: BusinessError<T>, data: T)=> void;
-
-export class BusinessError<T = void> {
-    code: number;
-    data: T;
-}
 
 export default class UIExtensionContext {
   public nativeUIExtensionContext:long = 0;
