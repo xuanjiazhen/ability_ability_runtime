@@ -42,12 +42,21 @@
 #include "ui_service_extension_connection_constants.h"
 #include "uri.h"
 #include "want.h"
+#include "context_manager.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 const char *INVOKE_METHOD_NAME = "invoke";
 std::mutex StsAbilityContext::requestCodeMutex_;
 
+StsAbilityContext::StsAbilityContext()
+{}
+
+StsAbilityContext::~StsAbilityContext()
+{
+    ContextManager::GetContextManager().RemoveManagerContext(nativeContextLong_);
+    nativeContextLong_ = 0;
+}
 
 AbilityRuntime::AbilityContext* StsAbilityContext::GetAbilityContext(ani_env *env, ani_object aniObj)
 {
@@ -73,6 +82,9 @@ AbilityRuntime::AbilityContext* StsAbilityContext::GetAbilityContext(ani_env *en
 ani_object StsAbilityContext::SetAbilityContext(ani_env *env, const std::shared_ptr<AbilityContext> &context)
 {
     ani_long nativeContextLong = (ani_long)context.get();
+    auto contextPtr = std::shared_ptr<Context>(reinterpret_cast<Context*>(nativeContextLong));
+    ContextManager::GetContextManager().AddManagerContext(nativeContextLong, contextPtr);
+    nativeContextLong_ = nativeContextLong;
     ani_class cls = nullptr;
     ani_status status = ANI_ERROR;
     ani_object contextObj = nullptr;
@@ -102,7 +114,11 @@ void StsAbilityContext::InheritWindowMode(ani_env *env, ani_object aniObj, AAFwk
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
 #ifdef SUPPORT_SCREEN
     // only split mode need inherit
-    auto windowMode = GetAbilityContext(env, aniObj)->GetCurrentWindowMode();
+    auto context = GetAbilityContext(env, aniObj);
+    if (context == nullptr) {
+        return;
+    }
+    auto windowMode = context->GetCurrentWindowMode();
     if (AAFwk::AppUtils::GetInstance().IsInheritWindowSplitScreenMode() &&
         (windowMode == AAFwk::AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_PRIMARY ||
         windowMode == AAFwk::AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_SECONDARY)) {
@@ -186,12 +202,16 @@ void StsAbilityContext::StartAbilityInner([[maybe_unused]] ani_env *env, [[maybe
         want.SetParam(AAFwk::Want::PARAM_RESV_START_TIME, startTime);
     }
     ErrCode resultCode = ERR_INVALID_VALUE;
+    auto context = GetAbilityContext(env, aniObj);
+    if (context == nullptr) {
+        return;
+    }
     if (opt != nullptr) {
         AAFwk::StartOptions startOptions;
         OHOS::AppExecFwk::UnwrapStartOptionsWithProcessOption(env, opt, startOptions);
-        resultCode = GetAbilityContext(env, aniObj)->StartAbility(want, startOptions, -1);
+        resultCode = context->StartAbility(want, startOptions, -1);
     } else {
-        resultCode = GetAbilityContext(env, aniObj)->StartAbility(want, -1);
+        resultCode = context->StartAbility(want, -1);
     }
 
     if ((want.GetFlags() & AAFwk::Want::FLAG_INSTALL_ON_DEMAND) == AAFwk::Want::FLAG_INSTALL_ON_DEMAND) {
@@ -233,6 +253,9 @@ void StsAbilityContext::StartAbilityForResultInner(ani_env *env, ani_object aniO
     ani_object startOptionsObj, ani_object callback)
 {
     auto context = StsAbilityContext::GetAbilityContext(env, aniObj);
+    if (context == nullptr) {
+        return;
+    }
     AAFwk::Want want;
     OHOS::AppExecFwk::UnwrapWant(env, wantObj, want);
     AAFwk::StartOptions startOptions;
