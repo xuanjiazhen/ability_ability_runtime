@@ -83,7 +83,7 @@ public:
     void OnQueryFinished(const std::string &appId, const std::string &startTime,
                          const AtomicServiceStartupRule &rule, int resultCode)
     {
-       return;
+        return;
     }
     sptr<IRemoteObject> AsObject()
     {
