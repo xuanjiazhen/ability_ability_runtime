@@ -46,9 +46,13 @@ std::shared_ptr<Context> GetStageModeContext(ani_env* env, ani_object object)
         return nullptr;
     }
 
-    std::shared_ptr<Context> ptr((Context*)nativeContextLong);
+    std::shared_ptr<Context>* pContextPtr = new std::shared_ptr<Context>((Context*)nativeContextLong);
+    if (pContextPtr == nullptr) {
+        std::cerr << "pContextPtr is nullptr" << std::endl;
+        return nullptr;
+    }
 
-    return ptr;
+    return (*pContextPtr);
 }
 
 AppExecFwk::Ability* GetCurrentAbility(ani_env* env)
