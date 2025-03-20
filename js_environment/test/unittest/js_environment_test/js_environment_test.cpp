@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
+#define private public
 #include "js_environment.h"
+#undef private
 
 #include <gtest/gtest.h>
 #include <gtest/hwext/gtest-multithread.h>
