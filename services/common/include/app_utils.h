@@ -199,6 +199,13 @@ public:
     int32_t GetLimitMaximumExtensionsPerProc();
 
     /**
+     * IsQuickKillUnrelatedKeepAliveProc, check if it refuses resident in memory quick kill.<unnamed>
+     *
+     * @param bundleName The bundle name.
+     */
+    bool IsQuickKillUnrelatedKeepAliveProc(const std::string &bundleName);
+
+    /**
      * GetLimitMaximumExtensionsPerDevice, get limit max extensions per device.
      *
      * @return Limit max extensions per device.

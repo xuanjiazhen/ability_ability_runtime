@@ -29,7 +29,9 @@ namespace OHOS {
 namespace AppExecFwk {
 enum class MemorySizeState {
     MEMORY_SIZE_SUFFICIENT = 0,
-    MEMORY_SIZE_INSUFFICIENT = 1
+    MEMORY_SIZE_INSUFFICIENT = 1,
+    MEMORY_QUICK_KILL = 2,
+    MEMORY_RECOVERY_QUICK_KILL = 3
 };
 
 struct ExitResidentProcessInfo {
@@ -46,9 +48,12 @@ public:
     ~ExitResidentProcessManager();
     bool IsMemorySizeSufficient() const;
     bool RecordExitResidentBundleName(const std::string &bundleName, int32_t uid);
+    bool RecordExitResidentBundleNameOnMemoryQuickKill(const std::string &bundleName, int32_t uid);
     void RecordExitResidentBundleDependedOnWeb(const std::string &bundleName, int32_t uid);
     int32_t HandleMemorySizeInSufficent();
+    int32_t HandleMemoryQuickKillOptimization();
     int32_t HandleMemorySizeSufficient(std::vector<ExitResidentProcessInfo>& bundleNames);
+    int32_t HandleMemoryQuickKillQuitOptimization(std::vector<ExitResidentProcessInfo>& bundleNames);
     void HandleExitResidentBundleDependedOnWeb(std::vector<ExitResidentProcessInfo>& bundleNames);
     void QueryExitBundleInfos(const std::vector<ExitResidentProcessInfo>& exitBundleNames,
         std::vector<AppExecFwk::BundleInfo>& exitBundleInfos);
@@ -57,10 +62,13 @@ public:
 private:
     ExitResidentProcessManager();
     MemorySizeState currentMemorySizeState_ = MemorySizeState::MEMORY_SIZE_SUFFICIENT;
+    MemorySizeState currentMemoryQuickKillState_ = MemorySizeState::MEMORY_RECOVERY_QUICK_KILL;
     std::vector<ExitResidentProcessInfo> exitResidentInfos_;
+    std::vector<ExitResidentProcessInfo> exitResidentQuickKillInfos_;
     std::vector<ExitResidentProcessInfo> exitResidentBundlesDependedOnWeb_;
     mutable ffrt::mutex mutexLock_;
     mutable ffrt::mutex webMutexLock_;
+    mutable ffrt::mutex mutexLockQuickKill_;
     DISALLOW_COPY_AND_MOVE(ExitResidentProcessManager);
 };
 }  // namespace AppExecFwk

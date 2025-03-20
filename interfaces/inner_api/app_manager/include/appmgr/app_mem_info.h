@@ -23,6 +23,13 @@ enum MemoryLevel {
     MEMORY_LEVEL_LOW = 1,
     MEMORY_LEVEL_CRITICAL = 2,
 };
+
+enum MemoryState : int {
+    LOW_MEMORY = 0,
+    MEMORY_RECOVERY = 1,
+    MEMORY_QUICK_KILL = 2,
+    MEMORY_QUIT_QUICK_KILL = 3
+};
 }  // namespace AppExecFwk
 }  // namespace OHOS
 

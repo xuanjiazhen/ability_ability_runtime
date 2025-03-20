@@ -74,6 +74,16 @@ constexpr const char* CONNECT_SUPPORT_CROSS_USER = "const.abilityms.connect_supp
 // Support prepare terminate
 constexpr int32_t PREPARE_TERMINATE_ENABLE_SIZE = 6;
 constexpr const char* PREPARE_TERMINATE_ENABLE_PARAMETER = "persist.sys.prepare_terminate";
+const std::vector<std::string> QUICK_KILL_UNRELATED_KEEP_ALIVE_PROCS = {
+    "com.ohos.FusionSearch",
+    "com.huawei.hmos.aidataservice",
+    "com.huawei.hms.adsservice",
+    "com.huawei.hmos.aidispatchservice",
+    "com.huawei.hmsapp.intelligent",
+    "com.huawei.hms.pafservice",
+    "com.huawei.hmos.walletservice",
+    "com.huawei.hmos.aibase"
+};
 }
 
 AppUtils::~AppUtils() {}
@@ -267,6 +277,12 @@ bool AppUtils::IsAllowResidentInExtremeMemory(const std::string& bundleName, con
         }
     }
     return false;
+}
+
+bool AppUtils::IsQuickKillUnrelatedKeepAliveProc(const std::string &bundleName)
+{
+    return std::find(QUICK_KILL_UNRELATED_KEEP_ALIVE_PROCS.begin(), QUICK_KILL_UNRELATED_KEEP_ALIVE_PROCS.end(),
+        bundleName) != QUICK_KILL_UNRELATED_KEEP_ALIVE_PROCS.end();
 }
 
 void AppUtils::LoadResidentProcessInExtremeMemory()

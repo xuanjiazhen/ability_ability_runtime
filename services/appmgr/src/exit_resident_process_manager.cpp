@@ -53,6 +53,17 @@ bool ExitResidentProcessManager::RecordExitResidentBundleName(const std::string 
     return true;
 }
 
+bool ExitResidentProcessManager::RecordExitResidentBundleNameOnMemoryQuickKill(
+    const std::string &bundleName, int32_t uid)
+{
+    std::lock_guard<ffrt::mutex> lock(mutexLockQuickKill_);
+    if (currentMemoryQuickKillState_ == MemorySizeState::MEMORY_RECOVERY_QUICK_KILL) {
+        return false;
+    }
+    exitResidentQuickKillInfos_.emplace_back(bundleName, uid);
+    return true;
+}
+
 void ExitResidentProcessManager::RecordExitResidentBundleDependedOnWeb(const std::string &bundleName, int32_t uid)
 {
     std::lock_guard<ffrt::mutex> lock(webMutexLock_);
@@ -68,6 +79,18 @@ int32_t ExitResidentProcessManager::HandleMemorySizeInSufficent()
         return AAFwk::ERR_NATIVE_MEMORY_SIZE_STATE_UNCHANGED;
     }
     currentMemorySizeState_ = MemorySizeState::MEMORY_SIZE_INSUFFICIENT;
+    return ERR_OK;
+}
+
+int32_t ExitResidentProcessManager::HandleMemoryQuickKillOptimization()
+{
+    std::lock_guard<ffrt::mutex> lock(mutexLockQuickKill_);
+    if (currentMemoryQuickKillState_ != MemorySizeState::MEMORY_RECOVERY_QUICK_KILL) {
+        TAG_LOGE(AAFwkTag::APPMGR, "MEMORY_QUICK_KILL");
+        return AAFwk::ERR_NATIVE_MEMORY_SIZE_STATE_UNCHANGED;
+    }
+    TAG_LOGI(AAFwkTag::APPMGR, "MEMORY_QUICK_KILL");
+    currentMemoryQuickKillState_ = MemorySizeState::MEMORY_QUICK_KILL;
     return ERR_OK;
 }
 
@@ -89,6 +112,20 @@ void ExitResidentProcessManager::HandleExitResidentBundleDependedOnWeb(
     std::lock_guard<ffrt::mutex> lock(webMutexLock_);
     TAG_LOGE(AAFwkTag::APPMGR, "call");
     bundleNames = std::move(exitResidentBundlesDependedOnWeb_);
+}
+
+int32_t ExitResidentProcessManager::HandleMemoryQuickKillQuitOptimization(
+    std::vector<ExitResidentProcessInfo> &processInfos)
+{
+    std::lock_guard<ffrt::mutex> lock(mutexLockQuickKill_);
+    if (currentMemorySizeState_ == MemorySizeState::MEMORY_RECOVERY_QUICK_KILL) {
+        TAG_LOGE(AAFwkTag::APPMGR, "MEMORY_RECOVERY_QUICK_KILL");
+        return AAFwk::ERR_NATIVE_MEMORY_SIZE_STATE_UNCHANGED;
+    }
+    TAG_LOGI(AAFwkTag::APPMGR, "MEMORY_RECOVERY_QUICK_KILL");
+    currentMemoryQuickKillState_ = MemorySizeState::MEMORY_RECOVERY_QUICK_KILL;
+    processInfos = std::move(exitResidentQuickKillInfos_);
+    return ERR_OK;
 }
 
 void ExitResidentProcessManager::QueryExitBundleInfos(const std::vector<ExitResidentProcessInfo> &exitProcessInfos,

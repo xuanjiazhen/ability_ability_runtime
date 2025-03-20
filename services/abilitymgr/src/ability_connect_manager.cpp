@@ -2396,7 +2396,8 @@ void AbilityConnectManager::KeepAbilityAlive(const std::shared_ptr<AbilityRecord
     }
     if (DelayedSingleton<AppScheduler>::GetInstance()->IsMemorySizeSufficent() ||
         IsLauncher(abilityRecord) || abilityRecord->IsSceneBoard() ||
-        AppUtils::GetInstance().IsAllowResidentInExtremeMemory(abilityInfo.bundleName, abilityInfo.name)) {
+        AppUtils::GetInstance().IsAllowResidentInExtremeMemory(abilityInfo.bundleName, abilityInfo.name) ||
+        !AppUtils::GetInstance().IsQuickKillUnrelatedKeepAliveProc(abilityInfo.bundleName)) {
         RestartAbility(abilityRecord, currentUserId);
     }
 }

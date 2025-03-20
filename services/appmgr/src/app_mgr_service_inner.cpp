@@ -7553,6 +7553,27 @@ void AppMgrServiceInner::ApplicationTerminatedSendProcessEvent(const std::shared
     SendProcessExitEvent(appRecord);
 }
 
+bool AppMgrServiceInner::IsNeedRestartKeepAliveProcess(const std::string &bundleName, int32_t uid)
+{
+    if (ExitResidentProcessManager::GetInstance().IsKilledForUpgradeWeb(bundleName)) {
+        TAG_LOGI(AAFwkTag::APPMGR, "is killed for upgrade web");
+        return false;
+    }
+
+    if (!AAFwk::AppUtils::GetInstance().IsAllowResidentInExtremeMemory(bundleName) &&
+        ExitResidentProcessManager::GetInstance().RecordExitResidentBundleName(bundleName, uid)) {
+        TAG_LOGI(AAFwkTag::APPMGR, "memory size insufficient");
+        return false;
+    }
+
+    if (AAFwk::AppUtils::GetInstance().IsQuickKillUnrelatedKeepAliveProc(bundleName) &&
+        ExitResidentProcessManager::GetInstance().RecordExitResidentBundleNameOnMemoryQuickKill(bundleName, uid)) {
+        TAG_LOGI(AAFwkTag::APPMGR, "memory quick kill");
+        return false;
+    }
+    return true;
+}
+
 void AppMgrServiceInner::ClearAppRunningDataForKeepAlive(const std::shared_ptr<AppRunningRecord> &appRecord)
 {
     ClearResidentProcessAppRunningData(appRecord);
@@ -7565,18 +7586,10 @@ void AppMgrServiceInner::ClearResidentProcessAppRunningData(const std::shared_pt
         TAG_LOGE(AAFwkTag::APPMGR, "appRecord null");
         return;
     }
-
     auto userId = GetUserIdByUid(appRecord->GetUid());
     if (appRecord->IsKeepAliveApp() && (userId == 0 || userId == currentUserId_) &&
         appRecord->GetBundleName() != SCENE_BOARD_BUNDLE_NAME) {
-        if (ExitResidentProcessManager::GetInstance().IsKilledForUpgradeWeb(appRecord->GetBundleName())) {
-            TAG_LOGI(AAFwkTag::APPMGR, "is killed for upgrade web");
-            return;
-        }
-        if (!AAFwk::AppUtils::GetInstance().IsAllowResidentInExtremeMemory(appRecord->GetBundleName()) &&
-            ExitResidentProcessManager::GetInstance().RecordExitResidentBundleName(appRecord->GetBundleName(),
-                appRecord->GetUid())) {
-            TAG_LOGI(AAFwkTag::APPMGR, "memory size insufficient");
+        if (!IsNeedRestartKeepAliveProcess(appRecord->GetBundleName(), appRecord->GetUid())) {
             return;
         }
         TAG_LOGI(AAFwkTag::APPMGR, "memory size sufficient");
@@ -8412,10 +8425,10 @@ int32_t AppMgrServiceInner::GetAllUIExtensionProviderPid(pid_t hostPid, std::vec
     return appRunningManager_->GetAllUIExtensionProviderPid(hostPid, providerPids);
 }
 
-int32_t AppMgrServiceInner::NotifyMemorySizeStateChanged(bool isMemorySizeSufficient)
+int32_t AppMgrServiceInner::NotifyMemorySizeStateChanged(int32_t memorySizeState)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "isMemorySizeSufficient: %{public}d",
-        isMemorySizeSufficient);
+    TAG_LOGI(AAFwkTag::APPMGR, "memorySizeState: %{public}d",
+        memorySizeState);
     bool isMemmgrCall = AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
         MEMMGR_PROC_NAME);
     bool isSupportCall = OHOS::system::GetBoolParameter(SUPPORT_CALL_NOTIFY_MEMORY_CHANGED, false);
@@ -8423,20 +8436,57 @@ int32_t AppMgrServiceInner::NotifyMemorySizeStateChanged(bool isMemorySizeSuffic
         TAG_LOGE(AAFwkTag::APPMGR, "callerToken not %{public}s", MEMMGR_PROC_NAME);
         return ERR_PERMISSION_DENIED;
     }
+    int32_t ret = ERR_OK;
+    switch (memorySizeState) {
+        case MemoryState::LOW_MEMORY:
+            ret = ExitResidentProcessManager::GetInstance().HandleMemorySizeInSufficent();
+            if (ret != ERR_OK) {
+                TAG_LOGE(AAFwkTag::APPMGR, "handleMemorySizeInSufficent fail, ret: %{public}d", ret);
+            }
+            return ret;
+        case MemoryState::MEMORY_QUICK_KILL:
+            ret = ExitResidentProcessManager::GetInstance().HandleMemoryQuickKillOptimization();
+            if (ret != ERR_OK) {
+                TAG_LOGE(AAFwkTag::APPMGR, "HandleMemoryQuickKillOptimization fail, ret: %{public}d", ret);
+            }
+            return ret;
+        case MemoryState::MEMORY_RECOVERY:
+        case MemoryState::MEMORY_QUIT_QUICK_KILL:
+            ret = RestartExitKeepAliveProcess(memorySizeState);
+            if (ret != ERR_OK) {
+                TAG_LOGE(AAFwkTag::APPMGR, "RestartExitKeepAliveProcess failed, ret is %{public}d.", ret);
+            }
+            break;
+        default:
+            TAG_LOGE(AAFwkTag::APPMGR, "NotifyMemorySizeStateChanged failed, memorySizeState is %{public}d.",
+                memorySizeState);
+            break;
+    }
+    return ret;
+}
 
-    if (!isMemorySizeSufficient) {
-        auto ret = ExitResidentProcessManager::GetInstance().HandleMemorySizeInSufficent();
-        if (ret != ERR_OK) {
-            TAG_LOGE(AAFwkTag::APPMGR, "handleMemorySizeInSufficent fail, ret: %{public}d", ret);
-        }
-        return ret;
-    }
+int32_t AppMgrServiceInner::RestartExitKeepAliveProcess(const int32_t memorySizeState)
+{
     std::vector<ExitResidentProcessInfo> exitProcessInfos;
-    auto ret = ExitResidentProcessManager::GetInstance().HandleMemorySizeSufficient(exitProcessInfos);
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "HandleMemorySizeSufficient fail, ret: %{public}d", ret);
+    int32_t ret = ERR_OK;
+    if (memorySizeState == MemoryState::MEMORY_RECOVERY) {
+        ret = ExitResidentProcessManager::GetInstance().HandleMemorySizeSufficient(exitProcessInfos);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::APPMGR, "HandleMemorySizeSufficient fail, ret: %{public}d", ret);
+            return ret;
+        }
+    } else if (memorySizeState == MemoryState::MEMORY_QUIT_QUICK_KILL) {
+        ret = ExitResidentProcessManager::GetInstance().HandleMemoryQuickKillQuitOptimization(exitProcessInfos);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::APPMGR, "HandleMemoryQuickKillQuitOptimization fail, ret: %{public}d", ret);
+            return ret;
+        }
+    } else {
+        ret = ERR_UNKNOWN_OPTION_ERROR;
+        TAG_LOGE(AAFwkTag::APPMGR, "RestartExitKeepAliveProcess fail, ret: %{public}d", ret);
         return ret;
     }
+
     auto StartExitKeepAliveProcessTask = [exitProcessInfos, innerServiceWeak = weak_from_this()]() {
         auto innerService = innerServiceWeak.lock();
         CHECK_POINTER_AND_RETURN_LOG(innerService, "get appMgrServiceInner fail");
