@@ -500,7 +500,7 @@ int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &ability
             TAG_LOGW(AAFwkTag::ABILITYMGR, "multi start request");
             return ERR_UI_ABILITY_IS_STARTING;
         }
-        auto abilityRecord = FindRecordFromSessionMap(abilityRequest);
+        auto abilityRecord = FindRecordFromSessionMap(abilityRequest, true);
         if (abilityRecord && abilityRecord->GetPendingState() == AbilityState::FOREGROUNDING) {
             TAG_LOGW(AAFwkTag::ABILITYMGR, "ability is starting");
             return ERR_UI_ABILITY_IS_STARTING;
@@ -509,6 +509,16 @@ int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &ability
     }
 
     auto sessionInfo = CreateSessionInfo(abilityRequest);
+
+    if (IsHookModule(abilityRequest)) {
+        auto abilityRecord = FindRecordFromSessionMap(abilityRequest, false);
+        if (abilityRecord != nullptr) {
+            if (abilityRecord->GetIsHook() && !abilityRecord->GetHookOff()) {
+                int ret = NotifySCBPendingActivation(abilityRecord->GetSessionInfo(), abilityRequest);
+                return ret;
+            }
+        }
+    }
     sessionInfo->requestCode = abilityRequest.requestCode;
     sessionInfo->requestId = requestId;
     auto isCreating = abilityRequest.want.GetBoolParam(Want::CREATE_APP_INSTANCE_KEY, false);
@@ -521,6 +531,9 @@ int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &ability
     TAG_LOGI(AAFwkTag::ABILITYMGR, "Reused sessionId: %{public}d, userId: %{public}d, requestId: %{public}d",
         sessionInfo->persistentId, userId_, requestId);
     int ret = NotifySCBPendingActivation(sessionInfo, abilityRequest);
+    if (sessionInfo->reuseDelegatorWindow && ret == ERR_OK) {
+        callerAbility->SetIsHook(false);
+    }
     sessionInfo->want.RemoveAllFd();
     return ret;
 }
@@ -1253,19 +1266,7 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         (sessionInfo->want).GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0), sessionInfo->instanceKey.c_str(),
         hasStartWindow, backgroundColor.c_str());
     auto abilityRecord = GetAbilityRecordByToken(abilityRequest.callerToken);
-
-    if (FindRecordFromSessionMap(abilityRequest) != nullptr) {
-        if (abilityRecord->GetIsHook() && !abilityRecord->GetHookOff()) {
-            sessionInfo->reuseDelegatorWindow = true;
-        }
-        if (abilityRecord->GetIsHook() && abilityRecord->GetHookOff()) {
-            sessionInfo->reuseDelegatorWindow = true;
-            abilityRecord->SetIsHook(false);
-        }
-    } else {
-        abilityRecord->SetIsHook(true);
-    }
-
+    
     if (abilityRecord != nullptr && !abilityRecord->GetRestartAppFlag()) {
         auto callerSessionInfo = abilityRecord->GetSessionInfo();
         CHECK_POINTER_AND_RETURN(callerSessionInfo, ERR_INVALID_VALUE);
@@ -1283,6 +1284,20 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
     TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, NotifySCBPendingActivation for rootSceneSession, target: %{public}s",
         sessionInfo->want.GetElement().GetAbilityName().c_str());
     return static_cast<int>(tmpSceneSession->PendingSessionActivation(sessionInfo));
+}
+
+bool UIAbilityLifecycleManager::IsHookModule(const AbilityRequest &abilityRequest) const
+{
+    int32_t appIndex = 0;
+    (void)AbilityRuntime::StartupUtil::GetAppIndex(abilityRequest.want, appIndex);
+    AppExecFwk::HapModuleInfo hapModuleInfo;
+    constexpr int32_t BASE_USER_RANGE = 200000;
+    auto userId = abilityRequest.appInfo.uid / BASE_USER_RANGE;
+    if (DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance()->
+        GetSandboxHapModuleInfo(abilityRequest.abilityInfo,appIndex, userId, hapModuleInfo) == 0) {
+        return !hapModuleInfo.abilitySrcEntryDelegator.empty() && !hapModuleInfo.abilityStageSrcEntryDelegator.empty();
+    }
+    return false;
 }
 
 int UIAbilityLifecycleManager::ResolveAbility(
@@ -3257,7 +3272,7 @@ void UIAbilityLifecycleManager::EnableListForSCBRecovery()
 }
 
 std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::FindRecordFromSessionMap(
-    const AbilityRequest &abilityRequest)
+    const AbilityRequest &abilityRequest, const bool compareAbilityNameFlag)
 {
     int32_t appIndex = 0;
     (void)AbilityRuntime::StartupUtil::GetAppIndex(abilityRequest.want, appIndex);
@@ -3265,7 +3280,7 @@ std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::FindRecordFromSessionM
     for (const auto &[sessionId, abilityRecord] : sessionAbilityMap_) {
         if (abilityRecord) {
             const auto &info = abilityRecord->GetAbilityInfo();
-            if (info.name == abilityRequest.abilityInfo.name &&
+            if ((!compareAbilityNameFlag || info.name == abilityRequest.abilityInfo.name) &&
                 info.bundleName == abilityRequest.abilityInfo.bundleName &&
                 info.moduleName == abilityRequest.abilityInfo.moduleName &&
                 appIndex == abilityRecord->GetAppIndex() && instanceKey == abilityRecord->GetInstanceKey()) {
@@ -3275,6 +3290,7 @@ std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::FindRecordFromSessionM
     }
     return nullptr;
 }
+
 
 bool UIAbilityLifecycleManager::HasAbilityRequest(const AbilityRequest &abilityRequest)
 {

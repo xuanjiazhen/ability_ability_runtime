@@ -340,6 +340,7 @@ private:
     void OnAbilityResultInner(int requestCode, int resultCode, const AAFwk::Want &resultData);
     sptr<IRemoteObject> GetSessionToken();
     void SetWindowRectangleParams(AAFwk::Want &want);
+    bool AbilityContextImpl::NotHookModule();
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

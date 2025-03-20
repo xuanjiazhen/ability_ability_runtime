@@ -432,6 +432,7 @@ private:
     int CallAbilityLocked(const AbilityRequest &abilityRequest);
     sptr<SessionInfo> CreateSessionInfo(const AbilityRequest &abilityRequest) const;
     int NotifySCBPendingActivation(sptr<SessionInfo> &sessionInfo, const AbilityRequest &abilityRequest);
+    bool IsHookModule(const AbilityRequest &abilityRequest) const;
     int ResolveAbility(const std::shared_ptr<AbilityRecord> &targetAbility, const AbilityRequest &abilityRequest) const;
     std::vector<std::shared_ptr<AbilityRecord>> GetAbilityRecordsByNameInner(const AppExecFwk::ElementName &element);
     void HandleForegroundCollaborate(const AbilityRequest &abilityRequest,
@@ -481,7 +482,7 @@ private:
     std::shared_ptr<AbilityRecord> FindRecordFromTmpMap(const AbilityRequest &abilityRequest);
     void PostCallTimeoutTask(std::shared_ptr<AbilityRecord> abilityRecord);
     bool AddStartCallerTimestamp(int32_t callerUid);
-    std::shared_ptr<AbilityRecord> FindRecordFromSessionMap(const AbilityRequest &abilityRequest);
+    std::shared_ptr<AbilityRecord> FindRecordFromSessionMap(const AbilityRequest &abilityRequest, const bool compareAbilityNameFlag);
     bool HasAbilityRequest(const AbilityRequest &abilityRequest);
     void AddAbilityRequest(const AbilityRequest &abilityRequest, int32_t requestId);
     void RemoveAbilityRequest(int32_t requestId);
