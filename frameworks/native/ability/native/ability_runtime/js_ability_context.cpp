@@ -936,7 +936,11 @@ napi_value JsAbilityContext::OnStartAbilityWithAccount(napi_env env, NapiCallbac
         return CreateJsUndefined(env);
     }
     AAFwk::Want want;
-    OHOS::AppExecFwk::UnwrapWant(env, info.argv[INDEX_ZERO], want);
+    if (!OHOS::AppExecFwk::UnwrapWant(env, info.argv[INDEX_ZERO], want)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse want failed");
+        ThrowInvalidParamError(env, "Parse param want failed, must be a Want");
+        return CreateJsUndefined(env);
+    }
     InheritWindowMode(want);
     decltype(info.argc) unwrapArgc = ARGC_ONE;
     TAG_LOGI(AAFwkTag::CONTEXT, "ability:%{public}s",
@@ -1556,7 +1560,11 @@ napi_value JsAbilityContext::OnConnectAbility(napi_env env, NapiCallbackInfo& in
 
     // unwrap want
     AAFwk::Want want;
-    OHOS::AppExecFwk::UnwrapWant(env, info.argv[INDEX_ZERO], want);
+    if (!OHOS::AppExecFwk::UnwrapWant(env, info.argv[INDEX_ZERO], want)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse want failed");
+        ThrowInvalidParamError(env, "Parse param want failed, must be a Want");
+        return CreateJsUndefined(env);
+    }
     TAG_LOGD(AAFwkTag::CONTEXT, "callee:%{public}s.%{public}s",
         want.GetBundle().c_str(),
         want.GetElement().GetAbilityName().c_str());
@@ -1614,7 +1622,11 @@ napi_value JsAbilityContext::OnConnectAbilityWithAccount(napi_env env, NapiCallb
     }
     // unwrap want
     AAFwk::Want want;
-    OHOS::AppExecFwk::UnwrapWant(env, info.argv[INDEX_ZERO], want);
+    if (!OHOS::AppExecFwk::UnwrapWant(env, info.argv[INDEX_ZERO], want)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse want failed");
+        ThrowInvalidParamError(env, "Parse param want failed, must be a Want");
+        return CreateJsUndefined(env);
+    }
     TAG_LOGI(AAFwkTag::CONTEXT, "bundleName:%{public}s abilityName:%{public}s",
         want.GetBundle().c_str(), want.GetElement().GetAbilityName().c_str());
 
@@ -1799,7 +1811,11 @@ napi_value JsAbilityContext::OnRequestDialogService(napi_env env, NapiCallbackIn
     }
 
     AAFwk::Want want;
-    AppExecFwk::UnwrapWant(env, info.argv[INDEX_ZERO], want);
+    if (!AppExecFwk::UnwrapWant(env, info.argv[INDEX_ZERO], want)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse want failed");
+        ThrowInvalidParamError(env, "Parse param want failed, must be a Want");
+        return CreateJsUndefined(env);
+    }
     TAG_LOGD(AAFwkTag::CONTEXT, "target:%{public}s.%{public}s", want.GetBundle().c_str(),
         want.GetElement().GetAbilityName().c_str());
 
