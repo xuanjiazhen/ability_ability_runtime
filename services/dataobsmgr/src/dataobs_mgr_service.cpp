@@ -17,6 +17,7 @@
 
 #include <functional>
 #include <memory>
+#include <stdint.h>
 #include <string>
 #include <unistd.h>
 #include "string_ex.h"
@@ -33,6 +34,7 @@
 #include "system_ability_definition.h"
 #include "common_utils.h"
 #include "securec.h"
+#include "uri_utils.h"
 #ifdef SCENE_BOARD_ENABLE
 #include "window_manager_lite.h"
 #else
@@ -112,6 +114,28 @@ int DataObsMgrService::RegisterObserver(const Uri &uri, sptr<IDataAbilityObserve
             CommonUtils::Anonymous(uri.ToString()).c_str());
         return DATAOBS_SERVICE_INNER_IS_NULL;
     }
+
+    /*
+        1. 解析userid， appindex， key
+        2. format uri
+    */
+    std::string uri_str = uri.ToString();
+    auto [success, userID] = URIUtils::GetUserFromProxyURI(uri_str);
+    if (!success) {
+        TAG_LOGE(AAFwkTag::DBOBSMGR, "uri user invalid, uri:%{public}s",
+            CommonUtils::Anonymous(uri_str).c_str());
+        return DATAOBS_INVALID_USERID;
+    }
+    int32_t appIndex = -1;
+    bool success = URIUtils::GetAppIndexFromProxyURI(uri_str, appIndex);
+    if (!success) {
+        TAG_LOGE(AAFwkTag::DBOBSMGR, "appindex invalid, uri:%{public}s",
+            CommonUtils::Anonymous(uri_str).c_str());
+        return DATAOBS_INVALID_APPINDEX;
+    }
+    URIUtils::GetKeyFromProxyURI(uri_str); // todo
+    struct ObserverNode observerNode();
+
 
     int status;
     if (const_cast<Uri &>(uri).GetScheme() == SHARE_PREFERENCES) {
