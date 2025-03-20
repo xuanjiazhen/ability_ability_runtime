@@ -1253,6 +1253,19 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         (sessionInfo->want).GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0), sessionInfo->instanceKey.c_str(),
         hasStartWindow, backgroundColor.c_str());
     auto abilityRecord = GetAbilityRecordByToken(abilityRequest.callerToken);
+
+    if (FindRecordFromSessionMap(abilityRequest) != nullptr) {
+        if (abilityRecord->GetIsHook() && !abilityRecord->GetHookOff()) {
+            sessionInfo->reuseDelegatorWindow = true;
+        }
+        if (abilityRecord->GetIsHook() && abilityRecord->GetHookOff()) {
+            sessionInfo->reuseDelegatorWindow = true;
+            abilityRecord->SetIsHook(false);
+        }
+    } else {
+        abilityRecord->SetIsHook(true);
+    }
+
     if (abilityRecord != nullptr && !abilityRecord->GetRestartAppFlag()) {
         auto callerSessionInfo = abilityRecord->GetSessionInfo();
         CHECK_POINTER_AND_RETURN(callerSessionInfo, ERR_INVALID_VALUE);
