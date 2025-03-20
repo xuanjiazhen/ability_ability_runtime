@@ -13,12 +13,13 @@
  * limitations under the License.
  */
 #include "ability_runtime/context/context.h"
+#include "ani_common/ani_common_configuration.h"
 #include "sts_ability_stage_context.h"
 #include "hilog_tag_wrapper.h"
 #include "sts_runtime.h"
 #include "configuration_convertor.h"
 #include "ohos_application.h"
-#include "sts_context_util.h"
+#include "ani_base_context.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -83,10 +84,17 @@ ani_object STSAbilityStageContext::CreateStsAbilityStageContext(ani_env* env, st
         TAG_LOGE(AAFwkTag::ABILITY, "application is null");
         return nullptr;
     }
-    ContextUtil::StsCreatContext(env, abilityStageCtxCls, obj, app->GetApplicationCtxObjRef(), context);
+    //#TODO baseContext is not usable
+    //ContextUtil::StsCreatContext(env, abilityStageCtxCls,
+    //  obj, app->GetApplicationCtxObjRef(), context);
 
     //set Config class
-    ani_object configObj = Createfiguration(env, context);
+    auto configuration = context->GetConfiguration();
+    if (configuration == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "configuration is nullptr");
+        return nullptr;
+    }
+    ani_object configObj = OHOS::AppExecFwk::WrapConfiguration(env, *configuration);
     if(configObj != nullptr) {
         TAG_LOGI(AAFwkTag::ABILITY, "configObj bind");
         ani_ref configObjRef = nullptr;
