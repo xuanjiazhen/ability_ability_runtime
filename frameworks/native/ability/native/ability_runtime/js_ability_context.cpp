@@ -430,6 +430,56 @@ void JsAbilityContext::ClearFailedCallConnection(
     context->ClearFailedCallConnection(callback);
 }
 
+void JsAbilityContext::UnwrapCompletionHandlerInStartOptions(napi_env env, napi_value param,
+    AAFwk::StartOptions &options)
+{
+    napi_value completionHandler = AppExecFwk::GetPropertyValueByPropertyName(env, param,
+        "completionHandler", napi_object);
+    if (completionHandler == nullptr) {
+        TAG_LOGD(AAFwkTag::CONTEXT, "null completionHandler");
+        return;
+    }
+    TAG_LOGI(AAFwkTag::CONTEXT, "completionHandler exists");
+    napi_value onRequestSuccObj = AppExecFwk::GetPropertyValueByPropertyName(env, completionHandler,
+        "onRequestSuccess", napi_function);
+    napi_value onRequestFailObj = AppExecFwk::GetPropertyValueByPropertyName(env, completionHandler,
+        "onRequestFailure", napi_function);
+    if (onRequestSuccObj == nullptr || onRequestFailObj == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null onRequestSuccObj or onRequestFailObj");
+        return;
+    }
+    OnRequestResult onRequestSucc = [env, completionHandler, onRequestSuccObj](const AppExecFwk::ElementName &element,
+        const std::string &message) {
+        size_t argc = ARGC_TWO;
+        napi_value argv[ARGC_TWO] = { AppExecFwk::WrapElementName(env, element), CreateJsValue(env, message) };
+        napi_status status = napi_call_function(env, completionHandler, onRequestSuccObj, argc, argv, nullptr);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "call onRequestSuccess, failed: %{public}d", status);
+        }
+    };
+    OnRequestResult onRequestFail = [env, completionHandler, onRequestFailObj](const AppExecFwk::ElementName &element,
+        const std::string &message) {
+        size_t argc = ARGC_TWO;
+        napi_value argv[ARGC_TWO] = { AppExecFwk::WrapElementName(env, element), CreateJsValue(env, message) };
+        napi_status status = napi_call_function(env, completionHandler, onRequestFailObj, argc, argv, nullptr);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "call onRequestFailure, failed: %{public}d", status);
+        }
+    };
+    auto context = context_.lock();
+    if (!context) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        return;
+    }
+    std::string requestId = std::to_string(static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::high_resolution_clock::now().time_since_epoch()).count()));
+    if (context->AddCompletionHandler(requestId, onRequestSucc, onRequestFail) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "add completionHandler failed");
+        return;
+    }
+    options.requestId_ = requestId;
+}
+
 napi_value JsAbilityContext::OnStartAbility(napi_env env, NapiCallbackInfo& info, bool isStartRecent)
 {
     StartAsyncTrace(HITRACE_TAG_ABILITY_MANAGER, TRACE_ATOMIC_SERVICE, TRACE_ATOMIC_SERVICE_ID);
@@ -454,6 +504,7 @@ napi_value JsAbilityContext::OnStartAbility(napi_env env, NapiCallbackInfo& info
             TAG_LOGE(AAFwkTag::CONTEXT, "invalid options");
             return CreateJsUndefined(env);
         }
+        UnwrapCompletionHandlerInStartOptions(env, info.argv[INDEX_ONE], startOptions);
         unwrapArgc++;
     }
 
@@ -489,12 +540,21 @@ napi_value JsAbilityContext::OnStartAbility(napi_env env, NapiCallbackInfo& info
         }
     };
 
-    NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode, weak = context_, want, startOptions, unwrapArgc](
+        napi_env env, NapiAsyncTask& task, int32_t status) {
         if (*innerErrCode == ERR_OK) {
             TAG_LOGD(AAFwkTag::CONTEXT, "startAbility success");
             task.Resolve(env, CreateJsUndefined(env));
-        } else {
-            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+            return;
+        }
+        task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+        if (unwrapArgc > ARGC_ONE && !startOptions.requestId_.empty()) {
+            auto context = weak.lock();
+            if (!context) {
+                TAG_LOGW(AAFwkTag::CONTEXT, "null context");
+                return;
+            }
+            context->OnRequestFailure(startOptions.requestId_, want.GetElement(), "startAbility failed");
         }
     };
 

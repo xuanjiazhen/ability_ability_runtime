@@ -1273,5 +1273,49 @@ ErrCode AbilityContextImpl::RevokeDelegator()
     SetHookOff(true);
     return ERR_OK;
 }
+
+ErrCode AbilityContextImpl::AddCompletionHandler(const std::string &requestId, OnRequestResult onRequestSucc,
+    OnRequestResult onRequestFail)
+{
+    if (onRequestSucc == nullptr || onRequestFail == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "either func is null");
+        return ERR_INVALID_VALUE;
+    }
+    {
+        std::lock_guard lock(onRequestSuccessMutex_);
+        onRequestSuccessCallbacks_.emplace(requestId, onRequestSucc);
+    }
+    {
+        std::lock_guard lock(onRequestFailureMutex_);
+        onRequestFailureCallbacks_.emplace(requestId, onRequestFail);
+    }
+    return ERR_OK;
+}
+
+void AbilityContextImpl::OnRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
+    const std::string &message)
+{
+    std::lock_guard lock(onRequestSuccessMutex_);
+    auto iter = onRequestSuccessCallbacks_.find(requestId);
+    if (iter == onRequestSuccessCallbacks_.end()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "requestId %{public}s not exist", requestId.c_str());
+        return;
+    }
+    iter->second(element, message);
+    onRequestSuccessCallbacks_.erase(iter);
+}
+
+void AbilityContextImpl::OnRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+    const std::string &message)
+{
+    std::lock_guard lock(onRequestFailureMutex_);
+    auto iter = onRequestFailureCallbacks_.find(requestId);
+    if (iter == onRequestFailureCallbacks_.end()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "requestId %{public}s not exist", requestId.c_str());
+        return;
+    }
+    iter->second(element, message);
+    onRequestFailureCallbacks_.erase(iter);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
