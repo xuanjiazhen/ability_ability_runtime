@@ -37,11 +37,15 @@ ohos_unittest("app_mgr_service_inner_third_test") {
     "app_mgr_service_inner_third_test.cpp",
     "mock/src/app_utils.cpp",
     "mock/src/bundle_mgr_helper.cpp",
+    "mock/src/mock_ipc_skeleton.cpp",
+    "mock/src/mock_my_flag.cpp",
+    "mock/src/mock_permission_verification.cpp",
   ]
 
   deps = [
     "${ability_runtime_services_path}/abilitymgr:ams_configuration_parameter",
     "${ability_runtime_services_path}/appmgr:libappms",
+    "${ability_runtime_services_path}/common:task_handler_wrap",
   ]
 
   external_deps = [
