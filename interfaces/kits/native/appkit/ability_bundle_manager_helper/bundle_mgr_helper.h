@@ -112,6 +112,9 @@ public:
         const std::string &bundleName, const std::string &moduleName, uint32_t resId, int32_t userId);
     std::string GetDataDir(const std::string &bundleName, const int32_t appIndex);
     ErrCode GetAppProvisionInfo(const std::string &bundleName, int32_t userId, AppExecFwk::AppProvisionInfo &info);
+    ErrCode GetAllPluginInfo(const std::string &hostBundleName, int32_t userId,
+        std::vector<PluginBundleInfo> &pluginBundleInfos);
+    ErrCode GetPluginInfosForSelf(std::vector<PluginBundleInfo> &pluginBundleInfos);
 
 private:
     sptr<IBundleMgr> Connect();
