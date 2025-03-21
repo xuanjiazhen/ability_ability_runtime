@@ -19,9 +19,8 @@ import { Context } from './application/Context';
 import { BusinessError, AsyncCallback } from '@ohos.base';
 
 export class AbilityMonitor {
-
-    abilityName: string= "";
-    moduleName: string= "";
+    abilityName: string = "";
+    moduleName: string = "";
 }
 
 export default interface AbilityDelegator {
