@@ -56,7 +56,6 @@ ohos_shared_library("ability_app_manager_ani_kit") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
-    "icu:shared_icuuc",
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "napi:ace_napi",
@@ -64,7 +63,7 @@ ohos_shared_library("ability_app_manager_ani_kit") {
     "samgr:samgr_proxy",
   ]
 
-  #innerapi_tags = [ "platformsdk" ]
+  innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }
