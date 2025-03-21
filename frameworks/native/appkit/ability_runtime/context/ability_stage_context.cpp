@@ -129,6 +129,17 @@ std::shared_ptr<AppExecFwk::ApplicationInfo> AbilityStageContext::GetApplication
     return contextImpl_->GetApplicationInfo();
 }
 
+std::shared_ptr<Context> AbilityStageContext::CreatePluginContext(const std::string &pluginBundleName,
+    const std::string &moduleName, std::shared_ptr<Context> inputContext)
+{
+    if (contextImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null contextImpl");
+        return nullptr;
+    }
+
+    return contextImpl_->CreatePluginContext(pluginBundleName, moduleName, inputContext);
+}
+
 std::shared_ptr<Context> AbilityStageContext::CreateBundleContext(const std::string &bundleName)
 {
     if (contextImpl_ == nullptr) {

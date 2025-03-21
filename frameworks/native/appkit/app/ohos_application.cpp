@@ -609,6 +609,16 @@ bool OHOSApplication::AddAbilityStage(
         return false;
     }
 
+    bool isPlugin = false;
+    if (!hapModuleInfo.abilityInfos.empty()) {
+        isPlugin = hapModuleInfo.abilityInfos[0].applicationInfo.bundleType == AppExecFwk::BundleType::APP_PLUGIN;
+    }
+
+    if (isPlugin) {
+        auto rm = stageContext->CreatePluginContext(hapModuleInfo.bundleName, hapModuleInfo.moduleName, abilityRuntimeContext_)->GetResourceManager();
+        stageContext->SetResourceManager(rm);
+    }
+
     if (abilityRuntimeContext_->GetApplicationInfo() && abilityRuntimeContext_->GetApplicationInfo()->multiProjects) {
         auto rm = stageContext->CreateModuleContext(hapModuleInfo.moduleName)->GetResourceManager();
         stageContext->SetResourceManager(rm);
