@@ -3825,5 +3825,19 @@ void AbilityRecord::ScheduleCollaborate(const Want &want)
     CHECK_POINTER(lifecycleDeal_);
     lifecycleDeal_->ScheduleCollaborate(want);
 }
+
+void AbilityRecord::NotifyAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+    const std::string &message)
+{
+    CHECK_POINTER(lifecycleDeal_);
+    lifecycleDeal_->NotifyAbilityRequestFailure(requestId, element, message);
+}
+
+void AbilityRecord::NotifyAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
+    const std::string &message)
+{
+    CHECK_POINTER(lifecycleDeal_);
+    lifecycleDeal_->NotifyAbilityRequestSuccess(requestId, element, message);
+}
 }  // namespace AAFwk
 }  // namespace OHOS
