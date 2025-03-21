@@ -3823,5 +3823,10 @@ void AbilityRecord::ScheduleCollaborate(const Want &want)
     CHECK_POINTER(lifecycleDeal_);
     lifecycleDeal_->ScheduleCollaborate(want);
 }
+
+void AbilityRecord::RevokeDelegator()
+{
+    hookOff_ = true;
+}
 }  // namespace AAFwk
 }  // namespace OHOS

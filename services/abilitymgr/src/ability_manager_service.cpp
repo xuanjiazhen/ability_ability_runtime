@@ -13366,5 +13366,12 @@ int32_t AbilityManagerService::QueryPreLoadUIExtensionRecord(const AppExecFwk::E
   return connectManager->QueryPreLoadUIExtensionRecordInner(
       element, moduleName, hostBundleName, recordNum);
 }
+
+int32_t AbilityManagerService::RevokeDelegator(const sptr<IRemoteObject> &token)
+{
+    auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
+    CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
+    return uiAbilityManager->RevokeDelegator(token);
+}
 }  // namespace AAFwk
 }  // namespace OHOS
