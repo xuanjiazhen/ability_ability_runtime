@@ -102,8 +102,8 @@ void STSFormExtension::BindContext(const std::shared_ptr<AbilityInfo> &abilityIn
     TAG_LOGI(AAFwkTag::FORM_EXT, "BindContext call");
     auto env = stsRuntime_.GetAniEnv();
     UpdateFormExtensionObj(abilityInfo, moduleName, srcPath);
-    if (stsAbilityObj_ == nullptr || want == nullptr) {
-        TAG_LOGE(AAFwkTag::FORM_EXT, "null stsAbilityObj_ or abilityContext_ or want");
+    if (stsAbilityObj_ == nullptr || want == nullptr || env == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null stsAbilityObj_ or abilityContext_ or want or env");
         return;
     }
 
@@ -211,9 +211,13 @@ bool STSFormExtension::ConvertFromDataProxies(
 OHOS::AppExecFwk::FormProviderInfo STSFormExtension::OnCreate(const OHOS::AAFwk::Want &want)
 {
     TAG_LOGI(AAFwkTag::FORM_EXT, "OnCreate call");
-    auto env = stsRuntime_.GetAniEnv();
-    ani_status status = ANI_OK;
     OHOS::AppExecFwk::FormProviderInfo formProviderInfo;
+    auto env = stsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null env");
+        return formProviderInfo;
+    }
+    ani_status status = ANI_OK;
     ani_object aniWant = OHOS::AppExecFwk::WrapWant(env, want);
     ani_method function;
     if ((status = env->Class_FindMethod(stsAbilityObj_->aniCls, "<onAddForm>",
@@ -250,6 +254,17 @@ OHOS::AppExecFwk::FormProviderInfo STSFormExtension::OnCreate(const OHOS::AAFwk:
         TAG_LOGE(AAFwkTag::FORM_EXT, "Object_GetField_Ref status : %{public}d", status);
         return formProviderInfo;
     }
+    return SetFormData(formProviderInfo, proxiesRef);
+}
+
+OHOS::AppExecFwk::FormProviderInfo STSFormExtension::SetFormData(
+    OHOS::AppExecFwk::FormProviderInfo &formProviderInfo, ani_ref proxiesRef)
+{
+    auto env = stsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null env");
+        return formProviderInfo;
+    }
     std::vector<FormDataProxy> formDataProxies;
     if (proxiesRef != nullptr && !ConvertFromDataProxies(env, static_cast<ani_object>(proxiesRef), formDataProxies)) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Convert formDataProxies failed");
@@ -264,6 +279,10 @@ void STSFormExtension::OnDestroy(const int64_t formId)
 {
     TAG_LOGI(AAFwkTag::FORM_EXT, "OnDestroy formId: %{public}" PRId64, formId);
     auto env = stsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null env");
+        return;
+    }
     ani_status status = ANI_OK;
     ani_string formIdStr;
     std::string str = std::to_string(formId);
@@ -287,6 +306,10 @@ void STSFormExtension::OnEvent(const int64_t formId, const std::string &message)
 {
     TAG_LOGI(AAFwkTag::FORM_EXT, "OnEvent formId: %{public}" PRId64, formId);
     auto env = stsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null env");
+        return;
+    }
     ani_status status = ANI_OK;
     ani_string formIdStr;
     std::string str = std::to_string(formId);
@@ -318,6 +341,10 @@ void STSFormExtension::OnUpdate(const int64_t formId, const AAFwk::WantParams &w
 {
     TAG_LOGI(AAFwkTag::FORM_EXT, "OnUpdate formId: %{public}" PRId64, formId);
     auto env = stsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null env");
+        return;
+    }
     ani_status status = ANI_OK;
     ani_string formIdStr;
     std::string str = std::to_string(formId);
@@ -344,6 +371,10 @@ void STSFormExtension::OnCastToNormal(const int64_t formId)
 {
     TAG_LOGI(AAFwkTag::FORM_EXT, "OnCastToNormal formId: %{public}" PRId64, formId);
     auto env = stsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null env");
+        return;
+    }
     ani_status status = ANI_OK;
 
     ani_string formIdStr;
@@ -369,6 +400,10 @@ void STSFormExtension::OnVisibilityChange(const std::map<int64_t, int32_t> &form
 {
     TAG_LOGI(AAFwkTag::FORM_EXT, "OnVisibilityChange call");
     auto env = stsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null env");
+        return;
+    }
     ani_status status = ANI_OK;
     ani_method function;
     if ((status = env->Class_FindMethod(

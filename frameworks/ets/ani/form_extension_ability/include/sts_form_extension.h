@@ -58,7 +58,10 @@ private:
 
     bool ConvertFromDataProxies(ani_env *env, ani_object arrayValue, std::vector<FormDataProxy> &formDataProxies);
     std::string ANIUtils_ANIStringToStdString(ani_env *env, ani_string ani_str);
-    std::unique_ptr<NativeReference> stsObj_;
+    OHOS::AppExecFwk::FormProviderInfo SetFormData(
+        OHOS::AppExecFwk::FormProviderInfo &formProviderInfo, ani_ref proxiesRef);
+
+        std::unique_ptr<NativeReference> stsObj_;
     std::shared_ptr<STSNativeReference> stsAbilityObj_;
     STSRuntime &stsRuntime_;
 };
