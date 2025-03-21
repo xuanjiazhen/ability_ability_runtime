@@ -1270,6 +1270,7 @@ int MissionListManager::DispatchForeground(const std::shared_ptr<AbilityRecord> 
         abilityRecord->SetStartingWindow(false);
         auto taskName = std::to_string(abilityRecord->GetMissionId()) + "_hot";
         taskHandler->CancelTask(taskName);
+        abilityRecord->SetSceneFlag(4);
 #endif
         auto task = [self, abilityRecord]() {
             auto selfObj = self.lock();
