@@ -311,7 +311,7 @@ int MissionListManager::MoveMissionToFrontInner(int32_t missionId, bool isCaller
     AbilityRequest abilityRequest;
     targetAbilityRecord->ProcessForegroundAbility(isRecent, abilityRequest, startOptions, callerAbility, 4);
 #else
-    targetAbilityRecord->ProcessForegroundAbility(4);
+    targetAbilityRecord->ProcessForegroundAbility(0);
 #endif
     TAG_LOGD(AAFwkTag::ABILITYMGR, "SetMovingState, missionId: %{public}d", missionId);
     mission->SetMovingState(true);
@@ -478,7 +478,7 @@ int MissionListManager::StartAbilityLocked(const std::shared_ptr<AbilityRecord> 
     targetAbilityRecord->ProcessForegroundAbility(false, abilityRequest, startOptions, callerAbility,
         4);
 #else
-    targetAbilityRecord->ProcessForegroundAbility(4);
+    targetAbilityRecord->ProcessForegroundAbility(0);
 #endif
     return ERR_OK;
 }
@@ -1270,7 +1270,6 @@ int MissionListManager::DispatchForeground(const std::shared_ptr<AbilityRecord> 
         abilityRecord->SetStartingWindow(false);
         auto taskName = std::to_string(abilityRecord->GetMissionId()) + "_hot";
         taskHandler->CancelTask(taskName);
-        abilityRecord->SetSceneFlag(4);
 #endif
         auto task = [self, abilityRecord]() {
             auto selfObj = self.lock();
@@ -4116,7 +4115,7 @@ int MissionListManager::DoAbilityForeground(std::shared_ptr<AbilityRecord> &abil
         TAG_LOGD(AAFwkTag::ABILITYMGR, "pending state is not FOREGROUND.");
         abilityRecord->SetPendingState(AbilityState::FOREGROUND);
     }
-    abilityRecord->ProcessForegroundAbility(4, flag);
+    abilityRecord->ProcessForegroundAbility(0, flag);
     return ERR_OK;
 }
 
