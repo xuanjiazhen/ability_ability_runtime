@@ -15,17 +15,18 @@
 
 import BaseContext from './BaseContext.ets'
 import ApplicationContext from './ApplicationContext'
-import EventHub from './EventHub';
+//import EventHub from './EventHub';
 // import ApplicationInfo from 'bms/ApplicationInfo'
 // import {resourceManager} from 'global/resourceManager'
 
 export class Context extends BaseContext {
+    public nativeContext:long;
     area: int = 0;
     filesDir: string = "";
     tempDir: string = "";
     // applicationInfo?: ApplicationInfo;
     // resourceManager?: resourceManager.ResourceManager
-    eventHub: EventHub = new EventHub();
+    // eventHub: EventHub = new EventHub();
 
     private applicationContext?: ApplicationContext;
 

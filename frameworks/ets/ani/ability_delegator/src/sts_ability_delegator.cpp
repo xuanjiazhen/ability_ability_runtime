@@ -86,7 +86,7 @@ ani_object GetAppContext(ani_env* env, ani_class clss)
     TAG_LOGI(AAFwkTag::DELEGATOR, "GetAppContext call");
     ani_class cls;
     ani_object nullobj = nullptr;
-    if (ANI_OK != env->FindClass("LContext/Context;", &cls)) {
+    if (ANI_OK != env->FindClass("Lapplication/Context;", &cls)) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "CreateStsBaseContext FindClass");
         return nullobj;
     }

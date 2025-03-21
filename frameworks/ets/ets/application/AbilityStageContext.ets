@@ -13,18 +13,12 @@
  * limitations under the License.
  */
 
-import { Context } from './Context'
+//import Context from './application/Context'
+import { Configuration } from '@ohos.app.ability.Configuration'
 
-export default class ApplicationContext extends Context {
-    public native setSupportedProcessCacheSync(isSupported : boolean):void;
-    public nativeApplicationContext:long = 0;
-
-    setSupportedProcessCache(isSupported : boolean):void {
-        console.log("call setSupportedProcessCache 111");
-        let p1 = launch this.setSupportedProcessCacheSync(isSupported);
-        console.log("call setSupportedProcessCache 222");
-        p1.then<void>(():void=>{
-            console.log("call setSupportedProcessCache 333");
-        });
-    }
+export class Context {
+}
+export default class AbilityStageContext extends Context {
+    public nativeContext:long = 0; 
+    config?: Configuration;
 }
