@@ -17,6 +17,7 @@
 #include <singleton.h>
 
 #define private public
+#include "Configuration.h"
 #include "context_impl.h"
 #undef private
 
