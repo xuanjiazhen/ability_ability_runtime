@@ -822,10 +822,6 @@ bool JsRuntime::CreateJsEnv(const Options& options)
         return false;
     }
     
-    if (options.isUnique) {
-        jsEnv_->GetNativeEngine()->MarkFormThread();
-    }
-
     return true;
 }
 
