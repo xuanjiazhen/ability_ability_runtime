@@ -64,11 +64,11 @@ export default class UIAbilityContext {
     console.log("call startAbility callback 222");
   }
 
-  startAbility(want: Want): Promise<int> {
-    let p = new Promise<int>((resolve: (data:int)=>void, reject:(err: BusinessError<void>)=>void):void => {
-    let myCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>)=>{
+  startAbility(want: Want): Promise<void> {
+    let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError<void>)=>void):void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>)=>{
         if (err.code == 0) {
-          resolve(1);
+          resolve(undefined);
         } else {
           reject(err);
         }
@@ -78,12 +78,12 @@ export default class UIAbilityContext {
     return p;
   }
 
-  startAbility(want: Want, options: StartOptions): Promise<int> {
+  startAbility(want: Want, options: StartOptions): Promise<void> {
     console.log("call startAbility callback 111");
-    let p = new Promise<int>((resolve: (data:int)=>void, reject:(err: BusinessError<void>)=>void):void => {
+    let p = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError<void>)=>void):void => {
       let myCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>)=>{
         if (err.code == 0) {
-          resolve(1);
+          resolve(undefined);
         } else {
           reject(err);
         }

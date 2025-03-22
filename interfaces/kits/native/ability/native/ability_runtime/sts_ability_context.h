@@ -54,6 +54,8 @@ private:
     static void StartAbilityForResultInner(ani_env *env, ani_object aniObj, ani_object wantObj,
         ani_object startOptionsObj, ani_object callback);
     static int32_t GenerateRequestCode();
+    static std::string GetErrMsg(int32_t err, const std::string& permission = "");
+
     static std::mutex requestCodeMutex_;
 };
 ani_ref CreateStsAbilityContext(ani_env *env, const std::shared_ptr<AbilityContext> &context);

@@ -23,6 +23,7 @@
 
 #include "ability_manager_client.h"
 #include "ability_manager_errors.h"
+#include "ability_business_error.h"
 #include "app_utils.h"
 #include "event_handler.h"
 #include "hilog_tag_wrapper.h"
@@ -102,7 +103,12 @@ void StsAbilityContext::InheritWindowMode(ani_env *env, ani_object aniObj, AAFwk
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
 #ifdef SUPPORT_SCREEN
     // only split mode need inherit
-    auto windowMode = GetAbilityContext(env, aniObj)->GetCurrentWindowMode();
+    auto context = GetAbilityContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "context null");
+        return;
+    }
+    auto windowMode = context->GetCurrentWindowMode();
     if (AAFwk::AppUtils::GetInstance().IsInheritWindowSplitScreenMode() &&
         (windowMode == AAFwk::AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_PRIMARY ||
         windowMode == AAFwk::AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_SECONDARY)) {
@@ -139,6 +145,17 @@ bool StsAbilityContext::AsyncCallback(ani_env *env, ani_object call, ani_object 
     return true;
 }
 
+std::string StsAbilityContext::GetErrMsg(int32_t err, const std::string& permission)
+{
+    auto errCode = GetJsErrorCodeByNativeError(err);
+    auto errMsg = (errCode == AbilityErrorCode::ERROR_CODE_PERMISSION_DENIED && !permission.empty())
+                      ? GetNoPermissionErrorMsg(permission)
+                      : GetErrorMsg(errCode);
+    TAG_LOGE(AAFwkTag::UIABILITY, "errMsg : %{errCode}d", errCode);
+    TAG_LOGE(AAFwkTag::UIABILITY, "errMsg : %{public}s", errMsg.c_str());
+    return errMsg;
+}
+
 ani_object StsAbilityContext::WrapBusinessError(ani_env *env, ani_int code)
 {
     ani_class cls = nullptr;
@@ -166,6 +183,7 @@ ani_object StsAbilityContext::WrapBusinessError(ani_env *env, ani_int code)
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
         return nullptr;
     }
+    OHOS::AppExecFwk::SetFieldString(env, cls, obj, "message", GetErrMsg(code));
     return obj;
 }
 
@@ -177,7 +195,11 @@ void StsAbilityContext::StartAbilityInner([[maybe_unused]] ani_env *env, [[maybe
     TAG_LOGE(AAFwkTag::UIABILITY, "start");
     AAFwk::Want want;
     OHOS::AppExecFwk::UnwrapWant(env, wantObj, want);
-
+    auto context = StsAbilityContext::GetAbilityContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "context null");
+        return;
+    }
     InheritWindowMode(env, aniObj, want);
 
     if ((want.GetFlags() & AAFwk::Want::FLAG_INSTALL_ON_DEMAND) == AAFwk::Want::FLAG_INSTALL_ON_DEMAND) {
@@ -189,9 +211,9 @@ void StsAbilityContext::StartAbilityInner([[maybe_unused]] ani_env *env, [[maybe
     if (opt != nullptr) {
         AAFwk::StartOptions startOptions;
         OHOS::AppExecFwk::UnwrapStartOptionsWithProcessOption(env, opt, startOptions);
-        resultCode = GetAbilityContext(env, aniObj)->StartAbility(want, startOptions, -1);
+        resultCode = context->StartAbility(want, startOptions, -1);
     } else {
-        resultCode = GetAbilityContext(env, aniObj)->StartAbility(want, -1);
+        resultCode = context->StartAbility(want, -1);
     }
 
     if ((want.GetFlags() & AAFwk::Want::FLAG_INSTALL_ON_DEMAND) == AAFwk::Want::FLAG_INSTALL_ON_DEMAND) {
