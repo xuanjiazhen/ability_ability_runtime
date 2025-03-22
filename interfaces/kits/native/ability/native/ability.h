@@ -43,6 +43,7 @@
 #ifdef SUPPORT_SCREEN
 #include "ability_window.h"
 #include "display_manager.h"
+#include "common/form_constants.h"
 #include "parcelable_tool/form_provider_info.h"
 #include "form_state_info.h"
 #include "session_info.h"
