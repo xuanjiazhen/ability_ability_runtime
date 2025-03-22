@@ -307,6 +307,7 @@ void JsUIAbility::SetAbilityContext(std::shared_ptr<AbilityInfo> abilityInfo,
     if (status != napi_ok && workContext != nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "napi_wrap Failed: %{public}d", status);
         delete workContext;
+        delete workScreenMode;
         return;
     }
 
@@ -729,6 +730,69 @@ void JsUIAbility::OnBackground()
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 
+void JsUIAbility::OnWillForeground()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", GetAbilityName().c_str());
+    UIAbility::OnWillForeground();
+
+    std::string methodName = "OnWillForeground";
+    HandleScope handleScope(jsRuntime_);
+    AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
+    CallObjectMethod("onWillForeground");
+    AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
+
+    TAG_LOGD(AAFwkTag::UIABILITY, "end");
+}
+
+void JsUIAbility::OnDidForeground()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", GetAbilityName().c_str());
+    UIAbility::OnDidForeground();
+
+    std::string methodName = "OnDidForeground";
+    HandleScope handleScope(jsRuntime_);
+    AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
+    CallObjectMethod("onDidForeground");
+    AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
+
+    if (scene_ != nullptr) {
+        scene_->GoResume();
+    }
+    TAG_LOGD(AAFwkTag::UIABILITY, "end");
+}
+
+void JsUIAbility::OnWillBackground()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", GetAbilityName().c_str());
+    UIAbility::OnWillBackground();
+
+    std::string methodName = "OnWillBackground";
+    HandleScope handleScope(jsRuntime_);
+    AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::BACKGROUND, methodName);
+    CallObjectMethod("onWillBackground");
+    AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::BACKGROUND, methodName);
+
+    TAG_LOGD(AAFwkTag::UIABILITY, "end");
+}
+
+void JsUIAbility::OnDidBackground()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", GetAbilityName().c_str());
+    UIAbility::OnDidBackground();
+
+    std::string methodName = "OnDidBackground";
+    HandleScope handleScope(jsRuntime_);
+    AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::BACKGROUND, methodName);
+    CallObjectMethod("onDidBackground");
+    AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::BACKGROUND, methodName);
+
+    TAG_LOGD(AAFwkTag::UIABILITY, "end");
+}
+
 bool JsUIAbility::OnBackPress()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -896,6 +960,8 @@ void JsUIAbility::DoOnForeground(const Want &want)
         return;
     }
 
+    OnWillForeground();
+    
     TAG_LOGD(AAFwkTag::UIABILITY, "move scene to foreground, sceneFlag_: %{public}d", UIAbility::sceneFlag_);
     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, METHOD_NAME);
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "scene_->GoForeground");
@@ -1524,7 +1590,7 @@ sptr<IRemoteObject> JsUIAbility::CallRequest()
     }
 
     if (remoteCallee_ != nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null remoteCallee_");
+        TAG_LOGE(AAFwkTag::UIABILITY, "remoteCallee_ is exist");
         return remoteCallee_;
     }
 

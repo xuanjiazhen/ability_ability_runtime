@@ -342,6 +342,7 @@ void AppRunningRecord::LaunchApplication(const Configuration &config)
     launchData.SetIsNeedPreloadModule(isNeedPreloadModule_);
     launchData.SetNWebPreload(isAllowedNWebPreload_);
     launchData.SetPreloadModuleName(preloadModuleName_);
+    launchData.SetDebugFromLocal(isDebugFromLocal_);
 
     TAG_LOGD(AAFwkTag::APPMGR, "%{public}s called,app is %{public}s.", __func__, GetName().c_str());
     AddAppLifecycleEvent("AppRunningRecord::LaunchApplication");
@@ -626,14 +627,13 @@ void AppRunningRecord::AddModules(
     }
 
     for (auto &iter : moduleInfos) {
-        AddModule(appInfo, nullptr, nullptr, iter, nullptr, 0, 0);
+        AddModule(appInfo, nullptr, nullptr, iter, nullptr, 0);
     }
 }
 
 void AppRunningRecord::AddModule(std::shared_ptr<ApplicationInfo> appInfo,
     std::shared_ptr<AbilityInfo> abilityInfo, sptr<IRemoteObject> token,
-    const HapModuleInfo &hapModuleInfo, std::shared_ptr<AAFwk::Want> want, int32_t abilityRecordId,
-    int32_t persistentId)
+    const HapModuleInfo &hapModuleInfo, std::shared_ptr<AAFwk::Want> want, int32_t abilityRecordId)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
 
@@ -668,7 +668,7 @@ void AppRunningRecord::AddModule(std::shared_ptr<ApplicationInfo> appInfo,
         TAG_LOGE(AAFwkTag::APPMGR, "null abilityInfo or token");
         return;
     }
-    moduleRecord->AddAbility(token, abilityInfo, want, abilityRecordId, persistentId);
+    moduleRecord->AddAbility(token, abilityInfo, want, abilityRecordId);
 
     return;
 }
@@ -1485,48 +1485,53 @@ void AppRunningRecord::SetSpecifiedAbilityFlagAndWant(
     int requestId, const AAFwk::Want &want, const std::string &moduleName)
 {
     std::lock_guard lock(specifiedMutex_);
-    if (specifiedRequestId_ != -1) {
-        TAG_LOGW(AAFwkTag::APPMGR, "specifiedRequestId: %{public}d", specifiedRequestId_);
+    if (specifiedAbilityRequest_ != nullptr) {
+        TAG_LOGW(AAFwkTag::APPMGR, "specifiedRequestId: %{public}d", specifiedAbilityRequest_->requestId);
     }
-    specifiedRequestId_ = requestId;
-    specifiedWant_ = want;
+    specifiedAbilityRequest_ = std::make_shared<SpecifiedRequest>();
+    specifiedAbilityRequest_->requestId = requestId;
+    specifiedAbilityRequest_->want = want;
     moduleName_ = moduleName;
 }
 
 int32_t AppRunningRecord::GetSpecifiedRequestId() const
 {
     std::lock_guard lock(specifiedMutex_);
-    return specifiedRequestId_;
+    if (specifiedAbilityRequest_ != nullptr) {
+        return specifiedAbilityRequest_->requestId;
+    }
+    return -1;
 }
 
-void AppRunningRecord::ResetSpecifiedRequestId()
+void AppRunningRecord::ResetSpecifiedRequest()
 {
     std::lock_guard lock(specifiedMutex_);
-    specifiedRequestId_ = -1;
+    specifiedAbilityRequest_.reset();
 }
 
 void AppRunningRecord::SetScheduleNewProcessRequestState(int32_t requestId,
     const AAFwk::Want &want, const std::string &moduleName)
 {
     std::lock_guard lock(specifiedMutex_);
-    if (newProcessRequestId_ != -1) {
-        TAG_LOGW(AAFwkTag::APPMGR, "newProcessRequestId: %{public}d", newProcessRequestId_);
+    if (specifiedProcessRequest_ != nullptr) {
+        TAG_LOGW(AAFwkTag::APPMGR, "newProcessRequestId: %{public}d", specifiedProcessRequest_->requestId);
     }
-    newProcessRequestId_ = requestId;
-    newProcessRequestWant_ = want;
+    specifiedProcessRequest_ = std::make_shared<SpecifiedRequest>();
+    specifiedProcessRequest_->requestId = requestId;
+    specifiedProcessRequest_->want = want;
     moduleName_ = moduleName;
 }
 
 bool AppRunningRecord::IsNewProcessRequest() const
 {
     std::lock_guard lock(specifiedMutex_);
-    return newProcessRequestId_ != -1;
+    return specifiedProcessRequest_ != nullptr;
 }
 
 bool AppRunningRecord::IsStartSpecifiedAbility() const
 {
     std::lock_guard lock(specifiedMutex_);
-    return specifiedRequestId_ != -1;
+    return specifiedAbilityRequest_ != nullptr;
 }
 
 void AppRunningRecord::SchedulePrepareTerminate(const std::string &moduleName)
@@ -1606,25 +1611,34 @@ void AppRunningRecord::ApplicationTerminated()
 AAFwk::Want AppRunningRecord::GetSpecifiedWant() const
 {
     std::lock_guard lock(specifiedMutex_);
-    return specifiedWant_;
+    if (specifiedAbilityRequest_ != nullptr) {
+        return specifiedAbilityRequest_->want;
+    }
+    return AAFwk::Want();
 }
 
 AAFwk::Want AppRunningRecord::GetNewProcessRequestWant() const
 {
     std::lock_guard lock(specifiedMutex_);
-    return newProcessRequestWant_;
+    if (specifiedProcessRequest_ != nullptr) {
+        return specifiedProcessRequest_->want;
+    }
+    return AAFwk::Want();
 }
 
 int32_t AppRunningRecord::GetNewProcessRequestId() const
 {
     std::lock_guard lock(specifiedMutex_);
-    return newProcessRequestId_;
+    if (specifiedProcessRequest_ != nullptr) {
+        return specifiedProcessRequest_->requestId;
+    }
+    return -1;
 }
 
-void AppRunningRecord::ResetNewProcessRequestId()
+void AppRunningRecord::ResetNewProcessRequest()
 {
     std::lock_guard lock(specifiedMutex_);
-    newProcessRequestId_ = -1;
+    specifiedProcessRequest_.reset();
 }
 
 int32_t AppRunningRecord::UpdateConfiguration(const Configuration &config)
@@ -2107,16 +2121,17 @@ int32_t AppRunningRecord::ChangeAppGcState(int32_t state)
     return appLifeCycleDeal_->ChangeAppGcState(state);
 }
 
-void AppRunningRecord::SetAttachDebug(bool isAttachDebug)
+void AppRunningRecord::SetAttachDebug(bool isAttachDebug, bool isDebugFromLocal)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     isAttachDebug_ = isAttachDebug;
+    isDebugFromLocal_ = isDebugFromLocal;
 
     if (appLifeCycleDeal_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null appLifeCycleDeal_");
         return;
     }
-    isAttachDebug_ ? appLifeCycleDeal_->AttachAppDebug() : appLifeCycleDeal_->DetachAppDebug();
+    isAttachDebug_ ? appLifeCycleDeal_->AttachAppDebug(isDebugFromLocal_) : appLifeCycleDeal_->DetachAppDebug();
 }
 
 bool AppRunningRecord::IsAttachDebug() const
@@ -2608,6 +2623,11 @@ uint32_t AppRunningRecord::GetAddStageTimeout() const
         return AMSEventHandler::ADD_ABILITY_STAGE_EMPTY_RESIDENT_TIMEOUT;
     }
     return AMSEventHandler::ADD_ABILITY_STAGE_INFO_TIMEOUT;
+}
+
+void AppRunningRecord::SetDebugFromLocal(bool isDebugFromLocal)
+{
+    isDebugFromLocal_ = isDebugFromLocal;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

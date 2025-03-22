@@ -194,6 +194,11 @@ public:
         return E_OK;
     }
 
+    virtual int32_t QueryUsbIsInUse(const std::string &diskPath, bool &isInUse)
+    {
+        return E_OK;
+    }
+
     virtual int32_t GenerateUserKeys(uint32_t userId, uint32_t flags) override
     {
         return E_OK;
@@ -343,6 +348,16 @@ public:
     }
 
     virtual int32_t UMountMediaFuse(int32_t userId) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t MountFileMgrFuse(int32_t userId, const std::string &path, int32_t &fuseFd) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t UMountFileMgrFuse(int32_t userId, const std::string &path) override
     {
         return E_OK;
     }

@@ -63,6 +63,7 @@ public:
     };
 
     struct ParamInfo {
+        bool needKillProcess = true;
         int typeId = TypeAttribute::NORMAL_TIMEOUT;
         int32_t pid = 0;
         std::string eventName;
@@ -128,7 +129,6 @@ private:
     void ClearOldInfo();
     void CollectFreezeSysMemory(std::string& memoryContent);
     int MergeNotifyInfo(FaultData& faultNotifyData, const AppfreezeManager::AppInfo& appInfo);
-    std::string GetFormatTime();
 
     static const inline std::string LOGGER_DEBUG_PROC_PATH = "/proc/transaction_proc";
     std::string name_;

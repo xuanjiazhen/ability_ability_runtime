@@ -374,6 +374,9 @@ void UIAbility::OnConfigurationUpdatedNotify(const AppExecFwk::Configuration &co
     if (abilityConfig != nullptr) {
         newConfig.FilterDuplicates(*abilityConfig);
         TAG_LOGI(AAFwkTag::UIABILITY, "newConfig: %{public}s", newConfig.GetName().c_str());
+        if (newConfig.GetItemSize() == 0) {
+            return;
+        }
         auto diffConfiguration = std::make_shared<AppExecFwk::Configuration>(newConfig);
         auto resourceManager = abilityContext_->GetResourceManager();
         ResourceConfigHelper resourceConfig;
@@ -740,6 +743,26 @@ void UIAbility::OnBackground()
     eventInfo.abilityName = abilityInfo_->name;
     eventInfo.bundleType = static_cast<int32_t>(abilityInfo_->applicationInfo.bundleType);
     AAFwk::EventReport::SendAbilityEvent(AAFwk::EventName::ABILITY_ONBACKGROUND, HiSysEventType::BEHAVIOR, eventInfo);
+}
+
+void UIAbility::OnWillForeground()
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnWillForeground is called");
+}
+
+void UIAbility::OnDidForeground()
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnDidForeground is called");
+}
+
+void UIAbility::OnWillBackground()
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnWillBackground is called");
+}
+
+void UIAbility::OnDidBackground()
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnDidBackground is called");
 }
 
 void UIAbility::OnAfterFocusedCommon(bool isFocused)
