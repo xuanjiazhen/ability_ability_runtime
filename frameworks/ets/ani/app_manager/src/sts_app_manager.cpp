@@ -72,7 +72,7 @@ void StsAppManagerRegistryInit(ani_env *env)
     }
 
     std::array kitFunctions = {
-        ani_native_function {"nativePreloadApplication", nullptr , reinterpret_cast<void *>(PreloadApplication)},
+        ani_native_function {"nativePreloadApplication", nullptr, reinterpret_cast<void *>(PreloadApplication)},
     };
 
     status = env->Namespace_BindNativeFunctions(ns, kitFunctions.data(), kitFunctions.size());
