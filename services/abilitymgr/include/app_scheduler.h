@@ -129,11 +129,12 @@ public:
 
     virtual void OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag,
         int32_t requestId) override;
-    virtual void OnTimeoutResponse(const AAFwk::Want &want, int32_t requestId) override;
+    virtual void OnTimeoutResponse(int32_t requestId) override;
 
-    virtual void OnNewProcessRequestResponse(const AAFwk::Want &want, const std::string &flag,
-        int32_t requestId) override;
-    virtual void OnNewProcessRequestTimeoutResponse(const AAFwk::Want &want, int32_t requestId) override;
+    virtual void OnNewProcessRequestResponse(const std::string &flag, int32_t requestId) override;
+    virtual void OnNewProcessRequestTimeoutResponse(int32_t requestId) override;
+
+    virtual void OnStartSpecifiedFailed(int32_t requestId) override;
 };
 
 /**
@@ -521,7 +522,7 @@ public:
      * @param bundleName The application bundle name.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t AttachAppDebug(const std::string &bundleName);
+    int32_t AttachAppDebug(const std::string &bundleName, bool isDebugFromLocal);
 
     /**
      * @brief Detach app debug.

@@ -37,6 +37,7 @@
 #include "scene_board_judgement.h"
 #include "system_ability_definition.h"
 #include "uri.h"
+#include "mock_ability_connect_callback.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -426,11 +427,11 @@ HWTEST_F(AbilityManagerServiceThirdTest, OnAcceptWantResponse_001, TestSize.Leve
     abilityMs_->subManagersHelper_->currentUIAbilityManager_ = std::make_shared<UIAbilityLifecycleManager>();
     AAFwk::Want want;
     ASSERT_NE(abilityMs_, nullptr);
-    abilityMs_->OnAcceptWantResponse(want, "test");
+    abilityMs_->OnAcceptWantResponse(want, "test", 0);
 
     auto temp = abilityMs_->subManagersHelper_->currentMissionListManager_;
     abilityMs_->subManagersHelper_->currentMissionListManager_.reset();
-    abilityMs_->OnAcceptWantResponse(want, "test");
+    abilityMs_->OnAcceptWantResponse(want, "test", 0);
     abilityMs_->subManagersHelper_->currentMissionListManager_ = temp;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest OnAcceptWantResponse_001 end");
 }
@@ -446,15 +447,30 @@ HWTEST_F(AbilityManagerServiceThirdTest, OnStartSpecifiedAbilityTimeoutResponse_
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest OnStartSpecifiedAbilityTimeoutResponse_001 start");
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
-    AAFwk::Want want;
     ASSERT_NE(abilityMs_, nullptr);
-    abilityMs_->OnStartSpecifiedAbilityTimeoutResponse(want);
+    abilityMs_->OnStartSpecifiedAbilityTimeoutResponse(0);
 
     auto temp = abilityMs_->subManagersHelper_->currentMissionListManager_;
     abilityMs_->subManagersHelper_->currentMissionListManager_.reset();
-    abilityMs_->OnStartSpecifiedAbilityTimeoutResponse(want);
+    abilityMs_->OnStartSpecifiedAbilityTimeoutResponse(0);
     abilityMs_->subManagersHelper_->currentMissionListManager_ = temp;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest OnStartSpecifiedAbilityTimeoutResponse_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: OnStartSpecifiedFailed
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService OnStartSpecifiedFailed
+ */
+HWTEST_F(AbilityManagerServiceThirdTest, OnStartSpecifiedFailed_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest OnStartSpecifiedFailed_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    ASSERT_NE(abilityMs_, nullptr);
+    abilityMs_->OnStartSpecifiedFailed(1);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest OnStartSpecifiedFailed_001 end");
 }
 
 /*
@@ -555,6 +571,37 @@ HWTEST_F(AbilityManagerServiceThirdTest, ClearUserData_001, TestSize.Level1)
     ASSERT_NE(abilityMs_, nullptr);
     abilityMs_->ClearUserData(100);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest ClearUserData_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: DisconnectBeforeCleanupByUserId
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService DisconnectBeforeCleanupByUserId
+ */
+HWTEST_F(AbilityManagerServiceThirdTest, DisconnectBeforeCleanupByUserId_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest DisconnectBeforeCleanupByUserId_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    abilityMs_->subManagersHelper_->InitConnectManager(100, false);
+
+    auto abilityRecord = MockAbilityRecord(AbilityType::SERVICE);
+    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
+    OHOS::sptr<IAbilityConnection> callback1 = new AbilityConnectCallback();
+    std::shared_ptr<ConnectionRecord> connection1 =
+        std::make_shared<ConnectionRecord>(callerToken, abilityRecord, callback1, nullptr);
+    abilityRecord->currentState_ = AbilityState::ACTIVE;
+    abilityRecord->AddConnectRecordToList(connection1);
+    abilityMs_->GetConnectManagerByUserId(100)->AddConnectObjectToMap(callback1->AsObject(),
+        abilityRecord->GetConnectRecordList(), false);
+    abilityMs_->GetConnectManagerByUserId(100)->serviceMap_.emplace(abilityRecord->GetElementName().GetURI(),
+        abilityRecord);
+
+    abilityMs_->DisconnectBeforeCleanupByUserId(100);
+    ASSERT_EQ(abilityRecord->GetConnectRecordList().empty(), true);
+    ASSERT_EQ(abilityMs_->GetConnectManagerByUserId(100)->GetConnectRecordListByCallback(callback1).empty(), true);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest DisconnectBeforeCleanupByUserId_001 end");
 }
 
 /*
@@ -1236,7 +1283,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, StartAbilityWithSpecifyTokenId_001, Tes
     int32_t userId = 0;
     int32_t requestCode = 0;
     auto result = abilityMs->StartAbilityWithSpecifyTokenId(want, callerToken, specifyTokenId, userId, requestCode);
-    EXPECT_EQ(result, ERR_INVALID_CONTINUATION_FLAG);
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
 }
 
 /*

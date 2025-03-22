@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -45,6 +45,9 @@ namespace {
 std::string TEST_LABEL = "testLabel";
 OHOS::sptr<MockServiceAbilityManagerService> g_mockAbilityMs = nullptr;
 const std::string FLAG_AUTH_READ_URI_PERMISSION = "ability.want.params.uriPermissionFlag";
+const int DISPLAY_ID = 1001;
+const int32_t COLOR_MODE1 = -2;
+const int32_t COLOR_MODE2 = 2;
 }
 
 class MyAbilityCallback : public IAbilityCallback {
@@ -94,6 +97,14 @@ public:
     }
 
     void SetContinueState(int32_t state) {}
+};
+
+class MockIFreeInstallObserver : public IFreeInstallObserver {
+    MOCK_METHOD4(OnInstallFinished, void(const std::string &bundleName, const std::string &abilityName,
+        const std::string &startTime, const int &resultCode));
+    MOCK_METHOD3(OnInstallFinishedByUrl, void(const std::string &startTime, const std::string &url,
+        const int &resultCode));
+    MOCK_METHOD0(AsObject, sptr<IRemoteObject>());
 };
 
 class AbilityContextImplTest : public testing::Test {
@@ -709,6 +720,27 @@ HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_OnAbilityResult_0100, Func
 }
 
 /**
+ * @tc.number: Ability_Context_Impl_OnAbilityResult_0200
+ * @tc.name: OnAbilityResult
+ * @tc.desc: On Ability Result GetAbilityRecordId CreateModuleResourceManager etc
+ */
+HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_OnAbilityResult_0200, Function | MediumTest | Level1)
+{
+    int requestCode = 1;
+    int resultCode = 1;
+    AAFwk::Want resultData;
+    bool dealed = false;
+    auto runtimetask = [&dealed](int32_t count, const Want& want, bool isInner) {
+        dealed = true;
+    };
+    context_->resultCallbacks_.clear();
+    context_->resultCallbacks_.emplace(std::make_pair(requestCode, runtimetask));
+    context_->OnAbilityResult(requestCode, resultCode, resultData);
+    EXPECT_EQ(dealed, true);
+    EXPECT_EQ(context_->resultCallbacks_.size(), 0);
+}
+
+/**
  * @tc.number: Ability_Context_Impl_GetDeviceType_0100
  * @tc.name: GetDeviceType
  * @tc.desc: Get Device Type sucess
@@ -1269,6 +1301,19 @@ HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_GetResourceManager_0200, F
 }
 
 /**
+ * @tc.number: Ability_Context_Impl_GetResourceManager_0300
+ * @tc.name: GetResourceManager
+ * @tc.desc: Get Resource Manager failed
+ */
+HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_GetResourceManager_0300, Function | MediumTest | Level1)
+{
+    std::shared_ptr<Global::Resource::ResourceManager> resourceManager(Global::Resource::CreateResourceManager());
+    std::shared_ptr<Global::Resource::ResourceManager> abilityResourceMgr_ = resourceManager;
+    auto ret = context_->GetResourceManager();
+    EXPECT_EQ(ret, nullptr);
+}
+
+/**
  * @tc.number: Ability_Context_Impl_CreateBundleContext_0100
  * @tc.name: CreateBundleContext
  * @tc.desc: Create Bundle Context sucess
@@ -1809,6 +1854,185 @@ HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_CreateDisplayContext_0200,
     auto displayContext = context_->CreateDisplayContext(0);
     EXPECT_EQ(displayContext, nullptr);
 }
+
+/**
+ * @tc.number: Ability_Context_Impl_CreateDisplayContext_0200
+ * @tc.name: SetAbilityConfiguration
+ * @tc.desc: Verify that function SetAbilityConfiguration.
+ */
+HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_SetAbilityConfiguration_0100, Function | MediumTest | Level1)
+{
+    ASSERT_NE(context_, nullptr);
+    AppExecFwk::Configuration config;
+    context_->abilityConfiguration_ = nullptr;
+    context_->SetAbilityConfiguration(config);
+    EXPECT_NE(context_->abilityConfiguration_, nullptr);
+
+    context_->abilityConfiguration_ = std::make_shared<AppExecFwk::Configuration>(config);
+    context_->SetAbilityConfiguration(config);
+    EXPECT_NE(context_->abilityConfiguration_, nullptr);
+
+    config.AddItem(DISPLAY_ID, AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE, TEST_LABEL);
+    context_->SetAbilityConfiguration(config);
+    EXPECT_EQ(context_->abilityConfiguration_->GetItemSize(), 1);
+}
+
+/**
+ * @tc.number: Ability_Context_Impl_CreateDisplayContext_0200
+ * @tc.name: SetAbilityColorMode
+ * @tc.desc: Verify that function SetAbilityColorMode.
+ */
+HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_SetAbilityColorMode_0100, Function | MediumTest | Level1)
+{
+    ASSERT_NE(context_, nullptr);
+    int32_t colorMode = COLOR_MODE1;
+    context_->SetAbilityColorMode(colorMode);
+    colorMode = COLOR_MODE2;
+    context_->SetAbilityColorMode(colorMode);
+    colorMode = 0;
+    context_->SetAbilityColorMode(colorMode);
+    colorMode = 0;
+    context_->SetAbilityColorMode(colorMode);
+    context_->abilityConfigUpdateCallback_ = nullptr;
+    int itemSize = 0;
+    auto abilityConfigCallback = [&itemSize](AppExecFwk::Configuration &config) {
+        itemSize = config.GetItemSize();
+    };
+    context_->abilityConfigUpdateCallback_ = abilityConfigCallback;
+    context_->SetAbilityColorMode(colorMode);
+    EXPECT_EQ(itemSize, 2);
+}
+
+/**
+ * @tc.number: Ability_Context_Impl_CreateDisplayContext_0200
+ * @tc.name: CreateModalUIExtensionWithApp
+ * @tc.desc: Verify that function CreateModalUIExtensionWithApp.
+ */
+HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_CreateModalUIExtensionWithApp_0100,
+    Function | MediumTest | Level1)
+{
+    ASSERT_NE(context_, nullptr);
+    AAFwk::Want want = {};
+    auto ret =context_->CreateModalUIExtensionWithApp(want);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
 #endif
+
+/**
+ * @tc.number: Ability_Context_Impl_BackToCallerAbilityWithResult_0100
+ * @tc.name: CreateDisplayContext
+ * @tc.desc: Verify that function BackToCallerAbilityWithResult.
+ */
+HWTEST_F(AbilityContextImplTest, BackToCallerAbilityWithResult_0100, Function | MediumTest | Level1)
+{
+    AAFwk::Want want;
+    int resultCode = 1;
+    int64_t requestCode = 1;
+    auto err =  context_->BackToCallerAbilityWithResult(want, resultCode, requestCode);
+    EXPECT_EQ(err, 0);
+}
+
+/**
+ * @tc.number: Ability_Context_Impl_ConnectUIServiceExtensionAbility_0100
+ * @tc.name: CreateDisplayContext
+ * @tc.desc: Verify that function ConnectUIServiceExtensionAbility.
+ */
+HWTEST_F(AbilityContextImplTest, ConnectUIServiceExtensionAbility_0100, Function | MediumTest | Level1)
+{
+    AAFwk::Want want;
+    sptr<AbilityConnectCallback> connectCallback = nullptr;
+    auto result = context_->ConnectUIServiceExtensionAbility(want, connectCallback);
+    EXPECT_NE(result, ERR_OK);
+}
+
+/**
+ * @tc.number: Ability_Context_Impl_SetAbilityResourceManager_0100
+ * @tc.name: CreateDisplayContext
+ * @tc.desc: Verify that function SetAbilityResourceManager.
+ */
+HWTEST_F(AbilityContextImplTest, SetAbilityResourceManager_0100, Function | MediumTest | Level1)
+{
+    std::shared_ptr<Global::Resource::ResourceManager> resourceManager(Global::Resource::CreateResourceManager());
+    context_->SetAbilityResourceManager(resourceManager);
+    EXPECT_NE(context_->abilityResourceMgr_, nullptr);
+}
+
+/**
+ * @tc.number: Ability_Context_Impl_SetAbilityConfiguration_0100
+ * @tc.name: CreateDisplayContext
+ * @tc.desc: Verify that function SetAbilityConfiguration.
+ */
+HWTEST_F(AbilityContextImplTest, SetAbilityConfiguration_0100, Function | MediumTest | Level1)
+{
+    AppExecFwk::Configuration config;
+    int displayId = 1001;
+    std::string val{ "中文" };
+    config.AddItem(displayId,
+        AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE, val);
+    context_->SetAbilityConfiguration(config);
+    EXPECT_FALSE(context_->abilityConfiguration_->configParameter_.empty());
+
+    context_->abilityConfiguration_ = std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1002;
+    std::string English{ "英文" };
+    context_->abilityConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE, English);
+
+    context_->SetAbilityConfiguration(config);
+    auto item = context_->abilityConfiguration_->GetItem(displayId,
+        AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE);
+    EXPECT_EQ(item, val);
+}
+
+/**
+ * @tc.number: Ability_Context_Impl_SetAbilityColorMode_0100
+ * @tc.name: CreateDisplayContext
+ * @tc.desc: Verify that function SetAbilityColorMode.
+ */
+HWTEST_F(AbilityContextImplTest, SetAbilityColorMode_0100, Function | MediumTest | Level1)
+{
+    int32_t colorMode = -2;
+    context_->SetAbilityColorMode(colorMode);
+    colorMode = 0;
+
+    context_->SetAbilityColorMode(colorMode);
+
+    bool dealed = false;
+    auto callback = [&dealed](const Configuration &config) {
+        dealed = true;
+    };
+    context_->abilityConfigUpdateCallback_ = callback;
+    context_->SetAbilityColorMode(colorMode);
+    EXPECT_EQ(dealed, true);
+}
+
+/**
+ * @tc.number: Ability_Context_Impl_EraseUIExtension_0100
+ * @tc.name: CreateDisplayContext
+ * @tc.desc: Verify that function EraseUIExtension.
+ */
+HWTEST_F(AbilityContextImplTest, EraseUIExtension_100, Function | MediumTest | Level1)
+{
+    int32_t sessionId = 1;
+    AAFwk::Want want;
+    context_->uiExtensionMap_.clear();
+    context_->uiExtensionMap_.emplace(sessionId, want);
+    context_->EraseUIExtension(sessionId);
+    EXPECT_EQ(context_->uiExtensionMap_.size(), 0);
+}
+
+
+/**
+ * @tc.number: Ability_Context_Impl_AddFreeInstallObserver_0100
+ * @tc.name: CreateDisplayContext
+ * @tc.desc: Verify that function AddFreeInstallObserver.
+ */
+HWTEST_F(AbilityContextImplTest, AddFreeInstallObserver_100, Function | MediumTest | Level1)
+{
+    sptr<IFreeInstallObserver> observer = sptr<MockIFreeInstallObserver>::MakeSptr();
+    auto result = context_->AddFreeInstallObserver(observer);
+    EXPECT_EQ(result, ERR_OK);
+}
 } // namespace AppExecFwk
 } // namespace OHOS

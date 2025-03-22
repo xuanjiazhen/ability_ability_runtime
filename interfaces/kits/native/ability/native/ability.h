@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,8 +46,6 @@
 #include "common/form_constants.h"
 #include "parcelable_tool/form_provider_info.h"
 #include "form_state_info.h"
-#include "key_event.h"
-#include "pointer_event.h"
 #include "session_info.h"
 #include "window_option.h"
 #include "window_scene.h"
@@ -66,6 +64,9 @@ class Runtime;
 }
 #ifdef SUPPORT_SCREEN
 class KeyEvent;
+namespace MMI {
+class PointerEvent;
+}
 namespace Ace {
 class UIContent;
 }
@@ -85,6 +86,7 @@ class ContinuationManager;
 class ContinuationHandler;
 class AbilityRecovery;
 class ContinuationRegisterManager;
+class Configuration;
 class Ability : public IAbilityEvent,
                 public ILifeCycle,
                 public AbilityContext,

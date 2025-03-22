@@ -1116,6 +1116,9 @@ public:
     void SetRestartAppFlag(bool isRestartApp);
     bool GetRestartAppFlag() const;
 
+    void SetKillForPermissionUpdateFlag(bool isKillForPermissionUpdate);
+    bool GetKillForPermissionUpdateFlag() const;
+
     void UpdateUIExtensionInfo(const WantParams &wantParams);
 
     void SetSpecifyTokenId(const uint32_t specifyTokenId);
@@ -1159,8 +1162,10 @@ public:
 
     void ScheduleCollaborate(const Want &want);
 
+    void SendEvent(uint32_t msg, uint32_t timeOut, int32_t param = -1, bool isExtension = false,
+        const std::string &taskName = "");
+
 protected:
-    void SendEvent(uint32_t msg, uint32_t timeOut, int32_t param = -1, bool isExtension = false);
 
     sptr<Token> token_ = {};                               // used to interact with kit and wms
     std::unique_ptr<LifecycleDeal> lifecycleDeal_ = {};    // life manager used to schedule life
@@ -1211,6 +1216,8 @@ private:
 
     void SetDebugAppByWaitingDebugFlag();
     void AfterLoaded();
+
+    void CancelPrepareTerminate();
 
 #ifdef SUPPORT_SCREEN
     std::shared_ptr<Want> GetWantFromMission() const;
@@ -1330,6 +1337,7 @@ private:
 
     // page(ability) can be started by multi-pages(abilities), so need to store this ability's caller
     std::list<std::shared_ptr<CallerRecord>> callerList_ = {};
+    mutable ffrt::mutex callerListLock_;
 
     PacMap stateDatas_;             // ability saved ability state data
     WindowConfig windowConfig_;
@@ -1375,6 +1383,8 @@ private:
     ffrt::mutex lock_;
     ffrt::mutex connectWantLock_;
     std::mutex collaborateWantLock_;
+
+    bool isKillForPermissionUpdate_ = false;
 
     std::mutex isPrepareTerminateAbilityMutex_;
     std::condition_variable isPrepareTerminateAbilityCv_;

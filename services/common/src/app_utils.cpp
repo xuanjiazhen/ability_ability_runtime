@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,6 +14,7 @@
  */
 
 #include "app_utils.h"
+#include <unordered_set>
 #include "json_utils.h"
 #include "hilog_tag_wrapper.h"
 #include "nlohmann/json.hpp"
@@ -275,7 +276,8 @@ void AppUtils::LoadResidentProcessInExtremeMemory()
         TAG_LOGE(AAFwkTag::ABILITYMGR, "resident process failed");
         return;
     }
-    if (!object.contains(RESIDENT_PROCESS_IN_EXTREME_MEMORY)) {
+    if (!object.contains(RESIDENT_PROCESS_IN_EXTREME_MEMORY) ||
+        !object.at(RESIDENT_PROCESS_IN_EXTREME_MEMORY).is_array()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "resident process invalid");
         return;
     }
@@ -315,7 +317,8 @@ void AppUtils::LoadAllowNativeChildProcessApps()
         TAG_LOGE(AAFwkTag::ABILITYMGR, "load child process config failed");
         return;
     }
-    if (!object.contains(KEY_ALLOW_NATIVE_CHILD_PROCESS_APPS)) {
+    if (!object.contains(KEY_ALLOW_NATIVE_CHILD_PROCESS_APPS) ||
+        !object.at(KEY_ALLOW_NATIVE_CHILD_PROCESS_APPS).is_array()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "get key invalid");
         return;
     }
@@ -385,7 +388,8 @@ void AppUtils::LoadStartAbilityWithoutCallerToken()
         TAG_LOGE(AAFwkTag::DEFAULT, "token list failed");
         return;
     }
-    if (!object.contains(START_ABILITY_WITHOUT_CALLERTOKEN_TITLE)) {
+    if (!object.contains(START_ABILITY_WITHOUT_CALLERTOKEN_TITLE) ||
+        !object.at(START_ABILITY_WITHOUT_CALLERTOKEN_TITLE).is_array()) {
         TAG_LOGE(AAFwkTag::DEFAULT, "token config invalid");
         return;
     }
@@ -489,6 +493,14 @@ bool AppUtils::IsPrepareTerminateEnabled()
         return true;
     }
     return false;
+}
+
+bool AppUtils::IsSystemReasonMessage(const std::string &reasonMessage)
+{
+    const std::unordered_set<std::string> systemReasonMessagesSet = {
+        "ReasonMessage_SystemShare",
+    };
+    return systemReasonMessagesSet.find(reasonMessage) != systemReasonMessagesSet.end();
 }
 }  // namespace AAFwk
 }  // namespace OHOS
