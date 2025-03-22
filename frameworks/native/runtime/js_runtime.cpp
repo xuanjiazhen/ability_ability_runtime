@@ -821,7 +821,6 @@ bool JsRuntime::CreateJsEnv(const Options& options)
         TAG_LOGE(AAFwkTag::JSRUNTIME, "Init jsEnv failed");
         return false;
     }
-    
     return true;
 }
 
