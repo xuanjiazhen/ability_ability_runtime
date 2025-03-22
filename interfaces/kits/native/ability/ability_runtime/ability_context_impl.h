@@ -23,6 +23,7 @@
 #include "context_impl.h"
 #include "configuration.h"
 #include "local_call_container.h"
+#include "dialog_ui_extension_callback.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -317,6 +318,9 @@ private:
     void OnAbilityResultInner(int requestCode, int resultCode, const AAFwk::Want &resultData);
     sptr<IRemoteObject> GetSessionToken();
     void SetWindowRectangleParams(AAFwk::Want &want);
+    bool IsStsAbility(std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo);
+    Ace::ModalUIExtensionCallbacks CreateCallbacks(const std::shared_ptr<JsUIExtensionCallback> &uiExtensionCallbacks,
+        bool isSts);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

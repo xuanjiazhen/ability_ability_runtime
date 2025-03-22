@@ -48,7 +48,8 @@ export default class UIAbilityContext {
   public native nativeTerminateSelfSync(callback:AsyncCallbackWrapper<void>): void;
   public native nativeTerminateSelfWithResult(parameter: AbilityResult, callback:AsyncCallbackWrapper<void>): void;
   public native nativeReportDrawnCompletedSync(callback:AsyncCallbackWrapper<void>): void;
-  public native nativeStartAbilityByTypeSync(type: string, wantParam: string, startCallback: AbilityStartCallback, callback:AsyncCallbackWrapper<void>): void;
+  public native nativeStartAbilityByTypeSync(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback): int;
+
 
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     console.log("call startAbility callback 111");
@@ -194,28 +195,43 @@ export default class UIAbilityContext {
   }
 
   startAbilityByType(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback, callback: AsyncCallback<void>): void {
-    console.log("call startAbilityByType callback 111");
-    let jsonStr = ""; //convert form value;
-    let myCall = new AsyncCallbackWrapper<void>(callback);
-    launch this.nativeStartAbilityByTypeSync(type, jsonStr, startCallback, myCall);
-    console.log("call startAbilityByType callback 222");
+    let p1 = taskpool.execute(():int => {return this.nativeStartAbilityByTypeSync(type, wantParam, startCallback)});
+    p1.then((e :NullishType)=>{
+      let resultCode: int = e as int;
+      let r: BusinessError = { code: resultCode, data: undefined };
+      let retError = new BusinessError<void>();
+      if (e === null || e === undefined) {
+        retError.code = -1;
+        callback(retError, undefined);
+      } else {
+          let resultCode: int = e as int;
+          retError.code = resultCode;
+          callback(retError, undefined);
+      }
+    }, (err:Object): void => {
+    });
   }
  
   startAbilityByType(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback): Promise<void> {
-    console.log("call startAbilityByType promis type 111..");
-    let p = new Promise<void>((resolve: ()=>void, reject:(err: BusinessError)=>void):void => {
-      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError)=>{
-        console.log("call startAbilityByType promis type callback 122");
-        if (err.code == 0) {
-          resolve();
+    let p = new Promise<void>((resolve: (v: undefined) => void, reject: (error: BusinessError<void>) => void): void => {
+      let p1 = taskpool.execute(():int => {return this.nativeStartAbilityByTypeSync(type, wantParam, startCallback)});
+      p1.then((e :NullishType)=>{
+        let retError = new BusinessError<void>();
+        if (e === null || e === undefined) {
+          retError.code = -1;
+          reject(retError);
         } else {
-          reject(err);
+          let resultCode: int = e as int;
+          if (resultCode === 0) {
+            resolve(undefined);
+          } else {
+            retError.code = resultCode;
+            reject(retError);
+          }
         }
+      }, (err:Object): void => {
       });
-      let jsonStr = ""; //convert form value;
-      launch this.nativeStartAbilityByTypeSync(type, jsonStr, startCallback, myCall);
     });
-    console.log("call startAbilityByType callback end...");
     return p;
   }
 }
