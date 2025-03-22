@@ -195,21 +195,49 @@ void StsUIAbility::SetAbilityContext(std::shared_ptr<AbilityInfo> abilityInfo, s
         TAG_LOGE(AAFwkTag::UIABILITY, "null stsAbilityObj_ or abilityContext_ or want");
         return;
     }
-
-    ani_ref contextObj = CreateStsAbilityContext(env, abilityContext_);
-    ani_ref contextGlobalRef = nullptr;
-    ani_field field = nullptr;
-    ani_status status = ANI_ERROR;
-    if ((status = env->GlobalReference_Create(contextObj, &contextGlobalRef)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
-    }
-    if ((status = env->Class_FindField(stsAbilityObj_->aniCls, "context", &field)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
-    }
-    if ((status = env->Object_SetField_Ref(stsAbilityObj_->aniObj, field, contextGlobalRef)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
-    }
+    ani_ref contextObj = nullptr;
+    int32_t screenMode = want->GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::ScreenMode::IDLE_SCREEN_MODE);
+    CreateAniContext(env, contextObj, screenMode);
+    
     TAG_LOGI(AAFwkTag::UIABILITY, "End");
+}
+
+void StsUIAbility::CreateAniContext(ani_env *env, ani_ref contextGlobalRef, int32_t screenMode)
+{
+    TAG_LOGI(AAFwkTag::UIABILITY, "screenMode : %{public}d", screenMode);
+    if (screenMode == AAFwk::IDLE_SCREEN_MODE) {
+        ani_ref contextObj = CreateStsAbilityContext(env, abilityContext_);
+        ani_field field = nullptr;
+        ani_status status = ANI_ERROR;
+        if ((status = env->GlobalReference_Create(contextObj, &contextGlobalRef)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+            return;
+        }
+        if ((status = env->Class_FindField(stsAbilityObj_->aniCls, "context", &field)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+            return;
+        }
+        if ((status = env->Object_SetField_Ref(stsAbilityObj_->aniObj, field, contextGlobalRef)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+            return;
+        }
+        shellContextRef_ = std::make_shared<STSNativeReference>();
+        ani_class cls = nullptr;
+        if ((status = env->FindClass("Lapplication/UIAbilityContext/UIAbilityContext;", &cls)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+            return;
+        }
+        shellContextRef_->aniCls = cls;
+        shellContextRef_->aniObj = reinterpret_cast<ani_object>(contextGlobalRef);
+        shellContextRef_->aniRef = contextGlobalRef;
+    } else {
+        // TODO
+        // contextObj = JsEmbeddableUIAbilityContext::CreateJsEmbeddableUIAbilityContext(env,
+        //     abilityContext_, nullptr, screenMode);
+        // CHECK_POINTER(contextObj);
+        // shellContextRef_ = std::shared_ptr<NativeReference>(JsRuntime::LoadSystemModuleByEngine(
+        //     env, "application.EmbeddableUIAbilityContext", &contextObj, 1).release());
+    }
 }
 
 void StsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
@@ -1232,24 +1260,28 @@ void StsUIAbility::UpdateStsWindowStage(ani_ref windowStage)
     ani_class cls = shellContextRef_->aniCls;
     ani_status status = ANI_ERROR;
     if (windowStage == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null windowStage");
+        TAG_LOGI(AAFwkTag::UIABILITY, "null windowStage");
         if ((status = env->Class_FindField(cls, "windowStage", &field)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+            return;
         }
         ani_ref nullRef = nullptr;
         env->GetNull(&nullRef);
         if ((status = env->Object_SetField_Ref(contextObj, field, nullRef)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+            return;
         }
         return;
     }
-    TAG_LOGD(AAFwkTag::UIABILITY, "set context windowStage");
+    TAG_LOGI(AAFwkTag::UIABILITY, "set context windowStage");
     if ((status = env->Class_FindField(cls, "windowStage", &field)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+        return;
     }
     if ((status = env->Object_SetField_Ref(contextObj, field, windowStage)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
     }
+    TAG_LOGE(AAFwkTag::UIABILITY, "UpdateStsWindowStage end");
 }
 #endif
 bool StsUIAbility::CheckSatisfyTargetAPIVersion(int32_t version)
