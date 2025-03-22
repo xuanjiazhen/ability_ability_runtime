@@ -1747,7 +1747,9 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
                         TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
                         return;
                     }
-                    OHOS::AppManagerSts::StsAppManagerRegistryInit((static_cast<AbilityRuntime::STSRuntime&>(*runtime)).GetAniEnv());
+                    OHOS::AppManagerSts::StsAppManagerRegistryInit(
+                        (static_cast<AbilityRuntime::STSRuntime&>(*runtimeGetAniEnv()
+                    );
                 }
             }
         }
