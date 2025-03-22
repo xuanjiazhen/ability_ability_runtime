@@ -17,8 +17,8 @@
 
 #include <gtest/gtest.h>
 #include "gmock/gmock.h"
-#include "form_mgr_proxy.h"
-#include "form_provider_data.h"
+#include "form_mgr/form_mgr_proxy.h"
+#include "parcelable_tool/form_provider_data.h"
 
 namespace OHOS {
 namespace AppExecFwk {

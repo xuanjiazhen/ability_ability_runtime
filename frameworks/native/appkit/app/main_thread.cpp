@@ -64,7 +64,7 @@
 #ifdef SUPPORT_SCREEN
 #include "locale_config.h"
 #include "ace_forward_compatibility.h"
-#include "form_constants.h"
+#include "common/form_constants.h"
 #include "cache.h"
 #ifdef SUPPORT_APP_PREFERRED_LANGUAGE
 #include "preferred_language.h"

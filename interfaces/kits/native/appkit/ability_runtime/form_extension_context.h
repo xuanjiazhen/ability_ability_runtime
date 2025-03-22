@@ -19,7 +19,7 @@
 #include "ability_info.h"
 #include "ability_connect_callback.h"
 #include "extension_context.h"
-#include "form_provider_info.h"
+#include "parcelable_tool/form_provider_info.h"
 #include "start_options.h"
 
 namespace OHOS {
