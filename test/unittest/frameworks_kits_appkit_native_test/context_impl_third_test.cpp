@@ -94,9 +94,8 @@ HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_SetMcc_001, Function | MediumTe
     auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
     auto config = std::make_shared<AppExecFwk::Configuration>();
     contextImpl->SetConfiguration(config);
-    EXPECT_EQ(contextImpl->config_->configParameter_.size(), 0);
     contextImpl->SetMcc("zh");
-    EXPECT_EQ(contextImpl->config_->configParameter_.size(), 1);
+    EXPECT_EQ(contextImpl->config_->GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_MCC), "zh");
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_SetMcc_001 end";
 }
 
@@ -112,9 +111,8 @@ HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_SetMnc_001, Function | MediumTe
     auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
     auto config = std::make_shared<AppExecFwk::Configuration>();
     contextImpl->SetConfiguration(config);
-    EXPECT_EQ(contextImpl->config_->configParameter_.size(), 0);
     contextImpl->SetMnc("ENG");
-    EXPECT_EQ(contextImpl->config_->configParameter_.size(), 1);
+    EXPECT_EQ(contextImpl->config_->GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_MNC), "ENG");
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_SetMnc_004 end";
 }
 
