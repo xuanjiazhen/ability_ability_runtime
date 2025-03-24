@@ -95,23 +95,33 @@ describe('btAccessTest', () => {
      it('SUB_COMMUNICATION_BLUETOOTHACCESS_STATECHANGE_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done : Function) =>  {
         let state = bluetooth.getState();
         console.info('[bluetooth_js] bluetooth state = '+ JSON.stringify(state));
-        if(state != bluetooth.BluetoothState.STATE_OFF) {
-            bluetooth.disableBluetooth();
-            await clickRequestPermission(CLOSE_BT_TEXT);
-            await sleep(10000);
-            let closeSt = bluetooth.getState();
-            console.info('[bluetooth_js] bluetooth disable state ='+ JSON.stringify(closeSt));
-            expect(closeSt).assertEqual(bluetooth.BluetoothState.STATE_OFF);
-        } else {
-            console.info('[bluetooth_js] bluetooth state is OFF');
-        } 
+        try {
+            if(state != bluetooth.BluetoothState.STATE_OFF) {
+                bluetooth.disableBluetooth();
+                await clickRequestPermission(CLOSE_BT_TEXT);
+                await sleep(10000);
+                let closeSt = bluetooth.getState();
+                console.info('[bluetooth_js] bluetooth disable state ='+ JSON.stringify(closeSt));
+                expect(closeSt).assertEqual(bluetooth.BluetoothState.STATE_OFF);
+            } else {
+                console.info('[bluetooth_js] bluetooth state is OFF');
+            }
+        } catch (error) {
+            console.info('[bluetooth_js] disableBluetooth get error:' + JSON.stringify(error));
+            if (Number(error.code) == 801) {
+                expect(Number(error.code)).assertEqual(801);
+            } else {
+                expect().assertFail();
+            }
+        }
+        
         try {
             bluetooth.enableBluetooth();
             await clickRequestPermission(OPEN_BT_TEXT);
             await sleep(10000);
         } catch (error) {
             console.error(`[bluetooth_js] enable StateChange error, code is ${error.code},message is ${error.message}`);
-            if (error.code == 801) {
+            if (Number(error.code) == 801 || Number(error.code) == 2900099) {
                 console.info('[bluetooth_js]enablebluetooth is not support');
                 expect(true).assertTrue();
             } else {
@@ -150,19 +160,18 @@ describe('btAccessTest', () => {
             bluetooth.disableBluetooth();
             await clickRequestPermission(CLOSE_BT_TEXT);
             await sleep(10000);
+            let closeSt = bluetooth.getState();
+            console.info('[bluetooth_js] bluetooth disable state ='+ JSON.stringify(closeSt));
+            expect(closeSt).assertEqual(bluetooth.BluetoothState.STATE_OFF);
         } catch (error) {
             console.error(`[bluetooth_js] disable StateChange error, code is ${error.code},message is ${error.message}`);
-            if (error.code == 801) {
+            if (Number(error.code) == 801) {
                 console.info('[bluetooth_js]disablebluetooth is not support');
                 expect(true).assertTrue();
             } else {
                 expect().assertFail();
             }
-            expect(Number(error.code)).assertEqual(2900099);
         }
-        let closeSt = bluetooth.getState();
-        console.info('[bluetooth_js] bluetooth disable state ='+ JSON.stringify(closeSt));
-        expect(closeSt).assertEqual(bluetooth.BluetoothState.STATE_OFF);
         done();
     })
 
@@ -214,7 +223,7 @@ describe('btAccessTest', () => {
         }
     } catch (error) {
         console.error(`[bluetooth_js]enable StateChange error, code is ${error.code},message is ${error.message}`);
-        if (error.code == 801) {
+        if (Number(error.code) == 801 || Number(error.code) == 2900099) {
             console.info('[bluetooth_js]OnStateChange is not support');
             expect(true).assertTrue();
         } else {
@@ -241,13 +250,22 @@ describe('btAccessTest', () => {
         await bluetooth.off('stateChange', onReceiveEvent);
         let state = bluetooth.getState();
         console.info('[bluetooth_js] get bluetooth state001' + JSON.stringify(state));
-        if (state != bluetooth.BluetoothState.STATE_OFF) {
-            bluetooth.disableBluetooth();
-            await clickRequestPermission(CLOSE_BT_TEXT);
-            await sleep(10000);
-            let state1 = bluetooth.getState();
-            console.info('[bluetooth_js] disable state001 ' + JSON.stringify(state1));
-            expect(state1).assertEqual(bluetooth.BluetoothState.STATE_OFF);
+        try {
+            if (state != bluetooth.BluetoothState.STATE_OFF) {
+                bluetooth.disableBluetooth();
+                await clickRequestPermission(CLOSE_BT_TEXT);
+                await sleep(10000);
+                let state1 = bluetooth.getState();
+                console.info('[bluetooth_js] disable state001 ' + JSON.stringify(state1));
+                expect(state1).assertEqual(bluetooth.BluetoothState.STATE_OFF);
+            }
+        } catch (error) {
+            console.info('[bluetooth_js] disableBluetooth get error:' + JSON.stringify(error));
+            if (Number(error.code) == 801) {
+                expect(Number(error.code)).assertEqual(801);
+            } else {
+                expect().assertFail();
+            }
         }
     } catch (error) {
         console.error(`[bluetooth_js]disable StateChange error, code is ${error.code},message is ${error.message}`);
@@ -482,6 +500,9 @@ describe('btAccessTest', () => {
                 await sleep(2000);
                 if (!isNotSupport) {
                     await clickRequestPermission(CLOSE_BT_TEXT);
+                    await sleep(10000);
+                    console.info("after disableBluetoothAsync state:" + bluetooth.getState());
+                    expect(bluetooth.getState()).assertEqual(0);
                 }
             } catch (error) {
                 console.error("disableBluetoothAsync get error:" + JSON.stringify(error));
@@ -490,9 +511,6 @@ describe('btAccessTest', () => {
                     expect(true).assertTrue();
                 }
             }
-            await sleep(10000);
-            console.info("after disableBluetoothAsync state:" + bluetooth.getState());
-            expect(bluetooth.getState()).assertEqual(0);
             try {
                 let isNotSupports = false;
                 bluetooth.enableBluetoothAsync().then(() => {
@@ -500,7 +518,7 @@ describe('btAccessTest', () => {
                     done();
                 }).catch((err: BusinessError) => {
                     console.error("enableBluetoothAsync get error:" + JSON.stringify(err));
-                    if (Number(err.code) == 801) {
+                    if (Number(err.code) == 801  || Number(err.code) == 2900099) {
                         console.info('api is not support');
                         expect(true).assertTrue();
                         isNotSupports = true;

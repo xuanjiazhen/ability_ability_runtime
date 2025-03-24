@@ -744,12 +744,6 @@ export default function bluetoothAdvertisingTest() {
      * @tc.level Level 0
      */
     it('SUB_COMMUNICATION_BLUETOOTHBLE_ADVERTISING_1500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done : Function) =>  {
-      btAccess.disableBluetooth();
-      await clickRequestPermission(CLOSE_BT_TEXT);
-      await sleep(10000);
-      let closeSt = btAccess.getState();
-      console.info('[bluetooth_js] bluetooth disable state =' + JSON.stringify(closeSt));
-      expect(closeSt).assertEqual(btAccess.BluetoothState.STATE_OFF);
       let advertisingParams: bluetooth.AdvertisingParams = {
         advertisingSettings: setting,
         advertisingData: advData,
@@ -758,6 +752,12 @@ export default function bluetoothAdvertisingTest() {
       };
       let advHandle = 0xFF;
       try {
+        btAccess.disableBluetooth();
+        await clickRequestPermission(CLOSE_BT_TEXT);
+        await sleep(10000);
+        let closeSt = btAccess.getState();
+        console.info('[bluetooth_js] bluetooth disable state =' + JSON.stringify(closeSt));
+        expect(closeSt).assertEqual(btAccess.BluetoothState.STATE_OFF);
         await bluetooth.startAdvertising(advertisingParams).then((outAdvHandle) => {
           console.info('[bluetooth_js]startAdvertising promise info1:' + JSON.stringify(outAdvHandle));
           advHandle = outAdvHandle;
@@ -774,7 +774,7 @@ export default function bluetoothAdvertisingTest() {
       }
       catch (err) {
         console.info("15errCode:" + err.code + ",15errMessage:" + err.message);
-        if (err.code == 801) {
+        if (Number(err.code) == 801) {
             console.info('[bluetooth_js]api is not support');
             expect(true).assertTrue();
         } else {
