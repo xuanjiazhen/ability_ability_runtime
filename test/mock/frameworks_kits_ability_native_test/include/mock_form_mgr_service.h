@@ -25,7 +25,7 @@
 
 #include "event_handler.h"
 #include "common/form_constants.h"
-#include "form_mgr/form_mgr_stub.h"
+#include "ipc/form_mgr/form_mgr_stub.h"
 #include "parcelable_tool/form_js_info.h"
 #include "parcelable_tool/form_provider_data.h"
 #include "ipc_types.h"

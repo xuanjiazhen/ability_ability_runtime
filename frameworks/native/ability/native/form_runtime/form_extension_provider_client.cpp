@@ -23,7 +23,7 @@
 #include "form_caller_mgr.h"
 #include "form_extension.h"
 #include "common/form_mgr_errors.h"
-#include "form_provider/app_to_fms/form_supply_proxy.h"
+#include "ipc/form_provider/app_to_fms/form_supply_proxy.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_skeleton.h"
 
