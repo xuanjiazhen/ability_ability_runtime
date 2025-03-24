@@ -44,7 +44,7 @@
 #include "uri.h"
 #include "values_bucket.h"
 #include "scene_board_judgement.h"
-#include "form_constants.h"
+#include "common/form_constants.h"
 
 namespace OHOS {
 namespace AppExecFwk {

@@ -33,7 +33,7 @@
 #include "sys_mgr_client.h"
 #include "system_ability_definition.h"
 #include "configuration.h"
-#include "form_constants.h"
+#include "common/form_constants.h"
 #undef private
 #undef protected
 
