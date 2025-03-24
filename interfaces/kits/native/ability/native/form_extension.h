@@ -17,7 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_FORM_EXTENSION_H
 
 #include "extension_base.h"
-#include "form_provider_info.h"
+#include "parcelable_tool/form_provider_info.h"
 #include "form_state_info.h"
 
 namespace OHOS {

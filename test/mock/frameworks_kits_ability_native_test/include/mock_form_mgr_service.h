@@ -24,10 +24,10 @@
 #include <vector>
 
 #include "event_handler.h"
-#include "form_constants.h"
-#include "form_mgr_stub.h"
-#include "form_js_info.h"
-#include "form_provider_data.h"
+#include "common/form_constants.h"
+#include "ipc/form_mgr/form_mgr_stub.h"
+#include "parcelable_tool/form_js_info.h"
+#include "parcelable_tool/form_provider_data.h"
 #include "ipc_types.h"
 #include "iremote_object.h"
 

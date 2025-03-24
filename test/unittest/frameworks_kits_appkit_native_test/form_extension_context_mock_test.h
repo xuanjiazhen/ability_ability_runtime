@@ -16,7 +16,7 @@
 #define MOCK_OHOS_ABILITY_FORM_MOCK_EXTENSION_H
 
 #include "form_mgr.h"
-#include "form_mgr_interface.h"
+#include "ipc/form_mgr/form_mgr_interface.h"
 #include <gmock/gmock.h>
 #include <iremote_object.h>
 #include <iremote_stub.h>

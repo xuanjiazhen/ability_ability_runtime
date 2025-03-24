@@ -16,7 +16,7 @@
 #ifndef MOCK_OHOS_ABILITY_RUNTIME_MOCK_FORM_SUPPLY_CALLBACK_H
 #define MOCK_OHOS_ABILITY_RUNTIME_MOCK_FORM_SUPPLY_CALLBACK_H
 
-#include "form_supply_stub.h"
+#include "ipc/form_provider/app_to_fms/form_supply_stub.h"
 
 namespace OHOS {
 namespace AppExecFwk {

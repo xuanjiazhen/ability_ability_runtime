@@ -20,7 +20,7 @@
 #undef private
 
 #include "form_extension_context_mock_test.h"
-#include "form_mgr_errors.h"
+#include "common/form_mgr_errors.h"
 #include "errors.h"
 #include "hilog_tag_wrapper.h"
 #include "ability_manager_errors.h"
