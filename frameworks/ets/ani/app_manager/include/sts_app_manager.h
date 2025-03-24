@@ -13,18 +13,14 @@
  * limitations under the License.
  */
 
-import { Context } from './Context'
+#ifndef OHOS_ABILITY_RUNTIME_STS_APP_MANAGER_H
+#define OHOS_ABILITY_RUNTIME_STS_APP_MANAGER_H
 
-export default class ApplicationContext extends Context {
-    public native setSupportedProcessCacheSync(isSupported : boolean):void;
-    public nativeContext:long = 0;
+#include "sts_runtime.h"
 
-    setSupportedProcessCache(isSupported : boolean):void {
-        console.log("call setSupportedProcessCache 111");
-        let p1 = launch this.setSupportedProcessCacheSync(isSupported);
-        console.log("call setSupportedProcessCache 222");
-        p1.then<void>(():void=>{
-            console.log("call setSupportedProcessCache 333");
-        });
-    }
-}
+namespace OHOS {
+namespace AppManagerSts {
+void StsAppManagerRegistryInit(ani_env *env);
+} // namespace AppManagerSts
+} // namespace OHOS
+#endif // OHOS_ABILITY_RUNTIME_STS_APP_MANAGER_H
