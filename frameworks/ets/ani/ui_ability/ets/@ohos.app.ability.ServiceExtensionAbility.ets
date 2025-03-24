@@ -14,12 +14,26 @@
  */
 
 import Want from '@ohos.app.ability.Want';
-import ServiceExtensionContext from './application/ServiceExtensionContext';
+import ServiceExtensionContext from 'application/ServiceExtensionContext';
 
 export default class ServiceExtensionAbility {
+  private isOnDisconnectAsync: boolean = true;
+  private disconnectCallbackPoint: long;
+  private native nativeOnDisconnectCallback(): void;
+  private callOnDisconnect(want: Want): boolean {
+    let p = this.onDisconnectSync(want);
+    if (this.isOnDisconnectAsync) {
+        p.then<void>((a:undefined): void => {
+        this.nativeOnDisconnectCallback();
+      });
+    } else {
+      this.onDisconnect(want);
+    }
+    return this.isOnDisconnectAsync;
+  }
   launchWant: Want = new Want();
   lastRequestWant: Want = new Want();
-  context: ServiceExtensionContext = new ServiceExtensionContext();
+  context: ServiceExtensionContext = {};
   onCreate(want: Want): void{
     console.log("onCreate");
   }
@@ -34,5 +48,9 @@ export default class ServiceExtensionAbility {
   }
   onDisconnect(want: Want): void {
       console.log("onDisconnect");
+  }
+  onDisconnectSync(want: Want): Promise<void> {
+      this.isOnDisconnectAsync = false;
+      return new Promise<void>((resolve: (a: undefined)=>void, reject: (err: Error)=>void): void => {});
   }
 }
