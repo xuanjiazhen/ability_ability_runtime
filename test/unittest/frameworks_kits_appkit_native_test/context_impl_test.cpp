@@ -31,6 +31,7 @@
 #include "mock_bundle_manager.h"
 #include "system_ability_definition.h"
 #include "sys_mgr_client.h"
+#include "running_process_info.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -1636,6 +1637,145 @@ HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_UpdateDisplayConfiguration_004,
         DEFAULT_DISPLAY_ID, DENSITY, DIRECTION_HORIZONTAL);
     EXPECT_EQ(result, true);
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_UpdateDisplayConfiguration_004 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_SetMcc_004
+ * @tc.name: SetMcc
+ * @tc.desc: SetMcc success
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_SetMcc_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_SetMcc_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    contextImpl->SetConfiguration(config);
+    EXPECT_EQ(contextImpl->config_->configParameter_.size(), 0);
+    contextImpl->SetMcc("zh");
+    EXPECT_EQ(contextImpl->config_->configParameter_.size(), 1);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_SetMcc_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_SetMnc_004
+ * @tc.name: SetMnc
+ * @tc.desc: SetMnc success
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_SetMnc_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_SetMnc_004 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    contextImpl->SetConfiguration(config);
+    EXPECT_EQ(contextImpl->config_->configParameter_.size(), 0);
+    contextImpl->SetMnc("ENG");
+    EXPECT_EQ(contextImpl->config_->configParameter_.size(), 1);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_SetMnc_004 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_CreateModuleContext_004
+ * @tc.name: CreateModuleContext
+ * @tc.desc: CreateModuleContext success
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_CreateModuleContext_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreateModuleContext_004 start";
+    AbilityRuntime::ContextImpl contextImpl;
+    auto inputContextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    std::string moduleName = "";
+    auto ref = contextImpl.CreateModuleContext(moduleName, inputContextImpl);
+    EXPECT_EQ(ref, nullptr);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreateModuleContext_004 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_CreateBundleContext_004
+ * @tc.name: CreateBundleContext
+ * @tc.desc: CreateBundleContext success
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_CreateBundleContext_001, Function | MediumTest | Level1)
+{
+    std::shared_ptr<AbilityRuntime::Context> context = std::make_shared<AbilityRuntime::ContextImpl>();
+    std::string bundleName = "";
+    std::shared_ptr<AbilityRuntime::Context> inputContext = std::make_shared<AbilityRuntime::ContextImpl>();
+    AbilityRuntime::ContextImpl contextImpl;
+    auto ret = contextImpl.CreateBundleContext(context, bundleName, inputContext);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    bundleName = "com.ohos.example.bundleName";
+    ret = contextImpl.CreateBundleContext(context, bundleName, inputContext);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_KillProcessBySelf_004
+ * @tc.name: KillProcessBySelf
+ * @tc.desc: KillProcessBySelf success
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_KillProcessBySelf_001, Function | MediumTest | Level1)
+{
+    bool clearPageStack = false;
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    contextImpl->KillProcessBySelf(clearPageStack);
+    EXPECT_NE(contextImpl, nullptr);
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetProcessRunningInformation_004
+ * @tc.name: GetProcessRunningInformation
+ * @tc.desc: GetProcessRunningInformation success
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetProcessRunningInformation_001, Function | MediumTest | Level1)
+{
+    AppExecFwk::RunningProcessInfo info;
+    AbilityRuntime::ContextImpl contextImpl;
+    EXPECT_NE(contextImpl.GetProcessRunningInformation(info), ERR_OK);
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetAllRunningInstanceKeys_004
+ * @tc.name: GetAllRunningInstanceKeys
+ * @tc.desc: GetAllRunningInstanceKeys success
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetAllRunningInstanceKeys_001, Function | MediumTest | Level1)
+{
+    std::vector<std::string> instanceKeys;
+    AbilityRuntime::ContextImpl contextImpl;
+    EXPECT_NE(contextImpl.GetAllRunningInstanceKeys(instanceKeys), ERR_OK);
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_RestartApp_004
+ * @tc.name: RestartApp
+ * @tc.desc: RestartApp success
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_RestartApp_001, Function | MediumTest | Level1)
+{
+    AAFwk::Want want;
+    AbilityRuntime::ContextImpl contextImpl;
+    EXPECT_NE(contextImpl.RestartApp(want), ERR_OK);
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_SetSupportedProcessCacheSelf_004
+ * @tc.name: SetSupportedProcessCacheSelf
+ * @tc.desc: SetSupportedProcessCacheSelf success
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_SetSupportedProcessCacheSelf_001, Function | MediumTest | Level1)
+{
+    bool isSupport = true;
+    AbilityRuntime::ContextImpl contextImpl;
+    EXPECT_NE(contextImpl.SetSupportedProcessCacheSelf(isSupport), ERR_OK);
 }
 }  // namespace AppExecFwk
 }
