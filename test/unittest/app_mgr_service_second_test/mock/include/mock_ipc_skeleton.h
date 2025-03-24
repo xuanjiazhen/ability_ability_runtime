@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,23 +13,18 @@
  * limitations under the License.
  */
 
-#include "hilog_tag_wrapper.h"
+#ifndef OHOS_IPC_IPC_SKELETON_H
+#define OHOS_IPC_IPC_SKELETON_H
+
+#include "iremote_object.h"
 
 namespace OHOS {
-namespace AbilityRuntime {
-#ifndef CJ_EXPORT
-#ifndef __WINDOWS__
-#define CJ_EXPORT __attribute__((visibility("default")))
-#else
-#define CJ_EXPORT __declspec(dllexport)
-#endif
-#endif
-
-extern "C" {
-CJ_EXPORT void FFIRegisterCJExtAbilityFuncs()
-{
-    return;
-}
-}
-} // namespace AbilityRuntime
-} // namespace OHOS
+class IPCSkeleton {
+public:
+    IPCSkeleton() = default;
+    ~IPCSkeleton() = default;
+    static pid_t GetCallingPid();
+    static int pid_;
+};
+}  // namespace OHOS
+#endif // OHOS_IPC_IPC_SKELETON_H
