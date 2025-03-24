@@ -24,7 +24,7 @@
 #include "form_runtime/form_extension_provider_client.h"
 #include "form_runtime/js_form_extension.h"
 #undef private
-#include "form_provider/app_to_fms/form_supply_stub.h"
+#include "ipc/form_provider/app_to_fms/form_supply_stub.h"
 #include "mock_form_supply_callback.h"
 #include "runtime.h"
 
