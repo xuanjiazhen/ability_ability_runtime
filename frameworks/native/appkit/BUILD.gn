@@ -511,6 +511,13 @@ config("application_context_manager_config") {
   ]
 }
 
+config("context_manager_config") {
+  include_dirs = [
+    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/context",
+    "${ability_runtime_services_path}/common/include",
+  ]
+}
+
 ohos_shared_library("appkit_manager_helper") {
   branch_protector_ret = "pac_ret"
 
@@ -581,6 +588,37 @@ ohos_shared_library("application_context_manager") {
   ]
 
   public_configs = [ ":application_context_manager_config" ]
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+ohos_shared_library("context_manager") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  branch_protector_ret = "pac_ret"
+
+  sources = [ "${ability_runtime_native_path}/appkit/ability_runtime/context/context_manager.cpp" ]
+
+  cflags = []
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  external_deps = [
+    "ability_base:configuration",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "hilog:libhilog",
+    "runtime_core:ani",
+  ]
+
+  public_configs = [ ":context_manager_config" ]
 
   subsystem_name = "ability"
   part_name = "ability_runtime"

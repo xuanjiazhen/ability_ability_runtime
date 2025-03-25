@@ -30,6 +30,8 @@ namespace OHOS {
 namespace AbilityRuntime {
 class StsAbilityContext final {
 public:
+    StsAbilityContext();
+    ~StsAbilityContext();
     static void StartAbility1(
         [[maybe_unused]] ani_env* env, [[maybe_unused]] ani_object aniObj, ani_object wantObj, ani_object call);
     static void StartAbility2([[maybe_unused]] ani_env* env, [[maybe_unused]] ani_object aniObj, ani_object wantObj,
@@ -57,6 +59,7 @@ private:
     static std::mutex requestCodeMutex_;
 };
 ani_ref CreateStsAbilityContext(ani_env *env, const std::shared_ptr<AbilityContext> &context);
+ani_long nativeContextLong_ = 0;
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_SIMULATOR_STS_ABILITY_CONTEXT_H

@@ -23,6 +23,8 @@
 #include <unistd.h>
 #include <memory>
 #include "context.h"
+#include "hilog_tag_wrapper.h"
+#include "context_manager.h"
 
 namespace OHOS {
 namespace AppExecFwk {
