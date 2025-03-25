@@ -49,7 +49,7 @@ const char *INVOKE_METHOD_NAME = "invoke";
 std::mutex StsAbilityContext::requestCodeMutex_;
 
 
-AbilityRuntime::AbilityContext* StsAbilityContext::GetAbilityContext(ani_env *env, ani_object aniObj)
+std::shared_ptr<AbilityContext> StsAbilityContext::GetAbilityContext(ani_env *env, ani_object aniObj)
 {
     ani_long nativeContextLong;
     ani_class cls = nullptr;
@@ -67,12 +67,14 @@ AbilityRuntime::AbilityContext* StsAbilityContext::GetAbilityContext(ani_env *en
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
         return nullptr;
     }
-    return ((AbilityRuntime::AbilityContext*)nativeContextLong);
+    auto weakContext = static_cast<std::weak_ptr<Context>*>(nativeContextLong);
+    return weakContext != nullptr ? weakContext->lock() : nullptr;
 }
 
 ani_object StsAbilityContext::SetAbilityContext(ani_env *env, const std::shared_ptr<AbilityContext> &context)
 {
-    ani_long nativeContextLong = (ani_long)context.get();
+    auto workContext = new (std::nothrow) std::weak_ptr<AbilityContext>(context);
+    ani_long nativeContextLong = (ani_long)workContext;
     ani_class cls = nullptr;
     ani_status status = ANI_ERROR;
     ani_object contextObj = nullptr;
@@ -102,6 +104,7 @@ void StsAbilityContext::InheritWindowMode(ani_env *env, ani_object aniObj, AAFwk
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
 #ifdef SUPPORT_SCREEN
     // only split mode need inherit
+    // GetAbilityContext check null
     auto windowMode = GetAbilityContext(env, aniObj)->GetCurrentWindowMode();
     if (AAFwk::AppUtils::GetInstance().IsInheritWindowSplitScreenMode() &&
         (windowMode == AAFwk::AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_PRIMARY ||
@@ -189,8 +192,10 @@ void StsAbilityContext::StartAbilityInner([[maybe_unused]] ani_env *env, [[maybe
     if (opt != nullptr) {
         AAFwk::StartOptions startOptions;
         OHOS::AppExecFwk::UnwrapStartOptionsWithProcessOption(env, opt, startOptions);
+        // GetAbilityContext check null
         resultCode = GetAbilityContext(env, aniObj)->StartAbility(want, startOptions, -1);
     } else {
+        // GetAbilityContext check null
         resultCode = GetAbilityContext(env, aniObj)->StartAbility(want, -1);
     }
 
@@ -232,6 +237,7 @@ int32_t StsAbilityContext::GenerateRequestCode()
 void StsAbilityContext::StartAbilityForResultInner(ani_env *env, ani_object aniObj, ani_object wantObj,
     ani_object startOptionsObj, ani_object callback)
 {
+    // GetAbilityContext check null
     auto context = StsAbilityContext::GetAbilityContext(env, aniObj);
     AAFwk::Want want;
     OHOS::AppExecFwk::UnwrapWant(env, wantObj, want);
