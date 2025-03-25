@@ -19,9 +19,7 @@ generate_static_abc("ui_ability") {
   base_url = "./ets"
   files = [
     "./ets/application/AbilityStartCallback.ets",
-    "./ets/application/ServiceExtensionContext.ets",
     "./ets/application/UIAbilityContext.ets",
-    "./ets/@ohos.app.ability.ServiceExtensionAbility.ets",
     "./ets/@ohos.app.ability.StartOptions.ets",
     "./ets/@ohos.app.ability.UIAbility.ets",
     "./ets/@ohos.base.ets",
