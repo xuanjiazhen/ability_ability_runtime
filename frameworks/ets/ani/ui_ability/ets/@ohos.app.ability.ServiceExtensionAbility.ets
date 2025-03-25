@@ -13,13 +13,75 @@
  * limitations under the License.
  */
 
-import Want from '@ohos.app.ability.Want';
-import ServiceExtensionContext from './application/ServiceExtensionContext';
+/**
+ * @file
+ * @kit AbilityKit
+ */
 
+import rpc from '@ohos.rpc';
+import ServiceExtensionContext from './application/ServiceExtensionContext';
+import Want from '@ohos.app.ability.Want';
+
+/**
+ * class of service extension ability.
+ *
+ * @syscap SystemCapability.Ability.AbilityRuntime.Core
+ * @systemapi
+ * @StageModelOnly
+ * @since 9
+ */
+
+  class MyService extends rpc.RemoteObject {
+    
+    constructor(descriptor: string) {
+        super(descriptor);
+        console.log("[TEST] Enter MyService.constructor(" + descriptor + ")");
+    }
+
+    public onRemoteMessageRequest(
+        code: number,
+        data: rpc.MessageSequence,
+        reply: rpc.MessageSequence,
+        options: rpc.MessageOption
+    ): boolean | Promise<boolean> {
+        console.log("[TEST] Enter MyService.onRemoteMessageRequest(" + code + ")");
+        return false;
+    }
+ }
 export default class ServiceExtensionAbility {
+  private isOnConnectAsync: boolean = true;
+  private connectCallbackPoint: long;
+  private native nativeOnConnectCallback(): void;
+  private callOnConnect(want: Want): boolean {
+    let p = this.onConnectSync(want);
+    if (this.isOnConnectAsync) {
+      p.then<rpc.RemoteObject>((a:rpc.RemoteObject) => {
+        this.nativeOnConnectCallback();
+      });
+    } else {
+      this.onConnect(want);
+    }
+    return this.isOnConnectAsync;
+  }
+
+  private isOnDisconnectAsync: boolean = true;
+  private disconnectCallbackPoint: long;
+  private native nativeOnDisconnectCallback(): void;
+  private callOnDisconnect(want: Want): boolean {
+    let p = this.onDisconnectSync(want);
+    if (this.isOnDisconnectAsync) {
+        p.then<void>((a:undefined): void => {
+        this.nativeOnDisconnectCallback();
+      });
+    } else {
+      this.onDisconnect(want);
+    }
+    return this.isOnDisconnectAsync;
+  }
+
   launchWant: Want = new Want();
   lastRequestWant: Want = new Want();
-  context: ServiceExtensionContext = new ServiceExtensionContext();
+ // context: ServiceExtensionContext = new ServiceExtensionContext();
   onCreate(want: Want): void{
     console.log("onCreate");
   }
@@ -29,10 +91,20 @@ export default class ServiceExtensionAbility {
   onRequest(want: Want, startld: int): void {
     console.log("onRequest");
   }
-  onConnect(want: Want): void {
-      console.log("onConnect");
+  onConnect(want: Want): rpc.RemoteObject {
+    console.log("onConnect");
+    let myService: rpc.RemoteObject = new MyService("onConnect");
+    return myService;
+  }
+  onConnectSync(want: Want): Promise<rpc.RemoteObject> {
+    this.isOnConnectAsync = false;
+    return new Promise<rpc.RemoteObject>((resolve: (result: rpc.RemoteObject) => void, reject: (err: Error) => void): void => {});
   }
   onDisconnect(want: Want): void {
-      console.log("onDisconnect");
+    console.log("onDisconnect");
+  }
+  onDisconnectSync(want: Want): Promise<void> {
+    this.isOnDisconnectAsync = false;
+    return new Promise<void>((resolve: (a: undefined)=>void, reject: (err: Error)=>void): void => {});
   }
 }
