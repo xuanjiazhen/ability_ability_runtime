@@ -316,6 +316,7 @@ public:
 #endif
 
 private:
+    bool isHook_ = false;
     sptr<IRemoteObject> token_ = nullptr;
     std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo_ = nullptr;
     std::shared_ptr<AbilityRuntime::Context> stageContext_ = nullptr;
@@ -340,7 +341,6 @@ private:
     void OnAbilityResultInner(int requestCode, int resultCode, const AAFwk::Want &resultData);
     sptr<IRemoteObject> GetSessionToken();
     void SetWindowRectangleParams(AAFwk::Want &want);
-    bool AbilityContextImpl::NotHookModule();
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

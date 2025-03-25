@@ -1162,24 +1162,29 @@ public:
 
     void ScheduleCollaborate(const Want &want);
 
-    bool GetIsHook() const
+    bool IsHook()
     {
         return isHook_;
     }
 
-    void SetIsHook(bool isHook)
+    inline void SetIsHook(bool isHook)
     {
         isHook_ = isHook;
     }
 
-    bool GetHookOff() const
+    bool GetHookOff()
     {
         return hookOff_;
     }
 
-    void SetHookOff(bool hookOff)
+    inline void SetHookOff(bool hookOff)
     {
         hookOff_ = hookOff;
+    }
+
+    inline void SetLaunchWant()
+    {
+        launchWant_ = std::make_shared<Want>(want_);
     }
     
     void SendEvent(uint32_t msg, uint32_t timeOut, int32_t param = -1, bool isExtension = false,
@@ -1396,6 +1401,7 @@ private:
     std::weak_ptr<AbilityRecord> otherMissionStackAbilityRecord_; // who starts this ability record by SA
 
     std::shared_ptr<Want> connectWant_ = nullptr;
+    std::shared_ptr<Want> launchWant_ = nullptr;
     std::shared_ptr<CallerAbilityInfo> saCallerInfo_ = nullptr;
     LaunchDebugInfo launchDebugInfo_;
     

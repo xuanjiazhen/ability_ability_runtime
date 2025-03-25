@@ -184,6 +184,10 @@ std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GenerateAbilityRecord(
         uiAbilityRecord = FindRecordFromTmpMap(abilityRequest);
         if (uiAbilityRecord == nullptr) {
             uiAbilityRecord = CreateAbilityRecord(abilityRequest, sessionInfo);
+            if (isHookModule(abilityRequest)) {
+                uiAbilityRecord->SetLaunchWant();
+                uiAbilityRecord->SetIsHook(true);    
+            }
         }
         isColdStart = true;
         UpdateProcessName(abilityRequest, uiAbilityRecord);
@@ -513,8 +517,10 @@ int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &ability
     if (IsHookModule(abilityRequest)) {
         auto abilityRecord = FindRecordFromSessionMap(abilityRequest, false);
         if (abilityRecord != nullptr) {
-            if (abilityRecord->GetIsHook() && !abilityRecord->GetHookOff()) {
-                int ret = NotifySCBPendingActivation(abilityRecord->GetSessionInfo(), abilityRequest);
+            if (abilityRecord->IsHook() && !abilityRecord->GetHookOff()) {
+                AbilityRequest request;
+                request.callerToken = abilityRequest.callerToken;
+                int ret = NotifySCBPendingActivation(abilityRecord->GetSessionInfo(), request);
                 return ret;
             }
         }
@@ -531,9 +537,6 @@ int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &ability
     TAG_LOGI(AAFwkTag::ABILITYMGR, "Reused sessionId: %{public}d, userId: %{public}d, requestId: %{public}d",
         sessionInfo->persistentId, userId_, requestId);
     int ret = NotifySCBPendingActivation(sessionInfo, abilityRequest);
-    if (sessionInfo->reuseDelegatorWindow && ret == ERR_OK) {
-        callerAbility->SetIsHook(false);
-    }
     sessionInfo->want.RemoveAllFd();
     return ret;
 }
@@ -1266,7 +1269,6 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         (sessionInfo->want).GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0), sessionInfo->instanceKey.c_str(),
         hasStartWindow, backgroundColor.c_str());
     auto abilityRecord = GetAbilityRecordByToken(abilityRequest.callerToken);
-    
     if (abilityRecord != nullptr && !abilityRecord->GetRestartAppFlag()) {
         auto callerSessionInfo = abilityRecord->GetSessionInfo();
         CHECK_POINTER_AND_RETURN(callerSessionInfo, ERR_INVALID_VALUE);
@@ -3272,7 +3274,7 @@ void UIAbilityLifecycleManager::EnableListForSCBRecovery()
 }
 
 std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::FindRecordFromSessionMap(
-    const AbilityRequest &abilityRequest, const bool compareAbilityNameFlag)
+    const AbilityRequest &abilityRequest, bool compareAbilityNameFlag)
 {
     int32_t appIndex = 0;
     (void)AbilityRuntime::StartupUtil::GetAppIndex(abilityRequest.want, appIndex);
@@ -3290,7 +3292,6 @@ std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::FindRecordFromSessionM
     }
     return nullptr;
 }
-
 
 bool UIAbilityLifecycleManager::HasAbilityRequest(const AbilityRequest &abilityRequest)
 {
