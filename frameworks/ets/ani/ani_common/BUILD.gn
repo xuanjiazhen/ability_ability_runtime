@@ -42,6 +42,7 @@ ohos_shared_library("ani_common") {
     "src/ani_common_ability_info.cpp",
     "src/ani_common_ability_result.cpp",
     "src/ani_common_configuration.cpp",
+    "src/ani_common_context.cpp",
     "src/ani_common_start_options.cpp",
     "src/ani_common_util.cpp",
     "src/ani_common_want.cpp",
@@ -65,6 +66,8 @@ ohos_shared_library("ani_common") {
     "ability_base:want",
     "access_token:libtokenid_sdk",
     "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "bundle_framework:bms_ani_common",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
@@ -72,6 +75,8 @@ ohos_shared_library("ani_common") {
     "ipc:ipc_core",
     "json:nlohmann_json_static",
     "napi:ace_napi",
+    "resource_management:global_resmgr",
+    "resource_management:resourceManager_ani",
     "runtime_core:ani",
   ]
 
