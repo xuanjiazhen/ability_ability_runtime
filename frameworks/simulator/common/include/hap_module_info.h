@@ -111,6 +111,8 @@ struct HapModuleInfo {
     std::string srcEntrance;
     std::string uiSyntax;
     std::string virtualMachine;
+    std::string abilitySrcEntryDelegator;
+    std::string abilityStageSrcEntryDelegator;
     bool deliveryWithInstall = false;
     bool installationFree = false;
     bool isModuleJson = false;

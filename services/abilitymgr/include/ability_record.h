@@ -1389,6 +1389,8 @@ private:
     std::atomic_bool isPrepareTerminateAbilityCalled_ = false;
     std::atomic_bool isPrepareTerminateAbilityDone_ = false;
     bool isPrepareTerminate_ = false;
+    bool isHook_ = false;
+    bool hookOff_ = false;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

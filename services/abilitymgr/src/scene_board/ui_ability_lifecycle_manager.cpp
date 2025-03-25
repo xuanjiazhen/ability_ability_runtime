@@ -180,10 +180,12 @@ std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GenerateAbilityRecord(
         } else {
             sessionInfo->want.CloseAllFd();
         }
+        // if ishook and abilityself, launch UserAbility
     } else {
         uiAbilityRecord = FindRecordFromTmpMap(abilityRequest);
         if (uiAbilityRecord == nullptr) {
             uiAbilityRecord = CreateAbilityRecord(abilityRequest, sessionInfo);
+            // set uiAbilityRecord->isHook_ according to hapModuleInfo of abilityRequest
         }
         isColdStart = true;
         UpdateProcessName(abilityRequest, uiAbilityRecord);

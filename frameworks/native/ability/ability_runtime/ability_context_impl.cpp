@@ -325,6 +325,11 @@ ErrCode AbilityContextImpl::TerminateAbilityWithResult(const AAFwk::Want& want, 
     if (sessionToken == nullptr) {
         TAG_LOGW(AAFwkTag::CONTEXT, "withResult null sessionToken");
     }
+    if (isHook_ && hookOff_) {
+        TAG_LOGW(AAFwkTag::CONTEXT, "is hook and hook off, skip TerminateSession");
+        // TODO: onDestroy
+        return ERR_OK;
+    }
 #ifdef SUPPORT_SCREEN
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled() && sessionToken) {
         sptr<AAFwk::SessionInfo> info = sptr<AAFwk::SessionInfo>::MakeSptr();
@@ -639,6 +644,11 @@ ErrCode AbilityContextImpl::TerminateSelf()
     auto sessionToken = GetSessionToken();
     if (sessionToken == nullptr) {
         TAG_LOGW(AAFwkTag::CONTEXT, "null sessionToken");
+    }
+    if (isHook_ && hookOff_) {
+        TAG_LOGW(AAFwkTag::CONTEXT, "is hook and hook off, skip TerminateSession");
+        // TODO: onDestroy
+        return ERR_OK;
     }
 #ifdef SUPPORT_SCREEN
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled() && sessionToken) {
