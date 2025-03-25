@@ -46,7 +46,8 @@ void OnDisconnectPromiseCallback(ani_env* env, ani_object aniObj)
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
         return;
     }
-    auto *callbackInfo = reinterpret_cast<OHOS::AppExecFwk::AbilityTransactionCallbackInfo<> *>(disconnectCallbackPoint);
+    auto *callbackInfo =
+        reinterpret_cast<OHOS::AppExecFwk::AbilityTransactionCallbackInfo<> *>(disconnectCallbackPoint);
     if (callbackInfo == nullptr) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null callbackInfo");
         return;
