@@ -25,7 +25,6 @@
 #include "insight_intent_executor_info.h"
 #include "insight_intent_executor_mgr.h"
 #include "js_service_extension_context.h"
-#include "ani_remote_object.h"
 #ifdef SUPPORT_GRAPHICS
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
@@ -46,13 +45,47 @@ void OnDisconnectPromiseCallback(ani_env* env, ani_object aniObj)
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
         return;
     }
-    auto *callbackInfo = reinterpret_cast<OHOS::AppExecFwk::AbilityTransactionCallbackInfo<> *>(disconnectCallbackPoint);
+    auto *callbackInfo =
+        reinterpret_cast<OHOS::AppExecFwk::AbilityTransactionCallbackInfo<> *>(disconnectCallbackPoint);
     if (callbackInfo == nullptr) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null callbackInfo");
         return;
     }
     callbackInfo->Call();
     OHOS::AppExecFwk::AbilityTransactionCallbackInfo<>::Destroy(callbackInfo);
+}
+
+[[maybe_unused]]ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
+{
+    TAG_LOGI(AAFwkTag::DELEGATOR, "ANI_Constructor");
+    ani_env *env = nullptr;
+    ani_status status = ANI_ERROR;
+    status = vm->GetEnv(ANI_VERSION_1, &env);
+    if (status != ANI_OK) {
+        TAG_LOGI(AAFwkTag::DELEGATOR, "GetEnv failed status : %{public}d", status);
+        return ANI_NOT_FOUND;
+    }
+
+    static const char *className = "LServiceExtensionAbility/ServiceExtensionAbilityInner;";
+    ani_class cls;
+    status = env->FindClass(className, &cls);
+    if (ANI_OK != status) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "FindClass is fail %{public}d", status);
+        return ANI_ERROR;
+    }
+
+    std::array functions = {
+        ani_native_function { "nativeOnDisconnectCallback", ":V", reinterpret_cast<void*>(OnDisconnectPromiseCallback) },
+    };
+
+    status = env->Class_BindNativeMethods(cls, functions.data(), functions.size());
+    if (ANI_OK != status) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Class_BindNativeMethods is fail %{public}d", status);
+        return ANI_ERROR;
+    };
+    *result = ANI_VERSION_1;
+    TAG_LOGI(AAFwkTag::DELEGATOR, "ANI_Constructor finish");
+    return ANI_OK;
 }
 
 namespace OHOS {
