@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #ifndef OHOS_ABILITY_RUNTIME_STS_UI_EXTENSION_CONTEXT_H
 #define OHOS_ABILITY_RUNTIME_STS_UI_EXTENSION_CONTEXT_H
 
