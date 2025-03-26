@@ -292,6 +292,11 @@ constexpr const char* SUPPORT_COLLABORATE_INDEX = "ohos.extra.param.key.supportC
 constexpr const char* COLLABORATE_KEY = "ohos.dms.collabToken";
 constexpr const char* IS_CALLING_FROM_DMS = "supportCollaborativeCallingFromDmsInAAFwk";
 constexpr int32_t CLEAR_REASON_DELAY_TIME = 3000;  // 3s
+constexpr const char* LIFE_CYCLE_START = "start";
+constexpr const char* LIFE_CYCLE_CONNECT = "connect";
+constexpr const char* LIFE_CYCLE_MINIMIZE = "minimize";
+constexpr const char* LIFE_CYCLE_TERMINATE = "terminate";
+constexpr const char* LIFE_CYCLE_PRELOAD = "preload";
 
 const bool REGISTER_RESULT =
     SystemAbility::MakeAndRegisterAbility(DelayedSingleton<AbilityManagerService>::GetInstance().get());
@@ -3289,6 +3294,10 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
     CHECK_POINTER_AND_RETURN(extensionSessionInfo, ERR_INVALID_VALUE);
     SetPickerElementName(extensionSessionInfo, userId);
     SetAutoFillElementName(extensionSessionInfo);
+    EventInfo eventInfo = BuildEventInfo(extensionSessionInfo->want, userId);
+    eventInfo.persistentId = extensionSessionInfo->persistentId;
+    eventInfo.lifeCycle = LIFE_CYCLE_START;
+    SendAbilityEvent(EventName::START_ABILITY, HiSysEventType::BEHAVIOR, eventInfo);
 
     if (extensionSessionInfo->want.HasParameter(AAFwk::SCREEN_MODE_KEY)) {
         int32_t screenMode = extensionSessionInfo->want.GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
@@ -3839,7 +3848,9 @@ int AbilityManagerService::TerminateUIExtensionAbility(const sptr<SessionInfo> &
     GetConnectManagerAndUIExtensionBySessionInfo(extensionSessionInfo, connectManager, targetRecord);
     CHECK_POINTER_AND_RETURN(targetRecord, ERR_INVALID_VALUE);
     CHECK_POINTER_AND_RETURN(connectManager, ERR_INVALID_VALUE);
-
+    EventInfo eventInfo = BuildEventInfo(extensionSessionInfo->want, extensionSessionInfo->userId);
+    eventInfo.lifeCycle = LIFE_CYCLE_TERMINATE;
+    SendAbilityEvent(EventName::TERMINATE_ABILITY, HiSysEventType::BEHAVIOR, eventInfo);
     // self terminate or caller terminate is allowed.
     if (!(JudgeSelfCalled(targetRecord) || (abilityRecord != nullptr && JudgeSelfCalled(abilityRecord)))) {
         return CHECK_PERMISSION_FAILED;
@@ -4139,6 +4150,9 @@ int AbilityManagerService::MinimizeUIExtensionAbility(const sptr<SessionInfo> &e
     CHECK_POINTER_AND_RETURN(extensionSessionInfo, ERR_INVALID_VALUE);
     auto abilityRecord = Token::GetAbilityRecordByToken(extensionSessionInfo->callerToken);
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
+    EventInfo eventInfo = BuildEventInfo(extensionSessionInfo->want, extensionSessionInfo->userId);
+    eventInfo.lifeCycle = LIFE_CYCLE_MINIMIZE;
+    SendAbilityEvent(EventName::ABILITY_ONBACKGROUND, HiSysEventType::BEHAVIOR, eventInfo);
     if (!JudgeSelfCalled(abilityRecord)) {
         return CHECK_PERMISSION_FAILED;
     }
@@ -9021,6 +9035,14 @@ bool AbilityManagerService::JudgeMultiUserConcurrency(const int32_t userId)
     return true;
 }
 
+void AbilityManagerService::SendIntentReport(EventInfo &eventInfo, int32_t errCode, const std::string &intentName)
+{
+    eventInfo.errCode = errCode;
+    eventInfo.callerBundleName = InsightIntentGetcallerBundleName();
+    eventInfo.intentName = intentName;
+    EventReport::SendExecuteIntentEvent(EventName::EXECUTE_INSIGHT_INTENT_ERROR, HiSysEventType::FAULT, eventInfo);
+}
+
 #ifdef ABILITY_COMMAND_FOR_TEST
 int AbilityManagerService::ForceTimeoutForTest(const std::string &abilityName, const std::string &state)
 {
@@ -11231,28 +11253,34 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
     if (callerBundlename.empty()) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "callerBundlename is null");
     }
-
     auto paramPtr = std::make_shared<InsightIntentExecuteParam>(param);
     int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateParam(key, callerToken,
         paramPtr, callerBundlename);
     if (ret != ERR_OK) {
         return ret;
     }
-
     Want want;
     ret = InsightIntentExecuteManager::GenerateWant(paramPtr, want);
     if (ret != ERR_OK) {
         return ret;
     }
-
+    EventInfo eventInfo = BuildEventInfo(want, GetUserId());
     switch (param.executeMode_) {
         case AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND:
             TAG_LOGD(AAFwkTag::ABILITYMGR, "ExecuteMode UI_ABILITY_FOREGROUND.");
             ret = StartAbilityWithInsightIntent(want);
+            if (ret != ERR_OK) {
+                eventInfo.errReason = "StartAbilityWithInsightIntent error";
+                SendIntentReport(eventInfo, ret, param.insightIntentName_);
+            }
             break;
         case AppExecFwk::ExecuteMode::UI_ABILITY_BACKGROUND: {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "ExecuteMode UI_ABILITY_BACKGROUND.");
             ret = StartAbilityByCallWithInsightIntent(want, callerToken, param);
+            if (ret != ERR_OK) {
+                eventInfo.errReason = "StartAbilityByCallWithInsightIntent error";
+                SendIntentReport(eventInfo, ret, param.insightIntentName_);
+            }
             break;
         }
         case AppExecFwk::ExecuteMode::UI_EXTENSION_ABILITY:
@@ -11262,6 +11290,10 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
         case AppExecFwk::ExecuteMode::SERVICE_EXTENSION_ABILITY:
             TAG_LOGD(AAFwkTag::ABILITYMGR, "ExecuteMode SERVICE_EXTENSION_ABILITY.");
             ret = StartExtensionAbilityWithInsightIntent(want, AppExecFwk::ExtensionAbilityType::SERVICE);
+            if (ret != ERR_OK) {
+                eventInfo.errReason = "StartExtensionAbilityWithInsightIntent error";
+                SendIntentReport(eventInfo, ret, param.insightIntentName_);
+            }
             break;
         default:
             TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid executeMode");
@@ -11275,7 +11307,6 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
     if (ret != ERR_OK) {
         DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->RemoveExecuteIntent(paramPtr->insightIntentId_);
     }
-
     TAG_LOGD(AAFwkTag::ABILITYMGR, "ExecuteIntent done, ret: %{public}d.", ret);
     return ret;
 }
@@ -11323,10 +11354,6 @@ int32_t AbilityManagerService::StartAbilityWithInsightIntent(const Want &want, i
     EventInfo eventInfo = BuildEventInfo(want, userId);
     SendAbilityEvent(EventName::START_ABILITY, HiSysEventType::BEHAVIOR, eventInfo);
     int32_t ret = StartAbilityWrap(want, nullptr, requestCode, false, userId);
-    if (ret != ERR_OK) {
-        eventInfo.errCode = ret;
-        SendAbilityEvent(EventName::START_ABILITY_ERROR, HiSysEventType::FAULT, eventInfo);
-    }
     return ret;
 }
 
