@@ -2162,5 +2162,62 @@ HWTEST_F(AppMgrServiceTest, RegisterApplicationStateObserver_0100, TestSize.Leve
     auto ret = appMgrService->RegisterApplicationStateObserver(nullptr, bundleNameList);
     EXPECT_NE(ret, ERR_OK);
 }
+
+/*
+ * Feature: AppMgrService
+ * Function: LaunchAbility
+ * SubFunction: NA
+ * FunctionPoints: AppMgrService LaunchAbility
+ * EnvConditions: NA
+ * CaseDescription: Verify LaunchAbility
+ */
+HWTEST_F(AppMgrServiceTest, LaunchAbility_0200, TestSize.Level1)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    appMgrService->taskHandler_ = taskHandler_;
+    appMgrService->eventHandler_ = std::make_shared<AMSEventHandler>(taskHandler_, appMgrService->appMgrServiceInner_);
+    int32_t res = appMgrService->LaunchAbility(nullptr);
+    EXPECT_EQ(res, AAFwk::ERR_NO_ALLOW_OUTSIDE_CALL);
+}
+
+/*
+ * Feature: AppMgrService
+ * Function: UpdateConfigurationPolicy
+ * SubFunction: NA
+ * FunctionPoints: AppMgrService UpdateConfigurationPolicy
+ * EnvConditions: NA
+ * CaseDescription: Verify UpdateConfigurationPolicy
+ */
+HWTEST_F(AppMgrServiceTest, UpdateConfigurationPolicy_001, TestSize.Level2)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    std::vector<BackgroundAppInfo> appInfos;
+    AppExecFwk::ConfigurationPolicy policy;
+    int32_t userId = -1;
+    appMgrService->SetInnerService(nullptr);
+    int32_t res = appMgrService->UpdateConfigurationPolicy(appInfos, policy, userId);
+    EXPECT_EQ(res, ERR_INVALID_OPERATION);
+}
+
+/*
+ * Feature: AppMgrService
+ * Function: UpdateConfigurationPolicy
+ * SubFunction: NA
+ * FunctionPoints: AppMgrService UpdateConfigurationPolicy
+ * EnvConditions: NA
+ * CaseDescription: Verify UpdateConfigurationPolicy
+ */
+HWTEST_F(AppMgrServiceTest, UpdateConfigurationPolicy_002, TestSize.Level2)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    std::vector<BackgroundAppInfo> appInfos;
+    AppExecFwk::ConfigurationPolicy policy;
+    int32_t userId = -1;
+    appMgrService->SetInnerService(std::make_shared<AppMgrServiceInner>());
+    appMgrService->taskHandler_ = taskHandler_;
+    appMgrService->eventHandler_ = std::make_shared<AMSEventHandler>(taskHandler_, appMgrService->appMgrServiceInner_);
+    int32_t res = appMgrService->UpdateConfigurationPolicy(appInfos, policy, userId);
+    EXPECT_NE(res, ERR_INVALID_OPERATION);
+}
 } // namespace AppExecFwk
 } // namespace OHOS

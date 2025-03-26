@@ -417,6 +417,9 @@ public:
 
     virtual int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1) override;
 
+    virtual int32_t UpdateConfigurationPolicy(const std::vector<BackgroundAppInfo>& appInfos,
+        const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId = -1) override;
+
     virtual int32_t UpdateConfigurationByBundleName(const Configuration &config, const std::string &name,
         int32_t appIndex = 0) override;
 
