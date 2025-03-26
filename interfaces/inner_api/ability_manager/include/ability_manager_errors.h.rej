@@ -1,0 +1,11 @@
+diff a/interfaces/inner_api/ability_manager/include/ability_manager_errors.h b/interfaces/inner_api/ability_manager/include/ability_manager_errors.h	(rejected hunks)
+@@ -707,7 +707,8 @@ enum {
+      * Result(2097305) for extension starting ability controlled
+      */
+     ERR_EXTENSION_START_ABILITY_CONTROLEED = 2097305,
+-
++    INTENT_NOT_EXIST = 2097306,
++    INTENT_STATE_NOT_EXECUTING = 2097307,
+     /**
+      * Native error(3000000) for target bundle not exist.
+      */
