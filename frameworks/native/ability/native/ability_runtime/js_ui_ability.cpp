@@ -187,6 +187,7 @@ void JsUIAbility::Init(std::shared_ptr<AppExecFwk::AbilityLocalRecord> record,
     }
 #endif
     std::string srcPath(abilityInfo->package);
+    TAG_LOGD(AAFwkTag::UIABILITY, "jsAbility srcPath: %{public}s", srcPath.c_str());
     if (!abilityInfo->isModuleJson) {
         /* temporary compatibility api8 + config.json */
         srcPath.append("/assets/js/");
@@ -194,6 +195,7 @@ void JsUIAbility::Init(std::shared_ptr<AppExecFwk::AbilityLocalRecord> record,
             srcPath.append(abilityInfo->srcPath);
         }
         srcPath.append("/").append(abilityInfo->name).append(".abc");
+        TAG_LOGD(AAFwkTag::UIABILITY, "jsAbility srcPath: %{public}s", srcPath.c_str());
     } else {
         if (abilityInfo->srcEntrance.empty()) {
             TAG_LOGE(AAFwkTag::UIABILITY, "empty srcEntrance");
@@ -201,7 +203,11 @@ void JsUIAbility::Init(std::shared_ptr<AppExecFwk::AbilityLocalRecord> record,
         }
         srcPath.append("/");
         srcPath.append(abilityInfo->srcEntrance);
-        srcPath.erase(srcPath.rfind("."));
+        TAG_LOGD(AAFwkTag::UIABILITY, "jsAbility srcPath: %{public}s", srcPath.c_str());
+        if (srcPath.rfind(".") != std::string::npos) {
+            srcPath.erase(srcPath.rfind("."));
+        }
+        TAG_LOGD(AAFwkTag::UIABILITY, "jsAbility srcPath: %{public}s", srcPath.c_str());
         srcPath.append(".abc");
         TAG_LOGD(AAFwkTag::UIABILITY, "jsAbility srcPath: %{public}s", srcPath.c_str());
     }
