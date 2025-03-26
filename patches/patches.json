@@ -1,0 +1,14 @@
+{
+    "patches": [
+        {
+            "project":"vendor_hihope",
+            "path":"vendor/hihope",
+            "pr_url":"https://gitee.com/openharmony/vendor_hihope/pulls/1448"
+        },
+        {
+            "project":"ability_app_extension",
+            "path":"foundation/ability/app_extension",
+            "pr_url":"https://gitcode.com/openharmony-sig/ability_app_extension/pull/9"
+        }
+    ]
+}
