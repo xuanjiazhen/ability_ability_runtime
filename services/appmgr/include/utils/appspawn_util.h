@@ -115,6 +115,12 @@ static void SetJITPermissions(uint32_t accessTokenId, std::vector<std::string> &
             jitPermissionsList.emplace_back(tmpPermissionList[i]);
         }
     }
+    if (Security::AccessToken::AccessTokenKit::VerifyAccessToken(
+        accessTokenId,
+        JIT_PERMISSION_DISABLE_GOTPLT_RO_PROTECTION,
+        false) == Security::AccessToken::PERMISSION_GRANTED) {
+        jitPermissionsList.emplace_back(JIT_PERMISSION_DISABLE_GOTPLT_RO_PROTECTION);
+    }
 }
 }  // namespace AppspawnUtil
 }  // namespace AppExecFwk
