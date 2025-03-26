@@ -6786,6 +6786,9 @@ int AbilityManagerService::StopServiceAbility(const Want &want, int32_t userId, 
 void AbilityManagerService::OnAbilityDied(std::shared_ptr<AbilityRecord> abilityRecord)
 {
     CHECK_POINTER(abilityRecord);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "On ability died: %{public}s, %{public}d, %{public}" PRId64,
+        abilityRecord->GetURI().c_str(), abilityRecord->GetRecordId(),
+        abilityRecord->GetAbilityRecordId());
     if (abilityRecord->GetToken()) {
         FreezeUtil::GetInstance().DeleteLifecycleEvent(abilityRecord->GetToken()->AsObject());
     }
@@ -6810,6 +6813,8 @@ void AbilityManagerService::OnAbilityDied(std::shared_ptr<AbilityRecord> ability
     if (connectManager) {
         connectManager->OnAbilityDied(abilityRecord, GetUserId());
         return;
+    } else {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "connectManager not found");
     }
 
     auto dataAbilityManager = GetDataAbilityManagerByToken(abilityRecord->GetToken());
@@ -7179,7 +7184,7 @@ bool AbilityManagerService::VerificationToken(const sptr<IRemoteObject> &token)
         return true;
     }
 
-    if (connectManager->GetExtensionByTokenFromAbilityCache(token)) {
+    if (AbilityCacheManager::GetInstance().FindRecordByToken(token)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "verification token5");
         return true;
     }
@@ -8634,6 +8639,23 @@ int AbilityManagerService::SwitchToUser(int32_t oldUserId, int32_t userId, sptr<
     return ret;
 }
 
+bool AbilityManagerService::IsSceneBoardReady(int32_t userId)
+{
+    if (userId < 0) {
+        userId = GetUserId();
+    }
+    auto connectManager = GetConnectManagerByUserId(userId);
+    if (connectManager == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "connectManager is nullptr");
+        return false;
+    }
+    if (connectManager->GetSceneBoardTokenId() == 0) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "SCB not ready");
+        return false;
+    }
+    return true;
+}
+
 void AbilityManagerService::StartKeepAliveAppsInner(int32_t userId)
 {
     if (!system::GetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false)) {
@@ -8644,16 +8666,7 @@ void AbilityManagerService::StartKeepAliveAppsInner(int32_t userId)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "taskHandler nullptr");
         return;
     }
-    taskHandler_->SubmitTask([abilityMs = shared_from_this(),
-        connectManager = GetConnectManagerByUserId(userId), userId]() {
-        if (connectManager == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "connectManager is nullptr");
-            return;
-        }
-        if (connectManager->GetSceneBoardTokenId() == 0) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "SCB not ready, do not start keep-alive apps");
-            return;
-        }
+    taskHandler_->SubmitTask([abilityMs = shared_from_this(), userId] {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "StartKeepAliveApps userId:%{public}d", userId);
         abilityMs->StartKeepAliveApps(userId);
     });
@@ -12648,8 +12661,8 @@ int32_t AbilityManagerService::PreStartInner(const FreeInstallInfo& taskInfo)
         StartAbilityUtils::GetAppIndex(want, callerToken, appIndex), callerToken);
 
     AbilityRequest abilityRequest = {
-        .want = want,
         .requestCode = taskInfo.requestCode,
+        .want = want,
         .callerToken = callerToken,
         .startSetting = nullptr
     };

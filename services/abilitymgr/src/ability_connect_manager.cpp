@@ -125,7 +125,7 @@ int AbilityConnectManager::TerminateAbilityInner(const sptr<IRemoteObject> &toke
 {
     auto abilityRecord = GetExtensionByTokenFromServiceMap(token);
     if (abilityRecord == nullptr) {
-        abilityRecord = GetExtensionByTokenFromAbilityCache(token);
+        abilityRecord = AbilityCacheManager::GetInstance().FindRecordByToken(token);
     }
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     std::string element = abilityRecord->GetURI();
@@ -1355,12 +1355,6 @@ std::shared_ptr<AbilityRecord> AbilityConnectManager::GetExtensionByTokenFromSer
     return nullptr;
 }
 
-std::shared_ptr<AbilityRecord> AbilityConnectManager::GetExtensionByTokenFromAbilityCache(
-    const sptr<IRemoteObject> &token)
-{
-    return AbilityCacheManager::GetInstance().FindRecordByToken(token);
-}
-
 std::shared_ptr<AbilityRecord> AbilityConnectManager::GetExtensionByIdFromServiceMap(
     const int64_t &abilityRecordId)
 {
@@ -1632,6 +1626,8 @@ void AbilityConnectManager::PostTimeOutTask(const std::shared_ptr<AbilityRecord>
     std::string taskName;
     int32_t delayTime = 0;
     auto recordId = abilityRecord->GetAbilityRecordId();
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "task: %{public}s, %{public}d, %{public}" PRId64,
+        abilityRecord->GetURI().c_str(), connectRecordId, recordId);
     if (messageId == AbilityManagerService::LOAD_TIMEOUT_MSG) {
         if (UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
             return abilityRecord->PostUIExtensionAbilityTimeoutTask(messageId);
