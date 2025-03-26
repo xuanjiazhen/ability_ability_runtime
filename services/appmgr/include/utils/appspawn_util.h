@@ -32,6 +32,8 @@ constexpr const char*
     JIT_PERMISSION_DISABLE_CODE_MEMORY_PROTECTION = "ohos.permission.kernel.DISABLE_CODE_MEMORY_PROTECTION";
 constexpr const char*
     JIT_PERMISSION_ALLOW_EXECUTABLE_FORT_MEMORY = "ohos.permission.kernel.ALLOW_EXECUTABLE_FORT_MEMORY";
+constexpr const char*
+    JIT_PERMISSION_DISABLE_GOTPLT_RO_PROTECTION = "ohos.permission.kernel.DISABLE_GOTPLT_RO_PROTECTION";
 
 static uint32_t BuildStartFlags(const AAFwk::Want &want, const ApplicationInfo &applicationInfo)
 {
@@ -109,6 +111,12 @@ static void SetJITPermissions(uint32_t accessTokenId, JITPermissionsList &jitPer
         JIT_PERMISSION_ALLOW_EXECUTABLE_FORT_MEMORY,
         false) == Security::AccessToken::PERMISSION_GRANTED) {
         jitPermissionsList.emplace_back(JIT_PERMISSION_ALLOW_EXECUTABLE_FORT_MEMORY);
+    }
+    if (Security::AccessToken::AccessTokenKit::VerifyAccessToken(
+        accessTokenId,
+        JIT_PERMISSION_DISABLE_GOTPLT_RO_PROTECTION,
+        false) == Security::AccessToken::PERMISSION_GRANTED) {
+        jitPermissionsList.emplace_back(JIT_PERMISSION_DISABLE_GOTPLT_RO_PROTECTION);
     }
 }
 }  // namespace AppspawnUtil
