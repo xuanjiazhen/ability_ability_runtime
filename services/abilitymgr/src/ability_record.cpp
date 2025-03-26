@@ -418,6 +418,10 @@ void AbilityRecord::ForegroundAbility(uint32_t sceneFlag)
     SetAbilityStateInner(AbilityState::FOREGROUNDING);
 #endif // SUPPORT_SCREEN
     lifeCycleStateInfo_.sceneFlag = sceneFlag;
+    if (launchWant_ != nullptr) {
+        want_ = *launchWant_;
+        launchWant_ = nullptr;
+    }
     Want want = GetWant();
     UpdateDmsCallerInfo(want);
     AbilityRuntime::ErrorMsgGuard errorMsgGuard(token_ ? token_->AsObject() : nullptr,

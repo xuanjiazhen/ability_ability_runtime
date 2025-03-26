@@ -180,6 +180,13 @@ std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GenerateAbilityRecord(
         } else {
             sessionInfo->want.CloseAllFd();
         }
+        auto appMgr = AppMgrUtil::GetAppMgr();
+        if (appMgr != nullptr && sessionInfo->reuseDelegatorWindow) {
+            auto ret = IN_PROCESS_CALL(appMgr->LaunchAbility(uiAbilityRecord->GetToken()));
+            if (ret == ERR_OK) {
+                return nullptr;
+            }
+        }
     } else {
         uiAbilityRecord = FindRecordFromTmpMap(abilityRequest);
         if (uiAbilityRecord == nullptr) {
@@ -518,9 +525,18 @@ int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &ability
     }
     sessionInfo->userId = userId_;
     sessionInfo->isAtomicService = (abilityInfo.applicationInfo.bundleType == AppExecFwk::BundleType::ATOMIC_SERVICE);
+    auto abilityRecord = FindRecordFromSessionMap(abilityRequest, true);
+    if (abilityRecord && abilityRecord->IsHook()
+        && abilityRequest.callerToken == abilityRecord->GetToken()->AsObject()) {
+            abilityRecord->SetHookOff(abilityRequest.want.GetBoolParam("ohos.ability.hookOff", false));
+            sessionInfo->reuseDelegatorWindow = true;
+        }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "Reused sessionId: %{public}d, userId: %{public}d, requestId: %{public}d",
         sessionInfo->persistentId, userId_, requestId);
     int ret = NotifySCBPendingActivation(sessionInfo, abilityRequest);
+    if (ret == ERR_OK && abilityRecord) {
+        abilityRecord->SetIsHook(false);
+    }
     sessionInfo->want.RemoveAllFd();
     return ret;
 }
