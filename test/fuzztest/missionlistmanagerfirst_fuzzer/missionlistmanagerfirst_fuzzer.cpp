@@ -244,7 +244,7 @@ void DoSomethingTestWithMyAPI4(std::shared_ptr<MissionListManager> missionListMg
     missionListMgr->HandleAbilityDied(abilityRecord);
     missionListMgr->DelayedStartLauncher();
     missionListMgr->BackToLauncher();
-    auto continueState = static_cast<ContinueState>(GetU32Data(data) % ABILITY_STATE_MOD);
+    auto continueState = static_cast<AAFwk::ContinueState>(GetU32Data(data) % ABILITY_STATE_MOD);
     missionListMgr->SetMissionContinueState(nullptr, int32Param, continueState);
     missionListMgr->SetMissionContinueState(abilityRecord->GetToken(), int32Param, continueState);
     std::vector<std::string> info;

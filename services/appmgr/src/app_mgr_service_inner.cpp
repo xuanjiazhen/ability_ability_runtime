@@ -293,6 +293,9 @@ constexpr const char* APP_INSTANCE_KEY_0 = "app_instance_0";
 // Max child process number limitation for pc device.
 constexpr int32_t PC_MAX_CHILD_PROCESS_NUM = 50;
 constexpr int32_t USER100 = 100;
+constexpr const char* LIFE_CYCLE_STATE_START_FOREGROUND = "start foreground";
+constexpr const char* LIFE_CYCLE_STATE_START_BACKGROUND = "start background";
+
 int32_t GetUserIdByUid(int32_t uid)
 {
     return uid / BASE_USER_RANGE;
@@ -410,6 +413,7 @@ void AppMgrServiceInner::Init()
     dfxTaskHandler_->SetPrintTaskLog(true);
     otherTaskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler("other_app_mgr_task_queue");
     otherTaskHandler_->SetPrintTaskLog(true);
+
     willKillPidsNum_ = 0;
     delayKillTaskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler("delay_kill_task_queue");
     if (securityModeManager_) {
@@ -1396,6 +1400,7 @@ void AppMgrServiceInner::ApplicationForegrounded(const int32_t recordId)
         TAG_LOGW(AAFwkTag::APPMGR, "app name(%{public}s), app state(%{public}d)",
             appRecord->GetName().c_str(), static_cast<ApplicationState>(appState));
     }
+
     appRecord->PopForegroundingAbilityTokens();
 
     TAG_LOGI(AAFwkTag::APPMGR, "ApplicationForegrounded, bundle: %{public}s", appRecord->GetBundleName().c_str());
@@ -2844,6 +2849,9 @@ void AppMgrServiceInner::UpdateAbilityState(const sptr<IRemoteObject> &token, co
         return;
     }
     auto type = abilityRecord->GetAbilityInfo()->type;
+    if (type == AppExecFwk::AbilityType::PAGE) {
+        SendAbilityEvent(abilityRecord, state);
+    }
     if (type == AppExecFwk::AbilityType::SERVICE &&
         (state == AbilityState::ABILITY_STATE_CREATE ||
         state == AbilityState::ABILITY_STATE_TERMINATED ||
@@ -5307,6 +5315,24 @@ int32_t AppMgrServiceInner::UpdateConfiguration(const Configuration &config, con
             item.observer->OnConfigurationUpdated(config);
         }
     }
+
+    return result;
+}
+
+int32_t AppMgrServiceInner::UpdateConfigurationPolicy(const std::vector<BackgroundAppInfo>& appInfos,
+    const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (!appRunningManager_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
+        return ERR_INVALID_VALUE;
+    }
+    CHECK_CALLER_IS_SYSTEM_APP;
+    auto ret = AAFwk::PermissionVerification::GetInstance()->VerifyUpdateConfigurationPerm();
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    int32_t result = appRunningManager_->UpdateConfigurationPolicy(appInfos, policy, userId);
 
     return result;
 }
@@ -9164,6 +9190,44 @@ int32_t AppMgrServiceInner::GetKilledProcessInfo(int pid, int uid, KilledProcess
     info.bundleName = appRecord->GetBundleName();
     info.processName = appRecord->GetProcessName();
     return ERR_OK;
+}
+
+void AppMgrServiceInner::SendAbilityEvent(const std::shared_ptr<AbilityRunningRecord> &abilityRecord,
+    const AbilityState &state)
+{
+    if (abilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null abilityRecord");
+        return;
+    }
+
+    auto abilityInfo = abilityRecord->GetAbilityInfo();
+    if (abilityInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null abilityInfo");
+        return;
+    }
+
+    auto want = abilityRecord->GetWant();
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null want");
+        return;
+    }
+
+    AAFwk::EventInfo eventInfo;
+    eventInfo.abilityName = abilityRecord->GetName();
+    eventInfo.moduleName = abilityRecord->GetModuleName();
+    eventInfo.bundleName = abilityRecord->GetBundleName();
+    eventInfo.bundleType = static_cast<int32_t>(abilityInfo->applicationInfo.bundleType);
+    eventInfo.appIndex = abilityInfo->applicationInfo.appIndex;
+    if (state == AppExecFwk::AbilityState::ABILITY_STATE_FOREGROUND) {
+        eventInfo.callerBundleName = want->GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
+        eventInfo.lifeCycleState = LIFE_CYCLE_STATE_START_FOREGROUND;
+        AAFwk::EventReport::SendAbilityEvent(AAFwk::EventName::ABILITY_ONFOREGROUND,
+            HiSysEventType::BEHAVIOR, eventInfo);
+    } else if (state == AppExecFwk::AbilityState::ABILITY_STATE_BACKGROUND) {
+        eventInfo.lifeCycleState = LIFE_CYCLE_STATE_START_BACKGROUND;
+        AAFwk::EventReport::SendAbilityEvent(AAFwk::EventName::ABILITY_ONBACKGROUND,
+            HiSysEventType::BEHAVIOR, eventInfo);
+    }
 }
 } // namespace AppExecFwk
 }  // namespace OHOS
