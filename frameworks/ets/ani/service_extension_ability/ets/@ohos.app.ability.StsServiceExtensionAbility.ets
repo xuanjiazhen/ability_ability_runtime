@@ -17,6 +17,21 @@ import Want from '@ohos.app.ability.Want';
 import ServiceExtensionContext from './ServiceExtensionContext';
 
 export default class ServiceExtensionAbility {
+  private isOnDestroyAsync: boolean = true;
+  private destroyCallbackPoint: long;
+  private native nativeOnDestroyCallback(): void;
+  private callOnDestroy(): boolean {
+    let p = this.onDestroyAsync();
+    if (this.isOnDestroyAsync) {
+      p.then<void>((a:undefined): void => {
+        this.nativeOnDestroyCallback();
+      });
+    } else {
+      this.onDestroy();
+    }
+    return this.isOnDestroyAsync;
+  }
+
   private isOnDisconnectAsync: boolean = true;
   private disconnectCallbackPoint: long;
   private native nativeOnDisconnectCallback(): void;
@@ -39,6 +54,10 @@ export default class ServiceExtensionAbility {
   }
   onDestroy(): void {
     console.log("ServiceExtensionAbility onRequest");
+  }
+  onDestroyAsync(): Promise<void> {
+    this.isOnDestroyAsync = false;
+    return new Promise<void>((resolve: (a: undefined)=>void, reject: (err: Error)=>void): void => {});
   }
   onRequest(want: Want, startld: int): void {
     console.log("onRequest");

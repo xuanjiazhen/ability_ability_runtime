@@ -160,7 +160,7 @@ public:
     virtual void Dump(const std::vector<std::string> &params, std::vector<std::string> &info) override;
  
 private:
-    ani_ref CallObjectMethod(bool withResult, const char* name, const char* signature, ...);
+    bool CallObjectMethod(bool withResult, const char* name, const char* signature, ...);
  
     void BindContext(napi_env env, napi_value obj);
  
