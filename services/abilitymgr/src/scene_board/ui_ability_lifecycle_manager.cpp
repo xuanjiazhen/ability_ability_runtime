@@ -2790,6 +2790,21 @@ int32_t UIAbilityLifecycleManager::DoCallerProcessDetachment(std::shared_ptr<Abi
     return statusBarDelegateManager->DoCallerProcessDetachment(abilityRecord);
 }
 
+int32_t UIAbilityLifecycleManager::HiddenStartProcessDetach(std::shared_ptr<AbilityRecord> abilityRecord)
+{
+    if (!IsCallerInStatusBar(abilityRecord->GetInstanceKey())) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "no status bar while detaching.");
+        return ERR_OK;
+    }
+    auto ret = DoCallerProcessDetachment(abilityRecord);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller detach to status bar failed, ret: %{public}d", ret);
+        return ERR_START_OPTIONS_CHECK_FAILED;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Hidden start allowed by observer.");
+    return ERR_OK;
+}
+
 bool UIAbilityLifecycleManager::CheckPrepareTerminateTokens(const std::vector<sptr<IRemoteObject>> &tokens,
     uint32_t &tokenId, std::map<std::string, std::vector<sptr<IRemoteObject>>> &tokensPerModuleName)
 {
@@ -3037,17 +3052,11 @@ int UIAbilityLifecycleManager::ChangeAbilityVisibility(sptr<IRemoteObject> token
     CHECK_POINTER_AND_RETURN(sessionInfo, ERR_INVALID_VALUE);
 
     do {
-        if (HiddenStartObserverManager::GetInstance().IsHiddenStart(abilityRecord->GetApplicationInfo().uid)) {
-            if (!IsCallerInStatusBar(abilityRecord->GetInstanceKey())) {
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "no status bar while detaching.");
-                break;
-            }
-            auto ret = DoCallerProcessDetachment(abilityRecord);
+        if (HiddenStartObserverManager::GetInstance().IsHiddenStart(abilityRecord->GetPid())) {
+            int32_t ret = HiddenStartProcessDetach(abilityRecord);
             if (ret != ERR_OK) {
-                TAG_LOGE(AAFwkTag::ABILITYMGR, "caller detach to status bar failed, ret: %{public}d", ret);
-                return ERR_START_OPTIONS_CHECK_FAILED;
+                return ret;
             }
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "Hidden start allowed by observer.");
             break;
         }
         if (!IsCallerInStatusBar(abilityRecord->GetInstanceKey()) && sessionInfo->processOptions != nullptr &&
