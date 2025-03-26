@@ -221,6 +221,12 @@ void STSEnvironment::InitSTSSysNS(const std::string& path)
     dlns_inherit(&ns, &ndk, "allow_all_shared_libs");
 }
 
+static void LoggerCallback([[maybe_unused]] FILE *stream, [[maybe_unused]] int level,
+    [[maybe_unused]] const char *component, [[maybe_unused]] const char *message)
+{
+    LOGE("ArkMobileLog: %{public}s", message);
+}
+
 bool STSEnvironment::StartRuntime(napi_env napiEnv)
 {
     TAG_LOGE(AAFwkTag::STSRUNTIME, "StartRuntime call");
@@ -252,6 +258,9 @@ bool STSEnvironment::StartRuntime(napi_env napiEnv)
     options.push_back(forbiddenJITOption);
 
     options.push_back(ani_option{"--ext:--log-level=info", nullptr});
+    std::string logger = "--logger";
+    ani_option loggeropOption = {logger.data(), reinterpret_cast<void*>(LoggerCallback)};
+    options.push_back(loggeropOption);
 
     std::string enableVerfication = optionPrefix + "--verification-enabled=true";
     ani_option enableVerficationOption = {enableVerfication.data(), nullptr};
