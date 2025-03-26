@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -369,6 +369,9 @@ public:
     virtual void SetAbilityConfiguration(const AppExecFwk::Configuration &config) = 0;
     virtual void SetAbilityColorMode(int32_t colorMode) = 0;
     virtual void SetAbilityResourceManager(std::shared_ptr<Global::Resource::ResourceManager> abilityResourceMgr) = 0;
+    virtual bool GetHookOff() = 0;
+    virtual void SetHookOff(bool hookOff) = 0;
+    virtual ErrCode RevokeDelegator() = 0;
 
     virtual std::shared_ptr<AAFwk::Want> GetWant() = 0;
 

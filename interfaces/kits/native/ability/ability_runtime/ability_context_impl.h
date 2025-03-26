@@ -313,6 +313,15 @@ public:
     ErrCode CreateModalUIExtensionWithApp(const Want &want) override;
     void EraseUIExtension(int32_t sessionId) override;
     bool IsUIExtensionExist(const AAFwk::Want &want);
+    ErrCode RevokeDelegator() override;
+    inline bool GetHookOff() override
+    {
+        return hookOff_;
+    }
+    inline void SetHookOff(bool hookOff) override
+    {
+        hookOff_ = hookOff;
+    }
 #endif
 
 private:
@@ -340,6 +349,7 @@ private:
     void OnAbilityResultInner(int requestCode, int resultCode, const AAFwk::Want &resultData);
     sptr<IRemoteObject> GetSessionToken();
     void SetWindowRectangleParams(AAFwk::Want &want);
+    bool hookOff_ = false;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

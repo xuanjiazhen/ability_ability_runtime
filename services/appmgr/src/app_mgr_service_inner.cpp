@@ -9165,5 +9165,21 @@ int32_t AppMgrServiceInner::GetKilledProcessInfo(int pid, int uid, KilledProcess
     info.processName = appRecord->GetProcessName();
     return ERR_OK;
 }
+
+int32_t AppMgrServiceInner::LaunchAbility(const sptr<IRemoteObject> &token)
+{
+    auto appRecord = GetAppRunningRecordByAbilityToken(token);
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "abilityRecord null");
+        return ERR_INVALID_VALUE;
+    }
+    auto ability = appRecord->GetAbilityRunningRecordByToken(token);
+    if (ability == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "ability null");
+        return ERR_INVALID_VALUE;
+    }
+    appRecord->LaunchAbility(ability);
+    return ERR_OK;
+}
 } // namespace AppExecFwk
 }  // namespace OHOS
