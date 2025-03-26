@@ -737,7 +737,8 @@ enum {
      * Result (2097317) for session info is nullptr.
      */
     ERR_NULL_SESSION_INFO = 2097317,
-
+    INTENT_NOT_EXIST = 2097318,
+    INTENT_STATE_NOT_EXECUTING = 2097319,
     /**
      * Native error(3000000) for target bundle not exist.
      */
