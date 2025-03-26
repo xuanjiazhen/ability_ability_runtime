@@ -41,9 +41,25 @@ static ani_object GetAbilityDelegator(ani_env *env, [[maybe_unused]]ani_class an
 
     if (stsReference == nullptr) {
         ani_object value = CreateStsAbilityDelegator(env);
+        if (value == nullptr) {
+            TAG_LOGE(AAFwkTag::DELEGATOR, "value is nullptr");
+            return {};
+        }
+        ani_boolean isValue;
+        env->Reference_IsNullishValue(value, &isValue);
+        if (isValue) {
+            TAG_LOGE(AAFwkTag::DELEGATOR, "Reference_IsNullishValue");
+            return {};
+        }
         stsReference = std::make_unique<AbilityRuntime::STSNativeReference>();
-        stsReference->aniObj = value;
-        return value;
+        ani_ref result;
+        auto status = env->GlobalReference_Create(value, &(result));
+        if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::DELEGATOR, "Create Gloabl ref for delegator failed %{public}d", status);
+            return {};
+        }
+        stsReference->aniObj = static_cast<ani_object>(result);
+        return stsReference->aniObj;
     } else {
         return stsReference->aniObj;
     }
@@ -67,7 +83,7 @@ static ani_object GetArguments(ani_env *env, [[maybe_unused]]ani_class aniClass)
 
 void StsAbilityDelegatorRegistryInit(ani_env *env)
 {
-    TAG_LOGI(AAFwkTag::DELEGATOR, "StsAbilityDelegatorRegistryInit call");
+    TAG_LOGD(AAFwkTag::DELEGATOR, "StsAbilityDelegatorRegistryInit call");
     ani_status status = ANI_ERROR;
     if (env->ResetError() != ANI_OK) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "ResetError failed");
@@ -93,25 +109,24 @@ void StsAbilityDelegatorRegistryInit(ani_env *env)
     if (env->ResetError() != ANI_OK) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "ResetError failed");
     }
-
-    TAG_LOGI(AAFwkTag::DELEGATOR, "StsAbilityDelegatorRegistryInit end");
+    TAG_LOGD(AAFwkTag::DELEGATOR, "StsAbilityDelegatorRegistryInit end");
 }
 
 extern "C" {
 ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
 {
-    TAG_LOGI(AAFwkTag::DELEGATOR, "ANI_Constructor");
+    TAG_LOGD(AAFwkTag::DELEGATOR, "ANI_Constructor");
     ani_env *env = nullptr;
     ani_status status = ANI_ERROR;
     status = vm->GetEnv(ANI_VERSION_1, &env);
     if (status != ANI_OK) {
-        TAG_LOGI(AAFwkTag::DELEGATOR, "GetEnv failed status : %{public}d", status);
+        TAG_LOGD(AAFwkTag::DELEGATOR, "GetEnv failed status : %{public}d", status);
         return ANI_NOT_FOUND;
     }
 
     StsAbilityDelegatorRegistryInit(env);
     *result = ANI_VERSION_1;
-    TAG_LOGI(AAFwkTag::DELEGATOR, "ANI_Constructor finish");
+    TAG_LOGD(AAFwkTag::DELEGATOR, "ANI_Constructor finish");
     return ANI_OK;
 }
 }
