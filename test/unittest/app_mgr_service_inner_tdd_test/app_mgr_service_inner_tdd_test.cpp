@@ -23,7 +23,6 @@
 #undef private
 #include "app_scheduler.h"
 #include "app_mgr_event.h"
-#include "app_spawn_client.h"
 #include "event_handler.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_skeleton.h"
@@ -42,9 +41,6 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace AppExecFwk {
-namespace {
-constexpr int32_t DEFAULT_USERID = 100;
-}
 class AppMgrServiceInnerTest : public testing::Test {
 public:
     static void SetUpTestCase();
