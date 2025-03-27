@@ -609,9 +609,9 @@ HWTEST_F(AbilityRecoveryUnitTest, IsOnForeground_001, TestSize.Level1)
     ret = abilityRecovery_->IsOnForeground();
     EXPECT_EQ(ret, false);
 
-    abilityRecovery_->abilityLifecycleExecutor_ = 
+    abilityRecovery_->abilityLifecycleExecutor_ =
         std::make_shared<AppExecFwk::AbilityLifecycleExecutor>();
-    abilityRecovery_->abilityLifecycleExecutor_->state_ = 
+    abilityRecovery_->abilityLifecycleExecutor_->state_ =
         AbilityLifecycleExecutor::LifecycleState::FOREGROUND_NEW;
     ret = abilityRecovery_->IsOnForeground();
     EXPECT_EQ(ret, true);

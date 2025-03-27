@@ -795,7 +795,7 @@ HWTEST_F(AppRecoveryUnitTest, AddAbility_005, TestSize.Level1)
     AppRecovery::GetInstance().isEnable_ = false;
     abilityInfo_->recoverable = false;
     ret = AppRecovery::GetInstance().AddAbility(ability_, abilityInfo_, nullptr);
-    EXPECT_TRUE(ret);  
+    EXPECT_EQ(ret, true);  
 }
 
 /**
@@ -818,7 +818,7 @@ HWTEST_F(AppRecoveryUnitTest, RemoveAbility_004, TestSize.Level1)
     EXPECT_EQ(abilityRecovery->GetToken(), token_);
     ret = AppRecovery::GetInstance().RemoveAbility(token_);
     EXPECT_TRUE(AppRecovery::GetInstance().abilityRecoverys_.empty());
-    EXPECT_EQ(ret, true);    
+    EXPECT_EQ(ret, true); 
 }
 
 /**
@@ -871,7 +871,7 @@ HWTEST_F(AppRecoveryUnitTest, ScheduleRecoverApp_007, TestSize.Level1)
     bool ret = AppRecovery::GetInstance().ScheduleRecoverApp(reason1);
     EXPECT_EQ(ret, false);
 
-     AppRecovery::GetInstance().isEnable_ = true;
+    AppRecovery::GetInstance().isEnable_ = true;
     AppRecovery::GetInstance().restartFlag_ = RestartFlag::NO_RESTART;
     ret = AppRecovery::GetInstance().ScheduleRecoverApp(reason1);
     EXPECT_EQ(ret, false);

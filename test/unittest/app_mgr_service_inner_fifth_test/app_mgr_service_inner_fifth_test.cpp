@@ -68,26 +68,29 @@ constexpr int32_t APP_DEBUG_INFO_PID = 0;
 constexpr int32_t APP_DEBUG_INFO_UID = 0;
 constexpr const char* PERMISSION_PROTECT_SCREEN_LOCK_DATA_TEST = "ohos.permission.PROTECT_SCREEN_LOCK_DATA";
 }
-static int recordId_ = 0;
 
 class MockIAppStateCallback : public IAppStateCallback {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.appexecfwk.AppStateCallback");
     void OnAppStateChanged(const AppProcessData &appProcessData) override {};
-    void OnAbilityRequestDone(const sptr<IRemoteObject> &token, const AbilityState state) override {}; 
-    void OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abilityTokens) {
+    void OnAbilityRequestDone(const sptr<IRemoteObject> &token, const AbilityState state) override {};
+    void OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abilityTokens)
+    {
         dealed = true;
     }
     void OnCacheExitInfo(uint32_t accessTokenId, const AAFwk::LastExitDetailInfo &exitInfo,
         const std::string &bundleName, const std::vector<std::string> &abilityNames,
-        const std::vector<std::string> &uiExtensionNames) override {
-        dealed = true;
-    } 
-    void NotifyConfigurationChange(const AppExecFwk::Configuration &config, int32_t userId) override {
+        const std::vector<std::string> &uiExtensionNames) override
+    {
         dealed = true;
     }
-    sptr<IRemoteObject> AsObject() { 
-        return nullptr; 
+    void NotifyConfigurationChange(const AppExecFwk::Configuration &config, int32_t userId) override
+    {
+        dealed = true;
+    }
+    sptr<IRemoteObject> AsObject()
+    { 
+        return nullptr;
     };
     bool dealed = false;
 };
@@ -198,7 +201,7 @@ HWTEST_F(AppMgrServiceInnerTest, MakeProcessName_003, TestSize.Level0)
     AppExecFwk::HapModuleInfo hapModuleInfo;
     int32_t appIndex = 1;
     std::string specifiedProcessFlag {};
-    std::string processName {}; 
+    std::string processName {};
     bool isCallerSetProcess = true;
 
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
@@ -226,7 +229,7 @@ HWTEST_F(AppMgrServiceInnerTest, MakeProcessName_003, TestSize.Level0)
         abilityInfo->process + ":" + std::to_string(appIndex));
 
     abilityInfo->process.clear();
-    hapModuleInfo.process = "hapModuleInfoProcess"; 
+    hapModuleInfo.process = "hapModuleInfoProcess";
     hapModuleInfo.isStageBasedModel = true;
     appMgrServiceInner->MakeProcessName(abilityInfo, appInfo,
         hapModuleInfo, appIndex, specifiedProcessFlag, processName, isCallerSetProcess);
@@ -308,7 +311,7 @@ HWTEST_F(AppMgrServiceInnerTest, NotifyAppAttachFailed_001, TestSize.Level0)
         if (rawPtr) {
             sptr<MockIAppStateCallback> iapp(rawPtr);
             EXPECT_EQ(iapp->dealed, true);
-        }   
+        }
     }
 }
 
@@ -331,7 +334,7 @@ HWTEST_F(AppMgrServiceInnerTest, NotifyLoadAbilityFailed_001, TestSize.Level0)
     appMgrServiceInner->appStateCallbacks_.push_back(appStateCallbackWithUserId);
     appMgrServiceInner->NotifyLoadAbilityFailed(token);
     for (auto &item : appMgrServiceInner->appStateCallbacks_) {
-        MockIAppStateCallback* rawPtr = 
+        MockIAppStateCallback* rawPtr =
             static_cast<MockIAppStateCallback*>(item.callback.GetRefPtr());
         if (rawPtr) {
             sptr<MockIAppStateCallback> iapp(rawPtr);
@@ -418,7 +421,7 @@ HWTEST_F(AppMgrServiceInnerTest, SetBundleManagerHelper_002, TestSize.Level0)
  * @tc.require: issueI5W4S7
  */
 HWTEST_F(AppMgrServiceInnerTest, SetStartMsgStrictMode_001, TestSize.Level0)
-{ 
+{
     CreateStartMsgParam param;
     param.strictMode = true;
     AppSpawnStartMsg startMsg;
@@ -502,9 +505,9 @@ HWTEST_F(AppMgrServiceInnerTest, SendReStartProcessEvent_006, TestSize.Level0)
     int64_t restartTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::
         system_clock::now().time_since_epoch()).count();
     int64_t killtime1 = restartTime - 2001;
-    appMgrServiceInner->killedProcessMap_.emplace(std::make_pair(killtime1,"killtime1"));
+    appMgrServiceInner->killedProcessMap_.emplace(std::make_pair(killtime1, "killtime1"));
     int64_t killtime2 = restartTime - 1999;
-    appMgrServiceInner->killedProcessMap_.emplace(std::make_pair(killtime2,"killtime2"));
+    appMgrServiceInner->killedProcessMap_.emplace(std::make_pair(killtime2, "killtime2"));
 
     std::string testString1 = "11111";
     std::string testString2 = "22222";
@@ -548,7 +551,7 @@ HWTEST_F(AppMgrServiceInnerTest, SendReStartProcessEvent_006, TestSize.Level0)
  */
 HWTEST_F(AppMgrServiceInnerTest, SendPreloadAppStartupTypeEvent_001, TestSize.Level0)
 {
-    std::shared_ptr<AppRunningRecord> appRecord = nullptr; 
+    std::shared_ptr<AppRunningRecord> appRecord = nullptr;
     std::shared_ptr<AbilityInfo> abilityInfo = nullptr;
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->SendPreloadAppStartupTypeEvent(appRecord, abilityInfo);
@@ -578,7 +581,7 @@ HWTEST_F(AppMgrServiceInnerTest, SendPreloadAppStartupTypeEvent_001, TestSize.Le
 HWTEST_F(AppMgrServiceInnerTest, SendAppStartupTypeEvent_001, TestSize.Level0)
 {
     std::shared_ptr<AppRunningRecord> appRecord = nullptr;
-    std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo1 = nullptr; 
+    std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo1 = nullptr;
     AppStartType startType { AppStartType::COLD };
     AppStartReason reason { AppStartReason::NONE };
 
