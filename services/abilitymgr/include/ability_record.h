@@ -1163,6 +1163,31 @@ public:
 
     void ScheduleCollaborate(const Want &want);
 
+    bool IsHook()
+    {
+        return isHook_;
+    }
+
+    inline void SetIsHook(bool isHook)
+    {
+        isHook_ = isHook;
+    }
+
+    bool GetHookOff()
+    {
+        return hookOff_;
+    }
+
+    inline void SetHookOff(bool hookOff)
+    {
+        hookOff_ = hookOff;
+    }
+
+    inline void SetLaunchWant()
+    {
+        launchWant_ = std::make_shared<Want>(want_);
+    }
+    
     void SendEvent(uint32_t msg, uint32_t timeOut, int32_t param = -1, bool isExtension = false,
         const std::string &taskName = "");
 
@@ -1295,6 +1320,8 @@ private:
     bool isRestartApp_ = false; // Only app calling RestartApp can be set to true
     bool isLaunching_ = true;
     bool securityFlag_ = false;
+    bool isHook_ = false;
+    bool hookOff_ = false;
     std::atomic_bool isCallerSetProcess_ = false;       // new version
     std::atomic_bool backgroundAbilityWindowDelayed_ = false;
 
@@ -1375,6 +1402,7 @@ private:
     std::weak_ptr<AbilityRecord> otherMissionStackAbilityRecord_; // who starts this ability record by SA
 
     std::shared_ptr<Want> connectWant_ = nullptr;
+    std::shared_ptr<Want> launchWant_ = nullptr;
     std::shared_ptr<CallerAbilityInfo> saCallerInfo_ = nullptr;
     LaunchDebugInfo launchDebugInfo_;
     

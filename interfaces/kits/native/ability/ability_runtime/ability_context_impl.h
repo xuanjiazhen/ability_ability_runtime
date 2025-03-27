@@ -316,6 +316,7 @@ public:
 #endif
 
 private:
+    bool isHook_ = false;
     sptr<IRemoteObject> token_ = nullptr;
     std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo_ = nullptr;
     std::shared_ptr<AbilityRuntime::Context> stageContext_ = nullptr;

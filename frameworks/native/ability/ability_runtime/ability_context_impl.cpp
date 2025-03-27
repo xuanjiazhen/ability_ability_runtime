@@ -44,6 +44,7 @@ constexpr const char* UIEXTENSION_TARGET_TYPE_KEY = "ability.want.params.uiExten
 constexpr const char* FLAG_AUTH_READ_URI_PERMISSION = "ability.want.params.uriPermissionFlag";
 constexpr const char* DISPOSED_PROHIBIT_BACK = "APPGALLERY_APP_DISPOSED_PROHIBIT_BACK";
 constexpr const char* IS_WINDOWMODE_FOLLOWHOST = "ohos.uec.params.isWindowModeFollowHost";
+constexpr const int32_t ERR_NOT_SUPPORTED = -2;
 
 struct RequestResult {
     int32_t resultCode {0};
@@ -693,6 +694,10 @@ sptr<IRemoteObject> AbilityContextImpl::GetToken()
 ErrCode AbilityContextImpl::RestoreWindowStage(napi_env env, napi_value contentStorage)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
+    if (isHook_) {
+        TAG_LOGD(AAFwkTag::CONTEXT, "RestoreWindowStage is hook module");
+        return ERR_NOT_SUPPORTED;
+    }
     napi_ref value = nullptr;
     napi_create_reference(env, contentStorage, 1, &value);
     contentStorage_ = std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference*>(value));
@@ -873,6 +878,10 @@ ErrCode AbilityContextImpl::GetMissionId(int32_t &missionId)
 ErrCode AbilityContextImpl::SetMissionContinueState(const AAFwk::ContinueState &state)
 {
     TAG_LOGI(AAFwkTag::CONTEXT, "called, state: %{public}d", state);
+    if (isHook_) {
+        TAG_LOGD(AAFwkTag::CONTEXT, "SetMissionContinueState is hook module");
+        return ERR_NOT_SUPPORTED;
+    }
     auto sessionToken = GetSessionToken();
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->SetMissionContinueState(token_, state, sessionToken);
     if (err != ERR_OK) {
@@ -937,6 +946,10 @@ void AbilityContextImpl::UnregisterAbilityLifecycleObserver(
 ErrCode AbilityContextImpl::SetMissionLabel(const std::string& label)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "label:%{public}s", label.c_str());
+    if(isHook_) {
+        TAG_LOGD(AAFwkTag::CONTEXT, "SetMissionLabel is hook module");
+        return ERR_NOT_SUPPORTED;
+    }
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->SetMissionLabel(token_, label);
     if (err != ERR_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "failed %{public}d", err);
@@ -1175,6 +1188,10 @@ ErrCode AbilityContextImpl::OpenAtomicService(AAFwk::Want& want, const AAFwk::St
 
 void AbilityContextImpl::SetRestoreEnabled(bool enabled)
 {
+    if(isHook_) {
+        TAG_LOGD(AAFwkTag::CONTEXT, "SetRestoreEnabled is hook module");
+        return;
+    }
     restoreEnabled_.store(enabled);
 }
 
