@@ -18,6 +18,7 @@
 #include "configuration_utils.h"
 #include "form_extension_context.h"
 #include "form_runtime/js_form_extension.h"
+#include "sts_form_extension.h"
 #include "hilog_tag_wrapper.h"
 #include "runtime.h"
 
@@ -26,13 +27,12 @@ namespace AbilityRuntime {
 using namespace OHOS::AppExecFwk;
 FormExtension* FormExtension::Create(const std::unique_ptr<Runtime>& runtime)
 {
-    if (!runtime) {
-        return new FormExtension();
-    }
-    TAG_LOGI(AAFwkTag::FORM_EXT, "call");
+    TAG_LOGI(AAFwkTag::FORM_EXT, "call %{public}d", runtime->GetLanguage());
     switch (runtime->GetLanguage()) {
         case Runtime::Language::JS:
             return JsFormExtension::Create(runtime);
+        case Runtime::Language::STS:
+            return STSFormExtension::Create(runtime);
         default:
             return new FormExtension();
     }

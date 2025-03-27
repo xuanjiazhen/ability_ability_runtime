@@ -32,7 +32,7 @@ void AbilityLoader::RegisterAbility(const std::string &abilityName, const Create
 
 void AbilityLoader::RegisterExtension(const std::string &abilityName, const CreateExtension &createFunc)
 {
-    extensions_.emplace(abilityName, createFunc);
+    extensions_.insert_or_assign(abilityName, createFunc);
     TAG_LOGD(AAFwkTag::ABILITY, "%{public}s", abilityName.c_str());
 }
 
