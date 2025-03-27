@@ -641,6 +641,8 @@ private:
 
     bool IsBgWorkingThread(const AbilityInfo &info);
 
+    ErrCode GetStartupConfigString(const AppExecFwk::HapModuleInfo &info, std::string &config);
+
     /**
      * @brief parse app configuration params
      *
