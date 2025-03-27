@@ -39,40 +39,40 @@ void STSAbilityLifecycleCallback::CallLifecycleCallbackFunction(
     ani_class cls = nullptr;
     if ((status = env_->FindClass("L@ohos/app/ability/AbilityLifecycleCallback/AbilityLifecycleCallbackInner;",
         &cls)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::DELEGATOR, "status : %{public}d", status);
         return;
     }
     ani_method method = nullptr;
     status = env_->Class_FindMethod(cls, "<ctor>", ":V", &method);
     if (status != ANI_OK) {
-        TAG_LOGI(AAFwkTag::UI_EXT, "call Class_FindMethod ctor failed");
+        TAG_LOGI(AAFwkTag::DELEGATOR, "call Class_FindMethod ctor failed");
         return;
     }
     ani_object obj = nullptr;
     status = env_->Object_New(cls, method, &obj);
     if (status != ANI_OK) {
-        TAG_LOGI(AAFwkTag::UI_EXT, "call Object_New obj failed");
+        TAG_LOGI(AAFwkTag::DELEGATOR, "call Object_New obj failed");
         return;
     }
 
     method = nullptr;
     if ((status = env_->Class_FindMethod(cls, functionName.c_str(), nullptr, &method)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Class_FindMethod status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::DELEGATOR, "Class_FindMethod status : %{public}d", status);
         return;
     }
     if (windowStageObj) {
         if (abilityObj && (status = env_->Object_CallMethod_Void(obj, method, abilityObj->aniObj,
             windowStageObj->aniObj)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::UI_EXT, "Object_CallMethod_Void_V status : %{public}d", status);
+            TAG_LOGE(AAFwkTag::DELEGATOR, "Object_CallMethod_Void_V status : %{public}d", status);
             return;
         }
     } else {
         if (abilityObj && (status = env_->Object_CallMethod_Void(obj, method, abilityObj->aniObj)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::UI_EXT, "Object_CallMethod_Void_V status : %{public}d", status);
+            TAG_LOGE(AAFwkTag::DELEGATOR, "Object_CallMethod_Void_V status : %{public}d", status);
             return;
         }
     }
-    TAG_LOGI(AAFwkTag::UI_EXT, "CallLifecycleCBFunction, name: %{public}s end", functionName.c_str());
+    TAG_LOGI(AAFwkTag::DELEGATOR, "CallLifecycleCBFunction, name: %{public}s end", functionName.c_str());
 }
 
 void STSAbilityLifecycleCallback::OnAbilityCreate(const std::shared_ptr<AbilityRuntime::STSNativeReference> &abilityObj)
