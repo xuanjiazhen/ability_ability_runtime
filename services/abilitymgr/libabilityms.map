@@ -104,6 +104,7 @@
       *WantSenderStub*;
       *WantUtils*;
       *WindowOptionsUtils*;
+      *StatusBarDelegatorManager*;
     };
   local:
     *;
