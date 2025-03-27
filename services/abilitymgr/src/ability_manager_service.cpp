@@ -6844,6 +6844,11 @@ int AbilityManagerService::GenerateAbilityRequest(const Want &want, int requestC
     }
 
     if (ModalSystemDialogUtil::CheckDebugAppNotInDeveloperMode(request.abilityInfo.applicationInfo)) {
+        // local debug do not show dialog.
+        if (AAFwk::PermissionVerification::GetInstance()-> VerifyStartLocalDebug()) {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "local debug true");
+            return ERR_OK;
+        }
         // service and extension do not show dialog.
         if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled() &&
             !(request.abilityInfo.type == AppExecFwk::AbilityType::SERVICE ||
