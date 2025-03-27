@@ -6448,6 +6448,9 @@ int AbilityManagerService::StopServiceAbility(const Want &want, int32_t userId, 
 void AbilityManagerService::OnAbilityDied(std::shared_ptr<AbilityRecord> abilityRecord)
 {
     CHECK_POINTER(abilityRecord);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "On ability died: %{public}s, %{public}d, %{public}" PRId64,
+        abilityRecord->GetURI().c_str(), abilityRecord->GetRecordId(),
+        abilityRecord->GetAbilityRecordId());
     if (abilityRecord->GetToken()) {
         FreezeUtil::GetInstance().DeleteLifecycleEvent(abilityRecord->GetToken()->AsObject());
     }
@@ -6472,6 +6475,8 @@ void AbilityManagerService::OnAbilityDied(std::shared_ptr<AbilityRecord> ability
     if (connectManager) {
         connectManager->OnAbilityDied(abilityRecord, GetUserId());
         return;
+    } else {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "connectManager not found");
     }
 
     auto dataAbilityManager = GetDataAbilityManagerByToken(abilityRecord->GetToken());
@@ -6833,7 +6838,7 @@ bool AbilityManagerService::VerificationToken(const sptr<IRemoteObject> &token)
         return true;
     }
 
-    if (connectManager->GetExtensionByTokenFromAbilityCache(token)) {
+    if (AbilityCacheManager::GetInstance().FindRecordByToken(token)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "Verification token5.");
         return true;
     }
