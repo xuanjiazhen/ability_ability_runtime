@@ -61,6 +61,8 @@ struct EventInfo {
     std::string callerBundleName;
     std::string callerVersionName;
     std::string uri;
+    std::string errReason;
+    std::string intentName;
 };
 
 enum class EventName {
@@ -71,6 +73,8 @@ enum class EventName {
     STOP_EXTENSION_ERROR,
     CONNECT_SERVICE_ERROR,
     DISCONNECT_SERVICE_ERROR,
+    EXECUTE_INSIGHT_INTENT_ERROR,
+    STARTUP_TASK_ERROR,
 
     // ability behavior event
     START_ABILITY,
@@ -135,6 +139,8 @@ public:
     static void SendDisconnectServiceEvent(const EventName &eventName, const EventInfo &eventInfo);
     static void SendStartAbilityOtherExtensionEvent(const EventName &eventName, const EventInfo &eventInfo);
     static void SendGrantUriPermissionEvent(const EventName &eventName, const EventInfo &eventInfo);
+    static void SendExecuteIntentEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo);
+    static void SendLaunchFrameworkEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo);
 
 private:
     static std::string ConvertEventName(const EventName &eventName);
