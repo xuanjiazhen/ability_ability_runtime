@@ -67,6 +67,10 @@ foundation/ability            #元能力子系统
 │
 ├── ability_base              # ability_base元能力基础部件
 │
+|── app_extension             # app_extension应用扩展元能力部件
+│
+├── app_extension_picker      # app_extension_picker应用扩展选择器部件
+│
 ├── ability_lite              # ability_lite轻量化元能力部件
 │
 ├── dmsfwk                    # dmsfwk分布式组件管理部件
@@ -165,6 +169,10 @@ aa force-stop com.ohos.app
 [ability_lite](https://gitee.com/openharmony/ability_ability_lite)
 
 [**ability_runtime**](https://gitee.com/openharmony/ability_ability_runtime)
+
+[app_extension](https://gitee.com/openharmony/ability_app_extension)
+
+[app_extension_picker](https://gitee.com/openharmony/ability_app_extension_picker)
 
 [dmsfwk](https://gitee.com/openharmony/ability_dmsfwk)
 
