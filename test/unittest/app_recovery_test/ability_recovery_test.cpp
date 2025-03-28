@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -593,6 +593,31 @@ HWTEST_F(AbilityRecoveryUnitTest, TestLoadSavedState_001, TestSize.Level1)
     abilityRecovery_->hasLoaded_ = false;
     abilityRecovery_->missionId_ = 10;
     EXPECT_TRUE(!abilityRecovery_->LoadSavedState(StateReason::DEVELOPER_REQUEST));
+}
+
+/**
+ * @tc.name:  Test IsOnForeground
+ * @tc.desc:  add testcase
+ * @tc.type: Bugfix
+ */
+HWTEST_F(AbilityRecoveryUnitTest, IsOnForeground_001, TestSize.Level1)
+{
+    bool ret = abilityRecovery_->IsOnForeground();
+    EXPECT_EQ(ret, false);
+
+    std::shared_ptr<AbilityRuntime::UIAbility> ability =
+        std::make_shared<AbilityRuntime::UIAbility>();
+    abilityRecovery_->ability_ = ability;
+    ret = abilityRecovery_->IsOnForeground();
+    EXPECT_EQ(ret, false);
+
+    ability->abilityLifecycleExecutor_ =
+        std::make_shared<AppExecFwk::AbilityLifecycleExecutor>();
+    ability->abilityLifecycleExecutor_->state_ =
+        AbilityLifecycleExecutor::LifecycleState::FOREGROUND_NEW;
+    abilityRecovery_->ability_ = ability;
+    ret = abilityRecovery_->IsOnForeground();
+    EXPECT_EQ(ret, true);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
