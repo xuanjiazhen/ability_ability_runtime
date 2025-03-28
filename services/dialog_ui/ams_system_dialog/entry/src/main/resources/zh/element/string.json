@@ -1,18 +1,6 @@
 {
   "string": [
     {
-      "name": "entry_desc",
-      "value": "description"
-    },
-    {
-      "name": "SelectorServiceExtAbility_desc",
-      "value": "SelectorDialog"
-    },
-    {
-      "name": "SelectorServiceExtAbility_label",
-      "value": "SelectorDialog"
-    },
-    {
       "name": "TipsServiceExtAbility_desc",
       "value": "TipsDialog"
     },
