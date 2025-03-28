@@ -303,6 +303,15 @@
             "header": {
               "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/",
               "header_files": [
+                "form_extension.h"
+              ]
+            },
+            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:form_extension_module"
+          },
+          {
+            "header": {
+              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/",
+              "header_files": [
                 "extension.h",
                 "extension_base.h",
                 "extension_module_loader.h"
