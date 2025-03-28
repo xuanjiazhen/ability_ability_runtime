@@ -36,6 +36,15 @@ OHOS::sptr<OHOS::AppExecFwk::IAppMgr> GetAppManagerInstance()
     return OHOS::iface_cast<OHOS::AppExecFwk::IAppMgr>(appObject);
 }
 
+OHOS::sptr<OHOS::AAFwk::IAbilityManager> GetAbilityManagerInstance()
+{
+    OHOS::sptr<OHOS::ISystemAbilityManager> systemAbilityManager =
+        OHOS::SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    OHOS::sptr<OHOS::IRemoteObject> abilityObject =
+        systemAbilityManager->GetSystemAbility(OHOS::ABILITY_MGR_SERVICE_ID);
+    return OHOS::iface_cast<OHOS::AAFwk::IAbilityManager>(abilityObject);
+}
+
 static void PreloadApplication(ani_env *env, [[maybe_unused]]ani_class aniClass,
     ani_string bundleName, ani_int userId, ani_int mode, ani_int appIndex)
 {
