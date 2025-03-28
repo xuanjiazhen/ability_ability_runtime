@@ -227,6 +227,7 @@ ohos_unittest("ohos_sts_environment_test") {
     "c_utils:utils",
     "ets_runtime:libark_jsruntime",
     "eventhandler:libeventhandler",
+    "faultloggerd:libunwinder",
     "hilog:libhilog",
     "napi:ace_napi",
     "runtime_core:ani",

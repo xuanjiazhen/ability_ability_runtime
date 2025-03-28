@@ -42,6 +42,7 @@ template("sts_environment_test_template") {
       "c_utils:utils",
       "ets_runtime:libark_jsruntime",
       "eventhandler:libeventhandler",
+      "faultloggerd:libunwinder",
       "ffrt:libffrt",
       "hilog:libhilog",
       "napi:ace_napi",
