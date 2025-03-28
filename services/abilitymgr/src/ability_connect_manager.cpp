@@ -107,11 +107,14 @@ AbilityConnectManager::~AbilityConnectManager()
 
 int AbilityConnectManager::StartAbility(const AbilityRequest &abilityRequest)
 {
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "[dzz] AbilityConnectManager | enter StartAbility");
 #ifdef SUPPORT_UPMS
     // grant uri permission to service extension and ui extension, must call out of serialMutext_.
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "[dzz] AbilityConnectManager | call  GrantUriPermissionForUIOrServiceExtension");
     UriUtils::GetInstance().GrantUriPermissionForUIOrServiceExtension(abilityRequest);
 #endif // SUPPORT_UPMS
     std::lock_guard guard(serialMutex_);
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "[dzz] AbilityConnectManager | exit StartAbility");
     return StartAbilityLocked(abilityRequest);
 }
 
