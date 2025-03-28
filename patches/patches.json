@@ -1,0 +1,9 @@
+{
+    "patches": [
+        {
+            "project":"ability_app_extension_picker",
+            "path":"foundation/ability/ability_app_extension_picker",
+            "pr_url":"https://gitcode.com/openharmony-sig/ability_app_extension_picker/pull/4"
+        }
+    ]
+}

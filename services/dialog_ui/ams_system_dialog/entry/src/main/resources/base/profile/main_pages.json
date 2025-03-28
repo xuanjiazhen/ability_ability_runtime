@@ -5,7 +5,6 @@
     "pages/switchUserDialog",
     "pages/tipsDialog",
     "pages/jumpInterceptorDialog",
-    "pages/PhonePage",
     "pages/assertFaultDialog",
     "pages/permissionConfirmDialog"
   ]
