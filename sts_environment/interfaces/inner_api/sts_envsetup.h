@@ -21,14 +21,14 @@
 namespace OHOS {
 namespace StsEnv {
 struct STSErrorObject {
-    const char* name;
-    const char* message;
-    const char* stack;
+    std::string name;
+    std::string message;
+    std::string stack;
 };
 
 struct STSUncaughtExceptionInfo {
-    const char* hapPath;
-    std::function<void(const char* summary, const STSErrorObject errorObj)> uncaughtTask;
+    std::string hapPath;
+    std::function<void(const std::string summary, const STSErrorObject errorObj)> uncaughtTask;
 };
 } // namespace StsEnv
 } // namespace OHOS
