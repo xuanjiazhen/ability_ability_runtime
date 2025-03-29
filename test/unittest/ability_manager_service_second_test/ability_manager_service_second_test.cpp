@@ -1847,5 +1847,21 @@ HWTEST_F(AbilityManagerServiceSecondTest, CheckCallAutoFillExtensionPermission_0
     TAG_LOGI(AAFwkTag::TEST, "testcase end.");
 }
 #endif // SUPPORT_AUTO_FILL
+
+/*
+ * Feature: AbilityManagerService
+ * Function: CheckStartCallHasFloatingWindowForUIExtension
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService CheckStartCallHasFloatingWindowForUIExtension
+ */
+HWTEST_F(AbilityManagerServiceSecondTest, CheckStartCallHasFloatingWindowForUIExtension_001, TestSize.Level1)
+{
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    TAG_LOGI(AAFwkTag::TEST,
+        "AbilityManagerServiceSecondTest CheckStartCallHasFloatingWindowForUIExtension_001 start");
+    sptr<IRemoteObject> callerToken = nullptr;
+    EXPECT_EQ(abilityMs_->CheckStartCallHasFloatingWindowForUIExtension(callerToken), false);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest CheckStartCallHasFloatingWindowForUIExtension_001 end");
+}
 }  // namespace AAFwk
 }  // namespace OHOS
