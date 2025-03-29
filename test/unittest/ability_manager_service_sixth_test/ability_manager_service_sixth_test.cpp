@@ -415,6 +415,16 @@ HWTEST_F(AbilityManagerServiceSixthTest, CheckUIExtensionUsage_001, TestSize.Lev
     extensionType = AppExecFwk::ExtensionAbilityType::WINDOW;
     ret = abilityMs->CheckUIExtensionUsage(uiExtensionUsage, extensionType);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    uiExtensionUsage = UIExtensionUsage::MODAL;
+    extensionType = AppExecFwk::ExtensionAbilityType::AWC_WEBPAGE;
+    ret = abilityMs->CheckUIExtensionUsage(uiExtensionUsage, extensionType);
+    EXPECT_EQ(ret, ERR_OK);
+
+    uiExtensionUsage = UIExtensionUsage::CONSTRAINED_EMBEDDED;
+    extensionType = AppExecFwk::ExtensionAbilityType::AWC_WEBPAGE;
+    ret = abilityMs->CheckUIExtensionUsage(uiExtensionUsage, extensionType);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest CheckUIExtensionUsage_001 end");
     MyFlag::flag_ = 0;
 }
