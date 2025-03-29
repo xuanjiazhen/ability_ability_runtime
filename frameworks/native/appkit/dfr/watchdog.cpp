@@ -40,7 +40,7 @@ constexpr uint32_t CHECK_INTERVAL_TIME = 3000;
 #endif
 
 #ifdef APP_NO_RESPONSE_DIALOG_WEARABLE
-constexpr uint32_t CHECK_INTERVAL_TIME_WEARABLE = 5000;
+constexpr uint32_t WEARABLE_CHECK_INTERVAL_TIME = 5000;
 #endif
 }
 std::shared_ptr<EventHandler> Watchdog::appMainHandler_ = nullptr;
@@ -68,7 +68,7 @@ void Watchdog::Init(const std::shared_ptr<EventHandler> mainHandler)
     auto watchdogTask = [this] { this->Timer(); };
 #ifdef APP_NO_RESPONSE_DIALOG_WEARABLE
     OHOS::HiviewDFX::Watchdog::GetInstance().RunPeriodicalTask("AppkitWatchdog", watchdogTask,
-        CHECK_INTERVAL_TIME_WEARABLE, INI_TIMER_FIRST_SECOND);
+        WEARABLE_CHECK_INTERVAL_TIME, INI_TIMER_FIRST_SECOND);
 #else
     OHOS::HiviewDFX::Watchdog::GetInstance().RunPeriodicalTask("AppkitWatchdog", watchdogTask,
         CHECK_INTERVAL_TIME, INI_TIMER_FIRST_SECOND);
@@ -210,7 +210,7 @@ void Watchdog::Timer()
     int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::
         system_clock::now().time_since_epoch()).count();
 #ifdef APP_NO_RESPONSE_DIALOG_WEARABLE
-    if ((now - lastWatchTime_) < 0 || (now - lastWatchTime_) >= (CHECK_INTERVAL_TIME_WEARABLE / RESET_RATIO)) {
+    if ((now - lastWatchTime_) < 0 || (now - lastWatchTime_) >= (WEARABLE_CHECK_INTERVAL_TIME / RESET_RATIO)) {
 #else
     if ((now - lastWatchTime_) < 0 || (now - lastWatchTime_) >= (CHECK_INTERVAL_TIME / RESET_RATIO)) {
 #endif
@@ -227,8 +227,8 @@ void Watchdog::ReportEvent()
     int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::
         system_clock::now().time_since_epoch()).count();
 #ifdef APP_NO_RESPONSE_DIALOG_WEARABLE
-    if ((now - lastWatchTime_) > (RESET_RATIO * CHECK_INTERVAL_TIME_WEARABLE) ||
-        (now - lastWatchTime_) < (CHECK_INTERVAL_TIME_WEARABLE / RESET_RATIO)) {
+    if ((now - lastWatchTime_) > (RESET_RATIO * WEARABLE_CHECK_INTERVAL_TIME) ||
+        (now - lastWatchTime_) < (WEARABLE_CHECK_INTERVAL_TIME / RESET_RATIO)) {
 #else
     if ((now - lastWatchTime_) > (RESET_RATIO * CHECK_INTERVAL_TIME) ||
         (now - lastWatchTime_) < (CHECK_INTERVAL_TIME / RESET_RATIO)) {
