@@ -32,22 +32,31 @@ ohos_unittest("app_exit_reason_helper_second_test") {
   branch_protector_ret = "pac_ret"
   module_out_path = module_output_path
 
-  include_dirs = [ "${ability_runtime_services_path}/abilitymgr/include" ]
+  include_dirs = [
+    "mock/include",
+    "${ability_runtime_services_path}/abilitymgr/include",
+    "${ability_runtime_path}/interfaces/inner_api/app_manager/include/appmgr",
+  ]
 
   sources = [
-    "${ability_runtime_path}/frameworks/native/appkit/ability_bundle_manager_helper/bundle_mgr_helper.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ability_cache_manager.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/app_exit_reason_helper.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/process_options.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/scene_board/ui_ability_lifecycle_manager.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/start_window_option.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/sub_managers_helper.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/utils/app_mgr_util.cpp",
     "app_exit_reason_helper_second_test.cpp",
+    "mock/src/bundle_mgr_helper.cpp",
+    "mock/src/mock_app_scheduler.cpp",
+    "mock/src/mock_os_account_manager_wrapper.cpp",
+    "mock/src/mock_scene_board_judgement.cpp",
   ]
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_path}/utils/server/startup:startup_util",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
@@ -62,6 +71,7 @@ ohos_unittest("app_exit_reason_helper_second_test") {
     "ability_base:zuri",
     "ability_runtime:ability_deps_wrapper",
     "access_token:libaccesstoken_sdk",
+    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -76,6 +86,12 @@ ohos_unittest("app_exit_reason_helper_second_test") {
     "window_manager:libwsutils",
     "window_manager:session_manager_lite",
   ]
+
+  public_external_deps = [
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+  ]
+  
   cflags_cc = []
   if (os_dlp_part_enabled) {
     cflags_cc += [ "-DWITH_DLP" ]
