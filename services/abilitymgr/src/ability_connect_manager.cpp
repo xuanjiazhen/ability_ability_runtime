@@ -279,7 +279,7 @@ void AbilityConnectManager::DoForegroundUIExtension(std::shared_ptr<AbilityRecor
     std::string serviceKey = abilityRecord->GetURI();
     auto serviceMapIter = serviceMap_.find(serviceKey);
     if (serviceMapIter == serviceMap_.end()) {
-        TAG_LOGW(AAFwkTag::UI_EXT
+        TAG_LOGW(AAFwkTag::UI_EXT,
                  "ability: %{public}s not found, dont't foreground",
                  abilityRecord->GetURI().c_str());
         return;
