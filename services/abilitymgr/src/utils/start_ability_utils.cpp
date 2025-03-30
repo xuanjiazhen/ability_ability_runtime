@@ -123,7 +123,7 @@ int32_t StartAbilityUtils::CheckAppProvisionMode(const Want& want, int32_t userI
             TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid app clone index");
             return ERR_APP_CLONE_INDEX_INVALID;
         }
-        abilityInfo = StartAbilityInfo::CreateStartAbilityInfo(want, userId, appIndex);
+        abilityInfo = StartAbilityInfo::CreateStartAbilityInfo(want, userId, appIndex, nullptr);
     }
     CHECK_POINTER_AND_RETURN(abilityInfo, GET_ABILITY_SERVICE_FAILED);
     if (abilityInfo->status != ERR_OK) {
@@ -160,7 +160,7 @@ StartAbilityInfoWrap::StartAbilityInfoWrap(const Want &want, int32_t validUserId
             validUserId, appIndex);
     } else {
         StartAbilityUtils::startAbilityInfo = StartAbilityInfo::CreateStartAbilityInfo(localWant,
-            validUserId, appIndex);
+            validUserId, appIndex, callerToken);
     }
     if (StartAbilityUtils::startAbilityInfo != nullptr &&
         StartAbilityUtils::startAbilityInfo->abilityInfo.type == AppExecFwk::AbilityType::EXTENSION) {
@@ -212,7 +212,7 @@ void StartAbilityInfoWrap::SetStartAbilityInfo(const AppExecFwk::AbilityInfo& ab
 }
 
 std::shared_ptr<StartAbilityInfo> StartAbilityInfo::CreateStartAbilityInfo(const Want &want, int32_t userId,
-    int32_t appIndex)
+    int32_t appIndex, sptr<IRemoteObject> callerToken)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto bms = AbilityUtil::GetBundleManagerHelper();
@@ -230,7 +230,25 @@ std::shared_ptr<StartAbilityInfo> StartAbilityInfo::CreateStartAbilityInfo(const
         return request;
     }
     if (appIndex == 0) {
-        IN_PROCESS_CALL_WITHOUT_RET(bms->QueryAbilityInfo(want, abilityInfoFlag, userId, request->abilityInfo));
+        if (AbilityRuntime::StartupUtil::IsStartPlugin(want)) {
+            auto caller = Token::GetAbilityRecordByToken(callerToken);
+            if (caller == nullptr) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "caller is nullptr");
+                request->status = RESOLVE_ABILITY_ERR;
+                return request;
+            }
+            std::string hostBundleName = caller->GetAbilityInfo().bundleName;
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "hostBundleName: %{public}s", hostBundleName.c_str());
+            auto element = want.GetElement();
+            if (!IN_PROCESS_CALL(bms->GetPluginAbilityInfo(hostBundleName, element.GetBundleName(),
+                element.GetAbilityName(), element.GetModuleName(), userId, request->abilityInfo))) {
+                TAG_LOGW(AAFwkTag::ABILITYMGR, "GetPluginAbilityInfo failed");
+                request->status = RESOLVE_ABILITY_ERR;
+            }
+            return request;
+        } else {
+            IN_PROCESS_CALL_WITHOUT_RET(bms->QueryAbilityInfo(want, abilityInfoFlag, userId, request->abilityInfo));
+        }
     } else {
         IN_PROCESS_CALL_WITHOUT_RET(bms->GetSandboxAbilityInfo(want, appIndex,
             abilityInfoFlag, userId, request->abilityInfo));

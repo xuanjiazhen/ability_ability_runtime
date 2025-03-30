@@ -1129,6 +1129,9 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
         }
 #endif // WITH_DLP
     }
+    if (auto pluginRet = CheckStartPlugin(want, callerToken); pluginRet != ERR_OK) {
+        return checkRet;
+    }
 
     AbilityUtil::RemoveWindowModeKey(const_cast<Want &>(want));
     if (callerToken != nullptr && !VerificationAllToken(callerToken) && !isSendDialogResult) {
@@ -1508,6 +1511,9 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
         return CHECK_PERMISSION_FAILED;
     }
 #endif // WITH_DLP
+    if (auto pluginRet = CheckStartPlugin(want, callerToken); pluginRet != ERR_OK) {
+        return checkRet;
+    }
 
     if ((want.GetFlags() & Want::FLAG_ABILITY_PREPARE_CONTINUATION) == Want::FLAG_ABILITY_PREPARE_CONTINUATION &&
         IPCSkeleton::GetCallingUid() != DMS_UID) {
@@ -1838,6 +1844,9 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         return CHECK_PERMISSION_FAILED;
     }
 #endif // WITH_DLP
+    if (auto pluginRet = CheckStartPlugin(want, callerToken); pluginRet != ERR_OK) {
+        return checkRet;
+    }
 
     if ((want.GetFlags() & Want::FLAG_ABILITY_PREPARE_CONTINUATION) == Want::FLAG_ABILITY_PREPARE_CONTINUATION &&
         IPCSkeleton::GetCallingUid() != DMS_UID) {
@@ -6800,7 +6809,7 @@ int AbilityManagerService::GenerateAbilityRequest(const Want &want, int requestC
             localWant.SetParam(Want::PARAM_RESV_CALLER_TOKEN, static_cast<int32_t>(IPCSkeleton::GetCallingTokenID()));
             localWant.SetParam(Want::PARAM_RESV_CALLER_UID, IPCSkeleton::GetCallingUid());
         }
-        abilityInfo = StartAbilityInfo::CreateStartAbilityInfo(localWant, userId, appIndex);
+        abilityInfo = StartAbilityInfo::CreateStartAbilityInfo(localWant, userId, appIndex, callerToken);
     }
     CHECK_POINTER_AND_RETURN(abilityInfo, GET_ABILITY_SERVICE_FAILED);
     if (abilityInfo->status != ERR_OK) {
@@ -10802,6 +10811,12 @@ bool AbilityManagerService::JudgeSelfCalled(const std::shared_ptr<AbilityRecord>
     auto callingTokenId = IPCSkeleton::GetCallingTokenID();
     CHECK_POINTER_RETURN_BOOL(abilityRecord);
     auto tokenID = abilityRecord->GetApplicationInfo().accessTokenId;
+    if (abilityRecord->IsPluginAbility()) {
+        auto caller = abilityRecord->GetCallerRecord();
+        if (caller) {
+            tokenID = caller->GetApplicationInfo().accessTokenId;
+        }
+    }
     if (callingTokenId != tokenID) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no self, no enabled, callingTokenId:%{public}u, tokenId:%{public}u", callingTokenId, tokenID);
         return false;
@@ -13663,6 +13678,33 @@ int32_t AbilityManagerService::RevokeDelegator(const sptr<IRemoteObject> &token)
     auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
     CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
     return uiAbilityManager->RevokeDelegator(token);
+}
+
+int32_t AbilityManagerService::CheckStartPlugin(const Want& want, sptr<IRemoteObject> callerToken)
+{
+    if (!AbilityRuntime::StartupUtil::IsStartPlugin(want)) {
+        return ERR_OK;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "start plugin ability");
+    // bundleName, abilityName, moduoleName not empty
+    auto element = want.GetElement();
+    if (element.GetBundleName().empty() || element.GetAbilityName().empty() || element.GetModuleName.empty()) {
+        return INVALID_PARAMETERS_ERR;
+    }
+    auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
+    if (!abilityRecord) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityRecord null");
+        return RESOLVE_ABILITY_ERR;
+    }
+    if (abilityRecord->GetAbilityInfo().type != AppExecFwk::AbilityType::PAGE) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "type is not UIAbility");
+        return RESOLVE_ABILITY_ERR;
+    }
+    if (abilityRecord->IsPluginAbility()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not host ability");
+        return RESOLVE_ABILITY_ERR;
+    }
+    return ERR_OK;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
