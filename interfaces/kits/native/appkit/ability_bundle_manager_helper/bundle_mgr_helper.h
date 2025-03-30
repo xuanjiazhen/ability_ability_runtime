@@ -111,6 +111,8 @@ public:
     std::string GetStringById(
         const std::string &bundleName, const std::string &moduleName, uint32_t resId, int32_t userId);
     std::string GetDataDir(const std::string &bundleName, const int32_t appIndex);
+    bool GetPluginAbilityInfo(const std::string &hostBundleName, const std::string &pluginBundleName,
+        const std::string &pluginAbilityName, AbilityInfo &pluginAbilityInfo);
 
 private:
     sptr<IBundleMgr> Connect();

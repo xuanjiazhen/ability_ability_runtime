@@ -690,38 +690,50 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
     HapModuleInfo hapModuleInfo;
     int32_t appIndex = 0;
     std::string callerKey;
+    std::string processName;
+    std::string specifiedProcessFlag = GetSpecifiedProcessFlag(abilityInfo, want); // for isolation process
+    bool isKia = false;
+    std::string watermarkBusinessName;
+    bool isWatermarkEnabled = false;
+    bool isFileUri = false;
+    std::string customProcessFlag = loadParam->customProcessFlag;
+    bool isProcCache = false;
     if (want != nullptr) {
         (void)AbilityRuntime::StartupUtil::GetAppIndex(*want, appIndex);
         callerKey = want->GetStringParam(Want::PARAMS_REAL_CALLER_KEY);
         want->RemoveParam(Want::PARAMS_REAL_CALLER_KEY);
     }
-    if (!GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "getBundleAndHapInfo fail");
-        return;
-    }
-    // for isolation process
-    std::string specifiedProcessFlag = GetSpecifiedProcessFlag(abilityInfo, want);
-    std::string processName;
-    MakeProcessName(abilityInfo, appInfo, hapModuleInfo, appIndex, specifiedProcessFlag,
-        processName, loadParam->isCallerSetProcess);
-    TAG_LOGI(AAFwkTag::APPMGR, "%{public}s name:%{public}s-%{public}s processName = %{public}s",
-        __func__, abilityInfo->bundleName.c_str(), abilityInfo->name.c_str(), processName.c_str());
-
-    bool isKia = false;
-    std::string watermarkBusinessName;
-    bool isWatermarkEnabled = false;
-    bool isFileUri = false;
-    if (MakeKiaProcess(want, isKia, watermarkBusinessName, isWatermarkEnabled, isFileUri, processName) != ERR_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "MakeKiaProcess failed");
-        return;
-    }
-
     std::shared_ptr<AppRunningRecord> appRecord;
-    bool isProcCache = false;
-    std::string customProcessFlag = loadParam->customProcessFlag;
-    appRecord = appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name,
-        processName, appInfo->uid, bundleInfo, specifiedProcessFlag, &isProcCache, loadParam->instanceKey,
-        customProcessFlag);
+    if (want && (want->GetFlags() & AAFwk::Want::FLAG_START_PLUGIN_ABILITY)) {
+        appRecord = GetAppRunningRecordByAbilityToken(loadParam->preToken);
+        if (!appRecord) {
+            TAG_LOGE(AAFwkTag::APPMGR, "plugin appRecord null");
+            return;
+        }
+        // hapModuleInfo = 
+        // if (!GetHapModuleInfo(hapModuleInfo)) {
+        //     TAG_LOGE(AAFwkTag::APPMGR, "query plugin hapModuleInfo fail");
+        //     return;
+        // }
+        isProcCache = DelayedSingleton<CacheProcessManager>::GetInstance()->ReuseCachedProcess(appRecord);
+    } else {
+        if (!GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "getBundleAndHapInfo fail");
+            return;
+        }
+        MakeProcessName(abilityInfo, appInfo, hapModuleInfo, appIndex, specifiedProcessFlag,
+        processName, loadParam->isCallerSetProcess);
+        TAG_LOGI(AAFwkTag::APPMGR, "%{public}s name:%{public}s-%{public}s processName = %{public}s",
+            __func__, abilityInfo->bundleName.c_str(), abilityInfo->name.c_str(), processName.c_str());
+        if (MakeKiaProcess(want, isKia, watermarkBusinessName, isWatermarkEnabled, isFileUri, processName) != ERR_OK) {
+            TAG_LOGE(AAFwkTag::APPMGR, "MakeKiaProcess failed");
+            return;
+        }
+        appRecord = appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name,
+            processName, appInfo->uid, bundleInfo, specifiedProcessFlag, &isProcCache, loadParam->instanceKey,
+            customProcessFlag);
+    }
+
     if (appRecord && appRecord->IsCaching()) {
         auto priorityObj = appRecord->GetPriorityObject();
         if (priorityObj) {

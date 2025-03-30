@@ -1161,6 +1161,11 @@ public:
         return securityFlag_;
     }
 
+    bool IsPluginAbility() const
+    {
+        return isPluginAbility_;
+    }
+
     void ScheduleCollaborate(const Want &want);
 
     void SendEvent(uint32_t msg, uint32_t timeOut, int32_t param = -1, bool isExtension = false,
@@ -1295,6 +1300,7 @@ private:
     bool isRestartApp_ = false; // Only app calling RestartApp can be set to true
     bool isLaunching_ = true;
     bool securityFlag_ = false;
+    bool isPluginAbility_ = false;
     std::atomic_bool isCallerSetProcess_ = false;       // new version
     std::atomic_bool backgroundAbilityWindowDelayed_ = false;
 

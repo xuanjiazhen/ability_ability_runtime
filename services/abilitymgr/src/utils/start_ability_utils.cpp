@@ -230,7 +230,22 @@ std::shared_ptr<StartAbilityInfo> StartAbilityInfo::CreateStartAbilityInfo(const
         return request;
     }
     if (appIndex == 0) {
-        IN_PROCESS_CALL_WITHOUT_RET(bms->QueryAbilityInfo(want, abilityInfoFlag, userId, request->abilityInfo));
+        if (AbilityRuntime::StartupUtil::IsStartPlugin(want)) {
+            std::string hostBundleName;
+            ErrCode err = IN_PROCESS_CALL(bms->GetNameForUid(IPCSkeleton::GetCallingUid(), hostBundleName));
+            if (err != ERR_OK) {
+                request->status = RESOLVE_ABILITY_ERR;
+                return request;
+            }
+            auto element = want.GetElement();
+            if (!bms->GetPluginAbilityInfo(hostBundleName, element.GetBundleName(), element.GetAbilityName(),
+                request->abilityInfo)) {
+                request->status = RESOLVE_ABILITY_ERR;
+                return request;
+            }
+        } else {
+            IN_PROCESS_CALL_WITHOUT_RET(bms->QueryAbilityInfo(want, abilityInfoFlag, userId, request->abilityInfo));
+        }
     } else {
         IN_PROCESS_CALL_WITHOUT_RET(bms->GetSandboxAbilityInfo(want, appIndex,
             abilityInfoFlag, userId, request->abilityInfo));

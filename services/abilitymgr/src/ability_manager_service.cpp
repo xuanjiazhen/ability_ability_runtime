@@ -1130,6 +1130,17 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
 #endif // WITH_DLP
     }
 
+    if (AbilityRuntime::StartupUtil::IsStartPlugin(want)) {
+        // bundleName and abilityName not empty
+        if (want.GetElement().GetBundleName().empty() || want.GetElement().GetAbilityName().empty()) {
+            return INVALID_PARAMETERS_ERR;
+        }
+
+        if (auto checkRet = CheckStartPluginCaller(callerToken); checkRet != ERR_OK) {
+            return checkRet;
+        }
+    }
+
     AbilityUtil::RemoveWindowModeKey(const_cast<Want &>(want));
     if (callerToken != nullptr && !VerificationAllToken(callerToken) && !isSendDialogResult) {
         auto isSpecificSA = AAFwk::PermissionVerification::GetInstance()->
@@ -1509,6 +1520,16 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
     }
 #endif // WITH_DLP
 
+    if (AbilityRuntime::StartupUtil::IsStartPlugin(want)) {
+        // bundleName and abilityName not empty
+        if (want.GetElement().GetBundleName().empty() || want.GetElement().GetAbilityName().empty()) {
+            return INVALID_PARAMETERS_ERR;
+        }
+        if (auto checkRet = CheckStartPluginCaller(callerToken); checkRet != ERR_OK) {
+            return checkRet;
+        }
+    }
+
     if ((want.GetFlags() & Want::FLAG_ABILITY_PREPARE_CONTINUATION) == Want::FLAG_ABILITY_PREPARE_CONTINUATION &&
         IPCSkeleton::GetCallingUid() != DMS_UID) {
         eventInfo.errCode = ERR_INVALID_CONTINUATION_FLAG;
@@ -1838,6 +1859,16 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         return CHECK_PERMISSION_FAILED;
     }
 #endif // WITH_DLP
+
+    if (AbilityRuntime::StartupUtil::IsStartPlugin(want)) {
+        // bundleName and abilityName not empty
+        if (want.GetElement().GetBundleName().empty() || want.GetElement().GetAbilityName().empty()) {
+            return INVALID_PARAMETERS_ERR;
+        }
+        if (auto checkRet = CheckStartPluginCaller(callerToken); checkRet != ERR_OK) {
+            return checkRet;
+        }
+    }
 
     if ((want.GetFlags() & Want::FLAG_ABILITY_PREPARE_CONTINUATION) == Want::FLAG_ABILITY_PREPARE_CONTINUATION &&
         IPCSkeleton::GetCallingUid() != DMS_UID) {
@@ -13622,6 +13653,24 @@ int32_t AbilityManagerService::QueryPreLoadUIExtensionRecord(const AppExecFwk::E
   }
   return connectManager->QueryPreLoadUIExtensionRecordInner(
       element, moduleName, hostBundleName, recordNum);
+}
+
+int32_t AbilityManagerService::CheckStartPluginCaller(sptr<IRemoteObject> callerToken)
+{
+    auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
+    if (!abilityRecord) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityRecord null");
+        return RESOLVE_ABILITY_ERR;
+    }
+    if (abilityRecord->GetAbilityInfo().type != AppExecFwk::AbilityType::PAGE) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "type is not UIAbility");
+        return RESOLVE_ABILITY_ERR;
+    }
+    if (abilityRecord->IsPluginAbility()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not host ability");
+        return RESOLVE_ABILITY_ERR;
+    }
+    return ERR_OK;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

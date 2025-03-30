@@ -1003,5 +1003,18 @@ std::string BundleMgrHelper::GetDataDir(const std::string &bundleName, const int
     bundleMgr->GetDirByBundleNameAndAppIndex(bundleName, appIndex, dataDir);
     return dataDir;
 }
+
+bool BundleMgrHelper::GetPluginAbilityInfo(const std::string &hostBundleName, const std::string &pluginBundleName,
+    const std::string &pluginAbilityName, AbilityInfo &pluginAbilityInfo)
+{
+    TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    auto bundleMgr = Connect();
+    if (bundleMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
+    }
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    // return bundleMgr->GetPluginAbilityInfo(hostBundleName, pluginBundleName, pluginAbilityName, pluginAbilityInfo);
+    return true;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
