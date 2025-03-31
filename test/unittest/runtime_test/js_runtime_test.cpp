@@ -1487,5 +1487,62 @@ HWTEST_F(JsRuntimeTest, StartProfiler_0100, TestSize.Level1)
     EXPECT_EQ(jsRuntime->jsEnv_, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "StartProfiler_0100 end");
 }
+
+/**
+ * @tc.name: SetDebugOption_0100
+ * @tc.desc: JsRuntime test for SetDebugOption.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, SetDebugOption_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SetDebugOption_0100 start");
+    Runtime::DebugOption debugOption;
+    std::string BundleName = "com.ohos.example.bundleName";
+    debugOption.bundleName = BundleName;
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    jsRuntime->SetDebugOption(debugOption);
+    EXPECT_EQ(jsRuntime->debugOption_.bundleName, BundleName);
+    TAG_LOGI(AAFwkTag::TEST, "SetDebugOption_0100 end");
+}
+
+/**
+ * @tc.name: StartLocalDebugMode_0100
+ * @tc.desc: JsRuntime test for StartLocalDebugMode.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, StartLocalDebugMode_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartLocalDebugMode_0100 start");
+    bool isDebugFromLocal = false;
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    Runtime::DebugOption debugOption;
+    jsRuntime->SetDebugOption(debugOption);
+    jsRuntime->debugOption_.isDeveloperMode = false;
+    jsRuntime->StartLocalDebugMode(isDebugFromLocal);
+    EXPECT_EQ(jsRuntime->debugOption_.isDebugFromLocal, false);
+
+    isDebugFromLocal = true;
+    jsRuntime->StartLocalDebugMode(isDebugFromLocal);
+    EXPECT_EQ(jsRuntime->debugOption_.isDebugFromLocal, true);
+    TAG_LOGI(AAFwkTag::TEST, "StartLocalDebugMode_0100 end");
+}
+
+/**
+ * @tc.name: StartProfiler_0100
+ * @tc.desc: JsRuntime test for StartProfiler.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, StartProfiler_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartProfiler_0100 start");
+    Runtime::DebugOption debugOption;
+    debugOption.isDebugFromLocal = true;
+    debugOption.isDeveloperMode = true;
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    EXPECT_NE(jsRuntime, nullptr);
+    jsRuntime->StartProfiler(debugOption);
+    EXPECT_EQ(jsRuntime->jsEnv_, nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "StartProfiler_0100 end");
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
