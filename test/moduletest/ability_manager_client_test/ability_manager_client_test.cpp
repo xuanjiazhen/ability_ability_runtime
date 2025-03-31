@@ -114,7 +114,7 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_DumpSysState_0100, TestS
     bool isUserID = true;
     int userID = 1;
 
-    auto result = AbilityManagerClient::GetInstance()->DumpSysState(args, state, isClient, isUserID, UserID);
+    auto result = AbilityManagerClient::GetInstance()->DumpSysState(args, state, isClient, isUserID, userID);
     EXPECT_EQ(result, ERR_OK);
     MockIAbilityManager* rawPtr =
         static_cast<MockIAbilityManager*>(AbilityManagerClient::GetInstance()->proxy_.GetRefPtr());
