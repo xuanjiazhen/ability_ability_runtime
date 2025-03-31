@@ -280,7 +280,7 @@ void AbilityConnectManager::DoForegroundUIExtension(std::shared_ptr<AbilityRecor
     auto serviceMapIter = serviceMap_.find(serviceKey);
     if (serviceMapIter == serviceMap_.end()) {
         TAG_LOGE(AAFwkTag::UI_EXT,
-                 "ability: %{public}s is on terminating, dont't foreground",
+                 "ability: %{public}s is on terminating, not foreground",
                  abilityRecord->GetURI().c_str());
         return;
     }
