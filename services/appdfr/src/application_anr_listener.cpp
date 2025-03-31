@@ -37,13 +37,13 @@ void ApplicationAnrListener::OnAnr(int32_t pid, int32_t eventId) const
     faultData.faultType = AppExecFwk::FaultDataType::APP_FREEZE;
     faultData.pid = pid;
     faultData.errorObject.message = "User input does not respond!";
-    faultData.errorObject.stack =  "\nDump tid stack start time: " +
+    faultData.errorObject.stack =  "\nDump main thread stack start time: " +
         AbilityRuntime::TimeUtil::DefaultCurrentTimeStr() + "\n";
     std::string stack = "";
     if (!HiviewDFX::GetBacktraceStringByTidWithMix(stack, pid, 0, true)) {
         stack = "Failed to dump stacktrace for " + std::to_string(pid) + "\n" + stack;
     }
-    faultData.errorObject.stack += stack + "\nDump tid stack end time: " +
+    faultData.errorObject.stack += stack + "\nDump main thread stack end time: " +
         AbilityRuntime::TimeUtil::DefaultCurrentTimeStr() + "\n";
     faultData.errorObject.name = AppExecFwk::AppFreezeType::APP_INPUT_BLOCK;
     faultData.waitSaveState = false;

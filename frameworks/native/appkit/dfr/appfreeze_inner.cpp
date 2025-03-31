@@ -110,13 +110,13 @@ void AppfreezeInner::ChangeFaultDateInfo(FaultData& faultData, const std::string
     faultData.waitSaveState = false;
     faultData.forceExit = false;
     int32_t pid = IPCSkeleton::GetCallingPid();
-    faultData.errorObject.stack = "\nDump tid stack start time: " +
+    faultData.errorObject.stack = "\nDump main thread stack start time: " +
         AbilityRuntime::TimeUtil::DefaultCurrentTimeStr() + "\n";
     std::string stack = "";
     if (!HiviewDFX::GetBacktraceStringByTidWithMix(stack, pid, 0, true)) {
         stack = "Failed to dump stacktrace for " + std::to_string(pid) + "\n" + stack;
     }
-    faultData.errorObject.stack += stack + "\nDump tid stack end time: " +
+    faultData.errorObject.stack += stack + "\nDump main thread stack end time: " +
         AbilityRuntime::TimeUtil::DefaultCurrentTimeStr() + "\n";
     bool isExit = IsExitApp(faultData.errorObject.name) && faultData.needKillProcess;
     if (isExit) {
