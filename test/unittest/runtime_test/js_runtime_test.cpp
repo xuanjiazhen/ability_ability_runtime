@@ -1497,11 +1497,11 @@ HWTEST_F(JsRuntimeTest, SetDebugOption_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "SetDebugOption_0100 start");
     Runtime::DebugOption debugOption;
-    std::string BundleName = "com.ohos.example.bundleName";
-    debugOption.bundleName = BundleName;
+    std::string bundleName = "com.ohos.example.bundleName";
+    debugOption.bundleName = bundleName;
     auto jsRuntime = std::make_unique<JsRuntime>();
     jsRuntime->SetDebugOption(debugOption);
-    EXPECT_EQ(jsRuntime->debugOption_.bundleName, BundleName);
+    EXPECT_EQ(jsRuntime->debugOption_.bundleName, bundleName);
     TAG_LOGI(AAFwkTag::TEST, "SetDebugOption_0100 end");
 }
 

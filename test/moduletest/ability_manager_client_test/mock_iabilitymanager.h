@@ -145,7 +145,7 @@ public:
         return;
     }
     void DumpSysState(
-        const std::string& args, std::vector<std::string>& state, bool isClient, bool isUserID, int UserID) override
+        const std::string& args, std::vector<std::string>& state, bool isClient, bool isUserID, int userID) override
     {
         mockFunctionExcuted = true;
     }

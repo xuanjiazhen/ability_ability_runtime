@@ -112,11 +112,11 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_DumpSysState_0100, TestS
     std::vector<std::string> state;
     bool isClient = false;
     bool isUserID = true;
-    int UserID = 1;
+    int userID = 1;
 
     auto result = AbilityManagerClient::GetInstance()->DumpSysState(args, state, isClient, isUserID, UserID);
     EXPECT_EQ(result, ERR_OK);
-     MockIAbilityManager* rawPtr =
+    MockIAbilityManager* rawPtr =
         static_cast<MockIAbilityManager*>(AbilityManagerClient::GetInstance()->proxy_.GetRefPtr());
     if (rawPtr) {
         sptr<MockIAbilityManager> iapp(rawPtr);
@@ -194,7 +194,8 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_ScheduleClearRecoveryPag
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_ScheduleClearRecoveryPageStack_001 start");
     std::shared_ptr<AbilityManagerClient> client = AbilityManagerClient::GetInstance();
     client->ScheduleClearRecoveryPageStack();
-    MockIAbilityManager* rawPtr = static_cast<MockIAbilityManager*>(AbilityManagerClient::GetInstance()->proxy_.GetRefPtr());
+    MockIAbilityManager* rawPtr =
+        static_cast<MockIAbilityManager*>(AbilityManagerClient::GetInstance()->proxy_.GetRefPtr());
     if (rawPtr) {
         sptr<MockIAbilityManager> iapp(rawPtr);
         EXPECT_EQ(iapp->mockFunctionExcuted, true);
