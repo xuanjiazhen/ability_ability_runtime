@@ -4413,7 +4413,8 @@ HWTEST_F(UIAbilityLifecycleManagerTest, HandleForegroundCollaborate_0100, TestSi
  * @tc.name: UIAbilityLifecycleManager_SetKillForPermissionUpdateFlag_0100
  * @tc.desc: SetKillForPermissionUpdateFlag
  */
-HWTEST_F(UIAbilityLifecycleManagerTest, SetKillForPermissionUpdateFlag_0100, TestSize.Level1)
+HWTEST_F(UIAbilityLifecycleManagerTest, SetKillForPermissionUpdateFlag_0100,
+    TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
     uint32_t accessTokenId = 1;
