@@ -122,6 +122,7 @@ ohos_shared_library("abilitykit_utils") {
   branch_protector_ret = "pac_ret"
 
   include_dirs = [
+    "${ability_runtime_path}/interfaces/inner_api/runtime/include",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/app",
     "${ability_runtime_innerkits_path}/ability_manager/include",
@@ -342,7 +343,9 @@ ohos_shared_library("abilitykit_native") {
     "access_token:libaccesstoken_sdk",
     "access_token:libtoken_callback_sdk",
     "access_token:libtokenid_sdk",
+    #sts mock "ace_engine:ace_uicontent",
     "bundle_framework:appexecfwk_base",
+    #sts mock "bundle_framework:bms_ani_common",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
@@ -356,6 +359,7 @@ ohos_shared_library("abilitykit_native") {
     "json:nlohmann_json_static",
     "napi:ace_napi",
     "resource_management:global_resmgr",
+    #sts mock "runtime_core:ani",
     "samgr:samgr_proxy",
     "window_manager:windowstage_kit",
   ]
@@ -784,6 +788,7 @@ ohos_shared_library("uiabilitykit_native") {
     "ipc:ipc_napi",
     "resource_management:global_resmgr",
     "samgr:samgr_proxy",
+    #sts mock "runtime_core:ani",
   ]
   public_external_deps = [
     "bundle_framework:appexecfwk_core",
@@ -1038,6 +1043,7 @@ ohos_shared_library("service_extension") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "napi:ace_napi",
+     #sts mock "runtime_core:ani",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -1584,11 +1590,12 @@ ohos_shared_library("ui_extension") {
 
   external_deps = [
     "ability_base:base",
-    "ability_base:configuration",
+     #sts mock "ability_base:configuration",
     "ability_base:want",
     "ability_base:zuri",
     "access_token:libaccesstoken_sdk",
     "access_token:libtokenid_sdk",
+     #sts mock "bundle_framework:bms_ani_common",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
