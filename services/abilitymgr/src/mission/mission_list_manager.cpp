@@ -1715,7 +1715,7 @@ int MissionListManager::TerminateAbilityLocked(const std::shared_ptr<AbilityReco
                 abilityRecord->SetPendingState(AbilityState::BACKGROUND);
                 return ERR_OK;
             }
-            abilityRecord->SetSceneFlag(ABILITY_CALL_FLAG);
+            //abilityRecord->SetSceneFlag(ABILITY_CALL_FLAG);
             abilityRecord->SetPendingState(AbilityState::BACKGROUND);
             MoveToBackgroundTask(abilityRecord, true);
         }
