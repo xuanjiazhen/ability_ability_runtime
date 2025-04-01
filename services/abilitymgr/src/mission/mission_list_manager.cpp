@@ -1541,7 +1541,7 @@ int MissionListManager::MoveAbilityToBackgroundLocked(const std::shared_ptr<Abil
             nextAbilityRecord->ProcessForegroundAbility(abilityRecord, false);
         } else {
             bool animaEnabled = false;
-            abilityRecord->SetSceneFlag(ABILITY_CALL_FLAG);
+            //abilityRecord->SetSceneFlag(ABILITY_CALL_FLAG);
             if (!abilityRecord->IsClearMissionFlag()) {
                 abilityRecord->NotifyAnimationFromMinimizeAbility(animaEnabled);
             }
