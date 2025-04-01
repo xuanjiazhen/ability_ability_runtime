@@ -24,10 +24,14 @@
 #endif // SUPPORT_GRAPHICS
 #include "elf_factory.h"
 #include "unwinder.h"
+#include "dfx_symbols.h"
+#include "string_printf.h"
 
 namespace OHOS {
 namespace JsEnv {
 constexpr char BACKTRACE[] = "=====================Backtrace========================";
+constexpr size_t FLAG_SPLIT_POS = 16;
+constexpr size_t FLAG_PC_POS = 4;
 
 std::string NapiUncaughtExceptionCallback::GetNativeStrFromJsTaggedObj(napi_value obj, const char* key)
 {
@@ -109,23 +113,44 @@ std::string NapiUncaughtExceptionCallback::GetBuildId(std::string nativeStack)
 {
     std::stringstream ss(nativeStack);
     std::string tempStr;
-    std::string addBuildId;
-    int i = 0;
+    std::string appendInfo;
+    std::getline(ss, tempStr);
+    std::getline(ss, tempStr);
     while (std::getline(ss, tempStr)) {
-        auto spitlPos = tempStr.rfind(" ");
-        if (spitlPos != std::string::npos) {
-            HiviewDFX::RegularElfFactory elfFactory(tempStr.substr(spitlPos + 1));
-            auto elfFile = elfFactory.Create();
-            std::string buildId = elfFile->GetBuildId();
-            if (i != 0 && !buildId.empty()) {
-                addBuildId += tempStr + "(" + buildId + ")" + "\n";
+        auto splitPos = tempStr.rfind(" ");
+        if (splitPos == std::string::npos) {
+            return nativeStack;
+        }
+        HiviewDFX::RegularElfFactory elfFactory(tempStr.substr(splitPos + 1));
+        auto elfFile = elfFactory.Create();
+        std::string pc;
+        size_t pcPos = tempStr.find(" pc ");
+        if (pcPos == std::string::npos) {
+            return nativeStack;
+        }
+        pc = tempStr.substr(pcPos += FLAG_PC_POS, FLAG_SPLIT_POS);
+        uint64_t value = std::stoull(pc, nullptr, FLAG_SPLIT_POS);
+        std::string funcName;
+        uint64_t funcOffset;
+        HiviewDFX::DfxSymbols::GetFuncNameAndOffsetByPc(value, elfFile, funcName, funcOffset);
+        std::string buildId = elfFile->GetBuildId();
+        if (!funcName.empty()) {
+            appendInfo += tempStr + "(" + funcName;
+            appendInfo += HiviewDFX::StringPrintf("+%" PRId64, funcOffset) + ")";
+            if (!buildId.empty()) {
+                appendInfo += "(" + buildId + ")" + "\n";
             } else {
-                addBuildId += tempStr + "\n";
+                appendInfo += "\n";
+            }
+        } else {
+            if (!buildId.empty()) {
+                appendInfo += tempStr + "(" + buildId + ")" + "\n";
+            } else {
+                appendInfo += tempStr + "\n";
             }
         }
-        i++;
     }
-    return addBuildId;
+    return appendInfo;
 }
 } // namespace JsEnv
 } // namespace OHOS
