@@ -548,7 +548,7 @@ bool AppUtils::IsCacheExtensionAbilityByList(const std::string& bundleName, cons
         cacheAbilityList_.isLoaded = true;
     }
 
-    if (cacheAbilityList_.value.size() == 0 || !IsCacheAbilityEnabled()) {
+    if (cacheAbilityList_.value.empty() || !IsCacheAbilityEnabled()) {
         return false;
     }
 
