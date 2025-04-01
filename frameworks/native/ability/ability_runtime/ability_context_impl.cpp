@@ -1210,5 +1210,28 @@ std::shared_ptr<Context> AbilityContextImpl::CreateDisplayContext(uint64_t displ
     return stageContext_ ? stageContext_->CreateDisplayContext(displayId) : nullptr;
 }
 #endif
+
+ErrCode AbilityContextImpl::RevokeDelegator()
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "called");
+    auto sessionToken = GetSessionToken();
+    if (sessionToken == nullptr) {
+        TAG_LOGW(AAFwkTag::CONTEXT, "null sessionToken");
+        return ERR_INVALID_VALUE;
+    }
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled() && sessionToken) {
+        auto ifaceSessionToken = iface_cast<Rosen::ISession>(sessionToken);
+        // ErrCode ret = static_cast<int32_t>(ifaceSessionToken->RevokeDelegator());
+        // if (ret != ERR_OK) {
+        //     TAG_LOGE(AAFwkTag::CONTEXT, "scb call, RevokeDelegator err: %{public}d", ret);
+        // }
+        // return ret;
+    }
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->RevokeDelegator(token_);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "AbilityContextImpl::RevokeDelegator is failed %{public}d", err);
+    }
+    return err;
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -412,6 +412,11 @@ napi_value JsAbilityContext::SetColorMode(napi_env env, napi_callback_info info)
     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnSetColorMode);
 }
 
+napi_value JsAbilityContext::RevokeDelegator(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnRevokeDelegator);
+}
+
 void JsAbilityContext::ClearFailedCallConnection(
     const std::weak_ptr<AbilityContext>& abilityContext, const std::shared_ptr<CallerCallBack> &callback)
 {
@@ -2038,6 +2043,7 @@ napi_value CreateJsAbilityContext(napi_env env, std::shared_ptr<AbilityContext> 
         JsAbilityContext::DisconnectUIServiceExtension);
     BindNativeFunction(env, object, "setRestoreEnabled", moduleName, JsAbilityContext::SetRestoreEnabled);
     BindNativeFunction(env, object, "setColorMode", moduleName, JsAbilityContext::SetColorMode);
+    BindNativeFunction(env, object, "revokeDelegator", moduleName, JsAbilityContext::RevokeDelegator);
 
 #ifdef SUPPORT_GRAPHICS
     BindNativeFunction(env, object, "setMissionLabel", moduleName, JsAbilityContext::SetMissionLabel);
@@ -2864,6 +2870,33 @@ napi_value JsAbilityContext::OnSetColorMode(napi_env env, NapiCallbackInfo& info
     }
     context->SetAbilityColorMode(colorMode);
     return CreateJsUndefined(env);
+}
+
+napi_value JsAbilityContext::OnRevokeDelegator(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "OnRevokeDelegator called");
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return CreateJsUndefined(env);
+    }
+    auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
+    *innerErrCode = context->RevokeDelegator();
+    NapiAsyncTask::CompleteCallback complete =
+        [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+            if (*innerErrCode == ERR_OK) {
+                task.Resolve(env, CreateJsUndefined(env));
+            } else {
+                task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+            }
+        };
+    
+    napi_value lastParam = (info.argc > ARGC_ZERO) ? info.argv[INDEX_ZERO] : nullptr;
+    napi_value result = nullptr;
+    NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnRevokeDelegator",
+        env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
+    return result;
 }
 
 int32_t JsAbilityContext::GenerateRequestCode()

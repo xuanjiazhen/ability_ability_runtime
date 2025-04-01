@@ -3486,5 +3486,18 @@ bool UIAbilityLifecycleManager::UpdateSpecifiedFlag(std::shared_ptr<AbilityRecor
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call session UpdateFlag, specifiedFlag: %{public}s", flag.c_str());
     return true;
 }
+
+int32_t UIAbilityLifecycleManager::RevokeDelegator(const sptr<IRemoteObject> &token)
+{
+    if (token == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null token");
+        return ERR_INVALID_VALUE;
+    }
+    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    auto abilityRecord = Token::GetAbilityRecordByToken(token);
+    CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
+    abilityRecord->RevokeDelegator();
+    return ERR_OK;
+}
 }  // namespace AAFwk
 }  // namespace OHOS

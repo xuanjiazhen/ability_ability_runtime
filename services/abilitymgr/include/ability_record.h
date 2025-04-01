@@ -1166,6 +1166,8 @@ public:
     void SendEvent(uint32_t msg, uint32_t timeOut, int32_t param = -1, bool isExtension = false,
         const std::string &taskName = "");
 
+    void RevokeDelegator();
+
 protected:
 
     sptr<Token> token_ = {};                               // used to interact with kit and wms
@@ -1392,6 +1394,7 @@ private:
     std::atomic_bool isPrepareTerminateAbilityCalled_ = false;
     std::atomic_bool isPrepareTerminateAbilityDone_ = false;
     bool isPrepareTerminate_ = false;
+    bool hookOff_ = false;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
