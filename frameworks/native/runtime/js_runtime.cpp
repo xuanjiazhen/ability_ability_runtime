@@ -737,8 +737,9 @@ bool JsRuntime::Initialize(const Options& options)
             LoadAotFile(options);
             panda::JSNApi::SetBundle(vm, options.isBundle);
             panda::JSNApi::SetBundleName(vm, options.bundleName);
-            panda::JSNApi::SetHostResolveBufferTracker(
-                vm, JsModuleReader(options.bundleName, options.hapPath, options.isUnique));
+            //sts mock
+            // panda::JSNApi::SetHostResolveBufferTracker(
+            //     vm, JsModuleReader(options.bundleName, options.hapPath, options.isUnique));
             isModular = !panda::JSNApi::IsBundle(vm);
             std::vector<panda::HmsMap> systemKitsMap = GetSystemKitsMap(apiTargetVersion_);
             panda::JSNApi::SetHmsModuleList(vm, systemKitsMap);
@@ -1379,13 +1380,6 @@ void JsRuntime::UpdateModuleNameAndAssetPath(const std::string& moduleName)
     panda::JSNApi::SetModuleName(vm, moduleName_);
 }
 
-void JsRuntime::RegisterUncaughtExceptionHandler(const JsEnv::UncaughtExceptionInfo& uncaughtExceptionInfo)
-{
-    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    CHECK_POINTER(jsEnv_);
-    jsEnv_->RegisterUncaughtExceptionHandler(uncaughtExceptionInfo);
-}
-
 void JsRuntime::RegisterQuickFixQueryFunc(const std::map<std::string, std::string>& moduleAndPath)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
@@ -1691,6 +1685,12 @@ void JsRuntime::StartLocalDebugMode(bool isDebugFromLocal)
 {
     debugOption_.isDebugFromLocal = isDebugFromLocal;
     StartDebugMode(debugOption_);
+}
+void JsRuntime::RegisterUncaughtExceptionHandler(void* uncaughtExceptionInfo)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    CHECK_POINTER(jsEnv_);
+    jsEnv_->RegisterUncaughtExceptionHandler(*static_cast<JsEnv::UncaughtExceptionInfo*>(uncaughtExceptionInfo));
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -46,11 +46,18 @@
 #include "display_manager.h"
 #include "window.h"
 #endif
+#include "ani.h"
+#include "sts_runtime.h"
 
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
     constexpr const char* PERSIST_DARKMODE_KEY = "persist.ace.darkmode";
+
+    constexpr const char* CODE_LANGUAGE = "codeLanguage";
+    constexpr const char* CODE_LANGUAGE_1_1 = "1.1";
+    constexpr const char* CODE_LANGUAGE_1_2 = "1.2";
+    constexpr const char* CODE_LANGUAGE_HYBRID = "hybrid";
 }
 REGISTER_APPLICATION(OHOSApplication, OHOSApplication)
 constexpr int32_t APP_ENVIRONMENT_OVERWRITE = 1;
@@ -77,11 +84,14 @@ void OHOSApplication::OnForeground()
         abilityRuntimeContext_->NotifyApplicationForeground();
     }
 
-    if (runtime_ == nullptr) {
-        TAG_LOGD(AAFwkTag::APPKIT, "NotifyApplicationState, runtime_ is nullptr");
-        return;
+    for (const auto& runtime : runtimes_) {
+        if (runtime == nullptr) {
+            TAG_LOGD(AAFwkTag::APPKIT, "NotifyApplicationState, runtime is nullptr");
+            continue;
+        }
+        runtime->NotifyApplicationState(false);
     }
-    runtime_->NotifyApplicationState(false);
+
     TAG_LOGD(AAFwkTag::APPKIT, "NotifyApplicationState::OnForeground end");
 }
 
@@ -97,11 +107,13 @@ void OHOSApplication::OnBackground()
         abilityRuntimeContext_->NotifyApplicationBackground();
     }
 
-    if (runtime_ == nullptr) {
-        TAG_LOGD(AAFwkTag::APPKIT, "runtime_ is nullptr");
-        return;
+    for (const auto& runtime : runtimes_) {
+        if (runtime == nullptr) {
+            TAG_LOGD(AAFwkTag::APPKIT, "runtime is nullptr");
+            continue;
+        }
+        runtime->NotifyApplicationState(true);
     }
-    runtime_->NotifyApplicationState(true);
 }
 
 void OHOSApplication::DumpApplication()
@@ -149,18 +161,18 @@ void OHOSApplication::DumpApplication()
 }
 
 /**
- * @brief Set Runtime
+ * @brief Add Runtime
  *
  * @param runtime Runtime instance.
  */
-void OHOSApplication::SetRuntime(std::unique_ptr<AbilityRuntime::Runtime>&& runtime)
+void OHOSApplication::AddRuntime(std::unique_ptr<AbilityRuntime::Runtime>&& runtime)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "begin");
     if (runtime == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
         return;
     }
-    runtime_ = std::move(runtime);
+    runtimes_.push_back(std::move(runtime));
 }
 
 /**
@@ -206,6 +218,98 @@ void OHOSApplication::SetApplicationContext(
         return applicationSptr->GetDisplayConfig(displayId, density, directionStr);
     });
 #endif
+}
+
+static void SetSupportedProcessCacheSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
+    ani_boolean value) {
+    //sts mock
+    // TAG_LOGI(AAFwkTag::APPKIT, "SetSupportedProcessCacheSync called");
+    // ani_class applicationContextCls = nullptr;
+    // if (env->FindClass(STS_APPLICATION_CONTEXT_CLASS_NAME, &applicationContextCls) != ANI_OK) {
+    //     TAG_LOGE(AAFwkTag::APPKIT, "FindClass ApplicationContext failed");
+    //     return;
+    // }
+    // ani_field contextField;
+    // if (env->Class_FindField(applicationContextCls, "nativeApplicationContext", &contextField) != ANI_OK) {
+    //     TAG_LOGE(AAFwkTag::APPKIT, "Class_FindField failed");
+    //     return;
+    // }
+    // ani_long nativeContextLong;
+    // if (env->Object_GetField_Long(aniObj, contextField, &nativeContextLong) != ANI_OK) {
+    //     TAG_LOGE(AAFwkTag::APPKIT, "Object_GetField_Long failed");
+    //     return;
+    // }
+    // ((AbilityRuntime::ApplicationContext*)nativeContextLong)->SetSupportedProcessCacheSelf(value);
+    // TAG_LOGI(AAFwkTag::APPKIT, "SetSupportedProcessCacheSync end");
+}
+
+void OHOSApplication::InitAniApplicationContext()
+{
+    // TAG_LOGI(AAFwkTag::APPKIT, "init application context");
+    // auto& runtime = GetRuntime(AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2);
+    // auto aniEnv = static_cast<AbilityRuntime::STSRuntime &>(*runtime).GetAniEnv();
+    // ani_class applicationContextCls = nullptr;
+    // if (aniEnv->FindClass(STS_APPLICATION_CONTEXT_CLASS_NAME, &applicationContextCls) != ANI_OK) {
+    //     TAG_LOGE(AAFwkTag::APPKIT, "FindClass ApplicationContext failed");
+    //     return;
+    // }
+    // std::array applicationContextFunctions = {
+    //     ani_native_function {"setSupportedProcessCacheSync", "Z:V",
+    //         reinterpret_cast<void *>(SetSupportedProcessCacheSync)},
+    // };
+    // aniEnv->Class_BindNativeMethods(applicationContextCls, applicationContextFunctions.data(),
+    //     applicationContextFunctions.size());
+
+    // ani_method contextCtorMethod = nullptr;
+    // if (aniEnv->Class_FindMethod(applicationContextCls, "<ctor>", ":V", &contextCtorMethod) != ANI_OK) {
+    //     TAG_LOGE(AAFwkTag::APPKIT, "Class_FindMethod ctor failed");
+    //     return;
+    // }
+    // ani_object applicationContextObject = nullptr;
+    // if (aniEnv->Object_New(applicationContextCls, contextCtorMethod, &applicationContextObject) != ANI_OK) {
+    //     TAG_LOGE(AAFwkTag::APPKIT, "Object_New failed");
+    //     return;
+    // }
+    // ani_field contextField;
+    // if (aniEnv->Class_FindField(applicationContextCls, "nativeApplicationContext", &contextField) != ANI_OK) {
+    //     TAG_LOGE(AAFwkTag::APPKIT, "Class_FindField failed");
+    //     return;
+    // }
+    // if (aniEnv->Object_SetField_Long(applicationContextObject, contextField,
+    //     (ani_long)abilityRuntimeContext_.get()) != ANI_OK) {
+    //     TAG_LOGE(AAFwkTag::APPKIT, "Object_SetField_Long failed");
+    //     return;
+    // }
+    // ani_ref applicationContextObjectRef = nullptr;
+    // if (aniEnv->GlobalReference_Create(applicationContextObject, &applicationContextObjectRef) != ANI_OK) {
+    //     TAG_LOGE(AAFwkTag::APPKIT, "GlobalReference_Create failed");
+    //     return;
+    // }
+    // auto stsReference = std::make_shared<AbilityRuntime::STSNativeReference>();
+    // stsReference->aniObj = applicationContextObject;
+    // AbilityRuntime::ApplicationContextManager::GetApplicationContextManager().AddStsGlobalObject(aniEnv, stsReference);
+    // applicationContextObjRef_ = reinterpret_cast<void*>(applicationContextObjectRef);
+    // abilityRuntimeContext_->SetApplicationCtxObjRef(applicationContextObjRef_);
+    // TAG_LOGI(AAFwkTag::APPKIT, "init application context success");
+}
+
+void OHOSApplication::InitAniContext()
+{
+    // TAG_LOGI(AAFwkTag::APPKIT, "init context");
+    // auto& runtime = GetRuntime(AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2);
+    // auto aniEnv = static_cast<AbilityRuntime::STSRuntime &>(*runtime).GetAniEnv();
+    // ani_class contextCls = nullptr;
+    // if (aniEnv->FindClass(STS_CONTEXT_CLASS_NAME, &contextCls) != ANI_OK) {
+    //     TAG_LOGE(AAFwkTag::APPKIT, "FindClass Context failed");
+    //     return;
+    // }
+    // std::array contextFunctions = {
+    //     ani_native_function {"getApplicationContextSync", ":Lapplication/ApplicationContext/ApplicationContext;",
+    //         reinterpret_cast<void *>(AbilityRuntime::ContextUtil::GetApplicationContextSync)},
+    // };
+    // aniEnv->Class_BindNativeMethods(contextCls, contextFunctions.data(),
+    //     contextFunctions.size());
+    // TAG_LOGI(AAFwkTag::APPKIT, "init context success");
 }
 
 /**
@@ -367,6 +471,25 @@ void OHOSApplication::SetAppEnv(const std::vector<AppEnvironment>& appEnvironmen
     return;
 }
 
+void OHOSApplication::PreloadHybridModule(const HapModuleInfo &hapModuleInfo) const
+{
+    if (hapModuleInfo.codeLanguage != CODE_LANGUAGE_HYBRID) {
+        TAG_LOGD(AAFwkTag::APPKIT, "not hybrid runtime");
+        return;
+    }
+    for (const auto& runtime : runtimes_) {
+        bool isEsmode = hapModuleInfo.compileMode == CompileMode::ES_MODULE;
+        bool useCommonTrunk = false;
+        for (const auto& md : hapModuleInfo.metadata) {
+            if (md.name == "USE_COMMON_CHUNK") {
+                useCommonTrunk = md.value == "true";
+                break;
+            }
+        }
+        runtime->PreloadModule(hapModuleInfo.moduleName, hapModuleInfo.hapPath, isEsmode, useCommonTrunk);
+    }
+}
+
 std::shared_ptr<AbilityRuntime::Context> OHOSApplication::AddAbilityStage(
     const std::shared_ptr<AbilityLocalRecord> &abilityRecord,
     const std::function<void(const std::shared_ptr<AbilityRuntime::Context> &)> &callback, bool &isAsyncCallback)
@@ -395,8 +518,10 @@ std::shared_ptr<AbilityRuntime::Context> OHOSApplication::AddAbilityStage(
             TAG_LOGE(AAFwkTag::APPKIT, "null hapModuleInfo");
             return nullptr;
         }
-        if (runtime_ && (runtime_->GetLanguage() == AbilityRuntime::Runtime::Language::JS)) {
-            static_cast<AbilityRuntime::JsRuntime&>(*runtime_).SetPkgContextInfoJson(
+        PreloadHybridModule(*hapModuleInfo);
+        auto& runtime = GetRuntime(abilityInfo->codeLanguage);
+        if (runtime && (runtime->GetLanguage() == AbilityRuntime::Runtime::Language::JS)) {
+            static_cast<AbilityRuntime::JsRuntime&>(*runtime).SetPkgContextInfoJson(
                 hapModuleInfo->moduleName, hapModuleInfo->hapPath, hapModuleInfo->packageName);
         }
         SetAppEnv(hapModuleInfo->appEnvironments);
@@ -407,7 +532,8 @@ std::shared_ptr<AbilityRuntime::Context> OHOSApplication::AddAbilityStage(
             stageContext->SetResourceManager(rm);
         }
 
-        abilityStage = AbilityRuntime::AbilityStage::Create(runtime_, *hapModuleInfo);
+        auto& runtimeStage = GetRuntime(hapModuleInfo->codeLanguage);
+        abilityStage = AbilityRuntime::AbilityStage::Create(runtimeStage, *hapModuleInfo);
         if (abilityStage == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "null abilityStage");
             return nullptr;
@@ -589,8 +715,8 @@ bool OHOSApplication::AddAbilityStage(
         return false;
     }
 
-    if (runtime_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null runtime_");
+    if (runtimes_.empty()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "runtimes empty");
         return false;
     }
 
@@ -614,7 +740,8 @@ bool OHOSApplication::AddAbilityStage(
         stageContext->SetResourceManager(rm);
     }
 
-    auto abilityStage = AbilityRuntime::AbilityStage::Create(runtime_, *moduleInfo);
+    auto& runtime = GetRuntime(moduleInfo->codeLanguage);
+    auto abilityStage = AbilityRuntime::AbilityStage::Create(runtime, *moduleInfo);
     if (abilityStage == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null abilityStage");
         return false;
@@ -669,9 +796,9 @@ std::shared_ptr<AbilityRuntime::Context> OHOSApplication::GetAppContext() const
     return abilityRuntimeContext_;
 }
 
-const std::unique_ptr<AbilityRuntime::Runtime>& OHOSApplication::GetRuntime() const
+const std::vector<std::unique_ptr<AbilityRuntime::Runtime>>& OHOSApplication::GetRuntime() const
 {
-    return runtime_;
+    return runtimes_;
 }
 
 void OHOSApplication::SetConfiguration(const Configuration &config)
@@ -759,32 +886,62 @@ void OHOSApplication::SetExtensionTypeMap(std::map<int32_t, std::string> map)
 
 bool OHOSApplication::NotifyLoadRepairPatch(const std::string &hqfFile, const std::string &hapPath)
 {
-    if (runtime_ == nullptr) {
-        TAG_LOGD(AAFwkTag::APPKIT, "null runtime");
+    // need vm support
+    if (runtimes_.empty()) {
+        TAG_LOGD(AAFwkTag::APPKIT, "runtimes empty");
         return true;
     }
 
-    return runtime_->LoadRepairPatch(hqfFile, hapPath);
+    for (const auto& runtime : runtimes_) {
+        if (runtime == nullptr) {
+            TAG_LOGD(AAFwkTag::APPKIT, "null runtime");
+            continue;
+        }
+        if (!runtime->LoadRepairPatch(hqfFile, hapPath)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool OHOSApplication::NotifyHotReloadPage()
 {
-    if (runtime_ == nullptr) {
-        TAG_LOGD(AAFwkTag::APPKIT, "null runtime");
+    if (runtimes_.empty()) {
+        TAG_LOGD(AAFwkTag::APPKIT, "runtimes empty");
         return true;
     }
 
-    return runtime_->NotifyHotReloadPage();
+    for (const auto& runtime : runtimes_) {
+        if (runtime == nullptr) {
+            TAG_LOGD(AAFwkTag::APPKIT, "null runtime");
+            continue;
+        }
+        if (!runtime->NotifyHotReloadPage()) {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool OHOSApplication::NotifyUnLoadRepairPatch(const std::string &hqfFile)
 {
-    if (runtime_ == nullptr) {
-        TAG_LOGD(AAFwkTag::APPKIT, "null runtime");
+    // need vm support
+    if (runtimes_.empty()) {
+        TAG_LOGD(AAFwkTag::APPKIT, "runtimes empty");
         return true;
     }
 
-    return runtime_->UnLoadRepairPatch(hqfFile);
+    for (const auto& runtime : runtimes_) {
+        if (runtime == nullptr) {
+            TAG_LOGD(AAFwkTag::APPKIT, "null runtime");
+            continue;
+        }
+        if (!runtime->UnLoadRepairPatch(hqfFile)) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 void OHOSApplication::CleanAppTempData(bool isLastProcess)
@@ -994,5 +1151,35 @@ bool OHOSApplication::GetDisplayConfig(uint64_t displayId, float &density, std::
     return true;
 }
 #endif
+
+const std::unique_ptr<AbilityRuntime::Runtime>& OHOSApplication::GetRuntime(const std::string& language) const
+{
+    for (auto& runtime : runtimes_) {
+        if (runtime->GetLanguage() == ConvertLangToCode(language)) {
+            return runtime;
+        }
+    }
+    return runtimeNullptr_;
+}
+
+void OHOSApplication::SetCJApplication(bool isCJApplication)
+{
+    isCJApplication_ = isCJApplication;
+}
+
+AbilityRuntime::Runtime::Language OHOSApplication::ConvertLangToCode(const std::string& language) const
+{
+    if (language == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_0) {
+        if (isCJApplication_) {
+            return AbilityRuntime::Runtime::Language::CJ;
+        } else {
+            return AbilityRuntime::Runtime::Language::JS;
+        }
+    } else if (language == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2) {
+        return AbilityRuntime::Runtime::Language::STS;
+    } else {
+        return AbilityRuntime::Runtime::Language::UNKNOWN;
+    }
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
