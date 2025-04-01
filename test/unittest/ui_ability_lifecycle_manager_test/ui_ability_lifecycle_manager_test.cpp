@@ -4413,8 +4413,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, HandleForegroundCollaborate_0100, TestSi
  * @tc.name: UIAbilityLifecycleManager_SetKillForPermissionUpdateFlag_0100
  * @tc.desc: SetKillForPermissionUpdateFlag
  */
-HWTEST_F(UIAbilityLifecycleManagerTest, SetKillForPermissionUpdateFlag_0100,
-    TestSize.Level1)
+HWTEST_F(UIAbilityLifecycleManagerTest, SetKillForPermissionUpdateFlag_0100, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
     uint32_t accessTokenId = 1;
@@ -4431,7 +4430,6 @@ HWTEST_F(UIAbilityLifecycleManagerTest, SetKillForPermissionUpdateFlag_0100,
         }
     }
     uiAbilityLifecycleManager->sessionAbilityMap_.clear();
-
     abilityRecord->abilityInfo_.applicationInfo.accessTokenId = 2;
     abilityRecord->abilityInfo_.applicationInfo.bundleType = AppExecFwk::BundleType::ATOMIC_SERVICE;
     abilityRecord->abilityInfo_.type = AppExecFwk::AbilityType::PAGE;
@@ -4444,7 +4442,6 @@ HWTEST_F(UIAbilityLifecycleManagerTest, SetKillForPermissionUpdateFlag_0100,
         }
     }
     uiAbilityLifecycleManager->sessionAbilityMap_.clear();
-
     abilityRecord->abilityInfo_.applicationInfo.accessTokenId = 1;
     abilityRecord->abilityInfo_.applicationInfo.bundleType = AppExecFwk::BundleType::APP;
     abilityRecord->abilityInfo_.type = AppExecFwk::AbilityType::PAGE;
@@ -4457,7 +4454,6 @@ HWTEST_F(UIAbilityLifecycleManagerTest, SetKillForPermissionUpdateFlag_0100,
         }
     }
     uiAbilityLifecycleManager->sessionAbilityMap_.clear();
-
     abilityRecord->abilityInfo_.applicationInfo.accessTokenId = 1;
     abilityRecord->abilityInfo_.applicationInfo.bundleType = AppExecFwk::BundleType::APP;
     abilityRecord->abilityInfo_.type = AppExecFwk::AbilityType::SERVICE;
