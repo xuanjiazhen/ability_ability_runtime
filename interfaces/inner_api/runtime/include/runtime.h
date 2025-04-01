@@ -86,8 +86,8 @@ public:
 
     static std::vector<std::unique_ptr<Runtime>> CreateRuntimes(Options& options);
     static std::unique_ptr<Runtime> Create(Options& options);
-    static void SavePreloaded(std::unique_ptr<Runtime>&& instance);
-    static std::unique_ptr<Runtime> GetPreloaded();
+    static void SavePreloaded(const std::string& key = "", std::unique_ptr<Runtime>&& instance);
+    static std::unique_ptr<Runtime> GetPreloaded(const std::string& key = "");
 
     Runtime() = default;
     virtual ~Runtime() = default;
