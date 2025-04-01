@@ -177,6 +177,7 @@ ohos_shared_library("abilityms") {
     "ipc:ipc_core",
     "json:nlohmann_json_static",
     "kv_store:distributeddata_inner",
+    "memmgr:memmgrclient",
     "os_account:os_account_innerkits",
     "qos_manager:concurrent_task_client",
     "relational_store:native_appdatafwk",

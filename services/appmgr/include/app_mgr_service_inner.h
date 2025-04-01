@@ -1264,11 +1264,11 @@ public:
     bool IsFinalAppProcessByBundleName(const std::string &bundleName);
 
     /**
-     * @brief Notify memory size state changed to sufficient or insufficient.
-     * @param isMemorySizeSufficient Indicates the memory size state.
+     * @brief Notify memory size state changed: LOW_MEMORY, MEMORY_RECOVERY, MEMORY_QUICK_KILL.
+     * @param memorySizeState Indicates the memory size state.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t NotifyMemorySizeStateChanged(bool isMemorySizeSufficient);
+    int32_t NotifyMemorySizeStateChanged(int32_t memorySizeState);
 
     /**
      * whether memory size is sufficient.
@@ -1939,6 +1939,9 @@ private:
     void GetMultiInstanceInfo(const std::shared_ptr<AppRunningRecord> &appRecord,
         RunningMultiAppInfo &info);
 #endif //SUPPORT_CHILD_PROCESS
+    void SubscribeScreenOffEvent();
+    int32_t RestartExitKeepAliveProcess(const int32_t memorySizeState);
+    bool IsNeedRestartKeepAliveProcess(const std::string &bundleName, int32_t uid);
     int32_t GetAllRunningInstanceKeysByBundleNameInner(const std::string &bundleName,
         std::vector<std::string> &instanceKeys, int32_t userId);
     int32_t KillProcessByPidInner(const pid_t pid, const std::string& reason,
@@ -2011,6 +2014,7 @@ private:
     std::shared_ptr<MultiUserConfigurationMgr> multiUserConfigurationMgr_;
     std::shared_ptr<AAFwk::TaskHandlerWrap> delayKillTaskHandler_;
     std::unordered_set<std::string> nwebPreloadSet_ {};
+    std::shared_ptr<AppExecFwk::AppMgrEventSubscriber> screenOffSubscriber_;
 
     std::mutex childProcessRecordMapMutex_;
 };

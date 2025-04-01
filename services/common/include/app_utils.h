@@ -199,6 +199,13 @@ public:
     int32_t GetLimitMaximumExtensionsPerProc();
 
     /**
+     * IsBigMemoryUnrelatedKeepAliveProc, check if it refuses resident in memory quick kill.<unnamed>
+     *
+     * @param bundleName The bundle name.
+     */
+    bool IsBigMemoryUnrelatedKeepAliveProc(const std::string &bundleName);
+
+    /**
      * GetLimitMaximumExtensionsPerDevice, get limit max extensions per device.
      *
      * @return Limit max extensions per device.
@@ -298,6 +305,12 @@ private:
     void LoadStartAbilityWithoutCallerToken();
 
     /**
+     * LoadProcessProhibitedFromRestarting, load process prohibited in big memory.
+     *
+     */
+    void LoadProcessProhibitedFromRestarting();
+
+    /**
      * AppUtils, private constructor.
      *
      */
@@ -324,6 +337,8 @@ private:
     DeviceConfiguration<std::vector<std::pair<std::string, std::string>>>
         residentProcessInExtremeMemory_ = {false, {}};
     std::mutex residentProcessInExtremeMemoryMutex_;
+    DeviceConfiguration<std::vector<std::string>> processProhibitedFromRestarting_ = {false, {}};
+    std::mutex processProhibitedFromRestartingMutex_;
     DeviceConfiguration<std::vector<std::string>>
         allowStartNativeProcessApps_ = {false, {}};
     volatile DeviceConfiguration<int32_t> limitMaximumExtensionsPerProc_ = {false, DEFAULT_MAX_EXT_PER_PROC};

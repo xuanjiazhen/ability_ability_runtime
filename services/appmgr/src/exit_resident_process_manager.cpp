@@ -53,6 +53,17 @@ bool ExitResidentProcessManager::RecordExitResidentBundleName(const std::string 
     return true;
 }
 
+bool ExitResidentProcessManager::RecordExitResidentBundleNameOnRequireBigMemory(
+    const std::string &bundleName, int32_t uid)
+{
+    std::lock_guard<ffrt::mutex> lock(mutexLock_);
+    if (currentMemorySizeState_ == MemorySizeState::NO_REQUIRE_BIG_MEMORY) {
+        return false;
+    }
+    exitResidentBigMemoryInfos_.emplace_back(bundleName, uid);
+    return true;
+}
+
 void ExitResidentProcessManager::RecordExitResidentBundleDependedOnWeb(const std::string &bundleName, int32_t uid)
 {
     std::lock_guard<ffrt::mutex> lock(webMutexLock_);
@@ -68,6 +79,18 @@ int32_t ExitResidentProcessManager::HandleMemorySizeInSufficent()
         return AAFwk::ERR_NATIVE_MEMORY_SIZE_STATE_UNCHANGED;
     }
     currentMemorySizeState_ = MemorySizeState::MEMORY_SIZE_INSUFFICIENT;
+    return ERR_OK;
+}
+
+int32_t ExitResidentProcessManager::HandleRequireBigMemoryOptimization()
+{
+    std::lock_guard<ffrt::mutex> lock(mutexLock_);
+    if (currentMemorySizeState_ != MemorySizeState::NO_REQUIRE_BIG_MEMORY) {
+        TAG_LOGE(AAFwkTag::APPMGR, "REQUIRE_BIG_MEMORY");
+        return AAFwk::ERR_NATIVE_MEMORY_SIZE_STATE_UNCHANGED;
+    }
+    TAG_LOGI(AAFwkTag::APPMGR, "REQUIRE_BIG_MEMORY");
+    currentMemorySizeState_ = MemorySizeState::REQUIRE_BIG_MEMORY;
     return ERR_OK;
 }
 
@@ -89,6 +112,20 @@ void ExitResidentProcessManager::HandleExitResidentBundleDependedOnWeb(
     std::lock_guard<ffrt::mutex> lock(webMutexLock_);
     TAG_LOGE(AAFwkTag::APPMGR, "call");
     bundleNames = std::move(exitResidentBundlesDependedOnWeb_);
+}
+
+int32_t ExitResidentProcessManager::HandleNoRequireBigMemoryOptimization(
+    std::vector<ExitResidentProcessInfo> &processInfos)
+{
+    std::lock_guard<ffrt::mutex> lock(mutexLock_);
+    if (currentMemorySizeState_ == MemorySizeState::NO_REQUIRE_BIG_MEMORY) {
+        TAG_LOGE(AAFwkTag::APPMGR, "NO_REQUIRE_BIG_MEMORY");
+        return AAFwk::ERR_NATIVE_MEMORY_SIZE_STATE_UNCHANGED;
+    }
+    TAG_LOGI(AAFwkTag::APPMGR, "NO_REQUIRE_BIG_MEMORY");
+    currentMemorySizeState_ = MemorySizeState::NO_REQUIRE_BIG_MEMORY;
+    processInfos = std::move(exitResidentBigMemoryInfos_);
+    return ERR_OK;
 }
 
 void ExitResidentProcessManager::QueryExitBundleInfos(const std::vector<ExitResidentProcessInfo> &exitProcessInfos,
