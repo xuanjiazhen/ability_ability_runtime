@@ -208,9 +208,10 @@ std::unique_ptr<STSRuntime> STSRuntime::Create(const Options& options, Runtime* 
     STSRuntime::jsRuntime_ = static_cast<AbilityRuntime::JsRuntime*>(jsRuntime);
     TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
     std::unique_ptr<STSRuntime> instance;
+    TAG_LOGI(AAFwkTag::STSRUNTIME, "[ccc] options.lang: %{public}s", options.lang.c_str());
     // JsRuntimeLite::InitJsRuntimeLite(options);
     if (!options.preload && options.isStageModel) {
-        auto preloadedInstance = Runtime::GetPreloaded();
+        auto preloadedInstance = Runtime::GetPreloaded(options.lang);
 #ifdef SUPPORT_SCREEN
         // reload ace if compatible mode changes
         if (Ace::AceForwardCompatibility::PipelineChanged() && preloadedInstance) {
@@ -255,6 +256,7 @@ void STSRuntime::SetAppLibPath(const AppLibPathMap& appLibPaths)
 bool STSRuntime::Initialize(const Options& options)
 {
     TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGI(AAFwkTag::STSRUNTIME, "[ccc] is preload? %{public}d", preloaded_);
     if (options.lang != GetLanguage()) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "language mismatch");
         return false;
@@ -278,6 +280,7 @@ bool STSRuntime::Initialize(const Options& options)
     if (options.isStageModel || options.isTestFramework) {
         if (preloaded_) {
             PostPreload(options);
+            // Appspwan::ANI_PostFork();
         }
 
         if (!preloaded_) {
@@ -467,6 +470,7 @@ void STSRuntime::ReInitUVLoop()
 void STSRuntime::PostPreload(const Options& options)
 {
     TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGI(AAFwkTag::STSRUNTIME, "[ccc] PostPreload start");
     // need vm support Preload
     ReInitUVLoop();
 }
@@ -667,5 +671,26 @@ bool STSRuntime::RunScript(ani_env* aniEnv, const std::string& moduleName, const
     // need vm support Aot.
     return true;
 }
+
+void STSRuntime::FinishPreload()
+{
+    TAG_LOGI(AAFwkTag::STSRUNTIME, "[ccc] finishPreloaded start");
+    ani_env* env = GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "Failed to get ANI environment: null pointer");
+        return;
+    }
+
+    ani_vm* etsVm = nullptr;
+    ani_status status = env->GetVM(&etsVm);
+    if (status != ANI_OK || etsVm == nullptr) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "Failed to get VM: status=%{public}d", status);
+        return;
+    }
+    // Appspawn::ANI_PreFork();
+    TAG_LOGI(AAFwkTag::STSRUNTIME, "[ccc] finishPreloaded end");
+}
+
+
 } // namespace AbilityRuntime
 } // namespace OHOS
