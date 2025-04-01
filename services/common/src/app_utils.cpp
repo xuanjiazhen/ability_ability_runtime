@@ -47,6 +47,7 @@ constexpr const char* MOVE_UI_ABILITY_TO_BACKGROUND_API_ENABLE =
     "persist.sys.abilityms.move_ui_ability_to_background_api_enable";
 constexpr const char* CONFIG_PATH = "/etc/ability_runtime/resident_process_in_extreme_memory.json";
 constexpr const char* RESIDENT_PROCESS_IN_EXTREME_MEMORY = "residentProcessInExtremeMemory";
+constexpr const char* PROCESS_PROHIBITED_FROM_RESTARTING = "processProhibitedFromRestarting";
 constexpr const char* BUNDLE_NAME = "bundleName";
 constexpr const char* ABILITY_NAME = "abilityName";
 constexpr const char* KEY_IDENTIFIER = "identifier";
@@ -267,6 +268,47 @@ bool AppUtils::IsAllowResidentInExtremeMemory(const std::string& bundleName, con
         }
     }
     return false;
+}
+
+bool AppUtils::IsBigMemoryUnrelatedKeepAliveProc(const std::string &bundleName)
+{
+    std::lock_guard lock(processProhibitedFromRestartingMutex_);
+    if (!processProhibitedFromRestarting_.isLoaded) {
+        LoadProcessProhibitedFromRestarting();
+        processProhibitedFromRestarting_.isLoaded = true;
+    }
+    TAG_LOGD(AAFwkTag::DEFAULT, "loadJson about processProhibitedFromRestarting %{public}d",
+        processProhibitedFromRestarting_.isLoaded);
+    for (auto &element : processProhibitedFromRestarting_.value) {
+        if (bundleName == element) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void AppUtils::LoadProcessProhibitedFromRestarting()
+{
+    nlohmann::json object;
+    if (!JsonUtils::GetInstance().LoadConfiguration(CONFIG_PATH, object)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "process prohibited invalid");
+        return;
+    }
+    if (!object.contains(PROCESS_PROHIBITED_FROM_RESTARTING) ||
+        !object.at(PROCESS_PROHIBITED_FROM_RESTARTING).is_array()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "process prohibited invalid.");
+        return;
+    }
+
+    for (auto &item : object.at(PROCESS_PROHIBITED_FROM_RESTARTING).items()) {
+        const nlohmann::json& jsonObject = item.value();
+        if (!jsonObject.contains(BUNDLE_NAME) || !jsonObject.at(BUNDLE_NAME).is_string()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "load bundleName failed");
+            return;
+        }
+        std::string bundleName = jsonObject.at(BUNDLE_NAME).get<std::string>();
+        processProhibitedFromRestarting_.value.emplace_back(bundleName);
+    }
 }
 
 void AppUtils::LoadResidentProcessInExtremeMemory()
