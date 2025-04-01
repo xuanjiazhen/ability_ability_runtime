@@ -3275,8 +3275,8 @@ bool AbilityConnectManager::IsCacheExtensionAbility(const std::shared_ptr<Abilit
     CHECK_POINTER_AND_RETURN(abilityRecord, false);
     auto abilityInfo = abilityRecord->GetAbilityInfo();
     return (CacheExtensionUtils::IsCacheExtensionType(abilityInfo.extensionAbilityType) ||
-            AppUtils::GetInstance().IsCacheExtensionAbilityByList(abilityInfo.bundleName,
-                                                                  abilityInfo.name));
+        AppUtils::GetInstance().IsCacheExtensionAbilityByList(abilityInfo.bundleName,
+        abilityInfo.name));
 }
 
 bool AbilityConnectManager::CheckUIExtensionAbilitySessionExist(
