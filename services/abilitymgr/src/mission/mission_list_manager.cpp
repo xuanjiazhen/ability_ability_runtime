@@ -2183,7 +2183,7 @@ void MissionListManager::MoveToBackgroundTask(const std::shared_ptr<AbilityRecor
         self->PrintTimeOutLog(abilityRecord, AbilityManagerService::BACKGROUND_TIMEOUT_MSG);
         self->CompleteBackground(abilityRecord);
     };
-    abilityRecord->SetSceneFlag(ABILITY_CALL_FLAG);
+    //abilityRecord->SetSceneFlag(ABILITY_CALL_FLAG);
     abilityRecord->BackgroundAbility(task);
 }
 
