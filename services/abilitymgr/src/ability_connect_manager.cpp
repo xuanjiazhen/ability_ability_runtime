@@ -276,6 +276,14 @@ void AbilityConnectManager::DoForegroundUIExtension(std::shared_ptr<AbilityRecor
     CHECK_POINTER(abilityRecord);
     CHECK_POINTER(abilityRequest.sessionInfo);
     auto abilitystateStr = abilityRecord->ConvertAbilityState(abilityRecord->GetAbilityState());
+    std::string serviceKey = abilityRecord->GetURI();
+    auto serviceMapIter = serviceMap_.find(serviceKey);
+    if (serviceMapIter == serviceMap_.end()) {
+        TAG_LOGE(AAFwkTag::UI_EXT,
+                 "ability: %{public}s is on terminating, not foreground",
+                 abilityRecord->GetURI().c_str());
+        return;
+    }
     TAG_LOGI(AAFwkTag::ABILITYMGR,
         "foreground ability: %{public}s, persistentId: %{public}d, abilityState: %{public}s",
         abilityRecord->GetURI().c_str(), abilityRequest.sessionInfo->persistentId, abilitystateStr.c_str());
