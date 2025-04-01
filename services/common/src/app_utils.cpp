@@ -506,61 +506,61 @@ bool AppUtils::IsSystemReasonMessage(const std::string &reasonMessage)
     return systemReasonMessagesSet.find(reasonMessage) != systemReasonMessagesSet.end();
 }
 
-    bool AppUtils::IsCacheAbilityEnabled()
-    {
-        return system::GetBoolParameter(CACHE_ABILITY_BY_LIST_ENABLE, false);
+bool AppUtils::IsCacheAbilityEnabled()
+{
+    return system::GetBoolParameter(CACHE_ABILITY_BY_LIST_ENABLE, false);
+}
+
+void AppUtils::LoadCacheAbilityList()
+{
+    nlohmann::json object;
+    if (!JsonUtils::GetInstance().LoadConfiguration(CACHE_ABILITY_LIST_PATH, object, CACHE_ABILITY_LIST_PATH)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "load cache_ability file failed");
+        return;
+    }
+    if (!object.contains(CACHE_PROCESS_NAME) ||
+        !object.at(CACHE_PROCESS_NAME).is_array()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "cache_ability file invalid");
+        return;
     }
 
-    void AppUtils::LoadCacheAbilityList()
-    {
-        nlohmann::json object;
-        if (!JsonUtils::GetInstance().LoadConfiguration(CACHE_ABILITY_LIST_PATH, object, CACHE_ABILITY_LIST_PATH)) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "load cache_ability file failed");
+    for (auto &item : object.at(CACHE_PROCESS_NAME).items()) {
+        const nlohmann::json& jsonObject = item.value();
+        if (!jsonObject.contains(BUNDLE_NAME) || !jsonObject.at(BUNDLE_NAME).is_string()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "load cache_ability bundleName failed");
             return;
         }
-        if (!object.contains(CACHE_PROCESS_NAME) ||
-            !object.at(CACHE_PROCESS_NAME).is_array()) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "cache_ability file invalid");
+        if (!jsonObject.contains(ABILITY_NAME) || !jsonObject.at(ABILITY_NAME).is_string()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "load cache_ability abilityName failed");
             return;
         }
+        std::string bundleName = jsonObject.at(BUNDLE_NAME).get<std::string>();
+        std::string abilityName = jsonObject.at(ABILITY_NAME).get<std::string>();
+        cacheAbilityList_.value.emplace_back(std::make_pair(bundleName, abilityName));
+    }
+}
 
-        for (auto &item : object.at(CACHE_PROCESS_NAME).items()) {
-            const nlohmann::json& jsonObject = item.value();
-            if (!jsonObject.contains(BUNDLE_NAME) || !jsonObject.at(BUNDLE_NAME).is_string()) {
-                TAG_LOGE(AAFwkTag::ABILITYMGR, "load cache_ability bundleName failed");
-                return;
-            }
-            if (!jsonObject.contains(ABILITY_NAME) || !jsonObject.at(ABILITY_NAME).is_string()) {
-                TAG_LOGE(AAFwkTag::ABILITYMGR, "load cache_ability abilityName failed");
-                return;
-            }
-            std::string bundleName = jsonObject.at(BUNDLE_NAME).get<std::string>();
-            std::string abilityName = jsonObject.at(ABILITY_NAME).get<std::string>();
-            cacheAbilityList_.value.emplace_back(std::make_pair(bundleName, abilityName));
-        }
+bool AppUtils::IsCacheExtensionAbilityByList(const std::string& bundleName, const std::string& abilityName)
+{
+    /* only load once */
+    if (!cacheAbilityList_.isLoaded) {
+        LoadCacheAbilityList();
+        cacheAbilityList_.isLoaded = true;
     }
 
-    bool AppUtils::IsCacheExtensionAbilityByList(const std::string& bundleName, const std::string& abilityName)
-    {
-        /* only load once */
-        if (!cacheAbilityList_.isLoaded) {
-            LoadCacheAbilityList();
-            cacheAbilityList_.isLoaded = true;
-        }
-
-        if (cacheAbilityList_.value.size() == 0 || !IsCacheAbilityEnabled()) {
-            return false;
-        }
-
-        for (auto &element : cacheAbilityList_.value) {
-            if (bundleName == element.first && abilityName == element.second) {
-                TAG_LOGI(AAFwkTag::DEFAULT, "cache_ability: %{public}s, %{public}s",
-                         bundleName.c_str(), abilityName.c_str());
-                return true;
-            }
-        }
+    if (cacheAbilityList_.value.size() == 0 || !IsCacheAbilityEnabled()) {
         return false;
     }
+
+    for (auto &element : cacheAbilityList_.value) {
+        if (bundleName == element.first && abilityName == element.second) {
+            TAG_LOGI(AAFwkTag::DEFAULT, "cache_ability: %{public}s, %{public}s",
+                        bundleName.c_str(), abilityName.c_str());
+            return true;
+        }
+    }
+    return false;
+}
 
 }  // namespace AAFwk
 }  // namespace OHOS
