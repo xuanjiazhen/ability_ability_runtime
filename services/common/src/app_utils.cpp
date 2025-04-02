@@ -555,7 +555,7 @@ bool AppUtils::IsCacheExtensionAbilityByList(const std::string& bundleName, cons
     for (auto &element : cacheAbilityList_.value) {
         if (bundleName == element.first && abilityName == element.second) {
             TAG_LOGI(AAFwkTag::DEFAULT, "cache_ability: %{public}s, %{public}s",
-                        bundleName.c_str(), abilityName.c_str());
+                bundleName.c_str(), abilityName.c_str());
             return true;
         }
     }
