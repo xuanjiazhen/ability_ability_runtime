@@ -1530,7 +1530,7 @@ group("extension_module") {
     deps += [ ":form_extension_module" ]
   }
   if (ability_runtime_photo_editor_extension) {
-    deps += [ ":photo_editor_extension_module" ]
+    external_deps = [ "app_extension:photo_editor_extension_module" ]
   }
   if (ability_runtime_share_extension) {
     deps += [ ":share_extension_module" ]
@@ -2368,65 +2368,6 @@ config("photo_editor_extension_config") {
   ]
 }
 
-ohos_shared_library("photo_editor_extension") {
-  sanitize = {
-    integer_overflow = true
-    ubsan = true
-    boundary_sanitize = true
-    cfi = true
-    cfi_cross_dso = true
-    cfi_vcall_icall_only = true
-    debug = false
-  }
-  configs = [ ":photo_editor_extension_config" ]
-
-  sources = [
-    "${ability_runtime_native_path}/ability/native/photo_editor_extension_ability/js_photo_editor_extension.cpp",
-    "${ability_runtime_native_path}/ability/native/photo_editor_extension_ability/js_photo_editor_extension_context.cpp",
-    "${ability_runtime_native_path}/ability/native/photo_editor_extension_ability/js_photo_editor_extension_impl.cpp",
-    "${ability_runtime_native_path}/ability/native/photo_editor_extension_ability/photo_editor_extension.cpp",
-    "${ability_runtime_native_path}/ability/native/photo_editor_extension_ability/photo_editor_extension_context.cpp",
-  ]
-
-  deps = [
-    ":abilitykit_native",
-    ":extensionkit_native",
-    ":ui_extension",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
-    "${ability_runtime_native_path}/ability:ability_context_native",
-    "${ability_runtime_native_path}/ability/native:ability_business_error",
-    "${ability_runtime_native_path}/appkit:app_context",
-  ]
-
-  external_deps = [
-    "ability_base:want",
-    "ability_base:zuri",
-    "app_file_service:fileuri_native",
-    "c_utils:utils",
-    "eventhandler:libeventhandler",
-    "hilog:libhilog",
-    "hitrace:hitrace_meter",
-    "image_framework:image",
-    "image_framework:image_native",
-    "ipc:ipc_napi",
-    "ipc:ipc_single",
-    "napi:ace_napi",
-  ]
-
-  if (cj_frontend) {
-    sources += [ "${ability_runtime_native_path}/ability/native/photo_editor_extension_ability/cj_photo_editor_extension_instance.cpp" ]
-  }
-
-  if (ability_runtime_graphics) {
-    external_deps += [ "window_manager:libwm" ]
-  }
-
-  subsystem_name = "ability"
-  part_name = "ability_runtime"
-}
-
 ohos_shared_library("cj_photo_editor_extension") {
   sanitize = {
     integer_overflow = true
@@ -2450,7 +2391,6 @@ ohos_shared_library("cj_photo_editor_extension") {
     ":cj_extensionkit_native",
     ":cj_ui_extension",
     ":extensionkit_native",
-    ":photo_editor_extension",
     ":ui_extension",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/runtime:runtime",
@@ -2464,6 +2404,7 @@ ohos_shared_library("cj_photo_editor_extension") {
   external_deps = [
     "ability_base:want",
     "ability_base:zuri",
+    "app_extension:photo_editor_extension",
     "app_file_service:fileuri_native",
     "c_utils:utils",
     "eventhandler:libeventhandler",
@@ -2481,49 +2422,6 @@ ohos_shared_library("cj_photo_editor_extension") {
     external_deps += [ "window_manager:libwm" ]
   }
 
-  subsystem_name = "ability"
-  part_name = "ability_runtime"
-}
-
-ohos_shared_library("photo_editor_extension_module") {
-  sanitize = {
-    integer_overflow = true
-    ubsan = true
-    boundary_sanitize = true
-    cfi = true
-    cfi_cross_dso = true
-    cfi_vcall_icall_only = true
-    debug = false
-  }
-
-  sources = [ "${ability_runtime_native_path}/ability/native/photo_editor_extension_ability/photo_editor_extension_module_loader.cpp" ]
-
-  configs = [ ":photo_editor_extension_config" ]
-
-  deps = [
-    ":photo_editor_extension",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-  ]
-
-  external_deps = [
-    "ability_base:configuration",
-    "ability_base:session_info",
-    "ability_base:want",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
-    "c_utils:utils",
-    "eventhandler:libeventhandler",
-    "hilog:libhilog",
-    "ipc:ipc_core",
-    "ipc:ipc_napi",
-    "napi:ace_napi",
-  ]
-
-  if (ability_runtime_graphics) {
-    external_deps += [ "window_manager:libwm" ]
-  }
-
-  relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }
