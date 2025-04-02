@@ -628,7 +628,7 @@ void JsRuntime::PostPreload(const Options& options)
     }
     if (options.isErrorInfoEnhance) {
         TAG_LOGD(AAFwkTag::JSRUNTIME, "Start Error-Info-Enhance Mode: %{public}d.", options.isErrorInfoEnhance);
-        panda::JSNApi::SetErrorInfoEnhance();
+        panda::JSNApi::SetErrorInfoEnhance(vm);
     }
     bool profileEnabled = OHOS::system::GetBoolParameter("ark.profile", false);
     postOption.SetEnableProfile(profileEnabled);
@@ -816,7 +816,7 @@ bool JsRuntime::CreateJsEnv(const Options& options)
 
     if (options.isErrorInfoEnhance) {
         TAG_LOGD(AAFwkTag::JSRUNTIME, "Start Error Info Enhance Mode: %{public}d.", options.isErrorInfoEnhance);
-        panda::JSNApi::SetErrorInfoEnhance();
+        panda::JSNApi::SetErrorInfoEnhance(vm);
     }
 
     if (IsUseAbilityRuntime(options)) {
