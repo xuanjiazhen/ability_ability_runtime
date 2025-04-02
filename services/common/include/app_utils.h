@@ -277,7 +277,7 @@ public:
      * @param abilityName The ability name.
      * @return Whether it allows cache extensionability.
      */
-     bool IsCacheExtensionAbilityByList(const std::string& bundleName, const std::string& abilityName);
+    bool IsCacheExtensionAbilityByList(const std::string& bundleName, const std::string& abilityName);
 
     /**
      * IsSystemReasonMessage, check if it supports launch reason message.
