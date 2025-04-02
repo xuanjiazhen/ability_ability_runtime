@@ -23,14 +23,12 @@
 #include "ability_context.h"
 #include "configuration.h"
 #include "sts_runtime.h"
-#include "ohos_application.h"
 #include "sts_free_install_observer.h"
 
 class STSNativeReference;
 
 namespace OHOS {
 namespace AbilityRuntime {
-using OHOSApplication = AppExecFwk::OHOSApplication;
 class StsAbilityContext final {
 public:
     static StsAbilityContext &GetInstance()
@@ -78,7 +76,7 @@ bool SetAbilityInfo(ani_env *env, ani_class cls, ani_object contextObj, const st
 bool SetConfiguration(
     ani_env *env, ani_class cls, ani_object contextObj, const std::shared_ptr<AbilityContext> &context);
 ani_ref CreateStsAbilityContext(
-    ani_env *env, const std::shared_ptr<AbilityContext> &context, const std::shared_ptr<OHOSApplication> &application);
+    ani_env *env, const std::shared_ptr<AbilityContext> &context, void *applicationCtx);
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_SIMULATOR_STS_ABILITY_CONTEXT_H

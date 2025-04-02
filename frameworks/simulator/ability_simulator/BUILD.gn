@@ -53,11 +53,24 @@ ohos_shared_library("ability_simulator_inner") {
         "NOGDI",
       ]
     }
+    if (is_linux) {
+      defines = [
+        "LINUX_PLATFORM",
+      ]
+    }
 
     cflags = [ "-std=c++17" ]
 
     include_dirs = [
+        "${ability_runtime_path}/frameworks/simulator/ability_simulator/include",
+    ]
+    include_dirs += [
       "${ability_runtime_path}/interfaces/kits/native/ability/native/ability_business_error",
+
+      "${ability_runtime_path}/sts_environment/interfaces/inner_api",
+#      "${ability_runtime_path}/sts_environment/interfaces/inner_api/runtime/include",
+      "${ability_runtime_path}/interfaces/kits/native/ability/native/ability_runtime",
+
       "${ability_runtime_native_path}/runtime",
       "${ability_runtime_innerkits_path}/ability_manager/include",
       "${ability_runtime_innerkits_path}/runtime/include",
@@ -97,6 +110,11 @@ ohos_shared_library("ability_simulator_inner") {
       "src/resource_manager_addon.cpp",
       "src/simulator.cpp",
     ]
+    if (is_linux) {
+      sources += [
+        "src/dynamic_loader_linux.cpp",
+      ]
+    }
 
     public_configs = [
       ":ability_simulator_public_config",
@@ -116,6 +134,7 @@ ohos_shared_library("ability_simulator_inner") {
       "json:nlohmann_json_static",
       "jsoncpp:jsoncpp_static",
       "napi:ace_napi",
+      "runtime_core:ani",
     ]
 
     if (ability_runtime_graphics) {
