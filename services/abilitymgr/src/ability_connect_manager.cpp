@@ -1267,6 +1267,7 @@ void AbilityConnectManager::HandleCommandDestroy(const sptr<SessionInfo> &sessio
     }
     if (sessionInfo->sessionToken) {
         if (isExitServiceMap) {
+            TAG_LOGW(AAFwkTag::UI_EXT, "abilityRecord still exists");
             return;
         }
         RemoveUIExtWindowDeathRecipient(sessionInfo->sessionToken);
