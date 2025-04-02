@@ -51,7 +51,6 @@ uint32_t IPCSkeleton::SetCallingTokenID(pid_t tokenId)
 bool IPCSkeleton::SetCallingIdentity(std::string &identity)
 {
     return true;
-
 }
 
 bool IPCSkeleton::SetMaxWorkThreadNum(int maxThreadNum)
