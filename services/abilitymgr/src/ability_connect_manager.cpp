@@ -1244,9 +1244,13 @@ int AbilityConnectManager::ScheduleCommandAbilityWindowDone(
                                std::to_string(sessionInfo->persistentId) + std::string("_") + std::to_string(winCmd);
         taskHandler_->CancelTask(taskName);
     }
-
+    bool isExitServiceMap = false;
+    auto serviceMapIter = serviceMap_.find(element);
+    if (!serviceMapIter == serviceMap_.end()) {
+        isExitServiceMap = true;
+    }
     if (winCmd == WIN_CMD_DESTROY) {
-        HandleCommandDestroy(sessionInfo);
+        HandleCommandDestroy(sessionInfo, isExitServiceMap);
     }
 
     abilityRecord->SetAbilityWindowState(sessionInfo, winCmd, true);
@@ -1255,13 +1259,16 @@ int AbilityConnectManager::ScheduleCommandAbilityWindowDone(
     return ERR_OK;
 }
 
-void AbilityConnectManager::HandleCommandDestroy(const sptr<SessionInfo> &sessionInfo)
+void AbilityConnectManager::HandleCommandDestroy(const sptr<SessionInfo> &sessionInfo, bool isExitServiceMap)
 {
     if (sessionInfo == nullptr) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "null sessionInfo");
         return;
     }
     if (sessionInfo->sessionToken) {
+        if (isExitServiceMap) {
+            return;
+        }
         RemoveUIExtWindowDeathRecipient(sessionInfo->sessionToken);
         size_t ret = 0;
         {

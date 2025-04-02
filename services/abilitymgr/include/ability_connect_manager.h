@@ -478,7 +478,7 @@ private:
     void HandleRestartResidentTask(const AbilityRequest &abilityRequest);
     void HandleActiveAbility(std::shared_ptr<AbilityRecord> &targetService,
         std::shared_ptr<ConnectionRecord> &connectRecord);
-    void HandleCommandDestroy(const sptr<SessionInfo> &sessionInfo);
+    void HandleCommandDestroy(const sptr<SessionInfo> &sessionInfo, bool isExitServiceMap);
     void TerminateOrCacheAbility(std::shared_ptr<AbilityRecord> abilityRecord);
 
     /**
