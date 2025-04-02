@@ -47,4 +47,67 @@ uint32_t IPCSkeleton::SetCallingTokenID(pid_t tokenId)
 {
     return tokenId_ = tokenId;
 }
+
+bool IPCSkeleton::SetCallingIdentity(std::string &identity)
+{
+    return true;
+
+}
+
+bool IPCSkeleton::SetMaxWorkThreadNum(int maxThreadNum)
+{
+    return true;
+}
+
+void IPCSkeleton::JoinWorkThread()
+{
+    return;
+}
+
+void IPCSkeleton::StopWorkThread()
+{
+    return;
+}
+
+std::string IPCSkeleton::GetLocalDeviceID()
+{
+    return "";
+}
+
+std::string IPCSkeleton::GetCallingDeviceID()
+{
+    return "";
+}
+
+bool IPCSkeleton::IsLocalCalling()
+{
+    return true;
+}
+
+IPCSkeleton &IPCSkeleton::GetInstance()
+{
+    IPCSkeleton ipcskeleton;
+    return ipcskeleton;
+}
+
+sptr<IRemoteObject> IPCSkeleton::GetContextObject()
+{
+    return nullptr;
+}
+
+bool IPCSkeleton::SetContextObject(sptr<IRemoteObject> &object)
+{
+    return true;
+}
+
+int IPCSkeleton::FlushCommands(IRemoteObject *object)
+{
+    return 0;
+}
+
+std::string IPCSkeleton::ResetCallingIdentity()
+{
+    return "";
+}
 }  // namespace OHOS
+
