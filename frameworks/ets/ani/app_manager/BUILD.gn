@@ -26,6 +26,7 @@ ohos_shared_library("ability_app_manager_ani_kit") {
 
   include_dirs = [
     "./include",
+    "./../enum_convert",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/app",
     "${ability_runtime_services_path}/common/include",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
@@ -36,7 +37,10 @@ ohos_shared_library("ability_app_manager_ani_kit") {
 
   public_configs = []
 
-  sources = [ "./src/sts_app_manager.cpp" ]
+  sources = [
+    "./src/sts_app_manager.cpp",
+    "./src/sts_app_manager_utils.cpp",
+  ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -48,6 +52,7 @@ ohos_shared_library("ability_app_manager_ani_kit") {
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
   ]
 
   external_deps = [

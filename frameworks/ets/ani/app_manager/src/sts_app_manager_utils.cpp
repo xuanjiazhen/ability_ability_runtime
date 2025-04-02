@@ -1,0 +1,281 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "sts_app_manager_utils.h"
+#include "ani_common_util.h"
+#include "ani_enum_convert.h"
+
+namespace OHOS {
+namespace AppManagerSts {
+    using namespace OHOS;
+    using namespace AppExecFwk;
+    bool createDouble(ani_env *env, ani_double value, ani_object &outObj)
+    {
+        ani_class cls;
+        ANI_FAILED_AND_RETURN(env->FindClass("Lstd/core/Double;", &cls));
+        ani_method ctor;
+        ANI_FAILED_AND_RETURN(env->Class_FindMethod(cls, "<ctor>", "D:V", &ctor));
+        ANI_FAILED_AND_RETURN(env->Object_New(cls, ctor, &outObj, value));
+        return true;
+    }
+
+    ProcessState ConvertToProcessState(
+        const AppExecFwk::AppProcessState &appProcessState, const bool &isFocused) {
+        ProcessState processState;
+        switch (appProcessState)
+        {
+        case AppExecFwk::AppProcessState::APP_STATE_CREATE:
+        case AppExecFwk::AppProcessState::APP_STATE_READY:
+            processState = ProcessState::STATE_CREATE;
+            break;
+        case AppExecFwk::AppProcessState::APP_STATE_FOREGROUND:
+            processState = isFocused ? ProcessState::STATE_ACTIVE : ProcessState::STATE_FOREGROUND;
+            break;
+        case AppExecFwk::AppProcessState::APP_STATE_BACKGROUND:
+            processState = ProcessState::STATE_BACKGROUND;
+            break;
+        case AppExecFwk::AppProcessState::APP_STATE_TERMINATED:
+        case AppExecFwk::AppProcessState::APP_STATE_END:
+            processState = ProcessState::STATE_DESTROY;
+            break;
+        default:
+            processState = ProcessState::STATE_DESTROY;
+            break;
+        }
+        return processState;
+    }
+
+    bool CreateClassObjByClassName(ani_env *env, const char *className, ani_class &cls, ani_object &outAniObj)
+    {
+        ANI_FAILED_AND_RETURN(env->FindClass(className, &cls));
+        ani_method ctor;
+        ANI_FAILED_AND_RETURN(env->Class_FindMethod(cls, "<ctor>", nullptr, &ctor));
+        outAniObj = {};
+        ANI_FAILED_AND_RETURN(env->Object_New(cls, ctor, &outAniObj));
+        return true;
+    }
+
+    bool ConvertToAniProcessInfo(ani_env *env, const RunningProcessInfo &processInfo, ani_object &outAniObj)
+    {
+        ani_class cls;
+        if (!CreateClassObjByClassName(env, processInfoClassName, cls, outAniObj)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "CreateClassObjByClassName Faild");
+            return false;
+        }
+        if (!SetFieldDouble(env, cls, outAniObj, "pid", processInfo.pid_)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniProcessInfo  set pid Faild");
+            return false;
+        }
+        if (!SetFieldDouble(env, cls, outAniObj, "uid", processInfo.uid_)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniProcessInfo  set uid Faild");
+            return false;
+        }
+        if (!SetFieldString(env, cls, outAniObj, "processName", processInfo.processName_)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniProcessInfo  set processName Faild");
+            return false;
+        }
+        ani_enum_item processInfoState {};
+        OHOS::AAFwk::AniEnumConvertUtil::EnumConvert_NativeToSts(env, ProcessStateEnumName,
+                ConvertToProcessState(processInfo.state_, processInfo.isFocused), processInfoState);
+        if(!SetFieldRef(env, cls, outAniObj, "state", processInfoState)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniProcessInfo  set state Faild");
+            return false;
+        }
+        if (!SetFieldArrayString(env, cls, outAniObj, "bundleNames", processInfo.bundleNames)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniProcessInfo  set bundleNames Faild");
+            return false;
+        }
+        ani_object obj;
+        if (createDouble(env, processInfo.appCloneIndex, obj)) {
+            if (!SetFieldRef(env, cls, outAniObj, "appCloneIndex", static_cast<ani_ref>(obj))) {
+                TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniProcessInfo  set appCloneIndex Faild");
+            }
+        }
+        return true;
+    }
+
+    bool ConvertToAniProcessData(ani_env *env, const ProcessData &processData, ani_object &outAniObj)
+    {
+        ani_class cls;
+        if (!CreateClassObjByClassName(env, processDataClassName, cls, outAniObj)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "CreateClassObjByClassName Faild");
+            return false;
+        }
+        if (!SetFieldString(env, cls, outAniObj, "bundleName", processData.bundleName)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniProcessData  set bundleName Faild");
+            return false;
+        }
+        if (!SetFieldDouble(env, cls, outAniObj, "pid", processData.pid)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniProcessData  set pid Faild");
+            return false;
+        }
+        if (!SetFieldDouble(env, cls, outAniObj, "uid", processData.uid)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniProcessData  set uid Faild");
+            return false;
+        }
+        if (!SetFieldDouble(env, cls, outAniObj, "state",
+                static_cast<double>(ConvertToProcessState(processData.state, processData.isFocused)))) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniProcessData  set state Faild");
+            return false;
+        }
+        if (!SetFieldBoolean(env, cls, outAniObj, "isContinuousTask", processData.isContinuousTask)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniProcessData  set isContinuousTask Faild");
+            return false;
+        }
+        if (!SetFieldBoolean(env, cls, outAniObj, "isKeepAlive", processData.isKeepAlive)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniProcessData  set isKeepAlive Faild");
+            return false;
+        }
+        return true;
+    }
+
+    bool ConvertToAniAbilityStateData(ani_env *env, const AbilityStateData &abilityStateData, ani_object &outAniObj)
+    {
+        ani_class cls;
+        if (!CreateClassObjByClassName(env, abilityStateDataClassName, cls, outAniObj)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "CreateClassObjByClassName Faild");
+            return false;
+        }
+        if (!SetFieldString(env, cls, outAniObj, "moduleName", abilityStateData.moduleName)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniAbilityStateData  set bundleName Faild");
+            return false;
+        }
+        if (!SetFieldString(env, cls, outAniObj, "bundleName", abilityStateData.bundleName)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniAbilityStateData  set bundleName Faild");
+            return false;
+        }
+        if (!SetFieldString(env, cls, outAniObj, "abilityName", abilityStateData.abilityName)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniAbilityStateData  set abilityName Faild");
+            return false;
+        }
+        if (!SetFieldDouble(env, cls, outAniObj, "pid", abilityStateData.pid)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniAbilityStateData  set pid Faild");
+            return false;
+        }
+        if (!SetFieldDouble(env, cls, outAniObj, "uid", abilityStateData.uid)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniAbilityStateData  set uid Faild");
+            return false;
+        }
+        if (!SetFieldDouble(env, cls, outAniObj, "state", abilityStateData.abilityState)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniAbilityStateData  set state Faild");
+            return false;
+        }
+        if (!SetFieldDouble(env, cls, outAniObj, "abilityType", abilityStateData.abilityType)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniAbilityStateData  set abilityType Faild");
+            return false;
+        }
+        if (!SetFieldBoolean(env, cls, outAniObj, "isAtomicService", abilityStateData.isAtomicService)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniAbilityStateData  set isAtomicService Faild");
+            return false;
+        }
+        ani_object obj;
+        if (createDouble(env, abilityStateData.appCloneIndex, obj)) {
+            if (!SetFieldRef(env, cls, outAniObj, "appCloneIndex", static_cast<ani_ref>(obj))) {
+                TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniAbilityStateData  set appCloneIndex Faild");
+            }
+        }
+        return true;
+    }
+
+    bool ConvertToAniAppStateData(ani_env *env, const AppStateData &appStateData, ani_object &outAniObj)
+    {
+        ani_class cls;
+        if (!CreateClassObjByClassName(env, appStateDataClassName, cls, outAniObj)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "CreateClassObjByClassName Faild");
+            return false;
+        }
+        if (!SetFieldString(env, cls, outAniObj, "bundleName", appStateData.bundleName)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniAppStateData  set bundleName Faild");
+            return false;
+        }
+        if (!SetFieldDouble(env, cls, outAniObj, "uid", appStateData.uid)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniAppStateData  set abilityType Faild");
+            return false;
+        }
+        if (!SetFieldDouble(env, cls, outAniObj, "state", appStateData.state)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniAppStateData  set abilityType Faild");
+            return false;
+        }
+        if (!SetFieldBoolean(env, cls, outAniObj, "isSplitScreenMode", appStateData.isSplitScreenMode)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniAppStateData  set isSplitScreenMode Faild");
+            return false;
+        }
+        if (!SetFieldBoolean(env, cls, outAniObj, "isFloatingWindowMode", appStateData.isFloatingWindowMode)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniAppStateData  set isFloatingWindowMode Faild");
+            return false;
+        }
+        return true;
+    }
+
+    ani_object newArrayClass(ani_env *env, int length)
+    {
+        ani_class arrayCls = nullptr;
+        if (ANI_OK != env->FindClass("Lescompat/Array;", &arrayCls)){
+            TAG_LOGD(AAFwkTag::DELEGATOR, "FindClass Lescompat/Array; Failed");
+            return nullptr;
+        }
+        ani_method arrayCtor;
+        if(ANI_OK != env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor)){
+            TAG_LOGD(AAFwkTag::DELEGATOR, "Class_FindMethod <ctor> Failed");
+            return nullptr;
+        }
+        ani_object arrayObj = nullptr;
+        if(ANI_OK != env->Object_New(arrayCls, arrayCtor, &arrayObj, length)){
+            TAG_LOGD(AAFwkTag::DELEGATOR, "Object_New Array Faild");
+            return arrayObj;
+        }
+        return arrayObj;
+    }
+
+    bool ConvertToStdVectorString(ani_env *env, const ani_object &ani_obj, std::vector<std::string> &std_Vstring)
+    {
+        ani_double length;
+        ANI_FAILED_AND_RETURN(env->Object_GetPropertyByName_Double(ani_obj, "length", &length));
+        for(int i = 0; i < int(length); i++) {
+            ani_ref stringEntryRef;
+            ANI_FAILED_AND_RETURN(env->Object_CallMethodByName_Ref(ani_obj,
+                "$_get", "I:Lstd/core/Object;", &stringEntryRef, (ani_int)i));
+            std::string std_string;
+            if (!GetStdString(env, static_cast<ani_string>(stringEntryRef), std_string)) {
+                TAG_LOGD(AAFwkTag::DELEGATOR, "GetStdString faild");
+                return false;
+            }
+            std_Vstring.emplace_back(std_string);
+        }
+        return true;
+    }
+
+    bool ConvertToAniArrayProcessInfo(ani_env *env, const std::vector<AppExecFwk::RunningProcessInfo> &infos, ani_object &outAniObj)
+    {
+        outAniObj = newArrayClass(env, infos.size());
+        if (outAniObj == nullptr) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "outAniObj is null, newArrayClass Faild");
+            return false;
+        }
+        int index = 0;
+        for (auto &it : infos) {
+            ani_object infoObj;
+            if (!ConvertToAniProcessInfo(env, it, infoObj)) {
+                TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniProcessInfo Faild");
+                return false;
+            }
+            ANI_FAILED_AND_RETURN(env->Object_CallMethodByName_Void(outAniObj,
+                "$_set", "ILstd/core/Object;:V", index, infoObj));
+            index++;
+        }
+        return true;
+    }
+} // namespace AppManagerSts
+} // namespace OHOS
