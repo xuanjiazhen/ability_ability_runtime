@@ -27,7 +27,6 @@ ohos_unittest("ui_ability_lifecycle_manager_test") {
     "${ability_runtime_services_path}/abilitymgr/include/scene_board/",
     "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/ability_scheduler_mock",
     "mock/include",
-    "mock/include/ipc_skeleton.cpp",
   ]
 
   public_configs =
@@ -46,6 +45,7 @@ ohos_unittest("ui_ability_lifecycle_manager_test") {
     "${ability_runtime_services_path}/abilitymgr/src/scene_board/ui_ability_lifecycle_manager.cpp",
     "${ability_runtime_services_path}/common/src/event_report.cpp",
     "ui_ability_lifecycle_manager_test.cpp",
+    "mock/include/ipc_skeleton.cpp",
   ]
 
   deps = [
