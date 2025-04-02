@@ -3540,8 +3540,7 @@ std::shared_ptr<AbilityRecord> AbilityConnectManager::GetUIExtensionBySessionFro
 {
     int32_t persistentId = sessionInfo->persistentId;
     auto IsMatch = [persistentId](auto service) {
-        if (!service.second)
-        {
+        if (!service.second) {
             return false;
         }
         int32_t srcPersistentId = service.second->GetSessionInfo()->persistentId;
