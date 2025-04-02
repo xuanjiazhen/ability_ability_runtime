@@ -44,7 +44,6 @@ constexpr const char* UIEXTENSION_TARGET_TYPE_KEY = "ability.want.params.uiExten
 constexpr const char* FLAG_AUTH_READ_URI_PERMISSION = "ability.want.params.uriPermissionFlag";
 constexpr const char* DISPOSED_PROHIBIT_BACK = "APPGALLERY_APP_DISPOSED_PROHIBIT_BACK";
 constexpr const char* IS_WINDOWMODE_FOLLOWHOST = "ohos.uec.params.isWindowModeFollowHost";
-constexpr const char* USE_GLOBAL_CONTENT = "ohos.uec.params.useGlobalContent";
 
 struct RequestResult {
     int32_t resultCode {0};
@@ -1049,7 +1048,7 @@ ErrCode AbilityContextImpl::StartAbilityByType(const std::string &type,
     };
 
     Ace::ModalUIExtensionConfig config;
-    int32_t sessionId = uiContent->IExtension(want, callback, config);
+    int32_t sessionId = uiContent->CreateModalUIExtension(want, callback, config);
     if (sessionId == 0) {
         TAG_LOGE(AAFwkTag::CONTEXT, "createModalUIExtension failed");
         return ERR_INVALID_VALUE;
@@ -1091,7 +1090,7 @@ ErrCode AbilityContextImpl::CreateModalUIExtensionWithApp(const AAFwk::Want &wan
         TAG_LOGE(AAFwkTag::CONTEXT, "null uiContent");
         return ERR_INVALID_VALUE;
     }
-    if (IsUIExtensionExist(want) && !want.GetBoolParam(USE_GLOBAL_CONTENT, false)) {
+    if (IsUIExtensionExist(want)) {
         TAG_LOGD(AAFwkTag::CONTEXT, "exist uIExtension");
         return ERR_OK;
     }
@@ -1118,8 +1117,7 @@ ErrCode AbilityContextImpl::CreateModalUIExtensionWithApp(const AAFwk::Want &wan
     }
     if (want.HasParameter(IS_WINDOWMODE_FOLLOWHOST)) {
         config.isWindowModeFollowHost = want.GetBoolParam(IS_WINDOWMODE_FOLLOWHOST, false);
-    }
-    
+    }   
     int32_t sessionId = uiContent->CreateModalUIExtension(want, callback, config);
     if (sessionId == 0) {
         TAG_LOGE(AAFwkTag::CONTEXT, "failed");
