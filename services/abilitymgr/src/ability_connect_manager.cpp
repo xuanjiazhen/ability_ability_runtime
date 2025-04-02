@@ -768,7 +768,7 @@ int AbilityConnectManager::DisconnectAbilityLocked(const sptr<IAbilityConnection
             }
 
             result = DisconnectRecordNormal(list, connectRecord, callerDied);
-            if (callerDied) {
+            if (result != ERR_OK && callerDied) {
                 DisconnectRecordForce(list, connectRecord);
                 result = ERR_OK;
             }
