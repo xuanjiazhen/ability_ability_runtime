@@ -277,5 +277,26 @@ namespace AppManagerSts {
         }
         return true;
     }
+
+    bool ConvertToAniAppStateDataArray(ani_env *env, const std::vector<AppExecFwk::AppStateData> &infos, ani_object &outAniObj)
+    {
+        outAniObj = newArrayClass(env, infos.size());
+        if (outAniObj == nullptr) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "outAniObj is null, newArrayClass Faild");
+            return false;
+        }
+        int index = 0;
+        for (auto &it : infos) {
+            ani_object infoObj;
+            if (!ConvertToAniProcessInfo(env, it, infoObj)) {
+                TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniProcessInfo Faild");
+                return false;
+            }
+            ANI_FAILED_AND_RETURN(env->Object_CallMethodByName_Void(outAniObj,
+                "$_set", "ILstd/core/Object;:V", index, infoObj));
+            index++;
+        }
+        return true;
+    }
 } // namespace AppManagerSts
 } // namespace OHOS

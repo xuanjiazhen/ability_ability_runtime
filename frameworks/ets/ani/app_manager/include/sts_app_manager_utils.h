@@ -90,6 +90,9 @@ using OHOS::AppExecFwk::RunningProcessInfo;
     bool ConvertToAniArrayProcessInfo(ani_env *env, 
         const std::vector<AppExecFwk::RunningProcessInfo> &infos, ani_object &outAniObj);
 
+    bool ConvertToAniAppStateDataArray(ani_env *env, const std::vector<AppExecFwk::AppStateData> &infos,
+            ani_object &outAniObj);
+
 #define ANI_FAILED_AND_RETURN(status)                                                    \
 do                                                                                       \
 {                                                                                        \
