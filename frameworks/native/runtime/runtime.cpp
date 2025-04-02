@@ -24,7 +24,8 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-std::unique_ptr<Runtime> g_preloadedInstance;
+// std::unique_ptr<Runtime> g_preloadedInstance;
+std::map<Runtime::Language, std::unique_ptr<Runtime>> g_preloadedInstances;
 }
 
 std::vector<std::unique_ptr<Runtime>> Runtime::CreateRuntimes(Runtime::Options& options)
@@ -78,18 +79,40 @@ std::unique_ptr<Runtime> Runtime::Create(Runtime::Options& options)
     }
 }
 
-void Runtime::SavePreloaded(std::unique_ptr<Runtime>&& instance)
-{
+// void Runtime::SavePreloaded(std::unique_ptr<Runtime>&& instance)
+// {
+//     if (instance) {
+//         instance->FinishPreload();
+//     }
+//     g_preloadedInstance = std::move(instance);
+// }
+
+// std::unique_ptr<Runtime> Runtime::GetPreloaded()
+// {
+//     return std::move(g_preloadedInstance);
+// }
+
+void Runtime::SavePreloaded(Language key, std::unique_ptr<Runtime>&& instance) {
     if (instance) {
         instance->FinishPreload();
     }
-    g_preloadedInstance = std::move(instance);
+
+    auto it = g_preloadedInstances.find(key);
+    if (it != g_preloadedInstances.end()) {
+        g_preloadedInstances.erase(it);
+    }
+
+    g_preloadedInstances.emplace(key, std::move(instance));
 }
 
-std::unique_ptr<Runtime> Runtime::GetPreloaded()
-{
-    return std::move(g_preloadedInstance);
-}
+std::unique_ptr<Runtime> Runtime::GetPreloaded(Language key) {
+    auto it = g_preloadedInstances.find(key);
+    if (it == g_preloadedInstances.end()) {
+        return nullptr;
+    }
 
+    auto instance = std::move(it->second);
+    return instance;
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

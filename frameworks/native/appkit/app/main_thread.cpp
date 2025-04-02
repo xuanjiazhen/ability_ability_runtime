@@ -1595,6 +1595,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         }
         // need vm support
         if (appLaunchData.IsNeedPreloadModule()) {
+            TAG_LOGI(AAFwkTag::APPKIT, "[ccc] app need preload");
             for(auto &runtime : application_->GetRuntime()) {
                 PreloadModule(entryHapModuleInfo, runtime);
             }
