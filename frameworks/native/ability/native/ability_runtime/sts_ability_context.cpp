@@ -556,7 +556,7 @@ bool SetConfiguration(
 }
 
 ani_ref CreateStsAbilityContext(
-    ani_env *env, const std::shared_ptr<AbilityContext> &context, const std::shared_ptr<OHOSApplication> &application)
+    ani_env *env, const std::shared_ptr<AbilityContext> &context, void *applicationCtx)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
     ani_class cls {};
@@ -569,11 +569,7 @@ ani_ref CreateStsAbilityContext(
         TAG_LOGE(AAFwkTag::UIABILITY, "null contextObj");
         return nullptr;
     }
-    if (application == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null application");
-        return nullptr;
-    }
-    ContextUtil::StsCreatContext(env, cls, contextObj, application->GetApplicationCtxObjRef(), context);
+    ContextUtil::StsCreatContext(env, cls, contextObj, applicationCtx, context);
     if (!SetAbilityInfo(env, cls, contextObj, context)) {
         TAG_LOGE(AAFwkTag::UIABILITY, "SetAbilityInfo failed");
         return nullptr;

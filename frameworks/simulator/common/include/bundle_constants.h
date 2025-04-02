@@ -46,6 +46,10 @@ constexpr const char* HAP_PATH = "hapPath";
 constexpr int32_t INITIAL_APP_INDEX = 0;
 constexpr const char* RELATIVE_PATH = "../";
 constexpr const char* APP_DETAIL_ABILITY = "AppDetailAbility";
+constexpr const char* CODE_LANGUAGE = "codeLanguage";
+constexpr const char* CODE_LANGUAGE_1_1 = "1.1";
+constexpr const char* CODE_LANGUAGE_1_2 = "1.2";
+constexpr const char* CODE_LANGUAGE_HYBRID = "hybrid";
 } // namespace Constants
 } // namespace AppExecFwk
 } // namespace OHOS

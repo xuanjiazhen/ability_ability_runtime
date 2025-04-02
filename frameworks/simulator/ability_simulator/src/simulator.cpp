@@ -24,10 +24,14 @@
 
 #include "ability_context.h"
 #include "ability_stage_context.h"
+#include "ani.h"
+//#include "ani_window_stage.h"
+#include "/data/home/szavyalov/wxspace/feature_branch_new/foundation/window/window_manager/interfaces/kits/ani/window_runtime/window_stage_ani/include/ani_window_stage.h"
 #include "bundle_container.h"
 #include "commonlibrary/ets_utils/js_sys_module/timer/timer.h"
 #include "commonlibrary/ets_utils/js_sys_module/console/console.h"
 #include "declarative_module_preloader.h"
+#include "dynamic_loader.h"
 #include "hilog_tag_wrapper.h"
 #include "js_ability_context.h"
 #include "js_ability_stage_context.h"
@@ -1003,15 +1007,511 @@ void SimulatorImpl::ReportJsError(napi_value obj)
     TAG_LOGE(AAFwkTag::ABILITY_SIM, "summary:\n%{public}s", summary.c_str());
 }
 
+const char BOOT_PATH[] = "/data/home/szavyalov/wxspace/panda/bootpath.json";
+bool LoadBootPathFile(std::string& bootfiles)
+{
+//    bootfiles = "/data/home/szavyalov/wxspace/panda/libs/x86-64/arkoala.abc";
+
+    std::ifstream inFile;
+    inFile.open(BOOT_PATH, std::ios::in);
+    if (!inFile.is_open()) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "read json error");
+        return false;
+    }
+    nlohmann::json jsonObject = nlohmann::json::parse(inFile);
+    if (jsonObject.is_discarded()) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "json discarded error");
+        inFile.close();
+        return false;
+    }
+
+    if (jsonObject.is_null() || jsonObject.empty()) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "invalid json");
+        inFile.close();
+        return false;
+    }
+
+    for (const auto &[key, value] : jsonObject.items()) {
+      if (!value.is_null() && value.is_string()) {
+            std::string jsonValue = value.get<std::string>();
+            TAG_LOGE(AAFwkTag::STSRUNTIME, "[zzz] %{public}s", key.c_str());
+            if (jsonValue.empty()) {
+                TAG_LOGE(AAFwkTag::STSRUNTIME, "json value of %{public}s is empty", key.c_str());
+                continue;
+            }
+            if (!bootfiles.empty()) {
+                bootfiles += ":";
+            }
+            bootfiles += jsonValue.c_str();
+        }
+    }
+    inFile.close();
+    return true;
+}
+
+
+//============================================================================
+
+static ani_class entryClass = nullptr;
+static ani_object entryObject = nullptr;
+static ani_ref entryObjectRef = nullptr;
+
+
+typedef struct EtsVMOption {
+//    EtsOptionType option;
+    const void *extraInfo;
+} EtsVMOption;
+
+
+typedef struct EtsVMInitArgs {
+    int version;
+    int nOptions;
+    EtsVMOption *options;
+} EtsVMInitArgs;
+
+
+struct STSRuntimeAPI {
+    int (*ETS_GetDefaultVMInitArgs)(EtsVMInitArgs *vmArgs);
+    int (*ETS_GetCreatedVMs)(void **vmBuf, size_t bufLen, size_t *nVms);
+    ani_status (*ANI_GetCreatedVMs)(ani_vm **vms_buffer, ani_size vms_buffer_length, ani_size *result);
+    ani_status (*ANI_CreateVM)(const ani_options *options, uint32_t version, ani_vm **result);
+};
+
+static STSRuntimeAPI lazyApis_;
+
+using GetDefaultVMInitArgsSTSRuntimeType = int (*)(EtsVMInitArgs* vmArgs);
+using GetCreatedVMsSTSRuntimeType = int (*)(void** vmBuf, size_t bufLen, size_t* nVms);
+using CreateVMSTSRuntimeType = ani_status (*)(const ani_options *options, uint32_t version, ani_vm **result);
+using ANIGetCreatedVMsType = ani_status (*)(ani_vm **vms_buffer, ani_size vms_buffer_length, ani_size *result);
+
+bool LoadSymbolGetDefaultVMInitArgs(void* handle, STSRuntimeAPI& apis)
+{
+#if defined(LINUX_PLATFORM)
+    auto symbol = dlsym(handle, "ETS_GetDefaultVMInitArgs");
+    if (symbol == nullptr) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "runtime api not found: %{public}s", "ETS_GetDefaultVMInitArgs");
+        return false;
+    }
+    apis.ETS_GetDefaultVMInitArgs = reinterpret_cast<GetDefaultVMInitArgsSTSRuntimeType>(symbol);
+#endif
+    return true;
+}
+
+bool LoadSymbolGetCreatedVMs(void* handle, STSRuntimeAPI& apis)
+{
+#if defined(LINUX_PLATFORM)
+    auto symbol = dlsym(handle, "ETS_GetCreatedVMs");
+    if (symbol == nullptr) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "runtime api not found: %{public}s", "ETS_GetCreatedVMs");
+        return false;
+    }
+    apis.ETS_GetCreatedVMs = reinterpret_cast<GetCreatedVMsSTSRuntimeType>(symbol);
+
+#endif
+    return true;
+}
+
+bool LoadSymbolANIGetCreatedVMs(void* handle, STSRuntimeAPI& apis)
+{
+#if defined(LINUX_PLATFORM)
+    auto symbol = dlsym(handle, "ANI_GetCreatedVMs");
+    if (symbol == nullptr) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "runtime api not found: %{public}s", "ANI_GetCreatedVMs");
+        return false;
+    }
+    apis.ANI_GetCreatedVMs = reinterpret_cast<ANIGetCreatedVMsType>(symbol);
+
+#endif
+    return true;
+}
+
+bool LoadSymbolCreateVM(void* handle, STSRuntimeAPI& apis)
+{
+#if defined(LINUX_PLATFORM)
+    auto symbol = dlsym(handle, "ANI_CreateVM");
+    if (symbol == nullptr) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "runtime api not found: %{public}s", "ANI_CreateVM");
+        return false;
+    }
+    apis.ANI_CreateVM = reinterpret_cast<CreateVMSTSRuntimeType>(symbol);
+#endif
+    return true;
+}
+
+bool LoadRuntimeApis()
+{
+#if defined(LINUX_PLATFORM)
+    auto dso = DynamicLoadLibrary("libarkruntime.so", 1);
+    if (!dso) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "load library failed: %{public}s", "libarkruntime.so");
+        return false;
+    }
+    auto dsoEts = DynamicLoadLibrary("libetsnative.so", 1);
+    if (!dso) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "load library failed: %{public}s", "libetsnative.so");
+        return false;
+    }
+
+    TAG_LOGE(AAFwkTag::STSRUNTIME, "[zzz] +loadSymbols");
+    if (!LoadSymbolGetDefaultVMInitArgs(dsoEts, lazyApis_) ||
+        !LoadSymbolGetCreatedVMs(dsoEts, lazyApis_) ||
+        !LoadSymbolCreateVM(dso, lazyApis_) ||
+        !LoadSymbolANIGetCreatedVMs(dso, lazyApis_)) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "load library failed: %{public}s", "LoadSymbolGetDefaultVMInitArgs");
+        return false;
+    }
+    TAG_LOGE(AAFwkTag::STSRUNTIME, "[zzz] -loadSymbols");
+#endif
+    return true;
+}
+
+void CreateStsEnv() {
+    TAG_LOGE(AAFwkTag::STSRUNTIME, "[zzz] +LoadRuntimeApis()");
+    LoadRuntimeApis();
+    TAG_LOGE(AAFwkTag::STSRUNTIME, "[zzz] -LoadRuntimeApis()");
+}
+
+    struct VMEntry {
+        int vmKind;
+//        EtsVM* vm;
+//        EtsEnv* env;
+        void* app;
+        void* enter;
+        void* emitEvent;
+        ani_vm *ani_vm;
+        ani_env *ani_env;
+        VMEntry()
+        {
+            vmKind = 0;
+//            vm = nullptr;
+//            env = nullptr;
+            app = nullptr;
+            enter = nullptr;
+            ani_vm = nullptr;
+            ani_env = nullptr;
+        }
+    };
+
+static VMEntry vmEntry_;
+
+bool StartRuntime() {
+    napi_env napiEnv = nullptr;
+
+    std::string bootfiles;
+    LoadBootPathFile(bootfiles);
+    TAG_LOGE(AAFwkTag::STSRUNTIME, "[zzz] bootfiles, %{public}s", bootfiles.c_str());
+
+    std::vector<ani_option> options;
+
+    const std::string optionPrefix = "--ext:";
+    // Create boot-panda-files options
+    std::string bootString = optionPrefix + "--boot-panda-files=" + bootfiles;
+    TAG_LOGI(AAFwkTag::STSRUNTIME, "bootString %{public}s", bootString.c_str());
+    options.push_back(ani_option{bootString.c_str(), nullptr});
+    std::string schedulingExternal = optionPrefix + "--coroutine-enable-external-scheduling=true";
+    ani_option schedulingExternalOption = {schedulingExternal.data(), nullptr};
+    options.push_back(schedulingExternalOption);
+
+    std::string forbiddenJIT = optionPrefix + "--compiler-enable-jit=false";
+    ani_option forbiddenJITOption = {forbiddenJIT.data(), nullptr};
+    options.push_back(forbiddenJITOption);
+
+    options.push_back(ani_option{"--ext:--log-level=info", nullptr});
+
+    std::string enableVerfication = optionPrefix + "--verification-enabled=true";
+    ani_option enableVerficationOption = {enableVerfication.data(), nullptr};
+    options.push_back(enableVerficationOption);
+
+    std::string verificationMode = optionPrefix + "--verification-mode=on-the-fly";
+    ani_option verificationModeOption = {verificationMode.data(), nullptr};
+    options.push_back(verificationModeOption);
+
+//    std::string interop = optionPrefix + "interop";
+//    ani_option interopOption = {interop.data(), (void*)napiEnv};
+//    options.push_back(interopOption);
+
+    ani_options optionsPtr = {options.size(), options.data()};
+    TAG_LOGE(AAFwkTag::STSRUNTIME, "[zzz] +ANI_CreateVM");
+    auto status = lazyApis_.ANI_CreateVM(&optionsPtr, ANI_VERSION_1, &vmEntry_.ani_vm);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "ANI_CreateVM failed %{public}d", status);
+        return false;
+    }
+    TAG_LOGE(AAFwkTag::STSRUNTIME, "[zzz] -ANI_CreateVM");
+
+    ani_size nrVMs;
+    TAG_LOGE(AAFwkTag::STSRUNTIME, "[zzz] +lazyApis_.ANI_GetCreatedVMs");
+    if (lazyApis_.ANI_GetCreatedVMs(&vmEntry_.ani_vm, 1, &nrVMs) != ANI_OK) {
+        return false;
+    };
+    TAG_LOGE(AAFwkTag::STSRUNTIME, "[zzz] -lazyApis_.ANI_GetCreatedVMs");
+
+    TAG_LOGE(AAFwkTag::STSRUNTIME, "[zzz] +GetEnv");
+    if (vmEntry_.ani_vm->GetEnv(ANI_VERSION_1, &vmEntry_.ani_env) != ANI_OK) {
+        return false;
+    }
+    TAG_LOGE(AAFwkTag::STSRUNTIME, "[zzz] -GetEnv");
+//    isRuntimeStarted_ = true;
+    return true;
+}
+
+void LoadStsModule(const std::string& moduleName, const std::string& path, const std::string& srcEntrance) {
+    ani_env* aniEnv = vmEntry_.ani_env;
+
+    ani_class stringCls = nullptr;
+    if (aniEnv->FindClass("Lstd/core/String;", &stringCls) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass Lstd/core/String Failed");
+    }
+
+    std::string modulePath = "/data/home/szavyalov/wxspace/panda/ets/modules_static.abc";
+    TAG_LOGE(AAFwkTag::STSRUNTIME, "[zzz] %{public}s", modulePath.c_str());
+    ani_string ani_str;
+    if (aniEnv->String_NewUTF8(modulePath.c_str(), modulePath.size(), &ani_str) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "String_NewUTF8 modulePath Failed");
+    }
+
+    ani_ref undefined_ref;
+    if (aniEnv->GetUndefined(&undefined_ref) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "GetUndefined failed");
+    }
+    ani_array_ref refArray;
+    if (aniEnv->Array_New_Ref(stringCls, 1, undefined_ref, &refArray) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "Array_New_Ref Failed");
+    }
+    if (aniEnv->Array_Set_Ref(refArray, 0, ani_str) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "Array_Set_Ref Failed");
+    }
+
+    ani_class cls = nullptr;
+    if (aniEnv->FindClass("Lstd/core/AbcRuntimeLinker;", &cls) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass AbcRuntimeLinker failed");
+    }
+    ani_method method = nullptr;
+    if (aniEnv->Class_FindMethod(cls, "<ctor>", "Lstd/core/RuntimeLinker;[Lstd/core/String;:V", &method) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindMethod ctor failed");
+    }
+    ani_object object = nullptr;
+    if (aniEnv->Object_New(cls, method, &object, undefined_ref, refArray) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "Object_New AbcRuntimeLinker failed");
+    }
+    ani_method loadClassMethod = nullptr;
+    if (aniEnv->Class_FindMethod(cls, "loadClass", nullptr, &loadClassMethod) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindMethod loadClass failed");
+    }
+
+    std::string entryPath = srcEntrance;
+    TAG_LOGE(AAFwkTag::STSRUNTIME, "[zzz] entryPath: %{public}s", entryPath.c_str());
+    ani_string entryClassStr;
+    aniEnv->String_NewUTF8(entryPath.c_str(), entryPath.length(), &entryClassStr);
+    ani_ref entryClassRef = nullptr;
+    ani_boolean isInit = false;
+    TAG_LOGI(AAFwkTag::STSRUNTIME, "load class: %{public}s", entryPath.c_str());
+    if (aniEnv->Object_CallMethod_Ref(object, loadClassMethod, &entryClassRef, entryClassStr, isInit) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "Object_CallMethod_Ref loadClassMethod failed");
+    } else {
+        entryClass = static_cast<ani_class>(entryClassRef);
+    }
+
+    TAG_LOGE(AAFwkTag::STSRUNTIME, "[zzz] +Class_FindMethod");
+    ani_method entryMethod = nullptr;
+    if (aniEnv->Class_FindMethod(entryClass, "<ctor>", ":V", &entryMethod) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindMethod ctor failed");
+    }
+    TAG_LOGE(AAFwkTag::STSRUNTIME, "[zzz] -Class_FindMethod");
+
+    auto status = aniEnv->Object_New(entryClass, entryMethod, &entryObject);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "Object_New AbcRuntimeLinker failed, %{public}d", status);
+    }
+
+    if (aniEnv->GlobalReference_Create(entryObject, &entryObjectRef) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "GlobalReference_Create failed");
+    }
+//    stsNativeReference->aniCls = entryClass;
+//    stsNativeReference->aniObj = entryObject;
+//    stsNativeReference->aniRef = entryObjectRef;
+
+    if (aniEnv->Class_FindMethod(entryClass, "onCreate", ":V", &method) != ANI_OK) {
+        TAG_LOGI(AAFwkTag::ABILITY, "Class_FindMethod FAILED");
+    }
+
+    status = aniEnv->Object_CallMethod_Void(entryObject, method);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY, "CALL Object_CallMethod FAILED, %{public}d", status);
+    } else {
+        TAG_LOGI(AAFwkTag::ABILITY, "[zzz] CALL Object_CallMethod SUCCEED");
+    }
+
+/*
+    ani_boolean hasError = ANI_FALSE;
+    aniEnv->ExistUnhandledError(&hasError);
+    if (hasError == ANI_TRUE) {
+        aniEnv->DescribeError();
+    }
+*/
+
+// On Start
+#if 0
+    ani_ref wantObj = OHOS::AppExecFwk::WrapWant(aniEnv, want);
+    if (wantObj == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null wantObj");
+        return;
+    }
+    ani_ref wantRef = nullptr;
+    if ((status = aniEnv->GlobalReference_Create(wantObj, &wantRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+    }
+
+    ani_field field = nullptr;
+    if ((status = aniEnv->Class_FindField(entryClass, "launchWant", &field)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+    }
+    if ((status = aniEnv->Object_SetField_Ref(entryObject, field, wantRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+    }
+    if ((status = aniEnv->Class_FindField(entryClass, "lastRequestWant", &field)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+    }
+    if ((status = aniEnv->Object_SetField_Ref(entryObject, field, wantRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+    }
+/*
+    auto launchParam = GetLaunchParam();
+    if (InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
+        launchParam.launchReason = AAFwk::LaunchReason::LAUNCHREASON_INSIGHT_INTENT;
+    }
+*/
+    ani_ref launchParamRef = CreateStsLaunchParam(env, launchParam);
+    const char *signature =
+        "L@ohos/app/ability/Want/Want;L@ohos/app/ability/AbilityConstant/AbilityConstant/LaunchParam;:V";
+
+    std::string methodName = "OnStart";
+    auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    if (applicationContext != nullptr) {
+        // TODO
+    }
+    AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
+    CallObjectMethod(false, "onCreate", signature, wantRef, launchParamRef);
+    AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
+    auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator();
+    if (delegator) {
+        TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformStart");
+        delegator->PostPerformStart(CreateADelegatorAbilityProperty());
+    }
+    applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    if (applicationContext != nullptr) {
+        // TODO
+    }
+    TAG_LOGD(AAFwkTag::UIABILITY, "end");
+#endif // 0
+
+}
+
+void onWindowStageCreate(ani_class entryClass, ani_object entryObject, ...)
+{
+    auto aniEnv = vmEntry_.ani_env;
+    ani_method method {};
+    auto status = aniEnv->Class_FindMethod(entryClass, "onWindowStageCreate", "L@ohos/window/window/WindowStage;:V", &method);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+        return;
+    }
+    va_list args;
+    va_start(args, entryObject);
+    if ((status = aniEnv->Object_CallMethod_Void_V(entryObject, method, args)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+        return;
+    }
+    va_end(args);
+}
+
+namespace {
+/* used for free, ani has no destructor right now, only free when aniObj freed */
+static std::map<ani_object, Rosen::AniWindowStage*> localObjs;
+} // namespace
+
+
+ani_object CreateAniWindowStageLocal(ani_env* env, std::shared_ptr<Rosen::WindowScene>& windowScene)
+__attribute__((no_sanitize("cfi")))
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "[ANI] null env");
+        return nullptr;
+    }
+    TAG_LOGD(AAFwkTag::UIABILITY, "[ANI] create wstage");
+
+    ani_status ret;
+    ani_class cls = nullptr;
+    if ((ret = env->FindClass("L@ohos/window/window/WindowStageInternal;", &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "[ANI] null env %{public}u", ret);
+        return cls;
+    }
+
+    std::unique_ptr<Rosen::AniWindowStage> windowStage = std::make_unique<Rosen::AniWindowStage>(windowScene);
+    TAG_LOGD(AAFwkTag::UIABILITY, "[ANI] native obj %{public}p", windowStage.get());
+
+    ani_field contextField;
+    if ((ret = env->Class_FindField(cls, "nativeObj", &contextField)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "[ANI] get field fail %{public}u", ret);
+        return nullptr;
+    }
+
+    ani_method initFunc = nullptr;
+    if ((ret = env->Class_FindMethod(cls, "<ctor>", ":V", &initFunc)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "[ANI] get ctor fail %{public}u", ret);
+        return nullptr;
+    }
+    ani_object obj = nullptr;
+    if ((ret = env->Object_New(cls, initFunc, &obj)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "[ANI] obj new fail %{public}u", ret);
+        return nullptr;
+    }
+    ani_method setObjFunc = nullptr;
+    if ((ret = env->Class_FindMethod(cls, "setNativeObj", "J:V", &setObjFunc)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "[ANI] get ctor fail %{public}u", ret);
+        return nullptr;
+    }
+    env->Object_CallMethod_Void(obj, setObjFunc, reinterpret_cast<ani_long>(windowStage.get()));
+//    localObjs.insert(std::pair(obj, windowStage.release()));
+
+    TAG_LOGD(AAFwkTag::UIABILITY, "[ANI] window stage created  %{public}p", reinterpret_cast<void*>(obj));
+    return obj;
+}
+
+
 void SimulatorImpl::CreateStageContext()
 {
-    if (stageContext_ == nullptr) {
-        stageContext_ = std::make_shared<AbilityStageContext>();
-        stageContext_->SetOptions(options_);
-        stageContext_->SetConfiguration(options_.configuration);
-        stageContext_->SetApplicationInfo(appInfo_);
-        stageContext_->SetHapModuleInfo(moduleInfo_);
+    CreateStsEnv();
+    StartRuntime();
+
+
+    TAG_LOGE(AAFwkTag::ABILITY, "[zzz] moduleInfo_->srcEntrance %{public}s", moduleInfo_->srcEntrance.c_str());
+    LoadStsModule("entry", "/data/home/szavyalov/wxspace/panda/ets", "entry/src/main/ets/entryability/EntryAbility/EntryAbility");
+
+    auto windowScene = std::make_shared<Rosen::WindowScene>();
+    if (windowScene == nullptr) {
+        return;
     }
+    sptr<Rosen::IWindowLifeCycle> listener = nullptr;
+    windowScene->Init(-1, context_, listener);
+    auto aniEnv = vmEntry_.ani_env;
+    auto stsWindowStage = CreateAniWindowStageLocal(aniEnv, windowScene);
+    onWindowStageCreate(entryClass, entryObject, stsWindowStage);
+
+
+/*
+    Runtime::Options options;
+    options.lang = Runtime::Language::JS;
+    std::vector<std::unique_ptr<Runtime>> runtimes;
+    runtimes.push_back(JsRuntime::Create(options));
+    options.lang = Runtime::Language::STS;
+    runtimes.push_back(STSRuntime::Create(options, &static_cast<AbilityRuntime::JsRuntime&>(*runtimes[0])));
+            stageContext_ = std::make_shared<AbilityStageContext>();
+            stageContext_->SetOptions(options_);
+            stageContext_->SetConfiguration(options_.configuration);
+            stageContext_->SetApplicationInfo(appInfo_);
+            stageContext_->SetHapModuleInfo(moduleInfo_);
+*/
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
