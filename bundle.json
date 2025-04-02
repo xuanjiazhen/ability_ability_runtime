@@ -128,8 +128,11 @@
           "//foundation/ability/ability_runtime/frameworks/c/ability_runtime:ability_runtime",
           "//foundation/ability/ability_runtime/frameworks/cj:cj_ability_packages",
           "//foundation/ability/ability_runtime/frameworks/js/napi:napi_packages",
+          "//foundation/ability/ability_runtime/frameworks/ets/ani:ani_packages",
+          "//foundation/ability/ability_runtime/frameworks/ets/ets:ets_packages",
           "//foundation/ability/ability_runtime/cj_environment/frameworks/cj_environment:cj_environment",
           "//foundation/ability/ability_runtime/js_environment/frameworks/js_environment:js_environment",
+          "//foundation/ability/ability_runtime/sts_environment/frameworks/sts_environment:sts_environment",
           "//foundation/ability/ability_runtime/services/abilitymgr/etc:appfwk_etc",
           "//foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog:dialog_hap",
           "//foundation/ability/ability_runtime/service_router_framework:srms_target",
@@ -250,6 +253,15 @@
           },
           {
             "header": {
+              "header_base": "//foundation/ability/ability_runtime/sts_environment/interfaces/inner_api",
+              "header_files": [
+                "sts_environment.h"
+              ]
+            },
+            "name": "//foundation/ability/ability_runtime/sts_environment/frameworks/sts_environment:sts_environment"
+          },
+          {
+            "header": {
               "header_base": "//foundation/ability/ability_runtime/cj_environment/interfaces/inner_api",
               "header_files": [
                 "cj_environment.h"
@@ -287,6 +299,19 @@
               ]
             },
             "name": "//foundation/ability/ability_runtime/frameworks/js/napi/inner/napi_common:napi_common"
+          },
+          {
+            "header": {
+              "header_base": "//foundation/ability/ability_runtime/frameworks/ets/ani/ani_common/include",
+              "header_files": [
+                "ani_common_ability_result.h",
+                "ani_common_configuration.h",
+                "ani_common_start_options.h",
+                "ani_common_util.h",
+                "ani_common_want.h"
+              ]
+            },
+            "name": "//foundation/ability/ability_runtime/frameworks/ets/ani/ani_common:ani_common"
           },
           {
             "header": {
@@ -613,7 +638,8 @@
           "//foundation/ability/ability_runtime/tools/test:unittest",
           "//foundation/ability/ability_runtime/cj_environment/test/unittest:unittest",
           "//foundation/ability/ability_runtime/js_environment/test/unittest:unittest",
-          "//foundation/ability/ability_runtime/service_router_framework:test_target"
+          "//foundation/ability/ability_runtime/service_router_framework:test_target",
+          "//foundation/ability/ability_runtime/sts_environment/test/unittest:unittest"
         ]
       }
   }
