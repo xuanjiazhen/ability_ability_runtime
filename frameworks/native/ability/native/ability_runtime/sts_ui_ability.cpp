@@ -206,7 +206,7 @@ void StsUIAbility::CreateAniContext(
         return;
     }
     if (screenMode == AAFwk::IDLE_SCREEN_MODE) {
-        ani_ref contextObj = CreateStsAbilityContext(env, abilityContext_, application);
+        ani_ref contextObj = CreateStsAbilityContext(env, abilityContext_, application->GetApplicationCtxObjRef());
         if (contextObj == nullptr) {
             TAG_LOGE(AAFwkTag::UIABILITY, "null contextObj");
             return;

@@ -19,6 +19,7 @@
 #include <string>
 
 #include "ability_info.h"
+#include "bundle_constants.h"
 #include "extension_ability_info.h"
 
 namespace OHOS {
@@ -128,6 +129,7 @@ struct HapModuleInfo {
     std::string buildHash;
     IsolationMode isolationMode = IsolationMode::NONISOLATION_FIRST;
     AOTCompileStatus aotCompileStatus = AOTCompileStatus::NOT_COMPILED;
+    std::string codeLanguage = Constants::CODE_LANGUAGE_1_1;
 };
 } // namespace AppExecFwk
 } // namespace OHOS

@@ -97,6 +97,11 @@ ohos_shared_library("ability_simulator_inner") {
       "src/resource_manager_addon.cpp",
       "src/simulator.cpp",
     ]
+    if (is_linux) {
+      sources += [
+        "src/dynamic_loader_linux.cpp",
+      ]
+    }
 
     public_configs = [
       ":ability_simulator_public_config",
