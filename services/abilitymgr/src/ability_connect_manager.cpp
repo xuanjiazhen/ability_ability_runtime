@@ -1244,13 +1244,9 @@ int AbilityConnectManager::ScheduleCommandAbilityWindowDone(
                                std::to_string(sessionInfo->persistentId) + std::string("_") + std::to_string(winCmd);
         taskHandler_->CancelTask(taskName);
     }
-    bool isExitServiceMap = false;
-    auto serviceMapIter = serviceMap_.find(element);
-    if (!serviceMapIter == serviceMap_.end()) {
-        isExitServiceMap = true;
-    }
+
     if (winCmd == WIN_CMD_DESTROY) {
-        HandleCommandDestroy(sessionInfo, isExitServiceMap);
+        HandleCommandDestroy(sessionInfo);
     }
 
     abilityRecord->SetAbilityWindowState(sessionInfo, winCmd, true);
@@ -1259,17 +1255,13 @@ int AbilityConnectManager::ScheduleCommandAbilityWindowDone(
     return ERR_OK;
 }
 
-void AbilityConnectManager::HandleCommandDestroy(const sptr<SessionInfo> &sessionInfo, bool isExitServiceMap)
+void AbilityConnectManager::HandleCommandDestroy(const sptr<SessionInfo> &sessionInfo)
 {
     if (sessionInfo == nullptr) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "null sessionInfo");
         return;
     }
     if (sessionInfo->sessionToken) {
-        if (isExitServiceMap) {
-            TAG_LOGW(AAFwkTag::UI_EXT, "abilityRecord still exists");
-            return;
-        }
         RemoveUIExtWindowDeathRecipient(sessionInfo->sessionToken);
         size_t ret = 0;
         {
@@ -3541,6 +3533,27 @@ int32_t AbilityConnectManager::QueryPreLoadUIExtensionRecordInner(const AppExecF
     CHECK_POINTER_AND_RETURN(uiExtensionAbilityRecordMgr_, ERR_NULL_OBJECT);
     return uiExtensionAbilityRecordMgr_->QueryPreLoadUIExtensionRecord(
         element, moduleName, hostBundleName, recordNum);
+}
+
+std::shared_ptr<AbilityRecord> AbilityConnectManager::GetUIExtensionBySessionFromServiceMap(
+    const sptr<SessionInfo> &sessionInfo)
+{
+    int32_t persistentId = sessionInfo->persistentId;
+    auto IsMatch = [persistentId](auto service) {
+        if (!service.second)
+        {
+            return false;
+        }
+        int32_t srcPersistentId = service.second->GetSessionInfo()->persistentId;
+        return srcPersistentId == persistentId;
+    };
+    std::lock_guard lock(serviceMapMutex_);
+    auto serviceRecord = std::find_if(serviceMap_.begin(), serviceMap_.end(), IsMatch);
+    if (serviceRecord != serviceMap_.end()) {
+        TAG_LOGW(AAFwkTag::UI_EXT, "abilityRecord still exists");
+        return serviceRecord->second;
+    }
+    return nullptr;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
