@@ -298,5 +298,87 @@ namespace AppManagerSts {
         }
         return true;
     }
+    
+    bool ConvertToAniAbilityFirstFrameStateData(ani_env *env, const AbilityFirstFrameStateData &firstFrameStateData, ani_object &outAniObj)
+    {
+        ani_status status = ANI_ERROR;
+        ani_class cls;
+        status = env->FindClass(firstFrameStateDataClassName, &cls);
+        if (status != ANI_OK) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "FindClass faild");
+            return false;
+        }
+        ani_method ctor;
+        status = env->Class_FindMethod(cls, "<ctor>", nullptr, &ctor);
+        if (status != ANI_OK) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "Class_FindMethod faild. status: %{public}d", status);
+            return false;
+        }
+        if (ANI_OK != env->Object_New(cls, ctor, &outAniObj)){
+            TAG_LOGD(AAFwkTag::DELEGATOR, "Create Object Failed. className: %{public}s", firstFrameStateDataClassName);
+            return false;
+        }
+        if (!SetFieldString(env, cls, outAniObj, "bundleName", firstFrameStateData.bundleName)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "SetFieldString bundleName faild");
+            return false;
+        }
+        if (!SetFieldString(env, cls, outAniObj, "moduleName", firstFrameStateData.moduleName)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "SetFieldString moduleName faild");
+            return false;
+        }
+        if (!SetFieldString(env, cls, outAniObj, "abilityName", firstFrameStateData.abilityName)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "SetFieldString abilityName faild");
+            return false;
+        }
+        if (!SetFieldDouble(env, cls, outAniObj, "appIndex", static_cast<double>(firstFrameStateData.appIndex))) {
+            std::cerr << "" << std::endl;
+            TAG_LOGD(AAFwkTag::DELEGATOR, "SetFieldString appIndex faild");
+            return false;
+        }
+        if (!SetFieldBoolean(env, cls, outAniObj, "isColdStart", firstFrameStateData.coldStart)) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "SetFieldString isColdStart faild");
+            return false;
+        }
+        return true;
+    }
+
+    AutoSTSReference::AutoSTSReference(ani_env *env, const ani_object &obj)
+    :env_(env)
+    {
+        TAG_LOGD(AAFwkTag::APPMGR, "call");
+        if (env_ == nullptr) return;
+        if (obj == nullptr) return;
+        ani_ref ref;
+        if (env_->GlobalReference_Create(obj, &ref) != ANI_OK) return;
+        refernece_ = std::make_shared<OHOS::AbilityRuntime::STSNativeReference>();
+        refernece_->aniCls = nullptr;
+        refernece_->aniRef = ref;
+        refernece_->aniObj = obj;
+    }
+    AutoSTSReference::~AutoSTSReference()
+    {
+        TAG_LOGD(AAFwkTag::APPMGR, "call");
+        if (!isInit()) return;
+        if (refernece_->aniRef == nullptr) return;
+        if (env_->GlobalReference_Delete(refernece_->aniRef) != ANI_OK) {
+            TAG_LOGD(AAFwkTag::DELEGATOR, "GlobalReference_Delete faild");
+        }
+        refernece_ = nullptr;
+    }
+    bool AutoSTSReference::isInit()
+    {
+        return (env_ != nullptr && refernece_ != nullptr && refernece_->aniRef != nullptr);
+    }
+    bool AutoSTSReference::compare(const ani_object &obj)
+    {
+        if (!isInit()) return false;
+        if (obj == nullptr) return false;
+        ani_ref ref;
+        if (env_->GlobalReference_Create(obj, &ref) != ANI_OK) return false;
+        ani_boolean result = ANI_FALSE;
+        env_->Reference_StrictEquals(ref, refernece_->aniRef, &result);
+        env_->GlobalReference_Delete(ref);
+        return AniBooleanToBool(result);
+    }
 } // namespace AppManagerSts
 } // namespace OHOS

@@ -25,6 +25,7 @@
 #include "running_process_info.h"
 #include "process_data.h"
 #include "hilog_tag_wrapper.h"
+#include "ability_first_frame_state_data.h"
 
 namespace OHOS {
 namespace AppManagerSts {
@@ -32,12 +33,27 @@ using OHOS::AppExecFwk::AppStateData;
 using OHOS::AppExecFwk::AbilityStateData;
 using OHOS::AppExecFwk::ProcessData;
 using OHOS::AppExecFwk::RunningProcessInfo;
-
-    static const char *processInfoClassName = "Lapplication/ProcessInformation/ProcessInformationInner;";
+using OHOS::AppExecFwk::AbilityFirstFrameStateData;
+    // static const char *processInfoClassName = "Lapplication/ProcessInformation/ProcessInformationInner;";
+    static const char *processInfoClassName = "L@ohos/app/ability/appManager/ProcessInformationInner;";
     static const char *processDataClassName = "Lapplication/ProcessData/ProcessData;";
     static const char *abilityStateDataClassName = "Lapplication/AbilityStateData/AbilityStateData;";
     static const char *appStateDataClassName = "Lapplication/AppStateData/AppStateData;";
-    static const char *ProcessStateEnumName = "L@ohos/app/ability/appManager/appManager/ProcessState;";
+    static const char *processStateEnumName = "L@ohos/app/ability/appManager/appManager/ProcessState;";
+    static const char *firstFrameStateDataClassName = "Lapplication/AbilityFirstFrameStateData/AbilityFirstFrameStateDataInner;";
+    static const char* onApplicationStateObserverSignature = 
+        "Lapplication/ApplicationStateObserver/ApplicationStateObserver;:I";
+    static const char* onApplicationStateObserverByArraySignature = 
+        "Lapplication/ApplicationStateObserver/ApplicationStateObserver;Lescompat/Array;:I";
+    static const char* onAppForegroundStateObserverSignature = 
+        "Lapplication/AppForegroundStateObserver/AppForegroundStateObserver;:V";
+    static const char* offAppForegroundStateObserverSignature = 
+        "Lapplication/AppForegroundStateObserver/AppForegroundStateObserver;:V";
+    static const char* onAbilityFirstFrameStateObserverSignature = 
+        "Lapplication/AbilityFirstFrameStateObserver/AbilityFirstFrameStateObserver;Lstd/core/String;:V";
+    static const char* offAbilityFirstFrameStateObserverSignature = 
+        "Lapplication/AbilityFirstFrameStateObserver/AbilityFirstFrameStateObserver;:V";
+    static const char* offAllByType = "Lstd/core/String;:V";
 
     enum ProcessState
     {
@@ -47,7 +63,6 @@ using OHOS::AppExecFwk::RunningProcessInfo;
         STATE_BACKGROUND,
         STATE_DESTROY
     };
-
     enum KeepAliveAppType
     {
         ALL = 0,
@@ -89,9 +104,25 @@ using OHOS::AppExecFwk::RunningProcessInfo;
     // Converts std::vector<AppExecFwk::RunningProcessInfo> to an ani_object.
     bool ConvertToAniArrayProcessInfo(ani_env *env, 
         const std::vector<AppExecFwk::RunningProcessInfo> &infos, ani_object &outAniObj);
-
     bool ConvertToAniAppStateDataArray(ani_env *env, const std::vector<AppExecFwk::AppStateData> &infos,
-            ani_object &outAniObj);
+        ani_object &outAniObj);
+        // Converts AbilityFirstFrameStateData to an ani_object.
+    bool ConvertToAniAbilityFirstFrameStateData(ani_env *env,
+        const AbilityFirstFrameStateData &firstFrameStateData, ani_object &outAniObj);
+
+    class AutoSTSReference {
+    public:
+        AutoSTSReference(ani_env *env, const ani_object &obj);
+        ~AutoSTSReference();
+        bool isInit();
+        bool compare(const ani_object &obj);
+        std::shared_ptr<OHOS::AbilityRuntime::STSNativeReference> getReference() {
+            return isInit() ? refernece_ : nullptr;
+        }
+    private:
+        ani_env *env_ = nullptr;
+        std::shared_ptr<OHOS::AbilityRuntime::STSNativeReference> refernece_ = nullptr;
+    };
 
 #define ANI_FAILED_AND_RETURN(status)                                                    \
 do                                                                                       \

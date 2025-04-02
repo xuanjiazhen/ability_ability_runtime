@@ -13,8 +13,15 @@
  * limitations under the License.
  */
 
-import AppStateData from './application/AppStateData'
-
+import AbilityStateData from 'application.AbilityStateData'
+// import { ProcessInformation } from 'application.ProcessInformation'
+import ProcessData from 'application.ProcessData'
+import AppStateData from 'application.AppStateData'
+import bundleManager from '@ohos.bundle.bundleManager';
+import ApplicationStateObserver from 'application.ApplicationStateObserver'
+import AppForegroundStateObserver from 'application.AppForegroundStateObserver';
+import {AbilityFirstFrameStateData} from 'application.AbilityFirstFrameStateData';
+import AbilityFirstFrameStateObserver from 'application.AbilityFirstFrameStateObserver';
 type AsyncCallback<T> = (err: BusinessError<T>, data: T)=> void;
 export class BusinessError<T = void> {
     code: number;
@@ -24,9 +31,68 @@ export class BusinessError<T = void> {
 type ResolveCallback<T> = (data: T)=> void;
 type RejectCallback = (err: Object)=> void;
 
+export interface ProcessInformation {
+
+  pid: number;
+
+  uid: number;
+
+  processName: string;
+
+  bundleNames: Array<string>;
+
+  state: appManager.ProcessState;
+
+  // bundleType: bundleManager.BundleType;
+
+  appCloneIndex?: number;
+}
+
+class ProcessInformationInner implements ProcessInformation {
+  pid: number = -1;
+
+  uid: number = -1;
+
+  processName: string = "";
+
+  bundleNames: Array<string> = new Array<string>();
+
+  state: appManager.ProcessState = appManager.ProcessState.STATE_DESTROY;
+
+  // bundleType: bundleManager.BundleType = bundleManager.BundleType.APP;
+
+  appCloneIndex?: number = -1;
+}
 export default namespace appManager {
+  export enum ApplicationState {
+    STATE_CREATE = 0,
+    STATE_FOREGROUND = 1,
+    STATE_ACTIVE = 2,
+    STATE_BACKGROUND = 3,
+    STATE_DESTROY = 4
+  }
+
+  export enum ProcessState {
+    STATE_CREATE = 0,
+    STATE_FOREGROUND = 1,
+    STATE_ACTIVE = 2,
+    STATE_BACKGROUND = 3,
+    STATE_DESTROY = 4
+  }
+  
   export enum PreloadMode {
     PRESS_DOWN
+  }
+  
+  export enum KeepAliveAppType {
+    ALL = 0,
+    THIRD_PARTY = 1,
+    SYSTEM = 2
+  }
+
+  export enum KeepAliveSetter {
+    SYSTEM = 0,
+    USER = 1
   }
 
   export native function nativePreloadApplication(bundleName: string, userId: number, mode: PreloadMode, appIndex?: number): void;
@@ -38,6 +104,19 @@ export default namespace appManager {
   export native function nativeClearUpApplicationData(bundleName: string): int;
   export native function nativeIsRamConstrainedDevice(): boolean;
   export native function nativeGetForegroundApplications(): Array<AppStateData>;
+  export native function nativeOn(observer: ApplicationStateObserver): int;
+  export native function nativeOn(observer: ApplicationStateObserver, bundleNameList: Array<string>): int;
+  export native function nativeOn(observer: AppForegroundStateObserver): void;
+  export native function nativeOn(observer: AbilityFirstFrameStateObserver, bundleName: string): void;
+  export native function nativeOff(observerId: int): void;
+  export native function nativeOff(type: string): void;
+  export native function nativeOff(observer: AppForegroundStateObserver): void;
+  export native function nativeOff(observer: AbilityFirstFrameStateObserver): void;
+  export native function nativeGetAppMemorySize(): number;
+  export native function nativeIsSharedBundleRunning(bundleName: string, versionCode: number): boolean;
+  export native function nativeGetRunningProcessInformation(): Array<ProcessInformation>;
+  export native function nativeGetRunningProcessInformationByBundleType(
+    bundleType: bundleManager.BundleType): Array<ProcessInformation>;
 
 
   export function preloadApplication(bundleName: string, userId: number, mode: PreloadMode, appIndex?: number):Promise<void>{
@@ -120,64 +199,64 @@ export default namespace appManager {
             return p;
       }
 
-    export function killProcessesByBundleName(bundleName: string):Promise<void>{
-        let p = new Promise<void>((resolve: ResolveCallback<void>, reject: RejectCallback) => {
-            let p1 = launch nativeKillProcessesByBundleName(bundleName);
-            p1.then((e :NullishType)=>{
-            resolve(undefined);
-            console.log("killProcessesByBundleName Promise success")
-            }, (err:Object): void => {
+  export function killProcessesByBundleName(bundleName: string):Promise<void>{
+      let p = new Promise<void>((resolve: ResolveCallback<void>, reject: RejectCallback) => {
+          let p1 = launch nativeKillProcessesByBundleName(bundleName);
+          p1.then((e :NullishType)=>{
+          resolve(undefined);
+          console.log("killProcessesByBundleName Promise success")
+          }, (err:Object): void => {
+              reject(err)
+              console.log("killProcessesByBundleName Promise fail")
+          });
+      });
+      console.log("killProcessWithAccount Promise end")
+      return p;
+  }
+
+  export function killProcessesByBundleName(bundleName: string, clearPageStack: boolean, appIndex?: int):Promise<void>{
+          let p = new Promise<void>((resolve: ResolveCallback<void>, reject: RejectCallback) => {
+              let p1 = launch nativeKillProcessesByBundleNameEx(bundleName, clearPageStack, appIndex);
+              p1.then((e :NullishType)=>{
+              resolve(undefined);
+              console.log("killProcessesByBundleName Promise success: ")
+              }, (err:Object): void => {
                 reject(err)
                 console.log("killProcessesByBundleName Promise fail")
-            });
-        });
-        console.log("killProcessWithAccount Promise end")
-        return p;
+              });
+          });
+          console.log("killProcessWithAccount Promise end")
+          return p;
     }
 
-    export function killProcessesByBundleName(bundleName: string, clearPageStack: boolean, appIndex?: int):Promise<void>{
-            let p = new Promise<void>((resolve: ResolveCallback<void>, reject: RejectCallback) => {
-                let p1 = launch nativeKillProcessesByBundleNameEx(bundleName, clearPageStack, appIndex);
-                p1.then((e :NullishType)=>{
-                resolve(undefined);
-                console.log("killProcessesByBundleName Promise success: ")
-                }, (err:Object): void => {
-                  reject(err)
-                  console.log("killProcessesByBundleName Promise fail")
-                });
-            });
-            console.log("killProcessWithAccount Promise end")
-            return p;
-      }
+  export function killProcessesByBundleName(bundleName: string, callback: AsyncCallback<void>):void{
+      let p1 = launch nativeKillProcessesByBundleName(bundleName);
+          p1.then((e :NullishType)=>{
+              let returnCode : Int = e as Int
+              let r: BusinessError = { code: returnCode.intValue(), data: undefined };
+              callback(r, undefined);
+              console.log("killProcessesByBundleName callback success: ", returnCode)
+          }, (err:Object): void => {
+            console.log("killProcessesByBundleName callback fail", err)
+          });
+      console.log("killProcessesByBundleName callback end")
+  }
 
-    export function killProcessesByBundleName(bundleName: string, callback: AsyncCallback<void>):void{
-        let p1 = launch nativeKillProcessesByBundleName(bundleName);
-            p1.then((e :NullishType)=>{
-                let returnCode : Int = e as Int
-                let r: BusinessError = { code: returnCode.intValue(), data: undefined };
-                callback(r, undefined);
-                console.log("killProcessesByBundleName callback success: ", returnCode)
-            }, (err:Object): void => {
-              console.log("killProcessesByBundleName callback fail", err)
-            });
-        console.log("killProcessesByBundleName callback end")
-    }
-
-    export function clearUpApplicationData(bundleName: string):Promise<void>{
-        let p = new Promise<void>((resolve: ResolveCallback<void>, reject: RejectCallback) => {
-            let p1 = launch nativeClearUpApplicationData(bundleName);
-            p1.then((e :NullishType)=>{
-            let ret : int = e as int  
-            resolve(undefined);
-            console.log("clearUpApplicationData Promise success: ", ret)
-            }, (err:Object): void => {
-              reject(err)
-              console.log("clearUpApplicationData Promise success: ")
-            });
-        });
-        console.log("clearUpApplicationData Promise end")
-        return p;
-    }
+  export function clearUpApplicationData(bundleName: string):Promise<void>{
+      let p = new Promise<void>((resolve: ResolveCallback<void>, reject: RejectCallback) => {
+          let p1 = launch nativeClearUpApplicationData(bundleName);
+          p1.then((e :NullishType)=>{
+          let ret : int = e as int  
+          resolve(undefined);
+          console.log("clearUpApplicationData Promise success: ", ret)
+          }, (err:Object): void => {
+            reject(err)
+            console.log("clearUpApplicationData Promise success: ")
+          });
+      });
+      console.log("clearUpApplicationData Promise end")
+      return p;
+  }
 
   export function clearUpApplicationData(bundleName: string, callback: AsyncCallback<void>):void{
         let p1 = launch nativeClearUpApplicationData(bundleName);
@@ -257,6 +336,173 @@ export default namespace appManager {
         return p;
     }
 
+  export function on(type: 'applicationState', observer: ApplicationStateObserver): int {
+    return nativeOn(observer);
+  }
+
+  export function on(type: 'applicationState', observer: ApplicationStateObserver, bundleNameList: Array<string>): int {
+    return nativeOn(observer, bundleNameList);
+  }
+
+  export function on(type: 'appForegroundState', observer: AppForegroundStateObserver): void {
+    return nativeOn(observer);
+  }
+
+  export function on(type: 'abilityFirstFrameState', observer: AbilityFirstFrameStateObserver,
+    bundleName: string): void {
+      return nativeOn(observer, bundleName);
+    }
+
+
+  export function off(type: 'applicationState', observerId: number, callback: AsyncCallback<void>): void {
+    let obsId = observerId as int;
+    let p1 = launch nativeOff(obsId);
+    p1.then((e: NullishType): void => {
+      let err: BusinessError<void> = {code: 0, data: undefined};
+      callback(err, undefined);
+      console.log("[callback] executeOff suc end");
+    }, (error: Object): void => {
+      console.log("[callback] executeOff err end");
+    })
+  }
+
+  export function off(type: 'applicationState', observerId: number): Promise<void> {
+    let obsId = observerId as int;
+    let pPromise = new Promise<void>(
+      (resolve: ResolveCallback<void>, reject: RejectCallback): void => {
+        let p1 = launch nativeOff(obsId);
+        p1.then((e: NullishType): void => {
+          console.log("[promise] executeOff resolve. Before");
+          resolve(undefined);
+        }, (error: Object): void => {
+          console.log("[promise] executeOff reject Before");
+          reject(error);
+        });
+      });
+    return pPromise;
+  }
+
+  export function off(type: 'appForegroundState', observer?: AppForegroundStateObserver): void {
+    if (observer === undefined) {
+        nativeOff(type);
+    } else {
+        nativeOff(observer);
+    }
+  }
+
+  export function off(type: 'abilityFirstFrameState', observer?: AbilityFirstFrameStateObserver): void {
+    if (observer === undefined) {
+        nativeOff(type);
+    } else {
+        nativeOff(observer);
+    }
+  }
+
+  export function getRunningProcessInformation(): Promise<Array<ProcessInformation>> {
+    let pPromise = new Promise<Array<ProcessInformation>>(
+      (resolve: ResolveCallback<Array<ProcessInformation>>, reject: RejectCallback): void => {
+        let p = launch nativeGetRunningProcessInformation();
+        p.then((e: NullishType): void => {
+          console.log("[Promise] launch nativeGetRunningProcessInformation then. enter");
+          let info: Array<ProcessInformation> = e as Array<ProcessInformation>;
+          resolve(info);
+        }, (error: Object): void => {
+          console.log("[Promise] launch nativeGetRunningProcessInformation error", error);
+          reject(error);
+        });
+      }
+    );
+    return pPromise;
+  }
+
+  export function getRunningProcessInformationByBundleType(
+    bundleType: bundleManager.BundleType): Promise<Array<ProcessInformation>> {
+      let pPromise = new Promise<Array<ProcessInformation>>(
+        (resolve: ResolveCallback<Array<ProcessInformation>>, reject: RejectCallback): void => {
+          let p = launch nativeGetRunningProcessInformationByBundleType(bundleType);
+          p.then((e: NullishType): void => {
+            console.log("[Promise] launch nativeGetRunningProcessInformationByBundleType then. enter");
+            let data: Array<ProcessInformation> = e as Array<ProcessInformation>;
+            resolve(data);
+          }, (error: Object): void => {
+            console.log("[Promise] launch nativeGetRunningProcessInformationByBundleType error");
+            reject(error);
+          });
+        }
+      )
+      return pPromise;
+    }
+
+  export function getRunningProcessInformation(callback: AsyncCallback<Array<ProcessInformation>>): void {
+    let p = launch nativeGetRunningProcessInformation();
+    p.then((e: NullishType): void => {
+      console.log("[callback] launch nativeGetRunningProcessInformation then. enter");
+      let data: Array<ProcessInformation> = e as Array<ProcessInformation>;
+      let err: BusinessError<Array<ProcessInformation>> = {code: 0, data: data};
+      callback(err, data);
+    }, (error: Object): void => {
+      console.log("[callback] launch nativeGetRunningProcessInformation error");
+    })
+  }
+
+  export function getAppMemorySize(): Promise<number> {
+    let pPromise = new Promise<number>(
+      (resolve: ResolveCallback<number>, reject: RejectCallback): void => {
+        let p1 = launch nativeGetAppMemorySize();
+        p1.then((data: number): void => {
+          console.log("[promise] nativeGetAppMemorySize then. data", data);
+          resolve(data);
+        }, (error: Object): void => {
+          console.log("[promise] nativeGetAppMemorySize reject Before");
+          reject(error);
+        });
+      });
+    return pPromise;
+  }
+
+  export function getAppMemorySize(callback: AsyncCallback<number>): void {
+    let p1 = launch nativeGetAppMemorySize();
+    p1.then((e: number): void => {
+      let data: number = e as number;
+      let err: BusinessError<number> = {code: 0, data: data};
+      callback(err, data);
+      console.log("[callback] nativeGetAppMemorySize suc end");
+    }, (error: Object): void => {
+      console.log("[callback] nativeGetAppMemorySize err end");
+    })
+  }
+
+  export function isSharedBundleRunning(bundleName: string, versionCode: number): Promise<boolean> {
+    let pPromise = new Promise<boolean>(
+      (resolve: ResolveCallback<boolean>, reject: RejectCallback): void => {
+        let p1 = launch nativeIsSharedBundleRunning(bundleName, versionCode);
+        p1.then((data: boolean): void => {
+          console.log("[promise] nativeIsSharedBundleRunning then. data", data);
+          resolve(data);
+        }, (error: Object): void => {
+          console.log("[promise] nativeIsSharedBundleRunning reject Before");
+          reject(error);
+        });
+      });
+    return pPromise;
+  }
+
+  export function isSharedBundleRunning(
+    bundleName: string, versionCode: number, callback: AsyncCallback<boolean>): void {
+      let p1 = launch nativeIsSharedBundleRunning(bundleName, versionCode);
+      p1.then((e: NullishType): void => {
+        try {
+          let data : boolean = e as boolean;
+          let err: BusinessError<boolean> = {code: 0, data: data};
+          callback(err, data);
+          console.log("[callback] nativeIsSharedBundleRunning suc end");
+        } catch(error) {
+          console.log('[callback] nativeIsSharedBundleRunning faild.', error);
+        }
+      }, (error: Object): void => {
+        console.log("[callback] nativeIsSharedBundleRunning err end");
+      })
+  }
 }
 
 

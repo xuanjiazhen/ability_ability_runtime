@@ -40,6 +40,9 @@ ohos_shared_library("ability_app_manager_ani_kit") {
   sources = [
     "./src/sts_app_manager.cpp",
     "./src/sts_app_manager_utils.cpp",
+    "./src/sts_app_state_observer.cpp",
+    "./src/sts_app_foreground_state_observer.cpp",
+    "./src/sts_ability_first_frame_state_observer.cpp"
   ]
 
   cflags = []
@@ -68,6 +71,11 @@ ohos_shared_library("ability_app_manager_ani_kit") {
     "samgr:samgr_proxy",
   ]
 
+  if (ability_runtime_graphics) {
+    external_deps += [ "access_token:libtokenid_sdk" ]
+    defines = [ "SUPPORT_SCREEN" ]
+  }
+
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
@@ -75,7 +83,17 @@ ohos_shared_library("ability_app_manager_ani_kit") {
 
 generate_static_abc("ability_app_manager_abc") {
   base_url = "./ets"
-  files = [ "./ets/@ohos.app.ability.appManager.ets" ]
+  files = [
+    "./ets/@ohos.app.ability.appManager.ets",
+    "./ets/application/AbilityStateData.ets",
+    "./ets/application/AppStateData.ets",
+    "./ets/application/ProcessData.ets",
+    "./ets/application/ApplicationStateObserver.ets",
+    "./ets/application/AppForegroundStateObserver.ets",
+    "./ets/application/AbilityFirstFrameStateObserver.ets",
+    "./ets/application/AbilityFirstFrameStateData.ets",
+    "./ets/@ohos.bundle.bundleManager.ets",
+    ]
 
   dst_file = "$target_out_dir/ability_app_manager.abc"
   out_puts = [ "$target_out_dir/ability_app_manager.abc" ]
