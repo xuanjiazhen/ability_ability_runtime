@@ -75,6 +75,8 @@ ohos_unittest("app_exit_reason_helper_second_test") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
+    "googletest:gmock_main",
+    "googletest:gtest_main","
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
@@ -85,11 +87,6 @@ ohos_unittest("app_exit_reason_helper_second_test") {
     "samgr:samgr_proxy",
     "window_manager:libwsutils",
     "window_manager:session_manager_lite",
-  ]
-
-  public_external_deps = [
-    "googletest:gmock_main",
-    "googletest:gtest_main",
   ]
 
   cflags_cc = []

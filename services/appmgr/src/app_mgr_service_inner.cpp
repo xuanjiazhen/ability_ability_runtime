@@ -2849,6 +2849,7 @@ void AppMgrServiceInner::UpdateAbilityState(const sptr<IRemoteObject> &token, co
     }
     if (state == abilityRecord->GetState()) {
         TAG_LOGE(AAFwkTag::APPMGR, "current state is already");
+        OnAbilityStateChanged(abilityRecord, state);
         return;
     }
     if (abilityRecord->GetAbilityInfo() == nullptr) {
@@ -4939,7 +4940,7 @@ int AppMgrServiceInner::StartEmptyProcess(const AAFwk::Want &want, const sptr<IR
         TAG_LOGE(AAFwkTag::APPMGR, "disable start process in logout user");
         return ERR_INVALID_OPERATION;
     }
-    auto appRecord = appRunningManager_->CreateAppRunningRecord(appInfo, processName, info, "");
+    auto appRecord = CreateAppRunningRecord(appInfo, processName, info);
     CHECK_POINTER_AND_RETURN_VALUE(appRecord, ERR_INVALID_VALUE);
 
     auto isDebug = want.GetBoolParam(DEBUG_APP, false);
@@ -4977,6 +4978,20 @@ int AppMgrServiceInner::StartEmptyProcess(const AAFwk::Want &want, const sptr<IR
     TAG_LOGI(AAFwkTag::APPMGR, "startEmptyProcess pid: [%{public}d]", appRecord->GetPid());
 
     return ERR_OK;
+}
+
+std::shared_ptr<AppRunningRecord> AppMgrServiceInner::CreateAppRunningRecord(std::shared_ptr<ApplicationInfo> appInfo,
+    const std::string &processName, const BundleInfo &bundleInfo)
+{
+    if (!appRunningManager_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid appRunningManager");
+        return nullptr;
+    }
+    auto isSupportMultiInstance = AAFwk::AppUtils::GetInstance().IsSupportMultiInstance();
+    if (isSupportMultiInstance) {
+        return appRunningManager_->CreateAppRunningRecord(appInfo, processName, bundleInfo, "app_instance_0");
+    }
+    return appRunningManager_->CreateAppRunningRecord(appInfo, processName, bundleInfo, "");
 }
 
 int AppMgrServiceInner::FinishUserTest(
@@ -5950,6 +5965,7 @@ void AppMgrServiceInner::SetRenderStartMsg(AppSpawnStartMsg &startMsg, std::shar
     if (isGPU) {
         startMsg.procName += GPU_PROCESS_NAME;
         startMsg.processType = GPU_PROCESS_TYPE;
+        startMsg.hostProcessUid = renderRecord->GetHostUid();
         if (std::find(startMsg.gids.begin(), startMsg.gids.end(), SHADER_CACHE_GROUPID) == startMsg.gids.end()) {
             startMsg.gids.push_back(SHADER_CACHE_GROUPID);
         }
@@ -6766,17 +6782,21 @@ bool AppMgrServiceInner::SetAppFreezeFilter(int32_t pid)
     }
     std::string bundleName = callerRecord->GetBundleName();
     if (callingPid == pid && AppExecFwk::AppfreezeManager::GetInstance()->IsValidFreezeFilter(pid, bundleName)) {
-        bool cancelResult = AppExecFwk::AppfreezeManager::GetInstance()->CancelAppFreezeDetect(pid, bundleName);
-        auto resetAppfreezeTask = [pid, bundleName]() {
-            AppExecFwk::AppfreezeManager::GetInstance()->ResetAppfreezeState(pid, bundleName);
-        };
-        constexpr int32_t waitTime = 120000; // wait 2min
-        CHECK_POINTER_AND_RETURN_VALUE(dfxTaskHandler_, false);
-        dfxTaskHandler_->SubmitTaskJust(resetAppfreezeTask, "resetAppfreezeTask", waitTime);
-        return cancelResult;
+        bool result = AppExecFwk::AppfreezeManager::GetInstance()->CancelAppFreezeDetect(pid, bundleName);
+        if (result) {
+            auto resetAppfreezeTask = [pid, bundleName]() {
+                AppExecFwk::AppfreezeManager::GetInstance()->ResetAppfreezeState(pid, bundleName);
+            };
+            constexpr int32_t waitTime = 120000; // wait 2min
+            CHECK_POINTER_AND_RETURN_VALUE(dfxTaskHandler_, false);
+            dfxTaskHandler_->SubmitTaskJust(resetAppfreezeTask, "resetAppfreezeTask", waitTime);
+        }
+        TAG_LOGW(AAFwkTag::APPDFR, "SetAppFreezeFilter: %{public}d, bundleName=%{public}s, pid:%{public}d, ",
+            result, bundleName.c_str(), pid);
+        return result;
     }
-    TAG_LOGE(AAFwkTag::APPDFR, "SetAppFreezeFilter failed, pid %{public}d calling pid %{public}d",
-        pid, callingPid);
+    TAG_LOGE(AAFwkTag::APPDFR, "SetAppFreezeFilter: failed, pid %{public}d calling pid %{public}d "
+        "bundleName %{public}s", pid, callingPid, bundleName.c_str());
     return false;
 }
 
@@ -9188,6 +9208,22 @@ void AppMgrServiceInner::SendAbilityEvent(const std::shared_ptr<AbilityRunningRe
         AAFwk::EventReport::SendAbilityEvent(AAFwk::EventName::ABILITY_ONBACKGROUND,
             HiSysEventType::BEHAVIOR, eventInfo);
     }
+}
+
+int32_t AppMgrServiceInner::LaunchAbility(const sptr<IRemoteObject> &token)
+{
+    auto appRecord = GetAppRunningRecordByAbilityToken(token);
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRecord null");
+        return AAFwk::ERR_NULL_APP_RUNNING_MANAGER;
+    }
+    auto ability = appRecord->GetAbilityRunningRecordByToken(token);
+    if (ability == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "abilityRecord null");
+        return ERR_INVALID_VALUE;
+    }
+    appRecord->LaunchAbility(ability);
+    return ERR_OK;
 }
 } // namespace AppExecFwk
 }  // namespace OHOS

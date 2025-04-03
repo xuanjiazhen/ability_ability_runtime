@@ -1460,6 +1460,8 @@ public:
     bool IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo);
     int32_t GetKilledProcessInfo(int pid, int uid, KilledProcessInfo &info);
 
+    int32_t LaunchAbility(const sptr<IRemoteObject> &token);
+
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
@@ -1954,6 +1956,8 @@ private:
     void AddAbilityStageForSpecified(std::shared_ptr<AppRunningRecord> appRecord);
     void GetKernelPermissions(uint32_t accessTokenId, JITPermissionsMap &permissionsMap);
     void SendAppSpawnUninstallDebugHapMsg(int32_t userId);
+    std::shared_ptr<AppRunningRecord> CreateAppRunningRecord(std::shared_ptr<ApplicationInfo> appInfo,
+        const std::string &processName, const BundleInfo &bundleInfo);
 
     bool isInitAppWaitingDebugListExecuted_ = false;
     std::atomic<bool> sceneBoardAttachFlag_ = true;

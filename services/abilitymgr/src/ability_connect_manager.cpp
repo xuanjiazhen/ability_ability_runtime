@@ -446,7 +446,7 @@ void AbilityConnectManager::GetOrCreateServiceRecord(const AbilityRequest &abili
         targetService = serviceMapIter == serviceMap_.end() ? nullptr : serviceMapIter->second;
     }
     if (targetService == nullptr &&
-        CacheExtensionUtils::IsCacheExtensionType(abilityRequest.abilityInfo.extensionAbilityType)) {
+        IsCacheExtensionAbilityByInfo(abilityRequest.abilityInfo)) {
         targetService = AbilityCacheManager::GetInstance().Get(abilityRequest);
         if (targetService != nullptr) {
             AddToServiceMap(serviceKey, targetService);
@@ -1115,7 +1115,7 @@ void AbilityConnectManager::TerminateOrCacheAbility(std::shared_ptr<AbilityRecor
     if (abilityRecord->IsSceneBoard()) {
         return;
     }
-    if (IsCacheExtensionAbilityType(abilityRecord)) {
+    if (IsCacheExtensionAbility(abilityRecord)) {
         std::string serviceKey = abilityRecord->GetURI();
         auto abilityInfo = abilityRecord->GetAbilityInfo();
         TAG_LOGD(AAFwkTag::SERVICE_EXT, "Cache the ability, service:%{public}s, extension type %{public}d",
@@ -1686,7 +1686,6 @@ void AbilityConnectManager::HandleStartTimeoutTask(const std::shared_ptr<Ability
         if (DelayedSingleton<AbilityManagerService>::GetInstance()->GetUserId() == userId_) {
             RestartAbility(abilityRecord, userId_);
         }
-        PrintTimeOutLog(abilityRecord, AbilityManagerService::LOAD_TIMEOUT_MSG);
         return;
     }
     if (IsAbilityNeedKeepAlive(abilityRecord)) {
@@ -2424,15 +2423,8 @@ void AbilityConnectManager::HandleAbilityDiedTask(
     }
 
     std::string serviceKey = GetServiceKey(abilityRecord);
-    if (GetServiceRecordByElementName(serviceKey) == nullptr &&
-        (!IsCacheExtensionAbilityType(abilityRecord) ||
-        AbilityCacheManager::GetInstance().FindRecordByToken(abilityRecord->GetToken()) == nullptr)) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "%{public}s ability not in service map or cache.", serviceKey.c_str());
-        return;
-    }
-
     bool isRemove = false;
-    if (IsCacheExtensionAbilityType(abilityRecord) &&
+    if (IsCacheExtensionAbility(abilityRecord) &&
         AbilityCacheManager::GetInstance().FindRecordByToken(abilityRecord->GetToken()) != nullptr) {
         AbilityCacheManager::GetInstance().Remove(abilityRecord);
         MoveToTerminatingMap(abilityRecord);
@@ -2446,13 +2438,15 @@ void AbilityConnectManager::HandleAbilityDiedTask(
         }
         isRemove = true;
     }
+    if (!isRemove) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "%{public}s ability not in service map or cache.", serviceKey.c_str());
+        return;
+    }
 
     if (IsAbilityNeedKeepAlive(abilityRecord)) {
         KeepAbilityAlive(abilityRecord, currentUserId);
     } else {
-        if (isRemove) {
-            HandleNotifyAssertFaultDialogDied(abilityRecord);
-        }
+        HandleNotifyAssertFaultDialogDied(abilityRecord);
     }
 }
 
@@ -2988,7 +2982,7 @@ void AbilityConnectManager::PrintTimeOutLog(const std::shared_ptr<AbilityRecord>
         .bundleName = ability->GetAbilityInfo().bundleName,
         .msg = msgContent
     };
-    if (!IsUIExtensionAbility(ability)) {
+    if (!IsUIExtensionAbility(ability) && !ability->IsSceneBoard()) {
         info.needKillProcess = false;
     }
     AppExecFwk::AppfreezeManager::GetInstance()->LifecycleTimeoutHandle(info);
@@ -3276,10 +3270,17 @@ bool AbilityConnectManager::IsUIExtensionAbility(const std::shared_ptr<AbilityRe
     return UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType);
 }
 
-bool AbilityConnectManager::IsCacheExtensionAbilityType(const std::shared_ptr<AbilityRecord> &abilityRecord)
+bool AbilityConnectManager::IsCacheExtensionAbilityByInfo(const AppExecFwk::AbilityInfo &abilityInfo)
+{
+    return (CacheExtensionUtils::IsCacheExtensionType(abilityInfo.extensionAbilityType) ||
+        AppUtils::GetInstance().IsCacheExtensionAbilityByList(abilityInfo.bundleName,
+        abilityInfo.name));
+}
+
+bool AbilityConnectManager::IsCacheExtensionAbility(const std::shared_ptr<AbilityRecord> &abilityRecord)
 {
     CHECK_POINTER_AND_RETURN(abilityRecord, false);
-    return CacheExtensionUtils::IsCacheExtensionType(abilityRecord->GetAbilityInfo().extensionAbilityType);
+    return IsCacheExtensionAbilityByInfo(abilityRecord->GetAbilityInfo());
 }
 
 bool AbilityConnectManager::CheckUIExtensionAbilitySessionExist(
