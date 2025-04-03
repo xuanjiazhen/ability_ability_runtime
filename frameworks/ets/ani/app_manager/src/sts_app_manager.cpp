@@ -408,7 +408,7 @@ static ani_boolean IsRunningInStabilityTest([[maybe_unused]] ani_env *env, [[may
     }
     bool ret = abilityManger->IsRunningInStabilityTest();
     TAG_LOGI(AAFwkTag::ABILITYMGR, "sts IsRunningInStabilityTest ret : %{public}d", ret);
-    return AppExecFwk::BoolToAniBoolean(ret);
+    return BoolToAniBoolean(ret);
 }
 
 static ani_int KillProcessWithAccount([[maybe_unused]] ani_env *env, ani_string bundleName, const ani_int accountId)
@@ -534,7 +534,7 @@ static ani_boolean IsRamConstrainedDevice([[maybe_unused]] ani_env *env)
     }
     bool ret = abilityManger->IsRamConstrainedDevice();
     TAG_LOGD(AAFwkTag::ABILITYMGR, "sts IsRamConstrainedDevice ret : %{public}d", ret);
-    return AppExecFwk::BoolToAniBoolean(ret);
+    return BoolToAniBoolean(ret);
 }
 
 static ani_ref GetForegroundApplications([[maybe_unused]] ani_env *env)
