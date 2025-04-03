@@ -21,6 +21,7 @@
 #include "time_util.h"
 #include "app_mgr_service_const.h"
 #include "app_mgr_service_dump_error_code.h"
+#include "bundle_mgr_helper.h"
 
 namespace OHOS {
 using AbilityRuntime::FreezeUtil;
@@ -79,8 +80,27 @@ void AppLifeCycleDeal::LaunchAbility(const std::shared_ptr<AbilityRunningRecord>
             FreezeUtil::GetInstance().AddLifecycleEvent(ability->GetToken(), entry);
         }
         TAG_LOGD(AAFwkTag::APPMGR, "Launch");
+        bool isHookAbility = ability->IsHook();
+        if (isHookAbility) {
+            auto bundleManagerHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+            HapModuleInfo hapModuleInfo;
+            if (!bundleManagerHelper->GetHapModuleInfo(*abilityInfo, hapModuleInfo)) {
+                TAG_LOGW(AAFwkTag::APPMGR, "GetHapModuleInfo fail");
+                return;
+            }
+            abilityInfo = std::make_shared<AbilityInfo>();
+            Want want;
+            want.SetElementName("", hapModuleInfo.bundleName,
+                hapModuleInfo.abilitySrcEntryDelegator,
+                hapModuleInfo.abilityStageSrcEntryDelegator);
+            if (!bundleManagerHelper->QueryAbilityInfo(want, *abilityInfo)) {
+                TAG_LOGW(AAFwkTag::APPMGR, "QueryAbilityInfo fail");
+                return;
+            }
+        }
         appThread->ScheduleLaunchAbility(*abilityInfo, ability->GetToken(),
             ability->GetWant(), ability->GetAbilityRecordId());
+        ability->SetHook(false);
     } else {
         TAG_LOGW(AAFwkTag::APPMGR, "null appThread or ability");
     }

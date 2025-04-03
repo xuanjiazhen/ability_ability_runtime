@@ -424,6 +424,10 @@ public:
 #endif
 #endif
     virtual bool IsTerminating() = 0;
+    virtual bool IsHook() const { return false; }
+    virtual void SetHook(bool isHook) {}
+    virtual bool IsHookOff() const { return false; }
+    virtual void SetHookOff(bool isHookOff) {}
     virtual void SetTerminating(bool state) = 0;
     virtual void InsertResultCallbackTask(int requestCode, RuntimeTask&& task) = 0;
     virtual void RemoveResultCallbackTask(int requestCode) = 0;
