@@ -319,7 +319,7 @@ private:
      */
     bool IsCacheAbilityEnabled();
 
-    /**
+     /**
      * LoadCacheAbilityList, load cache ability list from file.
      *
      */
