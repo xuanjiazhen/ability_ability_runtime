@@ -59,8 +59,10 @@
 #include "iservice_registry.h"
 #include "keep_alive_process_manager.h"
 #include "keep_alive_utils.h"
+#ifdef MEMMGR_ENABLE
 #include "mem_mgr_client.h"
 #include "mem_mgr_process_state_info.h"
+#endif
 #include "mock_session_manager_service.h"
 #include "modal_system_dialog/modal_system_dialog_ui_extension.h"
 #include "modal_system_ui_extension.h"
@@ -200,7 +202,9 @@ constexpr const char* UIEXTENSION_MODAL_TYPE = "ability.want.params.modalType";
 constexpr const char* SUPPORT_CLOSE_ON_BLUR = "supportCloseOnBlur";
 constexpr const char* ATOMIC_SERVICE_PREFIX = "com.atomicservice.";
 constexpr const char* PARAM_SPECIFIED_PROCESS_FLAG = "ohosSpecifiedProcessFlag";
+#ifdef MEMMGR_ENABLE
 constexpr const char* IS_START_FROM_APP_DOCK = "isStartFromAppDock";
+#endif
 
 constexpr char ASSERT_FAULT_DETAIL[] = "assertFaultDialogDetail";
 constexpr char PRODUCT_ASSERT_FAULT_DIALOG_ENABLED[] = "persisit.sys.abilityms.support_assert_fault_dialog";
