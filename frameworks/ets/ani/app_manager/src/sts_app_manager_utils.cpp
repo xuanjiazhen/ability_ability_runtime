@@ -87,7 +87,7 @@ namespace AppManagerSts {
             return false;
         }
         ani_enum_item processInfoState {};
-        OHOS::AAFwk::AniEnumConvertUtil::EnumConvert_NativeToSts(env, ProcessStateEnumName,
+        OHOS::AAFwk::AniEnumConvertUtil::EnumConvert_NativeToSts(env, processStateEnumName,
                 ConvertToProcessState(processInfo.state_, processInfo.isFocused), processInfoState);
         if(!SetFieldRef(env, cls, outAniObj, "state", processInfoState)) {
             TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniProcessInfo  set state Faild");
@@ -288,8 +288,8 @@ namespace AppManagerSts {
         int index = 0;
         for (auto &it : infos) {
             ani_object infoObj;
-            if (!ConvertToAniProcessInfo(env, it, infoObj)) {
-                TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniProcessInfo Faild");
+            if (!ConvertToAniAppStateData(env, it, infoObj)) {
+                TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniAppStateData Faild");
                 return false;
             }
             ANI_FAILED_AND_RETURN(env->Object_CallMethodByName_Void(outAniObj,
