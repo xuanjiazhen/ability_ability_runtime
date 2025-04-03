@@ -53,10 +53,7 @@ void NapiCommonWantAgentTest::TearDown()
  */
 HWTEST_F(NapiCommonWantAgentTest, WrapWantAgent_0100, Function | MediumTest | Level1)
 {
-    napi_env env = nullptr;
-    AbilityRuntime::WantAgent::WantAgent* wantAgent = nullptr;
-    napi_finalize finalizeCb = nullptr;
-    auto test = OHOS::AppExecFwk::WrapWantAgent(env, wantAgent, finalizeCb);
+    auto test = OHOS::AppExecFwk::WrapWantAgent(nullptr, nullptr, nullptr);
     EXPECT_EQ(test, nullptr);
 }
 
