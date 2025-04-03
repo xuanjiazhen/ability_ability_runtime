@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_APPLICATION_CONTEXT_MANAGER_H
 
 #include "native_engine/native_engine.h"
+#include "sts_runtime.h"
 
 #include <mutex>
 #include <unordered_map>
@@ -41,6 +42,12 @@ public:
     std::shared_ptr<NativeReference> GetGlobalObject(napi_env env);
 
     void RemoveGlobalObject(napi_env env);
+
+    void AddStsGlobalObject(ani_env* env, std::shared_ptr<AbilityRuntime::STSNativeReference> applicationContextObj);
+
+    std::shared_ptr<AbilityRuntime::STSNativeReference> GetStsGlobalObject(ani_env* env);
+
+    void RemoveStsGlobalObject(ani_env* env);
 
 private:
     ApplicationContextManager();
