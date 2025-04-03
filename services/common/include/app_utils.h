@@ -278,6 +278,15 @@ public:
     bool IsPrepareTerminateEnabled();
 
     /**
+     * IsCacheExtensionAbilityByList, check if it allows cache extension ability by list.
+     *
+     * @param bundleName The bundle name.
+     * @param abilityName The ability name.
+     * @return Whether it allows cache extensionability.
+     */
+    bool IsCacheExtensionAbilityByList(const std::string& bundleName, const std::string& abilityName);
+
+    /**
      * IsSystemReasonMessage, check if it supports launch reason message.
      *
      * @param reasonMessage The launch reason message.
@@ -305,6 +314,19 @@ private:
     void LoadStartAbilityWithoutCallerToken();
 
     /**
+     * IsCacheAbilityEnabled, check cache ability parameter switch.
+     *
+     */
+    bool IsCacheAbilityEnabled();
+
+    /**
+     * LoadCacheAbilityList, load cache ability list from file.
+     *
+     */
+    void LoadCacheAbilityList();
+
+    /**
+     *
      * LoadProcessProhibitedFromRestarting, load process prohibited in big memory.
      *
      */
@@ -351,6 +373,8 @@ private:
     volatile DeviceConfiguration<int32_t> collaboratorBrokerReserveUid_ = {false, DEFAULT_INVALID_VALUE};
     volatile DeviceConfiguration<int32_t> maxChildProcess_ = {false, DEFAULT_MAX_CHILD_PROCESS};
     DeviceConfiguration<std::string> migrateClientBundleName_ = {true, "com.huwei.hmos.migratecilent"};
+    DeviceConfiguration<std::vector<std::pair<std::string, std::string>>>
+        cacheAbilityList_ = {false, {}};
     DISALLOW_COPY_AND_MOVE(AppUtils);
 };
 }  // namespace AAFwk

@@ -10373,6 +10373,10 @@ bool AbilityManagerService::CheckUIExtensionCallerIsForeground(const AbilityRequ
         return true;
     }
 
+    if (CheckStartCallHasFloatingWindowForUIExtension(abilityRequest.callerToken)) {
+        return true;
+    }
+
     auto callerAbility = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
     if (callerAbility != nullptr) {
         if (UIExtensionUtils::IsUIExtension(callerAbility->GetAbilityInfo().extensionAbilityType)) {
@@ -10396,6 +10400,26 @@ bool AbilityManagerService::CheckUIExtensionCallerIsForeground(const AbilityRequ
 
     TAG_LOGE(AAFwkTag::ABILITYMGR, "caller app not foreground, can't start %{public}s",
         abilityRequest.want.GetElement().GetURI().c_str());
+    return false;
+}
+
+bool AbilityManagerService::CheckStartCallHasFloatingWindowForUIExtension(const sptr<IRemoteObject> &callerToken)
+{
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+        CHECK_POINTER_AND_RETURN_LOG(sceneSessionManager, CHECK_PERMISSION_FAILED, "sceneSessionManager is nullptr");
+        bool hasFloatingWindow = false;
+        auto err = sceneSessionManager->HasFloatingWindowForeground(callerToken, hasFloatingWindow);
+        TAG_LOGI(AAFwkTag::ABILITYMGR,
+            "check floatingwindow permission. Ret: %{public}d, hasFloatingWindow: %{public}d",
+            static_cast<int32_t>(err), hasFloatingWindow);
+        if (err != Rosen::WMError::WM_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR,
+                "checking floatingwindow err: %{public}d", static_cast<int32_t>(err));
+        } else if (hasFloatingWindow) {
+            return true;
+        }
+    }
     return false;
 }
 
@@ -13635,6 +13659,23 @@ int32_t AbilityManagerService::QueryPreLoadUIExtensionRecord(const AppExecFwk::E
   }
   return connectManager->QueryPreLoadUIExtensionRecordInner(
       element, moduleName, hostBundleName, recordNum);
+}
+
+int32_t AbilityManagerService::RevokeDelegator(const sptr<IRemoteObject> &token)
+{
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "capability not support");
+        return ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    auto callingTokenId = IPCSkeleton::GetCallingTokenID();
+    auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callingTokenId);
+    if (tokenType != Security::AccessToken::ATokenTypeEnum::TOKEN_HAP) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "Not TOKEN_HAP");
+        return ERR_NO_PERMISSION_CALLER;
+    }
+    auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
+    CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
+    return uiAbilityManager->RevokeDelegator(token);
 }
 }  // namespace AAFwk
 }  // namespace OHOS
