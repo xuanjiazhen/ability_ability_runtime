@@ -1190,10 +1190,6 @@ int AbilityConnectManager::ScheduleDisconnectAbilityDoneLocked(const sptr<IRemot
     RemoveConnectionRecordFromMap(connect);
 
     EventInfo eventInfo = BuildEventInfo(abilityRecord);
-    eventInfo.userId = userId_;
-    eventInfo.bundleName = abilityRecord->GetAbilityInfo().bundleName;
-    eventInfo.moduleName = abilityRecord->GetAbilityInfo().moduleName;
-    eventInfo.abilityName = abilityRecord->GetAbilityInfo().name;
     EventReport::SendDisconnectServiceEvent(EventName::DISCONNECT_SERVICE, eventInfo);
     return ERR_OK;
 }
