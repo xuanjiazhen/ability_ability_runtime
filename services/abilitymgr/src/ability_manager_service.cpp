@@ -520,9 +520,11 @@ void AbilityManagerService::OnStop()
     if (abilityBundleEventCallback_) {
         auto bms = AbilityUtil::GetBundleManagerHelper();
         if (bms) {
-            bool ret = IN_PROCESS_CALL(bms->UnregisterBundleEventCallback(abilityBundleEventCallback_));
-            if (ret != ERR_OK) {
-                TAG_LOGE(AAFwkTag::ABILITYMGR, "unsubscribe bundle event failed, err:%{public}d", ret);
+            if (!IN_PROCESS_CALL(bms->UnregisterBundleEventCallback(abilityBundleEventCallback_))) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "unsubscribe bundle event failed");
+            }
+            if (!IN_PROCESS_CALL(bms->UnregisterPluginEventCallback(abilityBundleEventCallback_))) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "UnregisterPluginEventCallback failed");
             }
         }
     }
@@ -2816,6 +2818,9 @@ void AbilityManagerService::SubscribeBundleEventCallback()
         bool ret = IN_PROCESS_CALL(bms->RegisterBundleEventCallback(abilityBundleEventCallback_));
         if (!ret) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "registerBundleEventCallback failed");
+        }
+        if (!IN_PROCESS_CALL(bms->RegisterPluginEventCallback(abilityBundleEventCallback_))) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "RegisterPluginEventCallback failed");
         }
     } else {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "get bundleManager failed");

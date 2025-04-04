@@ -1018,5 +1018,29 @@ bool BundleMgrHelper::GetPluginAbilityInfo(const std::string &hostBundleName, co
     return bundleMgr->GetPluginAbilityInfo(hostBundleName, pluginBundleName, pluginAbilityName, pluginModuleName,
         userId, pluginAbilityInfo);
 }
+
+bool BundleMgrHelper::RegisterPluginEventCallback(sptr<IBundleEventCallback> pluginEventCallback)
+{
+    TAG_LOGI(AAFwkTag::BUNDLEMGRHELPER, "RegisterPluginEventCallback");
+    auto bundleMgr = Connect();
+    if (bundleMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
+        return false;
+    }
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    return bundleMgr->RegisterPluginEventCallback(pluginEventCallback);
+}
+
+bool BundleMgrHelper::UnregisterPluginEventCallback(sptr<IBundleEventCallback> pluginEventCallback)
+{
+    TAG_LOGI(AAFwkTag::BUNDLEMGRHELPER, "UnregisterPluginEventCallback");
+    auto bundleMgr = Connect();
+    if (bundleMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
+        return false;
+    }
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    return bundleMgr->UnregisterPluginEventCallback(pluginEventCallback);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

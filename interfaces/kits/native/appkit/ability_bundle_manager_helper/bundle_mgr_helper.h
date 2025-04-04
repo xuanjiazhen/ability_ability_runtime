@@ -114,6 +114,8 @@ public:
     bool GetPluginAbilityInfo(const std::string &hostBundleName, const std::string &pluginBundleName,
         const std::string &pluginAbilityName, const std::string &pluginModuleName, int32_t userId,
         AbilityInfo &pluginAbilityInfo);
+    bool RegisterPluginEventCallback(sptr<IBundleEventCallback> pluginEventCallback);
+    bool UnregisterPluginEventCallback(sptr<IBundleEventCallback> pluginEventCallback);
 
 private:
     sptr<IBundleMgr> Connect();

@@ -1551,7 +1551,7 @@ void AppMgrServiceInner::ApplicationTerminated(const int32_t recordId)
 }
 
 int32_t AppMgrServiceInner::UpdateApplicationInfoInstalled(
-    const std::string &bundleName, const int uid, const std::string &moduleName)
+    const std::string &bundleName, const int uid, const std::string &moduleName, bool isPlugin)
 {
     if (!appRunningManager_) {
         TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
@@ -1578,11 +1578,18 @@ int32_t AppMgrServiceInner::UpdateApplicationInfoInstalled(
     TAG_LOGD(AAFwkTag::APPMGR, "userId: %{public}d, bundleName: %{public}s", userId, bundleName.c_str());
     ApplicationInfo appInfo;
     HITRACE_METER_NAME(HITRACE_TAG_APP, "BMS->GetApplicationInfo");
-    bool bundleMgrResult = bundleMgrHelper->GetApplicationInfo(bundleName,
-        ApplicationFlag::GET_BASIC_APPLICATION_INFO, userId, appInfo);
-    if (!bundleMgrResult) {
-        TAG_LOGE(AAFwkTag::APPMGR, "get applicationInfo fail");
-        return ERR_INVALID_OPERATION;
+    if (isPlugin) {
+        appInfo.bundleName = bundleName;
+        appInfo.uid = uid;
+        appInfo.name = bundleName;
+        appInfo.bundleType = BundleType::APP_PLUGIN;
+    } else {
+        bool bundleMgrResult = bundleMgrHelper->GetApplicationInfo(bundleName,
+            ApplicationFlag::GET_BASIC_APPLICATION_INFO, userId, appInfo);
+        if (!bundleMgrResult) {
+            TAG_LOGE(AAFwkTag::APPMGR, "get applicationInfo fail");
+            return ERR_INVALID_OPERATION;
+        }
     }
 
     TAG_LOGD(AAFwkTag::APPMGR, "uid value is %{public}d", uid);
