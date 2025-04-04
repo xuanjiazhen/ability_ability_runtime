@@ -500,7 +500,7 @@ ErrCode UriPermissionManagerStubImpl::GrantUriPermissionPrivileged(const UriPerm
     }
     TAG_LOGI(AAFwkTag::URIPERMMGR, "BundleName:%{public}s, appIndex:%{public}d, flag:%{public}u, uris:%{public}zu",
         targetBundleName.c_str(), appIndex, flag, uriVec.size());
-        auto checkRes = CheckGrantUriPermissionPrivileged(uriVec, flag, funcResult);
+    auto checkRes = CheckGrantUriPermissionPrivileged(uriVec, flag, funcResult);
     if (checkRes != ERR_OK) {
         return ERR_OK;
     }
@@ -1085,16 +1085,16 @@ ErrCode UriPermissionManagerStubImpl::Active(const UriPermissionRawData& policyR
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::URIPERMMGR, "call");
-    if (policyRawData.size == 0 || policyRawData.size > MAX_URI_COUNT) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "policy empty or exceed maxSize %{public}d", MAX_URI_COUNT);
-        return ERR_URI_LIST_OUT_OF_RANGE;
-    }
     std::vector<PolicyInfo> policy;
     auto result = RawDataToPolicyInfo(policyRawData, policy);
     if (!result) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "RawDataToPolicyInfo failed");
         funcResult = INVALID_PARAMETERS_ERR;
         return funcResult;
+    }
+    if (policy.empty() || policy.size() > MAX_URI_COUNT) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "policy empty or exceed maxSize %{public}d", MAX_URI_COUNT);
+        return ERR_URI_LIST_OUT_OF_RANGE;
     }
     uint64_t timeNow = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::high_resolution_clock::now().time_since_epoch()).count());
