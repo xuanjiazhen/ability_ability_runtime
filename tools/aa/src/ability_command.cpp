@@ -23,6 +23,7 @@
 #include "hilog_tag_wrapper.h"
 #include "iservice_registry.h"
 #include "mission_snapshot.h"
+#include "number_convert_utils.h"
 #include "bool_wrapper.h"
 #include "parameters.h"
 #include "sa_mgr_client.h"
@@ -2186,7 +2187,7 @@ ErrCode AbilityManagerShellCommand::StartUserTest(const std::map<std::string, st
 
     int64_t timeMs = 0;
     if (!want.GetStringParam("-w").empty()) {
-        auto time = std::stoi(want.GetStringParam("-w"));
+        auto time = NumberConvertUtils::ConvertToIntNoResult(want.GetStringParam("-w"));
         timeMs = time > 0 ? time * TIME_RATE_MS : 0;
     }
     if (!observer->WaitForFinish(timeMs)) {
@@ -2358,7 +2359,8 @@ ErrCode AbilityManagerShellCommand::RunAsForceExitAppCommand()
     }
 
     ExitReason exitReason = { CovertExitReason(reason), "Force exit app by aa." };
-    result = AbilityManagerClient::GetInstance()->ForceExitApp(std::stoi(pid), exitReason);
+    result = AbilityManagerClient::GetInstance()->ForceExitApp(
+        NumberConvertUtils::ConvertToIntNoResult(pid), exitReason);
     if (result == OHOS::ERR_OK) {
         resultReceiver_ = STRING_BLOCK_AMS_SERVICE_OK + "\n";
     } else {
@@ -2489,7 +2491,7 @@ ErrCode AbilityManagerShellCommand::RunAsNotifyAppFaultCommand()
     faultData.errorObject.message = errorMessage;
     faultData.errorObject.stack = errorStack;
     faultData.faultType = CovertFaultType(faultType);
-    faultData.pid = std::stoi(pid);
+    faultData.pid = NumberConvertUtils::ConvertToIntNoResult(pid);
     DelayedSingleton<AppMgrClient>::GetInstance()->NotifyAppFaultBySA(faultData);
     return result;
 }
