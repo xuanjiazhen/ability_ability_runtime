@@ -82,7 +82,8 @@ void OHOS::AppManagerSts::AniAppStateObserver::HandleOnForegroundApplicationChan
             continue;
         }
         if (ANI_OK !=
-            env_->Object_CallMethodByName_Void(static_cast<ani_object>(pReference->aniRef), "onForegroundApplicationChanged", nullptr, appStateDataObj)) {
+            env_->Object_CallMethodByName_Void(static_cast<ani_object>(pReference->aniRef), 
+                    "onForegroundApplicationChanged", nullptr, appStateDataObj)) {
                 TAG_LOGE(AAFwkTag::APPMGR, "'onForegroundApplicationChanged' Object_CallMethodByName_Void faild");
             }
     }
@@ -107,7 +108,8 @@ void AniAppStateObserver::HandleOnAbilityStateChanged(const AbilityStateData &ab
             continue;
         }
         if (ANI_OK !=
-            env_->Object_CallMethodByName_Void(static_cast<ani_object>(pReference->aniRef), "onAbilityStateChanged", nullptr, abilityStateDataObj)) {
+            env_->Object_CallMethodByName_Void(static_cast<ani_object>(pReference->aniRef),
+                    "onAbilityStateChanged", nullptr, abilityStateDataObj)) {
                 TAG_LOGE(AAFwkTag::APPMGR, "'onAbilityStateChanged' Object_CallMethodByName_Void faild");
             }
     }
@@ -131,7 +133,8 @@ void AniAppStateObserver::HandleOnExtensionStateChanged(const AbilityStateData &
             continue;
         }
         if (ANI_OK !=
-            env_->Object_CallMethodByName_Void(static_cast<ani_object>(pReference->aniRef), "onAbilityStateChanged", nullptr, abilityStateDataObj)) {
+            env_->Object_CallMethodByName_Void(static_cast<ani_object>(pReference->aniRef),
+                    "onAbilityStateChanged", nullptr, abilityStateDataObj)) {
                 TAG_LOGE(AAFwkTag::APPMGR, "'onAbilityStateChanged' Object_CallMethodByName_Void faild");
             }
     }
@@ -156,7 +159,8 @@ void AniAppStateObserver::HandleOnProcessCreated(const ProcessData &processData)
             continue;
         }
         if (ANI_OK !=
-            env_->Object_CallMethodByName_Void(static_cast<ani_object>(pReference->aniRef), "onProcessCreated", nullptr, processDataObj)) {
+            env_->Object_CallMethodByName_Void(static_cast<ani_object>(pReference->aniRef),
+                    "onProcessCreated", nullptr, processDataObj)) {
                 TAG_LOGE(AAFwkTag::APPMGR, "'onProcessCreated' Object_CallMethodByName_Void faild");
             }
         std::cout << item.first << std::endl;
@@ -181,7 +185,8 @@ void AniAppStateObserver::HandleOnProcessStateChanged(const ProcessData &process
             continue;
         }
         if (ANI_OK !=
-            env_->Object_CallMethodByName_Void(static_cast<ani_object>(pReference->aniRef), "onProcessStateChanged", nullptr, processDataObj)) {
+            env_->Object_CallMethodByName_Void(static_cast<ani_object>(pReference->aniRef),
+                    "onProcessStateChanged", nullptr, processDataObj)) {
                 TAG_LOGE(AAFwkTag::APPMGR, "'onProcessStateChanged' Object_CallMethodByName_Void faild");
             }
         std::cout << item.first << std::endl;
@@ -206,7 +211,8 @@ void AniAppStateObserver::HandleOnProcessDied(const ProcessData &processData)
             continue;
         }
         if (ANI_OK !=
-            env_->Object_CallMethodByName_Void(static_cast<ani_object>(pReference->aniRef), "onProcessDied", nullptr, processDataObj)) {
+            env_->Object_CallMethodByName_Void(static_cast<ani_object>(pReference->aniRef),
+                    "onProcessDied", nullptr, processDataObj)) {
                 TAG_LOGE(AAFwkTag::APPMGR, "'onProcessDied' Object_CallMethodByName_Void faild");
             }
     }
@@ -282,7 +288,8 @@ void AniAppStateObserver::HandleOnAppStarted(const AppStateData &appStateData)
             continue;
         }
         if (ANI_OK !=
-            env_->Object_CallMethodByName_Void(static_cast<ani_object>(pReference->aniRef), "onAppStarted", nullptr, appStateDataObj)) {
+            env_->Object_CallMethodByName_Void(static_cast<ani_object>(pReference->aniRef),
+                    "onAppStarted", nullptr, appStateDataObj)) {
                 TAG_LOGE(AAFwkTag::APPMGR, "'onAppStarted' Object_CallMethodByName_Void faild");
             }
     }
@@ -306,7 +313,8 @@ void AniAppStateObserver::HandleOnAppStopped(const AppStateData &appStateData)
             continue;
         }
         if (ANI_OK !=
-            env_->Object_CallMethodByName_Void(static_cast<ani_object>(pReference->aniRef), "onAppStopped", nullptr, appStateDataObj)) {
+            env_->Object_CallMethodByName_Void(static_cast<ani_object>(pReference->aniRef),
+                    "onAppStopped", nullptr, appStateDataObj)) {
                 TAG_LOGE(AAFwkTag::APPMGR, "'onAppStopped' Object_CallMethodByName_Void faild");
             }
     }
