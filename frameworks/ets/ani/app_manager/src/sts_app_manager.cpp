@@ -644,6 +644,16 @@ static ani_object GetRunningProcessInformationByBundleType(ani_env *env, ani_int
     return aniInfos;
 }
 
+static ani_int ClearUpAppData([[maybe_unused]] ani_env *env, ani_string bundleName, ani_object appIndex)
+{
+	return 0;
+}
+
+static ani_int getProcessMemoryByPid([[maybe_unused]] ani_env *env, ani_int pid)
+{
+    return 0;
+}
+
 void StsAppManagerRegistryInit(ani_env *env)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "StsAppManagerRegistryInit call");
@@ -677,20 +687,30 @@ void StsAppManagerRegistryInit(ani_env *env)
         ani_native_function {"nativeOff",
             offAllByType, reinterpret_cast<void *>(OffAllByType)},
         ani_native_function {"nativePreloadApplication", nullptr, reinterpret_cast<void *>(PreloadApplication)},
-        ani_native_function {"nativeIsRunningInStabilityTest", ":Z", reinterpret_cast<void *>(IsRunningInStabilityTest)},
-        ani_native_function {"nativeKillProcessWithAccount", "Lstd/core/String;I:I", reinterpret_cast<void *>(KillProcessWithAccount)},
-        ani_native_function {"nativeKillProcessWithAccountEx", nullptr, reinterpret_cast<void *>(KillProcessWithAccountEx)},
-        ani_native_function {"nativeKillProcessesByBundleName", "Lstd/core/String;:I", reinterpret_cast<void *>(KillProcessesByBundleName)},
-        ani_native_function {"nativeKillProcessesByBundleNameEx", nullptr, reinterpret_cast<void *>(KillProcessesByBundleNameEx)},
-        ani_native_function {"nativeClearUpApplicationData", "Lstd/core/String;:I", reinterpret_cast<void *>(ClearUpApplicationData)},
+        ani_native_function {"nativeIsRunningInStabilityTest", ":Z",
+            reinterpret_cast<void *>(IsRunningInStabilityTest)},
+        ani_native_function {"nativeKillProcessWithAccount", "Lstd/core/String;I:I",
+            reinterpret_cast<void *>(KillProcessWithAccount)},
+        ani_native_function {"nativeKillProcessWithAccountEx", nullptr,
+            reinterpret_cast<void *>(KillProcessWithAccountEx)},
+        ani_native_function {"nativeKillProcessesByBundleName", "Lstd/core/String;:I",
+            reinterpret_cast<void *>(KillProcessesByBundleName)},
+        ani_native_function {"nativeKillProcessesByBundleNameEx", nullptr,
+            reinterpret_cast<void *>(KillProcessesByBundleNameEx)},
+        ani_native_function {"nativeClearUpApplicationData", "Lstd/core/String;:I",
+            reinterpret_cast<void *>(ClearUpApplicationData)},
         ani_native_function {"nativeIsRamConstrainedDevice", ":Z", reinterpret_cast<void *>(IsRamConstrainedDevice)},
-        ani_native_function {"nativeGetForegroundApplications", ":Lescompat/Array;", reinterpret_cast<void *>(GetForegroundApplications)},
+        ani_native_function {"nativeGetForegroundApplications", ":Lescompat/Array;",
+            reinterpret_cast<void *>(GetForegroundApplications)},
         ani_native_function {"nativeGetAppMemorySize", ":D", reinterpret_cast<void *>(GetAppMemorySize)},
-        ani_native_function {"nativeIsSharedBundleRunning", "Lstd/core/String;D:Z", reinterpret_cast<void *>(IsSharedBundleRunning)},
-        ani_native_function {"nativeGetRunningProcessInformation",
-            ":Lescompat/Array;", reinterpret_cast<void *>(GetRunningProcessInformation)},
-        ani_native_function {"nativeGetRunningProcessInformationByBundleType",
-            nullptr, reinterpret_cast<void *>(GetRunningProcessInformationByBundleType)},
+        ani_native_function {"nativeIsSharedBundleRunning", "Lstd/core/String;D:Z",
+            reinterpret_cast<void *>(IsSharedBundleRunning)},
+        ani_native_function {"nativeGetRunningProcessInformation", ":Lescompat/Array;",
+            reinterpret_cast<void *>(GetRunningProcessInformation)},
+        ani_native_function {"nativeGetRunningProcessInformationByBundleType", nullptr,
+            reinterpret_cast<void *>(GetRunningProcessInformationByBundleType)},
+        ani_native_function {"nativeClearUpAppData", "Lstd/core/String;Lstd/core/Object;:I", reinterpret_cast<void *>(ClearUpAppData)},
+        ani_native_function {"nativeGetProcessMemoryByPid", "I:I", reinterpret_cast<void *>(GetProcessMemoryByPid)},
     };
 
     status = env->Namespace_BindNativeFunctions(ns, kitFunctions.data(), kitFunctions.size());
