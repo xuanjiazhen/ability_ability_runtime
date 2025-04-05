@@ -221,7 +221,7 @@ void OHOSApplication::SetApplicationContext(
 
 static void SetSupportedProcessCacheSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
     ani_boolean value) {
-    TAG_LOGI(AAFwkTag::APPKIT, "SetSupportedProcessCacheSync called");
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
     ani_class applicationContextCls = nullptr;
     if (env->FindClass(STS_APPLICATION_CONTEXT_CLASS_NAME, &applicationContextCls) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "FindClass ApplicationContext failed");
@@ -238,12 +238,11 @@ static void SetSupportedProcessCacheSync([[maybe_unused]]ani_env *env, [[maybe_u
         return;
     }
     ((AbilityRuntime::ApplicationContext*)nativeContextLong)->SetSupportedProcessCacheSelf(value);
-    TAG_LOGI(AAFwkTag::APPKIT, "SetSupportedProcessCacheSync end");
 }
 
 void OHOSApplication::InitAniApplicationContext()
 {
-    TAG_LOGI(AAFwkTag::APPKIT, "init application context");
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
     auto& runtime = GetRuntime(AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2);
     auto aniEnv = static_cast<AbilityRuntime::STSRuntime &>(*runtime).GetAniEnv();
     ani_class applicationContextCls = nullptr;
@@ -288,12 +287,11 @@ void OHOSApplication::InitAniApplicationContext()
     AbilityRuntime::ApplicationContextManager::GetApplicationContextManager().AddStsGlobalObject(aniEnv, stsReference);
     applicationContextObjRef_ = reinterpret_cast<void*>(applicationContextObjectRef);
     abilityRuntimeContext_->SetApplicationCtxObjRef(applicationContextObjRef_);
-    TAG_LOGI(AAFwkTag::APPKIT, "init application context success");
 }
 
 void OHOSApplication::InitAniContext()
 {
-    TAG_LOGI(AAFwkTag::APPKIT, "init context");
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
     auto& runtime = GetRuntime(AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2);
     auto aniEnv = static_cast<AbilityRuntime::STSRuntime &>(*runtime).GetAniEnv();
     ani_class contextCls = nullptr;
@@ -307,7 +305,6 @@ void OHOSApplication::InitAniContext()
     };
     aniEnv->Class_BindNativeMethods(contextCls, contextFunctions.data(),
         contextFunctions.size());
-    TAG_LOGI(AAFwkTag::APPKIT, "init context success");
 }
 
 /**
