@@ -998,8 +998,13 @@ int AbilityConnectManager::AbilityTransitionDone(const sptr<IRemoteObject> &toke
                 DelayedSingleton<AppScheduler>::GetInstance()->UpdateAbilityState(
                     token, AppExecFwk::AbilityState::ABILITY_STATE_TERMINATED);
             } else {
-                DelayedSingleton<AppScheduler>::GetInstance()->UpdateAbilityState(
-                    token, AppExecFwk::ExtensionState::ABILITY_STATE_TERMINATED);
+                if (IsUIExtensionAbility(abilityRecord)) {
+                    DelayedSingleton<AppScheduler>::GetInstance()->UpdateAbilityState(
+                        token, AppExecFwk::AbilityState::ABILITY_STATE_TERMINATED);
+                } else {
+                    DelayedSingleton<AppScheduler>::GetInstance()->UpdateExtensionState(
+                        token, AppExecFwk::ExtensionState::EXTENSION_STATE_TERMINATED);
+                }
             }
             return DispatchTerminate(abilityRecord);
         }
