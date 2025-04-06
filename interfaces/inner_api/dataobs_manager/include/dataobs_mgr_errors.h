@@ -50,6 +50,7 @@ enum Status : int32_t {
     IPC_PARCEL_ERROR,
     IPC_ERROR,
     INVALID_PARAM,
+    DATAOBS_INVALID_USERID,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

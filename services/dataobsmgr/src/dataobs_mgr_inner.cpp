@@ -26,11 +26,11 @@ DataObsMgrInner::DataObsMgrInner() {}
 
 DataObsMgrInner::~DataObsMgrInner() {}
 
-int DataObsMgrInner::HandleRegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver)
+int DataObsMgrInner::HandleRegisterObserver(const Uri &uri, struct ObserverNode observerNode)
 {
     std::lock_guard<ffrt::mutex> lock(innerMutex_);
 
-    auto [obsPair, flag] = observers_.try_emplace(uri.ToString(), std::list<sptr<IDataAbilityObserver>>());
+    auto [obsPair, flag] = observers_.try_emplace(uri.ToString(), std::list<struct ObserverNode>());
     if (!flag && obsPair->second.size() > OBS_NUM_MAX) {
         TAG_LOGE(AAFwkTag::DBOBSMGR,
             "subscribers num:%{public}s maxed",
@@ -39,16 +39,18 @@ int DataObsMgrInner::HandleRegisterObserver(const Uri &uri, sptr<IDataAbilityObs
     }
 
     for (auto obs = obsPair->second.begin(); obs != obsPair->second.end(); obs++) {
-        if ((*obs)->AsObject() == dataObserver->AsObject()) {
+        // todo: add user compare
+        if ((*(obs.observer_))->AsObject() == observerNode.observer_->AsObject() &&
+            obs.userID_ == observerNode.userID_) {
             TAG_LOGE(AAFwkTag::DBOBSMGR, "obs registered:%{public}s",
                 CommonUtils::Anonymous(uri.ToString()).c_str());
             return OBS_EXIST;
         }
     }
 
-    obsPair->second.push_back(dataObserver);
+    obsPair->second.push_back(observerNode);
 
-    AddObsDeathRecipient(dataObserver);
+    AddObsDeathRecipient(observerNode.observer_);
 
     return NO_ERROR;
 }

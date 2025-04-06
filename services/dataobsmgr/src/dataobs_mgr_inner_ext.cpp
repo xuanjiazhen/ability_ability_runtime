@@ -91,6 +91,10 @@ Status DataObsMgrInnerExt::HandleNotifyChange(const ChangeInfo &changeInfo)
             path.emplace_back(uri.GetScheme());
             path.emplace_back(uri.GetAuthority());
             uri.GetPathSegments(path);
+            // authority里面应该是不包含？参数的
+            // 这里也需要加上user等参数
+            TAG_LOGD(AAFwkTag::DBOBSMGR,
+            "magiclog uri:{public}%s authority:{public}%s", uri.ToString().c_str(), uri.GetAuthority().c_str());
             root_->GetObs(path, 0, uri, changeRes);
         }
     }

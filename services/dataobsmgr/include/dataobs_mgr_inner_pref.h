@@ -24,6 +24,7 @@
 #include <string>
 
 #include "data_ability_observer_interface.h"
+#include "dataobs_mgr_inner_common.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -35,8 +36,8 @@ public:
     DataObsMgrInnerPref();
     virtual ~DataObsMgrInnerPref();
 
-    int HandleRegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver);
-    int HandleUnregisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver);
+    int HandleRegisterObserver(const Uri &uri, struct ObserverNode observerNode);
+    int HandleUnregisterObserver(const Uri &uri, struct ObserverNode observerNode);
     int HandleNotifyChange(const Uri &uri);
     void OnCallBackDied(const wptr<IRemoteObject> &remote);
 

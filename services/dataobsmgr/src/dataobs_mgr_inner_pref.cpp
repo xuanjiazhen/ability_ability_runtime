@@ -26,7 +26,7 @@ DataObsMgrInnerPref::DataObsMgrInnerPref() {}
 
 DataObsMgrInnerPref::~DataObsMgrInnerPref() {}
 
-int DataObsMgrInnerPref::HandleRegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver)
+int DataObsMgrInnerPref::HandleRegisterObserver(const Uri &uri, struct ObserverNode observerNode)
 {
     std::lock_guard<std::mutex> lock(preferenceMutex_);
 
@@ -52,7 +52,7 @@ int DataObsMgrInnerPref::HandleRegisterObserver(const Uri &uri, sptr<IDataAbilit
     return NO_ERROR;
 }
 
-int DataObsMgrInnerPref::HandleUnregisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver)
+int DataObsMgrInnerPref::HandleUnregisterObserver(const Uri &uri, struct ObserverNode observerNode)
 {
     std::lock_guard<std::mutex> lock(preferenceMutex_);
 

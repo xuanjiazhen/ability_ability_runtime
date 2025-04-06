@@ -17,6 +17,7 @@
 
 #include <functional>
 #include <memory>
+#include <stdint.h>
 #include <string>
 #include <unistd.h>
 #include "string_ex.h"
@@ -24,6 +25,7 @@
 #include "ability_connect_callback_stub.h"
 #include "ability_manager_interface.h"
 #include "ability_manager_proxy.h"
+#include "accesstoken_kit.h"
 #include "dataobs_mgr_errors.h"
 #include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
@@ -33,6 +35,7 @@
 #include "system_ability_definition.h"
 #include "common_utils.h"
 #include "securec.h"
+#include "uri_utils.h"
 #ifdef SCENE_BOARD_ENABLE
 #include "window_manager_lite.h"
 #else
@@ -113,11 +116,32 @@ int DataObsMgrService::RegisterObserver(const Uri &uri, sptr<IDataAbilityObserve
         return DATAOBS_SERVICE_INNER_IS_NULL;
     }
 
+    HapTokenInfo tokenInfo;
+    int32_t userID = -1;
+    bool isFromSA = false;
+    int32_t tokenId = IPCSkeleton::GetCallingTokenID();
+    auto type = OHOS::Security::AccessTokenKit::GetTokenTypeFlag(tokenId);
+    if (type == TOKEN_NATIVE || type == TOKEN_SHELL) {
+        userID = 0;
+        isFromSA = true;
+    } else {
+        auto result = AccessTokenKit::GetHapTokenInfo(tokenId, tokenInfo);
+        if (result != RET_SUCCESS) {
+            TAG_LOGE(AAFwkTag::DBOBSMGR, "token:0x%{public}x, result:%{public}d", tokenId, result);
+            return result;
+        }
+        userID = tokenInfo.userID;
+        isFromSA = false;
+    }
+
+    struct ObserverNode observerNode(dataObserver, userID, isFromSA);
+
+
     int status;
     if (const_cast<Uri &>(uri).GetScheme() == SHARE_PREFERENCES) {
-        status = dataObsMgrInnerPref_->HandleRegisterObserver(uri, dataObserver);
+        status = dataObsMgrInnerPref_->HandleRegisterObserver(uri, observerNode);
     } else {
-        status = dataObsMgrInner_->HandleRegisterObserver(uri, dataObserver);
+        status = dataObsMgrInner_->HandleRegisterObserver(uri, observerNode);
     }
 
     if (status != NO_ERROR) {
