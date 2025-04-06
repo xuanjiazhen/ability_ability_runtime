@@ -25,6 +25,7 @@
 #undef private
 
 #include "ability_record.h"
+#include "app_utils.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS::AppExecFwk;
@@ -123,4 +124,3 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     ch = nullptr;
     return 0;
 }
-
