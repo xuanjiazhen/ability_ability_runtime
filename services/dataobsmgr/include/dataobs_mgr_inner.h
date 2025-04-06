@@ -25,6 +25,7 @@
 #include "cpp/mutex.h"
 
 #include "data_ability_observer_interface.h"
+#include "dataobs_mgr_inner_common.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -36,8 +37,8 @@ public:
     DataObsMgrInner();
     virtual ~DataObsMgrInner();
 
-    int HandleRegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver);
-    int HandleUnregisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver);
+    int HandleRegisterObserver(const Uri &uri, struct ObserverNode observerNode);
+    int HandleUnregisterObserver(const Uri &uri, struct ObserverNode observerNode);
     int HandleNotifyChange(const Uri &uri);
     void OnCallBackDied(const wptr<IRemoteObject> &remote);
 
