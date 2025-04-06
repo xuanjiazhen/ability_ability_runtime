@@ -998,7 +998,7 @@ int AbilityConnectManager::AbilityTransitionDone(const sptr<IRemoteObject> &toke
                 DelayedSingleton<AppScheduler>::GetInstance()->UpdateAbilityState(
                     token, AppExecFwk::AbilityState::ABILITY_STATE_TERMINATED);
             } else {
-                DelayedSingleton<AppScheduler>::GetInstance()->UpdateExtensionState(
+                DelayedSingleton<AppScheduler>::GetInstance()->UpdateAbilityState(
                     token, AppExecFwk::ExtensionState::ABILITY_STATE_TERMINATED);
             }
             return DispatchTerminate(abilityRecord);
