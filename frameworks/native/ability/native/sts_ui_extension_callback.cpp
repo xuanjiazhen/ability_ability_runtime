@@ -17,6 +17,7 @@
 
 #include "ability_business_error.h"
 #include "ani_common_ability_result.h"
+#include <ani_signature_builder.h>
 #include "hilog_tag_wrapper.h"
 #ifdef SUPPORT_SCREEN
 #include "ui_content.h"
@@ -57,13 +58,18 @@ void StsUIExtensionCallback::OnError(int32_t number)
     }
     ani_status status = ANI_ERROR;
     ani_class clsCall = nullptr;
-    if ((status = aniEnv->FindClass("Lapplication/AbilityStartCallback/AbilityStartCallback;", &clsCall)) != ANI_OK) {
+    auto classTypeAbilityStartCallback = arkts::ani_signature::Builder::BuildClass({"application", "AbilityStartCallback", "AbilityStartCallback"});
+    if ((status = aniEnv->FindClass(classTypeAbilityStartCallback.Descriptor().c_str(), &clsCall)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "find AbilityStartCallback class failed, status : %{public}d", status);
         return;
     }
     ani_method method = nullptr;
-    if ((status = aniEnv->Class_FindMethod(clsCall, "onError", "ILstd/core/String;Lstd/core/String;:V",
-        &method)) != ANI_OK) {
+    arkts::ani_signature::SignatureBuilder onErrorSigBuilder;
+    onErrorSigBuilder.AddInt();
+    onErrorSigBuilder.AddClass({"std", "core", "String"});
+    onErrorSigBuilder.AddClass({"std", "core", "String"});
+    auto onErrorSignature = onErrorSigBuilder.BuildSignatureDescriptor();
+    if ((status = aniEnv->Class_FindMethod(clsCall, "onError", onErrorSignature.c_str(), &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "find onError method failed, status : %{public}d", status);
         return;
     }

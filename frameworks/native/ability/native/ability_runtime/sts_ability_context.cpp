@@ -15,6 +15,7 @@
 
 #include "ability_runtime/sts_ability_context.h"
 
+#include <ani_signature_builder.h>
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
@@ -62,7 +63,8 @@ std::shared_ptr<AbilityContext> StsAbilityContext::GetAbilityContext(ani_env *en
         TAG_LOGE(AAFwkTag::UIABILITY, "null env");
         return nullptr;
     }
-    if ((status = env->FindClass("Lapplication/UIAbilityContext/UIAbilityContext;", &cls)) != ANI_OK) {
+    auto classTypeUIAbilityContext = arkts::ani_signature::Builder::BuildClass({"application", "UIAbilityContext", "UIAbilityContext"});
+    if ((status = env->FindClass(classTypeUIAbilityContext.Descriptor().c_str(), &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
         return nullptr;
     }
@@ -92,11 +94,15 @@ ani_object StsAbilityContext::SetAbilityContext(ani_env *env, const std::shared_
         TAG_LOGE(AAFwkTag::UIABILITY, "null context");
         return nullptr;
     }
-    if ((status = env->FindClass("Lapplication/UIAbilityContext/UIAbilityContext;", &cls)) != ANI_OK) {
+    auto classTypeUIAbilityContext = arkts::ani_signature::Builder::BuildClass({"application", "UIAbilityContext", "UIAbilityContext"});
+    if ((status = env->FindClass(classTypeUIAbilityContext.Descriptor().c_str(), &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
         return nullptr;
     }
-    if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
+    auto methodCtor = arkts::ani_signature::Builder::BuildConstructorName();
+    arkts::ani_signature::SignatureBuilder methodCtorSigBuilder;
+    auto methodCtorSignature = methodCtorSigBuilder.BuildSignatureDescriptor();
+    if ((status = env->Class_FindMethod(cls, methodCtor.c_str(), methodCtorSignature.c_str(), &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
         return nullptr;
     }
@@ -140,13 +146,17 @@ bool StsAbilityContext::AsyncCallback(ani_env *env, ani_object call, ani_object 
     ani_status status = ANI_ERROR;
     ani_class clsCall {};
 
-    if ((status = env->FindClass("Lapplication/UIAbilityContext/AsyncCallbackWrapper;", &clsCall)) != ANI_OK) {
+    auto classTypeAsyncCallbackWrapper = arkts::ani_signature::Builder::BuildClass({"application", "UIAbilityContext", "AsyncCallbackWrapper"});
+    if ((status = env->FindClass(classTypeAsyncCallbackWrapper.Descriptor().c_str(), &clsCall)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
         return false;
     }
     ani_method method {};
-    if ((status = env->Class_FindMethod(
-        clsCall, INVOKE_METHOD_NAME, "L@ohos/base/BusinessError;Lstd/core/Object;:V", &method)) != ANI_OK) {
+    arkts::ani_signature::SignatureBuilder INVOKE_METHOD_NAMESigBuilder;
+    INVOKE_METHOD_NAMESigBuilder.AddClass({"@ohos", "base", "BusinessError"});
+    INVOKE_METHOD_NAMESigBuilder.AddClass({"std", "core", "Object"});
+    auto INVOKE_METHOD_NAMESignature = INVOKE_METHOD_NAMESigBuilder.BuildSignatureDescriptor();
+    if ((status = env->Class_FindMethod(clsCall, INVOKE_METHOD_NAME, INVOKE_METHOD_NAMESignature.c_str(), &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
         return false;
     }
@@ -186,11 +196,17 @@ ani_object StsAbilityContext::WrapError(ani_env *env, const std::string &msg)
     ani_ref undefRef;
     env->GetUndefined(&undefRef);
 
-    if ((status = env->FindClass("Lescompat/Error;", &cls)) != ANI_OK) {
+    auto classTypeError = arkts::ani_signature::Builder::BuildClass({"escompat", "Error"});
+    if ((status = env->FindClass(classTypeError.Descriptor().c_str(), &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
         return nullptr;
     }
-    if ((status = env->Class_FindMethod(cls, "<ctor>", "Lstd/core/String;Lescompat/ErrorOptions;:V", &method)) !=
+    auto methodCtor = arkts::ani_signature::Builder::BuildConstructorName();
+    arkts::ani_signature::SignatureBuilder methodCtorSigBuilder;
+    methodCtorSigBuilder.AddClass({"std", "core", "String"});
+    methodCtorSigBuilder.AddClass({"escompat", "ErrorOptions"});
+    auto methodCtorSignature = methodCtorSigBuilder.BuildSignatureDescriptor();
+    if ((status = env->Class_FindMethod(cls, methodCtor.c_str(), methodCtorSignature.c_str(), &method)) !=
         ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
         return nullptr;
@@ -213,11 +229,17 @@ ani_object StsAbilityContext::WrapBusinessError(ani_env *env, int32_t code)
         TAG_LOGE(AAFwkTag::UIABILITY, "null env");
         return nullptr;
     }
-    if ((status = env->FindClass("L@ohos/base/BusinessError;", &cls)) != ANI_OK) {
+    auto classTypeBusinessError = arkts::ani_signature::Builder::BuildClass({"@ohos", "base", "BusinessError"});
+    if ((status = env->FindClass(classTypeBusinessError.Descriptor().c_str(), &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
         return nullptr;
     }
-    if ((status = env->Class_FindMethod(cls, "<ctor>", "DLescompat/Error;:V", &method)) != ANI_OK) {
+    auto methodCtor = arkts::ani_signature::Builder::BuildConstructorName();
+    arkts::ani_signature::SignatureBuilder methodCtorSigBuilder;
+    methodCtorSigBuilder.AddDouble();
+    methodCtorSigBuilder.AddClass({"escompat", "Error"});
+    auto methodCtorSignature = methodCtorSigBuilder.BuildSignatureDescriptor();
+    if ((status = env->Class_FindMethod(cls, methodCtor.c_str(), methodCtorSignature.c_str(), &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
         return nullptr;
     }
@@ -473,12 +495,15 @@ ani_int StsAbilityContext::StartAbilityByTypeSync([[maybe_unused]]ani_env *env, 
 
 bool BindNativeMethods(ani_env *env, ani_class &cls)
 {
-    ani_status status = env->FindClass("Lapplication/UIAbilityContext/UIAbilityContext;", &cls);
+    auto classTypeUIAbilityContext = arkts::ani_signature::Builder::BuildClass({"application", "UIAbilityContext", "UIAbilityContext"});
+    ani_status status = env->FindClass(classTypeUIAbilityContext.Descriptor().c_str(), &cls);
     if (status != ANI_OK || cls == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status: %{public}d", status);
         return false;
     }
 
+    arkts::ani_signature::SignatureBuilder PromiseCallbackSigBuilder;
+    auto PromiseCallbackSignature = PromiseCallbackSigBuilder.BuildSignatureDescriptor();
     std::array functions = {
         ani_native_function { "nativeStartAbilitySync",
             "L@ohos/app/ability/Want/Want;Lapplication/UIAbilityContext/AsyncCallbackWrapper;:V",

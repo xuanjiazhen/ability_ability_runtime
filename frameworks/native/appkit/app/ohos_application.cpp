@@ -48,6 +48,7 @@
 #include "window.h"
 #endif
 #include "ani.h"
+#include <ani_signature_builder.h>
 #include "sts_context_utils.h"
 #include "sts_runtime.h"
 
@@ -223,6 +224,7 @@ static void SetSupportedProcessCacheSync([[maybe_unused]]ani_env *env, [[maybe_u
     ani_boolean value) {
     TAG_LOGI(AAFwkTag::APPKIT, "SetSupportedProcessCacheSync called");
     ani_class applicationContextCls = nullptr;
+    // Pls replace manually
     if (env->FindClass(STS_APPLICATION_CONTEXT_CLASS_NAME, &applicationContextCls) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "FindClass ApplicationContext failed");
         return;
@@ -247,19 +249,25 @@ void OHOSApplication::InitAniApplicationContext()
     auto& runtime = GetRuntime(AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2);
     auto aniEnv = static_cast<AbilityRuntime::STSRuntime &>(*runtime).GetAniEnv();
     ani_class applicationContextCls = nullptr;
+    // Pls replace manually
     if (aniEnv->FindClass(STS_APPLICATION_CONTEXT_CLASS_NAME, &applicationContextCls) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "FindClass ApplicationContext failed");
         return;
     }
+    arkts::ani_signature::SignatureBuilder SetSupportedProcessCacheSyncSigBuilder;
+    SetSupportedProcessCacheSyncSigBuilder.AddBoolean();
+    auto SetSupportedProcessCacheSyncSignature = SetSupportedProcessCacheSyncSigBuilder.BuildSignatureDescriptor();
     std::array applicationContextFunctions = {
-        ani_native_function {"setSupportedProcessCacheSync", "Z:V",
-            reinterpret_cast<void *>(SetSupportedProcessCacheSync)},
+                ani_native_function{ "setSupportedProcessCacheSync", SetSupportedProcessCacheSyncSignature.c_str(), reinterpret_cast<void*>(SetSupportedProcessCacheSync) },
     };
     aniEnv->Class_BindNativeMethods(applicationContextCls, applicationContextFunctions.data(),
         applicationContextFunctions.size());
 
     ani_method contextCtorMethod = nullptr;
-    if (aniEnv->Class_FindMethod(applicationContextCls, "<ctor>", ":V", &contextCtorMethod) != ANI_OK) {
+    auto methodCtor = arkts::ani_signature::Builder::BuildConstructorName();
+    arkts::ani_signature::SignatureBuilder methodCtorSigBuilder;
+    auto methodCtorSignature = methodCtorSigBuilder.BuildSignatureDescriptor();
+    if (aniEnv->Class_FindMethod(applicationContextCls, methodCtor.c_str(), methodCtorSignature.c_str(), &contextCtorMethod) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "Class_FindMethod ctor failed");
         return;
     }
@@ -297,10 +305,14 @@ void OHOSApplication::InitAniContext()
     auto& runtime = GetRuntime(AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2);
     auto aniEnv = static_cast<AbilityRuntime::STSRuntime &>(*runtime).GetAniEnv();
     ani_class contextCls = nullptr;
+    // Pls replace manually
     if (aniEnv->FindClass(STS_CONTEXT_CLASS_NAME, &contextCls) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "FindClass Context failed");
         return;
     }
+    arkts::ani_signature::SignatureBuilder PrintSyncSigBuilder;
+    PrintSyncSigBuilder.AddClass({"std", "core", "String"});
+    auto PrintSyncSignature = PrintSyncSigBuilder.BuildSignatureDescriptor();
     std::array contextFunctions = {
         ani_native_function {"getApplicationContextSync", ":Lapplication/ApplicationContext/ApplicationContext;",
             reinterpret_cast<void *>(AbilityRuntime::ContextUtil::GetApplicationContextSync)},

@@ -15,6 +15,7 @@
 
 #include "ani_common_want.h"
 #include "ani_common_util.h"
+#include <ani_signature_builder.h>
 #include "array_wrapper.h"
 #include "bool_wrapper.h"
 #include "byte_wrapper.h"
@@ -65,14 +66,18 @@ ani_object WrapWant(ani_env *env, const AAFwk::Want &want)
     ani_status status = ANI_ERROR;
     ani_method method = nullptr;
     ani_object object = nullptr;
-    if ((status = env->FindClass("L@ohos/app/ability/Want/Want;", &cls)) != ANI_OK) {
+    auto classTypeWant = arkts::ani_signature::Builder::BuildClass({"@ohos", "app", "ability", "Want", "Want"});
+    if ((status = env->FindClass(classTypeWant.Descriptor().c_str(), &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
     }
     if (cls == nullptr) {
         TAG_LOGE(AAFwkTag::JSNAPI, "null wantCls");
         return nullptr;
     }
-    if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
+    auto methodCtor = arkts::ani_signature::Builder::BuildConstructorName();
+    arkts::ani_signature::SignatureBuilder methodCtorSigBuilder;
+    auto methodCtorSignature = methodCtorSigBuilder.BuildSignatureDescriptor();
+    if ((status = env->Class_FindMethod(cls, methodCtor.c_str(), methodCtorSignature.c_str(), &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
     }
     if ((status = env->Object_New(cls, method, &object)) != ANI_OK) {
@@ -103,7 +108,8 @@ ani_ref WrapWantParams(ani_env *env, const AAFwk::WantParams &wantParams)
 {
     ani_status status = ANI_ERROR;
     ani_class cls = nullptr;
-    if ((status = env->FindClass("L@ohos/app/ability/Want/RecordSerializeTool;", &cls)) != ANI_OK) {
+    auto classTypeRecordSerializeTool = arkts::ani_signature::Builder::BuildClass({"@ohos", "app", "ability", "Want", "RecordSerializeTool"});
+    if ((status = env->FindClass(classTypeRecordSerializeTool.Descriptor().c_str(), &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "FindClass RecordSerializeTool failed, status : %{public}d", status);
     }
     if (cls == nullptr) {
@@ -111,6 +117,7 @@ ani_ref WrapWantParams(ani_env *env, const AAFwk::WantParams &wantParams)
         return nullptr;
     }
     ani_static_method parseNoThrowMethod = nullptr;
+    // Pls replace manually
     status = env->Class_FindStaticMethod(cls, "parseNoThrow", nullptr, &parseNoThrowMethod);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "failed to get parseNoThrow method, status : %{public}d", status);
@@ -226,7 +233,8 @@ bool UnwrapWantParams(ani_env *env, ani_ref param, AAFwk::WantParams &wantParams
 {
     ani_status status = ANI_ERROR;
     ani_class cls = nullptr;
-    if ((status = env->FindClass("L@ohos/app/ability/Want/RecordSerializeTool;", &cls)) != ANI_OK) {
+    auto classTypeRecordSerializeTool = arkts::ani_signature::Builder::BuildClass({"@ohos", "app", "ability", "Want", "RecordSerializeTool"});
+    if ((status = env->FindClass(classTypeRecordSerializeTool.Descriptor().c_str(), &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "FindClass RecordSerializeTool failed, status : %{public}d", status);
     }
     if (cls == nullptr) {
@@ -235,6 +243,7 @@ bool UnwrapWantParams(ani_env *env, ani_ref param, AAFwk::WantParams &wantParams
     }
 
     ani_static_method stringifyMethod = nullptr;
+    // Pls replace manually
     status = env->Class_FindStaticMethod(cls, "stringifyNoThrow", nullptr, &stringifyMethod);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "failed to get stringifyNoThrow method, status : %{public}d", status);
@@ -267,7 +276,8 @@ bool UnwrapWantParams(ani_env *env, ani_ref param, AAFwk::WantParams &wantParams
 
 bool GetAbilityResultClass(ani_env *env, ani_class &cls)
 {
-    ani_status status = env->FindClass("Lability/abilityResult/AbilityResultInner;", &cls);
+    auto classTypeAbilityResultInner = arkts::ani_signature::Builder::BuildClass({"ability", "abilityResult", "AbilityResultInner"});
+    ani_status status = env->FindClass(classTypeAbilityResultInner.Descriptor().c_str(), &cls);
     if (status != ANI_OK || cls == nullptr) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
         return false;
@@ -278,7 +288,8 @@ bool GetAbilityResultClass(ani_env *env, ani_class &cls)
 bool GetResultCode(ani_env *env, ani_object param, ani_class cls, int &resultCode)
 {
     ani_method method {};
-    ani_status status = env->Class_FindMethod(cls, "<get>resultCode", nullptr, &method);
+    auto methodGetResultcode = arkts::ani_signature::Builder::BuildGetterName("resultCode");
+    ani_status status = env->Class_FindMethod(cls, methodGetResultcode.c_str(), nullptr, &method);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
         return false;
@@ -296,7 +307,8 @@ bool GetResultCode(ani_env *env, ani_object param, ani_class cls, int &resultCod
 bool GetWantReference(ani_env *env, ani_object param, ani_class cls, ani_ref &wantRef)
 {
     ani_method method {};
-    ani_status status = env->Class_FindMethod(cls, "<get>want", nullptr, &method);
+    auto methodGetWant = arkts::ani_signature::Builder::BuildGetterName("want");
+    ani_status status = env->Class_FindMethod(cls, methodGetWant.c_str(), nullptr, &method);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
         return false;

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-
+#include <ani_signature_builder.h>
 #include "sts_error_utils.h"
 #include "hilog_tag_wrapper.h"
 
@@ -139,11 +139,17 @@ ani_object WrapStsError(ani_env *env, const std::string &msg)
         return nullptr;
     }
 
-    if ((status = env->FindClass("Lescompat/Error;", &cls)) != ANI_OK) {
+    auto classTypeError = arkts::ani_signature::Builder::BuildClass({"escompat", "Error"});
+    if ((status = env->FindClass(classTypeError.Descriptor().c_str(), &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ABILITY, "FindClass failed %{public}d", status);
         return nullptr;
     }
-    if ((status = env->Class_FindMethod(cls, "<ctor>", "Lstd/core/String;Lescompat/ErrorOptions;:V", &method)) !=
+    auto methodCtor = arkts::ani_signature::Builder::BuildConstructorName();
+    arkts::ani_signature::SignatureBuilder methodCtorSigBuilder;
+    methodCtorSigBuilder.AddClass({"std", "core", "String"});
+    methodCtorSigBuilder.AddClass({"escompat", "ErrorOptions"});
+    auto methodCtorSignature = methodCtorSigBuilder.BuildSignatureDescriptor();
+    if ((status = env->Class_FindMethod(cls, methodCtor.c_str(), methodCtorSignature.c_str(), &method)) !=
         ANI_OK) {
         TAG_LOGE(AAFwkTag::ABILITY, "Class_FindMethod failed %{public}d", status);
         return nullptr;
@@ -166,11 +172,17 @@ ani_object CreateStsError(ani_env *env, ani_int code, const std::string &msg)
         TAG_LOGE(AAFwkTag::ABILITY, "null env");
         return nullptr;
     }
-    if ((status = env->FindClass("L@ohos/base/BusinessError;", &cls)) != ANI_OK) {
+    auto classTypeBusinessError = arkts::ani_signature::Builder::BuildClass({"@ohos", "base", "BusinessError"});
+    if ((status = env->FindClass(classTypeBusinessError.Descriptor().c_str(), &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ABILITY, "FindClass failed %{public}d", status);
         return nullptr;
     }
-    if ((status = env->Class_FindMethod(cls, "<ctor>", "DLescompat/Error;:V", &method)) != ANI_OK) {
+    auto methodCtor = arkts::ani_signature::Builder::BuildConstructorName();
+    arkts::ani_signature::SignatureBuilder methodCtorSigBuilder;
+    methodCtorSigBuilder.AddDouble();
+    methodCtorSigBuilder.AddClass({"escompat", "Error"});
+    auto methodCtorSignature = methodCtorSigBuilder.BuildSignatureDescriptor();
+    if ((status = env->Class_FindMethod(cls, methodCtor.c_str(), methodCtorSignature.c_str(), &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ABILITY, "Class_FindMethod failed %{public}d", status);
         return nullptr;
     }

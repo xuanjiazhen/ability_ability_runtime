@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <ani_signature_builder.h>
 #include <regex>
 
 #include "ability_delegator_registry.h"
@@ -128,7 +129,9 @@ void STSTestRunner::Prepare()
         }
         ani_method method;
         ani_status status = ANI_ERROR;
-        status = env->Class_FindMethod(stsTestRunnerObj_->aniCls, "onPrepare", ":V", &method);
+        arkts::ani_signature::SignatureBuilder onPrepareSigBuilder;
+        auto onPrepareSignature = onPrepareSigBuilder.BuildSignatureDescriptor();
+        status = env->Class_FindMethod(stsTestRunnerObj_->aniCls, "onPrepare", onPrepareSignature.c_str(), &method);
         if (status != ANI_OK) {
             TAG_LOGE(AAFwkTag::DELEGATOR, "get onPrepare failed status : %{public}d", status);
             return;
@@ -156,7 +159,9 @@ void STSTestRunner::Run()
         }
         ani_method method;
         ani_status status = ANI_ERROR;
-        status = env->Class_FindMethod(stsTestRunnerObj_->aniCls, "onRun", ":V", &method);
+        arkts::ani_signature::SignatureBuilder onRunSigBuilder;
+        auto onRunSignature = onRunSigBuilder.BuildSignatureDescriptor();
+        status = env->Class_FindMethod(stsTestRunnerObj_->aniCls, "onRun", onRunSignature.c_str(), &method);
         if (status != ANI_OK) {
             TAG_LOGE(AAFwkTag::DELEGATOR, "get onRun failed status : %{public}d", status);
             return;

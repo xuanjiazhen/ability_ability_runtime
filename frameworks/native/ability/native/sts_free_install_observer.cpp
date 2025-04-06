@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "ability_business_error.h"
+#include <ani_signature_builder.h>
 #include "ani_common_ability_result.h"
 #include "ani_common_configuration.h"
 #include "ani_common_start_options.h"
@@ -85,12 +86,17 @@ bool StsFreeInstallObserver::AsyncCallback(ani_env *env, ani_object call, ani_ob
     ani_status status = ANI_ERROR;
     ani_class clsCall {};
 
-    if ((status = env->FindClass("Lapplication/UIAbilityContext/AsyncCallbackWrapper;", &clsCall)) != ANI_OK) {
+    auto classTypeAsyncCallbackWrapper = arkts::ani_signature::Builder::BuildClass({"application", "UIAbilityContext", "AsyncCallbackWrapper"});
+    if ((status = env->FindClass(classTypeAsyncCallbackWrapper.Descriptor().c_str(), &clsCall)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
         return false;
     }
     ani_method method {};
-    if ((status = env->Class_FindMethod(clsCall, "invoke", "L@ohos/base/BusinessError;Lstd/core/Object;:V", &method)) !=
+    arkts::ani_signature::SignatureBuilder invokeSigBuilder;
+    invokeSigBuilder.AddClass({"@ohos", "base", "BusinessError"});
+    invokeSigBuilder.AddClass({"std", "core", "Object"});
+    auto invokeSignature = invokeSigBuilder.BuildSignatureDescriptor();
+    if ((status = env->Class_FindMethod(clsCall, "invoke", invokeSignature.c_str(), &method)) !=
         ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
         return false;
@@ -122,11 +128,17 @@ ani_object StsFreeInstallObserver::WrapError(ani_env *env, const std::string &ms
     ani_ref undefRef;
     env->GetUndefined(&undefRef);
 
-    if ((status = env->FindClass("Lescompat/Error;", &cls)) != ANI_OK) {
+    auto classTypeError = arkts::ani_signature::Builder::BuildClass({"escompat", "Error"});
+    if ((status = env->FindClass(classTypeError.Descriptor().c_str(), &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
         return nullptr;
     }
-    if ((status = env->Class_FindMethod(cls, "<ctor>", "Lstd/core/String;Lescompat/ErrorOptions;:V", &method)) !=
+    auto methodCtor = arkts::ani_signature::Builder::BuildConstructorName();
+    arkts::ani_signature::SignatureBuilder methodCtorSigBuilder;
+    methodCtorSigBuilder.AddClass({"std", "core", "String"});
+    methodCtorSigBuilder.AddClass({"escompat", "ErrorOptions"});
+    auto methodCtorSignature = methodCtorSigBuilder.BuildSignatureDescriptor();
+    if ((status = env->Class_FindMethod(cls, methodCtor.c_str(), methodCtorSignature.c_str(), &method)) !=
         ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
         return nullptr;
@@ -158,11 +170,17 @@ ani_object StsFreeInstallObserver::WrapBusinessError(ani_env *env, int32_t resul
         TAG_LOGE(AAFwkTag::UIABILITY, "null env");
         return nullptr;
     }
-    if ((status = env->FindClass("L@ohos/base/BusinessError;", &cls)) != ANI_OK) {
+    auto classTypeBusinessError = arkts::ani_signature::Builder::BuildClass({"@ohos", "base", "BusinessError"});
+    if ((status = env->FindClass(classTypeBusinessError.Descriptor().c_str(), &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
         return nullptr;
     }
-    if ((status = env->Class_FindMethod(cls, "<ctor>", "DLescompat/Error;:V", &method)) != ANI_OK) {
+    auto methodCtor = arkts::ani_signature::Builder::BuildConstructorName();
+    arkts::ani_signature::SignatureBuilder methodCtorSigBuilder;
+    methodCtorSigBuilder.AddDouble();
+    methodCtorSigBuilder.AddClass({"escompat", "Error"});
+    auto methodCtorSignature = methodCtorSigBuilder.BuildSignatureDescriptor();
+    if ((status = env->Class_FindMethod(cls, methodCtor.c_str(), methodCtorSignature.c_str(), &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
         return nullptr;
     }

@@ -16,6 +16,7 @@
 #include "ani_common_ability_result.h"
 
 #include "ani_common_want.h"
+#include <ani_signature_builder.h>
 #include "hilog_tag_wrapper.h"
 #include "want.h"
 
@@ -31,12 +32,14 @@ ani_object WrapAbilityResult(ani_env *env, int32_t resultCode, const AAFwk::Want
     ani_object result_obj = {};
     static const char *className = "Lability/abilityResult/AbilityResultInner;";
 
+    // Pls replace manually
     if ((status = env->FindClass(className, &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
         return nullptr;
     }
 
-    if ((status = env->Class_FindMethod(cls, "<ctor>", nullptr, &ctor)) != ANI_OK) {
+    auto methodCtor = arkts::ani_signature::Builder::BuildConstructorName();
+    if ((status = env->Class_FindMethod(cls, methodCtor.c_str(), nullptr, &ctor)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
         return nullptr;
     }
@@ -47,7 +50,8 @@ ani_object WrapAbilityResult(ani_env *env, int32_t resultCode, const AAFwk::Want
     }
     
     ani_method resultCodeSetter = nullptr;
-    if ((status = env->Class_FindMethod(cls, "<set>resultCode", nullptr, &resultCodeSetter)) != ANI_OK) {
+    auto methodSetResultcode = arkts::ani_signature::Builder::BuildSetterName("resultCode");
+    if ((status = env->Class_FindMethod(cls, methodSetResultcode.c_str(), nullptr, &resultCodeSetter)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
     }
 
@@ -58,7 +62,8 @@ ani_object WrapAbilityResult(ani_env *env, int32_t resultCode, const AAFwk::Want
     }
 
     ani_method wantSetter = nullptr;
-    if ((status = env->Class_FindMethod(cls, "<set>want", nullptr, &wantSetter)) != ANI_OK) {
+    auto methodSetWant = arkts::ani_signature::Builder::BuildSetterName("want");
+    if ((status = env->Class_FindMethod(cls, methodSetWant.c_str(), nullptr, &wantSetter)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
     }
 

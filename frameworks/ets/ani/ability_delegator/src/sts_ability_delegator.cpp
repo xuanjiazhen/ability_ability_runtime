@@ -20,6 +20,7 @@
 #include "hilog_tag_wrapper.h"
 #include "shell_cmd_result.h"
 #include "ani_common_want.h"
+#include <ani_signature_builder.h>
 namespace OHOS {
 namespace AbilityDelegatorSts {
 
@@ -34,7 +35,10 @@ ani_object CreateStsBaseContext(ani_env* aniEnv, ani_class contextClass,
     ani_object contextObj = nullptr;
     ani_method method = nullptr;
 
-    status = aniEnv->Class_FindMethod(contextClass, "<ctor>", ":V", &method);
+    auto methodCtor = arkts::ani_signature::Builder::BuildConstructorName();
+    arkts::ani_signature::SignatureBuilder methodCtorSigBuilder;
+    auto methodCtorSignature = methodCtorSigBuilder.BuildSignatureDescriptor();
+    status = aniEnv->Class_FindMethod(contextClass, methodCtor.c_str(), methodCtorSignature.c_str(), &method);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "Class_FindMethod ctor failed status : %{public}d", status);
         return {};
@@ -44,7 +48,8 @@ ani_object CreateStsBaseContext(ani_env* aniEnv, ani_class contextClass,
         TAG_LOGE(AAFwkTag::DELEGATOR, "Object_New failed status : %{public}d", status);
         return {};
     }
-    if (ANI_OK != aniEnv->Class_FindMethod(contextClass, "<set>area", nullptr, &areaSetter)) {
+    auto methodSetArea = arkts::ani_signature::Builder::BuildSetterName("area");
+    if (ANI_OK != aniEnv->Class_FindMethod(contextClass, methodSetArea.c_str(), nullptr, &areaSetter)) {
         TAG_LOGE(AAFwkTag::APPKIT, "find set area failed");
     }
     auto area = context->GetArea();
@@ -52,7 +57,8 @@ ani_object CreateStsBaseContext(ani_env* aniEnv, ani_class contextClass,
         TAG_LOGE(AAFwkTag::APPKIT, "call set area failed");
     }
     ani_method filesDirSetter;
-    if (ANI_OK != aniEnv->Class_FindMethod(contextClass, "<set>filesDir", nullptr, &filesDirSetter)) {
+    auto methodSetFilesdir = arkts::ani_signature::Builder::BuildSetterName("filesDir");
+    if (ANI_OK != aniEnv->Class_FindMethod(contextClass, methodSetFilesdir.c_str(), nullptr, &filesDirSetter)) {
         TAG_LOGE(AAFwkTag::APPKIT, "find set filesDir failed");
     }
     std::string filesDir = context->GetFilesDir();
@@ -62,7 +68,8 @@ ani_object CreateStsBaseContext(ani_env* aniEnv, ani_class contextClass,
         TAG_LOGE(AAFwkTag::APPKIT, "call set filesDir failed");
     }
     ani_method tempDirSetter;
-    if (ANI_OK != aniEnv->Class_FindMethod(contextClass, "<set>tempDir", nullptr, &tempDirSetter)) {
+    auto methodSetTempdir = arkts::ani_signature::Builder::BuildSetterName("tempDir");
+    if (ANI_OK != aniEnv->Class_FindMethod(contextClass, methodSetTempdir.c_str(), nullptr, &tempDirSetter)) {
         TAG_LOGE(AAFwkTag::APPKIT, "find set tempDir failed");
     }
     auto tempDir = context->GetTempDir();
@@ -79,7 +86,8 @@ ani_object GetAppContext(ani_env* env, ani_class clss)
     TAG_LOGI(AAFwkTag::DELEGATOR, "GetAppContext call");
     ani_class cls;
     ani_object nullobj = nullptr;
-    if (ANI_OK != env->FindClass("Lapplication/Context/Context;", &cls)) {
+    auto classTypeContext = arkts::ani_signature::Builder::BuildClass({"application", "Context", "Context"});
+    if (ANI_OK != env->FindClass(classTypeContext.Descriptor().c_str(), &cls)) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "FindClass Context Failed");
         return nullobj;
     }
@@ -107,13 +115,17 @@ ani_object wrapShellCmdResult(ani_env* env, std::unique_ptr<AppExecFwk::ShellCmd
     }
     ani_class cls = nullptr;
     ani_status status = ANI_ERROR;
-    status = env->FindClass("Lapplication/AbilityDelegator/ShellCmdResult;", &cls);
+    auto classTypeShellCmdResult = arkts::ani_signature::Builder::BuildClass({"application", "AbilityDelegator", "ShellCmdResult"});
+    status = env->FindClass(classTypeShellCmdResult.Descriptor().c_str(), &cls);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "find AbilityDelegator failed status : %{public}d", status);
         return {};
     }
     ani_method method = nullptr;
-    status = env->Class_FindMethod(cls, "<ctor>", ":V", &method);
+    auto methodCtor = arkts::ani_signature::Builder::BuildConstructorName();
+    arkts::ani_signature::SignatureBuilder methodCtorSigBuilder;
+    auto methodCtorSignature = methodCtorSigBuilder.BuildSignatureDescriptor();
+    status = env->Class_FindMethod(cls, methodCtor.c_str(), methodCtorSignature.c_str(), &method);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "Class_FindMethod ctor failed status : %{public}d", status);
         return {};
@@ -226,7 +238,8 @@ void AddAbilityMonitorASync(ani_env *env, [[maybe_unused]]ani_class aniClass, an
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "AddAbilityMonitorASync");
     ani_class monitorCls;
-    ani_status status = env->FindClass("Lapplication/AbilityMonitor/AbilityMonitor;", &monitorCls);
+    auto classTypeAbilityMonitor = arkts::ani_signature::Builder::BuildClass({"application", "AbilityMonitor", "AbilityMonitor"});
+    ani_status status = env->FindClass(classTypeAbilityMonitor.Descriptor().c_str(), &monitorCls);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "FindClass failed status : %{public}d", status);
         return;

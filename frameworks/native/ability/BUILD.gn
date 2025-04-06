@@ -95,6 +95,7 @@ ohos_shared_library("ability_context_native") {
     "ipc:ipc_core",
     "napi:ace_napi",
     "runtime_core:ani",
+    "runtime_core:ani_helpers",
   ]
   public_external_deps = [
     "ability_base:extractortool",
