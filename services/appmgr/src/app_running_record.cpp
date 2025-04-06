@@ -821,7 +821,7 @@ void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, cons
         return;
     }
     StateChangedNotifyObserver(
-            abilityRecord, static_cast<int32_t>(AbilityState::ABILITY_STATE_CREATE), true, false);
+        abilityRecord, static_cast<int32_t>(AbilityState::ABILITY_STATE_CREATE), true, false);
     if (state == abilityRecord->GetState()) {
         TAG_LOGE(AAFwkTag::APPMGR, "no need update");
         return;
