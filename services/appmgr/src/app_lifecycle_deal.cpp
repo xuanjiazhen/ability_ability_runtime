@@ -27,6 +27,9 @@
 namespace OHOS {
 using AbilityRuntime::FreezeUtil;
 namespace AppExecFwk {
+namespace {
+constexpr const char* REUSING_WINDOW = "ohos.abilityruntime.reusing_window";
+}
 AppLifeCycleDeal::AppLifeCycleDeal()
 {}
 
@@ -104,6 +107,9 @@ void AppLifeCycleDeal::LaunchAbility(const std::shared_ptr<AbilityRunningRecord>
         appThread->ScheduleLaunchAbility(*abilityInfo, ability->GetToken(),
             ability->GetWant(), ability->GetAbilityRecordId());
         ability->SetHook(false);
+        if (ability->GetWant() != nullptr) {
+            ability->GetWant()->RemoveParam(REUSING_WINDOW);
+        }
     } else {
         TAG_LOGW(AAFwkTag::APPMGR, "null appThread or ability");
     }
