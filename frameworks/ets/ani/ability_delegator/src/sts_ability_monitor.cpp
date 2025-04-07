@@ -15,6 +15,7 @@
 #include "ability_delegator_registry.h"
 #include "sts_ability_monitor.h"
 #include "hilog_tag_wrapper.h"
+#include <ani_signature_builder.h>
 
 namespace OHOS {
 namespace AbilityDelegatorSts {
@@ -100,13 +101,17 @@ void STSAbilityMonitor::CallLifecycleCBFunction(const std::string &functionName,
     env_->ResetError();
 
     ani_class cls = nullptr;
-    if ((status = env_->FindClass("Lapplication/AbilityMonitor/AbilityMonitorInner", &cls)) != ANI_OK) {
+    auto classTypeAbilityMonitorInner = arkts::ani_signature::Builder::BuildClass({"application", "AbilityMonitor", "AbilityMonitorInner"});
+    if ((status = env_->FindClass(classTypeAbilityMonitorInner.Descriptor().c_str(), &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status : %{public}d", status);
         return;
     }
 
     ani_method method = nullptr;
-    status = env_->Class_FindMethod(cls, "<ctor>", ":V", &method);
+    auto methodCtor = arkts::ani_signature::Builder::BuildConstructorName();
+    arkts::ani_signature::SignatureBuilder methodCtorSigBuilder;
+    auto methodCtorSignature = methodCtorSigBuilder.BuildSignatureDescriptor();
+    status = env_->Class_FindMethod(cls, methodCtor.c_str(), methodCtorSignature.c_str(), &method);
     if (status != ANI_OK) {
         TAG_LOGI(AAFwkTag::UI_EXT, "call Class_FindMethod ctor failed");
         return;
@@ -120,6 +125,7 @@ void STSAbilityMonitor::CallLifecycleCBFunction(const std::string &functionName,
     }
 
     method = nullptr;
+    // Pls replace manually
     if ((status = env_->Class_FindMethod(cls, functionName.c_str(), nullptr, &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "Class_FindMethod status : %{public}d", status);
         return;

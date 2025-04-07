@@ -18,6 +18,7 @@
 #include <memory>
 #include "ability_delegator.h"
 #include "ability_delegator_registry.h"
+#include <ani_signature_builder.h>
 #include "sts_ability_delegator_utils.h"
 #include "hilog_tag_wrapper.h"
 #include "sts_ability_delegator.h"
@@ -74,7 +75,8 @@ void StsAbilityDelegatorRegistryInit(ani_env *env)
     }
 
     ani_namespace ns;
-    status = env->FindNamespace("L@ohos/app/ability/abilityDelegatorRegistry/abilityDelegatorRegistry;", &ns);
+    auto namespaceTypeabilityDelegatorRegistry = arkts::ani_signature::Builder::BuildNamespace({"@ohos", "app", "ability", "abilityDelegatorRegistry", "abilityDelegatorRegistry"});
+    status = env->FindNamespace(namespaceTypeabilityDelegatorRegistry.Descriptor().c_str(), &ns);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "FindNamespace abilityDelegatorRegistry failed status : %{public}d", status);
         return;

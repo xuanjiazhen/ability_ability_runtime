@@ -15,6 +15,7 @@
 
 #include "sts_data_struct_converter.h"
 
+#include <ani_signature_builder.h>
 #include "common_func.h"
 #include "configuration_convertor.h"
 #include "hilog_tag_wrapper.h"
@@ -29,6 +30,7 @@ void ClassSetter(
 {
     ani_status status = ANI_ERROR;
     ani_method setter;
+    // Pls replace manually
     if ((status = env->Class_FindMethod(cls, setterName, nullptr, &setter)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
     }
@@ -59,14 +61,18 @@ ani_object CreateStsLaunchParam(ani_env* env, const AAFwk::LaunchParam& launchPa
     ani_status status = ANI_ERROR;
     ani_object object = nullptr;
     ani_class cls = nullptr;
-    if ((status = env->FindClass("L@ohos/app/ability/AbilityConstant/LaunchParamImpl;", &cls)) != ANI_OK) {
+    auto classTypeLaunchParamImpl = arkts::ani_signature::Builder::BuildClass({"@ohos", "app", "ability", "AbilityConstant", "LaunchParamImpl"});
+    if ((status = env->FindClass(classTypeLaunchParamImpl.Descriptor().c_str(), &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
     }
     if (cls == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null cls");
     }
 
-    if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
+    auto methodCtor = arkts::ani_signature::Builder::BuildConstructorName();
+    arkts::ani_signature::SignatureBuilder methodCtorSigBuilder;
+    auto methodCtorSignature = methodCtorSigBuilder.BuildSignatureDescriptor();
+    if ((status = env->Class_FindMethod(cls, methodCtor.c_str(), methodCtorSignature.c_str(), &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
     }
     if (method == nullptr) {

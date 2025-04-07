@@ -18,6 +18,7 @@
 #include "configuration_convertor.h"
 #include "hilog_tag_wrapper.h"
 #include "ani_enum_convert.h"
+#include <ani_signature_builder.h>
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -92,7 +93,8 @@ ani_object WrapConfiguration(ani_env *env, const AppExecFwk::Configuration &conf
         TAG_LOGE(AAFwkTag::JSNAPI, "null env");
         return nullptr;
     }
-    if ((status = env->FindClass("L@ohos/app/ability/Configuration/ConfigurationImpl;", &cls)) != ANI_OK) {
+    auto classTypeConfigurationImpl = arkts::ani_signature::Builder::BuildClass({"@ohos", "app", "ability", "Configuration", "ConfigurationImpl"});
+    if ((status = env->FindClass(classTypeConfigurationImpl.Descriptor().c_str(), &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
         return nullptr;
     }
@@ -100,7 +102,10 @@ ani_object WrapConfiguration(ani_env *env, const AppExecFwk::Configuration &conf
         TAG_LOGE(AAFwkTag::JSNAPI, "null Configuration");
         return nullptr;
     }
-    if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
+    auto methodCtor = arkts::ani_signature::Builder::BuildConstructorName();
+    arkts::ani_signature::SignatureBuilder methodCtorSigBuilder;
+    auto methodCtorSignature = methodCtorSigBuilder.BuildSignatureDescriptor();
+    if ((status = env->Class_FindMethod(cls, methodCtor.c_str(), methodCtorSignature.c_str(), &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
         return nullptr;
     }

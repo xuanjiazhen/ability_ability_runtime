@@ -15,6 +15,7 @@
 
 #include "sts_runtime.h"
 
+#include <ani_signature_builder.h>
 #include <atomic>
 #include <cerrno>
 #include <climits>
@@ -490,7 +491,8 @@ void STSRuntime::PreloadModule(const std::string& moduleName, const std::string&
         return;
     }
     ani_class stringCls = nullptr;
-    if (aniEnv->FindClass("Lstd/core/String;", &stringCls) != ANI_OK) {
+    auto classTypeString = arkts::ani_signature::Builder::BuildClass({"std", "core", "String"});
+    if (aniEnv->FindClass(classTypeString.Descriptor().c_str(), &stringCls) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass Lstd/core/String Failed");
         return;
     }
@@ -515,12 +517,18 @@ void STSRuntime::PreloadModule(const std::string& moduleName, const std::string&
         return;
     }
     ani_class cls = nullptr;
-    if (aniEnv->FindClass("Lstd/core/AbcRuntimeLinker;", &cls) != ANI_OK) {
+    auto classTypeAbcRuntimeLinker = arkts::ani_signature::Builder::BuildClass({"std", "core", "AbcRuntimeLinker"});
+    if (aniEnv->FindClass(classTypeAbcRuntimeLinker.Descriptor().c_str(), &cls) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass AbcRuntimeLinker failed");
         return;
     }
     ani_method method = nullptr;
-    if (aniEnv->Class_FindMethod(cls, "<ctor>", "Lstd/core/RuntimeLinker;[Lstd/core/String;:V", &method) != ANI_OK) {
+    auto methodCtor = arkts::ani_signature::Builder::BuildConstructorName();
+    arkts::ani_signature::SignatureBuilder methodCtorSigBuilder;
+    methodCtorSigBuilder.AddClass({"std", "core", "RuntimeLinker"});
+    methodCtorSigBuilder.AddClass({"std", "core", "String"});
+    auto methodCtorSignature = methodCtorSigBuilder.BuildSignatureDescriptor();
+    if (aniEnv->Class_FindMethod(cls, methodCtor.c_str(), methodCtorSignature.c_str(), &method) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindMethod ctor failed");
         return;
     }
@@ -574,7 +582,8 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string&
     }
 
     ani_class stringCls = nullptr;
-    if (aniEnv->FindClass("Lstd/core/String;", &stringCls) != ANI_OK) {
+    auto classTypeString = arkts::ani_signature::Builder::BuildClass({"std", "core", "String"});
+    if (aniEnv->FindClass(classTypeString.Descriptor().c_str(), &stringCls) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass Lstd/core/String Failed");
         return std::make_unique<STSNativeReference>();
     }
@@ -602,12 +611,18 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string&
     }
 
     ani_class cls = nullptr;
-    if (aniEnv->FindClass("Lstd/core/AbcRuntimeLinker;", &cls) != ANI_OK) {
+    auto classTypeAbcRuntimeLinker = arkts::ani_signature::Builder::BuildClass({"std", "core", "AbcRuntimeLinker"});
+    if (aniEnv->FindClass(classTypeAbcRuntimeLinker.Descriptor().c_str(), &cls) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass AbcRuntimeLinker failed");
         return std::make_unique<STSNativeReference>();
     }
     ani_method method = nullptr;
-    if (aniEnv->Class_FindMethod(cls, "<ctor>", "Lstd/core/RuntimeLinker;[Lstd/core/String;:V", &method) != ANI_OK) {
+    auto methodCtor = arkts::ani_signature::Builder::BuildConstructorName();
+    arkts::ani_signature::SignatureBuilder methodCtorSigBuilder;
+    methodCtorSigBuilder.AddClass({"std", "core", "RuntimeLinker"});
+    methodCtorSigBuilder.AddClass({"std", "core", "String"});
+    auto methodCtorSignature = methodCtorSigBuilder.BuildSignatureDescriptor();
+    if (aniEnv->Class_FindMethod(cls, methodCtor.c_str(), methodCtorSignature.c_str(), &method) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindMethod ctor failed");
         return std::make_unique<STSNativeReference>();
     }
@@ -617,6 +632,7 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string&
         return std::make_unique<STSNativeReference>();
     }
     ani_method loadClassMethod = nullptr;
+    // Pls replace manually
     if (aniEnv->Class_FindMethod(cls, "loadClass", nullptr, &loadClassMethod) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindMethod loadClass failed");
         return std::make_unique<STSNativeReference>();
@@ -636,7 +652,10 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string&
     }
 
     ani_method entryMethod = nullptr;
-    if (aniEnv->Class_FindMethod(entryClass, "<ctor>", ":V", &entryMethod) != ANI_OK) {
+    auto methodCtor = arkts::ani_signature::Builder::BuildConstructorName();
+    arkts::ani_signature::SignatureBuilder methodCtorSigBuilder;
+    auto methodCtorSignature = methodCtorSigBuilder.BuildSignatureDescriptor();
+    if (aniEnv->Class_FindMethod(entryClass, methodCtor.c_str(), methodCtorSignature.c_str(), &entryMethod) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindMethod ctor failed");
         return std::make_unique<STSNativeReference>();
     }

@@ -18,6 +18,7 @@
 #include <map>
 #include "hilog_tag_wrapper.h"
 #include "sts_ability_delegator.h"
+#include <ani_signature_builder.h>
 
 namespace OHOS {
 namespace AbilityDelegatorSts {
@@ -26,20 +27,19 @@ ani_object CreateStsAbilityDelegator(ani_env *aniEnv)
     TAG_LOGI(AAFwkTag::DELEGATOR, "CreateJsAbilityDelegator");
     ani_class abilityDelegator = nullptr;
     ani_status status = ANI_ERROR;
-    status = aniEnv->FindClass("Lapplication/AbilityDelegator/AbilityDelegatorInner;", &abilityDelegator);
+    auto classTypeAbilityDelegatorInner = arkts::ani_signature::Builder::BuildClass({"application", "AbilityDelegator", "AbilityDelegatorInner"});
+    status = aniEnv->FindClass(classTypeAbilityDelegatorInner.Descriptor().c_str(), &abilityDelegator);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "find AbilityDelegator failed status : %{public}d", status);
         return {};
     }
     TAG_LOGI(AAFwkTag::DELEGATOR, "find AbilityDelegator success");
 
+    arkts::ani_signature::SignatureBuilder PrintSyncSigBuilder;
+    PrintSyncSigBuilder.AddClass({"std", "core", "String"});
+    auto PrintSyncSignature = PrintSyncSigBuilder.BuildSignatureDescriptor();
     std::array delegatorFunctions = {
-        ani_native_function {"getAppContext", nullptr, reinterpret_cast<void *>(GetAppContext)},
-        ani_native_function {"executeShellCommandsync", nullptr, reinterpret_cast<void *>(ExecuteShellCommand)},
-        ani_native_function {"finishTestSync", nullptr, reinterpret_cast<void *>(FinishTestSync)},
-        ani_native_function {"printSync", "Lstd/core/String;:V", reinterpret_cast<void *>(PrintSync)},
-        ani_native_function {"addAbilityMonitorAsync", nullptr, reinterpret_cast<void *>(AddAbilityMonitorASync)},
-        ani_native_function {"startAbilityAsync", nullptr, reinterpret_cast<void *>(StartAbility)}
+                ani_native_function{ "printSync", PrintSyncSignature.c_str(), reinterpret_cast<void*>(PrintSync) },
     };
     status = aniEnv->Class_BindNativeMethods(abilityDelegator, delegatorFunctions.data(), delegatorFunctions.size());
     if (status != ANI_OK) {
@@ -48,7 +48,10 @@ ani_object CreateStsAbilityDelegator(ani_env *aniEnv)
     }
 
     ani_method method = nullptr;
-    status = aniEnv->Class_FindMethod(abilityDelegator, "<ctor>", ":V", &method);
+    auto methodCtor = arkts::ani_signature::Builder::BuildConstructorName();
+    arkts::ani_signature::SignatureBuilder methodCtorSigBuilder;
+    auto methodCtorSignature = methodCtorSigBuilder.BuildSignatureDescriptor();
+    status = aniEnv->Class_FindMethod(abilityDelegator, methodCtor.c_str(), methodCtorSignature.c_str(), &method);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "Class_FindMethod ctor failed status : %{public}d", status);
         return {};
@@ -79,7 +82,8 @@ void SetBundleName(ani_env *aniEnv, ani_class arguments, ani_object argumentObje
 
     // find the setter method
     ani_method nameSetter;
-    status = aniEnv->Class_FindMethod(arguments, "<set>bundleName", nullptr, &nameSetter);
+    auto methodSetBundlename = arkts::ani_signature::Builder::BuildSetterName("bundleName");
+    status = aniEnv->Class_FindMethod(arguments, methodSetBundlename.c_str(), nullptr, &nameSetter);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "Class_FindMethod failed status : %{public}d", status);
         return;
@@ -102,21 +106,30 @@ void SetParameters(ani_env *aniEnv, ani_class arguments, ani_object argumentObje
     ani_status status = ANI_ERROR;
     // get getter and setter methond of Record
     ani_class recordCls;
-    status = aniEnv->FindClass("Lescompat/Record;", &recordCls);
+    auto classTypeRecord = arkts::ani_signature::Builder::BuildClass({"escompat", "Record"});
+    status = aniEnv->FindClass(classTypeRecord.Descriptor().c_str(), &recordCls);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "FindClass failed status : %{public}d", status);
         return;
     }
 
     ani_method recordGetMethod;
-    status = aniEnv->Class_FindMethod(recordCls, "$_get", "Lstd/core/Object;:Lstd/core/Object;", &recordGetMethod);
+    arkts::ani_signature::SignatureBuilder $_getSigBuilder;
+    $_getSigBuilder.AddClass({"std", "core", "Object"});
+    $_getSigBuilder.SetReturnClass("std.core.Object");
+    auto $_getSignature = $_getSigBuilder.BuildSignatureDescriptor();
+    status = aniEnv->Class_FindMethod(recordCls, "$_get", $_getSignature.c_str(), &recordGetMethod);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "Class_FindMethod failed status : %{public}d", status);
         return;
     }
 
     ani_method recordSetMethod;
-    status = aniEnv->Class_FindMethod(recordCls, "$_set", "Lstd/core/Object;Lstd/core/Object;:V", &recordSetMethod);
+    arkts::ani_signature::SignatureBuilder $_setSigBuilder;
+    $_setSigBuilder.AddClass({"std", "core", "Object"});
+    $_setSigBuilder.AddClass({"std", "core", "Object"});
+    auto $_setSignature = $_setSigBuilder.BuildSignatureDescriptor();
+    status = aniEnv->Class_FindMethod(recordCls, "$_set", $_setSignature.c_str(), &recordSetMethod);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "Class_FindMethod failed status : %{public}d", status);
         return;
@@ -124,8 +137,11 @@ void SetParameters(ani_env *aniEnv, ani_class arguments, ani_object argumentObje
 
     // get parameters ref of object
     ani_ref parameterRef;
-    status = aniEnv->Object_CallMethodByName_Ref(argumentObject, "<get>parameters", ":Lescompat/Record;",
-        &parameterRef);
+    auto methodGetParameters = arkts::ani_signature::Builder::BuildGetterName("parameters");
+    arkts::ani_signature::SignatureBuilder methodGetParametersSigBuilder;
+    methodGetParametersSigBuilder.SetReturnClass("escompat.Record");
+    auto methodGetParametersSignature = methodGetParametersSigBuilder.BuildSignatureDescriptor();
+    status = aniEnv->Object_CallMethodByName_Ref(argumentObject, methodGetParameters.c_str(), methodGetParametersSignature.c_str(), &parameterRef);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "Object_CallMethodByName_Ref failed status : %{public}d", status);
         return;
@@ -174,7 +190,8 @@ void SetTestCaseNames(ani_env *aniEnv, ani_class arguments, ani_object argumentO
 
     // find the setter method
     ani_method nameSetter;
-    status = aniEnv->Class_FindMethod(arguments, "<set>testCaseNames", nullptr, &nameSetter);
+    auto methodSetTestcasenames = arkts::ani_signature::Builder::BuildSetterName("testCaseNames");
+    status = aniEnv->Class_FindMethod(arguments, methodSetTestcasenames.c_str(), nullptr, &nameSetter);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "Class_FindMethod failed status : %{public}d", status);
         return;
@@ -204,7 +221,8 @@ void SetTestRunnerClassName(ani_env *aniEnv, ani_class arguments, ani_object arg
 
     // find the setter method
     ani_method nameSetter;
-    status = aniEnv->Class_FindMethod(arguments, "<set>testRunnerClassName", nullptr, &nameSetter);
+    auto methodSetTestrunnerclassname = arkts::ani_signature::Builder::BuildSetterName("testRunnerClassName");
+    status = aniEnv->Class_FindMethod(arguments, methodSetTestrunnerclassname.c_str(), nullptr, &nameSetter);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "Class_FindMethod failed status : %{public}d", status);
         return;
@@ -226,7 +244,8 @@ ani_object CreateStsAbilityDelegatorArguments(
     TAG_LOGI(AAFwkTag::DELEGATOR, "CreateJsAbilityDelegatorArguments");
     ani_class arguments = nullptr;
     ani_status status = ANI_ERROR;
-    status = aniEnv->FindClass("Lapplication/AbilityDelegatorArgs/AbilityDelegatorArgsInner;", &arguments);
+    auto classTypeAbilityDelegatorArgsInner = arkts::ani_signature::Builder::BuildClass({"application", "AbilityDelegatorArgs", "AbilityDelegatorArgsInner"});
+    status = aniEnv->FindClass(classTypeAbilityDelegatorArgsInner.Descriptor().c_str(), &arguments);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "find AbilityDelegatorArgs failed status : %{public}d", status);
         return {};
@@ -234,7 +253,10 @@ ani_object CreateStsAbilityDelegatorArguments(
     TAG_LOGI(AAFwkTag::DELEGATOR, "find AbilityDelegatorArgs success");
 
     ani_method method = nullptr;
-    status = aniEnv->Class_FindMethod(arguments, "<ctor>", ":V", &method);
+    auto methodCtor = arkts::ani_signature::Builder::BuildConstructorName();
+    arkts::ani_signature::SignatureBuilder methodCtorSigBuilder;
+    auto methodCtorSignature = methodCtorSigBuilder.BuildSignatureDescriptor();
+    status = aniEnv->Class_FindMethod(arguments, methodCtor.c_str(), methodCtorSignature.c_str(), &method);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "Class_FindMethod ctor failed status : %{public}d", status);
         return {};

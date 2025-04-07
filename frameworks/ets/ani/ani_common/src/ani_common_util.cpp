@@ -14,6 +14,7 @@
  */
 
 #include "ani_common_util.h"
+#include <ani_signature_builder.h>
 
 #include <cstring>
 
@@ -57,6 +58,7 @@ bool GetDoubleOrUndefined(ani_env *env, ani_object param, const char *name, ani_
         TAG_LOGE(AAFwkTag::JSNAPI, "%{public}s : undefined", name);
         return false;
     } 
+    // Pls replace manually
     if ((status = env->Object_CallMethodByName_Double(
         reinterpret_cast<ani_object>(obj), "doubleValue", nullptr, &value)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
@@ -84,6 +86,7 @@ bool GetBoolOrUndefined(ani_env *env, ani_object param, const char *name)
         TAG_LOGE(AAFwkTag::JSNAPI, "%{public}s : undefined", name);
         return res;
     }
+    // Pls replace manually
     if ((status = env->Object_CallMethodByName_Boolean(reinterpret_cast<ani_object>(obj), "booleanValue", nullptr, &res)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
         return res;
@@ -176,7 +179,8 @@ bool SetFieldFixedArrayString(ani_env *env, ani_class cls, ani_object object, co
         return false;
     }
 
-    status = env->FindClass("Lstd/core/String;", &stringCls);
+    auto classTypeString = arkts::ani_signature::Builder::BuildClass({"std", "core", "String"});
+    status = env->FindClass(classTypeString.Descriptor().c_str(), &stringCls);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
         return false;
@@ -280,13 +284,18 @@ bool SetFieldArrayString(ani_env *env, ani_class cls, ani_object object, const s
         return false;
     }
 
-    status = env->FindClass("Lescompat/Array;", &arrayCls);
+    auto classTypeArray = arkts::ani_signature::Builder::BuildClass({"escompat", "Array"});
+    status = env->FindClass(classTypeArray.Descriptor().c_str(), &arrayCls);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
         return false;
     }
 
-    status = env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor);
+    auto methodCtor = arkts::ani_signature::Builder::BuildConstructorName();
+    arkts::ani_signature::SignatureBuilder methodCtorSigBuilder;
+    methodCtorSigBuilder.AddInt();
+    auto methodCtorSignature = methodCtorSigBuilder.BuildSignatureDescriptor();
+    status = env->Class_FindMethod(arrayCls, methodCtor.c_str(), methodCtorSignature.c_str(), &arrayCtor);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
         return false;
@@ -355,7 +364,8 @@ ani_array_ref GetAniArrayString(ani_env *env, const std::vector<std::string> &va
     ani_array_ref aArrayRef = nullptr;
     // ani_class aStringcls = nullptr;
     // ani_status status = ANI_ERROR;
-    // if ((status = env->FindClass("Lstd/core/String;", &aStringcls)) != ANI_OK) {
+    auto classTypeString = arkts::ani_signature::Builder::BuildClass({"std", "core", "String"});
+    // if ((status = env->FindClass(classTypeString.Descriptor().c_str(), &aStringcls)) != ANI_OK) {
     //     TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
     //     return nullptr;
     // }
@@ -395,12 +405,17 @@ ani_object createDouble(ani_env *env, ani_double value)
 {
     ani_class persion_cls;
     ani_status status = ANI_ERROR;
+    // Pls replace manually
     if ((status = env->FindClass(CLASSNAME_DOUBLE, &persion_cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
         return nullptr;
     }
     ani_method personInfoCtor;
-    if ((status = env->Class_FindMethod(persion_cls, "<ctor>", "D:V", &personInfoCtor)) != ANI_OK) {
+    auto methodCtor = arkts::ani_signature::Builder::BuildConstructorName();
+    arkts::ani_signature::SignatureBuilder methodCtorSigBuilder;
+    methodCtorSigBuilder.AddDouble();
+    auto methodCtorSignature = methodCtorSigBuilder.BuildSignatureDescriptor();
+    if ((status = env->Class_FindMethod(persion_cls, methodCtor.c_str(), methodCtorSignature.c_str(), &personInfoCtor)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
         return nullptr;
     }
@@ -526,6 +541,7 @@ void ClassSetter(
 {
     ani_status status = ANI_ERROR;
     ani_method setter;
+    // Pls replace manually
     if ((status = env->Class_FindMethod(cls, setterName, nullptr, &setter)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
     }

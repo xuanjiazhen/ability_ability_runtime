@@ -14,6 +14,7 @@
  */
 
 #include "sts_ui_ability.h"
+#include <ani_signature_builder.h>
 #include <cstdlib>
 #include <regex>
 #include <vector>
@@ -171,8 +172,10 @@ void StsUIAbility::UpdateAbilityObj(
         moduleName, srcPath, abilityInfo->hapPath, abilityInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE,
         false, abilityInfo->srcEntrance);
 
+    arkts::ani_signature::SignatureBuilder PromiseCallbackSigBuilder;
+    auto PromiseCallbackSignature = PromiseCallbackSigBuilder.BuildSignatureDescriptor();
     std::array functions = {
-        ani_native_function { "nativeOnDestroyCallback", ":V", reinterpret_cast<void*>(PromiseCallback) },
+                ani_native_function{ "nativeOnDestroyCallback", PromiseCallbackSignature.c_str(), reinterpret_cast<void*>(PromiseCallback) },
     };
     ani_status status = ANI_ERROR;
     auto env = stsRuntime_.GetAniEnv();
@@ -228,7 +231,8 @@ void StsUIAbility::CreateAniContext(
         }
         shellContextRef_ = std::make_shared<STSNativeReference>();
         ani_class cls {};
-        if ((status = env->FindClass("Lapplication/UIAbilityContext/UIAbilityContext;", &cls)) != ANI_OK) {
+        auto classTypeUIAbilityContext = arkts::ani_signature::Builder::BuildClass({"application", "UIAbilityContext", "UIAbilityContext"});
+        if ((status = env->FindClass(classTypeUIAbilityContext.Descriptor().c_str(), &cls)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
             return;
         }
@@ -1163,6 +1167,7 @@ bool StsUIAbility::CallObjectMethod(bool withResult, const char *name, const cha
     ani_status status = ANI_ERROR;
 
     ani_method method {};
+    // Pls replace manually
     if ((status = env->Class_FindMethod(cls, name, signature, &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
         return false;
