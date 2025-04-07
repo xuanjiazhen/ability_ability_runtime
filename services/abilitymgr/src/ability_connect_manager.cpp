@@ -988,17 +988,9 @@ int AbilityConnectManager::AbilityTransitionDone(const sptr<IRemoteObject> &toke
         }
         case AbilityState::FOREGROUND: {
             abilityRecord->RemoveSignatureInfo();
-            if (IsUIExtensionAbility(abilityRecord)) {
-                DelayedSingleton<AppScheduler>::GetInstance()->UpdateExtensionState(
-                    token, AppExecFwk::ExtensionState::EXTENSION_STATE_FOREGROUND);
-            }
             return DispatchForeground(abilityRecord);
         }
         case AbilityState::BACKGROUND: {
-            if (IsUIExtensionAbility(abilityRecord)) {
-                DelayedSingleton<AppScheduler>::GetInstance()->UpdateExtensionState(
-                    token, AppExecFwk::ExtensionState::EXTENSION_STATE_BACKGROUND);
-            }
             return DispatchBackground(abilityRecord);
         }
         case AbilityState::INITIAL: {
@@ -1006,8 +998,13 @@ int AbilityConnectManager::AbilityTransitionDone(const sptr<IRemoteObject> &toke
                 DelayedSingleton<AppScheduler>::GetInstance()->UpdateAbilityState(
                     token, AppExecFwk::AbilityState::ABILITY_STATE_TERMINATED);
             } else {
-                DelayedSingleton<AppScheduler>::GetInstance()->UpdateExtensionState(
-                    token, AppExecFwk::ExtensionState::EXTENSION_STATE_TERMINATED);
+                if (IsUIExtensionAbility(abilityRecord)) {
+                    DelayedSingleton<AppScheduler>::GetInstance()->UpdateAbilityState(
+                        token, AppExecFwk::AbilityState::ABILITY_STATE_TERMINATED);
+                } else {
+                    DelayedSingleton<AppScheduler>::GetInstance()->UpdateExtensionState(
+                        token, AppExecFwk::ExtensionState::EXTENSION_STATE_TERMINATED);
+                }
             }
             return DispatchTerminate(abilityRecord);
         }
