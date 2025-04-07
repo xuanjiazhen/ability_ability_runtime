@@ -75,7 +75,8 @@ HWTEST_F(NapiCommonWantAgentTest, WrapWantAgent_0100, Function | MediumTest | Le
     auto test = OHOS::AppExecFwk::WrapWantAgent(env, wantAgent, finalizeCb);
     EXPECT_NE(test, nullptr);
 
-    err = AbilityRuntime::JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+    err = AbilityRuntime::JsRuntimeLite::GetInstance().RemoveJsEnv(
+        reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
     EXPECT_EQ(err, napi_status::napi_ok);
     wantAgent = nullptr;
 }
