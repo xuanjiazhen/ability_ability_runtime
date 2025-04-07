@@ -55,6 +55,7 @@ STSTestRunner::STSTestRunner(
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "STSTestRunner constructor");
     std::string moduleName;
+    std::string srcEntrance;
     if (args) {
         std::string srcPath;
         if (bundleInfo.hapModuleInfos.back().isModuleJson) {
@@ -69,10 +70,12 @@ STSTestRunner::STSTestRunner(
             moduleName = args->GetTestPackageName();
         }
         srcPath.append(args->GetTestRunnerClassName());
+        srcEntrance = srcPath;
         srcPath.append(".abc");
         srcPath_ = srcPath;
     }
-    TAG_LOGI(AAFwkTag::DELEGATOR, "srcPath: %{public}s", srcPath_.c_str());
+    TAG_LOGI(AAFwkTag::DELEGATOR, "srcPath: %{public}s, srcEntrance: %{public}s", srcPath_.c_str(),
+        srcEntrance.c_str());
 
     if (!moduleName.empty()) {
         for (auto hapModuleInfo : bundleInfo.hapModuleInfos) {
@@ -98,15 +101,17 @@ STSTestRunner::STSTestRunner(
     moduleName.append("::").append("TestRunner");
     stsTestRunnerObj_ = stsRuntime_.LoadModule(moduleName, srcPath_, hapPath_,
         bundleInfo.hapModuleInfos.back().compileMode == AppExecFwk::CompileMode::ES_MODULE,
-        false, srcPath_);
+        false, srcEntrance);
     if (!stsTestRunnerObj_ && srcPath_.find(LOWERCASETESTRUNNER) != std::string::npos) {
         TAG_LOGI(AAFwkTag::DELEGATOR, "not found %{public}s , retry load capital address", srcPath_.c_str());
         std::regex src_pattern(LOWERCASETESTRUNNER);
         srcPath_ = std::regex_replace(srcPath_, src_pattern, CAPITALTESTRUNNER);
-        TAG_LOGI(AAFwkTag::DELEGATOR, "capital address is %{public}s", srcPath_.c_str());
+        srcEntrance = std::regex_replace(srcEntrance, src_pattern, CAPITALTESTRUNNER);
+        TAG_LOGI(AAFwkTag::DELEGATOR, "srcPath: %{public}s, srcEntrance: %{public}s", srcPath_.c_str(),
+            srcEntrance.c_str());
         stsTestRunnerObj_ = stsRuntime_.LoadModule(moduleName, srcPath_, hapPath_,
             bundleInfo.hapModuleInfos.back().compileMode == AppExecFwk::CompileMode::ES_MODULE,
-            false, srcPath_);
+            false, srcEntrance);
     }
 }
 
