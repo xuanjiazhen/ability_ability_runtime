@@ -23,7 +23,6 @@ namespace AbilityRuntime {
 namespace {
 constexpr size_t ARGC_ONE = 1;
 }
-
 JSAbilityForegroundStateObserver::JSAbilityForegroundStateObserver(napi_env env) : env_(env) {}
 
 void JSAbilityForegroundStateObserver::OnAbilityStateChanged(const AbilityStateData &abilityStateData)
