@@ -49,6 +49,9 @@ bool AdvancedSecurityModeManager::IsJITEnabled()
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR, "ASMM IsJITEnabled %{public}d", !isAdvSecModeEnabled_);
+    
+    TAG_LOGD(AAFwkTag::APPMGR, "ASMM IsJITEnabled %{public}d", !isAdvSecModeEnabled_);
+
     return !isAdvSecModeEnabled_;
 }
 }  // namespace AppExecFwk
