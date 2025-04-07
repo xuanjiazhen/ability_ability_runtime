@@ -88,7 +88,7 @@ void JSAppStateObserver::OnAbilityStateChanged(const AbilityStateData &abilitySt
         TAG_LOGE(AAFwkTag::APPMGR, "appMgr may has cancelled storage");
         return;
     }
-    if (abilityStateData.extensionAbilityType == -9) {
+    if (abilityStateData.isUIExtNotifyOnAbility) {
         TAG_LOGE(AAFwkTag::APPMGR, "uiExt not notify");
         return;
     }
