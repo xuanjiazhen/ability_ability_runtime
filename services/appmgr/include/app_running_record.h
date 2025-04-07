@@ -358,10 +358,11 @@ public:
      * LaunchAbility, Notify application to launch ability.
      *
      * @param ability, the ability record.
+     * @param reusingWindow the hook ability to origin ability
      *
      * @return
      */
-    void LaunchAbility(const std::shared_ptr<AbilityRunningRecord> &ability);
+    void LaunchAbility(const std::shared_ptr<AbilityRunningRecord> &ability, bool reusingWindow = false);
 
     /**
      * LaunchPendingAbilities, Launch Pending Abilities.

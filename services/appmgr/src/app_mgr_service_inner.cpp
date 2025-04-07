@@ -9245,7 +9245,7 @@ int32_t AppMgrServiceInner::LaunchAbility(const sptr<IRemoteObject> &token)
         TAG_LOGE(AAFwkTag::APPMGR, "abilityRecord null");
         return ERR_INVALID_VALUE;
     }
-    appRecord->LaunchAbility(ability);
+    appRecord->LaunchAbility(ability, true);
     return ERR_OK;
 }
 } // namespace AppExecFwk

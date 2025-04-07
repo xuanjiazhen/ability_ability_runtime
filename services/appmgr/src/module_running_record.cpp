@@ -197,7 +197,7 @@ void ModuleRunningRecord::OnAbilityStateChanged(
     }
 }
 
-void ModuleRunningRecord::LaunchAbility(const std::shared_ptr<AbilityRunningRecord> &ability)
+void ModuleRunningRecord::LaunchAbility(const std::shared_ptr<AbilityRunningRecord> &ability, bool reusingWindow)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR, "called");
@@ -209,7 +209,7 @@ void ModuleRunningRecord::LaunchAbility(const std::shared_ptr<AbilityRunningReco
     const auto &iter = abilities_.find(ability->GetToken());
     if (iter != abilities_.end() && appLifeCycleDeal_->GetApplicationClient()) {
         TAG_LOGD(AAFwkTag::APPMGR, "Schedule launch ability, name is %{public}s.", ability->GetName().c_str());
-        appLifeCycleDeal_->LaunchAbility(ability);
+        appLifeCycleDeal_->LaunchAbility(ability, reusingWindow);
         ability->SetState(AbilityState::ABILITY_STATE_READY);
     } else {
         TAG_LOGE(AAFwkTag::APPMGR, "null appThread or ability");

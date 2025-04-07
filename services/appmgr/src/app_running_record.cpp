@@ -469,7 +469,7 @@ void AppRunningRecord::SetModuleLoaded(const std::string &moduleName) const
     }
 }
 
-void AppRunningRecord::LaunchAbility(const std::shared_ptr<AbilityRunningRecord> &ability)
+void AppRunningRecord::LaunchAbility(const std::shared_ptr<AbilityRunningRecord> &ability, bool reusingWindow)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     if (appLifeCycleDeal_ == nullptr) {
@@ -487,7 +487,7 @@ void AppRunningRecord::LaunchAbility(const std::shared_ptr<AbilityRunningRecord>
         return;
     }
 
-    moduleRecord->LaunchAbility(ability);
+    moduleRecord->LaunchAbility(ability, reusingWindow);
 }
 
 void AppRunningRecord::ScheduleTerminate()

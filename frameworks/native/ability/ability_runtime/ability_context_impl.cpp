@@ -1270,6 +1270,12 @@ ErrCode AbilityContextImpl::RevokeDelegator()
         TAG_LOGE(AAFwkTag::CONTEXT, "scb call, revokeDelegator err: %{public}d", err);
         return AAFwk::ERR_FROM_WINDOW;
     }
+    auto abilityCallback = abilityCallback_.lock();
+    if (abilityCallback == nullptr) {
+        TAG_LOGW(AAFwkTag::CONTEXT, "null abilityCallback");
+        return ERR_INVALID_VALUE;
+    }
+    abilityCallback->NotifyWindowDestroy();
     SetHookOff(true);
     return ERR_OK;
 }

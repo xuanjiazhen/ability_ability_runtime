@@ -65,6 +65,7 @@ const int32_t BASE_DISPLAY_ID_NUM (10);
 constexpr const char* IS_CALLING_FROM_DMS = "supportCollaborativeCallingFromDmsInAAFwk";
 constexpr const char* SUPPORT_COLLABORATE_INDEX = "ohos.extra.param.key.supportCollaborateIndex";
 constexpr const char* COLLABORATE_KEY = "ohos.dms.collabToken";
+constexpr const char* REUSING_WINDOW = "ohos.abilityruntime.reusing_window";
 enum CollaborateResult {
     ACCEPT = 0,
     REJECT = 1,
@@ -269,6 +270,7 @@ void JsUIAbility::SetAbilityContext(std::shared_ptr<AbilityInfo> abilityInfo,
         TAG_LOGE(AAFwkTag::UIABILITY, "null jsAbilityObj_ or abilityContext_ or want");
         return;
     }
+    reusingWindow_ = want->GetBoolParam(REUSING_WINDOW, false);
     napi_value obj = jsAbilityObj_->GetNapiValue();
     if (!CheckTypeForNapiValue(env, obj, napi_object)) {
         TAG_LOGE(AAFwkTag::UIABILITY, "check type failed");
@@ -994,7 +996,8 @@ void JsUIAbility::DoOnForegroundForSceneIsNull(const Want &want)
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "scene_->Init");
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled() && sessionToken != nullptr) {
         abilityContext_->SetWeakSessionToken(sessionToken);
-        ret = scene_->Init(displayId, abilityContext_, sceneListener_, option, sessionToken, identityToken);
+        ret = scene_->Init(displayId, abilityContext_, sceneListener_, option, sessionToken, identityToken,
+            reusingWindow_);
     } else {
         ret = scene_->Init(displayId, abilityContext_, sceneListener_, option);
     }
@@ -1966,6 +1969,16 @@ void JsUIAbility::SetContinueState(int32_t state)
     }
     window->SetContinueState(state);
     TAG_LOGI(AAFwkTag::UIABILITY, "window SetContinueState, state: %{public}d.", state);
+}
+
+void JsUIAbility::NotifyWindowDestroy()
+{
+    if (scene_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "windowScene is nullptr.");
+        return;
+    }
+    TAG_LOGI(AAFwkTag::UIABILITY, "Notify scene to destroy hookWindow.");
+    scene_->GoDestroyHookWindow();
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

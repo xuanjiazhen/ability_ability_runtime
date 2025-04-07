@@ -66,9 +66,9 @@ public:
      * Notify application to launch ability.
      *
      * @param ability The ability info.
-     * @return
+     * @param reusingWindow the hook ability to origin ability
      */
-    void LaunchAbility(const std::shared_ptr<AbilityRunningRecord> &ability);
+    void LaunchAbility(const std::shared_ptr<AbilityRunningRecord> &ability, bool reusingWindow = false);
 
     /**
      * ScheduleTerminate, call ScheduleTerminateApplication() through proxy project,

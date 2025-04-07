@@ -27,6 +27,9 @@
 namespace OHOS {
 using AbilityRuntime::FreezeUtil;
 namespace AppExecFwk {
+namespace {
+constexpr const char* REUSING_WINDOW = "ohos.abilityruntime.reusing_window";
+}
 AppLifeCycleDeal::AppLifeCycleDeal()
 {}
 
@@ -67,7 +70,7 @@ void AppLifeCycleDeal::AddAbilityStage(const HapModuleInfo &abilityStage)
     appThread->ScheduleAbilityStage(abilityStage);
 }
 
-void AppLifeCycleDeal::LaunchAbility(const std::shared_ptr<AbilityRunningRecord> &ability)
+void AppLifeCycleDeal::LaunchAbility(const std::shared_ptr<AbilityRunningRecord> &ability, bool reusingWindow)
 {
     auto appThread = GetApplicationClient();
     if (appThread && ability) {
@@ -101,9 +104,15 @@ void AppLifeCycleDeal::LaunchAbility(const std::shared_ptr<AbilityRunningRecord>
                 return;
             }
         }
-        appThread->ScheduleLaunchAbility(*abilityInfo, ability->GetToken(),
-            ability->GetWant(), ability->GetAbilityRecordId());
+        auto want = ability->GetWant();
+        if (reusingWindow && want != nullptr) {
+            want->SetParam(REUSING_WINDOW, reusingWindow)
+        }
+        appThread->ScheduleLaunchAbility(*abilityInfo, ability->GetToken(), want, ability->GetAbilityRecordId());
         ability->SetHook(false);
+        if (want != nullptr) {
+            want->RemoveParam(REUSING_WINDOW);
+        }
     } else {
         TAG_LOGW(AAFwkTag::APPMGR, "null appThread or ability");
     }
