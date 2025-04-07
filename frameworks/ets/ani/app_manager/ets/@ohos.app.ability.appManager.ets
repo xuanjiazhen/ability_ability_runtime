@@ -723,9 +723,9 @@ export default namespace appManager {
 				resolve(r);
 			}, (error: Object): void => {
 				console.log(" ##### etsGetRunningProcessInfoByBundleName userId Promise fail");
-				console.error("jrl test  Native error: ==== ", error);
+				console.error(" Native error: ==== ", error);
 				let err = new BusinessError<ProcessInformation>();
-				console.error("jrl test  Native error: ==== ", err);
+				console.error(" Native error: ==== ", err);
 			 	reject(error);
 			});
 		});
