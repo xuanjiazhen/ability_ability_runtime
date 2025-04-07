@@ -4299,8 +4299,13 @@ void AppMgrServiceInner::ClearAppRunningData(const std::shared_ptr<AppRunningRec
 
     for (const auto &item : appRecord->GetAbilities()) {
         const auto &abilityRecord = item.second;
-        appRecord->StateChangedNotifyObserver(abilityRecord,
-            static_cast<int32_t>(AbilityState::ABILITY_STATE_TERMINATED), true, false);
+        if (AAFwk::UIExtensionUtils::IsUIExtension(appRecord->GetExtensionType())) {
+            appRecord->StateChangedNotifyObserver(abilityRecord,
+                static_cast<int32_t>(ExtensionState::EXTENSION_STATE_TERMINATED), false, false);
+        }else{
+            appRecord->StateChangedNotifyObserver(abilityRecord,
+                static_cast<int32_t>(AbilityState::ABILITY_STATE_TERMINATED), true, false);
+        }
     }
     DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessDied(appRecord);
     DelayedSingleton<CacheProcessManager>::GetInstance()->OnProcessKilled(appRecord);
