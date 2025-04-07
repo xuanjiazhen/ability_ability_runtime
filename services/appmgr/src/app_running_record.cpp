@@ -726,6 +726,10 @@ void AppRunningRecord::StateChangedNotifyObserver(const std::shared_ptr<AbilityR
         abilityStateData.isAtomicService = true;
     }
     if (abilityInfo->type == AbilityType::EXTENSION) {
+        if (!AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo->extensionAbilityType)) {
+            TAG_LOGD(AAFwkTag::APPMGR, "extensionType:%{public}d, not notify", abilityInfo->extensionAbilityType);
+            return;
+        }
         abilityStateData.extensionAbilityType = static_cast<int32_t>(abilityInfo->extensionAbilityType);
     }
     abilityStateData.processType = static_cast<int32_t>(processType_);
