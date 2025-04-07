@@ -14,8 +14,12 @@
  */
 
 #include <gtest/gtest.h>
+
+#include "js_environment.h"
+#include "js_runtime_lite.h"
 #include "napi_common_want_agent.h"
 #include "napi/native_api.h"
+#include "runtime.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -53,11 +57,27 @@ void NapiCommonWantAgentTest::TearDown()
  */
 HWTEST_F(NapiCommonWantAgentTest, WrapWantAgent_0100, Function | MediumTest | Level1)
 {
-    napi_env env = nullptr;
-    AbilityRuntime::WantAgent::WantAgent* wantAgent = nullptr;
-    napi_finalize finalizeCb = nullptr;
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    auto err = AbilityRuntime::JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    EXPECT_EQ(err, napi_status::napi_ok);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+    EXPECT_NE(env, nullptr);
+
+    std::shared_ptr<AbilityRuntime::WantAgent::WantAgent> wantAgentPtr =
+        std::make_shared<AbilityRuntime::WantAgent::WantAgent>();
+    AbilityRuntime::WantAgent::WantAgent* wantAgent = wantAgentPtr.get();
+    EXPECT_NE(wantAgent, nullptr);
+    auto callBack = [](napi_env env, void* data, void* hint) -> void {};
+    napi_finalize finalizeCb = static_cast<napi_finalize>(callBack);
+    EXPECT_NE(finalizeCb, nullptr);
+
     auto test = OHOS::AppExecFwk::WrapWantAgent(env, wantAgent, finalizeCb);
-    EXPECT_EQ(test, nullptr);
+    EXPECT_NE(test, nullptr);
+
+    err = AbilityRuntime::JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+    EXPECT_EQ(err, napi_status::napi_ok);
+    wantAgent = nullptr;
 }
 
 /**
