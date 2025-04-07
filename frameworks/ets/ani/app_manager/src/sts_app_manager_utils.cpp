@@ -380,5 +380,6 @@ namespace AppManagerSts {
         env_->GlobalReference_Delete(ref);
         return AniBooleanToBool(result);
     }
+
 } // namespace AppManagerSts
 } // namespace OHOS
