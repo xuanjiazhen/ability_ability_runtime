@@ -827,7 +827,7 @@ void AppMgrServiceInner::AfterLoadAbility(std::shared_ptr<AppRunningRecord> appR
     }
     if (AAFwk::UIExtensionUtils::IsUIExtension(appRecord->GetExtensionType())) {
         UpdateExtensionState(loadParam->token, ExtensionState::EXTENSION_STATE_CREATE);
-    } 
+    }
     appRecord->UpdateAbilityState(loadParam->token, AbilityState::ABILITY_STATE_CREATE);
 }
 

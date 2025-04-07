@@ -131,14 +131,14 @@ void JSAppStateObserver::OnExtensionStateChanged(const AbilityStateData &ability
         newAbilityStateData.abilityState = extensionStateToAbilityState_[abilityStateData.abilityState];
     }
     wptr<JSAppStateObserver> jsObserver = this;
-    auto asyncTask = [jsObserver, newAbilityStateData , env = env_]() {
+    auto asyncTask = [jsObserver, newAbilityStateData, env = env_]() {
         HandleScope handleScope(env);
         sptr<JSAppStateObserver> jsObserverSptr = jsObserver.promote();
         if (!jsObserverSptr) {
             TAG_LOGW(AAFwkTag::APPMGR, "null jsObserverSptr");
             return;
         }
-        jsObserverSptr->HandleOnExtensionStateChanged(newAbilityStateData );
+        jsObserverSptr->HandleOnExtensionStateChanged(newAbilityStateData);
     };
     napi_status ret = napi_send_event(env_, asyncTask, napi_eprio_immediate);
     if (ret != napi_status::napi_ok) {
