@@ -391,7 +391,13 @@ public:
     
     int32_t RevokeDelegator(const sptr<IRemoteObject> &token);
 
+    bool IsBundleStarting(const std::string &bundleName);
+
+    void RecordBundleKilling(const std::string &bundleName, const std::string &reason);
+
 private:
+    void AddStartingBundle(const std::string &bundleName);
+    void RemoveStartingBundle(const std::string &bundleName);
     int32_t GetPersistentIdByAbilityRequest(const AbilityRequest &abilityRequest, bool &reuse) const;
     int32_t GetReusedSpecifiedPersistentId(const AbilityRequest &abilityRequest, bool &reuse) const;
     int32_t GetReusedStandardPersistentId(const AbilityRequest &abilityRequest, bool &reuse) const;
@@ -557,6 +563,9 @@ private:
     std::condition_variable isTryPrepareTerminateByPidsCv_;
     std::vector<std::shared_ptr<PrepareTerminateByPidRecord>> prepareTerminateByPidRecords_;
     std::unordered_map<int32_t, std::shared_ptr<AbilityRecord>> hookSpecifiedMap_;
+
+    std::mutex startingBundlesMutex_;
+    std::vector<std::string> startingBundles_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

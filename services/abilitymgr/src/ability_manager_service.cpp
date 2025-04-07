@@ -11226,6 +11226,26 @@ int32_t AbilityManagerService::KillProcessWithReason(int32_t pid, const ExitReas
         return ERR_PERMISSION_DENIED;
     }
 
+    do {
+        if (reason.reason != Reason::REASON_RESOURCE_CONTROL) {
+            break;
+        }
+        AppExecFwk::RunningProcessInfo processInfo;
+        DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByPid(pid, processInfo);
+        auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
+        if (uiAbilityManager == nullptr) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "null uiAbilityManager");
+            break;
+        }
+        // if app is already starting, return
+        std::string bundleName = processInfo.bundleNames[0];
+        if (uiAbilityManager->IsBundleStarting(bundleName)) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s is starting", bundleName.c_str());
+            return ERR_OK;
+        }
+        uiAbilityManager->RecordBundleKilling(bundleName, "killed by RSS");
+    } while (false);
+
     TAG_LOGI(AAFwkTag::ABILITYMGR, "pid:%{public}d, reason:%{public}d, subReason:%{public}d, killMsg:%{public}s",
         pid, reason.reason, reason.subReason, reason.exitMsg.c_str());
     CHECK_POINTER_AND_RETURN(appExitReasonHelper_, ERR_NULL_OBJECT);

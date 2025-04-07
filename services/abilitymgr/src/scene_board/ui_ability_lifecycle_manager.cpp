@@ -65,6 +65,7 @@ constexpr int32_t START_UI_ABILITY_PER_SECOND_UPPER_LIMIT = 20;
 constexpr int32_t API20 = 20;
 constexpr int32_t API_VERSION_MOD = 100;
 constexpr const char* IS_CALLING_FROM_DMS = "supportCollaborativeCallingFromDmsInAAFwk";
+constexpr int REMOVE_STARTING_BUNDLE_TIMEOUT_MICRO_SECONDS = 5000000; // 5s
 
 FreezeUtil::TimeoutState MsgId2State(uint32_t msgId)
 {
@@ -119,6 +120,65 @@ bool UIAbilityLifecycleManager::ProcessColdStartBranch(AbilityRequest &abilityRe
     AddCallerRecord(abilityRequest, sessionInfo, uiAbilityRecord);
     uiAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
     return true;
+}
+
+bool UIAbilityLifecycleManager::IsBundleStarting(const std::string &bundleName)
+{
+    std::lock_guard<std::mutex> guard(startingBundlesMutex_);
+    for (auto iter = startingBundles_.begin(); iter != startingBundles_.end(); iter++) {
+        if (*iter == bundleName) {
+            return true;
+        }
+    }
+    TAG_LOGW(AAFwkTag::ABILITYMGR, "not found");
+    return false;
+}
+
+void UIAbilityLifecycleManager::AddStartingBundle(const std::string &bundleName)
+{
+    if (IsBundleStarting(bundleName)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s already exists", bundleName.c_str());
+        return;
+    }
+    {
+        std::lock_guard<std::mutex> guard(startingBundlesMutex_);
+        startingBundles_.push_back(bundleName);
+    }
+    ffrt::task_attr attr;
+    attr.delay(REMOVE_STARTING_BUNDLE_TIMEOUT_MICRO_SECONDS);
+    std::weak_ptr<UIAbilityLifecycleManager> weakPtr = shared_from_this();
+    ffrt::submit([weakPtr, target = bundleName]() {
+        auto uiAbilityManager = weakPtr.lock();
+        if (uiAbilityManager == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null uiAbilityManager");
+            return;
+        }
+        uiAbilityManager->RemoveStartingBundle(target);
+    }, attr);
+}
+
+void UIAbilityLifecycleManager::RemoveStartingBundle(const std::string &bundleName)
+{
+    std::lock_guard<std::mutex> guard(startingBundlesMutex_);
+    for (auto iter = startingBundles_.begin(); iter != startingBundles_.end(); iter++) {
+        if (*iter == bundleName) {
+            startingBundles_.erase(iter);
+            return;
+        }
+    }
+    TAG_LOGW(AAFwkTag::ABILITYMGR, "not found");
+}
+
+void UIAbilityLifecycleManager::RecordBundleKilling(const std::string &bundleName, const std::string &reason)
+{
+    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    for (const auto& [first, second] : sessionAbilityMap_) {
+        auto &abilityInfo = second->GetAbilityInfo();
+        if (bundleName == abilityInfo.bundleName) {
+            second->SetAbilityState(AbilityState::TERMINATING);
+            second->SetKillReason(reason);
+        }
+    }
 }
 
 int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
@@ -1954,11 +2014,13 @@ void UIAbilityLifecycleManager::OnAbilityDied(std::shared_ptr<AbilityRecord> abi
     terminateAbilityList_.push_back(abilityRecord);
     abilityRecord->SetAbilityState(AbilityState::TERMINATING);
     if (abilityRecord->GetKillForPermissionUpdateFlag()) {
+        abilityRecord->SetKillReason("kill process for permission update");
         bool needClearCallerLink = false;
         NotifySCBToHandleException(abilityRecord,
             static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_PERMISSION_UPDATE),
             "kill process for permission update", needClearCallerLink);
     } else if (!abilityRecord->GetRestartAppFlag()) {
+        abilityRecord->SetKillReason("onAbilityDied");
         NotifySCBToHandleException(abilityRecord, static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_DIED),
             "onAbilityDied");
     }
