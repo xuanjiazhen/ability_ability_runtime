@@ -727,7 +727,11 @@ void AppRunningRecord::StateChangedNotifyObserver(const std::shared_ptr<AbilityR
     }
     if (!isAbility && !AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo->extensionAbilityType)) {
         abilityStateData.extensionAbilityType = static_cast<int32_t>(abilityInfo->extensionAbilityType);
-    }    
+    }
+    //Special mark uiextension use abilityStateChange
+    if (isAbility && AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo->extensionAbilityType)) {
+        abilityStateData.extensionAbilityType = -9;
+    }
     abilityStateData.processType = static_cast<int32_t>(processType_);
     auto serviceInner = appMgrServiceInner_.lock();
     if (serviceInner) {
