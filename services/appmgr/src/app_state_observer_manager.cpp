@@ -614,8 +614,8 @@ void AppStateObserverManager::HandleStateChangedNotifyObserver(
     }
 
     if ((abilityStateData.abilityState == static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND) ||
-            abilityStateData.abilityState == static_cast<int32_t>(AbilityState::ABILITY_STATE_BACKGROUND)) &&
-        isAbility && !isFromWindowFocusChanged) {
+         abilityStateData.abilityState == static_cast<int32_t>(AbilityState::ABILITY_STATE_BACKGROUND)) &&
+        (isAbility || (!isAbility && abilityStateData.extensionAbilityType > 0)) && !isFromWindowFocusChanged) {
         auto abilityForegroundObserverMap = GetAbilityForegroundObserverMapCopy();
         for (auto &[observer, uid] : abilityForegroundObserverMap) {
             if (observer != nullptr) {
