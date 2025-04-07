@@ -725,12 +725,14 @@ void AppRunningRecord::StateChangedNotifyObserver(const std::shared_ptr<AbilityR
     if (applicationInfo && applicationInfo->bundleType == AppExecFwk::BundleType::ATOMIC_SERVICE) {
         abilityStateData.isAtomicService = true;
     }
-    if (!isAbility && !AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo->extensionAbilityType)) {
-        abilityStateData.extensionAbilityType = static_cast<int32_t>(abilityInfo->extensionAbilityType);
-    }
-    //Special mark uiextension use abilityStateChange
-    if (isAbility && AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo->extensionAbilityType)) {
-        abilityStateData.extensionAbilityType = -9;
+    bool isUIExtension = AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo->extensionAbilityType);
+    if (isUIExtension) {
+        if (!isAbility) {
+            abilityStateData.extensionAbilityType = static_cast<int32_t>(abilityInfo->extensionAbilityType);
+        } else {
+            //Special mark uiextension use abilityStateChange
+            abilityStateData.extensionAbilityType = -9;
+        }
     }
     abilityStateData.processType = static_cast<int32_t>(processType_);
     auto serviceInner = appMgrServiceInner_.lock();
