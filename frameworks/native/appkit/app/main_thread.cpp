@@ -1784,6 +1784,15 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
                 auto helper = std::make_shared<DumpRuntimeHelper>(application_);
                 helper->SetAppFreezeFilterCallback();
             }
+            if (appInfo.codeLanguage == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2) {
+                auto& runtime = application_->GetRuntime(AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2);
+                if (runtime == nullptr) {
+                    TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
+                    return;
+                }
+                OHOS::AppManagerSts::StsAppManagerRegistryInit(
+                    (static_cast<AbilityRuntime::STSRuntime&>(*runtime)).GetAniEnv());
+            }
         }
 #ifdef CJ_FRONTEND
     }
