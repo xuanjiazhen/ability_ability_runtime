@@ -42,6 +42,7 @@
 #include "js_window_stage.h"
 #include "scene_board_judgement.h"
 #endif
+#include "ohos_application.h"
 #include "napi_common_configuration.h"
 #include "napi_common_want.h"
 #include "napi_remote_object.h"
@@ -93,7 +94,6 @@ napi_value OnContinuePromiseCallback(napi_env env, napi_callback_info info)
 
     return nullptr;
 }
-} // namespace
 
 napi_value AttachJsAbilityContext(napi_env env, void *value, void *extValue)
 {
@@ -108,19 +108,15 @@ napi_value AttachJsAbilityContext(napi_env env, void *value, void *extValue)
         return nullptr;
     }
     std::shared_ptr<NativeReference> systemModule = nullptr;
-    auto screenModePtr = reinterpret_cast<std::weak_ptr<int32_t> *>(extValue)->lock();
-    if (screenModePtr == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "nul screenModePtr");
-        return nullptr;
-    }
-    if (*screenModePtr == AAFwk::IDLE_SCREEN_MODE) {
+    int32_t screenMode = ptr->GetScreenMode();
+    if (screenMode == AAFwk::IDLE_SCREEN_MODE) {
         auto uiAbiObject = CreateJsAbilityContext(env, ptr);
         CHECK_POINTER_AND_RETURN(uiAbiObject, nullptr);
         systemModule = std::shared_ptr<NativeReference>(JsRuntime::LoadSystemModuleByEngine(env,
             "application.AbilityContext", &uiAbiObject, 1).release());
     } else {
         auto emUIObject = JsEmbeddableUIAbilityContext::CreateJsEmbeddableUIAbilityContext(env,
-            ptr, nullptr, *screenModePtr);
+            ptr, nullptr, screenMode);
         CHECK_POINTER_AND_RETURN(emUIObject, nullptr);
         systemModule = std::shared_ptr<NativeReference>(JsRuntime::LoadSystemModuleByEngine(env,
             "application.EmbeddableUIAbilityContext", &emUIObject, 1).release());
@@ -139,6 +135,35 @@ napi_value AttachJsAbilityContext(napi_env env, void *value, void *extValue)
     }
     return contextObj;
 }
+
+void BindContext(napi_env env, std::unique_ptr<NativeReference> contextRef, JsRuntime& jsRuntime,
+    const std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext)
+{
+    CHECK_POINTER(contextRef);
+    napi_value contextObj = contextRef->GetNapiValue();
+    if (!CheckTypeForNapiValue(env, contextObj, napi_object)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "get ability native object failed");
+        return;
+    }
+    auto workContext = new (std::nothrow) std::weak_ptr<AbilityRuntime::AbilityContext>(abilityContext);
+    CHECK_POINTER(workContext);
+    napi_coerce_to_native_binding_object(
+        env, contextObj, DetachCallbackFunc, AttachJsAbilityContext, workContext, nullptr);
+    TAG_LOGE(AAFwkTag::UIABILITY, "yzk hybrid bind context %{public}p", contextRef.get()); // TODO
+    abilityContext->Bind(jsRuntime, contextRef.release());
+    const auto& objects = abilityContext->GetBindingObject()->objects_; // TODO
+    for (auto &item: objects) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "yzk object %{public}s: %{public}p", item.first.c_str(), item.second.get()); // TODO
+    }
+    napi_wrap(
+        env, contextObj, workContext,
+        [](napi_env, void* data, void* hint) {
+            TAG_LOGD(AAFwkTag::UIABILITY, "finalizer for weak_ptr ability context is called");
+            delete static_cast<std::weak_ptr<AbilityRuntime::AbilityContext>*>(data);
+        },
+        nullptr, nullptr);
+}
+} // namespace
 
 UIAbility *JsUIAbility::Create(const std::unique_ptr<Runtime> &runtime)
 {
@@ -222,6 +247,50 @@ void JsUIAbility::UpdateAbilityObj(std::shared_ptr<AbilityInfo> abilityInfo,
         false, abilityInfo->srcEntrance);
 }
 
+void JsUIAbility::CreateAndBindContext(const std::shared_ptr<AppExecFwk::OHOSApplication> application,
+    const std::shared_ptr<AppExecFwk::AbilityLocalRecord> record,
+    const std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext,
+    const std::unique_ptr<Runtime>& runtime)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    if (application == nullptr || record == nullptr || abilityContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null application or record or abilityContext");
+        return;
+    }
+    if (runtime == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null runtime");
+        return;
+    }
+    auto& jsRuntime = static_cast<JsRuntime&>(*runtime);
+    HandleScope handleScope(jsRuntime);
+    napi_env env = jsRuntime.GetNapiEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return;
+    }
+    auto want = record->GetWant();
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null want");
+        return;
+    }
+    int32_t screenMode = want->GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::ScreenMode::IDLE_SCREEN_MODE);
+    abilityContext->SetScreenMode(screenMode);
+
+    std::unique_ptr<NativeReference> contextRef;
+    if (screenMode == AAFwk::IDLE_SCREEN_MODE) {
+        napi_value contextObj = CreateJsAbilityContext(env, abilityContext);
+        CHECK_POINTER(contextObj);
+        contextRef = JsRuntime::LoadSystemModuleByEngine(env, "application.AbilityContext", &contextObj, 1);
+    } else {
+        napi_value contextObj =
+            JsEmbeddableUIAbilityContext::CreateJsEmbeddableUIAbilityContext(env, abilityContext, nullptr, screenMode);
+        CHECK_POINTER(contextObj);
+        contextRef = JsRuntime::LoadSystemModuleByEngine(env, "application.EmbeddableUIAbilityContext", &contextObj, 1);
+    }
+
+    BindContext(env, std::move(contextRef), jsRuntime, abilityContext);
+}
+
 void JsUIAbility::SetAbilityContext(std::shared_ptr<AbilityInfo> abilityInfo,
     std::shared_ptr<AAFwk::Want> want, const std::string &moduleName, const std::string &srcPath)
 {
@@ -240,6 +309,7 @@ void JsUIAbility::SetAbilityContext(std::shared_ptr<AbilityInfo> abilityInfo,
     }
     napi_value contextObj = nullptr;
     int32_t screenMode = want->GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::ScreenMode::IDLE_SCREEN_MODE);
+    abilityContext_->SetScreenMode(screenMode);
     CreateJSContext(env, contextObj, screenMode);
     CHECK_POINTER(shellContextRef_);
     contextObj = shellContextRef_->GetNapiValue();
@@ -249,16 +319,15 @@ void JsUIAbility::SetAbilityContext(std::shared_ptr<AbilityInfo> abilityInfo,
     }
     auto workContext = new (std::nothrow) std::weak_ptr<AbilityRuntime::AbilityContext>(abilityContext_);
     CHECK_POINTER(workContext);
-    screenModePtr_ = std::make_shared<int32_t>(screenMode);
-    auto workScreenMode = new (std::nothrow) std::weak_ptr<int32_t>(screenModePtr_);
-    if (workScreenMode == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "workScreenMode nullptr");
-        delete workContext;
-        return;
-    }
+
     napi_coerce_to_native_binding_object(
-        env, contextObj, DetachCallbackFunc, AttachJsAbilityContext, workContext, workScreenMode);
+        env, contextObj, DetachCallbackFunc, AttachJsAbilityContext, workContext, nullptr);
+    TAG_LOGE(AAFwkTag::UIABILITY, "yzk Bind context %{public}p", shellContextRef_.get()); // TODO
     abilityContext_->Bind(jsRuntime_, shellContextRef_.get());
+    const auto& objects = abilityContext_->GetBindingObject()->objects_; // TODO
+    for (auto &item: objects) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "yzk object %{public}s: %{public}p", item.first.c_str(), item.second.get()); // TODO
+    }
     napi_set_named_property(env, obj, "context", contextObj);
     TAG_LOGD(AAFwkTag::UIABILITY, "set ability context");
     if (abilityRecovery_ != nullptr) {
@@ -268,8 +337,7 @@ void JsUIAbility::SetAbilityContext(std::shared_ptr<AbilityInfo> abilityInfo,
         [](napi_env, void *data, void *hint) {
             TAG_LOGD(AAFwkTag::UIABILITY, "finalizer for weak_ptr ability context is called");
             delete static_cast<std::weak_ptr<AbilityRuntime::AbilityContext> *>(data);
-            delete static_cast<std::weak_ptr<int32_t> *>(hint);
-        }, workScreenMode, nullptr);
+        }, nullptr, nullptr);
     TAG_LOGI(AAFwkTag::UIABILITY, "End");
 }
 

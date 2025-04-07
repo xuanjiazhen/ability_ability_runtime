@@ -360,6 +360,15 @@ public:
 
     virtual void SetRestoreEnabled(bool enabled) = 0;
     virtual bool GetRestoreEnabled() = 0;
+    void SetScreenMode(int32_t screenMode)
+    {
+        screenMode_ = screenMode;
+    }
+
+    int32_t GetScreenMode() const
+    {
+        return screenMode_;
+    }
 
     virtual std::shared_ptr<AAFwk::Want> GetWant() = 0;
 
@@ -417,6 +426,9 @@ protected:
     {
         return contextTypeId == CONTEXT_TYPE_ID || Context::IsContext(contextTypeId);
     }
+
+private:
+    int32_t screenMode_ = AAFwk::ScreenMode::IDLE_SCREEN_MODE;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
