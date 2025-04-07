@@ -23,7 +23,7 @@ namespace OHOS {
 namespace AbilityDelegatorSts {
 ani_object CreateStsAbilityDelegator(ani_env *aniEnv)
 {
-    TAG_LOGI(AAFwkTag::DELEGATOR, "CreateJsAbilityDelegator");
+    TAG_LOGD(AAFwkTag::DELEGATOR, "CreateJsAbilityDelegator");
     ani_class abilityDelegator = nullptr;
     ani_status status = ANI_ERROR;
     status = aniEnv->FindClass("Lapplication/AbilityDelegator/AbilityDelegatorInner;", &abilityDelegator);
@@ -31,7 +31,6 @@ ani_object CreateStsAbilityDelegator(ani_env *aniEnv)
         TAG_LOGE(AAFwkTag::DELEGATOR, "find AbilityDelegator failed status : %{public}d", status);
         return {};
     }
-    TAG_LOGI(AAFwkTag::DELEGATOR, "find AbilityDelegator success");
 
     std::array delegatorFunctions = {
         ani_native_function {"getAppContext", nullptr, reinterpret_cast<void *>(GetAppContext)},
@@ -53,7 +52,6 @@ ani_object CreateStsAbilityDelegator(ani_env *aniEnv)
         TAG_LOGE(AAFwkTag::DELEGATOR, "Class_FindMethod ctor failed status : %{public}d", status);
         return {};
     }
-    TAG_LOGI(AAFwkTag::DELEGATOR, "Class_FindMethod ctor success");
 
     ani_object object = nullptr;
     if (aniEnv->Object_New(abilityDelegator, method, &object) != ANI_OK) {
@@ -61,12 +59,12 @@ ani_object CreateStsAbilityDelegator(ani_env *aniEnv)
         return {};
     }
 
-    TAG_LOGI(AAFwkTag::DELEGATOR, "CreateStsAbilityDelegator success");
     return object;
 }
 
 void SetBundleName(ani_env *aniEnv, ani_class arguments, ani_object argumentObject, const std::string &bundleName)
 {
+    TAG_LOGD(AAFwkTag::DELEGATOR, "SetBundleName call");
     ani_status status = ANI_ERROR;
     ani_string aniStr;
     // Get a ani_string from std::string
@@ -75,7 +73,6 @@ void SetBundleName(ani_env *aniEnv, ani_class arguments, ani_object argumentObje
         TAG_LOGE(AAFwkTag::DELEGATOR, "String_NewUTF8 failed status : %{public}d", status);
         return;
     }
-    TAG_LOGI(AAFwkTag::DELEGATOR, "String_NewUTF8 success");
 
     // find the setter method
     ani_method nameSetter;
@@ -84,7 +81,6 @@ void SetBundleName(ani_env *aniEnv, ani_class arguments, ani_object argumentObje
         TAG_LOGE(AAFwkTag::DELEGATOR, "Class_FindMethod failed status : %{public}d", status);
         return;
     }
-    TAG_LOGI(AAFwkTag::DELEGATOR, "Class_FindMethod success");
 
     // call set bundleName(n:string)
     status = aniEnv->Object_CallMethod_Void(argumentObject, nameSetter, aniStr);
@@ -92,13 +88,12 @@ void SetBundleName(ani_env *aniEnv, ani_class arguments, ani_object argumentObje
         TAG_LOGE(AAFwkTag::DELEGATOR, "Object_CallMethod_Void failed status : %{public}d", status);
         return;
     }
-    TAG_LOGI(AAFwkTag::DELEGATOR, "Object_CallMethod_Void success");
 }
 
 void SetParameters(ani_env *aniEnv, ani_class arguments, ani_object argumentObject,
     const std::map<std::string, std::string> &paras)
 {
-    TAG_LOGI(AAFwkTag::DELEGATOR, "SetParameters begin");
+    TAG_LOGD(AAFwkTag::DELEGATOR, "SetParameters begin");
     ani_status status = ANI_ERROR;
     // get getter and setter methond of Record
     ani_class recordCls;
@@ -157,12 +152,11 @@ void SetParameters(ani_env *aniEnv, ani_class arguments, ani_object argumentObje
             return;
         }
     }
-
-    TAG_LOGI(AAFwkTag::DELEGATOR, "SetParameters end");
 }
 
 void SetTestCaseNames(ani_env *aniEnv, ani_class arguments, ani_object argumentObject, const std::string &testcaseNames)
 {
+    TAG_LOGD(AAFwkTag::DELEGATOR, "SetTestCaseNames call");
     ani_status status = ANI_ERROR;
     ani_string aniStr;
     status = aniEnv->String_NewUTF8(testcaseNames.c_str(), testcaseNames.length(), &aniStr);
@@ -170,7 +164,6 @@ void SetTestCaseNames(ani_env *aniEnv, ani_class arguments, ani_object argumentO
         TAG_LOGE(AAFwkTag::DELEGATOR, "String_NewUTF8 failed status : %{public}d", status);
         return;
     }
-    TAG_LOGI(AAFwkTag::DELEGATOR, "String_NewUTF8 success");
 
     // find the setter method
     ani_method nameSetter;
@@ -179,7 +172,6 @@ void SetTestCaseNames(ani_env *aniEnv, ani_class arguments, ani_object argumentO
         TAG_LOGE(AAFwkTag::DELEGATOR, "Class_FindMethod failed status : %{public}d", status);
         return;
     }
-    TAG_LOGI(AAFwkTag::DELEGATOR, "Class_FindMethod success");
 
     // call set testcaseNames(n:string)
     status = aniEnv->Object_CallMethod_Void(argumentObject, nameSetter, aniStr);
@@ -187,12 +179,12 @@ void SetTestCaseNames(ani_env *aniEnv, ani_class arguments, ani_object argumentO
         TAG_LOGE(AAFwkTag::DELEGATOR, "Object_CallMethod_Void failed status : %{public}d", status);
         return;
     }
-    TAG_LOGI(AAFwkTag::DELEGATOR, "Object_CallMethod_Void success");
 }
 
 void SetTestRunnerClassName(ani_env *aniEnv, ani_class arguments, ani_object argumentObject,
     const std::string &className)
 {
+    TAG_LOGD(AAFwkTag::DELEGATOR, "SetTestRunnerClassName call");
     ani_status status = ANI_ERROR;
     ani_string aniStr;
     status = aniEnv->String_NewUTF8(className.c_str(), className.length(), &aniStr);
@@ -200,7 +192,6 @@ void SetTestRunnerClassName(ani_env *aniEnv, ani_class arguments, ani_object arg
         TAG_LOGE(AAFwkTag::DELEGATOR, "String_NewUTF8 failed status : %{public}d", status);
         return;
     }
-    TAG_LOGI(AAFwkTag::DELEGATOR, "String_NewUTF8 success");
 
     // find the setter method
     ani_method nameSetter;
@@ -209,7 +200,6 @@ void SetTestRunnerClassName(ani_env *aniEnv, ani_class arguments, ani_object arg
         TAG_LOGE(AAFwkTag::DELEGATOR, "Class_FindMethod failed status : %{public}d", status);
         return;
     }
-    TAG_LOGI(AAFwkTag::DELEGATOR, "Class_FindMethod success");
 
     // call set testRunnerClassName(n:string)
     status = aniEnv->Object_CallMethod_Void(argumentObject, nameSetter, aniStr);
@@ -217,13 +207,12 @@ void SetTestRunnerClassName(ani_env *aniEnv, ani_class arguments, ani_object arg
         TAG_LOGE(AAFwkTag::DELEGATOR, "Object_CallMethod_Void failed status : %{public}d", status);
         return;
     }
-    TAG_LOGI(AAFwkTag::DELEGATOR, "Object_CallMethod_Void success");
 }
 
 ani_object CreateStsAbilityDelegatorArguments(
     ani_env *aniEnv, const std::shared_ptr<AppExecFwk::AbilityDelegatorArgs> abilityDelegatorArgs)
 {
-    TAG_LOGI(AAFwkTag::DELEGATOR, "CreateJsAbilityDelegatorArguments");
+    TAG_LOGD(AAFwkTag::DELEGATOR, "CreateJsAbilityDelegatorArguments");
     ani_class arguments = nullptr;
     ani_status status = ANI_ERROR;
     status = aniEnv->FindClass("Lapplication/AbilityDelegatorArgs/AbilityDelegatorArgsInner;", &arguments);
@@ -231,7 +220,6 @@ ani_object CreateStsAbilityDelegatorArguments(
         TAG_LOGE(AAFwkTag::DELEGATOR, "find AbilityDelegatorArgs failed status : %{public}d", status);
         return {};
     }
-    TAG_LOGI(AAFwkTag::DELEGATOR, "find AbilityDelegatorArgs success");
 
     ani_method method = nullptr;
     status = aniEnv->Class_FindMethod(arguments, "<ctor>", ":V", &method);
@@ -239,7 +227,6 @@ ani_object CreateStsAbilityDelegatorArguments(
         TAG_LOGE(AAFwkTag::DELEGATOR, "Class_FindMethod ctor failed status : %{public}d", status);
         return {};
     }
-    TAG_LOGI(AAFwkTag::DELEGATOR, "Class_FindMethod ctor success");
 
     ani_object argumentObject = nullptr;
     status = aniEnv->Object_New(arguments, method, &argumentObject);
@@ -247,7 +234,6 @@ ani_object CreateStsAbilityDelegatorArguments(
         TAG_LOGE(AAFwkTag::DELEGATOR, "Object_New failed status : %{public}d", status);
         return {};
     }
-    TAG_LOGI(AAFwkTag::DELEGATOR, "Object_New success");
 
     std::string bundleName = abilityDelegatorArgs->GetTestBundleName();
     SetBundleName(aniEnv, arguments, argumentObject, bundleName);

@@ -28,9 +28,9 @@ bool UnwrapStartOptionsWithProcessOption(ani_env* env, ani_object param, AAFwk::
 
 bool UnwrapStartOptions(ani_env *env, ani_object param, AAFwk::StartOptions &startOptions)
 {
-    TAG_LOGI(AAFwkTag::JSNAPI, "called");
+    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "null env");
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "null env");
         return false;
     }
     ani_double displayId = 0.0;
