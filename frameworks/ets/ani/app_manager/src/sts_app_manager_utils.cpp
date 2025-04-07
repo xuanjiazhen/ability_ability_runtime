@@ -380,5 +380,22 @@ namespace AppManagerSts {
         env_->GlobalReference_Delete(ref);
         return AniBooleanToBool(result);
     }
+		
+	std::string AniStringToStdString(ani_env *env,ani_string ani_str)
+	{
+	    ani_size  strSize;
+	    env->String_GetUTF8Size(ani_str, &strSize);
+		   
+	    std::vector<char> buffer(strSize + 1); // +1 for null terminator
+	    char* utf8_buffer = buffer.data();
+
+	    //String_GetUTF8 Supportted by https://gitee.com/openharmony/arkcompiler_runtime_core/pulls/3416
+	    ani_size bytes_written = 0;
+	    env->String_GetUTF8(ani_str, utf8_buffer, strSize + 1, &bytes_written);
+		    
+	    utf8_buffer[bytes_written] = '\0';
+	    std::string content = std::string(utf8_buffer);
+	    return content;
+	}
 } // namespace AppManagerSts
 } // namespace OHOS

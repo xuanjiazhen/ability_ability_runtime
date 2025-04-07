@@ -14,7 +14,6 @@
  */
 
 import AbilityStateData from 'application.AbilityStateData'
-// import { ProcessInformation } from 'application.ProcessInformation'
 import ProcessData from 'application.ProcessData'
 import AppStateData from 'application.AppStateData'
 import bundleManager from '@ohos.bundle.bundleManager';
@@ -22,11 +21,12 @@ import ApplicationStateObserver from 'application.ApplicationStateObserver'
 import AppForegroundStateObserver from 'application.AppForegroundStateObserver';
 import {AbilityFirstFrameStateData} from 'application.AbilityFirstFrameStateData';
 import AbilityFirstFrameStateObserver from 'application.AbilityFirstFrameStateObserver';
+
 type AsyncCallback<T> = (err: BusinessError<T>, data: T)=> void;
 export class BusinessError<T = void> {
     code: number;
     data: T;
-}
+  }
 
 type ResolveCallback<T> = (data: T) => void;
 type RejectCallback = (err: Object) => void;
@@ -107,12 +107,16 @@ export default namespace appManager {
     export native function nativeGetRunningProcessInformationByBundleType(
             bundleType: bundleManager.BundleType): Array<ProcessInformation>;
 
-/* function by jiangrongliang start */
-    export native function nativeClearUpAppData(bundleName: string, appCloneIndex?: number): int;
-
+    export native function nativeIsAppRunning(bundleName: string, appInde?: int): boolean;
     export native function nativeGetProcessMemoryByPid(pid: int): int;
+    export native function nativeClearUpAppData(bundleName: string, appIndex?: int): Promise<int>;
+    export native function nativeTerminateMission(missionId: int): Promise<int>;
+    export native function nativeIsApplicationRunning(bundleName: string): boolean;
+    export native function nativeGetSupportedProcessCachePids(bundleName: string): Promise<Array<number>>;
+    export native function nativeGetRunningMultiAppInfo(bundleName: string): ProcessInformation;
+    export native function nativeGetRunningProcessInfoByBundleName(bundleName: string, userId?: int): ProcessInformation;
+    export native function nativePreloadApplication(bundleName: string, userId: int, mode: PreloadMode, appInde?: int): Promise<int>;
 
-/* function by jiangrongliang end */
 
     export function preloadApplication(bundleName: string, userId: number, mode: PreloadMode, appIndex?: number): Promise<void> {
         let p = new Promise<void>((resolve: (v: undefined) => void, reject: (error: Object) => void):void => {
@@ -503,6 +507,285 @@ export default namespace appManager {
             console.log("[callback] nativeIsSharedBundleRunning err end");
         })
     }
+	export function isAppRunning(bundleName: string): Promise<boolean>
+	{
+		console.log(" ##### etsIsAppRunning Promise callback_01");
+		let p  = new Promise<boolean>((resolve: (v: boolean) => void, reject: (error: Object) => void) => {
+		console.log(" ##### etsIsAppRunning Promise  begin");
+			let p1 = launch nativeIsAppRunning(bundleName);
+			
+			console.log(" ##### etsIsAppRunning Promise  end");
+			p1.then((e :NullishType)=>{
+				let r : boolean =  e as boolean;
+				console.log("etsIsAppRunning Promise  promise1 r ", r);
+				resolve(r);
+			}, ( error: Object) : void => {
+				console.log("etsIsAppRunning Promise  promise1 end");
+			});
+		});
+		console.log("etsIsAppRunning Promise return");
+		return p;
+	}
+
+	export function isAppRunning(bundleName: string, appIndex: int): Promise<boolean>
+	{
+		console.log(" ##### etsIsAppRunning appIndex Promise callback_01");
+		let p  = new Promise<boolean>((resolve: (v: boolean) => void, reject: (error: Object) => void) => {
+		console.log(" ##### etsIsAppRunning appIndex Promise  begin");
+			let p1 = launch nativeIsAppRunning(bundleName, appIndex);
+			
+			console.log(" ##### etsIsAppRunning appIndex Promise  end");
+			p1.then((e :NullishType)=>{
+				let r : boolean =  e as boolean;
+				console.log("etsIsAppRunning Promise  appIndex promise1_04  r ", r);
+				resolve(r);
+			}, ( error: Object) : void => {
+				console.log("etsIsAppRunning Promise  appIndex promise1 end");
+			});
+		});
+		console.log("etsIsAppRunning Promise appIndex return");
+		return p;
+	}
+
+	export function getProcessMemoryByPid(pid: int, callback: AsyncCallback<int>): void
+	{
+		console.log(" ***** etsGetProcessMemoryByPid callback_01");
+		let p1 = launch nativeGetProcessMemoryByPid(pid);
+		console.log(" ***** etsGetProcessMemoryByPid callback_02");
+		p1.then((e: int): void => {
+			console.log(" ***** etsGetProcessMemoryByPid callback_03");
+			let err = new BusinessError<int>();
+			err.code = 0;
+			let data: int = e;
+
+			callback(err, data);
+			console.log(" ***** callback etsGetProcessMemoryByPid suc end  data  is ", data);
+		}, (error: Object): void => {
+			console.log(" ***** callback etsGetProcessMemoryByPid err end");
+		});
+	}
+
+	export function getProcessMemoryByPid(pid: int): Promise<int>
+	{
+		console.log(" ##### etsGetProcessMemoryByPid Promise ");
+		let p = new Promise<int>((resolve: (v: int) => void, reject: (error: Object) => void) => {
+			console.log(" ##### etsGetProcessMemoryByPid Promise  begin");
+			let p1 = launch nativeGetProcessMemoryByPid(pid);
+			console.log(" ##### etsGetProcessMemoryByPid Promise  end");
+			p1.then((e: int) => {
+				let r: int = e;
+				console.log(" ##### etsGetProcessMemoryByPid Promise  success r ", r);
+				resolve(r);
+			}, (error: Object): void => {
+				console.log(" ##### etsGetProcessMemoryByPid Promise  fail");
+				reject(error);
+			});
+		});
+	    console.log(" ##### etsGetProcessMemoryByPid Promise  promise1 return p is ",  p);
+	    return p;
+	}
+
+    export function clearUpAppData(bundleName: string, appIndex?: int): Promise<void>
+    {
+        let p = new Promise<void>((resolve: ResolveCallback<void>, reject: RejectCallback) => {
+		   const p1 = launch nativeClearUpAppData(bundleName, appIndex);
+		   p1.then((e :NullishType)=>{
+		       let ret : int = e as int  
+		       resolve(undefined);
+		       console.log("etsClearUpAppData Promise success: ", ret)
+		   }, (err:Object): void => {
+		       reject(err)
+		       console.log("etsClearUpAppData Promise fail: ")
+		   });
+        });
+        console.log("etsClearUpAppData Promise end")
+        return p;
+    }
+
+	export function terminateMission(missionId: int): Promise<void>
+	{
+		console.log("etsTerminateMission Promise_01");
+	    let p = new Promise<void>((resolve: ResolveCallback<void>, reject: RejectCallback) => {
+			console.log("etsTerminateMission Promise_02");
+			let p2 = launch nativeTerminateMission(missionId);
+			console.log("etsTerminateMission Promise_03");
+			p2.then((e :NullishType) => {
+	            let ret : int = e as int  
+	            resolve(undefined);
+	            console.log("etsTerminateMission Promise succ: ", ret)
+	        }, (err:Object): void => {
+	            reject(err)
+	            console.log("etsTerminateMission Promise err: ")
+	        });
+		});
+	    console.log("etsTerminateMission Promis return");
+	    return p;
+	}
+
+	export function isApplicationRunning(bundleName: string, callback: AsyncCallback<boolean>): void
+	{
+		console.log("etsIsApplicationRunning callback_01");
+		let p1 = launch nativeIsApplicationRunning(bundleName);
+		console.log("etsIsApplicationRunning callback_02");
+		p1.then((e: NullishType) :void =>{
+			console.log("etsIsApplicationRunning callback_03");
+			let err = new BusinessError<boolean>;
+			err.code = 0;
+			let data : boolean = e as boolean;
+
+			callback(err, data);
+			console.log("callback etsIsApplicationRunning suc end	data  is ", data);
+		}, (error: Object) :void => {
+			console.log("callback etsIsApplicationRunning err end");
+		})
+	}
+
+	export function isApplicationRunning(bundleName: string): Promise<boolean>
+	{
+		console.log("etsIsApplicationRunning Promise_01");
+		let pPromise = new Promise<boolean>((resolve: (v: boolean) => void, reject: (error: Object) => void) => {
+			console.log("etsIsApplicationRunning Promise_01");
+			let p1 = launch nativeIsApplicationRunning(bundleName);
+			p1.then((e :NullishType)=>{
+				let r : boolean =  e as boolean;
+				console.log("etsIsApplicationRunning Promise04	r ", r);
+				resolve(r);
+			}, ( error: Object) : void => {
+				console.log("etsIsApplicationRunning Promise end");
+			});
+		});
+		return pPromise;
+	}
+
+	export function getRunningMultiAppInfo(bundleName: string): Promise<ProcessInformation>
+	{
+		console.log(" ##### etsGetRunningMultiAppInfo Promise_01");
+		let p = new Promise<ProcessInformation>((resolve: (v: ProcessInformation) => void, reject: (error: Object) => void) => {
+		    console.log(" ##### etsGetRunningMultiAppInfo Promise_02");
+			let p1 = launch nativeGetRunningMultiAppInfo(bundleName);
+			console.log(" ##### etsGetRunningMultiAppInfo Promise_03");
+			p1.then((e: ProcessInformation) => {
+				let r: ProcessInformation = e;
+				console.log(" ##### etsGetRunningMultiAppInfo Promise_04 r ", r);
+				resolve(r);
+			}, (error: Object): void => {
+				console.log(" ##### etsGetRunningMultiAppInfo Promise_05");
+				reject(error);
+			});
+		});
+		console.log("##### etsGetRunningMultiAppInfo Promise  return");
+		return p;
+	}
+
+	export function getSupportedProcessCachePids(bundleName: string): Promise<Array<number>>
+	{
+		console.log("##### etsGetSupportedProcessCachePids Promise begin");
+		let pPromise = new Promise<Array<number>>((resolve: (v: Array<number>) => void, reject: (error: Object) => void) => {
+			console.log("##### etsGetSupportedProcessCachePids Promise call executeGetSupportedProcessCachePids");
+			let p1 = launch nativeGetSupportedProcessCachePids(bundleName);
+			p1.then((e :NullishType)=>{
+				let r : Array<number> =  e as Array<number>;
+				console.log("##### etsGetSupportedProcessCachePids Promise  r ", r);
+				resolve(r);
+			}, ( error: Object) : void => {
+				console.log("##### etsGetSupportedProcessCachePids Promise error");
+			});
+		});
+		console.log("##### etsGetSupportedProcessCachePids Promise end");
+		return pPromise;
+	}
+
+	export function getRunningProcessInfoByBundleName(bundleName: string, userId?: int, callback: AsyncCallback<ProcessInformation>): void
+	{
+		console.log(" ##### etsGetRunningProcessInfoByBundleName callback_01 userId enter");
+		let p1 = launch nativeGetRunningProcessInfoByBundleName(bundleName, userId);
+		p1.then((e: ProcessInformation): void => {
+			let err = new BusinessError<ProcessInformation>();
+			err.code = 0;
+			let data: ProcessInformation = e;
+
+			callback(err, data);
+			console.log(" ##### callback etsGetRunningProcessInfoByBundleName userId suc data s ", data);
+		}, (error: Object): void => {
+			console.log(" ##### callback etsGetRunningProcessInfoByBundleName userId err");
+		});
+	}
+
+	export function getRunningProcessInfoByBundleName(bundleName: string, userId: int): Promise<ProcessInformation>
+	{
+		console.log(" ##### etsGetRunningProcessInfoByBundleName Promise enter");
+		let pPromise =  new Promise<ProcessInformation>((resolve: (v: ProcessInformation) => void, reject: (error: Object) => void) => {
+			let p1 = launch nativeGetRunningProcessInfoByBundleName(bundleName, userId);
+			console.log(" ##### etsGetRunningProcessInfoByBundleName userId Promise	end");
+			p1.then((e: ProcessInformation) => {
+				let r: ProcessInformation = e as ProcessInformation;
+				console.log(" ##### etsGetRunningProcessInfoByBundleName userId Promise success  r ", r);
+				resolve(r);
+			}, (error: Object): void => {
+				console.log(" ##### etsGetRunningProcessInfoByBundleName userId Promise fail");
+				console.error("jrl test  Native error: ==== ", error);
+				let err = new BusinessError<ProcessInformation>();
+				console.error("jrl test  Native error: ==== ", err);
+			 	reject(error);
+			});
+		});
+		return pPromise;
+	}
+
+	export function getRunningProcessInfoByBundleName(bundleName: string, callback: AsyncCallback<ProcessInformation>): void
+	{
+		console.log(" ##### etsGetRunningProcessInfoByBundleName enter");
+		let p1 = launch nativeGetRunningProcessInfoByBundleName(bundleName);
+		p1.then((e: ProcessInformation): void => {
+			let err = new BusinessError<ProcessInformation>();
+			err.code = 0;
+			let data: ProcessInformation = e;
+			console.log(" ##### callback etsGetRunningProcessInfoByBundleNameUserId success data ", data);
+
+			callback(err, data);
+		}, (error: Object): void => {
+			console.log(" ##### callback etsGetRunningProcessInfoByBundleNameUserId error fail");
+		});
+	}
+
+	export function getRunningProcessInfoByBundleName(bundleName: string): Promise<ProcessInformation>
+	{
+		console.log(" ##### etsGetRunningProcessInfoByBundleName Promise_01");
+		let pPromise =	new Promise<ProcessInformation>((resolve: (v: ProcessInformation) => void, reject: (error: Object) => void) => {
+			console.log(" ##### etsGetRunningProcessInfoByBundleName Promise begin");
+			console.log(" #####   bundleName = ", bundleName);
+			let p1 = launch nativeGetRunningProcessInfoByBundleName(bundleName);
+			console.log(" ##### etsGetRunningProcessInfoByBundleName Promise end");
+			p1.then((e: ProcessInformation) => { // 明确类型为 ProcessInformation
+				let r: ProcessInformation = e as ProcessInformation;
+				console.log(" ##### etsGetRunningProcessInfoByBundleName Promise success r ", r);
+				resolve(r);
+			}, (error: Object): void => {
+				console.log(" ##### etsGetRunningProcessInfoByBundleName Promise fail");
+				reject(error);
+			});
+		});
+		return pPromise;
+	}
+
+	export function preloadApplication(bundleName: string, userId: int, mode: PreloadMode, appIndex?: int): Promise<void>
+	{
+		console.log(" ##### etsPreloadApplication Promise_01");
+	    let p = new Promise<void>((resolve: ResolveCallback<void>, reject: RejectCallback) => {
+			console.log(" ##### etsPreloadApplication Promise  begin");
+			let p1 = launch nativePreloadApplication(bundleName, userId, mode, appIndex);  
+			p1.then((e :NullishType) => {
+				console.log(" ##### etsPreloadApplication Promise  end");
+				let ret : int = e as int  
+				resolve(undefined);
+				console.log("etsPreloadApplication Promise success: ", ret)
+	        }, (err:Object): void => {
+				reject(err)
+				console.log("etsPreloadApplication Promise fail: ")
+	        });
+		});
+		return p;
+	}
 }
 
 

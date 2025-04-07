@@ -377,7 +377,7 @@ static void OffAllByType(ani_env *env, ani_string type)
 #endif 
     }
 }
-
+		/*
 static void PreloadApplication(ani_env *env, [[maybe_unused]]ani_class aniClass,
     ani_string bundleName, ani_int userId, ani_int mode, ani_int appIndex)
 {
@@ -397,7 +397,7 @@ static void PreloadApplication(ani_env *env, [[maybe_unused]]ani_class aniClass,
     appMgr->PreloadApplication(bundleNameStr, userId, static_cast<AppExecFwk::PreloadMode>(mode), appIndex);
     TAG_LOGI(AAFwkTag::DELEGATOR, "PreloadApplication END");
 }
-
+		*/
 static ani_boolean IsRunningInStabilityTest([[maybe_unused]] ani_env *env, [[maybe_unused]]ani_class aniClass)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "sts IsRunningInStabilityTest called");
@@ -644,15 +644,324 @@ static ani_object GetRunningProcessInformationByBundleType(ani_env *env, ani_int
     return aniInfos;
 }
 
-static ani_int ClearUpAppData([[maybe_unused]] ani_env *env, ani_string bundleName, ani_object appIndex)
-{
-	return 0;
-}
+		static ani_int ClearUpAppData([[maybe_unused]] ani_env *env, ani_string bundleName, ani_object appIndex)
+		{
+			int index = 0;
+		    ani_boolean isUndefined = false;
 
-static ani_int getProcessMemoryByPid([[maybe_unused]] ani_env *env, ani_int pid)
-{
-    return 0;
-}
+		    std::cout << "clearUpAppData  enter"<< std::endl;
+		    if (!env || !bundleName) {
+		        std::cerr << "clearUpAppData: 非法输入参数" << std::endl;
+		        return -1;
+		    }
+
+		    std::cout << "clearUpAppData  222"<< std::endl;
+
+		    env->Reference_IsUndefined(appIndex, &isUndefined);
+		    if(isUndefined) {
+		        std::cout << "clearUpAppData NOT Pass Value " << std::endl; 
+		    } else { 
+			    if (ANI_OK !=env->Object_CallMethodByName_Int(appIndex, "intValue", nullptr, &index)){
+			        std::cerr << "clearUpAppData Object_CallMethodByName_Int Fail" << std::endl;
+			    }
+			    std::cout << "clearUpAppData get int is " << index << std::endl;
+			}
+
+		    std::string bundleNameStr = OHOS::AppManagerSts::AniStringToStdString(env, bundleName);
+		    std::cout << "clearUpAppData  bundleName: " << bundleNameStr << std::endl;
+		    std::cout << "clearUpAppData  appIndex  : " << index << std::endl;
+
+		    auto appManger =  OHOS::AppManagerSts::GetAppManagerInstance();
+		    if (!appManger) {
+		        std::cout << "  clearUpAppData appmanger is null" << std::endl;
+		        return -1;
+		    }
+
+		    std::cout << "clearUpAppData  call ClearUpApplicationData  : "<< std::endl;
+			auto ret = appManger->ClearUpApplicationData(bundleNameStr, index);
+		    if (ret != 0) {
+			    std::cout << "ClearUpApplicationData fail!!  return " << ret << std::endl;
+		    }
+
+			std::cout << "clearUpAppData   END " << std::endl;
+
+			return 0;
+		}
+
+		static ani_int GetProcessMemoryByPid([[maybe_unused]] ani_env *env, ani_int pid)
+		{
+		    int memoryUsage = 0;
+		    int result = 0;
+
+		    std::cout << " ======== getProcessMemoryByPid  pid: " << pid << std::endl;
+
+		    if (pid <= 0) {
+		        std::cout << "getProcessMemoryByPid:: Parameter error" << std::endl;
+		        return 401;
+		    }
+
+		    auto appManger =  OHOS::AppManagerSts::GetAppManagerInstance();
+		    if (!appManger) {
+		        std::cout << "	getProcessMemoryByPid appmanger is null" << std::endl;
+		        return -1;
+		    }
+
+		    result = appManger->GetProcessMemoryByPid(pid, memoryUsage);
+		    if (result != OHOS::ERR_OK) {
+		        std::cout << "getProcessMemoryByPid::Failed to get memory usage, error code: " << result << std::endl;
+		        return false;
+		    }
+
+		    std::cout << "getProcessMemoryByPid  memoryUsage: " << memoryUsage << "KB" << std::endl;
+		    return memoryUsage;
+
+		}
+
+		static ani_object GetRunningMultiAppInfo([[maybe_unused]] ani_env *env, ani_string bundleName)
+		{
+		    ani_object person_obj = {};
+			
+		    std::string bundleNameStr = OHOS::AppManagerSts::AniStringToStdString(env, bundleName);
+		    std::cout << " ======== getRunningMultiAppInfo  bundleName: " << bundleNameStr << std::endl;
+
+			auto info = std::make_shared<OHOS::AppExecFwk::RunningMultiAppInfo>();
+			auto innerErrorCode = std::make_shared<int32_t>(OHOS::ERR_OK);
+
+			auto appManger =  OHOS::AppManagerSts::GetAppManagerInstance();
+			if (!appManger) {
+				std::cout << "	getRunningMultiAppInfo appmanger is null" << std::endl;
+				return person_obj;
+			}
+
+			std::cout << "getRunningMultiAppInfo  call GetRunningMultiAppInfoByBundleName "<< std::endl;
+			*innerErrorCode = appManger->GetRunningMultiAppInfoByBundleName(bundleNameStr, *info);
+			if (*innerErrorCode != ANI_OK) {
+				std::cout << "getRunningMultiAppInfo call GetRunningMultiAppInfoByBundleName fail, innerErrorCode is "<< *innerErrorCode << std::endl;
+				return person_obj;
+			} 
+			std::cout << "getRunningMultiAppInfo  call GetRunningMultiAppInfoByBundleName END" << std::endl;
+
+			//TODO::  组装 ani_object
+			
+		    return person_obj;
+		}
+
+		static ani_object GetRunningProcessInfoByBundleName([[maybe_unused]] ani_env *env, ani_string bundleName, ani_object userId)
+		{
+		    ani_object personObj = {};
+			ani_int    iUserId = 0;
+
+		 	if (bundleName == nullptr) {
+				std::cout << "getRunningProcessInfoByBundleNameUserId::Parameter error: Invalid bundleName or userId." << std::endl;
+				return personObj;//401;
+			} 
+		    std::string bundle_name = OHOS::AppManagerSts::AniStringToStdString(env, bundleName);
+		    std::cout << " ======== getRunningProcessInfoByBundleNameUserId  bundleName: " << bundle_name << std::endl;
+
+		    ani_boolean isUndefined;
+		    env->Reference_IsUndefined(userId, &isUndefined);
+		    if (isUndefined) {
+		        std::cout << "CallMeWithOptionalDouble NOT Pass Value " << std::endl; 
+		    } else {
+			    if (ANI_OK !=env->Object_CallMethodByName_Int(userId, "intValue", nullptr, &iUserId)) {
+			        std::cerr << "Object_CallMethodByName_Int Fail" << std::endl;
+			        iUserId = -1;
+			    }
+			    std::cout << "Object_CallMethodByName_Int get double " << iUserId << std::endl;
+			}
+
+
+			auto appMgr = OHOS::AppManagerSts::GetAppManagerInstance();
+			if (appMgr == nullptr) {
+		        std::cout << "getRunningProcessInfoByBundleNameUserId::Internal error: Failed to get AppManager instance." << std::endl;
+		        return personObj;//16000050;
+			}
+
+		    std::vector<OHOS::AppExecFwk::RunningProcessInfo> processInfoList;
+			
+			std::cout << "getRunningProcessInfoByBundleNameUserId:: call GetRunningProcessInformation." << std::endl;
+			int result = appMgr->GetRunningProcessInformation(bundle_name, iUserId, processInfoList);
+			std::cout << "getRunningProcessInfoByBundleNameUserId:: call GetRunningProcessInformation. end result"<< result << std::endl;
+			if (result != OHOS::ERR_OK) {
+				switch (result) {
+					case OHOS::ERR_PERMISSION_DENIED:
+				        std::cout << "getRunningProcessInfoByBundleNameUserId::Permission denied, non-system app called system api." << std::endl;
+				        return personObj;//202;
+		        
+					case OHOS::ERR_INVALID_DATA:
+				        std::cout << "getRunningProcessInfoByBundleNameUserId::Parameter error: Invalid bundleName or userId." << std::endl;
+				        return personObj;//401;
+					default:
+				        std::cout << "getRunningProcessInfoByBundleNameUserId::Internal error: Failed to get AppManager instance." << std::endl;
+				        return personObj;//16000050;
+				}
+			}
+			
+			//TODO::  组装 ani_object
+			return personObj;
+		}
+
+		static ani_object GetSupportedProcessCachePids([[maybe_unused]] ani_env *env, ani_string bundleName)
+		{
+		    ani_object arrayObj = nullptr;
+			int32_t ret = 0;
+		    std::string bundleNameStr = OHOS::AppManagerSts::AniStringToStdString(env, bundleName);
+		    std::cout << "getSupportedProcessCachePids  bundleName: " << bundleNameStr << std::endl;
+
+			auto appManger = OHOS::AppManagerSts::GetAppManagerInstance();	
+			std::cout << "getSupportedProcessCachePids  appMgr	: " << appManger << std::endl; 
+			if (!appManger) {
+				std::cout << "	getSupportedProcessCachePids appmanger is null" << std::endl;
+				return nullptr;
+			}
+
+			std::vector<int32_t> list;
+			std::cout << "getSupportedProcessCachePids  call GetSupportedProcessCachePids  : "<< std::endl;
+			ret = appManger->GetSupportedProcessCachePids(bundleNameStr, list);
+		    if (ret != 0) {
+			     std::cout << "getSupportedProcessCachePids fail, ret is " << ret << std::endl;
+			     return nullptr;
+			}
+			std::cout << "getSupportedProcessCachePids   END " << std::endl;
+			//TODO::  组装 ani_object
+			return arrayObj;
+		}
+
+		static ani_boolean IsApplicationRunning([[maybe_unused]] ani_env *env, ani_string bundleName)
+		{
+		    std::string bundleNameStr = OHOS::AppManagerSts::AniStringToStdString(env, bundleName);
+		    std::cout << "isApplicationRunning  bundleName: " << bundleNameStr << std::endl;
+
+			auto appMgr = OHOS::AppManagerSts::GetAppManagerInstance();
+			if (appMgr == nullptr) {
+			    std::cout << "isApplicationRunning:: error" << std::endl;
+			    return false;
+			}
+
+			auto innerErrorCode = std::make_shared<int32_t>(ERR_OK);
+			auto isRunning = std::make_shared<bool>(false);
+
+		    std::cerr << "isApplicationRunning call IsApplicationRunning " << std::endl;
+
+		    *innerErrorCode = appMgr->IsApplicationRunning(bundleNameStr, *isRunning);
+
+		    std::cerr << "isApplicationRunning isRunning "<< *isRunning << std::endl;
+		    std::cerr << "isApplicationRunning innerErrorCode "<< *innerErrorCode << std::endl;
+
+			return *isRunning;
+		}
+
+		static ani_boolean IsAppRunning([[maybe_unused]] ani_env *env, ani_string bundleName, ani_object appIndex)
+		{
+			int index = -1;
+		    ani_boolean isUndefined = false;
+			
+			std::cout << "isAppRunning:: enter" << std::endl;
+
+		    env->Reference_IsUndefined(appIndex, &isUndefined);
+		    if(isUndefined) {
+		        std::cout << "isAppRunning NOT Pass Value " << std::endl; 
+		    } else { 
+			    if (ANI_OK !=env->Object_CallMethodByName_Int(appIndex, "intValue", nullptr, &index)){
+			        std::cerr << "isAppRunning Object_CallMethodByName_Int Fail" << std::endl;
+			        index = -1;
+			    }
+			    std::cout << "isAppRunning get int is " << index << std::endl;
+			}
+
+		    std::string bundleNameStr = OHOS::AppManagerSts::AniStringToStdString(env, bundleName);
+		    std::cout << "isAppRunning  bundleName: " << bundleNameStr << std::endl;
+		    std::cout << "isAppRunning  appIndex  : " << index  << std::endl;
+
+			if (bundleName == nullptr) {
+		        std::cout << "isAppRunning::Parameter error: Invalid bundleName" << std::endl;
+		        return  false; //401;
+			}
+
+			auto isRunningtest = std::make_shared<bool>(false);
+
+			auto appManger =  OHOS::AppManagerSts::GetAppManagerInstance();
+			std::cout << "isAppRunning  appMgr	: " << appManger << std::endl; 
+			if (!appManger) {
+				std::cout << "	isAppRunning appmanger is null" << std::endl;
+				return false;
+			}
+
+			auto isRunning = std::make_shared<bool>(false);
+
+			std::cout << "isAppRunning  call IsApplicationRunning  : "<< std::endl;
+			int32_t result = appManger->IsAppRunning(bundleNameStr, index, *isRunning);
+
+			std::cerr << "isAppRunning  result = " << result << std::endl;
+			std::cerr << "isAppRunning  isRunning = " << *isRunning << std::endl;
+
+			return *isRunning;
+		}
+
+		static ani_int PreloadApplication([[maybe_unused]] ani_env *env, ani_string bundleName, ani_int userId, ani_int mode, ani_object appIndex)
+		{
+			int index = 0;
+
+		    std::string bundle_name = OHOS::AppManagerSts::AniStringToStdString(env, bundleName);
+		    std::cout << " ======== preloadApplication  bundleName: " << bundle_name << std::endl;
+		    std::cout << " ======== preloadApplication  userId    : " << userId << std::endl;
+		    std::cout << " ======== preloadApplication  mode      : " << mode << std::endl;
+
+		    ani_boolean isUndefined = false;
+		    env->Reference_IsUndefined(appIndex, &isUndefined);
+		    if(isUndefined) {
+		        std::cout << "preloadApplication NOT Pass Value " << std::endl; 
+		    } else { 
+			    if (ANI_OK !=env->Object_CallMethodByName_Int(appIndex, "intValue", nullptr, &index)){
+			        std::cerr << "preloadApplication Object_CallMethodByName_Int Fail" << std::endl;
+			        index = 0;
+			    }
+			    std::cout << "preloadApplication get int is " << index << std::endl;
+			}
+
+		    std::cout << " ======== preloadApplication  appIndex  : " << index << std::endl;
+
+		    AppExecFwk::PreloadMode preloadMode = static_cast<AppExecFwk::PreloadMode>(mode);
+
+			auto appMgr = OHOS::AppManagerSts::GetAppManagerInstance();
+			if (appMgr == nullptr) {
+		        std::cout << "preloadApplication::Internal error: Failed to get AppManager instance." << std::endl;
+		        return -1;
+			}
+
+			auto innerErrorCode = std::make_shared<int32_t>(OHOS::ERR_OK);
+			try {
+				std::cout << "preloadApplication:: call PreloadApplication." << std::endl;
+				*innerErrorCode = appMgr->PreloadApplication(bundle_name, userId, preloadMode, index);
+			    std::cout << "preloadApplication:: end *innerErrorCode is "<< *innerErrorCode << std::endl;
+			} catch (const std::exception& e) {	
+				std::cout << "preloadApplication::Exception: " << e.what() << std::endl;
+				return -1;
+			} catch (...) {
+				std::cout << "preloadApplication::Unknown exception occurred." << std::endl;
+				return -1;
+			}
+		    return 0;
+		}
+
+		static ani_int TerminateMission([[maybe_unused]] ani_env *env, ani_int missionId)
+		{
+		    std::cout << "terminateMission  appIndex  : " << missionId << std::endl;
+
+		    auto abilityManger = OHOS::AppManagerSts::GetAbilityManagerInstance();
+			if (abilityManger == nullptr) {
+		        std::cout << "terminateMission::Internal error: Failed to get abilityManger instance." << std::endl;
+		        return -1; //16000050;
+			}
+
+		    std::cout << "terminateMission  call   TerminateMission " << std::endl;
+
+			abilityManger->TerminateMission(missionId);
+
+		    std::cout << "terminateMission  end " << std::endl;
+
+			return 0;
+		}
 
 void StsAppManagerRegistryInit(ani_env *env)
 {
@@ -711,6 +1020,14 @@ void StsAppManagerRegistryInit(ani_env *env)
             reinterpret_cast<void *>(GetRunningProcessInformationByBundleType)},
         ani_native_function {"nativeClearUpAppData", "Lstd/core/String;Lstd/core/Object;:I", reinterpret_cast<void *>(ClearUpAppData)},
         ani_native_function {"nativeGetProcessMemoryByPid", "I:I", reinterpret_cast<void *>(GetProcessMemoryByPid)},
+
+        ani_native_function {"nativeIsAppRunning", nullptr, reinterpret_cast<void *>(IsAppRunning)},
+        ani_native_function {"nativeIsApplicationRunning", nullptr, reinterpret_cast<void *>(IsApplicationRunning)},
+        ani_native_function {"nativePreloadApplication", nullptr, reinterpret_cast<void *>(PreloadApplication)},
+        ani_native_function {"nativeGetRunningProcessInfoByBundleName", nullptr, reinterpret_cast<void *>(GetRunningProcessInfoByBundleName)},
+        ani_native_function {"nativeGetSupportedProcessCachePids", nullptr, reinterpret_cast<void *>(GetSupportedProcessCachePids)},
+        ani_native_function {"nativeTerminateMission", nullptr, reinterpret_cast<void *>(TerminateMission)},
+        ani_native_function {"nativeGetRunningMultiAppInfo", nullptr, reinterpret_cast<void *>(GetRunningMultiAppInfo)},
     };
 
     status = env->Namespace_BindNativeFunctions(ns, kitFunctions.data(), kitFunctions.size());

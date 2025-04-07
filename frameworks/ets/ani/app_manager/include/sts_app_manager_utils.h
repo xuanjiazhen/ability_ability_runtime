@@ -106,6 +106,7 @@ using OHOS::AppExecFwk::AbilityFirstFrameStateData;
         const std::vector<AppExecFwk::RunningProcessInfo> &infos, ani_object &outAniObj);
     bool ConvertToAniAppStateDataArray(ani_env *env, const std::vector<AppExecFwk::AppStateData> &infos,
         ani_object &outAniObj);
+    std::string AniStringToStdString(ani_env *env,ani_string ani_str);
         // Converts AbilityFirstFrameStateData to an ani_object.
     bool ConvertToAniAbilityFirstFrameStateData(ani_env *env,
         const AbilityFirstFrameStateData &firstFrameStateData, ani_object &outAniObj);
