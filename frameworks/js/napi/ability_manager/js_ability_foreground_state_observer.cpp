@@ -23,22 +23,6 @@ namespace AbilityRuntime {
 namespace {
 constexpr size_t ARGC_ONE = 1;
 }
-std::unordered_map<int32_t, int32_t> JSAbilityForegroundStateObserver::extensionStateToAbilityState_ = {
-    {static_cast<int32_t>(AppExecFwk::ExtensionState::EXTENSION_STATE_CREATE),
-        static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_CREATE)},
-    {static_cast<int32_t>(AppExecFwk::ExtensionState::EXTENSION_STATE_READY),
-        static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_READY)},
-    {static_cast<int32_t>(AppExecFwk::ExtensionState::EXTENSION_STATE_CONNECTED),
-        static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_CONNECTED)},
-    {static_cast<int32_t>(AppExecFwk::ExtensionState::EXTENSION_STATE_DISCONNECTED),
-        static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_DISCONNECTED)},
-    {static_cast<int32_t>(AppExecFwk::ExtensionState::EXTENSION_STATE_TERMINATED),
-        static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_TERMINATED)},
-    {static_cast<int32_t>(AppExecFwk::ExtensionState::EXTENSION_STATE_FOREGROUND),
-        static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_FOREGROUND)},
-    {static_cast<int32_t>(AppExecFwk::ExtensionState::EXTENSION_STATE_BACKGROUND),
-        static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_BACKGROUND)},
-};
 
 JSAbilityForegroundStateObserver::JSAbilityForegroundStateObserver(napi_env env) : env_(env) {}
 
@@ -49,19 +33,15 @@ void JSAbilityForegroundStateObserver::OnAbilityStateChanged(const AbilityStateD
         TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid appms");
         return;
     }
-    AbilityStateData newAbilityStateData = abilityStateData;
-    if (abilityStateData.extensionAbilityType >= 0) {
-        newAbilityStateData.abilityState = extensionStateToAbilityState_[abilityStateData.abilityState];
-    }
     wptr<JSAbilityForegroundStateObserver> jsObserver = this;
     std::unique_ptr<NapiAsyncTask::CompleteCallback> complete = std::make_unique<NapiAsyncTask::CompleteCallback>(
-        [jsObserver, newAbilityStateData](napi_env env, NapiAsyncTask &task, int32_t status) {
+        [jsObserver, abilityStateData](napi_env env, NapiAsyncTask &task, int32_t status) {
             sptr<JSAbilityForegroundStateObserver> jsObserverSptr = jsObserver.promote();
             if (jsObserverSptr == nullptr) {
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
                 return;
             }
-            jsObserverSptr->HandleOnAbilityStateChanged(newAbilityStateData);
+            jsObserverSptr->HandleOnAbilityStateChanged(abilityStateData);
         });
     napi_ref callback = nullptr;
     NapiAsyncTask::Schedule("JSAbilityForegroundStateObserver::OnAbilityStateChanged", env_,
