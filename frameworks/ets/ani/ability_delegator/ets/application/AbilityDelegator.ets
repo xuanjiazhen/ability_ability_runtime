@@ -15,7 +15,7 @@
 
 import AbilityMonitor from './AbilityMonitor';
 import Want from '@ohos.app.ability.Want';
-import { Context } from './Context';
+import Context from 'application.Context'
 import { BusinessError, AsyncCallback } from '@ohos.base';
 
 export default interface AbilityDelegator {
