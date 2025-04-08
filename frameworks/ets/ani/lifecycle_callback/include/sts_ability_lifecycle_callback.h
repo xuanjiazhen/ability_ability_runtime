@@ -13,16 +13,19 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_ABILITY_LIFECYCLE_CALLBACK_H
-#define OHOS_ABILITY_RUNTIME_ABILITY_LIFECYCLE_CALLBACK_H
+#ifndef OHOS_ABILITY_RUNTIME_STS_ABILITY_LIFECYCLE_CALLBACK_H
+#define OHOS_ABILITY_RUNTIME_STS_ABILITY_LIFECYCLE_CALLBACK_H
+
+#include <optional>
 
 #include "sts_runtime.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-class AbilityLifecycleCallback {
+class STSAbilityLifecycleCallback : public std::enable_shared_from_this<STSAbilityLifecycleCallback> {
 public:
-    virtual ~AbilityLifecycleCallback() {}
+    explicit STSAbilityLifecycleCallback(ani_env* env);
+    
     /**
      * Called back when the ability is started for initialization.
      *
@@ -31,7 +34,7 @@ public:
      * @param ability: Indicates the ability to register for listening.
      * @StageModelOnly
      */
-    virtual void OnAbilityCreate(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability) = 0;
+    void OnAbilityCreate(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability);
 
     /**
      * Called back when the window stage is created.
@@ -42,8 +45,8 @@ public:
      * @param windowStage: Indicates the window stage to create.
      * @StageModelOnly
      */
-    virtual void OnWindowStageCreate(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability,
-        const std::shared_ptr<AbilityRuntime::STSNativeReference> &windowStage) = 0;
+    void OnWindowStageCreate(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability,
+        const std::shared_ptr<AbilityRuntime::STSNativeReference> &windowStage);
 
     /**
      * Called back when the window stage is destroy.
@@ -54,8 +57,8 @@ public:
      * @param windowStage: Indicates the window stage to destroy.
      * @StageModelOnly
      */
-    virtual void OnWindowStageDestroy(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability,
-        const std::shared_ptr<AbilityRuntime::STSNativeReference> &windowStage) = 0;
+    void OnWindowStageDestroy(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability,
+        const std::shared_ptr<AbilityRuntime::STSNativeReference> &windowStage);
 
     /**
      * Called back when the window stage is active.
@@ -66,8 +69,8 @@ public:
      * @param windowStage: Indicates the window stage to active.
      * @StageModelOnly
      */
-    virtual void OnWindowStageActive(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability,
-        const std::shared_ptr<AbilityRuntime::STSNativeReference> &windowStage) = 0;
+    void OnWindowStageActive(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability,
+        const std::shared_ptr<AbilityRuntime::STSNativeReference> &windowStage);
 
     /**
      * Called back when the window stage is inactive.
@@ -78,8 +81,8 @@ public:
      * @param windowStage: Indicates the window stage to inactive.
      * @StageModelOnly
      */
-    virtual void OnWindowStageInactive(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability,
-        const std::shared_ptr<AbilityRuntime::STSNativeReference> &windowStage) = 0;
+    void OnWindowStageInactive(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability,
+        const std::shared_ptr<AbilityRuntime::STSNativeReference> &windowStage);
 
     /**
      * Called back when the ability is destroy.
@@ -89,7 +92,7 @@ public:
      * @param ability: Indicates the ability to register for listening.
      * @StageModelOnly
      */
-    virtual void OnAbilityDestroy(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability) = 0;
+    void OnAbilityDestroy(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability);
 
     /**
      * Called back when the ability is foreground.
@@ -99,7 +102,7 @@ public:
      * @param ability: Indicates the ability to register for listening.
      * @StageModelOnly
      */
-    virtual void OnAbilityForeground(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability) = 0;
+    void OnAbilityForeground(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability);
 
     /**
      * Called back when the ability is background.
@@ -109,7 +112,7 @@ public:
      * @param ability: Indicates the ability to register for listening.
      * @StageModelOnly
      */
-    virtual void OnAbilityBackground(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability) = 0;
+    void OnAbilityBackground(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability);
 
     /**
      * Called back when the ability is continue.
@@ -119,36 +122,158 @@ public:
      * @param ability: Indicates the ability to register for listening.
      * @StageModelOnly
      */
-    virtual void OnAbilityContinue(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability) = 0;
-};
+    void OnAbilityContinue(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability);
 
-class STSAbilityLifecycleCallback : public AbilityLifecycleCallback,
-                                    public std::enable_shared_from_this<STSAbilityLifecycleCallback> {
-public:
-    explicit STSAbilityLifecycleCallback(ani_env* env);
-    void OnAbilityCreate(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability) override;
-    void OnWindowStageCreate(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability,
-        const std::shared_ptr<AbilityRuntime::STSNativeReference> &windowStage) override;
-    void OnWindowStageDestroy(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability,
-        const std::shared_ptr<AbilityRuntime::STSNativeReference> &windowStage) override;
-    void OnWindowStageActive(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability,
-        const std::shared_ptr<AbilityRuntime::STSNativeReference> &windowStage) override;
-    void OnWindowStageInactive(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability,
-        const std::shared_ptr<AbilityRuntime::STSNativeReference> &windowStage) override;
-    void OnAbilityDestroy(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability) override;
-    void OnAbilityForeground(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability) override;
-    void OnAbilityBackground(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability) override;
-    void OnAbilityContinue(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability) override;
+    /**
+     * Called back before an ability is started for initialization.
+     *
+     * @since 12
+     * @syscap SystemCapability.Ability.AbilityRuntime.AbilityCore
+     * @param ability: Indicates the ability to register for listening.
+     * @StageModelOnly
+     */
+    void OnAbilityWillCreate(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability);
+
+    /**
+     * Called back before a window stage is created.
+     *
+     * @since 12
+     * @syscap SystemCapability.Ability.AbilityRuntime.AbilityCore
+     * @param ability: Indicates the ability to register for listening.
+     * @param windowStage: Indicates the window stage to active.
+     * @StageModelOnly
+     */
+    void OnWindowStageWillCreate(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability,
+        const std::shared_ptr<AbilityRuntime::STSNativeReference> &windowStage);
+
+    /**
+     * Called back before the UIAbility will called onNewWant.
+     *
+     * @since 12
+     * @syscap SystemCapability.Ability.AbilityRuntime.AbilityCore
+     * @param ability: Indicates the ability to register for listening.
+     * @StageModelOnly
+     */
+    void OnWillNewWant(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability);
+
+    /**
+     * Called back after the UIAbility called onNewWant.
+     *
+     * @since 12
+     * @syscap SystemCapability.Ability.AbilityRuntime.AbilityCore
+     * @param ability: Indicates the ability to register for listening.
+     * @StageModelOnly
+     */
+    void OnNewWant(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability);
+
+    /**
+     * Called back before a window stage is destroyed.
+     *
+     * @since 12
+     * @syscap SystemCapability.Ability.AbilityRuntime.AbilityCore
+     * @param ability: Indicates the ability to register for listening.
+     * @param windowStage: Indicates the window stage to active.
+     * @StageModelOnly
+     */
+    void OnWindowStageWillDestroy(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability,
+        const std::shared_ptr<AbilityRuntime::STSNativeReference> &windowStage);
+
+    /**
+     * Called back before an ability is destroyed.
+     *
+     * @since 12
+     * @syscap SystemCapability.Ability.AbilityRuntime.AbilityCore
+     * @param ability: Indicates the ability to register for listening.
+     * @StageModelOnly
+     */
+    void OnAbilityWillDestroy(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability);
+
+    /**
+     * Called back before the state of an ability changes to foreground.
+     *
+     * @since 12
+     * @syscap SystemCapability.Ability.AbilityRuntime.AbilityCore
+     * @param ability: Indicates the ability to register for listening.
+     * @StageModelOnly
+     */
+    void OnAbilityWillForeground(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability);
+
+    /**
+     * Called back before the state of an ability changes to background.
+     *
+     * @since 12
+     * @syscap SystemCapability.Ability.AbilityRuntime.AbilityCore
+     * @param ability: Indicates the ability to register for listening.
+     * @StageModelOnly
+     */
+    void OnAbilityWillBackground(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability);
+
+    /**
+     * Callback before the onContinue trigger of UIAbility is invoked
+     * 
+     * @since 12
+     * @syscap SystemCapability.Ability.AbilityRuntime.AbilityCore
+     * @param ability Indicates the ability to register for listening.
+     * @StageModelOnly
+     */
+    void OnAbilityWillContinue(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability);
+    
+    /**
+     * Callback before the onWindowStageRestore event of UIAbility is triggered
+     *
+     * @since 12
+     * @syscap SystemCapability.Ability.AbilityRuntime.AbilityCore
+     * @param ability Indicates the ability to register for listening.
+     * @param windowStage The window stage to be restored.
+     * @StageModelOnly
+     */
+    void OnWindowStageWillRestore(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability,
+        const std::shared_ptr<AbilityRuntime::STSNativeReference> &windowStage);
+
+    /**
+     * After the onWindowStageRestore event of UIAbility is triggered, it will call back.
+     *
+     * @since 12
+     * @syscap SystemCapability.Ability.AbilityRuntime.AbilityCore
+     * @param ability Indicates the ability to register for listening.
+     * @param windowStage The restored window stage instance.
+     * @StageModelOnly
+     */
+    void OnWindowStageRestore(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability,
+        const std::shared_ptr<AbilityRuntime::STSNativeReference> &windowStage);
+
+    /**
+     * Callback before the onSaveState trigger of UIAbility is invoked
+     *
+     * @since 12
+     * @syscap SystemCapability.Ability.AbilityRuntime.AbilityCore
+     * @param ability Indicates the ability to register for listening.
+     * @StageModelOnly
+     */
+    void OnAbilityWillSaveState(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability);
+
+    /**
+     * After the onSaveState trigger of UIAbility is invoked, the callback is triggered.
+     *
+     * @since 12
+     * @syscap SystemCapability.Ability.AbilityRuntime.AbilityCore
+     * @param ability Indicates the ability to register for listening.
+     * @StageModelOnly
+     */
+    void OnAbilitySaveState(const std::shared_ptr<AbilityRuntime::STSNativeReference> &ability);
 
 private:
     void CallLifecycleCallbackFunction(const std::string &functionName,
         const std::shared_ptr<AbilityRuntime::STSNativeReference> &abilityObj,
         const std::shared_ptr<AbilityRuntime::STSNativeReference> &windowStageObj = nullptr);
+    void CallLifecycleCallbackOptionalFunction(const std::string &functionName,
+        const std::shared_ptr<AbilityRuntime::STSNativeReference> &abilityObj,
+        const std::shared_ptr<AbilityRuntime::STSNativeReference> &windowStageObj = nullptr);
+    std::optional<std::pair<ani_class, ani_object>> InitializeCallbackObject(const std::string &functionName);
 
 private:
     ani_env* env_ = nullptr;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS
-#endif  // OHOS_ABILITY_RUNTIME_ABILITY_LIFECYCLE_CALLBACK_H
- 
+#endif  // OHOS_ABILITY_RUNTIME_STS_ABILITY_LIFECYCLE_CALLBACK_H

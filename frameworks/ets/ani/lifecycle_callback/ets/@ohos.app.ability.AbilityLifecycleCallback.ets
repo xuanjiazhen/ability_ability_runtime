@@ -37,6 +37,33 @@ export default interface AbilityLifecycleCallback {
   onAbilityBackground(ability: UIAbility): void;
 
   onAbilityContinue(ability: UIAbility): void;
+  
+  // 可选方法
+  onAbilityWillCreate?: (ability: UIAbility) => void;
+
+  onWindowStageWillCreate?: (ability: UIAbility, windowStage: window.WindowStage) => void;
+
+  onWillNewWant?: (ability: UIAbility) => void;
+
+  onNewWant?: (ability: UIAbility) => void;
+
+  onWindowStageWillDestroy?: (ability: UIAbility, windowStage: window.WindowStage) => void;
+
+  onAbilityWillDestroy?: (ability: UIAbility) => void;
+
+  onAbilityWillForeground?: (ability: UIAbility) => void;
+
+  onAbilityWillBackground?: (ability: UIAbility) => void;
+
+  onAbilityWillContinue?: (ability: UIAbility) => void;
+
+  onWindowStageWillRestore?: (ability: UIAbility, windowStage: window.WindowStage) => void;
+
+  onWindowStageRestore?: (ability: UIAbility, windowStage: window.WindowStage) => void;
+
+  onAbilityWillSaveState?: (ability: UIAbility) => void;
+
+  onAbilitySaveState?: (ability: UIAbility) => void;
 }
 
 class AbilityLifecycleCallbackInner implements AbilityLifecycleCallback {
@@ -74,5 +101,58 @@ class AbilityLifecycleCallbackInner implements AbilityLifecycleCallback {
 
   onAbilityContinue(ability: UIAbility): void {
     console.log("onAbilityContinue is called in ets");
+  }
+
+  // 可选方法的实现
+  onAbilityWillCreate?: (ability: UIAbility) => void = (ability: UIAbility): void => {
+    console.log("onAbilityWillCreate is called in ets");
+  }
+
+  onWindowStageWillCreate?: (ability: UIAbility, windowStage: window.WindowStage) => void = (ability: UIAbility, windowStage: window.WindowStage): void => {
+    console.log("onWindowStageWillCreate is called in ets");
+  }
+
+  onWillNewWant?: (ability: UIAbility) => void = (ability: UIAbility): void => {
+    console.log("onWillNewWant is called in ets");
+  }
+
+  onNewWant?: (ability: UIAbility) => void = (ability: UIAbility): void => {
+    console.log("onNewWant is called in ets");
+  }
+
+  onWindowStageWillDestroy?: (ability: UIAbility, windowStage: window.WindowStage) => void = (ability: UIAbility, windowStage: window.WindowStage): void => {
+    console.log("onWindowStageWillDestroy is called in ets");
+  }
+
+  onAbilityWillDestroy?: (ability: UIAbility) => void = (ability: UIAbility): void => {
+    console.log("onAbilityWillDestroy is called in ets");
+  }
+
+  onAbilityWillForeground?: (ability: UIAbility) => void = (ability: UIAbility): void => {
+    console.log("onAbilityWillForeground is called in ets");
+  }
+
+  onAbilityWillBackground?: (ability: UIAbility) => void = (ability: UIAbility): void => {
+    console.log("onAbilityWillBackground is called in ets");
+  }
+
+  onAbilityWillContinue?: (ability: UIAbility) => void = (ability: UIAbility): void => {
+    console.log("onAbilityWillContinue is called in ets");
+  }
+
+  onWindowStageWillRestore?: (ability: UIAbility, windowStage: window.WindowStage) => void = (ability: UIAbility, windowStage: window.WindowStage): void => {
+    console.log("onWindowStageWillRestore is called in ets");
+  }
+
+  onWindowStageRestore?: (ability: UIAbility, windowStage: window.WindowStage) => void = (ability: UIAbility, windowStage: window.WindowStage): void => {
+    console.log("onWindowStageRestore is called in ets");
+  }
+
+  onAbilityWillSaveState?: (ability: UIAbility) => void = (ability: UIAbility): void => {
+    console.log("onAbilityWillSaveState is called in ets");
+  }
+
+  onAbilitySaveState?: (ability: UIAbility) => void = (ability: UIAbility): void => {
+    console.log("onAbilitySaveState is called in ets");
   }
 }
