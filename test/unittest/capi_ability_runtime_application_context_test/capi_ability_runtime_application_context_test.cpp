@@ -16,8 +16,14 @@
 #include <gtest/gtest.h>
 
 #include <utility>
+#include "ability_business_error_utils.h"
+#include "ability_manager_errors.h"
 #include "application_context.h"
 #include "context/application_context.h"
+#include "securec.h"
+#include "start_options_impl.h"
+#include "want_manager.h"
+#include "want_utils.h"
 
 namespace OHOS::AbilityRuntime {
 namespace {
@@ -1818,5 +1824,629 @@ HWTEST_F(CapiAbilityRuntimeApplicationContextTest, GetCloudFileDirTest_004, Test
     cloudFileDir = contextImpl->GetCloudFileDir();
     ASSERT_EQ(writeLength, cloudFileDir.length());
     ASSERT_STREQ(buffer, cloudFileDir.c_str());
+}
+
+// CheckWant - Normal
+/**
+ * @tc.number: CheckWant_001
+ * @tc.desc: CheckWant succeeds
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, CheckWant_001, TestSize.Level0)
+{
+    // Arrange
+    AbilityBase_Want want;
+    char bundleName[] = "com.example.myapplication";
+    want.element.bundleName = bundleName;
+
+    char abilityName[] = "com.test.Ability";
+    want.element.abilityName = abilityName;
+
+    char moduleName[] = "com.test.module";
+    want.element.moduleName = moduleName;
+
+    // Act
+    AbilityRuntime_ErrorCode result = CheckWant(&want);
+
+    // Assert
+    EXPECT_EQ(ABILITY_RUNTIME_ERROR_CODE_NO_ERROR, result);
+}
+
+// CheckWant - nullptr
+/**
+ * @tc.number: CheckWant_002
+ * @tc.desc: CheckWant fails when want is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, CheckWant_002, TestSize.Level0)
+{
+    // Arrange
+    AbilityBase_Want* want = nullptr;
+
+    // Act
+    AbilityRuntime_ErrorCode result = CheckWant(want);
+
+    // Assert
+    EXPECT_EQ(ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID, result);
+}
+
+// CheckWant - bundleName nullptr
+/**
+ * @tc.number: CheckWant_003
+ * @tc.desc: CheckWant fails when bundle name is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, CheckWant_003, TestSize.Level0)
+{
+    // Arrange
+    AbilityBase_Want want;
+    want.element.bundleName = nullptr;
+
+    char abilityName[] = "com.test.Ability";
+    want.element.abilityName = abilityName;
+
+    char moduleName[] = "com.test.module";
+    want.element.moduleName = moduleName;
+
+    // Act
+    AbilityRuntime_ErrorCode result = CheckWant(&want);
+
+    // Assert
+    EXPECT_EQ(ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID, result);
+}
+
+// CheckWant - abilityName nullptr
+/**
+ * @tc.number: CheckWant_004
+ * @tc.desc: CheckWant fails when ability name is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, CheckWant_004, TestSize.Level0)
+{
+    // Arrange
+    AbilityBase_Want want;
+    char bundleName[] = "com.example.myapplication";
+    want.element.bundleName = bundleName;
+
+    want.element.abilityName = nullptr;
+
+    char moduleName[] = "com.test.module";
+    want.element.moduleName = moduleName;
+
+    // Act
+    AbilityRuntime_ErrorCode result = CheckWant(&want);
+
+    // Assert
+    EXPECT_EQ(ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID, result);
+}
+
+// CheckWant - moduleName nullptr
+/**
+ * @tc.number: CheckWant_005
+ * @tc.desc: CheckWant fails when module name is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, CheckWant_005, TestSize.Level0)
+{
+    // Arrange
+    AbilityBase_Want want;
+    char bundleName[] = "com.example.myapplication";
+    want.element.bundleName = bundleName;
+
+    char abilityName[] = "com.test.Ability";
+    want.element.abilityName = abilityName;
+
+    want.element.moduleName = nullptr;
+
+    // Act
+    AbilityRuntime_ErrorCode result = CheckWant(&want);
+
+    // Assert
+    EXPECT_EQ(ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID, result);
+}
+
+/**
+ * @tc.number: OH_AbilityRuntime_StartSelfUIAbility_001
+ * @tc.desc: OH_AbilityRuntime_StartSelfUIAbility does not return 401 when everything is ok
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, OH_AbilityRuntime_StartSelfUIAbility_001, TestSize.Level0)
+{
+    AbilityBase_Want want;
+    char bundleName[] = "com.example.myapplication";
+    want.element.bundleName = bundleName;
+
+    char abilityName[] = "com.test.Ability";
+    want.element.abilityName = abilityName;
+
+    char moduleName[] = "com.test.module";
+    want.element.moduleName = moduleName;
+    want.params = std::map<std::string, std::string>();
+    want.fds = std::map<std::string, int32_t>();
+    AbilityRuntime_ErrorCode errCode = OH_AbilityRuntime_StartSelfUIAbility(&want);
+    EXPECT_NE(ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID, errCode);
+}
+
+/**
+ * @tc.number: OH_AbilityRuntime_StartSelfUIAbility_002
+ * @tc.desc: OH_AbilityRuntime_StartSelfUIAbility returns 401 when module name is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, OH_AbilityRuntime_StartSelfUIAbility_002, TestSize.Level0)
+{
+    // Arrange
+    AbilityBase_Want want;
+    char bundleName[] = "com.example.myapplication";
+    want.element.bundleName = bundleName;
+
+    char abilityName[] = "com.test.Ability";
+    want.element.abilityName = abilityName;
+
+    want.element.moduleName = nullptr;
+
+    // Act
+    AbilityRuntime_ErrorCode result = OH_AbilityRuntime_StartSelfUIAbility(&want);
+
+    // Assert
+    EXPECT_EQ(ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID, result);
+}
+
+/**
+ * @tc.number: OH_AbilityRuntime_StartSelfUIAbility_003
+ * @tc.desc: OH_AbilityRuntime_StartSelfUIAbility does not return 401 when everything is ok
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, OH_AbilityRuntime_StartSelfUIAbility_003, TestSize.Level0)
+{
+    // Arrange
+    AbilityBase_Want want;
+    char bundleName[] = "com.example.myapplication";
+    want.element.bundleName = bundleName;
+
+    char abilityName[] = "com.test.Ability";
+    want.element.abilityName = abilityName;
+
+    char moduleName[] = "com.test.module";
+    want.element.moduleName = moduleName;
+
+    // Act
+    AbilityRuntime_ErrorCode result = OH_AbilityRuntime_StartSelfUIAbility(&want);
+
+    // Assert
+    EXPECT_NE(ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID, result);
+}
+
+/**
+ * @tc.number: OH_AbilityRuntime_StartSelfUIAbility_004
+ * @tc.desc: OH_AbilityRuntime_StartSelfUIAbility returns 401 when bundle name is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, OH_AbilityRuntime_StartSelfUIAbility_004, TestSize.Level0)
+{
+    // Arrange
+    AbilityBase_Want want;
+    want.element.bundleName = nullptr;
+
+    char abilityName[] = "com.test.Ability";
+    want.element.abilityName = abilityName;
+
+    char moduleName[] = "com.test.module";
+    want.element.moduleName = moduleName;
+
+    // Act
+    AbilityRuntime_ErrorCode result = OH_AbilityRuntime_StartSelfUIAbility(&want);
+
+    // Assert
+    EXPECT_EQ(ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID, result);
+}
+
+/**
+ * @tc.number: OH_AbilityRuntime_StartSelfUIAbility_005
+ * @tc.desc: OH_AbilityRuntime_StartSelfUIAbility returns 401 when ability name is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, OH_AbilityRuntime_StartSelfUIAbility_005, TestSize.Level0)
+{
+    // Arrange
+    AbilityBase_Want want;
+    char bundleName[] = "com.example.myapplication";
+    want.element.bundleName = bundleName;
+
+    want.element.abilityName = nullptr;
+
+    char moduleName[] = "com.test.module";
+    want.element.moduleName = moduleName;
+
+    // Act
+    AbilityRuntime_ErrorCode result = OH_AbilityRuntime_StartSelfUIAbility(&want);
+
+    // Assert
+    EXPECT_EQ(ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID, result);
+}
+
+/**
+ * @tc.number: OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions_001
+ * @tc.desc: OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions returns 401 when bundle name is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions_001,
+    TestSize.Level0)
+{
+    // Arrange
+    AbilityBase_Want want;
+    want.element.bundleName = nullptr;
+
+    char abilityName[] = "com.test.Ability";
+    want.element.abilityName = abilityName;
+
+    char moduleName[] = "com.test.module";
+    want.element.moduleName = moduleName;
+
+    AbilityRuntime_StartOptions options;
+
+    // Act
+    AbilityRuntime_ErrorCode result = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(&want, &options);
+
+    // Assert
+    EXPECT_EQ(ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID, result);
+}
+
+/**
+ * @tc.number: OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions_002
+ * @tc.desc: OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions returns 401 when ability name is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions_002,
+    TestSize.Level0)
+{
+    // Arrange
+    AbilityBase_Want want;
+    char bundleName[] = "com.example.myapplication";
+    want.element.bundleName = bundleName;
+
+    want.element.abilityName = nullptr;
+
+    char moduleName[] = "com.test.module";
+    want.element.moduleName = moduleName;
+
+    AbilityRuntime_StartOptions options;
+
+    // Act
+    AbilityRuntime_ErrorCode result = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(&want, &options);
+
+    // Assert
+    EXPECT_EQ(ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID, result);
+}
+
+/**
+ * @tc.number: OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions_003
+ * @tc.desc: OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions returns 401 when module name is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions_003,
+    TestSize.Level0)
+{
+    // Arrange
+    AbilityBase_Want want;
+    char bundleName[] = "com.example.myapplication";
+    want.element.bundleName = bundleName;
+
+    char abilityName[] = "com.test.Ability";
+    want.element.abilityName = abilityName;
+
+    want.element.moduleName = nullptr;
+
+    AbilityRuntime_StartOptions options;
+
+    // Act
+    AbilityRuntime_ErrorCode result = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(&want, &options);
+
+    // Assert
+    EXPECT_EQ(ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID, result);
+}
+
+/**
+ * @tc.number: OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions_004
+ * @tc.desc: OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions returns 401 when start options is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions_004,
+    TestSize.Level0)
+{
+    // Arrange
+    AbilityBase_Want want;
+    char bundleName[] = "com.example.myapplication";
+    want.element.bundleName = bundleName;
+
+    char abilityName[] = "com.test.Ability";
+    want.element.abilityName = abilityName;
+
+    char moduleName[] = "com.test.module";
+    want.element.moduleName = moduleName;
+
+    // Act
+    AbilityRuntime_ErrorCode result = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(&want, nullptr);
+
+    // Assert
+    EXPECT_EQ(ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID, result);
+}
+
+/**
+ * @tc.number: OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions_005
+ * @tc.desc: OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions does not return 401 when everything is ok
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions_005,
+    TestSize.Level0)
+{
+    // Arrange
+    AbilityBase_Want want;
+    char bundleName[] = "com.example.myapplication";
+    want.element.bundleName = bundleName;
+
+    char abilityName[] = "com.test.Ability";
+    want.element.abilityName = abilityName;
+
+    char moduleName[] = "com.test.module";
+    want.element.moduleName = moduleName;
+
+    AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
+    ASSERT_NE(options, nullptr);
+
+    // Act
+    AbilityRuntime_ErrorCode result = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(&want, options);
+
+    // Assert
+    EXPECT_NE(ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID, result);
+
+    ASSERT_EQ(OH_AbilityRuntime_DestroyStartOptions(&options), ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    ASSERT_EQ(options, nullptr);
+}
+
+/**
+ * @tc.number: OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions_006
+ * @tc.desc: OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions returns 401 when want is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions_006,
+    TestSize.Level0)
+{
+    // Act
+    AbilityRuntime_ErrorCode result = OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(nullptr, nullptr);
+
+    // Assert
+    EXPECT_EQ(ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID, result);
+}
+
+/**
+ * @tc.number: ConvertToCommonBusinessErrorCode_001
+ * @tc.desc: ConvertToCommonBusinessErrorCode
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, ConvertToCommonBusinessErrorCode_001, TestSize.Level0)
+{
+    int32_t abilityManagerError = OHOS::ERR_OK;
+    AbilityRuntime_ErrorCode errCode = ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+
+    abilityManagerError = OHOS::ERR_OK;
+    errCode = ConvertToCommonBusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+
+    abilityManagerError = OHOS::AAFwk::CHECK_PERMISSION_FAILED;
+    errCode = ConvertToCommonBusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_PERMISSION_DENIED);
+
+    abilityManagerError = OHOS::ERR_PERMISSION_DENIED;
+    errCode = ConvertToCommonBusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_PERMISSION_DENIED);
+
+    abilityManagerError = OHOS::AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    errCode = ConvertToCommonBusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED);
+
+    abilityManagerError = OHOS::AAFwk::RESOLVE_ABILITY_ERR;
+    errCode = ConvertToCommonBusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_NO_SUCH_ABILITY);
+
+    abilityManagerError = OHOS::AAFwk::TARGET_BUNDLE_NOT_EXIST;
+    errCode = ConvertToCommonBusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_NO_SUCH_ABILITY);
+
+    abilityManagerError = OHOS::AAFwk::ERR_NOT_ALLOW_IMPLICIT_START;
+    errCode = ConvertToCommonBusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_NO_SUCH_ABILITY);
+
+    abilityManagerError = OHOS::AAFwk::ERR_WRONG_INTERFACE_CALL;
+    errCode = ConvertToCommonBusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_INCORRECT_ABILITY_TYPE);
+
+    abilityManagerError = OHOS::AAFwk::TARGET_ABILITY_NOT_SERVICE;
+    errCode = ConvertToCommonBusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_INCORRECT_ABILITY_TYPE);
+
+    abilityManagerError = OHOS::AAFwk::RESOLVE_CALL_ABILITY_TYPE_ERR;
+    errCode = ConvertToCommonBusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_INCORRECT_ABILITY_TYPE);
+
+    abilityManagerError = -1;
+    errCode = ConvertToCommonBusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_INTERNAL);
+}
+
+/**
+ * @tc.number: ConvertToCommonBusinessErrorCode_002
+ * @tc.desc: ConvertToCommonBusinessErrorCode
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, ConvertToCommonBusinessErrorCode_002, TestSize.Level0)
+{
+    int32_t abilityManagerError = OHOS::ERR_OK;
+    AbilityRuntime_ErrorCode errCode = ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+
+    abilityManagerError = OHOS::AAFwk::ERR_CROWDTEST_EXPIRED;
+    errCode = ConvertToCommonBusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_CROWDTEST_EXPIRED);
+
+    abilityManagerError = OHOS::ERR_WOULD_BLOCK;
+    errCode = ConvertToCommonBusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_WUKONG_MODE);
+
+    abilityManagerError = OHOS::AAFwk::ERR_APP_CONTROLLED;
+    errCode = ConvertToCommonBusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_CONTROLLED);
+
+    abilityManagerError = OHOS::AAFwk::ERR_EDM_APP_CONTROLLED;
+    errCode = ConvertToCommonBusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_EDM_CONTROLLED);
+
+    abilityManagerError = OHOS::AAFwk::ERR_START_OTHER_APP_FAILED;
+    errCode = ConvertToCommonBusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_CROSS_APP);
+
+    abilityManagerError = OHOS::AAFwk::NOT_TOP_ABILITY;
+    errCode = ConvertToCommonBusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_NOT_TOP_ABILITY);
+
+    abilityManagerError = OHOS::AAFwk::ERR_START_OPTIONS_CHECK_FAILED;
+    errCode = ConvertToCommonBusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_VISIBILITY_SETTING_DISABLED);
+
+    abilityManagerError = OHOS::AAFwk::ERR_UPPER_LIMIT;
+    errCode = ConvertToCommonBusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_UPPER_LIMIT_REACHED);
+
+    abilityManagerError = OHOS::AAFwk::ERR_APP_INSTANCE_KEY_NOT_SUPPORT;
+    errCode = ConvertToCommonBusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_APP_INSTANCE_KEY_NOT_SUPPORTED);
+
+    abilityManagerError = OHOS::AAFwk::ERR_NOT_SELF_APPLICATION;
+    errCode = ConvertToCommonBusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_CROSS_APP);
+
+    abilityManagerError = -1;
+    errCode = ConvertToCommonBusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_INTERNAL);
+}
+
+/**
+ * @tc.number: ConvertToAPI18BusinessErrorCode_001
+ * @tc.desc: ConvertToAPI18BusinessErrorCode
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, ConvertToAPI18BusinessErrorCode_001, TestSize.Level0)
+{
+    int32_t abilityManagerError = OHOS::ERR_OK;
+    AbilityRuntime_ErrorCode errCode = ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+
+    abilityManagerError = OHOS::ERR_OK;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+
+    abilityManagerError = OHOS::AAFwk::CHECK_PERMISSION_FAILED;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_PERMISSION_DENIED);
+
+    abilityManagerError = OHOS::ERR_PERMISSION_DENIED;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_PERMISSION_DENIED);
+
+    abilityManagerError = OHOS::AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED);
+
+    abilityManagerError = OHOS::AAFwk::RESOLVE_ABILITY_ERR;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_NO_SUCH_ABILITY);
+
+    abilityManagerError = OHOS::AAFwk::TARGET_BUNDLE_NOT_EXIST;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_NO_SUCH_ABILITY);
+
+    abilityManagerError = OHOS::AAFwk::ERR_NOT_ALLOW_IMPLICIT_START;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_NO_SUCH_ABILITY);
+
+    abilityManagerError = OHOS::AAFwk::ERR_WRONG_INTERFACE_CALL;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_INCORRECT_ABILITY_TYPE);
+
+    abilityManagerError = OHOS::AAFwk::TARGET_ABILITY_NOT_SERVICE;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_INCORRECT_ABILITY_TYPE);
+
+    abilityManagerError = OHOS::AAFwk::RESOLVE_CALL_ABILITY_TYPE_ERR;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_INCORRECT_ABILITY_TYPE);
+
+    abilityManagerError = OHOS::AAFwk::ERR_CROWDTEST_EXPIRED;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_CROWDTEST_EXPIRED);
+
+    abilityManagerError = OHOS::ERR_WOULD_BLOCK;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_WUKONG_MODE);
+
+    abilityManagerError = -1;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_INTERNAL);
+}
+
+/**
+ * @tc.number: ConvertToAPI18BusinessErrorCode_002
+ * @tc.desc: ConvertToAPI18BusinessErrorCode
+ * @tc.type: FUNC
+ */
+HWTEST_F(CapiAbilityRuntimeApplicationContextTest, ConvertToAPI18BusinessErrorCode_002, TestSize.Level0)
+{
+    int32_t abilityManagerError = OHOS::ERR_OK;
+    AbilityRuntime_ErrorCode errCode = ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+
+    abilityManagerError = OHOS::AAFwk::ERR_APP_CONTROLLED;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_CONTROLLED);
+
+    abilityManagerError = OHOS::AAFwk::ERR_EDM_APP_CONTROLLED;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_EDM_CONTROLLED);
+
+    abilityManagerError = OHOS::AAFwk::ERR_START_OTHER_APP_FAILED;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_CROSS_APP);
+
+    abilityManagerError = OHOS::AAFwk::NOT_TOP_ABILITY;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_NOT_TOP_ABILITY);
+
+    abilityManagerError = OHOS::AAFwk::ERR_START_OPTIONS_CHECK_FAILED;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_VISIBILITY_SETTING_DISABLED);
+
+    abilityManagerError = OHOS::AAFwk::ERR_UPPER_LIMIT;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_UPPER_LIMIT_REACHED);
+
+    abilityManagerError = OHOS::AAFwk::ERR_APP_INSTANCE_KEY_NOT_SUPPORT;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_APP_INSTANCE_KEY_NOT_SUPPORTED);
+
+    abilityManagerError = OHOS::AAFwk::ERR_NOT_SELF_APPLICATION;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_CROSS_APP);
+
+    abilityManagerError = OHOS::AAFwk::ERR_MULTI_APP_NOT_SUPPORTED;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_MULTI_APP_NOT_SUPPORTED);
+
+    abilityManagerError = OHOS::AAFwk::ERR_INVALID_APP_INSTANCE_KEY;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_INVALID_APP_INSTANCE_KEY);
+
+    abilityManagerError = OHOS::AAFwk::ERR_MULTI_INSTANCE_NOT_SUPPORTED;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_MULTI_INSTANCE_NOT_SUPPORTED);
+
+    abilityManagerError = -1;
+    errCode = ConvertToAPI18BusinessErrorCode(abilityManagerError);
+    EXPECT_EQ(errCode, ABILITY_RUNTIME_ERROR_CODE_INTERNAL);
 }
 } // namespace OHOS::AbilityRuntime

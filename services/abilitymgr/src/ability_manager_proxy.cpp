@@ -5734,6 +5734,36 @@ int32_t AbilityManagerProxy::StartSelfUIAbility(const Want &want)
     return reply.ReadInt32();
 }
 
+int32_t AbilityManagerProxy::StartSelfUIAbilityWithStartOptions(const Want &want, const StartOptions &options)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return ERR_WRITE_INTERFACE_CODE;
+    }
+
+    if (!data.WriteParcelable(&want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write want fail");
+        return ERR_WRITE_WANT;
+    }
+
+    if (!data.WriteParcelable(&options)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write startOptions fail");
+        return ERR_WRITE_START_OPTIONS;
+    }
+
+    auto error = SendRequest(AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_WITH_START_OPTIONS,
+        data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
+
 int32_t AbilityManagerProxy::QueryPreLoadUIExtensionRecord(const AppExecFwk::ElementName &element,
                                                            const std::string &moduleName,
                                                            const std::string &hostBundleName,
