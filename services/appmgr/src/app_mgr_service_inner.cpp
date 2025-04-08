@@ -3040,7 +3040,7 @@ void AppMgrServiceInner::KillProcessByAbilityToken(const sptr<IRemoteObject> &to
 
     // before exec ScheduleProcessSecurityExit return
     // The resident process won't let him die
-    if (appRecord->IsKeepAliveApp() && IsMemorySizeSufficient()) {
+    if (!appRecord->IsKeepAliveAppNeedTerminate()) {
         return;
     }
 

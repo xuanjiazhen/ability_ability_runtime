@@ -305,8 +305,7 @@ bool AppRunningManager::ProcessExitByBundleName(
         const auto &appRecord = item.second;
         // condition [!appRecord->IsKeepAliveApp()] Is to not kill the resident process.
         // Before using this method, consider whether you need.
-        if (appRecord && (!appRecord->IsKeepAliveApp() ||
-            !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient())) {
+        if (appRecord && appRecord->IsKeepAliveAppNeedTerminate()) {
             pid_t pid = appRecord->GetPid();
             auto appInfoList = appRecord->GetAppInfoList();
             auto isExist = [&bundleName](const std::shared_ptr<ApplicationInfo> &appInfo) {
@@ -448,7 +447,7 @@ bool AppRunningManager::ProcessExitByBundleNameAndAppIndex(const std::string &bu
         if (appRecord == nullptr) {
             continue;
         }
-        if (appRecord->IsKeepAliveApp() && ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient()) {
+        if (!appRecord->IsKeepAliveAppNeedTerminate()) {
             continue;
         }
         auto appInfo = appRecord->GetApplicationInfo();
@@ -698,8 +697,7 @@ void AppRunningManager::HandleAbilityAttachTimeOut(const sptr<IRemoteObject> &to
             AbilityState::ABILITY_STATE_TERMINATED), true, false);
     }
 
-    if ((isPage || appRecord->IsLastAbilityRecord(token)) && (!appRecord->IsKeepAliveApp() ||
-        !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient())) {
+    if ((isPage || appRecord->IsLastAbilityRecord(token)) && appRecord->IsKeepAliveAppNeedTerminate()) {
         appRecord->SetTerminating();
     }
 
@@ -736,8 +734,7 @@ void AppRunningManager::PrepareTerminate(const sptr<IRemoteObject> &token, bool 
     // set app record terminating when close last page ability
     auto isLastAbility =
         clearMissionFlag ? appRecord->IsLastPageAbilityRecord(token) : appRecord->IsLastAbilityRecord(token);
-    if (isLastAbility && (!appRecord->IsKeepAliveApp() ||
-        !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient())) {
+    if (isLastAbility && appRecord->IsKeepAliveAppNeedTerminate()) {
         auto cacheProcMgr = DelayedSingleton<CacheProcessManager>::GetInstance();
         if (cacheProcMgr != nullptr && cacheProcMgr->IsAppShouldCache(appRecord)) {
             cacheProcMgr->PenddingCacheProcess(appRecord);
@@ -802,12 +799,10 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
         appRecord->TerminateAbility(token, false);
     }
 #endif //SUPPORT_SCREEN
-    auto isLauncherApp = appRecord->GetApplicationInfo()->isLauncherApp;
     auto isKeepAliveApp = appRecord->IsKeepAliveApp();
     TAG_LOGI(AAFwkTag::APPMGR, "TerminateAbility:isLast:%{public}d,keepAlive:%{public}d",
         isLastAbility, isKeepAliveApp);
-    if (isLastAbility && (!isKeepAliveApp ||
-        !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient()) && !isLauncherApp) {
+    if (isLastAbility && appRecord->IsKeepAliveAppNeedTerminate()) {
         auto cacheProcMgr = DelayedSingleton<CacheProcessManager>::GetInstance();
         if (cacheProcMgr != nullptr) {
             cacheProcMgr->CheckAndSetProcessCacheEnable(appRecord);
