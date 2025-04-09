@@ -36,6 +36,16 @@ AbilityBundleEventCallback::AbilityBundleEventCallback(
     std::shared_ptr<TaskHandlerWrap> taskHandler, std::shared_ptr<AbilityAutoStartupService> abilityAutoStartupService)
     : taskHandler_(taskHandler), abilityAutoStartupService_(abilityAutoStartupService) {}
 
+void ForceKillByUid(const std::string &bundleName, int32_t uid,
+    const std::string& killReason)
+{
+    auto ret = DelayedSingleton<AppScheduler>::GetInstance()->KillApplicationByUid(bundleName, uid, killReason);
+    if (ret != ERR_OK) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s kill failed:%{public}s",
+            killReason.c_str(), bundleName.c_str());
+    }
+}
+
 void AbilityBundleEventCallback::OnReceiveEvent(const EventFwk::CommonEventData eventData)
 {
     // env check
@@ -66,6 +76,7 @@ void AbilityBundleEventCallback::OnReceiveEvent(const EventFwk::CommonEventData 
     }
 
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {
+        ForceKillByUid(bundleName, uid, "UninstallAppEnd");
         // uninstall bundle
         HandleRemoveUriPermission(tokenId);
         HandleUpdatedModuleInfo(bundleName, uid, moduleName, false);
@@ -78,6 +89,7 @@ void AbilityBundleEventCallback::OnReceiveEvent(const EventFwk::CommonEventData 
         // install or uninstall module/bundle
         HandleUpdatedModuleInfo(bundleName, uid, moduleName, false);
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_CHANGED) {
+        ForceKillByUid(bundleName, uid, "UpgradeAppEnd");
         if (bundleName == NEW_WEB_BUNDLE_NAME || bundleName == OLD_WEB_BUNDLE_NAME ||
             bundleName == system::GetParameter(ARKWEB_CORE_PACKAGE_NAME, "false")) {
             HandleRestartResidentProcessDependedOnWeb();
