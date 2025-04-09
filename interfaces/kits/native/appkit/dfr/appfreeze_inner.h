@@ -41,11 +41,11 @@ public:
     static void SetMainHandler(const std::shared_ptr<EventHandler>& eventHandler);
     void SetApplicationInfo(const std::shared_ptr<ApplicationInfo>& applicationInfo);
     void ThreadBlock(std::atomic_bool& isSixSecondEvent);
-    void ChangeFaultDateInfo(FaultData& faultData, const std::string& msgContent);
+    void ChangeFaultDateInfo(FaultData& faultData);
     void AppfreezeHandleOverReportCount(bool isSixSecondEvent);
     void GetMainHandlerDump(std::string& msgContent);
-    int AppfreezeHandle(const FaultData& faultInfo, bool onlyMainThread);
-    int AcquireStack(const FaultData& faultInfo, bool onlyMainThread);
+    int AppfreezeHandle(const FaultData& faultInfo);
+    int AcquireStack(const std::string& eventName);
     void SetAppDebug(bool isAppDebug);
 private:
     static std::weak_ptr<EventHandler> appMainHandler_;

@@ -3405,7 +3405,7 @@ int32_t MainThread::ScheduleNotifyAppFault(const FaultData &faultData)
     }
 
     if (faultData.faultType == FaultDataType::APP_FREEZE) {
-        return AppExecFwk::AppfreezeInner::GetInstance()->AppfreezeHandle(faultData, false);
+        return AppExecFwk::AppfreezeInner::GetInstance()->AppfreezeHandle(faultData);
     }
 
     wptr<MainThread> weak = this;

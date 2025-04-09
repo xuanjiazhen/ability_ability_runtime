@@ -151,15 +151,14 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInner__AppfreezeHandle_001, TestSize.Level
     faultData.errorObject.message = AppFreezeType::THREAD_BLOCK_6S;
     faultData.faultType = FaultDataType::APP_FREEZE;
     faultData.timeoutMarkers = "";
-    bool onlyMainThread = true;
     std::shared_ptr<ApplicationInfo> applicationInfo = std::make_shared<ApplicationInfo>();
     appfreezeInner->SetApplicationInfo(applicationInfo);
-    int ret = appfreezeInner->AppfreezeHandle(faultData, onlyMainThread);
+    int ret = appfreezeInner->AppfreezeHandle(faultData);
     EXPECT_EQ(ret, 0);
-    ret = appfreezeInner->AcquireStack(faultData, onlyMainThread);
+    ret = appfreezeInner->AcquireStack(faultData.errorObject.name);
     EXPECT_EQ(ret, 0);
     appfreezeInner->SetAppDebug(true);
-    ret = appfreezeInner->AppfreezeHandle(faultData, onlyMainThread);
+    ret = appfreezeInner->AppfreezeHandle(faultData);
     EXPECT_EQ(ret, -1);
     GTEST_LOG_(INFO) << "AppfreezeInner__AppfreezeHandle_001 end";
 }
@@ -173,10 +172,7 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInner__AcquireStack_001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "AppfreezeInner__AcquireStack_001 start";
 
-    FaultData faultData;
-    faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
-    bool onlyMainThread = true;
-    int ret = appfreezeInner->AcquireStack(faultData, onlyMainThread);
+    int ret = appfreezeInner->AcquireStack(AppFreezeType::THREAD_BLOCK_6S);
     EXPECT_EQ(ret, 0);
     GTEST_LOG_(INFO) << "AppfreezeInner__AcquireStack_001 end";
 }
@@ -210,7 +206,7 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInner_NotifyANR, TestSize.Level1)
     AppfreezeInner::SetMainHandler(eventHandler);
     ret = appfreezeInner->NotifyANR(faultData);
     EXPECT_EQ(ret, -1);
-    ret = appfreezeInner->AcquireStack(faultData, true);
+    ret = appfreezeInner->AcquireStack(faultData.errorObject.name, true);
     EXPECT_EQ(ret, 0);
     appfreezeInner->AppFreezeRecovery();
 }

@@ -76,7 +76,7 @@ public:
 
     static std::shared_ptr<AppfreezeManager> GetInstance();
     static void DestroyInstance();
-    int AppfreezeHandle(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo);
+    int AppfreezeHandle(FaultData& faultData, const AppfreezeManager::AppInfo& appInfo);
     int AppfreezeHandleWithStack(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo);
     int LifecycleTimeoutHandle(const ParamInfo& info, FreezeUtil::LifecycleFlow flow = FreezeUtil::LifecycleFlow());
     std::string WriteToFile(const std::string& fileName, std::string& content);
@@ -119,7 +119,7 @@ private:
     void FindStackByPid(std::string& msg, int pid) const;
     std::string CatchJsonStacktrace(int pid, const std::string& faultType, const std::string& stack) const;
     std::string CatcherStacktrace(int pid, const std::string& stack) const;
-    int AcquireStack(const FaultData& faultData, const AppInfo& appInfo, const std::string& memoryContent);
+    int AcquireStack(FaultData& faultData, const AppInfo& appInfo, const std::string& memoryContent);
     int NotifyANR(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo,
         const std::string& binderInfo, const std::string& memoryContent);
     int64_t GetFreezeCurrentTime();
@@ -128,7 +128,7 @@ private:
     int64_t GetFreezeTime(int32_t pid);
     void ClearOldInfo();
     void CollectFreezeSysMemory(std::string& memoryContent);
-    int MergeNotifyInfo(FaultData& faultNotifyData, const AppfreezeManager::AppInfo& appInfo);
+    int MergeNotifyInfo(FaultData& faultData, const AppfreezeManager::AppInfo& appInfo);
 
     static const inline std::string LOGGER_DEBUG_PROC_PATH = "/proc/transaction_proc";
     std::string name_;

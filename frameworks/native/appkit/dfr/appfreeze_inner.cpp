@@ -102,9 +102,8 @@ void AppfreezeInner::GetMainHandlerDump(std::string& msgContent)
     msgContent += "Main handler dump end time: " + AbilityRuntime::TimeUtil::DefaultCurrentTimeStr() + "\n";
 }
 
-void AppfreezeInner::ChangeFaultDateInfo(FaultData& faultData, const std::string& msgContent)
+void AppfreezeInner::ChangeFaultDateInfo(FaultData& faultData)
 {
-    faultData.errorObject.message += msgContent;
     faultData.faultType = FaultDataType::APP_FREEZE;
     faultData.notifyApp = false;
     faultData.waitSaveState = false;
@@ -150,24 +149,22 @@ void AppfreezeInner::AppfreezeHandleOverReportCount(bool isSixSecondEvent)
     }
     std::string msgContent;
     GetMainHandlerDump(msgContent);
-    ChangeFaultDateInfo(faultData, msgContent);
+    faultData.errorObject.message += msgContent;
+    ChangeFaultDateInfo(faultData);
     return;
 }
 
-int AppfreezeInner::AppfreezeHandle(const FaultData& faultData, bool onlyMainThread)
+int AppfreezeInner::AppfreezeHandle(const FaultData& faultData)
 {
     if (!IsHandleAppfreeze()) {
         NotifyANR(faultData);
         return -1;
     }
-    auto reportFreeze = [faultData, onlyMainThread]() {
-        if (faultData.errorObject.name == "") {
-            TAG_LOGE(AAFwkTag::APPDFR, "null name");
-            return;
-        }
-        AppExecFwk::AppfreezeInner::GetInstance()->AcquireStack(faultData, onlyMainThread);
-    };
-
+    std::string eventName = faultData.errorObject.name;
+    if (eventName == "") {
+        TAG_LOGE(AAFwkTag::APPDFR, "null name");
+        return -1;
+    }
     {
         std::lock_guard<std::mutex> lock(handlingMutex_);
         handlinglist_.emplace_back(faultData);
@@ -175,7 +172,8 @@ int AppfreezeInner::AppfreezeHandle(const FaultData& faultData, bool onlyMainThr
         if (handlinglist_.size() <= HANDLING_MIN_SIZE) {
             TAG_LOGW(AAFwkTag::APPDFR, "submit reportAppFreeze, eventName:%{public}s, startTime:%{public}s\n",
                 faultData.errorObject.name.c_str(), AbilityRuntime::TimeUtil::DefaultCurrentTimeStr().c_str());
-            ffrt::submit(reportFreeze, {}, {}, ffrt::task_attr().name("reportAppFreeze"));
+            ffrt::submit([eventName] { AppExecFwk::AppfreezeInner::GetInstance()->AcquireStack(eventName); }, {}, {},
+                ffrt::task_attr().name("reportAppFreeze"));
         }
     }
     return 0;
@@ -190,32 +188,23 @@ bool AppfreezeInner::IsExitApp(const std::string& name)
     return false;
 }
 
-int AppfreezeInner::AcquireStack(const FaultData& info, bool onlyMainThread)
+int AppfreezeInner::AcquireStack(const std::string& eventName)
 {
-    HITRACE_METER_FMT(HITRACE_TAG_APP, "AppfreezeInner::AcquireStack name:%s", info.errorObject.name.c_str());
+    HITRACE_METER_FMT(HITRACE_TAG_APP, "AppfreezeInner::AcquireStack name:%s", eventName.c_str());
     std::string msgContent;
-    int64_t startTime = AbilityRuntime::TimeUtil::CurrentTimeMillis();
     GetMainHandlerDump(msgContent);
-    TAG_LOGW(AAFwkTag::APPDFR, "get mainhandler dump, eventName:%{public}s, endTime:%{public}s, "
-        "interval:%{public}lld ms", info.errorObject.name.c_str(),
-        AbilityRuntime::TimeUtil::DefaultCurrentTimeStr().c_str(),
-        AbilityRuntime::TimeUtil::CurrentTimeMillis() - startTime);
 
     std::lock_guard<std::mutex> lock(handlingMutex_);
     for (auto it = handlinglist_.begin(); it != handlinglist_.end(); it = handlinglist_.erase(it)) {
         HITRACE_METER_FMT(HITRACE_TAG_APP, "send appfreeze name:%s", it->errorObject.name.c_str());
-        FaultData faultData;
-        faultData.errorObject.message = it->errorObject.message + "\n";
+        it->errorObject.message += "\n";
         if (it->state != 0) {
-            faultData.errorObject.message += "client actions for ability:\n" +
+            it->errorObject.message += "client actions for ability:\n" +
                 FreezeUtil::GetInstance().GetLifecycleEvent(it->token) + "\nclient actions for app:\n" +
                 FreezeUtil::GetInstance().GetAppLifecycleEvent(0) + "\n";
         }
-        faultData.errorObject.name = it->errorObject.name;
-        faultData.timeoutMarkers = it->timeoutMarkers;
-        faultData.eventId = it->eventId;
-        faultData.needKillProcess = it->needKillProcess;
-        ChangeFaultDateInfo(faultData, msgContent);
+        it->errorObject.message += msgContent;
+        ChangeFaultDateInfo(*it);
     }
     return 0;
 }
@@ -227,11 +216,9 @@ void AppfreezeInner::ThreadBlock(std::atomic_bool& isSixSecondEvent)
         "\nFault time:" + AbilityRuntime::TimeUtil::FormatTime("%Y/%m/%d-%H:%M:%S") + "\n";
     faultData.errorObject.message += "App main thread is not response!";
     faultData.faultType = FaultDataType::APP_FREEZE;
-    bool onlyMainThread = false;
 
     if (isSixSecondEvent) {
         faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
-        onlyMainThread = true;
 #ifdef APP_NO_RESPONSE_DIALOG
         isSixSecondEvent.store(false);
 #endif
@@ -249,8 +236,7 @@ void AppfreezeInner::ThreadBlock(std::atomic_bool& isSixSecondEvent)
     if (!IsHandleAppfreeze()) {
         return;
     }
-
-    AppfreezeHandle(faultData, onlyMainThread);
+    AppfreezeHandle(faultData);
 }
 
 int AppfreezeInner::NotifyANR(const FaultData& faultData)
