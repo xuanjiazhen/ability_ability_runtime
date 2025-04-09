@@ -23,7 +23,7 @@ namespace OHOS {
 namespace AbilityDelegatorSts {
 ani_object CreateStsAbilityDelegator(ani_env *aniEnv)
 {
-    TAG_LOGD(AAFwkTag::DELEGATOR, "called");
+    TAG_LOGD(AAFwkTag::DELEGATOR, "CreateJsAbilityDelegator");
     ani_class abilityDelegator = nullptr;
     ani_status status = ANI_ERROR;
     status = aniEnv->FindClass("Lapplication/AbilityDelegator/AbilityDelegatorInner;", &abilityDelegator);
@@ -64,6 +64,7 @@ ani_object CreateStsAbilityDelegator(ani_env *aniEnv)
 
 void SetBundleName(ani_env *aniEnv, ani_class arguments, ani_object argumentObject, const std::string &bundleName)
 {
+    TAG_LOGD(AAFwkTag::DELEGATOR, "SetBundleName call");
     ani_status status = ANI_ERROR;
     ani_string aniStr;
     // Get a ani_string from std::string
@@ -92,6 +93,7 @@ void SetBundleName(ani_env *aniEnv, ani_class arguments, ani_object argumentObje
 void SetParameters(ani_env *aniEnv, ani_class arguments, ani_object argumentObject,
     const std::map<std::string, std::string> &paras)
 {
+    TAG_LOGD(AAFwkTag::DELEGATOR, "SetParameters begin");
     ani_status status = ANI_ERROR;
     // get getter and setter methond of Record
     ani_class recordCls;
@@ -154,6 +156,7 @@ void SetParameters(ani_env *aniEnv, ani_class arguments, ani_object argumentObje
 
 void SetTestCaseNames(ani_env *aniEnv, ani_class arguments, ani_object argumentObject, const std::string &testcaseNames)
 {
+    TAG_LOGD(AAFwkTag::DELEGATOR, "SetTestCaseNames call");
     ani_status status = ANI_ERROR;
     ani_string aniStr;
     status = aniEnv->String_NewUTF8(testcaseNames.c_str(), testcaseNames.length(), &aniStr);
@@ -179,6 +182,7 @@ void SetTestCaseNames(ani_env *aniEnv, ani_class arguments, ani_object argumentO
 void SetTestRunnerClassName(ani_env *aniEnv, ani_class arguments, ani_object argumentObject,
     const std::string &className)
 {
+    TAG_LOGD(AAFwkTag::DELEGATOR, "SetTestRunnerClassName call");
     ani_status status = ANI_ERROR;
     ani_string aniStr;
     status = aniEnv->String_NewUTF8(className.c_str(), className.length(), &aniStr);

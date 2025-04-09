@@ -89,27 +89,27 @@ ani_object WrapConfiguration(ani_env *env, const AppExecFwk::Configuration &conf
     ani_method method {};
     ani_object object = nullptr;
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "null env");
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "null env");
         return nullptr;
     }
     if ((status = env->FindClass("L@ohos/app/ability/Configuration/ConfigurationImpl;", &cls)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
         return nullptr;
     }
     if (cls == nullptr) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "null Configuration");
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "null Configuration");
         return nullptr;
     }
     if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
         return nullptr;
     }
     if ((status = env->Object_New(cls, method, &object)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
         return nullptr;
     }
     if (object == nullptr) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "null object");
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "null object");
         return nullptr;
     }
     SetBasicConfiguration(env, cls, object, configuration);
@@ -121,9 +121,9 @@ bool UnwrapConfiguration(ani_env *env, ani_object param, Configuration &config)
 {
     std::string language { "" };
     if (GetStringOrUndefined(env, param, "language", language)) {
-        TAG_LOGD(AAFwkTag::JSNAPI, "The parsed language part %{public}s", language.c_str());
+        TAG_LOGI(AAFwkTag::STSRUNTIME, "The parsed language part %{public}s", language.c_str());
         if (!config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE, language)) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "language Parsing failed");
+            TAG_LOGE(AAFwkTag::STSRUNTIME, "language Parsing failed");
             return false;
         }
     }
@@ -131,7 +131,7 @@ bool UnwrapConfiguration(ani_env *env, ani_object param, Configuration &config)
     ani_double fontSizeScale = 0.0;
     if (GetDoubleOrUndefined(env, param, "fontSizeScale", fontSizeScale)) {
         if (fontSizeScale < FONT_SIZE_MIN_SCALE || fontSizeScale > FONT_SIZE_MAX_SCALE) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "invalid fontSizeScale");
+            TAG_LOGE(AAFwkTag::STSRUNTIME, "invalid fontSizeScale");
             return false;
         }
         if (!config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_FONT_SIZE_SCALE, std::to_string(fontSizeScale))) {
@@ -142,7 +142,7 @@ bool UnwrapConfiguration(ani_env *env, ani_object param, Configuration &config)
     ani_double fontWeightScale = 0.0;
     if (GetDoubleOrUndefined(env, param, "fontWeightScale", fontWeightScale)) {
         if (fontWeightScale < FONT_WEIGHT_MIN_SCALE || fontWeightScale > FONT_WEIGHT_MAX_SCALE) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "invalid fontWeightScale");
+            TAG_LOGE(AAFwkTag::STSRUNTIME, "invalid fontWeightScale");
             return false;
         }
         if (!config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_FONT_WEIGHT_SCALE, std::to_string(fontWeightScale))) {

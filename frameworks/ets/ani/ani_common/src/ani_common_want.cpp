@@ -41,7 +41,7 @@ bool InnerWrapWantParams(ani_env* env, ani_class wantCls, ani_object wantObject,
 {
     ani_ref wantParamRef = WrapWantParams(env, wantParams);
     if (wantParamRef == nullptr) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "failed to WrapWantParams");
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "failed to WrapWantParams");
         return false;
     }
     return SetFieldRef(env, wantCls, wantObject, "parameters", wantParamRef);
@@ -51,7 +51,7 @@ bool InnerUnwrapWantParams(ani_env* env, ani_object wantObject, AAFwk::WantParam
 {
     ani_ref wantParamRef = nullptr;
     if (!GetRefFieldByName(env, wantObject, "parameters", wantParamRef)) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "failed to get want parameter");
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "failed to get want parameter");
         return false;
     }
     return UnwrapWantParams(env, wantParamRef, wantParams);
@@ -60,26 +60,26 @@ bool InnerUnwrapWantParams(ani_env* env, ani_object wantObject, AAFwk::WantParam
 
 ani_object WrapWant(ani_env *env, const AAFwk::Want &want)
 {
-    TAG_LOGI(AAFwkTag::JSNAPI, "WrapWant");
+    TAG_LOGD(AAFwkTag::STSRUNTIME, "WrapWant");
     ani_class cls = nullptr;
     ani_status status = ANI_ERROR;
     ani_method method = nullptr;
     ani_object object = nullptr;
     if ((status = env->FindClass("L@ohos/app/ability/Want/Want;", &cls)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
     }
     if (cls == nullptr) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "null wantCls");
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "null wantCls");
         return nullptr;
     }
     if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
     }
     if ((status = env->Object_New(cls, method, &object)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
     }
     if (object == nullptr) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "null object");
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "null object");
         return nullptr;
     }
 
@@ -104,16 +104,16 @@ ani_ref WrapWantParams(ani_env *env, const AAFwk::WantParams &wantParams)
     ani_status status = ANI_ERROR;
     ani_class cls = nullptr;
     if ((status = env->FindClass("L@ohos/app/ability/Want/RecordSerializeTool;", &cls)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "FindClass RecordSerializeTool failed, status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass RecordSerializeTool failed, status : %{public}d", status);
     }
     if (cls == nullptr) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "RecordSerializeTool class null");
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "RecordSerializeTool class null");
         return nullptr;
     }
     ani_static_method parseNoThrowMethod = nullptr;
     status = env->Class_FindStaticMethod(cls, "parseNoThrow", nullptr, &parseNoThrowMethod);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "failed to get parseNoThrow method, status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "failed to get parseNoThrow method, status : %{public}d", status);
         return nullptr;
     }
 
@@ -122,14 +122,14 @@ ani_ref WrapWantParams(ani_env *env, const AAFwk::WantParams &wantParams)
     ani_string wantParamsAniString;
     status = env->String_NewUTF8(wantParamsString.c_str(), wantParamsString.length(), &wantParamsAniString);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "String_NewUTF8 wantParamsString failed, status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "String_NewUTF8 wantParamsString failed, status : %{public}d", status);
         return nullptr;
     }
 
     ani_ref wantParamsRef = nullptr;
     status = env->Class_CallStaticMethod_Ref(cls, parseNoThrowMethod, &wantParamsRef, wantParamsAniString);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "failed to call parseNoThrow method, status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "failed to call parseNoThrow method, status : %{public}d", status);
         return nullptr;
     }
     return wantParamsRef;
@@ -173,28 +173,28 @@ bool UnwrapElementName(ani_env *env, ani_object param, ElementName &elementName)
 
 bool UnwrapWant(ani_env *env, ani_object param, AAFwk::Want &want)
 {
-    TAG_LOGI(AAFwkTag::JSNAPI, "UnwrapWant");
+    TAG_LOGD(AAFwkTag::STSRUNTIME, "UnwrapWant");
     std::string action;
     if (GetStringOrUndefined(env, param, "action", action)) {
-        TAG_LOGI(AAFwkTag::UIABILITY, "action %{public}s", action.c_str());
+        TAG_LOGI(AAFwkTag::STSRUNTIME, "action %{public}s", action.c_str());
         want.SetAction(action);
     }
 
     std::string uri = "";
     if (GetStringOrUndefined(env, param, "uri", uri)) {
-        TAG_LOGI(AAFwkTag::UIABILITY, "uri %{public}s", uri.c_str());
+        TAG_LOGI(AAFwkTag::STSRUNTIME, "uri %{public}s", uri.c_str());
         want.SetUri(uri);
     }
 
     ani_double flags = 0.0;
     if (GetDoubleOrUndefined(env, param, "flags", flags)) {
-        TAG_LOGI(AAFwkTag::UIABILITY, "flags %{public}f", flags);
+        TAG_LOGI(AAFwkTag::STSRUNTIME, "flags %{public}f", flags);
         want.SetFlags(static_cast<int>(flags));
     }
 
     std::string type = "";
     if (GetStringOrUndefined(env, param, "type", type)) {
-        TAG_LOGI(AAFwkTag::UIABILITY, "type %{public}s", type.c_str());
+        TAG_LOGI(AAFwkTag::STSRUNTIME, "type %{public}s", type.c_str());
         want.SetType(type);
     }
 
@@ -210,7 +210,7 @@ bool UnwrapWant(ani_env *env, ani_object param, AAFwk::Want &want)
         }
     }
 
-    TAG_LOGE(AAFwkTag::UIABILITY,
+    TAG_LOGI(AAFwkTag::STSRUNTIME,
         "DeviceID %{public}s, BundleName %{public}s, AbilityName %{public}s, ModuleName %{public}s",
         natElementName.GetDeviceID().c_str(), natElementName.GetBundleName().c_str(),
         natElementName.GetAbilityName().c_str(), natElementName.GetModuleName().c_str());
@@ -227,38 +227,38 @@ bool UnwrapWantParams(ani_env *env, ani_ref param, AAFwk::WantParams &wantParams
     ani_status status = ANI_ERROR;
     ani_class cls = nullptr;
     if ((status = env->FindClass("L@ohos/app/ability/Want/RecordSerializeTool;", &cls)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "FindClass RecordSerializeTool failed, status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass RecordSerializeTool failed, status : %{public}d", status);
     }
     if (cls == nullptr) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "RecordSerializeTool class null");
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "RecordSerializeTool class null");
         return false;
     }
 
     ani_static_method stringifyMethod = nullptr;
     status = env->Class_FindStaticMethod(cls, "stringifyNoThrow", nullptr, &stringifyMethod);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "failed to get stringifyNoThrow method, status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "failed to get stringifyNoThrow method, status : %{public}d", status);
         return false;
     }
     ani_ref wantParamsAniString;
     status = env->Class_CallStaticMethod_Ref(cls, stringifyMethod, &wantParamsAniString, param);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "failed to call stringifyNoThrow method, status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "failed to call stringifyNoThrow method, status : %{public}d", status);
         return false;
     }
 
     std::string wantParamsString;
     if (!GetStdString(env, reinterpret_cast<ani_string>(wantParamsAniString), wantParamsString)) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "GetStdString failed");
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "GetStdString failed");
         return false;
     }
     if (wantParamsString.empty()) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "wantParamsString empty");
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "wantParamsString empty");
         return false;
     }
     nlohmann::json wantParamsJson = nlohmann::json::parse(wantParamsString, nullptr, false);
     if (wantParamsJson.is_discarded()) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "Failed to parse json string");
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "Failed to parse json string");
         return false;
     }
     from_json(wantParamsJson, wantParams);
@@ -269,7 +269,7 @@ bool GetAbilityResultClass(ani_env *env, ani_class &cls)
 {
     ani_status status = env->FindClass("Lability/abilityResult/AbilityResultInner;", &cls);
     if (status != ANI_OK || cls == nullptr) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "status: %{public}d", status);
         return false;
     }
     return true;
@@ -280,13 +280,13 @@ bool GetResultCode(ani_env *env, ani_object param, ani_class cls, int &resultCod
     ani_method method {};
     ani_status status = env->Class_FindMethod(cls, "<get>resultCode", nullptr, &method);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "status: %{public}d", status);
         return false;
     }
     ani_double dResultCode = 0.0;
     status = env->Object_CallMethod_Double(param, method, &dResultCode);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "status: %{public}d", status);
         return false;
     }
     resultCode = static_cast<int>(dResultCode);
@@ -298,18 +298,18 @@ bool GetWantReference(ani_env *env, ani_object param, ani_class cls, ani_ref &wa
     ani_method method {};
     ani_status status = env->Class_FindMethod(cls, "<get>want", nullptr, &method);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "status: %{public}d", status);
         return false;
     }
     status = env->Object_CallMethod_Ref(param, method, &wantRef);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "status: %{public}d", status);
         return false;
     }
     ani_boolean isUndefined = true;
     status = env->Reference_IsUndefined(wantRef, &isUndefined);
     if (status != ANI_OK || isUndefined) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "status: %{public}d", status);
         return false;
     }
     return true;
@@ -317,9 +317,9 @@ bool GetWantReference(ani_env *env, ani_object param, ani_class cls, ani_ref &wa
 
 bool UnWrapAbilityResult(ani_env *env, ani_object param, int &resultCode, AAFwk::Want &want)
 {
-    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "env is null");
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "env is null");
         return false;
     }
     ani_class cls {};

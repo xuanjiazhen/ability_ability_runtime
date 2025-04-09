@@ -27,12 +27,12 @@ namespace AniEnumConvertUtil {
     ani_size sz {};
     ani_status status = ANI_ERROR;
     if ((status = env->String_GetUTF8Size(str, &sz)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
         return false;
     }
     res.resize(sz + 1);
     if ((status = env->String_GetUTF8SubString(str, 0, sz, res.data(), res.size(), &sz)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
         return false;
     }
     res.resize(sz);
@@ -98,7 +98,7 @@ static bool EnumConvert_NativeToSts(ani_env *env, const char *enumName, const T 
             return true;
         }
     }
-    TAG_LOGE(AAFwkTag::STSRUNTIME, "EnumConvert_NativeToSts failed enumName: %{public}s", enumName);
+    TAG_LOGI(AAFwkTag::STSRUNTIME, "EnumConvert_NativeToSts failed enumName: %{public}s", enumName);
     return false;
 }
 }
