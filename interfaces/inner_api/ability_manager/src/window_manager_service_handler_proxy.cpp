@@ -19,6 +19,7 @@
 #include "ability_manager_errors.h"
 #include "hilog_tag_wrapper.h"
 #include "parcel.h"
+#include "pixel_map.h"
 
 namespace OHOS {
 namespace AAFwk {

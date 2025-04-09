@@ -18,10 +18,12 @@
 
 #ifdef SUPPORT_SCREEN
 #include "iremote_broker.h"
-#include "pixel_map.h"
 #include "window_info.h"
 
 namespace OHOS {
+namespace Media {
+class PixelMap;
+}
 namespace AAFwk {
 /**
  * @class IWindowManagerServiceHandler
