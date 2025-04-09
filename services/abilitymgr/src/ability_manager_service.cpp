@@ -7952,7 +7952,7 @@ int AbilityManagerService::StartAbilityByCallWithErrMsg(const Want &want, const 
     int paramCheckResult = AbilityStartByCallHelper::CheckParam(connect, errMsg);
     if (paramCheckResult != ERR_OK) {
         return paramCheckResult;
-    }
+    } 
 
     if (IsCrossUserCall(accountId)) {
         CHECK_CALLER_IS_SYSTEM_APP;
