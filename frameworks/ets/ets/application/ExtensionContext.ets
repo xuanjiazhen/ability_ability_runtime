@@ -19,4 +19,5 @@ import {ExtensionAbilityInfo}  from 'bundleManager.ExtensionAbilityInfo'
 export default class ExtensionContext extends Context {
     public nativeContext:long = 0;
     extensionAbilityInfo: ExtensionAbilityInfo;
+    config: Configuration;
 }

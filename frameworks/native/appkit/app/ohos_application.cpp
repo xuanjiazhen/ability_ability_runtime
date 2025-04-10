@@ -230,7 +230,7 @@ static void SetSupportedProcessCacheSync([[maybe_unused]]ani_env *env, [[maybe_u
         return;
     }
     ani_field contextField;
-    if (env->Class_FindField(applicationContextCls, "nativeApplicationContext", &contextField) != ANI_OK) {
+    if (env->Class_FindField(applicationContextCls, "nativeContext", &contextField) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "Class_FindField failed");
         AbilityRuntime::ThrowStsInvalidParamError(env, "Class_FindField failed");
         return;
@@ -241,6 +241,14 @@ static void SetSupportedProcessCacheSync([[maybe_unused]]ani_env *env, [[maybe_u
         AbilityRuntime::ThrowStsInvalidParamError(env, "Object_GetField_Long failed");
         return;
     }
+    auto weakContext = reinterpret_cast<std::weak_ptr<AbilityRuntime::ApplicationContext>*>(nativeContextLong);
+    if (weakContext != nullptr)
+    {
+        auto applicationContext = weakContext->lock();
+        applicationContext->SetSupportedProcessCacheSelf(value);
+
+    }
+	
     int32_t errCode = ((AbilityRuntime::ApplicationContext*)nativeContextLong)->SetSupportedProcessCacheSelf(value);
     if (errCode == AAFwk::ERR_CAPABILITY_NOT_SUPPORT) {
         AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_CAPABILITY_NOT_SUPPORT);
@@ -251,6 +259,8 @@ static void SetSupportedProcessCacheSync([[maybe_unused]]ani_env *env, [[maybe_u
 
 void OHOSApplication::InitAniApplicationContext()
 {
+    auto workContext = new (std::nothrow) std::weak_ptr<AbilityRuntime::ApplicationContext>(abilityRuntimeContext_);
+    ani_long nativeContextLong = (ani_long)workContext;
     TAG_LOGD(AAFwkTag::APPKIT, "called");
     auto& runtime = GetRuntime(AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2);
     auto aniEnv = static_cast<AbilityRuntime::STSRuntime &>(*runtime).GetAniEnv();
@@ -277,12 +287,11 @@ void OHOSApplication::InitAniApplicationContext()
         return;
     }
     ani_field contextField;
-    if (aniEnv->Class_FindField(applicationContextCls, "nativeApplicationContext", &contextField) != ANI_OK) {
+    if (aniEnv->Class_FindField(applicationContextCls, "nativeContext", &contextField) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "Class_FindField failed");
         return;
     }
-    if (aniEnv->Object_SetField_Long(applicationContextObject, contextField,
-        (ani_long)abilityRuntimeContext_.get()) != ANI_OK) {
+    if (aniEnv->Object_SetField_Long(applicationContextObject, contextField, nativeContextLong) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "Object_SetField_Long failed");
         return;
     }
@@ -311,6 +320,8 @@ void OHOSApplication::InitAniContext()
     std::array contextFunctions = {
         ani_native_function {"getApplicationContextSync", ":Lapplication/ApplicationContext/ApplicationContext;",
             reinterpret_cast<void *>(AbilityRuntime::ContextUtil::GetApplicationContextSync)},
+        ani_native_function {"createModuleResourceManagerSync", "Lstd/core/String;Lstd/core/String;:L@ohos/resourceManager/resourceManager/ResourceManager;",
+            reinterpret_cast<void *>(AbilityRuntime::ContextUtil::CreateModuleResourceManagerSync)},
     };
     aniEnv->Class_BindNativeMethods(contextCls, contextFunctions.data(),
         contextFunctions.size());
