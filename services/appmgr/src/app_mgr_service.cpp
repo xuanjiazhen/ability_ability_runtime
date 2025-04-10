@@ -1840,5 +1840,26 @@ int32_t AppMgrService::LaunchAbility(const sptr<IRemoteObject> &token)
     }
     return appMgrServiceInner_->LaunchAbility(token);
 }
+
+int32_t AppMgrService::UpdatePolicy(const std::vector<int32_t> &whiteList, const ExecutionPolicy &policy)
+{
+    TAG_LOGE(AAFwkTag::APPMGR, "AppMgrService::UpdatePolicy.................................");
+    if (!IsReady()) {
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
+    }
+    
+    if (!appMgrServiceInner_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
+        return AAFwk::ERR_NULL_APP_MGR_SERVICE_INNER;
+    }
+    //return appMgrServiceInner_->UpdatePolicy(whiteList, policy);
+    auto size = whiteList.size();
+    for (int i = 0; i < size; i++) {
+        TAG_LOGE(AAFwkTag::APPMGR, "................%{public}d.................", whiteList[i]);
+    }
+
+    TAG_LOGE(AAFwkTag::APPMGR, "................%{public}d.......%{public}d..........", policy.executionQuantity, policy.intervalTime);
+    return 0;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

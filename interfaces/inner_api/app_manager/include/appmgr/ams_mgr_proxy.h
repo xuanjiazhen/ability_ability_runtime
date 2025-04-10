@@ -19,6 +19,7 @@
 #include "ams_mgr_interface.h"
 #include "app_debug_listener_interface.h"
 #include "iremote_proxy.h"
+#include "execution_policy.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -422,6 +423,15 @@ public:
     virtual bool IsProcessAttached(sptr<IRemoteObject> token) override;
 
     virtual bool IsCallerKilling(const std::string& callerKey) override;
+
+    /**
+     * Update policys.
+     *
+     * @param whiteList White list.
+     * @param policy Update policy.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t UpdatePolicy(const std::vector<int32_t> &whiteList, const ExecutionPolicy &policy) override;
 
 private:
     bool WriteInterfaceToken(MessageParcel &data);

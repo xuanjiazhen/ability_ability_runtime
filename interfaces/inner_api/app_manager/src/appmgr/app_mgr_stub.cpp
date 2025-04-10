@@ -386,6 +386,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel &dat
             return HandleGetKilledProcessInfo(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::LAUNCH_ABILITY):
             return HandleLaunchAbility(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_POLICY):
+            return HandleUpdatePolicy(data, reply);
     }
     return INVALID_FD;
 }
@@ -1875,6 +1877,27 @@ int32_t AppMgrStub::HandleLaunchAbility(MessageParcel &data, MessageParcel &repl
     auto result = LaunchAbility(token);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "fail to write result.");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleUpdatePolicy(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGE(AAFwkTag::APPMGR, "AppMgrStub::HandleUpdatePolicy..................................");
+    std::vector<int32_t> whiteList;
+    int size = data.ReadInt32();
+    for (int i = 0; i < size; i++) {
+        whiteList.push_back(data.ReadInt32());
+    }
+    std::unique_ptr<ExecutionPolicy> policy(data.ReadParcelable<ExecutionPolicy>());
+    if (!policy) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AppMgrStub read configuration error.........................");
+        return ERR_INVALID_VALUE;
+    }
+     
+    auto ret = UpdatePolicy(whiteList, *policy);
+    if (!reply.WriteInt32(ret)) {
         return ERR_INVALID_VALUE;
     }
     return NO_ERROR;

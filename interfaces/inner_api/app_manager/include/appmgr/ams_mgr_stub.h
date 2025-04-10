@@ -22,6 +22,7 @@
 #include "nocopyable.h"
 #include "string_ex.h"
 #include "ams_mgr_interface.h"
+#include "execution_policy.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -105,6 +106,7 @@ private:
     int32_t HandleIsProcessContainsOnlyUIAbility(MessageParcel &data, MessageParcel &reply);
     int32_t HandleIsProcessAttached(MessageParcel &data, MessageParcel &reply);
     int32_t HandleIsCallerKilling(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleUpdatePolicy(MessageParcel &data, MessageParcel &reply);
     DISALLOW_COPY_AND_MOVE(AmsMgrStub);
 };
 }  // namespace AppExecFwk
