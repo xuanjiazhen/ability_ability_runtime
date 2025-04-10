@@ -26,6 +26,7 @@
 #include "process_data.h"
 #include "hilog_tag_wrapper.h"
 #include "ability_first_frame_state_data.h"
+#include "running_multi_info.h"
 
 namespace OHOS {
 namespace AppManagerSts {
@@ -41,6 +42,10 @@ using OHOS::AppExecFwk::AbilityFirstFrameStateData;
     static const char *appStateDataClassName = "Lapplication/AppStateData/AppStateData;";
     static const char *processStateEnumName = "L@ohos/app/ability/appManager/appManager/ProcessState;";
     static const char *firstFrameStateDataClassName = "Lapplication/AbilityFirstFrameStateData/AbilityFirstFrameStateDataInner;";
+    static const char *runningMultiAppInfoClassName = "L@ohos/app/ability/appManager/RunningMultiAppInfoInner;";
+    static const char *runningAppCloneClassName = "L@ohos/app/ability/appManager/RunningAppCloneInner;";
+    static const char *runningMultiInstanceInfoClassName = "L@ohos/app/ability/appManager/RunningMultiInstanceInfoInner;";
+
     static const char* onApplicationStateObserverSignature = 
         "Lapplication/ApplicationStateObserver/ApplicationStateObserver;:I";
     static const char* onApplicationStateObserverByArraySignature = 
@@ -110,6 +115,9 @@ using OHOS::AppExecFwk::AbilityFirstFrameStateData;
     bool ConvertToAniAbilityFirstFrameStateData(ani_env *env,
         const AbilityFirstFrameStateData &firstFrameStateData, ani_object &outAniObj);
 
+	bool ConvertToAniRunningMultiAppInfo(ani_env* env, const AppExecFwk::RunningMultiAppInfo &processInfo, ani_object &outAniObj);
+
+	bool ConvertIntVectorToAniArray(ani_env* env, const std::vector<int32_t>& list, ani_object &arrayObj);
     class AutoSTSReference {
     public:
         AutoSTSReference(ani_env *env, const ani_object &obj);
