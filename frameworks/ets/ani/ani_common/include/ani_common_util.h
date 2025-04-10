@@ -34,6 +34,8 @@ ani_array_ref GetAniArrayString(ani_env *env, const std::vector<std::string> &va
 bool GetRefFieldByName(ani_env *env, ani_object param, const char *name, ani_ref &ref);
 
 ani_object createDouble(ani_env *env, ani_double value);
+ani_object createBoolean(ani_env *env, ani_boolean value);
+ani_object createLong(ani_env *env, ani_long value);
 bool SetFieldString(ani_env *env, ani_class cls, ani_object object, const std::string &fieldName, const std::string &value);
 bool SetFieldDouble(ani_env *env, ani_class cls, ani_object object, const std::string &fieldName, double value);
 bool SetFieldBoolean(ani_env *env, ani_class cls, ani_object object, const std::string &fieldName, bool value);
@@ -42,6 +44,7 @@ bool SetFieldArrayString(ani_env *env, ani_class cls, ani_object object, const s
 bool SetFieldRef(ani_env *env, ani_class cls, ani_object object, const std::string &fieldName, ani_ref value);
 
 void ClassSetter(ani_env* env, ani_class cls, ani_object object, const char* setterName, ...);
+bool GetPropertyRef(ani_env *env, ani_object obj, const char *name, ani_ref &ref, ani_boolean &isUndefined);
 }  // namespace AppExecFwk
 }  // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_ANI_COMMON_UTIL_H
