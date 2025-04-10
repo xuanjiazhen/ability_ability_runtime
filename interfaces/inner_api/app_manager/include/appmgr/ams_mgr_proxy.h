@@ -19,6 +19,7 @@
 #include "ams_mgr_interface.h"
 #include "app_debug_listener_interface.h"
 #include "iremote_proxy.h"
+#include "execution_policy.h"
 
 namespace OHOS {
 namespace AppExecFwk {
