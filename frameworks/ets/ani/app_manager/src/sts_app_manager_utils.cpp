@@ -106,6 +106,98 @@ namespace AppManagerSts {
         return true;
     }
 
+	bool ConvertToAniRunningMultiAppInfo(ani_env* env, const RunningMultiAppInfo& processInfo, ani_object& outAniObj)
+	{
+		ani_class cls;
+		if (!CreateClassObjByClassName(env, runningMultiAppInfoClassName, cls, outAniObj)) {
+			TAG_LOGD(AAFwkTag::DELEGATOR, "Create RunningMultiAppInformation faild");
+			return false;
+		}
+
+		if (!SetFieldString(env, cls, outAniObj, "bundleName", processInfo.bundleName) ||
+			!SetFieldDouble(env, cls, outAniObj, "mode", processInfo.mode)) {
+			return false;
+		}
+
+		ani_object appClonesArray = newArrayClass(env, processInfo.runningAppClones.size());
+		if (appClonesArray == nullptr) {
+			return false;
+		}
+
+		for (size_t i = 0; i < processInfo.runningAppClones.size(); ++i) {
+			const auto& clone = processInfo.runningAppClones[i];
+			ani_object cloneObj;
+			ani_class cloneCls;
+
+			if (!CreateClassObjByClassName(env, runningAppCloneClassName, cloneCls, cloneObj)) {
+				return false;
+			}
+
+			if (!SetFieldDouble(env, cloneCls, cloneObj, "appCloneIndex", clone.appCloneIndex) ||
+				!SetFieldDouble(env, cloneCls, cloneObj, "uid", clone.uid)) {
+				return false;
+			}
+
+			ani_object pidsArray;
+			if (!ConvertIntVectorToAniArray(env, clone.pids, pidsArray)) {
+				return false;
+			}
+			if (!SetFieldRef(env, cloneCls, cloneObj, "pids", static_cast<ani_ref>(pidsArray))) {
+				return false;
+			}
+
+			if (ANI_OK != env->Object_CallMethodByName_Void(
+				appClonesArray, "$_set", "ILstd/core/Object;:V",
+				static_cast<ani_int>(i), cloneObj)) {
+				return false;
+			}
+		}
+
+		if (!SetFieldRef(env, cls, outAniObj, "runningAppClones", static_cast<ani_ref>(appClonesArray))) {
+			return false;
+		}
+
+		ani_object instancesArray = newArrayClass(env, processInfo.runningMultiIntanceInfos.size());
+		if (instancesArray == nullptr) {
+			return false;
+		}
+
+		for (size_t i = 0; i < processInfo.runningMultiIntanceInfos.size(); ++i) {
+			const auto& instance = processInfo.runningMultiIntanceInfos[i];
+			ani_object instanceObj;
+			ani_class instanceCls;
+
+			if (!CreateClassObjByClassName(env, runningMultiInstanceInfoClassName, instanceCls, instanceObj)) {
+				return false;
+			}
+
+			if (!SetFieldString(env, instanceCls, instanceObj, "instanceKey", instance.instanceKey) ||
+				!SetFieldDouble(env, instanceCls, instanceObj, "uid", instance.uid)) {
+				return false;
+			}
+
+			ani_object pidsArray;
+			if (!ConvertIntVectorToAniArray(env, instance.pids, pidsArray)) {
+				return false;
+			}
+			if (!SetFieldRef(env, instanceCls, instanceObj, "pids", static_cast<ani_ref>(pidsArray))) {
+				return false;
+			}
+
+			if (ANI_OK != env->Object_CallMethodByName_Void(
+				instancesArray, "$_set", "ILstd/core/Object;:V",
+				static_cast<ani_int>(i), instanceObj)) {
+				return false;
+			}
+		}
+
+		if (!SetFieldRef(env, cls, outAniObj, "runningMultiIntanceInfos", static_cast<ani_ref>(instancesArray))) {
+			return false;
+		}
+
+		return true;
+	}
+
     bool ConvertToAniProcessData(ani_env *env, const ProcessData &processData, ani_object &outAniObj)
     {
         ani_class cls;
@@ -277,6 +369,71 @@ namespace AppManagerSts {
         }
         return true;
     }
+
+	bool ConvertToAniRunningMultiAppInfoArray(ani_env *env,
+		const std::vector<std::shared_ptr<AppExecFwk::RunningMultiAppInfo>> &infos, 
+		ani_object &outAniObj)
+	{
+		outAniObj = newArrayClass(env, infos.size());
+		if (outAniObj == nullptr) {
+			TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniRunningMultiAppInfoArray: Failed to create array object");
+			return false;
+		}
+
+		for (size_t i = 0; i < infos.size(); ++i) {
+			if (infos[i] == nullptr) {
+				continue;
+			}
+
+			ani_object infoObj;
+			if (!ConvertToAniRunningMultiAppInfo(env, *(infos[i]), infoObj)) {
+				TAG_LOGD(AAFwkTag::DELEGATOR, "ConvertToAniRunningMultiAppInfoArray: Failed to convert element at index %zu", i);
+				return false;
+			}
+
+			ANI_FAILED_AND_RETURN(env->Object_CallMethodByName_Void(outAniObj,
+				"$_set", "ILstd/core/Object;:V", static_cast<ani_int>(i), infoObj));
+		}
+
+		return true;
+	}
+
+    /**
+	 * @brief 将整型vector转换为ANI数组对象
+	 * @param env ANI环境指针
+	 * @param list 要转换的整型vector
+	 * @param arrayObj 返回的ANI数组对象， 失败为nullptr
+	 * @return 成功返回true，失败返回 false
+	 */
+	bool ConvertIntVectorToAniArray(ani_env* env, const std::vector<int32_t>& list, ani_object &arrayObj)
+	{
+		if (env == nullptr) {
+			TAG_LOGD(AAFwkTag::ABILITYMGR, "ConvertIntVectorToAniArray: env is null");
+			return false;
+		}
+
+		arrayObj = newArrayClass(env, list.size());
+		if (arrayObj == nullptr) {
+			TAG_LOGD(AAFwkTag::ABILITYMGR, "ConvertIntVectorToAniArray: Failed to create array object");
+			return false;
+		}
+
+		for (size_t i = 0; i < list.size(); ++i) {
+			ani_object elementObj;
+			if (!createDouble(env, static_cast<ani_double>(list[i]), elementObj)) {
+				TAG_LOGD(AAFwkTag::ABILITYMGR, "ConvertIntVectorToAniArray: Failed to create element object at index %zu", i);
+				continue;
+			}
+
+			if (ANI_OK != env->Object_CallMethodByName_Void(
+				arrayObj, "$_set", "ILstd/core/Object;:V",
+				static_cast<ani_int>(i), elementObj)) {
+				TAG_LOGD(AAFwkTag::ABILITYMGR, "ConvertIntVectorToAniArray: Failed to set element at index %zu", i);
+			}
+		}
+
+		return true;
+	}
 
     bool ConvertToAniAppStateDataArray(ani_env *env, const std::vector<AppExecFwk::AppStateData> &infos, ani_object &outAniObj)
     {
