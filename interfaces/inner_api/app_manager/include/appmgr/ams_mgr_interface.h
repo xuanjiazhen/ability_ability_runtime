@@ -28,6 +28,7 @@
 #include "istart_specified_ability_response.h"
 #include "running_process_info.h"
 #include "user_callback.h"
+#include "execution_policy.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
