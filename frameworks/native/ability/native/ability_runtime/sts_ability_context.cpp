@@ -598,6 +598,65 @@ bool SetConfiguration(
     return true;
 }
 
+ani_object CreateHapModuleInfo(ani_env* env, const std::shared_ptr<Context> &context)
+{
+    if (env == nullptr || context == nullptr) {
+        return nullptr;
+    }
+    ani_status status = ANI_OK;
+    ani_class cls;
+    auto hapModuleInfo = context->GetHapModuleInfo();
+    status = env->FindClass("LHapModuleInfoInner/HapModuleInfoInner;", &cls);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY, "call FindClass HapModuleInfo failed");
+        return nullptr;
+    }
+    ani_method initMethod = nullptr;
+    status = env->Class_FindMethod(cls, "<ctor>", ":V", &initMethod);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY, "call Class_FindMethod ctor failed");
+        return nullptr;
+    }
+    ani_object Object = nullptr;
+    if (env->Object_New(cls, initMethod, &Object) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Object_New failed");
+        return nullptr;
+    }
+
+    ani_field Field;
+    if (env->Class_FindField(cls, "nativeModuleInfo", &Field) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Class_FindField failed");
+        return nullptr;
+    }
+
+    if (env->Object_SetField_Long(Object, Field, (ani_long)hapModuleInfo.get()) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Object_SetField_Long failed");
+        return nullptr;
+    }
+    return Object;
+}
+
+bool SetHapModuleInfo(
+    ani_env *env, ani_class cls, ani_object contextObj, const std::shared_ptr<AbilityContext> &context)
+{
+    ani_status status = ANI_OK;
+    ani_object moduleInfoObj = CreateHapModuleInfo(env, context);
+    if (moduleInfoObj != nullptr) {
+        ani_field moduleInfoField;
+        status = env->Class_FindField(cls, "currentHapModuleInfo", &moduleInfoField);
+        if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::ABILITY, "Class_FindField currentHapModuleInfo failed");
+            return false;
+        }
+        status = env->Object_SetField_Ref(contextObj, moduleInfoField, reinterpret_cast<ani_ref>(moduleInfoObj));
+        if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::ABILITY, "Object_SetField_Ref moduleInfoField failed");
+            return false;
+        }
+    }
+    return true;
+}
+
 ani_ref CreateStsAbilityContext(
     ani_env *env, const std::shared_ptr<AbilityContext> &context, const std::shared_ptr<OHOSApplication> &application)
 {
@@ -623,6 +682,10 @@ ani_ref CreateStsAbilityContext(
     }
     if (!SetConfiguration(env, cls, contextObj, context)) {
         TAG_LOGE(AAFwkTag::UIABILITY, "SetConfiguration failed");
+        return nullptr;
+    }
+    if(!SetHapModuleInfo(env, cls, contextObj, context)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "SetHapModuleInfo failed");
         return nullptr;
     }
     return contextObj;

@@ -141,7 +141,7 @@ ani_object STSAbilityStageContext::CreateHapModuleInfo(ani_env* env, const std::
     ani_status status = ANI_OK;
     ani_class cls;
     auto hapModuleInfo = context->GetHapModuleInfo();
-    status = env->FindClass(STS_HAPMODULEINFO_CLASS_NAME, &cls);
+    status = env->FindClass("LHapModuleInfoInner/HapModuleInfoInner;", &cls);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::ABILITY, "call FindClass HapModuleInfo failed");
         return nullptr;
@@ -152,14 +152,23 @@ ani_object STSAbilityStageContext::CreateHapModuleInfo(ani_env* env, const std::
         TAG_LOGE(AAFwkTag::ABILITY, "call Class_FindMethod ctor failed");
         return nullptr;
     }
-    ani_object obj = nullptr;
-    status = env->Object_New(cls, initMethod, &obj);
-    if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "Object_New obj failed");
+    ani_object Object = nullptr;
+    if (env->Object_New(cls, initMethod, &Object) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Object_New failed");
         return nullptr;
     }
-    return obj;
-}
+
+    ani_field Field;
+    if (env->Class_FindField(cls, "nativeModuleInfo", &Field) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Class_FindField failed");
+        return nullptr;
+    }
+
+    if (env->Object_SetField_Long(Object, Field, (ani_long)hapModuleInfo.get()) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Object_SetField_Long failed");
+        return nullptr;
+    }
+    return Object;
 
 ani_object STSAbilityStageContext::Createfiguration(ani_env* env,
     const std::shared_ptr<AppExecFwk::Configuration> &configuration)
