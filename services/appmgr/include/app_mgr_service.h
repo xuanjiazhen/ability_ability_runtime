@@ -39,6 +39,7 @@
 #include "system_ability.h"
 #include "task_handler_wrap.h"
 #include "app_jsheap_mem_info.h"
+#include "execution_policy.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -424,7 +425,8 @@ public:
      * @param userId configuration for the user
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1) override;
+    virtual int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1,
+        const sptr<IUpdateConfigurationCompleteCallback> &callback = nullptr) override;
 
     /**
      *  Update config by bundle name.
@@ -971,6 +973,15 @@ private:
      */
     virtual int32_t GetSupportedProcessCachePids(const std::string &bundleName,
         std::vector<int32_t> &pidList) override;
+    
+    /**
+     * Update policys.
+     *
+     * @param whiteList White list.
+     * @param policy Update policy.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t UpdatePolicy(const std::vector<int32_t> &whiteList, const ExecutionPolicy &policy) override;
 
     enum DumpIpcKey {
         KEY_DUMP_IPC_START = 0,

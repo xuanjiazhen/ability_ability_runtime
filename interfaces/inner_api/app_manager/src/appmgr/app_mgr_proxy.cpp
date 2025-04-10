@@ -925,7 +925,8 @@ int AppMgrProxy::GetRenderProcessTerminationStatus(pid_t renderPid, int &status)
     return 0;
 }
 
-int32_t AppMgrProxy::UpdateConfiguration(const Configuration &config, const int32_t userId)
+int32_t AppMgrProxy::UpdateConfiguration(const Configuration &config, const int32_t userId,
+    const sptr<IUpdateConfigurationCompleteCallback> &callback)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "AppMgrProxy UpdateConfiguration");
     MessageParcel data;
@@ -940,6 +941,10 @@ int32_t AppMgrProxy::UpdateConfiguration(const Configuration &config, const int3
     }
     if (!data.WriteInt32(userId)) {
         TAG_LOGE(AAFwkTag::APPMGR, "parcel userId failed");
+        return ERR_INVALID_DATA;
+    }
+    if (callback == nullptr || !data.WriteRemoteObject(callback->AsObject())) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write callback failed.");
         return ERR_INVALID_DATA;
     }
     int32_t ret = SendRequest(AppMgrInterfaceCode::UPDATE_CONFIGURATION, data, reply, option);
@@ -2052,6 +2057,7 @@ int32_t AppMgrProxy::NotifyProcessDependedOnWeb()
 
 void AppMgrProxy::KillProcessDependedOnWeb()
 {
+    TAG_LOGE(AAFwkTag::APPMGR, "AppMgrProxy::KillProcessDependedOnWeb............................");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -2258,6 +2264,44 @@ int32_t AppMgrProxy::GetKilledProcessInfo(int pid, int uid, KilledProcessInfo &i
     }
 
     info = *infoReply;
+    return ERR_OK;
+}
+
+int32_t AppMgrProxy::UpdatePolicy(const std::vector<int32_t> &whiteList, const ExecutionPolicy &policy)
+{
+    TAG_LOGE(AAFwkTag::APPMGR, "AppMgrProxy::UpdatePolicy............................");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write token failed.................");
+        return AAFwk::ERR_WRITE_INTERFACE_TOKEN_FAILED;
+    }
+    auto size = whiteList.size();
+    if (size == 0 || size > MAX_PROCESS_STATE_COUNT) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Invalid size......................");
+        return ERR_FLATTEN_OBJECT;
+    }
+   
+    if (!data.WriteUint32(size)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write size failed.................");
+        return ERR_FLATTEN_OBJECT;
+    }
+    for (const auto &record: whiteList) {
+        if (!data.WriteUint32(record)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Write perState failed...................");
+            return ERR_FLATTEN_OBJECT;
+        }
+    }
+    if (!data.WriteParcelable(&policy)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "parcel policy failed......................");
+        return ERR_INVALID_DATA;
+    }
+    if (!SendTransactCmd(AppMgrInterfaceCode::UPDATE_POLICY, data, reply)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest err....................");
+        return IPC_PROXY_ERR;
+    }
+
     return ERR_OK;
 }
 }  // namespace AppExecFwk

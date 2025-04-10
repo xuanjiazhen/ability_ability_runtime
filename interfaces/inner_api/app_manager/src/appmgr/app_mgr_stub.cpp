@@ -384,6 +384,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel &dat
             return HandleUpdateProcessMemoryState(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::GET_KILLED_PROCESS_INFO):
             return HandleGetKilledProcessInfo(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_POLICY):
+            return HandleUpdatePolicy(data, reply);
     }
     return INVALID_FD;
 }
@@ -1005,7 +1007,12 @@ int32_t AppMgrStub::HandleUpdateConfiguration(MessageParcel &data, MessageParcel
         return ERR_INVALID_VALUE;
     }
     int32_t userId = data.ReadInt32();
-    int32_t ret = UpdateConfiguration(*config, userId);
+    auto callback = iface_cast<IUpdateConfigurationCompleteCallback>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Callback is null.......");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t ret = UpdateConfiguration(*config, userId, callback);
     if (!reply.WriteInt32(ret)) {
         return ERR_INVALID_VALUE;
     }
@@ -1861,6 +1868,27 @@ int32_t AppMgrStub::HandleGetKilledProcessInfo(MessageParcel &data, MessageParce
         ret = IPC_STUB_ERR;
     }
     return ret;
+}
+
+int32_t AppMgrStub::HandleUpdatePolicy(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGE(AAFwkTag::APPMGR, "AppMgrStub::HandleUpdatePolicy..................................");
+    std::vector<int32_t> whiteList;
+    int size = data.ReadInt32();
+    for (int i = 0; i < size; i++) {
+        whiteList.push_back(data.ReadInt32());
+    }
+    std::unique_ptr<ExecutionPolicy> policy(data.ReadParcelable<ExecutionPolicy>());
+    if (!policy) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AppMgrStub read configuration error.........................");
+        return ERR_INVALID_VALUE;
+    }
+     
+    auto ret = UpdatePolicy(whiteList, *policy);
+    if (!reply.WriteInt32(ret)) {
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
 }
 
 }  // namespace AppExecFwk

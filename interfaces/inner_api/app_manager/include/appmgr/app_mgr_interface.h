@@ -48,6 +48,8 @@
 #include "want.h"
 #include "app_jsheap_mem_info.h"
 #include "running_multi_info.h"
+#include "iupdate_configuration_complete_callback.h"
+#include "execution_policy.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -431,9 +433,11 @@ public:
      *
      * @param config System environment change parameters.
      * @param userId configuration for the user
+     * @param callback called when UpdateConfiguration finished.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1) = 0;
+    virtual int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1,
+        const sptr<IUpdateConfigurationCompleteCallback> &callback = nullptr) = 0;
 
     /**
      *  Update config by bundle name.
@@ -939,6 +943,15 @@ public:
     {
         return 0;
     }
+
+    /**
+     * Update policys.
+     *
+     * @param whiteList White list.
+     * @param policy Update policy.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t UpdatePolicy(const std::vector<int32_t> &whiteList, const ExecutionPolicy &policy) = 0;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

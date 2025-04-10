@@ -22,6 +22,7 @@
 #include "iremote_stub.h"
 #include "nocopyable.h"
 #include "string_ex.h"
+#include "execution_policy.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -63,7 +64,6 @@ public:
      */
     virtual int32_t GetSupportedProcessCachePids(const std::string &bundleName,
         std::vector<int32_t> &pidList) override;
-
 private:
     int32_t HandleAttachApplication(MessageParcel &data, MessageParcel &reply);
     int32_t HandlePreloadApplication(MessageParcel &data, MessageParcel &reply);
@@ -190,6 +190,7 @@ private:
     int32_t HandleGetSupportedProcessCachePids(MessageParcel &data, MessageParcel &reply);
     int32_t HandleUpdateProcessMemoryState(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetKilledProcessInfo(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleUpdatePolicy(MessageParcel &data, MessageParcel &reply);
     DISALLOW_COPY_AND_MOVE(AppMgrStub);
 };
 }  // namespace AppExecFwk
