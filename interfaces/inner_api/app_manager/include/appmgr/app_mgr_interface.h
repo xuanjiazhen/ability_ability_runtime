@@ -950,6 +950,15 @@ public:
     {
         return 0;
     }
+    
+    /**
+     * Update policys.
+     *
+     * @param whiteList White list.
+     * @param policy Update policy.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t UpdatePolicy(const std::vector<int32_t> &whiteList, const ExecutionPolicy &policy) = 0;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
