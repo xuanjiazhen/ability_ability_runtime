@@ -423,6 +423,15 @@ public:
 
     virtual bool IsCallerKilling(const std::string& callerKey) override;
 
+    /**
+     * Update policys.
+     *
+     * @param whiteList White list.
+     * @param policy Update policy.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t UpdatePolicy(const std::vector<int32_t> &whiteList, const ExecutionPolicy &policy) override;
+
 private:
     bool WriteInterfaceToken(MessageParcel &data);
     int32_t SendTransactCmd(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
