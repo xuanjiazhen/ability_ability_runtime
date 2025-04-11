@@ -241,7 +241,16 @@ static void SetSupportedProcessCacheSync([[maybe_unused]]ani_env *env, [[maybe_u
         AbilityRuntime::ThrowStsInvalidParamError(env, "Object_GetField_Long failed");
         return;
     }
-    int32_t errCode = ((AbilityRuntime::ApplicationContext*)nativeContextLong)->SetSupportedProcessCacheSelf(value);
+
+    auto weakContext = reinterpret_cast<std::weak_ptr<AbilityRuntime::ApplicationContext>*>(nativeContextLong);
+    if (weakContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "nativeContextLong is null");
+        AbilityRuntime::ThrowStsInvalidParamError(env, "nativeContextLong is null");
+        return;
+    }
+
+    auto applicationContext = weakContext->lock();
+    int32_t errCode = applicationContext->SetSupportedProcessCacheSelf(value);
     if (errCode == AAFwk::ERR_CAPABILITY_NOT_SUPPORT) {
         AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_CAPABILITY_NOT_SUPPORT);
     } else if (errCode != ERR_OK) {
@@ -252,6 +261,8 @@ static void SetSupportedProcessCacheSync([[maybe_unused]]ani_env *env, [[maybe_u
 void OHOSApplication::InitAniApplicationContext()
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
+    auto workContext = new (std::nothrow) std::weak_ptr<AbilityRuntime::ApplicationContext>(abilityRuntimeContext_);
+    ani_long nativeContextLong = (ani_long)workContext;
     auto& runtime = GetRuntime(AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2);
     auto aniEnv = static_cast<AbilityRuntime::STSRuntime &>(*runtime).GetAniEnv();
     ani_class applicationContextCls = nullptr;
@@ -281,8 +292,7 @@ void OHOSApplication::InitAniApplicationContext()
         TAG_LOGE(AAFwkTag::APPKIT, "Class_FindField failed");
         return;
     }
-    if (aniEnv->Object_SetField_Long(applicationContextObject, contextField,
-        (ani_long)abilityRuntimeContext_.get()) != ANI_OK) {
+    if (aniEnv->Object_SetField_Long(applicationContextObject, contextField, nativeContextLong) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "Object_SetField_Long failed");
         return;
     }
