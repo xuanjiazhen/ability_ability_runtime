@@ -314,3 +314,49 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(Ab
     return ConvertToAPI18BusinessErrorCode(AbilityManagerClient::GetInstance()->StartSelfUIAbilityWithStartOptions(
         abilityWant, startOptions));
 }
+
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextGetLaunchParameter(
+    char* buffer, const int32_t bufferSize, int32_t* writeLength)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "ApplicationContextGetLaunchParameter called");
+    auto ret = CheckParameters(buffer, writeLength);
+    if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        return ret;
+    }
+    const auto appContext = Context::GetApplicationContext();
+    if (appContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "appContext is null");
+        return ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST;
+    }
+
+    const std::string launchParameter = appContext->GetLaunchParameter();
+    if (launchParameter.empty()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "launchParameter is empty");
+        return ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST;
+    }
+
+    return WriteStringToBuffer(launchParameter, buffer, bufferSize, writeLength);
+}
+
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextGetLatestParameter(
+    char* buffer, const int32_t bufferSize, int32_t* writeLength)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "ApplicationContextGetLatestParameter called");
+    auto ret = CheckParameters(buffer, writeLength);
+    if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        return ret;
+    }
+    const auto appContext = Context::GetApplicationContext();
+    if (appContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "appContext is null");
+        return ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST;
+    }
+
+    const std::string latestParameter = appContext->GetLatestParameter();
+    if (latestParameter.empty()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "latestParameter is empty");
+        return ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST;
+    }
+
+    return WriteStringToBuffer(latestParameter, buffer, bufferSize, writeLength);
+}
