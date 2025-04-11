@@ -24,6 +24,7 @@
 #include "memory_level_info.h"
 #include "running_process_info.h"
 #include "want.h"
+#include "configuration_policy.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -415,7 +416,8 @@ public:
 
     virtual int32_t GetConfiguration(Configuration& config) override;
 
-    virtual int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1) override;
+    virtual int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1,
+        const sptr<IUpdateConfigurationCompleteCallback> &callback = nullptr) override;
 
     virtual int32_t UpdateConfigurationByBundleName(const Configuration &config, const std::string &name,
         int32_t appIndex = 0) override;
@@ -810,6 +812,14 @@ public:
      */
     int32_t LaunchAbility(const sptr<IRemoteObject> &token) override;
 
+    /**
+     * Update policys.
+     *
+     * @param whiteList White list.
+     * @param policy Update policy.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t UpdateConfigurationPolicy(const std::vector<int32_t> &whiteList, const ConfigurationPolicy &policy) override;
 private:
     bool SendTransactCmd(AppMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     bool WriteInterfaceToken(MessageParcel &data);
