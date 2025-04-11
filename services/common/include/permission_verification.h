@@ -29,6 +29,7 @@ struct VerificationInfo {
     bool isBackgroundCall = true;
     bool associatedWakeUp = false;
     bool withContinuousTask = false;
+    bool backgroundStartPermission = false;
     uint32_t accessTokenId = 0;
     int32_t apiTargetVersion = 0;
     uint32_t specifyTokenId = 0;
@@ -93,6 +94,8 @@ struct VerificationInfo {
 
     bool JudgeCallerIsAllowedToUseSystemAPI() const;
 
+    bool JudgeStartAbilityFromBackground(const bool isBackgroundCall) const;
+
     bool IsSystemAppCall() const;
 
     bool IsSystemAppCallByTokenId(uint32_t callerTokenId) const;
@@ -134,8 +137,6 @@ private:
 
     bool JudgeStartInvisibleAbility(const uint32_t accessTokenId, const bool visible,
         const uint32_t specifyTokenId = 0) const;
-
-    bool JudgeStartAbilityFromBackground(const bool isBackgroundCall) const;
 
     bool JudgeAssociatedWakeUp(const uint32_t accessTokenId, const bool associatedWakeUp) const;
 

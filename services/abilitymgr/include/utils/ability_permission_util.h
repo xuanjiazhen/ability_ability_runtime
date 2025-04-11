@@ -109,7 +109,7 @@ public:
      * @return Whether the caller has permission to start.
      */
     int32_t CheckStartByCallPermissionOrHasFloatingWindow(
-        const PermissionVerification::VerificationInfo &verificationInfo, const sptr<IRemoteObject> &callerToken);
+        PermissionVerification::VerificationInfo &verificationInfo, const sptr<IRemoteObject> &callerToken);
 
     /**
      * Check CallServiceExtensionPermission, check HasFloatingWindow.
@@ -118,7 +118,7 @@ public:
      * @return Whether the caller has permission to start.
      */
     int32_t CheckCallServiceExtensionPermissionOrHasFloatingWindow(
-        const PermissionVerification::VerificationInfo &verificationInfo, const sptr<IRemoteObject> &callerToken);
+        PermissionVerification::VerificationInfo &verificationInfo, const sptr<IRemoteObject> &callerToken);
 
     /**
      * Check CheckCallAbilityPermission, check HasFloatingWindow.
@@ -128,7 +128,7 @@ public:
      * @return Whether the caller has permission to start.
      */
     int32_t CheckCallAbilityPermissionOrHasFloatingWindow(
-        const PermissionVerification::VerificationInfo &verificationInfo, const sptr<IRemoteObject> &callerToken,
+        PermissionVerification::VerificationInfo &verificationInfo, const sptr<IRemoteObject> &callerToken,
         bool isCallByShortcut);
 
     /**
