@@ -1699,6 +1699,34 @@ bool ContextImpl::UpdateDisplayConfiguration(std::shared_ptr<ContextImpl> &conte
     return true;
 }
 
+void ContextImpl::SetLaunchParameter(const AAFwk::Want& want)
+{
+    launchParameter_ = std::make_shared<AAFwk::Want>(want);
+}
+
+std::string ContextImpl::GetLaunchParameter()
+{
+    if (launchParameter_ != nullptr) {
+        return launchParameter_->ToFullString();
+    }
+    TAG_LOGD(AAFwkTag::APPKIT, "launchParameter_ is null");
+    return "";
+}
+
+void ContextImpl::SetLatestParameter(const AAFwk::Want& want)
+{
+    latestParameter_ = std::make_shared<AAFwk::Want>(want);
+}
+
+std::string ContextImpl::GetLatestParameter()
+{
+    if (latestParameter_ != nullptr) {
+        return latestParameter_->ToFullString();
+    }
+    TAG_LOGD(AAFwkTag::APPKIT, "latestParameter_ is null");
+    return "";
+}
+
 #ifdef SUPPORT_GRAPHICS
 std::shared_ptr<Context> ContextImpl::CreateDisplayContext(uint64_t displayId)
 {
