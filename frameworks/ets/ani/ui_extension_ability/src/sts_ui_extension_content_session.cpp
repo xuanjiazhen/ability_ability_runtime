@@ -35,7 +35,7 @@
 #include "sts_error_utils.h"
 namespace OHOS {
 namespace AbilityRuntime {
-StsUIExtensionContentSession* GetStsContentSession(ani_env* env, ani_object obj)
+std::shared_ptr<StsUIExtensionContentSession> GetStsContentSession(ani_env* env, ani_object obj)
 {
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null env");
@@ -50,26 +50,22 @@ StsUIExtensionContentSession* GetStsContentSession(ani_env* env, ani_object obj)
         ThrowStsInvalidParamError(env, "findClass fail");
         return nullptr;
     }
-    StsUIExtensionContentSession *stsContentSession = nullptr;
+    ani_long nativeContextLong;
     ani_field stsContentSessionField;
-    status = env->Class_FindField(cls, "nativeContextSession", &stsContentSessionField);
+    status = env->Class_FindField(cls, "nativeContext", &stsContentSessionField);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         ThrowStsInvalidParamError(env, "class find field fail");
         return nullptr;
     }
-    status = env->Object_GetField_Long(obj, stsContentSessionField, reinterpret_cast<ani_long*>(&stsContentSession));
+    status = env->Object_GetField_Long(obj, stsContentSessionField, &nativeContextLong);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         ThrowStsInvalidParamError(env, "object get field Long fail");
         return nullptr;
     }
-    if (stsContentSession == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "stsContentSession null");
-        ThrowStsInvalidParamError(env, "stsContentSession null");
-        return nullptr;
-    }
-    return stsContentSession;
+    auto weakContext = reinterpret_cast<std::weak_ptr<StsUIExtensionContentSession>*>(nativeContextLong);
+    return weakContext != nullptr ? weakContext->lock() : nullptr;
 }
 ani_object NativeSetReceiveDataCallback(ani_env* env, ani_object obj)
 {
@@ -166,6 +162,8 @@ ani_object StsUIExtensionContentSession::CreateStsUIExtensionContentSession(ani_
     std::shared_ptr<StsAbilityResultListeners>& abilityResultListeners,
     std::shared_ptr<StsUIExtensionContentSession> contentSessionPtr)
 {
+    auto workContext = new (std::nothrow) std::weak_ptr<StsUIExtensionContentSession>(contentSessionPtr);
+    ani_long nativeContextLong = (ani_long)workContext;
     ani_object object = nullptr;
     ani_method method = nullptr;
     ani_class cls;
@@ -204,12 +202,12 @@ ani_object StsUIExtensionContentSession::CreateStsUIExtensionContentSession(ani_
         return nullptr;
     }
     ani_field nativeField = nullptr;
-    status = env->Class_FindField(cls, "nativeContextSession", &nativeField);
+    status = env->Class_FindField(cls, "nativeContext", &nativeField);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return nullptr;
     }
-    status = env->Object_SetField_Long(object, nativeField, reinterpret_cast<ani_long>(contentSessionPtr.get()));
+    status = env->Object_SetField_Long(object, nativeField, nativeContextLong);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return nullptr;
