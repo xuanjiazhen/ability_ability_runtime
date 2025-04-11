@@ -288,17 +288,26 @@ std::string ContextImpl::GetTempDir()
     return dir;
 }
 
-std::string ContextImpl::GetResourceDir()
+std::string ContextImpl::GetResourceDir(const std::string &moduleName)
 {
+    auto getResourceDir = [](const std::string &moduleName) -> std::string {
+        if (moduleName.empty()) {
+            return "";
+        }
+        std::string dir = std::string(LOCAL_CODE_PATH) + CONTEXT_FILE_SEPARATOR +
+            moduleName + CONTEXT_RESOURCE_END;
+        return OHOS::FileExists(dir) ? dir : "";
+    };
+
+    if (!moduleName.empty()) {
+        return getResourceDir(moduleName);
+    }
+
     std::shared_ptr<AppExecFwk::HapModuleInfo> hapModuleInfoPtr = GetHapModuleInfo();
-    if (hapModuleInfoPtr == nullptr || hapModuleInfoPtr->moduleName.empty()) {
-        return "";
+    if (hapModuleInfoPtr && !hapModuleInfoPtr->moduleName.empty()) {
+        return getResourceDir(hapModuleInfoPtr->moduleName);
     }
-    std::string dir = std::string(LOCAL_CODE_PATH) + CONTEXT_FILE_SEPARATOR +
-        hapModuleInfoPtr->moduleName + CONTEXT_RESOURCE_END;
-    if (OHOS::FileExists(dir)) {
-        return dir;
-    }
+
     return "";
 }
 
