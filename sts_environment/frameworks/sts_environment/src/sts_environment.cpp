@@ -67,6 +67,11 @@ bool STSEnvironment::LoadBootPathFile(std::string& bootfiles)
         TAG_LOGE(AAFwkTag::STSRUNTIME, "read json error");
         return false;
     }
+    std::string content((std::istreambuf_iterator<char>(inFile)), std::istreambuf_iterator<char>());
+    if (!nlohmann::json::accept(content)) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "accept failed!");
+        return false;
+    }
     nlohmann::json jsonObject = nlohmann::json::parse(inFile);
     if (jsonObject.is_discarded()) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "json discarded error");
