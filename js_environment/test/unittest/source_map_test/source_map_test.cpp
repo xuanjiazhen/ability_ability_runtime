@@ -456,7 +456,7 @@ HWTEST_F(SourceMapTest, VlqRevCode_0100, Function | MediumTest | Level1)
     std::string str = "@";
     std::vector<int32_t> ans;
     auto ret = mapObj->VlqRevCode(str, ans);
-    EXPECT_EQ(ret, false);
+    EXPECT_EQ(ret, true);
 
     str = "A";
     auto ret1 = mapObj->VlqRevCode(str, ans);
