@@ -938,7 +938,7 @@ std::shared_ptr<Global::Resource::ResourceManager> ContextImpl::InitOthersResour
     }
     if (resConfig == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null resConfig");
-        return resConfig;
+        return nullptr;
     }
     std::shared_ptr<Global::Resource::ResourceManager> resourceManager(Global::Resource::CreateResourceManager(
         bundleInfo.name, moduleName, hapPath, overlayPaths, *resConfig, appType));
