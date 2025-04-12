@@ -45,12 +45,12 @@ ConfigurationPolicy *ConfigurationPolicy::Unmarshalling(Parcel &parcel)
 
 bool ConfigurationPolicy::Marshalling(Parcel &parcel) const
 {
-    if (!parcel.WriteInt32(countPerTime)) {
+    if (!parcel.WriteUint32(countPerTime)) {
         TAG_LOGE(AAFwkTag::APPMGR, "executionQuantity [%{public}d] write int32 failed.", countPerTime);
         return false;
     }
 
-    if (!parcel.WriteInt32(intervalTime)) {
+    if (!parcel.WriteUint32(intervalTime)) {
         TAG_LOGE(AAFwkTag::APPMGR, "intervalTime [%{public}d] write int32 failed.", intervalTime);
         return false;
     }
