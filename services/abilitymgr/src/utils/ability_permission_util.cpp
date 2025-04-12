@@ -126,55 +126,6 @@ int32_t AbilityPermissionUtil::CheckMultiInstanceAndAppClone(Want &want, int32_t
     return ERR_OK;
 }
 
-int32_t AbilityPermissionUtil::CheckStartByCallPermissionOrHasFloatingWindow(
-    const PermissionVerification::VerificationInfo &verificationInfo, const sptr<IRemoteObject> &callerToken)
-{
-    int32_t permissionRet =
-        PermissionVerification::GetInstance()->CheckStartByCallPermission(verificationInfo);
-    if (permissionRet == ERR_OK) {
-        return ERR_OK;
-    }
-#ifdef SUPPORT_SCREEN
-    if (CheckStartCallHasFloatingWindow(callerToken) == ERR_OK) {
-        return ERR_OK;
-    }
-#endif // SUPPORT_SCREEN
-    return permissionRet;
-}
-
-int32_t AbilityPermissionUtil::CheckCallServiceExtensionPermissionOrHasFloatingWindow(
-    const PermissionVerification::VerificationInfo &verificationInfo, const sptr<IRemoteObject> &callerToken)
-{
-    int32_t permissionRet =
-        PermissionVerification::GetInstance()->CheckCallServiceExtensionPermission(verificationInfo);
-    if (permissionRet == ERR_OK) {
-        return ERR_OK;
-    }
-#ifdef SUPPORT_SCREEN
-    if (CheckStartCallHasFloatingWindow(callerToken) == ERR_OK) {
-        return ERR_OK;
-    }
-#endif // SUPPORT_SCREEN
-    return permissionRet;
-}
-
-int32_t AbilityPermissionUtil::CheckCallAbilityPermissionOrHasFloatingWindow(
-    const PermissionVerification::VerificationInfo &verificationInfo, const sptr<IRemoteObject> &callerToken,
-    bool isCallByShortcut)
-{
-    int32_t permissionRet =
-        PermissionVerification::GetInstance()->CheckCallAbilityPermission(verificationInfo, isCallByShortcut);
-    if (permissionRet == ERR_OK) {
-        return ERR_OK;
-    }
-#ifdef SUPPORT_SCREEN
-    if (CheckStartCallHasFloatingWindow(callerToken) == ERR_OK) {
-        return ERR_OK;
-    }
-#endif // SUPPORT_SCREEN
-    return permissionRet;
-}
-
 #ifdef SUPPORT_SCREEN
 int32_t AbilityPermissionUtil::CheckStartCallHasFloatingWindow(const sptr<IRemoteObject> &callerToken)
 {
@@ -184,7 +135,8 @@ int32_t AbilityPermissionUtil::CheckStartCallHasFloatingWindow(const sptr<IRemot
         bool hasFloatingWindow = false;
         auto err = sceneSessionManager->HasFloatingWindowForeground(callerToken, hasFloatingWindow);
         TAG_LOGI(AAFwkTag::ABILITYMGR,
-            "startAbility call from background, checking floatingwindow. Ret: %{public}d", static_cast<int32_t>(err));
+            "check floatingwindow permission. Ret: %{public}d, hasFloatingWindow: %{public}d",
+            static_cast<int32_t>(err), hasFloatingWindow);
         if (err != Rosen::WMError::WM_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR,
                 "checking floatingwindow err: %{public}d", static_cast<int32_t>(err));
