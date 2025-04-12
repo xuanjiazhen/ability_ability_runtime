@@ -277,52 +277,62 @@ int32_t AbilityPermissionUtil::CheckStartRecentAbility(const Want &want, Ability
 }
 
 int32_t AbilityPermissionUtil::CheckStartByCallPermissionOrHasFloatingWindow(
-    const PermissionVerification::VerificationInfo &verificationInfo, const sptr<IRemoteObject> &callerToken)
+    PermissionVerification::VerificationInfo &verificationInfo, const sptr<IRemoteObject> &callerToken)
 {
-    int32_t permissionRet =
-        PermissionVerification::GetInstance()->CheckStartByCallPermission(verificationInfo);
-    if (permissionRet == ERR_OK) {
-        return ERR_OK;
-    }
 #ifdef SUPPORT_SCREEN
-    if (CheckStartCallHasFloatingWindow(callerToken) == ERR_OK) {
-        return ERR_OK;
+    if (PermissionVerification::GetInstance()->JudgeStartAbilityFromBackground(
+        verificationInfo.isBackgroundCall)) {
+        verificationInfo.backgroundStartPermission = true;
+    }
+    if (!verificationInfo.backgroundStartPermission &&
+        AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
+        if (CheckStartCallHasFloatingWindow(callerToken) == ERR_OK) {
+            verificationInfo.backgroundStartPermission = true;
+        }
     }
 #endif // SUPPORT_SCREEN
-    return permissionRet;
+
+    return PermissionVerification::GetInstance()->CheckStartByCallPermission(verificationInfo);
 }
 
 int32_t AbilityPermissionUtil::CheckCallServiceExtensionPermissionOrHasFloatingWindow(
-    const PermissionVerification::VerificationInfo &verificationInfo, const sptr<IRemoteObject> &callerToken)
+    PermissionVerification::VerificationInfo &verificationInfo, const sptr<IRemoteObject> &callerToken)
 {
-    int32_t permissionRet =
-        PermissionVerification::GetInstance()->CheckCallServiceExtensionPermission(verificationInfo);
-    if (permissionRet == ERR_OK) {
-        return ERR_OK;
-    }
 #ifdef SUPPORT_SCREEN
-    if (CheckStartCallHasFloatingWindow(callerToken) == ERR_OK) {
-        return ERR_OK;
+    if (PermissionVerification::GetInstance()->JudgeStartAbilityFromBackground(
+        verificationInfo.isBackgroundCall)) {
+        verificationInfo.backgroundStartPermission = true;
+    }
+    if (!verificationInfo.backgroundStartPermission &&
+        AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
+        if (CheckStartCallHasFloatingWindow(callerToken) == ERR_OK) {
+            verificationInfo.backgroundStartPermission = true;
+        }
     }
 #endif // SUPPORT_SCREEN
-    return permissionRet;
+
+    return PermissionVerification::GetInstance()->CheckCallServiceExtensionPermission(verificationInfo);
 }
 
 int32_t AbilityPermissionUtil::CheckCallAbilityPermissionOrHasFloatingWindow(
-    const PermissionVerification::VerificationInfo &verificationInfo, const sptr<IRemoteObject> &callerToken,
+    PermissionVerification::VerificationInfo &verificationInfo, const sptr<IRemoteObject> &callerToken,
     bool isCallByShortcut)
 {
-    int32_t permissionRet =
-        PermissionVerification::GetInstance()->CheckCallAbilityPermission(verificationInfo, isCallByShortcut);
-    if (permissionRet == ERR_OK) {
-        return ERR_OK;
-    }
 #ifdef SUPPORT_SCREEN
-    if (CheckStartCallHasFloatingWindow(callerToken) == ERR_OK) {
-        return ERR_OK;
+    if (PermissionVerification::GetInstance()->JudgeStartAbilityFromBackground(
+        verificationInfo.isBackgroundCall)) {
+        verificationInfo.backgroundStartPermission = true;
+    }
+    if (!verificationInfo.backgroundStartPermission &&
+        AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
+        if (CheckStartCallHasFloatingWindow(callerToken) == ERR_OK) {
+            verificationInfo.backgroundStartPermission = true;
+        }
     }
 #endif // SUPPORT_SCREEN
-    return permissionRet;
+
+    return PermissionVerification::GetInstance()->CheckCallAbilityPermission(verificationInfo,
+        isCallByShortcut);
 }
 
 #ifdef SUPPORT_SCREEN
