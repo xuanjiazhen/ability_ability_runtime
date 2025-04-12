@@ -27,6 +27,10 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace ContextUtil {
+namespace {
+    std::shared_ptr<EtsEnviromentCallback> etsEnviromentCallback_ = nullptr;
+}
+
 void BindApplicationCtx(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
     void* applicationCtxRef)
 {
@@ -142,6 +146,40 @@ ani_object GetApplicationContextSync([[maybe_unused]]ani_env *env, [[maybe_unuse
     }
     ThrowStsInvalidParamError(env, "appContextObj null");
     return {};
+}
+
+ani_double NativeOnSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
+    ani_string type, ani_object envCallback) 
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    ani_class applicationContextCls = nullptr;
+    if (env->FindClass("Lapplication/ApplicationContext/ApplicationContext;", &applicationContextCls) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "FindClass ApplicationContext failed");
+        AbilityRuntime::ThrowStsInvalidParamError(env, "FindClass failed");
+        return ANI_ERROR;
+    }
+    ani_field contextField;
+    if (env->Class_FindField(applicationContextCls, "nativeApplicationContext", &contextField) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Class_FindField failed");
+        AbilityRuntime::ThrowStsInvalidParamError(env, "Class_FindField failed");
+        return ANI_ERROR;
+    }
+    ani_long nativeContextLong;
+    if (env->Object_GetField_Long(aniObj, contextField, &nativeContextLong) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Object_GetField_Long failed");
+        AbilityRuntime::ThrowStsInvalidParamError(env, "Object_GetField_Long failed");
+        return ANI_ERROR;
+    }
+
+    if (etsEnviromentCallback_ != nullptr) {
+        return ani_double(etsEnviromentCallback_->Register(envCallback));
+    }
+
+    etsEnviromentCallback_ = std::make_shared<EtsEnviromentCallback>(env);
+    int32_t callbackId = etsEnviromentCallback_->Register(envCallback);
+    ((AbilityRuntime::ApplicationContext*)nativeContextLong)->RegisterEnvironmentCallback(etsEnviromentCallback_);
+
+    return ani_double(callbackId);
 }
 }
 } // namespace AbilityRuntime
