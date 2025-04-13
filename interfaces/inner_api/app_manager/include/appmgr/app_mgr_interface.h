@@ -48,6 +48,7 @@
 #include "want.h"
 #include "app_jsheap_mem_info.h"
 #include "running_multi_info.h"
+#include "configuration_policy.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -950,6 +951,28 @@ public:
     {
         return 0;
     }
+    virtual int32_t UpdateConfigurationPolicy1(const std::vector<int32_t> &whiteList, const ConfigurationPolicy &policy)
+    {
+        return 0;
+    }
+    /**
+     * Update policys.
+     *
+     * @param whiteList White list.
+     * @param policy Update policy.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t UpdateConfigurationPolicy(const std::vector<int32_t> &whiteList, const ConfigurationPolicy &policy)
+    {
+        return 0;
+    }
+
+
+    virtual int32_t UpdateConfigurationPolicy2(/*const std::vector<int32_t> &whiteList, const ConfigurationPolicy &policy*/)
+    {
+        return 0;
+    }
+
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

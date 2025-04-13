@@ -809,6 +809,19 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t LaunchAbility(const sptr<IRemoteObject> &token) override;
+     
+    int32_t UpdateConfigurationPolicy1(const std::vector<int32_t> &whiteList, const ConfigurationPolicy &policy) override;
+    
+    /**
+     * Update policys.
+     *
+     * @param whiteList White list.
+     * @param policy Update policy.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t UpdateConfigurationPolicy(const std::vector<int32_t> &whiteList, const ConfigurationPolicy &policy) override;
+    
+    int32_t UpdateConfigurationPolicy2(/*const std::vector<int32_t> &whiteList, const ConfigurationPolicy &policy*/) override;
 
 private:
     bool SendTransactCmd(AppMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);
