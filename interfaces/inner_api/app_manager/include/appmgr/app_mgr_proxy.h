@@ -810,7 +810,6 @@ public:
      */
     int32_t LaunchAbility(const sptr<IRemoteObject> &token) override;
      
-    int32_t UpdateConfigurationPolicy1(const std::vector<int32_t> &whiteList, const ConfigurationPolicy &policy) override;
     
     /**
      * Update policys.
@@ -821,8 +820,6 @@ public:
      */
     int32_t UpdateConfigurationPolicy(const std::vector<int32_t> &whiteList, const ConfigurationPolicy &policy) override;
     
-    int32_t UpdateConfigurationPolicy2(/*const std::vector<int32_t> &whiteList, const ConfigurationPolicy &policy*/) override;
-
 private:
     bool SendTransactCmd(AppMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     bool WriteInterfaceToken(MessageParcel &data);
