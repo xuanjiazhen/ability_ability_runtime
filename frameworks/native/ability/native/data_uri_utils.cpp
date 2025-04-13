@@ -174,7 +174,7 @@ bool DataUriUtils::IsNumber(const string &str)
             return true;
         }
         return false;
-    } catch (...) {
+    } catch (const std::regex_error& e) {
         return false;
     }
 }
