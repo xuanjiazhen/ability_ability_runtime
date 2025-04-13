@@ -1887,27 +1887,6 @@ int32_t AppMgrStub::HandleLaunchAbility(MessageParcel &data, MessageParcel &repl
     return NO_ERROR;
 }
 
-int32_t AppMgrStub::HandleUpdateConfigurationPolicy1(MessageParcel &data, MessageParcel &reply)
-{
-    TAG_LOGE(AAFwkTag::APPMGR, "AppMgrStub::HandleUpdatePolicy......1............................");
-    std::vector<int32_t> whiteList;
-    int size = data.ReadInt32();
-    for (int i = 0; i < size; i++) {
-        whiteList.push_back(data.ReadInt32());
-    }
-    std::unique_ptr<ConfigurationPolicy> policy(data.ReadParcelable<ConfigurationPolicy>());
-    if (!policy) {
-        TAG_LOGE(AAFwkTag::APPMGR, "AppMgrStub read configuration error...1......................");
-        return ERR_INVALID_VALUE;
-    }
-     
-    auto ret = UpdateConfigurationPolicy1(whiteList, *policy);
-    if (!reply.WriteInt32(ret)) {
-        return ERR_INVALID_VALUE;
-    }
-    return NO_ERROR;
-}
-
 int32_t AppMgrStub::HandleUpdateConfigurationPolicy(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGE(AAFwkTag::APPMGR, "AppMgrStub::HandleUpdatePolicy..................................");
@@ -1923,16 +1902,6 @@ int32_t AppMgrStub::HandleUpdateConfigurationPolicy(MessageParcel &data, Message
         return ERR_INVALID_VALUE;
     }
     auto ret = UpdateConfigurationPolicy(whiteList, *policy);
-    if (!reply.WriteInt32(ret)) {
-        return ERR_INVALID_VALUE;
-    }
-    return NO_ERROR;
-}
-
-int32_t AppMgrStub::HandleUpdateConfigurationPolicy2(MessageParcel &data, MessageParcel &reply)
-{
-    TAG_LOGE(AAFwkTag::APPMGR, "AppMgrStub::HandleUpdatePolicy2..................................");
-    auto ret = UpdateConfigurationPolicy2(/*whiteList, *policy*/);
     if (!reply.WriteInt32(ret)) {
         return ERR_INVALID_VALUE;
     }
