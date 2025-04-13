@@ -951,10 +951,7 @@ public:
     {
         return 0;
     }
-    virtual int32_t UpdateConfigurationPolicy1(const std::vector<int32_t> &whiteList, const ConfigurationPolicy &policy)
-    {
-        return 0;
-    }
+
     /**
      * Update policys.
      *
@@ -966,13 +963,6 @@ public:
     {
         return 0;
     }
-
-
-    virtual int32_t UpdateConfigurationPolicy2(/*const std::vector<int32_t> &whiteList, const ConfigurationPolicy &policy*/)
-    {
-        return 0;
-    }
-
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
