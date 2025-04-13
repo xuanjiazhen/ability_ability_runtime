@@ -1842,27 +1842,6 @@ int32_t AppMgrService::LaunchAbility(const sptr<IRemoteObject> &token)
     return appMgrServiceInner_->LaunchAbility(token);
 }
 
-int32_t AppMgrService::UpdateConfigurationPolicy1(const std::vector<int32_t> &whiteList, const ConfigurationPolicy &policy)
-{
-    TAG_LOGE(AAFwkTag::APPMGR, "AppMgrService::UpdatePolicy..1...............................");
-    if (!IsReady()) {
-        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
-    }
-    
-    if (!appMgrServiceInner_) {
-        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
-        return AAFwk::ERR_NULL_APP_MGR_SERVICE_INNER;
-    }
-    //return appMgrServiceInner_->UpdatePolicy(whiteList, policy);
-    auto size = whiteList.size();
-    for (int i = 0; i < size; i++) {
-        TAG_LOGE(AAFwkTag::APPMGR, ".....1...........%{public}d.................", whiteList[i]);
-    }
-
-    TAG_LOGE(AAFwkTag::APPMGR, ".......1.........%{public}d.......%{public}d..........", policy.countPerTime, policy.intervalTime);
-    return 0;
-}
-
 int32_t AppMgrService::UpdateConfigurationPolicy(const std::vector<int32_t> &whiteList, const ConfigurationPolicy &policy)
 {
     TAG_LOGE(AAFwkTag::APPMGR, "AppMgrService::UpdatePolicy.................................");
@@ -1886,21 +1865,6 @@ int32_t AppMgrService::UpdateConfigurationPolicy(const std::vector<int32_t> &whi
     }
 
     TAG_LOGE(AAFwkTag::APPMGR, "................%{public}d.......%{public}d..........", policy.countPerTime, policy.intervalTime);
-    return 0;
-}
-
-int32_t AppMgrService::UpdateConfigurationPolicy2(/*const std::vector<int32_t> &whiteList, const ConfigurationPolicy &policy*/)
-{
-    TAG_LOGE(AAFwkTag::APPMGR, "AppMgrService::UpdatePolicy2.................................");
-    if (!IsReady()) {
-        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
-    }
-    
-    if (!appMgrServiceInner_) {
-        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
-        return AAFwk::ERR_NULL_APP_MGR_SERVICE_INNER;
-    }
-
     return 0;
 }
 }  // namespace AppExecFwk
