@@ -2280,47 +2280,10 @@ int32_t AppMgrProxy::LaunchAbility(const sptr<IRemoteObject> &token)
     return reply.ReadInt32();
 }
 
-int32_t AppMgrProxy::UpdateConfigurationPolicy1(const std::vector<int32_t> &whiteList, const ConfigurationPolicy &policy)
-{
-    TAG_LOGE(AAFwkTag::APPMGR, "AppMgrProxy::UpdatePolicy1............................");
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write token failed1.................");
-        return AAFwk::ERR_WRITE_INTERFACE_TOKEN_FAILED;
-    }
-    auto size = whiteList.size();
-    if (size == 0 || size > MAX_PROCESS_STATE_COUNT) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Invalid size.11.....................");
-        return ERR_FLATTEN_OBJECT;
-    }
-   
-    if (!data.WriteUint32(size)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write size failed...1..............");
-        return ERR_FLATTEN_OBJECT;
-    }
-    for (const auto &record: whiteList) {
-        if (!data.WriteUint32(record)) {
-            TAG_LOGE(AAFwkTag::APPMGR, "Write perState failed...11................");
-            return ERR_FLATTEN_OBJECT;
-        }
-    }
-    if (!data.WriteParcelable(&policy)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "parcel policy failed....1..................");
-        return ERR_INVALID_DATA;
-    }
-    if (!SendTransactCmd(AppMgrInterfaceCode::UPDATE_POLICY, data, reply)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest err........1............");
-        return IPC_PROXY_ERR;
-    }
-
-    return ERR_OK;
-}
 
 int32_t AppMgrProxy::UpdateConfigurationPolicy(const std::vector<int32_t> &whiteList, const ConfigurationPolicy &policy)
 {
-    TAG_LOGE(AAFwkTag::APPMGR, "AppMgrProxy::UpdatePolicy1............................");
+    TAG_LOGE(AAFwkTag::APPMGR, "AppMgrProxy::UpdatePolicy............................");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -2349,25 +2312,6 @@ int32_t AppMgrProxy::UpdateConfigurationPolicy(const std::vector<int32_t> &white
         return ERR_INVALID_DATA;
     }
     if (!SendTransactCmd(AppMgrInterfaceCode::UPDATE_POLICY1, data, reply)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest err....................");
-        return IPC_PROXY_ERR;
-    }
-
-    return ERR_OK;
-}
-
-int32_t AppMgrProxy::UpdateConfigurationPolicy2(/* std::vector<int32_t> &whiteList, const ConfigurationPolicy &policy*/)
-{
-    TAG_LOGE(AAFwkTag::APPMGR, "AppMgrProxy::UpdatePolicy2............................");
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write token failed.................");
-        return AAFwk::ERR_WRITE_INTERFACE_TOKEN_FAILED;
-    }
-   
-    if (!SendTransactCmd(AppMgrInterfaceCode::UPDATE_POLICY2, data, reply)) {
         TAG_LOGE(AAFwkTag::APPMGR, "SendRequest err....................");
         return IPC_PROXY_ERR;
     }
