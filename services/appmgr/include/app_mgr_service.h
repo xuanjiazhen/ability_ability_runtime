@@ -980,7 +980,7 @@ private:
      */
     virtual int32_t GetSupportedProcessCachePids(const std::string &bundleName,
         std::vector<int32_t> &pidList) override;
-virtual int32_t UpdateConfigurationPolicy1(const std::vector<int32_t> &whiteList, const ConfigurationPolicy &policy) override;
+
     /**
      * Update policys.
      *
@@ -989,8 +989,6 @@ virtual int32_t UpdateConfigurationPolicy1(const std::vector<int32_t> &whiteList
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UpdateConfigurationPolicy(const std::vector<int32_t> &whiteList, const ConfigurationPolicy &policy) override;
-    
-    virtual int32_t UpdateConfigurationPolicy2(/*const std::vector<int32_t> &whiteList, const ConfigurationPolicy &policy*/) override;
 
     enum DumpIpcKey {
         KEY_DUMP_IPC_START = 0,
