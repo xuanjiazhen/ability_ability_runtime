@@ -388,10 +388,6 @@ int32_t AppMgrStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel &dat
             return HandleLaunchAbility(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_POLICY):
             return HandleUpdateConfigurationPolicy(data, reply);
-        case static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_POLICY1):
-            return HandleUpdateConfigurationPolicy1(data, reply);
-        case static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_POLICY2):
-            return HandleUpdateConfigurationPolicy2(data, reply);
     }
     return INVALID_FD;
 }
