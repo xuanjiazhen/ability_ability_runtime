@@ -2311,7 +2311,7 @@ int32_t AppMgrProxy::UpdateConfigurationPolicy(const std::vector<int32_t> &white
         TAG_LOGE(AAFwkTag::APPMGR, "parcel policy failed......................");
         return ERR_INVALID_DATA;
     }
-    if (!SendTransactCmd(AppMgrInterfaceCode::UPDATE_POLICY1, data, reply)) {
+    if (!SendTransactCmd(AppMgrInterfaceCode::UPDATE_POLICY, data, reply)) {
         TAG_LOGE(AAFwkTag::APPMGR, "SendRequest err....................");
         return IPC_PROXY_ERR;
     }
