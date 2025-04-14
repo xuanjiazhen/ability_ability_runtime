@@ -47,6 +47,7 @@ static ani_object GetAbilityDelegator(ani_env *env, [[maybe_unused]]ani_class an
             TAG_LOGE(AAFwkTag::DELEGATOR, "value is nullptr");
             return {};
         }
+        int a = 10;
         ani_boolean isValue;
         env->Reference_IsNullishValue(value, &isValue);
         if (isValue) {
