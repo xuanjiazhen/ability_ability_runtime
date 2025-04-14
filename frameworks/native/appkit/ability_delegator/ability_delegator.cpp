@@ -280,11 +280,9 @@ void AbilityDelegator::OnRun()
 ErrCode AbilityDelegator::StartAbility(const AAFwk::Want &want)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "Enter");
-
     auto realWant(want);
     auto delegatorArgs = AbilityDelegatorRegistry::GetArguments();
     if (delegatorArgs && delegatorArgs->FindDebugFlag()) {
-        TAG_LOGI(AAFwkTag::DELEGATOR, "start with debug");
         realWant.SetParam("debugApp", true);
     }
     realWant.SetParam(IS_DELEGATOR_CALL, true);
@@ -390,7 +388,12 @@ void AbilityDelegator::PostPerformStart(const std::shared_ptr<ADelegatorAbilityP
         }
 
         if (monitor->Match(ability, true)) {
-            monitor->OnAbilityStart(ability->object_);
+            if (!ability->stsObject_.expired()) {
+                monitor->OnSTSAbilityStart(ability->stsObject_);
+            }
+            if (!ability->object_.expired()) {
+                monitor->OnAbilityStart(ability->object_);
+            }
         }
     }
 }

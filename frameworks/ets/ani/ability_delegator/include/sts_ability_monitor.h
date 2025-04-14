@@ -20,10 +20,11 @@
 #include <string>
 #include "native_engine/native_reference.h"
 #include "sts_runtime.h"
+#include "iability_monitor.h"
 
 namespace OHOS {
 namespace AbilityDelegatorSts {
-class STSAbilityMonitor {
+class STSAbilityMonitor : public AppExecFwk::IAbilityMonitor {
 public:
     /**
      * A constructor used to create a STSAbilityMonitor instance with the input parameter passed.
@@ -31,7 +32,7 @@ public:
      * @param abilityName Indicates the specified ability name for monitoring the lifecycle state changes
      * of the ability.
      */
-    explicit STSAbilityMonitor(ani_env* env, const std::string &abilityName);
+    explicit STSAbilityMonitor(const std::string &abilityName);
 
     /**
      * A constructor used to create a STSAbilityMonitor instance with the input parameter passed.
@@ -42,7 +43,7 @@ public:
      * @param moduleName Indicates the specified module name for monitoring the lifecycle state changes
      * of the ability.
      */
-    explicit STSAbilityMonitor(ani_env* env, const std::string &abilityName, const std::string &moduleName);
+    explicit STSAbilityMonitor(const std::string &abilityName, const std::string &moduleName);
 
     /**
      * Default deconstructor used to deconstruct.
@@ -55,7 +56,7 @@ public:
      *
      * @param abilityObj Indicates the ability object.
      */
-    void OnAbilityCreate(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj);
+    void OnSTSAbilityStart(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj) override;
 
     /**
      * Called when ability is in foreground.
@@ -63,7 +64,7 @@ public:
      *
      * @param abilityObj Indicates the ability object.
      */
-    void OnAbilityForeground(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj);
+    void OnSTSAbilityForeground(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj) override;
 
     /**
      * Called when ability is in background.
@@ -71,7 +72,7 @@ public:
      *
      * @param abilityObj Indicates the ability object.
      */
-    void OnAbilityBackground(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj);
+    void OnSTSAbilityBackground(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj) override;
 
     /**
      * Called when ability is stopped.
@@ -79,7 +80,7 @@ public:
      *
      * @param abilityObj Indicates the ability object.
      */
-    void OnAbilityDestroy(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj);
+    void OnSTSAbilityDestroy(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj);
 
     /**
      * Called when window stage is created.
@@ -87,7 +88,7 @@ public:
      *
      * @param abilityObj Indicates the ability object.
      */
-    void OnWindowStageCreate(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj);
+    void OnSTSWindowStageCreate(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj) override;
 
     /**
      * Called when window stage is restored.
@@ -95,7 +96,7 @@ public:
      *
      * @param abilityObj Indicates the ability object.
      */
-    void OnWindowStageRestore(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj);
+    void OnSTSWindowStageRestore(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj) override;
 
     /**
      * Called when window stage is destroyed.
@@ -103,24 +104,14 @@ public:
      *
      * @param abilityObj Indicates the ability object.
      */
-    void OnWindowStageDestroy(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj);
+    void OnSTSWindowStageDestroy(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj) override;
 
     /**
-     * Sets the js object.
+     * Sets the sts object.
      *
-     * @param jsAbilityMonitor Indicates the js object.
+     * @param abilityMonitorObj Indicates the sts object.
      */
-    void SetStsAbilityMonitor(ani_object abilityMonitorObj);
-
-    /**
-     * Sets the native env.
-     *
-     * @param env Indicates the native env.
-     */
-    void SetJsAbilityMonitorEnv(ani_env* env)
-    {
-        env_ = env;
-    }
+    void SetSTSAbilityMonitor(ani_vm *aniVM, ani_object &abilityMonitorObj);
 
     /**
      * Obtains the saved js object.
@@ -135,9 +126,10 @@ public:
 private:
     void CallLifecycleCBFunction(const std::string &functionName,
         const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj);
+    ani_env* GetAniEnv();
 
 private:
-    ani_env* env_ = nullptr;
+    ani_vm* vm_ = nullptr;
     std::string abilityName_ = "";
     std::string moduleName_ = "";
     std::unique_ptr<AbilityRuntime::STSNativeReference> stsAbilityMonitor_ = nullptr;
