@@ -185,7 +185,7 @@ bool InsightIntentRdbDataMgr::DeleteData(const std::string &key)
     return ret == NativeRdb::E_OK;
 }
 
-bool InsightIntentRdbDataMgr::QueryData(const std::string &key, std::string &value)
+bool InsightIntentRdbDataMgr::QueryData(const std::string &key, std::unordered_map<std::string, std::string> &datas)
 {
     TAG_LOGD(AAFwkTag::INTENT, "QueryData start");
     auto rdbStore = GetRdbStore();
@@ -195,26 +195,35 @@ bool InsightIntentRdbDataMgr::QueryData(const std::string &key, std::string &val
     }
 
     NativeRdb::AbsRdbPredicates absRdbPredicates(intentRdbConfig_.tableName);
-    absRdbPredicates.EqualTo(INTENT_KEY, key);
+    absRdbPredicates.BeginsWith(INTENT_KEY, key);
     auto absSharedResultSet = rdbStore->QueryByStep(absRdbPredicates, std::vector<std::string>());
     if (absSharedResultSet == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "absSharedResultSet failed");
         return false;
     }
     ScopeGuard stateGuard([&] { absSharedResultSet->Close(); });
-    auto ret = absSharedResultSet->GoToFirstRow();
-    if (ret != NativeRdb::E_OK) {
-        TAG_LOGE(AAFwkTag::INTENT, "GoToFirstRow failed, ret: %{public}d", ret);
+
+    if (absSharedResultSet->GoToFirstRow() != NativeRdb::E_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "GoToFirstRow failed");
         return false;
     }
 
-    ret = absSharedResultSet->GetString(INTENT_VALUE_INDEX, value);
-    if (ret != NativeRdb::E_OK) {
-        TAG_LOGE(AAFwkTag::INTENT, "QueryData failed, ret: %{public}d", ret);
-        return false;
-    }
+    do {
+        std::string key;
+        if (absSharedResultSet->GetString(INTENT_KEY_INDEX, key) != NativeRdb::E_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "GetString key failed");
+            return false;
+        }
 
-    return true;
+        std::string value;
+        if (absSharedResultSet->GetString(INTENT_VALUE_INDEX, value) != NativeRdb::E_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "GetString value failed");
+            return false;
+        }
+
+        datas.emplace(key, value);
+    } while (absSharedResultSet->GoToNextRow() == NativeRdb::E_OK);
+    return !datas.empty();
 }
 
 bool InsightIntentRdbDataMgr::QueryAllData(std::unordered_map<std::string, std::string> &datas)
