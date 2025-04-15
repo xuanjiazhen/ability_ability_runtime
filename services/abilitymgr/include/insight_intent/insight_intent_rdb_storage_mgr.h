@@ -20,7 +20,7 @@
 #include <string>
 #include "insight_intent_rdb_data_mgr.h"
 #include "hilog_tag_wrapper.h"
-#include "extra_insight_intent_total_info.h"
+#include "extra_insight_intent_profile.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -28,11 +28,16 @@ class InsightRdbStorageMgr : public std::enable_shared_from_this<InsightRdbStora
     DECLARE_DELAYED_SINGLETON(InsightRdbStorageMgr)
 public:
 
-    int32_t LoadInsightIntentInfos(std::vector<ExtraInsightIntentTotalInfo> &genericInfos);
+    int32_t LoadInsightIntentInfos(std::vector<ExtraInsightIntentInfo> &totalInfos);
+    int32_t LoadInsightIntentInfoByName(const std::string bundleName, std::vector<ExtraInsightIntentInfo> &totalInfos);
+    int32_t LoadInsightIntentInfo(const std::string bundleName, const std::string moduleName,
+        const std::string intentName, ExtraInsightIntentInfo &totalInfo);
     int32_t SaveStorageInsightIntentData(const std::string bundleName, const std::string moduleName,
-        std::vector<ExtraInsightIntentTotalInfo> &genericInfos);
+        ExtraInsightIntentProfileInfoVec &profileInfos);
     int32_t DeleteStorageInsightIntentData(const std::string bundleName);
+
 private:
+    void Transform(std::unordered_map<std::string, std::string> value, std::vector<ExtraInsightIntentInfo> &totalInfos);
     mutable std::mutex rdbStorePtrMutex_;
 };
 }  // namespace AAFwk

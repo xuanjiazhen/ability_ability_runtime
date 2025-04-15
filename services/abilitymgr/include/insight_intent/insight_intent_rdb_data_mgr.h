@@ -73,9 +73,12 @@ public:
     bool DeleteDataBeginWithKey(const std::string &key);
 
     bool QueryData(const std::string &key, std::string &value);
+    bool QueryDataBeginWithKey(const std::string &key, std::unordered_map<std::string, std::string> &datas);
     bool QueryAllData(std::unordered_map<std::string, std::string> &datas);
 
     void BackupRdb();
+
+    bool IsIntentRdbLoaded();
 private:
     std::shared_ptr<NativeRdb::RdbStore> GetRdbStore();
     int32_t InsertWithRetry(std::shared_ptr<NativeRdb::RdbStore> rdbStore, int64_t &rowId,

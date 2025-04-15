@@ -22,7 +22,7 @@
 #include "insight_intent_execute_param.h"
 
 namespace OHOS {
-namespace AbilityRuntime {
+namespace AAFwk {
 using ExecuteMode = AppExecFwk::ExecuteMode;
 
 struct InsightIntentParam {
@@ -80,11 +80,11 @@ struct ExtraInsightIntentGenericInfo {
     char *displayName; // 必选
     char *decoratorType; // 必选
     union {
-        LinkInfo linkInfo;
-        PageInfo pageInfo;
-        EntryInfo entryInfo;
-        FunctionInfo functionInfo;
-        FormInfo formInfo;
+        LinkInfo* linkInfo;
+        PageInfo* pageInfo;
+        EntryInfo* entryInfo;
+        FunctionInfo* functionInfo;
+        FormInfo* formInfo;
     };
 };
 
@@ -99,7 +99,7 @@ struct ExtraInsightIntentInfo {
     char *icon; // 可选
     char *llmDescription; // 可选
     std::vector<std::string> keywords; // 可选
-    ExtraInsightIntentGenericInfo genericInfo;
+    ExtraInsightIntentGenericInfo* genericInfo;
 };
 
 struct LinkIntentParamProfileMapping {
