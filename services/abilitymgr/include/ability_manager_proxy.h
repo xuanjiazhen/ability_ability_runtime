@@ -266,6 +266,16 @@ public:
         uint32_t specifyTokenId) override;
 
     /**
+     * Start ability need time
+     *
+     * @param want the want of the ability to start.
+     * @param isColdStart cold start
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int StartAbilityWithWait(
+        const Want &want, const sptr<AppExecFwk::IStartAbilityWithWaitObserver> &observer) override;
+
+    /**
      * Start extension ability with want, send want to ability manager service.
      *
      * @param want, the want of the ability to start.

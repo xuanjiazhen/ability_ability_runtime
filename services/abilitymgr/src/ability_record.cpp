@@ -1238,6 +1238,39 @@ bool AbilityRecord::ReportAtomicServiceDrawnCompleteEvent()
 void AbilityRecord::SetCompleteFirstFrameDrawing(const bool flag)
 {
     isCompleteFirstFrameDrawing_ = flag;
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityRecord::SetCompleteFirstFrameDrawing call");
+    if (WithWaitInfo.observer) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "completeFirstFrameDrawingTime");
+        startAbilityWithWaitInfoData_.completeFirstFrameDrawingTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityRecord::SetCompleteFirstFrameDrawing %{public}lld", startAbilityWithWaitInfoData_.completeFirstFrameDrawingTime);
+        startAbilityWithWaitInfoData_.abilityManagerServiceTime =
+        WithWaitInfo.withWaitStartTime;
+        startAbilityWithWaitInfoData_.isCompleteFirstFrameFlag = true;
+        startAbilityWithWaitInfoData_.coldStart = true;
+        startAbilityWithWaitInfoData_.bundleName = GetAbilityInfo().bundleName;
+        startAbilityWithWaitInfoData_.abilityName = GetAbilityInfo().name;
+        WithWaitInfo.observer->OnStartAbilityWithWait(startAbilityWithWaitInfoData_);
+    }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityRecord::SetCompleteFirstFrameDrawing call end");
+}
+
+void AbilityRecord::SetStartAbilityWithWait(
+    std::shared_ptr<AAFwk::StartAbilityWithWaitInfo> startAbilityWithWaitInfo)
+{
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityRecord::SetStartAbilityWithWait call start");
+    if (startAbilityWithWaitInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "startAbilityWithWaitInfo is null");
+        return ;
+    }
+    if (startAbilityWithWaitInfo) {
+        if (startAbilityWithWaitInfo->observer) {
+            WithWaitInfo.withWaitStartTime = startAbilityWithWaitInfo->withWaitStartTime;
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityRecord::SetStartAbilityWithWait %{public}lld", WithWaitInfo.withWaitStartTime);
+            WithWaitInfo.observer = startAbilityWithWaitInfo->observer;
+        }
+    }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityRecord::SetStartAbilityWithWait call start");
 }
 
 bool AbilityRecord::IsCompleteFirstFrameDrawing() const
