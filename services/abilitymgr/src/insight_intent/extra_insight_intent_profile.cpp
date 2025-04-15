@@ -19,7 +19,7 @@
 #include "json_util.h"
 
 namespace OHOS {
-namespace AbilityRuntime {
+namespace AAFwk {
 using JsonType = AppExecFwk::JsonType;
 using ArrayType = AppExecFwk::ArrayType;
 
@@ -326,8 +326,23 @@ void to_json(nlohmann::json& jsonObject, const ExtraInsightIntentProfileInfo& in
     };
 }
 
-bool CheckProfileSubIntentInfo(const ExtraInsightIntentProfileInfo &insightIntent)
+bool CheckProfileInfo(const ExtraInsightIntentProfileInfo &insightIntent)
 {
+    if (insightIntent.decoratorFile.empty() || insightIntent.decoratorClass.empty() ||
+        insightIntent.decoratorType.empty() || insightIntent.bundleName.empty()||
+        insightIntent.moduleName.empty() || insightIntent.intentName.empty() || insightIntent.domain.empty() ||
+        insightIntent.intentVersion.empty() || insightIntent.displayName.empty()) {
+        TAG_LOGE(AAFwkTag::INTENT, "exist empty param, decoratorFile:%s, decoratorClass:%{public}s, "
+            "decoratorType:%{public}s, bundleName:%{public}s, moduleName:%{public}s, intentName:%{public}s, "
+            "domain:%{public}s, intentVersion:%{public}s, displayName:%{public}s",
+            insightIntent.decoratorFile.c_str(), insightIntent.decoratorClass.c_str(),
+            insightIntent.decoratorType.c_str(), insightIntent.bundleName.c_str(), insightIntent.moduleName.c_str(),
+            insightIntent.intentName.c_str(), insightIntent.domain.c_str(), insightIntent.intentVersion.c_str(),
+            insightIntent.displayName.c_str());
+        return false;
+    }
+
+
     switch (StringToEnum(insightIntent.decoratorType)) {
         case DecoratorType::DECORATOR_LINK:
             if (insightIntent.uri.empty()) {
@@ -371,25 +386,6 @@ bool CheckProfileSubIntentInfo(const ExtraInsightIntentProfileInfo &insightInten
     }
 
     return true;
-}
-
-bool CheckProfileInfo(const ExtraInsightIntentProfileInfo &insightIntent)
-{
-    if (insightIntent.decoratorFile.empty() || insightIntent.decoratorClass.empty() ||
-        insightIntent.decoratorType.empty() || insightIntent.bundleName.empty() ||
-        insightIntent.moduleName.empty() || insightIntent.intentName.empty() || insightIntent.domain.empty() ||
-        insightIntent.intentVersion.empty() || insightIntent.displayName.empty()) {
-        TAG_LOGE(AAFwkTag::INTENT, "exist empty param, decoratorFile:%s, decoratorClass:%{public}s, "
-            "decoratorType:%{public}s, bundleName:%{public}s, moduleName:%{public}s, intentName:%{public}s, "
-            "domain:%{public}s, intentVersion:%{public}s, displayName:%{public}s",
-            insightIntent.decoratorFile.c_str(), insightIntent.decoratorClass.c_str(),
-            insightIntent.decoratorType.c_str(), insightIntent.bundleName.c_str(), insightIntent.moduleName.c_str(),
-            insightIntent.intentName.c_str(), insightIntent.domain.c_str(), insightIntent.intentVersion.c_str(),
-            insightIntent.displayName.c_str());
-        return false;
-    }
-
-    return CheckProfileSubIntentInfo(insightIntent);
 }
 
 bool TransformToLinkInfo(const ExtraInsightIntentProfileInfo &insightIntent, LinkInfo &info)
@@ -480,15 +476,15 @@ bool ExtraInsightIntentProfile::TransformTo(const std::string &profileStr,
         return false;
     }
 
-    std::lock_guard<std::mutex> lock(g_extraMutex);
-    g_extraParseResult = ERR_OK;
-    intentInfos = jsonObject.get<ExtraInsightIntentProfileInfoVec>();
-    if (g_extraParseResult != ERR_OK) {
-        TAG_LOGE(AAFwkTag::INTENT, "parse result :%{public}d", g_extraParseResult);
-        // need recover parse result to ERR_OK
-        g_extraParseResult = ERR_OK;
-        return false;
-    }
+   std::lock_guard<std::mutex> lock(g_extraMutex);
+   g_extraParseResult = ERR_OK;
+   intentInfos = jsonObject.get<ExtraInsightIntentProfileInfoVec>();
+   if (g_extraParseResult != ERR_OK) {
+       TAG_LOGE(AAFwkTag::INTENT, "parse result :%{public}d", g_extraParseResult);
+       // need recover parse result to ERR_OK
+       g_extraParseResult = ERR_OK;
+       return false;
+   }
 
     for (const auto &insightIntent : intentInfos.insightIntents) {
         if (!CheckProfileInfo(insightIntent)) {
@@ -541,32 +537,32 @@ bool ExtraInsightIntentProfile::ProfileInfoFormat(const ExtraInsightIntentProfil
         TAG_LOGI(AAFwkTag::INTENT, "keywords[%{public}zu] :%{public}s", i, info.keywords[i].c_str());
     }
 
-    info.genericInfo.bundleName = const_cast<char*>(insightIntent.bundleName.c_str());
-    TAG_LOGI(AAFwkTag::INTENT, "bundleName :%{public}s", info.genericInfo.bundleName);
-    info.genericInfo.moduleName = const_cast<char*>(insightIntent.moduleName.c_str());
-    TAG_LOGI(AAFwkTag::INTENT, "moduleName :%{public}s", info.genericInfo.moduleName);
-    info.genericInfo.intentName = const_cast<char*>(insightIntent.intentName.c_str());
-    TAG_LOGI(AAFwkTag::INTENT, "intentName :%{public}s", info.genericInfo.intentName);
-    info.genericInfo.displayName = const_cast<char*>(insightIntent.displayName.c_str());
-    TAG_LOGI(AAFwkTag::INTENT, "displayName :%{public}s", info.genericInfo.displayName);
-    info.genericInfo.decoratorType = const_cast<char*>(insightIntent.decoratorType.c_str());
-    TAG_LOGI(AAFwkTag::INTENT, "decoratorType :%{public}s", info.genericInfo.decoratorType);
+    info.genericInfo->bundleName = const_cast<char*>(insightIntent.bundleName.c_str());
+    TAG_LOGI(AAFwkTag::INTENT, "bundleName :%{public}s", info.genericInfo->bundleName);
+    info.genericInfo->moduleName = const_cast<char*>(insightIntent.moduleName.c_str());
+    TAG_LOGI(AAFwkTag::INTENT, "moduleName :%{public}s", info.genericInfo->moduleName);
+    info.genericInfo->intentName = const_cast<char*>(insightIntent.intentName.c_str());
+    TAG_LOGI(AAFwkTag::INTENT, "intentName :%{public}s", info.genericInfo->intentName);
+    info.genericInfo->displayName = const_cast<char*>(insightIntent.displayName.c_str());
+    TAG_LOGI(AAFwkTag::INTENT, "displayName :%{public}s", info.genericInfo->displayName);
+    info.genericInfo->decoratorType = const_cast<char*>(insightIntent.decoratorType.c_str());
+    TAG_LOGI(AAFwkTag::INTENT, "decoratorType :%{public}s", info.genericInfo->decoratorType);
 
     switch (StringToEnum(insightIntent.decoratorType)) {
         case DecoratorType::DECORATOR_LINK:
-            ret = TransformToLinkInfo(insightIntent, info.genericInfo.linkInfo);
+            ret = TransformToLinkInfo(insightIntent, *info.genericInfo->linkInfo);
             break;
         case DecoratorType::DECORATOR_PAGE:
-            ret = TransformToPageInfo(insightIntent, info.genericInfo.pageInfo);
+            ret = TransformToPageInfo(insightIntent, *info.genericInfo->pageInfo);
             break;
         case DecoratorType::DECORATOR_ENTRY:
-            ret = TransformToEntryInfo(insightIntent, info.genericInfo.entryInfo);
+            ret = TransformToEntryInfo(insightIntent, *info.genericInfo->entryInfo);
             break;
         case DecoratorType::DECORATOR_FUNCTION:
-            ret = TransformToFunctionInfo(insightIntent, info.genericInfo.functionInfo);
+            ret = TransformToFunctionInfo(insightIntent, *info.genericInfo->functionInfo);
             break;
         case DecoratorType::DECORATOR_FORM:
-            ret = TransformToFormInfo(insightIntent, info.genericInfo.formInfo);
+            ret = TransformToFormInfo(insightIntent, *info.genericInfo->formInfo);
             break;
         default:
             TAG_LOGE(AAFwkTag::INTENT, "invalid decoratorType:%{public}s", insightIntent.decoratorType.c_str());

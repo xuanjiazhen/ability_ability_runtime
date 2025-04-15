@@ -15,6 +15,7 @@
 #include "insight_intent_rdb_data_mgr.h"
 #include "hilog_tag_wrapper.h"
 #include "scope_guard.h"
+#include "utils/hmsf_utils.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -29,9 +30,16 @@ constexpr int32_t RETRY_INTERVAL = 500; // 500ms
 constexpr int16_t WRITE_TIMEOUT = 300; // 300s
 } // namespace
 
+InsightIntentRdbDataMgr::InsightIntentRdbDataMgr()
+{}
+
+InsightIntentRdbDataMgr::~InsightIntentRdbDataMgr()
+{}
+
 bool InsightIntentRdbDataMgr::InitIntentTable(const IntentRdbConfig &intentRdbConfig)
 {
     TAG_LOGI(AAFwkTag::INTENT, "Init");
+    std::lock_guard<std::mutex> lock(rdbStoreMutex_);
     if (intentRdbConfig.tableName.empty()) {
         TAG_LOGE(AAFwkTag::INTENT, "empty IntentRdbConfig");
         return false;
@@ -43,7 +51,7 @@ bool InsightIntentRdbDataMgr::InitIntentTable(const IntentRdbConfig &intentRdbCo
         return false;
     }
     std::string createTableSql = "CREATE TABLE IF NOT EXISTS " + intentRdbConfig.tableName
-            + " (KEY TEXT NOT NULL PRIMARY KEY, VALUE TEXT NOT NULL);";
+            + " (INTENT_KEY TEXT NOT NULL PRIMARY KEY, INTENT_VALUE TEXT NOT NULL);";
     int32_t ret = NativeRdb::E_OK;
     ret = rdbStore->ExecuteSql(createTableSql);
 
@@ -51,14 +59,12 @@ bool InsightIntentRdbDataMgr::InitIntentTable(const IntentRdbConfig &intentRdbCo
         TAG_LOGE(AAFwkTag::INTENT, "Create rdb table failed, ret:%{public}" PRId32 "", ret);
         return false;
     }
-
+    HmfsUtils::AddDeleteDfx(intentRdbConfig_.dbPath);
     return true;
 }
 
 std::shared_ptr<NativeRdb::RdbStore> InsightIntentRdbDataMgr::GetRdbStore()
 {
-    std::lock_guard<std::mutex> lock(rdbStoreMutex_);
-    std::string rdbPath = intentRdbConfig_.dbPath + intentRdbConfig_.dbName;
     NativeRdb::RdbStoreConfig rdbStoreConfig(intentRdbConfig_.dbPath + intentRdbConfig_.dbName);
     rdbStoreConfig.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
     rdbStoreConfig.SetWriteTime(WRITE_TIMEOUT);
@@ -101,6 +107,25 @@ std::shared_ptr<NativeRdb::RdbStore> InsightIntentRdbDataMgr::GetRdbStore()
     return rdbStore_;
 }
 
+bool InsightIntentRdbDataMgr::IsIntentRdbLoaded()
+{
+    auto rdbStore = GetRdbStore();
+    if (rdbStore == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "RdbStore is null");
+        return false;
+    }
+    std::string createTableSql = "CREATE TABLE IF NOT EXISTS " + intentRdbConfig_.tableName
+            + " (INTENT_KEY TEXT NOT NULL PRIMARY KEY, INTENT_VALUE TEXT NOT NULL);";
+    int32_t ret = NativeRdb::E_OK;
+    ret = rdbStore->ExecuteSql(createTableSql);
+
+    if (ret != NativeRdb::E_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "Create rdb table failed, ret:%{public}" PRId32 "", ret);
+        return false;
+    }
+    return true;
+}
+
 void InsightIntentRdbDataMgr::DelayCloseRdbStore()
 {
     std::weak_ptr<InsightIntentRdbDataMgr> weakPtr = shared_from_this();
@@ -119,10 +144,10 @@ void InsightIntentRdbDataMgr::DelayCloseRdbStore()
 
 bool InsightIntentRdbDataMgr::InsertData(const std::string &key, const std::string &value)
 {
+    std::lock_guard<std::mutex> lock(rdbStoreMutex_);
     TAG_LOGD(AAFwkTag::INTENT, "InsertData start");
-    auto rdbStore = GetRdbStore();
-    if (rdbStore == nullptr) {
-        TAG_LOGE(AAFwkTag::INTENT, "RdbStore is null");
+    if (!IsIntentRdbLoaded()) {
+        TAG_LOGE(AAFwkTag::INTENT, "null IntentRdbStore");
         return false;
     }
 
@@ -130,16 +155,21 @@ bool InsightIntentRdbDataMgr::InsertData(const std::string &key, const std::stri
     NativeRdb::ValuesBucket valuesBucket;
     valuesBucket.PutString(INTENT_KEY, key);
     valuesBucket.PutString(INTENT_VALUE, value);
-    auto ret = InsertWithRetry(rdbStore, rowId, valuesBucket);
-    return ret == NativeRdb::E_OK;
+    auto ret = InsertWithRetry(rdbStore_, rowId, valuesBucket);
+    if (ret != NativeRdb::E_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "Insert data error");
+        return false;
+    }
+    BackupRdb();
+    return true;
 }
 
 bool InsightIntentRdbDataMgr::UpdateData(const std::string &key, const std::string &value)
 {
     TAG_LOGD(AAFwkTag::INTENT, "UpdateData start");
-    auto rdbStore = GetRdbStore();
-    if (rdbStore == nullptr) {
-        TAG_LOGE(AAFwkTag::INTENT, "RdbStore is null");
+    std::lock_guard<std::mutex> lock(rdbStoreMutex_);
+    if (!IsIntentRdbLoaded()) {
+        TAG_LOGE(AAFwkTag::INTENT, "null IntentRdbStore");
         return false;
     }
 
@@ -149,54 +179,68 @@ bool InsightIntentRdbDataMgr::UpdateData(const std::string &key, const std::stri
     NativeRdb::ValuesBucket valuesBucket;
     valuesBucket.PutString(INTENT_KEY, key);
     valuesBucket.PutString(INTENT_VALUE, value);
-    auto ret = rdbStore->Update(rowId, valuesBucket, absRdbPredicates);
-    return ret == NativeRdb::E_OK;
+    auto ret = rdbStore_->Update(rowId, valuesBucket, absRdbPredicates);
+    if (ret != NativeRdb::E_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "Update data error");
+        return false;
+    }
+    BackupRdb();
+    return true;
 }
 
 bool InsightIntentRdbDataMgr::DeleteDataBeginWithKey(const std::string &key)
 {
     TAG_LOGD(AAFwkTag::INTENT, "DeleteDataBeginWithKey start");
-    auto rdbStore = GetRdbStore();
-    if (rdbStore == nullptr) {
-        TAG_LOGE(AAFwkTag::INTENT, "RdbStore is null");
+    std::lock_guard<std::mutex> lock(rdbStoreMutex_);
+    if (!IsIntentRdbLoaded()) {
+        TAG_LOGE(AAFwkTag::INTENT, "null IntentRdbStore");
         return false;
     }
 
     int32_t rowId = -1;
     NativeRdb::AbsRdbPredicates absRdbPredicates(intentRdbConfig_.tableName);
     absRdbPredicates.BeginsWith(INTENT_KEY, key);
-    auto ret = rdbStore->Delete(rowId, absRdbPredicates);
-    return ret == NativeRdb::E_OK;
+    auto ret = rdbStore_->Delete(rowId, absRdbPredicates);
+    if (ret != NativeRdb::E_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "Delete data error");
+        return false;
+    }
+    BackupRdb();
+    return true;
 }
 
 bool InsightIntentRdbDataMgr::DeleteData(const std::string &key)
 {
     TAG_LOGD(AAFwkTag::INTENT, "DeleteData start");
-    auto rdbStore = GetRdbStore();
-    if (rdbStore == nullptr) {
-        TAG_LOGE(AAFwkTag::INTENT, "RdbStore is null");
+    std::lock_guard<std::mutex> lock(rdbStoreMutex_);
+    if (!IsIntentRdbLoaded()) {
+        TAG_LOGE(AAFwkTag::INTENT, "null IntentRdbStore");
         return false;
     }
 
     int32_t rowId = -1;
     NativeRdb::AbsRdbPredicates absRdbPredicates(intentRdbConfig_.tableName);
     absRdbPredicates.EqualTo(INTENT_KEY, key);
-    auto ret = rdbStore->Delete(rowId, absRdbPredicates);
-    return ret == NativeRdb::E_OK;
+    auto ret = rdbStore_->Delete(rowId, absRdbPredicates);
+    if (ret != NativeRdb::E_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "Delete data error");
+        return false;
+    }
+    BackupRdb();
+    return true;
 }
 
 bool InsightIntentRdbDataMgr::QueryData(const std::string &key, std::string &value)
 {
     TAG_LOGD(AAFwkTag::INTENT, "QueryData start");
-    auto rdbStore = GetRdbStore();
-    if (rdbStore == nullptr) {
-        TAG_LOGE(AAFwkTag::INTENT, "RdbStore is null");
+    if (!IsIntentRdbLoaded()) {
+        TAG_LOGE(AAFwkTag::INTENT, "null IntentRdbStore");
         return false;
     }
 
     NativeRdb::AbsRdbPredicates absRdbPredicates(intentRdbConfig_.tableName);
     absRdbPredicates.EqualTo(INTENT_KEY, key);
-    auto absSharedResultSet = rdbStore->QueryByStep(absRdbPredicates, std::vector<std::string>());
+    auto absSharedResultSet = rdbStore_->QueryByStep(absRdbPredicates, std::vector<std::string>());
     if (absSharedResultSet == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "absSharedResultSet failed");
         return false;
@@ -217,17 +261,57 @@ bool InsightIntentRdbDataMgr::QueryData(const std::string &key, std::string &val
     return true;
 }
 
-bool InsightIntentRdbDataMgr::QueryAllData(std::unordered_map<std::string, std::string> &datas)
+bool InsightIntentRdbDataMgr::QueryDataBeginWithKey(const std::string &key,
+    std::unordered_map<std::string, std::string> &datas)
 {
-    TAG_LOGD(AAFwkTag::INTENT, "QueryAllData start");
-    auto rdbStore = GetRdbStore();
-    if (rdbStore == nullptr) {
-        TAG_LOGE(AAFwkTag::INTENT, "RdbStore is null");
+    TAG_LOGD(AAFwkTag::INTENT, "QueryData start");
+    if (!IsIntentRdbLoaded()) {
+        TAG_LOGE(AAFwkTag::INTENT, "null IntentRdbStore");
         return false;
     }
 
     NativeRdb::AbsRdbPredicates absRdbPredicates(intentRdbConfig_.tableName);
-    auto absSharedResultSet = rdbStore->QueryByStep(absRdbPredicates, std::vector<std::string>());
+    absRdbPredicates.BeginsWith(INTENT_KEY, key);
+    auto absSharedResultSet = rdbStore_->QueryByStep(absRdbPredicates, std::vector<std::string>());
+    if (absSharedResultSet == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "absSharedResultSet failed");
+        return false;
+    }
+    ScopeGuard stateGuard([&] { absSharedResultSet->Close(); });
+
+    if (absSharedResultSet->GoToFirstRow() != NativeRdb::E_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "GoToFirstRow failed");
+        return false;
+    }
+    do {
+        std::string key;
+        if (absSharedResultSet->GetString(INTENT_KEY_INDEX, key) != NativeRdb::E_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "GetString key failed");
+            return false;
+        }
+
+        std::string value;
+        if (absSharedResultSet->GetString(INTENT_VALUE_INDEX, value) != NativeRdb::E_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "GetString value failed");
+            return false;
+        }
+
+        datas.emplace(key, value);
+    } while (absSharedResultSet->GoToNextRow() == NativeRdb::E_OK);
+    return !datas.empty();
+}
+
+bool InsightIntentRdbDataMgr::QueryAllData(std::unordered_map<std::string, std::string> &datas)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "QueryAllData start");
+    std::lock_guard<std::mutex> lock(rdbStoreMutex_);
+    if (!IsIntentRdbLoaded()) {
+        TAG_LOGE(AAFwkTag::INTENT, "null IntentRdbStore");
+        return false;
+    }
+
+    NativeRdb::AbsRdbPredicates absRdbPredicates(intentRdbConfig_.tableName);
+    auto absSharedResultSet = rdbStore_->QueryByStep(absRdbPredicates, std::vector<std::string>());
     if (absSharedResultSet == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "absSharedResultSet failed");
         return false;
@@ -260,12 +344,12 @@ bool InsightIntentRdbDataMgr::QueryAllData(std::unordered_map<std::string, std::
 void InsightIntentRdbDataMgr::BackupRdb()
 {
     TAG_LOGI(AAFwkTag::INTENT, "%{public}s backup start", intentRdbConfig_.dbName.c_str());
-    auto rdbStore = GetRdbStore();
-    if (rdbStore == nullptr) {
-        TAG_LOGE(AAFwkTag::INTENT, "RdbStore is null");
+    if (!IsIntentRdbLoaded()) {
+        TAG_LOGE(AAFwkTag::INTENT, "null IntentRdbStore");
         return;
     }
-    auto ret = rdbStore->Backup(intentRdbConfig_.dbPath + std::string("/") + std::string(INTENT_BACK_UP_RDB_NAME));
+
+    auto ret = rdbStore_->Backup(intentRdbConfig_.dbPath + std::string("/") + std::string(INTENT_BACK_UP_RDB_NAME));
     if (ret != NativeRdb::E_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "Backup failed, errCode:%{public}d", ret);
     }
