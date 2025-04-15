@@ -382,6 +382,15 @@ int32_t AppMgrStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel &dat
             return HandleUpdateInstanceKeyBySpecifiedId(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_PROCESS_MEMORY_STATE):
             return HandleUpdateProcessMemoryState(data, reply);
+<<<<<<< HEAD
+=======
+        case static_cast<uint32_t>(AppMgrInterfaceCode::GET_KILLED_PROCESS_INFO):
+            return HandleGetKilledProcessInfo(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::LAUNCH_ABILITY):
+            return HandleLaunchAbility(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_CONFIGURATION_POLICY):
+            return HandleUpdateConfigurationPolicy(data, reply);
+>>>>>>> 96923c23cb... 2025415
     }
     return INVALID_FD;
 }
@@ -979,6 +988,7 @@ int32_t AppMgrStub::HandleGetRenderProcessTerminationStatus(MessageParcel &data,
 
 int32_t AppMgrStub::HandleGetConfiguration(MessageParcel &data, MessageParcel &reply)
 {
+    TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrStub::HandleGetConfiguration Start");
     Configuration config;
     int ret = GetConfiguration(config);
     if (ret != ERR_OK) {
@@ -997,6 +1007,7 @@ int32_t AppMgrStub::HandleGetConfiguration(MessageParcel &data, MessageParcel &r
 
 int32_t AppMgrStub::HandleUpdateConfiguration(MessageParcel &data, MessageParcel &reply)
 {
+    TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrStub::HandleUpdateConfiguration Start");
     std::unique_ptr<Configuration> config(data.ReadParcelable<Configuration>());
     if (!config) {
         TAG_LOGE(AAFwkTag::APPMGR, "AppMgrStub read configuration error");
@@ -1007,6 +1018,35 @@ int32_t AppMgrStub::HandleUpdateConfiguration(MessageParcel &data, MessageParcel
     if (!reply.WriteInt32(ret)) {
         return ERR_INVALID_VALUE;
     }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleUpdateConfigurationPolicy(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrStub::HandleUpdateConfigurationPolicy Start");
+    std::vector<uint32_t> whiteList;
+    uint32_t size = data.ReadUint32();
+    TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrStub::HandleUpdateConfigurationPolicy # whiteList size=%{public}u", size);
+    for (uint32_t i = 0; i < size; i++) {
+        whiteList.push_back(data.ReadUint32());
+    }
+    for (auto &w : whiteList) {
+        TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrStub::HandleUpdateConfigurationPolicy # white id=%{public}u", w);
+    }
+    AppExecFwk::ConfigurationPolicy *policy = data.ReadParcelable<AppExecFwk::ConfigurationPolicy>();
+    if (policy == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrStub::HandleUpdateConfigurationPolicy # data read ConfigurationPolicy failed!");
+        return ERR_INVALID_VALUE;
+    }
+    TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrStub::HandleUpdateConfigurationPolicy # policy countPerTime=%{public}u, intervalTime=%{public}u", policy->countPerTime, policy->intervalTime);
+    int32_t userId = data.ReadInt32();
+    int32_t ret = UpdateConfigurationPolicy(whiteList, *policy, userId);
+    TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrStub::HandleUpdateConfigurationPolicy # UpdateConfigurationPolicy result=%{public}d", ret);
+    if (!reply.WriteInt32(ret)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrStub::HandleUpdateConfigurationPolicy # reply.WriteInt32 failed!");
+        return ERR_INVALID_VALUE;
+    }
+    TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrStub::HandleUpdateConfigurationPolicy # success!");
     return NO_ERROR;
 }
 

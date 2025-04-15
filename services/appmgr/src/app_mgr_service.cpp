@@ -1069,12 +1069,26 @@ int32_t AppMgrService::GetConfiguration(Configuration& config)
 
 int32_t AppMgrService::UpdateConfiguration(const Configuration& config, const int32_t userId)
 {
+    TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrService::UpdateConfiguration Start");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
     return appMgrServiceInner_->UpdateConfiguration(config, userId);
+}
+
+int32_t AppMgrService::UpdateConfigurationPolicy(const std::vector<uint32_t> &whiteList,
+    const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId)
+{
+    TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrService::UpdateConfigurationPolicy Start");
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrService::UpdateConfigurationPolicy # not ready");
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->UpdateConfigurationPolicy(whiteList, policy, userId);
 }
 
 int32_t AppMgrService::UpdateConfigurationByBundleName(const Configuration& config, const std::string &name,

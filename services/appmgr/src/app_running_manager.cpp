@@ -929,16 +929,16 @@ void AppRunningManager::GetForegroundApplications(std::vector<AppStateData> &lis
     }
 }
 int32_t AppRunningManager::UpdateConfiguration(const Configuration& config, const int32_t userId)
-{
+{TAG_LOGE(AAFwkTag::APPMGR, "AppRunningManager::UpdateConfiguration userId:%{public}d...................", userId);
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
 
     auto appRunningMap = GetAppRunningRecordMap();
-    TAG_LOGD(AAFwkTag::APPMGR, "current app size %{public}zu", appRunningMap.size());
+    TAG_LOGD(AAFwkTag::APPMGR, "current app size %{public}zu.............", appRunningMap.size());
     int32_t result = ERR_OK;
     for (const auto& item : appRunningMap) {
         const auto& appRecord = item.second;
         if (appRecord && appRecord->GetState() == ApplicationState::APP_STATE_CREATE) {
-            TAG_LOGD(AAFwkTag::APPMGR, "app not ready, appName is %{public}s", appRecord->GetBundleName().c_str());
+            TAG_LOGD(AAFwkTag::APPMGR, "app not ready, appName is %{public}s....................", appRecord->GetBundleName().c_str());
             continue;
         }
         if (!(userId == -1 || appRecord->GetUid() / BASE_USER_RANGE == 0 ||
@@ -949,11 +949,13 @@ int32_t AppRunningManager::UpdateConfiguration(const Configuration& config, cons
             appRecord->ResetDelayConfiguration();
         }
         if (appRecord && !isCollaboratorReserveType(appRecord)) {
-            TAG_LOGD(AAFwkTag::APPMGR, "Notification app [%{public}s]", appRecord->GetName().c_str());
+            TAG_LOGD(AAFwkTag::APPMGR, "Notification app [%{public}s]...........", appRecord->GetName().c_str());
             std::lock_guard guard(updateConfigurationDelayedLock_);
             if (appRecord->NeedUpdateConfigurationBackground() ||
                 appRecord->GetState() != ApplicationState::APP_STATE_BACKGROUND) {
                 updateConfigurationDelayedMap_[appRecord->GetRecordId()] = false;
+                TAG_LOGE(AAFwkTag::APPMGR, "foreground apprecord pid:%{public}d.....%{public}s..............", appRecord->GetPid(),
+                    config.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE).c_str());
                 result = appRecord->UpdateConfiguration(config);
             } else {
                 auto delayConfig = appRecord->GetDelayConfiguration();
@@ -961,9 +963,127 @@ int32_t AppRunningManager::UpdateConfiguration(const Configuration& config, cons
                 delayConfig->CompareDifferent(diffVe, config);
                 delayConfig->Merge(diffVe, config);
                 updateConfigurationDelayedMap_[appRecord->GetRecordId()] = true;
+                TAG_LOGE(AAFwkTag::APPMGR, "background apprecord pid:%{public}d....%{public}s................", appRecord->GetPid(),
+                config.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE).c_str());
             }
         }
     }
+    return result;
+}
+
+int32_t AppRunningManager::changeFlagValue = 0;
+
+void *AppRunningManager::ExecuteConfigurationPolicy(void *arg)
+{
+    TAG_LOGE(AAFwkTag::APPMGR, "AppRunningManager::ExecuteConfigurationPolicy begin.........");
+    auto appRunningManager = static_cast<AppRunningManager *>(arg);
+    if (appRunningManager == nullptr) {
+        return nullptr;
+    }
+    
+    int32_t count = 1;
+    int32_t currentValue;
+    std::vector<uint32_t> whiteList;
+    AppExecFwk::ConfigurationPolicy policy;
+    {
+        std::lock_guard guard(appRunningManager->updateConfigurationPolicyLock_);
+        currentValue = ++AppRunningManager::changeFlagValue;
+        whiteList = appRunningManager->whiteList_;
+        policy = appRunningManager->policy_;
+    }
+
+    for (auto &item : appRunningManager->updateConfigurationDelayedMap_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "currentValue:%{public}d.....changeFlagValue:%{public}d....",currentValue,AppRunningManager::changeFlagValue);
+        if (currentValue != AppRunningManager::changeFlagValue) {
+            TAG_LOGE(AAFwkTag::APPMGR, "AppRunningManager::ExecuteConfigurationPolicy exit.........");
+            return nullptr;
+        }
+
+        std::shared_ptr<AppRunningRecord> appRecord = nullptr;
+        {
+            std::lock_guard guard(appRunningManager->runningRecordMapMutex_);
+            auto it = appRunningManager->appRunningRecordMap_.find(item.first);
+            if (it != appRunningManager->appRunningRecordMap_.end()) {
+                appRecord = it->second;
+            } else {
+                continue;
+            }
+        }
+
+        auto it = std::find(whiteList.begin(), whiteList.end(), appRecord->GetPid());
+        if (item.second && appRecord && appRecord->GetState() == ApplicationState::APP_STATE_BACKGROUND
+            && it != whiteList.end() && !appRecord->IsTerminating())
+        {
+            {
+                std::lock_guard guard(appRunningManager->updateConfigurationDelayedLock_);
+                AppExecFwk::Configuration config;
+                auto delayConfig = appRecord->GetDelayConfiguration();
+                if (delayConfig == nullptr) {
+                    appRecord->ResetDelayConfiguration();
+                } else {
+                    std::string value = delayConfig->GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE);
+                    config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE, value);
+                }
+                appRecord->UpdateConfiguration(config);
+                appRecord->ResetDelayConfiguration();
+                item.second = false;
+            }
+
+            if (count++ >=  policy.countPerTime) {
+                usleep(policy.intervalTime);
+                count = 0;
+            }
+        }
+    }
+    return nullptr;
+}
+
+int32_t AppRunningManager::UpdateConfigurationPolicy(const std::vector<uint32_t> &whiteList,
+    const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId)
+{
+    TAG_LOGE(AAFwkTag::APPMGR, " AppMgrServiceInner::UpdateConfigurationPolicy................");
+    int32_t count = 0;
+    int32_t result = ERR_OK;
+
+    whiteList_ = whiteList;
+    policy_ = policy;
+
+    pthread_t tid;
+    int ret = pthread_create(&tid, nullptr, AppRunningManager::ExecuteConfigurationPolicy, this);
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "create thread error, %{public}d", ret);
+        return ERR_INTERNAL_ERROR;
+    }
+    // for (auto &item : updateConfigurationDelayedMap_) {
+    //     auto appRecord = GetAppRunningRecordByPid(static_cast<pid_t>(item.first));
+    //     auto it = std::find(whiteList.begin(), whiteList.end(), item.first);
+    //     if (item.second && appRecord && appRecord->GetState() == ApplicationState::APP_STATE_BACKGROUND 
+    //         && it != whiteList.end() && !appRecord->IsTerminating())
+    //     {
+    //         //UpdateConfigurationDelayed(appRecord);
+    //         std::lock_guard guard(updateConfigurationDelayedLock_);
+    //         {
+    //             AppExecFwk::Configuration config;
+    //             auto delayConfig = appRecord->GetDelayConfiguration();
+    //             if (delayConfig == nullptr) {
+    //                 appRecord->ResetDelayConfiguration();
+    //             } else {
+    //                 std::string value = delayConfig->GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE);
+    //                 config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE,value);
+    //             }
+
+    //             TAG_LOGI(AAFwkTag::APPKIT, "delayConfig: %{public}s", delayConfig->GetName().c_str());
+    //             result = appRecord->UpdateConfiguration(config);
+    //             appRecord->ResetDelayConfiguration();
+    //             item.second = false;
+    //         }
+
+    //         if (count++ >=  policy.countPerTime) {
+    //             usleep(policy.intervalTime);
+    //             count = 0;
+    //         }
+    //     }
+    // }
     return result;
 }
 

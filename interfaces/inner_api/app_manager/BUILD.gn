@@ -92,6 +92,7 @@ ohos_shared_library("app_manager") {
     "src/appmgr/child_scheduler_stub.cpp",
     "src/appmgr/configuration_observer_proxy.cpp",
     "src/appmgr/configuration_observer_stub.cpp",
+    "src/appmgr/configuration_policy.cpp",
     "src/appmgr/fault_data.cpp",
     "src/appmgr/kia_interceptor_proxy.cpp",
     "src/appmgr/kia_interceptor_stub.cpp",
@@ -137,6 +138,11 @@ ohos_shared_library("app_manager") {
 
   external_deps = [
     "c_utils:utils",
+<<<<<<< HEAD
+=======
+    # "eventhandler:libeventhandler",
+    "faultloggerd:libbacktrace_local",
+>>>>>>> 96923c23cb... 2025415
     "faultloggerd:libdfx_dumpcatcher",
     "faultloggerd:libfaultloggerd",
     "ffrt:libffrt",
