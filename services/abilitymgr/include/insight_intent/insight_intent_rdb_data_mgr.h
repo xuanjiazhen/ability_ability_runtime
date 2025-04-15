@@ -27,7 +27,7 @@
 #include "rdb_store_config.h"
 
 namespace OHOS {
-namespace AAFwk {
+namespace AbilityRuntime {
 namespace {
 constexpr static const char *INTENT_NAME = "/insight_intent.db";
 constexpr const char* INTENT_BACK_UP_RDB_NAME = "intent-backup.db";
@@ -73,9 +73,12 @@ public:
     bool DeleteDataBeginWithKey(const std::string &key);
 
     bool QueryData(const std::string &key, std::string &value);
+    bool QueryDataBeginWithKey(const std::string &key, std::unordered_map<std::string, std::string> &datas);
     bool QueryAllData(std::unordered_map<std::string, std::string> &datas);
 
     void BackupRdb();
+
+    bool IsIntentRdbLoaded();
 private:
     std::shared_ptr<NativeRdb::RdbStore> GetRdbStore();
     int32_t InsertWithRetry(std::shared_ptr<NativeRdb::RdbStore> rdbStore, int64_t &rowId,
@@ -86,7 +89,7 @@ private:
     static std::mutex rdbStoreMutex_;
     IntentRdbConfig intentRdbConfig_;
 };
-} // namespace AAFwk
+} // namespace AbilityRuntime
 } // namespace OHOS
 
 #endif // OHOS_INSIGHT_RDB_INTENT_DATA_MGR_H
