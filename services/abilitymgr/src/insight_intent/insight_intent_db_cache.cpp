@@ -17,8 +17,13 @@
 
 namespace OHOS {
 namespace AAFwk {
+InsightIntentDbCache::InsightIntentDbCache() = default;
+
+InsightIntentDbCache::~InsightIntentDbCache() = default;
+
 void InsightIntentDbCache::InitInsightIntentCache()
 {
+    TAG_LOGE(AAFwkTag::INTENT, "liuzongze InitInsightIntentCache");
     std::vector<ExtraInsightIntentInfo> totalInfos;
     totalInfos.clear();
     if (DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->LoadInsightIntentInfos(totalInfos) != ERR_OK) {

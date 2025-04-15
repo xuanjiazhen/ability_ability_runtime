@@ -79,13 +79,11 @@ struct ExtraInsightIntentGenericInfo {
     char *intentName; // 必选
     char *displayName; // 必选
     char *decoratorType; // 必选
-    union {
-        LinkInfo* linkInfo;
-        PageInfo* pageInfo;
-        EntryInfo* entryInfo;
-        FunctionInfo* functionInfo;
-        FormInfo* formInfo;
-    };
+    LinkInfo* linkInfo;
+    PageInfo* pageInfo;
+    EntryInfo* entryInfo;
+    FunctionInfo* functionInfo;
+    FormInfo* formInfo;
 };
 
 // 全量信息

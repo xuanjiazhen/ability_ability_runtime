@@ -6384,5 +6384,118 @@ int32_t AbilityManagerProxy::RevokeDelegator(sptr<IRemoteObject> token)
     }
     return reply.ReadInt32();
 }
+
+int32_t AbilityManagerProxy::GetAllInsightIntentInfo(
+    AbilityRuntime::GetInsightIntentFlag flag,
+    std::vector<JsInsightIntentInfo> &infos)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "liuzongze call AbilityManagerProxy::GetAllInsightIntentInfo");
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "writeInterfaceToken failed");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteUint32(static_cast<uint32_t>(flag))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write flag fail");
+        return ERR_INVALID_VALUE;
+    }
+    
+    int error = SendRequest(AbilityManagerInterfaceCode::REVOKE_DELEGATOR, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        return error;
+    }
+    auto result = reply.ReadInt32();
+    int32_t infoSize = reply.ReadInt32();
+    infos.clear();
+    for (int32_t i = 0; i < infoSize; i++) {
+        std::unique_ptr<JsInsightIntentInfo> info(reply.ReadParcelable<JsInsightIntentInfo>());
+        if (info == nullptr) {
+            return false;
+        }
+        infos.emplace_back(*info);
+    }
+    return result;
+}
+
+int32_t AbilityManagerProxy::GetInsightIntentInfoByBundleName(
+    AbilityRuntime::GetInsightIntentFlag flag,
+    const std::string &bundleName,
+    std::vector<JsInsightIntentInfo> &infos)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "writeInterfaceToken failed");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteUint32(static_cast<uint32_t>(flag))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write flag fail");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!data.WriteString(bundleName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write bundleName fail");
+        return ERR_INVALID_VALUE;
+    }
+    
+    int error = SendRequest(AbilityManagerInterfaceCode::REVOKE_DELEGATOR, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::GetInsightIntentInfoByIntentName(
+    AbilityRuntime::GetInsightIntentFlag flag,
+    const std::string &bundleName,
+    const std::string &moduleName,
+    const std::string &intentName,
+    JsInsightIntentInfo &info)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "writeInterfaceToken failed");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteUint32(static_cast<uint32_t>(flag))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write flag fail");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!data.WriteString(bundleName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write bundleName fail");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!data.WriteString(moduleName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write moduleName fail");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!data.WriteString(intentName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write intentName fail");
+        return ERR_INVALID_VALUE;
+    }
+    
+    int error = SendRequest(AbilityManagerInterfaceCode::REVOKE_DELEGATOR, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+    //
+}
 } // namespace AAFwk
 } // namespace OHOS
