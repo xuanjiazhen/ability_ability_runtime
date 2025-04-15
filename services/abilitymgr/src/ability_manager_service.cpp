@@ -1989,7 +1989,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         return ERR_AAFWK_INVALID_WINDOW_MODE;
     }
 #endif
-    if (startOptions.GetDisplayID() == 0) {
+    if (startOptions.GetDisplayID() == -1) {
         abilityRequest.want.SetParam(Want::PARAM_RESV_DISPLAY_ID,
             DisplayUtil::GetDefaultDisplayId());
     } else {
