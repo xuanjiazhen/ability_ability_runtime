@@ -28,17 +28,21 @@ class InsightIntentDbCache : public std::enable_shared_from_this<InsightIntentDb
     DECLARE_DELAYED_SINGLETON(InsightIntentDbCache)
 public:
     void InitInsightIntentCache();
-    void GetAllInsightIntentTotalInfo(std::vector<ExtraInsightIntentTotalInfo> &totalInfos);
-    void GetInsightIntentTotalInfoByName(const std::string bundleName,
-        std::vector<ExtraInsightIntentTotalInfo> &totalInfos);
-    void GetInsightIntentTotalInfo(const std::string bundleName, const std::string intentName,
-        std::vector<ExtraInsightIntentTotalInfo> &totalInfos);
+    void GetAllInsightIntentGenericInfo(std::vector<ExtraInsightIntentGenericInfo> &genericInfos);
+    void GetInsightIntentGenericInfoByName(const std::string bundleName,
+        std::vector<ExtraInsightIntentGenericInfo> &genericInfos);
+    void GetInsightIntentGenericInfo(const std::string bundleName, const std::string intentName,
+        std::vector<ExtraInsightIntentGenericInfo> &genericInfos);
+    void GetAllInsightIntentInfo(std::vector<ExtraInsightIntentInfo> &infos);
+    void GetInsightIntentInfoByName(const std::string bundleName, std::vector<ExtraInsightIntentInfo> &infos);
+    void GetInsightIntentInfo(const std::string bundleName, const std::string intentName,
+        std::vector<ExtraInsightIntentInfo> &infos);
     int32_t SaveInsightIntentTotalInfo(const std::string bundleName, const std::string moduleName,
-        std::vector<ExtraInsightIntentTotalInfo> totalInfos);
+        ExtraInsightIntentProfileInfoVec profileInfos);
     int32_t DeleteInsightIntentTotalInfo(const std::string bundleName);
 private:
-    mutable std::mutex totalInfosMutex_;
-    std::map<std::string, std::vector<ExtraInsightIntentTotalInfo>> intentTotalInfos_;
+    mutable std::mutex genericInfosMutex_;
+    std::map<std::string, std::vector<ExtraInsightIntentGenericInfo>> intentGenericInfos_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

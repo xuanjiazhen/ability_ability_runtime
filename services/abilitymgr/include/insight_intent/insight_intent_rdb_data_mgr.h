@@ -72,7 +72,7 @@ public:
     bool DeleteData(const std::string &key);
     bool DeleteDataBeginWithKey(const std::string &key);
 
-    bool QueryData(const std::string &key, std::string &value);
+    bool QueryData(const std::string &key, std::unordered_map<std::string, std::string> &datas);
     bool QueryAllData(std::unordered_map<std::string, std::string> &datas);
 
     void BackupRdb();
