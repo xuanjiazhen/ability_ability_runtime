@@ -2037,13 +2037,6 @@ private:
 
     std::mutex screenOffSubscriberMutex_;
     std::mutex childProcessRecordMapMutex_;
-    struct policy_data
-    {
-        std::vector<uint32_t> whiteList;
-        AppExecFwk::ConfigurationPolicy policy;
-    } policyData_;
-
-    static void *UpdateConfigurationPolicyTaskPost(void *arg);
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
