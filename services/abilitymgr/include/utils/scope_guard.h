@@ -19,7 +19,7 @@
 #include <string>
 
 namespace OHOS {
-namespace AAFwk {
+namespace AbilityRuntime {
 class ScopeGuard final {
 public:
     using Function = std::function<void()>;
