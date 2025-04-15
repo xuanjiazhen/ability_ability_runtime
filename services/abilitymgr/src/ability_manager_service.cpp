@@ -2109,6 +2109,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
             abilityRequest.startWindowOption = startOptions.startWindowOption;
         }
         abilityRequest.supportWindowModes = startOptions.supportWindowModes_;
+        abilityRequest.disableDelegator = startOptions.disableDelegator_;
         auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_NULL_UI_ABILITY_MANAGER);
         return uiAbilityManager->NotifySCBToStartUIAbility(abilityRequest);

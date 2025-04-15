@@ -38,6 +38,7 @@ public:
     bool minWindowHeightUsed_ = false;
     bool maxWindowWidthUsed_ = false;
     bool maxWindowHeightUsed_ = false;
+    bool disableDelegator_ = false;
     std::shared_ptr<ProcessOptions> processOptions = nullptr;
     std::shared_ptr<StartWindowOption> startWindowOption = nullptr;
     std::vector<AppExecFwk::SupportWindowMode> supportWindowModes_;
@@ -86,6 +87,9 @@ public:
 
     void SetMaxWindowHeight(int32_t maxWindowHeight);
     int32_t GetMaxWindowHeight() const;
+
+    void SetDisableDelegator(bool disableDelegator);
+    int32_t GetDisableDelegator() const;
 private:
     bool withAnimation_ = true;
     bool windowFocused_ = true;
