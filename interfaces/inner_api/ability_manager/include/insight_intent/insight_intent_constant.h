@@ -33,6 +33,11 @@ namespace OHOS::AbilityRuntime {
         INSIGHT_INTENT_INTERNAL_ERROR,
         INSIGHT_INTENT_EXECUTE_REPLY_FAILED = AAFwk::ERR_INSIGHT_INTENT_EXECUTE_REPLY_FAILED,
     };
+
+    enum GetInsightIntentFlag {
+        GET_FULL_INSIGHT_INTENT = 1,
+        GET_SUMMARY_INSIGHT_INTENT
+    };
 } // namespace OHOS::AbilityRuntime
 
 #endif // OHOS_ABILITY_RUNTIME_INSIGHT_INTENT_CONSTANT_H

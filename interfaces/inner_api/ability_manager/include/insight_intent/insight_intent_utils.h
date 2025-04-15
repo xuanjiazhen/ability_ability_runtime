@@ -21,6 +21,8 @@
 #include "bundlemgr/bundle_mgr_interface.h"
 #include "element_name.h"
 #include "insight_intent_execute_param.h"
+#include "js_insight_intent_info.h"
+#include "extra_insight_intent_profile.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -28,6 +30,10 @@ class InsightIntentUtils {
 public:
     static uint32_t GetSrcEntry(const AppExecFwk::ElementName &elementName, const std::string &intentName,
         const AppExecFwk::ExecuteMode &executeMode, std::string &srcEntry);
+    static uint32_t ExtraInsightIntentGenericInfo2JsInsightIntentInfo(
+        JsInsightIntentInfo &jsInfo, AAFwk::ExtraInsightIntentGenericInfo &genericInfo);
+    static uint32_t ExtraInsightIntentInfo2JsInsightIntentInfo(
+        JsInsightIntentInfo &jsInfo, AAFwk::ExtraInsightIntentInfo &intentInfo);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

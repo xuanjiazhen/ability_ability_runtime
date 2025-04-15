@@ -45,6 +45,8 @@
 #include "global_constant.h"
 #include "hitrace_meter.h"
 #include "insight_intent_execute_manager.h"
+#include "insight_intent_db_cache.h"
+#include "insight_intent_utils.h"
 #include "interceptor/ability_jump_interceptor.h"
 #include "interceptor/block_all_app_start_interceptor.h"
 #include "interceptor/control_interceptor.h"
@@ -97,7 +99,6 @@
 #include "utils/update_caller_info_util.h"
 #include "utils/want_utils.h"
 #include "utils/window_options_utils.h"
-#include "insight_intent_execute_manager.h"
 #ifdef SUPPORT_GRAPHICS
 #include "dialog_session_manager.h"
 #include "application_anr_listener.h"
@@ -13440,6 +13441,132 @@ int32_t AbilityManagerService::QueryPreLoadUIExtensionRecord(const AppExecFwk::E
   }
   return connectManager->QueryPreLoadUIExtensionRecordInner(
       element, moduleName, hostBundleName, recordNum);
+}
+
+int32_t AbilityManagerService::CheckStartPlugin(const Want& want, sptr<IRemoteObject> callerToken)
+{
+    if (!AbilityRuntime::StartupUtil::IsStartPlugin(want)) {
+        return ERR_OK;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "start plugin ability");
+    // bundleName, abilityName, moduoleName not empty
+    auto element = want.GetElement();
+    if (element.GetBundleName().empty() || element.GetAbilityName().empty() || element.GetModuleName().empty()) {
+        return INVALID_PARAMETERS_ERR;
+    }
+    auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
+    if (!abilityRecord) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityRecord null");
+        return RESOLVE_ABILITY_ERR;
+    }
+    if (!(abilityRecord->GetAbilityInfo().type == AppExecFwk::AbilityType::PAGE ||
+        (abilityRecord->GetAbilityInfo().type == AppExecFwk::AbilityType::EXTENSION &&
+        abilityRecord->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::EMBEDDED_UI))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "type is not UIAbility or embedded_ui");
+        return RESOLVE_ABILITY_ERR;
+    }
+    if (abilityRecord->IsPluginAbility()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not host ability");
+        return RESOLVE_ABILITY_ERR;
+    }
+    return ERR_OK;
+}
+int32_t AbilityManagerService::GetAllInsightIntentInfo(
+    AbilityRuntime::GetInsightIntentFlag flag,
+    std::vector<JsInsightIntentInfo> &infos)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "GetAllInsightIntentInfo");
+    int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckPermissionForCaller();
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    if (flag == AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT) {
+        std::vector<ExtraInsightIntentInfo> intentInfos;
+        DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetAllInsightIntentInfo(GetUserId(), intentInfos);
+        if (intentInfos.empty()) {
+            return ERR_OK;
+        }
+        for (auto &info : intentInfos) {
+            JsInsightIntentInfo jsIntentInfo;
+            InsightIntentUtils::ExtraInsightIntentInfo2JsInsightIntentInfo(jsIntentInfo, info);
+            infos.emplace_back(jsIntentInfo);
+        }
+    } else {
+        std::vector<ExtraInsightIntentGenericInfo> genericInfos;
+        DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetAllInsightIntentGenericInfo(genericInfos);
+        if (genericInfos.empty()) {
+            return ERR_OK;
+        }
+        for (auto &info : genericInfos) {
+            JsInsightIntentInfo jsIntentInfo;
+            InsightIntentUtils::ExtraInsightIntentGenericInfo2JsInsightIntentInfo(jsIntentInfo, info);
+            infos.emplace_back(jsIntentInfo);
+        }
+    }
+    return ERR_OK;
+}
+
+int32_t AbilityManagerService::GetInsightIntentInfoByBundleName(
+    AbilityRuntime::GetInsightIntentFlag flag,
+    const std::string &bundleName,
+    std::vector<JsInsightIntentInfo> &infos)
+{
+    int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckPermissionForCaller();
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    if (flag == AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT) {
+        std::vector<ExtraInsightIntentInfo> intentInfos;
+        DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentInfoByName(
+            bundleName, GetUserId(), intentInfos);
+        if (intentInfos.empty()) {
+            return ERR_OK;
+        }
+        for (auto &info : intentInfos) {
+            JsInsightIntentInfo jsIntentInfo;
+            InsightIntentUtils::ExtraInsightIntentInfo2JsInsightIntentInfo(jsIntentInfo, info);
+            infos.emplace_back(jsIntentInfo);
+        }
+    } else {
+        std::vector<ExtraInsightIntentGenericInfo> genericInfos;
+        DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentGenericInfoByName(
+            bundleName, genericInfos);
+        if (genericInfos.empty()) {
+            return ERR_OK;
+        }
+        for (auto &info : genericInfos) {
+            JsInsightIntentInfo jsIntentInfo;
+            InsightIntentUtils::ExtraInsightIntentGenericInfo2JsInsightIntentInfo(jsIntentInfo, info);
+            infos.emplace_back(jsIntentInfo);
+        }
+    }
+    return ERR_OK;
+}
+
+int32_t AbilityManagerService::GetInsightIntentInfoByIntentName(
+    AbilityRuntime::GetInsightIntentFlag flag,
+    const std::string &bundleName,
+    const std::string &moduleName,
+    const std::string &intentName,
+    JsInsightIntentInfo &info)
+{
+    int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckPermissionForCaller();
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    if (flag == AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT) {
+        ExtraInsightIntentInfo intentInfo;
+        DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentInfo(
+            bundleName, moduleName, intentName, intentInfo);
+        InsightIntentUtils::ExtraInsightIntentInfo2JsInsightIntentInfo(intentInfo, info);
+    } else {
+        ExtraInsightIntentGenericInfo genericInfo;
+        DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentGenericInfo(
+            bundleName, moduleName, intentName, GetUserId(), genericInfo);
+        InsightIntentUtils::ExtraInsightIntentGenericInfo2JsInsightIntentInfo(genericInfo, info);
+
+    }
+    return ERR_OK;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

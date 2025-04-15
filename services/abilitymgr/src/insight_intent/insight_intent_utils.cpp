@@ -96,5 +96,60 @@ uint32_t InsightIntentUtils::GetSrcEntry(const AppExecFwk::ElementName &elementN
     TAG_LOGE(AAFwkTag::INTENT, "get srcEntry failed");
     return AAFwk::ERR_INSIGHT_INTENT_START_INVALID_COMPONENT;
 }
+uint32_t ExtraInsightIntentGenericInfo2JsInsightIntentInfo(
+    JsInsightIntentInfo &jsInfo, AAFwk::ExtraInsightIntentGenericInfo &genericInfo)
+{
+    jsInfo.bundleName = genericInfo.bundleName;
+    jsInfo.moduleName = genericInfo.moduleName;
+    jsInfo.intentName = genericInfo.intentName;
+    jsInfo.displayName = genericInfo.displayName;
+    jsInfo.intentType = genericInfo.decoratorType;
+    if (genericInfo.decoratorType == AAFwK::INSIGHT_INTENTS_DECORATOR_TYPE_LINK) {
+        auto linkInfo = genericInfo.get<AAFwk::LinkInfo>();
+        jsInfo.linkInfo.uri = linkInfo.uri;
+        jsInfo.params = linkInfo.parameters;
+        
+    } else if (genericInfo.decoratorType == AAFwK::INSIGHT_INTENTS_DECORATOR_TYPE_PAGE) {
+        auto pageInfo = genericInfo.get<AAFwk::PageInfo>();
+        jsInfo.pageInfo.uiAbility = pageInfo.uiAbility;
+        jsInfo.pageInfo.pageRouterName = pageInfo.pageRouteName;
+        jsInfo.pageInfo.navigationId = pageInfo.navigationId;
+        jsInfo.pageInfo.navDestination = pageInfo.navDestination;
+        jsInfo.params = pageInfo.parameters;
+    } else if (genericInfo.decoratorType == AAFwK::INSIGHT_INTENTS_DECORATOR_TYPE_ENTRY) {
+        auto entryInfo = genericInfo.get<AAFwk::EntryInfo>();
+        jsInfo.entryInfo.abilityName = entryInfo.abilityName;
+        for (auto mode : entryInfo.executeMode) {
+            jsInfo.entryInfo.executeMode.emplace_back(mode);
+        }
+        jsInfo.params = entryInfo.parameters;
+    } else if (genericInfo.decoratorType == AAFwK::INSIGHT_INTENTS_DECORATOR_TYPE_FUNCTION) {
+        auto functionInfo = genericInfo.get<AAFwk::FunctionInfo>();
+        jsInfo.params = functionInfo.parameters;
+    } else if (genericInfo.decoratorType == AAFwK::INSIGHT_INTENTS_DECORATOR_TYPE_FORM) {
+        auto formInfo = genericInfo.get<AAFwk::FormInfo>();
+        jsInfo.params = formInfo.parameters;
+    } else {
+        TAG_LOGE(AAFwkTag::INTENT, "invalid decoratorType:%{public}s", genericInfo.decoratorType.c_str());
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+uint32_t ExtraInsightIntentInfo2JsInsightIntentInfo(
+    JsInsightIntentInfo &jsInfo, AAFwk::ExtraInsightIntentInfo &intentInfo)
+{
+    ExtraInsightIntentGenericInfo2JsInsightIntentInfo(jsInfo, intentInfo.genericInfo);
+    jsInfo.domain = intentInfo.domain;
+    jsInfo.intentVersion = intentInfo.intentVersion;
+    jsInfo.displayDescription = intentInfo.displayDescription;
+    jsInfo.schema = intentInfo.schema;
+    jsInfo.icon = intentInfo.icon;
+    jsInfo.llmDescription = intentInfo.llmDescription;
+
+    for (auto &keyword : intentInfo.keywords) {
+        jsInfo.keywords.emplace_back(keyword);
+    }
+    return ERR_OK;
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
