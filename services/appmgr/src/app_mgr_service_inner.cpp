@@ -29,6 +29,7 @@
 #include "ability_window_configuration.h"
 #include "accesstoken_kit.h"
 #include "app_config_data_manager.h"
+#include "app_configuration_policy_manager.h"
 #include "app_mem_info.h"
 #include "app_mgr_service.h"
 #include "app_mgr_event.h"
@@ -5310,6 +5311,7 @@ int32_t AppMgrServiceInner::DealWithUserConfiguration(const Configuration& confi
 
 int32_t AppMgrServiceInner::UpdateConfiguration(const Configuration &config, const int32_t userId)
 {
+    TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrServiceInner::UpdateConfiguration Start");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!appRunningManager_) {
         TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
@@ -5341,6 +5343,80 @@ int32_t AppMgrServiceInner::UpdateConfiguration(const Configuration &config, con
         }
     }
 
+    return result;
+}
+
+void *AppMgrServiceInner::UpdateConfigurationPolicyTaskPost(void *arg)
+{ TAG_LOGE(AAFwkTag::APPMGR, "AppMgrServiceInner::UpdateConfigurationPolicyTaskPost...begin........");
+    auto appMgrServiceInner = static_cast<AppMgrServiceInner *>(arg);
+    if (appMgrServiceInner == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner is nullptr.........");
+        return nullptr;
+    }
+    policy_data policyData = appMgrServiceInner->policyData_;
+
+    int ret = pthread_detach(pthread_self());
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "UpdateConfigurationPolicyTaskPost detach failed: %{public}d............", ret);
+    }
+
+    if (!appMgrServiceInner->appRunningManager_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null............");
+        return nullptr;
+    }
+
+    int32_t count = 0;
+    TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrServiceInner::UpdateConfigurationPolicy handle begin.................");
+    for (uint32_t pid: policyData.whiteList) {
+        auto appRecord = appMgrServiceInner->appRunningManager_->GetAppRunningRecordByPid(static_cast<pid_t>(pid));
+        if (appRecord == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "appRecord null....pid:%{public}d..............", pid);
+            count--;
+            continue;
+        }
+        appMgrServiceInner->appRunningManager_->UpdateConfigurationDelayed(appRecord);
+        TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrServiceInner::UpdateConfigurationDelayed ...............pid:%{public}d..............", pid);
+        if (count++ >=  policyData.policy.countPerTime) {
+            usleep(policyData.policy.intervalTime);
+            count = 0;
+        }
+    }
+
+    return nullptr;
+}
+
+int32_t AppMgrServiceInner::UpdateConfigurationPolicy(const std::vector<uint32_t> &whiteList,
+    const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId)
+{
+    TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrServiceInner::UpdateConfigurationPolicy Start........");
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (!appRunningManager_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
+        return ERR_INVALID_VALUE;
+    }
+    CHECK_CALLER_IS_SYSTEM_APP;
+    auto ret = AAFwk::PermissionVerification::GetInstance()->VerifyUpdateConfigurationPerm();
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    // int32_t realUserId = userId;
+    // if (realUserId < 0) {
+    //     realUserId = GetCurrentAccountId();
+    // }
+    // auto config = multiUserConfigurationMgr_->GetConfigurationByUserId(realUserId);
+    // if (config == nullptr) {
+    //     TAG_LOGE(AAFwkTag::APPMGR, "config null");
+    //     return ERR_INVALID_VALUE;
+    // }
+
+
+    int32_t result = appRunningManager_->UpdateConfigurationPolicy(whiteList, policy, userId);
+
+    // AppConfigurationPolicyManager appConfigurationPolicyManager;
+    // appConfigurationPolicyManager.Init();
+    // appConfigurationPolicyManager.test();
+
+    // appConfigurationPolicyManager.UnInit();
     return result;
 }
 
