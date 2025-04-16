@@ -106,6 +106,7 @@ config("abilityms_config") {
   ]
 }
 
+
 ohos_shared_library("abilityms") {
   sanitize = {
     cfi = true
