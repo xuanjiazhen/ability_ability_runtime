@@ -488,5 +488,9 @@ group("ets_packages") {
     ":ability_runtime_want_agent_abc_etc",
     ":ability_runtime_want_agent_info_abc_etc",
     ":ability_runtime_want_constant_abc_etc",
+    ":ability_runtime_want_agent_abc_etc",
+    ":ability_runtime_trigger_info_abc_etc",
+    ":ability_runtime_want_agent_info_abc_etc",
+    ":ability_runtime_ability_utils_abc_etc",
   ]
 }
