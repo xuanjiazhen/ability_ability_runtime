@@ -51,7 +51,7 @@ bool UIExtensionHostInfo::Marshalling(Parcel &parcel) const
     if (!parcel.WriteParcelable(&elementName_)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write elementName failed");
         return false;
-    }
+    } 
 
     return true;
 }
