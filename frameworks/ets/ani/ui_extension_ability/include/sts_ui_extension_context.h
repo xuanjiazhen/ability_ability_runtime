@@ -23,6 +23,7 @@
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "ohos_application.h"
+#include "sts_free_install_observer.h"
 
 [[maybe_unused]] static void TerminateSelfSync([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object obj,
     [[maybe_unused]] ani_object callback);
@@ -40,10 +41,17 @@ void BindExtensionInfo(ani_env* aniEnv, ani_class contextClass, ani_object conte
 
 class StsUIExtensionContext final {
 public:
-    explicit StsUIExtensionContext(const std::shared_ptr<OHOS::AbilityRuntime::UIExtensionContext>& context)
-        : context_(context) {}
-    virtual ~StsUIExtensionContext() = default;
-protected:
-    std::weak_ptr<OHOS::AbilityRuntime::UIExtensionContext> context_;
+    static StsUIExtensionContext &GetInstance()
+    {
+        static StsUIExtensionContext instance;
+        return instance;
+    }
+    void StartAbilityInner([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object aniObj,
+        ani_object wantObj, ani_object opt, ani_object call);
+    static OHOS::AbilityRuntime::UIExtensionContext* GetAbilityContext(ani_env *env, ani_object obj);
+    void AddFreeInstallObserver(ani_env *env, const OHOS::AAFwk::Want &want,
+        ani_object callback, OHOS::AbilityRuntime::UIExtensionContext* context);
+private:
+    OHOS::sptr<OHOS::AbilityRuntime::StsFreeInstallObserver> freeInstallObserver_ = nullptr;
 };
 #endif // OHOS_ABILITY_RUNTIME_STS_UI_EXTENSION_CONTEXT_H
