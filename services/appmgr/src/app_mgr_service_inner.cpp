@@ -5325,7 +5325,8 @@ int32_t AppMgrServiceInner::DealWithUserConfiguration(const Configuration& confi
     }
 }
 
-int32_t AppMgrServiceInner::UpdateConfiguration(const Configuration &config, const int32_t userId)
+int32_t AppMgrServiceInner::UpdateConfiguration(const Configuration &config, const int32_t userId,
+    const sptr<IUpdateConfigurationCompleteCallback> &callback)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!appRunningManager_) {
@@ -5357,7 +5358,11 @@ int32_t AppMgrServiceInner::UpdateConfiguration(const Configuration &config, con
             item.observer->OnConfigurationUpdated(config);
         }
     }
-
+    
+    if (callback) {
+        TAG_LOGE(AAFwkTag::APPMGR, "UpdateConfiguration callback exec..............");
+        callback->OnComplete();
+    }
     return result;
 }
 

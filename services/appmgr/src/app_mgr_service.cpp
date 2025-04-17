@@ -1068,14 +1068,15 @@ int32_t AppMgrService::GetConfiguration(Configuration& config)
     return ERR_OK;
 }
 
-int32_t AppMgrService::UpdateConfiguration(const Configuration& config, const int32_t userId)
+int32_t AppMgrService::UpdateConfiguration(const Configuration& config, const int32_t userId,
+    const sptr<IUpdateConfigurationCompleteCallback> &callback)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
-    return appMgrServiceInner_->UpdateConfiguration(config, userId);
+    return appMgrServiceInner_->UpdateConfiguration(config, userId, callback);
 }
 
 int32_t AppMgrService::UpdateConfigurationByBundleName(const Configuration& config, const std::string &name,
@@ -1826,7 +1827,7 @@ int32_t AppMgrService::GetKilledProcessInfo(int pid, int uid, KilledProcessInfo 
 }
 
 int32_t AppMgrService::LaunchAbility(const sptr<IRemoteObject> &token)
-{
+{TAG_LOGE(AAFwkTag::APPMGR, "AppMgrService::LaunchAbility.................................");
     if (!IsReady()) {
         return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
     }
@@ -1835,6 +1836,27 @@ int32_t AppMgrService::LaunchAbility(const sptr<IRemoteObject> &token)
         return AAFwk::ERR_NO_ALLOW_OUTSIDE_CALL;
     }
     return appMgrServiceInner_->LaunchAbility(token);
+}
+
+int32_t AppMgrService::UpdateConfigurationPolicy(const std::vector<int32_t> &whiteList, const ConfigurationPolicy &policy)
+{
+    TAG_LOGE(AAFwkTag::APPMGR, "AppMgrService::UpdatePolicy.................................");
+    if (!IsReady()) {
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
+    }
+    
+    if (!appMgrServiceInner_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
+        return AAFwk::ERR_NULL_APP_MGR_SERVICE_INNER;
+    }
+    //return appMgrServiceInner_->UpdatePolicy(whiteList, policy);
+    auto size = whiteList.size();
+    for (int i = 0; i < size; i++) {
+        TAG_LOGE(AAFwkTag::APPMGR, "................%{public}d.................", whiteList[i]);
+    }
+
+    TAG_LOGE(AAFwkTag::APPMGR, "................%{public}d.......%{public}d..........", policy.countPerTime, policy.intervalTime);
+    return 0;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -101,6 +101,7 @@ ohos_shared_library("app_manager") {
     "src/appmgr/native_child_notify_proxy.cpp",
     "src/appmgr/native_child_notify_stub.cpp",
     "src/appmgr/page_state_data.cpp",
+    "src/appmgr/configuration_policy.cpp",
     "src/appmgr/priority_object.cpp",
     "src/appmgr/process_data.cpp",
     "src/appmgr/process_info.cpp",
@@ -119,6 +120,8 @@ ohos_shared_library("app_manager") {
     "src/appmgr/start_specified_ability_response_proxy.cpp",
     "src/appmgr/start_specified_ability_response_stub.cpp",
     "src/appmgr/system_memory_attr.cpp",
+    "src/appmgr/update_configuration_complete_callback_proxy.cpp",
+    "src/appmgr/update_configuration_complete_callback_stub.cpp",
   ]
 
   public_configs = [

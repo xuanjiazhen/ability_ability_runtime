@@ -79,6 +79,8 @@
 #include "running_multi_info.h"
 #include "multi_user_config_mgr.h"
 #include "user_callback.h"
+#include "user_callback.h"
+#include "iupdate_configuration_complete_callback.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -757,7 +759,8 @@ public:
      * @param config, System environment change parameters.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1);
+    int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1,
+        const sptr<IUpdateConfigurationCompleteCallback> &callback = nullptr);
 
     int32_t UpdateConfigurationByBundleName(const Configuration &config, const std::string &name, int32_t appIndex);
 
