@@ -448,11 +448,9 @@ public:
      *
      * @param sessionInfo the session info of the ability to terminate.
      * @param isUserRequestedExit determine whether it is a user request to exit.
-     * @param sceneFlag the reason info of the ability to terminate.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode CloseUIAbilityBySCB(sptr<SessionInfo> sessionInfo,
-        bool isUserRequestedExit = false, uint32_t sceneFlag = 0);
+    ErrCode CloseUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool isUserRequestedExit = false);
 
     /**
      * SendResultToAbility with want, return resultWant from ability manager service.
@@ -1618,11 +1616,9 @@ public:
      *
      * @param sessionInfo the session info of the ability to clean.
      * @param isUserRequestedExit determine whether it is a user request to exit.
-     * @param sceneFlag the reason info of the ability to terminate.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode CleanUIAbilityBySCB(sptr<SessionInfo> sessionInfo,
-        bool isUserRequestedExit = false, uint32_t sceneFlag = 0);
+    ErrCode CleanUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool isUserRequestedExit = false);
 
     /**
      * Open link of ability and atomic service.
