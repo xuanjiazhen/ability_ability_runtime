@@ -34,7 +34,9 @@ ani_array_ref GetAniArrayString(ani_env *env, const std::vector<std::string> &va
 bool GetRefFieldByName(ani_env *env, ani_object param, const char *name, ani_ref &ref);
 
 ani_object createDouble(ani_env *env, ani_double value);
+ani_object createString(ani_env *env, ani_string value);
 bool SetFieldString(ani_env *env, ani_class cls, ani_object object, const std::string &fieldName, const std::string &value);
+bool SetOptionalFieldString(ani_env *env, ani_class cls, ani_object object, const std::string &fieldName, std::string value);
 bool SetFieldDouble(ani_env *env, ani_class cls, ani_object object, const std::string &fieldName, double value);
 bool SetFieldBoolean(ani_env *env, ani_class cls, ani_object object, const std::string &fieldName, bool value);
 bool SetFieldInt(ani_env *env, ani_class cls, ani_object object, const std::string &fieldName, int value);

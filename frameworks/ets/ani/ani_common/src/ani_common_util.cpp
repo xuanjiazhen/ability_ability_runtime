@@ -23,6 +23,7 @@
 namespace OHOS {
 namespace AppExecFwk {
 constexpr const char* CLASSNAME_DOUBLE = "Lstd/core/Double;";
+constexpr const char* CLASSNAME_STRING = "Lstd/core/String;";
 
 bool GetIntByName(ani_env *env, ani_object param, const char *name, int &value)
 {
@@ -448,6 +449,51 @@ bool SetFieldString(ani_env *env, ani_class cls, ani_object object, const std::s
         return false;
     }
     return true;
+}
+
+bool SetOptionalFieldString(ani_env *env, ani_class cls, ani_object object, const std::string &fieldName,
+    std::string value)
+{
+    ani_field field = nullptr;
+    ani_status status = env->Class_FindField(cls, fieldName.c_str(), &field);
+    if (status != ANI_OK || field == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Class_FindField failed or null field, status=%{public}d, fieldName=%{public}s",
+            status, fieldName.c_str());
+        return false;
+    }
+    ani_object strObj = createString(env, value);
+    if (strObj == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null strObj");
+        return false;
+    }
+    status = env->Object_SetField_Ref(object, field, strObj);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "Object_SetField_Ref failed, status=%{public}d, fieldName=%{public}s",
+            status, fieldName.c_str());
+        return false;
+    }
+    return true;
+}
+
+ani_object createString(ani_env *env, ani_string value)
+{
+    ani_class cls;
+    ani_status status = ANI_ERROR;
+    if ((status = env->FindClass(CLASSNAME_STRING, &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "createString FindClass status : %{public}d", status);
+        return nullptr;
+    }
+    ani_method ctor;
+    if ((status = env->Class_FindMethod(cls, "<ctor>", "I:V", &ctor)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "createString Class_FindMethod status : %{public}d", status);
+        return nullptr;
+    }
+    ani_object object;
+    if ((status = env->Object_New(cls, ctor, &object, value)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "createString Object_New status : %{public}d", status);
+        return nullptr;
+    }
+    return object;
 }
 
 bool SetFieldDouble(ani_env *env, ani_class cls, ani_object object, const std::string &fieldName, double value)
