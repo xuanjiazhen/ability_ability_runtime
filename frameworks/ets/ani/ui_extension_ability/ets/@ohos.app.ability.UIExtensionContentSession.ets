@@ -26,7 +26,7 @@ export default class UIExtensionContentSession {
   native loadContent(path: string, storage?: LocalStorage): void;
   native setWindowBackgroundColor(color: string): void;
   native getUIExtensionHostWindowProxy(): uiExtensionHost.UIExtensionHostWindowProxy;
-  native setReceiveDataCallbackASync(): void;
+  native nativeSetReceiveDataCallback(callback: (data: Record<string, Object>) => void): void;
   native terminateSelfSync(callback:AsyncCallbackCommonWrapper<void>): void;
   native terminateSelfWithResultSync(parameter: AbilityResult, callback:AsyncCallbackCommonWrapper<void>): void;
 
@@ -35,12 +35,7 @@ export default class UIExtensionContentSession {
   }
 
    setReceiveDataCallback(callback: (data: Record<string, Object>) => void): void {
-     let p1 = taskpool.execute(():undefined => {this.setReceiveDataCallbackASync(); return undefined});
-         p1.then((e: NullishType)=>{
-            let result = e as Record<string, Object>;
-              callback(result);
-         }, (err:Object): void => {
-         });
+      this.nativeSetReceiveDataCallback(callback);
    }
 
   terminateSelf(callback:AsyncCallback<void>): void {
