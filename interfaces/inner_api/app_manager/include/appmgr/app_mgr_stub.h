@@ -191,6 +191,7 @@ private:
     int32_t HandleUpdateProcessMemoryState(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetKilledProcessInfo(MessageParcel &data, MessageParcel &reply);
     int32_t HandleLaunchAbility(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleUpdateConfigurationPolicy(MessageParcel &data, MessageParcel &reply);
     DISALLOW_COPY_AND_MOVE(AppMgrStub);
 };
 }  // namespace AppExecFwk

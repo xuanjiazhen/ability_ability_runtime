@@ -2262,7 +2262,7 @@ int32_t AppMgrProxy::GetKilledProcessInfo(int pid, int uid, KilledProcessInfo &i
 }
 
 int32_t AppMgrProxy::LaunchAbility(const sptr<IRemoteObject> &token)
-{
+{TAG_LOGE(AAFwkTag::APPMGR, "AppMgrProxy::LaunchAbility............................");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -2278,6 +2278,45 @@ int32_t AppMgrProxy::LaunchAbility(const sptr<IRemoteObject> &token)
 
     PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::LAUNCH_ABILITY, data, reply, option);
     return reply.ReadInt32();
+}
+
+
+int32_t AppMgrProxy::UpdateConfigurationPolicy(const std::vector<int32_t> &whiteList, const ConfigurationPolicy &policy)
+{
+    TAG_LOGE(AAFwkTag::APPMGR, "AppMgrProxy::UpdatePolicy............................");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write token failed.................");
+        return AAFwk::ERR_WRITE_INTERFACE_TOKEN_FAILED;
+    }
+    auto size = whiteList.size();
+    if (size == 0 || size > MAX_PROCESS_STATE_COUNT) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Invalid size......................");
+        return ERR_FLATTEN_OBJECT;
+    }
+   
+    if (!data.WriteUint32(size)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write size failed.................");
+        return ERR_FLATTEN_OBJECT;
+    }
+    for (const auto &record: whiteList) {
+        if (!data.WriteUint32(record)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Write perState failed...................");
+            return ERR_FLATTEN_OBJECT;
+        }
+    }
+    if (!data.WriteParcelable(&policy)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "parcel policy failed......................");
+        return ERR_INVALID_DATA;
+    }
+    if (!SendTransactCmd(AppMgrInterfaceCode::UPDATE_POLICY, data, reply)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest err....................");
+        return IPC_PROXY_ERR;
+    }
+
+    return ERR_OK;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
