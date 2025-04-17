@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2025 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License"),
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -12,18 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { AsyncCallback } from '@ohos.base';
-import { BusinessError } from '@ohos.base';
-
-export class AsyncCallbackCommonWrapper<T> {
-  public myFun_: AsyncCallback<T, void> = (err: BusinessError<void>, data: T) => {}
-
-  constructor(myFun:AsyncCallback<T, void>) {
-    this.myFun_ = myFun;
-  }
-
-  invoke(err: BusinessError<void>, data: T): void {
-    this.myFun_(err, data);
-  }
+export default class ProcessData {
+    bundleName: string;
+    pid: number;
+    uid: number;
+    state: number;
+    isContinuousTask: boolean;
+    isKeepAlive: boolean;
 }

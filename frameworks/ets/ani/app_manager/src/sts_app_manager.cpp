@@ -95,15 +95,16 @@ static void GetRunningProcessInformation(ani_env *env, ani_object callback)
     sptr<OHOS::AppExecFwk::IAppMgr> appMgr = GetAppManagerInstance();
     if (appMgr == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "appManager null ptr");
-        AsyncCallback(env, callback,
+        AppExecFwk::AsyncCallback(env, callback,
             OHOS::AbilityRuntime::CreateStsErrorByNativeErr(env,
             static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER)), nullptr);
         return;
     }
     std::vector<AppExecFwk::RunningProcessInfo> infos;
     auto ret = appMgr->GetAllRunningProcesses(infos);
+    TAG_LOGD(AAFwkTag::APPMGR, "GetAllRunningProcesses infos size:%{public}d", infos.size());
     ani_object aniInfosRef = CreateRunningProcessInfoArray(env, infos);
-    AsyncCallback(env, callback,
+    AppExecFwk::AsyncCallback(env, callback,
         OHOS::AbilityRuntime::CreateStsErrorByNativeErr(env, static_cast<int32_t>(ret)), aniInfosRef);
 }
 
@@ -117,14 +118,14 @@ static void GetForegroundApplications(ani_env *env, ani_object callback)
     auto appManager = GetAppManagerInstance();
     if (appManager == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "appManager null ptr");
-        AsyncCallback(env, callback,
+        AppExecFwk::AsyncCallback(env, callback,
             OHOS::AbilityRuntime::CreateStsErrorByNativeErr(env, static_cast<int32_t>(ERROR_CODE_ONE)), nullptr);
         return;
     }
     std::vector<AppExecFwk::AppStateData> appStateData;
     int32_t ret = appManager->GetForegroundApplications(appStateData);
     ani_object appStateDataObj = CreateAppStateDataArray(env, appStateData);
-    AsyncCallback(env, callback,
+    AppExecFwk::AsyncCallback(env, callback,
         OHOS::AbilityRuntime::CreateStsErrorByNativeErr(env, static_cast<int32_t>(ret)), appStateDataObj);
 }
 
@@ -138,28 +139,28 @@ static void GetRunningMultiAppInfo(ani_env *env, ani_string stsBundleName, ani_o
     #ifdef SUPPORT_SCREEN
     if (!CheckCallerIsSystemApp()) {
         TAG_LOGE(AAFwkTag::APPMGR, "Non-system app");
-        AsyncCallback(env, callback,
+        AppExecFwk::AsyncCallback(env, callback,
             OHOS::AbilityRuntime::CreateStsErrorByNativeErr(env,
             static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP)), nullptr);
     }
 #endif
     if (stsBundleName == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "invalid argc");
-        AsyncCallback(env, callback,
+        AppExecFwk::AsyncCallback(env, callback,
             OHOS::AbilityRuntime::CreateStsErrorByNativeErr(env,
             static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM)), nullptr);
     }
     std::string bundleName;
     if (!OHOS::AppExecFwk::GetStdString(env, stsBundleName, bundleName)) {
         TAG_LOGE(AAFwkTag::APPMGR, "GetStdString Failed");
-        AsyncCallback(env, callback,
+        AppExecFwk::AsyncCallback(env, callback,
             OHOS::AbilityRuntime::CreateStsErrorByNativeErr(env,
             static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM)), nullptr);
     }
     auto appManager = GetAppManagerInstance();
     if (appManager == nullptr) {
         TAG_LOGW(AAFwkTag::APPMGR, "appManager nullptr");
-        AsyncCallback(env, callback,
+        AppExecFwk::AsyncCallback(env, callback,
             OHOS::AbilityRuntime::CreateStsErrorByNativeErr(env,
             static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER)), nullptr);
         return;
@@ -168,7 +169,7 @@ static void GetRunningMultiAppInfo(ani_env *env, ani_string stsBundleName, ani_o
     int32_t innerErrorCode = ERR_OK;
     innerErrorCode = appManager->GetRunningMultiAppInfoByBundleName(bundleName, info);
     ani_object appinfoObj = WrapRunningMultiAppInfo(env, info);
-    AsyncCallback(env, callback,
+    AppExecFwk::AsyncCallback(env, callback,
         OHOS::AbilityRuntime::CreateStsErrorByNativeErr(env,
             static_cast<int32_t>(innerErrorCode)), appinfoObj);
 }
@@ -183,7 +184,7 @@ static void GetRunningProcessInfoByBundleNameAndUserId(ani_env *env, ani_string 
     }
     if (stsBundleName == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "stsBundleName null ptr");
-        AsyncCallback(env, callback,
+        AppExecFwk::AsyncCallback(env, callback,
             OHOS::AbilityRuntime::CreateStsErrorByNativeErr(env,
             static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM)), nullptr);
         return;
@@ -191,7 +192,7 @@ static void GetRunningProcessInfoByBundleNameAndUserId(ani_env *env, ani_string 
     std::string bundleName;
     if (!OHOS::AppExecFwk::GetStdString(env, stsBundleName, bundleName)) {
         TAG_LOGE(AAFwkTag::APPMGR, "GetStdString Failed");
-        AsyncCallback(env, callback,
+        AppExecFwk::AsyncCallback(env, callback,
             OHOS::AbilityRuntime::CreateStsErrorByNativeErr(env,
             static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM)), nullptr);
         return;
@@ -203,7 +204,7 @@ static void GetRunningProcessInfoByBundleNameAndUserId(ani_env *env, ani_string 
     auto appManager = GetAppManagerInstance();
     if (appManager == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "appManager nullptr");
-        AsyncCallback(env, callback,
+        AppExecFwk::AsyncCallback(env, callback,
             OHOS::AbilityRuntime::CreateStsErrorByNativeErr(env,
             static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER)), nullptr);
         return;
@@ -211,7 +212,7 @@ static void GetRunningProcessInfoByBundleNameAndUserId(ani_env *env, ani_string 
     std::vector<AppExecFwk::RunningProcessInfo> infos;
     int32_t ret = appManager->GetRunningProcessInformation(bundleName, userId, infos);
     ani_object aniInfos = CreateRunningProcessInfoArray(env, infos);
-    AsyncCallback(env, callback,
+    AppExecFwk::AsyncCallback(env, callback,
         OHOS::AbilityRuntime::CreateStsErrorByNativeErr(env, static_cast<int32_t>(ret)), aniInfos);
 }
 
