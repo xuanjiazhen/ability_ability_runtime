@@ -53,6 +53,8 @@ constexpr const char* DEVELOPER_MODE_STATE = "const.security.developermode.state
 }
 using EventFwk::CommonEventSupport;
 
+bool AppRunningManager::updateConfigurationFlag = false;
+
 AppRunningManager::AppRunningManager()
 {}
 AppRunningManager::~AppRunningManager()
@@ -976,16 +978,16 @@ void AppRunningManager::GetForegroundApplications(std::vector<AppStateData> &lis
     }
 }
 int32_t AppRunningManager::UpdateConfiguration(const Configuration& config, const int32_t userId)
-{
+{TAG_LOGE(AAFwkTag::APPMGR, "AppRunningManager::UpdateConfiguration userId:%{public}d...................", userId);
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
 
     auto appRunningMap = GetAppRunningRecordMap();
-    TAG_LOGD(AAFwkTag::APPMGR, "current app size %{public}zu", appRunningMap.size());
+    TAG_LOGD(AAFwkTag::APPMGR, "current app size %{public}zu.............", appRunningMap.size());
     int32_t result = ERR_OK;
     for (const auto& item : appRunningMap) {
         const auto& appRecord = item.second;
         if (appRecord && appRecord->GetState() == ApplicationState::APP_STATE_CREATE) {
-            TAG_LOGD(AAFwkTag::APPMGR, "app not ready, appName is %{public}s", appRecord->GetBundleName().c_str());
+            TAG_LOGD(AAFwkTag::APPMGR, "app not ready, appName is %{public}s....................", appRecord->GetBundleName().c_str());
             continue;
         }
         if (!(userId == -1 || appRecord->GetUid() / BASE_USER_RANGE == 0 ||
@@ -996,11 +998,22 @@ int32_t AppRunningManager::UpdateConfiguration(const Configuration& config, cons
             appRecord->ResetDelayConfiguration();
         }
         if (appRecord && !isCollaboratorReserveType(appRecord)) {
-            TAG_LOGD(AAFwkTag::APPMGR, "Notification app [%{public}s]", appRecord->GetName().c_str());
+            {
+                std::lock_guard guard(updateConfigurationPolicyLock_);
+                if (!updateConfigurationFlag) {
+                    updateConfigurationFlag = true;
+                    cond_var.notify_all();
+                    TAG_LOGE(AAFwkTag::APPMGR, "Notification app [%{public}s]...........", appRecord->GetName().c_str());
+
+                }
+            }
+            TAG_LOGD(AAFwkTag::APPMGR, "Notification app [%{public}s]...........", appRecord->GetName().c_str());
             std::lock_guard guard(updateConfigurationDelayedLock_);
             if (appRecord->NeedUpdateConfigurationBackground() ||
                 appRecord->GetState() != ApplicationState::APP_STATE_BACKGROUND) {
                 updateConfigurationDelayedMap_[appRecord->GetRecordId()] = false;
+                TAG_LOGE(AAFwkTag::APPMGR, "foreground apprecord pid:%{public}d.....%{public}s..............", appRecord->GetPid(),
+                    config.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE).c_str());
                 result = appRecord->UpdateConfiguration(config);
             } else {
                 auto delayConfig = appRecord->GetDelayConfiguration();
@@ -1008,10 +1021,147 @@ int32_t AppRunningManager::UpdateConfiguration(const Configuration& config, cons
                 delayConfig->CompareDifferent(diffVe, config);
                 delayConfig->Merge(diffVe, config);
                 updateConfigurationDelayedMap_[appRecord->GetRecordId()] = true;
+                TAG_LOGE(AAFwkTag::APPMGR, "background apprecord pid:%{public}d....%{public}s................", appRecord->GetPid(),
+                config.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE).c_str());
             }
         }
     }
     return result;
+}
+
+bool AppRunningManager::UpdateBackgroundConfiguration(std::shared_ptr<AppRunningRecord>& appRecord)
+{
+    std::lock_guard guard(updateConfigurationDelayedLock_);
+    AppExecFwk::Configuration config;
+    auto delayConfig = appRecord->GetDelayConfiguration();
+    if (delayConfig == nullptr) {
+        appRecord->ResetDelayConfiguration();
+        TAG_LOGI(AAFwkTag::APPKIT, "delayConfig: is null........");
+        return false;
+    } else {
+        std::string value = delayConfig->GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE);
+        if (value == ConfigurationInner::EMPTY_STRING) {
+            return false;
+        }
+        config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE, value);
+        TAG_LOGI(AAFwkTag::APPKIT, "colormode : %{public}s........", value.c_str());
+    }
+    delayConfig->RemoveItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE);
+    TAG_LOGI(AAFwkTag::APPKIT, "bandleName: %{public}s........",appRecord->GetBundleName().c_str());
+    TAG_LOGI(AAFwkTag::APPKIT, "delayConfig: %{public}s........", delayConfig->GetName().c_str());
+    TAG_LOGI(AAFwkTag::APPKIT, "config: %{public}s........", config.GetName().c_str());
+    appRecord->UpdateConfiguration(config);
+    //appRecord->UpdateConfiguration(*delayConfig);
+    appRecord->ResetDelayConfiguration();
+    //item.second = false;
+    return true;
+}
+
+void *AppRunningManager::ExecuteConfigurationPolicy(void *arg)
+{
+    TAG_LOGE(AAFwkTag::APPMGR, "AppRunningManager::ExecuteConfigurationPolicy begin.........");
+    auto appRunningManager = static_cast<AppRunningManager *>(arg);
+    if (appRunningManager == nullptr) {
+        return nullptr;
+    }
+    
+    std::vector<BackgroundAppInfo> appInfos = appRunningManager->appInfos_;
+    AppExecFwk::ConfigurationPolicy policy = appRunningManager->policy_;
+    int32_t userId = appRunningManager->userId_;
+    int count = 0;
+    int currentValue = 0;
+    {
+        std::lock_guard guard(appRunningManager->updateConfigurationPolicyLock_);
+        updateConfigurationFlag = false;
+    }
+
+    for (const auto &info : appInfos)
+    {
+        //if (currentValue != AppRunningManager::changeFlagValue) {
+        if (updateConfigurationFlag) {
+            TAG_LOGE(AAFwkTag::APPMGR, " AppMgrServiceInner::UpdateConfigurationPolicy.0....exit.....%{public}d......", currentValue);
+            return nullptr;
+        }
+        // TAG_LOGE(AAFwkTag::APPMGR, "appInfos bandleName:%{public}s....appindex:%{public}d................",
+        //     info.bandleName.c_str(), info.appIndex);
+        for (auto &item : appRunningManager->updateConfigurationDelayedMap_) {
+            std::shared_ptr<AppRunningRecord> appRecord = nullptr;
+            {
+                std::lock_guard guard(appRunningManager->runningRecordMapMutex_);
+                auto it = appRunningManager->appRunningRecordMap_.find(item.first);
+                if (it != appRunningManager->appRunningRecordMap_.end()) {
+                    appRecord = it->second;
+                } else {
+                    TAG_LOGE(AAFwkTag::APPMGR, "continue.........");
+                    continue;
+                }
+            }
+            // TAG_LOGE(AAFwkTag::APPMGR, "updateConfigurationDelayedMap_ bandleName:%{public}s....appindex:%{public}d................",
+            //     appRecord->GetBundleName().c_str(), appRecord->GetAppIndex());
+            if (!(userId == -1 || appRecord->GetUid() / BASE_USER_RANGE == 0 ||
+                appRecord->GetUid() / BASE_USER_RANGE == userId)) {
+                continue;
+            }
+            if (info.bandleName == appRecord->GetBundleName() && info.appIndex == appRecord->GetAppIndex()
+                && item.second && appRecord->GetState() == ApplicationState::APP_STATE_BACKGROUND)
+            {
+                if (appRunningManager->UpdateBackgroundConfiguration(appRecord)) {
+                    item.second = false;
+                }
+                count++;
+                auto obj = appRecord->GetPriorityObject();
+                if (obj != nullptr) {
+                    TAG_LOGI(AAFwkTag::APPKIT, "obj != nullptr........");
+                    TAG_LOGD(AAFwkTag::APPMGR, "hostPid: %{public}d", obj->GetPid());
+                    std::vector<pid_t> providerPids;
+                    appRunningManager->GetAllUIExtensionProviderPid(obj->GetPid(), providerPids);
+
+                    for (pid_t providerPid : providerPids) {
+                        auto providerRecord = appRunningManager->GetAppRunningRecordByPid(providerPid);
+                        TAG_LOGI(AAFwkTag::APPKIT, "providerRecord.....%{public}s........",appRecord->GetBundleName().c_str());
+                        appRunningManager->UpdateBackgroundConfiguration(providerRecord);
+                        count++;
+                    }
+                }
+                break;
+            }
+        }
+        
+        if (count >=  policy.countPerTime) {
+            TAG_LOGI(AAFwkTag::APPKIT, "sleep: %{public}d........", currentValue);
+            count = 0;
+            TAG_LOGI(AAFwkTag::APPKIT, "wait_for: begin........");
+            std::unique_lock<std::mutex> lock(appRunningManager->updateConfigurationPolicyLock_);
+            appRunningManager->cond_var.wait_for(lock, std::chrono::seconds(5),/*std::chrono::milliseconds(policy.intervalTime)*/
+                [] { return updateConfigurationFlag; });
+                //[&currentValue] {return currentValue != AppRunningManager::changeFlagValue;});
+            TAG_LOGI(AAFwkTag::APPKIT, "wait_for: end........");
+            TAG_LOGI(AAFwkTag::APPKIT, "sleep: end.......%{public}d......", currentValue);
+            if (updateConfigurationFlag) {
+                TAG_LOGE(AAFwkTag::APPMGR, " AppMgrServiceInner::UpdateConfigurationPolicy.1....exit.....%{public}d......", currentValue);
+            }
+        }
+    }
+    TAG_LOGE(AAFwkTag::APPMGR, " AppMgrServiceInner::UpdateConfigurationPolicy.....end........%{public}d......", currentValue);
+    return nullptr;
+}
+
+int32_t AppRunningManager::UpdateConfigurationPolicy(const std::vector<BackgroundAppInfo> &appInfos,
+    const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId)
+{
+    TAG_LOGE(AAFwkTag::APPMGR, " AppMgrServiceInner::UpdateConfigurationPolicy................");
+    appInfos_ = appInfos;
+    policy_ = policy;
+    userId_ = userId;
+
+    pthread_t tid;
+    int ret = pthread_create(&tid, nullptr, AppRunningManager::ExecuteConfigurationPolicy, this);
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "create thread error, %{public}d", ret);
+        return ret;
+    }
+     
+    return ERR_OK;
 }
 
 int32_t AppRunningManager::UpdateConfigurationByBundleName(const Configuration &config, const std::string &name,

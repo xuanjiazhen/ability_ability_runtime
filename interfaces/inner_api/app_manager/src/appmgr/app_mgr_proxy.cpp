@@ -927,7 +927,7 @@ int AppMgrProxy::GetRenderProcessTerminationStatus(pid_t renderPid, int &status)
 
 int32_t AppMgrProxy::UpdateConfiguration(const Configuration &config, const int32_t userId)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "AppMgrProxy UpdateConfiguration");
+    TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrProxy::UpdateConfiguration Start");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
@@ -935,14 +935,59 @@ int32_t AppMgrProxy::UpdateConfiguration(const Configuration &config, const int3
         return ERR_INVALID_DATA;
     }
     if (!data.WriteParcelable(&config)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrProxy::UpdateConfiguration # parcel config failed");
         TAG_LOGE(AAFwkTag::APPMGR, "parcel config failed");
+        return ERR_INVALID_DATA;
+    }
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrProxy::UpdateConfiguration # parcel userId failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "parcel userId failed");
+        return ERR_INVALID_DATA;
+    }
+    int32_t ret = SendRequest(AppMgrInterfaceCode::UPDATE_CONFIGURATION, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "## JASON ## AppMgrProxy::UpdateConfiguration # SendRequest is failed, error code: %{public}d", ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t AppMgrProxy::UpdateConfigurationPolicy(const std::vector<BackgroundAppInfo> &appInfos,
+    const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId)
+{
+    TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrProxy::UpdateConfigurationPolicy Start");
+    TAG_LOGI(AAFwkTag::APPMGR, "AppMgrProxy UpdateConfigurationPolicy");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        return ERR_INVALID_DATA;
+    }
+    auto size = appInfos.size();
+    if (size == 0 || size > MAX_PROCESS_STATE_COUNT) {
+        TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrProxy::UpdateConfigurationPolicy # Invalid size");
+        return ERR_FLATTEN_OBJECT;
+    }
+    if (!data.WriteUint32(size)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrProxy::UpdateConfigurationPolicy # Write size failed");
+        return ERR_FLATTEN_OBJECT;
+    }
+    for (const auto &info: appInfos) {
+        if (!data.WriteParcelable(&info)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrProxy::UpdateConfigurationPolicy # Write perState failed");
+            return ERR_FLATTEN_OBJECT;
+        }
+    }
+    if (!data.WriteParcelable(&policy)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "parcel policy failed");
         return ERR_INVALID_DATA;
     }
     if (!data.WriteInt32(userId)) {
         TAG_LOGE(AAFwkTag::APPMGR, "parcel userId failed");
         return ERR_INVALID_DATA;
     }
-    int32_t ret = SendRequest(AppMgrInterfaceCode::UPDATE_CONFIGURATION, data, reply, option);
+    int32_t ret = SendRequest(AppMgrInterfaceCode::UPDATE_CONFIGURATION_POLICY, data, reply, option);
     if (ret != NO_ERROR) {
         TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
         return ret;
@@ -982,6 +1027,7 @@ int32_t AppMgrProxy::UpdateConfigurationByBundleName(const Configuration &config
 
 int32_t AppMgrProxy::GetConfiguration(Configuration& config)
 {
+    TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrProxy::GetConfiguration Start");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);

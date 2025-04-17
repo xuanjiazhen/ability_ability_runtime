@@ -19,6 +19,7 @@
 #include "app_jsheap_mem_info.h"
 #include "app_malloc_info.h"
 #include "app_mgr_interface.h"
+#include "background_app_info.h"
 #include "bundle_info.h"
 #include "iremote_proxy.h"
 #include "memory_level_info.h"
@@ -416,6 +417,9 @@ public:
     virtual int32_t GetConfiguration(Configuration& config) override;
 
     virtual int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1) override;
+
+    virtual int32_t UpdateConfigurationPolicy(const std::vector<BackgroundAppInfo> &appInfos,
+        const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId = -1) override;
 
     virtual int32_t UpdateConfigurationByBundleName(const Configuration &config, const std::string &name,
         int32_t appIndex = 0) override;
