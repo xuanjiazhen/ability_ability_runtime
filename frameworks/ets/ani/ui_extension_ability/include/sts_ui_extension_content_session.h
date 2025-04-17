@@ -29,7 +29,7 @@ namespace AbilityRuntime {
 [[maybe_unused]] static void NativeSetWindowBackgroundColor(ani_env* env, ani_object obj, ani_string color);
 [[maybe_unused]] static int NativeTerminateSelfWithResult(ani_env* env, ani_object obj,
     [[maybe_unused]] ani_object abilityResult, [[maybe_unused]] ani_object callback);
-[[maybe_unused]] static ani_object NativeSetReceiveDataCallback(ani_env* env, ani_object obj);
+[[maybe_unused]] static void NativeSetReceiveDataCallback(ani_env* env, ani_object obj);
 
 using RuntimeTask = std::function<void(int, const AAFwk::Want&, bool)>;
 
@@ -85,15 +85,20 @@ public:
     int32_t TerminateSelfWithResult();
     void SetWindowBackgroundColor(ani_env* env, ani_string color);
     ani_object GetUIExtensionHostWindowProxy(ani_env* env, ani_object object);
-    ani_object SetReceiveDataCallback(ani_env* env, ani_object object);
+    void SetReceiveDataCallback(ani_env* env, ani_object object);
+    static void CallReceiveDataCallback(ani_env* env, std::shared_ptr<ani_ref> callbackPtr,
+        const AAFwk::WantParams& wantParams);
+    void SetReceiveDataForResultCallback(ani_env* env, ani_object object);
+    static void CallReceiveDataCallbackForResult(ani_env* env, std::shared_ptr<ani_ref> weakcallback,
+        const AAFwk::WantParams& wantParams, AAFwk::WantParams& retWantParams);
 
 private:
     sptr<AAFwk::SessionInfo> sessionInfo_;
     sptr<Rosen::Window> uiWindow_;
     std::weak_ptr<AbilityRuntime::Context> context_;
-    std::shared_ptr<CallbackWrapper> receiveDataCallback_;
+    ani_ref receiveDataCallback_ = nullptr;
     bool isRegistered = false;
-    std::shared_ptr<CallbackWrapper> receiveDataForResultCallback_;
+    ani_ref receiveDataForResultCallback_ = nullptr;
     bool isSyncRegistered = false;
     std::shared_ptr<StsUISessionAbilityResultListener> listener_;
     bool isFirstTriggerBindModal_ = true;
