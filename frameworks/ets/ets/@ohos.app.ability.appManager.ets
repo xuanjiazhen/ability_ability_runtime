@@ -22,7 +22,7 @@ import _ProcessData from 'application.ProcessData';
 import _ApplicationStateObserver from 'application.ApplicationStateObserver';
 //import _AppForegroundStateObserver from 'application.AppForegroundStateObserver';
 //import _AbilityFirstFrameStateObserver from 'application.AbilityFirstFrameStateObserver';
-import { AsyncCallbackCommonWrapper } from './appManagerCommon.ets';
+import AsyncCallbackWrapper from './utils/AbilityUtils';
 
 export default namespace appManager {
 
@@ -59,9 +59,9 @@ export function preloadApplication(bundleName: string, userId: number, mode: Pre
     return p;
 }
 
-export native function nativeGetRunningProcessInformation(callback:AsyncCallbackCommonWrapper<Array<ProcessInformation>>): void;
+export native function nativeGetRunningProcessInformation(callback:AsyncCallbackWrapper<Array<ProcessInformation>>): void;
 export function getRunningProcessInformation(callback: AsyncCallback<Array<ProcessInformation>>): void {
-   let myCall = new AsyncCallbackCommonWrapper<Array<ProcessInformation>>(callback);
+   let myCall = new AsyncCallbackWrapper<Array<ProcessInformation>>(callback);
     taskpool.execute((): void => {
       appManager.nativeGetRunningProcessInformation(myCall);
     });
@@ -69,7 +69,7 @@ export function getRunningProcessInformation(callback: AsyncCallback<Array<Proce
 
 export function getRunningProcessInformation(): Promise<Array<ProcessInformation>> {
     let p:Promise<Array<ProcessInformation>> = new Promise<Array<ProcessInformation>>((resolve:(data:undefined)=>void, reject:(err: BusinessError<void>)=>void):void => {
-      let myCall = new AsyncCallbackCommonWrapper<Array<ProcessInformation>>((err: BusinessError<void>)=>{
+      let myCall = new AsyncCallbackWrapper<Array<ProcessInformation>>((err: BusinessError<void>)=>{
         if (err.code == 0) {
           resolve(undefined);
         } else {
@@ -83,9 +83,9 @@ export function getRunningProcessInformation(): Promise<Array<ProcessInformation
     return p;
 }
 
-export native function nativeGetForegroundApplications(callback:AsyncCallbackCommonWrapper<Array<AppStateData>>): void;
+export native function nativeGetForegroundApplications(callback:AsyncCallbackWrapper<Array<AppStateData>>): void;
 export function getForegroundApplications(callback: AsyncCallback<Array<AppStateData>>): void {
-    let myCall = new AsyncCallbackCommonWrapper<Array<AppStateData>>(callback);
+    let myCall = new AsyncCallbackWrapper<Array<AppStateData>>(callback);
     taskpool.execute((): void => {
       appManager.nativeGetForegroundApplications(myCall);
     });
@@ -93,7 +93,7 @@ export function getForegroundApplications(callback: AsyncCallback<Array<AppState
 
 export function getForegroundApplications(): Promise<Array<AppStateData>> {
     let p:Promise<Array<AppStateData>> = new Promise<Array<AppStateData>>((resolve:(data:undefined)=>void, reject:(err: BusinessError<void>)=>void):void => {
-      let myCall = new AsyncCallbackCommonWrapper<Array<AppStateData>>((err: BusinessError<void>)=>{
+      let myCall = new AsyncCallbackWrapper<Array<AppStateData>>((err: BusinessError<void>)=>{
         if (err.code == 0) {
           resolve(undefined);
         } else {
@@ -107,10 +107,10 @@ export function getForegroundApplications(): Promise<Array<AppStateData>> {
     return p;
 }
 
-export native function nativeGetRunningMultiAppInfo(bundleName: string, callback:AsyncCallbackCommonWrapper<RunningMultiAppInfo>): void;
+export native function nativeGetRunningMultiAppInfo(bundleName: string, callback:AsyncCallbackWrapper<RunningMultiAppInfo>): void;
 export function getRunningMultiAppInfo(bundleName: string): Promise<RunningMultiAppInfo> {
     let p:Promise<RunningMultiAppInfo> = new Promise<RunningMultiAppInfo>((resolve:(data:undefined)=>void, reject:(err: BusinessError<void>)=>void):void => {
-      let myCall = new AsyncCallbackCommonWrapper<RunningMultiAppInfo>((err: BusinessError<void>)=>{
+      let myCall = new AsyncCallbackWrapper<RunningMultiAppInfo>((err: BusinessError<void>)=>{
         if (err.code == 0) {
           resolve(undefined);
         } else {
@@ -124,9 +124,9 @@ export function getRunningMultiAppInfo(bundleName: string): Promise<RunningMulti
     return p;
 }
 
-export native function nativeGetRunningProcessInfoByBundleName(bundleName: string, callback:AsyncCallbackCommonWrapper< Array<ProcessInformation>>):void;
+export native function nativeGetRunningProcessInfoByBundleName(bundleName: string, callback:AsyncCallbackWrapper< Array<ProcessInformation>>):void;
 export function getRunningProcessInfoByBundleName(bundleName: string, callback: AsyncCallback<Array<ProcessInformation>>): void  {
-    let myCall = new AsyncCallbackCommonWrapper<Array<ProcessInformation>>(callback);
+    let myCall = new AsyncCallbackWrapper<Array<ProcessInformation>>(callback);
     taskpool.execute((): void => {
       appManager.nativeGetRunningProcessInfoByBundleName(bundleName, myCall);
     });
@@ -134,7 +134,7 @@ export function getRunningProcessInfoByBundleName(bundleName: string, callback: 
 
 export function getRunningProcessInfoByBundleName(bundleName: string): Promise<Array<ProcessInformation>> {
     let p:Promise<Array<ProcessInformation>> = new Promise<Array<ProcessInformation>>((resolve:(data:undefined)=>void, reject:(err: BusinessError<void>)=>void):void => {
-      let myCall = new AsyncCallbackCommonWrapper<Array<ProcessInformation>>((err: BusinessError<void>)=>{
+      let myCall = new AsyncCallbackWrapper<Array<ProcessInformation>>((err: BusinessError<void>)=>{
         if (err.code == 0) {
           resolve(undefined);
         } else {
@@ -149,9 +149,9 @@ export function getRunningProcessInfoByBundleName(bundleName: string): Promise<A
 }
 
 export native function nativeGetRunningProcessInfoByBundleNameAndUserId(bundleName: string,
-  userId: int, callback:AsyncCallbackCommonWrapper<Array<ProcessInformation>>):void;
+  userId: int, callback:AsyncCallbackWrapper<Array<ProcessInformation>>):void;
 export function getRunningProcessInfoByBundleName(bundleName: string, userId: int, callback: AsyncCallback<Array<ProcessInformation>>): void {
-    let myCall = new AsyncCallbackCommonWrapper<Array<ProcessInformation>>(callback);
+    let myCall = new AsyncCallbackWrapper<Array<ProcessInformation>>(callback);
     taskpool.execute((): void => {
       appManager.nativeGetRunningProcessInfoByBundleNameAndUserId(bundleName, userId, myCall);
     });
@@ -159,7 +159,7 @@ export function getRunningProcessInfoByBundleName(bundleName: string, userId: in
 
 export function getRunningProcessInfoByBundleName(bundleName: string, userId: int): Promise<Array<ProcessInformation>> {
     let p:Promise<Array<ProcessInformation>> = new Promise<Array<ProcessInformation>>((resolve:(data:undefined)=>void, reject:(err: BusinessError<void>)=>void):void => {
-      let myCall = new AsyncCallbackCommonWrapper<Array<ProcessInformation>>((err: BusinessError<void>)=>{
+      let myCall = new AsyncCallbackWrapper<Array<ProcessInformation>>((err: BusinessError<void>)=>{
         if (err.code == 0) {
           resolve(undefined);
         } else {

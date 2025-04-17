@@ -485,44 +485,6 @@ void SetRunningMultiInstanceInfo(ani_env *env, ani_object object,
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "failed status:%{public}d", status);
     }
-    status = env->Object_SetPropertyByName_Double(object, "uid", instanceInfo.uid);
-    if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "failed status:%{public}d", status);
-    }
-    ani_class arrayCls = nullptr;
-    status = env->FindClass("Lescompat/Array;", &arrayCls);
-    if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "status : %{public}d", status);
-        return;
-    }
-
-    ani_method arrayCtor;
-    status = env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor);
-    if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "status : %{public}d", status);
-        return;
-    }
-
-    ani_object arrayObj;
-    status = env->Object_New(arrayCls, arrayCtor, &arrayObj, instanceInfo.pids.size());
-    if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "status : %{public}d", status);
-        return;
-    }
-
-    ani_size index = 0;
-    for (auto &pid : instanceInfo.pids) {
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ID;:V", index, pid);
-        if (status != ANI_OK) {
-            TAG_LOGE(AAFwkTag::APPMGR, "status : %{public}d", status);
-            break;
-        }
-        index++;
-    }
-    status = env->Object_SetPropertyByName_Ref(object, "pids", arrayObj);
-    if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "failed status:%{public}d", status);
-    }
 }
 
 ani_object WrapRunningAppClone(ani_env *env, const AppExecFwk::RunningAppClone &runningAppClone)
