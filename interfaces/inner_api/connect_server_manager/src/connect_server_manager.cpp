@@ -151,6 +151,12 @@ bool ConnectServerManager::StoreInstanceMessage(int32_t tid, int32_t instanceId,
     return true;
 }
 
+void ConnectServerManager::StoreInstanceMessageSts(int32_t tid, int32_t instanceId)
+{
+    stsTid_ = tid;
+    stsInstanceId_ = instanceId;
+}
+
 void ConnectServerManager::StoreDebuggerInfo(int32_t tid, void* vm, const panda::JSNApi::DebugOption& debugOption,
     const DebuggerPostTask& debuggerPostTask, bool isDebugApp)
 {
@@ -165,6 +171,19 @@ void ConnectServerManager::StoreDebuggerInfo(int32_t tid, void* vm, const panda:
     }
 
     panda::JSNApi::StoreDebugInfo(tid, reinterpret_cast<panda::EcmaVM*>(vm), debugOption, debuggerPostTask, isDebugApp);
+}
+
+void ConnectServerManager::StoreDebuggerInfoSts(int32_t tid, const char* libraryPath,
+    bool isDebugApp, bool isStartWithDebug)
+{
+    std::lock_guard<std::mutex> lock(g_debuggerMutex);
+
+    if (!isConnected_) {
+        TAG_LOGW(AAFwkTag::JSRUNTIME, "not Connected");
+        return;
+    }
+    ark::JSNApi::DebugOption debugOption = {libraryPath, isDebugApp ? isStartWithDebug : false};
+    ark::JSNApi::StoreDebugInfo(tid, debugOption, isDebugApp);
 }
 
 void ConnectServerManager::SendDebuggerInfo(bool needBreakPoint, bool isDebugApp)
@@ -186,6 +205,14 @@ void ConnectServerManager::SendDebuggerInfo(bool needBreakPoint, bool isDebugApp
         panda::JSNApi::DebugOption debugOption = {ARK_DEBUGGER_LIB_PATH, isDebugApp ? needBreakPoint : false};
         panda::JSNApi::StoreDebugInfo(tid, vm, debugOption, debuggerPostTask, isDebugApp);
     }
+}
+
+void ConnectServerManager::SendDebuggerInfoSts(bool needBreakPoint, bool isDebugApp)
+{
+    ConnectServerManager::Get().SetConnectedCallback();
+    ConnectServerManager::Get().SendInstanceMessage(stsTid_, stsInstanceId_, "ArkEtsDebugger");
+    ark::JSNApi::DebugOption debugOption = {ARK_DEBUGGER_LIB_PATH, isDebugApp ? needBreakPoint : false};
+    ark::JSNApi::StoreDebugInfo(stsTid_, debugOption, isDebugApp);
 }
 
 void ConnectServerManager::SetConnectedCallback()

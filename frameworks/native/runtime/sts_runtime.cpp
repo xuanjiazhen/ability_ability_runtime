@@ -30,6 +30,7 @@
 #include <uv.h>
 
 #include "accesstoken_kit.h"
+#include "bundle_constants.h"
 #include "config_policy_utils.h"
 #include "connect_server_manager.h"
 #include "constants.h"
@@ -84,6 +85,7 @@ constexpr char MERGE_ABC_PATH[] = "/ets/modules_static.abc";
 constexpr char ENTRY_PATH_MAP_FILE[] = "/system/framework/entrypath.json";
 constexpr char ENTRY_PATH_MAP_KEY[] = "entryPath";
 constexpr char DEFAULT_ENTRY_ABILITY_CLASS[] = "entry/src/main/ets/entryability/EntryAbility/EntryAbility";
+const std::string DEBUGGER = "@Debugger";
 
 class EntryPathManager {
 public:
@@ -330,15 +332,73 @@ bool STSRuntime::LoadSTSAppLibrary(const AppLibPathVec& appLibPaths)
 
 void STSRuntime::StartDebugMode(const DebugOption dOption)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    if (!dOption.isDeveloperMode) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "developer Mode false");
+        return;
+    }
+    if (stsEnv_ == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null stsEnv");
+        return;
+    }
+    if (stsEnv_->GetDebugMode()) {
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "debugMode");
+        return;
+    }
+
+    bool isStartWithDebug = dOption.isStartWithDebug;
+    bool isDebugApp = dOption.isDebugApp;
+    std::string appProvisionType = dOption.appProvisionType;
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "Ark VM is starting debug mode [%{public}s]", isStartWithDebug ? "break" : "normal");
+    const std::string bundleName = bundleName_;
+    instanceId_ = static_cast<uint32_t>(getproctid());
+    uint32_t instanceId = instanceId_;
+    auto weak = stsEnv_;
+    std::string inputProcessName = bundleName_ != dOption.processName ? dOption.processName : "";
+    HdcRegister::DebugRegisterMode debugMode = HdcRegister::DebugRegisterMode::HDC_DEBUG_REG;
+    HdcRegister::Get().StartHdcRegister(bundleName_, inputProcessName, isDebugApp, debugMode,
+        [bundleName, isStartWithDebug, instanceId, weak, isDebugApp, appProvisionType]
+        (int socketFd, std::string option) {
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "HdcRegister msg, fd= %{public}d, option= %{public}s", socketFd, option.c_str());
+        if (weak == nullptr) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "null weak");
+            return;
+        }
+        // system is debuggable when const.secure is false and const.debuggable is true
+        bool isSystemDebuggable = system::GetBoolParameter("const.secure", true) == false &&
+            system::GetBoolParameter("const.debuggable", false) == true;
+        // Don't start any server if (system not in debuggable mode) and app is release version
+        // Starting ConnectServer in release app on debuggable system is only for debug mode, not for profiling mode.
+        if ((!isSystemDebuggable) && appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_RELEASE) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "not support release app");
+            return;
+        }
+        if (option.find(DEBUGGER) == std::string::npos) {
+            // if has old connect server, stop it
+            ConnectServerManager::Get().SendDebuggerInfoSts(isStartWithDebug, isDebugApp);
+            ConnectServerManager::Get().StartConnectServer(bundleName, socketFd, false);
+        } else {
+            if (appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_RELEASE) {
+                TAG_LOGE(AAFwkTag::JSRUNTIME, "not support release app");
+                return;
+            }
+            // if has old debugger server, stop it
+            weak->StartDebugger(option, socketFd, isDebugApp);
+        }
+    });
+
+    DebuggerConnectionHandler(isDebugApp, isStartWithDebug);
 }
 
-bool STSRuntime::StartDebugger()
+void STSRuntime::DebuggerConnectionHandler(bool isDebugApp, bool isStartWithDebug)
 {
+    ConnectServerManager::Get().StoreInstanceMessage(getproctid(), instanceId_);
     if (stsEnv_ == nullptr) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "null stsEnv_");
-        return false;
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null stsEnv");
+        return;
     }
-    return stsEnv_->StartDebugger();
+    ConnectServerManager::Get().StoreDebuggerInfoSts(getproctid(), ARK_DEBUGGER_LIB_PATH, isDebugApp, isStartWithDebug);
+    stsEnv_->NotifyDebugMode(getproctid(), ARK_DEBUGGER_LIB_PATH, instanceId_, isDebugApp, isStartWithDebug);
 }
 
 void STSRuntime::UnLoadSTSAppLibrary()
@@ -404,6 +464,7 @@ void STSRuntime::Deinitialize()
 
     if (stsEnv_ != nullptr) {
         stsEnv_->DeInitLoop();
+        stsEnv_->StopDebugger();
     }
 }
 

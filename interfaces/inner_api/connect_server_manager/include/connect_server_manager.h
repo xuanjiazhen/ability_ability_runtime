@@ -19,6 +19,7 @@
 #include <mutex>
 #include <unordered_map>
 #include "jsnapi.h"
+#include "static_core/runtime/tooling/inspector/debugger_jsnapi.h"
 using DebuggerPostTask = std::function<void(std::function<void()>&&)>;
 using DebuggerInfo = std::unordered_map<int, std::pair<void*, const DebuggerPostTask>>;
 using InstanceMap = std::unordered_map<int32_t, std::string>;
@@ -45,13 +46,16 @@ public:
     void SendMessage(const std::string &message);
     bool StoreInstanceMessage(
         int32_t tid, int32_t instanceId, const std::string& instanceName = "PandaDebugger");
+    void StoreInstanceMessageSts(int32_t tid, int32_t instanceId);
     void StoreDebuggerInfo(int32_t tid, void* vm, const panda::JSNApi::DebugOption& debugOption,
         const DebuggerPostTask& debuggerPostTask, bool isDebugApp);
+    void StoreDebuggerInfoSts(int32_t tid, const char* libraryPath, bool isDebugApp, bool isStartWithDebug);
     void SetSwitchCallback(const std::function<void(int32_t)> &createLayoutInfo, int32_t instanceId);
     void SetProfilerCallBack(const std::function<void(bool)> &setStateProfilerStatus);
     void SetConnectedCallback();
     bool SendInstanceMessage(int32_t tid, int32_t instanceId, const std::string& instanceName);
     void SendDebuggerInfo(bool needBreakPoint, bool isDebugApp);
+    void SendDebuggerInfoSts(bool needBreakPoint, bool isDebugApp);
     void LoadConnectServerDebuggerSo();
     DebuggerPostTask GetDebuggerPostTask(int32_t tid);
     bool SetRecordCallback(const std::function<void(void)> &startRecordFunc,
@@ -85,6 +89,8 @@ private:
     ConnectServerManager& operator=(ConnectServerManager&&) = delete;
     void SendInstanceMessageCallback(const int32_t instanceId);
     void AddInstanceCallback(const int32_t instanceId);
+    int32_t stsTid_;
+    int32_t stsInstanceId_;
 };
 } // namespace OHOS::AbilityRuntime
 

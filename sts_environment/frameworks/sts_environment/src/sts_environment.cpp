@@ -28,6 +28,7 @@
 #include "elf_factory.h"
 #include "event_handler.h"
 #include "hilog_tag_wrapper.h"
+#include "static_core/runtime/tooling/inspector/debugger_jsnapi.h"
 #include "sts_hilog.h"
 #include "sts_invoker.h"
 #include "unwinder.h"
@@ -45,7 +46,7 @@ const char STS_ANI_GET_CREATEDVMS[] = "ANI_GetCreatedVMs";
 const char STS_LIB_PATH[] = "libarkruntime.so";
 const char BOOT_PATH[] = "/system/framework/bootpath.json";
 const char BACKTRACE[] = "=====================Backtrace========================";
-
+static const std::string DEBUGGER = "@Debugger";
 
 using GetDefaultVMInitArgsSTSRuntimeType = ets_int (*)(EtsVMInitArgs* vmArgs);
 using GetCreatedVMsSTSRuntimeType = ets_int (*)(EtsVM** vmBuf, ets_size bufLen, ets_size* nVms);
@@ -341,11 +342,6 @@ void STSEnvironment::UnLoadSTSLibrary(void* handle)
     DynamicFreeLibrary(handle);
 }
 
-bool STSEnvironment::StartDebugger()
-{
-    return true;
-}
-
 STSEnvironment::STSEnvironment(std::unique_ptr<StsEnvironmentImpl> impl) : impl_(std::move(impl))
 {}
 
@@ -509,5 +505,67 @@ std::string STSEnvironment::GetErrorProperty(ani_error aniError, const char* pro
     propertyValue.resize(sz);
     return propertyValue;
 }
+
+bool STSEnvironment::GetDebugMode() const
+{
+    return debugMode_;
+}
+
+void STSEnvironment::StopDebugger()
+{
+    ark::JSNApi::StopDebugger();
+}
+
+bool STSEnvironment::StartDebugger(std::string& option, uint32_t socketFd, bool isDebugApp)
+{
+    TAG_LOGD(AAFwkTag::JSENV, "call");
+    int32_t identifierId = ParseHdcRegisterOption(option);
+    if (identifierId == -1) {
+        TAG_LOGE(AAFwkTag::JSENV, "Abnormal parsing of tid results");
+        return false;
+    }
+    debugMode_ = ark::JSNApi::StartDebuggerForSocketPair(identifierId, socketFd);
+    return debugMode_;
+}
+
+DebuggerPostTask STSEnvironment::GetDebuggerPostTask()
+{
+    auto debuggerPostTask = [weak = weak_from_this()](std::function<void()>&& task) {
+        auto stsEnv = weak.lock();
+        if (stsEnv == nullptr) {
+            TAG_LOGE(AAFwkTag::JSENV, "JsEnv is invalid");
+            return;
+        }
+        stsEnv->PostTask(task, "JsEnvironment:GetDebuggerPostTask");
+    };
+    return debuggerPostTask;
+}
+
+int32_t STSEnvironment::ParseHdcRegisterOption(std::string& option)
+{
+    TAG_LOGD(AAFwkTag::JSENV, "Start");
+    std::size_t pos = option.find_first_of(":");
+    if (pos == std::string::npos) {
+        return -1;
+    }
+    std::string idStr = option.substr(pos + 1);
+    pos = idStr.find(DEBUGGER);
+    if (pos == std::string::npos) {
+        return -1;
+    }
+    idStr = idStr.substr(0, pos);
+    pos = idStr.find("@");
+    if (pos != std::string::npos) {
+        idStr = idStr.substr(pos + 1);
+    }
+    return std::atoi(idStr.c_str());
+}
+
+void STSEnvironment::NotifyDebugMode(int tid, const char* libraryPath, uint32_t instanceId, bool debug, bool debugMode)
+{
+    ark::JSNApi::DebugOption debugOption = {libraryPath, debug ? debugMode : false};
+    ark::JSNApi::NotifyDebugMode(tid, debugOption, instanceId, debug); // vm参数删掉了
+}
+
 } // namespace StsEnv
 } // namespace OHOS
