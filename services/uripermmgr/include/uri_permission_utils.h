@@ -41,6 +41,12 @@ public:
     static bool CheckUriTypeIsValid(Uri &uri);
     static bool GetBundleApiTargetVersion(const std::string &bundleName, int32_t &targetApiVersion);
     static bool IsDocsCloudUri(Uri &uri);
+    static bool IsFileUri(Uri &uri);
+    static bool IsContentUri(Uri &uri);
+    static bool IsMediaUriAuthority(Uri &uri);
+    static bool IsMediaUriAuthority(const std::string &authority);
+    static bool IsDocsUriAuthority(Uri &uri);
+    static bool IsDocsUriAuthority(const std::string &authority);
 
 private:
     static std::shared_ptr<AppExecFwk::BundleMgrHelper> ConnectManagerHelper();

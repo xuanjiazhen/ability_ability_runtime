@@ -173,5 +173,116 @@ HWTEST_F(UriPermissionUtilsTest, Upms_GetTokenIdByBundleName_001, TestSize.Level
     EXPECT_EQ(testTokenId, ERR_GET_TARGET_BUNDLE_INFO_FAILED);
 }
 
+/*
+ * Feature: UPMSUtils
+ * Function: GetTokenIdByBundleName
+ * SubFunction: NA
+ * FunctionPoints: UPMSUtils IsFileUri
+ */
+HWTEST_F(UriPermissionUtilsTest, Upms_IsFileUri_001, TestSize.Level1)
+{
+    Uri uri1("file://com.example.test/xxx.txt");
+    bool isFileUri = UPMSUtils::IsFileUri(uri1);
+    EXPECT_EQ(isFileUri, true);
+
+    Uri uri2("file:///com.example.test/xxx.txt");
+    isFileUri = UPMSUtils::IsFileUri(uri2);
+    EXPECT_EQ(isFileUri, true);
+
+    Uri uri3("file:/com.example.test/xxx.txt");
+    isFileUri = UPMSUtils::IsFileUri(uri3);
+    EXPECT_EQ(isFileUri, false);
+
+    Uri uri4("file:com.example.test/xxx.txt");
+    isFileUri = UPMSUtils::IsFileUri(uri4);
+    EXPECT_EQ(isFileUri, false);
+
+    Uri uri5("file1://com.example.test/xxx.txt");
+    isFileUri = UPMSUtils::IsFileUri(uri5);
+    EXPECT_EQ(isFileUri, false);
+
+    Uri uri6("file:\\com.example.test/xxx.txt");
+    isFileUri = UPMSUtils::IsFileUri(uri6);
+    EXPECT_EQ(isFileUri, false);
+
+    Uri uri7("file:\\\\com.example.test/xxx.txt");
+    isFileUri = UPMSUtils::IsFileUri(uri7);
+    EXPECT_EQ(isFileUri, false);
+}
+
+/*
+ * Feature: UPMSUtils
+ * Function: GetTokenIdByBundleName
+ * SubFunction: NA
+ * FunctionPoints: UPMSUtils IsContentUri
+ */
+HWTEST_F(UriPermissionUtilsTest, Upms_IsContentUri_001, TestSize.Level1)
+{
+    Uri uri1("content://com.example.test/xxx.txt");
+    bool isContentUri = UPMSUtils::IsContentUri(uri1);
+    EXPECT_EQ(isContentUri, true);
+
+    Uri uri2("content:///com.example.test/xxx.txt");
+    isContentUri = UPMSUtils::IsContentUri(uri2);
+    EXPECT_EQ(isContentUri, true);
+
+    Uri uri3("content:/com.example.test/xxx.txt");
+    isContentUri = UPMSUtils::IsContentUri(uri3);
+    EXPECT_EQ(isContentUri, true);
+
+    Uri uri4("content1://com.example.test/xxx.txt");
+    isContentUri = UPMSUtils::IsContentUri(uri4);
+    EXPECT_EQ(isContentUri, false);
+}
+
+/*
+ * Feature: UPMSUtils
+ * Function: GetTokenIdByBundleName
+ * SubFunction: NA
+ * FunctionPoints: UPMSUtils IsMediaUriAuthority
+ */
+HWTEST_F(UriPermissionUtilsTest, Upms_IsMediaUriAuthority_001, TestSize.Level1)
+{
+    Uri uri1("file://media/test.png");
+    bool isMediaAuthority = UPMSUtils::IsMediaUriAuthority(uri1);
+    EXPECT_EQ(isMediaAuthority, true);
+
+    Uri uri2("file://com.example.test/xxx.txt");
+    isMediaAuthority = UPMSUtils::IsMediaUriAuthority(uri2);
+    EXPECT_EQ(isMediaAuthority, false);
+
+    std::string authority1 = "media";
+    isMediaAuthority = UPMSUtils::IsMediaUriAuthority(authority1);
+    EXPECT_EQ(isMediaAuthority, true);
+
+    std::string authority2 = "media1";
+    isMediaAuthority = UPMSUtils::IsMediaUriAuthority(authority2);
+    EXPECT_EQ(isMediaAuthority, false);
+}
+
+/*
+ * Feature: UPMSUtils
+ * Function: GetTokenIdByBundleName
+ * SubFunction: NA
+ * FunctionPoints: UPMSUtils IsDocsUriAuthority
+ */
+HWTEST_F(UriPermissionUtilsTest, Upms_IsDocsUriAuthority_001, TestSize.Level1)
+{
+    Uri uri1("file://docs/test.png");
+    bool isDocsAuthority = UPMSUtils::IsDocsUriAuthority(uri1);
+    EXPECT_EQ(isDocsAuthority, true);
+
+    Uri uri2("file://com.example.test/xxx.txt");
+    isDocsAuthority = UPMSUtils::IsDocsUriAuthority(uri2);
+    EXPECT_EQ(isDocsAuthority, false);
+
+    std::string authority1 = "docs";
+    isDocsAuthority = UPMSUtils::IsDocsUriAuthority(authority1);
+    EXPECT_EQ(isDocsAuthority, true);
+
+    std::string authority2 = "docs1";
+    isDocsAuthority = UPMSUtils::IsDocsUriAuthority(authority2);
+    EXPECT_EQ(isDocsAuthority, false);
+}
 }  // namespace AAFwk
 }  // namespace OHOS
