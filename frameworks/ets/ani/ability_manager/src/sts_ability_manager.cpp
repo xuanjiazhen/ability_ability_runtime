@@ -17,6 +17,7 @@
 
 #include "ability_business_error.h"
 #include "ani_common_ability_state_data.h"
+#include "ani_common_want.h"
 #include "hilog_tag_wrapper.h"
 #include "ability_manager_interface.h"
 #include "if_system_ability_manager.h"
@@ -63,6 +64,42 @@ static ani_object GetForegroundUIAbilities(ani_env *env)
     return aniArray;
 }
 
+static ani_object GetTopAbility(ani_env *env)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call GetTopAbility");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
+        AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        return nullptr;
+    }
+    sptr<AppExecFwk::IAbilityManager> abilityManager = GetAbilityManagerInstance();
+    if (abilityManager == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityManager is nullptr");
+        AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        return nullptr;
+    }
+    AppExecFwk::ElementName elementName = abilityManager->GetTopAbility();
+    std::string abilityName = elementName.GetAbilityName();
+    std::string bundleName = elementName.GetBundleName();
+    if (abilityName.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get topAbility failed");
+        return nullptr;
+    }
+    if (bundleName.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get topAbility failed");
+        return nullptr;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "GetTopAbility succeeds, abilityName = %{public}s"
+        "bundleName = %{public}s", abilityName.c_str(), bundleName.c_str());
+    ani_object ElementNameobj  = AppExecFwk::WrapElementName(env, elementName);
+    if (ElementNameobj == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null ElementNameobj");
+        AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        return nullptr;
+    }
+    return ElementNameobj;
+}
+
 void StsAbilityManagerRegistryInit(ani_env *env)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call StsAbilityManagerRegistryInit");
@@ -85,6 +122,7 @@ void StsAbilityManagerRegistryInit(ani_env *env)
             ":Lescompat/Array",
             reinterpret_cast<void *>(GetForegroundUIAbilities)
         },
+        ani_native_function {"nativeGetTopAbility", nullptr, reinterpret_cast<void *>(GetTopAbility)},
     };
 
     status = env->Namespace_BindNativeFunctions(ns, methods.data(), methods.size());
