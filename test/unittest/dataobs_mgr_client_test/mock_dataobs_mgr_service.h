@@ -45,31 +45,36 @@ public:
         return NO_ERROR;
     }
 
-    Status RegisterObserverExt(const Uri &uri, sptr<IDataAbilityObserver> dataObserver, bool isDe) override
+    Status RegisterObserverExt(const Uri &uri, sptr<IDataAbilityObserver> dataObserver, bool isDescendants,
+        DataObsOption opt = DataObsOption()) override
     {
         onChangeCall_++;
         return SUCCESS;
     }
 
-    Status UnregisterObserverExt(const Uri &uri, sptr<IDataAbilityObserver> dataObserver) override
+    Status UnregisterObserverExt(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
+        DataObsOption opt = DataObsOption()) override
     {
         onChangeCall_++;
         return SUCCESS;
     }
 
-    Status UnregisterObserverExt(sptr<IDataAbilityObserver> dataObserver) override
+    Status UnregisterObserverExt(sptr<IDataAbilityObserver> dataObserver,
+        DataObsOption opt = DataObsOption()) override
     {
         onChangeCall_++;
         return SUCCESS;
     }
 
-    Status NotifyChangeExt(const ChangeInfo &changeInfo) override
+    Status NotifyChangeExt(const ChangeInfo &changeInfo,
+        DataObsOption opt = DataObsOption()) override
     {
         onChangeCall_++;
         return SUCCESS;
     }
 
-    Status NotifyProcessObserver(const std::string &key, const sptr<IRemoteObject> &observer) override
+    Status NotifyProcessObserver(const std::string &key, const sptr<IRemoteObject> &observer,
+        DataObsOption opt = DataObsOption()) override
     {
         onChangeCall_++;
         return SUCCESS;

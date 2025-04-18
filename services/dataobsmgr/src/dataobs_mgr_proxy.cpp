@@ -15,6 +15,7 @@
 
 #include "dataobs_mgr_proxy.h"
 
+#include "dataobs_mgr_interface.h"
 #include "errors.h"
 #include "hilog_tag_wrapper.h"
 #include "dataobs_mgr_errors.h"
@@ -50,7 +51,16 @@ bool DataObsManagerProxy::WriteParam(MessageParcel &data, const Uri &uri, sptr<I
     return true;
 }
 
-int32_t DataObsManagerProxy::RegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver)
+bool DataObsManagerProxy::WriteObsOpt(MessageParcel &data, DataObsOption opt)
+{
+    if (!data.WriteBool(opt.IsSystem())) {
+        TAG_LOGE(AAFwkTag::DBOBSMGR, "write opt error");
+        return false;
+    }
+    return true;
+}
+
+int32_t DataObsManagerProxy::RegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver, DataObsOption opt)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -125,7 +135,7 @@ int32_t DataObsManagerProxy::NotifyChange(const Uri &uri)
 }
 
 Status DataObsManagerProxy::RegisterObserverExt(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
-    bool isDescendants)
+    bool isDescendants, DataObsOption opt)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -144,6 +154,9 @@ Status DataObsManagerProxy::RegisterObserverExt(const Uri &uri, sptr<IDataAbilit
             CommonUtils::Anonymous(uri.ToString()).c_str(), isDescendants);
         return INVALID_PARAM;
     }
+    if (!WriteObsOpt(data, opt)) {
+        return INVALID_PARAM;
+    }
 
     auto error = SendTransactCmd(IDataObsMgr::REGISTER_OBSERVER_EXT, data, reply, option);
     if (error != NO_ERROR) {
@@ -156,7 +169,8 @@ Status DataObsManagerProxy::RegisterObserverExt(const Uri &uri, sptr<IDataAbilit
     return reply.ReadInt32(res) ? static_cast<Status>(res) : IPC_ERROR;
 }
 
-Status DataObsManagerProxy::UnregisterObserverExt(const Uri &uri, sptr<IDataAbilityObserver> dataObserver)
+Status DataObsManagerProxy::UnregisterObserverExt(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
+    DataObsOption opt)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -167,6 +181,9 @@ Status DataObsManagerProxy::UnregisterObserverExt(const Uri &uri, sptr<IDataAbil
     }
 
     if (!WriteParam(data, uri, dataObserver)) {
+        return INVALID_PARAM;
+    }
+    if (!WriteObsOpt(data, opt)) {
         return INVALID_PARAM;
     }
 
@@ -180,7 +197,7 @@ Status DataObsManagerProxy::UnregisterObserverExt(const Uri &uri, sptr<IDataAbil
     return reply.ReadInt32(res) ? static_cast<Status>(res) : IPC_ERROR;
 }
 
-Status DataObsManagerProxy::UnregisterObserverExt(sptr<IDataAbilityObserver> dataObserver)
+Status DataObsManagerProxy::UnregisterObserverExt(sptr<IDataAbilityObserver> dataObserver, DataObsOption opt)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -199,6 +216,9 @@ Status DataObsManagerProxy::UnregisterObserverExt(sptr<IDataAbilityObserver> dat
         TAG_LOGE(AAFwkTag::DBOBSMGR, "write dataObserver error");
         return INVALID_PARAM;
     }
+    if (!WriteObsOpt(data, opt)) {
+        return INVALID_PARAM;
+    }
 
     auto error = SendTransactCmd(IDataObsMgr::UNREGISTER_OBSERVER_ALL_EXT, data, reply, option);
     if (error != NO_ERROR) {
@@ -209,7 +229,7 @@ Status DataObsManagerProxy::UnregisterObserverExt(sptr<IDataAbilityObserver> dat
     return reply.ReadInt32(res) ? static_cast<Status>(res) : IPC_ERROR;
 }
 
-Status DataObsManagerProxy::NotifyChangeExt(const ChangeInfo &changeInfo)
+Status DataObsManagerProxy::NotifyChangeExt(const ChangeInfo &changeInfo, DataObsOption opt)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -226,6 +246,9 @@ Status DataObsManagerProxy::NotifyChangeExt(const ChangeInfo &changeInfo)
             changeInfo.changeType_, changeInfo.uris_.size(), changeInfo.data_ == nullptr, changeInfo.size_);
         return INVALID_PARAM;
     }
+    if (!WriteObsOpt(data, opt)) {
+        return INVALID_PARAM;
+    }
 
     auto error = SendTransactCmd(IDataObsMgr::NOTIFY_CHANGE_EXT, data, reply, option);
     if (error != NO_ERROR) {
@@ -239,7 +262,8 @@ Status DataObsManagerProxy::NotifyChangeExt(const ChangeInfo &changeInfo)
     return reply.ReadInt32(res) ? static_cast<Status>(res) : IPC_ERROR;
 }
 
-Status DataObsManagerProxy::NotifyProcessObserver(const std::string &key, const sptr<IRemoteObject> &observer)
+Status DataObsManagerProxy::NotifyProcessObserver(const std::string &key, const sptr<IRemoteObject> &observer,
+    DataObsOption opt)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -255,6 +279,9 @@ Status DataObsManagerProxy::NotifyProcessObserver(const std::string &key, const 
 
     if (!data.WriteRemoteObject(observer)) {
         TAG_LOGE(AAFwkTag::DBOBSMGR, "write observer error");
+        return INVALID_PARAM;
+    }
+    if (!WriteObsOpt(data, opt)) {
         return INVALID_PARAM;
     }
 

@@ -171,13 +171,13 @@ __attribute__ ((no_sanitize("cfi"))) std::pair<Status, sptr<IDataObsMgr>> DataOb
 }
 
 Status DataObsMgrClient::RegisterObserverExt(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
-    bool isDescendants)
+    bool isDescendants, DataObsOption opt)
 {
     auto [errCode, dataObsManger] = GetObsMgr();
     if (errCode != SUCCESS) {
         return DATAOBS_SERVICE_NOT_CONNECTED;
     }
-    auto status = dataObsManger->RegisterObserverExt(uri, dataObserver, isDescendants);
+    auto status = dataObsManger->RegisterObserverExt(uri, dataObserver, isDescendants, opt);
     if (status != SUCCESS) {
         return status;
     }
@@ -188,7 +188,8 @@ Status DataObsMgrClient::RegisterObserverExt(const Uri &uri, sptr<IDataAbilityOb
     return status;
 }
 
-Status DataObsMgrClient::UnregisterObserverExt(const Uri &uri, sptr<IDataAbilityObserver> dataObserver)
+Status DataObsMgrClient::UnregisterObserverExt(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
+    DataObsOption opt)
 {
     auto [errCode, dataObsManger] = GetObsMgr();
     if (errCode != SUCCESS) {
@@ -207,13 +208,13 @@ Status DataObsMgrClient::UnregisterObserverExt(const Uri &uri, sptr<IDataAbility
     return status;
 }
 
-Status DataObsMgrClient::UnregisterObserverExt(sptr<IDataAbilityObserver> dataObserver)
+Status DataObsMgrClient::UnregisterObserverExt(sptr<IDataAbilityObserver> dataObserver, DataObsOption opt)
 {
     auto [errCode, dataObsManger] = GetObsMgr();
     if (errCode != SUCCESS) {
         return DATAOBS_SERVICE_NOT_CONNECTED;
     }
-    auto status = dataObsManger->UnregisterObserverExt(dataObserver);
+    auto status = dataObsManger->UnregisterObserverExt(dataObserver, opt);
     if (status != SUCCESS) {
         return status;
     }
@@ -221,16 +222,17 @@ Status DataObsMgrClient::UnregisterObserverExt(sptr<IDataAbilityObserver> dataOb
     return status;
 }
 
-Status DataObsMgrClient::NotifyChangeExt(const ChangeInfo &changeInfo)
+Status DataObsMgrClient::NotifyChangeExt(const ChangeInfo &changeInfo, DataObsOption opt)
 {
     auto [errCode, dataObsManger] = GetObsMgr();
     if (errCode != SUCCESS) {
         return DATAOBS_SERVICE_NOT_CONNECTED;
     }
-    return dataObsManger->NotifyChangeExt(changeInfo);
+    return dataObsManger->NotifyChangeExt(changeInfo, opt);
 }
 
-Status DataObsMgrClient::NotifyProcessObserver(const std::string &key, const sptr<IRemoteObject> &observer)
+Status DataObsMgrClient::NotifyProcessObserver(const std::string &key, const sptr<IRemoteObject> &observer,
+    DataObsOption opt)
 {
     if (key.empty() || observer == nullptr) {
         TAG_LOGE(AAFwkTag::DBOBSMGR, "Null observer, key:%{public}s", key.c_str());
@@ -240,7 +242,7 @@ Status DataObsMgrClient::NotifyProcessObserver(const std::string &key, const spt
     if (errCode != SUCCESS) {
         return DATAOBS_SERVICE_NOT_CONNECTED;
     }
-    return dataObsManger->NotifyProcessObserver(key, observer);
+    return dataObsManger->NotifyProcessObserver(key, observer, opt);
 }
 
 void DataObsMgrClient::ResetService()

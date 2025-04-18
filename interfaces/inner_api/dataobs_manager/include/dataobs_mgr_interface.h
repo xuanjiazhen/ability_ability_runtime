@@ -29,6 +29,19 @@ namespace OHOS {
 namespace AAFwk {
 using Uri = OHOS::Uri;
 constexpr const char* DATAOBS_MANAGER_SERVICE_NAME = "DataObsMgrService";
+
+struct DataObsOption {
+private:
+    bool isSystem = false;
+public:
+    DataObsOption() {}
+    DataObsOption(bool isSystem):isSystem(isSystem) {}
+    bool IsSystem()
+    {
+        return isSystem;
+    }
+};
+
 /**
  * @class IDataObsMgr
  * IDataObsMgr interface is used to access dataobs manager services.
@@ -87,7 +100,8 @@ public:
      *
      * @return Returns SUCCESS on success, others on failure.
      */
-    virtual Status RegisterObserverExt(const Uri &uri, sptr<IDataAbilityObserver> dataObserver, bool isDescendants) = 0;
+    virtual Status RegisterObserverExt(const Uri &uri, sptr<IDataAbilityObserver> dataObserver, bool isDescendants,
+        DataObsOption opt = DataObsOption()) = 0;
 
     /**
      * Deregisters an observer used for DataObsMgr specified by the given Uri.
@@ -97,7 +111,8 @@ public:
      *
      * @return Returns SUCCESS on success, others on failure.
      */
-    virtual Status UnregisterObserverExt(const Uri &uri, sptr<IDataAbilityObserver> dataObserver) = 0;
+    virtual Status UnregisterObserverExt(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
+        DataObsOption opt = DataObsOption()) = 0;
 
     /**
      * Deregisters dataObserver used for DataObsMgr specified
@@ -106,7 +121,8 @@ public:
      *
      * @return Returns SUCCESS on success, others on failure.
      */
-    virtual Status UnregisterObserverExt(sptr<IDataAbilityObserver> dataObserver) = 0;
+    virtual Status UnregisterObserverExt(sptr<IDataAbilityObserver> dataObserver,
+        DataObsOption opt = DataObsOption()) = 0;
 
     /**
      * Notifies the registered observers of a change to the data resource specified by Uris.
@@ -115,7 +131,7 @@ public:
      *
      * @return Returns SUCCESS on success, others on failure.
      */
-    virtual Status NotifyChangeExt(const ChangeInfo &changeInfo) = 0;
+    virtual Status NotifyChangeExt(const ChangeInfo &changeInfo, DataObsOption opt = DataObsOption()) = 0;
 
     /**
      * Notifies the process observer with the given progress key and cancel observer.
@@ -126,7 +142,8 @@ public:
      *
      * @return Returns SUCCESS on success, others on failure.
      */
-    virtual Status NotifyProcessObserver(const std::string &key, const sptr<IRemoteObject> &observer) = 0;
+    virtual Status NotifyProcessObserver(const std::string &key, const sptr<IRemoteObject> &observer,
+        DataObsOption opt = DataObsOption()) = 0;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
