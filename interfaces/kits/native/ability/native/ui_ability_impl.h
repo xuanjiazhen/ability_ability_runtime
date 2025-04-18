@@ -232,8 +232,7 @@ protected:
 private:
     void AfterFocusedCommon(bool isFocused);
     void UpdateSilentForeground(const AAFwk::LifeCycleStateInfo &targetState, sptr<AAFwk::SessionInfo> sessionInfo);
-    void OnWillBackground();
-    
+
     bool hasSaveData_ = false;
     bool needSaveDate_ = false;
     AppExecFwk::PacMap restoreData_;
@@ -267,8 +266,6 @@ private:
         void AfterUnfocused() override;
         void ForegroundFailed(int32_t type) override;
         void BackgroundFailed(int32_t type) override;
-        void AfterDidForeground() override;
-        void AfterDidBackground() override;
 
     private:
         sptr<IRemoteObject> token_ = nullptr;

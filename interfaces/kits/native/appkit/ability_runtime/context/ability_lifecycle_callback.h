@@ -220,10 +220,6 @@ public:
         const std::shared_ptr<NativeReference> &windowStage) {}
     virtual void OnAbilityWillSaveState(const std::shared_ptr<NativeReference> &ability) {}
     virtual void OnAbilitySaveState(const std::shared_ptr<NativeReference> &ability) {}
-    virtual void OnWillForeground(const std::shared_ptr<NativeReference> &ability) {}
-    virtual void OnDidForeground(const std::shared_ptr<NativeReference> &ability) {}
-    virtual void OnWillBackground(const std::shared_ptr<NativeReference> &ability) {}
-    virtual void OnDidBackground(const std::shared_ptr<NativeReference> &ability) {}
 };
 
 class JsAbilityLifecycleCallback : public AbilityLifecycleCallback,
@@ -263,10 +259,6 @@ public:
     int32_t Register(napi_value jsCallback, bool isSync = false);
     bool UnRegister(int32_t callbackId, bool isSync = false);
     bool IsEmpty() const;
-    void OnWillForeground(const std::shared_ptr<NativeReference> &ability) override;
-    void OnDidForeground(const std::shared_ptr<NativeReference> &ability) override;
-    void OnWillBackground(const std::shared_ptr<NativeReference> &ability) override;
-    void OnDidBackground(const std::shared_ptr<NativeReference> &ability) override;
     static int32_t serialNumber_;
 
 private:
