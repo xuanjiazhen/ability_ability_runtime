@@ -23,6 +23,7 @@
 #include "sts_error_utils.h"
 #include "ani_enum_convert.h"
 #include "sts_ability_monitor.h"
+#include "sts_ability_stage_monitor.h"
 #include "sts_context_utils.h"
 #include <sstream>
 namespace OHOS {
@@ -295,6 +296,50 @@ void AddAbilityMonitorASync(ani_env *env, [[maybe_unused]]ani_class aniClass, an
         return;
     }
     delegator->AddAbilityMonitor(monitor);
+}
+
+void AddAbilityStageMonitorASync(ani_env *env, [[maybe_unused]]ani_class aniClass, ani_object monitorObj)
+{
+    if (nullptr == env) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "env is nullptr");
+        OHOS::AbilityRuntime::ThrowStsError(env, INCORRECT_PARAMETERS);
+        return;
+    }
+    ani_class monitorCls;
+    ani_status status = env->FindClass("Lapplication/AbilityStageMonitor/AbilityStageMonitorInner;", &monitorCls);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "FindClass failed status : %{public}d", status);
+        return;
+    }
+
+    ani_ref moduleNameRef;
+    status = env->Object_GetPropertyByName_Ref(monitorObj, "moduleName", &moduleNameRef);
+    if (ANI_OK != status) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "Object_GetField_Ref ");
+        return;
+    }
+    std::string strModuleName;
+    ani_string aniModuleString = static_cast<ani_string>(moduleNameRef);
+    RetrieveStringFromAni(env, aniModuleString, strModuleName);
+
+    ani_ref srcEntranceRef;
+    status = env->Object_GetPropertyByName_Ref(monitorObj, "srcEntrance", &srcEntranceRef);
+    if (ANI_OK != status) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "Object_GetField_Ref ");
+        return;
+    }
+    std::string strSrcEntrance;
+    ani_string aniSrcEntranceString = static_cast<ani_string>(srcEntranceRef);
+    RetrieveStringFromAni(env, aniSrcEntranceString, strSrcEntrance);
+
+    std::shared_ptr<STSAbilityStageMonitor> monitor = std::make_shared<STSAbilityStageMonitor>(strModuleName, strSrcEntrance);
+    monitor->SetSTSAbilityStageMonitor(env, monitorObj);
+    auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(AbilityRuntime::Runtime::Language::STS);
+    if (delegator == nullptr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "null delegator");
+        return;
+    }
+    delegator->AddAbilityStageMonitor(monitor);
 }
 
 ani_int StartAbility(ani_env* env, [[maybe_unused]]ani_object object, ani_object wantObj)

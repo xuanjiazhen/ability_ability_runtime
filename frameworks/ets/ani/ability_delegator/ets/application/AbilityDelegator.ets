@@ -14,6 +14,7 @@
  */
 
 import AbilityMonitor from './AbilityMonitor';
+import AbilityMonitor from './AbilityStageMonitor';
 import Want from '@ohos.app.ability.Want';
 import Context from 'application.Context';
 import { BusinessError, AsyncCallback } from '@ohos.base';
@@ -31,6 +32,9 @@ export interface AbilityDelegator {
     addAbilityMonitor(monitor: AbilityMonitor, callback: AsyncCallback<void>): void
     addAbilityMonitor(monitor: AbilityMonitor): Promise<void>;
     addAbilityMonitorAsync(monitor: AbilityMonitor): void;
+    addAbilityStageMonitor(monitor: AbilityStageMonitor, callback: AsyncCallback<void>): void
+    addAbilityStageMonitor(monitor: AbilityStageMonitor): Promise<void>;
+    addAbilityStageMonitorAsync(monitor: AbilityStageMonitor): void;
     startAbility(want: Want, callback: AsyncCallback<void>): void;
     startAbility(want: Want): Promise<void>;
     getCurrentTopAbility(callback: AsyncCallback<UIAbility>);
@@ -44,6 +48,7 @@ class AbilityDelegatorInner implements AbilityDelegator {
     public native executeShellCommandsync(cmd: string, timeoutSecs: number): ShellCmdResult;
     public native getAppContext(): Context;
     public native addAbilityMonitorAsync(monitor: AbilityMonitor): void;
+    public native addAbilityStageMonitorAsync(monitor: AbilityStageMonitor): void;
     public native startAbilityAsync(want: Want) : int;
     public native GetCurrentTopAbilitySync() : UIAbility;
     // other api
@@ -128,6 +133,29 @@ class AbilityDelegatorInner implements AbilityDelegator {
     addAbilityMonitor(monitor: AbilityMonitor): Promise<void> {
         let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void, reject: (error: Error) => void) => {
             let p1 = taskpool.execute(():undefined => {this.addAbilityMonitorAsync(monitor);  return undefined});
+            p1.then((e: NullishType)=>{
+                let PromiseLike = e as PromiseLike<void>;
+                resolve(PromiseLike);
+            }, (err:Object): void => {
+            });
+        });
+        return p;
+    }
+
+    addAbilityStageMonitor(monitor: AbilityStageMonitor, callback: AsyncCallback<void>): void {
+        let p1 = taskpool.execute(():undefined => {this.addAbilityStageMonitorAsync(monitor);  return undefined});
+        p1.then((e: NullishType)=>{
+                let resultCode: Int  = 0;
+                let r: BusinessError = { code: resultCode.intValue(), data: undefined };
+                callback(r, undefined);
+            }, (err: BusinessError): void => {
+                callback(err, undefined);
+            });
+
+    }
+    addAbilityMonitor(monitor: AbilityStageMonitor): Promise<void> {
+        let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void, reject: (error: Error) => void) => {
+            let p1 = taskpool.execute(():undefined => {this.addAbilityStageMonitorAsync(monitor);  return undefined});
             p1.then((e: NullishType)=>{
                 let PromiseLike = e as PromiseLike<void>;
                 resolve(PromiseLike);

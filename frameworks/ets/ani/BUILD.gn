@@ -18,6 +18,7 @@ group("ani_packages") {
   deps = [
     "${ability_runtime_path}/frameworks/ets/ani/ability_delegator:ability_delegator_abc_etc",
     "${ability_runtime_path}/frameworks/ets/ani/ability_delegator:ability_delegator_ability_monitor_abc_etc",
+    "${ability_runtime_path}/frameworks/ets/ani/ability_delegator:ability_delegator_ability_stage_monitor_abc_etc",
     "${ability_runtime_path}/frameworks/ets/ani/ability_delegator:ability_delegator_application_testRunner_abc_etc",
     "${ability_runtime_path}/frameworks/ets/ani/ability_delegator:ability_delegator_args_abc_etc",
     "${ability_runtime_path}/frameworks/ets/ani/ability_delegator:ability_delegator_registry_abc_etc",
