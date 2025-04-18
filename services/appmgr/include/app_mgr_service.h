@@ -427,6 +427,14 @@ public:
     virtual int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1) override;
 
     /**
+     * UpdateConfigurationPolicy
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t UpdateConfigurationPolicy(const std::vector<BackgroundAppInfo> &appInfos,
+        const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId = -1) override;
+
+    /**
      *  Update config by bundle name.
      *
      * @param config Application environment change parameters.
