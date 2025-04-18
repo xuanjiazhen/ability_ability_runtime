@@ -386,6 +386,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel &dat
             return HandleGetKilledProcessInfo(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::LAUNCH_ABILITY):
             return HandleLaunchAbility(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_CONFIGURATION_POLICY):
+            return HandleUpdateConfigurationPolicy(data, reply);
     }
     return INVALID_FD;
 }
@@ -1008,6 +1010,27 @@ int32_t AppMgrStub::HandleUpdateConfiguration(MessageParcel &data, MessageParcel
     }
     int32_t userId = data.ReadInt32();
     int32_t ret = UpdateConfiguration(*config, userId);
+    if (!reply.WriteInt32(ret)) {
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleUpdateConfigurationPolicy(MessageParcel &data, MessageParcel &reply)
+{
+    std::vector<std::string> bandleNames;
+    uint32_t size = data.ReadUint32();
+    for (uint32_t i = 0; i < size; i++) {
+        std::string name = data.ReadString();
+        bandleNames.push_back(name);
+    }
+    AppExecFwk::ConfigurationPolicy *policy = data.ReadParcelable<AppExecFwk::ConfigurationPolicy>();
+    if (policy == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AppMgrStub read policy error");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t userId = data.ReadInt32();
+    int32_t ret = UpdateConfigurationPolicy(bandleNames, *policy, userId);
     if (!reply.WriteInt32(ret)) {
         return ERR_INVALID_VALUE;
     }
