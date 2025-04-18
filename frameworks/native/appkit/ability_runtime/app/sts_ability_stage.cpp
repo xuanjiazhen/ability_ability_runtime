@@ -162,7 +162,7 @@ void STSAbilityStage::OnCreate(const AAFwk::Want &want) const
     ani_method method = nullptr;
     status = env->Class_FindMethod(stsAbilityStageObj_->aniCls, "onCreate", ":V", &method);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "Class_FindMethod FAILED");
+        TAG_LOGW(AAFwkTag::ABILITY, "Class_FindMethod FAILED");
         STSAbilityStageContext::ResetEnv(env);
         return;
     }
@@ -325,7 +325,7 @@ void STSAbilityStage::SetJsAbilityStage(const std::shared_ptr<Context> &context,
     ani_object stageCtxObj = STSAbilityStageContext::CreateStsAbilityStageContext(env, context, application);
     if (stageCtxObj == nullptr) {
         STSAbilityStageContext::ResetEnv(env);
-        TAG_LOGE(AAFwkTag::ABILITY, "CreateStsAbilityStageContext failed");
+        TAG_LOGW(AAFwkTag::ABILITY, "CreateStsAbilityStageContext failed");
         return;
     }
 
