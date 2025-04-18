@@ -31,12 +31,14 @@
 #include "application_info.h"
 #include "bundle_info.h"
 #include "configuration.h"
+#include "configuration_policy.h"
 #include "iremote_object.h"
 #include "kill_process_config.h"
 #include "record_query_result.h"
 #include "refbase.h"
 #include "running_process_info.h"
 #include "simple_process_info.h"
+#include <condition_variable>
 
 namespace OHOS {
 namespace Rosen {
@@ -199,6 +201,14 @@ public:
     * @return Returns ERR_OK on success, others on failure.
     */
     int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1);
+
+    /**
+     * UpdateConfigurationPolicy
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t UpdateConfigurationPolicy(const std::vector<std::string> &bandleNames,
+        const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId = -1);
 
     /**
      *  Update config by sa.
@@ -381,8 +391,12 @@ private:
     bool isCollaboratorReserveType(const std::shared_ptr<AppRunningRecord> &appRecord);
     void NotifyAppPreCache(const std::shared_ptr<AppRunningRecord>& appRecord,
         const std::shared_ptr<AppMgrServiceInner>& appMgrServiceInner);
+
     void AddRecordToDeadList(std::shared_ptr<AppRunningRecord> appRecord);
     void RemoveTimeoutDeadAppRecord();
+    static void *ExecuteConfigurationPolicy(void *arg);
+    bool UpdateColoreModeConfiguration(std::shared_ptr<AppRunningRecord>& appRecord);
+    int32_t UpdateAllUIExtensionProvide(std::shared_ptr<AppRunningRecord>& appRecord);
 
 private:
     std::mutex runningRecordMapMutex_;
@@ -394,6 +408,13 @@ private:
 
     std::mutex updateConfigurationDelayedLock_;
     std::map<const int32_t, bool> updateConfigurationDelayedMap_;
+
+    std::mutex updateConfigurationPolicyLock_;
+    static bool updateConfigurationFlag;
+    std::vector<std::string> bandleNames_;
+    AppExecFwk::ConfigurationPolicy policy_;
+    std::condition_variable cond_var;
+    int32_t userId_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -53,6 +53,8 @@ constexpr const char* DEVELOPER_MODE_STATE = "const.security.developermode.state
 }
 using EventFwk::CommonEventSupport;
 
+bool AppRunningManager::updateConfigurationFlag = false;
+
 AppRunningManager::AppRunningManager()
 {}
 AppRunningManager::~AppRunningManager()
@@ -996,7 +998,13 @@ int32_t AppRunningManager::UpdateConfiguration(const Configuration& config, cons
             appRecord->ResetDelayConfiguration();
         }
         if (appRecord && !isCollaboratorReserveType(appRecord)) {
-            TAG_LOGD(AAFwkTag::APPMGR, "Notification app [%{public}s]", appRecord->GetName().c_str());
+            {
+                std::lock_guard guard(updateConfigurationPolicyLock_);
+                if (!updateConfigurationFlag) {
+                    updateConfigurationFlag = true;
+                    cond_var.notify_all();
+                }
+            }
             std::lock_guard guard(updateConfigurationDelayedLock_);
             if (appRecord->NeedUpdateConfigurationBackground() ||
                 appRecord->GetState() != ApplicationState::APP_STATE_BACKGROUND) {
@@ -1012,6 +1020,120 @@ int32_t AppRunningManager::UpdateConfiguration(const Configuration& config, cons
         }
     }
     return result;
+}
+
+bool AppRunningManager::UpdateColoreModeConfiguration(std::shared_ptr<AppRunningRecord>& appRecord)
+{
+    std::lock_guard guard(updateConfigurationDelayedLock_);
+    AppExecFwk::Configuration config;
+    auto delayConfig = appRecord->GetDelayConfiguration();
+    if (delayConfig == nullptr) {
+        appRecord->ResetDelayConfiguration();
+        TAG_LOGI(AAFwkTag::APPKIT, "delayConfig: is null");
+        return false;
+    } else {
+        std::string value = delayConfig->GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE);
+        if (value == ConfigurationInner::EMPTY_STRING) {
+            TAG_LOGI(AAFwkTag::APPKIT, "color value: is null");
+            return false;
+        }
+        config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE, value);
+        TAG_LOGI(AAFwkTag::APPKIT, "colormode : %{public}s", value.c_str());
+    }
+    delayConfig->RemoveItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE);
+    appRecord->UpdateConfiguration(config);
+    appRecord->ResetDelayConfiguration();
+    return true;
+}
+
+int32_t AppRunningManager::UpdateAllUIExtensionProvide(std::shared_ptr<AppRunningRecord>& appRecord)
+{
+    int count = 0;
+    auto obj = appRecord->GetPriorityObject();
+    if (obj != nullptr) {
+        std::vector<pid_t> providerPids;
+        GetAllUIExtensionProviderPid(obj->GetPid(), providerPids);
+        for (pid_t providerPid : providerPids) {
+            auto providerRecord = GetAppRunningRecordByPid(providerPid);
+            UpdateColoreModeConfiguration(providerRecord);
+            count++;
+        }
+    }
+    return count;
+}
+
+void *AppRunningManager::ExecuteConfigurationPolicy(void *arg)
+{
+    auto appRunningManager = static_cast<AppRunningManager *>(arg);
+    if (appRunningManager == nullptr) {
+        return nullptr;
+    }
+    
+    std::vector<std::string> bandleNames = appRunningManager->bandleNames_;
+    AppExecFwk::ConfigurationPolicy policy = appRunningManager->policy_;
+    int32_t userId = appRunningManager->userId_;
+    int count = 0;
+    {
+        std::lock_guard guard(appRunningManager->updateConfigurationPolicyLock_);
+        updateConfigurationFlag = false;
+    }
+
+    for (const auto &bandleName : bandleNames)
+    {
+        if (updateConfigurationFlag) {
+            TAG_LOGD(AAFwkTag::APPMGR, " thread exit");
+            return nullptr;
+        }
+        for (auto &item : appRunningManager->updateConfigurationDelayedMap_) {
+            std::shared_ptr<AppRunningRecord> appRecord = nullptr;
+            {
+                std::lock_guard guard(appRunningManager->runningRecordMapMutex_);
+                auto it = appRunningManager->appRunningRecordMap_.find(item.first);
+                if (it != appRunningManager->appRunningRecordMap_.end()) {
+                    appRecord = it->second;
+                }
+            }
+            if (!(userId == -1 || appRecord->GetUid() / BASE_USER_RANGE == 0 ||
+                appRecord->GetUid() / BASE_USER_RANGE == userId)) {
+                continue;
+            }
+            
+            if (appRecord && bandleName == appRecord->GetBundleName() && item.second
+                && appRecord->GetState() == ApplicationState::APP_STATE_BACKGROUND) {
+                if (appRunningManager->UpdateColoreModeConfiguration(appRecord)) {
+                    item.second = false;
+                }
+                count++;
+                count += appRunningManager->UpdateAllUIExtensionProvide(appRecord);
+                if (count >=  policy.countPerTime) {
+                    count = 0;
+                    std::unique_lock<std::mutex> lock(appRunningManager->updateConfigurationPolicyLock_);
+                    appRunningManager->cond_var.wait_for(lock, std::chrono::milliseconds(policy.intervalTime),
+                        [] { return updateConfigurationFlag; });
+                }
+                break;
+            }
+        }
+    }
+
+    return nullptr;
+}
+
+int32_t AppRunningManager::UpdateConfigurationPolicy(const std::vector<std::string> &bandleNames,
+    const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId)
+{
+    bandleNames_ = bandleNames;
+    policy_ = policy;
+    userId_ = userId;
+
+    pthread_t tid;
+    int ret = pthread_create(&tid, nullptr, AppRunningManager::ExecuteConfigurationPolicy, this);
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "create thread error, %{public}d", ret);
+        return ret;
+    }
+     
+    return ERR_OK;
 }
 
 int32_t AppRunningManager::UpdateConfigurationByBundleName(const Configuration &config, const std::string &name,

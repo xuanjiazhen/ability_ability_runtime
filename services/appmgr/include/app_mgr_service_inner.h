@@ -50,6 +50,7 @@
 #include "child_process_info.h"
 #include "child_process_request.h"
 #endif // SUPPORT_CHILD_PROCESS
+#include "configuration_policy.h"
 #include "cpp/mutex.h"
 #include "event_report.h"
 #include "exit_resident_process_manager.h"
@@ -758,6 +759,9 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1);
+
+    int32_t UpdateConfigurationPolicy(const std::vector<std::string> &bandleNames,
+        const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId);
 
     int32_t UpdateConfigurationByBundleName(const Configuration &config, const std::string &name, int32_t appIndex);
 
