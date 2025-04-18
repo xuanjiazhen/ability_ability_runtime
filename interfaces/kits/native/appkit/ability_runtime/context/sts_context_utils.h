@@ -42,6 +42,12 @@ void StsCreatContext(ani_env* aniEnv, ani_class contextClass, ani_object context
     void* applicationCtxRef, std::shared_ptr<Context> context);
 
 ani_object GetApplicationContextSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj);
+
+void SwitchAniArea(ani_env *aniEnv, ani_class contextClass, ani_object contextObj, ani_double mode);
+
+ani_string GetAniFilesDir(ani_env *aniEnv);
+
+ani_string GetAniTempDir(ani_env *aniEnv);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

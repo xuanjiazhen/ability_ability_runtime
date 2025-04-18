@@ -22,8 +22,8 @@ import resmgr from '@ohos.resourceManager'
 
 export class Context extends BaseContext {
     area: contextConstant.AreaMode = contextConstant.AreaMode.EL1;
-    filesDir: string = "";
-    tempDir: string = "";
+    _filesDir: string = "";
+    _tempDir: string = "";
     applicationInfo: ApplicationInfo;
     eventHub: EventHub = new EventHub();
     resourceManager: resmgr.ResourceManager;
@@ -32,5 +32,21 @@ export class Context extends BaseContext {
 
     getApplicationContext(): ApplicationContext {
         return this.getApplicationContextSync();
+    }
+
+    //public native areaSetter(mode: int);
+    //set area(mode: int) {
+    //    this.areaSetter(mode);
+    //    return;
+    //}
+
+    public native filesDirGetter(): string;
+    get filesDir(): string {
+        return this.filesDirGetter();
+    }
+
+    public native tempDirGetter(): string;
+    get tempDir(): string {
+        return this.tempDirGetter();
     }
 }
