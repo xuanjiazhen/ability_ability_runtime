@@ -143,7 +143,9 @@ class AbilityDelegatorInner implements AbilityDelegator {
     }
 
     addAbilityStageMonitor(monitor: AbilityStageMonitor, callback: AsyncCallback<void>): void {
-        let p1 = taskpool.execute(():undefined => {this.addAbilityStageMonitorAsync(monitor);  return undefined});
+        let p1 = taskpool.execute(():undefined => {
+            this.addAbilityStageMonitorAsync(monitor);
+            return undefined});
         p1.then((e: NullishType)=>{
                 let resultCode: Int  = 0;
                 let r: BusinessError = { code: resultCode.intValue(), data: undefined };
@@ -153,9 +155,12 @@ class AbilityDelegatorInner implements AbilityDelegator {
             });
 
     }
-    addAbilityMonitor(monitor: AbilityStageMonitor): Promise<void> {
+    addAbilityStageMonitor(monitor: AbilityStageMonitor): Promise<void> {
         let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void, reject: (error: Error) => void) => {
-            let p1 = taskpool.execute(():undefined => {this.addAbilityStageMonitorAsync(monitor);  return undefined});
+            let p1 = taskpool.execute(():undefined => {
+                this.addAbilityStageMonitorAsync(monitor);
+                return undefined
+            });
             p1.then((e: NullishType)=>{
                 let PromiseLike = e as PromiseLike<void>;
                 resolve(PromiseLike);
