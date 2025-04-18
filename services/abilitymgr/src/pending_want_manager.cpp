@@ -223,7 +223,8 @@ int32_t PendingWantManager::SendWantSender(sptr<IWantSender> target, const Sende
         return ERR_INVALID_VALUE;
     }
     sptr<PendingWantRecord> record = iface_cast<PendingWantRecord>(obj);
-    if (!CheckPermission(record)) {
+    bool isNeedCheckCallerPermission = false;
+    if (!CheckPermission(record, isNeedCheckCallerPermission)) {
         if (senderInfo.finishedReceiver != nullptr) {
             Want want;
             WantParams wantParams = {};
@@ -232,7 +233,7 @@ int32_t PendingWantManager::SendWantSender(sptr<IWantSender> target, const Sende
         return ERR_INVALID_VALUE;
     }
     SenderInfo info = senderInfo;
-    return record->SenderInner(info);
+    return record->SenderInner(info, isNeedCheckCallerPermission);
 }
 
 void PendingWantManager::CancelWantSender(const bool isSystemAppCall, const sptr<IWantSender> &sender)
@@ -271,7 +272,7 @@ void PendingWantManager::CancelWantSenderLocked(PendingWantRecord &record, bool 
 }
 
 int32_t PendingWantManager::DeviceIdDetermine(const Want &want, const sptr<StartOptions> &startOptions,
-    const sptr<IRemoteObject> &callerToken, int32_t requestCode, const int32_t callerUid, int32_t callerTokenId)
+    const sptr<IRemoteObject> &callerToken, const TriggerOption &triggerOption)
 {
     int32_t result = ERR_OK;
     std::string localDeviceId;
@@ -279,7 +280,14 @@ int32_t PendingWantManager::DeviceIdDetermine(const Want &want, const sptr<Start
     if (want.GetElement().GetDeviceID() == "" || want.GetElement().GetDeviceID() == localDeviceId) {
         if (!startOptions) {
             result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbilityWithSpecifyTokenIdInner(
-                want, callerToken, callerTokenId, true, requestCode, callerUid);
+                want, callerToken, StartAbilityDefaultParam{
+                    .isPendingWantCaller = true,
+                    .userId = triggerOption.requestCode,
+                    .requestCode = triggerOption.callerUid,
+                    .specifyTokenId = triggerOption.callerTokenId,
+                    .callerPid = IPCSkeleton::GetCallingPid(),
+                    .isNeedCheckCallerPermission = triggerOption.isNeedCheckCallerPermission
+                });
         } else {
             TAG_LOGD(AAFwkTag::WANTAGENT, "StartOptions windowMode:%{public}d displayId:%{public}d \
                 withAnimation:%{public}d windowLeft:%{public}d windowTop:%{public}d windowWidth:%{public}d \
@@ -288,7 +296,14 @@ int32_t PendingWantManager::DeviceIdDetermine(const Want &want, const sptr<Start
                 startOptions->GetWindowLeft(), startOptions->GetWindowTop(), startOptions->GetWindowWidth(),
                 startOptions->GetWindowHeight());
             result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbilityWithSpecifyTokenIdInner(
-                want, *startOptions, callerToken, true, requestCode, callerUid, callerTokenId);
+                want, *startOptions, callerToken, StartAbilityDefaultParam{
+                    .isPendingWantCaller = true,
+                    .userId = triggerOption.requestCode,
+                    .requestCode = triggerOption.callerUid,
+                    .specifyTokenId = triggerOption.callerTokenId,
+                    .callerPid = IPCSkeleton::GetCallingPid(),
+                    .isNeedCheckCallerPermission = triggerOption.isNeedCheckCallerPermission
+                });
         }
 
         if (result != ERR_OK && result != START_ABILITY_WAITING) {
@@ -307,7 +322,7 @@ int32_t PendingWantManager::DeviceIdDetermine(const Want &want, const sptr<Start
     DistributedClient dmsClient;
     uint32_t accessToken = IPCSkeleton::GetCallingTokenID();
     int32_t callingUid = IPCSkeleton::GetCallingUid();
-    result = dmsClient.StartRemoteAbility(want, callingUid, requestCode, accessToken);
+    result = dmsClient.StartRemoteAbility(want, callingUid, triggerOption.requestCode, accessToken);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "StartRemoteAbility failed result = %{public}d", result);
     }
@@ -316,10 +331,10 @@ int32_t PendingWantManager::DeviceIdDetermine(const Want &want, const sptr<Start
 }
 
 int32_t PendingWantManager::PendingWantStartAbility(const Want &want, const sptr<StartOptions> &startOptions,
-    const sptr<IRemoteObject> &callerToken, int32_t requestCode, const int32_t callerUid, int32_t callerTokenId)
+    const sptr<IRemoteObject> &callerToken, const TriggerOption &triggerOption)
 {
     TAG_LOGI(AAFwkTag::WANTAGENT, "begin");
-    int32_t result = DeviceIdDetermine(want, startOptions, callerToken, requestCode, callerUid, callerTokenId);
+    int32_t result = DeviceIdDetermine(want, startOptions, callerToken, triggerOption);
     return result;
 }
 
@@ -337,13 +352,12 @@ int32_t PendingWantManager::PendingWantStartServiceExtension(Want &want, const s
 }
 
 int32_t PendingWantManager::PendingWantStartAbilitys(const std::vector<WantsInfo> &wantsInfo,
-    const sptr<StartOptions> &startOptions, const sptr<IRemoteObject> &callerToken, int32_t requestCode,
-    const int32_t callerUid, int32_t callerTokenId)
+    const sptr<StartOptions> &startOptions, const sptr<IRemoteObject> &callerToken, const TriggerOption &triggerOption)
 {
     TAG_LOGI(AAFwkTag::WANTAGENT, "begin");
     int32_t result = ERR_OK;
     for (const auto &item : wantsInfo) {
-        auto res = DeviceIdDetermine(item.want, startOptions, callerToken, requestCode, callerUid, callerTokenId);
+        auto res = DeviceIdDetermine(item.want, startOptions, callerToken, triggerOption);
         if (res != ERR_OK && res != START_ABILITY_WAITING) {
             result = res;
         }
@@ -647,7 +661,7 @@ void PendingWantManager::ClearPendingWantRecordTask(const std::string &bundleNam
     }
 }
 
-bool PendingWantManager::CheckPermission(sptr<PendingWantRecord> record)
+bool PendingWantManager::CheckPermission(sptr<PendingWantRecord> record, bool &isNeedCheckCallerPermission)
 {
     if (record == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "record is nullptr");
@@ -662,6 +676,7 @@ bool PendingWantManager::CheckPermission(sptr<PendingWantRecord> record)
         type == static_cast<int32_t>(OperationType::START_ABILITIES) ||
         type == static_cast<int32_t>(OperationType::START_SERVICE) ||
         type == static_cast<int32_t>(OperationType::START_FOREGROUND_SERVICE)) {
+        isNeedCheckCallerPermission = true;
         return CheckCallerPermission();
     }
     return true;

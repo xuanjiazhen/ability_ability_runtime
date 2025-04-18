@@ -42,7 +42,7 @@ public:
     virtual void RegisterCancelListener(const sptr<IWantReceiver> &receiver);
     virtual void UnregisterCancelListener(const sptr<IWantReceiver> &receiver);
 
-    virtual int32_t SenderInner(SenderInfo &senderInfo);
+    virtual int32_t SenderInner(SenderInfo &senderInfo, bool isNeedCheckCallerPermission);
 
 public:
     std::shared_ptr<PendingWantKey> GetKey();
@@ -55,7 +55,8 @@ public:
 private:
     void BuildSendWant(SenderInfo &senderInfo, Want &want);
     int32_t ExecuteOperation(
-        std::shared_ptr<PendingWantManager> pendingWantManager, SenderInfo &senderInfo, Want &want);
+        std::shared_ptr<PendingWantManager> pendingWantManager, SenderInfo &senderInfo, Want &want,
+        bool isNeedCheckCallerPermission);
     void CheckAppInstanceKey(const std::string& bundleName, WantParams &wantParams);
 
 private:

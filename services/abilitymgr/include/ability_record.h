@@ -253,11 +253,13 @@ struct AbilityRequest {
     bool isQueryERMS = false;
     bool isEmbeddedAllowed = false;
     bool callSpecifiedFlagTimeout = false;
+    bool isNeedCheckCallerPermission = false;
     int32_t restartCount = -1;
     int32_t uid = 0;
     int32_t collaboratorType = CollaboratorType::DEFAULT_TYPE;
     int32_t callerTokenRecordId = -1;
     int32_t userId = -1;
+    int32_t callerPid = -1;
     uint32_t callerAccessTokenId = -1;
     uint32_t specifyTokenId = 0;
     int callerUid = -1;         // call ability

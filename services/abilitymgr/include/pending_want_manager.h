@@ -135,6 +135,14 @@ enum class Flags {
     ALLOW_CANCEL_FLAG = 1 << 20
 };
 
+struct TriggerOption {
+    int32_t requestCode = -1;
+    int32_t callerUid = -1;
+    int32_t callerTokenId = -1;
+    int32_t callerPid = -1;
+    bool isNeedCheckCallerPermission = false;
+};
+
 class PendingWantManager : public std::enable_shared_from_this<PendingWantManager>, public NoCopyable {
 public:
     PendingWantManager();
@@ -159,12 +167,12 @@ public:
 
     void CancelWantSenderLocked(PendingWantRecord &record, bool cleanAbility);
     int32_t PendingWantStartAbility(const Want &want, const sptr<StartOptions> &startOptions,
-        const sptr<IRemoteObject> &callerToken, int32_t requestCode, const int32_t callerUid, int32_t callerTokenId);
+        const sptr<IRemoteObject> &callerToken, const TriggerOption &triggerOption);
     int32_t PendingWantStartServiceExtension(Want &want, const sptr<IRemoteObject> &callerToken);
     int32_t PendingWantStartAbilitys(const std::vector<WantsInfo> &wantsInfo, const sptr<StartOptions> &startOptions,
-        const sptr<IRemoteObject> &callerToken, int32_t requestCode, const int32_t callerUid, int32_t callerTokenId);
+        const sptr<IRemoteObject> &callerToken, const TriggerOption &triggerOption);
     int32_t DeviceIdDetermine(const Want &want, const sptr<StartOptions> &startOptions,
-        const sptr<IRemoteObject> &callerToken, int32_t requestCode, const int32_t callerUid, int32_t callerTokenId);
+        const sptr<IRemoteObject> &callerToken, const TriggerOption &triggerOption);
     int32_t PendingWantPublishCommonEvent(const Want &want, const SenderInfo &senderInfo, int32_t callerUid,
         int32_t callerTokenId);
     void ClearPendingWantRecord(const std::string &bundleName, int32_t uid);
@@ -189,7 +197,7 @@ private:
     bool CheckCallerPermission();
 
     bool CheckWindowState(int32_t pid);
-    bool CheckPermission(sptr<PendingWantRecord> record);
+    bool CheckPermission(sptr<PendingWantRecord> record, bool &isNeedCheckCallerPermission);
 
 private:
     std::shared_ptr<TaskHandlerWrap> taskHandler_;

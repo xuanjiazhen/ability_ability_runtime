@@ -39,7 +39,7 @@ PendingWantRecord::~PendingWantRecord()
 
 void PendingWantRecord::Send(SenderInfo &senderInfo)
 {
-    SenderInner(senderInfo);
+    SenderInner(senderInfo, false);
 }
 
 void PendingWantRecord::RegisterCancelListener(const sptr<IWantReceiver> &receiver)
@@ -63,7 +63,7 @@ void PendingWantRecord::UnregisterCancelListener(const sptr<IWantReceiver> &rece
     }
 }
 
-int32_t PendingWantRecord::SenderInner(SenderInfo &senderInfo)
+int32_t PendingWantRecord::SenderInner(SenderInfo &senderInfo, bool isNeedCheckCallerPermission)
 {
     std::lock_guard<ffrt::mutex> locker(lock_);
     if (canceled_) {
@@ -90,7 +90,7 @@ int32_t PendingWantRecord::SenderInner(SenderInfo &senderInfo)
     BuildSendWant(senderInfo, want);
 
     bool sendFinish = (senderInfo.finishedReceiver != nullptr);
-    int32_t res = ExecuteOperation(pendingWantManager, senderInfo, want);
+    int32_t res = ExecuteOperation(pendingWantManager, senderInfo, want, isNeedCheckCallerPermission);
     if (sendFinish && res != START_CANCELED) {
         WantParams wantParams = {};
         senderInfo.finishedReceiver->PerformReceive(want, senderInfo.code, "", wantParams, false, false, 0);
@@ -100,25 +100,38 @@ int32_t PendingWantRecord::SenderInner(SenderInfo &senderInfo)
 }
 
 int32_t PendingWantRecord::ExecuteOperation(
-    std::shared_ptr<PendingWantManager> pendingWantManager, SenderInfo &senderInfo, Want &want)
+    std::shared_ptr<PendingWantManager> pendingWantManager, SenderInfo &senderInfo, Want &want,
+    bool isNeedCheckCallerPermission)
 {
     int32_t res = NO_ERROR;
     switch (key_->GetType()) {
         case static_cast<int32_t>(OperationType::START_ABILITY):
             res = pendingWantManager->PendingWantStartAbility(want, senderInfo.startOptions,
-                callerToken_, -1, callerUid_, callerTokenId_);
+                callerToken_, TriggerOption {
+                    .requestCode = -1,
+                    .callerUid = callerUid_,
+                    .callerTokenId = callerTokenId_,
+                    .isNeedCheckCallerPermission = isNeedCheckCallerPermission});
             break;
         case static_cast<int32_t>(OperationType::START_ABILITIES): {
             std::vector<WantsInfo> allWantsInfos = key_->GetAllWantsInfos();
             allWantsInfos.back().want = want;
             res = pendingWantManager->PendingWantStartAbilitys(
-                allWantsInfos, senderInfo.startOptions, callerToken_, -1, callerUid_, callerTokenId_);
+                allWantsInfos, senderInfo.startOptions, callerToken_, TriggerOption {
+                    .requestCode = -1,
+                    .callerUid = callerUid_,
+                    .callerTokenId = callerTokenId_,
+                    .isNeedCheckCallerPermission = isNeedCheckCallerPermission});
             break;
         }
         case static_cast<int32_t>(OperationType::START_SERVICE):
         case static_cast<int32_t>(OperationType::START_FOREGROUND_SERVICE):
             res = pendingWantManager->PendingWantStartAbility(want, nullptr, callerToken_,
-                -1, callerUid_, callerTokenId_);
+                TriggerOption {
+                    .requestCode = -1,
+                    .callerUid = callerUid_,
+                    .callerTokenId = callerTokenId_,
+                    .isNeedCheckCallerPermission = isNeedCheckCallerPermission});
             break;
         case static_cast<int32_t>(OperationType::SEND_COMMON_EVENT):
             res = pendingWantManager->PendingWantPublishCommonEvent(want, senderInfo, callerUid_, callerTokenId_);
