@@ -97,7 +97,8 @@ public:
         std::vector<int32_t> &pidList));
     MOCK_METHOD1(RegisterKiaInterceptor, int32_t(const sptr<IKiaInterceptor> &interceptor));
     MOCK_METHOD2(CheckIsKiaProcess, int32_t(pid_t pid, bool &isKia));
-
+    MOCK_METHOD3(UpdateConfigurationPolicy, int32_t(const std::vector<std::string> &bandleNames,
+        const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId));
     void AttachApplication(const sptr<IRemoteObject>& app)
     {
         GTEST_LOG_(INFO) << "MockAppMgrService::AttachApplication called";

@@ -927,7 +927,6 @@ int AppMgrProxy::GetRenderProcessTerminationStatus(pid_t renderPid, int &status)
 
 int32_t AppMgrProxy::UpdateConfiguration(const Configuration &config, const int32_t userId)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "AppMgrProxy UpdateConfiguration");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
@@ -943,6 +942,44 @@ int32_t AppMgrProxy::UpdateConfiguration(const Configuration &config, const int3
         return ERR_INVALID_DATA;
     }
     int32_t ret = SendRequest(AppMgrInterfaceCode::UPDATE_CONFIGURATION, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t AppMgrProxy::UpdateConfigurationPolicy(const std::vector<std::string> &bandleNames,
+    const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "AppMgrProxy UpdateConfigurationPolicy");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        return ERR_INVALID_DATA;
+    }
+    auto size = bandleNames.size();
+    if (size == 0 || size > MAX_PROCESS_STATE_COUNT) {
+        return ERR_FLATTEN_OBJECT;
+    }
+    if (!data.WriteUint32(size)) {
+        return ERR_FLATTEN_OBJECT;
+    }
+    for (const auto &bandleName: bandleNames) {
+        if (!data.WriteString(bandleName)) {
+            return ERR_FLATTEN_OBJECT;
+        }
+    }
+    if (!data.WriteParcelable(&policy)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "parcel policy failed");
+        return ERR_INVALID_DATA;
+    }
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "parcel userId failed");
+        return ERR_INVALID_DATA;
+    }
+    int32_t ret = SendRequest(AppMgrInterfaceCode::UPDATE_CONFIGURATION_POLICY, data, reply, option);
     if (ret != NO_ERROR) {
         TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
         return ret;
