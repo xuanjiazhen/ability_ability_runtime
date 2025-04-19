@@ -410,7 +410,7 @@ bool StsUIExtension::ForegroundWindowWithInsightIntent(const AAFwk::Want &want,
         executorInfo.windowMode = abilityInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE;
     }
     executorInfo.token = context->GetToken();
-    executorInfo.pageLoader = contentSessions_[sessionInfo->uiExtensionComponentId];
+    executorInfo.pageEtsLoader = contentSessions_[sessionInfo->uiExtensionComponentId];
     executorInfo.executeParam = std::make_shared<InsightIntentExecuteParam>();
     InsightIntentExecuteParam::GenerateFromWant(want, *executorInfo.executeParam);
     executorInfo.executeParam->executeMode_ = UI_EXTENSION_ABILITY;
@@ -561,6 +561,10 @@ bool StsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAF
         if ((status = env->GlobalReference_Create(sessonObj, &contentSession_)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         }
+        std::shared_ptr<STSNativeReference> etsNativeRef = std::make_shared<STSNativeReference>();
+        etsNativeRef->aniObj = aniObj;
+        etsNativeRef->aniRef = contentSession_;
+        contentSessions_.insert_or_assign(compId, etsNativeRef);
         int32_t screenMode = want.GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
         if (screenMode == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
             screenMode_ = AAFwk::EMBEDDED_FULL_SCREEN_MODE;

@@ -219,7 +219,7 @@ private:
     std::mutex uiWindowMutex_;
     std::map<uint64_t, sptr<Rosen::Window>> uiWindowMap_;
     std::set<uint64_t> foregroundWindows_;
-    std::map<uint64_t, std::shared_ptr<NativeReference>> contentSessions_;
+    std::map<uint64_t, std::shared_ptr<STSNativeReference>> contentSessions_;
     int32_t screenMode_ = AAFwk::IDLE_SCREEN_MODE;
     std::shared_ptr<int32_t> screenModePtr_;
     sptr<IRemoteObject> token_ = nullptr;
