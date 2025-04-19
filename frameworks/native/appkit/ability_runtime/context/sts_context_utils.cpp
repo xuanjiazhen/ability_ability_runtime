@@ -27,6 +27,7 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace ContextUtil {
+std::weak_ptr<Context> context_;
 void BindApplicationCtx(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
     void* applicationCtxRef)
 {
@@ -80,6 +81,9 @@ void BindResourceManager(ani_env* aniEnv, ani_class contextClass, ani_object con
 void BindParentProperty(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
     std::shared_ptr<Context> context)
 {
+    if (context != nullptr) {
+        context_ = context;
+    }
     BindApplicationInfo(aniEnv, contextClass, contextObj, context);
     BindResourceManager(aniEnv, contextClass, contextObj, context);
 
@@ -142,6 +146,81 @@ ani_object GetApplicationContextSync([[maybe_unused]]ani_env *env, [[maybe_unuse
     }
     ThrowStsInvalidParamError(env, "appContextObj null");
     return {};
+}
+
+void SwitchAniArea(ani_env *aniEnv, ani_class contextClass, ani_object contextObj, ani_double mode)
+{
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGW(AAFwkTag::APPKIT, "null context");
+        return;
+    }
+    context->SwitchArea(static_cast<int>(mode));
+
+    ani_field areaField;
+    if (ANI_OK != aniEnv->Class_FindField(contextClass, "area", &areaField)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "find area failed");
+        return;
+    }
+    auto area = context->GetArea();
+    ani_enum_item areaModeItem {};
+    OHOS::AAFwk::AniEnumConvertUtil::EnumConvert_NativeToSts(
+        aniEnv, "L@ohos/app/ability/contextConstant/contextConstant/AreaMode;", area, areaModeItem);
+
+    if (aniEnv->Object_SetField_Ref(contextObj, areaField, (ani_ref)areaModeItem) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "set object field ref failed");
+        return;
+    }
+
+    ani_field filesDirField;
+    if (ANI_OK != aniEnv->Class_FindField(contextClass, "filesDir", &filesDirField)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "find filesDir failed");
+        return;
+    }
+    auto filesDir = context->GetFilesDir();
+    ani_string filesDir_string{};
+    aniEnv->String_NewUTF8(filesDir.c_str(), filesDir.size(), &filesDir_string);
+    if (aniEnv->Object_SetField_Ref(contextObj, filesDirField, reinterpret_cast<ani_ref>(filesDir_string)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Object_SetField_Ref failed");
+        return;
+    }
+
+    ani_field tempDirField;
+    if (ANI_OK != aniEnv->Class_FindField(contextClass, "tempDir", &tempDirField)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "find tempDir failed");
+        return;
+    }
+    auto tempDir = context->GetTempDir();
+    ani_string tempDir_string{};
+    aniEnv->String_NewUTF8(tempDir.c_str(), tempDir.size(), &tempDir_string);
+    if (aniEnv->Object_SetField_Ref(contextObj, tempDirField, reinterpret_cast<ani_ref>(tempDir_string)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Object_SetField_Ref failed");
+        return;
+    }
+}
+
+ani_string GetAniFilesDir(ani_env *aniEnv) {
+    ani_string filesDirStr{};
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGW(AAFwkTag::APPKIT, "null context");
+        return filesDirStr;
+    }
+    auto filesDir = context->GetFilesDir();
+    aniEnv->String_NewUTF8(filesDir.c_str(), filesDir.size(), &filesDirStr);
+    return filesDirStr;
+}
+
+ani_string GetAniTempDir(ani_env *aniEnv) {
+    ani_string tempDirStr{};
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGW(AAFwkTag::APPKIT, "null context");
+        return tempDirStr;
+    }
+    auto tempDir = context->GetFilesDir();
+    aniEnv->String_NewUTF8(tempDir.c_str(), tempDir.size(), &tempDirStr);
+    return tempDirStr;
 }
 }
 } // namespace AbilityRuntime

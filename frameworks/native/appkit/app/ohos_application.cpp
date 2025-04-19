@@ -311,6 +311,11 @@ void OHOSApplication::InitAniContext()
     std::array contextFunctions = {
         ani_native_function {"getApplicationContextSync", ":Lapplication/ApplicationContext/ApplicationContext;",
             reinterpret_cast<void *>(AbilityRuntime::ContextUtil::GetApplicationContextSync)},
+        ani_native_function {"areaSetter", nullptr, reinterpret_cast<void *>(AbilityRuntime::ContextUtil::SwitchAniArea)},
+        ani_native_function {"filesDirGetter", nullptr,
+            reinterpret_cast<void *>(AbilityRuntime::ContextUtil::GetAniFilesDir)},
+        ani_native_function {"tempDirGetter", nullptr,
+            reinterpret_cast<void *>(AbilityRuntime::ContextUtil::GetAniTempDir)}
     };
     aniEnv->Class_BindNativeMethods(contextCls, contextFunctions.data(),
         contextFunctions.size());
