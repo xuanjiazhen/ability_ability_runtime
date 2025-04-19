@@ -184,7 +184,7 @@ void StsUIAbility::UpdateAbilityObj(
         return;
     }
     if ((status = env->Class_BindNativeMethods(stsAbilityObj_->aniCls, functions.data(), functions.size())) != ANI_OK) {
-        TAG_LOGW(AAFwkTag::UIABILITY, "status : %{public}d", status);
+        TAG_LOGI(AAFwkTag::UIABILITY, "status : %{public}d", status);
     }
 }
 
