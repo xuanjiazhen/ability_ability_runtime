@@ -25,7 +25,7 @@
 #include "sts_runtime.h"
 #include "ohos_application.h"
 #include "sts_free_install_observer.h"
-
+1
 class STSNativeReference;
 
 namespace OHOS {
