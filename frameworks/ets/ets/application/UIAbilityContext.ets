@@ -18,6 +18,7 @@ import Want from '@ohos.app.ability.Want';
 import StartOptions from '@ohos.app.ability.StartOptions';
 import { BusinessError, AsyncCallback } from '@ohos.base';
 import { AbilityResult } from 'ability.abilityResult';
+import { ConnectOptions } from 'ability.connectOptions';
 import AbilityStartCallback from 'application.AbilityStartCallback';
 import { Configuration } from '@ohos.app.ability.Configuration';
 import Context from 'application.Context';
@@ -50,6 +51,8 @@ export default class UIAbilityContext extends Context {
   private native nativeTerminateSelfWithResult(parameter: AbilityResult, callback:AsyncCallbackWrapper<void>): void;
   private native nativeReportDrawnCompletedSync(callback:AsyncCallbackWrapper<void>): void;
   private native nativeStartAbilityByTypeSync(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback): BusinessError<void>;
+  private native nativeConnectServiceExtensionAbility(want: Want, options: ConnectOptions): int;
+  private native nativeDisconnectServiceExtensionAbilitySync(connection: int): void;
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
@@ -220,6 +223,26 @@ export default class UIAbilityContext extends Context {
           reject(retError);
         }
       }).catch((err: BusinessError): void => {
+        reject(err);
+      });
+    });
+    return p;
+  }
+  
+    connectServiceExtensionAbility(want: Want, options: ConnectOptions): int {
+    return this.nativeConnectServiceExtensionAbility(want, options);
+  }
+ 
+  disconnectServiceExtensionAbility(connection: int): Promise<void> {
+    let p = new Promise<void>((resolve: () => void, reject: (error: BusinessError) => void): void => {
+      let cb = (): void => {
+        this.nativeDisconnectServiceExtensionAbilitySync(connection);
+      }
+      let p1 = taskpool.execute(cb);
+ 
+      p1.then((e: NullishType) => {
+        resolve();
+      }, (err: BusinessError): void => {
         reject(err);
       });
     });
