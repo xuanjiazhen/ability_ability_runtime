@@ -1042,7 +1042,7 @@ bool StsUIAbility::GetInsightIntentExecutorInfo(const Want &want,
     executeInfo.windowMode = windowMode_;
     executeInfo.token = context->GetToken();
     if (stsWindowStageObj_ != nullptr) {
-        // TODO
+        executeInfo.pageEtsLoader = stsWindowStageObj_;
     }
     executeInfo.executeParam = executeParam;
     return true;

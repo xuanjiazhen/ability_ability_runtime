@@ -20,8 +20,10 @@
 
 #include "insight_intent_execute_param.h"
 #include "js_runtime.h"
+#include "sts_runtime.h"
 
 class NativeReference;
+class STSNativeReference;
 
 namespace OHOS::AbilityRuntime {
 using InsightIntentExecuteParam = AppExecFwk::InsightIntentExecuteParam;
@@ -32,6 +34,7 @@ struct InsightIntentExecutorInfo {
     int32_t windowMode = 0;
     sptr<IRemoteObject> token = nullptr;
     std::shared_ptr<NativeReference> pageLoader = nullptr;
+    std::shared_ptr<STSNativeReference> pageEtsLoader = nullptr;
     std::shared_ptr<InsightIntentExecuteParam> executeParam = nullptr;
 };
 } // namespace OHOS::AbilityRuntime
