@@ -33,6 +33,10 @@ constexpr int32_t DEFAULT_USER_ID = 0;
 constexpr int32_t API_VERSION_MOD = 100;
 constexpr int32_t FOUNDATION_UID = 5523;
 constexpr const char* NET_WORK_ID_MARK = "?networkid=";
+constexpr const char* FILE_SCHEME_PREFIX = "file://";
+constexpr const char* CONTENT_SCHEME = "content";
+constexpr const char* DOCS_AUTHORITY = "docs";
+constexpr const char* MEDIA_AUTHORITY = "media";
 }
 
 std::shared_ptr<AppExecFwk::BundleMgrHelper> UPMSUtils::ConnectManagerHelper()
@@ -284,17 +288,43 @@ int32_t UPMSUtils::GetTokenIdByBundleName(const std::string &bundleName, int32_t
 
 bool UPMSUtils::CheckUriTypeIsValid(Uri &uri)
 {
-    auto &&scheme = uri.GetScheme();
-    if (scheme != "file" && scheme != "content") {
-        TAG_LOGW(AAFwkTag::URIPERMMGR, "uri invalid: %{public}s-%{private}s", scheme.c_str(), uri.ToString().c_str());
-        return false;
-    }
-    return true;
+    return IsFileUri(uri) || IsContentUri(uri);
+}
+
+bool UPMSUtils::IsFileUri(Uri &uri)
+{
+    std::string strUri = uri.ToString();
+    return strUri.rfind(FILE_SCHEME_PREFIX, 0) == 0;
+}
+
+bool UPMSUtils::IsContentUri(Uri &uri)
+{
+    return uri.GetScheme() == CONTENT_SCHEME;
+}
+
+bool UPMSUtils::IsMediaUriAuthority(Uri &uri)
+{
+    return uri.GetAuthority() == MEDIA_AUTHORITY;
+}
+
+bool UPMSUtils::IsMediaUriAuthority(const std::string &authority)
+{
+    return authority == MEDIA_AUTHORITY;
+}
+
+bool UPMSUtils::IsDocsUriAuthority(Uri &uri)
+{
+    return uri.GetAuthority() == DOCS_AUTHORITY;
+}
+
+bool UPMSUtils::IsDocsUriAuthority(const std::string &authority)
+{
+    return authority == DOCS_AUTHORITY;
 }
 
 bool UPMSUtils::IsDocsCloudUri(Uri &uri)
 {
-    return (uri.GetAuthority() == "docs" && uri.ToString().find(NET_WORK_ID_MARK) != std::string::npos);
+    return (uri.GetAuthority() == DOCS_AUTHORITY && uri.ToString().find(NET_WORK_ID_MARK) != std::string::npos);
 }
 
 std::shared_ptr<AppExecFwk::BundleMgrHelper> UPMSUtils::bundleMgrHelper_ = nullptr;

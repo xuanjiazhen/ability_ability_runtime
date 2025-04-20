@@ -75,11 +75,11 @@ ErrCode UriPermissionManagerStubImpl::VerifyUriPermission(const Uri& uri, uint32
     flag &= FLAG_READ_WRITE_URI;
     auto uriInner = uri;
     if (!UPMSUtils::CheckUriTypeIsValid(uriInner)) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "type of uri is valid");
+        TAG_LOGW(AAFwkTag::URIPERMMGR, "uri invalid: %{private}s", uriInner.ToString().c_str());
         funcResult = false;
         return ERR_OK;
     }
-    if (uriInner.GetScheme() == "file" && uriInner.GetAuthority() == "media") {
+    if (UPMSUtils::IsFileUri(uriInner) && UPMSUtils::IsMediaUriAuthority(uriInner)) {
         TAG_LOGW(AAFwkTag::URIPERMMGR, "not support media uri");
         funcResult = false;
         return ERR_OK;
@@ -172,7 +172,7 @@ ErrCode UriPermissionManagerStubImpl::GrantUriPermission(const Uri& uri, unsigne
 {
     TAG_LOGI(AAFwkTag::URIPERMMGR, "Uri:%{private}s", uri.ToString().c_str());
     std::vector<Uri> uriVec = { uri };
-    if (UPMSUtils::IsSystemAppCall() && uriVec[0].GetScheme() != "file") {
+    if (UPMSUtils::IsSystemAppCall() && !UPMSUtils::IsFileUri(uriVec[0])) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "Only support file uri");
         funcResult = ERR_CODE_INVALID_URI_TYPE;
         return ERR_OK;
@@ -484,6 +484,7 @@ int32_t UriPermissionManagerStubImpl::GrantUriPermissionPrivilegedInner(const st
     for (auto &uri : uriVec) {
         auto uriInner = uri;
         if (!UPMSUtils::CheckUriTypeIsValid(uriInner)) {
+            TAG_LOGW(AAFwkTag::URIPERMMGR, "uri invalid: %{private}s", uriInner.ToString().c_str());
             continue;
         }
         validUriCount++;
@@ -497,7 +498,7 @@ int32_t UriPermissionManagerStubImpl::GrantUriPermissionPrivilegedInner(const st
             continue;
         }
         // media
-        if (uriInner.GetAuthority() == "media") {
+        if (UPMSUtils::IsMediaUriAuthority(uriInner)) {
             mediaUriVec.emplace_back(uriInner.ToString());
             continue;
         }
@@ -587,20 +588,19 @@ std::vector<bool> UriPermissionManagerStubImpl::CheckUriPermission(TokenIdPermis
     UPMSUtils::GetAlterableBundleNameByTokenId(tokenId, callerAlterableBundleName);
     for (size_t i = 0; i < uriVec.size(); i++) {
         auto uri = uriVec[i];
-        auto &&scheme = uri.GetScheme();
         // checkUriPermission not support content uri
-        if (scheme != "file") {
+        if (!UPMSUtils::IsFileUri(uri)) {
             TAG_LOGW(AAFwkTag::URIPERMMGR, "invalid uri:%{private}s", uri.ToString().c_str());
             result[i] = false;
             continue;
         }
         auto &&authority = uri.GetAuthority();
         TAG_LOGD(AAFwkTag::URIPERMMGR, "UriAuth:%{public}s", authority.c_str());
-        if (authority == "docs" && tokenIdPermission.VerifyFileAccessManagerPermission()) {
+        if (UPMSUtils::IsDocsUriAuthority(authority) && tokenIdPermission.VerifyFileAccessManagerPermission()) {
             result[i] = true;
             continue;
         }
-        if (authority == "media") {
+        if (UPMSUtils::IsMediaUriAuthority(authority)) {
             mediaUris.emplace_back(uri);
             mediaUriIndexs.emplace_back(i);
             continue;
@@ -639,7 +639,7 @@ void UriPermissionManagerStubImpl::CheckProxyUriPermission(TokenIdPermission &to
         }
         // media no need to check proxy permission, has checked by medialibrary
         auto uriInner = uriVec[i];
-        if (uriInner.GetAuthority() != "media") {
+        if (!UPMSUtils::IsMediaUriAuthority(uriInner)) {
             bool funcResult = false;
             VerifyUriPermission(uriInner, flag, tokenId, funcResult);
             result[i] = funcResult;
@@ -749,7 +749,9 @@ ErrCode UriPermissionManagerStubImpl::RevokeUriPermissionManually(const Uri& uri
         return ERR_OK;
     }
     auto uriInner = uri;
-    if (!UPMSUtils::CheckUriTypeIsValid(uriInner)) {
+    // only support file uri, for system app call.
+    if (!UPMSUtils::CheckUriTypeIsValid(uriInner) ||
+        (UPMSUtils::IsSystemAppCall() && !UPMSUtils::IsFileUri(uriInner))) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "CheckUriType failed, uri:%{private}s", uri.ToString().c_str());
         funcResult = ERR_CODE_INVALID_URI_TYPE;
         return ERR_OK;
@@ -772,10 +774,10 @@ int32_t UriPermissionManagerStubImpl::RevokeUriPermissionManuallyInner(Uri &uri,
     TAG_LOGI(AAFwkTag::URIPERMMGR, "callerTokenId: %{public}u, targetTokenId:%{public}u",
         callerTokenId, targetTokenId);
     
-    if (uri.GetScheme() == "content" || UPMSUtils::IsDocsCloudUri(uri)) {
+    if (UPMSUtils::IsContentUri(uri) || UPMSUtils::IsDocsCloudUri(uri)) {
         return RevokeMapUriPermissionManually(callerTokenId, targetTokenId, uri);
     }
-    if (uri.GetAuthority() == "media") {
+    if (UPMSUtils::IsMediaUriAuthority(uri)) {
         return RevokeMediaUriPermissionManually(callerTokenId, targetTokenId, uri);
     }
     // docs and bundle uri

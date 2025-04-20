@@ -37,18 +37,17 @@ int32_t BatchUri::Init(const std::vector<Uri> &uriVec, uint32_t mode, const std:
     bool isPrintAuthority = true;
     for (size_t index = 0; index < uriVec.size(); index++) {
         auto uriInner = uriVec[index];
-        auto &&scheme = uriInner.GetScheme();
         if (isPrintAuthority) {
             TAG_LOGI(AAFwkTag::URIPERMMGR, "uri type: %{public}s.", uriInner.GetAuthority().c_str());
             isPrintAuthority = false;
         }
-        if (scheme != "content" && scheme != "file") {
-            TAG_LOGW(AAFwkTag::URIPERMMGR, "uri is invalid: %{private}s.", uriInner.ToString().c_str());
+        if (!UPMSUtils::CheckUriTypeIsValid(uriInner)) {
+            TAG_LOGW(AAFwkTag::URIPERMMGR, "uri invalid: %{private}s", uriInner.ToString().c_str());
             continue;
         }
         validUriCount++;
         // content uri
-        if (scheme == "content") {
+        if (UPMSUtils::IsContentUri(uriInner)) {
             contentUris.emplace_back(uriInner);
             contentIndexs.emplace_back(index);
             continue;
@@ -66,7 +65,7 @@ void BatchUri::InitFileUriInfo(Uri &uriInner, uint32_t index, const uint32_t mod
     auto &&authority = uriInner.GetAuthority();
     TAG_LOGD(AAFwkTag::URIPERMMGR, "Authority of uri is %{public}s.", authority.c_str());
     // media uri
-    if (authority == "media") {
+    if (UPMSUtils::IsMediaUriAuthority(authority)) {
         mediaUris.emplace_back(uriInner);
         mediaIndexs.emplace_back(index);
         return;
@@ -87,7 +86,7 @@ void BatchUri::InitFileUriInfo(Uri &uriInner, uint32_t index, const uint32_t mod
         }
         return;
     }
-    if (authority == "docs") {
+    if (UPMSUtils::IsDocsUriAuthority(authority)) {
         isDocsUriVec[index] = true;
     }
     // docs and bundle uri, need to check uri pemission
