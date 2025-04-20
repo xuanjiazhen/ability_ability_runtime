@@ -238,9 +238,6 @@ HWTEST_F(DataAbilityResultTest, AppExecFwk_DataAbilityResult_ToString0200, Funct
 HWTEST_F(DataAbilityResultTest, AppExecFwk_DataAbilityResult_Parcelable_0100, Function | MediumTest | Level1)
 {
     std::shared_ptr<DataAbilityResult> ResultIn_ = std::make_shared<DataAbilityResult>(COUNT_NULL);
-    if (ResultIn_ == nullptr) {
-        return;
-    }
 
     Parcel in;
     ResultIn_->Marshalling(in);
@@ -260,9 +257,6 @@ HWTEST_F(DataAbilityResultTest, AppExecFwk_DataAbilityResult_Parcelable_0100, Fu
 HWTEST_F(DataAbilityResultTest, AppExecFwk_DataAbilityResult_Parcelable_0200, Function | MediumTest | Level1)
 {
     std::shared_ptr<DataAbilityResult> ResultIn_ = std::make_shared<DataAbilityResult>(uri);
-    if (ResultIn_ == nullptr) {
-        return;
-    }
 
     Parcel in;
     ResultIn_->Marshalling(in);

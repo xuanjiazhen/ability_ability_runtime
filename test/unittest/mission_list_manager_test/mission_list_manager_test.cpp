@@ -388,9 +388,6 @@ HWTEST_F(MissionListManagerTest, OnAcceptWantResponse_003, TestSize.Level3)
     AbilityRequest abilityRequest;
     abilityRequest.want.SetFlags(Want::FLAG_ABILITY_CONTINUATION);
     InitMockMission(missionListManager, abilityRequest, want, ability);
-    if (ability == nullptr) {
-        return;
-    }
 
     missionListManager->OnAcceptWantResponse(want, "flag");
     EXPECT_EQ(ability->lifeCycleStateInfo_.launchParam.launchReason, LaunchReason::LAUNCHREASON_CONTINUATION);
@@ -414,9 +411,6 @@ HWTEST_F(MissionListManagerTest, OnAcceptWantResponse_004, TestSize.Level3)
     AbilityRequest abilityRequest;
     abilityRequest.want.SetParam(Want::PARAM_ABILITY_RECOVERY_RESTART, true);
     InitMockMission(missionListManager, abilityRequest, want, ability);
-    if (ability == nullptr) {
-        return;
-    }
 
     missionListManager->OnAcceptWantResponse(want, "flag");
     EXPECT_EQ(ability->lifeCycleStateInfo_.launchParam.launchReason, LaunchReason::LAUNCHREASON_APP_RECOVERY);
@@ -439,9 +433,6 @@ HWTEST_F(MissionListManagerTest, OnAcceptWantResponse_005, TestSize.Level3)
     std::shared_ptr<AbilityRecord> ability;
     AbilityRequest abilityRequest;
     InitMockMission(missionListManager, abilityRequest, want, ability);
-    if (ability == nullptr) {
-        return;
-    }
 
     missionListManager->OnAcceptWantResponse(want, "flag");
     EXPECT_EQ(ability->lifeCycleStateInfo_.launchParam.launchReason, LaunchReason::LAUNCHREASON_START_ABILITY);
@@ -6563,7 +6554,7 @@ HWTEST_F(MissionListManagerTest, BackToCallerAbilityWithResult_001, TestSize.Lev
     auto missionListManager = std::make_shared<MissionListManager>(userId);
     EXPECT_NE(missionListManager, nullptr);
     missionListManager->Init();
-    
+
     std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
     Want resultWant;
     int32_t resultCode = 100;
@@ -6587,7 +6578,7 @@ HWTEST_F(MissionListManagerTest, BackToCallerAbilityWithResult_002, TestSize.Lev
     auto missionListManager = std::make_shared<MissionListManager>(userId);
     EXPECT_NE(missionListManager, nullptr);
     missionListManager->Init();
-    
+
     std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
     Want resultWant;
     int32_t resultCode = 100;
@@ -6611,7 +6602,7 @@ HWTEST_F(MissionListManagerTest, BackToCallerAbilityWithResult_003, TestSize.Lev
     auto missionListManager = std::make_shared<MissionListManager>(userId);
     EXPECT_NE(missionListManager, nullptr);
     missionListManager->Init();
-    
+
     std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
     Want resultWant;
     int32_t resultCode = 100;
@@ -6645,7 +6636,7 @@ HWTEST_F(MissionListManagerTest, BackToCallerAbilityWithResult_004, TestSize.Lev
     auto missionListManager = std::make_shared<MissionListManager>(userId);
     EXPECT_NE(missionListManager, nullptr);
     missionListManager->Init();
-    
+
     std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
     Want resultWant;
     int32_t resultCode = 100;
@@ -6678,7 +6669,7 @@ HWTEST_F(MissionListManagerTest, BackToCallerAbilityWithResult_005, TestSize.Lev
     auto missionListManager = std::make_shared<MissionListManager>(userId);
     EXPECT_NE(missionListManager, nullptr);
     missionListManager->Init();
-    
+
     std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
     Want resultWant;
     int32_t resultCode = 100;
@@ -6686,7 +6677,7 @@ HWTEST_F(MissionListManagerTest, BackToCallerAbilityWithResult_005, TestSize.Lev
     int32_t pid = 1;
     bool backFlag = true;
     int64_t callerRequestCode = AbilityRuntime::StartupUtil::GenerateFullRequestCode(pid, backFlag, requestCode);
-    
+
     std::shared_ptr<AbilityRecord> callerAbilityRecord = InitAbilityRecord();
     callerAbilityRecord->pid_ = pid;
     auto newCallerRecord = std::make_shared<CallerRecord>(requestCode, callerAbilityRecord);
@@ -6715,7 +6706,7 @@ HWTEST_F(MissionListManagerTest, BackToCallerAbilityWithResult_006, TestSize.Lev
     auto missionListManager = std::make_shared<MissionListManager>(userId);
     EXPECT_NE(missionListManager, nullptr);
     missionListManager->Init();
-    
+
     std::shared_ptr<AbilityRecord> abilityRecord = InitAbilityRecord();
     Want resultWant;
     int32_t resultCode = 100;
@@ -6723,7 +6714,7 @@ HWTEST_F(MissionListManagerTest, BackToCallerAbilityWithResult_006, TestSize.Lev
     int32_t pid = 1;
     bool backFlag = true;
     int64_t callerRequestCode = AbilityRuntime::StartupUtil::GenerateFullRequestCode(pid, backFlag, requestCode);
-    
+
     std::shared_ptr<AbilityRecord> callerAbilityRecord = InitAbilityRecord();
     callerAbilityRecord->pid_ = pid;
     auto newCallerRecord = std::make_shared<CallerRecord>(requestCode, callerAbilityRecord);

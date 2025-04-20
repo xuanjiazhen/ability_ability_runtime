@@ -77,11 +77,7 @@ void AbilityPermissionTest::TearDown(void)
  */
 HWTEST_F(AbilityPermissionTest, AaFwk_AbilityPermissionTest_VerifySelfPermission_0100, Function | MediumTest | Level1)
 {
-    if (context_ == nullptr) {
-        EXPECT_EQ(true, context_ != nullptr);
-        return;
-    }
-
+    EXPECT_EQ(true, context_ != nullptr);
     std::string permission_name("permission_VerifySelfPermission");
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
     std::string name = "hello";
@@ -101,11 +97,7 @@ HWTEST_F(AbilityPermissionTest, AaFwk_AbilityPermissionTest_VerifySelfPermission
  */
 HWTEST_F(AbilityPermissionTest, AaFwk_AbilityPermissionTest_VerifyPermission_0100, Function | MediumTest | Level1)
 {
-    if (context_ == nullptr) {
-        EXPECT_EQ(true, context_ != nullptr);
-        return;
-    }
-
+    EXPECT_EQ(true, context_ != nullptr);
     std::string permission_name("permission_VerifyPermission");
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
     std::string name = "hello";

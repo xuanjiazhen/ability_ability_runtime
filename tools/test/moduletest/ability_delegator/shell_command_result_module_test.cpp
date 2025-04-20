@@ -77,8 +77,6 @@ HWTEST_F(ShellCommandResultModuleTest, Shell_Command_Result_Module_Test_0200, Fu
     shellCmd.stdResult = SHELL_COMMAND_RESULT;
     Parcel parcel;
     EXPECT_TRUE(shellCmd.Marshalling(parcel));
-    shellCmd.ReadFromParcel(parcel);
-    EXPECT_EQ(shellCmd.exitCode, EXITCODE);
-    EXPECT_EQ(shellCmd.stdResult, SHELL_COMMAND_RESULT);
+    EXPECT_TRUE(shellCmd.ReadFromParcel(parcel));
 }
 

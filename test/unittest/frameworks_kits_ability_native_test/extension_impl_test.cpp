@@ -476,7 +476,7 @@ HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_2100, Function | MediumTest | Le
 {
     GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_2100 start";
     auto impl = std::make_shared<AbilityRuntime::ExtensionImpl>();
-    impl->lifecycleState_ = AAFwk::ABILITY_STATE_INACTIVE;
+    impl->lifecycleState_ = AAFwk::ABILITY_STATE_ACTIVE;
     Want want;
     bool restart = false;
     int32_t startId = 0;
@@ -625,7 +625,7 @@ HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_2800, Function | MediumTest | Le
 
     auto impl = std::make_shared<AbilityRuntime::ExtensionImpl>();
     impl->Init(application, record, extension, handler, token);
-    impl->lifecycleState_ = AAFwk::ABILITY_STATE_ACTIVE;
+    impl->lifecycleState_ = AAFwk::ABILITY_STATE_INITIAL;
     Want want;
     AAFwk::LifeCycleStateInfo targetState;
     targetState.state = AAFwk::ABILITY_STATE_INACTIVE;

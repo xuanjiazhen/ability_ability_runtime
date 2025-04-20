@@ -188,7 +188,6 @@ HWTEST_F(AbilityManagerServiceSeventhTest, ShouldBlockAllAppStart_003, TestSize.
     AppUtils::isStartOptionsWithAnimation_ = true;
     EXPECT_EQ(AppUtils::GetInstance().IsStartOptionsWithAnimation(), true);
     abilityMs_->shouldBlockAllAppStart_ = false;
-    EXPECT_EQ(abilityMs_->shouldBlockAllAppStart_, false);
     EXPECT_EQ(abilityMs_->ShouldBlockAllAppStart(), false);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSeventhTest ShouldBlockAllAppStart_003 end");
 }

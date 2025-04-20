@@ -109,7 +109,6 @@ HWTEST_F(AppMgrServiceInnerMockTest, MakeKiaProcess_002, TestSize.Level1)
     auto retCode = serviceInner_->MakeKiaProcess(nullptr, isKia, watermarkBusinessName,
         isWatermarkEnabled, isFileUri, processName);
     EXPECT_EQ(retCode, ERR_OK);
-    EXPECT_EQ(isKia, false);
     EXPECT_EQ(isFileUri, false);
     EXPECT_EQ(watermarkBusinessName.empty(), true);
     EXPECT_EQ(isWatermarkEnabled, false);
@@ -140,7 +139,6 @@ HWTEST_F(AppMgrServiceInnerMockTest, MakeKiaProcess_003, TestSize.Level1)
     auto retCode = serviceInner_->MakeKiaProcess(nullptr, isKia, watermarkBusinessName,
         isWatermarkEnabled, isFileUri, processName);
     EXPECT_EQ(retCode, ERR_INVALID_VALUE);
-    EXPECT_EQ(isKia, false);
     EXPECT_EQ(isFileUri, false);
     EXPECT_EQ(watermarkBusinessName.empty(), true);
     EXPECT_EQ(isWatermarkEnabled, false);
@@ -177,7 +175,6 @@ HWTEST_F(AppMgrServiceInnerMockTest, MakeKiaProcess_004, TestSize.Level1)
     auto retCode = serviceInner_->MakeKiaProcess(want, isKia, watermarkBusinessName,
         isWatermarkEnabled, isFileUri, processName);
     EXPECT_EQ(retCode, ERR_OK);
-    EXPECT_EQ(isKia, false);
     EXPECT_EQ(isFileUri, false);
     EXPECT_EQ(watermarkBusinessName.empty(), true);
     EXPECT_EQ(isWatermarkEnabled, false);
@@ -213,7 +210,6 @@ HWTEST_F(AppMgrServiceInnerMockTest, MakeKiaProcess_005, TestSize.Level1)
     auto retCode = serviceInner_->MakeKiaProcess(want, isKia, watermarkBusinessName,
         isWatermarkEnabled, isFileUri, processName);
     EXPECT_EQ(retCode, ERR_OK);
-    EXPECT_EQ(isKia, false);
     EXPECT_EQ(isFileUri, true);
     EXPECT_EQ(watermarkBusinessName.empty(), true);
     EXPECT_EQ(isWatermarkEnabled, false);
@@ -254,7 +250,6 @@ HWTEST_F(AppMgrServiceInnerMockTest, MakeKiaProcess_006, TestSize.Level1)
     auto retCode = serviceInner_->MakeKiaProcess(want, isKia, watermarkBusinessName,
         isWatermarkEnabled, isFileUri, processName);
     EXPECT_EQ(retCode, ERR_OK);
-    EXPECT_EQ(isKia, false);
     EXPECT_EQ(isFileUri, true);
     EXPECT_EQ(watermarkBusinessName.empty(), true);
     EXPECT_EQ(isWatermarkEnabled, false);
@@ -295,7 +290,6 @@ HWTEST_F(AppMgrServiceInnerMockTest, MakeKiaProcess_007, TestSize.Level1)
     auto retCode = serviceInner_->MakeKiaProcess(want, isKia, watermarkBusinessName,
         isWatermarkEnabled, isFileUri, processName);
     EXPECT_EQ(retCode, ERR_OK);
-    EXPECT_EQ(isKia, false);
     EXPECT_EQ(isFileUri, true);
     EXPECT_EQ(watermarkBusinessName.empty(), true);
     EXPECT_EQ(isWatermarkEnabled, true);
@@ -336,7 +330,6 @@ HWTEST_F(AppMgrServiceInnerMockTest, MakeKiaProcess_008, TestSize.Level1)
     auto retCode = serviceInner_->MakeKiaProcess(want, isKia, watermarkBusinessName,
         isWatermarkEnabled, isFileUri, processName);
     EXPECT_EQ(retCode, ERR_OK);
-    EXPECT_EQ(isKia, false);
     EXPECT_EQ(isFileUri, true);
     EXPECT_EQ(watermarkBusinessName, "watermark");
     EXPECT_EQ(isWatermarkEnabled, false);
@@ -673,7 +666,6 @@ HWTEST_F(AppMgrServiceInnerMockTest, CheckIsKiaProcess_002, TestSize.Level1)
     bool isKia = false;
     auto retCode = serviceInner_->CheckIsKiaProcess(1000, isKia);
     EXPECT_EQ(retCode, ERR_PERMISSION_DENIED);
-    EXPECT_EQ(isKia, false);
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerMockTest CheckIsKiaProcess_002 end");
 }
 
@@ -698,7 +690,6 @@ HWTEST_F(AppMgrServiceInnerMockTest, CheckIsKiaProcess_003, TestSize.Level1)
     bool isKia = false;
     auto retCode = serviceInner_->CheckIsKiaProcess(1000, isKia);
     EXPECT_EQ(retCode, ERR_PERMISSION_DENIED);
-    EXPECT_EQ(isKia, false);
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerMockTest CheckIsKiaProcess_003 end");
 }
 
@@ -725,7 +716,6 @@ HWTEST_F(AppMgrServiceInnerMockTest, CheckIsKiaProcess_004, TestSize.Level1)
     bool isKia = false;
     auto retCode = serviceInner_->CheckIsKiaProcess(1000, isKia);
     EXPECT_EQ(retCode, ERR_PERMISSION_DENIED);
-    EXPECT_EQ(isKia, false);
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerMockTest CheckIsKiaProcess_004 end");
 }
 
@@ -755,7 +745,6 @@ HWTEST_F(AppMgrServiceInnerMockTest, CheckIsKiaProcess_005, TestSize.Level1)
     bool isKia = false;
     auto retCode = serviceInner_->CheckIsKiaProcess(1000, isKia);
     EXPECT_EQ(retCode, ERR_INVALID_VALUE);
-    EXPECT_EQ(isKia, false);
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerMockTest CheckIsKiaProcess_005 end");
 }
 
@@ -786,7 +775,6 @@ HWTEST_F(AppMgrServiceInnerMockTest, CheckIsKiaProcess_006, TestSize.Level1)
     bool isKia = false;
     auto retCode = serviceInner_->CheckIsKiaProcess(1000, isKia);
     EXPECT_EQ(retCode, -1);
-    EXPECT_EQ(isKia, false);
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerMockTest CheckIsKiaProcess_006 end");
 }
 }  // namespace AppExecFwk

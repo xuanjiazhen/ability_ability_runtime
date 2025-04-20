@@ -100,12 +100,8 @@ HWTEST_F(UIServiceStubTest, OnRemoteRequest_0200, TestSize.Level1)
     sptr<AppExecFwk::MockAbilityToken> token = new (std::nothrow) AppExecFwk::MockAbilityToken();
     data.WriteRemoteObject(token);
     data.WriteParcelable(&want);
-    if (!data.WriteString(name)) {
-        return;
-    }
-    if (!data.WriteString(dataStr)) {
-        return;
-    }
+    data.WriteString(name);
+    data.WriteString(dataStr);
 
     int res = stub->OnRemoteRequest(IUIService::SEND_DATA, data, reply, option);
     EXPECT_EQ(res, ERR_OK);
@@ -133,12 +129,8 @@ HWTEST_F(UIServiceStubTest, OnSendData_0100, TestSize.Level1)
     sptr<AppExecFwk::MockAbilityToken> token = new (std::nothrow) AppExecFwk::MockAbilityToken();
     data.WriteRemoteObject(token);
     data.WriteParcelable(&want);
-    if (!data.WriteString(name)) {
-        return;
-    }
-    if (!data.WriteString(dataStr)) {
-        return;
-    }
+    data.WriteString(name);
+    data.WriteString(dataStr);
 
     int res = stub->OnSendData(data, reply);
     EXPECT_EQ(res, ERR_INVALID_VALUE);
@@ -159,7 +151,7 @@ HWTEST_F(UIServiceStubTest, OnSendData_0200, TestSize.Level1)
     MessageParcel reply;
     sptr<AppExecFwk::MockAbilityToken> token = new (std::nothrow) AppExecFwk::MockAbilityToken();
     data.WriteRemoteObject(token);
-    
+
     data.WriteInterfaceToken(UIServiceStub::GetDescriptor());
 
     auto result = stub->OnSendData(data, reply);

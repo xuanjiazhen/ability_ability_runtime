@@ -89,7 +89,7 @@ HWTEST_F(UIServiceHostStubTest, OnRemoteRequest_0200, TestSize.Level1)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    
+
     AAFwk::Want want;
     const std::string name = "name";
     const std::string jsonPath = "jsonPath";
@@ -97,21 +97,11 @@ HWTEST_F(UIServiceHostStubTest, OnRemoteRequest_0200, TestSize.Level1)
     const std::string extraData = "extraData";
     data.WriteInterfaceToken(UIServiceHostProxy::GetDescriptor());
     data.WriteParcelable(&want);
+    data.WriteString(name);
+    data.WriteString(jsonPath);
+    data.WriteString(dataStr);
+    data.WriteString(extraData);
 
-    if (!data.WriteString(name)) {
-        return;
-    }
-
-    if (!data.WriteString(jsonPath)) {
-        return;
-    }
-    if (!data.WriteString(dataStr)) {
-        return;
-    }
-    if (!data.WriteString(extraData)) {
-        return;
-    }
-    
     auto result = stub->OnRemoteRequest(IUIServiceHost::SEND_DATA, data, reply, option);
     EXPECT_EQ(result, NO_ERROR);
     TAG_LOGI(AAFwkTag::TEST, "OnRemoteRequest_0200 end");
@@ -131,7 +121,7 @@ HWTEST_F(UIServiceHostStubTest, OnSendData_0100, TestSize.Level1)
     MessageParcel reply;
 
     WriteInterfaceToken(data);
-    
+
     auto result = stub->OnSendData(data, reply);
     EXPECT_EQ(result, NO_ERROR);
     TAG_LOGI(AAFwkTag::TEST, "OnSendData_0100 end");
@@ -149,7 +139,7 @@ HWTEST_F(UIServiceHostStubTest, OnSendData_0200, TestSize.Level1)
 
     MessageParcel data;
     MessageParcel reply;
-    
+
     auto result = stub->OnSendData(data, reply);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "OnSendData_0200 end");

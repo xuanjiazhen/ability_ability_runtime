@@ -82,7 +82,7 @@ HWTEST_F(OsAccountManagerWrapperTest, GetOsAccountLocalIdFromProcess_0100, TestS
  */
 HWTEST_F(OsAccountManagerWrapperTest, IsOsAccountExists_0100, TestSize.Level2)
 {
-    bool isOsAccountExists = false;
+    bool isOsAccountExists = true;
     DelayedSingleton<OsAccountManagerWrapper>::GetInstance()->IsOsAccountExists(ACCOUNT_VALUE, isOsAccountExists);
     EXPECT_EQ(isOsAccountExists, false);
 }

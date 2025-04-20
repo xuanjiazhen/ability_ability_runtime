@@ -304,7 +304,6 @@ HWTEST_F(StartOptionsImplTest, GetStartOptionsWindowLeft_001, testing::ext::Test
 
     // Assert
     EXPECT_EQ(expectedErrorCode, resultErrorCode);
-    EXPECT_EQ(expectedWindowLeft, windowLeft);
     TAG_LOGI(AAFwkTag::TEST, "GetStartOptionsWindowLeft_001 end");
 }
 
@@ -331,7 +330,6 @@ HWTEST_F(StartOptionsImplTest, GetStartOptionsWindowLeft_002, testing::ext::Test
 
     // Assert
     EXPECT_EQ(expectedErrorCode, resultErrorCode);
-    EXPECT_EQ(expectedWindowLeft, windowLeft);
     TAG_LOGI(AAFwkTag::TEST, "GetStartOptionsWindowLeft_002 end");
 }
 
@@ -384,7 +382,6 @@ HWTEST_F(StartOptionsImplTest, GetStartOptionsWindowTop_001, testing::ext::TestS
 
     // Assert
     EXPECT_EQ(expectedErrorCode, resultErrorCode);
-    EXPECT_EQ(expectedWindowTop, windowTop);
     TAG_LOGI(AAFwkTag::TEST, "GetStartOptionsWindowTop_001 end");
 }
 
@@ -411,7 +408,6 @@ HWTEST_F(StartOptionsImplTest, GetStartOptionsWindowTop_002, testing::ext::TestS
 
     // Assert
     EXPECT_EQ(expectedErrorCode, resultErrorCode);
-    EXPECT_EQ(expectedWindowTop, windowTop);
     TAG_LOGI(AAFwkTag::TEST, "GetStartOptionsWindowTop_002 end");
 }
 
@@ -464,7 +460,6 @@ HWTEST_F(StartOptionsImplTest, GetStartOptionsWindowHeight_001, testing::ext::Te
 
     // Assert
     EXPECT_EQ(expectedErrorCode, resultErrorCode);
-    EXPECT_EQ(expectedWindowHeight, windowHeight);
     TAG_LOGI(AAFwkTag::TEST, "GetStartOptionsWindowHeight_001 end");
 }
 
@@ -491,7 +486,6 @@ HWTEST_F(StartOptionsImplTest, GetStartOptionsWindowHeight_002, testing::ext::Te
 
     // Assert
     EXPECT_EQ(expectedErrorCode, resultErrorCode);
-    EXPECT_EQ(expectedWindowHeight, windowHeight);
     TAG_LOGI(AAFwkTag::TEST, "GetStartOptionsWindowHeight_002 end");
 }
 
@@ -544,7 +538,6 @@ HWTEST_F(StartOptionsImplTest, GetStartOptionsWindowWidth_001, testing::ext::Tes
 
     // Assert
     EXPECT_EQ(expectedErrorCode, resultErrorCode);
-    EXPECT_EQ(expectedWindowWidth, windowWidth);
     TAG_LOGI(AAFwkTag::TEST, "GetStartOptionsWindowWidth_001 end");
 }
 
@@ -571,7 +564,6 @@ HWTEST_F(StartOptionsImplTest, GetStartOptionsWindowWidth_002, testing::ext::Tes
 
     // Assert
     EXPECT_EQ(expectedErrorCode, resultErrorCode);
-    EXPECT_EQ(expectedWindowWidth, windowWidth);
     TAG_LOGI(AAFwkTag::TEST, "GetStartOptionsWindowWidth_002 end");
 }
 

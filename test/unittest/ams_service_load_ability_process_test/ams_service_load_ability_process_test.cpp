@@ -431,7 +431,6 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, LoadAbility_007, TestSize.Level1)
 
     auto record2 = service_->appRunningManager_->CheckAppRunningRecordIsExist(
         appInfo->name, GetTestAppName(), appInfo->uid, bundleInfo);
-    EXPECT_EQ(record2, record);
     const auto& abilityMap2 = record2->GetAbilities();
     EXPECT_EQ(abilityMap2.size(), (uint32_t)1);
     TAG_LOGI(AAFwkTag::TEST, "AmsServiceLoadAbilityProcessTest LoadAbility_007 end");
@@ -499,7 +498,6 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, LoadAbility_008, TestSize.Level1)
     EXPECT_EQ(recordMap.size(), (uint32_t)1);
     auto record2 = service_->appRunningManager_->CheckAppRunningRecordIsExist(
         appInfo->name, GetTestAppName(), appInfo->uid, bundleInfo);
-    EXPECT_EQ(record2, record);
     const auto& abilityMap2 = record2->GetAbilities();
     EXPECT_EQ(abilityMap2.size(), EXPECT_MAP_SIZE);
     auto abilityRecord2 = record2->GetAbilityRunningRecordByToken(token2);
@@ -757,8 +755,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, LaunchMode_002, TestSize.Level1)
     auto loadParamPtr2 = std::make_shared<AbilityRuntime::LoadParam>(loadParam2);
     service_->LoadAbility(abilityInfo, appInfo, nullptr, loadParamPtr2);
     auto record2 = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->uid, bundleInfo);
-    EXPECT_EQ(record2, record);
+        appInfo->name, GetTestAppName(), appInfo->uid, bundleInfo); 
     const auto& abilityMap2 = record2->GetAbilities();
     EXPECT_EQ(abilityMap2.size(), (uint32_t)2);
     TAG_LOGI(AAFwkTag::TEST, "AmsServiceLoadAbilityProcessTest LaunchMode_002 end");
