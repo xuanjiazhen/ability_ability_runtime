@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+import Want from '@ohos.app.ability.Want';
+import StartOptions from '@ohos.app.ability.StartOptions';
 import { AbilityResult } from 'ability.abilityResult';
 import { AsyncCallback } from '@ohos.base';
 import { BusinessError } from '@ohos.base';
@@ -22,6 +24,8 @@ import ExtensionContext from 'application.ExtensionContext';
 export default class UIExtensionContext extends ExtensionContext {
   native terminateSelfSync(callback:AsyncCallbackCommonWrapper<void>): void;
   native terminateSelfWithResultSync(parameter: AbilityResult, callback: AsyncCallbackCommonWrapper<void>): void;
+  private native nativeStartAbilitySync(want: Want, callback: AsyncCallbackCommonWrapper<void>): void;
+  private native nativeStartAbilitySync(want: Want, options: StartOptions, callback:AsyncCallbackCommonWrapper<void>): void;
 
   terminateSelf(callback:AsyncCallback<void>): void {
     let myCall = new AsyncCallbackCommonWrapper<void>(callback);
@@ -64,6 +68,36 @@ export default class UIExtensionContext extends ExtensionContext {
       });
       taskpool.execute((): void => {
         this.terminateSelfWithResultSync(parameter, myCall);
+      });
+    });
+    return p;
+  }
+
+  startAbility(want: Want, callback: AsyncCallback<void>): void {
+    let myCall = new AsyncCallbackCommonWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeStartAbilitySync(want, myCall);
+    });
+  }
+
+  startAbility(want: Want, options: StartOptions, callback: AsyncCallback<void>): void {
+    let myCall = new AsyncCallbackCommonWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeStartAbilitySync(want, options, myCall);
+    });
+  }
+
+  startAbility(want: Want, options: StartOptions): Promise<void> {
+    let p = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError<void>)=>void):void => {
+      let myCall = new AsyncCallbackCommonWrapper<void>((err: BusinessError<void>)=>{
+        if (err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeStartAbilitySync(want, options, myCall);
       });
     });
     return p;
