@@ -126,7 +126,7 @@ ani_object wrapShellCmdResult(ani_env* env, std::unique_ptr<AppExecFwk::ShellCmd
     ani_status status = ANI_ERROR;
     status = env->FindClass("Lapplication/shellCmdResult/ShellCmdResult;", &cls);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::DELEGATOR, "find AbilityDelegator failed status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::DELEGATOR, "find ShellCmdResult failed status : %{public}d", status);
         return {};
     }
     ani_method method = nullptr;

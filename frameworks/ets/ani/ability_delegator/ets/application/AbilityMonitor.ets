@@ -39,6 +39,7 @@ class AbilityMonitorInner implements AbilityMonitor {
 
   moduleName: string = "";
   abilityName: string = "";
+
   onAbilityCreate:(ability: UIAbility)=>void = (ability: UIAbility) => {};
 
   onAbilityForeground:(ability: UIAbility)=>void = (ability: UIAbility) => {};
