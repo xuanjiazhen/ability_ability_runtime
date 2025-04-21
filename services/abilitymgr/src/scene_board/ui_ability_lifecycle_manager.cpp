@@ -3281,6 +3281,7 @@ int UIAbilityLifecycleManager::ChangeUIAbilityVisibilityBySCB(sptr<SessionInfo> 
     }
     std::shared_ptr<AbilityRecord> uiAbilityRecord = iter->second;
     CHECK_POINTER_AND_RETURN(uiAbilityRecord, ERR_INVALID_VALUE);
+    uiAbilityRecord->SetIsNewWant(sessionInfo->isNewWant);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "change ability visibility: %{public}d", isShow);
     if (isShow) {
         uiAbilityRecord->SetAbilityVisibilityState(AbilityVisibilityState::FOREGROUND_SHOW);
