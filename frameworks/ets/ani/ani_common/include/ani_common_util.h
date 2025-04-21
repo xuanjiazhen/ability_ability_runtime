@@ -44,6 +44,7 @@ bool SetFieldRef(ani_env *env, ani_class cls, ani_object object, const std::stri
 
 bool GetPropertyRef(ani_env *env, ani_object obj, const char *name, ani_ref &ref, ani_boolean &isUndefined);
 bool AsyncCallback(ani_env *env, ani_object call, ani_object error, ani_object result);
+bool IsExistsFieldByName(ani_env *env, ani_object param, const char *name);
 }  // namespace AppExecFwk
 }  // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_ANI_COMMON_UTIL_H

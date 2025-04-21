@@ -570,5 +570,30 @@ bool AsyncCallback(ani_env *env, ani_object call, ani_object error, ani_object r
     }
     return true;
 }
+
+bool IsExistsFieldByName(ani_env *env, ani_object param, const char *name)
+{
+    ani_ref fieldRef = nullptr;
+    ani_status status;
+    ani_boolean isUndefined = true;
+
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null env");
+        return false;
+    }
+
+    if ((status = env->Object_GetFieldByName_Ref(param, name, &fieldRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
+        return false;
+    }
+    if ((status = env->Reference_IsUndefined(fieldRef, &isUndefined)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
+        return false;
+    }
+    if (isUndefined) {
+        return false;
+    }
+    return true;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
