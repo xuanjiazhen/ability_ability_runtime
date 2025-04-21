@@ -286,6 +286,17 @@ ErrCode AbilityManagerClient::StartAbilityOnlyUIAbility(const Want &want, sptr<I
     return abms->StartAbilityOnlyUIAbility(want, callerToken, specifyTokenId);
 }
 
+ErrCode AbilityManagerClient::StartAbilityWithWait(const Want &want,
+    const sptr<AppExecFwk::IStartAbilityWithWaitObserver> &observer)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call StartAbilityWithWait");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ability:%{public}s", want.GetElement().GetAbilityName().c_str());
+    return abms->StartAbilityWithWait(want, observer);
+}
+
 ErrCode AbilityManagerClient::SendResultToAbility(int requestCode, int resultCode, Want& resultWant)
 {
     auto abms = GetAbilityManager();

@@ -30,6 +30,7 @@
 #include "sa_mgr_client.h"
 #include "system_ability_definition.h"
 #include "test_observer.h"
+#include "system_time.h"
 
 using namespace OHOS::AppExecFwk;
 
@@ -41,6 +42,8 @@ constexpr int INDEX_OFFSET = 3;
 constexpr int EXTRA_ARGUMENTS_FOR_KEY_VALUE_PAIR = 1;
 constexpr int EXTRA_ARGUMENTS_FOR_NULL_STRING = 0;
 constexpr int OPTION_PARAMETER_VALUE_OFFSET = 1;
+constexpr int64_t WAIT_TIME = 10 * 1000;
+constexpr int64_t MAX_WAIT_TIME = 10 * 1000 * 1000;
 
 constexpr int OPTION_PARAMETER_INTEGER = 257;
 constexpr int OPTION_PARAMETER_STRING = 258;
@@ -135,6 +138,7 @@ constexpr struct option LONG_OPTIONS[] = {
     {"URI", required_argument, nullptr, 'U'},
     {"entity", required_argument, nullptr, 'e'},
     {"type", required_argument, nullptr, 't'},
+    {"cold-start-time", no_argument, nullptr, 'W'},
     {"pi", required_argument, nullptr, OPTION_PARAMETER_INTEGER},
     {"ps", required_argument, nullptr, OPTION_PARAMETER_STRING},
     {"pb", required_argument, nullptr, OPTION_PARAMETER_BOOL},
@@ -408,7 +412,11 @@ ErrCode AbilityManagerShellCommand::RunAsStartAbility()
 {
     Want want;
     std::string windowMode;
+    int64_t startTime = SystemTime::GetNowSysTime();
     ErrCode result = MakeWantFromCmd(want, windowMode);
+    int64_t amsTime = 0;
+    int64_t aaTime = 0;
+    StartAbilityWithWaitData data;
     if (result == OHOS::ERR_OK) {
         int windowModeKey = std::atoi(windowMode.c_str());
         if (windowModeKey > 0) {
@@ -417,12 +425,19 @@ ErrCode AbilityManagerShellCommand::RunAsStartAbility()
                 setting->AddProperty(AbilityStartSetting::WINDOW_MODE_KEY, windowMode);
                 result = AbilityManagerClient::GetInstance()->StartAbility(want, *(setting.get()), nullptr, -1);
             }
+        } else if (printStartTime_) {
+            result =  StartAbilityWithWaitCmd(want, amsTime, data);
+            int64_t nowSysTime = SystemTime::GetNowSysTime();
+            aaTime = nowSysTime - startTime;
         } else {
             result = AbilityManagerClient::GetInstance()->StartAbility(want);
         }
         if (result == OHOS::ERR_OK) {
             TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s", STRING_START_ABILITY_OK.c_str());
             resultReceiver_ = STRING_START_ABILITY_OK + "\n";
+            if (printStartTime_) {
+                StartAbilityWithWaitInfo(aaTime, amsTime, data);
+            }
         } else {
             TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s result: %{public}d", STRING_START_ABILITY_NG.c_str(), result);
             if (result != START_ABILITY_WAITING) {
@@ -447,6 +462,61 @@ void AbilityManagerShellCommand::CheckStartAbilityResult(ErrCode& result)
     auto it = messageMap_.find(result);
     if (it == messageMap_.end()) {
         result = INNER_ERR;
+    }
+}
+
+ErrCode AbilityManagerShellCommand::StartAbilityWithWaitCmd(Want& want, int64_t& amsTime,
+    AppExecFwk::StartAbilityWithWaitData& data)
+{
+    sptr<StartAbilityWithWaitObserverStub> aaobserver_ = new StartAbilityWithWaitObserverStub();
+    ErrCode result = AbilityManagerClient::GetInstance()->StartAbilityWithWait(want, aaobserver_);
+    int64_t maxWaitTime = MAX_WAIT_TIME;
+    while (!aaobserver_->GetStartStatus()) {
+        if (aaobserver_->isImplicitStart_ || aaobserver_->abilityTypeWrong_) {
+            break;
+        }
+        usleep(WAIT_TIME);
+        maxWaitTime -= WAIT_TIME;
+        if (maxWaitTime <= 0) {
+            break;
+        }
+    }
+    data = aaobserver_->GetStartAbilityWithWaitData();
+    if (data.startStatus) {
+        if (data.coldStart) {
+            amsTime = data.completeFirstFrameDrawingTime - data.abilityManagerServiceTime;
+        } else {
+            amsTime = data.activityTime - data.abilityManagerServiceTime;
+        }
+    }
+    return result;
+}
+
+void AbilityManagerShellCommand::StartAbilityWithWaitInfo(int64_t& aaTime, int64_t& amsTime,
+    AppExecFwk::StartAbilityWithWaitData& data)
+{
+    if (!data.abilityTypeWrong && !data.isImplicitStart) {
+        resultReceiver_.append("StartMode:");
+        data.coldStart == true ? resultReceiver_.append("Cold") : resultReceiver_.append("Hot");
+        resultReceiver_.append("\n");
+        resultReceiver_.append("BundleName: ");
+        resultReceiver_.append(data.bundleName);
+        resultReceiver_.append("\n");
+        resultReceiver_.append("AbilityName: ");
+        resultReceiver_.append(data.abilityName);
+        resultReceiver_.append("\n");
+        resultReceiver_.append("TotalTime: ");
+        resultReceiver_.append(std::to_string(amsTime));
+        resultReceiver_.append("\n");
+        resultReceiver_.append("WaitTime: ");
+        resultReceiver_.append(std::to_string(aaTime));
+        resultReceiver_.append("\n");
+    }
+    if (data.abilityTypeWrong && !data.isImplicitStart) {
+        resultReceiver_.append("TotalTime: ");
+        resultReceiver_.append("\n");
+        resultReceiver_.append("WaitTime: ");
+        resultReceiver_.append("\n");
     }
 }
 
@@ -1719,6 +1789,12 @@ ErrCode AbilityManagerShellCommand::MakeWantFromCmd(Want& want, std::string& win
 
                     result = OHOS::ERR_INVALID_VALUE;
 
+                    break;
+                }
+                case 'W': {
+                    // 'aa start -W' with no argument
+                    //  start time
+                    printStartTime_ = true;
                     break;
                 }
                 case 0: {

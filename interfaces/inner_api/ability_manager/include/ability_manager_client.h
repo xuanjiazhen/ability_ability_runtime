@@ -323,6 +323,16 @@ public:
         uint32_t specifyTokenId);
 
     /**
+     * Start ability need time
+     *
+     * @param want the want of the ability to start.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode StartAbilityWithWait(
+        const Want &want,
+        const sptr<AppExecFwk::IStartAbilityWithWaitObserver> &observer);
+
+    /**
      * Start extension ability with want, send want to ability manager service.
      *
      * @param want, the want of the ability to start.
