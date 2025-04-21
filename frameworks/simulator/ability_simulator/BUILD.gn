@@ -41,7 +41,9 @@ gen_obj("js_mock_abc") {
 }
 
 config("ability_simulator_public_config") {
-  include_dirs = [ "include" ]
+  include_dirs = [
+    "include",
+ ]
   cflags_cc = [ "-Wno-unused-variable" ]
 }
 
@@ -97,6 +99,11 @@ ohos_shared_library("ability_simulator_inner") {
       "src/resource_manager_addon.cpp",
       "src/simulator.cpp",
     ]
+    if (is_linux) {
+      sources += [
+        "src/dynamic_loader_linux.cpp",
+      ]
+    }
 
     public_configs = [
       ":ability_simulator_public_config",
@@ -105,7 +112,9 @@ ohos_shared_library("ability_simulator_inner") {
 
     configs = [ "${windowmanager_path}/previewer:previewer_window_config" ]
 
-    deps = [ ":gen_obj_src_js_mock_abc" ]
+    deps = [
+      ":gen_obj_src_js_mock_abc",
+    ]
 
     external_deps = [
       "ability_base:string_utils",
