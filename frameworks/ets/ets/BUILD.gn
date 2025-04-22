@@ -395,6 +395,30 @@ ohos_prebuilt_etc("ability_runtime_ability_utils_abc_etc") {
   deps = [ ":ability_runtime_ability_utils_abc" ]
 }
 
+generate_static_abc("ui_extension_ability_ani_abc") {
+  base_url = "./"
+
+  files = [
+    "./application/UIExtensionContext.ets",
+    "./@ohos.app.ability.UIExtensionAbility.ets",
+    "./@ohos.app.ability.UIExtensionContentSession.ets",
+  ]
+
+  dst_file = "$target_out_dir/ui_extension_ability_ani.abc"
+  out_puts = [ "$target_out_dir/ui_extension_ability_ani.abc" ]
+
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/ui_extension_ability_ani.abc"
+}
+
+ohos_prebuilt_etc("ui_extension_ability_ani_etc") {
+  source = "$target_out_dir/ui_extension_ability_ani.abc"
+  deps = [ ":ui_extension_ability_ani_abc" ]
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
 group("ets_packages") {
   deps = [
     ":ability_runtime_abilityResult_abc_etc",
@@ -420,5 +444,6 @@ group("ets_packages") {
     ":ability_runtime_trigger_info_abc_etc",
     ":ability_runtime_want_agent_info_abc_etc",
     ":ability_runtime_ability_utils_abc_etc",
+    ":ui_extension_ability_ani_etc",
   ]
 }
