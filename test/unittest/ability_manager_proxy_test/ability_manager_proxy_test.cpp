@@ -1130,7 +1130,8 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_SendWantSender_001, TestSi
 {
     sptr<IWantSender> target = nullptr;
     SenderInfo senderInfo;
-    auto res = proxy_->SendWantSender(target, senderInfo);
+    std::shared_ptr<CompletedData> completedData;
+    auto res = proxy_->SendWantSender(target, senderInfo, completedData);
     EXPECT_EQ(res, INNER_ERR);
 }
 

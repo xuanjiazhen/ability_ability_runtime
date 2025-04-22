@@ -23,6 +23,7 @@
 #include "cancel_listener.h"
 #include "context/application_context.h"
 #include "completed_dispatcher.h"
+#include "completed_data.h"
 #include "want.h"
 #include "want_agent_constant.h"
 #include "want_params.h"
@@ -227,12 +228,12 @@ public:
     ErrCode Send(int resultCode, const std::shared_ptr<AAFwk::Want> &want,
         const sptr<CompletedDispatcher> &onCompleted, const std::string &requiredPermission,
         const std::shared_ptr<AAFwk::WantParams> &options, const std::shared_ptr<AAFwk::StartOptions> &startOptions,
-        const sptr<AAFwk::IWantSender> &target);
+        const sptr<AAFwk::IWantSender> &target, std::shared_ptr<CompletedData> &data, sptr<IRemoteObject> callerToken);
 
     int SendAndReturnResult(int resultCode, const std::shared_ptr<AAFwk::Want> &want,
         const sptr<CompletedDispatcher> &onCompleted, const std::string &requiredPermission,
         const std::shared_ptr<AAFwk::WantParams> &options, const std::shared_ptr<AAFwk::StartOptions> &startOptions,
-        const sptr<AAFwk::IWantSender> &target);
+        const sptr<AAFwk::IWantSender> &target, std::shared_ptr<CompletedData> &data, sptr<IRemoteObject> callerToken);
 
     ErrCode GetBundleName(const sptr<AAFwk::IWantSender> &target, std::string &bundleName);
 

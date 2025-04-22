@@ -55,6 +55,7 @@ ohos_shared_library("wantagent_innerkits") {
   ]
 
   sources = [
+    "src/completed_data.cpp",
     "src/completed_dispatcher.cpp",
     "src/pending_want.cpp",
     "src/trigger_info.cpp",
