@@ -613,6 +613,8 @@ enum class AbilityManagerInterfaceCode {
 
     // revoke delegator
     REVOKE_DELEGATOR = 6139,
+
+    NOTIFY_COMPONET_TERMINATE = 6140,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
