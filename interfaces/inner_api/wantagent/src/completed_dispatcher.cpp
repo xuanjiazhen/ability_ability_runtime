@@ -24,6 +24,19 @@ CompletedDispatcher::CompletedDispatcher(const std::shared_ptr<PendingWant> &pen
 void CompletedDispatcher::Send(const int32_t resultCode)
 {}
 
+CompletedDispatcher &CompletedDispatcher::operator=(const CompletedDispatcher &other)
+{
+    if (this != &other) {
+        pendingWant_ = other.pendingWant_;
+        want_ = other.want_;
+        resultCode_ = other.resultCode_;
+        resultData_ = other.resultData_;
+        resultExtras_ = other.resultExtras_;
+    }
+    return *this;
+}
+
+
 void CompletedDispatcher::PerformReceive(const AAFwk::Want &want, int resultCode, const std::string &data,
     const AAFwk::WantParams &extras, bool serialized, bool sticky, int sendingUser)
 {
