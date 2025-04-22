@@ -31,6 +31,8 @@ public:
     CompletedDispatcher(const std::shared_ptr<PendingWant> &pendingWant,
         const std::shared_ptr<CompletedCallback> &callback, const std::shared_ptr<AppExecFwk::EventHandler> &handler);
     virtual ~CompletedDispatcher() = default;
+    
+    CompletedDispatcher &operator=(const CompletedDispatcher &other);
 
     void Send(const int32_t resultCode) override;
 
@@ -40,7 +42,7 @@ public:
     void Run();
 
 private:
-    const std::shared_ptr<PendingWant> pendingWant_;
+    std::shared_ptr<PendingWant> pendingWant_;
     const std::shared_ptr<CompletedCallback> callback_;
     const std::shared_ptr<AppExecFwk::EventHandler> handler_;
     AAFwk::Want want_;
