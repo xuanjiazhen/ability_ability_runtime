@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+import contextConstant from '@ohos.app.ability.contextConstant';
+
 export default class StartOptions {
     // windowMode?: int;
     displayId?: number;
@@ -21,9 +23,9 @@ export default class StartOptions {
     // windowTop?: int;
     // windowWidth?: int;
     // windowHeight?: int;
-    // windowFocused?: boolean;
-    // processMode?: contextConstant.ProcessMode;
-    // startupVisibility?: contextConstant.StartupVisibility;
+    windowFocused?: boolean;
+    processMode?: contextConstant.ProcessMode;
+    startupVisibility?: contextConstant.StartupVisibility;
     // startWindowIcon?: image.PixelMap;
     // startWindowBackgroundColor?: string;
     // supportWindowModes?: Array<bundleManager.SupportWindowMode>;
