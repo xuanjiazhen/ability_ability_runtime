@@ -214,25 +214,25 @@ public:
     void Send(int resultCode,
         const std::shared_ptr<AAFwk::Want> &want, const sptr<AAFwk::IWantSender> &target);
 
-    void Send(int resultCode, const sptr<CompletedDispatcher> &onCompleted, const sptr<AAFwk::IWantSender> &target);
+    void Send(int resultCode, sptr<CompletedDispatcher> &onCompleted, const sptr<AAFwk::IWantSender> &target);
 
     void Send(int resultCode,
-        const std::shared_ptr<AAFwk::Want> &want, const sptr<CompletedDispatcher> &onCompleted,
+        const std::shared_ptr<AAFwk::Want> &want, sptr<CompletedDispatcher> &onCompleted,
         const sptr<AAFwk::IWantSender> &target);
 
     void Send(int resultCode,
-        const std::shared_ptr<AAFwk::Want> &want, const sptr<CompletedDispatcher> &onCompleted,
+        const std::shared_ptr<AAFwk::Want> &want, sptr<CompletedDispatcher> &onCompleted,
         const std::string &requiredPermission, const sptr<AAFwk::IWantSender> &target);
 
     ErrCode Send(int resultCode, const std::shared_ptr<AAFwk::Want> &want,
-        const sptr<CompletedDispatcher> &onCompleted, const std::string &requiredPermission,
+        sptr<CompletedDispatcher> &onCompleted, const std::string &requiredPermission,
         const std::shared_ptr<AAFwk::WantParams> &options, const std::shared_ptr<AAFwk::StartOptions> &startOptions,
-        const sptr<AAFwk::IWantSender> &target);
+        const sptr<AAFwk::IWantSender> &target, sptr<IRemoteObject> callerToken);
 
     int SendAndReturnResult(int resultCode, const std::shared_ptr<AAFwk::Want> &want,
-        const sptr<CompletedDispatcher> &onCompleted, const std::string &requiredPermission,
+        sptr<CompletedDispatcher> &onCompleted, const std::string &requiredPermission,
         const std::shared_ptr<AAFwk::WantParams> &options, const std::shared_ptr<AAFwk::StartOptions> &startOptions,
-        const sptr<AAFwk::IWantSender> &target);
+        const sptr<AAFwk::IWantSender> &target, sptr<IRemoteObject> callerToken);
 
     ErrCode GetBundleName(const sptr<AAFwk::IWantSender> &target, std::string &bundleName);
 
