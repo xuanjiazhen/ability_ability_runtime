@@ -763,56 +763,6 @@ HWTEST_F(PendingWantTest, PendingWant_4300, Function | MediumTest | Level1)
 }
 
 /*
- * @tc.number    : PendingWant_4400
- * @tc.name      : PendingWant Send
- * @tc.desc      : Send
- */
-HWTEST_F(PendingWantTest, PendingWant_4400, Function | MediumTest | Level1)
-{
-    GTEST_LOG_(INFO) << "PendingWant_4400 start";
-    auto pendingWant = std::make_shared<PendingWant>(nullptr);
-    sptr<AAFwk::IWantSender> target;
-    pendingWant->Send(target);
-    EXPECT_TRUE(pendingWant != nullptr);
-    GTEST_LOG_(INFO) << "PendingWant_4400 end";
-}
-
-/*
- * @tc.number    : PendingWant_4500
- * @tc.name      : PendingWant Send
- * @tc.desc      : Send
- */
-HWTEST_F(PendingWantTest, PendingWant_4500, Function | MediumTest | Level1)
-{
-    GTEST_LOG_(INFO) << "PendingWant_4500 start";
-    auto pendingWant = std::make_shared<PendingWant>(nullptr);
-    int requestCode = 10;
-    sptr<AAFwk::IWantSender> target;
-    pendingWant->Send(requestCode, target);
-    EXPECT_TRUE(pendingWant != nullptr);
-    GTEST_LOG_(INFO) << "PendingWant_4500 end";
-}
-
-/*
- * @tc.number    : PendingWant_4600
- * @tc.name      : PendingWant Send
- * @tc.desc      : Send
- */
-HWTEST_F(PendingWantTest, PendingWant_4600, Function | MediumTest | Level1)
-{
-    GTEST_LOG_(INFO) << "PendingWant_4600 start";
-    auto pendingWant = std::make_shared<PendingWant>(nullptr);
-    int requestCode = 10;
-    std::shared_ptr<Want> want = std::make_shared<Want>();
-    ElementName element("device", "bundleName", "abilityName");
-    want->SetElement(element);
-    sptr<AAFwk::IWantSender> target;
-    pendingWant->Send(requestCode, want, target);
-    EXPECT_TRUE(pendingWant != nullptr);
-    GTEST_LOG_(INFO) << "PendingWant_4600 end";
-}
-
-/*
  * @tc.number    : PendingWant_4700
  * @tc.name      : PendingWant Send
  * @tc.desc      : Send

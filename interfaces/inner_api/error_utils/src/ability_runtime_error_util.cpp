@@ -150,6 +150,8 @@ const std::map<int32_t, std::string> ERROR_MSG_MAP = {
         "Restart too frequently. Try again at least 3s later." },
     { ERR_ABILITY_RUNTIME_EXTERNAL_NOT_SYSTEM_HSP,
         "The input bundleName and moduleName is not system HSP" },
+    { ERR_ABILITY_RUNTIME_EXTERNAL_WANTAGENT_CANCELED,
+        "The Wantagent has been canceled." },
 };
 }
 

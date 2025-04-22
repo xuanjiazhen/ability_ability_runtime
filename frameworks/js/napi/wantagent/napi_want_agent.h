@@ -91,6 +91,7 @@ public:
     static napi_value GetWantAgent(napi_env env, napi_callback_info info);
     static napi_value NapiGetWant(napi_env env, napi_callback_info info);
     static napi_value NapiTrigger(napi_env env, napi_callback_info info);
+    static napi_value NapiTriggerAsync(napi_env env, napi_callback_info info);
     static napi_value NapiGetWantAgent(napi_env env, napi_callback_info info);
     static napi_value NapiGetOperationType(napi_env env, napi_callback_info info);
     static napi_value NapiSetWantAgentMultithreading(napi_env env, napi_callback_info info);
@@ -106,6 +107,7 @@ private:
     napi_value OnGetWantAgent(napi_env env, napi_callback_info info);
     napi_value OnNapiGetWant(napi_env env, napi_callback_info info);
     napi_value OnNapiTrigger(napi_env env, napi_callback_info info);
+    napi_value OnNapiTriggerAsync(napi_env env, napi_callback_info info);
     napi_value OnNapiGetWantAgent(napi_env env, napi_callback_info info);
     napi_value OnNapiGetOperationType(napi_env env, napi_callback_info info);
     napi_value OnNapiSetWantAgentMultithreading(napi_env env, napi_callback_info info);
