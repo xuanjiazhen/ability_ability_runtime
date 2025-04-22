@@ -24,6 +24,7 @@
 #include "common_event_support.h"
 #include "exit_resident_process_manager.h"
 #include "freeze_util.h"
+#include "global_constant.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "killing_process_manager.h"
@@ -127,7 +128,8 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExis
             (pair.second->GetCustomProcessFlag() == customProcessFlag) &&
             (pair.second->GetSignCode() == signCode) && (pair.second->GetProcessName() == processName) &&
             (pair.second->GetJointUserId() == jointUserId) && !(pair.second->IsTerminating()) &&
-            !(pair.second->IsKilling()) && !(pair.second->GetRestartAppFlag());
+            !(pair.second->IsKilling()) && !(pair.second->GetRestartAppFlag()) &&
+            (pair.second->GetKillReason() != AbilityRuntime::GlobalConstant::LOW_MEMORY_KILL);
     };
     auto appRunningMap = GetAppRunningRecordMap();
     if (!jointUserId.empty()) {
@@ -140,15 +142,20 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExis
             (specifiedProcessFlag.empty() || appRecord->GetSpecifiedProcessFlag() == specifiedProcessFlag) &&
             (appRecord->GetCustomProcessFlag() == customProcessFlag) &&
             !(appRecord->IsTerminating()) && !(appRecord->IsKilling()) && !(appRecord->GetRestartAppFlag()) &&
-            !(appRecord->IsUserRequestCleaning()) && !(appRecord->IsCaching() && appRecord->GetProcessCacheBlocked())) {
+            !(appRecord->IsUserRequestCleaning()) &&
+            !(appRecord->IsCaching() && appRecord->GetProcessCacheBlocked()) &&
+            appRecord->GetKillReason() != AbilityRuntime::GlobalConstant::LOW_MEMORY_KILL) {
             auto appInfoList = appRecord->GetAppInfoList();
             TAG_LOGD(AAFwkTag::APPMGR,
                 "appInfoList: %{public}zu, processName: %{public}s, specifiedProcessFlag: %{public}s, \
                  customProcessFlag: %{public}s",
                 appInfoList.size(), appRecord->GetProcessName().c_str(), specifiedProcessFlag.c_str(),
                 customProcessFlag.c_str());
-            auto isExist = [&appName, &uid](const std::shared_ptr<ApplicationInfo> &appInfo) {
+            auto isExist = [&appName, &uid, &appRecord](const std::shared_ptr<ApplicationInfo> &appInfo) {
                 TAG_LOGD(AAFwkTag::APPMGR, "appInfo->name: %{public}s", appInfo->name.c_str());
+                if (appInfo->bundleType == BundleType::APP_PLUGIN) {
+                    return appRecord->GetUid() == uid;
+                }
                 return appInfo->name == appName && appInfo->uid == uid;
             };
             auto appInfoIter = std::find_if(appInfoList.begin(), appInfoList.end(), isExist);
@@ -937,8 +944,12 @@ void AppRunningManager::SetAbilityForegroundingFlagToAppRecord(const pid_t pid)
 void AppRunningManager::ClipStringContent(const std::regex &re, const std::string &source, std::string &afterCutStr)
 {
     std::smatch basket;
-    if (std::regex_search(source, basket, re)) {
-        afterCutStr = basket.prefix().str() + basket.suffix().str();
+    try {
+        if (std::regex_search(source, basket, re)) {
+            afterCutStr = basket.prefix().str() + basket.suffix().str();
+        }
+    } catch (...) {
+        TAG_LOGE(AAFwkTag::APPMGR, "regex failed");
     }
 }
 

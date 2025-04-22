@@ -118,14 +118,6 @@ int ImplicitStartProcessor::CheckImplicitCallPermission(const AbilityRequest& ab
         TAG_LOGD(AAFwkTag::ABILITYMGR, "hap not background");
         return ERR_OK;
     }
-#ifdef SUPPORT_SCREEN
-    int32_t HasFloatingWindowRet =
-        AbilityPermissionUtil::GetInstance().CheckStartCallHasFloatingWindow(abilityRequest.callerToken);
-    if (HasFloatingWindowRet == ERR_OK) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "has floatingwindow");
-        return ERR_OK;
-    }
-#endif // SUPPORT_SCREEN
     auto ret = AAFwk::PermissionVerification::GetInstance()->VerifyBackgroundCallPermission(isBackgroundCall);
     if (!ret) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "CheckImplicitCallPermission failed");
@@ -185,7 +177,7 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
     AddIdentity(tokenId, identity);
 
     if (!isAppCloneSelector && request.want.HasParameter(APP_LAUNCH_TRUSTLIST)) {
-        TrustlistIntersectionProcess(request, dialogAppInfos);
+        TrustlistIntersectionProcess(request, dialogAppInfos, userId);
     }
 
     if (dialogAppInfos.size() == 0 &&
@@ -576,6 +568,10 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId, Abili
             eventInfo.bundleName = abilityInfos.front().bundleName;
             eventInfo.callerBundleName = request.want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
             eventInfo.uri = request.want.GetUriString();
+            auto pos = eventInfo.uri.find("?");
+            if (pos != std::string::npos) {
+                eventInfo.uri = eventInfo.uri.substr(0, pos);
+            }
             SendAbilityEvent(EventName::START_ABILITY_BY_APP_LINKING, HiSysEventType::BEHAVIOR, eventInfo);
         }
     }
@@ -1094,7 +1090,7 @@ bool ImplicitStartProcessor::FindAbilityAppClone(std::vector<AppExecFwk::Ability
 }
 
 void ImplicitStartProcessor::TrustlistIntersectionProcess(const AbilityRequest &request,
-    std::vector<DialogAppInfo> &dialogAppInfos)
+    std::vector<DialogAppInfo> &dialogAppInfos, int32_t userId)
 {
     if (request.want.GetUri().GetScheme() == FILE_SCHEME_NAME) {
         return;
@@ -1109,8 +1105,23 @@ void ImplicitStartProcessor::TrustlistIntersectionProcess(const AbilityRequest &
             appLaunchTrustlist.size(), TRUSTLIST_MAX_SIZE);
         appLaunchTrustlist.resize(TRUSTLIST_MAX_SIZE);
     }
+    auto bundleMgrHelper = GetBundleManagerHelper();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleMgrHelper empty");
+        return;
+    }
     for (const auto &info : dialogAppInfos) {
-        auto it = std::find(appLaunchTrustlist.begin(), appLaunchTrustlist.end(), info.bundleName);
+        AppExecFwk::BundleInfo curBundleInfo;
+        bool ret = bundleMgrHelper->GetBundleInfo(info.bundleName,
+            AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, curBundleInfo, userId);
+        if (!ret) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR,
+                "get bundleInfo failed, bundleName:%{public}s, userId:%{public}d.",
+                info.bundleName.c_str(), userId);
+            continue;
+        }
+        std::string curAppIdentifier = curBundleInfo.signatureInfo.appIdentifier;
+        auto it = std::find(appLaunchTrustlist.begin(), appLaunchTrustlist.end(), curAppIdentifier);
         if (it != appLaunchTrustlist.end()) {
             dialogIntersectionAppInfos.emplace_back(info);
         }

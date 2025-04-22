@@ -2017,7 +2017,7 @@ public:
      * @param token, ability token.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t RevokeDelegator(const sptr<IRemoteObject> &token) override;
+    virtual int32_t RevokeDelegator(sptr<IRemoteObject> token) override;
 
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;
@@ -2563,6 +2563,8 @@ private:
     void ShowDeveloperModeDialog(const std::string &bundleName, const std::string &abilityName);
 
     void StartKeepAliveAppsInner(int32_t userId);
+
+    bool ProcessLowMemoryKill(int32_t pid, const ExitReason &reason);
 
     struct StartSelfUIAbilityParam {
         Want want;

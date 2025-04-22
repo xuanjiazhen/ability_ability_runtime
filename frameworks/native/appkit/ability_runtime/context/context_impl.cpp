@@ -255,7 +255,7 @@ int32_t ContextImpl::GetGroupDirWithCheck(const std::string &groupId, bool check
         TAG_LOGE(AAFwkTag::APPKIT, "groupDir currently not supports el1 level");
         return ERR_INVALID_VALUE;
     }
-    int errCode = GetBundleManager();
+    int32_t errCode = GetBundleManager();
     if (errCode != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "failed, errCode: %{public}d", errCode);
         return errCode;
@@ -266,7 +266,12 @@ int32_t ContextImpl::GetGroupDirWithCheck(const std::string &groupId, bool check
         TAG_LOGE(AAFwkTag::APPKIT, "getGroupDir failed or groupDirGet empty");
         return ERR_INVALID_VALUE;
     }
-    std::string uuid = groupDirGet.substr(groupDirGet.rfind('/'));
+    auto pos = groupDirGet.rfind('/');
+    if (pos == std::string::npos) {
+        TAG_LOGE(AAFwkTag::APPKIT, "getGroupDir failed to rfind.");
+        return ERR_INVALID_VALUE;
+    }
+    std::string uuid = groupDirGet.substr(pos);
     groupDir = CONTEXT_DATA_STORAGE + currArea_ + CONTEXT_FILE_SEPARATOR + CONTEXT_GROUP + uuid;
     CreateDirIfNotExistWithCheck(groupDir, MODE, true);
     return ERR_OK;
@@ -290,25 +295,28 @@ std::string ContextImpl::GetTempDir()
 
 std::string ContextImpl::GetResourceDir(const std::string &moduleName)
 {
-    auto getResourceDir = [](const std::string &moduleName) -> std::string {
-        if (moduleName.empty()) {
-            return "";
+    auto constructAndCheckDir = [](const std::string &moduleName) -> std::string {
+        std::string dir = std::string(LOCAL_CODE_PATH) + CONTEXT_FILE_SEPARATOR + moduleName + CONTEXT_RESOURCE_END;
+        if (OHOS::FileExists(dir)) {
+            return dir;
         }
-        std::string dir = std::string(LOCAL_CODE_PATH) + CONTEXT_FILE_SEPARATOR +
-            moduleName + CONTEXT_RESOURCE_END;
-        return OHOS::FileExists(dir) ? dir : "";
+        TAG_LOGE(AAFwkTag::APPKIT, "dir:%{public}s not exist", dir.c_str());
+        return "";
     };
 
     if (!moduleName.empty()) {
-        return getResourceDir(moduleName);
+        return constructAndCheckDir(moduleName);
     }
-
     std::shared_ptr<AppExecFwk::HapModuleInfo> hapModuleInfoPtr = GetHapModuleInfo();
-    if (hapModuleInfoPtr && !hapModuleInfoPtr->moduleName.empty()) {
-        return getResourceDir(hapModuleInfoPtr->moduleName);
+    if (hapModuleInfoPtr == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "hapModuleInfo null");
+        return "";
     }
-
-    return "";
+    if (hapModuleInfoPtr->moduleName.empty()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "hapModuleInfo moduleName is empty");
+        return "";
+    }
+    return constructAndCheckDir(hapModuleInfoPtr->moduleName);
 }
 
 void ContextImpl::GetAllTempDir(std::vector<std::string> &tempPaths)
@@ -944,6 +952,10 @@ std::shared_ptr<Global::Resource::ResourceManager> ContextImpl::InitOthersResour
         appType = TYPE_OTHERS;
     } else {
         appType = 0;
+    }
+    if (resConfig == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null resConfig");
+        return nullptr;
     }
     std::shared_ptr<Global::Resource::ResourceManager> resourceManager(Global::Resource::CreateResourceManager(
         bundleInfo.name, moduleName, hapPath, overlayPaths, *resConfig, appType));

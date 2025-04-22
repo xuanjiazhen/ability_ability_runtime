@@ -328,7 +328,7 @@ ErrCode AbilityManagerShellCommand::CreateMessageMap()
         "Designate the process as a persistent process and ensure that the device has sufficient memory",
         {KILL_PROCESS_KEEP_ALIVE_SOLUTION_ONE});
     messageMap_[ERR_UNLOCK_SCREEN_FAILED_IN_DEVELOPER_MODE] = GetAaToolErrorInfo("10106102",
-        "The device screen is locked during the application launch.",
+        "The device screen is locked during the application launch, unlock screen failed.",
         "The current mode is developer mode, and the screen cannot be unlocked automatically",
         {ERR_UNLOCK_SCREEN_FAILED_IN_DEVELOPER_MODE_SOLUTION_ONE});
     messageMap_[ERR_NOT_SUPPORTED_PRODUCT_TYPE] = GetAaToolErrorInfo("10106107",
@@ -1012,11 +1012,15 @@ bool AbilityManagerShellCommand::MatchOrderString(const std::regex &regexScript,
     }
 
     std::match_results<std::string::const_iterator> matchResults;
-    if (!std::regex_match(orderCmd, matchResults, regexScript)) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "order mismatch");
+    try {
+        if (!std::regex_match(orderCmd, matchResults, regexScript)) {
+            TAG_LOGE(AAFwkTag::AA_TOOL, "order mismatch");
+            return false;
+        }
+    } catch (...) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "regex failed");
         return false;
     }
-
     return true;
 }
 
@@ -2187,8 +2191,12 @@ ErrCode AbilityManagerShellCommand::StartUserTest(const std::map<std::string, st
 
     int64_t timeMs = 0;
     if (!want.GetStringParam("-w").empty()) {
-        auto time = std::stoi(want.GetStringParam("-w"));
-        timeMs = time > 0 ? time * TIME_RATE_MS : 0;
+        try {
+            auto time = std::stoi(want.GetStringParam("-w"));
+            timeMs = time > 0 ? time * TIME_RATE_MS : 0;
+        } catch (...) {
+            TAG_LOGE(AAFwkTag::AA_TOOL, "stoi(%{public}s) failed", want.GetStringParam("-w").c_str());
+        }
     }
     if (!observer->WaitForFinish(timeMs)) {
         resultReceiver_ = "Timeout: user test is not completed within the specified time.\n";

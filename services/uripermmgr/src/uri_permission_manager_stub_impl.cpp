@@ -52,6 +52,7 @@ const int MAX_URI_COUNT = 200000;
 #ifndef ABILITY_RUNTIME_MEDIA_LIBRARY_ENABLE
 constexpr int32_t CAPABILITY_NOT_SUPPORT = 801;
 #endif // ABILITY_RUNTIME_MEDIA_LIBRARY_ENABLE
+constexpr int32_t SANDBOX_MANAGER_PERMISSION_DENIED = 1;
 }
 
 ErrCode UriPermissionManagerStubImpl::VerifyUriPermission(const Uri& uri, uint32_t flag, uint32_t tokenId,
@@ -921,13 +922,13 @@ ErrCode UriPermissionManagerStubImpl::ClearPermissionTokenByMap(const uint32_t t
     if (!isCallingPermission) {
         TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
         funcResult = ERR_PERMISSION_DENIED;
-        return funcResult;
+        return ERR_OK;
     }
     std::lock_guard<std::mutex> lock(ptMapMutex_);
     if (permissionTokenMap_.find(tokenId) == permissionTokenMap_.end()) {
         TAG_LOGD(AAFwkTag::URIPERMMGR, "permissionTokenMap_ empty");
         funcResult = ERR_OK;
-        return funcResult;
+        return ERR_OK;
     }
     RevokeMapUriPermission(tokenId);
 #ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
@@ -939,12 +940,12 @@ ErrCode UriPermissionManagerStubImpl::ClearPermissionTokenByMap(const uint32_t t
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "ClearPermission failed, ret is %{public}d", ret);
         funcResult = ret;
-        return funcResult;
+        return ERR_OK;
     }
 #endif // ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
     permissionTokenMap_.erase(tokenId);
     funcResult = ERR_OK;
-    return funcResult;
+    return ERR_OK;
 }
 
 void UriPermissionManagerStubImpl::BoolVecToCharVec(const std::vector<bool>& boolVector, std::vector<char>& charVector)
@@ -1015,6 +1016,14 @@ ErrCode UriPermissionManagerStubImpl::Active(const UriPermissionRawData& policyR
     int32_t& funcResult)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    TAG_LOGD(AAFwkTag::URIPERMMGR, "active %{private}d permission", tokenId);
+    auto permissionName = PermissionConstants::PERMISSION_FILE_ACCESS_PERSIST;
+    if (!PermissionVerification::GetInstance()->VerifyPermissionByTokenId(tokenId, permissionName)) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "No permission to call");
+        funcResult = SANDBOX_MANAGER_PERMISSION_DENIED;
+        return ERR_OK;
+    }
     TAG_LOGD(AAFwkTag::URIPERMMGR, "call");
     std::vector<PolicyInfo> policy;
     auto result = RawDataToPolicyInfo(policyRawData, policy);
@@ -1029,19 +1038,17 @@ ErrCode UriPermissionManagerStubImpl::Active(const UriPermissionRawData& policyR
     }
     uint64_t timeNow = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::high_resolution_clock::now().time_since_epoch()).count());
-    auto tokenId = IPCSkeleton::GetCallingTokenID();
-    TAG_LOGD(AAFwkTag::URIPERMMGR, "active %{private}d permission", tokenId);
     auto ret = SandboxManagerKit::StartAccessingPolicy(policy, res, false, tokenId, timeNow);
     TAG_LOGI(AAFwkTag::URIPERMMGR, "active permission end");
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "StartAccessingPolicy failed, ret is %{public}d", ret);
         funcResult = ret;
-        return funcResult;
+        return ERR_OK;
     }
     std::lock_guard<std::mutex> lock(ptMapMutex_);
     permissionTokenMap_.insert(tokenId);
     funcResult = ERR_OK;
-    return funcResult;
+    return ERR_OK;
 }
 
 bool UriPermissionManagerStubImpl::RawDataToPolicyInfo(const UriPermissionRawData& policyRawData,

@@ -140,7 +140,6 @@ constexpr const char* ARGS_USER_ID = "-u";
 constexpr const char* ARGS_CLIENT = "-c";
 constexpr const char* ILLEGAL_INFOMATION = "The arguments are illegal and you can enter '-h' for help.";
 
-
 constexpr int32_t NEW_RULE_VALUE_SIZE = 6;
 constexpr int32_t APP_ALIVE_TIME_MS = 1000;  // Allow background startup within 1 second after application startup
 constexpr int32_t REGISTER_FOCUS_DELAY = 5000;
@@ -2121,7 +2120,10 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         SendAbilityEvent(EventName::START_ABILITY_ERROR, HiSysEventType::FAULT, eventInfo);
         return ERR_NULL_MISSION_LIST_MANAGER;
     }
-
+    if (startOptions.GetDisplayID() == -1) {
+        abilityRequest.want.SetParam(Want::PARAM_RESV_DISPLAY_ID,
+            DisplayUtil::GetDefaultDisplayId());
+    }
     auto ret = missionListManager->StartAbility(abilityRequest);
     if (ret != ERR_OK) {
         eventInfo.errCode = ret;
@@ -10235,8 +10237,7 @@ int AbilityManagerService::CheckCallServiceExtensionPermission(const AbilityRequ
         }
     }
 
-    int result = AAFwk::AbilityPermissionUtil::GetInstance().CheckCallServiceExtensionPermissionOrHasFloatingWindow(
-        verificationInfo, abilityRequest.callerToken);
+    int result = AAFwk::PermissionVerification::GetInstance()->CheckCallServiceExtensionPermission(verificationInfo);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "without start serviceExtension or sataShareExtension permission");
     }
@@ -10572,8 +10573,8 @@ int AbilityManagerService::CheckCallAbilityPermission(const AbilityRequest &abil
         return ERR_INVALID_VALUE;
     }
 
-    int result = AAFwk::AbilityPermissionUtil::GetInstance().CheckCallAbilityPermissionOrHasFloatingWindow(
-        verificationInfo, abilityRequest.callerToken, isCallByShortcut);
+    int result = AAFwk::PermissionVerification::GetInstance()->CheckCallAbilityPermission(
+        verificationInfo, isCallByShortcut);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "without start pageAbility(FA) or ability(Stage) permission");
     }
@@ -10598,8 +10599,7 @@ int AbilityManagerService::CheckStartByCallPermission(const AbilityRequest &abil
         return ERR_INVALID_VALUE;
     }
 
-    if (AAFwk::AbilityPermissionUtil::GetInstance().CheckStartByCallPermissionOrHasFloatingWindow(
-        verificationInfo, abilityRequest.callerToken) != ERR_OK) {
+    if (AAFwk::PermissionVerification::GetInstance()->CheckStartByCallPermission(verificationInfo) != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "without startAbilityByCall permission");
         return RESOLVE_CALL_NO_PERMISSIONS;
     }
@@ -10640,6 +10640,15 @@ int AbilityManagerService::IsCallFromBackground(const AbilityRequest &abilityReq
             isBackgroundCall = false;
             return ERR_OK;
         }
+#ifdef SUPPORT_SCREEN
+        if (AppUtils::GetInstance().IsStartOptionsWithAnimation() &&
+            callerAbility->GetAbilityInfo().type == AppExecFwk::AbilityType::PAGE &&
+            AbilityPermissionUtil::GetInstance().CheckStartCallHasFloatingWindow(
+            abilityRequest.callerToken) == ERR_OK) {
+            isBackgroundCall = false;
+            return ERR_OK;
+        }
+#endif // SUPPORT_SCREEN
         auto abilityState = callerAbility->GetAbilityState();
         if (abilityState == AbilityState::BACKGROUND || abilityState == AbilityState::BACKGROUNDING ||
             // If uiability or uiextensionability ability state is foreground when terminate,
@@ -11197,7 +11206,7 @@ void AbilityManagerService::GetConnectManagerAndUIExtensionBySessionInfo(const s
     connectManager = GetConnectManagerByUserId(userId);
     if (connectManager) {
         targetAbility = connectManager->GetUIExtensionBySessionInfo(sessionInfo);
-        if (needCheck) {
+        if (needCheck && targetAbility == nullptr) {
             targetAbility = connectManager->GetUIExtensionBySessionFromServiceMap(sessionInfo);
         }
     } else {
@@ -11208,7 +11217,7 @@ void AbilityManagerService::GetConnectManagerAndUIExtensionBySessionInfo(const s
         connectManager = GetConnectManagerByUserId(U0_USER_ID);
         if (connectManager) {
             targetAbility = connectManager->GetUIExtensionBySessionInfo(sessionInfo);
-            if (needCheck) {
+            if (needCheck && targetAbility == nullptr) {
                 targetAbility = connectManager->GetUIExtensionBySessionFromServiceMap(sessionInfo);
             }
         } else {
@@ -11239,6 +11248,24 @@ int32_t AbilityManagerService::KillProcessWithPrepareTerminate(const std::vector
     return uiAbilityManager->TryPrepareTerminateByPids(pids);
 }
 
+bool AbilityManagerService::ProcessLowMemoryKill(int32_t pid, const ExitReason &reason)
+{
+    if (reason.reason != Reason::REASON_RESOURCE_CONTROL || reason.exitMsg != GlobalConstant::LOW_MEMORY_KILL) {
+        return false;
+    }
+    auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
+    if (uiAbilityManager == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "null uiAbilityManager");
+        return false;
+    }
+    if (uiAbilityManager->IsBundleStarting(pid)) {
+        return true;
+    }
+    // set ability record kill reason
+    uiAbilityManager->RecordPidKilling(pid, GlobalConstant::LOW_MEMORY_KILL);
+    return false;
+}
+
 int32_t AbilityManagerService::KillProcessWithReason(int32_t pid, const ExitReason &reason)
 {
     bool supportShell = AmsConfigurationParameter::GetInstance().IsSupportAAKillWithReason();
@@ -11250,6 +11277,12 @@ int32_t AbilityManagerService::KillProcessWithReason(int32_t pid, const ExitReas
         return ERR_PERMISSION_DENIED;
     }
 
+    if (ProcessLowMemoryKill(pid, reason)) {
+        // if app is already starting, return
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}d is starting", pid);
+        return ERR_OK;
+    }
+
     TAG_LOGI(AAFwkTag::ABILITYMGR, "pid:%{public}d, reason:%{public}d, subReason:%{public}d, killMsg:%{public}s",
         pid, reason.reason, reason.subReason, reason.exitMsg.c_str());
     CHECK_POINTER_AND_RETURN(appExitReasonHelper_, ERR_NULL_OBJECT);
@@ -11258,7 +11291,8 @@ int32_t AbilityManagerService::KillProcessWithReason(int32_t pid, const ExitReas
         TAG_LOGW(AAFwkTag::ABILITYMGR, "RecordAppExitReason failed, ret:%{public}d", ret);
     }
     std::vector<int32_t> pidToBeKilled = { pid };
-    IN_PROCESS_CALL_WITHOUT_RET(DelayedSingleton<AppScheduler>::GetInstance()->KillProcessesByPids(pidToBeKilled));
+    IN_PROCESS_CALL_WITHOUT_RET(DelayedSingleton<AppScheduler>::GetInstance()->KillProcessesByPids(pidToBeKilled,
+        reason.exitMsg));
     return ERR_OK;
 }
 
@@ -12259,7 +12293,12 @@ int32_t AbilityManagerService::GetUIExtensionRootHostInfo(const sptr<IRemoteObje
     }
 
     hostInfo.elementName_ = callerRecord->GetElementName();
-    TAG_LOGD(AAFwkTag::UI_EXT, "uri: %{public}s.", hostInfo.elementName_.GetURI().c_str());
+    auto sessionInfo = callerRecord->GetSessionInfo();
+    if (sessionInfo != nullptr) {
+        hostInfo.sessionName = sessionInfo->sessionName;
+    }
+    TAG_LOGD(AAFwkTag::UI_EXT, "uri: %{public}s, sessionName: %{public}s.",
+             hostInfo.elementName_.GetURI().c_str(), hostInfo.sessionName.c_str());
     return ERR_OK;
 }
 
@@ -13701,7 +13740,7 @@ int32_t AbilityManagerService::QueryPreLoadUIExtensionRecord(const AppExecFwk::E
       element, moduleName, hostBundleName, recordNum);
 }
 
-int32_t AbilityManagerService::RevokeDelegator(const sptr<IRemoteObject> &token)
+int32_t AbilityManagerService::RevokeDelegator(sptr<IRemoteObject> token)
 {
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "capability not support");

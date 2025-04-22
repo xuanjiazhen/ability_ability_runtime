@@ -1248,12 +1248,6 @@ ErrCode AbilityContextImpl::RevokeDelegator()
         return AAFwk::ERR_NOT_HOOK;
     }
     TAG_LOGI(AAFwkTag::CONTEXT, "RevokeDelegator called");
-    auto want = GetWant();
-    if (want == nullptr) {
-        TAG_LOGW(AAFwkTag::CONTEXT, "null want");
-        return ERR_INVALID_VALUE;
-    }
-    want->SetParam("ohos.ability.hookOff", true);
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->RevokeDelegator(token_);
     if (err != ERR_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "RevokeDelegator is failed:%{public}d", err);
@@ -1265,11 +1259,21 @@ ErrCode AbilityContextImpl::RevokeDelegator()
         return ERR_INVALID_VALUE;
     }
     auto ifaceSessionToken = iface_cast<Rosen::ISession>(sessionToken);
+    if (ifaceSessionToken == nullptr) {
+        TAG_LOGW(AAFwkTag::CONTEXT, "null ifaceSessionToken");
+        return ERR_INVALID_VALUE;
+    }
     err = static_cast<int32_t>(ifaceSessionToken->NotifyDisableDelegatorChange());
     if (err != ERR_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "scb call, revokeDelegator err: %{public}d", err);
         return AAFwk::ERR_FROM_WINDOW;
     }
+    auto abilityCallback = abilityCallback_.lock();
+    if (abilityCallback == nullptr) {
+        TAG_LOGW(AAFwkTag::CONTEXT, "null abilityCallback");
+        return ERR_INVALID_VALUE;
+    }
+    abilityCallback->NotifyWindowDestroy();
     SetHookOff(true);
     return ERR_OK;
 }

@@ -99,7 +99,7 @@ constexpr const char* DMS_CALLER_ABILITY_NAME = "ohos.dms.param.sourceCallerAbil
 constexpr const char* DMS_CALLER_NATIVE_NAME = "ohos.dms.param.sourceCallerNativeName";
 constexpr const char* DMS_CALLER_APP_ID = "ohos.dms.param.sourceCallerAppId";
 constexpr const char* DMS_CALLER_APP_IDENTIFIER = "ohos.dms.param.sourceCallerAppIdentifier";
-constexpr const char* IS_HOOK = "ohos.abilityruntime.is_hook";
+constexpr const char* IS_HOOK = "ohos.ability_runtime.is_hook";
 const int32_t SHELL_ASSISTANT_DIETYPE = 0;
 std::atomic<int64_t> AbilityRecord::abilityRecordId = 0;
 const int32_t DEFAULT_USER_ID = 0;
@@ -1037,7 +1037,7 @@ std::shared_ptr<Global::Resource::ResourceManager> AbilityRecord::CreateResource
         TAG_LOGW(AAFwkTag::ABILITYMGR, "getcolormode failed");
     }
 
-    std::shared_ptr<Global::Resource::ResourceManager> resourceMgr(Global::Resource::CreateResourceManager());
+    std::shared_ptr<Global::Resource::ResourceManager> resourceMgr(Global::Resource::CreateResourceManager(false));
     resourceMgr->UpdateResConfig(*resConfig);
 
     std::string loadPath;
