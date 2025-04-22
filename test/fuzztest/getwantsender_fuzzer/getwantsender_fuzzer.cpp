@@ -70,10 +70,11 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     // fuzz for senderInfo
     Parcel senderInfoParcel;
     SenderInfo* senderInfo = nullptr;
+    std::shared_ptr<CompletedData> completedData = std::make_shared<CompletedData>();
     if (senderInfoParcel.WriteBuffer(data, size)) {
         senderInfo = SenderInfo::Unmarshalling(senderInfoParcel);
         if (sender && senderInfo) {
-            WantAgentClient::GetInstance().SendWantSender(sender, *senderInfo);
+            WantAgentClient::GetInstance().SendWantSender(sender, *senderInfo, completedData);
         }
     }
 

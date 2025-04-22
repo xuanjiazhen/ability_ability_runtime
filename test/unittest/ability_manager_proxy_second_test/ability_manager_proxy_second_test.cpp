@@ -368,10 +368,11 @@ HWTEST_F(AbilityManagerProxySecondTest, AbilityManagerProxy_SendWantSender_0100,
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_SendWantSender_0100 start");
     sptr<IWantSender> target(new (std::nothrow) PendingWantRecord());
     SenderInfo senderInf;
+    std::shared_ptr<CompletedData> completedData;
     EXPECT_CALL(*mock_, SendRequest(_, _, _, _)).WillOnce(Return(INVALID_PARAMETERS_ERR));
-    EXPECT_EQ(proxy_->SendWantSender(target, senderInf), INVALID_PARAMETERS_ERR);
+    EXPECT_EQ(proxy_->SendWantSender(target, senderInf, completedData), INVALID_PARAMETERS_ERR);
     EXPECT_CALL(*mock_, SendRequest(_, _, _, _)).WillOnce(Return(NO_ERROR));
-    EXPECT_EQ(proxy_->SendWantSender(target, senderInf), NO_ERROR);
+    EXPECT_EQ(proxy_->SendWantSender(target, senderInf, completedData), NO_ERROR);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_SendWantSender_0100 end");
 }
 

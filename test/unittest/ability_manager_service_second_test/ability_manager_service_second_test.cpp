@@ -1048,7 +1048,8 @@ HWTEST_F(AbilityManagerServiceSecondTest, SendWantSender_001, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest SendWantSender_001 start");
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     SenderInfo senderInfo;
-    EXPECT_EQ(abilityMs_->SendWantSender(nullptr, senderInfo), ERR_INVALID_VALUE);
+    std::shared_ptr<CompletedData> completedData;
+    EXPECT_EQ(abilityMs_->SendWantSender(nullptr, senderInfo, completedData), ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest SendWantSender_001 end");
 }
 

@@ -280,10 +280,10 @@ HWTEST_F(PandingWantManagerTest, pending_want_mgr_test_005, TestSize.Level1)
     EXPECT_CALL(*amsSerice, GetWantSender(_, _)).Times(1).WillOnce(Invoke(amsProxyGetWantSenderReturn));
 
     auto amsProxySendWantSenderReturn = [&abilityManager](const sptr<IWantSender>& target,
-        const SenderInfo& senderInfo) {
-            return abilityManager->SendWantSender(target, senderInfo);
+        const SenderInfo& senderInfo, std::shared_ptr<CompletedData> completedData) {
+            return abilityManager->SendWantSender(target, senderInfo, completedData);
     };
-    EXPECT_CALL(*amsSerice, SendWantSender(_, _)).Times(1).WillOnce(Invoke(amsProxySendWantSenderReturn));
+    EXPECT_CALL(*amsSerice, SendWantSender(_, _, _)).Times(1).WillOnce(Invoke(amsProxySendWantSenderReturn));
     EXPECT_CALL(*amsSerice, GetPendingWantType(_)).Times(1).WillOnce(Return(0));
 
     // proxy end
