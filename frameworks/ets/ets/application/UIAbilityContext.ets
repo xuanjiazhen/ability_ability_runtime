@@ -22,6 +22,7 @@ import AbilityStartCallback from 'application.AbilityStartCallback';
 import { Configuration } from '@ohos.app.ability.Configuration';
 import Context from 'application.Context';
 import window from '@ohos.window';
+import { HapModuleInfo } from 'bundleManager.HapModuleInfo';
 import AsyncCallbackWrapper from '../utils/AbilityUtils';
 
 export default class UIAbilityContext extends Context {
