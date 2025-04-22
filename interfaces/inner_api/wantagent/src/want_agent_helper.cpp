@@ -192,7 +192,8 @@ WantAgentConstant::OperationType WantAgentHelper::GetType(std::shared_ptr<WantAg
 }
 
 ErrCode WantAgentHelper::TriggerWantAgent(std::shared_ptr<WantAgent> agent,
-    const std::shared_ptr<CompletedCallback> &callback, const TriggerInfo &paramsInfo)
+    const std::shared_ptr<CompletedCallback> &callback, const TriggerInfo &paramsInfo,
+    sptr<IRemoteObject> callerToken)
 {
     TAG_LOGD(AAFwkTag::WANTAGENT, "call");
     if (agent == nullptr) {
@@ -205,11 +206,12 @@ ErrCode WantAgentHelper::TriggerWantAgent(std::shared_ptr<WantAgent> agent,
     if (callback != nullptr) {
         dispatcher = new (std::nothrow) CompletedDispatcher(pendingWant, callback, nullptr);
     }
-    return Send(pendingWant, type, dispatcher, paramsInfo);
+    return Send(pendingWant, type, dispatcher, paramsInfo, callerToken);
 }
 
 ErrCode WantAgentHelper::Send(const std::shared_ptr<PendingWant> &pendingWant,
-    WantAgentConstant::OperationType type, const sptr<CompletedDispatcher> &callBack, const TriggerInfo &paramsInfo)
+    WantAgentConstant::OperationType type, const sptr<CompletedDispatcher> &callBack, const TriggerInfo &paramsInfo,
+    sptr<IRemoteObject> callerToken)
 {
     TAG_LOGD(AAFwkTag::WANTAGENT, "call");
     if (pendingWant == nullptr) {
@@ -223,7 +225,8 @@ ErrCode WantAgentHelper::Send(const std::shared_ptr<PendingWant> &pendingWant,
         paramsInfo.GetPermission(),
         paramsInfo.GetExtraInfo(),
         paramsInfo.GetStartOptions(),
-        pendingWant->GetTarget());
+        pendingWant->GetTarget(),
+        callerToken);
 }
 
 ErrCode WantAgentHelper::Cancel(const std::shared_ptr<WantAgent> agent, uint32_t flags)
