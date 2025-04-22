@@ -23,6 +23,7 @@
 #include "ability_runtime_error_util.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_skeleton.h"
+#include "napi_base_context.h"
 #include "napi_common.h"
 #include "napi_common_want_agent.h"
 #include "start_options.h"
@@ -46,6 +47,7 @@ constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_THREE = 3;
 constexpr uint8_t INDEX_ONE = 1;
 constexpr uint8_t INDEX_TWO = 2;
+constexpr size_t INDEX_THREE = 3;
 constexpr int32_t ERR_NOT_OK = -1;
 constexpr int32_t BUSINESS_ERROR_CODE_OK = 0;
 constexpr int32_t PARAMETER_ERROR = -1;
@@ -293,6 +295,12 @@ napi_value JsWantAgent::NapiTrigger(napi_env env, napi_callback_info info)
 {
     JsWantAgent* me = CheckParamsAndGetThis<JsWantAgent>(env, info);
     return (me != nullptr) ? me->OnNapiTrigger(env, info) : nullptr;
+};
+
+napi_value JsWantAgent::NapiTriggerAsync(napi_env env, napi_callback_info info)
+{
+    JsWantAgent* me = CheckParamsAndGetThis<JsWantAgent>(env, info);
+    return (me != nullptr) ? me->OnNapiTriggerAsync(env, info) : nullptr;
 };
 
 napi_value JsWantAgent::NapiGetWantAgent(napi_env env, napi_callback_info info)
@@ -712,7 +720,8 @@ napi_value JsWantAgent::OnTrigger(napi_env env, napi_callback_info info)
 
     auto execute = [wantAgent, triggerObj, triggerInfo] () {
         TAG_LOGD(AAFwkTag::WANTAGENT, "called");
-        WantAgentHelper::TriggerWantAgent(wantAgent, triggerObj, triggerInfo);
+        sptr<CompletedDispatcher> completedData;
+        WantAgentHelper::TriggerWantAgent(wantAgent, triggerObj, triggerInfo, completedData, nullptr);
     };
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JsWantAgent::OnTrigger",
@@ -728,7 +737,7 @@ int32_t JsWantAgent::UnWrapTriggerInfoParam(napi_env env, napi_callback_info inf
     size_t argc = ARGS_MAX_COUNT;
     napi_value argv[ARGS_MAX_COUNT] = {nullptr};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (argc != ARGC_THREE) {
+    if (argc < ARGC_THREE) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Not enough params");
         ThrowTooFewParametersError(env);
         return ERR_NOT_OK;
@@ -1156,11 +1165,74 @@ napi_value JsWantAgent::OnNapiTrigger(napi_env env, napi_callback_info info)
     }
     auto execute = [wantAgent, triggerObj, triggerInfo] () {
         TAG_LOGD(AAFwkTag::WANTAGENT, "called");
-        WantAgentHelper::TriggerWantAgent(wantAgent, triggerObj, triggerInfo);
+        sptr<CompletedDispatcher> completedData;
+        WantAgentHelper::TriggerWantAgent(wantAgent, triggerObj, triggerInfo, completedData, nullptr);
     };
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JsWantAgent::OnNapiTrigger",
         env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), nullptr, &result));
+
+    return CreateJsNull(env);
+}
+
+napi_value JsWantAgent::OnNapiTriggerAsync(napi_env env, napi_callback_info info)
+{
+    TAG_LOGI(AAFwkTag::WANTAGENT, "OnNapiTriggerAsync");
+    size_t argc = ARGS_MAX_COUNT;
+    napi_value argv[ARGS_MAX_COUNT] = {nullptr};
+    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (argc < ARGC_THREE) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "Not enough params");
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    bool stageMode = false;
+    napi_status status = OHOS::AbilityRuntime::IsStageContext(env, argv[ARGC_TWO], stageMode);
+    if (status != napi_ok || !stageMode) {
+        ThrowInvalidParamError(env, "Parse param context failed, must be a context of stageMode.");
+        return CreateJsUndefined(env);
+    }
+
+    auto context = OHOS::AbilityRuntime::GetStageModeContext(env, argv[ARGC_TWO]);
+    if (context == nullptr) {
+        ThrowInvalidParamError(env, "Parse param context failed, must not be nullptr.");
+        return CreateJsUndefined(env);
+    }
+    auto inputContextPtr = OHOS::AbilityRuntime::Context::ConvertTo<AbilityRuntime::Context>(context);
+
+    std::shared_ptr<WantAgent> wantAgent = nullptr;
+    TriggerInfo triggerInfo;
+    auto triggerObj = std::make_shared<TriggerCompleteCallBack>();
+    int32_t errCode = UnWrapTriggerInfoParam(env, info, wantAgent, triggerInfo, triggerObj);
+    if (errCode != NO_ERROR) {
+        ThrowInvalidParamError(env, "Parameter error!");
+        return CreateJsUndefined(env);
+    }
+    auto retCode = std::make_shared<int32_t>(NO_ERROR);
+    if (!CheckCallerIsSystemApp()) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "Non-system app");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP);
+        return CreateJsUndefined(env);
+    }
+    std::shared_ptr<CompletedDispatcher> data = nullptr;
+    auto execute = [wantAgent, triggerObj, triggerInfo, inputContextPtr, data, retCode] () {
+        TAG_LOGD(AAFwkTag::WANTAGENT, "called");
+        sptr<CompletedDispatcher> completedData;
+        *retCode = WantAgentHelper::TriggerWantAgent(wantAgent, triggerObj, triggerInfo, completedData,
+            inputContextPtr->GetToken());
+        *data = completedData;
+    };
+    NapiAsyncTask::CompleteCallback complete = [retCode, data](napi_env env, NapiAsyncTask& task, int32_t status) {
+        if (*retCode == NO_ERROR) {
+            task.Resolve(env, CreateJsUndefined(env));
+        } else {
+            task.Reject(env, CreateJsError(env, *retCode, AbilityRuntimeErrorUtil::GetErrMessage(*retCode)));
+        }
+    };
+    napi_value result = nullptr;
+    NapiAsyncTask::ScheduleHighQos("JsWantAgent::OnNapiTrigger",
+        env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
 
     return CreateJsNull(env);
 }
