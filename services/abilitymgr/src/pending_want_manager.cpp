@@ -201,7 +201,8 @@ bool PendingWantManager::CheckPendingWantRecordByKey(
     return true;
 }
 
-int32_t PendingWantManager::SendWantSender(sptr<IWantSender> target, const SenderInfo &senderInfo)
+int32_t PendingWantManager::SendWantSender(sptr<IWantSender> target, const SenderInfo &senderInfo,
+    std::shared_ptr<CompletedData> &data)
 {
     SenderInfo info = senderInfo;
 
@@ -234,7 +235,7 @@ int32_t PendingWantManager::SendWantSender(sptr<IWantSender> target, const Sende
         }
         return ERR_INVALID_VALUE;
     }
-    return record->SenderInner(info);
+    return record->SenderInner(info, data);
 }
 
 void PendingWantManager::CancelWantSender(const bool isSystemAppCall, const sptr<IWantSender> &sender)

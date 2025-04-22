@@ -2116,7 +2116,8 @@ sptr<IWantSender> AbilityManagerProxy::GetWantSender(
     return wantSender;
 }
 
-int AbilityManagerProxy::SendWantSender(sptr<IWantSender> target, const SenderInfo &senderInfo)
+int AbilityManagerProxy::SendWantSender(sptr<IWantSender> target, const SenderInfo &senderInfo,
+    std::shared_ptr<CompletedData> &completedData)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -2137,6 +2138,12 @@ int AbilityManagerProxy::SendWantSender(sptr<IWantSender> target, const SenderIn
         TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
         return error;
     }
+    std::unique_ptr<CompletedData> completedDataReply(reply.ReadParcelable<CompletedData>());
+    if (!completedDataReply) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "readParcelableInfo fail");
+        return INNER_ERR;
+    }
+    completedData = std::move(completedDataReply);
     return reply.ReadInt32();
 }
 

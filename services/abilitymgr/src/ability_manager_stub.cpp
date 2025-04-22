@@ -1869,7 +1869,11 @@ int AbilityManagerStub::SendWantSenderInner(MessageParcel &data, MessageParcel &
         TAG_LOGE(AAFwkTag::ABILITYMGR, "senderInfo null");
         return ERR_INVALID_VALUE;
     }
-    int32_t result = SendWantSender(wantSender, *senderInfo);
+    std::shared_ptr<CompletedData> completedData = std::make_shared<CompletedData>();
+    int32_t result = SendWantSender(wantSender, *senderInfo, completedData);
+    if (completedData != nullptr && !reply.WriteParcelable(completedData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "completedData write fail");
+    }
     reply.WriteInt32(result);
     return NO_ERROR;
 }

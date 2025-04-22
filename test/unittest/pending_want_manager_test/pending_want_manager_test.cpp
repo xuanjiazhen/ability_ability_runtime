@@ -487,8 +487,9 @@ HWTEST_F(PendingWantManagerTest, PendingWantManagerTest_1400, TestSize.Level1)
     sptr<PendingWantRecord> pendingWantRecord = new PendingWantRecord(pendingManager_, 1, 0, nullptr, key);
     EXPECT_NE(pendingWantRecord, nullptr);
     SenderInfo info;
+    std::shared_ptr<CompletedData> completedData;
     info.finishedReceiver = new CancelReceiver();
-    EXPECT_EQ(pendingManager_->SendWantSender(pendingWantRecord, info), -1);
+    EXPECT_EQ(pendingManager_->SendWantSender(pendingWantRecord, info, completedData), ERR_INVALID_VALUE);
     EXPECT_TRUE(CancelReceiver::performReceiveCount == 100);
     CancelReceiver::performReceiveCount = 0;
 }
@@ -1236,7 +1237,8 @@ HWTEST_F(PendingWantManagerTest, PendingWantManagerTest_5000, TestSize.Level1)
     pendingManager_ = std::make_shared<PendingWantManager>();
 
     SenderInfo senderInfo;
-    auto ret = pendingManager_->SendWantSender(nullptr, senderInfo);
+    std::shared_ptr<CompletedData> completedData;
+    auto ret = pendingManager_->SendWantSender(nullptr, senderInfo, completedData);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
 

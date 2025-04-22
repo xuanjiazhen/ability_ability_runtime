@@ -108,7 +108,8 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     pendingWantManager->CheckPendingWantRecordByKey(pendingWantKey, pendingWantKey);
     sptr<IWantSender> wantSenderPtr;
     SenderInfo senderInfo;
-    pendingWantManager->SendWantSender(wantSenderPtr, senderInfo);
+    std::shared_ptr<CompletedData> completedData = std::make_shared<CompletedData>();
+    pendingWantManager->SendWantSender(wantSenderPtr, senderInfo, completedData);
     pendingWantManager->CancelWantSender(boolParam, wantSenderPtr);
     pendingWantManager->CancelWantSenderLocked(pendingWantRecord, boolParam);
     sptr<StartOptions> startoptions;
