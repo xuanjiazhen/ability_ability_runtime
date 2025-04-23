@@ -1739,29 +1739,29 @@ HWTEST_F(AmsAppLifeCycleModuleTest, RestartResidentProcess_003, TestSize.Level1)
     auto residentRecord = serviceInner_->appRunningManager_->CheckAppRunningRecordIsExist(appName, proc, uid, info);
     if (residentRecord == nullptr) {
         EXPECT_FALSE(residentRecord);
-        return;
-    }
-    EXPECT_TRUE(residentRecord);
-    sptr<IAppScheduler> client = iface_cast<IAppScheduler>(mockAppScheduler.GetRefPtr());
-    serviceInner_->AttachApplication(pid_0, client);
-
-    sptr<MockAppScheduler> mockAppSchedulerResident = new (std::nothrow) MockAppScheduler();
-    EXPECT_CALL(*mockAppSchedulerResident, ScheduleLaunchApplication(_, _));
-    sptr<IAppScheduler> residentClient = iface_cast<IAppScheduler>(mockAppSchedulerResident.GetRefPtr());
-    serviceInner_->AttachApplication(pid, residentClient);
-
-    serviceInner_->OnRemoteDied(mockAppScheduler, false);
-    serviceInner_->OnRemoteDied(mockAppSchedulerResident, false);
-
-    auto recordMap = serviceInner_->appRunningManager_->GetAppRunningRecordMap();
-    EXPECT_TRUE(recordMap.empty());
-
-    sleep(1);
-    auto appRecord = serviceInner_->appRunningManager_->CheckAppRunningRecordIsExist(appName, proc, uid, info);
-    if (appRecord == nullptr) {
-        EXPECT_FALSE(appRecord);
     } else {
-        EXPECT_TRUE(appRecord);
+        EXPECT_TRUE(residentRecord);
+        sptr<IAppScheduler> client = iface_cast<IAppScheduler>(mockAppScheduler.GetRefPtr());
+        serviceInner_->AttachApplication(pid_0, client);
+
+        sptr<MockAppScheduler> mockAppSchedulerResident = new (std::nothrow) MockAppScheduler();
+        EXPECT_CALL(*mockAppSchedulerResident, ScheduleLaunchApplication(_, _));
+        sptr<IAppScheduler> residentClient = iface_cast<IAppScheduler>(mockAppSchedulerResident.GetRefPtr());
+        serviceInner_->AttachApplication(pid, residentClient);
+
+        serviceInner_->OnRemoteDied(mockAppScheduler, false);
+        serviceInner_->OnRemoteDied(mockAppSchedulerResident, false);
+
+        auto recordMap = serviceInner_->appRunningManager_->GetAppRunningRecordMap();
+        EXPECT_TRUE(recordMap.empty());
+
+        sleep(1);
+        auto appRecord = serviceInner_->appRunningManager_->CheckAppRunningRecordIsExist(appName, proc, uid, info);
+        if (appRecord == nullptr) {
+            EXPECT_FALSE(appRecord);
+        } else {
+            EXPECT_TRUE(appRecord);
+        }
     }
 }
 

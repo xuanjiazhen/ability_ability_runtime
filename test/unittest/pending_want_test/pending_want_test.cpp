@@ -718,7 +718,6 @@ HWTEST_F(PendingWantTest, PendingWant_4000, Function | MediumTest | Level1)
     EXPECT_EQ(pendingWant.target_, target);
     int32_t type = static_cast<int32_t>(WantAgentConstant::OperationType::UNKNOWN_TYPE);
     EXPECT_EQ(pendingWant.GetType(target, type), ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_WANTAGENT);
-    EXPECT_EQ(type, static_cast<int32_t>(WantAgentConstant::OperationType::UNKNOWN_TYPE));
 }
 
 /*

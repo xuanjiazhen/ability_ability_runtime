@@ -61,9 +61,6 @@ static constexpr int64_t USER_TEST = 100;
  */
 HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_HandleRegisterObserver_0100, TestSize.Level1)
 {
-    if (dataObsMgrInner_ == nullptr) {
-        return;
-    }
 
     Uri uri("dataability://device_id/com.domainname.dataability.persondata/person/10");
     sptr<MockDataAbilityObserverStub> observer(new (std::nothrow) MockDataAbilityObserverStub());
@@ -193,9 +190,6 @@ HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_HandleUnregisterObserver_0300, Tes
  */
 HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_HandleNotifyChange_0100, TestSize.Level1)
 {
-    if (dataObsMgrInner_ == nullptr) {
-        return;
-    }
     Uri uri("dataability://device_id/com.domainname.dataability.persondata/person/10");
     sptr<MockDataAbilityObserverStub> mockDataAbilityObserverStub(new (std::nothrow) MockDataAbilityObserverStub());
 
@@ -252,9 +246,6 @@ HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_HandleNotifyChange_0300, TestSize.
  */
 HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_RemoveObs_HaveRegistered_0100, TestSize.Level1)
 {
-    if (dataObsMgrInner_ == nullptr) {
-        return;
-    }
     Uri uri("dataability://device_id/com.domainname.dataability.persondata/person/10");
     sptr<MockDataAbilityObserverStub> mockDataAbilityObserverStub(new (std::nothrow) MockDataAbilityObserverStub());
     const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(mockDataAbilityObserverStub));
@@ -293,9 +284,6 @@ HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_RemoveObs_HaveRegistered_0100, Tes
  */
 HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_AddRemove_ObsDeathRecipient_0100, TestSize.Level1)
 {
-    if (dataObsMgrInner_ == nullptr) {
-        return;
-    }
 
     sptr<IRemoteObject> observer(new (std::nothrow) MockDataAbilityObserverStub());
     sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(observer));
