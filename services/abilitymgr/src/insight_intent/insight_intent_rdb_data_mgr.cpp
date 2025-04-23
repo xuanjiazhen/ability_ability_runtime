@@ -282,8 +282,8 @@ bool InsightIntentRdbDataMgr::QueryDataBeginWithKey(const std::string &key,
     ScopeGuard stateGuard([&] { absSharedResultSet->Close(); });
 
     if (absSharedResultSet->GoToFirstRow() != NativeRdb::E_OK) {
-        TAG_LOGE(AAFwkTag::INTENT, "GoToFirstRow failed");
-        return false;
+        TAG_LOGW(AAFwkTag::INTENT, "GoToFirstRow failed");
+        return true;
     }
     do {
         std::string key;
