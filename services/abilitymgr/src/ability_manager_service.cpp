@@ -10980,6 +10980,29 @@ int AbilityManagerService::VerifyPermission(const std::string &permission, int p
     auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bms, ERR_INVALID_VALUE);
 
+    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    std::string callerBundleName;
+    if (IN_PROCESS_CALL(bms->GetNameForUid(callerUid, callerBundleName)) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get caller bundleName failed");
+        return CHECK_PERMISSION_FAILED;
+    }
+
+    int32_t userId = GetUserId();
+    AppExecFwk::BundleInfo bundleInfo;
+    int32_t queryBundleInfoRet = IN_PROCESS_CALL(
+        bms->GetBundleInfo(callerBundleName, AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, bundleInfo, userId));
+    if (queryBundleInfoRet != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get caller bundleInfo failed, %{public}d, %{public}s",
+            queryBundleInfoRet, callerBundleName.c_str());
+        return CHECK_PERMISSION_FAILED;
+    }
+    for (auto it = bundleInfo.abilityInfos.begin(); it != bundleInfo.abilityInfos.end(); ++it) {
+        if (it->isStageBasedModel == true) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "only support fa mode");
+            return CHECK_PERMISSION_FAILED;
+        }
+    }
+
     std::string bundleName;
     if (IN_PROCESS_CALL(bms->GetNameForUid(uid, bundleName)) != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "verifyPermission get bundle name failed");
