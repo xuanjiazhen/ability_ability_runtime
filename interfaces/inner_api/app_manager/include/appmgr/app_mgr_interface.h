@@ -26,6 +26,7 @@
 #include "application_info.h"
 #include "bundle_info.h"
 #include "child_process_info.h"
+#include "configuration_policy.h"
 #ifdef SUPPORT_CHILD_PROCESS
 #include "child_process_request.h"
 #endif // SUPPORT_CHILD_PROCESS
@@ -48,6 +49,7 @@
 #include "want.h"
 #include "app_jsheap_mem_info.h"
 #include "running_multi_info.h"
+#include "mission_info.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -434,6 +436,17 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1) = 0;
+
+    /**
+     * UpdateConfigurationPolicy
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t UpdateConfigurationPolicy(const std::vector<AAFwk::MissionInfo>& appInfos,
+        const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId = -1)
+    {
+        return 0;
+    }
 
     /**
      *  Update config by bundle name.
