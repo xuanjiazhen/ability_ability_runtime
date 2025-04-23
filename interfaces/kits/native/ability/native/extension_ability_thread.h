@@ -130,6 +130,8 @@ public:
      */
     void DumpAbilityInfo(const std::vector<std::string> &params, std::vector<std::string> &info) override;
 
+    int NotifyComponentTerminate(sptr<AAFwk::SessionInfo> sessionInfo);
+
 private:
     /**
      * @brief Dump Ability Info Inner

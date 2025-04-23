@@ -3832,5 +3832,12 @@ void AbilityRecord::ScheduleCollaborate(const Want &want)
     CHECK_POINTER(lifecycleDeal_);
     lifecycleDeal_->ScheduleCollaborate(want);
 }
+
+void AbilityRecord::NotifyComponentTerminate();
+{
+    std::lock_guard<ffrt::mutex> guard(lock_);
+    CHECK_POINTER(scheduler_);
+    scheduler_->NotifyComponentTerminate(GetSessionInfo());
+}
 }  // namespace AAFwk
 }  // namespace OHOS

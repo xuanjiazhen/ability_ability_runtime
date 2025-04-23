@@ -1222,6 +1222,27 @@ void JsUIExtension::ConfigurationUpdated()
     CallObjectMethod("onConfigurationUpdate", &napiConfiguration, ARGC_ONE);
 }
 
+void JsUIExtension::NotifyComponentTerminate(const sptr<AAFwk::SessionInfo> &sessionInfo)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "begin");
+    CHECK_POINTER(sessionInfo);
+    std::lock_guard<std::mutex> lock(uiWindowMutex_);
+    TAG_LOGD(AAFwkTag::UI_EXT, "Before window show UIExtcomponent id: %{public}" PRId64,
+        sessionInfo->uiExtensionComponentId);
+    auto componentId = sessionInfo->uiExtensionComponentId;
+    auto& uiWindow = uiWindowMap_[componentId];
+    if (uiWindow) {
+        HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::TransferExtensionData");
+        Rosen::WMError ret = uiWindow_->TransferExtensionData(params);
+        if (ret == Rosen::WMError::WM_OK) {
+            TAG_LOGD(AAFwkTag::UI_EXT, "TransferExtensionData success");
+        } else {
+            TAG_LOGE(AAFwkTag::UI_EXT, "TransferExtensionData failed, ret=%{public}d", ret);
+            ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        }
+    }
+}
+
 #ifdef SUPPORT_GRAPHICS
 void JsUIExtension::OnDisplayInfoChange(
     const sptr<IRemoteObject> &token, Rosen::DisplayId displayId, float density, Rosen::DisplayOrientation orientation)

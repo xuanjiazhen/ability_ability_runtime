@@ -160,6 +160,8 @@ public:
      */
     void SetLaunchParam(const AAFwk::LaunchParam &launchParam);
 
+    void NotifyComponentTerminate(sptr<AAFwk::SessionInfo> &sessionInfo);
+
 protected:
     /**
      * @brief Toggles the lifecycle status of Extension to AAFwk::ABILITY_STATE_INACTIVE. And notifies the application

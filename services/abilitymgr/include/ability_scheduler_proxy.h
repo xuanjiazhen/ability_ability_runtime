@@ -333,6 +333,8 @@ public:
 
     void ScheduleCollaborate(const Want &want) override;
 
+    void NotifyComponentTerminate(sptr<SessionInfo> sessionInfo) override;
+
 private:
     bool WriteInterfaceToken(MessageParcel &data);
     int32_t SendTransactCmd(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);

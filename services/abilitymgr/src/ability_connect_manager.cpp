@@ -3566,5 +3566,12 @@ std::shared_ptr<AbilityRecord> AbilityConnectManager::GetUIExtensionBySessionFro
     }
     return nullptr;
 }
+
+int32_t AbilityConnectManager::NotifyComponentTerminate(const std::shared_ptr<AbilityRecord> &abilityRecord)
+{
+    CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
+    abilityRecord->NotifyComponentTerminate();
+    return ERR_OK;
+}
 }  // namespace AAFwk
 }  // namespace OHOS

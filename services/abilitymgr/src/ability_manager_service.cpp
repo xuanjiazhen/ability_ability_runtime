@@ -3834,7 +3834,6 @@ int AbilityManagerService::TerminateAbility(const sptr<IRemoteObject> &token, in
 
 int AbilityManagerService::NotifyComponentTerminate(const sptr<IRemoteObject> &token)
 {
-    // 1.get hostSession
     auto abilityRecord = Token::GetAbilityRecordByToken(token);
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     if (!UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
@@ -3843,14 +3842,13 @@ int AbilityManagerService::NotifyComponentTerminate(const sptr<IRemoteObject> &t
         return ERR_INVALID_VALUE;
     }
 
-    auto sessionInfo = abilityRecord->GetSessionInfo();
-    if (sessionInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "target session info is null, ability: %{public}s",
-            abilityRecord->GetURI().c_str());
+    auto userId = abilityRecord->GetApplicationInfo().uid / BASE_USER_RANGE;
+    auto connectManager = GetConnectManagerByUserId(userId);
+    if (!connectManager) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "connectManager null. userId=%{public}d", userId);
         return ERR_INVALID_VALUE;
     }
-    // 2.sendData terminateCode
-    return NO_ERROR;
+    return connectManager->NotifyComponentTerminate(abilityRecord);
 }
 
 int32_t AbilityManagerService::TerminateUIServiceExtensionAbility(const sptr<IRemoteObject> &token)

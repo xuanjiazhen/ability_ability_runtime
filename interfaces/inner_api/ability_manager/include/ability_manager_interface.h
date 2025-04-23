@@ -500,11 +500,6 @@ public:
         return 0;
     };
 
-    virtual int NotifyComponentTerminate(const sptr<IRemoteObject> &token)
-    {
-        return 0;
-    };
-
     /**
      * TerminateUIServiceExtensionAbility, terminate the UIServiceExtensionAbility.
      *
@@ -2129,6 +2124,11 @@ public:
     {
         return 0;
     }
+
+    virtual int NotifyComponentTerminate(const sptr<IRemoteObject> &token)
+    {
+        return 0;
+    };
 };
 }  // namespace AAFwk
 }  // namespace OHOS

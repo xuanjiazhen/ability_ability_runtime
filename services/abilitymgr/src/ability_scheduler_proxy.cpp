@@ -1231,5 +1231,26 @@ void AbilitySchedulerProxy::ScheduleCollaborate(const Want &want)
     }
     return;
 }
+
+void AbilitySchedulerProxy::NotifyComponentTerminate(sptr<SessionInfo> sessionInfo)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "start");
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+
+    if (!WriteInterfaceToken(data)) {
+        return;
+    }
+
+    int32_t err = SendTransactCmd(IAbilityScheduler::NOTIFY_COMPONENT_TERMINATE, data, reply, option);
+    if (err != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "fail, err: %{public}d", err);
+        return;
+    }
+
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "end");
+}
 }  // namespace AAFwk
 }  // namespace OHOS

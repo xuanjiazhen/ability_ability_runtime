@@ -156,6 +156,8 @@ int AbilitySchedulerStub::OnRemoteRequestInnerThird(
             return UpdateSessionTokenInner(data, reply);
         case SCHEDULE_COLLABORATE_DATA:
             return CollaborateDataInner(data);
+        case NOTIFY_COMPONENT_TERMINATE:
+            return NotifyComponentTerminateInner(data);
     }
     return ERR_CODE_NOT_EXIST;
 }
@@ -748,6 +750,22 @@ int AbilitySchedulerStub::CollaborateDataInner(MessageParcel &data)
         return ERR_INVALID_VALUE;
     }
     ScheduleCollaborate(*want);
+    return NO_ERROR;
+}
+
+int AbilitySchedulerStub::NotifyComponentTerminateInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
+    sptr<SessionInfo> sessionInfo(data.ReadParcelable<SessionInfo>());
+    if (sessionInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null sessionInfo");
+        return ERR_INVALID_VALUE;
+    }
+    int ret = NotifyComponentTerminate(sessionInfo);
+    if (!reply.WriteInt32(ret)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "fail to WriteInt32 ret");
+        return ERR_INVALID_VALUE;
+    }
     return NO_ERROR;
 }
 

@@ -825,6 +825,9 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentieth(uint32_t code, MessageParc
     if (interfaceCode == AbilityManagerInterfaceCode::REVOKE_DELEGATOR) {
         return RevokeDelegatorInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::NOTIFY_COMPONET_TERMINATE) {
+        return NotifyComponentTerminateInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 

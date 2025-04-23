@@ -1191,6 +1191,8 @@ public:
     void SendEvent(uint32_t msg, uint32_t timeOut, int32_t param = -1, bool isExtension = false,
         const std::string &taskName = "");
 
+    void NotifyComponentTerminate();
+
 protected:
 
     sptr<Token> token_ = {};                               // used to interact with kit and wms

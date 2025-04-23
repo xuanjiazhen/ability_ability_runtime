@@ -306,6 +306,10 @@ public:
 
     virtual void ScheduleCollaborate(const Want &want) = 0;
 
+    virtual void NotifyComponentTerminate()
+    {
+        return;
+    }
     enum {
         // ipc id for scheduling ability to a state of life cycle
         SCHEDULE_ABILITY_TRANSACTION = 0,
@@ -403,7 +407,9 @@ public:
 
         UPDATE_SESSION_TOKEN,
 
-        SCHEDULE_COLLABORATE_DATA
+        SCHEDULE_COLLABORATE_DATA,
+
+        NOTIFY_COMPONENT_TERMINATE
     };
 };
 }  // namespace AAFwk

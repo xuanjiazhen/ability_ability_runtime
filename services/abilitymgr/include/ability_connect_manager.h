@@ -362,6 +362,8 @@ public:
      */
     void HandleExtensionDisconnectTask(const std::shared_ptr<ConnectionRecord> &connectRecord);
 
+    int32_t NotifyComponentTerminate(const std::shared_ptr<AbilityRecord> &abilityRecord);
+
 private:
     /**
      * StartAbilityLocked with request.

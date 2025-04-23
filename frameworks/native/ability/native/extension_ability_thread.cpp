@@ -628,5 +628,14 @@ void ExtensionAbilityThread::DumpOtherInfo(std::vector<std::string> &info)
     runner->DumpRunnerInfo(dumpInfo);
     info.push_back(dumpInfo);
 }
+
+int ExtensionAbilityThread::NotifyComponentTerminate(sptr<AAFwk::SessionInfo> sessionInfo)
+{
+    if (extensionImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "null extensionImpl_");
+        return;
+    }
+    extensionImpl_->NotifyComponentTerminate(sessionInfo);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
