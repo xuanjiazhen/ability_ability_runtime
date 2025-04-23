@@ -20,10 +20,14 @@
 #include <future>
 #include <map>
 #include <memory>
+#include <queue>
 #include <shared_mutex>
 #include <singleton.h>
 #include <thread_ex.h>
 #include <unordered_map>
+
+#include <nlohmann/json.hpp>
+#include "json/json.h"
 
 #include "ability_auto_startup_service.h"
 #include "ability_bundle_event_callback.h"
@@ -2257,11 +2261,11 @@ private:
 
     int CheckStaticCfgPermissionForAbility(const AppExecFwk::AbilityInfo &abilityInfo, uint32_t tokenId);
 
-    int CheckStaticCfgPermissionForSkill(const AppExecFwk::AbilityRequest &abilityRequest, uint32_t tokenId);
+    int CheckStaticCfgPermissionForSkill(const AbilityRequest &abilityRequest, uint32_t tokenId);
 
     bool CheckOneSkillPermission(const AppExecFwk::Skill &skill, uint32_t tokenId);
 
-    int CheckStaticCfgPermission(const AppExecFwk::AbilityRequest &abilityRequest, bool isStartAsCaller,
+    int CheckStaticCfgPermission(const AbilityRequest &abilityRequest, bool isStartAsCaller,
         uint32_t callerTokenId, bool isData = false, bool isSaCall = false, bool isImplicit = false);
 
     int CheckPermissionForUIService(AppExecFwk::ExtensionAbilityType extensionType,
@@ -2505,7 +2509,7 @@ private:
     int32_t SetBackgroundCall(const AppExecFwk::RunningProcessInfo &processInfo,
         const AbilityRequest &abilityRequest, bool &isBackgroundCall) const;
 
-    int CheckUIExtensionUsage(AppExecFwk::UIExtensionUsage uiExtensionUsage,
+    int CheckUIExtensionUsage(UIExtensionUsage uiExtensionUsage,
         AppExecFwk::ExtensionAbilityType extensionType);
 
     bool CheckUIExtensionCallerIsForeground(const AbilityRequest &abilityRequest);
