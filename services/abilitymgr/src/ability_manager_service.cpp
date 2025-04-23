@@ -545,9 +545,15 @@ ServiceRunningState AbilityManagerService::QueryServiceState() const
     return state_;
 }
 
-int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int requestCode)
+int AbilityManagerService::StartAbilityInnerAlternative(const Want &want, int32_t userId, int requestCode,
+    sptr<AppExecFwk::IStartAbilityWithWaitObserver> observer)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (observer != nullptr) {
+        int64_t withWaitStartTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+        observer->NotifyAbilityManagerServiceTime(withWaitStartTime);
+    }
     bool isDebugApp = want.GetBoolParam(DEBUG_APP, false);
     bool isNativeDebugApp = want.GetBoolParam(NATIVE_DEBUG, false);
     bool hasWindowOptions = (want.HasParameter(Want::PARAM_RESV_WINDOW_LEFT) ||
@@ -603,7 +609,8 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
 #ifdef SUPPORT_SCREEN
     DmsUtil::GetInstance().UpdateFlagForCollaboration(want);
 #endif
-    int32_t ret = StartAbilityWrap(want, nullptr, requestCode, false, userId);
+    int32_t ret = StartAbilityWrap(want, nullptr, requestCode, false, userId,
+                    false, 0, false, false, false, observer);
     AAFWK::ContinueRadar::GetInstance().ClickIconStartAbility("StartAbilityWrap", want.GetFlags(), ret);
     if (ret != ERR_OK) {
         eventInfo.errCode = ret;
@@ -611,6 +618,12 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
         SendAbilityEvent(EventName::START_ABILITY_ERROR, HiSysEventType::FAULT, eventInfo);
     }
     return ret;
+}
+
+int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int requestCode)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    return StartAbilityInnerAlternative(want, userId, requestCode);
 }
 
 int AbilityManagerService::StartAbility(const Want &want, const sptr<IRemoteObject> &callerToken,
@@ -850,6 +863,30 @@ int AbilityManagerService::StartAbilityOnlyUIAbility(const Want &want, const spt
     return ret;
 }
 
+
+int AbilityManagerService::StartAbilityWithWait(const Want &want,
+    const sptr<AppExecFwk::IStartAbilityWithWaitObserver> &observer)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    int32_t result = ERR_OK;
+    if (observer == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "observer null");
+        return ERR_INVALID_VALUE;
+    }
+    auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
+    if (!isShellCall) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "It's not a shell call");
+        return ERR_PERMISSION_DENIED;
+    }
+    int32_t userId = -1;
+    int requestCode = -1;
+    result = StartAbilityInnerAlternative(want, userId, requestCode, observer);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "startAbility error");
+        return result;
+    }
+    return result;
+}
 int AbilityManagerService::StartAbilityAsCaller(const Want &want, const sptr<IRemoteObject> &callerToken,
     sptr<IRemoteObject> asCallerSourceToken, int32_t userId, int requestCode)
 {
@@ -970,7 +1007,8 @@ bool AbilityManagerService::StartAbilityInChain(StartAbilityParams &params, int 
 
 int AbilityManagerService::StartAbilityWrap(const Want &want, const sptr<IRemoteObject> &callerToken,
     int requestCode, bool isPendingWantCaller, int32_t userId, bool isStartAsCaller, uint32_t specifyToken,
-    bool isForegroundToRestartApp, bool isImplicit, bool isUIAbilityOnly)
+    bool isForegroundToRestartApp, bool isImplicit, bool isUIAbilityOnly,
+    sptr<AppExecFwk::IStartAbilityWithWaitObserver> observer)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     StartAbilityParams startParams(const_cast<Want &>(want));
@@ -986,7 +1024,7 @@ int AbilityManagerService::StartAbilityWrap(const Want &want, const sptr<IRemote
     }
 
     return StartAbilityInner(want, callerToken, requestCode, isPendingWantCaller, userId, isStartAsCaller, specifyToken,
-        isForegroundToRestartApp, isImplicit, isUIAbilityOnly);
+        isForegroundToRestartApp, isImplicit, isUIAbilityOnly, observer);
 }
 
 void AbilityManagerService::SetReserveInfo(const std::string &linkString, AbilityRequest& abilityRequest)
@@ -1100,7 +1138,8 @@ int AbilityManagerService::CheckCallPermission(const Want& want, const AppExecFw
 
 int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemoteObject> &callerToken,
     int requestCode, bool isPendingWantCaller, int32_t userId, bool isStartAsCaller, uint32_t specifyTokenId,
-    bool isForegroundToRestartApp, bool isImplicit, bool isUIAbilityOnly)
+    bool isForegroundToRestartApp, bool isImplicit, bool isUIAbilityOnly,
+    sptr<AppExecFwk::IStartAbilityWithWaitObserver> observer)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!isStartAsCaller || isImplicit) {
@@ -1199,6 +1238,10 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
 #ifdef SUPPORT_SCREEN
     if (ImplicitStartProcessor::IsImplicitStartAction(want)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "is implicit start action");
+        if (observer != nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Does not support implicit startup.");
+            observer->NotifyWaitType(AppExecFwk::StartMode::IS_IMPLICIT_START);
+        }
         auto checkResult = AbilityUtil::CheckInstanceKey(want);
         if (checkResult != ERR_OK) {
             return checkResult;
@@ -1289,6 +1332,11 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
     if (isUIAbilityOnly && abilityInfo.type != AbilityType::PAGE) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "ability type no UIAbility");
         return ERR_INVALID_VALUE;
+    }
+
+    if (abilityInfo.type != AbilityType::PAGE && observer != nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ability type not is UIAbility");
+        observer->NotifyWaitType(AppExecFwk::StartMode::ABILITY_TYPE_WRONG);
     }
     validUserId = abilityInfo.applicationInfo.singleton ? U0_USER_ID : validUserId;
     TAG_LOGD(AAFwkTag::ABILITYMGR, "userId is : %{public}d, singleton is : %{public}d",
@@ -1410,7 +1458,7 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
     ReportAbilityStartInfoToRSS(abilityInfo);
     ReportEventToRSS(abilityInfo, callerToken);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "start ability, name is %{public}s", abilityInfo.name.c_str());
-    return missionListManager->StartAbility(abilityRequest);
+    return missionListManager->StartAbility(abilityRequest, observer);
 }
 
 int AbilityManagerService::PreStartFreeInstall(const Want &want, sptr<IRemoteObject> callerToken,
