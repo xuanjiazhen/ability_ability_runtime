@@ -380,6 +380,16 @@ public:
         uint32_t specifyTokenId) override;
 
     /**
+     * Start ability need time
+     *
+     * @param want the want of the ability to start.
+     * @param isColdStart start time
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int StartAbilityWithWait(
+        const Want &want, const sptr<AppExecFwk::IStartAbilityWithWaitObserver> &observer) override;
+
+    /**
      * Open link of ability and atomic service.
      *
      * @param want Ability want.
@@ -1061,7 +1071,8 @@ public:
         uint32_t specifyTokenId = 0,
         bool isForegroundToRestartApp = false,
         bool isImplicit = false,
-        bool isUIAbilityOnly = false);
+        bool isUIAbilityOnly = false,
+        sptr<AppExecFwk::IStartAbilityWithWaitObserver> observer = nullptr);
 
     int StartAbilityInner(
         const Want &want,
@@ -1073,7 +1084,8 @@ public:
         uint32_t specifyTokenId = 0,
         bool isForegroundToRestartApp = false,
         bool isImplicit = false,
-        bool isUIAbilityOnly = false);
+        bool isUIAbilityOnly = false,
+        sptr<AppExecFwk::IStartAbilityWithWaitObserver> observer = nullptr);
 
     int32_t StartExtensionAbilityInner(
         const Want &want,
@@ -2099,6 +2111,12 @@ private:
      *
      */
     void ConnectServices();
+
+    int StartAbilityInnerAlternative(
+        const Want &want,
+        int32_t userId = DEFAULT_INVAL_VALUE,
+        int requestCode = DEFAULT_INVAL_VALUE,
+        sptr<AppExecFwk::IStartAbilityWithWaitObserver> observer = nullptr);
 
     /**
      * Determine whether it is a system APP

@@ -224,6 +224,13 @@ AbilityRecord::~AbilityRecord()
             object->RemoveDeathRecipient(schedulerDeathRecipient_);
         }
     }
+
+    if (startAbilityWithWaitObserver_ != nullptr && observerDeathRecipient_ != nullptr) {
+        auto object = startAbilityWithWaitObserver_->AsObject();
+        if (object != nullptr) {
+            object->RemoveDeathRecipient(observerDeathRecipient_);
+        }
+    }
     want_.CloseAllFd();
 }
 
@@ -1235,9 +1242,78 @@ bool AbilityRecord::ReportAtomicServiceDrawnCompleteEvent()
     return true;
 }
 
+void AbilityRecord::NotifyToolHotStartInfo()
+{
+    if (!GetColdStartFlag() && startAbilityWithWaitObserver_ != nullptr) {
+        AppExecFwk::StartAbilityWithWaitData data;
+        data.activityTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+        data.startStatus = true;
+        data.coldStart = false;
+        data.bundleName = abilityInfo_.bundleName;
+        data.abilityName = abilityInfo_.name;
+        startAbilityWithWaitObserver_->OnStartAbilityWithWait(data);
+    }
+}
+
 void AbilityRecord::SetCompleteFirstFrameDrawing(const bool flag)
 {
     isCompleteFirstFrameDrawing_ = flag;
+
+    if (startAbilityWithWaitObserver_) {
+        AppExecFwk::StartAbilityWithWaitData data;
+        data.completeFirstFrameDrawingTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+        data.startStatus = true;
+        data.coldStart = true;
+        data.bundleName = abilityInfo_.bundleName;
+        data.abilityName = abilityInfo_.name;
+        startAbilityWithWaitObserver_->OnStartAbilityWithWait(data);
+    }
+}
+
+void AbilityRecord::SetStartAbilityWithWait( sptr<AppExecFwk::IStartAbilityWithWaitObserver> observer)
+{
+    if (observer == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "startAbilityWithWaitInfo is null");
+        return ;
+    }
+    if (observer) {
+        startAbilityWithWaitObserver_ = observer;
+        std::weak_ptr<AbilityRecord> weakPtr(shared_from_this());
+        auto deathRecipientFunc = [weakPtr](const wptr<IRemoteObject> &remote) {
+            std::shared_ptr<AbilityRecord> abilityRecord = weakPtr.lock();
+            if (abilityRecord) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "startAbilityWithWaitRecord_.observer is nullptr.");
+                abilityRecord->OnObserverWithWaitDied(remote);
+            }
+        };
+        sptr<IRemoteObject::DeathRecipient> deathRecipient =
+        new (std::nothrow) AppExecFwk::StartAbilityWithWaitObserverRecipient(deathRecipientFunc);
+        if (!startAbilityWithWaitObserver_->AsObject()->AddDeathRecipient(deathRecipient)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "AddDeathRecipient failed.");
+        }
+    }
+}
+
+void AbilityRecord::OnObserverWithWaitDied(const wptr<IRemoteObject> &remote)
+{
+    std::lock_guard<ffrt::mutex> guard(observerLock_);
+    CHECK_POINTER(startAbilityWithWaitObserver_);
+    auto object = remote.promote();
+    CHECK_POINTER(object);
+
+    if (object != startAbilityWithWaitObserver_->AsObject()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ability died: scheduler not matches remote");
+        return;
+    }
+
+    if (startAbilityWithWaitObserver_ != nullptr && observerDeathRecipient_ != nullptr) {
+        auto observerObject = startAbilityWithWaitObserver_->AsObject();
+        if (observerObject != nullptr) {
+            observerObject->RemoveDeathRecipient(observerDeathRecipient_);
+        }
+    }
 }
 
 bool AbilityRecord::IsCompleteFirstFrameDrawing() const
