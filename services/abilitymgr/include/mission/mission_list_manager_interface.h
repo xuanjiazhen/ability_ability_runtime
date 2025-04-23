@@ -38,7 +38,8 @@ public:
     virtual ~MissionListManagerInterface() = default;
 
     virtual void Init() = 0;
-    virtual int StartAbility(AbilityRequest &abilityRequest) = 0;
+    virtual int StartAbility(AbilityRequest &abilityRequest,
+        std::shared_ptr<AAFwk::StartAbilityWithWaitInfo> startAbilityWithWaitInfo = nullptr) = 0;
     virtual int MinimizeAbility(const sptr<IRemoteObject> &token, bool fromUser) = 0;
     virtual int RegisterMissionListener(const sptr<IMissionListener> &listener) = 0;
     virtual int UnRegisterMissionListener(const sptr<IMissionListener> &listener) = 0;

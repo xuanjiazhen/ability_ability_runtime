@@ -27,7 +27,8 @@ public:
     virtual ~MockMissionListManagerInterface() = default;
 
     void Init() override {};
-    int StartAbility(AbilityRequest& abilityRequest) override
+    int StartAbility(AbilityRequest& abilityRequest,
+        std::shared_ptr<AAFwk::StartAbilityWithWaitInfo> startAbilityWithWaitInfo = nullptr) override
     {
         return 0;
     }
