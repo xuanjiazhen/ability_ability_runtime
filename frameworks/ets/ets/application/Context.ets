@@ -21,9 +21,9 @@ import { ApplicationInfo } from 'bundleManager.ApplicationInfo'
 import resmgr from '@ohos.resourceManager'
 
 export class Context extends BaseContext {
-    area: contextConstant.AreaMode = contextConstant.AreaMode.EL1;
-    filesDir: string = "";
-    tempDir: string = "";
+    _area: contextConstant.AreaMode = contextConstant.AreaMode.EL1;
+    _filesDir: string = "";
+    _tempDir: string = "";
     preferencesDir: string = "";
     databaseDir: string = "";
     cacheDir: string = "";
@@ -36,6 +36,22 @@ export class Context extends BaseContext {
 
     getApplicationContext(): ApplicationContext {
         return this.getApplicationContextSync();
+    }
+
+    public native areaSetter(mode: contextConstant.AreaMode): void;
+    set area(mode: contextConstant.AreaMode) {
+        this.areaSetter(mode);
+        return;
+    }
+
+    public native filesDirGetter(): string;
+    get filesDir(): string {
+        return this.filesDirGetter();
+    }
+
+    public native tempDirGetter(): string;
+    get tempDir(): string {
+        return this.tempDirGetter();
     }
 
     createModuleResourceManager(bundleName: string, moduleName: string): resmgr.ResourceManager {

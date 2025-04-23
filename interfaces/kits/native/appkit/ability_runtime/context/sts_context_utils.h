@@ -35,9 +35,6 @@ void BindApplicationInfo(ani_env* aniEnv, ani_class contextClass, ani_object con
 void BindResourceManager(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
     std::shared_ptr<Context> context);
 
-void BindParentProperty(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
-    std::shared_ptr<Context> context);
-
 void BindContextDir(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
     std::shared_ptr<Context> context);
 
@@ -48,6 +45,12 @@ ani_object CreateModuleResourceManagerSync([[maybe_unused]]ani_env *env, [[maybe
     ani_string bundleName, ani_string moduleName);
 
 ani_object GetApplicationContextSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj);
+
+void SwitchAniArea(ani_env *aniEnv, ani_class contextClass, ani_object contextObj, ani_double mode);
+
+ani_string GetAniFilesDir(ani_env *aniEnv);
+
+ani_string GetAniTempDir(ani_env *aniEnv);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
