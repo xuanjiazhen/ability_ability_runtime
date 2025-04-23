@@ -404,7 +404,8 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode TerminateAbility(sptr<IRemoteObject> token, int resultCode, const Want *resultWant);
-
+    
+    ErrCode NotifyComponentTerminate(sptr<IRemoteObject> token);
     /**
      * BackToCallerAbilityWithResult, return to the caller ability.
      *

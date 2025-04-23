@@ -84,6 +84,17 @@ ErrCode UIExtensionContext::TerminateSelf()
     return err;
 }
 
+ErrCode UIExtensionContext::NotifyComponentTerminate()
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "begin");
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->NotifyComponentTerminate(token_);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "ret = %{public}d", err);
+    }
+    TAG_LOGD(AAFwkTag::UI_EXT, "TerminateSelf end");
+    return err;
+}
+
 ErrCode UIExtensionContext::ConnectAbility(
     const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback) const
 {
