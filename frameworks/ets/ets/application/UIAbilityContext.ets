@@ -18,6 +18,7 @@ import Want from '@ohos.app.ability.Want';
 import StartOptions from '@ohos.app.ability.StartOptions';
 import { BusinessError, AsyncCallback } from '@ohos.base';
 import { AbilityResult } from 'ability.abilityResult';
+import { ConnectOptions } from 'ability.connectOptions';
 import AbilityStartCallback from 'application.AbilityStartCallback';
 import { Configuration } from '@ohos.app.ability.Configuration';
 import Context from 'application.Context';
@@ -41,6 +42,8 @@ export default class UIAbilityContext extends Context {
   private native nativeReportDrawnCompletedSync(callback:AsyncCallbackWrapper<void>): void;
   private native nativeStartAbilityByTypeSync(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback): BusinessError<void>;
   private native nativeStartServiceExtensionAbilitySync(want: Want, callback: AsyncCallbackWrapper<void>): void;
+  private native nativeConnectServiceExtensionAbility(want: Want, options: ConnectOptions): int;
+  private native nativeDisconnectServiceExtensionAbilitySync(connection: int, callback: AsyncCallbackWrapper<void>): void;
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
@@ -232,6 +235,27 @@ export default class UIAbilityContext extends Context {
         }
       });
       this.nativeStartServiceExtensionAbilitySync(want, myCall);
+    });
+    return p;
+  }
+  
+  connectServiceExtensionAbility(want: Want, options: ConnectOptions): int {
+    return this.nativeConnectServiceExtensionAbility(want, options);
+  }
+ 
+  disconnectServiceExtensionAbility(connection: int): Promise<void> {
+    let p: Promise<void> = new Promise<void>((resolve: (data: undefined) => void,
+      reject: (err: BusinessError<void>) => void): void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>) => {
+        if (err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeDisconnectServiceExtensionAbilitySync(connection, myCall);
+      })
     });
     return p;
   }
