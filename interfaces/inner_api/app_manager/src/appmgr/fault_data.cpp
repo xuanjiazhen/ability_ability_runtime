@@ -58,9 +58,11 @@ bool FaultData::ReadFromParcel(Parcel &parcel)
     waitSaveState = parcel.ReadBool();
     notifyApp = parcel.ReadBool();
     forceExit = parcel.ReadBool();
+    needKillProcess = parcel.ReadBool();
     state = parcel.ReadUint32();
     eventId = parcel.ReadInt32();
     tid = parcel.ReadInt32();
+    stuckTimeout = parcel.ReadUint32();
     if (parcel.ReadBool()) {
         token = (static_cast<MessageParcel*>(&parcel))->ReadRemoteObject();
     }
@@ -77,6 +79,27 @@ FaultData *FaultData::Unmarshalling(Parcel &parcel)
     return info;
 }
 
+bool FaultData::WriteContent(Parcel &parcel) const
+{
+    if (!parcel.WriteUint32(stuckTimeout)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "stuckTimeout [%{public}u] write uint32 failed.", stuckTimeout);
+        return false;
+    }
+
+    if (token == nullptr) {
+        if (!parcel.WriteBool(false)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Token falge [false] write bool failed.");
+            return false;
+        }
+    } else {
+        if (!parcel.WriteBool(true) || !(static_cast<MessageParcel*>(&parcel))->WriteRemoteObject(token)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Token falge [true] write bool failed.");
+            return false;
+        }
+    }
+    return true;
+}
+
 bool FaultData::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteString(errorObject.name)) {
@@ -88,7 +111,7 @@ bool FaultData::Marshalling(Parcel &parcel) const
         TAG_LOGE(AAFwkTag::APPMGR, "Message [%{public}s] write string failed.", errorObject.message.c_str());
         return false;
     }
-    
+
     if (!parcel.WriteString(errorObject.stack)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Stack [%{public}s] write string failed.", errorObject.stack.c_str());
         return false;
@@ -119,6 +142,12 @@ bool FaultData::Marshalling(Parcel &parcel) const
         return false;
     }
 
+    if (!parcel.WriteBool(needKillProcess)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "needKillProcess [%{public}s] write bool failed.",
+            needKillProcess ? "true" : "false");
+        return false;
+    }
+
     if (!parcel.WriteUint32(state)) {
         TAG_LOGE(AAFwkTag::APPMGR, "State [%{public}u] write uint32 failed.", state);
         return false;
@@ -134,18 +163,7 @@ bool FaultData::Marshalling(Parcel &parcel) const
         return false;
     }
 
-    if (token == nullptr) {
-        if (!parcel.WriteBool(false)) {
-            TAG_LOGE(AAFwkTag::APPMGR, "Token falge [false] write bool failed.");
-            return false;
-        }
-    } else {
-        if (!parcel.WriteBool(true) || !(static_cast<MessageParcel*>(&parcel))->WriteRemoteObject(token)) {
-            TAG_LOGE(AAFwkTag::APPMGR, "Token falge [true] write bool failed.");
-            return false;
-        }
-    }
-    return true;
+    return WriteContent(parcel);
 }
 
 bool AppFaultDataBySA::ReadFromParcel(Parcel &parcel)
@@ -190,6 +208,7 @@ bool AppFaultDataBySA::ReadFromParcel(Parcel &parcel)
     waitSaveState = parcel.ReadBool();
     notifyApp = parcel.ReadBool();
     forceExit = parcel.ReadBool();
+    needKillProcess = parcel.ReadBool();
     state = parcel.ReadUint32();
     eventId = parcel.ReadInt32();
     if (parcel.ReadBool()) {
@@ -210,18 +229,7 @@ AppFaultDataBySA *AppFaultDataBySA::Unmarshalling(Parcel &parcel)
 
 bool AppFaultDataBySA::Marshalling(Parcel &parcel) const
 {
-    if (!parcel.WriteString(errorObject.name)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Name [%{public}s] write string failed.", errorObject.name.c_str());
-        return false;
-    }
-
-    if (!parcel.WriteString(errorObject.message)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Message [%{public}s] write string failed.", errorObject.message.c_str());
-        return false;
-    }
-    
-    if (!parcel.WriteString(errorObject.stack)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Stack [%{public}s] write string failed.", errorObject.stack.c_str());
+    if (!WriteErrorObject(parcel)) {
         return false;
     }
 
@@ -255,6 +263,12 @@ bool AppFaultDataBySA::Marshalling(Parcel &parcel) const
         return false;
     }
 
+    if (!parcel.WriteBool(needKillProcess)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "needKillProcess [%{public}s] write bool failed.",
+            needKillProcess ? "true" : "false");
+        return false;
+    }
+
     if (!parcel.WriteUint32(state)) {
         TAG_LOGE(AAFwkTag::APPMGR, "State [%{public}u] write uint32 failed.", state);
         return false;
@@ -275,6 +289,25 @@ bool AppFaultDataBySA::Marshalling(Parcel &parcel) const
             TAG_LOGE(AAFwkTag::APPMGR, "Token falge [true] write bool failed.");
             return false;
         }
+    }
+    return true;
+}
+
+bool AppFaultDataBySA::WriteErrorObject(Parcel &parcel) const
+{
+    if (!parcel.WriteString(errorObject.name)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Name [%{public}s] write string failed.", errorObject.name.c_str());
+        return false;
+    }
+
+    if (!parcel.WriteString(errorObject.message)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Message [%{public}s] write string failed.", errorObject.message.c_str());
+        return false;
+    }
+    
+    if (!parcel.WriteString(errorObject.stack)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Stack [%{public}s] write string failed.", errorObject.stack.c_str());
+        return false;
     }
     return true;
 }

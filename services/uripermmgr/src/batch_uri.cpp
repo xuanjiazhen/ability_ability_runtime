@@ -34,9 +34,14 @@ int32_t BatchUri::Init(const std::vector<Uri> &uriVec, uint32_t mode, const std:
     result = std::vector<bool>(totalUriCount, false);
     isDocsUriVec = std::vector<bool>(totalUriCount, false);
     isTargetBundleUri = std::vector<bool>(totalUriCount, false);
+    bool isPrintAuthority = true;
     for (size_t index = 0; index < uriVec.size(); index++) {
         auto uriInner = uriVec[index];
         auto &&scheme = uriInner.GetScheme();
+        if (isPrintAuthority) {
+            TAG_LOGI(AAFwkTag::URIPERMMGR, "uri type: %{public}s.", uriInner.GetAuthority().c_str());
+            isPrintAuthority = false;
+        }
         if (scheme != "content" && scheme != "file") {
             TAG_LOGW(AAFwkTag::URIPERMMGR, "uri is invalid: %{private}s.", uriInner.ToString().c_str());
             continue;

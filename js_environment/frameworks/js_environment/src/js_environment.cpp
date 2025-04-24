@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,6 +23,7 @@
 #include "js_environment_impl.h"
 #include "native_engine/impl/ark/ark_native_engine.h"
 #include "uncaught_exception_callback.h"
+#include "worker_info.h"
 
 namespace OHOS {
 namespace JsEnv {
@@ -159,9 +160,9 @@ void JsEnvironment::InitSourceMap(const std::shared_ptr<JsEnv::SourceMapOperator
     };
     engine_->RegisterTranslateBySourceMap(translateBySourceMapFunc);
 
-    auto translateUrlBySourceMapFunc = [&](std::string& url, int& line, int& column) -> bool {
+    auto translateUrlBySourceMapFunc = [&](std::string& url, int& line, int& column, std::string& packageName) -> bool {
         if (sourceMapOperator_ != nullptr && sourceMapOperator_->GetInitStatus()) {
-            return sourceMapOperator_->TranslateUrlPositionBySourceMap(url, line, column);
+            return sourceMapOperator_->TranslateUrlPositionBySourceMap(url, line, column, packageName);
         }
         return false;
     };

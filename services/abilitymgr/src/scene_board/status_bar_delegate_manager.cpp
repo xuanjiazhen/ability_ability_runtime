@@ -34,14 +34,14 @@ sptr<AbilityRuntime::IStatusBarDelegate> StatusBarDelegateManager::GetStatusBarD
     return statusBarDelegate_;
 }
 
-bool StatusBarDelegateManager::IsCallerInStatusBar()
+bool StatusBarDelegateManager::IsCallerInStatusBar(const std::string &instanceKey)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto statusBarDelegate = GetStatusBarDelegate();
     CHECK_POINTER_AND_RETURN(statusBarDelegate, false);
     auto callingTokenId = IPCSkeleton::GetCallingTokenID();
     bool isExist = false;
-    auto ret = statusBarDelegate->CheckIfStatusBarItemExists(callingTokenId, isExist);
+    auto ret = statusBarDelegate->CheckIfStatusBarItemExists(callingTokenId, instanceKey, isExist);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed, ret: %{public}d", ret);
         return false;
@@ -50,19 +50,28 @@ bool StatusBarDelegateManager::IsCallerInStatusBar()
     return isExist;
 }
 
-bool StatusBarDelegateManager::IsInStatusBar(uint32_t accessTokenId)
+bool StatusBarDelegateManager::IsInStatusBar(uint32_t accessTokenId, bool isMultiInstance)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto statusBarDelegate = GetStatusBarDelegate();
     CHECK_POINTER_AND_RETURN(statusBarDelegate, false);
     bool isExist = false;
-    auto ret = statusBarDelegate->CheckIfStatusBarItemExists(accessTokenId, isExist);
+    std::string instanceKey = isMultiInstance ? "app_instance_0" : "";
+    auto ret = statusBarDelegate->CheckIfStatusBarItemExists(accessTokenId, instanceKey, isExist);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed, ret: %{public}d", ret);
         return false;
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "isExist: %{public}d", isExist);
     return isExist;
+}
+
+bool StatusBarDelegateManager::IsSupportStatusBar()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto statusBarDelegate = GetStatusBarDelegate();
+    CHECK_POINTER_AND_RETURN(statusBarDelegate, false);
+    return true;
 }
 
 int32_t StatusBarDelegateManager::DoProcessAttachment(std::shared_ptr<AbilityRecord> abilityRecord)
@@ -116,6 +125,24 @@ int32_t StatusBarDelegateManager::DoCallerProcessAttachment(std::shared_ptr<Abil
         return ret;
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "caller process attach success");
+
+    return ERR_OK;
+}
+
+int32_t StatusBarDelegateManager::DoCallerProcessDetachment(std::shared_ptr<AbilityRecord> abilityRecord)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
+    auto statusBarDelegate = GetStatusBarDelegate();
+    CHECK_POINTER_AND_RETURN(statusBarDelegate, ERR_INVALID_VALUE);
+    auto accessTokenId = abilityRecord->GetApplicationInfo().accessTokenId;
+    auto ret = statusBarDelegate->DetachPidToStatusBarItem(accessTokenId, abilityRecord->GetPid(),
+        abilityRecord->GetInstanceKey());
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed, ret: %{public}d", ret);
+        return ret;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "caller process detach success");
 
     return ERR_OK;
 }

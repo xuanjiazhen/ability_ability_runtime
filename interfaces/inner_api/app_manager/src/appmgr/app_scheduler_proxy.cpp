@@ -134,7 +134,10 @@ void AppSchedulerProxy::ScheduleHeapMemory(const int32_t pid, OHOS::AppExecFwk::
         TAG_LOGE(AAFwkTag::APPMGR, "AppSchedulerProxy !WriteInterfaceToken.");
         return;
     }
-    data.WriteInt32(pid);
+    if (!data.WriteInt32(pid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write pid failed");
+        return;
+    }
     int32_t ret = SendTransactCmd(operation, data, reply, option);
     if (ret != NO_ERROR) {
         TAG_LOGE(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
@@ -160,7 +163,10 @@ void AppSchedulerProxy::ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &i
         TAG_LOGE(AAFwkTag::APPMGR, "AppSchedulerProxy !WriteInterfaceToken.");
         return;
     }
-    data.WriteParcelable(&info);
+    if (!data.WriteParcelable(&info)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write pid failed");
+        return;
+    }
     int32_t ret = SendTransactCmd(operation, data, reply, option);
     if (ret != NO_ERROR) {
         TAG_LOGE(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
@@ -182,7 +188,10 @@ void AppSchedulerProxy::ScheduleMemoryCommon(const int32_t level, const uint32_t
     if (!WriteInterfaceToken(data)) {
         return;
     }
-    data.WriteInt32(level);
+    if (!data.WriteInt32(level)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write pid failed");
+        return;
+    }
     int32_t ret = SendTransactCmd(operation, data, reply, option);
     if (ret != NO_ERROR) {
         TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
@@ -199,7 +208,10 @@ void AppSchedulerProxy::ScheduleLaunchAbility(const AbilityInfo &info, const spt
     if (!WriteInterfaceToken(data)) {
         return;
     }
-    data.WriteParcelable(&info);
+    if (!data.WriteParcelable(&info)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write pid failed");
+        return;
+    }
     if (token) {
         if (!data.WriteBool(true) || !data.WriteRemoteObject(token.GetRefPtr())) {
             TAG_LOGE(AAFwkTag::APPMGR, "Failed to write flag and token");
@@ -288,7 +300,8 @@ void AppSchedulerProxy::ScheduleLaunchApplication(const AppLaunchData &launchDat
     }
 }
 
-void AppSchedulerProxy::ScheduleUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo)
+void AppSchedulerProxy::ScheduleUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo,
+    const std::string& moduleName)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "AppSchedulerProxy ScheduleUpdateApplicationInfoInstalled begin");
     MessageParcel data;
@@ -297,6 +310,9 @@ void AppSchedulerProxy::ScheduleUpdateApplicationInfoInstalled(const Application
     }
     if (!data.WriteParcelable(&appInfo)) {
         return ;
+    }
+    if (!data.WriteString(moduleName)) {
+        return;
     }
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
@@ -355,7 +371,10 @@ void AppSchedulerProxy::ScheduleProfileChanged(const Profile &profile)
     if (!WriteInterfaceToken(data)) {
         return;
     }
-    data.WriteParcelable(&profile);
+    if (!data.WriteParcelable(&profile)) {
+        TAG_LOGD(AAFwkTag::APPMGR, "write profile failed");
+        return;
+    }
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_PROFILE_CHANGED_TRANSACTION), data, reply, option);
     if (ret != NO_ERROR) {
@@ -372,7 +391,10 @@ void AppSchedulerProxy::ScheduleConfigurationUpdated(const Configuration &config
     if (!WriteInterfaceToken(data)) {
         return;
     }
-    data.WriteParcelable(&config);
+    if (!data.WriteParcelable(&config)) {
+        TAG_LOGD(AAFwkTag::APPMGR, "write profile failed");
+        return;
+    }
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_CONFIGURATION_UPDATED), data, reply, option);
     if (ret != NO_ERROR) {
@@ -430,13 +452,12 @@ void AppSchedulerProxy::ScheduleAcceptWant(const AAFwk::Want &want, const std::s
     }
 }
 
-void AppSchedulerProxy::SchedulePrepareTerminate(const std::string &moduleName,
-    int32_t &prepareTermination, bool &isExist)
+void AppSchedulerProxy::SchedulePrepareTerminate(const std::string &moduleName)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option(MessageOption::TF_SYNC);
+    MessageOption option(MessageOption::TF_ASYNC);
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "token write error");
         return;
@@ -456,8 +477,6 @@ void AppSchedulerProxy::SchedulePrepareTerminate(const std::string &moduleName,
         TAG_LOGW(AAFwkTag::APPMGR, "SendRequest SchedulePrepareTerminate err: %{public}d", ret);
         return;
     }
-    prepareTermination = reply.ReadInt32();
-    isExist = reply.ReadBool();
     TAG_LOGD(AAFwkTag::APPMGR, "Get SchedulePrepareTerminate reply success");
 }
 
@@ -639,12 +658,16 @@ int32_t AppSchedulerProxy::ScheduleChangeAppGcState(int32_t state)
     return NO_ERROR;
 }
 
-void AppSchedulerProxy::AttachAppDebug()
+void AppSchedulerProxy::AttachAppDebug(bool isDebugFromLocal)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return;
+    }
+    if (!data.WriteBool(isDebugFromLocal)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write AttachAppDebug isDebugFromLocal failed");
         return;
     }
 
@@ -799,6 +822,28 @@ int32_t AppSchedulerProxy::ScheduleDumpFfrt(std::string& result)
         return DumpErrorCode::ERR_INTERNAL_ERROR;
     }
     return DumpErrorCode::ERR_OK;
+}
+
+void AppSchedulerProxy::SetWatchdogBackgroundStatus(bool status)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    if (!WriteInterfaceToken(data)) {
+        return;
+    }
+    if (!data.WriteBool(status)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write bool failed.");
+        return;
+    }
+    int32_t ret =
+        SendTransactCmd(static_cast<uint32_t>(IAppScheduler::Message::WATCHDOG_BACKGROUND_STATUS_TRANSACTION),
+            data,
+            reply,
+            option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is wrong, error code: %{public}d", ret);
+    }
 }
 
 int32_t AppSchedulerProxy::SendTransactCmd(uint32_t code, MessageParcel &data,

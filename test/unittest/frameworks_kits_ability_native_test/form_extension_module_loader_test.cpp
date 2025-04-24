@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 #include "form_extension_module_loader.h"
 #include "hilog_tag_wrapper.h"
+#include "runtime.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -30,6 +31,17 @@ constexpr char FORM_EXTENSION_MODULE_LIB_PATH[] = "/system/lib64/extensionabilit
 #else
 constexpr char FORM_EXTENSION_MODULE_LIB_PATH[] = "/system/lib64/extensionability/libform_extension_module.z.so";
 #endif
+
+class ExtensionModuleLoaderTest : public ExtensionModuleLoader {
+public:
+    ExtensionModuleLoaderTest() = default;
+    ~ExtensionModuleLoaderTest() = default;
+
+    Extension* Create(const std::unique_ptr<Runtime>& runtime) const override
+    {
+        return nullptr;
+    }
+};
 
 class FormExtensionModuleLoaderTest : public testing::Test {
 public:
@@ -107,6 +119,22 @@ HWTEST_F(FormExtensionModuleLoaderTest, FormExtensionModuleLoader_0300, TestSize
     if (iter != params.end()) {
         EXPECT_STREQ(iter->second.c_str(), "FormExtension");
     }
+    TAG_LOGI(AAFwkTag::TEST, "end");
+}
+
+/**
+ * @tc.name: FormExtensionModuleLoader_0400
+ * @tc.desc: GetParams
+ * @tc.type: FUNC
+ * @tc.require: issueIBIYD4
+ */
+HWTEST_F(FormExtensionModuleLoaderTest, FormExtensionModuleLoader_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "start");
+
+    auto params = std::make_shared<ExtensionModuleLoaderTest>();
+    EXPECT_EQ(params->GetParams().size(), 0);
+
     TAG_LOGI(AAFwkTag::TEST, "end");
 }
 } // namespace AbilityRuntime

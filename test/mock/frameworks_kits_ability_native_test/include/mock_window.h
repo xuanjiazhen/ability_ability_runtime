@@ -45,7 +45,7 @@ public:
     virtual Rect GetRect() const {return g_Rect;}
     virtual Rect GetRequestRect() const {return g_Rect;}
     virtual WindowType GetType() const {return WindowType::APP_WINDOW_BASE;}
-    virtual WindowMode GetMode() const {return WindowMode::WINDOW_MODE_UNDEFINED;}
+    virtual WindowMode GetWindowMode() const {return WindowMode::WINDOW_MODE_UNDEFINED;}
     virtual float GetAlpha() const {return 0;}
     virtual const std::string& GetWindowName() const {return "";}
     virtual uint32_t GetWindowId() const {return 0;}
@@ -68,10 +68,10 @@ public:
     virtual WMError SetWindowFlags(uint32_t flags) {return WMError::WM_OK;}
     virtual WMError SetSystemBarProperty(WindowType type, const SystemBarProperty& property) {return WMError::WM_OK;}
     virtual WMError GetAvoidAreaByType(AvoidAreaType type, AvoidArea& avoidArea,
-        const Rect& rect = {0, 0, 0, 0}) {return WMError::WM_OK;}
+        const Rect& rect = Rect::EMPTY_RECT, int32_t apiVersion = API_VERSION_INVALID) {return WMError::WM_OK;}
     virtual WMError SetLayoutFullScreen(bool status) {return WMError::WM_OK;}
     virtual WMError SetFullScreen(bool status) {return WMError::WM_OK;}
-    virtual WMError Destroy() {return WMError::WM_OK;}
+    virtual WMError Destroy(uint32_t reason = 0) {return WMError::WM_OK;}
     virtual WMError Show(uint32_t reason = 0, bool withAnimation = false,
         bool withFocus = true) {return WMError::WM_OK;}
     virtual WMError Hide(uint32_t reason = 0, bool withAnimation = false,
@@ -160,7 +160,7 @@ public:
     virtual std::string GetContentInfo(BackupAndRestoreType type = BackupAndRestoreType::CONTINUATION) {return "";}
     virtual Ace::UIContent* GetUIContent() const {return nullptr;}
     virtual void OnNewWant(const AAFwk::Want& want) {}
-    virtual void SetRequestedOrientation(Orientation) {}
+    virtual void SetRequestedOrientation(Orientation orientation, bool needAnimation = true) {}
     virtual Orientation GetRequestedOrientation() {return Orientation::BEGIN;}
     virtual void SetRequestModeSupportInfo(uint32_t modeSupportInfo) {}
     virtual uint32_t GetRequestModeSupportInfo() const {return 0;}

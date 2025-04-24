@@ -34,6 +34,12 @@ enum class ApplicationState {
     APP_STATE_CACHED = 100,
 };
 
+enum class WatchdogVisibilityState {
+    WATCHDOG_STATE_READY = 0,
+    WATCHDOG_STATE_VISIBILITY,
+    WATCHDOG_STATE_UNVISIBILITY,
+};
+
 enum class ApplicationPendingState {
     READY = 0,
     FOREGROUNDING,
@@ -94,13 +100,22 @@ enum class AppStartType {
     COLD = 0,
     HOT,
     MULTI_INSTANCE,
-    PROCESS_CACHE_LAUNCH
+    PROCESS_CACHE_LAUNCH,
+    WARM
 };
 
 enum class PreloadMode {
+    PRELOAD_NONE = -1,
     PRESS_DOWN = 0,
     PRE_MAKE = 1,
     PRELOAD_MODULE = 2,
+};
+
+enum class AppStartReason {
+    NONE = 0,
+    PRE_MAKE = 1,
+    PRELOAD_MODULE = 2,
+    SUGGEST_CACHE = 3,
 };
 
 enum class PreloadState {

@@ -115,8 +115,8 @@ bool AppRecovery::InitApplicationInfo(const std::shared_ptr<EventHandler>& mainH
 bool AppRecovery::AddAbility(std::shared_ptr<AbilityRuntime::UIAbility> ability,
     const std::shared_ptr<AbilityInfo>& abilityInfo, const sptr<IRemoteObject>& token)
 {
-    if (abilityInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::RECOVERY, "null abilityInfo");
+    if (abilityInfo == nullptr || ability == nullptr) {
+        TAG_LOGE(AAFwkTag::RECOVERY, "null abilityInfo or ability");
         return false;
     }
 
@@ -159,9 +159,15 @@ bool AppRecovery::RemoveAbility(const sptr<IRemoteObject>& tokenId)
     return true;
 }
 
-bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
+void AppRecovery::SetFreezeCallback(FreezeFunction freezeCallback)
 {
-    TAG_LOGD(AAFwkTag::RECOVERY, "begin");
+    if (!this->freezeCallback) {
+        this->freezeCallback = freezeCallback;
+    }
+}
+
+bool AppRecovery::IsNeedSaveAppState(StateReason reason)
+{
     if (!isEnable_) {
         TAG_LOGE(AAFwkTag::RECOVERY, "not enabled");
         return false;
@@ -169,6 +175,16 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
 
     if (!ShouldSaveAppState(reason)) {
         TAG_LOGE(AAFwkTag::RECOVERY, "not save ability state");
+        return false;
+    }
+    return true;
+}
+
+bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
+{
+    TAG_LOGI(AAFwkTag::RECOVERY, "begin");
+    bool ret = IsNeedSaveAppState(reason);
+    if (!ret && this->freezeCallback ==  nullptr) {
         return false;
     }
 
@@ -186,9 +202,19 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
 #ifdef SUPPORT_SCREEN
         OHOS::AbilityRuntime::JsUIAbility& jsAbility = static_cast<AbilityRuntime::JsUIAbility&>(*abilityPtr);
         AbilityRuntime::JsRuntime& runtime = const_cast<AbilityRuntime::JsRuntime&>(jsAbility.GetJsRuntime());
-        auto& nativeEngine = runtime.GetNativeEngine();
-        nativeEngine.AllowCrossThreadExecution();
+        panda::ecmascript::EcmaVM* vm = runtime.GetEcmaVm();
+        if (!panda::JSNApi::CheckAndSetAllowCrossThreadExecution(vm)) {
+            TAG_LOGE(AAFwkTag::RECOVERY, "VM is in gc process");
+            return false;
+        }
 #endif
+        if (this->freezeCallback) {
+            this->freezeCallback();
+            TAG_LOGW(AAFwkTag::RECOVERY, "Freeze callback execution completed");
+        }
+        if (!ret) {
+            return false;
+        }
         AppRecovery::GetInstance().DoSaveAppState(reason, ability);
         return true;
     }

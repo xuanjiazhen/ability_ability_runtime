@@ -18,16 +18,14 @@
 
 #include <memory>
 
-#include "bundle_manager_convert.h"
-#include "cj_macro.h"
-#include "cj_ability_stage_context.h"
-#include "cj_application_context.h"
-#include "ability_runtime/cj_ability_context.h"
+#include "ffi_remote_data.h"
 
 namespace OHOS {
+namespace AbilityRuntime {
+class Context;
+}
 namespace FfiContext {
 using namespace OHOS::AbilityRuntime;
-using namespace OHOS::CJSystemapi::BundleManager;
 
 class CJContext : public FFI::FFIData {
 public:
@@ -39,24 +37,6 @@ public:
     }
 private:
     std::shared_ptr<AbilityRuntime::Context> context_;
-};
-
-extern "C" {
-CJ_EXPORT void* FfiContextGetContext(int64_t id, int32_t type);
-CJ_EXPORT RetApplicationInfo FfiContextGetApplicationInfo(int64_t id, int32_t type);
-CJ_EXPORT char* FfiContextGetFilesDir(int64_t id, int32_t type);
-CJ_EXPORT char* FfiContextGetCacheDir(int64_t id, int32_t type);
-CJ_EXPORT char* FfiContextGetTempDir(int64_t id, int32_t type);
-CJ_EXPORT char* FfiContextGetResourceDir(int64_t id, int32_t type);
-CJ_EXPORT char* FfiContextGetDatabaseDir(int64_t id, int32_t type);
-CJ_EXPORT char* FfiContextGetPreferencesDir(int64_t id, int32_t type);
-CJ_EXPORT char* FfiContextGetBundleCodeDir(int64_t id, int32_t type);
-CJ_EXPORT char* FfiContextGetDistributedFilesDir(int64_t id, int32_t type);
-CJ_EXPORT char* FfiContextGetCloudFileDir(int64_t id, int32_t type);
-CJ_EXPORT int32_t FfiContextGetArea(int64_t id, int32_t type);
-CJ_EXPORT int64_t FfiContextGetApplicationContext();
-CJ_EXPORT char* FfiContextGetGroupDir(int64_t id, int32_t type, char* groupId);
-CJ_EXPORT int64_t FfiContextCreateModuleContext(int64_t id, int32_t type, char* moduleName);
 };
 }
 }

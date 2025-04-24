@@ -28,9 +28,9 @@ struct VerificationInfo {
     bool visible = false;
     bool isBackgroundCall = true;
     bool associatedWakeUp = false;
+    bool withContinuousTask = false;
     uint32_t accessTokenId = 0;
     int32_t apiTargetVersion = 0;
-    bool withContinuousTask = false;
     uint32_t specifyTokenId = 0;
 };
 
@@ -116,6 +116,14 @@ struct VerificationInfo {
     bool VerifyStartUIAbilityToHiddenPermission() const;
 
     bool VerifySuperviseKiaServicePermission() const;
+
+    bool VerifyStartLocalDebug(int32_t tokenId) const;
+
+    bool VerifyStartSelfUIAbility(int tokenId) const;
+
+    bool VerifyFusionAccessPermission() const;
+
+    bool VerifyCustomSandbox(uint32_t accessTokenId) const;
 
 private:
     DISALLOW_COPY_AND_MOVE(PermissionVerification);

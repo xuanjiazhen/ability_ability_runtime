@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -70,14 +70,14 @@ int AppScheduler::LoadAbility(const AbilityRuntime::LoadParam &loadParam, const 
     const AppExecFwk::ApplicationInfo &applicationInfo, const Want &want)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
     CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
     /* because the errcode type of AppMgr Client API will be changed to int,
      * so must to covert the return result  */
     int ret = static_cast<int>(IN_PROCESS_CALL(
         appMgrClient_->LoadAbility(abilityInfo, applicationInfo, want, loadParam)));
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "AppScheduler fail to LoadAbility. ret %d", ret);
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "AppScheduler fail to LoadAbility. ret %d", ret);
         return INNER_ERR;
     }
     return ERR_OK;
@@ -98,11 +98,12 @@ int AppScheduler::TerminateAbility(const sptr<IRemoteObject> &token, bool clearM
     return ERR_OK;
 }
 
-int AppScheduler::UpdateApplicationInfoInstalled(const std::string &bundleName, const int32_t uid)
+int AppScheduler::UpdateApplicationInfoInstalled(const std::string &bundleName, const int32_t uid,
+    const std::string &moduleName, bool isPlugin)
 {
     CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Start to update the application info after new module installed.");
-    int ret = (int)appMgrClient_->UpdateApplicationInfoInstalled(bundleName, uid);
+    int ret = (int)appMgrClient_->UpdateApplicationInfoInstalled(bundleName, uid, moduleName, isPlugin);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "fail to UpdateApplicationInfoInstalled");
         return INNER_ERR;
@@ -150,18 +151,20 @@ void AppScheduler::KillProcessByAbilityToken(const sptr<IRemoteObject> &token)
     appMgrClient_->KillProcessByAbilityToken(token);
 }
 
-void AppScheduler::KillProcessesByUserId(int32_t userId)
+void AppScheduler::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg,
+    sptr<AAFwk::IUserCallback> callback)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "user id: %{public}d", userId);
+    TAG_LOGI(
+        AAFwkTag::ABILITYMGR, "user id: %{public}d isNeedSendAppSpawnMsg: %{public}d", userId, isNeedSendAppSpawnMsg);
     CHECK_POINTER(appMgrClient_);
-    appMgrClient_->KillProcessesByUserId(userId);
+    appMgrClient_->KillProcessesByUserId(userId, isNeedSendAppSpawnMsg, callback);
 }
 
-void AppScheduler::KillProcessesByPids(std::vector<int32_t> &pids)
+void AppScheduler::KillProcessesByPids(const std::vector<int32_t> &pids, const std::string &reason)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
     CHECK_POINTER(appMgrClient_);
-    appMgrClient_->KillProcessesByPids(pids);
+    appMgrClient_->KillProcessesByPids(pids, reason);
 }
 
 void AppScheduler::AttachPidToParent(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &callerToken)
@@ -227,6 +230,22 @@ void AppScheduler::OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abili
     auto callback = callback_.lock();
     CHECK_POINTER(callback);
     callback->OnAppRemoteDied(abilityTokens);
+}
+
+void AppScheduler::OnStartProcessFailed(sptr<IRemoteObject> token)
+{
+    auto callback = callback_.lock();
+    CHECK_POINTER(callback);
+    callback->OnStartProcessFailed(token);
+}
+
+void AppScheduler::OnCacheExitInfo(uint32_t accessTokenId, const AAFwk::LastExitDetailInfo &exitInfo,
+    const std::string &bundleName, const std::vector<std::string> &abilityNames,
+    const std::vector<std::string> &uiExtensionNames)
+{
+    auto callback = callback_.lock();
+    CHECK_POINTER(callback);
+    callback->OnCacheExitInfo(accessTokenId, exitInfo, bundleName, abilityNames, uiExtensionNames);
 }
 
 void AppScheduler::NotifyAppPreCache(int32_t pid, int32_t userId)
@@ -336,6 +355,13 @@ void AppScheduler::GetRunningProcessInfoByPid(const pid_t pid, OHOS::AppExecFwk:
     IN_PROCESS_CALL_WITHOUT_RET(appMgrClient_->GetRunningProcessInfoByPid(pid, info));
 }
 
+void AppScheduler::GetRunningProcessInfoByChildProcessPid(const pid_t childPid,
+    OHOS::AppExecFwk::RunningProcessInfo &info) const
+{
+    CHECK_POINTER(appMgrClient_);
+    IN_PROCESS_CALL_WITHOUT_RET(appMgrClient_->GetRunningProcessInfoByChildProcessPid(childPid, info));
+}
+
 void AppScheduler::SetAbilityForegroundingFlagToAppRecord(const pid_t pid) const
 {
     CHECK_POINTER(appMgrClient_);
@@ -361,15 +387,15 @@ void StartSpecifiedAbilityResponse::OnAcceptWantResponse(
     DelayedSingleton<AbilityManagerService>::GetInstance()->OnAcceptWantResponse(want, flag, requestId);
 }
 
-void AppScheduler::PrepareTerminateApp(const pid_t pid, int32_t &prepareTermination, bool &isExist)
+void AppScheduler::PrepareTerminateApp(const pid_t pid, const std::string &moduleName)
 {
     CHECK_POINTER(appMgrClient_);
-    appMgrClient_->PrepareTerminateApp(pid, prepareTermination, isExist);
+    IN_PROCESS_CALL_WITHOUT_RET(appMgrClient_->PrepareTerminateApp(pid, moduleName));
 }
 
-void StartSpecifiedAbilityResponse::OnTimeoutResponse(const AAFwk::Want &want, int32_t requestId)
+void StartSpecifiedAbilityResponse::OnTimeoutResponse(int32_t requestId)
 {
-    DelayedSingleton<AbilityManagerService>::GetInstance()->OnStartSpecifiedAbilityTimeoutResponse(want, requestId);
+    DelayedSingleton<AbilityManagerService>::GetInstance()->OnStartSpecifiedAbilityTimeoutResponse(requestId);
 }
 
 void AppScheduler::StartSpecifiedProcess(
@@ -379,15 +405,19 @@ void AppScheduler::StartSpecifiedProcess(
     IN_PROCESS_CALL_WITHOUT_RET(appMgrClient_->StartSpecifiedProcess(want, abilityInfo, requestId));
 }
 
-void StartSpecifiedAbilityResponse::OnNewProcessRequestResponse(
-    const AAFwk::Want &want, const std::string &flag, int32_t requestId)
+void StartSpecifiedAbilityResponse::OnNewProcessRequestResponse(const std::string &flag, int32_t requestId)
 {
-    DelayedSingleton<AbilityManagerService>::GetInstance()->OnStartSpecifiedProcessResponse(want, flag, requestId);
+    DelayedSingleton<AbilityManagerService>::GetInstance()->OnStartSpecifiedProcessResponse(flag, requestId);
 }
 
-void StartSpecifiedAbilityResponse::OnNewProcessRequestTimeoutResponse(const AAFwk::Want &want, int32_t requestId)
+void StartSpecifiedAbilityResponse::OnNewProcessRequestTimeoutResponse(int32_t requestId)
 {
-    DelayedSingleton<AbilityManagerService>::GetInstance()->OnStartSpecifiedProcessTimeoutResponse(want, requestId);
+    DelayedSingleton<AbilityManagerService>::GetInstance()->OnStartSpecifiedProcessTimeoutResponse(requestId);
+}
+
+void StartSpecifiedAbilityResponse::OnStartSpecifiedFailed(int32_t requestId)
+{
+    DelayedSingleton<AbilityManagerService>::GetInstance()->OnStartSpecifiedFailed(requestId);
 }
 
 int AppScheduler::GetProcessRunningInfos(std::vector<AppExecFwk::RunningProcessInfo> &info)
@@ -550,10 +580,10 @@ int32_t AppScheduler::UnregisterAppDebugListener(const sptr<AppExecFwk::IAppDebu
     return ERR_OK;
 }
 
-int32_t AppScheduler::AttachAppDebug(const std::string &bundleName)
+int32_t AppScheduler::AttachAppDebug(const std::string &bundleName, bool isDebugFromLocal)
 {
     CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
-    auto ret = static_cast<int32_t>(appMgrClient_->AttachAppDebug(bundleName));
+    auto ret = static_cast<int32_t>(appMgrClient_->AttachAppDebug(bundleName, isDebugFromLocal));
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "attach app debug failed");
         return INNER_ERR;
@@ -608,6 +638,15 @@ bool AppScheduler::IsMemorySizeSufficent() const
         return true;
     }
     return appMgrClient_->IsMemorySizeSufficent();
+}
+
+bool AppScheduler::IsNoRequireBigMemory() const
+{
+    if (!appMgrClient_) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null appMgrClient");
+        return true;
+    }
+    return appMgrClient_->IsNoRequireBigMemory();
 }
 
 void AppScheduler::AttachedToStatusBar(const sptr<IRemoteObject> &token)
@@ -668,12 +707,6 @@ bool AppScheduler::IsCallerKilling(const std::string& callerKey) const
         return false;
     }
     return appMgrClient_->IsCallerKilling(callerKey);
-}
-
-void AppScheduler::SendAppSpawnUninstallDebugHapMsg(int32_t userId)
-{
-    CHECK_POINTER(appMgrClient_);
-    IN_PROCESS_CALL_WITHOUT_RET(appMgrClient_->SendAppSpawnUninstallDebugHapMsg(userId));
 }
 
 void AppScheduler::SetProcessCacheStatus(int32_t pid, bool isSupport)

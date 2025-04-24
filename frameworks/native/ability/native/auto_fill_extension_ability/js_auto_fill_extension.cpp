@@ -220,7 +220,7 @@ void JsAutoFillExtension::BindContext(napi_env env, napi_value obj)
 
 void JsAutoFillExtension::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
 {
-    TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "called");
+    TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "OnStart");
     Extension::OnStart(want);
     HandleScope handleScope(jsRuntime_);
     napi_env env = jsRuntime_.GetNapiEnv();
@@ -231,7 +231,7 @@ void JsAutoFillExtension::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionIn
 
 void JsAutoFillExtension::OnStop()
 {
-    TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "called");
+    TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "OnStop");
     AutoFillExtension::OnStop();
     HandleScope handleScope(jsRuntime_);
     CallObjectMethod("onDestroy");
@@ -494,6 +494,7 @@ bool JsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, const sp
         return false;
     }
     auto obj = sessionInfo->sessionToken;
+    std::shared_ptr<AAFwk::Want> sharedWant = std::make_shared<AAFwk::Want>(want);
     if (uiWindowMap_.find(obj) == uiWindowMap_.end()) {
         sptr<Rosen::WindowOption> option = new Rosen::WindowOption();
         auto context = GetContext();
@@ -511,6 +512,11 @@ bool JsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, const sp
         option->SetDensity(sessionInfo->density);
         option->SetIsDensityFollowHost(sessionInfo->isDensityFollowHost);
         option->SetDisplayId(sessionInfo->displayId);
+        if (context->isNotAllow != -1) {
+            bool isNotAllow = context->isNotAllow == 1 ? true : false;
+            TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "isNotAllow: %{public}d", isNotAllow);
+            option->SetConstrainedModal(isNotAllow);
+        }
         sptr<Rosen::Window> uiWindow;
         {
             HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::Create");
@@ -520,6 +526,7 @@ bool JsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, const sp
             TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null uiWindow");
             return false;
         }
+        uiWindow->UpdateExtensionConfig(sharedWant);
         HandleScope handleScope(jsRuntime_);
         napi_env env = jsRuntime_.GetNapiEnv();
         napi_value nativeContentSession =
@@ -528,12 +535,19 @@ bool JsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, const sp
         napi_create_reference(env, nativeContentSession, 1, &ref);
         contentSessions_.emplace(
             obj, std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference*>(ref)));
-        CallJsOnRequest(want, sessionInfo, uiWindow);
+        CallJsOnRequest(*sharedWant, sessionInfo, uiWindow);
         uiWindowMap_[obj] = uiWindow;
         context->SetSessionInfo(sessionInfo);
 #ifdef SUPPORT_GRAPHICS
         context->SetWindow(uiWindow);
 #endif // SUPPORT_GRAPHICS
+    } else {
+        auto uiWindow = uiWindowMap_[obj];
+        if (uiWindow == nullptr) {
+            TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null uiWindow");
+            return false;
+        }
+        uiWindow->UpdateExtensionConfig(sharedWant);        
     }
     return true;
 }

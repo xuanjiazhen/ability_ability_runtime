@@ -51,20 +51,20 @@ public:
     void SetCanceled();
     bool GetCanceled();
     std::list<sptr<IWantReceiver>> GetCancelCallbacks();
+    void BuildSendWant(SenderInfo &senderInfo, Want &want);
 
 private:
-    void BuildSendWant(SenderInfo &senderInfo, Want &want);
     int32_t ExecuteOperation(
         std::shared_ptr<PendingWantManager> pendingWantManager, SenderInfo &senderInfo, Want &want);
     void CheckAppInstanceKey(const std::string& bundleName, WantParams &wantParams);
 
 private:
-    std::weak_ptr<PendingWantManager> pendingWantManager_ = {};
+    bool canceled_ = false;
     int32_t uid_ = 0;
     int32_t callerUid_ = 0;
     int32_t callerTokenId_ = 0;
     sptr<IRemoteObject> callerToken_ = {};
-    bool canceled_ = false;
+    std::weak_ptr<PendingWantManager> pendingWantManager_ = {};
     std::shared_ptr<PendingWantKey> key_ = {};
     std::list<sptr<IWantReceiver>> mCancelCallbacks_ = {};
     ffrt::mutex lock_ = {};

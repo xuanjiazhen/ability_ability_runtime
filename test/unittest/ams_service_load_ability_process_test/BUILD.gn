@@ -14,9 +14,10 @@
 import("//build/test.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
-module_output_path = "ability_runtime/appmgrservice"
+module_output_path = "ability_runtime/ability_runtime/appmgrservice"
 
 ohos_unittest("AmsServiceLoadAbilityProcessTest") {
+  use_exceptions = true
   module_out_path = module_output_path
   cflags_cc = []
   include_dirs = [
@@ -45,7 +46,9 @@ ohos_unittest("AmsServiceLoadAbilityProcessTest") {
     "${ability_runtime_services_path}/appmgr/src/exit_resident_process_manager.cpp",
     "${ability_runtime_services_path}/appmgr/src/killing_process_manager.cpp",
     "${ability_runtime_services_path}/appmgr/src/module_running_record.cpp",
+    "${ability_runtime_services_path}/appmgr/src/multi_user_config_mgr.cpp",
     "${ability_runtime_services_path}/appmgr/src/remote_client_manager.cpp",
+    "${ability_runtime_services_path}/appmgr/src/render_record.cpp",
     "${ability_runtime_services_path}/appmgr/src/render_state_observer_manager.cpp",
     "${ability_runtime_services_path}/appmgr/src/user_record_manager.cpp",
     "${ability_runtime_services_path}/appmgr/src/window_focus_changed_listener.cpp",
@@ -97,6 +100,7 @@ ohos_unittest("AmsServiceLoadAbilityProcessTest") {
     "kv_store:distributeddata_mgr",
     "memmgr:memmgrclient",
     "memory_utils:libmeminfo",
+    "os_account:os_account_innerkits",
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",

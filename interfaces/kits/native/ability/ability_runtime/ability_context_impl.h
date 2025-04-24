@@ -19,6 +19,8 @@
 #include "ability_context.h"
 
 #include <uv.h>
+#include <vector>
+#include <unordered_map>
 
 #include "context_impl.h"
 #include "configuration.h"
@@ -53,6 +55,11 @@ public:
     std::string GetBundleName() const override;
     std::shared_ptr<AppExecFwk::ApplicationInfo> GetApplicationInfo() const override;
     std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager() const override;
+    void SetAbilityResourceManager(std::shared_ptr<Global::Resource::ResourceManager> abilityResourceMgr) override;
+    void RegisterAbilityConfigUpdateCallback(AbilityConfigUpdateCallback abilityConfigUpdateCallback) override;
+    std::shared_ptr<AppExecFwk::Configuration> GetAbilityConfiguration() const override;
+    void SetAbilityConfiguration(const AppExecFwk::Configuration &config) override;
+    void SetAbilityColorMode(int32_t colorMode) override;
     std::shared_ptr<Context> CreateBundleContext(const std::string &bundleName) override;
     std::shared_ptr<Context> CreateModuleContext(const std::string &moduleName) override;
     std::shared_ptr<Context> CreateModuleContext(const std::string &bundleName, const std::string &moduleName) override;
@@ -267,6 +274,15 @@ public:
      */
     ErrCode SetMissionIcon(const std::shared_ptr<OHOS::Media::PixelMap> &icon) override;
 
+     /**
+     * @brief Set ability label and icon of this ability.
+     *
+     * @param label the label of this ability.
+     * @param icon the icon of this ability.
+     * @return Returns ERR_OK if success.
+     */
+    ErrCode SetAbilityInstanceInfo(const std::string& label, std::shared_ptr<OHOS::Media::PixelMap> icon) override;
+
     /**
      * @brief get current window mode.
      *
@@ -298,7 +314,55 @@ public:
     ErrCode CreateModalUIExtensionWithApp(const Want &want) override;
     void EraseUIExtension(int32_t sessionId) override;
     bool IsUIExtensionExist(const AAFwk::Want &want);
+    ErrCode RevokeDelegator() override;
+    inline bool GetHookOff() override
+    {
+        return hookOff_;
+    }
+    inline void SetHookOff(bool hookOff) override
+    {
+        hookOff_ = hookOff;
+    }
+    bool IsHook() override
+    {
+        return isHook_;
+    }
+    void SetHook(bool isHook) override
+    {
+        isHook_ = isHook;
+    }
 #endif
+
+    /**
+     * @brief Add CompletioHandler.
+     *
+     * @param requestId, the requestId.
+     * @param onRequestSucc, the callback ot be called upon request success.
+     * @param onRequestFail, the callback ot be called upon request failure.
+     * @return ERR_OK on success, otherwise failure.
+     */
+    ErrCode AddCompletionHandler(const std::string &requestId, OnRequestResult onRequestSucc,
+        OnRequestResult onRequestFail) override;
+
+    /**
+     * @brief Callback on request success.
+     *
+     * @param requestId, the requestId.
+     * @param element, the want element of startAbility.
+     * @param message, the message returned to the callback.
+     */
+    void OnRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message) override;
+
+    /**
+     * @brief Callback on request failure.
+     *
+     * @param requestId, the requestId.
+     * @param element, the want element of startAbility.
+     * @param message, the message returned to the callback.
+     */
+    void OnRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message) override;
 
 private:
     sptr<IRemoteObject> token_ = nullptr;
@@ -317,11 +381,29 @@ private:
     std::mutex uiExtensionMutex_;
     std::map<int32_t, Want> uiExtensionMap_;
     std::atomic<bool> restoreEnabled_ = false;
+    std::shared_ptr<Global::Resource::ResourceManager> abilityResourceMgr_ = nullptr;
+    AbilityConfigUpdateCallback abilityConfigUpdateCallback_ = nullptr;
+    std::shared_ptr<AppExecFwk::Configuration> abilityConfiguration_ = nullptr;
+    bool isHook_ = false;
+    bool hookOff_ = false;
 
     static void RequestDialogResultJSThreadWorker(uv_work_t* work, int status);
     void OnAbilityResultInner(int requestCode, int resultCode, const AAFwk::Want &resultData);
     sptr<IRemoteObject> GetSessionToken();
     void SetWindowRectangleParams(AAFwk::Want &want);
+
+    struct OnRequestResultElement {
+        std::string requestId_;
+        OnRequestResult onRequestSuccess_;
+        OnRequestResult onRequestFailure_;
+
+        OnRequestResultElement(const std::string &requestId, OnRequestResult onRequestSucc,
+            OnRequestResult onRequestFail) : requestId_(requestId), onRequestSuccess_(onRequestSucc),
+            onRequestFailure_(onRequestFail)
+        {}
+    };
+    std::mutex onRequestResultMutex_;
+    std::vector<OnRequestResultElement> onRequestResults_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

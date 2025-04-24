@@ -24,6 +24,7 @@
 #include "common_event_support.h"
 #include "exit_resident_process_manager.h"
 #include "freeze_util.h"
+#include "global_constant.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "killing_process_manager.h"
@@ -40,13 +41,16 @@
 #include "app_mgr_service_dump_error_code.h"
 #include "cache_process_manager.h"
 #include "res_sched_util.h"
+#include "task_handler_wrap.h"
+#include "time_util.h"
 #include "ui_extension_utils.h"
 
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
-    constexpr int32_t QUICKFIX_UID = 5524;
-    constexpr char DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
+constexpr int32_t QUICKFIX_UID = 5524;
+constexpr int32_t DEAD_APP_RECORD_CLEAR_TIME = 3000; // ms
+constexpr const char* DEVELOPER_MODE_STATE = "const.security.developermode.state";
 }
 using EventFwk::CommonEventSupport;
 
@@ -124,7 +128,8 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExis
             (pair.second->GetCustomProcessFlag() == customProcessFlag) &&
             (pair.second->GetSignCode() == signCode) && (pair.second->GetProcessName() == processName) &&
             (pair.second->GetJointUserId() == jointUserId) && !(pair.second->IsTerminating()) &&
-            !(pair.second->IsKilling()) && !(pair.second->GetRestartAppFlag());
+            !(pair.second->IsKilling()) && !(pair.second->GetRestartAppFlag()) &&
+            (pair.second->GetKillReason() != AbilityRuntime::GlobalConstant::LOW_MEMORY_KILL);
     };
     auto appRunningMap = GetAppRunningRecordMap();
     if (!jointUserId.empty()) {
@@ -137,15 +142,20 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExis
             (specifiedProcessFlag.empty() || appRecord->GetSpecifiedProcessFlag() == specifiedProcessFlag) &&
             (appRecord->GetCustomProcessFlag() == customProcessFlag) &&
             !(appRecord->IsTerminating()) && !(appRecord->IsKilling()) && !(appRecord->GetRestartAppFlag()) &&
-            !(appRecord->IsUserRequestCleaning()) && !(appRecord->IsCaching() && appRecord->GetProcessCacheBlocked())) {
+            !(appRecord->IsUserRequestCleaning()) &&
+            !(appRecord->IsCaching() && appRecord->GetProcessCacheBlocked()) &&
+            appRecord->GetKillReason() != AbilityRuntime::GlobalConstant::LOW_MEMORY_KILL) {
             auto appInfoList = appRecord->GetAppInfoList();
             TAG_LOGD(AAFwkTag::APPMGR,
                 "appInfoList: %{public}zu, processName: %{public}s, specifiedProcessFlag: %{public}s, \
                  customProcessFlag: %{public}s",
                 appInfoList.size(), appRecord->GetProcessName().c_str(), specifiedProcessFlag.c_str(),
                 customProcessFlag.c_str());
-            auto isExist = [&appName, &uid](const std::shared_ptr<ApplicationInfo> &appInfo) {
+            auto isExist = [&appName, &uid, &appRecord](const std::shared_ptr<ApplicationInfo> &appInfo) {
                 TAG_LOGD(AAFwkTag::APPMGR, "appInfo->name: %{public}s", appInfo->name.c_str());
+                if (appInfo->bundleType == BundleType::APP_PLUGIN) {
+                    return appRecord->GetUid() == uid;
+                }
                 return appInfo->name == appName && appInfo->uid == uid;
             };
             auto appInfoIter = std::find_if(appInfoList.begin(), appInfoList.end(), isExist);
@@ -333,6 +343,7 @@ bool AppRunningManager::GetPidsByUserId(int32_t userId, std::list<pid_t> &pids)
             int32_t id = -1;
             if ((DelayedSingleton<OsAccountManagerWrapper>::GetInstance()->
                 GetOsAccountLocalIdFromUid(appRecord->GetUid(), id) == 0) && (id == userId)) {
+                TAG_LOGD(AAFwkTag::APPMGR, "GetOsAccountLocalIdFromUid id: %{public}d", id);
                 pid_t pid = appRecord->GetPid();
                 if (pid > 0) {
                     pids.push_back(pid);
@@ -345,7 +356,36 @@ bool AppRunningManager::GetPidsByUserId(int32_t userId, std::list<pid_t> &pids)
     return (!pids.empty());
 }
 
-int32_t AppRunningManager::ProcessUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo)
+bool AppRunningManager::GetProcessInfosByUserId(int32_t userId, std::list<SimpleProcessInfo> &processInfos)
+{
+    auto appRunningMap = GetAppRunningRecordMap();
+    for (const auto &item : appRunningMap) {
+        const auto &appRecord = item.second;
+        if (appRecord == nullptr) {
+            continue;
+        }
+        int32_t id = -1;
+        if ((DelayedSingleton<OsAccountManagerWrapper>::GetInstance()->
+            GetOsAccountLocalIdFromUid(appRecord->GetUid(), id) == 0) && (id == userId)) {
+            TAG_LOGD(AAFwkTag::APPMGR, "GetOsAccountLocalIdFromUid id: %{public}d", id);
+            pid_t pid = appRecord->GetPid();
+            if (pid > 0) {
+                auto processInfo = SimpleProcessInfo(pid, appRecord->GetProcessName());
+                processInfos.emplace_back(processInfo);
+                appRecord->GetRenderProcessInfos(processInfos);
+                #ifdef SUPPORT_CHILD_PROCESS
+                appRecord->GetChildProcessInfos(processInfos);
+                #endif // SUPPORT_CHILD_PROCESS
+                appRecord->ScheduleProcessSecurityExit();
+            }
+        }
+    }
+
+    return (!processInfos.empty());
+}
+
+int32_t AppRunningManager::ProcessUpdateApplicationInfoInstalled(
+    const ApplicationInfo& appInfo, const std::string& moduleName)
 {
     auto appRunningMap = GetAppRunningRecordMap();
     int32_t result = ERR_OK;
@@ -355,9 +395,16 @@ int32_t AppRunningManager::ProcessUpdateApplicationInfoInstalled(const Applicati
             continue;
         }
         auto appInfoList = appRecord->GetAppInfoList();
+        if (appInfo.bundleType == BundleType::APP_PLUGIN) {
+            if (appRecord->GetUid() == appInfo.uid) {
+                TAG_LOGI(AAFwkTag::APPMGR, "UpdateApplicationInfoInstalled: %{public}s", moduleName.c_str());
+                appRecord->UpdateApplicationInfoInstalled(appInfo, moduleName);
+                continue;
+            }
+        }
         for (auto iter : appInfoList) {
             if (iter->bundleName == appInfo.bundleName && iter->uid == appInfo.uid) {
-                appRecord->UpdateApplicationInfoInstalled(appInfo);
+                appRecord->UpdateApplicationInfoInstalled(appInfo, moduleName);
                 break;
             }
         }
@@ -505,10 +552,6 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::OnRemoteDied(const wptr<IRe
     std::shared_ptr<AppMgrServiceInner> appMgrServiceInner)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
-    if (remote == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "null remote");
-        return nullptr;
-    }
     sptr<IRemoteObject> object = remote.promote();
     if (!object) {
         TAG_LOGE(AAFwkTag::APPMGR, "null object");
@@ -532,6 +575,7 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::OnRemoteDied(const wptr<IRe
         appRecord = iter->second;
         appRunningRecordMap_.erase(iter);
     }
+    AddRecordToDeadList(appRecord);
     if (appRecord != nullptr) {
         {
             std::lock_guard guard(updateConfigurationDelayedLock_);
@@ -659,11 +703,16 @@ void AppRunningManager::HandleAbilityAttachTimeOut(const sptr<IRemoteObject> &to
         }
         appRecord->StateChangedNotifyObserver(abilityRecord, static_cast<int32_t>(
             AbilityState::ABILITY_STATE_TERMINATED), true, false);
+        //UIExtension notifies Extension & Ability state changes
+        if (AAFwk::UIExtensionUtils::IsUIExtension(appRecord->GetExtensionType())) {
+            appRecord->StateChangedNotifyObserver(abilityRecord,
+                static_cast<int32_t>(ExtensionState::EXTENSION_STATE_TERMINATED), false, false);
+        }
     }
 
     if ((isPage || appRecord->IsLastAbilityRecord(token)) && (!appRecord->IsKeepAliveApp() ||
         !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient())) {
-        appRecord->SetTerminating(shared_from_this());
+        appRecord->SetTerminating();
     }
 
     std::weak_ptr<AppRunningRecord> appRecordWptr(appRecord);
@@ -709,7 +758,7 @@ void AppRunningManager::PrepareTerminate(const sptr<IRemoteObject> &token, bool 
             return;
         }
         TAG_LOGI(AAFwkTag::APPMGR, "ability is the last:%{public}s", appRecord->GetName().c_str());
-        appRecord->SetTerminating(shared_from_this());
+        appRecord->SetTerminating();
         std::string killReason = clearMissionFlag ? "Kill Reason:ClearSession" : "";
         appRecord->SetKillReason(killReason);
     }
@@ -751,7 +800,7 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
             CommonEventSupport::COMMON_EVENT_PACKAGE_RESTARTED);
         };
 
-    if (clearMissionFlag && appRecord->IsDebugApp()) {
+    if (clearMissionFlag && appRecord->IsDebug()) {
         killProcess();
         return;
     }
@@ -785,7 +834,7 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
             return;
         }
         TAG_LOGI(AAFwkTag::APPMGR, "Terminate last ability in app:%{public}s.", appRecord->GetName().c_str());
-        appRecord->SetTerminating(shared_from_this());
+        appRecord->SetTerminating();
         if (clearMissionFlag && appMgrServiceInner != nullptr) {
             auto delayTime = appRecord->ExtensionAbilityRecordExists() ?
                 AMSEventHandler::DELAY_KILL_EXTENSION_PROCESS_TIMEOUT : AMSEventHandler::DELAY_KILL_PROCESS_TIMEOUT;
@@ -831,6 +880,21 @@ int32_t AppRunningManager::GetRunningProcessInfoByPid(const pid_t pid, OHOS::App
     return AssignRunningProcessInfoByAppRecord(appRecord, info);
 }
 
+int32_t AppRunningManager::GetRunningProcessInfoByChildProcessPid(const pid_t childPid,
+    OHOS::AppExecFwk::RunningProcessInfo &info)
+{
+    if (childPid <= 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid process pid:%{public}d", childPid);
+        return ERR_INVALID_OPERATION;
+    }
+    auto appRecord = GetAppRunningRecordByPid(childPid);
+    if (appRecord == nullptr) {
+        TAG_LOGI(AAFwkTag::APPMGR, "null appRecord, try get by child pid");
+        appRecord = GetAppRunningRecordByChildProcessPid(childPid);
+    }
+    return AssignRunningProcessInfoByAppRecord(appRecord, info);
+}
+
 int32_t AppRunningManager::AssignRunningProcessInfoByAppRecord(
     std::shared_ptr<AppRunningRecord> appRecord, AppExecFwk::RunningProcessInfo &info) const
 {
@@ -862,6 +926,8 @@ int32_t AppRunningManager::AssignRunningProcessInfoByAppRecord(
     }
     info.appCloneIndex = appRecord->GetAppIndex();
     info.instanceKey = appRecord->GetInstanceKey();
+    info.rssValue = appRecord->GetRssValue();
+    info.pssValue = appRecord->GetPssValue();
     return ERR_OK;
 }
 
@@ -878,8 +944,12 @@ void AppRunningManager::SetAbilityForegroundingFlagToAppRecord(const pid_t pid)
 void AppRunningManager::ClipStringContent(const std::regex &re, const std::string &source, std::string &afterCutStr)
 {
     std::smatch basket;
-    if (std::regex_search(source, basket, re)) {
-        afterCutStr = basket.prefix().str() + basket.suffix().str();
+    try {
+        if (std::regex_search(source, basket, re)) {
+            afterCutStr = basket.prefix().str() + basket.suffix().str();
+        }
+    } catch (...) {
+        TAG_LOGE(AAFwkTag::APPMGR, "regex failed");
     }
 }
 
@@ -1356,7 +1426,8 @@ bool AppRunningManager::IsApplicationUnfocused(const std::string &bundleName)
     return true;
 }
 
-void AppRunningManager::SetAttachAppDebug(const std::string &bundleName, const bool &isAttachDebug)
+void AppRunningManager::SetAttachAppDebug(const std::string &bundleName, const bool &isAttachDebug,
+    bool isDebugFromLocal)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     auto appRunningMap = GetAppRunningRecordMap();
@@ -1367,7 +1438,7 @@ void AppRunningManager::SetAttachAppDebug(const std::string &bundleName, const b
         }
         if (appRecord->GetBundleName() == bundleName) {
             TAG_LOGD(AAFwkTag::APPMGR, "The application: %{public}s will be set debug mode.", bundleName.c_str());
-            appRecord->SetAttachDebug(isAttachDebug);
+            appRecord->SetAttachDebug(isAttachDebug, isDebugFromLocal);
         }
     }
 }
@@ -1796,12 +1867,6 @@ int32_t AppRunningManager::UpdateConfigurationDelayed(const std::shared_ptr<AppR
     return result;
 }
 
-void AppRunningManager::SetMultiUserConfigurationMgr(
-    const std::shared_ptr<MultiUserConfigurationMgr>& multiUserConfigurationMgr)
-{
-    multiUserConfigurationMgr_ = multiUserConfigurationMgr;
-}
-
 int32_t AppRunningManager::CheckIsKiaProcess(pid_t pid, bool &isKia)
 {
     auto appRunningRecord = GetAppRunningRecordByPid(pid);
@@ -1847,6 +1912,58 @@ void AppRunningManager::UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std:
             TAG_LOGI(AAFwkTag::APPMGR, "set instanceKey:%{public}s", instanceKey.c_str());
             appRecord->SetInstanceKey(instanceKey);
         }
+    }
+}
+
+std::shared_ptr<AppRunningRecord> AppRunningManager::QueryAppRecordPlus(int32_t pid, int32_t uid)
+{
+    std::lock_guard guard(runningRecordMapMutex_);
+    for (const auto &[id, appRecord] : appRunningRecordMap_) {
+        if (appRecord && appRecord->GetPid() == pid && appRecord->GetUid() == uid) {
+            return appRecord;
+        }
+    }
+
+    for (const auto &[deadTime, appRecord] : deadAppRecordList_) {
+        if (appRecord && appRecord->GetPid() == pid && appRecord->GetUid() == uid) {
+            return appRecord;
+        }
+    }
+    return nullptr;
+}
+
+void AppRunningManager::AddRecordToDeadList(std::shared_ptr<AppRunningRecord> appRecord)
+{
+    if (appRecord == nullptr) {
+        return;
+    }
+    std::lock_guard guard(runningRecordMapMutex_);
+    deadAppRecordList_.emplace_back(AbilityRuntime::TimeUtil::CurrentTimeMillis(), appRecord);
+    if (deadAppRecordList_.size() == 1) {
+        AAFwk::TaskHandlerWrap::GetFfrtHandler()->SubmitTask([wThis = weak_from_this()]() {
+            auto pThis = wThis.lock();
+            if (pThis) {
+                pThis->RemoveTimeoutDeadAppRecord();
+            }
+            }, DEAD_APP_RECORD_CLEAR_TIME);
+    }
+}
+
+void AppRunningManager::RemoveTimeoutDeadAppRecord()
+{
+    std::lock_guard guard(runningRecordMapMutex_);
+    auto timeEnd = AbilityRuntime::TimeUtil::CurrentTimeMillis() - DEAD_APP_RECORD_CLEAR_TIME;
+    auto it = deadAppRecordList_.begin();
+    while (it != deadAppRecordList_.end() && it->first <= timeEnd) {
+        it = deadAppRecordList_.erase(it);
+    }
+    if (!deadAppRecordList_.empty()) {
+        AAFwk::TaskHandlerWrap::GetFfrtHandler()->SubmitTask([wThis = weak_from_this()]() {
+            auto pThis = wThis.lock();
+            if (pThis) {
+                pThis->RemoveTimeoutDeadAppRecord();
+            }
+            }, DEAD_APP_RECORD_CLEAR_TIME);
     }
 }
 }  // namespace AppExecFwk

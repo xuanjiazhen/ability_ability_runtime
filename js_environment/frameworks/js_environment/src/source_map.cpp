@@ -44,6 +44,8 @@ const std::string FLAG_MAPPINGS = "    \"mappings\": \"";
 const std::string FLAG_ENTRY_PACKAGE_INFO = "    \"entry-package-info\": \"";
 const std::string FLAG_PACKAGE_INFO = "    \"package-info\": \"";
 const std::string FLAG_END = "  }";
+const std::string FLAG_CLOSE_BRACE = ")";
+const std::string FLAG_OPEN_BRACE = "(";
 static constexpr size_t FLAG_MAPPINGS_LEN = 17;
 static constexpr size_t FLAG_ENTRY_PACKAGE_INFO_SIZE = 27;
 static constexpr size_t FLAG_PACKAGE_INFO_SIZE = 21;
@@ -93,25 +95,37 @@ bool StringStartWith(const std::string& str, const std::string& startStr)
     return ((str.length() >= startStrLen) && (str.compare(0, startStrLen, startStr) == 0));
 }
 
-void SourceMap::Init(bool isModular, const std::string& hapPath)
+void SourceMap::Init(bool& hasFile, const std::string& hapPath)
 {
-    isModular_ = isModular;
-    hapPath_ = hapPath;
-    if (isModular_) {
-        std::string sourceMapData;
-        ReadSourceMapData(hapPath_, MEGER_SOURCE_MAP_PATH, sourceMapData);
-        SplitSourceMap(sourceMapData);
-    } else {
-        if (!nonModularMap_) {
-            nonModularMap_ = std::make_shared<SourceMapData>();
+    std::string sourceMapData;
+    if (ReadSourceMapData(hapPath, MEGER_SOURCE_MAP_PATH, sourceMapData)) {
+        hasFile = true;
+    }
+    SplitSourceMap(sourceMapData);
+}
+
+std::string SourceMap::ExtractFileName(const std::string& str)
+{
+    // at funcName (@param:version|url:line:column)
+    // Find the position of the last colon in the character string.
+    size_t lastColon = str.rfind(':');
+    if (lastColon != std::string::npos) {
+        // Find the position of the last but one colon in the character string.
+        size_t prevColon = str.rfind(':', lastColon - 1);
+        if (prevColon != std::string::npos) {
+            // Find the position of the first brace in the character string.
+            size_t openBrace = str.find(FLAG_OPEN_BRACE);
+            if (openBrace != std::string::npos) {
+                // Extract the character string between colons and braces as the file name.
+                return str.substr(openBrace + 1, prevColon - openBrace - 1);
+            }
         }
     }
+    return str;
 }
 
 std::string SourceMap::TranslateBySourceMap(const std::string& stackStr)
 {
-    std::string closeBrace = ")";
-    std::string openBrace = "(";
     std::string ans = "";
 
     // find per line of stack
@@ -119,36 +133,11 @@ std::string SourceMap::TranslateBySourceMap(const std::string& stackStr)
     ExtractStackInfo(stackStr, res);
 
     // collect error info first
-    uint32_t i = 0;
-    std::string codeStart = "SourceCode (";
-    std::string sourceCode = "";
-    if (!res.empty()) {
-        std::string fristLine = res[0];
-        uint32_t codeStartLen = codeStart.length();
-        if (fristLine.substr(0, codeStartLen).compare(codeStart) == 0) {
-            sourceCode = fristLine.substr(codeStartLen, fristLine.length() - codeStartLen - 1);
-            i = 1;  // 1 means Convert from the second line
-        }
-    }
-
-    // collect error info first
-    for (; i < res.size(); i++) {
+    for (uint32_t i = 0; i < res.size(); i++) {
         std::string temp = res[i];
-        size_t start;
-        size_t end;
-        if (isModular_) {
-            start = temp.find(openBrace);
-            end = temp.find(":");
-        } else {
-            start = temp.find("/ets/");
-            end = temp.rfind("_.js");
-        }
-        if (end <= start) {
-            continue;
-        }
-        std::string key = temp.substr(start + 1, end - start - 1);
-        auto closeBracePos = static_cast<int32_t>(temp.find(closeBrace));
-        auto openBracePos = static_cast<int32_t>(temp.find(openBrace));
+        std::string key = ExtractFileName(temp);
+        auto closeBracePos = static_cast<int32_t>(temp.find(FLAG_CLOSE_BRACE));
+        auto openBracePos = static_cast<int32_t>(temp.find(FLAG_OPEN_BRACE));
         std::string line;
         std::string column;
         GetPosInfo(temp, closeBracePos, line, column);
@@ -157,23 +146,12 @@ std::string SourceMap::TranslateBySourceMap(const std::string& stackStr)
             break;
         }
         std::string sourceInfo;
-        if (isModular_) {
-            auto iter = sourceMaps_.find(key);
-            if (iter != sourceMaps_.end()) {
-                sourceInfo = GetSourceInfo(line, column, *(iter->second), key);
-            } else if (key.rfind(".js") != std::string::npos) {
-                ans = ans + temp + "\n";
-                continue;
-            }
+        auto iter = sourceMaps_.find(key);
+        if (iter != sourceMaps_.end()) {
+            sourceInfo = GetSourceInfo(line, column, *(iter->second), key);
         } else {
-            std::string url = key + ".js.map";
-            std::string curSourceMap;
-            if (!ReadSourceMapData(hapPath_, url, curSourceMap)) {
-                TAG_LOGW(AAFwkTag::JSENV, "ReadSourceMapData fail");
-                continue;
-            }
-            ExtractSourceMapData(curSourceMap, nonModularMap_);
-            sourceInfo = GetSourceInfo(line, column, *nonModularMap_, key);
+            ans = ans + temp + "\n";
+            continue;
         }
         if (sourceInfo.empty()) {
             continue;
@@ -188,76 +166,52 @@ std::string SourceMap::TranslateBySourceMap(const std::string& stackStr)
     return ans;
 }
 
-
-void SourceMap::SetSourceMapData()
-{
-    for (auto it = sources_.begin(); it != sources_.end(); ++it) {
-        std::string mappings = mappings_[it->first];
-        if (mappings.size() < FLAG_MAPPINGS_LEN + 1) {
-            TAG_LOGE(AAFwkTag::JSENV, "Translate failed, url: %{public}s", it->first.c_str());
-            continue;
-        }
-        std::shared_ptr<SourceMapData> modularMap = std::make_shared<SourceMapData>();
-        if (modularMap == nullptr) {
-            TAG_LOGE(AAFwkTag::JSENV, "New SourceMapData failed");
-            continue;
-        }
-        modularMap->entryPackageInfo_.push_back(entryPackageInfo_[it->first]);
-        modularMap->packageInfo_.push_back(packageInfo_[it->first]);
-        ExtractSourceMapData(mappings.substr(FLAG_MAPPINGS_LEN, mappings.size() - FLAG_MAPPINGS_LEN - 1), modularMap);
-        modularMap->sources_.push_back(it->second);
-        sourceMaps_[it->first] = modularMap;
-    }
-}
-
 void SourceMap::SplitSourceMap(const std::string& sourceMapData)
 {
     std::lock_guard<std::mutex> lock(sourceMapMutex_);
-    if (!isModular_) {
-        if (!nonModularMap_) {
-            nonModularMap_ = std::make_shared<SourceMapData>();
-        }
-        return ExtractSourceMapData(sourceMapData, nonModularMap_);
-    }
-
     std::stringstream ss(sourceMapData);
     std::string tmp;
     std::string url;
 
     std::getline(ss, tmp);
     bool isUrl = true;
+    std::shared_ptr<SourceMapData> mapData;
     while (std::getline(ss, tmp)) {
-        if (isUrl && tmp.size() > REAL_SOURCE_INDEX) {
+        if (isUrl && tmp.size() > REAL_SOURCE_INDEX) { // url
             url = tmp.substr(REAL_URL_INDEX, tmp.size() - REAL_SOURCE_INDEX);
             isUrl = false;
+            mapData = std::make_shared<SourceMapData>();
             continue;
         }
-        if (StringStartWith(tmp.c_str(), FLAG_SOURCES)) {
+        if (StringStartWith(tmp.c_str(), FLAG_SOURCES)) { // sources
             std::getline(ss, tmp);
-            sources_.emplace(url, tmp);
+            if (mapData) {
+                mapData->sources_ = tmp;
+                continue;
+            }
+        }
+        if (StringStartWith(tmp.c_str(), FLAG_MAPPINGS)) { // mapping
+            ExtractSourceMapData(tmp.substr(FLAG_MAPPINGS_LEN, tmp.size() - FLAG_MAPPINGS_LEN - 1), mapData);
             continue;
         }
-        if (StringStartWith(tmp.c_str(), FLAG_MAPPINGS)) {
-            mappings_.emplace(url, tmp);
-            continue;
+        if (StringStartWith(tmp.c_str(), FLAG_ENTRY_PACKAGE_INFO)) { // entryPackageInfo
+            if (mapData) {
+                mapData->packageName_ = tmp;
+                continue;
+            }
         }
-        if (StringStartWith(tmp.c_str(), FLAG_ENTRY_PACKAGE_INFO)) {
-            entryPackageInfo_.emplace(url, tmp);
-            continue;
-        }
-        if (StringStartWith(tmp.c_str(), FLAG_PACKAGE_INFO)) {
-            packageInfo_.emplace(url, tmp);
-            continue;
+        if (StringStartWith(tmp.c_str(), FLAG_PACKAGE_INFO)) { // packageInfo
+            if (mapData) {
+                mapData->packageName_ = tmp;
+                mapData->isPackageInfo_ = true;
+                continue;
+            }
         }
         if (StringStartWith(tmp.c_str(), FLAG_END)) {
+            sourceMaps_[url] = mapData;
             isUrl = true;
         }
     }
-    SetSourceMapData();
-    mappings_.clear();
-    sources_.clear();
-    entryPackageInfo_.clear();
-    packageInfo_.clear();
 }
 
 void SourceMap::ExtractStackInfo(const std::string& stackStr, std::vector<std::string>& res)
@@ -299,19 +253,13 @@ void SourceMap::ExtractSourceMapData(const std::string& allmappings, std::shared
         }
         // after decode, assgin each value to the position
         curMapData->nowPos_.afterColumn += ans[0];
-        curMapData->nowPos_.sourcesVal += ans[INDEX_ONE];
         curMapData->nowPos_.beforeRow += ans[INDEX_TWO];
         curMapData->nowPos_.beforeColumn += ans[INDEX_THREE];
-        if (ans.size() == ANS_MAP_SIZE) {
-            curMapData->nowPos_.namesVal += ans[INDEX_FOUR];
-        }
         curMapData->afterPos_.push_back({
             curMapData->nowPos_.beforeRow,
             curMapData->nowPos_.beforeColumn,
             curMapData->nowPos_.afterRow,
             curMapData->nowPos_.afterColumn,
-            curMapData->nowPos_.sourcesVal,
-            curMapData->nowPos_.namesVal
         });
     }
     curMapData->mappings_.clear();
@@ -320,7 +268,7 @@ void SourceMap::ExtractSourceMapData(const std::string& allmappings, std::shared
 
 MappingInfo SourceMap::Find(int32_t row, int32_t col, const SourceMapData& targetMap, const std::string& key)
 {
-    if (row < 1 || col < 1 || targetMap.afterPos_.empty() || targetMap.sources_[0].empty()) {
+    if (row < 1 || col < 1 || targetMap.afterPos_.empty() || targetMap.sources_.empty()) {
         return MappingInfo {row, col, key};
     }
     row--;
@@ -342,8 +290,8 @@ MappingInfo SourceMap::Find(int32_t row, int32_t col, const SourceMapData& targe
             left = mid + 1;
         }
     }
-    std::string sources = targetMap.sources_[0].substr(REAL_SOURCE_INDEX,
-                                                       targetMap.sources_[0].size() - REAL_SOURCE_INDEX - 1);
+    std::string sources = targetMap.sources_.substr(REAL_SOURCE_INDEX,
+                                                    targetMap.sources_.size() - REAL_SOURCE_INDEX - 1);
     auto pos = sources.find(WEBPACK);
     if (pos != std::string::npos) {
         sources.replace(pos, sizeof(WEBPACK) - 1, "");
@@ -401,27 +349,6 @@ void SourceMap::GetPosInfo(const std::string& temp, int32_t start, std::string& 
             break;
         }
     }
-}
-
-std::string SourceMap::GetRelativePath(const std::string& sources)
-{
-    std::string temp = sources;
-    std::size_t splitPos = std::string::npos;
-    const static int pathLevel = 3;
-    int i = 0;
-    while (i < pathLevel) {
-        splitPos = temp.find_last_of("/\\");
-        if (splitPos != std::string::npos) {
-            temp = temp.substr(0, splitPos - 1);
-        } else {
-            break;
-        }
-        i++;
-    }
-    if (i == pathLevel) {
-        return sources.substr(splitPos);
-    }
-    return sources;
 }
 
 std::vector<std::string> SourceMap::HandleMappings(const std::string& mapping)
@@ -495,22 +422,13 @@ std::string SourceMap::GetSourceInfo(const std::string& line, const std::string&
 #else
         mapInfo = Find(StringToInt(line) - offSet, StringToInt(column), targetMap, key);
 #endif
-    std::string sources = isModular_ ? mapInfo.sources : GetRelativePath(mapInfo.sources);
-    std::string entryPackageInfo = targetMap.entryPackageInfo_[0];
-    std::string packageInfo = targetMap.packageInfo_[0];
-    if (!packageInfo.empty()) {
-        auto last = packageInfo.rfind('|');
+    std::string sources = mapInfo.sources;
+    std::string packageName = targetMap.packageName_;
+    if (!packageName.empty()) {
+        auto last = packageName.rfind('|');
         if (last != std::string::npos) {
-            sourceInfo = packageInfo.substr(FLAG_PACKAGE_INFO_SIZE, packageInfo.rfind('|') - FLAG_PACKAGE_INFO_SIZE);
-            return sourceInfo.append(" (" + sources + ":" + std::to_string(mapInfo.row) + ":" +
-                std::to_string(mapInfo.col) + ")");
-        }
-    }
-    if (!entryPackageInfo.empty()) {
-        auto last = entryPackageInfo.rfind('|');
-        if (last != std::string::npos) {
-            sourceInfo = entryPackageInfo.substr(FLAG_ENTRY_PACKAGE_INFO_SIZE,
-                entryPackageInfo.rfind('|') - FLAG_ENTRY_PACKAGE_INFO_SIZE);
+            auto packageNameSize = targetMap.isPackageInfo_ ? FLAG_PACKAGE_INFO_SIZE : FLAG_ENTRY_PACKAGE_INFO_SIZE;
+            sourceInfo = packageName.substr(packageNameSize, last - packageNameSize);
             return sourceInfo.append(" (" + sources + ":" + std::to_string(mapInfo.row) + ":" +
                 std::to_string(mapInfo.col) + ")");
         }
@@ -554,20 +472,18 @@ bool SourceMap::ReadSourceMapData(const std::string& hapPath, const std::string&
     return false;
 }
 
-bool SourceMap::TranslateUrlPositionBySourceMap(std::string& url, int& line, int& column)
+bool SourceMap::TranslateUrlPositionBySourceMap(std::string& url, int& line, int& column, std::string& packageName)
 {
-    if (isModular_) {
-        auto iter = sourceMaps_.find(url);
-        if (iter != sourceMaps_.end()) {
-            return GetLineAndColumnNumbers(line, column, *(iter->second), url);
-        }
-        TAG_LOGE(AAFwkTag::JSENV, "stageMode sourceMaps find fail");
-        return false;
+    auto iter = sourceMaps_.find(url);
+    if (iter != sourceMaps_.end()) {
+        return GetLineAndColumnNumbers(line, column, *(iter->second), url, packageName);
     }
+    TAG_LOGE(AAFwkTag::JSENV, "stageMode sourceMaps find fail");
     return false;
 }
 
-bool SourceMap::GetLineAndColumnNumbers(int& line, int& column, SourceMapData& targetMap, std::string& url)
+bool SourceMap::GetLineAndColumnNumbers(int& line, int& column, SourceMapData& targetMap,
+    std::string& url, std::string& packageName)
 {
     int32_t offSet = 0;
     MappingInfo mapInfo;
@@ -582,6 +498,7 @@ bool SourceMap::GetLineAndColumnNumbers(int& line, int& column, SourceMapData& t
         line = mapInfo.row;
         column = mapInfo.col;
         url = mapInfo.sources;
+        GetPackageName(targetMap, packageName);
         return true;
     }
 }
@@ -597,6 +514,18 @@ void SourceMap::GetHapPath(const std::string &bundleName, std::vector<std::strin
     std::lock_guard<std::mutex> lock(sourceMapMutex_);
     if (getHapPathFunc_) {
         getHapPathFunc_(bundleName, hapList);
+    }
+}
+
+void SourceMap::GetPackageName(const SourceMapData& targetMap, std::string& packageName)
+{
+    std::string packageInfo = targetMap.packageName_;
+    if (!packageInfo.empty()) {
+        auto last = packageInfo.rfind('|');
+        if (last != std::string::npos) {
+            auto packageNameSize = targetMap.isPackageInfo_ ? FLAG_PACKAGE_INFO_SIZE : FLAG_ENTRY_PACKAGE_INFO_SIZE;
+            packageName = packageInfo.substr(packageNameSize, last - packageNameSize);
+        }
     }
 }
 }   // namespace JsEnv

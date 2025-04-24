@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 import("//build/test.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
-module_output_path = "ability_runtime/runtime"
+module_output_path = "ability_runtime/ability_runtime/runtime"
 config("coverage_flags") {
   if (ability_runtime_feature_coverage) {
     cflags = [ "--coverage" ]
@@ -44,6 +44,7 @@ ohos_unittest("connect_server_manager_test") {
     "ability_base:want",
     "ability_runtime:ability_manager",
     "ability_runtime:abilitykit_native",
+    "ability_runtime:connect_server_manager",
     "ability_runtime:runtime",
     "c_utils:utils",
     "googletest:gmock_main",

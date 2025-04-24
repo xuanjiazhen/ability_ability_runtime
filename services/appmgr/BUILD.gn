@@ -32,6 +32,7 @@ group("appms_target") {
 }
 
 ohos_shared_library("libappms") {
+  use_exceptions = true
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -65,8 +66,10 @@ ohos_shared_library("libappms") {
     "src/killing_process_manager.cpp",
     "src/modal_system_app_freeze_uiextension.cpp",
     "src/module_running_record.cpp",
+    "src/multi_user_config_mgr.cpp",
     "src/quick_fix_callback_with_record.cpp",
     "src/remote_client_manager.cpp",
+    "src/render_record.cpp",
     "src/render_state_observer_manager.cpp",
     "src/user_record_manager.cpp",
     "src/window_focus_changed_listener.cpp",
@@ -89,6 +92,10 @@ ohos_shared_library("libappms") {
 
   if (ability_fault_and_exit_test) {
     defines += [ "ABILITY_FAULT_AND_EXIT_TEST" ]
+  }
+
+  if (ability_runtime_check_internet_permission) {
+    defines += [ "ABILITY_PLATFORM_CHECK_PERMISSION" ]
   }
 
   configs = [ ":appmgr_config" ]
@@ -120,6 +127,7 @@ ohos_shared_library("libappms") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "common_event_service:cesfwk_core",
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -135,6 +143,7 @@ ohos_shared_library("libappms") {
     "memmgr:memmgrclient",
     "memory_utils:libmeminfo",
     "os_account:libaccountkits",
+    "os_account:os_account_innerkits",
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",

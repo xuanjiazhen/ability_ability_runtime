@@ -28,17 +28,23 @@ ohos_shared_library("cj_ability_ffi") {
     "AMS_LOG_TAG = \"CJ_ABILITY_FFI\"",
     "AMS_LOG_DOMAIN = 0xD001150",
   ]
+
+  branch_protector_ret = "pac_ret"
+
   sanitize = {
     cfi = true
     cfi_cross_dso = true
     debug = false
   }
   include_dirs = [
+    "${ability_runtime_napi_path}/ability_auto_startup_callback",
+    "${ability_runtime_path}/interfaces/inner_api/runtime/include",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_delegator/",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/context",
     "${ability_runtime_path}/tools/aa/include",
     "${ability_runtime_path}/frameworks/cj/ffi",
+    "${ability_runtime_path}/frameworks/cj/ffi/context",
     "${ability_runtime_services_path}/common/include",
   ]
 
@@ -46,7 +52,10 @@ ohos_shared_library("cj_ability_ffi") {
 
   deps = [
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_native_path}/ability/native:auto_startup_callback",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_native_path}/appkit:app_context_utils",
     "${ability_runtime_native_path}/appkit:appkit_delegator",
   ]
 
@@ -57,6 +66,7 @@ ohos_shared_library("cj_ability_ffi") {
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "napi:ace_napi",
     "napi:cj_bind_ffi",
     "napi:cj_bind_native",
   ]
@@ -67,16 +77,23 @@ ohos_shared_library("cj_ability_ffi") {
     "application_context/src/cj_application_state_change_callback.cpp",
     "application_context/src/cj_environment_callback.cpp",
     "application_context/src/cj_utils_ffi.cpp",
-    "cj_ability_delegator.cpp",
-    "cj_ability_delegator_args.cpp",
     "cj_application_context_ffi.cpp",
     "cj_element_name_ffi.cpp",
     "cj_want_ffi.cpp",
   ]
 
+  if (cj_frontend) {
+    sources += [
+      "cj_ability_delegator.cpp",
+      "cj_ability_delegator_args.cpp",
+      "cj_ability_monitor.cpp",
+      "cj_ability_monitor_object.cpp",
+    ]
+
+    defines += [ "CJ_FRONTEND" ]
+  }
+
   cflags = [
-    "-fstack-protector-all",
-    "-fstack-protector-strong",
     "-O2",
     "-D_FORTIFY_SOURCE=2",
   ]

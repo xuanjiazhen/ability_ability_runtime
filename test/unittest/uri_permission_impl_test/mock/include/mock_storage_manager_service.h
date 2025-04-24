@@ -67,7 +67,7 @@ public:
         return E_OK;
     }
 
-    virtual int32_t NotifyMtpUnmounted(const std::string &id, const std::string &path) override
+    virtual int32_t NotifyMtpUnmounted(const std::string &id, const std::string &path, const bool isBadRemove) override
     {
         return E_OK;
     }
@@ -194,6 +194,11 @@ public:
         return E_OK;
     }
 
+    virtual int32_t QueryUsbIsInUse(const std::string &diskPath, bool &isInUse)
+    {
+        return E_OK;
+    }
+
     virtual int32_t GenerateUserKeys(uint32_t userId, uint32_t flags) override
     {
         return E_OK;
@@ -250,7 +255,8 @@ public:
         return E_OK;
     }
 
-    virtual int32_t GenerateAppkey(uint32_t hashId, uint32_t userId, std::string &keyId) override
+    virtual int32_t GenerateAppkey(uint32_t hashId, uint32_t userId,
+                                   std::string &keyId, bool needReset = false) override
     {
         return E_OK;
     }
@@ -277,8 +283,19 @@ public:
     {
         return E_OK;
     }
-    
-    virtual int32_t UpdateKeyContext(uint32_t userId) override
+
+    virtual int32_t ResetSecretWithRecoveryKey(uint32_t userId, uint32_t rkType,
+                                               const std::vector<uint8_t> &key) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t UpdateKeyContext(uint32_t userId, bool needRemoveTmpKey = false) override
+    {
+        return E_OK;
+    }
+
+    int32_t GetUserNeedActiveStatus(uint32_t userId, bool &needActive) override
     {
         return E_OK;
     }
@@ -309,7 +326,7 @@ public:
         std::vector<int32_t> retVec(size, -1);
         return retVec;
     }
-    
+
     virtual int32_t DeleteShareFile(uint32_t tokenId, const std::vector<std::string> &sharePathList) override
     {
         return E_OK;
@@ -331,13 +348,29 @@ public:
     {
         return E_OK;
     }
-        
+
     virtual int32_t MountMediaFuse(int32_t userId, int32_t &devFd) override
     {
         return E_OK;
     }
 
     virtual int32_t UMountMediaFuse(int32_t userId) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t MountFileMgrFuse(int32_t userId, const std::string &path, int32_t &fuseFd) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t UMountFileMgrFuse(int32_t userId, const std::string &path) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t IsFileOccupied(const std::string &path, const std::vector<std::string> &inputList,
+        std::vector<std::string> &outputList, bool &isOccupy) override
     {
         return E_OK;
     }

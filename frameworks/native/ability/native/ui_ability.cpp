@@ -24,6 +24,8 @@
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "js_ui_ability.h"
+#include "ability_context_impl.h"
+#include "application_configuration_manager.h"
 #ifdef CJ_FRONTEND
 #include "cj_ui_ability.h"
 #endif
@@ -54,6 +56,7 @@ constexpr char COMPONENT_STARTUP_NEW_RULES[] = "component.startup.newRules";
 #ifdef SUPPORT_SCREEN
 constexpr int32_t ERR_INVALID_VALUE = -1;
 #endif
+constexpr const char* USE_GLOBAL_UICONTENT = "ohos.uec.params.useGlobalUIContent";
 }
 UIAbility *UIAbility::Create(const std::unique_ptr<Runtime> &runtime)
 {
@@ -120,6 +123,7 @@ void UIAbility::Init(std::shared_ptr<AppExecFwk::AbilityLocalRecord> record,
     abilityLifecycleExecutor_->DispatchLifecycleState(AppExecFwk::AbilityLifecycleExecutor::LifecycleState::INITIAL);
     if (abilityContext_ != nullptr) {
         abilityContext_->RegisterAbilityCallback(weak_from_this());
+        abilityContext_->SetHook(record->IsHook());
     }
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
@@ -161,6 +165,53 @@ void UIAbility::UnregisterAbilityLifecycleObserver(const std::shared_ptr<AppExec
 void UIAbility::AttachAbilityContext(const std::shared_ptr<AbilityRuntime::AbilityContext> &abilityContext)
 {
     abilityContext_ = abilityContext;
+    std::weak_ptr<UIAbility> abilityWptr = weak_from_this();
+    abilityContext_->RegisterAbilityConfigUpdateCallback(
+        [abilityWptr, abilityContext = abilityContext_](AppExecFwk::Configuration &config) {
+        std::shared_ptr<UIAbility> abilitySptr = abilityWptr.lock();
+        if (abilitySptr == nullptr || abilityContext == nullptr ||
+            abilityContext->GetAbilityInfo() == nullptr) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "null abilitySptr or null abilityContext or null GetAbilityInfo");
+            return;
+        }
+        if (abilityContext->GetAbilityConfiguration() == nullptr) {
+            auto abilityModuleContext = abilityContext->CreateModuleContext(
+                abilityContext->GetAbilityInfo()->moduleName);
+            if (abilityModuleContext == nullptr) {
+                TAG_LOGE(AAFwkTag::UIABILITY, "null abilityModuleContext");
+                return;
+            }
+            auto abilityResourceMgr = abilityModuleContext->GetResourceManager();
+            abilityContext->SetAbilityResourceManager(abilityResourceMgr);
+            AbilityRuntime::ApplicationConfigurationManager::GetInstance().
+                AddIgnoreContext(abilityContext, abilityResourceMgr);
+        }
+        abilityContext->SetAbilityConfiguration(config);
+        if (config.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE).
+            compare(AppExecFwk::ConfigurationInner::COLOR_MODE_AUTO) == 0) {
+            config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE,
+                AbilityRuntime::ApplicationConfigurationManager::GetInstance().GetColorMode());
+            if (AbilityRuntime::ApplicationConfigurationManager::GetInstance().
+                GetColorModeSetLevel() > AbilityRuntime::SetLevel::System) {
+                config.AddItem(AAFwk::GlobalConfigurationKey::COLORMODE_IS_SET_BY_APP,
+                    AppExecFwk::ConfigurationInner::IS_SET_BY_APP);
+            }
+            abilityContext->GetAbilityConfiguration()->
+                RemoveItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE);
+            abilityContext->GetAbilityConfiguration()->
+                RemoveItem(AAFwk::GlobalConfigurationKey::COLORMODE_IS_SET_BY_APP);
+        }
+        ResourceConfigHelper resourceConfig;
+        abilitySptr->InitConfigurationProperties(config, resourceConfig);
+        resourceConfig.SetISAbilityColor(true);
+        auto resourceManager = abilityContext->GetResourceManager();
+        resourceConfig.UpdateResConfig(config, resourceManager);
+        auto diffConfiguration = std::make_shared<AppExecFwk::Configuration>(config);
+        if (abilitySptr->GetScene()) {
+            abilitySptr->GetScene()->UpdateConfigurationForSpecified(diffConfiguration, resourceManager);
+        }
+        abilitySptr->OnConfigurationUpdated(config);
+    });
 }
 
 void UIAbility::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
@@ -223,7 +274,8 @@ void UIAbility::OnStop()
         return;
     }
     abilityLifecycleExecutor_->DispatchLifecycleState(AppExecFwk::AbilityLifecycleExecutor::LifecycleState::INITIAL);
-
+    AbilityRuntime::ApplicationConfigurationManager::GetInstance().
+        DeleteIgnoreContext(abilityContext_);
     if (lifecycle_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null lifecycle_");
         return;
@@ -319,16 +371,35 @@ void UIAbility::NotifyContinuationResult(const AAFwk::Want &want, bool success)
 void UIAbility::OnConfigurationUpdatedNotify(const AppExecFwk::Configuration &configuration)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "begin");
-    ResourceConfigHelper resourceConfig;
-    InitConfigurationProperties(configuration, resourceConfig);
-    auto resourceManager = GetResourceManager();
-    resourceConfig.UpdateResConfig(configuration, resourceManager);
-
+    auto newConfig = AppExecFwk::Configuration(configuration);
+    auto abilityConfig = GetAbilityContext()->GetAbilityConfiguration();
+    if (abilityConfig != nullptr) {
+        newConfig.FilterDuplicates(*abilityConfig);
+        TAG_LOGI(AAFwkTag::UIABILITY, "newConfig: %{public}s", newConfig.GetName().c_str());
+        if (newConfig.GetItemSize() == 0) {
+            return;
+        }
+        auto diffConfiguration = std::make_shared<AppExecFwk::Configuration>(newConfig);
+        auto resourceManager = abilityContext_->GetResourceManager();
+        ResourceConfigHelper resourceConfig;
+        InitConfigurationProperties(newConfig, resourceConfig);
+        resourceConfig.UpdateResConfig(newConfig, resourceManager);
+        auto windowScene = GetScene();
+        if (windowScene) {
+            windowScene->UpdateConfigurationForSpecified(
+                diffConfiguration, resourceManager);
+        }
+    } else {
+        ResourceConfigHelper resourceConfig;
+        InitConfigurationProperties(configuration, resourceConfig);
+        auto resourceManager = GetResourceManager();
+        resourceConfig.UpdateResConfig(configuration, resourceManager);
+    }
     if (abilityContext_ != nullptr && application_ != nullptr) {
         abilityContext_->SetConfiguration(application_->GetConfiguration());
     }
     // Notify Ability Subclass
-    OnConfigurationUpdated(configuration);
+    OnConfigurationUpdated(newConfig);
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 
@@ -676,6 +747,26 @@ void UIAbility::OnBackground()
     AAFwk::EventReport::SendAbilityEvent(AAFwk::EventName::ABILITY_ONBACKGROUND, HiSysEventType::BEHAVIOR, eventInfo);
 }
 
+void UIAbility::OnWillForeground()
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnWillForeground is called");
+}
+
+void UIAbility::OnDidForeground()
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnDidForeground is called");
+}
+
+void UIAbility::OnWillBackground()
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnWillBackground is called");
+}
+
+void UIAbility::OnDidBackground()
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnDidBackground is called");
+}
+
 void UIAbility::OnAfterFocusedCommon(bool isFocused)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
@@ -686,6 +777,12 @@ bool UIAbility::OnPrepareTerminate()
 {
     TAG_LOGI(AAFwkTag::UIABILITY, "called");
     return false;
+}
+
+void UIAbility::OnPrepareTerminate(AppExecFwk::AbilityTransactionCallbackInfo<bool> *callbackInfo, bool &isAsync)
+{
+    TAG_LOGI(AAFwkTag::UIABILITY, "called");
+    return;
 }
 
 const sptr<Rosen::Window> UIAbility::GetWindow()
@@ -704,10 +801,21 @@ void UIAbility::OnLeaveForeground()
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
 }
 
-int32_t UIAbility::OnCollaborate(AAFwk::WantParams &wantParams)
+void UIAbility::HandleCollaboration(const AAFwk::Want &want)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
-    return ERR_OK;
+}
+
+void UIAbility::OnAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+    const std::string &message)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+}
+
+void UIAbility::OnAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
+    const std::string &message)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "called");
 }
 
 std::string UIAbility::GetContentInfo()
@@ -759,7 +867,7 @@ int32_t UIAbility::GetCurrentWindowMode()
     }
     auto window = scene_->GetMainWindow();
     if (window != nullptr) {
-        windowMode = static_cast<int>(window->GetMode());
+        windowMode = static_cast<int>(window->GetWindowMode());
     }
     return windowMode;
 }
@@ -1177,7 +1285,22 @@ int UIAbility::CreateModalUIExtension(const AAFwk::Want &want)
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext");
         return ERR_INVALID_VALUE;
     }
-    return abilityContextImpl->CreateModalUIExtensionWithApp(want);
+    int result;
+    if (want.HasParameter(USE_GLOBAL_UICONTENT) && want.GetBoolParam(USE_GLOBAL_UICONTENT, false) && handler_) {
+        std::weak_ptr<AbilityRuntime::AbilityContext> abilityContextImplWptr = abilityContextImpl;
+        auto task = [abilityContextImplWptr, want, &result]() {
+            std::shared_ptr<AbilityRuntime::AbilityContext> abilityContextImplSptr = abilityContextImplWptr.lock();
+            if (abilityContextImplSptr == nullptr) {
+                TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContextImpl");
+                return;
+            }
+            result = abilityContextImplSptr->CreateModalUIExtensionWithApp(want);
+        };
+        handler_->PostTask(task);
+    } else {
+        result = abilityContextImpl->CreateModalUIExtensionWithApp(want);
+    }
+    return result;
 }
 
 void UIAbility::SetSessionToken(sptr<IRemoteObject> sessionToken)

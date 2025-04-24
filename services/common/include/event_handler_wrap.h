@@ -36,8 +36,17 @@ public:
     {
         eventData_ = std::make_shared<EventDataBase>();
     }
-    EventWrap(uint32_t eventId, int64_t param, bool isExtension) : eventId_(eventId), param_(param),
-        isExtension_(isExtension)
+    EventWrap(uint32_t eventId, int64_t param, bool isExtension) : isExtension_(isExtension), eventId_(eventId),
+        param_(param)
+    {
+        eventData_ = std::make_shared<EventDataBase>();
+    }
+    EventWrap(uint32_t eventId, int64_t param, bool isExtension,
+        const std::string &taskName) : isExtension_(isExtension), eventId_(eventId), param_(param), taskName_(taskName)
+    {
+        eventData_ = std::make_shared<EventDataBase>();
+    }
+    EventWrap(uint32_t eventId, const std::string &taskName) : eventId_(eventId), taskName_(taskName)
     {
         eventData_ = std::make_shared<EventDataBase>();
     }
@@ -70,7 +79,10 @@ public:
     }
     std::string GetEventString()
     {
-        return std::to_string(eventId_) + "_" + std::to_string(param_);
+        if (taskName_.empty()) {
+            return std::to_string(eventId_) + "_" + std::to_string(param_);
+        }
+        return std::to_string(eventId_) + "_" + taskName_;
     }
     bool IsSame(const EventWrap &other) const
     {
@@ -97,13 +109,14 @@ public:
         return isExtension_;
     }
 private:
+    bool isExtension_ = false;
     uint32_t eventId_;
+    uint32_t timeout_ = 0;
+    int runCount_ = 0;
     int64_t param_;
     std::shared_ptr<EventDataBase> eventData_;
     TaskHandle eventTask_;
-    int runCount_ = 0;
-    uint32_t timeout_ = 0;
-    bool isExtension_ = false;
+    std::string taskName_;
 };
 
 class EventHandlerWrap : public std::enable_shared_from_this<EventHandlerWrap> {
@@ -119,6 +132,7 @@ public:
     bool SendEvent(EventWrap event);
     bool SendEvent(EventWrap event, int64_t delayMillis, bool forceInsert = true);
     bool RemoveEvent(uint32_t eventId, int64_t param = 0);
+    bool RemoveEvent(uint32_t eventId, const std::string &taskName);
     bool RemoveEvent(EventWrap event, bool force = true);
 
     void SetEventCallback(std::function<void(const EventWrap&)> eventCallback)

@@ -16,12 +16,12 @@
 #ifndef OHOS_ABILITY_RUNTIME_KEEP_ALIVE_PROCESS_MANAGER_H
 #define OHOS_ABILITY_RUNTIME_KEEP_ALIVE_PROCESS_MANAGER_H
 
-#include <list>
-#include <mutex>
+#include <functional>
 
 #include "ability_manager_service.h"
 #include "app_scheduler.h"
 #include "bundle_info.h"
+#include "ffrt.h"
 #include "singleton.h"
 
 namespace OHOS {
@@ -29,11 +29,36 @@ namespace AAFwk {
 using AbilityKeepAliveService = AbilityRuntime::AbilityKeepAliveService;
 
 struct KeepAliveAbilityInfo {
+    int32_t userId = 0;
+    int32_t appCloneIndex = 0;
+    int32_t uid = 0;
     std::string bundleName;
     std::string moduleName;
     std::string abilityName;
-    int32_t userId = 0;
-    int32_t appCloneIndex = 0;
+};
+
+class CheckStatusBarTask {
+public:
+    CheckStatusBarTask() = delete;
+
+    CheckStatusBarTask(int32_t uid, std::function<void(void)>&& task)
+        : uid_(uid), task_(task) {};
+
+    ~CheckStatusBarTask() {};
+
+    void Cancel();
+
+    void Run();
+
+    inline int32_t GetUid()
+    {
+        return uid_;
+    }
+
+private:
+    int32_t uid_;
+    ffrt::mutex cancelMutex_;
+    std::function<void(void)> task_;
 };
 
 /**
@@ -58,7 +83,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t SetApplicationKeepAlive(const std::string &bundleName, int32_t userId, bool updateEnable,
-        bool isByEDM = false);
+        bool isByEDM, bool isInner);
 
     /**
      * @brief Query keep-alive applications.
@@ -68,7 +93,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t QueryKeepAliveApplications(int32_t appType, int32_t userId, std::vector<KeepAliveInfo> &infoList,
-        bool isByEDM = false);
+        bool isByEDM);
 
     /**
      * If bundle has right main element, start the main element
@@ -101,6 +126,10 @@ public:
      */
     bool GetKeepAliveBundleInfosForUser(std::vector<AppExecFwk::BundleInfo> &bundleInfos, int32_t userId);
 
+    int32_t StartKeepAliveMainAbility(const KeepAliveAbilityInfo &info);
+
+    void RemoveCheckStatusBarTask(int32_t uid, bool shouldCancel);
+
 private:
     KeepAliveProcessManager();
     ~KeepAliveProcessManager();
@@ -109,11 +138,12 @@ private:
     int32_t CheckPermissionForEDM();
     void StartKeepAliveProcessWithMainElementPerBundle(const AppExecFwk::BundleInfo &bundleInfo,
         int32_t userId);
-    int32_t StartAbility(const KeepAliveAbilityInfo &info);
-    void AfterStartKeepAliveApp(const AppExecFwk::BundleInfo &bundleInfo,
-        const std::string &mainElementName, int32_t userId);
-    bool IsRunningAppInStatusBar(std::shared_ptr<AbilityManagerService> abilityMgr,
-        const AppExecFwk::BundleInfo &bundleInfo);
+    void AfterStartKeepAliveApp(const std::string &bundleName, uint32_t accessTokenId, int32_t uid, int32_t userId,
+        bool isMultiInstance);
+    bool IsRunningAppInStatusBar(const AppExecFwk::BundleInfo &bundleInfo);
+
+    ffrt::mutex checkStatusBarTasksMutex_;
+    std::vector<std::shared_ptr<CheckStatusBarTask>> checkStatusBarTasks_;
 
     DISALLOW_COPY_AND_MOVE(KeepAliveProcessManager);
 };

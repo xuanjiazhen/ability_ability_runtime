@@ -25,7 +25,8 @@ namespace AbilityRuntime {
 StatusBarDelegateProxy::StatusBarDelegateProxy(const sptr<IRemoteObject> &impl)
     : IRemoteProxy<IStatusBarDelegate>(impl) {}
 
-int32_t StatusBarDelegateProxy::CheckIfStatusBarItemExists(uint32_t accessTokenId, bool& isExist)
+int32_t StatusBarDelegateProxy::CheckIfStatusBarItemExists(uint32_t accessTokenId, const std::string &instanceKey,
+    bool& isExist)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
     MessageParcel data;
@@ -37,6 +38,10 @@ int32_t StatusBarDelegateProxy::CheckIfStatusBarItemExists(uint32_t accessTokenI
     }
     if (!data.WriteUint32(accessTokenId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "accessTokenId write failed");
+        return AAFwk::ERR_NATIVE_IPC_PARCEL_FAILED;
+    }
+    if (!data.WriteString(instanceKey)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "instanceKey write failed");
         return AAFwk::ERR_NATIVE_IPC_PARCEL_FAILED;
     }
     auto ret = SendRequest(StatusBarDelegateCmd::CHECK_IF_STATUS_BAR_ITEM_EXISTS, data, reply, option);
@@ -52,7 +57,7 @@ int32_t StatusBarDelegateProxy::CheckIfStatusBarItemExists(uint32_t accessTokenI
 int32_t StatusBarDelegateProxy::AttachPidToStatusBarItem(uint32_t accessTokenId, int32_t pid,
     const std::string &instanceKey)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call AttachPidToStatusBarItem");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -73,6 +78,37 @@ int32_t StatusBarDelegateProxy::AttachPidToStatusBarItem(uint32_t accessTokenId,
         return AAFwk::ERR_NATIVE_IPC_PARCEL_FAILED;
     }
     auto ret = SendRequest(StatusBarDelegateCmd::ATTACH_PID_TO_STATUS_BAR_ITEM, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Send request error: %{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t StatusBarDelegateProxy::DetachPidToStatusBarItem(uint32_t accessTokenId, int32_t pid,
+    const std::string &instanceKey)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call DetachPidToStatusBarItem");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(IStatusBarDelegate::GetDescriptor())) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token failed");
+        return AAFwk::ERR_NATIVE_IPC_PARCEL_FAILED;
+    }
+    if (!data.WriteUint32(accessTokenId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write accessTokenId failed");
+        return AAFwk::ERR_NATIVE_IPC_PARCEL_FAILED;
+    }
+    if (!data.WriteInt32(pid)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write pid failed");
+        return AAFwk::ERR_NATIVE_IPC_PARCEL_FAILED;
+    }
+    if (!data.WriteString(instanceKey)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "instanceKey write failed");
+        return AAFwk::ERR_NATIVE_IPC_PARCEL_FAILED;
+    }
+    auto ret = SendRequest(StatusBarDelegateCmd::DETACH_PID_TO_STATUS_BAR_ITEM, data, reply, option);
     if (ret != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Send request error: %{public}d", ret);
         return ret;

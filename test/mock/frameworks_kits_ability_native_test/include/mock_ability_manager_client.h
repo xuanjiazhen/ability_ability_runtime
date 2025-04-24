@@ -151,6 +151,16 @@ public:
         return 0;
     }
     virtual void UpdateSessionToken(sptr<IRemoteObject> sessionToken) {}
+
+    virtual void ScheduleCollaborate(const Want &want) {}
+
+    virtual void ScheduleAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message)
+    {}
+
+    virtual void ScheduleAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message)
+    {}
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -29,10 +29,12 @@ public:
     virtual ~StatusBarDelegateManager() = default;
 
     int32_t RegisterStatusBarDelegate(sptr<AbilityRuntime::IStatusBarDelegate> delegate);
-    bool IsCallerInStatusBar();
-    bool IsInStatusBar(uint32_t accessTokenId);
+    bool IsCallerInStatusBar(const std::string &instanceKey);
+    bool IsInStatusBar(uint32_t accessTokenId, bool isMultiInstance);
+    bool IsSupportStatusBar();
     int32_t DoProcessAttachment(std::shared_ptr<AbilityRecord> abilityRecord);
     int32_t DoCallerProcessAttachment(std::shared_ptr<AbilityRecord> abilityRecord);
+    int32_t DoCallerProcessDetachment(std::shared_ptr<AbilityRecord> abilityRecord);
 
 private:
     DISALLOW_COPY_AND_MOVE(StatusBarDelegateManager);

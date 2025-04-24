@@ -704,6 +704,13 @@ private:
         auto rule = std::make_shared<AtomicServiceStartupRule>();
         std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::
             system_clock::now().time_since_epoch()).count());
+        napi_value result = nullptr;
+        auto ret = AddQueryERMSObserver(env, token, appId, startTime, &result);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "AddQueryERMSObserver failed, ret=%{public}d", ret);
+            return CreateJsUndefined(env);
+        }
+
         NapiAsyncTask::ExecuteCallback execute = [innerErrorCode, rule, token, appId, startTime]() {
             *innerErrorCode = AbilityManagerClient::GetInstance()->QueryAtomicServiceStartupRule(
                 token, appId, startTime, *rule);
@@ -722,18 +729,12 @@ private:
             }
             if (*innerErrorCode != ERR_OK) {
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "query failed: %{public}d", *innerErrorCode);
-                observer->OnQueryFinished(appId, startTime, *rule, AAFwk::INNER_ERR);
+                observer->OnQueryFinished(appId, startTime, *rule, *innerErrorCode);
                 return;
             }
             observer->OnQueryFinished(appId, startTime, *rule, ERR_OK);
         };
 
-        napi_value result = nullptr;
-        auto ret = AddQueryERMSObserver(env, token, appId, startTime, &result);
-        if (ret != ERR_OK) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "AddQueryERMSObserver failed, ret=%{public}d", ret);
-            return CreateJsUndefined(env);
-        }
         NapiAsyncTask::Schedule("JsAbilityManager::OnQueryAtomicServiceStartupRule", env,
             CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), nullptr));
         return result;

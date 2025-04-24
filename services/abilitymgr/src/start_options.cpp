@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,14 +32,23 @@ StartOptions::StartOptions(const StartOptions &other)
     windowTop_ = other.windowTop_;
     windowWidth_ = other.windowWidth_;
     windowHeight_ = other.windowHeight_;
+    minWindowWidth_ = other.minWindowWidth_;
+    minWindowHeight_ = other.minWindowHeight_;
+    maxWindowWidth_ = other.maxWindowWidth_;
+    maxWindowHeight_ = other.maxWindowHeight_;
     windowLeftUsed_ = other.windowLeftUsed_;
     windowTopUsed_ = other.windowTopUsed_;
     windowWidthUsed_ = other.windowWidthUsed_;
     windowHeightUsed_ = other.windowHeightUsed_;
+    minWindowWidthUsed_ = other.minWindowWidthUsed_;
+    minWindowHeightUsed_ = other.minWindowHeightUsed_;
+    maxWindowWidthUsed_ = other.maxWindowWidthUsed_;
+    maxWindowHeightUsed_ = other.maxWindowHeightUsed_;
     processOptions = other.processOptions;
     windowFocused_ = other.windowFocused_;
     startWindowOption = other.startWindowOption;
     supportWindowModes_ = other.supportWindowModes_;
+    requestId_ = other.requestId_;
 }
 
 StartOptions &StartOptions::operator=(const StartOptions &other)
@@ -52,14 +61,23 @@ StartOptions &StartOptions::operator=(const StartOptions &other)
         windowTop_ = other.windowTop_;
         windowWidth_ = other.windowWidth_;
         windowHeight_ = other.windowHeight_;
+        minWindowWidth_ = other.minWindowWidth_;
+        minWindowHeight_ = other.minWindowHeight_;
+        maxWindowWidth_ = other.maxWindowWidth_;
+        maxWindowHeight_ = other.maxWindowHeight_;
         windowLeftUsed_ = other.windowLeftUsed_;
         windowTopUsed_ = other.windowTopUsed_;
         windowWidthUsed_ = other.windowWidthUsed_;
         windowHeightUsed_ = other.windowHeightUsed_;
+        minWindowWidthUsed_ = other.minWindowWidthUsed_;
+        minWindowHeightUsed_ = other.minWindowHeightUsed_;
+        maxWindowWidthUsed_ = other.maxWindowWidthUsed_;
+        maxWindowHeightUsed_ = other.maxWindowHeightUsed_;
         processOptions = other.processOptions;
         windowFocused_ = other.windowFocused_;
         startWindowOption = other.startWindowOption;
         supportWindowModes_ = other.supportWindowModes_;
+        requestId_ = other.requestId_;
     }
     return *this;
 }
@@ -73,11 +91,19 @@ bool StartOptions::ReadFromParcel(Parcel &parcel)
     SetWindowTop(parcel.ReadInt32());
     SetWindowWidth(parcel.ReadInt32());
     SetWindowHeight(parcel.ReadInt32());
+    SetMinWindowWidth(parcel.ReadInt32());
+    SetMinWindowHeight(parcel.ReadInt32());
+    SetMaxWindowWidth(parcel.ReadInt32());
+    SetMaxWindowHeight(parcel.ReadInt32());
     SetWindowFocused(parcel.ReadBool());
     windowLeftUsed_ = parcel.ReadBool();
     windowTopUsed_ = parcel.ReadBool();
     windowWidthUsed_ = parcel.ReadBool();
     windowHeightUsed_ = parcel.ReadBool();
+    minWindowWidthUsed_ = parcel.ReadBool();
+    minWindowHeightUsed_ = parcel.ReadBool();
+    maxWindowWidthUsed_ = parcel.ReadBool();
+    maxWindowHeightUsed_ = parcel.ReadBool();
     processOptions.reset(parcel.ReadParcelable<ProcessOptions>());
     startWindowOption.reset(parcel.ReadParcelable<StartWindowOption>());
     auto size = parcel.ReadInt32();
@@ -88,6 +114,7 @@ bool StartOptions::ReadFromParcel(Parcel &parcel)
     for (int i = 0; i < size; i++) {
         supportWindowModes_.emplace_back(AppExecFwk::SupportWindowMode(parcel.ReadInt32()));
     }
+    requestId_ = parcel.ReadString();
     return true;
 }
 
@@ -115,11 +142,19 @@ bool StartOptions::Marshalling(Parcel &parcel) const
     parcel.WriteInt32(GetWindowTop());
     parcel.WriteInt32(GetWindowWidth());
     parcel.WriteInt32(GetWindowHeight());
+    parcel.WriteInt32(GetMinWindowWidth());
+    parcel.WriteInt32(GetMinWindowHeight());
+    parcel.WriteInt32(GetMaxWindowWidth());
+    parcel.WriteInt32(GetMaxWindowHeight());
     parcel.WriteBool(GetWindowFocused());
     parcel.WriteBool(windowLeftUsed_);
     parcel.WriteBool(windowTopUsed_);
     parcel.WriteBool(windowWidthUsed_);
     parcel.WriteBool(windowHeightUsed_);
+    parcel.WriteBool(minWindowWidthUsed_);
+    parcel.WriteBool(minWindowHeightUsed_);
+    parcel.WriteBool(maxWindowWidthUsed_);
+    parcel.WriteBool(maxWindowHeightUsed_);
     if (!parcel.WriteParcelable(processOptions.get())) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write processOptions failed");
         return false;
@@ -128,10 +163,17 @@ bool StartOptions::Marshalling(Parcel &parcel) const
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write startWindowOption failed");
         return false;
     }
-    parcel.WriteInt32(supportWindowModes_.size());
-    for (auto windowMode : supportWindowModes_) {
-        parcel.WriteInt32(static_cast<int32_t>(windowMode));
+    if (!parcel.WriteInt32(supportWindowModes_.size())) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write supportWindowModes_ failed");
+        return false;
     }
+    for (auto windowMode : supportWindowModes_) {
+        if (!parcel.WriteInt32(static_cast<int32_t>(windowMode))) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "write windowMode failed");
+            return false;
+        }
+    }
+    parcel.WriteString(requestId_);
     return true;
 }
 
@@ -203,6 +245,46 @@ void StartOptions::SetWindowHeight(int32_t windowHeight)
 int32_t StartOptions::GetWindowHeight() const
 {
     return windowHeight_;
+}
+
+void StartOptions::SetMinWindowWidth(int32_t minWindowWidth)
+{
+    minWindowWidth_ = minWindowWidth;
+}
+
+int32_t StartOptions::GetMinWindowWidth() const
+{
+    return minWindowWidth_;
+}
+
+void StartOptions::SetMinWindowHeight(int32_t minWindowHeight)
+{
+    minWindowHeight_ = minWindowHeight;
+}
+
+int32_t StartOptions::GetMinWindowHeight() const
+{
+    return minWindowHeight_;
+}
+
+void StartOptions::SetMaxWindowWidth(int32_t maxWindowWidth)
+{
+    maxWindowWidth_ = maxWindowWidth;
+}
+
+int32_t StartOptions::GetMaxWindowWidth() const
+{
+    return maxWindowWidth_;
+}
+
+void StartOptions::SetMaxWindowHeight(int32_t maxWindowHeight)
+{
+    maxWindowHeight_ = maxWindowHeight;
+}
+
+int32_t StartOptions::GetMaxWindowHeight() const
+{
+    return maxWindowHeight_;
 }
 
 void StartOptions::SetWindowFocused(bool windowFocused)

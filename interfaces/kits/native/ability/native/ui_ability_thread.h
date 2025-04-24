@@ -152,6 +152,14 @@ public:
      */
     void UpdateSessionToken(sptr<IRemoteObject> sessionToken) override;
 
+    void ScheduleCollaborate(const Want &want) override;
+
+    void ScheduleAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message) override;
+
+    void ScheduleAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message) override;
+
 private:
     void DumpAbilityInfoInner(const std::vector<std::string> &params, std::vector<std::string> &info);
     void DumpOtherInfo(std::vector<std::string> &info);
@@ -170,16 +178,12 @@ private:
     void HandleAbilityTransaction(const Want &want, const LifeCycleStateInfo &lifeCycleStateInfo,
         sptr<AAFwk::SessionInfo> sessionInfo = nullptr);
     void HandleShareData(const int32_t &requestCode);
-    void HandlePrepareTermianteAbility();
+    bool HandlePrepareTermianteAbility();
     void HandleUpdateConfiguration(const AppExecFwk::Configuration &config);
     void AddLifecycleEvent(uint32_t state, std::string &methodName) const;
 
     std::shared_ptr<UIAbilityImpl> abilityImpl_ = nullptr;
     std::shared_ptr<UIAbility> currentAbility_ = nullptr;
-    bool isPrepareTerminate_ = false;
-    std::atomic_bool isPrepareTerminateAbilityDone_ = false;
-    std::mutex mutex_;
-    std::condition_variable cv_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -17,6 +17,7 @@
 
 #include <dlfcn.h>
 
+#include "ability_cache_manager.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "scene_board_judgement.h"
@@ -245,15 +246,19 @@ std::shared_ptr<AbilityConnectManager> SubManagersHelper::GetConnectManagerByTok
         if (item.second && item.second->GetExtensionByTokenFromServiceMap(token)) {
             return item.second;
         }
-        if (item.second && item.second->GetExtensionByTokenFromAbilityCache(token)) {
-            return item.second;
-        }
         if (item.second && item.second->GetExtensionByTokenFromTerminatingMap(token)) {
             return item.second;
         }
     }
-
-    return nullptr;
+    auto abilityRecord = AbilityCacheManager::GetInstance().FindRecordByToken(token);
+    if (abilityRecord == nullptr) {
+        return nullptr;
+    }
+    auto iter = connectManagers_.find(abilityRecord->GetOwnerMissionUserId());
+    if (iter == connectManagers_.end()) {
+        return nullptr;
+    }
+    return iter->second;
 }
 
 std::shared_ptr<AbilityConnectManager> SubManagersHelper::GetConnectManagerByAbilityRecordId(
@@ -318,10 +323,13 @@ std::shared_ptr<MissionListManagerInterface> SubManagersHelper::GetMissionListMa
 std::shared_ptr<MissionListManagerInterface> SubManagersHelper::GetMissionListManagerByUid(int32_t uid)
 {
     int32_t userId = INVALID_USER_ID;
-    if (DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->GetOsAccountLocalIdFromUid(
-        uid, userId) != 0) {
+    int32_t getOsAccountRet =
+        DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->GetOsAccountLocalIdFromUid(uid, userId);
+    if (getOsAccountRet != 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetOsAccountLocalIdFromUid() failed. ret: %{public}d", getOsAccountRet);
         return nullptr;
     }
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "userId: %{public}d", userId);
     if (userId == U0_USER_ID) {
         std::lock_guard<ffrt::mutex> lock(managersMutex_);
         return currentMissionListManager_;
@@ -355,10 +363,13 @@ std::shared_ptr<UIAbilityLifecycleManager> SubManagersHelper::GetUIAbilityManage
 std::shared_ptr<UIAbilityLifecycleManager> SubManagersHelper::GetUIAbilityManagerByUid(int32_t uid)
 {
     int32_t userId = INVALID_USER_ID;
-    if (DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->GetOsAccountLocalIdFromUid(
-        uid, userId) != 0) {
+    int32_t getOsAccountRet =
+        DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->GetOsAccountLocalIdFromUid(uid, userId);
+    if (getOsAccountRet != 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetOsAccountLocalIdFromUid() failed. ret: %{public}d", getOsAccountRet);
         return nullptr;
     }
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "userId: %{public}d", userId);
     if (userId == U0_USER_ID) {
         std::lock_guard<ffrt::mutex> lock(managersMutex_);
         return currentUIAbilityManager_;
@@ -369,10 +380,13 @@ std::shared_ptr<UIAbilityLifecycleManager> SubManagersHelper::GetUIAbilityManage
 void SubManagersHelper::UninstallApp(const std::string &bundleName, int32_t uid)
 {
     int32_t userId = INVALID_USER_ID;
-    if (DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->GetOsAccountLocalIdFromUid(
-        uid, userId) != 0) {
+    int32_t getOsAccountRet =
+        DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->GetOsAccountLocalIdFromUid(uid, userId);
+    if (getOsAccountRet != 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetOsAccountLocalIdFromUid() failed. ret: %{public}d", getOsAccountRet);
         return;
     }
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "userId: %{public}d", userId);
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         UninstallAppInUIAbilityManagers(userId, bundleName, uid);
     } else {
@@ -426,12 +440,12 @@ bool SubManagersHelper::VerificationAllTokenForConnectManagers(const sptr<IRemot
         if (item.second && item.second->GetExtensionByTokenFromServiceMap(token)) {
             return true;
         }
-        if (item.second && item.second->GetExtensionByTokenFromAbilityCache(token)) {
-            return true;
-        }
         if (item.second && item.second->GetExtensionByTokenFromTerminatingMap(token)) {
             return true;
         }
+    }
+    if (AbilityCacheManager::GetInstance().FindRecordByToken(token)) {
+        return true;
     }
     return false;
 }

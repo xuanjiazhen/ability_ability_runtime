@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -87,6 +87,7 @@ constexpr int32_t BASE_USER_RANGE = 200000;
 constexpr int32_t U0_USER_ID = 0;
 constexpr int32_t INVALID_USER_ID = -1;
 constexpr const char* KEY_SESSION_ID = "com.ohos.param.sessionId";
+constexpr const char* KEY_REQUEST_ID = "com.ohos.param.requestId";
 using OHOS::AppExecFwk::IAbilityController;
 struct StartAbilityInfo;
 class WindowFocusChangedListener;
@@ -113,6 +114,24 @@ public:
     virtual void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string& deviceId) override;
 
     ServiceRunningState QueryServiceState() const;
+
+    /**
+     * StartSelfUIAbility with want, start self uiability only on 2-in-1 devices.
+     *
+     * @param want, the want of the ability to start.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int StartSelfUIAbility(const Want &want) override;
+
+    /**
+     * StartSelfUIAbility with want and startOptions, start self uiability only on 2-in-1 devices.
+     *
+     * @param want, the want of the ability to start.
+     * @param options, the startOptions of the ability to start.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int StartSelfUIAbilityWithStartOptions(const Want &want,
+        const StartOptions &options) override;
 
     /**
      * StartAbility with want, send want to ability manager service.
@@ -418,7 +437,7 @@ public:
     int RequestModalUIExtension(const Want &want) override;
 
     int PreloadUIExtensionAbility(const Want &want, std::string &hostBundleName,
-        int32_t userId = DEFAULT_INVAL_VALUE) override;
+        int32_t userId = DEFAULT_INVAL_VALUE, int32_t hostPid = DEFAULT_INVAL_VALUE) override;
 
     int UnloadUIExtensionAbility(const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, std::string &bundleName);
 
@@ -515,9 +534,11 @@ public:
      *  CloseUIAbilityBySCB, close the special ability by scb.
      *
      * @param sessionInfo the session info of the ability to terminate.
+     * @param sceneFlag the reason info of the ability to terminate.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int CloseUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo) override;
+    virtual int CloseUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool isUserRequestedExit,
+        uint32_t sceneFlag = 0) override;
 
     /**
      * SendResultToAbility with want, return want from ability manager service.
@@ -807,15 +828,21 @@ public:
      *  Request to clean UIAbility from user.
      *
      * @param sessionInfo the session info of the ability to clean.
+     * @param sceneFlag the reason info of the ability to terminate.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t CleanUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo) override;
+    virtual int32_t CleanUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool isUserRequestedExit,
+        uint32_t sceneFlag = 0) override;
 
     std::shared_ptr<TaskHandlerWrap> GetTaskHandler() const
     {
         return taskHandler_;
     }
 
+    std::shared_ptr<TaskHandlerWrap> GetDelayClearReasonHandler() const
+    {
+        return delayClearReasonHandler_;
+    }
     /**
      * GetEventHandler, get the ability manager service's handler.
      *
@@ -980,6 +1007,9 @@ public:
     virtual int StartAbilityByCall(const Want &want, const sptr<IAbilityConnection> &connect,
         const sptr<IRemoteObject> &callerToken, int32_t accountId = DEFAULT_INVAL_VALUE) override;
 
+    virtual int StartAbilityByCallWithErrMsg(const Want &want, const sptr<IAbilityConnection> &connect,
+        const sptr<IRemoteObject> &callerToken, int32_t accountId, std::string &errMsg) override;
+
     /**
      * As abilityRequest is prepared, just execute starting ability procedure.
      * By now, this is only used by start_ability_sandbox_savefile.
@@ -1014,6 +1044,7 @@ public:
     void HandleActiveTimeOut(int64_t abilityRecordId);
     void HandleInactiveTimeOut(int64_t abilityRecordId);
     void HandleForegroundTimeOut(int64_t abilityRecordId, bool isHalf = false, bool isExtension = false);
+    void HandleConnectTimeOut(int64_t abilityRecordId, bool isHalf = false);
     void HandleShareDataTimeOut(int64_t uniqueId);
     int32_t GetShareDataPairAndReturnData(std::shared_ptr<AbilityRecord> abilityRecord,
         const int32_t &resultCode, const int32_t &uniqueId, WantParams &wantParam);
@@ -1031,8 +1062,7 @@ public:
         uint32_t specifyTokenId = 0,
         bool isForegroundToRestartApp = false,
         bool isImplicit = false,
-        bool isUIAbilityOnly = false,
-        bool isAppCloneSelector = false);
+        bool isUIAbilityOnly = false);
 
     int StartAbilityInner(
         const Want &want,
@@ -1044,8 +1074,7 @@ public:
         uint32_t specifyTokenId = 0,
         bool isForegroundToRestartApp = false,
         bool isImplicit = false,
-        bool isUIAbilityOnly = false,
-        bool isAppCloneSelector = false);
+        bool isUIAbilityOnly = false);
 
     int32_t StartExtensionAbilityInner(
         const Want &want,
@@ -1060,7 +1089,7 @@ public:
     int RequestModalUIExtensionInner(Want want);
 
     int PreloadUIExtensionAbilityInner(const Want &want, std::string &bundleName,
-        int32_t userId = DEFAULT_INVAL_VALUE);
+        int32_t userId = DEFAULT_INVAL_VALUE, int32_t hostPid = DEFAULT_INVAL_VALUE);
 
     int StartAbilityForOptionWrap(
         const Want &want,
@@ -1120,8 +1149,7 @@ public:
         sptr<IRemoteObject> asCallerSourceToken,
         int32_t userId = DEFAULT_INVAL_VALUE,
         int requestCode = DEFAULT_INVAL_VALUE,
-        bool isImplicit = false,
-        bool isAppCloneSelector = false);
+        bool isImplicit = false);
 
     int ImplicitStartAbilityAsCaller(
         const Want &want,
@@ -1130,12 +1158,12 @@ public:
         int32_t userId = DEFAULT_INVAL_VALUE,
         int requestCode = DEFAULT_INVAL_VALUE);
 
-    void OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag, int32_t requestId = 0);
-    void OnStartSpecifiedAbilityTimeoutResponse(const AAFwk::Want &want, int32_t requestId = 0);
+    void OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag, int32_t requestId);
+    void OnStartSpecifiedAbilityTimeoutResponse(int32_t requestId);
 
-    void OnStartSpecifiedProcessResponse(const AAFwk::Want &want, const std::string &flag,
-        int32_t requestId = 0);
-    void OnStartSpecifiedProcessTimeoutResponse(const AAFwk::Want &want, int32_t requestId = 0);
+    void OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId = 0);
+    void OnStartSpecifiedProcessTimeoutResponse(int32_t requestId);
+    void OnStartSpecifiedFailed(int32_t requestId);
 
     virtual int GetAbilityRunningInfos(std::vector<AbilityRunningInfo> &info) override;
     virtual int GetExtensionRunningInfos(int upperLimit, std::vector<ExtensionRunningInfo> &info) override;
@@ -1179,7 +1207,7 @@ public:
 
     virtual int StopUser(int userId, const sptr<IUserCallback> &callback) override;
 
-    virtual int LogoutUser(int32_t userId) override;
+    virtual int LogoutUser(int32_t userId, sptr<IUserCallback> callback) override;
 
     /**
      * Called when client complete dump.
@@ -1240,6 +1268,14 @@ public:
 #endif
 
     void ClearUserData(int32_t userId);
+
+    /**
+     * notify callers disconnect abilities before clearUserData
+     * or can not find connectManager_ by userId when onAbilityDied.
+     *
+     * @param userId userId.
+     */
+    void DisconnectBeforeCleanupByUserId(int32_t userId);
 
     virtual int RegisterSnapshotHandler(const sptr<ISnapshotHandler>& handler) override;
 
@@ -1464,6 +1500,15 @@ public:
      */
     virtual int32_t RecordProcessExitReason(const int32_t pid, const ExitReason &exitReason) override;
 
+    /**
+     * Record the exit reason of a killed process.
+     * @param pid The process id.
+     * @param uid The process uid.
+     * @param exitReason The reason of process exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RecordProcessExitReason(int32_t pid, int32_t uid, const ExitReason &exitReason) override;
+
     int32_t GetConfiguration(AppExecFwk::Configuration& config);
 
     /**
@@ -1538,6 +1583,8 @@ public:
 
     virtual int32_t KillProcessWithPrepareTerminate(const std::vector<int32_t>& pids) override;
 
+    virtual int32_t KillProcessWithReason(int32_t pid, const ExitReason &reason) override;
+
     /**
      * @brief Register auto start up callback for system api.
      * @param callback The point of JsAbilityAutoStartupCallBack.
@@ -1601,14 +1648,14 @@ public:
      * @param bundleName The application bundle name.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t AttachAppDebug(const std::string &bundleName) override;
+    int32_t AttachAppDebug(const std::string &bundleName, bool isDebugFromLocal) override;
 
     /**
      * @brief Detach app debug.
      * @param bundleName The application bundle name.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t DetachAppDebug(const std::string &bundleName) override;
+    int32_t DetachAppDebug(const std::string &bundleName, bool isDebugFromLocal) override;
 
     /**
      * @brief Execute intent.
@@ -1834,7 +1881,11 @@ public:
     int32_t UpdateKeepAliveEnableState(const std::string &bundleName, const std::string &moduleName,
         const std::string &mainElement, bool updateEnable, int32_t userId);
 
-    bool IsInStatusBar(uint32_t accessTokenId, int32_t uid);
+    bool IsInStatusBar(uint32_t accessTokenId, int32_t uid, bool isMultiInstance);
+
+    bool IsSupportStatusBar(int32_t uid);
+
+    bool IsSceneBoardReady(int32_t userId);
 
     /**
      * Set keep-alive flag for application under a specific user.
@@ -1896,6 +1947,79 @@ public:
     virtual int32_t QueryAtomicServiceStartupRule(sptr<IRemoteObject> callerToken,
         const std::string &appId, const std::string &startTime, AtomicServiceStartupRule &rule) override;
 
+    int StartUIAbilityForOptionWrap(const Want &want, const StartOptions &options, sptr<IRemoteObject> callerToken,
+        bool isPendingWantCaller, int32_t userId, int requestCode, uint32_t callerTokenId = 0, bool isImplicit = false,
+        bool isCallByShortcut = false);
+
+    /**
+     * PrepareTerminateAbilityDone, called when PrepareTerminateAbility call is done.
+     *
+     * @param token, the token of the ability to terminate.
+     * @param callback callback.
+     */
+    virtual void PrepareTerminateAbilityDone(const sptr<IRemoteObject> &token, bool isTerminate) override;
+
+    /**
+     * KillProcessForPermissionUpdate, call KillProcessForPermissionUpdate() through proxy object,
+     * force kill the application by accessTokenId, notify exception to SCB.
+     *
+     * @param  accessTokenId, accessTokenId.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int32_t KillProcessForPermissionUpdate(uint32_t accessTokenId) override;
+
+    /**
+     * KillProcessWithPrepareTerminateDone, called when KillProcessWithPrepareTerminate call is done.
+     *
+     * @param moduleName, the module name of the application.
+     * @param prepareTermination, the result of prepareTermination call of the module.
+     * @param isExist, whether the prepareTerminate functions are implemented.
+     */
+    virtual void KillProcessWithPrepareTerminateDone(const std::string &moduleName,
+        int32_t prepareTermination, bool isExist) override;
+    std::shared_ptr<AppExitReasonHelper> GetAppExitReasonHelper()
+    {
+        return appExitReasonHelper_;
+    }
+
+    /**
+     * Register hidden start observer.
+     * @param observer, ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RegisterHiddenStartObserver(const sptr<IHiddenStartObserver> &observer) override;
+
+    /**
+     * Unregister hidden start observer.
+     * @param observer, ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t UnregisterHiddenStartObserver(const sptr<IHiddenStartObserver> &observer) override;
+
+    /**
+     * Query preload uiextension record.
+     *
+     * @param element, The uiextension ElementName.
+     * @param moduleName, The uiextension moduleName.
+     * @param hostBundleName, The uiextension caller hostBundleName.
+     * @param recordNum, The returned count of uiextension.
+     * @param userId, The User Id.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t QueryPreLoadUIExtensionRecord(const AppExecFwk::ElementName &element,
+                                                  const std::string &moduleName,
+                                                  const std::string &hostBundleName,
+                                                  int32_t &recordNum,
+                                                  int32_t userId = DEFAULT_INVAL_VALUE) override;
+
+    /**
+     * Revoke delegator.
+     *
+     * @param token, ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RevokeDelegator(sptr<IRemoteObject> token) override;
+
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;
     static constexpr uint32_t ACTIVE_TIMEOUT_MSG = 1;
@@ -1906,6 +2030,8 @@ public:
     static constexpr uint32_t SHAREDATA_TIMEOUT_MSG = 7;
     static constexpr uint32_t LOAD_HALF_TIMEOUT_MSG = 8;
     static constexpr uint32_t FOREGROUND_HALF_TIMEOUT_MSG = 9;
+    static constexpr uint32_t CONNECT_TIMEOUT_MSG = 10;
+    static constexpr uint32_t CONNECT_HALF_TIMEOUT_MSG = 11;
 
     static constexpr uint32_t MIN_DUMP_ARGUMENT_NUM = 2;
     static constexpr uint32_t MAX_WAIT_SYSTEM_UI_NUM = 600;
@@ -1943,6 +2069,12 @@ protected:
      * @param abilityTokens abilities in died process.
      */
     void OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abilityTokens) override;
+
+    void OnStartProcessFailed(sptr<IRemoteObject> token) override;
+
+    void OnCacheExitInfo(uint32_t accessTokenId, const AAFwk::LastExitDetailInfo &exitInfo,
+        const std::string &bundleName, const std::vector<std::string> &abilityNames,
+        const std::vector<std::string> &uiExtensionNames) override;
 
 private:
     int TerminateAbilityWithFlag(const sptr<IRemoteObject> &token, int resultCode = DEFAULT_INVAL_VALUE,
@@ -2034,6 +2166,9 @@ private:
     void DumpMissionInfosInner(const std::string &args, std::vector<std::string> &info);
 
     bool JudgeMultiUserConcurrency(const int32_t userId);
+    bool CheckCrossUser(const int32_t userId, AppExecFwk::ExtensionAbilityType extensionType);
+    void SendExtensionReport(EventInfo &eventInfo, int32_t errCode, bool isService = false);
+    void SendIntentReport(EventInfo &eventInfo, int32_t errCode, const std::string &intentName);
     /**
      * dumpsys info
      *
@@ -2110,6 +2245,8 @@ private:
     void StartAutoStartupApps();
     void StartAutoStartupApps(std::queue<AutoStartupInfo> infoList);
     void SubscribeScreenUnlockedEvent();
+    std::function<void()> GetScreenUnlockCallback();
+    std::function<void()> GetUserScreenUnlockCallback();
     void UnSubscribeScreenUnlockedEvent();
     void RetrySubscribeScreenUnlockedEvent(int32_t retryCount);
     void RemoveScreenUnlockInterceptor();
@@ -2153,6 +2290,8 @@ private:
         const sptr<IRemoteObject> &callerToken);
 
     void ReportEventToRSS(const AppExecFwk::AbilityInfo &abilityInfo, sptr<IRemoteObject> callerToken);
+
+    void ReportAppConnectOtherExtensionEvent(const AppExecFwk::AbilityInfo &abilityInfo, const Want &want);
 
     void ReportAppRecoverResult(const int32_t appId, const AppExecFwk::ApplicationInfo &appInfo,
         const std::string& abilityName, const std::string& result);
@@ -2264,6 +2403,7 @@ private:
     int AddStartControlParam(Want &want, const sptr<IRemoteObject> &callerToken);
 
     AAFwk::EventInfo BuildEventInfo(const Want &want, int32_t userId);
+    AAFwk::EventInfo BuildEventInfoByAbilityRecord(const std::shared_ptr<AbilityRecord> &abilityRecord);
 
 #ifdef WITH_DLP
     int CheckDlpForExtension(
@@ -2286,16 +2426,17 @@ private:
 
     void ReleaseAbilityTokenMap(const sptr<IRemoteObject> &token);
 
-    bool CheckPrepareTerminateEnable();
-
     bool CheckCollaboratorType(int32_t type);
 
     bool CheckUserIdActive(int32_t userId);
 
     int32_t CheckProcessOptions(const Want &want, const StartOptions &startOptions, int32_t userId);
 
+    int32_t CheckStartSelfUIAbilityStartOptions(const Want &want, const StartOptions &startOptions);
+
     void GetConnectManagerAndUIExtensionBySessionInfo(const sptr<SessionInfo> &sessionInfo,
-        std::shared_ptr<AbilityConnectManager> &connectManager, std::shared_ptr<AbilityRecord> &targetAbility);
+        std::shared_ptr<AbilityConnectManager> &connectManager, std::shared_ptr<AbilityRecord> &targetAbility,
+        bool needCheck = false);
 
     virtual int RegisterSessionHandler(const sptr<IRemoteObject> &object) override;
 
@@ -2358,10 +2499,6 @@ private:
         AppExecFwk::MultiAppModeType type, bool isAppRecovery = false);
     int32_t CheckRestartAppWant(const AAFwk::Want &want, int32_t appIndex, int32_t userId);
 
-    int StartUIAbilityForOptionWrap(const Want &want, const StartOptions &options, sptr<IRemoteObject> callerToken,
-        bool isPendingWantCaller, int32_t userId, int requestCode, uint32_t callerTokenId = 0, bool isImplicit = false,
-        bool isCallByShortcut = false);
-
     int32_t CheckDebugAssertPermission();
     std::shared_ptr<AbilityDebugDeal> ConnectInitAbilityDebugDeal();
 
@@ -2372,6 +2509,7 @@ private:
         AppExecFwk::ExtensionAbilityType extensionType);
 
     bool CheckUIExtensionCallerIsForeground(const AbilityRequest &abilityRequest);
+    bool CheckStartCallHasFloatingWindowForUIExtension(const sptr<IRemoteObject> &callerToken);
     bool CheckUIExtensionCallerIsUIAbility(const AbilityRequest &abilityRequest);
     std::shared_ptr<AbilityRecord> GetUIExtensionRootCaller(const sptr<IRemoteObject> token, int32_t userId);
 
@@ -2392,6 +2530,8 @@ private:
         const AbilityRequest& abilityRequest, bool isForegroundToRestartApp,
         bool isSendDialogResult, uint32_t specifyTokenId,
         const std::string& callerBundleName);
+
+    int32_t CheckStartPlugin(const Want& want, sptr<IRemoteObject> callerToken);
 
     int StartAbilityByConnectManager(const Want& want, const AbilityRequest& abilityRequest,
         const AppExecFwk::AbilityInfo& abilityInfo, int validUserId, sptr<IRemoteObject> callerToken);
@@ -2425,38 +2565,17 @@ private:
 
     void StartKeepAliveAppsInner(int32_t userId);
 
-    sptr<WindowVisibilityChangedListener> windowVisibilityChangedListener_;
-    std::shared_ptr<TaskHandlerWrap> taskHandler_;
-    std::shared_ptr<AbilityEventHandler> eventHandler_;
-    ServiceRunningState state_;
+    bool ProcessLowMemoryKill(int32_t pid, const ExitReason &reason);
 
-    std::shared_ptr<FreeInstallManager> freeInstallManager_;
+    struct StartSelfUIAbilityParam {
+        Want want;
+        StartOptions options;
+        bool hasStartOptions = false;
+    };
+    int StartSelfUIAbilityInner(StartSelfUIAbilityParam param);
 
-    std::shared_ptr<SubManagersHelper> subManagersHelper_;
-
-    std::shared_ptr<UserController> userController_;
-    sptr<AppExecFwk::IAbilityController> abilityController_ = nullptr;
     bool controllerIsAStabilityTest_ = false;
-    std::unordered_set<int32_t> windowVisibleList_;
-
-    ffrt::mutex globalLock_;
-    ffrt::mutex bgtaskObserverMutex_;
-    ffrt::mutex abilityTokenLock_;
-    ffrt::mutex preStartSessionMapLock_;
-    ffrt::mutex windowVisibleListLock_;
-
-    std::multimap<std::string, std::string> timeoutMap_;
-    std::map<std::string, sptr<SessionInfo>> preStartSessionMap_;
-
-    static sptr<AbilityManagerService> instance_;
-    int32_t uniqueId_ = 0;
-    ffrt::mutex iAcquireShareDataMapLock_;
-    std::map<int32_t, std::pair<int64_t, const sptr<IAcquireShareDataCallback>>> iAcquireShareDataMap_;
-    // first is callstub, second is ability token
-    std::map<sptr<IRemoteObject>, sptr<IRemoteObject>> callStubTokenMap_;
-#ifdef SUPPORT_GRAPHICS
-    sptr<WindowFocusChangedListener> focusListener_;
-#endif // SUPPORT_GRAPHICS
+    bool isParamStartAbilityEnable_ = false;
     // Component StartUp rule switch
     bool startUpNewRule_ = true;
     /** It only takes effect when startUpNewRule_ is TRUE
@@ -2474,12 +2593,37 @@ private:
      *  FALSE: white list unable.
      */
     bool whiteListassociatedWakeUpFlag_ = true;
+    bool shouldBlockAllAppStart_ = false;
+
+    int32_t uniqueId_ = 0;
+    std::unordered_set<int32_t> windowVisibleList_;
+
+    sptr<WindowVisibilityChangedListener> windowVisibilityChangedListener_;
+    std::shared_ptr<TaskHandlerWrap> taskHandler_;
+    std::shared_ptr<TaskHandlerWrap> delayClearReasonHandler_;
+    std::shared_ptr<AbilityEventHandler> eventHandler_;
+    ServiceRunningState state_;
+
+    std::shared_ptr<FreeInstallManager> freeInstallManager_;
+    std::shared_ptr<SubManagersHelper> subManagersHelper_;
+    std::shared_ptr<UserController> userController_;
+    sptr<AppExecFwk::IAbilityController> abilityController_ = nullptr;
+
+    std::multimap<std::string, std::string> timeoutMap_;
+    std::map<std::string, sptr<SessionInfo>> preStartSessionMap_;
+
+    static sptr<AbilityManagerService> instance_;
+    std::map<int32_t, std::pair<int64_t, const sptr<IAcquireShareDataCallback>>> iAcquireShareDataMap_;
+    // first is callstub, second is ability token
+    std::map<sptr<IRemoteObject>, sptr<IRemoteObject>> callStubTokenMap_;
+#ifdef SUPPORT_GRAPHICS
+    sptr<WindowFocusChangedListener> focusListener_;
+#endif // SUPPORT_GRAPHICS
 
     std::shared_ptr<AbilityRuntime::AbilityManagerEventSubscriber> screenSubscriber_;
 
     std::shared_ptr<AbilityAutoStartupService> abilityAutoStartupService_;
 
-    std::mutex whiteListMutex_;
     std::map<std::string, std::list<std::string>> whiteListMap_;
 
     std::list<std::string> exportWhiteList_;
@@ -2490,8 +2634,6 @@ private:
 
     bool IsInWhiteList(const std::string &callerBundleName, const std::string &calleeBundleName,
         const std::string &calleeAbilityName);
-
-    bool isParamStartAbilityEnable_ = false;
 
     std::string GetConfigFileAbsolutePath(const std::string &relativePath);
 
@@ -2522,31 +2664,38 @@ private:
     sptr<AbilityBundleEventCallback> abilityBundleEventCallback_;
 
 #ifdef SUPPORT_SCREEN
-    int32_t ShowPickerDialog(const Want& want, int32_t userId, const sptr<IRemoteObject> &token);
+    bool isAnimationEnabled_ = true; //only use on mission list
     bool CheckWindowMode(int32_t windowMode, const std::vector<AppExecFwk::SupportWindowMode>& windowModes) const;
+    int32_t ShowPickerDialog(const Want& want, int32_t userId, const sptr<IRemoteObject> &token);
     void InitFocusListener();
     void RegisterFocusListener();
-    void InitPrepareTerminateConfig();
     std::shared_ptr<ImplicitStartProcessor> implicitStartProcessor_;
     sptr<IWindowManagerServiceHandler> wmsHandler_;
-    bool isAnimationEnabled_ = true; //only use on mission list
 #endif
     std::shared_ptr<AbilityInterceptorExecuter> interceptorExecuter_;
     std::shared_ptr<AbilityInterceptorExecuter> afterCheckExecuter_;
 
     std::unordered_map<int32_t, int64_t> appRecoveryHistory_; // uid:time
-    bool isPrepareTerminateEnable_ = false;
     std::multimap<int, std::shared_ptr<StartAbilityHandler>, std::greater<int>> startAbilityChain_;
-
-    ffrt::mutex collaboratorMapLock_;
     std::unordered_map<int32_t, sptr<IAbilityManagerCollaborator>> collaboratorMap_;
 
-    ffrt::mutex abilityDebugDealLock_;
     std::shared_ptr<AbilityDebugDeal> abilityDebugDeal_;
     std::shared_ptr<AppExitReasonHelper> appExitReasonHelper_;
 
+    ffrt::mutex globalLock_;
+    ffrt::mutex bgtaskObserverMutex_;
+    ffrt::mutex abilityTokenLock_;
+    ffrt::mutex preStartSessionMapLock_;
+    ffrt::mutex windowVisibleListLock_;
+    ffrt::mutex iAcquireShareDataMapLock_;
+    ffrt::mutex collaboratorMapLock_;
+    ffrt::mutex abilityDebugDealLock_;
     ffrt::mutex shouldBlockAllAppStartMutex_;
-    bool shouldBlockAllAppStart_ = false;
+    mutable ffrt::mutex timeoutMapLock_;
+    std::mutex whiteListMutex_;
+
+    std::mutex prepareTermiationCallbackMutex_;
+    std::map<std::string, sptr<IPrepareTerminateCallback>> prepareTermiationCallbacks_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

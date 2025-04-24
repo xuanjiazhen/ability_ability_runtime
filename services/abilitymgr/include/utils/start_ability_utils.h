@@ -28,7 +28,7 @@ namespace AAFwk {
 
 struct StartAbilityInfo {
     static std::shared_ptr<StartAbilityInfo> CreateStartAbilityInfo(const Want &want, int32_t userId,
-        int32_t appIndex);
+        int32_t appIndex, sptr<IRemoteObject> callerToken);
     static std::shared_ptr<StartAbilityInfo> CreateCallerAbilityInfo(const sptr<IRemoteObject> &callerToken);
 
     static std::shared_ptr<StartAbilityInfo> CreateStartExtensionInfo(const Want &want, int32_t userId,
@@ -42,9 +42,9 @@ struct StartAbilityInfo {
         return abilityInfo.applicationInfo.bundleName;
     }
 
+    int32_t status = ERR_OK;
     AppExecFwk::AbilityInfo abilityInfo;
     AppExecFwk::ExtensionProcessMode extensionProcessMode = AppExecFwk::ExtensionProcessMode::UNDEFINED;
-    int32_t status = ERR_OK;
     std::string customProcess;
 };
 

@@ -36,6 +36,7 @@
 #include "hitrace_meter.h"
 #include "iservice_registry.h"
 #include "runtime.h"
+#include "js_runtime.h"
 #include "startup_manager.h"
 #include "system_ability_definition.h"
 #include "syspara/parameter.h"
@@ -272,7 +273,10 @@ void OHOSApplication::OnConfigurationUpdated(Configuration config, AbilityRuntim
     }
 #ifdef SUPPORT_GRAPHICS
     auto diffConfiguration = std::make_shared<AppExecFwk::Configuration>(config);
-    Rosen::Window::UpdateConfigurationForAll(diffConfiguration);
+    auto ignoreWindowContext = AbilityRuntime::ApplicationConfigurationManager::GetInstance().
+        GetIgnoreContext();
+    TAG_LOGI(AAFwkTag::APPKIT, "ignoreWindowContext size %{public}zu", ignoreWindowContext.size());
+    Rosen::Window::UpdateConfigurationForAll(diffConfiguration, ignoreWindowContext);
 #endif
     abilityRuntimeContext_->DispatchConfigurationUpdated(*configuration_);
     abilityRuntimeContext_->SetConfiguration(configuration_);
@@ -382,8 +386,24 @@ std::shared_ptr<AbilityRuntime::Context> OHOSApplication::AddAbilityStage(
     auto iterator = abilityStages_.find(moduleName);
     if (iterator == abilityStages_.end()) {
         auto stageContext = std::make_shared<AbilityRuntime::AbilityStageContext>();
-        stageContext->SetParentContext(abilityRuntimeContext_);
-        stageContext->InitHapModuleInfo(abilityInfo);
+        bool isPlugin = abilityInfo->applicationInfo.bundleType == AppExecFwk::BundleType::APP_PLUGIN;
+        if (isPlugin) {
+            stageContext->SetIsPlugin(true);
+            stageContext->InitPluginHapModuleInfo(abilityInfo, abilityRuntimeContext_->GetBundleName());
+            auto pluginContext = stageContext->CreatePluginContext(
+                abilityInfo->bundleName, abilityInfo->moduleName, abilityRuntimeContext_);
+            if (pluginContext == nullptr) {
+                TAG_LOGE(AAFwkTag::APPKIT, "null pluginContext");
+                return nullptr;
+            }
+            auto rm = pluginContext->GetResourceManager();
+            stageContext->SetResourceManager(rm);
+            stageContext->SetParentContext(pluginContext);
+        } else {
+            stageContext->InitHapModuleInfo(abilityInfo);
+            stageContext->SetParentContext(abilityRuntimeContext_);
+        }
+
         stageContext->SetConfiguration(GetConfiguration());
         stageContext->SetProcessName(GetProcessName());
         std::shared_ptr<AppExecFwk::HapModuleInfo> hapModuleInfo = stageContext->GetHapModuleInfo();
@@ -391,8 +411,8 @@ std::shared_ptr<AbilityRuntime::Context> OHOSApplication::AddAbilityStage(
             TAG_LOGE(AAFwkTag::APPKIT, "null hapModuleInfo");
             return nullptr;
         }
-        if (runtime_) {
-            runtime_->UpdatePkgContextInfoJson(
+        if (runtime_ && (runtime_->GetLanguage() == AbilityRuntime::Runtime::Language::JS)) {
+            static_cast<AbilityRuntime::JsRuntime&>(*runtime_).SetPkgContextInfoJson(
                 hapModuleInfo->moduleName, hapModuleInfo->hapPath, hapModuleInfo->packageName);
         }
         SetAppEnv(hapModuleInfo->appEnvironments);
@@ -697,16 +717,31 @@ void OHOSApplication::ScheduleAcceptWant(const AAFwk::Want &want, const std::str
 }
 
 void OHOSApplication::SchedulePrepareTerminate(const std::string &moduleName,
-    int32_t &prepareTermination, bool &isExist)
+    std::function<void(AppExecFwk::OnPrepareTerminationResult)> callback, bool &isAsync)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    isAsync = false;
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null callback");
+        return;
+    }
     auto iter = abilityStages_.find(moduleName);
     if (iter == abilityStages_.end() || iter->second == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "%{public}s is not in abilityStage", moduleName.c_str());
         return;
     }
-    isExist = iter->second->OnPrepareTerminate(prepareTermination);
-    TAG_LOGD(AAFwkTag::APPKIT, "OnPrepareTerminate isExist = %{public}d", isExist);
+
+    auto *callbackInfo = AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnPrepareTerminationResult>::Create();
+    if (callbackInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null callbackInfo");
+        return;
+    }
+    callbackInfo->Push(callback);
+    if (!iter->second->OnPrepareTerminate(callbackInfo, isAsync)) {
+        TAG_LOGI(AAFwkTag::APPKIT, "not exist");
+        AppExecFwk::OnPrepareTerminationResult result = { 0, false };
+        callbackInfo->Call(result);
+        AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnPrepareTerminationResult>::Destroy(callbackInfo);
+    }
 }
 
 void OHOSApplication::ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName,
@@ -866,14 +901,6 @@ bool OHOSApplication::IsUpdateColorNeeded(Configuration &config, AbilityRuntime:
 
     bool needUpdate = true;
 
-    if (level < AbilityRuntime::ApplicationConfigurationManager::GetInstance().GetColorModeSetLevel() ||
-        colorMode.empty()) {
-        config.RemoveItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE);
-        config.RemoveItem(AAFwk::GlobalConfigurationKey::COLORMODE_IS_SET_BY_SA);
-        TAG_LOGI(AAFwkTag::APPKIT, "color remove");
-        needUpdate = false;
-    }
-
     if (!colorMode.empty()) {
         config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE,
             AbilityRuntime::ApplicationConfigurationManager::GetInstance().SetColorModeSetLevel(level, colorMode));
@@ -882,6 +909,14 @@ bool OHOSApplication::IsUpdateColorNeeded(Configuration &config, AbilityRuntime:
             config.AddItem(AAFwk::GlobalConfigurationKey::COLORMODE_IS_SET_BY_APP,
                 AppExecFwk::ConfigurationInner::IS_SET_BY_APP);
         }
+    }
+
+    if (level < AbilityRuntime::ApplicationConfigurationManager::GetInstance().GetColorModeSetLevel() ||
+        colorMode.empty()) {
+        config.RemoveItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE);
+        config.RemoveItem(AAFwk::GlobalConfigurationKey::COLORMODE_IS_SET_BY_SA);
+        TAG_LOGI(AAFwkTag::APPKIT, "color remove");
+        needUpdate = false;
     }
 
     return needUpdate;

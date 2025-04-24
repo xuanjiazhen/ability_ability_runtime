@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
-module_output_path = "ability_runtime/appmgrservice"
+module_output_path = "ability_runtime/ability_runtime/appmgrservice"
 
 ohos_unittest("AmsServiceEventDriveTest") {
   module_out_path = module_output_path
@@ -95,6 +95,7 @@ ohos_unittest("AmsServiceEventDriveTest") {
     "kv_store:distributeddata_inner",
     "memmgr:memmgrclient",
     "memory_utils:libmeminfo",
+    "os_account:os_account_innerkits",
     "resource_schedule_service:ressched_client",
   ]
 

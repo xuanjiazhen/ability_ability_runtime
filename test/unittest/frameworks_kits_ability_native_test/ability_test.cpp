@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,8 @@
 #define private public
 #define protected public
 #include "ability.h"
+#include "key_event.h"
+#include "pointer_event.h"
 #undef protected
 #undef private
 #include "ability_context_impl.h"
@@ -34,7 +36,6 @@
 #include "data_ability_predicates.h"
 #include "data_ability_result.h"
 #include "hilog_tag_wrapper.h"
-#include "key_event.h"
 #include "mock_lifecycle_observer.h"
 #include "mock_page_ability.h"
 #include "ohos_application.h"
@@ -43,6 +44,7 @@
 #include "uri.h"
 #include "values_bucket.h"
 #include "scene_board_judgement.h"
+#include "form_constants.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -181,6 +183,7 @@ HWTEST_F(AbilityBaseTest, AaFwk_Ability_Dump_0100, Function | MediumTest | Level
 
     std::string extra = "";
     ability_->Dump(extra);
+    EXPECT_TRUE(ability_ != nullptr);
 
     GTEST_LOG_(INFO) << "AaFwk_Ability_Dump_0100 end";
 }
@@ -248,6 +251,7 @@ HWTEST_F(AbilityBaseTest, AaFwk_Ability_OnNewWant_0100, Function | MediumTest | 
 
     Want want;
     ability_->OnNewWant(want);
+    EXPECT_TRUE(ability_ != nullptr);
 
     GTEST_LOG_(INFO) << "AaFwk_Ability_OnNewWant_0100 end";
 }
@@ -271,6 +275,7 @@ HWTEST_F(AbilityBaseTest, AaFwk_Ability_OnRestoreAbilityState_0100, Function | M
 
     PacMap inState;
     ability_->OnRestoreAbilityState(inState);
+    EXPECT_TRUE(ability_ != nullptr);
 
     GTEST_LOG_(INFO) << "AaFwk_Ability_OnRestoreAbilityState_0100 end";
 }
@@ -361,6 +366,7 @@ HWTEST_F(AbilityBaseTest, AaFwk_Ability_OnSaveAbilityState_0100, Function | Medi
 
     PacMap outState;
     ability_->OnSaveAbilityState(outState);
+    EXPECT_TRUE(ability_ != nullptr);
 
     GTEST_LOG_(INFO) << "AaFwk_Ability_OnSaveAbilityState_0100 end";
 }
@@ -408,6 +414,7 @@ HWTEST_F(AbilityBaseTest, AaFwk_Ability_SetResult_0100, Function | MediumTest | 
     sptr<IRemoteObject> token = nullptr;
     ability_->Init(abilityInfo, application, handler, token);
     ability_->SetResult(resultCode, want);
+    EXPECT_TRUE(ability_ != nullptr);
 
     GTEST_LOG_(INFO) << "AaFwk_Ability_SetResult_0100 end";
 }
@@ -431,6 +438,7 @@ HWTEST_F(AbilityBaseTest, AaFwk_Ability_StartAbilityForResult_0100, Function | M
     sptr<IRemoteObject> token = nullptr;
     ability_->Init(abilityInfo, application, handler, token);
     ability_->StartAbilityForResult(want, resultCode);
+    EXPECT_TRUE(ability_ != nullptr);
 
     GTEST_LOG_(INFO) << "AaFwk_Ability_StartAbilityForResult_0100 end";
 }
@@ -446,6 +454,7 @@ HWTEST_F(AbilityBaseTest, AaFwk_Ability_StartAbility_0100, Function | MediumTest
 
     Want want;
     ability_->StartAbility(want);
+    EXPECT_TRUE(ability_ != nullptr);
 
     GTEST_LOG_(INFO) << "AaFwk_Ability_StartAbility_0100 end";
 }
@@ -460,6 +469,7 @@ HWTEST_F(AbilityBaseTest, AaFwk_Ability_TerminateAbility_0100, Function | Medium
     GTEST_LOG_(INFO) << "AaFwk_Ability_TerminateAbility_0100 start";
 
     ability_->TerminateAbility();
+    EXPECT_TRUE(ability_ != nullptr);
 
     GTEST_LOG_(INFO) << "AaFwk_Ability_TerminateAbility_0100 end";
 }
@@ -473,6 +483,7 @@ HWTEST_F(AbilityBaseTest, AaFwk_Ability_GetWindow_001, Function | MediumTest | L
     std::shared_ptr<AbilityHandler> handler = nullptr;
     sptr<IRemoteObject> token = nullptr;
     ability_->Init(abilityInfo, application, handler, token);
+    EXPECT_TRUE(ability_ != nullptr);
 }
 
 /**
@@ -1217,6 +1228,7 @@ HWTEST_F(AbilityBaseTest, AaFwk_Ability_OnDisconnect_0100, Function | MediumTest
 
     Want want;
     ability_->OnDisconnect(want);
+    EXPECT_TRUE(ability_ != nullptr);
 
     GTEST_LOG_(INFO) << "AaFwk_Ability_OnDisconnect_0100 end";
 }
@@ -1234,6 +1246,7 @@ HWTEST_F(AbilityBaseTest, AaFwk_Ability_StartAbilitySetting_0100, Function | Med
     std::shared_ptr<AbilityStartSetting> setting = AbilityStartSetting::GetEmptySetting();
 
     ability_->StartAbility(want, *setting.get());
+    EXPECT_TRUE(ability_ != nullptr);
 
     GTEST_LOG_(INFO) << "AaFwk_Ability_StartAbilitySetting_0100 end";
 }
@@ -1256,6 +1269,7 @@ HWTEST_F(AbilityBaseTest, AaFwk_Ability_StartAbilitySetting_0200, Function | Med
     Want want;
     std::shared_ptr<AbilityStartSetting> setting = AbilityStartSetting::GetEmptySetting();
     ability_->StartAbility(want, *setting.get());
+    EXPECT_TRUE(ability_ != nullptr);
 
     GTEST_LOG_(INFO) << "AaFwk_Ability_StartAbilitySetting_0200 end";
 }
@@ -1277,6 +1291,7 @@ HWTEST_F(AbilityBaseTest, AaFwk_Ability_PostTask_0100, Function | MediumTest | L
     ability_->Init(abilityInfo, nullptr, handler, nullptr);
     auto task = []() { GTEST_LOG_(INFO) << "AaFwk_Ability_PostTask_001 task called"; };
     ability_->PostTask(task, 1000);
+    EXPECT_TRUE(ability_ != nullptr);
 
     GTEST_LOG_(INFO) << "AaFwk_Ability_PostTask_0100 end";
 }

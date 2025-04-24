@@ -1111,10 +1111,66 @@ napi_value WrapWant(napi_env env, const Want &want)
     SetPropertyValueByPropertyName(env, jsObject, "parameters", jsValue);
 
     jsValue = nullptr;
+    jsValue = WrapWantParamsFD(env, want.GetParams());
+    SetPropertyValueByPropertyName(env, jsObject, "fds", jsValue);
+
+    jsValue = nullptr;
     jsValue = WrapArrayStringToJS(env, want.GetEntities());
     SetPropertyValueByPropertyName(env, jsObject, "entities", jsValue);
 
     return jsObject;
+}
+
+napi_value WrapWantParamsFD(napi_env env, const AAFwk::WantParams &wantParams)
+{
+    napi_value jsObject = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &jsObject));
+    auto paramList = wantParams.GetParams();
+    WantParams fds;
+    for (auto it = paramList.begin(); it != paramList.end(); it++) {
+        if (AAFwk::IWantParams::Query(it->second) == nullptr) {
+            TAG_LOGW(AAFwkTag::JSNAPI, "not wantpram");
+            continue;
+        }
+        auto value = wantParams.GetParam(it->first);
+        AAFwk::IWantParams *o = AAFwk::IWantParams::Query(value);
+        if (o == nullptr) {
+            return jsObject;
+        }
+        AAFwk::WantParams wp = AAFwk::WantParamWrapper::Unbox(o);
+        auto valueMap = wp.GetParams();
+        if (valueMap.size() != PROPERTIES_SIZE) {
+            TAG_LOGD(AAFwkTag::JSNAPI, "not fd");
+            return jsObject;
+        }
+
+        //type
+        auto typeIt = valueMap.find(TYPE_PROPERTY);
+        if (typeIt == valueMap.end()) {
+            return jsObject;
+        }
+        AAFwk::IString *strValue = AAFwk::IString::Query(typeIt->second);
+        if (strValue == nullptr) {
+            return jsObject;
+        }
+        std::string typeString = AAFwk::String::Unbox(strValue);
+        if (typeString != FD) {
+            TAG_LOGD(AAFwkTag::JSNAPI, "not fd");
+            return jsObject;
+        }
+
+        // value
+        auto valueIt = valueMap.find(VALUE_PROPERTY);
+        if (valueIt == valueMap.end()) {
+            return jsObject;
+        }
+        AAFwk::IInteger *intValue = AAFwk::IInteger::Query(valueIt->second);
+        if (intValue == nullptr) {
+            return jsObject;
+        }
+        fds.SetParam(it->first, intValue);
+    }
+    return WrapWantParams(env, fds);
 }
 
 bool UnwrapWant(napi_env env, napi_value param, Want &want)
@@ -1325,6 +1381,44 @@ bool WrapJsWantParamsArray(napi_env env, napi_value object, const std::string &k
         TAG_LOGE(AAFwkTag::JSNAPI, "Array type unknown");
         return false;
     }
+}
+
+template<class TBase, class T, class NativeT>
+bool InnerWrapWantParamsArray(napi_env env, napi_value object, const std::string &key, sptr<AAFwk::IArray> &ao)
+{
+    if (ao == nullptr) {
+        return false;
+    }
+    long size = 0;
+    if (ao->GetLength(size) != ERR_OK) {
+        return false;
+    }
+    std::vector<NativeT> natArray;
+    for (long i = 0; i < size; i++) {
+        sptr<AAFwk::IInterface> iface = nullptr;
+        if (ao->Get(i, iface) == ERR_OK) {
+            TBase *iValue = TBase::Query(iface);
+            if (iValue != nullptr) {
+                natArray.push_back(T::Unbox(iValue));
+            }
+        }
+    }
+    napi_set_named_property(env, object, key.c_str(), OHOS::AbilityRuntime::CreateNativeArray(env, natArray));
+    return true;
+}
+
+template<class TBase, class T, class NativeT>
+bool InnerWrapJsWantParams(napi_env env, napi_value object, const std::string &key, const AAFwk::WantParams &wantParams)
+{
+    auto value = wantParams.GetParam(key);
+    TBase *ao = TBase::Query(value);
+    if (ao != nullptr) {
+        NativeT natValue = T::Unbox(ao);
+        napi_value propertyValue = OHOS::AbilityRuntime::CreateJsValue(env, natValue);
+        napi_set_named_property(env, object, key.c_str(), propertyValue);
+        return true;
+    }
+    return false;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

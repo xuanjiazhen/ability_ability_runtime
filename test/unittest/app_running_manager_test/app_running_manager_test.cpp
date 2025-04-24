@@ -76,11 +76,11 @@ HWTEST_F(AppRunningManagerTest, AppRunningManager_SetAttachAppDebug_0100, TestSi
     std::string processName;
     auto appRunningRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
     appRunningManager->appRunningRecordMap_.insert(make_pair(RECORD_ID, appRunningRecord));
-    appRunningManager->SetAttachAppDebug(bundleName, true);
+    appRunningManager->SetAttachAppDebug(bundleName, true, false);
     for (const auto &item : appRunningManager->appRunningRecordMap_) {
         const auto &appRecord = item.second;
         if (appRecord->GetBundleName() == bundleName) {
-            appRecord->SetAttachDebug(true);
+            appRecord->SetAttachDebug(true, false);
             EXPECT_EQ(appRecord->isAttachDebug_, true);
         }
     }
@@ -102,11 +102,11 @@ HWTEST_F(AppRunningManagerTest, AppRunningManager_SetAttachAppDebug_0200, TestSi
     std::string processName;
     auto appRunningRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
     appRunningManager->appRunningRecordMap_.insert(make_pair(RECORD_ID, appRunningRecord));
-    appRunningManager->SetAttachAppDebug(bundleName, isAttachDebug);
+    appRunningManager->SetAttachAppDebug(bundleName, isAttachDebug, false);
     for (const auto &item : appRunningManager->appRunningRecordMap_) {
         const auto &appRecord = item.second;
         if (appRecord->GetBundleName() == bundleName) {
-            appRecord->SetAttachDebug(true);
+            appRecord->SetAttachDebug(true, false);
             EXPECT_EQ(appRecord->isAttachDebug_, true);
         }
     }
@@ -746,7 +746,8 @@ HWTEST_F(AppRunningManagerTest, ProcessUpdateApplicationInfoInstalled_0100, Test
     ASSERT_NE(appRunningManager, nullptr);
 
     ApplicationInfo appInfo;
-    EXPECT_EQ(appRunningManager->ProcessUpdateApplicationInfoInstalled(appInfo), 0);
+    std::string moduleName;
+    EXPECT_EQ(appRunningManager->ProcessUpdateApplicationInfoInstalled(appInfo, moduleName), 0);
 }
 } // namespace AppExecFwk
 } // namespace OHOS

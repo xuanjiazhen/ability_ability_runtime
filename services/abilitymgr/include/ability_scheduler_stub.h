@@ -79,6 +79,9 @@ private:
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     int OnRemoteRequestInnerThird(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+    int CollaborateDataInner(MessageParcel &data);
+    int ScheduleAbilityRequestFailureInner(MessageParcel &data);
+    int ScheduleAbilityRequestSuccessInner(MessageParcel &data);
 };
 
 /**

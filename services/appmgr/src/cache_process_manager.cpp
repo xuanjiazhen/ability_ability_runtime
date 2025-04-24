@@ -123,6 +123,7 @@ bool CacheProcessManager::CheckAndCacheProcess(const std::shared_ptr<AppRunningR
         TAG_LOGE(AAFwkTag::APPMGR, "precheck failed");
         return false;
     }
+    appRecord->SetProcessCaching(false);
     if (!IsCachedProcess(appRecord)) {
         return false;
     }
@@ -134,7 +135,6 @@ bool CacheProcessManager::CheckAndCacheProcess(const std::shared_ptr<AppRunningR
     if (!warmStartProcesEnable_) {
         appRecord->ScheduleCacheProcess();
     }
-    appRecord->SetProcessCaching(false);
     auto appInfo = appRecord->GetApplicationInfo();
     HiSysEventWrite(HiSysEvent::Domain::AAFWK, "CACHE_START_APP", HiSysEvent::EventType::BEHAVIOR,
         EVENT_KEY_VERSION_CODE, appInfo->versionCode, EVENT_KEY_VERSION_NAME, appInfo->versionName,
@@ -281,7 +281,8 @@ bool CacheProcessManager::IsProcessSupportHotStart(const std::shared_ptr<AppRunn
             appRecord->GetName().c_str(), actualVer);
         return false;
     }
-    if (!appRecord->HasUIAbilityLaunched()) {
+    if (!appRecord->HasUIAbilityLaunched() &&
+        !AAFwk::UIExtensionUtils::IsUIExtension(appRecord->GetExtensionType())) {
         TAG_LOGD(AAFwkTag::APPMGR, "%{public}s of %{public}s has not created uiability before.",
             appRecord->GetProcessName().c_str(), appRecord->GetBundleName().c_str());
         return false;
@@ -298,6 +299,9 @@ void CacheProcessManager::CheckAndSetProcessCacheEnable(const std::shared_ptr<Ap
         return;
     }
     if (!appRecord->GetPriorityObject()) {
+        return;
+    }
+    if (appRecord->GetProcessCacheBlocked()) {
         return;
     }
     bool forceKillProcess =

@@ -55,7 +55,7 @@ AutoFillManager::~AutoFillManager()
 int32_t AutoFillManager::RequestAutoFill(Ace::UIContent *uiContent, const AutoFill::AutoFillRequest &request,
     const std::shared_ptr<IFillRequestCallback> &fillCallback, AutoFill::AutoFillResult &result)
 {
-    TAG_LOGD(AAFwkTag::AUTOFILLMGR, "called");
+    TAG_LOGI(AAFwkTag::AUTOFILLMGR, "RequestAutoFill");
     if (uiContent == nullptr || fillCallback == nullptr) {
         TAG_LOGE(AAFwkTag::AUTOFILLMGR, "null uiContent or fillCallback");
         return AutoFill::AUTO_FILL_OBJECT_IS_NULL;
@@ -71,7 +71,7 @@ int32_t AutoFillManager::RequestAutoFill(Ace::UIContent *uiContent, const AutoFi
 int32_t AutoFillManager::RequestAutoSave(Ace::UIContent *uiContent, const AutoFill::AutoFillRequest &request,
     const std::shared_ptr<ISaveRequestCallback> &saveCallback, AutoFill::AutoFillResult &result)
 {
-    TAG_LOGD(AAFwkTag::AUTOFILLMGR, "called");
+    TAG_LOGI(AAFwkTag::AUTOFILLMGR, "RequestAutoSave");
     if (uiContent == nullptr || saveCallback == nullptr) {
         TAG_LOGE(AAFwkTag::AUTOFILLMGR, "null UIContent or saveCallback");
         return AutoFill::AUTO_FILL_OBJECT_IS_NULL;
@@ -228,7 +228,7 @@ bool AutoFillManager::IsNeed2SaveRequest(const AbilityBase::ViewData& viewData, 
             return true;
         }
         if (AbilityBase::AutoFillType::FULL_STREET_ADDRESS <= it->autoFillType &&
-            it->autoFillType <= AbilityBase::AutoFillType::FORMAT_ADDRESS &&
+            it->autoFillType <= AbilityBase::AutoFillType::LICENSE_CHASSIS_NUMBER &&
             it->enableAutoFill && !it->value.empty()) {
             isSmartAutoFill = true;
             ret = true;
@@ -244,7 +244,7 @@ bool AutoFillManager::ConvertAutoFillWindowType(const AutoFill::AutoFillRequest 
     autoFillWindowType = AutoFill::AutoFillWindowType::MODAL_WINDOW;
     AbilityBase::AutoFillType autoFillType = request.autoFillType;
     if (autoFillType >= AbilityBase::AutoFillType::FULL_STREET_ADDRESS &&
-        autoFillType <= AbilityBase::AutoFillType::FORMAT_ADDRESS) {
+        autoFillType <= AbilityBase::AutoFillType::LICENSE_CHASSIS_NUMBER) {
         autoFillWindowType = AutoFill::AutoFillWindowType::POPUP_WINDOW;
         isSmartAutoFill = true;
     } else if (autoFillType == AbilityBase::AutoFillType::PASSWORD ||

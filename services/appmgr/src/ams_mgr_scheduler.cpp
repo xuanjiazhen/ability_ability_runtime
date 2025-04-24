@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -51,9 +51,8 @@ constexpr const char* TASK_SCENE_BOARD_ATTACH_TIMEOUT = "sceneBoardAttachTimeout
 constexpr const char* TASK_ATTACHED_TO_STATUS_BAR = "AttachedToStatusBar";
 constexpr const char* TASK_BLOCK_PROCESS_CACHE_BY_PIDS = "BlockProcessCacheByPids";
 constexpr const char* POWER_OFF_ABILITY = "PoweroffAbility";
-constexpr const char* TASK_SEND_APP_SPAWN_UNINSTALL_DEBUG_HAP_MSG = "SendAppSpawnUninstallDebugHapMsgTask";
 constexpr int32_t SCENE_BOARD_ATTACH_TIMEOUT_TASK_TIME = 1000;
-constexpr int32_t LOAD_TASK_TIMEOUT = 30000; // ms
+constexpr int32_t LOAD_TASK_TIMEOUT = 60000; // ms
 };  // namespace
 
 AmsMgrScheduler::AmsMgrScheduler(
@@ -215,7 +214,8 @@ void AmsMgrScheduler::KillProcessByAbilityToken(const sptr<IRemoteObject> &token
     amsHandler_->SubmitTask(killProcessByAbilityTokenFunc, TASK_KILL_PROCESS_BY_ABILITY_TOKEN);
 }
 
-void AmsMgrScheduler::KillProcessesByUserId(int32_t userId)
+void AmsMgrScheduler::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg,
+    sptr<AAFwk::IUserCallback> callback)
 {
     if (!IsReady()) {
         return;
@@ -235,13 +235,14 @@ void AmsMgrScheduler::KillProcessesByUserId(int32_t userId)
         return;
     }
 
-    std::function<void()> killProcessesByUserIdFunc = [amsMgrServiceInner = amsMgrServiceInner_, userId]() {
-        amsMgrServiceInner->KillProcessesByUserId(userId);
+    std::function<void()> killProcessesByUserIdFunc = [amsMgrServiceInner = amsMgrServiceInner_, userId,
+                                                          isNeedSendAppSpawnMsg, callback]() {
+        amsMgrServiceInner->KillProcessesByUserId(userId, isNeedSendAppSpawnMsg, callback);
     };
     amsHandler_->SubmitTask(killProcessesByUserIdFunc, TASK_KILL_PROCESSES_BY_USERID);
 }
 
-void AmsMgrScheduler::KillProcessesByPids(std::vector<int32_t> &pids)
+void AmsMgrScheduler::KillProcessesByPids(const std::vector<int32_t> &pids, const std::string &reason)
 {
     if (!IsReady()) {
         return;
@@ -254,8 +255,9 @@ void AmsMgrScheduler::KillProcessesByPids(std::vector<int32_t> &pids)
         return;
     }
 
-    std::function<void()> killProcessesByPidsFunc = [amsMgrServiceInner = amsMgrServiceInner_, pids]() mutable {
-        amsMgrServiceInner->KillProcessesByPids(pids);
+    std::function<void()> killProcessesByPidsFunc = [amsMgrServiceInner = amsMgrServiceInner_,
+        pidsInner = pids, reasonInner = reason]() {
+        amsMgrServiceInner->KillProcessesByPids(pidsInner, reasonInner);
     };
     amsHandler_->SubmitTask(killProcessesByPidsFunc, TASK_KILL_PROCESSES_BY_PIDS);
 }
@@ -335,13 +337,14 @@ void AmsMgrScheduler::PrepareTerminate(const sptr<IRemoteObject> &token, bool cl
     });
 }
 
-int32_t AmsMgrScheduler::UpdateApplicationInfoInstalled(const std::string &bundleName, const int uid)
+int32_t AmsMgrScheduler::UpdateApplicationInfoInstalled(const std::string &bundleName, const int uid,
+    const std::string &moduleName, bool isPlugin)
 {
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
 
-    return amsMgrServiceInner_->UpdateApplicationInfoInstalled(bundleName, uid);
+    return amsMgrServiceInner_->UpdateApplicationInfoInstalled(bundleName, uid, moduleName, isPlugin);
 }
 
 int32_t AmsMgrScheduler::KillApplication(const std::string &bundleName, bool clearPageStack, int32_t appIndex)
@@ -444,14 +447,14 @@ void AmsMgrScheduler::StartSpecifiedAbility(const AAFwk::Want &want, const AppEx
     });
 }
 
-void AmsMgrScheduler::PrepareTerminateApp(const pid_t pid, int32_t &prepareTermination, bool &isExist)
+void AmsMgrScheduler::PrepareTerminateApp(const pid_t pid, const std::string &moduleName)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
     if (!IsReady()) {
         TAG_LOGW(AAFwkTag::APPMGR, "not ready");
         return;
     }
-    amsMgrServiceInner_->SchedulePrepareTerminate(pid, prepareTermination, isExist);
+    amsMgrServiceInner_->SchedulePrepareTerminate(pid, moduleName);
 }
 
 void AmsMgrScheduler::StartSpecifiedProcess(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
@@ -548,7 +551,7 @@ int32_t AmsMgrScheduler::UnregisterAppDebugListener(const sptr<IAppDebugListener
     return amsMgrServiceInner_->UnregisterAppDebugListener(listener);
 }
 
-int32_t AmsMgrScheduler::AttachAppDebug(const std::string &bundleName)
+int32_t AmsMgrScheduler::AttachAppDebug(const std::string &bundleName, bool isDebugFromLocal)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
@@ -558,7 +561,7 @@ int32_t AmsMgrScheduler::AttachAppDebug(const std::string &bundleName)
         TAG_LOGE(AAFwkTag::APPMGR, "caller is not foundation");
         return ERR_INVALID_OPERATION;
     }
-    return amsMgrServiceInner_->AttachAppDebug(bundleName);
+    return amsMgrServiceInner_->AttachAppDebug(bundleName, isDebugFromLocal);
 }
 
 int32_t AmsMgrScheduler::DetachAppDebug(const std::string &bundleName)
@@ -688,6 +691,19 @@ bool AmsMgrScheduler::IsMemorySizeSufficent()
     return amsMgrServiceInner_->IsMemorySizeSufficient();
 }
 
+bool AmsMgrScheduler::IsNoRequireBigMemory()
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return true;
+    }
+    if (amsMgrServiceInner_->VerifyRequestPermission() != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+        return true;
+    }
+    return amsMgrServiceInner_->IsNoRequireBigMemory();
+}
+
 void AmsMgrScheduler::AttachedToStatusBar(const sptr<IRemoteObject> &token)
 {
     if (!IsReady()) {
@@ -778,22 +794,6 @@ bool AmsMgrScheduler::IsCallerKilling(const std::string& callerKey)
         return false;
     }
     return amsMgrServiceInner_->IsCallerKilling(callerKey);
-}
-
-void AmsMgrScheduler::SendAppSpawnUninstallDebugHapMsg(int32_t userId)
-{
-    if (!IsReady()) {
-        TAG_LOGE(AAFwkTag::APPMGR, "ready failed");
-        return;
-    }
-    if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_NAME)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "caller is not foundation");
-        return;
-    }
-    auto task = [amsMgrServiceInner = amsMgrServiceInner_, userId]() {
-        amsMgrServiceInner->SendAppSpawnUninstallDebugHapMsg(userId);
-    };
-    amsHandler_->SubmitTask(task, TASK_SEND_APP_SPAWN_UNINSTALL_DEBUG_HAP_MSG);
 }
 } // namespace AppExecFwk
 }  // namespace OHOS

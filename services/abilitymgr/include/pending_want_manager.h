@@ -127,7 +127,12 @@ enum class Flags {
      * Indicates that the current value of {@code bundleName} can be replaced
      * when the {@link WantAgent} is triggered.
      */
-    REPLACE_BUNDLE
+    REPLACE_BUNDLE,
+
+    /**
+     * Indicates that the existing {@link WantAgent} allow canceled by user.
+     */
+    ALLOW_CANCEL_FLAG = 1 << 20
 };
 
 class PendingWantManager : public std::enable_shared_from_this<PendingWantManager>, public NoCopyable {
@@ -184,6 +189,7 @@ private:
     bool CheckCallerPermission();
 
     bool CheckWindowState(int32_t pid);
+    bool CheckPermission(sptr<PendingWantRecord> record);
 
 private:
     std::shared_ptr<TaskHandlerWrap> taskHandler_;

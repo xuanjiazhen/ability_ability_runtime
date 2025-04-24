@@ -20,32 +20,15 @@
 #include "ability_context_impl.h"
 #include "cj_ability_context_utils.h"
 #include "ffi_remote_data.h"
+#include "cj_ui_extension_callback.h"
+#include "cj_context.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-class CjUIExtensionCallback : public std::enable_shared_from_this<CjUIExtensionCallback> {
-public:
-    explicit CjUIExtensionCallback() {}
-    void OnError(int32_t number);
-    void OnRelease(int32_t code);
-    void OnResult(int32_t resultCode, const AAFwk::Want &want);
-    void CallCjResult(int32_t resultCode, const AAFwk::Want &want);
-    void SetCjCallbackOnResult(std::function<void(CJAbilityResult)> onResultCallback);
-    void SetCjCallbackOnError(std::function<void(int32_t, char*, char*)> onErrorCallback);
-    void CallCjError(int32_t number);
-    void SetSessionId(int32_t sessionId);
-    void SetUIContent(Ace::UIContent* uiContent);
-private:
-    std::function<void(CJAbilityResult)> onResultCallback_;
-    std::function<void(int32_t, char*, char*)> onErrorCallback_;
-    int32_t sessionId_ = 0;
-    Ace::UIContent* uiContent_ = nullptr;
-};
-
-class CJAbilityContext : public FFI::FFIData {
+class CJAbilityContext : public FfiContext::CJContext {
 public:
     explicit CJAbilityContext(const std::shared_ptr<AbilityRuntime::AbilityContext>& abilityContext)
-        : context_(abilityContext) {};
+        : FfiContext::CJContext(abilityContext), context_(abilityContext) {};
 
     std::shared_ptr<AbilityRuntime::AbilityContext> GetAbilityContext();
     sptr<IRemoteObject> GetToken();
@@ -94,6 +77,9 @@ public:
         int requestCode, RuntimeTask &&task);
     bool CreateOpenLinkTask(RuntimeTask &&task, int32_t requestCode, AAFwk::Want &want, int &nativeRequestCode);
     int32_t OpenLink(const AAFwk::Want& want, int requestCode);
+    int32_t ChangeAbilityVisibility(bool isShow);
+    int32_t StartAbilityByCall(const AAFwk::Want& want, const std::shared_ptr<CallerCallBack> &callback,
+        int32_t accountId);
 
 #ifdef SUPPORT_GRAPHICS
     int32_t SetMissionLabel(const std::string& label);

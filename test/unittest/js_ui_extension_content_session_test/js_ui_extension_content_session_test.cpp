@@ -20,6 +20,7 @@
 #include "context_impl.h"
 #include "js_runtime_lite.h"
 #include "js_ui_extension_content_session.h"
+#include "napi_common_want_agent.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "napi_common_util.h"
@@ -171,6 +172,7 @@ HWTEST_F(JsUIExtensionContentSessionTest, AbilityStartTestTest_0100, TestSize.Le
     EXPECT_EQ(jsUIExtensionContentSession->SetReceiveDataCallback(env, info), NULL);
     EXPECT_EQ(jsUIExtensionContentSession->SetReceiveDataForResultCallback(env, info), NULL);
     EXPECT_EQ(jsUIExtensionContentSession->LoadContent(env, info), NULL);
+    EXPECT_EQ(jsUIExtensionContentSession->LoadContentByName(env, info), nullptr);
     EXPECT_EQ(jsUIExtensionContentSession->SetWindowBackgroundColor(env, info), NULL);
     EXPECT_EQ(jsUIExtensionContentSession->SetWindowPrivacyMode(env, info), NULL);
     EXPECT_EQ(jsUIExtensionContentSession->StartAbilityByType(env, info), NULL);
@@ -1237,6 +1239,93 @@ HWTEST_F(JsUIExtensionContentSessionTest, OnLoadContentTest_0200, TestSize.Level
 }
 
 /**
+ * @tc.number: OnLoadContentByNameTest_0100
+ * @tc.name: OnLoadContentByName test
+ * @tc.desc: OnLoadContentByName test
+ */
+HWTEST_F(JsUIExtensionContentSessionTest, OnLoadContentByNameTest_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "OnLoadContentByNameTest_0100 start";
+
+    // construct sessionInfo and uiwindow
+    sptr<AAFwk::SessionInfo> sessionInfo = nullptr;
+    sptr<Rosen::Window> uiWindow = nullptr;
+    AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<JsEnv::JsEnvironment> jsEnv = nullptr;
+    JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    ASSERT_NE(jsEnv, nullptr);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+    EXPECT_NE(env, nullptr);
+
+    // case1: input param invalid
+    NapiCallbackInfo info;
+    info.argc = 0;
+    auto contentSession1 = std::make_shared<JsUIExtensionContentSession>(sessionInfo, uiWindow);
+    ASSERT_NE(contentSession1, nullptr);
+    EXPECT_NE(contentSession1->OnLoadContentByName(env, info), nullptr);
+
+    // case2: has one param, but the first not a string
+    info.argc = 1;
+    auto contentSession2 = std::make_shared<JsUIExtensionContentSession>(sessionInfo, uiWindow);
+    ASSERT_NE(contentSession2, nullptr);
+    EXPECT_NE(contentSession2->OnLoadContentByName(env, info), nullptr);
+
+    // case3: has one param, but the sessioninfo and window is invalid
+    std::string name = "ExtensionName";
+    info.argv[0] = AppExecFwk::WrapStringToJS(env, name);
+    auto contentSession3 = std::make_shared<JsUIExtensionContentSession>(sessionInfo, uiWindow);
+    ASSERT_NE(contentSession3, nullptr);
+    EXPECT_NE(contentSession3->OnLoadContentByName(env, info), nullptr);
+
+    // case4: has two param, but the second not a object
+    info.argc = 2;
+    auto contentSession4 = std::make_shared<JsUIExtensionContentSession>(sessionInfo, uiWindow);
+    ASSERT_NE(contentSession4, nullptr);
+    EXPECT_NE(contentSession4->OnLoadContentByName(env, info), nullptr);
+
+    // after testcase finished
+    JsRuntimeLite::GetInstance().RemoveJsEnv(env);
+
+    GTEST_LOG_(INFO) << "OnLoadContentByNameTest_0100 end";
+}
+
+/**
+ * @tc.number: OnLoadContentByNameTest_0200
+ * @tc.name: OnLoadContentByName test
+ * @tc.desc: OnLoadContentByName test
+ */
+HWTEST_F(JsUIExtensionContentSessionTest, OnLoadContentByNameTest_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "OnLoadContentByNameTest_0100 start";
+
+    // construct sessionInfo and uiwindow
+    auto uiWindow = sptr<Rosen::Window>::MakeSptr();
+    EXPECT_NE(uiWindow, nullptr);
+    auto sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
+    EXPECT_NE(sessionInfo, nullptr);
+    sessionInfo->isAsyncModalBinding = true;
+    AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<JsEnv::JsEnvironment> jsEnv = nullptr;
+    JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    ASSERT_NE(jsEnv, nullptr);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+    EXPECT_NE(env, nullptr);
+
+    NapiCallbackInfo info;
+    std::string name = "ExtensionName";
+    info.argc = 1;
+    info.argv[0] = AppExecFwk::WrapStringToJS(env, name);
+    auto contentSession = std::make_shared<JsUIExtensionContentSession>(sessionInfo, uiWindow);
+    ASSERT_NE(contentSession, nullptr);
+    EXPECT_NE(contentSession->OnLoadContentByName(env, info), nullptr);
+
+    // after testcase finished
+    JsRuntimeLite::GetInstance().RemoveJsEnv(env);
+
+    GTEST_LOG_(INFO) << "OnLoadContentByNameTest_0200 end";
+}
+
+/**
  * @tc.number: OnSetWindowBackgroundColorTest_0100
  * @tc.name: OnSetWindowBackgroundColor test
  * @tc.desc: OnSetWindowBackgroundColor test
@@ -1561,6 +1650,51 @@ HWTEST_F(JsUIExtensionContentSessionTest, SetCallbackForTerminateWithResultTest_
     JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
 
     GTEST_LOG_(INFO) << "SetCallbackForTerminateWithResultTest_0100 end";
+}
+
+/**
+ * @tc.number: WrapWantAgentTest_0100
+ * @tc.name: WrapWantAgent test
+ * @tc.desc: WrapWantAgent test
+ */
+HWTEST_F(JsUIExtensionContentSessionTest, WrapWantAgentTest_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "WrapWantAgentTest_0100 start";
+
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    auto err = JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    EXPECT_EQ(err, napi_status::napi_ok);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+    EXPECT_NE(OHOS::AppExecFwk::WrapWantAgent(env, nullptr, nullptr), nullptr);
+    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+
+    GTEST_LOG_(INFO) << "WrapWantAgentTest_0100 end";
+}
+
+/**
+ * @tc.number: UnwrapWantAgentTest_0100
+ * @tc.name: UnwrapWantAgent test
+ * @tc.desc: UnwrapWantAgent test
+ */
+HWTEST_F(JsUIExtensionContentSessionTest, UnwrapWantAgentTest_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "UnwrapWantAgentTest_0100 start";
+
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    auto err = JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    EXPECT_EQ(err, napi_status::napi_ok);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+    std::string test = "test";
+    void* myPointer = static_cast<void*>(&test);
+    void** result = reinterpret_cast<void**>(&myPointer);
+    napi_value jSObject = AppExecFwk::CreateJSObject(env);
+    OHOS::AppExecFwk::UnwrapWantAgent(env, jSObject, result);
+    EXPECT_EQ(myPointer, nullptr);
+    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+
+    GTEST_LOG_(INFO) << "UnwrapWantAgentTest_0100 end";
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

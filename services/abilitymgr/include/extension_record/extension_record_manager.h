@@ -87,7 +87,8 @@ public:
     int32_t StartAbility(const AAFwk::AbilityRequest &abilityRequest);
 
     int32_t CreateExtensionRecord(const AAFwk::AbilityRequest &abilityRequest, const std::string &hostBundleName,
-        std::shared_ptr<ExtensionRecord> &extensionRecord, int32_t &extensionRecordId);
+        std::shared_ptr<ExtensionRecord> &extensionRecord, int32_t &extensionRecordId,
+        int32_t hostPid = AAFwk::DEFAULT_INVAL_VALUE);
 
     bool IsPreloadExtensionRecord(const AAFwk::AbilityRequest &abilityRequest,
         const std::string &hostBundleName, std::shared_ptr<ExtensionRecord> &extensionRecord, bool &isLoaded);
@@ -124,17 +125,31 @@ public:
     void GetCallerTokenList(const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord,
         std::list<sptr<IRemoteObject>> &callerList);
 
+    /**
+     * Query preload uiextension record.
+     *
+     * @param element, The uiextension ElementName.
+     * @param moduleName, The uiextension moduleName.
+     * @param hostBundleName, The uiextension caller hostBundleName.
+     * @param recordNum, The returned count of uiextension.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t QueryPreLoadUIExtensionRecord(const AppExecFwk::ElementName &element,
+                                          const std::string &moduleName,
+                                          const std::string &hostBundleName,
+                                          int32_t &recordNum);
+
 private:
     inline std::shared_ptr<ExtensionRecord> GetExtensionRecordById(int32_t extensionRecordId);
 
 private:
     int32_t userId_;
     static std::atomic_int32_t extensionRecordId_;
-    std::mutex mutex_;
     std::set<int32_t> extensionRecordIdSet_;
+    std::mutex mutex_;
+    std::mutex preloadUIExtensionMapMutex_;
     ExtensionAbilityRecordMap extensionRecords_;
     ExtensionAbilityRecordMap terminateRecords_;
-    std::mutex preloadUIExtensionMapMutex_;
     PreLoadUIExtensionMapType preloadUIExtensionMap_;
 
     void SetCachedFocusedCallerToken(int32_t extensionRecordId, sptr<IRemoteObject> &focusedCallerToken);

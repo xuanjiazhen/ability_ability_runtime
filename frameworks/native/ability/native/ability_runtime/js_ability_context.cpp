@@ -35,6 +35,7 @@
 #include "js_runtime_utils.h"
 #include "js_uiservice_ability_connection.h"
 #include "js_ui_service_proxy.h"
+#include "json_utils.h"
 #include "mission_info.h"
 #include "napi_common_ability.h"
 #include "napi_common_start_options.h"
@@ -67,6 +68,7 @@ constexpr size_t ARGC_THREE = 3;
 constexpr int32_t TRACE_ATOMIC_SERVICE_ID = 201;
 const std::string TRACE_ATOMIC_SERVICE = "StartAtomicService";
 constexpr int32_t CALLER_TIME_OUT = 10; // 10s
+const std::string JSON_KEY_ERR_MSG = "errMsg";
 
 namespace {
 static std::map<ConnectionKey, sptr<JSAbilityConnection>, KeyCompare> g_connects;
@@ -407,6 +409,16 @@ napi_value JsAbilityContext::SetRestoreEnabled(napi_env env, napi_callback_info 
     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnSetRestoreEnabled);
 }
 
+napi_value JsAbilityContext::SetColorMode(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnSetColorMode);
+}
+
+napi_value JsAbilityContext::RevokeDelegator(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnRevokeDelegator);
+}
+
 void JsAbilityContext::ClearFailedCallConnection(
     const std::weak_ptr<AbilityContext>& abilityContext, const std::shared_ptr<CallerCallBack> &callback)
 {
@@ -418,6 +430,56 @@ void JsAbilityContext::ClearFailedCallConnection(
     }
 
     context->ClearFailedCallConnection(callback);
+}
+
+void JsAbilityContext::UnwrapCompletionHandlerInStartOptions(napi_env env, napi_value param,
+    AAFwk::StartOptions &options)
+{
+    napi_value completionHandler = AppExecFwk::GetPropertyValueByPropertyName(env, param,
+        "completionHandler", napi_object);
+    if (completionHandler == nullptr) {
+        TAG_LOGD(AAFwkTag::CONTEXT, "null completionHandler");
+        return;
+    }
+    TAG_LOGI(AAFwkTag::CONTEXT, "completionHandler exists");
+    napi_value onRequestSuccObj = AppExecFwk::GetPropertyValueByPropertyName(env, completionHandler,
+        "onRequestSuccess", napi_function);
+    napi_value onRequestFailObj = AppExecFwk::GetPropertyValueByPropertyName(env, completionHandler,
+        "onRequestFailure", napi_function);
+    if (onRequestSuccObj == nullptr || onRequestFailObj == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null onRequestSuccObj or onRequestFailObj");
+        return;
+    }
+    OnRequestResult onRequestSucc = [env, completionHandler, onRequestSuccObj](const AppExecFwk::ElementName &element,
+        const std::string &message) {
+        size_t argc = ARGC_TWO;
+        napi_value argv[ARGC_TWO] = { AppExecFwk::WrapElementName(env, element), CreateJsValue(env, message) };
+        napi_status status = napi_call_function(env, completionHandler, onRequestSuccObj, argc, argv, nullptr);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "call onRequestSuccess, failed: %{public}d", status);
+        }
+    };
+    OnRequestResult onRequestFail = [env, completionHandler, onRequestFailObj](const AppExecFwk::ElementName &element,
+        const std::string &message) {
+        size_t argc = ARGC_TWO;
+        napi_value argv[ARGC_TWO] = { AppExecFwk::WrapElementName(env, element), CreateJsValue(env, message) };
+        napi_status status = napi_call_function(env, completionHandler, onRequestFailObj, argc, argv, nullptr);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "call onRequestFailure, failed: %{public}d", status);
+        }
+    };
+    auto context = context_.lock();
+    if (!context) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        return;
+    }
+    std::string requestId = std::to_string(static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::high_resolution_clock::now().time_since_epoch()).count()));
+    if (context->AddCompletionHandler(requestId, onRequestSucc, onRequestFail) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "add completionHandler failed");
+        return;
+    }
+    options.requestId_ = requestId;
 }
 
 napi_value JsAbilityContext::OnStartAbility(napi_env env, NapiCallbackInfo& info, bool isStartRecent)
@@ -432,10 +494,7 @@ napi_value JsAbilityContext::OnStartAbility(napi_env env, NapiCallbackInfo& info
     }
 
     AAFwk::Want want;
-    if (!AppExecFwk::UnwrapWant(env, info.argv[INDEX_ZERO], want)) {
-        ThrowInvalidParamError(env, "Parse param want failed, must be a Want");
-        return CreateJsUndefined(env);
-    }
+    AppExecFwk::UnwrapWant(env, info.argv[INDEX_ZERO], want);
     InheritWindowMode(want);
     decltype(info.argc) unwrapArgc = ARGC_ONE;
     TAG_LOGD(AAFwkTag::CONTEXT, "ability:%{public}s", want.GetElement().GetAbilityName().c_str());
@@ -447,6 +506,7 @@ napi_value JsAbilityContext::OnStartAbility(napi_env env, NapiCallbackInfo& info
             TAG_LOGE(AAFwkTag::CONTEXT, "invalid options");
             return CreateJsUndefined(env);
         }
+        UnwrapCompletionHandlerInStartOptions(env, info.argv[INDEX_ONE], startOptions);
         unwrapArgc++;
     }
 
@@ -482,12 +542,24 @@ napi_value JsAbilityContext::OnStartAbility(napi_env env, NapiCallbackInfo& info
         }
     };
 
-    NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode, weak = context_, want, startOptions, unwrapArgc](
+        napi_env env, NapiAsyncTask& task, int32_t status) {
         if (*innerErrCode == ERR_OK) {
             TAG_LOGD(AAFwkTag::CONTEXT, "startAbility success");
             task.Resolve(env, CreateJsUndefined(env));
-        } else {
-            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+            return;
+        }
+        task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+        if (unwrapArgc > ARGC_ONE && !startOptions.requestId_.empty()) {
+            auto context = weak.lock();
+            if (!context) {
+                TAG_LOGW(AAFwkTag::CONTEXT, "null context");
+                return;
+            }
+            nlohmann::json jsonObject = nlohmann::json {
+                { JSON_KEY_ERR_MSG, "startAbility failed" },
+            };
+            context->OnRequestFailure(startOptions.requestId_, want.GetElement(), jsonObject.dump());
         }
     };
 
@@ -834,11 +906,17 @@ napi_value JsAbilityContext::OnOpenLinkInner(napi_env env, const AAFwk::Want& wa
         }
         *innerErrCode = context->OpenLink(want, requestCode);
     };
+    napi_value result = nullptr;
+    AddFreeInstallObserver(env, want, nullptr, &result, false, true);
     NapiAsyncTask::CompleteCallback complete = [innerErrCode, requestCode, startTime, url, weak = context_,
-        &observer = freeInstallObserver_](
-        napi_env env, NapiAsyncTask& task, int32_t status) {
+        observer = freeInstallObserver_](napi_env env, NapiAsyncTask& task, int32_t status) {
         if (*innerErrCode == 0) {
             TAG_LOGI(AAFwkTag::CONTEXT, "openLink succeeded");
+            return;
+        }
+        auto context = weak.lock();
+        if (context == nullptr) {
+            TAG_LOGW(AAFwkTag::CONTEXT, "null context");
             return;
         }
         if (observer != nullptr) {
@@ -849,16 +927,9 @@ napi_value JsAbilityContext::OnOpenLinkInner(napi_env env, const AAFwk::Want& wa
             }
             observer->OnInstallFinishedByUrl(startTime, url, *innerErrCode);
         }
-        auto context = weak.lock();
-        if (!context) {
-            TAG_LOGW(AAFwkTag::CONTEXT, "null context");
-            return;
-        }
         context->RemoveResultCallbackTask(requestCode);
     };
 
-    napi_value result = nullptr;
-    AddFreeInstallObserver(env, want, nullptr, &result, false, true);
     NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnOpenLink", env,
         CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), nullptr));
 
@@ -2036,10 +2107,13 @@ napi_value CreateJsAbilityContext(napi_env env, std::shared_ptr<AbilityContext> 
     BindNativeFunction(env, object, "disconnectUIServiceExtensionAbility", moduleName,
         JsAbilityContext::DisconnectUIServiceExtension);
     BindNativeFunction(env, object, "setRestoreEnabled", moduleName, JsAbilityContext::SetRestoreEnabled);
+    BindNativeFunction(env, object, "setColorMode", moduleName, JsAbilityContext::SetColorMode);
+    BindNativeFunction(env, object, "revokeDelegator", moduleName, JsAbilityContext::RevokeDelegator);
 
 #ifdef SUPPORT_GRAPHICS
     BindNativeFunction(env, object, "setMissionLabel", moduleName, JsAbilityContext::SetMissionLabel);
     BindNativeFunction(env, object, "setMissionIcon", moduleName, JsAbilityContext::SetMissionIcon);
+    BindNativeFunction(env, object, "setAbilityInstanceInfo", moduleName, JsAbilityContext::SetAbilityInstanceInfo);
 #endif
     return object;
 }
@@ -2441,6 +2515,11 @@ napi_value JsAbilityContext::SetMissionIcon(napi_env env, napi_callback_info inf
     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnSetMissionIcon);
 }
 
+napi_value JsAbilityContext::SetAbilityInstanceInfo(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnSetAbilityInstanceInfo);
+}
+
 napi_value JsAbilityContext::OnSetMissionLabel(napi_env env, NapiCallbackInfo& info)
 {
     TAG_LOGI(AAFwkTag::CONTEXT, "info.argc: %{public}d", static_cast<int>(info.argc));
@@ -2520,6 +2599,49 @@ napi_value JsAbilityContext::OnSetMissionIcon(napi_env env, NapiCallbackInfo& in
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnSetMissionIcon",
         env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
+    return result;
+}
+
+napi_value JsAbilityContext::OnSetAbilityInstanceInfo(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGI(AAFwkTag::CONTEXT, "info.argc: %{public}d", static_cast<int>(info.argc));
+    if (info.argc < ARGC_TWO) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "not enough params");
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    std::string label;
+    if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], label) || label.empty()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse label failed");
+        ThrowInvalidParamError(env, "Invalid label.");
+        return CreateJsUndefined(env);
+    }
+    auto icon = OHOS::Media::PixelMapNapi::GetPixelMap(env, info.argv[INDEX_ONE]);
+    if (icon == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse icon failed");
+        ThrowInvalidParamError(env, "Parse icon failed.");
+        return CreateJsUndefined(env);
+    }
+    NapiAsyncTask::CompleteCallback complete =
+        [weak = context_, label, icon](napi_env env, NapiAsyncTask& task, int32_t status) {
+            auto context = weak.lock();
+            if (!context) {
+                TAG_LOGW(AAFwkTag::CONTEXT, "null context");
+                task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+                return;
+            }
+            auto errCode = context->SetAbilityInstanceInfo(label, icon);
+            if (errCode == ERR_OK) {
+                task.Resolve(env, CreateJsUndefined(env));
+            } else {
+                task.Reject(env, CreateJsErrorByNativeErr(env, errCode));
+            }
+    };
+
+    napi_value result = nullptr;
+    NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnSetAbilityInstanceInfo",
+        env, CreateAsyncTaskWithLastParam(env, nullptr, nullptr, std::move(complete), &result));
     return result;
 }
 #endif
@@ -2787,6 +2909,61 @@ napi_value JsAbilityContext::OnSetRestoreEnabled(napi_env env, NapiCallbackInfo&
 
     abilityContext->SetRestoreEnabled(enabled);
     return CreateJsUndefined(env);
+}
+
+napi_value JsAbilityContext::OnSetColorMode(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "OnSetColorMode called");
+    // only support one params
+    if (info.argc == ARGC_ZERO) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Not enough params");
+        ThrowInvalidParamError(env, "Not enough params.");
+        return CreateJsUndefined(env);
+    }
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "context is already released");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return CreateJsUndefined(env);
+    }
+
+    int32_t colorMode = -1;
+    if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], colorMode)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Parse colorMode failed");
+        ThrowInvalidParamError(env, "Parse param colorMode failed, colorMode must be number.");
+        return CreateJsUndefined(env);
+    }
+    context->SetAbilityColorMode(colorMode);
+    return CreateJsUndefined(env);
+}
+
+napi_value JsAbilityContext::OnRevokeDelegator(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "OnRevokeDelegator called");
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute =
+        [weak = context_, innerErrCode] {
+            auto context = weak.lock();
+            if (!context) {
+                TAG_LOGW(AAFwkTag::CONTEXT, "released context");
+                *innerErrCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+                return;
+            }
+            *innerErrCode = context->RevokeDelegator();
+    };
+    NapiAsyncTask::CompleteCallback complete =
+        [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+            if (*innerErrCode == ERR_OK) {
+                task.Resolve(env, CreateJsUndefined(env));
+            } else {
+                task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+            }
+        };
+
+    napi_value result = nullptr;
+    NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnRevokeDelegator",
+        env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+    return result;
 }
 
 int32_t JsAbilityContext::GenerateRequestCode()

@@ -37,10 +37,11 @@
 #include "shell_cmd_result.h"
 #include "test_runner.h"
 #include "want.h"
+#include "iability_delegator.h"
 
 namespace OHOS {
 namespace AppExecFwk {
-class AbilityDelegator : public std::enable_shared_from_this<AbilityDelegator> {
+class AbilityDelegator : public std::enable_shared_from_this<AbilityDelegator>, public IAbilityDelegator {
 public:
     enum class AbilityState : uint8_t {
         /**
@@ -71,6 +72,9 @@ public:
     using ClearFunc = std::function<void(const std::shared_ptr<ADelegatorAbilityProperty> &)>;
 
 public:
+    static std::shared_ptr<AbilityDelegator> Create(const std::shared_ptr<AbilityRuntime::Context>& context,
+        std::unique_ptr<TestRunner> runner, const sptr<IRemoteObject>& observer);
+
     /**
      * A constructor used to create a AbilityDelegator instance with the input parameter passed.
      *

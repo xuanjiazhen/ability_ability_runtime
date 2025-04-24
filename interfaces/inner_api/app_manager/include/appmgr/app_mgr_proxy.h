@@ -485,6 +485,16 @@ public:
     virtual int32_t GetRunningProcessInfoByPid(const pid_t pid, OHOS::AppExecFwk::RunningProcessInfo &info) override;
 
     /**
+     * Get running process information by child process pid.
+     *
+     * @param childPid child process id.
+     * @param info Output parameters, return runningProcessInfo.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetRunningProcessInfoByChildProcessPid(const pid_t childPid,
+        OHOS::AppExecFwk::RunningProcessInfo &info) override;
+
+    /**
      * get memorySize by pid.
      *
      * @param pid process id.
@@ -697,11 +707,11 @@ public:
     int32_t GetAllUIExtensionProviderPid(pid_t hostPid, std::vector<pid_t> &providerPids) override;
 
     /**
-     * @brief Notify memory size state changed to sufficient or insufficient.
-     * @param isMemorySizeSufficient Indicates the memory size state.
+     * @brief Notify memory size state changed: LOW_MEMORY, MEMORY_RECOVERY, REQUIRE_BIG_MEMORY, NO_REQUIRE_BIG_MEMORY.
+     * @param memorySizeState Indicates the memory size state.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t NotifyMemorySizeStateChanged(bool isMemorySizeSufficient) override;
+    virtual int32_t NotifyMemorySizeStateChanged(int32_t memorySizeState) override;
 
     /**
      * Set application assertion pause state.
@@ -771,7 +781,35 @@ public:
 
     virtual void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey) override;
 
-    int32_t HasAppRecord(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result) override;
+    int32_t IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result) override;
+
+    /**
+     * UpdateProcessMemoryState, call UpdateProcessMemoryState() through proxy object,
+     * update process rss and pss value.
+     *
+     * @param procMemStates, the memory states of all apps.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int32_t UpdateProcessMemoryState(const std::vector<ProcessMemoryState> &procMemState) override;
+
+    /**
+     * Get killed process info by process id and uid.
+     *
+     * @param pid Process id.
+     * @param uid Process uid.
+     * @param info result KilledProcessInfo.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t GetKilledProcessInfo(int pid, int uid, KilledProcessInfo &info) override;
+
+    /**
+     * Launch ability when reuseDelegatorWindow is true.
+     *
+     * @param token Ability identify.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t LaunchAbility(sptr<IRemoteObject> token) override;
+
 private:
     bool SendTransactCmd(AppMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     bool WriteInterfaceToken(MessageParcel &data);

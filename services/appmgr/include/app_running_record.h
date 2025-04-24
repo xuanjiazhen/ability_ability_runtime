@@ -26,6 +26,7 @@
 #include "iremote_object.h"
 #include "irender_scheduler.h"
 #include "ability_running_record.h"
+#include "render_record.h"
 #include "ability_state_data.h"
 #include "application_info.h"
 #include "task_handler_wrap.h"
@@ -47,6 +48,7 @@
 #include "app_spawn_client.h"
 #include "app_malloc_info.h"
 #include "app_jsheap_mem_info.h"
+#include "simple_process_info.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -59,76 +61,9 @@ class AppMgrServiceInner;
 class AppRunningRecord;
 class AppRunningManager;
 
-class MultiUserConfigurationMgr {
-public:
-    void Insert(const int32_t userId, const Configuration& config);
-
-    Configuration GetConfigurationByUserId(const int32_t userId);
-
-private:
-    std::map<int32_t, Configuration> multiUserConfiguration_;
-    std::mutex multiUserConfigurationMutex_;
-};
-
-/**
- * @class RenderRecord
- * Record nweb render process info.
- */
-class RenderRecord {
-public:
-    RenderRecord(pid_t hostPid, const std::string &renderParam,
-                 FdGuard &&ipcFd, FdGuard &&sharedFd, FdGuard &&crashFd,
-                 const std::shared_ptr<AppRunningRecord> &host);
-
-    virtual ~RenderRecord();
-
-    static std::shared_ptr<RenderRecord>
-    CreateRenderRecord(pid_t hostPid, const std::string &renderParam,
-                       FdGuard &&ipcFd, FdGuard &&sharedFd, FdGuard &&crashFd,
-                       const std::shared_ptr<AppRunningRecord> &host);
-
-    void SetPid(pid_t pid);
-    pid_t GetPid() const ;
-    pid_t GetHostPid() const;
-    void SetUid(int32_t uid);
-    int32_t GetUid() const;
-    int32_t GetHostUid() const;
-    std::string GetHostBundleName() const;
-    std::string GetRenderParam() const;
-    std::string GetProcessName() const;
-    int32_t GetIpcFd() const;
-    int32_t GetSharedFd() const;
-    int32_t GetCrashFd() const;
-    ProcessType GetProcessType() const;
-    std::shared_ptr<AppRunningRecord> GetHostRecord() const;
-    sptr<IRenderScheduler> GetScheduler() const;
-    void SetScheduler(const sptr<IRenderScheduler> &scheduler);
-    void SetDeathRecipient(const sptr<AppDeathRecipient> recipient);
-    void RegisterDeathRecipient();
-    void SetState(int32_t state);
-    int32_t GetState() const;
-    void SetProcessType(ProcessType type);
-    void SetProcessName(const std::string &processName);
-
-private:
-    void SetHostUid(const int32_t hostUid);
-    void SetHostBundleName(const std::string &hostBundleName);
-
-    pid_t pid_ = 0;
-    pid_t hostPid_ = 0;
-    int32_t uid_ = 0;
-    int32_t hostUid_ = 0;
-    std::string hostBundleName_;
-    std::string renderParam_;
-    std::string processName_;
-    FdGuard ipcFd_;
-    FdGuard sharedFd_;
-    FdGuard crashFd_;
-    int32_t state_ = 0;
-    ProcessType processType_ = ProcessType::RENDER;
-    std::weak_ptr<AppRunningRecord> host_; // nweb host
-    sptr<IRenderScheduler> renderScheduler_ = nullptr;
-    sptr<AppDeathRecipient> deathRecipient_ = nullptr;
+struct SpecifiedRequest {
+    int32_t requestId = 0;
+    AAFwk::Want want;
 };
 
 class AppRunningRecord : public std::enable_shared_from_this<AppRunningRecord> {
@@ -417,7 +352,7 @@ public:
      *
      * @return
      */
-    void UpdateApplicationInfoInstalled(const ApplicationInfo &appInfo);
+    void UpdateApplicationInfoInstalled(const ApplicationInfo &appInfo, const std::string &moduleName);
 
     /**
      * LaunchAbility, Notify application to launch ability.
@@ -594,7 +529,7 @@ public:
      * @brief indicates one process will go dying.
      * Then the process won't be reused.
      */
-    void SetTerminating(std::shared_ptr<AppRunningManager> appRunningMgr);
+    void SetTerminating();
 
     /**
      * @brief Whether the process is dying.
@@ -715,11 +650,11 @@ public:
      */
     int32_t GetSpecifiedRequestId() const;
     /**
-     * Called when one specified request is finished to set the request id to -1
+     * Called when one specified request is finished to clear the request
      */
-    void ResetSpecifiedRequestId();
-    
-    void SchedulePrepareTerminate(int32_t &prepareTermination, bool &isExist);
+    void ResetSpecifiedRequest();
+
+    void SchedulePrepareTerminate(const std::string &moduleName);
 
     /**
      * call the scheduler to go acceptWant procedure
@@ -738,7 +673,8 @@ public:
     AAFwk::Want GetSpecifiedWant() const;
     AAFwk::Want GetNewProcessRequestWant() const;
     int32_t GetNewProcessRequestId() const;
-    void ResetNewProcessRequestId();
+    void ResetNewProcessRequest();
+    bool IsDebug();
     void SetDebugApp(bool isDebugApp);
     /**
      * Indicate whether the process is a debugging one
@@ -755,6 +691,7 @@ public:
     void AddRenderRecord(const std::shared_ptr<RenderRecord> &record);
     void RemoveRenderRecord(const std::shared_ptr<RenderRecord> &record);
     void RemoveRenderPid(pid_t pid);
+    void GetRenderProcessInfos(std::list<SimpleProcessInfo> &processInfos);
     bool ConstainsRenderPid(pid_t renderPid);
     std::shared_ptr<RenderRecord> GetRenderRecordByPid(const pid_t pid);
     std::map<int32_t, std::shared_ptr<RenderRecord>> GetRenderRecordMap();
@@ -828,6 +765,7 @@ public:
 #ifdef SUPPORT_SCREEN
     void ChangeWindowVisibility(const sptr<OHOS::Rosen::WindowVisibilityInfo> &info);
     void OnWindowVisibilityChanged(const std::vector<sptr<OHOS::Rosen::WindowVisibilityInfo>> &windowVisibilityInfos);
+    void OnWindowVisibilityChangedWithPendingState();
 #endif //SUPPORT_SCREEN
     bool IsAbilitiesBackground();
 
@@ -868,8 +806,8 @@ public:
      */
     int32_t ChangeAppGcState(int32_t state);
 
-    void SetAttachDebug(bool isAttachDebug);
-    bool isAttachDebug() const;
+    void SetAttachDebug(bool isAttachDebug, bool isDebugFromLocal);
+    bool IsAttachDebug() const;
 
     void SetApplicationPendingState(ApplicationPendingState pendingState);
     ApplicationPendingState GetApplicationPendingState() const;
@@ -885,6 +823,7 @@ public:
     std::shared_ptr<ChildProcessRecord> GetChildProcessRecordByPid(pid_t pid);
     std::map<pid_t, std::shared_ptr<ChildProcessRecord>> GetChildProcessRecordMap();
     int32_t GetChildProcessCount();
+    void GetChildProcessInfos(std::list<SimpleProcessInfo> &processInfos);
 #endif //SUPPORT_CHILD_PROCESS
 
     void SetPreloadState(PreloadState state);
@@ -1030,6 +969,13 @@ public:
      */
     void ScheduleBackgroundRunning();
 
+    /**
+     * SetWatchdogBackgroundStatusRunning, Notify application to set watchdog background status.
+     *
+     * @return
+     */
+    void SetWatchdogBackgroundStatusRunning(bool status);
+
     void SetUserRequestCleaning();
     bool IsUserRequestCleaning() const;
     bool IsAllAbilityReadyToCleanedByUserRequest();
@@ -1079,6 +1025,42 @@ public:
     bool IsUnSetPermission();
 
     void UnSetPolicy();
+
+    inline void SetRssValue(int32_t rssValue)
+    {
+        rssValue_ = rssValue;
+    }
+
+    inline int32_t GetRssValue() const
+    {
+        return rssValue_;
+    }
+
+    inline void SetPssValue(int32_t pssValue)
+    {
+        pssValue_ = pssValue;
+    }
+
+    inline int32_t GetPssValue() const
+    {
+        return pssValue_;
+    }
+    inline void SetReasonExist(bool reasonExist)
+    {
+        reasonExist_ = reasonExist;
+    }
+    inline bool GetReasonExist() const
+    {
+        return reasonExist_;
+    }
+
+    void SetDebugFromLocal(bool isDebugFromLocal);
+
+    bool GetDebugFromLocal() const
+    {
+        return isDebugFromLocal_;
+    }
+
 private:
     /**
      * SearchTheModuleInfoNeedToUpdated, Get an uninitialized abilityStage data.
@@ -1115,6 +1097,7 @@ private:
 
     void RemoveModuleRecord(const std::shared_ptr<ModuleRunningRecord> &record, bool isExtensionDebug = false);
     uint32_t GetAddStageTimeout() const;
+    void SetModuleLoaded(const std::string &moduleName) const;
 
 private:
     class RemoteObjHash {
@@ -1133,109 +1116,33 @@ private:
     bool isMainProcess_ = true; // Only MainProcess can be keepalive
     bool isSingleton_ = false;
     bool isStageBasedModel_ = false;
+    bool isFocused_ = false; // if process is focused.
     ApplicationState curState_ = ApplicationState::APP_STATE_CREATE;  // current state of this process
     ApplicationPendingState pendingState_ = ApplicationPendingState::READY;
     ApplicationScheduleState scheduleState_ = ApplicationScheduleState::SCHEDULE_READY;
-    bool isFocused_ = false; // if process is focused.
+    WatchdogVisibilityState watchdogVisibilityState_ = WatchdogVisibilityState::WATCHDOG_STATE_READY;
     /**
      * If there is an ability is foregrounding, this flag will be true,
      * and this flag will remain true until this application is background.
      */
     std::atomic_bool isAbilityForegrounding_ = false;
-
-    std::shared_ptr<ApplicationInfo> appInfo_ = nullptr;  // the application's info of this process
-    int32_t appRecordId_ = 0;
-    std::string processName_;  // the name of this process
-    std::string specifiedProcessFlag_; // the flag of specified Process
-    std::string customProcessFlag_; // the flag of custom process
-    std::unordered_set<sptr<IRemoteObject>, RemoteObjHash> foregroundingAbilityTokens_;
-    std::weak_ptr<AppMgrServiceInner> appMgrServiceInner_;
-    sptr<AppDeathRecipient> appDeathRecipient_ = nullptr;
-    std::shared_ptr<PriorityObject> priorityObject_;
-    std::shared_ptr<AppLifeCycleDeal> appLifeCycleDeal_ = nullptr;
-    std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
-    std::shared_ptr<AMSEventHandler> eventHandler_;
     bool isTerminating = false;
     bool isCaching_ = false;
-    std::string signCode_;  // the sign of this hap
-    std::string jointUserId_;
-    std::map<std::string, std::shared_ptr<ApplicationInfo>> appInfos_;
-    ffrt::mutex appInfosLock_;
-    std::map<std::string, std::vector<std::shared_ptr<ModuleRunningRecord>>> hapModules_;
-    mutable ffrt::mutex hapModulesLock_;
-    int32_t mainUid_;
-    std::string mainBundleName_;
     bool isLauncherApp_;
-    std::string mainAppName_;
-    int restartResidentProcCount_ = 0;
-    std::string appIdentifier_;
-
-    mutable std::mutex specifiedMutex_;
-    int32_t specifiedRequestId_ = -1;
-    AAFwk::Want specifiedWant_;
-    std::string moduleName_;
-    int32_t newProcessRequestId_ = -1;
-    AAFwk::Want newProcessRequestWant_;
-
     bool isDebugApp_ = false;
     bool isNativeDebug_ = false;
     bool isAttachDebug_ = false;
-    std::string perfCmd_;
-    int64_t startTimeMillis_ = 0;   // The time of app start(CLOCK_MONOTONIC)
-    int64_t restartTimeMillis_ = 0; // The time of last trying app restart
     bool jitEnabled_ = false;
-    PreloadState preloadState_ = PreloadState::NONE;
-    PreloadMode preloadMode_ = PreloadMode::PRESS_DOWN;
-    std::string preloadModuleName_;
-    int32_t exitReason_ = 0;
-    std::string exitMsg_ = "";
-
-    std::shared_ptr<UserTestRecord> userTestRecord_ = nullptr;
-
-    std::atomic<bool> isKilling_ = false;
+    bool securityFlag_ = false; // render record
     bool isContinuousTask_ = false;    // Only continuesTask processes can be set to true, please choose carefully
-    std::atomic_bool isSpawned_ = false;
-
-    std::weak_ptr<AppRunningRecord> parentAppRecord_;
-    std::map<pid_t, std::weak_ptr<AppRunningRecord>> childAppRecordMap_;
-
-    // render record
-    std::map<int32_t, std::shared_ptr<RenderRecord>> renderRecordMap_;
-    ffrt::mutex renderRecordMapLock_;
-    std::set<pid_t> renderPidSet_; // Contains all render pid added, whether died or not
-    ffrt::mutex renderPidSetLock_;
-    AppSpawnStartMsg startMsg_;
-    int32_t appIndex_ = 0;
-    std::string instanceKey_;
-    bool securityFlag_ = false;
-    int32_t requestProcCode_ = 0;
-    ProcessChangeReason processChangeReason_ = ProcessChangeReason::REASON_NONE;
-
-    int32_t callerPid_ = -1;
-    int32_t callerUid_ = -1;
-    int32_t callerTokenId_ = -1;
-    int32_t assignTokenId_ = 0;
-    ProcessType processType_ = ProcessType::NORMAL;
-    ExtensionAbilityType extensionType_ = ExtensionAbilityType::UNSPECIFIED;
-
-    std::set<uint32_t> windowIds_;
-    ffrt::mutex windowIdsLock_;
-#ifdef SUPPORT_CHILD_PROCESS
-    std::map<pid_t, std::shared_ptr<ChildProcessRecord>> childProcessRecordMap_;
-    ffrt::mutex childProcessRecordMapLock_;
-#endif //SUPPORT_CHILD_PROCESS
-
     bool isRestartApp_ = false; // Only app calling RestartApp can be set to true
     bool isAssertPause_ = false;
     bool isErrorInfoEnhance_ = false;
     bool isNativeStart_ = false;
     bool isMultiThread_ = false;
     bool enableProcessCache_ = false;
-    SupportProcessCacheState procCacheSupportState_ = SupportProcessCacheState::UNSPECIFIED;
     bool processCacheBlocked = false; // temporarily block process cache feature
-    sptr<IRemoteObject> browserHost_;
     bool hasGPU_ = false;
-    pid_t gpuPid_ = 0;
     bool isStrictMode_ = false;
     bool networkEnableFlags_ = true;
     bool saEnableFlags_ = true;
@@ -1246,10 +1153,87 @@ private:
     bool isKia_ = false;
     bool isNeedPreloadModule_ = false;
     bool isNeedLimitPrio_ = false;
-    std::shared_ptr<Configuration> delayConfiguration_ = std::make_shared<Configuration>();
     bool isAllowedNWebPreload_ = false;
     bool isUnSetPermission_ = false;
+    std::atomic<bool> isKilling_ = false;
+    std::atomic_bool isSpawned_ = false;
+
+    int32_t appRecordId_ = 0;
+    int32_t mainUid_;
+    int restartResidentProcCount_ = 0;
+    int32_t exitReason_ = 0;
+    int32_t appIndex_ = 0; // render record
+    int32_t requestProcCode_ = 0; // render record
+    int32_t callerPid_ = -1;
+    int32_t callerUid_ = -1;
+    int32_t callerTokenId_ = -1;
+    int32_t assignTokenId_ = 0;
+    pid_t gpuPid_ = 0;
+    ProcessType processType_ = ProcessType::NORMAL;
+    ExtensionAbilityType extensionType_ = ExtensionAbilityType::UNSPECIFIED;
+    PreloadState preloadState_ = PreloadState::NONE;
+    PreloadMode preloadMode_ = PreloadMode::PRELOAD_NONE;
+    SupportProcessCacheState procCacheSupportState_ = SupportProcessCacheState::UNSPECIFIED;
+    int64_t startTimeMillis_ = 0;   // The time of app start(CLOCK_MONOTONIC)
+    int64_t restartTimeMillis_ = 0; // The time of last trying app restart
+
+    std::shared_ptr<ApplicationInfo> appInfo_ = nullptr;  // the application's info of this process
+    std::string processName_;  // the name of this process
+    std::string specifiedProcessFlag_; // the flag of specified Process
+    std::string customProcessFlag_; // the flag of custom process
+    std::unordered_set<sptr<IRemoteObject>, RemoteObjHash> foregroundingAbilityTokens_;
+    std::weak_ptr<AppMgrServiceInner> appMgrServiceInner_;
+    sptr<AppDeathRecipient> appDeathRecipient_ = nullptr;
+    std::shared_ptr<PriorityObject> priorityObject_;
+    std::shared_ptr<AppLifeCycleDeal> appLifeCycleDeal_ = nullptr;
+    std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
+    std::shared_ptr<AMSEventHandler> eventHandler_;
+    std::string signCode_;  // the sign of this hap
+    std::string jointUserId_;
+    std::map<std::string, std::shared_ptr<ApplicationInfo>> appInfos_;
+    ffrt::mutex appInfosLock_;
+    std::map<std::string, std::vector<std::shared_ptr<ModuleRunningRecord>>> hapModules_;
+    mutable ffrt::mutex hapModulesLock_;
+    std::string mainBundleName_;
+    std::string mainAppName_;
+    std::string appIdentifier_;
+
+    mutable std::mutex specifiedMutex_;
+    std::shared_ptr<SpecifiedRequest> specifiedAbilityRequest_;
+    std::shared_ptr<SpecifiedRequest> specifiedProcessRequest_;
+    std::string moduleName_;
+
+    std::string perfCmd_;
+    std::string preloadModuleName_;
+    std::string exitMsg_ = "";
+
+    std::shared_ptr<UserTestRecord> userTestRecord_ = nullptr;
+
+    std::weak_ptr<AppRunningRecord> parentAppRecord_;
+    std::map<pid_t, std::weak_ptr<AppRunningRecord>> childAppRecordMap_;
+
+    std::map<int32_t, std::shared_ptr<RenderRecord>> renderRecordMap_; // render record
+    ffrt::mutex renderRecordMapLock_; // render record lock
+    std::set<pid_t> renderPidSet_; // Contains all render pid added, whether died or not
+    ffrt::mutex renderPidSetLock_; // render pid set lock
+    AppSpawnStartMsg startMsg_; // render record
+    std::string instanceKey_; // render record
+    ProcessChangeReason processChangeReason_ = ProcessChangeReason::REASON_NONE; // render record
+
+    std::set<uint32_t> windowIds_;
+    ffrt::mutex windowIdsLock_;
+#ifdef SUPPORT_CHILD_PROCESS
+    std::map<pid_t, std::shared_ptr<ChildProcessRecord>> childProcessRecordMap_;
+    ffrt::mutex childProcessRecordMapLock_;
+#endif //SUPPORT_CHILD_PROCESS
+
+    sptr<IRemoteObject> browserHost_;
+    std::shared_ptr<Configuration> delayConfiguration_ = std::make_shared<Configuration>();
     std::string killReason_ = "";
+    int32_t rssValue_ = 0;
+    int32_t pssValue_ = 0;
+    bool reasonExist_ = false;
+    bool isDebugFromLocal_ = false;
 };
 
 }  // namespace AppExecFwk

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,6 +29,10 @@
 #include "permission_verification.h"
 #include "start_ability_utils.h"
 #include "utils/app_mgr_util.h"
+#ifdef SUPPORT_SCREEN
+#include "scene_board_judgement.h"
+#include "session_manager_lite.h"
+#endif // SUPPORT_SCREEN
 
 using OHOS::Security::AccessToken::AccessTokenKit;
 
@@ -38,6 +42,19 @@ namespace {
 constexpr const char* IS_DELEGATOR_CALL = "isDelegatorCall";
 constexpr const char* SETTINGS = "settings";
 constexpr int32_t BASE_USER_RANGE = 200000;
+constexpr int32_t INDEX_PID = 0;
+constexpr int32_t INDEX_TOKENID = 1;
+constexpr int32_t INDEX_COUNT = 2;
+}
+
+StartSelfUIAbilityRecordGuard::StartSelfUIAbilityRecordGuard(pid_t pid, int32_t tokenId) : pid_(pid)
+{
+    AbilityPermissionUtil::GetInstance().AddStartSelfUIAbilityRecord(pid, tokenId);
+}
+
+StartSelfUIAbilityRecordGuard::~StartSelfUIAbilityRecordGuard()
+{
+    AbilityPermissionUtil::GetInstance().RemoveStartSelfUIAbilityRecord(pid_);
 }
 
 AbilityPermissionUtil &AbilityPermissionUtil::GetInstance()
@@ -102,6 +119,9 @@ bool AbilityPermissionUtil::IsDominateScreen(const Want &want, bool isPendingWan
                 TAG_LOGD(AAFwkTag::ABILITYMGR, "not dominate screen, app detail.");
                 return false;
             }
+        } else if (IsStartSelfUIAbility()) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "caller from capi.");
+            return false;
         }
         TAG_LOGE(AAFwkTag::ABILITYMGR, "dominate screen.");
         return true;
@@ -162,7 +182,8 @@ int32_t AbilityPermissionUtil::CheckMultiInstance(Want &want, sptr<IRemoteObject
         return ERR_INVALID_VALUE;
     }
     // in-app launch
-    if (callerRecord != nullptr && callerRecord->GetAbilityInfo().bundleName == want.GetBundle()) {
+    if ((callerRecord != nullptr && callerRecord->GetAbilityInfo().bundleName == want.GetBundle()) ||
+        IsStartSelfUIAbility()) {
         if (isCreating) {
             if (!instanceKey.empty()) {
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "Not allow to set instanceKey");
@@ -174,7 +195,11 @@ int32_t AbilityPermissionUtil::CheckMultiInstance(Want &want, sptr<IRemoteObject
             }
             return ERR_OK;
         }
-        return UpdateInstanceKey(want, instanceKey, instanceKeyArray, callerRecord->GetInstanceKey());
+        if (callerRecord != nullptr) {
+            return UpdateInstanceKey(want, instanceKey, instanceKeyArray, callerRecord->GetInstanceKey());
+        }
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "native c call set instanceKey");
+        return UpdateInstanceKey(want, instanceKey, instanceKeyArray, instanceKey);
     }
     // inter-app launch
     if (isCreating) {
@@ -250,5 +275,115 @@ int32_t AbilityPermissionUtil::CheckStartRecentAbility(const Want &want, Ability
     }
     return ERR_OK;
 }
-} // AAFwk
+
+#ifdef SUPPORT_SCREEN
+int32_t AbilityPermissionUtil::CheckStartCallHasFloatingWindow(const sptr<IRemoteObject> &callerToken)
+{
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+        CHECK_POINTER_AND_RETURN_LOG(sceneSessionManager, CHECK_PERMISSION_FAILED, "sceneSessionManager is nullptr");
+        bool hasFloatingWindow = false;
+        auto err = sceneSessionManager->HasFloatingWindowForeground(callerToken, hasFloatingWindow);
+        TAG_LOGI(AAFwkTag::ABILITYMGR,
+            "check floatingwindow permission. Ret: %{public}d, hasFloatingWindow: %{public}d",
+            static_cast<int32_t>(err), hasFloatingWindow);
+        if (err != Rosen::WMError::WM_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR,
+                "checking floatingwindow err: %{public}d", static_cast<int32_t>(err));
+        } else if (hasFloatingWindow) {
+            return ERR_OK;
+        }
+    }
+    return CHECK_PERMISSION_FAILED;
+}
+#endif // SUPPORT_SCREEN
+
+void AbilityPermissionUtil::AddStartSelfUIAbilityRecord(pid_t pid, int32_t tokenId)
+{
+    std::lock_guard<ffrt::mutex> guard(startSelfUIAbilityRecordsMutex_);
+    auto iter = startSelfUIAbilityRecords_.begin();
+    for (; iter != startSelfUIAbilityRecords_.end(); iter++) {
+        if ((*iter)[INDEX_PID] == pid) {
+            break;
+        }
+    }
+    if (iter != startSelfUIAbilityRecords_.end()) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "found");
+        (*iter)[INDEX_COUNT]++;
+        return;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "create new record");
+    startSelfUIAbilityRecords_.push_back({pid, tokenId, 1});
+}
+
+void AbilityPermissionUtil::RemoveStartSelfUIAbilityRecord(pid_t pid)
+{
+    std::lock_guard<ffrt::mutex> guard(startSelfUIAbilityRecordsMutex_);
+    auto iter = startSelfUIAbilityRecords_.begin();
+    for (; iter != startSelfUIAbilityRecords_.end(); iter++) {
+        if ((*iter)[INDEX_PID] == pid) {
+            break;
+        }
+    }
+    if (iter == startSelfUIAbilityRecords_.end()) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "not found");
+        return;
+    }
+    if ((*iter)[INDEX_COUNT] == 1) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "last one");
+        startSelfUIAbilityRecords_.erase(iter);
+        return;
+    }
+    (*iter)[INDEX_COUNT]--;
+}
+
+int AbilityPermissionUtil::GetTokenIdByPid(pid_t pid)
+{
+    std::lock_guard<ffrt::mutex> guard(startSelfUIAbilityRecordsMutex_);
+    auto iter = startSelfUIAbilityRecords_.begin();
+    for (; iter != startSelfUIAbilityRecords_.end(); iter++) {
+        if ((*iter)[INDEX_PID] == pid) {
+            return (*iter)[INDEX_TOKENID];
+        }
+    }
+    return -1;
+}
+
+bool AbilityPermissionUtil::IsStartSelfUIAbility()
+{
+    if (!AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
+        return false;
+    }
+    auto callerPid = IPCSkeleton::GetCallingPid();
+    auto tokenId = GetTokenIdByPid(callerPid);
+    if (tokenId < 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid tokenId");
+        return false;
+    }
+    return PermissionVerification::GetInstance()->VerifyStartSelfUIAbility(tokenId);
+}
+
+int32_t AbilityPermissionUtil::CheckPrepareTerminateEnable(const std::shared_ptr<AbilityRecord> &abilityRecord)
+{
+    if (!AppUtils::GetInstance().IsPrepareTerminateEnabled()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "prepare terminate not supported");
+        return ERR_INVALID_VALUE; // ERR_NOT_SUPPORTED_PRODUCT_TYPE;
+    }
+    if (abilityRecord == nullptr || abilityRecord->IsTerminating()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ability record not exist/ on terminating");
+        return ERR_INVALID_VALUE;
+    }
+    auto type = abilityRecord->GetAbilityInfo().type;
+    bool isStageBasedModel = abilityRecord->GetAbilityInfo().isStageBasedModel;
+    if (!isStageBasedModel || type != AppExecFwk::AbilityType::PAGE) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ability mode not support.");
+        return RESOLVE_CALL_ABILITY_TYPE_ERR;
+    }
+    auto tokenId = abilityRecord->GetApplicationInfo().accessTokenId;
+    if (!AAFwk::PermissionVerification::GetInstance()->VerifyPrepareTerminatePermission(tokenId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed, please apply permission ohos.permission.PREPARE_APP_TERMINATE");
+        return ERR_INVALID_VALUE; // CHECK_PERMISSION_FAILED;
+    }
+    return ERR_OK;
+}} // AAFwk
 } // OHOS

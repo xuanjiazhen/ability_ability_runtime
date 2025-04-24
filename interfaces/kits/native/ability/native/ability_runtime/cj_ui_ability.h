@@ -16,13 +16,14 @@
 #ifndef OHOS_ABILITY_RUNTIME_CJ_UI_ABILITY_H
 #define OHOS_ABILITY_RUNTIME_CJ_UI_ABILITY_H
 
-#include "ability_delegator_infos.h"
+#include "cj_ability_delegator_infos.h"
 #include "freeze_util.h"
 #include "ui_ability.h"
 #ifdef SUPPORT_GRAPHICS
 #include "window_stage_impl.h"
 #include "cj_ability_object.h"
 #endif
+#include "cj_application_context.h"
 
 namespace OHOS {
 
@@ -287,14 +288,18 @@ private:
 #endif
 #endif
 private:
-    std::shared_ptr<AppExecFwk::ADelegatorAbilityProperty> CreateADelegatorAbilityProperty();
-    sptr<IRemoteObject> SetNewRuleFlagToCallee(napi_env env, napi_value remoteJsObj);
+    std::shared_ptr<AppExecFwk::ACJDelegatorAbilityProperty> CreateADelegatorAbilityProperty();
+    sptr<IRemoteObject> SetNewRuleFlagToCallee(int64_t remoteJsObj);
     void SetAbilityContext(const std::shared_ptr<AbilityInfo> &abilityInfo);
     void InitSceneDoOnForeground(std::shared_ptr<Rosen::WindowScene> scene, const Want &want);
     void AddLifecycleEventBeforeCall(FreezeUtil::TimeoutState state, const std::string &methodName) const;
     void AddLifecycleEventAfterCall(FreezeUtil::TimeoutState state, const std::string &methodName) const;
     bool CheckSatisfyTargetAPIVersion(int32_t targetAPIVersion);
     bool BackPressDefaultValue();
+    void CallAppCtxFunc(CjAppCtxFuncType type, int64_t id);
+    void CallAppCtxWindowFunc(CjAppCtxFuncType type, int64_t id, sptr<Rosen::CJWindowStageImpl> window);
+
+    void* cjAppHandle_ = nullptr;
 
     CJRuntime &cjRuntime_;
     std::shared_ptr<CJAbilityObject> cjAbilityObj_;

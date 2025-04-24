@@ -53,6 +53,7 @@ class TestUserCallback : public UserCallbackStub {
 public:
     void OnStopUserDone(int userId, int errcode) override;
     void OnStartUserDone(int userId, int errcode) override;
+    void OnLogoutUserDone(int userId, int errcode) override;
 
     int errCode_ = -1;
 };
@@ -64,13 +65,15 @@ void TestUserCallback::OnStartUserDone(int userId, int errcode)
 
 void TestUserCallback::OnStopUserDone(int userId, int errcode) {}
 
+void TestUserCallback::OnLogoutUserDone(int userId, int errcode) {}
+
 /**
  * @tc.name: UserItemSetState_0100
  * @tc.desc: UserItemSetState Test
  * @tc.type: FUNC
  * @tc.require: issueI581SE
  */
-HWTEST_F(UserControllerTest, UserItemSetState_0100, TestSize.Level0)
+HWTEST_F(UserControllerTest, UserItemSetState_0100, TestSize.Level1)
 {
     UserItem item(100);
     item.SetState(UserState::STATE_BOOTING);
@@ -156,10 +159,10 @@ HWTEST_F(UserControllerTest, StopUserTest_0300, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI581SE
  */
-HWTEST_F(UserControllerTest, LogoutUserTest_0100, TestSize.Level0)
+HWTEST_F(UserControllerTest, LogoutUserTest_0100, TestSize.Level1)
 {
     UserController userController;
-    auto result = userController.LogoutUser(-1);
+    auto result = userController.LogoutUser(-1, nullptr);
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         EXPECT_EQ(result, INVALID_USERID_VALUE);
     }
@@ -172,10 +175,10 @@ HWTEST_F(UserControllerTest, LogoutUserTest_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI581SE
  */
-HWTEST_F(UserControllerTest, LogoutUserTest_0200, TestSize.Level0)
+HWTEST_F(UserControllerTest, LogoutUserTest_0200, TestSize.Level1)
 {
     UserController userController;
-    auto result = userController.LogoutUser(666);
+    auto result = userController.LogoutUser(666, nullptr);
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         EXPECT_EQ(result, INVALID_USERID_VALUE);
     }
@@ -188,11 +191,11 @@ HWTEST_F(UserControllerTest, LogoutUserTest_0200, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI581SE
  */
-HWTEST_F(UserControllerTest, LogoutUserTest_0300, TestSize.Level0)
+HWTEST_F(UserControllerTest, LogoutUserTest_0300, TestSize.Level1)
 {
     UserController userController;
     userController.GetOrCreateUserItem(1000);
-    auto result = userController.LogoutUser(1000);
+    auto result = userController.LogoutUser(1000, nullptr);
     EXPECT_TRUE(result = 1000);
 }
 
@@ -202,7 +205,7 @@ HWTEST_F(UserControllerTest, LogoutUserTest_0300, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI581SE
  */
-HWTEST_F(UserControllerTest, HandleContinueUserSwitchTest_0100, TestSize.Level0)
+HWTEST_F(UserControllerTest, HandleContinueUserSwitchTest_0100, TestSize.Level2)
 {
     UserController userController;
     auto userItem = std::make_shared<UserItem>(1000);
@@ -217,7 +220,7 @@ HWTEST_F(UserControllerTest, HandleContinueUserSwitchTest_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI581SE
  */
-HWTEST_F(UserControllerTest, SendUserSwitchDoneTest_0100, TestSize.Level0)
+HWTEST_F(UserControllerTest, SendUserSwitchDoneTest_0100, TestSize.Level2)
 {
     UserController userController;
     userController.SendUserSwitchDone(1000);
@@ -233,7 +236,7 @@ HWTEST_F(UserControllerTest, SendUserSwitchDoneTest_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI581SE
  */
-HWTEST_F(UserControllerTest, SendContinueUserSwitchTest_0200, TestSize.Level0)
+HWTEST_F(UserControllerTest, SendContinueUserSwitchTest_0200, TestSize.Level2)
 {
     UserController userController;
     auto userItem = std::make_shared<UserItem>(1000);
@@ -250,7 +253,7 @@ HWTEST_F(UserControllerTest, SendContinueUserSwitchTest_0200, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI581SE
  */
-HWTEST_F(UserControllerTest, SendUserSwitchTimeoutTest_0100, TestSize.Level0)
+HWTEST_F(UserControllerTest, SendUserSwitchTimeoutTest_0100, TestSize.Level2)
 {
     UserController userController;
     auto userItem = std::make_shared<UserItem>(1000);
@@ -267,7 +270,7 @@ HWTEST_F(UserControllerTest, SendUserSwitchTimeoutTest_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI581SE
  */
-HWTEST_F(UserControllerTest, SendReportUserSwitchTest_0100, TestSize.Level0)
+HWTEST_F(UserControllerTest, SendReportUserSwitchTest_0100, TestSize.Level2)
 {
     UserController userController;
     auto userItem = std::make_shared<UserItem>(1000);
@@ -284,7 +287,7 @@ HWTEST_F(UserControllerTest, SendReportUserSwitchTest_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI581SE
  */
-HWTEST_F(UserControllerTest, SendSystemUserCurrentTest_0100, TestSize.Level0)
+HWTEST_F(UserControllerTest, SendSystemUserCurrentTest_0100, TestSize.Level2)
 {
     UserController userController;
     userController.SendSystemUserCurrent(1000, 1000);
@@ -300,7 +303,7 @@ HWTEST_F(UserControllerTest, SendSystemUserCurrentTest_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI581SE
  */
-HWTEST_F(UserControllerTest, SendSystemUserStartTest_0100, TestSize.Level0)
+HWTEST_F(UserControllerTest, SendSystemUserStartTest_0100, TestSize.Level2)
 {
     UserController userController;
     userController.SendSystemUserStart(1000);

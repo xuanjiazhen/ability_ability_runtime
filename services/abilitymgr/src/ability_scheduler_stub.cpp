@@ -154,6 +154,12 @@ int AbilitySchedulerStub::OnRemoteRequestInnerThird(
             return CreateModalUIExtensionInner(data, reply);
         case UPDATE_SESSION_TOKEN:
             return UpdateSessionTokenInner(data, reply);
+        case SCHEDULE_COLLABORATE_DATA:
+            return CollaborateDataInner(data);
+        case SCHEDULE_ABILITY_REQUEST_FAILURE:
+            return ScheduleAbilityRequestFailureInner(data);
+        case SCHEDULE_ABILITY_REQUEST_SUCCESS:
+            return ScheduleAbilityRequestSuccessInner(data);
     }
     return ERR_CODE_NOT_EXIST;
 }
@@ -735,6 +741,43 @@ int AbilitySchedulerStub::UpdateSessionTokenInner(MessageParcel &data, MessagePa
 {
     sptr<IRemoteObject> sessionToken = data.ReadRemoteObject();
     UpdateSessionToken(sessionToken);
+    return NO_ERROR;
+}
+
+int AbilitySchedulerStub::CollaborateDataInner(MessageParcel &data)
+{
+    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
+        return ERR_INVALID_VALUE;
+    }
+    ScheduleCollaborate(*want);
+    return NO_ERROR;
+}
+
+int AbilitySchedulerStub::ScheduleAbilityRequestFailureInner(MessageParcel &data)
+{
+    std::string requestId = data.ReadString();
+    std::unique_ptr<AppExecFwk::ElementName> element(data.ReadParcelable<AppExecFwk::ElementName>());
+    if (element == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null element");
+        return ERR_INVALID_VALUE;
+    }
+    std::string message = data.ReadString();
+    ScheduleAbilityRequestFailure(requestId, *element, message);
+    return NO_ERROR;
+}
+
+int AbilitySchedulerStub::ScheduleAbilityRequestSuccessInner(MessageParcel &data)
+{
+    std::string requestId = data.ReadString();
+    std::unique_ptr<AppExecFwk::ElementName> element(data.ReadParcelable<AppExecFwk::ElementName>());
+    if (element == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null element");
+        return ERR_INVALID_VALUE;
+    }
+    std::string message = data.ReadString();
+    ScheduleAbilityRequestSuccess(requestId, *element, message);
     return NO_ERROR;
 }
 

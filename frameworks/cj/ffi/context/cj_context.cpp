@@ -15,10 +15,14 @@
  
 #include "cj_context.h"
 
+#include "context.h"
 #include "cj_utils_ffi.h"
+#include "cj_macro.h"
+#include "cj_application_context.h"
 #include "cj_ability_runtime_error.h"
 #include "bundle_manager_convert.h"
 #include "hilog_tag_wrapper.h"
+#include "js_context_utils.h"
 
 namespace OHOS {
 namespace FfiContext {
@@ -26,83 +30,34 @@ using namespace OHOS::FFI;
 using namespace OHOS::AbilityRuntime;
 using namespace OHOS::CJSystemapi::BundleManager;
 
-static constexpr int32_t ABILITY_CONTEXT = 0;
-static constexpr int32_t APPLICATION_CONTEXT = 1;
-static constexpr int32_t ABILITY_STAGE_CONTEXT = 2;
-static constexpr int32_t CJ_CONTEXT = 3;
-
-std::shared_ptr<AbilityRuntime::Context> GetCJContextFromCJ(int64_t id)
+std::shared_ptr<AbilityRuntime::Context> GetContextFromCJ(int64_t id)
 {
     auto cjContext = FFI::FFIData::GetData<CJContext>(id);
     if (cjContext == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null cj AbilityContext");
+        TAG_LOGE(AAFwkTag::CONTEXT, "null cjContext");
         return nullptr;
     }
-    auto context = cjContext->GetContext();
-    return context;
+    return cjContext->GetContext();
 }
 
-std::shared_ptr<AbilityRuntime::Context> GetAbilityContextFromCJ(int64_t id)
+extern "C" {
+CJ_EXPORT void* FfiContextGetContext(int64_t id, int32_t type)
 {
-    auto cjAbilityContext = FFI::FFIData::GetData<CJAbilityContext>(id);
-    if (cjAbilityContext == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null cj AbilityContext");
-        return nullptr;
-    }
-    auto abilityContext = cjAbilityContext->GetAbilityContext();
-    return abilityContext;
-}
-
-std::shared_ptr<AbilityRuntime::Context> GetApplicationContextFromCJ(int64_t id)
-{
-    auto cjAppContext = FFI::FFIData::GetData<ApplicationContextCJ::CJApplicationContext>(id);
-    if (cjAppContext == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null cj ApplicationContext");
-        return nullptr;
-    }
-    auto appContext = cjAppContext->GetApplicationContext();
-    return appContext;
-}
-
-std::shared_ptr<AbilityRuntime::Context> GetAbilityStageContextFromCJ(int64_t id)
-{
-    auto cjAbilityStageContext = FFI::FFIData::GetData<CJAbilityStageContext>(id);
-    if (cjAbilityStageContext == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null cj AbilityContext");
-        return nullptr;
-    }
-    auto abilityStageContext = cjAbilityStageContext->GetContext();
-    return abilityStageContext;
-}
-
-std::shared_ptr<AbilityRuntime::Context> GetContextFromCJ(int64_t id, int32_t type)
-{
-    if (type == ABILITY_CONTEXT) {
-        return GetAbilityContextFromCJ(id);
-    } else if (type == APPLICATION_CONTEXT) {
-        return GetApplicationContextFromCJ(id);
-    } else if (type == ABILITY_STAGE_CONTEXT) {
-        return GetAbilityStageContextFromCJ(id);
-    } else if (type == CJ_CONTEXT) {
-        return GetCJContextFromCJ(id);
-    }
-    return nullptr;
-}
-
-void* FfiContextGetContext(int64_t id, int32_t type)
-{
-    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id, type);
+    (void)type;
+    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id);
     if (nativeContext == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null context");
         return nullptr;
     }
+    // return shared_ptr.get() is not safe!
     return nativeContext.get();
 }
 
-RetApplicationInfo FfiContextGetApplicationInfo(int64_t id, int32_t type)
+CJ_EXPORT RetApplicationInfoV2 FfiContextGetApplicationInfo(int64_t id, int32_t type)
 {
-    RetApplicationInfo appInfo;
-    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id, type);
+    (void)type;
+    RetApplicationInfoV2 appInfo = {};
+    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id);
     if (nativeContext == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null context");
         return appInfo;
@@ -112,12 +67,13 @@ RetApplicationInfo FfiContextGetApplicationInfo(int64_t id, int32_t type)
         TAG_LOGE(AAFwkTag::CONTEXT, "null applicationInfo");
         return appInfo;
     }
-    return Convert::ConvertApplicationInfo(*applicationInfo);
+    return Convert::ConvertApplicationInfoV2(*applicationInfo);
 }
 
-char* FfiContextGetFilesDir(int64_t id, int32_t type)
+CJ_EXPORT char* FfiContextGetFilesDir(int64_t id, int32_t type)
 {
-    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id, type);
+    (void)type;
+    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id);
     if (nativeContext == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null context");
         return nullptr;
@@ -126,9 +82,10 @@ char* FfiContextGetFilesDir(int64_t id, int32_t type)
     return CreateCStringFromString(filesDir);
 }
 
-char* FfiContextGetCacheDir(int64_t id, int32_t type)
+CJ_EXPORT char* FfiContextGetCacheDir(int64_t id, int32_t type)
 {
-    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id, type);
+    (void)type;
+    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id);
     if (nativeContext == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null context");
         return nullptr;
@@ -137,9 +94,10 @@ char* FfiContextGetCacheDir(int64_t id, int32_t type)
     return CreateCStringFromString(cacheDir);
 }
 
-char* FfiContextGetTempDir(int64_t id, int32_t type)
+CJ_EXPORT char* FfiContextGetTempDir(int64_t id, int32_t type)
 {
-    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id, type);
+    (void)type;
+    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id);
     if (nativeContext == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null context");
         return nullptr;
@@ -148,9 +106,10 @@ char* FfiContextGetTempDir(int64_t id, int32_t type)
     return CreateCStringFromString(tempDir);
 }
 
-char* FfiContextGetResourceDir(int64_t id, int32_t type)
+CJ_EXPORT char* FfiContextGetResourceDir(int64_t id, int32_t type)
 {
-    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id, type);
+    (void)type;
+    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id);
     if (nativeContext == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null context");
         return nullptr;
@@ -159,9 +118,10 @@ char* FfiContextGetResourceDir(int64_t id, int32_t type)
     return CreateCStringFromString(resourceDir);
 }
 
-char* FfiContextGetDatabaseDir(int64_t id, int32_t type)
+CJ_EXPORT char* FfiContextGetDatabaseDir(int64_t id, int32_t type)
 {
-    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id, type);
+    (void)type;
+    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id);
     if (nativeContext == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null context");
         return nullptr;
@@ -170,9 +130,10 @@ char* FfiContextGetDatabaseDir(int64_t id, int32_t type)
     return CreateCStringFromString(databaseDir);
 }
 
-char* FfiContextGetPreferencesDir(int64_t id, int32_t type)
+CJ_EXPORT char* FfiContextGetPreferencesDir(int64_t id, int32_t type)
 {
-    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id, type);
+    (void)type;
+    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id);
     if (nativeContext == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null context");
         return nullptr;
@@ -181,9 +142,10 @@ char* FfiContextGetPreferencesDir(int64_t id, int32_t type)
     return CreateCStringFromString(preferencesDir);
 }
 
-char* FfiContextGetBundleCodeDir(int64_t id, int32_t type)
+CJ_EXPORT char* FfiContextGetBundleCodeDir(int64_t id, int32_t type)
 {
-    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id, type);
+    (void)type;
+    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id);
     if (nativeContext == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null context");
         return nullptr;
@@ -192,9 +154,10 @@ char* FfiContextGetBundleCodeDir(int64_t id, int32_t type)
     return CreateCStringFromString(bundleCodeDir);
 }
 
-char* FfiContextGetDistributedFilesDir(int64_t id, int32_t type)
+CJ_EXPORT char* FfiContextGetDistributedFilesDir(int64_t id, int32_t type)
 {
-    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id, type);
+    (void)type;
+    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id);
     if (nativeContext == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null context");
         return nullptr;
@@ -203,9 +166,10 @@ char* FfiContextGetDistributedFilesDir(int64_t id, int32_t type)
     return CreateCStringFromString(distributedFilesDir);
 }
 
-char* FfiContextGetCloudFileDir(int64_t id, int32_t type)
+CJ_EXPORT char* FfiContextGetCloudFileDir(int64_t id, int32_t type)
 {
-    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id, type);
+    (void)type;
+    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id);
     if (nativeContext == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null context");
         return nullptr;
@@ -214,9 +178,10 @@ char* FfiContextGetCloudFileDir(int64_t id, int32_t type)
     return CreateCStringFromString(cloudFileDir);
 }
 
-int32_t FfiContextGetArea(int64_t id, int32_t type)
+CJ_EXPORT int32_t FfiContextGetArea(int64_t id, int32_t type)
 {
-    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id, type);
+    (void)type;
+    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id);
     if (nativeContext == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null context");
         return -1;
@@ -224,7 +189,7 @@ int32_t FfiContextGetArea(int64_t id, int32_t type)
     return nativeContext->GetArea();
 }
 
-int64_t FfiContextGetApplicationContext()
+CJ_EXPORT int64_t FfiContextGetApplicationContext()
 {
     auto appContext = ApplicationContextCJ::CJApplicationContext::GetCJApplicationContext(
         AbilityRuntime::Context::GetApplicationContext());
@@ -235,9 +200,10 @@ int64_t FfiContextGetApplicationContext()
     return appContext->GetID();
 }
 
-char* FfiContextGetGroupDir(int64_t id, int32_t type, char* groupId)
+CJ_EXPORT char* FfiContextGetGroupDir(int64_t id, int32_t type, char* groupId)
 {
-    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id, type);
+    (void)type;
+    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id);
     if (nativeContext == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null context");
         return nullptr;
@@ -246,9 +212,10 @@ char* FfiContextGetGroupDir(int64_t id, int32_t type, char* groupId)
     return CreateCStringFromString(groupDir);
 }
 
-int64_t FfiContextCreateModuleContext(int64_t id, int32_t type, char* moduleName)
+CJ_EXPORT int64_t FfiContextCreateModuleContext(int64_t id, int32_t type, char* moduleName)
 {
-    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id, type);
+    (void)type;
+    std::shared_ptr<AbilityRuntime::Context> nativeContext = GetContextFromCJ(id);
     if (nativeContext == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null context");
         return -1;
@@ -266,5 +233,67 @@ int64_t FfiContextCreateModuleContext(int64_t id, int32_t type, char* moduleName
     return cjContext->GetID();
 }
 
+CJ_EXPORT napi_value FfiConvertBaseContext2Napi(napi_env env, int64_t id)
+{
+    napi_value undefined = nullptr;
+    napi_get_undefined(env, &undefined);
+    auto cjContext = FFIData::GetData<CJContext>(id);
+    if (cjContext == nullptr || cjContext->GetContext() == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "cj context null ptr");
+        return undefined;
+    }
+
+    napi_value result = CreateJsBaseContext(env, cjContext->GetContext());
+    if (result == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null object");
+        return undefined;
+    }
+    auto workContext = new (std::nothrow) std::weak_ptr<Context>(cjContext->GetContext());
+    auto res = napi_wrap(env, result, workContext,
+        [](napi_env, void *data, void *) {
+            TAG_LOGD(AAFwkTag::APPKIT, "Finalizer for weak_ptr base context is called");
+            delete static_cast<std::weak_ptr<Context> *>(data);
+        },
+        nullptr, nullptr);
+    if (res != napi_ok && workContext != nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "napi_wrap failed:%{public}d", res);
+        delete workContext;
+        return undefined;
+    }
+    napi_value falseValue = nullptr;
+    napi_get_boolean((napi_env)env, true, &falseValue);
+    napi_set_named_property((napi_env)env, result, "stageMode", falseValue);
+    return result;
+}
+
+CJ_EXPORT int64_t FfiCreateBaseContextFromNapi(napi_env env, napi_value baseContext)
+{
+    if (env == nullptr || baseContext == nullptr) {
+        return ERR_INVALID_INSTANCE_CODE;
+    }
+
+    napi_valuetype type;
+    if (napi_typeof(env, baseContext, &type) || type != napi_object) {
+        return ERR_INVALID_INSTANCE_CODE;
+    }
+
+    std::weak_ptr<Context>* context = nullptr;
+    napi_status status = napi_unwrap(env, baseContext, reinterpret_cast<void**>(&context));
+    if (status != napi_ok) {
+        return ERR_INVALID_INSTANCE_CODE;
+    }
+
+    if (context == nullptr || (*context).lock() == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        return ERR_INVALID_INSTANCE_CODE;
+    }
+    auto cjContext = FFI::FFIData::Create<CJContext>((*context).lock());
+    if (cjContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null cjContext");
+        return ERR_INVALID_INSTANCE_CODE;
+    }
+    return cjContext->GetID();
+}
+}
 }
 }

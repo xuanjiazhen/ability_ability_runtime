@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,15 +31,19 @@ constexpr const char* HSPLIST_MODULES = "modules";
 constexpr const char* HSPLIST_VERSIONS = "versions";
 constexpr const char* DATAGROUPINFOLIST_DATAGROUPID = "dataGroupId";
 constexpr const char* DATAGROUPINFOLIST_GID = "gid";
+constexpr const char* DATAGROUPINFOLIST_UUID = "uuid";
 constexpr const char* DATAGROUPINFOLIST_DIR = "dir";
-constexpr const char* JSON_DATA_APP = "/data/app/el2/";
+constexpr const char* JSON_DATA_APP_DIR_EL2 = "/data/app/el2/";
+constexpr const char* JSON_DATA_APP_DIR_EL3 = "/data/app/el3/";
+constexpr const char* JSON_DATA_APP_DIR_EL4 = "/data/app/el4/";
+constexpr const char* JSON_DATA_APP_DIR_EL5 = "/data/app/el5/";
 constexpr const char* JSON_GROUP = "/group/";
 constexpr const char* VERSION_PREFIX = "v";
 constexpr const char* APPSPAWN_CLIENT_USER_NAME = "APP_MANAGER_SERVICE";
 constexpr int32_t RIGHT_SHIFT_STEP = 1;
 constexpr int32_t START_FLAG_TEST_NUM = 1;
 constexpr const char* JITPERMISSIONSLIST_NAME = "name";
-constexpr const char* JITPERMISSIONSLIST_NAME_VALUE = "JITPermissions";
+constexpr const char* JITPERMISSIONSLIST_NAME_VALUE = "Permissions";
 constexpr const char* JITPERMISSIONSLIST_COUNT = "ohos.encaps.count";
 constexpr const char* JITPERMISSIONSLIST_PERMISSIONS_NAME = "permissions";
 constexpr const char* UNINSTALL_BUNDLE_NAME = "uninstallDebugHapMsg";
@@ -90,7 +94,7 @@ ErrCode AppSpawnClient::OpenConnection()
     ret = AppSpawnClientInit(serviceName_.c_str(), &handle);
     int64_t costTime = AbilityRuntime::TimeUtil::SystemTimeMillisecond() - startTime;
     if (costTime > MAX_COST_TIME) {
-        TAG_LOGW(AAFwkTag::APPMGR, "appspawnclientInit cost %{public}" PRId64 "ms!", costTime);
+        TAG_LOGE(AAFwkTag::APPMGR, "appspawnclientInit cost %{public}" PRId64 "ms!", costTime);
     }
 
     if (FAILED(ret)) {
@@ -126,16 +130,30 @@ AppSpawnClientHandle AppSpawnClient::GetAppSpawnClientHandle() const
     return nullptr;
 }
 
-static std::string DumpDataGroupInfoListToJson(const DataGroupInfoList &dataGroupInfoList)
+static std::string DumpDataGroupInfoListToJson(const DataGroupInfoList &dataGroupInfoList, bool isScreenLockDataProtect)
 {
+    TAG_LOGD(AAFwkTag::APPMGR, "dataGroupInfoList size: %{public}zu", dataGroupInfoList.size());
     nlohmann::json dataGroupInfoListJson;
     for (auto& dataGroupInfo : dataGroupInfoList) {
-        dataGroupInfoListJson[DATAGROUPINFOLIST_DATAGROUPID].emplace_back(dataGroupInfo.dataGroupId);
-        dataGroupInfoListJson[DATAGROUPINFOLIST_GID].emplace_back(std::to_string(dataGroupInfo.gid));
-        std::string dir = JSON_DATA_APP + std::to_string(dataGroupInfo.userId)
-            + JSON_GROUP + dataGroupInfo.uuid;
-        dataGroupInfoListJson[DATAGROUPINFOLIST_DIR].emplace_back(dir);
+        nlohmann::json dataGroupInfoJson;
+        dataGroupInfoJson[DATAGROUPINFOLIST_DATAGROUPID] = dataGroupInfo.dataGroupId;
+        dataGroupInfoJson[DATAGROUPINFOLIST_GID] = std::to_string(dataGroupInfo.gid);
+        dataGroupInfoJson[DATAGROUPINFOLIST_UUID] = dataGroupInfo.uuid;
+        std::string dir = std::to_string(dataGroupInfo.userId) + JSON_GROUP + dataGroupInfo.uuid;
+        dataGroupInfoJson[DATAGROUPINFOLIST_DIR] = JSON_DATA_APP_DIR_EL2 + dir;
+        dataGroupInfoListJson.emplace_back(dataGroupInfoJson);
+
+        dataGroupInfoJson[DATAGROUPINFOLIST_DIR] = JSON_DATA_APP_DIR_EL3 + dir;
+        dataGroupInfoListJson.emplace_back(dataGroupInfoJson);
+
+        dataGroupInfoJson[DATAGROUPINFOLIST_DIR] = JSON_DATA_APP_DIR_EL4 + dir;
+        dataGroupInfoListJson.emplace_back(dataGroupInfoJson);
+        if (isScreenLockDataProtect) {
+            dataGroupInfoJson[DATAGROUPINFOLIST_DIR] = JSON_DATA_APP_DIR_EL5 + dir;
+            dataGroupInfoListJson.emplace_back(dataGroupInfoJson);
+        }
     }
+    TAG_LOGD(AAFwkTag::APPMGR, "dataGroupInfoListJson %{public}s", dataGroupInfoListJson.dump().c_str());
     return dataGroupInfoListJson.dump();
 }
 
@@ -159,13 +177,19 @@ static std::string DumpAppEnvToJson(const std::map<std::string, std::string> &ap
     return appEnvJson.dump();
 }
 
-static std::string DumpJITPermissionListToJson(const JITPermissionsList &jitPermissionsList)
+static std::string DumpJITPermissionListToJson(const JITPermissionsMap &jitPermissionsMap)
 {
     nlohmann::json jitPermissionsListJson;
     jitPermissionsListJson[JITPERMISSIONSLIST_NAME] = JITPERMISSIONSLIST_NAME_VALUE;
-    jitPermissionsListJson[JITPERMISSIONSLIST_COUNT] = jitPermissionsList.size();
-    for (auto& jitPermission : jitPermissionsList) {
-        jitPermissionsListJson[JITPERMISSIONSLIST_PERMISSIONS_NAME].emplace_back(jitPermission);
+    jitPermissionsListJson[JITPERMISSIONSLIST_COUNT] = jitPermissionsMap.size();
+    for (const auto &[permissionName, permissionValue] : jitPermissionsMap) {
+        nlohmann::json temp;
+        if (permissionValue.empty()) {
+            temp[permissionName] = true;
+        } else {
+            temp[permissionName] = permissionValue;
+        }
+        jitPermissionsListJson[JITPERMISSIONSLIST_PERMISSIONS_NAME].emplace_back(temp);
     }
     return jitPermissionsListJson.dump();
 }
@@ -248,6 +272,14 @@ int32_t AppSpawnClient::SetStartFlags(const AppSpawnStartMsg &startMsg, AppSpawn
             return ret;
         }
     }
+    if (startMsg.isCustomSandboxFlag) {
+        ret = AppSpawnReqMsgSetAppFlag(reqHandle, APP_FLAGS_CUSTOM_SANDBOX);
+        if (ret != 0) {
+            TAG_LOGE(AAFwkTag::APPMGR, "fail, ret: %{public}d", ret);
+            return ret;
+        }
+        TAG_LOGD(AAFwkTag::APPMGR, "Set APP_FLAGS_CUSTOM_SANDBOX flag success.");
+    }
 #ifdef SUPPORT_CHILD_PROCESS
     ret = SetChildProcessTypeStartFlag(reqHandle, startMsg.childProcessType);
     if (ret != ERR_OK) {
@@ -280,7 +312,7 @@ int32_t AppSpawnClient::SetStrictMode(const AppSpawnStartMsg &startMsg, const Ap
         }
     }
     if (startMsg.isolatedSELinuxFlag) {
-        TAG_LOGD(AAFwkTag::APPMGR, "Set isolatedSELinux,extType:%{public}s:", startMsg.extensionTypeName.c_str());
+        TAG_LOGD(AAFwkTag::APPMGR, "Set isolatedSELinux,extType:%{public}s", startMsg.extensionTypeName.c_str());
         ret = AppSpawnReqMsgSetAppFlag(reqHandle, APP_FLAGS_ISOLATED_SELINUX_LABEL);
         if (ret != 0) {
             TAG_LOGE(AAFwkTag::APPMGR, "Set isolatedSELinuxFlag fail, ret: %{public}d", ret);
@@ -317,7 +349,7 @@ int32_t AppSpawnClient::AppspawnSetExtMsg(const AppSpawnStartMsg &startMsg, AppS
 
     if (!startMsg.dataGroupInfoList.empty()) {
         ret = AppSpawnReqMsgAddStringInfo(reqHandle, MSG_EXT_NAME_DATA_GROUP,
-            DumpDataGroupInfoListToJson(startMsg.dataGroupInfoList).c_str());
+            DumpDataGroupInfoListToJson(startMsg.dataGroupInfoList, startMsg.isScreenLockDataProtect).c_str());
         if (ret) {
             TAG_LOGE(AAFwkTag::APPMGR, "fail, ret: %{public}d", ret);
             return ret;
@@ -398,8 +430,8 @@ int32_t AppSpawnClient::AppspawnSetExtMsgMore(const AppSpawnStartMsg &startMsg, 
         }
     }
 
-    if (!startMsg.jitPermissionsList.empty()) {
-        std::string jitPermissionsStr = DumpJITPermissionListToJson(startMsg.jitPermissionsList);
+    if (!startMsg.jitPermissionsMap.empty()) {
+        std::string jitPermissionsStr = DumpJITPermissionListToJson(startMsg.jitPermissionsMap);
         ret = AppSpawnReqMsgAddStringInfo(reqHandle, MSG_EXT_NAME_JIT_PERMISSIONS, jitPermissionsStr.c_str());
         if (ret) {
             TAG_LOGE(AAFwkTag::APPMGR, "fail, ret: %{public}d", ret);
@@ -408,6 +440,20 @@ int32_t AppSpawnClient::AppspawnSetExtMsgMore(const AppSpawnStartMsg &startMsg, 
         TAG_LOGD(AAFwkTag::APPMGR, "Send JIT Permission: %{public}s", jitPermissionsStr.c_str());
     }
 
+    return AppspawnSetExtMsgSec(startMsg, reqHandle);
+}
+
+int32_t AppSpawnClient::AppspawnSetExtMsgSec(const AppSpawnStartMsg &startMsg, AppSpawnReqMsgHandle reqHandle)
+{
+    int32_t ret = 0;
+    if (startMsg.hostProcessUid != 0) {
+        ret = AppSpawnReqMsgAddStringInfo(reqHandle, MSG_EXT_NAME_PARENT_UID,
+            std::to_string(startMsg.hostProcessUid).c_str());
+        if (ret) {
+            TAG_LOGE(AAFwkTag::APPMGR, "fail, ret: %{public}d", ret);
+            return ret;
+        }
+    }
     return ret;
 }
 
@@ -557,7 +603,7 @@ int32_t AppSpawnClient::StartProcess(const AppSpawnStartMsg &startMsg, pid_t &pi
 
     int64_t costTime = AbilityRuntime::TimeUtil::SystemTimeMillisecond() - startTime;
     if (costTime > MAX_COST_TIME) {
-        TAG_LOGW(AAFwkTag::APPMGR, "StartProcess cost %{public}" PRId64 "ms!", costTime);
+        TAG_LOGE(AAFwkTag::APPMGR, "StartProcess cost %{public}" PRId64 "ms!", costTime);
     }
     if (ret != 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "appspawn send msg fail");

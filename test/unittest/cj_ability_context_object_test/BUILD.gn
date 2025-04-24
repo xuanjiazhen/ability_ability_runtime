@@ -16,7 +16,8 @@ import("//build/test.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 ohos_unittest("cj_ability_context_object_test") {
-  module_out_path = "ability_runtime/cj_ability_context_object_test"
+  module_out_path =
+      "ability_runtime/ability_runtime/cj_ability_context_object_test"
   include_dirs = [
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ability_runtime",
     "${ability_runtime_path}/frameworks/cj/ffi/application_context/include",
@@ -40,6 +41,7 @@ ohos_unittest("cj_ability_context_object_test") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
     "${ability_runtime_innerkits_path}/ability_manager:mission_info",
+    "${ability_runtime_innerkits_path}/ability_manager:process_options",
     "${ability_runtime_innerkits_path}/dataobs_manager:dataobs_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
     "${ability_runtime_innerkits_path}/napi_base_context:napi_base_context",

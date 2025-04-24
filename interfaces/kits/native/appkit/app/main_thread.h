@@ -59,6 +59,7 @@ struct BaseSharedBundleInfo;
 using HspList = std::vector<BaseSharedBundleInfo>;
 enum class MainThreadState { INIT, ATTACH, READY, RUNNING };
 struct BundleInfo;
+struct PluginBundleInfo;
 class ContextDeal;
 // class Global::Resource::ResourceManager;
 class AppMgrDeathRecipient : public IRemoteObject::DeathRecipient {
@@ -212,7 +213,7 @@ public:
      * @param appInfo The latest application info obtained from bms for update abilityRuntimeContext.
      *
      */
-    void ScheduleUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo) override;
+    void ScheduleUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo, const std::string &moduleName) override;
 
     /**
      * Notify application to launch ability stage.
@@ -278,8 +279,7 @@ public:
 
     void ScheduleAcceptWant(const AAFwk::Want &want, const std::string &moduleName) override;
 
-    void SchedulePrepareTerminate(const std::string &moduleName,
-        int32_t &prepareTermination, bool &isExist) override;
+    void SchedulePrepareTerminate(const std::string &moduleName) override;
 
     void ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName) override;
 
@@ -312,7 +312,7 @@ public:
      */
     int32_t ScheduleChangeAppGcState(int32_t state) override;
 
-    void AttachAppDebug() override;
+    void AttachAppDebug(bool isDebugFromLocal) override;
     void DetachAppDebug() override;
     bool NotifyDeviceDisConnect();
 
@@ -360,6 +360,13 @@ public:
      */
     int32_t ScheduleDumpFfrt(std::string& result) override;
 
+    /**
+     *
+     * @brief Set watchdog background status of application.
+     *
+     */
+    void SetWatchdogBackgroundStatus(bool status) override;
+
 private:
     /**
      *
@@ -373,6 +380,8 @@ private:
     void HandleScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName);
 
     void HandleJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info);
+
+    void HandleSchedulePrepareTerminate(const std::string &moduleName);
 
     void PreloadModule(const AppExecFwk::HapModuleInfo &entryHapModuleInfo,
         const std::unique_ptr<AbilityRuntime::Runtime>& runtime);
@@ -411,7 +420,7 @@ private:
      * @param appInfo The latest application info obtained from bms for update abilityRuntimeContext.
      *
      */
-    void HandleUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo);
+    void HandleUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo, const std::string &moduleName);
 
     /**
      *
@@ -571,6 +580,7 @@ private:
      */
     void LoadAllExtensions(NativeEngine &nativeEngine);
 
+    void LoadAllExtensions();
     /**
      *
      * @brief Ability Delegator Prepare.
@@ -579,7 +589,7 @@ private:
      *
      */
     bool PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &record, bool isStageBased,
-        const AppExecFwk::HapModuleInfo &entryHapModuleInfo);
+        const AppExecFwk::HapModuleInfo &entryHapModuleInfo, uint32_t targetVersion);
 
     /**
      * @brief Set current process extension type
@@ -632,6 +642,8 @@ private:
 
     bool IsBgWorkingThread(const AbilityInfo &info);
 
+    void HandleUpdatePluginInfoInstalled(const ApplicationInfo &pluginAppInfo, const std::string &moduleName);
+
     /**
      * @brief parse app configuration params
      *
@@ -640,8 +652,14 @@ private:
      */
     void ParseAppConfigurationParams(const std::string configuration, Configuration &config);
 
+    int32_t OnAttachLocalDebug(bool isDebugFromLocal);
+
 #if defined(NWEB) && defined(NWEB_GRAPHIC)
     void HandleNWebPreload();
+#endif
+
+#if defined(NWEB)
+    void PreLoadWebLib();
 #endif
 
     class MainHandler : public EventHandler {
@@ -742,6 +760,8 @@ private:
         std::vector<std::pair<std::string, std::string>> &fileMap);
     void GetNativeLibPath(const BundleInfo &bundleInfo, const HspList &hspList, AppLibPathMap &appLibPaths);
     void SetAppDebug(uint32_t modeFlag, bool isDebug);
+    void GetPluginNativeLibPath(std::vector<AppExecFwk::PluginBundleInfo> &pluginBundleInfos,
+        AppLibPathMap &appLibPaths);
 
     std::vector<std::string> fileEntries_;
     std::vector<std::string> nativeFileEntries_;
@@ -754,6 +774,7 @@ private:
     void *handleAppLib_ = nullptr;  // the handler of ACE Library.
     constexpr static std::string applicationLibraryPath = "/hos/lib/libapplication_native.z.so";
 #endif  // APPLICATION_LIBRARY_LOADER
+
     DISALLOW_COPY_AND_MOVE(MainThread);
 };
 }  // namespace AppExecFwk

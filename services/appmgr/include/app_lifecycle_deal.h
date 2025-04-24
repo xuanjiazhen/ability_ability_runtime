@@ -49,7 +49,7 @@ public:
      *
      * @return
      */
-    void UpdateApplicationInfoInstalled(const ApplicationInfo &appInfo);
+    void UpdateApplicationInfoInstalled(const ApplicationInfo &appInfo, const std::string &moduleName);
 
     /**
      * AddAbilityStageInfo, call ScheduleAbilityStageInfo() through proxy project,
@@ -192,7 +192,7 @@ public:
      */
     void ScheduleAcceptWant(const AAFwk::Want &want, const std::string &moduleName);
     
-    void SchedulePrepareTerminate(const std::string &moduleName, int32_t &prepareTermination, bool &isExist);
+    void SchedulePrepareTerminate(const std::string &moduleName);
 
     void ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName);
 
@@ -257,7 +257,7 @@ public:
      *
      * @return ERR_OK, return back success, others fail.
      */
-    int32_t AttachAppDebug();
+    int32_t AttachAppDebug(bool isDebugFromLocal);
 
     /**
      * @brief detach a debugging process.
@@ -285,6 +285,14 @@ public:
     void ScheduleCacheProcess();
 
     int DumpFfrt(std::string& result);
+
+    /**
+     * SetWatchdogBackgroundStatusRunning , call SetWatchdogBackgroundStatusRunning(bool status) through proxy project,
+     * Notify application to set watchdog background status.
+     *
+     * @return
+     */
+    void SetWatchdogBackgroundStatusRunning(bool status);
 
 private:
     mutable std::mutex schedulerMutex_;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,7 @@
 #include "iremote_object.h"
 #include "istart_specified_ability_response.h"
 #include "running_process_info.h"
+#include "user_callback.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -97,19 +98,25 @@ public:
     /**
      * KillProcessesByUserId, call KillProcessesByUserId() through proxy object,
      * kill the processes by userId.
+     * Send appSpawn uninstall debug hap message.
      *
      * @param userId, the user id.
+     * @param isNeedSendAppSpawnMsg, true send appSpawn message otherwise not send.
+     * @param callback, callback function for logout user.
      * @return
      */
-    virtual void KillProcessesByUserId(int32_t userId) = 0;
+    virtual void KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg = false,
+        sptr<AAFwk::IUserCallback> callback = nullptr) = 0;
 
     /**
      * KillProcessesByPids, only in process call is allowed,
      * kill the processes by pid list given.
      *
      * @param pids, the pid list of processes are going to be killed.
+     * @param reason, the reason to kill the processes.
      */
-    virtual void KillProcessesByPids(std::vector<int32_t> &pids) {}
+    virtual void KillProcessesByPids(const std::vector<int32_t> &pids,
+        const std::string &reason = "KillProcessesByPids") {}
 
     /**
      * Set child and parent relationship
@@ -146,7 +153,8 @@ public:
      * @param  uid, uid.
      * @return ERR_OK, return back success, others fail.
      */
-    virtual int UpdateApplicationInfoInstalled(const std::string &bundleName, const int uid) = 0;
+    virtual int UpdateApplicationInfoInstalled(const std::string &bundleName, const int uid,
+        const std::string &moduleName, bool isPlugin) = 0;
 
     /**
      * KillApplication, call KillApplication() through proxy object, kill the application.
@@ -250,10 +258,9 @@ public:
      * Prepare terminate application
      *
      * @param pid Process ID
-     * @param prepareTelrmination PrepareTermination Enum
-     * @param isExist whether this callback event exist
+     * @param moduleName Module name
      */
-    virtual void PrepareTerminateApp(const pid_t pid, int32_t &prepareTermination, bool &isExist) = 0;
+    virtual void PrepareTerminateApp(const pid_t pid, const std::string &moduleName) = 0;
 
     /**
      * Start specified process.
@@ -330,7 +337,7 @@ public:
      * @param bundleName The application bundle name.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t AttachAppDebug(const std::string &bundleName) = 0;
+    virtual int32_t AttachAppDebug(const std::string &bundleName, bool isDebugFromLocal) = 0;
 
     /**
      * @brief Detach app debug.
@@ -415,6 +422,12 @@ public:
     virtual bool IsMemorySizeSufficent() = 0;
 
     /**
+     * whether or not requier a big memory
+     * @return Returens true is no big memory, others return false.
+     */
+    virtual bool IsNoRequireBigMemory() { return true; }
+
+    /**
      * Notifies that one ability is attached to status bar.
      *
      * @param token the token of the abilityRecord that is attached to status bar.
@@ -472,13 +485,6 @@ public:
         return false;
     }
 
-    /**
-     * Send appSpawn uninstall debug hap message.
-     *
-     * @param userId, the user id.
-     */
-    virtual void SendAppSpawnUninstallDebugHapMsg(int32_t userId) = 0;
-
     enum class Message {
         LOAD_ABILITY = 0,
         TERMINATE_ABILITY,
@@ -534,8 +540,8 @@ public:
         ENABLE_START_PROCESS_FLAG_BY_USER_ID,
         SET_KEEP_ALIVE_DKV,
         KILL_PROCESSES_IN_BATCH,
-        SEND_APP_SPAWN_UNINSTALL_DEBUG_HAP_MSG,
         PREPARE_TERMINATE_APP,
+        IS_NO_REQUIRE_BIG_MEMORY,
         // Add enumeration values above
         END
     };

@@ -25,6 +25,7 @@ bool ProcessOptions::ReadFromParcel(Parcel &parcel)
     startupVisibility = static_cast<StartupVisibility>(parcel.ReadInt32());
     processName = parcel.ReadString();
     isRestartKeepAlive = parcel.ReadBool();
+    isStartFromNDK = parcel.ReadBool();
     return true;
 }
 
@@ -59,6 +60,10 @@ bool ProcessOptions::Marshalling(Parcel &parcel) const
     }
     if (!parcel.WriteBool(isRestartKeepAlive)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "isRestartKeepAlive write failed");
+        return false;
+    }
+    if (!parcel.WriteBool(isStartFromNDK)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "isStartFromNDK write failed");
         return false;
     }
     return true;
@@ -107,6 +112,11 @@ bool ProcessOptions::IsNoAttachmentMode(ProcessMode value)
 bool ProcessOptions::IsAttachToStatusBarItemMode(ProcessMode value)
 {
     return (value == ProcessMode::ATTACH_TO_STATUS_BAR_ITEM);
+}
+
+bool ProcessOptions::IsNewHiddenProcessMode(ProcessMode value)
+{
+    return (value == ProcessMode::NEW_HIDDEN_PROCESS);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

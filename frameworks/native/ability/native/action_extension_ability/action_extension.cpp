@@ -17,6 +17,7 @@
 
 #include "hilog_tag_wrapper.h"
 #include "js_action_extension.h"
+#include "cj_action_extension_instance.h"
 #include "runtime.h"
 #include "ui_extension_context.h"
 
@@ -31,6 +32,8 @@ ActionExtension *ActionExtension::Create(const std::unique_ptr<Runtime> &runtime
     switch (runtime->GetLanguage()) {
         case Runtime::Language::JS:
             return JsActionExtension::Create(runtime);
+        case Runtime::Language::CJ:
+            return CreateCJActionExtension(runtime);
         default:
             return new ActionExtension();
     }

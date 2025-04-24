@@ -52,6 +52,7 @@ ohos_shared_library("app_manager") {
   ]
 
   sources = [
+    "${ability_runtime_services_path}/abilitymgr/src/last_exit_detail_info.cpp",
     "${ability_runtime_services_path}/appdfr/src/appfreeze_manager.cpp",
     "src/appmgr/ability_controller_proxy.cpp",
     "src/appmgr/ability_controller_stub.cpp",
@@ -95,6 +96,7 @@ ohos_shared_library("app_manager") {
     "src/appmgr/fault_data.cpp",
     "src/appmgr/kia_interceptor_proxy.cpp",
     "src/appmgr/kia_interceptor_stub.cpp",
+    "src/appmgr/killed_process_info.cpp",
     "src/appmgr/memory_level_info.cpp",
     "src/appmgr/native_child_notify_proxy.cpp",
     "src/appmgr/native_child_notify_stub.cpp",
@@ -102,6 +104,7 @@ ohos_shared_library("app_manager") {
     "src/appmgr/priority_object.cpp",
     "src/appmgr/process_data.cpp",
     "src/appmgr/process_info.cpp",
+    "src/appmgr/process_memory_state.cpp",
     "src/appmgr/profile.cpp",
     "src/appmgr/quick_fix_callback_proxy.cpp",
     "src/appmgr/quick_fix_callback_stub.cpp",
@@ -136,6 +139,7 @@ ohos_shared_library("app_manager") {
 
   external_deps = [
     "c_utils:utils",
+    "faultloggerd:libbacktrace_local",
     "faultloggerd:libdfx_dumpcatcher",
     "faultloggerd:libfaultloggerd",
     "ffrt:libffrt",
@@ -203,6 +207,7 @@ ohos_shared_library("app_state_data") {
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "hilog:libhilog",
+    "ipc:ipc_single",
   ]
 
   innerapi_tags = [ "platformsdk" ]

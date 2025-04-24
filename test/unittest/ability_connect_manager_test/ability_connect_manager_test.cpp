@@ -820,10 +820,10 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Kit_Connect_004, TestSize.Level1)
     // test for schedule the service connected done but the corresponding connection state is not CONNECTING
     // generate the first connection record of callbackA_
     auto newConnRecord1 = ConnectionRecord::CreateConnectionRecord(
-        serviceToken_, serviceRecord_, callbackA_);  // newConnRecord1's default state is INIT
+        serviceToken_, serviceRecord_, callbackA_, nullptr);  // newConnRecord1's default state is INIT
     serviceRecord_->AddConnectRecordToList(newConnRecord1);
     // generate the second connection record of callbackB_
-    auto newConnRecord2 = ConnectionRecord::CreateConnectionRecord(serviceToken_, serviceRecord_, callbackB_);
+    auto newConnRecord2 = ConnectionRecord::CreateConnectionRecord(serviceToken_, serviceRecord_, callbackB_, nullptr);
     newConnRecord2->SetConnectState(ConnectionState::DISCONNECTING);  // newConnRecord2's state is DISCONNECTING
     serviceRecord_->AddConnectRecordToList(newConnRecord2);
     auto connList = serviceRecord_->GetConnectRecordList();
@@ -852,7 +852,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Kit_Connect_005, TestSize.Level1)
     // test for schedule the service connected done but the corresponding connection state is not CONNECTING
     // generate the first connection record of null
     auto newConnRecord1 = ConnectionRecord::CreateConnectionRecord(
-        serviceToken_, serviceRecord_, nullptr);  // newConnRecord1's default state is INIT
+        serviceToken_, serviceRecord_, nullptr, nullptr);  // newConnRecord1's default state is INIT
     serviceRecord_->AddConnectRecordToList(newConnRecord1);
     newConnRecord1->SetConnectState(ConnectionState::CONNECTING);  // newConnRecord1's state is CONNECTING
     auto connList = serviceRecord_->GetConnectRecordList();
@@ -880,7 +880,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Kit_Connect_006, TestSize.Level1)
     // test for schedule the service connected done but the corresponding connection state is not CONNECTING
     // generate the first connection record of null
     auto newConnRecord1 = ConnectionRecord::CreateConnectionRecord(
-        serviceToken_, serviceRecord_, nullptr);  // newConnRecord1's default state is INIT
+        serviceToken_, serviceRecord_, nullptr, nullptr);  // newConnRecord1's default state is INIT
     serviceRecord_->AddConnectRecordToList(newConnRecord1);
     newConnRecord1->SetConnectState(ConnectionState::CONNECTED);  // newConnRecord1's state is CONNECTED
     auto connList = serviceRecord_->GetConnectRecordList();
@@ -908,10 +908,10 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Kit_Connect_007, TestSize.Level1)
     // test for schedule the service connected done but the corresponding connection state is not CONNECTING
     // generate the first connection record of callbackA_
     auto newConnRecord1 = ConnectionRecord::CreateConnectionRecord(
-        serviceToken_, serviceRecord_, callbackA_);  // newConnRecord1's default state is INIT
+        serviceToken_, serviceRecord_, callbackA_, nullptr);  // newConnRecord1's default state is INIT
     serviceRecord_->AddConnectRecordToList(newConnRecord1);
     // generate the second connection record of callbackB_
-    auto newConnRecord2 = ConnectionRecord::CreateConnectionRecord(serviceToken_, serviceRecord_, callbackB_);
+    auto newConnRecord2 = ConnectionRecord::CreateConnectionRecord(serviceToken_, serviceRecord_, callbackB_, nullptr);
     newConnRecord2->SetConnectState(ConnectionState::CONNECTING);  // newConnRecord2's state is CONNECTING
     serviceRecord_->AddConnectRecordToList(newConnRecord2);
     auto connList = serviceRecord_->GetConnectRecordList();
@@ -940,16 +940,16 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Kit_Connect_008, TestSize.Level1)
     // test for schedule the service connected done but the corresponding connection state is not CONNECTING
     // generate the first connection record of callbackA_
     auto newConnRecord1 = ConnectionRecord::CreateConnectionRecord(
-        serviceToken_, serviceRecord_, callbackA_);               // newConnRecord1's default state is INIT
+        serviceToken_, serviceRecord_, callbackA_, nullptr);               // newConnRecord1's default state is INIT
     newConnRecord1->SetConnectState(ConnectionState::CONNECTED);  // newConnRecord1's state is CONNECTED
     serviceRecord_->AddConnectRecordToList(newConnRecord1);
     // generate the second connection record of callbackB_
-    auto newConnRecord2 = ConnectionRecord::CreateConnectionRecord(serviceToken_, serviceRecord_, callbackB_);
+    auto newConnRecord2 = ConnectionRecord::CreateConnectionRecord(serviceToken_, serviceRecord_, callbackB_, nullptr);
     newConnRecord2->SetConnectState(ConnectionState::CONNECTING);  // newConnRecord2's state is CONNECTING
     serviceRecord_->AddConnectRecordToList(newConnRecord2);
     // generate the third connection record of callbackC
     auto callbackC = new AbilityConnectCallback();
-    auto newConnRecord3 = ConnectionRecord::CreateConnectionRecord(serviceToken_, serviceRecord_, callbackC);
+    auto newConnRecord3 = ConnectionRecord::CreateConnectionRecord(serviceToken_, serviceRecord_, callbackC, nullptr);
     newConnRecord3->SetConnectState(ConnectionState::CONNECTING);  // newConnRecord3's state is CONNECTING
     serviceRecord_->AddConnectRecordToList(newConnRecord3);
     auto connList = serviceRecord_->GetConnectRecordList();
@@ -1495,9 +1495,9 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ConnectAbilityLocked_001, Te
     OHOS::sptr<IAbilityConnection> callback1 = new AbilityConnectCallback();
     OHOS::sptr<IAbilityConnection> callback2 = new AbilityConnectCallback();
     std::shared_ptr<ConnectionRecord> connection1 =
-        std::make_shared<ConnectionRecord>(callerToken, abilityRecord, callback1);
+        std::make_shared<ConnectionRecord>(callerToken, abilityRecord, callback1, nullptr);
     std::shared_ptr<ConnectionRecord> connection2 =
-        std::make_shared<ConnectionRecord>(callerToken, abilityRecord, callback2);
+        std::make_shared<ConnectionRecord>(callerToken, abilityRecord, callback2, nullptr);
     abilityRequest.abilityInfo.deviceId = "id";
     abilityRequest.abilityInfo.bundleName = "bundle";
     abilityRequest.abilityInfo.name = "name";
@@ -1648,7 +1648,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleDisconnectAbilityDon
     std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
     OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
     std::shared_ptr<ConnectionRecord> connection =
-        std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback);
+        std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
     sptr<IRemoteObject> token = abilityRecord->GetToken();
     connection->SetConnectState(ConnectionState::DISCONNECTING);
     abilityRecord->abilityInfo_.type = AbilityType::PAGE;
@@ -1921,7 +1921,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_HandleTerminateDisconnectTas
     ASSERT_NE(connectManager, nullptr);
     OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
     std::shared_ptr<ConnectionRecord> connection =
-        std::make_shared<ConnectionRecord>(nullptr, nullptr, callback);
+        std::make_shared<ConnectionRecord>(nullptr, nullptr, callback, nullptr);
     AbilityConnectManager::ConnectListType connectlist;
     connectlist.push_back(nullptr);
     connectlist.push_back(connection);
@@ -2016,7 +2016,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_IsAbilityConnected_001, Test
     std::list<std::shared_ptr<ConnectionRecord>> connectRecordList;
     OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
     std::shared_ptr<ConnectionRecord> connection =
-        std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback);
+        std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
     connectRecordList.push_back(connection);
     bool res1 = connectManager->IsAbilityConnected(nullptr, connectRecordList);
     EXPECT_FALSE(res1);
@@ -2161,6 +2161,42 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_HandleAbilityDiedTask_001, T
 
 /*
  * Feature: AbilityConnectManager
+ * Function: DisconnectBeforeCleanup
+ * SubFunction: DisconnectBeforeCleanup
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager DisconnectBeforeCleanup
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_DisconnectBeforeCleanup_001, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(100);
+    ASSERT_NE(connectManager, nullptr);
+    ConnectManager()->SetTaskHandler(TaskHandler());
+    ConnectManager()->SetEventHandler(EventHandler());
+    serviceRecord1_->SetUid(102 * 200000);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    AbilityRequest abilityRequest;
+    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
+    OHOS::sptr<IAbilityConnection> callback1 = new AbilityConnectCallback();
+    std::shared_ptr<ConnectionRecord> connection1 =
+        std::make_shared<ConnectionRecord>(callerToken, abilityRecord, callback1, nullptr);
+    connection1->AttachCallerInfo();
+    abilityRequest.abilityInfo.deviceId = "id";
+    abilityRequest.abilityInfo.bundleName = "bundle";
+    abilityRequest.abilityInfo.name = "name";
+    abilityRequest.abilityInfo.moduleName = "module";
+    std::string stringUri = "id/bundle/name/module";
+    abilityRecord->currentState_ = AbilityState::ACTIVE;
+    abilityRecord->AddConnectRecordToList(connection1);
+    connectManager->AddConnectObjectToMap(callback1->AsObject(), abilityRecord->GetConnectRecordList(), false);
+    connectManager->serviceMap_.emplace(stringUri, abilityRecord);
+    connectManager->DisconnectBeforeCleanup();
+    ASSERT_EQ(abilityRecord->GetConnectRecordList().empty(), true);
+    ASSERT_EQ(connectManager->GetConnectRecordListByCallback(callback1).empty(), true);
+}
+
+/*
+ * Feature: AbilityConnectManager
  * Function: RestartAbility
  * SubFunction: RestartAbility
  * FunctionPoints: NA
@@ -2285,7 +2321,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_GetExtensionRunningInfo_001,
     std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
     OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
     std::shared_ptr<ConnectionRecord> connection =
-        std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback);
+        std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
     int32_t userId = 0;
     std::vector<ExtensionRunningInfo> info;
     Want want;

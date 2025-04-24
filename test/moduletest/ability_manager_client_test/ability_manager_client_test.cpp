@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,30 +15,56 @@
 
 #include <gtest/gtest.h>
 
+#define private public
+#define protected public
 #include "ability_manager_client.h"
+#undef private
+#undef protected
+#include "ability_connect_callback_interface.h"
 #include "ability_manager_errors.h"
 #include "ability_state_data.h"
 #include "element_name.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_object_stub.h"
+#include "scene_board_judgement.h"
 #include "start_options.h"
 #include "status_bar_delegate_proxy.h"
 #include "ui_extension/ui_extension_session_info.h"
 #include "want.h"
+#include "mock_iabilitymanager.h"
+#include "mock_iqueryermsobserver.h"
+#include "mock_ihiddenstartobserver.h"
+#include "mock_sa_call.h"
 
 using namespace testing;
 using namespace testing::ext;
+using AtomicServiceStartupRule = OHOS::AbilityRuntime::AtomicServiceStartupRule;
 
 namespace OHOS {
 namespace AAFwk {
 namespace {
 const int USER_ID = 100;
-const size_t SIZE_ONE = 1;
 const int32_t ABILITYID = 1002;
 const int32_t UID = 10000;
 const int REQUESTCODE = 1008;
-const int ERR_BUNDLE_MANAGER_INVALID_UID = 8521233;
 }  // namespace
+
+class MockIAbilityConnection : public IAbilityConnection {
+public:
+    void OnAbilityConnectDone(const AppExecFwk::ElementName &element,
+        const sptr<IRemoteObject> &remoteObject, int resultCode)
+    {
+        return;
+    }
+    void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
+    {
+        return;
+    }
+    sptr<IRemoteObject> AsObject()
+    {
+        return nullptr;
+    }
+};
 
 class AbilityManagerClientTest : public testing::Test {
 public:
@@ -50,10 +76,14 @@ public:
 };
 
 void AbilityManagerClientTest::SetUpTestCase(void)
-{}
+{
+    AbilityManagerClient::GetInstance();
+    AbilityManagerClient::GetInstance()->proxy_ = sptr<MockIAbilityManager>::MakeSptr();
+}
 
 void AbilityManagerClientTest::TearDownTestCase(void)
-{}
+{
+}
 
 void AbilityManagerClientTest::SetUp()
 {}
@@ -78,20 +108,20 @@ void AbilityManagerClientTest::SetWant(Want& want, const std::string bundleName)
 HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_DumpSysState_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_DumpSysState_0100 start");
-
     std::string args = "-a";
     std::vector<std::string> state;
     bool isClient = false;
     bool isUserID = true;
-    auto result = AbilityManagerClient::GetInstance()->DumpSysState(args, state, isClient, isUserID, USER_ID);
+    int userID = 1;
+
+    auto result = AbilityManagerClient::GetInstance()->DumpSysState(args, state, isClient, isUserID, userID);
     EXPECT_EQ(result, ERR_OK);
-    EXPECT_GT(state.size(), SIZE_ONE);
-
-    TAG_LOGI(AAFwkTag::TEST, "state.size() = %{public}zu", state.size());
-    for (auto item : state) {
-        TAG_LOGI(AAFwkTag::TEST, "item = %{public}s", item.c_str());
+    MockIAbilityManager* rawPtr =
+        static_cast<MockIAbilityManager*>(AbilityManagerClient::GetInstance()->proxy_.GetRefPtr());
+    if (rawPtr) {
+        sptr<MockIAbilityManager> iapp(rawPtr);
+        EXPECT_EQ(iapp->mockFunctionExcuted, true);
     }
-
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_DumpSysState_0100 end");
 }
 
@@ -120,7 +150,7 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_RecordAppExitReason_0100
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_RecordAppExitReason_0100 start");
     ExitReason exitReason = { REASON_JS_ERROR, "Js Error." };
     auto result = AbilityManagerClient::GetInstance()->RecordAppExitReason(exitReason);
-    EXPECT_EQ(result, ERR_BUNDLE_MANAGER_INVALID_UID);
+    EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_RecordAppExitReason_0100 end");
 }
 
@@ -134,7 +164,7 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_RecordProcessExitReason_
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_RecordProcessExitReason_0100 start");
     ExitReason exitReason = { REASON_JS_ERROR, "Js Error." };
     auto result = AbilityManagerClient::GetInstance()->RecordAppExitReason(exitReason);
-    EXPECT_EQ(result, ERR_BUNDLE_MANAGER_INVALID_UID);
+    EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_RecordProcessExitReason_0100 end");
 }
 
@@ -149,6 +179,7 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_RegisterStatusBarDelegat
     sptr<IRemoteObject> impl(new IPCObjectStub());
     sptr<AbilityRuntime::IStatusBarDelegate> delegate(new AbilityRuntime::StatusBarDelegateProxy(impl));
     auto result = AbilityManagerClient::GetInstance()->RegisterStatusBarDelegate(delegate);
+    EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_RegisterStatusBarDelegate_001 result %{public}d", result);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_RegisterStatusBarDelegate_001 end");
 }
@@ -161,7 +192,14 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_RegisterStatusBarDelegat
 HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_ScheduleClearRecoveryPageStack_001, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_ScheduleClearRecoveryPageStack_001 start");
-    AbilityManagerClient::GetInstance()->ScheduleClearRecoveryPageStack();
+    std::shared_ptr<AbilityManagerClient> client = AbilityManagerClient::GetInstance();
+    client->ScheduleClearRecoveryPageStack();
+    MockIAbilityManager* rawPtr =
+        static_cast<MockIAbilityManager*>(AbilityManagerClient::GetInstance()->proxy_.GetRefPtr());
+    if (rawPtr) {
+        sptr<MockIAbilityManager> iapp(rawPtr);
+        EXPECT_EQ(iapp->mockFunctionExcuted, true);
+    }
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_ScheduleClearRecoveryPageStack_001 end");
 }
 
@@ -177,6 +215,9 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_IsValidMissionIds_001, T
     missionIds.push_back(ABILITYID);
     std::vector<MissionValidResult> results;
     auto result = AbilityManagerClient::GetInstance()->IsValidMissionIds(missionIds, results);
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        EXPECT_EQ(result, ERR_OK);
+    }
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_IsValidMissionIds_001 result %{public}d", result);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_IsValidMissionIds_001 end");
 }
@@ -191,6 +232,7 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_GetForegroundUIAbilities
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_GetForegroundUIAbilities_001 start");
     std::vector<AppExecFwk::AbilityStateData> list;
     auto result = AbilityManagerClient::GetInstance()->GetForegroundUIAbilities(list);
+    EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_GetForegroundUIAbilities_001 result %{public}d", result);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_GetForegroundUIAbilities_001 end");
 }
@@ -207,6 +249,7 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_GetUIExtensionSessionInf
     UIExtensionSessionInfo uiExtensionSessionInfo;
     auto result = AbilityManagerClient::GetInstance()->GetUIExtensionSessionInfo(token_,
         uiExtensionSessionInfo, USER_ID);
+    EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_GetUIExtensionSessionInfo_001 result %{public}d", result);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_GetUIExtensionSessionInfo_001 end");
 }
@@ -223,6 +266,7 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_StartShortCut_001, TestS
     StartOptions startOptions;
     SetWant(want, "bundleName");
     auto result = AbilityManagerClient::GetInstance()->StartShortcut(want, startOptions);
+    EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_StartShortCut_001 result %{public}d", result);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_StartShortCut_001 end");
 }
@@ -235,9 +279,16 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_StartShortCut_001, TestS
 HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_NotifyFrozenProcessByRSS_001, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_NotifyFrozenProcessByRSS_001 start");
+    std::shared_ptr<AbilityManagerClient> client = AbilityManagerClient::GetInstance();
     std::vector<int32_t> pidList;
     pidList.push_back(19082);
-    AbilityManagerClient::GetInstance()->NotifyFrozenProcessByRSS(pidList, UID);
+    client->NotifyFrozenProcessByRSS(pidList, UID);
+    MockIAbilityManager* rawPtr =
+        static_cast<MockIAbilityManager*>(AbilityManagerClient::GetInstance()->proxy_.GetRefPtr());
+    if (rawPtr) {
+        sptr<MockIAbilityManager> iapp(rawPtr);
+        EXPECT_EQ(iapp->mockFunctionExcuted, true);
+    }
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_NotifyFrozenProcessByRSS_001 end");
 }
 
@@ -251,6 +302,7 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_PreStartMission_001, Tes
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_PreStartMission_001 start");
     auto result = AbilityManagerClient::GetInstance()->PreStartMission("com.ix.hiservcie", "entry",
         "ServiceAbility", "2024-07-19 10:00:00");
+    EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_PreStartMission_001 result %{public}d", result);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_PreStartMission_001 end");
 }
@@ -268,8 +320,189 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_OpenLink, TestSize.Level
     SetWant(want, "bundleName");
     auto result = AbilityManagerClient::GetInstance()->OpenLink(want, token_,
         USER_ID, REQUESTCODE);
+    EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_OpenLink result %{public}d", result);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_OpenLink end");
+}
+
+/**
+ * @tc.name: AbilityManagerClient_StartSelfUIAbility_0100
+ * @tc.desc: StartSelfUIAbility
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, StartSelfUIAbility_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbility_0100 start");
+    AAFwk::Want want;
+    auto result = AbilityManagerClient::GetInstance()->StartSelfUIAbility(want);
+    sptr<IRemoteObject> token_(new IPCObjectStub());
+    AbilityManagerClient::GetInstance()->SubmitSaveRecoveryInfo(token_);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbility_0100 end");
+}
+
+/**
+ * @tc.name: AbilityManagerClient_StartSelfUIAbilityWithStartOptions_0100
+ * @tc.desc: StartSelfUIAbilityWithStartOptions
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, StartSelfUIAbilityWithStartOptions_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbilityWithStartOptions_0100 start");
+    AAFwk::Want want;
+    AAFwk::StartOptions options;
+    auto result = AbilityManagerClient::GetInstance()->StartSelfUIAbilityWithStartOptions(want, options);
+    sptr<IRemoteObject> token_(new IPCObjectStub());
+    AbilityManagerClient::GetInstance()->SubmitSaveRecoveryInfo(token_);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbilityWithStartOptions_0100 end");
+}
+
+/**
+ * @tc.name: AddQueryERMSObserver_0100
+ * @tc.name: AbilityManagerClient_AddQueryERMSObserver_0100
+ * @tc.desc: AddQueryERMSObserver
+ */
+HWTEST_F(AbilityManagerClientTest, AddQueryERMSObserver_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AddQueryERMSObserver_0100start");
+    sptr<IRemoteObject> callertoken(new IPCObjectStub());
+    sptr<AbilityRuntime::IQueryERMSObserver> observer(new AbilityRuntime::IQueryERMSObserverMock());
+    auto result = AbilityManagerClient::GetInstance()->AddQueryERMSObserver(callertoken, observer);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AddQueryERMSObserver_0100 end");
+}
+
+/**
+  * @tc.name: AbilityManagerClient_QueryAtomicServiceStartupRule_0100
+ * @tc.desc: QueryAtomicServiceStartupRule
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, QueryAtomicServiceStartupRule_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "QueryAtomicServiceStartupRule_0100 start");
+    sptr<IRemoteObject> callertoken(new IPCObjectStub());
+    std::string appId = "0100";
+    std::string startTime = "12:00";
+    AtomicServiceStartupRule rule;
+    auto result = AbilityManagerClient::GetInstance()->QueryAtomicServiceStartupRule(callertoken,
+        appId, startTime, rule);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "QueryAtomicServiceStartupRule_0100 end");
+}
+
+/**
+  * @tc.name: AbilityManagerClient_RegisterHiddenStartObserver_0100
+ * @tc.desc: RegisterHiddenStartObserver
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, RegisterHiddenStartObserver_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RegisterHiddenStartObserver_0100 start");
+    sptr<MockIHiddenStartObserver> observer(new MockIHiddenStartObserver());
+    auto result = AbilityManagerClient::GetInstance()->RegisterHiddenStartObserver(observer);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "RegisterHiddenStartObserver_0100 end");
+}
+
+/**
+  * @tc.name: AbilityManagerClient_UnregisterHiddenStartObserver_0100
+ * @tc.desc: RegisterHiddenStartObserver
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, UnregisterHiddenStartObserver_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterHiddenStartObserver_0100 start");
+    sptr<MockIHiddenStartObserver> observer(new MockIHiddenStartObserver());
+    auto result = AbilityManagerClient::GetInstance()->UnregisterHiddenStartObserver(observer);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterHiddenStartObserver_0100 end");
+}
+
+/**
+ * @tc.name: KillProcessForPermissionUpdate_0100
+ * @tc.desc: KillProcessForPermissionUpdate ERR_PERMISSION_DENIED
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, KillProcessForPermissionUpdate_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "KillProcessForPermissionUpdate_0100 start");
+    uint32_t accessTokenId = 1;
+    auto result = AbilityManagerClient::GetInstance()->KillProcessForPermissionUpdate(accessTokenId);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "KillProcessForPermissionUpdate_0100 end");
+}
+
+/**
+ * @tc.name: AbilityManagerClient_KillProcessWithReason_0100
+ * @tc.desc: KillProcessWithReason
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, KillProcessWithReason_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "KillProcessWithReason_0100 start");
+    int32_t pid = 1;
+    AAFwk::ExitReason reason;
+    auto result = AbilityManagerClient::GetInstance()->KillProcessWithReason(pid, reason);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "KillProcessWithReason_0100 end");
+}
+
+/**
+ * @tc.name: AbilityManagerClient_KillProcessWithPrepareTerminateDone_0100
+ * @tc.desc: KillProcessWithPrepareTerminateDone
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, KillProcessWithPrepareTerminateDone_0100, TestSize.Level1)
+{
+    std::string moduleName = "com.ohos.example.moduleName";
+    int32_t prepareTermination = 1;
+    bool isExist = false;
+    AbilityManagerClient::GetInstance()->KillProcessWithPrepareTerminateDone(moduleName,
+        prepareTermination, isExist);
+    MockIAbilityManager* rawPtr =
+        static_cast<MockIAbilityManager*>(AbilityManagerClient::GetInstance()->proxy_.GetRefPtr());
+    if (rawPtr) {
+        sptr<MockIAbilityManager> iapp(rawPtr);
+        EXPECT_EQ(iapp->mockFunctionExcuted, true);
+    }
+}
+
+/**
+ * @tc.name: AbilityManagerClient_StartAbilityByCallWithErrMsg_0100
+ * @tc.desc: StartAbilityByCallWithErrMsg
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, StartAbilityByCallWithErrMsg_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityByCallWithErrMsg_0100 start");
+    Want want;
+    sptr<IAbilityConnection> connect = sptr<MockIAbilityConnection>::MakeSptr();
+    int32_t accountId = 0x001;
+    std::string errMsg = "error";
+
+    sptr<IRemoteObject> callToken = sptr<AbilityRuntime::MockIRemoteObject>::MakeSptr();
+    auto result = AbilityManagerClient::GetInstance()->StartAbilityByCallWithErrMsg(want,
+        connect, callToken, accountId, errMsg);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityByCallWithErrMsg_0100 end");
+}
+
+/**
+ * @tc.name: AbilityManagerClient_QueryPreLoadUIExtensionRecord_0100
+ * @tc.desc: QueryPreLoadUIExtensionRecord
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, QueryPreLoadUIExtensionRecord_0100, TestSize.Level1)
+{
+    OHOS::AppExecFwk::ElementName elementName;
+    std::string moduleName {};
+    std::string hostBundleName {};
+    int32_t recordNum = 1;
+    int32_t userId = 1;
+    auto result = AbilityManagerClient::GetInstance()->QueryPreLoadUIExtensionRecord(elementName,
+        moduleName, hostBundleName, recordNum, userId);
+    EXPECT_EQ(result, ERR_OK);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

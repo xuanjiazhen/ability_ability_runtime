@@ -116,7 +116,7 @@ class AbilityContext extends Context {
   startAbilityForResultWithAccount(want, accountId, options, callback) {
     return this.__context_impl__.startAbilityForResultWithAccount(want, accountId, options, callback);
   }
-  
+
   startUIServiceExtensionAbility(want, callback) {
     return this.__context_impl__.startUIServiceExtensionAbility(want, callback);
   }
@@ -197,6 +197,10 @@ class AbilityContext extends Context {
     return this.__context_impl__.setMissionIcon(icon, callback);
   }
 
+  setAbilityInstanceInfo(label, callback) {
+    return this.__context_impl__.setAbilityInstanceInfo(label, callback);
+  }
+
   requestDialogService(want, resultCallback) {
     return this.__context_impl__.requestDialogService(want, resultCallback);
   }
@@ -231,6 +235,14 @@ class AbilityContext extends Context {
 
   setRestoreEnabled(enabled) {
     this.__context_impl__.setRestoreEnabled(enabled);
+  }
+
+  setColorMode(colorMode) {
+    this.__context_impl__.setColorMode(colorMode);
+  };
+
+  revokeDelegator() {
+    return this.__context_impl__.revokeDelegator();
   }
 }
 

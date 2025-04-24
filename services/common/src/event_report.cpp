@@ -46,6 +46,7 @@ constexpr const char *EVENT_KEY_EXIT_PID = "EXIT_PID";
 constexpr const char *EVENT_KEY_EXIT_REASON = "EXIT_REASON";
 constexpr const char *EVENT_KEY_BUNDLE_TYPE = "BUNDLE_TYPE";
 constexpr const char *EVENT_KEY_START_TYPE = "START_TYPE";
+constexpr const char *EVENT_KEY_START_REASON = "START_REASON";
 constexpr const char *EVENT_KEY_CALLER_STATE = "CALLER_STATE";
 constexpr const char *EVENT_KEY_CALLER_VERSION_NAME = "CALLER_VERSION_NAME";
 constexpr const char *EVENT_KEY_CALLER_VERSION_CODE = "CALLER_VERSION_CODE";
@@ -58,6 +59,12 @@ constexpr const char *EVENT_KEY_PID = "PID";
 constexpr const char *EVENT_KEY_REASON = "REASON";
 constexpr const char *EVENT_KEY_SUB_REASON = "SUB_REASON";
 constexpr const char *INVALID_EVENT_NAME = "INVALIDEVENTNAME";
+constexpr const char *EVENT_KEY_APP_INDEX = "APP_INDEX";
+constexpr const char *EVENT_KEY_LIFE_CYCLE_STATE = "LIFE_CYCLE_STATE";
+constexpr const char *EVENT_KEY_ERR_REASON = "ERR_REASON";
+constexpr const char *EVENT_KEY_LIFE_CYCLE = "LIFE_CYCLE";
+constexpr const char *EVENT_KEY_PERSISTENT_ID = "PERSISTENT_ID";
+constexpr const char *EVENT_KEY_INTENT_NAME = "INTENT_NAME";
 
 constexpr const int32_t DEFAULT_EXTENSION_TYPE = -1;
 }
@@ -80,7 +87,8 @@ void EventReport::SendAppEvent(const EventName &eventName, HiSysEventType type, 
                 EVENT_KEY_VERSION_NAME, eventInfo.versionName,
                 EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
                 EVENT_KEY_ABILITY_NAME, eventInfo.abilityName,
-                EVENT_KEY_START_TYPE, eventInfo.startType);
+                EVENT_KEY_START_TYPE, eventInfo.startType,
+                EVENT_KEY_START_REASON, eventInfo.startReason);
             break;
         case EventName::DRAWN_COMPLETED:
             TAG_LOGI(AAFwkTag::DEFAULT,
@@ -117,6 +125,7 @@ void EventReport::LogErrorEvent(const std::string &name, HiSysEventType type, co
         name,
         type,
         EVENT_KEY_USERID, eventInfo.userId,
+        EVENT_KEY_APP_INDEX, eventInfo.appIndex,
         EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
         EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
         EVENT_KEY_ABILITY_NAME, eventInfo.abilityName,
@@ -130,6 +139,7 @@ void EventReport::LogStartAbilityEvent(const std::string &name, HiSysEventType t
         name,
         type,
         EVENT_KEY_USERID, eventInfo.userId,
+        EVENT_KEY_APP_INDEX, eventInfo.appIndex,
         EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
         EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
         EVENT_KEY_ABILITY_NAME, eventInfo.abilityName);
@@ -141,6 +151,7 @@ void EventReport::LogTerminateAbilityEvent(const std::string &name, HiSysEventTy
         HiSysEvent::Domain::AAFWK,
         name,
         type,
+        EVENT_KEY_APP_INDEX, eventInfo.appIndex,
         EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
         EVENT_KEY_ABILITY_NAME, eventInfo.abilityName);
 }
@@ -151,11 +162,13 @@ void EventReport::LogAbilityOnForegroundEvent(const std::string &name, HiSysEven
         HiSysEvent::Domain::AAFWK,
         name,
         type,
+        EVENT_KEY_APP_INDEX, eventInfo.appIndex,
         EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
         EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
         EVENT_KEY_ABILITY_NAME, eventInfo.abilityName,
         EVENT_KEY_BUNDLE_TYPE, eventInfo.bundleType,
-        EVENT_KEY_CALLER_BUNDLE_NAME, eventInfo.callerBundleName);
+        EVENT_KEY_CALLER_BUNDLE_NAME, eventInfo.callerBundleName,
+        EVENT_KEY_LIFE_CYCLE_STATE, eventInfo.lifeCycleState);
 }
 
 void EventReport::LogAbilityOnBackgroundEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
@@ -164,10 +177,12 @@ void EventReport::LogAbilityOnBackgroundEvent(const std::string &name, HiSysEven
         HiSysEvent::Domain::AAFWK,
         name,
         type,
+        EVENT_KEY_APP_INDEX, eventInfo.appIndex,
         EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
         EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
         EVENT_KEY_ABILITY_NAME, eventInfo.abilityName,
-        EVENT_KEY_BUNDLE_TYPE, eventInfo.bundleType);
+        EVENT_KEY_BUNDLE_TYPE, eventInfo.bundleType,
+        EVENT_KEY_LIFE_CYCLE_STATE, eventInfo.lifeCycleState);
 }
 
 void EventReport::LogAbilityOnActiveEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
@@ -182,6 +197,18 @@ void EventReport::LogAbilityOnActiveEvent(const std::string &name, HiSysEventTyp
         EVENT_KEY_ABILITY_TYPE, eventInfo.abilityType,
         EVENT_KEY_BUNDLE_TYPE, eventInfo.bundleType,
         EVENT_KEY_CALLER_BUNDLE_NAME, eventInfo.callerBundleName);
+}
+
+void EventReport::LogAbilityOnInactiveEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
+{
+    HiSysEventWrite(
+        HiSysEvent::Domain::AAFWK,
+        name,
+        type,
+        EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
+        EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
+        EVENT_KEY_ABILITY_NAME, eventInfo.abilityName,
+        EVENT_KEY_BUNDLE_TYPE, eventInfo.bundleType);
 }
 
 void EventReport::LogStartStandardEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
@@ -216,6 +243,43 @@ void EventReport::LogStartAbilityByAppLinking(const std::string &name, HiSysEven
     }
 }
 
+void EventReport::LogUIExtensionErrorEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
+{
+    HiSysEventWrite(
+        HiSysEvent::Domain::AAFWK,
+        name,
+        type,
+        EVENT_KEY_USERID, eventInfo.userId,
+        EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
+        EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
+        EVENT_KEY_ABILITY_NAME, eventInfo.abilityName,
+        EVENT_KEY_ERROR_CODE, eventInfo.errCode,
+        EVENT_KEY_CALLER_BUNDLE_NAME, eventInfo.callerBundleName,
+        EVENT_KEY_APP_INDEX, eventInfo.appIndex,
+        EVENT_KEY_ERR_REASON, eventInfo.errReason,
+        EVENT_KEY_LIFE_CYCLE, eventInfo.lifeCycle,
+        EVENT_KEY_CALLER_UID, eventInfo.callerUid,
+        EVENT_KEY_PERSISTENT_ID, eventInfo.persistentId);
+}
+
+void EventReport::LogUIServiceExtErrorEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo)
+{
+    HiSysEventWrite(
+        HiSysEvent::Domain::AAFWK,
+        name,
+        type,
+        EVENT_KEY_USERID, eventInfo.userId,
+        EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
+        EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
+        EVENT_KEY_ABILITY_NAME, eventInfo.abilityName,
+        EVENT_KEY_ERROR_CODE, eventInfo.errCode,
+        EVENT_KEY_CALLER_BUNDLE_NAME, eventInfo.callerBundleName,
+        EVENT_KEY_APP_INDEX, eventInfo.appIndex,
+        EVENT_KEY_ERR_REASON, eventInfo.errReason,
+        EVENT_KEY_CALLER_UID, eventInfo.callerUid,
+        EVENT_KEY_LIFE_CYCLE, eventInfo.lifeCycle);
+}
+
 void EventReport::SendAbilityEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -240,8 +304,10 @@ void EventReport::SendAbilityEvent(const EventName &eventName, HiSysEventType ty
             LogAbilityOnForegroundEvent(name, type, eventInfo);
             break;
         case EventName::ABILITY_ONBACKGROUND:
-        case EventName::ABILITY_ONINACTIVE:
             LogAbilityOnBackgroundEvent(name, type, eventInfo);
+            break;
+        case EventName::ABILITY_ONINACTIVE:
+            LogAbilityOnInactiveEvent(name, type, eventInfo);
             break;
         case EventName::ABILITY_ONACTIVE:
             LogAbilityOnActiveEvent(name, type, eventInfo);
@@ -345,6 +411,12 @@ void EventReport::SendExtensionEvent(const EventName &eventName, HiSysEventType 
             break;
         case EventName::DISCONNECT_SERVICE_ERROR:
             HiSysEventWrite(HiSysEvent::Domain::AAFWK, name, type, EVENT_KEY_ERROR_CODE, eventInfo.errCode);
+            break;
+        case EventName::UI_EXTENSION_ERROR:
+            LogUIExtensionErrorEvent(name, type, eventInfo);
+            break;
+        case EventName::UI_SERVICE_EXTENSION_ERROR:
+            LogUIServiceExtErrorEvent(name, type, eventInfo);
             break;
         default:
             break;
@@ -659,7 +731,50 @@ void EventReport::SendStartAbilityOtherExtensionEvent(const EventName &eventName
         EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
         EVENT_KEY_ABILITY_NAME, eventInfo.abilityName,
         EVENT_KEY_EXTENSION_TYPE, eventInfo.extensionType,
-        EVENT_KEY_CALLER_BUNDLE_NAME, eventInfo.callerBundleName);
+        // Historical reason: Word spelling error during event definition
+        "CALLER_BUNLED_NAME", eventInfo.callerBundleName);
+}
+
+void EventReport::SendExecuteIntentEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo)
+{
+    std::string name = ConvertEventName(eventName);
+    if (name == INVALID_EVENT_NAME) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "invalid eventName");
+        return;
+    }
+    HiSysEventWrite(
+        HiSysEvent::Domain::AAFWK,
+        name,
+        type,
+        EVENT_KEY_USERID, eventInfo.userId,
+        EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
+        EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
+        EVENT_KEY_ABILITY_NAME, eventInfo.abilityName,
+        EVENT_KEY_ERROR_CODE, eventInfo.errCode,
+        EVENT_KEY_CALLER_BUNDLE_NAME, eventInfo.callerBundleName,
+        EVENT_KEY_APP_INDEX, eventInfo.appIndex,
+        EVENT_KEY_ERR_REASON, eventInfo.errReason,
+        EVENT_KEY_INTENT_NAME, eventInfo.intentName);
+}
+
+void EventReport::SendLaunchFrameworkEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo)
+{
+    std::string name = ConvertEventName(eventName);
+    if (name == INVALID_EVENT_NAME) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "invalid eventName");
+        return;
+    }
+    HiSysEventWrite(
+        HiSysEvent::Domain::AAFWK,
+        name,
+        type,
+        EVENT_KEY_USERID, eventInfo.userId,
+        EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName,
+        EVENT_KEY_MODULE_NAME, eventInfo.moduleName,
+        EVENT_KEY_ERROR_CODE, eventInfo.errCode,
+        EVENT_KEY_PROCESS_NAME, eventInfo.processName,
+        EVENT_KEY_APP_INDEX, eventInfo.appIndex,
+        EVENT_KEY_ERR_REASON, eventInfo.errReason);
 }
 
 std::string EventReport::ConvertEventName(const EventName &eventName)
@@ -668,6 +783,8 @@ std::string EventReport::ConvertEventName(const EventName &eventName)
         // fault event
         "START_ABILITY_ERROR", "TERMINATE_ABILITY_ERROR", "START_EXTENSION_ERROR",
         "STOP_EXTENSION_ERROR", "CONNECT_SERVICE_ERROR", "DISCONNECT_SERVICE_ERROR",
+        "UI_EXTENSION_ERROR", "UI_SERVICE_EXTENSION_ERROR", "EXECUTE_INSIGHT_INTENT_ERROR",
+        "STARTUP_TASK_ERROR",
 
         // ability behavior event
         "START_ABILITY", "TERMINATE_ABILITY", "CLOSE_ABILITY",

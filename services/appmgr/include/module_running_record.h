@@ -167,22 +167,32 @@ public:
 
     bool IsAllAbilityReadyToCleanedByUserRequest();
 
+    void SetLoaded()
+    {
+        isLoaded_ = true;
+    }
+
+    bool IsLoaded() const
+    {
+        return isLoaded_;
+    }
 private:
     void SendEvent(uint32_t msg, int64_t timeOut, const std::shared_ptr<AbilityRunningRecord> &abilityRecord);
 
     ModuleRecordState GetState() const;
 
 private:
-    mutable ffrt::mutex abilitiesMutex_;
-    std::map<const sptr<IRemoteObject>, std::shared_ptr<AbilityRunningRecord>> abilities_;
-    std::map<const sptr<IRemoteObject>, std::shared_ptr<AbilityRunningRecord>> terminateAbilities_;
+    bool isLoaded_ = false;
+    int32_t appIndex_ = 0;
+    ModuleRecordState owenState_ = ModuleRecordState::UNKNOWN_STATE;
     std::weak_ptr<AppMgrServiceInner> appMgrServiceInner_;
     std::shared_ptr<AppLifeCycleDeal> appLifeCycleDeal_;
     std::shared_ptr<ApplicationInfo> appInfo_;  // the application's info
     std::shared_ptr<AMSEventHandler> eventHandler_;
     std::string moduleName_;
-    int32_t appIndex_ = 0;
-    ModuleRecordState owenState_ = ModuleRecordState::UNKNOWN_STATE;
+    mutable ffrt::mutex abilitiesMutex_;
+    std::map<const sptr<IRemoteObject>, std::shared_ptr<AbilityRunningRecord>> abilities_;
+    std::map<const sptr<IRemoteObject>, std::shared_ptr<AbilityRunningRecord>> terminateAbilities_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

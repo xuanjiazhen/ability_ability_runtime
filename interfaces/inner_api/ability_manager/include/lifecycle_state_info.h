@@ -49,6 +49,8 @@ enum class ErrorLifecycleState {
     ABILITY_STATE_LOAD_TIMEOUT = 0,
     ABILITY_STATE_FOREGROUND_TIMEOUT,
     ABILITY_STATE_DIED,
+    ABILITY_STATE_PERMISSION_UPDATE,
+    ABILITY_STATE_LOW_MEMORY_KILL,
 };
 
 /**
@@ -56,14 +58,14 @@ enum class ErrorLifecycleState {
  * LifeCycleStateInfo is used to save information about ability life cycle state.
  */
 struct LifeCycleStateInfo : public Parcelable {
-    AbilityLifeCycleState state = AbilityLifeCycleState::ABILITY_STATE_INITIAL;
     bool isNewWant = false;
     int missionId = -1;
-    CallerInfo caller;
-    std::shared_ptr<AbilityStartSetting> setting = nullptr;
-    LaunchParam launchParam;
     uint32_t sceneFlag = 0;
     uint32_t sceneFlagBak = 0;
+    AbilityLifeCycleState state = AbilityLifeCycleState::ABILITY_STATE_INITIAL;
+    std::shared_ptr<AbilityStartSetting> setting = nullptr;
+    LaunchParam launchParam;
+    CallerInfo caller;
 
     bool ReadFromParcel(Parcel &parcel);
     virtual bool Marshalling(Parcel &parcel) const override;

@@ -19,6 +19,7 @@
 #include <map>
 #include "ability_connect_callback_stub.h"
 #include "cpp/mutex.h"
+#include "event_report.h"
 #include "insight_intent_execute_param.h"
 #include "insight_intent_execute_result.h"
 #include "iremote_object.h"
@@ -34,10 +35,10 @@ enum class InsightIntentExecuteState {
 };
 
 struct InsightIntentExecuteRecord {
+    InsightIntentExecuteState state = InsightIntentExecuteState::UNKNOWN;
     uint64_t key = 0;
     sptr<IRemoteObject> callerToken = nullptr;
     sptr<IRemoteObject::DeathRecipient> deathRecipient = nullptr;
-    InsightIntentExecuteState state = InsightIntentExecuteState::UNKNOWN;
     std::string bundleName;
     std::string callerBundleName;
 };
@@ -111,6 +112,7 @@ private:
     static int32_t IsValidCall(const Want &want);
 
     static int32_t CheckCallerPermission();
+    void SendIntentReport(EventInfo &eventInfo, int32_t errCode);
 };
 } // namespace AAFwk
 } // namespace OHOS

@@ -40,10 +40,9 @@ public:
     MOCK_METHOD1(ScheduleConfigurationUpdated, void(const Configuration&));
     MOCK_METHOD0(ScheduleProcessSecurityExit, void());
     MOCK_METHOD1(ScheduleAbilityStage, void(const HapModuleInfo&));
-    MOCK_METHOD1(ScheduleUpdateApplicationInfoInstalled, void(const ApplicationInfo&));
+    MOCK_METHOD2(ScheduleUpdateApplicationInfoInstalled, void(const ApplicationInfo&, const std::string&));
     MOCK_METHOD2(ScheduleAcceptWant, void(const AAFwk::Want& want, const std::string& moduleName));
-    MOCK_METHOD3(SchedulePrepareTerminate, void(const std::string &moduleName,
-        int32_t &PrepareTermination, bool &isExist));
+    MOCK_METHOD1(SchedulePrepareTerminate, void(const std::string &moduleName));
     MOCK_METHOD2(ScheduleNewProcessRequest, void(const AAFwk::Want& want, const std::string& moduleName));
     MOCK_METHOD3(ScheduleNotifyLoadRepairPatch, int32_t(const std::string& bundleName,
         const sptr<IQuickFixCallback>& callback, const int32_t recordId));
@@ -51,7 +50,7 @@ public:
     MOCK_METHOD3(ScheduleNotifyUnLoadRepairPatch, int32_t(const std::string& bundleName,
         const sptr<IQuickFixCallback>& callback, const int32_t recordId));
     MOCK_METHOD1(ScheduleNotifyAppFault, int32_t(const FaultData &faultData));
-    MOCK_METHOD0(AttachAppDebug, void());
+    MOCK_METHOD1(AttachAppDebug, void(bool isDebugFromLocal));
     MOCK_METHOD0(DetachAppDebug, void());
     MOCK_METHOD2(SetAppWaitingDebug, int32_t(const std::string &bundleName, bool isPersist));
     MOCK_METHOD0(CancelAppWaitingDebug, int32_t());

@@ -134,6 +134,31 @@ HWTEST_F(WantAgentTest, WantAgent_0500, Function | MediumTest | Level1)
 }
 
 /*
+ * @tc.number    : WantAgent_0600
+ * @tc.name      : SetIsMultithreadingSupported test
+ * @tc.desc      : SetIsMultithreadingSupported
+ */
+HWTEST_F(WantAgentTest, WantAgent_0600, Function | MediumTest | Level1)
+{
+    std::shared_ptr<WantAgent> wantAgent = std::make_shared<WantAgent>();
+    wantAgent->SetIsMultithreadingSupported(true);
+    EXPECT_EQ(wantAgent->isMultithreadingSupported_, true);
+}
+
+/*
+ * @tc.number    : WantAgent_0700
+ * @tc.name      : GetIsMultithreadingSupported test
+ * @tc.desc      : GetIsMultithreadingSupported
+ */
+HWTEST_F(WantAgentTest, WantAgent_0700, Function | MediumTest | Level1)
+{
+    std::shared_ptr<WantAgent> wantAgent = std::make_shared<WantAgent>();
+    wantAgent->isMultithreadingSupported_ = true;
+    bool test = wantAgent->GetIsMultithreadingSupported();
+    EXPECT_EQ(test, true);
+}
+
+/*
  * @tc.number    : ProcessOptionsTest_0100
  * @tc.name      : Marshalling
  * @tc.desc      : Marshalling
@@ -237,5 +262,29 @@ HWTEST_F(WantAgentTest, ProcessOptionsTest_0800, TestSize.Level1)
     ProcessMode value = ProcessMode::UNSPECIFIED;
     bool ret = option->IsAttachToStatusBarMode(value);
     EXPECT_EQ(ret, false);
+}
+
+/*
+ * @tc.number    : ProcessOptionsTest_0900
+ * @tc.name      : IsAttachToStatusBarItemMode
+ * @tc.desc      : IsAttachToStatusBarItemMode
+ */
+HWTEST_F(WantAgentTest, ProcessOptionsTest_0900, TestSize.Level1)
+{
+    auto option = std::make_shared<ProcessOptions>();
+    ProcessMode value = ProcessMode::UNSPECIFIED;
+    bool ret = option->IsAttachToStatusBarItemMode(value);
+    EXPECT_EQ(ret, false);
+}
+
+/*
+ * @tc.number    : ProcessOptionsTest_1000
+ * @tc.name      : IsNewHiddenProcessMode
+ * @tc.desc      : IsNewHiddenProcessMode
+ */
+HWTEST_F(WantAgentTest, ProcessOptionsTest_1000, TestSize.Level1)
+{
+    ProcessMode value = ProcessMode::NEW_HIDDEN_PROCESS;
+    EXPECT_EQ(ProcessOptions::IsNewHiddenProcessMode(value), true);
 }
 }  // namespace OHOS::AbilityRuntime::WantAgent

@@ -71,9 +71,9 @@ void DoSomethingInterestingWithMyAPI1(const char *data, size_t size)
     int32_t int32Param = static_cast<int32_t>(GetU32Data(data));
     uint32_t requestId = static_cast<uint32_t>(GetU32Data(data));
     uIAbilityLifecycleManager->OnAcceptWantResponse(want1, strParam, requestId);
-    uIAbilityLifecycleManager->OnStartSpecifiedProcessResponse(want1, strParam, requestId);
-    uIAbilityLifecycleManager->OnStartSpecifiedAbilityTimeoutResponse(want1, requestId);
-    uIAbilityLifecycleManager->OnStartSpecifiedProcessTimeoutResponse(want1, requestId);
+    uIAbilityLifecycleManager->OnStartSpecifiedProcessResponse(strParam, requestId);
+    uIAbilityLifecycleManager->OnStartSpecifiedAbilityTimeoutResponse(requestId);
+    uIAbilityLifecycleManager->OnStartSpecifiedProcessTimeoutResponse(requestId);
     uIAbilityLifecycleManager->StartSpecifiedAbilityBySCB(want1);
     sptr<IRemoteObject> callStub;
     std::shared_ptr<AbilityRecord> abilityRecord4;
@@ -88,7 +88,7 @@ void DoSomethingInterestingWithMyAPI1(const char *data, size_t size)
     std::vector<std::string> abilityList;
     uIAbilityLifecycleManager->GetActiveAbilityList(int32Param, abilityList, int32Param);
     std::shared_ptr<AbilityRecord> abilityRecord5;
-    uIAbilityLifecycleManager->PrepareTerminateAbility(abilityRecord5);
+    uIAbilityLifecycleManager->PrepareTerminateAbility(abilityRecord5, false);
     uIAbilityLifecycleManager->GetAbilityRecordsById(int32Param);
     uIAbilityLifecycleManager->CheckAbilityNumber(strParam, strParam, strParam);
     uIAbilityLifecycleManager->MoreAbilityNumbersSendEventInfo(int32Param, strParam, strParam, strParam);

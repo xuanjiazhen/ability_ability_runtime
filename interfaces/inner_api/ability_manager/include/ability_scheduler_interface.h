@@ -304,6 +304,14 @@ public:
      */
     virtual void UpdateSessionToken(sptr<IRemoteObject> sessionToken) = 0;
 
+    virtual void ScheduleCollaborate(const Want &want) = 0;
+
+    virtual void ScheduleAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message) = 0;
+
+    virtual void ScheduleAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message) = 0;
+
     enum {
         // ipc id for scheduling ability to a state of life cycle
         SCHEDULE_ABILITY_TRANSACTION = 0,
@@ -399,7 +407,13 @@ public:
 
         CREATE_MODAL_UI_EXTENSION,
 
-        UPDATE_SESSION_TOKEN
+        UPDATE_SESSION_TOKEN,
+
+        SCHEDULE_COLLABORATE_DATA,
+
+        SCHEDULE_ABILITY_REQUEST_FAILURE,
+
+        SCHEDULE_ABILITY_REQUEST_SUCCESS
     };
 };
 }  // namespace AAFwk

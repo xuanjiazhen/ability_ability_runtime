@@ -82,7 +82,8 @@ void DoSomethingInterestingWithMyAPIadda(const char* data, size_t size)
     bool clearMissionFlag = *data % ENABLE;
     manager->TerminateAbility(token, clearMissionFlag, appMgrServiceInner);
     ApplicationInfo appInfos;
-    manager->ProcessUpdateApplicationInfoInstalled(appInfos);
+    std::string moduleName;
+    manager->ProcessUpdateApplicationInfoInstalled(appInfos, moduleName);
     std::list<pid_t> pids;
     KillProcessConfig config;
     config.clearPageStack = *data % ENABLE;
@@ -123,7 +124,7 @@ void DoSomethingInterestingWithMyAPIaddb(const char* data, size_t size)
     manager->IsApplicationFirstFocused(foregroundingRecord);
     manager->IsApplicationUnfocused(jsonStr);
     bool isAttachDebug = *data % ENABLE;
-    manager->SetAttachAppDebug(jsonStr, isAttachDebug);
+    manager->SetAttachAppDebug(jsonStr, isAttachDebug, false);
     bool isDetachDebug = *data % ENABLE;
     manager->GetAppDebugInfosByBundleName(jsonStr, isDetachDebug);
     std::vector<sptr<IRemoteObject>> abilityTokens;

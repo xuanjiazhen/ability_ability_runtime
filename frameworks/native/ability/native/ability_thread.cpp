@@ -285,5 +285,22 @@ void AbilityThread::UpdateSessionToken(sptr<IRemoteObject> sessionToken)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
 }
+
+void AbilityThread::ScheduleCollaborate(const Want &want)
+{
+    TAG_LOGD(AAFwkTag::ABILITY, "called");
+}
+
+void AbilityThread::ScheduleAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+    const std::string &message)
+{
+    TAG_LOGD(AAFwkTag::ABILITY, "called");
+}
+
+void AbilityThread::ScheduleAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
+    const std::string &message)
+{
+    TAG_LOGD(AAFwkTag::ABILITY, "called");
+}
 } // namespace AppExecFwk
 } // namespace OHOS

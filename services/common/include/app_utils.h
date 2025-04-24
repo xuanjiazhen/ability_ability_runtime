@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -199,6 +199,20 @@ public:
     int32_t GetLimitMaximumExtensionsPerProc();
 
     /**
+     * IsBigMemoryUnrelatedKeepAliveProc, check if it refuses resident in memory quick kill.<unnamed>
+     *
+     * @param bundleName The bundle name.
+     */
+    bool IsBigMemoryUnrelatedKeepAliveProc(const std::string &bundleName);
+
+    /**
+     * IsRequireBigMemoryProcess, check if it requires big memory.
+     *
+     * @param bundleName The bundle name.
+     */
+    bool IsRequireBigMemoryProcess(const std::string &bundleName);
+
+    /**
      * GetLimitMaximumExtensionsPerDevice, get limit max extensions per device.
      *
      * @return Limit max extensions per device.
@@ -256,6 +270,37 @@ public:
      */
     std::string GetMigrateClientBundleName();
 
+    /**
+     * IsConnectSupportCrossUser, check if it support cross-user.
+     *
+     * @return Whether it supports cross-user.
+     */
+    bool IsConnectSupportCrossUser();
+
+    /**
+     * IsPrepareTerminateEnabled, check if it supports prepare terminate.
+     *
+     * @return Whether it supports prepare terminate.
+     */
+    bool IsPrepareTerminateEnabled();
+
+    /**
+     * IsCacheExtensionAbilityByList, check if it allows cache extension ability by list.
+     *
+     * @param bundleName The bundle name.
+     * @param abilityName The ability name.
+     * @return Whether it allows cache extensionability.
+     */
+    bool IsCacheExtensionAbilityByList(const std::string& bundleName, const std::string& abilityName);
+
+    /**
+     * IsSystemReasonMessage, check if it supports launch reason message.
+     *
+     * @param reasonMessage The launch reason message.
+     * @return Whether it supports launch reason message.
+     */
+    bool IsSystemReasonMessage(const std::string &reasonMessage);
+
 private:
     /**
      * LoadResidentProcessInExtremeMemory, load resident process in extreme low memory.
@@ -274,6 +319,30 @@ private:
      *
      */
     void LoadStartAbilityWithoutCallerToken();
+
+    /**
+     * IsCacheAbilityEnabled, check cache ability parameter switch.
+     *
+     */
+    bool IsCacheAbilityEnabled();
+
+     /**
+     * LoadCacheAbilityList, load cache ability list from file.
+     *
+     */
+    void LoadCacheAbilityList();
+
+    /**
+     * LoadProcessProhibitedFromRestarting, load process prohibited in big memory.
+     *
+     */
+    void LoadProcessProhibitedFromRestarting();
+
+    /**
+     * LoadRequireBigMemoryApp, load app name that require big memory.
+     *
+     */
+    void LoadRequireBigMemoryApp();
 
     /**
      * AppUtils, private constructor.
@@ -297,9 +366,15 @@ private:
     volatile DeviceConfiguration<bool> isLaunchEmbededUIAbility_ = {false, false};
     volatile DeviceConfiguration<bool> isSupportNativeChildProcess_ = {false, false};
     volatile DeviceConfiguration<bool> isSupportMultiInstance_ = {false, false};
+    std::mutex isConnectSupportCrossUserMutex_;
+    volatile DeviceConfiguration<bool> isConnectSupportCrossUser_ = {false, false};
     DeviceConfiguration<std::vector<std::pair<std::string, std::string>>>
         residentProcessInExtremeMemory_ = {false, {}};
     std::mutex residentProcessInExtremeMemoryMutex_;
+    DeviceConfiguration<std::vector<std::string>> processProhibitedFromRestarting_ = {false, {}};
+    std::mutex processProhibitedFromRestartingMutex_;
+    DeviceConfiguration<std::vector<std::string>> requireBigMemoryApp_ = {false, {}};
+    std::mutex requireBigMemoryAppMutex_;
     DeviceConfiguration<std::vector<std::string>>
         allowStartNativeProcessApps_ = {false, {}};
     volatile DeviceConfiguration<int32_t> limitMaximumExtensionsPerProc_ = {false, DEFAULT_MAX_EXT_PER_PROC};
@@ -312,6 +387,8 @@ private:
     volatile DeviceConfiguration<int32_t> collaboratorBrokerReserveUid_ = {false, DEFAULT_INVALID_VALUE};
     volatile DeviceConfiguration<int32_t> maxChildProcess_ = {false, DEFAULT_MAX_CHILD_PROCESS};
     DeviceConfiguration<std::string> migrateClientBundleName_ = {true, "com.huwei.hmos.migratecilent"};
+    DeviceConfiguration<std::vector<std::pair<std::string, std::string>>>
+        cacheAbilityList_ = {false, {}};
     DISALLOW_COPY_AND_MOVE(AppUtils);
 };
 }  // namespace AAFwk

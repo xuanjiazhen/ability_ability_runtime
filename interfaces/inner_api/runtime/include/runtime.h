@@ -71,9 +71,12 @@ public:
         std::string bundleName = "";
         std::string perfCmd;
         std::string processName = "";
+        std::string appProvisionType = "";
         bool isDebugApp = true;
         bool isStartWithDebug = false;
         bool isStartWithNative = false;
+        bool isDebugFromLocal = false;
+        bool isDeveloperMode;
     };
 
     static std::unique_ptr<Runtime> Create(const Options& options);
@@ -86,12 +89,14 @@ public:
     virtual Language GetLanguage() const = 0;
 
     virtual void StartDebugMode(const DebugOption debugOption) = 0;
+    virtual void SetDebugOption(const DebugOption debugOption) {};
+    virtual void StartLocalDebugMode(bool isDebugFromLocal) {};
     virtual void DumpHeapSnapshot(bool isPrivate) = 0;
     virtual void DumpCpuProfile() = 0;
     virtual void DestroyHeapProfiler() = 0;
     virtual void ForceFullGC() = 0;
     virtual void ForceFullGC(uint32_t tid) = 0;
-    virtual void DumpHeapSnapshot(uint32_t tid, bool isFullGC) = 0;
+    virtual void DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary = false) = 0;
     virtual void AllowCrossThreadExecution() = 0;
     virtual void GetHeapPrepare() = 0;
     virtual void NotifyApplicationState(bool isBackground) = 0;
@@ -111,7 +116,7 @@ public:
     virtual void DoCleanWorkAfterStageCleaned() {}
     virtual void SetModuleLoadChecker(const std::shared_ptr<ModuleCheckerDelegate> moduleCheckerDelegate) const {}
     virtual void SetDeviceDisconnectCallback(const std::function<bool()> &cb) = 0;
-    virtual void UpdatePkgContextInfoJson(std::string moduleName, std::string hapPath, std::string packageName) = 0;
+    virtual void SetStopPreloadSoCallback(const std::function<void()> &callback) {}
     Runtime(const Runtime&) = delete;
     Runtime(Runtime&&) = delete;
     Runtime& operator=(const Runtime&) = delete;

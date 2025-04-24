@@ -42,11 +42,15 @@ ohos_shared_library("cj_want_agent_ffi") {
     "AMS_LOG_TAG = \"CJ_ABILITY_FFI\"",
     "AMS_LOG_DOMAIN = 0xD001150",
   ]
+
+  branch_protector_ret = "pac_ret"
+
   sanitize = {
     cfi = true
     cfi_cross_dso = true
     debug = false
   }
+
   include_dirs = [
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
     "${ability_runtime_path}/frameworks/cj/ffi",
@@ -67,15 +71,18 @@ ohos_shared_library("cj_want_agent_ffi") {
     "ability_base:want",
     "c_utils:utils",
     "hilog:libhilog",
+    "ipc:ipc_single",
+    "napi:ace_napi",
     "napi:cj_bind_ffi",
     "napi:cj_bind_native",
   ]
 
-  sources = [ "src/cj_want_agent_ffi.cpp" ]
+  sources = [
+    "src/cj_want_agent_ffi.cpp",
+    "src/cj_want_agent_object.cpp",
+  ]
 
   cflags = [
-    "-fstack-protector-all",
-    "-fstack-protector-strong",
     "-O2",
     "-D_FORTIFY_SOURCE=2",
   ]

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,7 +39,10 @@ bool AmsMgrProxy::IsProcessContainsOnlyUIAbility(const pid_t pid)
     if (!WriteInterfaceToken(data)) {
         return false;
     }
-    data.WriteInt32(static_cast<int32_t>(pid));
+    if (!data.WriteInt32(static_cast<int32_t>(pid))) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write pid failed");
+        return false;
+    }
     int32_t ret =
         SendTransactCmd(static_cast<uint32_t>(
             IAmsMgr::Message::IS_PROCESS_CONTAINS_ONLY_UI_EXTENSION), data, reply, option);
@@ -93,9 +96,14 @@ void AmsMgrProxy::LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInfo,
     if (!WriteInterfaceToken(data)) {
         return;
     }
-
-    data.WriteParcelable(abilityInfo.get());
-    data.WriteParcelable(appInfo.get());
+    if (!data.WriteParcelable(abilityInfo.get())) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write abilityInfo failed");
+        return;
+    }
+    if (!data.WriteParcelable(appInfo.get())) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write abilityInfo failed");
+        return;
+    }
     if (!data.WriteParcelable(want.get())) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write want failed");
         return;
@@ -143,13 +151,17 @@ void AmsMgrProxy::UpdateAbilityState(const sptr<IRemoteObject> &token, const Abi
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
     if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write data");
         return;
     }
     if (!data.WriteRemoteObject(token.GetRefPtr())) {
         TAG_LOGE(AAFwkTag::APPMGR, "Failed to write token");
         return;
     }
-    data.WriteInt32(static_cast<int32_t>(state));
+    if (!data.WriteInt32(static_cast<int32_t>(state))) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write token");
+        return;
+    }
     int32_t ret =
         SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::UPDATE_ABILITY_STATE), data, reply, option);
     if (ret != NO_ERROR) {
@@ -171,7 +183,10 @@ void AmsMgrProxy::UpdateExtensionState(const sptr<IRemoteObject> &token, const E
         TAG_LOGE(AAFwkTag::APPMGR, "Failed to write token");
         return;
     }
-    data.WriteInt32(static_cast<int32_t>(state));
+    if (!data.WriteInt32(static_cast<int32_t>(state))) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write state");
+        return;
+    }
     int32_t ret =
         SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::UPDATE_EXTENSION_STATE), data, reply, option);
     if (ret != NO_ERROR) {
@@ -236,7 +251,8 @@ void AmsMgrProxy::KillProcessByAbilityToken(const sptr<IRemoteObject> &token)
     TAG_LOGD(AAFwkTag::APPMGR, "end");
 }
 
-void AmsMgrProxy::KillProcessesByUserId(int32_t userId)
+void AmsMgrProxy::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg,
+    sptr<AAFwk::IUserCallback> callback)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "start");
     MessageParcel data;
@@ -249,6 +265,20 @@ void AmsMgrProxy::KillProcessesByUserId(int32_t userId)
         TAG_LOGE(AAFwkTag::APPMGR, "parcel WriteInt32 failed");
         return;
     }
+    if (!data.WriteBool(isNeedSendAppSpawnMsg)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "parcel WriteBool failed");
+        return;
+    }
+    if (callback == nullptr) {
+        TAG_LOGD(AAFwkTag::APPMGR, "callback is nullptr");
+        data.WriteBool(false);
+    } else {
+        data.WriteBool(true);
+        if (!data.WriteRemoteObject(callback->AsObject())) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "write IUserCallback fail");
+            return;
+        }
+    }
     int32_t ret =
         SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::KILL_PROCESSES_BY_USERID), data, reply, option);
     if (ret != NO_ERROR) {
@@ -257,7 +287,7 @@ void AmsMgrProxy::KillProcessesByUserId(int32_t userId)
     TAG_LOGD(AAFwkTag::APPMGR, "ending");
 }
 
-void AmsMgrProxy::KillProcessesByPids(std::vector<int32_t> &pids)
+void AmsMgrProxy::KillProcessesByPids(const std::vector<int32_t> &pids, const std::string &reason)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "start");
     MessageParcel data;
@@ -277,6 +307,10 @@ void AmsMgrProxy::KillProcessesByPids(std::vector<int32_t> &pids)
             TAG_LOGE(AAFwkTag::APPMGR, "Write pid failed");
             return;
         }
+    }
+    if (!data.WriteString(reason)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write reason failed");
+        return;
     }
     int32_t ret =
         SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::KILL_PROCESSES_BY_PIDS), data, reply, option);
@@ -479,7 +513,8 @@ int32_t AmsMgrProxy::KillProcessesByAccessTokenId(const uint32_t accessTokenId)
     return reply.ReadInt32();
 }
 
-int32_t AmsMgrProxy::UpdateApplicationInfoInstalled(const std::string &bundleName, const int uid)
+int32_t AmsMgrProxy::UpdateApplicationInfoInstalled(const std::string &bundleName, const int uid,
+    const std::string &moduleName, bool isPlugin)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "start.");
     MessageParcel data;
@@ -494,6 +529,14 @@ int32_t AmsMgrProxy::UpdateApplicationInfoInstalled(const std::string &bundleNam
     }
     if (!data.WriteInt32(uid)) {
         TAG_LOGE(AAFwkTag::APPMGR, "uid write failed.");
+        return ERR_FLATTEN_OBJECT;
+    }
+    if (!data.WriteString(moduleName)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "moduleName WriteString failed");
+        return ERR_FLATTEN_OBJECT;
+    }
+    if (!data.WriteBool(isPlugin)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "isPlugin Write failed");
         return ERR_FLATTEN_OBJECT;
     }
     int32_t ret =
@@ -665,7 +708,7 @@ void AmsMgrProxy::SetAbilityForegroundingFlagToAppRecord(const pid_t pid)
     }
 }
 
-void AmsMgrProxy::PrepareTerminateApp(const pid_t pid, int32_t &prepareTermination, bool &isExist)
+void AmsMgrProxy::PrepareTerminateApp(const pid_t pid, const std::string &moduleName)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -678,14 +721,16 @@ void AmsMgrProxy::PrepareTerminateApp(const pid_t pid, int32_t &prepareTerminati
         TAG_LOGE(AAFwkTag::APPMGR, "Write PrepareTerminateApp pid failed.");
         return;
     }
+    if (!data.WriteString(moduleName)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write PrepareTerminateApp moduleName failed.");
+        return;
+    }
     auto ret = SendTransactCmd(
         static_cast<uint32_t>(IAmsMgr::Message::PREPARE_TERMINATE_APP), data, reply, option);
     if (ret != NO_ERROR) {
         TAG_LOGW(AAFwkTag::APPMGR, "SendRequest PrepareTerminateApp err: %{public}d", ret);
         return;
     }
-    prepareTermination = reply.ReadInt32();
-    isExist = reply.ReadBool();
     TAG_LOGD(AAFwkTag::APPMGR, "Get PrepareTerminateApp reply success");
 }
 
@@ -777,7 +822,10 @@ int AmsMgrProxy::GetApplicationInfoByProcessID(const int pid, AppExecFwk::Applic
         TAG_LOGE(AAFwkTag::APPMGR, "token write error");
         return ERR_FLATTEN_OBJECT;
     }
-    data.WriteInt32(pid);
+    if (!data.WriteInt32(pid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "pid write error");
+        return ERR_FLATTEN_OBJECT;
+    }
     int32_t ret = SendTransactCmd(
         static_cast<uint32_t>(IAmsMgr::Message::GET_APPLICATION_INFO_BY_PROCESS_ID), data, reply, option);
     if (ret != NO_ERROR) {
@@ -951,7 +999,7 @@ int32_t AmsMgrProxy::UnregisterAppDebugListener(const sptr<IAppDebugListener> &l
     return reply.ReadInt32();
 }
 
-int32_t AmsMgrProxy::AttachAppDebug(const std::string &bundleName)
+int32_t AmsMgrProxy::AttachAppDebug(const std::string &bundleName, bool isDebugFromLocal)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     MessageParcel data;
@@ -962,6 +1010,11 @@ int32_t AmsMgrProxy::AttachAppDebug(const std::string &bundleName)
 
     if (bundleName.empty() || !data.WriteString(bundleName)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write bundleName failed");
+        return ERR_INVALID_DATA;
+    }
+
+    if (!data.WriteBool(isDebugFromLocal)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write isDebugFromLocal failed");
         return ERR_INVALID_DATA;
     }
 
@@ -1265,6 +1318,24 @@ bool AmsMgrProxy::IsMemorySizeSufficent()
     return reply.ReadBool();
 }
 
+bool AmsMgrProxy::IsNoRequireBigMemory()
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write token failed");
+        return true;
+    }
+
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::IS_NO_REQUIRE_BIG_MEMORY), data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Send request err: %{public}d", ret);
+        return true;
+    }
+    return reply.ReadBool();
+}
+
 int32_t AmsMgrProxy::SendTransactCmd(uint32_t code, MessageParcel &data,
     MessageParcel &reply, MessageOption &option)
 {
@@ -1418,26 +1489,6 @@ bool AmsMgrProxy::IsCallerKilling(const std::string& callerKey)
         return false;
     }
     return reply.ReadBool();
-}
-
-void AmsMgrProxy::SendAppSpawnUninstallDebugHapMsg(int32_t userId)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option(MessageOption::TF_SYNC);
-    if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "WriteInterfaceToken failed");
-        return;
-    }
-    if (!data.WriteInt32(userId)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "WriteInt32 failed");
-        return;
-    }
-    int32_t ret = SendTransactCmd(
-        static_cast<uint32_t>(IAmsMgr::Message::SEND_APP_SPAWN_UNINSTALL_DEBUG_HAP_MSG), data, reply, option);
-    if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::APPMGR, "SendTransactCmd failed, errCode %{public}d", ret);
-    }
 }
 } // namespace AppExecFwk
 } // namespace OHOS

@@ -36,11 +36,11 @@ namespace AppExecFwk {
 class AppfreezeManager : public std::enable_shared_from_this<AppfreezeManager> {
 public:
     struct AppInfo {
+        bool isOccurException = false;
         int pid;
         int uid;
         std::string bundleName;
         std::string processName;
-        bool isOccurException = false;
     };
 
     enum TypeAttribute {
@@ -63,6 +63,7 @@ public:
     };
 
     struct ParamInfo {
+        bool needKillProcess = true;
         int typeId = TypeAttribute::NORMAL_TIMEOUT;
         int32_t pid = 0;
         std::string eventName;
@@ -115,9 +116,9 @@ private:
         std::set<int>& pids, int pid, int layer, AppfreezeManager::TerminalBinder& terminalBinder) const;
     std::set<int> GetBinderPeerPids(std::string& stack, int pid, std::set<int>& asyncPids,
         AppfreezeManager::TerminalBinder& terminalBinder) const;
-    void FindStackByPid(std::string& ret, int pid) const;
-    std::string CatchJsonStacktrace(int pid, const std::string& faultType) const;
-    std::string CatcherStacktrace(int pid) const;
+    void FindStackByPid(std::string& msg, int pid) const;
+    std::string CatchJsonStacktrace(int pid, const std::string& faultType, const std::string& stack) const;
+    std::string CatcherStacktrace(int pid, const std::string& stack) const;
     int AcquireStack(const FaultData& faultData, const AppInfo& appInfo, const std::string& memoryContent);
     int NotifyANR(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo,
         const std::string& binderInfo, const std::string& memoryContent);

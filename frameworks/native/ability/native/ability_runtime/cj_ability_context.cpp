@@ -18,7 +18,6 @@
 #include "ability_business_error.h"
 #include "cj_ability_connect_callback_object.h"
 #include "cj_common_ffi.h"
-#include "cj_common_ffi.h"
 #include "cj_utils_ffi.h"
 #include "hilog_tag_wrapper.h"
 #include "string_wrapper.h"
@@ -241,7 +240,8 @@ void CJAbilityContext::DisconnectAbility(const AAFwk::Want& want, int64_t connec
         return;
     }
     auto connection = new CJAbilityConnectCallback(connectionId);
-    context_->ConnectAbility(want, connection);
+    int32_t accountId = -1;
+    context_->DisconnectAbility(want, connection, accountId);
 }
 
 int32_t CJAbilityContext::StartAbilityForResult(const AAFwk::Want& want, int32_t requestCode, RuntimeTask&& task)
@@ -461,6 +461,25 @@ int32_t CJAbilityContext::OpenLink(const AAFwk::Want& want, int requestCode)
     return context_->OpenLink(want, requestCode);
 }
 
+int32_t CJAbilityContext::ChangeAbilityVisibility(bool isShow)
+{
+    if (context_ == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+    }
+    return context_->ChangeAbilityVisibility(isShow);
+}
+
+int32_t CJAbilityContext::StartAbilityByCall(const AAFwk::Want& want, const std::shared_ptr<CallerCallBack> &callback,
+    int32_t accountId)
+{
+    if (context_ == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+    }
+    return context_->StartAbilityByCall(want, callback, accountId);
+}
+
 void CjUIExtensionCallback::SetSessionId(int32_t sessionId)
 {
     sessionId_ = sessionId;
@@ -524,6 +543,26 @@ void CjUIExtensionCallback::OnRelease(int32_t code)
     uiContent_->CloseModalUIExtension(sessionId_);
 }
 #endif // SUPPORT_SCREEN
+
+char* CreateCStringFromString(const std::string& source)
+{
+    if (source.size() == 0) {
+        return nullptr;
+    }
+    size_t length = source.size() + 1;
+    auto res = static_cast<char*>(malloc(length));
+    if (res == nullptr) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "null res");
+        return nullptr;
+    }
+    if (strcpy_s(res, length, source.c_str()) != 0) {
+        free(res);
+        TAG_LOGE(AAFwkTag::DEFAULT, "Strcpy failed");
+        return nullptr;
+    }
+    return res;
+}
+
 void CjUIExtensionCallback::CallCjError(int32_t number)
 {
     TAG_LOGI(AAFwkTag::UI_EXT, "call");

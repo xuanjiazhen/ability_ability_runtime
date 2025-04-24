@@ -23,12 +23,40 @@
 #include "cj_ability_lifecycle_callback_impl.h"
 #include "cj_application_state_change_callback.h"
 #include "cj_environment_callback.h"
+#include "cj_context.h"
 #include "ffi_remote_data.h"
 #include "running_process_info.h"
 #include "want.h"
 #include "want_params.h"
 
 namespace OHOS {
+namespace AbilityRuntime {
+enum class CjAppCtxFuncType : int32_t {
+    ON_ABILITY_WILL_CREATE = 0,
+    ON_ABILITY_CREATE,
+    ON_ABILITY_WILL_DESTROY,
+    ON_ABILITY_DESTROY,
+    ON_WINDOWSTAGE_WILL_CREATE,
+    ON_WINDOWSTAGE_CREATE,
+    ON_WINDOWSTAGE_WILL_RESTORE,
+    ON_WINDOWSTAGE_RESTORE,
+    ON_WINDOWSTAGE_WILL_DESTROY,
+    ON_WINDOWSTAGE_DESTROY,
+    ON_ABILITY_WILL_FOREGROUND,
+    ON_ABILITY_FOREGROUND,
+    ON_ABILITY_WILL_BACKGROUND,
+    ON_ABILITY_BACKGROUND,
+    WINDOWSTAGE_FOCUS,
+    WINDOWSTAGE_UNFOCUS,
+    ON_ABILITY_WILL_CONTINUE,
+    ON_ABILITY_CONTINUE,
+    ON_ABILITY_WILL_SAVE_STATE,
+    ON_ABILITY_SAVE_STATE,
+    ON_WILL_NEW_WANT,
+    ON_NEW_WANT,
+};
+}
+
 namespace ApplicationContextCJ {
 using namespace OHOS::AbilityRuntime;
 
@@ -40,10 +68,10 @@ enum CjAppProcessState {
     STATE_DESTROY
 };
 
-class CJApplicationContext : public FFI::FFIData {
+class CJApplicationContext : public FfiContext::CJContext {
 public:
     explicit CJApplicationContext(std::weak_ptr<AbilityRuntime::ApplicationContext> &&applicationContext)
-        : applicationContext_(std::move(applicationContext)) {};
+        : FfiContext::CJContext(applicationContext.lock()), applicationContext_(std::move(applicationContext)) {};
 
     int GetArea();
     std::shared_ptr<AppExecFwk::ApplicationInfo> GetApplicationInfo();
@@ -109,6 +137,7 @@ private:
     std::recursive_mutex callbackLock_;
     static std::vector<std::shared_ptr<CjAbilityLifecycleCallback>> callbacks_;
     static CJApplicationContext* cjApplicationContext_;
+    static std::mutex contexMutex_;
 };
 
 }

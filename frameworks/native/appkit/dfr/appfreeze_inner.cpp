@@ -20,11 +20,13 @@
 #include "ability_state.h"
 #include "appfreeze_manager.h"
 #include "app_recovery.h"
+#include "backtrace_local.h"
 #include "exit_reason.h"
 #include "ffrt.h"
 #include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "hisysevent.h"
 #include "parameter.h"
 #include "xcollie/watchdog.h"
 #include "time_util.h"
@@ -87,15 +89,17 @@ bool AppfreezeInner::IsHandleAppfreeze()
 
 void AppfreezeInner::GetMainHandlerDump(std::string& msgContent)
 {
+    msgContent = "\nMain handler dump start time: " + AbilityRuntime::TimeUtil::DefaultCurrentTimeStr() + "\n";
     auto mainHandler = appMainHandler_.lock();
     if (mainHandler == nullptr) {
-        msgContent += "mainHandler is destructed!";
+        msgContent += "mainHandler is destructed!\n";
     } else {
         MainHandlerDumper handlerDumper;
         msgContent += "mainHandler dump is:\n";
         mainHandler->Dump(handlerDumper);
         msgContent += handlerDumper.GetDumpInfo();
     }
+    msgContent += "Main handler dump end time: " + AbilityRuntime::TimeUtil::DefaultCurrentTimeStr() + "\n";
 }
 
 void AppfreezeInner::ChangeFaultDateInfo(FaultData& faultData, const std::string& msgContent)
@@ -105,7 +109,16 @@ void AppfreezeInner::ChangeFaultDateInfo(FaultData& faultData, const std::string
     faultData.notifyApp = false;
     faultData.waitSaveState = false;
     faultData.forceExit = false;
-    bool isExit = IsExitApp(faultData.errorObject.name);
+    int32_t pid = IPCSkeleton::GetCallingPid();
+    faultData.errorObject.stack = "\nDump tid stack start time: " +
+        AbilityRuntime::TimeUtil::DefaultCurrentTimeStr() + "\n";
+    std::string stack = "";
+    if (!HiviewDFX::GetBacktraceStringByTidWithMix(stack, pid, 0, true)) {
+        stack = "Failed to dump stacktrace for " + std::to_string(pid) + "\n" + stack;
+    }
+    faultData.errorObject.stack += stack + "\nDump tid stack end time: " +
+        AbilityRuntime::TimeUtil::DefaultCurrentTimeStr() + "\n";
+    bool isExit = IsExitApp(faultData.errorObject.name) && faultData.needKillProcess;
     if (isExit) {
         faultData.forceExit = true;
         faultData.waitSaveState = AppRecovery::GetInstance().IsEnabled();
@@ -160,6 +173,8 @@ int AppfreezeInner::AppfreezeHandle(const FaultData& faultData, bool onlyMainThr
         handlinglist_.emplace_back(faultData);
         constexpr int HANDLING_MIN_SIZE = 1;
         if (handlinglist_.size() <= HANDLING_MIN_SIZE) {
+            TAG_LOGW(AAFwkTag::APPDFR, "submit reportAppFreeze, eventName:%{public}s, startTime:%{public}s\n",
+                faultData.errorObject.name.c_str(), AbilityRuntime::TimeUtil::DefaultCurrentTimeStr().c_str());
             ffrt::submit(reportFreeze, {}, {}, ffrt::task_attr().name("reportAppFreeze"));
         }
     }
@@ -178,9 +193,13 @@ bool AppfreezeInner::IsExitApp(const std::string& name)
 int AppfreezeInner::AcquireStack(const FaultData& info, bool onlyMainThread)
 {
     HITRACE_METER_FMT(HITRACE_TAG_APP, "AppfreezeInner::AcquireStack name:%s", info.errorObject.name.c_str());
-    std::string stack = "";
     std::string msgContent;
+    int64_t startTime = AbilityRuntime::TimeUtil::CurrentTimeMillis();
     GetMainHandlerDump(msgContent);
+    TAG_LOGW(AAFwkTag::APPDFR, "get mainhandler dump, eventName:%{public}s, endTime:%{public}s, "
+        "interval:%{public}" PRId64 " ms", info.errorObject.name.c_str(),
+        AbilityRuntime::TimeUtil::DefaultCurrentTimeStr().c_str(),
+        AbilityRuntime::TimeUtil::CurrentTimeMillis() - startTime);
 
     std::lock_guard<std::mutex> lock(handlingMutex_);
     for (auto it = handlinglist_.begin(); it != handlinglist_.end(); it = handlinglist_.erase(it)) {
@@ -192,10 +211,10 @@ int AppfreezeInner::AcquireStack(const FaultData& info, bool onlyMainThread)
                 FreezeUtil::GetInstance().GetLifecycleEvent(it->token) + "\nclient actions for app:\n" +
                 FreezeUtil::GetInstance().GetAppLifecycleEvent(0) + "\n";
         }
-        faultData.errorObject.stack = stack;
         faultData.errorObject.name = it->errorObject.name;
         faultData.timeoutMarkers = it->timeoutMarkers;
         faultData.eventId = it->eventId;
+        faultData.needKillProcess = it->needKillProcess;
         ChangeFaultDateInfo(faultData, msgContent);
     }
     return 0;
@@ -216,6 +235,11 @@ void AppfreezeInner::ThreadBlock(std::atomic_bool& isSixSecondEvent)
 #ifdef APP_NO_RESPONSE_DIALOG
         isSixSecondEvent.store(false);
 #endif
+        int32_t pid = static_cast<int32_t>(getpid());
+        int ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::RELIABILITY, "LOWMEM_DUMP",
+            HiviewDFX::HiSysEvent::EventType::STATISTIC, "PID", pid, "MSG", "THREAD_BLOCK_6S");
+        TAG_LOGI(AAFwkTag::APPDFR, "hisysevent pid=%{public}d, eventName=LOWMEM_DUMP, MSG=THREAD_BLOCK_6S,"
+            "ret=%{public}d", pid, ret);
     } else {
         faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_3S;
         isSixSecondEvent.store(true);
@@ -240,8 +264,10 @@ int AppfreezeInner::NotifyANR(const FaultData& faultData)
     }
 
     int32_t pid = static_cast<int32_t>(getpid());
-    TAG_LOGI(AAFwkTag::APPDFR, "NotifyAppFault:%{public}s, pid:%{public}d, bundleName:%{public}s",
-        faultData.errorObject.name.c_str(), pid, applicationInfo->bundleName.c_str());
+    TAG_LOGW(AAFwkTag::APPDFR, "NotifyAppFault:%{public}s, pid:%{public}d, bundleName:%{public}s "
+        "currentTime:%{public}s, processExit:%{public}d\n", faultData.errorObject.name.c_str(), pid,
+        applicationInfo->bundleName.c_str(), AbilityRuntime::TimeUtil::DefaultCurrentTimeStr().c_str(),
+        faultData.needKillProcess);
 
     int ret = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->NotifyAppFault(faultData);
     if (ret != 0) {

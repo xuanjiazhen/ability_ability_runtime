@@ -45,6 +45,8 @@
 #include "string_wrapper.h"
 #include "ui_extension_window_command.h"
 #include "want_params_wrapper.h"
+#include "application_configuration_manager.h"
+#include "ohos_application.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -142,6 +144,8 @@ void JsUIExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
         return;
     }
 
+    RegisterAbilityConfigUpdateCallback();
+
     if (record != nullptr) {
         token_ = record->GetToken();
     }
@@ -175,6 +179,57 @@ void JsUIExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
         JsExtensionCommon::Create(jsRuntime_, static_cast<NativeReference&>(*jsObj_), shellContextRef_));
     handler_ = handler;
     RegisterDisplayInfoChangedListener();
+}
+
+void JsUIExtension::RegisterAbilityConfigUpdateCallback()
+{
+    auto context = GetContext();
+    auto uiExtensionAbility = std::static_pointer_cast<JsUIExtension>(shared_from_this());
+    std::weak_ptr<JsUIExtension> abilityWptr = uiExtensionAbility;
+    context->RegisterAbilityConfigUpdateCallback(
+        [abilityWptr, abilityContext = context](AppExecFwk::Configuration &config) {
+        std::shared_ptr<JsUIExtension> abilitySptr = abilityWptr.lock();
+        if (abilitySptr == nullptr) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "null abilitySptr");
+            return;
+        }
+        if (abilityContext == nullptr || abilityContext->GetAbilityInfo() == nullptr) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext or null GetAbilityInfo");
+            return;
+        }
+        if (abilityContext->GetAbilityConfiguration() == nullptr) {
+            auto abilityModuleContext = abilityContext->CreateModuleContext(
+                abilityContext->GetAbilityInfo()->moduleName);
+            if (abilityModuleContext == nullptr) {
+                TAG_LOGE(AAFwkTag::UIABILITY, "null abilityModuleContext");
+                return;
+            }
+            auto abilityResourceMgr = abilityModuleContext->GetResourceManager();
+            abilityContext->SetAbilityResourceManager(abilityResourceMgr);
+            AbilityRuntime::ApplicationConfigurationManager::GetInstance().
+                AddIgnoreContext(abilityContext, abilityResourceMgr);
+            TAG_LOGE(AAFwkTag::UIABILITY, "%{public}zu",
+                AbilityRuntime::ApplicationConfigurationManager::GetInstance().GetIgnoreContext().size());
+        }
+        abilityContext->SetAbilityConfiguration(config);
+        if (config.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE).
+            compare(AppExecFwk::ConfigurationInner::COLOR_MODE_AUTO) == 0) {
+            config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE,
+                AbilityRuntime::ApplicationConfigurationManager::GetInstance().GetColorMode());
+
+            if (AbilityRuntime::ApplicationConfigurationManager::GetInstance().
+                GetColorModeSetLevel() > AbilityRuntime::SetLevel::System) {
+                config.AddItem(AAFwk::GlobalConfigurationKey::COLORMODE_IS_SET_BY_APP,
+                    AppExecFwk::ConfigurationInner::IS_SET_BY_APP);
+            }
+            abilityContext->GetAbilityConfiguration()->
+                RemoveItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE);
+            abilityContext->GetAbilityConfiguration()->
+                RemoveItem(AAFwk::GlobalConfigurationKey::COLORMODE_IS_SET_BY_APP);
+        }
+
+        abilitySptr->OnAbilityConfigurationUpdated(config);
+    });
 }
 
 void JsUIExtension::CreateJSContext(napi_env env, napi_value &contextObj,
@@ -250,7 +305,7 @@ void JsUIExtension::BindContext(napi_env env, napi_value obj, std::shared_ptr<AA
 void JsUIExtension::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::UI_EXT, "begin");
+    TAG_LOGD(AAFwkTag::UI_EXT, "OnStart begin");
     Extension::OnStart(want);
     auto context = GetContext();
 #ifdef SUPPORT_GRAPHICS
@@ -288,6 +343,9 @@ void JsUIExtension::OnStop()
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     UIExtension::OnStop();
     TAG_LOGD(AAFwkTag::UI_EXT, "begin");
+    AbilityRuntime::ApplicationConfigurationManager::GetInstance().DeleteIgnoreContext(GetContext());
+    TAG_LOGI(AAFwkTag::UIABILITY, "GetIgnoreContext size %{public}zu",
+        AbilityRuntime::ApplicationConfigurationManager::GetInstance().GetIgnoreContext().size());
     HandleScope handleScope(jsRuntime_);
     CallObjectMethod("onDestroy");
 #ifdef SUPPORT_GRAPHICS
@@ -678,7 +736,7 @@ void JsUIExtension::OnCommand(const AAFwk::Want &want, bool restart, int startId
 void JsUIExtension::OnForeground(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::UI_EXT, "begin");
+    TAG_LOGD(AAFwkTag::UI_EXT, "OnForeground begin");
     CHECK_POINTER(sessionInfo);
     Extension::OnForeground(want, sessionInfo);
 
@@ -715,6 +773,7 @@ bool JsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFw
     std::lock_guard<std::mutex> lock(uiWindowMutex_);
     TAG_LOGD(AAFwkTag::UI_EXT, "UIExtension component id: %{public}" PRId64 ", element: %{public}s",
         sessionInfo->uiExtensionComponentId, want.GetElement().GetURI().c_str());
+    std::shared_ptr<AAFwk::Want> sharedWant = std::make_shared<AAFwk::Want>(want);
     auto compId = sessionInfo->uiExtensionComponentId;
     if (uiWindowMap_.find(compId) == uiWindowMap_.end()) {
         auto context = GetContext();
@@ -723,9 +782,10 @@ bool JsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFw
             TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow");
             return false;
         }
+        uiWindow->UpdateExtensionConfig(sharedWant);
         HandleScope handleScope(jsRuntime_);
         napi_env env = jsRuntime_.GetNapiEnv();
-        napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, want);
+        napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, *sharedWant);
         napi_value nativeContentSession = JsUIExtensionContentSession::CreateJsUIExtensionContentSession(
             env, sessionInfo, uiWindow, context, abilityResultListeners_);
         napi_ref ref = nullptr;
@@ -751,6 +811,13 @@ bool JsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFw
             context->SetWindow(uiWindow);
         }
 #endif // SUPPORT_GRAPHICS
+    } else {
+        auto uiWindow = uiWindowMap_[compId];
+        if (uiWindow == nullptr) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow");
+            return false;
+        }
+        uiWindow->UpdateExtensionConfig(sharedWant);
     }
     return true;
 }
@@ -777,6 +844,11 @@ sptr<Rosen::Window> JsUIExtension::CreateUIWindow(const std::shared_ptr<UIExtens
     option->SetDensity(sessionInfo->density);
     option->SetIsDensityFollowHost(sessionInfo->isDensityFollowHost);
     option->SetDisplayId(sessionInfo->displayId);
+    if (context->isNotAllow != -1) {
+        bool isNotAllow = context->isNotAllow == 1 ? true : false;
+        TAG_LOGD(AAFwkTag::UI_EXT, "isNotAllow: %{public}d", isNotAllow);
+        option->SetConstrainedModal(isNotAllow);
+    }
     HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::Create");
     return Rosen::Window::Create(option, GetContext(), sessionInfo->sessionToken);
 }
@@ -1001,8 +1073,48 @@ void JsUIExtension::OnConfigurationUpdated(const AppExecFwk::Configuration& conf
         return;
     }
 
+    auto abilityConfig = context->GetAbilityConfiguration();
     auto configUtils = std::make_shared<ConfigurationUtils>();
-    configUtils->UpdateGlobalConfig(configuration, context->GetConfiguration(), context->GetResourceManager());
+
+    if (abilityConfig != nullptr) {
+        auto newConfig = configUtils->UpdateGlobalConfig(configuration, context->GetConfiguration(),
+            abilityConfig, context->GetResourceManager());
+        if (newConfig.GetItemSize() == 0) {
+            return;
+        }
+        if (context->GetWindow()) {
+            TAG_LOGI(AAFwkTag::UIABILITY, "newConfig: %{public}s", newConfig.GetName().c_str());
+            auto diffConfiguration = std::make_shared<AppExecFwk::Configuration>(newConfig);
+            context->GetWindow()->UpdateConfigurationForSpecified(diffConfiguration, context->GetResourceManager());
+        }
+    } else {
+        auto configUtils = std::make_shared<ConfigurationUtils>();
+        configUtils->UpdateGlobalConfig(configuration, context->GetConfiguration(), context->GetResourceManager());
+    }
+
+    ConfigurationUpdated();
+}
+
+void JsUIExtension::OnAbilityConfigurationUpdated(const AppExecFwk::Configuration& configuration)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    Extension::OnConfigurationUpdated(configuration);
+    TAG_LOGD(AAFwkTag::UI_EXT, "called");
+
+    auto context = GetContext();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null context");
+        return;
+    }
+
+    auto configUtils = std::make_shared<ConfigurationUtils>();
+    configUtils->UpdateAbilityConfig(configuration, context->GetResourceManager());
+
+    if (context->GetWindow()) {
+        TAG_LOGI(AAFwkTag::UIABILITY, "newConfig: %{public}s", configuration.GetName().c_str());
+        auto diffConfiguration = std::make_shared<AppExecFwk::Configuration>(configuration);
+        context->GetWindow()->UpdateConfigurationForSpecified(diffConfiguration, context->GetResourceManager());
+    }
 
     ConfigurationUpdated();
 }
@@ -1088,15 +1200,25 @@ void JsUIExtension::ConfigurationUpdated()
         TAG_LOGE(AAFwkTag::UI_EXT, "null context");
         return;
     }
-
+    auto abilityConfig = context->GetAbilityConfiguration();
     auto fullConfig = context->GetConfiguration();
     if (fullConfig == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null Configuration");
         return;
     }
-    JsExtensionContext::ConfigurationUpdated(env, shellContextRef_, fullConfig);
+    auto realConfig = AppExecFwk::Configuration(*fullConfig);
+    if (abilityConfig != nullptr) {
+        std::vector<std::string> changeKeyV;
+        realConfig.CompareDifferent(changeKeyV, *abilityConfig);
+        if (!changeKeyV.empty()) {
+            realConfig.Merge(changeKeyV, *abilityConfig);
+        }
+    }
+    TAG_LOGD(AAFwkTag::UIABILITY, "realConfig: %{public}s", realConfig.GetName().c_str());
+    auto realConfigPtr = std::make_shared<Configuration>(realConfig);
+    JsExtensionContext::ConfigurationUpdated(env, shellContextRef_, realConfigPtr);
 
-    napi_value napiConfiguration = OHOS::AppExecFwk::WrapConfiguration(env, *fullConfig);
+    napi_value napiConfiguration = OHOS::AppExecFwk::WrapConfiguration(env, realConfig);
     CallObjectMethod("onConfigurationUpdate", &napiConfiguration, ARGC_ONE);
 }
 

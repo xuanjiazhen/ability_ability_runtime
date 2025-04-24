@@ -153,6 +153,8 @@ int32_t AppSchedulerHost::OnRemoteRequestInnerThird(uint32_t code, MessageParcel
             return HandleScheduleDumpFfrt(data, reply);
         case static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_CACHE_PROCESS):
             return HandleScheduleCacheProcess(data, reply);
+        case static_cast<uint32_t>(IAppScheduler::Message::WATCHDOG_BACKGROUND_STATUS_TRANSACTION):
+            return HandleSetWatchdogBackgroundStatus(data, reply);
     }
     return INVALID_FD;
 }
@@ -272,12 +274,13 @@ int32_t AppSchedulerHost::HandleScheduleUpdateApplicationInfoInstalled(MessagePa
 {
     HITRACE_METER(HITRACE_TAG_APP);
     std::unique_ptr<ApplicationInfo> appInfo(data.ReadParcelable<ApplicationInfo>());
+    auto moduleName = data.ReadString();
     if (!appInfo) {
         TAG_LOGE(AAFwkTag::APPMGR, "ReadParcelable<ApplicationInfo> failed");
         return ERR_APPEXECFWK_PARCEL_ERROR;
     }
 
-    ScheduleUpdateApplicationInfoInstalled(*appInfo);
+    ScheduleUpdateApplicationInfoInstalled(*appInfo, moduleName);
     return NO_ERROR;
 }
 
@@ -352,17 +355,7 @@ int32_t AppSchedulerHost::HandleSchedulePrepareTerminate(MessageParcel &data, Me
 {
     HITRACE_METER(HITRACE_TAG_APP);
     auto moduleName = data.ReadString();
-    int32_t prepareTermination = 0;
-    bool isExist = false;
-    SchedulePrepareTerminate(moduleName, prepareTermination, isExist);
-    if (!reply.WriteInt32(prepareTermination)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write HandleSchedulePrepareTerminate prepareTermination failed.");
-        return ERR_INVALID_VALUE;
-    }
-    if (!reply.WriteBool(isExist)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write HandleSchedulePrepareTerminate isExist failed.");
-        return ERR_INVALID_VALUE;
-    }
+    SchedulePrepareTerminate(moduleName);
     return NO_ERROR;
 }
 
@@ -451,7 +444,8 @@ int32_t AppSchedulerHost::HandleScheduleChangeAppGcState(MessageParcel &data, Me
 int32_t AppSchedulerHost::HandleAttachAppDebug(MessageParcel &data, MessageParcel &reply)
 {
     HITRACE_METER(HITRACE_TAG_APP);
-    AttachAppDebug();
+    auto isDebugFromLocal = data.ReadBool();
+    AttachAppDebug(isDebugFromLocal);
     return NO_ERROR;
 }
 
@@ -514,6 +508,14 @@ int32_t AppSchedulerHost::HandleScheduleDumpFfrt(MessageParcel &data, MessagePar
         TAG_LOGE(AAFwkTag::APPMGR, "Fail to write string of ScheduleDumpFfrt result");
         return ERR_INVALID_VALUE;
     }
+    return NO_ERROR;
+}
+
+int32_t AppSchedulerHost::HandleSetWatchdogBackgroundStatus(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    bool status = data.ReadBool();
+    SetWatchdogBackgroundStatus(status);
     return NO_ERROR;
 }
 }  // namespace AppExecFwk

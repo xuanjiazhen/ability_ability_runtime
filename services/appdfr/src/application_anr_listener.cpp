@@ -19,8 +19,11 @@
 #include "singleton.h"
 
 #include "app_mgr_client.h"
+#include "backtrace_local.h"
 #include "fault_data.h"
 #include "hilog_tag_wrapper.h"
+#include "hisysevent.h"
+#include "time_util.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -34,12 +37,23 @@ void ApplicationAnrListener::OnAnr(int32_t pid, int32_t eventId) const
     faultData.faultType = AppExecFwk::FaultDataType::APP_FREEZE;
     faultData.pid = pid;
     faultData.errorObject.message = "User input does not respond!";
-    faultData.errorObject.stack = "";
+    faultData.errorObject.stack =  "\nDump tid stack start time: " +
+        AbilityRuntime::TimeUtil::DefaultCurrentTimeStr() + "\n";
+    std::string stack = "";
+    if (!HiviewDFX::GetBacktraceStringByTidWithMix(stack, pid, 0, true)) {
+        stack = "Failed to dump stacktrace for " + std::to_string(pid) + "\n" + stack;
+    }
+    faultData.errorObject.stack += stack + "\nDump tid stack end time: " +
+        AbilityRuntime::TimeUtil::DefaultCurrentTimeStr() + "\n";
     faultData.errorObject.name = AppExecFwk::AppFreezeType::APP_INPUT_BLOCK;
     faultData.waitSaveState = false;
     faultData.notifyApp = false;
     faultData.forceExit = false;
     faultData.eventId = eventId;
+    int ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::RELIABILITY, "LOWMEM_DUMP",
+        HiviewDFX::HiSysEvent::EventType::STATISTIC, "PID", pid, "MSG", "APP_INPUT_BLOCK");
+    TAG_LOGI(AAFwkTag::APPDFR, "hisysevent pid=%{public}d, eventName=LOWMEM_DUMP, MSG=APP_INPUT_BLOCK,"
+        "ret=%{public}d", pid, ret);
     DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->NotifyAppFaultBySA(faultData);
 }
 }  // namespace AAFwk

@@ -41,7 +41,11 @@ const int DEFAULT_INVAL_VALUE = -1;
 class AbilityManagerService : public std::enable_shared_from_this<AbilityManagerService> {
     DECLARE_DELAYED_SINGLETON(AbilityManagerService)
 public:
-    bool IsInStatusBar(uint32_t accessTokenId, int32_t uid);
+    bool IsInStatusBar(uint32_t accessTokenId, int32_t uid, bool isMultiInstance);
+
+    bool IsSupportStatusBar(int32_t uid);
+
+    bool IsSceneBoardReady(int32_t userId);
 
     /**
      * get the user id.
@@ -68,6 +72,7 @@ public:
 
 public:
     static bool isInStatusBarResult;
+    static bool isSupportStatusBarResult;
     static int32_t userId_;
     static int32_t startAbilityResult;
 };

@@ -122,7 +122,7 @@ public:
      *
      * @return
      */
-    virtual void ScheduleUpdateApplicationInfoInstalled(const ApplicationInfo &) = 0;
+    virtual void ScheduleUpdateApplicationInfoInstalled(const ApplicationInfo &, const std::string &) = 0;
 
     /**
      * ScheduleAbilityStageInfo, call ScheduleAbilityStageInfo() through proxy project,
@@ -199,11 +199,8 @@ public:
      * @brief Schedule prepare terminate application
      *
      * @param moduleName module name
-     * @param prepareTermination the return enum type PrepareTermination
-     * @param isExist whether the onPrepareTerminate exists
      */
-    virtual void SchedulePrepareTerminate(const std::string &moduleName,
-        int32_t &prepareTermination, bool &isExist) = 0;
+    virtual void SchedulePrepareTerminate(const std::string &moduleName) = 0;
 
     virtual void ScheduleNewProcessRequest(const AAFwk::Want &want, const std::string &moduleName) = 0;
 
@@ -259,7 +256,7 @@ public:
     /**
      * @brief Attach app debug.
      */
-    virtual void AttachAppDebug() = 0;
+    virtual void AttachAppDebug(bool isDebugFromLocal) = 0;
 
     /**
      * @brief Detach app debug.
@@ -313,6 +310,14 @@ public:
      */
     virtual int32_t ScheduleDumpFfrt(std::string& result) = 0;
 
+    /**
+     * SetWatchdogBackgroundStatus, call SetWatchdogBackgroundStatus(bool status) through proxy project,
+     * Notify application to set watchdog background status.
+     *
+     * @return
+     */
+    virtual void SetWatchdogBackgroundStatus(bool status) = 0;
+
     enum class Message {
         SCHEDULE_FOREGROUND_APPLICATION_TRANSACTION = 0,
         SCHEDULE_BACKGROUND_APPLICATION_TRANSACTION,
@@ -346,6 +351,7 @@ public:
         SCHEDULE_CACHE_PROCESS,
         SCHEDULE_CLEAR_PAGE_STACK,
         SCHEDULE_PREPARE_TERMINATE,
+        WATCHDOG_BACKGROUND_STATUS_TRANSACTION,
     };
 };
 }  // namespace AppExecFwk

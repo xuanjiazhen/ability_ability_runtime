@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_CJ_ENVIRONMENT_H
 
 #include "cj_envsetup.h"
+#include "cj_invoker.h"
 
 #include <string>
 #include <functional>
@@ -35,6 +36,17 @@ using TaskFuncType = void(*)();
 class CJ_EXPORT CJEnvironment final {
 public:
     static CJEnvironment* GetInstance();
+    static void InitSpawnEnv();
+    static void SetAppPath(const std::string& paths);
+    static CJEnvMethods* CreateEnvMethods();
+
+    enum class NSMode {
+        SINK,
+        APP,
+    };
+
+    CJEnvironment(NSMode mode);
+    ~CJEnvironment();
 
     bool IsRuntimeStarted()
     {
@@ -45,13 +57,13 @@ public:
     {
         sanitizerKind_ = kind;
     }
-    void InitCJAppNS(const std::string& path);
-    void InitCJSDKNS(const std::string& path);
-    void InitCJSysNS(const std::string& path);
-    void InitCJChipSDKNS(const std::string& path);
+    
     bool StartRuntime();
     void StopRuntime();
+    void RegisterArkVMInRuntime(unsigned long long externalVM);
+    void RegisterStackInfoCallbacks(UpdateStackInfoFuncType uFunc);
     void RegisterCJUncaughtExceptionHandler(const CJUncaughtExceptionInfo& handle);
+    bool RegisterCangjieCallback();
     bool IsUISchedulerStarted()
     {
         return isUISchedulerStarted_;
@@ -78,19 +90,41 @@ public:
     bool StartDebugger();
     bool PostTask(TaskFuncType task);
     bool HasHigherPriorityTask();
+    CJRuntimeAPI* GetLazyApis() { return lazyApis_; }
+    void SetLazyApis(CJRuntimeAPI* apis) { lazyApis_ = apis; }
+
+    void PreloadLibs();
+    void InitCJAppNS(const std::string& path);
+    void InitCJSDKNS(const std::string& path);
+    void InitNewCJAppNS(const std::string& path);
+    void InitNewCJSDKNS(const std::string& path);
+    void InitCJSysNS(const std::string& path);
+    void InitCJChipSDKNS(const std::string& path);
+    void InitNewCJChipSDKNS(const std::string& path);
+    void InitRuntimeNS();
+    void InitCJNS(const std::string& path);
+    static NSMode DetectAppNSMode();
 
     static const char *cjAppNSName;
     static const char *cjSDKNSName;
     static const char *cjSysNSName;
     static const char *cjChipSDKNSName;
+    static const char *cjNewAppNSName;
+    static const char *cjNewSDKNSName;
+    static const char *cjNewSysNSName;
+    static const char *cjNDKNSName;
+
 private:
     bool LoadRuntimeApis();
-    static CJRuntimeAPI lazyApis_;
+    bool isRuntimeApiLoaded {false};
+    CJRuntimeAPI* lazyApis_ {nullptr};
     bool isRuntimeStarted_{false};
     bool isLoadCJLibrary_{false};
     bool isUISchedulerStarted_{false};
     void* uiScheduler_ {nullptr};
     SanitizerKind sanitizerKind_ {SanitizerKind::NONE};
+    NSMode nsMode_;
+    std::vector<void*> preloadLibs_;
 };
 
 }

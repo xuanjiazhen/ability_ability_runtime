@@ -74,7 +74,10 @@ constexpr const char* TASK_ATTACH_CHILD_PROCESS = "AttachChildProcessTask";
 constexpr const char* TASK_EXIT_CHILD_PROCESS_SAFELY = "ExitChildProcessSafelyTask";
 #endif // SUPPORT_CHILD_PROCESS
 constexpr const char* FOUNDATION_PROCESS = "foundation";
+constexpr const char* BS_PROCESS_NAME = "bgtaskmgr_service";
 constexpr int32_t USER_UID = 2000;
+constexpr const char* HIVIEW_PROCESS_NAME = "hiview";
+constexpr const char* DEBUG_FROM = "ohos.param.debugFrom";
 }  // namespace
 
 REGISTER_SYSTEM_ABILITY_BY_ID(AppMgrService, APP_MGR_SERVICE_ID, true);
@@ -112,7 +115,9 @@ void AppMgrService::OnStart()
         return;
     }
     appMgrServiceState_.serviceRunningState = ServiceRunningState::STATE_RUNNING;
-    AddSystemAbilityListener(WINDOW_MANAGER_SERVICE_ID);
+    if (!AddSystemAbilityListener(WINDOW_MANAGER_SERVICE_ID)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "OnStart, add listener err");
+    }
     TAG_LOGI(AAFwkTag::APPMGR, "start service success");
     PerfProfile::GetInstance().SetAmsLoadEndTime(GetTickCount());
     PerfProfile::GetInstance().Dump();
@@ -1132,8 +1137,9 @@ int32_t AppMgrService::NotifyHotReloadPage(const std::string &bundleName, const 
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
 int32_t AppMgrService::SetContinuousTaskProcess(int32_t pid, bool isContinuousTask)
 {
-    if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "not foundation");
+    if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(BS_PROCESS_NAME) &&
+        !AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not rss or foundation");
         return ERR_INVALID_OPERATION;
     }
     if (!IsReady()) {
@@ -1184,8 +1190,10 @@ int32_t AppMgrService::StartNativeProcessForDebugger(const AAFwk::Want &want)
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
-    auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
-    if (!isShellCall) {
+    bool isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
+    auto callingTokenId = IPCSkeleton::GetCallingTokenID();
+    bool isLocalDebugCall = AAFwk::PermissionVerification::GetInstance()->VerifyStartLocalDebug(callingTokenId);
+    if (!isShellCall && !isLocalDebugCall) {
         TAG_LOGE(AAFwkTag::APPMGR, "permission denied");
         return ERR_INVALID_OPERATION;
     }
@@ -1212,6 +1220,16 @@ int32_t AppMgrService::GetRunningProcessInfoByPid(const pid_t pid, OHOS::AppExec
         return ERR_INVALID_OPERATION;
     }
     return appMgrServiceInner_->GetRunningProcessInfoByPid(pid, info);
+}
+
+int32_t AppMgrService::GetRunningProcessInfoByChildProcessPid(const pid_t childPid,
+    OHOS::AppExecFwk::RunningProcessInfo &info)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->GetRunningProcessInfoByChildProcessPid(childPid, info);
 }
 
 int32_t AppMgrService::NotifyAppFault(const FaultData &faultData)
@@ -1400,6 +1418,7 @@ int32_t AppMgrService::IsApplicationRunning(const std::string &bundleName, bool 
 
 int32_t AppMgrService::IsAppRunning(const std::string &bundleName, int32_t appCloneIndex, bool &isRunning)
 {
+    isRunning = false;
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
@@ -1409,6 +1428,7 @@ int32_t AppMgrService::IsAppRunning(const std::string &bundleName, int32_t appCl
 int32_t AppMgrService::IsAppRunningByBundleNameAndUserId(const std::string &bundleName, int32_t userId,
     bool &isRunning)
 {
+    isRunning = false;
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
@@ -1578,14 +1598,14 @@ int32_t AppMgrService::GetAllUIExtensionProviderPid(pid_t hostPid, std::vector<p
     return appMgrServiceInner_->GetAllUIExtensionProviderPid(hostPid, providerPids);
 }
 
-int32_t AppMgrService::NotifyMemorySizeStateChanged(bool isMemorySizeSufficient)
+int32_t AppMgrService::NotifyMemorySizeStateChanged(int32_t memorySizeState)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
 
-    return appMgrServiceInner_->NotifyMemorySizeStateChanged(isMemorySizeSufficient);
+    return appMgrServiceInner_->NotifyMemorySizeStateChanged(memorySizeState);
 }
 
 int32_t AppMgrService::SetSupportedProcessCacheSelf(bool isSupport)
@@ -1746,7 +1766,7 @@ void AppMgrService::UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::str
     appMgrServiceInner_->UpdateInstanceKeyBySpecifiedId(specifiedId, instanceKey);
 }
 
-int32_t AppMgrService::HasAppRecord(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result)
+int32_t AppMgrService::IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result)
 {
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
@@ -1761,8 +1781,60 @@ int32_t AppMgrService::HasAppRecord(const AAFwk::Want &want, const AbilityInfo &
         TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
         return ERR_INVALID_VALUE;
     }
-    result = appMgrServiceInner_->HasAppRecord(want, abilityInfo);
+    result = appMgrServiceInner_->IsSpecifiedModuleLoaded(want, abilityInfo);
     return ERR_OK;
+}
+
+int32_t AppMgrService::UpdateProcessMemoryState(const std::vector<ProcessMemoryState> &procMemState)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "procMemState.size = %{public}zu", procMemState.size());
+    if (!IsReady()) {
+        return ERR_INVALID_OPERATION;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall() &&
+        !AAFwk::PermissionVerification::GetInstance()->IsShellCall()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "caller is not sa or shell");
+        return ERR_PERMISSION_DENIED;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
+        HIVIEW_PROCESS_NAME)) {
+        TAG_LOGW(AAFwkTag::APPMGR, "caller not sa dfx");
+    }
+    if (!appMgrServiceInner_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    return appMgrServiceInner_->UpdateProcessMemoryState(procMemState);
+}
+
+int32_t AppMgrService::GetKilledProcessInfo(int pid, int uid, KilledProcessInfo &info)
+{
+    if (!IsReady()) {
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
+    }
+    pid_t callingPid = IPCSkeleton::GetCallingPid();
+    pid_t currentPid = getprocpid();
+    if (callingPid != currentPid) {
+        TAG_LOGE(AAFwkTag::APPMGR, "other process");
+        return AAFwk::ERR_NO_ALLOW_OUTSIDE_CALL;
+    }
+    if (!appMgrServiceInner_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
+        return AAFwk::ERR_NULL_APP_MGR_SERVICE_INNER;
+    }
+    return appMgrServiceInner_->GetKilledProcessInfo(pid, uid, info);
+}
+
+int32_t AppMgrService::LaunchAbility(sptr<IRemoteObject> token)
+{
+    if (!IsReady()) {
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not foundation");
+        return AAFwk::ERR_NO_ALLOW_OUTSIDE_CALL;
+    }
+    return appMgrServiceInner_->LaunchAbility(token);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

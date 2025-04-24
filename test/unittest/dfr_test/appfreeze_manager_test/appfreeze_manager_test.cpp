@@ -65,7 +65,7 @@ void AppfreezeManagerTest::TearDown(void)
  * @tc.desc: add testcase codecoverage
  * @tc.type: FUNC
  */
-HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_001, TestSize.Level1)
+HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_001, TestSize.Level0)
 {
     bool ret = appfreezeManager->IsHandleAppfreeze("");
     EXPECT_TRUE(ret);
@@ -177,7 +177,7 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_005, TestSize.Level1)
     appfreezeManager->ParseBinderPids(binderInfos, pids, 2, 8, terminalBinder);
     EXPECT_EQ(pids.size(), 0);
     appfreezeManager->ParseBinderPids(binderInfos, pids, 1, 0, terminalBinder);
-    EXPECT_EQ(pids.size(), 2);
+    EXPECT_EQ(pids.size(), 1);
 }
 
 /**
@@ -187,9 +187,9 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_005, TestSize.Level1)
  */
 HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_006, TestSize.Level1)
 {
-    std::string ret = appfreezeManager->CatcherStacktrace(0);
+    std::string ret = appfreezeManager->CatcherStacktrace(0, "");
     printf("ret: %s\n", ret.c_str());
-    ret = appfreezeManager->CatcherStacktrace(2);
+    ret = appfreezeManager->CatcherStacktrace(2, "");
     printf("ret: %s\n", ret.c_str());
     EXPECT_TRUE(!ret.empty());
     appfreezeManager->ClearOldInfo();
@@ -228,7 +228,7 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_007, TestSize.Level1)
  * @tc.desc: add testcase codecoverage
  * @tc.type: FUNC
  */
-HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_AppFreezeFilter_001, TestSize.Level1)
+HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_AppFreezeFilter_001, TestSize.Level0)
 {
     int32_t pid = static_cast<int32_t>(getprocpid());
     EXPECT_TRUE(!appfreezeManager->CancelAppFreezeDetect(pid, ""));

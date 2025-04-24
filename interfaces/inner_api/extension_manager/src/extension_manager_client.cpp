@@ -165,5 +165,38 @@ ErrCode ExtensionManagerClient::DisconnectAbility(const sptr<IRemoteObject> &con
     return abms->DisconnectAbility(connect);
 }
 
+ErrCode ExtensionManagerClient::Release()
+{
+    TAG_LOGI(AAFwkTag::EXTMGR, "Release");
+    return RemoveDeathRecipient();
+}
+
+ErrCode ExtensionManagerClient::RemoveDeathRecipient()
+{
+    TAG_LOGI(AAFwkTag::EXTMGR, "RemoveDeathRecipient");
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (proxy_ == nullptr) {
+        TAG_LOGW(AAFwkTag::EXTMGR, "null proxy_");
+        return ERR_NULL_OBJECT;
+    }
+    if (deathRecipient_ == nullptr) {
+        TAG_LOGW(AAFwkTag::EXTMGR, "null deathRecipient_");
+        return ERR_NULL_OBJECT;
+    }
+    auto serviceRemote = proxy_->AsObject();
+    if (serviceRemote == nullptr) {
+        TAG_LOGW(AAFwkTag::EXTMGR, "null serviceRemote");
+        return ERR_NULL_OBJECT;
+    }
+    bool ret = serviceRemote->RemoveDeathRecipient(deathRecipient_);
+    if (!ret) {
+        TAG_LOGW(AAFwkTag::EXTMGR, "RemoveDeathRecipient fail");
+        return ERR_INVALID_VALUE;
+    }
+    proxy_ = nullptr;
+    deathRecipient_ = nullptr;
+    TAG_LOGI(AAFwkTag::EXTMGR, "RemoveDeathRecipient success");
+    return ERR_OK;
+}
 }  // namespace AAFwk
 }  // namespace OHOS

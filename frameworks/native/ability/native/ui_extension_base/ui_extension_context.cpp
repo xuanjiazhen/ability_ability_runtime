@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,8 @@
 #include "connection_manager.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "configuration_convertor.h"
+#include "configuration.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -114,6 +116,18 @@ ErrCode UIExtensionContext::DisconnectAbility(
         TAG_LOGE(AAFwkTag::UI_EXT, "ret = %{public}d", ret);
     }
     TAG_LOGD(AAFwkTag::UI_EXT, "end");
+    return ret;
+}
+
+ErrCode UIExtensionContext::StartServiceExtensionAbility(const AAFwk::Want& want, int32_t accountId)
+{
+    TAG_LOGI(AAFwkTag::UI_EXT, "Start service extension %{public}s, accountId: %{public}d",
+        want.GetElement().GetURI().c_str(), accountId);
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
+        want, token_, accountId, AppExecFwk::ExtensionAbilityType::SERVICE);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Start service extension failed %{public}d", ret);
+    }
     return ret;
 }
 
@@ -311,6 +325,65 @@ ErrCode UIExtensionContext::OpenLink(const AAFwk::Want& want, int requestCode)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "called");
     return AAFwk::AbilityManagerClient::GetInstance()->OpenLink(want, token_, -1, requestCode);
+}
+
+std::shared_ptr<Global::Resource::ResourceManager> UIExtensionContext::GetResourceManager() const
+{
+    if (abilityResourceMgr_) {
+        return abilityResourceMgr_;
+    }
+
+    return ContextImpl::GetResourceManager();
+}
+
+void UIExtensionContext::SetAbilityResourceManager(
+    std::shared_ptr<Global::Resource::ResourceManager> abilityResourceMgr)
+{
+    abilityResourceMgr_ = abilityResourceMgr;
+}
+
+void UIExtensionContext::RegisterAbilityConfigUpdateCallback(AbilityConfigUpdateCallback abilityConfigUpdateCallback)
+{
+    abilityConfigUpdateCallback_ = abilityConfigUpdateCallback;
+}
+
+std::shared_ptr<AppExecFwk::Configuration> UIExtensionContext::GetAbilityConfiguration() const
+{
+    return abilityConfiguration_;
+}
+
+void UIExtensionContext::SetAbilityConfiguration(const AppExecFwk::Configuration &config)
+{
+    if (!abilityConfiguration_) {
+        abilityConfiguration_ = std::make_shared<AppExecFwk::Configuration>(config);
+        TAG_LOGI(AAFwkTag::CONTEXT, "abilityConfiguration: %{public}s", abilityConfiguration_->GetName().c_str());
+        return;
+    }
+    std::vector<std::string> changeKeyV;
+    abilityConfiguration_->CompareDifferent(changeKeyV, config);
+    if (!changeKeyV.empty()) {
+        abilityConfiguration_->Merge(changeKeyV, config);
+    }
+    TAG_LOGI(AAFwkTag::CONTEXT, "abilityConfiguration: %{public}s", abilityConfiguration_->GetName().c_str());
+}
+
+void UIExtensionContext::SetAbilityColorMode(int32_t colorMode)
+{
+    TAG_LOGI(AAFwkTag::CONTEXT, "SetAbilityColorMode colorMode: %{public}d", colorMode);
+    if (colorMode < -1 || colorMode > 1) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "colorMode error");
+        return;
+    }
+    AppExecFwk::Configuration config;
+
+    config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE, AppExecFwk::GetColorModeStr(colorMode));
+    config.AddItem(AAFwk::GlobalConfigurationKey::COLORMODE_IS_SET_BY_APP,
+        AppExecFwk::ConfigurationInner::IS_SET_BY_APP);
+    if (!abilityConfigUpdateCallback_) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "abilityConfigUpdateCallback_ nullptr");
+        return;
+    }
+    abilityConfigUpdateCallback_(config);
 }
 
 int32_t UIExtensionContext::curRequestCode_ = 0;
