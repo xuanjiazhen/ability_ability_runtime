@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-1
+
 import { AbilityInfo } from 'bundleManager.AbilityInfo';
 import Want from '@ohos.app.ability.Want';
 import StartOptions from '@ohos.app.ability.StartOptions';
@@ -229,22 +229,22 @@ export default class UIAbilityContext extends Context {
     return p;
   }
   
-    connectServiceExtensionAbility(want: Want, options: ConnectOptions): int {
+  connectServiceExtensionAbility(want: Want, options: ConnectOptions): int {
     return this.nativeConnectServiceExtensionAbility(want, options);
   }
  
   disconnectServiceExtensionAbility(connection: int): Promise<void> {
-    let p = new Promise<void>((resolve: () => void, reject: (error: BusinessError) => void): void => {
-      let cb = (): void => {
-        this.nativeDisconnectServiceExtensionAbilitySync(connection);
-      }
-      let p1 = taskpool.execute(cb);
- 
-      p1.then((e: NullishType) => {
-        resolve();
-      }, (err: BusinessError): void => {
-        reject(err);
+    let p: Promise<void> = new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError<void>) => void): void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>) => {
+        if (err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
       });
+      taskpool.execute((): void => {
+        this.nativeDisconnectServiceExtensionAbilitySync(connection, myCall);
+      })
     });
     return p;
   }
