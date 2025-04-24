@@ -314,11 +314,13 @@ void OHOSApplication::InitAniContext()
         ani_native_function {"createModuleResourceManagerSync", "Lstd/core/String;Lstd/core/String;"
             ":L@ohos/resourceManager/resourceManager/ResourceManager;",
             reinterpret_cast<void *>(AbilityRuntime::ContextUtil::CreateModuleResourceManagerSync)},
-        ani_native_function {"areaSetter", nullptr,
+        ani_native_function {"setArea", "L@ohos/app/ability/contextConstant/contextConstant/AreaMode;",
             reinterpret_cast<void *>(AbilityRuntime::ContextUtil::SwitchAniArea)},
-        ani_native_function {"filesDirGetter", nullptr,
+        ani_native_function {"getArea", ":L@ohos/app/ability/contextConstant/contextConstant/AreaMode;",
+            reinterpret_cast<void *>(AbilityRuntime::ContextUtil::GetAniArea)},
+        ani_native_function {"getFilesDir", nullptr,
             reinterpret_cast<void *>(AbilityRuntime::ContextUtil::GetAniFilesDir)},
-        ani_native_function {"tempDirGetter", nullptr,
+        ani_native_function {"getTempDir", nullptr,
             reinterpret_cast<void *>(AbilityRuntime::ContextUtil::GetAniTempDir)}
     };
     aniEnv->Class_BindNativeMethods(contextCls, contextFunctions.data(),
