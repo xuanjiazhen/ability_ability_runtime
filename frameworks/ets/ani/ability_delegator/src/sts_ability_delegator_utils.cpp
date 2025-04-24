@@ -37,9 +37,10 @@ ani_object CreateStsAbilityDelegator(ani_env *aniEnv)
         ani_native_function {"getAppContext", nullptr, reinterpret_cast<void *>(GetAppContext)},
         ani_native_function {"executeShellCommandsync", nullptr, reinterpret_cast<void *>(ExecuteShellCommand)},
         ani_native_function {"finishTestSync", nullptr, reinterpret_cast<void *>(FinishTestSync)},
-        ani_native_function {"printSync", "Lstd/core/String;:V", reinterpret_cast<void *>(PrintSync)},
+        ani_native_function {"printSync", nullptr, reinterpret_cast<void *>(PrintSync)},
         ani_native_function {"addAbilityMonitorAsync", nullptr, reinterpret_cast<void *>(AddAbilityMonitorASync)},
-        ani_native_function {"startAbilityAsync", "L@ohos/app/ability/Want/Want;:I",
+        ani_native_function {"startAbilityAsync",
+            "L@ohos/app/ability/Want/WantLutils/AbilityUtils/AsyncCallbackWrapper;:V",
             reinterpret_cast<void *>(StartAbility)},
         ani_native_function {"GetCurrentTopAbilitySync", nullptr, reinterpret_cast<void *>(GetCurrentTopAbilitySync)}
     };
