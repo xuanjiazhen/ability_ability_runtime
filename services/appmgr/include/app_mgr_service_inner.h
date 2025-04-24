@@ -50,6 +50,7 @@
 #include "child_process_info.h"
 #include "child_process_request.h"
 #endif // SUPPORT_CHILD_PROCESS
+#include "configuration_policy.h"
 #include "cpp/mutex.h"
 #include "event_report.h"
 #include "exit_resident_process_manager.h"
@@ -79,6 +80,7 @@
 #include "running_multi_info.h"
 #include "multi_user_config_mgr.h"
 #include "user_callback.h"
+#include "mission_info.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -760,6 +762,9 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1);
+
+    int32_t UpdateConfigurationPolicy(const std::vector<AAFwk::MissionInfo>& appInfos,
+        const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId);
 
     int32_t UpdateConfigurationByBundleName(const Configuration &config, const std::string &name, int32_t appIndex);
 
