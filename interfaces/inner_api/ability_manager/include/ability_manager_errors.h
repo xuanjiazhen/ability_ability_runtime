@@ -703,6 +703,10 @@ enum {
     ERR_NULL_APP_MGR_PROXY = 2097303,
     ERR_NO_APP_RECORD = 2097304,
 
+    ERR_NOT_HOOK = 2097321,
+    ERR_FROM_WINDOW = 2097322,
+    ERR_INVALID_CONTEXT = 2097323,
+
     /**
      * Native error(3000000) for target bundle not exist.
      */

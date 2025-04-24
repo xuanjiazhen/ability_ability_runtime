@@ -183,6 +183,12 @@ enum class AbilityErrorCode {
     // UIAbility is in starting state.
     ERROR_CODE_UI_ABILITY_IS_STARTING = 16000082,
 
+    // The context does not belong to HookAbility; multiple calls are invoked.
+    ERROR_CODE_NOT_HOOK = 16000084,
+
+    // Failed to cancel the hook of the window module.
+    ERROR_CODE_FROM_WINDOW = 16000085,
+
     // invalid caller.
     ERROR_CODE_INVALID_CALLER = 16200001,
 

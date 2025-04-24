@@ -2851,6 +2851,7 @@ void AppMgrServiceInner::UpdateAbilityState(const sptr<IRemoteObject> &token, co
     }
     if (state == abilityRecord->GetState()) {
         TAG_LOGE(AAFwkTag::APPMGR, "current state is already");
+        OnAbilityStateChanged(abilityRecord, state);
         return;
     }
     if (abilityRecord->GetAbilityInfo() == nullptr) {
@@ -9190,6 +9191,22 @@ int32_t AppMgrServiceInner::GetKilledProcessInfo(int pid, int uid, KilledProcess
     }
     info.bundleName = appRecord->GetBundleName();
     info.processName = appRecord->GetProcessName();
+    return ERR_OK;
+}
+
+int32_t AppMgrServiceInner::LaunchAbility(const sptr<IRemoteObject> &token)
+{
+    auto appRecord = GetAppRunningRecordByAbilityToken(token);
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRecord null");
+        return AAFwk::ERR_NULL_APP_RUNNING_MANAGER;
+    }
+    auto ability = appRecord->GetAbilityRunningRecordByToken(token);
+    if (ability == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "abilityRecord null");
+        return ERR_INVALID_VALUE;
+    }
+    appRecord->LaunchAbility(ability);
     return ERR_OK;
 }
 } // namespace AppExecFwk
