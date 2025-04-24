@@ -86,7 +86,6 @@ void JsEnvironment::InitTimerModule()
 
 void JsEnvironment::InitIntlModule()
 {
-    TAG_LOGE(AAFwkTag::JSENV, "ReplaceBuildInAPI: JsEnvironment::InitIntlModule");
     if (engine_ == nullptr) {
         TAG_LOGE(AAFwkTag::JSENV, "Invalid native engine");
         return;
