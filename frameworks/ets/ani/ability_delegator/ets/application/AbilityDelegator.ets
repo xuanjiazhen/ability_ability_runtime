@@ -40,121 +40,129 @@ export interface AbilityDelegator {
 
 class AbilityDelegatorInner implements AbilityDelegator {
     public native printSync(msg: string): void;
-    public native finishTestSync(msg: String, code: number): int;
+    public native finishTestSync(msg: String, code: number): void;
     public native executeShellCommandsync(cmd: string, timeoutSecs: number): ShellCmdResult;
     public native getAppContext(): Context;
     public native addAbilityMonitorAsync(monitor: AbilityMonitor): void;
-    public native startAbilityAsync(want: Want) : int;
+    public native startAbilityAsync(want: Want) : void;
     public native GetCurrentTopAbilitySync() : UIAbility;
     // other api
 
     finishTest(msg: string, code: number, callback: AsyncCallback<void>):void{
-        let p1 = taskpool.execute(():undefined => {this.finishTestSync(msg, code);  return undefined});
+        let p1 = taskpool.execute(():undefined => {return this.finishTestSync(msg, code)});
             p1.then((e :NullishType)=>{
-                let resultCode: Int  = e as Int;
-                let r: BusinessError = { code: resultCode.intValue(), data: undefined };
-                callback(r, undefined);
-            }, (err:Object): void => {
+                let resultCode: Int  = 0;
+                let error: BusinessError = { code: resultCode.intValue(), data: undefined };
+                callback(error, undefined);
+            }).catch((err: BusinessError): void => {
+                callback(err, undefined);
             });
     }
     finishTest(msg: string, code: number):Promise<void>{
-        let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void, reject: (error: Error) => void) => {
-            let p1 = taskpool.execute(():undefined => {this.finishTestSync(msg, code);  return undefined});
+        let p = new Promise<void>((resolve, reject) => {
+            let p1 = taskpool.execute(():undefined => {return this.finishTestSync(msg, code)});
             p1.then((e :NullishType)=>{
-            let PromiseLike = e as PromiseLike<void>;
-            resolve(PromiseLike);
-            }, (err:Object): void => {
-            });
+                let r:  undefined;
+                resolve(r);
+            }).catch((err: BusinessError): void => {
+                reject(err);
+          });
         });
         return p;
     }
 
     executeShellCommand (cmd: String, callback: AsyncCallback<ShellCmdResult>) : void {
         let timeoutSecs =  0;
-        let pCallback1 = taskpool.execute(():ShellCmdResult => {return this.executeShellCommandsync(cmd, timeoutSecs)});
-        pCallback1.then((e :NullishType)=>{
-        let data = e as ShellCmdResult;
-        let resultCode: Int  = 0;
-        let error: BusinessError = { code: resultCode.intValue(), data: undefined };
-        callback(error, data);
-        }, (err: Object) : void => {
+        let p = taskpool.execute(():ShellCmdResult => {return this.executeShellCommandsync(cmd, timeoutSecs)});
+        p.then((e :NullishType)=>{
+            let cmdresult = e as ShellCmdResult;
+            let resultCode: Int  = 0;
+            let error: BusinessError = { code: resultCode.intValue(), data: undefined };
+            callback(error, cmdresult);
+        }).catch((err: BusinessError): void => {
+            callback(err, {});
         });
     }
     executeShellCommand (cmd: String, timeoutSecs: number, callback: AsyncCallback<ShellCmdResult>) : void {
-        let pCallback2 = taskpool.execute(():ShellCmdResult => {return this.executeShellCommandsync(cmd, timeoutSecs)});
-        pCallback2.then((e :NullishType)=>{
-        let data = e as ShellCmdResult;
-        let resultCode: Int  = 0;
-        let error: BusinessError = { code: resultCode.intValue(), data: undefined };
-        callback(error, data);
-        }, (err: Object) : void => {
+        let p = taskpool.execute(():ShellCmdResult => {return this.executeShellCommandsync(cmd, timeoutSecs)});
+        p.then((e :NullishType)=>{
+            let cmdresult = e as ShellCmdResult;
+            let resultCode: Int  = 0;
+            let error: BusinessError = { code: resultCode.intValue(), data: undefined };
+            callback(error, cmdresult);
+        }).catch((err: BusinessError): void => {
+            callback(err, {});
         });
     }
     executeShellCommand (cmd: string, timeoutSecs?: number) : Promise<ShellCmdResult>{
         if (timeoutSecs == null) {
-        let pPromise2 = new Promise<ShellCmdResult>((resolve: (v: ShellCmdResult) => void, reject: (error: Error) => void) => {
+        let pPromise2 = new Promise<ShellCmdResult>((resolve: (v: ShellCmdResult) => void, reject: (error: Object) => void) => {
             let pPromise1 = taskpool.execute(():ShellCmdResult => {return this.executeShellCommandsync(cmd, 0);});
             pPromise1.then((e :NullishType)=>{
-            let r : ShellCmdResult =  e as ShellCmdResult;
-            resolve(r);
-            }, ( error: Object) : void => {
-            });
+                let r : ShellCmdResult =  e as ShellCmdResult;
+                resolve(r);
+            }).catch((err: BusinessError): void => {
+                reject(err);
+          });
         });
         return pPromise2;
         } else {
-        let pPromise = new Promise<ShellCmdResult>((resolve: (v: ShellCmdResult) => void, reject: (error: Error) => void) => {
-            let pPromise1 = taskpool.execute(():ShellCmdResult=> {return  this.executeShellCommandsync(cmd, timeoutSecs as double)});
+        let pPromise = new Promise<ShellCmdResult>((resolve: (v: ShellCmdResult) => void, reject: (error: Object) => void) => {
+            let pPromise1 = taskpool.execute(():ShellCmdResult=> {return  this.executeShellCommandsync(cmd, timeoutSecs as Double)});
             pPromise1.then((e :NullishType)=>{
-            let r : ShellCmdResult =  e as ShellCmdResult;
-            resolve(r);
-            }, ( error: Object) : void => {
-            });
+                let r : ShellCmdResult =  e as ShellCmdResult;
+                resolve(r);
+            }).catch((err: BusinessError): void => {
+                reject(err);
+          });
         });
         return pPromise;
         }
     }
 
     addAbilityMonitor(monitor: AbilityMonitor, callback: AsyncCallback<void>): void {
-        let p1 = taskpool.execute(():undefined => {this.addAbilityMonitorAsync(monitor);  return undefined});
+        let p1 = taskpool.execute(():undefined => {return this.addAbilityMonitorAsync(monitor)});
         p1.then((e: NullishType)=>{
                 let resultCode: Int  = 0;
-                let r: BusinessError = { code: resultCode.intValue(), data: undefined };
-                callback(r, undefined);
-            }, (err: BusinessError): void => {
+                let error: BusinessError = { code: resultCode.intValue(), data: undefined };
+                callback(error, undefined);
+            }).catch((err: BusinessError): void => {
                 callback(err, undefined);
             });
-
     }
     addAbilityMonitor(monitor: AbilityMonitor): Promise<void> {
-        let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void, reject: (error: Error) => void) => {
-            let p1 = taskpool.execute(():undefined => {this.addAbilityMonitorAsync(monitor);  return undefined});
+        let p = new Promise<void>((resolve, reject) => {
+            let p1 = taskpool.execute(():undefined => {return this.addAbilityMonitorAsync(monitor);});
             p1.then((e: NullishType)=>{
-                let PromiseLike = e as PromiseLike<void>;
-                resolve(PromiseLike);
-            }, (err:Object): void => {
-            });
+                let r : undefined;
+                resolve(r);
+            }).catch((err: BusinessError): void => {
+                reject(err);
+          });
         });
         return p;
     }
 
     startAbility(want: Want, callback: AsyncCallback<void>): void {
-        let p1 = taskpool.execute(():undefined => {this.startAbilityAsync(want);  return undefined});
+        let p1 = taskpool.execute(():undefined => {return this.startAbilityAsync(want)});
             p1.then((e :NullishType)=>{
-                let resultCode: Int  = e as Int;
-                let r: BusinessError = { code: resultCode.intValue(), data: undefined };
-                callback(r, undefined);
-            }, (err:Object): void => {
+                let resultCode: Int  = 0;
+                let error: BusinessError = { code: resultCode.intValue(), data: undefined };
+                callback(error, undefined);
+            }).catch((err: BusinessError): void => {
+                callback(err, undefined);
             });
-
     }
     startAbility(want: Want): Promise<void> {
-        let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void, reject: (error: Error) => void) => {
-            let p1 = taskpool.execute(():undefined => {this.startAbilityAsync(want);  return undefined});
+        let p = new Promise<void>((resolve, reject) => {
+            let p1 = taskpool.execute(():undefined => {return this.startAbilityAsync(want);});
             p1.then((e :NullishType)=>{
-            let PromiseLike = e as PromiseLike<void>;
-            resolve(PromiseLike);
-            }, (err:Object): void => {
-            });
+                let r : undefined;
+                resolve(r);
+            }).catch((err: BusinessError): void => {
+                reject(err);
+                console.log("getCurrentTopAbility promise1 end");
+          });
         });
         return p;
     }
