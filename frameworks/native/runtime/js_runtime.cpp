@@ -768,7 +768,6 @@ bool JsRuntime::Initialize(const Options& options)
             InitTimerModule();
         }
 
-        TAG_LOGD(AAFwkTag::JSRUNTIME, "ReplaceBuildInAPI: start");
         InitIntlModule();
         InitWorkerModule(options);
         SetModuleLoadChecker(options.moduleCheckerDelegate);
@@ -1507,7 +1506,6 @@ void JsRuntime::InitTimerModule()
 
 void JsRuntime::InitIntlModule()
 {
-    TAG_LOGE(AAFwkTag::JSRUNTIME, "ReplaceBuildInAPI: JsRuntime::InitIntlModule");
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     CHECK_POINTER(jsEnv_);
     jsEnv_->InitIntlModule();

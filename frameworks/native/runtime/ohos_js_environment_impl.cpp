@@ -132,11 +132,10 @@ void OHOSJsEnvironmentImpl::InitTimerModule(NativeEngine* engine)
 
 void OHOSJsEnvironmentImpl::InitIntlModule(NativeEngine* engine)
 {
-    TAG_LOGE(AAFwkTag::JSRUNTIME, "ReplaceBuildInAPI: OHOSJsEnvironmentImpl::InitIntlModule");
     TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
-    void *intlUtilHandle = dlopen("libintl_util.z.so", RTLD_NOW);
+    void *intlUtilHandle = dlopen("libintl_napi.z.so", RTLD_NOW);
     if (intlUtilHandle == nullptr) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "ReplaceBuildInAPI: load libintl_util.z.so failed");
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "ReplaceBuildinIntl: load libintl_napi.z.so failed");
         return;
     }
     RegisterIntl registerIntl = (RegisterIntl)dlsym(intlUtilHandle, "RegisterIntl");
@@ -145,11 +144,10 @@ void OHOSJsEnvironmentImpl::InitIntlModule(NativeEngine* engine)
     if (registerIntl) {
         ret = registerIntl(reinterpret_cast<napi_env>(engine));
     } else {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "ReplaceBuildInAPI: registerIntl is null");
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "ReplaceBuildinIntl: registerIntl is null");
     }
-    // dlclose(intlUtilHandle);
     if (!ret) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "ReplaceBuildInAPI: Register intl failed");
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "ReplaceBuildinIntl: Register intl failed");
     }
 }
 
