@@ -38,23 +38,33 @@ export class Context extends BaseContext {
         return this.getApplicationContextSync();
     }
 
-    public native areaSetter(mode: contextConstant.AreaMode): void;
     set area(mode: contextConstant.AreaMode) {
-        this.areaSetter(mode);
+        this.setArea(mode);
         return;
     }
 
-    public native filesDirGetter(): string;
-    get filesDir(): string {
-        return this.filesDirGetter();
+    get area(): contextConstant.AreaMode {
+        return this.getArea();
     }
 
-    public native tempDirGetter(): string;
+    set filesDir(value: string) {}
+
+    get filesDir(): string {
+        return this.getFilesDir();
+    }
+
+    set tempDir(value: string) {}
+
     get tempDir(): string {
-        return this.tempDirGetter();
+        return this.getTempDir();
     }
 
     createModuleResourceManager(bundleName: string, moduleName: string): resmgr.ResourceManager {
         return this.createModuleResourceManagerSync(bundleName, moduleName);
     }
+
+    public native setArea(mode: contextConstant.AreaMode): void;
+    public native getArea(): contextConstant.AreaMode;
+    public native getFilesDir(): string;
+    public native getTempDir(): string;
 }

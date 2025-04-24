@@ -20,6 +20,7 @@
 #include "application_context.h"
 #include "application_context_manager.h"
 #include "common_fun_ani.h"
+#include "enum_util.h"
 #include "hilog_tag_wrapper.h"
 #include "resourceManager.h"
 #include "sts_error_utils.h"
@@ -267,30 +268,28 @@ ani_object GetApplicationContextSync([[maybe_unused]]ani_env *env, [[maybe_unuse
     return {};
 }
 
-void SwitchAniArea(ani_env *aniEnv, ani_class contextClass, ani_object contextObj, ani_double mode)
+void SwitchAniArea([[maybe_unused]]ani_env *aniEnv, ani_enum_item aniMode)
 {
     TAG_LOGI(AAFwkTag::APPKIT, "SwitchAniArea enter");
+    int areaMode = 0;
+    if (!EnumUtils::EnumETSToNative(env, aniMode, areaMode)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Parse area failed");
+        return;
+    }
     auto context = context_.lock();
     if (context == nullptr) {
         TAG_LOGW(AAFwkTag::APPKIT, "null context");
         return;
     }
-    context->SwitchArea(static_cast<int>(mode));
+    context->SwitchArea(areaMode);
+}
 
-    ani_field areaField;
-    if (ANI_OK != aniEnv->Class_FindField(contextClass, "area", &areaField)) {
-        TAG_LOGE(AAFwkTag::APPKIT, "find area failed");
-        return;
-    }
-    auto area = context->GetArea();
-    ani_enum_item areaModeItem {};
-    OHOS::AAFwk::AniEnumConvertUtil::EnumConvert_NativeToSts(
-        aniEnv, "L@ohos/app/ability/contextConstant/contextConstant/AreaMode;", area, areaModeItem);
-
-    if (aniEnv->Object_SetField_Ref(contextObj, areaField, (ani_ref)areaModeItem) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Object_SetField_Int failed");
-        return;
-    }
+ani_enum_item GetAniArea(ani_env *aniEnv)
+{
+    TAG_LOGI(AAFwkTag::APPKIT, "GetAniArea enter");
+    size_t areaMode = static_cast<size_t>(context->GetArea())
+    return AppExecFwk::EnumUtils::EnumNativeToETSByIndex(
+        aniEnv, "L@ohos/app/ability/contextConstant/contextConstant/AreaMode;", areaMode);
 }
 
 ani_string GetAniFilesDir(ani_env *aniEnv)
