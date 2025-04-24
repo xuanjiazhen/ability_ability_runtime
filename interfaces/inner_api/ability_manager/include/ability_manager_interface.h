@@ -39,6 +39,8 @@
 #include "iacquire_share_data_callback_interface.h"
 #include "insight_intent/insight_intent_execute_param.h"
 #include "insight_intent/insight_intent_execute_result.h"
+#include "insight_intent/extra_insight_intent_profile.h"
+#include "insight_intent/js_insight_intent_info.h"
 #include "iprepare_terminate_callback_interface.h"
 #include "keep_alive_info.h"
 #include "mission_info.h"
@@ -89,6 +91,7 @@ using UIExtensionSessionInfo = AbilityRuntime::UIExtensionSessionInfo;
 using IAbilityFirstFrameStateObserver = AppExecFwk::IAbilityFirstFrameStateObserver;
 #endif
 using AtomicServiceStartupRule = AbilityRuntime::AtomicServiceStartupRule;
+using JsInsightIntentInfo = AbilityRuntime::JsInsightIntentInfo;
 
 constexpr const char* ABILITY_MANAGER_SERVICE_NAME = "AbilityManagerService";
 const int DEFAULT_INVAL_VALUE = -1;
@@ -2122,6 +2125,31 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t RevokeDelegator(sptr<IRemoteObject> token)
+    {
+        return 0;
+    }
+
+    virtual int32_t GetAllInsightIntentInfo(
+        AbilityRuntime::GetInsightIntentFlag flag,
+        std::vector<JsInsightIntentInfo> &infos)
+    {
+        return 0;
+    }
+
+    virtual int32_t GetInsightIntentInfoByBundleName(
+        AbilityRuntime::GetInsightIntentFlag flag,
+        const std::string &bundleName,
+        std::vector<JsInsightIntentInfo> &infos)
+    {
+        return 0;
+    }
+
+    virtual int32_t GetInsightIntentInfoByIntentName(
+        AbilityRuntime::GetInsightIntentFlag flag,
+        const std::string &bundleName,
+        const std::string &moduleName,
+        const std::string &intentName,
+        JsInsightIntentInfo &info)
     {
         return 0;
     }

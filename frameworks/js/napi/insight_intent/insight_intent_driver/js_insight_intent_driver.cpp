@@ -29,6 +29,7 @@
 #include "napi_common_execute_param.h"
 #include "napi_common_util.h"
 #include "native_engine/native_value.h"
+#include "js_insight_intent_info.h"
 
 #include <mutex>
 
@@ -38,8 +39,12 @@ using namespace OHOS::AppExecFwk;
 namespace {
 constexpr int32_t INDEX_ZERO = 0;
 constexpr int32_t INDEX_ONE = 1;
+constexpr int32_t INDEX_TWO = 2;
 constexpr size_t ARGC_ONE = 1;
+constexpr size_t ARGC_TWO = 2;
+constexpr size_t ARGC_THREE = 3;
 }
+
 class JsInsightIntentExecuteCallbackClient : public InsightIntentExecuteCallbackInterface,
     public std::enable_shared_from_this<JsInsightIntentExecuteCallbackClient> {
 public:
@@ -91,6 +96,21 @@ public:
         GET_NAPI_INFO_AND_CALL(env, info, JsInsightIntentDriver, OnExecute);
     }
 
+    static napi_value GetAllInsightIntentInfo(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsInsightIntentDriver, OnGetAllInsightIntentInfo);
+    }
+
+    static napi_value GetInsightIntentInfoByBundleName(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsInsightIntentDriver, OnGetInsightIntentInfoByBundleName);
+    }
+
+    static napi_value GetInsightIntentInfoByIntentName(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsInsightIntentDriver, OnGetInsightIntentInfoByIntentName);
+    }
+
 private:
     napi_value OnExecute(napi_env env, NapiCallbackInfo& info)
     {
@@ -139,6 +159,81 @@ private:
         }
         return result;
     }
+    
+    napi_value OnGetAllInsightIntentInfo(napi_env env, NapiCallbackInfo& info)
+    {
+        TAG_LOGI(AAFwkTag::INTENT, "OnGetAllInsightIntentInfo");
+        if (info.argc < ARGC_ONE) {
+            TAG_LOGE(AAFwkTag::INTENT, "invalid argc");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+        GetInsightIntentFlag flag;
+        if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], flag)) {
+            TAG_LOGE(AAFwkTag::INTENT, "Parse insightIntentFlag failed");
+            ThrowInvalidParamError(env, "Parse param font failed, font must be GetInsightIntentFlag.");
+            return CreateJsUndefined(env);
+        }
+        std::vector<JsInsightIntentInfo> infos;
+        auto err = AbilityManagerClient::GetInstance()->GetAllInsightIntentInfo(flag, infos);
+        if (err != 0) {
+            TAG_LOGE(AAFwkTag::INTENT, "GetAllInsightIntentInfo failed");
+            return CreateJsUndefined(env);
+        }
+        return CreateJsUndefined(env);
+    }
+
+    napi_value OnGetInsightIntentInfoByBundleName(napi_env env, NapiCallbackInfo& info)
+    {
+        TAG_LOGI(AAFwkTag::INTENT, "OnGetInsightIntentInfoByBundleName");
+        if (info.argc < ARGC_TWO) {
+            TAG_LOGE(AAFwkTag::INTENT, "invalid argc");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+        std::string bundleName;
+        if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], bundleName)) {
+            TAG_LOGE(AAFwkTag::INTENT, "Parse bundleName failed");
+            ThrowInvalidParamError(env, "Parse param font failed, font must be string.");
+            return CreateJsUndefined(env);
+        }
+        GetInsightIntentFlag flag;
+        if (!ConvertFromJsValue(env, info.argv[INDEX_ONE], flag)) {
+            TAG_LOGE(AAFwkTag::INTENT, "Parse insightIntentFlag failed");
+            ThrowInvalidParamError(env, "Parse param font failed, font must be GetInsightIntentFlag.");
+            return CreateJsUndefined(env);
+        }
+        return CreateJsUndefined(env);
+    }
+
+    napi_value OnGetInsightIntentInfoByIntentName(napi_env env, NapiCallbackInfo& info)
+    {
+        TAG_LOGI(AAFwkTag::INTENT, "OnGetInsightIntentInfoByIntentName");
+        if (info.argc < ARGC_THREE) {
+            TAG_LOGE(AAFwkTag::INTENT, "invalid argc");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+        std::string bundleName;
+        if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], bundleName)) {
+            TAG_LOGE(AAFwkTag::INTENT, "Parse bundleName failed");
+            ThrowInvalidParamError(env, "Parse param font failed, font must be string.");
+            return CreateJsUndefined(env);
+        }
+        std::string intentName;
+        if (!ConvertFromJsValue(env, info.argv[INDEX_ONE], intentName)) {
+            TAG_LOGE(AAFwkTag::INTENT, "Parse intentName failed");
+            ThrowInvalidParamError(env, "Parse param font failed, font must be string.");
+            return CreateJsUndefined(env);
+        }
+        GetInsightIntentFlag flag;
+        if (!ConvertFromJsValue(env, info.argv[INDEX_TWO], flag)) {
+            TAG_LOGE(AAFwkTag::INTENT, "Parse insightIntentFlag failed");
+            ThrowInvalidParamError(env, "Parse param font failed, font must be GetInsightIntentFlag.");
+            return CreateJsUndefined(env);
+        }
+        return CreateJsUndefined(env);
+    }
 };
 
 napi_value JsInsightIntentDriverInit(napi_env env, napi_value exportObj)
@@ -154,6 +249,12 @@ napi_value JsInsightIntentDriverInit(napi_env env, napi_value exportObj)
 
     const char *moduleName = "JsInsightIntentDriver";
     BindNativeFunction(env, exportObj, "execute", moduleName, JsInsightIntentDriver::Execute);
+    BindNativeFunction(env, exportObj,
+        "getAllInsightIntentInfo", moduleName, JsInsightIntentDriver::GetAllInsightIntentInfo);
+    BindNativeFunction(env, exportObj,
+        "getInsightIntentInfoByBundleName", moduleName, JsInsightIntentDriver::GetInsightIntentInfoByBundleName);
+    BindNativeFunction(env, exportObj,
+        "getInsightIntentInfoByIntentName", moduleName, JsInsightIntentDriver::GetInsightIntentInfoByIntentName);
     return CreateJsUndefined(env);
 }
 } // namespace AbilityRuntime

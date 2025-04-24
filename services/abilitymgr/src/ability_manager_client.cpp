@@ -1132,6 +1132,10 @@ ErrCode AbilityManagerClient::GetAbilityRunningInfos(std::vector<AbilityRunningI
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "liuzongze call AbilityManagerClient::GetAbilityRunningInfos");
+    // AbilityRuntime::GetInsightIntentFlag flag = AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT;
+    // auto infos = std::vector<JsInsightIntentInfo>();
+    // abms->GetAllInsightIntentInfo(flag, infos);
     return abms->GetAbilityRunningInfos(info);
 }
 
@@ -2198,6 +2202,40 @@ ErrCode AbilityManagerClient::RevokeDelegator(sptr<IRemoteObject> token)
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->RevokeDelegator(token);
+}
+
+ErrCode AbilityManagerClient::GetAllInsightIntentInfo(
+    AbilityRuntime::GetInsightIntentFlag flag,
+    std::vector<JsInsightIntentInfo> &infos)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "liuzongze call GetAllInsightIntentInfo");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->GetAllInsightIntentInfo(flag, infos);
+}
+
+ErrCode AbilityManagerClient::GetInsightIntentInfoByBundleName(
+    AbilityRuntime::GetInsightIntentFlag flag,
+    const std::string &bundleName,
+    std::vector<JsInsightIntentInfo> &infos)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call GetInsightIntentInfoByBundleName");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->GetInsightIntentInfoByBundleName(flag, bundleName, infos);
+}
+
+ErrCode AbilityManagerClient::GetInsightIntentInfoByIntentName(
+    AbilityRuntime::GetInsightIntentFlag flag,
+    const std::string &bundleName,
+    const std::string &moduleName,
+    const std::string &intentName,
+    JsInsightIntentInfo &info)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call GetInsightIntentInfoByIntentName");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->GetInsightIntentInfoByIntentName(flag, bundleName, moduleName, intentName, info);
 }
 } // namespace AAFwk
 } // namespace OHOS

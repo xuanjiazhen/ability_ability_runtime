@@ -126,10 +126,15 @@ abilityms_files = [
   "src/ability_auto_startup_data_manager.cpp",
   "src/ability_auto_startup_service.cpp",
   "src/auto_startup_info.cpp",
+  "src/insight_intent/insight_intent_db_cache.cpp",
   "src/insight_intent/insight_intent_execute_manager.cpp",
   "src/insight_intent/insight_intent_execute_result.cpp",
   "src/insight_intent/insight_intent_profile.cpp",
+  "src/insight_intent/insight_intent_rdb_data_mgr.cpp",
+  "src/insight_intent/insight_intent_rdb_storage_mgr.cpp",
   "src/insight_intent/insight_intent_utils.cpp",
+  "src/insight_intent/extra_insight_intent_profile.cpp",
+  "src/insight_intent/js_insight_intent_info.cpp",
 
   # keep alive
   "src/keep_alive/ability_keep_alive_data_manager.cpp",
