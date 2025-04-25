@@ -191,11 +191,12 @@ HWTEST_F(AppMgrServiceSecondTest, NotifyMemorySizeStateChanged_0100, TestSize.Le
     auto appMgrService = std::make_shared<AppMgrService>();
     ASSERT_NE(appMgrService, nullptr);
 
-    auto ret = appMgrService->NotifyMemorySizeStateChanged(true);
+    int32_t memorySizeState = 1;
+    auto ret = appMgrService->NotifyMemorySizeStateChanged(memorySizeState);
     EXPECT_NE(ret, ERR_OK);
 
     ReadyToRun(appMgrService);
-    ret = appMgrService->NotifyMemorySizeStateChanged(true);
+    ret = appMgrService->NotifyMemorySizeStateChanged(memorySizeState);
     EXPECT_NE(ret, ERR_OK);
 }
 
@@ -204,7 +205,7 @@ HWTEST_F(AppMgrServiceSecondTest, NotifyMemorySizeStateChanged_0100, TestSize.Le
  * @tc.desc: NA
  * @tc.type: FUNC
  */
-HWTEST_F(AppMgrServiceSecondTest, IsSharedBundleRunning_0100, TestSize.Level0)
+HWTEST_F(AppMgrServiceSecondTest, IsSharedBundleRunning_0100, TestSize.Level2)
 {
     auto appMgrService = std::make_shared<AppMgrService>();
     EXPECT_NE(appMgrService, nullptr);
@@ -224,7 +225,7 @@ HWTEST_F(AppMgrServiceSecondTest, IsSharedBundleRunning_0100, TestSize.Level0)
  * @tc.desc: NA
  * @tc.type: FUNC
  */
-HWTEST_F(AppMgrServiceSecondTest, GetBundleNameByPid_0100, TestSize.Level0)
+HWTEST_F(AppMgrServiceSecondTest, GetBundleNameByPid_0100, TestSize.Level2)
 {
     auto appMgrService = std::make_shared<AppMgrService>();
     EXPECT_NE(appMgrService, nullptr);
@@ -244,7 +245,7 @@ HWTEST_F(AppMgrServiceSecondTest, GetBundleNameByPid_0100, TestSize.Level0)
  * @tc.desc: NA
  * @tc.type: FUNC
  */
-HWTEST_F(AppMgrServiceSecondTest, GetRunningProcessInfoByPid_0100, TestSize.Level0)
+HWTEST_F(AppMgrServiceSecondTest, GetRunningProcessInfoByPid_0100, TestSize.Level2)
 {
     auto appMgrService = std::make_shared<AppMgrService>();
     EXPECT_NE(appMgrService, nullptr);
@@ -263,7 +264,7 @@ HWTEST_F(AppMgrServiceSecondTest, GetRunningProcessInfoByPid_0100, TestSize.Leve
  * @tc.desc: NA
  * @tc.type: FUNC
  */
-HWTEST_F(AppMgrServiceSecondTest, GetRunningProcessInfoByChildProcessPid_0100, TestSize.Level0)
+HWTEST_F(AppMgrServiceSecondTest, GetRunningProcessInfoByChildProcessPid_0100, TestSize.Level2)
 {
     auto appMgrService = std::make_shared<AppMgrService>();
     EXPECT_NE(appMgrService, nullptr);
@@ -282,7 +283,7 @@ HWTEST_F(AppMgrServiceSecondTest, GetRunningProcessInfoByChildProcessPid_0100, T
  * @tc.desc: NA
  * @tc.type: FUNC
  */
-HWTEST_F(AppMgrServiceSecondTest, SetAppFreezeFilter_0100, TestSize.Level0)
+HWTEST_F(AppMgrServiceSecondTest, SetAppFreezeFilter_0100, TestSize.Level2)
 {
     auto appMgrService = std::make_shared<AppMgrService>();
     EXPECT_NE(appMgrService, nullptr);
@@ -300,7 +301,7 @@ HWTEST_F(AppMgrServiceSecondTest, SetAppFreezeFilter_0100, TestSize.Level0)
  * @tc.desc: NA
  * @tc.type: FUNC
  */
-HWTEST_F(AppMgrServiceSecondTest, StartNativeProcessForDebugger_0100, TestSize.Level0)
+HWTEST_F(AppMgrServiceSecondTest, StartNativeProcessForDebugger_0100, TestSize.Level2)
 {
     auto appMgrService = std::make_shared<AppMgrService>();
     EXPECT_NE(appMgrService, nullptr);

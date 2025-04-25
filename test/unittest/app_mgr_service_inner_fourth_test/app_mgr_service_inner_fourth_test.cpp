@@ -444,19 +444,19 @@ HWTEST_F(AppMgrServiceInnerFourthTest, UpdateApplicationInfoInstalled_0100, Test
     int uid = 0;
     std::string moduleName;
     appMgrServiceInner->appRunningManager_ = nullptr;
-    auto res = appMgrServiceInner->UpdateApplicationInfoInstalled(bundleName, uid, moduleName);
+    auto res = appMgrServiceInner->UpdateApplicationInfoInstalled(bundleName, uid, moduleName, false);
     EXPECT_EQ(res, ERR_NO_INIT);
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
     IPCSkeleton::SetCallingUid(RECORD_ID);
-    res = appMgrServiceInner->UpdateApplicationInfoInstalled(bundleName, uid, moduleName);
+    res = appMgrServiceInner->UpdateApplicationInfoInstalled(bundleName, uid, moduleName, false);
     EXPECT_EQ(res, ERR_PERMISSION_DENIED);
     IPCSkeleton::SetCallingUid(ROOT_UID);
     appMgrServiceInner->remoteClientManager_ = nullptr;
-    res = appMgrServiceInner->UpdateApplicationInfoInstalled(bundleName, uid, moduleName);
+    res = appMgrServiceInner->UpdateApplicationInfoInstalled(bundleName, uid, moduleName, false);
     EXPECT_EQ(res, ERR_NO_INIT);
     appMgrServiceInner->remoteClientManager_ = std::make_shared<RemoteClientManager>();
     appMgrServiceInner->remoteClientManager_->SetBundleManagerHelper(nullptr);
-    res = appMgrServiceInner->UpdateApplicationInfoInstalled(bundleName, uid, moduleName);
+    res = appMgrServiceInner->UpdateApplicationInfoInstalled(bundleName, uid, moduleName, false);
     EXPECT_EQ(res, ERR_INVALID_OPERATION);
     TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_0100 end");
 }
@@ -499,6 +499,43 @@ HWTEST_F(AppMgrServiceInnerFourthTest, KillAppSelfWithInstanceKey_001, TestSize.
     ret = appMgrServiceInner->KillAppSelfWithInstanceKey(instanceKey, clearPageStack, reason);
     EXPECT_EQ(ret, ERR_NO_INIT);
     TAG_LOGI(AAFwkTag::TEST, "KillAppSelfWithInstanceKey_001 end");
+}
+
+/**
+ * @tc.name: CreateAppRunningRecord_001
+ * @tc.Function: CreateAppRunningRecord
+ */
+HWTEST_F(AppMgrServiceInnerFourthTest, CreateAppRunningRecord_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CreateAppRunningRecord_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    appMgrServiceInner->appRunningManager_ = nullptr;
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    BundleInfo bundleInfo;
+    std::string processName = "com.test.bundle";
+    auto record = appMgrServiceInner->CreateAppRunningRecord(appInfo, processName, bundleInfo);
+    EXPECT_EQ(record, nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "CreateAppRunningRecord_001 end");
+}
+
+/**
+ * @tc.name: CreateAppRunningRecord_002
+ * @tc.Function: CreateAppRunningRecord
+ */
+HWTEST_F(AppMgrServiceInnerFourthTest, CreateAppRunningRecord_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CreateAppRunningRecord_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    BundleInfo bundleInfo;
+    std::string processName = "com.test.bundle";
+    auto record = appMgrServiceInner->CreateAppRunningRecord(appInfo, processName, bundleInfo);
+    EXPECT_NE(record, nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "CreateAppRunningRecord_002 end");
 }
 } // namespace AppExecFwk
 } // namespace OHOS

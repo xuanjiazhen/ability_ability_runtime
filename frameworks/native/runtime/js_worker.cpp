@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -43,6 +43,8 @@
 #include "singleton.h"
 #include "syscap_ts.h"
 #include "system_ability_definition.h"
+#include "js_environment_impl.h"
+#include "worker_info.h"
 #ifdef SUPPORT_SCREEN
 using OHOS::Ace::ContainerScope;
 #endif
@@ -169,12 +171,20 @@ std::string AssetHelper::NormalizedFileName(const std::string& fileName) const
     return normalizedFilePath;
 }
 
+AssetHelper::AssetHelper(std::shared_ptr<JsEnv::WorkerInfo> workerInfo) : workerInfo_(workerInfo)
+{
+    panda::panda_file::StringPacProtect codePath = panda::panda_file::StringPacProtect(workerInfo_->codePath);
+    if (!(codePath.GetOriginString()).empty() && (codePath.GetOriginString()).back() != '/') {
+        (workerInfo_->codePath).Append('/');
+    }
+}
+
 AssetHelper::~AssetHelper()
 {
     TAG_LOGD(AAFwkTag::JSRUNTIME, "destroyed");
-    if (fd_ != -1) {
-        close(fd_);
-        fd_ = -1;
+    if (file_ != nullptr) {
+        fclose(file_);
+        file_ = nullptr;
     }
 }
 
@@ -287,13 +297,12 @@ bool AssetHelper::GetSafeData(const std::string& ami, uint8_t** buff, size_t* bu
         TAG_LOGE(AAFwkTag::JSRUNTIME, "Realpath file %{private}s caught error: %{public}d", ami.c_str(), errno);
         return false;
     }
-
-    int fd = open(resolvedPath.c_str(), O_RDONLY);
-    if (fd < 0) {
+    FILE *fileF = fopen(resolvedPath.c_str(), "r");
+    if (fileF == nullptr) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "Open file %{private}s caught error: %{public}d", resolvedPath.c_str(), errno);
         return false;
     }
-
+    int fd = fileno(fileF);
     struct stat statbuf;
     if (fstat(fd, &statbuf) < 0) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "Get fstat of file %{private}s caught error: %{public}d", resolvedPath.c_str(),
@@ -305,21 +314,25 @@ bool AssetHelper::GetSafeData(const std::string& ami, uint8_t** buff, size_t* bu
     std::unique_ptr<FileMapper> fileMapper = std::make_unique<FileMapper>();
     if (fileMapper == nullptr) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "null fileMapper");
-        close(fd);
+        fclose(fileF);
         return false;
     }
 
     auto result = fileMapper->CreateFileMapper(resolvedPath, false, fd, 0, statbuf.st_size, FileMapperType::SAFE_ABC);
     if (!result) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "Create file %{private}s mapper failed", resolvedPath.c_str());
-        close(fd);
+        fclose(fileF);
         return false;
     }
 
     *buff = fileMapper->GetDataPtr();
     *buffSize = fileMapper->GetDataLen();
     *mapper = fileMapper.release();
-    fd_ = fd;
+    if (file_ != nullptr) {
+        fclose(file_);
+        file_ = nullptr;
+    }
+    file_ = fileF;
     return true;
 }
 

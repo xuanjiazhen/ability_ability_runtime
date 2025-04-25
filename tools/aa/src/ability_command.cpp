@@ -14,9 +14,11 @@
  */
 #include "ability_command.h"
 
+#include <charconv>
 #include <csignal>
 #include <cstdlib>
 #include <getopt.h>
+#include <iostream>
 #include <regex>
 #include "ability_manager_client.h"
 #include "app_mgr_client.h"
@@ -326,7 +328,7 @@ ErrCode AbilityManagerShellCommand::CreateMessageMap()
         "Designate the process as a persistent process and ensure that the device has sufficient memory",
         {KILL_PROCESS_KEEP_ALIVE_SOLUTION_ONE});
     messageMap_[ERR_UNLOCK_SCREEN_FAILED_IN_DEVELOPER_MODE] = GetAaToolErrorInfo("10106102",
-        "The device screen is locked during the application launch.",
+        "The device screen is locked during the application launch, unlock screen failed.",
         "The current mode is developer mode, and the screen cannot be unlocked automatically",
         {ERR_UNLOCK_SCREEN_FAILED_IN_DEVELOPER_MODE_SOLUTION_ONE});
     messageMap_[ERR_NOT_SUPPORTED_PRODUCT_TYPE] = GetAaToolErrorInfo("10106107",
@@ -338,7 +340,7 @@ ErrCode AbilityManagerShellCommand::CreateMessageMap()
         "The application specified by the aa tool is a Release version and does not support Debug mode",
         {ERR_NOT_IN_APP_PROVISION_MODE_SOLUTION_ONE});
     messageMap_[ERR_NOT_DEBUG_APP] = GetAaToolErrorInfo("10106701",
-        "The target application is not a debug application.",
+        "Cannot debug applications using a release certificate.",
         "The developer forgot to configure the target application as a Debug application",
         {ERR_NOT_DEBUG_APP_SOLUTION_ONE});
     messageMap_[ERR_APP_CLONE_INDEX_INVALID] = GetAaToolErrorInfo("10103102",
@@ -353,7 +355,7 @@ ErrCode AbilityManagerShellCommand::CreateMessageMap()
         "The specified process does not have the permission",
         "The specified process permission check failed",
         {ERR_STATIC_CFG_PERMISSION_SOLUTION_ONE});
-    messageMap_[ERR_CROWDTEST_EXPIRED] = GetAaToolErrorInfo("10106102",
+    messageMap_[ERR_CROWDTEST_EXPIRED] = GetAaToolErrorInfo("10106103",
         "Failed to unlock the screen in developer mode",
         "The current mode is developer mode, and the screen cannot be unlocked automatically",
         {ERR_CROWDTEST_EXPIRED_SOLUTION_ONE});
@@ -362,7 +364,7 @@ ErrCode AbilityManagerShellCommand::CreateMessageMap()
         "The application is suspected of malicious behavior and is restricted from launching by the appStore",
         {ERR_APP_CONTROLLED_SOLUTION_ONE});
     messageMap_[ERR_EDM_APP_CONTROLLED] = GetAaToolErrorInfo("10106106",
-        "The application is controlled by EDM",
+        "The target application is managed by EDM.",
         "The application is under the control of enterprise device management",
         {ERR_EDM_APP_CONTROLLED_SOLUTION_ONE});
     messageMap_[ERR_IMPLICIT_START_ABILITY_FAIL] = GetAaToolErrorInfo("10103101",
@@ -791,10 +793,9 @@ Reason AbilityManagerShellCommand::CovertExitReason(std::string& reasonStr)
 pid_t AbilityManagerShellCommand::ConvertPid(std::string& inputPid)
 {
     pid_t pid = 0;
-    try {
-        pid = static_cast<pid_t>(std::stoi(inputPid));
-    } catch (...) {
-        TAG_LOGW(AAFwkTag::AA_TOOL, "pid stoi(%{public}s) failed", inputPid.c_str());
+    auto res = std::from_chars(inputPid.c_str(), inputPid.c_str() + inputPid.size(), pid);
+    if (res.ec != std::errc()) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "pid stoi(%{public}s) failed", inputPid.c_str());
     }
     return pid;
 }
@@ -1011,11 +1012,15 @@ bool AbilityManagerShellCommand::MatchOrderString(const std::regex &regexScript,
     }
 
     std::match_results<std::string::const_iterator> matchResults;
-    if (!std::regex_match(orderCmd, matchResults, regexScript)) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "order mismatch");
+    try {
+        if (!std::regex_match(orderCmd, matchResults, regexScript)) {
+            TAG_LOGE(AAFwkTag::AA_TOOL, "order mismatch");
+            return false;
+        }
+    } catch (...) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "regex failed");
         return false;
     }
-
     return true;
 }
 
@@ -2186,8 +2191,12 @@ ErrCode AbilityManagerShellCommand::StartUserTest(const std::map<std::string, st
 
     int64_t timeMs = 0;
     if (!want.GetStringParam("-w").empty()) {
-        auto time = std::stoi(want.GetStringParam("-w"));
-        timeMs = time > 0 ? time * TIME_RATE_MS : 0;
+        try {
+            auto time = std::stoi(want.GetStringParam("-w"));
+            timeMs = time > 0 ? time * TIME_RATE_MS : 0;
+        } catch (...) {
+            TAG_LOGE(AAFwkTag::AA_TOOL, "stoi(%{public}s) failed", want.GetStringParam("-w").c_str());
+        }
     }
     if (!observer->WaitForFinish(timeMs)) {
         resultReceiver_ = "Timeout: user test is not completed within the specified time.\n";
@@ -2358,7 +2367,7 @@ ErrCode AbilityManagerShellCommand::RunAsForceExitAppCommand()
     }
 
     ExitReason exitReason = { CovertExitReason(reason), "Force exit app by aa." };
-    result = AbilityManagerClient::GetInstance()->ForceExitApp(std::stoi(pid), exitReason);
+    result = AbilityManagerClient::GetInstance()->ForceExitApp(ConvertPid(pid), exitReason);
     if (result == OHOS::ERR_OK) {
         resultReceiver_ = STRING_BLOCK_AMS_SERVICE_OK + "\n";
     } else {
@@ -2489,7 +2498,7 @@ ErrCode AbilityManagerShellCommand::RunAsNotifyAppFaultCommand()
     faultData.errorObject.message = errorMessage;
     faultData.errorObject.stack = errorStack;
     faultData.faultType = CovertFaultType(faultType);
-    faultData.pid = std::stoi(pid);
+    faultData.pid = ConvertPid(pid);
     DelayedSingleton<AppMgrClient>::GetInstance()->NotifyAppFaultBySA(faultData);
     return result;
 }

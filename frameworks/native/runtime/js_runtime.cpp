@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -60,6 +60,7 @@
 #include "system_ability_definition.h"
 #include "source_map.h"
 #include "source_map_operator.h"
+#include "worker_info.h"
 
 #ifdef SUPPORT_SCREEN
 #include "hot_reloader.h"
@@ -193,17 +194,20 @@ void JsRuntime::StartDebugMode(const DebugOption dOption)
     HdcRegister::Get().StartHdcRegister(bundleName_, inputProcessName, isDebugApp, debugMode,
         [bundleName, isStartWithDebug, instanceId, weak, isDebugApp, appProvisionType]
         (int socketFd, std::string option) {
-        TAG_LOGI(AAFwkTag::JSRUNTIME, "HdcRegister msg, fd= %{public}d, option= %{public}s", socketFd, option.c_str());
+        TAG_LOGI(AAFwkTag::JSRUNTIME,
+            "HdcRegister msg, fd %{public}d, option %{public}s, isStartWithDebug %{public}d, isDebugApp %{public}d",
+            socketFd, option.c_str(), isStartWithDebug, isDebugApp);
         if (weak == nullptr) {
             TAG_LOGE(AAFwkTag::JSRUNTIME, "null weak");
             return;
         }
-        // system is debuggable when const.secure is false and const.debuggable is true
-        bool isSystemDebuggable = system::GetBoolParameter("const.secure", true) == false &&
-            system::GetBoolParameter("const.debuggable", false) == true;
-        // Don't start any server if (system not in debuggable mode) and app is release version
+        // system is unlocked when const.boot.oemmode is rd
+        std::string oemmode = OHOS::system::GetParameter("const.boot.oemmode", "");
+        bool unlocked = "rd" == oemmode;
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "unlocked= %{public}d, oemmode= %{public}s", unlocked, oemmode.c_str());
+        // Don't start any server if (system is locked) and app is release version
         // Starting ConnectServer in release app on debuggable system is only for debug mode, not for profiling mode.
-        if ((!isSystemDebuggable) && appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_RELEASE) {
+        if ((!unlocked) && appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_RELEASE) {
             TAG_LOGE(AAFwkTag::JSRUNTIME, "not support release app");
             return;
         }
@@ -213,10 +217,6 @@ void JsRuntime::StartDebugMode(const DebugOption dOption)
             ConnectServerManager::Get().SendDebuggerInfo(isStartWithDebug, isDebugApp);
             ConnectServerManager::Get().StartConnectServer(bundleName, socketFd, false);
         } else {
-            if (appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_RELEASE) {
-                TAG_LOGE(AAFwkTag::JSRUNTIME, "not support release app");
-                return;
-            }
             // if has old debugger server, stop it
             weak->StopDebugger(option);
             weak->StartDebugger(option, socketFd, isDebugApp);
@@ -1110,6 +1110,7 @@ bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath
         return false;
     }
     if (newCreate) {
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "newCreate");
         panda::JSNApi::LoadAotFile(vm, moduleName_);
         auto resourceManager = AbilityBase::ExtractResourceManager::GetExtractResourceManager().GetGlobalObject();
         if (resourceManager) {

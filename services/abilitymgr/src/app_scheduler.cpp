@@ -99,11 +99,11 @@ int AppScheduler::TerminateAbility(const sptr<IRemoteObject> &token, bool clearM
 }
 
 int AppScheduler::UpdateApplicationInfoInstalled(const std::string &bundleName, const int32_t uid,
-    const std::string &moduleName)
+    const std::string &moduleName, bool isPlugin)
 {
     CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Start to update the application info after new module installed.");
-    int ret = (int)appMgrClient_->UpdateApplicationInfoInstalled(bundleName, uid, moduleName);
+    int ret = (int)appMgrClient_->UpdateApplicationInfoInstalled(bundleName, uid, moduleName, isPlugin);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "fail to UpdateApplicationInfoInstalled");
         return INNER_ERR;
@@ -160,11 +160,11 @@ void AppScheduler::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawn
     appMgrClient_->KillProcessesByUserId(userId, isNeedSendAppSpawnMsg, callback);
 }
 
-void AppScheduler::KillProcessesByPids(std::vector<int32_t> &pids)
+void AppScheduler::KillProcessesByPids(const std::vector<int32_t> &pids, const std::string &reason)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
     CHECK_POINTER(appMgrClient_);
-    appMgrClient_->KillProcessesByPids(pids);
+    appMgrClient_->KillProcessesByPids(pids, reason);
 }
 
 void AppScheduler::AttachPidToParent(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &callerToken)
@@ -638,6 +638,15 @@ bool AppScheduler::IsMemorySizeSufficent() const
         return true;
     }
     return appMgrClient_->IsMemorySizeSufficent();
+}
+
+bool AppScheduler::IsNoRequireBigMemory() const
+{
+    if (!appMgrClient_) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null appMgrClient");
+        return true;
+    }
+    return appMgrClient_->IsNoRequireBigMemory();
 }
 
 void AppScheduler::AttachedToStatusBar(const sptr<IRemoteObject> &token)

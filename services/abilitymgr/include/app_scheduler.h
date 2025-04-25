@@ -235,8 +235,10 @@ public:
      * kill the processes by pid list given.
      *
      * @param pids, the pid list of processes are going to be killed.
+     * @param reason, the reason to kill the processes.
      */
-    void KillProcessesByPids(std::vector<int32_t> &pids);
+    void KillProcessesByPids(const std::vector<int32_t> &pids,
+        const std::string &reason = "KillProcessesByPids");
 
     /**
      * Set child and parent relationship
@@ -303,7 +305,8 @@ public:
      * @param  uid, uid.
      * @return 0 if success.
      */
-    int UpdateApplicationInfoInstalled(const std::string &bundleName, const int32_t uid, const std::string &moduleName);
+    int UpdateApplicationInfoInstalled(const std::string &bundleName, const int32_t uid, const std::string &moduleName,
+        bool isPlugin);
 
     /**
      * Ability attach timeout. If start ability encounter failure, attach timeout to terminate.
@@ -557,6 +560,12 @@ public:
      * @return Returns true is sufficient memory size, others return false.
      */
     virtual bool IsMemorySizeSufficent() const;
+
+    /**
+     * whether or not requier a big memory
+     * @return Returens true is no big memory, others return false.
+     */
+    virtual bool IsNoRequireBigMemory() const;
 
     /**
      * Notifies that one ability is attached to status bar.

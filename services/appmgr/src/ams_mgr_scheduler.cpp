@@ -242,7 +242,7 @@ void AmsMgrScheduler::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSp
     amsHandler_->SubmitTask(killProcessesByUserIdFunc, TASK_KILL_PROCESSES_BY_USERID);
 }
 
-void AmsMgrScheduler::KillProcessesByPids(std::vector<int32_t> &pids)
+void AmsMgrScheduler::KillProcessesByPids(const std::vector<int32_t> &pids, const std::string &reason)
 {
     if (!IsReady()) {
         return;
@@ -255,8 +255,9 @@ void AmsMgrScheduler::KillProcessesByPids(std::vector<int32_t> &pids)
         return;
     }
 
-    std::function<void()> killProcessesByPidsFunc = [amsMgrServiceInner = amsMgrServiceInner_, pids]() mutable {
-        amsMgrServiceInner->KillProcessesByPids(pids);
+    std::function<void()> killProcessesByPidsFunc = [amsMgrServiceInner = amsMgrServiceInner_,
+        pidsInner = pids, reasonInner = reason]() {
+        amsMgrServiceInner->KillProcessesByPids(pidsInner, reasonInner);
     };
     amsHandler_->SubmitTask(killProcessesByPidsFunc, TASK_KILL_PROCESSES_BY_PIDS);
 }
@@ -337,13 +338,13 @@ void AmsMgrScheduler::PrepareTerminate(const sptr<IRemoteObject> &token, bool cl
 }
 
 int32_t AmsMgrScheduler::UpdateApplicationInfoInstalled(const std::string &bundleName, const int uid,
-    const std::string &moduleName)
+    const std::string &moduleName, bool isPlugin)
 {
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
 
-    return amsMgrServiceInner_->UpdateApplicationInfoInstalled(bundleName, uid, moduleName);
+    return amsMgrServiceInner_->UpdateApplicationInfoInstalled(bundleName, uid, moduleName, isPlugin);
 }
 
 int32_t AmsMgrScheduler::KillApplication(const std::string &bundleName, bool clearPageStack, int32_t appIndex)
@@ -688,6 +689,19 @@ bool AmsMgrScheduler::IsMemorySizeSufficent()
         return true;
     }
     return amsMgrServiceInner_->IsMemorySizeSufficient();
+}
+
+bool AmsMgrScheduler::IsNoRequireBigMemory()
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return true;
+    }
+    if (amsMgrServiceInner_->VerifyRequestPermission() != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+        return true;
+    }
+    return amsMgrServiceInner_->IsNoRequireBigMemory();
 }
 
 void AmsMgrScheduler::AttachedToStatusBar(const sptr<IRemoteObject> &token)

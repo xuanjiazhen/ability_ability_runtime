@@ -22,6 +22,9 @@
 #include "hitrace_meter.h"
 #include "status_bar_delegate_interface.h"
 #include <iterator>
+#include "mission_listener_interface.h"
+#include "mission_snapshot.h"
+#include "snapshot.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -821,6 +824,9 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentieth(uint32_t code, MessageParc
     }
     if (interfaceCode == AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_WITH_START_OPTIONS) {
         return StartSelfUIAbilityWithStartOptionsInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::REVOKE_DELEGATOR) {
+        return RevokeDelegatorInner(data, reply);
     }
     return ERR_CODE_NOT_EXIST;
 }
@@ -4473,6 +4479,21 @@ int32_t AbilityManagerStub::QueryPreLoadUIExtensionRecordInner(MessageParcel &da
         return INNER_ERR;
     }
     return result;
+}
+
+int32_t AbilityManagerStub::RevokeDelegatorInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> token = data.ReadRemoteObject();
+    if (!token) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read ability token fail");
+        return ERR_NULL_OBJECT;
+    }
+    int32_t result = RevokeDelegator(token);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
+        return INNER_ERR;
+    }
+    return NO_ERROR;
 }
 } // namespace AAFwk
 } // namespace OHOS
