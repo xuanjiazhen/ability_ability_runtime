@@ -752,7 +752,7 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 reinterpret_cast<void*>(StsAbilityContext::StartAbilityByTypeSync) },
             ani_native_function { "nativeStartServiceExtensionAbilitySync", nullptr,
                 reinterpret_cast<void*>(StsAbilityContext::StartServiceExtensionAbilitySync) },
-                ani_native_function { "nativeConnectServiceExtensionAbility",
+            ani_native_function { "nativeConnectServiceExtensionAbility",
                 "L@ohos/app/ability/Want/Want;Lability/connectOptions/ConnectOptions;:I",
                 reinterpret_cast<void*>(StsAbilityContext::ConnectServiceExtensionAbility) },
             ani_native_function { "nativeDisconnectServiceExtensionAbilitySync",
