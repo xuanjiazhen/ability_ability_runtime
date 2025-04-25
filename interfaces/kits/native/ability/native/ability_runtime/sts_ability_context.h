@@ -51,7 +51,10 @@ public:
         [[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object aniObj, ani_object call);
     static ani_object StartAbilityByTypeSync([[maybe_unused]] ani_env* env, [[maybe_unused]] ani_object aniObj,
         ani_string aniType, ani_ref aniWantParam, ani_object startCallback);
-
+    static ani_int ConnectServiceExtensionAbility([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
+        ani_object wantObj, ani_object connectOptionsObj);
+    static void DisconnectServiceExtensionAbilitySync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
+        ani_int connectId, ani_object connectOptionsObj);
     static ani_object SetAbilityContext(ani_env *env, const std::shared_ptr<AbilityContext> &context);
     static std::shared_ptr<AbilityContext> GetAbilityContext(ani_env *env, ani_object aniObj);
     static void StartServiceExtensionAbilitySync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
@@ -69,6 +72,24 @@ private:
 
     sptr<StsFreeInstallObserver> freeInstallObserver_ = nullptr;
     static std::mutex requestCodeMutex_;
+};
+
+class STSAbilityConnection : public AbilityConnectCallback {
+public:
+    explicit STSAbilityConnection(ani_vm *etsVm, ani_ref stsConnectionRef = nullptr);
+    ~STSAbilityConnection();
+    void OnAbilityConnectDone(
+        const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode) override;
+    void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode) override;
+    void CallStsFailed(int32_t errorCode);
+    void SetConnectionId(int64_t id);
+    int64_t GetConnectionId() { return connectionId_; }
+protected:
+    ani_vm *etsVm_;
+    int64_t connectionId_ = -1;
+    ani_ref stsConnectionRef_;
+private:
+    ani_object WrapElementName(const AppExecFwk::ElementName &element);
 };
 
 bool BindNativeMethods(ani_env *env, ani_class &cls);
