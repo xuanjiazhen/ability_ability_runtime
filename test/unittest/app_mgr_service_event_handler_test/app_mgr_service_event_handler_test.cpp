@@ -16,7 +16,6 @@
 #define private public
 #include "app_mgr_service_event_handler.h"
 #undef private
-
 #include "app_mgr_service_inner.h"
 #include <gtest/gtest.h>
 #include <memory>

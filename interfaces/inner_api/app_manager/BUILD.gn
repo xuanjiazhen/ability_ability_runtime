@@ -93,6 +93,7 @@ ohos_shared_library("app_manager") {
     "src/appmgr/child_scheduler_stub.cpp",
     "src/appmgr/configuration_observer_proxy.cpp",
     "src/appmgr/configuration_observer_stub.cpp",
+    "src/appmgr/configuration_policy.cpp",
     "src/appmgr/fault_data.cpp",
     "src/appmgr/kia_interceptor_proxy.cpp",
     "src/appmgr/kia_interceptor_stub.cpp",
@@ -133,6 +134,7 @@ ohos_shared_library("app_manager") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:mission_info",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_path}/utils/server/startup:startup_util",
   ]
