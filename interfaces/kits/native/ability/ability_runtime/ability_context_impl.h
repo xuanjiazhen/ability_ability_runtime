@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -257,6 +257,9 @@ public:
 
     std::shared_ptr<AAFwk::Want> GetWant() override;
 
+    std::string GetShareRouter() override;
+    void SetShareRouter(const std::string &shareRouter) override;
+
 #ifdef SUPPORT_SCREEN
     /**
      * @brief Set mission label of this ability.
@@ -367,6 +370,7 @@ private:
     std::shared_ptr<Global::Resource::ResourceManager> abilityResourceMgr_ = nullptr;
     AbilityConfigUpdateCallback abilityConfigUpdateCallback_ = nullptr;
     std::shared_ptr<AppExecFwk::Configuration> abilityConfiguration_ = nullptr;
+    std::string shareRouter_;
 
     static void RequestDialogResultJSThreadWorker(uv_work_t* work, int status);
     void OnAbilityResultInner(int requestCode, int resultCode, const AAFwk::Want &resultData);

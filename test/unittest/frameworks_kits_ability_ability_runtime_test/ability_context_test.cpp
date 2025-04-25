@@ -412,6 +412,16 @@ public:
     {
         return nullptr;
     }
+
+    virtual std::string GetShareRouter()
+    {
+        return "MockAbilityContext for tdd";
+    }
+
+    virtual void SetShareRouter(const std::string &shareRouter)
+    {
+        return;
+    }
 #ifdef SUPPORT_GRAPHICS
 #ifdef SUPPORT_SCREEN
     virtual ErrCode SetMissionLabel(const std::string &label)

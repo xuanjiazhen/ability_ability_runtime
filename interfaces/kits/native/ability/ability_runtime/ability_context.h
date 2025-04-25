@@ -373,6 +373,9 @@ public:
 
     virtual std::shared_ptr<AAFwk::Want> GetWant() = 0;
 
+    virtual std::string GetShareRouter() = 0;
+    virtual void SetShareRouter(const std::string &shareRouter) = 0;
+
 #ifdef SUPPORT_GRAPHICS
 #ifdef SUPPORT_SCREEN
     /**

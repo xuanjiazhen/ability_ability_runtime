@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,6 +23,7 @@
 #undef protected
 #include "ability_handler.h"
 #include "ability_context.h"
+#include "ability_context_impl.h"
 #include "ability_local_record.h"
 #include "mock_ability_token.h"
 #include "ohos_application.h"
@@ -1381,6 +1382,43 @@ HWTEST_F(UIAbilityThreadTest, AbilityRuntime_ScheduleAbilityRequestSuccess_0200,
     std::string message = "success";
     abilitythread->ScheduleAbilityRequestSuccess(requestId, element, message);
     GTEST_LOG_(INFO) << "AbilityRuntime_ScheduleAbilityRequestSuccess_0200 end";
+}
+
+
+/**
+ * @tc.number: AbilityRuntime_AddShareRouterToAbilityContext_0100
+ * @tc.name: AddShareRouterToAbilityContext
+ * @tc.desc: Test AddShareRouterToAbilityContext function
+ */
+HWTEST_F(UIAbilityThreadTest, AbilityRuntime_AddShareRouterToAbilityContext_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AddShareRouterToAbilityContext_0100 start";
+    AbilityRuntime::UIAbilityThread *abilitythread = new (std::nothrow) AbilityRuntime::UIAbilityThread();
+    EXPECT_NE(abilitythread, nullptr);
+
+    std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
+    abilityInfo->name = "UIAbility";
+    abilityInfo->type = AbilityType::PAGE;
+    sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    auto want = std::make_shared<Want>();
+    auto abilityRecord = std::make_shared<AbilityLocalRecord>(abilityInfo, token, want, 0);
+    std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext = nullptr;
+    abilitythread->AddShareRouterToAbilityContext(abilityRecord, abilityContext);
+    abilityContext = std::make_shared<AbilityRuntime::AbilityContextImpl>();
+    abilitythread->AddShareRouterToAbilityContext(abilityRecord, abilityContext);
+    EXPECT_EQ(abilityContext->GetShareRouter(), "");
+
+    std::string shareRouter = "shareRouter";
+    want->SetParam(Want::ATOMIC_SERVICE_SHARE_ROUTER, shareRouter);
+    auto abilityRecord2 = std::make_shared<AbilityLocalRecord>(abilityInfo, token, want, 0);
+    abilitythread->AddShareRouterToAbilityContext(abilityRecord2, abilityContext);
+    EXPECT_EQ(abilityContext->GetShareRouter(), shareRouter);
+
+    auto abilityRecord3 = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
+    abilitythread->AddShareRouterToAbilityContext(abilityRecord3, abilityContext);
+    EXPECT_EQ(abilityContext->GetShareRouter(), shareRouter);
+
+    GTEST_LOG_(INFO) << "AbilityRuntime_AddShareRouterToAbilityContext_0100 end";
 }
 } // namespace AppExecFwk
 } // namespace OHOS
