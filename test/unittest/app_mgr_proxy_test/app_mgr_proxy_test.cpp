@@ -23,6 +23,8 @@
 #include "mock_app_mgr_service.h"
 #include "quick_fix_callback_stub.h"
 #include "render_state_observer_stub.h"
+//#include "background_app_info.h"
+//#include "configuration_policy.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -933,6 +935,34 @@ HWTEST_F(AppMgrProxyTest, GetSupportedProcessCachePids_001, TestSize.Level2)
     std::vector<int32_t> pidList;
     appMgrProxy_->GetSupportedProcessCachePids(bundleName, pidList);
     EXPECT_EQ(mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::GET_SUPPORTED_PROCESS_CACHE_PIDS));
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: UpdateConfigurationPolicy_001
+ * @tc.desc: UpdateConfigurationPolicy.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppMgrProxyTest, UpdateConfigurationPolicy_001, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
+
+    std::vector<BackgroundAppInfo> appInfos;
+    ConfigurationPolicy policy;
+    int32_t userId = -1;
+
+    auto ret = appMgrProxy_->UpdateConfigurationPolicy(appInfos, policy, userId);
+    EXPECT_EQ(ret, ERR_FLATTEN_OBJECT);
+    BackgroundAppInfo info;
+    appInfos.push_back(info);
+    appMgrProxy_->UpdateConfigurationPolicy(appInfos, policy, userId);
+    EXPECT_EQ(mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_CONFIGURATION_POLICY));
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
