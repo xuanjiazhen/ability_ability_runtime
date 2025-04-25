@@ -61,6 +61,8 @@ public:
      * @return errCode ERR_OK on success, others on failure.
      */
     virtual ErrCode TerminateSelf();
+
+    virtual ErrCode NotifyComponentTerminate();
         /**
      * @brief Connects the current ability to an ability using the AbilityInfo.AbilityType.SERVICE template.
      *

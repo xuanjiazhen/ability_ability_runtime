@@ -347,6 +347,8 @@ public:
     virtual int TerminateAbility(
         const sptr<IRemoteObject> &token, int resultCode, const Want *resultWant = nullptr) override;
 
+    virtual int NotifyComponentTerminate(const sptr<IRemoteObject> &token) override;
+
     /**
      * BackToCallerAbilityWithResult, return to the caller ability.
      *

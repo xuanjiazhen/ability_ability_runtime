@@ -501,6 +501,11 @@ public:
         return 0;
     };
 
+    virtual int NotifyComponentTerminate(const sptr<IRemoteObject> &token)
+    {
+        return 0;
+    };
+
     /**
      * TerminateUIServiceExtensionAbility, terminate the UIServiceExtensionAbility.
      *

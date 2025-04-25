@@ -405,6 +405,7 @@ public:
      */
     ErrCode TerminateAbility(sptr<IRemoteObject> token, int resultCode, const Want *resultWant);
 
+    ErrCode NotifyComponentTerminate(sptr<IRemoteObject> token);
     /**
      * BackToCallerAbilityWithResult, return to the caller ability.
      *
