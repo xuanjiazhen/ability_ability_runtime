@@ -29,6 +29,7 @@ constexpr int32_t RETRY_TIMES = 3;
 constexpr int32_t RETRY_INTERVAL = 500; // 500ms
 constexpr int16_t WRITE_TIMEOUT = 300; // 300s
 } // namespace
+std::mutex InsightIntentRdbDataMgr::rdbStoreMutex_;
 
 InsightIntentRdbDataMgr::InsightIntentRdbDataMgr()
 {}

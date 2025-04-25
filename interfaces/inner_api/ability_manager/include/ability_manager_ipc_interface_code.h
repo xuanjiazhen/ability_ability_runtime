@@ -610,6 +610,12 @@ enum class AbilityManagerInterfaceCode {
 
     // start self uiability with startOptions
     START_SELF_UI_ABILITY_WITH_START_OPTIONS = 6138,
+
+    GET_ALL_INSIGHT_INTENT_INFO = 6140,
+
+    GET_INSIGHT_INTENT_INFO_BY_BUNDLE_NAME = 6141,
+
+    GET_INSIGHT_INTENT_INFO_BY_INTENT_NAME = 6142,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

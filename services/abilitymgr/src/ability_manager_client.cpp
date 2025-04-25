@@ -2190,5 +2190,39 @@ ErrCode AbilityManagerClient::QueryPreLoadUIExtensionRecord(const AppExecFwk::El
     return abms->QueryPreLoadUIExtensionRecord(
         element, moduleName, hostBundleName, recordNum, userId);
 }
+
+ErrCode AbilityManagerClient::GetAllInsightIntentInfo(
+    AbilityRuntime::GetInsightIntentFlag flag,
+    std::vector<JsInsightIntentInfo> &infos)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call GetAllInsightIntentInfo");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->GetAllInsightIntentInfo(flag, infos);
+}
+
+ErrCode AbilityManagerClient::GetInsightIntentInfoByBundleName(
+    AbilityRuntime::GetInsightIntentFlag flag,
+    const std::string &bundleName,
+    std::vector<JsInsightIntentInfo> &infos)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call GetInsightIntentInfoByBundleName");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->GetInsightIntentInfoByBundleName(flag, bundleName, infos);
+}
+
+ErrCode AbilityManagerClient::GetInsightIntentInfoByIntentName(
+    AbilityRuntime::GetInsightIntentFlag flag,
+    const std::string &bundleName,
+    const std::string &moduleName,
+    const std::string &intentName,
+    JsInsightIntentInfo &info)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call GetInsightIntentInfoByIntentName");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->GetInsightIntentInfoByIntentName(flag, bundleName, moduleName, intentName, info);
+}
 } // namespace AAFwk
 } // namespace OHOS

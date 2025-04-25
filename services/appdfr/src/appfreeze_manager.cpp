@@ -533,34 +533,34 @@ std::string AppfreezeManager::CatchJsonStacktrace(int pid, const std::string& fa
     const std::string& stack) const
 {
     HITRACE_METER_FMT(HITRACE_TAG_APP, "CatchJsonStacktrace pid:%d", pid);
-    HiviewDFX::DfxDumpCatcher dumplog;
+    // HiviewDFX::DfxDumpCatcher dumplog;
     std::string msg;
-    size_t defaultMaxFaultNum = 256;
-    if (dumplog.DumpCatchProcess(pid, msg, defaultMaxFaultNum, true) == -1) {
-        TAG_LOGI(AAFwkTag::APPDFR, "appfreeze catch stack failed");
-        msg = "Failed to dump stacktrace for " + std::to_string(pid) + "\n" + msg +
-            "\nMain thread stack:" + stack;
-        if (faultType == AppFreezeType::APP_INPUT_BLOCK) {
-            FindStackByPid(msg, pid);
-        }
-    } else {
-        if (faultType == AppFreezeType::THREAD_BLOCK_3S) {
-            std::lock_guard<ffrt::mutex> lock(catchStackMutex_);
-            catchStackMap_[pid] = msg;
-        }
-    }
+    // size_t defaultMaxFaultNum = 256;
+    // if (dumplog.DumpCatchProcess(pid, msg, defaultMaxFaultNum, true) == -1) {
+    //     TAG_LOGI(AAFwkTag::APPDFR, "appfreeze catch stack failed");
+    //     msg = "Failed to dump stacktrace for " + std::to_string(pid) + "\n" + msg +
+    //         "\nMain thread stack:" + stack;
+    //     if (faultType == AppFreezeType::APP_INPUT_BLOCK) {
+    //         FindStackByPid(msg, pid);
+    //     }
+    // } else {
+    //     if (faultType == AppFreezeType::THREAD_BLOCK_3S) {
+    //         std::lock_guard<ffrt::mutex> lock(catchStackMutex_);
+    //         catchStackMap_[pid] = msg;
+    //     }
+    // }
     return msg;
 }
 
 std::string AppfreezeManager::CatcherStacktrace(int pid, const std::string& stack) const
 {
     HITRACE_METER_FMT(HITRACE_TAG_APP, "CatcherStacktrace pid:%d", pid);
-    HiviewDFX::DfxDumpCatcher dumplog;
+    // HiviewDFX::DfxDumpCatcher dumplog;
     std::string msg;
-    if (dumplog.DumpCatchProcess(pid, msg) == -1) {
-        msg = "Failed to dump stacktrace for " + std::to_string(pid) + "\n" + msg +
-            "\nMain thread stack:" + stack;
-    }
+    // if (dumplog.DumpCatchProcess(pid, msg) == -1) {
+    //     msg = "Failed to dump stacktrace for " + std::to_string(pid) + "\n" + msg +
+    //         "\nMain thread stack:" + stack;
+    // }
     return msg;
 }
 
