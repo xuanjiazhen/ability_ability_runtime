@@ -43,7 +43,20 @@ static void TerminateSelfSync([[maybe_unused]] ani_env *env, [[maybe_unused]] an
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return;
     }
-    ret = ((OHOS::AbilityRuntime::UIExtensionContext*)nativeContextLong)->TerminateSelf();
+
+    auto weakContext = reinterpret_cast<std::weak_ptr<OHOS::AbilityRuntime::UIExtensionContext>*>(nativeContextLong);
+    if (weakContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "weakContext is released");
+        return;
+    }
+
+    auto context = weakContext->lock();
+    if (!context) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "context is released");
+        return;
+    }
+    
+    ret = context->TerminateSelf();
     OHOS::AbilityRuntime::StsUIExtensionCommon::AsyncCallback(env, callback,
         OHOS::AbilityRuntime::CreateStsErrorByNativeErr(env, static_cast<int32_t>(ret)), nullptr);
 }
@@ -68,7 +81,14 @@ static void TerminateSelfWithResultSync([[maybe_unused]] ani_env *env, [[maybe_u
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return;
     }
-    auto context = ((OHOS::AbilityRuntime::UIExtensionContext*)nativeContextLong);
+
+    auto weakContext = reinterpret_cast<std::weak_ptr<OHOS::AbilityRuntime::UIExtensionContext>*>(nativeContextLong);
+    if (weakContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "weakContext is released");
+        return;
+    }
+
+    auto context = weakContext->lock();
     if (!context) {
         TAG_LOGE(AAFwkTag::UI_EXT, "context is released");
         return;
@@ -163,7 +183,8 @@ ani_object CreateStsUIExtensionContext(ani_env *env,
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return nullptr;
     }
-    ani_long nativeContextLong = (ani_long)context.get();
+    auto workContext = new (std::nothrow) std::weak_ptr<OHOS::AbilityRuntime::UIExtensionContext>(context);
+    ani_long nativeContextLong = (ani_long)workContext;
     if ((status = env->Object_SetField_Long(contextObj, field, nativeContextLong)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return nullptr;
