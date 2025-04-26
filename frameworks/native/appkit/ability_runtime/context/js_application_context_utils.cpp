@@ -325,6 +325,8 @@ napi_value JsApplicationContextUtils::OnCreateModuleResourceManager(napi_env env
         return CreateJsUndefined(env);
     }
     auto jsResourceManager = CreateJsResourceManager(env, resourceManager, nullptr);
+    TAG_LOGD(AAFwkTag::APPKIT, "OnCreateModuleResourceManager resourceMgr use_count:%{public}ld",
+        resourceManager.use_count());
     return jsResourceManager;
 }
 
