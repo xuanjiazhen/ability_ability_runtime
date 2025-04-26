@@ -29,6 +29,7 @@
 #include "ability_window_configuration.h"
 #include "accesstoken_kit.h"
 #include "app_config_data_manager.h"
+#include "app_configuration_policy_manager.h"
 #include "app_mem_info.h"
 #include "app_mgr_service.h"
 #include "app_mgr_event.h"
@@ -5329,6 +5330,7 @@ int32_t AppMgrServiceInner::DealWithUserConfiguration(const Configuration& confi
 
 int32_t AppMgrServiceInner::UpdateConfiguration(const Configuration &config, const int32_t userId)
 {
+    TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrServiceInner::UpdateConfiguration Start");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!appRunningManager_) {
         TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
@@ -5360,6 +5362,31 @@ int32_t AppMgrServiceInner::UpdateConfiguration(const Configuration &config, con
         }
     }
 
+    return result;
+}
+
+int32_t AppMgrServiceInner::UpdateConfigurationPolicy(const std::vector<uint32_t> &whiteList,
+    const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId)
+{
+    TAG_LOGE(AAFwkTag::APPMGR, "## JASON ## AppMgrServiceInner::UpdateConfigurationPolicy Start........");
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (!appRunningManager_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
+        return ERR_INVALID_VALUE;
+    }
+    CHECK_CALLER_IS_SYSTEM_APP;
+    auto ret = AAFwk::PermissionVerification::GetInstance()->VerifyUpdateConfigurationPerm();
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    int32_t result = appRunningManager_->UpdateConfigurationPolicy(whiteList, policy, userId);
+
+    // AppConfigurationPolicyManager appConfigurationPolicyManager;
+    // appConfigurationPolicyManager.Init();
+    // appConfigurationPolicyManager.test();
+
+    // appConfigurationPolicyManager.UnInit();
     return result;
 }
 

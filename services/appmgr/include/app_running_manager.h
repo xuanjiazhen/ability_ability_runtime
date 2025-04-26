@@ -31,6 +31,7 @@
 #include "application_info.h"
 #include "bundle_info.h"
 #include "configuration.h"
+#include "configuration_policy.h"
 #include "iremote_object.h"
 #include "kill_process_config.h"
 #include "record_query_result.h"
@@ -199,6 +200,14 @@ public:
     * @return Returns ERR_OK on success, others on failure.
     */
     int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1);
+
+    /**
+     * UpdateConfigurationPolicy
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t UpdateConfigurationPolicy(const std::vector<uint32_t> &whiteList,
+        const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId = -1);
 
     /**
      *  Update config by sa.
@@ -383,6 +392,7 @@ private:
         const std::shared_ptr<AppMgrServiceInner>& appMgrServiceInner);
     void AddRecordToDeadList(std::shared_ptr<AppRunningRecord> appRecord);
     void RemoveTimeoutDeadAppRecord();
+    static void *ExecuteConfigurationPolicy(void *arg);
 
 private:
     std::mutex runningRecordMapMutex_;
@@ -394,6 +404,11 @@ private:
 
     std::mutex updateConfigurationDelayedLock_;
     std::map<const int32_t, bool> updateConfigurationDelayedMap_;
+
+    std::mutex updateConfigurationPolicyLock_;
+    static int32_t changeFlagValue;
+    std::vector<uint32_t> whiteList_;
+    AppExecFwk::ConfigurationPolicy policy_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
