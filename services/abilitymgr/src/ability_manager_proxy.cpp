@@ -891,7 +891,7 @@ int AbilityManagerProxy::TerminateAbility(const sptr<IRemoteObject> &token, int 
     return TerminateAbility(token, resultCode, resultWant, true);
 }
 
-int AbilityManagerProxy::NotifyComponentTerminate(const sptr<IRemoteObject> &token)
+int AbilityManagerProxy::NotifyComponentTerminate(const sptr<IRemoteObject> &token, int32_t resultCode)
 {
     int error;
     MessageParcel data;
@@ -902,6 +902,7 @@ int AbilityManagerProxy::NotifyComponentTerminate(const sptr<IRemoteObject> &tok
         return INNER_ERR;
     }
     PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, RemoteObject, token);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Int32, resultCode);
     error = SendRequest(AbilityManagerInterfaceCode::NOTIFY_COMPONET_TERMINATE, data, reply, option);
     if (error != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);

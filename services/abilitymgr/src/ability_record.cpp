@@ -2821,6 +2821,24 @@ void AbilityRecord::SendEvent(uint32_t msg, uint32_t timeOut, int32_t param, boo
     }
 }
 
+int32_t AbilityRecord::NotifyComponentTerminate(int32_t resultCode)
+{
+    // 1.judge ability is full-screen atomic service
+    auto bundleType = abilityInfo_.applicationInfo.bundleType;
+    auto screenMode = want_.GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
+    if (bundleType != AppExecFwk::BundleType::ATOMIC_SERVICE || screenMode != AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not atomic-service or full-screen mode, uri:%{public}s \
+            bundleType %{public}d screenMode:%{public}d.", GetURI().c_str(), static_cast<int32_t>(bundleType),
+            static_cast<int32_t>(screenMode));
+        return ERR_INVALID_VALUE;
+    }
+
+    std::lock_guard<ffrt::mutex> guard(lock_);
+    CHECK_POINTER_AND_RETURN(scheduler_, INNER_ERR);
+    scheduler_->ScheduleAtomicServiceTeminate(GetSessionInfo(), resultCode);
+    return ERR_OK;
+}
+
 void AbilityRecord::SetWant(const Want &want)
 {
     std::lock_guard guard(wantLock_);

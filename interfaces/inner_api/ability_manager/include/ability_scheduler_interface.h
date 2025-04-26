@@ -312,6 +312,17 @@ public:
     virtual void ScheduleAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
         const std::string &message) = 0;
 
+    /**
+     * ScheduleAtomicServiceTeminate, terminate full-screen embedded atomic service.
+     *
+     * @param token, the token of the ability to terminate.
+     * @param resultCode, the resultCode of the ability to terminate.
+     */
+    virtual void ScheduleAtomicServiceTeminate(const sptr<SessionInfo> &sessionInfo, int32_t resultCode = -1)
+    {
+        return;
+    }
+
     enum {
         // ipc id for scheduling ability to a state of life cycle
         SCHEDULE_ABILITY_TRANSACTION = 0,
@@ -413,7 +424,9 @@ public:
 
         SCHEDULE_ABILITY_REQUEST_FAILURE,
 
-        SCHEDULE_ABILITY_REQUEST_SUCCESS
+        SCHEDULE_ABILITY_REQUEST_SUCCESS,
+
+        SCHEDULE_FULL_SCREEN_EBEDED_ATOMIC_SERVICE_TERMINATE
     };
 };
 }  // namespace AAFwk

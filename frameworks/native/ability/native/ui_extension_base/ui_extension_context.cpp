@@ -84,14 +84,14 @@ ErrCode UIExtensionContext::TerminateSelf()
     return err;
 }
 
-ErrCode UIExtensionContext::NotifyComponentTerminate()
+ErrCode UIExtensionContext::NotifyComponentTerminate(int32_t resultCode)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "begin");
-    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->NotifyComponentTerminate(token_);
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->NotifyComponentTerminate(token_, resultCode);
     if (err != ERR_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "ret = %{public}d", err);
     }
-    TAG_LOGD(AAFwkTag::UI_EXT, "TerminateSelf end");
+    TAG_LOGD(AAFwkTag::UI_EXT, "end");
     return err;
 }
 

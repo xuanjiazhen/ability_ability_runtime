@@ -160,6 +160,14 @@ public:
      */
     void SetLaunchParam(const AAFwk::LaunchParam &launchParam);
 
+    /**
+     * ScheduleAtomicServiceTeminate, terminate full-screen embedded atomic service.
+     *
+     * @param sessionInfo, the sessionInfo of the ability to terminate.
+     * @param resultCode, the resultCode of the ability to terminate.
+     */
+    void ScheduleAtomicServiceTeminate(const sptr<AAFwk::SessionInfo> &sessionInfo, int32_t resultCode = -1);
+
 protected:
     /**
      * @brief Toggles the lifecycle status of Extension to AAFwk::ABILITY_STATE_INACTIVE. And notifies the application

@@ -1170,6 +1170,34 @@ void JsUIExtension::Dump(const std::vector<std::string> &params, std::vector<std
     TAG_LOGD(AAFwkTag::UI_EXT, "Dump info size: %{public}zu", info.size());
 }
 
+void JsUIExtension::ScheduleAtomicServiceTeminate(const sptr<AAFwk::SessionInfo> &sessionInfo, int32_t resultCode)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::UI_EXT, "begin");
+    if (sessionInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Invalid sessionInfo");
+        return;
+    }
+    if (screenMode_ != AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "not embedded full screen atomic service.");
+        return;
+    }
+    // 1.transfer terminate code to uec.
+    WantParams params;
+    params.SetParam("resultCode", Integer::Box(resultCode));
+    {
+        std::lock_guard<std::mutex> lock(uiWindowMutex_);
+        auto& uiWindow = uiWindowMap_[sessionInfo->uiExtensionComponentId];
+        Rosen::WMError ret = uiWindow->TransferExtensionData(params);
+        if (ret == Rosen::WMError::WM_OK) {
+            TAG_LOGD(AAFwkTag::UI_EXT, "TransferExtensionData success");
+        } else {
+            TAG_LOGE(AAFwkTag::UI_EXT, "TransferExtensionData failed, ret=%{public}d", ret);
+        }
+    }
+    TAG_LOGD(AAFwkTag::UI_EXT, "end");
+}
+
 void JsUIExtension::OnAbilityResult(int requestCode, int resultCode, const Want &resultData)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "begin");

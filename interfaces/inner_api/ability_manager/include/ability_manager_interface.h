@@ -501,7 +501,14 @@ public:
         return 0;
     };
 
-    virtual int NotifyComponentTerminate(const sptr<IRemoteObject> &token)
+    /**
+     * NotifyComponentTerminate, terminate full-screen embedded atomic service.
+     *
+     * @param token, the token of the ability to terminate.
+     * @param resultCode, the resultCode of the ability to terminate.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int NotifyComponentTerminate(const sptr<IRemoteObject> &token, int32_t resultCode = -1)
     {
         return 0;
     };

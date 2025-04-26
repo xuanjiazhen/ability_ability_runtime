@@ -1035,7 +1035,8 @@ int AbilityManagerStub::NotifyComponentTerminateInner(MessageParcel &data, Messa
         TAG_LOGE(AAFwkTag::ABILITYMGR, "token null");
         return IPC_STUB_ERR;
     }
-    int32_t result = NotifyComponentTerminate(token);
+    int32_t resultCode = data.ReadInt32();
+    int32_t result = NotifyComponentTerminate(token, resultCode);
     reply.WriteInt32(result);
     return NO_ERROR;
 }

@@ -590,6 +590,17 @@ void ExtensionAbilityThread::DumpAbilityInfo(const std::vector<std::string> &par
     TAG_LOGD(AAFwkTag::EXT, "End");
 }
 
+void ExtensionAbilityThread::ScheduleAtomicServiceTeminate(const sptr<AAFwk::SessionInfo> &sessionInfo, int32_t resultCode)
+{
+    TAG_LOGD(AAFwkTag::EXT, "Begin, resultCode %{public}d", resultCode);
+    if (extensionImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "null extensionImpl_");
+        return;
+    }
+    extensionImpl_->ScheduleAtomicServiceTeminate(sessionInfo, resultCode);
+    TAG_LOGD(AAFwkTag::EXT, "End");
+}
+
 void ExtensionAbilityThread::DumpAbilityInfoInner(
     const std::vector<std::string> &params, std::vector<std::string> &info)
 {
