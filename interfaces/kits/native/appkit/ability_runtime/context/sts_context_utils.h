@@ -18,6 +18,7 @@
 
 #include "sts_runtime.h"
 #include "context.h"
+#include "ets_enviroment_callback.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -45,6 +46,9 @@ ani_object CreateModuleResourceManagerSync([[maybe_unused]]ani_env *env, [[maybe
     ani_string bundleName, ani_string moduleName);
 
 ani_object GetApplicationContextSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj);
+
+ani_double NativeOnSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
+    ani_string type, ani_object envCallback);
 
 void SwitchAniArea([[maybe_unused]]ani_env *aniEnv, ani_enum_item aniMode);
 
