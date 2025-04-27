@@ -72,7 +72,7 @@ public:
         tokenInfos = {};
     }
 
-    static int flag_;
+    static uint32_t flag_;
     static bool permissionFileAccessManager_;
     static bool permissionWriteImageVideo_;
     static bool permissionReadImageVideo_;
