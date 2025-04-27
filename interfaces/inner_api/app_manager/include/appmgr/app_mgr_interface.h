@@ -19,18 +19,21 @@
 #include "ability_foreground_state_observer_interface.h"
 #include "ability_info.h"
 #include "ams_mgr_interface.h"
-#include "app_foreground_state_observer_interface.h"
+
 #include "app_malloc_info.h"
 #include "app_mgr_ipc_interface_code.h"
 #include "app_record_id.h"
 #include "application_info.h"
+#include "background_app_info.h"
 #include "bundle_info.h"
 #include "child_process_info.h"
+#include "configuration_policy.h"
 #ifdef SUPPORT_CHILD_PROCESS
 #include "child_process_request.h"
 #endif // SUPPORT_CHILD_PROCESS
 #include "fault_data.h"
 #include "kia_interceptor_interface.h"
+#include "iapp_foreground_state_observer.h"
 #include "iapp_state_callback.h"
 #include "iapplication_state_observer.h"
 #include "iconfiguration_observer.h"
@@ -434,6 +437,20 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1) = 0;
+
+    /**
+     * UpdateConfigurationForBackgroundApp
+     * 
+     * @param appInfos Background application information.
+     * @param policy Update policy.
+     * @param userId configuration for the user
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t UpdateConfigurationForBackgroundApp(const std::vector<BackgroundAppInfo> &appInfos,
+        const AppExecFwk::ConfigurationPolicy &policy, const int32_t userId = -1)
+    {
+        return 0;
+    }
 
     /**
      *  Update config by bundle name.

@@ -265,6 +265,12 @@ ErrCode AbilityContextImpl::StartAbilityForResult(const AAFwk::Want& want, const
     if (err != ERR_OK && err != AAFwk::START_ABILITY_WAITING) {
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
         OnAbilityResultInner(requestCode, err, want);
+        if (!startOptions.requestId_.empty()) {
+            nlohmann::json jsonObject = nlohmann::json {
+                { JSON_KEY_ERR_MSG, "startAbility failed" },
+            };
+            OnRequestFailure(startOptions.requestId_, want.GetElement(), jsonObject.dump());
+        }
     }
     return err;
 }
@@ -280,6 +286,12 @@ ErrCode AbilityContextImpl::StartAbilityForResultWithAccount(
     if (err != ERR_OK && err != AAFwk::START_ABILITY_WAITING) {
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
         OnAbilityResultInner(requestCode, err, want);
+        if (!startOptions.requestId_.empty()) {
+            nlohmann::json jsonObject = nlohmann::json {
+                { JSON_KEY_ERR_MSG, "startAbility failed" },
+            };
+            OnRequestFailure(startOptions.requestId_, want.GetElement(), jsonObject.dump());
+        }
     }
     return err;
 }

@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+# Copyright (c) 2022-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -46,6 +46,7 @@ ohos_shared_library("libupms") {
   branch_protector_ret = "pac_ret"
   shlib_type = "sa"
   configs = [
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config",
     "${ability_runtime_innerkits_path}/app_manager:appmgr_sdk_config",
     "${ability_runtime_services_path}/common:common_config",
     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
@@ -123,6 +124,7 @@ ohos_static_library("libupms_static") {
   }
   branch_protector_ret = "pac_ret"
   configs = [
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config",
     "${ability_runtime_innerkits_path}/app_manager:appmgr_sdk_config",
     "${ability_runtime_services_path}/common:common_config",
   ]

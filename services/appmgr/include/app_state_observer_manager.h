@@ -22,10 +22,10 @@
 #include <unordered_map>
 
 #include "ability_foreground_state_observer_interface.h"
-#include "app_foreground_state_observer_interface.h"
 #include "app_running_record.h"
 #include "app_state_data.h"
 #include "cpp/mutex.h"
+#include "iapp_foreground_state_observer.h"
 #include "iapp_state_callback.h"
 #include "iapplication_state_observer.h"
 #include "page_state_data.h"

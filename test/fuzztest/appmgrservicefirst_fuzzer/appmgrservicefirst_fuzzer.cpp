@@ -74,7 +74,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     appMgrService->RegisterApplicationStateObserver(applicationStateObserver);
     appMgrService->UnregisterApplicationStateObserver(applicationStateObserver);
     pid_t pid = static_cast<pid_t>(GetU32Data(data));
-    appMgrService->AddAppDeathRecipient(pid);
+    //appMgrService->AddAppDeathRecipient(pid);
     appMgrService->QueryServiceState();
     sptr<IRemoteObject> app = nullptr;
     appMgrService->AttachApplication(app);
@@ -125,6 +125,14 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     appMgrService->GetConfiguration(config);
     std::string bundleName(data, size);
     appMgrService->GetAppRunningStateByBundleName(bundleName);
+    std::vector<BackgroundAppInfo> appInfos;
+    BackgroundAppInfo appInfo;
+    appInfo.bandleName = bundleName;
+    appInfos.push_back(appInfo);
+    AppExecFwk::ConfigurationPolicy policy;
+    policy.maxCountPerBatch = static_cast<int8_t>(GetU32Data(data));
+    policy.intervalTime = static_cast<int16_t>(GetU32Data(data));
+    appMgrService->UpdateConfigurationForBackgroundApp(appInfos, policy);
     sptr<IQuickFixCallback> callback;
     appMgrService->NotifyLoadRepairPatch(bundleName, callback);
     appMgrService->NotifyHotReloadPage(bundleName, callback);

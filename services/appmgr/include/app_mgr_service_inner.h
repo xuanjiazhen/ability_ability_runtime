@@ -31,7 +31,6 @@
 #include "app_death_recipient.h"
 #include "app_debug_listener_interface.h"
 #include "app_debug_manager.h"
-#include "app_foreground_state_observer_interface.h"
 #include "app_malloc_info.h"
 #include "app_mgr_constants.h"
 #include "app_mgr_event.h"
@@ -44,18 +43,21 @@
 #include "app_scheduler_interface.h"
 #include "app_spawn_client.h"
 #include "appexecfwk_errors.h"
+#include "background_app_info.h"
 #include "bundle_info.h"
 #include "bundle_mgr_helper.h"
 #ifdef SUPPORT_CHILD_PROCESS
 #include "child_process_info.h"
 #include "child_process_request.h"
 #endif // SUPPORT_CHILD_PROCESS
+#include "configuration_policy.h"
 #include "cpp/mutex.h"
 #include "event_report.h"
 #include "exit_resident_process_manager.h"
 #include "fault_data.h"
 #include "fd_guard.h"
 #include "hisysevent.h"
+#include "iapp_foreground_state_observer.h"
 #include "iapp_state_callback.h"
 #include "iapplication_state_observer.h"
 #include "iconfiguration_observer.h"
@@ -760,6 +762,16 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1);
+
+    /**
+     * UpdateConfigurationForBackgroundApp
+     * @param appInfos Background application information.
+     * @param policy Update policy.
+     * @param userId configuration for the user
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t UpdateConfigurationForBackgroundApp(const std::vector<BackgroundAppInfo> &appInfos,
+        const AppExecFwk::ConfigurationPolicy &policy, const int32_t userId);
 
     int32_t UpdateConfigurationByBundleName(const Configuration &config, const std::string &name, int32_t appIndex);
 

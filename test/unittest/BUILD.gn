@@ -202,7 +202,10 @@ ohos_source_set("abilityms_test_source") {
   ]
 
   cflags_cc = []
-  configs = [ ":test_exception_config" ]
+  configs = [
+    ":test_exception_config",
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config",
+  ]
 
   public_configs = [
     "${ability_runtime_services_path}/abilitymgr:abilityms_config",

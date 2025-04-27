@@ -52,24 +52,6 @@ void AppForegroundStateObserverStubTest::TearDown()
 {}
 
 /**
- * @tc.number: HandleOnAppStateChanged_0100
- * @tc.desc: Test when processData is not nullptr.
- * @tc.type: FUNC
- */
-HWTEST_F(AppForegroundStateObserverStubTest, HandleOnAppStateChanged_0100, TestSize.Level1)
-{
-    auto stub = new (std::nothrow) MockAppForegroundStateObserverStub();
-    EXPECT_TRUE(stub);
-    EXPECT_CALL(*stub, OnAppStateChanged(_)).Times(1);
-    MessageParcel data;
-    AppStateData appStateData;
-    data.WriteParcelable(&appStateData);
-    MessageParcel reply;
-    auto result = stub->HandleOnAppStateChanged(data, reply);
-    EXPECT_EQ(NO_ERROR, result);
-}
-
-/**
  * @tc.number: OnRemoteRequest_0100
  * @tc.desc: Test when descriptor and remoteDescriptor is different and
  *      itFunc is not end memberFunc is not nullptr.

@@ -955,5 +955,120 @@ HWTEST_F(AppRunningManagerFourthTest, AppRunningManager_OnRemoteRenderDied_0100,
     ret = appRunningManager->OnRemoteRenderDied(remote);
     EXPECT_EQ(ret, nullptr);
 }
+
+/**
+ * @tc.name: UpdateConfigurationForBackgroundApp_0100
+ * @tc.desc: UpdateConfigurationForBackgroundApp.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerFourthTest, UpdateConfigurationForBackgroundApp_0100, TestSize.Level1)
+{
+    auto appRunningManager = std::make_shared<AppRunningManager>();
+    EXPECT_NE(appRunningManager, nullptr);
+
+    std::vector<BackgroundAppInfo> appInfos;
+    AppExecFwk::ConfigurationPolicy policy;
+    int32_t userId = -1;
+    policy.maxCountPerBatch  = -1;
+    auto ret = appRunningManager->UpdateConfigurationForBackgroundApp(appInfos, policy, userId);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    
+    policy.maxCountPerBatch  = 1;
+    policy.intervalTime = -1;
+    ret = appRunningManager->UpdateConfigurationForBackgroundApp(appInfos, policy, userId);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    policy.maxCountPerBatch  = 1;
+    policy.intervalTime = 1;
+    BackgroundAppInfo info;
+    info.bandleName = "com.example.mytest";
+    info.appIndex = 0;
+    appInfos.push_back(info);
+    ret = appRunningManager->UpdateConfigurationForBackgroundApp(appInfos, policy, userId);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: UpdateConfiguration_0100
+ * @tc.desc: UpdateConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerFourthTest, UpdateConfiguration_0100, TestSize.Level1)
+{
+    auto appRunningManager = std::make_shared<AppRunningManager>();
+    EXPECT_NE(appRunningManager, nullptr);
+
+    ApplicationInfo appInfo;
+    appInfo.name = "KeepAliveApp";
+    appInfo.bundleName = "KeepAliveApplication";
+    appInfo.uid = 2100;
+    auto app = std::make_shared<ApplicationInfo>(appInfo);
+
+    std::shared_ptr<AppRunningRecord> appRecord = std::make_shared<AppRunningRecord>(app, 111, "KeepAliveApplication");
+    auto ret = appRunningManager->UpdateConfiguration(appRecord, Rosen::ConfigMode::FONT_SCALE);
+    EXPECT_FALSE(ret);
+
+    appRecord->delayConfiguration_ = nullptr;
+    ret = appRunningManager->UpdateConfiguration(appRecord, Rosen::ConfigMode::COLOR_MODE);
+    EXPECT_FALSE(ret);
+
+    appRecord->delayConfiguration_ = std::make_shared<Configuration>();
+    appRecord->delayConfiguration_->AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE,
+        ConfigurationInner::EMPTY_STRING);
+    ret = appRunningManager->UpdateConfiguration(appRecord, Rosen::ConfigMode::COLOR_MODE);
+    EXPECT_FALSE(ret);
+
+    appRecord->delayConfiguration_->AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE,
+        ConfigurationInner::COLOR_MODE_DARK);
+    ret = appRunningManager->UpdateConfiguration(appRecord, Rosen::ConfigMode::COLOR_MODE);
+    EXPECT_TRUE(ret);
+
+    appRecord = nullptr;
+    ret = appRunningManager->UpdateConfiguration(appRecord, Rosen::ConfigMode::COLOR_MODE);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: ExecuteConfigurationTask_0100
+ * @tc.desc: ExecuteConfigurationTask.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerFourthTest, ExecuteConfigurationTask_0100, TestSize.Level1)
+{
+    auto appRunningManager = std::make_shared<AppRunningManager>();
+    EXPECT_NE(appRunningManager, nullptr);
+
+    BackgroundAppInfo info;
+    int32_t userId = 0;
+    ApplicationInfo appInfo;
+    appInfo.name = "KeepAliveApp";
+    appInfo.bundleName = "KeepAliveApplication";
+    appInfo.uid = 2100;
+    auto app = std::make_shared<ApplicationInfo>(appInfo);
+    std::shared_ptr<AppRunningRecord> appRecord = std::make_shared<AppRunningRecord>(app, 111, "KeepAliveApplication");
+
+    appRunningManager->updateConfigurationDelayedMap_.emplace(0, true);
+    appRunningManager->updateConfigurationDelayedMap_.emplace(1, true);
+    appRecord->appRecordId_ = 0;
+    appRecord->appIndex_ = 0;
+    appRecord->curState_ = ApplicationState::APP_STATE_BACKGROUND;
+    appRunningManager->appRunningRecordMap_.emplace(0, appRecord);
+    appRunningManager->appRunningRecordMap_.emplace(1, nullptr);
+    info.bandleName = "KeepAliveApplication";
+    info.appIndex = 0;
+    userId = 1;
+    appRunningManager->ExecuteConfigurationTask(info, userId);
+
+    userId = -1;
+    appRecord->delayConfiguration_ = nullptr;
+    appRunningManager->ExecuteConfigurationTask(info, userId);
+
+    appRecord->delayConfiguration_ = std::make_shared<Configuration>();
+    appRecord->delayConfiguration_->AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE,
+        ConfigurationInner::COLOR_MODE_DARK);
+    appRunningManager->ExecuteConfigurationTask(info, userId);
+    std::string value = appRecord->delayConfiguration_->GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE);
+    EXPECT_TRUE(value == ConfigurationInner::EMPTY_STRING);
+}
 } // namespace AppExecFwk
 } // namespace OHOS
