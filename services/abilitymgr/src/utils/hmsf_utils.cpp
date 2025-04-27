@@ -38,11 +38,6 @@ void HmfsUtils::AddDeleteDfx(const std::string &path)
         close(fd);
         return;
     }
-    if (flags & HMFS_MONITOR_FL) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "Delete Control flag is already set");
-        close(fd);
-        return;
-    }
     flags |= HMFS_MONITOR_FL;
     ret = ioctl(fd, HMF_IOCTL_HW_SET_FLAGS, &flags);
     if (ret < 0) {
