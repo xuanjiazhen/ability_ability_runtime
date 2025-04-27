@@ -1963,13 +1963,13 @@ int32_t AppMgrProxy::GetAllUIExtensionProviderPid(pid_t hostPid, std::vector<pid
     return reply.ReadInt32();
 }
 
-int32_t AppMgrProxy::NotifyMemorySizeStateChanged(bool isMemorySizeSufficient)
+int32_t AppMgrProxy::NotifyMemorySizeStateChanged(int32_t memorySizeState)
 {
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
         return ERR_INVALID_DATA;
     }
-    PARCEL_UTIL_WRITE_RET_INT(data, Bool, isMemorySizeSufficient);
+    PARCEL_UTIL_WRITE_RET_INT(data, Int32, memorySizeState);
 
     MessageParcel reply;
     MessageOption option;
@@ -2296,6 +2296,25 @@ int32_t AppMgrProxy::GetKilledProcessInfo(int pid, int uid, KilledProcessInfo &i
 
     info = *infoReply;
     return ERR_OK;
+}
+
+int32_t AppMgrProxy::LaunchAbility(sptr<IRemoteObject> token)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return ERR_FLATTEN_OBJECT;
+    }
+    if (!data.WriteRemoteObject(token)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write token");
+        return ERR_INVALID_DATA;
+    }
+
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::LAUNCH_ABILITY, data, reply, option);
+    return reply.ReadInt32();
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

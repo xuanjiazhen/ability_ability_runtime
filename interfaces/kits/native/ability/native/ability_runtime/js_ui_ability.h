@@ -188,6 +188,8 @@ public:
      */
     void SetContinueState(int32_t state) override;
 
+    void NotifyWindowDestroy() override;
+
 #ifdef SUPPORT_SCREEN
 public:
     /**
@@ -334,6 +336,24 @@ public:
      */
     void HandleCollaboration(const Want &want) override;
 
+    /**
+     * @brief Called when startAbility request failed.
+     * @param requestId, the requestId.
+     * @param element, the element to start ability.
+     * @param message, the message to be returned to the calling app.
+     */
+    void OnAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message) override;
+
+    /**
+     * @brief Called when startAbility request succeeded.
+     * @param requestId, the requestId.
+     * @param element, the element to start ability.
+     * @param message, the message to be returned to the calling app.
+     */
+    void OnAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message) override;
+
 protected:
     void DoOnForeground(const Want &want) override;
     void ContinuationRestore(const Want &want) override;
@@ -383,6 +403,7 @@ private:
     std::shared_ptr<NativeReference> jsAbilityObj_;
     std::shared_ptr<int32_t> screenModePtr_;
     sptr<IRemoteObject> remoteCallee_;
+    bool reusingWindow_ = false;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

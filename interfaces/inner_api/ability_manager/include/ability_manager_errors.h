@@ -708,6 +708,45 @@ enum {
      */
     ERR_EXTENSION_START_ABILITY_CONTROLEED = 2097305,
 
+    /*
+     * Result (2097306) for get connectManager by userId failed.
+     */
+    CONNECT_MAMAGER_NOT_FIND_BY_USERID = 2097306,
+
+    /*
+     * Result (2097307) for not containsAbility or not find abilityRecord by callerToken.
+     */
+    INVALID_CALLER_TOKEN = 2097307,
+
+    /*
+     * Result (2097308) for extension ability not exist.
+     */
+    EXTENSION_ABILITY_NOT_EXIST = 2097308,
+
+    /*
+     * Result (2097309) for extension ability info not query by uri.
+     */
+    EXTENSION_ABILITY_INFO_NOT_QUERY_BY_URI = 2097309,
+
+    /*
+     * Result (2097310) for cannot minimize or terminate except ui extension ability.
+     */
+    EXTENSION_TYPE_NOT_UI_EXTENSION = 2097310,
+
+    /*
+     * Result (2097311) for get Local deviceId failed.
+     */
+    GET_LOCAL_DEVICE_ID_FAILED = 2097311,
+
+    /*
+    * Result (2097318 - 2097328) for login and logout user.
+    */
+    ERR_LOGOUT_USER_TASK_HANDLE_NULL = 2097318,
+
+    ERR_LOGOUT_USER_APP_MANAGER_NULL = 2097319,
+
+    ERR_LOGOUT_USER_KILL_PROCESS_TIMEOUT = 2097320,
+
     /**
      * Result (2097312) for interceptor executer is nullptr.
      */
@@ -737,7 +776,11 @@ enum {
      * Result (2097317) for session info is nullptr.
      */
     ERR_NULL_SESSION_INFO = 2097317,
-
+    ERR_NOT_HOOK = 2097321,
+    ERR_FROM_WINDOW = 2097322,
+    ERR_INVALID_CONTEXT = 2097323,
+    INTENT_NOT_EXIST = 2097329,
+    INTENT_STATE_NOT_EXECUTING = 2097330,
     /**
      * Native error(3000000) for target bundle not exist.
      */

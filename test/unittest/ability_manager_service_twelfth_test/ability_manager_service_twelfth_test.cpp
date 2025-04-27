@@ -61,6 +61,7 @@ public:
         const std::string& appName, const std::string& bundleName, const std::string& moduleName);
 
     std::shared_ptr<AbilityRecord> abilityRecord;
+    sptr<SessionInfo> MockSessionInfo(int32_t persistentId);
 };
 
 void AbilityManagerServiceTwelfthTest::SetUpTestCase() {}
@@ -87,6 +88,17 @@ sptr<Token> AbilityManagerServiceTwelfthTest::MockToken(AbilityType abilityType)
         return nullptr;
     }
     return abilityRecord->GetToken();
+}
+
+sptr<SessionInfo> AbilityManagerServiceTwelfthTest::MockSessionInfo(int32_t persistentId)
+{
+    sptr<SessionInfo> sessionInfo = new (std::nothrow) SessionInfo();
+    if (!sessionInfo) {
+        TAG_LOGE(AAFwkTag::TEST, "sessionInfo is nullptr");
+        return nullptr;
+    }
+    sessionInfo->persistentId = persistentId;
+    return sessionInfo;
 }
 
 AbilityRequest AbilityManagerServiceTwelfthTest::GenerateAbilityRequest(const std::string& deviceName,
@@ -527,5 +539,167 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityByCallWithErrMsg_001, Tes
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityByCallWithErrMsg_001 end");
 }
 
+/*
+ * Feature: AbilityManagerService
+ * Function: TerminateUIExtensionAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService TerminateUIExtensionAbility
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, TerminateUIExtensionAbility_001, TestSize.Level1)
+{
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    sptr<SessionInfo> extensionSessionInfo = new SessionInfo();
+    Rosen::SessionInfo info;
+    extensionSessionInfo->sessionToken = new Rosen::Session(info);
+    extensionSessionInfo->persistentId = TWO;
+    AbilityRequest abilityRequest{};
+    std::string deviceName = "device";
+    std::string abilityName = "ServiceAbility";
+    std::string appName = "hiservcie";
+    std::string bundleName = "com.ix.hiservcie";
+    std::string moduleName = "entry";
+    abilityRequest = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName, moduleName);
+    AppExecFwk::ApplicationInfo appInfo;
+    appInfo.accessTokenId = ONE;
+    abilityRequest.appInfo = appInfo;
+    std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    extensionSessionInfo->callerToken = abilityRecord->GetToken();
+    IPCSkeleton::SetCallingTokenID(ONE);
+    abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    IPCSkeleton::SetCallingUid(BASE_USER_RANGE);
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(ONE);
+    connectManager->sceneBoardTokenId_ = ONE;
+    connectManager->uiExtensionMap_[extensionSessionInfo->sessionToken] =
+        std::make_pair(abilityRecord, extensionSessionInfo);
+    abilityRecord->SetSessionInfo(extensionSessionInfo);
+    connectManager->serviceMap_.insert(std::make_pair("test", abilityRecord));
+    abilityMs_->subManagersHelper_->connectManagers_.insert(std::make_pair(ONE, connectManager));
+    EXPECT_EQ(abilityMs_->TerminateUIExtensionAbility(extensionSessionInfo), ERR_WRONG_INTERFACE_CALL);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: IsSceneBoardReady_001
+ * Function: IsSceneBoardReady
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService IsSceneBoardReady
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, IsSceneBoardReady_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest IsSceneBoardReady_001 start");
+    int32_t userId = -1;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    abilityMs->userController_ = std::make_shared<UserController>();
+    EXPECT_NE(abilityMs->userController_, nullptr);
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    EXPECT_NE(abilityMs->subManagersHelper_, nullptr);
+    bool result = abilityMs->IsSceneBoardReady(userId);
+    EXPECT_FALSE(result);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest IsSceneBoardReady_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: IsSceneBoardReady_002
+ * Function: IsSceneBoardReady
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService IsSceneBoardReady
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, IsSceneBoardReady_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest IsSceneBoardReady_002 start");
+    int32_t userId = 100;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    abilityMs->userController_ = nullptr;
+    abilityMs->subManagersHelper_ = nullptr;
+    bool result = abilityMs->IsSceneBoardReady(userId);
+    EXPECT_FALSE(result);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest IsSceneBoardReady_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CloseAssertDialog_001
+ * Function: CloseAssertDialog
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService CloseAssertDialog
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, CloseAssertDialog_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest CloseAssertDialog_001 start");
+    std::string assertSessionId = "test_session_id_1";
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    abilityMs->userController_ = std::make_shared<UserController>();
+    EXPECT_NE(abilityMs->userController_, nullptr);
+    abilityMs->CloseAssertDialog(assertSessionId);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest CloseAssertDialog_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CloseAssertDialog_002
+ * Function: CloseAssertDialog
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService CloseAssertDialog
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, CloseAssertDialog_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest CloseAssertDialog_002 start");
+    std::string assertSessionId = "test_session_id_2";
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    abilityMs->userController_ = std::make_shared<UserController>();
+    EXPECT_NE(abilityMs->userController_, nullptr);
+    auto taskHandler = TaskHandlerWrap::CreateQueueHandler(AbilityConfig::NAME_ABILITY_MGR_SERVICE);
+    auto eventHandler = std::make_shared<AbilityEventHandler>(taskHandler, abilityMs);
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(taskHandler, eventHandler);
+    EXPECT_NE(abilityMs->subManagersHelper_, nullptr);
+    auto connectManager = std::make_shared<AbilityConnectManager>(0);
+    abilityMs->subManagersHelper_->connectManagers_.insert({0, connectManager});
+    abilityMs->CloseAssertDialog(assertSessionId);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest CloseAssertDialog_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: PrepareTerminateAbilityBySCB_001
+ * Function: PrepareTerminateAbilityBySCB
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService PrepareTerminateAbilityBySCB
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, PrepareTerminateAbilityBySCB_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest PrepareTerminateAbilityBySCB_001 start");
+    bool isTerminate = false;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    sptr<SessionInfo> sessionInfo = MockSessionInfo(1);
+    sessionInfo->sessionToken = MockToken(AbilityType::PAGE);
+    int result = abilityMs->PrepareTerminateAbilityBySCB(sessionInfo, isTerminate);
+    EXPECT_EQ(result, ERR_WRONG_INTERFACE_CALL);
+    EXPECT_FALSE(isTerminate);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest PrepareTerminateAbilityBySCB_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: PrepareTerminateAbilityBySCB_002
+ * Function: PrepareTerminateAbilityBySCB
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService PrepareTerminateAbilityBySCB
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, PrepareTerminateAbilityBySCB_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest PrepareTerminateAbilityBySCB_002 start");
+    bool isTerminate = false;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    sptr<SessionInfo> sessionInfo = nullptr;
+    int result = abilityMs->PrepareTerminateAbilityBySCB(sessionInfo, isTerminate);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    EXPECT_FALSE(isTerminate);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest PrepareTerminateAbilityBySCB_002 end");
+}
 } // namespace AAFwk
 } // namespace OHOS

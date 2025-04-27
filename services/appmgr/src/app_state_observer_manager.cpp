@@ -594,12 +594,12 @@ void AppStateObserverManager::HandleStateChangedNotifyObserver(
     TAG_LOGD(AAFwkTag::APPMGR,
         "Handle state change, module:%{public}s, bundle:%{public}s, ability:%{public}s, state:%{public}d,"
         "pid:%{public}d ,uid:%{public}d, abilityType:%{public}d, isAbility:%{public}d, callerBundleName:%{public}s,"
-        "callerAbilityName:%{public}s, isAtomicService:%{public}d",
+        "callerAbilityName:%{public}s, isAtomicService:%{public}d, callerUid:%{public}d",
         abilityStateData.moduleName.c_str(), abilityStateData.bundleName.c_str(),
         abilityStateData.abilityName.c_str(), abilityStateData.abilityState,
         abilityStateData.pid, abilityStateData.uid, abilityStateData.abilityType, isAbility,
         abilityStateData.callerBundleName.c_str(), abilityStateData.callerAbilityName.c_str(),
-        abilityStateData.isAtomicService);
+        abilityStateData.isAtomicService, abilityStateData.callerUid);
     auto appStateObserverMapCopy = GetAppStateObserverMapCopy();
     for (auto it = appStateObserverMapCopy.begin(); it != appStateObserverMapCopy.end(); ++it) {
         const auto &bundleNames = it->second.bundleNames;
@@ -1110,6 +1110,7 @@ AppStateData AppStateObserverManager::WrapAppStateData(const std::shared_ptr<App
     appStateData.uid = appRecord->GetUid();
     appStateData.extensionType = appRecord->GetExtensionType();
     appStateData.isPreloadModule = appRecord->GetNeedPreloadModule();
+    appStateData.callerUid = appRecord->GetCallerUid();
     if (appRecord->GetApplicationInfo() != nullptr) {
         appStateData.accessTokenId = static_cast<uint32_t>(appRecord->GetApplicationInfo()->accessTokenId);
     }
@@ -1133,10 +1134,10 @@ AppStateData AppStateObserverManager::WrapAppStateData(const std::shared_ptr<App
         appStateData.callerBundleName = "";
     }
     appStateData.appIndex = appRecord->GetAppIndex();
-    TAG_LOGD(AAFwkTag::APPMGR, "Handle state change, bundle:%{public}s, state:%{public}d,"
-        "pid:%{public}d ,uid:%{public}d, isFocused:%{public}d, callerBUndleName: %{public}s, appIndex:%{public}d",
+    TAG_LOGD(AAFwkTag::APPMGR, "Handle state change, bundle:%{public}s, state:%{public}d, pid:%{public}d,"
+        "uid:%{public}d, isFocused:%{public}d, callerBUndleName: %{public}s, appIndex:%{public}d, callerUid:%{public}d",
         appStateData.bundleName.c_str(), appStateData.state, appStateData.pid, appStateData.uid,
-        appStateData.isFocused, appStateData.callerBundleName.c_str(), appStateData.appIndex);
+        appStateData.isFocused, appStateData.callerBundleName.c_str(), appStateData.appIndex, appStateData.callerUid);
     return appStateData;
 }
 

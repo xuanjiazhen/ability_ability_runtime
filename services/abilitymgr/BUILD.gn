@@ -88,6 +88,10 @@ config("abilityms_config") {
     defines += [ "RESOURCE_SCHEDULE_SERVICE_ENABLE" ]
   }
 
+  if (memmgr_override_enable) {
+    defines += [ "MEMMGR_OVERRIDE_ENABLE" ]
+  }
+
   if (is_asan || asan_detector) {
     defines += [ "SUPPORT_ASAN" ]
   }
@@ -122,7 +126,6 @@ ohos_shared_library("abilityms") {
     "${ability_runtime_services_path}/abilitymgr/include/mission",
   ]
   deps = [
-    ":ams_configuration_parameter",
     ":wantagent_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
@@ -143,6 +146,7 @@ ohos_shared_library("abilityms") {
     "${ability_runtime_services_path}/common:app_util",
     "${ability_runtime_services_path}/common:event_report",
     "${ability_runtime_services_path}/common:perm_verification",
+    "${ability_runtime_services_path}/common:record_cost_time_util",
     "${ability_runtime_services_path}/common:res_sched_util",
     "${ability_runtime_services_path}/common:task_handler_wrap",
   ]
@@ -199,6 +203,10 @@ ohos_shared_library("abilityms") {
 
   if (resource_schedule_service_enable) {
     external_deps += [ "resource_schedule_service:ressched_client" ]
+  }
+
+  if (memmgr_override_enable) {
+    external_deps += [ "memmgr:memmgrclient" ]
   }
 
   if (os_dlp_part_enabled) {
@@ -321,29 +329,6 @@ ohos_shared_library("wantagent_manager") {
   part_name = "ability_runtime"
 }
 
-ohos_shared_library("ams_configuration_parameter") {
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-  branch_protector_ret = "pac_ret"
-  include_dirs = [ "${ability_runtime_services_path}/abilitymgr/include" ]
-
-  sources = [ "${ability_runtime_services_path}/abilitymgr/src/ams_configuration_parameter.cpp" ]
-
-  deps = [ "${ability_runtime_services_path}/common:app_util" ]
-  external_deps = [
-    "c_utils:utils",
-    "config_policy:configpolicy_util",
-    "hilog:libhilog",
-    "init:libbegetutil",
-    "json:nlohmann_json_static",
-  ]
-  subsystem_name = "ability"
-  part_name = "ability_runtime"
-}
-
 ohos_prebuilt_etc("ams_service_config.json") {
   source = "resource/ams_service_config.json"
   subsystem_name = "ability"
@@ -443,7 +428,6 @@ ohos_shared_library("mission_list") {
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_path}/utils/server/startup:startup_util",
-    "${ability_runtime_services_path}/abilitymgr:ams_configuration_parameter",
     "${ability_runtime_services_path}/common:app_util",
     "${ability_runtime_services_path}/common:event_report",
     "${ability_runtime_services_path}/common:perm_verification",

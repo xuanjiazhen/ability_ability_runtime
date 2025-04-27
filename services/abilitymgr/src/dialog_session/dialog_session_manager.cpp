@@ -26,6 +26,7 @@
 #include "string_wrapper.h"
 #include "want.h"
 
+const std::string APP_LAUNCH_TRUSTLIST = "ohos.params.appLaunchTrustList";
 namespace OHOS {
 namespace AAFwk {
 using OHOS::AppExecFwk::BundleInfo;
@@ -233,6 +234,27 @@ void DialogSessionManager::GenerateDialogCallerInfo(AbilityRequest &abilityReque
     dialogCallerInfo->needGrantUriPermission = needGrantUriPermission;
 }
 
+void DialogSessionManager::NotifyAbilityRequestFailure(const std::string &dialogSessionId, const Want &want)
+{
+    auto callerInfo = GetDialogCallerInfo(dialogSessionId);
+    CHECK_POINTER(callerInfo);
+    auto requestId = callerInfo->targetWant.GetStringParam(KEY_REQUEST_ID);
+    if (requestId.empty() || callerInfo->callerToken == nullptr) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "no need to handle ability request");
+        return;
+    }
+    auto abilityRecord = Token::GetAbilityRecordByToken(callerInfo->callerToken);
+    CHECK_POINTER(abilityRecord);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "handling ability request failure, requestId=%{public}s", requestId.c_str());
+    std::string message = "user refuses to jump";
+    if (callerInfo->type == SelectorType::IMPLICIT_START_SELECTOR) {
+        message = "user closed implicit start selector";
+    } else if (callerInfo->type == SelectorType::APP_CLONE_SELECTOR) {
+        message = "user closed app-clone selector";
+    }
+    abilityRecord->NotifyAbilityRequestFailure(requestId, want.GetElement(), message);
+}
+
 int DialogSessionManager::SendDialogResult(const Want &want, const std::string &dialogSessionId, bool isAllowed)
 {
     if (NotifyQueryERMSFinished(dialogSessionId, isAllowed)) {
@@ -242,6 +264,7 @@ int DialogSessionManager::SendDialogResult(const Want &want, const std::string &
     }
     if (!isAllowed) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "user refuse to jump");
+        NotifyAbilityRequestFailure(dialogSessionId, want);
         ClearDialogContext(dialogSessionId);
         return ERR_OK;
     }
@@ -272,10 +295,7 @@ int DialogSessionManager::SendDialogResult(const Want &want, const std::string &
     }
     sptr<IRemoteObject> callerToken = dialogCallerInfo->callerToken;
     auto abilityMgr = DelayedSingleton<AbilityManagerService>::GetInstance();
-    if (!abilityMgr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityMgr null");
-        return INNER_ERR;
-    }
+    CHECK_POINTER_AND_RETURN(abilityMgr, INNER_ERR);
     int ret = abilityMgr->StartAbilityAsCallerDetails(targetWant, callerToken, callerToken, dialogCallerInfo->userId,
         dialogCallerInfo->requestCode, false);
     if (ret == ERR_OK) {
@@ -366,6 +386,16 @@ int DialogSessionManager::CreateImplicitSelectorModalDialog(AbilityRequest &abil
     sessionWant.SetParam("showCaller", showCaller);
     sessionWant.SetParam("ohos.ability.params.showDefaultPicker",
         abilityRequest.want.GetBoolParam("ohos.ability.params.showDefaultPicker", false));
+    if (abilityRequest.want.HasParameter(APP_LAUNCH_TRUSTLIST)) {
+        sessionWant.SetParam(APP_LAUNCH_TRUSTLIST,
+            abilityRequest.want.GetStringArrayParam(APP_LAUNCH_TRUSTLIST));
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "ImplicitSelector get trustlist %{public}zu",
+            sessionWant.GetStringArrayParam(APP_LAUNCH_TRUSTLIST).size());
+        std::vector<std::string> receiveList = sessionWant.GetStringArrayParam(APP_LAUNCH_TRUSTLIST);
+        for (const std::string& str : receiveList) {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "in trustlist: %{public}s", str.c_str());
+        }
+    }
 
     std::string dialogSessionId = GenerateDialogSessionRecordCommon(abilityRequest, userId, sessionWant.GetParams(),
         dialogAppInfos, SelectorType::IMPLICIT_START_SELECTOR, needGrantUriPermission);

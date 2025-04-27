@@ -47,7 +47,9 @@ constexpr const char* MOVE_UI_ABILITY_TO_BACKGROUND_API_ENABLE =
     "persist.sys.abilityms.move_ui_ability_to_background_api_enable";
 constexpr const char* CONFIG_PATH = "/etc/ability_runtime/resident_process_in_extreme_memory.json";
 constexpr const char* RESIDENT_PROCESS_IN_EXTREME_MEMORY = "residentProcessInExtremeMemory";
+constexpr const char* PROCESS_PROHIBITED_FROM_RESTARTING = "processProhibitedFromRestarting";
 constexpr const char* BUNDLE_NAME = "bundleName";
+constexpr const char* REQUIRE_BIGMEMORY_APP = "requireBigMemoryApp";
 constexpr const char* ABILITY_NAME = "abilityName";
 constexpr const char* KEY_IDENTIFIER = "identifier";
 constexpr const char* ALLOW_NATIVE_CHILD_PROCESS_APPS_CONFIG_PATH =
@@ -74,6 +76,9 @@ constexpr const char* CONNECT_SUPPORT_CROSS_USER = "const.abilityms.connect_supp
 // Support prepare terminate
 constexpr int32_t PREPARE_TERMINATE_ENABLE_SIZE = 6;
 constexpr const char* PREPARE_TERMINATE_ENABLE_PARAMETER = "persist.sys.prepare_terminate";
+constexpr const char* CACHE_ABILITY_BY_LIST_ENABLE = "persist.sys.abilityms.cache_ability_enable";
+constexpr const char* CACHE_ABILITY_LIST_PATH = "etc/ability/abilityms_cache_ability.json";
+constexpr const char* CACHE_PROCESS_NAME = "cache_list";
 }
 
 AppUtils::~AppUtils() {}
@@ -267,6 +272,88 @@ bool AppUtils::IsAllowResidentInExtremeMemory(const std::string& bundleName, con
         }
     }
     return false;
+}
+
+bool AppUtils::IsBigMemoryUnrelatedKeepAliveProc(const std::string &bundleName)
+{
+    std::lock_guard lock(processProhibitedFromRestartingMutex_);
+    if (!processProhibitedFromRestarting_.isLoaded) {
+        LoadProcessProhibitedFromRestarting();
+        processProhibitedFromRestarting_.isLoaded = true;
+    }
+    TAG_LOGD(AAFwkTag::DEFAULT, "loadJson about processProhibitedFromRestarting %{public}d",
+        processProhibitedFromRestarting_.isLoaded);
+    for (auto &element : processProhibitedFromRestarting_.value) {
+        if (bundleName == element) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool AppUtils::IsRequireBigMemoryProcess(const std::string &bundleName)
+{
+    std::lock_guard lock(requireBigMemoryAppMutex_);
+    if (!requireBigMemoryApp_.isLoaded) {
+        LoadRequireBigMemoryApp();
+        requireBigMemoryApp_.isLoaded = true;
+    }
+    TAG_LOGD(AAFwkTag::DEFAULT, "loadJson about requireBigMemoryApp %{public}d",
+        requireBigMemoryApp_.isLoaded);
+    for (auto &element : requireBigMemoryApp_.value) {
+        if (bundleName == element) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void AppUtils::LoadProcessProhibitedFromRestarting()
+{
+    nlohmann::json object;
+    if (!JsonUtils::GetInstance().LoadConfiguration(CONFIG_PATH, object)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "process prohibited invalid");
+        return;
+    }
+    if (!object.contains(PROCESS_PROHIBITED_FROM_RESTARTING) ||
+        !object.at(PROCESS_PROHIBITED_FROM_RESTARTING).is_array()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "process prohibited invalid.");
+        return;
+    }
+
+    for (auto &item : object.at(PROCESS_PROHIBITED_FROM_RESTARTING).items()) {
+        const nlohmann::json& jsonObject = item.value();
+        if (!jsonObject.contains(BUNDLE_NAME) || !jsonObject.at(BUNDLE_NAME).is_string()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "load bundleName failed");
+            return;
+        }
+        std::string bundleName = jsonObject.at(BUNDLE_NAME).get<std::string>();
+        processProhibitedFromRestarting_.value.emplace_back(bundleName);
+    }
+}
+
+void AppUtils::LoadRequireBigMemoryApp()
+{
+    nlohmann::json object;
+    if (!JsonUtils::GetInstance().LoadConfiguration(CONFIG_PATH, object)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "process prohibited invalid");
+        return;
+    }
+    if (!object.contains(REQUIRE_BIGMEMORY_APP) ||
+        !object.at(REQUIRE_BIGMEMORY_APP).is_array()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "process prohibited invalid.");
+        return;
+    }
+
+    for (auto &item : object.at(REQUIRE_BIGMEMORY_APP).items()) {
+        const nlohmann::json& jsonObject = item.value();
+        if (!jsonObject.contains(BUNDLE_NAME) || !jsonObject.at(BUNDLE_NAME).is_string()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "load bundleName failed");
+            return;
+        }
+        std::string bundleName = jsonObject.at(BUNDLE_NAME).get<std::string>();
+        requireBigMemoryApp_.value.emplace_back(bundleName);
+    }
 }
 
 void AppUtils::LoadResidentProcessInExtremeMemory()
@@ -502,5 +589,64 @@ bool AppUtils::IsSystemReasonMessage(const std::string &reasonMessage)
     };
     return systemReasonMessagesSet.find(reasonMessage) != systemReasonMessagesSet.end();
 }
+
+bool AppUtils::IsCacheAbilityEnabled()
+{
+    return system::GetBoolParameter(CACHE_ABILITY_BY_LIST_ENABLE, false);
+}
+
+void AppUtils::LoadCacheAbilityList()
+{
+    nlohmann::json object;
+    if (!JsonUtils::GetInstance().LoadConfiguration(CACHE_ABILITY_LIST_PATH, object)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "load cache_ability file failed");
+        return;
+    }
+    if (!object.contains(CACHE_PROCESS_NAME) ||
+        !object.at(CACHE_PROCESS_NAME).is_array()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "cache_ability file invalid");
+        return;
+    }
+
+    for (auto &item : object.at(CACHE_PROCESS_NAME).items()) {
+        const nlohmann::json& jsonObject = item.value();
+        if (!jsonObject.contains(BUNDLE_NAME) || !jsonObject.at(BUNDLE_NAME).is_string()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "load cache_ability bundleName failed");
+            return;
+        }
+        if (!jsonObject.contains(ABILITY_NAME) || !jsonObject.at(ABILITY_NAME).is_string()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "load cache_ability abilityName failed");
+            return;
+        }
+        std::string bundleName = jsonObject.at(BUNDLE_NAME).get<std::string>();
+        std::string abilityName = jsonObject.at(ABILITY_NAME).get<std::string>();
+        cacheAbilityList_.value.emplace_back(std::make_pair(bundleName, abilityName));
+    }
+}
+
+bool AppUtils::IsCacheExtensionAbilityByList(const std::string& bundleName, const std::string& abilityName)
+{
+    if (!cacheAbilityList_.isLoaded) {
+        std::lock_guard lock(cacheAbilityListMutex_);
+        if (!cacheAbilityList_.isLoaded) {
+            LoadCacheAbilityList();
+            cacheAbilityList_.isLoaded = true;
+        }
+    }
+
+    if (cacheAbilityList_.value.empty() || !IsCacheAbilityEnabled()) {
+        return false;
+    }
+
+    for (auto &element : cacheAbilityList_.value) {
+        if (bundleName == element.first && abilityName == element.second) {
+            TAG_LOGI(AAFwkTag::DEFAULT, "cache_ability: %{public}s, %{public}s",
+                bundleName.c_str(), abilityName.c_str());
+            return true;
+        }
+    }
+    return false;
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS

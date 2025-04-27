@@ -832,11 +832,11 @@ public:
     }
 
     /**
-     * @brief Notify memory size state changed to sufficient or insufficient.
-     * @param isMemorySizeSufficient Indicates the memory size state.
+     * @brief Notify memory size state changed: LOW_MEMORY, MEMORY_RECOVERY, REQUIRE_BIG_MEMORY, NO_REQUIRE_BIG_MEMORY.
+     * @param memorySizeState Indicates the memory size state.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t NotifyMemorySizeStateChanged(bool isMemorySizeSufficient)
+    virtual int32_t NotifyMemorySizeStateChanged(int32_t memorySizeState)
     {
         return 0;
     }
@@ -949,6 +949,17 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t GetKilledProcessInfo(int pid, int uid, KilledProcessInfo &info)
+    {
+        return 0;
+    }
+
+    /**
+     * Launch ability when reuseDelegatorWindow is true.
+     *
+     * @param token Ability identify.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t LaunchAbility(sptr<IRemoteObject> token)
     {
         return 0;
     }

@@ -22,6 +22,9 @@
 #include "ipc_capacity_wrap.h"
 #include "server_constant.h"
 #include "status_bar_delegate_interface.h"
+#include "mission_listener_interface.h"
+#include "mission_snapshot.h"
+#include "snapshot.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -3625,33 +3628,40 @@ int AbilityManagerProxy::StartAbilityByCallWithErrMsg(const Want &want, const sp
     MessageOption option;
 
     if (!WriteInterfaceToken(data)) {
+        errMsg = "WriteInterfaceToken error";
         return INNER_ERR;
     }
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
+        errMsg = "want write fail";
         return ERR_INVALID_VALUE;
     }
     if (connect == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "resolve fail, null connect");
+        errMsg = "null connect";
         return ERR_INVALID_VALUE;
     }
     if (!data.WriteRemoteObject(connect->AsObject())) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "resolve write fail");
+        errMsg = "resolve write fail";
         return ERR_INVALID_VALUE;
     }
     if (callerToken) {
         if (!data.WriteBool(true) || !data.WriteRemoteObject(callerToken)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "write flag and callerToken failed");
+            errMsg = "callerToken write fail";
             return ERR_INVALID_VALUE;
         }
     } else {
         if (!data.WriteBool(false)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "write flag failed");
+            errMsg = "write flag failed";
             return ERR_INVALID_VALUE;
         }
     }
     if (!data.WriteInt32(accountId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "accountId write fail");
+        errMsg = "accountId write fail";
         return ERR_INVALID_VALUE;
     }
 
@@ -6344,6 +6354,35 @@ int32_t AbilityManagerProxy::QueryPreLoadUIExtensionRecord(const AppExecFwk::Ele
     }
     recordNum = reply.ReadInt32();
     return NO_ERROR;
+}
+
+int32_t AbilityManagerProxy::RevokeDelegator(sptr<IRemoteObject> token)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (token == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null token");
+        return ERR_INVALID_CONTEXT;
+    }
+    
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "writeInterfaceToken failed");
+        return INNER_ERR;
+    }
+    
+    if (!data.WriteRemoteObject(token)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return ERR_INVALID_VALUE;
+    }
+    
+    int error = SendRequest(AbilityManagerInterfaceCode::REVOKE_DELEGATOR, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
 }
 } // namespace AAFwk
 } // namespace OHOS

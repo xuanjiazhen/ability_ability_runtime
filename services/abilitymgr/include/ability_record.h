@@ -586,6 +586,16 @@ public:
         isStartingWindow_ = isStartingWindow;
     }
 
+    inline void SetKillReason(const std::string &reason)
+    {
+        killReason_ = reason;
+    }
+
+    inline std::string GetKillReason()
+    {
+        return killReason_;
+    }
+
     void PostCancelStartingWindowHotTask();
 
     /**
@@ -1161,7 +1171,47 @@ public:
         return securityFlag_;
     }
 
+    bool IsPluginAbility() const
+    {
+        return isPluginAbility_;
+    }
+
+    void NotifyAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message);
+
+    void NotifyAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element);
+
     void ScheduleCollaborate(const Want &want);
+
+    bool IsHook () const
+    {
+        return isHook_;
+    }
+
+    inline void SetIsHook(bool isHook)
+    {
+        isHook_ = isHook;
+    }
+
+    bool GetHookOff () const
+    {
+        return hookOff_;
+    }
+
+    inline void SetHookOff(bool hookOff)
+    {
+        hookOff_ = hookOff;
+    }
+
+    inline void SetLaunchWant(std::shared_ptr<Want> launchWant)
+    {
+        launchWant_ = launchWant;
+    }
+
+    inline std::shared_ptr<Want> GetLaunchWant() const
+    {
+        return launchWant_;
+    }
 
     void SendEvent(uint32_t msg, uint32_t timeOut, int32_t param = -1, bool isExtension = false,
         const std::string &taskName = "");
@@ -1295,6 +1345,9 @@ private:
     bool isRestartApp_ = false; // Only app calling RestartApp can be set to true
     bool isLaunching_ = true;
     bool securityFlag_ = false;
+    bool isHook_ = false;
+    bool hookOff_ = false;
+    bool isPluginAbility_ = false;
     std::atomic_bool isCallerSetProcess_ = false;       // new version
     std::atomic_bool backgroundAbilityWindowDelayed_ = false;
 
@@ -1392,6 +1445,9 @@ private:
     std::atomic_bool isPrepareTerminateAbilityCalled_ = false;
     std::atomic_bool isPrepareTerminateAbilityDone_ = false;
     bool isPrepareTerminate_ = false;
+
+    std::string killReason_ = "";
+    std::shared_ptr<Want> launchWant_ = nullptr;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

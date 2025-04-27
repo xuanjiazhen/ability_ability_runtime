@@ -54,6 +54,7 @@
 #include "configuration_policy.h"
 #include "cpp/mutex.h"
 #include "event_report.h"
+#include "exit_resident_process_manager.h"
 #include "fault_data.h"
 #include "fd_guard.h"
 #include "hisysevent.h"
@@ -203,9 +204,11 @@ public:
      * kill the processes by pid list given.
      *
      * @param pids, the pid list of processes are going to be killed.
+     * @param reason, the reason to kill the processes.
      * @return
      */
-    virtual void KillProcessesByPids(std::vector<int32_t> &pids);
+    virtual void KillProcessesByPids(const std::vector<int32_t> &pids,
+        const std::string &reason = "KillProcessesByPids");
 
     /**
      * KillProcessesInBatch, kill processes in batch;
@@ -289,7 +292,7 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int32_t UpdateApplicationInfoInstalled(const std::string &bundleName, const int uid,
-        const std::string &moduleName);
+        const std::string &moduleName, bool isPlugin);
 
     /**
      * KillApplication, kill the application.
@@ -1269,17 +1272,23 @@ public:
     bool IsFinalAppProcessByBundleName(const std::string &bundleName);
 
     /**
-     * @brief Notify memory size state changed to sufficient or insufficient.
-     * @param isMemorySizeSufficient Indicates the memory size state.
+     * @brief Notify memory size state changed: LOW_MEMORY, MEMORY_RECOVERY, REQUIRE_BIG_MEMORY, NO_REQUIRE_BIG_MEMORY.
+     * @param memorySizeState Indicates the memory size state.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t NotifyMemorySizeStateChanged(bool isMemorySizeSufficient);
+    int32_t NotifyMemorySizeStateChanged(int32_t memorySizeState);
 
     /**
      * whether memory size is sufficient.
      * @return Returns true is sufficient memory size, others return false.
      */
     bool IsMemorySizeSufficient();
+
+    /**
+     * whether or not requier a big memory
+     * @return Returens true is no big memory, others return false.
+     */
+    bool IsNoRequireBigMemory();
 
     /**
      * Register render state observer.
@@ -1465,6 +1474,13 @@ public:
     bool IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo);
     int32_t GetKilledProcessInfo(int pid, int uid, KilledProcessInfo &info);
 
+    std::shared_ptr<AAFwk::TaskHandlerWrap> GetTaskHandler() const
+    {
+        return taskHandler_;
+    }
+
+    int32_t LaunchAbility(sptr<IRemoteObject> token);
+
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
@@ -1602,8 +1618,8 @@ private:
     int32_t WaitProcessesExitAndKill(std::list<SimpleProcessInfo> &processInfos, const int64_t startTime,
         const std::string& reason, int32_t userId, sptr<AAFwk::IUserCallback> callback);
 
-    void DoAllProcessExitCallback(std::list<SimpleProcessInfo> &processInfos, int32_t userId,
-        sptr<AAFwk::IUserCallback> callback);
+    bool DoAllProcessExitCallback(std::list<SimpleProcessInfo> &processInfos, int32_t userId,
+        sptr<AAFwk::IUserCallback> callback, int64_t startTime);
 
     /**
      * SystemTimeMillisecond, Get system time.
@@ -1835,6 +1851,7 @@ private:
     bool NotifyMemMgrPriorityChanged(const std::shared_ptr<AppRunningRecord> appRecord);
 
     void HandlePreloadApplication(const PreloadRequest &request);
+    void SetPreloadDebugApp(std::shared_ptr<AAFwk::Want> want, std::shared_ptr<ApplicationInfo> appInfo);
 
     void reportpreLoadTask(const std::shared_ptr<AppRunningRecord> appRecord);
 
@@ -1874,7 +1891,7 @@ private:
 
     void SetAppInfo(const BundleInfo &bundleInfo, AppSpawnStartMsg &startMsg);
 
-    void SetStartMsgCustomSandboxFlag(AppSpawnStartMsg &startMsg, int32_t userId);
+    void SetStartMsgCustomSandboxFlag(AppSpawnStartMsg &startMsg, uint32_t accessTokenId);
 
     /**
      * Query ability for one want param
@@ -1915,6 +1932,7 @@ private:
     void SendReStartProcessEvent(AAFwk::EventInfo &eventInfo, int32_t appUid);
     void SendAppLaunchEvent(const std::shared_ptr<AppRunningRecord> &appRecord);
     void InitAppWaitingDebugList();
+    bool IsWaitingDebugAppInner(const std::string &bundleName);
     void HandleConfigurationChange(const Configuration &config, const int32_t userId = -1);
     bool CheckIsThreadInFoundation(pid_t pid);
     bool CheckAppFault(const std::shared_ptr<AppRunningRecord> &appRecord, const FaultData &faultData);
@@ -1944,6 +1962,10 @@ private:
     void GetMultiInstanceInfo(const std::shared_ptr<AppRunningRecord> &appRecord,
         RunningMultiAppInfo &info);
 #endif //SUPPORT_CHILD_PROCESS
+    void SubscribeScreenOffEvent();
+    void UnSubscribeScreenOffEvent();
+    int32_t RestartExitKeepAliveProcess(const std::vector<ExitResidentProcessInfo> &exitProcessInfos);
+    bool IsNeedRestartKeepAliveProcess(const std::string &bundleName, int32_t uid);
     int32_t GetAllRunningInstanceKeysByBundleNameInner(const std::string &bundleName,
         std::vector<std::string> &instanceKeys, int32_t userId);
     int32_t KillProcessByPidInner(const pid_t pid, const std::string& reason,
@@ -1959,6 +1981,8 @@ private:
     void AddAbilityStageForSpecified(std::shared_ptr<AppRunningRecord> appRecord);
     void GetKernelPermissions(uint32_t accessTokenId, JITPermissionsMap &permissionsMap);
     void SendAppSpawnUninstallDebugHapMsg(int32_t userId);
+    std::shared_ptr<AppRunningRecord> CreateAppRunningRecord(std::shared_ptr<ApplicationInfo> appInfo,
+        const std::string &processName, const BundleInfo &bundleInfo);
 
     bool isInitAppWaitingDebugListExecuted_ = false;
     std::atomic<bool> sceneBoardAttachFlag_ = true;
@@ -2014,7 +2038,9 @@ private:
     std::shared_ptr<MultiUserConfigurationMgr> multiUserConfigurationMgr_;
     std::shared_ptr<AAFwk::TaskHandlerWrap> delayKillTaskHandler_;
     std::unordered_set<std::string> nwebPreloadSet_ {};
+    std::shared_ptr<AppExecFwk::AppMgrEventSubscriber> screenOffSubscriber_;
 
+    std::mutex screenOffSubscriberMutex_;
     std::mutex childProcessRecordMapMutex_;
 };
 }  // namespace AppExecFwk

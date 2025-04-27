@@ -1202,7 +1202,8 @@ int32_t AppMgrService::StartNativeProcessForDebugger(const AAFwk::Want &want)
         return ERR_INVALID_OPERATION;
     }
     bool isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
-    bool isLocalDebugCall = AAFwk::PermissionVerification::GetInstance()->VerifyStartLocalDebug();
+    auto callingTokenId = IPCSkeleton::GetCallingTokenID();
+    bool isLocalDebugCall = AAFwk::PermissionVerification::GetInstance()->VerifyStartLocalDebug(callingTokenId);
     if (!isShellCall && !isLocalDebugCall) {
         TAG_LOGE(AAFwkTag::APPMGR, "permission denied");
         return ERR_INVALID_OPERATION;
@@ -1608,14 +1609,14 @@ int32_t AppMgrService::GetAllUIExtensionProviderPid(pid_t hostPid, std::vector<p
     return appMgrServiceInner_->GetAllUIExtensionProviderPid(hostPid, providerPids);
 }
 
-int32_t AppMgrService::NotifyMemorySizeStateChanged(bool isMemorySizeSufficient)
+int32_t AppMgrService::NotifyMemorySizeStateChanged(int32_t memorySizeState)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
 
-    return appMgrServiceInner_->NotifyMemorySizeStateChanged(isMemorySizeSufficient);
+    return appMgrServiceInner_->NotifyMemorySizeStateChanged(memorySizeState);
 }
 
 int32_t AppMgrService::SetSupportedProcessCacheSelf(bool isSupport)
@@ -1833,6 +1834,18 @@ int32_t AppMgrService::GetKilledProcessInfo(int pid, int uid, KilledProcessInfo 
         return AAFwk::ERR_NULL_APP_MGR_SERVICE_INNER;
     }
     return appMgrServiceInner_->GetKilledProcessInfo(pid, uid, info);
+}
+
+int32_t AppMgrService::LaunchAbility(sptr<IRemoteObject> token)
+{
+    if (!IsReady()) {
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not foundation");
+        return AAFwk::ERR_NO_ALLOW_OUTSIDE_CALL;
+    }
+    return appMgrServiceInner_->LaunchAbility(token);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

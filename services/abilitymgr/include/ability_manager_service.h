@@ -87,6 +87,7 @@ constexpr int32_t BASE_USER_RANGE = 200000;
 constexpr int32_t U0_USER_ID = 0;
 constexpr int32_t INVALID_USER_ID = -1;
 constexpr const char* KEY_SESSION_ID = "com.ohos.param.sessionId";
+constexpr const char* KEY_REQUEST_ID = "com.ohos.param.requestId";
 using OHOS::AppExecFwk::IAbilityController;
 struct StartAbilityInfo;
 class WindowFocusChangedListener;
@@ -2011,6 +2012,14 @@ public:
                                                   int32_t &recordNum,
                                                   int32_t userId = DEFAULT_INVAL_VALUE) override;
 
+    /**
+     * Revoke delegator.
+     *
+     * @param token, ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RevokeDelegator(sptr<IRemoteObject> token) override;
+
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;
     static constexpr uint32_t ACTIVE_TIMEOUT_MSG = 1;
@@ -2158,6 +2167,8 @@ private:
 
     bool JudgeMultiUserConcurrency(const int32_t userId);
     bool CheckCrossUser(const int32_t userId, AppExecFwk::ExtensionAbilityType extensionType);
+    void SendExtensionReport(EventInfo &eventInfo, int32_t errCode, bool isService = false);
+    void SendIntentReport(EventInfo &eventInfo, int32_t errCode, const std::string &intentName);
     /**
      * dumpsys info
      *
@@ -2424,7 +2435,8 @@ private:
     int32_t CheckStartSelfUIAbilityStartOptions(const Want &want, const StartOptions &startOptions);
 
     void GetConnectManagerAndUIExtensionBySessionInfo(const sptr<SessionInfo> &sessionInfo,
-        std::shared_ptr<AbilityConnectManager> &connectManager, std::shared_ptr<AbilityRecord> &targetAbility);
+        std::shared_ptr<AbilityConnectManager> &connectManager, std::shared_ptr<AbilityRecord> &targetAbility,
+        bool needCheck = false);
 
     virtual int RegisterSessionHandler(const sptr<IRemoteObject> &object) override;
 
@@ -2497,6 +2509,7 @@ private:
         AppExecFwk::ExtensionAbilityType extensionType);
 
     bool CheckUIExtensionCallerIsForeground(const AbilityRequest &abilityRequest);
+    bool CheckStartCallHasFloatingWindowForUIExtension(const sptr<IRemoteObject> &callerToken);
     bool CheckUIExtensionCallerIsUIAbility(const AbilityRequest &abilityRequest);
     std::shared_ptr<AbilityRecord> GetUIExtensionRootCaller(const sptr<IRemoteObject> token, int32_t userId);
 
@@ -2517,6 +2530,8 @@ private:
         const AbilityRequest& abilityRequest, bool isForegroundToRestartApp,
         bool isSendDialogResult, uint32_t specifyTokenId,
         const std::string& callerBundleName);
+
+    int32_t CheckStartPlugin(const Want& want, sptr<IRemoteObject> callerToken);
 
     int StartAbilityByConnectManager(const Want& want, const AbilityRequest& abilityRequest,
         const AppExecFwk::AbilityInfo& abilityInfo, int validUserId, sptr<IRemoteObject> callerToken);
@@ -2549,6 +2564,8 @@ private:
     void ShowDeveloperModeDialog(const std::string &bundleName, const std::string &abilityName);
 
     void StartKeepAliveAppsInner(int32_t userId);
+
+    bool ProcessLowMemoryKill(int32_t pid, const ExitReason &reason);
 
     struct StartSelfUIAbilityParam {
         Want want;
