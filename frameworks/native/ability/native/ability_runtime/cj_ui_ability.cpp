@@ -768,7 +768,9 @@ int32_t CJUIAbility::OnContinue(WantParams &wantParams, bool &isAsyncOnContinue,
     return res;
 }
 
-int32_t CJUIAbility::OnSaveState(int32_t reason, WantParams &wantParams)
+int32_t CJUIAbility::OnSaveState(int32_t reason, WantParams &wantParams,
+    AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult> *callbackInfo,
+    bool &isAsync, AppExecFwk::StateReason stateReason)
 {
     if (!cjAbilityObj_) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null cjAbilityObj_");

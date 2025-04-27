@@ -556,7 +556,9 @@ bool UIAbility::OnRestoreData(AAFwk::WantParams &restoreData)
     return false;
 }
 
-int32_t UIAbility::OnSaveState(int32_t reason, AAFwk::WantParams &wantParams)
+int32_t UIAbility::OnSaveState(int32_t reason, AAFwk::WantParams &wantParams,
+    AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult> *callbackInfo,
+    bool &isAsync, AppExecFwk::StateReason stateReason)
 {
     return ERR_OK;
 }

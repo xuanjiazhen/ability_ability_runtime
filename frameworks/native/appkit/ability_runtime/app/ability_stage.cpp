@@ -101,12 +101,14 @@ bool AbilityStage::ContainsAbility() const
     return !abilityRecords_.empty();
 }
 
-std::string AbilityStage::OnAcceptWant(const AAFwk::Want &want)
+std::string AbilityStage::OnAcceptWant(const AAFwk::Want &want,
+    AppExecFwk::AbilityTransactionCallbackInfo<std::string> *callbackInfo, bool &isAsync)
 {
     return "";
 }
 
-std::string AbilityStage::OnNewProcessRequest(const AAFwk::Want &want)
+std::string AbilityStage::OnNewProcessRequest(const AAFwk::Want &want,
+    AppExecFwk::AbilityTransactionCallbackInfo<std::string> *callbackInfo, bool &isAsync)
 {
     return "";
 }

@@ -24,6 +24,7 @@
 #include "cj_ability_object.h"
 #endif
 #include "cj_application_context.h"
+#include "recovery_param.h"
 
 namespace OHOS {
 
@@ -131,7 +132,9 @@ public:
      * @param wantParams Indicates the user data to be saved.
      * @return result code defined in abilityConstants
      */
-    int32_t OnSaveState(int32_t reason, WantParams &wantParams) override;
+    int32_t OnSaveState(int32_t reason, WantParams &wantParams,
+        AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult> *callbackInfo,
+        bool &isAsync, AppExecFwk::StateReason stateReason) override;
 
     /**
      * @brief Called when startAbilityForResult(ohos.aafwk.content.Want,int) is called to start an ability and the

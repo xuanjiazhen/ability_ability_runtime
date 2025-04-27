@@ -125,6 +125,29 @@ napi_value OnPrepareTerminatePromiseCallback(napi_env env, napi_callback_info in
     TAG_LOGI(AAFwkTag::UIABILITY, "OnPrepareTerminatePromiseCallback end");
     return nullptr;
 }
+
+napi_value OnSaveStateCallback(napi_env env, napi_callback_info info)
+{
+    void *data = nullptr;
+    size_t argc = ARGC_MAX_COUNT;
+    napi_value argv[ARGC_MAX_COUNT] = {nullptr};
+    NAPI_CALL_NO_THROW(napi_get_cb_info(env, info, &argc, argv, nullptr, &data), nullptr);
+    auto callInfo = static_cast<CallOnSaveStateInfo *>(data);
+    if (callInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null info");
+        return nullptr;
+    }
+    int32_t status = 0;
+    if (callInfo->callbackInfo == nullptr || (argc > 0 && !ConvertFromJsValue(env, argv[0], status))) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null callbackInfo or unwrap prepareTermination result failed");
+        return nullptr;
+    }
+    AppExecFwk::OnSaveStateResult saveStateResult = {status, callInfo->wantParams, callInfo->reason};
+    callInfo->callbackInfo->Call(saveStateResult);
+    AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult>::Destroy(callInfo->callbackInfo);
+    data = nullptr;
+    return nullptr;
+}
 } // namespace
 
 napi_value AttachJsAbilityContext(napi_env env, void *value, void *extValue)
@@ -1437,37 +1460,43 @@ int32_t JsUIAbility::OnContinueSyncCB(napi_value result, WantParams &wantParams,
     return onContinueRes;
 }
 
-int32_t JsUIAbility::OnSaveState(int32_t reason, WantParams &wantParams)
+int32_t JsUIAbility::OnSaveState(int32_t reason, WantParams &wantParams,
+    AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult> *callbackInfo,
+    bool &isAsync, AppExecFwk::StateReason stateReason)
 {
     HandleScope handleScope(jsRuntime_);
     auto env = jsRuntime_.GetNapiEnv();
-    if (jsAbilityObj_ == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null jsAbilityObj_");
-        return -1;
-    }
+    CHECK_POINTER_AND_RETURN(jsAbilityObj_, -1);
     napi_value obj = jsAbilityObj_->GetNapiValue();
     if (!CheckTypeForNapiValue(env, obj, napi_object)) {
         TAG_LOGE(AAFwkTag::UIABILITY, "get ability object failed");
         return -1;
     }
-
     auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
         applicationContext->DispatchOnAbilityWillSaveState(jsAbilityObj_);
     }
 
-    napi_value methodOnSaveState = nullptr;
-    napi_get_named_property(env, obj, "onSaveState", &methodOnSaveState);
-    if (methodOnSaveState == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null methodOnSaveState");
-        return -1;
-    }
-
     napi_value jsWantParams = OHOS::AppExecFwk::WrapWantParams(env, wantParams);
     napi_value jsReason = CreateJsValue(env, reason);
-    napi_value args[] = { jsReason, jsWantParams };
+    napi_value args[] = {jsReason, jsWantParams};
+    napi_value onSaveStateAsyncResult = CallObjectMethod("onSaveStateAsync", args, PROMISE_CALLBACK_PARAM_NUM, true);
+    if (onSaveStateAsyncResult != nullptr) {
+        OHOS::AppExecFwk::UnwrapWantParams(env, jsWantParams, wantParams);
+        CallOnSaveStateInfo info = { callbackInfo, wantParams, stateReason };
+        int32_t status = CallSaveStatePromise(onSaveStateAsyncResult, info);
+        if (status == ERR_OK && applicationContext != nullptr) {
+            applicationContext->DispatchOnAbilitySaveState(jsAbilityObj_);
+        }
+        isAsync = true;
+        return status;
+    }
+    napi_value methodOnSaveState = nullptr;
+    napi_get_named_property(env, obj, "onSaveState", &methodOnSaveState);
+    CHECK_POINTER_AND_RETURN(methodOnSaveState, -1);
+
     napi_value result = nullptr;
-    napi_call_function(env, obj, methodOnSaveState, 2, args, &result); // 2:args size
+    napi_call_function(env, obj, methodOnSaveState, PROMISE_CALLBACK_PARAM_NUM, args, &result);
     OHOS::AppExecFwk::UnwrapWantParams(env, jsWantParams, wantParams);
 
     int32_t numberResult = 0;
@@ -1479,7 +1508,9 @@ int32_t JsUIAbility::OnSaveState(int32_t reason, WantParams &wantParams)
     if (applicationContext != nullptr) {
         applicationContext->DispatchOnAbilitySaveState(jsAbilityObj_);
     }
-
+    AppExecFwk::OnSaveStateResult saveStateResult = {numberResult, wantParams, stateReason};
+    callbackInfo->Call(saveStateResult);
+    AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult>::Destroy(callbackInfo);
     return numberResult;
 }
 
@@ -1821,6 +1852,37 @@ bool JsUIAbility::CallPromise(napi_value result, AppExecFwk::AbilityTransactionC
     napi_call_function(env, result, then, 1, argv, nullptr);
     TAG_LOGI(AAFwkTag::UIABILITY, "end");
     return true;
+}
+
+int32_t JsUIAbility::CallSaveStatePromise(napi_value result, CallOnSaveStateInfo info)
+{
+    auto env = jsRuntime_.GetNapiEnv();
+    if (!CheckPromise(result)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "check orpromise error");
+        return -1;
+    }
+    if (!CheckTypeForNapiValue(env, result, napi_object)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "convert failed");
+        return -1;
+    }
+    napi_value then = nullptr;
+    napi_get_named_property(env, result, "then", &then);
+    if (then == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null then");
+        return -1;
+    }
+    bool isCallable = false;
+    napi_is_callable(env, then, &isCallable);
+    if (!isCallable) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "not callable");
+        return -1;
+    }
+    napi_value promiseCallback = nullptr;
+    napi_create_function(env, "promiseCallback", strlen("promiseCallback"),
+        OnSaveStateCallback, &info, &promiseCallback);
+    napi_value argv[1] = { promiseCallback };
+    napi_call_function(env, result, then, 1, argv, nullptr);
+    return ERR_OK;
 }
 
 std::shared_ptr<AppExecFwk::ADelegatorAbilityProperty> JsUIAbility::CreateADelegatorAbilityProperty()

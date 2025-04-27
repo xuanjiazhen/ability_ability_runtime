@@ -509,7 +509,8 @@ HWTEST_F(CjUIAbilityTest, CJUIAbilityVirtualFunc_0200, TestSize.Level1)
     bool isAsyncOnContinue = false;
     int onContinueRet = cjAbility_->OnContinue(data, isAsyncOnContinue, abilityInfo);
     int32_t reason = 0;
-    EXPECT_EQ(cjAbility_->OnSaveState(reason, data), -1);
+    bool isAsync = false;
+    EXPECT_EQ(cjAbility_->OnSaveState(reason, data, nullptr, isAsync, StateReason::LIFECYCLE), -1);
     int result = 0;
     cjAbility_->OnCompleteContinuation(result);
     cjAbility_->OnRemoteTerminated();
