@@ -1183,6 +1183,12 @@ ErrCode AbilityContextImpl::OpenAtomicService(AAFwk::Want& want, const AAFwk::St
     if (err != ERR_OK && err != AAFwk::START_ABILITY_WAITING) {
         TAG_LOGE(AAFwkTag::CONTEXT, "failed, ret=%{public}d", err);
         OnAbilityResultInner(requestCode, err, want);
+        if (!options.requestId_.empty()) {
+            nlohmann::json jsonObject = nlohmann::json {
+                { JSON_KEY_ERR_MSG, "OpenAtomicService failed" },
+            };
+            OnRequestFailure(options.requestId_, want.GetElement(), jsonObject.dump());
+        }
     }
     return err;
 }
