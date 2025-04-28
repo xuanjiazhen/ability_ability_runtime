@@ -2282,7 +2282,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, StartUIAbilityByPreInstallInner_001, Te
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
 
-    FreeInstallInfo taskInfo;
+    std::shared_ptr<FreeInstallInfo> taskInfo;
     auto result2 = abilityMs_->StartUIAbilityByPreInstall(taskInfo);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest StartUIAbilityByPreInstallInner_001 result2 %{public}d",
         result2);
@@ -2298,7 +2298,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, PreStartInner_001, TestSize.Level1)
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
 
-    FreeInstallInfo  taskInfo;
+    std::shared_ptr<FreeInstallInfo>  taskInfo = std::make_shared<FreeInstallInfo>();
     auto result = abilityMs_->PreStartInner(taskInfo);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest PreStartInner_001 call result %{public}d", result);
 }
@@ -2522,9 +2522,8 @@ HWTEST_F(AbilityManagerServiceThirdTest, AbilityManagerServiceTest_StartUIAbilit
 {
     auto abilityMs = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs, nullptr);
-    FreeInstallInfo taskInfo = {
-        .isFreeInstallFinished = false,
-    };
+    std::shared_ptr<FreeInstallInfo> taskInfo = std::make_shared<FreeInstallInfo>();
+    taskInfo->isFreeInstallFinished = false;
     int32_t res = abilityMs->StartUIAbilityByPreInstall(taskInfo);
     EXPECT_EQ(res, ERR_INVALID_VALUE);
 }
@@ -2538,9 +2537,8 @@ HWTEST_F(AbilityManagerServiceThirdTest, AbilityManagerServiceTest_StartUIAbilit
 {
     auto abilityMs = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs, nullptr);
-    FreeInstallInfo taskInfo = {
-        .isInstalled = false,
-    };
+    std::shared_ptr<FreeInstallInfo> taskInfo = std::make_shared<FreeInstallInfo>();
+    taskInfo->isInstalled = false;
     int32_t res = abilityMs->StartUIAbilityByPreInstall(taskInfo);
     EXPECT_EQ(res, ERR_INVALID_VALUE);
 }
@@ -2554,9 +2552,8 @@ HWTEST_F(AbilityManagerServiceThirdTest, AbilityManagerServiceTest_StartUIAbilit
 {
     auto abilityMs = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs, nullptr);
-    FreeInstallInfo taskInfo = {
-        .isStartUIAbilityBySCBCalled = false,
-    };
+    std::shared_ptr<FreeInstallInfo> taskInfo = std::make_shared<FreeInstallInfo>();
+    taskInfo->isStartUIAbilityBySCBCalled = false;
     int32_t res = abilityMs->StartUIAbilityByPreInstall(taskInfo);
     EXPECT_EQ(res, ERR_INVALID_VALUE);
 }
@@ -2570,11 +2567,10 @@ HWTEST_F(AbilityManagerServiceThirdTest, AbilityManagerServiceTest_StartUIAbilit
 {
     auto abilityMs = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs, nullptr);
-    FreeInstallInfo taskInfo = {
-        .isFreeInstallFinished = true,
-        .isInstalled = true,
-        .isStartUIAbilityBySCBCalled = true,
-    };
+    std::shared_ptr<FreeInstallInfo> taskInfo = std::make_shared<FreeInstallInfo>();
+    taskInfo->isFreeInstallFinished = true;
+    taskInfo->isInstalled = true;
+    taskInfo->isStartUIAbilityBySCBCalled = true;
     int32_t res = abilityMs->StartUIAbilityByPreInstall(taskInfo);
     EXPECT_EQ(res, ERR_INVALID_VALUE);
 }
@@ -2591,12 +2587,11 @@ HWTEST_F(AbilityManagerServiceThirdTest, AbilityManagerServiceTest_StartUIAbilit
     Want want;
     std::string sessionId = "1234567890";
     want.SetParam(KEY_SESSION_ID, sessionId);
-    FreeInstallInfo taskInfo = {
-        .want = want,
-        .isFreeInstallFinished = true,
-        .isInstalled = true,
-        .isStartUIAbilityBySCBCalled = true,
-    };
+    std::shared_ptr<FreeInstallInfo> taskInfo = std::make_shared<FreeInstallInfo>();
+    taskInfo->want = want;
+    taskInfo->isFreeInstallFinished = true;
+    taskInfo->isInstalled = true;
+    taskInfo->isStartUIAbilityBySCBCalled = true;
     int32_t res = abilityMs->StartUIAbilityByPreInstall(taskInfo);
     EXPECT_EQ(res, ERR_INVALID_VALUE);
 }

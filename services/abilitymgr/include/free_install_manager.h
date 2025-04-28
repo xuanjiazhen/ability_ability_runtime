@@ -49,6 +49,22 @@ struct FreeInstallInfo {
     std::shared_ptr<Want> originalWant = nullptr;
     std::shared_ptr<StartOptions> startOptions = nullptr;
     Want want;
+
+    FreeInstallInfo()
+    {}
+
+    FreeInstallInfo(FreeInstallInfo &other) = delete;
+
+    FreeInstallInfo(FreeInstallInfo &&other) : isInstalled(other.isInstalled),
+        isPreStartMissionCalled(other.isPreStartMissionCalled),
+        isStartUIAbilityBySCBCalled(other.isStartUIAbilityBySCBCalled),
+        isFreeInstallFinished(other.isFreeInstallFinished),
+        isOpenAtomicServiceShortUrl(other.isOpenAtomicServiceShortUrl),
+        specifyTokenId(other.specifyTokenId), userId(other.userId), requestCode(other.requestCode),
+        resultCode(other.resultCode), promise(other.promise), identity(other.identity),
+        callerToken(other.callerToken), dmsCallback(other.dmsCallback), originalWant(other.originalWant),
+        startOptions(other.startOptions), want(other.want)
+    {}
 };
 
 struct FreeInstallParams {
@@ -154,7 +170,7 @@ public:
      * @return Returns true on success, false on failure.
     */
     bool GetFreeInstallTaskInfo(const std::string& bundleName, const std::string& abilityName,
-        const std::string& startTime, FreeInstallInfo& taskInfo);
+        const std::string& startTime, std::shared_ptr<FreeInstallInfo> &taskInfo);
 
     /**
      * Get free install task info.
@@ -163,7 +179,7 @@ public:
      * @param taskInfo, the found task info
      * @return Returns true on success, false on failure.
     */
-    bool GetFreeInstallTaskInfo(const std::string& sessionId, FreeInstallInfo& taskInfo);
+    bool GetFreeInstallTaskInfo(const std::string& sessionId, std::shared_ptr<FreeInstallInfo> &taskInfo);
 
     /**
      * Set the isStartUIAbilityBySCBCalled flag of the given free install task.
@@ -200,8 +216,8 @@ public:
 
 private:
     std::weak_ptr<AbilityManagerService> server_;
-    std::vector<FreeInstallInfo> freeInstallList_;
-    std::vector<FreeInstallInfo> dmsFreeInstallCbs_;
+    std::vector<std::shared_ptr<FreeInstallInfo>> freeInstallList_;
+    std::vector<std::shared_ptr<FreeInstallInfo>> dmsFreeInstallCbs_;
     std::map<std::string, std::time_t> timeStampMap_;
     ffrt::mutex distributedFreeInstallLock_;
     ffrt::mutex freeInstallListLock_;
@@ -223,7 +239,7 @@ private:
     int NotifyDmsCallback(const Want &want, int resultCode);
     bool IsTopAbility(const sptr<IRemoteObject> &callerToken);
     void NotifyFreeInstallResult(int32_t recordId, const Want &want, int resultCode, bool isAsync = false);
-    FreeInstallInfo BuildFreeInstallInfo(const Want &want, int32_t userId, int requestCode,
+    std::shared_ptr<FreeInstallInfo> BuildFreeInstallInfo(const Want &want, int32_t userId, int requestCode,
         const sptr<IRemoteObject> &callerToken, std::shared_ptr<FreeInstallParams> param = nullptr);
     std::time_t GetTimeStamp();
 
@@ -232,18 +248,21 @@ private:
 
     void PostUpgradeAtomicServiceTask(int resultCode, const Want &want, int32_t userId);
 
-    void RemoveTimeoutTask(const std::string &bundleName, const std::string &abilityName, const std::string &startTime);
+    void RemoveTimeoutTask(const std::string &bundleName, const std::string &abilityName,
+        const std::string &startTime);
 
-    void StartAbilityByFreeInstall(FreeInstallInfo &info, std::string &bundleName, std::string &abilityName,
-        std::string &startTime);
-    void StartAbilityByPreInstall(int32_t recordId, FreeInstallInfo &info, std::string &bundleName,
+    void StartAbilityByFreeInstall(std::shared_ptr<FreeInstallInfo> info, std::string &bundleName,
         std::string &abilityName, std::string &startTime);
+    void StartAbilityByPreInstall(int32_t recordId, std::shared_ptr<FreeInstallInfo> info,
+        std::string &bundleName, std::string &abilityName, std::string &startTime);
     int32_t UpdateElementName(Want &want, int32_t userId) const;
-    void HandleFreeInstallResult(int32_t recordId, FreeInstallInfo &freeInstallInfo, int resultCode, bool isAsync);
-    void HandleOnFreeInstallSuccess(int32_t recordId, FreeInstallInfo &freeInstallInfo, bool isAsync);
-    void HandleOnFreeInstallFail(int32_t recordId, FreeInstallInfo &freeInstallInfo, int resultCode, bool isAsync);
-    void StartAbilityByConvertedWant(FreeInstallInfo &info, const std::string &startTime);
-    void StartAbilityByOriginalWant(FreeInstallInfo &info, const std::string &startTime);
+    void HandleFreeInstallResult(int32_t recordId, std::shared_ptr<FreeInstallInfo> info,
+        int resultCode, bool isAsync);
+    void HandleOnFreeInstallSuccess(int32_t recordId, std::shared_ptr<FreeInstallInfo> info, bool isAsync);
+    void HandleOnFreeInstallFail(int32_t recordId, std::shared_ptr<FreeInstallInfo> info,
+        int resultCode, bool isAsync);
+    void StartAbilityByConvertedWant(std::shared_ptr<FreeInstallInfo> info, const std::string &startTime);
+    void StartAbilityByOriginalWant(std::shared_ptr<FreeInstallInfo> info, const std::string &startTime);
     bool VerifyStartFreeInstallPermission(const sptr<IRemoteObject> &callerToken);
     int32_t GetRecordIdByToken(const sptr<IRemoteObject> &callerToken);
     void NotifyInsightIntentFreeInstallResult(const Want &want, int resultCode);

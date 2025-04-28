@@ -2357,7 +2357,7 @@ int AbilityManagerService::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bo
         TAG_LOGE(AAFwkTag::ABILITYMGR, "freeInstallManager_ null");
         return ERR_INVALID_VALUE;
     }
-    FreeInstallInfo taskInfo;
+    std::shared_ptr<FreeInstallInfo> taskInfo = nullptr;
     if (!freeInstallManager_->GetFreeInstallTaskInfo(sessionId, taskInfo)) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "failed find free install task");
         auto err = SetWantForSessionInfo(sessionInfo);
@@ -2374,15 +2374,15 @@ int AbilityManagerService::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bo
         return StartUIAbilityBySCBDefault(sessionInfo, sceneFlag, isColdStart);
     }
 
-    if (taskInfo.isFreeInstallFinished) {
+    if (taskInfo->isFreeInstallFinished) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "free install task finished");
-        if (!taskInfo.isInstalled) {
+        if (!taskInfo->isInstalled) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "free install task failed,resultCode=%{public}d",
-                taskInfo.resultCode);
-            return taskInfo.resultCode;
+                taskInfo->resultCode);
+            return taskInfo->resultCode;
         }
         TAG_LOGI(AAFwkTag::ABILITYMGR, "free install succeeds");
-        return StartUIAbilityByPreInstallInner(sessionInfo, taskInfo.specifyTokenId, sceneFlag, isColdStart);
+        return StartUIAbilityByPreInstallInner(sessionInfo, taskInfo->specifyTokenId, sceneFlag, isColdStart);
     }
 
     {
@@ -4353,14 +4353,14 @@ void AbilityManagerService::SetMinimizedDuringFreeInstall(const sptr<SessionInfo
         TAG_LOGE(AAFwkTag::ABILITYMGR, "freeInstallManager_ null");
         return;
     }
-    FreeInstallInfo taskInfo;
+    std::shared_ptr<FreeInstallInfo> taskInfo = nullptr;
     if (!freeInstallManager_->GetFreeInstallTaskInfo(sessionId, taskInfo)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "free install task with sessionId=%{public}s does not exist",
             sessionId.c_str());
         return;
     }
 
-    if (taskInfo.isFreeInstallFinished) {
+    if (taskInfo->isFreeInstallFinished) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "free install task finished");
         return;
     }
@@ -13011,7 +13011,7 @@ int32_t AbilityManagerService::PreStartMission(const std::string& bundleName, co
         return ERR_INVALID_VALUE;
     }
 
-    FreeInstallInfo taskInfo;
+    std::shared_ptr<FreeInstallInfo> taskInfo = nullptr;
     if (!freeInstallManager_->GetFreeInstallTaskInfo(bundleName, abilityName, startTime, taskInfo)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR,
             "failed find free install task info:bundleName=%{public}s,abilityName=%{public}s,startTime=%{public}s",
@@ -13019,30 +13019,30 @@ int32_t AbilityManagerService::PreStartMission(const std::string& bundleName, co
         return ERR_FREE_INSTALL_TASK_NOT_EXIST;
     }
 
-    if (taskInfo.isFreeInstallFinished) {
+    if (taskInfo->isFreeInstallFinished) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "free install finished");
-        if (!taskInfo.isInstalled) {
+        if (!taskInfo->isInstalled) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "free install task failed,resultCode=%{public}d",
-                taskInfo.resultCode);
+                taskInfo->resultCode);
         } else {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "free install succeeded");
         }
         // if free install is already finished then either the window is opened (on success)
         // or the user is informed of the error (on failure).
-        return taskInfo.resultCode;
+        return taskInfo->resultCode;
     }
 
     return PreStartInner(taskInfo);
 }
 
-int32_t AbilityManagerService::PreStartInner(const FreeInstallInfo& taskInfo)
+int32_t AbilityManagerService::PreStartInner(std::shared_ptr<FreeInstallInfo> taskInfo)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
 
-    const Want& want = taskInfo.want;
-    sptr<IRemoteObject> callerToken = taskInfo.callerToken;
+    const Want& want = taskInfo->want;
+    sptr<IRemoteObject> callerToken = taskInfo->callerToken;
 
-    EventInfo eventInfo = BuildEventInfo(want, taskInfo.userId);
+    EventInfo eventInfo = BuildEventInfo(want, taskInfo->userId);
     SendAbilityEvent(EventName::START_ABILITY, HiSysEventType::BEHAVIOR, eventInfo);
 
     if (callerToken != nullptr && !VerificationAllToken(callerToken)) {
@@ -13052,14 +13052,14 @@ int32_t AbilityManagerService::PreStartInner(const FreeInstallInfo& taskInfo)
         return ERR_INVALID_CALLER;
     }
 
-    int32_t oriValidUserId = GetValidUserId(taskInfo.userId);
+    int32_t oriValidUserId = GetValidUserId(taskInfo->userId);
 
     int32_t appIndex = 0;
     StartAbilityInfoWrap threadLocalInfo(want, oriValidUserId,
         StartAbilityUtils::GetAppIndex(want, callerToken, appIndex), callerToken);
 
     AbilityRequest abilityRequest = {
-        .requestCode = taskInfo.requestCode,
+        .requestCode = taskInfo->requestCode,
         .callerToken = callerToken,
         .startSetting = nullptr,
         .want = want
@@ -13083,31 +13083,31 @@ int32_t AbilityManagerService::PreStartInner(const FreeInstallInfo& taskInfo)
         return errCode;
     }
     CHECK_POINTER_AND_RETURN(freeInstallManager_, ERR_INVALID_VALUE);
-    freeInstallManager_->SetFreeInstallTaskSessionId(taskInfo.want.GetElement().GetBundleName(),
-        taskInfo.want.GetElement().GetAbilityName(),
-        taskInfo.want.GetStringParam(Want::PARAM_RESV_START_TIME), sessionId);
+    freeInstallManager_->SetFreeInstallTaskSessionId(taskInfo->want.GetElement().GetBundleName(),
+        taskInfo->want.GetElement().GetAbilityName(),
+        taskInfo->want.GetStringParam(Want::PARAM_RESV_START_TIME), sessionId);
 
-    freeInstallManager_->SetPreStartMissionCallStatus(taskInfo.want.GetElement().GetBundleName(),
-        taskInfo.want.GetElement().GetAbilityName(),
-        taskInfo.want.GetStringParam(Want::PARAM_RESV_START_TIME),
+    freeInstallManager_->SetPreStartMissionCallStatus(taskInfo->want.GetElement().GetBundleName(),
+        taskInfo->want.GetElement().GetAbilityName(),
+        taskInfo->want.GetStringParam(Want::PARAM_RESV_START_TIME),
         true);
     return ERR_OK;
 }
 
-int32_t AbilityManagerService::StartUIAbilityByPreInstall(const FreeInstallInfo &taskInfo)
+int32_t AbilityManagerService::StartUIAbilityByPreInstall(std::shared_ptr<FreeInstallInfo> taskInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
-    if (!taskInfo.isFreeInstallFinished || !taskInfo.isInstalled) {
+    if (!taskInfo->isFreeInstallFinished || !taskInfo->isInstalled) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "free install not finished or failed");
         return ERR_INVALID_VALUE;
     }
-    if (!taskInfo.isStartUIAbilityBySCBCalled) {
+    if (!taskInfo->isStartUIAbilityBySCBCalled) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "free install finished, startUIAbilityBySCB not called");
         return ERR_OK;
     }
 
-    const auto& want = taskInfo.want;
+    const auto& want = taskInfo->want;
     auto sessionId = want.GetStringParam(KEY_SESSION_ID);
     if (sessionId.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "session id empty");
@@ -13139,7 +13139,7 @@ int32_t AbilityManagerService::StartUIAbilityByPreInstall(const FreeInstallInfo 
     }
 
     bool isColdStart = true;
-    int errCode = StartUIAbilityByPreInstallInner(sessionInfo, taskInfo.specifyTokenId, 0, isColdStart);
+    int errCode = StartUIAbilityByPreInstallInner(sessionInfo, taskInfo->specifyTokenId, 0, isColdStart);
     if (errCode != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "startUIAbilityByPreInstallInner failed,errCode=%{public}d", errCode);
         return errCode;

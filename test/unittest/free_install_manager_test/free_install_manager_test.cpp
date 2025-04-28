@@ -90,11 +90,11 @@ HWTEST_F(FreeInstallTest, FreeInstall_StartFreeInstall_001, TestSize.Level1)
     usleep(100000); // 100000 means us.
     // from freeInstallManager_->freeInstallList_ find startInstallTime
     for (auto it = freeInstallManager_->freeInstallList_.begin(); it != freeInstallManager_->freeInstallList_.end();) {
-        std::string bundleName = (*it).want.GetElement().GetBundleName();
-        std::string abilityName = (*it).want.GetElement().GetAbilityName();
+        std::string bundleName = (*it)->want.GetElement().GetBundleName();
+        std::string abilityName = (*it)->want.GetElement().GetAbilityName();
         if (want.GetElement().GetBundleName().compare(bundleName) != 0 ||
             want.GetElement().GetAbilityName().compare(abilityName) != 0) {
-            want.SetParam(Want::PARAM_RESV_START_TIME, (*it).want.GetStringParam(Want::PARAM_RESV_START_TIME));
+            want.SetParam(Want::PARAM_RESV_START_TIME, (*it)->want.GetStringParam(Want::PARAM_RESV_START_TIME));
             break;
         }
     }
@@ -145,11 +145,11 @@ HWTEST_F(FreeInstallTest, FreeInstall_StartFreeInstall_003, TestSize.Level1)
     usleep(100000); // 100000 means us.
     // from freeInstallManager_->freeInstallList_ find startInstallTime
     for (auto it = freeInstallManager_->freeInstallList_.begin(); it != freeInstallManager_->freeInstallList_.end();) {
-        std::string bundleName = (*it).want.GetElement().GetBundleName();
-        std::string abilityName = (*it).want.GetElement().GetAbilityName();
+        std::string bundleName = (*it)->want.GetElement().GetBundleName();
+        std::string abilityName = (*it)->want.GetElement().GetAbilityName();
         if (want.GetElement().GetBundleName().compare(bundleName) != 0 ||
             want.GetElement().GetAbilityName().compare(abilityName) != 0) {
-            want.SetParam(Want::PARAM_RESV_START_TIME, (*it).want.GetStringParam(Want::PARAM_RESV_START_TIME));
+            want.SetParam(Want::PARAM_RESV_START_TIME, (*it)->want.GetStringParam(Want::PARAM_RESV_START_TIME));
             break;
         }
     }
@@ -174,20 +174,21 @@ HWTEST_F(FreeInstallTest, FreeInstall_OnInstallFinished_001, TestSize.Level1)
     const int requestCode = 0;
     want.SetParam(Want::PARAM_RESV_START_TIME, std::string("0"));
 
-    FreeInstallInfo info = freeInstallManager_->BuildFreeInstallInfo(want, userId, requestCode, nullptr);
+    std::shared_ptr<FreeInstallInfo> info = freeInstallManager_->BuildFreeInstallInfo(
+        want, userId, requestCode, nullptr);
     freeInstallManager_->freeInstallList_.resize(0);
-    freeInstallManager_->freeInstallList_.emplace_back(info);
+    freeInstallManager_->freeInstallList_.push_back(info);
     freeInstallManager_->OnInstallFinished(-1, 0, want, userId, false);
 
     for (auto it = freeInstallManager_->freeInstallList_.begin();
         it != freeInstallManager_->freeInstallList_.end(); it++) {
-        std::string bundleName = (*it).want.GetElement().GetBundleName();
-        std::string abilityName = (*it).want.GetElement().GetAbilityName();
-        std::string startTime = (*it).want.GetStringParam(Want::PARAM_RESV_START_TIME);
+        std::string bundleName = (*it)->want.GetElement().GetBundleName();
+        std::string abilityName = (*it)->want.GetElement().GetAbilityName();
+        std::string startTime = (*it)->want.GetStringParam(Want::PARAM_RESV_START_TIME);
         if (want.GetElement().GetBundleName().compare(bundleName) == 0 &&
             want.GetElement().GetAbilityName().compare(abilityName) == 0 &&
             want.GetStringParam(Want::PARAM_RESV_START_TIME).compare(startTime) == 0) {
-            EXPECT_EQ((*it).promise->get_future().get(), 0);
+            EXPECT_EQ((*it)->promise->get_future().get(), 0);
         }
     }
 }
@@ -208,20 +209,21 @@ HWTEST_F(FreeInstallTest, FreeInstall_OnInstallFinished_002, TestSize.Level1)
     const int requestCode = 0;
     want.SetParam(Want::PARAM_RESV_START_TIME, std::string("0"));
 
-    FreeInstallInfo info = freeInstallManager_->BuildFreeInstallInfo(want, userId, requestCode, nullptr);
+    std::shared_ptr<FreeInstallInfo> info = freeInstallManager_->BuildFreeInstallInfo(
+        want, userId, requestCode, nullptr);
     freeInstallManager_->freeInstallList_.resize(0);
-    freeInstallManager_->freeInstallList_.emplace_back(info);
+    freeInstallManager_->freeInstallList_.push_back(info);
     freeInstallManager_->OnInstallFinished(-1, 1, want, userId, false);
 
     for (auto it = freeInstallManager_->freeInstallList_.begin();
         it != freeInstallManager_->freeInstallList_.end(); it++) {
-        std::string bundleName = (*it).want.GetElement().GetBundleName();
-        std::string abilityName = (*it).want.GetElement().GetAbilityName();
-        std::string startTime = (*it).want.GetStringParam(Want::PARAM_RESV_START_TIME);
+        std::string bundleName = (*it)->want.GetElement().GetBundleName();
+        std::string abilityName = (*it)->want.GetElement().GetAbilityName();
+        std::string startTime = (*it)->want.GetStringParam(Want::PARAM_RESV_START_TIME);
         if (want.GetElement().GetBundleName().compare(bundleName) == 0 &&
             want.GetElement().GetAbilityName().compare(abilityName) == 0 &&
             want.GetStringParam(Want::PARAM_RESV_START_TIME).compare(startTime) == 0) {
-            EXPECT_EQ((*it).promise->get_future().get(), 1);
+            EXPECT_EQ((*it)->promise->get_future().get(), 1);
         }
     }
 }
@@ -242,11 +244,12 @@ HWTEST_F(FreeInstallTest, FreeInstall_OnInstallFinished_003, TestSize.Level1)
     const int32_t userId = 1;
     const int requestCode = 0;
 
-    FreeInstallInfo info = freeInstallManager_->BuildFreeInstallInfo(want, userId, requestCode, nullptr);
-    info.isInstalled = true;
+    std::shared_ptr<FreeInstallInfo> info = freeInstallManager_->BuildFreeInstallInfo(
+        want, userId, requestCode, nullptr);
+    info->isInstalled = true;
     freeInstallManager_->freeInstallList_.resize(0);
-    info.promise.reset();
-    freeInstallManager_->freeInstallList_.emplace_back(info);
+    info->promise.reset();
+    freeInstallManager_->freeInstallList_.push_back(info);
     freeInstallManager_->OnInstallFinished(-1, 0, want, userId, false);
 
     int size = freeInstallManager_->freeInstallList_.size();
@@ -288,20 +291,21 @@ HWTEST_F(FreeInstallTest, FreeInstall_OnRemoteInstallFinished_001, TestSize.Leve
     const int requestCode = 0;
     want.SetParam(Want::PARAM_RESV_START_TIME, std::string("0"));
 
-    FreeInstallInfo info = freeInstallManager_->BuildFreeInstallInfo(want, userId, requestCode, nullptr);
+    std::shared_ptr<FreeInstallInfo> info = freeInstallManager_->BuildFreeInstallInfo(
+        want, userId, requestCode, nullptr);
     freeInstallManager_->freeInstallList_.resize(0);
-    freeInstallManager_->freeInstallList_.emplace_back(info);
+    freeInstallManager_->freeInstallList_.push_back(info);
     freeInstallManager_->OnRemoteInstallFinished(-1, 0, want, userId);
 
     for (auto it = freeInstallManager_->freeInstallList_.begin();
         it != freeInstallManager_->freeInstallList_.end(); it++) {
-        std::string bundleName = (*it).want.GetElement().GetBundleName();
-        std::string abilityName = (*it).want.GetElement().GetAbilityName();
-        std::string startTime = (*it).want.GetStringParam(Want::PARAM_RESV_START_TIME);
+        std::string bundleName = (*it)->want.GetElement().GetBundleName();
+        std::string abilityName = (*it)->want.GetElement().GetAbilityName();
+        std::string startTime = (*it)->want.GetStringParam(Want::PARAM_RESV_START_TIME);
         if (want.GetElement().GetBundleName().compare(bundleName) == 0 &&
             want.GetElement().GetAbilityName().compare(abilityName) == 0 &&
             want.GetStringParam(Want::PARAM_RESV_START_TIME).compare(startTime) == 0) {
-            EXPECT_EQ((*it).promise->get_future().get(), 0);
+            EXPECT_EQ((*it)->promise->get_future().get(), 0);
         }
     }
 }
@@ -366,10 +370,10 @@ HWTEST_F(FreeInstallTest, FreeInstall_SetSCBCallStatus_001, TestSize.Level1)
     freeInstallManager_ = std::make_shared<FreeInstallManager>(abilityMs_);
 
     freeInstallManager_->SetSCBCallStatus("com.ix.hiservcie", "ServiceAbility", "2024-7-17 00:00:00", false);
-    FreeInstallInfo freeInstallInfo;
+    std::shared_ptr<FreeInstallInfo> freeInstallInfo = nullptr;
     freeInstallManager_->GetFreeInstallTaskInfo("com.ix.hiservcie", "ServiceAbility",
         "2024-7-17 00:00:00", freeInstallInfo);
-    EXPECT_EQ(freeInstallInfo.isStartUIAbilityBySCBCalled, false);
+    EXPECT_EQ(freeInstallInfo->isStartUIAbilityBySCBCalled, false);
 }
 
 /**
@@ -384,10 +388,10 @@ HWTEST_F(FreeInstallTest, FreeInstall_SetPreStartMissionCallStatus_001, TestSize
 
     freeInstallManager_->SetPreStartMissionCallStatus("com.ix.hiservcie", "ServiceAbility",
         "2024-7-17 00:00:00", false);
-    FreeInstallInfo freeInstallInfo;
+    std::shared_ptr<FreeInstallInfo> freeInstallInfo = nullptr;
     freeInstallManager_->GetFreeInstallTaskInfo("com.ix.hiservcie", "ServiceAbility",
         "2024-7-17 00:00:00", freeInstallInfo);
-    EXPECT_EQ(freeInstallInfo.isPreStartMissionCalled, false);
+    EXPECT_EQ(freeInstallInfo->isPreStartMissionCalled, false);
 }
 
 /**
@@ -410,7 +414,8 @@ HWTEST_F(FreeInstallTest, FreeInstall_SetFreeInstallTaskSessionId_001, TestSize.
     const int requestCode = 0;
     // mock callerToken
     const sptr<IRemoteObject> callerToken = MockToken();
-    FreeInstallInfo info = freeInstallManager_->BuildFreeInstallInfo(want, userId, requestCode, callerToken);
+    std::shared_ptr<FreeInstallInfo> info = freeInstallManager_->BuildFreeInstallInfo(
+        want, userId, requestCode, callerToken);
     {
         std::lock_guard<ffrt::mutex> lock(freeInstallManager_->freeInstallListLock_);
         freeInstallManager_->freeInstallList_.push_back(info);
@@ -418,7 +423,7 @@ HWTEST_F(FreeInstallTest, FreeInstall_SetFreeInstallTaskSessionId_001, TestSize.
 
     freeInstallManager_->SetFreeInstallTaskSessionId("com.ix.hiservcie", "ServiceAbility",
         "2024-7-17 00:00:00", "sessionId");
-    FreeInstallInfo freeInstallInfo;
+    std::shared_ptr<FreeInstallInfo> freeInstallInfo = nullptr;
     bool ret = freeInstallManager_->GetFreeInstallTaskInfo("sessionId", freeInstallInfo);
     EXPECT_EQ(true, ret);
 
@@ -489,7 +494,7 @@ HWTEST_F(FreeInstallTest, FreeInstall_StartAbilityByOriginalWant_001, TestSize.L
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     freeInstallManager_ = std::make_shared<FreeInstallManager>(abilityMs_);
 
-    FreeInstallInfo freeInstallInfo;
+    std::shared_ptr<FreeInstallInfo> freeInstallInfo = std::make_shared<FreeInstallInfo>();
     freeInstallManager_->StartAbilityByOriginalWant(freeInstallInfo, "2024-07-17 00:00:00");
     EXPECT_TRUE(freeInstallManager_ != nullptr);
 }
@@ -504,7 +509,7 @@ HWTEST_F(FreeInstallTest, FreeInstall_StartAbilityByConvertedWant_001, TestSize.
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     freeInstallManager_ = std::make_shared<FreeInstallManager>(abilityMs_);
 
-    FreeInstallInfo freeInstallInfo;
+    std::shared_ptr<FreeInstallInfo> freeInstallInfo = std::make_shared<FreeInstallInfo>();
     freeInstallManager_->StartAbilityByConvertedWant(freeInstallInfo, "2024-07-17 00:00:00");
     EXPECT_TRUE(freeInstallManager_ != nullptr);
 }

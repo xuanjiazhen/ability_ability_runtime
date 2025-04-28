@@ -850,8 +850,8 @@ HWTEST_F(AbilityManagerServiceSixthTest, SetMinimizedDuringFreeInstall_001, Test
     abilityMs->SetMinimizedDuringFreeInstall(sessionInfo);
 
     abilityMs->freeInstallManager_ = std::make_shared<FreeInstallManager>(abilityMs);
-    FreeInstallInfo info;
-    info.want = sessionInfo->want;
+    std::shared_ptr<FreeInstallInfo> info = std::make_shared<FreeInstallInfo>();
+    info->want = sessionInfo->want;
     abilityMs->freeInstallManager_->freeInstallList_.push_back(info);
     abilityMs->SetMinimizedDuringFreeInstall(sessionInfo);
     abilityMs->preStartSessionMap_.emplace("testSesssionId", sessionInfo);
@@ -1734,20 +1734,20 @@ HWTEST_F(AbilityManagerServiceSixthTest, StartUIAbilityByPreInstall_001, TestSiz
     auto abilityMs = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs, nullptr);
 
-    FreeInstallInfo taskInfo;
+    std::shared_ptr<FreeInstallInfo> taskInfo;
     auto ret = abilityMs->StartUIAbilityByPreInstall(taskInfo);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
-    taskInfo.isFreeInstallFinished = true;
+    taskInfo->isFreeInstallFinished = true;
     ret = abilityMs->StartUIAbilityByPreInstall(taskInfo);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
-    taskInfo.isInstalled = true;
+    taskInfo->isInstalled = true;
     ret = abilityMs->StartUIAbilityByPreInstall(taskInfo);
     EXPECT_EQ(ret, ERR_OK);
-    taskInfo.isStartUIAbilityBySCBCalled = true;
+    taskInfo->isStartUIAbilityBySCBCalled = true;
     ret = abilityMs->StartUIAbilityByPreInstall(taskInfo);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     std::string value = "sessionId1";
-    taskInfo.want.SetParam(KEY_SESSION_ID, value);
+    taskInfo->want.SetParam(KEY_SESSION_ID, value);
     ret = abilityMs->StartUIAbilityByPreInstall(taskInfo);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     auto sessionInfo = sptr<SessionInfo>::MakeSptr();

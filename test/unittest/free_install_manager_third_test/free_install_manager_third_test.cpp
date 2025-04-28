@@ -89,11 +89,11 @@ HWTEST_F(FreeInstallTest, FreeInstall_RemoteFreeInstall_001, TestSize.Level1)
     usleep(100000); // 100000 means us.
     // from freeInstallManager_->freeInstallList_ find startInstallTime
     for (auto it = freeInstallManager_->freeInstallList_.begin(); it != freeInstallManager_->freeInstallList_.end();) {
-        std::string bundleName = (*it).want.GetElement().GetBundleName();
-        std::string abilityName = (*it).want.GetElement().GetAbilityName();
+        std::string bundleName = (*it)->want.GetElement().GetBundleName();
+        std::string abilityName = (*it)->want.GetElement().GetAbilityName();
         if (want.GetElement().GetBundleName().compare(bundleName) != 0 ||
             want.GetElement().GetAbilityName().compare(abilityName) != 0) {
-            want.SetParam(Want::PARAM_RESV_START_TIME, (*it).want.GetStringParam(Want::PARAM_RESV_START_TIME));
+            want.SetParam(Want::PARAM_RESV_START_TIME, (*it)->want.GetStringParam(Want::PARAM_RESV_START_TIME));
             break;
         }
     }
@@ -124,11 +124,11 @@ HWTEST_F(FreeInstallTest, FreeInstall_RemoteFreeInstall_002, TestSize.Level1)
     usleep(100000); // 100000 means us.
     // from freeInstallManager_->freeInstallList_ find startInstallTime
     for (auto it = freeInstallManager_->freeInstallList_.begin(); it != freeInstallManager_->freeInstallList_.end();) {
-        std::string bundleName = (*it).want.GetElement().GetBundleName();
-        std::string abilityName = (*it).want.GetElement().GetAbilityName();
+        std::string bundleName = (*it)->want.GetElement().GetBundleName();
+        std::string abilityName = (*it)->want.GetElement().GetAbilityName();
         if (want.GetElement().GetBundleName().compare(bundleName) != 0 ||
             want.GetElement().GetAbilityName().compare(abilityName) != 0) {
-            want.SetParam(Want::PARAM_RESV_START_TIME, (*it).want.GetStringParam(Want::PARAM_RESV_START_TIME));
+            want.SetParam(Want::PARAM_RESV_START_TIME, (*it)->want.GetStringParam(Want::PARAM_RESV_START_TIME));
             break;
         }
     }
@@ -159,11 +159,11 @@ HWTEST_F(FreeInstallTest, FreeInstall_StartRemoteFreeInstall_001, TestSize.Level
     usleep(100000); // 100000 means us.
     // from freeInstallManager_->freeInstallList_ find startInstallTime
     for (auto it = freeInstallManager_->freeInstallList_.begin(); it != freeInstallManager_->freeInstallList_.end();) {
-        std::string bundleName = (*it).want.GetElement().GetBundleName();
-        std::string abilityName = (*it).want.GetElement().GetAbilityName();
+        std::string bundleName = (*it)->want.GetElement().GetBundleName();
+        std::string abilityName = (*it)->want.GetElement().GetAbilityName();
         if (want.GetElement().GetBundleName().compare(bundleName) != 0 ||
             want.GetElement().GetAbilityName().compare(abilityName) != 0) {
-            want.SetParam(Want::PARAM_RESV_START_TIME, (*it).want.GetStringParam(Want::PARAM_RESV_START_TIME));
+            want.SetParam(Want::PARAM_RESV_START_TIME, (*it)->want.GetStringParam(Want::PARAM_RESV_START_TIME));
             break;
         }
     }
@@ -193,11 +193,11 @@ HWTEST_F(FreeInstallTest, FreeInstall_StartRemoteFreeInstall_002, TestSize.Level
     usleep(100000); // 100000 means us.
     // from freeInstallManager_->freeInstallList_ find startInstallTime
     for (auto it = freeInstallManager_->freeInstallList_.begin(); it != freeInstallManager_->freeInstallList_.end();) {
-        std::string bundleName = (*it).want.GetElement().GetBundleName();
-        std::string abilityName = (*it).want.GetElement().GetAbilityName();
+        std::string bundleName = (*it)->want.GetElement().GetBundleName();
+        std::string abilityName = (*it)->want.GetElement().GetAbilityName();
         if (want.GetElement().GetBundleName().compare(bundleName) != 0 ||
             want.GetElement().GetAbilityName().compare(abilityName) != 0) {
-            want.SetParam(Want::PARAM_RESV_START_TIME, (*it).want.GetStringParam(Want::PARAM_RESV_START_TIME));
+            want.SetParam(Want::PARAM_RESV_START_TIME, (*it)->want.GetStringParam(Want::PARAM_RESV_START_TIME));
             break;
         }
     }
@@ -239,12 +239,12 @@ HWTEST_F(FreeInstallTest, FreeInstall_HandleOnFreeInstallSuccess_001, TestSize.L
     want.SetElement(element);
     want.SetParam(Want::PARAM_RESV_START_TIME, std::string("0"));
     int32_t recordId = 100;
-    FreeInstallInfo freeInstallInfo;
-    freeInstallInfo.want = want;
+    std::shared_ptr<FreeInstallInfo> freeInstallInfo = std::make_shared<FreeInstallInfo>();
+    freeInstallInfo->want = want;
     bool isAsync = true;
-    freeInstallInfo.isPreStartMissionCalled = true;
+    freeInstallInfo->isPreStartMissionCalled = true;
     freeInstallManager_->HandleOnFreeInstallSuccess(recordId, freeInstallInfo, isAsync);
-    EXPECT_EQ(freeInstallInfo.isOpenAtomicServiceShortUrl, false);
+    EXPECT_EQ(freeInstallInfo->isOpenAtomicServiceShortUrl, false);
 }
 
 /**
@@ -261,12 +261,12 @@ HWTEST_F(FreeInstallTest, FreeInstall_HandleOnFreeInstallSuccess_002, TestSize.L
     want.SetElement(element);
     int32_t recordId = 100;
     want.SetParam(Want::PARAM_RESV_START_TIME, std::string("0"));
-    FreeInstallInfo freeInstallInfo;
-    freeInstallInfo.want = want;
+    std::shared_ptr<FreeInstallInfo> freeInstallInfo = std::make_shared<FreeInstallInfo>();
+    freeInstallInfo->want = want;
     bool isAsync = true;
-    freeInstallInfo.isOpenAtomicServiceShortUrl = true;
+    freeInstallInfo->isOpenAtomicServiceShortUrl = true;
     freeInstallManager_->HandleOnFreeInstallSuccess(recordId, freeInstallInfo, isAsync);
-    EXPECT_EQ(freeInstallInfo.isPreStartMissionCalled, false);
+    EXPECT_EQ(freeInstallInfo->isPreStartMissionCalled, false);
 }
 
 /**
@@ -284,13 +284,13 @@ HWTEST_F(FreeInstallTest, FreeInstall_HandleOnFreeInstallFail_001, TestSize.Leve
     int32_t recordId = 100;
     int resultCode = 0;
     want.SetParam(Want::PARAM_RESV_START_TIME, std::string("0"));
-    FreeInstallInfo freeInstallInfo;
-    freeInstallInfo.want = want;
+    std::shared_ptr<FreeInstallInfo> freeInstallInfo = std::make_shared<FreeInstallInfo>();
+    freeInstallInfo->want = want;
     bool isAsync = true;
-    freeInstallInfo.isPreStartMissionCalled = true;
-    freeInstallInfo.isStartUIAbilityBySCBCalled = true;
+    freeInstallInfo->isPreStartMissionCalled = true;
+    freeInstallInfo->isStartUIAbilityBySCBCalled = true;
     freeInstallManager_->HandleOnFreeInstallFail(recordId, freeInstallInfo, resultCode, isAsync);
-    EXPECT_EQ(freeInstallInfo.isOpenAtomicServiceShortUrl, false);
+    EXPECT_EQ(freeInstallInfo->isOpenAtomicServiceShortUrl, false);
 }
 
 /**
@@ -308,12 +308,12 @@ HWTEST_F(FreeInstallTest, FreeInstall_HandleOnFreeInstallFail_002, TestSize.Leve
     int32_t recordId = 100;
     int resultCode = 0;
     want.SetParam(Want::PARAM_RESV_START_TIME, std::string("0"));
-    FreeInstallInfo freeInstallInfo;
-    freeInstallInfo.want = want;
+    std::shared_ptr<FreeInstallInfo> freeInstallInfo = std::make_shared<FreeInstallInfo>();
+    freeInstallInfo->want = want;
     bool isAsync = true;
-    freeInstallInfo.isOpenAtomicServiceShortUrl = true;
+    freeInstallInfo->isOpenAtomicServiceShortUrl = true;
     freeInstallManager_->HandleOnFreeInstallFail(recordId, freeInstallInfo, resultCode, isAsync);
-    EXPECT_EQ(freeInstallInfo.isPreStartMissionCalled, false);
+    EXPECT_EQ(freeInstallInfo->isPreStartMissionCalled, false);
 }
 
 /**
@@ -331,15 +331,15 @@ HWTEST_F(FreeInstallTest, FreeInstall_HandleOnFreeInstallFail_003, TestSize.Leve
     int32_t recordId = 100;
     int resultCode = 0;
     want.SetParam(Want::PARAM_RESV_START_TIME, std::string("0"));
-    FreeInstallInfo freeInstallInfo;
-    freeInstallInfo.want = want;
+    std::shared_ptr<FreeInstallInfo> freeInstallInfo = std::make_shared<FreeInstallInfo>();
+    freeInstallInfo->want = want;
     bool isAsync = true;
-    freeInstallInfo.isOpenAtomicServiceShortUrl = true;
-    freeInstallInfo.startOptions = std::make_shared<StartOptions>();
-    EXPECT_NE(freeInstallInfo.startOptions, nullptr);
-    freeInstallInfo.startOptions->requestId_ = "1234567890";
+    freeInstallInfo->isOpenAtomicServiceShortUrl = true;
+    freeInstallInfo->startOptions = std::make_shared<StartOptions>();
+    EXPECT_NE(freeInstallInfo->startOptions, nullptr);
+    freeInstallInfo->startOptions->requestId_ = "1234567890";
     freeInstallManager_->HandleOnFreeInstallFail(recordId, freeInstallInfo, resultCode, isAsync);
-    EXPECT_EQ(freeInstallInfo.isPreStartMissionCalled, false);
+    EXPECT_EQ(freeInstallInfo->isPreStartMissionCalled, false);
 }
 
 /**
@@ -358,16 +358,16 @@ HWTEST_F(FreeInstallTest, FreeInstall_HandleOnFreeInstallFail_004, TestSize.Leve
     int32_t recordId = 100;
     int resultCode = 0;
     want.SetParam(Want::PARAM_RESV_START_TIME, std::string("0"));
-    FreeInstallInfo freeInstallInfo;
-    freeInstallInfo.want = want;
+    std::shared_ptr<FreeInstallInfo> freeInstallInfo = std::make_shared<FreeInstallInfo>();
+    freeInstallInfo->want = want;
     bool isAsync = true;
-    freeInstallInfo.isOpenAtomicServiceShortUrl = true;
-    freeInstallInfo.startOptions = std::make_shared<StartOptions>();
-    EXPECT_NE(freeInstallInfo.startOptions, nullptr);
-    freeInstallInfo.startOptions->requestId_ = "1234567890";
-    freeInstallInfo.callerToken = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    freeInstallInfo->isOpenAtomicServiceShortUrl = true;
+    freeInstallInfo->startOptions = std::make_shared<StartOptions>();
+    EXPECT_NE(freeInstallInfo->startOptions, nullptr);
+    freeInstallInfo->startOptions->requestId_ = "1234567890";
+    freeInstallInfo->callerToken = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
     freeInstallManager_->HandleOnFreeInstallFail(recordId, freeInstallInfo, resultCode, isAsync);
-    EXPECT_EQ(freeInstallInfo.isPreStartMissionCalled, false);
+    EXPECT_EQ(freeInstallInfo->isPreStartMissionCalled, false);
     TAG_LOGI(AAFwkTag::TEST, "FreeInstall_HandleOnFreeInstallFail_004 start");
 }
 
@@ -383,18 +383,18 @@ HWTEST_F(FreeInstallTest, FreeInstall_StartAbilityByFreeInstall_001, TestSize.Le
     Want want;
     ElementName element("", "com.test.demo", "MainAbility");
     want.SetElement(element);
-    FreeInstallInfo freeInstallInfo;
+    std::shared_ptr<FreeInstallInfo> freeInstallInfo = std::make_shared<FreeInstallInfo>();
     std::string bundleName = "com.test.demo";
     std::string abilityName = "MainAbility";
     std::string startTime = "2024-7-17 00:00:00";
     std::shared_ptr<FreeInstallParams> param = std::make_shared<FreeInstallParams>();
-    freeInstallInfo.startOptions = param->startOptions;
+    freeInstallInfo->startOptions = param->startOptions;
     want.SetParam(Want::PARAM_RESV_START_TIME, startTime);
-    freeInstallInfo.want = want;
+    freeInstallInfo->want = want;
     freeInstallManager_->StartAbilityByFreeInstall(freeInstallInfo, bundleName, abilityName, startTime);
-    freeInstallInfo.startOptions = nullptr;
+    freeInstallInfo->startOptions = nullptr;
     freeInstallManager_->StartAbilityByFreeInstall(freeInstallInfo, bundleName, abilityName, startTime);
-    EXPECT_EQ(freeInstallInfo.isPreStartMissionCalled, false);
+    EXPECT_EQ(freeInstallInfo->isPreStartMissionCalled, false);
 }
 
 /**
@@ -409,14 +409,14 @@ HWTEST_F(FreeInstallTest, FreeInstall_StartAbilityByFreeInstall_002, TestSize.Le
     Want want;
     ElementName element("", "", "");
     want.SetElement(element);
-    FreeInstallInfo freeInstallInfo;
+    std::shared_ptr<FreeInstallInfo> freeInstallInfo = std::make_shared<FreeInstallInfo>();
     std::string bundleName = "com.test.demo";
     std::string abilityName = "MainAbility";
     std::string startTime = "2024-7-17 00:00:00";
     want.SetParam(Want::PARAM_RESV_START_TIME, startTime);
-    freeInstallInfo.want = want;
+    freeInstallInfo->want = want;
     freeInstallManager_->StartAbilityByFreeInstall(freeInstallInfo, bundleName, abilityName, startTime);
-    EXPECT_EQ(freeInstallInfo.isPreStartMissionCalled, false);
+    EXPECT_EQ(freeInstallInfo->isPreStartMissionCalled, false);
 }
 
 /**
@@ -431,21 +431,21 @@ HWTEST_F(FreeInstallTest, FreeInstall_StartAbilityByPreInstall_001, TestSize.Lev
     Want want;
     ElementName element("", "com.test.demo", "MainAbility");
     want.SetElement(element);
-    FreeInstallInfo freeInstallInfo;
+    std::shared_ptr<FreeInstallInfo> freeInstallInfo = std::make_shared<FreeInstallInfo>();
     std::string bundleName = "com.test.demo";
     std::string abilityName = "MainAbility";
     std::string startTime = "2024-7-17 00:00:00";
     std::shared_ptr<FreeInstallParams> param = std::make_shared<FreeInstallParams>();
-    freeInstallInfo.startOptions = param->startOptions;
+    freeInstallInfo->startOptions = param->startOptions;
     int32_t recordId = 100;
     want.SetParam(Want::PARAM_RESV_START_TIME, startTime);
-    freeInstallInfo.want = want;
-    freeInstallInfo.isStartUIAbilityBySCBCalled = true;
-    freeInstallInfo.isOpenAtomicServiceShortUrl = true;
+    freeInstallInfo->want = want;
+    freeInstallInfo->isStartUIAbilityBySCBCalled = true;
+    freeInstallInfo->isOpenAtomicServiceShortUrl = true;
     freeInstallManager_->StartAbilityByPreInstall(recordId, freeInstallInfo, bundleName, abilityName, startTime);
-    freeInstallInfo.startOptions = nullptr;
+    freeInstallInfo->startOptions = nullptr;
     freeInstallManager_->StartAbilityByPreInstall(recordId, freeInstallInfo, bundleName, abilityName, startTime);
-    EXPECT_EQ(freeInstallInfo.isPreStartMissionCalled, false);
+    EXPECT_EQ(freeInstallInfo->isPreStartMissionCalled, false);
 }
 
 /**
@@ -461,14 +461,14 @@ HWTEST_F(FreeInstallTest, FreeInstall_StartAbilityByPreInstall_002, TestSize.Lev
     ElementName element("", "", "");
     want.SetElement(element);
     int32_t recordId = 100;
-    FreeInstallInfo freeInstallInfo;
+    std::shared_ptr<FreeInstallInfo> freeInstallInfo = std::make_shared<FreeInstallInfo>();
     std::string bundleName = "com.test.demo";
     std::string abilityName = "MainAbility";
     std::string startTime = "2024-7-17 00:00:00";
     want.SetParam(Want::PARAM_RESV_START_TIME, startTime);
-    freeInstallInfo.want = want;
+    freeInstallInfo->want = want;
     freeInstallManager_->StartAbilityByPreInstall(recordId, freeInstallInfo, bundleName, abilityName, startTime);
-    EXPECT_EQ(freeInstallInfo.isPreStartMissionCalled, false);
+    EXPECT_EQ(freeInstallInfo->isPreStartMissionCalled, false);
 }
 
 /**
@@ -489,14 +489,15 @@ HWTEST_F(FreeInstallTest, FreeInstall_SetSCBCallStatus_001, TestSize.Level1)
     want.SetParam(Want::PARAM_RESV_START_TIME, startTime);
     const int32_t userId = 1;
     const int requestCode = 0;
-    FreeInstallInfo info = freeInstallManager_->BuildFreeInstallInfo(want, userId, requestCode, nullptr);
+    std::shared_ptr<FreeInstallInfo> info = freeInstallManager_->BuildFreeInstallInfo(
+        want, userId, requestCode, nullptr);
     {
         std::lock_guard<ffrt::mutex> lock(freeInstallManager_->freeInstallListLock_);
         freeInstallManager_->freeInstallList_.push_back(info);
     }
     bool scbCallStatus = true;
     freeInstallManager_->SetSCBCallStatus(bundleName, abilityName, startTime, scbCallStatus);
-    EXPECT_EQ(info.isStartUIAbilityBySCBCalled, false);
+    EXPECT_EQ(info->isStartUIAbilityBySCBCalled, false);
 }
 
 /**
@@ -517,14 +518,15 @@ HWTEST_F(FreeInstallTest, FreeInstall_SetPreStartMissionCallStatus_001, TestSize
     want.SetParam(Want::PARAM_RESV_START_TIME, startTime);
     const int32_t userId = 1;
     const int requestCode = 0;
-    FreeInstallInfo info = freeInstallManager_->BuildFreeInstallInfo(want, userId, requestCode, nullptr);
+    std::shared_ptr<FreeInstallInfo> info = freeInstallManager_->BuildFreeInstallInfo(
+        want, userId, requestCode, nullptr);
     {
         std::lock_guard<ffrt::mutex> lock(freeInstallManager_->freeInstallListLock_);
         freeInstallManager_->freeInstallList_.push_back(info);
     }
     bool preStartMissionCallStatus = true;
     freeInstallManager_->SetPreStartMissionCallStatus(bundleName, abilityName, startTime, preStartMissionCallStatus);
-    EXPECT_EQ(info.isPreStartMissionCalled, false);
+    EXPECT_EQ(info->isPreStartMissionCalled, false);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
