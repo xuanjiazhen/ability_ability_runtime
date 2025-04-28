@@ -55,6 +55,7 @@ ohos_unittest("AmsServiceStartupTest") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:mission_info",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
@@ -82,6 +83,7 @@ ohos_unittest("AmsServiceStartupTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
+    "i18n:intl_util",
     "i18n:i18n_sa_client",
     "init:libbeget_proxy",
     "init:libbegetutil",

@@ -65,6 +65,7 @@ ohos_unittest("AmsServiceLoadAbilityProcessTest") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:mission_info",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
@@ -93,6 +94,7 @@ ohos_unittest("AmsServiceLoadAbilityProcessTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
+    "i18n:intl_util",
     "i18n:i18n_sa_client",
     "init:libbeget_proxy",
     "init:libbegetutil",

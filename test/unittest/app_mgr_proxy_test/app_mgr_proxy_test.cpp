@@ -936,5 +936,33 @@ HWTEST_F(AppMgrProxyTest, GetSupportedProcessCachePids_001, TestSize.Level2)
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
+
+/**
+ * @tc.name: UpdateConfigurationPolicy_001
+ * @tc.desc: UpdateConfigurationPolicy.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppMgrProxyTest, UpdateConfigurationPolicy_001, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
+
+    std::vector<AAFwk::MissionInfo> appInfos;
+    ConfigurationPolicy policy;
+    int32_t userId = -1;
+
+    auto ret = appMgrProxy_->UpdateConfigurationPolicy(appInfos, policy, userId);
+    EXPECT_EQ(ret, ERR_FLATTEN_OBJECT);
+    AAFwk::MissionInfo info;
+    appInfos.push_back(info);
+    appMgrProxy_->UpdateConfigurationPolicy(appInfos, policy, userId);
+    EXPECT_EQ(mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_CONFIGURATION_POLICY));
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
 } // namespace AppExecFwk
 } // namespace OHOS
