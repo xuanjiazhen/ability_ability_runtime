@@ -874,6 +874,7 @@ void AppRunningRecord::AbilityForeground(const std::shared_ptr<AbilityRunningRec
         moduleRecord->OnAbilityStateChanged(ability, AbilityState::ABILITY_STATE_FOREGROUND);
         StateChangedNotifyObserver(
             ability, static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND), true, false);
+
         auto abilityInfo = ability->GetAbilityInfo();
         if (AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo->extensionAbilityType)) {
             StateChangedNotifyObserver(
