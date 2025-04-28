@@ -27,7 +27,8 @@ public:
     virtual ~MockMissionListManagerInterface() = default;
 
     void Init() override {};
-    int StartAbility(AbilityRequest& abilityRequest) override
+    int StartAbility(AbilityRequest& abilityRequest,
+        sptr<AppExecFwk::IStartAbilityWithWaitObserver> observer = nullptr) override
     {
         return 0;
     }
