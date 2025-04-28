@@ -93,6 +93,7 @@ int32_t AutoFillManager::HandleRequestExecuteInner(Ace::UIContent *uiContent, co
         return AutoFill::AUTO_FILL_PREVIOUS_REQUEST_NOT_FINISHED;
     }
 
+    bool isAutoSaveScene = saveCallBack != nullptr ? true : false;
     auto extensionCallback = std::make_shared<AutoFillExtensionCallback>();
     if (fillCallback != nullptr) {
         extensionCallback->SetFillRequestCallback(fillCallback);
@@ -112,7 +113,8 @@ int32_t AutoFillManager::HandleRequestExecuteInner(Ace::UIContent *uiContent, co
     auto callbackId = extensionCallback->GetCallbackId();
     SetTimeOutEvent(callbackId);
     result.isPopup = autoFillWindowType == AutoFill::AutoFillWindowType::POPUP_WINDOW ? true : false;
-    auto sessionId = CreateAutoFillExtension(uiContent, request, callback, autoFillWindowType, isSmartAutoFill);
+    auto sessionId = CreateAutoFillExtension(uiContent, request, callback, autoFillWindowType, isSmartAutoFill,
+        isAutoSaveScene);
     if (sessionId == AUTO_FILL_UI_EXTENSION_SESSION_ID_INVALID) {
         TAG_LOGE(AAFwkTag::AUTOFILLMGR, "Create ui extension failed");
         RemoveEvent(callbackId);
@@ -183,7 +185,7 @@ int32_t AutoFillManager::CreateAutoFillExtension(Ace::UIContent *uiContent,
     const AutoFill::AutoFillRequest &request,
     const Ace::ModalUIExtensionCallbacks &callback,
     const AutoFill::AutoFillWindowType &autoFillWindowType,
-    bool isSmartAutoFill)
+    bool isSmartAutoFill, bool isAutoSaveScene)
 {
     int32_t sessionId = AUTO_FILL_UI_EXTENSION_SESSION_ID_INVALID;
     if (uiContent == nullptr) {
@@ -211,6 +213,10 @@ int32_t AutoFillManager::CreateAutoFillExtension(Ace::UIContent *uiContent,
         Ace::ModalUIExtensionConfig config;
         config.isAsyncModalBinding = true;
         config.doAfterAsyncModalBinding = std::move(request.doAfterAsyncModalBinding);
+        if (!isSmartAutoFill && isAutoSaveScene) {
+            TAG_LOGI(AAFwkTag::AUTOFILLMGR, "isAllowedBeCovered true");
+            config.isAllowedBeCovered = true;
+        }
         sessionId = uiContent->CreateModalUIExtension(want, callback, config);
     }
     return sessionId;
