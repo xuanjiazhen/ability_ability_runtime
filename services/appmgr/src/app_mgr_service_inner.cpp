@@ -2665,6 +2665,7 @@ int32_t AppMgrServiceInner::KillProcessByPid(const pid_t pid, const std::string&
     if (appRecord && appRecord->GetExitReason() == EXIT_REASON_UNKNOWN) {
         appRecord->SetExitMsg(killReason);
     }
+    TAG_LOGI(AAFwkTag::APPMGR, "kill reason=%{public}s, pid=%{public}d", reason.c_str(), pid);
     return KillProcessByPidInner(pid, reason, killReason, appRecord);
 }
 
@@ -2689,6 +2690,7 @@ int32_t AppMgrServiceInner::KillProcessByPidInner(const pid_t pid, const std::st
     if (!appRecord) {
         return ret;
     }
+    appRecord->SetKillReason(reason);
     auto applicationInfo = appRecord->GetApplicationInfo();
     if (!applicationInfo) {
         TAG_LOGE(AAFwkTag::APPMGR, "appInfo null");
@@ -3147,7 +3149,7 @@ int32_t AppMgrServiceInner::KillProcessesInBatch(const std::vector<int32_t> &pid
     return ERR_OK;
 }
 
-void AppMgrServiceInner::KillProcessesByPids(std::vector<int32_t> &pids)
+void AppMgrServiceInner::KillProcessesByPids(const std::vector<int32_t> &pids, const std::string &reason)
 {
     for (const auto& pid: pids) {
         auto appRecord = GetAppRunningRecordByPid(pid);
@@ -3155,7 +3157,7 @@ void AppMgrServiceInner::KillProcessesByPids(std::vector<int32_t> &pids)
             TAG_LOGE(AAFwkTag::APPMGR, "appRecord null");
             continue;
         }
-        auto result = KillProcessByPid(pid, "KillProcessesByPids");
+        auto result = KillProcessByPid(pid, reason);
         if (result < 0) {
             TAG_LOGW(AAFwkTag::APPMGR, "fail, pid:%{public}d", pid);
         }
@@ -9388,7 +9390,7 @@ void AppMgrServiceInner::SendAbilityEvent(const std::shared_ptr<AbilityRunningRe
     }
 }
 
-int32_t AppMgrServiceInner::LaunchAbility(const sptr<IRemoteObject> &token)
+int32_t AppMgrServiceInner::LaunchAbility(sptr<IRemoteObject> token)
 {
     auto appRecord = GetAppRunningRecordByAbilityToken(token);
     if (appRecord == nullptr) {

@@ -87,6 +87,7 @@ constexpr int32_t BASE_USER_RANGE = 200000;
 constexpr int32_t U0_USER_ID = 0;
 constexpr int32_t INVALID_USER_ID = -1;
 constexpr const char* KEY_SESSION_ID = "com.ohos.param.sessionId";
+constexpr const char* KEY_REQUEST_ID = "com.ohos.param.requestId";
 using OHOS::AppExecFwk::IAbilityController;
 struct StartAbilityInfo;
 class WindowFocusChangedListener;
@@ -2017,7 +2018,7 @@ public:
      * @param token, ability token.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t RevokeDelegator(const sptr<IRemoteObject> &token) override;
+    virtual int32_t RevokeDelegator(sptr<IRemoteObject> token) override;
 
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;
