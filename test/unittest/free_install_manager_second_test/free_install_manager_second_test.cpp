@@ -81,13 +81,13 @@ HWTEST_F(FreeInstallManagerSecondTest, GetFreeInstallTaskInfo_001, TestSize.Leve
     const std::string bundleName("com.test.demo");
     std::string abilityName("MainAbility");
     const std::string startTime = "startTime";
-    FreeInstallInfo taskInfo;
+    std::shared_ptr<FreeInstallInfo> taskInfo;
     FreeInstallInfo info;
     ElementName element("", "com.test.demo", "MainAbility");
     info.want.SetElement(element);
     sptr<OHOS::AAFwk::IInterface> iInterface = String::Box("startTime");
     info.want.parameters_.SetParam(Want::PARAM_RESV_START_TIME, iInterface);
-    freeInstallManager_->freeInstallList_.push_back(info);
+    freeInstallManager_->freeInstallList_.push_back(std::make_shared<FreeInstallInfo>(std::move(info)));
     bool ret = freeInstallManager_->GetFreeInstallTaskInfo(bundleName, abilityName, startTime, taskInfo);
     EXPECT_TRUE(ret);
 
@@ -115,26 +115,26 @@ HWTEST_F(FreeInstallManagerSecondTest, SetSCBCallStatus_001, TestSize.Level1)
     const std::string startTime = "startTime";
     bool scbCallStatus = true;
 
-    FreeInstallInfo info;
+    std::shared_ptr<FreeInstallInfo> info = std::make_shared<FreeInstallInfo>();
     ElementName element("", "com.test.demo", "MainAbility");
-    info.want.SetElement(element);
+    info->want.SetElement(element);
     sptr<OHOS::AAFwk::IInterface> iInterface = String::Box("startTime");
-    info.want.parameters_.SetParam(Want::PARAM_RESV_START_TIME, iInterface);
+    info->want.parameters_.SetParam(Want::PARAM_RESV_START_TIME, iInterface);
     freeInstallManager_->freeInstallList_.push_back(info);
 
     freeInstallManager_->SetSCBCallStatus("", abilityName, startTime, scbCallStatus);
-    EXPECT_FALSE(info.isStartUIAbilityBySCBCalled);
+    EXPECT_FALSE(info->isStartUIAbilityBySCBCalled);
 
     freeInstallManager_->SetSCBCallStatus(bundleName, "", startTime, scbCallStatus);
-    EXPECT_FALSE(info.isStartUIAbilityBySCBCalled);
+    EXPECT_FALSE(info->isStartUIAbilityBySCBCalled);
 
     freeInstallManager_->SetSCBCallStatus(bundleName, abilityName, "", scbCallStatus);
-    EXPECT_FALSE(info.isStartUIAbilityBySCBCalled);
+    EXPECT_FALSE(info->isStartUIAbilityBySCBCalled);
 
     freeInstallManager_->SetSCBCallStatus(bundleName, abilityName, startTime, scbCallStatus);
-    FreeInstallInfo infoRet;
+    std::shared_ptr<FreeInstallInfo> infoRet = nullptr;
     EXPECT_TRUE(freeInstallManager_->GetFreeInstallTaskInfo(bundleName, abilityName, startTime, infoRet));
-    EXPECT_TRUE(infoRet.isStartUIAbilityBySCBCalled);
+    EXPECT_TRUE(infoRet->isStartUIAbilityBySCBCalled);
 }
 
 /**
@@ -163,39 +163,39 @@ HWTEST_F(FreeInstallManagerSecondTest, NotifyInsightIntentFreeInstallResult_001,
     want.parameters_.SetParam(Want::PARAM_RESV_START_TIME, iInterface);
     want.parameters_.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, iInterface);
     want.parameters_.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_MODE, iInterface);
-    FreeInstallInfo info;
+    std::shared_ptr<FreeInstallInfo> info = std::make_shared<FreeInstallInfo>();
     ElementName element2("", "com.test.demo2", "MainAbility2");
-    info.want.SetElement(element2);
-    info.want.parameters_.SetParam(Want::PARAM_RESV_START_TIME, iInterface);
+    info->want.SetElement(element2);
+    info->want.parameters_.SetParam(Want::PARAM_RESV_START_TIME, iInterface);
     freeInstallManager_->freeInstallList_.push_back(info);
     freeInstallManager_->NotifyInsightIntentFreeInstallResult(want, resultCode);
     EXPECT_EQ(freeInstallManager_->freeInstallList_.size(), 1);
    
     ElementName element3("", "com.test.demo", "MainAbility2");
-    info.want.SetElement(element3);
+    info->want.SetElement(element3);
     iInterface = String::Box("startTime2");
-    info.want.parameters_.SetParam(Want::PARAM_RESV_START_TIME, iInterface);
+    info->want.parameters_.SetParam(Want::PARAM_RESV_START_TIME, iInterface);
     freeInstallManager_->freeInstallList_.clear();
     freeInstallManager_->freeInstallList_.push_back(info);
     freeInstallManager_->NotifyInsightIntentFreeInstallResult(want, resultCode);
     EXPECT_EQ(freeInstallManager_->freeInstallList_.size(), 1);
 
     ElementName element4("", "com.test.demo", "MainAbility");
-    info.want.SetElement(element4);
+    info->want.SetElement(element4);
     iInterface = String::Box("startTime");
-    info.want.parameters_.SetParam(Want::PARAM_RESV_START_TIME, iInterface);
+    info->want.parameters_.SetParam(Want::PARAM_RESV_START_TIME, iInterface);
     freeInstallManager_->freeInstallList_.clear();
     freeInstallManager_->freeInstallList_.push_back(info);
     freeInstallManager_->NotifyInsightIntentFreeInstallResult(want, resultCode);
     EXPECT_EQ(freeInstallManager_->freeInstallList_.size(), 0);
 
     ElementName element5("", "com.test.demo", "MainAbility", "modename");
-    info.want.SetElement(element5);
+    info->want.SetElement(element5);
     iInterface = String::Box("startTime");
-    info.want.parameters_.SetParam(Want::PARAM_RESV_START_TIME, iInterface);
-    info.want.parameters_.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, iInterface);
+    info->want.parameters_.SetParam(Want::PARAM_RESV_START_TIME, iInterface);
+    info->want.parameters_.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, iInterface);
     iInterface = Integer::Box(1);
-    info.want.parameters_.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_MODE, iInterface);
+    info->want.parameters_.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_MODE, iInterface);
     freeInstallManager_->freeInstallList_.clear();
     freeInstallManager_->freeInstallList_.push_back(info);
     freeInstallManager_->NotifyInsightIntentFreeInstallResult(want, resultCode);

@@ -1844,7 +1844,7 @@ public:
     virtual int32_t PreStartMission(const std::string& bundleName, const std::string& moduleName,
         const std::string& abilityName, const std::string& startTime) override;
 
-    int32_t StartUIAbilityByPreInstall(const FreeInstallInfo &taskInfo);
+    int32_t StartUIAbilityByPreInstall(std::shared_ptr<FreeInstallInfo> taskInfo);
 
     void NotifySCBToHandleAtomicServiceException(const std::string& sessionId, int errCode,
         const std::string& reason);
@@ -2117,7 +2117,7 @@ private:
     int StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionInfo, uint32_t sceneFlag, bool &isColdStart);
     int StartUIAbilityByPreInstallInner(sptr<SessionInfo> sessionInfo, uint32_t specifyTokenId,
         uint32_t sceneFlag, bool &isColdStart);
-    int32_t PreStartInner(const FreeInstallInfo& taskInfo);
+    int32_t PreStartInner(std::shared_ptr<FreeInstallInfo> taskInfo);
     void RemovePreStartSession(const std::string& sessionId);
 
     int32_t ConnectLocalAbility(
