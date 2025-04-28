@@ -568,6 +568,12 @@ public:
 
     bool GetRecoveryInfo();
 
+    void NotifyToolHotStartInfo();
+
+    void SetStartAbilityWithWait(sptr<AppExecFwk::IStartAbilityWithWaitObserver> observer);
+
+    void OnObserverWithWaitDied(const wptr<IRemoteObject> &remote);
+
 #ifdef SUPPORT_SCREEN
     /**
      * check whether the ability 's window is attached.
@@ -1375,6 +1381,10 @@ private:
     int64_t restartTime_ = 0;                         // the time of last trying restart
     sptr<IAbilityScheduler> scheduler_ = {};       // kit scheduler
     sptr<IRemoteObject::DeathRecipient> schedulerDeathRecipient_ = {};  // scheduler binderDied Recipient
+
+    sptr<AppExecFwk::IStartAbilityWithWaitObserver> startAbilityWithWaitObserver_ = {};
+    mutable ffrt::mutex observerLock_;
+    sptr<IRemoteObject::DeathRecipient> observerDeathRecipient_ = {};
 
     /**
      * result_: ability starts with for-result mode will send result before being terminated.
