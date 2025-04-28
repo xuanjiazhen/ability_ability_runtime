@@ -12,27 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef OHOS_ABILITY_RUNTIME_STS_UI_EXTENSION_COMMON_H
-#define OHOS_ABILITY_RUNTIME_STS_UI_EXTENSION_COMMON_H
 
+#ifndef OHOS_ABILITY_RUNTIME_SIMULATOR_STS_CALLER_COMPLEX_H
+#define OHOS_ABILITY_RUNTIME_SIMULATOR_STS_CALLER_COMPLEX_H
+
+#include <functional>
+#include <memory>
+
+#include "caller_callback.h"
 #include "sts_runtime.h"
-#include <array>
-#include <iostream>
-#include <unistd.h>
-#include "ui_extension_context.h"
-#include "hilog_tag_wrapper.h"
-#include "hitrace_meter.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-class StsUIExtensionCommon final {
-public:
-    StsUIExtensionCommon() = default;
-    virtual ~StsUIExtensionCommon() = default;
-    static bool AsyncCallback(ani_env *env, ani_object call, ani_object error,
-        ani_object result);
-    static ani_object WrapBusinessError(ani_env *env, ani_int code);
-};
-}  // namespace AbilityRuntime
-}  // namespace OHOS
-#endif //OHOS_ABILITY_RUNTIME_STS_UI_EXTENSION_COMMON_H
+using ReleaseCallFunc = std::function<ErrCode(std::shared_ptr<CallerCallBack>)>;
+
+ani_object CreateEtsCaller(ani_env *env, ReleaseCallFunc releaseCallFunc,
+    sptr<IRemoteObject> callee, std::shared_ptr<CallerCallBack> callback);
+ani_object CreateEtsCallee(ani_env *env);
+} // namespace AbilityRuntime
+} // namespace OHOS
+#endif // OHOS_ABILITY_RUNTIME_SIMULATOR_STS_CALLER_COMPLEX_H
