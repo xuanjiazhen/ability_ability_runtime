@@ -879,7 +879,7 @@ void AppRunningRecord::AbilityForeground(const std::shared_ptr<AbilityRunningRec
         if (AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo->extensionAbilityType)) {
             StateChangedNotifyObserver(
                 ability, static_cast<int32_t>(ExtensionState::EXTENSION_STATE_FOREGROUND), false, false);
-        } 
+        }
         auto serviceInner = appMgrServiceInner_.lock();
         if (serviceInner) {
             serviceInner->OnAppStateChanged(shared_from_this(), curState_, false, false);
@@ -932,7 +932,7 @@ void AppRunningRecord::AbilityBackground(const std::shared_ptr<AbilityRunningRec
     if (AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo->extensionAbilityType)) {
         StateChangedNotifyObserver(
             ability, static_cast<int32_t>(ExtensionState::EXTENSION_STATE_BACKGROUND), false, false);
-    }  
+    }
     if (curState_ != ApplicationState::APP_STATE_FOREGROUND && curState_ != ApplicationState::APP_STATE_CACHED) {
         TAG_LOGW(AAFwkTag::APPMGR, "wrong state");
         return;
@@ -1039,7 +1039,7 @@ void AppRunningRecord::PopForegroundingAbilityTokens()
             if (AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo->extensionAbilityType)) {
                 StateChangedNotifyObserver(
                     ability, static_cast<int32_t>(ExtensionState::EXTENSION_STATE_BACKGROUND), false, false);
-            } 
+            }
         } else {
             TAG_LOGW(AAFwkTag::APPMGR, "null moduleRecord");
         }
