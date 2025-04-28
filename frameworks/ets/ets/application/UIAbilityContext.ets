@@ -25,6 +25,7 @@ import window from '@ohos.window';
 import { Caller } from '@ohos.app.ability.UIAbility';
 import { HapModuleInfo } from 'bundleManager.HapModuleInfo';
 import AsyncCallbackWrapper from '../utils/AbilityUtils';
+import OpenLinkOptions from '@ohos.app.ability.OpenLinkOptions';
 
 export default class UIAbilityContext extends Context {
   static {
@@ -55,6 +56,7 @@ export default class UIAbilityContext extends Context {
   private native nativeStartAbilityByTypeSync(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback): BusinessError<void>;
   private native nativeStartServiceExtensionAbilitySync(want: Want, callback: AsyncCallbackWrapper<void>): void;
   private native nativeStartAbilityByCallSync(want: Want): Caller;
+  private native nativeOpenLinkSync(link: string, myCallback:AsyncCallbackWrapper<void>, options?: OpenLinkOptions, callback?: AsyncCallbackWrapper<AbilityResult>): void;
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
@@ -254,5 +256,74 @@ export default class UIAbilityContext extends Context {
     return taskpool.execute((): Caller => {
       return this.nativeStartAbilityByCallSync(want);
     }) as Promise<Caller>;
+  }
+
+  openLink(link: string, options?: OpenLinkOptions, callback?: AsyncCallback<AbilityResult, void>): Promise<void> {
+    if (callback != null) {
+      let myCall2 = new AsyncCallbackWrapper<AbilityResult>(callback);
+      if (options != null) {
+        let p =
+          new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError<void>) => void): void => {
+            let myCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>) => {
+              if (err.code == 0) {
+                resolve(undefined);
+              } else {
+                reject(err);
+              }
+            });
+            taskpool.execute((): void => {
+              this.nativeOpenLinkSync(link, myCall, options, myCall2);
+            });
+          });
+        return p;
+      } else {
+        let p =
+          new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError<void>) => void): void => {
+            let myCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>) => {
+              if (err.code == 0) {
+                resolve(undefined);
+              } else {
+                reject(err);
+              }
+            });
+            taskpool.execute((): void => {
+              this.nativeOpenLinkSync(link, myCall, undefined, myCall2);
+            });
+          });
+        return p;
+      }
+    } else {
+      if (options != null) {
+        let p =
+          new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError<void>) => void): void => {
+            let myCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>) => {
+              if (err.code == 0) {
+                resolve(undefined);
+              } else {
+                reject(err);
+              }
+            });
+            taskpool.execute((): void => {
+              this.nativeOpenLinkSync(link, myCall, options, undefined);
+            });
+          });
+        return p;
+      } else {
+        let p =
+          new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError<void>) => void): void => {
+            let myCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>) => {
+              if (err.code == 0) {
+                resolve(undefined);
+              } else {
+                reject(err);
+              }
+            });
+            taskpool.execute((): void => {
+              this.nativeOpenLinkSync(link, myCall, undefined, undefined);
+            });
+          });
+        return p;
+      }
+    }
   }
 }
