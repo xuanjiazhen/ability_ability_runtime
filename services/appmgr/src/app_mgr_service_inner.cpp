@@ -411,6 +411,7 @@ void AppMgrServiceInner::Init()
     dfxTaskHandler_->SetPrintTaskLog(true);
     otherTaskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler("other_app_mgr_task_queue");
     otherTaskHandler_->SetPrintTaskLog(true);
+
     willKillPidsNum_ = 0;
     delayKillTaskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler("delay_kill_task_queue");
     if (securityModeManager_) {
@@ -1432,6 +1433,7 @@ void AppMgrServiceInner::ApplicationForegrounded(const int32_t recordId)
         TAG_LOGW(AAFwkTag::APPMGR, "app name(%{public}s), app state(%{public}d)",
             appRecord->GetName().c_str(), static_cast<ApplicationState>(appState));
     }
+
     appRecord->PopForegroundingAbilityTokens();
 
     TAG_LOGI(AAFwkTag::APPMGR, "ApplicationForegrounded, bundle: %{public}s", appRecord->GetBundleName().c_str());
@@ -5359,6 +5361,24 @@ int32_t AppMgrServiceInner::UpdateConfiguration(const Configuration &config, con
             item.observer->OnConfigurationUpdated(config);
         }
     }
+
+    return result;
+}
+
+int32_t AppMgrServiceInner::UpdateConfigurationPolicy(const std::vector<BackgroundAppInfo>& appInfos,
+    const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (!appRunningManager_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
+        return ERR_INVALID_VALUE;
+    }
+    CHECK_CALLER_IS_SYSTEM_APP;
+    auto ret = AAFwk::PermissionVerification::GetInstance()->VerifyUpdateConfigurationPerm();
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    int32_t result = appRunningManager_->UpdateConfigurationPolicy(appInfos, policy, userId);
 
     return result;
 }

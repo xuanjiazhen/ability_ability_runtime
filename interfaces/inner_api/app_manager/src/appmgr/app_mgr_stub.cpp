@@ -384,6 +384,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel &dat
             return HandleUpdateProcessMemoryState(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::GET_KILLED_PROCESS_INFO):
             return HandleGetKilledProcessInfo(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_CONFIGURATION_POLICY):
+            return HandleUpdateConfigurationPolicy(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::LAUNCH_ABILITY):
             return HandleLaunchAbility(data, reply);
     }
@@ -1008,6 +1010,31 @@ int32_t AppMgrStub::HandleUpdateConfiguration(MessageParcel &data, MessageParcel
     }
     int32_t userId = data.ReadInt32();
     int32_t ret = UpdateConfiguration(*config, userId);
+    if (!reply.WriteInt32(ret)) {
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleUpdateConfigurationPolicy(MessageParcel &data, MessageParcel &reply)
+{
+    std::vector<BackgroundAppInfo> appInfs;
+    uint32_t size = data.ReadUint32();
+    for (uint32_t i = 0; i < size; i++) {
+        std::unique_ptr<BackgroundAppInfo> tmpInfo(data.ReadParcelable<BackgroundAppInfo>());
+        if (tmpInfo == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "tmpInfo is nullptr.");
+            return ERR_INVALID_VALUE;
+        }
+        appInfs.push_back(*tmpInfo);
+    }
+    AppExecFwk::ConfigurationPolicy *policy = data.ReadParcelable<AppExecFwk::ConfigurationPolicy>();
+    if (policy == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AppMgrStub read policy error");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t userId = data.ReadInt32();
+    int32_t ret = UpdateConfigurationPolicy(appInfs, *policy, userId);
     if (!reply.WriteInt32(ret)) {
         return ERR_INVALID_VALUE;
     }
