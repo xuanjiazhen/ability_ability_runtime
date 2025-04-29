@@ -1982,8 +1982,8 @@ private:
                                 sptr<IRemoteObject> token);
     void RemoveUIExtensionBindItem(std::shared_ptr<AAFwk::Want> want, std::shared_ptr<AppRunningRecord> appRecord,
                                 sptr<IRemoteObject> token);
-    void BindUIExtensionProcess(const std::shared_ptr<AbilityRunningRecord> &abilityRecord, const UIExtensionProcessBindInfo &bindInfo);
-    void UnBindUIExtensionProcess(const std::shared_ptr<AbilityRunningRecord> &abilityRecord, const UIExtensionProcessBindInfo &bindInfo);
+    void BindUIExtensionProcess(const std::shared_ptr<AppRunningRecord> &appRecord, const UIExtensionProcessBindInfo &bindInfo);
+    void UnBindUIExtensionProcess(const std::shared_ptr<AppRunningRecord> &appRecord, const UIExtensionProcessBindInfo &bindInfo);
 
     bool isInitAppWaitingDebugListExecuted_ = false;
     std::atomic<bool> sceneBoardAttachFlag_ = true;
@@ -2043,7 +2043,7 @@ private:
 
     std::mutex screenOffSubscriberMutex_;
     std::mutex childProcessRecordMapMutex_;
-    std::map<int32_t, std::unordered_set<pid_t>> uiExtensionBindReleations_;
+    std::map<int32_t, std::unordered_set<std::pair<pid_t, int32_t>>> uiExtensionBindReleations_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
