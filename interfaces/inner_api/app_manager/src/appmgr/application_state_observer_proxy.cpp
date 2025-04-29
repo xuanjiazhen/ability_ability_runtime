@@ -415,6 +415,5 @@ void ApplicationStateObserverProxy::OnProcessBindingRelationChanged(const Proces
             ret, processBindData.bundleName.c_str());
     }
 }
-
 }  // namespace AppExecFwk
 }  // namespace OHOS

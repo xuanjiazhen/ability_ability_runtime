@@ -143,14 +143,13 @@ public:
      * @param appStateData Application state data.
      */
     virtual void OnAppCacheStateChanged(const AppStateData &appStateData) override;
-    
+
     /**
      * Will be called when bindingRelation change.
      *
      * @param processBindData Process bind data.
      */
     virtual void OnProcessBindingRelationChanged(const ProcessBindData &processBindData) override;
-
 private:
     int32_t HandleOnForegroundApplicationChanged(MessageParcel &data, MessageParcel &reply);
 

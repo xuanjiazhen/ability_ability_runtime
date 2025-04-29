@@ -27,7 +27,7 @@ namespace AppExecFwk {
 struct UIExtensionProcessBindInfo{
     std::string bundleName;
     int32_t pid = 0;
-    int32_t uid = 0; // host uid
+    int32_t uid = 0;
     bool isKeepAlive = false;
     ProcessType processType = ProcessType::NORMAL;
     ExtensionAbilityType extensionType = ExtensionAbilityType::UNSPECIFIED;
@@ -36,7 +36,6 @@ struct UIExtensionProcessBindInfo{
     std::string callerBundleName;
     int32_t notifyProcessBind = -1;
 };
-
 struct ProcessBindData : public Parcelable {
     /**
      * @brief read this Sequenceable object from a Parcel.

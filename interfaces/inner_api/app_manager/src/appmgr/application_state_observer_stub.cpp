@@ -126,6 +126,9 @@ void ApplicationStateObserverStub::OnPageHide(const PageStateData &pageStateData
 void ApplicationStateObserverStub::OnAppCacheStateChanged(const AppStateData &appStateData)
 {}
 
+void ApplicationStateObserverStub::OnProcessBindingRelationChanged(const ProcessBindData &processBindData)
+{}
+
 int32_t ApplicationStateObserverStub::HandleOnForegroundApplicationChanged(MessageParcel &data, MessageParcel &reply)
 {
     std::unique_ptr<AppStateData> processData(data.ReadParcelable<AppStateData>());
