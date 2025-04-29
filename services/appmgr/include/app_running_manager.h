@@ -378,8 +378,8 @@ public:
     UIExtensionProcessBindInfo WarpBindInfo(int32_t pid, int32_t uid, int32_t callerPid, int32_t callerUid,
                                             std::string callerBundleName, int32_t notifyProcessBind);
     int32_t AddUIExtensionBindItem(int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo);
-    int32_t QueryUIExtensionBindItemById(int32_t uiExtensionBindAbilityId);
-    int32_t RemoveUIExtensionBindItemById(int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo);
+    int32_t QueryUIExtensionBindItemById(int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo);
+    int32_t RemoveUIExtensionBindItemById(int32_t uiExtensionBindAbilityId);
 private:
     std::shared_ptr<AbilityRunningRecord> GetAbilityRunningRecord(const int64_t eventId);
     int32_t AssignRunningProcessInfoByAppRecord(

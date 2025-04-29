@@ -1987,7 +1987,7 @@ int32_t AppRunningManager::RemoveUIExtensionBindItemById(int32_t uiExtensionBind
     return ERR_OK;
 }
 
-int32_t AppRunningManager::QueryUIExtensionBindItemById(int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo& bindInfo)
+int32_t AppRunningManager::QueryUIExtensionBindItemById(int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo)
 {
     std::lock_guard guard(uiExtensionBindMapLock_);
     auto it = uiExtensionBindMap_.find(uiExtensionBindAbilityId);
