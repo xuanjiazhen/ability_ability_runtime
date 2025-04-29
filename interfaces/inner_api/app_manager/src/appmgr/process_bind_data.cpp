@@ -20,44 +20,7 @@
  #include "string_ex.h"
  
  namespace OHOS {
- namespace AppExecFwk {
- namespace{
-    constexpr int32_t CYCLE_LIMIT = 1000;
-    bool ReadFromParcelBindInfos(std::vector<UIExtensionProcessBindInfo> &bindInfos, Parcel &parcel)
-    {
-        int32_t bindInfosSize;
-        READ_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, bindInfosSize);
-        if (bindInfosSize > CYCLE_LIMIT)
-        {
-            TAG_LOGE(AAFwkTag::APPMGR, "infoSize is too large");
-            return false;
-        }
-        for (auto i = 0; i < bindInfosSize; i++)
-        {
-            UIExtensionProcessBindInfo uiExtensionProcessBindInfo;
-            bundleName = parcel.ReadString();
-            pid = parcel.ReadInt32();
-            uid = parcel.ReadInt32();
-            isKeepAlive = parcel.ReadBool();
-            processType = static_cast<ProcessType>(parcel.ReadInt32());
-            extensionType = static_cast<ExtensionAbilityType>(parcel.ReadInt32());
-            callerPid = parcel.ReadInt32();
-            callerUid = parcel.ReadInt32();
-            callerBundleName = parcel.ReadString();
-            uiExtensionProcessBindInfo.bundleName = bundleName;
-            uiExtensionProcessBindInfo.pid = pid;
-            uiExtensionProcessBindInfo.uid = uid;
-            uiExtensionProcessBindInfo.isKeepAlive = isKeepAlive;
-            uiExtensionProcessBindInfo.processType = processType;
-            uiExtensionProcessBindInfo.extensionType = extensionType;
-            uiExtensionProcessBindInfo.callerPid = callerPid;
-            uiExtensionProcessBindInfo.callerUid = callerUid;
-            uiExtensionProcessBindInfo.callerBundleName = callerBundleName;
-            bindInfos.emplace_back(uiExtensionProcessBindInfo);
-        }
-        return true;
-    }
-}
+ namespace AppExecFwk { 
 
 bool ProcessBindData::Marshalling(Parcel &parcel) const
 {
