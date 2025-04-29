@@ -54,8 +54,10 @@ public:
     virtual bool OnPrepareTerminate(
         AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnPrepareTerminationResult> *callbackInfo,
         bool &isAsync) const;
-    virtual std::string OnAcceptWant(const AAFwk::Want &want);
-    virtual std::string OnNewProcessRequest(const AAFwk::Want &want);
+    virtual std::string OnAcceptWant(const AAFwk::Want &want,
+        AppExecFwk::AbilityTransactionCallbackInfo<std::string> *callbackInfo, bool &isAsyn);
+    virtual std::string OnNewProcessRequest(const AAFwk::Want &want,
+        AppExecFwk::AbilityTransactionCallbackInfo<std::string> *callbackInfo, bool &isAsyn);
     virtual void Init(const std::shared_ptr<Context> &context,
         const std::weak_ptr<AppExecFwk::OHOSApplication> application);
     std::shared_ptr<Context> GetContext() const;

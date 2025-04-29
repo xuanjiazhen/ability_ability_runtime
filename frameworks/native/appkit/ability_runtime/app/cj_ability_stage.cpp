@@ -237,9 +237,10 @@ void CJAbilityStage::OnCreate(const AAFwk::Want& want) const
     }
 }
 
-std::string CJAbilityStage::OnAcceptWant(const AAFwk::Want& want)
+std::string CJAbilityStage::OnAcceptWant(const AAFwk::Want& want,
+    AppExecFwk::AbilityTransactionCallbackInfo<std::string> *callbackInfo, bool &isAsync)
 {
-    AbilityStage::OnAcceptWant(want);
+    AbilityStage::OnAcceptWant(want, callbackInfo, isAsync);
     if (!cjAbilityStageObject_) {
         TAG_LOGE(AAFwkTag::APPKIT, "null cjAbilityStage");
         return "";
@@ -247,9 +248,10 @@ std::string CJAbilityStage::OnAcceptWant(const AAFwk::Want& want)
     return cjAbilityStageObject_->OnAcceptWant(want);
 }
 
-std::string CJAbilityStage::OnNewProcessRequest(const AAFwk::Want& want)
+std::string CJAbilityStage::OnNewProcessRequest(const AAFwk::Want& want,
+    AppExecFwk::AbilityTransactionCallbackInfo<std::string> *callbackInfo, bool &isAsync)
 {
-    AbilityStage::OnNewProcessRequest(want);
+    AbilityStage::OnNewProcessRequest(want, callbackInfo, isAsync);
     if (!cjAbilityStageObject_) {
         TAG_LOGE(AAFwkTag::APPKIT, "CJAbilityStage is not loaded.");
         return "";

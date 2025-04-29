@@ -63,8 +63,10 @@ public:
     void Init(const std::shared_ptr<Context> &context,
         const std::weak_ptr<AppExecFwk::OHOSApplication> application) override;
     void OnCreate(const AAFwk::Want& want) const override;
-    std::string OnAcceptWant(const AAFwk::Want& want) override;
-    std::string OnNewProcessRequest(const AAFwk::Want& want) override;
+    std::string OnAcceptWant(const AAFwk::Want &want,
+        AppExecFwk::AbilityTransactionCallbackInfo<std::string> *callbackInfo, bool &isAsyn) override;
+    std::string OnNewProcessRequest(const AAFwk::Want& want,
+        AppExecFwk::AbilityTransactionCallbackInfo<std::string> *callbackInfo, bool &isAsyn) override;
     void OnConfigurationUpdated(const AppExecFwk::Configuration& configuration) override;
     void OnMemoryLevel(int level) override;
     void OnDestroy() const override;

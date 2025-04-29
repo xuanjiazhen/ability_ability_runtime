@@ -115,9 +115,10 @@ HWTEST_F(CjAbilityStageTest, CjAbilityStageTestOnCreate_001, TestSize.Level2)
 HWTEST_F(CjAbilityStageTest, CjAbilityStageTestOnAcceptWant_001, TestSize.Level2)
 {
     AAFwk::Want want;
-    auto info = cjAbilityStage_->OnAcceptWant(want);
+    bool isAsync = false;
+    auto info = cjAbilityStage_->OnAcceptWant(want, nullptr, isAsync);
     EXPECT_TRUE(info == "");
-    auto ret = initCjAbilityStage_->OnAcceptWant(want);
+    auto ret = initCjAbilityStage_->OnAcceptWant(want, nullptr, isAsync);
     EXPECT_TRUE(ret != "");
 }
 
