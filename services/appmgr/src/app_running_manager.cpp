@@ -1957,24 +1957,26 @@ void AppRunningManager::RemoveTimeoutDeadAppRecord()
     }
 }
 
-UIExtensionProcessBindInfo AppRunningManager::WarpBindInfo(int32_t pid, int32_t uid, int32_t callerPid, int32_t callerUid,
-                                                           std::string callerBundleName, int32_t notifyProcessBind)
+UIExtensionProcessBindInfo AppRunningManager::WarpBindInfo(int32_t pid, int32_t uid, int32_t callerPid,
+                                int32_t callerUid, std::string callerBundleName,
+                                int32_t notifyProcessBind) 
 {
-    UIExtensionProcessBindInfo uiExtensionProcessBindInfo;
-    uiExtensionProcessBindInfo.pid = pid;
-    uiExtensionProcessBindInfo.uid = uid;
-    uiExtensionProcessBindInfo.callerPid = callerPid;
-    uiExtensionProcessBindInfo.callerUid = callerUid;
-    uiExtensionProcessBindInfo.callerBundleName = callerBundleName;
-    uiExtensionProcessBindInfo.notifyProcessBind = notifyProcessBind;
-    return uiExtensionProcessBindInfo;
+  UIExtensionProcessBindInfo uiExtensionProcessBindInfo;
+  uiExtensionProcessBindInfo.pid = pid;
+  uiExtensionProcessBindInfo.uid = uid;
+  uiExtensionProcessBindInfo.callerPid = callerPid;
+  uiExtensionProcessBindInfo.callerUid = callerUid;
+  uiExtensionProcessBindInfo.callerBundleName = callerBundleName;
+  uiExtensionProcessBindInfo.notifyProcessBind = notifyProcessBind;
+  return uiExtensionProcessBindInfo;
 }
 
-int32_t AppRunningManager::AddUIExtensionBindItem(int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo)
+int32_t AppRunningManager::AddUIExtensionBindItem(
+    int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo) 
 {
-    std::lock_guard guard(uiExtensionBindMapLock_);
-    uiExtensionBindMap_.emplace(uiExtensionBindAbilityId, bindInfo);
-    return ERR_OK;
+  std::lock_guard guard(uiExtensionBindMapLock_);
+  uiExtensionBindMap_.emplace(uiExtensionBindAbilityId, bindInfo);
+  return ERR_OK;
 }
 
 int32_t AppRunningManager::RemoveUIExtensionBindItemById(int32_t uiExtensionBindAbilityId)
@@ -1987,15 +1989,16 @@ int32_t AppRunningManager::RemoveUIExtensionBindItemById(int32_t uiExtensionBind
     return ERR_OK;
 }
 
-int32_t AppRunningManager::QueryUIExtensionBindItemById(int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo)
+int32_t AppRunningManager::QueryUIExtensionBindItemById(
+    int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo) 
 {
-    std::lock_guard guard(uiExtensionBindMapLock_);
-    auto it = uiExtensionBindMap_.find(uiExtensionBindAbilityId);
-    if (it != uiExtensionBindMap_.end()) {
-        bindInfo = it->second;
-        return ERR_OK;
-    }
-    return ERR_INVALID_VALUE;
+  std::lock_guard guard(uiExtensionBindMapLock_);
+  auto it = uiExtensionBindMap_.find(uiExtensionBindAbilityId);
+  if (it != uiExtensionBindMap_.end()) {
+    bindInfo = it->second;
+    return ERR_OK;
+  }
+  return ERR_INVALID_VALUE;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

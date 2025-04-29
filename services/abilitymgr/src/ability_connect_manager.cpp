@@ -231,7 +231,9 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
                 mgr->UpdateUIExtensionInfo(targetService, AAFwk::DEFAULT_INVAL_VALUE);
             }
         };
-        UpdateUIExtensionBindInfo(targetService, hostBundleName, abilityRequest.want.GetIntParam(UIEXTENSION_NOTIFY_BIND, -1));
+        UpdateUIExtensionBindInfo(
+            targetService, hostBundleName,
+            abilityRequest.want.GetIntParam(UIEXTENSION_NOTIFY_BIND, -1));
         LoadAbility(targetService, updateRecordCallback);
     } else if (targetService->IsAbilityState(AbilityState::ACTIVE) && !IsUIExtensionAbility(targetService)) {
         // It may have been started through connect
@@ -574,7 +576,9 @@ int AbilityConnectManager::PreloadUIExtensionAbilityInner(const AbilityRequest &
             mgr->UpdateUIExtensionInfo(targetService, hostPid);
         }
     };
-    UpdateUIExtensionBindInfo(targetService, hostBundleName, abilityRequest.want.GetIntParam(UIEXTENSION_NOTIFY_BIND, -1));
+    UpdateUIExtensionBindInfo(
+        targetService, hostBundleName,
+        abilityRequest.want.GetIntParam(UIEXTENSION_NOTIFY_BIND, -1));
     LoadAbility(targetService, updateRecordCallback);
     return ERR_OK;
 }
@@ -3593,23 +3597,29 @@ std::shared_ptr<AbilityRecord> AbilityConnectManager::GetUIExtensionBySessionFro
     return nullptr;
 }
 
-void AbilityConnectManager::UpdateUIExtensionBindInfo(const std::shared_ptr<AbilityRecord> &abilityRecord,
-                                                      std::string callerBundleName, int32_t notifyProcessBind)
-{
-    if (abilityRecord == nullptr ||
-        !UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "record null or type error");    
-        return;
-    }
+void AbilityConnectManager::UpdateUIExtensionBindInfo(
+    const std::shared_ptr<AbilityRecord> &abilityRecord,
+    std::string callerBundleName, int32_t notifyProcessBind) {
+  if (abilityRecord == nullptr ||
+      !UIExtensionUtils::IsUIExtension(
+          abilityRecord->GetAbilityInfo().extensionAbilityType)) {
+    TAG_LOGE(AAFwkTag::UI_EXT, "record null or type error");
+    return;
+  }
 
-    WantParams wantParams;
-    auto uiExtensionBindAbilityId = abilityRecord->GetUIExtensionAbilityId();
-    wantParams.SetParam(UIEXTENSION_BIND_ABILITY_ID, AAFwk::Integer::Box(uiExtensionBindAbilityId));
-    wantParams.SetParam(UIEXTENSION_NOTIFY_BIND, AAFwk::Integer::Box(notifyProcessBind));
-    wantParams.SetParam(UIEXTENSION_HOST_PID, AAFwk::Integer::Box(IPCSkeleton::GetCallingPid()));
-    wantParams.SetParam(UIEXTENSION_HOST_UID, AAFwk::Integer::Box(IPCSkeleton::GetCallingUid()));
-    wantParams.SetParam(UIEXTENSION_HOST_BUNDLENAME, String ::Box(callerBundleName));
-    abilityRecord->UpdateUIExtensionBindInfo(wantParams);    
+  WantParams wantParams;
+  auto uiExtensionBindAbilityId = abilityRecord->GetUIExtensionAbilityId();
+  wantParams.SetParam(UIEXTENSION_BIND_ABILITY_ID,
+                      AAFwk::Integer::Box(uiExtensionBindAbilityId));
+  wantParams.SetParam(UIEXTENSION_NOTIFY_BIND,
+                      AAFwk::Integer::Box(notifyProcessBind));
+  wantParams.SetParam(UIEXTENSION_HOST_PID,
+                      AAFwk::Integer::Box(IPCSkeleton::GetCallingPid()));
+  wantParams.SetParam(UIEXTENSION_HOST_UID,
+                      AAFwk::Integer::Box(IPCSkeleton::GetCallingUid()));
+  wantParams.SetParam(UIEXTENSION_HOST_BUNDLENAME,
+                      String ::Box(callerBundleName));
+  abilityRecord->UpdateUIExtensionBindInfo(wantParams);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -402,7 +402,7 @@ private:
     std::map<const int32_t, bool> updateConfigurationDelayedMap_;
 
     std::mutex uiExtensionBindMapLock_;
-    std::map<int32_t, UIExtensionProcessBindInfo> uiExtensionLauncherMap_;
+    std::map<int32_t, UIExtensionProcessBindInfo> uiExtensionBindMap_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -1250,41 +1250,42 @@ void AppStateObserverManager::HandleOnAppCacheStateChanged(const std::shared_ptr
     }
 }
 
-ProcessBindData AppStateObserverManager::WrapProcessBindData(const std::shared_ptr<AppRunningRecord> &appRecord,
-                                                             const UIExtensionProcessBindInfo &bindInfo, int32_t bindingRelation)
-{
-    ProcessBindData processBindData;
-    processBindData.bundleName = appRecord->GetBundleName();
-    processBindData.pid = appRecord->GetPid();
-    processBindData.uid = appRecord->GetUid();
-    processBindData.isKeepAlive = appRecord->IsKeepAliveApp();
-    processBindData.extensionType = appRecord->GetExtensionType();
-    processBindData.processType = appRecord->GetProcessType();
-    processBindData.callerPid = bindInfo.callerPid;
-    processBindData.callerUid = bindInfo.callerUid;
-    processBindData.callerBundleName = bindInfo.callerBundleName;
-    processBindData.bindingRelation = bindingRelation;
-    return processBindData;
+ProcessBindData AppStateObserverManager::WrapProcessBindData(
+    const std::shared_ptr<AppRunningRecord> &appRecord,
+    const UIExtensionProcessBindInfo &bindInfo, int32_t bindingRelation) {
+  ProcessBindData processBindData;
+  processBindData.bundleName = appRecord->GetBundleName();
+  processBindData.pid = appRecord->GetPid();
+  processBindData.uid = appRecord->GetUid();
+  processBindData.isKeepAlive = appRecord->IsKeepAliveApp();
+  processBindData.extensionType = appRecord->GetExtensionType();
+  processBindData.processType = appRecord->GetProcessType();
+  processBindData.callerPid = bindInfo.callerPid;
+  processBindData.callerUid = bindInfo.callerUid;
+  processBindData.callerBundleName = bindInfo.callerBundleName;
+  processBindData.bindingRelation = bindingRelation;
+  return processBindData;
 }
 
-void AppStateObserverManager::OnProcessBindingRelationChanged(const std::shared_ptr<AppRunningRecord> &appRecord,
-                                                              const UIExtensionProcessBindInfo &bindInfo, int32_t bindingRelation)
-{
-    if (handler_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "null handler");
-        return;
-    }
+void AppStateObserverManager::OnProcessBindingRelationChanged(
+    const std::shared_ptr<AppRunningRecord> &appRecord,
+    const UIExtensionProcessBindInfo &bindInfo, int32_t bindingRelation) {
+  if (handler_ == nullptr) {
+    TAG_LOGE(AAFwkTag::APPMGR, "null handler");
+    return;
+  }
 
-    auto task = [weak = weak_from_this(), appRecord, bindInfo, bindingRelation]() {
+  auto task =
+      [weak = weak_from_this(), appRecord, bindInfo, bindingRelation]() {
         auto self = weak.lock();
         if (self == nullptr) {
-            TAG_LOGE(AAFwkTag::APPMGR, "null self");
-            return;
+          TAG_LOGE(AAFwkTag::APPMGR, "null self");
+          return;
         }
         TAG_LOGD(AAFwkTag::APPMGR, "OnProcessBindingRelationChanged come.");
         self->HandleOnProcessBindingRelationChanged(appRecord, bindInfo, bindingRelation);
-    };
-    handler_->SubmitTask(task);
+      };
+  handler_->SubmitTask(task);
 }
 
 void AppStateObserverManager::HandleOnProcessBindingRelationChanged(const std::shared_ptr<AppRunningRecord> &appRecord,
@@ -1304,7 +1305,7 @@ void AppStateObserverManager::HandleOnProcessBindingRelationChanged(const std::s
         if ((bundleNames.empty() || iter != bundleNames.end()) && it->first != nullptr) {
             it->first->OnProcessBindingRelationChanged(data);
         }
-    } 
+    }
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -24,54 +24,57 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-struct UIExtensionProcessBindInfo{
-    std::string bundleName;
-    int32_t pid = 0;
-    int32_t uid = 0;
-    bool isKeepAlive = false;
-    ProcessType processType = ProcessType::NORMAL;
-    ExtensionAbilityType extensionType = ExtensionAbilityType::UNSPECIFIED;
-    int32_t callerPid = -1;
-    int32_t callerUid = -1;
-    std::string callerBundleName;
-    int32_t notifyProcessBind = -1;
+struct UIExtensionProcessBindInfo {
+  std::string bundleName;
+  int32_t pid = 0;
+  int32_t uid = 0;
+  bool isKeepAlive = false;
+  ProcessType processType = ProcessType::NORMAL;
+  ExtensionAbilityType extensionType = ExtensionAbilityType::UNSPECIFIED;
+  int32_t callerPid = -1;
+  int32_t callerUid = -1;
+  std::string callerBundleName;
+  int32_t notifyProcessBind = -1;
 };
 struct ProcessBindData : public Parcelable {
-    /**
-     * @brief read this Sequenceable object from a Parcel.
-     *
-     * @param inParcel Indicates the Parcel object into which the Sequenceable object has been marshaled.
-     * @return Returns true if read successed; returns false otherwise.
-     */
-    bool ReadFromParcel(Parcel &parcel);
+  /**
+   * @brief read this Sequenceable object from a Parcel.
+   *
+   * @param inParcel Indicates the Parcel object into which the Sequenceable
+   * object has been marshaled.
+   * @return Returns true if read successed; returns false otherwise.
+   */
+  bool ReadFromParcel(Parcel &parcel);
 
-    /**
-     * @brief Marshals this Sequenceable object into a Parcel.
-     *
-     * @param outParcel Indicates the Parcel object to which the Sequenceable object will be marshaled.
-     */
-    virtual bool Marshalling(Parcel &parcel) const override;
+  /**
+   * @brief Marshals this Sequenceable object into a Parcel.
+   *
+   * @param outParcel Indicates the Parcel object to which the Sequenceable
+   * object will be marshaled.
+   */
+  virtual bool Marshalling(Parcel &parcel) const override;
 
-    /**
-     * @brief Unmarshals this Sequenceable object from a Parcel.
-     *
-     * @param inParcel Indicates the Parcel object into which the Sequenceable object has been marshaled.
-     */
-    static ProcessBindData *Unmarshalling(Parcel &parcel);
+  /**
+   * @brief Unmarshals this Sequenceable object from a Parcel.
+   *
+   * @param inParcel Indicates the Parcel object into which the Sequenceable
+   * object has been marshaled.
+   */
+  static ProcessBindData *Unmarshalling(Parcel &parcel);
 
-    std::string bundleName;
-    int32_t pid = 0;
-    int32_t uid = 0; // host uid
-    bool isKeepAlive = false;
-    ProcessType processType = ProcessType::NORMAL;
-    ExtensionAbilityType extensionType = ExtensionAbilityType::UNSPECIFIED;
-    int32_t callerPid = -1;
-    int32_t callerUid = -1;
-    std::string callerBundleName;
-    std::vector<UIExtensionProcessBindInfo> bindInfos;
-    int32_t bindingRelation;//0：unBind 1:Bind
-
+  std::string bundleName;
+  int32_t pid = 0;
+  int32_t uid = 0; // host uid
+  bool isKeepAlive = false;
+  ProcessType processType = ProcessType::NORMAL;
+  ExtensionAbilityType extensionType = ExtensionAbilityType::UNSPECIFIED;
+  int32_t callerPid = -1;
+  int32_t callerUid = -1;
+  std::string callerBundleName;
+  std::vector<UIExtensionProcessBindInfo> bindInfos;
+  // 0：unBind 1:Bind
+  int32_t bindingRelation;
 };
-}  // namespace AppExecFwk
-}  // namespace OHOS
-#endif  // OHOS_ABILITY_RUNTIME_PROCESS_BIND_DATA_H
+} // namespace AppExecFwk
+} // namespace OHOS
+#endif // OHOS_ABILITY_RUNTIME_PROCESS_BIND_DATA_H
