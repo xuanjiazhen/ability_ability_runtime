@@ -20,7 +20,6 @@
 #include <mutex>
 #include <regex>
 #include <set>
-#include <unordered_set>
 
 #include "ability_info.h"
 #include "app_debug_listener_interface.h"
@@ -38,6 +37,7 @@
 #include "refbase.h"
 #include "running_process_info.h"
 #include "simple_process_info.h"
+#include "process_bind_data.h"
 
 namespace OHOS {
 namespace Rosen {

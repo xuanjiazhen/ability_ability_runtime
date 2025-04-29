@@ -1970,7 +1970,7 @@ UIExtensionProcessBindInfo AppRunningManager::WarpBindInfo(int32_t pid, int32_t 
     return uiExtensionProcessBindInfo;
 }
 
-int32_t AppRunningManager::AddUIExtensionBindItem(int32_t uiExtensionBindAbilityId, , UIExtensionProcessBindInfo bindInfo)
+int32_t AppRunningManager::AddUIExtensionBindItem(int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo)
 {
     std::lock_guard guard(uiExtensionBindMapLock_);
     uiExtensionBindMap_.emplace(uiExtensionBindAbilityId, bindInfo);
