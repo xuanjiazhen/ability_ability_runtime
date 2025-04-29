@@ -66,7 +66,7 @@ int ApplicationStateObserverStub::OnRemoteRequest(
         case Message::TRANSACT_ON_WINDOW_HIDDEN:
             return HandleOnWindowHidden(data, reply);
         case Message::TRANSACT_ON_PROCESS_BINDINGRELATION_CHANGED:
-            return HandleOnWindowHidden(data, reply);
+            return HandleOnProcessBindingRelationChanged(data, reply);
     }
     TAG_LOGW(AAFwkTag::APPMGR, "ApplicationStateObserverStub::OnRemoteRequest, default case, need check");
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
