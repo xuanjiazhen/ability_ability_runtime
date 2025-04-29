@@ -2046,7 +2046,7 @@ private:
     std::mutex childProcessRecordMapMutex_;
 
     std::mutex uiExtensionBindReleationsLock_;
-    std::map<int32_t, std::unordered_map<std::pair<pid_t, int32_t>>> uiExtensionBindReleations_;
+    std::map<int32_t, std::unordered_map<pid_t, int32_t>> uiExtensionBindReleations_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

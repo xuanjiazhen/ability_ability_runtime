@@ -9401,7 +9401,7 @@ int32_t AppMgrServiceInner::LaunchAbility(sptr<IRemoteObject> token)
 
 void AppMgrServiceInner::AddUIExtensionBindItem(
     std::shared_ptr<AAFwk::Want> want,
-    std::shared_ptr<AppRunningRecord> appRecord, sptr<IRemoteObject> token) 
+    std::shared_ptr<AppRunningRecord> appRecord, sptr<IRemoteObject> token)
 {
   auto notifyProcessBind = want->GetIntParam(UIEXTENSION_NOTIFY_BIND, -1);
   if (notifyProcessBind != 1) {
@@ -9450,7 +9450,7 @@ void AppMgrServiceInner::AddUIExtensionBindItem(
 }
 
 void AppMgrServiceInner::RemoveUIExtensionBindItem(
-    std::shared_ptr<AppRunningRecord> appRecord, sptr<IRemoteObject> token) 
+    std::shared_ptr<AppRunningRecord> appRecord, sptr<IRemoteObject> token)
 {
   if (appRecord == nullptr || token == nullptr ||
       appRunningManager_ == nullptr) {
@@ -9493,7 +9493,7 @@ void AppMgrServiceInner::RemoveUIExtensionBindItem(
 
 void AppMgrServiceInner::BindUIExtensionProcess(
     const std::shared_ptr<AppRunningRecord> &appRecord,
-    const UIExtensionProcessBindInfo &bindInfo) 
+    const UIExtensionProcessBindInfo &bindInfo)
 {
   std::lock_guard guard(uiExtensionBindReleationsLock_);
   auto pid = bindInfo.pid;
@@ -9512,7 +9512,7 @@ void AppMgrServiceInner::BindUIExtensionProcess(
 
 void AppMgrServiceInner::UnBindUIExtensionProcess(
     const std::shared_ptr<AppRunningRecord> &appRecord,
-    const UIExtensionProcessBindInfo &bindInfo) 
+    const UIExtensionProcessBindInfo &bindInfo)
 {
   std::lock_guard guard(uiExtensionBindReleationsLock_);
   auto pid = bindInfo.pid;

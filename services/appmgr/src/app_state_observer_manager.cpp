@@ -1288,24 +1288,29 @@ void AppStateObserverManager::OnProcessBindingRelationChanged(
   handler_->SubmitTask(task);
 }
 
-void AppStateObserverManager::HandleOnProcessBindingRelationChanged(const std::shared_ptr<AppRunningRecord> &appRecord,
-                                                                    const UIExtensionProcessBindInfo &bindInfo, int32_t bindingRelation)
+void AppStateObserverManager::HandleOnProcessBindingRelationChanged(
+    const std::shared_ptr<AppRunningRecord> &appRecord,
+    const UIExtensionProcessBindInfo &bindInfo, int32_t bindingRelation)
 {
-    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    if (appRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "null appRecord");
-        return;
-    }
+  HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+  if (appRecord == nullptr) {
+    TAG_LOGE(AAFwkTag::APPMGR, "null appRecord");
+    return;
+  }
 
-    ProcessBindData data = WrapProcessBindData(appRecord, bindInfo, bindingRelation);
-    auto appStateObserverMapCopy = GetAppStateObserverMapCopy();
-    for (auto it = appStateObserverMapCopy.begin(); it != appStateObserverMapCopy.end(); ++it) {
-        const auto &bundleNames = it->second.bundleNames;
-        auto iter = std::find(bundleNames.begin(), bundleNames.end(), data.bundleName);
-        if ((bundleNames.empty() || iter != bundleNames.end()) && it->first != nullptr) {
-            it->first->OnProcessBindingRelationChanged(data);
-        }
+  ProcessBindData data =
+      WrapProcessBindData(appRecord, bindInfo, bindingRelation);
+  auto appStateObserverMapCopy = GetAppStateObserverMapCopy();
+  for (auto it = appStateObserverMapCopy.begin();
+       it != appStateObserverMapCopy.end(); ++it) {
+    const auto &bundleNames = it->second.bundleNames;
+    auto iter =
+        std::find(bundleNames.begin(), bundleNames.end(), data.bundleName);
+    if ((bundleNames.empty() || iter != bundleNames.end()) &&
+        it->first != nullptr) {
+      it->first->OnProcessBindingRelationChanged(data);
     }
+  }
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

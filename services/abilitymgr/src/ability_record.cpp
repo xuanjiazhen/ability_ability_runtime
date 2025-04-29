@@ -3851,12 +3851,12 @@ void AbilityRecord::NotifyAbilityRequestFailure(const std::string &requestId, co
 }
 
 void AbilityRecord::NotifyAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element)
-{
+{app_mgr_service_inner.cpp
     CHECK_POINTER(lifecycleDeal_);
     lifecycleDeal_->NotifyAbilityRequestSuccess(requestId, element);
 }
 
-void AbilityRecord::UpdateUIExtensionBindInfo(const WantParams &wantParams) 
+void AbilityRecord::UpdateUIExtensionBindInfo(const WantParams &wantParams)
 {
   if (!UIExtensionUtils::IsUIExtension(GetAbilityInfo().extensionAbilityType)) {
     return;

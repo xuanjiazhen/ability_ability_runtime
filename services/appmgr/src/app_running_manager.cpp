@@ -1959,7 +1959,7 @@ void AppRunningManager::RemoveTimeoutDeadAppRecord()
 
 UIExtensionProcessBindInfo AppRunningManager::WarpBindInfo(int32_t pid, int32_t uid, int32_t callerPid,
                                 int32_t callerUid, std::string callerBundleName,
-                                int32_t notifyProcessBind) 
+                                int32_t notifyProcessBind)
 {
   UIExtensionProcessBindInfo uiExtensionProcessBindInfo;
   uiExtensionProcessBindInfo.pid = pid;
@@ -1990,7 +1990,7 @@ int32_t AppRunningManager::RemoveUIExtensionBindItemById(int32_t uiExtensionBind
 }
 
 int32_t AppRunningManager::QueryUIExtensionBindItemById(
-    int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo) 
+    int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo)
 {
   std::lock_guard guard(uiExtensionBindMapLock_);
   auto it = uiExtensionBindMap_.find(uiExtensionBindAbilityId);
