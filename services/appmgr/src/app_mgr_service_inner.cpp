@@ -207,10 +207,10 @@ constexpr const char* UBSAN_FLAG_NAME = "ubsanEnabled";
 constexpr const char* UIEXTENSION_ABILITY_ID = "ability.want.params.uiExtensionAbilityId";
 constexpr const char* UIEXTENSION_ROOT_HOST_PID = "ability.want.params.uiExtensionRootHostPid";
 constexpr const char* UIEXTENSION_HOST_PID = "ability.want.params.uiExtensionHostPid";
-constexpr const char* UIEXTENSION_HOST_UID = "ability.want.params.uiExtensionHostPid";
+constexpr const char* UIEXTENSION_HOST_UID = "ability.want.params.uiExtensionHostUid";
 constexpr const char* UIEXTENSION_HOST_BUNDLENAME = "ability.want.params.uiExtensionHostBundleName";
 constexpr const char* UIEXTENSION_BIND_ABILITY_ID = "ability.want.params.uiExtensionBindAbilityId";
-constexpr const char* UIEXTENSION_NOTIFY_BIND = "ohos.uiextension.params.uiExtensioNotifyBind";
+constexpr const char* UIEXTENSION_NOTIFY_BIND = "ohos.uiextension.params.notifyProcessBind";
 constexpr const char* MEMMGR_PROC_NAME = "memmgrservice";
 constexpr const char* ISOLATED_SANDBOX = "isolatedSandbox";
 constexpr const char* RENDER_PROCESS_NAME = ":render";
@@ -9415,7 +9415,7 @@ void AppMgrServiceInner::AddUIExtensionBindItem(std::shared_ptr<AAFwk::Want> wan
     auto uiExtensionBindAbilityId = want->GetIntParam(UIEXTENSION_BIND_ABILITY_ID, -1);
     auto callerPid = want->GetIntParam(UIEXTENSION_HOST_PID, -1);
     auto callerUid = want->GetIntParam(UIEXTENSION_HOST_UID, -1);
-    auto callerBundleName = want->GetIntParam(UIEXTENSION_HOST_BUNDLENAME, -1);
+    auto callerBundleName = want->GetStringParam(UIEXTENSION_HOST_BUNDLENAME);
     pid_t providerPid = -1;
     pid_t providerUid = -1;
     if (appRecord->GetPriorityObject() != nullptr) {
@@ -9433,7 +9433,7 @@ void AppMgrServiceInner::AddUIExtensionBindItem(std::shared_ptr<AAFwk::Want> wan
              "uiExtensionBindAbilityId: %{public}d, providerUid: "
              "%{public}d,providerPid: %{public}d,callerUid: %{public}d, "
              "callerPid: %{public}d,callerBundleName: %{public}s",
-             uiExtensionAbilityId, providerUid, providerPid, callerUid,
+             uiExtensionBindAbilityId, providerUid, providerPid, callerUid,
              callerPid, callerBundleName);
     UIExtensionProcessBindInfo bindInfo = appRunningManager_->WarpBindInfo(
         providerPid, providerUid, callerPid, callerUid, callerBundleName,
@@ -9447,11 +9447,9 @@ void AppMgrServiceInner::AddUIExtensionBindItem(std::shared_ptr<AAFwk::Want> wan
 
 }
 
-void AppMgrServiceInner::RemoveUIExtensionBindItem(std::shared_ptr<AAFwk::Want> want, std::shared_ptr<AppRunningRecord> appRecord,
-                                                    sptr<IRemoteObject> token)
+void AppMgrServiceInner::RemoveUIExtensionBindItem(std::shared_ptr<AppRunningRecord> appRecord, sptr<IRemoteObject> token)
 {
-    if (want == nullptr || appRecord == nullptr || token == nullptr ||
-        appRunningManager_ == nullptr) {
+    if (appRecord == nullptr || token == nullptr || appRunningManager_ == nullptr) {
       TAG_LOGE(AAFwkTag::APPMGR, "invalid input params");
       return;
     }
@@ -9475,10 +9473,10 @@ void AppMgrServiceInner::RemoveUIExtensionBindItem(std::shared_ptr<AAFwk::Want> 
     auto uiExtensionBindAbilityId = abilityRunningRecord->GetUIExtensionBindAbilityId();
     UIExtensionProcessBindInfo bindInfo;
     auto result = appRunningManager_->QueryUIExtensionBindItemById(uiExtensionBindAbilityId,bindInfo);
-    if (result != ERR_OK || bindInfo == nullptr) {
+    if (result != ERR_OK) {
         return;
     }
-    if (bindInfo->notifyProcessBind != 1) {
+    if (bindInfo.notifyProcessBind != 1) {
         TAG_LOGE(AAFwkTag::APPMGR, "no bind permission");
         return;
     }
@@ -9505,7 +9503,7 @@ void AppMgrServiceInner::BindUIExtensionProcess(const std::shared_ptr<AppRunning
 }
 
 
-void AppMgrServiceInner::UnBindUIExtensionProcess(const std::shared_ptr<AbilityRunningRecord> &abilityRecord, 
+void AppMgrServiceInner::UnBindUIExtensionProcess(const std::shared_ptr<AppRunningRecord> &appRecord, 
                                                   const UIExtensionProcessBindInfo &bindInfo)
 {
     auto pid = bindInfo.pid;
