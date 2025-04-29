@@ -671,7 +671,7 @@ private:
     bool GetTimeoutMsgContent(uint32_t msgId, std::string &msgContent, int &typeId);
 
     void UpdateUIExtensionBindInfo(const std::shared_ptr<AbilityRecord> &abilityRecord,
-        std::string callerBundleName, int32_t notifyProcessBind);
+                                   std::string callerBundleName, int32_t notifyProcessBind);
 private:
     const std::string TASK_ON_CALLBACK_DIED = "OnCallbackDiedTask";
     const std::string TASK_ON_ABILITY_DIED = "OnAbilityDiedTask";

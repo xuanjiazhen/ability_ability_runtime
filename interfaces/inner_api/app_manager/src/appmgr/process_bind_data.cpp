@@ -21,14 +21,13 @@
  
  namespace OHOS {
  namespace AppExecFwk { 
-
-bool ProcessBindData::Marshalling(Parcel &parcel) const
-{
+ bool ProcessBindData::Marshalling(Parcel &parcel) const
+ {
     return (parcel.WriteString(bundleName) && parcel.WriteInt32(pid) && parcel.WriteInt32(uid) &&
             parcel.WriteBool(isKeepAlive) &&
             parcel.WriteInt32(static_cast<int32_t>(processType)) && parcel.WriteInt32(static_cast<int32_t>(extensionType)) &&
             parcel.WriteInt32(callerPid) && parcel.WriteInt32(callerUid) && parcel.WriteString(callerBundleName)&& parcel.WriteInt32(bindingRelation));
-}
+ }
 
  bool ProcessBindData::ReadFromParcel(Parcel &parcel)
  {

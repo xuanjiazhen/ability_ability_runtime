@@ -405,7 +405,7 @@ private:
     std::map<int32_t, UIExtensionProcessBindInfo> uiExtensionLauncherMap_;
 
     std::mutex uiExtensionBindReleationsLock_;
-    std::map<int32_t, std::unordered_set<std::pair<pid_t, int32_t>>> uiExtensionBindReleations_;
+    std::map<int32_t, std::unordered_map<pid_t, int32_t>> uiExtensionBindReleations_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -1961,12 +1961,12 @@ UIExtensionProcessBindInfo AppRunningManager::WarpBindInfo(int32_t pid, int32_t 
                                                            std::string callerBundleName, int32_t notifyProcessBind)
 {
     UIExtensionProcessBindInfo uiExtensionProcessBindInfo;
-    UIExtensionProcessBindInfo.pid = pid;
-    UIExtensionProcessBindInfo.uid = uid;
-    UIExtensionProcessBindInfo.callerPid = callerPid;
-    UIExtensionProcessBindInfo.callerUid = callerUid;
-    UIExtensionProcessBindInfo.callerBundleName = callerBundleName;
-    UIExtensionProcessBindInfo.notifyProcessBind = notifyProcessBind;
+    uiExtensionProcessBindInfo.pid = pid;
+    uiExtensionProcessBindInfo.uid = uid;
+    uiExtensionProcessBindInfo.callerPid = callerPid;
+    uiExtensionProcessBindInfo.callerUid = callerUid;
+    uiExtensionProcessBindInfo.callerBundleName = callerBundleName;
+    uiExtensionProcessBindInfo.notifyProcessBind = notifyProcessBind;
     return uiExtensionProcessBindInfo;
 }
 
