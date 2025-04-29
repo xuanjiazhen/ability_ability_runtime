@@ -25,7 +25,7 @@ ohos_unittest("multi_instance_utils_test") {
 
   deps = [
     "${ability_runtime_services_path}/abilitymgr:abilityms",
-    "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_path}/utils/global/common:runtime_utils",
   ]
 
   external_deps = [
