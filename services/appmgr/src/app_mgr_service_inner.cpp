@@ -9487,6 +9487,7 @@ void AppMgrServiceInner::RemoveUIExtensionBindItem(std::shared_ptr<AppRunningRec
 void AppMgrServiceInner::BindUIExtensionProcess(const std::shared_ptr<AppRunningRecord> &appRecord, 
                                                 const UIExtensionProcessBindInfo &bindInfo)
 {
+    std::lock_guard guard(uiExtensionBindReleationsLock_);
     auto pid = bindInfo.pid;
     auto callerPid = bindInfo.callerPid;
     auto it = uiExtensionBindReleations_.find(pid);
@@ -9506,6 +9507,7 @@ void AppMgrServiceInner::BindUIExtensionProcess(const std::shared_ptr<AppRunning
 void AppMgrServiceInner::UnBindUIExtensionProcess(const std::shared_ptr<AppRunningRecord> &appRecord, 
                                                   const UIExtensionProcessBindInfo &bindInfo)
 {
+    std::lock_guard guard(uiExtensionBindReleationsLock_);
     auto pid = bindInfo.pid;
     auto callerPid = bindInfo.callerPid;
     auto it = uiExtensionBindReleations_.find(pid);
