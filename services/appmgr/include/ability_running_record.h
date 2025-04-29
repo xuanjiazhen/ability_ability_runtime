@@ -165,6 +165,7 @@ private:
     std::shared_ptr<AAFwk::Want> want_ = nullptr;
     sptr<IRemoteObject> token_;
     sptr<IRemoteObject> preToken_;
+    int32_t uiExtensionBindAbilityId_ = 0;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

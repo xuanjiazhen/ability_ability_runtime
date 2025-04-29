@@ -20,6 +20,7 @@
 #include <mutex>
 #include <regex>
 #include <set>
+#include <unordered_set>
 
 #include "ability_info.h"
 #include "app_debug_listener_interface.h"
@@ -374,6 +375,11 @@ public:
 
     void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey);
     std::shared_ptr<AppRunningRecord> QueryAppRecordPlus(int32_t pid, int32_t uid);
+    UIExtensionProcessBindInfo WarpBindInfo(int32_t pid, int32_t uid, int32_t callerPid, int32_t callerUid,
+                                            std::string callerBundleName, int32_t notifyProcessBind);
+    int32_t AddUIExtensionBindItem(int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo bindInfo);
+    int32_t QueryUIExtensionBindItemById(int32_t uiExtensionBindAbilityId);
+    int32_t RemoveUIExtensionBindItemById(int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo bindInfo);
 private:
     std::shared_ptr<AbilityRunningRecord> GetAbilityRunningRecord(const int64_t eventId);
     int32_t AssignRunningProcessInfoByAppRecord(
@@ -394,6 +400,12 @@ private:
 
     std::mutex updateConfigurationDelayedLock_;
     std::map<const int32_t, bool> updateConfigurationDelayedMap_;
+
+    std::mutex uiExtensionBindMapLock_;
+    std::map<int32_t, UIExtensionProcessBindInfo> uiExtensionLauncherMap_;
+
+    std::mutex uiExtensionBindReleationsLock_;
+    std::map<int32_t, std::unordered_set<std::pair<pid_t, int32_t>>> uiExtensionBindReleations_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
