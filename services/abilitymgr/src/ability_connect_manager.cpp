@@ -3593,8 +3593,8 @@ std::shared_ptr<AbilityRecord> AbilityConnectManager::GetUIExtensionBySessionFro
     return nullptr;
 }
 
-void UpdateUIExtensionBindInfo(const std::shared_ptr<AbilityRecord> &abilityRecord,
-                               std::string callerBundleName, int32_t notifyProcessBind)
+void AbilityConnectManager::UpdateUIExtensionBindInfo(const std::shared_ptr<AbilityRecord> &abilityRecord,
+                                                      std::string callerBundleName, int32_t notifyProcessBind)
 {
     if (abilityRecord == nullptr ||
         !UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
