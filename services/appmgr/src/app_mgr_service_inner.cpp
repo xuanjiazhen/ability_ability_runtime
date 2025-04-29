@@ -9434,7 +9434,7 @@ void AppMgrServiceInner::AddUIExtensionBindItem(std::shared_ptr<AAFwk::Want> wan
              "%{public}d,providerPid: %{public}d,callerUid: %{public}d, "
              "callerPid: %{public}d,callerBundleName: %{public}s",
              uiExtensionBindAbilityId, providerUid, providerPid, callerUid,
-             callerPid, callerBundleName);
+             callerPid, callerBundleName.c_str());
     UIExtensionProcessBindInfo bindInfo = appRunningManager_->WarpBindInfo(
         providerPid, providerUid, callerPid, callerUid, callerBundleName,
         notifyProcessBind);
