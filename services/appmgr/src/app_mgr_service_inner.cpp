@@ -9494,10 +9494,7 @@ void AppMgrServiceInner::BindUIExtensionProcess(const std::shared_ptr<AppRunning
 
     if (it == uiExtensionBindReleations_.end() || it->second.find(callerPid) == it->second.end()) {
         uiExtensionBindReleations_[pid][callerPid] = 1;
-        auto observerManager = DelayedSingleton<AppStateObserverManager>::GetInstance();
-        if (observerManager) {
-            observerManager->OnProcessBindingRelationChanged(appRecord, bindInfo, 1);
-        }
+        DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessBindingRelationChanged(appRecord, bindInfo, 1);
     } else {
         it->second[callerPid]++;
     }
@@ -9518,10 +9515,7 @@ void AppMgrServiceInner::UnBindUIExtensionProcess(const std::shared_ptr<AppRunni
         if (innerIt != innerMap.end()) {
             innerIt->second--;
             if (innerIt->second == 0) {
-                auto observerManager = DelayedSingleton<AppStateObserverManager>::GetInstance();
-                if (observerManager) {
-                    observerManager->OnProcessBindingRelationChanged(appRecord, bindInfo, 0);
-                }
+                DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessBindingRelationChanged(appRecord, bindInfo, 0);
                 innerMap.erase(innerIt);
             }
         }
