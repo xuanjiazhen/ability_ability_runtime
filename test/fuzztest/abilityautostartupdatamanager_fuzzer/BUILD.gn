@@ -36,9 +36,9 @@ ohos_fuzztest("AbilityAutoStartupDataManagerFuzzTest") {
   ]
   sources = [
     "${ability_runtime_innerkits_path}/deps_wrapper/src/os_account_manager_wrapper.cpp",
+    "${ability_runtime_path}/utils/global/common/src/app_utils.cpp",
+    "${ability_runtime_path}/utils/global/common/src/json_utils.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ability_auto_startup_data_manager.cpp",
-    "${ability_runtime_services_path}/common/src/app_utils.cpp",
-    "${ability_runtime_services_path}/common/src/json_utils.cpp",
     "abilityautostartupdatamanager_fuzzer.cpp",
   ]
 

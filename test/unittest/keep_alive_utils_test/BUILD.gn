@@ -45,7 +45,7 @@ ohos_unittest("keep_alive_utils_test") {
   deps = [
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
-    "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_path}/utils/global/common:runtime_utils",
   ]
 
   external_deps = [
