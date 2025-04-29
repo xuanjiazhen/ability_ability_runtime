@@ -1251,7 +1251,7 @@ void AppStateObserverManager::HandleOnAppCacheStateChanged(const std::shared_ptr
 }
 
 ProcessBindData AppStateObserverManager::WrapProcessBindData(const std::shared_ptr<AppRunningRecord> &appRecord,
-                                                             const UIExtensionProcessBindInfo &bindInfo, int32_t bindingRelation);
+                                                             const UIExtensionProcessBindInfo &bindInfo, int32_t bindingRelation)
 {
     ProcessBindData processBindData;
     processBindData.bundleName = appRecord->GetBundleName();

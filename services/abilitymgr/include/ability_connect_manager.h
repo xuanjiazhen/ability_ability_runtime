@@ -669,6 +669,7 @@ private:
     bool IsStrictMode(std::shared_ptr<AbilityRecord> abilityRecord);
     bool NeedExtensionControl(std::shared_ptr<AbilityRecord> abilityRecord);
     bool GetTimeoutMsgContent(uint32_t msgId, std::string &msgContent, int &typeId);
+
     void UpdateUIExtensionBindInfo(const std::shared_ptr<AbilityRecord> &abilityRecord,
         std::string callerBundleName, int32_t notifyProcessBind);
 private:

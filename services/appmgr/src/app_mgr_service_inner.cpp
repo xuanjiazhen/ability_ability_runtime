@@ -9423,7 +9423,7 @@ void AppMgrServiceInner::AddUIExtensionBindItem(std::shared_ptr<AAFwk::Want> wan
         providerUid = appRecord->GetUid();
     }
     if (uiExtensionBindAbilityId == -1 || providerPid == -1 ||
-        providproviderUiderPid == -1 || callerPid == -1 || callerUid == -1 ||
+        providerUid == -1 || callerPid == -1 || callerUid == -1 ||
         callerBundleName.empty()) {
       TAG_LOGE(AAFwkTag::APPMGR, "invalid want params");
       return;
@@ -9493,27 +9493,17 @@ void AppMgrServiceInner::BindUIExtensionProcess(const std::shared_ptr<AppRunning
     auto callerPid = bindInfo.callerPid;
     auto it = uiExtensionBindReleations_.find(pid);
 
-    if (it == uiExtensionBindReleations_.end() ||
-        (it != uiExtensionBindReleations_.end() &&
-         std::find_if(it->second.begin(), it->second.end(), [callerPid](const auto& p) {
-             return p.first == callerPid;
-         }) == it->second.end())) {
-        uiExtensionBindReleations_[pid].insert({callerPid, 1});
+    if (it == uiExtensionBindReleations_.end() || it->second.find(callerPid) == it->second.end()) {
+        uiExtensionBindReleations_[pid][callerPid] = 1;
         auto observerManager = DelayedSingleton<AppStateObserverManager>::GetInstance();
         if (observerManager) {
             observerManager->OnProcessBindingRelationChanged(appRecord, bindInfo, 1);
         }
     } else {
-        auto& set = it->second;
-        for (auto& innerPair : set) {
-            if (innerPair.first == callerPid) {
-                innerPair.second++;
-                break;
-            }
-        }
+        it->second[callerPid]++;
     }
 }
-}
+
 
 void AppMgrServiceInner::UnBindUIExtensionProcess(const std::shared_ptr<AbilityRunningRecord> &abilityRecord, 
                                                   const UIExtensionProcessBindInfo &bindInfo)
@@ -9521,31 +9511,25 @@ void AppMgrServiceInner::UnBindUIExtensionProcess(const std::shared_ptr<AbilityR
     auto pid = bindInfo.pid;
     auto callerPid = bindInfo.callerPid;
     auto it = uiExtensionBindReleations_.find(pid);
+
     if (it != uiExtensionBindReleations_.end()) {
-        auto& set = it->second;
-        for (auto iter = set.begin(); iter != set.end(); ) {
-            auto& innerPair = *iter;
-            if (innerPair.first == callerPid) {
-                innerPair.second--;
-                if (innerPair.second == 0) {
-                    auto observerManager = DelayedSingleton<AppStateObserverManager>::GetInstance();
-                    if (observerManager) {
-                        observerManager->OnProcessBindingRelationChanged(appRecord, bindInfo, 0);
-                    }
-                    iter = set.erase(iter);
-                } else {
-                    ++iter;
+        auto& innerMap = it->second;
+        auto innerIt = innerMap.find(callerPid);
+        if (innerIt != innerMap.end()) {
+            innerIt->second--;
+            if (innerIt->second == 0) {
+                auto observerManager = DelayedSingleton<AppStateObserverManager>::GetInstance();
+                if (observerManager) {
+                    observerManager->OnProcessBindingRelationChanged(appRecord, bindInfo, 0);
                 }
-                break;
-            } else {
-                ++iter;
+                innerMap.erase(innerIt);
             }
         }
-        if (set.empty()) {
+        if (innerMap.empty()) {
             uiExtensionBindReleations_.erase(it);
         }
     }
 }
-}
+
 } // namespace AppExecFwk
 }  // namespace OHOS

@@ -2043,7 +2043,7 @@ private:
 
     std::mutex screenOffSubscriberMutex_;
     std::mutex childProcessRecordMapMutex_;
-    std::map<int32_t, std::unordered_set<std::pair<pid_t, int32_t>>> uiExtensionBindReleations_;
+    std::map<int32_t, std::unordered_map<std::pair<pid_t, int32_t>>> uiExtensionBindReleations_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

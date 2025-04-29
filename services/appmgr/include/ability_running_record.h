@@ -150,6 +150,7 @@ public:
     bool IsSceneBoard() const;
 
     bool IsHook() const;
+
     void SetUIExtensionBindAbilityId(const int32_t uiExtensionBindAbilityId);
     int32_t GetUIExtensionBindAbilityId() const;
 private:
