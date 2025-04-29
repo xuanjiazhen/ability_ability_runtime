@@ -46,6 +46,7 @@ constexpr const char* DEBUG_APP = "debugApp";
 constexpr const char* START_ABILITY_TYPE = "ABILITY_INNER_START_WITH_ACCOUNT";
 
 constexpr int32_t FOUNDATION_UID = 5523;
+constexpr int32_t DMS_UID = 5522;
 
 namespace OHOS {
 namespace AAFwk {
@@ -1612,6 +1613,246 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartUIExtensionAbilityTset_001, TestS
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartUIExtensionAbilityTset_001 end");
 }
 
+/*
+ * Feature: AbilityManagerService
+ * Name: FreeInstallAbilityFromRemote_001
+ * Function: FreeInstallAbilityFromRemote
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService FreeInstallAbilityFromRemote
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, FreeInstallAbilityFromRemote_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest FreeInstallAbilityFromRemote_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
 
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    Want want;
+    sptr<IRemoteObject> callback = nullptr;
+    int retCode = abilityMs_->FreeInstallAbilityFromRemote(want, callback, 0, 0);
+    EXPECT_EQ(retCode, CHECK_PERMISSION_FAILED);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest FreeInstallAbilityFromRemote_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: FreeInstallAbilityFromRemote_002
+ * Function: FreeInstallAbilityFromRemote
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService FreeInstallAbilityFromRemote
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, FreeInstallAbilityFromRemote_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest FreeInstallAbilityFromRemote_002 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+
+    IPCSkeleton::SetCallingUid(DMS_UID);
+    abilityMs_->freeInstallManager_ = nullptr;
+    Want want;
+    sptr<IRemoteObject> callback = nullptr;
+    int retCode = abilityMs_->FreeInstallAbilityFromRemote(want, callback, 0, 0);
+    EXPECT_EQ(retCode, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest FreeInstallAbilityFromRemote_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: FreeInstallAbilityFromRemote_003
+ * Function: FreeInstallAbilityFromRemote
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService FreeInstallAbilityFromRemote
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, FreeInstallAbilityFromRemote_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest FreeInstallAbilityFromRemote_003 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+
+    IPCSkeleton::SetCallingUid(DMS_UID);
+    Want want;
+    sptr<IRemoteObject> callback = nullptr;
+    int retCode = abilityMs_->FreeInstallAbilityFromRemote(want, callback, 0, 0);
+    EXPECT_EQ(retCode, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest FreeInstallAbilityFromRemote_003 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: SetMissionContinueState_001
+ * Function: SetMissionContinueState
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService SetMissionContinueState
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, SetMissionContinueState_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest SetMissionContinueState_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+
+    sptr<IRemoteObject> token = nullptr;
+    AAFwk::ContinueState state = AAFwk::ContinueState::CONTINUESTATE_UNKNOWN;
+    int result = abilityMs_->SetMissionContinueState(token, state);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest SetMissionContinueState_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: SetMissionContinueState_002
+ * Function: SetMissionContinueState
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService SetMissionContinueState
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, SetMissionContinueState_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest SetMissionContinueState_002 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+
+    sptr<IRemoteObject> token = MockToken(AbilityType::PAGE);
+    AAFwk::ContinueState state = AAFwk::ContinueState::CONTINUESTATE_UNKNOWN;
+    int result = abilityMs_->SetMissionContinueState(token, state);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest SetMissionContinueState_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckFileAccessExtensionPermission_001
+ * Function: CheckFileAccessExtensionPermission
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService CheckFileAccessExtensionPermission
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, CheckFileAccessExtensionPermission_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest CheckFileAccessExtensionPermission_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    MyFlag::flag_ = 0;
+    AbilityRequest abilityRequest;
+    int result = abilityMs_->CheckFileAccessExtensionPermission(abilityRequest);
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest CheckFileAccessExtensionPermission_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckFileAccessExtensionPermission_002
+ * Function: CheckFileAccessExtensionPermission
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService CheckFileAccessExtensionPermission
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, CheckFileAccessExtensionPermission_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest CheckFileAccessExtensionPermission_002 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    MyFlag::flag_ = 1;
+    AbilityRequest abilityRequest;
+    int result = abilityMs_->CheckFileAccessExtensionPermission(abilityRequest);
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest CheckFileAccessExtensionPermission_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckCallerInfoQueryExtensionPermission_001
+ * Function: CheckCallerInfoQueryExtensionPermission
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService CheckCallerInfoQueryExtensionPermission
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, CheckCallerInfoQueryExtensionPermission_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest CheckCallerInfoQueryExtensionPermission_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    MyFlag::flag_ = 0;
+    AbilityRequest abilityRequest;
+    int result = abilityMs_->CheckCallerInfoQueryExtensionPermission(abilityRequest);
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest CheckCallerInfoQueryExtensionPermission_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckCallerInfoQueryExtensionPermission_002
+ * Function: CheckCallerInfoQueryExtensionPermission
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService CheckCallerInfoQueryExtensionPermission
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, CheckCallerInfoQueryExtensionPermission_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest CheckCallerInfoQueryExtensionPermission_002 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    MyFlag::flag_ = 1;
+    AbilityRequest abilityRequest;
+    int result = abilityMs_->CheckCallerInfoQueryExtensionPermission(abilityRequest);
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest CheckCallerInfoQueryExtensionPermission_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckUIExtensionCallerIsForeground_001
+ * Function: CheckUIExtensionCallerIsForeground
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService CheckUIExtensionCallerIsForeground
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, CheckUIExtensionCallerIsForeground_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest CheckUIExtensionCallerIsForeground_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    AbilityRequest abilityRequest;
+    int result = abilityMs_->CheckUIExtensionCallerIsForeground(abilityRequest);
+    EXPECT_TRUE(result);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest CheckUIExtensionCallerIsForeground_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckUIExtensionCallerIsForeground_002
+ * Function: CheckUIExtensionCallerIsForeground
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService CheckUIExtensionCallerIsForeground
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, CheckUIExtensionCallerIsForeground_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest CheckUIExtensionCallerIsForeground_002 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    AbilityRequest abilityRequest;
+    abilityRequest.appInfo.bundleName = "com.test.demo";
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.type = AbilityType::PAGE;
+    MyFlag::flag_ = 0;
+    int result = abilityMs_->CheckUIExtensionCallerIsForeground(abilityRequest);
+    EXPECT_TRUE(result);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest CheckUIExtensionCallerIsForeground_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckUIExtensionCallerIsForeground_003
+ * Function: CheckUIExtensionCallerIsForeground
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService CheckUIExtensionCallerIsForeground
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, CheckUIExtensionCallerIsForeground_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest CheckUIExtensionCallerIsForeground_003 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    AbilityRequest abilityRequest;
+    abilityRequest.appInfo.bundleName = "com.test.demo";
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.type = AbilityType::PAGE;
+    MyFlag::flag_ = 1;
+    int result = abilityMs_->CheckUIExtensionCallerIsForeground(abilityRequest);
+    EXPECT_TRUE(result);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest CheckUIExtensionCallerIsForeground_003 end");
+}
 } // namespace AAFwk
 } // namespace OHOS

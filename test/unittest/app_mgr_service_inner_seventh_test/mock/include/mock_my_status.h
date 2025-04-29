@@ -17,7 +17,7 @@
 #define MOCK_MY_STATUS_H
 #include "bundle_mgr_helper.h"
 #include "remote_client_manager.h"
-
+#include "app_running_record.h"
 #include "iservice_registry.h"
 #include "singleton.h"
 #include "system_ability_definition.h"
@@ -38,6 +38,26 @@ public:
     bool getHapModuleInfo_ = false;
     ErrCode getSandboxHapModuleInfo_ = ERR_OK;
     bool isLogoutUser_ = false;
+    pid_t getCallingUid_ = 0;
+    ErrCode processUpdate_ = ERR_OK;
+    bool verifyCallingPermission_ = false;
+    bool isSACall_ = false;
+    bool isShellCall_ = false;
+    std::shared_ptr<AppExecFwk::AppRunningRecord> getAppRunningRecordByPid_ = nullptr;
+    std::string getNameForUid_ = "";
+    // mock app running manager
+    std::list<pid_t> getPidsByBundleName_;
+    bool getPidsByBundleNameRet_;
+    std::map<const int32_t, const std::shared_ptr<AppExecFwk::AppRunningRecord>> getAppRunningRecordMap_;
+    // mock accesstoken_kit
+    int clearUserGranted_ = 0;
+    // mock bundle
+    bool cleanBundleDataFiles_ = false;
+    bool getApplicationInfo_ = false;
+    AppExecFwk::ApplicationInfo applicationInfo_;
+    // permission verification
+    bool judgeCallerIsAllowed_ = false;
+    bool verifyRunningInfoPerm_ = false;
 private:
     MyStatus() = default;
 };
