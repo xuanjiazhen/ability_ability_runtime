@@ -27,11 +27,22 @@
 #include "iservice_registry.h"
 #include "sts_error_utils.h"
 #include "system_ability_definition.h"
+#include "sts_ability_foreground_state_observer.h"
+#include "app_mgr_interface.h"
 
 namespace OHOS {
 namespace AbilityManagerSts {
 
+OHOS::sptr<OHOS::AppExecFwk::IAppMgr> GetAppManagerInstance()
+{
+    OHOS::sptr<OHOS::ISystemAbilityManager> systemAbilityManager =
+        OHOS::SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    OHOS::sptr<OHOS::IRemoteObject> appObject = systemAbilityManager->GetSystemAbility(OHOS::APP_MGR_SERVICE_ID);
+    return OHOS::iface_cast<OHOS::AppExecFwk::IAppMgr>(appObject);
+}
 constexpr int32_t ERR_FAILURE = -1;
+constexpr const char *ON_OFF_TYPE_ABILITY_FOREGROUND_STATE = "abilityForegroundState";
+sptr<STSAbilityForegroundStateObserver> observerForeground_ = nullptr;
 
 sptr<AppExecFwk::IAbilityManager> GetAbilityManagerInstance()
 {
@@ -110,6 +121,135 @@ static void GetTopAbility(ani_env *env, ani_object callback)
     return;
 }
 
+static void OnOnAbilityForeground(ani_env *env, ani_object foregroundStateObserver)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call OnOnAbilityForeground");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
+        return;
+    }
+    if (observerForeground_ == nullptr) {
+        observerForeground_ = new (std::nothrow) STSAbilityForegroundStateObserver(env);
+        if (observerForeground_ == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null observerForeground_");
+            AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+            return;
+        }
+    }
+    if (observerForeground_->IsEmpty()) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "observerForeground_ IsEmpty");
+        int32_t ret = GetAppManagerInstance()->RegisterAbilityForegroundStateObserver(observerForeground_);
+        if (ret != NO_ERROR) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "error: %{public}d", ret);
+            AbilityRuntime::ThrowStsErrorByNativeErr(env, ret);
+            return;
+        }
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "observerForeground_ AddStsObserverObject");
+    observerForeground_->AddStsObserverObject(foregroundStateObserver);
+}
+static void nativeOn(ani_env *env,  ani_string type, ani_object foregroundStateObserver)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call nativeOn");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
+        // AbilityRuntime::ThrowStsTooFewParametersError(env);
+        return;
+    }
+    std::string typeStd = "";
+    AppExecFwk::GetStdString(env, type, typeStd);
+    if (typeStd == ON_OFF_TYPE_ABILITY_FOREGROUND_STATE) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "nativeOn OnOnAbilityForeground");
+        OnOnAbilityForeground(env, foregroundStateObserver);
+        return;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "typeStd error");
+    AbilityRuntime::ThrowStsInvalidParamError(env,
+        "Parse param type failed, must be a string, value must be abilityForegroundState.");
+    return;
+}
+
+static void OnOffAbilityForeground(ani_env *env, ani_object foregroundStateObserver)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call OnOffAbilityForeground");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
+        return;
+    }
+    if (observerForeground_ == nullptr) {
+        AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
+        return;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "OnOffAbilityForeground RemoveStsObserverObject");
+    observerForeground_->RemoveStsObserverObject(foregroundStateObserver);
+    if (observerForeground_->IsEmpty()) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "OnOffAbilityForeground observerForeground_ IsEmpty");
+        int32_t ret = GetAppManagerInstance()->UnregisterAbilityForegroundStateObserver(observerForeground_);
+        if (ret != NO_ERROR) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "error: %{public}d", ret);
+            AbilityRuntime::ThrowStsErrorByNativeErr(env, ret);
+            return;
+        }
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "OnOffAbilityForeground return");
+    return;
+}
+static void nativeOff(ani_env *env,  ani_string type, ani_object foregroundStateObserver)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call nativeOn");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
+        return;
+    }
+    std::string typeStd = "";
+    AppExecFwk::GetStdString(env, type, typeStd);
+    if (typeStd == ON_OFF_TYPE_ABILITY_FOREGROUND_STATE) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "nativeOff OnOffAbilityForeground");
+        OnOffAbilityForeground(env, foregroundStateObserver);
+        return;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "type error");
+    AbilityRuntime::ThrowStsInvalidParamError(env,
+        "Parse param type failed, must be a string, value must be abilityForegroundState.");
+    return;
+}
+
+static void nativeOffAllObserver(ani_env *env,  ani_string type)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call nativeOn");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
+        return;
+    }
+    std::string typeStd = "";
+    AppExecFwk::GetStdString(env, type, typeStd);
+    if (typeStd == ON_OFF_TYPE_ABILITY_FOREGROUND_STATE) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "typeStd ON_OFF_TYPE_ABILITY_FOREGROUND_STATE");
+        if (observerForeground_ == nullptr) {
+            AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
+            return;
+        }
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "nativeOffAllObserver RemoveAllStsObserverObject");
+        observerForeground_->RemoveAllStsObserverObject();
+        if (observerForeground_->IsEmpty()) {
+            int32_t ret = GetAppManagerInstance()->UnregisterAbilityForegroundStateObserver(observerForeground_);
+            if (ret != NO_ERROR) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "error: %{public}d", ret);
+                AbilityRuntime::ThrowStsErrorByNativeErr(env, ret);
+                return;
+            }
+        }
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "nativeOffAllObserver return");
+        return;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "type error");
+    AbilityRuntime::ThrowStsInvalidParamError(env,
+        "Parse param type failed, must be a string, value must be abilityForegroundState.");
+    return;
+}
+
 void StsAbilityManagerRegistryInit(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call StsAbilityManagerRegistryInit");
@@ -124,7 +264,7 @@ void StsAbilityManagerRegistryInit(ani_env *env)
     ani_namespace ns;
     status = env->FindNamespace("L@ohos/app/ability/abilityManager/abilityManager;", &ns);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "FindNamespace abilityManager failed status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "FindNamespace abilityManager failed status: %{public}d", status);
         return;
     }
     std::array methods = {
@@ -134,10 +274,13 @@ void StsAbilityManagerRegistryInit(ani_env *env)
             reinterpret_cast<void *>(GetForegroundUIAbilities)
         },
         ani_native_function {"nativeGetTopAbility", nullptr, reinterpret_cast<void *>(GetTopAbility)},
+        ani_native_function {"nativeOnSync", nullptr, reinterpret_cast<void *>(nativeOn)},
+        ani_native_function {"nativeOffSync", nullptr, reinterpret_cast<void *>(nativeOff)},
+        ani_native_function {"nativeOffAllObserverSync", nullptr, reinterpret_cast<void *>(nativeOffAllObserver)},
     };
     status = env->Namespace_BindNativeFunctions(ns, methods.data(), methods.size());
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Namespace_BindNativeFunctions failed status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Namespace_BindNativeFunctions failed status: %{public}d", status);
     }
     if (env->ResetError() != ANI_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "ResetError failed");

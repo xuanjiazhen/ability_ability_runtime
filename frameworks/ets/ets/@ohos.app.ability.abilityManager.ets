@@ -17,6 +17,8 @@ import AbilityStateData from 'application.AbilityStateData';
 import { ElementName } from 'bundleManager.ElementName'
 import { BusinessError, AsyncCallback } from '@ohos.base';
 import AsyncCallbackWrapper from './utils/AbilityUtils';
+// 上库的时候记得修改为引用sdk
+import _AbilityForegroundStateObserver from './application/AbilityForegroundStateObserver';
 
 export default namespace abilityManager {
   loadLibrary("ability_ability_manager_ani_kit.z")
@@ -24,6 +26,9 @@ export default namespace abilityManager {
   export native function nativeGetForegroundUIAbilities(): Array<AbilityStateData>;
   export native function getForegroundUIAbilitiesCallback(callback:AsyncCallbackWrapper<Array<AbilityStateData>>) : void;
   export native function nativeGetTopAbility(callback:AsyncCallbackWrapper<ElementName>) : void;
+  export native function nativeOnSync(type: 'abilityForegroundState', observer: AbilityForegroundStateObserver): void;
+  export native function nativeOffSync(type: 'abilityForegroundState', observer: AbilityForegroundStateObserver): void;
+  export native function nativeOffAllObserverSync(type: 'abilityForegroundState'): void;
 
   export function getForegroundUIAbilities():Promise<Array<AbilityStateData>> {
     let p = new Promise<Array<AbilityStateData>>((resolve: (data: Array<AbilityStateData>) => void, reject: (error: Error) => void): void => {
@@ -70,4 +75,18 @@ export function getTopAbility(callback: AsyncCallback<ElementName, void>): void 
         abilityManager.nativeGetTopAbility(myCall);
     });
 }
+
+export function on(type: 'abilityForegroundState', observer: AbilityForegroundStateObserver): void {
+  nativeOnSync(type, observer);
+}
+
+export function off(type: 'abilityForegroundState', observer?: AbilityForegroundStateObserver): void {
+  if (observer == null) {
+    nativeOffAllObserverSync(type);
+  } else {
+    nativeOffSync(type, observer);
+  }
+}
+
+export type AbilityForegroundStateObserver = _AbilityForegroundStateObserver;
 }
