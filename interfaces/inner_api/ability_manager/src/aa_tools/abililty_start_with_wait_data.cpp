@@ -17,7 +17,7 @@
 
 #include "hilog_tag_wrapper.h"
 
-namespace OHOS{
+namespace OHOS {
 namespace AAFwk {
 bool AbilityStartWithWaitObserverData::Marshalling(Parcel &parcel) const
 {
