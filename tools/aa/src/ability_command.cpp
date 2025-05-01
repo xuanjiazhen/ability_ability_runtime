@@ -21,6 +21,7 @@
 #include <iostream>
 #include <regex>
 #include "ability_manager_client.h"
+#include "ability_start_with_wait_observer_stub.h"
 #include "app_mgr_client.h"
 #include "hilog_tag_wrapper.h"
 #include "iservice_registry.h"
@@ -54,6 +55,8 @@ constexpr int OPTION_WINDOW_WIDTH = 264;
 constexpr int INNER_ERR_START = 10108101;
 constexpr int INNER_ERR_TEST = 10108501;
 constexpr int INNER_ERR_DEBUG = 10108601;
+//constexpr int64_t START_ABILITY_WITH_WAIT_TIME_INTERVAL = 10 * 1000; // us
+//constexpr int64_t MAX_START_ABILITY_WITH_WAIT_TIME = 10 * 1000 * 1000; // us
 
 const std::string DEVELOPERMODE_STATE = "const.security.developermode.state";
 
@@ -417,6 +420,8 @@ ErrCode AbilityManagerShellCommand::RunAsStartAbility()
                 setting->AddProperty(AbilityStartSetting::WINDOW_MODE_KEY, windowMode);
                 result = AbilityManagerClient::GetInstance()->StartAbility(want, *(setting.get()), nullptr, -1);
             }
+        } else if (startAbilityWithWaitFlag_) {
+            result = StartAbilityWithWait(want);
         } else {
             result = AbilityManagerClient::GetInstance()->StartAbility(want);
         }
@@ -2218,6 +2223,16 @@ sptr<IAbilityManager> AbilityManagerShellCommand::GetAbilityManagerService()
     }
     sptr<IRemoteObject> remoteObject = systemManager->GetSystemAbility(ABILITY_MGR_SERVICE_ID);
     return iface_cast<IAbilityManager>(remoteObject);
+}
+
+ErrCode AbilityManagerShellCommand::StartAbilityWithWait(Want& want)
+{
+    sptr<AbilityStartWithWaitObserverStub> observer = sptr<AbilityStartWithWaitObserverStub>::MakeSptr();
+    if (!observer) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "inner error, alloc memory failed.");
+        return INNER_ERR;
+    }
+    return AbilityManagerClient::GetInstance()->StartAbilityWithWait(want, observer);
 }
 
 #ifdef ABILITY_COMMAND_FOR_TEST

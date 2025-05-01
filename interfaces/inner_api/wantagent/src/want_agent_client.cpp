@@ -17,7 +17,7 @@
 
 #include "ability_runtime_error_util.h"
 #include "ability_manager_errors.h"
-#include "ability_manager_interface.h"
+//#include "ability_manager_interface.h"
 #include "ability_util.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"

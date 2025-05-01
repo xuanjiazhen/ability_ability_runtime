@@ -13803,6 +13803,12 @@ int32_t AbilityManagerService::RevokeDelegator(sptr<IRemoteObject> token)
     return uiAbilityManager->RevokeDelegator(token);
 }
 
+int32_t AbilityManagerService::StartAbilityWithWait(
+    const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer)
+{
+    return ERR_OK;
+}
+
 int32_t AbilityManagerService::CheckStartPlugin(const Want& want, sptr<IRemoteObject> callerToken)
 {
     if (!AbilityRuntime::StartupUtil::IsStartPlugin(want)) {

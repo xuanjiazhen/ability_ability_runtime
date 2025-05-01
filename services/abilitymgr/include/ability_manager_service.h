@@ -2020,6 +2020,9 @@ public:
      */
     virtual int32_t RevokeDelegator(sptr<IRemoteObject> token) override;
 
+    virtual int32_t StartAbilityWithWait(
+        const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer) override;
+
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;
     static constexpr uint32_t ACTIVE_TIMEOUT_MSG = 1;
@@ -2596,6 +2599,7 @@ private:
     bool shouldBlockAllAppStart_ = false;
 
     int32_t uniqueId_ = 0;
+    uint32_t startAbilityWithWaitObserverId_ = 0;
     std::unordered_set<int32_t> windowVisibleList_;
 
     sptr<WindowVisibilityChangedListener> windowVisibilityChangedListener_;
@@ -2691,6 +2695,7 @@ private:
     ffrt::mutex collaboratorMapLock_;
     ffrt::mutex abilityDebugDealLock_;
     ffrt::mutex shouldBlockAllAppStartMutex_;
+    ffrt::mutex startAbilityWithWaitMutex_;
     mutable ffrt::mutex timeoutMapLock_;
     std::mutex whiteListMutex_;
 

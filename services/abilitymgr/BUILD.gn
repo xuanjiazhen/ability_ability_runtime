@@ -31,6 +31,7 @@ config("abilityms_exception_config") {
 config("abilityms_config") {
   include_dirs = [
     "include/",
+    "include/aa_tools",
     "include/data_ability",
     "include/dialog_session/",
     "include/extension_record",

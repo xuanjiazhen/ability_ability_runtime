@@ -71,6 +71,7 @@ const std::string HELP_MSG_START =
     "  [-U <URI>] "
     "  [-e <entity>] "
     "  [-t <mime-type>] "
+    "  [-W] "
     "  [--wl <window-left>] "
     "  [--wt <window-top>] "
     "  [--wh <window-height>] "
@@ -261,6 +262,8 @@ private:
     bool MatchOrderString(const std::regex &r, const std::string &orderCmd);
     bool CheckPerfCmdString(const char* optarg, const size_t paramLength, std::string &perfCmd);
     void ParseBundleName(std::string &bundleName);
+    ErrCode StartAbilityWithWait(Want& want);
+    bool startAbilityWithWaitFlag_ = false;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
