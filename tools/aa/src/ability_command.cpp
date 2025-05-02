@@ -56,7 +56,7 @@ constexpr int INNER_ERR_START = 10108101;
 constexpr int INNER_ERR_TEST = 10108501;
 constexpr int INNER_ERR_DEBUG = 10108601;
 constexpr int64_t WAIT_INTERVAL = 10 * 1000; // us
-constexpr int64_t MAX_WAIT_TIME = 10 * 1000 * 1000; // us
+constexpr int64_t MAX_WAIT_TIME = 6 * 1000 * 1000; // us
 
 const std::string DEVELOPERMODE_STATE = "const.security.developermode.state";
 
