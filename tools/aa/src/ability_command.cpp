@@ -21,6 +21,7 @@
 #include <iostream>
 #include <regex>
 #include "ability_manager_client.h"
+#include "ability_start_with_wait_observer_stub.h"
 #include "app_mgr_client.h"
 #include "hilog_tag_wrapper.h"
 #include "iservice_registry.h"
@@ -54,6 +55,8 @@ constexpr int OPTION_WINDOW_WIDTH = 264;
 constexpr int INNER_ERR_START = 10108101;
 constexpr int INNER_ERR_TEST = 10108501;
 constexpr int INNER_ERR_DEBUG = 10108601;
+constexpr int64_t WAIT_INTERVAL = 10 * 1000; // us
+constexpr int64_t MAX_WAIT_TIME = 10 * 1000 * 1000; // us
 
 const std::string DEVELOPERMODE_STATE = "const.security.developermode.state";
 
@@ -417,12 +420,14 @@ ErrCode AbilityManagerShellCommand::RunAsStartAbility()
                 setting->AddProperty(AbilityStartSetting::WINDOW_MODE_KEY, windowMode);
                 result = AbilityManagerClient::GetInstance()->StartAbility(want, *(setting.get()), nullptr, -1);
             }
+        } else if (startAbilityWithWaitFlag_) {
+            result = StartAbilityWithWait(want);
         } else {
             result = AbilityManagerClient::GetInstance()->StartAbility(want);
         }
         if (result == OHOS::ERR_OK) {
             TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s", STRING_START_ABILITY_OK.c_str());
-            resultReceiver_ = STRING_START_ABILITY_OK + "\n";
+            resultReceiver_.append(STRING_START_ABILITY_OK).append("\n");
         } else {
             TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s result: %{public}d", STRING_START_ABILITY_NG.c_str(), result);
             if (result != START_ABILITY_WAITING) {
@@ -2218,6 +2223,41 @@ sptr<IAbilityManager> AbilityManagerShellCommand::GetAbilityManagerService()
     }
     sptr<IRemoteObject> remoteObject = systemManager->GetSystemAbility(ABILITY_MGR_SERVICE_ID);
     return iface_cast<IAbilityManager>(remoteObject);
+}
+
+ErrCode AbilityManagerShellCommand::StartAbilityWithWait(Want& want)
+{
+    auto observer = sptr<AbilityStartWithWaitObserverStub>::MakeSptr();
+    auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+    if (!observer) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "inner error, alloc memory failed.");
+        return INNER_ERR;
+    }
+    auto ret = AbilityManagerClient::GetInstance()->StartAbilityWithWait(want, observer);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    auto maxWaitTime = MAX_WAIT_TIME;
+    while (true) {
+        if (!observer->GetWaitFlag()) {
+            auto data = observer->GetData();
+            auto totalTime = data.foregroundTime_ - data.time_;
+            auto currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count();
+            auto waitTime = currentTime - now;
+            resultReceiver_.append("StartMode: ").append(data.coldStart ? "Cold" : "Hot").append("\n")
+                .append("BundleName: ").append(data.bundleName_).append("\n").append("AbilityName: ")
+                .append(data.abilityName_).append("\n").append("TotalTime: ").append(std::to_string(totalTime))
+                .append("WaitTime: ").append(std::to_string(waitTime)).append("\n");
+            return ret;
+        }
+        usleep(WAIT_INTERVAL);
+        maxWaitTime -= WAIT_INTERVAL;
+        if (maxWaitTime <= 0) {
+            break;
+        }
+    }
 }
 
 #ifdef ABILITY_COMMAND_FOR_TEST
