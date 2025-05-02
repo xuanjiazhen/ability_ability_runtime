@@ -42,8 +42,13 @@ void AbilityStartWithWaitObserverStub::OnStartAbilityWithWait(const AbilityStart
 
 AbilityStartWithWaitObserverData AbilityStartWithWaitObserverStub::GetData()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     return data_;
+}
+
+bool AbilityStartWithWaitObserverStub::GetWaitFlag()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return waitFlag_;
 }
 
 AbilityStartWithWaitObserverRecipient::AbilityStartWithWaitObserverRecipient(RemoteDiedHandler handler)

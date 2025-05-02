@@ -34,6 +34,8 @@ public:
     void OnStartAbilityWithWait(const AbilityStartWithWaitObserverData &startAbilityWithWaitData) override;
 
     AbilityStartWithWaitObserverData GetData();
+
+    bool GetWaitFlag();
 private:
     bool waitFlag_ = true;
     std::mutex mutex_;
