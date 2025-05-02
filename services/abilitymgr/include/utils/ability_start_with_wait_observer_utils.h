@@ -44,6 +44,7 @@ public:
     void NotifyAbilityForeground();
     void Intercepted(const Want& want, AbilityUtil::InterceptedReason reason);
     void NotifyAACompleteFirstFrameDrawing(std::shared_ptr<AbilityRecord> &abilityRecord);
+    void SetColdStartForShellCall(std::shared_ptr<AbilityRecord> &abilityRecord);
 
 private:
     AbilityStartWithWaitObserverUtils() = default;

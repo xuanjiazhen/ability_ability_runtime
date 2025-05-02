@@ -2024,6 +2024,10 @@ public:
     virtual int32_t StartAbilityWithWait(
         const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer) override;
 
+    void SetColdStartForShellCall(std::shared_ptr<AbilityRecord> &abilityRecord);
+
+    void NotifyAACompleteFirstFrameDrawing(std::shared_ptr<AbilityRecord> &abilityRecord);
+
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;
     static constexpr uint32_t ACTIVE_TIMEOUT_MSG = 1;
@@ -2079,9 +2083,6 @@ protected:
     void OnCacheExitInfo(uint32_t accessTokenId, const AAFwk::LastExitDetailInfo &exitInfo,
         const std::string &bundleName, const std::vector<std::string> &abilityNames,
         const std::vector<std::string> &uiExtensionNames) override;
-
-    void SetColdStartForShellCall(std::shared_ptr<AbilityRecord> &abilityRecord);
-    void NotifyAACompleteFirstFrameDrawing(std::shared_ptr<AbilityRecord> &abilityRecord);
 
 private:
     int TerminateAbilityWithFlag(const sptr<IRemoteObject> &token, int resultCode = DEFAULT_INVAL_VALUE,
