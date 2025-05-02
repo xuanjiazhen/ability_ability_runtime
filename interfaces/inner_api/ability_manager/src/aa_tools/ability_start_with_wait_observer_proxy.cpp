@@ -14,7 +14,9 @@
 */
 
 #include "ability_start_with_wait_observer_proxy.h"
+
 #include "hilog_tag_wrapper.h"
+#include "parcel_util.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -30,31 +32,33 @@ bool AbilityStartWithWaitObserverProxy::WriteInterfaceToken(MessageParcel &data)
     return true;
 }
 
-void AbilityStartWithWaitObserverProxy::OnStartAbilityWithWait(
+int32_t AbilityStartWithWaitObserverProxy::StartAbilityWithWait(
     const AbilityStartWithWaitObserverData &abilityStartWithWaitObserverData)
 {
     MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Write Token failed");
-        return;
+        return ERR_FLATTEN_OBJECT;
     }
     if (!data.WriteParcelable(&abilityStartWithWaitObserverData)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write abilityFirstFrameStateData failed");
-        return;
+        return ERR_FLATTEN_OBJECT;
     }
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null remote");
-        return;
+        return ERR_NULL_OBJECT;
     }
-    MessageParcel reply;
-    MessageOption option(MessageOption::TF_ASYNC);
+
     int32_t ret = remote->SendRequest(
         static_cast<uint32_t>(IAbilityStartWithWaitObserver::Message::ON_ABILITY_START_WITH_WAIT),
         data, reply, option);
     if (ret != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "SendRequest error: %{public}d", ret);
     }
+    return ret;
 }
 } // namespace AAFwk
 } // namespace OHOS

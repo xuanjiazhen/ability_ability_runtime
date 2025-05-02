@@ -20,35 +20,41 @@
 
 namespace OHOS {
 namespace AAFwk {
+AbilityStartWithWaitObserverStub::AbilityStartWithWaitObserverStub()
+{
+    msgHandlerMap_[MessageCode::ON_ABILITY_START_WITH_WAIT] =
+        &AbilityStartWithWaitObserverStub::OnStartAbilityWithWait;
+}
+
 int32_t AbilityStartWithWaitObserverStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "msgCode:%{public}d", code);
     std::u16string descriptor = AbilityStartWithWaitObserverStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (descriptor != remoteDescriptor) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid descriptor");
         return ERR_INVALID_STATE;
     }
+    auto it = msgHandlerMap_.find(static_cast<MessageCode>(code));
+    if (it != msgHandlerMap_.end()) {
+        auto handler = it->second;
+        if (handler != nullptr) {
+            return (this->*handler)(data, reply);
+        }
+    }
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
-void AbilityStartWithWaitObserverStub::OnStartAbilityWithWait(const AbilityStartWithWaitObserverData &data)
+int32_t AbilityStartWithWaitObserverStub::OnStartAbilityWithWait(MessageParcel& data, MessageParcel& reply)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    data_ = data;
-    waitFlag_ = false;
-}
-
-AbilityStartWithWaitObserverData AbilityStartWithWaitObserverStub::GetData()
-{
-    return data_;
-}
-
-bool AbilityStartWithWaitObserverStub::GetWaitFlag()
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    return waitFlag_;
+    std::unique_ptr<AbilityStartWithWaitObserverData> info(data.ReadParcelable<AbilityStartWithWaitObserverData>());
+    int32_t result = StartAbilityWithWait(*info);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result failed");
+        return IPC_STUB_ERR;
+    }
+    return ERR_OK;
 }
 
 AbilityStartWithWaitObserverRecipient::AbilityStartWithWaitObserverRecipient(RemoteDiedHandler handler)
