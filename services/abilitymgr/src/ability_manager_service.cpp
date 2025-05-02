@@ -13806,6 +13806,8 @@ int32_t AbilityManagerService::RevokeDelegator(sptr<IRemoteObject> token)
 int32_t AbilityManagerService::StartAbilityWithWait(
     const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer)
 {
+    std::lock_guard<ffrt::mutex> guard(iAcquireShareDataMapLock_);
+    uniqueId_ = (uniqueId_ == INT_MAX) ? 0 : (uniqueId_ + 1);
     return ERR_OK;
 }
 
