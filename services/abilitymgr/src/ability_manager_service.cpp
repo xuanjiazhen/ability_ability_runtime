@@ -21,6 +21,7 @@
 #include "ability_connect_manager.h"
 #include "ability_manager_radar.h"
 #include "ability_start_by_call_helper.h"
+#include "ability_start_with_wait_observer_utils.h"
 #include "accesstoken_kit.h"
 #include "ability_manager_xcollie.h"
 #include "app_utils.h"
@@ -13806,8 +13807,7 @@ int32_t AbilityManagerService::RevokeDelegator(sptr<IRemoteObject> token)
 int32_t AbilityManagerService::StartAbilityWithWait(
     const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer)
 {
-    std::lock_guard<ffrt::mutex> guard(iAcquireShareDataMapLock_);
-    uniqueId_ = (uniqueId_ == INT_MAX) ? 0 : (uniqueId_ + 1);
+    AbilityStartWithWaitObserverUtils::GetInstance().RegistAbilityStartWithWaitObserver();
     return ERR_OK;
 }
 

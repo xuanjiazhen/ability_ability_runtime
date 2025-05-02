@@ -2599,7 +2599,6 @@ private:
     bool shouldBlockAllAppStart_ = false;
 
     int32_t uniqueId_ = 0;
-    uint32_t startAbilityWithWaitObserverId_ = 0;
     std::unordered_set<int32_t> windowVisibleList_;
 
     sptr<WindowVisibilityChangedListener> windowVisibilityChangedListener_;
@@ -2695,7 +2694,6 @@ private:
     ffrt::mutex collaboratorMapLock_;
     ffrt::mutex abilityDebugDealLock_;
     ffrt::mutex shouldBlockAllAppStartMutex_;
-    ffrt::mutex startAbilityWithWaitMutex_;
     mutable ffrt::mutex timeoutMapLock_;
     std::mutex whiteListMutex_;
 

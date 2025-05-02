@@ -13,9 +13,8 @@
  * limitations under the License.
  */
 
-#include "start_ability_with_wait_observer_utils.h"
+#include "ability_start_with_wait_observer_utils.h"
 
- 
 namespace OHOS {
 namespace AAFwk {
 
@@ -24,6 +23,20 @@ AbilityStartWithWaitObserverUtils& AbilityStartWithWaitObserverUtils::GetInstanc
     static AbilityStartWithWaitObserverUtils instance;
     return instance;
 }
- 
+
+void AbilityStartWithWaitObserverUtils::RegistAbilityStartWithWaitObserver(
+    const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer)
+{
+    std::lock_guard<ffrt::mutex> guard(oberverMutex_);
+    observerId_ = (observerId_ == INT_MAX) ? 0 : (observerId_ + 1);
+    observerList_.emplace(observer, observerId_);
+    want.SetParam("ohos.params.abilityStartWithObserver", observerId_);
+}
+
+void AbilityStartWithWaitObserverUtils::UnRegistAbilityStartWithWaitObserver(
+    const sptr<IAbilityStartWithWaitObserver> &observer)
+{
+    std::lock_guard<ffrt::mutex> guard(oberverMutex_);
+}
 } // namespace AAFwk
 } // namespace OHOS

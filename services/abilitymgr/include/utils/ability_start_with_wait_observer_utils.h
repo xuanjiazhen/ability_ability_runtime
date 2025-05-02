@@ -16,18 +16,28 @@
 #ifndef OHOS_ABILITY_RUNTIME_ABILITY_START_WITH_WAIT_OBSERVER_UTILS
 #define OHOS_ABILITY_RUNTIME_ABILITY_START_WITH_WAIT_OBSERVER_UTILS
 
+#include <map>
 #include <mutex>
 
+#include "ability_start_with_wait_observer_interface.h"
 #include "nocopyable.h"
+#include "want.h"
 
 namespace OHOS {
 namespace AAFwk {
 class AbilityStartWithWaitObserverUtils {
 public:
-    static AbilityStartWithWaitObserverUtils &GetInstance();
+    static AbilityStartWithWaitObserverUtils& GetInstance();
+    void RegistAbilityStartWithWaitObserver(const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer);
+    void UnRegistAbilityStartWithWaitObserver();
+
 private:
     AbilityStartWithWaitObserverUtils() = default;
     ~AbilityStartWithWaitObserverUtils() = default;
+
+    uint32_t observerId_ = 0;
+    ffrt::mutex oberverMutex_;
+    std::unordered_map<sptr<IAbilityStartWithWaitObserver>, uint32_t> observerList_;
     DISALLOW_COPY_AND_MOVE(AbilityStartWithWaitObserverUtils);
  };
  } // namespace AAFwk
