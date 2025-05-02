@@ -48,6 +48,7 @@ void AbilityStartWithWaitObserverUtils::Regist(const Want &want, const sptr<IAbi
             TAG_LOGE(AAFwkTag::ABILITYMGR, "object null");
             return;
         }
+       auto observer = iface_cast<IAbilityStartWithWaitObserver>(object);
         AbilityStartWithWaitObserverUtils::GetInstance().Unregist(object);
     };
     sptr<IRemoteObject::DeathRecipient> deathRecipient =
@@ -117,8 +118,8 @@ void AbilityStartWithWaitObserverUtils::NotifyAATerminateWait(std::shared_ptr<Ab
             data.time_ = observer.second.time_;
             data.foregroundTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count();
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, time:%{public}"PRId64, data.time_);
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, foregroundTime:%{public}"PRId64, data.foregroundTime_);
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, time:%{public}" PRId64, data.time_);
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, foregroundTime:%{public}" PRId64, data.foregroundTime_);
             data.bundleName_ = abilityRecord->GetAbilityInfo().bundleName;
             data.abilityName_ = abilityRecord->GetAbilityInfo().name;
             // notify aa
