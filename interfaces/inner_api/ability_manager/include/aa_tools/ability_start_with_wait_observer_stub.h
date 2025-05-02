@@ -31,9 +31,15 @@ public:
 
     int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
-    void OnAbilityStartWithWait(const AbilityStartWithWaitObserverData &startAbilityWithWaitData) override;
+    void OnStartAbilityWithWait(const AbilityStartWithWaitObserverData &startAbilityWithWaitData) override;
 
+    AbilityStartWithWaitObserverData GetData();
+
+    bool GetWaitFlag();
 private:
+    bool waitFlag_ = true;
+    std::mutex mutex_;
+    AbilityStartWithWaitObserverData data_;
     DISALLOW_COPY_AND_MOVE(AbilityStartWithWaitObserverStub);
 };
 

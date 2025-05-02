@@ -33,9 +33,22 @@ int32_t AbilityStartWithWaitObserverStub::OnRemoteRequest(
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
-void AbilityStartWithWaitObserverStub::OnAbilityStartWithWait(
-    const AbilityStartWithWaitObserverData &abilityStartWithWaitObserverData)
+void AbilityStartWithWaitObserverStub::OnStartAbilityWithWait(const AbilityStartWithWaitObserverData &data)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
+    data_ = data;
+    waitFlag_ = false;
+}
+
+AbilityStartWithWaitObserverData AbilityStartWithWaitObserverStub::GetData()
+{
+    return data_;
+}
+
+bool AbilityStartWithWaitObserverStub::GetWaitFlag()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return waitFlag_;
 }
 
 AbilityStartWithWaitObserverRecipient::AbilityStartWithWaitObserverRecipient(RemoteDiedHandler handler)

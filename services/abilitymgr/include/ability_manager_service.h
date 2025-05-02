@@ -35,6 +35,7 @@
 #include "ability_manager_event_subscriber.h"
 #include "ability_manager_stub.h"
 #include "ability_keep_alive_service.h"
+#include "ability_start_with_wait_observer_utils.h"
 #include "ams_configuration_parameter.h"
 #include "app_debug_listener_interface.h"
 #include "app_exit_reason_helper.h"
@@ -2023,6 +2024,10 @@ public:
     virtual int32_t StartAbilityWithWait(
         const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer) override;
 
+    void SetColdStartForShellCall(std::shared_ptr<AbilityRecord> &abilityRecord);
+
+    void NotifyAATerminateWait(std::shared_ptr<AbilityRecord> &abilityRecord);
+
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;
     static constexpr uint32_t ACTIVE_TIMEOUT_MSG = 1;
@@ -2599,7 +2604,6 @@ private:
     bool shouldBlockAllAppStart_ = false;
 
     int32_t uniqueId_ = 0;
-    uint32_t startAbilityWithWaitObserverId_ = 0;
     std::unordered_set<int32_t> windowVisibleList_;
 
     sptr<WindowVisibilityChangedListener> windowVisibilityChangedListener_;
@@ -2695,7 +2699,6 @@ private:
     ffrt::mutex collaboratorMapLock_;
     ffrt::mutex abilityDebugDealLock_;
     ffrt::mutex shouldBlockAllAppStartMutex_;
-    ffrt::mutex startAbilityWithWaitMutex_;
     mutable ffrt::mutex timeoutMapLock_;
     std::mutex whiteListMutex_;
 

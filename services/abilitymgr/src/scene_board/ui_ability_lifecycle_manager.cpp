@@ -275,6 +275,7 @@ std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GenerateAbilityRecord(
             uiAbilityRecord->SetSessionInfo(sessionInfo);
         }
         isColdStart = true;
+        DelayedSingleton<AbilityManagerService>::GetInstance()->SetColdStartForShellCall(uiAbilityRecord);
         UpdateProcessName(abilityRequest, uiAbilityRecord);
         if (isSCBRecovery_) {
             coldStartInSCBRecovery_.insert(sessionInfo->persistentId);
