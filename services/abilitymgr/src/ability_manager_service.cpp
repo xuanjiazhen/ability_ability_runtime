@@ -12016,6 +12016,11 @@ void AbilityManagerService::OnCacheExitInfo(uint32_t accessTokenId, const AAFwk:
     delayClearReasonHandler_->SubmitTaskJust(delayClearReason, "delayClearReason", CLEAR_REASON_DELAY_TIME);
 }
 
+void AbilityManagerService::SetColdStartForShellCall(std::shared_ptr<AbilityRecord> &abilityRecord)
+{
+    AbilityStartWithWaitObserverUtils::GetInstance().SetColdStartForShellCall(abilityRecord);
+}
+
 void AbilityManagerService::NotifyAACompleteFirstFrameDrawing(std::shared_ptr<AbilityRecord> &abilityRecord)
 {
     AbilityStartWithWaitObserverUtils::GetInstance().NotifyAACompleteFirstFrameDrawing(abilityRecord);

@@ -52,6 +52,28 @@ void AbilityStartWithWaitObserverUtils::Intercepted(const Want& want, AbilityUti
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
 }
 
+void AbilityStartWithWaitObserverUtils::SetColdStartForShellCall(std::shared_ptr<AbilityRecord> &abilityRecord)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
+    if (!abilityRecord) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null abilityRecord");
+        return;
+    }
+    auto observerId = abilityRecord->GetWant().GetIntParam(AbilityUtil::OBSERVER_TOKEN_KEY, -1);
+    std::lock_guard<std::mutex> guard(oberverMutex_);
+    for(auto& observer : observerList_) {
+        if (!observer.first) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
+            continue;
+        }
+        if (observerId == observer.second.observerId_) {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "set cold start, bundleName:%{public}s ability:%{public}s",
+                abilityRecord->GetAbilityInfo().bundleName.c_str(), abilityRecord->GetAbilityInfo().name.c_str());
+            observer.second.coldStart_ = true;
+        }
+    }
+}
+
 void AbilityStartWithWaitObserverUtils::NotifyAACompleteFirstFrameDrawing(
     std::shared_ptr<AbilityRecord> &abilityRecord)
 {
@@ -61,26 +83,24 @@ void AbilityStartWithWaitObserverUtils::NotifyAACompleteFirstFrameDrawing(
         return;
     }
     auto observerId = abilityRecord->GetWant().GetIntParam(AbilityUtil::OBSERVER_TOKEN_KEY, -1);
-    {
-        std::lock_guard<std::mutex> guard(oberverMutex_);
-        for(auto& observer : observerList_) {
-            if (!observer.first) {
-                TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
-                continue;
-            }
-            if (observerId == observer.second.observerId_ && observer.second.coldStart_) { // cold start
-                AbilityStartWithWaitObserverData data;
-                data.coldStart_ = observer.second.coldStart_;
-                data.time_ = observer.second.time_;
-                data.foregroundTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(
-                    std::chrono::system_clock::now().time_since_epoch()).count();
-                data.bundleName_ = abilityRecord->GetAbilityInfo().bundleName;
-                data.abilityName_ = abilityRecord->GetAbilityInfo().name;
-                // notify aa
-                TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, bundleName:%{public}s ability:%{public}s",
-                    data.bundleName_.c_str(), data.abilityName_.c_str());
-                observer.first->OnStartAbilityWithWait(data);
-            }
+    std::lock_guard<std::mutex> guard(oberverMutex_);
+    for(auto& observer : observerList_) {
+        if (!observer.first) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
+            continue;
+        }
+        if (observerId == observer.second.observerId_ && observer.second.coldStart_) { // cold start
+            AbilityStartWithWaitObserverData data;
+            data.coldStart_ = observer.second.coldStart_;
+            data.time_ = observer.second.time_;
+            data.foregroundTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count();
+            data.bundleName_ = abilityRecord->GetAbilityInfo().bundleName;
+            data.abilityName_ = abilityRecord->GetAbilityInfo().name;
+            // notify aa
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, bundleName:%{public}s ability:%{public}s",
+                data.bundleName_.c_str(), data.abilityName_.c_str());
+            observer.first->OnStartAbilityWithWait(data);
         }
     }
 }

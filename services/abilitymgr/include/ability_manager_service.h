@@ -2080,6 +2080,7 @@ protected:
         const std::string &bundleName, const std::vector<std::string> &abilityNames,
         const std::vector<std::string> &uiExtensionNames) override;
 
+    void SetColdStartForShellCall(std::shared_ptr<AbilityRecord> &abilityRecord);
     void NotifyAACompleteFirstFrameDrawing(std::shared_ptr<AbilityRecord> &abilityRecord);
 
 private:
