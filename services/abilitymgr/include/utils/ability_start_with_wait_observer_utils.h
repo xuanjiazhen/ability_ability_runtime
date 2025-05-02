@@ -35,7 +35,7 @@ struct AbilityForegroundInfo {
     std::string bundleName_;
     std::string abilityName_;
 };
-using ObserverRecord = std::pair<sptr<IAbilityStartWithWaitObserver>, AbilityForegroundInfo>;
+
 class AbilityStartWithWaitObserverUtils {
 public:
     static AbilityStartWithWaitObserverUtils& GetInstance();

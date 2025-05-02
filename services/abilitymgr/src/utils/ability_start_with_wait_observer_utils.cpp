@@ -48,11 +48,10 @@ void AbilityStartWithWaitObserverUtils::Regist(const Want &want, const sptr<IAbi
             TAG_LOGE(AAFwkTag::ABILITYMGR, "object null");
             return;
         }
-       auto observer = iface_cast<IAbilityStartWithWaitObserver>(object);
-        AbilityStartWithWaitObserverUtils::GetInstance().Unregist(object);
+        auto observer = iface_cast<IAbilityStartWithWaitObserver>(object);
+        AbilityStartWithWaitObserverUtils::GetInstance().Unregist(observer);
     };
-    sptr<IRemoteObject::DeathRecipient> deathRecipient =
-        new (std::nothrow) AbilityStartWithWaitObserverRecipient(deathRecipientFunc);
+    auto deathRecipient = sptr<AbilityStartWithWaitObserverRecipient>::MakeSptr(deathRecipientFunc);
     if (deathRecipient == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "deathRecipient null");
         return;
