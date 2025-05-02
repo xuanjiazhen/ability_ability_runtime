@@ -35,7 +35,7 @@ struct AbilityForegroundInfo {
     std::string bundleName_;
     std::string abilityName_;
 };
-using ObserverRecord = std::pair<sptr<IAbilityStartWithWaitObserver>, AbilityForegroundInfo>;
+
 class AbilityStartWithWaitObserverUtils {
 public:
     static AbilityStartWithWaitObserverUtils& GetInstance();
@@ -43,7 +43,7 @@ public:
     void Unregist(const sptr<IAbilityStartWithWaitObserver> &observer);
     void NotifyAbilityForeground();
     void Intercepted(const Want& want, AbilityUtil::InterceptedReason reason);
-    void NotifyAATerminateWait(std::shared_ptr<AbilityRecord> &abilityRecord);
+    void NotifyAATerminateWait(const std::shared_ptr<AbilityRecord> &abilityRecord);
     void SetColdStartForShellCall(std::shared_ptr<AbilityRecord> &abilityRecord);
 
 private:

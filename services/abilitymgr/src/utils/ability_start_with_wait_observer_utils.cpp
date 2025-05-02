@@ -48,10 +48,10 @@ void AbilityStartWithWaitObserverUtils::Regist(const Want &want, const sptr<IAbi
             TAG_LOGE(AAFwkTag::ABILITYMGR, "object null");
             return;
         }
-        AbilityStartWithWaitObserverUtils::GetInstance().Unregist(object);
+        auto observer = iface_cast<IAbilityStartWithWaitObserver>(object);
+        AbilityStartWithWaitObserverUtils::GetInstance().Unregist(observer);
     };
-    sptr<IRemoteObject::DeathRecipient> deathRecipient =
-        new (std::nothrow) AbilityStartWithWaitObserverRecipient(deathRecipientFunc);
+    auto deathRecipient = sptr<AbilityStartWithWaitObserverRecipient>::MakeSptr(deathRecipientFunc);
     if (deathRecipient == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "deathRecipient null");
         return;
@@ -97,7 +97,7 @@ void AbilityStartWithWaitObserverUtils::SetColdStartForShellCall(std::shared_ptr
     }
 }
 
-void AbilityStartWithWaitObserverUtils::NotifyAATerminateWait(std::shared_ptr<AbilityRecord> &abilityRecord)
+void AbilityStartWithWaitObserverUtils::NotifyAATerminateWait(const std::shared_ptr<AbilityRecord> &abilityRecord)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     if (!abilityRecord) {
@@ -117,8 +117,8 @@ void AbilityStartWithWaitObserverUtils::NotifyAATerminateWait(std::shared_ptr<Ab
             data.time_ = observer.second.time_;
             data.foregroundTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count();
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, time:%{public}"PRId64, data.time_);
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, foregroundTime:%{public}"PRId64, data.foregroundTime_);
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, time:%{public}" PRId64, data.time_);
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, foregroundTime:%{public}" PRId64, data.foregroundTime_);
             data.bundleName_ = abilityRecord->GetAbilityInfo().bundleName;
             data.abilityName_ = abilityRecord->GetAbilityInfo().name;
             // notify aa
