@@ -25,7 +25,7 @@ class IAbilityStartWithWaitObserver : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.ability.IAbilityStartWithWaitObserver");
 
-    virtual void OnStartAbilityWithWait(const AbilityStartWithWaitObserverData &abilityStartWithWaitData) = 0;
+    virtual int32_t StartAbilityWithWait(const AbilityStartWithWaitObserverData &abilityStartWithWaitData) = 0;
     enum class Message {
         ON_ABILITY_START_WITH_WAIT,
     };

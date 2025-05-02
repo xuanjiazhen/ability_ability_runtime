@@ -84,7 +84,7 @@ void AbilityStartWithWaitObserverUtils::SetColdStartForShellCall(std::shared_ptr
     }
     auto observerId = abilityRecord->GetWant().GetIntParam(AbilityUtil::OBSERVER_TOKEN_KEY, -1);
     std::lock_guard<std::mutex> guard(oberverMutex_);
-    for(auto& observer : observerList_) {
+    for (auto& observer : observerList_) {
         if (!observer.first) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
             continue;
@@ -106,7 +106,7 @@ void AbilityStartWithWaitObserverUtils::NotifyAATerminateWait(const std::shared_
     }
     auto observerId = abilityRecord->GetWant().GetIntParam(AbilityUtil::OBSERVER_TOKEN_KEY, -1);
     std::lock_guard<std::mutex> guard(oberverMutex_);
-    for(auto& observer : observerList_) {
+    for (auto& observer : observerList_) {
         if (!observer.first) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
             continue;
@@ -124,7 +124,7 @@ void AbilityStartWithWaitObserverUtils::NotifyAATerminateWait(const std::shared_
             // notify aa
             TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, bundleName:%{public}s ability:%{public}s",
                 data.bundleName_.c_str(), data.abilityName_.c_str());
-            observer.first->OnStartAbilityWithWait(data);
+            observer.first->StartAbilityWithWait(data);
         }
     }
 }

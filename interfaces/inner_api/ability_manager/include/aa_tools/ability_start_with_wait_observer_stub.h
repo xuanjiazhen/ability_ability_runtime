@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_ABILITY_START_WITH_WAIT_OBSERVER_STUB_H
 #define OHOS_ABILITY_ABILITY_START_WITH_WAIT_OBSERVER_STUB_H
 
+#include <map>
 #include <mutex>
 
 #include "ability_start_with_wait_observer_data.h"
@@ -24,22 +25,21 @@
 
 namespace OHOS {
 namespace AAFwk {
+class AbilityStartWithWaitObserverStub;
+using MessageCode = IAbilityStartWithWaitObserver::Message;
+using MsgHandler = int32_t (AbilityStartWithWaitObserverStub::*)(MessageParcel& data, MessageParcel& reply);
+
 class AbilityStartWithWaitObserverStub : public IRemoteStub<IAbilityStartWithWaitObserver> {
 public:
-    AbilityStartWithWaitObserverStub() {};
+    AbilityStartWithWaitObserverStub();
     virtual ~AbilityStartWithWaitObserverStub() = default;
 
     int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
-    void OnStartAbilityWithWait(const AbilityStartWithWaitObserverData &startAbilityWithWaitData) override;
+    int32_t OnStartAbilityWithWait(MessageParcel& data, MessageParcel& reply);
 
-    AbilityStartWithWaitObserverData GetData();
-
-    bool GetWaitFlag();
 private:
-    bool waitFlag_ = true;
-    std::mutex mutex_;
-    AbilityStartWithWaitObserverData data_;
+    std::map<MessageCode, MsgHandler> msgHandlerMap_;
     DISALLOW_COPY_AND_MOVE(AbilityStartWithWaitObserverStub);
 };
 

@@ -21,7 +21,7 @@
 #include <iostream>
 #include <regex>
 #include "ability_manager_client.h"
-#include "ability_start_with_wait_observer_stub.h"
+#include "ability_start_with_wait_observer.h"
 #include "app_mgr_client.h"
 #include "hilog_tag_wrapper.h"
 #include "iservice_registry.h"
@@ -1726,6 +1726,11 @@ ErrCode AbilityManagerShellCommand::MakeWantFromCmd(Want& want, std::string& win
 
                     break;
                 }
+                case 'W': {
+                    // 'aa start -W' with no argument
+                    startAbilityWithWaitFlag_ = true;
+                    break;
+                }
                 case 0: {
                     // 'aa start' with an unknown option: aa start --x
                     // 'aa start' with an unknown option: aa start --xxx
@@ -2227,7 +2232,7 @@ sptr<IAbilityManager> AbilityManagerShellCommand::GetAbilityManagerService()
 
 ErrCode AbilityManagerShellCommand::StartAbilityWithWait(Want& want)
 {
-    auto observer = sptr<AbilityStartWithWaitObserverStub>::MakeSptr();
+    auto observer = sptr<AbilityStartWithWaitObserver>::MakeSptr();
     auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now().time_since_epoch()).count();
     if (!observer) {
@@ -2239,9 +2244,11 @@ ErrCode AbilityManagerShellCommand::StartAbilityWithWait(Want& want)
         return ret;
     }
     auto maxWaitTime = MAX_WAIT_TIME;
-    while (true) {
-        if (!observer->GetWaitFlag()) {
-            auto data = observer->GetData();
+    bool isAlwaysWaiting = true;
+    AbilityStartWithWaitObserverData data;
+    while (isAlwaysWaiting) {
+        observer->GetData(isAlwaysWaiting, data);
+        if (!isAlwaysWaiting) {
             auto totalTime = data.foregroundTime_ - data.time_;
             auto currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count();
@@ -2255,6 +2262,7 @@ ErrCode AbilityManagerShellCommand::StartAbilityWithWait(Want& want)
         usleep(WAIT_INTERVAL);
         maxWaitTime -= WAIT_INTERVAL;
         if (maxWaitTime <= 0) {
+            TAG_LOGE(AAFwkTag::AA_TOOL, "start ability with wait timeout.");
             break;
         }
     }
