@@ -2246,7 +2246,7 @@ ErrCode AbilityManagerShellCommand::StartAbilityWithWait(Want& want)
             auto currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count();
             auto waitTime = currentTime - now;
-            resultReceiver_.append("StartMode: ").append(data.coldStart ? "Cold" : "Hot").append("\n")
+            resultReceiver_.append("StartMode: ").append(data.coldStart_ ? "Cold" : "Hot").append("\n")
                 .append("BundleName: ").append(data.bundleName_).append("\n").append("AbilityName: ")
                 .append(data.abilityName_).append("\n").append("TotalTime: ").append(std::to_string(totalTime))
                 .append("WaitTime: ").append(std::to_string(waitTime)).append("\n");
@@ -2258,6 +2258,7 @@ ErrCode AbilityManagerShellCommand::StartAbilityWithWait(Want& want)
             break;
         }
     }
+    return ret;
 }
 
 #ifdef ABILITY_COMMAND_FOR_TEST
