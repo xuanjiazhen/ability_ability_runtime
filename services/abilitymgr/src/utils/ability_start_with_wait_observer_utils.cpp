@@ -67,7 +67,7 @@ void AbilityStartWithWaitObserverUtils::Unregist(const sptr<IAbilityStartWithWai
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     std::lock_guard<std::mutex> guard(oberverMutex_);
     observerList_.erase(observer);
-    TAG_LOGD("observer list size:%{public}d", observerList_.size());
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "observer list size:%{public}d", observerList_.size());
 }
 
 void AbilityStartWithWaitObserverUtils::Intercepted(const Want& want, AbilityUtil::InterceptedReason reason)
