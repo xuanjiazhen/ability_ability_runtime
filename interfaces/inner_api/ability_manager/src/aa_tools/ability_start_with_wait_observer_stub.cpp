@@ -33,7 +33,7 @@ int32_t AbilityStartWithWaitObserverStub::OnRemoteRequest(
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
-void AbilityStartWithWaitObserverStub::OnAbilityStartWithWait(
+void AbilityStartWithWaitObserverStub::OnStartAbilityWithWait(
     const AbilityStartWithWaitObserverData &abilityStartWithWaitObserverData)
 {
 }

@@ -30,7 +30,7 @@ bool AbilityStartWithWaitObserverProxy::WriteInterfaceToken(MessageParcel &data)
     return true;
 }
 
-void AbilityStartWithWaitObserverProxy::OnAbilityStartWithWait(
+void AbilityStartWithWaitObserverProxy::OnStartAbilityWithWait(
     const AbilityStartWithWaitObserverData &abilityStartWithWaitObserverData)
 {
     MessageParcel data;

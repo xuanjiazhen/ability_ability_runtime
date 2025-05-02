@@ -31,7 +31,7 @@ public:
 
     int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
-    void OnAbilityStartWithWait(const AbilityStartWithWaitObserverData &startAbilityWithWaitData) override;
+    void OnStartAbilityWithWait(const AbilityStartWithWaitObserverData &startAbilityWithWaitData) override;
 
 private:
     DISALLOW_COPY_AND_MOVE(AbilityStartWithWaitObserverStub);

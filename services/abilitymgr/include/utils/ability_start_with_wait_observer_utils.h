@@ -19,6 +19,7 @@
 #include <map>
 #include <mutex>
 
+#include "ability_record.h"
 #include "ability_start_with_wait_observer_interface.h"
 #include "ability_util.h"
 #include "nocopyable.h"
@@ -26,20 +27,31 @@
 
 namespace OHOS {
 namespace AAFwk {
+struct AbilityForegroundInfo {
+    bool coldStart_ = false;
+    int32_t observerId_ = 0;
+    int64_t time_ = 0; // ams recv msg time
+    int64_t foregroundTime_ = 0; // ability foreground time
+    std::string bundleName_;
+    std::string abilityName_;
+};
+using ObserverRecord = std::pair<sptr<IAbilityStartWithWaitObserver>, AbilityForegroundInfo>;
 class AbilityStartWithWaitObserverUtils {
 public:
     static AbilityStartWithWaitObserverUtils& GetInstance();
     void Regist(const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer);
     void Unregist(const sptr<IAbilityStartWithWaitObserver> &observer);
+    void NotifyAbilityForeground();
     void Intercepted(const Want& want, AbilityUtil::InterceptedReason reason);
+    void NotifyAACompleteFirstFrameDrawing(std::shared_ptr<AbilityRecord> &abilityRecord);
 
 private:
     AbilityStartWithWaitObserverUtils() = default;
     ~AbilityStartWithWaitObserverUtils() = default;
 
-    int32_t observerId_ = 0;
     std::mutex oberverMutex_;
-    std::map<sptr<IAbilityStartWithWaitObserver>, int32_t> observerList_;
+    AbilityForegroundInfo abilityForegroundInfo_;
+    std::map<sptr<IAbilityStartWithWaitObserver>, AbilityForegroundInfo> observerList_;
     DISALLOW_COPY_AND_MOVE(AbilityStartWithWaitObserverUtils);
  };
  } // namespace AAFwk

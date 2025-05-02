@@ -1200,8 +1200,8 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
 #ifdef SUPPORT_SCREEN
     if (ImplicitStartProcessor::IsImplicitStartAction(want)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "is implicit start action");
-        // AbilityStartWithWaitObserverUtils::GetInstance().Intercepted(
-        //     want, InterceptedReason::INTERCEPTED_FOR_IMPLICIT_START);
+        AbilityStartWithWaitObserverUtils::GetInstance().Intercepted(
+            want, AbilityUtil::InterceptedReason::INTERCEPTED_FOR_IMPLICIT_START);
         auto checkResult = AbilityUtil::CheckInstanceKey(want);
         if (checkResult != ERR_OK) {
             return checkResult;
@@ -12014,6 +12014,11 @@ void AbilityManagerService::OnCacheExitInfo(uint32_t accessTokenId, const AAFwk:
         }
     };
     delayClearReasonHandler_->SubmitTaskJust(delayClearReason, "delayClearReason", CLEAR_REASON_DELAY_TIME);
+}
+
+void AbilityManagerService::NotifyAACompleteFirstFrameDrawing(std::shared_ptr<AbilityRecord> &abilityRecord)
+{
+    AbilityStartWithWaitObserverUtils::GetInstance().NotifyAACompleteFirstFrameDrawing(abilityRecord);
 }
 
 int32_t AbilityManagerService::OpenFile(const Uri& uri, uint32_t flag)

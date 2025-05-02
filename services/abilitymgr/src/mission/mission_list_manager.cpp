@@ -3012,6 +3012,7 @@ void MissionListManager::CompleteFirstFrameDrawing(const sptr<IRemoteObject> &ab
     abilityRecord->SetCompleteFirstFrameDrawing(true);
     AppExecFwk::AbilityFirstFrameStateObserverManager::GetInstance().
         HandleOnFirstFrameState(abilityRecord);
+    //AbilityManagerService::GetPubInstance()->NotifyAACompleteFirstFrameDrawing(abilityRecord); // wakeup aa tool for completeFristFrameDrawing
     auto handler = AbilityManagerService::GetPubInstance()->GetTaskHandler();
     if (handler == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "GetTaskHandler fail");

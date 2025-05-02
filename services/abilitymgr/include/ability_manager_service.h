@@ -2080,6 +2080,8 @@ protected:
         const std::string &bundleName, const std::vector<std::string> &abilityNames,
         const std::vector<std::string> &uiExtensionNames) override;
 
+    void NotifyAACompleteFirstFrameDrawing(std::shared_ptr<AbilityRecord> &abilityRecord);
+
 private:
     int TerminateAbilityWithFlag(const sptr<IRemoteObject> &token, int resultCode = DEFAULT_INVAL_VALUE,
         const Want *resultWant = nullptr, bool flag = true);

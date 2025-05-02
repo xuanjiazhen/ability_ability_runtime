@@ -27,7 +27,7 @@ public:
 
     virtual ~AbilityStartWithWaitObserverProxy() = default;
 
-    void OnAbilityStartWithWait(const AbilityStartWithWaitObserverData &startAbilityWithWaitData) override;
+    void OnStartAbilityWithWait(const AbilityStartWithWaitObserverData &startAbilityWithWaitData) override;
 
 private:
     bool WriteInterfaceToken(MessageParcel &data);

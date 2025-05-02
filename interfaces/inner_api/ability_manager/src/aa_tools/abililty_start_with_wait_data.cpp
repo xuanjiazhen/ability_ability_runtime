@@ -21,11 +21,35 @@ namespace OHOS {
 namespace AAFwk {
 bool AbilityStartWithWaitObserverData::Marshalling(Parcel &parcel) const
 {
+    if (!parcel.WriteBool(coldStart_)) {
+        return false;
+    }
+    if (!parcel.WriteInt32(observerId_)) {
+        return false;
+    }
+    if (!parcel.WriteInt64(time_)) {
+        return false;
+    }
+    if (!parcel.WriteInt64(foregroundTime_)) {
+        return false;
+    }
+    if (!parcel.WriteString(bundleName_)) {
+        return false;
+    }
+    if (!parcel.WriteString(abilityName_)) {
+        return false;
+    }
     return true;
 }
 
 bool AbilityStartWithWaitObserverData::ReadFromParcel(Parcel &parcel)
 {
+    coldStart_ = parcel.ReadBool();
+    observerId_ = parcel.ReadInt32();
+    time_ = parcel.ReadInt64();
+    foregroundTime_ = parcel.ReadInt64();
+    bundleName_ = parcel.ReadString();
+    abilityName_ = parcel.ReadString();
     return true;
 }
 
@@ -33,7 +57,7 @@ AbilityStartWithWaitObserverData *AbilityStartWithWaitObserverData::Unmarshallin
 {
     AbilityStartWithWaitObserverData *abilityStartWithWaitData = new (std::nothrow) AbilityStartWithWaitObserverData();
     if (abilityStartWithWaitData && !abilityStartWithWaitData->ReadFromParcel(parcel)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "ReadFromParcel failed");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ReadFromParcel failed");
         delete abilityStartWithWaitData;
         abilityStartWithWaitData = nullptr;
     }
