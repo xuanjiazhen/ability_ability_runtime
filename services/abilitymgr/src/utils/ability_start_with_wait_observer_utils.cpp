@@ -32,12 +32,33 @@ AbilityStartWithWaitObserverUtils& AbilityStartWithWaitObserverUtils::GetInstanc
 void AbilityStartWithWaitObserverUtils::Regist(const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
+    if (!observer) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "null observer");
+        return;
+    }
     std::lock_guard<std::mutex> guard(oberverMutex_);
     auto tmpId = (abilityForegroundInfo_.observerId_ == INT_MAX) ? 0 : (abilityForegroundInfo_.observerId_ + 1);
     abilityForegroundInfo_.observerId_ = tmpId;
     abilityForegroundInfo_.time_ = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now().time_since_epoch()).count();
     observerList_.emplace(observer, abilityForegroundInfo_);
+    auto deathRecipientFunc = [](const wptr<IRemoteObject> &remote) {
+        auto object = remote.promote();
+        if (object == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "object null");
+            return;
+        }
+        AbilityStartWithWaitObserverUtils::GetInstance().Unregist(object);
+    };
+    sptr<IRemoteObject::DeathRecipient> deathRecipient =
+        new (std::nothrow) AbilityStartWithWaitObserverRecipient(deathRecipientFunc);
+    if (deathRecipient == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "deathRecipient null");
+        return;
+    }
+    if (!observer->AsObject()->AddDeathRecipient(deathRecipient)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "AddDeathRecipient fail");
+    }
     (const_cast<Want &>(want)).SetParam(AbilityUtil::OBSERVER_TOKEN_KEY, tmpId);
 }
 
@@ -45,6 +66,8 @@ void AbilityStartWithWaitObserverUtils::Unregist(const sptr<IAbilityStartWithWai
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     std::lock_guard<std::mutex> guard(oberverMutex_);
+    observerList_.erase(observer);
+    TAG_LOGD("observer list size:%{public}d", observerList_.size());
 }
 
 void AbilityStartWithWaitObserverUtils::Intercepted(const Want& want, AbilityUtil::InterceptedReason reason)
@@ -74,8 +97,7 @@ void AbilityStartWithWaitObserverUtils::SetColdStartForShellCall(std::shared_ptr
     }
 }
 
-void AbilityStartWithWaitObserverUtils::NotifyAACompleteFirstFrameDrawing(
-    std::shared_ptr<AbilityRecord> &abilityRecord)
+void AbilityStartWithWaitObserverUtils::NotifyAATerminateWait(std::shared_ptr<AbilityRecord> &abilityRecord)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     if (!abilityRecord) {
@@ -89,12 +111,14 @@ void AbilityStartWithWaitObserverUtils::NotifyAACompleteFirstFrameDrawing(
             TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
             continue;
         }
-        if (observerId == observer.second.observerId_ && observer.second.coldStart_) { // cold start
+        if (observerId == observer.second.observerId_) {
             AbilityStartWithWaitObserverData data;
             data.coldStart_ = observer.second.coldStart_;
             data.time_ = observer.second.time_;
             data.foregroundTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count();
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, time:%{public}"PRId64, data.time_);
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, foregroundTime:%{public}"PRId64, data.foregroundTime_);
             data.bundleName_ = abilityRecord->GetAbilityInfo().bundleName;
             data.abilityName_ = abilityRecord->GetAbilityInfo().name;
             // notify aa

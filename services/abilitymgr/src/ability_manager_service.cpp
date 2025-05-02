@@ -12021,9 +12021,9 @@ void AbilityManagerService::SetColdStartForShellCall(std::shared_ptr<AbilityReco
     AbilityStartWithWaitObserverUtils::GetInstance().SetColdStartForShellCall(abilityRecord);
 }
 
-void AbilityManagerService::NotifyAACompleteFirstFrameDrawing(std::shared_ptr<AbilityRecord> &abilityRecord)
+void AbilityManagerService::NotifyAATerminateWait(std::shared_ptr<AbilityRecord> &abilityRecord)
 {
-    AbilityStartWithWaitObserverUtils::GetInstance().NotifyAACompleteFirstFrameDrawing(abilityRecord);
+    AbilityStartWithWaitObserverUtils::GetInstance().NotifyAATerminateWait(abilityRecord);
 }
 
 int32_t AbilityManagerService::OpenFile(const Uri& uri, uint32_t flag)

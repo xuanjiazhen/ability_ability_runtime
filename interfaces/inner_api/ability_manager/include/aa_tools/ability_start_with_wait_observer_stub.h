@@ -33,7 +33,11 @@ public:
 
     void OnStartAbilityWithWait(const AbilityStartWithWaitObserverData &startAbilityWithWaitData) override;
 
+    AbilityStartWithWaitObserverData GetData();
 private:
+    bool waitFlag_ = true;
+    std::mutex mutex_;
+    AbilityStartWithWaitObserverData data_;
     DISALLOW_COPY_AND_MOVE(AbilityStartWithWaitObserverStub);
 };
 
