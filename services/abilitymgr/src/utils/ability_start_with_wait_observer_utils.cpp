@@ -97,7 +97,7 @@ void AbilityStartWithWaitObserverUtils::SetColdStartForShellCall(std::shared_ptr
     }
 }
 
-void AbilityStartWithWaitObserverUtils::NotifyAATerminateWait(std::shared_ptr<AbilityRecord> &abilityRecord)
+void AbilityStartWithWaitObserverUtils::NotifyAATerminateWait(const std::shared_ptr<AbilityRecord> &abilityRecord)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     if (!abilityRecord) {

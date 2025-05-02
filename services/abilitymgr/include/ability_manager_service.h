@@ -2026,7 +2026,7 @@ public:
 
     void SetColdStartForShellCall(std::shared_ptr<AbilityRecord> &abilityRecord);
 
-    void NotifyAATerminateWait(std::shared_ptr<AbilityRecord> &abilityRecord);
+    void NotifyAATerminateWait(const std::shared_ptr<AbilityRecord> &abilityRecord);
 
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;

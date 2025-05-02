@@ -12021,7 +12021,7 @@ void AbilityManagerService::SetColdStartForShellCall(std::shared_ptr<AbilityReco
     AbilityStartWithWaitObserverUtils::GetInstance().SetColdStartForShellCall(abilityRecord);
 }
 
-void AbilityManagerService::NotifyAATerminateWait(std::shared_ptr<AbilityRecord> &abilityRecord)
+void AbilityManagerService::NotifyAATerminateWait(const std::shared_ptr<AbilityRecord> &abilityRecord)
 {
     AbilityStartWithWaitObserverUtils::GetInstance().NotifyAATerminateWait(abilityRecord);
 }
