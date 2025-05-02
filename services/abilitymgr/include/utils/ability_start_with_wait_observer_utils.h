@@ -20,6 +20,7 @@
 #include <mutex>
 
 #include "ability_start_with_wait_observer_interface.h"
+#include "ability_util.h"
 #include "nocopyable.h"
 #include "want.h"
 
@@ -28,16 +29,17 @@ namespace AAFwk {
 class AbilityStartWithWaitObserverUtils {
 public:
     static AbilityStartWithWaitObserverUtils& GetInstance();
-    void RegistAbilityStartWithWaitObserver(const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer);
-    void UnRegistAbilityStartWithWaitObserver();
+    void Regist(const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer);
+    void Unregist(const sptr<IAbilityStartWithWaitObserver> &observer);
+    void Intercepted(const Want& want, AbilityUtil::InterceptedReason reason);
 
 private:
     AbilityStartWithWaitObserverUtils() = default;
     ~AbilityStartWithWaitObserverUtils() = default;
 
-    uint32_t observerId_ = 0;
-    ffrt::mutex oberverMutex_;
-    std::unordered_map<sptr<IAbilityStartWithWaitObserver>, uint32_t> observerList_;
+    int32_t observerId_ = 0;
+    std::mutex oberverMutex_;
+    std::map<sptr<IAbilityStartWithWaitObserver>, int32_t> observerList_;
     DISALLOW_COPY_AND_MOVE(AbilityStartWithWaitObserverUtils);
  };
  } // namespace AAFwk

@@ -1200,6 +1200,8 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
 #ifdef SUPPORT_SCREEN
     if (ImplicitStartProcessor::IsImplicitStartAction(want)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "is implicit start action");
+        // AbilityStartWithWaitObserverUtils::GetInstance().Intercepted(
+        //     want, InterceptedReason::INTERCEPTED_FOR_IMPLICIT_START);
         auto checkResult = AbilityUtil::CheckInstanceKey(want);
         if (checkResult != ERR_OK) {
             return checkResult;
@@ -1290,6 +1292,10 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
     if (isUIAbilityOnly && abilityInfo.type != AbilityType::PAGE) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "ability type no UIAbility");
         return ERR_INVALID_VALUE;
+    }
+    if (abilityInfo.type != AbilityType::PAGE) {
+        AbilityStartWithWaitObserverUtils::GetInstance().Intercepted(
+            want, AbilityUtil::InterceptedReason::INTERCEPTED_FOR_NON_UI_ABILITY);
     }
     validUserId = abilityInfo.applicationInfo.singleton ? U0_USER_ID : validUserId;
     TAG_LOGD(AAFwkTag::ABILITYMGR, "userId is : %{public}d, singleton is : %{public}d",
@@ -13807,7 +13813,25 @@ int32_t AbilityManagerService::RevokeDelegator(sptr<IRemoteObject> token)
 int32_t AbilityManagerService::StartAbilityWithWait(
     const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer)
 {
-    AbilityStartWithWaitObserverUtils::GetInstance().RegistAbilityStartWithWaitObserver();
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
+    if (observer == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "observer null");
+        return ERR_INVALID_VALUE;
+    }
+    auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
+    if (!isShellCall) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not shell call");
+        return ERR_PERMISSION_DENIED;
+    }
+    // 1.regist observer
+    AbilityStartWithWaitObserverUtils::GetInstance().Regist(want, observer);
+    auto result = StartAbility(want, -1, -1);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "start ability wait fail, %{public}d", result);
+        return result;
+    }
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     return ERR_OK;
 }
 

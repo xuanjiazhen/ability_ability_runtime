@@ -15,6 +15,8 @@
 
 #include "ability_start_with_wait_observer_utils.h"
 
+#include "hilog_tag_wrapper.h"
+
 namespace OHOS {
 namespace AAFwk {
 
@@ -24,19 +26,24 @@ AbilityStartWithWaitObserverUtils& AbilityStartWithWaitObserverUtils::GetInstanc
     return instance;
 }
 
-void AbilityStartWithWaitObserverUtils::RegistAbilityStartWithWaitObserver(
-    const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer)
+void AbilityStartWithWaitObserverUtils::Regist(const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer)
 {
-    std::lock_guard<ffrt::mutex> guard(oberverMutex_);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
+    std::lock_guard<std::mutex> guard(oberverMutex_);
     observerId_ = (observerId_ == INT_MAX) ? 0 : (observerId_ + 1);
     observerList_.emplace(observer, observerId_);
-    want.SetParam("ohos.params.abilityStartWithObserver", observerId_);
+    (const_cast<Want &>(want)).SetParam(AbilityUtil::OBSERVER_TOKEN_KEY, observerId_);
 }
 
-void AbilityStartWithWaitObserverUtils::UnRegistAbilityStartWithWaitObserver(
-    const sptr<IAbilityStartWithWaitObserver> &observer)
+void AbilityStartWithWaitObserverUtils::Unregist(const sptr<IAbilityStartWithWaitObserver> &observer)
 {
-    std::lock_guard<ffrt::mutex> guard(oberverMutex_);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
+    std::lock_guard<std::mutex> guard(oberverMutex_);
+}
+
+void AbilityStartWithWaitObserverUtils::Intercepted(const Want& want, AbilityUtil::InterceptedReason reason)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
 }
 } // namespace AAFwk
 } // namespace OHOS
