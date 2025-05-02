@@ -41,6 +41,7 @@ void BundleMgrHelper::SetBmsReady(bool bmsReady)
 
 ErrCode BundleMgrHelper::GetNameForUid(const int32_t uid, std::string& name)
 {
+    name = AAFwk::MyStatus::GetInstance().getNameForUid_;
     return ERR_OK;
 }
 
@@ -197,7 +198,8 @@ ErrCode BundleMgrHelper::GetBundleInfoV9(const std::string& bundleName,
 bool BundleMgrHelper::GetApplicationInfo(
     const std::string& appName, const ApplicationFlag flag, const int32_t userId, ApplicationInfo& appInfo)
 {
-    return false;
+    appInfo = AAFwk::MyStatus::GetInstance().applicationInfo_;
+    return AAFwk::MyStatus::GetInstance().getApplicationInfo_;
 }
 
 bool BundleMgrHelper::GetApplicationInfo(const std::string& appName,
@@ -257,7 +259,7 @@ bool BundleMgrHelper::ImplicitQueryInfos(const Want& want, int32_t flags, int32_
 
 bool BundleMgrHelper::CleanBundleDataFiles(const std::string& bundleName, int32_t userId, int32_t appCloneIndex)
 {
-    return false;
+    return AAFwk::MyStatus::GetInstance().cleanBundleDataFiles_;
 }
 
 bool BundleMgrHelper::QueryDataGroupInfos(const std::string& bundleName,

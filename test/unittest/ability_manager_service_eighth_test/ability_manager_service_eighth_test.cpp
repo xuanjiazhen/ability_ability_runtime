@@ -38,6 +38,8 @@ constexpr int32_t ACCOUNT_MGR_SERVICE_UID = 3058;
 constexpr int32_t TEST_UID = 1000;
 constexpr char PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED[] = "const.product.enterprisefeature.setting.enabled";
 constexpr char PRODUCT_APPBOOT_SETTING_ENABLED[] = "const.product.appboot.setting.enabled";
+constexpr char PRODUCT_ASSERT_FAULT_DIALOG_ENABLED[] = "persisit.sys.abilityms.support_assert_fault_dialog";
+constexpr char DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
 constexpr int32_t FOUNDATION_UID = 5523;
 constexpr uint32_t TEST_FLAG_ABILITY_CONTINUATION = 0x00000008;
 constexpr int32_t TEST_U0_USER_ID = 0;
@@ -586,6 +588,60 @@ HWTEST_F(AbilityManagerServiceEighthTest, TerminateUIServiceExtensionAbility_002
     result = abilityMs_->TerminateUIServiceExtensionAbility(token);
     EXPECT_NE(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest TerminateUIServiceExtensionAbility_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckDebugAssertPermission_001
+ * Function: CheckDebugAssertPermission
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService CheckDebugAssertPermission
+ */
+HWTEST_F(AbilityManagerServiceEighthTest, CheckDebugAssertPermission_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest CheckDebugAssertPermission_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    system::SetBoolParameter(PRODUCT_ASSERT_FAULT_DIALOG_ENABLED, false);
+    int32_t result = abilityMs_->CheckDebugAssertPermission();
+    EXPECT_EQ(result, ERR_NOT_SUPPORTED_PRODUCT_TYPE);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest CheckDebugAssertPermission_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckDebugAssertPermission_002
+ * Function: CheckDebugAssertPermission
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService CheckDebugAssertPermission
+ */
+HWTEST_F(AbilityManagerServiceEighthTest, CheckDebugAssertPermission_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest CheckDebugAssertPermission_002 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    system::SetBoolParameter(DEVELOPER_MODE_STATE, false);
+    int32_t result = abilityMs_->CheckDebugAssertPermission();
+    EXPECT_EQ(result, ERR_NOT_SUPPORTED_PRODUCT_TYPE);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest CheckDebugAssertPermission_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckDebugAssertPermission_003
+ * Function: CheckDebugAssertPermission
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService CheckDebugAssertPermission
+ */
+HWTEST_F(AbilityManagerServiceEighthTest, CheckDebugAssertPermission_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest CheckDebugAssertPermission_003 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    system::SetBoolParameter(DEVELOPER_MODE_STATE, true);
+    int32_t result = abilityMs_->CheckDebugAssertPermission();
+    EXPECT_NE(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest CheckDebugAssertPermission_003 end");
 }
 } // namespace AAFwk
 } // namespace OHOS

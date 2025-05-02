@@ -39,7 +39,6 @@
 #include "application_state_observer_stub.h"
 #include "appspawn_util.h"
 #include "bundle_constants.h"
-#include "common_event.h"
 #include "common_event_manager.h"
 #include "common_event_support.h"
 #include "datetime_ex.h"
