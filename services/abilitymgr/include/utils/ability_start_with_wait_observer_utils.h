@@ -36,8 +36,8 @@ struct AbilityForegroundInfo {
     std::string abilityName_;
 };
 
-class AbilityStartWithWaitObserverUtils {
 public:
+class AbilityStartWithWaitObserverUtils {
     static AbilityStartWithWaitObserverUtils& GetInstance();
     void Regist(const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer);
     void Unregist(const sptr<IAbilityStartWithWaitObserver> &observer);
@@ -50,9 +50,13 @@ private:
     AbilityStartWithWaitObserverUtils() = default;
     ~AbilityStartWithWaitObserverUtils() = default;
 
+    void AddDeathRecipient(const sptr<IAbilityStartWithWaitObserver> &observer);
+    void UnregistInnerUnlocked(const sptr<IAbilityStartWithWaitObserver> &observer);
+
     std::mutex oberverMutex_;
     AbilityForegroundInfo abilityForegroundInfo_;
     std::map<sptr<IAbilityStartWithWaitObserver>, AbilityForegroundInfo> observerList_;
+    std::map<sptr<IAbilityStartWithWaitObserver>, sptr<AbilityStartWithWaitObserverRecipient>> deathRecipientList_;
     DISALLOW_COPY_AND_MOVE(AbilityStartWithWaitObserverUtils);
  };
  } // namespace AAFwk
