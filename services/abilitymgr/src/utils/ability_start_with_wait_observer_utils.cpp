@@ -127,6 +127,7 @@ void AbilityStartWithWaitObserverUtils::NotifyAATerminateWait(const std::shared_
             observer.first->StartAbilityWithWait(data);
             observerList_.erase(observer->first);
             TAG_LOGD(AAFwkTag::ABILITYMGR, "observer list size:%{public}d", observerList_.size());
+            return;
         }
     }
 }

@@ -2256,7 +2256,7 @@ ErrCode AbilityManagerShellCommand::StartAbilityWithWait(Want& want)
             resultReceiver_.append("StartMode: ").append(data.coldStart_ ? "Cold" : "Hot").append("\n")
                 .append("BundleName: ").append(data.bundleName_).append("\n").append("AbilityName: ")
                 .append(data.abilityName_).append("\n").append("TotalTime: ").append(std::to_string(totalTime))
-                .append("WaitTime: ").append(std::to_string(waitTime)).append("\n");
+                .append("\n").append("WaitTime: ").append(std::to_string(waitTime)).append("\n");
             return ret;
         }
         usleep(WAIT_INTERVAL);
