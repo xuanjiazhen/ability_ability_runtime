@@ -160,6 +160,7 @@ ErrCode AbilityManagerClient::StartAbilityWithWait(
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
 
+    HandleDlpApp(const_cast<Want &>(want));
     return abms->StartAbilityWithWait(want, observer);
 }
 

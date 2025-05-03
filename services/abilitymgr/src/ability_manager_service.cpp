@@ -13836,7 +13836,8 @@ int32_t AbilityManagerService::StartAbilityWithWait(
     }
     // 1.regist observer
     AbilityStartWithWaitObserverUtils::GetInstance().Regist(want, observer);
-    auto result = StartAbility(want, -1, -1);
+    // 2.start ability
+    auto result = StartAbility(want, DEFAULT_INVAL_VALUE, DEFAULT_INVAL_VALUE);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "start ability wait fail, %{public}d", result);
         return result;
