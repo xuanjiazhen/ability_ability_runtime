@@ -47,6 +47,18 @@ bool AniStringToStdString(ani_env *env, ani_string aniString, std::string &stdSt
 
 bool GetPropertyRef(ani_env *env, ani_object obj, const char *name, ani_ref &ref, ani_boolean &isUndefined);
 bool AsyncCallback(ani_env *env, ani_object call, ani_object error, ani_object result);
+
+bool IsPropertyExists(ani_env *env, ani_object param, const char *name);
+bool GetPropertyString(ani_env *env, ani_object param, const char *name, std::string &value);
+bool GetPropertyStringArray(ani_env *env, ani_object param, const char *name, std::vector<std::string> &value);
+bool GetPropertyDouble(ani_env *env, ani_object param, const char *name, double &value);
+bool GetPropertyBool(ani_env *env, ani_object param, const char *name, bool &value);
+bool GetPropertyInt(ani_env *env, ani_object param, const char *name, int32_t &value);
+bool GetPropertyRef(ani_env *env, ani_object param, const char *name, ani_ref &value);
+
+bool SetPropertyDouble(ani_env *env, ani_object param, const char *name, double value);
+bool SetPropertyStringArray(ani_env *env, ani_object param, const char *name, const std::vector<std::string> &values);
+bool SetPropertyRef(ani_env *env, ani_object param, const char *name, ani_ref value);
 }  // namespace AppExecFwk
 }  // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_ANI_COMMON_UTIL_H
