@@ -163,17 +163,17 @@ void AbilityStartWithWaitObserverUtils::UnregistInnerUnlocked(const sptr<IAbilit
             continue;
         }
         if (observer->AsObject() == ob.first->AsObject()) {
-            observerList_.erase(ob);
+            observerList_.erase(ob.first);
             break;
         }
     }
-    for (auto& deathOb : observerList_) {
+    for (auto& deathOb : deathRecipientList_) {
         if (!deathOb.first) {
             continue;
         }
         if (observer->AsObject() == deathOb.first->AsObject()) {
-            deathRecipientList_.erase(deathOb);
-            observer->AsObject()->RemoveDeathRecipient(it->second);
+            deathRecipientList_.erase(deathOb.first);
+            observer->AsObject()->RemoveDeathRecipient(deathOb.second);
             break;
         }
     }
