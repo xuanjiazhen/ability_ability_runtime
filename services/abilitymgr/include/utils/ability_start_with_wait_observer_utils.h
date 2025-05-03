@@ -30,6 +30,7 @@ namespace AAFwk {
 struct AbilityForegroundInfo {
     bool coldStart_ = false;
     int32_t observerId_ = 0;
+    sptr<AbilityStartWithWaitObserverRecipient> deathRecipient_ = nullptr;
     int64_t startTime_ = 0; // ams recv msg time
     int64_t foregroundTime_ = 0; // ability foreground time
     std::string bundleName_;
@@ -50,13 +51,12 @@ private:
     AbilityStartWithWaitObserverUtils() = default;
     ~AbilityStartWithWaitObserverUtils() = default;
 
-    void AddDeathRecipient(const sptr<IAbilityStartWithWaitObserver> &observer);
-    void UnregistInnerUnlocked(const sptr<IAbilityStartWithWaitObserver> &observer);
+    sptr<AbilityStartWithWaitObserverRecipient> GenerateDeathRecipient(
+        const sptr<IAbilityStartWithWaitObserver> &observer);
 
     std::mutex oberverMutex_;
     AbilityForegroundInfo abilityForegroundInfo_;
     std::map<sptr<IAbilityStartWithWaitObserver>, AbilityForegroundInfo> observerList_;
-    std::map<sptr<IAbilityStartWithWaitObserver>, sptr<AbilityStartWithWaitObserverRecipient>> deathRecipientList_;
     DISALLOW_COPY_AND_MOVE(AbilityStartWithWaitObserverUtils);
 };
 } // namespace AAFwk

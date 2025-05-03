@@ -32,7 +32,7 @@ AbilityStartWithWaitObserverUtils& AbilityStartWithWaitObserverUtils::GetInstanc
 void AbilityStartWithWaitObserverUtils::Regist(const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
-    if (!observer) {
+    if (!observer || !observer->AsObject()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
         return;
     }
@@ -52,23 +52,61 @@ void AbilityStartWithWaitObserverUtils::Regist(const Want &want, const sptr<IAbi
     abilityForegroundInfo_.observerId_ = tmpId;
     abilityForegroundInfo_.startTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now().time_since_epoch()).count();
+    abilityForegroundInfo_.deathRecipient_ = GenerateDeathRecipient(observer);
     observerList_.emplace(observer, abilityForegroundInfo_);
-    AddDeathRecipient(observer);
     (const_cast<Want &>(want)).SetParam(AbilityUtil::OBSERVER_TOKEN_KEY, tmpId);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "observer list size:%{public}d", observerList_.size());
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "death recipient observer list size:%{public}d", deathRecipientList_.size());
 }
 
 void AbilityStartWithWaitObserverUtils::Unregist(const sptr<IAbilityStartWithWaitObserver> &observer)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
+    if (!observer || !observer->AsObject()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
+        return;
+    }
     std::lock_guard<std::mutex> guard(oberverMutex_);
-    UnregistInnerUnlocked(observer);
+    for (auto& ob : observerList_) {
+        if (!ob.first) {
+            continue;
+        }
+        if (ob.first->AsObject() == observer->AsObject()) {
+            // 1.remove deathRecipient for proxy
+            observer->AsObject()->RemoveDeathRecipient(ob.second.deathRecipient_);
+            observerList_.erase(ob.first);
+            break;
+        }
+    }
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "observer list size:%{public}d", observerList_.size());
 }
 
 void AbilityStartWithWaitObserverUtils::Intercepted(const Want& want, AbilityUtil::InterceptedReason reason)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
+    auto observerId = want.GetIntParam(AbilityUtil::OBSERVER_TOKEN_KEY, -1);
+    if (observerId == -1) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invaid observerId");
+        return;
+    }
+    std::lock_guard<std::mutex> guard(oberverMutex_);
+    for (auto& observer : observerList_) {
+        if (!observer.first) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
+            continue;
+        }
+        if (observerId == observer.second.observerId_) {
+            AbilityStartWithWaitObserverData data;
+            data.reason_ = static_cast<uint32_t>(reason);
+            observer.first->StartAbilityWithWait(data);
+            // 1.remove deathRecipient for proxy
+            if (observer.first->AsObject()) {
+                observer.first->AsObject()->RemoveDeathRecipient(observer.second.deathRecipient_);
+            }
+            observerList_.erase(observer.first);
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "observer list size:%{public}d", observerList_.size());
+            break;
+        }
+    }
 }
 
 void AbilityStartWithWaitObserverUtils::NotifyAATerminateWait(const std::shared_ptr<AbilityRecord> &abilityRecord)
@@ -79,6 +117,10 @@ void AbilityStartWithWaitObserverUtils::NotifyAATerminateWait(const std::shared_
         return;
     }
     auto observerId = abilityRecord->GetWant().GetIntParam(AbilityUtil::OBSERVER_TOKEN_KEY, -1);
+    if (observerId == -1) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invaid observerId");
+        return;
+    }
     std::lock_guard<std::mutex> guard(oberverMutex_);
     for (auto& observer : observerList_) {
         if (!observer.first) {
@@ -87,17 +129,23 @@ void AbilityStartWithWaitObserverUtils::NotifyAATerminateWait(const std::shared_
         }
         if (observerId == observer.second.observerId_) {
             AbilityStartWithWaitObserverData data;
+            data.reason_ = static_cast<uint32_t>(AbilityUtil::InterceptedReason::INTERCEPTED_FOR_NONE);
             data.coldStart_ = observer.second.coldStart_;
             data.startTime_ = observer.second.startTime_;
             data.foregroundTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count();
             data.bundleName_ = abilityRecord->GetAbilityInfo().bundleName;
             data.abilityName_ = abilityRecord->GetAbilityInfo().name;
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, time:%{public}" PRId64 "foregroundTime:%{public}" PRId64
-                ",bundleName:%{public}s ability:%{public}s", data.startTime_, data.foregroundTime_,
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, time:%{public}" PRId64 " foregroundTime:%{public}" PRId64
+                " ,bundleName:%{public}s ability:%{public}s", data.startTime_, data.foregroundTime_,
                 data.bundleName_.c_str(), data.abilityName_.c_str());
             observer.first->StartAbilityWithWait(data);
-            UnregistInnerUnlocked(observer.first);
+            // 1.remove deathRecipient for proxy
+            if (observer.first->AsObject()) {
+                observer.first->AsObject()->RemoveDeathRecipient(observer.second.deathRecipient_);
+            }
+            observerList_.erase(observer.first);
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "observer list size:%{public}d", observerList_.size());
             break; // cant deleted for UnregisterInnerUnlocked erase map iter
         }
     }
@@ -125,12 +173,13 @@ void AbilityStartWithWaitObserverUtils::SetColdStartForShellCall(std::shared_ptr
     }
 }
 
-void AbilityStartWithWaitObserverUtils::AddDeathRecipient(const sptr<IAbilityStartWithWaitObserver> &observer)
+sptr<AbilityStartWithWaitObserverRecipient> AbilityStartWithWaitObserverUtils::GenerateDeathRecipient(
+    const sptr<IAbilityStartWithWaitObserver> &observer)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
-    if (!observer) {
+    if (!observer || !observer->AsObject()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
-        return;
+        return nullptr;
     }
     auto deathRecipientFunc = [](const wptr<IRemoteObject> &remote) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "death recipient call");
@@ -145,41 +194,12 @@ void AbilityStartWithWaitObserverUtils::AddDeathRecipient(const sptr<IAbilitySta
     auto deathRecipient = sptr<AbilityStartWithWaitObserverRecipient>::MakeSptr(deathRecipientFunc);
     if (deathRecipient == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null deathRecipient");
-        return;
+        return nullptr;
     }
     if (!observer->AsObject()->AddDeathRecipient(deathRecipient)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "AddDeathRecipient fail");
     }
-    deathRecipientList_.emplace(observer, deathRecipient);
-}
-
-void AbilityStartWithWaitObserverUtils::UnregistInnerUnlocked(const sptr<IAbilityStartWithWaitObserver> &observer)
-{
-    if (!observer) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
-        return;
-    }
-    for (auto& ob : observerList_) {
-        if (!ob.first) {
-            continue;
-        }
-        if (observer->AsObject() == ob.first->AsObject()) {
-            observerList_.erase(ob.first);
-            break;
-        }
-    }
-    for (auto& deathOb : deathRecipientList_) {
-        if (!deathOb.first) {
-            continue;
-        }
-        if (observer->AsObject() == deathOb.first->AsObject()) {
-            deathRecipientList_.erase(deathOb.first);
-            observer->AsObject()->RemoveDeathRecipient(deathOb.second);
-            break;
-        }
-    }
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "observer list size:%{public}d", observerList_.size());
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "death recipient observer list size:%{public}d", deathRecipientList_.size());
+    return deathRecipient;
 }
 } // namespace AAFwk
 } // namespace OHOS

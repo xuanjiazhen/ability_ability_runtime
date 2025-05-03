@@ -53,6 +53,7 @@ constexpr const char* BUNDLE_NAME_SELECTOR_DIALOG = "com.ohos.amsdialog";
 constexpr const char* JUMP_INTERCEPTOR_DIALOG_CALLER_PKG = "interceptor_callerPkg";
 const std::string OBSERVER_TOKEN_KEY = "ohos.ability.params.abilityWithObserverToken";
 enum class InterceptedReason {
+    INTERCEPTED_FOR_NONE = 0,
     INTERCEPTED_FOR_IMPLICIT_START,
     INTERCEPTED_FOR_NON_UI_ABILITY,
 };

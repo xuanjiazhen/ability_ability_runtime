@@ -24,6 +24,9 @@ bool AbilityStartWithWaitObserverData::Marshalling(Parcel &parcel) const
     if (!parcel.WriteBool(coldStart_)) {
         return false;
     }
+    if (!parcel.WriteUint32(reason_)) {
+        return false;
+    }
     if (!parcel.WriteInt64(startTime_)) {
         return false;
     }
@@ -42,6 +45,7 @@ bool AbilityStartWithWaitObserverData::Marshalling(Parcel &parcel) const
 bool AbilityStartWithWaitObserverData::ReadFromParcel(Parcel &parcel)
 {
     coldStart_ = parcel.ReadBool();
+    reason_ = parcel.ReadUint32();
     startTime_ = parcel.ReadInt64();
     foregroundTime_ = parcel.ReadInt64();
     bundleName_ = parcel.ReadString();

@@ -26,7 +26,7 @@ struct AbilityStartWithWaitObserverData : public Parcelable {
     static AbilityStartWithWaitObserverData *Unmarshalling(Parcel &parcel);
 
     bool coldStart_ = false;
-    int32_t observerId_ = 0;
+    uint32_t reason_ = 0;
     int64_t startTime_ = 0; // ams recv msg time
     int64_t foregroundTime_ = 0; // ability foreground time
     std::string bundleName_;
