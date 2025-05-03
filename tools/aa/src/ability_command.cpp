@@ -56,7 +56,7 @@ constexpr int INNER_ERR_START = 10108101;
 constexpr int INNER_ERR_TEST = 10108501;
 constexpr int INNER_ERR_DEBUG = 10108601;
 constexpr int64_t WAIT_INTERVAL = 10 * 1000; // us
-constexpr int64_t MAX_WAIT_TIME = 10 * 1000 * 1000; // us
+constexpr int64_t MAX_WAIT_TIME = 6 * 1000 * 1000; // us
 
 const std::string DEVELOPERMODE_STATE = "const.security.developermode.state";
 
@@ -2256,7 +2256,7 @@ ErrCode AbilityManagerShellCommand::StartAbilityWithWait(Want& want)
             resultReceiver_.append("StartMode: ").append(data.coldStart_ ? "Cold" : "Hot").append("\n")
                 .append("BundleName: ").append(data.bundleName_).append("\n").append("AbilityName: ")
                 .append(data.abilityName_).append("\n").append("TotalTime: ").append(std::to_string(totalTime))
-                .append("WaitTime: ").append(std::to_string(waitTime)).append("\n");
+                .append("\n").append("WaitTime: ").append(std::to_string(waitTime)).append("\n");
             return ret;
         }
         usleep(WAIT_INTERVAL);

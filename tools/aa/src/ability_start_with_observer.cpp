@@ -15,6 +15,8 @@
 
 #include "ability_start_with_wait_observer.h"
 
+#include "errors.h"
+
 namespace OHOS {
 namespace AAFwk {
 int32_t AbilityStartWithWaitObserver::StartAbilityWithWait(const AbilityStartWithWaitObserverData &data)
@@ -22,6 +24,7 @@ int32_t AbilityStartWithWaitObserver::StartAbilityWithWait(const AbilityStartWit
     std::lock_guard<std::mutex> lock(mutex_);
     data_ = data;
     waitFlag_ = false;
+    return OHOS::ERR_OK;
 }
 
 void AbilityStartWithWaitObserver::GetData(bool& waitFlag, AbilityStartWithWaitObserverData& data)

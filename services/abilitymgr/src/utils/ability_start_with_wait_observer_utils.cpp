@@ -33,46 +33,67 @@ void AbilityStartWithWaitObserverUtils::Regist(const Want &want, const sptr<IAbi
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     if (!observer) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "null observer");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
         return;
     }
+
     std::lock_guard<std::mutex> guard(oberverMutex_);
+    if (observerList_.find(observer) != observerList_.end()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "duplicate observer");
+        return ;
+    }
     auto tmpId = (abilityForegroundInfo_.observerId_ == INT_MAX) ? 0 : (abilityForegroundInfo_.observerId_ + 1);
     abilityForegroundInfo_.observerId_ = tmpId;
     abilityForegroundInfo_.time_ = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now().time_since_epoch()).count();
     observerList_.emplace(observer, abilityForegroundInfo_);
-    auto deathRecipientFunc = [](const wptr<IRemoteObject> &remote) {
-        auto object = remote.promote();
-        if (object == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "object null");
-            return;
-        }
-        auto observer = iface_cast<IAbilityStartWithWaitObserver>(object);
-        AbilityStartWithWaitObserverUtils::GetInstance().Unregist(observer);
-    };
-    auto deathRecipient = sptr<AbilityStartWithWaitObserverRecipient>::MakeSptr(deathRecipientFunc);
-    if (deathRecipient == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "deathRecipient null");
-        return;
-    }
-    if (!observer->AsObject()->AddDeathRecipient(deathRecipient)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "AddDeathRecipient fail");
-    }
+    AddDeathRecipient(observer);
     (const_cast<Want &>(want)).SetParam(AbilityUtil::OBSERVER_TOKEN_KEY, tmpId);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "observer list size:%{public}d", observerList_.size());
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "death recipient observer list size:%{public}d", deathRecipientList_.size());
 }
 
 void AbilityStartWithWaitObserverUtils::Unregist(const sptr<IAbilityStartWithWaitObserver> &observer)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     std::lock_guard<std::mutex> guard(oberverMutex_);
-    observerList_.erase(observer);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "observer list size:%{public}d", observerList_.size());
+    UnregistInnerUnlocked(observer);
 }
 
 void AbilityStartWithWaitObserverUtils::Intercepted(const Want& want, AbilityUtil::InterceptedReason reason)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
+}
+
+void AbilityStartWithWaitObserverUtils::NotifyAATerminateWait(const std::shared_ptr<AbilityRecord> &abilityRecord)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
+    if (!abilityRecord) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null abilityRecord");
+        return;
+    }
+    auto observerId = abilityRecord->GetWant().GetIntParam(AbilityUtil::OBSERVER_TOKEN_KEY, -1);
+    std::lock_guard<std::mutex> guard(oberverMutex_);
+    for (auto& observer : observerList_) {
+        if (!observer.first) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
+            continue;
+        }
+        if (observerId == observer.second.observerId_) {
+            AbilityStartWithWaitObserverData data;
+            data.coldStart_ = observer.second.coldStart_;
+            data.time_ = observer.second.time_;
+            data.foregroundTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count();
+            data.bundleName_ = abilityRecord->GetAbilityInfo().bundleName;
+            data.abilityName_ = abilityRecord->GetAbilityInfo().name;
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, time:%{public}" PRId64 "foregroundTime:%{public}" PRId64
+                ",bundleName:%{public}s ability:%{public}s", data.time_, data.foregroundTime_,
+                data.bundleName_.c_str(), data.abilityName_.c_str());
+            observer.first->StartAbilityWithWait(data);
+            UnregistInnerUnlocked(observer.first);
+        }
+    }
 }
 
 void AbilityStartWithWaitObserverUtils::SetColdStartForShellCall(std::shared_ptr<AbilityRecord> &abilityRecord)
@@ -97,36 +118,49 @@ void AbilityStartWithWaitObserverUtils::SetColdStartForShellCall(std::shared_ptr
     }
 }
 
-void AbilityStartWithWaitObserverUtils::NotifyAATerminateWait(const std::shared_ptr<AbilityRecord> &abilityRecord)
+void AbilityStartWithWaitObserverUtils::AddDeathRecipient(const sptr<IAbilityStartWithWaitObserver> &observer)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
-    if (!abilityRecord) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null abilityRecord");
+    if (!observer) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
         return;
     }
-    auto observerId = abilityRecord->GetWant().GetIntParam(AbilityUtil::OBSERVER_TOKEN_KEY, -1);
-    std::lock_guard<std::mutex> guard(oberverMutex_);
-    for (auto& observer : observerList_) {
-        if (!observer.first) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
-            continue;
+    auto deathRecipientFunc = [](const wptr<IRemoteObject> &remote) {
+        auto object = remote.promote();
+        if (object == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "object null");
+            return;
         }
-        if (observerId == observer.second.observerId_) {
-            AbilityStartWithWaitObserverData data;
-            data.coldStart_ = observer.second.coldStart_;
-            data.time_ = observer.second.time_;
-            data.foregroundTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::system_clock::now().time_since_epoch()).count();
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, time:%{public}" PRId64, data.time_);
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, foregroundTime:%{public}" PRId64, data.foregroundTime_);
-            data.bundleName_ = abilityRecord->GetAbilityInfo().bundleName;
-            data.abilityName_ = abilityRecord->GetAbilityInfo().name;
-            // notify aa
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, bundleName:%{public}s ability:%{public}s",
-                data.bundleName_.c_str(), data.abilityName_.c_str());
-            observer.first->StartAbilityWithWait(data);
-        }
+        auto observer = iface_cast<IAbilityStartWithWaitObserver>(object);
+        AbilityStartWithWaitObserverUtils::GetInstance().Unregist(observer);
+    };
+    auto deathRecipient = sptr<AbilityStartWithWaitObserverRecipient>::MakeSptr(deathRecipientFunc);
+    if (deathRecipient == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null deathRecipient");
+        return;
     }
+    if (!observer->AsObject()->AddDeathRecipient(deathRecipient)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "AddDeathRecipient fail");
+    }
+    deathRecipientList_.emplace(observer, deathRecipient);
+}
+
+void AbilityStartWithWaitObserverUtils::UnregistInnerUnlocked(const sptr<IAbilityStartWithWaitObserver> &observer)
+{
+    if (!observer) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
+        return;
+    }
+    if (observerList_.find(observer) != observerList_.end()) {
+        observerList_.erase(observer);
+    }
+    auto it = deathRecipientList_.find(observer);
+    if (it != deathRecipientList_.end()) {
+        observer->AsObject()->RemoveDeathRecipient(it->second);
+        deathRecipientList_.erase(observer);
+    }
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "observer list size:%{public}d", observerList_.size());
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "death recipient observer list size:%{public}d", deathRecipientList_.size());
 }
 } // namespace AAFwk
 } // namespace OHOS
