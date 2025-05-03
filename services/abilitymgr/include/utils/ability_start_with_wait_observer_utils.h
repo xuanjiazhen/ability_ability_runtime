@@ -36,7 +36,6 @@ struct AbilityForegroundInfo {
     std::string abilityName_;
 };
 
-public:
 class AbilityStartWithWaitObserverUtils {
 public:
     static AbilityStartWithWaitObserverUtils& GetInstance();

@@ -50,6 +50,7 @@ void AbilityStartWithWaitObserverUtils::Regist(const Want &want, const sptr<IAbi
     AddDeathRecipient(observer);
     (const_cast<Want &>(want)).SetParam(AbilityUtil::OBSERVER_TOKEN_KEY, tmpId);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "observer list size:%{public}d", observerList_.size());
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "death recipient observer list size:%{public}d", deathRecipientList_.size());
 }
 
 void AbilityStartWithWaitObserverUtils::Unregist(const sptr<IAbilityStartWithWaitObserver> &observer)
@@ -90,7 +91,7 @@ void AbilityStartWithWaitObserverUtils::NotifyAATerminateWait(const std::shared_
                 ",bundleName:%{public}s ability:%{public}s", data.time_, data.foregroundTime_,
                 data.bundleName_.c_str(), data.abilityName_.c_str());
             observer.first->StartAbilityWithWait(data);
-            UnregistInnerUnlocked(observer);
+            UnregistInnerUnlocked(observer.first);
         }
     }
 }
@@ -155,7 +156,8 @@ void AbilityStartWithWaitObserverUtils::UnregistInnerUnlocked(const sptr<IAbilit
     }
     auto it = deathRecipientList_.find(observer);
     if (it != deathRecipientList_.end()) {
-        observer->RemoveDeathRecipient(it->second);
+        observer->AsObject()->RemoveDeathRecipient(it->second);
+        deathRecipientList_.erase(observer);
     }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "observer list size:%{public}d", observerList_.size());
     TAG_LOGD(AAFwkTag::ABILITYMGR, "death recipient observer list size:%{public}d", deathRecipientList_.size());
