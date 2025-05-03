@@ -50,7 +50,7 @@ void AbilityStartWithWaitObserverUtils::Regist(const Want &want, const sptr<IAbi
     }
     auto tmpId = (abilityForegroundInfo_.observerId_ == INT_MAX) ? 0 : (abilityForegroundInfo_.observerId_ + 1);
     abilityForegroundInfo_.observerId_ = tmpId;
-    abilityForegroundInfo_.time_ = std::chrono::duration_cast<std::chrono::milliseconds>(
+    abilityForegroundInfo_.startTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now().time_since_epoch()).count();
     observerList_.emplace(observer, abilityForegroundInfo_);
     AddDeathRecipient(observer);
@@ -88,13 +88,13 @@ void AbilityStartWithWaitObserverUtils::NotifyAATerminateWait(const std::shared_
         if (observerId == observer.second.observerId_) {
             AbilityStartWithWaitObserverData data;
             data.coldStart_ = observer.second.coldStart_;
-            data.time_ = observer.second.time_;
+            data.startTime_ = observer.second.startTime_;
             data.foregroundTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count();
             data.bundleName_ = abilityRecord->GetAbilityInfo().bundleName;
             data.abilityName_ = abilityRecord->GetAbilityInfo().name;
             TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, time:%{public}" PRId64 "foregroundTime:%{public}" PRId64
-                ",bundleName:%{public}s ability:%{public}s", data.time_, data.foregroundTime_,
+                ",bundleName:%{public}s ability:%{public}s", data.startTime_, data.foregroundTime_,
                 data.bundleName_.c_str(), data.abilityName_.c_str());
             observer.first->StartAbilityWithWait(data);
             UnregistInnerUnlocked(observer.first);
