@@ -231,6 +231,13 @@ AbilityRecord::~AbilityRecord()
             object->RemoveDeathRecipient(schedulerDeathRecipient_);
         }
     }
+
+    if (startAbilityWithWaitObserver_ != nullptr && observerDeathRecipient_ != nullptr) {
+        auto object = startAbilityWithWaitObserver_->AsObject();
+        if (object != nullptr) {
+            object->RemoveDeathRecipient(observerDeathRecipient_);
+        }
+    }
     want_.CloseAllFd();
 }
 
@@ -239,6 +246,7 @@ std::shared_ptr<AbilityRecord> AbilityRecord::CreateAbilityRecord(const AbilityR
     std::shared_ptr<AbilityRecord> abilityRecord = std::make_shared<AbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     CHECK_POINTER_AND_RETURN(abilityRecord, nullptr);
+    abilityRecord->SetStartState(true);
     abilityRecord->SetUid(abilityRequest.uid);
     int32_t appIndex = 0;
     (void)AbilityRuntime::StartupUtil::GetAppIndex(abilityRequest.want, appIndex);
@@ -1242,9 +1250,95 @@ bool AbilityRecord::ReportAtomicServiceDrawnCompleteEvent()
     return true;
 }
 
+void AbilityRecord::NotifyToolHotStartInfo()
+{
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityRecord:: NotifyToolHotStartInfo start");
+    if (!isColdStart_ && startAbilityWithWaitObserver_ != nullptr) {
+        AppExecFwk::StartAbilityWithWaitData data;
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "activityTime onNewWant");
+        data.endTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityRecord::NotifyToolHotStartInfo %{public}lld", data.endTime);
+        data.startStatus = true;
+        data.coldStart = false;
+        data.bundleName = abilityInfo_.bundleName;
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityRecord::NotifyToolHotStartInfo bundleName: %{public}s",
+            abilityInfo_.bundleName.c_str());
+        data.abilityName = abilityInfo_.name;
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityRecord::NotifyToolHotStartInfo abilityName: %{public}s",
+            abilityInfo_.name.c_str());
+        startAbilityWithWaitObserver_->OnStartAbilityWithWait(data);
+    }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityRecord:: NotifyToolHotStartInfo end");
+}
+
 void AbilityRecord::SetCompleteFirstFrameDrawing(const bool flag)
 {
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityRecord::SetCompleteFirstFrameDrawing call");
     isCompleteFirstFrameDrawing_ = flag;
+    if (isColdStart_ && startAbilityWithWaitObserver_ != nullptr) {
+        AppExecFwk::StartAbilityWithWaitData data;
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "completeFirstFrameDrawingTime");
+        data.endTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityRecord::SetCompleteFirstFrameDrawing %{public}lld",
+            data.endTime);
+        data.startStatus = true;
+        data.coldStart = true;
+        data.bundleName = abilityInfo_.bundleName;
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityRecord::SetCompleteFirstFrameDrawing bundleName: %{public}s",
+            abilityInfo_.bundleName.c_str());
+        data.abilityName = abilityInfo_.name;
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityRecord::SetCompleteFirstFrameDrawing abilityName: %{public}s",
+            abilityInfo_.name.c_str());
+        startAbilityWithWaitObserver_->OnStartAbilityWithWait(data);
+        SetStartState(false);
+    }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityRecord::SetCompleteFirstFrameDrawing call end");
+}
+
+void AbilityRecord::SetStartAbilityWithWait(sptr<AppExecFwk::IStartAbilityWithWaitObserver> observer)
+{
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityRecord::SetStartAbilityWithWait call start");
+    if (observer != nullptr) {
+        startAbilityWithWaitObserver_ = observer;
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityRecord::SetStartAbilityWithWait startAbilityWithWaitObserver_");
+        std::weak_ptr<AbilityRecord> weakPtr(shared_from_this());
+        auto deathRecipientFunc = [weakPtr](const wptr<IRemoteObject> &remote) {
+            std::shared_ptr<AbilityRecord> abilityRecord = weakPtr.lock();
+            if (abilityRecord) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "startAbilityWithWaitObserver_ is nullptr.");
+                abilityRecord->OnObserverWithWaitDied(remote);
+            }
+        };
+        sptr<IRemoteObject::DeathRecipient> deathRecipient =
+            new (std::nothrow) AppExecFwk::StartAbilityWithWaitObserverRecipient(deathRecipientFunc);
+        if (!startAbilityWithWaitObserver_->AsObject()->AddDeathRecipient(deathRecipient)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "AddDeathRecipient failed.");
+        }
+    }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityRecord::SetStartAbilityWithWait call end");
+}
+
+void AbilityRecord::OnObserverWithWaitDied(const wptr<IRemoteObject> &remote)
+{
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityRecord::OnObserverWithWaitDied lxl");
+    std::lock_guard<ffrt::mutex> guard(observerLock_);
+    CHECK_POINTER(startAbilityWithWaitObserver_);
+    auto object = remote.promote();
+    CHECK_POINTER(object);
+
+    if (object != startAbilityWithWaitObserver_->AsObject()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ability died: startAbilityWithWaitObserver_ not matches remote");
+        return;
+    }
+
+    if (startAbilityWithWaitObserver_ != nullptr && observerDeathRecipient_ != nullptr) {
+        auto observerObject = startAbilityWithWaitObserver_->AsObject();
+        if (observerObject != nullptr) {
+            observerObject->RemoveDeathRecipient(observerDeathRecipient_);
+        }
+    }
 }
 
 bool AbilityRecord::IsCompleteFirstFrameDrawing() const
@@ -1257,8 +1351,19 @@ bool AbilityRecord::GetColdStartFlag()
     return coldStart_;
 }
 
+
+void AbilityRecord::SetStartState(bool isColdStart)
+{
+    isColdStart_ = isColdStart;
+}
 void AbilityRecord::SetColdStartFlag(bool isColdStart)
 {
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityRecord::SetColdStartFlag bundleName: %{public}s",
+        abilityInfo_.bundleName.c_str());
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityRecord::SetColdStartFlag abilityName: %{public}s",
+        abilityInfo_.name.c_str());
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityRecord::SetColdStartFlag isColdStart: %{public}d",
+        isColdStart);
     coldStart_ = isColdStart;
 }
 #endif

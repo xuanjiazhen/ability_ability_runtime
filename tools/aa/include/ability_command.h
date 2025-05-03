@@ -69,6 +69,7 @@ const std::string HELP_MSG_START =
     "  [--psn <key>] "
     "  [-A <action-name>] "
     "  [-U <URI>] "
+    "  [-W] "
     "  [-e <entity>] "
     "  [-t <mime-type>] "
     "  [--wl <window-left>] "
@@ -261,6 +262,11 @@ private:
     bool MatchOrderString(const std::regex &r, const std::string &orderCmd);
     bool CheckPerfCmdString(const char* optarg, const size_t paramLength, std::string &perfCmd);
     void ParseBundleName(std::string &bundleName);
+    ErrCode StartAbilityWithWaitCmd(Want& want, int64_t& amsTime,
+        sptr<StartAbilityWithWaitObserverStub>& observer);
+    void StartAbilityWithWaitInfo(int64_t& aaTime, int64_t& amsTime,
+        sptr<StartAbilityWithWaitObserverStub>& observer);
+    bool printStartTime_ = false;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

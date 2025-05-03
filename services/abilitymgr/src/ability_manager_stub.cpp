@@ -121,6 +121,9 @@ int AbilityManagerStub::OnRemoteRequestInnerSecond(uint32_t code, MessageParcel 
     if (interfaceCode == AbilityManagerInterfaceCode::START_ABILITY_ONLY_UI_ABILITY) {
         return StartAbilityOnlyUIAbilityInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::START_ABILITY_WITH_WAIT) {
+        return StartAbilityWithWaitInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -3773,6 +3776,32 @@ int32_t AbilityManagerStub::StartAbilityOnlyUIAbilityInner(MessageParcel &data, 
     uint32_t specifyTokenId = data.ReadUint32();
     int32_t result = StartAbilityOnlyUIAbility(*want, callerToken, specifyTokenId);
     reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::StartAbilityWithWaitInner(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityManagerStub::StartAbilityWithWaitInner start.");
+    std::unique_ptr<Want> want(data.ReadParcelable<Want>());
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
+        return ERR_INVALID_VALUE;
+    }
+
+    bool withWaitTime = data.ReadBool();
+    sptr<AppExecFwk::IStartAbilityWithWaitObserver> callback  = nullptr;
+    if (withWaitTime) {
+        callback = iface_cast<AppExecFwk::IStartAbilityWithWaitObserver>(data.ReadRemoteObject());
+        if (callback == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "callback null");
+            return ERR_INVALID_VALUE;
+        }
+    }
+
+    int32_t result = StartAbilityWithWait(*want, callback);
+    reply.WriteInt32(result);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityManagerStub::StartAbilityWithWaitInner end.");
     return NO_ERROR;
 }
 

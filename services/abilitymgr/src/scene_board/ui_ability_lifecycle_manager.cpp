@@ -826,6 +826,8 @@ void UIAbilityLifecycleManager::CompleteForegroundSuccess(const std::shared_ptr<
     std::string element = abilityRecord->GetElementName().GetURI();
     TAG_LOGD(AAFwkTag::ABILITYMGR, "ability: %{public}s", element.c_str());
     abilityRecord->SetAbilityState(AbilityState::FOREGROUND);
+    abilityRecord->NotifyToolHotStartInfo();
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "UIAbilityLifecycleManager::CompleteForegroundSuccess lxl");
     abilityRecord->UpdateAbilityVisibilityState();
 
     // new version. started by caller, scheduler call request
@@ -2745,6 +2747,7 @@ void UIAbilityLifecycleManager::OnAppStateChanged(const AppInfo &info)
             if (info.bundleName == abilityRecord->GetApplicationInfo().bundleName &&
                 info.appIndex == abilityRecord->GetAppIndex() && info.instanceKey == abilityRecord->GetInstanceKey()) {
 #ifdef SUPPORT_SCREEN
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "SetColdStartFlag() %{public}d lxl", info.state);
                 abilityRecord->SetColdStartFlag(true);
 #endif // SUPPORT_SCREEN
                 break;
@@ -3396,6 +3399,7 @@ void UIAbilityLifecycleManager::SignRestartAppFlag(int32_t uid, const std::strin
 
 void UIAbilityLifecycleManager::CompleteFirstFrameDrawing(int32_t sessionId) const
 {
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "UIAbilityLifecycleManager::CompleteFirstFrameDrawing");
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     auto abilityRecord = GetAbilityRecordsById(sessionId);
     if (abilityRecord == nullptr) {
@@ -3405,6 +3409,7 @@ void UIAbilityLifecycleManager::CompleteFirstFrameDrawing(int32_t sessionId) con
     abilityRecord->ReportAtomicServiceDrawnCompleteEvent();
 #ifdef SUPPORT_SCREEN
     abilityRecord->SetCompleteFirstFrameDrawing(true);
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "UIAbilityLifecycleManager::CompleteFirstFrameDrawing lxl");
     AppExecFwk::AbilityFirstFrameStateObserverManager::GetInstance().
         HandleOnFirstFrameState(abilityRecord);
 #endif // SUPPORT_SCREEN
