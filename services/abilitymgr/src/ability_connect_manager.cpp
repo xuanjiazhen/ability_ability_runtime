@@ -1000,18 +1000,9 @@ int AbilityConnectManager::AbilityTransitionDone(const sptr<IRemoteObject> &toke
             return DispatchInactive(abilityRecord, state);
         }
         case AbilityState::FOREGROUND: {
-            abilityRecord->RemoveSignatureInfo();
-            if (IsUIExtensionAbility(abilityRecord)) {
-                DelayedSingleton<AppScheduler>::GetInstance()->UpdateExtensionState(
-                    token, AppExecFwk::ExtensionState::EXTENSION_STATE_FOREGROUND);
-            }
             return DispatchForeground(abilityRecord);
         }
         case AbilityState::BACKGROUND: {
-            if (IsUIExtensionAbility(abilityRecord)) {
-                DelayedSingleton<AppScheduler>::GetInstance()->UpdateExtensionState(
-                    token, AppExecFwk::ExtensionState::EXTENSION_STATE_BACKGROUND);
-            }
             return DispatchBackground(abilityRecord);
         }
         case AbilityState::INITIAL: {
