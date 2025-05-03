@@ -4509,7 +4509,7 @@ int32_t AbilityManagerStub::StartAbilityWithWaitInner(MessageParcel &data, Messa
         return ERR_INVALID_VALUE;
     }
 
-    auto callback  = iface_cast<IAbilityStartWithWaitObserver>(data.ReadRemoteObject());
+    auto callback = iface_cast<IAbilityStartWithWaitObserver>(data.ReadRemoteObject());
     if (callback == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null callback");
         return ERR_INVALID_VALUE;
