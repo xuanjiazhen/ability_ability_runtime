@@ -98,6 +98,7 @@ void AbilityStartWithWaitObserverUtils::NotifyAATerminateWait(const std::shared_
                 data.bundleName_.c_str(), data.abilityName_.c_str());
             observer.first->StartAbilityWithWait(data);
             UnregistInnerUnlocked(observer.first);
+            break; // cant deleted for UnregisterInnerUnlocked erase map iter
         }
     }
 }
