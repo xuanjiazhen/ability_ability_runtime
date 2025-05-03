@@ -84,17 +84,13 @@ void AbilityStartWithWaitObserverUtils::NotifyAATerminateWait(const std::shared_
             data.time_ = observer.second.time_;
             data.foregroundTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count();
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, time:%{public}" PRId64, data.time_);
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, foregroundTime:%{public}" PRId64, data.foregroundTime_);
             data.bundleName_ = abilityRecord->GetAbilityInfo().bundleName;
             data.abilityName_ = abilityRecord->GetAbilityInfo().name;
-            // notify aa
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, bundleName:%{public}s ability:%{public}s",
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, time:%{public}" PRId64 "foregroundTime:%{public}" PRId64
+                ",bundleName:%{public}s ability:%{public}s", data.time_, data.foregroundTime_,
                 data.bundleName_.c_str(), data.abilityName_.c_str());
             observer.first->StartAbilityWithWait(data);
             UnregistInnerUnlocked(observer);
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "observer list size:%{public}d", observerList_.size());
-            return;
         }
     }
 }

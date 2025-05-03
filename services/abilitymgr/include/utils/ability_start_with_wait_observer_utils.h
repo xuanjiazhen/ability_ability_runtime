@@ -38,6 +38,7 @@ struct AbilityForegroundInfo {
 
 public:
 class AbilityStartWithWaitObserverUtils {
+public:
     static AbilityStartWithWaitObserverUtils& GetInstance();
     void Regist(const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer);
     void Unregist(const sptr<IAbilityStartWithWaitObserver> &observer);
