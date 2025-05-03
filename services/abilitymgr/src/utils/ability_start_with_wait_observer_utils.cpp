@@ -38,9 +38,15 @@ void AbilityStartWithWaitObserverUtils::Regist(const Want &want, const sptr<IAbi
     }
 
     std::lock_guard<std::mutex> guard(oberverMutex_);
-    if (observerList_.find(observer) != observerList_.end()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "duplicate observer");
-        return ;
+    for (auto& ob : observerList_) {
+        if (!ob.first) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer in observerList_");
+            continue;
+        }
+        if (observer->AsObject() == ob.first->AsObject()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "duplicate observer");
+            return ;
+        }
     }
     auto tmpId = (abilityForegroundInfo_.observerId_ == INT_MAX) ? 0 : (abilityForegroundInfo_.observerId_ + 1);
     abilityForegroundInfo_.observerId_ = tmpId;
@@ -126,6 +132,7 @@ void AbilityStartWithWaitObserverUtils::AddDeathRecipient(const sptr<IAbilitySta
         return;
     }
     auto deathRecipientFunc = [](const wptr<IRemoteObject> &remote) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "death recipient call");
         auto object = remote.promote();
         if (object == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "object null");
@@ -151,13 +158,24 @@ void AbilityStartWithWaitObserverUtils::UnregistInnerUnlocked(const sptr<IAbilit
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
         return;
     }
-    if (observerList_.find(observer) != observerList_.end()) {
-        observerList_.erase(observer);
+    for (auto& ob : observerList_) {
+        if (!ob.first) {
+            continue;
+        }
+        if (observer->AsObject() == ob.first->AsObject()) {
+            observerList_.erase(ob.first);
+            break;
+        }
     }
-    auto it = deathRecipientList_.find(observer);
-    if (it != deathRecipientList_.end()) {
-        observer->AsObject()->RemoveDeathRecipient(it->second);
-        deathRecipientList_.erase(observer);
+    for (auto& deathOb : deathRecipientList_) {
+        if (!deathOb.first) {
+            continue;
+        }
+        if (observer->AsObject() == deathOb.first->AsObject()) {
+            deathRecipientList_.erase(deathOb.first);
+            observer->AsObject()->RemoveDeathRecipient(deathOb.second);
+            break;
+        }
     }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "observer list size:%{public}d", observerList_.size());
     TAG_LOGD(AAFwkTag::ABILITYMGR, "death recipient observer list size:%{public}d", deathRecipientList_.size());
