@@ -2249,7 +2249,7 @@ ErrCode AbilityManagerShellCommand::StartAbilityWithWait(Want& want)
     while (isAlwaysWaiting) {
         observer->GetData(isAlwaysWaiting, data);
         if (!isAlwaysWaiting) {
-            auto totalTime = data.foregroundTime_ - data.time_;
+            auto totalTime = data.foregroundTime_ - data.startTime_;
             auto currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count();
             auto waitTime = currentTime - now;
