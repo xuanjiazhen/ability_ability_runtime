@@ -637,6 +637,7 @@ void MissionListManager::GetTargetMissionAndAbility(const AbilityRequest &abilit
             TAG_LOGE(AAFwkTag::ABILITYMGR, "targetRecord null");
             return;
         }
+        AbilityManagerService::GetPubInstance()->SetColdStartForShellCall(targetRecord);
         targetMission = std::make_shared<Mission>(info.missionInfo.id, targetRecord,
             info.missionName, info.startMethod);
         targetRecord->UpdateRecoveryInfo(info.hasRecoverInfo);
@@ -1308,6 +1309,7 @@ void MissionListManager::CompleteForegroundSuccess(const std::shared_ptr<Ability
     TAG_LOGD(AAFwkTag::ABILITYMGR, "ability: %{public}s", element.c_str());
 
     abilityRecord->SetAbilityState(AbilityState::FOREGROUND);
+    AbilityManagerService::GetPubInstance()->NotifyAATerminateWait(abilityRecord);
 
 #if BINDER_IPC_32BIT
     TAG_LOGI(AAFwkTag::ABILITYMGR, "bundle:%{public}s,ability:%{public}s,time:%{public}lld",
@@ -3012,6 +3014,7 @@ void MissionListManager::CompleteFirstFrameDrawing(const sptr<IRemoteObject> &ab
     abilityRecord->SetCompleteFirstFrameDrawing(true);
     AppExecFwk::AbilityFirstFrameStateObserverManager::GetInstance().
         HandleOnFirstFrameState(abilityRecord);
+    AbilityManagerService::GetPubInstance()->NotifyAATerminateWait(abilityRecord);
     auto handler = AbilityManagerService::GetPubInstance()->GetTaskHandler();
     if (handler == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "GetTaskHandler fail");
