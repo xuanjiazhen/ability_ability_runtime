@@ -21,6 +21,7 @@
 #include "ability_connect_manager.h"
 #include "ability_manager_radar.h"
 #include "ability_start_by_call_helper.h"
+#include "ability_start_with_wait_observer_utils.h"
 #include "accesstoken_kit.h"
 #include "ability_manager_xcollie.h"
 #include "app_utils.h"
@@ -1199,6 +1200,8 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
 #ifdef SUPPORT_SCREEN
     if (ImplicitStartProcessor::IsImplicitStartAction(want)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "is implicit start action");
+        AbilityStartWithWaitObserverUtils::GetInstance().Intercepted(
+            want, AbilityUtil::InterceptedReason::INTERCEPTED_FOR_IMPLICIT_START);
         auto checkResult = AbilityUtil::CheckInstanceKey(want);
         if (checkResult != ERR_OK) {
             return checkResult;
@@ -1289,6 +1292,10 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
     if (isUIAbilityOnly && abilityInfo.type != AbilityType::PAGE) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "ability type no UIAbility");
         return ERR_INVALID_VALUE;
+    }
+    if (abilityInfo.type != AbilityType::PAGE) {
+        AbilityStartWithWaitObserverUtils::GetInstance().Intercepted(
+            want, AbilityUtil::InterceptedReason::INTERCEPTED_FOR_NON_UI_ABILITY);
     }
     validUserId = abilityInfo.applicationInfo.singleton ? U0_USER_ID : validUserId;
     TAG_LOGD(AAFwkTag::ABILITYMGR, "userId is : %{public}d, singleton is : %{public}d",
@@ -12014,6 +12021,16 @@ void AbilityManagerService::OnCacheExitInfo(uint32_t accessTokenId, const AAFwk:
     delayClearReasonHandler_->SubmitTaskJust(delayClearReason, "delayClearReason", CLEAR_REASON_DELAY_TIME);
 }
 
+void AbilityManagerService::SetColdStartForShellCall(std::shared_ptr<AbilityRecord> &abilityRecord)
+{
+    AbilityStartWithWaitObserverUtils::GetInstance().SetColdStartForShellCall(abilityRecord);
+}
+
+void AbilityManagerService::NotifyAATerminateWait(const std::shared_ptr<AbilityRecord> &abilityRecord)
+{
+    AbilityStartWithWaitObserverUtils::GetInstance().NotifyAATerminateWait(abilityRecord);
+}
+
 int32_t AbilityManagerService::OpenFile(const Uri& uri, uint32_t flag)
 {
     auto accessTokenId = IPCSkeleton::GetCallingTokenID();
@@ -13806,6 +13823,32 @@ int32_t AbilityManagerService::RevokeDelegator(sptr<IRemoteObject> token)
     auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
     CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
     return uiAbilityManager->RevokeDelegator(token);
+}
+
+int32_t AbilityManagerService::StartAbilityWithWait(
+    const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
+    if (observer == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "observer null");
+        return ERR_INVALID_VALUE;
+    }
+    auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
+    if (!isShellCall) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not shell call");
+        return ERR_PERMISSION_DENIED;
+    }
+    // 1.regist observer
+    AbilityStartWithWaitObserverUtils::GetInstance().Regist(want, observer);
+    // 2.start ability
+    auto result = StartAbility(want, DEFAULT_INVAL_VALUE, DEFAULT_INVAL_VALUE);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "start ability wait fail, %{public}d", result);
+        return result;
+    }
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
+    return ERR_OK;
 }
 
 int32_t AbilityManagerService::CheckStartPlugin(const Want& want, sptr<IRemoteObject> callerToken)

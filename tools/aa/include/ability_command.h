@@ -71,6 +71,7 @@ const std::string HELP_MSG_START =
     "  [-U <URI>] "
     "  [-e <entity>] "
     "  [-t <mime-type>] "
+    "  [-W] "
     "  [--wl <window-left>] "
     "  [--wt <window-top>] "
     "  [--wh <window-height>] "
@@ -202,6 +203,8 @@ const std::string PERFCMD_FIRST_DUMPHEAP = "dumpheap";
 
 const std::string STRING_TEST_REGEX_INTEGER_NUMBERS = "^(0|[1-9][0-9]*|-[1-9][0-9]*)$";
 const std::string STRING_REGEX_ALL_NUMBERS = "^(-)?([0-9]|[1-9][0-9]+)([\\.][0-9]+)?$";
+const std::string STRING_IMPLICT_START_WITH_WAIT_NG = "warn: implict start is unsupported with wait option";
+const std::string STRING_NON_UIABILITY_START_WITH_WAIT_NG = "warn: non-uiability start unsupported with wait option";
 }  // namespace
 
 class AbilityManagerShellCommand : public ShellCommand {
@@ -261,6 +264,9 @@ private:
     bool MatchOrderString(const std::regex &r, const std::string &orderCmd);
     bool CheckPerfCmdString(const char* optarg, const size_t paramLength, std::string &perfCmd);
     void ParseBundleName(std::string &bundleName);
+    ErrCode StartAbilityWithWait(Want& want);
+    void FormatOutputForWithWait(const AbilityStartWithWaitObserverData& data);
+    bool startAbilityWithWaitFlag_ = false;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

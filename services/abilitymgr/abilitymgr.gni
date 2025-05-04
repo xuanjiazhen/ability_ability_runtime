@@ -144,6 +144,7 @@ abilityms_files = [
   #utils
   "src/utils/ability_event_util.cpp",
   "src/utils/ability_permission_util.cpp",
+  "src/utils/ability_start_with_wait_observer_utils.cpp",
   "src/utils/app_mgr_util.cpp",
   "src/utils/dms_util.cpp",
   "src/utils/dump_utils.cpp",
