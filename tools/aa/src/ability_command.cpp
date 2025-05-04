@@ -2251,7 +2251,7 @@ ErrCode AbilityManagerShellCommand::StartAbilityWithWait(Want& want)
         observer->GetData(isAlwaysWaiting, data);
         if (!isAlwaysWaiting) {
             FormatOutputForWithWait(data);
-            return ret;
+            break;
         }
         usleep(WAIT_INTERVAL);
         maxWaitTime -= WAIT_INTERVAL;
