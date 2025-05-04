@@ -20,7 +20,7 @@
 #include <mutex>
 
 #include "ability_record.h"
-#include "ability_start_with_wait_observer_interface.h"
+#include "ability_start_with_wait_observer_stub.h"
 #include "ability_util.h"
 #include "nocopyable.h"
 #include "want.h"

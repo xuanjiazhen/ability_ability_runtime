@@ -21,7 +21,7 @@
 #include <list>
 #include <vector>
 
-#include "aa_tools/ability_start_with_wait_observer_stub.h"
+#include "aa_tools/ability_start_with_wait_observer_interface.h"
 #include "ability_connect_callback_interface.h"
 #include "ability_manager_ipc_interface_code.h"
 #include "ability_running_info.h"
