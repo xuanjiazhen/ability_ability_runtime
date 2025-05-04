@@ -16,7 +16,7 @@
 #include "extension_record_manager.h"
 
 #include "ability_util.h"
-#include "ui_extension_utils.h"
+#include "ui_extension_wrapper.h"
 #include "ui_extension_record.h"
 #include "ui_extension_record_factory.h"
 
@@ -115,7 +115,7 @@ int32_t ExtensionRecordManager::GetExtensionRecord(const int32_t extensionRecord
 bool ExtensionRecordManager::IsBelongToManager(const AppExecFwk::AbilityInfo &abilityInfo)
 {
     // only support UIExtension now
-    return AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo.extensionAbilityType);
+    return AAFwk::UIExtensionWrapper::IsUIExtension(abilityInfo.extensionAbilityType);
 }
 
 int32_t ExtensionRecordManager::GetActiveUIExtensionList(const int32_t pid, std::vector<std::string> &extensionList)
@@ -421,7 +421,7 @@ int32_t ExtensionRecordManager::GetOrCreateExtensionRecordInner(const AAFwk::Abi
     const std::string &hostBundleName, std::shared_ptr<ExtensionRecord> &extensionRecord, bool &isLoaded)
 {
     std::shared_ptr<ExtensionRecordFactory> factory = nullptr;
-    if (AAFwk::UIExtensionUtils::IsUIExtension(abilityRequest.abilityInfo.extensionAbilityType)) {
+    if (AAFwk::UIExtensionWrapper::IsUIExtension(abilityRequest.abilityInfo.extensionAbilityType)) {
         factory = DelayedSingleton<UIExtensionRecordFactory>::GetInstance();
     }
     if (factory == nullptr) {
@@ -522,7 +522,7 @@ int32_t ExtensionRecordManager::CreateExtensionRecord(const AAFwk::AbilityReques
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     std::shared_ptr<ExtensionRecordFactory> factory = nullptr;
-    if (AAFwk::UIExtensionUtils::IsUIExtension(abilityRequest.abilityInfo.extensionAbilityType)) {
+    if (AAFwk::UIExtensionWrapper::IsUIExtension(abilityRequest.abilityInfo.extensionAbilityType)) {
         factory = DelayedSingleton<UIExtensionRecordFactory>::GetInstance();
     }
     if (factory == nullptr) {
@@ -582,7 +582,7 @@ std::shared_ptr<AAFwk::AbilityRecord> ExtensionRecordManager::GetUIExtensionRoot
         return nullptr;
     }
 
-    if (!AAFwk::UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
+    if (!AAFwk::UIExtensionWrapper::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "not uiextension ability");
         return nullptr;
     }
@@ -616,7 +616,7 @@ int32_t ExtensionRecordManager::GetUIExtensionSessionInfo(
         return ERR_NULL_OBJECT;
     }
 
-    if (!AAFwk::UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
+    if (!AAFwk::UIExtensionWrapper::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "not uiextension ability");
         return ERR_INVALID_VALUE;
     }
@@ -760,7 +760,7 @@ bool ExtensionRecordManager::IsFocused(
         abilityRecord->GetWant().GetElement().GetURI().c_str(), abilityRecord->GetPid(),
         abilityRecord->GetApplicationInfo().accessTokenId);
 
-    if (!AAFwk::UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
+    if (!AAFwk::UIExtensionWrapper::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "not uiextension");
         return false;
     }

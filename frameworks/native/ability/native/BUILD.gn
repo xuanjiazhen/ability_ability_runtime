@@ -329,8 +329,7 @@ ohos_shared_library("abilitykit_native") {
     "${ability_runtime_native_path}/appkit:app_context_utils",
     "${ability_runtime_native_path}/appkit:appkit_delegator",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
-    "${ability_runtime_path}/utils/global/freeze:freeze_util",
-    "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_path}/utils/global/common:runtime_utils",
     "${ability_runtime_services_path}/common:event_report",
   ]
 
@@ -528,6 +527,7 @@ ohos_shared_library("extensionkit_native") {
   include_dirs = [
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime",
+    "${ability_runtime_path}/utils/global/common/include",
     "${ability_runtime_napi_path}/inner/napi_common",
   ]
 
@@ -540,6 +540,7 @@ ohos_shared_library("extensionkit_native") {
     "${ability_runtime_native_path}/ability/native/js_extension_common.cpp",
     "${ability_runtime_native_path}/appkit/ability_runtime/extension_context.cpp",
     "${ability_runtime_native_path}/appkit/ability_runtime/ui_holder_extension_context.cpp",
+    "${ability_runtime_path}/utils/global/common/src/ui_extension_wrapper.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/last_exit_detail_info.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/launch_param.cpp",
   ]
@@ -767,7 +768,7 @@ ohos_shared_library("uiabilitykit_native") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_delegator",
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
-    "${ability_runtime_path}/utils/global/freeze:freeze_util",
+    "${ability_runtime_path}/utils/global/common:runtime_utils",
     "${ability_runtime_services_path}/common:event_report",
   ]
 
@@ -865,7 +866,7 @@ ohos_shared_library("ability_thread") {
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/appkit:app_context",
-    "${ability_runtime_path}/utils/global/freeze:freeze_util",
+    "${ability_runtime_path}/utils/global/common:runtime_utils",
   ]
 
   external_deps = [
@@ -1156,7 +1157,7 @@ ohos_shared_library("ui_service_extension") {
     "${ability_runtime_native_path}/appkit:app_context_utils",
     "${ability_runtime_native_path}/appkit:appkit_delegator",
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
-    "${ability_runtime_path}/utils/global/freeze:freeze_util",
+    "${ability_runtime_path}/utils/global/common:runtime_utils",
   ]
 
   external_deps = [

@@ -22,7 +22,7 @@
 #include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
-#include "ui_extension_utils.h"
+#include "ui_extension_wrapper.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -115,7 +115,7 @@ std::string ExtensionAbilityThread::CreateAbilityName(
         abilityName = FORM_EXTENSION;
     }
 
-    if (AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo->extensionAbilityType)) {
+    if (AAFwk::UIExtensionWrapper::IsUIExtension(abilityInfo->extensionAbilityType)) {
         auto iter = UI_EXTENSION_NAME_MAP.find(abilityInfo->extensionAbilityType);
         if (iter != UI_EXTENSION_NAME_MAP.end()) {
             abilityName = iter->second;
