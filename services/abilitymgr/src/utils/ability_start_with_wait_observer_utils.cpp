@@ -160,6 +160,10 @@ void AbilityStartWithWaitObserverUtils::SetColdStartForShellCall(std::shared_ptr
         return;
     }
     auto observerId = abilityRecord->GetWant().GetIntParam(AbilityUtil::OBSERVER_TOKEN_KEY, -1);
+    if (observerId == -1) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invaid observerId");
+        return;
+    }
     std::lock_guard<std::mutex> guard(oberverMutex_);
     for (auto& observer : observerList_) {
         if (!observer.first) {
