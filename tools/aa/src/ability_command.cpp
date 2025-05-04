@@ -397,6 +397,8 @@ std::string AbilityManagerShellCommand::GetAaToolErrorInfo(std::string errorCode
 
 ErrCode AbilityManagerShellCommand::init()
 {
+    startTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
     return AbilityManagerClient::GetInstance()->Connect();
 }
 
@@ -2233,8 +2235,6 @@ sptr<IAbilityManager> AbilityManagerShellCommand::GetAbilityManagerService()
 ErrCode AbilityManagerShellCommand::StartAbilityWithWait(Want& want)
 {
     auto observer = sptr<AbilityStartWithWaitObserver>::MakeSptr();
-    auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::system_clock::now().time_since_epoch()).count();
     if (!observer) {
         TAG_LOGE(AAFwkTag::AA_TOOL, "inner error, alloc memory failed.");
         return INNER_ERR;
@@ -2244,19 +2244,12 @@ ErrCode AbilityManagerShellCommand::StartAbilityWithWait(Want& want)
         return ret;
     }
     auto maxWaitTime = MAX_WAIT_TIME;
-    bool isAlwaysWaiting = true;
     AbilityStartWithWaitObserverData data;
-    while (isAlwaysWaiting) {
+    while (true) {
+        bool isAlwaysWaiting = true;
         observer->GetData(isAlwaysWaiting, data);
         if (!isAlwaysWaiting) {
-            auto totalTime = data.foregroundTime_ - data.startTime_;
-            auto currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::system_clock::now().time_since_epoch()).count();
-            auto waitTime = currentTime - now;
-            resultReceiver_.append("StartMode: ").append(data.coldStart_ ? "Cold" : "Hot").append("\n")
-                .append("BundleName: ").append(data.bundleName_).append("\n").append("AbilityName: ")
-                .append(data.abilityName_).append("\n").append("TotalTime: ").append(std::to_string(totalTime))
-                .append("\n").append("WaitTime: ").append(std::to_string(waitTime)).append("\n");
+            FormatOutputForWithWait(data);
             return ret;
         }
         usleep(WAIT_INTERVAL);
@@ -2267,6 +2260,34 @@ ErrCode AbilityManagerShellCommand::StartAbilityWithWait(Want& want)
         }
     }
     return ret;
+}
+
+void AbilityManagerShellCommand::FormatOutputForWithWait(const AbilityStartWithWaitObserverData& data)
+{
+    switch (data.reason_) {
+        case 0: {
+            auto totalTime = data.foregroundTime_ - data.startTime_;
+            auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count();
+            auto waitTime = now - startTime_;
+            resultReceiver_.append("StartMode: ").append(data.coldStart_ ? "Cold" : "Hot").append("\n")
+                .append("BundleName: " + data.bundleName_ + "\n").append("AbilityName: " + data.abilityName_ + "\n")
+                .append("TotalTime: " + std::to_string(totalTime) + "\n")
+                .append("WaitTime: " + std::to_string(waitTime) + "\n");
+            break;
+        }
+        case 1: {
+            resultReceiver_.append(STRING_IMPLICT_START_WITH_WAIT_NG + "\n");
+            break;
+        }
+        case 2: {
+            resultReceiver_.append(STRING_NON_UIABILITY_START_WITH_WAIT_NG + "\n");
+            break;
+        }
+        default:
+            // do nothing
+            break;
+    } 
 }
 
 #ifdef ABILITY_COMMAND_FOR_TEST
