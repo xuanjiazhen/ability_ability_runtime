@@ -71,8 +71,8 @@ HWTEST_F(AbilityStartWithWaitObserverUtilsTest, AbilityStartWithWaitObserverUtil
     EXPECT_EQ(want.GetIntParam(AbilityUtil::OBSERVER_TOKEN_KEY, -1), -1);
 
     sptr<IRemoteObject> observerStub = nullptr;
-    observer = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr<observerStub>;
-    AbilityStartWithWaitObserverUtils::GetInstance().Regist(want, observer);
+    auto observer2 = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub);
+    AbilityStartWithWaitObserverUtils::GetInstance().Regist(want, observer2);
     EXPECT_EQ(want.GetIntParam(AbilityUtil::OBSERVER_TOKEN_KEY, -1), -1);
 }
 
@@ -86,8 +86,8 @@ HWTEST_F(AbilityStartWithWaitObserverUtilsTest, AbilityStartWithWaitObserverUtil
 {
     TAG_LOGI(AAFwkTag::TEST, "begin.");
     Want want;
-    sptr<IAbilityStartWithWaitObserver> observerStub = new MockAbilityStartWithWaitObserver();
-    sptr<IAbilityStartWithWaitObserver> observer = new AbilityStartWithWaitObserverProxy(observerStub);
+    sptr<IRemoteObject> observerStub = sptr<MockAbilityStartWithWaitObserver>::MakeSptr();
+    sptr<AbilityStartWithWaitObserverProxy> observer = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub);
     AbilityStartWithWaitObserverUtils::GetInstance().Regist(want, observer);
     EXPECT_EQ(want.GetIntParam(AbilityUtil::OBSERVER_TOKEN_KEY, -1), 0);
     
@@ -96,7 +96,7 @@ HWTEST_F(AbilityStartWithWaitObserverUtilsTest, AbilityStartWithWaitObserverUtil
     EXPECT_EQ(want.GetIntParam(AbilityUtil::OBSERVER_TOKEN_KEY, -1), 0);
 
     // observerStub = sptr<MockAbilityStartWithWaitObserver>::MakeSptr();
-    // observer = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr<observerStub>;
+    // observer = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub);
     // AbilityStartWithWaitObserverUtils::GetInstance().Regist(want, observer);
     // EXPECT_EQ(want.GetIntParam(AbilityUtil::OBSERVER_TOKEN_KEY, -1), 1);
 }
