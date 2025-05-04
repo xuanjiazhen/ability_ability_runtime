@@ -22,6 +22,7 @@
 #include <regex>
 #include "ability_manager_client.h"
 #include "ability_start_with_wait_observer.h"
+#include "ability_util.h"
 #include "app_mgr_client.h"
 #include "hilog_tag_wrapper.h"
 #include "iservice_registry.h"
@@ -2264,8 +2265,8 @@ ErrCode AbilityManagerShellCommand::StartAbilityWithWait(Want& want)
 
 void AbilityManagerShellCommand::FormatOutputForWithWait(const AbilityStartWithWaitObserverData& data)
 {
-    switch (data.reason_) {
-        case 0: {
+    switch (static_cast<AbilityUtil::InterceptedReason>(data.reason_)) {
+        case AbilityUtil::InterceptedReason::INTERCEPTED_FOR_NONE: {
             auto totalTime = data.foregroundTime_ - data.startTime_;
             auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count();
@@ -2276,18 +2277,18 @@ void AbilityManagerShellCommand::FormatOutputForWithWait(const AbilityStartWithW
                 .append("WaitTime: " + std::to_string(waitTime) + "\n");
             break;
         }
-        case 1: {
+        case AbilityUtil::InterceptedReason::INTERCEPTED_FOR_IMPLICIT_START: {
             resultReceiver_.append(STRING_IMPLICT_START_WITH_WAIT_NG + "\n");
             break;
         }
-        case 2: {
+        case AbilityUtil::InterceptedReason::INTERCEPTED_FOR_NON_UI_ABILITY: {
             resultReceiver_.append(STRING_NON_UIABILITY_START_WITH_WAIT_NG + "\n");
             break;
         }
         default:
             // do nothing
             break;
-    } 
+    }
 }
 
 #ifdef ABILITY_COMMAND_FOR_TEST

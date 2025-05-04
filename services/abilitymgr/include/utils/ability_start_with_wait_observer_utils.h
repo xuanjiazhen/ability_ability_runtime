@@ -31,7 +31,7 @@ struct AbilityForegroundInfo {
     bool coldStart_ = false;
     int32_t observerId_ = 0;
     sptr<AbilityStartWithWaitObserverRecipient> deathRecipient_ = nullptr;
-    int64_t startTime_ = 0; // ams recv msg time
+    int64_t startTime_ = 0;
     int64_t foregroundTime_ = 0; // ability foreground time
     std::string bundleName_;
     std::string abilityName_;
@@ -61,4 +61,4 @@ private:
 };
 } // namespace AAFwk
 } // namespace OHOS
- #endif // OHOS_ABILITY_RUNTIME_ABILITY_START_WITH_WAIT_OBSERVER_UTILS
+#endif // OHOS_ABILITY_RUNTIME_ABILITY_START_WITH_WAIT_OBSERVER_UTILS
