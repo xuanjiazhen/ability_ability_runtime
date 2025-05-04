@@ -186,6 +186,9 @@ enum class AbilityErrorCode {
     // extension can not start the ability due to extension control.
     ERROR_CODE_EXTENSION_START_ABILITY_CONTROLLED = 16000083,
 
+    // caller is not atomic service.
+    ERROR_CODE_CALLER_NOT_ATOMIC_SERVICE = 16000090,
+
     // invalid caller.
     ERROR_CODE_INVALID_CALLER = 16200001,
 

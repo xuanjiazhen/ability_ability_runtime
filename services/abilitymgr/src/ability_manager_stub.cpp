@@ -834,6 +834,9 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentieth(uint32_t code, MessageParc
     if (interfaceCode == AbilityManagerInterfaceCode::START_ABILITY_WITH_WAIT) {
         return StartAbilityWithWaitInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::RESTART_SELF_ATOMIC_SERVICE) {
+        return RestartSelfAtomicServiceInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -4565,6 +4568,21 @@ int32_t AbilityManagerStub::StartAbilityWithWaitInner(MessageParcel &data, Messa
 
     int32_t result = StartAbilityWithWait(*want, callback);
     reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::RestartSelfAtomicServiceInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> callerToken = data.ReadRemoteObject();
+    if (callerToken == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null callerToken");
+        return INVALID_CALLER_TOKEN;
+    }
+    int32_t result = RestartSelfAtomicService(callerToken);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
+        return ERR_WRITE_RESULT_CODE_FAILED;
+    }
     return NO_ERROR;
 }
 } // namespace AAFwk
