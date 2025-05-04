@@ -45,13 +45,14 @@ void AbilityStartWithWaitObserverUtils::Regist(const Want &want, const sptr<IAbi
         }
         if (observer->AsObject() == ob.first->AsObject()) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "duplicate observer");
-            return ;
+            return;
         }
     }
     auto tmpId = (abilityForegroundInfo_.observerId_ == INT_MAX) ? 0 : (abilityForegroundInfo_.observerId_ + 1);
     abilityForegroundInfo_.observerId_ = tmpId;
     abilityForegroundInfo_.startTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now().time_since_epoch()).count();
+    // 1.save deathRecipient_
     abilityForegroundInfo_.deathRecipient_ = GenerateDeathRecipient(observer);
     observerList_.emplace(observer, abilityForegroundInfo_);
     (const_cast<Want &>(want)).SetParam(AbilityUtil::OBSERVER_TOKEN_KEY, tmpId);
@@ -146,7 +147,7 @@ void AbilityStartWithWaitObserverUtils::NotifyAATerminateWait(const std::shared_
             }
             observerList_.erase(observer.first);
             TAG_LOGD(AAFwkTag::ABILITYMGR, "observer list size:%{public}d", observerList_.size());
-            break; // cant deleted for UnregisterInnerUnlocked erase map iter
+            break;
         }
     }
 }
