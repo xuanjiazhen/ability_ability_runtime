@@ -78,7 +78,7 @@ namespace AbilityUtil {
 #define CHECK_RET_RETURN_RET(object, log)                                            \
     if (object != ERR_OK) {                                                          \
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s, ret : %{public}d", log, object); \
-        return object;                                                               \
+        return object;                                                                \
     }
 
 #define CHECK_TRUE_RETURN_RET(object, value, log)          \

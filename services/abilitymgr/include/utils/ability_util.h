@@ -51,6 +51,12 @@ constexpr const char* MARKET_BUNDLE_NAME = "com.huawei.hmsapp.appgallery";
 constexpr const char* MARKET_CROWD_TEST_BUNDLE_PARAM = "crowd_test_bundle_name";
 constexpr const char* BUNDLE_NAME_SELECTOR_DIALOG = "com.ohos.amsdialog";
 constexpr const char* JUMP_INTERCEPTOR_DIALOG_CALLER_PKG = "interceptor_callerPkg";
+const std::string OBSERVER_TOKEN_KEY = "ohos.ability.params.abilityWithObserverToken";
+enum class InterceptedReason {
+    INTERCEPTED_FOR_NONE = 0,
+    INTERCEPTED_FOR_IMPLICIT_START,
+    INTERCEPTED_FOR_NON_UI_ABILITY,
+};
 
 #define CHECK_POINTER_CONTINUE(object)                         \
     if (!object) {                                             \
