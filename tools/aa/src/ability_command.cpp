@@ -137,7 +137,7 @@ constexpr struct option LONG_OPTIONS[] = {
     {"mutil-thread", no_argument, nullptr, 'R'},
     {"action", required_argument, nullptr, 'A'},
     {"URI", required_argument, nullptr, 'U'},
-    {"wait", required_argument, nullptr, 'W'},
+    {"wait", no_argument, nullptr, 'W'},
     {"entity", required_argument, nullptr, 'e'},
     {"type", required_argument, nullptr, 't'},
     {"pi", required_argument, nullptr, OPTION_PARAMETER_INTEGER},
