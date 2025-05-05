@@ -2144,5 +2144,18 @@ HWTEST_F(AbilityContextImplTest, OnRequestFailure_0200, Function | MediumTest | 
     context_->OnRequestFailure(requestId, element, "failure");
     EXPECT_EQ(context_->onRequestResults_.empty(), true);
 }
+
+/**
+ * @tc.number: Ability_Context_Impl_SetShareRouter_0100
+ * @tc.name: SetShareRouter
+ * @tc.desc: Verify that function SetShareRouter/GetShareRouter.
+ */
+HWTEST_F(AbilityContextImplTest, SetShareRouter_0100, Function | MediumTest | Level1)
+{
+    std::string shareRouter = "TEST_shareRouter";
+    context_->SetShareRouter(shareRouter);
+    auto ret = context_->GetShareRouter();
+    EXPECT_TRUE(ret == shareRouter);
+}
 } // namespace AppExecFwk
 } // namespace OHOS

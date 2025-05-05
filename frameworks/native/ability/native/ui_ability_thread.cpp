@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -146,8 +146,10 @@ void UIAbilityThread::Attach(const std::shared_ptr<AppExecFwk::OHOSApplication> 
     ability->AttachBaseContext(contextDeal);
 
     // new hap requires
-    ability->AttachAbilityContext(BuildAbilityContext(abilityRecord->GetAbilityInfo(),
-        application, token_, stageContext, abilityRecord->GetAbilityRecordId()));
+    auto abilityContext = BuildAbilityContext(abilityRecord->GetAbilityInfo(),
+        application, token_, stageContext, abilityRecord->GetAbilityRecordId());
+    AddShareRouterToAbilityContext(abilityRecord, abilityContext);
+    ability->AttachAbilityContext(abilityContext);
 
     AttachInner(application, abilityRecord, stageContext);
 }
@@ -218,8 +220,10 @@ void UIAbilityThread::Attach(const std::shared_ptr<AppExecFwk::OHOSApplication> 
     ability->AttachBaseContext(contextDeal);
 
     // new hap requires
-    ability->AttachAbilityContext(BuildAbilityContext(abilityRecord->GetAbilityInfo(),
-        application, token_, stageContext, abilityRecord->GetAbilityRecordId()));
+    auto abilityContext = BuildAbilityContext(abilityRecord->GetAbilityInfo(),
+        application, token_, stageContext, abilityRecord->GetAbilityRecordId());
+    AddShareRouterToAbilityContext(abilityRecord, abilityContext);
+    ability->AttachAbilityContext(abilityContext);
 
     AttachInner(application, abilityRecord, stageContext);
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
@@ -754,6 +758,24 @@ void UIAbilityThread::ScheduleAbilityRequestSuccess(const std::string &requestId
         TAG_LOGE(AAFwkTag::UIABILITY, "postTask error");
         return;
     }
+}
+
+void UIAbilityThread::AddShareRouterToAbilityContext(
+    const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &abilityRecord,
+    std::shared_ptr<AbilityContext> &abilityContext) const
+{
+    if (abilityContext == nullptr) {
+        return;
+    }
+    auto want = abilityRecord->GetWant();
+    if (want == nullptr) {
+        return;
+    }
+    std::string shareRouter = want->GetStringParam(Want::ATOMIC_SERVICE_SHARE_ROUTER);
+    if (shareRouter == "") {
+        return;
+    }
+    abilityContext->SetShareRouter(shareRouter);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

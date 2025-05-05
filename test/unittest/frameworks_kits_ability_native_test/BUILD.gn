@@ -1023,6 +1023,7 @@ ohos_unittest("ui_ability_thread_test") {
     "ability_base:extractortool",
     "ability_base:extractresourcemanager",
     "ability_base:want",
+    "ability_runtime:ability_context_native",
     "ability_runtime:ability_deps_wrapper",
     "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
