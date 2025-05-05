@@ -325,6 +325,7 @@ private:
     int32_t UnregisterHiddenStartObserverInner(MessageParcel &data, MessageParcel &reply);
     int32_t QueryPreLoadUIExtensionRecordInner(MessageParcel &data, MessageParcel &reply);
     int32_t RevokeDelegatorInner(MessageParcel &data, MessageParcel &reply);
+    int32_t StartAbilityWithWaitInner(MessageParcel &data, MessageParcel &reply);
 
     int OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);
