@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 #include "user_record_manager.h"
-
 #include <mutex>
 #include "hilog_tag_wrapper.h"
- 
+#include "mock_my_status.h"
+
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
@@ -34,7 +34,7 @@ UserRecordManager &UserRecordManager::GetInstance()
  
 bool UserRecordManager::IsLogoutUser(int32_t userId)
 {
-    return false;
+    return AAFwk::MyStatus::GetInstance().isLogoutUser_;
 }
 
 void UserRecordManager::SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess)

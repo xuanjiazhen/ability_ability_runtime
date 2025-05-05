@@ -1179,8 +1179,7 @@ public:
     void NotifyAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
         const std::string &message);
 
-    void NotifyAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
-        const std::string &message);
+    void NotifyAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element);
 
     void ScheduleCollaborate(const Want &want);
 
@@ -1219,6 +1218,7 @@ public:
 
     int32_t NotifyComponentTerminate(int32_t resultCode = -1);
 
+    void UpdateUIExtensionBindInfo(const WantParams &wantParams);
 protected:
 
     sptr<Token> token_ = {};                               // used to interact with kit and wms

@@ -878,6 +878,7 @@ ProcessData AppStateObserverManager::WrapProcessData(const std::shared_ptr<AppRu
     processData.gpuPid = appRecord->GetGPUPid();
     processData.callerPid = appRecord->GetCallerPid();
     processData.callerUid = appRecord->GetCallerUid();
+    processData.killReason = appRecord->GetKillReason();
     return processData;
 }
 
@@ -1246,6 +1247,71 @@ void AppStateObserverManager::HandleOnAppCacheStateChanged(const std::shared_ptr
         auto iter = std::find(bundleNames.begin(), bundleNames.end(), data.bundleName);
         if ((bundleNames.empty() || iter != bundleNames.end()) && it->first != nullptr) {
             it->first->OnAppCacheStateChanged(data);
+        }
+    }
+}
+
+ProcessBindData AppStateObserverManager::WrapProcessBindData(
+    const std::shared_ptr<AppRunningRecord> &appRecord,
+    const UIExtensionProcessBindInfo &bindInfo, int32_t bindingRelation)
+{
+    ProcessBindData processBindData;
+    processBindData.bundleName = appRecord->GetBundleName();
+    processBindData.pid = appRecord->GetPid();
+    processBindData.uid = appRecord->GetUid();
+    processBindData.isKeepAlive = appRecord->IsKeepAliveApp();
+    processBindData.extensionType = appRecord->GetExtensionType();
+    processBindData.processType = appRecord->GetProcessType();
+    processBindData.callerPid = bindInfo.callerPid;
+    processBindData.callerUid = bindInfo.callerUid;
+    processBindData.callerBundleName = bindInfo.callerBundleName;
+    processBindData.bindingRelation = bindingRelation;
+    return processBindData;
+}
+
+void AppStateObserverManager::OnProcessBindingRelationChanged(
+    const std::shared_ptr<AppRunningRecord> &appRecord,
+    const UIExtensionProcessBindInfo &bindInfo, int32_t bindingRelation)
+{
+    if (handler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null handler");
+        return;
+    }
+
+    auto task =
+        [weak = weak_from_this(), appRecord, bindInfo, bindingRelation]() {
+        auto self = weak.lock();
+        if (self == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "null self");
+            return;
+        }
+        TAG_LOGD(AAFwkTag::APPMGR, "OnProcessBindingRelationChanged come.");
+        self->HandleOnProcessBindingRelationChanged(appRecord, bindInfo, bindingRelation);
+    };
+    handler_->SubmitTask(task);
+}
+
+void AppStateObserverManager::HandleOnProcessBindingRelationChanged(
+    const std::shared_ptr<AppRunningRecord> &appRecord,
+    const UIExtensionProcessBindInfo &bindInfo, int32_t bindingRelation)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null appRecord");
+        return;
+    }
+
+    ProcessBindData data =
+        WrapProcessBindData(appRecord, bindInfo, bindingRelation);
+    auto appStateObserverMapCopy = GetAppStateObserverMapCopy();
+    for (auto it = appStateObserverMapCopy.begin();
+         it != appStateObserverMapCopy.end(); ++it) {
+        const auto &bundleNames = it->second.bundleNames;
+        auto iter =
+            std::find(bundleNames.begin(), bundleNames.end(), data.bundleName);
+        if ((bundleNames.empty() || iter != bundleNames.end()) &&
+            it->first != nullptr) {
+            it->first->OnProcessBindingRelationChanged(data);
         }
     }
 }

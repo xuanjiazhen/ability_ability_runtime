@@ -34,7 +34,8 @@ RemoteClientManager::~RemoteClientManager()
 
 std::shared_ptr<AppSpawnClient> RemoteClientManager::GetSpawnClient()
 {
-    return nullptr;
+    AAFwk::MyStatus::GetInstance().getSpawnClientCall_++;
+    return AAFwk::MyStatus::GetInstance().getSpawnClient_;
 }
 
 void RemoteClientManager::SetSpawnClient(const std::shared_ptr<AppSpawnClient> &appSpawnClient)
@@ -52,7 +53,7 @@ void RemoteClientManager::SetBundleManagerHelper(const std::shared_ptr<BundleMgr
 
 std::shared_ptr<AppSpawnClient> RemoteClientManager::GetNWebSpawnClient()
 {
-    return nullptr;
+    return AAFwk::MyStatus::GetInstance().getNWebSpawnClient_;
 }
  
 std::shared_ptr<AppSpawnClient> RemoteClientManager::GetCJSpawnClient()

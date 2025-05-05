@@ -7132,10 +7132,30 @@ int AbilityManagerService::KillProcess(const std::string &bundleName, bool clear
     CHECK_POINTER_AND_RETURN(bms, KILL_PROCESS_FAILED);
     int32_t userId = GetUserId();
     AppExecFwk::BundleInfo bundleInfo;
-    if (IN_PROCESS_CALL(bms->GetCloneBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, appIndex,
-        bundleInfo, userId)) != ERR_OK) {
+    if (IN_PROCESS_CALL(bms->GetCloneBundleInfoExt(bundleName,
+        static_cast<uint32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION),
+        appIndex, userId, bundleInfo)) != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "get bundle info when kill process failed");
         return GET_BUNDLE_INFO_FAILED;
+    }
+
+    int32_t collaboratorType = -1;
+    if (bundleInfo.applicationInfo.codePath == std::to_string(CollaboratorType::RESERVE_TYPE)) {
+        collaboratorType = CollaboratorType::RESERVE_TYPE;
+    } else if (bundleInfo.applicationInfo.codePath == std::to_string(CollaboratorType::OTHERS_TYPE)) {
+        collaboratorType = CollaboratorType::OTHERS_TYPE;
+    }
+    if (collaboratorType != -1) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Collaborator kill");
+        auto collaborator = GetCollaborator(collaboratorType);
+        if (collaborator == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Collaborator null");
+            return KILL_PROCESS_FAILED;
+        }
+        if (collaborator->NotifyKillProcesses(bundleName, userId) != ERR_OK) {
+            return KILL_PROCESS_FAILED;
+        }
+        return ERR_OK;
     }
 
     KeepAliveType type;
@@ -8123,8 +8143,12 @@ int AbilityManagerService::StartAbilityByCallWithErrMsg(const Want &want, const 
         ReportEventToRSS(abilityRequest.abilityInfo, callerToken);
         abilityRequest.want.SetParam(ServerConstant::IS_CALL_BY_SCB, false);
         auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
-        CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
-        return uiAbilityManager->ResolveLocked(abilityRequest);
+        if (uiAbilityManager == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "uiAbilityManager null, userId is invalid:%{public}d", oriValidUserId);
+            errMsg = "uiAbilityManager null, userId is invalid";
+            return ERR_INVALID_VALUE;
+        }
+        return uiAbilityManager->ResolveLocked(abilityRequest, errMsg);
     }
 
     auto missionListMgr = GetMissionListManagerByUserId(oriValidUserId);
@@ -8147,7 +8171,8 @@ int AbilityManagerService::StartAbilityJust(AbilityRequest &abilityRequest, int3
         ReportEventToRSS(abilityRequest.abilityInfo, abilityRequest.callerToken);
         auto uiAbilityManager = GetUIAbilityManagerByUserId(validUserId);
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
-        return uiAbilityManager->ResolveLocked(abilityRequest);
+        std::string errMsg;
+        return uiAbilityManager->ResolveLocked(abilityRequest, errMsg);
     }
 
     auto missionListMgr = GetMissionListManagerByUserId(validUserId);
@@ -10997,9 +11022,7 @@ int32_t AbilityManagerService::IsValidMissionIds(
 int AbilityManagerService::VerifyPermission(const std::string &permission, int pid, int uid)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "permission=%{public}s, pid=%{public}d, uid=%{public}d",
-        permission.c_str(),
-        pid,
-        uid);
+        permission.c_str(), pid, uid);
     if (permission.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "verifyPermission permission invalid");
         return CHECK_PERMISSION_FAILED;
@@ -11007,6 +11030,28 @@ int AbilityManagerService::VerifyPermission(const std::string &permission, int p
 
     auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bms, ERR_INVALID_VALUE);
+
+    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    std::string callerBundleName;
+    if (IN_PROCESS_CALL(bms->GetNameForUid(callerUid, callerBundleName)) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get caller bundleName failed");
+        return CHECK_PERMISSION_FAILED;
+    }
+
+    int32_t userId = GetUserId();
+    AppExecFwk::BundleInfo bundleInfo;
+    bool queryBundleInfoRet = IN_PROCESS_CALL(
+        bms->GetBundleInfo(callerBundleName, AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, bundleInfo, userId));
+    if (!queryBundleInfoRet) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get caller bundleInfo failed, %{public}s", callerBundleName.c_str());
+        return CHECK_PERMISSION_FAILED;
+    }
+    for (auto it = bundleInfo.abilityInfos.begin(); it != bundleInfo.abilityInfos.end(); ++it) {
+        if (it->isStageBasedModel == true) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "only support fa mode");
+            return CHECK_PERMISSION_FAILED;
+        }
+    }
 
     std::string bundleName;
     if (IN_PROCESS_CALL(bms->GetNameForUid(uid, bundleName)) != ERR_OK) {
