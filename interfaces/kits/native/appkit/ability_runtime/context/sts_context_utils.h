@@ -47,9 +47,6 @@ ani_object CreateModuleResourceManagerSync([[maybe_unused]]ani_env *env, [[maybe
 
 ani_object GetApplicationContextSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj);
 
-ani_double NativeOnSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
-    ani_string type, ani_object envCallback);
-
 void SwitchAniArea([[maybe_unused]]ani_env *aniEnv, ani_enum_item aniMode);
 
 ani_enum_item GetAniArea(ani_env *aniEnv);
@@ -57,6 +54,14 @@ ani_enum_item GetAniArea(ani_env *aniEnv);
 ani_string GetAniFilesDir(ani_env *aniEnv);
 
 ani_string GetAniTempDir(ani_env *aniEnv);
+
+ani_double NativeOnSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
+    ani_string type, ani_object envCallback);
+    
+void NativeOffSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
+    ani_string type, ani_double callbackId, ani_object call);
+    
+ani_long GetNativeApplicationContextLong(ani_env *env, ani_object& aniObj);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
