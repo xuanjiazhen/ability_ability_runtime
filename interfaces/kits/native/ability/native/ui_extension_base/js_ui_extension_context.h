@@ -123,22 +123,6 @@ protected:
     std::unique_ptr<NativeReference> jsConnectionObject_ = nullptr;
     int64_t connectionId_ = -1;
 };
-
-struct UIExtensionConnectionKey {
-    AAFwk::Want want;
-    int64_t id;
-};
-
-struct key_compare {
-    bool operator()(const UIExtensionConnectionKey &key1, const UIExtensionConnectionKey &key2) const
-    {
-        if (key1.id < key2.id) {
-            return true;
-        }
-        return false;
-    }
-};
-
 }  // namespace AbilityRuntime
 }  // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_JS_UI_EXTENSION_CONTEXT_H

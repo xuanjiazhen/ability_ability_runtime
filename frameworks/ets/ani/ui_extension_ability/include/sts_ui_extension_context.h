@@ -26,6 +26,7 @@
 #include "sts_free_install_observer.h"
 namespace OHOS {
 namespace AbilityRuntime {
+class StsUiExtensionConnection;
 
 [[maybe_unused]] static void TerminateSelfSync([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object obj,
     [[maybe_unused]] ani_object callback);
@@ -48,8 +49,32 @@ public:
     static UIExtensionContext* GetAbilityContext(ani_env *env, ani_object obj);
     void AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want,
         ani_object callback, UIExtensionContext* context);
+    static bool CheckConnectionParam([[maybe_unused]]ani_env *env, ani_object connectOptionsObj,
+        sptr<StsUiExtensionConnection>& connection, AAFwk::Want& want);
+    static ani_int ConnectServiceExtensionAbility([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
+        ani_object wantObj, ani_object connectOptionsObj);
+    static void DisconnectServiceExtensionAbilitySync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
+        ani_int connectId, ani_object connectOptionsObj);
 private:
     sptr<StsFreeInstallObserver> freeInstallObserver_ = nullptr;
+};
+
+class StsUiExtensionConnection : public AbilityConnectCallback {
+public:
+    explicit StsUiExtensionConnection(ani_vm *etsVm);
+    ~StsUiExtensionConnection();
+    void OnAbilityConnectDone(
+        const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode) override;
+    void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode) override;
+    void CallStsFailed(int32_t errorCode);
+    void SetConnectionId(int64_t id);
+    int64_t GetConnectionId() { return connectionId_; }
+    void SetConnectionRef(ani_object connectOptionsObj);
+
+protected:
+    ani_vm *etsVm_;
+    int64_t connectionId_ = -1;
+    ani_ref stsConnectionRef_;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS
