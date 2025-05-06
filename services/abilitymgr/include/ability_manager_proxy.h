@@ -1681,7 +1681,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t RevokeDelegator(sptr<IRemoteObject> token) override;
-    int32_t StartAbilityWithWait(const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer) override;
+    int32_t StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> &observer) override;
 
 private:
     template <typename T>

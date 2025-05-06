@@ -203,8 +203,8 @@ const std::string PERFCMD_FIRST_DUMPHEAP = "dumpheap";
 
 const std::string STRING_TEST_REGEX_INTEGER_NUMBERS = "^(0|[1-9][0-9]*|-[1-9][0-9]*)$";
 const std::string STRING_REGEX_ALL_NUMBERS = "^(-)?([0-9]|[1-9][0-9]+)([\\.][0-9]+)?$";
-const std::string STRING_IMPLICT_START_WITH_WAIT_NG = "warn: implict start is unsupported with wait option";
-const std::string STRING_NON_UIABILITY_START_WITH_WAIT_NG = "warn: non-uiability start unsupported with wait option";
+const std::string STRING_IMPLICT_START_WITH_WAIT_NG = "warn: implict start does not support wait option";
+const std::string STRING_NON_UIABILITY_START_WITH_WAIT_NG = "warn: non-uiability start does not support wait option";
 }  // namespace
 
 class AbilityManagerShellCommand : public ShellCommand {
@@ -265,7 +265,8 @@ private:
     bool CheckPerfCmdString(const char* optarg, const size_t paramLength, std::string &perfCmd);
     void ParseBundleName(std::string &bundleName);
     ErrCode StartAbilityWithWait(Want& want);
-    void FormatOutputForWithWait(const AbilityStartWithWaitObserverData& data);
+    void FormatOutputForWithWait(const Want &want, const AbilityStartWithWaitObserverData& data);
+    bool IsImplicitStartAction(const Want &want);
     bool startAbilityWithWaitFlag_ = false;
 };
 }  // namespace AAFwk

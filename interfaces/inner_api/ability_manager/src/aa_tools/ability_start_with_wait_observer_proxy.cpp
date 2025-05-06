@@ -32,7 +32,7 @@ bool AbilityStartWithWaitObserverProxy::WriteInterfaceToken(MessageParcel &data)
     return true;
 }
 
-int32_t AbilityStartWithWaitObserverProxy::StartAbilityWithWait(
+int32_t AbilityStartWithWaitObserverProxy::NotifyAATerminateWait(
     const AbilityStartWithWaitObserverData &abilityStartWithWaitObserverData)
 {
     MessageParcel data;
@@ -53,7 +53,7 @@ int32_t AbilityStartWithWaitObserverProxy::StartAbilityWithWait(
     }
 
     int32_t ret = remote->SendRequest(
-        static_cast<uint32_t>(IAbilityStartWithWaitObserver::Message::ON_ABILITY_START_WITH_WAIT),
+        static_cast<uint32_t>(IAbilityStartWithWaitObserver::Message::NOTIFY_AA_TERMINATE_WAIT),
         data, reply, option);
     if (ret != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "SendRequest error: %{public}d", ret);

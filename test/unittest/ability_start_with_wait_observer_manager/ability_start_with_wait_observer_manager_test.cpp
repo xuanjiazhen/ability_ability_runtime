@@ -16,9 +16,10 @@
 #include <gtest/gtest.h>
 
 #define private public
-#include "ability_start_with_wait_observer_utils.h"
+#include "ability_start_with_wait_observer_manager.h"
 #undef private
  
+#include "ability_start_with_wait_observer_utils.h"
 #include "ability_start_with_wait_observer_proxy.h"
 #include "ability_start_with_wait_observer_stub.h"
 #include "hilog_tag_wrapper.h"
@@ -31,7 +32,7 @@ namespace AAFwk {
 
 class MockAbilityStartWithWaitObserver : public AbilityStartWithWaitObserverStub {
 public:
-    int32_t StartAbilityWithWait(const AbilityStartWithWaitObserverData &abilityStartWithWaitData) override
+    int32_t NotifyAATerminateWait(const AbilityStartWithWaitObserverData &abilityStartWithWaitData) override
     {
         return 0;
     }
@@ -67,12 +68,12 @@ HWTEST_F(AbilityStartWithWaitObserverUtilsTest, AbilityStartWithWaitObserverUtil
     TAG_LOGI(AAFwkTag::TEST, "begin.");
     Want want;
     sptr<IAbilityStartWithWaitObserver> observer;
-    AbilityStartWithWaitObserverUtils::GetInstance().Regist(want, observer);
+    AbilityStartWithWaitObserverManager::GetInstance().RegisterObserver(want, observer);
     EXPECT_EQ(want.GetIntParam(Want::START_ABILITY_WITH_WAIT_OBSERVER_ID_KEY, -1), -1);
 
     sptr<IRemoteObject> observerStub = nullptr;
-    auto observer2 = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub);
-    AbilityStartWithWaitObserverUtils::GetInstance().Regist(want, observer2);
+    sptr<IAbilityStartWithWaitObserver> observer2 = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub);
+    AbilityStartWithWaitObserverManager::GetInstance().RegisterObserver(want, observer2);
     EXPECT_EQ(want.GetIntParam(Want::START_ABILITY_WITH_WAIT_OBSERVER_ID_KEY, -1), -1);
 }
 
@@ -85,22 +86,22 @@ HWTEST_F(AbilityStartWithWaitObserverUtilsTest, AbilityStartWithWaitObserverUtil
 HWTEST_F(AbilityStartWithWaitObserverUtilsTest, AbilityStartWithWaitObserverUtilsTest_0200, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "begin.");
-    AbilityStartWithWaitObserverUtils::GetInstance().observerList_.clear();
+    AbilityStartWithWaitObserverManager::GetInstance().observerList_.clear();
     Want want;
     sptr<IRemoteObject> observerStub = sptr<MockAbilityStartWithWaitObserver>::MakeSptr();
-    sptr<AbilityStartWithWaitObserverProxy> observer = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub);
-    AbilityStartWithWaitObserverUtils::GetInstance().Regist(want, observer);
-    EXPECT_EQ(AbilityStartWithWaitObserverUtils::GetInstance().observerList_.size(), 1);
+    sptr<IAbilityStartWithWaitObserver> observer = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub);
+    AbilityStartWithWaitObserverManager::GetInstance().RegisterObserver(want, observer);
+    EXPECT_EQ(AbilityStartWithWaitObserverManager::GetInstance().observerList_.size(), 1);
 
     // duplicate regist same observer, failed
-    AbilityStartWithWaitObserverUtils::GetInstance().Regist(want, observer);
-    EXPECT_EQ(AbilityStartWithWaitObserverUtils::GetInstance().observerList_.size(), 1);
+    AbilityStartWithWaitObserverManager::GetInstance().RegisterObserver(want, observer);
+    EXPECT_EQ(AbilityStartWithWaitObserverManager::GetInstance().observerList_.size(), 1);
 
     // register new observer success, expect key = 1
     observerStub = sptr<MockAbilityStartWithWaitObserver>::MakeSptr();
     observer = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub);
-    AbilityStartWithWaitObserverUtils::GetInstance().Regist(want, observer);
-    EXPECT_EQ(AbilityStartWithWaitObserverUtils::GetInstance().observerList_.size(), 2); // 2 means object number
+    AbilityStartWithWaitObserverManager::GetInstance().RegisterObserver(want, observer);
+    EXPECT_EQ(AbilityStartWithWaitObserverManager::GetInstance().observerList_.size(), 2); // 2 means object number
 }
 
 /**
@@ -112,20 +113,20 @@ HWTEST_F(AbilityStartWithWaitObserverUtilsTest, AbilityStartWithWaitObserverUtil
 HWTEST_F(AbilityStartWithWaitObserverUtilsTest, AbilityStartWithWaitObserverUtilsTest_0300, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "begin.");
-    AbilityStartWithWaitObserverUtils::GetInstance().observerList_.clear();
+    AbilityStartWithWaitObserverManager::GetInstance().observerList_.clear();
     AbilityForegroundInfo info;
     sptr<IAbilityStartWithWaitObserver> observer1 = nullptr;
-    AbilityStartWithWaitObserverUtils::GetInstance().observerList_.emplace(observer1, info);
+    AbilityStartWithWaitObserverManager::GetInstance().observerList_.emplace(observer1, info);
 
     sptr<IRemoteObject> observerStub = sptr<MockAbilityStartWithWaitObserver>::MakeSptr();
-    sptr<AbilityStartWithWaitObserverProxy> observer = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub);
+    sptr<IAbilityStartWithWaitObserver> observer = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub);
     Want want;
-    AbilityStartWithWaitObserverUtils::GetInstance().Regist(want, observer);
-    EXPECT_EQ(AbilityStartWithWaitObserverUtils::GetInstance().observerList_.size(), 2); // 2 means object left
+    AbilityStartWithWaitObserverManager::GetInstance().RegisterObserver(want, observer);
+    EXPECT_EQ(AbilityStartWithWaitObserverManager::GetInstance().observerList_.size(), 2); // 2 means object left
 
     // unregist observer success.
-    AbilityStartWithWaitObserverUtils::GetInstance().Unregist(observer);
-    EXPECT_EQ(AbilityStartWithWaitObserverUtils::GetInstance().observerList_.size(), 1);
+    AbilityStartWithWaitObserverManager::GetInstance().UnregistObserver(observer);
+    EXPECT_EQ(AbilityStartWithWaitObserverManager::GetInstance().observerList_.size(), 1);
 }
 
 /**
@@ -137,29 +138,29 @@ HWTEST_F(AbilityStartWithWaitObserverUtilsTest, AbilityStartWithWaitObserverUtil
 HWTEST_F(AbilityStartWithWaitObserverUtilsTest, AbilityStartWithWaitObserverUtilsTest_0400, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "begin.");
-    AbilityStartWithWaitObserverUtils::GetInstance().observerList_.clear();
+    AbilityStartWithWaitObserverManager::GetInstance().observerList_.clear();
     AbilityForegroundInfo info;
     sptr<IAbilityStartWithWaitObserver> observer1 = nullptr;
-    AbilityStartWithWaitObserverUtils::GetInstance().observerList_.emplace(observer1, info);
+    AbilityStartWithWaitObserverManager::GetInstance().observerList_.emplace(observer1, info);
 
     sptr<IRemoteObject> observerStub1 = nullptr;
-    auto observer2 = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub1);
-    AbilityStartWithWaitObserverUtils::GetInstance().observerList_.emplace(observer2, info);
+    sptr<IAbilityStartWithWaitObserver> observer2 = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub1);
+    AbilityStartWithWaitObserverManager::GetInstance().observerList_.emplace(observer2, info);
 
     sptr<IRemoteObject> observerStub2 = sptr<MockAbilityStartWithWaitObserver>::MakeSptr();
-    auto observer3 = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub2);
+    sptr<IAbilityStartWithWaitObserver> observer3 = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub2);
 
     Want want;
-    AbilityStartWithWaitObserverUtils::GetInstance().Regist(want, observer3);
+    AbilityStartWithWaitObserverManager::GetInstance().RegisterObserver(want, observer3);
 
     Want newWant;
-    AbilityStartWithWaitObserverUtils::GetInstance().Intercepted(
-        newWant, AbilityUtil::InterceptedReason::INTERCEPTED_FOR_IMPLICIT_START);
-    EXPECT_EQ(AbilityStartWithWaitObserverUtils::GetInstance().observerList_.size(), 3); // 3 means object left
+    AbilityStartWithWaitObserverManager::GetInstance().NotifyAATerminateWait(
+        newWant, TerminateReason::TERMINATE_FOR_NON_UI_ABILITY);
+    EXPECT_EQ(AbilityStartWithWaitObserverManager::GetInstance().observerList_.size(), 3); // 3 means object left
     // unregist observer success
-    AbilityStartWithWaitObserverUtils::GetInstance().Intercepted(
-        want, AbilityUtil::InterceptedReason::INTERCEPTED_FOR_IMPLICIT_START);
-    EXPECT_EQ(AbilityStartWithWaitObserverUtils::GetInstance().observerList_.size(), 2); // 2 means object left
+    AbilityStartWithWaitObserverManager::GetInstance().NotifyAATerminateWait(
+        want, TerminateReason::TERMINATE_FOR_NON_UI_ABILITY);
+    EXPECT_EQ(AbilityStartWithWaitObserverManager::GetInstance().observerList_.size(), 2); // 2 means object left  // NOLINT
 }
 
 /**
@@ -171,35 +172,35 @@ HWTEST_F(AbilityStartWithWaitObserverUtilsTest, AbilityStartWithWaitObserverUtil
 HWTEST_F(AbilityStartWithWaitObserverUtilsTest, AbilityStartWithWaitObserverUtilsTest_0500, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "begin.");
-    AbilityStartWithWaitObserverUtils::GetInstance().observerList_.clear();
+    AbilityStartWithWaitObserverManager::GetInstance().observerList_.clear();
     sptr<IAbilityStartWithWaitObserver> observer1 = nullptr;
     AbilityForegroundInfo info;
-    AbilityStartWithWaitObserverUtils::GetInstance().observerList_.emplace(observer1, info);
+    AbilityStartWithWaitObserverManager::GetInstance().observerList_.emplace(observer1, info);
 
     sptr<IRemoteObject> observerStub1 = nullptr;
-    auto observer2 = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub1);
-    AbilityStartWithWaitObserverUtils::GetInstance().observerList_.emplace(observer2, info);
+    sptr<IAbilityStartWithWaitObserver> observer2 = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub1);
+    AbilityStartWithWaitObserverManager::GetInstance().observerList_.emplace(observer2, info);
 
     sptr<IRemoteObject> observerStub2 = sptr<MockAbilityStartWithWaitObserver>::MakeSptr();
-    auto observer3 = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub2);
+    sptr<IAbilityStartWithWaitObserver> observer3 = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub2);
 
     Want want;
-    AbilityStartWithWaitObserverUtils::GetInstance().Regist(want, observer3);
+    AbilityStartWithWaitObserverManager::GetInstance().RegisterObserver(want, observer3);
 
     std::shared_ptr<AbilityRecord> abilityRecord1 = nullptr;
-    AbilityStartWithWaitObserverUtils::GetInstance().NotifyAATerminateWait(abilityRecord1);
-    EXPECT_EQ(AbilityStartWithWaitObserverUtils::GetInstance().observerList_.size(), 3); // 3 means object left
+    AbilityStartWithWaitObserverManager::GetInstance().NotifyAATerminateWait(abilityRecord1);
+    EXPECT_EQ(AbilityStartWithWaitObserverManager::GetInstance().observerList_.size(), 3); // 3 means object left
 
     Want newWant;
     AppExecFwk::AbilityInfo abilityInfo;
     AppExecFwk::ApplicationInfo appInfo;
     std::shared_ptr<AbilityRecord> abilityRecord2 = std::make_shared<AbilityRecord>(newWant, abilityInfo, appInfo);
-    AbilityStartWithWaitObserverUtils::GetInstance().NotifyAATerminateWait(abilityRecord2);
-    EXPECT_EQ(AbilityStartWithWaitObserverUtils::GetInstance().observerList_.size(), 3); // 3 means object left
+    AbilityStartWithWaitObserverManager::GetInstance().NotifyAATerminateWait(abilityRecord2);
+    EXPECT_EQ(AbilityStartWithWaitObserverManager::GetInstance().observerList_.size(), 3); // 3 means object left
 
     std::shared_ptr<AbilityRecord> abilityRecord3 = std::make_shared<AbilityRecord>(want, abilityInfo, appInfo);
-    AbilityStartWithWaitObserverUtils::GetInstance().NotifyAATerminateWait(abilityRecord3);
-    EXPECT_EQ(AbilityStartWithWaitObserverUtils::GetInstance().observerList_.size(), 2); // 2 means object left
+    AbilityStartWithWaitObserverManager::GetInstance().NotifyAATerminateWait(abilityRecord3);
+    EXPECT_EQ(AbilityStartWithWaitObserverManager::GetInstance().observerList_.size(), 2); // 2 means object left
 }
 
 /**
@@ -211,34 +212,34 @@ HWTEST_F(AbilityStartWithWaitObserverUtilsTest, AbilityStartWithWaitObserverUtil
 HWTEST_F(AbilityStartWithWaitObserverUtilsTest, AbilityStartWithWaitObserverUtilsTest_0600, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "begin.");
-    AbilityStartWithWaitObserverUtils::GetInstance().observerList_.clear();
+    AbilityStartWithWaitObserverManager::GetInstance().observerList_.clear();
     AbilityForegroundInfo info;
     sptr<IAbilityStartWithWaitObserver> observer1 = nullptr;
-    AbilityStartWithWaitObserverUtils::GetInstance().observerList_.emplace(observer1, info);
+    AbilityStartWithWaitObserverManager::GetInstance().observerList_.emplace(observer1, info);
 
     sptr<IRemoteObject> observerStub1 = nullptr;
-    auto observer2 = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub1);
-    AbilityStartWithWaitObserverUtils::GetInstance().observerList_.emplace(observer2, info);
+    sptr<IAbilityStartWithWaitObserver> observer2 = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub1);
+    AbilityStartWithWaitObserverManager::GetInstance().observerList_.emplace(observer2, info);
 
     sptr<IRemoteObject> observerStub2 = sptr<MockAbilityStartWithWaitObserver>::MakeSptr();
-    auto observer3 = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub2);
+    sptr<IAbilityStartWithWaitObserver> observer3 = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub2);
     Want want;
-    AbilityStartWithWaitObserverUtils::GetInstance().Regist(want, observer3);
+    AbilityStartWithWaitObserverManager::GetInstance().RegisterObserver(want, observer3);
 
     std::shared_ptr<AbilityRecord> abilityRecord1 = nullptr;
-    AbilityStartWithWaitObserverUtils::GetInstance().SetColdStartForShellCall(abilityRecord1);
-    EXPECT_EQ(AbilityStartWithWaitObserverUtils::GetInstance().observerList_.size(), 3); // 3 means object left
+    AbilityStartWithWaitObserverManager::GetInstance().SetColdStartForShellCall(abilityRecord1);
+    EXPECT_EQ(AbilityStartWithWaitObserverManager::GetInstance().observerList_.size(), 3); // 3 means object left
 
     Want newWant;
     AppExecFwk::AbilityInfo abilityInfo;
     AppExecFwk::ApplicationInfo appInfo;
     std::shared_ptr<AbilityRecord> abilityRecord2 = std::make_shared<AbilityRecord>(newWant, abilityInfo, appInfo);
-    AbilityStartWithWaitObserverUtils::GetInstance().NotifyAATerminateWait(abilityRecord2);
-    EXPECT_EQ(AbilityStartWithWaitObserverUtils::GetInstance().observerList_.size(), 3); // 3 means object left
+    AbilityStartWithWaitObserverManager::GetInstance().NotifyAATerminateWait(abilityRecord2);
+    EXPECT_EQ(AbilityStartWithWaitObserverManager::GetInstance().observerList_.size(), 3); // 3 means object left
 
     std::shared_ptr<AbilityRecord> abilityRecord3 = std::make_shared<AbilityRecord>(want, abilityInfo, appInfo);
-    AbilityStartWithWaitObserverUtils::GetInstance().NotifyAATerminateWait(abilityRecord3);
-    EXPECT_EQ(AbilityStartWithWaitObserverUtils::GetInstance().observerList_.size(), 2); // 2 means object left
+    AbilityStartWithWaitObserverManager::GetInstance().NotifyAATerminateWait(abilityRecord3);
+    EXPECT_EQ(AbilityStartWithWaitObserverManager::GetInstance().observerList_.size(), 2); // 2 means object left
 }
 
 /**
@@ -251,17 +252,17 @@ HWTEST_F(AbilityStartWithWaitObserverUtilsTest, AbilityStartWithWaitObserverUtil
 {
     TAG_LOGI(AAFwkTag::TEST, "begin.");
     sptr<IAbilityStartWithWaitObserver> observer1 = nullptr;
-    auto deathRecipient = AbilityStartWithWaitObserverUtils::GetInstance().GenerateDeathRecipient(observer1);
+    auto deathRecipient = AbilityStartWithWaitObserverManager::GetInstance().GenerateDeathRecipient(observer1);
     EXPECT_EQ(deathRecipient, nullptr);
 
     sptr<IRemoteObject> observerStub1 = nullptr;
-    auto observer2 = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub1);
-    deathRecipient = AbilityStartWithWaitObserverUtils::GetInstance().GenerateDeathRecipient(observer2);
+    sptr<IAbilityStartWithWaitObserver> observer2 = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub1);
+    deathRecipient = AbilityStartWithWaitObserverManager::GetInstance().GenerateDeathRecipient(observer2);
     EXPECT_EQ(deathRecipient, nullptr);
 
     sptr<IRemoteObject> observerStub2 = sptr<MockAbilityStartWithWaitObserver>::MakeSptr();
-    auto observer3 = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub2);
-    deathRecipient = AbilityStartWithWaitObserverUtils::GetInstance().GenerateDeathRecipient(observer3);
+    sptr<IAbilityStartWithWaitObserver> observer3 = sptr<AbilityStartWithWaitObserverProxy>::MakeSptr(observerStub2);
+    deathRecipient = AbilityStartWithWaitObserverManager::GetInstance().GenerateDeathRecipient(observer3);
     EXPECT_NE(deathRecipient, nullptr);
 }
 } // namespace AAFwk

@@ -25,9 +25,9 @@ class IAbilityStartWithWaitObserver : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.ability.IAbilityStartWithWaitObserver");
 
-    virtual int32_t StartAbilityWithWait(const AbilityStartWithWaitObserverData &abilityStartWithWaitData) = 0;
+    virtual int32_t NotifyAATerminateWait(const AbilityStartWithWaitObserverData &abilityStartWithWaitData) = 0;
     enum class Message {
-        ON_ABILITY_START_WITH_WAIT,
+        NOTIFY_AA_TERMINATE_WAIT,
     };
 };
 } // namespace AAFwk

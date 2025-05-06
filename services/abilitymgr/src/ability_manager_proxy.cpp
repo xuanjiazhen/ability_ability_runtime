@@ -6385,9 +6385,9 @@ int32_t AbilityManagerProxy::RevokeDelegator(sptr<IRemoteObject> token)
     return reply.ReadInt32();
 }
 
-int32_t AbilityManagerProxy::StartAbilityWithWait(const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer)
+int32_t AbilityManagerProxy::StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> &observer)
 {
-    CHECK_POINTER_AND_RETURN_LOG(observer, ERR_INVALID_VALUE, "null observer");
+    CHECK_POINTER_AND_RETURN_LOG(observer, ERR_NULL_OBJECT, "null observer");
 
     MessageParcel data;
     MessageParcel reply;

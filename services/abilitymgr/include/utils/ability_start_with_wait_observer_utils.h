@@ -13,52 +13,20 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_ABILITY_START_WITH_WAIT_OBSERVER_UTILS
-#define OHOS_ABILITY_RUNTIME_ABILITY_START_WITH_WAIT_OBSERVER_UTILS
-
-#include <map>
-#include <mutex>
-
-#include "ability_record.h"
-#include "ability_start_with_wait_observer_stub.h"
-#include "ability_util.h"
-#include "nocopyable.h"
-#include "want.h"
+#ifndef OHOS_ABILITY_RUNTIME_ABILITY_START_WITH_WAIT_OBSERVER_UTIL_H
+#define OHOS_ABILITY_RUNTIME_ABILITY_START_WITH_WAIT_OBSERVER_UTIL_H
 
 namespace OHOS {
 namespace AAFwk {
-struct AbilityForegroundInfo {
-    bool coldStart_ = false;
-    int32_t observerId_ = 0;
-    sptr<AbilityStartWithWaitObserverRecipient> deathRecipient_ = nullptr;
-    int64_t startTime_ = 0;
-    int64_t foregroundTime_ = 0; // ability foreground time
-    std::string bundleName_;
-    std::string abilityName_;
+namespace AbilityStartWithWaitObserverUtil {
+enum class TerminateReason {
+    TERMINATE_FOR_NONE = 0,
+    TERMINATE_FOR_NON_UI_ABILITY,
+    TERMINATE_FOR_UI_ABILITY_FOREGROUND_FAILED,
 };
-
-class AbilityStartWithWaitObserverUtils {
-public:
-    static AbilityStartWithWaitObserverUtils& GetInstance();
-    void Regist(const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer);
-    void Unregist(const sptr<IAbilityStartWithWaitObserver> &observer);
-    void NotifyAbilityForeground();
-    void Intercepted(const Want& want, AbilityUtil::InterceptedReason reason);
-    void NotifyAATerminateWait(const std::shared_ptr<AbilityRecord> &abilityRecord);
-    void SetColdStartForShellCall(std::shared_ptr<AbilityRecord> &abilityRecord);
-
-private:
-    AbilityStartWithWaitObserverUtils() = default;
-    ~AbilityStartWithWaitObserverUtils() = default;
-
-    sptr<AbilityStartWithWaitObserverRecipient> GenerateDeathRecipient(
-        const sptr<IAbilityStartWithWaitObserver> &observer);
-
-    std::mutex oberverMutex_;
-    AbilityForegroundInfo abilityForegroundInfo_;
-    std::map<sptr<IAbilityStartWithWaitObserver>, AbilityForegroundInfo> observerList_;
-    DISALLOW_COPY_AND_MOVE(AbilityStartWithWaitObserverUtils);
-};
-} // namespace AAFwk
-} // namespace OHOS
-#endif // OHOS_ABILITY_RUNTIME_ABILITY_START_WITH_WAIT_OBSERVER_UTILS
+}  // namespace AbilityStartWithWaitObserverUtil
+}  // namespace AAFwk
+}  // namespace OHOS
+ 
+ #endif  // OHOS_ABILITY_RUNTIME_ABILITY_START_WITH_WAIT_OBSERVER_UTIL_H
+ 

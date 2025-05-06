@@ -29,7 +29,7 @@ public:
     virtual ~AbilityStartWithWaitObserver() = default;
 
     void GetData(bool& waitFlag, AbilityStartWithWaitObserverData& data);
-    int32_t StartAbilityWithWait(const AbilityStartWithWaitObserverData &abilityStartWithWaitData) override;
+    int32_t NotifyAATerminateWait(const AbilityStartWithWaitObserverData &abilityStartWithWaitData) override;
 
 private:
     bool waitFlag_ = true;

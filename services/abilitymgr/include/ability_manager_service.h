@@ -2021,12 +2021,7 @@ public:
      */
     virtual int32_t RevokeDelegator(sptr<IRemoteObject> token) override;
 
-    virtual int32_t StartAbilityWithWait(
-        const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer) override;
-
-    void SetColdStartForShellCall(std::shared_ptr<AbilityRecord> &abilityRecord);
-
-    void NotifyAATerminateWait(const std::shared_ptr<AbilityRecord> &abilityRecord);
+    virtual int32_t StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> &observer) override;
 
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;

@@ -31,6 +31,7 @@ config("abilityms_exception_config") {
 config("abilityms_config") {
   include_dirs = [
     "include/",
+    "include/ability_start_with_wait_observer_manager",
     "include/data_ability",
     "include/dialog_session/",
     "include/extension_record",
@@ -409,6 +410,7 @@ ohos_shared_library("mission_list") {
   }
 
   sources = [
+    "src/ability_start_with_wait_observer_manager/ability_start_with_wait_observer_manager.cpp",
     "src/mission/mission.cpp",
     "src/mission/mission_data_storage.cpp",
     "src/mission/mission_info_mgr.cpp",

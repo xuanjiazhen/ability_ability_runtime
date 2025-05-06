@@ -15,16 +15,12 @@
 
 #include "ability_start_with_wait_observer_stub.h"
 
+#include "ability_manager_errors.h"
 #include "hilog_tag_wrapper.h"
 #include "appexecfwk_errors.h"
 
 namespace OHOS {
 namespace AAFwk {
-AbilityStartWithWaitObserverStub::AbilityStartWithWaitObserverStub()
-{
-    msgHandlerMap_[MessageCode::ON_ABILITY_START_WITH_WAIT] =
-        &AbilityStartWithWaitObserverStub::OnStartAbilityWithWait;
-}
 
 int32_t AbilityStartWithWaitObserverStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
@@ -36,20 +32,20 @@ int32_t AbilityStartWithWaitObserverStub::OnRemoteRequest(
         TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid descriptor");
         return ERR_INVALID_STATE;
     }
-    auto it = msgHandlerMap_.find(static_cast<MessageCode>(code));
-    if (it != msgHandlerMap_.end()) {
-        auto handler = it->second;
-        if (handler != nullptr) {
-            return (this->*handler)(data, reply);
-        }
+    if (code == static_cast<uint32_t>(IAbilityStartWithWaitObserver::Message::NOTIFY_AA_TERMINATE_WAIT)) {
+        return OnNotifyAATerminateWithWait(data, reply);
     }
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
-int32_t AbilityStartWithWaitObserverStub::OnStartAbilityWithWait(MessageParcel& data, MessageParcel& reply)
+int32_t AbilityStartWithWaitObserverStub::OnNotifyAATerminateWithWait(MessageParcel& data, MessageParcel& reply)
 {
     std::unique_ptr<AbilityStartWithWaitObserverData> info(data.ReadParcelable<AbilityStartWithWaitObserverData>());
-    int32_t result = StartAbilityWithWait(*info);
+    if (!info) {
+        TAG_LOGE(AAFwkTag::APPMGR, "ReadParcelable<info> failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+    int32_t result = NotifyAATerminateWait(*info);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write result failed");
         return IPC_STUB_ERR;

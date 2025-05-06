@@ -19,7 +19,7 @@
 
 namespace OHOS {
 namespace AAFwk {
-int32_t AbilityStartWithWaitObserver::StartAbilityWithWait(const AbilityStartWithWaitObserverData &data)
+int32_t AbilityStartWithWaitObserver::NotifyAATerminateWait(const AbilityStartWithWaitObserverData &data)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     data_ = data;

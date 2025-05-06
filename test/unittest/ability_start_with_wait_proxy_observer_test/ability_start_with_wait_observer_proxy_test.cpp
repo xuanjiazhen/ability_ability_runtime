@@ -66,24 +66,24 @@ HWTEST_F(AbilityStartWithWaitObserverProxyTest, WriteInterfaceToken_0100, TestSi
 }
 
 /**
- * @tc.number: StartAbilityWithWait_0100
+ * @tc.number: NotifyAATerminateWait_0100
  * @tc.desc: Test by determine whether sendRequest has been executed.
  * @tc.type: FUNC
  */
-HWTEST_F(AbilityStartWithWaitObserverProxyTest, StartAbilityWithWait_0100, TestSize.Level1)
+HWTEST_F(AbilityStartWithWaitObserverProxyTest, NotifyAATerminateWait_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "StartAbilityWithWait_0100 start";
+    GTEST_LOG_(INFO) << "NotifyAATerminateWait_0100 start";
     EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
         .Times(1)
         .WillOnce(Invoke(mock_.GetRefPtr(), &MockAbilityStartWithWaitObserverStub::InvokeSendRequest));
     AbilityStartWithWaitObserverData data;
     Parcel parcel;
     EXPECT_TRUE(data.Marshalling(parcel));
-    observerProxy_->StartAbilityWithWait(data);
+    observerProxy_->NotifyAATerminateWait(data);
     EXPECT_EQ(
-        static_cast<uint32_t>(IAbilityStartWithWaitObserver::Message::ON_ABILITY_START_WITH_WAIT),
+        static_cast<uint32_t>(IAbilityStartWithWaitObserver::Message::NOTIFY_AA_TERMINATE_WAIT),
         mock_->GetCode());
-    GTEST_LOG_(INFO) << "StartAbilityWithWait_0100 end";
+    GTEST_LOG_(INFO) << "NotifyAATerminateWait_0100 end";
 }
 } // namespace AAFwk
 } // namespace OHOS

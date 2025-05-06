@@ -151,8 +151,7 @@ ErrCode AbilityManagerClient::StartAbility(const Want &want, int requestCode, in
     return abms->StartAbility(want, userId, requestCode);
 }
 
-ErrCode AbilityManagerClient::StartAbilityWithWait(
-    const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer)
+ErrCode AbilityManagerClient::StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> observer)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "ability:%{public}s, bundle:%{public}s",
@@ -160,7 +159,7 @@ ErrCode AbilityManagerClient::StartAbilityWithWait(
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
 
-    HandleDlpApp(const_cast<Want &>(want));
+    HandleDlpApp(want);
     return abms->StartAbilityWithWait(want, observer);
 }
 

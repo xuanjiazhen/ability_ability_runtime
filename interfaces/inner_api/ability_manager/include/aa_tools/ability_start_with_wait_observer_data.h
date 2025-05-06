@@ -25,12 +25,12 @@ struct AbilityStartWithWaitObserverData : public Parcelable {
     virtual bool Marshalling(Parcel &parcel) const override;
     static AbilityStartWithWaitObserverData *Unmarshalling(Parcel &parcel);
 
-    bool coldStart_ = false;
-    uint32_t reason_ = 0;
-    int64_t startTime_ = 0;
-    int64_t foregroundTime_ = 0; // ability foreground time
-    std::string bundleName_;
-    std::string abilityName_;
+    bool coldStart = false;
+    uint32_t reason = 0;
+    int64_t startTime = 0;
+    int64_t foregroundTime = 0; // ability foreground time
+    std::string bundleName;
+    std::string abilityName;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

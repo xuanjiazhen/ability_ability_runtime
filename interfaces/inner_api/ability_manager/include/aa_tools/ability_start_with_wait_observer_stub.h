@@ -25,21 +25,17 @@
 
 namespace OHOS {
 namespace AAFwk {
-class AbilityStartWithWaitObserverStub;
-using MessageCode = IAbilityStartWithWaitObserver::Message;
-using MsgHandler = int32_t (AbilityStartWithWaitObserverStub::*)(MessageParcel& data, MessageParcel& reply);
 
 class AbilityStartWithWaitObserverStub : public IRemoteStub<IAbilityStartWithWaitObserver> {
 public:
-    AbilityStartWithWaitObserverStub();
+    AbilityStartWithWaitObserverStub() = default;
     virtual ~AbilityStartWithWaitObserverStub() = default;
 
     int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
-    int32_t OnStartAbilityWithWait(MessageParcel& data, MessageParcel& reply);
+    int32_t OnNotifyAATerminateWithWait(MessageParcel& data, MessageParcel& reply);
 
 private:
-    std::map<MessageCode, MsgHandler> msgHandlerMap_;
     DISALLOW_COPY_AND_MOVE(AbilityStartWithWaitObserverStub);
 };
 

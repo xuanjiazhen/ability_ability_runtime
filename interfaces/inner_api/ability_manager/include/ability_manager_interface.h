@@ -2127,7 +2127,7 @@ public:
         return 0;
     }
 
-    virtual int32_t StartAbilityWithWait(const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer)
+    virtual int32_t StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> &observer)
     {
         return 0;
     }

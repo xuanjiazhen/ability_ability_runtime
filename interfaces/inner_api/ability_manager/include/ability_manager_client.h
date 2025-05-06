@@ -154,7 +154,7 @@ public:
      * @param observer ability foreground notify observer for aa tool.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode StartAbilityWithWait(const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer);
+    ErrCode StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> observer);
 
     /**
      * StartAbility with want, send want to ability manager service.

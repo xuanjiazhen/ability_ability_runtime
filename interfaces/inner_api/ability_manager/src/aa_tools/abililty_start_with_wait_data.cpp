@@ -21,28 +21,28 @@ namespace OHOS {
 namespace AAFwk {
 bool AbilityStartWithWaitObserverData::Marshalling(Parcel &parcel) const
 {
-    if (!parcel.WriteBool(coldStart_)) {
-        TAG_LOGE(AAFwkTag::DATA_ABILITY, "Write coldStart error");
+    if (!parcel.WriteBool(coldStart)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Write coldStart error");
         return false;
     }
-    if (!parcel.WriteUint32(reason_)) {
-        TAG_LOGE(AAFwkTag::DATA_ABILITY, "Write reason error");
+    if (!parcel.WriteUint32(reason)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Write reason error");
         return false;
     }
-    if (!parcel.WriteInt64(startTime_)) {
-        TAG_LOGE(AAFwkTag::DATA_ABILITY, "Write startTime error");
+    if (!parcel.WriteInt64(startTime)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Write startTime error");
         return false;
     }
-    if (!parcel.WriteInt64(foregroundTime_)) {
-        TAG_LOGE(AAFwkTag::DATA_ABILITY, "Write foregroundTime error");
+    if (!parcel.WriteInt64(foregroundTime)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Write foregroundTime error");
         return false;
     }
-    if (!parcel.WriteString(bundleName_)) {
-        TAG_LOGE(AAFwkTag::DATA_ABILITY, "Write bundleName error");
+    if (!parcel.WriteString(bundleName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Write bundleName error");
         return false;
     }
-    if (!parcel.WriteString(abilityName_)) {
-        TAG_LOGE(AAFwkTag::DATA_ABILITY, "Write abilityName error");
+    if (!parcel.WriteString(abilityName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Write abilityName error");
         return false;
     }
     return true;
@@ -50,12 +50,12 @@ bool AbilityStartWithWaitObserverData::Marshalling(Parcel &parcel) const
 
 bool AbilityStartWithWaitObserverData::ReadFromParcel(Parcel &parcel)
 {
-    coldStart_ = parcel.ReadBool();
-    reason_ = parcel.ReadUint32();
-    startTime_ = parcel.ReadInt64();
-    foregroundTime_ = parcel.ReadInt64();
-    bundleName_ = parcel.ReadString();
-    abilityName_ = parcel.ReadString();
+    coldStart = parcel.ReadBool();
+    reason = parcel.ReadUint32();
+    startTime = parcel.ReadInt64();
+    foregroundTime = parcel.ReadInt64();
+    bundleName = parcel.ReadString();
+    abilityName = parcel.ReadString();
     return true;
 }
 

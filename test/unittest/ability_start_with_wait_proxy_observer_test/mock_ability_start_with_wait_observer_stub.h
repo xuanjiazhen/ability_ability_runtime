@@ -26,7 +26,7 @@ class MockAbilityStartWithWaitObserverStub : public AbilityStartWithWaitObserver
 public:
     MockAbilityStartWithWaitObserverStub() = default;
     virtual ~MockAbilityStartWithWaitObserverStub() = default;
-    MOCK_METHOD1(StartAbilityWithWait, int32_t(const AbilityStartWithWaitObserverData& data));
+    MOCK_METHOD1(NotifyAATerminateWait, int32_t(const AbilityStartWithWaitObserverData& data));
     MOCK_METHOD4(SendRequest, int(uint32_t, MessageParcel&, MessageParcel&, MessageOption&));
     int InvokeSendRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
     {

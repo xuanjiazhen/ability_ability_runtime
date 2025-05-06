@@ -16,7 +16,7 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 module_output_path = "ability_runtime/ability_runtime/abilitymgr"
 
-ohos_unittest("ability_start_with_wait_observer_util") {
+ohos_unittest("ability_start_with_wait_observer_manager") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -32,8 +32,8 @@ ohos_unittest("ability_start_with_wait_observer_util") {
   ]
 
   sources = [
-    "${ability_runtime_services_path}/abilitymgr/src/utils/ability_start_with_wait_observer_utils.cpp",
-    "ability_start_with_wait_observer_util_test.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/ability_start_with_wait_observer_manager/ability_start_with_wait_observer_manager.cpp",
+    "ability_start_with_wait_observer_manager_test.cpp",
   ]
 
   configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
@@ -103,5 +103,5 @@ ohos_unittest("ability_start_with_wait_observer_util") {
 group("unittest") {
   testonly = true
 
-  deps = [ ":ability_start_with_wait_observer_util" ]
+  deps = [ ":ability_start_with_wait_observer_manager" ]
 }
