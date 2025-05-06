@@ -14,13 +14,13 @@
  */
 
 interface ShellCmdResult {
-   stdResult: string;
-   exitCode: number;
-}
-
-class ShellCmdResultImpl implements ShellCmdResult {
-   public stdResult: string = '';
-   public exitCode: number = 0;
-}
-
-export default ShellCmdResult;
+    stdResult: string;
+    exitCode: int;
+  }
+  
+  class ShellCmdResultImpl implements ShellCmdResult {
+    public stdResult: string = '';
+    public exitCode: int = 0;
+  }
+  
+  export default ShellCmdResult;
