@@ -20,7 +20,7 @@ import uiExtensionHost from '@ohos.uiExtensionHost';
 import { LocalStorage } from '@ohos.arkui.stateManagement';
 import AsyncCallbackWrapper from './utils/AbilityUtils';
 export default class UIExtensionContentSession {
-  nativeContextSession:long = 0;
+  nativeContext:long = 0;
   native nativeSendData(data: Record<string, Object>): void;
   native loadContent(path: string, storage?: LocalStorage): void;
   native setWindowBackgroundColor(color: string): void;
