@@ -19,7 +19,7 @@ module_output_path = "ability_runtime/ability_runtime/freeze_util"
 ohos_unittest("freeze_util_test") {
   module_out_path = module_output_path
 
-  configs = [ "${ability_runtime_utils_path}/global/freeze:freeze_util_config" ]
+  configs = [ "${ability_runtime_utils_path}/global/common:runtime_utils_config" ]
 
   include_dirs = [
     "${ability_runtime_path}/utils/global/time/include",
@@ -30,7 +30,7 @@ ohos_unittest("freeze_util_test") {
 
   cflags = []
 
-  deps = [ "${ability_runtime_path}/utils/global/freeze:freeze_util" ]
+  deps = [ "${ability_runtime_path}/utils/global/common:runtime_utils" ]
 
   external_deps = [
     "c_utils:utils",

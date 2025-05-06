@@ -24,8 +24,8 @@ ohos_unittest("multi_instance_utils_test") {
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
 
   deps = [
+    "${ability_runtime_path}/utils/global/common:runtime_utils",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
-    "${ability_runtime_services_path}/common:app_util",
   ]
 
   external_deps = [
