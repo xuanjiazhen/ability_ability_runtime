@@ -1,0 +1,90 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef MOCK_OHOS_ABILITY_RUNTIME_DIALOG_SESSION_MANAGEER_H
+#define MOCK_OHOS_ABILITY_RUNTIME_DIALOG_SESSION_MANAGEER_H
+
+#include <string>
+#include "ability_record.h"
+#include "dialog_session_info.h"
+#include "parcel.h"
+#include "refbase.h"
+#include "want.h"
+
+namespace OHOS {
+namespace AAFwk {
+enum class SelectorType {
+    WITHOUT_SELECTOR = -1,
+    IMPLICIT_START_SELECTOR = 0,
+    APP_CLONE_SELECTOR = 1
+};
+
+struct DialogCallerInfo {
+    int32_t userId = -1;
+    int requestCode = -1;
+    sptr<IRemoteObject> callerToken;
+    Want targetWant;
+    SelectorType type = SelectorType::WITHOUT_SELECTOR;
+    // for app gallery selector
+    bool needGrantUriPermission = false;
+};
+
+class DialogSessionManager {
+public:
+    static DialogSessionManager &GetInstance()
+    {
+        static DialogSessionManager instance;
+        return instance;
+    }
+
+    sptr<DialogSessionInfo> GetDialogSessionInfo(const std::string &dialogSessionId) const
+    {
+        return nullptr;
+    }
+
+    std::shared_ptr<DialogCallerInfo> GetDialogCallerInfo(const std::string &dialogSessionId) const
+    {
+        return nullptr;
+    }
+
+    int SendDialogResult(const Want &want, const std::string &dialogSessionId, bool isAllowed)
+    {
+        return 0;
+    }
+
+    int HandleErmsResult(AbilityRequest &abilityRequest, int32_t userId, const Want &replaceWant)
+    {
+        return 0;
+    }
+
+    int32_t HandleErmsResultBySCB(AbilityRequest &abilityRequest, const Want &replaceWant)
+    {
+        return 0;
+    }
+
+    bool IsCreateCloneSelectorDialog(const std::string &bundleName, int32_t userId)
+    {
+        return false;
+    }
+
+    bool UpdateExtensionWantWithDialogCallerInfo(AbilityRequest &abilityRequest,
+        const sptr<IRemoteObject> &callerToken, bool isSCBCall)
+    {
+        return false;
+    }
+};
+}  // namespace AAFwk
+}  // namespace OHOS
+#endif
