@@ -999,7 +999,7 @@ int32_t AppRunningManager::UpdateConfiguration(const Configuration& config, cons
         if (appRecord->GetDelayConfiguration() == nullptr) {
             appRecord->ResetDelayConfiguration();
         }
-        if (appRecord && !isCollaboratorReserveType(appRecord)) {
+        if (appRecord) {
             TAG_LOGD(AAFwkTag::APPMGR, "Notification app [%{public}s]", appRecord->GetName().c_str());
             std::lock_guard guard(updateConfigurationDelayedLock_);
             if (appRecord->NeedUpdateConfigurationBackground() ||
@@ -1029,7 +1029,7 @@ int32_t AppRunningManager::UpdateConfigurationByBundleName(const Configuration &
             TAG_LOGD(AAFwkTag::APPMGR, "app not ready, appName is %{public}s", appRecord->GetBundleName().c_str());
             continue;
         }
-        if (appRecord && !isCollaboratorReserveType(appRecord) && appRecord->GetBundleName() == name &&
+        if (appRecord && appRecord->GetBundleName() == name &&
             appRecord->GetAppIndex() == appIndex) {
             TAG_LOGD(AAFwkTag::APPMGR, "Notification app [%{public}s], index:%{public}d",
                 appRecord->GetName().c_str(), appIndex);
@@ -1037,16 +1037,6 @@ int32_t AppRunningManager::UpdateConfigurationByBundleName(const Configuration &
         }
     }
     return result;
-}
-
-bool AppRunningManager::isCollaboratorReserveType(const std::shared_ptr<AppRunningRecord> &appRecord)
-{
-    std::string bundleName = appRecord->GetApplicationInfo()->name;
-    bool isReserveType = bundleName == AAFwk::AppUtils::GetInstance().GetBrokerDelegateBundleName();
-    if (isReserveType) {
-        TAG_LOGI(AAFwkTag::APPMGR, "isReserveType app [%{public}s]", appRecord->GetName().c_str());
-    }
-    return isReserveType;
 }
 
 int32_t AppRunningManager::NotifyMemoryLevel(int32_t level)
@@ -1965,6 +1955,50 @@ void AppRunningManager::RemoveTimeoutDeadAppRecord()
             }
             }, DEAD_APP_RECORD_CLEAR_TIME);
     }
+}
+
+UIExtensionProcessBindInfo AppRunningManager::WarpBindInfo(int32_t pid, int32_t uid, int32_t callerPid,
+                                                           int32_t callerUid, std::string callerBundleName,
+                                                           int32_t notifyProcessBind)
+{
+    UIExtensionProcessBindInfo uiExtensionProcessBindInfo;
+    uiExtensionProcessBindInfo.pid = pid;
+    uiExtensionProcessBindInfo.uid = uid;
+    uiExtensionProcessBindInfo.callerPid = callerPid;
+    uiExtensionProcessBindInfo.callerUid = callerUid;
+    uiExtensionProcessBindInfo.callerBundleName = callerBundleName;
+    uiExtensionProcessBindInfo.notifyProcessBind = notifyProcessBind;
+    return uiExtensionProcessBindInfo;
+}
+
+int32_t AppRunningManager::AddUIExtensionBindItem(
+    int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo)
+{
+    std::lock_guard guard(uiExtensionBindMapLock_);
+    uiExtensionBindMap_.emplace(uiExtensionBindAbilityId, bindInfo);
+    return ERR_OK;
+}
+
+int32_t AppRunningManager::RemoveUIExtensionBindItemById(int32_t uiExtensionBindAbilityId)
+{
+    std::lock_guard guard(uiExtensionBindMapLock_);
+    auto it = uiExtensionBindMap_.find(uiExtensionBindAbilityId);
+    if (it != uiExtensionBindMap_.end()) {
+        uiExtensionBindMap_.erase(it);
+    }
+    return ERR_OK;
+}
+
+int32_t AppRunningManager::QueryUIExtensionBindItemById(
+    int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo)
+{
+    std::lock_guard guard(uiExtensionBindMapLock_);
+    auto it = uiExtensionBindMap_.find(uiExtensionBindAbilityId);
+    if (it != uiExtensionBindMap_.end()) {
+        bindInfo = it->second;
+        return ERR_OK;
+    }
+    return ERR_INVALID_VALUE;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
