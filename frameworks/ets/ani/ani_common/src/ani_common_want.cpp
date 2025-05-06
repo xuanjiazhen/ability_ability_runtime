@@ -33,6 +33,7 @@ namespace OHOS {
 namespace AppExecFwk {
 using namespace OHOS::AbilityRuntime;
 namespace {
+const int PROPERTIES_SIZE = 2;
 bool InnerWrapWantParams(ani_env* env, ani_class wantCls, ani_object wantObject, const AAFwk::WantParams& wantParams)
 {
     ani_ref wantParamRef = WrapWantParams(env, wantParams);
@@ -89,6 +90,7 @@ ani_object WrapWant(ani_env *env, const AAFwk::Want &want)
     env->Object_SetFieldByName_Ref(object, "flags", createDouble(env, want.GetFlags()));
     env->Object_SetFieldByName_Ref(object, "action", GetAniString(env, want.GetAction()));
     InnerWrapWantParams(env, cls, object, want.GetParams());
+    WrapWantParamsFD(env, cls, object, want.GetParams());
     SetFieldArrayString(env, cls, object, "entities", want.GetEntities());
     return object;
 }
@@ -127,6 +129,63 @@ ani_ref WrapWantParams(ani_env *env, const AAFwk::WantParams &wantParams)
         return nullptr;
     }
     return wantParamsRef;
+}
+
+bool WrapWantParamsFD(ani_env* env, ani_class wantCls, ani_object wantObject, const AAFwk::WantParams& wantParams)
+{
+    auto paramList = wantParams.GetParams();
+    AAFwk::WantParams fds;
+
+    for (auto it = paramList.begin(); it != paramList.end(); it++) {
+        if (AAFwk::IWantParams::Query(it->second) == nullptr) {
+            TAG_LOGW(AAFwkTag::JSNAPI, "not wantpram");
+            continue;
+        }
+        auto value = wantParams.GetParam(it->first);
+        AAFwk::IWantParams *o = AAFwk::IWantParams::Query(value);
+        if (o == nullptr) {
+            return false;
+        }
+        AAFwk::WantParams wp = AAFwk::WantParamWrapper::Unbox(o);
+        auto valueMap = wp.GetParams();
+        if (valueMap.size() != PROPERTIES_SIZE) {
+            TAG_LOGD(AAFwkTag::JSNAPI, "not fd");
+            return false;
+        }
+
+        //type
+        auto typeIt = valueMap.find(AAFwk::TYPE_PROPERTY);
+        if (typeIt == valueMap.end()) {
+            return false;
+        }
+        AAFwk::IString *strValue = AAFwk::IString::Query(typeIt->second);
+        if (strValue == nullptr) {
+            return false;
+        }
+        std::string typeString = AAFwk::String::Unbox(strValue);
+        if (typeString != AAFwk::FD) {
+            TAG_LOGD(AAFwkTag::JSNAPI, "not fd");
+            return false;
+        }
+
+        // value
+        auto valueIt = valueMap.find(AAFwk::VALUE_PROPERTY);
+        if (valueIt == valueMap.end()) {
+            return false;
+        }
+        AAFwk::IInteger *intValue = AAFwk::IInteger::Query(valueIt->second);
+        if (intValue == nullptr) {
+            return false;
+        }
+        fds.SetParam(it->first, intValue);
+    }
+    ani_ref wantParamRef = WrapWantParams(env, fds);
+    if (wantParamRef == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "failed to WrapWantParams");
+        return false;
+    }
+    
+    return SetFieldRef(env, wantCls, wantObject, "fds", wantParamRef);
 }
 
 bool InnerWrapWantParamsString(
