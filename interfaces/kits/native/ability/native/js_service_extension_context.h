@@ -49,22 +49,6 @@ private:
     int64_t connectionId_ = -1;
 };
 
-struct ConnectionKey {
-    AAFwk::Want want;
-    int64_t id;
-    int32_t accountId;
-};
-
-struct key_compare {
-    bool operator()(const ConnectionKey &key1, const ConnectionKey &key2) const
-    {
-        if (key1.id < key2.id) {
-            return true;
-        }
-        return false;
-    }
-};
-
 static std::map<ConnectionKey, sptr<JSServiceExtensionConnection>, key_compare> connects_;
 static int64_t serialNumber_ = 0;
 static std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
