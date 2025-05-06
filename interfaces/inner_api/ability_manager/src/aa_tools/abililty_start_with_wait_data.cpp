@@ -22,21 +22,27 @@ namespace AAFwk {
 bool AbilityStartWithWaitObserverData::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteBool(coldStart_)) {
+        TAG_LOGE(AAFwkTag::DATA_ABILITY, "Write coldStart error");
         return false;
     }
     if (!parcel.WriteUint32(reason_)) {
+        TAG_LOGE(AAFwkTag::DATA_ABILITY, "Write reason error");
         return false;
     }
     if (!parcel.WriteInt64(startTime_)) {
+        TAG_LOGE(AAFwkTag::DATA_ABILITY, "Write startTime error");
         return false;
     }
     if (!parcel.WriteInt64(foregroundTime_)) {
+        TAG_LOGE(AAFwkTag::DATA_ABILITY, "Write foregroundTime error");
         return false;
     }
     if (!parcel.WriteString(bundleName_)) {
+        TAG_LOGE(AAFwkTag::DATA_ABILITY, "Write bundleName error");
         return false;
     }
     if (!parcel.WriteString(abilityName_)) {
+        TAG_LOGE(AAFwkTag::DATA_ABILITY, "Write abilityName error");
         return false;
     }
     return true;

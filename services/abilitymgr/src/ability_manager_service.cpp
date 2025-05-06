@@ -13829,7 +13829,7 @@ int32_t AbilityManagerService::StartAbilityWithWait(
     const Want &want, const sptr<IAbilityStartWithWaitObserver> &observer)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityManagerService::StartAbilityWithWait called");
     if (observer == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "observer null");
         return ERR_INVALID_VALUE;
@@ -13847,7 +13847,6 @@ int32_t AbilityManagerService::StartAbilityWithWait(
         TAG_LOGE(AAFwkTag::ABILITYMGR, "start ability wait fail, %{public}d", result);
         return result;
     }
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     return ERR_OK;
 }
 
