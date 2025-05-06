@@ -21,7 +21,8 @@ config("connect_server_manager_config") {
   if (target_cpu == "arm64") {
     defines += [ "_ARM64_" ]
   }
-
+  cflags_cc = [ "-Wno-gnu-zero-variadic-macro-arguments" ]
+  cflags = [ "-Wno-gnu-zero-variadic-macro-arguments" ]
   if (target_cpu == "arm64") {
     defines += [ "APP_USE_ARM64" ]
   } else if (target_cpu == "arm") {
@@ -53,6 +54,7 @@ ohos_shared_library("connect_server_manager") {
   external_deps = [
     "ets_runtime:libark_jsruntime",
     "hilog:libhilog",
+    "runtime_core:libarkruntime",
   ]
 
   configs = [

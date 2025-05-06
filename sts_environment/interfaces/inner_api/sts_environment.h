@@ -33,7 +33,8 @@ struct STSRuntimeAPI;
 using TaskFuncType = void (*)();
 namespace StsEnv {
 class StsEnvironmentImpl;
-class STSEnvironment final {
+using DebuggerPostTask = std::function<void(std::function<void()>&&)>;
+class STSEnvironment final : public std::enable_shared_from_this<STSEnvironment>{
 public:
     explicit STSEnvironment(std::unique_ptr<StsEnvironmentImpl> impl);
 
@@ -71,7 +72,6 @@ public:
     void* LoadSTSLibrary(const char* dlName);
     void UnLoadSTSLibrary(void* handle);
 
-    bool StartDebugger();
     bool PostTask(TaskFuncType task);
     void PostTask(const std::function<void()>& task, const std::string& name = "", int64_t delayTime = 0);
     void PostSyncTask(const std::function<void()>& task, const std::string& name);
@@ -81,7 +81,7 @@ public:
     bool ReInitUVLoop();
     EtsVM* GetEtsVM();
     EtsEnv* GetEtsEnv();
-    void ReInitStsEnvImpl(std::unique_ptr<StsEnvironmentImpl> impl);
+    void ReInitStsEnvImpl(std::unique_ptr<StsEnv::StsEnvironmentImpl> impl);
     ani_env* GetAniEnv();
     void HandleUncaughtError();
 
@@ -111,6 +111,12 @@ public:
             emitEvent = nullptr;
         }
     };
+    bool GetDebugMode() const;
+    void StopDebugger();
+    bool StartDebugger(std::string& option, uint32_t socketFd, bool isDebugApp);
+    DebuggerPostTask GetDebuggerPostTask();
+    int32_t ParseHdcRegisterOption(std::string& option);
+    void NotifyDebugMode(int tid, const char* libraryPath, uint32_t instanceId, bool isDebugApp, bool debugMode);
 
 private:
     bool LoadRuntimeApis();
@@ -130,6 +136,7 @@ private:
     VMEntry vmEntry_;
     std::unique_ptr<StsEnvironmentImpl> impl_ = nullptr;
     STSUncaughtExceptionInfo uncaughtExceptionInfo_;
+    bool debugMode_ = false;
 };
 } // namespace StsEnv
 } // namespace OHOS
