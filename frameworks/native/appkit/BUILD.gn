@@ -229,8 +229,6 @@ ohos_shared_library("appkit_native") {
       "window_manager:libwm",
       "window_manager:libwsutils",
     ]
-
-    defines += [ "NWEB_GRAPHIC" ]
   }
 
   if (ability_runtime_upms) {

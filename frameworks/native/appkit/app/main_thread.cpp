@@ -99,9 +99,6 @@
 #include <thread>
 #include "app_mgr_client.h"
 #include "nweb_helper.h"
-#endif
-
-#if defined(NWEB) && defined(NWEB_GRAPHIC)
 #include "nweb_adapter_helper.h"
 #endif
 
@@ -184,13 +181,6 @@ const int32_t TYPE_OTHERS = 2;
 constexpr int32_t PRELOAD_DELAY_TIME = 2000;  //millisecond
 constexpr int32_t CACHE_EFFECTIVE_RANGE = 60 * 60 * 24 * 3; // second
 const std::string WEB_CACHE_DIR = "/web";
-#endif
-
-#if defined(NWEB) && defined(NWEB_GRAPHIC)
-const std::string NWEB_SURFACE_NODE_NAME = "nwebPreloadSurface";
-const std::string BLANK_URL = "about:blank";
-constexpr uint32_t NWEB_SURFACE_SIZE = 1;
-constexpr int32_t PRELOAD_TASK_DELAY_TIME = 2000;  //millisecond
 #endif
 
 extern "C" int DFX_SetAppRunningUniqueId(const char* appRunningId, size_t len) __attribute__((weak));
@@ -1854,12 +1844,11 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     if (!isSystemApp) {
         PreLoadWebLib();
     }
+    std::map<std::string, std::string> configMap;
+    BuildWebPreloadConfig(appLaunchData, configMap);
+    PorcessWebPreload(configMap);
 #endif
-#if defined(NWEB) && defined(NWEB_GRAPHIC)
-    if (appLaunchData.IsAllowedNWebPreload()) {
-        HandleNWebPreload();
-    }
-#endif
+
     if (appLaunchData.IsNeedPreloadModule()) {
         PreloadModule(entryHapModuleInfo, application_->GetRuntime());
     }
@@ -1902,49 +1891,30 @@ void MainThread::PreLoadWebLib()
     };
     mainHandler_->PostTask(task, "MainThread::NWEB_PRELOAD_SO", PRELOAD_DELAY_TIME);
 }
-#endif
 
-#if defined(NWEB) && defined(NWEB_GRAPHIC)
-void MainThread::HandleNWebPreload()
+void MainThread::PorcessWebPreload(const std::map<std::string, std::string> configMap)
 {
     if (!mainHandler_) {
         TAG_LOGE(AAFwkTag::APPKIT, "mainHandler is nullptr");
         return;
     }
 
-    auto task = [this]() {
-        if (!NWeb::NWebHelper::Instance().InitAndRun(true)) {
-            TAG_LOGE(AAFwkTag::APPKIT, "init NWebEngine failed");
-            return;
-        }
-        Rosen::RSSurfaceNodeConfig config;
-        config.SurfaceNodeName = NWEB_SURFACE_NODE_NAME;
-        preloadSurfaceNode_ = Rosen::RSSurfaceNode::Create(config, false);
-        if (!preloadSurfaceNode_) {
-            TAG_LOGE(AAFwkTag::APPKIT, "preload surface node is nullptr");
-            return;
-        }
-        auto surface = preloadSurfaceNode_->GetSurface();
-        if (!surface) {
-            TAG_LOGE(AAFwkTag::APPKIT, "preload surface is nullptr");
-            preloadSurfaceNode_ = nullptr;
-            return;
-        }
-        auto initArgs = std::make_shared<NWeb::NWebEngineInitArgsImpl>();
-        preloadNWeb_ = NWeb::NWebAdapterHelper::Instance().CreateNWeb(surface, initArgs,
-            NWEB_SURFACE_SIZE, NWEB_SURFACE_SIZE, false);
-        if (!preloadNWeb_) {
-            TAG_LOGE(AAFwkTag::APPKIT, "create preLoadNWeb failed");
-            return;
-        }
-        auto handler = std::make_shared<NWebPreloadHandlerImpl>();
-        preloadNWeb_->SetNWebHandler(handler);
-        preloadNWeb_->Load(BLANK_URL);
-        TAG_LOGI(AAFwkTag::APPKIT, "init NWeb success");
+    TAG_LOGE(AAFwkTag::APPKIT, "Start to create web preload task");
+    auto task = [this, configMap]() {
+        OHOS::NWeb::NWebAdapterHelper::Instance().HandleWebPreload(configMap);
     };
+    mainHandler_->PostIdleTask(task, "MainThread::PorcessWebPreload", PRELOAD_DELAY_TIME);
+    TAG_LOGE(AAFwkTag::APPKIT, "Succeed to create web preload task");
+}
 
-    mainHandler_->PostIdleTask(task, "MainThread::NWEB_PRELOAD", PRELOAD_TASK_DELAY_TIME);
-    TAG_LOGI(AAFwkTag::APPKIT, "postIdleTask success");
+void MainThread::BuildWebPreloadConfig(
+    const AppLaunchData& appLaunchData, std::map<std::string, std::string>& configMap)
+{
+    if (appLaunchData.IsAllowedNWebPreload()) {
+        configMap.insert(std::make_pair(OHOS::NWeb::ALLOWED_NWEB_PRELOAD_KEY,
+            OHOS::NWeb::ALLOWED_NWEB_PRELOAD_DEFAULT_VALUE));
+    }
+    TAG_LOGE(AAFwkTag::APPKIT, "Build web preload config succeed, map size = %{public}zu", configMap.size());
 }
 #endif
 
