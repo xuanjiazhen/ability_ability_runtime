@@ -203,8 +203,8 @@ const std::string PERFCMD_FIRST_DUMPHEAP = "dumpheap";
 
 const std::string STRING_TEST_REGEX_INTEGER_NUMBERS = "^(0|[1-9][0-9]*|-[1-9][0-9]*)$";
 const std::string STRING_REGEX_ALL_NUMBERS = "^(-)?([0-9]|[1-9][0-9]+)([\\.][0-9]+)?$";
-const std::string STRING_IMPLICT_START_WITH_WAIT_NG = "warn: implict start does not support wait option";
-const std::string STRING_NON_UIABILITY_START_WITH_WAIT_NG = "warn: non-uiability start does not support wait option";
+const std::string STRING_IMPLICT_START_WITH_WAIT_NG = "The wait option does not support starting implict";
+const std::string STRING_NON_UIABILITY_START_WITH_WAIT_NG = "The wait option does not support starting non-uiability";
 }  // namespace
 
 class AbilityManagerShellCommand : public ShellCommand {
