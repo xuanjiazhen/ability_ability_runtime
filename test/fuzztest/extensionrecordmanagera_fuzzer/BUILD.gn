@@ -27,6 +27,7 @@ ohos_fuzztest("ExtensionRecordManageraFuzzTest") {
   include_dirs = [
     "${ability_runtime_innerkits_path}/ability_manager/include",
     "${ability_runtime_innerkits_path}/dataobs_manager/include",
+    "${ability_runtime_path}/utils/global/common/include",
   ]
   cflags = [
     "-g",
@@ -44,13 +45,13 @@ ohos_fuzztest("ExtensionRecordManageraFuzzTest") {
     "${ability_runtime_innerkits_path}/app_manager/src/appmgr/page_state_data.cpp",
     "${ability_runtime_innerkits_path}/app_manager/src/appmgr/process_data.cpp",
     "${ability_runtime_innerkits_path}/app_manager/src/appmgr/process_bind_data.cpp",
+    "${ability_runtime_path}/utils/global/common/src/app_utils.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/extension_record/extension_record.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/extension_record/extension_record_factory.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/extension_record/extension_record_manager.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ui_extension/preload_uiext_state_observer.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ui_extension_record/ui_extension_record.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ui_extension_record/ui_extension_record_factory.cpp",
-    "${ability_runtime_services_path}/common/src/app_utils.cpp",
     "${ability_runtime_services_path}/common/src/json_utils.cpp",
     "extensionrecordmanagera_fuzzer.cpp",
   ]

@@ -40,6 +40,7 @@ ohos_unittest("window_focus_changed_listener_test") {
 
   include_dirs = [
     "${ability_runtime_path}/services/abilitymgr/include",
+    "${ability_runtime_path}/utils/global/common/include",
     "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include",
     "${ability_runtime_test_path}/mock/services_appmgr_test/include",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_extension_ability",

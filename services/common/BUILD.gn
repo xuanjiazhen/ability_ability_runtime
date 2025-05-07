@@ -38,6 +38,7 @@ config("common_config") {
     "${ability_runtime_services_path}/quickfixmgr/*",
     "${ability_runtime_services_path}/uripermmgr/*",
     "${ability_runtime_test_path}/*",
+    "${ability_runtime_utils_path}/global/common/*",
     "${hiebpf_path}/*",
     "${power_manager_path}/utils/*",
     "${request_path}/common/*",
@@ -120,96 +121,6 @@ ohos_shared_library("task_handler_wrap") {
     "hilog:libhilog",
   ]
 
-  subsystem_name = "ability"
-  part_name = "ability_runtime"
-}
-
-ohos_shared_library("app_util") {
-  branch_protector_ret = "pac_ret"
-
-  public_configs = [ ":common_config" ]
-  include_dirs = [ "include" ]
-
-  sources = [
-    "src/ability_manager_radar.cpp",
-    "src/app_utils.cpp",
-    "src/json_utils.cpp",
-  ]
-
-  external_deps = [
-    "c_utils:utils",
-    "config_policy:configpolicy_util",
-    "hilog:libhilog",
-    "hisysevent:libhisysevent",
-    "init:libbegetutil",
-    "json:nlohmann_json_static",
-  ]
-
-  if (ability_runtime_graphics) {
-    defines = [ "SUPPORT_GRAPHICS" ]
-    external_deps += [ "window_manager:libwsutils" ]
-  }
-
-  subsystem_name = "ability"
-  part_name = "ability_runtime"
-}
-
-ohos_shared_library("res_sched_util") {
-  sanitize = {
-    integer_overflow = true
-    ubsan = true
-    boundary_sanitize = true
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-  branch_protector_ret = "pac_ret"
-
-  public_configs = [ ":common_config" ]
-  include_dirs = [ "include" ]
-
-  sources = [ "src/res_sched_util.cpp" ]
-
-  external_deps = [
-    "bundle_framework:appexecfwk_base",
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_core",
-    "samgr:samgr_proxy",
-  ]
-
-  if (resource_schedule_service_enable) {
-    defines = [ "RESOURCE_SCHEDULE_SERVICE_ENABLE" ]
-    external_deps += [ "resource_schedule_service:ressched_client" ]
-  }
-
-  subsystem_name = "ability"
-  part_name = "ability_runtime"
-}
-
-ohos_shared_library("record_cost_time_util") {
-  sanitize = {
-    integer_overflow = true
-    ubsan = true
-    boundary_sanitize = true
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-  branch_protector_ret = "pac_ret"
-
-  include_dirs = [ "include" ]
-
-  public_configs = [ ":common_config" ]
-
-  sources = [ "src/record_cost_time_util.cpp" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
-
-  innerapi_tags = [ "platformsdk_indirect" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }

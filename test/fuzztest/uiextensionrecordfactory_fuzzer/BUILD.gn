@@ -26,6 +26,7 @@ ohos_fuzztest("UIExtensionRecordFactoryFuzzTest") {
       "${ability_runtime_test_path}/fuzztest/uiextensionrecordfactory_fuzzer"
   include_dirs = [
     "${ability_runtime_innerkits_path}/ability_manager/include",
+    "${ability_runtime_path}/utils/global/common/include",
     "${ability_runtime_services_path}/abilitymgr/include/utils",
     "${ability_runtime_services_path}/abilitymgr/include",
   ]
@@ -36,9 +37,9 @@ ohos_fuzztest("UIExtensionRecordFactoryFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
   sources = [
+    "${ability_runtime_path}/utils/global/common/src/app_utils.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/extension_record/extension_record_factory.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ui_extension_record/ui_extension_record_factory.cpp",
-    "${ability_runtime_services_path}/common/src/app_utils.cpp",
     "${ability_runtime_services_path}/common/src/json_utils.cpp",
     "uiextensionrecordfactory_fuzzer.cpp",
   ]
