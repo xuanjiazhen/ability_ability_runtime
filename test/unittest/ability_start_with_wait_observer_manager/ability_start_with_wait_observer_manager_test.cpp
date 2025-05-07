@@ -125,7 +125,7 @@ HWTEST_F(AbilityStartWithWaitObserverUtilsTest, AbilityStartWithWaitObserverUtil
     EXPECT_EQ(AbilityStartWithWaitObserverManager::GetInstance().observerList_.size(), 2); // 2 means object left
 
     // unregist observer success.
-    AbilityStartWithWaitObserverManager::GetInstance().UnregistObserver(observer);
+    AbilityStartWithWaitObserverManager::GetInstance().UnregisterObserver(observer);
     EXPECT_EQ(AbilityStartWithWaitObserverManager::GetInstance().observerList_.size(), 1);
 }
 
@@ -160,7 +160,7 @@ HWTEST_F(AbilityStartWithWaitObserverUtilsTest, AbilityStartWithWaitObserverUtil
     // unregist observer success
     AbilityStartWithWaitObserverManager::GetInstance().NotifyAATerminateWait(
         want, TerminateReason::TERMINATE_FOR_NON_UI_ABILITY);
-    EXPECT_EQ(AbilityStartWithWaitObserverManager::GetInstance().observerList_.size(), 2); // 2 means object left  // NOLINT
+    EXPECT_EQ(AbilityStartWithWaitObserverManager::GetInstance().observerList_.size(), 2); // 2 means object left
 }
 
 /**

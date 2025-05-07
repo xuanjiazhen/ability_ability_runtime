@@ -1317,13 +1317,11 @@ void MissionListManager::CompleteForegroundSuccess(const std::shared_ptr<Ability
 #if BINDER_IPC_32BIT
     TAG_LOGI(AAFwkTag::ABILITYMGR, "bundle:%{public}s,ability:%{public}s,time:%{public}lld",
         abilityRecord->GetAbilityInfo().bundleName.c_str(),
-        abilityRecord->GetAbilityInfo().name.c_str(),
-        AbilityUtil::UTCTimeSeconds());
+        abilityRecord->GetAbilityInfo().name.c_str(), AbilityUtil::UTCTimeSeconds());
 #else
     TAG_LOGI(AAFwkTag::ABILITYMGR, "bundle:%{public}s,ability:%{public}s,time:%{public}ld",
         abilityRecord->GetAbilityInfo().bundleName.c_str(),
-        abilityRecord->GetAbilityInfo().name.c_str(),
-        AbilityUtil::UTCTimeSeconds());
+        abilityRecord->GetAbilityInfo().name.c_str(), AbilityUtil::UTCTimeSeconds());
 #endif
 
     auto mission = GetMissionById(abilityRecord->GetMissionId());

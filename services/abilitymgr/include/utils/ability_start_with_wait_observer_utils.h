@@ -28,5 +28,5 @@ enum class TerminateReason {
 }  // namespace AAFwk
 }  // namespace OHOS
  
- #endif  // OHOS_ABILITY_RUNTIME_ABILITY_START_WITH_WAIT_OBSERVER_UTIL_H
+#endif  // OHOS_ABILITY_RUNTIME_ABILITY_START_WITH_WAIT_OBSERVER_UTIL_H
  
