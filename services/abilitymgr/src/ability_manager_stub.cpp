@@ -4506,13 +4506,13 @@ int32_t AbilityManagerStub::StartAbilityWithWaitInner(MessageParcel &data, Messa
     std::unique_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
-        return ERR_INVALID_VALUE;
+        return ERR_NULL_OBJECT;
     }
 
     auto callback = iface_cast<IAbilityStartWithWaitObserver>(data.ReadRemoteObject());
     if (callback == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null callback");
-        return ERR_INVALID_VALUE;
+        return ERR_NULL_OBJECT;
     }
 
     int32_t result = StartAbilityWithWait(*want, callback);

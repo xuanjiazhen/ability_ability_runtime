@@ -93,7 +93,6 @@ void AbilityStartWithWaitObserverManager::NotifyAATerminateWait(Want& want, Term
         TAG_LOGE(AAFwkTag::ABILITYMGR, "invaid observerId");
         return;
     }
-    TAG_LOGE(AAFwkTag::ABILITYMGR, "observerId:%{public}d", observerId);
     sptr<IAbilityStartWithWaitObserver> proxy = nullptr;
     {
         std::lock_guard<std::mutex> guard(oberverMutex_);
@@ -102,7 +101,6 @@ void AbilityStartWithWaitObserverManager::NotifyAATerminateWait(Want& want, Term
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
                 continue;
             }
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "observerList_ observerId:%{public}d", observer.second.observerId);
             if (observerId == observer.second.observerId) {
                 proxy = observer.first;
                 // 1.remove deathRecipient for proxy
@@ -122,7 +120,7 @@ void AbilityStartWithWaitObserverManager::NotifyAATerminateWait(Want& want, Term
     } else {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "proxy is nullptr");
     }
-    (const_cast<Want &>(want)).RemoveParam(Want::START_ABILITY_WITH_WAIT_OBSERVER_ID_KEY);
+    want.RemoveParam(Want::START_ABILITY_WITH_WAIT_OBSERVER_ID_KEY);
 }
 
 void AbilityStartWithWaitObserverManager::NotifyAATerminateWait(
