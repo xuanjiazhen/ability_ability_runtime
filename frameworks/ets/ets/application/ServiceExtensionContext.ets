@@ -28,6 +28,8 @@ export default class ServiceExtensionContext extends ExtensionContext {
   native nativeStartAbilitySync(want: Want, callback: AsyncCallbackWrapper<void>): void;
   native nativeStartAbilitySync(want: Want, options: StartOptions, callback:AsyncCallbackWrapper<void>): void;
   native nativeStartServiceExtensionAbilitySync(want: Want, callback: AsyncCallbackWrapper<void>): void;
+  private native nativeConnectServiceExtensionAbility(want: Want, options: ConnectOptions): double;
+  private native nativeDisconnectServiceExtensionAbilitySync(connection: double, callback: AsyncCallbackWrapper<void>): void;
 
   terminateSelf(callback:AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
@@ -101,6 +103,27 @@ export default class ServiceExtensionContext extends ExtensionContext {
       taskpool.execute((): void => {
         this.nativeTerminateSelfSync(myCall);
       });
+    });
+    return p;
+  }
+
+  connectServiceExtensionAbility(want: Want, options: ConnectOptions): double {
+    return this.nativeConnectServiceExtensionAbility(want, options);
+  }
+
+  disconnectServiceExtensionAbility(connection: double): Promise<void> {
+    let p: Promise<void> = new Promise<void>((resolve: (data: undefined) => void,
+      reject: (err: BusinessError<void>) => void): void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>) => {
+        if (err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeDisconnectServiceExtensionAbilitySync(connection, myCall);
+      })
     });
     return p;
   }

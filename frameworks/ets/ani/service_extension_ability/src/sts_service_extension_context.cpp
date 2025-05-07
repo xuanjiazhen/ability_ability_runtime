@@ -19,25 +19,33 @@
 #include "sts_error_utils.h"
 #include "sts_service_extension_context.h"
 #include "ani_common_start_options.h"
+#include "ani_remote_object.h"
 
+namespace OHOS {
+namespace AbilityRuntime {
 const char *INVOKE_METHOD_NAME = "invoke";
+namespace {
+static std::mutex g_connectsMutex;
+int64_t g_serialNumber = 0;
+static std::map<ConnectionKey, sptr<StsServiceExtensionConnection>, key_compare> g_connects;
+}
 static void TerminateSelfSync([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object obj,
     [[maybe_unused]] ani_object callback)
 {
     TAG_LOGE(AAFwkTag::SERVICE_EXT, "terminateSelfSync call");
     ani_object aniObject = nullptr;
-    OHOS::ErrCode ret = OHOS::ERR_INVALID_VALUE;
+    ErrCode ret = ERR_INVALID_VALUE;
     auto context = StsServiceExtensionContext::GetAbilityContext(env, obj);
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "GetAbilityContext is nullptr");
-        ret = static_cast<int32_t>(OHOS::AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
-        aniObject = CreateStsError(env, static_cast<OHOS::AbilityRuntime::AbilityErrorCode>(ret));
-        OHOS::AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
+        ret = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        aniObject = CreateStsError(env, static_cast<AbilityErrorCode>(ret));
+        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
         return;
     }
     ret = context->TerminateAbility();
-    OHOS::AppExecFwk::AsyncCallback(env, callback,
-        OHOS::AbilityRuntime::CreateStsErrorByNativeErr(env, static_cast<int32_t>(ret)), nullptr);
+    AppExecFwk::AsyncCallback(env, callback,
+        CreateStsErrorByNativeErr(env, static_cast<int32_t>(ret)), nullptr);
 }
 
 static void StartServiceExtensionAbilitySync([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object aniObj,
@@ -45,31 +53,30 @@ static void StartServiceExtensionAbilitySync([[maybe_unused]] ani_env *env, [[ma
 {
     TAG_LOGE(AAFwkTag::SERVICE_EXT, "call");
     ani_object aniObject = nullptr;
-    OHOS::ErrCode ret = OHOS::ERR_OK;
+    ErrCode ret = ERR_OK;
     auto context = StsServiceExtensionContext::GetAbilityContext(env, aniObj);
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "GetAbilityContext is nullptr");
-        ret = static_cast<int32_t>(OHOS::AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
-        aniObject = CreateStsError(env, static_cast< OHOS::AbilityRuntime::AbilityErrorCode>(ret));
-        OHOS::AppExecFwk::AsyncCallback(env, callbackobj, aniObject, nullptr);
+        ret = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        aniObject = CreateStsError(env, static_cast< AbilityErrorCode>(ret));
+        AppExecFwk::AsyncCallback(env, callbackobj, aniObject, nullptr);
         return;
     }
-    OHOS::AAFwk::Want want;
-    if (!OHOS::AppExecFwk::UnwrapWant(env, wantObj, want)) {
+    AAFwk::Want want;
+    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "UnwrapWant filed");
-        aniObject =  OHOS::AbilityRuntime::CreateStsInvalidParamError(env, "UnwrapWant filed");
-        OHOS::AppExecFwk::AsyncCallback(env, callbackobj, aniObject, nullptr);
+        aniObject =  CreateStsInvalidParamError(env, "UnwrapWant filed");
+        AppExecFwk::AsyncCallback(env, callbackobj, aniObject, nullptr);
         return;
     }
     ret = context->StartServiceExtensionAbility(want);
-    if (ret == OHOS::ERR_OK) {
-        aniObject = CreateStsError(env, static_cast< OHOS::AbilityRuntime::AbilityErrorCode>(ret));
+    if (ret == ERR_OK) {
+        aniObject = CreateStsError(env, static_cast< AbilityErrorCode>(ret));
     } else {
-        aniObject = OHOS::AbilityRuntime::CreateStsErrorByNativeErr(env, static_cast<int32_t>(ret));
+        aniObject = CreateStsErrorByNativeErr(env, static_cast<int32_t>(ret));
     }
-    OHOS::AppExecFwk::AsyncCallback(env, callbackobj, aniObject, nullptr);
+    AppExecFwk::AsyncCallback(env, callbackobj, aniObject, nullptr);
 }
-
 static void StartAbility([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object aniObj,
     ani_object wantObj, ani_object call)
 {
@@ -84,7 +91,73 @@ static void StartAbilityWithOption([[maybe_unused]] ani_env *env, [[maybe_unused
     StsServiceExtensionContext::GetInstance().StartAbilityInner(env, aniObj, wantObj, opt, call);
 }
 
-OHOS::AbilityRuntime::ServiceExtensionContext* StsServiceExtensionContext::GetAbilityContext(ani_env *env,
+
+ani_int StsServiceExtensionContext::ConnectServiceExtensionAbility([[maybe_unused]]ani_env *env,
+    [[maybe_unused]]ani_object aniObj, ani_object wantObj, ani_object connectOptionsObj)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "ConnectServiceExtensionAbility call");
+    auto context = StsServiceExtensionContext::GetAbilityContext(env, aniObj);
+    AAFwk::Want want;
+    if (OHOS::AppExecFwk::UnwrapWant(env, wantObj, want)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "UnwrapWant failed");
+        ThrowStsInvalidParamError(env, "UnwrapWant failed");
+    }
+    ani_vm *etsVm = nullptr;
+    ani_status status = ANI_ERROR;
+    if ((status = env->GetVM(&etsVm)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "status : %{public}d", status);
+    }
+    sptr<StsServiceExtensionConnection> connection = new StsServiceExtensionConnection(etsVm);
+    if (!CheckConnectionParam(env, connectOptionsObj, connection, want)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "CheckConnectionParam failed");
+        ThrowStsInvalidParamError(env, "CheckConnectionParam failed");
+    }
+    auto innerErrCode = context->ConnectAbility(want, connection);
+    if (innerErrCode) {
+        connection->CallStsFailed(innerErrCode);
+    }
+    return innerErrCode;
+}
+
+void StsServiceExtensionContext::DisconnectServiceExtensionAbilitySync([[maybe_unused]]ani_env *env,
+    [[maybe_unused]]ani_object aniObj, ani_int connectId, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "ConnectServiceExtensionAbility call");
+    auto context = StsServiceExtensionContext::GetAbilityContext(env, aniObj);
+    AAFwk::Want want;
+    ani_vm *etsVm = nullptr;
+    ani_status status = ANI_ERROR;
+    if ((status = env->GetVM(&etsVm)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "status : %{public}d", status);
+    }
+ 
+    sptr<StsServiceExtensionConnection> connection = new StsServiceExtensionConnection(etsVm);
+
+    int32_t accountId = -1;
+    {
+        std::lock_guard<std::mutex> lock(g_connectsMutex);
+        auto item = std::find_if(g_connects.begin(),
+            g_connects.end(),
+            [&connectId](const auto &obj) {
+                return connectId == obj.first.id;
+            });
+        if (item != g_connects.end()) {
+            want = item->first.want;
+            connection = item->second;
+            accountId = item->first.accountId;
+            g_connects.erase(item);
+        } else {
+            TAG_LOGI(AAFwkTag::CONTEXT, "not find conn exist");
+        }
+    }
+    context->DisconnectAbility(want, connection, accountId);
+    ani_object aniObject = nullptr;
+    if (!connection) {
+        aniObject = CreateStsErrorByNativeErr(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+    }
+    AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
+}
+ServiceExtensionContext* StsServiceExtensionContext::GetAbilityContext(ani_env *env,
     ani_object obj)
 {
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "GetAbilityContext start");
@@ -108,11 +181,11 @@ OHOS::AbilityRuntime::ServiceExtensionContext* StsServiceExtensionContext::GetAb
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "terminateSelfSync get filed status : %{public}d", status);
         return nullptr;
     }
-    return (OHOS::AbilityRuntime::ServiceExtensionContext*)nativeContextLong;
+    return (ServiceExtensionContext*)nativeContextLong;
 }
 
-void StsServiceExtensionContext::AddFreeInstallObserver(ani_env *env, const OHOS::AAFwk::Want &want,
-    ani_object callback, OHOS::AbilityRuntime::ServiceExtensionContext* context)
+void StsServiceExtensionContext::AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want,
+    ani_object callback, ServiceExtensionContext* context)
 {
     // adapter free install async return install and start result
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
@@ -131,13 +204,13 @@ void StsServiceExtensionContext::AddFreeInstallObserver(ani_env *env, const OHOS
         if ((status = env->GetVM(&etsVm)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
         }
-        freeInstallObserver_ = new OHOS::AbilityRuntime::StsFreeInstallObserver(etsVm);
+        freeInstallObserver_ = new StsFreeInstallObserver(etsVm);
         ret = context->AddFreeInstallObserver(freeInstallObserver_);
     }
-    if (ret != OHOS::ERR_OK) {
+    if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "addFreeInstallObserver error");
     }
-    std::string startTime = want.GetStringParam(OHOS::AAFwk::Want::PARAM_RESV_START_TIME);
+    std::string startTime = want.GetStringParam(AAFwk::Want::PARAM_RESV_START_TIME);
     TAG_LOGI(AAFwkTag::SERVICE_EXT, "addStsObserver");
     std::string bundleName = want.GetElement().GetBundleName();
     std::string abilityName = want.GetElement().GetAbilityName();
@@ -149,57 +222,57 @@ void StsServiceExtensionContext::StartAbilityInner([[maybe_unused]] ani_env *env
     ani_object wantObj, ani_object opt, ani_object call)
 {
     ani_object aniObject = nullptr;
-    OHOS::AAFwk::Want want;
-    OHOS::ErrCode innerErrCode = OHOS::ERR_OK;
-    if (!OHOS::AppExecFwk::UnwrapWant(env, wantObj, want)) {
-        aniObject = OHOS::AbilityRuntime::CreateStsInvalidParamError(env, "UnwrapWant filed");
-        OHOS::AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
+    AAFwk::Want want;
+    ErrCode innerErrCode = ERR_OK;
+    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
+        aniObject = CreateStsInvalidParamError(env, "UnwrapWant filed");
+        AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
         return;
     }
     auto context = StsServiceExtensionContext::GetAbilityContext(env, aniObj);
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "GetAbilityContext is nullptr");
-        innerErrCode = static_cast<int32_t>(OHOS::AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
-        aniObject = CreateStsError(env, static_cast<OHOS::AbilityRuntime::AbilityErrorCode>(innerErrCode));
-        OHOS::AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
+        innerErrCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        aniObject = CreateStsError(env, static_cast<AbilityErrorCode>(innerErrCode));
+        AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
         return;
     }
-    if ((want.GetFlags() & OHOS::AAFwk::Want::FLAG_INSTALL_ON_DEMAND) == OHOS::AAFwk::Want::FLAG_INSTALL_ON_DEMAND) {
+    if ((want.GetFlags() & AAFwk::Want::FLAG_INSTALL_ON_DEMAND) == AAFwk::Want::FLAG_INSTALL_ON_DEMAND) {
         std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::
             system_clock::now().time_since_epoch()).count());
-        want.SetParam(OHOS::AAFwk::Want::PARAM_RESV_START_TIME, startTime);
+        want.SetParam(AAFwk::Want::PARAM_RESV_START_TIME, startTime);
         AddFreeInstallObserver(env, want, call, context);
     }
     if (opt != nullptr) {
-        OHOS::AAFwk::StartOptions startOptions;
-        if (!OHOS::AppExecFwk::UnwrapStartOptionsWithProcessOption(env, opt, startOptions)) {
+        AAFwk::StartOptions startOptions;
+        if (!AppExecFwk::UnwrapStartOptionsWithProcessOption(env, opt, startOptions)) {
             TAG_LOGE(AAFwkTag::SERVICE_EXT, "UnwrapStartOptions filed");
-            aniObject = OHOS::AbilityRuntime::CreateStsInvalidParamError(env, "UnwrapWant filed");
-            OHOS::AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
+            aniObject = CreateStsInvalidParamError(env, "UnwrapWant filed");
+            AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
             return;
         }
         innerErrCode = context->StartAbility(want, startOptions);
     } else {
         innerErrCode = context->StartAbility(want);
     }
-    aniObject = CreateStsError(env, OHOS::AbilityRuntime::AbilityErrorCode::ERROR_OK);
-    if (innerErrCode != OHOS::ERR_OK) {
-        aniObject = OHOS::AbilityRuntime::CreateStsErrorByNativeErr(env, innerErrCode);
+    aniObject = CreateStsError(env, AbilityErrorCode::ERROR_OK);
+    if (innerErrCode != ERR_OK) {
+        aniObject = CreateStsErrorByNativeErr(env, innerErrCode);
     }
-    if ((want.GetFlags() & OHOS::AAFwk::Want::FLAG_INSTALL_ON_DEMAND) == OHOS::AAFwk::Want::FLAG_INSTALL_ON_DEMAND) {
-        if (innerErrCode != OHOS::ERR_OK && freeInstallObserver_ != nullptr) {
+    if ((want.GetFlags() & AAFwk::Want::FLAG_INSTALL_ON_DEMAND) == AAFwk::Want::FLAG_INSTALL_ON_DEMAND) {
+        if (innerErrCode != ERR_OK && freeInstallObserver_ != nullptr) {
             std::string bundleName = want.GetElement().GetBundleName();
             std::string abilityName = want.GetElement().GetAbilityName();
-            std::string startTime = want.GetStringParam(OHOS::AAFwk::Want::PARAM_RESV_START_TIME);
+            std::string startTime = want.GetStringParam(AAFwk::Want::PARAM_RESV_START_TIME);
             freeInstallObserver_->OnInstallFinished(bundleName, abilityName, startTime, innerErrCode);
         }
     } else {
-        OHOS::AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
+        AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
     }
 }
 
 void BindExtensionInfo(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
-    std::shared_ptr<OHOS::AbilityRuntime::Context> context, std::shared_ptr<OHOS::AppExecFwk::AbilityInfo> abilityInfo)
+    std::shared_ptr<Context> context, std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo)
 {
     TAG_LOGI(AAFwkTag::APPKIT, "BindExtensionInfo");
     if (aniEnv == nullptr) {
@@ -209,7 +282,7 @@ void BindExtensionInfo(ani_env* aniEnv, ani_class contextClass, ani_object conte
     auto hapModuleInfo = context->GetHapModuleInfo();
     ani_status status = ANI_OK;
     if (abilityInfo && hapModuleInfo) {
-        auto isExist = [&abilityInfo](const OHOS::AppExecFwk::ExtensionAbilityInfo& info) {
+        auto isExist = [&abilityInfo](const AppExecFwk::ExtensionAbilityInfo& info) {
             TAG_LOGD(AAFwkTag::CONTEXT, "%{public}s, %{public}s", info.bundleName.c_str(), info.name.c_str());
             return info.bundleName == abilityInfo->bundleName && info.name == abilityInfo->name;
         };
@@ -225,7 +298,7 @@ void BindExtensionInfo(ani_env* aniEnv, ani_class contextClass, ani_object conte
             TAG_LOGE(AAFwkTag::APPKIT, "find extensionAbilityInfo failed status: %{public}d", status);
             return;
         }
-        ani_object extAbilityInfoObj = OHOS::AppExecFwk::CommonFunAni::ConvertExtensionInfo(aniEnv, *infoIter);
+        ani_object extAbilityInfoObj = AppExecFwk::CommonFunAni::ConvertExtensionInfo(aniEnv, *infoIter);
         status = aniEnv->Object_SetField_Ref(contextObj, extensionAbilityInfoField,
             reinterpret_cast<ani_ref>(extAbilityInfoObj));
         if (status != ANI_OK) {
@@ -235,16 +308,81 @@ void BindExtensionInfo(ani_env* aniEnv, ani_class contextClass, ani_object conte
     }
 }
 
-void StsCreatExtensionContext(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
-    void* applicationCtxRef, std::shared_ptr<OHOS::AbilityRuntime::ExtensionContext> context)
+bool StsServiceExtensionContext::CheckConnectionParam([[maybe_unused]]ani_env *env, ani_object connectOptionsObj,
+    sptr<StsServiceExtensionConnection>& connection, AAFwk::Want& want, int32_t accountId)
 {
-    OHOS::AbilityRuntime::ContextUtil::StsCreatContext(aniEnv, contextClass, contextObj, applicationCtxRef, context);
+    ani_type type;
+    ani_boolean res;
+    ani_status status = ANI_ERROR;
+    status = env->Object_GetType(connectOptionsObj, &type);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "Object_GetType failed");
+        return false;
+    }
+    status = env->Object_InstanceOf(connectOptionsObj, type, &res);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "Object_InstanceOf failed");
+        return false;
+    }
+    if (res != ANI_TRUE) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "CheckConnectionParam failed");
+        return false;
+    }
+    connection->SetConnectionRef(connectOptionsObj);
+    ConnectionKey key;
+    {
+        std::lock_guard guard(g_connectsMutex);
+        key.id = g_serialNumber;
+        key.want = want;
+        key.accountId = accountId;
+        connection->SetConnectionId(key.id);
+        g_connects.emplace(key, connection);
+        if (g_serialNumber < INT32_MAX) {
+            g_serialNumber++;
+        } else {
+            g_serialNumber = 0;
+        }
+    }
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "Unable to find connection, make new one");
+    return true;
+}
+
+void StsCreatExtensionContext(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
+    void* applicationCtxRef, std::shared_ptr<ExtensionContext> context)
+{
+    ContextUtil::StsCreatContext(aniEnv, contextClass, contextObj, applicationCtxRef, context);
     BindExtensionInfo(aniEnv, contextClass, contextObj, context, context->GetAbilityInfo());
 }
 
+bool BindNativeMethods(ani_env *env, ani_class &cls)
+{
+    ani_status status = ANI_ERROR;
+    std::array functions = {
+        ani_native_function { "nativeTerminateSelfSync", nullptr, reinterpret_cast<ani_int*>(TerminateSelfSync) },
+        ani_native_function { "nativeStartAbilitySync",
+            "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            reinterpret_cast<void*>(StartAbility) },
+        ani_native_function { "nativeStartAbilitySync",
+            "L@ohos/app/ability/Want/Want;L@ohos/app/ability/StartOptions/StartOptions;Lutils/AbilityUtils/"
+            "AsyncCallbackWrapper;:V",
+            reinterpret_cast<void*>(StartAbilityWithOption) },
+        ani_native_function { "nativeStartServiceExtensionAbilitySync", nullptr,
+            reinterpret_cast<ani_int*>(StartServiceExtensionAbilitySync) },
+        ani_native_function { "nativeConnectServiceExtensionAbility",
+            nullptr, reinterpret_cast<void*>(StsServiceExtensionContext::ConnectServiceExtensionAbility) },
+        ani_native_function { "nativeDisconnectServiceExtensionAbilitySync",
+            nullptr, reinterpret_cast<void*>(StsServiceExtensionContext::DisconnectServiceExtensionAbilitySync) },
+    };
+    if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "bind method status : %{public}d", status);
+        return false;
+    }
+    return true;
+}
+
 ani_object CreateStsServiceExtensionContext(ani_env *env,
-    std::shared_ptr<OHOS::AbilityRuntime::ServiceExtensionContext> context,
-    const std::shared_ptr<OHOS::AppExecFwk::OHOSApplication> &application)
+    std::shared_ptr<ServiceExtensionContext> context,
+    const std::shared_ptr<AppExecFwk::OHOSApplication> &application)
 {
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
     if (env == nullptr) {
@@ -260,20 +398,7 @@ ani_object CreateStsServiceExtensionContext(ani_env *env,
         TAG_LOGE(AAFwkTag::UI_EXT, "find class status : %{public}d", status);
         return nullptr;
     }
-    std::array functions = {
-        ani_native_function { "nativeTerminateSelfSync", nullptr, reinterpret_cast<ani_int*>(TerminateSelfSync) },
-        ani_native_function { "nativeStartAbilitySync",
-            "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
-            reinterpret_cast<void*>(StartAbility) },
-        ani_native_function { "nativeStartAbilitySync",
-            "L@ohos/app/ability/Want/Want;L@ohos/app/ability/StartOptions/StartOptions;Lutils/AbilityUtils/"
-            "AsyncCallbackWrapper;:V",
-            reinterpret_cast<void*>(StartAbilityWithOption) },
-        ani_native_function { "nativeStartServiceExtensionAbilitySync", nullptr,
-            reinterpret_cast<ani_int*>(StartServiceExtensionAbilitySync) },
-    };
-    if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "bind method status : %{public}d", status);
+    if (!BindNativeMethods(env, cls)) {
         return nullptr;
     }
     if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
@@ -300,3 +425,171 @@ ani_object CreateStsServiceExtensionContext(ani_env *env,
     StsCreatExtensionContext(env, cls, contextObj, application->GetApplicationCtxObjRef(), context);
     return contextObj;
 }
+
+StsServiceExtensionConnection::StsServiceExtensionConnection(ani_vm *etsVm) : etsVm_(etsVm) {}
+ 
+StsServiceExtensionConnection::~StsServiceExtensionConnection()
+{
+    if (etsVm_ != nullptr && stsConnectionRef_ != nullptr) {
+        ani_env* env = nullptr;
+        if (etsVm_->GetEnv(ANI_VERSION_1, &env) == ANI_OK) {
+            env->GlobalReference_Delete(stsConnectionRef_);
+            stsConnectionRef_ = nullptr;
+        }
+    }
+}
+ 
+void StsServiceExtensionConnection::SetConnectionId(int64_t id)
+{
+    connectionId_ = id;
+}
+
+void StsServiceExtensionConnection::CallStsFailed(int32_t errorCode)
+{
+    TAG_LOGI(AAFwkTag::CONTEXT, "called");
+    if (etsVm_ == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "etsVm_ is nullptr");
+        return;
+    }
+
+    ani_env *env = nullptr;
+    ani_status status = ANI_OK;
+    
+    if ((status = etsVm_->GetEnv(ANI_VERSION_1, &env)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "status : %{public}d", status);
+        return;
+    }
+    
+    if (stsConnectionRef_ == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null stsConnectionRef_");
+        return;
+    }
+
+    ani_class cls;
+    if ((status = env->FindClass("Lability/connectOptions/ConnectOptionsInner;", &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "status : %{public}d", status);
+        return;
+    }
+
+    ani_method function;
+    if ((status = env->Class_FindMethod(cls, "onFailed", "D:V", &function))) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Class_FindMethod status: %{public}d", status);
+        return;
+    }
+ 
+    status = env->Object_CallMethod_Void(reinterpret_cast<ani_object>(stsConnectionRef_),
+        function, static_cast<double>(errorCode));
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Object_CallMethod_Void status: %{public}d", status);
+        return;
+    }
+    return;
+}
+
+void StsServiceExtensionConnection::SetConnectionRef(ani_object connectOptionsObj)
+{
+    TAG_LOGI(AAFwkTag::CONTEXT, "called");
+    if (etsVm_ == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "etsVm_ is nullptr");
+        return;
+    }
+
+    ani_env *env = nullptr;
+    ani_status status = ANI_ERROR;
+    if ((status = etsVm_->GetEnv(ANI_VERSION_1, &env)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "status : %{public}d", status);
+        return;
+    }
+    if ((status = env->GlobalReference_Create(connectOptionsObj, &stsConnectionRef_)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "status: %{public}d", status);
+    }
+}
+
+void StsServiceExtensionConnection::OnAbilityConnectDone(const AppExecFwk::ElementName &element,
+    const sptr<IRemoteObject> &remoteObject, int resultCode)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "resultCode:%{public}d", resultCode);
+
+    if (etsVm_ == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "etsVm_ is nullptr");
+        return;
+    }
+
+    if (stsConnectionRef_ == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null stsConnectionRef_");
+        return;
+    }
+    ani_env *env = nullptr;
+    ani_status status = ANI_OK;
+
+    if ((status = etsVm_->GetEnv(ANI_VERSION_1, &env)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "status : %{public}d", status);
+        return;
+    }
+
+    ani_class cls;
+    if ((status = env->FindClass("Lability/connectOptions/ConnectOptionsInner;", &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "status : %{public}d", status);
+        return;
+    }
+    ani_method function;
+    if ((status = env->Class_FindMethod(cls, "onConnect",
+        "LbundleManager/ElementName/ElementName;L@ohos/rpc/rpc/IRemoteObject:V", &function))) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Class_FindMethod status: %{public}d", status);
+        return;
+    }
+
+    ani_ref refElement = AppExecFwk::WrapElementName(element);
+    ani_object refRemoteObject = ANI_ohos_rpc_CreateJsRemoteObject(env, remoteObject);
+    status = env->Object_CallMethod_Void(reinterpret_cast<ani_object>(stsConnectionRef_), function, refElement,
+        refRemoteObject);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Object_CallMethod_Void status: %{public}d", status);
+        return;
+    }
+    return;
+}
+
+void StsServiceExtensionConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "resultCode:%{public}d", resultCode);
+ 
+    if (etsVm_ == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "etsVm_ is nullptr");
+        return;
+    }
+
+    if (stsConnectionRef_ == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null stsConnectionRef_");
+        return;
+    }
+    ani_env *env = nullptr;
+    ani_status status = ANI_OK;
+    
+    if ((status = etsVm_->GetEnv(ANI_VERSION_1, &env)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "status : %{public}d", status);
+        return;
+    }
+
+    ani_class cls;
+    if ((status = env->FindClass("Lability/connectOptions/ConnectOptionsInner;", &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "status : %{public}d", status);
+        return;
+    }
+    ani_method function;
+    if ((status = env->Class_FindMethod(cls, "onDisconnect",
+        "LbundleManager/ElementName/ElementName:V", &function))) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Class_FindMethod status: %{public}d", status);
+        return;
+    }
+ 
+    ani_ref refElement = AppExecFwk::WrapElementName(element);
+    status = env->Object_CallMethod_Void(reinterpret_cast<ani_object>(stsConnectionRef_), function, refElement);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Object_CallMethod_Void status: %{public}d", status);
+        return;
+    }
+    return;
+}
+} // namespace AbilityRuntime
+} // namespace OHOS

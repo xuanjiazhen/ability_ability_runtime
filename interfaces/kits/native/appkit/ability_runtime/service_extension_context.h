@@ -189,6 +189,22 @@ private:
      */
     OHOS::AppExecFwk::AbilityType GetAbilityInfoType() const;
 };
+
+struct ConnectionKey {
+    AAFwk::Want want;
+    int64_t id;
+    int32_t accountId;
+};
+
+struct key_compare {
+    bool operator()(const ConnectionKey &key1, const ConnectionKey &key2) const
+    {
+        if (key1.id < key2.id) {
+            return true;
+        }
+        return false;
+    }
+};
 }  // namespace AbilityRuntime
 }  // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_SERVICE_EXTENSION_CONTEXT_H
