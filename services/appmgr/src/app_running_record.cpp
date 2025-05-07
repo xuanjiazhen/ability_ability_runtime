@@ -24,7 +24,7 @@
 #include "freeze_util.h"
 #include "hitrace_meter.h"
 #include "hilog_tag_wrapper.h"
-#include "ui_extension_utils.h"
+#include "ui_extension_wrapper.h"
 #include "app_mgr_service_const.h"
 #include "app_mgr_service_dump_error_code.h"
 #include "cache_process_manager.h"
@@ -727,7 +727,7 @@ void AppRunningRecord::StateChangedNotifyObserver(const std::shared_ptr<AbilityR
     if (applicationInfo && applicationInfo->bundleType == AppExecFwk::BundleType::ATOMIC_SERVICE) {
         abilityStateData.isAtomicService = true;
     }
-    bool isUIExtension = AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo->extensionAbilityType);
+    bool isUIExtension = AAFwk::UIExtensionWrapper::IsUIExtension(abilityInfo->extensionAbilityType);
     if (isUIExtension) {
         if (!isAbility) {
             abilityStateData.extensionAbilityType = static_cast<int32_t>(abilityInfo->extensionAbilityType);
@@ -936,7 +936,7 @@ void AppRunningRecord::AbilityBackground(const std::shared_ptr<AbilityRunningRec
         if (abilityRecord && abilityRecord->GetState() == AbilityState::ABILITY_STATE_FOREGROUND &&
             abilityRecord->GetAbilityInfo() &&
             (abilityRecord->GetAbilityInfo()->type == AppExecFwk::AbilityType::PAGE
-            || AAFwk::UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo()->extensionAbilityType))) {
+            || AAFwk::UIExtensionWrapper::IsUIExtension(abilityRecord->GetAbilityInfo()->extensionAbilityType))) {
             foregroundSize++;
             break;
         }
@@ -1090,14 +1090,14 @@ void AppRunningRecord::AbilityTerminated(const sptr<IRemoteObject> &token)
         EVENT_KEY_VERSION_CODE, appInfo->versionCode, EVENT_KEY_VERSION_NAME, appInfo->versionName,
         EVENT_KEY_BUNDLE_NAME, appInfo->bundleName, EVENT_KEY_SUPPORT_STATE, state);
     if (moduleRecord->GetAbilities().empty() && (!IsKeepAliveApp()
-        || AAFwk::UIExtensionUtils::IsUIExtension(GetExtensionType())
+        || AAFwk::UIExtensionWrapper::IsUIExtension(GetExtensionType())
         || !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient()) && !needCache) {
         RemoveModuleRecord(moduleRecord, isExtensionDebug);
     }
 
     auto moduleRecordList = GetAllModuleRecord();
     if (moduleRecordList.empty() && (!IsKeepAliveApp()
-        || AAFwk::UIExtensionUtils::IsUIExtension(GetExtensionType())
+        || AAFwk::UIExtensionWrapper::IsUIExtension(GetExtensionType())
         || !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient()) && !isExtensionDebug
         && !needCache) {
         ScheduleTerminate();
@@ -1475,7 +1475,7 @@ void AppRunningRecord::SetProcessAndExtensionType(
         return;
     }
 
-    if (AAFwk::UIExtensionUtils::IsUIExtension(extensionType_) &&
+    if (AAFwk::UIExtensionWrapper::IsUIExtension(extensionType_) &&
          extensionProcessMode == PROCESS_MODE_RUN_WITH_MAIN_PROCESS) {
         processType_ = ProcessType::NORMAL;
     } else {
@@ -1854,7 +1854,7 @@ bool AppRunningRecord::NeedUpdateConfigurationBackground()
             continue;
         }
         if (abilityRecord->GetAbilityInfo()->type != AppExecFwk::AbilityType::PAGE &&
-            !(AAFwk::UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo()->extensionAbilityType))) {
+            !(AAFwk::UIExtensionWrapper::IsUIExtension(abilityRecord->GetAbilityInfo()->extensionAbilityType))) {
             needUpdate = true;
             break;
         }

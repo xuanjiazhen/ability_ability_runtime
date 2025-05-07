@@ -43,7 +43,7 @@
 #include "res_sched_util.h"
 #include "task_handler_wrap.h"
 #include "time_util.h"
-#include "ui_extension_utils.h"
+#include "ui_extension_wrapper.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -704,7 +704,7 @@ void AppRunningManager::HandleAbilityAttachTimeOut(const sptr<IRemoteObject> &to
         appRecord->StateChangedNotifyObserver(abilityRecord, static_cast<int32_t>(
             AbilityState::ABILITY_STATE_TERMINATED), true, false);
         //UIExtension notifies Extension & Ability state changes
-        if (AAFwk::UIExtensionUtils::IsUIExtension(appRecord->GetExtensionType())) {
+        if (AAFwk::UIExtensionWrapper::IsUIExtension(appRecord->GetExtensionType())) {
             appRecord->StateChangedNotifyObserver(abilityRecord,
                 static_cast<int32_t>(ExtensionState::EXTENSION_STATE_TERMINATED), false, false);
         }
@@ -1316,8 +1316,8 @@ int32_t AppRunningManager::NotifyUnLoadRepairPatch(const std::string &bundleName
 bool AppRunningManager::IsApplicationFirstForeground(const AppRunningRecord &foregroundingRecord)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
-    if (AAFwk::UIExtensionUtils::IsUIExtension(foregroundingRecord.GetExtensionType())
-        || AAFwk::UIExtensionUtils::IsWindowExtension(foregroundingRecord.GetExtensionType())) {
+    if (AAFwk::UIExtensionWrapper::IsUIExtension(foregroundingRecord.GetExtensionType())
+        || AAFwk::UIExtensionWrapper::IsWindowExtension(foregroundingRecord.GetExtensionType())) {
         return false;
     }
 
@@ -1325,8 +1325,8 @@ bool AppRunningManager::IsApplicationFirstForeground(const AppRunningRecord &for
     for (const auto &item : appRunningRecordMap_) {
         const auto &appRecord = item.second;
         if (appRecord == nullptr || appRecord->GetBundleName() != foregroundingRecord.GetBundleName()
-            || AAFwk::UIExtensionUtils::IsUIExtension(appRecord->GetExtensionType())
-            || AAFwk::UIExtensionUtils::IsWindowExtension(appRecord->GetExtensionType())
+            || AAFwk::UIExtensionWrapper::IsUIExtension(appRecord->GetExtensionType())
+            || AAFwk::UIExtensionWrapper::IsWindowExtension(appRecord->GetExtensionType())
             || appRecord->GetAppIndex() != foregroundingRecord.GetAppIndex()) {
             continue;
         }
@@ -1349,8 +1349,8 @@ bool AppRunningManager::IsApplicationBackground(const AppRunningRecord &backgrou
             TAG_LOGE(AAFwkTag::APPMGR, "null appRecord");
             return false;
         }
-        if (AAFwk::UIExtensionUtils::IsUIExtension(appRecord->GetExtensionType())
-            || AAFwk::UIExtensionUtils::IsWindowExtension(appRecord->GetExtensionType())
+        if (AAFwk::UIExtensionWrapper::IsUIExtension(appRecord->GetExtensionType())
+            || AAFwk::UIExtensionWrapper::IsWindowExtension(appRecord->GetExtensionType())
             || appRecord->GetAppIndex() != backgroundingRecord.GetAppIndex()) {
             continue;
         }

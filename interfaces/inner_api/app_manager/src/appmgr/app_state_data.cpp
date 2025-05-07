@@ -16,7 +16,7 @@
 #include "app_state_data.h"
 
 #include "hilog_tag_wrapper.h"
-#include "ui_extension_utils.h"
+#include "ui_extension_wrapper.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -62,7 +62,7 @@ AppStateData *AppStateData::Unmarshalling(Parcel &parcel)
 
 bool AppStateData::IsUIExtension(const AppExecFwk::ExtensionAbilityType type)
 {
-    return AAFwk::UIExtensionUtils::IsUIExtension(type);
+    return AAFwk::UIExtensionWrapper::IsUIExtension(type);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

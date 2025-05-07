@@ -2210,7 +2210,7 @@ ohos_unittest("new_ability_impl_test") {
       "${ability_runtime_native_path}/ability/native:abilitykit_native",
       "${ability_runtime_native_path}/appkit:app_context",
       "${ability_runtime_native_path}/appkit:appkit_native",
-      "${ability_runtime_path}/utils/global/freeze:freeze_util",
+      "${ability_runtime_path}/utils/global/common:runtime_utils",
     ]
 
     external_deps = [
@@ -2291,7 +2291,7 @@ ohos_unittest("reserse_continuation_scheduler_primary_proxy_test") {
       "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
       "${ability_runtime_native_path}/ability/native:abilitykit_native",
       "${ability_runtime_native_path}/appkit:app_context",
-      "${ability_runtime_path}/utils/global/freeze:freeze_util",
+      "${ability_runtime_path}/utils/global/common:runtime_utils",
     ]
 
     external_deps = [
