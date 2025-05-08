@@ -400,6 +400,41 @@ int32_t JsEnvironment::ParseHdcRegisterOption(std::string& option)
     return std::atoi(idStr.c_str());
 }
 
+/**
+ * @brief Is it debugging for version Arkts 1.2.
+ *
+ * The main thread has pid but not tid
+ * Work has both pid and tid, but pid does not equal tid
+ * Arkts 1.2 has both pid and tid, where pid equals tid
+ *
+ * @param need option from hdc return
+ * @return Arkts 1.2 on true, others on false.
+ */
+bool JsEnvironment::IsStsDebuggerStart(std::string& option)
+{
+    TAG_LOGD(AAFwkTag::JSENV, "Start");
+    std::size_t pos = option.find_first_of(":");
+    if (pos == std::string::npos) {
+        return false;
+    }
+    std::string idStr = option.substr(pos + 1);
+    pos = idStr.find(DEBUGGER);
+    if (pos == std::string::npos) {
+        return false;
+    }
+    idStr = idStr.substr(0, pos);
+    pos = idStr.find("@");
+    if (pos != std::string::npos) {
+        std::string tId = idStr.substr(pos + 1);
+        std::string pId = idStr.substr(0 + pos);
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "tId is %{public}s, pId is %{public}s", tId.c_str(), pId.c_str());
+        if (tId == pId) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool JsEnvironment::GetDebugMode() const
 {
     return debugMode_;

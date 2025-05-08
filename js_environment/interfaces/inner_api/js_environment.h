@@ -113,6 +113,17 @@ public:
     bool GetDebugMode() const;
 
     int32_t ParseHdcRegisterOption(std::string& option);
+    /**
+     * @brief Is it debugging for version Arkts 1.2.
+     *
+     * The main thread has pid but not tid
+     * Work has both pid and tid, but pid does not equal tid
+     * Arkts 1.2 has both pid and tid, where pid equals tid
+     *
+     * @param need option from hdc return
+     * @return Arkts 1.2 on true, others on false.
+     */
+    bool IsStsDebuggerStart(std::string& option);
 private:
     std::unique_ptr<JsEnvironmentImpl> impl_ = nullptr;
     NativeEngine* engine_ = nullptr;

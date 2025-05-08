@@ -19,6 +19,7 @@
 #include <unistd.h>
 
 #include "hilog_tag_wrapper.h"
+#include "static_core/runtime/tooling/inspector/debugger_jsnapi.h"
 
 namespace OHOS::AbilityRuntime {
 namespace {
@@ -63,6 +64,7 @@ std::mutex ConnectServerManager::connectServerCallbackMutex_;
 std::mutex ConnectServerManager::addInstanceCallbackMutex_;
 std::mutex ConnectServerManager::sendInstanceMessageCallbackMutex_;
 std::unordered_map<int, std::pair<void*, const DebuggerPostTask>> g_debuggerInfo;
+std::pair<int, DebuggerPostTask> g_debuggerInfoSts;
 
 ConnectServerManager::~ConnectServerManager()
 {
@@ -167,6 +169,19 @@ void ConnectServerManager::StoreDebuggerInfo(int32_t tid, void* vm, const panda:
     panda::JSNApi::StoreDebugInfo(tid, reinterpret_cast<panda::EcmaVM*>(vm), debugOption, debuggerPostTask, isDebugApp);
 }
 
+void ConnectServerManager::StoreDebuggerInfoSts(int32_t tid, const char* libraryPath,
+        bool isDebugApp, bool isStartWithDebug, const DebuggerPostTask& debuggerPostTask)
+{
+    std::lock_guard<std::mutex> lock(g_debuggerMutex);
+    g_debuggerInfoSts = std::make_pair(tid, debuggerPostTask);
+    if (!isConnected_) {
+        TAG_LOGW(AAFwkTag::JSRUNTIME, "not Connected");
+        return;
+    }
+    ark::JSNApi::DebugOption debugOption = {libraryPath, isDebugApp ? isStartWithDebug : false};
+    ark::JSNApi::StoreDebugInfo(tid, debugOption, isDebugApp);
+}
+
 void ConnectServerManager::SendDebuggerInfo(bool needBreakPoint, bool isDebugApp)
 {
     ConnectServerManager::Get().SetConnectedCallback();
@@ -186,6 +201,14 @@ void ConnectServerManager::SendDebuggerInfo(bool needBreakPoint, bool isDebugApp
         panda::JSNApi::DebugOption debugOption = {ARK_DEBUGGER_LIB_PATH, isDebugApp ? needBreakPoint : false};
         panda::JSNApi::StoreDebugInfo(tid, vm, debugOption, debuggerPostTask, isDebugApp);
     }
+}
+
+void ConnectServerManager::StartDebuggerForSocketPair(int socketFd)
+{
+    ConnectServerManager::Get().SetConnectedCallback();
+    std::lock_guard<std::mutex> lock(mutex_);
+    const auto &debuggerPostTask = g_debuggerInfoSts.second;
+    ark::JSNApi::StartDebuggerForSocketPair(getproctid(), socketFd);
 }
 
 void ConnectServerManager::SetConnectedCallback()
