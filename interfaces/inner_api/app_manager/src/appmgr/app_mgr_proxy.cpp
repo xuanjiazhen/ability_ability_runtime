@@ -950,6 +950,49 @@ int32_t AppMgrProxy::UpdateConfiguration(const Configuration &config, const int3
     return reply.ReadInt32();
 }
 
+int32_t AppMgrProxy::UpdateConfigurationPolicy(const std::vector<BackgroundAppInfo>& appInfos,
+    const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "AppMgrProxy UpdateConfigurationPolicy");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGI(AAFwkTag::APPMGR, "write data error....");
+        return ERR_INVALID_DATA;
+    }
+    auto size = appInfos.size();
+    TAG_LOGI(AAFwkTag::APPMGR, "size %{public}d", size);
+    if (size == 0 || size > MAX_PROCESS_STATE_COUNT) {
+        TAG_LOGI(AAFwkTag::APPMGR, "size error....");
+        return ERR_FLATTEN_OBJECT;
+    }
+    if (!data.WriteUint32(size)) {
+        TAG_LOGI(AAFwkTag::APPMGR, "wriite size error....");
+        return ERR_FLATTEN_OBJECT;
+    }
+    for (const auto &info: appInfos) {
+        if (!data.WriteParcelable(&info)) {
+            TAG_LOGI(AAFwkTag::APPMGR, "info is error....");
+            return ERR_FLATTEN_OBJECT;
+        }
+    }
+    if (!data.WriteParcelable(&policy)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "parcel policy failed....");
+        return ERR_INVALID_DATA;
+    }
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "parcel userId failed....");
+        return ERR_INVALID_DATA;
+    }
+    int32_t ret = SendRequest(AppMgrInterfaceCode::UPDATE_CONFIGURATION_POLICY, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
 int32_t AppMgrProxy::UpdateConfigurationByBundleName(const Configuration &config, const std::string &name,
     int32_t appIndex)
 {
