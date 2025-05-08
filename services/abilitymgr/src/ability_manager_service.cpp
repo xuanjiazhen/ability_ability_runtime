@@ -118,6 +118,7 @@
 #include "utils/dms_util.h"
 #endif
 #include "hidden_start_observer_manager.h"
+#include "kernel_kill_listener.h"
 
 using OHOS::AppExecFwk::ElementName;
 using OHOS::Security::AccessToken::AccessTokenKit;
@@ -373,7 +374,8 @@ void AbilityManagerService::OnStart()
     }
 #endif
     bool windowMgr = AddSystemAbilityListener(WINDOW_MANAGER_SERVICE_ID);
-    if (!bgTaskMgr || !distributedMgr || !bundleMgr || !windowMgr) {
+    bool dfxEventServiceMgr = AddSystemAbilityListener(DFX_SYS_EVENT_SERVICE_ABILITY_ID);
+    if (!bgTaskMgr || !distributedMgr || !bundleMgr || !windowMgr || !dfxEventServiceMgr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "OnStart, add listeners err");
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "onStart success");
@@ -2774,6 +2776,10 @@ void AbilityManagerService::OnAddSystemAbility(int32_t systemAbilityId, const st
 #endif
         case WINDOW_MANAGER_SERVICE_ID: {
             InitWindowVisibilityChangedListener();
+            break;
+        }
+        case DFX_SYS_EVENT_SERVICE_ABILITY_ID: {
+            AddKernelKillListener();
             break;
         }
         default:
@@ -12673,6 +12679,28 @@ void AbilityManagerService::InitWindowVisibilityChangedListener()
     }
 
     Rosen::WindowManager::GetInstance().RegisterVisibilityChangedListener(windowVisibilityChangedListener_);
+}
+
+void AbilityManagerService::AddKernelKillListener()
+{
+    if (!taskHandler_) {
+        return;
+    }
+
+    auto addKernelListenerTask = [] {
+        auto kernelKillListener = std::make_shared<KernelKillListener>();
+        HiviewDFX::ListenerRule domainNameRule("KERNEL_VENDOR", "PROCESS_KILL", HiviewDFX::RuleType::WHOLE_WORD);
+        std::vector<HiviewDFX::ListenerRule> listenerRules;
+        listenerRules.push_back(domainNameRule);
+        int tryCount = 0;
+        uint32_t timeInterval = 100 * 1000;
+        while (HiviewDFX::HiSysEventManager::AddListener(kernelKillListener, listenerRules) && tryCount < 15) {
+            tryCount++;
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "add kernelKill listener failed, tryAddCount is %{public}d", tryCount);
+            usleep(timeInterval);
+        }
+    };
+    taskHandler_->SubmitTask(addKernelListenerTask, "AddKernelListener");
 }
 
 void AbilityManagerService::FreeWindowVisibilityChangedListener()

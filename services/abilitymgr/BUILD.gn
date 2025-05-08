@@ -175,6 +175,7 @@ ohos_shared_library("abilityms") {
     "hicollie:libhicollie",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "hisysevent:libhisyseventmanager",
     "hitrace:hitrace_meter",
     "icu:shared_icuuc",
     "init:libbeget_proxy",
