@@ -41,6 +41,7 @@
 #include "simple_process_info.h"
 #include <condition_variable>
 #include "task_handler_wrap.h"
+#include "process_bind_data.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -382,6 +383,9 @@ public:
     void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey);
     std::shared_ptr<AppRunningRecord> QueryAppRecordPlus(int32_t pid, int32_t uid);
     bool UpdateColoreModeConfiguration(std::shared_ptr<AppRunningRecord> &appRecord);
+    int32_t AddUIExtensionBindItem(int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo);
+    int32_t QueryUIExtensionBindItemById(int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo);
+    int32_t RemoveUIExtensionBindItemById(int32_t uiExtensionBindAbilityId);
 private:
     std::shared_ptr<AbilityRunningRecord> GetAbilityRunningRecord(const int64_t eventId);
     int32_t AssignRunningProcessInfoByAppRecord(
@@ -411,6 +415,8 @@ private:
     static bool IsThreadruning;
     std::condition_variable cond_var;
     std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
+    std::mutex uiExtensionBindMapLock_;
+    std::map<int32_t, UIExtensionProcessBindInfo> uiExtensionBindMap_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

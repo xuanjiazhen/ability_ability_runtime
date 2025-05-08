@@ -70,6 +70,7 @@
 #include "implicit_start_processor.h"
 #include "system_dialog_scheduler.h"
 #endif
+#include "insight_intent_event_mgr.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -2076,6 +2077,8 @@ protected:
         const std::string &bundleName, const std::vector<std::string> &abilityNames,
         const std::vector<std::string> &uiExtensionNames) override;
 
+    int32_t GetCollaboratorType(const std::string &codePath) const;
+    int32_t KillProcessForCollaborator(int32_t collaboratorType, const std::string &bundleName, int32_t userId);
 private:
     int TerminateAbilityWithFlag(const sptr<IRemoteObject> &token, int resultCode = DEFAULT_INVAL_VALUE,
         const Want *resultWant = nullptr, bool flag = true);
@@ -2627,6 +2630,8 @@ private:
     std::map<std::string, std::list<std::string>> whiteListMap_;
 
     std::list<std::string> exportWhiteList_;
+
+    std::shared_ptr<AbilityRuntime::InsightIntentEventMgr> insightIntentEventMgr_;
 
     bool ShouldPreventStartAbility(const AbilityRequest &abilityRequest);
 
