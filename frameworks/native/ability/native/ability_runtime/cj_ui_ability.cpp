@@ -31,8 +31,8 @@
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "if_system_ability_manager.h"
-#include "insight_intent_executor_info.h"
-#include "insight_intent_executor_mgr.h"
+#include "cj_insight_intent_executor_info.h"
+#include "cj_insight_intent_executor_mgr.h"
 #include "insight_intent_execute_param.h"
 #include "cj_runtime.h"
 #include "cj_ability_object.h"
@@ -670,7 +670,7 @@ void CJUIAbility::ExecuteInsightIntentRepeateForeground(const Want &want,
     if (executeParam == nullptr) {
         TAG_LOGW(AAFwkTag::UIABILITY, "invalid param");
         RequestFocus(want);
-        InsightIntentExecutorMgr::TriggerCallbackInner(std::move(callback), ERR_OK);
+        CJInsightIntentExecutorMgr::TriggerCallbackInner(std::move(callback), ERR_OK);
         return;
     }
 
@@ -685,11 +685,11 @@ void CJUIAbility::ExecuteInsightIntentRepeateForeground(const Want &want,
     };
     callback->Push(asyncCallback);
 
-    InsightIntentExecutorInfo executeInfo;
+    CJInsightIntentExecutorInfo executeInfo;
     auto ret = GetInsightIntentExecutorInfo(want, executeParam, executeInfo);
     if (!ret) {
         TAG_LOGE(AAFwkTag::UIABILITY, "get intention executor failed");
-        InsightIntentExecutorMgr::TriggerCallbackInner(std::move(callback),
+        CJInsightIntentExecutorMgr::TriggerCallbackInner(std::move(callback),
             static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
         return;
     }
@@ -703,7 +703,7 @@ void CJUIAbility::ExecuteInsightIntentMoveToForeground(const Want &want,
     if (executeParam == nullptr) {
         TAG_LOGW(AAFwkTag::UIABILITY, "param invalid");
         OnForeground(want);
-        InsightIntentExecutorMgr::TriggerCallbackInner(std::move(callback), ERR_OK);
+        CJInsightIntentExecutorMgr::TriggerCallbackInner(std::move(callback), ERR_OK);
         return;
     }
 
@@ -720,19 +720,25 @@ void CJUIAbility::ExecuteInsightIntentMoveToForeground(const Want &want,
     };
     callback->Push(asyncCallback);
 
-    InsightIntentExecutorInfo executeInfo;
+    CJInsightIntentExecutorInfo executeInfo;
     auto ret = GetInsightIntentExecutorInfo(want, executeParam, executeInfo);
     if (!ret) {
         TAG_LOGE(AAFwkTag::UIABILITY, "get Intention executor failed");
-        InsightIntentExecutorMgr::TriggerCallbackInner(std::move(callback),
+        CJInsightIntentExecutorMgr::TriggerCallbackInner(std::move(callback),
             static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
         return;
+    }
+    ret = DelayedSingleton<CJInsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
+        cjRuntime_, executeInfo, std::move(callback));
+    if (!ret) {
+        // callback has removed, release in insight intent executor.
+        TAG_LOGE(AAFwkTag::UIABILITY, "execute insightIntent failed");
     }
 }
 
 bool CJUIAbility::GetInsightIntentExecutorInfo(const Want &want,
     const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
-    InsightIntentExecutorInfo& executeInfo)
+    CJInsightIntentExecutorInfo& executeInfo)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
     auto context = GetAbilityContext();
@@ -747,6 +753,9 @@ bool CJUIAbility::GetInsightIntentExecutorInfo(const Want &want,
     executeInfo.esmodule = abilityInfo_->compileMode == AppExecFwk::CompileMode::ES_MODULE;
     executeInfo.windowMode = windowMode_;
     executeInfo.token = context->GetToken();
+    if (cjWindowStage_ != nullptr) {
+        executeInfo.pageLoader = cjWindowStage_.GetRefPtr();
+    }
     executeInfo.executeParam = executeParam;
     return true;
 }

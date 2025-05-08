@@ -667,6 +667,11 @@ ohos_shared_library("insight_intent_executor") {
   sources = [
     "${ability_runtime_native_path}/ability/native/insight_intent_executor/insight_intent_executor.cpp",
     "${ability_runtime_native_path}/ability/native/insight_intent_executor/insight_intent_executor_mgr.cpp",
+    "${ability_runtime_native_path}/ability/native/insight_intent_executor/cj_insight_intent_executor.cpp",
+    "${ability_runtime_native_path}/ability/native/insight_intent_executor/cj_insight_intent_executor_mgr.cpp",
+    # TODO:
+    "${ability_runtime_native_path}/ability/native/insight_intent_executor/cj_insight_intent_executor_impl_object.cpp",
+    "${ability_runtime_native_path}/ability/native/insight_intent_executor/cj_insight_intent_executor_impl.cpp",
     "${ability_runtime_native_path}/ability/native/insight_intent_executor/js_insight_intent_executor.cpp",
   ]
 
