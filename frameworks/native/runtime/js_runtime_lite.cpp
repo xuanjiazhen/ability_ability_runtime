@@ -128,11 +128,17 @@ napi_status JsRuntimeLite::CreateJsEnv(const Options& options, std::shared_ptr<J
     int arkProperties = OHOS::system::GetIntParameter<int>("persist.ark.properties", -1);
     std::string bundleName = OHOS::system::GetParameter("persist.ark.arkbundlename", "");
     std::string memConfigProperty = OHOS::system::GetParameter("persist.ark.mem_config_property", "");
+    size_t heapDefaultSize = OHOS::system::GetUintParameter<size_t>("persist.ark.heap.defaultsize", 0);
+    size_t heapSharedSize = OHOS::system::GetUintParameter<size_t>("persist.ark.heap.sharedsize", 0);
+    size_t heapWorkerSize = OHOS::system::GetUintParameter<size_t>("persist.ark.heap.workersize", 0);
     size_t gcThreadNum = OHOS::system::GetUintParameter<size_t>("persist.ark.gcthreads", 7);
     size_t longPauseTime = OHOS::system::GetUintParameter<size_t>("persist.ark.longpausetime", 40);
     pandaOption.SetArkProperties(arkProperties);
     pandaOption.SetArkBundleName(bundleName);
     pandaOption.SetMemConfigProperty(memConfigProperty);
+    pandaOption.SetHeapDefaultSize(heapDefaultSize);
+    pandaOption.SetHeapSharedSize(heapSharedSize);
+    pandaOption.SetHeapWorkerSize(heapWorkerSize);
     pandaOption.SetGcThreadNum(gcThreadNum);
     pandaOption.SetLongPauseTime(longPauseTime);
     TAG_LOGI(AAFwkTag::JSRUNTIME, "ark properties = %{public}d bundleName = %{public}s",
