@@ -41,18 +41,18 @@ struct AbilityForegroundInfo {
 class AbilityStartWithWaitObserverManager {
 public:
     static AbilityStartWithWaitObserverManager& GetInstance();
-    int32_t RegisterObserver(Want &want, sptr<IAbilityStartWithWaitObserver> &observer);
-    void UnregisterObserver(sptr<IAbilityStartWithWaitObserver> &observer);
+    int32_t RegisterObserver(Want &want, sptr<IAbilityStartWithWaitObserver> observer);
+    void UnregisterObserver(sptr<IAbilityStartWithWaitObserver> observer);
     void NotifyAATerminateWait(Want& want, TerminateReason reason = TerminateReason::TERMINATE_FOR_NONE);
-    void NotifyAATerminateWait(std::shared_ptr<AbilityRecord> &abilityRecord,
+    void NotifyAATerminateWait(std::shared_ptr<AbilityRecord> abilityRecord,
         TerminateReason reason = TerminateReason::TERMINATE_FOR_NONE);
-    void SetColdStartForShellCall(std::shared_ptr<AbilityRecord> &abilityRecord);
+    void SetColdStartForShellCall(std::shared_ptr<AbilityRecord> abilityRecord);
 
 private:
     AbilityStartWithWaitObserverManager() = default;
     ~AbilityStartWithWaitObserverManager() = default;
 
-    sptr<AbilityStartWithWaitObserverRecipient> GenerateDeathRecipient(sptr<IAbilityStartWithWaitObserver> &observer);
+    sptr<AbilityStartWithWaitObserverRecipient> GenerateDeathRecipient(sptr<IAbilityStartWithWaitObserver> observer);
 
     std::mutex oberverMutex_;
     int32_t observerId_ = 0;

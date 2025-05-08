@@ -830,8 +830,7 @@ void UIAbilityLifecycleManager::CompleteForegroundSuccess(const std::shared_ptr<
     TAG_LOGD(AAFwkTag::ABILITYMGR, "ability: %{public}s", element.c_str());
     abilityRecord->SetAbilityState(AbilityState::FOREGROUND);
     abilityRecord->UpdateAbilityVisibilityState();
-    std::shared_ptr<AbilityRecord> record = abilityRecord;
-    AbilityStartWithWaitObserverManager::GetInstance().NotifyAATerminateWait(record);
+    AbilityStartWithWaitObserverManager::GetInstance().NotifyAATerminateWait(abilityRecord);
 
     // new version. started by caller, scheduler call request
     if (abilityRecord->IsStartedByCall() && abilityRecord->IsStartToForeground() && abilityRecord->IsReady()) {

@@ -30,7 +30,7 @@ AbilityStartWithWaitObserverManager& AbilityStartWithWaitObserverManager::GetIns
     return instance;
 }
  
-int32_t AbilityStartWithWaitObserverManager::RegisterObserver(Want &want, sptr<IAbilityStartWithWaitObserver> &observer)
+int32_t AbilityStartWithWaitObserverManager::RegisterObserver(Want &want, sptr<IAbilityStartWithWaitObserver> observer)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityStartWithWaitObserverManager::RegisterObserver called");
     if (!observer || !observer->AsObject()) {
@@ -39,6 +39,7 @@ int32_t AbilityStartWithWaitObserverManager::RegisterObserver(Want &want, sptr<I
     }
  
     std::lock_guard<std::mutex> guard(oberverMutex_);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "observer list size:%{public}zu", observerList_.size());
     for (auto& ob : observerList_) {
         if (!ob.first) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer in observerList_");
@@ -62,7 +63,7 @@ int32_t AbilityStartWithWaitObserverManager::RegisterObserver(Want &want, sptr<I
     return ERR_OK;
 }
 
-void AbilityStartWithWaitObserverManager::UnregisterObserver(sptr<IAbilityStartWithWaitObserver> &observer)
+void AbilityStartWithWaitObserverManager::UnregisterObserver(sptr<IAbilityStartWithWaitObserver> observer)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityStartWithWaitObserverManager::UnregisterObserver called");
     if (!observer || !observer->AsObject()) {
@@ -70,6 +71,7 @@ void AbilityStartWithWaitObserverManager::UnregisterObserver(sptr<IAbilityStartW
         return;
     }
     std::lock_guard<std::mutex> guard(oberverMutex_);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "observer list size:%{public}zu", observerList_.size());
     for (auto& ob : observerList_) {
         if (!ob.first) {
             continue;
@@ -93,7 +95,7 @@ void AbilityStartWithWaitObserverManager::NotifyAATerminateWait(Want& want, Term
         TAG_LOGE(AAFwkTag::ABILITYMGR, "invaid observerId");
         return;
     }
-    sptr<IAbilityStartWithWaitObserver> proxy = nullptr;
+    sptr<IAbilityStartWithWaitObserver> abilityStartWithWaitObserver = nullptr;
     {
         std::lock_guard<std::mutex> guard(oberverMutex_);
         for (auto& observer : observerList_) {
@@ -102,8 +104,8 @@ void AbilityStartWithWaitObserverManager::NotifyAATerminateWait(Want& want, Term
                 continue;
             }
             if (observerId == observer.second.observerId) {
-                proxy = observer.first;
-                // 1.remove deathRecipient for proxy
+                abilityStartWithWaitObserver = observer.first;
+                // 1.remove deathRecipient for abilityStartWithWaitObserver
                 if (observer.first->AsObject()) {
                     observer.first->AsObject()->RemoveDeathRecipient(observer.second.deathRecipient);
                 }
@@ -113,18 +115,18 @@ void AbilityStartWithWaitObserverManager::NotifyAATerminateWait(Want& want, Term
             }
         }
     }
-    if (proxy) {
+    if (abilityStartWithWaitObserver) {
         AbilityStartWithWaitObserverData data;
         data.reason = static_cast<uint32_t>(reason);
-        proxy->NotifyAATerminateWait(data);
+        abilityStartWithWaitObserver->NotifyAATerminateWait(data);
     } else {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "proxy is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityStartWithWaitObserver is nullptr");
     }
     want.RemoveParam(Want::START_ABILITY_WITH_WAIT_OBSERVER_ID_KEY);
 }
 
 void AbilityStartWithWaitObserverManager::NotifyAATerminateWait(
-    std::shared_ptr<AbilityRecord> &abilityRecord, TerminateReason reason)
+    std::shared_ptr<AbilityRecord> abilityRecord, TerminateReason reason)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityStartWithWaitObserverManager::NotifyAATerminateWait called");
@@ -148,7 +150,7 @@ void AbilityStartWithWaitObserverManager::NotifyAATerminateWait(
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
                 continue;
             }
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "observer.second.observerId:%{public}d", observer.second.observerId);
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "observerId = %{public}d", observer.second.observerId);
             if (observerId == observer.second.observerId) {
                 data.reason = static_cast<uint32_t>(reason);
                 data.coldStart = observer.second.coldStart;
@@ -157,7 +159,7 @@ void AbilityStartWithWaitObserverManager::NotifyAATerminateWait(
                     std::chrono::system_clock::now().time_since_epoch()).count();
                 data.bundleName = abilityRecord->GetAbilityInfo().bundleName;
                 data.abilityName = abilityRecord->GetAbilityInfo().name;
-                TAG_LOGD(AAFwkTag::ABILITYMGR, "notify aa, time:%{public}" PRId64 " foregroundTime:%{public}" PRId64
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "notify aa, time:%{public}" PRId64 " foregroundTime:%{public}" PRId64
                     " ,bundleName:%{public}s ability:%{public}s", data.startTime, data.foregroundTime,
                     data.bundleName.c_str(), data.abilityName.c_str());
                 proxy = observer.first;
@@ -179,7 +181,7 @@ void AbilityStartWithWaitObserverManager::NotifyAATerminateWait(
     }
 }
 
-void AbilityStartWithWaitObserverManager::SetColdStartForShellCall(std::shared_ptr<AbilityRecord> &abilityRecord)
+void AbilityStartWithWaitObserverManager::SetColdStartForShellCall(std::shared_ptr<AbilityRecord> abilityRecord)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityStartWithWaitObserverManager::SetColdStartForShellCall called");
     if (!abilityRecord) {
@@ -198,7 +200,7 @@ void AbilityStartWithWaitObserverManager::SetColdStartForShellCall(std::shared_p
             continue;
         }
         if (observerId == observer.second.observerId) {
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "set cold start, bundleName:%{public}s ability:%{public}s",
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "set cold start, bundleName:%{public}s ability:%{public}s",
                 abilityRecord->GetAbilityInfo().bundleName.c_str(), abilityRecord->GetAbilityInfo().name.c_str());
             observer.second.coldStart = true;
         }
@@ -206,7 +208,7 @@ void AbilityStartWithWaitObserverManager::SetColdStartForShellCall(std::shared_p
 }
 
 sptr<AbilityStartWithWaitObserverRecipient> AbilityStartWithWaitObserverManager::GenerateDeathRecipient(
-    sptr<IAbilityStartWithWaitObserver> &observer)
+    sptr<IAbilityStartWithWaitObserver> observer)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityStartWithWaitObserverManager::GenerateDeathRecipient called");
     if (!observer || !observer->AsObject()) {

@@ -1311,8 +1311,7 @@ void MissionListManager::CompleteForegroundSuccess(const std::shared_ptr<Ability
     TAG_LOGD(AAFwkTag::ABILITYMGR, "ability: %{public}s", element.c_str());
 
     abilityRecord->SetAbilityState(AbilityState::FOREGROUND);
-    std::shared_ptr<AbilityRecord> record = abilityRecord;
-    AbilityStartWithWaitObserverManager::GetInstance().NotifyAATerminateWait(record);
+    AbilityStartWithWaitObserverManager::GetInstance().NotifyAATerminateWait(abilityRecord);
 
 #if BINDER_IPC_32BIT
     TAG_LOGI(AAFwkTag::ABILITYMGR, "bundle:%{public}s,ability:%{public}s,time:%{public}lld",
@@ -2419,9 +2418,8 @@ void MissionListManager::CompleteForegroundFailed(const std::shared_ptr<AbilityR
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityRecord null");
         return;
     }
-    std::shared_ptr<AbilityRecord> record = abilityRecord;
     AbilityStartWithWaitObserverManager::GetInstance().NotifyAATerminateWait(
-        record, TerminateReason::TERMINATE_FOR_UI_ABILITY_FOREGROUND_FAILED);
+        abilityRecord, TerminateReason::TERMINATE_FOR_UI_ABILITY_FOREGROUND_FAILED);
     if (state == AbilityState::FOREGROUND_WINDOW_FREEZED) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "window freezed");
         abilityRecord->SetPendingState(AbilityState::INITIAL);
