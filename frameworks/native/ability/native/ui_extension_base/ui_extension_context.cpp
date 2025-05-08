@@ -275,6 +275,17 @@ void UIExtensionContext::SetScreenMode(int32_t screenMode)
     screenMode_ = screenMode;
 }
 
+bool UIExtensionContext::IsTerminating()
+{
+    return isTerminating_;
+}
+
+void UIExtensionContext::SetTerminating(const bool &state)
+{
+    isTerminating_ = state;
+}
+
+
 int UIExtensionContext::GenerateCurRequestCode()
 {
     std::lock_guard lock(requestCodeMutex_);

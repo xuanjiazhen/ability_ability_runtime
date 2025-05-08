@@ -161,6 +161,8 @@ public:
 #ifdef SUPPORT_SCREEN
     void SetWindow(sptr<Rosen::Window> window);
 
+    virtual bool IsTerminating() = 0;
+    virtual void SetTerminating(bool state) = 0;
     sptr<Rosen::Window> GetWindow();
 
     Ace::UIContent* GetUIContent() override;

@@ -341,6 +341,11 @@ void JsUIExtension::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> se
 void JsUIExtension::OnStop()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto context = GetContext();
+    if (context) {
+        TAG_LOGD(AAFwkTag::UI_EXT, "set terminating true");
+        context->SetTerminating(true);
+    }
     UIExtension::OnStop();
     TAG_LOGD(AAFwkTag::UI_EXT, "begin");
     AbilityRuntime::ApplicationConfigurationManager::GetInstance().DeleteIgnoreContext(GetContext());
@@ -362,6 +367,11 @@ void JsUIExtension::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *callbac
         return;
     }
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto context = GetContext();
+    if (context) {
+        TAG_LOGD(AAFwkTag::UI_EXT, "set terminating true");
+        context->SetTerminating(true);
+    }
     TAG_LOGD(AAFwkTag::UI_EXT, "begin");
     UIExtension::OnStop();
     HandleScope handleScope(jsRuntime_);

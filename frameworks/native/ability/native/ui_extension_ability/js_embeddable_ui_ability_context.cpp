@@ -216,6 +216,31 @@ napi_value JsEmbeddableUIAbilityContext::SetRestoreEnabled(napi_env env, napi_ca
     GET_NAPI_INFO_AND_CALL(env, info, JsEmbeddableUIAbilityContext, OnSetRestoreEnabled);
 }
 
+napi_value JsEmbeddableUIAbilityContext::SetAbilityInstanceInfo(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsEmbeddableUIAbilityContext, OnSetAbilityInstanceInfo);
+}
+
+napi_value JsEmbeddableUIAbilityContext::SetColorMode(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsEmbeddableUIAbilityContext, OnSetColorMode);
+}
+
+napi_value JsEmbeddableUIAbilityContext::StartUIServiceExtension(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsEmbeddableUIAbilityContext, OnStartUIServiceExtension);
+}
+
+napi_value JsEmbeddableUIAbilityContext::ConnectUIServiceExtension(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsEmbeddableUIAbilityContext, OnConnectUIServiceExtension);
+}
+
+napi_value JsEmbeddableUIAbilityContext::DisconnectUIServiceExtension(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsEmbeddableUIAbilityContext, OnDisconnectUIServiceExtension);
+}
+
 napi_value JsEmbeddableUIAbilityContext::OnStartAbility(napi_env env, NapiCallbackInfo& info)
 {
     if (IsEmbeddableStart(screenMode_)) {
@@ -417,9 +442,8 @@ napi_value JsEmbeddableUIAbilityContext::OnRestoreWindowStage(napi_env env, Napi
 napi_value JsEmbeddableUIAbilityContext::OnIsTerminating(napi_env env, NapiCallbackInfo& info)
 {
     if (IsEmbeddableStart(screenMode_)) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Get terminating state in embedded screen mode");
-        ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
-        return CreateJsUndefined(env);
+        CHECK_POINTER_RETURN(env, jsUIExtensionContext_);
+        return jsUIExtensionContext_->OnIsTerminating(env, info);
     }
     CHECK_POINTER_RETURN(env, jsAbilityContext_);
     return jsAbilityContext_->OnIsTerminating(env, info);
@@ -679,7 +703,64 @@ napi_value JsEmbeddableUIAbilityContext::CreateJsEmbeddableUIAbilityContext(napi
     BindNativeFunction(env, objValue, "setMissionIcon", moduleName, SetMissionIcon);
     BindNativeFunction(env, objValue, "moveAbilityToBackground", moduleName, MoveAbilityToBackground);
 #endif
+    BindNativeFunction(env, objValue, "setAbilityInstanceInfo", moduleName, SetAbilityInstanceInfo);
+    BindNativeFunction(env, objValue, "SetColorMode", moduleName, SetColorMode);
+    BindNativeFunction(env, objValue, "startUIServiceExtensionAbility", moduleName, StartUIServiceExtension);
+    BindNativeFunction(env, objValue, "connectUIServiceExtensionAbility", moduleName, ConnectUIServiceExtension);
+    BindNativeFunction(env, objValue, "disconnectUIServiceExtensionAbility", moduleName, DisconnectUIServiceExtension);
     return objValue;
 }
+
+napi_value JsEmbeddableUIAbilityContext::OnSetAbilityInstanceInfo(napi_env env, NapiCallbackInfo& info)
+{
+    if (IsEmbeddableStart(screenMode_)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "OnSetRestoreEnabled in half screen mode");
+        ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
+        return CreateJsUndefined(env);
+    }
+    CHECK_POINTER_RETURN(env, jsAbilityContext_);
+    return jsAbilityContext_->OnSetAbilityInstanceInfo(env, info);
+}
+
+napi_value JsEmbeddableUIAbilityContext::OnSetColorMode(napi_env env, NapiCallbackInfo& info)
+{
+    if (IsEmbeddableStart(screenMode_)) {
+        CHECK_POINTER_RETURN(env, jsUIExtensionContext_);
+        return jsUIExtensionContext_->OnSetColorMode(env, info);
+    }
+    CHECK_POINTER_RETURN(env, jsAbilityContext_);
+    return jsAbilityContext_->OnSetColorMode(env, info);
+}
+
+napi_value JsEmbeddableUIAbilityContext::OnStartUIServiceExtension(napi_env env, NapiCallbackInfo& info)
+{
+    if (IsEmbeddableStart(screenMode_)) {
+        CHECK_POINTER_RETURN(env, jsUIExtensionContext_);
+        return jsUIExtensionContext_->OnStartUIServiceExtension(env, info);
+    }
+    CHECK_POINTER_RETURN(env, jsAbilityContext_);
+    return jsAbilityContext_->OnStartUIServiceExtension(env, info);
+}
+
+napi_value JsEmbeddableUIAbilityContext::OnConnectUIServiceExtension(napi_env env, NapiCallbackInfo& info)
+{
+    if (IsEmbeddableStart(screenMode_)) {
+        CHECK_POINTER_RETURN(env, jsUIExtensionContext_);
+        return jsUIExtensionContext_->OnConnectUIServiceExtension(env, info);
+    }
+    CHECK_POINTER_RETURN(env, jsAbilityContext_);
+    return jsAbilityContext_->OnConnectUIServiceExtension(env, info);
+}
+
+napi_value JsEmbeddableUIAbilityContext::OnDisconnectUIServiceExtension(napi_env env, NapiCallbackInfo& info)
+{
+    if (IsEmbeddableStart(screenMode_)) {
+        CHECK_POINTER_RETURN(env, jsUIExtensionContext_);
+        return jsUIExtensionContext_->OnDisconnectUIServiceExtension(env, info);
+    }
+    CHECK_POINTER_RETURN(env, jsAbilityContext_);
+    return jsAbilityContext_->OnDisconnectUIServiceExtension(env, info);
+}
+
 }  // namespace AbilityRuntime
 }  // namespace OHOS

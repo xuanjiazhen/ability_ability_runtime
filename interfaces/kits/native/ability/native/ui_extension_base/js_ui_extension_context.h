@@ -51,6 +51,7 @@ public:
     static napi_value StartServiceExtensionAbilityWithAccount(napi_env env, napi_callback_info info);
     static napi_value SetColorMode(napi_env env, napi_callback_info info);
     static napi_value SetHostPageOverlayForbidden(napi_env env, napi_callback_info info);
+    static napi_value StartAbilityByType(napi_env env, napi_callback_info info);
 
 protected:
     virtual napi_value OnStartAbility(napi_env env, NapiCallbackInfo& info);
@@ -98,6 +99,8 @@ private:
     void InitDisplayId(AAFwk::Want &want);
     void InitDisplayId(AAFwk::Want &want, AAFwk::StartOptions &startOptions, napi_env &env, NapiCallbackInfo& info);
 #endif
+    napi_value OnIsTerminating(napi_env env, NapiCallbackInfo& info);
+    napi_value OnStartAbilityByType(napi_env env, NapiCallbackInfo& info);
 };
 
 class JSUIExtensionConnection : public AbilityConnectCallback {

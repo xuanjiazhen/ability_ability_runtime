@@ -413,6 +413,7 @@ napi_value JsUIExtensionContext::OnTerminateSelf(napi_env env, NapiCallbackInfo&
             *innerErrCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
             return;
         }
+        context->SetTerminating(true);
         *innerErrCode = context->TerminateSelf();
     };
     NapiAsyncTask::CompleteCallback complete =
@@ -986,6 +987,7 @@ void JsUIExtensionContext::SetCallbackForTerminateWithResult(int32_t resultCode,
                 return;
             }
 #endif // SUPPORT_SCREEN
+            context->SetTerminating(true);
             auto errorCode = context->TerminateSelf();
             if (errorCode == 0) {
                 task.ResolveWithNoError(env, CreateJsUndefined(env));
@@ -1331,6 +1333,72 @@ void JsUIExtensionContext::InitDisplayId(AAFwk::Want &want, AAFwk::StartOptions 
     startOptions.SetDisplayID(window->GetDisplayId());
 }
 #endif
+
+napi_value JsUIExtensionContext::OnIsTerminating(napi_env env, NapiCallbackInfo &info)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "called");
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null context");
+        return CreateJsUndefined(env);
+    }
+    return CreateJsValue(env, context->IsTerminating());
+}
+
+napi_value JsUIExtensionContext::OnStartAbilityByType(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGI(AAFwkTag::CONTEXT, "call");
+    if (info.argc < ARGC_THREE) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "invalid params");
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    std::string type;
+    if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], type)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse type failed");
+        ThrowInvalidParamError(env, "Parse param type failed, type must be string.");
+        return CreateJsUndefined(env);
+    }
+
+    AAFwk::WantParams wantParam;
+    if (!AppExecFwk::UnwrapWantParams(env, info.argv[INDEX_ONE], wantParam)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse wantParam failed");
+        ThrowInvalidParamError(env, "Parse param want failed, want must be Want.");
+        return CreateJsUndefined(env);
+    }
+
+    std::shared_ptr<JsUIExtensionCallback> callback = std::make_shared<JsUIExtensionCallback>(env);
+    callback->SetJsCallbackObject(info.argv[INDEX_TWO]);
+    auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute =
+        [weak = context_, type, wantParam, callback, innerErrCode]() mutable {
+            auto context = weak.lock();
+            if (!context) {
+                TAG_LOGW(AAFwkTag::CONTEXT, "null context");
+                *innerErrCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+                return;
+            }
+#ifdef SUPPORT_SCREEN
+            *innerErrCode = context->StartAbilityByType(type, wantParam, callback);
+#endif
+        };
+    NapiAsyncTask::CompleteCallback complete =
+        [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+            if (*innerErrCode == ERR_OK) {
+                task.ResolveWithNoError(env, CreateJsUndefined(env));
+            } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
+                task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+            } else {
+                task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+            }
+        };
+    napi_value lastParam = (info.argc > ARGC_THREE) ? info.argv[INDEX_THREE] : nullptr;
+    napi_value result = nullptr;
+    NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnStartAbilityByType",
+        env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
+    return result;
+}
 
 JSUIExtensionConnection::JSUIExtensionConnection(napi_env env) : env_(env) {}
 

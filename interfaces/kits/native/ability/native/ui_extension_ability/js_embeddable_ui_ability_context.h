@@ -69,6 +69,11 @@ public:
     static napi_value HideAbility(napi_env env, napi_callback_info info);
     static napi_value SetRestoreEnabled(napi_env env, napi_callback_info info);
 
+    static napi_value SetColorMode(napi_env env, napi_callback_info info);
+    static napi_value SetAbilityInstanceInfo(napi_env env, napi_callback_info info);
+    static napi_value StartUIServiceExtension(napi_env env, napi_callback_info info);
+    static napi_value ConnectUIServiceExtension(napi_env env, napi_callback_info info);
+    static napi_value DisconnectUIServiceExtension(napi_env env, napi_callback_info info);
 private:
     static void WrapJsUIAbilityContext(napi_env env, std::shared_ptr<AbilityContext> uiAbiContext,
         napi_value &objValue, int32_t screenMode);
@@ -104,6 +109,11 @@ private:
     napi_value OnShowAbility(napi_env env, NapiCallbackInfo& info);
     napi_value OnHideAbility(napi_env env, NapiCallbackInfo& info);
     napi_value OnSetRestoreEnabled(napi_env env, NapiCallbackInfo& info);
+    napi_value OnSetColorMode(napi_env env, NapiCallbackInfo info);
+    napi_value OnSetAbilityInstanceInfo(napi_env env, NapiCallbackInfo info);
+    napi_value OnStartUIServiceExtension(napi_env env, NapiCallbackInfo& info);
+    napi_value OnConnectUIServiceExtension(napi_env env, NapiCallbackInfo& info);
+    napi_value OnDisconnectUIServiceExtension(napi_env env, NapiCallbackInfo& info);
 
 #ifdef SUPPORT_GRAPHICS
 public:
