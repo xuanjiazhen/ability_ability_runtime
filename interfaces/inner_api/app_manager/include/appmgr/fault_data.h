@@ -72,6 +72,7 @@ struct FaultData : public Parcelable {
     int32_t tid = -1;
     uint32_t stuckTimeout = 0;
     sptr<IRemoteObject> token = nullptr;
+    std::string appfreezeData;
 };
 
 /**

@@ -93,7 +93,8 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInner__ThreadBlock_001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "AppfreezeInner__ThreadBlock_001 start";
     std::atomic_bool isSixSecondEvent = false;
-    appfreezeInner->ThreadBlock(isSixSecondEvent);
+    std::string appfreezeData;
+    appfreezeInner->ThreadBlock(isSixSecondEvent, appfreezeData);
     EXPECT_TRUE(isSixSecondEvent);
     GTEST_LOG_(INFO) << "AppfreezeInner__ThreadBlock_001 end";
 }
@@ -107,11 +108,12 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInner__ThreadBlock_002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "AppfreezeInner__ThreadBlock_002 start";
     std::atomic_bool isSixSecondEvent = true;
-    appfreezeInner->ThreadBlock(isSixSecondEvent);
+    std::string appfreezeData;
+    appfreezeInner->ThreadBlock(isSixSecondEvent, appfreezeData);
     EXPECT_TRUE(isSixSecondEvent);
 
     appfreezeInner->SetAppDebug(true);
-    appfreezeInner->ThreadBlock(isSixSecondEvent);
+    appfreezeInner->ThreadBlock(isSixSecondEvent, appfreezeData);
     EXPECT_TRUE(isSixSecondEvent);
     GTEST_LOG_(INFO) << "AppfreezeInner__ThreadBlock_002 end";
 }
@@ -125,7 +127,8 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInner_IsNeedIgnoreFreezeEvent_001, TestSiz
 {
     std::atomic_bool isSixSecondEvent = true;
     appfreezeInner->isAppDebug_ = false;
-    appfreezeInner->ThreadBlock(isSixSecondEvent);
+    std::string appfreezeData = "HITRACE_ID:12345";
+    appfreezeInner->ThreadBlock(isSixSecondEvent, appfreezeData);
     EXPECT_TRUE(isSixSecondEvent);
     int32_t pid = static_cast<int32_t>(getprocpid());
     std::shared_ptr<AAFwk::ApplicationAnrListener> listener =
@@ -250,10 +253,12 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInner__Dump_002, TestSize.Level1)
  */
 HWTEST_F(AppfreezeInnerTest, AppfreezeInner_AppfreezeHandleOverReportCount_001, TestSize.Level1)
 {
+    std::string appfreezeData = "HTRACE_ID:1111";
     bool isSixSecondEvent = true;
-    appfreezeInner->AppfreezeHandleOverReportCount(isSixSecondEvent);
+    appfreezeInner->AppfreezeHandleOverReportCount(isSixSecondEvent, appfreezeData);
     isSixSecondEvent = false;
-    appfreezeInner->AppfreezeHandleOverReportCount(isSixSecondEvent);
+    appfreezeData = "";
+    appfreezeInner->AppfreezeHandleOverReportCount(isSixSecondEvent, appfreezeData);
     EXPECT_TRUE(!isSixSecondEvent);
 }
 }  // namespace AppExecFwk

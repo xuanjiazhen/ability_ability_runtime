@@ -131,7 +131,7 @@ void AppfreezeInner::ChangeFaultDateInfo(FaultData& faultData, const std::string
     }
 }
 
-void AppfreezeInner::AppfreezeHandleOverReportCount(bool isSixSecondEvent)
+void AppfreezeInner::AppfreezeHandleOverReportCount(bool isSixSecondEvent, const std::string& appfreezeData)
 {
     FaultData faultData;
     faultData.errorObject.message =
@@ -139,6 +139,7 @@ void AppfreezeInner::AppfreezeHandleOverReportCount(bool isSixSecondEvent)
     faultData.errorObject.message += "App main thread is not response!";
     faultData.faultType = FaultDataType::APP_FREEZE;
     faultData.timeoutMarkers = "";
+    faultData.appfreezeData = appfreezeData;
     if (isSixSecondEvent) {
         faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
     } else {
@@ -219,18 +220,20 @@ int AppfreezeInner::AcquireStack(const FaultData& info, bool onlyMainThread)
         faultData.timeoutMarkers = it->timeoutMarkers;
         faultData.eventId = it->eventId;
         faultData.needKillProcess = it->needKillProcess;
+        faultData.appfreezeData = it->appfreezeData;
         ChangeFaultDateInfo(faultData, msgContent);
     }
     return 0;
 }
 
-void AppfreezeInner::ThreadBlock(std::atomic_bool& isSixSecondEvent)
+void AppfreezeInner::ThreadBlock(std::atomic_bool& isSixSecondEvent, const std::string& appfreezeData)
 {
     FaultData faultData;
     faultData.errorObject.message =
         "\nFault time:" + AbilityRuntime::TimeUtil::FormatTime("%Y/%m/%d-%H:%M:%S") + "\n";
     faultData.errorObject.message += "App main thread is not response!";
     faultData.faultType = FaultDataType::APP_FREEZE;
+    faultData.appfreezeData = appfreezeData;
     bool onlyMainThread = false;
 
     if (isSixSecondEvent) {
