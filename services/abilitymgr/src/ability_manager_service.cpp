@@ -11886,7 +11886,7 @@ bool AbilityManagerService::VerifySameAppOrAppIdentifierAlloListPermission(const
         }
         if (!IN_PROCESS_CALL(bms->GetBundleInfoV9(abilityRecord->GetApplicationInfo().bundleName,
             static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_SIGNATURE_INFO),
-            callerBundleInfo, userId)) {
+            callerBundleInfo, userId))) {
                 return false;
             };
         callerAppIdentifier = callerBundleInfo.signatureInfo.appIdentifier;
