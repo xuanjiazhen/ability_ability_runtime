@@ -194,6 +194,7 @@ constexpr char PRODUCT_ASSERT_FAULT_DIALOG_ENABLED[] = "persisit.sys.abilityms.s
 constexpr const char* ABILITYMS_ENABLE_UISERVICE = "const.abilityms.enable_uiservice";
 
 constexpr int32_t RESOURCE_SCHEDULE_UID = 1096;
+constexpr int32_t HIVIEW_UID = 1201;
 constexpr int32_t UPDATE_CONFIG_FLAG_COVER = 1;
 constexpr int32_t UPDATE_CONFIG_FLAG_APPEND = 2;
 
@@ -2330,6 +2331,20 @@ int32_t AbilityManagerService::RecordProcessExitReason(const int32_t pid, const 
 
     CHECK_POINTER_AND_RETURN(appExitReasonHelper_, ERR_NULL_OBJECT);
     return appExitReasonHelper_->RecordProcessExitReason(pid, exitReason);
+}
+
+int32_t AbilityManagerService::RecordProcessExitReason(int32_t pid, int32_t uid, const ExitReason &exitReason)
+{
+    if (IPCSkeleton::GetCallingUid() != HIVIEW_UID) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not expected caller");
+        return ERR_NO_PERMISSION_CALLER;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "[EXIT_REASON_TAG] pid:%{public}d, reason:%{public}d, exitMsg:%{public}s",
+        pid, exitReason.reason, exitReason.exitMsg.c_str());
+
+    CHECK_POINTER_AND_RETURN(appExitReasonHelper_, ERR_NULL_APP_EXIT_REASON_HELPER);
+    return appExitReasonHelper_->RecordProcessExitReason(pid, uid, exitReason);
 }
 
 int32_t AbilityManagerService::ForceExitApp(const int32_t pid, const ExitReason &exitReason)
@@ -12655,7 +12670,7 @@ bool AbilityManagerService::CheckCrossUser(const int32_t userId, AppExecFwk::Ext
     }
     if (AppUtils::GetInstance().IsConnectSupportCrossUser() && (extensionType == AppExecFwk::ExtensionAbilityType::DATASHARE
         || extensionType == AppExecFwk::ExtensionAbilityType::SERVICE)) {
-        return true;    
+        return true;
     }
     return false;
 }

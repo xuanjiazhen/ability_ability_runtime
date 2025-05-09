@@ -2471,6 +2471,15 @@ pid_t AppRunningRecord::GetGPUPid()
     return gpuPid_;
 }
 
+pid_t AppRunningRecord::GetPid()
+{
+    auto prioObj = GetPriorityObject();
+    if (prioObj) {
+        return prioObj->GetPid();
+    }
+    return 0;
+}
+
 void AppRunningRecord::SetAttachedToStatusBar(bool isAttached)
 {
     isAttachedToStatusBar = isAttached;

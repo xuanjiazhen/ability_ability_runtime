@@ -347,6 +347,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerSeventh(uint32_t code, MessageParcel &da
             return HandleGetAppIndexByPid(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::GET_SUPPORTED_PROCESS_CACHE_PIDS):
             return HandleGetSupportedProcessCachePids(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::GET_KILLED_PROCESS_INFO):
+            return HandleGetKilledProcessInfo(data, reply);
     }
     return INVALID_FD;
 }
@@ -1716,5 +1718,18 @@ int32_t AppMgrStub::HandleIsSpecifiedModuleLoaded(MessageParcel &data, MessagePa
     }
     return ret;
 }
+
+int32_t AppMgrStub::HandleGetKilledProcessInfo(MessageParcel &data, MessageParcel &reply)
+{
+    int pid = data.ReadInt32();
+    int uid = data.ReadInt32();
+    KilledProcessInfo info;
+    auto ret = GetKilledProcessInfo(pid, uid, info);
+    if (ret == ERR_OK && !reply.WriteParcelable(&info)) {
+        ret = IPC_STUB_ERR;
+    }
+    return ret;
+}
+
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -58,6 +58,7 @@
 #include "iremote_object.h"
 #include "irender_state_observer.h"
 #include "istart_specified_ability_response.h"
+#include "killed_process_info.h"
 #include "record_query_result.h"
 #include "refbase.h"
 #include "remote_client_manager.h"
@@ -1251,6 +1252,7 @@ public:
      * @param userId, the user id.
      */
     void SendAppSpawnUninstallDebugHapMsg(int32_t userId);
+    int32_t GetKilledProcessInfo(int pid, int uid, KilledProcessInfo &info);
 
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,

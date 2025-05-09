@@ -52,7 +52,7 @@ constexpr const char* TASK_BLOCK_PROCESS_CACHE_BY_PIDS = "BlockProcessCacheByPid
 constexpr const char* POWER_OFF_ABILITY = "PoweroffAbility";
 constexpr const char* TASK_SEND_APP_SPAWN_UNINSTALL_DEBUG_HAP_MSG = "SendAppSpawnUninstallDebugHapMsgTask";
 constexpr int32_t SCENE_BOARD_ATTACH_TIMEOUT_TASK_TIME = 1000;
-constexpr int32_t LOAD_TASK_TIMEOUT = 30000000; // us
+constexpr int32_t LOAD_TASK_TIMEOUT = 60000000; // us
 };  // namespace
 
 AmsMgrScheduler::AmsMgrScheduler(

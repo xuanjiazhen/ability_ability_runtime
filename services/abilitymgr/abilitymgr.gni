@@ -125,6 +125,7 @@ abilityms_files = [
   "src/insight_intent_execute_result.cpp",
 
   "src/ability_manager_event_subscriber.cpp",
+  "src/ability_record_death_manager.cpp",
 
   #utils
   "src/utils/window_options_utils.cpp",

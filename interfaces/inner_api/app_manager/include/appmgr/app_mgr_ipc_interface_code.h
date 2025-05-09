@@ -118,6 +118,7 @@ enum class AppMgrInterfaceCode {
     GET_APP_INDEX_BY_PID = 94,
     IS_TERMINATING_BY_PID = 95,
     IS_SPECIFIED_MODULE_LOADED = 98,
+    GET_KILLED_PROCESS_INFO = 101,
 };
 } // AppExecFwk
 } // OHOS

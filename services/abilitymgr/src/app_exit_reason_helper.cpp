@@ -15,16 +15,38 @@
 
 #include "app_exit_reason_helper.h"
 
+#include "ability_record_death_manager.h"
 #include "accesstoken_kit.h"
 #include "app_exit_reason_data_manager.h"
 #include "bundle_mgr_helper.h"
 #include "os_account_manager_wrapper.h"
 #include "scene_board_judgement.h"
+#include "utils/app_mgr_util.h"
 
 namespace OHOS {
 namespace AAFwk {
 namespace {
-    constexpr int32_t U0_USER_ID = 0;
+constexpr int32_t U0_USER_ID = 0;
+void AppendAbilities(const std::list<std::shared_ptr<AbilityRecord>> &abilityRecords,
+    std::vector<std::string> &abilities)
+{
+    for (const auto &abilityRecord : abilityRecords) {
+        if (abilityRecord == nullptr) {
+            continue;
+        }
+
+        const auto &abilityInfo = abilityRecord->GetAbilityInfo();
+        if (!abilityInfo.name.empty()) {
+            std::string abilityName = abilityInfo.name;
+            if (abilityInfo.launchMode == AppExecFwk::LaunchMode::STANDARD &&
+                abilityRecord->GetSessionInfo() != nullptr) {
+                abilityName += std::to_string(abilityRecord->GetSessionInfo()->persistentId);
+            }
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "find ability name is %{public}s.", abilityName.c_str());
+            abilities.emplace_back(std::move(abilityName));
+        }
+    }
+}
 }
 
 AppExitReasonHelper::AppExitReasonHelper(std::shared_ptr<SubManagersHelper> subManagersHelper)
@@ -101,7 +123,7 @@ int32_t AppExitReasonHelper::RecordProcessExitReason(const int32_t pid, const Ex
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Record Process Extension Exit Reason failed.code: %{public}d", resultCode);
     }
 
-    return RecordProcessExitReason(pid, bundleName, application.uid, application.accessTokenId, exitReason);
+    return RecordProcessExitReason(pid, bundleName, application.uid, application.accessTokenId, exitReason, false);
 }
 
 int32_t AppExitReasonHelper::RecordAppExitReason(const std::string &bundleName, int32_t uid, int32_t appIndex,
@@ -114,11 +136,28 @@ int32_t AppExitReasonHelper::RecordAppExitReason(const std::string &bundleName, 
         return ERR_INVALID_VALUE;
     }
     uint32_t accessTokenId = Security::AccessToken::AccessTokenKit::GetHapTokenID(userId, bundleName, appIndex);
-    return RecordProcessExitReason(NO_PID, bundleName, uid, accessTokenId, exitReason);
+    return RecordProcessExitReason(NO_PID, bundleName, uid, accessTokenId, exitReason, false);
+}
+
+int32_t AppExitReasonHelper::RecordProcessExitReason(int32_t pid, int32_t uid, const ExitReason &exitReason)
+{
+    auto appMgr = AppMgrUtil::GetAppMgr();
+    if (appMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "appMgr null");
+        return ERR_NULL_APP_MGR_PROXY;
+    }
+    AppExecFwk::KilledProcessInfo appInfo;
+    auto ret = IN_PROCESS_CALL(appMgr->GetKilledProcessInfo(pid, uid, appInfo));
+    if (ret != ERR_OK) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "GetKilledProcessInfo failed");
+        return ret;
+    }
+
+    return RecordProcessExitReason(pid, appInfo.bundleName, uid, appInfo.accessTokenId, exitReason, true);
 }
 
 int32_t AppExitReasonHelper::RecordProcessExitReason(const int32_t pid, const std::string bundleName,
-    const int32_t uid, const uint32_t accessTokenId, const ExitReason &exitReason)
+    const int32_t uid, const uint32_t accessTokenId, const ExitReason &exitReason, bool searchDead)
 {
     if (!IsExitReasonValid(exitReason)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Force exit reason invalid.");
@@ -134,6 +173,9 @@ int32_t AppExitReasonHelper::RecordProcessExitReason(const int32_t pid, const st
     std::vector<std::string> abilityLists;
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         GetActiveAbilityListFromUIAbilityManager(uid, abilityLists, pid);
+        if (searchDead) {
+            AppendAbilities(AbilityRecordDeathManager::GetInstance().QueryDeadAbilityRecord(pid, uid), abilityLists);
+        }
     } else  {
         GetActiveAbilityList(uid, abilityLists, pid);
     }
