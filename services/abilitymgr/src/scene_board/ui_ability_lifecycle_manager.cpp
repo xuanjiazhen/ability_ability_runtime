@@ -35,6 +35,7 @@
 #include "session_manager_lite.h"
 #include "session/host/include/zidl/session_interface.h"
 #include "startup_util.h"
+#include "timeout_state_utils.h"
 #include "ui_extension_utils.h"
 #include "ability_stage_constant.h"
 #ifdef SUPPORT_GRAPHICS
@@ -68,18 +69,6 @@ constexpr int32_t API20 = 20;
 constexpr int32_t API_VERSION_MOD = 100;
 constexpr const char* IS_CALLING_FROM_DMS = "supportCollaborativeCallingFromDmsInAAFwk";
 constexpr int REMOVE_STARTING_BUNDLE_TIMEOUT_MICRO_SECONDS = 5000000; // 5s
-
-FreezeUtil::TimeoutState MsgId2State(uint32_t msgId)
-{
-    if (msgId == AbilityManagerService::LOAD_TIMEOUT_MSG) {
-        return FreezeUtil::TimeoutState::LOAD;
-    } else if (msgId == AbilityManagerService::FOREGROUND_TIMEOUT_MSG) {
-        return FreezeUtil::TimeoutState::FOREGROUND;
-    } else if (msgId == AbilityManagerService::BACKGROUND_TIMEOUT_MSG) {
-        return FreezeUtil::TimeoutState::BACKGROUND;
-    }
-    return FreezeUtil::TimeoutState::UNKNOWN;
-}
 
 auto g_deleteLifecycleEventTask = [](const sptr<Token> &token) {
     CHECK_POINTER_LOG(token, "token is nullptr.");
@@ -1504,7 +1493,7 @@ void UIAbilityLifecycleManager::PrintTimeOutLog(std::shared_ptr<AbilityRecord> a
         .eventName = eventName,
         .bundleName = ability->GetAbilityInfo().bundleName,
     };
-    FreezeUtil::TimeoutState state = MsgId2State(msgId);
+    FreezeUtil::TimeoutState state = TimeoutStateUtils::MsgId2FreezeTimeOutState(msgId);
     FreezeUtil::LifecycleFlow flow;
     if (state != FreezeUtil::TimeoutState::UNKNOWN) {
         if (ability->GetToken() != nullptr) {
