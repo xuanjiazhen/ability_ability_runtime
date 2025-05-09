@@ -68,7 +68,8 @@ public:
 
 private:
     int GenerateAbilityRequestByAction(int32_t userId, AbilityRequest &request,
-        std::vector<DialogAppInfo> &dialogAppInfos, bool isMoreHapList);
+        std::vector<DialogAppInfo> &dialogAppInfos, bool isMoreHapList, bool &findDefaultApp,
+        bool &isAppCloneSelector);
 
     int GenerateAbilityRequestByAppIndexes(int32_t userId, AbilityRequest &request,
         std::vector<DialogAppInfo> &dialogAppInfos);
@@ -107,7 +108,15 @@ private:
     void OnlyKeepReserveApp(std::vector<AppExecFwk::AbilityInfo> &abilityInfos,
         std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos, const AbilityRequest &request);
 
+    bool IsActionImplicitStart(const Want &want, bool findDefaultApp);
+
     int CheckImplicitCallPermission(const AbilityRequest& abilityRequest);
+
+    int32_t FindAppClone(std::vector<AppExecFwk::AbilityInfo> &abilityInfos,
+        std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos, bool &isAppCloneSelector);
+
+    bool FindAbilityAppClone(std::vector<AppExecFwk::AbilityInfo> &abilityInfos);
+    bool FindExtensionAppClone(std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos);
 
 private:
     sptr<AppExecFwk::IBundleMgr> iBundleManager_;

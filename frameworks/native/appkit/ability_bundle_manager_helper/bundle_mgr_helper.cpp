@@ -717,6 +717,25 @@ bool BundleMgrHelper::ImplicitQueryInfos(const Want &want, int32_t flags, int32_
     return ret;
 }
 
+bool BundleMgrHelper::ImplicitQueryInfos(const Want &want, int32_t flags, int32_t userId, bool withDefault,
+    std::vector<AbilityInfo> &abilityInfos, std::vector<ExtensionAbilityInfo> &extensionInfos, bool &findDefaultApp)
+{
+    TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    auto bundleMgr = Connect();
+    if (bundleMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "Failed to connect");
+        return false;
+    }
+
+    AAFwk::Want newWant = want;
+    newWant.RemoveAllFd();
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    bool ret = bundleMgr->ImplicitQueryInfos(newWant, flags, userId, withDefault, abilityInfos,
+        extensionInfos, findDefaultApp);
+    TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "findDefaultApp is %{public}d.", findDefaultApp);
+    return ret;
+}
+
 bool BundleMgrHelper::CleanBundleDataFiles(const std::string &bundleName, int32_t userId, int32_t appCloneIndex)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
