@@ -33,10 +33,7 @@
 #include "parameter.h"
 #include "parameters.h"
 #include "singleton.h"
-
-#ifdef SOC_PERF_ENABLE
-#include "socperf_client.h"
-#endif
+#include "res_sched_util.h"
 #include "app_mgr_client.h"
 #include "hilog_tag_wrapper.h"
 #include "time_util.h"
@@ -77,12 +74,9 @@ static constexpr const char *const TWELVE_BIG_CPU_CUR_FREQ = "/sys/devices/syste
 static constexpr const char *const TWELVE_BIG_CPU_MAX_FREQ = "/sys/devices/system/cpu/cpufreq/policy2/scaling_max_freq";
 static constexpr const char *const TWELVE_MID_CPU_CUR_FREQ = "/sys/devices/system/cpu/cpufreq/policy1/scaling_cur_freq";
 static constexpr const char *const TWELVE_MID_CPU_MAX_FREQ = "/sys/devices/system/cpu/cpufreq/policy1/scaling_max_freq";
-static constexpr const char *const TWELVE_LIT_CPU_CUR_FREQ = "/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq";
-static constexpr const char *const TWELVE_LIT_CPU_MAX_FREQ = "/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq";
 const static std::set<std::string> HALF_EVENT_CONFIGS = {"UI_BLOCK_3S", "THREAD_BLOCK_3S", "BUSSNESS_THREAD_BLOCK_3S",
                                                          "LIFECYCLE_HALF_TIMEOUT"};
 static constexpr int PERF_TIME = 60000;
-static constexpr int PERF_NUM = 10202;
 std::shared_ptr<AppfreezeManager> AppfreezeManager::instance_ = nullptr;
 ffrt::mutex AppfreezeManager::singletonMutex_;
 ffrt::mutex AppfreezeManager::freezeMutex_;
@@ -760,11 +754,8 @@ bool AppfreezeManager::IsValidFreezeFilter(int32_t pid, const std::string& bundl
 }
 void AppfreezeManager::PerfStart(std::string eventName)
 {
-    const int buffSize = 128;
-    char paramOutBuff[buffSize] = {0};
-    GetParameter("const.dfx.sub_health_recovery.enable", "", paramOutBuff, buffSize - 1);
-    std::string str(paramOutBuff);
-    if (str != "true") {
+    if (OHOS::system::GetParameter("const.dfx.sub_health_recovery.enable", "") != "true") {
+        TAG_LOGI(AAFwkTag::APPDFR, "sub_health_recovery is not enable");
         return;
     }
     auto it = HALF_EVENT_CONFIGS.find(eventName);
@@ -773,7 +764,7 @@ void AppfreezeManager::PerfStart(std::string eventName)
     }
     auto curTime = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
     if (curTime - perfTime < PERF_TIME) {
-        TAG_LOGI(AAFwkTag::APPDFR, "perf time is less than 60s");
+        TAG_LOGE(AAFwkTag::APPDFR, "perf time is less than 60s");
         return;
     }
     std::string bigCpuCurFreq = this->GetFirstLine(TWELVE_BIG_CPU_CUR_FREQ);
@@ -783,9 +774,7 @@ void AppfreezeManager::PerfStart(std::string eventName)
     if (bigCpuCurFreq == bigCpuMaxFreq || midCpuCurFreq == midCpuMaxFreq) {
         perfTime = curTime;
         TAG_LOGI(AAFwkTag::APPDFR, "perf start");
-#ifdef SOC_PERF_ENABLE
-        OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequest(PERF_NUM, "");
-#endif
+        AAFwk::ResSchedUtil::GetInstance().ReportSubHealtyPerfInfoToRSS();
         TAG_LOGI(AAFwkTag::APPDFR, "perf end");
     }
 }

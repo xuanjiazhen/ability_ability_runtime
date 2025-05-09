@@ -136,6 +136,7 @@ ohos_shared_library("app_manager") {
   deps = [
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_path}/utils/server/startup:startup_util",
+    "${ability_runtime_services_path}/common:res_sched_util",
   ]
 
   external_deps = [
@@ -171,12 +172,6 @@ ohos_shared_library("app_manager") {
 
   if (background_task_mgr_continuous_task_enable) {
     defines += [ "BGTASKMGR_CONTINUOUS_TASK_ENABLE" ]
-  }
-
-  if (defined(global_parts_info) &&
-      defined(global_parts_info.resourceschedule_soc_perf)) {
-    external_deps += [ "soc_perf:socperf_client" ]
-    defines += [ "SOC_PERF_ENABLE" ]
   }
   
   innerapi_tags = [ "platformsdk" ]
