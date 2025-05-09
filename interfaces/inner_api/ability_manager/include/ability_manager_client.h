@@ -572,7 +572,7 @@ public:
      * @param callerToken, caller ability token.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode ConnectAppServiceExtesnionAbility(
+    ErrCode ConnectAppServiceExtensionAbility(
         const Want &want,
         sptr<IAbilityConnection> connect,
         sptr<IRemoteObject> callerToken,
