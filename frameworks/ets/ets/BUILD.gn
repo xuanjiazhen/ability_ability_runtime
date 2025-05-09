@@ -736,6 +736,22 @@ ohos_prebuilt_etc("ability_runtime_OpenLink_Options_abc_etc") {
   deps = [ ":ability_runtime_OpenLink_Options_abc" ]
 }
 
+generate_static_abc("application_state_observer_abc") {
+  base_url = "./"
+  files = [ "./application/ApplicationStateObserver.ets" ]
+
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/application_state_observer_abc.abc"
+}
+
+ohos_prebuilt_etc("application_state_observer_abc_etc") {
+  source = "$target_out_dir/application_state_observer_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":application_state_observer_abc" ]
+}
+
 group("ets_packages") {
   deps = [
     ":ability_ability_application_abc_etc",
@@ -781,5 +797,6 @@ group("ets_packages") {
     ":service_extension_ability_abc_etc",
     ":ui_extension_ability_ani_etc",
     ":ability_runtime_OpenLink_Options_abc_etc",
+    ":application_state_observer_abc_etc",
   ]
 }
