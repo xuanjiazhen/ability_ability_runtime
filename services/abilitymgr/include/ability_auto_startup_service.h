@@ -154,11 +154,11 @@ private:
     int32_t GetAbilityInfo(const AutoStartupInfo &info, std::string &abilityTypeName, std::string &accessTokenId);
     int32_t GetAbilityInfo(const AutoStartupInfo &info, std::string &abilityTypeName,
         std::string &accessTokenId, int32_t &userId);
+    void GetCallbackVector(std::vector<sptr<IRemoteObject>>& callbackVector);
 
     mutable std::mutex autoStartUpMutex_;
     mutable std::mutex deathRecipientsMutex_;
     std::vector<sptr<IRemoteObject>> callbackVector_;
-    std::map<std::string, sptr<IRemoteObject>> callbackMaps_;
     std::map<sptr<IRemoteObject>, sptr<IRemoteObject::DeathRecipient>> deathRecipients_;
     std::shared_ptr<AppExecFwk::BundleMgrClient> bundleMgrClient_;
 };
