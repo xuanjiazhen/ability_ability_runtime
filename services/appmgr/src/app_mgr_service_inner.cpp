@@ -4057,9 +4057,13 @@ void AppMgrServiceInner::RestartResidentProcess(std::shared_ptr<AppRunningRecord
     auto findRestartResidentTask = [appRecord](const std::shared_ptr<AppRunningRecord> &appRunningRecord) {
         return (appRecord != nullptr && appRecord->GetBundleName() == appRunningRecord->GetBundleName());
     };
-    auto findIter = find_if(restartResedentTaskList_.begin(), restartResedentTaskList_.end(), findRestartResidentTask);
-    if (findIter != restartResedentTaskList_.end()) {
-        restartResedentTaskList_.erase(findIter);
+    
+    {
+        std::lock_guard guard(restartResidentTaskListMutex_);
+        auto findIter = find_if(restartResedentTaskList_.begin(), restartResedentTaskList_.end(), findRestartResidentTask);
+        if (findIter != restartResedentTaskList_.end()) {
+          restartResedentTaskList_.erase(findIter);
+        }
     }
 
     if (!CheckRemoteClient() || !appRecord || !appRunningManager_) {
@@ -6740,11 +6744,14 @@ void AppMgrServiceInner::ClearAppRunningDataForKeepAlive(const std::shared_ptr<A
                 return (appRecord != nullptr && appRunningRecord != nullptr &&
                         appRecord->GetBundleName() == appRunningRecord->GetBundleName());
             };
-            auto findIter = find_if(restartResedentTaskList_.begin(), restartResedentTaskList_.end(),
-                findRestartResidentTask);
-            if (findIter != restartResedentTaskList_.end()) {
-                TAG_LOGW(AAFwkTag::APPMGR, "The restart app task has been registered.");
-                return;
+            {
+                std::lock_guard guard(restartResidentTaskListMutex_);
+                auto findIter = find_if(restartResedentTaskList_.begin(), restartResedentTaskList_.end(),
+                    findRestartResidentTask);
+                if (findIter != restartResedentTaskList_.end()) {
+                    TAG_LOGW(AAFwkTag::APPMGR, "The restart app task has been registered.");
+                    return;
+                }
             }
             restartResedentTaskList_.emplace_back(appRecord);
             TAG_LOGD(AAFwkTag::APPMGR, "Post restart resident process delay task.");
