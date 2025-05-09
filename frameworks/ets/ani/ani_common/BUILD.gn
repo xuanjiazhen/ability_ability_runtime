@@ -39,6 +39,8 @@ ohos_shared_library("ani_common") {
     "src/ani_common_ability_result.cpp",
     "src/ani_common_ability_state_data.cpp",
     "src/ani_common_configuration.cpp",
+    "src/ani_common_execute_param.cpp",
+    "src/ani_common_execute_result.cpp",
     "src/ani_common_start_options.cpp",
     "src/ani_common_util.cpp",
     "src/ani_common_want.cpp",
@@ -50,6 +52,7 @@ ohos_shared_library("ani_common") {
   }
 
   deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/ability_manager:process_options",
     "${ability_runtime_innerkits_path}/ability_manager:start_window_option",
