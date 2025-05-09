@@ -92,8 +92,11 @@ ohos_shared_library("ability_context_native") {
   ]
   public_external_deps = [
     "ability_base:extractortool",
-    "background_task_mgr:bgtaskmgr_innerkits",
   ]
+
+  if (background_task_mgr_continuous_task_enable) {
+    public_external_deps += [ "background_task_mgr:bgtaskmgr_innerkits", ]
+  }
 
   if (hichecker_enabled) {
     external_deps += [ "hichecker:libhichecker" ]
