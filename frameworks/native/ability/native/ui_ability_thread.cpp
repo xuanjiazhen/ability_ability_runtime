@@ -392,6 +392,7 @@ bool UIAbilityThread::SchedulePrepareTerminateAbility()
         TAG_LOGD(AAFwkTag::UIABILITY, "ret: %{public}d", ret);
         return ret;
     }
+    isPrepareTerminateAbilityDone_.store(false);
     wptr<UIAbilityThread> weak = this;
     auto task = [weak]() {
         auto abilityThread = weak.promote();
