@@ -45,6 +45,7 @@
 #include "system_ability_definition.h"
 #include "js_environment_impl.h"
 #include "worker_info.h"
+#include "js_runtime_common.h"
 #ifdef SUPPORT_SCREEN
 using OHOS::Ace::ContainerScope;
 #endif
@@ -67,10 +68,7 @@ constexpr char ARK_DEBUGGER_LIB_PATH[] = "libark_inspector.z.so";
 constexpr char ARK_DEBUGGER_LIB_PATH[] = "libark_inspector.z.so";
 #endif
 
-bool g_debugMode = false;
-bool g_debugApp = false;
 bool g_jsFramework = false;
-bool g_nativeStart = false;
 std::mutex g_mutex;
 }
 
@@ -100,23 +98,11 @@ void InitWorkerFunc(NativeEngine* nativeEngine)
         TAG_LOGE(AAFwkTag::JSRUNTIME, "load jsFramework failed");
     }
 
-    if (g_debugMode) {
-        auto instanceId = DFXJSNApi::GetCurrentThreadId();
-        std::string instanceName = "workerThread_" + std::to_string(instanceId);
-        bool needBreakPoint = ConnectServerManager::Get().AddInstance(instanceId, instanceId, instanceName);
-        if (g_nativeStart) {
-            TAG_LOGE(AAFwkTag::JSRUNTIME, "native: true, set needBreakPoint: false");
-            needBreakPoint = false;
+    if (JsRuntimeCommon::GetInstance().IsDebugMode()) {
+        napi_status errCode = JsRuntimeCommon::GetInstance().StartDebugMode(nativeEngine);
+        if (errCode != napi_status::napi_ok) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "start debug mode failed");
         }
-        auto workerPostTask = [nativeEngine](std::function<void()>&& callback) {
-            nativeEngine->CallDebuggerPostTaskFunc(std::move(callback));
-        };
-        panda::JSNApi::DebugOption debugOption = {ARK_DEBUGGER_LIB_PATH, needBreakPoint};
-        auto vm = const_cast<EcmaVM*>(arkNativeEngine->GetEcmaVm());
-        ConnectServerManager::Get().StoreDebuggerInfo(
-            instanceId, reinterpret_cast<void*>(vm), debugOption, workerPostTask, g_debugApp);
-
-        panda::JSNApi::NotifyDebugMode(instanceId, vm, debugOption, instanceId, workerPostTask, g_debugApp);
     }
 }
 
@@ -128,12 +114,11 @@ void OffWorkerFunc(NativeEngine* nativeEngine)
         return;
     }
 
-    if (g_debugMode) {
-        auto instanceId = DFXJSNApi::GetCurrentThreadId();
-        ConnectServerManager::Get().RemoveInstance(instanceId);
-        auto arkNativeEngine = static_cast<ArkNativeEngine*>(nativeEngine);
-        auto vm = const_cast<EcmaVM*>(arkNativeEngine->GetEcmaVm());
-        panda::JSNApi::StopDebugger(vm);
+    if (JsRuntimeCommon::GetInstance().IsDebugMode()) {
+        napi_status errCode = JsRuntimeCommon::GetInstance().StopDebugMode(nativeEngine);
+        if (errCode != napi_status::napi_ok) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "stop debug mode failed");
+        }
     }
 }
 
@@ -571,13 +556,6 @@ void RestoreContainerScope(int32_t id)
 #ifdef SUPPORT_SCREEN
 ContainerScope::UpdateCurrent(-1);
 #endif
-}
-
-void StartDebuggerInWorkerModule(bool isDebugApp, bool isNativeStart)
-{
-    g_debugMode = true;
-    g_debugApp = isDebugApp;
-    g_nativeStart = isNativeStart;
 }
 
 void SetJsFramework()
