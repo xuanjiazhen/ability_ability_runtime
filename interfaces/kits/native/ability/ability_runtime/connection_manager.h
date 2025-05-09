@@ -219,7 +219,7 @@ private:
         const AAFwk::Want &want, int accountId, const sptr<AbilityConnectCallback> &connectCallback,
         bool isUIService = false, bool isAppService = false);
     ErrCode CreateConnection(const sptr<IRemoteObject> &connectCaller, const AAFwk::Want &want, int accountId,
-        const sptr<AbilityConnectCallback> &connectCallback, bool isUIService, bool isAppService);
+        const sptr<AbilityConnectCallback> &connectCallback, bool isUIService, bool isAppService = false);
     bool IsConnectingTimeout(const ConnectionInfo& info);
 };
 } // namespace AbilityRuntime
