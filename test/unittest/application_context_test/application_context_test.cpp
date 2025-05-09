@@ -1717,5 +1717,19 @@ HWTEST_F(ApplicationContextTest, CreateDisplayContext_0200, TestSize.Level1)
     GTEST_LOG_(INFO) << "CreateDisplayContext_0200 end";
 }
 #endif
+
+/**
+ * @tc.number:GetIndex_0100
+ * @tc.name: GetIndex
+ * @tc.desc: GetIndex success
+ */
+HWTEST_F(ApplicationContextTest, GetIndex_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetIndex_0100 start";
+    ASSERT_NE(context_, nullptr);
+    uint64_t index = context_->GetIndex();
+    EXPECT_NE(index, 0);
+    GTEST_LOG_(INFO) << "GetIndex_0100 end";
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS
