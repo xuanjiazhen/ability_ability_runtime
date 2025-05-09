@@ -4191,8 +4191,7 @@ int AbilityManagerService::ConnectLocalAbility(const Want &want, const int32_t u
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     StartAbilityInfoWrap threadLocalInfo;
     AbilityUtil::RemoveShowModeKey(const_cast<Want &>(want));
-    bool isEnterpriseAdmin = AAFwk::UIExtensionUtils::IsEnterpriseAdmin(extensionType);
-    if (!isEnterpriseAdmin && !JudgeMultiUserConcurrency(userId)) {
+    if (!CheckCrossUser(userId, extensionType)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Multi-user non-concurrent mode is not satisfied.");
         return ERR_CROSS_USER;
     }
@@ -11155,6 +11154,21 @@ void AbilityManagerService::OnAppRemoteDied(const std::vector<sptr<IRemoteObject
     }
 }
 
+void AbilityManagerService::OnStartProcessFailed(sptr<IRemoteObject> token)
+{
+    auto abilityRecord = Token::GetAbilityRecordByToken(token);
+    CHECK_POINTER_LOG(abilityRecord, "Null record.");
+    TAG_LOGW(AAFwkTag::ABILITYMGR, "NotifStartProcessFailed, ability:%{public}s, bundle:%{public}s",
+        abilityRecord->GetAbilityInfo().name.c_str(), abilityRecord->GetAbilityInfo().bundleName.c_str());
+
+    if (abilityRecord->GetAbilityInfo().type == AppExecFwk::AbilityType::EXTENSION) {
+        auto connectManager = GetConnectManagerByToken(token);
+        CHECK_POINTER(connectManager);
+        connectManager->OnLoadAbilityFailed(abilityRecord);
+        return;
+    }
+}
+
 int32_t AbilityManagerService::OpenFile(const Uri& uri, uint32_t flag)
 {
     auto accessTokenId = IPCSkeleton::GetCallingTokenID();
@@ -12616,6 +12630,24 @@ int32_t AbilityManagerService::UpdateAssociateConfigList(const std::map<std::str
         }
     }
     return ERR_OK;
+}
+
+int AbilityManagerService::StartSelfUIAbility(const Want &want)
+{
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "not supported");
+    return ERR_CAPABILITY_NOT_SUPPORT;
+}
+
+bool AbilityManagerService::CheckCrossUser(const int32_t userId, AppExecFwk::ExtensionAbilityType extensionType)
+{
+    if (AAFwk::UIExtensionUtils::IsEnterpriseAdmin(extensionType) || JudgeMultiUserConcurrency(userId)) {
+        return true;
+    }
+    if (AppUtils::GetInstance().IsConnectSupportCrossUser() && (extensionType == AppExecFwk::ExtensionAbilityType::DATASHARE
+        || extensionType == AppExecFwk::ExtensionAbilityType::SERVICE)) {
+        return true;    
+    }
+    return false;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

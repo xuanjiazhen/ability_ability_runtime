@@ -1242,6 +1242,15 @@ public:
      */
     virtual int32_t GetSupportedProcessCachePids(const std::string &bundleName, std::vector<int32_t> &pidList);
 
+    bool HasAppRecord(const AAFwk::Want &want, const AbilityInfo &abilityInfo);
+
+    /**
+     * Send appSpawn uninstall debug hap message.
+     *
+     * @param userId, the user id.
+     */
+    void SendAppSpawnUninstallDebugHapMsg(int32_t userId);
+
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
@@ -1309,7 +1318,7 @@ private:
      *
      * @return
      */
-    void StartProcess(const std::string &appName, const std::string &processName, uint32_t startFlags,
+    int32_t StartProcess(const std::string &appName, const std::string &processName, uint32_t startFlags,
                       std::shared_ptr<AppRunningRecord> appRecord, const int uid, const BundleInfo &bundleInfo,
                       const std::string &bundleName, const int32_t bundleIndex, bool appExistFlag = true,
                       bool isPreload = false,  AppExecFwk::PreloadMode preloadMode = AppExecFwk::PreloadMode::PRE_MAKE,
@@ -1341,6 +1350,17 @@ private:
      */
     bool WaitForRemoteProcessExit(std::list<pid_t> &pids, const int64_t startTime);
 
+     /**
+     * WaitProcessesExitAndKill, Wait for the process to exit normally, and kill it if time out.
+     *
+     * @param pids, process number collection to exit.
+     * @param startTime, execution process security exit start time.
+     * @param reason caller function name
+     *
+     * @return ERR_OK, return back success, others fail.
+     */
+    int32_t WaitProcessesExitAndKill(std::list<pid_t> &pids, const int64_t startTime, const std::string& reason);
+
     /**
      * ProcessExist, Judge whether the process exists.
      *
@@ -1351,13 +1371,13 @@ private:
     bool ProcessExist(pid_t pid);
 
     /**
-     * CheckAllProcessExist, Determine whether all processes exist .
+     * CheckAllProcessExit, Determine whether all processes exits .
      *
      * @param pids, process number collection to exit.
      *
-     * @return true, Returns that a process exists and all other processes do not exist.
+     * @return true, Returns that no process exist in the list.
      */
-    bool CheckAllProcessExist(std::list<pid_t> &pids);
+    bool CheckAllProcessExit(std::list<pid_t> &pids);
 
     /**
      * SystemTimeMillisecond, Get system time.
@@ -1552,6 +1572,7 @@ private:
     void reportpreLoadTask(const std::shared_ptr<AppRunningRecord> appRecord);
 
     std::string GetSpecifiedProcessFlag(std::shared_ptr<AbilityInfo> abilityInfo, std::shared_ptr<AAFwk::Want> want);
+    std::string GetSpecifiedProcessFlag(const AbilityInfo &abilityInfo, const AAFwk::Want &want);
 
     void LoadAbilityNoAppRecord(const std::shared_ptr<AppRunningRecord> appRecord,
         bool isShellCall, std::shared_ptr<ApplicationInfo> appInfo,
@@ -1586,6 +1607,8 @@ private:
     AAFwk::EventInfo BuildEventInfo(std::shared_ptr<AppRunningRecord> appRecord) const;
 
     void NotifyAppAttachFailed(std::shared_ptr<AppRunningRecord> appRecord);
+
+    void NotifyStartProcessFailed(sptr<IRemoteObject> token);
 private:
     /**
      * Notify application status.
@@ -1678,6 +1701,8 @@ private:
     std::unordered_set<std::string> nwebPreloadSet_ {};
     ffrt::mutex killedBundleSetMutex_;
     std::set<std::string> killedBundleSet_;
+
+    std::mutex childProcessRecordMapMutex_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

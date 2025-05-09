@@ -144,6 +144,11 @@ void AppScheduler::OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abili
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::OnAppRemoteDied()");
 }
 
+void AppScheduler::OnStartProcessFailed(sptr<IRemoteObject> token)
+{
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::OnStartProcessFailed()");
+}
+
 void AppScheduler::NotifyAppPreCache(int32_t pid, int32_t userId)
 {
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::NotifyAppPreCache()");
@@ -236,6 +241,11 @@ int32_t AppScheduler::DetachAppDebug(const std::string &bundleName)
 int32_t AppScheduler::RegisterAbilityDebugResponse(const sptr<AppExecFwk::IAbilityDebugResponse> &response)
 {
     return 0;
+}
+
+void AppScheduler::SendAppSpawnUninstallDebugHapMsg(int32_t userId)
+{
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::SendAppSpawnUninstallDebugHapMsg()");
 }
 }  // namespace AAFwk
 }  // namespace OHOS

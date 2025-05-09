@@ -114,6 +114,14 @@ public:
     ServiceRunningState QueryServiceState() const;
 
     /**
+     * StartSelfUIAbility with want, start self uiability only on 2-in-1 devices.
+     *
+     * @param want, the want of the ability to start.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int StartSelfUIAbility(const Want &want) override;
+
+    /**
      * StartAbility with want, send want to ability manager service.
      *
      * @param want, the want of the ability to start.
@@ -1859,6 +1867,8 @@ protected:
 
     void OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abilityTokens) override;
 
+    void OnStartProcessFailed(sptr<IRemoteObject> token) override;
+
 private:
     int TerminateAbilityWithFlag(const sptr<IRemoteObject> &token, int resultCode = DEFAULT_INVAL_VALUE,
         const Want *resultWant = nullptr, bool flag = true);
@@ -1958,6 +1968,7 @@ private:
     void DumpMissionInfosInner(const std::string &args, std::vector<std::string> &info);
 
     bool JudgeMultiUserConcurrency(const int32_t userId);
+    bool CheckCrossUser(const int32_t userId, AppExecFwk::ExtensionAbilityType extensionType);
     /**
      * dumpsys info
      *
