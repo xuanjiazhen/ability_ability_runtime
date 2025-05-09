@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -60,7 +60,7 @@
 #include "system_ability_definition.h"
 #include "source_map.h"
 #include "source_map_operator.h"
-#include "js_runtime_lite.h"
+#include "js_runtime_common.h"
 
 #ifdef SUPPORT_SCREEN
 #include "hot_reloader.h"
@@ -180,8 +180,7 @@ void JsRuntime::StartDebugMode(const DebugOption dOption)
     bool isDebugApp = dOption.isDebugApp;
     std::string appProvisionType = dOption.appProvisionType;
     TAG_LOGD(AAFwkTag::JSRUNTIME, "Ark VM is starting debug mode [%{public}s]", isStartWithDebug ? "break" : "normal");
-    StartDebuggerInWorkerModule(isDebugApp, dOption.isStartWithNative);
-    StartDebuggerModule(isDebugApp, dOption.isStartWithNative);
+    JsRuntimeCommon::GetInstance().StartDebuggerModule(isDebugApp, dOption.isStartWithNative);
     const std::string bundleName = bundleName_;
     uint32_t instanceId = instanceId_;
     auto weak = jsEnv_;
@@ -339,8 +338,7 @@ void JsRuntime::StartProfiler(const DebugOption dOption)
     bool isStartWithDebug = dOption.isStartWithDebug;
     bool isDebugApp = dOption.isDebugApp;
     std::string appProvisionType = dOption.appProvisionType;
-    StartDebuggerInWorkerModule(isDebugApp, dOption.isStartWithNative);
-    StartDebuggerModule(isDebugApp, dOption.isStartWithNative);
+    JsRuntimeCommon::GetInstance().StartDebuggerModule(isDebugApp, dOption.isStartWithNative);
     const std::string bundleName = bundleName_;
     auto weak = jsEnv_;
     uint32_t instanceId = instanceId_;
