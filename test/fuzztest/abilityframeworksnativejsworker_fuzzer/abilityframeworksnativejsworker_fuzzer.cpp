@@ -26,6 +26,7 @@
 
 #include "ability_record.h"
 #include "securec.h"
+#include "js_runtime_common.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS::AppExecFwk;
@@ -88,7 +89,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     AbilityRuntime::GetContainerId();
     bool isDebugApp = *data % ENABLE;
     bool isNativeStart = *data % ENABLE;
-    AbilityRuntime::StartDebuggerInWorkerModule(isDebugApp, isNativeStart);
+    AbilityRuntime::JsRuntimeCommon::GetInstance().StartDebuggerModule(isDebugApp, isNativeStart);
     NativeEngine *nativeEngine = nullptr;
     AbilityRuntime::InitWorkerFunc(nativeEngine);
     AbilityRuntime::OffWorkerFunc(nativeEngine);
