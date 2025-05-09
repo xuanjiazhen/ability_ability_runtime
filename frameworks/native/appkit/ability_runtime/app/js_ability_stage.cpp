@@ -575,12 +575,13 @@ int32_t JsAbilityStage::RunAutoStartupTask(const std::function<void()> &callback
         TAG_LOGE(AAFwkTag::APPKIT, "null hapModuleInfo");
         return ERR_INVALID_VALUE;
     }
-    if (hapModuleInfo->moduleType != AppExecFwk::ModuleType::ENTRY) {
-        TAG_LOGD(AAFwkTag::APPKIT, "not entry module");
+    if (hapModuleInfo->moduleType != AppExecFwk::ModuleType::ENTRY &&
+        hapModuleInfo->moduleType != AppExecFwk::ModuleType::FEATURE) {
+        TAG_LOGD(AAFwkTag::APPKIT, "not entry module or feature module");
         return ERR_INVALID_VALUE;
     }
     if (hapModuleInfo->appStartup.empty()) {
-        TAG_LOGD(AAFwkTag::APPKIT, "entry module no app startup config");
+        TAG_LOGD(AAFwkTag::APPKIT, "module no app startup config");
         return ERR_INVALID_VALUE;
     }
     if (!shellContextRef_) {
@@ -608,6 +609,10 @@ int32_t JsAbilityStage::RegisterAppStartupTask(const std::shared_ptr<AppExecFwk:
     if (!needRunAutoStartupTask) {
         return ERR_OK;
     }
+    result = startupManager->RunLoadModuleStartupConfigTask(hapModuleInfo);
+    if (result != ERR_OK) {
+        return result;
+    }
     jsRuntime_.UpdateModuleNameAndAssetPath(hapModuleInfo->moduleName);
 
     const std::string &configEntry = startupManager->GetPendingConfigEntry();
@@ -616,7 +621,7 @@ int32_t JsAbilityStage::RegisterAppStartupTask(const std::shared_ptr<AppExecFwk:
         return ERR_INVALID_VALUE;
     }
 
-    const std::vector<StartupTaskInfo> &startupTaskInfos = startupManager->GetStartupTaskInfos();
+    const std::vector<StartupTaskInfo> &startupTaskInfos = startupManager->GetStartupTaskInfos(hapModuleInfo->name);
     for (const auto& item : startupTaskInfos) {
         std::unique_ptr<NativeReference> startupJsRef = LoadJsOhmUrl(
             item.srcEntry, item.ohmUrl, item.moduleName, item.hapPath, item.esModule);
