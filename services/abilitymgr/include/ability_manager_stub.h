@@ -328,6 +328,7 @@ private:
     int32_t GetInsightIntentInfoByBundleNameInner(MessageParcel &data, MessageParcel &reply);
     int32_t GetInsightIntentInfoByIntentNameInner(MessageParcel &data, MessageParcel &reply);
     int32_t StartAbilityWithWaitInner(MessageParcel &data, MessageParcel &reply);
+    int32_t RestartSelfAtomicServiceInner(MessageParcel &data, MessageParcel &reply);
 
     int OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);

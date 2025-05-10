@@ -622,6 +622,9 @@ enum class AbilityManagerInterfaceCode {
 
     // start ability with wait
     START_ABILITY_WITH_WAIT = 6142,
+
+    // restart atomic service
+    RESTART_SELF_ATOMIC_SERVICE = 6143,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

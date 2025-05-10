@@ -2525,7 +2525,9 @@ HWTEST_F(AbilityManagerServiceThirdTest, SignRestartAppFlag_001, TestSize.Level1
     EXPECT_NE(abilityMs_, nullptr);
 
     int32_t uid = 100;
-    abilityMs_->SignRestartAppFlag(USER_ID_U100, uid, "", AppExecFwk::MultiAppModeType::UNSPECIFIED, 1);
+    AbilityManagerService::SignRestartAppFlagParam param =
+        { USER_ID_U100, uid, "", AppExecFwk::MultiAppModeType::UNSPECIFIED, true, false };
+    abilityMs_->SignRestartAppFlag(param);
 }
 
 /*
