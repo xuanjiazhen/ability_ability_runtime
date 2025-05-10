@@ -30,6 +30,7 @@
 #include "sa_mgr_client.h"
 #include "system_ability_definition.h"
 #include "test_observer.h"
+#include "system_time.h"
 
 using namespace OHOS::AppExecFwk;
 
@@ -135,6 +136,7 @@ constexpr struct option LONG_OPTIONS[] = {
     {"URI", required_argument, nullptr, 'U'},
     {"entity", required_argument, nullptr, 'e'},
     {"type", required_argument, nullptr, 't'},
+    {"cold-start-time", no_argument, nullptr, 'W'},
     {"pi", required_argument, nullptr, OPTION_PARAMETER_INTEGER},
     {"ps", required_argument, nullptr, OPTION_PARAMETER_STRING},
     {"pb", required_argument, nullptr, OPTION_PARAMETER_BOOL},
@@ -408,7 +410,13 @@ ErrCode AbilityManagerShellCommand::RunAsStartAbility()
 {
     Want want;
     std::string windowMode;
+    int64_t startTime = SystemTime::GetNowSysTime();
+    TAG_LOGE(AAFwkTag::AA_TOOL, "MakeWantFromCmd lxl ...1");
     ErrCode result = MakeWantFromCmd(want, windowMode);
+    TAG_LOGE(AAFwkTag::AA_TOOL, "RunAsStartAbility lxl ...1");
+    int64_t amsTime = 0;
+    int64_t aaTime = 0;
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "isShowStartTime %{public}d", isShowStartTime_);
     if (result == OHOS::ERR_OK) {
         int windowModeKey = std::atoi(windowMode.c_str());
         if (windowModeKey > 0) {
@@ -416,20 +424,60 @@ ErrCode AbilityManagerShellCommand::RunAsStartAbility()
             if (setting != nullptr) {
                 setting->AddProperty(AbilityStartSetting::WINDOW_MODE_KEY, windowMode);
                 result = AbilityManagerClient::GetInstance()->StartAbility(want, *(setting.get()), nullptr, -1);
+                TAG_LOGE(AAFwkTag::AA_TOOL, "RunAsStartAbility lxl ...2");
             }
-        } else {
+        } else if (isShowStartTime_) {
+            sptr<StartAbilityWithWaitObserverStub> aaobserver_ = new StartAbilityWithWaitObserverStub();
+            result = AbilityManagerClient::GetInstance()->StartAbilityWithWait(want, aaobserver_);
+            TAG_LOGE(AAFwkTag::AA_TOOL, "StartAbilityWithWait lxl ...21");
+            int64_t maxWaitTime = 10 * 1000 * 1000; // 设置最大等待时长10s
+            while (!aaobserver_->GetCompleteFirstFrameFlag()) { // 加锁
+                usleep(10 * 1000); // 等待10ms
+                maxWaitTime -= 10 * 1000;
+                TAG_LOGE(AAFwkTag::AA_TOOL, "maxWaitTime  lxl 1");
+                if (maxWaitTime <= 0) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "maxWaitTime  lxl 2");
+                    break;
+                }
+            }
+            StartAbilityWithWaitData data = aaobserver_->GetStartAbilityWithWaitData();
+            if (data.isCompleteFirstFrameFlag) {
+                amsTime = data.completeFirstFrameDrawingTime - data.abilityManagerServiceTime; //ams 冷启动到首帧绘制时间
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "data.completeFirstFrameDrawingTime %{public}lld", data.completeFirstFrameDrawingTime);
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "data.abilityManagerServiceTime %{public}lld", data.abilityManagerServiceTime);
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "aa::amsTime %{public}lld", amsTime);
+                int64_t nowSysTime = SystemTime::GetNowSysTime();
+                aaTime = nowSysTime - startTime;
+            }
+            TAG_LOGE(AAFwkTag::AA_TOOL, "StartAbilityWithWait lxl ...22");
+        }
+        else {
             result = AbilityManagerClient::GetInstance()->StartAbility(want);
+            TAG_LOGE(AAFwkTag::AA_TOOL, "RunAsStartAbility lxl ...3");
         }
         if (result == OHOS::ERR_OK) {
+            TAG_LOGE(AAFwkTag::AA_TOOL, "RunAsStartAbility lxl ...4");
             TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s", STRING_START_ABILITY_OK.c_str());
             resultReceiver_ = STRING_START_ABILITY_OK + "\n";
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "isShowStartTime %{public}d", isShowStartTime_);
+            if (isShowStartTime_) {
+                resultReceiver_.append("TotalTime: ");
+                resultReceiver_.append(std::to_string(amsTime));
+                resultReceiver_.append("\n");
+                resultReceiver_.append("WaitTime: ");
+                resultReceiver_.append(std::to_string(aaTime));
+                resultReceiver_.append("\n");
+            }
         } else {
             TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s result: %{public}d", STRING_START_ABILITY_NG.c_str(), result);
+            TAG_LOGE(AAFwkTag::AA_TOOL, "RunAsStartAbility lxl ...5");
             if (result != START_ABILITY_WAITING) {
+                TAG_LOGE(AAFwkTag::AA_TOOL, "RunAsStartAbility lxl ...6");
                 resultReceiver_ = STRING_START_ABILITY_NG + "\n";
             }
             CheckStartAbilityResult(result);
             if (result == INNER_ERR) {
+                TAG_LOGE(AAFwkTag::AA_TOOL, "RunAsStartAbility lxl ...7");
                 result = INNER_ERR_START;
             }
             resultReceiver_.append(GetMessageFromCode(result));
@@ -1719,6 +1767,13 @@ ErrCode AbilityManagerShellCommand::MakeWantFromCmd(Want& want, std::string& win
 
                     result = OHOS::ERR_INVALID_VALUE;
 
+                    break;
+                }
+                case 'W': {
+                    // 'aa start -W' with no argument
+                    //  start time
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "start time aa start -W lxl...1");
+                    isShowStartTime_ = true;
                     break;
                 }
                 case 0: {

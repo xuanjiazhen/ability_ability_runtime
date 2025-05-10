@@ -628,6 +628,43 @@ int AbilityManagerProxy::StartAbilityOnlyUIAbility(const Want &want, const sptr<
     return reply.ReadInt32();
 }
 
+int AbilityManagerProxy::StartAbilityWithWait(const Want &want, const sptr<AppExecFwk::IStartAbilityWithWaitObserver> &observer)
+{
+    MessageParcel data;
+    if (observer == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "observer null");
+        return INNER_ERR;
+    }
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteParcelable(&want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
+        return INNER_ERR;
+    }
+
+    if (observer) {
+        data.WriteBool(true);
+        if (!data.WriteRemoteObject(observer->AsObject())) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "write label fail");
+            return INNER_ERR;
+        }
+    } else {
+        data.WriteBool(false);
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    int32_t error = SendRequest(AbilityManagerInterfaceCode::START_ABILITY_WITH_WAIT, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "send err:%{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
+
 int32_t AbilityManagerProxy::StartExtensionAbility(const Want &want, const sptr<IRemoteObject> &callerToken,
     int32_t userId, AppExecFwk::ExtensionAbilityType extensionType)
 {

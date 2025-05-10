@@ -66,6 +66,8 @@
 #include "window_manager_service_handler.h"
 #include "ability_first_frame_state_observer_interface.h"
 #endif
+#include "start_ability_with_wait_observer_interface.h"
+#include "start_ability_with_wait_observer_stub.h"
 #include "ihidden_start_observer.h"
 
 namespace OHOS {
@@ -88,6 +90,7 @@ using UIExtensionSessionInfo = AbilityRuntime::UIExtensionSessionInfo;
 #ifdef SUPPORT_SCREEN
 using IAbilityFirstFrameStateObserver = AppExecFwk::IAbilityFirstFrameStateObserver;
 #endif
+using StartAbilityWithWaitObserverStub = AppExecFwk::StartAbilityWithWaitObserverStub;
 using AtomicServiceStartupRule = AbilityRuntime::AtomicServiceStartupRule;
 
 constexpr const char* ABILITY_MANAGER_SERVICE_NAME = "AbilityManagerService";
@@ -353,6 +356,19 @@ public:
         const Want &want,
         const sptr<IRemoteObject> &callerToken,
         uint32_t specifyTokenId)
+    {
+        return 0;
+    }
+
+    /**
+     * Start ability need time
+     *
+     * @param want the want of the ability to start.
+     * @param isColdStart cold start
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int StartAbilityWithWait(
+        const Want &want, const sptr<AppExecFwk::IStartAbilityWithWaitObserver> &observer)
     {
         return 0;
     }

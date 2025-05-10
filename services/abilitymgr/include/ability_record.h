@@ -368,6 +368,10 @@ public:
     bool nativeDebug = false;
     std::string perfCmd;
 };
+struct StartAbilityWithWaitInfo {
+    sptr<AppExecFwk::IStartAbilityWithWaitObserver> observer = nullptr;
+    int64_t withWaitStartTime = 0;
+};
 
 /**
  * @class AbilityRecord
@@ -567,6 +571,8 @@ public:
     void UpdateRecoveryInfo(bool hasRecoverInfo);
 
     bool GetRecoveryInfo();
+
+    void SetStartAbilityWithWait(std::shared_ptr<AAFwk::StartAbilityWithWaitInfo> startAbilityWithWaitInfo);
 
 #ifdef SUPPORT_SCREEN
     /**
@@ -1376,7 +1382,8 @@ private:
     int64_t restartTime_ = 0;                         // the time of last trying restart
     sptr<IAbilityScheduler> scheduler_ = {};       // kit scheduler
     sptr<IRemoteObject::DeathRecipient> schedulerDeathRecipient_ = {};  // scheduler binderDied Recipient
-
+    AppExecFwk::StartAbilityWithWaitData startAbilityWithWaitInfoData_ = {};
+    StartAbilityWithWaitInfo WithWaitInfo;
     /**
      * result_: ability starts with for-result mode will send result before being terminated.
      * Its caller will receive results before active.
