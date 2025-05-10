@@ -69,6 +69,7 @@ const std::string HELP_MSG_START =
     "  [--psn <key>] "
     "  [-A <action-name>] "
     "  [-U <URI>] "
+    "  [-W] "
     "  [-e <entity>] "
     "  [-t <mime-type>] "
     "  [--wl <window-left>] "
@@ -160,6 +161,7 @@ const std::string HELP_MSG_NO_BUNDLE_NAME_OPTION = "error: -b <bundle-name> is e
 
 const std::string STRING_START_ABILITY_OK = "start ability successfully.";
 const std::string STRING_START_ABILITY_NG = "error: failed to start ability.";
+const std::string STRING_START_ABILITY_TIME_OUT = "start ability time out";
 
 const std::string STRING_STOP_SERVICE_ABILITY_OK = "stop service ability successfully.";
 const std::string STRING_STOP_SERVICE_ABILITY_NG = "error: failed to stop service ability.";
@@ -261,6 +263,11 @@ private:
     bool MatchOrderString(const std::regex &r, const std::string &orderCmd);
     bool CheckPerfCmdString(const char* optarg, const size_t paramLength, std::string &perfCmd);
     void ParseBundleName(std::string &bundleName);
+    ErrCode StartAbilityWithWaitCmd(Want& want, int64_t& amsTime,
+        sptr<StartAbilityWithWaitObserverStub>& observer);
+    void StartAbilityWithWaitInfo(int64_t& aaTime, int64_t& amsTime,
+        sptr<StartAbilityWithWaitObserverStub>& observer);
+    bool printStartTime_ = false;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

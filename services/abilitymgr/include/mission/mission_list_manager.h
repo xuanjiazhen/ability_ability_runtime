@@ -53,7 +53,8 @@ public:
      * @param abilityRequest, the request of the service ability to start.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int StartAbility(AbilityRequest &abilityRequest) override;
+    int StartAbility(AbilityRequest &abilityRequest,
+        sptr<AppExecFwk::IStartAbilityWithWaitObserver> observer = nullptr) override;
 
     /**
      * MinimizeAbility, minimize the special ability.
@@ -405,9 +406,11 @@ private:
     int GetTargetMission(const AbilityRequest &abilityRequest, std::shared_ptr<Mission> &targetMission,
         std::shared_ptr<AbilityRecord> &targetAbilityRecord);
     int StartAbilityLocked(const std::shared_ptr<AbilityRecord> &currentTopAbility,
-        const std::shared_ptr<AbilityRecord> &callerAbility, const AbilityRequest &abilityRequest);
+        const std::shared_ptr<AbilityRecord> &callerAbility, const AbilityRequest &abilityRequest,
+        sptr<AppExecFwk::IStartAbilityWithWaitObserver> observer = nullptr);
     int StartAbility(const std::shared_ptr<AbilityRecord> &currentTopAbility,
-        const std::shared_ptr<AbilityRecord> &callerAbility, const AbilityRequest &abilityRequest);
+        const std::shared_ptr<AbilityRecord> &callerAbility, const AbilityRequest &abilityRequest,
+        sptr<AppExecFwk::IStartAbilityWithWaitObserver> observer = nullptr);
     int MinimizeAbilityLocked(const std::shared_ptr<AbilityRecord> &abilityRecord, bool fromUser);
     std::shared_ptr<AbilityRecord> GetCurrentTopAbilityLocked() const;
     std::shared_ptr<MissionList> GetTargetMissionList(

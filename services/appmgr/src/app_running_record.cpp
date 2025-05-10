@@ -896,6 +896,11 @@ void AppRunningRecord::AbilityForeground(const std::shared_ptr<AbilityRunningRec
             static_cast<int32_t>(foregroundingAbilityTokens_.size()));
         if (curState_ == ApplicationState::APP_STATE_BACKGROUND) {
             SendAppStartupTypeEvent(ability, AppStartType::HOT);
+            auto serviceInner = appMgrServiceInner_.lock();
+            if (serviceInner) {
+                serviceInner->OnAppStateChanged(shared_from_this(), ApplicationState::APP_STATE_SET_HOT_START,
+                    false, false);
+            }
         }
     } else {
         TAG_LOGW(AAFwkTag::APPMGR, "wrong state");

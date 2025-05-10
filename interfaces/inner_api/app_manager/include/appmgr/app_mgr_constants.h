@@ -32,6 +32,7 @@ enum class ApplicationState {
     APP_STATE_END,
     APP_STATE_SET_COLD_START = 99,
     APP_STATE_CACHED = 100,
+    APP_STATE_SET_HOT_START = 101,
 };
 
 enum class WatchdogVisibilityState {
