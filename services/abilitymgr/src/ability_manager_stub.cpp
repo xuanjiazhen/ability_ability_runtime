@@ -1028,6 +1028,19 @@ int AbilityManagerStub::TerminateAbilityInner(MessageParcel &data, MessageParcel
     return NO_ERROR;
 }
 
+int AbilityManagerStub::NotifyComponentTerminateInner(MessageParcel &data, MessageParcel &reply)
+{
+    const sptr<IRemoteObject> token = data.ReadRemoteObject();
+    if (!token) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "token null");
+        return IPC_STUB_ERR;
+    }
+    int32_t resultCode = data.ReadInt32();
+    int32_t result = NotifyComponentTerminate(token, resultCode);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
 int AbilityManagerStub::BackToCallerInner(MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> token = nullptr;

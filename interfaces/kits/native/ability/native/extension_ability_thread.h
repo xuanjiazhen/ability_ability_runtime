@@ -130,6 +130,14 @@ public:
      */
     void DumpAbilityInfo(const std::vector<std::string> &params, std::vector<std::string> &info) override;
 
+    /**
+     * ScheduleAtomicServiceTeminate, terminate full-screen embedded atomic service.
+     *
+     * @param sessionInfo, the sessionInfo of the ability to terminate.
+     * @param resultCode, the resultCode of the ability to terminate.
+     */
+    void ScheduleAtomicServiceTeminate(const sptr<AAFwk::SessionInfo> &sessionInfo, int32_t resultCode = -1) override;
+
 private:
     /**
      * @brief Dump Ability Info Inner

@@ -3870,6 +3870,25 @@ int AbilityManagerService::TerminateAbility(const sptr<IRemoteObject> &token, in
     return TerminateAbilityWithFlag(token, resultCode, resultWant, true);
 }
 
+int AbilityManagerService::NotifyComponentTerminate(const sptr<IRemoteObject> &token, int32_t resultCode)
+{
+    auto abilityRecord = Token::GetAbilityRecordByToken(token);
+    CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
+    if (!UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "target ability %{public}s not an uiextensionability",
+            abilityRecord->GetURI().c_str());
+        return ERR_INVALID_VALUE;
+    }
+
+    int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    auto connectManager = GetConnectManagerByUserId(userId);
+    if (!connectManager) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "connectManager null. userId=%{public}d", userId);
+        return ERR_INVALID_VALUE;
+    }
+    return connectManager->NotifyComponentTerminate(abilityRecord, resultCode);
+}
+
 int32_t AbilityManagerService::TerminateUIServiceExtensionAbility(const sptr<IRemoteObject> &token)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);

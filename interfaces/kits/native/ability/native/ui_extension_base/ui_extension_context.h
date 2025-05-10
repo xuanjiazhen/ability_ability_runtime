@@ -61,7 +61,16 @@ public:
      * @return errCode ERR_OK on success, others on failure.
      */
     virtual ErrCode TerminateSelf();
-        /**
+
+    /**
+     * NotifyComponentTerminate, terminate full-screen embedded atomic service.
+     *
+     * @param resultCode, the resultCode of the ability to terminate.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode NotifyComponentTerminate(int32_t resultCode = -1);
+
+    /**
      * @brief Connects the current ability to an ability using the AbilityInfo.AbilityType.SERVICE template.
      *
      * @param want Indicates the want containing information about the ability to connect

@@ -362,6 +362,15 @@ public:
      */
     void HandleExtensionDisconnectTask(const std::shared_ptr<ConnectionRecord> &connectRecord);
 
+    /**
+     * NotifyComponentTerminate, terminate full-screen embedded atomic service.
+     *
+     * @param abilityRecord, the record of the ability to terminate.
+     * @param resultCode, the resultCode of the ability to terminate.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t NotifyComponentTerminate(const std::shared_ptr<AbilityRecord> &abilityRecord, int32_t resultCode = -1);
+
 private:
     /**
      * StartAbilityLocked with request.

@@ -158,6 +158,14 @@ public:
     virtual void Dump(const std::vector<std::string> &params, std::vector<std::string> &info) override;
 
     /**
+     * ScheduleAtomicServiceTeminate, terminate full-screen embedded atomic service.
+     *
+     * @param token, the token of the ability to terminate.
+     * @param resultCode, the resultCode of the ability to terminate.
+     */
+    void ScheduleAtomicServiceTeminate(const sptr<AAFwk::SessionInfo> &sessionInfo, int32_t resultCode = -1) override;
+
+    /**
      * @brief Called when startAbilityForResult(ohos.aafwk.content.Want,int) is called to start an extension ability
      * and the result is returned.
      * @param requestCode Indicates the request code returned after the ability is started. You can define the request

@@ -224,6 +224,17 @@ public:
      */
     virtual void Dump(const std::vector<std::string> &params, std::vector<std::string> &info);
 
+    /**
+     * ScheduleAtomicServiceTeminate, terminate full-screen embedded atomic service.
+     *
+     * @param token, the token of the ability to terminate.
+     * @param resultCode, the resultCode of the ability to terminate.
+     */
+    virtual void ScheduleAtomicServiceTeminate(const sptr<AAFwk::SessionInfo> &sessionInfo, int32_t resultCode = -1)
+    {
+        return;
+    }
+
     void SetExtensionWindowLifeCycleListener(const sptr<Rosen::IWindowLifeCycle> &listener);
 
     /**

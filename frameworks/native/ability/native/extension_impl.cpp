@@ -469,6 +469,18 @@ void ExtensionImpl::SetLaunchParam(const AAFwk::LaunchParam &launchParam)
     extension_->SetLaunchParam(launchParam);
 }
 
+void ExtensionImpl::ScheduleAtomicServiceTeminate(const sptr<AAFwk::SessionInfo> &sessionInfo, int32_t resultCode)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::EXT, "begin");
+    if (extension_ == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "null extension");
+        return;
+    }
+
+    extension_->ScheduleAtomicServiceTeminate(sessionInfo, resultCode);
+}
+
 void ExtensionImpl::Foreground(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);

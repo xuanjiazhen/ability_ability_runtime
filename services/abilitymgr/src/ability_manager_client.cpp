@@ -388,6 +388,14 @@ ErrCode AbilityManagerClient::TerminateAbility(sptr<IRemoteObject> token, int re
     return abms->TerminateAbility(token, resultCode, resultWant);
 }
 
+ErrCode AbilityManagerClient::NotifyComponentTerminate(const sptr<IRemoteObject> &token, int32_t resultCode)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
+    return abms->NotifyComponentTerminate(token, resultCode);
+}
+
 ErrCode AbilityManagerClient::BackToCallerAbilityWithResult(const sptr<IRemoteObject> &token, int resultCode,
     const Want *resultWant, int64_t callerRequestCode)
 {

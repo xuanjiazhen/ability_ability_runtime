@@ -2086,6 +2086,16 @@ private:
      * initialization of ability manager service.
      *
      */
+
+    /**
+     * NotifyComponentTerminate, terminate full-screen embedded atomic service.
+     *
+     * @param token, the token of the ability to terminate.
+     * @param resultCode, the resultCode of the ability to terminate.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int NotifyComponentTerminate(const sptr<IRemoteObject> &token, int32_t resultCode = -1) override;
+
     bool Init();
     /**
      * initialization of u0 user.

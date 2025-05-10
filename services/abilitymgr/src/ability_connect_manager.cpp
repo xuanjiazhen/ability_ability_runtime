@@ -3322,6 +3322,13 @@ void AbilityConnectManager::HandleExtensionDisconnectTask(const std::shared_ptr<
     }
 }
 
+int32_t AbilityConnectManager::NotifyComponentTerminate(const std::shared_ptr<AbilityRecord> &abilityRecord,
+    int32_t resultCode)
+{
+    CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
+    return abilityRecord->NotifyComponentTerminate(resultCode);
+}
+
 bool AbilityConnectManager::IsUIExtensionAbility(const std::shared_ptr<AbilityRecord> &abilityRecord)
 {
     CHECK_POINTER_AND_RETURN(abilityRecord, false);
