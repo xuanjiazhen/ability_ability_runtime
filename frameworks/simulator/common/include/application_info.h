@@ -93,6 +93,8 @@ struct ApplicationInfo {
 
     uint32_t apiCompatibleVersion = 0;
     int32_t apiTargetVersion = 0;
+    int32_t apiMinorVersion = 0;
+    int32_t apiPatchVersion = 0;
     int64_t crowdtestDeadline = -1;
 
     std::string iconPath;

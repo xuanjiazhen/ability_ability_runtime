@@ -37,6 +37,8 @@ const std::string APPLICATION_VERSION_NAME = "versionName";
 const std::string APPLICATION_MIN_COMPATIBLE_VERSION_CODE = "minCompatibleVersionCode";
 const std::string APPLICATION_API_COMPATIBLE_VERSION = "apiCompatibleVersion";
 const std::string APPLICATION_API_TARGET_VERSION = "apiTargetVersion";
+const std::string APPLICATION_API_TARGET_MINOR_VERSION = "apiTargetMinorVersion";
+const std::string APPLICATION_API_TARGET_PATCH_VERSION = "apiTargetPatchVersion";
 const std::string APPLICATION_ICON_PATH = "iconPath";
 const std::string APPLICATION_ICON_ID = "iconId";
 const std::string APPLICATION_LABEL = "label";
@@ -162,6 +164,8 @@ void to_json(nlohmann::json &jsonObject, const ApplicationInfo &applicationInfo)
         {APPLICATION_MIN_COMPATIBLE_VERSION_CODE, applicationInfo.minCompatibleVersionCode},
         {APPLICATION_API_COMPATIBLE_VERSION, applicationInfo.apiCompatibleVersion},
         {APPLICATION_API_TARGET_VERSION, applicationInfo.apiTargetVersion},
+        {APPLICATION_API_TARGET_MINOR_VERSION, applicationInfo.apiMinorVersion},
+        {APPLICATION_API_TARGET_PATCH_VERSION, applicationInfo.apiPatchVersion},
         {APPLICATION_ICON_PATH, applicationInfo.iconPath},
         {APPLICATION_ICON_ID, applicationInfo.iconId},
         {APPLICATION_LABEL, applicationInfo.label},
@@ -292,6 +296,22 @@ void from_json(const nlohmann::json &jsonObject, ApplicationInfo &applicationInf
         jsonObjectEnd,
         APPLICATION_API_TARGET_VERSION,
         applicationInfo.apiTargetVersion,
+        JsonType::NUMBER,
+        false,
+        parseResult,
+        ArrayType::NOT_ARRAY);
+    GetValueIfFindKey<int32_t>(jsonObject,
+        jsonObjectEnd,
+        APPLICATION_API_TARGET_MINOR_VERSION,
+        applicationInfo.apiMinorVersion,
+        JsonType::NUMBER,
+        false,
+        parseResult,
+        ArrayType::NOT_ARRAY);
+    GetValueIfFindKey<int32_t>(jsonObject,
+        jsonObjectEnd,
+        APPLICATION_API_TARGET_PATCH_VERSION,
+        applicationInfo.apiPatchVersion,
         JsonType::NUMBER,
         false,
         parseResult,

@@ -235,6 +235,8 @@ struct App {
     int32_t minCompatibleVersionCode = -1;
     uint32_t minAPIVersion = 0;
     int32_t targetAPIVersion = 0;
+    int32_t targetApiMinorVersion = 0;
+    int32_t targetApiPatchVersion = 0;
     std::string apiReleaseType = APP_API_RELEASETYPE_DEFAULT_VALUE;
     bool keepAlive = false;
     std::pair<bool, bool> removable = std::make_pair<>(false, true);
@@ -876,6 +878,22 @@ void from_json(const nlohmann::json &jsonObject, App &app)
         true,
         g_parseResult,
         ArrayType::NOT_ARRAY);
+    GetValueIfFindKey<int32_t>(jsonObject,
+        jsonObjectEnd,
+        APP_TARGET_API_MINOR_VERSION,
+        app.targetApiMinorVersion,
+        JsonType::NUMBER,
+        true,
+        g_parseResult,
+        ArrayType::NOT_ARRAY);
+    GetValueIfFindKey<int32_t>(jsonObject,
+        jsonObjectEnd,
+        APP_TARGET_API_PATCH_VERSION,
+        app.targetApiPatchVersion,
+        JsonType::NUMBER,
+        true,
+        g_parseResult,
+        ArrayType::NOT_ARRAY);
     GetValueIfFindKey<bool>(jsonObject,
         jsonObjectEnd,
         APP_DEBUG,
@@ -1461,6 +1479,8 @@ bool ToApplicationInfo(
 
     applicationInfo.apiCompatibleVersion = app.minAPIVersion;
     applicationInfo.apiTargetVersion = app.targetAPIVersion;
+    applicationInfo.apiMinorVersion = app.targetApiMinorVersion;
+    applicationInfo.apiPatchVersion = app.targetApiPatchVersion;
 
     applicationInfo.iconPath = app.icon;
     applicationInfo.iconId = app.iconId;
