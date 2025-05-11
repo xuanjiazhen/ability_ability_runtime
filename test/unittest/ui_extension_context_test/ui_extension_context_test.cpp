@@ -28,6 +28,8 @@
 
 using namespace testing::ext;
 using namespace OHOS::Rosen;
+using testing::Return;
+using testing::_;
 
 namespace OHOS {
 namespace AbilityRuntime {

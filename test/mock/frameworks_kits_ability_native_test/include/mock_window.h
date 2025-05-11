@@ -17,6 +17,7 @@
 #define MOCK_WINDOW_H
 
 #include <gtest/gtest.h>
+#include "gmock/gmock.h"
 #include <iremote_object.h>
 #include <parcel.h>
 #include <pixel_map.h>
