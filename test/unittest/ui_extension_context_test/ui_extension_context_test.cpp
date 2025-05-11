@@ -28,6 +28,8 @@
 
 using namespace testing::ext;
 using namespace OHOS::Rosen;
+using testing::Return;
+using testing::_;
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -669,6 +671,66 @@ HWTEST_F(UIExtensionContextTest, GetResourceManager_0100, TestSize.Level1)
     context->resourceManager_ = resourceMgr;
     auto ref = context->GetResourceManager();
     EXPECT_NE(ref, nullptr);
+}
+
+/**
+ * @tc.number: NotifyComponentTerminate_0100
+ * @tc.name: NotifyComponentTerminate
+ * @tc.desc: NotifyComponentTerminate with all conditions required, transfer data ok.
+ */
+HWTEST_F(UIExtensionContextTest, NotifyComponentTerminate_0100, TestSize.Level1)
+{
+    auto context = std::make_shared<UIExtensionContext>();
+    context->SetScreenMode(AAFwk::EMBEDDED_FULL_SCREEN_MODE);
+    sptr<MockWindow> window = sptr<MockWindow>::MakeSptr();
+    EXPECT_CALL(*window, TransferExtensionData(_)).Times(1).WillRepeatedly(Return(Rosen::WMError::WM_OK));
+    context->SetWindow(window);
+    context->NotifyComponentTerminate();
+}
+
+/**
+ * @tc.number: NotifyComponentTerminate_0200
+ * @tc.name: NotifyComponentTerminate
+ * @tc.desc: NotifyComponentTerminate with all conditions required, transfer data not ok.
+ */
+HWTEST_F(UIExtensionContextTest, NotifyComponentTerminate_0200, TestSize.Level1)
+{
+    auto context = std::make_shared<UIExtensionContext>();
+    context->SetScreenMode(AAFwk::EMBEDDED_FULL_SCREEN_MODE);
+    sptr<MockWindow> window = sptr<MockWindow>::MakeSptr();
+    EXPECT_CALL(*window, TransferExtensionData(_)).Times(1).WillRepeatedly(Return(Rosen::WMError::WM_DO_NOTHING));
+    context->SetWindow(window);
+    context->NotifyComponentTerminate();
+}
+
+/**
+ * @tc.number: NotifyComponentTerminate_0300
+ * @tc.name: NotifyComponentTerminate
+ * @tc.desc: NotifyComponentTerminate test with null window, expected called 0 time.
+ */
+HWTEST_F(UIExtensionContextTest, NotifyComponentTerminate_0300, TestSize.Level1)
+{
+    auto context = std::make_shared<UIExtensionContext>();
+    context->SetScreenMode(AAFwk::EMBEDDED_FULL_SCREEN_MODE);
+    sptr<MockWindow> window = nullptr;
+    context->SetWindow(window);
+    EXPECT_CALL(*window, TransferExtensionData(_)).Times(0).WillRepeatedly(Return(Rosen::WMError::WM_OK));
+    context->NotifyComponentTerminate();
+}
+
+/**
+ * @tc.number: NotifyComponentTerminate_0400
+ * @tc.name: NotifyComponentTerminate
+ * @tc.desc: NotifyComponentTerminate test with null window, expected called 0 time.
+ */
+HWTEST_F(UIExtensionContextTest, NotifyComponentTerminate_0400, TestSize.Level1)
+{
+    auto context = std::make_shared<UIExtensionContext>();
+    context->SetScreenMode(AAFwk::IDLE_SCREEN_MODE);
+    sptr<MockWindow> window = sptr<MockWindow>::MakeSptr();
+    context->SetWindow(window);
+    EXPECT_CALL(*window, TransferExtensionData(_)).Times(0).WillRepeatedly(Return(Rosen::WMError::WM_OK));
+    context->NotifyComponentTerminate();
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
