@@ -188,6 +188,7 @@ public:
     virtual WMError SetWindowGravity(WindowGravity gravity, uint32_t percent) {return WMError::WM_OK;}
     virtual KeyboardAnimationConfig GetKeyboardAnimationConfig() {return g_KeyboardAnimationConfig;};
     virtual void SetNeedDefaultAnimation(bool needDefaultAnimation) {}
+    MOCK_METHOD1(TransferExtensionData, WMError(const AAFwk::WantParams& wantParams));
 };
 }
 }
