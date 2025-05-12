@@ -78,6 +78,7 @@ constexpr const char* BS_PROCESS_NAME = "bgtaskmgr_service";
 constexpr int32_t USER_UID = 2000;
 constexpr const char* HIVIEW_PROCESS_NAME = "hiview";
 constexpr const char* DEBUG_FROM = "ohos.param.debugFrom";
+constexpr const char* GAME_ACCELERATE_SCHEDULE_PROCESS = "game_accelerate_schedule";
 }  // namespace
 
 REGISTER_SYSTEM_ABILITY_BY_ID(AppMgrService, APP_MGR_SERVICE_ID, true);
@@ -1649,6 +1650,36 @@ int32_t AppMgrService::SetSupportedProcessCache(int32_t pid, bool isSupport)
         return ERR_INVALID_OPERATION;
     }
     return appMgrServiceInner_->SetSupportedProcessCache(pid, isSupport);
+}
+
+int32_t AppMgrService::IsProcessCacheSupported(int32_t pid, bool &isSupported)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "get supported process cache");
+    if (appMgrServiceInner_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
+        return AAFwk::ERR_NULL_APP_MGR_SERVICE_INNER;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
+        GAME_ACCELERATE_SCHEDULE_PROCESS)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller not game accelerate schedule");
+        return AAFwk::ERR_NO_PERMISSION_CALLER;
+    }
+    return appMgrServiceInner_->IsProcessCacheSupported(pid, isSupported);
+}
+
+int32_t AppMgrService::SetProcessCacheEnable(int32_t pid, bool enable)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "set enable process cache");
+    if (appMgrServiceInner_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
+        return AAFwk::ERR_NULL_APP_MGR_SERVICE_INNER;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
+        GAME_ACCELERATE_SCHEDULE_PROCESS)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller not game accelerate schedule");
+        return AAFwk::ERR_NO_PERMISSION_CALLER;
+    }
+    return appMgrServiceInner_->SetProcessCacheEnable(pid, enable);
 }
 
 void AppMgrService::SetAppAssertionPauseState(bool flag)
