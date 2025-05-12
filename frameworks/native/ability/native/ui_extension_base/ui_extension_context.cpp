@@ -390,8 +390,15 @@ void UIExtensionContext::SetAbilityColorMode(int32_t colorMode)
 void UIExtensionContext::NotifyComponentTerminate()
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "NotifyComponentTerminate called");
-    if (screenMode_ != AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-        TAG_LOGD(AAFwkTag::CONTEXT, "Not full screen mode");
+    std::shared_ptr<AppExecFwk::AbilityInfo> info = GetAbilityInfo();
+    if (!info) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null info");
+        return;
+    }
+    if (screenMode_ != AAFwk::EMBEDDED_FULL_SCREEN_MODE ||
+        info->applicationInfo.bundleType != AppExecFwk::BundleType::ATOMIC_SERVICE ) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "not fullscreen or atomic service, screenMode_:%{public}d, bundleType:%{public}d",
+            screenMode_, static_cast<uint32_t>(info->applicationInfo.bundleType));
         return;
     }
     if (!window_) {
