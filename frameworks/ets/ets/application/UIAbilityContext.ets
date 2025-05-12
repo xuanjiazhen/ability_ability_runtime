@@ -22,8 +22,10 @@ import AbilityStartCallback from 'application.AbilityStartCallback';
 import { Configuration } from '@ohos.app.ability.Configuration';
 import Context from 'application.Context';
 import window from '@ohos.window';
+import { Caller } from '@ohos.app.ability.UIAbility';
 import { HapModuleInfo } from 'bundleManager.HapModuleInfo';
 import AsyncCallbackWrapper from '../utils/AbilityUtils';
+import OpenLinkOptions from '@ohos.app.ability.OpenLinkOptions';
 
 export default class UIAbilityContext extends Context {
   static {
@@ -53,6 +55,8 @@ export default class UIAbilityContext extends Context {
   private native nativeReportDrawnCompletedSync(callback:AsyncCallbackWrapper<void>): void;
   private native nativeStartAbilityByTypeSync(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback): BusinessError<void>;
   private native nativeStartServiceExtensionAbilitySync(want: Want, callback: AsyncCallbackWrapper<void>): void;
+  private native nativeStartAbilityByCallSync(want: Want): Caller;
+  private native nativeOpenLinkSync(link: string, myCallback:AsyncCallbackWrapper<void>, options?: OpenLinkOptions, callback?: AsyncCallbackWrapper<AbilityResult>): void;
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
@@ -246,5 +250,34 @@ export default class UIAbilityContext extends Context {
       this.nativeStartServiceExtensionAbilitySync(want, myCall);
     });
     return p;
+  }
+
+  startAbilityByCall(want: Want): Promise<Caller> {
+    return taskpool.execute((): Caller => {
+      return this.nativeStartAbilityByCallSync(want);
+    }) as Promise<Caller>;
+  }
+
+  openLink(link: string, options?: OpenLinkOptions, callback?: AsyncCallback<AbilityResult, void>): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError<void>) => void): void => {
+      let finalOptions: OpenLinkOptions | undefined = undefined;
+      if (options) {
+        finalOptions = options;
+      }
+      let callParam: AsyncCallbackWrapper<AbilityResult> | undefined = undefined;
+      if (callback) {
+        callParam = new AsyncCallbackWrapper<AbilityResult>(callback);
+      }
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>) => {
+        if (err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute(() => {
+        this.nativeOpenLinkSync(link, myCall, finalOptions, callParam);
+      });
+    });
   }
 }

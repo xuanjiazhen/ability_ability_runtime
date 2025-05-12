@@ -12,12 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef OHOS_ABILITY_RUNTIME_ETS_INSIGHT_INTENT_DRIVER_H
+#define OHOS_ABILITY_RUNTIME_ETS_INSIGHT_INTENT_DRIVER_H
 
-import { AbilityDelegator } from './application/AbilityDelegator';
-import { AbilityDelegatorArgs } from './application/abilityDelegatorArgs';
+#include "ani.h"
 
-export default namespace abilityDelegatorRegistry {
-    loadLibrary("ability_delegator_registry_ani_kit.z")
-    export native function getAbilityDelegator(): AbilityDelegator;
-    export native function getArguments(): AbilityDelegatorArgs;
-}
+namespace OHOS {
+namespace AbilityRuntime {
+void EtsInsightIntentDriverInit(ani_env *env, [[maybe_unused]]ani_class aniClass,
+    ani_object exparam, ani_object callback, ani_boolean isCallback);
+} // namespace AbilityRuntime
+} // namespace OHOS
+#endif // OHOS_ABILITY_RUNTIME_ETS_INSIGHT_INTENT_DRIVER_H

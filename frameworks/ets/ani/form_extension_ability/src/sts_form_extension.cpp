@@ -25,9 +25,15 @@
 #include "form_runtime/form_extension_provider_client.h"
 #include "hilog_tag_wrapper.h"
 #include "sts_form_extension_context.h"
+#include "connection_manager.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
+namespace {
+constexpr const char* FORM_BINDING_DATA_CLASS_NAME =
+    "L@ohos/app/form/formBindingData/formBindingData/FormBindingDataInner;";
+constexpr const char* RECORD_CLASS_NAME = "Lescompat/Record;";
+}
 
 STSFormExtension *STSFormExtension::Create(const std::unique_ptr<Runtime> &runtime)
 {
@@ -331,7 +337,7 @@ bool STSFormExtension::ExtractFormData(ani_env *env, ani_ref nativeResult, AppEx
     ani_status status = ANI_OK;
 
     ani_class cls{};
-    status = env->FindClass("L@ohos/app/form/formBindingData/formBindingData/FormBindingDataInner;", &cls);
+    status = env->FindClass(FORM_BINDING_DATA_CLASS_NAME, &cls);
     if (status != ANI_OK || cls == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "FindClass status: %{public}d", status);
         return false;
@@ -560,7 +566,7 @@ bool STSFormExtension::CreateAndFillRecordObject(ani_env *env, const std::map<in
     ani_status status = ANI_OK;
 
     ani_class recordCls;
-    status = env->FindClass("Lescompat/Record;", &recordCls);
+    status = env->FindClass(RECORD_CLASS_NAME, &recordCls);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "FindClass failed status: %{public}d", status);
         return false;
@@ -612,6 +618,42 @@ bool STSFormExtension::CreateAndFillRecordObject(ani_env *env, const std::map<in
     }
 
     return true;
+}
+
+void STSFormExtension::OnStop()
+{
+    TAG_LOGI(AAFwkTag::FORM_EXT, "OnStop begin");
+
+    auto env = stsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "env null");
+        return;
+    }
+
+    ani_ref nameRef;
+    ani_status status = env->Object_GetFieldByName_Ref(
+        static_cast<ani_object>(stsAbilityObj_->aniRef), "onStop", &nameRef);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "Object_GetFieldByName status: %{public}d, %{public}p, %{public}p",
+            status, stsAbilityObj_->aniRef, stsAbilityObj_->aniObj);
+        return;
+    }
+    
+    ani_ref result;
+    status = env->FunctionalObject_Call(static_cast<ani_fn_object>(nameRef), 0, nullptr, &result);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "FunctionalObject_Call status: %{public}d", status);
+        return;
+    }
+
+    bool ret = ConnectionManager::GetInstance().DisconnectCaller(GetContext()->GetToken());
+    if (ret) {
+        ConnectionManager::GetInstance().ReportConnectionLeakEvent(getpid(), gettid());
+        TAG_LOGI(AAFwkTag::FORM_EXT, "disconnected failed");
+        return;
+    }
+
+    TAG_LOGI(AAFwkTag::FORM_EXT, "OnStop End");
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

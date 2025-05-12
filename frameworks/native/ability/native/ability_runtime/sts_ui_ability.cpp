@@ -23,6 +23,7 @@
 #include "ability_manager_client.h"
 #include "ability_recovery.h"
 #include "ability_start_setting.h"
+#include "ani_remote_object.h"
 #include "app_recovery.h"
 #include "connection_manager.h"
 #include "context/application_context.h"
@@ -36,6 +37,7 @@
 #include "insight_intent_execute_param.h"
 #include "ohos_application.h"
 #include "sts_ability_context.h"
+#include "sts_caller_complex.h"
 #include "sts_data_struct_converter.h"
 #ifdef SUPPORT_SCREEN
 #include "ani_window_stage.h"
@@ -73,6 +75,7 @@ enum CollaborateResult {
 #endif
 constexpr const int32_t API12 = 12;
 constexpr const int32_t API_VERSION_MOD = 100;
+constexpr const char* UI_ABILITY_CONTEXT_CLASS_NAME = "Lapplication/UIAbilityContext/UIAbilityContext;";
 
 
 void PromiseCallback(ani_env* env, ani_object aniObj)
@@ -186,6 +189,10 @@ void StsUIAbility::UpdateAbilityObj(
     if ((status = env->Class_BindNativeMethods(stsAbilityObj_->aniCls, functions.data(), functions.size())) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
     }
+    auto callee = CreateEtsCallee(env);
+    if ((status = env->Object_SetFieldByName_Ref(stsAbilityObj_->aniObj, "callee", callee)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY, "set callee status : %{public}d", status);
+    }
 }
 
 void StsUIAbility::CreateAndBindContext(const std::shared_ptr<AppExecFwk::OHOSApplication> application,
@@ -273,7 +280,7 @@ void StsUIAbility::CreateAniContext(
         }
         shellContextRef_ = std::make_shared<STSNativeReference>();
         ani_class cls {};
-        if ((status = env->FindClass("Lapplication/UIAbilityContext/UIAbilityContext;", &cls)) != ANI_OK) {
+        if ((status = env->FindClass(UI_ABILITY_CONTEXT_CLASS_NAME, &cls)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
             return;
         }
@@ -543,11 +550,11 @@ void StsUIAbility::OnSceneRestored()
 void StsUIAbility::OnSceneWillDestroy()
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", GetAbilityName().c_str());
-
     if (stsWindowStageObj_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null stsWindowStageObj_");
         return;
     }
+    CallObjectMethod(false, "onWindowStageWillDestroy", nullptr, stsWindowStageObj_->aniRef);
 }
 
 void StsUIAbility::onSceneDestroyed()
@@ -684,7 +691,9 @@ bool StsUIAbility::OnBackPress()
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", GetAbilityName().c_str());
     UIAbility::OnBackPress();
-    return false;
+    bool ret = CallObjectMethod(true, "onBackPressed", nullptr);
+    TAG_LOGD(AAFwkTag::UIABILITY, "ret: %{public}d", ret);
+    return ret;
 }
 
 ani_object StsUIAbility::CreateAppWindowStage()
@@ -1042,7 +1051,9 @@ bool StsUIAbility::GetInsightIntentExecutorInfo(const Want &want,
     executeInfo.windowMode = windowMode_;
     executeInfo.token = context->GetToken();
     if (stsWindowStageObj_ != nullptr) {
-        // TODO
+        std::shared_ptr<STSNativeReferenceWrapper> etsNativeRef = std::make_shared<STSNativeReferenceWrapper>();
+        etsNativeRef->ref_ = stsWindowStageObj_;
+        executeInfo.pageLoader = etsNativeRef;
     }
     executeInfo.executeParam = executeParam;
     return true;
@@ -1188,17 +1199,26 @@ void StsUIAbility::OnAbilityResult(int requestCode, int resultCode, const Want &
 
 sptr<IRemoteObject> StsUIAbility::CallRequest()
 {
-    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    TAG_LOGI(AAFwkTag::UIABILITY, "CallRequest");
     if (stsAbilityObj_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext_");
         return nullptr;
     }
 
-    if (remoteCallee_ != nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null remoteCallee_");
-        return remoteCallee_;
+    auto env = stsRuntime_.GetAniEnv();
+    auto obj = stsAbilityObj_->aniObj;
+    ani_status status = ANI_ERROR;
+    ani_ref calleeRef = nullptr;
+    status = env->Object_GetFieldByName_Ref(obj, "callee", &calleeRef);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "get callee: %{public}d", status);
+        return nullptr;
     }
-    return remoteCallee_;
+    auto remoteObj = AniGetNativeRemoteObject(env, reinterpret_cast<ani_object>(calleeRef));
+    if (remoteObj == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "AniGetNativeRemoteObject null");
+    }
+    return remoteObj;
 }
 
 bool StsUIAbility::CallObjectMethod(bool withResult, const char *name, const char *signature, ...)
@@ -1221,7 +1241,7 @@ bool StsUIAbility::CallObjectMethod(bool withResult, const char *name, const cha
     }
     env->ResetError();
     if (withResult) {
-        ani_boolean res = 0;
+        ani_boolean res = false;
         va_list args;
         va_start(args, signature);
         if ((status = env->Object_CallMethod_Boolean(obj, method, &res, args)) != ANI_OK) {
