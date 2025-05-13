@@ -16,7 +16,9 @@
 #ifndef OHOS_ABILITY_RUNTIME_ANI_COMMON_UTIL_H
 #define OHOS_ABILITY_RUNTIME_ANI_COMMON_UTIL_H
 
-#include "sts_runtime.h"
+#include <string>
+
+#include "ani.h"
 namespace OHOS {
 namespace AppExecFwk {
 
@@ -46,7 +48,21 @@ bool SetFieldRef(ani_env *env, ani_class cls, ani_object object, const std::stri
 bool AniStringToStdString(ani_env *env, ani_string aniString, std::string &stdString);
 
 bool GetPropertyRef(ani_env *env, ani_object obj, const char *name, ani_ref &ref, ani_boolean &isUndefined);
+bool GetFieldRef(ani_env *env, ani_object obj, const char *name, ani_ref &ref, ani_boolean &isUndefined);
 bool AsyncCallback(ani_env *env, ani_object call, ani_object error, ani_object result);
+
+ani_object GetPropertyValueByName(ani_env *env, ani_object param, const char *propertyName);
+bool IsExistsProperty(ani_env *env, ani_object param, const char *name);
+bool GetStringProperty(ani_env *env, ani_object param, const char *name, std::string &value);
+bool GetStringArrayProperty(ani_env *env, ani_object param, const char *name, std::vector<std::string> &value);
+bool GetDoublePropertyObject(ani_env *env, ani_object param, const char *name, double &value);
+bool GetDoublePropertyValue(ani_env *env, ani_object param, const char *name, double &value);
+bool GetRefProperty(ani_env *env, ani_object param, const char *name, ani_ref &value);
+
+bool SetDoublePropertyObject(ani_env *env, ani_object param, const char *name, double value);
+bool SetDoublePropertyValue(ani_env *env, ani_object param, const char *name, double value);
+bool SetStringArrayProperty(ani_env *env, ani_object param, const char *name, const std::vector<std::string> &values);
+bool SetRefProperty(ani_env *env, ani_object param, const char *name, ani_ref value);
 }  // namespace AppExecFwk
 }  // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_ANI_COMMON_UTIL_H
