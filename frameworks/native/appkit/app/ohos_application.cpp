@@ -366,6 +366,14 @@ void OHOSApplication::InitAniContext()
     std::array contextFunctions = {
         ani_native_function {"getApplicationContextSync", ":Lapplication/ApplicationContext/ApplicationContext;",
             reinterpret_cast<void *>(AbilityRuntime::ContextUtil::GetApplicationContextSync)},
+        ani_native_function {"setArea", nullptr,
+            reinterpret_cast<void *>(AbilityRuntime::ContextUtil::SwitchAniArea)},
+        ani_native_function {"getArea", nullptr,
+            reinterpret_cast<void *>(AbilityRuntime::ContextUtil::GetAniArea)},
+        ani_native_function {"getFilesDir", nullptr,
+            reinterpret_cast<void *>(AbilityRuntime::ContextUtil::GetAniFilesDir)},
+        ani_native_function {"getTempDir", nullptr,
+            reinterpret_cast<void *>(AbilityRuntime::ContextUtil::GetAniTempDir)},
         ani_native_function {"createModuleResourceManagerSync", "Lstd/core/String;Lstd/core/String;"
             ":L@ohos/resourceManager/resourceManager/ResourceManager;",
             reinterpret_cast<void *>(AbilityRuntime::ContextUtil::CreateModuleResourceManagerSync)},
