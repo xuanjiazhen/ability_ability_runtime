@@ -136,6 +136,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     abilityConnectManager->IsAbilityConnected(abilityRecord, connectRecordList);
     std::shared_ptr<ConnectionRecord> connection;
     abilityConnectManager->RemoveConnectionRecordFromMap(connection);
+    abilityConnectManager->RemoveConnectRecordFromMapByKey(callback, connection);
     abilityConnectManager->RemoveServiceAbility(abilityRecord);
     abilityConnectManager->AddConnectDeathRecipient(connect);
     abilityConnectManager->RemoveConnectDeathRecipient(connect);
