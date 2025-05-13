@@ -2894,6 +2894,7 @@ napi_value JsAbilityContext::OnOpenAtomicService(napi_env env, NapiCallbackInfo&
             ThrowInvalidParamError(env, "Parse param startOptions failed, startOptions must be StartOption.");
             return CreateJsUndefined(env);
         }
+        UnwrapCompletionHandlerInStartOptions(env, info.argv[INDEX_ONE], startOptions);
     }
 
     std::string bundleName = ATOMIC_SERVICE_PREFIX + appId;
