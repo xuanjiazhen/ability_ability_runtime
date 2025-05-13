@@ -185,6 +185,7 @@ private:
         std::shared_ptr<NativeReference>&& sharedNativeRef);
     void InitConsoleModule();
     void InitTimerModule();
+    void InitIntlModule();
     void InitWorkerModule(const Options& options);
     void ReInitJsEnvImpl(const Options& options);
     void PostPreload(const Options& options);

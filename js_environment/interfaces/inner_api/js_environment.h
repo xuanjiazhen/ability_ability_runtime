@@ -61,6 +61,8 @@ public:
 
     void InitTimerModule();
 
+    void InitIntlModule();
+
     void InitWorkerModule(std::shared_ptr<WorkerInfo> workerInfo);
 
     void InitSourceMap(const std::shared_ptr<JsEnv::SourceMapOperator> operatorObj);
