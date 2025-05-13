@@ -253,7 +253,7 @@ ani_long GetNativeApplicationContextLong(ani_env *env, ani_object& aniObj)
     return nativeContextLong;
 }
 
-void SwitchAniArea([[maybe_unused]]ani_env *aniEnv, ani_enum_item aniMode)
+void SwitchAniArea([[maybe_unused]]ani_env *aniEnv, [[maybe_unused]]ani_object aniObj, ani_enum_item aniMode)
 {
     TAG_LOGI(AAFwkTag::APPKIT, "SwitchAniArea enter");
     int32_t areaMode = 0;

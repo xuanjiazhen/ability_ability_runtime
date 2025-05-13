@@ -47,7 +47,7 @@ ani_object CreateModuleResourceManagerSync([[maybe_unused]]ani_env *env, [[maybe
 
 ani_object GetApplicationContextSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj);
 
-void SwitchAniArea([[maybe_unused]]ani_env *aniEnv, ani_enum_item aniMode);
+void SwitchAniArea([[maybe_unused]]ani_env *aniEnv, [[maybe_unused]]ani_object aniObj, ani_enum_item aniMode);
 
 ani_enum_item GetAniArea(ani_env *aniEnv);
 
