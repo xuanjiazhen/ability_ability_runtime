@@ -63,7 +63,7 @@ HWTEST_F(AppExitReasonHelperThirdTest, RecordProcessExtensionExitReason_0100, Te
     std::weak_ptr<AAFwk::AbilityManagerService> service;
     service = AAFwk::AbilityManagerService::GetPubInstance();
     std::shared_ptr<AAFwk::AbilityEventHandler> eventHandler_;
-    eventHandler_ = std::make_shared<AAFwk::AbilityEventHandler>(taskHandler_, service);
+    eventHandler_ = std::make_shared<AAFwk::AbilityEventHandler>(service);
     std::shared_ptr<AAFwk::SubManagersHelper> subManagersHelper_;
     subManagersHelper_ = std::make_shared<AAFwk::SubManagersHelper>(taskHandler_, eventHandler_);
     int userId = 1;
@@ -115,7 +115,7 @@ HWTEST_F(AppExitReasonHelperThirdTest, GetActiveAbilityListWithPid_0100, TestSiz
     std::weak_ptr<AAFwk::AbilityManagerService> service;
     service = AAFwk::AbilityManagerService::GetPubInstance();
     std::shared_ptr<AAFwk::AbilityEventHandler> eventHandler_;
-    eventHandler_ = std::make_shared<AAFwk::AbilityEventHandler>(taskHandler_, service);
+    eventHandler_ = std::make_shared<AAFwk::AbilityEventHandler>(service);
     std::shared_ptr<AAFwk::SubManagersHelper> subManagersHelper_;
     subManagersHelper_ = std::make_shared<AAFwk::SubManagersHelper>(taskHandler_, eventHandler_);
     subManagersHelper_->currentUIAbilityManager_ = std::make_shared<AAFwk::UIAbilityLifecycleManager>();
@@ -144,7 +144,7 @@ HWTEST_F(AppExitReasonHelperThirdTest, RecordUIAbilityExitReason_0100, TestSize.
     std::weak_ptr<AAFwk::AbilityManagerService> service;
     service = AAFwk::AbilityManagerService::GetPubInstance();
     std::shared_ptr<AAFwk::AbilityEventHandler> eventHandler_;
-    eventHandler_ = std::make_shared<AAFwk::AbilityEventHandler>(taskHandler_, service);
+    eventHandler_ = std::make_shared<AAFwk::AbilityEventHandler>(service);
     std::shared_ptr<AAFwk::SubManagersHelper> subManagersHelper_;
     subManagersHelper_ = std::make_shared<AAFwk::SubManagersHelper>(taskHandler_, eventHandler_);
     std::shared_ptr<AAFwk::AppExitReasonHelper> appExitReasonHelper_;

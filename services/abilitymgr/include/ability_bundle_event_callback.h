@@ -19,7 +19,6 @@
 #include "ability_auto_startup_service.h"
 #include "bundle_event_callback_host.h"
 #include "common_event_support.h"
-#include "task_handler_wrap.h"
 #include "ability_event_util.h"
 
 namespace OHOS {
@@ -31,7 +30,7 @@ namespace AAFwk {
  */
 class AbilityBundleEventCallback : public AppExecFwk::BundleEventCallbackHost {
 public:
-    explicit AbilityBundleEventCallback(std::shared_ptr<TaskHandlerWrap> taskHandler,
+    explicit AbilityBundleEventCallback(
         std::shared_ptr<AbilityRuntime::AbilityAutoStartupService> abilityAutoStartupService);
 
     ~AbilityBundleEventCallback() = default;
@@ -53,7 +52,6 @@ private:
 
     DISALLOW_COPY_AND_MOVE(AbilityBundleEventCallback);
     AbilityEventUtil abilityEventHelper_;
-    std::shared_ptr<TaskHandlerWrap> taskHandler_;
     std::shared_ptr<AbilityRuntime::AbilityAutoStartupService> abilityAutoStartupService_;
 };
 } // namespace OHOS

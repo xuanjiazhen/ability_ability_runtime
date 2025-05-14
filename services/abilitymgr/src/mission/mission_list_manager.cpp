@@ -111,7 +111,6 @@ void MissionListManager::Init()
 
     if (!listenerController_) {
         listenerController_ = std::make_shared<MissionListenerController>();
-        listenerController_->Init();
     }
 #ifdef SUPPORT_SCREEN
     InitPrepareTerminateConfig();
@@ -1391,7 +1390,7 @@ void MissionListManager::TerminatePreviousAbility(const std::shared_ptr<AbilityR
 int MissionListManager::DispatchBackground(const std::shared_ptr<AbilityRecord> &abilityRecord)
 {
     auto handler = AbilityManagerService::GetPubInstance()->GetTaskHandler();
-    CHECK_POINTER_AND_RETURN_LOG(handler, ERR_INVALID_VALUE, "Fail to get AbilityTasktHandler.");
+    CHECK_POINTER_AND_RETURN_LOG(handler, ERR_INVALID_VALUE, "Fail to get AbilityTaskHandler.");
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
 
     if (!abilityRecord->IsAbilityState(AbilityState::BACKGROUNDING)) {
@@ -1401,7 +1400,7 @@ int MissionListManager::DispatchBackground(const std::shared_ptr<AbilityRecord> 
     }
 
     // remove background timeout task.
-    handler->CancelTask("background_" + std::to_string(abilityRecord->GetAbilityRecordId()));
+    TaskHandlerWrap::GetFfrtHandler()->CancelTask("background_" + std::to_string(abilityRecord->GetAbilityRecordId()));
     g_deleteLifecycleEventTask(abilityRecord->GetToken());
     FreezeUtil::GetInstance().DeleteAppLifecycleEvent(abilityRecord->GetPid());
     auto self(shared_from_this());
@@ -2210,12 +2209,6 @@ void  MissionListManager::NotifyMissionCreated(const std::shared_ptr<AbilityReco
 #ifdef SUPPORT_SCREEN
 void MissionListManager::PostMissionLabelUpdateTask(int missionId) const
 {
-    auto handler = AbilityManagerService::GetPubInstance()->GetTaskHandler();
-    if (handler == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "handler null");
-        return;
-    }
-
     std::weak_ptr<MissionListenerController> wpController = listenerController_;
     auto task = [wpController, missionId] {
         auto controller = wpController.lock();
@@ -2225,7 +2218,7 @@ void MissionListManager::PostMissionLabelUpdateTask(int missionId) const
         }
         controller->NotifyMissionLabelUpdated(missionId);
     };
-    handler->SubmitTask(task, "NotifyMissionLabelUpdated.", DELAY_NOTIFY_LABEL_TIME);
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTaskJust(task, "NotifyMissionLabelUpdated.", DELAY_NOTIFY_LABEL_TIME);
 }
 #endif // SUPPORT_SCREEN
 void MissionListManager::PrintTimeOutLog(const std::shared_ptr<AbilityRecord> &ability, uint32_t msgId, bool isHalf)
@@ -2485,10 +2478,6 @@ void MissionListManager::HandleTimeoutAndResumeAbility(const std::shared_ptr<Abi
 
 void MissionListManager::DelayedResumeTimeout(const std::shared_ptr<AbilityRecord> &callerAbility)
 {
-    auto abilityManagerService = AbilityManagerService::GetPubInstance();
-    CHECK_POINTER(abilityManagerService);
-    auto handler = abilityManagerService->GetTaskHandler();
-    CHECK_POINTER(handler);
     std::weak_ptr<MissionListManager> wpListMgr = shared_from_this();
     auto timeoutTask = [wpListMgr, callerAbility]() {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "The caller ability need to resume.");
@@ -2497,7 +2486,7 @@ void MissionListManager::DelayedResumeTimeout(const std::shared_ptr<AbilityRecor
             listMgr->BackToCaller(callerAbility);
         }
     };
-    handler->SubmitTask(timeoutTask, "Caller_Restart");
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask(timeoutTask, "Caller_Restart");
 }
 
 void MissionListManager::BackToCaller(const std::shared_ptr<AbilityRecord> &callerAbility)
@@ -2771,11 +2760,8 @@ void MissionListManager::PostStartWaitingAbility()
     auto self(shared_from_this());
     auto startWaitingAbilityTask = [self]() { self->StartWaitingAbility(); };
 
-    auto handler = AbilityManagerService::GetPubInstance()->GetTaskHandler();
-    CHECK_POINTER_LOG(handler, "Fail to get AbilityTaskHandler.");
-
     /* PostTask to trigger start Ability from waiting queue */
-    handler->SubmitTask(startWaitingAbilityTask, "startWaitingAbility");
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask(startWaitingAbilityTask, "startWaitingAbility");
 }
 
 void MissionListManager::HandleAbilityDied(std::shared_ptr<AbilityRecord> abilityRecord)
@@ -2876,10 +2862,6 @@ void MissionListManager::HandleAbilityDiedByDefault(std::shared_ptr<AbilityRecor
 
 void MissionListManager::DelayedStartLauncher()
 {
-    auto abilityManagerService = AbilityManagerService::GetPubInstance();
-    CHECK_POINTER(abilityManagerService);
-    auto handler = abilityManagerService->GetTaskHandler();
-    CHECK_POINTER(handler);
     std::weak_ptr<MissionListManager> wpListMgr = shared_from_this();
     auto timeoutTask = [wpListMgr]() {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "The launcher needs to be restarted.");
@@ -2888,7 +2870,7 @@ void MissionListManager::DelayedStartLauncher()
             listMgr->BackToLauncher();
         }
     };
-    handler->SubmitTask(timeoutTask, "Launcher_Restart");
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask(timeoutTask, "Launcher_Restart");
 }
 
 void MissionListManager::BackToLauncher()
@@ -3017,11 +2999,6 @@ void MissionListManager::CompleteFirstFrameDrawing(const sptr<IRemoteObject> &ab
     AppExecFwk::AbilityFirstFrameStateObserverManager::GetInstance().
         HandleOnFirstFrameState(abilityRecord);
     AbilityStartWithWaitObserverManager::GetInstance().NotifyAATerminateWait(abilityRecord);
-    auto handler = AbilityManagerService::GetPubInstance()->GetTaskHandler();
-    if (handler == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetTaskHandler fail");
-        return;
-    }
 
     auto task = [owner = weak_from_this(), abilityRecord] {
         auto mgr = owner.lock();
@@ -3034,7 +3011,7 @@ void MissionListManager::CompleteFirstFrameDrawing(const sptr<IRemoteObject> &ab
             mgr->UpdateMissionSnapshot(abilityRecord);
         }
     };
-    handler->SubmitTask(task, "FirstFrameDrawing");
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask(task, "FirstFrameDrawing");
     auto preloadTask = [owner = weak_from_this(), abilityRecord] {
         auto mgr = owner.lock();
         if (mgr == nullptr) {
@@ -3043,7 +3020,7 @@ void MissionListManager::CompleteFirstFrameDrawing(const sptr<IRemoteObject> &ab
         }
         mgr->ProcessPreload(abilityRecord);
     };
-    handler->SubmitTask(preloadTask);
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask(preloadTask);
 }
 
 void MissionListManager::ProcessPreload(const std::shared_ptr<AbilityRecord> &record) const
@@ -3079,18 +3056,12 @@ Closure MissionListManager::GetCancelStartingWindowTask(const std::shared_ptr<Ab
 void MissionListManager::PostCancelStartingWindowTask(const std::shared_ptr<AbilityRecord> &abilityRecord) const
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
-    auto handler = AbilityManagerService::GetPubInstance()->GetTaskHandler();
-    if (!handler) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetTaskHandler fail");
-        return;
-    }
-
     auto task = GetCancelStartingWindowTask(abilityRecord);
     if (!task) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "GetCancelStartingWindowTask fail");
         return;
     }
-    handler->SubmitTask(task, TaskQoS::USER_INTERACTIVE);
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask(task, TaskQoS::USER_INTERACTIVE);
 }
 
 void MissionListManager::InitPrepareTerminateConfig()
@@ -3846,10 +3817,6 @@ void MissionListManager::GetAbilityRunningInfos(std::vector<AbilityRunningInfo> 
 void MissionListManager::UninstallApp(const std::string &bundleName, int32_t uid)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "uninstall app, bundleName: %{public}s, uid:%{public}d", bundleName.c_str(), uid);
-    auto abilityManagerService = AbilityManagerService::GetPubInstance();
-    CHECK_POINTER(abilityManagerService);
-    auto handler = abilityManagerService->GetTaskHandler();
-    CHECK_POINTER(handler);
     std::weak_ptr<MissionListManager> wpMgr = shared_from_this();
     auto task = [wpMgr, bundleName, uid]() {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "handle Uninstall app, bundleName: %{public}s, uid:%{public}d",
@@ -3859,7 +3826,7 @@ void MissionListManager::UninstallApp(const std::string &bundleName, int32_t uid
             mgr->AddUninstallTags(bundleName, uid);
         }
     };
-    handler->SubmitTask(task);
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask(task);
 }
 
 void MissionListManager::AddUninstallTags(const std::string &bundleName, int32_t uid)
@@ -4236,7 +4203,7 @@ int MissionListManager::PrepareClearMissionLocked(int missionId, const std::shar
             mgr->ClearMissionLocking(missionId, mission);
         }
     };
-    auto handler = AbilityManagerService::GetPubInstance()->GetTaskHandler();
+    auto handler = TaskHandlerWrap::GetFfrtHandler();
     int prepareTerminateTimeout =
         AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * PREPARE_TERMINATE_TIMEOUT_MULTIPLE;
     if (handler) {

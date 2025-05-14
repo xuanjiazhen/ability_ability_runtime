@@ -29,10 +29,6 @@ public:
     AbilityJumpInterceptor() = default;
     ~AbilityJumpInterceptor() = default;
     ErrCode DoProcess(AbilityInterceptorParam param) override;
-    virtual void SetTaskHandler(std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler) override
-    {
-        return;
-    };
 
 private:
     bool CheckControl(std::shared_ptr<AppExecFwk::BundleMgrHelper> &undleMgrHelper, const Want &want, int32_t userId,

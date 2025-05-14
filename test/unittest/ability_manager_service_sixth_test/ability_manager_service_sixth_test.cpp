@@ -134,7 +134,7 @@ std::shared_ptr<AbilityManagerService> AbilityManagerServiceSixthTest::MockAbili
 {
     auto abilityMs = std::make_shared<AbilityManagerService>();
     auto taskHandler = MockTaskHandlerWrap::CreateQueueHandler("AbilityManagerServiceSixthTest");
-    auto eventHandler = std::make_shared<AbilityEventHandler>(taskHandler, abilityMs);
+    auto eventHandler = std::make_shared<AbilityEventHandler>(abilityMs);
     abilityMs->taskHandler_ = taskHandler;
     abilityMs->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
     abilityMs->afterCheckExecuter_ = std::make_shared<AbilityInterceptorExecuter>();

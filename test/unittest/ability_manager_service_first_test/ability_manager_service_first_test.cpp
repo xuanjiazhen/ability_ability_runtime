@@ -1812,7 +1812,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, PreLoadAppDataAbilitiesTask_0100, TestS
     abilityMs->PreLoadAppDataAbilitiesTask("", USER_ID_U100);
     EXPECT_EQ(abilityMs->subManagersHelper_, nullptr);
     auto taskHandler = TaskHandlerWrap::CreateQueueHandler(AbilityConfig::NAME_ABILITY_MGR_SERVICE);
-    auto eventHandler = std::make_shared<AbilityEventHandler>(taskHandler, abilityMs);
+    auto eventHandler = std::make_shared<AbilityEventHandler>(abilityMs);
     abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(taskHandler, eventHandler);
     auto manager = std::make_shared<DataAbilityManager>();
     abilityMs->subManagersHelper_->dataAbilityManagers_.emplace(USER_ID_U100, manager);

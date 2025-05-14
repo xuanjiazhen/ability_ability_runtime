@@ -18,6 +18,7 @@
 #include "ability_manager_service.h"
 #include "ability_util.h"
 #include "distributed_client.h"
+#include "ffrt.h"
 #include "hitrace_meter.h"
 #include "permission_constants.h"
 #include "session_manager_lite.h"
@@ -29,12 +30,6 @@ namespace AAFwk {
 using namespace OHOS::EventFwk;
 using namespace std::chrono;
 using namespace std::placeholders;
-constexpr const char* PENDING_WANT_MANAGER = "PendingWantManager";
-
-PendingWantManager::PendingWantManager()
-{
-    taskHandler_ = TaskHandlerWrap::CreateQueueHandler(PENDING_WANT_MANAGER);
-}
 
 PendingWantManager::~PendingWantManager()
 {
@@ -614,7 +609,6 @@ int32_t PendingWantManager::GetWantSenderInfo(const sptr<IWantSender> &target, s
 
 void PendingWantManager::ClearPendingWantRecord(const std::string &bundleName, int32_t uid)
 {
-    CHECK_POINTER(taskHandler_);
     TAG_LOGI(AAFwkTag::WANTAGENT, "begin");
     auto task = [bundleName, uid, thisWeakPtr = weak_from_this()]() {
         auto wantManager = thisWeakPtr.lock();
@@ -622,7 +616,7 @@ void PendingWantManager::ClearPendingWantRecord(const std::string &bundleName, i
             wantManager->ClearPendingWantRecordTask(bundleName, uid);
         }
     };
-    taskHandler_->SubmitTask(task);
+    ffrt::submit(task);
 }
 
 void PendingWantManager::ClearPendingWantRecordTask(const std::string &bundleName, int32_t uid)

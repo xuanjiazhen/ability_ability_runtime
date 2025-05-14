@@ -20,6 +20,7 @@
 #include "hitrace_meter.h"
 #include "iservice_registry.h"
 #include "modal_system_ui_extension.h"
+#include "task_handler_wrap.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -203,8 +204,8 @@ ErrCode DisposedRuleInterceptor::StartNonBlockRule(const Want &want, AppExecFwk:
             interceptor->disposedObserverMap_.erase(iter);
         }
     };
-    CHECK_POINTER_AND_RETURN(taskHandler_, ERR_INVALID_VALUE);
-    taskHandler_->SubmitTask(unregisterTask, UNREGISTER_TIMEOUT_OBSERVER_TASK, UNREGISTER_OBSERVER_MICRO_SECONDS);
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask(unregisterTask,
+        UNREGISTER_TIMEOUT_OBSERVER_TASK, UNREGISTER_OBSERVER_MICRO_SECONDS);
     return ERR_OK;
 }
 
@@ -231,8 +232,7 @@ sptr<OHOS::AppExecFwk::IAppMgr> DisposedRuleInterceptor::GetAppMgr()
 void DisposedRuleInterceptor::UnregisterObserver(int32_t uid)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call");
-    CHECK_POINTER(taskHandler_);
-    taskHandler_->CancelTask(UNREGISTER_TIMEOUT_OBSERVER_TASK);
+    TaskHandlerWrap::GetFfrtHandler()->CancelTask(UNREGISTER_TIMEOUT_OBSERVER_TASK);
     auto unregisterTask = [uid, interceptor = shared_from_this()] () {
         std::lock_guard<ffrt::mutex> guard{interceptor->observerLock_};
         auto iter = interceptor->disposedObserverMap_.find(uid);
@@ -247,7 +247,7 @@ void DisposedRuleInterceptor::UnregisterObserver(int32_t uid)
             interceptor->disposedObserverMap_.erase(iter);
         }
     };
-    taskHandler_->SubmitTask(unregisterTask, UNREGISTER_EVENT_TASK);
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask(unregisterTask, UNREGISTER_EVENT_TASK);
 }
 
 ErrCode DisposedRuleInterceptor::CreateModalUIExtension(const Want &want, const sptr<IRemoteObject> &callerToken)

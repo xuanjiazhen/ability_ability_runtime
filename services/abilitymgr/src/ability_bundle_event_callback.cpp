@@ -18,6 +18,7 @@
 #include "insight_intent_event_mgr.h"
 #include "ability_manager_service.h"
 #include "ability_util.h"
+#include "ffrt.h"
 #include "parameters.h"
 #ifdef SUPPORT_UPMS
 #include "uri_permission_manager_client.h"
@@ -36,16 +37,11 @@ constexpr const char* ARKWEB_CORE_PACKAGE_NAME = "persist.arkwebcore.package_nam
 constexpr const char* BUNDLE_TYPE = "bundleType";
 }
 AbilityBundleEventCallback::AbilityBundleEventCallback(
-    std::shared_ptr<TaskHandlerWrap> taskHandler, std::shared_ptr<AbilityAutoStartupService> abilityAutoStartupService)
-    : taskHandler_(taskHandler), abilityAutoStartupService_(abilityAutoStartupService) {}
+    std::shared_ptr<AbilityAutoStartupService> abilityAutoStartupService)
+    : abilityAutoStartupService_(abilityAutoStartupService) {}
 
 void AbilityBundleEventCallback::OnReceiveEvent(const EventFwk::CommonEventData eventData)
 {
-    // env check
-    if (taskHandler_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "OnReceiveEvent failed, taskHandler is nullptr");
-        return;
-    }
     const Want& want = eventData.GetWant();
     // action contains the change type of haps.
     std::string action = want.GetAction();
@@ -124,7 +120,7 @@ void AbilityBundleEventCallback::HandleUpdatedModuleInfo(const std::string &bund
         }
         sharedThis->abilityEventHelper_.HandleModuleInfoUpdated(bundleName, uid, moduleName, isPlugin);
     };
-    taskHandler_->SubmitTask(task);
+    ffrt::submit(task);
 }
 
 void AbilityBundleEventCallback::HandleAppUpgradeCompleted(int32_t uid)
@@ -144,7 +140,7 @@ void AbilityBundleEventCallback::HandleAppUpgradeCompleted(int32_t uid)
         }
         abilityMgr->AppUpgradeCompleted(uid);
     };
-    taskHandler_->SubmitTask(task);
+    ffrt::submit(task);
 }
 
 void AbilityBundleEventCallback::HandleRestartResidentProcessDependedOnWeb()
@@ -157,7 +153,7 @@ void AbilityBundleEventCallback::HandleRestartResidentProcessDependedOnWeb()
         }
         abilityMgr->HandleRestartResidentProcessDependedOnWeb();
     };
-    taskHandler_->SubmitTask(task);
+    ffrt::submit(task);
 }
 } // namespace AAFwk
 } // namespace OHOS

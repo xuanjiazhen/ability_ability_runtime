@@ -101,7 +101,7 @@ bool UIAbilityLifecycleManager::ProcessColdStartBranch(AbilityRequest &abilityRe
     if (isColdStart && uiAbilityRecord->IsHook()) {
         auto nextRequest = PopAndGetNextSpecified(sessionInfo->requestId);
         if (nextRequest) {
-            TaskHandlerWrap::GetFfrtHandler()->SubmitTask([nextRequest, pThis = shared_from_this()]() {
+            ffrt::submit([nextRequest, pThis = shared_from_this()]() {
                 std::lock_guard lock(pThis->sessionLock_);
                 pThis->StartSpecifiedRequest(*nextRequest);
                 });
@@ -1256,8 +1256,6 @@ int UIAbilityLifecycleManager::CallAbilityLocked(const AbilityRequest &abilityRe
 void UIAbilityLifecycleManager::PostCallTimeoutTask(std::shared_ptr<AbilityRecord> abilityRecord)
 {
     CHECK_POINTER(abilityRecord);
-    auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
-    CHECK_POINTER(handler);
 
     std::weak_ptr<AbilityRecord> weakRecord(abilityRecord);
     auto timeoutTask = [self = shared_from_this(), weakRecord]() {
@@ -1280,7 +1278,7 @@ void UIAbilityLifecycleManager::PostCallTimeoutTask(std::shared_ptr<AbilityRecor
 
     int timeout = AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() *
         GlobalConstant::COLDSTART_TIMEOUT_MULTIPLE;
-    handler->SubmitTaskJust(timeoutTask, "CallTimeout", timeout);
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTaskJust(timeoutTask, "CallTimeout", timeout);
 }
 
 void UIAbilityLifecycleManager::CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isColdStart)
@@ -2200,7 +2198,7 @@ void UIAbilityLifecycleManager::OnStartSpecifiedProcessResponse(const std::strin
     }
     auto nextRequest = PopAndGetNextSpecified(requestId);
     if (nextRequest) {
-        TaskHandlerWrap::GetFfrtHandler()->SubmitTask([nextRequest, pThis = shared_from_this()]() {
+        ffrt::submit([nextRequest, pThis = shared_from_this()]() {
             std::lock_guard lock(pThis->sessionLock_);
             pThis->StartSpecifiedRequest(*nextRequest);
             });
@@ -2437,10 +2435,6 @@ void UIAbilityLifecycleManager::CallRequestDone(const std::shared_ptr<AbilityRec
     }
     auto requestList = std::move(iter->second);
     callRequestCache_.erase(iter);
-    auto taskHandler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
-    if (taskHandler == nullptr) {
-        return;
-    }
     auto wThis = weak_from_this();
     for (const auto &request : requestList) {
         auto task = [request, wThis]() {
@@ -2450,7 +2444,7 @@ void UIAbilityLifecycleManager::CallRequestDone(const std::shared_ptr<AbilityRec
                 pThis->CallAbilityLocked(request, errMsg);
             }
         };
-        taskHandler->SubmitTask(task);
+        ffrt::submit(task);
     }
 }
 
@@ -3570,7 +3564,7 @@ bool UIAbilityLifecycleManager::TryProcessHookModule(SpecifiedRequest &specified
     NotifySCBPendingActivation(hookSessionInfo, specifiedRequest.abilityRequest, errMsg);
     auto nextRequest = PopAndGetNextSpecified(specifiedRequest.requestId);
     if (nextRequest) {
-        TaskHandlerWrap::GetFfrtHandler()->SubmitTask([nextRequest, pThis = shared_from_this()]() {
+        ffrt::submit([nextRequest, pThis = shared_from_this()]() {
             std::lock_guard lock(pThis->sessionLock_);
             pThis->StartSpecifiedRequest(*nextRequest);
             });

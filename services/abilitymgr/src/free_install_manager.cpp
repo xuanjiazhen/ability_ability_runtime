@@ -19,6 +19,7 @@
 #include "ability_util.h"
 #include "atomic_service_status_callback.h"
 #include "distributed_client.h"
+#include "ffrt.h"
 #include "hitrace_meter.h"
 #include "insight_intent_execute_manager.h"
 #include "insight_intent_utils.h"
@@ -602,13 +603,19 @@ void FreeInstallManager::PostUpgradeAtomicServiceTask(int resultCode, const Want
     TAG_LOGI(AAFwkTag::FREE_INSTALL, "called");
     std::weak_ptr<FreeInstallManager> thisWptr(shared_from_this());
     if (resultCode == ERR_OK) {
-        auto updateAtmoicServiceTask = [want, userId, thisWptr, &timeStampMap = timeStampMap_]() {
+        auto updateAtomicServiceTask = [want, userId, thisWptr, &timeStampMap = timeStampMap_]() {
             auto sptr = thisWptr.lock();
+            if (sptr == nullptr) {
+                TAG_LOGW(AAFwkTag::FREE_INSTALL, "PostUpgradeAtomicServiceTask null");
+                return;
+            }
+            
             TAG_LOGD(AAFwkTag::FREE_INSTALL,
                 "bundleName: %{public}s, moduleName: %{public}s, abilityName: %{public}s, userId: %{public}d",
                 want.GetElement().GetBundleName().c_str(), want.GetElement().GetModuleName().c_str(),
                 want.GetElement().GetAbilityName().c_str(), userId);
             std::string nameKey = want.GetElement().GetBundleName() + want.GetElement().GetModuleName();
+            std::lock_guard lock(sptr->timeStampMapMutex_);
             if (timeStampMap.find(nameKey) == timeStampMap.end() ||
                 sptr->GetTimeStamp() - timeStampMap[nameKey] > UPDATE_ATOMOIC_SERVICE_TASK_TIMER) {
                 auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
@@ -618,9 +625,7 @@ void FreeInstallManager::PostUpgradeAtomicServiceTask(int resultCode, const Want
             }
         };
 
-        auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
-        CHECK_POINTER_LOG(handler, "Fail to get Ability task handler.");
-        handler->SubmitTask(updateAtmoicServiceTask, "UpdateAtmoicServiceTask");
+        ffrt::submit(updateAtomicServiceTask);
     }
 }
 

@@ -29,8 +29,7 @@ class AbilityManagerService;
  */
 class AbilityEventHandler : public EventHandlerWrap {
 public:
-    AbilityEventHandler(
-        const std::shared_ptr<TaskHandlerWrap> &taskHandler, const std::weak_ptr<AbilityManagerService> &server);
+    AbilityEventHandler(const std::weak_ptr<AbilityManagerService> &server);
     virtual ~AbilityEventHandler() = default;
 
     /**
