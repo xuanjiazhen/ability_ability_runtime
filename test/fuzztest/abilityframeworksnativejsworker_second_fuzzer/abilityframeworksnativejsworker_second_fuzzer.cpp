@@ -73,7 +73,9 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     workerInfo->hapPath = panda::panda_file::StringPacProtect("/data/test/hapPath");
     workerInfo->moduleName = "moduleName";
     AbilityRuntime::AssetHelper helper = AbilityRuntime::AssetHelper(workerInfo);
-    std::string jsonStr(data, size);
+    std::string jsonStr;
+    FuzzedDataProvider fdp(data, size);
+    jsonStr = fdp.ConsumeRandomLengthString();
     helper.NormalizedFileName(jsonStr);
     return true;
 }
