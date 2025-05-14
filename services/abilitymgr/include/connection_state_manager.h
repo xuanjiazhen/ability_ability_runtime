@@ -20,7 +20,6 @@
 #include <unordered_map>
 #include "cpp/mutex.h"
 
-#include "task_handler_wrap.h"
 #include "application_state_observer_stub.h"
 #include "connection_state_item.h"
 #include "connection_observer_controller.h"
@@ -50,7 +49,7 @@ public:
      * init manager.
      *
      */
-    void Init(const std::shared_ptr<TaskHandlerWrap> &handler = nullptr);
+    void Init();
 
     /**
      * register connection state observer.
@@ -215,8 +214,11 @@ private:
 
     void InitAppStateObserver();
 
+    std::shared_ptr<ConnectionObserverController> GetObserverController() const;
+    void InitObserverController();
 private:
     int32_t retry_ = 0;
+    mutable ffrt::mutex controllerMutex_;
     std::shared_ptr<ConnectionObserverController> observerController_;
 
     ffrt::mutex stateLock_;
@@ -227,8 +229,8 @@ private:
     std::unordered_map<int32_t, std::shared_ptr<DlpStateItem>> dlpItems_;
 #endif // WITH_DLP
 
+    ffrt::mutex registerMutex_;
     sptr<InnerAppStateObserver> appStateObserver_;
-    std::shared_ptr<TaskHandlerWrap> handler_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -25,10 +25,6 @@ public:
     BlockAllAppStartInterceptor() = default;
     ~BlockAllAppStartInterceptor() = default;
     ErrCode DoProcess(AbilityInterceptorParam param) override;
-    virtual void SetTaskHandler(std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler) override
-    {
-        return;
-    };
 };
 } // namespace AAFwk
 } // namespace OHOS

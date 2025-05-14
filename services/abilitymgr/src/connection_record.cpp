@@ -18,6 +18,7 @@
 #include "ability_manager_service.h"
 #include "ability_util.h"
 #include "connection_state_manager.h"
+#include "ffrt.h"
 #include "freeze_util.h"
 #include "ui_service_extension_connection_constants.h"
 
@@ -115,16 +116,12 @@ int ConnectionRecord::DisconnectAbility()
             TAG_LOGE(AAFwkTag::CONNECTION, "Disconnect timeout");
             connectionRecord->DisconnectTimeout();
         };
-        auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
-        if (handler == nullptr) {
-            TAG_LOGE(AAFwkTag::CONNECTION, "null handler");
-        } else {
-            std::string taskName("DisconnectTimeout_");
-            taskName += std::to_string(recordId_);
-            int disconnectTimeout =
-                AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * DISCONNECT_TIMEOUT_MULTIPLE;
-            handler->SubmitTask(disconnectTask, taskName, disconnectTimeout);
-        }
+        std::string taskName("DisconnectTimeout_");
+        taskName += std::to_string(recordId_);
+        int disconnectTimeout =
+            AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * DISCONNECT_TIMEOUT_MULTIPLE;
+        TaskHandlerWrap::GetFfrtHandler()->SubmitTask(disconnectTask, taskName, disconnectTimeout);
+
         /* schedule disconnect to target ability */
         if (isAbilityUIServiceExt) {
             TAG_LOGI(AAFwkTag::CONNECTION, "Disconnect UIServiceExtension ability, set correct want");
@@ -156,21 +153,18 @@ void ConnectionRecord::CompleteConnect()
         abilityInfo.name, abilityInfo.moduleName);
     auto remoteObject = targetService_->GetConnRemoteObject();
     auto callback = GetAbilityConnectCallback();
-    auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
     if (remoteObject == nullptr) {
-        TAG_LOGW(AAFwkTag::CONNECTION, "null remoteObject: %{public}s", element.GetURI().c_str());
-        if (handler) {
-            SetConnectState(ConnectionState::DISCONNECTING);
-            handler->SubmitTask([service = targetService_]() {
-                DelayedSingleton<AbilityManagerService>::GetInstance()->ScheduleDisconnectAbilityDone(
-                    service->GetToken());
-                });
-        }
+    TAG_LOGW(AAFwkTag::CONNECTION, "null remoteObject: %{public}s", element.GetURI().c_str());
+        SetConnectState(ConnectionState::DISCONNECTING);
+        ffrt::submit([service = targetService_]() {
+            DelayedSingleton<AbilityManagerService>::GetInstance()->ScheduleDisconnectAbilityDone(
+                service->GetToken());
+            });
         return;
     }
 
-    if (callback && handler) {
-        handler->SubmitTask([callback, element, remoteObject, weakConnectionRecord = weak_from_this(),
+    if (callback) {
+        ffrt::submit([callback, element, remoteObject, weakConnectionRecord = weak_from_this(),
             weakConnectManager = abilityConnectManager_] {
             TAG_LOGD(AAFwkTag::CONNECTION, "OnAbilityConnectDone");
             auto ret = ConnectionRecord::CallOnAbilityConnectDone(callback, element, remoteObject, ERR_OK);
@@ -278,12 +272,7 @@ void ConnectionRecord::CompleteDisconnect(int resultCode, bool isCallerDied, boo
         }
         connCallback->OnAbilityDisconnectDone(element, code);
     };
-    auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
-    if (handler == nullptr) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "null handler");
-        return;
-    }
-    handler->SubmitTask(onDisconnectDoneTask);
+    ffrt::submit(onDisconnectDoneTask);
     DelayedSingleton<ConnectionStateManager>::GetInstance()->RemoveConnection(shared_from_this(), isCallerDied);
     TAG_LOGD(AAFwkTag::CONNECTION, "result: %{public}d, connectState:%{public}d", resultCode, state_);
 }
@@ -295,14 +284,8 @@ void ConnectionRecord::ScheduleDisconnectAbilityDone()
         return;
     }
 
-    auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
-    if (handler == nullptr) {
-        TAG_LOGE(AAFwkTag::CONNECTION, "fail to get AbilityTaskHandler");
-    } else {
-        std::string taskName = std::string("DisconnectTimeout_") + std::to_string(recordId_);
-        handler->CancelTask(taskName);
-    }
-
+    std::string taskName = std::string("DisconnectTimeout_") + std::to_string(recordId_);
+    TaskHandlerWrap::GetFfrtHandler()->CancelTask(taskName);
     CompleteDisconnect(ERR_OK, GetAbilityConnectCallback() == nullptr);
 }
 

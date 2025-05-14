@@ -87,9 +87,8 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     std::string stringParam(data, size);
 
     // fuzz for AbilityEventHandler
-    std::shared_ptr<TaskHandlerWrap> runner;
     std::weak_ptr<AbilityManagerService> server;
-    auto abilityEventHandler = std::make_shared<AbilityEventHandler>(runner, server);
+    auto abilityEventHandler = std::make_shared<AbilityEventHandler>(server);
     abilityEventHandler->ProcessLoadTimeOut(int64Param);
     abilityEventHandler->ProcessActiveTimeOut(int64Param);
     abilityEventHandler->ProcessInactiveTimeOut(int64Param);

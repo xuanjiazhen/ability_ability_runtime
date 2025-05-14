@@ -263,7 +263,7 @@ HWTEST_F(AbilityManagerServiceFourthTest, NotifySaveAsResult_001, TestSize.Level
 HWTEST_F(AbilityManagerServiceFourthTest, OnStop_001, TestSize.Level1)
 {
     auto abilityMs = std::make_shared<AbilityManagerService>();
-    abilityMs->abilityBundleEventCallback_ = new (std::nothrow) AbilityBundleEventCallback(nullptr, nullptr);
+    abilityMs->abilityBundleEventCallback_ = new (std::nothrow) AbilityBundleEventCallback(nullptr);
     abilityMs->OnStop();
     EXPECT_NE(abilityMs->abilityBundleEventCallback_, nullptr);
 }
@@ -1584,7 +1584,7 @@ HWTEST_F(AbilityManagerServiceFourthTest, OnStartTest_002, TestSize.Level1)
     auto abilityManagerService = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityManagerService, nullptr);
     auto taskHandler = TaskHandlerWrap::CreateQueueHandler(AbilityConfig::NAME_ABILITY_MGR_SERVICE);
-    auto eventHandler = std::make_shared<AbilityEventHandler>(taskHandler, abilityManagerService);
+    auto eventHandler = std::make_shared<AbilityEventHandler>(abilityManagerService);
     abilityManagerService->subManagersHelper_ = std::make_shared<SubManagersHelper>(taskHandler, eventHandler);
     EXPECT_NE(abilityManagerService->subManagersHelper_, nullptr);
     abilityManagerService->OnStart();

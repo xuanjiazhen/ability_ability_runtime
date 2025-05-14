@@ -202,6 +202,7 @@ private:
     std::weak_ptr<AbilityManagerService> server_;
     std::vector<FreeInstallInfo> freeInstallList_;
     std::vector<FreeInstallInfo> dmsFreeInstallCbs_;
+    ffrt::mutex timeStampMapMutex_;
     std::map<std::string, std::time_t> timeStampMap_;
     ffrt::mutex distributedFreeInstallLock_;
     ffrt::mutex freeInstallListLock_;

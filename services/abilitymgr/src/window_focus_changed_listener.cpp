@@ -16,6 +16,7 @@
 #include "window_focus_changed_listener.h"
 
 #include "ability_manager_service.h"
+#include "ffrt.h"
 #include "hilog_tag_wrapper.h"
 
 namespace OHOS {
@@ -28,19 +29,17 @@ void WindowFocusChangedListener::OnFocused(const sptr<FocusChangeInfo> &focusCha
         return;
     }
 
-    if (taskHandler_) {
-        auto task = [inner = owner_, focusChangeInfo] {
-            auto owner = inner.lock();
-            if (!owner) {
-                TAG_LOGW(AAFwkTag::ABILITYMGR, "OnUnfocused get inner failed");
-                return;
-            }
+    auto task = [inner = owner_, focusChangeInfo] {
+        auto owner = inner.lock();
+        if (!owner) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "OnUnfocused get inner failed");
+            return;
+        }
 #ifdef SUPPORT_SCREEN
-            owner->HandleFocused(focusChangeInfo);
+        owner->HandleFocused(focusChangeInfo);
 #endif // SUPPORT_SCREEN
-        };
-        taskHandler_->SubmitTask(task);
-    }
+    };
+    ffrt::submit(task);
 }
 
 void WindowFocusChangedListener::OnUnfocused(const sptr<FocusChangeInfo> &focusChangeInfo)
@@ -50,19 +49,17 @@ void WindowFocusChangedListener::OnUnfocused(const sptr<FocusChangeInfo> &focusC
         return;
     }
 
-    if (taskHandler_) {
-        auto task = [inner = owner_, focusChangeInfo] {
-            auto owner = inner.lock();
-            if (!owner) {
-                TAG_LOGW(AAFwkTag::ABILITYMGR, "OnUnfocused get inner failed");
-                return;
-            }
+    auto task = [inner = owner_, focusChangeInfo] {
+        auto owner = inner.lock();
+        if (!owner) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "OnUnfocused get inner failed");
+            return;
+        }
 #ifdef SUPPORT_SCREEN
-            owner->HandleUnfocused(focusChangeInfo);
+        owner->HandleUnfocused(focusChangeInfo);
 #endif // SUPPORT_SCREEN
-        };
-        taskHandler_->SubmitTask(task);
-    }
+    };
+    ffrt::submit(task);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

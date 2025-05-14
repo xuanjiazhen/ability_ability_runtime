@@ -18,6 +18,7 @@
 #include "ability_connect_callback_stub.h"
 #include "ability_util.h"
 #include "ability_manager_service.h"
+#include "ffrt.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -137,12 +138,10 @@ void CallContainer::OnConnectionDied(const wptr<IRemoteObject> &remote)
     std::shared_ptr<CallRecord> callRecord = FindCallRecordMap(object);
     auto abilityManagerService = DelayedSingleton<AbilityManagerService>::GetInstance();
     CHECK_POINTER(abilityManagerService);
-    auto handler = abilityManagerService->GetTaskHandler();
-    CHECK_POINTER(handler);
     auto task = [abilityManagerService, callRecord]() {
         abilityManagerService->OnCallConnectDied(callRecord);
     };
-    handler->SubmitTask(task);
+    ffrt::submit(task);
 }
 
 bool CallContainer::CallRequestDone(const sptr<IRemoteObject> &callStub)

@@ -21,7 +21,6 @@
 #include <list>
 #include "cpp/mutex.h"
 
-#include "task_handler_wrap.h"
 #include "mission_listener_interface.h"
 
 namespace OHOS {
@@ -34,12 +33,6 @@ class MissionListenerController : public std::enable_shared_from_this<MissionLis
 public:
     MissionListenerController();
     ~MissionListenerController();
-
-    /**
-     * init mission listener controller.
-     *
-     */
-    void Init();
 
     /**
      * add mission listener callback.
@@ -151,7 +144,6 @@ private:
 
 private:
     sptr<IRemoteObject::DeathRecipient> listenerDeathRecipient_;
-    std::shared_ptr<TaskHandlerWrap> handler_;
     std::vector<sptr<IMissionListener>> missionListeners_;
     ffrt::mutex listenerLock_;
 };

@@ -116,6 +116,7 @@ namespace AppExecFwk {
 using namespace OHOS::Rosen;
 #endif //SUPPORT_SCREEN
 using namespace OHOS::Security;
+using AAFwk::TaskHandlerWrap;
 
 namespace {
 #define CHECK_CALLER_IS_SYSTEM_APP                                                             \
@@ -231,7 +232,6 @@ constexpr int32_t USER_SCALE = 200000;
 
 constexpr int32_t MAX_RESTART_COUNT = 3;
 constexpr int32_t RESTART_INTERVAL_TIME = 120000;
-constexpr int32_t FIRST_FRAME_NOTIFY_TASK_DELAY = 5; //ms
 
 constexpr ErrCode APPMGR_ERR_OFFSET = ErrCodeOffset(SUBSYS_APPEXECFWK, 0x01);
  // Error code for already exist render.
@@ -266,7 +266,7 @@ constexpr const char* SYSTEM_CORE = "system_core";
 constexpr const char* ABILITY_OWNER_USERID = "AbilityMS_Owner_UserId";
 constexpr const char* PROCESS_EXIT_EVENT_TASK = "Send Process Exit Event Task";
 constexpr const char* KILL_PROCESS_REASON_PREFIX = "Kill Reason:";
-constexpr const char* PRELOAD_APPLIATION_TASK = "PreloadApplicactionTask";
+constexpr const char* PRELOAD_APPLICATION_TASK = "PreloadApplicationTask";
 constexpr const char* KEY_WATERMARK_BUSINESS_NAME = "com.ohos.param.watermarkBusinessName";
 constexpr const char* KEY_IS_WATERMARK_ENABLED = "com.ohos.param.isWatermarkEnabled";
 constexpr const char* KILL_SUB_PROCESS_REASON_PREFIX = "Kill SubProcess Reason:";
@@ -424,14 +424,11 @@ void AppMgrServiceInner::Init()
     dfxTaskHandler_ = AAFwk::TaskHandlerWrap::CreateConcurrentQueueHandler(
         "dfx_freeze_task_queue", DFX_TASKWORKER_NUM, AAFwk::TaskQoS::USER_INITIATED);
     dfxTaskHandler_->SetPrintTaskLog(true);
-    otherTaskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler("other_app_mgr_task_queue");
-    otherTaskHandler_->SetPrintTaskLog(true);
     willKillPidsNum_ = 0;
-    delayKillTaskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler("delay_kill_task_queue");
     if (securityModeManager_) {
         securityModeManager_->Init();
     }
-    otherTaskHandler_->SubmitTask([pThis = shared_from_this()]() {
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask([pThis = shared_from_this()]() {
         pThis->nwebPreloadSet_ = AAFwk::ResSchedUtil::GetInstance().GetNWebPreloadSet();
         }, NWEB_PRELOAD_DELAY);
     AppNativeSpawnManager::GetInstance().InitNativeSpawnMsgPipe(appRunningManager_);
@@ -560,7 +557,7 @@ int32_t AppMgrServiceInner::PreloadApplication(const std::string &bundleName, in
     }
     TAG_LOGI(AAFwkTag::APPMGR, "submit task, bundleName:%{public}s, userId:%{public}d",
         bundleName.c_str(), userId);
-    taskHandler_->SubmitTask(task, PRELOAD_APPLIATION_TASK);
+    taskHandler_->SubmitTask(task, PRELOAD_APPLICATION_TASK);
     return ERR_OK;
 }
 
@@ -644,9 +641,8 @@ void AppMgrServiceInner::reportpreLoadTask(const std::shared_ptr<AppRunningRecor
                 priorityObj->GetPid(), appRecord->GetUid(), PRELOAD_FREEZE_TIMEOUT, 0);
         }
     };
-    if (taskHandler_) {
-        taskHandler_->SubmitTask(reportLoadTask, "reportpreLoadTask");
-    }
+
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask(reportLoadTask, "reportpreLoadTask");
 }
 
 int32_t AppMgrServiceInner::MakeKiaProcess(std::shared_ptr<AAFwk::Want> want, bool &isKia,
@@ -897,9 +893,7 @@ void AppMgrServiceInner::AfterLoadAbility(std::shared_ptr<AppRunningRecord> appR
                 priorityObj->GetPid(), appRecord->GetUid(), timeOut, static_cast<int64_t>(abilityRecordId));
         }
     };
-    if (taskHandler_) {
-        taskHandler_->SubmitTask(reportLoadTask, "reportLoadTask");
-    }
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask(reportLoadTask, "reportLoadTask");
     //UIExtension notifies Extension & Ability state changes
     if (AAFwk::UIExtensionUtils::IsUIExtension(appRecord->GetExtensionType())) {
         UpdateExtensionState(loadParam->token, ExtensionState::EXTENSION_STATE_CREATE);
@@ -1095,15 +1089,14 @@ void AppMgrServiceInner::LoadAbilityNoAppRecord(const std::shared_ptr<AppRunning
         appRecord->SetMainProcess(false);
         TAG_LOGI(AAFwkTag::APPMGR, "%{public}s will not alive", hapModuleInfo.process.c_str());
     }
-    // As taskHandler_ is busy now, the task should be submit to other task queue.
-    if (otherTaskHandler_ != nullptr) {
-        otherTaskHandler_->SubmitTaskJust([appRecord, abilityInfo, innerServiceWeak = weak_from_this()]() {
-            auto innerService = innerServiceWeak.lock();
-            CHECK_POINTER_AND_RETURN_LOG(innerService, "get appMgrServiceInner fail");
-            innerService->OnAppStateChanged(appRecord, ApplicationState::APP_STATE_SET_COLD_START, false, false);
-            innerService->SendAppStartupTypeEvent(appRecord, abilityInfo, AppStartType::COLD, AppStartReason::NONE);
-            }, "AppStateChangedNotify", FIRST_FRAME_NOTIFY_TASK_DELAY);
-    }
+
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask([appRecord, abilityInfo, innerServiceWeak = weak_from_this()]() {
+        auto innerService = innerServiceWeak.lock();
+        CHECK_POINTER_AND_RETURN_LOG(innerService, "get appMgrServiceInner fail");
+        innerService->OnAppStateChanged(appRecord, ApplicationState::APP_STATE_SET_COLD_START, false, false);
+        innerService->SendAppStartupTypeEvent(appRecord, abilityInfo, AppStartType::COLD, AppStartReason::NONE);
+        }, "AppStateChangedNotify");
+
     uint32_t startFlags = (want == nullptr) ? 0 : AppspawnUtil::BuildStartFlags(*want, *abilityInfo);
     int32_t bundleIndex = 0;
     if (want != nullptr) {
@@ -1770,12 +1763,7 @@ bool AppMgrServiceInner::DoAllProcessExitCallback(std::list<SimpleProcessInfo> &
         }
         appMgrInner->DoAllProcessExitCallback(processInfos, userId, callback, startTime);
     };
-    if (taskHandler_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "taskHandler_ nullptr");
-        callback->OnLogoutUserDone(userId, AAFwk::ERR_LOGOUT_USER_TASK_HANDLE_NULL);
-        return false;
-    }
-    taskHandler_->SubmitTaskJust(checkProcessExistCallback, "DelayCheckProcessExit",
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTaskJust(checkProcessExistCallback, "DelayCheckProcessExit",
         AMSEventHandler::DELAY_CHECK_ALL_PROCESSES_EXITED);
     return true;
 }
@@ -1908,8 +1896,8 @@ void AppMgrServiceInner::SendProcessExitEventTask(pid_t pid, const std::string &
         CHECK_POINTER_AND_RETURN_LOG(innerService, "get appMgrServiceInner fail");
         innerService->SendProcessExitEventTask(pid, processName, extensionType, exitReason, exitTime, count);
     };
-    CHECK_POINTER_AND_RETURN_LOG(taskHandler_, "Task handler is nullptr.");
-    taskHandler_->SubmitTaskJust(sendEventTask, PROCESS_EXIT_EVENT_TASK, KILL_PROCESS_DELAYTIME_MICRO_SECONDS);
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTaskJust(sendEventTask,
+        PROCESS_EXIT_EVENT_TASK, KILL_PROCESS_DELAYTIME_MICRO_SECONDS);
 }
 
 void AppMgrServiceInner::SendProcessExitEvent(std::shared_ptr<AppRunningRecord> appRecord)
@@ -3890,8 +3878,8 @@ void AppMgrServiceInner::SetAppInfo(const BundleInfo &bundleInfo, AppSpawnStartM
 
 int32_t AppMgrServiceInner::CreateStartMsg(const CreateStartMsgParam &param, AppSpawnStartMsg &startMsg)
 {
-    if (!remoteClientManager_ || !otherTaskHandler_) {
-        TAG_LOGE(AAFwkTag::APPMGR, "remoteClientManager or otherTaskHandler null");
+    if (!remoteClientManager_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "remoteClientManager null");
         return ERR_NO_INIT;
     }
     auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
@@ -3901,7 +3889,7 @@ int32_t AppMgrServiceInner::CreateStartMsg(const CreateStartMsgParam &param, App
     }
 
     auto &bundleInfo = param.bundleInfo;
-    AAFwk::AutoSyncTaskHandle autoSync(otherTaskHandler_->SubmitTask([&]() {
+    AAFwk::AutoSyncTaskHandle autoSync(TaskHandlerWrap::GetFfrtHandler()->SubmitTask([&]() {
         AddMountPermission(bundleInfo.applicationInfo.accessTokenId, startMsg.permissions);
         }, AAFwk::TaskAttribute{
             .taskName_ = "AddMountPermission",
@@ -4627,11 +4615,8 @@ void AppMgrServiceInner::TerminateApplication(const std::shared_ptr<AppRunningRe
                 return;
             }
         };
-        if (!taskHandler_) {
-            TAG_LOGE(AAFwkTag::APPMGR, "taskHandler_ null");
-            return;
-        }
-        taskHandler_->SubmitTaskJust(timeoutTask, "DelayKillProcess", AMSEventHandler::KILL_PROCESS_TIMEOUT);
+        TaskHandlerWrap::GetFfrtHandler()->SubmitTaskJust(timeoutTask, "DelayKillProcess",
+            AMSEventHandler::KILL_PROCESS_TIMEOUT);
     }
     appRunningManager_->RemoveAppRunningRecordById(appRecord->GetRecordId());
     if (!GetAppRunningStateByBundleName(appRecord->GetBundleName())) {
@@ -5671,8 +5656,8 @@ std::shared_ptr<AppExecFwk::Configuration> AppMgrServiceInner::GetConfiguration(
 void AppMgrServiceInner::KillApplicationByRecord(const std::shared_ptr<AppRunningRecord> &appRecord)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "Kill application by appRecord.");
-    if (!appRecord || !taskHandler_) {
-        TAG_LOGW(AAFwkTag::APPMGR, "appRecord or taskHandler_ null");
+    if (!appRecord) {
+        TAG_LOGW(AAFwkTag::APPMGR, "appRecord null");
         return;
     }
 
@@ -5697,7 +5682,8 @@ void AppMgrServiceInner::KillApplicationByRecord(const std::shared_ptr<AppRunnin
             return;
         }
     };
-    taskHandler_->SubmitTaskJust(timeoutTask, "DelayKillProcess", AMSEventHandler::KILL_PROCESS_TIMEOUT);
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTaskJust(timeoutTask,
+        "DelayKillProcess", AMSEventHandler::KILL_PROCESS_TIMEOUT);
 }
 
 void AppMgrServiceInner::SendHiSysEvent(int32_t innerEventId, std::shared_ptr<AppRunningRecord> appRecord)
@@ -6305,10 +6291,8 @@ void AppMgrServiceInner::InitFocusListener()
             innerService->RegisterFocusListener();
         }
     };
-    if (taskHandler_) {
-        taskHandler_->SubmitTaskJust(registerTask, "RegisterFocusListenerTask", REGISTER_FOCUS_DELAY);
-        TAG_LOGI(AAFwkTag::APPMGR, "submit registerFocusListenerTask");
-    }
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTaskJust(registerTask, "RegisterFocusListenerTask", REGISTER_FOCUS_DELAY);
+    TAG_LOGI(AAFwkTag::APPMGR, "submit registerFocusListenerTask");
 }
 
 void AppMgrServiceInner::RegisterFocusListener()
@@ -6495,11 +6479,8 @@ void AppMgrServiceInner::InitWindowPidVisibilityChangedListener()
         }
     };
 
-    if (taskHandler_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Task handler is nullptr.");
-        return;
-    }
-    taskHandler_->SubmitTaskJust(registerTask, "RegisterPidVisibilityListener.", REGISTER_PID_VISIBILITY_DELAY);
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTaskJust(registerTask,
+        "RegisterPidVisibilityListener.", REGISTER_PID_VISIBILITY_DELAY);
 }
 
 void AppMgrServiceInner::FreeWindowPidVisibilityChangedListener()
@@ -6699,8 +6680,7 @@ void AppMgrServiceInner::AppRecoveryNotifyApp(int32_t pid, const std::string& bu
         }
     };
     constexpr int32_t timeOut = 2000;
-    CHECK_POINTER_AND_RETURN_LOG(taskHandler_, "no taskHandler_");
-    taskHandler_->SubmitTaskJust(waitSaveTask, timeOutName, timeOut);
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTaskJust(waitSaveTask, timeOutName, timeOut);
 }
 
 void AppMgrServiceInner::ParseInfoToAppfreeze(const FaultData &faultData, int32_t pid, int32_t uid,
@@ -6893,8 +6873,7 @@ int32_t AppMgrServiceInner::KillFaultApp(int32_t pid, const std::string &bundleN
     };
     constexpr int32_t waitTime = 3500;
     // wait 3.5s before kill application
-    CHECK_POINTER_AND_RETURN_VALUE(taskHandler_, ERR_NO_INIT);
-    taskHandler_->SubmitTaskJust(killAppTask, "killAppTask", waitTime);
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTaskJust(killAppTask, "killAppTask", waitTime);
     return ERR_OK;
 }
 
@@ -7809,12 +7788,7 @@ void AppMgrServiceInner::SubscribeScreenOffEvent()
         auto unSubscribeScreenOffEvent = [innerService]() {
             innerService->UnSubscribeScreenOffEvent();
         };
-        auto taskHandler = innerService->GetTaskHandler();
-        if (taskHandler == nullptr) {
-            TAG_LOGE(AAFwkTag::APPMGR, "invalid taskHandler pointer");
-            return;
-        }
-        taskHandler->SubmitTask(unSubscribeScreenOffEvent, "UnSubscribeScreenOffEvent");
+        TaskHandlerWrap::GetFfrtHandler()->SubmitTask(unSubscribeScreenOffEvent, "UnSubscribeScreenOffEvent");
     };
     std::lock_guard<std::mutex> lock(screenOffSubscriberMutex_);
     if (screenOffSubscriber_ != nullptr) {
@@ -8818,8 +8792,7 @@ int32_t AppMgrServiceInner::RestartExitKeepAliveProcess(const std::vector<ExitRe
         innerService->NotifyStartResidentProcess(exitBundleInfos);
         innerService->NotifyStartKeepAliveProcess(exitBundleInfos);
     };
-    CHECK_POINTER_AND_RETURN_VALUE(taskHandler_, ERR_NO_INIT);
-    taskHandler_->SubmitTask(StartExitKeepAliveProcessTask, "startexitkeepaliveprocess");
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask(StartExitKeepAliveProcessTask, "startexitkeepaliveprocess");
     return ERR_OK;
 }
 
@@ -9275,8 +9248,8 @@ void AppMgrServiceInner::RestartResidentProcessDependedOnWeb()
         innerService->NotifyStartResidentProcess(exitBundleInfos);
         innerService->NotifyStartKeepAliveProcess(exitBundleInfos);
     };
-    CHECK_POINTER_AND_RETURN_LOG(taskHandler_, "taskHandler_ null");
-    taskHandler_->SubmitTask(RestartResidentProcessDependedOnWebTask, "RestartResidentProcessDependedOnWeb");
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask(RestartResidentProcessDependedOnWebTask,
+        "RestartResidentProcessDependedOnWeb");
 }
 
 void AppMgrServiceInner::BlockProcessCacheByPids(const std::vector<int32_t>& pids)
@@ -9327,7 +9300,7 @@ bool AppMgrServiceInner::CleanAbilityByUserRequest(const sptr<IRemoteObject> &to
         self->DecreaseWillKillPidsNum();
         TAG_LOGD(AAFwkTag::APPMGR, "pid:%{public}d killed", targetPid);
     };
-    delayKillTaskHandler_->SubmitTaskJust(delayKillTask, "delayKillUIAbility", delayTime);
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTaskJust(delayKillTask, "delayKillUIAbility", delayTime);
 
     return true;
 }

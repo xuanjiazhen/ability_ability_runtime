@@ -1989,7 +1989,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, SubscribeBundleEventCallback_001, TestS
 HWTEST_F(AbilityManagerServiceThirdTest, SubscribeBundleEventCallback_002, TestSize.Level1)
 {
     auto abilityMs = std::make_shared<AbilityManagerService>();
-    abilityMs->abilityBundleEventCallback_ = new (std::nothrow) AbilityBundleEventCallback(nullptr, nullptr);
+    abilityMs->abilityBundleEventCallback_ = new (std::nothrow) AbilityBundleEventCallback(nullptr);
     abilityMs->SubscribeBundleEventCallback();
     EXPECT_TRUE(abilityMs != nullptr);
 }
@@ -2015,7 +2015,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, UnsubscribeBundleEventCallback_001, Tes
 HWTEST_F(AbilityManagerServiceThirdTest, UnsubscribeBundleEventCallback_002, TestSize.Level1)
 {
     auto abilityMs = std::make_shared<AbilityManagerService>();
-    abilityMs->abilityBundleEventCallback_ = new (std::nothrow) AbilityBundleEventCallback(nullptr, nullptr);
+    abilityMs->abilityBundleEventCallback_ = new (std::nothrow) AbilityBundleEventCallback(nullptr);
     abilityMs->UnsubscribeBundleEventCallback();
     EXPECT_TRUE(abilityMs != nullptr);
 }

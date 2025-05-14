@@ -138,7 +138,6 @@ std::shared_ptr<MissionListenerController> MissionListenerTest::GetController()
 {
     if (!controller_) {
         controller_ = std::make_shared<MissionListenerController>();
-        controller_->Init();
     }
     return controller_;
 }
