@@ -75,14 +75,21 @@ StsUIExtensionContentSession* GetStsContentSession(ani_env* env, ani_object obj)
     }
     return stsContentSession;
 }
-ani_object NativeSetReceiveDataCallback(ani_env* env, ani_object obj)
+
+void NativeSetReceiveDataCallback(ani_env* env, ani_object obj)
 {
     auto stsContentSession = GetStsContentSession(env, obj);
-    ani_object object = nullptr;
     if (stsContentSession != nullptr) {
-        object = stsContentSession->SetReceiveDataCallback(env, obj);
+        stsContentSession->SetReceiveDataCallback(env, obj);
     }
-    return object;
+}
+
+void NativeSetReceiveDataForResultCallback(ani_env* env, ani_object obj)
+{
+    auto stsContentSession = GetStsContentSession(env, obj);
+    if (stsContentSession != nullptr) {
+        stsContentSession->SetReceiveDataForResultCallback(env, obj);
+    }
 }
 
 void NativeSendData(ani_env* env, ani_object obj, ani_object data)
@@ -197,8 +204,10 @@ ani_object StsUIExtensionContentSession::CreateStsUIExtensionContentSession(ani_
             reinterpret_cast<void *>(OHOS::AbilityRuntime::NativeSetWindowBackgroundColor)},
         ani_native_function {"getUIExtensionHostWindowProxy", nullptr,
             reinterpret_cast<void *>(OHOS::AbilityRuntime::NativeGetUIExtensionHostWindowProxy)},
-        ani_native_function {"setReceiveDataCallbackASync", nullptr,
-            reinterpret_cast<void *>(OHOS::AbilityRuntime::NativeSetReceiveDataCallback)}
+        ani_native_function {"nativeSetReceiveDataCallback", nullptr,
+            reinterpret_cast<void *>(OHOS::AbilityRuntime::NativeSetReceiveDataCallback)},
+        ani_native_function {"nativeSetReceiveDataForResultCallback", nullptr,
+            reinterpret_cast<void *>(OHOS::AbilityRuntime::NativeSetReceiveDataForResultCallback)}
     };
     status = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (status != ANI_OK) {
@@ -324,10 +333,154 @@ ani_object StsUIExtensionContentSession::GetUIExtensionHostWindowProxy(ani_env* 
     return reinterpret_cast<ani_object>(resultRef);
 }
 
-ani_object StsUIExtensionContentSession::SetReceiveDataCallback(ani_env* env, ani_object object)
+void StsUIExtensionContentSession::SetReceiveDataCallback(ani_env* env, ani_object object)
 {
-    TAG_LOGD(AAFwkTag::UI_EXT, "called");
-    return nullptr;
+    TAG_LOGD(AAFwkTag::UI_EXT, "SetReceiveDataCallback call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "env null");
+        AbilityRuntime::ThrowStsErrorByNativeErr(env,
+            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
+        return;
+    }
+    if (object == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Invalid function");
+        AbilityRuntime::ThrowStsInvalidParamError(env, "Parameter error: Callback must be a function");
+        return;
+    }
+    if (!isRegistered) {
+        if (uiWindow_ == nullptr) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "uiWindow_ is nullptr");
+            AbilityRuntime::ThrowStsErrorByNativeErr(env,
+                static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
+            return;
+        }
+        auto handler = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
+        std::shared_ptr<ani_ref> callbackPtr = std::make_shared<ani_ref>(receiveDataCallback_);
+        uiWindow_->RegisterTransferComponentDataListener([env, handler, callbackPtr] (
+            const AAFwk::WantParams& wantParams) {
+            if (handler) {
+                handler->PostTask([env, callbackPtr, wantParams]() {
+                    StsUIExtensionContentSession::CallReceiveDataCallback(env, callbackPtr, wantParams);
+                    }, "StsUIExtensionContentSession:OnSetReceiveDataCallback");
+            }
+        });
+        isRegistered = true;
+    }
+    if (env->GlobalReference_Create(object, &receiveDataCallback_) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "GlobalReference_Create receiveDataCallback_ failed");
+        return;
+    }
+    TAG_LOGD(AAFwkTag::UI_EXT, "SetReceiveDataCallback end");
 }
+
+void StsUIExtensionContentSession::CallReceiveDataCallback(ani_env* env, std::shared_ptr<ani_ref> callbackPtr,
+    const AAFwk::WantParams& wantParams)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "CallReceiveDataCallback call");
+    if (env == nullptr) {
+        TAG_LOGW(AAFwkTag::UI_EXT, "env is nullptr");
+        return;
+    }
+    if (callbackPtr == nullptr) {
+        TAG_LOGW(AAFwkTag::UI_EXT, "callback is nullptr");
+        return;
+    }
+    ani_object callbackObj = static_cast<ani_object>(*callbackPtr);
+    ani_fn_object callbackFunc = reinterpret_cast<ani_fn_object>(callbackObj);
+    if (callbackFunc == nullptr) {
+        TAG_LOGW(AAFwkTag::UI_EXT, "callbackFunc is nullptr");
+        return;
+    }
+    ani_ref wantObj = AppExecFwk::WrapWantParams(env, wantParams);
+    if (wantObj == nullptr) {
+        TAG_LOGW(AAFwkTag::UI_EXT, "wantObj is nullptr");
+        return;
+    }
+    ani_ref argv[] = {wantObj};
+    ani_ref result;
+    ani_status status = env->FunctionalObject_Call(callbackFunc, 1, argv, &result);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "FunctionalObjectCall FAILED staus %{public}d", status);
+    }
+    TAG_LOGD(AAFwkTag::UI_EXT, "CallReceiveDataCallback end");
 }
+
+void StsUIExtensionContentSession::SetReceiveDataForResultCallback(ani_env* env, ani_object object)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "SetReceiveDataForResultCallback call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "env null");
+        AbilityRuntime::ThrowStsErrorByNativeErr(env,
+            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
+        return;
+    }
+    if (object == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Invalid function");
+        AbilityRuntime::ThrowStsInvalidParamError(env, "Parameter error: Callback must be a function.");
+        return;
+    }
+    if (!isSyncRegistered) {
+        if (uiWindow_ == nullptr) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow_");
+            AbilityRuntime::ThrowStsErrorByNativeErr(env,
+                static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
+        }
+        std::shared_ptr<ani_ref> callbackPtr = std::make_shared<ani_ref>(receiveDataForResultCallback_);
+        auto handler = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
+        uiWindow_->RegisterTransferComponentDataForResultListener([env, handler, callbackPtr] (
+            const AAFwk::WantParams& wantParams) -> AAFwk::WantParams {
+                AAFwk::WantParams retWantParams;
+                if (handler) {
+                    handler->PostSyncTask([env, callbackPtr, wantParams, &retWantParams]() {
+                        StsUIExtensionContentSession::CallReceiveDataCallbackForResult(env, callbackPtr,
+                            wantParams, retWantParams);
+                        }, "StsUIExtensionContentSession:OnSetReceiveDataForResultCallback");
+                }
+                return retWantParams;
+        });
+        isSyncRegistered = true;
+    }
+    if (env->GlobalReference_Create(object, &receiveDataForResultCallback_) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "GlobalReference_Create receiveDataForResultCallback_ failed");
+        return;
+    }
+    TAG_LOGD(AAFwkTag::UI_EXT, "SetReceiveDataForResultCallback end");
 }
+
+void StsUIExtensionContentSession::CallReceiveDataCallbackForResult(ani_env* env, std::shared_ptr<ani_ref> callbackPtr,
+    const AAFwk::WantParams& wantParams, AAFwk::WantParams& retWantParams)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "CallReceiveDataCallbackForResult call");
+    if (env == nullptr) {
+        TAG_LOGW(AAFwkTag::UI_EXT, "env is nullptr");
+        return;
+    }
+    if (callbackPtr == nullptr) {
+        TAG_LOGW(AAFwkTag::UI_EXT, "callback is nullptr");
+        return;
+    }
+    ani_object callbackObj = static_cast<ani_object>(*callbackPtr);
+    ani_fn_object callbackFunc = reinterpret_cast<ani_fn_object>(callbackObj);
+    if (callbackFunc == nullptr) {
+        TAG_LOGW(AAFwkTag::UI_EXT, "callbackFunc is nullptr");
+        return;
+    }
+    ani_ref wantObj = AppExecFwk::WrapWantParams(env, wantParams);
+    if (wantObj == nullptr) {
+        TAG_LOGW(AAFwkTag::UI_EXT, "wantObj is nullptr");
+        return;
+    }
+    ani_ref argv[] = {wantObj};
+    ani_ref result;
+    ani_status status = env->FunctionalObject_Call(callbackFunc, 1, argv, &result);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "FunctionalObjectCall FAILED staus %{public}d", status);
+        return;
+    }
+    if (!AppExecFwk::UnwrapWantParams(env, result, retWantParams)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "UnwrapWantParams failed");
+    }
+    TAG_LOGD(AAFwkTag::UI_EXT, "CallReceiveDataCallbackForResult end");
+}
+} // namespace AbilityRuntime
+} // namespace OHOS
