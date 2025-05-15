@@ -128,6 +128,7 @@ enum class AppMgrInterfaceCode {
     LAUNCH_ABILITY = 102,
     IS_PROCESS_CACHE_SUPPORTED = 103,
     SET_PROCESS_CACHE_ENABLE = 104,
+    UPDATE_CONFIGURATION_POLICY = 105,
 };
 } // AppExecFwk
 } // OHOS

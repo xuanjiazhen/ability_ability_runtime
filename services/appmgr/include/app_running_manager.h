@@ -29,14 +29,18 @@
 #include "app_running_record.h"
 #include "app_state_data.h"
 #include "application_info.h"
+#include "background_app_info.h"
 #include "bundle_info.h"
 #include "configuration.h"
+#include "configuration_policy.h"
 #include "iremote_object.h"
 #include "kill_process_config.h"
 #include "record_query_result.h"
 #include "refbase.h"
 #include "running_process_info.h"
 #include "simple_process_info.h"
+#include <condition_variable>
+#include "task_handler_wrap.h"
 #include "process_bind_data.h"
 
 namespace OHOS {
@@ -200,6 +204,16 @@ public:
     * @return Returns ERR_OK on success, others on failure.
     */
     int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1);
+
+    /**
+     * UpdateConfigurationForBackgroundApp
+     * @param appInfos Background application information.
+     * @param policy Update policy.
+     * @param userId configuration for the user
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t UpdateConfigurationForBackgroundApp(const std::vector<BackgroundAppInfo> &appInfos,
+        const AppExecFwk::ConfigurationPolicy &policy, const int32_t userId = -1);
 
     /**
      *  Update config by sa.
@@ -390,7 +404,11 @@ private:
         const std::shared_ptr<AppMgrServiceInner>& appMgrServiceInner);
     void AddRecordToDeadList(std::shared_ptr<AppRunningRecord> appRecord);
     void RemoveTimeoutDeadAppRecord();
-
+    void ExecuteConfigurationPolicy(const std::vector<BackgroundAppInfo> &appInfos,
+        const AppExecFwk::ConfigurationPolicy &policy, const int32_t userId);
+    int32_t UpdateAllUIExtensionProvide(std::shared_ptr<AppRunningRecord> &appRecord);
+    int32_t UpdateBackgroundDelayedConfiguration(const BackgroundAppInfo &info, const int32_t userId);
+    bool UpdateColoreModeConfiguration(std::shared_ptr<AppRunningRecord> &appRecord);
 private:
     std::mutex runningRecordMapMutex_;
     std::map<const int32_t, const std::shared_ptr<AppRunningRecord>> appRunningRecordMap_;
@@ -402,6 +420,10 @@ private:
     std::mutex updateConfigurationDelayedLock_;
     std::map<const int32_t, bool> updateConfigurationDelayedMap_;
 
+    std::mutex updateConfigurationPolicyLock_;
+    static bool updateConfigurationFlag;
+    std::condition_variable cond_var;
+    std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
     std::mutex uiExtensionBindMapLock_;
     std::map<int32_t, UIExtensionProcessBindInfo> uiExtensionBindMap_;
 };
