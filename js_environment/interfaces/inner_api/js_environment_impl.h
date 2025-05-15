@@ -36,6 +36,8 @@ public:
 
     virtual void InitTimerModule(NativeEngine* engine) = 0;
 
+    virtual void InitIntlModule(NativeEngine* engine) = 0;
+
     virtual void InitConsoleModule(NativeEngine* engine) = 0;
 
     virtual bool InitLoop(NativeEngine* engine, bool isStage = true) = 0;

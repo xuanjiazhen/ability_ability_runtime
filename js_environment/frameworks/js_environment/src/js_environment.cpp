@@ -84,6 +84,18 @@ void JsEnvironment::InitTimerModule()
     }
 }
 
+void JsEnvironment::InitIntlModule()
+{
+    if (engine_ == nullptr) {
+        TAG_LOGE(AAFwkTag::JSENV, "Invalid native engine");
+        return;
+    }
+
+    if (impl_ != nullptr) {
+        impl_->InitIntlModule(engine_);
+    }
+}
+
 void JsEnvironment::InitWorkerModule(std::shared_ptr<WorkerInfo> workerInfo)
 {
     if (engine_ == nullptr) {
