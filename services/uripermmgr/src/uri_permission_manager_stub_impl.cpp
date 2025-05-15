@@ -50,6 +50,9 @@ constexpr uint32_t FLAG_READ_URI = Want::FLAG_AUTH_READ_URI_PERMISSION;
 constexpr const char* CLOUND_DOCS_URI_MARK = "?networkid=";
 constexpr uint32_t INVALID_ABILITYID = -1;
 constexpr const char* FOUNDATION_PROCESS = "foundation";
+#ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
+constexpr int32_t SANDBOX_MANAGER_PERMISSION_DENIED = 1;
+#endif
 }
 
 bool UriPermissionManagerStubImpl::VerifyUriPermission(const Uri &uri, uint32_t flag, uint32_t tokenId)
@@ -908,6 +911,13 @@ int32_t UriPermissionManagerStubImpl::Active(const std::vector<PolicyInfo> &poli
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::URIPERMMGR, "call");
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    TAG_LOGD(AAFwkTag::URIPERMMGR, "active %{private}d permission", tokenId);
+    auto permissionName = PermissionConstants::PERMISSION_FILE_ACCESS_PERSIST;
+    if (!PermissionVerification::GetInstance()->VerifyPermissionByTokenId(tokenId, permissionName)) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "No permission to call");
+        return SANDBOX_MANAGER_PERMISSION_DENIED;
+    }
     std::lock_guard<std::mutex> lock(ptMapMutex_);
     auto callingPid = IPCSkeleton::GetCallingPid();
     ConnectManager(appMgr_, APP_MGR_SERVICE_ID);
@@ -926,8 +936,6 @@ int32_t UriPermissionManagerStubImpl::Active(const std::vector<PolicyInfo> &poli
     }
     uint64_t timeNow = std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-    auto tokenId = IPCSkeleton::GetCallingTokenID();
-    TAG_LOGD(AAFwkTag::URIPERMMGR, "active %{private}d permission", tokenId);
     auto ret = SandboxManagerKit::StartAccessingPolicy(policy, result, false, tokenId, timeNow);
     TAG_LOGI(AAFwkTag::URIPERMMGR, "active permission end");
     if (ret != ERR_OK) {
