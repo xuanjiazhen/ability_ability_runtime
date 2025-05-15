@@ -205,10 +205,11 @@ public:
      *
      * @param pids, the pid list of processes are going to be killed.
      * @param reason, the reason to kill the processes.
-     * @return
+     * @param subProcess, kill SubProcess or not.
+     * @return ERR_OK, return back success, others fail.
      */
-    virtual void KillProcessesByPids(const std::vector<int32_t> &pids,
-        const std::string &reason = "KillProcessesByPids");
+    virtual int32_t KillProcessesByPids(const std::vector<int32_t> &pids,
+        const std::string &reason = "KillProcessesByPids", bool subProcess = false);
 
     /**
      * KillProcessesInBatch, kill processes in batch;
@@ -936,6 +937,11 @@ public:
 
     int32_t KillProcessByPid(const pid_t pid, const std::string& reason = "foundation");
 
+    int32_t KillSubProcessBypidInner(const pid_t pid, const std::string &reason,
+        AAFwk::EventInfo &eventInfo);
+
+    int32_t KillSubProcessBypid(const pid_t pid, const std::string &reason);
+
     /**
      * @brief Get the running state of application by bundle name.
      *
@@ -1378,6 +1384,16 @@ public:
 
     int32_t SetSupportedProcessCache(int32_t pid, bool isSupport);
 
+    /**
+      * @brief Get supported process cache.
+      * @param pid Process pid.
+      * @param isSupport Supported process cache.
+      * @return Returns ERR_OK on success, others on failure.
+      */
+    int32_t IsProcessCacheSupported(int32_t pid, bool &isSupported);
+
+    int32_t SetProcessCacheEnable(int32_t pid, bool enable);
+
     void OnAppCacheStateChanged(const std::shared_ptr<AppRunningRecord> &appRecord, ApplicationState state);
 
     /**
@@ -1721,6 +1737,10 @@ private:
 #ifdef SUPPORT_CHILD_PROCESS
     int32_t StartChildProcessPreCheck(pid_t callingPid, int32_t childProcessType);
 
+    bool AllowNativeChildProcess(int32_t childProcessType, const std::string appIdentifier);
+
+    bool AllowChildProcessInMultiProcessFeatureApp(std::shared_ptr<AppRunningRecord> appRecord);
+
     int32_t StartChildProcessImpl(const std::shared_ptr<ChildProcessRecord> childProcessRecord,
         const std::shared_ptr<AppRunningRecord> appRecord, pid_t &childPid, const ChildProcessArgs &args,
         const ChildProcessOptions &options);
@@ -1954,8 +1974,6 @@ private:
     void CheckCleanAbilityByUserRequest(const std::shared_ptr<AppRunningRecord> &appRecord,
         const std::shared_ptr<AbilityRunningRecord> &abilityRecord, const AbilityState state);
     int32_t GetPidsByAccessTokenId(const uint32_t accessTokenId, std::vector<pid_t> &pids);
-    void MakeIsolateSandBoxProcessName(const std::shared_ptr<AbilityInfo> &abilityInfo,
-        const HapModuleInfo &hapModuleInfo, std::string &processName) const;
     int32_t DealWithUserConfiguration(const Configuration &config, const int32_t userId, int32_t &notifyUserId);
     bool CheckIsDebugApp(const std::string &bundleName);
     int32_t MakeKiaProcess(std::shared_ptr<AAFwk::Want> want, bool &isKia, std::string &watermarkBusinessName,
@@ -1990,7 +2008,15 @@ private:
     void SendAppSpawnUninstallDebugHapMsg(int32_t userId);
     std::shared_ptr<AppRunningRecord> CreateAppRunningRecord(std::shared_ptr<ApplicationInfo> appInfo,
         const std::string &processName, const BundleInfo &bundleInfo);
-
+    void AddUIExtensionBindItem(
+        std::shared_ptr<AAFwk::Want> want, std::shared_ptr<AppRunningRecord> appRecord, sptr<IRemoteObject> token);
+    void RemoveUIExtensionBindItem(std::shared_ptr<AppRunningRecord> appRecord, sptr<IRemoteObject> token);
+    void BindUIExtensionProcess(
+        const std::shared_ptr<AppRunningRecord> &appRecord, const UIExtensionProcessBindInfo &bindInfo);
+    void UnBindUIExtensionProcess(
+        const std::shared_ptr<AppRunningRecord> &appRecord, const UIExtensionProcessBindInfo &bindInfo);
+    bool WarpBindInfo(std::shared_ptr<AAFwk::Want> &want, std::shared_ptr<AppRunningRecord> &appRecord,
+        UIExtensionProcessBindInfo &bindInfo);
     bool isInitAppWaitingDebugListExecuted_ = false;
     std::atomic<bool> sceneBoardAttachFlag_ = true;
     std::atomic<int32_t> willKillPidsNum_ = 0;
@@ -2049,6 +2075,9 @@ private:
 
     std::mutex screenOffSubscriberMutex_;
     std::mutex childProcessRecordMapMutex_;
+
+    std::mutex uiExtensionBindReleationsLock_;
+    std::map<int32_t, std::unordered_map<pid_t, int32_t>> uiExtensionBindReleations_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

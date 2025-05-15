@@ -2219,5 +2219,43 @@ HWTEST_F(AppMgrServiceTest, UpdateConfigurationForBackgroundApp_002, TestSize.Le
     int32_t res = appMgrService->UpdateConfigurationForBackgroundApp(appInfos, policy, userId);
     EXPECT_NE(res, ERR_INVALID_OPERATION);
 }
+
+/**
+ * @tc.name: IsProcessCacheSupported_0100
+ * @tc.desc: IsProcessCacheSupported.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceTest, IsProcessCacheSupported_0100, TestSize.Level1)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    ASSERT_NE(appMgrService, nullptr);
+    appMgrService->SetInnerService(mockAppMgrServiceInner_);
+    appMgrService->taskHandler_ = taskHandler_;
+    appMgrService->eventHandler_ = eventHandler_;
+    appMgrService->appMgrServiceInner_ = std::make_shared<AppMgrServiceInner>();
+    int32_t pid = 1;
+    bool isSupport = false;
+    auto ret = appMgrService->IsProcessCacheSupported(pid, isSupport);
+    EXPECT_EQ(ret, AAFwk::ERR_NO_PERMISSION_CALLER);
+}
+
+/**
+ * @tc.name: SetProcessCacheEnable_0100
+ * @tc.desc: SetProcessCacheEnable.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceTest, SetProcessCacheEnable_0100, TestSize.Level1)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    ASSERT_NE(appMgrService, nullptr);
+    appMgrService->SetInnerService(mockAppMgrServiceInner_);
+    appMgrService->taskHandler_ = taskHandler_;
+    appMgrService->eventHandler_ = eventHandler_;
+    appMgrService->appMgrServiceInner_ = std::make_shared<AppMgrServiceInner>();
+    int32_t pid = 1;
+    bool enable = false;
+    auto ret = appMgrService->SetProcessCacheEnable(pid, enable);
+    EXPECT_EQ(ret, AAFwk::ERR_NO_PERMISSION_CALLER);
+}
 } // namespace AppExecFwk
 } // namespace OHOS

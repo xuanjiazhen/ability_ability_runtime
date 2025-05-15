@@ -135,9 +135,10 @@ public:
      *
      * @param pids, the pid list of processes are going to be killed.
      * @param reason, the reason to kill the processes.
+     * @param subProcess, kill SubProcess or not.
      */
     virtual AppMgrResultCode KillProcessesByPids(const std::vector<int32_t> &pids,
-        const std::string &reason = "KillProcessesByPids");
+        const std::string &reason = "KillProcessesByPids", bool subProcess = false);
 
     /**
      * Set child and parent relationship
@@ -871,6 +872,10 @@ public:
     int32_t SetSupportedProcessCacheSelf(bool isSupport);
 
     int32_t SetSupportedProcessCache(int32_t pid, bool isSupport);
+
+    int32_t IsProcessCacheSupported(int32_t pid, bool &isSupported);
+
+    int32_t SetProcessCacheEnable(int32_t pid, bool enable);
 
     /**
      * set browser channel for caller
