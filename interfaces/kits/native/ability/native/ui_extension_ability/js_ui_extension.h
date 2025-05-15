@@ -108,9 +108,6 @@ public:
      */
     virtual void OnCommand(const AAFwk::Want &want, bool restart, int startId) override;
 
-    virtual void OnCommandWindow(const AAFwk::Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo,
-        AAFwk::WindowCommand winCmd) override;
-
     /**
      * @brief Called when this ui extension enters the <b>STATE_STOP</b> state.
      *
@@ -192,18 +189,14 @@ private:
 
     napi_value CallOnDisconnect(const AAFwk::Want &want, bool withResult = false);
 
-    void ForegroundWindow(const AAFwk::Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo);
-    void BackgroundWindow(const sptr<AAFwk::SessionInfo> &sessionInfo);
-    void DestroyWindow(const sptr<AAFwk::SessionInfo> &sessionInfo);
-
-    void OnCommandWindowDone(const sptr<AAFwk::SessionInfo> &sessionInfo, AAFwk::WindowCommand winCmd) override;
+    void ForegroundWindow(const AAFwk::Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo) override;
+    void BackgroundWindow(const sptr<AAFwk::SessionInfo> &sessionInfo) override;
+    void DestroyWindow(const sptr<AAFwk::SessionInfo> &sessionInfo) override;
     bool ForegroundWindowInitInsightIntentExecutorInfo(const AAFwk::Want &want,
         const sptr<AAFwk::SessionInfo> &sessionInfo, InsightIntentExecutorInfo &executorInfo);
     bool ForegroundWindowWithInsightIntent(const AAFwk::Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo,
-        bool needForeground);
+        bool needForeground)  override;
     bool HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo);
-    void OnInsightIntentExecuteDone(const sptr<AAFwk::SessionInfo> &sessionInfo,
-        const AppExecFwk::InsightIntentExecuteResult &result) override;
     void PostInsightIntentExecuted(const sptr<AAFwk::SessionInfo> &sessionInfo,
         const AppExecFwk::InsightIntentExecuteResult &result, bool needForeground);
     std::unique_ptr<NativeReference> CreateAppWindowStage(sptr<Rosen::Window> uiWindow,
