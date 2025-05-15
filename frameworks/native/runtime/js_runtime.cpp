@@ -768,6 +768,7 @@ bool JsRuntime::Initialize(const Options& options)
             InitTimerModule();
         }
 
+        InitIntlModule();
         InitWorkerModule(options);
         SetModuleLoadChecker(options.moduleCheckerDelegate);
         SetRequestAotCallback();
@@ -1563,6 +1564,13 @@ void JsRuntime::InitTimerModule()
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     CHECK_POINTER(jsEnv_);
     jsEnv_->InitTimerModule();
+}
+
+void JsRuntime::InitIntlModule()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    CHECK_POINTER(jsEnv_);
+    jsEnv_->InitIntlModule();
 }
 
 void JsRuntime::InitWorkerModule(const Options& options)
