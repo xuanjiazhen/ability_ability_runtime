@@ -583,10 +583,10 @@ HWTEST_F(StartupManagerTest, GetStartupConfigString_0100, Function | MediumTest 
     std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
     EXPECT_TRUE(startupManager != nullptr);
     ModuleStartupConfigInfo info(name, "", "", AppExecFwk::ModuleType::UNKNOWN, false);
-    int32_t ret = startupManager->GetStartupConfigString(info, config);
+    int32_t ret = AppStartupProfileParser::GetStartupConfigString(info, config);
     EXPECT_NE(ret, ERR_OK);
     info.startupConfig_ = config;
-    ret = startupManager->GetStartupConfigString(info, config);
+    ret = AppStartupProfileParser::GetStartupConfigString(info, config);
     EXPECT_NE(ret, ERR_OK);
     GTEST_LOG_(INFO) << "StartupManagerTest GetStartupConfigString_0100 end";
 }
@@ -608,11 +608,11 @@ HWTEST_F(StartupManagerTest, AnalyzeStartupConfig_0100, Function | MediumTest | 
     std::vector<StartupTaskInfo> pendingStartupTaskInfos;
     std::string pendingConfigEntry;
     bool ret = false;
-    ret = startupManager->AnalyzeStartupConfig(info, startupConfig, preloadSoStartupTasks,
+    ret = AppStartupProfileParser::AnalyzeStartupConfig(info, startupConfig, preloadSoStartupTasks,
         pendingStartupTaskInfos, pendingConfigEntry);
     EXPECT_EQ(ret, false);
     startupConfig = "test_startupConfig";
-    ret = startupManager->AnalyzeStartupConfig(info, startupConfig, preloadSoStartupTasks,
+    ret = AppStartupProfileParser::AnalyzeStartupConfig(info, startupConfig, preloadSoStartupTasks,
         pendingStartupTaskInfos, pendingConfigEntry);
     EXPECT_EQ(ret, false);
     const nlohmann::json startupConfig_json = R"(
@@ -626,7 +626,7 @@ HWTEST_F(StartupManagerTest, AnalyzeStartupConfig_0100, Function | MediumTest | 
         }
     )"_json;
     startupConfig = startupConfig_json.dump();
-    ret = startupManager->AnalyzeStartupConfig(info, startupConfig, preloadSoStartupTasks,
+    ret = AppStartupProfileParser::AnalyzeStartupConfig(info, startupConfig, preloadSoStartupTasks,
         pendingStartupTaskInfos, pendingConfigEntry);
     EXPECT_EQ(ret, true);
 
@@ -637,7 +637,7 @@ HWTEST_F(StartupManagerTest, AnalyzeStartupConfig_0100, Function | MediumTest | 
         }}
     };
     startupConfig = startupConfigJson.dump();
-    ret = startupManager->AnalyzeStartupConfig(info, startupConfig, preloadSoStartupTasks,
+    ret = AppStartupProfileParser::AnalyzeStartupConfig(info, startupConfig, preloadSoStartupTasks,
         pendingStartupTaskInfos, pendingConfigEntry);
     EXPECT_EQ(ret, false);
     GTEST_LOG_(INFO) << "StartupManagerTest AnalyzeStartupConfig_0100 end";
@@ -660,7 +660,7 @@ HWTEST_F(StartupManagerTest, AnalyzeAppStartupTask_0100, Function | MediumTest |
         {
         }
     )"_json;
-    bool ret = startupManager->AnalyzeAppStartupTask(info, startupTasksJson, pendingStartupTaskInfos);
+    bool ret = AppStartupProfileParser::AnalyzeAppStartupTask(info, startupTasksJson, pendingStartupTaskInfos);
     EXPECT_EQ(ret, true);
 
     nlohmann::json startupTasksJson2 = R"(
@@ -673,7 +673,7 @@ HWTEST_F(StartupManagerTest, AnalyzeAppStartupTask_0100, Function | MediumTest |
             ]
         }
     )"_json;
-    ret = startupManager->AnalyzeAppStartupTask(info, startupTasksJson2, pendingStartupTaskInfos);
+    ret = AppStartupProfileParser::AnalyzeAppStartupTask(info, startupTasksJson2, pendingStartupTaskInfos);
     EXPECT_EQ(ret, true);
 
     nlohmann::json startupTasksJson3 = R"(
@@ -685,7 +685,7 @@ HWTEST_F(StartupManagerTest, AnalyzeAppStartupTask_0100, Function | MediumTest |
             ]
         }
     )"_json;
-    ret = startupManager->AnalyzeAppStartupTask(info, startupTasksJson3, pendingStartupTaskInfos);
+    ret = AppStartupProfileParser::AnalyzeAppStartupTask(info, startupTasksJson3, pendingStartupTaskInfos);
     EXPECT_EQ(ret, false);
     GTEST_LOG_(INFO) << "StartupManagerTest AnalyzeAppStartupTask_0100 end";
 }
@@ -712,7 +712,7 @@ HWTEST_F(StartupManagerTest, AnalyzeAppStartupTask_0200, Function | MediumTest |
             ]
         }
     )"_json;
-    bool ret = startupManager->AnalyzeAppStartupTask(info, startupTasksJson, pendingStartupTaskInfos);
+    bool ret = AppStartupProfileParser::AnalyzeAppStartupTask(info, startupTasksJson, pendingStartupTaskInfos);
     EXPECT_EQ(ret, false);
 
     nlohmann::json startupTasksJson2 = R"(
@@ -725,7 +725,7 @@ HWTEST_F(StartupManagerTest, AnalyzeAppStartupTask_0200, Function | MediumTest |
             ]
         }
     )"_json;
-    ret = startupManager->AnalyzeAppStartupTask(info, startupTasksJson2, pendingStartupTaskInfos);
+    ret = AppStartupProfileParser::AnalyzeAppStartupTask(info, startupTasksJson2, pendingStartupTaskInfos);
     EXPECT_EQ(ret, false);
     GTEST_LOG_(INFO) << "StartupManagerTest AnalyzeAppStartupTask_0200 end";
 }
@@ -747,7 +747,7 @@ HWTEST_F(StartupManagerTest, AnalyzePreloadSoStartupTask_0100, Function | Medium
         {
         }
     )"_json;
-    bool ret = startupManager->AnalyzePreloadSoStartupTask(info, preloadHintStartupTasksJson, preloadSoStartupTasks);
+    bool ret = AppStartupProfileParser::AnalyzePreloadSoStartupTask(info, preloadHintStartupTasksJson, preloadSoStartupTasks);
     EXPECT_EQ(ret, true);
 
     nlohmann::json preloadHintStartupTasksJson2 = R"(
@@ -760,7 +760,7 @@ HWTEST_F(StartupManagerTest, AnalyzePreloadSoStartupTask_0100, Function | Medium
             ]
         }
     )"_json;
-    ret = startupManager->AnalyzePreloadSoStartupTask(info, preloadHintStartupTasksJson2, preloadSoStartupTasks);
+    ret = AppStartupProfileParser::AnalyzePreloadSoStartupTask(info, preloadHintStartupTasksJson2, preloadSoStartupTasks);
     EXPECT_EQ(ret, false);
 
     nlohmann::json preloadHintStartupTasksJson3 = R"(
@@ -772,7 +772,7 @@ HWTEST_F(StartupManagerTest, AnalyzePreloadSoStartupTask_0100, Function | Medium
             ]
         }
     )"_json;
-    ret = startupManager->AnalyzePreloadSoStartupTask(info, preloadHintStartupTasksJson3, preloadSoStartupTasks);
+    ret = AppStartupProfileParser::AnalyzePreloadSoStartupTask(info, preloadHintStartupTasksJson3, preloadSoStartupTasks);
     EXPECT_EQ(ret, false);
     GTEST_LOG_(INFO) << "StartupManagerTest AnalyzePreloadSoStartupTask_0100 end";
 }
@@ -799,7 +799,7 @@ HWTEST_F(StartupManagerTest, AnalyzePreloadSoStartupTask_0200, Function | Medium
             ]
         }
     )"_json;
-    bool ret = startupManager->AnalyzePreloadSoStartupTask(info, preloadHintStartupTasksJson, preloadSoStartupTasks);
+    bool ret = AppStartupProfileParser::AnalyzePreloadSoStartupTask(info, preloadHintStartupTasksJson, preloadSoStartupTasks);
     EXPECT_EQ(ret, false);
 
     nlohmann::json preloadHintStartupTasksJson2 = R"(
@@ -812,7 +812,7 @@ HWTEST_F(StartupManagerTest, AnalyzePreloadSoStartupTask_0200, Function | Medium
             ]
         }
     )"_json;
-    ret = startupManager->AnalyzePreloadSoStartupTask(info, preloadHintStartupTasksJson2, preloadSoStartupTasks);
+    ret = AppStartupProfileParser::AnalyzePreloadSoStartupTask(info, preloadHintStartupTasksJson2, preloadSoStartupTasks);
     EXPECT_EQ(ret, false);
     GTEST_LOG_(INFO) << "StartupManagerTest AnalyzePreloadSoStartupTask_0200 end";
 }
@@ -834,7 +834,7 @@ HWTEST_F(StartupManagerTest, AnalyzeAppStartupTaskInner_0100, Function | MediumT
         {
         }
     )"_json;
-    bool ret = startupManager->AnalyzeAppStartupTaskInner(info, appStartupTaskInnerJson, pendingStartupTaskInfos);
+    bool ret = AppStartupProfileParser::AnalyzeAppStartupTaskInner(info, appStartupTaskInnerJson, pendingStartupTaskInfos);
     EXPECT_EQ(ret, false);
 
     nlohmann::json appStartupTaskInnerJson1 = R"(
@@ -843,7 +843,7 @@ HWTEST_F(StartupManagerTest, AnalyzeAppStartupTaskInner_0100, Function | MediumT
             "name": "test_name"
         }
     )"_json;
-    ret = startupManager->AnalyzeAppStartupTaskInner(info, appStartupTaskInnerJson1, pendingStartupTaskInfos);
+    ret = AppStartupProfileParser::AnalyzeAppStartupTaskInner(info, appStartupTaskInnerJson1, pendingStartupTaskInfos);
     EXPECT_EQ(ret, true);
 
     nlohmann::json appStartupTaskInnerJson2 = R"(
@@ -851,14 +851,14 @@ HWTEST_F(StartupManagerTest, AnalyzeAppStartupTaskInner_0100, Function | MediumT
             "srcEntry": []
         }
     )"_json;
-    ret = startupManager->AnalyzeAppStartupTaskInner(info, appStartupTaskInnerJson2, pendingStartupTaskInfos);
+    ret = AppStartupProfileParser::AnalyzeAppStartupTaskInner(info, appStartupTaskInnerJson2, pendingStartupTaskInfos);
     EXPECT_EQ(ret, false);
     nlohmann::json appStartupTaskInnerJson3 = R"(
         {
             "srcEntry": "test_entry"
         }
     )"_json;
-    ret = startupManager->AnalyzeAppStartupTaskInner(info, appStartupTaskInnerJson3, pendingStartupTaskInfos);
+    ret = AppStartupProfileParser::AnalyzeAppStartupTaskInner(info, appStartupTaskInnerJson3, pendingStartupTaskInfos);
     EXPECT_EQ(ret, false);
     GTEST_LOG_(INFO) << "StartupManagerTest AnalyzeAppStartupTaskInner_0100 end";
 }
@@ -882,7 +882,7 @@ HWTEST_F(StartupManagerTest, AnalyzeAppStartupTaskInner_0200, Function | MediumT
             "name": []
         }
     )"_json;
-    bool ret = startupManager->AnalyzeAppStartupTaskInner(info, appStartupTaskInnerJson, pendingStartupTaskInfos);
+    bool ret = AppStartupProfileParser::AnalyzeAppStartupTaskInner(info, appStartupTaskInnerJson, pendingStartupTaskInfos);
     EXPECT_EQ(ret, false);
 
     nlohmann::json appStartupTaskInnerJson2 = R"(
@@ -891,7 +891,7 @@ HWTEST_F(StartupManagerTest, AnalyzeAppStartupTaskInner_0200, Function | MediumT
             "name": "test_name"
         }
     )"_json;
-    ret = startupManager->AnalyzeAppStartupTaskInner(info, appStartupTaskInnerJson2, pendingStartupTaskInfos);
+    ret = AppStartupProfileParser::AnalyzeAppStartupTaskInner(info, appStartupTaskInnerJson2, pendingStartupTaskInfos);
     EXPECT_EQ(ret, false);
 
     nlohmann::json appStartupTaskInnerJson3 = R"(
@@ -900,7 +900,7 @@ HWTEST_F(StartupManagerTest, AnalyzeAppStartupTaskInner_0200, Function | MediumT
             "name": ""
         }
     )"_json;
-    ret = startupManager->AnalyzeAppStartupTaskInner(info, appStartupTaskInnerJson3, pendingStartupTaskInfos);
+    ret = AppStartupProfileParser::AnalyzeAppStartupTaskInner(info, appStartupTaskInnerJson3, pendingStartupTaskInfos);
     EXPECT_EQ(ret, false);
     GTEST_LOG_(INFO) << "StartupManagerTest AnalyzeAppStartupTaskInner_0200 end";
 }
@@ -922,7 +922,7 @@ HWTEST_F(StartupManagerTest, AnalyzePreloadSoStartupTaskInner_0100, Function | M
         {
         }
     )"_json;
-    bool ret = startupManager->AnalyzePreloadSoStartupTaskInner(info, preloadSoStartupTaskInnerJson,
+    bool ret = AppStartupProfileParser::AnalyzePreloadSoStartupTaskInner(info, preloadSoStartupTaskInnerJson,
         preloadSoStartupTasks);
     EXPECT_EQ(ret, false);
 
@@ -932,7 +932,7 @@ HWTEST_F(StartupManagerTest, AnalyzePreloadSoStartupTaskInner_0100, Function | M
             "name": "test_name"
         }
     )"_json;
-    ret = startupManager->AnalyzePreloadSoStartupTaskInner(info, preloadSoStartupTaskInnerJson1,
+    ret = AppStartupProfileParser::AnalyzePreloadSoStartupTaskInner(info, preloadSoStartupTaskInnerJson1,
         preloadSoStartupTasks);
     EXPECT_EQ(ret, true);
 
@@ -941,7 +941,7 @@ HWTEST_F(StartupManagerTest, AnalyzePreloadSoStartupTaskInner_0100, Function | M
             "ohmurl": []
         }
     )"_json;
-    ret = startupManager->AnalyzePreloadSoStartupTaskInner(info, preloadSoStartupTaskInnerJson2,
+    ret = AppStartupProfileParser::AnalyzePreloadSoStartupTaskInner(info, preloadSoStartupTaskInnerJson2,
         preloadSoStartupTasks);
     EXPECT_EQ(ret, false);
     GTEST_LOG_(INFO) << "StartupManagerTest AnalyzePreloadSoStartupTaskInner_0100 end";
@@ -955,8 +955,6 @@ HWTEST_F(StartupManagerTest, AnalyzePreloadSoStartupTaskInner_0100, Function | M
 HWTEST_F(StartupManagerTest, AnalyzePreloadSoStartupTaskInner_0200, Function | MediumTest | Level1)
 {
     GTEST_LOG_(INFO) << "StartupManagerTest AnalyzePreloadSoStartupTaskInner_0200 start";
-    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
-    EXPECT_TRUE(startupManager != nullptr);
     std::string name = "test_name";
     ModuleStartupConfigInfo info(name, "", "", AppExecFwk::ModuleType::UNKNOWN, false);
     std::map<std::string, std::shared_ptr<AppStartupTask>> preloadSoStartupTasks;
@@ -965,7 +963,7 @@ HWTEST_F(StartupManagerTest, AnalyzePreloadSoStartupTaskInner_0200, Function | M
             "ohmurl": "test_ohmurl"
         }
     )"_json;
-    bool ret = startupManager->AnalyzePreloadSoStartupTaskInner(info, preloadSoStartupTaskInnerJson,
+    bool ret = AppStartupProfileParser::AnalyzePreloadSoStartupTaskInner(info, preloadSoStartupTaskInnerJson,
         preloadSoStartupTasks);
     EXPECT_EQ(ret, false);
 
@@ -975,7 +973,7 @@ HWTEST_F(StartupManagerTest, AnalyzePreloadSoStartupTaskInner_0200, Function | M
             "name": []
         }
     )"_json;
-    ret = startupManager->AnalyzePreloadSoStartupTaskInner(info, preloadSoStartupTaskInnerJson2,
+    ret = AppStartupProfileParser::AnalyzePreloadSoStartupTaskInner(info, preloadSoStartupTaskInnerJson2,
         preloadSoStartupTasks);
     EXPECT_EQ(ret, false);
     GTEST_LOG_(INFO) << "StartupManagerTest AnalyzePreloadSoStartupTaskInner_0200 end";
@@ -1020,6 +1018,175 @@ HWTEST_F(StartupManagerTest, RunLoadModuleStartupConfigTask_0100, Function | Med
 }
 
 /**
+ * @tc.name: SetOptionalParameters_0100
+ * @tc.type: FUNC
+ * @tc.Function: SetOptionalParameters
+ */
+HWTEST_F(StartupManagerTest, SetOptionalParameters_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "StartupManagerTest SetOptionalParameters_0100 start";
+    std::shared_ptr<PreloadSoStartupTask> task1 = std::make_shared<PreloadSoStartupTask>("test_name1", "test_ohmurl1");
+    std::shared_ptr<PreloadSoStartupTask> task2 = std::make_shared<PreloadSoStartupTask>("test_name2", "test_ohmurl2");
+    nlohmann::json preloadSoStartupTaskInnerJson = R"(
+        {
+        }
+    )"_json;
+    AppStartupProfileParser::SetOptionalParameters(preloadSoStartupTaskInnerJson, ModuleType::ENTRY, task1);
+    EXPECT_EQ(task1->GetDependencies().empty(), true);
+    EXPECT_EQ(task1->GetIsExcludeFromAutoStart(), false);
+    AppStartupProfileParser::SetOptionalParameters(preloadSoStartupTaskInnerJson, ModuleType::SHARED, task2);
+    EXPECT_EQ(task2->GetDependencies().empty(), true);
+    EXPECT_EQ(task2->GetIsExcludeFromAutoStart(), true);
+    GTEST_LOG_(INFO) << "StartupManagerTest SetOptionalParameters_0100 end";
+}
+
+/**
+ * @tc.name: SetOptionalParameters_0200
+ * @tc.type: FUNC
+ * @tc.Function: SetOptionalParameters
+ */
+HWTEST_F(StartupManagerTest, SetOptionalParameters_0200, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "StartupManagerTest SetOptionalParameters_0200 start";
+    std::shared_ptr<PreloadSoStartupTask> task1 = std::make_shared<PreloadSoStartupTask>("test_name1", "test_ohmurl1");
+    std::shared_ptr<PreloadSoStartupTask> task2 = std::make_shared<PreloadSoStartupTask>("test_name2", "test_ohmurl2");
+    nlohmann::json preloadSoStartupTaskInnerJson = R"(
+        {
+            "excludeFromAutoStart": true,
+        }
+    )"_json;
+    AppStartupProfileParser::SetOptionalParameters(preloadSoStartupTaskInnerJson, ModuleType::ENTRY, task1);
+    EXPECT_EQ(task1->GetDependencies().empty(), true);
+    EXPECT_EQ(task1->GetIsExcludeFromAutoStart(), true);
+    AppStartupProfileParser::SetOptionalParameters(preloadSoStartupTaskInnerJson, ModuleType::SHARED, task2);
+    EXPECT_EQ(task2->GetDependencies().empty(), true);
+    EXPECT_EQ(task2->GetIsExcludeFromAutoStart(), true);
+    GTEST_LOG_(INFO) << "StartupManagerTest SetOptionalParameters_0200 end";
+}
+
+/**
+ * @tc.name: SetOptionalParameters_0300
+ * @tc.type: FUNC
+ * @tc.Function: SetOptionalParameters
+ */
+HWTEST_F(StartupManagerTest, SetOptionalParameters_0300, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "StartupManagerTest SetOptionalParameters_0300 start";
+    std::shared_ptr<PreloadSoStartupTask> task1 = std::make_shared<PreloadSoStartupTask>("test_name1", "test_ohmurl1");
+    std::shared_ptr<PreloadSoStartupTask> task2 = std::make_shared<PreloadSoStartupTask>("test_name2", "test_ohmurl2");
+    nlohmann::json preloadSoStartupTaskInnerJson = R"(
+        {
+            "excludeFromAutoStart": false,
+        }
+    )"_json;
+    AppStartupProfileParser::SetOptionalParameters(preloadSoStartupTaskInnerJson, ModuleType::ENTRY, task1);
+    EXPECT_EQ(task1->GetDependencies().empty(), true);
+    EXPECT_EQ(task1->GetIsExcludeFromAutoStart(), false);
+    AppStartupProfileParser::SetOptionalParameters(preloadSoStartupTaskInnerJson, ModuleType::SHARED, task2);
+    EXPECT_EQ(task2->GetDependencies().empty(), true);
+    EXPECT_EQ(task2->GetIsExcludeFromAutoStart(), true);
+    GTEST_LOG_(INFO) << "StartupManagerTest SetOptionalParameters_0300 end";
+}
+
+/**
+ * @tc.name: SetOptionalParameters_0400
+ * @tc.type: FUNC
+ * @tc.Function: SetOptionalParameters
+ */
+HWTEST_F(StartupManagerTest, SetOptionalParameters_0400, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "StartupManagerTest SetOptionalParameters_0400 start";
+
+    StartupTaskInfo startupTaskInfo1;
+    StartupTaskInfo startupTaskInfo2;
+    nlohmann::json appStartupTaskInnerJson = R"(
+        {
+        }
+    )"_json;
+    AppStartupProfileParser::SetOptionalParameters(appStartupTaskInnerJson, ModuleType::ENTRY, startupTaskInfo1);
+    EXPECT_EQ(startupTaskInfo1.dependencies.empty(), true);
+    EXPECT_EQ(startupTaskInfo1.callCreateOnMainThread, true);
+    EXPECT_STREQ(startupTaskInfo1.ohmUrl.c_str(), "");
+    EXPECT_EQ(startupTaskInfo1.excludeFromAutoStart, false);
+    EXPECT_EQ(startupTaskInfo1.waitOnMainThread, true);
+    AppStartupProfileParser::SetOptionalParameters(appStartupTaskInnerJson, ModuleType::SHARED, startupTaskInfo2);
+    EXPECT_EQ(startupTaskInfo1.dependencies.empty(), true);
+    EXPECT_EQ(startupTaskInfo1.callCreateOnMainThread, true);
+    EXPECT_STREQ(startupTaskInfo1.ohmUrl.c_str(), "");
+    EXPECT_EQ(startupTaskInfo1.excludeFromAutoStart, true);
+    EXPECT_EQ(startupTaskInfo1.waitOnMainThread, true);
+    GTEST_LOG_(INFO) << "StartupManagerTest SetOptionalParameters_0400 end";
+}
+
+/**
+ * @tc.name: SetOptionalParameters_0500
+ * @tc.type: FUNC
+ * @tc.Function: SetOptionalParameters
+ */
+HWTEST_F(StartupManagerTest, SetOptionalParameters_0500, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "StartupManagerTest SetOptionalParameters_0500 start";
+
+    StartupTaskInfo startupTaskInfo1;
+    StartupTaskInfo startupTaskInfo2;
+    nlohmann::json appStartupTaskInnerJson = R"(
+        {
+            "runOnThread": "taskPool",
+            "waitOnMainThread": true
+            "excludeFromAutoStart": true,
+            "ohmurl": "xxx"
+        }
+    )"_json;
+    AppStartupProfileParser::SetOptionalParameters(appStartupTaskInnerJson, ModuleType::ENTRY, startupTaskInfo1);
+    EXPECT_EQ(startupTaskInfo1.dependencies.empty(), true);
+    EXPECT_EQ(startupTaskInfo1.callCreateOnMainThread, false);
+    EXPECT_STREQ(startupTaskInfo1.ohmUrl.c_str(), "xxx");
+    EXPECT_EQ(startupTaskInfo1.excludeFromAutoStart, true);
+    EXPECT_EQ(startupTaskInfo1.waitOnMainThread, true);
+    AppStartupProfileParser::SetOptionalParameters(appStartupTaskInnerJson, ModuleType::SHARED, startupTaskInfo2);
+    EXPECT_EQ(startupTaskInfo1.dependencies.empty(), true);
+    EXPECT_EQ(startupTaskInfo1.callCreateOnMainThread, false);
+    EXPECT_STREQ(startupTaskInfo1.ohmUrl.c_str(), "xxx");
+    EXPECT_EQ(startupTaskInfo1.excludeFromAutoStart, true);
+    EXPECT_EQ(startupTaskInfo1.waitOnMainThread, true);
+    GTEST_LOG_(INFO) << "StartupManagerTest SetOptionalParameters_0500 end";
+}
+
+/**
+ * @tc.name: SetOptionalParameters_0600
+ * @tc.type: FUNC
+ * @tc.Function: SetOptionalParameters
+ */
+HWTEST_F(StartupManagerTest, SetOptionalParameters_0600, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "StartupManagerTest SetOptionalParameters_0600 start";
+
+    StartupTaskInfo startupTaskInfo1;
+    StartupTaskInfo startupTaskInfo2;
+    nlohmann::json appStartupTaskInnerJson = R"(
+        {
+            "runOnThread": "mainThread",
+            "waitOnMainThread": false
+            "excludeFromAutoStart": false,
+            "ohmurl": "yyy"
+        }
+    )"_json;
+    AppStartupProfileParser::SetOptionalParameters(appStartupTaskInnerJson, ModuleType::ENTRY, startupTaskInfo1);
+    EXPECT_EQ(startupTaskInfo1.dependencies.empty(), true);
+    EXPECT_EQ(startupTaskInfo1.callCreateOnMainThread, true);
+    EXPECT_STREQ(startupTaskInfo1.ohmUrl.c_str(), "yyy");
+    EXPECT_EQ(startupTaskInfo1.excludeFromAutoStart, false);
+    EXPECT_EQ(startupTaskInfo1.waitOnMainThread, false);
+    AppStartupProfileParser::SetOptionalParameters(appStartupTaskInnerJson, ModuleType::SHARED, startupTaskInfo2);
+    EXPECT_EQ(startupTaskInfo1.dependencies.empty(), true);
+    EXPECT_EQ(startupTaskInfo1.callCreateOnMainThread, true);
+    EXPECT_STREQ(startupTaskInfo1.ohmUrl.c_str(), "yyy");
+    EXPECT_EQ(startupTaskInfo1.excludeFromAutoStart, true);
+    EXPECT_EQ(startupTaskInfo1.waitOnMainThread, false);
+    GTEST_LOG_(INFO) << "StartupManagerTest SetOptionalParameters_0600 end";
+}
+
+/**
  * @tc.name: GetStartupConfigString_0200
  * @tc.type: FUNC
  * @tc.Function: GetStartupConfigString
@@ -1034,7 +1201,7 @@ HWTEST_F(StartupManagerTest, GetStartupConfigString_0200, Function | MediumTest 
     std::shared_ptr<Extractor> extractorPtr = std::make_shared<Extractor>("test");
     AbilityBase::ExtractorUtil::extractorMap_.insert(std::make_pair("hap", extractorPtr));
     ModuleStartupConfigInfo info(name, startupConfig, "hap", AppExecFwk::ModuleType::UNKNOWN, false);
-    int32_t ret = startupManager->GetStartupConfigString(info, config);
+    int32_t ret = AppStartupProfileParser::GetStartupConfigString(info, config);
     EXPECT_EQ(ret, ERR_STARTUP_CONFIG_PATH_ERROR);
 }
 

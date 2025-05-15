@@ -1110,6 +1110,7 @@ ohos_unittest("startup_manager_test") {
     "-Wno-unused-private-field",
   ]
   sources = [
+    "${ability_runtime_native_path}/appkit/app_startup/app_startup_profile_parser.cpp",
     "${ability_runtime_native_path}/appkit/app_startup/app_startup_task.cpp",
     "${ability_runtime_native_path}/appkit/app_startup/preload_so_startup_task.cpp",
     "${ability_runtime_native_path}/appkit/app_startup/startup_config.cpp",
@@ -1164,6 +1165,7 @@ ohos_unittest("startup_manager_mock_test") {
   sources = [
     "${ability_runtime_abilitymgr_path}/src/insight_intent/insight_intent_execute_result.cpp",
     "${ability_runtime_native_path}/ability/native/insight_intent_executor/js_insight_intent_executor.cpp",
+    "${ability_runtime_native_path}/appkit/app_startup/app_startup_profile_parser.cpp",
     "${ability_runtime_native_path}/appkit/app_startup/app_startup_task.cpp",
     "${ability_runtime_native_path}/appkit/app_startup/js_startup_task.cpp",
     "${ability_runtime_native_path}/appkit/app_startup/js_startup_task_executor.cpp",
