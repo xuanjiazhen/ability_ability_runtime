@@ -72,6 +72,8 @@ bool g_debugApp = false;
 bool g_jsFramework = false;
 bool g_nativeStart = false;
 std::mutex g_mutex;
+
+using RegisterIntl = bool (*)(napi_env);
 }
 
 void InitWorkerFunc(NativeEngine* nativeEngine)
@@ -99,6 +101,7 @@ void InitWorkerFunc(NativeEngine* nativeEngine)
     if (g_jsFramework && !arkNativeEngine->ExecuteJsBin("/system/etc/strip.native.min.abc")) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "load jsFramework failed");
     }
+    InitTimerModule(nativeEngine);
 
     if (g_debugMode) {
         auto instanceId = DFXJSNApi::GetCurrentThreadId();
@@ -583,6 +586,27 @@ void StartDebuggerInWorkerModule(bool isDebugApp, bool isNativeStart)
 void SetJsFramework()
 {
     g_jsFramework = true;
+}
+
+void InitTimerModule(NativeEngine* nativeEngine)
+{
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
+    void *intlUtilHandle = dlopen("libintl_napi.z.so", RTLD_NOW);
+    if (intlUtilHandle == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "ReplaceBuildinIntl: load libintl_napi.z.so failed");
+        return;
+    }
+    RegisterIntl registerIntl = (RegisterIntl)dlsym(intlUtilHandle, "RegisterIntl");
+
+    bool ret = false;
+    if (registerIntl) {
+        ret = registerIntl(reinterpret_cast<napi_env>(nativeEngine));
+    } else {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "ReplaceBuildinIntl: registerIntl is null");
+    }
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "ReplaceBuildinIntl: Register intl failed");
+    }
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
