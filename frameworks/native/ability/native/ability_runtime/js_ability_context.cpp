@@ -730,7 +730,7 @@ void JsAbilityContext::DoConnectUIServiceExtension(napi_env env,
         return;
     }
 
-    auto innerErrCode = context->ConnectUIServiceExtensionAbility(want, connection);
+    auto innerErrCode = context->ConnectAbility(want, connection, AppExecFwk::ExtensionAbilityType::UI_SERVICE);
     AbilityErrorCode errcode = AbilityRuntime::GetJsErrorCodeByNativeError(innerErrCode);
     if (errcode != AbilityErrorCode::ERROR_OK) {
         TAG_LOGE(AAFwkTag::UISERVC_EXT, "errcode %{public}d.", errcode);
@@ -1689,14 +1689,7 @@ napi_value JsAbilityContext::ConnectExtensionAbilityCommon(napi_env env, NapiCal
             }
             TAG_LOGD(AAFwkTag::CONTEXT, "connectAbility: %{public}d, extensionType: type: %{public}d",
                 static_cast<int32_t>(connectId), static_cast<int32_t>(extensionType));
-            if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE) {
-                *innerErrCode = context->ConnectAbility(want, connection);
-            } else if (extensionType == AppExecFwk::ExtensionAbilityType::APP_SERVICE) {
-                *innerErrCode = context->ConnectAppServiceExtensionAbility(want, connection);
-            } else {
-                TAG_LOGE(AAFwkTag::CONTEXT, "extensionType error, type: %{public}d",
-                    static_cast<int32_t>(extensionType));
-            }
+            *innerErrCode = context->ConnectAbility(want, connection, extensionType);
     };
     NapiAsyncTask::CompleteCallback complete =
         [connection, connectId, innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {

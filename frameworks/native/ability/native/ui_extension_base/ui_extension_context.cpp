@@ -84,25 +84,13 @@ ErrCode UIExtensionContext::TerminateSelf()
     return err;
 }
 
-ErrCode UIExtensionContext::ConnectAbility(
-    const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback) const
+ErrCode UIExtensionContext::ConnectAbility(const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback,
+    AppExecFwk::ExtensionAbilityType extensionType) const
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "begin, ability:%{public}s",
         want.GetElement().GetAbilityName().c_str());
-    ErrCode ret =
-        ConnectionManager::GetInstance().ConnectAbility(token_, want, connectCallback);
+    ErrCode ret = ConnectionManager::GetInstance().ConnectAbility(token_, want, connectCallback, extensionType);
     TAG_LOGD(AAFwkTag::UI_EXT, "UIExtensionContext::ConnectAbility ErrorCode = %{public}d", ret);
-    return ret;
-}
-
-ErrCode UIExtensionContext::ConnectUIServiceExtensionAbility(
-    const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback) const
-{
-    TAG_LOGD(AAFwkTag::UI_EXT, "begin, ability:%{public}s",
-        want.GetElement().GetAbilityName().c_str());
-    ErrCode ret =
-        ConnectionManager::GetInstance().ConnectUIServiceExtensionAbility(token_, want, connectCallback);
-    TAG_LOGD(AAFwkTag::UI_EXT, "UIExtensionContext::ConnectUIServiceExtensionAbility ErrorCode = %{public}d", ret);
     return ret;
 }
 

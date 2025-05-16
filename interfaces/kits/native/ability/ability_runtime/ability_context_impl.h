@@ -95,11 +95,9 @@ public:
     ErrCode BackToCallerAbilityWithResult(const AAFwk::Want &want, int resultCode, int64_t requestCode) override;
     void OnAbilityResult(int requestCode, int resultCode, const AAFwk::Want &resultData) override;
     ErrCode ConnectAbility(const AAFwk::Want &want,
-                        const sptr<AbilityConnectCallback> &connectCallback) override;
+        const sptr<AbilityConnectCallback> &connectCallback, AppExecFwk::ExtensionAbilityType extensionType) override;
     ErrCode ConnectAbilityWithAccount(const AAFwk::Want &want, int accountId,
                         const sptr<AbilityConnectCallback> &connectCallback) override;
-    ErrCode ConnectUIServiceExtensionAbility(const AAFwk::Want& want,
-        const sptr<AbilityConnectCallback>& connectCallback) override;
     void DisconnectAbility(const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback,
         int32_t accountId = -1) override;
     std::shared_ptr<AppExecFwk::HapModuleInfo> GetHapModuleInfo() const override;
@@ -349,8 +347,6 @@ public:
 
     ErrCode StartAppServiceExtensionAbility(const Want &want) override;
     ErrCode StopAppServiceExtensionAbility(const Want& want) override;
-    ErrCode ConnectAppServiceExtensionAbility(const AAFwk::Want& want,
-        const sptr<AbilityConnectCallback>& connectCallback) override;
 
 private:
     sptr<IRemoteObject> token_ = nullptr;

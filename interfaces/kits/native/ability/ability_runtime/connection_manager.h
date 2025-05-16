@@ -120,8 +120,8 @@ public:
      * @param connectCallback The connection callback.
      * @return Returns the result of connecting ability connection.
      */
-    ErrCode ConnectAbility(const sptr<IRemoteObject> &connectCaller,
-        const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback);
+    ErrCode ConnectAbility(const sptr<IRemoteObject> &connectCaller, const AAFwk::Want &want,
+        const sptr<AbilityConnectCallback> &connectCallback, AppExecFwk::ExtensionAbilityType extensionType);
 
     /**
      * @brief connect ability connection by user.
@@ -134,28 +134,6 @@ public:
      */
     ErrCode ConnectAbilityWithAccount(const sptr<IRemoteObject> &connectCaller,
         const AAFwk::Want &want, int accountId, const sptr<AbilityConnectCallback> &connectCallback);
-
-    /**
-     * @brief connect uiService ability connection.
-     *
-     * @param connectCaller The connection caller.
-     * @param connectReceiver The connection receiver.
-     * @param connectCallback The connection callback.
-     * @return Returns the result of connecting uiService ability connection.
-     */
-    ErrCode ConnectUIServiceExtensionAbility(const sptr<IRemoteObject>& connectCaller,
-        const AAFwk::Want& want, const sptr<AbilityConnectCallback>& connectCallback);
-
-    /**
-     * @brief connect appService ability connection.
-     *
-     * @param connectCaller The connection caller.
-     * @param connectReceiver The connection receiver.
-     * @param connectCallback The connection callback.
-     * @return Returns the result of connecting appService ability connection.
-     */
-    ErrCode ConnectAppServiceExtensionAbility(const sptr<IRemoteObject>& connectCaller,
-        const AAFwk::Want& want, const sptr<AbilityConnectCallback>& connectCallback);
     
     /**
      * @brief disconnect ability connection.

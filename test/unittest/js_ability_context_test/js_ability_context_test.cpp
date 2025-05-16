@@ -103,14 +103,6 @@ public:
 
 class MockAbilityContextImpl : public AbilityContextImpl {
 public:
-    virtual ErrCode ConnectUIServiceExtensionAbility(const AAFwk::Want &want,
-        const sptr<AbilityConnectCallback> &connectCallback) override
-    {
-        callback_ = connectCallback;
-        GTEST_LOG_(INFO) << "ConnectAbility, ret " << connectRet_;
-        return connectRet_;
-    }
-
     void DisconnectAbility(const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback,
         int32_t accountId = -1) override
     {}

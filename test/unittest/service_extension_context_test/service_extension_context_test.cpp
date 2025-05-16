@@ -159,7 +159,8 @@ HWTEST_F(ServiceExtensionContextTest, service_extension_context_ConnectAbility_0
     ServiceExtensionContext serviceExtensionContextTest;
     Want want;
     sptr<AbilityConnectCallback> connectCallback;
-    ErrCode result = serviceExtensionContextTest.ConnectAbility(want, connectCallback);
+    ErrCode result = serviceExtensionContextTest.ConnectAbility(want, connectCallback,
+        AppExecFwk::ExtensionAbilityType::SERVICE);
     EXPECT_EQ(AAFwk::ERR_INVALID_CALLER, result);
 }
 

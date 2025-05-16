@@ -36,30 +36,16 @@ ConnectionManager& ConnectionManager::GetInstance()
     return connectionManager;
 }
 
-ErrCode ConnectionManager::ConnectAbility(const sptr<IRemoteObject>& connectCaller,
-    const AAFwk::Want& want, const sptr<AbilityConnectCallback>& connectCallback)
+ErrCode ConnectionManager::ConnectAbility(const sptr<IRemoteObject>& connectCaller, const AAFwk::Want& want,
+    const sptr<AbilityConnectCallback>& connectCallback, AppExecFwk::ExtensionAbilityType extensionType)
 {
-    return ConnectAbilityInner(connectCaller, want, AAFwk::DEFAULT_INVAL_VALUE, connectCallback);
+    return ConnectAbilityInner(connectCaller, want, AAFwk::DEFAULT_INVAL_VALUE, connectCallback, extensionType);
 }
 
 ErrCode ConnectionManager::ConnectAbilityWithAccount(const sptr<IRemoteObject>& connectCaller,
     const AAFwk::Want& want, int accountId, const sptr<AbilityConnectCallback>& connectCallback)
 {
     return ConnectAbilityInner(connectCaller, want, accountId, connectCallback);
-}
-
-ErrCode ConnectionManager::ConnectUIServiceExtensionAbility(const sptr<IRemoteObject>& connectCaller,
-    const AAFwk::Want& want, const sptr<AbilityConnectCallback>& connectCallback)
-{
-    return ConnectAbilityInner(connectCaller, want, AAFwk::DEFAULT_INVAL_VALUE, connectCallback,
-        AppExecFwk::ExtensionAbilityType::UI_SERVICE);
-}
-
-ErrCode ConnectionManager::ConnectAppServiceExtensionAbility(const sptr<IRemoteObject>& connectCaller,
-    const AAFwk::Want& want, const sptr<AbilityConnectCallback>& connectCallback)
-{
-    return ConnectAbilityInner(connectCaller, want, AAFwk::DEFAULT_INVAL_VALUE, connectCallback,
-        AppExecFwk::ExtensionAbilityType::APP_SERVICE);
 }
 
 ErrCode ConnectionManager::ConnectAbilityInner(const sptr<IRemoteObject>& connectCaller, const AAFwk::Want& want,
@@ -159,7 +145,7 @@ ErrCode ConnectionManager::CreateConnection(const sptr<IRemoteObject>& connectCa
     abilityConnection->SetConnectionState(CONNECTION_STATE_CONNECTING);
     ErrCode ret = ERR_OK;
     ret = AAFwk::AbilityManagerClient::GetInstance()->ConnectAbilityWithExtensionType(
-        want, abilityConnection, connectCaller, accountId, extensionType);
+        want, abilityConnection, connectCaller, extensionType, accountId);
     std::lock_guard<std::recursive_mutex> lock(connectionsLock_);
     if (ret == ERR_OK) {
         ConnectionInfo connectionInfo(connectCaller, want.GetOperation(), abilityConnection, accountId);

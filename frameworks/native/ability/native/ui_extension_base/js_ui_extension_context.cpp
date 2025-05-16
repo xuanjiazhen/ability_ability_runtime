@@ -594,7 +594,7 @@ napi_value JsUIExtensionContext::OnConnectAbility(napi_env env, NapiCallbackInfo
             return;
         }
         TAG_LOGD(AAFwkTag::UI_EXT, "ConnectAbility connection:%{public}d", static_cast<int32_t>(connectId));
-        *innerErrCode = context->ConnectAbility(want, connection);
+        *innerErrCode = context->ConnectAbility(want, connection, AppExecFwk::ExtensionAbilityType::SERVICE);
     };
     NapiAsyncTask::CompleteCallback complete =
         [connection, connectId, innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
@@ -825,7 +825,8 @@ void JsUIExtensionContext::DoConnectUIServiceExtension(napi_env env,
         return;
     }
 
-    auto innerErrorCode = context->ConnectUIServiceExtensionAbility(want, connection);
+    auto innerErrorCode = context->ConnectAbility(want, connection,
+        AppExecFwk::ExtensionAbilityType::UI_SERVICE);
     AbilityErrorCode errcode = AbilityRuntime::GetJsErrorCodeByNativeError(innerErrorCode);
     if (errcode != AbilityErrorCode::ERROR_OK) {
         TAG_LOGE(AAFwkTag::UISERVC_EXT, "errcode: %{public}d.", errcode);
