@@ -750,45 +750,5 @@ napi_value JsEmbeddableUIAbilityContext::CreateJsEmbeddableUIAbilityContext(napi
     return objValue;
 }
 
-napi_value JsEmbeddableUIAbilityContext::OnSetColorMode(napi_env env, NapiCallbackInfo& info)
-{
-    if (IsEmbeddableStart(screenMode_)) {
-        CHECK_POINTER_RETURN(env, jsUIExtensionContext_);
-        return jsUIExtensionContext_->OnSetColorMode(env, info);
-    }
-    CHECK_POINTER_RETURN(env, jsAbilityContext_);
-    return jsAbilityContext_->OnSetColorMode(env, info);
-}
-
-napi_value JsEmbeddableUIAbilityContext::OnStartUIServiceExtension(napi_env env, NapiCallbackInfo& info)
-{
-    if (IsEmbeddableStart(screenMode_)) {
-        CHECK_POINTER_RETURN(env, jsUIExtensionContext_);
-        return jsUIExtensionContext_->OnStartUIServiceExtension(env, info);
-    }
-    CHECK_POINTER_RETURN(env, jsAbilityContext_);
-    return jsAbilityContext_->OnStartUIServiceExtension(env, info);
-}
-
-napi_value JsEmbeddableUIAbilityContext::OnConnectUIServiceExtension(napi_env env, NapiCallbackInfo& info)
-{
-    if (IsEmbeddableStart(screenMode_)) {
-        CHECK_POINTER_RETURN(env, jsUIExtensionContext_);
-        return jsUIExtensionContext_->OnConnectUIServiceExtension(env, info);
-    }
-    CHECK_POINTER_RETURN(env, jsAbilityContext_);
-    return jsAbilityContext_->OnConnectUIServiceExtension(env, info);
-}
-
-napi_value JsEmbeddableUIAbilityContext::OnDisconnectUIServiceExtension(napi_env env, NapiCallbackInfo& info)
-{
-    if (IsEmbeddableStart(screenMode_)) {
-        CHECK_POINTER_RETURN(env, jsUIExtensionContext_);
-        return jsUIExtensionContext_->OnDisconnectUIServiceExtension(env, info);
-    }
-    CHECK_POINTER_RETURN(env, jsAbilityContext_);
-    return jsAbilityContext_->OnDisconnectUIServiceExtension(env, info);
-}
-
 }  // namespace AbilityRuntime
 }  // namespace OHOS
