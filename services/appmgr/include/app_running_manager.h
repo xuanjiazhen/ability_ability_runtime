@@ -323,7 +323,7 @@ public:
 #ifdef SUPPORT_CHILD_PROCESS
     std::shared_ptr<AppRunningRecord> GetAppRunningRecordByChildProcessPid(const pid_t pid);
     std::shared_ptr<ChildProcessRecord> OnChildProcessRemoteDied(const wptr<IRemoteObject> &remote);
-    bool IsChildProcessReachLimit(uint32_t accessTokenId);
+    bool IsChildProcessReachLimit(uint32_t accessTokenId, bool multiProcessFeature);
 #endif //SUPPORT_CHILD_PROCESS
 
     /**
@@ -378,10 +378,13 @@ public:
     int32_t AddUIExtensionBindItem(int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo);
     int32_t QueryUIExtensionBindItemById(int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo);
     int32_t RemoveUIExtensionBindItemById(int32_t uiExtensionBindAbilityId);
-private:
-    std::shared_ptr<AbilityRunningRecord> GetAbilityRunningRecord(const int64_t eventId);
+
+    std::shared_ptr<AppRunningRecord> GetAppRunningRecordByChildRecordPid(const pid_t pid);
+    
     int32_t AssignRunningProcessInfoByAppRecord(
         std::shared_ptr<AppRunningRecord> appRecord, AppExecFwk::RunningProcessInfo &info) const;
+private:
+    std::shared_ptr<AbilityRunningRecord> GetAbilityRunningRecord(const int64_t eventId);
     bool isCollaboratorReserveType(const std::shared_ptr<AppRunningRecord> &appRecord);
     void NotifyAppPreCache(const std::shared_ptr<AppRunningRecord>& appRecord,
         const std::shared_ptr<AppMgrServiceInner>& appMgrServiceInner);

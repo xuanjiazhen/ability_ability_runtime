@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <optional>
+
 #include "ability_window_configuration.h"
 #include "app_running_record.h"
 #include "app_utils.h"
@@ -2116,14 +2118,14 @@ std::shared_ptr<AppRunningRecord> AppRunningRecord::GetParentAppRecord()
     return parentAppRecord_.lock();
 }
 
-int32_t AppRunningRecord::ChangeAppGcState(int32_t state)
+int32_t AppRunningRecord::ChangeAppGcState(int32_t state, uint64_t tid)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (appLifeCycleDeal_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null appLifeCycleDeal_");
         return ERR_INVALID_VALUE;
     }
-    return appLifeCycleDeal_->ChangeAppGcState(state);
+    return appLifeCycleDeal_->ChangeAppGcState(state, tid);
 }
 
 void AppRunningRecord::SetAttachDebug(bool isAttachDebug, bool isDebugFromLocal)
@@ -2633,6 +2635,18 @@ uint32_t AppRunningRecord::GetAddStageTimeout() const
 void AppRunningRecord::SetDebugFromLocal(bool isDebugFromLocal)
 {
     isDebugFromLocal_ = isDebugFromLocal;
+}
+
+std::optional<bool> AppRunningRecord::IsSupportMultiProcessDeviceFeature() const
+{
+    std::lock_guard<ffrt::mutex> supportLock(supportMultiProcessDeviceFeatureLock_);
+    return supportMultiProcessDeviceFeature_;
+}
+
+void AppRunningRecord::SetSupportMultiProcessDeviceFeature(bool support)
+{
+    std::lock_guard<ffrt::mutex> supportLock(supportMultiProcessDeviceFeatureLock_);
+    supportMultiProcessDeviceFeature_ = support;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

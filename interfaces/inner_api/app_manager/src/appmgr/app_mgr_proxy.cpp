@@ -1454,7 +1454,7 @@ int32_t AppMgrProxy::GetRunningProcessInformation(
     return reply.ReadInt32();
 }
 
-int32_t AppMgrProxy::ChangeAppGcState(pid_t pid, int32_t state)
+int32_t AppMgrProxy::ChangeAppGcState(pid_t pid, int32_t state, uint64_t tid)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     MessageParcel data;
@@ -1470,6 +1470,10 @@ int32_t AppMgrProxy::ChangeAppGcState(pid_t pid, int32_t state)
     }
     if (!data.WriteInt32(state)) {
         TAG_LOGE(AAFwkTag::APPMGR, "State write failed.");
+        return ERR_FLATTEN_OBJECT;
+    }
+    if (!data.WriteUint64(tid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "tid write failed.");
         return ERR_FLATTEN_OBJECT;
     }
 
@@ -1973,6 +1977,42 @@ int32_t AppMgrProxy::SetSupportedProcessCache(int32_t pid, bool isSupport)
     MessageOption option;
 
     PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::SET_SUPPORTED_PROCESS_CACHE, data, reply, option);
+    return reply.ReadInt32();
+}
+
+int32_t AppMgrProxy::IsProcessCacheSupported(int32_t pid, bool &isSupported)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "IsProcessCacheSupported called");
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return AAFwk::ERR_WRITE_INTERFACE_TOKEN_FAILED;
+    }
+    PARCEL_UTIL_WRITE_RET_INT(data, Int32, pid);
+
+    MessageParcel reply;
+    MessageOption option;
+
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::IS_PROCESS_CACHE_SUPPORTED, data, reply, option);
+    isSupported = reply.ReadBool();
+    return reply.ReadInt32();
+}
+
+int32_t AppMgrProxy::SetProcessCacheEnable(int32_t pid, bool enable)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "SetProcessCacheEnable called");
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return AAFwk::ERR_WRITE_INTERFACE_TOKEN_FAILED;
+    }
+    PARCEL_UTIL_WRITE_RET_INT(data, Int32, pid);
+    PARCEL_UTIL_WRITE_RET_INT(data, Bool, enable);
+
+    MessageParcel reply;
+    MessageOption option;
+
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::SET_PROCESS_CACHE_ENABLE, data, reply, option);
     return reply.ReadInt32();
 }
 

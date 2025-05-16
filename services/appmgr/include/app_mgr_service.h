@@ -616,7 +616,7 @@ public:
      *
      * @return Is the status change completed.
      */
-    virtual int32_t ChangeAppGcState(pid_t pid, int32_t state) override;
+    virtual int32_t ChangeAppGcState(pid_t pid, int32_t state, uint64_t tid = 0) override;
 
     /**
      * Register appRunning status listener.
@@ -758,6 +758,10 @@ public:
     int32_t SetSupportedProcessCacheSelf(bool isSupport) override;
 
     int32_t SetSupportedProcessCache(int32_t pid, bool isSupport) override;
+
+    int32_t IsProcessCacheSupported(int32_t pid, bool &isSupported) override;
+
+    int32_t SetProcessCacheEnable(int32_t pid, bool enable) override;
 
     /**
      * set browser channel for caller

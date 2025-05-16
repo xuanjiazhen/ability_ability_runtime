@@ -804,7 +804,7 @@ public:
      *
      * @return Is the status change completed.
      */
-    int32_t ChangeAppGcState(int32_t state);
+    int32_t ChangeAppGcState(int32_t state, uint64_t tid = 0);
 
     void SetAttachDebug(bool isAttachDebug, bool isDebugFromLocal);
     bool IsAttachDebug() const;
@@ -1061,6 +1061,9 @@ public:
         return isDebugFromLocal_;
     }
 
+    std::optional<bool> IsSupportMultiProcessDeviceFeature() const;
+    void SetSupportMultiProcessDeviceFeature(bool support);
+
 private:
     /**
      * SearchTheModuleInfoNeedToUpdated, Get an uninitialized abilityStage data.
@@ -1140,7 +1143,7 @@ private:
     bool isErrorInfoEnhance_ = false;
     bool isNativeStart_ = false;
     bool isMultiThread_ = false;
-    bool enableProcessCache_ = false;
+    bool enableProcessCache_ = true;
     bool processCacheBlocked = false; // temporarily block process cache feature
     bool hasGPU_ = false;
     bool isStrictMode_ = false;
@@ -1234,6 +1237,8 @@ private:
     int32_t pssValue_ = 0;
     bool reasonExist_ = false;
     bool isDebugFromLocal_ = false;
+    std::optional<bool> supportMultiProcessDeviceFeature_ = std::nullopt;
+    mutable ffrt::mutex supportMultiProcessDeviceFeatureLock_;
 };
 
 }  // namespace AppExecFwk

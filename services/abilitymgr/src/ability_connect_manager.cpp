@@ -33,6 +33,7 @@
 #include "res_sched_util.h"
 #include "session/host/include/zidl/session_interface.h"
 #include "startup_util.h"
+#include "timeout_state_utils.h"
 #include "ui_extension_utils.h"
 #include "ui_service_extension_connection_constants.h"
 #include "uri_utils.h"
@@ -656,9 +657,11 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
     ConnectListType connectRecordList;
     GetConnectRecordListFromMap(connect, connectRecordList);
     bool isCallbackConnected = !connectRecordList.empty();
+    auto connectedRecord = GetAbilityConnectedRecordFromRecordList(targetService, connectRecordList);
     // 3. If this service ability and callback has been connected, There is no need to connect repeatedly
-    if (isLoadedAbility && (isCallbackConnected) && IsAbilityConnected(targetService, connectRecordList)) {
+    if (isLoadedAbility && (isCallbackConnected) && (connectedRecord != nullptr)) {
         TAG_LOGI(AAFwkTag::SERVICE_EXT, "service/callback connected");
+        connectedRecord->CompleteConnectAndOnlyCallConnectDone();
         return ERR_OK;
     }
 
@@ -739,6 +742,26 @@ void AbilityConnectManager::HandleActiveAbility(std::shared_ptr<AbilityRecord> &
     } else {
         TAG_LOGI(AAFwkTag::SERVICE_EXT, "connecting");
     }
+}
+
+std::shared_ptr<ConnectionRecord> AbilityConnectManager::GetAbilityConnectedRecordFromRecordList(
+    const std::shared_ptr<AbilityRecord> &targetService,
+    std::list<std::shared_ptr<ConnectionRecord>> &connectRecordList)
+{
+    auto isMatch = [targetService](auto connectRecord) -> bool {
+        if (targetService == nullptr || connectRecord == nullptr) {
+            return false;
+        }
+        if (targetService != connectRecord->GetAbilityRecord()) {
+            return false;
+        }
+        return true;
+    };
+    auto connectRecord = std::find_if(connectRecordList.begin(), connectRecordList.end(), isMatch);
+    if (connectRecord != connectRecordList.end()) {
+        return *connectRecord;
+    }
+    return nullptr;
 }
 
 int AbilityConnectManager::DisconnectAbilityLocked(const sptr<IAbilityConnection> &connect)
@@ -878,6 +901,7 @@ int AbilityConnectManager::AttachAbilityThreadLocked(
     std::string element = abilityRecord->GetURI();
     TAG_LOGI(AAFwkTag::SERVICE_EXT, "ability:%{public}s", element.c_str());
     abilityRecord->RemoveLoadTimeoutTask();
+    AbilityRuntime::FreezeUtil::GetInstance().DeleteLifecycleEvent(token);
     if (abilityRecord->IsSceneBoard()) {
         TAG_LOGI(AAFwkTag::SERVICE_EXT, "attach Ability: %{public}s", element.c_str());
         sceneBoardTokenId_ = abilityRecord->GetAbilityInfo().applicationInfo.accessTokenId;
@@ -1516,6 +1540,8 @@ void AbilityConnectManager::LoadAbility(const std::shared_ptr<AbilityRecord> &ab
     loadParam.customProcessFlag = abilityRecord->GetCustomProcessFlag();
     loadParam.extensionProcessMode = abilityRecord->GetExtensionProcessMode();
     SetExtensionLoadParam(loadParam, abilityRecord);
+    AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(loadParam.token,
+        "AbilityConnectManager::LoadAbility");
     DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility(
         loadParam, abilityRecord->GetAbilityInfo(), abilityRecord->GetApplicationInfo(), abilityRecord->GetWant());
 }
@@ -1802,7 +1828,6 @@ int AbilityConnectManager::DispatchInactive(const std::shared_ptr<AbilityRecord>
         return ERR_INVALID_VALUE;
     }
     eventHandler_->RemoveEvent(AbilityManagerService::INACTIVE_TIMEOUT_MSG, abilityRecord->GetAbilityRecordId());
-
     if (abilityRecord->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::SERVICE) {
         ResSchedUtil::GetInstance().ReportLoadingEventToRss(LoadingStage::LOAD_END,
             abilityRecord->GetPid(), abilityRecord->GetUid(), 0, abilityRecord->GetAbilityRecordId());
@@ -1889,6 +1914,10 @@ void AbilityConnectManager::ConnectAbility(const std::shared_ptr<AbilityRecord> 
         ResumeConnectAbility(abilityRecord);
     } else {
         PostTimeOutTask(abilityRecord, AbilityManagerService::CONNECT_TIMEOUT_MSG);
+        if (abilityRecord->GetToken()) {
+            AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(abilityRecord->GetToken()->AsObject(),
+                "AbilityConnectManager::ConnectAbility");
+        }
         abilityRecord->ConnectAbility();
     }
 }
@@ -2043,21 +2072,6 @@ void AbilityConnectManager::TerminateDone(const std::shared_ptr<AbilityRecord> &
         RemoveUIExtensionAbilityRecord(abilityRecord);
     }
     RemoveServiceAbility(abilityRecord);
-}
-
-bool AbilityConnectManager::IsAbilityConnected(const std::shared_ptr<AbilityRecord> &abilityRecord,
-    const std::list<std::shared_ptr<ConnectionRecord>> &connectRecordList)
-{
-    auto isMatch = [abilityRecord](auto connectRecord) -> bool {
-        if (abilityRecord == nullptr || connectRecord == nullptr) {
-            return false;
-        }
-        if (abilityRecord != connectRecord->GetAbilityRecord()) {
-            return false;
-        }
-        return true;
-    };
-    return std::any_of(connectRecordList.begin(), connectRecordList.end(), isMatch);
 }
 
 void AbilityConnectManager::RemoveConnectionRecordFromMap(std::shared_ptr<ConnectionRecord> connection)
@@ -3019,7 +3033,24 @@ void AbilityConnectManager::PrintTimeOutLog(const std::shared_ptr<AbilityRecord>
     if (!IsUIExtensionAbility(ability) && !ability->IsSceneBoard()) {
         info.needKillProcess = false;
     }
-    AppExecFwk::AppfreezeManager::GetInstance()->LifecycleTimeoutHandle(info);
+    FreezeUtil::TimeoutState state = TimeoutStateUtils::MsgId2FreezeTimeOutState(msgId);
+    FreezeUtil::LifecycleFlow flow;
+    if (state != FreezeUtil::TimeoutState::UNKNOWN) {
+        if (ability->GetToken() != nullptr) {
+            flow.token = ability->GetToken()->AsObject();
+            flow.state = state;
+        }
+        info.msg = msgContent + "\nserver actions for ability:\n" +
+            FreezeUtil::GetInstance().GetLifecycleEvent(flow.token)
+            + "\nserver actions for app:\n" + FreezeUtil::GetInstance().GetAppLifecycleEvent(processInfo.pid_);
+        if (!isHalf) {
+            FreezeUtil::GetInstance().DeleteLifecycleEvent(flow.token);
+            FreezeUtil::GetInstance().DeleteAppLifecycleEvent(processInfo.pid_);
+        }
+    } else {
+        info.msg = msgContent;
+    }
+    AppExecFwk::AppfreezeManager::GetInstance()->LifecycleTimeoutHandle(info, flow);
 }
 
 bool AbilityConnectManager::GetTimeoutMsgContent(uint32_t msgId, std::string &msgContent, int &typeId)

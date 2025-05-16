@@ -46,6 +46,7 @@ struct IntentRdbConfig {
 class IntentRdbOpenCallback : public NativeRdb::RdbOpenCallback {
 public:
     IntentRdbOpenCallback(const IntentRdbConfig &intentRdbConfig);
+    virtual ~IntentRdbOpenCallback() = default;
     int32_t OnCreate(NativeRdb::RdbStore &rdbStore) override;
     int32_t OnUpgrade(NativeRdb::RdbStore &rdbStore, int currentVersion, int targetVersion) override;
     int32_t OnDowngrade(NativeRdb::RdbStore &rdbStore, int currentVersion, int targetVersion) override;
@@ -63,8 +64,6 @@ private:
 class InsightIntentRdbDataMgr : public std::enable_shared_from_this<InsightIntentRdbDataMgr> {
     DECLARE_DELAYED_SINGLETON(InsightIntentRdbDataMgr)
 public:
-    bool InitIntentTable(const IntentRdbConfig &intentRdbConfig);
-
     bool InsertData(const std::string &key, const std::string &value);
 
     bool UpdateData(const std::string &key, const std::string &value);
