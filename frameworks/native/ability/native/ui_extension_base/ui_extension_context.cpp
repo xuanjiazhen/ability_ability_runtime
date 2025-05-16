@@ -26,6 +26,8 @@ namespace OHOS {
 namespace AbilityRuntime {
 const size_t UIExtensionContext::CONTEXT_TYPE_ID(std::hash<const char*> {} ("UIExtensionContext"));
 int UIExtensionContext::ILLEGAL_REQUEST_CODE(-1);
+constexpr const char* UIEXTENSION_TARGET_TYPE_KEY = "ability.want.params.uiExtensionTargetType";
+constexpr const char* FLAG_AUTH_READ_URI_PERMISSION = "ability.want.params.uriPermissionFlag";
 
 ErrCode UIExtensionContext::StartAbility(const AAFwk::Want &want) const
 {
