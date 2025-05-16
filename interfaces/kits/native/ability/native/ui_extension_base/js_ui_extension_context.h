@@ -102,8 +102,6 @@ private:
     void InitDisplayId(AAFwk::Want &want);
     void InitDisplayId(AAFwk::Want &want, AAFwk::StartOptions &startOptions, napi_env &env, NapiCallbackInfo& info);
 #endif
-    napi_value OnIsTerminating(napi_env env, NapiCallbackInfo& info);
-    napi_value OnStartAbilityByType(napi_env env, NapiCallbackInfo& info);
 };
 
 class JSUIExtensionConnection : public AbilityConnectCallback {

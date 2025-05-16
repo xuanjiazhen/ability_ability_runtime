@@ -72,11 +72,6 @@ public:
     static napi_value StartUIServiceExtension(napi_env env, napi_callback_info info);
     static napi_value ConnectUIServiceExtension(napi_env env, napi_callback_info info);
     static napi_value DisconnectUIServiceExtension(napi_env env, napi_callback_info info);
-
-    static napi_value SetColorMode(napi_env env, napi_callback_info info);
-    static napi_value StartUIServiceExtension(napi_env env, napi_callback_info info);
-    static napi_value ConnectUIServiceExtension(napi_env env, napi_callback_info info);
-    static napi_value DisconnectUIServiceExtension(napi_env env, napi_callback_info info);
 private:
     static void WrapJsUIAbilityContext(napi_env env, std::shared_ptr<AbilityContext> uiAbiContext,
         napi_value &objValue, int32_t screenMode);
