@@ -747,11 +747,6 @@ napi_value JsEmbeddableUIAbilityContext::CreateJsEmbeddableUIAbilityContext(napi
     BindNativeFunction(env, objValue, "setMissionIcon", moduleName, SetMissionIcon);
     BindNativeFunction(env, objValue, "moveAbilityToBackground", moduleName, MoveAbilityToBackground);
 #endif
-    BindNativeFunction(env, objValue, "setAbilityInstanceInfo", moduleName, SetAbilityInstanceInfo);
-    BindNativeFunction(env, objValue, "SetColorMode", moduleName, SetColorMode);
-    BindNativeFunction(env, objValue, "startUIServiceExtensionAbility", moduleName, StartUIServiceExtension);
-    BindNativeFunction(env, objValue, "connectUIServiceExtensionAbility", moduleName, ConnectUIServiceExtension);
-    BindNativeFunction(env, objValue, "disconnectUIServiceExtensionAbility", moduleName, DisconnectUIServiceExtension);
     return objValue;
 }
 
