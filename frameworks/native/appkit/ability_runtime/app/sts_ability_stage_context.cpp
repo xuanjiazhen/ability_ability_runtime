@@ -46,7 +46,7 @@ ani_object STSAbilityStageContext::CreateStsAbilityStageContext(ani_env* env, st
     ani_class abilityStageCtxCls;
     status = env->FindClass(STS_ABILITY_STAGE_CONTEXT_CLASS_NAME, &abilityStageCtxCls);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "call FindClass LAbilityStageContext failed, status:%{public}d", status);
+        TAG_LOGI (AAFwkTag::ABILITY, "find AbilityStageContext failed, status:%{public}d", status);
         return nullptr;
     }
 

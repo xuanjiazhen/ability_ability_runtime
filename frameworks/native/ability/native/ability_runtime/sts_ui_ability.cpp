@@ -187,7 +187,7 @@ void StsUIAbility::UpdateAbilityObj(
         return;
     }
     if ((status = env->Class_BindNativeMethods(stsAbilityObj_->aniCls, functions.data(), functions.size())) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+        TAG_LOGI(AAFwkTag::UIABILITY, "status : %{public}d", status);
     }
     auto callee = CreateEtsCallee(env);
     if ((status = env->Object_SetFieldByName_Ref(stsAbilityObj_->aniObj, "callee", callee)) != ANI_OK) {

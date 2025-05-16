@@ -41,7 +41,7 @@ void BindApplicationCtx(ani_env* aniEnv, ani_class contextClass, ani_object cont
     // bind parent context field:applicationContext
     ani_field applicationContextField;
     if (aniEnv->Class_FindField(contextClass, "applicationContext", &applicationContextField) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Class_FindField failed");
+        TAG_LOGI(AAFwkTag::APPKIT, "find applicationContext failed");
         return;
     }
     ani_ref applicationContextRef = reinterpret_cast<ani_ref>(applicationCtxRef);
