@@ -478,6 +478,7 @@ ohos_shared_library("cj_abilitykit_native_ffi") {
     ":abilitykit_native",
     ":continuation_ipc",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_path}/frameworks/cj/ffi/context:cj_context_ffi",
   ]

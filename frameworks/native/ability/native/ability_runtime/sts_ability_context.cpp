@@ -25,6 +25,7 @@
 #include "ability_manager_errors.h"
 #include "ability_business_error.h"
 #include "app_utils.h"
+#include "call_common_util.h"
 #include "event_handler.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
@@ -56,50 +57,6 @@ namespace {
     static std::once_flag g_bindNativeMethodsFlag;
 
 constexpr const char* UI_ABILITY_CONTEXT_CLASS_NAME = "Lapplication/UIAbilityContext/UIAbilityContext;";
-constexpr int32_t CALLER_TIME_OUT = 10; // 10s
-struct StartAbilityByCallData {
-    sptr<IRemoteObject> remoteCallee;
-    std::mutex mutexlock;
-    std::condition_variable condition;
-};
-
-void GenerateCallerCallBack(std::shared_ptr<StartAbilityByCallData> calls,
-    std::shared_ptr<CallerCallBack> callerCallBack)
-{
-    if (calls == nullptr || callerCallBack == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null calls or null callerCallBack");
-        return;
-    }
-    auto callBackDone = [weakData = std::weak_ptr<StartAbilityByCallData>(calls)] (const sptr<IRemoteObject> &obj) {
-        TAG_LOGI(AAFwkTag::UIABILITY, "callBackDone called start");
-        auto calldata = weakData.lock();
-        if (calldata == nullptr) {
-            TAG_LOGW(AAFwkTag::UIABILITY, "calldata released");
-            return;
-        }
-        std::lock_guard lock(calldata->mutexlock);
-        calldata->remoteCallee = obj;
-        calldata->condition.notify_all();
-    };
-
-    callerCallBack->SetCallBack(callBackDone);
-}
-
-void WaitForCalleeObj(std::shared_ptr<StartAbilityByCallData> callData)
-{
-    if (callData == nullptr) {
-        return;
-    }
-    if (callData->remoteCallee == nullptr) {
-        std::unique_lock lock(callData->mutexlock);
-        if (callData->remoteCallee != nullptr) {
-            return;
-        }
-        if (callData->condition.wait_for(lock, std::chrono::seconds(CALLER_TIME_OUT)) == std::cv_status::timeout) {
-            TAG_LOGE(AAFwkTag::UIABILITY, "callExecute waiting callee timeout");
-        }
-    }
-}
 }
 std::shared_ptr<AbilityContext> StsAbilityContext::GetAbilityContext(ani_env *env, ani_object aniObj)
 {
@@ -521,17 +478,18 @@ ani_object StsAbilityContext::StartAbilityByCall(ani_env *env, ani_object aniObj
     }
     auto callData = std::make_shared<StartAbilityByCallData>();
     auto callerCallBack = std::make_shared<CallerCallBack>();
-    GenerateCallerCallBack(callData, callerCallBack);
+    CallCommonUtil::GenerateCallerCallBack(callData, callerCallBack);
     auto ret = context->StartAbilityByCall(want, callerCallBack, -1);
     if (ret != 0) {
         TAG_LOGE(AAFwkTag::UIABILITY, "startAbility failed");
         ThrowStsErrorByNativeErr(env, ret);
         return nullptr;
     }
-    WaitForCalleeObj(callData);
+    CallCommonUtil::WaitForCalleeObj(callData);
 
     if (callData->remoteCallee == nullptr) {
         ThrowStsError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        context->ClearFailedCallConnection(callerCallBack);
         return nullptr;
     }
 

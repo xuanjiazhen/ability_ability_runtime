@@ -96,8 +96,6 @@ private:
 #endif
 
 private:
-    static void ClearFailedCallConnection(
-        const std::weak_ptr<AbilityContext>& abilityContext, const std::shared_ptr<CallerCallBack> &callback);
     napi_value OnStartAbility(napi_env env, NapiCallbackInfo& info, bool isStartRecent = false);
     napi_value OnOpenLink(napi_env env, NapiCallbackInfo& info);
     napi_value OnOpenLinkInner(napi_env env, const AAFwk::Want& want,
