@@ -738,9 +738,9 @@ napi_value JsEmbeddableUIAbilityContext::CreateJsEmbeddableUIAbilityContext(napi
     BindNativeFunction(env, objValue, "hideAbility", moduleName, HideAbility);
     BindNativeFunction(env, objValue, "setRestoreEnabled", moduleName, SetRestoreEnabled);
     BindNativeFunction(env, objValue, "setColorMode", moduleName, SetColorMode);
-    BindNativeFunction(env, objValue, "startUIServiceExtension", moduleName, StartUIServiceExtension);
-    BindNativeFunction(env, objValue, "connectUIServiceExtension", moduleName, ConnectUIServiceExtension);
-    BindNativeFunction(env, objValue, "disconnectUIServiceExtension", moduleName, DisconnectUIServiceExtension);
+    BindNativeFunction(env, objValue, "startUIServiceExtensionAbility", moduleName, StartUIServiceExtension);
+    BindNativeFunction(env, objValue, "connectUIServiceExtensionAbility", moduleName, ConnectUIServiceExtension);
+    BindNativeFunction(env, objValue, "disconnectUIServiceExtensionAbility", moduleName, DisconnectUIServiceExtension);
 
 #ifdef SUPPORT_GRAPHICS
     BindNativeFunction(env, objValue, "setMissionLabel", moduleName, SetMissionLabel);
