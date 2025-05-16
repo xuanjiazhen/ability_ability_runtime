@@ -26,6 +26,7 @@
 #include "want.h"
 #include "js_ui_extension_callback.h"
 #include "string_wrapper.h"
+#include "ui_content.h"
 #ifdef SUPPORT_SCREEN
 #include "window.h"
 #endif // SUPPORT_SCREEN
