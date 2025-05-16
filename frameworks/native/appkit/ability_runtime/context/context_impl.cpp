@@ -94,6 +94,7 @@ const int AREA4 = 4;
 ContextImpl::~ContextImpl()
 {
     UnsubscribeToOverlayEvents();
+    TAG_LOGD(AAFwkTag::APPKIT, "ContextImpl dctor resourceMgr use_count:%{public}ld", resourceManager_.use_count());
 }
 
 std::string ContextImpl::GetBundleName() const
@@ -593,6 +594,8 @@ std::shared_ptr<Global::Resource::ResourceManager> ContextImpl::CreateModuleReso
         if (resourceManager == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "null resourceManager");
         }
+        TAG_LOGD(AAFwkTag::APPKIT, "InitOthersResourceManagerInner resourceMgr use_count:%{public}ld",
+            resourceManager.use_count());       
         return resourceManager;
     }
 
@@ -603,6 +606,8 @@ std::shared_ptr<Global::Resource::ResourceManager> ContextImpl::CreateModuleReso
         return nullptr;
     }
     UpdateResConfig(GetResourceManager(), resourceManager);
+    TAG_LOGD(AAFwkTag::APPKIT, "CreateModuleResourceManager resourceMgr use_count:%{public}ld",
+        resourceManager.use_count());
     return resourceManager;
 }
 
