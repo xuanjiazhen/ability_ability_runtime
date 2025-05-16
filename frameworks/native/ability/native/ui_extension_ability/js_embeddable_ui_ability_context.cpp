@@ -236,31 +236,6 @@ napi_value JsEmbeddableUIAbilityContext::DisconnectUIServiceExtension(napi_env e
     GET_NAPI_INFO_AND_CALL(env, info, JsEmbeddableUIAbilityContext, OnDisconnectUIServiceExtension);
 }
 
-napi_value JsEmbeddableUIAbilityContext::SetAbilityInstanceInfo(napi_env env, napi_callback_info info)
-{
-    GET_NAPI_INFO_AND_CALL(env, info, JsEmbeddableUIAbilityContext, OnSetAbilityInstanceInfo);
-}
-
-napi_value JsEmbeddableUIAbilityContext::SetColorMode(napi_env env, napi_callback_info info)
-{
-    GET_NAPI_INFO_AND_CALL(env, info, JsEmbeddableUIAbilityContext, OnSetColorMode);
-}
-
-napi_value JsEmbeddableUIAbilityContext::StartUIServiceExtension(napi_env env, napi_callback_info info)
-{
-    GET_NAPI_INFO_AND_CALL(env, info, JsEmbeddableUIAbilityContext, OnStartUIServiceExtension);
-}
-
-napi_value JsEmbeddableUIAbilityContext::ConnectUIServiceExtension(napi_env env, napi_callback_info info)
-{
-    GET_NAPI_INFO_AND_CALL(env, info, JsEmbeddableUIAbilityContext, OnConnectUIServiceExtension);
-}
-
-napi_value JsEmbeddableUIAbilityContext::DisconnectUIServiceExtension(napi_env env, napi_callback_info info)
-{
-    GET_NAPI_INFO_AND_CALL(env, info, JsEmbeddableUIAbilityContext, OnDisconnectUIServiceExtension);
-}
-
 napi_value JsEmbeddableUIAbilityContext::OnStartAbility(napi_env env, NapiCallbackInfo& info)
 {
     if (IsEmbeddableStart(screenMode_)) {
