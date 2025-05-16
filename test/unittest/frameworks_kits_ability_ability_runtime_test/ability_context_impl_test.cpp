@@ -447,7 +447,33 @@ HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_ConnectAbility_0100, Funct
 {
     AAFwk::Want want;
     sptr<AbilityConnectCallback> connectCallback;
-    auto ret = context_->ConnectAbility(want, connectCallback);
+    auto ret = context_->ConnectAbility(want, connectCallback, AppExecFwk::ExtensionAbilityType::SERVICE);
+    EXPECT_NE(ret, 0);
+}
+
+/**
+ * @tc.number: Ability_Context_Impl_ConnectAbility_0100
+ * @tc.name: ConnectAbility
+ * @tc.desc: Connect Ability
+ */
+ HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_ConnectAbility_0100, Function | MediumTest | Level1)
+ {
+     AAFwk::Want want;
+     sptr<AbilityConnectCallback> connectCallback;
+     auto ret = context_->ConnectAbility(want, connectCallback, AppExecFwk::ExtensionAbilityType::UI_SERVICE);
+     EXPECT_NE(ret, 0);
+ }
+
+ /**
+ * @tc.number: Ability_Context_Impl_ConnectAbility_0100
+ * @tc.name: ConnectAbility
+ * @tc.desc: Connect Ability
+ */
+HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_ConnectAbility_0100, Function | MediumTest | Level1)
+{
+    AAFwk::Want want;
+    sptr<AbilityConnectCallback> connectCallback;
+    auto ret = context_->ConnectAbility(want, connectCallback, AppExecFwk::ExtensionAbilityType::APP_SERVICE);
     EXPECT_NE(ret, 0);
 }
 
@@ -1931,19 +1957,6 @@ HWTEST_F(AbilityContextImplTest, BackToCallerAbilityWithResult_0100, Function | 
     int64_t requestCode = 1;
     auto err =  context_->BackToCallerAbilityWithResult(want, resultCode, requestCode);
     EXPECT_EQ(err, 0);
-}
-
-/**
- * @tc.number: Ability_Context_Impl_ConnectUIServiceExtensionAbility_0100
- * @tc.name: CreateDisplayContext
- * @tc.desc: Verify that function ConnectUIServiceExtensionAbility.
- */
-HWTEST_F(AbilityContextImplTest, ConnectUIServiceExtensionAbility_0100, Function | MediumTest | Level1)
-{
-    AAFwk::Want want;
-    sptr<AbilityConnectCallback> connectCallback = nullptr;
-    auto result = context_->ConnectUIServiceExtensionAbility(want, connectCallback);
-    EXPECT_NE(result, ERR_OK);
 }
 
 /**

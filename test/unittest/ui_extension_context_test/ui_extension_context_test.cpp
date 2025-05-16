@@ -116,11 +116,29 @@ HWTEST_F(UIExtensionContextTest, ConnectAbility_0100, TestSize.Level1)
     auto context = std::make_shared<UIExtensionContext>();
     AAFwk::Want want;
     sptr<AbilityConnectCallback> connectCallback;
-    auto ret = context->ConnectAbility(want, connectCallback);
+    auto ret = context->ConnectAbility(want, connectCallback, AppExecFwk::ExtensionAbilityType::SERVICE);
     EXPECT_NE(ret, 0);
 
     TAG_LOGI(AAFwkTag::TEST, "ConnectAbility_0100 end");
 }
+
+/**
+ * @tc.number: ConnectAbility_0200
+ * @tc.name: ConnectAbility
+ * @tc.desc: Connect a ability.
+ */
+ HWTEST_F(UIExtensionContextTest, ConnectAbility_0200, TestSize.Level1)
+ {
+     TAG_LOGI(AAFwkTag::TEST, "ConnectAbility_0200 start");
+ 
+     auto context = std::make_shared<UIExtensionContext>();
+     AAFwk::Want want;
+     sptr<AbilityConnectCallback> connectCallback;
+     auto ret = context->ConnectAbility(want, connectCallback, AppExecFwk::ExtensionAbilityType::UI_SERVICE);
+     EXPECT_NE(ret, 0);
+ 
+     TAG_LOGI(AAFwkTag::TEST, "ConnectAbility_0100 end");
+ }
 
 /**
  * @tc.number: DisconnectAbility_0100

@@ -284,21 +284,11 @@ public:
     {
         return ERR_OK;
     }
-    virtual ErrCode ConnectUIServiceExtensionAbility(const AAFwk::Want& want,
-        const sptr<AbilityConnectCallback>& connectCallback)
-    {
-        return ERR_OK;
-    }
     virtual ErrCode StartAppServiceExtensionAbility(const AAFwk::Want &want)
     {
         return ERR_OK;
     }
     virtual ErrCode StopAppServiceExtensionAbility(const AAFwk::Want& want)
-    {
-        return ERR_OK;
-    }
-    virtual ErrCode ConnectAppServiceExtensionAbility(const AAFwk::Want& want,
-        const sptr<AbilityConnectCallback>& connectCallback)
     {
         return ERR_OK;
     }
