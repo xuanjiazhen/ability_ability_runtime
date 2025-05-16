@@ -780,17 +780,6 @@ napi_value JsEmbeddableUIAbilityContext::CreateJsEmbeddableUIAbilityContext(napi
     return objValue;
 }
 
-napi_value JsEmbeddableUIAbilityContext::OnSetAbilityInstanceInfo(napi_env env, NapiCallbackInfo& info)
-{
-    if (IsEmbeddableStart(screenMode_)) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "OnSetRestoreEnabled in half screen mode");
-        ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), ERR_MSG_NOT_SUPPORT);
-        return CreateJsUndefined(env);
-    }
-    CHECK_POINTER_RETURN(env, jsAbilityContext_);
-    return jsAbilityContext_->OnSetAbilityInstanceInfo(env, info);
-}
-
 napi_value JsEmbeddableUIAbilityContext::OnSetColorMode(napi_env env, NapiCallbackInfo& info)
 {
     if (IsEmbeddableStart(screenMode_)) {
