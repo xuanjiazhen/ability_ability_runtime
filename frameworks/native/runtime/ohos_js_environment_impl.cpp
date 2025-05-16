@@ -17,6 +17,7 @@
 
 #include "console.h"
 #include "hilog_tag_wrapper.h"
+#include "intl_addon.h"
 #include "js_utils.h"
 #include "js_worker.h"
 #include "ohos_loop_handler.h"
@@ -125,6 +126,15 @@ void OHOSJsEnvironmentImpl::InitTimerModule(NativeEngine* engine)
     auto ret = JsSysModule::Timer::RegisterTime(reinterpret_cast<napi_env>(engine));
     if (!ret) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "Register timer failed");
+    }
+}
+
+void OHOSJsEnvironmentImpl::InitIntlModule(NativeEngine* engine)
+{
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
+    auto ret = OHOS::Global::I18n::RegisterIntl(reinterpret_cast<napi_env>(engine));
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "ReplaceBuildinIntl: Register intl failed");
     }
 }
 

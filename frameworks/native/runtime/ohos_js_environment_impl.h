@@ -34,6 +34,8 @@ public:
 
     void InitTimerModule(NativeEngine* engine) override;
 
+    void InitIntlModule(NativeEngine* engine) override;
+
     void InitConsoleModule(NativeEngine* engine) override;
 
     bool InitLoop(NativeEngine* engine, bool isStage = true) override;
