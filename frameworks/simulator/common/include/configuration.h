@@ -31,6 +31,7 @@ namespace GlobalConfigurationKey {
 constexpr const char* SYSTEM_LANGUAGE = "ohos.system.language";
 constexpr const char* SYSTEM_HOUR = "ohos.system.hour";
 constexpr const char* SYSTEM_COLORMODE = "ohos.system.colorMode";
+constexpr const char* SYSTEM_SMART_GESTURE_SWITCH = "ohos.system.smartGesture";
 constexpr const char* INPUT_POINTER_DEVICE = "input.pointer.device";
 constexpr const char* DEVICE_TYPE = "const.build.characteristics";
 } // namespace GlobalConfigurationKey
@@ -50,6 +51,8 @@ constexpr const char* COLOR_MODE_DARK = "dark";
 constexpr const char* DEVICE_TYPE_DEFAULT = "default";
 constexpr const char* DIRECTION_VERTICAL = "vertical";
 constexpr const char* DIRECTION_HORIZONTAL = "horizontal";
+constexpr const char* SMART_GESTURE_AUTO = "auto";
+constexpr const char* SMART_GESTURE_DISABLE = "disable";
 };
 
 class Configuration {
