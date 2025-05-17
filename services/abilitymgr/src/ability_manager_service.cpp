@@ -3448,7 +3448,7 @@ int AbilityManagerService::CheckUIExtensionUsage(AppExecFwk::UIExtensionUsage ui
         return ERR_INVALID_VALUE;
     }
 
-    if (AAFwk::UIExtensionUtils::IsOnlyForModal(extensionType) && 
+    if (AAFwk::UIExtensionUtils::IsOnlyForModal(extensionType) &&
         uiExtensionUsage != UIExtensionUsage::MODAL) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "secureModal extension type error:%u.", extensionType);
         return ERR_INVALID_VALUE;
@@ -4905,7 +4905,7 @@ int AbilityManagerService::DisconnectLocalAbility(const sptr<IAbilityConnection>
     if (connectManager->DisconnectAbilityLocked(connect) == ERR_OK) {
         return ERR_OK;
     }
-    
+
     auto userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
     if (userId == U0_USER_ID || userId == U1_USER_ID) {
         auto connectManagers = GetConnectManagers();
@@ -11400,7 +11400,7 @@ int32_t AbilityManagerService::KillProcessWithReason(int32_t pid, const ExitReas
     if (ProcessLowMemoryKill(pid, reason)) {
         // if app is already starting, return
         TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}d is starting", pid);
-        return ERR_OK;
+        return ERR_KILL_APP_WHILE_STRATING;
     }
     CHECK_POINTER_AND_RETURN(appExitReasonHelper_, ERR_NULL_OBJECT);
     auto ret = appExitReasonHelper_->RecordProcessExitReason(pid, reason, true);
@@ -11686,20 +11686,20 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
     }
     AbilityRuntime::ExtractInsightIntentGenericInfo infos = GetInsightIntentGenericInfo(param);
     bool openLinkExecuteFlag = infos.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_LINK;
- 
+
     auto paramPtr = std::make_shared<InsightIntentExecuteParam>(param);
     int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateParam(key, callerToken,
         paramPtr, callerBundlename, openLinkExecuteFlag);
     if (ret != ERR_OK) {
         return ret;
     }
- 
+
     if (openLinkExecuteFlag) {
         return IntentOpenLinkInner(paramPtr, infos, -1);
     }
 
     Want want;
-    ret = InsightIntentExecuteManager::GenerateWant(paramPtr, want);
+    ret = InsightIntentExecuteManager::GenerateWant(paramPtr, infos, want);
     if (ret != ERR_OK) {
         return ret;
     }
@@ -12065,7 +12065,7 @@ void AbilityManagerService::OnStartProcessFailed(sptr<IRemoteObject> token)
     }
 }
 
-void AbilityManagerService::OnCacheExitInfo(uint32_t accessTokenId, const AAFwk::LastExitDetailInfo &exitInfo,
+void AbilityManagerService::OnCacheExitInfo(uint32_t accessTokenId, const AppExecFwk::RunningProcessInfo &exitInfo,
     const std::string &bundleName, const std::vector<std::string> &abilityNames,
     const std::vector<std::string> &uiExtensionNames)
 {
@@ -12550,7 +12550,7 @@ int32_t AbilityManagerService::RestartApp(const AAFwk::Want &want, bool isAppRec
     }
 
     result = SignRestartAppFlag(userId, callerUid, processInfo.instanceKey, processInfo.appMode, isAppRecovery);
-    if (result != ERR_OK) {
+    if (!isAppRecovery && result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "signRestartAppFlag error");
         return result;
     }
@@ -12604,7 +12604,7 @@ int32_t AbilityManagerService::SignRestartAppFlag(int32_t userId, int32_t uid, c
         return ERR_INVALID_VALUE;
     }
     auto ret = IN_PROCESS_CALL(appMgr->SignRestartAppFlag(uid, instanceKey));
-    if (ret != ERR_OK) {
+    if (!isAppRecovery && ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "appMgr signRestartAppFlag error");
         return ret;
     }
@@ -13955,7 +13955,7 @@ int32_t AbilityManagerService::KillProcessForPermissionUpdate(uint32_t accessTok
         uiAbilityManager->SetKillForPermissionUpdateFlag(accessTokenId);
     }
 
-    int32_t ret = 
+    int32_t ret =
         DelayedSingleton<AppScheduler>::GetInstance()->KillProcessesByAccessTokenId(accessTokenId);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "KillProcessesByAccessTokenId error");
