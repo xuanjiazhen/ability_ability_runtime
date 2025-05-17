@@ -54,7 +54,7 @@ HWTEST_F(StartupManagerMockTest, GetStartupConfigString_0100, Function | MediumT
     std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
     EXPECT_TRUE(startupManager != nullptr);
     ModuleStartupConfigInfo info(name, startupConfig, "", AppExecFwk::ModuleType::UNKNOWN, false);
-    int32_t ret = startupManager->GetStartupConfigString(info, config);
+    int32_t ret = AppStartupProfileParser::GetStartupConfigString(info, config);
     EXPECT_EQ(ret, ERR_STARTUP_CONFIG_PARSE_ERROR);
 }
 
