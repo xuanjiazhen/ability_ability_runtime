@@ -17,6 +17,7 @@
 
 #include "ability_manager_errors.h"
 #include "ability_manager_radar.h"
+#include "ability_manager_xcollie.h"
 #include "fd_guard.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
@@ -1017,6 +1018,7 @@ int32_t AbilityManagerStub::MoveUIAbilityToBackgroundInner(MessageParcel &data, 
 
 int AbilityManagerStub::TerminateAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     sptr<IRemoteObject> token = nullptr;
     if (data.ReadBool()) {
         token = data.ReadRemoteObject();
@@ -1056,6 +1058,7 @@ int AbilityManagerStub::BackToCallerInner(MessageParcel &data, MessageParcel &re
 
 int32_t AbilityManagerStub::TerminateUIServiceExtensionAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     sptr<IRemoteObject> token = nullptr;
     if (data.ReadBool()) {
         token = data.ReadRemoteObject();
@@ -1068,6 +1071,7 @@ int32_t AbilityManagerStub::TerminateUIServiceExtensionAbilityInner(MessageParce
 
 int AbilityManagerStub::TerminateUIExtensionAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     sptr<SessionInfo> extensionSessionInfo = nullptr;
     if (data.ReadBool()) {
         extensionSessionInfo = data.ReadParcelable<SessionInfo>();
@@ -1084,6 +1088,7 @@ int AbilityManagerStub::TerminateUIExtensionAbilityInner(MessageParcel &data, Me
 
 int32_t AbilityManagerStub::CloseUIExtensionAbilityBySCBInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     sptr<IRemoteObject> token = nullptr;
     if (data.ReadBool()) {
         token = data.ReadRemoteObject();
@@ -1113,6 +1118,7 @@ int AbilityManagerStub::SendResultToAbilityInner(MessageParcel &data, MessagePar
 
 int AbilityManagerStub::MinimizeAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     auto token = data.ReadRemoteObject();
     auto fromUser = data.ReadBool();
     int32_t result = MinimizeAbility(token, fromUser);
@@ -1122,6 +1128,7 @@ int AbilityManagerStub::MinimizeAbilityInner(MessageParcel &data, MessageParcel 
 
 int AbilityManagerStub::MinimizeUIExtensionAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     sptr<SessionInfo> extensionSessionInfo = nullptr;
     if (data.ReadBool()) {
         extensionSessionInfo = data.ReadParcelable<SessionInfo>();
@@ -1134,6 +1141,7 @@ int AbilityManagerStub::MinimizeUIExtensionAbilityInner(MessageParcel &data, Mes
 
 int AbilityManagerStub::MinimizeUIAbilityBySCBInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     sptr<SessionInfo> sessionInfo = nullptr;
     if (data.ReadBool()) {
         sessionInfo = data.ReadParcelable<SessionInfo>();
@@ -1147,6 +1155,7 @@ int AbilityManagerStub::MinimizeUIAbilityBySCBInner(MessageParcel &data, Message
 
 int AbilityManagerStub::AttachAbilityThreadInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     auto scheduler = iface_cast<IAbilityScheduler>(data.ReadRemoteObject());
     if (scheduler == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "scheduler null");
@@ -1160,6 +1169,7 @@ int AbilityManagerStub::AttachAbilityThreadInner(MessageParcel &data, MessagePar
 
 int AbilityManagerStub::AbilityTransitionDoneInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     auto token = data.ReadRemoteObject();
     int targetState = data.ReadInt32();
     std::unique_ptr<PacMap> saveData(data.ReadParcelable<PacMap>());
@@ -1299,6 +1309,7 @@ int32_t AbilityManagerStub::UpgradeAppInner(MessageParcel &data, MessageParcel &
 
 int AbilityManagerStub::StartAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
@@ -1313,6 +1324,7 @@ int AbilityManagerStub::StartAbilityInner(MessageParcel &data, MessageParcel &re
 
 int AbilityManagerStub::StartAbilityInnerSpecifyTokenId(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
@@ -1333,6 +1345,7 @@ int AbilityManagerStub::StartAbilityInnerSpecifyTokenId(MessageParcel &data, Mes
 
 int AbilityManagerStub::StartAbilityByUIContentSessionAddCallerInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     std::unique_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
@@ -1366,6 +1379,7 @@ int AbilityManagerStub::StartAbilityByUIContentSessionAddCallerInner(MessageParc
 
 int AbilityManagerStub::StartAbilityByUIContentSessionForOptionsInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     std::unique_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
@@ -1403,6 +1417,7 @@ int AbilityManagerStub::StartAbilityByUIContentSessionForOptionsInner(MessagePar
 
 int AbilityManagerStub::StartExtensionAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "want null");
@@ -1434,6 +1449,7 @@ int AbilityManagerStub::RequestModalUIExtensionInner(MessageParcel &data, Messag
 
 int AbilityManagerStub::PreloadUIExtensionAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
@@ -1449,6 +1465,7 @@ int AbilityManagerStub::PreloadUIExtensionAbilityInner(MessageParcel &data, Mess
 
 int AbilityManagerStub::ChangeAbilityVisibilityInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     sptr<IRemoteObject> token = data.ReadRemoteObject();
     if (!token) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "read token fail");
@@ -1466,6 +1483,7 @@ int AbilityManagerStub::ChangeAbilityVisibilityInner(MessageParcel &data, Messag
 
 int AbilityManagerStub::ChangeUIAbilityVisibilityBySCBInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     sptr<SessionInfo> sessionInfo = data.ReadParcelable<SessionInfo>();
     if (!sessionInfo) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "read sessionInfo fail");
@@ -1483,6 +1501,7 @@ int AbilityManagerStub::ChangeUIAbilityVisibilityBySCBInner(MessageParcel &data,
 
 int AbilityManagerStub::StartUIExtensionAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     sptr<SessionInfo> extensionSessionInfo = nullptr;
     if (data.ReadBool()) {
         extensionSessionInfo = data.ReadParcelable<SessionInfo>();
@@ -1503,6 +1522,7 @@ int AbilityManagerStub::StartUIExtensionAbilityInner(MessageParcel &data, Messag
 
 int AbilityManagerStub::StartUIExtensionAbilityEmbeddedInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     sptr<SessionInfo> extensionSessionInfo = nullptr;
     if (data.ReadBool()) {
         extensionSessionInfo = data.ReadParcelable<SessionInfo>();
@@ -1523,6 +1543,7 @@ int AbilityManagerStub::StartUIExtensionAbilityEmbeddedInner(MessageParcel &data
 
 int AbilityManagerStub::StartUIExtensionConstrainedEmbeddedInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     sptr<SessionInfo> extensionSessionInfo = nullptr;
     if (data.ReadBool()) {
         extensionSessionInfo = data.ReadParcelable<SessionInfo>();
@@ -1543,6 +1564,7 @@ int AbilityManagerStub::StartUIExtensionConstrainedEmbeddedInner(MessageParcel &
 
 int AbilityManagerStub::StopExtensionAbilityInner(MessageParcel& data, MessageParcel& reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null want");
@@ -1562,6 +1584,7 @@ int AbilityManagerStub::StopExtensionAbilityInner(MessageParcel& data, MessagePa
 
 int AbilityManagerStub::StartAbilityAddCallerInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
@@ -1582,6 +1605,7 @@ int AbilityManagerStub::StartAbilityAddCallerInner(MessageParcel &data, MessageP
 
 int AbilityManagerStub::StartAbilityAsCallerByTokenInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
@@ -1605,6 +1629,7 @@ int AbilityManagerStub::StartAbilityAsCallerByTokenInner(MessageParcel &data, Me
 
 int AbilityManagerStub::StartAbilityAsCallerForOptionInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
@@ -1634,6 +1659,7 @@ int AbilityManagerStub::StartAbilityAsCallerForOptionInner(MessageParcel &data, 
 
 int AbilityManagerStub::ConnectAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null want");
@@ -1655,6 +1681,7 @@ int AbilityManagerStub::ConnectAbilityInner(MessageParcel &data, MessageParcel &
 
 int AbilityManagerStub::ConnectAbilityWithTypeInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s, null want", __func__);
@@ -1678,6 +1705,7 @@ int AbilityManagerStub::ConnectAbilityWithTypeInner(MessageParcel &data, Message
 
 int AbilityManagerStub::ConnectUIExtensionAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s, null want", __func__);
@@ -1722,6 +1750,7 @@ int AbilityManagerStub::DisconnectAbilityInner(MessageParcel &data, MessageParce
 
 int AbilityManagerStub::StopServiceAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
@@ -1777,6 +1806,7 @@ int AbilityManagerStub::DumpStateInner(MessageParcel &data, MessageParcel &reply
 
 int AbilityManagerStub::StartAbilityForSettingsInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
@@ -1801,6 +1831,7 @@ int AbilityManagerStub::StartAbilityForSettingsInner(MessageParcel &data, Messag
 
 int AbilityManagerStub::StartAbilityForOptionsInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
@@ -1825,6 +1856,7 @@ int AbilityManagerStub::StartAbilityForOptionsInner(MessageParcel &data, Message
 
 int AbilityManagerStub::CloseUIAbilityBySCBInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     sptr<SessionInfo> sessionInfo = nullptr;
     if (data.ReadBool()) {
         sessionInfo = data.ReadParcelable<SessionInfo>();
@@ -2098,6 +2130,7 @@ int AbilityManagerStub::ContinueMissionOfBundleNameInner(MessageParcel &data, Me
 
 int AbilityManagerStub::ContinueAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     std::string deviceId = data.ReadString();
     int32_t missionId = data.ReadInt32();
     uint32_t versionCode = data.ReadUint32();
@@ -2109,6 +2142,7 @@ int AbilityManagerStub::ContinueAbilityInner(MessageParcel &data, MessageParcel 
 
 int AbilityManagerStub::StartContinuationInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     AAFWK::ContinueRadar::GetInstance().SaveDataRes("GetContentInfo");
     std::unique_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
@@ -2342,6 +2376,7 @@ int AbilityManagerStub::MoveMissionsToBackgroundInner(MessageParcel &data, Messa
 
 int AbilityManagerStub::StartAbilityByCallInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityManagerStub::StartAbilityByCallInner begin.");
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
@@ -2374,6 +2409,7 @@ int AbilityManagerStub::StartAbilityByCallInner(MessageParcel &data, MessageParc
 
 int AbilityManagerStub::StartUIAbilityBySCBInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     sptr<SessionInfo> sessionInfo = nullptr;
     if (data.ReadBool()) {
         sessionInfo = data.ReadParcelable<SessionInfo>();
@@ -2418,6 +2454,7 @@ int AbilityManagerStub::ReleaseCallInner(MessageParcel &data, MessageParcel &rep
 
 int AbilityManagerStub::StartUserInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     int32_t userId = data.ReadInt32();
     sptr<IUserCallback> callback = nullptr;
     if (data.ReadBool()) {
@@ -2437,6 +2474,7 @@ int AbilityManagerStub::StartUserInner(MessageParcel &data, MessageParcel &reply
 
 int AbilityManagerStub::StopUserInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     int32_t userId = data.ReadInt32();
     sptr<IUserCallback> callback = nullptr;
     if (data.ReadBool()) {
@@ -2452,6 +2490,7 @@ int AbilityManagerStub::StopUserInner(MessageParcel &data, MessageParcel &reply)
 
 int AbilityManagerStub::LogoutUserInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     int32_t userId = data.ReadInt32();
     sptr<IUserCallback> callback = nullptr;
     bool isWithCallback = data.ReadBool();
@@ -3336,6 +3375,7 @@ int AbilityManagerStub::VerifyPermissionInner(MessageParcel &data, MessageParcel
 
 int32_t AbilityManagerStub::ForceExitAppInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     int32_t pid = data.ReadInt32();
     std::unique_ptr<ExitReason> exitReason(data.ReadParcelable<ExitReason>());
     if (!exitReason) {
@@ -3412,6 +3452,7 @@ int AbilityManagerStub::SetRootSceneSessionInner(MessageParcel &data, MessagePar
 
 int AbilityManagerStub::CallUIAbilityBySCBInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call.");
     sptr<SessionInfo> sessionInfo = nullptr;
     if (data.ReadBool()) {
@@ -3425,6 +3466,7 @@ int AbilityManagerStub::CallUIAbilityBySCBInner(MessageParcel &data, MessageParc
 
 int32_t AbilityManagerStub::StartSpecifiedAbilityBySCBInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call.");
     std::unique_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
@@ -3437,6 +3479,7 @@ int32_t AbilityManagerStub::StartSpecifiedAbilityBySCBInner(MessageParcel &data,
 
 int AbilityManagerStub::NotifySaveAsResultInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     std::unique_ptr<Want> want(data.ReadParcelable<Want>());
     if (!want) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
@@ -3531,6 +3574,7 @@ int32_t AbilityManagerStub::KillProcessWithPrepareTerminateInner(MessageParcel &
 
 int32_t AbilityManagerStub::KillProcessWithReasonInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     int32_t pid = data.ReadInt32();
     std::unique_ptr<ExitReason> reason(data.ReadParcelable<ExitReason>());
     if (reason == nullptr) {
@@ -3724,6 +3768,7 @@ int32_t AbilityManagerStub::ExecuteIntentInner(MessageParcel &data, MessageParce
 
 int AbilityManagerStub::StartAbilityForResultAsCallerInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     std::unique_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
@@ -3743,6 +3788,7 @@ int AbilityManagerStub::StartAbilityForResultAsCallerInner(MessageParcel &data, 
 
 int AbilityManagerStub::StartAbilityForResultAsCallerForOptionsInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     std::unique_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
@@ -3767,6 +3813,7 @@ int AbilityManagerStub::StartAbilityForResultAsCallerForOptionsInner(MessageParc
 
 int32_t AbilityManagerStub::StartAbilityOnlyUIAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     std::unique_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
@@ -3787,6 +3834,7 @@ int32_t AbilityManagerStub::StartAbilityOnlyUIAbilityInner(MessageParcel &data, 
 
 int32_t AbilityManagerStub::StartAbilityByInsightIntentInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     std::unique_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
@@ -3962,6 +4010,7 @@ int32_t AbilityManagerStub::UpdateSessionInfoBySCBInner(MessageParcel &data, Mes
 
 int32_t AbilityManagerStub::RestartAppInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call.");
     std::unique_ptr<AAFwk::Want> want(data.ReadParcelable<AAFwk::Want>());
     if (want == nullptr) {
@@ -4164,6 +4213,7 @@ int32_t AbilityManagerStub::PreStartMissionInner(MessageParcel &data, MessagePar
 
 int32_t AbilityManagerStub::CleanUIAbilityBySCBInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     sptr<SessionInfo> sessionInfo = nullptr;
     if (data.ReadBool()) {
         sessionInfo = data.ReadParcelable<SessionInfo>();
@@ -4177,6 +4227,7 @@ int32_t AbilityManagerStub::CleanUIAbilityBySCBInner(MessageParcel &data, Messag
 
 int32_t AbilityManagerStub::OpenLinkInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     sptr<Want> want = data.ReadParcelable<Want>();
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
@@ -4368,6 +4419,7 @@ int32_t AbilityManagerStub::QueryAtomicServiceStartupRuleInner(MessageParcel &da
 
 int32_t AbilityManagerStub::StartSelfUIAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     sptr<Want> want = data.ReadParcelable<Want>();
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
@@ -4383,6 +4435,7 @@ int32_t AbilityManagerStub::StartSelfUIAbilityInner(MessageParcel &data, Message
 
 int32_t AbilityManagerStub::StartSelfUIAbilityWithStartOptionsInner(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     sptr<Want> want = data.ReadParcelable<Want>();
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");

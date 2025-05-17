@@ -17,6 +17,7 @@
 
 #include "ability_info.h"
 #include "ability_manager_errors.h"
+#include "ability_manager_xcollie.h"
 #include "app_jsheap_mem_info.h"
 #include "app_malloc_info.h"
 #include "app_mgr_proxy.h"
@@ -412,6 +413,7 @@ int32_t AppMgrStub::HandleAttachApplication(MessageParcel &data, MessageParcel &
 int32_t AppMgrStub::HandlePreloadApplication(MessageParcel &data, MessageParcel &reply)
 {
     HITRACE_METER(HITRACE_TAG_APP);
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     std::string bundleName = Str16ToStr8(data.ReadString16());
     int32_t userId = data.ReadInt32();
@@ -475,6 +477,7 @@ int32_t AppMgrStub::HandleGetAmsMgr(MessageParcel &data, MessageParcel &reply)
 int32_t AppMgrStub::HandleClearUpApplicationData(MessageParcel &data, MessageParcel &reply)
 {
     HITRACE_METER(HITRACE_TAG_APP);
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     std::string bundleName = data.ReadString();
     int32_t appCloneIndex = data.ReadInt32();
     int32_t userId = data.ReadInt32();
@@ -486,6 +489,7 @@ int32_t AppMgrStub::HandleClearUpApplicationData(MessageParcel &data, MessagePar
 int32_t AppMgrStub::HandleClearUpApplicationDataBySelf(MessageParcel &data, MessageParcel &reply)
 {
     HITRACE_METER(HITRACE_TAG_APP);
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     int32_t userId = data.ReadInt32();
     int32_t result = ClearUpApplicationDataBySelf(userId);
     reply.WriteInt32(result);
@@ -924,6 +928,7 @@ int32_t AppMgrStub::HandleGetAbilityRecordsByProcessID(MessageParcel &data, Mess
 
 int32_t AppMgrStub::HandlePreStartNWebSpawnProcess(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::APPMGR, "HandlePreNWebSpawnProcess");
     int32_t result = PreStartNWebSpawnProcess();
     if (!reply.WriteInt32(result)) {
@@ -935,6 +940,7 @@ int32_t AppMgrStub::HandlePreStartNWebSpawnProcess(MessageParcel &data, MessageP
 
 int32_t AppMgrStub::HandleStartRenderProcess(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     std::string renderParam = data.ReadString();
     int32_t ipcFd = data.ReadFileDescriptor();
     int32_t sharedFd = data.ReadFileDescriptor();
@@ -1462,6 +1468,7 @@ int32_t AppMgrStub::HandleIsAppRunningByBundleNameAndUserId(MessageParcel &data,
 #ifdef SUPPORT_CHILD_PROCESS
 int32_t AppMgrStub::HandleStartChildProcess(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     std::unique_ptr<ChildProcessRequest> request(data.ReadParcelable<ChildProcessRequest>());
     if (!request) {
@@ -1765,6 +1772,7 @@ int32_t AppMgrStub::HandleCheckCallingIsUserTestMode(MessageParcel &data, Messag
 #ifdef SUPPORT_CHILD_PROCESS
 int32_t AppMgrStub::HandleStartNativeChildProcess(MessageParcel &data, MessageParcel &reply)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     std::string libName = data.ReadString();
     int32_t childCount = data.ReadInt32();

@@ -5365,7 +5365,7 @@ int AbilityManagerService::GetPendingWantUserId(const sptr<IWantSender> &target)
 std::string AbilityManagerService::GetPendingWantBundleName(const sptr<IWantSender> &target)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
-    AbilityManagerXCollie abilityManagerXCollie("AbilityManagerService::GetPendingWantBundleName");
+    XCOLLIE_TIMER_DEFAULT(__PRETTY_FUNCTION__);
     auto pendingWantManager = GetCurrentPendingWantManager();
     CHECK_POINTER_AND_RETURN(pendingWantManager, "");
     CHECK_POINTER_AND_RETURN(target, "");
@@ -5387,7 +5387,7 @@ int AbilityManagerService::GetPendingWantCode(const sptr<IWantSender> &target)
 int AbilityManagerService::GetPendingWantType(const sptr<IWantSender> &target)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
-    AbilityManagerXCollie abilityManagerXCollie("AbilityManagerService::GetPendingWantType");
+    XCOLLIE_TIMER_DEFAULT(__PRETTY_FUNCTION__);
     auto pendingWantManager = GetCurrentPendingWantManager();
     CHECK_POINTER_AND_RETURN(pendingWantManager, -1);
     if (target == nullptr) {
@@ -5423,7 +5423,7 @@ int AbilityManagerService::GetPendingRequestWant(const sptr<IWantSender> &target
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Get pending request want.");
-    AbilityManagerXCollie abilityManagerXCollie("AbilityManagerService::GetPendingRequestWant");
+    XCOLLIE_TIMER_DEFAULT(__PRETTY_FUNCTION__);
     auto pendingWantManager = GetCurrentPendingWantManager();
     CHECK_POINTER_AND_RETURN(pendingWantManager, ERR_INVALID_VALUE);
     CHECK_POINTER_AND_RETURN(target, ERR_INVALID_VALUE);
