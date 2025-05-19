@@ -1382,7 +1382,8 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
     abilityRequest.want.RemoveParam(PARAM_SPECIFIED_PROCESS_FLAG);
     // sceneboard
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        ReportEventToRSS(abilityInfo, abilityRequest.callerToken);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "-----wzb----- startAbilityInner  old   1");
+        // ReportEventToRSS(abilityInfo, abilityRequest.callerToken);
         abilityRequest.userId = oriValidUserId;
         abilityRequest.want.SetParam(ServerConstant::IS_CALL_BY_SCB, false);
         // other sa or shell can not use continueSessionId and persistentId
@@ -1420,7 +1421,8 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
     }
 
     ReportAbilityStartInfoToRSS(abilityInfo);
-    ReportEventToRSS(abilityInfo, callerToken);
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----wzb----- startAbilityInner(lanQu)  old   2  lan");
+    // ReportEventToRSS(abilityInfo, callerToken);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "start ability, name is %{public}s", abilityInfo.name.c_str());
     return missionListManager->StartAbility(abilityRequest);
 }
@@ -1456,7 +1458,8 @@ int AbilityManagerService::StartAbilityByConnectManager(const Want& want, const 
         return ERR_INVALID_VALUE;
     }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "start service or extension, name is %{public}s", abilityInfo.name.c_str());
-    ReportEventToRSS(abilityInfo, callerToken);
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----wzb----- StartAbilityByConnectManager  old   3");
+    // ReportEventToRSS(abilityInfo, callerToken);
     InsightIntentExecuteParam::RemoveInsightIntent(const_cast<Want &>(want));
     return connectManager->StartAbility(abilityRequest);
 }
@@ -2284,7 +2287,8 @@ int32_t AbilityManagerService::RequestDialogServiceInner(const Want &want, const
     }
     TAG_LOGD(AAFwkTag::ABILITYMGR,
         "request dialog service, start service extension,name is %{public}s.", abilityInfo.name.c_str());
-    ReportEventToRSS(abilityInfo, callerToken);
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----wzb----- RequestDialogServiceInner  old   4");
+    // ReportEventToRSS(abilityInfo, callerToken);
     return connectManager->StartAbility(abilityRequest);
 }
 
@@ -2925,21 +2929,21 @@ void AbilityManagerService::ReportAbilityAssociatedStartInfoToRSS(
     ResSchedUtil::GetInstance().ReportAbilityAssociatedStartInfoToRSS(abilityInfo, type, callerUid, callerPid);
 }
 
-void AbilityManagerService::ReportEventToRSS(const AppExecFwk::AbilityInfo &abilityInfo,
-    sptr<IRemoteObject> callerToken)
-{
-    CHECK_POINTER_LOG(taskHandler_, "taskhandler null");
-    std::string reason = ResSchedUtil::GetInstance().GetThawReasonByAbilityType(abilityInfo);
-    const auto uid = abilityInfo.applicationInfo.uid;
-    const auto bundleName = abilityInfo.applicationInfo.bundleName;
-    auto callerAbility = Token::GetAbilityRecordByToken(callerToken);
-    const int32_t callerPid = (callerAbility != nullptr) ? callerAbility->GetPid() : IPCSkeleton::GetCallingPid();
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}d_%{public}s reason=%{public}s callerPid=%{public}d", uid,
-        bundleName.c_str(), reason.c_str(), callerPid);
-    taskHandler_->SubmitTask([reason, uid, bundleName, callerPid]() {
-        ResSchedUtil::GetInstance().ReportEventToRSS(uid, bundleName, reason, -1, callerPid);
-    });
-}
+// void AbilityManagerService::ReportEventToRSS(const AppExecFwk::AbilityInfo &abilityInfo,
+//     sptr<IRemoteObject> callerToken)
+// {
+//     CHECK_POINTER_LOG(taskHandler_, "taskhandler null");
+//     std::string reason = ResSchedUtil::GetInstance().GetThawReasonByAbilityType(abilityInfo);
+//     const auto uid = abilityInfo.applicationInfo.uid;
+//     const auto bundleName = abilityInfo.applicationInfo.bundleName;
+//     auto callerAbility = Token::GetAbilityRecordByToken(callerToken);
+//     const int32_t callerPid = (callerAbility != nullptr) ? callerAbility->GetPid() : IPCSkeleton::GetCallingPid();
+//     TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}d_%{public}s reason=%{public}s callerPid=%{public}d", uid,
+//         bundleName.c_str(), reason.c_str(), callerPid);
+//     taskHandler_->SubmitTask([reason, uid, bundleName, callerPid]() {
+//         ResSchedUtil::GetInstance().ReportEventToRSS(uid, bundleName, reason, -1, callerPid);
+//     });
+// }
 
 void AbilityManagerService::ReportAppConnectOtherExtensionEvent(const AppExecFwk::AbilityInfo &abilityInfo,
     const Want &want)
@@ -3637,7 +3641,8 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
         SendExtensionReport(eventInfo, CONNECT_MAMAGER_NOT_FIND_BY_USERID);
         return ERR_INVALID_VALUE;
     }
-    ReportEventToRSS(abilityRequest.abilityInfo, abilityRequest.callerToken);
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----wzb----- StartUIExtensionAbility  old   5");
+    // ReportEventToRSS(abilityRequest.abilityInfo, abilityRequest.callerToken);
     TAG_LOGD(AAFwkTag::UI_EXT, "name:%{public}s", abilityInfo.name.c_str());
 #ifdef SUPPORT_GRAPHICS
     // for implicit system selector modal dialog
@@ -4852,10 +4857,11 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
     }
 
     SetAbilityRequestSessionInfo(abilityRequest, targetExtensionType);
-    if (!ResSchedUtil::GetInstance().NeedReportByPidWhenConnect(abilityInfo)) {
-        // these extension type is reported in connectManager instead of here
-        ReportEventToRSS(abilityInfo, callerToken);
-    }
+    //if (!ResSchedUtil::GetInstance().NeedReportByPidWhenConnect(abilityInfo)) {
+        // // these extension type is reported in connectManager instead of here
+        // ReportEventToRSS(abilityInfo, callerToken);
+    // }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----wzb----- ConnectLocalAbility  old   6");
     return connectManager->ConnectAbilityLocked(abilityRequest, connect, callerToken, sessionInfo, connectInfo);
 }
 
@@ -5827,7 +5833,8 @@ sptr<IAbilityScheduler> AbilityManagerService::AcquireDataAbility(
 
     std::shared_ptr<DataAbilityManager> dataAbilityManager = GetDataAbilityManagerByUserId(userId);
     CHECK_POINTER_AND_RETURN(dataAbilityManager, nullptr);
-    ReportEventToRSS(abilityRequest.abilityInfo, callerToken);
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----wzb----- AcquireDataAbility  old   7");
+    // ReportEventToRSS(abilityRequest.abilityInfo, callerToken);
     bool isNotHap = isSaCall || isShellCall;
     UpdateCallerInfoUtil::GetInstance().UpdateCallerInfo(abilityRequest.want, callerToken);
     return dataAbilityManager->Acquire(abilityRequest, tryBind, callerToken, isNotHap);
@@ -8142,7 +8149,8 @@ int AbilityManagerService::StartAbilityByCallWithErrMsg(const Want &want, const 
 
     RemoveUnauthorizedLaunchReasonMessage(want, abilityRequest, callerToken);
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        ReportEventToRSS(abilityRequest.abilityInfo, callerToken);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "-----wzb----- StartAbilityByCallWithErrMsg  old   8");
+        // ReportEventToRSS(abilityRequest.abilityInfo, callerToken);
         abilityRequest.want.SetParam(ServerConstant::IS_CALL_BY_SCB, false);
         auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
         if (uiAbilityManager == nullptr) {
@@ -8159,7 +8167,8 @@ int AbilityManagerService::StartAbilityByCallWithErrMsg(const Want &want, const 
         errMsg = "userId is not invalid";
         return ERR_INVALID_VALUE;
     }
-    ReportEventToRSS(abilityRequest.abilityInfo, callerToken);
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----wzb----- StartAbilityByCallWithErrMsg  old   9  lan");
+    // ReportEventToRSS(abilityRequest.abilityInfo, callerToken);
 
     return missionListMgr->ResolveLocked(abilityRequest);
 }
@@ -8170,7 +8179,8 @@ int AbilityManagerService::StartAbilityJust(AbilityRequest &abilityRequest, int3
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     UpdateCallerInfoUtil::GetInstance().UpdateCallerInfo(abilityRequest.want, abilityRequest.callerToken);
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        ReportEventToRSS(abilityRequest.abilityInfo, abilityRequest.callerToken);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "-----wzb----- StartAbilityJust  old   10");
+        // ReportEventToRSS(abilityRequest.abilityInfo, abilityRequest.callerToken);
         auto uiAbilityManager = GetUIAbilityManagerByUserId(validUserId);
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
         std::string errMsg;
@@ -8182,7 +8192,8 @@ int AbilityManagerService::StartAbilityJust(AbilityRequest &abilityRequest, int3
         TAG_LOGE(AAFwkTag::ABILITYMGR, "missionListMgr null designated userId=%{public}d", validUserId);
         return ERR_INVALID_VALUE;
     }
-    ReportEventToRSS(abilityRequest.abilityInfo, abilityRequest.callerToken);
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----wzb----- StartAbilityJust  old   11   lan");
+    // ReportEventToRSS(abilityRequest.abilityInfo, abilityRequest.callerToken);
 
     return missionListMgr->ResolveLocked(abilityRequest);
 }

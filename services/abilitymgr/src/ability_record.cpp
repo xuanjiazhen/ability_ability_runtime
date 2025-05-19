@@ -337,6 +337,7 @@ void AbilityRecord::LoadUIAbility()
 
 int AbilityRecord::LoadAbility(bool isShellCall)
 {
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----wzb-----AbilityRecord::LoadAbility called   ---?");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "LoadLifecycle: abilityName:%{public}s", abilityInfo_.name.c_str());
     startTime_ = AbilityUtil::SystemTimeMillis();
@@ -470,6 +471,7 @@ void AbilityRecord::ForegroundUIExtensionAbility(uint32_t sceneFlag)
 
 void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, uint32_t sceneFlag, bool isShellCall)
 {
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----wzb-----ProcessForegroundAbility ----start--1");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::string element = GetElementName().GetURI();
     TAG_LOGD(AAFwkTag::ABILITYMGR, "ability record: %{public}s", element.c_str());
@@ -491,12 +493,22 @@ void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, uint32_t sceneFla
             lifeCycleStateInfo_.sceneFlagBak = sceneFlag;
             std::string bundleName = GetAbilityInfo().bundleName;
             int32_t uid = GetUid();
-            ResSchedUtil::GetInstance().ReportEventToRSS(uid, bundleName, "THAW_BY_FOREGROUND_ABILITY");
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "-----wzb-----AbilityRecord::ProcessForegroundAbility ----new---1--8--10");
+            auto pid = GetPid();
+            if (pid > 0) {
+                auto callerPid = GetCallerRecord() ? GetCallerRecord()->GetPid() : -1;
+                TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}d_%{public}s_%{public}d callerPid=%{public}d", uid,
+        bundleName.c_str(), pid, callerPid);
+                ResSchedUtil::GetInstance().ReportEventToRSS(uid, bundleName, "THAW_BY_FOREGROUND_ABILITY", pid,
+                    callerPid);
+            }
+
             SetAbilityStateInner(AbilityState::FOREGROUNDING);
             DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(token_);
         }
     } else {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "To load ability.");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "-----wzb-----AbilityRecord::ProcessForegroundAbility --LoadAbility--new---1--8--10");
         lifeCycleStateInfo_.sceneFlagBak = sceneFlag;
         LoadAbility(isShellCall);
     }

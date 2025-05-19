@@ -92,6 +92,8 @@ sptr<IAbilityScheduler> DataAbilityManager::Acquire(
         return nullptr;
     }
 
+    TAG_LOGE(AAFwkTag::DATA_ABILITY, "-----wzb----- DataAbilityManager::Acquire  NEW   7");
+    ReportEventToRSS(abilityRequest.abilityInfo, dataAbilityRecord->GetAbilityRecord());
     auto scheduler = dataAbilityRecord->GetScheduler();
     if (!scheduler) {
         if (DEBUG_ENABLED) {
@@ -116,6 +118,23 @@ sptr<IAbilityScheduler> DataAbilityManager::Acquire(
     ReportDataAbilityAcquired(client, isNotHap, dataAbilityRecord);
 
     return scheduler;
+}
+
+void DataAbilityManager::ReportEventToRSS(const AppExecFwk::AbilityInfo &abilityInfo,
+    const std::shared_ptr<AbilityRecord> abilityRecord)
+{
+    if (abilityRecord == nullptr || abilityRecord->GetPid() <= 0) {
+        return;
+    }
+
+    std::string reason = ResSchedUtil::GetInstance().GetThawReasonByAbilityType(abilityInfo);
+    const int32_t uid = abilityInfo.applicationInfo.uid;
+    const std::string bundleName = abilityInfo.applicationInfo.bundleName;
+    const int32_t pid = abilityRecord->GetPid();
+    const int32_t callerPid = abilityRecord->GetCallerRecord()? abilityRecord->GetCallerRecord()->GetPid() : -1;
+    TAG_LOGD(AAFwkTag::DATA_ABILITY, "%{public}d_%{public}s_%{public}d reason=%{public}s callerPid=%{public}d", uid,
+        bundleName.c_str(), pid, reason.c_str(), callerPid);
+    ResSchedUtil::GetInstance().ReportEventToRSS(uid, bundleName, reason, pid, callerPid);
 }
 
 int DataAbilityManager::Release(

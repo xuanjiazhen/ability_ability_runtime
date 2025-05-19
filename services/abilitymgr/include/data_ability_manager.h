@@ -26,6 +26,7 @@
 #include "ability_running_info.h"
 #include "data_ability_record.h"
 #include "nocopyable.h"
+#include "res_sched_util.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -66,6 +67,8 @@ private:
         std::shared_ptr<DataAbilityRecord> &record);
     void DumpClientInfo(std::vector<std::string> &info, bool isClient,
         std::shared_ptr<DataAbilityRecord> dataAbilityRecord) const;
+    void ReportEventToRSS(const AppExecFwk::AbilityInfo &abilityInfo,
+        const std::shared_ptr<AbilityRecord> abilityRecord);
 private:
     mutable ffrt::mutex mutex_;
     DataAbilityRecordPtrMap dataAbilityRecordsLoaded_;

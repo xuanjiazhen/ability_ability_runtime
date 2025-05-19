@@ -2332,7 +2332,7 @@ private:
     void ReportAbilityAssociatedStartInfoToRSS(const AppExecFwk::AbilityInfo &abilityInfo, int64_t type,
         const sptr<IRemoteObject> &callerToken);
 
-    void ReportEventToRSS(const AppExecFwk::AbilityInfo &abilityInfo, sptr<IRemoteObject> callerToken);
+    // void ReportEventToRSS(const AppExecFwk::AbilityInfo &abilityInfo, sptr<IRemoteObject> callerToken);
 
     void ReportAppConnectOtherExtensionEvent(const AppExecFwk::AbilityInfo &abilityInfo, const Want &want);
 
