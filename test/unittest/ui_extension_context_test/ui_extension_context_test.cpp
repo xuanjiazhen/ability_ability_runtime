@@ -736,7 +736,7 @@ HWTEST_F(UIExtensionContextTest, StartAbilityByType_0200, TestSize.Level1)
     std::shared_ptr<JsUIExtensionCallback> uiExtensionCallbacks = std::make_shared<JsUIExtensionCallback>(env);
 
     auto context = std::make_shared<UIExtensionContext>();
-    context.SetWindow(nullptr);
+    context->SetWindow(nullptr);
     auto result = context->StartAbilityByType(type, wantParam, uiExtensionCallbacks);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
 
@@ -759,7 +759,7 @@ HWTEST_F(UIExtensionContextTest, StartAbilityByType_0300, TestSize.Level1)
     sptr<Rosen::Window> window = new MockWindow();
 
     auto context = std::make_shared<UIExtensionContext>();
-    context.SetWindow(window);
+    context->SetWindow(window);
     auto result = context->StartAbilityByType(type, wantParam, uiExtensionCallbacks);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
 
@@ -784,7 +784,7 @@ HWTEST_F(UIExtensionContextTest, StartAbilityByType_0400, TestSize.Level1)
     sptr<Rosen::Window> window = new MockWindow();
 
     auto context = std::make_shared<UIExtensionContext>();
-    context.SetWindow(window);
+    context->SetWindow(window);
     auto result = context->StartAbilityByType(type, wantParam, uiExtensionCallbacks);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
 
