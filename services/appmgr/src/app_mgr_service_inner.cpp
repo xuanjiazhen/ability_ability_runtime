@@ -2531,6 +2531,30 @@ int32_t AppMgrServiceInner::NotifyProcMemoryLevel(const std::map<pid_t, MemoryLe
         return ERR_INVALID_VALUE;
     }
 
+    auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
+    bool isDevelopMode = system::GetBoolParameter(DEVELOPER_MODE_STATE,false);
+    if (!isShellCall) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not shell call");
+        return ERR_PERMISSION_DENIED;
+    }
+    if (!isDevelopMode) {
+        TAG_LOGE(AAFwkTag::APPMGR, "developer mode false");
+        return AAFwk::ERR_NOT_DEVELOPER_MODE;
+    }
+
+    for (const auto& iter : procLevelMap){
+        if (iter.first < 0) {
+            TAG_LOGE(AAFwkTag::APPMGR, "pid illegal");
+            return ERR_INVALID_VALUE;
+        }
+        if (!(iter.second == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_MODERATE ||
+            iter.second == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_CRITICAL ||
+            iter.second == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_LOW)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "level value error. Valid values: 0-2 (0: Moderate, 1: Low, 2: Critical)");
+            return ERR_INVALID_VALUE;
+        }
+    }
+
     return appRunningManager_->NotifyProcMemoryLevel(procLevelMap);
 }
 
