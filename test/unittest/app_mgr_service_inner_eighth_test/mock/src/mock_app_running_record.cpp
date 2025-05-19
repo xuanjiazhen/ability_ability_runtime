@@ -528,6 +528,9 @@ void AppRunningRecord::SetProcessAndExtensionType(
 {
 }
 
+void AppRunningRecord::SetStartupTaskData(const AAFwk::Want &want)
+{}
+
 void AppRunningRecord::SetSpecifiedAbilityFlagAndWant(
     int requestId, const AAFwk::Want &want, const std::string &moduleName)
 {
@@ -865,7 +868,7 @@ std::shared_ptr<AppRunningRecord> AppRunningRecord::GetParentAppRecord()
     return parentAppRecord_.lock();
 }
 
-int32_t AppRunningRecord::ChangeAppGcState(int32_t state)
+int32_t AppRunningRecord::ChangeAppGcState(int32_t state, uint64_t tid)
 {
     return AAFwk::MyStatus::GetInstance().changeAppGcState_;
 }
@@ -1238,7 +1241,7 @@ void AppRunningRecord::UnSetPolicy()
 {
 }
 
-uint32_t AppRunningRecord::GetAddStageTimeout() const
+int32_t AppRunningRecord::GetAddStageTimeout() const
 {
     return 0;
 }
@@ -1246,6 +1249,16 @@ uint32_t AppRunningRecord::GetAddStageTimeout() const
 void AppRunningRecord::SetDebugFromLocal(bool isDebugFromLocal)
 {
     isDebugFromLocal_ = isDebugFromLocal;
+}
+
+std::optional<bool> AppRunningRecord::IsSupportMultiProcessDeviceFeature() const
+{
+    return supportMultiProcessDeviceFeature_;
+}
+
+void AppRunningRecord::SetSupportMultiProcessDeviceFeature(bool support)
+{
+    supportMultiProcessDeviceFeature_ = support;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
