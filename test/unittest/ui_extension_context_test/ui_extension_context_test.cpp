@@ -715,7 +715,7 @@ HWTEST_F(UIExtensionContextTest, StartAbilityByType_0100, TestSize.Level1)
     std::shared_ptr<JsUIExtensionCallback> uiExtensionCallbacks{nullptr};
 
     auto context = std::make_shared<UIExtensionContext>();
-    auto result = context.StartAbilityByType(type, wantParam, uiExtensionCallbacks);
+    auto result = context->StartAbilityByType(type, wantParam, uiExtensionCallbacks);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
 
     TAG_LOGI(AAFwkTag::TEST, "StartAbilityByType_0100 end");
@@ -726,7 +726,7 @@ HWTEST_F(UIExtensionContextTest, StartAbilityByType_0100, TestSize.Level1)
   * @tc.name: UIExtensionContext StartAbilityByType
   * @tc.desc: UIExtensionContext StartAbilityByType.
   */
-HWTEST_F(UIServiceExtensionTest, StartAbilityByType_0200, TestSize.Level1)
+HWTEST_F(UIExtensionContextTest, StartAbilityByType_0200, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "StartAbilityByType_0200 start");
 
@@ -737,7 +737,7 @@ HWTEST_F(UIServiceExtensionTest, StartAbilityByType_0200, TestSize.Level1)
 
     auto context = std::make_shared<UIExtensionContext>();
     context.SetWindow(nullptr);
-    auto result = context.StartAbilityByType(type, wantParam, uiExtensionCallbacks);
+    auto result = context->StartAbilityByType(type, wantParam, uiExtensionCallbacks);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
 
     TAG_LOGI(AAFwkTag::TEST, "StartAbilityByType_0200 end");
@@ -748,7 +748,7 @@ HWTEST_F(UIServiceExtensionTest, StartAbilityByType_0200, TestSize.Level1)
   * @tc.name: UIExtensionContext StartAbilityByType
   * @tc.desc: UIExtensionContext StartAbilityByType.
   */
-HWTEST_F(UIServiceExtensionTest, StartAbilityByType_0300, TestSize.Level1)
+HWTEST_F(UIExtensionContextTest, StartAbilityByType_0300, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "StartAbilityByType_0300 start");
 
@@ -760,7 +760,7 @@ HWTEST_F(UIServiceExtensionTest, StartAbilityByType_0300, TestSize.Level1)
 
     auto context = std::make_shared<UIExtensionContext>();
     context.SetWindow(window);
-    auto result = context.StartAbilityByType(type, wantParam, uiExtensionCallbacks);
+    auto result = context->StartAbilityByType(type, wantParam, uiExtensionCallbacks);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
 
     TAG_LOGI(AAFwkTag::TEST, "StartAbilityByType_0300 end");
@@ -771,7 +771,7 @@ HWTEST_F(UIServiceExtensionTest, StartAbilityByType_0300, TestSize.Level1)
   * @tc.name: UIExtensionContext StartAbilityByType
   * @tc.desc: UIExtensionContext StartAbilityByType.
   */
-HWTEST_F(UIServiceExtensionTest, StartAbilityByType_0400, TestSize.Level1)
+HWTEST_F(UIExtensionContextTest, StartAbilityByType_0400, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "StartAbilityByType_0400 start");
 
@@ -785,7 +785,7 @@ HWTEST_F(UIServiceExtensionTest, StartAbilityByType_0400, TestSize.Level1)
 
     auto context = std::make_shared<UIExtensionContext>();
     context.SetWindow(window);
-    auto result = context.StartAbilityByType(type, wantParam, uiExtensionCallbacks);
+    auto result = context->StartAbilityByType(type, wantParam, uiExtensionCallbacks);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
 
     TAG_LOGI(AAFwkTag::TEST, "StartAbilityByType_0400 end");
