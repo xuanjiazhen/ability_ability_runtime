@@ -26,6 +26,8 @@ import { Caller } from '@ohos.app.ability.UIAbility';
 import { HapModuleInfo } from 'bundleManager.HapModuleInfo';
 import AsyncCallbackWrapper from '../utils/AbilityUtils';
 import OpenLinkOptions from '@ohos.app.ability.OpenLinkOptions';
+import { LocalStorage } from '@ohos.arkui.stateManagement';
+import AbilityConstant from '@ohos.app.ability.AbilityConstant';
 
 export default class UIAbilityContext extends Context {
   static {
@@ -57,6 +59,11 @@ export default class UIAbilityContext extends Context {
   private native nativeStartServiceExtensionAbilitySync(want: Want, callback: AsyncCallbackWrapper<void>): void;
   private native nativeStartAbilityByCallSync(want: Want): Caller;
   private native nativeOpenLinkSync(link: string, myCallback:AsyncCallbackWrapper<void>, options?: OpenLinkOptions, callback?: AsyncCallbackWrapper<AbilityResult>): void;
+  private native nativeRestoreWindowStage(localStorage: LocalStorage): boolean;
+  private native nativeSetMissionContinueState(state: AbilityConstant.ContinueState, callback: AsyncCallbackWrapper<void>): void;
+  private native nativeIsTerminating(): boolean;
+  private native nativeMoveAbilityToBackground(callback: AsyncCallbackWrapper<void>): void;
+  private native nativeRequestModalUIExtension(pickerWant: Want, callback: AsyncCallbackWrapper<void>): void;
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
@@ -277,6 +284,73 @@ export default class UIAbilityContext extends Context {
       });
       taskpool.execute(() => {
         this.nativeOpenLinkSync(link, myCall, finalOptions, callParam);
+      });
+    });
+  }
+
+  restoreWindowStage(localStorage: LocalStorage): void {
+    this.nativeRestoreWindowStage(localStorage);
+  }
+
+  setMissionContinueState(state: AbilityConstant.ContinueState, callback: AsyncCallback<void>): void {
+    let myCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeSetMissionContinueState(state, myCall);
+    });
+  }
+
+  setMissionContinueState(state: AbilityConstant.ContinueState): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError<void>) => void): void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>) => {
+        if (err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute(() => {
+        this.nativeSetMissionContinueState(state, myCall);
+      });
+    });
+  }
+
+  isTerminating(): boolean {
+    return this.nativeIsTerminating();
+  }
+
+  moveAbilityToBackground(): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError<void>) => void): void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>) => {
+        if (err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute(() => {
+        this.nativeMoveAbilityToBackground(myCall);
+      });
+    });
+  }
+
+  requestModalUIExtension(pickerWant: Want, callback: AsyncCallback<void>): void {
+    let myCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeRequestModalUIExtension(pickerWant, myCall);
+    });
+  }
+
+  requestModalUIExtension(pickerWant: Want): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError<void>) => void): void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>) => {
+        if (err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute(() => {
+        this.nativeRequestModalUIExtension(pickerWant, myCall);
       });
     });
   }

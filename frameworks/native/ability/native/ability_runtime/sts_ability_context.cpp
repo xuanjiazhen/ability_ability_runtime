@@ -35,6 +35,7 @@
 #include "ani_common_start_options.h"
 #include "ani_common_configuration.h"
 #include "ani_common_ability_result.h"
+#include "ani_enum_convert.h"
 #include "open_link_options.h"
 #include "start_options.h"
 #include "sts_ui_extension_callback.h"
@@ -62,6 +63,31 @@ struct StartAbilityByCallData {
     std::mutex mutexlock;
     std::condition_variable condition;
 };
+
+constexpr int64_t MAX_REQUEST_CODE = 562949953421311;
+constexpr size_t MAX_REQUEST_CODE_LENGTH = 15;
+constexpr int32_t BASE_REQUEST_CODE_NUM = 10;
+
+int64_t RequestCodeFromStringToInt64(const std::string &requestCode)
+{
+    if (requestCode.size() > MAX_REQUEST_CODE_LENGTH) {
+        TAG_LOGW(AAFwkTag::CONTEXT, "requestCode too long: %{public}s", requestCode.c_str());
+        return 0;
+    }
+    std::regex formatRegex("^[1-9]\\d*|0$");
+    std::smatch sm;
+    if (!std::regex_match(requestCode, sm, formatRegex)) {
+        TAG_LOGW(AAFwkTag::CONTEXT, "requestCode match failed: %{public}s", requestCode.c_str());
+        return 0;
+    }
+    int64_t parsedRequestCode = 0;
+    parsedRequestCode = strtoll(requestCode.c_str(), nullptr, BASE_REQUEST_CODE_NUM);
+    if (parsedRequestCode > MAX_REQUEST_CODE) {
+        TAG_LOGW(AAFwkTag::CONTEXT, "requestCode too large: %{public}s", requestCode.c_str());
+        return 0;
+    }
+    return parsedRequestCode;
+}
 
 void GenerateCallerCallBack(std::shared_ptr<StartAbilityByCallData> calls,
     std::shared_ptr<CallerCallBack> callerCallBack)
@@ -574,6 +600,164 @@ void StsAbilityContext::NativeOpenLinkSync(ani_env *env, ani_object aniObj, ani_
         !isOptionsUndefined, !isCallbackUndefined);
 }
 
+void StsAbilityContext::NativeRestoreWindowStage(ani_env *env, ani_object aniObj, ani_object localStorage)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "NativeRestoreWindowStage");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return;
+    }
+    auto context = StsAbilityContext::GetAbilityContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        ThrowStsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return;
+    }
+    ani_status status = ANI_ERROR;
+    ani_boolean isLocalStorageUndefined = true;
+    if ((status = env->Reference_IsUndefined(localStorage, &isLocalStorageUndefined)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status: %{public}d", status);
+    }
+    if (isLocalStorageUndefined) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null localStorage");
+        ThrowStsTooFewParametersError(env);
+        return;
+    }
+    ani_ref global = nullptr;
+    if ((status = env->GlobalReference_Create(localStorage, &global)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "status : %{public}d", status);
+        return;
+    }
+    STSNativeReferenceWrapper* etsNativeRef = nullptr;
+    etsNativeRef = new STSNativeReferenceWrapper();
+    etsNativeRef->ref_ = std::make_shared<STSNativeReference>();
+    etsNativeRef->ref_->aniRef = global;
+    auto errcode = context->RestoreWindowStage(etsNativeRef);
+    if (errcode != 0) {
+        ThrowStsError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return;
+    }
+}
+
+void StsAbilityContext::NativeSetMissionContinueState(ani_env *env, ani_object aniObj, ani_object stateObj,
+    ani_object callBack)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "NativeRestoreWindowStage");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return;
+    }
+    auto context = StsAbilityContext::GetAbilityContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        ThrowStsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return;
+    }
+    ani_status status = ANI_ERROR;
+    ani_namespace ns {};
+    if ((status = env->FindNamespace("L@ohos/app/ability/AbilityConstant/AbilityConstant;", &ns)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status: %{public}d", status);
+    }
+    AAFwk::ContinueState state;
+    if (!AAFwk::AniEnumConvertUtil::EnumConvert_StsToNative(env, stateObj, state)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "param state err");
+        ThrowStsInvalidNumParametersError(env);
+        AppExecFwk::AsyncCallback(env, callBack,
+            OHOS::AbilityRuntime::CreateStsErrorByNativeErr(env,
+            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM)), nullptr);
+        return;
+    }
+    if (state <= AAFwk::ContinueState::CONTINUESTATE_UNKNOWN || state >= AAFwk::ContinueState::CONTINUESTATE_MAX) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "invalid params, state: %{public}d", state);
+        ThrowStsError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        return;
+    }
+    ErrCode ret = ERR_OK;
+    ani_object errorObject = nullptr;
+    ret = context->SetMissionContinueState(state);
+    if (ret == ERR_OK) {
+        errorObject = CreateStsError(env, static_cast<AbilityErrorCode>(ret));
+    } else {
+        errorObject = CreateStsErrorByNativeErr(env, static_cast<int32_t>(ret));
+    }
+    AppExecFwk::AsyncCallback(env, callBack, errorObject, nullptr);
+}
+
+bool StsAbilityContext::NativeIsTerminating(ani_env *env, ani_object aniObj)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "NativeIsTerminating");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return false;
+    }
+    auto context = StsAbilityContext::GetAbilityContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        ThrowStsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return false;
+    }
+    return context->IsTerminating();
+}
+
+void StsAbilityContext::NativeMoveAbilityToBackground(ani_env *env, ani_object aniObj, ani_object callBack)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "NativeMoveAbilityToBackground");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return;
+    }
+    auto context = StsAbilityContext::GetAbilityContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        AppExecFwk::AsyncCallback(env, callBack,
+            OHOS::AbilityRuntime::CreateStsErrorByNativeErr(env,
+            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)), nullptr);
+        return;
+    }
+    ErrCode ret = ERR_OK;
+    ani_object errorObject = nullptr;
+    ret = context->MoveUIAbilityToBackground();
+    if (ret == ERR_OK) {
+        errorObject = CreateStsError(env, static_cast<AbilityErrorCode>(ret));
+    } else {
+        errorObject = CreateStsErrorByNativeErr(env, static_cast<int32_t>(ret));
+    }
+    AppExecFwk::AsyncCallback(env, callBack, errorObject, nullptr);
+}
+
+void StsAbilityContext::NativeRequestModalUIExtension(ani_env *env, ani_object aniObj,
+    ani_string pickerWantObj, ani_object callBackObj)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "NativeRequestModalUIExtension");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return;
+    }
+    ani_object errorObject = nullptr;
+    AAFwk::Want want;
+    if (!AppExecFwk::UnwrapWant(env, pickerWantObj, want)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "parse want failed");
+        ThrowStsInvalidParamError(env, "Parse param want failed, want must be Want.");
+        return;
+    }
+    auto context = StsAbilityContext::GetAbilityContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        errorObject = CreateStsErrorByNativeErr(env, static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+        AppExecFwk::AsyncCallback(env, callBackObj, errorObject, nullptr);
+        return;
+    }
+
+    ErrCode ret = ERR_OK;
+    ret = AAFwk::AbilityManagerClient::GetInstance()->RequestModalUIExtension(want);
+    if (ret == ERR_OK) {
+        errorObject = CreateStsError(env, static_cast<AbilityErrorCode>(ret));
+    } else {
+        errorObject = CreateStsErrorByNativeErr(env, static_cast<int32_t>(ret));
+    }
+    AppExecFwk::AsyncCallback(env, callBackObj, errorObject, nullptr);
+}
+
 bool BindNativeMethods(ani_env *env, ani_class &cls)
 {
     ani_status status = env->FindClass(UI_ABILITY_CONTEXT_CLASS_NAME, &cls);
@@ -613,6 +797,16 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 reinterpret_cast<void*>(StsAbilityContext::StartAbilityByCall) },
             ani_native_function { "nativeOpenLinkSync", nullptr,
                 reinterpret_cast<void*>(StsAbilityContext::NativeOpenLinkSync) },
+            ani_native_function { "nativeRestoreWindowStage", nullptr,
+                reinterpret_cast<void*>(StsAbilityContext::NativeRestoreWindowStage) },
+            ani_native_function { "nativeSetMissionContinueState", nullptr,
+                reinterpret_cast<void*>(StsAbilityContext::NativeSetMissionContinueState) },
+            ani_native_function { "nativeIsTerminating", nullptr,
+                reinterpret_cast<void*>(StsAbilityContext::NativeIsTerminating) },
+            ani_native_function { "nativeMoveAbilityToBackground", nullptr,
+                reinterpret_cast<void*>(StsAbilityContext::NativeMoveAbilityToBackground) },
+            ani_native_function { "nativeRequestModalUIExtension", nullptr,
+                reinterpret_cast<void*>(StsAbilityContext::NativeRequestModalUIExtension) },
         };
         status = env->Class_BindNativeMethods(cls, functions.data(), functions.size());
     });
