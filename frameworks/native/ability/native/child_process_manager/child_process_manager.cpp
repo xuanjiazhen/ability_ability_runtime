@@ -14,7 +14,7 @@
  */
 
 #include "child_process_manager.h"
-
+#include "native_child_process.h"
 #include <csignal>
 #include <filesystem>
 #include <string>
@@ -43,6 +43,7 @@
 #include "runtime.h"
 #include "sys_mgr_client.h"
 #include "system_ability_definition.h"
+
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -144,7 +145,7 @@ ChildProcessManagerErrorCode ChildProcessManager::StartChildProcessWithArgs(
 }
 
 ChildProcessManagerErrorCode ChildProcessManager::StartNativeChildProcessByAppSpawnFork(
-    const std::string &libName, const sptr<IRemoteObject> &callbackStub)
+    const std::string &libName, const sptr<IRemoteObject> &callbackStub, Ability_ChildProcessConfigs* configs)
 {
     TAG_LOGI(AAFwkTag::PROCESSMGR, "libName:%{private}s", libName.c_str());
     ChildProcessManagerErrorCode errorCode = PreCheck(AppExecFwk::CHILD_PROCESS_TYPE_NATIVE);
@@ -158,8 +159,15 @@ ChildProcessManagerErrorCode ChildProcessManager::StartNativeChildProcessByAppSp
         return ChildProcessManagerErrorCode::ERR_GET_APP_MGR_FAILED;
     }
 
+    std::string processName;
+    if(configs != nullptr) {
+        processName = configs->processName;
+    } else {
+        processName = "";
+    }
+
     std::lock_guard<std::mutex> lock(childProcessCountLock_);
-    auto ret = appMgr->StartNativeChildProcess(libName, childProcessCount_, callbackStub);
+    auto ret = appMgr->StartNativeChildProcess(libName, childProcessCount_, callbackStub, processName);
     TAG_LOGD(AAFwkTag::PROCESSMGR, "StartNativeChildProcess ret:%{public}d", ret);
 
     if (ret != ERR_OK) {

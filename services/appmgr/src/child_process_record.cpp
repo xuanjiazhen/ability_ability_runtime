@@ -47,6 +47,17 @@ ChildProcessRecord::ChildProcessRecord(pid_t hostPid, const std::string &libName
     MakeProcessName(hostRecord);
 }
 
+ChildProcessRecord::ChildProcessRecord(pid_t hostPid, const std::string &libName,
+    const std::shared_ptr<AppRunningRecord> hostRecord, const sptr<IRemoteObject> &mainProcessCb,
+    int32_t childProcessCount, bool isStartWithDebug, const std::string &processName)
+    : isStartWithDebug_(isStartWithDebug), hostPid_(hostPid), childProcessCount_(childProcessCount),
+    childProcessType_(CHILD_PROCESS_TYPE_NATIVE), hostRecord_(hostRecord), mainProcessCb_(mainProcessCb),
+    srcEntry_(libName)
+{
+    MakeProcessName(hostRecord, processName);
+}
+
+
 ChildProcessRecord::~ChildProcessRecord()
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
@@ -74,6 +85,19 @@ std::shared_ptr<ChildProcessRecord> ChildProcessRecord::CreateNativeChildProcess
     }
     return std::make_shared<ChildProcessRecord>(hostPid, libName, hostRecord, mainProcessCb,
         childProcessCount, isStartWithDebug);
+}
+
+std::shared_ptr<ChildProcessRecord> ChildProcessRecord::CreateNativeChildProcessRecord(
+    pid_t hostPid, const std::string &libName, const std::shared_ptr<AppRunningRecord> hostRecord,
+    const sptr<IRemoteObject> &mainProcessCb, int32_t childProcessCount, bool isStartWithDebug, const std::string &processName)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "hostPid: %{public}d, libName: %{public}s", hostPid, libName.c_str());
+    if (hostPid <= 0 || libName.empty() || !hostRecord || !mainProcessCb) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid parameter");
+        return nullptr;
+    }
+    return std::make_shared<ChildProcessRecord>(hostPid, libName, hostRecord, mainProcessCb,
+        childProcessCount, isStartWithDebug, processName);
 }
 
 void ChildProcessRecord::SetPid(pid_t pid)
@@ -174,7 +198,7 @@ void ChildProcessRecord::ScheduleExitProcessSafely()
     scheduler_->ScheduleExitProcessSafely();
 }
 
-void ChildProcessRecord::MakeProcessName(const std::shared_ptr<AppRunningRecord> hostRecord)
+void ChildProcessRecord::MakeProcessName(const std::shared_ptr<AppRunningRecord> hostRecord, std::string processName)
 {
     if (!hostRecord) {
         TAG_LOGW(AAFwkTag::APPMGR, "hostRecord empty");
@@ -185,16 +209,21 @@ void ChildProcessRecord::MakeProcessName(const std::shared_ptr<AppRunningRecord>
         TAG_LOGW(AAFwkTag::APPMGR, "srcEntry empty");
         return;
     }
-    std::string filename = std::filesystem::path(srcEntry_).stem();
-    if (!filename.empty()) {
+    if(processName != ""){
         processName_.append(":");
-        if (childProcessType_ == CHILD_PROCESS_TYPE_NATIVE || childProcessType_ == CHILD_PROCESS_TYPE_NATIVE_ARGS) {
-            processName_.append("Native_");
-        }
+        processName_.append(processName);
+    }else{
+        std::string filename = std::filesystem::path(srcEntry_).stem();
+        if (!filename.empty()) {
+            processName_.append(":");
+            if (childProcessType_ == CHILD_PROCESS_TYPE_NATIVE || childProcessType_ == CHILD_PROCESS_TYPE_NATIVE_ARGS) {
+                processName_.append("Native_");
+            }
 
-        processName_.append(filename);
+            processName_.append(filename);
+        }
+        processName_.append(std::to_string(childProcessCount_));
     }
-    processName_.append(std::to_string(childProcessCount_));
     TAG_LOGD(AAFwkTag::APPMGR, "MakeSpawnForkProcessName processName is %{public}s", processName_.c_str());
 }
 
