@@ -714,8 +714,8 @@ HWTEST_F(UIExtensionContextTest, StartAbilityByType_0100, TestSize.Level1)
     AAFwk::WantParams wantParam;
     std::shared_ptr<JsUIExtensionCallback> uiExtensionCallbacks{nullptr};
 
-    auto context = std::make_shared<UIExtensionContext>();
-    auto result = context->StartAbilityByType(type, wantParam, uiExtensionCallbacks);
+    UIExtensionContext context;
+    auto result = context.StartAbilityByType(type, wantParam, uiExtensionCallbacks);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
 
     TAG_LOGI(AAFwkTag::TEST, "StartAbilityByType_0100 end");
@@ -735,9 +735,9 @@ HWTEST_F(UIExtensionContextTest, StartAbilityByType_0200, TestSize.Level1)
     napi_env env;
     std::shared_ptr<JsUIExtensionCallback> uiExtensionCallbacks = std::make_shared<JsUIExtensionCallback>(env);
 
-    auto context = std::make_shared<UIExtensionContext>();
-    context->SetWindow(nullptr);
-    auto result = context->StartAbilityByType(type, wantParam, uiExtensionCallbacks);
+    UIExtensionContext context;
+    context.SetWindow(nullptr);
+    auto result = context.StartAbilityByType(type, wantParam, uiExtensionCallbacks);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
 
     TAG_LOGI(AAFwkTag::TEST, "StartAbilityByType_0200 end");
@@ -758,9 +758,9 @@ HWTEST_F(UIExtensionContextTest, StartAbilityByType_0300, TestSize.Level1)
     std::shared_ptr<JsUIExtensionCallback> uiExtensionCallbacks = std::make_shared<JsUIExtensionCallback>(env);
     sptr<Rosen::Window> window = new MockWindow();
 
-    auto context = std::make_shared<UIExtensionContext>();
-    context->SetWindow(window);
-    auto result = context->StartAbilityByType(type, wantParam, uiExtensionCallbacks);
+    UIExtensionContext context;
+    context.SetWindow(window);
+    auto result = context.StartAbilityByType(type, wantParam, uiExtensionCallbacks);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
 
     TAG_LOGI(AAFwkTag::TEST, "StartAbilityByType_0300 end");
@@ -783,9 +783,9 @@ HWTEST_F(UIExtensionContextTest, StartAbilityByType_0400, TestSize.Level1)
     std::shared_ptr<JsUIExtensionCallback> uiExtensionCallbacks = std::make_shared<JsUIExtensionCallback>(env);
     sptr<Rosen::Window> window = new MockWindow();
 
-    auto context = std::make_shared<UIExtensionContext>();
-    context->SetWindow(window);
-    auto result = context->StartAbilityByType(type, wantParam, uiExtensionCallbacks);
+    UIExtensionContext context;
+    context.SetWindow(window);
+    auto result = context.StartAbilityByType(type, wantParam, uiExtensionCallbacks);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
 
     TAG_LOGI(AAFwkTag::TEST, "StartAbilityByType_0400 end");
