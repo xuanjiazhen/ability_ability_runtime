@@ -40,9 +40,9 @@ public:
     static void DestroyInstance();
     static void SetMainHandler(const std::shared_ptr<EventHandler>& eventHandler);
     void SetApplicationInfo(const std::shared_ptr<ApplicationInfo>& applicationInfo);
-    void ThreadBlock(std::atomic_bool& isSixSecondEvent);
+    void ThreadBlock(std::atomic_bool& isSixSecondEvent, const std::string& appfreezeData);
     void ChangeFaultDateInfo(FaultData& faultData, const std::string& msgContent);
-    void AppfreezeHandleOverReportCount(bool isSixSecondEvent);
+    void AppfreezeHandleOverReportCount(bool isSixSecondEvent, const std::string& appfreezeData);
     void GetMainHandlerDump(std::string& msgContent);
     int AppfreezeHandle(const FaultData& faultInfo, bool onlyMainThread);
     int AcquireStack(const FaultData& faultInfo, bool onlyMainThread);

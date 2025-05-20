@@ -33,6 +33,11 @@
 #include "parameter.h"
 #include "parameters.h"
 #include "singleton.h"
+
+#ifdef ABILITY_RUNTIME_HITRACE_ENABLE
+#include "hitrace/hitracechain.h"
+#endif
+
 #include "res_sched_util.h"
 #include "app_mgr_client.h"
 #include "hilog_tag_wrapper.h"
@@ -52,6 +57,7 @@ constexpr char EVENT_STACK[] = "STACK";
 constexpr char BINDER_INFO[] = "BINDER_INFO";
 constexpr char APP_RUNNING_UNIQUE_ID[] = "APP_RUNNING_UNIQUE_ID";
 constexpr char FREEZE_MEMORY[] = "FREEZE_MEMORY";
+constexpr char HITRACE_ID[] = "HITRACE_ID";
 constexpr int MAX_LAYER = 8;
 constexpr int FREEZEMAP_SIZE_MAX = 20;
 constexpr int FREEZE_TIME_LIMIT = 60000;
@@ -204,6 +210,7 @@ int AppfreezeManager::AppfreezeHandleWithStack(const FaultData& faultData, const
     faultNotifyData.faultType = FaultDataType::APP_FREEZE;
     faultNotifyData.eventId = faultData.eventId;
     faultNotifyData.tid = faultData.tid;
+    faultNotifyData.appfreezeData = faultData.appfreezeData;
 
     HITRACE_METER_FMT(HITRACE_TAG_APP, "AppfreezeHandleWithStack pid:%d-name:%s",
         appInfo.pid, faultData.errorObject.name.c_str());
@@ -290,6 +297,7 @@ int AppfreezeManager::AcquireStack(const FaultData& faultData,
     faultNotifyData.errorObject.stack = faultData.errorObject.stack;
     faultNotifyData.faultType = FaultDataType::APP_FREEZE;
     faultNotifyData.eventId = faultData.eventId;
+    faultNotifyData.appfreezeData = faultData.appfreezeData;
     std::string binderInfo;
     std::string binderPidsStr;
     std::string terminalBinderTid;
@@ -333,6 +341,40 @@ int AppfreezeManager::AcquireStack(const FaultData& faultData,
     return ret;
 }
 
+std::string AppfreezeManager::ParseAppfreezeData(std::string appfreezeData, std::string target)
+{
+    std::string line;
+    std::stringstream info(appfreezeData);
+    while (getline(info, line, ';') && !line.empty()) {
+        size_t colonPos = line.find(":");
+        if (colonPos == std::string::npos) {
+            continue;
+        }
+        std::string key = line.substr(0, colonPos);
+        if (key.empty()) {
+            continue;
+        }
+        if (key == target) {
+            std::string value = line.substr(colonPos + 1);
+            TAG_LOGI(AAFwkTag::APPDFR, "NotifyANR: key:%{public}s value:%{public}s",
+                key.c_str(), value.c_str());
+            return value;
+        }
+    }
+    return "";
+}
+
+std::string AppfreezeManager::GetHitraceId(std::string appfreezeData, std::string target)
+{
+    if (appfreezeData.empty()) {
+        return "";
+    }
+#ifdef ABILITY_RUNTIME_HITRACE_ENABLE
+    OHOS::HiviewDFX::HiTraceChain::ClearId();
+#endif
+    return ParseAppfreezeData(appfreezeData, target);
+}
+
 int AppfreezeManager::NotifyANR(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo,
     const std::string& binderInfo, const std::string& memoryContent)
 {
@@ -355,7 +397,8 @@ int AppfreezeManager::NotifyANR(const FaultData& faultData, const AppfreezeManag
             EVENT_TID, faultData.tid,
             EVENT_PACKAGE_NAME, appInfo.bundleName, EVENT_PROCESS_NAME, appInfo.processName, EVENT_MESSAGE,
             faultData.errorObject.message, EVENT_STACK, faultData.errorObject.stack, BINDER_INFO, binderInfo,
-            APP_RUNNING_UNIQUE_ID, appRunningUniqueId, FREEZE_MEMORY, memoryContent);
+            APP_RUNNING_UNIQUE_ID, appRunningUniqueId, FREEZE_MEMORY, memoryContent,
+            HITRACE_ID, GetHitraceId(faultData.appfreezeData, HITRACE_ID));
     }
     TAG_LOGW(AAFwkTag::APPDFR,
         "reportEvent:%{public}s, pid:%{public}d, tid:%{public}d, bundleName:%{public}s, appRunningUniqueId:%{public}s"

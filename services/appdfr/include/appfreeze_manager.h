@@ -129,6 +129,8 @@ private:
     void ClearOldInfo();
     void CollectFreezeSysMemory(std::string& memoryContent);
     int MergeNotifyInfo(FaultData& faultNotifyData, const AppfreezeManager::AppInfo& appInfo);
+    std::string ParseAppfreezeData(std::string appfreezeData, std::string target);
+    std::string GetHitraceId(std::string appfreezeData, std::string target);
 
     static const inline std::string LOGGER_DEBUG_PROC_PATH = "/proc/transaction_proc";
     std::string name_;

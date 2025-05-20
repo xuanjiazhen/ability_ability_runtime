@@ -66,6 +66,12 @@ bool FaultData::ReadFromParcel(Parcel &parcel)
     if (parcel.ReadBool()) {
         token = (static_cast<MessageParcel*>(&parcel))->ReadRemoteObject();
     }
+
+    if (!parcel.ReadString(strValue)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AppfreezeData read string failed.");
+        return false;
+    }
+    appfreezeData = strValue;
     return true;
 }
 
@@ -96,6 +102,11 @@ bool FaultData::WriteContent(Parcel &parcel) const
             TAG_LOGE(AAFwkTag::APPMGR, "Token falge [true] write bool failed.");
             return false;
         }
+    }
+
+    if (!parcel.WriteString(appfreezeData)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AppfreezeData [%{public}s] write string failed.", appfreezeData.c_str());
+        return false;
     }
     return true;
 }

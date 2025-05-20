@@ -33,6 +33,7 @@ constexpr int RESET_RATIO = 2;
 
 constexpr int32_t BACKGROUND_REPORT_COUNT_MAX = 5;
 constexpr int32_t WATCHDOG_REPORT_COUNT_MAX = 5;
+constexpr int32_t CHARACTER_WIDTH = 2;
 #ifdef SUPPORT_ASAN
 constexpr uint32_t CHECK_INTERVAL_TIME = 45000;
 #else
@@ -65,6 +66,9 @@ void Watchdog::Init(const std::shared_ptr<EventHandler> mainHandler)
         appMainHandler_->SendEvent(CHECK_MAIN_THREAD_IS_ALIVE, 0, EventQueue::Priority::VIP);
     }
     lastWatchTime_ = 0;
+#ifdef ABILITY_RUNTIME_HITRACE_ENABLE
+    hitraceId_ = OHOS::HiviewDFX::HiTraceChain::GetIdAddress();
+#endif
     auto watchdogTask = [this] { this->Timer(); };
 #ifdef APP_NO_RESPONSE_DIALOG_WEARABLE
     OHOS::HiviewDFX::Watchdog::GetInstance().RunPeriodicalTask("AppkitWatchdog", watchdogTask,
@@ -97,6 +101,23 @@ void Watchdog::SetAppMainThreadState(const bool appMainThreadState)
 {
     std::unique_lock<std::mutex> lock(cvMutex_);
     appMainThreadIsAlive_.store(appMainThreadState);
+}
+
+std::string Watchdog::GetHitraceChainId()
+{
+    std::string hitraceIdStr;
+#ifdef ABILITY_RUNTIME_HITRACE_ENABLE
+    OHOS::HiviewDFX::HiTraceId hitraceId = *hitraceId_;
+    if (hitraceId.IsValid() == 0) {
+        return hitraceIdStr;
+    }
+    OHOS::HiviewDFX::HiTraceChain::SetId(hitraceId);
+    std::stringstream ss;
+    ss << std::hex << std::setfill('0') << std::setw(CHARACTER_WIDTH) << hitraceId.GetChainId();
+    hitraceIdStr = "HITRACE_ID:" + ss.str();
+    TAG_LOGI(AAFwkTag::APPDFR, "Main thread blocked, %{public}s", hitraceIdStr.c_str());
+#endif
+    return hitraceIdStr;
 }
 
 #ifdef APP_NO_RESPONSE_DIALOG
@@ -184,12 +205,14 @@ void Watchdog::Timer()
         TAG_LOGE(AAFwkTag::APPDFR, "wait count: %{public}d", watchdogReportCount_.load());
         if (watchdogReportCount_.load() >= WATCHDOG_REPORT_COUNT_MAX) {
 #ifndef APP_NO_RESPONSE_DIALOG
-            AppExecFwk::AppfreezeInner::GetInstance()->AppfreezeHandleOverReportCount(true);
+            AppExecFwk::AppfreezeInner::GetInstance()->AppfreezeHandleOverReportCount(true,
+                GetHitraceChainId());
 #endif
             watchdogReportCount_.store(0);
         } else if (watchdogReportCount_.load() >= (WATCHDOG_REPORT_COUNT_MAX - 1)) {
 #ifndef APP_NO_RESPONSE_DIALOG
-            AppExecFwk::AppfreezeInner::GetInstance()->AppfreezeHandleOverReportCount(false);
+            AppExecFwk::AppfreezeInner::GetInstance()->AppfreezeHandleOverReportCount(false,
+                GetHitraceChainId());
 #endif
         }
         return;
@@ -257,7 +280,7 @@ void Watchdog::ReportEvent()
         needReport_.store(false);
     }
 #endif
-    AppExecFwk::AppfreezeInner::GetInstance()->ThreadBlock(isSixSecondEvent_);
+    AppExecFwk::AppfreezeInner::GetInstance()->ThreadBlock(isSixSecondEvent_, GetHitraceChainId());
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
