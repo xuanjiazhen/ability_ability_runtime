@@ -19,15 +19,14 @@
 namespace OHOS {
 namespace AbilityDelegatorSts {
 using namespace OHOS::AbilityRuntime;
-STSAbilityMonitor::STSAbilityMonitor(const std::string &abilityName)
-    : IAbilityMonitor(abilityName), abilityName_(abilityName)
+STSAbilityMonitor::STSAbilityMonitor(const std::string &abilityName) : abilityName_(abilityName)
 {}
 
 STSAbilityMonitor::STSAbilityMonitor(const std::string &abilityName, const std::string &moduleName)
-    : IAbilityMonitor(abilityName), abilityName_(abilityName), moduleName_(moduleName)
+    : abilityName_(abilityName), moduleName_(moduleName)
 {}
 
-void STSAbilityMonitor::OnSTSAbilityStart(const std::weak_ptr<STSNativeReference> &abilityObj)
+void STSAbilityMonitor::OnSTSAbilityCreate(const std::weak_ptr<STSNativeReference> &abilityObj)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "called OnAbilityCreate");
     CallLifecycleCBFunction("onAbilityCreate", abilityObj);
