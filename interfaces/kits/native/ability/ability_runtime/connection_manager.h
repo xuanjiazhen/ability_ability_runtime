@@ -145,17 +145,6 @@ public:
      */
     ErrCode ConnectUIServiceExtensionAbility(const sptr<IRemoteObject>& connectCaller,
         const AAFwk::Want& want, const sptr<AbilityConnectCallback>& connectCallback);
-
-    /**
-     * @brief connect appService ability connection.
-     *
-     * @param connectCaller The connection caller.
-     * @param connectReceiver The connection receiver.
-     * @param connectCallback The connection callback.
-     * @return Returns the result of connecting appService ability connection.
-     */
-    ErrCode ConnectAppServiceExtensionAbility(const sptr<IRemoteObject>& connectCaller,
-        const AAFwk::Want& want, const sptr<AbilityConnectCallback>& connectCallback);
     
     /**
      * @brief disconnect ability connection.
@@ -205,6 +194,33 @@ public:
 
     bool DisconnectNonexistentService(const AppExecFwk::ElementName& element,
         const sptr<AbilityConnection> connection);
+
+    /**
+     * @brief connect appService ability connection.
+     *
+     * @param connectCaller The connection caller.
+     * @param connectReceiver The connection receiver.
+     * @param connectCallback The connection callback.
+     * @param extensionType The extension ability type.
+     * @return Returns the result of connecting appService ability connection.
+     */
+    ErrCode ConnectExtensionAbilityWithExtensionType(const sptr<IRemoteObject>& connectCaller,
+        const AAFwk::Want& want, const sptr<AbilityConnectCallback>& connectCallback,
+        AppExecFwk::ExtensionAbilityType extensionType);
+    
+    /**
+     * @brief disconnect ability connection.
+     *
+     * @param connectCaller The connection caller.
+     * @param connectReceiver The connection receiver.
+     * @param connectCallback The connection callback.
+     * @param accountId The account id.
+     * @param extensionType The extension ability type.
+     * @return Returns the result of disconnecting ability connection.
+     */
+    ErrCode DisconnectExtensionAbilityWithExtensionType(const sptr<IRemoteObject> &connectCaller,
+        const AAFwk::Want &connectReceiver, const sptr<AbilityConnectCallback> &connectCallback,
+        int32_t accountId, AppExecFwk::ExtensionAbilityType extensionType);
 private:
     ConnectionManager() = default;
     bool IsConnectCallerEqual(const sptr<IRemoteObject> &connectCaller, const sptr<IRemoteObject> &connectCallerOther);

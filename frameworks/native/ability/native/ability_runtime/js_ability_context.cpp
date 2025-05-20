@@ -431,7 +431,7 @@ napi_value JsAbilityContext::ConnectAppServiceExtensionAbility(napi_env env, nap
 
 napi_value JsAbilityContext::DisconnectAppServiceExtensionAbility(napi_env env, napi_callback_info info)
 {
-    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnDisconnectAbility);
+    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnDisconnectAppServiceExtensionAbility);
 }
 
 napi_value JsAbilityContext::RevokeDelegator(napi_env env, napi_callback_info info)
@@ -1409,14 +1409,7 @@ napi_value JsAbilityContext::StartExtensionAbilityCommon(napi_env env, NapiCallb
                 *innerErrCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
                 return;
             }
-            if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE) {
-                *innerErrCode = context->StartServiceExtensionAbility(want);
-            } else if (extensionType == AppExecFwk::ExtensionAbilityType::APP_SERVICE) {
-                *innerErrCode = context->StartAppServiceExtensionAbility(want);
-            } else {
-                TAG_LOGE(AAFwkTag::CONTEXT, "extensionType error, type: %{public}d",
-                    static_cast<int32_t>(extensionType));
-            }
+            *innerErrCode = context->StartExtensionAbilityWithExtensionType(want, extensionType);
     };
 
     NapiAsyncTask::CompleteCallback complete =
@@ -1513,14 +1506,7 @@ napi_value JsAbilityContext::StopExtensionAbilityCommon(napi_env env, NapiCallba
                 *innerErrCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
                 return;
             }
-            if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE) {
-                *innerErrCode = context->StopServiceExtensionAbility(want);
-            } else if (extensionType == AppExecFwk::ExtensionAbilityType::APP_SERVICE) {
-                *innerErrCode = context->StopAppServiceExtensionAbility(want);
-            } else {
-                TAG_LOGE(AAFwkTag::CONTEXT, "extensionType error, type: %{public}d",
-                    static_cast<int32_t>(extensionType));
-            }
+            *innerErrCode = context->StopExtensionAbilityWithExtensionType(want, extensionType);
     };
     NapiAsyncTask::CompleteCallback complete =
         [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
@@ -1729,14 +1715,7 @@ napi_value JsAbilityContext::ConnectExtensionAbilityCommon(napi_env env, NapiCal
             }
             TAG_LOGD(AAFwkTag::CONTEXT, "connectAbility: %{public}d, extensionType: type: %{public}d",
                 static_cast<int32_t>(connectId), static_cast<int32_t>(extensionType));
-            if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE) {
-                *innerErrCode = context->ConnectAbility(want, connection);
-            } else if (extensionType == AppExecFwk::ExtensionAbilityType::APP_SERVICE) {
-                *innerErrCode = context->ConnectAppServiceExtensionAbility(want, connection);
-            } else {
-                TAG_LOGE(AAFwkTag::CONTEXT, "extensionType error, type: %{public}d",
-                    static_cast<int32_t>(extensionType));
-            }
+            *innerErrCode = context->ConnectExtensionAbilityWithExtensionType(want, connection, extensionType);
     };
     NapiAsyncTask::CompleteCallback complete =
         [connection, connectId, innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
@@ -1827,6 +1806,11 @@ napi_value JsAbilityContext::OnConnectAbilityWithAccount(napi_env env, NapiCallb
 napi_value JsAbilityContext::OnDisconnectAbility(napi_env env, NapiCallbackInfo& info)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    return DisconnectExtensionAbilityCommon(env, info, AppExecFwk::ExtensionAbilityType::SERVICE);
+}
+
+napi_value JsAbilityContext::DisconnectExtensionAbilityCommon(napi_env env, NapiCallbackInfo& info, AppExecFwk::ExtensionAbilityType extensionType)
+{
     std::lock_guard<std::recursive_mutex> lock(gConnectsLock_);
     if (info.argc < ARGC_ONE) {
         TAG_LOGE(AAFwkTag::CONTEXT, "not enough params");
@@ -1869,7 +1853,7 @@ napi_value JsAbilityContext::OnDisconnectAbility(napi_env env, NapiCallbackInfo&
                 return;
             }
             TAG_LOGD(AAFwkTag::CONTEXT, "context->DisconnectAbility");
-            context->DisconnectAbility(want, connection, accountId);
+            context->DisconnectExtensionAbilityWithExtensionType(want, connection, accountId, extensionType);
     };
     NapiAsyncTask::CompleteCallback complete =
         [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
@@ -1886,7 +1870,7 @@ napi_value JsAbilityContext::OnDisconnectAbility(napi_env env, NapiCallbackInfo&
 
     napi_value lastParam = (info.argc > ARGC_ONE) ? info.argv[INDEX_ONE] : nullptr;
     napi_value result = nullptr;
-    NapiAsyncTask::Schedule("JsAbilityContext::OnDisconnectAbility",
+    NapiAsyncTask::Schedule("JsAbilityContext::DisconnectExtensionAbilityCommon",
         env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
     return result;
 }
@@ -3084,6 +3068,12 @@ napi_value JsAbilityContext::OnConnectAppServiceExtensionAbility(napi_env env, N
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     return ConnectExtensionAbilityCommon(env, info, AppExecFwk::ExtensionAbilityType::APP_SERVICE);
+}
+
+napi_value JsAbilityContext::OnDisconnectAppServiceExtensionAbility(napi_env env, NapiCallbackInfo& info)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    return DisconnectExtensionAbilityCommon(env, info, AppExecFwk::ExtensionAbilityType::APP_SERVICE);
 }
 
 int32_t JsAbilityContext::GenerateRequestCode()

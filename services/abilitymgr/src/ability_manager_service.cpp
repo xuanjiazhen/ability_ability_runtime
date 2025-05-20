@@ -4733,6 +4733,14 @@ int AbilityManagerService::DisconnectAbility(sptr<IAbilityConnection> connect)
     return err;
 }
 
+int32_t AbilityManagerService::DisconnectAppServiceExtensionAbility(sptr<IAbilityConnection> connect)
+{
+    if (!AppUtils::GetInstance().IsSupportAppServiceExtension()) {
+        return ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    return DisconnectAbility(connect);
+}
+
 int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32_t userId,
     const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken,
     AppExecFwk::ExtensionAbilityType extensionType, const sptr<SessionInfo> &sessionInfo,
