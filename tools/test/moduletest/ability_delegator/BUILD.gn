@@ -77,7 +77,10 @@ ohos_moduletest("shell_command_result_module_test") {
 
   sources = [ "shell_command_result_module_test.cpp" ]
 
-  configs = [ ":tools_ability_delegator_config" ]
+  configs = [
+    ":tools_ability_delegator_config",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",  
+  ]
 
   deps = [ "${ability_runtime_path}/tools/aa:tools_aa_source_set" ]
 

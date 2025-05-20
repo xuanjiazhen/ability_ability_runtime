@@ -253,7 +253,10 @@ ohos_unittest("aa_command_test_test") {
   sources = [ "aa_command_test_test.cpp" ]
   sources += tools_aa_mock_sources
 
-  configs = [ ":tools_aa_config_mock" ]
+  configs = [
+    ":tools_aa_config_mock",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
+  ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -280,7 +283,10 @@ ohos_unittest("aa_command_attach_test") {
 
   sources = [ "aa_command_attach_test.cpp" ]
 
-  configs = [ ":tools_aa_config_mock" ]
+  configs = [
+    ":tools_aa_config_mock",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
+  ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -308,6 +314,8 @@ if (accessibility_enable) {
       "accessibility_ability_utils_test.cpp",
     ]
 
+    configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config" ]
+  
     cflags = []
     if (target_cpu == "arm") {
       cflags += [ "-DBINDER_IPC_32BIT" ]

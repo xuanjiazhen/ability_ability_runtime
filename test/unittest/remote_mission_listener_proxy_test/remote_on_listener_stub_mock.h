@@ -18,7 +18,7 @@
 #include <gmock/gmock.h>
 #include <iremote_object.h>
 #include <iremote_stub.h>
-#include "remote_on_listener_interface.h"
+#include "iremote_on_listener.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -45,7 +45,7 @@ public:
 
     int code_ = 0;
 
-    virtual void OnCallback(const uint32_t ContinueState, const std::string &srcDeviceId,
+    virtual ErrCode OnCallback(const uint32_t ContinueState, const std::string &srcDeviceId,
         const std::string &bundleName, const std::string &continueType, const std::string &srcBundleName) {};
 };
 }  // namespace AAFwk
