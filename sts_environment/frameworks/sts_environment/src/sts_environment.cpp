@@ -28,6 +28,7 @@
 #include "elf_factory.h"
 #include "event_handler.h"
 #include "hilog_tag_wrapper.h"
+#include "static_core/runtime/tooling/inspector/debugger_jsnapi.h"
 #include "sts_hilog.h"
 #include "sts_invoker.h"
 #include "unwinder.h"
@@ -45,6 +46,7 @@ const char STS_ANI_GET_CREATEDVMS[] = "ANI_GetCreatedVMs";
 const char STS_LIB_PATH[] = "libets_interop_js_napi.z.so";
 const char BOOT_PATH[] = "/system/framework/bootpath.json";
 const char BACKTRACE[] = "=====================Backtrace========================";
+static const std::string DEBUGGER = "@Debugger";
 
 
 using GetDefaultVMInitArgsSTSRuntimeType = ets_int (*)(EtsVMInitArgs* vmArgs);
@@ -290,6 +292,18 @@ bool STSEnvironment::StartRuntime(napi_env napiEnv, std::vector<ani_option>& opt
     ani_option interopOption = {interop.data(), (void*)napiEnv};
     options.push_back(interopOption);
 
+    std::string interpreerMode = optionPrefix + "--interpreter-type=cpp";
+    ani_option interpreterModeOption = {interpreerMode.data(), nullptr};
+    options.push_back(interpreterModeOption);
+
+    std::string debugEnalbeMode = optionPrefix + "--debugger-enable=true";
+    ani_option debugEnalbeModeOption = {debugEnalbeMode.data(), nullptr};
+    options.push_back(debugEnalbeModeOption);
+
+    std::string debugLibraryPathMode = optionPrefix + "--debugger-library-path=/system/lib64/libarkinspector.so";
+    ani_option debugLibraryPathModeOption = {debugLibraryPathMode.data(), nullptr};
+    options.push_back(debugLibraryPathModeOption);
+
     ani_options optionsPtr = {options.size(), options.data()};
     auto status = lazyApis_.ANI_CreateVM(&optionsPtr, ANI_VERSION_1, &vmEntry_.ani_vm);
     if (status != ANI_OK) {
@@ -331,11 +345,6 @@ void* STSEnvironment::LoadSTSLibrary(const char* dlName)
 void STSEnvironment::UnLoadSTSLibrary(void* handle)
 {
     DynamicFreeLibrary(handle);
-}
-
-bool STSEnvironment::StartDebugger()
-{
-    return true;
 }
 
 STSEnvironment::STSEnvironment(std::unique_ptr<StsEnvironmentImpl> impl) : impl_(std::move(impl))
@@ -516,6 +525,25 @@ std::string STSEnvironment::GetErrorProperty(ani_error aniError, const char* pro
     }
     propertyValue.resize(sz);
     return propertyValue;
+}
+
+DebuggerPostTask STSEnvironment::GetDebuggerPostTask()
+{
+    auto debuggerPostTask = [weak = weak_from_this()](std::function<void()>&& task) {
+        auto stsEnv = weak.lock();
+        if (stsEnv == nullptr) {
+            TAG_LOGE(AAFwkTag::STSRUNTIME, "stsenv is invalid");
+            return;
+        }
+        stsEnv->PostTask(task, "JsEnvironment:GetDebuggerPostTask");
+    };
+    return debuggerPostTask;
+}
+
+void STSEnvironment::NotifyDebugMode(int tid, const char* libraryPath, uint32_t instanceId, bool debug, bool debugMode)
+{
+    ark::JSNApi::DebugOption debugOption = {libraryPath, debug ? debugMode : false};
+    ark::JSNApi::NotifyDebugMode(tid, debugOption, instanceId, debug);
 }
 } // namespace StsEnv
 } // namespace OHOS

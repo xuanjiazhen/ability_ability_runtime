@@ -82,7 +82,6 @@ constexpr int32_t DEFAULT_INTER_VAL = 500;
 constexpr int32_t API8 = 8;
 const std::string SANDBOX_ARK_CACHE_PATH = "/data/storage/ark-cache/";
 const std::string SANDBOX_ARK_PROIFILE_PATH = "/data/storage/ark-profile";
-const std::string DEBUGGER = "@Debugger";
 
 constexpr char MERGE_ABC_PATH[] = "/ets/modules.abc";
 constexpr char BUNDLE_INSTALL_PATH[] = "/data/storage/el1/bundle/";
@@ -215,6 +214,10 @@ void JsRuntime::StartDebugMode(const DebugOption dOption)
         } else {
             if (appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_RELEASE) {
                 TAG_LOGE(AAFwkTag::JSRUNTIME, "not support release app");
+                return;
+            }
+            if (weak->IsStsDebuggerStart(option)) {
+                ConnectServerManager::Get().StartDebuggerForSocketPair(socketFd);
                 return;
             }
             // if has old debugger server, stop it

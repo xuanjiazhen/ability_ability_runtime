@@ -33,7 +33,8 @@ struct STSRuntimeAPI;
 using TaskFuncType = void (*)();
 namespace StsEnv {
 class StsEnvironmentImpl;
-class STSEnvironment final {
+using DebuggerPostTask = std::function<void(std::function<void()>&&)>;
+class STSEnvironment final : public std::enable_shared_from_this<STSEnvironment>{
 public:
     explicit STSEnvironment(std::unique_ptr<StsEnvironmentImpl> impl);
 
@@ -71,7 +72,6 @@ public:
     void* LoadSTSLibrary(const char* dlName);
     void UnLoadSTSLibrary(void* handle);
 
-    bool StartDebugger();
     bool PostTask(TaskFuncType task);
     void PostTask(const std::function<void()>& task, const std::string& name = "", int64_t delayTime = 0);
     void PostSyncTask(const std::function<void()>& task, const std::string& name);
@@ -111,6 +111,8 @@ public:
             emitEvent = nullptr;
         }
     };
+    DebuggerPostTask GetDebuggerPostTask();
+    void NotifyDebugMode(int tid, const char* libraryPath, uint32_t instanceId, bool isDebugApp, bool debugMode);
 
 private:
     bool LoadRuntimeApis();

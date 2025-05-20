@@ -31,6 +31,7 @@ namespace {
 const std::string APPLICAITON_CODE_LANGUAGE_ARKTS_1_0 = "1.1";
 const std::string APPLICAITON_CODE_LANGUAGE_ARKTS_1_2 = "1.2";
 const std::string APPLICAITON_CODE_LANGUAGE_ARKTS_HYBRID = "hybrid";
+const std::string DEBUGGER = "@Debugger";
 } // namespace
 
 class Runtime {

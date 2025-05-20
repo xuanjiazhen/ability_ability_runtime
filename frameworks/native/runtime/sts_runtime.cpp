@@ -30,6 +30,7 @@
 #include <uv.h>
 
 #include "accesstoken_kit.h"
+#include "bundle_constants.h"
 #include "config_policy_utils.h"
 #include "connect_server_manager.h"
 #include "constants.h"
@@ -334,15 +335,37 @@ bool STSRuntime::LoadSTSAppLibrary(const AppLibPathVec& appLibPaths)
 
 void STSRuntime::StartDebugMode(const DebugOption dOption)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    if (!dOption.isDeveloperMode) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "developer Mode false");
+        return;
+    }
+    if (stsEnv_ == nullptr) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "null stsEnv");
+        return;
+    }
+
+    bool isStartWithDebug = dOption.isStartWithDebug;
+    bool isDebugApp = dOption.isDebugApp;
+    std::string appProvisionType = dOption.appProvisionType;
+    TAG_LOGD(AAFwkTag::STSRUNTIME, "Ark VM is starting debug mode [%{public}s]", isStartWithDebug ? "break" : "normal");
+    instanceId_ = static_cast<uint32_t>(getproctid());
+    ConnectServerManager::Get().AddInstance(instanceId_, instanceId_);
+    DebuggerConnectionHandler(isDebugApp, isStartWithDebug);
 }
 
-bool STSRuntime::StartDebugger()
+void STSRuntime::DebuggerConnectionHandler(bool isDebugApp, bool isStartWithDebug)
 {
+    ConnectServerManager::Get().StoreInstanceMessage(getproctid(), instanceId_, "ArkEtsDebugger");
     if (stsEnv_ == nullptr) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "null stsEnv_");
-        return false;
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "null stsEnv");
+        return;
     }
-    return stsEnv_->StartDebugger();
+    auto dTask = stsEnv_->GetDebuggerPostTask();
+    constexpr char ARK_DEBUGGER_LIB_PATH_STS[] = "libarkinspector.so";
+    ConnectServerManager::Get().StoreDebuggerInfoSts(
+        getproctid(), ARK_DEBUGGER_LIB_PATH_STS, isDebugApp, isStartWithDebug, dTask);
+    stsEnv_->NotifyDebugMode(getproctid(), ARK_DEBUGGER_LIB_PATH_STS, instanceId_, isDebugApp, isStartWithDebug);
 }
 
 void STSRuntime::UnLoadSTSAppLibrary()

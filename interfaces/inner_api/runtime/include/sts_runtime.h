@@ -111,7 +111,6 @@ public:
         const std::string& hapPath, const std::string& srcEntrance);
     void HandleUncaughtError();
 private:
-    bool StartDebugger();
     bool LoadSTSAppLibrary(const AppLibPathVec& appLibPaths);
     bool Initialize(const Options& options);
     void Deinitialize();
@@ -136,6 +135,8 @@ private:
     static AppLibPathVec appLibPaths_;
     std::string moduleName_;
     std::unordered_map<std::string, STSNativeReference*> modules_;
+    uint32_t instanceId_ = 0;
+    void DebuggerConnectionHandler(bool isDebugApp, bool isStartWithDebug);
 
 public:
     static AbilityRuntime::JsRuntime* jsRuntime_;
