@@ -42,7 +42,10 @@ ohos_fuzztest("AbilityAutoStartupClientFuzzTest") {
     "abilityautostartupclient_fuzzer.cpp",
   ]
 
-  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
+  configs = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
+  ]
   cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]

@@ -18,7 +18,7 @@
 #include <gmock/gmock.h>
 #include <iremote_object.h>
 #include <iremote_stub.h>
-#include "remote_on_listener_interface.h"
+#include "iremote_on_listener.h"
 
 namespace OHOS {
 namespace AAFwk {
