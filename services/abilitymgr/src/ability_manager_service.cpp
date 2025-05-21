@@ -7648,6 +7648,9 @@ void AbilityManagerService::StartResidentApps(int32_t userId)
     }
     residentProcessManager->Init();
     TAG_LOGI(AAFwkTag::ABILITYMGR, "startResidentApps getBundleInfos size:%{public}zu", bundleInfos.size());
+    if (userId == U0_USER_ID) {
+        residentProcessManager->UpdateResidentProcessRawData();
+    }
 
     residentProcessManager->StartResidentProcessWithMainElement(bundleInfos, userId);
     if (!bundleInfos.empty()) {

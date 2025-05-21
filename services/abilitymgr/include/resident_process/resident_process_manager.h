@@ -95,6 +95,7 @@ public:
      */
     bool GetResidentBundleInfosForUser(std::vector<AppExecFwk::BundleInfo> &bundleInfos, int32_t userId);
     void StartFailedResidentAbilities();
+    void UpdateResidentProcessRawData();
 private:
     void UpdateResidentProcessesStatus(const std::string &bundleName, bool localEnable, bool updateEnable);
     void AddFailedResidentAbility(const std::string &bundleName, const std::string &abilityName, int32_t userId);
