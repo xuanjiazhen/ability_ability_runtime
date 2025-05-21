@@ -553,6 +553,36 @@ ErrCode AbilityManagerClient::ConnectAbility(
     return abms->ConnectAbilityCommon(want, connect, callerToken, AppExecFwk::ExtensionAbilityType::SERVICE, userId);
 }
 
+ErrCode AbilityManagerClient::ConnectExtensionAbilityWithExtensionType(
+    const Want &want, sptr<IAbilityConnection> connect, sptr<IRemoteObject> callerToken, int32_t userId,
+    AppExecFwk::ExtensionAbilityType extensionType)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "name:%{public}s %{public}s, userId:%{public}d",
+        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), userId);
+    return abms->ConnectAbilityCommon(want, connect, callerToken,
+        extensionType, userId);
+}
+
+ErrCode AbilityManagerClient::DisconnectExtensionAbilityWithExtensionType(sptr<IAbilityConnection> connect,
+    AppExecFwk::ExtensionAbilityType extensionType)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "DisconnectExtensionAbilityWithExtensionType call");
+    if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE) {
+        return abms->DisconnectAbility(connect);
+    } else if (extensionType == AppExecFwk::ExtensionAbilityType::APP_SERVICE) {
+        return abms->DisconnectAppServiceExtensionAbility(connect);
+    } else {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "Disconnect extension type invalid");
+        return ERR_INVALID_VALUE;
+    }
+}
+
 ErrCode AbilityManagerClient::ConnectUIServiceExtesnionAbility(
     const Want &want, sptr<IAbilityConnection> connect, sptr<IRemoteObject> callerToken, int32_t userId)
 {

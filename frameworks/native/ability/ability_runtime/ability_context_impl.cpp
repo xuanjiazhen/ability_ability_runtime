@@ -1357,5 +1357,61 @@ void AbilityContextImpl::OnRequestFailure(const std::string &requestId, const Ap
 
     TAG_LOGE(AAFwkTag::CONTEXT, "requestId=%{public}s not exist", requestId.c_str());
 }
+
+
+ErrCode AbilityContextImpl::StartExtensionAbilityWithExtensionType(const AAFwk::Want& want,
+    AppExecFwk::ExtensionAbilityType extensionType)
+{
+    TAG_LOGI(AAFwkTag::CONTEXT, "StartExtensionAbilityWithExtensionType, name:%{public}s %{public}s",
+        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
+        want, token_, DEFAULT_INVAL_VALUE, extensionType);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "failed:%{public}d", err);
+    }
+    return err;
+}
+
+ErrCode AbilityContextImpl::StopExtensionAbilityWithExtensionType(const AAFwk::Want& want,
+    AppExecFwk::ExtensionAbilityType extensionType)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "StopExtensionAbilityWithExtensionType, name:%{public}s %{public}s",
+        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StopExtensionAbility(
+        want, token_, DEFAULT_INVAL_VALUE, extensionType);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "failed %{public}d", err);
+    }
+    return err;
+}
+
+ErrCode AbilityContextImpl::ConnectExtensionAbilityWithExtensionType(const AAFwk::Want& want,
+    const sptr<AbilityConnectCallback>& connectCallback, AppExecFwk::ExtensionAbilityType extensionType)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::CONTEXT, "ConnectExtensionAbilityWithExtensionType, caller:%{public}s, target:%{public}s",
+        abilityInfo_ == nullptr ? "" : abilityInfo_->name.c_str(), want.GetElement().GetAbilityName().c_str());
+    ErrCode ret = ConnectionManager::GetInstance().ConnectExtensionAbilityWithExtensionType(token_, want, connectCallback,
+        extensionType);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "failed %{public}d", ret);
+    }
+    return ret;
+}
+
+ErrCode AbilityContextImpl::DisconnectExtensionAbilityWithExtensionType(const AAFwk::Want& want,
+    const sptr<AbilityConnectCallback>& connectCallback, int32_t accountId,
+    AppExecFwk::ExtensionAbilityType extensionType)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::CONTEXT, "DisconnectExtensionAbilityWithExtensionType, caller:%{public}s, target:%{public}s",
+        abilityInfo_ == nullptr ? "" : abilityInfo_->name.c_str(), want.GetElement().GetAbilityName().c_str());
+    ErrCode ret =
+        ConnectionManager::GetInstance().DisconnectExtensionAbilityWithExtensionType(token_, want, connectCallback,
+            accountId, extensionType);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "error %{public}d", ret);
+    }
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

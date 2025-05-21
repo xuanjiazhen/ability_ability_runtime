@@ -550,6 +550,30 @@ public:
         sptr<IAbilityConnection> connect,
         sptr<IRemoteObject> callerToken,
         int32_t userId = DEFAULT_INVAL_VALUE);
+    
+    /**
+     * ConnectExtensionAbilityWithExtensionType, connect session with specified extention type ability.
+     *
+     * @param want, Special want for appService type's ability.
+     * @param connect, Callback used to notify caller the result of connecting or disconnecting.
+     * @param callerToken, caller ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode ConnectExtensionAbilityWithExtensionType(
+        const Want &want,
+        sptr<IAbilityConnection> connect,
+        sptr<IRemoteObject> callerToken,
+        int32_t userId = DEFAULT_INVAL_VALUE,
+        AppExecFwk::ExtensionAbilityType extensionType = AppExecFwk::ExtensionAbilityType::SERVICE);
+
+    /**
+     * DisconnectExtensionAbilityWithExtensionType, disconnect session with specified extension type ability.
+     *
+     * @param connect, Callback used to notify caller the result of connecting or disconnecting.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode DisconnectExtensionAbilityWithExtensionType(sptr<IAbilityConnection> connect,
+        AppExecFwk::ExtensionAbilityType extensionType = AppExecFwk::ExtensionAbilityType::SERVICE);
 
     /**
      * ConnectUIServiceExtensionAbility, connect session with uiService ability.

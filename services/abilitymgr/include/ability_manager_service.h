@@ -2064,6 +2064,8 @@ public:
         const std::string &intentName,
         InsightIntentInfoForQuery &info) override;
 
+    int32_t DisconnectAppServiceExtensionAbility(sptr<IAbilityConnection> connect);
+
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;
     static constexpr uint32_t ACTIVE_TIMEOUT_MSG = 1;
@@ -2122,6 +2124,17 @@ protected:
 
     int32_t GetCollaboratorType(const std::string &codePath) const;
     int32_t KillProcessForCollaborator(int32_t collaboratorType, const std::string &bundleName, int32_t userId);
+    
+    /**
+     * Check if Caller is allowed to start AppServiceExtension(Stage).
+     *
+     * @param abilityRequest, abilityRequest.
+     * @param isVerifyAppIdentifierAllowList, isVerifyAppIdentifierAllowList
+     * @param isFromConnect, isFromConnect
+     * @return Returns whether the caller is allowed to start AppServiceExtension.
+     */
+    int32_t CheckCallAppServiceExtensionPermission(const AbilityRequest &abilityRequest,
+        std::shared_ptr<AbilityRecord> targetService, bool isFromConnect);
 private:
     int TerminateAbilityWithFlag(const sptr<IRemoteObject> &token, int resultCode = DEFAULT_INVAL_VALUE,
         const Want *resultWant = nullptr, bool flag = true);
@@ -2543,6 +2556,7 @@ private:
     int32_t CheckRestartAppWant(const AAFwk::Want &want, int32_t appIndex, int32_t userId);
 
     int32_t CheckDebugAssertPermission();
+    bool VerifySameAppOrAppIdentifierAllowListPermission(const AbilityRequest &abilityRequest);
     std::shared_ptr<AbilityDebugDeal> ConnectInitAbilityDebugDeal();
 
     int32_t SetBackgroundCall(const AppExecFwk::RunningProcessInfo &processInfo,

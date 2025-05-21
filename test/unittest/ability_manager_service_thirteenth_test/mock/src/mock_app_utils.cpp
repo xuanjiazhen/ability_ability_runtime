@@ -229,5 +229,10 @@ bool AppUtils::IsCacheExtensionAbilityByList(const std::string& bundleName, cons
     return true;
 }
 
+bool AppUtils::IsSupportAppServiceExtension()
+{
+    return true;
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS

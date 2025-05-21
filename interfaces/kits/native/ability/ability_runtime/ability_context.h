@@ -226,6 +226,30 @@ public:
     virtual void DisconnectAbility(const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback,
         int32_t accountId = -1) = 0;
 
+    virtual ErrCode StartExtensionAbilityWithExtensionType(const AAFwk::Want &want,
+        AppExecFwk::ExtensionAbilityType extensionType) = 0;
+    virtual ErrCode StopExtensionAbilityWithExtensionType(const AAFwk::Want& want,
+        AppExecFwk::ExtensionAbilityType extensionType) = 0;
+    /**
+    * @brief Connects the current ability to an appService ability using the AbilityInfo.AbilityType.SERVICE template.
+    *
+    * @param want Indicates the want containing information about the ability to connect
+    * @param connectCallback Indicates the callback object when the target ability is connected.
+    * @return True means success and false means failure
+    */
+    virtual ErrCode ConnectExtensionAbilityWithExtensionType(const AAFwk::Want& want,
+        const sptr<AbilityConnectCallback>& connectCallback, AppExecFwk::ExtensionAbilityType extensionType) = 0;
+
+    /**
+    * @brief Disconnects the current ability from app ability
+    *
+    * @param want Indicates the want containing information about the ability to disconnect
+    * @param connectCallback Indicates the callback object when the target ability is connected.
+    * is set up. The IAbilityConnection object uniquely identifies a connection between two abilities.
+    */
+    virtual void DisconnectExtensionAppServiceExtensionAbility(const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback,
+        int32_t accountId = -1) = 0;
+
     /**
      * @brief get ability info of the current ability
      *

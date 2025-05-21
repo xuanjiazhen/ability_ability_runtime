@@ -51,11 +51,20 @@ ErrCode ConnectionManager::ConnectAbilityWithAccount(const sptr<IRemoteObject>& 
 ErrCode ConnectionManager::ConnectUIServiceExtensionAbility(const sptr<IRemoteObject>& connectCaller,
     const AAFwk::Want& want, const sptr<AbilityConnectCallback>& connectCallback)
 {
-    return ConnectAbilityInner(connectCaller, want, AAFwk::DEFAULT_INVAL_VALUE, connectCallback, true);
+    return ConnectAbilityInner(connectCaller, want, AAFwk::DEFAULT_INVAL_VALUE, connectCallback,
+        AppExecFwk::ExtensionAbilityType::UI_SERVICE);
 }
 
-ErrCode ConnectionManager::ConnectAbilityInner(const sptr<IRemoteObject>& connectCaller,
-    const AAFwk::Want& want, int accountId, const sptr<AbilityConnectCallback>& connectCallback, bool isUIService)
+ErrCode ConnectionManager::ConnectExtensionAbilityWithExtensionType(const sptr<IRemoteObject>& connectCaller,
+    const AAFwk::Want& want, const sptr<AbilityConnectCallback>& connectCallback,
+    AppExecFwk::ExtensionAbilityType extensionType)
+{
+    return ConnectAbilityInner(connectCaller, want, AAFwk::DEFAULT_INVAL_VALUE, connectCallback,
+        extensionType);
+}
+
+ErrCode ConnectionManager::ConnectAbilityInner(const sptr<IRemoteObject>& connectCaller, const AAFwk::Want& want,
+    int accountId, const sptr<AbilityConnectCallback>& connectCallback, AppExecFwk::ExtensionAbilityType extensionType)
 {
     if (connectCaller == nullptr || connectCallback == nullptr) {
         TAG_LOGE(AAFwkTag::CONNECTION, "null connectCaller or connectCallback");
@@ -96,10 +105,10 @@ ErrCode ConnectionManager::ConnectAbilityInner(const sptr<IRemoteObject>& connec
         } else {
             TAG_LOGE(AAFwkTag::CONNECTION, "abilityConnection disconnected");
             abilityConnections_.erase(connectionIter);
-            return CreateConnection(connectCaller, want, accountId, connectCallback, isUIService);
+            return CreateConnection(connectCaller, want, accountId, connectCallback, extensionType);
         }
     } else {
-        return CreateConnection(connectCaller, want, accountId, connectCallback, isUIService);
+        return CreateConnection(connectCaller, want, accountId, connectCallback, extensionType);
     }
 }
 
@@ -138,8 +147,8 @@ bool ConnectionManager::MatchConnection(
     }
 }
 
-ErrCode ConnectionManager::CreateConnection(const sptr<IRemoteObject>& connectCaller,
-    const AAFwk::Want& want, int accountId, const sptr<AbilityConnectCallback>& connectCallback, bool isUIService)
+ErrCode ConnectionManager::CreateConnection(const sptr<IRemoteObject>& connectCaller, const AAFwk::Want& want,
+    int accountId, const sptr<AbilityConnectCallback>& connectCallback, AppExecFwk::ExtensionAbilityType extensionType)
 {
     TAG_LOGD(AAFwkTag::CONNECTION, "called");
     sptr<AbilityConnection> abilityConnection = new AbilityConnection();
@@ -150,13 +159,8 @@ ErrCode ConnectionManager::CreateConnection(const sptr<IRemoteObject>& connectCa
     abilityConnection->AddConnectCallback(connectCallback);
     abilityConnection->SetConnectionState(CONNECTION_STATE_CONNECTING);
     ErrCode ret = ERR_OK;
-    if (isUIService) {
-        ret = AAFwk::AbilityManagerClient::GetInstance()->ConnectUIServiceExtesnionAbility(
-            want, abilityConnection, connectCaller, accountId);
-    } else {
-        ret = AAFwk::AbilityManagerClient::GetInstance()->ConnectAbility(
-            want, abilityConnection, connectCaller, accountId);
-    }
+    ret = AAFwk::AbilityManagerClient::GetInstance()->ConnectExtensionAbilityWithExtensionType(
+        want, abilityConnection, connectCaller, accountId, extensionType);
     std::lock_guard<std::recursive_mutex> lock(connectionsLock_);
     if (ret == ERR_OK) {
         ConnectionInfo connectionInfo(connectCaller, want.GetOperation(), abilityConnection, accountId);
@@ -184,7 +188,14 @@ ErrCode ConnectionManager::DisconnectAbility(const sptr<IRemoteObject>& connectC
     const AAFwk::Want& connectReceiver, const sptr<AbilityConnectCallback>& connectCallback,
     int32_t accountId)
 {
-    if (connectCaller == nullptr || connectCallback == nullptr) {
+    return DisconnectExtensionAbilityWithExtensionType(connectCaller, connectReceiver, connectCallback, accountId,
+        AppExecFwk::ExtensionAbilityType::SERVICE);
+}
+
+ErrCode ConnectionManager::DisconnectExtensionAbilityWithExtensionType(const sptr<IRemoteObject>& connectCaller,
+    const AAFwk::Want& connectReceiver, const sptr<AbilityConnectCallback>& connectCallback,
+    int32_t accountId, AppExecFwk::ExtensionAbilityType extensionType) {
+        if (connectCaller == nullptr || connectCallback == nullptr) {
         TAG_LOGE(AAFwkTag::CONNECTION, "null connectCaller or connectCallback");
         return AAFwk::ERR_INVALID_CALLER;
     }
@@ -215,7 +226,8 @@ ErrCode ConnectionManager::DisconnectAbility(const sptr<IRemoteObject>& connectC
         if (item->second.empty()) {
             item = abilityConnections_.erase(item);
             TAG_LOGI(AAFwkTag::CONNECTION, "no callback left, disconnectAbility");
-            auto ret = AAFwk::AbilityManagerClient::GetInstance()->DisconnectAbility(abilityConnection);
+            auto ret = AAFwk::AbilityManagerClient::GetInstance()->DisconnectExtensionAbilityWithExtensionType(
+                abilityConnection, extensionType);
             if (ret != ERR_OK) {
                 TAG_LOGE(AAFwkTag::CONNECTION, "disconnect err:%{public}d", ret);
                 return ret;
