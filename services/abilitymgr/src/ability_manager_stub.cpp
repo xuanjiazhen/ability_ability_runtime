@@ -274,6 +274,15 @@ int AbilityManagerStub::OnRemoteRequestInnerSixth(uint32_t code, MessageParcel &
     if (interfaceCode == AbilityManagerInterfaceCode::OPEN_FILE) {
         return OpenFileInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::GET_ALL_INSIGHT_INTENT_INFO) {
+        return GetAllInsightIntentInfoInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::GET_INSIGHT_INTENT_INFO_BY_BUNDLE_NAME) {
+        return GetInsightIntentInfoByBundleNameInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::GET_INSIGHT_INTENT_INFO_BY_INTENT_NAME) {
+        return GetInsightIntentInfoByIntentNameInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -827,6 +836,9 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentieth(uint32_t code, MessageParc
     }
     if (interfaceCode == AbilityManagerInterfaceCode::REVOKE_DELEGATOR) {
         return RevokeDelegatorInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::START_ABILITY_WITH_WAIT) {
+        return StartAbilityWithWaitInner(data, reply);
     }
     return ERR_CODE_NOT_EXIST;
 }
@@ -4489,6 +4501,87 @@ int32_t AbilityManagerStub::RevokeDelegatorInner(MessageParcel &data, MessagePar
         return ERR_NULL_OBJECT;
     }
     int32_t result = RevokeDelegator(token);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
+        return INNER_ERR;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::StartAbilityWithWaitInner(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityManagerStub::StartAbilityWithWaitInner called");
+    std::unique_ptr<Want> want(data.ReadParcelable<Want>());
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
+        return ERR_NULL_OBJECT;
+    }
+
+    auto callback = iface_cast<IAbilityStartWithWaitObserver>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null callback");
+        return ERR_NULL_OBJECT;
+    }
+
+    int32_t result = StartAbilityWithWait(*want, callback);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::GetAllInsightIntentInfoInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "GetAllInsightIntentInfoInner");
+    auto flag = static_cast<AbilityRuntime::GetInsightIntentFlag>(data.ReadUint32());
+    std::vector<InsightIntentInfoForQuery> infos;
+    int32_t result = GetAllInsightIntentInfo(flag, infos);
+    if (!reply.WriteInt32(infos.size())) {
+        return INNER_ERR;
+    }
+    for (auto &info: infos) {
+        if (!reply.WriteParcelable(&info)) {
+            return INNER_ERR;
+        }
+    }
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
+        return INNER_ERR;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::GetInsightIntentInfoByBundleNameInner(MessageParcel &data, MessageParcel &reply)
+{
+    auto flag = static_cast<AbilityRuntime::GetInsightIntentFlag>(data.ReadUint32());
+    auto bundleName = std::string(data.ReadString());
+    std::vector<InsightIntentInfoForQuery> infos;
+    int32_t result = GetInsightIntentInfoByBundleName(flag, bundleName, infos);
+    if (!reply.WriteInt32(infos.size())) {
+        return INNER_ERR;
+    }
+    for (auto &info: infos) {
+        if (!reply.WriteParcelable(&info)) {
+            return INNER_ERR;
+        }
+    }
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
+        return INNER_ERR;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::GetInsightIntentInfoByIntentNameInner(MessageParcel &data, MessageParcel &reply)
+{
+    auto flag = static_cast<AbilityRuntime::GetInsightIntentFlag>(data.ReadUint32());
+    auto bundleName = std::string(data.ReadString());
+    auto modlueName = std::string(data.ReadString());
+    auto intentName = std::string(data.ReadString());
+    InsightIntentInfoForQuery info;
+    int32_t result = GetInsightIntentInfoByIntentName(flag, bundleName, modlueName, intentName, info);
+    if (!reply.WriteParcelable(&info)) {
+        return INNER_ERR;
+    }
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
         return INNER_ERR;

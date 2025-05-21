@@ -44,6 +44,7 @@
 #include "task_handler_wrap.h"
 #include "time_util.h"
 #include "ui_extension_utils.h"
+#include "app_native_spawn_manager.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -626,6 +627,11 @@ void AppRunningManager::RemoveAppRunningRecordById(const int32_t recordId)
         RemoveUIExtensionLauncherItem(appRecord->GetPid());
         AbilityRuntime::FreezeUtil::GetInstance().DeleteAppLifecycleEvent(appRecord->GetPid());
     }
+
+    // unregister child process exit notify when parent exit
+    if (appRecord != nullptr) {
+        AppNativeSpawnManager::GetInstance().RemoveNativeChildCallbackByPid(appRecord->GetPid());
+    }
 }
 
 void AppRunningManager::ClearAppRunningRecordMap()
@@ -1073,6 +1079,7 @@ void AppRunningManager::ExecuteConfigurationTask(const BackgroundAppInfo& info, 
         if (!userIdFlag) {
             continue;
         }
+        
         if (info.bandleName == appRecord->GetBundleName() && info.appIndex == appRecord->GetAppIndex() && item.second
             && appRecord->GetState() == ApplicationState::APP_STATE_BACKGROUND) {
             if (UpdateConfiguration(appRecord, Rosen::ConfigMode::COLOR_MODE)) {
@@ -1088,13 +1095,13 @@ int32_t AppRunningManager::UpdateConfigurationForBackgroundApp(const std::vector
     const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId)
 {
     int32_t maxCountPerBatch = policy.maxCountPerBatch;
-    if (maxCountPerBatch < 1 ) {
+    if (maxCountPerBatch < 1) {
         TAG_LOGE(AAFwkTag::APPMGR, "maxCountPerBatch invalid");
         return ERR_INVALID_VALUE;
     }
 
     int32_t intervalTime = policy.intervalTime;
-    if (intervalTime < 0 ) {
+    if (intervalTime < 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "intervalTime invalid");
         return ERR_INVALID_VALUE;
     }
@@ -1600,7 +1607,7 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::GetAppRunningRecordByChildP
     return nullptr;
 }
 
-bool AppRunningManager::IsChildProcessReachLimit(uint32_t accessTokenId)
+bool AppRunningManager::IsChildProcessReachLimit(uint32_t accessTokenId, bool multiProcessFeature)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called.");
     int32_t childCount = 0;
@@ -1613,7 +1620,9 @@ bool AppRunningManager::IsChildProcessReachLimit(uint32_t accessTokenId)
         }
         childCount += appRecord->GetChildProcessCount();
     }
-    return childCount >= AAFwk::AppUtils::GetInstance().MaxChildProcess();
+    auto maxCount = multiProcessFeature ? AAFwk::AppUtils::GetInstance().MaxMultiProcessFeatureChildProcess() :
+        AAFwk::AppUtils::GetInstance().MaxChildProcess();
+    return childCount >= maxCount;
 }
 
 std::shared_ptr<ChildProcessRecord> AppRunningManager::OnChildProcessRemoteDied(const wptr<IRemoteObject> &remote)
@@ -1655,6 +1664,10 @@ std::shared_ptr<ChildProcessRecord> AppRunningManager::OnChildProcessRemoteDied(
         });
     if (it != appRunningRecordMap_.end()) {
         auto appRecord = it->second;
+        if (childRecord->IsNativeSpawnStarted() &&
+            AppNativeSpawnManager::GetInstance().GetNativeChildCallbackByPid(appRecord->GetPid()) != nullptr) {
+            AppNativeSpawnManager::GetInstance().AddChildRelation(childRecord->GetPid(), appRecord->GetPid());
+        }
         appRecord->RemoveChildProcessRecord(childRecord);
         TAG_LOGI(AAFwkTag::APPMGR, "RemoveChildProcessRecord pid:%{public}d, uid:%{public}d", childRecord->GetPid(),
             childRecord->GetUid());
@@ -1663,6 +1676,19 @@ std::shared_ptr<ChildProcessRecord> AppRunningManager::OnChildProcessRemoteDied(
     return nullptr;
 }
 #endif //SUPPORT_CHILD_PROCESS
+
+std::shared_ptr<AppRunningRecord> AppRunningManager::GetAppRunningRecordByChildRecordPid(const pid_t pid)
+{
+    std::lock_guard guard(runningRecordMapMutex_);
+    auto iter = std::find_if(appRunningRecordMap_.begin(), appRunningRecordMap_.end(), [&pid](const auto &pair) {
+        auto childAppRecordMap = pair.second->GetChildAppRecordMap();
+        return childAppRecordMap.find(pid) != childAppRecordMap.end();
+    });
+    if (iter != appRunningRecordMap_.end()) {
+        return iter->second;
+    }
+    return nullptr;
+}
 
 int32_t AppRunningManager::SignRestartAppFlag(int32_t uid, const std::string &instanceKey)
 {
@@ -1900,7 +1926,8 @@ bool AppRunningManager::HandleUserRequestClean(const sptr<IRemoteObject> &abilit
         TAG_LOGE(AAFwkTag::APPMGR, "null appRecord");
         return false;
     }
-    if (appRecord->GetSupportProcessCacheState() == SupportProcessCacheState::SUPPORT) {
+    if ((appRecord->GetSupportProcessCacheState() == SupportProcessCacheState::SUPPORT) &&
+        (appRecord->GetEnableProcessCache())) {
         TAG_LOGI(AAFwkTag::APPMGR, "support porcess cache should not force clean");
         return false;
     }
@@ -2065,6 +2092,36 @@ void AppRunningManager::RemoveTimeoutDeadAppRecord()
             }
             }, DEAD_APP_RECORD_CLEAR_TIME);
     }
+}
+
+int32_t AppRunningManager::AddUIExtensionBindItem(
+    int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo)
+{
+    std::lock_guard guard(uiExtensionBindMapLock_);
+    uiExtensionBindMap_.emplace(uiExtensionBindAbilityId, bindInfo);
+    return ERR_OK;
+}
+
+int32_t AppRunningManager::RemoveUIExtensionBindItemById(int32_t uiExtensionBindAbilityId)
+{
+    std::lock_guard guard(uiExtensionBindMapLock_);
+    auto it = uiExtensionBindMap_.find(uiExtensionBindAbilityId);
+    if (it != uiExtensionBindMap_.end()) {
+        uiExtensionBindMap_.erase(it);
+    }
+    return ERR_OK;
+}
+
+int32_t AppRunningManager::QueryUIExtensionBindItemById(
+    int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo)
+{
+    std::lock_guard guard(uiExtensionBindMapLock_);
+    auto it = uiExtensionBindMap_.find(uiExtensionBindAbilityId);
+    if (it != uiExtensionBindMap_.end()) {
+        bindInfo = it->second;
+        return ERR_OK;
+    }
+    return ERR_INVALID_VALUE;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

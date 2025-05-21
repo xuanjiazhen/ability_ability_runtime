@@ -14,13 +14,13 @@
  */
 #include "uncaught_exception_callback.h"
 
+#include <charconv>
 #include <string>
 #include <sstream>
 
 #include "dfx_symbols.h"
 #include "elf_factory.h"
 #include "hilog_tag_wrapper.h"
-#include "native_engine/native_engine.h"
 #include "string_printf.h"
 #ifdef SUPPORT_GRAPHICS
 #include "ui_content.h"
@@ -61,6 +61,21 @@ std::string NapiUncaughtExceptionCallback::GetNativeStrFromJsTaggedObj(napi_valu
 }
 
 void NapiUncaughtExceptionCallback::operator()(napi_value obj)
+{
+    CallbackTask(obj);
+}
+
+void NapiUncaughtExceptionCallback::operator()(panda::TryCatch& trycatch)
+{
+    panda::Local<panda::ObjectRef> exception = trycatch.GetAndClearException();
+    if (!exception.IsEmpty() && !exception->IsHole()) {
+        napi_value obj = ArkNativeEngine::ArkValueToNapiValue(env_, exception);
+        CallbackTask(obj);
+    }
+}
+
+
+void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
 {
     std::string errorMsg = GetNativeStrFromJsTaggedObj(obj, "message");
     std::string errorName = GetNativeStrFromJsTaggedObj(obj, "name");
@@ -133,7 +148,11 @@ std::string NapiUncaughtExceptionCallback::GetFuncNameAndBuildId(std::string nat
             return nativeStack;
         }
         pc = tempStr.substr(pcPos += FLAG_PC_POS, FLAG_SPLIT_POS);
-        uint64_t value = std::stoull(pc, nullptr, FLAG_SPLIT_POS);
+        uint64_t value;
+        auto res = std::from_chars(pc.data(), pc.data() + pc.size(), value, FLAG_SPLIT_POS);
+        if (res.ec != std::errc()) {
+            return nativeStack;
+        }
         std::string funcName;
         uint64_t funcOffset;
         HiviewDFX::DfxSymbols::GetFuncNameAndOffsetByPc(value, elfFile, funcName, funcOffset);

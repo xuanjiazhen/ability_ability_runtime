@@ -108,9 +108,9 @@ std::string AbilityContextImpl::GetTempDir()
     return stageContext_ ? stageContext_->GetTempDir() : "";
 }
 
-std::string AbilityContextImpl::GetResourceDir()
+std::string AbilityContextImpl::GetResourceDir(const std::string &moduleName)
 {
-    return stageContext_ ? stageContext_->GetResourceDir() : "";
+    return stageContext_ ? stageContext_->GetResourceDir(moduleName) : "";
 }
 
 std::string AbilityContextImpl::GetFilesDir()
@@ -269,7 +269,7 @@ ErrCode AbilityContextImpl::StartAbilityForResult(const AAFwk::Want& want, const
         OnAbilityResultInner(requestCode, err, want);
         if (!startOptions.requestId_.empty()) {
             nlohmann::json jsonObject = nlohmann::json {
-                { JSON_KEY_ERR_MSG, "startAbility failed" },
+                { JSON_KEY_ERR_MSG, "Failed to call startAbilityForResult" },
             };
             OnRequestFailure(startOptions.requestId_, want.GetElement(), jsonObject.dump());
         }
@@ -290,7 +290,7 @@ ErrCode AbilityContextImpl::StartAbilityForResultWithAccount(
         OnAbilityResultInner(requestCode, err, want);
         if (!startOptions.requestId_.empty()) {
             nlohmann::json jsonObject = nlohmann::json {
-                { JSON_KEY_ERR_MSG, "startAbility failed" },
+                { JSON_KEY_ERR_MSG, "Failed to call startAbilityForResultWithAccount" },
             };
             OnRequestFailure(startOptions.requestId_, want.GetElement(), jsonObject.dump());
         }
