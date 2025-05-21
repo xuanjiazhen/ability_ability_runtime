@@ -21,6 +21,8 @@
 #include "ability_connect_manager.h"
 #include "ability_manager_radar.h"
 #include "ability_start_by_call_helper.h"
+#include "ability_start_with_wait_observer_utils.h"
+#include "ability_start_with_wait_observer_manager.h"
 #include "accesstoken_kit.h"
 #include "ability_manager_xcollie.h"
 #include "app_utils.h"
@@ -1301,6 +1303,10 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
     if (isUIAbilityOnly && abilityInfo.type != AbilityType::PAGE) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "ability type no UIAbility");
         return ERR_INVALID_VALUE;
+    }
+    if (abilityInfo.type != AbilityType::PAGE) {
+        AbilityStartWithWaitObserverManager::GetInstance().NotifyAATerminateWait(
+            const_cast<Want &>(want), TerminateReason::TERMINATE_FOR_NON_UI_ABILITY);
     }
     validUserId = abilityInfo.applicationInfo.uid / BASE_USER_RANGE;
     TAG_LOGD(AAFwkTag::ABILITYMGR, "userId is : %{public}d, singleton is : %{public}d",
@@ -11409,7 +11415,7 @@ int32_t AbilityManagerService::KillProcessWithReason(int32_t pid, const ExitReas
     if (ProcessLowMemoryKill(pid, reason)) {
         // if app is already starting, return
         TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}d is starting", pid);
-        return ERR_KILL_APP_WHILE_STRATING;
+        return ERR_KILL_APP_WHILE_STARTING;
     }
     CHECK_POINTER_AND_RETURN(appExitReasonHelper_, ERR_NULL_OBJECT);
     auto ret = appExitReasonHelper_->RecordProcessExitReason(pid, reason, true);
@@ -11695,10 +11701,11 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
     }
     AbilityRuntime::ExtractInsightIntentGenericInfo infos = GetInsightIntentGenericInfo(param);
     bool openLinkExecuteFlag = infos.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_LINK;
-
+    bool ignoreAbilityName = openLinkExecuteFlag ||
+        (infos.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_PAGE);
     auto paramPtr = std::make_shared<InsightIntentExecuteParam>(param);
     int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateParam(key, callerToken,
-        paramPtr, callerBundlename, openLinkExecuteFlag);
+        paramPtr, callerBundlename, ignoreAbilityName);
     if (ret != ERR_OK) {
         return ret;
     }
@@ -14033,6 +14040,30 @@ int32_t AbilityManagerService::RevokeDelegator(sptr<IRemoteObject> token)
     return uiAbilityManager->RevokeDelegator(token);
 }
 
+int32_t AbilityManagerService::StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> &observer)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityManagerService::StartAbilityWithWait called");
+    auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
+    if (!isShellCall) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not shell call");
+        return ERR_PERMISSION_DENIED;
+    }
+    // 1.regist observer
+    int32_t result = AbilityStartWithWaitObserverManager::GetInstance().RegisterObserver(want, observer);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "register ability start with wait observer fail, result:%{public}d", result);
+        return result;
+    }
+    // 2.start ability
+    result = StartAbility(want, DEFAULT_INVAL_VALUE, DEFAULT_INVAL_VALUE);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "start ability wait fail, result:%{public}d", result);
+        return result;
+    }
+    return ERR_OK;
+}
+
 int32_t AbilityManagerService::CheckStartPlugin(const Want& want, sptr<IRemoteObject> callerToken)
 {
     if (!AbilityRuntime::StartupUtil::IsStartPlugin(want)) {
@@ -14080,6 +14111,7 @@ int32_t AbilityManagerService::GetAllInsightIntentInfo(
             TAG_LOGD(AAFwkTag::INTENT, "extractInsightIntentInfos empty");
             return ERR_OK;
         }
+        TAG_LOGD(AAFwkTag::INTENT, "intentInfos size: %{public}zu", intentInfos.size());
         for (auto &info : intentInfos) {
             InsightIntentInfoForQuery intentInfoQuery;
             InsightIntentUtils::ConvertExtractInsightIntentInfo(info, intentInfoQuery);
@@ -14091,6 +14123,7 @@ int32_t AbilityManagerService::GetAllInsightIntentInfo(
         if (genericInfos.empty()) {
             return ERR_OK;
         }
+        TAG_LOGD(AAFwkTag::INTENT, "genericInfos size: %{public}zu", genericInfos.size());
         for (auto &info : genericInfos) {
             InsightIntentInfoForQuery intentInfoQuery;
             InsightIntentUtils::ConvertExtractInsightIntentGenericInfo(info, intentInfoQuery);
@@ -14120,6 +14153,7 @@ int32_t AbilityManagerService::GetInsightIntentInfoByBundleName(
             TAG_LOGD(AAFwkTag::INTENT, "extractInsightIntentInfos empty");
             return ERR_OK;
         }
+        TAG_LOGD(AAFwkTag::INTENT, "intentInfos size: %{public}zu", intentInfos.size());
         for (auto &info : intentInfos) {
             InsightIntentInfoForQuery intentInfoQuery;
             InsightIntentUtils::ConvertExtractInsightIntentInfo(info, intentInfoQuery);
@@ -14132,6 +14166,7 @@ int32_t AbilityManagerService::GetInsightIntentInfoByBundleName(
         if (genericInfos.empty()) {
             return ERR_OK;
         }
+        TAG_LOGD(AAFwkTag::INTENT, "genericInfos size: %{public}zu", genericInfos.size());
         for (auto &info : genericInfos) {
             InsightIntentInfoForQuery intentInfoQuery;
             InsightIntentUtils::ConvertExtractInsightIntentGenericInfo(info, intentInfoQuery);

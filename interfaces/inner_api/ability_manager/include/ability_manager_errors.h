@@ -786,7 +786,7 @@ enum {
     /**
      * Native error(2097331) for kill app while starting.
      */
-    ERR_KILL_APP_WHILE_STRATING = 2097331,
+    ERR_KILL_APP_WHILE_STARTING = 2097331,
 
     /**
      * Result (2097332) for target has not been started yet.

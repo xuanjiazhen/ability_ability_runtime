@@ -601,6 +601,26 @@ int32_t AppMgrService::UnregisterApplicationStateObserver(const sptr<IApplicatio
     return appMgrServiceInner_->UnregisterApplicationStateObserver(observer);
 }
 
+int32_t AppMgrService::RegisterNativeChildExitNotify(const sptr<INativeChildNotify> notify)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "begin");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->RegisterNativeChildExitNotify(notify);
+}
+
+int32_t AppMgrService::UnregisterNativeChildExitNotify(const sptr<INativeChildNotify> notify)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "begin");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->UnregisterNativeChildExitNotify(notify);
+}
+
 int32_t AppMgrService::RegisterAbilityForegroundStateObserver(const sptr<IAbilityForegroundStateObserver> &observer)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -1076,6 +1096,21 @@ int32_t AppMgrService::UpdateConfiguration(const Configuration& config, const in
         return ERR_INVALID_OPERATION;
     }
     return appMgrServiceInner_->UpdateConfiguration(config, userId);
+}
+
+int32_t AppMgrService::UpdateConfigurationForBackgroundApp(const std::vector<BackgroundAppInfo>& appInfos,
+    const AppExecFwk::ConfigurationPolicy& policy, const int32_t userId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "caller not SA");
+        return ERR_PERMISSION_DENIED;
+    }
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->UpdateConfigurationForBackgroundApp(appInfos, policy, userId);
 }
 
 int32_t AppMgrService::UpdateConfigurationByBundleName(const Configuration& config, const std::string &name,
