@@ -1018,6 +1018,11 @@ ErrCode UriPermissionManagerStubImpl::Active(const UriPermissionRawData& policyR
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto tokenId = IPCSkeleton::GetCallingTokenID();
+    auto permissionName = PermissionConstants::PERMISSION_FILE_ACCESS_PERSIST;
+    if (!PermissionVerification::GetInstance()->VerifyPermissionByTokenId(tokenId, permissionName)) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "No permission to call");
+        return CHECK_PERMISSION_FAILED;
+    }
     TAG_LOGD(AAFwkTag::URIPERMMGR, "active %{private}d permission", tokenId);
     auto permissionName = PermissionConstants::PERMISSION_FILE_ACCESS_PERSIST;
     if (!PermissionVerification::GetInstance()->VerifyPermissionByTokenId(tokenId, permissionName)) {
