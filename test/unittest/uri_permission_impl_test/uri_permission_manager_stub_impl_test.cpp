@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "mock_my_flag.h"
+#include "mock_ability_manager_client.h"
 
 #define private public
 #define protected public
