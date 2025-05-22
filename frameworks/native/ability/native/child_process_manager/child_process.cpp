@@ -16,6 +16,7 @@
 #include "child_process.h"
 
 #include "js_child_process.h"
+#include "sts_child_process.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -27,6 +28,8 @@ std::shared_ptr<ChildProcess> ChildProcess::Create(const std::unique_ptr<Runtime
     switch (runtime->GetLanguage()) {
         case AbilityRuntime::Runtime::Language::JS:
             return AbilityRuntime::JsChildProcess::Create(runtime);
+        case AbilityRuntime::Runtime::Language::STS:
+            return AbilityRuntime::StsChildProcess::Create(runtime);
         default:
             return std::make_shared<ChildProcess>();
     }
