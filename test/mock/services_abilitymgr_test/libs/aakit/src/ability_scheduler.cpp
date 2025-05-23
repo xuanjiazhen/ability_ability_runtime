@@ -25,21 +25,24 @@ AbilityScheduler::AbilityScheduler()
 AbilityScheduler::~AbilityScheduler()
 {}
 
-bool AbilityScheduler::ScheduleAbilityTransaction(const Want& want, const LifeCycleStateInfo& targetState,
-    sptr<SessionInfo> sessionInfo)
+ErrCode AbilityScheduler::ScheduleAbilityTransaction(const Want& want, const LifeCycleStateInfo& targetState,
+    const sptr<SessionInfo> &sessionInfo)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityScheduler ScheduleAbilityTransaction %d", targetState.state);
     (void)want;
-    return true;
+    return ERR_OK;
 }
 
-void AbilityScheduler::ScheduleShareData(const int32_t &uniqueId)
-{}
+ErrCode AbilityScheduler::ScheduleShareData(int32_t uniqueId)
+{
+    return ERR_OK;
+}
 
-void AbilityScheduler::SendResult(int requestCode, int resultCode, const Want& resultWant)
+ErrCode AbilityScheduler::SendResult(int requestCode, int resultCode, const Want& resultWant)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityScheduler SendResult %d resultCode %d", requestCode, resultCode);
     result_ = AbilityResult(requestCode, resultCode, resultWant);
+    return ERR_OK;
 }
 
 const AbilityResult& AbilityScheduler::GetResult() const
@@ -47,101 +50,125 @@ const AbilityResult& AbilityScheduler::GetResult() const
     return result_;
 }
 
-void AbilityScheduler::ScheduleConnectAbility(const Want& want)
+ErrCode AbilityScheduler::ScheduleConnectAbility(const Want& want)
 {
     (void)want;
+    return ERR_OK;
 }
 
-void AbilityScheduler::ScheduleDisconnectAbility(const Want& want)
-{}
-
-bool AbilityScheduler::SchedulePrepareTerminateAbility()
+ErrCode AbilityScheduler::ScheduleDisconnectAbility(const Want& want)
 {
-    return false;
+    return ERR_OK;
 }
 
-void AbilityScheduler::ScheduleCommandAbility(const Want& want, bool restart, int startId)
-{}
-
-void AbilityScheduler::ScheduleCommandAbilityWindow(const Want &want, const sptr<SessionInfo> &sessionInfo,
-    WindowCommand winCmd)
-{}
-
-void AbilityScheduler::ScheduleSaveAbilityState()
-{}
-
-void AbilityScheduler::ScheduleRestoreAbilityState(const PacMap& inState)
-{}
-
-std::vector<std::string> AbilityScheduler::GetFileTypes(const Uri& uri, const std::string& mimeTypeFilter)
+ErrCode AbilityScheduler::SchedulePrepareTerminateAbility()
 {
-    std::vector<std::string> values;
-    return values;
+    return ERR_OK;
 }
 
-int AbilityScheduler::OpenFile(const Uri& uri, const std::string& mode)
+ErrCode AbilityScheduler::ScheduleCommandAbility(const Want& want, bool restart, int32_t startId)
 {
-    return -1;
+    return ERR_OK;
 }
 
-int AbilityScheduler::Insert(const Uri& uri, const NativeRdb::ValuesBucket& value)
+ErrCode AbilityScheduler::ScheduleCommandAbilityWindow(const Want &want, const sptr<SessionInfo> &sessionInfo,
+    int32_t winCmd)
 {
-    return -1;
+    return ERR_OK;
 }
 
-int AbilityScheduler::Update(const Uri& uri, const NativeRdb::ValuesBucket& value,
-    const NativeRdb::DataAbilityPredicates& predicates)
+ErrCode AbilityScheduler::ScheduleSaveAbilityState()
 {
-    return -1;
+    return ERR_OK;
 }
 
-int AbilityScheduler::Delete(const Uri& uri, const NativeRdb::DataAbilityPredicates& predicates)
+ErrCode AbilityScheduler::ScheduleRestoreAbilityState(const PacMap& inState)
 {
-    return -1;
+    return ERR_OK;
 }
 
-std::shared_ptr<NativeRdb::AbsSharedResultSet> AbilityScheduler::Query(
-    const Uri& uri, std::vector<std::string>& columns, const NativeRdb::DataAbilityPredicates& predicates)
+ErrCode AbilityScheduler::GetFileTypes(const Uri& uri, const std::string& mimeTypeFilter,
+    std::vector<std::string>& funcResult)
 {
-    return nullptr;
+    return ERR_OK;
 }
 
-std::shared_ptr<AppExecFwk::PacMap> AbilityScheduler::Call(
-    const Uri& uri, const std::string& method, const std::string& arg, const AppExecFwk::PacMap& pacMap)
+ErrCode AbilityScheduler::OpenFile(const Uri& uri, const std::string& mode, int& funcResult)
 {
-    return nullptr;
+    funcResult = -1;
+    return ERR_OK;
 }
 
-std::string AbilityScheduler::GetType(const Uri& uri)
+ErrCode AbilityScheduler::Insert(const Uri& uri, const NativeRdb::AmValuesBucket& value, int32_t& funcResult)
 {
-    return result_.resultWant_.GetType();
+    funcResult = -1;
+    return ERR_OK;
 }
 
-int AbilityScheduler::OpenRawFile(const Uri& uri, const std::string& mode)
+ErrCode AbilityScheduler::Update(const Uri& uri, const NativeRdb::AmValuesBucket& value,
+    const NativeRdb::DataAbilityPredicates& predicates, int32_t& funcResult)
 {
-    return -1;
+    funcResult = -1;
+    return ERR_OK;
 }
 
-bool AbilityScheduler::Reload(const Uri& uri, const PacMap& extras)
+ErrCode AbilityScheduler::Delete(const Uri& uri, const NativeRdb::DataAbilityPredicates& predicates,
+    int32_t& funcResult)
 {
-    return false;
+    funcResult = -1;
+    return ERR_OK;
 }
 
-int AbilityScheduler::BatchInsert(const Uri& uri, const std::vector<NativeRdb::ValuesBucket>& values)
+ErrCode AbilityScheduler::Query(const Uri& uri, const std::vector<std::string>& columns,
+    const NativeRdb::DataAbilityPredicates& predicates, std::shared_ptr<AmAbsSharedResultSet>& funcResult)
 {
-    return -1;
+    funcResult = nullptr;
+    return ERR_OK;
 }
 
-Uri AbilityScheduler::NormalizeUri(const Uri& uri)
+ErrCode AbilityScheduler::Call(const Uri& uri, const std::string& method, const std::string& arg,
+    const AppExecFwk::PacMap& pacMap, std::shared_ptr<PacMap>& funcResult)
+{
+    funcResult = nullptr;
+    return ERR_OK;
+}
+
+ErrCode AbilityScheduler::GetType(const Uri& uri, std::string& funcResult)
+{
+    return ERR_OK;
+}
+
+ErrCode AbilityScheduler::OpenRawFile(const Uri& uri, const std::string& mode, int32_t& funcResult)
+{
+    funcResult = -1;
+    return ERR_OK;
+}
+
+ErrCode AbilityScheduler::Reload(const Uri& uri, const PacMap& extras, bool& funcResult)
+{
+    funcResult = false;
+    return ERR_OK;
+}
+
+ErrCode AbilityScheduler::BatchInsert(const Uri& uri, const std::vector<NativeRdb::AmValuesBucket>& values,
+    int32_t& funcResult)
+{
+    funcResult = -1;
+    return ERR_OK;
+}
+
+ErrCode AbilityScheduler::NormalizeUri(const Uri& uri, AmUri& funcResult)
 {
     Uri urivalue("");
-    return urivalue;
+    funcResult = AmUri(urivalue);
+    return ERR_OK;
 }
 
-Uri AbilityScheduler::DenormalizeUri(const Uri& uri)
+ErrCode AbilityScheduler::DenormalizeUri(const Uri& uri, AmUri& funcResult)
 {
     Uri urivalue("");
-    return urivalue;
+    funcResult = AmUri(urivalue);
+    return ERR_OK;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

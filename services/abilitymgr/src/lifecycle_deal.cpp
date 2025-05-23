@@ -47,7 +47,8 @@ void LifecycleDeal::Activate(const Want &want, LifeCycleStateInfo &stateInfo)
         stateInfo.caller.bundleName.c_str(),
         stateInfo.caller.abilityName.c_str());
     stateInfo.state = AbilityLifeCycleState::ABILITY_STATE_ACTIVE;
-    abilityScheduler->ScheduleAbilityTransaction(want, stateInfo);
+    sptr<SessionInfo> sessionInfo = nullptr;
+    abilityScheduler->ScheduleAbilityTransaction(want, stateInfo, sessionInfo);
 }
 
 void LifecycleDeal::Inactivate(const Want &want, LifeCycleStateInfo &stateInfo,
@@ -66,7 +67,8 @@ void LifecycleDeal::MoveToBackground(const Want &want, LifeCycleStateInfo &state
     auto abilityScheduler = GetScheduler();
     CHECK_POINTER(abilityScheduler);
     stateInfo.state = AbilityLifeCycleState::ABILITY_STATE_BACKGROUND;
-    abilityScheduler->ScheduleAbilityTransaction(want, stateInfo);
+    sptr<SessionInfo> sessionInfo = nullptr;
+    abilityScheduler->ScheduleAbilityTransaction(want, stateInfo, sessionInfo);
 }
 
 void LifecycleDeal::ConnectAbility(const Want &want)
@@ -183,7 +185,11 @@ bool LifecycleDeal::PrepareTerminateAbility()
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null abilityScheduler");
         return false;
     }
-    return abilityScheduler->SchedulePrepareTerminateAbility();
+    bool ret = false;
+    if (abilityScheduler->SchedulePrepareTerminateAbility() == ERR_OK) {
+        ret = true;
+    }
+    return ret;
 }
 
 void LifecycleDeal::UpdateSessionToken(sptr<IRemoteObject> sessionToken)

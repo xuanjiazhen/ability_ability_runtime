@@ -224,7 +224,7 @@ int DataAbilityImpl::Delete(const Uri &uri, const NativeRdb::DataAbilityPredicat
  * @return Returns the query result.
  */
 std::shared_ptr<NativeRdb::AbsSharedResultSet> DataAbilityImpl::Query(
-    const Uri &uri, std::vector<std::string> &columns, const NativeRdb::DataAbilityPredicates &predicates)
+    const Uri &uri, const std::vector<std::string> &columns, const NativeRdb::DataAbilityPredicates &predicates)
 {
     if (ability_ == nullptr) {
         TAG_LOGE(AAFwkTag::DATA_ABILITY, "null ability_");

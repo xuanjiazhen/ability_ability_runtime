@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +16,7 @@
 #include "data_ability_helper_impl.h"
 
 #include "ability_manager_client.h"
-#include "ability_scheduler_interface.h"
+#include "iability_scheduler.h"
 #include "ability_thread.h"
 #include "abs_shared_result_set.h"
 #include "hitrace_meter.h"
@@ -304,7 +304,7 @@ std::vector<std::string> DataAbilityHelperImpl::GetFileTypes(Uri &uri, const std
         return matchedMIMEs;
     }
 
-    matchedMIMEs = dataAbilityProxy->GetFileTypes(uri, mimeTypeFilter);
+    dataAbilityProxy->GetFileTypes(uri, mimeTypeFilter, matchedMIMEs);
 
     ReleaseDataAbility(dataAbilityProxy);
     TAG_LOGI(AAFwkTag::DATA_ABILITY, "matchedMIMEs size: %{public}zu", matchedMIMEs.size());
@@ -331,7 +331,7 @@ int DataAbilityHelperImpl::OpenFile(Uri &uri, const std::string &mode)
         return fd;
     }
 
-    fd = dataAbilityProxy->OpenFile(uri, mode);
+    dataAbilityProxy->OpenFile(uri, mode, fd);
 
     ReleaseDataAbility(dataAbilityProxy);
     TAG_LOGI(AAFwkTag::DATA_ABILITY, "fd: %{public}d", fd);
@@ -358,8 +358,7 @@ int DataAbilityHelperImpl::OpenRawFile(Uri &uri, const std::string &mode)
         TAG_LOGE(AAFwkTag::DATA_ABILITY, "GetDataAbilityProxy failed");
         return fd;
     }
-
-    fd = dataAbilityProxy->OpenRawFile(uri, mode);
+    dataAbilityProxy->OpenRawFile(uri, mode, fd);
 
     ReleaseDataAbility(dataAbilityProxy);
     TAG_LOGI(AAFwkTag::DATA_ABILITY, "fd: %{public}d", fd);
@@ -383,7 +382,8 @@ int DataAbilityHelperImpl::Insert(Uri &uri, const NativeRdb::ValuesBucket &value
         return index;
     }
 
-    index = dataAbilityProxy->Insert(uri, value);
+    AmValuesBucket amValue(std::make_shared<NativeRdb::ValuesBucket>(value));
+    dataAbilityProxy->Insert(uri, amValue, index);
 
     ReleaseDataAbility(dataAbilityProxy);
     TAG_LOGI(AAFwkTag::DATA_ABILITY, "index: %{public}d", index);
@@ -400,7 +400,7 @@ std::shared_ptr<AppExecFwk::PacMap> DataAbilityHelperImpl::Call(
         return result;
     }
 
-    result = dataAbilityProxy->Call(uri, method, arg, pacMap);
+    dataAbilityProxy->Call(uri, method, arg, pacMap, result);
 
     ReleaseDataAbility(dataAbilityProxy);
     TAG_LOGI(AAFwkTag::DATA_ABILITY, "null result?: %{public}d", result == nullptr);
@@ -426,7 +426,8 @@ int DataAbilityHelperImpl::Update(
         return index;
     }
 
-    index = dataAbilityProxy->Update(uri, value, predicates);
+    AmValuesBucket amValue(std::make_shared<NativeRdb::ValuesBucket>(value));
+    dataAbilityProxy->Update(uri, amValue, predicates, index);
 
     ReleaseDataAbility(dataAbilityProxy);
     TAG_LOGI(AAFwkTag::DATA_ABILITY, "index: %{public}d", index);
@@ -450,7 +451,7 @@ int DataAbilityHelperImpl::Delete(Uri &uri, const NativeRdb::DataAbilityPredicat
         return index;
     }
 
-    index = dataAbilityProxy->Delete(uri, predicates);
+    dataAbilityProxy->Delete(uri, predicates, index);
 
     ReleaseDataAbility(dataAbilityProxy);
     TAG_LOGI(AAFwkTag::DATA_ABILITY, "index: %{public}d", index);
@@ -476,7 +477,11 @@ std::shared_ptr<NativeRdb::AbsSharedResultSet> DataAbilityHelperImpl::Query(
         return resultset;
     }
 
-    resultset = dataAbilityProxy->Query(uri, columns, predicates);
+    std::shared_ptr<NativeRdb::AmAbsSharedResultSet> amResultset = nullptr;
+    dataAbilityProxy->Query(uri, columns, predicates, amResultset);
+    if (amResultset != nullptr) {
+        resultset = amResultset->GetResultSet();
+    }
 
     ReleaseDataAbility(dataAbilityProxy);
     TAG_LOGD(AAFwkTag::DATA_ABILITY, "null resultset?: %{public}d.", resultset == nullptr);
@@ -500,7 +505,7 @@ std::string DataAbilityHelperImpl::GetType(Uri &uri)
         return type;
     }
 
-    type = dataAbilityProxy->GetType(uri);
+    dataAbilityProxy->GetType(uri, type);
 
     ReleaseDataAbility(dataAbilityProxy);
     TAG_LOGI(AAFwkTag::DATA_ABILITY, "type: %{public}s", type.c_str());
@@ -526,7 +531,7 @@ bool DataAbilityHelperImpl::Reload(Uri &uri, const PacMap &extras)
         return ret;
     }
 
-    ret = dataAbilityProxy->Reload(uri, extras);
+    dataAbilityProxy->Reload(uri, extras, ret);
 
     ReleaseDataAbility(dataAbilityProxy);
     TAG_LOGI(AAFwkTag::DATA_ABILITY, "ret: %{public}d", ret);
@@ -550,7 +555,11 @@ int DataAbilityHelperImpl::BatchInsert(Uri &uri, const std::vector<NativeRdb::Va
         return ret;
     }
 
-    ret = dataAbilityProxy->BatchInsert(uri, values);
+    std::vector<NativeRdb::AmValuesBucket> amValues;
+    for (auto &value : values) {
+        amValues.emplace_back(std::make_shared<NativeRdb::ValuesBucket>(value));
+    }
+    dataAbilityProxy->BatchInsert(uri, amValues, ret);
 
     ReleaseDataAbility(dataAbilityProxy);
     TAG_LOGI(AAFwkTag::DATA_ABILITY, "ret: %{public}d", ret);
@@ -749,8 +758,9 @@ Uri DataAbilityHelperImpl::NormalizeUri(Uri &uri)
         return urivalue;
     }
 
-    urivalue = dataAbilityProxy->NormalizeUri(uri);
-
+    AmUri amUri;
+    dataAbilityProxy->NormalizeUri(uri, amUri);
+    urivalue = amUri.uri;
     ReleaseDataAbility(dataAbilityProxy);
     TAG_LOGI(AAFwkTag::DATA_ABILITY, "uri: %{public}s", urivalue.ToString().c_str());
     return urivalue;
@@ -775,8 +785,9 @@ Uri DataAbilityHelperImpl::DenormalizeUri(Uri &uri)
         return urivalue;
     }
 
-    urivalue = dataAbilityProxy->DenormalizeUri(uri);
-
+    AmUri amUri;
+    dataAbilityProxy->DenormalizeUri(uri, amUri);
+    urivalue = amUri.uri;
     ReleaseDataAbility(dataAbilityProxy);
     TAG_LOGI(AAFwkTag::DATA_ABILITY, "uri: %{public}s", urivalue.ToString().c_str());
     return urivalue;
@@ -792,7 +803,7 @@ std::vector<std::shared_ptr<DataAbilityResult>> DataAbilityHelperImpl::ExecuteBa
         return results;
     }
 
-    results = dataAbilityProxy->ExecuteBatch(operations);
+    dataAbilityProxy->ExecuteBatch(operations, results);
 
     ReleaseDataAbility(dataAbilityProxy);
     TAG_LOGI(AAFwkTag::DATA_ABILITY, "results size: %{public}zu", results.size());

@@ -641,7 +641,7 @@ void JsUIExtension::PostInsightIntentExecuted(const sptr<AAFwk::SessionInfo> &se
     if (needForeground) {
         // If need foreground, that means triggered by onForeground.
         TAG_LOGI(AAFwkTag::UI_EXT, "call abilityms");
-        AAFwk::PacMap restoreData;
+        PacMap restoreData;
         AAFwk::AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_, AAFwk::ABILITY_STATE_FOREGROUND_NEW,
             restoreData);
     } else {

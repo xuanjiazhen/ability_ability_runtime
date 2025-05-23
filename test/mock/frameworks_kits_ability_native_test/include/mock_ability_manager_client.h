@@ -48,118 +48,185 @@ public:
 
 class MockAbilityThread : public IRemoteStub<AAFwk::IAbilityScheduler> {
 public:
-    virtual bool ScheduleAbilityTransaction(const Want& want, const LifeCycleStateInfo& targetState,
-        sptr<SessionInfo> sessionInfo = nullptr)
+    virtual ErrCode ScheduleAbilityTransaction(const Want& want, const LifeCycleStateInfo& targetState,
+        const sptr<SessionInfo> &sessionInfo)
     {
-        return true;
+        return ERR_OK;
     }
-    virtual void SendResult(int requestCode, int resultCode, const Want& resultWant) {};
-    virtual void ScheduleConnectAbility(const Want& want) {};
-    virtual void ScheduleDisconnectAbility(const Want& want) {};
-    virtual void ScheduleCommandAbility(const Want& want, bool restart, int startId) {};
-    virtual void ScheduleCommandAbilityWindow(const Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo,
-        AAFwk::WindowCommand winCmd) {};
-    virtual void ScheduleSaveAbilityState() {};
-    virtual void ScheduleRestoreAbilityState(const PacMap& inState) {};
-    virtual std::vector<std::string> GetFileTypes(const Uri& uri, const std::string& mimeTypeFilter)
+    virtual ErrCode SendResult(int32_t requestCode, int32_t resultCode, const Want& resultWant)
     {
-        return std::vector<std::string>();
+        return ERR_OK;
     };
-    virtual int OpenFile(const Uri& uri, const std::string& mode)
+    virtual ErrCode ScheduleConnectAbility(const Want& want)
     {
-        return OPENFILENUM;
+        return ERR_OK;
     };
-    virtual int OpenRawFile(const Uri& uri, const std::string& mode)
+    virtual ErrCode ScheduleDisconnectAbility(const Want& want)
     {
-        return OPENRAWFILENUM;
+        return ERR_OK;
     };
-    virtual int Insert(const Uri& uri, const NativeRdb::ValuesBucket& value)
+    virtual ErrCode ScheduleCommandAbility(const Want& want, bool restart, int32_t startId)
     {
-        return INSERTNUM;
+        return ERR_OK;
     };
-    virtual int Update(
-        const Uri& uri, const NativeRdb::ValuesBucket& value, const NativeRdb::DataAbilityPredicates& predicates)
+    virtual ErrCode ScheduleCommandAbilityWindow(const Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo,
+        int32_t winCmd)
     {
-        return UPDATENUM;
+        return ERR_OK;
     };
-    virtual int Delete(const Uri& uri, const NativeRdb::DataAbilityPredicates& predicates)
+    virtual ErrCode ScheduleSaveAbilityState()
     {
-        return DELETENUM;
+        return ERR_OK;
     };
-    virtual std::shared_ptr<NativeRdb::AbsSharedResultSet> Query(
-        const Uri& uri, std::vector<std::string>& columns, const NativeRdb::DataAbilityPredicates& predicates)
+    virtual ErrCode ScheduleRestoreAbilityState(const PacMap& inState)
     {
-        return std::make_shared<NativeRdb::AbsSharedResultSet>("resultset");
+        return ERR_OK;
     };
-    std::shared_ptr<AppExecFwk::PacMap> Call(
-        const Uri& uri, const std::string& method, const std::string& arg, const AppExecFwk::PacMap& pacMap)
+    virtual ErrCode GetFileTypes(const Uri& uri, const std::string& mimeTypeFilter,
+        std::vector<std::string>& funcResult)
     {
-        return nullptr;
+        return ERR_OK;
+    };
+    virtual ErrCode OpenFile(const Uri& uri, const std::string& mode, int& funcResult)
+    {
+        funcResult = OPENFILENUM;
+        return ERR_OK;
+    };
+    virtual ErrCode OpenRawFile(const Uri& uri, const std::string& mode, int32_t& funcResult)
+    {
+        funcResult = OPENRAWFILENUM;
+        return ERR_OK;
+    };
+    virtual ErrCode Insert(const Uri& uri, const NativeRdb::AmValuesBucket& value, int32_t& funcResult)
+    {
+        funcResult = INSERTNUM;
+        return ERR_OK;
+    };
+    virtual ErrCode Update(
+        const Uri& uri, const NativeRdb::AmValuesBucket& value, const NativeRdb::DataAbilityPredicates& predicates,
+        int32_t& funcResult)
+    {
+        funcResult = UPDATENUM;
+        return ERR_OK;
+    };
+    virtual ErrCode Delete(const Uri& uri, const NativeRdb::DataAbilityPredicates& predicates, int32_t& funcResult)
+    {
+        funcResult = DELETENUM;
+        return ERR_OK;
+    };
+    virtual ErrCode Query(
+        const Uri& uri, const std::vector<std::string>& columns, const NativeRdb::DataAbilityPredicates& predicates,
+        std::shared_ptr<AmAbsSharedResultSet>& funcResult)
+    {
+        funcResult = std::make_shared<AmAbsSharedResultSet>(
+            std::make_shared<NativeRdb::AbsSharedResultSet>("resultset"));
+        return ERR_OK;
+    };
+    ErrCode Call(
+        const Uri& uri, const std::string& method, const std::string& arg, const AppExecFwk::PacMap& pacMap,
+        std::shared_ptr<PacMap>& funcResult)
+    {
+        funcResult = nullptr;
+        return ERR_OK;
     }
-    virtual std::string GetType(const Uri& uri)
+    virtual ErrCode GetType(const Uri& uri, std::string& funcResult)
     {
-        return std::string("Type1");
+        funcResult = "type";
+        return ERR_OK;
     };
-    virtual bool Reload(const Uri& uri, const PacMap& extras)
+    virtual ErrCode Reload(const Uri& uri, const PacMap& extras, bool& funcResult)
     {
-        return true;
+        funcResult = true;
+        return ERR_OK;
     };
-    virtual int BatchInsert(const Uri& uri, const std::vector<NativeRdb::ValuesBucket>& values)
+    virtual ErrCode BatchInsert(const Uri& uri, const std::vector<NativeRdb::AmValuesBucket>& values,
+        int32_t& funcResult)
     {
-        return BATCHINSERTNUM;
+        funcResult = BATCHINSERTNUM;
+        return ERR_OK;
     };
-    virtual bool ScheduleRegisterObserver(const Uri& uri, const sptr<AAFwk::IDataAbilityObserver>& dataObserver)
+    virtual ErrCode ScheduleRegisterObserver(const Uri& uri, const sptr<AAFwk::IDataAbilityObserver>& dataObserver)
     {
-        return true;
+        return ERR_OK;
     };
-    virtual bool ScheduleUnregisterObserver(const Uri& uri, const sptr<AAFwk::IDataAbilityObserver>& dataObserver)
+    virtual ErrCode ScheduleUnregisterObserver(const Uri& uri, const sptr<AAFwk::IDataAbilityObserver>& dataObserver)
     {
-        return true;
+        return ERR_OK;
     };
-    virtual bool ScheduleNotifyChange(const Uri& uri)
+    virtual ErrCode ScheduleNotifyChange(const Uri& uri)
     {
-        return true;
+        return ERR_OK;
     };
-    virtual Uri NormalizeUri(const Uri& uri)
+    virtual ErrCode NormalizeUri(const Uri& uri, AmUri& funcResult)
     {
-        return Uri("dataability:///test.aaa");
+        Uri tmpUri("dataability:///test.aaa");
+        funcResult = AmUri(tmpUri);
+        return ERR_OK;
     };
-    virtual Uri DenormalizeUri(const Uri& uri)
+    virtual ErrCode DenormalizeUri(const Uri& uri, AmUri& funcResult)
     {
-        return Uri("dataability:///test.aaa");
+        Uri tmpUri("dataability:///test.aaa");
+        funcResult = AmUri(tmpUri);
+        return ERR_OK;
     };
-    virtual std::vector<std::shared_ptr<AppExecFwk::DataAbilityResult>> ExecuteBatch(
-        const std::vector<std::shared_ptr<AppExecFwk::DataAbilityOperation>>& operations)
+    virtual ErrCode ExecuteBatch(
+        const std::vector<std::shared_ptr<AppExecFwk::DataAbilityOperation>>& operations,
+        std::vector<std::shared_ptr<DataAbilityResult>>& funcResult)
     {
-        return std::vector<std::shared_ptr<AppExecFwk::DataAbilityResult>>();
+        return ERR_OK;
     };
-    virtual void NotifyContinuationResult(int32_t result) {};
-    virtual void ContinueAbility(const std::string& deviceId, uint32_t versionCode) {};
-    virtual void DumpAbilityInfo(const std::vector<std::string>& params, std::vector<std::string>& info) {};
-    virtual void CallRequest()
+    virtual ErrCode NotifyContinuationResult(int32_t result)
     {
-        return;
+        return ERR_OK;
     };
-    virtual void OnExecuteIntent(const Want &want) {};
-    virtual void ScheduleShareData(const int32_t &uniqueId) {};
-    virtual bool SchedulePrepareTerminateAbility()
+    virtual ErrCode ContinueAbility(const std::string& deviceId, uint32_t versionCode)
     {
-        return false;
+        return ERR_OK;
+    };
+    virtual ErrCode DumpAbilityInfo(const std::vector<std::string>& params)
+    {
+        return ERR_OK;
+    };
+    virtual ErrCode CallRequest()
+    {
+        return ERR_OK;
+    };
+    virtual ErrCode OnExecuteIntent(const Want &want)
+    {
+        return ERR_OK;
     }
-    virtual int CreateModalUIExtension(const Want &want)
-    {
-        return 0;
-    }
-    virtual void UpdateSessionToken(sptr<IRemoteObject> sessionToken) {}
 
-    virtual void ScheduleCollaborate(const Want &want) {}
+    virtual ErrCode ScheduleShareData(int32_t uniqueId)
+    {
+        return ERR_OK;
+    }
 
-    virtual void ScheduleAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+    virtual ErrCode SchedulePrepareTerminateAbility()
+    {
+        return ERR_OK;
+    }
+    virtual ErrCode CreateModalUIExtension(const Want &want)
+    {
+        return ERR_OK;
+    }
+    virtual ErrCode UpdateSessionToken(const sptr<IRemoteObject>& sessionToken)
+    {
+        return ERR_OK;
+    }
+    virtual ErrCode ScheduleCollaborate(const Want &want)
+    {
+        return ERR_OK;
+    }
+    virtual ErrCode ScheduleAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
         const std::string &message)
-    {}
+    {
+        return ERR_OK;
+    }
 
-    virtual void ScheduleAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element)
-    {}
+    virtual ErrCode ScheduleAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element)
+    {
+        return ERR_OK;
+    }
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

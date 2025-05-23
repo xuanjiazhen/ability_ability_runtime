@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -76,30 +76,30 @@ public:
      * @param targetState Indicates the lifecycle state.
      * @param sessionInfo Indicates the session info.
      */
-    bool ScheduleAbilityTransaction(const Want &want, const LifeCycleStateInfo &targetState,
-        sptr<AAFwk::SessionInfo> sessionInfo = nullptr) override;
+    ErrCode ScheduleAbilityTransaction(const Want &want, const LifeCycleStateInfo &targetState,
+        const sptr<AAFwk::SessionInfo>& sessionInfo) override;
 
     /**
      * @brief Provide operating system ShareData information to the observer
      * @param requestCode Indicates the Ability request code.
      */
-    void ScheduleShareData(const int32_t &requestCode) override;
+    ErrCode ScheduleShareData(int32_t requestCode) override;
 
     /**
      * @brief Provide operating system PrepareTerminateAbility information to the observer
      */
-    bool SchedulePrepareTerminateAbility() override;
+    ErrCode SchedulePrepareTerminateAbility() override;
 
     /**
      * @brief Provide operating system SaveabilityState information to the observer
      */
-    void ScheduleSaveAbilityState() override;
+    ErrCode ScheduleSaveAbilityState() override;
 
     /**
      * @brief Provide operating system RestoreAbilityState information to the observer
      * @param state Indicates resotre ability state used to dispatchRestoreAbilityState.
      */
-    void ScheduleRestoreAbilityState(const AppExecFwk::PacMap &state) override;
+    ErrCode ScheduleRestoreAbilityState(const AppExecFwk::PacMap &state) override;
 
     /**
      * @brief Send the result code and data to be returned by this Page ability to the caller.
@@ -112,33 +112,33 @@ public:
      * @param want Indicates the data returned after the ability is destroyed. You can define the data returned. This
      * parameter can be null.
      */
-    void SendResult(int requestCode, int resultCode, const Want &resultData) override;
+    ErrCode SendResult(int requestCode, int resultCode, const Want &resultData) override;
 
     /**
      * @brief continue ability to target device.
      * @param deviceId target deviceId
      * @param versionCode Target bundle version.
      */
-    void ContinueAbility(const std::string &deviceId, uint32_t versionCode) override;
+    ErrCode ContinueAbility(const std::string &deviceId, uint32_t versionCode) override;
 
     /**
      * @brief notify this ability continuation result.
      * @param result Continuation result
      */
-    void NotifyContinuationResult(int32_t result) override;
+    ErrCode NotifyContinuationResult(int32_t result) override;
 
     /**
      * @brief Dump ability runner info.
      * @param runnerInfo ability runner info.
      */
-    void DumpAbilityInfo(const std::vector<std::string> &params, std::vector<std::string> &info) override;
+    ErrCode DumpAbilityInfo(const std::vector<std::string> &params) override;
 
     /**
      * @brief Call Request
      */
-    void CallRequest() override;
+    ErrCode CallRequest() override;
 
-    void OnExecuteIntent(const Want &want) override;
+    ErrCode OnExecuteIntent(const Want &want) override;
 
     /**
      * @brief create modal UIExtension.
@@ -150,14 +150,14 @@ public:
      * @brief Update sessionToken.
      * @param sessionToken The token of session.
      */
-    void UpdateSessionToken(sptr<IRemoteObject> sessionToken) override;
+    ErrCode UpdateSessionToken(const sptr<IRemoteObject>& sessionToken) override;
 
-    void ScheduleCollaborate(const Want &want) override;
+    ErrCode ScheduleCollaborate(const Want &want) override;
 
-    void ScheduleAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+    ErrCode ScheduleAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
         const std::string &message) override;
 
-    void ScheduleAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element) override;
+    ErrCode ScheduleAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element) override;
 
 private:
     void DumpAbilityInfoInner(const std::vector<std::string> &params, std::vector<std::string> &info);

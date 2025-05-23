@@ -25,7 +25,7 @@
 #include "ability_connect_callback_interface.h"
 #include "ability_manager_ipc_interface_code.h"
 #include "ability_running_info.h"
-#include "ability_scheduler_interface.h"
+#include "iability_scheduler.h"
 #include "ability_start_setting.h"
 #include "ability_state.h"
 #include "ability_state_data.h"

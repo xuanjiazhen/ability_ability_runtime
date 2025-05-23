@@ -21,7 +21,7 @@
 #include "ability_connect_callback_interface.h"
 #include "ability_manager_errors.h"
 #include "ability_manager_interface.h"
-#include "ability_scheduler_interface.h"
+#include "iability_scheduler.h"
 #include "auto_startup_info.h"
 #include "iremote_object.h"
 #include "mission_info.h"
@@ -550,7 +550,7 @@ public:
         sptr<IAbilityConnection> connect,
         sptr<IRemoteObject> callerToken,
         int32_t userId = DEFAULT_INVAL_VALUE);
-    
+
     /**
      * ConnectAbilityWithExtensionType, connect session with specified extentionType ability.
      *
@@ -1819,7 +1819,7 @@ public:
         const std::string &moduleName,
         const std::string &intentName,
         InsightIntentInfoForQuery &info);
-                                    
+
 private:
     AbilityManagerClient();
     DISALLOW_COPY_AND_MOVE(AbilityManagerClient);

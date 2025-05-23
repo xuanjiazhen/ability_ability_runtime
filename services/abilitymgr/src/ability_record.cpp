@@ -19,6 +19,7 @@
 
 #include "ability_manager_service.h"
 #include "ability_resident_process_rdb.h"
+#include "ability_scheduler_recipient.h"
 #include "ability_scheduler_stub.h"
 #include "app_exit_reason_data_manager.h"
 #include "app_utils.h"
@@ -3358,7 +3359,7 @@ void AbilityRecord::DumpClientInfo(std::vector<std::string> &info, const std::ve
         return;
     }
     std::unique_lock<ffrt::mutex> lock(dumpLock_);
-    scheduler_->DumpAbilityInfo(params, info);
+    scheduler_->DumpAbilityInfo(params);
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "dump begin wait");
     isDumpTimeout_ = false;

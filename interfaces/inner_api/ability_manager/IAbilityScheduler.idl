@@ -1,0 +1,71 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+sequenceable OHOS.IRemoteObject;
+sequenceable want..OHOS.AAFwk.Want;
+sequenceable lifecycle_state_info..OHOS.AAFwk.LifeCycleStateInfo;
+sequenceable OHOS.AAFwk.SessionInfo;
+sequenceable pac_map..OHOS.AppExecFwk.PacMap;
+sequenceable uri..OHOS.Uri;
+sequenceable data_ability_operation..OHOS.AppExecFwk.DataAbilityOperation;
+sequenceable am_abs_shared_result_set..OHOS.NativeRdb.AmAbsSharedResultSet;
+sequenceable am_values_bucket..OHOS.NativeRdb.AmValuesBucket;
+sequenceable data_ability_predicates..OHOS.NativeRdb.DataAbilityPredicates;
+sequenceable data_ability_result..OHOS.AppExecFwk.DataAbilityResult;
+sequenceable element_name..OHOS.AppExecFwk.ElementName;
+sequenceable am_uri..OHOS.AmUri;
+
+interface OHOS.AAFwk.IDataAbilityObserver;
+interface OHOS.AAFwk.IAbilityScheduler {
+    [oneway,ipcincapacity 216] void ScheduleAbilityTransaction([in] Want want, [in] LifeCycleStateInfo targetState,
+        [in] null_sptr<SessionInfo> sessionInfo);
+    [oneway] void ScheduleShareData([in] int uniqueId);
+    [oneway] void SendResult([in] int requestCode, [in] int resultCode, [in] Want resultWant);
+    [oneway,ipcincapacity 216] void ScheduleConnectAbility([in] Want want);
+    [oneway,ipcincapacity 216] void ScheduleDisconnectAbility([in] Want want);
+    [oneway,ipcincapacity 216] void ScheduleCommandAbility([in] Want want, [in] boolean restart, [in] int startId);
+    [oneway,ipcincapacity 216] void ScheduleCommandAbilityWindow([in] Want want, [in] sptr<SessionInfo> sessionInfo, [in] int winCmd);
+    [oneway] void SchedulePrepareTerminateAbility();
+    [oneway] void ScheduleSaveAbilityState();
+    [oneway] void ScheduleRestoreAbilityState([in] PacMap inState);
+    String[] GetFileTypes([in] Uri uri, [in] String mimeTypeFilter);
+    FileDescriptor OpenFile([in] Uri uri, [in] String mode);
+    int OpenRawFile([in] Uri uri, [in] String mode);
+    int Insert([in] Uri uri, [in] AmValuesBucket value);
+    int Update([in] Uri uri, [in] AmValuesBucket value, [in] DataAbilityPredicates predicates);
+    int Delete([in] Uri uri, [in] DataAbilityPredicates predicates);
+    sharedptr<PacMap> Call([in] Uri uri, [in] String method, [in] String arg, [in] PacMap pacMap);
+    sharedptr<AmAbsSharedResultSet> Query([in] Uri uri, [in] String[] columns,
+        [in] DataAbilityPredicates predicates);
+    String GetType([in] Uri uri);
+    boolean Reload([in] Uri uri, [in] PacMap extras);
+    int BatchInsert([in] Uri uri, [in] AmValuesBucket[] values);
+    void ScheduleRegisterObserver([in] Uri uri, [in] IDataAbilityObserver dataObserver);
+    void ScheduleUnregisterObserver([in] Uri uri, [in] IDataAbilityObserver dataObserver);
+    void ScheduleNotifyChange([in] Uri uri);
+    AmUri NormalizeUri([in] Uri uri);
+    AmUri DenormalizeUri([in] Uri uri);
+    sharedptr<DataAbilityResult>[] ExecuteBatch([in] sharedptr<DataAbilityOperation>[] operations);
+    [oneway] void ContinueAbility([in] String deviceId, [in] unsigned int versionCode);
+    [oneway] void NotifyContinuationResult([in] int resultParam);
+    [oneway] void DumpAbilityInfo([in] String[] params);
+    [oneway,ipcincapacity 216] void CreateModalUIExtension([in] Want want);
+    [oneway,ipcincapacity 216] void OnExecuteIntent([in] Want want);
+    [oneway] void CallRequest();
+    [oneway] void UpdateSessionToken([in] IRemoteObject sessionToken);
+    [oneway] void ScheduleCollaborate([in] Want want);
+    [oneway] void ScheduleAbilityRequestFailure([in] String requestId, [in] ElementName element, [in] String message);
+    [oneway] void ScheduleAbilityRequestSuccess([in] String requestId, [in] ElementName element);
+}

@@ -380,7 +380,7 @@ int AbilityImpl::Delete(const Uri &uri, const NativeRdb::DataAbilityPredicates &
 }
 
 std::shared_ptr<NativeRdb::AbsSharedResultSet> AbilityImpl::Query(
-    const Uri &uri, std::vector<std::string> &columns, const NativeRdb::DataAbilityPredicates &predicates)
+    const Uri &uri, const std::vector<std::string> &columns, const NativeRdb::DataAbilityPredicates &predicates)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
     return nullptr;

@@ -267,25 +267,27 @@ void UIAbilityThread::HandleShareData(const int32_t &uniqueId)
     abilityImpl_->HandleShareData(uniqueId);
 }
 
-void UIAbilityThread::ScheduleSaveAbilityState()
+ErrCode UIAbilityThread::ScheduleSaveAbilityState()
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
     if (abilityImpl_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityImpl_");
-        return;
+        return ERR_INVALID_VALUE;
     }
 
     abilityImpl_->DispatchSaveAbilityState();
+    return ERR_OK;
 }
 
-void UIAbilityThread::ScheduleRestoreAbilityState(const AppExecFwk::PacMap &state)
+ErrCode UIAbilityThread::ScheduleRestoreAbilityState(const AppExecFwk::PacMap &state)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
     if (abilityImpl_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityImpl_");
-        return;
+        return ERR_INVALID_VALUE;
     }
     abilityImpl_->DispatchRestoreAbilityState(state);
+    return ERR_OK;
 }
 
 void UIAbilityThread::ScheduleUpdateConfiguration(const AppExecFwk::Configuration &config)
@@ -305,8 +307,8 @@ void UIAbilityThread::HandleUpdateConfiguration(const AppExecFwk::Configuration 
     abilityImpl_->ScheduleUpdateConfiguration(config);
 }
 
-bool UIAbilityThread::ScheduleAbilityTransaction(
-    const Want &want, const LifeCycleStateInfo &lifeCycleStateInfo, sptr<AAFwk::SessionInfo> sessionInfo)
+ErrCode UIAbilityThread::ScheduleAbilityTransaction(
+    const Want &want, const LifeCycleStateInfo &lifeCycleStateInfo, const sptr<AAFwk::SessionInfo>& sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::UIABILITY, "name:%{public}s,targeState:%{public}d,isNewWant:%{public}d",
@@ -318,11 +320,11 @@ bool UIAbilityThread::ScheduleAbilityTransaction(
 
     if (token_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null token_");
-        return false;
+        return ERR_INVALID_VALUE;
     }
     if (abilityHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityHandler_");
-        return false;
+        return ERR_INVALID_VALUE;
     }
     wptr<UIAbilityThread> weak = this;
     auto task = [weak, want, lifeCycleStateInfo, sessionInfo]() {
@@ -337,21 +339,21 @@ bool UIAbilityThread::ScheduleAbilityTransaction(
     bool ret = abilityHandler_->PostTask(task, "UIAbilityThread:AbilityTransaction");
     if (!ret) {
         TAG_LOGE(AAFwkTag::UIABILITY, "postTask error");
-        return false;
+        return ERR_INVALID_VALUE;
     }
-    return true;
+    return ERR_OK;
 }
 
-void UIAbilityThread::ScheduleShareData(const int32_t &uniqueId)
+ErrCode UIAbilityThread::ScheduleShareData(int32_t uniqueId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (token_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null token_");
-        return;
+        return ERR_INVALID_VALUE;
     }
     if (abilityHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityHandler_");
-        return;
+        return ERR_INVALID_VALUE;
     }
     wptr<UIAbilityThread> weak = this;
     auto task = [weak, uniqueId]() {
@@ -365,18 +367,22 @@ void UIAbilityThread::ScheduleShareData(const int32_t &uniqueId)
     bool ret = abilityHandler_->PostTask(task, "UIAbilityThread:ShareData");
     if (!ret) {
         TAG_LOGE(AAFwkTag::UIABILITY, "postTask error");
+        return ERR_INVALID_VALUE;
     }
+    return ERR_OK;
 }
 
-bool UIAbilityThread::SchedulePrepareTerminateAbility()
+ErrCode UIAbilityThread::SchedulePrepareTerminateAbility()
 {
     if (abilityHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityHandler_");
-        return false;
+        return ERR_INVALID_VALUE;
     }
     if (getpid() == gettid()) {
         TAG_LOGE(AAFwkTag::UIABILITY, "in app main thread");
-        return HandlePrepareTermianteAbility();
+        if (!HandlePrepareTermianteAbility()) {
+            return ERR_INVALID_VALUE;
+        }
     }
     wptr<UIAbilityThread> weak = this;
     auto task = [weak]() {
@@ -391,9 +397,9 @@ bool UIAbilityThread::SchedulePrepareTerminateAbility()
     bool ret = abilityHandler_->PostTask(task, "UIAbilityThread:PrepareTerminateAbility");
     if (!ret) {
         TAG_LOGE(AAFwkTag::UIABILITY, "postTask error");
-        return false;
+        return ERR_INVALID_VALUE;
     }
-    return true;
+    return ERR_OK;
 }
 
 bool UIAbilityThread::HandlePrepareTermianteAbility()
@@ -425,12 +431,12 @@ bool UIAbilityThread::HandlePrepareTermianteAbility()
     return true;
 }
 
-void UIAbilityThread::SendResult(int requestCode, int resultCode, const Want &want)
+ErrCode UIAbilityThread::SendResult(int requestCode, int resultCode, const Want &want)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
     if (abilityHandler_ == nullptr || requestCode == -1) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityHandler_ or requestCode is -1");
-        return;
+        return ERR_INVALID_VALUE;
     }
 
     wptr<UIAbilityThread> weak = this;
@@ -451,26 +457,29 @@ void UIAbilityThread::SendResult(int requestCode, int resultCode, const Want &wa
     if (!ret) {
         TAG_LOGE(AAFwkTag::UIABILITY, "postTask error");
     }
+    return ERR_OK;
 }
 
-void UIAbilityThread::ContinueAbility(const std::string &deviceId, uint32_t versionCode)
+ErrCode UIAbilityThread::ContinueAbility(const std::string &deviceId, uint32_t versionCode)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
     if (abilityImpl_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityImpl_");
-        return;
+        return ERR_INVALID_VALUE;
     }
     abilityImpl_->ContinueAbility(deviceId, versionCode);
+    return ERR_OK;
 }
 
-void UIAbilityThread::NotifyContinuationResult(int32_t result)
+ErrCode UIAbilityThread::NotifyContinuationResult(int32_t result)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "result: %{public}d", result);
     if (abilityImpl_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityImpl_");
-        return;
+        return ERR_INVALID_VALUE;
     }
     abilityImpl_->NotifyContinuationResult(result);
+    return ERR_OK;
 }
 
 void UIAbilityThread::NotifyMemoryLevel(int32_t level)
@@ -501,16 +510,16 @@ std::shared_ptr<AbilityContext> UIAbilityThread::BuildAbilityContext(
     return abilityContextImpl;
 }
 
-void UIAbilityThread::DumpAbilityInfo(const std::vector<std::string> &params, std::vector<std::string> &info)
+ErrCode UIAbilityThread::DumpAbilityInfo(const std::vector<std::string> &params)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
     if (token_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null token_");
-        return;
+        return ERR_INVALID_VALUE;
     }
     if (abilityHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityHandler_");
-        return;
+        return ERR_INVALID_VALUE;
     }
     wptr<UIAbilityThread> weak = this;
     auto task = [weak, params, token = token_]() {
@@ -527,6 +536,7 @@ void UIAbilityThread::DumpAbilityInfo(const std::vector<std::string> &params, st
         }
     };
     abilityHandler_->PostTask(task, "UIAbilityThread:DumpAbilityInfo");
+    return ERR_OK;
 }
 
 #ifdef SUPPORT_SCREEN
@@ -598,16 +608,16 @@ void UIAbilityThread::DumpOtherInfo(std::vector<std::string> &info)
     }
 }
 
-void UIAbilityThread::CallRequest()
+ErrCode UIAbilityThread::CallRequest()
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
     if (currentAbility_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null ability");
-        return;
+        return ERR_INVALID_VALUE;
     }
     if (abilityHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityHandler_");
-        return;
+        return ERR_INVALID_VALUE;
     }
 
     sptr<IRemoteObject> retval = nullptr;
@@ -624,19 +634,20 @@ void UIAbilityThread::CallRequest()
     abilityHandler_->PostSyncTask(syncTask, "UIAbilityThread:CallRequest");
     AbilityManagerClient::GetInstance()->CallRequestDone(token_, retval);
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
+    return ERR_OK;
 }
 
-void UIAbilityThread::OnExecuteIntent(const Want &want)
+ErrCode UIAbilityThread::OnExecuteIntent(const Want &want)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
     if (abilityImpl_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityImpl_");
-        return;
+        return ERR_INVALID_VALUE;
     }
 
     if (abilityHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityHandler_");
-        return;
+        return ERR_INVALID_VALUE;
     }
 
     wptr<UIAbilityThread> weak = this;
@@ -652,6 +663,7 @@ void UIAbilityThread::OnExecuteIntent(const Want &want)
         }
     };
     abilityHandler_->PostTask(task, "UIAbilityThread:OnExecuteIntent");
+    return ERR_OK;
 }
 
 #ifdef SUPPORT_SCREEN
@@ -665,23 +677,24 @@ int UIAbilityThread::CreateModalUIExtension(const Want &want)
     return currentAbility_->CreateModalUIExtension(want);
 }
 #endif //SUPPORT_SCREEN
-void UIAbilityThread::UpdateSessionToken(sptr<IRemoteObject> sessionToken)
+ErrCode UIAbilityThread::UpdateSessionToken(const sptr<IRemoteObject>& sessionToken)
 {
     if (currentAbility_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null current ability");
-        return;
+        return ERR_INVALID_VALUE;
     }
 #ifdef SUPPORT_SCREEN
     currentAbility_->UpdateSessionToken(sessionToken);
 #endif //SUPPORT_SCREEN
+    return ERR_OK;
 }
 
-void UIAbilityThread::ScheduleCollaborate(const Want &want)
+ErrCode UIAbilityThread::ScheduleCollaborate(const Want &want)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
     if (abilityImpl_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityImpl_");
-        return;
+        return ERR_INVALID_VALUE;
     }
     wptr<UIAbilityThread> weak = this;
     auto task = [weak, want]() {
@@ -698,17 +711,18 @@ void UIAbilityThread::ScheduleCollaborate(const Want &want)
     bool ret = abilityHandler_->PostTask(task, "UIAbilityThread:ScheduleCollaborate");
     if (!ret) {
         TAG_LOGE(AAFwkTag::UIABILITY, "postTask error");
-        return;
+        return ERR_INVALID_VALUE;
     }
+    return ERR_OK;
 }
 
-void UIAbilityThread::ScheduleAbilityRequestFailure(const std::string &requestId,
+ErrCode UIAbilityThread::ScheduleAbilityRequestFailure(const std::string &requestId,
     const AppExecFwk::ElementName &element, const std::string &message)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "ScheduleAbilityRequestFailure called");
     if (abilityImpl_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityImpl_");
-        return;
+        return ERR_INVALID_VALUE;
     }
     wptr<UIAbilityThread> weak = this;
     auto task = [weak, requestId, element, message]() {
@@ -725,17 +739,18 @@ void UIAbilityThread::ScheduleAbilityRequestFailure(const std::string &requestId
     bool ret = abilityHandler_->PostTask(task, "UIAbilityThread:ScheduleAbilityRequestFailure");
     if (!ret) {
         TAG_LOGE(AAFwkTag::UIABILITY, "postTask error");
-        return;
+        return ERR_INVALID_VALUE;
     }
+    return ERR_OK;
 }
 
-void UIAbilityThread::ScheduleAbilityRequestSuccess(const std::string &requestId,
+ErrCode UIAbilityThread::ScheduleAbilityRequestSuccess(const std::string &requestId,
     const AppExecFwk::ElementName &element)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "ScheduleAbilityRequestSuccess called");
     if (abilityImpl_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityImpl_");
-        return;
+        return ERR_INVALID_VALUE;
     }
     wptr<UIAbilityThread> weak = this;
     auto task = [weak, requestId, element]() {
@@ -752,8 +767,9 @@ void UIAbilityThread::ScheduleAbilityRequestSuccess(const std::string &requestId
     bool ret = abilityHandler_->PostTask(task, "UIAbilityThread:ScheduleAbilityRequestSuccess");
     if (!ret) {
         TAG_LOGE(AAFwkTag::UIABILITY, "postTask error");
-        return;
+        return ERR_INVALID_VALUE;
     }
+    return ERR_OK;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

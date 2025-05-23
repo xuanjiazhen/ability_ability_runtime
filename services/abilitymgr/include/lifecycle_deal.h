@@ -19,7 +19,8 @@
 #include <memory>
 #include <shared_mutex>
 
-#include "ability_scheduler_interface.h"
+#include "iability_scheduler.h"
+#include "ui_extension_window_command.h"
 #include "want.h"
 #include "nocopyable.h"
 

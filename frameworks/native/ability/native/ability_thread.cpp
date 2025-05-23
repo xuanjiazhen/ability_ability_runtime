@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -88,218 +88,237 @@ void AbilityThread::AbilityThreadMain(const std::shared_ptr<OHOSApplication> &ap
     TAG_LOGD(AAFwkTag::ABILITY, "end");
 }
 
-bool AbilityThread::ScheduleAbilityTransaction(
-    const Want &want, const LifeCycleStateInfo &targetState, sptr<SessionInfo> sessionInfo)
+ErrCode AbilityThread::ScheduleAbilityTransaction(const Want &want, const LifeCycleStateInfo &targetState,
+    const sptr<SessionInfo>& sessionInfo)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
-    return true;
+    return ERR_OK;
 }
 
-void AbilityThread::ScheduleShareData(const int32_t &requestCode)
+ErrCode AbilityThread::ScheduleShareData(int32_t requestCode)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
+    return ERR_OK;
 }
 
-void AbilityThread::ScheduleConnectAbility(const Want &want)
+ErrCode AbilityThread::ScheduleConnectAbility(const Want &want)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
+    return ERR_OK;
 }
 
-void AbilityThread::ScheduleDisconnectAbility(const Want &want)
+ErrCode AbilityThread::ScheduleDisconnectAbility(const Want &want)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
+    return ERR_OK;
 }
 
-void AbilityThread::ScheduleCommandAbility(const Want &want, bool restart, int startId)
+ErrCode AbilityThread::ScheduleCommandAbility(const Want &want, bool restart, int startId)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
+    return ERR_OK;
 }
 
-void AbilityThread::ScheduleCommandAbilityWindow(
-    const Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo, AAFwk::WindowCommand winCmd)
+ErrCode AbilityThread::ScheduleCommandAbilityWindow(
+    const Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo, int32_t winCmd)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
+    return ERR_OK;
 }
 
-bool AbilityThread::SchedulePrepareTerminateAbility()
+ErrCode AbilityThread::SchedulePrepareTerminateAbility()
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
-    return false;
+    return ERR_OK;
 }
 
-void AbilityThread::ScheduleSaveAbilityState()
+ErrCode AbilityThread::ScheduleSaveAbilityState()
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
+    return ERR_OK;
 }
 
-void AbilityThread::ScheduleRestoreAbilityState(const PacMap &state)
+ErrCode AbilityThread::ScheduleRestoreAbilityState(const PacMap &state)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
+    return ERR_OK;
 }
 
-void AbilityThread::SendResult(int requestCode, int resultCode, const Want &resultData)
+ErrCode AbilityThread::SendResult(int requestCode, int resultCode, const Want &resultData)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
+    return ERR_OK;
 }
 
-std::vector<std::string> AbilityThread::GetFileTypes(const Uri &uri, const std::string &mimeTypeFilter)
+ErrCode AbilityThread::GetFileTypes(const Uri &uri, const std::string &mimeTypeFilter,
+    std::vector<std::string>& funcResult)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
-    std::vector<std::string> types;
-    return types;
+    return ERR_OK;
 }
 
-int AbilityThread::OpenFile(const Uri &uri, const std::string &mode)
+ErrCode AbilityThread::OpenFile(const Uri &uri, const std::string &mode, int& funcResult)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
-    return ERR_INVALID_VALUE;
+    return ERR_OK;
 }
 
-int AbilityThread::OpenRawFile(const Uri &uri, const std::string &mode)
+ErrCode AbilityThread::OpenRawFile(const Uri &uri, const std::string &mode, int32_t& funcResult)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
-    return ERR_INVALID_VALUE;
+    return ERR_OK;
 }
 
-int AbilityThread::Insert(const Uri &uri, const NativeRdb::ValuesBucket &value)
+ErrCode AbilityThread::Insert(const Uri &uri, const NativeRdb::AmValuesBucket &value, int32_t& funcResult)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
-    return ERR_INVALID_VALUE;
+    return ERR_OK;
 }
 
-std::shared_ptr<AppExecFwk::PacMap> AbilityThread::Call(
-    const Uri &uri, const std::string &method, const std::string &arg, const AppExecFwk::PacMap &pacMap)
+ErrCode AbilityThread::Call(const Uri &uri, const std::string &method, const std::string &arg,
+    const AppExecFwk::PacMap &pacMap, std::shared_ptr<PacMap>& funcResult)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
-    return nullptr;
+    return ERR_OK;
 }
 
-int AbilityThread::Update(
-    const Uri &uri, const NativeRdb::ValuesBucket &value, const NativeRdb::DataAbilityPredicates &predicates)
+ErrCode AbilityThread::Update(const Uri &uri, const NativeRdb::AmValuesBucket &value,
+    const NativeRdb::DataAbilityPredicates &predicates, int32_t& funcResult)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
-    return ERR_INVALID_VALUE;
+    return ERR_OK;
 }
 
-int AbilityThread::Delete(const Uri &uri, const NativeRdb::DataAbilityPredicates &predicates)
+ErrCode AbilityThread::Delete(const Uri &uri, const NativeRdb::DataAbilityPredicates &predicates, int32_t& funcResult)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
-    return ERR_INVALID_VALUE;
+    return ERR_OK;
 }
 
-std::shared_ptr<NativeRdb::AbsSharedResultSet> AbilityThread::Query(
-    const Uri &uri, std::vector<std::string> &columns, const NativeRdb::DataAbilityPredicates &predicates)
+ErrCode AbilityThread::Query(const Uri &uri, const std::vector<std::string> &columns,
+    const NativeRdb::DataAbilityPredicates &predicates, std::shared_ptr<AmAbsSharedResultSet>& funcResult)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
-    return nullptr;
+    return ERR_OK;
 }
 
-std::string AbilityThread::GetType(const Uri &uri)
+ErrCode AbilityThread::GetType(const Uri &uri, std::string& funcResult)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
-    return "";
+    return ERR_OK;
 }
 
-bool AbilityThread::Reload(const Uri &uri, const PacMap &extras)
+ErrCode AbilityThread::Reload(const Uri &uri, const PacMap &extras, bool& funcResult)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
-    return false;
+    return ERR_OK;
 }
 
-int AbilityThread::BatchInsert(const Uri &uri, const std::vector<NativeRdb::ValuesBucket> &values)
+ErrCode AbilityThread::BatchInsert(const Uri &uri, const std::vector<NativeRdb::AmValuesBucket> &values,
+    int32_t& funcResult)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
-    return ERR_INVALID_VALUE;
+    return ERR_OK;
 }
 
-void AbilityThread::ContinueAbility(const std::string &deviceId, uint32_t versionCode)
+ErrCode AbilityThread::ContinueAbility(const std::string &deviceId, uint32_t versionCode)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
+    return ERR_OK;
 }
 
-void AbilityThread::NotifyContinuationResult(int32_t result)
+ErrCode AbilityThread::NotifyContinuationResult(int32_t result)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
+    return ERR_OK;
 }
 
-Uri AbilityThread::NormalizeUri(const Uri &uri)
+ErrCode AbilityThread::NormalizeUri(const Uri &uri, AmUri& funcResult)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
-    return uri;
+    return ERR_OK;
 }
 
-Uri AbilityThread::DenormalizeUri(const Uri &uri)
+ErrCode AbilityThread::DenormalizeUri(const Uri &uri, AmUri& funcResult)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
-    return uri;
+    return ERR_OK;
 }
 
-bool AbilityThread::ScheduleRegisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver)
+ErrCode AbilityThread::ScheduleRegisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
-    return false;
+    return ERR_OK;
 }
 
-bool AbilityThread::ScheduleUnregisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver)
+ErrCode AbilityThread::ScheduleUnregisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
-    return false;
+    return ERR_OK;
 }
 
-bool AbilityThread::ScheduleNotifyChange(const Uri &uri)
+ErrCode AbilityThread::ScheduleNotifyChange(const Uri &uri)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
-    return false;
+    return ERR_OK;
 }
 
-void AbilityThread::DumpAbilityInfo(const std::vector<std::string> &params, std::vector<std::string> &info)
+ErrCode AbilityThread::DumpAbilityInfo(const std::vector<std::string> &params)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
+    return ERR_OK;
 }
 
-void AbilityThread::CallRequest()
+ErrCode AbilityThread::CallRequest()
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
+    return ERR_OK;
 }
 
-void AbilityThread::OnExecuteIntent(const Want &want)
+ErrCode AbilityThread::OnExecuteIntent(const Want &want)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
+    return ERR_OK;
 }
 
-std::vector<std::shared_ptr<AppExecFwk::DataAbilityResult>> AbilityThread::ExecuteBatch(
-    const std::vector<std::shared_ptr<AppExecFwk::DataAbilityOperation>> &operations)
+ErrCode AbilityThread::ExecuteBatch(
+    const std::vector<std::shared_ptr<AppExecFwk::DataAbilityOperation>> &operations,
+    std::vector<std::shared_ptr<AppExecFwk::DataAbilityResult>>& funcResult)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
-    std::vector<std::shared_ptr<DataAbilityResult>> results;
-    return results;
+    return ERR_OK;
 }
 
-int AbilityThread::CreateModalUIExtension(const Want &want)
+ErrCode AbilityThread::CreateModalUIExtension(const Want &want)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
-    return ERR_INVALID_VALUE;
+    return ERR_OK;
 }
 
-void AbilityThread::UpdateSessionToken(sptr<IRemoteObject> sessionToken)
+ErrCode AbilityThread::UpdateSessionToken(const sptr<IRemoteObject>& sessionToken)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
+    return ERR_OK;
 }
 
-void AbilityThread::ScheduleCollaborate(const Want &want)
+ErrCode AbilityThread::ScheduleCollaborate(const Want &want)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
+    return ERR_OK;
 }
 
-void AbilityThread::ScheduleAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+ErrCode AbilityThread::ScheduleAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
     const std::string &message)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
+    return ERR_OK;
 }
 
-void AbilityThread::ScheduleAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element)
+ErrCode AbilityThread::ScheduleAbilityRequestSuccess(const std::string &requestId,
+    const AppExecFwk::ElementName &element)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
+    return ERR_OK;
 }
 } // namespace AppExecFwk
 } // namespace OHOS
