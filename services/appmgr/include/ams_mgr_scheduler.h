@@ -19,7 +19,7 @@
 #include "ability_info.h"
 #include "ability_running_record.h"
 #include "ams_mgr_stub.h"
-#include "app_debug_listener_interface.h"
+#include "iapp_debug_listener.h"
 #include "app_mgr_constants.h"
 #include "app_mgr_service_inner.h"
 #include "app_record_id.h"
@@ -50,9 +50,9 @@ public:
      * @param appInfo, the app information.
      * @param want, the starting information.
      */
-    virtual void LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInfo,
+    virtual ErrCode LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInfo,
         const std::shared_ptr<ApplicationInfo> &appInfo,
-        const std::shared_ptr<AAFwk::Want> &want, std::shared_ptr<AbilityRuntime::LoadParam> loadParam) override;
+        const std::shared_ptr<AAFwk::Want> &want, const std::shared_ptr<AbilityRuntime::LoadParam>& loadParam) override;
 
     /**
      * TerminateAbility, call TerminateAbility() through the proxy object, terminate the token ability.
@@ -61,7 +61,7 @@ public:
      * @param clearMissionFlag, indicates whether terminate the ability when clearMission.
      * @return
      */
-    virtual void TerminateAbility(const sptr<IRemoteObject> &token, bool clearMissionFlag) override;
+    virtual ErrCode TerminateAbility(const sptr<IRemoteObject> &token, bool clearMissionFlag) override;
 
     /**
      * UpdateAbilityState, call UpdateAbilityState() through the proxy object, update the ability status.
@@ -70,7 +70,7 @@ public:
      * @param state, ability status that needs to be updated.
      * @return
      */
-    virtual void UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state) override;
+    virtual ErrCode UpdateAbilityState(const sptr<IRemoteObject> &token, int32_t state) override;
 
     /**
      * UpdateExtensionState, call UpdateExtensionState() through the proxy object, update the extension status.
@@ -79,7 +79,7 @@ public:
      * @param state, extension status that needs to be updated.
      * @return
      */
-    virtual void UpdateExtensionState(const sptr<IRemoteObject> &token, const ExtensionState state) override;
+    virtual ErrCode UpdateExtensionState(const sptr<IRemoteObject> &token, ExtensionState state) override;
 
     /**
      * RegisterAppStateCallback, call RegisterAppStateCallback() through the proxy object, register the callback.
@@ -87,7 +87,7 @@ public:
      * @param callback, Ams register the callback.
      * @return
      */
-    virtual void RegisterAppStateCallback(const sptr<IAppStateCallback> &callback) override;
+    virtual ErrCode RegisterAppStateCallback(const sptr<IAppStateCallback> &callback) override;
 
     /**
      * KillProcessByAbilityToken, call KillProcessByAbilityToken() through proxy object,
@@ -96,7 +96,7 @@ public:
      * @param token, the unique identification to the ability.
      * @return
      */
-    virtual void KillProcessByAbilityToken(const sptr<IRemoteObject> &token) override;
+    virtual ErrCode KillProcessByAbilityToken(const sptr<IRemoteObject> &token) override;
 
     /**
      * KillProcessesByUserId, call KillProcessesByUserId() through proxy object,
@@ -107,8 +107,8 @@ public:
      * @param isNeedSendAppSpawnMsg, true send appSpawn message otherwise not send.
      * @return
      */
-    virtual void KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg = false,
-        sptr<AAFwk::IUserCallback> callback = nullptr) override;
+    virtual ErrCode KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg,
+        const sptr<AAFwk::IUserCallback>& callback) override;
 
     /**
      * KillProcessesByPids, only in process call is allowed,
@@ -119,15 +119,16 @@ public:
      * @param subProcess, kill SubProcess or not.
      * @return ERR_OK, return back success, others fail.
      */
-    virtual int32_t KillProcessesByPids(const std::vector<int32_t> &pids,
-        const std::string &reason = "KillProcessesByPids", bool subProcess = false) override;
+    virtual ErrCode KillProcessesByPids(const std::vector<int32_t> &pids,
+        const std::string &reason, bool subProcess) override;
 
     /**
      * Set child and parent relationship
      * @param token child process
      * @param callerToken parent process
      */
-    virtual void AttachPidToParent(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &callerToken) override;
+    virtual ErrCode AttachPidToParent(const sptr<IRemoteObject> &token,
+        const sptr<IRemoteObject> &callerToken) override;
 
     /**
      * KillProcessWithAccount, call KillProcessWithAccount() through proxy object, kill the
@@ -137,8 +138,8 @@ public:
      * @param accountId, account ID.
      * @return ERR_OK, return back success, others fail.
      */
-    virtual int32_t KillProcessWithAccount(const std::string &bundleName, const int accountId,
-        const bool clearPageStack = false, int32_t appIndex = 0) override;
+    virtual ErrCode KillProcessWithAccount(const std::string &bundleName, int32_t accountId,
+        bool clearPageStack, int32_t appIndex) override;
 
     /**
      * KillProcessesInBatch, kill processes in batch, call KillProcessesInBatch() through proxy object;
@@ -147,7 +148,7 @@ public:
      * @param pids, the pid list of processes are going to be killed.
      * @return ERR_OK, return back success, others fail.
      */
-    virtual int32_t KillProcessesInBatch(const std::vector<int32_t> &pids) override;
+    virtual ErrCode KillProcessesInBatch(const std::vector<int32_t> &pids) override;
 
     /**
      * UpdateApplicationInfoInstalled, call UpdateApplicationInfoInstalled() through proxy object,
@@ -157,7 +158,7 @@ public:
      * @param  uid, uid.
      * @return ERR_OK, return back success, others fail.
      */
-    virtual int32_t UpdateApplicationInfoInstalled(const std::string &bundleName, const int uid,
+    virtual ErrCode UpdateApplicationInfoInstalled(const std::string &bundleName, int32_t uid,
         const std::string &moduleName, bool isPlugin) override;
 
     /**
@@ -166,7 +167,7 @@ public:
      * @param  bundleName, bundle name in Application record.
      * @return ERR_OK, return back success, others fail.
      */
-    virtual int32_t KillApplication(const std::string &bundleName, bool clearPageStack = false,
+    virtual ErrCode KillApplication(const std::string &bundleName, bool clearPageStack = false,
         int32_t appIndex = 0) override;
 
     /**
@@ -177,8 +178,8 @@ public:
      * @param  appIndex, appIndex.
      * @return ERR_OK, return back success, others fail.
      */
-    virtual int32_t ForceKillApplication(const std::string &bundleName, const int userId = -1,
-        const int appIndex = 0) override;
+    virtual ErrCode ForceKillApplication(const std::string &bundleName, int32_t userId,
+        int32_t appIndex) override;
 
     /**
      * KillProcessesByAccessTokenId.
@@ -186,7 +187,7 @@ public:
      * @param  accessTokenId, accessTokenId.
      * @return ERR_OK, return back success, others fail.
      */
-    virtual int32_t KillProcessesByAccessTokenId(const uint32_t accessTokenId) override;
+    virtual ErrCode KillProcessesByAccessTokenId(uint32_t accessTokenId) override;
 
     /**
      * KillApplicationByUid, call KillApplicationByUid() through proxy object, kill the application.
@@ -196,8 +197,8 @@ public:
      * @param  reason, caller function name.
      * @return ERR_OK, return back success, others fail.
      */
-    virtual int KillApplicationByUid(const std::string &bundleName, const int uid,
-        const std::string& reason = "KillApplicationByUid") override;
+    virtual ErrCode KillApplicationByUid(const std::string &bundleName, int32_t uid,
+        const std::string& reason) override;
 
     /**
      * KillApplicationSelf, this allows app to terminate itself.
@@ -205,8 +206,8 @@ public:
      * @param clearPageStack, the flag indicates if ClearPageStack lifecycle should be scheduled.
      * @return ERR_OK for success call, others for failure.
      */
-    virtual int KillApplicationSelf(const bool clearPageStack = false,
-        const std::string& reason = "KillApplicationSelf") override;
+    virtual ErrCode KillApplicationSelf(bool clearPageStack,
+        const std::string& reason) override;
 
     /**
      * Get application info by process id.
@@ -216,7 +217,7 @@ public:
      * @param debug Whether IsDebugApp.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int GetApplicationInfoByProcessID(const int pid, AppExecFwk::ApplicationInfo &application, bool &debug) override;
+    ErrCode GetApplicationInfoByProcessID(int32_t pid, AppExecFwk::ApplicationInfo &application, bool &debug) override;
 
     /**
      * Record process exit reason to appRunningRecord
@@ -225,14 +226,14 @@ public:
      * @param exitMsg exitMsg
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, const std::string &exitMsg) override;
+    virtual ErrCode NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, const std::string &exitMsg) override;
 
     /**
      * AbilityAttachTimeOut, called by ability manager service when an ability is loaded timeout.
      *
      * @param token indicates the token of the ability which is timeout.
      */
-    virtual void AbilityAttachTimeOut(const sptr<IRemoteObject> &token) override;
+    virtual ErrCode AbilityAttachTimeOut(const sptr<IRemoteObject> &token) override;
 
     /**
      * PrepareTerminate, called before terminating one ability by ability manager service to notify application.
@@ -240,7 +241,7 @@ public:
      * @param token indicates the token of the ability to be terminated.
      * @param clearMissionFlag indicates whether it is caused by cleaning mission.
      */
-    virtual void PrepareTerminate(const sptr<IRemoteObject> &token, bool clearMissionFlag = false) override;
+    virtual ErrCode PrepareTerminate(const sptr<IRemoteObject> &token, bool clearMissionFlag) override;
 
     /**
      * GetRunningProcessInfoByToken, get process info for one ability.
@@ -248,7 +249,7 @@ public:
      * @param token indicates the token of the ability requested.
      * @param info output of the information.
      */
-    virtual void GetRunningProcessInfoByToken(
+    virtual ErrCode GetRunningProcessInfoByToken(
         const sptr<IRemoteObject> &token, AppExecFwk::RunningProcessInfo &info) override;
 
     /**
@@ -257,7 +258,7 @@ public:
      * @param pid, pid.
      *
      */
-    void SetAbilityForegroundingFlagToAppRecord(const pid_t pid) override;
+    ErrCode SetAbilityForegroundingFlagToAppRecord(int32_t pid) override;
 
     /**
      * Start specified ability.
@@ -266,17 +267,18 @@ public:
      * @param abilityInfo Ability information.
      * @param requestId request id to callback
      */
-    virtual void StartSpecifiedAbility(
-        const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo, int32_t requestId = 0) override;
+    virtual ErrCode StartSpecifiedAbility(
+        const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo, int32_t requestId) override;
 
     /**
      * Register response of start specified ability.
      *
      * @param response Response of start specified ability.
      */
-    virtual void RegisterStartSpecifiedAbilityResponse(const sptr<IStartSpecifiedAbilityResponse> &response) override;
+    virtual ErrCode RegisterStartSpecifiedAbilityResponse(
+        const sptr<IStartSpecifiedAbilityResponse> &response) override;
 
-    virtual void PrepareTerminateApp(const pid_t pid, const std::string &moduleName) override;
+    virtual ErrCode PrepareTerminateApp(int32_t pid, const std::string &moduleName) override;
 
     /**
      * Start specified process.
@@ -285,7 +287,7 @@ public:
      * @param abilityInfo Ability information.
      * @param requestId for callback
      */
-    virtual void StartSpecifiedProcess(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
+    virtual ErrCode StartSpecifiedProcess(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
         int32_t requestId = 0) override;
 
     /**
@@ -293,9 +295,9 @@ public:
      *
      * @param userId the new user.
      */
-    virtual void SetCurrentUserId(const int32_t userId) override;
+    virtual ErrCode SetCurrentUserId(int32_t userId) override;
 
-    virtual void SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess) override;
+    virtual ErrCode SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess) override;
 
     /**
      * GetBundleNameByPid, get bundleName and uid of a process.
@@ -305,35 +307,35 @@ public:
      * @param uid output for uid.
      * @return ERR_OK for success call, others for failure.
      */
-    virtual int32_t GetBundleNameByPid(const int pid, std::string &bundleName, int32_t &uid) override;
+    virtual ErrCode GetBundleNameByPid(int32_t pid, std::string &bundleName, int32_t &uid) override;
 
     /**
      * @brief Register app debug listener.
      * @param listener App debug listener.
      * @return ERR_OK, return back success, others fail.
      */
-    int32_t RegisterAppDebugListener(const sptr<IAppDebugListener> &listener) override;
+    ErrCode RegisterAppDebugListener(const sptr<IAppDebugListener> &listener) override;
 
     /**
      * @brief Unregister app debug listener.
      * @param listener App debug listener.
      * @return ERR_OK, return back success, others fail.
      */
-    int32_t UnregisterAppDebugListener(const sptr<IAppDebugListener> &listener) override;
+    ErrCode UnregisterAppDebugListener(const sptr<IAppDebugListener> &listener) override;
 
     /**
      * @brief Attach app debug.
      * @param bundleName The application bundle name.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t AttachAppDebug(const std::string &bundleName, bool isDebugFromLocal) override;
+    ErrCode AttachAppDebug(const std::string &bundleName, bool isDebugFromLocal) override;
 
     /**
      * @brief Detach app debug.
      * @param bundleName The application bundle name.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t DetachAppDebug(const std::string &bundleName) override;
+    ErrCode DetachAppDebug(const std::string &bundleName) override;
 
     /**
      * @brief Set app waiting debug mode.
@@ -341,45 +343,45 @@ public:
      * @param isPersist The persist flag.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t SetAppWaitingDebug(const std::string &bundleName, bool isPersist) override;
+    ErrCode SetAppWaitingDebug(const std::string &bundleName, bool isPersist) override;
 
     /**
      * @brief Cancel app waiting debug mode.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t CancelAppWaitingDebug() override;
+    ErrCode CancelAppWaitingDebug() override;
 
     /**
      * @brief Get waiting debug mode application.
      * @param debugInfoList The debug info list, including bundle name and persist flag.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t GetWaitingDebugApp(std::vector<std::string> &debugInfoList) override;
+    ErrCode GetWaitingDebugApp(std::vector<std::string> &debugInfoList) override;
 
     /**
      * @brief Determine whether it is a waiting debug application based on the bundle name.
      * @return Returns true if it is a waiting debug application, otherwise it returns false.
      */
-    bool IsWaitingDebugApp(const std::string &bundleName) override;
+    ErrCode IsWaitingDebugApp(const std::string &bundleName, bool& funcResult) override;
 
     /**
      * @brief Clear non persist waiting debug flag.
      */
-    void ClearNonPersistWaitingDebugFlag() override;
+    ErrCode ClearNonPersistWaitingDebugFlag() override;
 
     /**
      * @brief Registering ability debug mode response.
      * @param response Response for ability debug object.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t RegisterAbilityDebugResponse(const sptr<IAbilityDebugResponse> &response) override;
+    ErrCode RegisterAbilityDebugResponse(const sptr<IAbilityDebugResponse> &response) override;
 
     /**
      * @brief Determine whether it is an attachment debug application based on the bundle name.
      * @param bundleName The application bundle name.
      * @return Returns true if it is an attach debug application, otherwise it returns false.
      */
-    bool IsAttachDebug(const std::string &bundleName) override;
+    ErrCode IsAttachDebug(const std::string &bundleName, bool& funcResult) override;
 
     /**
      * @brief Set resident process enable status.
@@ -387,7 +389,7 @@ public:
      * @param enable The current updated enable status.
      * @param uid indicates user, 0 for all users
      */
-    void SetKeepAliveEnableState(const std::string &bundleName, bool enable, int32_t uid) override;
+    ErrCode SetKeepAliveEnableState(const std::string &bundleName, bool enable, int32_t uid) override;
 
     /**
      * @brief Set non-resident keep-alive process status.
@@ -395,35 +397,35 @@ public:
      * @param enable The current updated enable status.
      * @param uid indicates user, 0 for all users
      */
-    void SetKeepAliveDkv(const std::string &bundleName, bool enable, int32_t uid) override;
+    ErrCode SetKeepAliveDkv(const std::string &bundleName, bool enable, int32_t uid) override;
 
     /**
      * To clear the process by ability token.
      *
      * @param token the unique identification to the ability.
      */
-    virtual void ClearProcessByToken(sptr<IRemoteObject> token) override;
+    virtual ErrCode ClearProcessByToken(const sptr<IRemoteObject>& token) override;
 
     /**
      * whether memory size is sufficient.
      * @return Returns true is sufficient memory size, others return false.
      */
-    virtual bool IsMemorySizeSufficent() override;
+    virtual ErrCode IsMemorySizeSufficent(bool& funcResult) override;
 
     /**
      * whether or not requier a big memory
      * @return Returens true is no big memory, others return false.
      */
-    virtual bool IsNoRequireBigMemory() override;
+    virtual ErrCode IsNoRequireBigMemory(bool& funcResult) override;
 
     /**
      * Notifies that one ability is attached to status bar.
      *
      * @param token the token of the abilityRecord that is attached to status bar.
      */
-    void AttachedToStatusBar(const sptr<IRemoteObject> &token) override;
+    ErrCode AttachedToStatusBar(const sptr<IRemoteObject> &token) override;
 
-    virtual void BlockProcessCacheByPids(const std::vector<int32_t> &pids) override;
+    virtual ErrCode BlockProcessCacheByPids(const std::vector<int32_t> &pids) override;
 
     /**
      * whether killed for upgrade web.
@@ -431,7 +433,7 @@ public:
      * @param bundleName the bundle name is killed for upgrade web.
      * @return Returns true is killed for upgrade web, others return false.
      */
-    virtual bool IsKilledForUpgradeWeb(const std::string &bundleName) override;
+    virtual ErrCode IsKilledForUpgradeWeb(const std::string &bundleName, bool& funcResult) override;
 
     /**
      * Request to clean uiability from user.
@@ -439,20 +441,20 @@ public:
      * @param token the token of ability.
      * @return Returns true if clean success, others return false.
      */
-    virtual bool CleanAbilityByUserRequest(const sptr<IRemoteObject> &token) override;
+    virtual ErrCode CleanAbilityByUserRequest(const sptr<IRemoteObject> &token, bool& funcResult) override;
 
     /**
      * whether the abilities of process specified by pid type only UIAbility.
      * @return Returns true is only UIAbility, otherwise return false
      */
-    virtual bool IsProcessContainsOnlyUIAbility(const pid_t pid) override;
+    virtual ErrCode IsProcessContainsOnlyUIAbility(int32_t pid, bool& funcResult) override;
 
     /**
      * Whether a process is attached, refer to AttachApplication
      */
-    virtual bool IsProcessAttached(sptr<IRemoteObject> token) override;
+    virtual ErrCode IsProcessAttached(const sptr<IRemoteObject>& token, bool& funcResult) override;
 
-    virtual bool IsCallerKilling(const std::string& callerKey) override;
+    virtual ErrCode IsCallerKilling(const std::string& callerKey, bool& funcResult) override;
 
 private:
     /**

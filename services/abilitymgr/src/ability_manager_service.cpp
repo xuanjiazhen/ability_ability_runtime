@@ -11983,7 +11983,7 @@ void AbilityManagerService::NotifyConfigurationChange(const AppExecFwk::Configur
     collaborator->UpdateConfiguration(config, userId);
 }
 
-void AbilityManagerService::NotifyStartResidentProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos)
+void AbilityManagerService::NotifyStartResidentProcess(const std::vector<AppExecFwk::BundleInfo> &bundleInfos)
 {
     if (userController_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "userController_ null");
@@ -12017,7 +12017,7 @@ void AbilityManagerService::NotifyStartResidentProcess(std::vector<AppExecFwk::B
     }
 }
 
-void AbilityManagerService::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos)
+void AbilityManagerService::NotifyStartKeepAliveProcess(const std::vector<AppExecFwk::BundleInfo> &bundleInfos)
 {
     if (!system::GetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false)) {
         return;

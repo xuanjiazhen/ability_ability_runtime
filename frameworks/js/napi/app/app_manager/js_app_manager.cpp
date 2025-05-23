@@ -428,7 +428,10 @@ private:
                     task.Reject(env, CreateJsError(env, errCode, "Invalidate params."));
                     return;
                 }
-                auto ret = appManager->GetAmsMgr()->KillProcessWithAccount(bundleName, accountId);
+                bool clearPageStack = false;
+                int32_t appIndex = 0;
+                auto ret = appManager->GetAmsMgr()->KillProcessWithAccount(bundleName, accountId,
+                    clearPageStack, appIndex);
                 if (ret == 0) {
                     task.Resolve(env, CreateJsUndefined(env));
                 } else {
