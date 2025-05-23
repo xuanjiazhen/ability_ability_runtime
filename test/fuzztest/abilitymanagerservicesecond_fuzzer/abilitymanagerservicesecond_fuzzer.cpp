@@ -76,7 +76,8 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     abilityms->GetWantSender(wantSenderInfo, token);
     sptr<IWantSender> target;
     SenderInfo senderInfo;
-    abilityms->SendWantSender(target, senderInfo);
+    std::shared_ptr<CompletedData> completedData = std::make_shared<CompletedData>();
+    abilityms->SendWantSender(target, senderInfo, completedData);
     sptr<IWantSender> sender;
     abilityms->CancelWantSender(sender);
     abilityms->GetPendingWantUid(target);
