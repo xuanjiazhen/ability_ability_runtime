@@ -21,6 +21,7 @@
 #include <list>
 #include <vector>
 
+#include "aa_tools/ability_start_with_wait_observer_interface.h"
 #include "ability_connect_callback_interface.h"
 #include "ability_manager_ipc_interface_code.h"
 #include "ability_running_info.h"
@@ -1562,6 +1563,15 @@ public:
         return 0;
     }
 
+    /**
+     * @brief get ability manager collaborator.
+     * @return Returns object pointer on success, others on null.
+     */
+    virtual sptr<IAbilityManagerCollaborator> GetAbilityManagerCollaborator()
+    {
+        return nullptr;
+    }
+
     virtual int32_t RegisterStatusBarDelegate(sptr<AbilityRuntime::IStatusBarDelegate> delegate)
     {
         return 0;
@@ -2034,6 +2044,17 @@ public:
     }
 
     /**
+     * Restart atomic service.
+     *
+     * @param callerToken, The caller ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RestartSelfAtomicService(sptr<IRemoteObject> callerToken)
+    {
+        return 0;
+    }
+
+    /**
      * Query atomic service ERMS rule.
      *
      * @param callerToken, The caller ability token.
@@ -2125,6 +2146,11 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t RevokeDelegator(sptr<IRemoteObject> token)
+    {
+        return 0;
+    }
+
+    virtual int32_t StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> &observer)
     {
         return 0;
     }

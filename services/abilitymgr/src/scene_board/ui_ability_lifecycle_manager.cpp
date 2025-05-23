@@ -18,6 +18,8 @@
 #include "ability_manager_service.h"
 #include "ability_permission_util.h"
 #include "ability_record_death_manager.h"
+#include "ability_start_with_wait_observer_manager.h"
+#include "ability_start_with_wait_observer_utils.h"
 #include "appfreeze_manager.h"
 #include "app_exit_reason_data_manager.h"
 #include "app_mgr_util.h"
@@ -234,6 +236,10 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
     uint32_t callerTokenId = static_cast<uint32_t>(abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
     uiAbilityRecord->ProcessForegroundAbility(callerTokenId, sceneFlag, isShellCall);
     CheckSpecified(sessionInfo->requestId, uiAbilityRecord);
+    if (uiAbilityRecord->GetSpecifiedFlag().empty() && !sessionInfo->specifiedFlag.empty()) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "unexpected specified: %{public}s", sessionInfo->specifiedFlag.c_str());
+        uiAbilityRecord->SetSpecifiedFlag(sessionInfo->specifiedFlag);
+    }
     SendKeyEvent(abilityRequest);
     return ERR_OK;
 }
@@ -265,6 +271,7 @@ std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GenerateAbilityRecord(
             uiAbilityRecord->SetSessionInfo(sessionInfo);
         }
         isColdStart = true;
+        AbilityStartWithWaitObserverManager::GetInstance().SetColdStartForShellCall(uiAbilityRecord);
         UpdateProcessName(abilityRequest, uiAbilityRecord);
         if (isSCBRecovery_) {
             coldStartInSCBRecovery_.insert(sessionInfo->persistentId);
@@ -817,6 +824,7 @@ void UIAbilityLifecycleManager::CompleteForegroundSuccess(const std::shared_ptr<
     TAG_LOGD(AAFwkTag::ABILITYMGR, "ability: %{public}s", element.c_str());
     abilityRecord->SetAbilityState(AbilityState::FOREGROUND);
     abilityRecord->UpdateAbilityVisibilityState();
+    AbilityStartWithWaitObserverManager::GetInstance().NotifyAATerminateWait(abilityRecord);
 
     // new version. started by caller, scheduler call request
     if (abilityRecord->IsStartedByCall() && abilityRecord->IsStartToForeground() && abilityRecord->IsReady()) {
@@ -856,6 +864,9 @@ void UIAbilityLifecycleManager::HandleForegroundFailed(const std::shared_ptr<Abi
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not foregrounding");
         return;
     }
+    std::shared_ptr<AbilityRecord> abilityRecord = ability;
+    AbilityStartWithWaitObserverManager::GetInstance().NotifyAATerminateWait(
+        abilityRecord, TerminateReason::TERMINATE_FOR_UI_ABILITY_FOREGROUND_FAILED);
 
     NotifySCBToHandleException(ability,
         static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_LOAD_TIMEOUT), "handleForegroundTimeout");
@@ -906,6 +917,7 @@ void UIAbilityLifecycleManager::CompleteFirstFrameDrawing(const sptr<IRemoteObje
     }
     abilityRecord->ReportAtomicServiceDrawnCompleteEvent();
     abilityRecord->SetCompleteFirstFrameDrawing(true);
+    AbilityStartWithWaitObserverManager::GetInstance().NotifyAATerminateWait(abilityRecord);
     AppExecFwk::AbilityFirstFrameStateObserverManager::GetInstance().
         HandleOnFirstFrameState(abilityRecord);
 }
@@ -2122,7 +2134,7 @@ void UIAbilityLifecycleManager::HandleLegacyAcceptWantDone(AbilityRequest &abili
             abilityRecord->SetWant(abilityRequest.want);
             abilityRecord->SetIsNewWant(true);
             UpdateAbilityRecordLaunchReason(abilityRequest, abilityRecord);
-            MoveAbilityToFront(abilityRequest, abilityRecord, callerAbility);
+            MoveAbilityToFront(abilityRequest, abilityRecord, callerAbility, nullptr, requestId, flag);
             NotifyRestartSpecifiedAbility(abilityRequest, abilityRecord->GetToken());
             return;
         }
@@ -2309,7 +2321,7 @@ void UIAbilityLifecycleManager::NotifyStartSpecifiedAbility(AbilityRequest &abil
 
 int UIAbilityLifecycleManager::MoveAbilityToFront(const AbilityRequest &abilityRequest,
     const std::shared_ptr<AbilityRecord> &abilityRecord, std::shared_ptr<AbilityRecord> callerAbility,
-    std::shared_ptr<StartOptions> startOptions)
+    std::shared_ptr<StartOptions> startOptions, int32_t requestId, const std::string &flag)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     if (!abilityRecord) {
@@ -2328,6 +2340,8 @@ int UIAbilityLifecycleManager::MoveAbilityToFront(const AbilityRequest &abilityR
     }
     sessionInfo->startWindowOption = nullptr;
     sessionInfo->isFromIcon = abilityRequest.isFromIcon;
+    sessionInfo->requestId = requestId;
+    sessionInfo->specifiedFlag = flag;
     SendSessionInfoToSCB(callerAbility, sessionInfo);
     abilityRecord->RemoveWindowMode();
     if (startOptions != nullptr) {
@@ -3402,6 +3416,7 @@ void UIAbilityLifecycleManager::CompleteFirstFrameDrawing(int32_t sessionId) con
     abilityRecord->SetCompleteFirstFrameDrawing(true);
     AppExecFwk::AbilityFirstFrameStateObserverManager::GetInstance().
         HandleOnFirstFrameState(abilityRecord);
+    AbilityStartWithWaitObserverManager::GetInstance().NotifyAATerminateWait(abilityRecord);
 #endif // SUPPORT_SCREEN
 }
 
