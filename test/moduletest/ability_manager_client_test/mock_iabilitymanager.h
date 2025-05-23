@@ -169,7 +169,8 @@ public:
     {
         return nullptr;
     }
-    int SendWantSender(sptr<IWantSender> target, const SenderInfo &senderInfo) override
+    int SendWantSender(sptr<IWantSender> target, const SenderInfo &senderInfo, 
+        std::shared_ptr<CompletedData> completedData) override
     {
         return 0;
     }

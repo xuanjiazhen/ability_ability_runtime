@@ -28,6 +28,7 @@
 #include "want_agent.h"
 #include "want_agent_info.h"
 #include "want_params.h"
+#include "completed_data.h"
 
 namespace OHOS::AbilityRuntime::WantAgent {
 /**
@@ -102,7 +103,7 @@ public:
      */
     static ErrCode TriggerWantAgent(std::shared_ptr<WantAgent> agent,
         const std::shared_ptr<CompletedCallback> &callback,
-        const TriggerInfo &paramsInfo);
+        const TriggerInfo &paramsInfo, std::shared_ptr<CompletedData> &data, sptr<IRemoteObject> callerToken);
 
     /**
      * Cancels an WantAgent.
@@ -192,7 +193,9 @@ private:
     static ErrCode Send(const std::shared_ptr<PendingWant> &pendingWant,
         WantAgentConstant::OperationType type,
         const sptr<CompletedDispatcher> &callBack,
-        const TriggerInfo &paramsInfo);
+        const TriggerInfo &paramsInfo,
+        std::shared_ptr<CompletedData> &data,
+        sptr<IRemoteObject> callerToken);
 
     static unsigned int FlagsTransformer(const std::vector<WantAgentConstant::Flags> &flags);
 
