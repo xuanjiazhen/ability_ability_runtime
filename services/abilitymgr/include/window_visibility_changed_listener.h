@@ -16,7 +16,6 @@
 #ifndef OHOS_ABILITY_MANAGER_WINDOW_VISIBILITY_CHANGE_LISTENER_H
 #define OHOS_ABILITY_MANAGER_WINDOW_VISIBILITY_CHANGE_LISTENER_H
 
-#include "task_handler_wrap.h"
 #include "window_manager.h"
 
 namespace OHOS {
@@ -25,8 +24,7 @@ class AbilityManagerService;
 
 class WindowVisibilityChangedListener : public OHOS::Rosen::IVisibilityChangedListener {
 public:
-    WindowVisibilityChangedListener(
-        const std::weak_ptr<AbilityManagerService> &owner, const std::shared_ptr<AAFwk::TaskHandlerWrap> &handler);
+    WindowVisibilityChangedListener(const std::weak_ptr<AbilityManagerService> &owner);
     virtual ~WindowVisibilityChangedListener() = default;
 
     void OnWindowVisibilityChanged(
@@ -34,7 +32,6 @@ public:
 
 private:
     std::weak_ptr<AbilityManagerService> owner_;
-    std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
 };
 } // namespace AAFwk
 } // namespace OHOS

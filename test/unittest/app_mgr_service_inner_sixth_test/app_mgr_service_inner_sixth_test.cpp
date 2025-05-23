@@ -419,7 +419,7 @@ HWTEST_F(AppMgrServiceInnerSixthTest, KillFaultApp_003, TestSize.Level1)
     FaultData faultData;
     bool isNeedExit = true;
     int32_t result = appMgrServiceInner->KillFaultApp(pid, bundleName, faultData, isNeedExit);
-    EXPECT_NE(result, 0);
+    EXPECT_EQ(result, 0);
 
     auto taskHandlerWrapTest = std::make_shared<TaskHandlerWrapTest>("");
     EXPECT_NE(taskHandlerWrapTest, nullptr);

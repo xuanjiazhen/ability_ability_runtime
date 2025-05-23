@@ -1330,10 +1330,8 @@ HWTEST_F(PendingWantManagerTest, PendingWantManagerTest_5500, TestSize.Level1)
 HWTEST_F(PendingWantManagerTest, PendingWantManagerTest_5600, TestSize.Level1)
 {
     pendingManager_ = std::make_shared<PendingWantManager>();
-    pendingManager_->taskHandler_ = nullptr;
-
+    EXPECT_NE(pendingManager_,  nullptr);
     pendingManager_->ClearPendingWantRecord("HelloWorld", 1);
-    EXPECT_EQ(pendingManager_->taskHandler_,  nullptr);
 }
 
 /*

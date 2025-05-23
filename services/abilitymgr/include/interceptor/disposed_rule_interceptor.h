@@ -21,7 +21,6 @@
 #include "ability_record.h"
 #include "app_mgr_interface.h"
 #include "disposed_observer.h"
-#include "task_utils_wrap.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -34,10 +33,6 @@ public:
     DisposedRuleInterceptor() = default;
     ~DisposedRuleInterceptor() = default;
     ErrCode DoProcess(AbilityInterceptorParam param) override;
-    void SetTaskHandler(std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler) override
-    {
-        taskHandler_ = taskHandler;
-    };
     void UnregisterObserver(int32_t uid);
 private:
     bool CheckControl(const Want &want, int32_t userId, AppExecFwk::DisposedRule &disposedRule, int32_t appIndex);
@@ -47,7 +42,6 @@ private:
     ErrCode CreateModalUIExtension(const Want &want, const sptr<IRemoteObject> &callerToken);
     void SetInterceptInfo(const Want &want, AppExecFwk::DisposedRule &disposedRule);
 private:
-    std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
     std::map<int32_t, sptr<DisposedObserver>> disposedObserverMap_;
     ffrt::mutex observerLock_;
 };

@@ -842,11 +842,6 @@ public:
     {
         return taskHandler_;
     }
-
-    std::shared_ptr<TaskHandlerWrap> GetDelayClearReasonHandler() const
-    {
-        return delayClearReasonHandler_;
-    }
     /**
      * GetEventHandler, get the ability manager service's handler.
      *
@@ -2670,7 +2665,6 @@ private:
 
     sptr<WindowVisibilityChangedListener> windowVisibilityChangedListener_;
     std::shared_ptr<TaskHandlerWrap> taskHandler_;
-    std::shared_ptr<TaskHandlerWrap> delayClearReasonHandler_;
     std::shared_ptr<AbilityEventHandler> eventHandler_;
     ServiceRunningState state_;
 

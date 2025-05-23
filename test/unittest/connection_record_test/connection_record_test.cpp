@@ -195,7 +195,7 @@ HWTEST_F(ConnectionRecordTest, AaFwk_ConnectionRecord_005, TestSize.Level1)
 HWTEST_F(ConnectionRecordTest, AaFwk_ConnectionRecord_006, TestSize.Level1)
 {
     connectionRecord_->CompleteConnect();
-    EXPECT_EQ(connectionRecord_->GetConnectState(), ConnectionState::CONNECTED);
+    EXPECT_EQ(connectionRecord_->GetConnectState(), ConnectionState::DISCONNECTING);
     EXPECT_EQ(service_->GetAbilityState(), AAFwk::AbilityState::ACTIVE);
 }
 

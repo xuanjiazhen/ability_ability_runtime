@@ -2344,7 +2344,7 @@ HWTEST_F(AppMgrServiceInnerTest, RegisterNativeChildExitNotify_001, TestSize.Lev
 
     sptr<INativeChildNotify> notify;
     auto ret = appMgrServiceInner->RegisterNativeChildExitNotify(notify);
-    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
     TAG_LOGI(AAFwkTag::TEST, "RegisterNativeChildExitNotify_001 end");
 }
@@ -4317,9 +4317,6 @@ HWTEST_F(AppMgrServiceInnerTest, TimeoutNotifyApp_001, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "TimeoutNotifyApp_001 start");
     std::shared_ptr<AppMgrServiceInner> appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner, nullptr);
-    std::shared_ptr<MockTaskHandlerWrap> taskHandler = MockTaskHandlerWrap::CreateQueueHandler("app_mgr_task_queue");
-    EXPECT_CALL(*taskHandler, SubmitTaskInner(_, _)).Times(AtLeast(1));
-    appMgrServiceInner->SetTaskHandler(taskHandler);
 
     int32_t pid = 0;
     int32_t uid = 0;
@@ -4329,7 +4326,6 @@ HWTEST_F(AppMgrServiceInnerTest, TimeoutNotifyApp_001, TestSize.Level1)
     faultData.errorObject.name = "1234";
     faultData.faultType = FaultDataType::APP_FREEZE;
     appMgrServiceInner->TimeoutNotifyApp(pid, uid, bundleName, processName, faultData);
-    EXPECT_NE(taskHandler, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "TimeoutNotifyApp_001 end");
 }
 
@@ -5736,7 +5732,7 @@ HWTEST_F(AppMgrServiceInnerTest, DoAllProcessExitCallback_002, TestSize.Level2)
     sptr<AAFwk::IUserCallback> callback = new MockIUserCallback();
     int64_t startTime = 0;
     auto ret = appMgrServiceInner->DoAllProcessExitCallback(processInfos, userId, callback, startTime);
-    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ret);
     TAG_LOGI(AAFwkTag::TEST, "DoAllProcessExitCallback_002 end");
 }
 

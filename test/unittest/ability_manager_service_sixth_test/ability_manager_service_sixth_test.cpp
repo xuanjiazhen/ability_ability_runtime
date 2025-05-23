@@ -134,7 +134,7 @@ std::shared_ptr<AbilityManagerService> AbilityManagerServiceSixthTest::MockAbili
 {
     auto abilityMs = std::make_shared<AbilityManagerService>();
     auto taskHandler = MockTaskHandlerWrap::CreateQueueHandler("AbilityManagerServiceSixthTest");
-    auto eventHandler = std::make_shared<AbilityEventHandler>(taskHandler, abilityMs);
+    auto eventHandler = std::make_shared<AbilityEventHandler>(abilityMs);
     abilityMs->taskHandler_ = taskHandler;
     abilityMs->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
     abilityMs->afterCheckExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
@@ -166,8 +166,6 @@ HWTEST_F(AbilityManagerServiceSixthTest, InitPushTask_001, TestSize.Level1)
     EXPECT_NE(abilityMs, nullptr);
     std::shared_ptr<MockTaskHandlerWrap> taskHandler =
         MockTaskHandlerWrap::CreateQueueHandler("AbilityManagerServiceSixth");
-    abilityMs->taskHandler_ = taskHandler;
-    EXPECT_CALL(*taskHandler, SubmitTaskInner(_, _)).Times(testing::AtLeast(1));
     abilityMs->InitPushTask();
     EXPECT_NE(taskHandler, nullptr);
 }
@@ -222,8 +220,6 @@ HWTEST_F(AbilityManagerServiceSixthTest, ReportEventToRss_001, TestSize.Level1)
     auto abilityMs = std::make_shared<AbilityManagerService>();
     std::shared_ptr<MockTaskHandlerWrap> taskHandler =
         MockTaskHandlerWrap::CreateQueueHandler("AbilityManagerServiceSixth");
-    EXPECT_CALL(*taskHandler, SubmitTaskInner(_, _)).Times(testing::AtLeast(1));
-    abilityMs->taskHandler_ = taskHandler;
 
     sptr<IRemoteObject> callerToken = nullptr;
     AppExecFwk::AbilityInfo abilityInfo1;

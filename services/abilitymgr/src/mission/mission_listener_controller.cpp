@@ -15,6 +15,7 @@
 
 #include "mission_listener_controller.h"
 
+#include "ffrt.h"
 #include "hilog_tag_wrapper.h"
 
 namespace OHOS {
@@ -30,13 +31,6 @@ MissionListenerController::MissionListenerController()
 
 MissionListenerController::~MissionListenerController()
 {}
-
-void MissionListenerController::Init()
-{
-    if (!handler_) {
-        handler_ = TaskHandlerWrap::CreateQueueHandler("mission_listener_task_queue");
-    }
-}
 
 int MissionListenerController::AddMissionListener(const sptr<IMissionListener> &listener)
 {
@@ -93,10 +87,6 @@ void MissionListenerController::DelMissionListener(const sptr<IMissionListener> 
 
 void MissionListenerController::NotifyMissionCreated(int32_t missionId)
 {
-    if (!handler_) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "handler not init");
-        return;
-    }
     auto task = [weak = weak_from_this(), missionId]() {
         auto self = weak.lock();
         if (self == nullptr) {
@@ -106,15 +96,11 @@ void MissionListenerController::NotifyMissionCreated(int32_t missionId)
         TAG_LOGI(AAFwkTag::ABILITYMGR, "mission created, missionId:%{public}d", missionId);
         self->CallListeners(&IMissionListener::OnMissionCreated, missionId);
     };
-    handler_->SubmitTask(task);
+    ffrt::submit(task);
 }
 
 void MissionListenerController::NotifyMissionDestroyed(int32_t missionId)
 {
-    if (!handler_) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "handler not init");
-        return;
-    }
     auto task = [weak = weak_from_this(), missionId]() {
         auto self = weak.lock();
         if (self == nullptr) {
@@ -124,16 +110,11 @@ void MissionListenerController::NotifyMissionDestroyed(int32_t missionId)
         TAG_LOGI(AAFwkTag::ABILITYMGR, "mission destroyed, missionId:%{public}d", missionId);
         self->CallListeners(&IMissionListener::OnMissionDestroyed, missionId);
     };
-    handler_->SubmitTask(task);
+    ffrt::submit(task);
 }
 
 void MissionListenerController::HandleUnInstallApp(const std::list<int32_t> &missions)
 {
-    if (!handler_) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "handler not init");
-        return;
-    }
-
     if (missions.empty()) {
         return;
     }
@@ -148,16 +129,11 @@ void MissionListenerController::HandleUnInstallApp(const std::list<int32_t> &mis
             self->CallListeners(&IMissionListener::OnMissionDestroyed, id);
         }
     };
-    handler_->SubmitTask(task);
+    ffrt::submit(task);
 }
 
 void MissionListenerController::NotifyMissionSnapshotChanged(int32_t missionId)
 {
-    if (!handler_) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "handler not init");
-        return;
-    }
-
     auto task = [weak = weak_from_this(), missionId]() {
         auto self = weak.lock();
         if (self == nullptr) {
@@ -167,16 +143,11 @@ void MissionListenerController::NotifyMissionSnapshotChanged(int32_t missionId)
         TAG_LOGI(AAFwkTag::ABILITYMGR, "mission snapshot changed, missionId:%{public}d", missionId);
         self->CallListeners(&IMissionListener::OnMissionSnapshotChanged, missionId);
     };
-    handler_->SubmitTask(task);
+    ffrt::submit(task);
 }
 
 void MissionListenerController::NotifyMissionMovedToFront(int32_t missionId)
 {
-    if (!handler_) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "handler not init");
-        return;
-    }
-
     auto task = [weak = weak_from_this(), missionId]() {
         auto self = weak.lock();
         if (self == nullptr) {
@@ -186,7 +157,7 @@ void MissionListenerController::NotifyMissionMovedToFront(int32_t missionId)
         TAG_LOGI(AAFwkTag::ABILITYMGR, "mission moved to front, missionId:%{public}d", missionId);
         self->CallListeners(&IMissionListener::OnMissionMovedToFront, missionId);
     };
-    handler_->SubmitTask(task);
+    ffrt::submit(task);
 }
 
 void MissionListenerController::NotifyMissionFocused(int32_t missionId)
@@ -195,10 +166,6 @@ void MissionListenerController::NotifyMissionFocused(int32_t missionId)
         return;
     }
 
-    if (!handler_) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "handler null");
-        return;
-    }
     auto task = [weak = weak_from_this(), missionId]() {
         auto self = weak.lock();
         if (self == nullptr) {
@@ -208,7 +175,7 @@ void MissionListenerController::NotifyMissionFocused(int32_t missionId)
         TAG_LOGI(AAFwkTag::ABILITYMGR, "NotifyMissionFocused, missionId:%{public}d", missionId);
         self->CallListeners(&IMissionListener::OnMissionFocused, missionId);
     };
-    handler_->SubmitTask(task);
+    ffrt::submit(task);
 }
 
 void MissionListenerController::NotifyMissionUnfocused(int32_t missionId)
@@ -217,10 +184,6 @@ void MissionListenerController::NotifyMissionUnfocused(int32_t missionId)
         return;
     }
 
-    if (!handler_) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "handler null");
-        return;
-    }
     auto task = [weak = weak_from_this(), missionId]() {
         auto self = weak.lock();
         if (self == nullptr) {
@@ -230,18 +193,13 @@ void MissionListenerController::NotifyMissionUnfocused(int32_t missionId)
         TAG_LOGI(AAFwkTag::ABILITYMGR, "NotifyMissionUnfocused, missionId:%{public}d", missionId);
         self->CallListeners(&IMissionListener::OnMissionUnfocused, missionId);
     };
-    handler_->SubmitTask(task);
+    ffrt::submit(task);
 }
 
 #ifdef SUPPORT_SCREEN
 void MissionListenerController::NotifyMissionIconChanged(int32_t missionId,
     const std::shared_ptr<OHOS::Media::PixelMap> &icon)
 {
-    if (!handler_) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "handler not init");
-        return;
-    }
-
     auto task = [weak = weak_from_this(), missionId, icon]() {
         auto self = weak.lock();
         if (self == nullptr) {
@@ -251,16 +209,12 @@ void MissionListenerController::NotifyMissionIconChanged(int32_t missionId,
         TAG_LOGI(AAFwkTag::ABILITYMGR, "mission icon changed, missionId:%{public}d", missionId);
         self->CallListeners(&IMissionListener::OnMissionIconUpdated, missionId, icon);
     };
-    handler_->SubmitTask(task);
+    ffrt::submit(task);
 }
 #endif
 
 void MissionListenerController::NotifyMissionClosed(int32_t missionId)
 {
-    if (!handler_) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "handler not init");
-        return;
-    }
     auto task = [weak = weak_from_this(), missionId]() {
         auto self = weak.lock();
         if (self == nullptr) {
@@ -270,15 +224,11 @@ void MissionListenerController::NotifyMissionClosed(int32_t missionId)
         TAG_LOGI(AAFwkTag::ABILITYMGR, "NotifyMissionClosed, missionId:%{public}d", missionId);
         self->CallListeners(&IMissionListener::OnMissionClosed, missionId);
     };
-    handler_->SubmitTask(task);
+    ffrt::submit(task);
 }
 
 void MissionListenerController::NotifyMissionLabelUpdated(int32_t missionId)
 {
-    if (!handler_) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "handler not init");
-        return;
-    }
     auto task = [weak = weak_from_this(), missionId]() {
         auto self = weak.lock();
         if (self == nullptr) {
@@ -288,7 +238,7 @@ void MissionListenerController::NotifyMissionLabelUpdated(int32_t missionId)
         TAG_LOGI(AAFwkTag::ABILITYMGR, "mission label updated, missionId:%{public}d", missionId);
         self->CallListeners(&IMissionListener::OnMissionLabelUpdated, missionId);
     };
-    handler_->SubmitTask(task);
+    ffrt::submit(task);
 }
 
 void MissionListenerController::OnListenerDied(const wptr<IRemoteObject> &remote)

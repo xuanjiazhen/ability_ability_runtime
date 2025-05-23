@@ -19,6 +19,7 @@
 #include "app_utils.h"
 #include "dialog_session_manager.h"
 #include "ecological_rule/ability_ecological_rule_mgr_service.h"
+#include "ffrt.h"
 #include "global_constant.h"
 #include "hitrace_meter.h"
 #include "start_ability_utils.h"
@@ -58,17 +59,7 @@ constexpr const char* SUPPORT_ACTION_START_SELECTOR = "persist.sys.ability.suppo
 
 void SendAbilityEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo)
 {
-    auto instance_ = DelayedSingleton<AbilityManagerService>::GetInstance();
-    if (instance_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "instance null.");
-        return;
-    }
-    auto taskHandler = instance_->GetTaskHandler();
-    if (taskHandler == nullptr) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "task handler null.");
-        return;
-    }
-    taskHandler->SubmitTask([eventName, type, eventInfo]() {
+    ffrt::submit([eventName, type, eventInfo]() {
         EventReport::SendAbilityEvent(eventName, type, eventInfo);
     });
 }

@@ -180,10 +180,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     if (!Info) {
         return false;
     }
-    Info->handler_ = nullptr;
-    Info->Init();
     std::shared_ptr<MissionListenerController> Infos = std::make_shared<MissionListenerController>();
-    Infos->Init();
     sptr<IMissionListener> listener = nullptr;
     Infos->AddMissionListener(listener);
     Infos->DelMissionListener(listener);

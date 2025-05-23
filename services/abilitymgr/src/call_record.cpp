@@ -17,6 +17,7 @@
 
 #include "ability_util.h"
 #include "ability_manager_service.h"
+#include "ffrt.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -128,9 +129,7 @@ bool CallRecord::SchedulerConnectDone()
     const AppExecFwk::AbilityInfo &abilityInfo = tmpService->GetAbilityInfo();
     AppExecFwk::ElementName element(abilityInfo.deviceId, abilityInfo.bundleName,
         abilityInfo.name, abilityInfo.moduleName);
-    auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
-    CHECK_POINTER_AND_RETURN(handler, false);
-    handler->SubmitTask([callback, remoteObject, launchMode = abilityInfo.launchMode, element]() {
+    ffrt::submit([callback, remoteObject, launchMode = abilityInfo.launchMode, element]() {
         callback->OnAbilityConnectDone(element,
             remoteObject, static_cast<int32_t>(launchMode));
         });
@@ -154,9 +153,7 @@ bool CallRecord::SchedulerDisconnectDone()
     const AppExecFwk::AbilityInfo &abilityInfo = tmpService->GetAbilityInfo();
     AppExecFwk::ElementName element(abilityInfo.deviceId, abilityInfo.bundleName,
         abilityInfo.name, abilityInfo.moduleName);
-    auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
-    CHECK_POINTER_AND_RETURN(handler, false);
-    handler->SubmitTask([callback, element]() {
+    ffrt::submit([callback, element]() {
         callback->OnAbilityDisconnectDone(element,  ERR_OK);
         });
 
@@ -169,12 +166,10 @@ void CallRecord::OnCallStubDied(const wptr<IRemoteObject> &remote)
 
     auto abilityManagerService = DelayedSingleton<AbilityManagerService>::GetInstance();
     CHECK_POINTER(abilityManagerService);
-    auto handler = abilityManagerService->GetTaskHandler();
-    CHECK_POINTER(handler);
     auto task = [abilityManagerService, callRecord = shared_from_this()]() {
         abilityManagerService->OnCallConnectDied(callRecord);
     };
-    handler->SubmitTask(task);
+    ffrt::submit(task);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "callstub is died. id:%{public}d, end", recordId_);
 }
 

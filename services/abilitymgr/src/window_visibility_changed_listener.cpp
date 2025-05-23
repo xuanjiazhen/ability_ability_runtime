@@ -16,15 +16,14 @@
 #include "window_visibility_changed_listener.h"
 
 #include "ability_manager_service.h"
+#include "ffrt.h"
 #include "hilog_tag_wrapper.h"
 
 namespace OHOS {
 namespace AAFwk {
 using namespace OHOS::Rosen;
 WindowVisibilityChangedListener::WindowVisibilityChangedListener(
-    const std::weak_ptr<AbilityManagerService> &owner, const std::shared_ptr<AAFwk::TaskHandlerWrap> &handler)
-    : owner_(owner), taskHandler_(handler)
-{}
+    const std::weak_ptr<AbilityManagerService> &owner): owner_(owner) {}
 
 void WindowVisibilityChangedListener::OnWindowVisibilityChanged(
     const std::vector<sptr<WindowVisibilityInfo>> &windowVisibilityInfos)
@@ -32,11 +31,6 @@ void WindowVisibilityChangedListener::OnWindowVisibilityChanged(
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     if (windowVisibilityInfos.empty()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "windowVisibilityInfo is empty");
-        return;
-    }
-
-    if (taskHandler_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null taskHandler");
         return;
     }
 
@@ -48,7 +42,7 @@ void WindowVisibilityChangedListener::OnWindowVisibilityChanged(
         }
         owner->HandleWindowVisibilityChanged(windowVisibilityInfos);
     };
-    taskHandler_->SubmitTask(task);
+    ffrt::submit(task);
 }
 } // namespace AAFwk
 } // namespace OHOS

@@ -1231,9 +1231,8 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, DispatchForeground_001, TestSize.L
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->currentState_ = AbilityState::INITIAL;
 
-    std::shared_ptr<TaskHandlerWrap> runner;
     std::weak_ptr<AbilityManagerService> server;
-    auto handler = std::make_shared<AbilityEventHandler>(runner, server);
+    auto handler = std::make_shared<AbilityEventHandler>(server);
     DelayedSingleton<AbilityManagerService>::GetInstance()->eventHandler_ = handler;
 
     DelayedSingleton<AbilityManagerService>::GetInstance()->taskHandler_ = nullptr;

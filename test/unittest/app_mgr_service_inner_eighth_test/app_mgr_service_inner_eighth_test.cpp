@@ -2154,7 +2154,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, NotifyMemorySizeStateChanged_004, TestSiz
 
     int32_t memorySizeState = MemoryState::NO_REQUIRE_BIG_MEMORY;
     auto ret = appMgrServiceInner->NotifyMemorySizeStateChanged(memorySizeState);
-    EXPECT_EQ(ret, ERR_NO_INIT);
+    EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "NotifyMemorySizeStateChanged_004 end");
 }
 

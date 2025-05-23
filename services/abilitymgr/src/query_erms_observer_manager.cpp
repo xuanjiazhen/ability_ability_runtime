@@ -16,6 +16,7 @@
 
 #include "ability_manager_service.h"
 #include "ability_util.h"
+#include "ffrt.h"
 #include "hilog_tag_wrapper.h"
 
 namespace OHOS {
@@ -67,10 +68,7 @@ void QueryERMSObserverManager::OnQueryFinished(int32_t recordId, const std::stri
         QueryERMSObserverManager::GetInstance().HandleOnQueryFinished(
             recordId, appId, startTime, rule, resultCode);
     };
-
-    auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
-    CHECK_POINTER_LOG(handler, "Fail to get Ability task handler.");
-    handler->SubmitTask(task);
+    ffrt::submit(task);
 }
 
 void QueryERMSObserverManager::HandleOnQueryFinished(int32_t recordId, const std::string &appId,

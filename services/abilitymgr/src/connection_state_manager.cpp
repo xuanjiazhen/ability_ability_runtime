@@ -21,6 +21,7 @@
 #include "hitrace_meter.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
+#include "task_handler_wrap.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -49,17 +50,9 @@ std::string ConnectionStateManager::GetProcessNameByPid(int32_t pid)
     return std::to_string(pid);
 }
 
-void ConnectionStateManager::Init(const std::shared_ptr<TaskHandlerWrap> &handler)
+void ConnectionStateManager::Init()
 {
-    if (!observerController_) {
-        observerController_ = std::make_shared<ConnectionObserverController>();
-    }
-    handler_ = handler;
-    if (!handler) {
-        TAG_LOGW(AAFwkTag::CONNECTION, "invalid eventhandler");
-        InitAppStateObserver();
-        return;
-    }
+    InitObserverController();
     auto initConnectionStateManagerTask = [weak = weak_from_this()]() {
         auto self = weak.lock();
         if (!self) {
@@ -68,31 +61,47 @@ void ConnectionStateManager::Init(const std::shared_ptr<TaskHandlerWrap> &handle
         }
         self->InitAppStateObserver();
     };
-    handler->SubmitTask(initConnectionStateManagerTask, "InitConnectionStateManager");
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask(initConnectionStateManagerTask, "InitConnectionStateManager");
+}
+
+std::shared_ptr<ConnectionObserverController> ConnectionStateManager::GetObserverController() const
+{
+    std::lock_guard lock(controllerMutex_);
+    return observerController_;
+}
+
+void ConnectionStateManager::InitObserverController()
+{
+    std::lock_guard lock(controllerMutex_);
+    if (observerController_ == nullptr) {
+        observerController_ = std::make_shared<ConnectionObserverController>();
+    }
 }
 
 int ConnectionStateManager::RegisterObserver(const sptr<AbilityRuntime::IConnectionObserver> &observer)
 {
-    if (!observerController_) {
+    auto observerController = GetObserverController();
+    if (!observerController) {
         return ERR_SERVICE_NOT_INIT;
     }
 
-    return observerController_->AddObserver(observer);
+    return observerController->AddObserver(observer);
 }
 
 int ConnectionStateManager::UnregisterObserver(const sptr<AbilityRuntime::IConnectionObserver> &observer)
 {
-    if (!observerController_) {
+    auto observerController = GetObserverController();
+    if (!observerController) {
         return ERR_SERVICE_NOT_INIT;
     }
-    observerController_->RemoveObserver(observer);
+    observerController->RemoveObserver(observer);
 
     return 0;
 }
 
 void ConnectionStateManager::AddConnection(std::shared_ptr<ConnectionRecord> connectionRecord)
 {
-    std::shared_ptr<ConnectionObserverController> controller = observerController_;
+    auto controller = GetObserverController();
     if (!controller) {
         return;
     }
@@ -113,7 +122,7 @@ void ConnectionStateManager::AddConnection(std::shared_ptr<ConnectionRecord> con
 void ConnectionStateManager::RemoveConnection(std::shared_ptr<ConnectionRecord> connectionRecord,
     bool isCallerDied)
 {
-    std::shared_ptr<ConnectionObserverController> controller = observerController_;
+    auto controller = GetObserverController();
     if (!controller) {
         return;
     }
@@ -149,7 +158,10 @@ void ConnectionStateManager::AddDataAbilityConnection(const DataAbilityCaller &c
         TAG_LOGW(AAFwkTag::CONNECTION, "no need notify observers");
         return;
     }
-    observerController_->NotifyExtensionConnected(connectionData);
+    auto controller = GetObserverController();
+    if (controller != nullptr) {
+        controller->NotifyExtensionConnected(connectionData);
+    }
 }
 
 void ConnectionStateManager::RemoveDataAbilityConnection(const DataAbilityCaller &caller,
@@ -164,13 +176,16 @@ void ConnectionStateManager::RemoveDataAbilityConnection(const DataAbilityCaller
         TAG_LOGW(AAFwkTag::CONNECTION, "no need notify observers");
         return;
     }
-    observerController_->NotifyExtensionDisconnected(connectionData);
+    auto controller = GetObserverController();
+    if (controller != nullptr) {
+        controller->NotifyExtensionDisconnected(connectionData);
+    }
 }
 
 bool ConnectionStateManager::CheckDataAbilityConnectionParams(const DataAbilityCaller &caller,
     const std::shared_ptr<DataAbilityRecord> &record) const
 {
-    if (!observerController_) {
+    if (!GetObserverController()) {
         return false;
     }
 
@@ -207,7 +222,7 @@ void ConnectionStateManager::HandleDataAbilityDied(const std::shared_ptr<DataAbi
         return;
     }
 
-    std::shared_ptr<ConnectionObserverController> controller = observerController_;
+    auto controller = GetObserverController();
     if (!controller) {
         return;
     }
@@ -254,7 +269,7 @@ void ConnectionStateManager::RemoveDlpManager(const std::shared_ptr<AbilityRecor
 
 void ConnectionStateManager::AddDlpAbility(const std::shared_ptr<AbilityRecord> &dlpAbility)
 {
-    std::shared_ptr<ConnectionObserverController> controller = observerController_;
+    auto controller = GetObserverController();
     if (!controller) {
         return;
     }
@@ -269,7 +284,7 @@ void ConnectionStateManager::AddDlpAbility(const std::shared_ptr<AbilityRecord> 
 
 void ConnectionStateManager::RemoveDlpAbility(const std::shared_ptr<AbilityRecord> &dlpAbility)
 {
-    std::shared_ptr<ConnectionObserverController> controller = observerController_;
+    auto controller = GetObserverController();
     if (!controller) {
         return;
     }
@@ -386,7 +401,7 @@ void ConnectionStateManager::HandleCallerDied(int32_t callerPid)
         return;
     }
 
-    std::shared_ptr<ConnectionObserverController> controller = observerController_;
+    auto controller = GetObserverController();
     if (!controller) {
         return;
     }
@@ -517,6 +532,7 @@ bool ConnectionStateManager::HandleDlpAbilityInner(const std::shared_ptr<Ability
 
 void ConnectionStateManager::InitAppStateObserver()
 {
+    std::lock_guard lock(registerMutex_);
     if (appStateObserver_) {
         return;
     }
@@ -524,7 +540,7 @@ void ConnectionStateManager::InitAppStateObserver()
     sptr<OHOS::AppExecFwk::IAppMgr> appManager = GetAppMgr();
     if (!appManager) {
         TAG_LOGW(AAFwkTag::CONNECTION, "null appManager, retry:%{public}d", retry_);
-        if (retry_ < MAX_RETRY && handler_) {
+        if (retry_ < MAX_RETRY) {
             auto initConnectionStateManagerTask = [weak = weak_from_this()]() {
                 auto self = weak.lock();
                 if (!self) {
@@ -533,26 +549,27 @@ void ConnectionStateManager::InitAppStateObserver()
                 }
                 self->InitAppStateObserver();
             };
-            handler_->SubmitTaskJust(initConnectionStateManagerTask, "InitConnectionStateManager", DELAY_TIME);
+            TaskHandlerWrap::GetFfrtHandler()->SubmitTaskJust(initConnectionStateManagerTask,
+                "InitConnectionStateManager", DELAY_TIME);
             retry_++;
         }
         return;
     }
 
-    appStateObserver_ = new (std::nothrow)InnerAppStateObserver([](int32_t pid) {
+    auto appStateObserver = new (std::nothrow)InnerAppStateObserver([](int32_t pid) {
         DelayedSingleton<ConnectionStateManager>::GetInstance()->HandleAppDied(pid);
     });
-    if (!appStateObserver_) {
+    if (!appStateObserver) {
         TAG_LOGE(AAFwkTag::CONNECTION, "init app state observer err");
         return;
     }
 
-    int32_t err = appManager->RegisterApplicationStateObserver(appStateObserver_);
+    int32_t err = appManager->RegisterApplicationStateObserver(appStateObserver);
     if (err != 0) {
         TAG_LOGE(AAFwkTag::CONNECTION, "register to appmgr err:%{public}d", err);
-        appStateObserver_ = nullptr;
         return;
     }
+    appStateObserver_ = appStateObserver;
 }
 } // namespace AAFwk
 } // namespace OHOS

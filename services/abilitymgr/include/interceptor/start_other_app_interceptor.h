@@ -27,10 +27,6 @@ public:
     StartOtherAppInterceptor() = default;
     ~StartOtherAppInterceptor() = default;
     ErrCode DoProcess(AbilityInterceptorParam param) override;
-    virtual void SetTaskHandler(std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler) override
-    {
-        return;
-    };
 private:
     bool CheckNativeCall();
     bool CheckCallerIsSystemApp();
