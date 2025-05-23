@@ -21,6 +21,7 @@
 #include "app_state_data.h"
 #include "running_multi_info.h"
 #include "process_data.h"
+#include "ability_state_data.h"
 
 namespace OHOS {
 namespace AppManagerSts {
@@ -47,7 +48,6 @@ bool SetProcessData(ani_env* env, ani_object object, const AppExecFwk::ProcessDa
 bool UnWrapArrayString(ani_env *env, ani_object arrayObj, std::vector<std::string> stringList);
 ani_object CreateEmptyAniArray(ani_env *env);
 ani_object CreateEmptyMultiAppInfo(ani_env *env);
-
 } // namespace AppManagerSts
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_STS_APP_MANAGER_UTILS_H
