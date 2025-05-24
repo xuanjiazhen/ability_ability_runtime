@@ -954,9 +954,8 @@ HWTEST_F(AppMgrProxyTest, UpdateConfigurationForBackgroundApp_001, TestSize.Leve
     std::vector<BackgroundAppInfo> appInfos;
     ConfigurationPolicy policy;
     int32_t userId = -1;
-
     auto ret = appMgrProxy_->UpdateConfigurationForBackgroundApp(appInfos, policy, userId);
-    EXPECT_EQ(ret, ERR_FLATTEN_OBJECT);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
     BackgroundAppInfo info;
     appInfos.push_back(info);
     appMgrProxy_->UpdateConfigurationForBackgroundApp(appInfos, policy, userId);
