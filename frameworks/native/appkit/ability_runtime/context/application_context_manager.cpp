@@ -89,13 +89,13 @@ void ApplicationContextManager::RemoveGlobalObject(napi_env env)
     }
 }
 
-void ApplicationContextManager::AddStsGlobalObject(ani_env* env,
+void ApplicationContextManager::AddEtsGlobalObject(ani_env* env,
     std::shared_ptr<AbilityRuntime::STSNativeReference> applicationContextObj)
 {
-    std::lock_guard<std::mutex> lock(stsApplicationContextMutex_);
-    auto iter = stsApplicationContextMap_.find(env);
-    if (iter == stsApplicationContextMap_.end()) {
-        stsApplicationContextMap_[env] = applicationContextObj;
+    std::lock_guard<std::mutex> lock(etsApplicationContextMutex_);
+    auto iter = etsApplicationContextMap_.find(env);
+    if (iter == etsApplicationContextMap_.end()) {
+        etsApplicationContextMap_[env] = applicationContextObj;
         return;
     }
     if (iter->second != nullptr) {
@@ -105,20 +105,20 @@ void ApplicationContextManager::AddStsGlobalObject(ani_env* env,
     iter->second = applicationContextObj;
 }
 
-std::shared_ptr<AbilityRuntime::STSNativeReference> ApplicationContextManager::GetStsGlobalObject(ani_env* env)
+std::shared_ptr<AbilityRuntime::STSNativeReference> ApplicationContextManager::GetEtsGlobalObject(ani_env* env)
 {
-    std::lock_guard<std::mutex> lock(stsApplicationContextMutex_);
-    return stsApplicationContextMap_[env];
+    std::lock_guard<std::mutex> lock(etsApplicationContextMutex_);
+    return etsApplicationContextMap_[env];
 }
 
-void ApplicationContextManager::RemoveStsGlobalObject(ani_env* env)
+void ApplicationContextManager::RemoveEtsGlobalObject(ani_env* env)
 {
-    std::lock_guard<std::mutex> lock(stsApplicationContextMutex_);
-    auto iter = stsApplicationContextMap_.find(env);
-    if (iter != stsApplicationContextMap_.end() && iter->second != nullptr) {
+    std::lock_guard<std::mutex> lock(etsApplicationContextMutex_);
+    auto iter = etsApplicationContextMap_.find(env);
+    if (iter != etsApplicationContextMap_.end() && iter->second != nullptr) {
         iter->second.reset();
         iter->second = nullptr;
-        stsApplicationContextMap_.erase(env);
+        etsApplicationContextMap_.erase(env);
     }
 }
 }  // namespace AbilityRuntime

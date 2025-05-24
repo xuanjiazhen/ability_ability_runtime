@@ -48,7 +48,7 @@
 #include "window.h"
 #endif
 #include "ani.h"
-#include "sts_context_utils.h"
+#include "ets_context_utils.h"
 #include "sts_runtime.h"
 #include "sts_error_utils.h"
 
@@ -56,8 +56,8 @@ namespace OHOS {
 namespace AppExecFwk {
 namespace {
     constexpr const char* PERSIST_DARKMODE_KEY = "persist.ace.darkmode";
-    constexpr const char* STS_APPLICATION_CONTEXT_CLASS_NAME = "Lapplication/ApplicationContext/ApplicationContext;";
-    constexpr const char* STS_CONTEXT_CLASS_NAME = "Lapplication/Context/Context;";
+    constexpr const char* ETS_APPLICATION_CONTEXT_CLASS_NAME = "Lapplication/ApplicationContext/ApplicationContext;";
+    constexpr const char* ETS_CONTEXT_CLASS_NAME = "Lapplication/Context/Context;";
 }
 REGISTER_APPLICATION(OHOSApplication, OHOSApplication)
 constexpr int32_t APP_ENVIRONMENT_OVERWRITE = 1;
@@ -225,7 +225,7 @@ static void SetSupportedProcessCacheSync([[maybe_unused]]ani_env *env, [[maybe_u
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
     ani_class applicationContextCls = nullptr;
-    if (env->FindClass(STS_APPLICATION_CONTEXT_CLASS_NAME, &applicationContextCls) != ANI_OK) {
+    if (env->FindClass(ETS_APPLICATION_CONTEXT_CLASS_NAME, &applicationContextCls) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "FindClass ApplicationContext failed");
         AbilityRuntime::ThrowStsInvalidParamError(env, "FindClass failed");
         return;
@@ -256,7 +256,7 @@ void OHOSApplication::InitAniApplicationContext()
     auto& runtime = GetRuntime(AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2);
     auto aniEnv = static_cast<AbilityRuntime::STSRuntime &>(*runtime).GetAniEnv();
     ani_class applicationContextCls = nullptr;
-    if (aniEnv->FindClass(STS_APPLICATION_CONTEXT_CLASS_NAME, &applicationContextCls) != ANI_OK) {
+    if (aniEnv->FindClass(ETS_APPLICATION_CONTEXT_CLASS_NAME, &applicationContextCls) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "FindClass ApplicationContext failed");
         return;
     }
@@ -287,16 +287,9 @@ void OHOSApplication::InitAniApplicationContext()
         TAG_LOGE(AAFwkTag::APPKIT, "Object_SetField_Long failed");
         return;
     }
-    ani_ref applicationContextObjectRef = nullptr;
-    if (aniEnv->GlobalReference_Create(applicationContextObject, &applicationContextObjectRef) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "GlobalReference_Create failed");
-        return;
-    }
-    auto stsReference = std::make_shared<AbilityRuntime::STSNativeReference>();
-    stsReference->aniObj = applicationContextObject;
-    AbilityRuntime::ApplicationContextManager::GetApplicationContextManager().AddStsGlobalObject(aniEnv, stsReference);
-    applicationContextObjRef_ = reinterpret_cast<void*>(applicationContextObjectRef);
-    abilityRuntimeContext_->SetApplicationCtxObjRef(applicationContextObjRef_);
+    auto etsReference = std::make_shared<AbilityRuntime::STSNativeReference>();
+    etsReference->aniObj = applicationContextObject;
+    AbilityRuntime::ApplicationContextManager::GetApplicationContextManager().AddEtsGlobalObject(aniEnv, etsReference);
 }
 
 void OHOSApplication::InitAniContext()
@@ -305,7 +298,7 @@ void OHOSApplication::InitAniContext()
     auto& runtime = GetRuntime(AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2);
     auto aniEnv = static_cast<AbilityRuntime::STSRuntime &>(*runtime).GetAniEnv();
     ani_class contextCls = nullptr;
-    if (aniEnv->FindClass(STS_CONTEXT_CLASS_NAME, &contextCls) != ANI_OK) {
+    if (aniEnv->FindClass(ETS_CONTEXT_CLASS_NAME, &contextCls) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "FindClass Context failed");
         return;
     }
