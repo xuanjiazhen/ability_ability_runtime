@@ -134,6 +134,31 @@ void WindowManagerServiceHandlerProxy::StartingWindow(sptr<AbilityTransitionInfo
     }
 }
 
+void WindowManagerServiceHandlerProxy::StartingWindow(sptr<AbilityTransitionInfo> info,
+    std::shared_ptr<AAFwk::StartWindowPageDrawInfo> drawInfo)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(IWindowManagerServiceHandler::GetDescriptor())) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to write token");
+        return;
+    }
+    if (!data.WriteParcelable(info.GetRefPtr())) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Write info failed");
+        return;
+    }
+    if (!data.WriteParcelable(drawInfo.get())) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Write drawInfo failed");
+        return;
+    }
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    int error = SendTransactCmd(WMSCmd::ON_CUSTOM_COLD_STARTING_WINDOW, data, reply, option);
+    if (error != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "SendRequest error: %{public}d", error);
+    }
+}
+
 void WindowManagerServiceHandlerProxy::CancelStartingWindow(sptr<IRemoteObject> abilityToken)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");

@@ -43,6 +43,9 @@ public:
 
     virtual void StartingWindow(sptr<AbilityTransitionInfo> info, std::shared_ptr<Media::PixelMap> pixelMap) = 0;
 
+    virtual void StartingWindow(sptr<AbilityTransitionInfo> info,
+        std::shared_ptr<AAFwk::StartWindowPageDrawInfo> drawInfo) = 0;
+
     virtual void CancelStartingWindow(sptr<IRemoteObject> abilityToken) = 0;
 
     virtual void NotifyAnimationAbilityDied(sptr<AbilityTransitionInfo> info) = 0;
@@ -60,6 +63,9 @@ public:
 
         // ipc id for Cold StartingWindow
         ON_COLD_STARTING_WINDOW,
+
+        // ipc id for  Cold StartingWindow with Custom Page
+        ON_CUSTOM_COLD_STARTING_WINDOW,
 
         // ipc id for Hot StartingWindow
         ON_HOT_STARTING_WINDOW,

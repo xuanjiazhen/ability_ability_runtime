@@ -1165,12 +1165,43 @@ void AbilityRecord::StartingWindowCold(const std::shared_ptr<StartOptions> &star
     // get bg pixelmap and color.
     std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
     uint32_t bgColor = 0;
+    auto info = CreateAbilityTransitionInfo(startOptions, want, abilityRequest);
+    auto drawInfo = std::make_shared<AAFwk::StartWindowPageDrawInfo>();
+    GetColdStartingWindowCustomResource(drawInfo);
+    if (drawInfo->bgColor != 0) {
+        windowHandler->StartingWindow(info, drawInfo);
+        return;
+    }
     GetColdStartingWindowResource(pixelMap, bgColor);
 
     // start window
-    auto info = CreateAbilityTransitionInfo(startOptions, want, abilityRequest);
     windowHandler->StartingWindow(info, pixelMap, bgColor);
     startingWindowBg_.reset();
+}
+
+void AbilityRecord::GetColdStartingWindowCustomResource(std::shared_ptr<AAFwk::StartWindowPageDrawInfo> &drawInfo)
+{
+    if (drawInfo == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "drawInfo  is nullptr");
+        return;
+    }
+    auto resourceMgr = CreateResourceManager();
+    if (!resourceMgr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "get resourceMgr failed");
+        return;
+    }
+    if (resourceMgr->GetColorById(abilityInfo_.startWindowResource.startWindowBackgroundColorId, drawInfo->bgColor) == Global::Resource::RState::SUCCESS) {
+        drawInfo->branding = GetPixelMap(abilityInfo_.startWindowResource.startWindowBrandingImageId, resourceMgr);
+        drawInfo->backgroundImage = GetPixelMap(abilityInfo_.startWindowResource.startWindowBackgroundImageId, resourceMgr);
+        if (drawInfo->backgroundImage) {
+            drawInfo->startWindowBackgroundImageFit = abilityInfo_.startWindowResource.startWindowBackgroundImageFit;
+        }
+        drawInfo->appIcon= GetPixelMap(abilityInfo_.startWindowResource.startWindowAppIconId, resourceMgr);
+        if (!drawInfo->appIcon) {
+            drawInfo->illustration = GetPixelMap(abilityInfo_.startWindowResource.startWindowIllustrationId, resourceMgr);
+        }
+    }
+    return;
 }
 
 void AbilityRecord::GetColdStartingWindowResource(std::shared_ptr<Media::PixelMap> &bg, uint32_t &bgColor)

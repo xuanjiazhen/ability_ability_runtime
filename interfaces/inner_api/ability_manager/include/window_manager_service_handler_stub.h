@@ -39,6 +39,7 @@ private:
     int NotifyWindowTransitionInner(MessageParcel &data, MessageParcel &reply);
     int GetFocusWindowInner(MessageParcel &data, MessageParcel &reply);
     int StartingWindowCold(MessageParcel &data, MessageParcel &reply);
+    int StartingWindowCustomCold(MessageParcel &data, MessageParcel &reply);
     int StartingWindowHot(MessageParcel &data, MessageParcel &reply);
     int CancelStartingWindowInner(MessageParcel &data, MessageParcel &reply);
     int NotifyAnimationAbilityDiedInner(MessageParcel &data, MessageParcel &reply);
