@@ -127,6 +127,101 @@ NativeChildProcess_Args* OH_Ability_GetCurrentChildProcessArgs()
     return result;
 }
 
+
+Ability_ChildProcessConfigs* OH_Ability_CreateChildProcessConfigs()
+{
+    std::unique_ptr<Ability_ChildProcessConfigs> configs = std::make_unique<Ability_ChildProcessConfigs>();
+    return configs.release();
+}
+
+Ability_NativeChildProcess_ErrCode OH_Ability_DestroyChildProcessConfigs(Ability_ChildProcessConfigs* configs)
+{
+    if(configs == nullptr){
+        TAG_LOGE(AAFwkTag::APPKIT, "null Ability_ChildProcessConfigs");
+        return NCP_ERR_INVALID_PARAM;
+    }
+    delete configs;
+    configs = nullptr;
+    return NCP_NO_ERROR;
+}
+
+Ability_NativeChildProcess_ErrCode OH_Ability_ChildProcessConfigs_SetIsolationMode(
+    Ability_ChildProcessConfigs* configs, NativeChildProcess_IsolationMode isolationMode)
+{
+    if(configs == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null Ability_ChildProcessConfigs");
+        return NCP_ERR_INVALID_PARAM;
+    } else {
+        configs->isolationMode = isolationMode;
+        return NCP_NO_ERROR;
+    }
+}
+
+Ability_NativeChildProcess_ErrCode OH_Ability_ChildProcessConfigs_SetProcessName(Ability_ChildProcessConfigs* configs,
+    const char* processName)
+{
+    if (configs == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null Ability_ChildProcessConfigs");
+        return NCP_ERR_INVALID_PARAM;
+    }
+    if (processName == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null processName");
+        return NCP_ERR_INVALID_PARAM;
+    }
+    int processNameLen = strlen(processName);
+    if(processNameLen == 0) {
+        TAG_LOGE(AAFwkTag::APPKIT, "processName is 0");
+        return NCP_ERR_INVALID_PARAM;
+    }
+    if (processNameLen > 64) {
+        TAG_LOGE(AAFwkTag::APPKIT, "processName is larger than 64");
+        return NCP_ERR_INVALID_PARAM; 
+    }
+    int i = 0;
+    while (i < processNameLen) {
+        if((processName[i] >= 'a' && processName[i] <= 'z') ||
+           (processName[i] >= 'A' && processName[i] <= 'Z') ||
+           (processName[i] >= '0' && processName[i] <= '9') ||
+           processName[i] == '_'){
+                i++;
+           }else{
+                TAG_LOGE(AAFwkTag::APPKIT, "Wrong processName");
+                return NCP_ERR_INVALID_PARAM;
+           }
+    }
+    configs->processName = std::string(processName);
+    return NCP_NO_ERROR;
+}
+
+Ability_NativeChildProcess_ErrCode OH_Ability_CreateNativeChildProcessWithConfigs(const char* libName,
+    Ability_ChildProcessConfigs* configs, OH_Ability_OnNativeChildProcessStarted onProcessStarted)
+{
+    if (libName == nullptr || *libName == '\0' || onProcessStarted == nullptr || configs == nullptr) {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "null libname or callback or configs");
+        return NCP_ERR_INVALID_PARAM;
+    }
+
+    std::string strLibName(libName);
+    if (strLibName.find("../") != std::string::npos) {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "relative path not allow");
+        return NCP_ERR_INVALID_PARAM;
+    }
+
+    sptr<IRemoteObject> callbackStub(new (std::nothrow) NativeChildCallback(onProcessStarted));
+    if (!callbackStub) {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "null callbackStub");
+        return NCP_ERR_INTERNAL;
+    }
+
+    ChildProcessManager &mgr = ChildProcessManager::GetInstance();
+    auto cpmErr = mgr.StartNativeChildProcessByAppSpawnFork(strLibName, callbackStub, configs);
+    if (cpmErr != ChildProcessManagerErrorCode::ERR_OK) {
+        return ChildProcessManagerErrorUtil::CvtChildProcessManagerErrCode(cpmErr);
+    }
+
+    ChildCallbackManager::GetInstance().AddRemoteObject(callbackStub);
+    return NCP_NO_ERROR;
+}
 sptr<OHOS::AbilityRuntime::NativeChildCallback> GetGlobalNativeChildCallbackStub()
 {
     std::lock_guard<std::mutex> lock(g_callbackStubMutex);

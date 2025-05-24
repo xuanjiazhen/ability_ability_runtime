@@ -16,7 +16,9 @@
 #ifndef OHOS_ABILITY_RUNTIME_C_NATIVE_CHILD_PROCESS_H
 #define OHOS_ABILITY_RUNTIME_C_NATIVE_CHILD_PROCESS_H
 
+#include <string>
 #include "ipc_cparcel.h"
+
 
 /**
  * @addtogroup ChildProcess
@@ -117,6 +119,7 @@ typedef enum Ability_NativeChildProcess_ErrCode {
      */
     NCP_ERR_CALLBACK_NOT_EXIST = 16010009,
 } Ability_NativeChildProcess_ErrCode;
+
 
 
 /**
@@ -249,6 +252,82 @@ typedef struct NativeChildProcess_Args {
 } NativeChildProcess_Args;
 
 /**
+* @brief Defines a struct for the child process configs.
+* @since 20
+*/
+typedef struct Ability_ChildProcessConfigs{
+    std::string processName = "";
+    NativeChildProcess_IsolationMode isolationMode;
+} Ability_ChildProcessConfigs;
+
+/**
+* @brief Creates a new child process configs object.
+* The caller is responsible for destroying the returned object by calling
+* {@link OH_Ability_DestroyChildProcessConfigs} to avoid memory leaks.
+* @return Returns a pointer to the newly created {@link Ability_ChildProcessConfigs} object if successful.
+*         Returns nullptr if an internal error occurs or memory allocation fails.
+* @since 20
+*/
+Ability_ChildProcessConfigs* OH_Ability_CreateChildProcessConfigs();
+
+/**
+* @brief Sets the process name for the specified child process configs.
+*
+* @param configs Pointer to the child process configs object. Must not be nullptr.
+* @param processName The process name to set.
+* Must be a non-empty string containing only letters, digits, or underscores.
+* Maximum length is 64 characters.
+* The name ultimately assigned to the process is {bundleName}:{processName}.
+* @return Returns {@link NCP_NO_ERROR} if the process name is set successful.
+*         Returns {@link NCP_NO_ERR_INVALID_PARAM} if the input parameters are invalid.
+* @since 20
+*/
+Ability_NativeChildProcess_ErrCode OH_Ability_ChildProcessConfigs_SetProcessName(Ability_ChildProcessConfigs* configs,
+    const char* processName);
+
+/**
+ * @brief Creates a child process, loads the specified dynamic library file, and returns the startup result
+ * asynchronously through a callback parameter.
+ * The callback notification is an independent thread. When implementing the callback function,
+ * pay attention to thread synchronization and do not perform time-consuming operations to avoid long-time blocking.
+ *
+ * The dynamic library specified must implement and export the following functions:
+ *   1. OHIPCRemoteStub* NativeChildProcess_OnConnect()
+ *   2. void NativeChildProcess_MainProc()
+ *
+ * The processing logic sequence is shown in the following pseudocode: 
+ *   Main process: 
+ *     1. OH_Ability_CreateNativeChildProcess(libName, onProcessStartedCallback)
+ *   Child process: 
+ *     2. dlopen(libName)
+ *     3. dlsym("NativeChildProcess_OnConnect")
+ *     4. dlsym("NativeChildProcess_MainProc")
+ *     5. ipcRemote = NativeChildProcess_OnConnect()
+ *     6. NativeChildProcess_MainProc()
+ * Main process: 
+ *     7. onProcessStartedCallback(ipcRemote, errCode)
+ * Child process: 
+ *     8. The child process exits after the NativeChildProcess_MainProc() function is returned. 
+ *
+ * @param libName Name of the dynamic library file loaded in the child process. The value cannot be nullptr.
+ * @param configs Pointer to the child process configs object. The value cannot be nullptr.
+ * @param onProcessStarted Pointer to the callback function for notifying the child process startup result.
+ * The value cannot be nullptr. For details, see {@link OH_Ability_OnNativeChildProcessStarted}.
+ * @return Returns {@link NCP_NO_ERROR} if the call is successful, but the actual startup result is notified by the
+ * callback function.
+ * Returns {@link NCP_ERR_INVALID_PARAM} if the dynamic library name or callback function pointer is invalid.
+ * Returns {@link NCP_ERR_NOT_SUPPORTED} if the device does not support the creation of native child processes.
+ * Returns {@link NCP_ERR_MULTI_PROCESS_DISABLED} if the multi-process mode is disabled on the device.
+ * Returns {@link NCP_ERR_ALREADY_IN_CHILD} if it is not allowed to create another child process in the child process.
+ * Returns {@link NCP_ERR_MAX_CHILD_PROCESSES_REACHED} if the maximum number of native child processes is reached.
+ * For details, see {@link Ability_NativeChildProcess_ErrCode}.
+ * @see OH_Ability_OnNativeChildProcessStarted
+ * @since 12
+ */
+ Ability_NativeChildProcess_ErrCode OH_Ability_CreateNativeChildProcessWithConfigs(const char* libName,
+    Ability_ChildProcessConfigs* configs, OH_Ability_OnNativeChildProcessStarted onProcessStarted);
+
+/**
  * @brief Starts a child process, loads the specified dynamic library file.
  *
  * The dynamic library specified must implement a function with NativeChildProcess_Args as a
@@ -283,6 +362,66 @@ typedef struct NativeChildProcess_Args {
 Ability_NativeChildProcess_ErrCode OH_Ability_StartNativeChildProcess(
     const char* entry, NativeChildProcess_Args args,
     NativeChildProcess_Options options, int32_t *pid);
+
+/**
+ * @brief Starts a child process, loads the specified dynamic library file.
+ *
+ * The dynamic library specified must implement a function with NativeChildProcess_Args as a
+ * pamameter(function name can be customized), and export the function, such as:
+ *   1. void Main(NativeChildProcess_Args args);
+ *
+ * The processing logic sequence is shown in the following pseudocode: 
+ *   Main process: 
+ *     1. OH_Ability_StartNativeChildProcess(entryPoint, args, options)
+ *   Child process: 
+ *     2. dlopen(libName)
+ *     3. dlsym("Main")
+ *     4. Main(args)
+ *     5. The child process exits after the Main(args) function is returned 
+ *
+ * @param entry Dynamic library and entry function loaded in child process, such as "libEntry.so:Main".
+ * The value cannot be nullptr.
+ * @param args The arguments passed to the child process.
+ * For details, see {@link NativeChildProcess_Args}.
+ * @param configs Pointer to the child process configs object. The value cannot be null.
+ * For details, see {@link Ability_ChildProcessConfigs}.
+ * @param pid The started child process id.
+ * @return Returns {@link NCP_NO_ERROR} if the call is successful.
+ * Returns {@link NCP_ERR_INVALID_PARAM} if the dynamic library name or callback function pointer is invalid.\n
+ * Returns {@link NCP_ERR_NOT_SUPPORTED} if the device does not support the creation of native child processes.\n
+ * Returns {@link NCP_ERR_ALREADY_IN_CHILD} if it is not allowed to create another child process in the child process.\n
+ * Returns {@link NCP_ERR_MAX_CHILD_PROCESSES_REACHED} if the maximum number of native child processes is reached.\n
+ * For details, see {@link Ability_NativeChildProcess_ErrCode}.
+ * @since 13
+ */
+ Ability_NativeChildProcess_ErrCode OH_Ability_StartNativeChildProcessWithConfigs(
+    const char* entry, NativeChildProcess_Args args, Ability_ChildProcessConfigs* configs, int32_t *pid);
+
+/**
+* @brief Destroys a child process configs object and releases associated rescources.
+*
+* @param configs Pointer to the child process configs object to be destroyed.
+* After this call, the pointer becomes invalid and must not be used.
+* Passing nullptr is allowed and will be ignored.
+* {@link OH_Ability_DestroyChildProcessConfigs} to avoid memory leaks.
+* @return Returns {@link NCP_NO_ERROR} if the operation is successful or if the input is nullptr.
+*         Returns {@link NCP_NO_ERR_INVALID_PARAM} if the input parameters are invalid.
+* @since 20
+*/
+Ability_NativeChildProcess_ErrCode OH_Ability_DestroyChildProcessConfigs(Ability_ChildProcessConfigs* configs);
+
+/**
+* @brief Sets the isolation mode for the specified child process configs.
+* The isolationMode only takes effect in {@link OH_Ability_StartNativeChildProcessWithConfigs}.
+*
+* @param configs Pointer to the child process configs object. Must not be nullptr.
+* @param isolationMode The isolation mode to set. See {@link NativeChildProcess_IsolationMode} for details.
+* @return Returns {@link NCP_NO_ERROR} if the isolation mode is set successful.
+*         Returns {@link NCP_NO_ERR_INVALID_PARAM} if the input parameters are invalid.
+* @since 20
+*/
+Ability_NativeChildProcess_ErrCode OH_Ability_ChildProcessConfigs_SetIsolationMode(
+    Ability_ChildProcessConfigs* configs, NativeChildProcess_IsolationMode isolationMode);
 
 /**
  * @brief Child process get self NativeChildProcess_Args.

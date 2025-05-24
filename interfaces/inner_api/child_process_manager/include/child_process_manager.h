@@ -29,6 +29,7 @@
 #include "hap_module_info.h"
 #include "runtime.h"
 #include "iremote_object.h"
+#include "native_child_process.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -46,7 +47,7 @@ public:
         int32_t childProcessType, const AppExecFwk::ChildProcessArgs &args,
         const AppExecFwk::ChildProcessOptions &options);
     ChildProcessManagerErrorCode StartNativeChildProcessByAppSpawnFork(
-        const std::string &libName, const sptr<IRemoteObject> &callbackStub);
+        const std::string &libName, const sptr<IRemoteObject> &callbackStub, Ability_ChildProcessConfigs* configs = nullptr);
     bool GetBundleInfo(AppExecFwk::BundleInfo &bundleInfo);
     bool GetEntryHapModuleInfo(const AppExecFwk::BundleInfo &bundleInfo, AppExecFwk::HapModuleInfo &hapModuleInfo);
     bool GetHapModuleInfo(const AppExecFwk::BundleInfo &bundleInfo, const std::string &moduleName,

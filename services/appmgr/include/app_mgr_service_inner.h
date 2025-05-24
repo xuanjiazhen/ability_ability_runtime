@@ -1268,7 +1268,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t StartNativeChildProcess(const pid_t hostPid,
-        const std::string &libName, int32_t childProcessCount, const sptr<IRemoteObject> &callback);
+        const std::string &libName, int32_t childProcessCount, const sptr<IRemoteObject> &callback, const std::string &processName);
 #endif // SUPPORT_CHILD_PROCESS
 
     virtual int32_t RegisterNativeChildExitNotify(const sptr<INativeChildNotify> &callback);
