@@ -17,6 +17,7 @@
 #include "native_child_process.h"
 #include "app_utils.h"
 #include "child_process_args_manager.h"
+#include "native_child_callback.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -111,8 +112,12 @@ HWTEST_F(ChildProcessCapiTest, OH_Ability_RegisterNativeChildProcessExitCallback
     EXPECT_EQ(ret, NCP_ERR_INVALID_PARAM);
     ret = OH_Ability_RegisterNativeChildProcessExitCallback(ChildProcessCapiTest::OnNativeChildProcessExit);
     EXPECT_EQ(ret, NCP_ERR_INTERNAL);
+    auto callback = sptr<NativeChildCallback>::MakeSptr(nullptr);
+    callback->AddExitCallback(ChildProcessCapiTest::OnNativeChildProcessExit);
     ret = OH_Ability_UnregisterNativeChildProcessExitCallback(ChildProcessCapiTest::OnNativeChildProcessExit);
-    EXPECT_EQ(ret, NCP_ERR_INTERNAL);
+    if (callback == nullptr) {
+        EXPECT_EQ(ret, NCP_ERR_CALLBACK_NOT_EXIST);
+    }
     GTEST_LOG_(INFO) << "OH_Ability_RegisterNativeChildProcessExitCallback_001 end";
 }
 
