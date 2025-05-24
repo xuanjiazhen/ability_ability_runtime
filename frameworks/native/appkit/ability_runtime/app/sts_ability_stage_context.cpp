@@ -89,7 +89,7 @@ ani_object STSAbilityStageContext::CreateStsAbilityStageContext(ani_env* env, st
         delete workContext;
         return nullptr;
     }
-    ContextUtil::StsCreatContext(env, abilityStageCtxCls, obj, app->GetApplicationCtxObjRef(), context);
+    ContextUtil::CreateEtsBaseContext()(env, abilityStageCtxCls, obj, context);
 
     //set Config class
     auto configuration = context->GetConfiguration();

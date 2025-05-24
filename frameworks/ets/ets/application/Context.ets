@@ -15,7 +15,6 @@
 
 import BaseContext from 'application.BaseContext'
 import ApplicationContext from 'application.ApplicationContext'
-import EventHub from 'application.EventHub';
 import contextConstant from '@ohos.app.ability.contextConstant'
 import { ApplicationInfo } from 'bundleManager.ApplicationInfo'
 import resmgr from '@ohos.resourceManager'
@@ -28,7 +27,6 @@ export class Context extends BaseContext {
     filesDir: string = "";
     tempDir: string = "";
     applicationInfo: ApplicationInfo;
-    eventHub: EventHub = new EventHub();
     resourceManager: resmgr.ResourceManager;
     native constructor();
     constructor(applicationInfo: ApplicationInfo, resourceManager: resmgr.ResourceManager) {

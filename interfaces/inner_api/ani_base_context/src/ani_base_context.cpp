@@ -50,10 +50,5 @@ std::shared_ptr<Context> GetStageModeContext(ani_env* env, ani_object object)
     auto weakContext = reinterpret_cast<std::weak_ptr<Context>*>(nativeContextLong);
     return weakContext != nullptr ? weakContext->lock() : nullptr;
 }
-
-AppExecFwk::Ability* GetCurrentAbility(ani_env* env)
-{
-    return nullptr;
-}
 } // namespace AbilityRuntime
 } // namespace OHOS

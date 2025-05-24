@@ -33,7 +33,7 @@ ani_object CreateStsUIExtensionContext(ani_env *env,
     const std::shared_ptr<OHOS::AppExecFwk::OHOSApplication> &application);
 
 void StsCreatExtensionContext(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
-    void* applicationCtxRef, std::shared_ptr<OHOS::AbilityRuntime::ExtensionContext> context);
+    std::shared_ptr<OHOS::AbilityRuntime::ExtensionContext> context);
 
 void BindExtensionInfo(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
     std::shared_ptr<OHOS::AbilityRuntime::Context> context, std::shared_ptr<OHOS::AppExecFwk::AbilityInfo> abilityInfo);

@@ -624,7 +624,7 @@ ani_ref CreateStsAbilityContext(
         TAG_LOGE(AAFwkTag::UIABILITY, "null application");
         return nullptr;
     }
-    ContextUtil::StsCreatContext(env, cls, contextObj, application->GetApplicationCtxObjRef(), context);
+    ContextUtil::CreateEtsBaseContext()(env, cls, contextObj, context);
     if (!SetAbilityInfo(env, cls, contextObj, context)) {
         TAG_LOGE(AAFwkTag::UIABILITY, "SetAbilityInfo failed");
         return nullptr;

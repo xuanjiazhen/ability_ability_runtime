@@ -50,14 +50,6 @@ namespace AbilityRuntime {
      */
     class Context;
     std::shared_ptr<Context> GetStageModeContext(ani_env* env, ani_object object);
-
-    /**
-     * @brief Get current ability.
-     *
-     * @param env NAPI environment.
-     * @return The pointer of current ability.
-     */
-    AppExecFwk::Ability* GetCurrentAbility(ani_env* env);
 }
 }
 #endif  // OHOS_ABILITY_RUNTIME_ANI_BASE_CONTEXT_H
