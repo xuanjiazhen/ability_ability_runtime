@@ -1034,7 +1034,7 @@ int32_t AppMgrStub::HandleUpdateConfigurationForBackgroundApp(MessageParcel &dat
         TAG_LOGE(AAFwkTag::APPMGR, "Invalid size");
         return ERR_INVALID_VALUE;
     }
-    appInfos.resize(size);
+    appInfos.reserve(size);
     if (appInfos.capacity() < size) {
         TAG_LOGE(AAFwkTag::APPMGR, "Resource allocation error");
         return ERR_NO_MEMORY;
@@ -1045,7 +1045,7 @@ int32_t AppMgrStub::HandleUpdateConfigurationForBackgroundApp(MessageParcel &dat
             TAG_LOGE(AAFwkTag::APPMGR, "tmpInfo null");
             return ERR_INVALID_VALUE;
         }
-        appInfos.push_back(*tmpInfo);
+        appInfos.emplace_back(*tmpInfo);
     }
     std::unique_ptr<AppExecFwk::ConfigurationPolicy> policy(data.ReadParcelable<AppExecFwk::ConfigurationPolicy>());
     if (policy == nullptr) {
