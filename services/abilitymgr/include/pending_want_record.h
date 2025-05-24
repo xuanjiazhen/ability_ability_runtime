@@ -31,18 +31,17 @@ namespace AAFwk {
 class PendingWantManager;
 class PendingWantRecord : public WantSenderStub {
 public:
-    static const int START_CANCELED = -96;
 
     PendingWantRecord();
     PendingWantRecord(const std::shared_ptr<PendingWantManager> &pendingWantManager, int32_t uid,
         int32_t callerTokenId, const sptr<IRemoteObject> &callerToken, std::shared_ptr<PendingWantKey> key);
     virtual ~PendingWantRecord();
 
-    virtual void Send(SenderInfo &senderInfo);
+    virtual void Send(SenderInfo &senderInfo, std::shared_ptr<CompletedData> &data);
     virtual void RegisterCancelListener(const sptr<IWantReceiver> &receiver);
     virtual void UnregisterCancelListener(const sptr<IWantReceiver> &receiver);
 
-    virtual int32_t SenderInner(SenderInfo &senderInfo);
+    virtual int32_t SenderInner(SenderInfo &senderInfo, std::shared_ptr<CompletedData> &data);
 
 public:
     std::shared_ptr<PendingWantKey> GetKey();

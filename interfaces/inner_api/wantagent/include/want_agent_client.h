@@ -23,6 +23,7 @@
 #include "want_receiver_interface.h"
 #include "want_sender_info.h"
 #include "want_sender_interface.h"
+#include "completed_data.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -37,7 +38,8 @@ public:
     ErrCode GetWantSender(const WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken,
         sptr<IWantSender> &wantSender, int32_t uid = -1);
 
-    ErrCode SendWantSender(sptr<IWantSender> target, const SenderInfo &senderInfo);
+    ErrCode SendWantSender(sptr<IWantSender> target, const SenderInfo &senderInfo,
+        std::shared_ptr<CompletedData> &data);
 
     ErrCode CancelWantSender(const sptr<IWantSender> &sender, uint32_t flags = 0);
 

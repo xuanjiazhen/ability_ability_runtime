@@ -5320,13 +5320,14 @@ sptr<IWantSender> AbilityManagerService::GetWantSender(
     return pendingWantManager->GetWantSender(callerUid, appUid, isSystemApp, wantSenderInfo, callerToken, appIndex);
 }
 
-int AbilityManagerService::SendWantSender(sptr<IWantSender> target, const SenderInfo &senderInfo)
+int AbilityManagerService::SendWantSender(sptr<IWantSender> target, const SenderInfo &senderInfo,
+    std::shared_ptr<CompletedData> &data)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
     auto pendingWantManager = GetCurrentPendingWantManager();
     CHECK_POINTER_AND_RETURN(pendingWantManager, ERR_INVALID_VALUE);
     CHECK_POINTER_AND_RETURN(target, ERR_INVALID_VALUE);
-    return pendingWantManager->SendWantSender(target, senderInfo);
+    return pendingWantManager->SendWantSender(target, senderInfo, data);
 }
 
 void AbilityManagerService::CancelWantSender(const sptr<IWantSender> &sender)
