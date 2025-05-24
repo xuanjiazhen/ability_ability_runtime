@@ -127,7 +127,8 @@ JSAbilityDelegator::JSAbilityDelegator()
 {
     auto delegator = AbilityDelegatorRegistry::GetAbilityDelegator();
     if (delegator) {
-        auto clearFunc = [](const std::shared_ptr<ADelegatorAbilityProperty> &property) {
+        auto clearFunc = [](const std::shared_ptr<BaseDelegatorAbilityProperty> &baseProperty) {
+            auto property = std::static_pointer_cast<AppExecFwk::ADelegatorAbilityProperty>(baseProperty);
             TAG_LOGI(AAFwkTag::DELEGATOR, "clearFunc called");
             if (!property) {
                 TAG_LOGE(AAFwkTag::DELEGATOR, "null property");
@@ -524,16 +525,16 @@ napi_value JSAbilityDelegator::OnWaitAbilityMonitor(napi_env env, NapiCallbackIn
             return;
         }
 
-        std::shared_ptr<ADelegatorAbilityProperty> property = opt.hasTimeoutPara ?
+        std::shared_ptr<BaseDelegatorAbilityProperty> property = opt.hasTimeoutPara ?
             delegator->WaitAbilityMonitor(monitor, timeout) : delegator->WaitAbilityMonitor(monitor);
-        if (!property || property->object_.expired()) {
+        if (!property || property->GetRuntimeObject()) {
             TAG_LOGE(AAFwkTag::DELEGATOR, "invalid property");
             return;
         }
-
-        abilityObjectBox->object_ = property->object_;
+        auto nativeRef = std::static_pointer_cast<NativeReference>(property->GetRuntimeObject());
+        abilityObjectBox->object_ = nativeRef;
         std::unique_lock<std::mutex> lck(g_mutexAbilityRecord);
-        g_abilityRecord.emplace(property->object_, property->token_);
+        g_abilityRecord.emplace(nativeRef, property->token_);
     };
 
     NapiAsyncTask::CompleteCallback complete = [abilityObjectBox](napi_env env, NapiAsyncTask &task, int32_t status) {
@@ -581,14 +582,15 @@ napi_value JSAbilityDelegator::OnWaitAbilityStageMonitor(napi_env env, NapiCallb
             TAG_LOGE(AAFwkTag::DELEGATOR, "null delegator");
             return;
         }
-        std::shared_ptr<DelegatorAbilityStageProperty> result;
+        std::shared_ptr<BaseDelegatorAbilityStageProperty> result;
         result = opt.hasTimeoutPara ?
             delegator->WaitAbilityStageMonitor(monitor, timeout) : delegator->WaitAbilityStageMonitor(monitor);
-        if (!result || result->object_.expired()) {
+        if (!result || result->GetRuntimeObject()) {
             TAG_LOGE(AAFwkTag::DELEGATOR, "waitAbilityStageMonitor failed");
             return;
         }
-        abilityStageObjBox->object_ = result->object_;
+        auto nativeRef = std::static_pointer_cast<NativeReference>(result->GetRuntimeObject());
+        abilityStageObjBox->object_ = nativeRef;
     };
 
     NapiAsyncTask::CompleteCallback complete = [abilityStageObjBox](napi_env env, NapiAsyncTask &task, int32_t status) {
@@ -795,15 +797,16 @@ napi_value JSAbilityDelegator::OnGetCurrentTopAbility(napi_env env, NapiCallback
         }
 
         auto property = delegator->GetCurrentTopAbility();
-        if (!property || property->object_.expired()) {
+        if (!property || property->GetRuntimeObject()) {
             TAG_LOGE(AAFwkTag::DELEGATOR, "invalid property");
             task.Reject(env, CreateJsError(env, COMMON_FAILED, "Calling GetCurrentTopAbility failed."));
         } else {
+            auto nativeRef = std::static_pointer_cast<NativeReference>(property->GetRuntimeObject());
             {
                 std::unique_lock<std::mutex> lck(g_mutexAbilityRecord);
-                g_abilityRecord.emplace(property->object_, property->token_);
+                g_abilityRecord.emplace(nativeRef, property->token_);
             }
-            ResolveWithNoError(env, task, property->object_.lock()->GetNapiValue());
+            ResolveWithNoError(env, task, nativeRef->GetNapiValue());
         }
     };
 

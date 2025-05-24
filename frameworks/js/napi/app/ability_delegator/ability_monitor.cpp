@@ -32,82 +32,117 @@ AbilityMonitor::AbilityMonitor(const std::string &name, const std::string &modul
     : IAbilityMonitor(name, moduleName), jsMonitor_(jsAbilityMonitor)
 {}
 
-void AbilityMonitor::OnAbilityStart(const std::weak_ptr<NativeReference> &abilityObj)
+void AbilityMonitor::OnAbilityStart(void* abilityObj)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "called");
 
+    std::shared_ptr<NativeReference>* RefPtr = static_cast<std::shared_ptr<NativeReference>*>(abilityObj);
+    if (!RefPtr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "RefPtr is nullptr");
+        return;
+    }
     if (jsMonitor_ == nullptr) {
         return;
     }
 
-    jsMonitor_->OnAbilityCreate(abilityObj);
+    jsMonitor_->OnAbilityCreate(*RefPtr);
 }
 
-void AbilityMonitor::OnAbilityForeground(const std::weak_ptr<NativeReference> &abilityObj)
+void AbilityMonitor::OnAbilityForeground(void* abilityObj)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "called");
 
+    std::shared_ptr<NativeReference>* RefPtr = static_cast<std::shared_ptr<NativeReference>*>(abilityObj);
+    if (!RefPtr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "RefPtr is nullptr");
+        return;
+    }
     if (jsMonitor_ == nullptr) {
         return;
     }
 
-    jsMonitor_->OnAbilityForeground(abilityObj);
+    jsMonitor_->OnAbilityForeground(*RefPtr);
 }
 
-void AbilityMonitor::OnAbilityBackground(const std::weak_ptr<NativeReference> &abilityObj)
+void AbilityMonitor::OnAbilityBackground(void* abilityObj)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "called");
 
+    std::shared_ptr<NativeReference>* RefPtr = static_cast<std::shared_ptr<NativeReference>*>(abilityObj);
+    if (!RefPtr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "RefPtr is nullptr");
+        return;
+    }
     if (jsMonitor_ == nullptr) {
         return;
     }
 
-    jsMonitor_->OnAbilityBackground(abilityObj);
+    jsMonitor_->OnAbilityBackground(*RefPtr);
 }
 
-void AbilityMonitor::OnAbilityStop(const std::weak_ptr<NativeReference> &abilityObj)
+void AbilityMonitor::OnAbilityStop(void* abilityObj)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "called");
 
+    std::shared_ptr<NativeReference>* RefPtr = static_cast<std::shared_ptr<NativeReference>*>(abilityObj);
+    if (!RefPtr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "RefPtr is nullptr");
+        return;
+    }
     if (jsMonitor_ == nullptr) {
         return;
     }
 
-    jsMonitor_->OnAbilityDestroy(abilityObj);
+    jsMonitor_->OnAbilityDestroy(*RefPtr);
 }
 
-void AbilityMonitor::OnWindowStageCreate(const std::weak_ptr<NativeReference> &abilityObj)
+void AbilityMonitor::OnWindowStageCreate(void* abilityObj)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::DELEGATOR, "called");
 
+    std::shared_ptr<NativeReference>* RefPtr = static_cast<std::shared_ptr<NativeReference>*>(abilityObj);
+    if (!RefPtr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "RefPtr is nullptr");
+        return;
+    }
     if (jsMonitor_ == nullptr) {
         return;
     }
 
-    jsMonitor_->OnWindowStageCreate(abilityObj);
+    jsMonitor_->OnWindowStageCreate(*RefPtr);
 }
 
-void AbilityMonitor::OnWindowStageRestore(const std::weak_ptr<NativeReference> &abilityObj)
+void AbilityMonitor::OnWindowStageRestore(void* abilityObj)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "called");
 
+    std::shared_ptr<NativeReference>* RefPtr = static_cast<std::shared_ptr<NativeReference>*>(abilityObj);
+    if (!RefPtr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "RefPtr is nullptr");
+        return;
+    }
     if (jsMonitor_ == nullptr) {
         return;
     }
 
-    jsMonitor_->OnWindowStageRestore(abilityObj);
+    jsMonitor_->OnWindowStageRestore(*RefPtr);
 }
 
-void AbilityMonitor::OnWindowStageDestroy(const std::weak_ptr<NativeReference> &abilityObj)
+void AbilityMonitor::OnWindowStageDestroy(void* abilityObj)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "called");
 
+    std::shared_ptr<NativeReference>* RefPtr = static_cast<std::shared_ptr<NativeReference>*>(abilityObj);
+    if (!RefPtr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "RefPtr is nullptr");
+        return;
+    }
     if (jsMonitor_ == nullptr) {
         return;
     }
 
-    jsMonitor_->OnWindowStageDestroy(abilityObj);
+    jsMonitor_->OnWindowStageDestroy(*RefPtr);
 }
 }  // namespace AbilityDelegatorJs
 }  // namespace OHOS
