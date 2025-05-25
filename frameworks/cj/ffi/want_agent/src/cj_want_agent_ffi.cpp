@@ -86,7 +86,8 @@ void CJWantAgent::OnTrigger(CJTriggerInfo cjTriggerInfo, std::function<void(CJCo
         return;
     }
     TAG_LOGD(AAFwkTag::WANTAGENT, "called");
-    WantAgentHelper::TriggerWantAgent(wantAgent, triggerObj, triggerInfo);
+    std::shared_ptr<CompletedDispatcher> completedData = std::make_shared<CompletedDispatcher>();
+    WantAgentHelper::TriggerWantAgent(wantAgent, triggerObj, completedData, triggerInfo, nullptr);
 }
 
 int32_t CJWantAgent::UnWrapTriggerInfoParam(CJTriggerInfo cjTriggerInfo, std::function<void(CJCompleteData)> callback,
