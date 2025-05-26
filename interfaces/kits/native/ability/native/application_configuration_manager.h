@@ -52,7 +52,6 @@ public:
     void DeleteIgnoreContext(std::shared_ptr<Context> context);
     std::vector<std::shared_ptr<Context>> GetIgnoreContext();
     std::vector<std::shared_ptr<Global::Resource::ResourceManager>> GetIgnoreResource();
-    static std::string GetUpdatedLocale(const std::string& systemLocale, const std::string& systemLanguage);
 
 private:
     SetLevel languageSetLevel_ = SetLevel::System;

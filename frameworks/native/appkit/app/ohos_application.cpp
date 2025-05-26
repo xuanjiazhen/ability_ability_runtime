@@ -35,6 +35,7 @@
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "iservice_registry.h"
+#include "locale_config.h"
 #include "runtime.h"
 #include "js_runtime.h"
 #include "startup_manager.h"
@@ -1020,25 +1021,21 @@ bool OHOSApplication::IsUpdateLanguageNeeded(Configuration &config, AbilityRunti
     return true;
 }
 
-bool OHOSApplication::IsUpdateLocaleNeeded(const Configuration& updatedConfig, Configuration &config)
+bool OHOSApplication::IsUpdateLocaleNeeded(const Configuration& config, Configuration &updatedConfig)
 {
-    std::string language = config.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE);
-    std::string locale = config.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_LOCALE);
-    if (language.empty() && locale.empty()) {
+    std::string updatedLanguage = updatedConfig.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE);
+    std::string updatedLocale = updatedConfig.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_LOCALE);
+    if (updatedLocale.empty() && updatedLocale.empty()) {
         TAG_LOGW(AAFwkTag::APPKIT, "language and locale empty");
         return false;
     }
-    std::string updatedLocale;
-    if (!language.empty() && !locale.empty()) {
-        updatedLocale = ApplicationConfigurationManager::GetUpdatedLocale(locale, language);
-    } else if (!language.empty()) {
-        updatedLocale = ApplicationConfigurationManager::GetUpdatedLocale(
-            updatedConfig.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_LOCALE), language);
-    } else {
-        updatedLocale = ApplicationConfigurationManager::GetUpdatedLocale(locale,
-            updatedConfig.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE));
+    std::string systemLanguage = config.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE);
+    std::string systemLocale = config.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_LOCALE);
+    std::string modifiedLocale = OHOS::Global::I18n::LocaleConfig::GetUpdatedLocale(systemLocale, systemLanguage,
+        updatedLocale, updatedLanguage);
+    if (!modifiedLocale.empty()) {
+        updatedConfig.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_LOCALE, modifiedLocale);
     }
-    config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_LOCALE, updatedLocale);
     return true;
 }
 
