@@ -1309,7 +1309,8 @@ private:
     void StartingWindowCold(const std::shared_ptr<StartOptions> &startOptions, const std::shared_ptr<Want> &want,
         const AbilityRequest &abilityRequest);
     void InitColdStartingWindowResource(const std::shared_ptr<Global::Resource::ResourceManager> &resourceMgr);
-    void GetColdStartingWindowResource(std::shared_ptr<Media::PixelMap> &bg, uint32_t &bgColor);
+    void GetColdStartingWindowResource(sptr<AbilityTransitionInfo> &info, std::shared_ptr<Media::PixelMap> &bg,
+        uint32_t &bgColor);
     void SetAbilityStateInner(AbilityState state);
 #endif
 

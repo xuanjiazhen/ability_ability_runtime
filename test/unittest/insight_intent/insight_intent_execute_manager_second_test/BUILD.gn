@@ -66,6 +66,7 @@ ohos_unittest("insight_intent_execute_manager_second_test") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "image_framework:image_native",
     "ipc:ipc_core",
     "napi:ace_napi",
     "samgr:samgr_proxy",
