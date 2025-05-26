@@ -20,6 +20,7 @@
 
 #include "ability_manager_client.h"
 #include "ability_runtime/js_caller_complex.h"
+#include "call_common_util.h"
 #include "hilog_tag_wrapper.h"
 #include "js_extension_context.h"
 #include "js_error_utils.h"
@@ -53,15 +54,6 @@ constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_THREE = 3;
 constexpr size_t ARGC_FOUR = 4;
 constexpr const char* ATOMIC_SERVICE_PREFIX = "com.atomicservice.";
-
-class StartAbilityByCallParameters {
-public:
-    int err = 0;
-    sptr<IRemoteObject> remoteCallee = nullptr;
-    std::shared_ptr<CallerCallBack> callerCallBack = nullptr;
-    std::mutex mutexlock;
-    std::condition_variable condition;
-};
 
 static std::mutex g_connectsMutex;
 static std::map<ConnectionKey, sptr<JSServiceExtensionConnection>, key_compare> g_connects;
@@ -535,11 +527,9 @@ private:
             return CreateJsUndefined(env);
         }
 
-        std::shared_ptr<StartAbilityByCallParameters> calls = std::make_shared<StartAbilityByCallParameters>();
-        napi_value retsult = nullptr;
-        calls->callerCallBack = std::make_shared<CallerCallBack>();
-        calls->callerCallBack->SetCallBack(GetCallBackDone(calls));
-        calls->callerCallBack->SetOnRelease(GetReleaseListen());
+        auto callData = std::make_shared<StartAbilityByCallData>();
+        auto callerCallBack = std::make_shared<CallerCallBack>();
+        CallCommonUtil::GenerateCallerCallBack(callData, callerCallBack);
 
         auto context = context_.lock();
         if (context == nullptr) {
@@ -548,21 +538,24 @@ private:
             return CreateJsUndefined(env);
         }
 
-        auto ret = context->StartAbilityByCall(want, calls->callerCallBack, accountId);
+        auto ret = context->StartAbilityByCall(want, callerCallBack, accountId);
         if (ret) {
             TAG_LOGE(AAFwkTag::SERVICE_EXT, "OnStartAbilityByCall failed");
             ThrowErrorByNativeErr(env, ret);
             return CreateJsUndefined(env);
         }
 
-        if (calls->remoteCallee == nullptr) {
+        auto callExecute = [callData] () { CallCommonUtil::WaitForCalleeObj(callData); };
+        napi_value retsult = nullptr;
+        if (callData->remoteCallee == nullptr) {
             TAG_LOGD(AAFwkTag::SERVICE_EXT, "async wait execute");
             NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnStartAbilityByCall", env,
                 CreateAsyncTaskWithLastParam(
-                    env, nullptr, GetCallExecute(calls), GetCallComplete(calls), &retsult));
+                    env, nullptr, callExecute, GetCallComplete(callData, callerCallBack), &retsult));
         } else {
             NapiAsyncTask::ScheduleHighQos("JSServiceExtensionContext::OnStartAbilityByCall", env,
-                CreateAsyncTaskWithLastParam(env, nullptr, nullptr, GetCallComplete(calls), &retsult));
+                CreateAsyncTaskWithLastParam(env, nullptr, nullptr, GetCallComplete(callData, callerCallBack),
+                &retsult));
         }
         return retsult;
     }
@@ -601,81 +594,33 @@ private:
         return true;
     }
 
-    NapiAsyncTask::CompleteCallback GetCallComplete(std::shared_ptr<StartAbilityByCallParameters> calls)
+    NapiAsyncTask::CompleteCallback GetCallComplete(std::shared_ptr<StartAbilityByCallData> calldata,
+        std::shared_ptr<CallerCallBack> callerCallBack)
     {
-        auto callComplete = [weak = context_, calldata = calls] (
+        auto callComplete = [weak = context_, calldata, callerCallBack] (
             napi_env env, NapiAsyncTask& task, int32_t) {
-            if (calldata->err != 0) {
-                TAG_LOGE(AAFwkTag::SERVICE_EXT, "callComplete err: %{public}d", calldata->err);
-                ClearFailedCallConnection(weak, calldata->callerCallBack);
-                task.Reject(env, CreateJsError(env, calldata->err, "callComplete err."));
+            if (calldata == nullptr) {
+                TAG_LOGE(AAFwkTag::CONTEXT, "null calldata");
                 return;
             }
-
-            auto context = weak.lock();
-            if (context != nullptr && calldata->callerCallBack != nullptr && calldata->remoteCallee != nullptr) {
-                auto releaseCallFunc = [weak] (
-                    const std::shared_ptr<CallerCallBack> &callback) -> ErrCode {
-                    auto contextForRelease = weak.lock();
-                    if (contextForRelease == nullptr) {
-                        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null contextForRelease");
-                        return -1;
-                    }
-                    return contextForRelease->ReleaseCall(callback);
-                };
-                task.Resolve(env,
-                    CreateJsCallerComplex(
-                        env, releaseCallFunc, calldata->remoteCallee, calldata->callerCallBack));
-            } else {
-                TAG_LOGE(AAFwkTag::SERVICE_EXT, "null %{public}s",
-                    context == nullptr ? "context" :
-                        (calldata->remoteCallee == nullptr ? "remoteCallee" : "callerCallBack"));
-                task.Reject(env, CreateJsError(env, -1, "Create Call Failed."));
+            if (calldata->remoteCallee == nullptr) {
+                TAG_LOGE(AAFwkTag::CONTEXT, "remoteCallee null");
+                ClearFailedCallConnection(weak, callerCallBack);
+                task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                return;
             }
-
-            TAG_LOGD(AAFwkTag::SERVICE_EXT, "end");
+            auto releaseCallFunc = [weak] (
+                const std::shared_ptr<CallerCallBack> &callback) -> ErrCode {
+                auto contextForRelease = weak.lock();
+                if (contextForRelease == nullptr) {
+                    TAG_LOGE(AAFwkTag::SERVICE_EXT, "null contextForRelease");
+                    return -1;
+                }
+                return contextForRelease->ReleaseCall(callback);
+            };
+            task.Resolve(env, CreateJsCallerComplex(env, releaseCallFunc, calldata->remoteCallee, callerCallBack));
         };
         return callComplete;
-    }
-
-    NapiAsyncTask::ExecuteCallback GetCallExecute(std::shared_ptr<StartAbilityByCallParameters> calls)
-    {
-        auto callExecute = [calldata = calls] () {
-            constexpr int callerTimeOut = 10; // 10s
-            std::unique_lock<std::mutex> lock(calldata->mutexlock);
-            if (calldata->remoteCallee != nullptr) {
-                TAG_LOGI(AAFwkTag::SERVICE_EXT, "callee not null");
-                return;
-            }
-
-            if (calldata->condition.wait_for(lock, std::chrono::seconds(callerTimeOut)) == std::cv_status::timeout) {
-                TAG_LOGE(AAFwkTag::SERVICE_EXT, "waiting callee timeout");
-                calldata->err = -1;
-            }
-            TAG_LOGD(AAFwkTag::SERVICE_EXT, "exit");
-        };
-        return callExecute;
-    }
-
-    CallerCallBack::CallBackClosure GetCallBackDone(std::shared_ptr<StartAbilityByCallParameters> calls)
-    {
-        auto callBackDone = [calldata = calls] (const sptr<IRemoteObject> &obj) {
-            TAG_LOGD(AAFwkTag::SERVICE_EXT, "mutexlock");
-            std::unique_lock<std::mutex> lock(calldata->mutexlock);
-            TAG_LOGD(AAFwkTag::SERVICE_EXT, "remoteCallee assignment");
-            calldata->remoteCallee = obj;
-            calldata->condition.notify_all();
-            TAG_LOGI(AAFwkTag::SERVICE_EXT, "end");
-        };
-        return callBackDone;
-    }
-
-    CallerCallBack::OnReleaseClosure GetReleaseListen()
-    {
-        auto releaseListen = [](const std::string &str) {
-            TAG_LOGD(AAFwkTag::SERVICE_EXT, "called, %{public}s", str.c_str());
-        };
-        return releaseListen;
     }
 
     napi_value OnStartAbilityWithAccount(napi_env env, NapiCallbackInfo& info)
