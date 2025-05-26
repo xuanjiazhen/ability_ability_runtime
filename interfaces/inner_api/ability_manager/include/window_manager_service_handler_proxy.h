@@ -37,6 +37,9 @@ public:
 
     virtual void StartingWindow(sptr<AbilityTransitionInfo> info, std::shared_ptr<Media::PixelMap> pixelMap) override;
 
+    virtual void StartingWindow(sptr<AbilityTransitionInfo> info,
+        std::shared_ptr<AAFwk::StartWindowPageDrawInfo> drawInfo) override;
+
     virtual void CancelStartingWindow(sptr<IRemoteObject> abilityToken) override;
 
     virtual void NotifyAnimationAbilityDied(sptr<AbilityTransitionInfo> info) override;

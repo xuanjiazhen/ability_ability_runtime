@@ -1310,6 +1310,7 @@ private:
         const AbilityRequest &abilityRequest);
     void InitColdStartingWindowResource(const std::shared_ptr<Global::Resource::ResourceManager> &resourceMgr);
     void GetColdStartingWindowResource(std::shared_ptr<Media::PixelMap> &bg, uint32_t &bgColor);
+    void GetColdStartingWindowCustomResource(std::shared_ptr<AAFwk::StartWindowPageDrawInfo> &drawInfo);
     void SetAbilityStateInner(AbilityState state);
 #endif
 

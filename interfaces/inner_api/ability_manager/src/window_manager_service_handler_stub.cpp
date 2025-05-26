@@ -46,6 +46,8 @@ int WindowManagerServiceHandlerStub::OnRemoteRequest(
             return GetFocusWindowInner(data, reply);
         case ON_COLD_STARTING_WINDOW:
             return StartingWindowCold(data, reply);
+        case ON_CUSTOM_COLD_STARTING_WINDOW:
+            return StartingWindowCustomCold(data, reply);
         case ON_HOT_STARTING_WINDOW:
             return StartingWindowHot(data, reply);
         case ON_CANCEL_STARTING_WINDOW:
@@ -124,6 +126,26 @@ int WindowManagerServiceHandlerStub::StartingWindowCold(MessageParcel &data, Mes
     }
     auto bgColor = data.ReadUint32();
     StartingWindow(info, pixelMap, bgColor);
+    return ERR_OK;
+}
+
+int WindowManagerServiceHandlerStub::StartingWindowCustomCold(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    sptr<AbilityTransitionInfo> info(data.ReadParcelable<AbilityTransitionInfo>());
+    if (!info) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read info failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+
+    std::shared_ptr<AAFwk::StartWindowPageDrawInfo> drawInfo
+        = std::shared_ptr<AAFwk::StartWindowPageDrawInfo>(data.ReadParcelable<AAFwk::StartWindowPageDrawInfo>());
+    if (drawInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read drawInfo failed");
+        return ERR_AAFWK_PARCEL_FAIL;
+    }
+
+    StartingWindow(info, drawInfo);
     return ERR_OK;
 }
 

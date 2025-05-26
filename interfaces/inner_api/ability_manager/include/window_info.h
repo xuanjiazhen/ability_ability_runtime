@@ -22,6 +22,7 @@
 #include "ability_info.h"
 #include "iremote_object.h"
 #include "parcel.h"
+#include "pixel_map.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -36,6 +37,63 @@ enum class TransitionReason : uint32_t {
     BACK_TRANSITION,
     CLOSE_BUTTON,
     BACKGROUND_TRANSITION,
+};
+
+struct StartWindowPageDrawInfo : public Parcelable {
+    uint32_t bgColor = 0;
+    std::string startWindowBackgroundImageFit = "";
+    std::shared_ptr<Media::PixelMap> appIcon = nullptr;
+    std::shared_ptr<Media::PixelMap> branding = nullptr;
+    std::shared_ptr<Media::PixelMap> illustration = nullptr;
+    std::shared_ptr<Media::PixelMap> backgroundImage = nullptr;
+
+    bool ReadFromParcel(Parcel &parcel)
+    {
+        bgColor =  parcel.ReadUint32();
+        startWindowBackgroundImageFit = parcel.ReadString();
+        appIcon = std::shared_ptr<Media::PixelMap>(parcel.ReadParcelable<Media::PixelMap>());
+        branding = std::shared_ptr<Media::PixelMap>(parcel.ReadParcelable<Media::PixelMap>());
+        illustration = std::shared_ptr<Media::PixelMap>(parcel.ReadParcelable<Media::PixelMap>());
+        backgroundImage = std::shared_ptr<Media::PixelMap>(parcel.ReadParcelable<Media::PixelMap>());
+        return true;
+    }
+
+    bool Marshalling(Parcel &parcel) const
+    {
+        if (!parcel.WriteUint32(bgColor)) {
+            return false;
+        }
+        if (!parcel.WriteString(startWindowBackgroundImageFit)) {
+            return false;
+        }
+        if (!parcel.WriteParcelable(appIcon.get())) {
+            return false;
+        }
+        if (!parcel.WriteParcelable(branding.get())) {
+            return false;
+        }
+        if (!parcel.WriteParcelable(illustration.get())) {
+            return false;
+        }
+        if (!parcel.WriteParcelable(backgroundImage.get())) {
+            return false;
+        }
+        return true;
+    }
+
+    static StartWindowPageDrawInfo *Unmarshalling(Parcel &parcel)
+    {
+        StartWindowPageDrawInfo *info = new (std::nothrow) StartWindowPageDrawInfo();
+        if (info == nullptr) {
+            return nullptr;
+        }
+
+        if (!info->ReadFromParcel(parcel)) {
+            delete info;
+            info = nullptr;
+        }
+        return info;
+    }
 };
 
 struct AbilityTransitionInfo : public Parcelable {
