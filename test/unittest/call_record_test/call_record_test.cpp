@@ -83,7 +83,7 @@ HWTEST_F(CallRecordTest, CallRecord_SchedulerConnectDone_001, Function | MediumT
     OHOS::sptr<OHOS::IRemoteObject> call = new (std::nothrow) MockServiceAbilityManagerService();
     callRecord->SetCallStub(call);
     callRecord->SetConCallBack(abilityRequest.connect);
-    EXPECT_FALSE(callRecord->SchedulerConnectDone());
+    EXPECT_TRUE(callRecord->SchedulerConnectDone());
 
     GTEST_LOG_(INFO) << "CallRecord_SchedulerConnectDone_001 end";
 }

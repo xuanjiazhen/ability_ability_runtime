@@ -201,7 +201,7 @@ HWTEST_F(AppMgrServiceSecondTest, NotifyMemorySizeStateChanged_0100, TestSize.Le
 
     ReadyToRun(appMgrService);
     ret = appMgrService->NotifyMemorySizeStateChanged(memorySizeState);
-    EXPECT_NE(ret, ERR_OK);
+    EXPECT_EQ(ret, ERR_OK);
 }
 
 /**

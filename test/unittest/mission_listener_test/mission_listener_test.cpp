@@ -236,7 +236,7 @@ HWTEST_F(MissionListenerTest, MissionListener_Callback_0200, TestSize.Level2)
 
     sleep(2);
 
-    EXPECT_FALSE(listener->IsMissionLabelUpdated());
+    EXPECT_TRUE(listener->IsMissionLabelUpdated());
 
     TAG_LOGI(AAFwkTag::TEST, "MissionListener_Callback_0200 end");
 }

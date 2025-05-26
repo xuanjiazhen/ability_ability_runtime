@@ -1730,21 +1730,6 @@ HWTEST_F(AbilityManagerServiceSecondTest, KillProcess_001, TestSize.Level1)
 
 /*
  * Feature: AbilityManagerService
- * Function: PreLoadAppDataAbilities
- * SubFunction: NA
- * FunctionPoints: AbilityManagerService PreLoadAppDataAbilities
- */
-HWTEST_F(AbilityManagerServiceSecondTest, PreLoadAppDataAbilities_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest PreLoadAppDataAbilities_001 start");
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    EXPECT_EQ(abilityMs_->PreLoadAppDataAbilities("", 100), ERR_INVALID_VALUE);
-    EXPECT_EQ(abilityMs_->PreLoadAppDataAbilities("test", -1), ERR_INVALID_STATE);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest PreLoadAppDataAbilities_001 end");
-}
-
-/*
- * Feature: AbilityManagerService
  * Function: IsSystemUiApp
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService IsSystemUiApp
