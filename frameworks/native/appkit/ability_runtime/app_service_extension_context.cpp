@@ -21,6 +21,8 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+int32_t AppServiceExtensionContext::ILLEGAL_REQUEST_CODE(-1);
+const std::string START_ABILITY_TYPE = "ABILITY_INNER_START_WITH_ACCOUNT";
 
 ErrCode AppServiceExtensionContext::ConnectAbility(
     const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback) const
@@ -44,6 +46,18 @@ ErrCode AppServiceExtensionContext::DisconnectAbility(const AAFwk::Want &want,
         TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "ret=%{public}d", ret);
     }
     return ret;
+}
+
+ErrCode AppServiceExtensionContext::StartAbility(const AAFwk::Want &want, const AAFwk::StartOptions &startOptions) const
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "ability:%{public}s", want.GetElement().GetAbilityName().c_str());
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, startOptions, token_,
+        ILLEGAL_REQUEST_CODE);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "failed %{public}d", err);
+    }
+    return err;
 }
 
 ErrCode AppServiceExtensionContext::TerminateSelf()

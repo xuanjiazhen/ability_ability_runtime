@@ -34,7 +34,7 @@ class AppServiceExtensionContext : public ExtensionContext {
 public:
     AppServiceExtensionContext() = default;
     virtual ~AppServiceExtensionContext() = default;
-
+    
     /**
      * @brief Connects the current ability to an ability using the AbilityInfo.AbilityType.SERVICE template.
      *
@@ -59,11 +59,24 @@ public:
         int32_t accountId = -1) const;
 
     /**
+     * @brief Starts an ability.
+     *
+     * @param want Indicates the want containing information about the ability to start.
+     *
+     * @param startOptions Indicates the start options for the ability to start.
+     *
+     * @return Returns zero on success, others on failure.
+     */
+    ErrCode StartAbility(const AAFwk::Want &want, const AAFwk::StartOptions &startOptions) const;
+    
+    /**
      * @brief Destroys the current ability.
      *
      * @return errCode ERR_OK on success, others on failure.
      */
     ErrCode TerminateSelf();
+private:
+    static int ILLEGAL_REQUEST_CODE;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS
