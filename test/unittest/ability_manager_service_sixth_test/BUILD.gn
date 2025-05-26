@@ -48,6 +48,7 @@ ohos_unittest("ability_manager_service_sixth_test") {
     "${ability_runtime_services_path}/abilitymgr/src/utils/timeout_state_utils.cpp",
     "${ability_runtime_test_path}/mock/task_handler_wrap_mock/src/mock_task_handler_wrap.cpp",
     "ability_manager_service_sixth_test.cpp",
+    "mock/src/mock_insight_intent_db_cache.cpp",
     "mock/src/mock_my_flag.cpp",
     "mock/src/mock_permission_verification.cpp",
   ]

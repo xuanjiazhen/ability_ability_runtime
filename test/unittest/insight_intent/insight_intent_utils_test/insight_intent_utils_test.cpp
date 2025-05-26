@@ -125,6 +125,9 @@ ExtractInsightIntentInfo TEST_INSIGHT_INTENT_INFO = [] {
     tmp.icon = "icon_test";
     tmp.llmDescription = "llmDescription_test";
     tmp.keywords = std::vector<std::string>{ "keywords_test1", "keywords_test2" };
+    tmp.entities = std::vector<InsightIntentEntityInfo>{
+        { .className = "className_test", .entityId = "entityId_test", .entityCategory = "entityCategory_test",
+            .parameters = "parameters_test", .parentClassName = "parentClassName_test"};
     tmp.genericInfo = TEST_INSIGHT_INTENT_GENERIC_INFO;
     return tmp;
 }();
@@ -328,11 +331,53 @@ HWTEST_F(InsightIntentUtilsTest, ConvertExtractInsightIntentInfo_0100, TestSize.
         .WillRepeatedly(DoAll(SetArgReferee<3>(TEST_JSON_STR_ARRAY), Return(ERR_OK)));
     AbilityRuntime::InsightIntentUtils utils;
     InsightIntentInfoForQuery insightIntentInfoForQuery;
-    auto result = utils.ConvertExtractInsightIntentInfo(TEST_INSIGHT_INTENT_INFO, insightIntentInfoForQuery);
+    bool getEntity = false;
+    auto result = utils.ConvertExtractInsightIntentInfo(TEST_INSIGHT_INTENT_INFO, insightIntentInfoForQuery, getEntity);
     EXPECT_EQ(result, ERR_OK);
     Mock::VerifyAndClear(mockBundleMgr);
     testing::Mock::AllowLeak(mockBundleMgr);
     TAG_LOGI(AAFwkTag::TEST, "InsightIntentUtilsTest ConvertExtractInsightIntentInfo_0100 end.");
 }
+
+/**
+ * @tc.name: ConvertExtractInsightIntentInfo_0100
+ * @tc.desc: basic function test of convert info.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentUtilsTest, ConvertExtractInsightIntentInfo_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,  "InsightIntentUtilsTest ConvertExtractInsightIntentInfo_0200 start");
+    EXPECT_CALL(*mockBundleMgr, GetJsonProfile(testing::_, testing::_, testing::_, testing::_, testing::_))
+        .WillRepeatedly(DoAll(SetArgReferee<3>(TEST_JSON_STR_ARRAY), Return(ERR_OK)));
+    AbilityRuntime::InsightIntentUtils utils;
+    InsightIntentInfoForQuery insightIntentInfoForQuery;
+    bool getEntity = true;
+    auto result = utils.ConvertExtractInsightIntentInfo(TEST_INSIGHT_INTENT_INFO, insightIntentInfoForQuery, getEntity);
+    EXPECT_EQ(result, ERR_OK);
+    Mock::VerifyAndClear(mockBundleMgr);
+    testing::Mock::AllowLeak(mockBundleMgr);
+    TAG_LOGI(AAFwkTag::TEST, "InsightIntentUtilsTest ConvertExtractInsightIntentInfo_0200 end.");
+}
+
+/**
+ * @tc.name: ConvertExtractInsightIntentEntityInfo_0100
+ * @tc.desc: basic function test of convert info.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentUtilsTest, ConvertExtractInsightIntentEntityInfo_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,  "InsightIntentUtilsTest ConvertExtractInsightIntentInfo_0200 start");
+    EXPECT_CALL(*mockBundleMgr, GetJsonProfile(testing::_, testing::_, testing::_, testing::_, testing::_))
+        .WillRepeatedly(DoAll(SetArgReferee<3>(TEST_JSON_STR_ARRAY), Return(ERR_OK)));
+    AbilityRuntime::InsightIntentUtils utils;
+    InsightIntentInfoForQuery insightIntentInfoForQuery;
+    auto result = utils.ConvertExtractInsightIntentEntityInfo(TEST_INSIGHT_INTENT_INFO, insightIntentInfoForQuery);
+    EXPECT_EQ(result, ERR_OK);
+    Mock::VerifyAndClear(mockBundleMgr);
+    testing::Mock::AllowLeak(mockBundleMgr);
+    TAG_LOGI(AAFwkTag::TEST, "InsightIntentUtilsTest ConvertExtractInsightIntentEntityInfo_0100 end.");
+}
+
+
 } // namespace AAFwk
 } // namespace OHOS
