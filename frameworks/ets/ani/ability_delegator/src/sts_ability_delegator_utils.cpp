@@ -97,7 +97,7 @@ void SetBundleName(ani_env *aniEnv, ani_class arguments, ani_object argumentObje
 
     // find the setter method
     ani_method nameSetter;
-    status = aniEnv->Class_FindMethod(arguments, "<set>bundleName", nullptr, &nameSetter);
+    status = aniEnv->Class_FindMethod(arguments, "%%set-bundleName", nullptr, &nameSetter);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "Class_FindMethod failed status: %{public}d", status);
         return;
@@ -146,7 +146,7 @@ void SetParameters(ani_env *aniEnv, ani_class arguments, ani_object argumentObje
 
     // get parameters ref of object
     ani_ref parameterRef;
-    status = aniEnv->Object_CallMethodByName_Ref(argumentObject, "<get>parameters", ":Lescompat/Record;",
+    status = aniEnv->Object_CallMethodByName_Ref(argumentObject, "%%get-parameters", ":Lescompat/Record;",
         &parameterRef);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "Object_CallMethodByName_Ref failed status: %{public}d", status);
@@ -200,7 +200,7 @@ void SetTestCaseNames(ani_env *aniEnv, ani_class arguments, ani_object argumentO
 
     // find the setter method
     ani_method nameSetter;
-    status = aniEnv->Class_FindMethod(arguments, "<set>testCaseNames", nullptr, &nameSetter);
+    status = aniEnv->Class_FindMethod(arguments, "%%set-testCaseNames", nullptr, &nameSetter);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "Class_FindMethod failed status: %{public}d", status);
         return;
@@ -234,7 +234,7 @@ void SetTestRunnerClassName(ani_env *aniEnv, ani_class arguments, ani_object arg
 
     // find the setter method
     ani_method nameSetter;
-    status = aniEnv->Class_FindMethod(arguments, "<set>testRunnerClassName", nullptr, &nameSetter);
+    status = aniEnv->Class_FindMethod(arguments, "%%set-testRunnerClassName", nullptr, &nameSetter);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "Class_FindMethod failed status: %{public}d", status);
         return;
