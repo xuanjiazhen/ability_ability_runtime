@@ -796,5 +796,79 @@ bool UnWrapArrayString(ani_env *env, ani_object arrayObj, std::vector<std::strin
     return true;
 }
 
+ani_object WrapAbilityFirstFrameStateData(ani_env *env, const AppExecFwk::AbilityFirstFrameStateData &abilityFirstFrameStateData)
+{
+    ani_class cls {};
+    ani_status status = ANI_ERROR;
+    ani_method method {};
+    ani_object object = nullptr;
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null env");
+        return nullptr;
+    }
+    if ((status = env->FindClass("Lapplication/AbilityFirstFrameStateData/AbilityFirstFrameStateDataInner;", &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "FindClass failed status : %{public}d", status);
+        return nullptr;
+    }
+    if (cls == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null cls");
+        return nullptr;
+    }
+    if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "find ctor failed status : %{public}d", status);
+        return nullptr;
+    }
+    if ((status = env->Object_New(cls, method, &object)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Object_New failed status : %{public}d", status);
+        return nullptr;
+    }
+    if (object == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null object");
+        return nullptr;
+    }
+    if (!SetAbilityFirstFrameStateData(env, object, abilityFirstFrameStateData)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "SetAbilityFirstFrameStateData failed");
+        return nullptr;
+    }
+    return object;
+}
+
+bool SetAbilityFirstFrameStateData(ani_env* env, ani_object object, const AppExecFwk::AbilityFirstFrameStateData &abilityFirstFrameStateData)
+{
+   if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null env");
+        return false;
+    }
+    ani_status status = env->Object_SetFieldByName_Ref(object, "bundleName",
+        OHOS::AppExecFwk::GetAniString(env, abilityFirstFrameStateData.bundleName));
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "bundleName failed status:%{public}d", status);
+        return false;
+    }
+    status = env->Object_SetFieldByName_Ref(object, "moduleName",
+        OHOS::AppExecFwk::GetAniString(env, abilityFirstFrameStateData.moduleName));
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "moduleName failed status:%{public}d", status);
+        return false;
+    }
+    status = env->Object_SetFieldByName_Ref(object, "abilityName",
+        OHOS::AppExecFwk::GetAniString(env, abilityFirstFrameStateData.abilityName));
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "abilityName failed status:%{public}d", status);
+        return false;
+    }
+    status = env->Object_SetFieldByName_Double(object, "appIndex", abilityFirstFrameStateData.appIndex);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appIndex failed status:%{public}d", status);
+        return false;
+    }
+    status = env->Object_SetFieldByName_Boolean(object, "coldStart", abilityFirstFrameStateData.coldStart);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "coldStart failed status:%{public}d", status);
+        return false;
+    }
+    return true;
+}
+
 }  // namespace AbilityRuntime
 }  // namespace OHOS
