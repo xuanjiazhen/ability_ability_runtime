@@ -232,6 +232,10 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
     auto task = [reason, ability]() {
         AppRecovery::GetInstance().DoSaveAppState(reason, ability);
     };
+    if (getpid() == gettid()) {
+        DoSaveAppState(reason);
+        return true;
+    }
     if (!handler->PostTask(task, "AppRecovery:SaveAppState")) {
         TAG_LOGE(AAFwkTag::RECOVERY, "schedule save app state failed");
         return false;
