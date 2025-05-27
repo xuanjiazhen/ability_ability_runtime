@@ -17,7 +17,7 @@
 #include "ui_extension_context.h"
 #include "ani_common_want.h"
 #include "ability_manager_client.h"
-#include "sts_context_utils.h"
+#include "ets_context_utils.h"
 #include "sts_error_utils.h"
 #include "sts_ui_extension_common.h"
 
@@ -122,9 +122,9 @@ void BindExtensionInfo(ani_env* aniEnv, ani_class contextClass, ani_object conte
 }
 
 void StsCreatExtensionContext(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
-    void* applicationCtxRef, std::shared_ptr<OHOS::AbilityRuntime::ExtensionContext> context)
+    std::shared_ptr<OHOS::AbilityRuntime::ExtensionContext> context)
 {
-    OHOS::AbilityRuntime::ContextUtil::StsCreatContext(aniEnv, contextClass, contextObj, applicationCtxRef, context);
+    OHOS::AbilityRuntime::ContextUtil::CreateEtsBaseContext(aniEnv, contextClass, contextObj, context);
     BindExtensionInfo(aniEnv, contextClass, contextObj, context, context->GetAbilityInfo());
 }
 
@@ -174,6 +174,6 @@ ani_object CreateStsUIExtensionContext(ani_env *env,
         TAG_LOGE(AAFwkTag::UI_EXT, "application null");
         return nullptr;
     }
-    StsCreatExtensionContext(env, cls, contextObj, application->GetApplicationCtxObjRef(), context);
+    StsCreatExtensionContext(env, cls, contextObj, context);
     return contextObj;
 }

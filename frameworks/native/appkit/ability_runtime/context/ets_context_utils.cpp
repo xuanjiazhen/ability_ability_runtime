@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "sts_context_utils.h"
+#include "ets_context_utils.h"
 
 #include "ani_common_util.h"
 #include "ani_enum_convert.h"
@@ -27,25 +27,13 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace ContextUtil {
-void BindApplicationCtx(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
-    void* applicationCtxRef)
-{
-    // bind parent context field:applicationContext
-    ani_field applicationContextField;
-    if (aniEnv->Class_FindField(contextClass, "applicationContext", &applicationContextField) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Class_FindField failed");
-        return;
-    }
-    ani_ref applicationContextRef = reinterpret_cast<ani_ref>(applicationCtxRef);
-    if (aniEnv->Object_SetField_Ref(contextObj, applicationContextField, applicationContextRef) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Object_SetField_Ref failed");
-        return;
-    }
-}
-
+std::weak_ptr<Context> context_;
 void BindApplicationInfo(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
     std::shared_ptr<Context> context)
 {
+    if (aniEnv == nullptr || context ==  nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null aniEnv or null context");
+    }
     ani_field applicationInfoField;
     if (ANI_OK != aniEnv->Class_FindField(contextClass, "applicationInfo", &applicationInfoField)) {
         TAG_LOGE(AAFwkTag::APPKIT, "find applicationInfo failed");
@@ -63,6 +51,9 @@ void BindApplicationInfo(ani_env* aniEnv, ani_class contextClass, ani_object con
 void BindResourceManager(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
     std::shared_ptr<Context> context)
 {
+    if (aniEnv == nullptr || context ==  nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null aniEnv or null context");
+    }
     ani_field resourceManagerField;
     if (ANI_OK != aniEnv->Class_FindField(contextClass, "resourceManager", &resourceManagerField)) {
         TAG_LOGE(AAFwkTag::APPKIT, "find resourceManager failed");
@@ -80,10 +71,12 @@ void BindResourceManager(ani_env* aniEnv, ani_class contextClass, ani_object con
 void BindParentProperty(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
     std::shared_ptr<Context> context)
 {
+    if (aniEnv == nullptr || context ==  nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null aniEnv or null context");
+    }
     BindApplicationInfo(aniEnv, contextClass, contextObj, context);
     BindResourceManager(aniEnv, contextClass, contextObj, context);
 
-    // bind parent context property
     ani_field areaField;
     if (ANI_OK != aniEnv->Class_FindField(contextClass, "area", &areaField)) {
         TAG_LOGE(AAFwkTag::APPKIT, "find area failed");
@@ -126,22 +119,83 @@ void BindParentProperty(ani_env* aniEnv, ani_class contextClass, ani_object cont
     }
 }
 
-void StsCreatContext(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
-    void* applicationCtxRef, std::shared_ptr<Context> context)
+void CreateEtsBaseContext(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
+    std::shared_ptr<Context> context)
 {
-    BindApplicationCtx(aniEnv, contextClass, contextObj, applicationCtxRef);
+    context_ = context;
+    if (aniEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null aniEnv");
+    }
     BindParentProperty(aniEnv, contextClass, contextObj, context);
+}
+
+ani_object GetApplicationContext(ani_env* env, const std::shared_ptr<ApplicationContext> applicationContext)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+    }
+    ani_class applicationContextCls = nullptr;
+    if (env->FindClass("Lapplication/ApplicationContext/ApplicationContext;", &applicationContextCls) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "FindClass ApplicationContext failed");
+        return {};
+    }
+    ani_method contextCtorMethod = nullptr;
+    if (env->Class_FindMethod(applicationContextCls, "<ctor>", ":V", &contextCtorMethod) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Class_FindMethod ctor failed");
+        return {};
+    }
+    ani_object applicationContextObject = nullptr;
+    if (env->Object_New(applicationContextCls, contextCtorMethod, &applicationContextObject) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Object_New failed");
+        return {};
+    }
+    ani_field contextField;
+    if (env->Class_FindField(applicationContextCls, "nativeContext", &contextField) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Class_FindField failed");
+        return {};
+    }
+    auto workContext = new (std::nothrow) std::weak_ptr<ApplicationContext>(applicationContext);
+    if (workContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "workContext nullptr");
+        return {};
+    }
+    ani_long nativeContextLong = (ani_long)workContext;
+    if (env->Object_SetField_Long(applicationContextObject, contextField, nativeContextLong) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Object_SetField_Long failed");
+        return {};
+    }
+    auto etsReference = std::make_shared<AbilityRuntime::STSNativeReference>();
+    etsReference->aniObj = applicationContextObject;
+    AbilityRuntime::ApplicationContextManager::GetApplicationContextManager().AddEtsGlobalObject(env, etsReference);
+    applicationContext->SetApplicationInfoUpdateFlag(false);
+    return applicationContextObject;
 }
 
 ani_object GetApplicationContextSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj)
 {
-    auto appContextObj = ApplicationContextManager::GetApplicationContextManager().GetStsGlobalObject(env);
-    if (appContextObj != nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "appContextObj is not nullptr");
-        return appContextObj->aniObj;
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
     }
-    ThrowStsInvalidParamError(env, "appContextObj null");
-    return {};
+    auto context = context_.lock();
+    if (!context) {
+        TAG_LOGW(AAFwkTag::APPKIT, "null context");
+        ThrowStsError(env, (int32_t)AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        return {};
+    }
+    auto applicationContext = context->GetApplicationContext();
+    if (applicationContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
+        ThrowStsError(env, (int32_t)AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        return {};
+    }
+    if (!applicationContext->GetApplicationInfoUpdateFlag()) {
+        auto appContextObj = ApplicationContextManager::GetApplicationContextManager().GetEtsGlobalObject(env);
+        if (appContextObj != nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "appContextObj is not nullptr");
+            return appContextObj->aniObj;
+        }
+    }
+    return GetApplicationContext(env, applicationContext);
 }
 }
 } // namespace AbilityRuntime

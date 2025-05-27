@@ -19,8 +19,6 @@ export default class ApplicationContext extends Context {
     public native setSupportedProcessCacheSync(isSupported : boolean):void;
 
     setSupportedProcessCache(isSupported : boolean):void {
-        taskpool.execute((): void => {
-            this.setSupportedProcessCacheSync(isSupported);
-        });
+        this.setSupportedProcessCacheSync(isSupported);
     }
 }

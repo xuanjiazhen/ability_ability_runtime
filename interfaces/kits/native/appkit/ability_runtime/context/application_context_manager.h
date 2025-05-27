@@ -43,11 +43,11 @@ public:
 
     void RemoveGlobalObject(napi_env env);
 
-    void AddStsGlobalObject(ani_env* env, std::shared_ptr<AbilityRuntime::STSNativeReference> applicationContextObj);
+    void AddEtsGlobalObject(ani_env* env, std::shared_ptr<AbilityRuntime::STSNativeReference> applicationContextObj);
 
-    std::shared_ptr<AbilityRuntime::STSNativeReference> GetStsGlobalObject(ani_env* env);
+    std::shared_ptr<AbilityRuntime::STSNativeReference> GetEtsGlobalObject(ani_env* env);
 
-    void RemoveStsGlobalObject(ani_env* env);
+    void RemoveEtsGlobalObject(ani_env* env);
 
 private:
     ApplicationContextManager();
@@ -55,9 +55,9 @@ private:
     ~ApplicationContextManager();
 
     std::unordered_map<napi_env, std::shared_ptr<NativeReference>> applicationContextMap_;
-    std::unordered_map<ani_env*, std::shared_ptr<AbilityRuntime::STSNativeReference>> stsApplicationContextMap_;
+    std::unordered_map<ani_env*, std::shared_ptr<AbilityRuntime::STSNativeReference>> etsApplicationContextMap_;
     std::mutex applicationContextMutex_;
-    std::mutex stsApplicationContextMutex_;
+    std::mutex etsApplicationContextMutex_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

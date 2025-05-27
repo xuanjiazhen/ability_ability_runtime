@@ -44,7 +44,7 @@
 #include "uri.h"
 #include "want.h"
 #include "common_fun_ani.h"
-#include "sts_context_utils.h"
+#include "ets_context_utils.h"
 #include "sts_error_utils.h"
 
 namespace OHOS {
@@ -624,7 +624,7 @@ ani_ref CreateStsAbilityContext(
         TAG_LOGE(AAFwkTag::UIABILITY, "null application");
         return nullptr;
     }
-    ContextUtil::StsCreatContext(env, cls, contextObj, application->GetApplicationCtxObjRef(), context);
+    ContextUtil::CreateEtsBaseContext(env, cls, contextObj, context);
     if (!SetAbilityInfo(env, cls, contextObj, context)) {
         TAG_LOGE(AAFwkTag::UIABILITY, "SetAbilityInfo failed");
         return nullptr;
