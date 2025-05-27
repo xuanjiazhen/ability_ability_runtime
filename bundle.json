@@ -58,6 +58,7 @@
             "c_utils",
             "cJSON",
             "data_share",
+            "datamgr_service",
             "dlp_permission_service",
             "dsoftbus",
             "eventhandler",
@@ -453,14 +454,6 @@
           },
           {
             "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/dataobs_manager/",
-              "header_files": [
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/dataobs_manager:dataobs_manager"
-          },
-          {
-            "header": {
               "header_base": "//foundation/ability/ability_runtime/service_router_framework/interfaces/inner_api/include",
               "header_files": [
                 "service_info.h"
@@ -662,6 +655,13 @@
               "header_files": []
             },
             "name": "//foundation/ability/ability_runtime/frameworks/native/appkit:appkit_delegator"
+          },
+          {
+            "header": {
+              "header_base": "//foundation/ability/ability_runtime/services/common/include",
+              "header_files": []
+            },
+            "name": "//foundation/ability/ability_runtime/services/common:task_handler_wrap"
           }
         ],
         "test": [

@@ -22,7 +22,6 @@ ohos_moduletest("ability_timeout_module_test") {
   include_dirs = [
     "${ability_runtime_test_path}/moduletest/mock/include",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/distributed_ability_runtime",
-    "${ability_runtime_innerkits_path}/dataobs_manager/include",
   ]
 
   sources = [ "ability_timeout_module_test.cpp" ]

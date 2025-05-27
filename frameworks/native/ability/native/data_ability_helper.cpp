@@ -585,7 +585,7 @@ int DataAbilityHelper::BatchInsert(Uri &uri, const std::vector<NativeRdb::Values
  * @param uri, Indicates the path of the data to operate.
  * @param dataObserver, Indicates the IDataAbilityObserver object.
  */
-void DataAbilityHelper::RegisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver)
+void DataAbilityHelper::RegisterObserver(const Uri &uri, const sptr<DataShare::IDataAbilityObserver> &dataObserver)
 {
     TAG_LOGI(AAFwkTag::DATA_ABILITY, "called");
     auto dataAbilityHelperImpl = GetDataAbilityHelperImpl();
@@ -609,7 +609,7 @@ void DataAbilityHelper::RegisterObserver(const Uri &uri, const sptr<AAFwk::IData
  * @param uri, Indicates the path of the data to operate.
  * @param dataObserver, Indicates the IDataAbilityObserver object.
  */
-void DataAbilityHelper::UnregisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver)
+void DataAbilityHelper::UnregisterObserver(const Uri &uri, const sptr<DataShare::IDataAbilityObserver> &dataObserver)
 {
     TAG_LOGI(AAFwkTag::DATA_ABILITY, "called");
     auto dataAbilityHelperImpl = GetDataAbilityHelperImpl();

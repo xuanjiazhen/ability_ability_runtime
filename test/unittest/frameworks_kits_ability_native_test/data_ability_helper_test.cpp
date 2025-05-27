@@ -1629,7 +1629,7 @@ HWTEST_F(
     std::shared_ptr<DataAbilityHelper> dataAbilityHelper = DataAbilityHelper::Creator(context, uri);
     std::string uriString;
     Uri uri1(uriString);
-    const sptr<AAFwk::IDataAbilityObserver> dataObserver;
+    const sptr<DataShare::IDataAbilityObserver> dataObserver;
     dataAbilityHelper->RegisterObserver(uri1, dataObserver);
 
     EXPECT_TRUE(dataAbilityHelper->dataShareHelper_ == nullptr);
@@ -1649,7 +1649,7 @@ HWTEST_F(
     std::shared_ptr<DataAbilityHelper> dataAbilityHelper = DataAbilityHelper::Creator(context);
     std::string uriString;
     Uri uri1(uriString);
-    const sptr<AAFwk::IDataAbilityObserver> dataObserver;
+    const sptr<DataShare::IDataAbilityObserver> dataObserver;
     dataAbilityHelper->RegisterObserver(uri1, dataObserver);
 
     EXPECT_TRUE(dataAbilityHelper->dataShareHelper_ == nullptr);
@@ -1670,7 +1670,7 @@ HWTEST_F(
     EXPECT_TRUE(dataAbilityHelper != nullptr);
     dataAbilityHelper->dataAbilityHelperImpl_ = nullptr;
     dataAbilityHelper->dataShareHelper_ = nullptr;
-    const sptr<AAFwk::IDataAbilityObserver> dataObserver;
+    const sptr<DataShare::IDataAbilityObserver> dataObserver;
     dataAbilityHelper->RegisterObserver(*uri, dataObserver);
 
     EXPECT_TRUE(dataAbilityHelper->dataAbilityHelperImpl_ == nullptr);
@@ -1689,7 +1689,7 @@ HWTEST_F(
     std::shared_ptr<Uri> uri =
         std::make_shared<Uri>("dataability://device_id/com.domainname.dataability.persondata/person/10");
     std::shared_ptr<DataAbilityHelper> dataAbilityHelper = DataAbilityHelper::Creator(context, uri);
-    const sptr<AAFwk::IDataAbilityObserver> dataObserver;
+    const sptr<DataShare::IDataAbilityObserver> dataObserver;
     std::string uriString;
     Uri uri1(uriString);
     dataAbilityHelper->UnregisterObserver(uri1, dataObserver);
@@ -1709,7 +1709,7 @@ HWTEST_F(
     std::shared_ptr<Uri> uri =
         std::make_shared<Uri>("dataability://device_id/com.domainname.dataability.persondata/person/10");
     std::shared_ptr<DataAbilityHelper> dataAbilityHelper = DataAbilityHelper::Creator(context);
-    sptr<AAFwk::IDataAbilityObserver> dataObserver;
+    sptr<DataShare::IDataAbilityObserver> dataObserver;
     std::string uriString;
     Uri uri1(uriString);
     dataAbilityHelper->UnregisterObserver(uri1, dataObserver);
@@ -1732,7 +1732,7 @@ HWTEST_F(
     EXPECT_TRUE(dataAbilityHelper != nullptr);
     dataAbilityHelper->dataAbilityHelperImpl_ = nullptr;
     dataAbilityHelper->dataShareHelper_ = nullptr;
-    sptr<AAFwk::IDataAbilityObserver> dataObserver;
+    sptr<DataShare::IDataAbilityObserver> dataObserver;
     dataAbilityHelper->UnregisterObserver(*uri, dataObserver);
 
     EXPECT_TRUE(dataAbilityHelper->dataAbilityHelperImpl_ == nullptr);

@@ -622,7 +622,7 @@ bool DataAbilityHelperImpl::CheckOhosUri(const Uri &checkUri)
  * @param uri, Indicates the path of the data to operate.
  * @param dataObserver, Indicates the IDataAbilityObserver object.
  */
-void DataAbilityHelperImpl::RegisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver)
+void DataAbilityHelperImpl::RegisterObserver(const Uri &uri, const sptr<DataShare::IDataAbilityObserver> &dataObserver)
 {
     if (!CheckUriAndDataObserver(uri, dataObserver)) {
         TAG_LOGE(AAFwkTag::DATA_ABILITY, "invalid param");
@@ -669,7 +669,7 @@ void DataAbilityHelperImpl::RegisterObserver(const Uri &uri, const sptr<AAFwk::I
  * @param uri, Indicates the path of the data to operate.
  * @param dataObserver, Indicates the IDataAbilityObserver object.
  */
-void DataAbilityHelperImpl::UnregisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver)
+void DataAbilityHelperImpl::UnregisterObserver(const Uri &uri, const sptr<DataShare::IDataAbilityObserver> &dataObserver)
 {
     if (!CheckUriAndDataObserver(uri, dataObserver)) {
         TAG_LOGE(AAFwkTag::DATA_ABILITY, "invalid param");
@@ -851,7 +851,7 @@ bool DataAbilityHelperImpl::CheckUri(const std::shared_ptr<Uri> &uri)
 }
 
 bool DataAbilityHelperImpl::CheckUriAndDataObserver(const Uri &uri,
-    const sptr<AAFwk::IDataAbilityObserver> &dataObserver)
+    const sptr<DataShare::IDataAbilityObserver> &dataObserver)
 {
     if (!CheckUriParam(uri)) {
         TAG_LOGE(AAFwkTag::DATA_ABILITY, "Check uri failed");

@@ -108,11 +108,11 @@ public:
     {
         return BATCHINSERTNUM;
     };
-    virtual bool ScheduleRegisterObserver(const Uri& uri, const sptr<AAFwk::IDataAbilityObserver>& dataObserver)
+    virtual bool ScheduleRegisterObserver(const Uri& uri, const sptr<DataShare::IDataAbilityObserver>& dataObserver)
     {
         return true;
     };
-    virtual bool ScheduleUnregisterObserver(const Uri& uri, const sptr<AAFwk::IDataAbilityObserver>& dataObserver)
+    virtual bool ScheduleUnregisterObserver(const Uri& uri, const sptr<DataShare::IDataAbilityObserver>& dataObserver)
     {
         return true;
     };

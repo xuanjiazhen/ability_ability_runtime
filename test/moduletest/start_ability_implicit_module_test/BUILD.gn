@@ -22,7 +22,6 @@ ohos_moduletest("start_ability_implicit_module_test") {
   include_dirs = [
     "${ability_runtime_test_path}/moduletest/mock/include",
     "${ability_runtime_native_path}/ability/native/include/distributed_ability_runtime",
-    "${ability_runtime_innerkits_path}/dataobs_manager/include",
     "${ace_engine_path}/interfaces/inner_api/ui_service_manager/include",
     "${ace_engine_path}/adapter/ohos/services/uiservice/include",
     "${windowmanager_path}/interfaces/innerkits",

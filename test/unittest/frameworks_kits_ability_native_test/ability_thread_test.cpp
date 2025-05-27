@@ -25,11 +25,12 @@
 #include "ability_impl.h"
 #include "ability_impl_factory.h"
 #include "context_deal.h"
+#include "data_ability_observer_stub.h"
+#include "gmock/gmock.h"
 #include "mock_ability_impl.h"
 #include "mock_ability_thread.h"
 #include "mock_ability_token.h"
 #include "mock_data_ability.h"
-#include "mock_data_obs_mgr_stub.h"
 #include "mock_page_ability.h"
 #include "mock_service_ability.h"
 #include "ohos_application.h"
@@ -69,6 +70,14 @@ void AbilityThreadTest::SetUp(void)
 
 void AbilityThreadTest::TearDown(void)
 {}
+
+class MockDataAbilityObserverStub : public OHOS::DataShare::DataAbilityObserverStub {
+public:
+    MockDataAbilityObserverStub() = default;
+    virtual ~MockDataAbilityObserverStub() = default;
+    MOCK_METHOD0(OnChange, void(void));
+    MOCK_METHOD1(OnChangeExt, void(const OHOS::DataShare::ChangeInfo&));
+};
 
 /**
  * @tc.name: AaFwk_AbilityThread_DumpAbilityInfo_0100
@@ -2026,7 +2035,7 @@ HWTEST_F(AbilityThreadTest, AaFwk_AbilityThread_HandleRegisterObserver_0100, Fun
     EXPECT_NE(abilitythread, nullptr);
 
     Uri uri(TEST);
-    sptr<AAFwk::IDataAbilityObserver> dataObserver(new (std::nothrow) MockDataAbilityObserverStub());
+    sptr<DataShare::IDataAbilityObserver> dataObserver(new (std::nothrow) MockDataAbilityObserverStub());
     EXPECT_TRUE(abilitythread->HandleRegisterObserver(uri, dataObserver));
     delete dataObserver;
     dataObserver = nullptr;
@@ -2046,7 +2055,7 @@ HWTEST_F(AbilityThreadTest, AaFwk_AbilityThread_HandleUnregisterObserver_0100, F
     EXPECT_NE(abilitythread, nullptr);
 
     Uri uri(TEST);
-    sptr<AAFwk::IDataAbilityObserver> dataObserver(new (std::nothrow) MockDataAbilityObserverStub());
+    sptr<DataShare::IDataAbilityObserver> dataObserver(new (std::nothrow) MockDataAbilityObserverStub());
     EXPECT_FALSE(abilitythread->HandleUnregisterObserver(uri, dataObserver));
     sleep(1);
     GTEST_LOG_(INFO) << "AaFwk_AbilityThread_HandleUnregisterObserver_0100 end";
@@ -2064,7 +2073,7 @@ HWTEST_F(AbilityThreadTest, AaFwk_AbilityThread_ScheduleRegisterObserver_0100, F
     EXPECT_NE(abilitythread, nullptr);
 
     Uri uri(TEST);
-    sptr<AAFwk::IDataAbilityObserver> dataObserver(new (std::nothrow) MockDataAbilityObserverStub());
+    sptr<DataShare::IDataAbilityObserver> dataObserver(new (std::nothrow) MockDataAbilityObserverStub());
     EXPECT_FALSE(abilitythread->ScheduleRegisterObserver(uri, dataObserver));
     delete dataObserver;
     dataObserver = nullptr;
@@ -2084,7 +2093,7 @@ HWTEST_F(AbilityThreadTest, AaFwk_AbilityThread_ScheduleRegisterObserver_0200, F
     EXPECT_NE(abilitythread, nullptr);
 
     Uri uri(TEST);
-    sptr<AAFwk::IDataAbilityObserver> dataObserver(new (std::nothrow) MockDataAbilityObserverStub());
+    sptr<DataShare::IDataAbilityObserver> dataObserver(new (std::nothrow) MockDataAbilityObserverStub());
     abilitythread->abilityHandler_ = std::make_shared<AbilityHandler>(nullptr);
     EXPECT_NE(abilitythread->abilityHandler_, nullptr);
     EXPECT_FALSE(abilitythread->ScheduleRegisterObserver(uri, dataObserver));
@@ -2106,7 +2115,7 @@ HWTEST_F(AbilityThreadTest, AaFwk_AbilityThread_ScheduleUnregisterObserver_0100,
     EXPECT_NE(abilitythread, nullptr);
 
     Uri uri(TEST);
-    sptr<AAFwk::IDataAbilityObserver> dataObserver(new (std::nothrow) MockDataAbilityObserverStub());
+    sptr<DataShare::IDataAbilityObserver> dataObserver(new (std::nothrow) MockDataAbilityObserverStub());
     EXPECT_FALSE(abilitythread->ScheduleUnregisterObserver(uri, dataObserver));
     delete dataObserver;
     dataObserver = nullptr;
@@ -2126,7 +2135,7 @@ HWTEST_F(AbilityThreadTest, AaFwk_AbilityThread_ScheduleUnregisterObserver_0200,
     EXPECT_NE(abilitythread, nullptr);
 
     Uri uri(TEST);
-    sptr<AAFwk::IDataAbilityObserver> dataObserver(new (std::nothrow) MockDataAbilityObserverStub());
+    sptr<DataShare::IDataAbilityObserver> dataObserver(new (std::nothrow) MockDataAbilityObserverStub());
     abilitythread->abilityHandler_ = std::make_shared<AbilityHandler>(nullptr);
     EXPECT_NE(abilitythread->abilityHandler_, nullptr);
     EXPECT_FALSE(abilitythread->ScheduleUnregisterObserver(uri, dataObserver));

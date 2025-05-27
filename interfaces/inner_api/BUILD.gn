@@ -18,7 +18,6 @@ group("innerkits_target") {
     "ability_manager:ability_manager_c",
     "app_manager:app_manager",
     "connectionobs_manager:connection_obs_manager",
-    "dataobs_manager:dataobs_manager",
     "deps_wrapper:ability_deps_wrapper",
     "error_utils:ability_runtime_error_util",
     "quick_fix:quickfix_manager",
