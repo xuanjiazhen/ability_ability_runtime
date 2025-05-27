@@ -31,7 +31,6 @@
 #include "pending_want_record.h"
 #include "pending_want_common_event.h"
 #include "sender_info.h"
-#include "task_handler_wrap.h"
 #include "want_sender_info.h"
 
 namespace OHOS {
@@ -137,7 +136,7 @@ enum class Flags {
 
 class PendingWantManager : public std::enable_shared_from_this<PendingWantManager>, public NoCopyable {
 public:
-    PendingWantManager();
+    PendingWantManager() = default;
     explicit PendingWantManager(const std::shared_ptr<PendingWantManager> &manager) {};
     virtual ~PendingWantManager();
 
@@ -192,7 +191,6 @@ private:
     bool CheckPermission(sptr<PendingWantRecord> record);
 
 private:
-    std::shared_ptr<TaskHandlerWrap> taskHandler_;
     std::map<std::shared_ptr<PendingWantKey>, sptr<PendingWantRecord>> wantRecords_;
     ffrt::mutex mutex_;
 };

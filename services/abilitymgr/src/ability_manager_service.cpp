@@ -241,12 +241,7 @@ constexpr const char* APP_LINKING_ONLY = "appLinkingOnly";
 
 void SendAbilityEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo)
 {
-    auto taskHandler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
-    if (taskHandler == nullptr) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "task handler null");
-        return;
-    }
-    taskHandler->SubmitTask([eventName, type, eventInfo]() {
+    ffrt::submit([eventName, type, eventInfo]() {
         EventReport::SendAbilityEvent(eventName, type, eventInfo);
         });
 }
@@ -396,8 +391,7 @@ bool AbilityManagerService::Init()
 {
     HiviewDFX::Watchdog::GetInstance().InitFfrtWatchdog(); // For ffrt watchdog available in foundation
     taskHandler_ = TaskHandlerWrap::CreateQueueHandler(AbilityConfig::NAME_ABILITY_MGR_SERVICE);
-    delayClearReasonHandler_ = TaskHandlerWrap::CreateQueueHandler("delay_clear_reason_queue");
-    eventHandler_ = std::make_shared<AbilityEventHandler>(taskHandler_, weak_from_this());
+    eventHandler_ = std::make_shared<AbilityEventHandler>(weak_from_this());
     freeInstallManager_ = std::make_shared<FreeInstallManager>(weak_from_this());
     CHECK_POINTER_RETURN_BOOL(freeInstallManager_);
 
@@ -417,7 +411,7 @@ bool AbilityManagerService::Init()
     AppExecFwk::AbilityFirstFrameStateObserverManager::GetInstance().Init();
 #endif
 
-    DelayedSingleton<ConnectionStateManager>::GetInstance()->Init(taskHandler_);
+    DelayedSingleton<ConnectionStateManager>::GetInstance()->Init();
 
     InitInterceptor();
     InitStartAbilityChain();
@@ -454,7 +448,6 @@ void AbilityManagerService::InitInterceptor()
     afterCheckExecuter_->AddInterceptor("StartOtherApp", std::make_shared<StartOtherAppInterceptor>());
     afterCheckExecuter_->AddInterceptor("DisposedRule", std::make_shared<DisposedRuleInterceptor>());
     afterCheckExecuter_->AddInterceptor("EcologicalRule", std::make_shared<EcologicalRuleInterceptor>());
-    afterCheckExecuter_->SetTaskHandler(taskHandler_);
     bool isAppJumpEnabled = OHOS::system::GetBoolParameter(
         OHOS::AppExecFwk::PARAMETER_APP_JUMP_INTERCEPTOR_ENABLE, false);
     if (isAppJumpEnabled) {
@@ -476,26 +469,21 @@ void AbilityManagerService::InitInterceptorForScreenUnlock()
 
 void AbilityManagerService::InitPushTask()
 {
-    if (taskHandler_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "taskHandler_ null");
-        return;
-    }
-
     auto initStartupFlagTask = [aams = shared_from_this()]() { aams->InitStartupFlag(); };
-    taskHandler_->SubmitTask(initStartupFlagTask, "InitStartupFlag");
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask(initStartupFlagTask, "InitStartupFlag");
 
     auto initExtensionConfigTask = []() {
         DelayedSingleton<ExtensionConfig>::GetInstance()->LoadExtensionConfiguration();
     };
-    taskHandler_->SubmitTask(initExtensionConfigTask, "InitExtensionConfigTask");
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask(initExtensionConfigTask, "InitExtensionConfigTask");
 
-    auto bootCompletedTask = [handler = taskHandler_]() {
+    auto bootCompletedTask = []() {
         if (ApplicationUtil::IsBootCompleted()) {
             auto task = []() {
                 ApplicationUtil::AppFwkBootEventCallback(BOOTEVENT_BOOT_COMPLETED, "true", nullptr);
             };
-            CHECK_POINTER(handler);
-            handler->SubmitTaskJust(task, "BootCompletedDelayTask", BOOTEVENT_COMPLETED_DELAY_TIME);
+            TaskHandlerWrap::GetFfrtHandler()->SubmitTaskJust(task, "BootCompletedDelayTask",
+                BOOTEVENT_COMPLETED_DELAY_TIME);
         } else {
             WatchParameter(BOOTEVENT_BOOT_COMPLETED, ApplicationUtil::AppFwkBootEventCallback, nullptr);
             TAG_LOGI(AAFwkTag::ABILITYMGR, "init call, InitPushTask suc");
@@ -505,7 +493,7 @@ void AbilityManagerService::InitPushTask()
         TAG_LOGE(AAFwkTag::ABILITYMGR, "parse json fail");
     }
     isParamStartAbilityEnable_ = system::GetBoolParameter(PARAM_PREVENT_STARTABILITY, false);
-    taskHandler_->SubmitTask(bootCompletedTask, "BootCompletedTask");
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask(bootCompletedTask, "BootCompletedTask");
 }
 
 void AbilityManagerService::InitStartupFlag()
@@ -2890,7 +2878,7 @@ void AbilityManagerService::SubscribeBundleEventCallback()
 
     // Register abilityBundleEventCallback to receive hap updates
     abilityBundleEventCallback_ =
-        new (std::nothrow) AbilityBundleEventCallback(taskHandler_, abilityAutoStartupService_);
+        new (std::nothrow) AbilityBundleEventCallback(abilityAutoStartupService_);
     auto bms = AbilityUtil::GetBundleManagerHelper();
     if (bms) {
         bool ret = IN_PROCESS_CALL(bms->RegisterBundleEventCallback(abilityBundleEventCallback_));
@@ -2954,7 +2942,6 @@ void AbilityManagerService::ReportAbilityAssociatedStartInfoToRSS(
 void AbilityManagerService::ReportEventToRSS(const AppExecFwk::AbilityInfo &abilityInfo,
     sptr<IRemoteObject> callerToken)
 {
-    CHECK_POINTER_LOG(taskHandler_, "taskhandler null");
     std::string reason = ResSchedUtil::GetInstance().GetThawReasonByAbilityType(abilityInfo);
     const auto uid = abilityInfo.applicationInfo.uid;
     const auto bundleName = abilityInfo.applicationInfo.bundleName;
@@ -2962,7 +2949,7 @@ void AbilityManagerService::ReportEventToRSS(const AppExecFwk::AbilityInfo &abil
     const int32_t callerPid = (callerAbility != nullptr) ? callerAbility->GetPid() : IPCSkeleton::GetCallingPid();
     TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}d_%{public}s reason=%{public}s callerPid=%{public}d", uid,
         bundleName.c_str(), reason.c_str(), callerPid);
-    taskHandler_->SubmitTask([reason, uid, bundleName, callerPid]() {
+    ffrt::submit([reason, uid, bundleName, callerPid]() {
         ResSchedUtil::GetInstance().ReportEventToRSS(uid, bundleName, reason, -1, callerPid);
     });
 }
@@ -7300,12 +7287,7 @@ int AbilityManagerService::PreLoadAppDataAbilities(const std::string &bundleName
         return ERR_INVALID_VALUE;
     }
 
-    if (taskHandler_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "taskHandler null");
-        return ERR_INVALID_STATE;
-    }
-
-    taskHandler_->SubmitTask([weak = weak_from_this(), bundleName, userId]() {
+    ffrt::submit([weak = weak_from_this(), bundleName, userId]() {
         auto pthis = weak.lock();
         if (pthis == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "pthis null");
@@ -7744,10 +7726,6 @@ void AbilityManagerService::StartAutoStartupApps()
         return;
     }
 
-    if (taskHandler_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "taskHandler null");
-        return;
-    }
     std::queue<AutoStartupInfo> infoQueue;
     for (auto &info : infoList) {
         info.retryCount = START_AUTO_START_APP_RETRY_MAX_TIMES;
@@ -7759,10 +7737,6 @@ void AbilityManagerService::StartAutoStartupApps()
 void AbilityManagerService::StartAutoStartupApps(std::queue<AutoStartupInfo> infoQueue)
 {
     if (infoQueue.empty()) {
-        return;
-    }
-    if (taskHandler_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "taskHandler null");
         return;
     }
     auto info = infoQueue.front();
@@ -7789,7 +7763,8 @@ void AbilityManagerService::StartAutoStartupApps(std::queue<AutoStartupInfo> inf
         }
         obj->StartAutoStartupApps(infoQueue);
     };
-    taskHandler_->SubmitTask(nextStartAutoStartupAppsTask, "StartAutoStartupApps", START_AUTO_START_APP_DELAY_TIME);
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTaskJust(nextStartAutoStartupAppsTask,
+        "StartAutoStartupApps", START_AUTO_START_APP_DELAY_TIME);
 }
 
 void AbilityManagerService::SubscribeScreenUnlockedEvent()
@@ -7818,7 +7793,7 @@ std::function<void()> AbilityManagerService::GetScreenUnlockCallback()
             TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid abilityMgr pointer");
             return;
         }
-        auto taskHandler = abilityMgr->GetTaskHandler();
+        auto taskHandler = TaskHandlerWrap::GetFfrtHandler();
         if (taskHandler == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid taskHandler pointer");
             return;
@@ -7842,7 +7817,7 @@ std::function<void()> AbilityManagerService::GetScreenUnlockCallback()
             }
             abilityMgr->StartAutoStartupApps();
         };
-        taskHandler->SubmitTask(delayStartAutoStartupAppTask, "DelayStartAutoStartupApps",
+        taskHandler->SubmitTaskJust(delayStartAutoStartupAppTask, "DelayStartAutoStartupApps",
             START_AUTO_START_APP_DELAY_TIME);
     };
     return screenUnlockCallback;
@@ -7885,8 +7860,8 @@ void AbilityManagerService::RetrySubscribeScreenUnlockedEvent(int32_t retryCount
         }
     };
     constexpr int delaytime = 200;
-    CHECK_POINTER(taskHandler_);
-    taskHandler_->SubmitTask(retrySubscribeScreenUnlockedEventTask, "RetrySubscribeScreenUnlockedEvent", delaytime);
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTaskJust(retrySubscribeScreenUnlockedEventTask,
+        "RetrySubscribeScreenUnlockedEvent", delaytime);
 }
 
 void AbilityManagerService::RemoveScreenUnlockInterceptor()
@@ -10113,10 +10088,9 @@ int AbilityManagerService::PrepareTerminateAbility(const sptr<IRemoteObject> &to
             callback->DoPrepareTerminate();
         }
     };
-    if (taskHandler_) {
-        taskHandler_->SubmitTask(timeoutTask, "PrepareTermiante_" + abilityRecordId,
-            GlobalConstant::PREPARE_TERMINATE_TIMEOUT_TIME);
-    }
+
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask(timeoutTask, "PrepareTermiante_" + abilityRecordId,
+        GlobalConstant::PREPARE_TERMINATE_TIMEOUT_TIME);
     return ERR_OK;
 }
 
@@ -10148,9 +10122,7 @@ void AbilityManagerService::PrepareTerminateAbilityDone(const sptr<IRemoteObject
         iter->second->DoPrepareTerminate();
     }
     prepareTermiationCallbacks_.erase(iter);
-    if (taskHandler_) {
-        taskHandler_->CancelTask("PrepareTermiante_" + abilityRecordId);
-    }
+    TaskHandlerWrap::GetFfrtHandler()->CancelTask("PrepareTermiante_" + abilityRecordId);
 }
 
 void AbilityManagerService::KillProcessWithPrepareTerminateDone(const std::string &moduleName,
@@ -10190,16 +10162,16 @@ void AbilityManagerService::InitFocusListener()
         return;
     }
 
-    focusListener_ = new WindowFocusChangedListener(shared_from_this(), taskHandler_);
+    focusListener_ = new WindowFocusChangedListener(shared_from_this());
     auto registerTask = [innerService = shared_from_this()]() {
         if (innerService) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "registerFocusListener task");
             innerService->RegisterFocusListener();
         }
     };
-    if (taskHandler_) {
-        taskHandler_->SubmitTaskJust(registerTask, "RegisterFocusListenerTask", REGISTER_FOCUS_DELAY);
-    }
+
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTaskJust(registerTask,
+        "RegisterFocusListenerTask", REGISTER_FOCUS_DELAY);
 }
 
 void AbilityManagerService::RegisterFocusListener()
@@ -12148,7 +12120,7 @@ void AbilityManagerService::OnCacheExitInfo(uint32_t accessTokenId, const AppExe
             return;
         }
     };
-    delayClearReasonHandler_->SubmitTaskJust(delayClearReason, "delayClearReason", CLEAR_REASON_DELAY_TIME);
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTaskJust(delayClearReason, "delayClearReason", CLEAR_REASON_DELAY_TIME);
 }
 
 int32_t AbilityManagerService::OpenFile(const Uri& uri, uint32_t flag)
@@ -12836,7 +12808,7 @@ void AbilityManagerService::InitWindowVisibilityChangedListener()
     }
 
     windowVisibilityChangedListener_ =
-        new (std::nothrow) WindowVisibilityChangedListener(weak_from_this(), taskHandler_);
+        new (std::nothrow) WindowVisibilityChangedListener(weak_from_this());
     if (windowVisibilityChangedListener_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "window visibility changed listener null");
         return;

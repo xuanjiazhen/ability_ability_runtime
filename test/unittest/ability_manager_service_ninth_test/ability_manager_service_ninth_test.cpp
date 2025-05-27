@@ -237,7 +237,7 @@ HWTEST_F(AbilityManagerServiceNinthTest, PrepareTerminateAbility_002, TestSize.L
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
     auto taskHandler = TaskHandlerWrap::CreateQueueHandler(AbilityConfig::NAME_ABILITY_MGR_SERVICE);
-    auto eventHandler = std::make_shared<AbilityEventHandler>(taskHandler, abilityMs_);
+    auto eventHandler = std::make_shared<AbilityEventHandler>(abilityMs_);
     abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(taskHandler, eventHandler);
     EXPECT_NE(abilityMs_->subManagersHelper_, nullptr);
     auto manager = std::make_shared<DataAbilityManager>();
@@ -322,7 +322,7 @@ HWTEST_F(AbilityManagerServiceNinthTest, GetUIExtensionRootCaller_001, TestSize.
     EXPECT_EQ(result, nullptr);
     userId = 100;
     auto taskHandler = TaskHandlerWrap::CreateQueueHandler(AbilityConfig::NAME_ABILITY_MGR_SERVICE);
-    auto eventHandler = std::make_shared<AbilityEventHandler>(taskHandler, abilityMs_);
+    auto eventHandler = std::make_shared<AbilityEventHandler>(abilityMs_);
     abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(taskHandler, eventHandler);
     abilityMs_->subManagersHelper_->currentConnectManager_ = std::make_shared<AbilityConnectManager>(0);
     abilityMs_->subManagersHelper_->connectManagers_.insert({100,

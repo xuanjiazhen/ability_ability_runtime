@@ -748,13 +748,8 @@ void AbilityRecord::ProcessForegroundAbility(bool isRecent, const AbilityRequest
 #endif // SUPPORT_UPMS
 
     if (isReady_ && !GetRestartAppFlag()) {
-        auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
-        if (!handler) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "fail get AbilityEventHandler");
-            return;
-        }
         auto taskName = std::to_string(missionId_) + "_hot";
-        handler->CancelTask(taskName);
+        TaskHandlerWrap::GetFfrtHandler()->CancelTask(taskName);
 
         StartingWindowTask(isRecent, !isWindowStarted_, abilityRequest, startOptions);
         AnimationTask(isRecent, abilityRequest, startOptions, callerAbility);
@@ -916,8 +911,6 @@ void AbilityRecord::PostCancelStartingWindowHotTask()
         return;
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
-    auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
-    CHECK_POINTER_LOG(handler, "Fail to get TaskHandler.");
 
     auto windowHandler = GetWMSHandler();
     CHECK_POINTER_LOG(windowHandler, "PostCancelStartingWindowColdTask, Get WMS handler failed.");
@@ -934,7 +927,7 @@ void AbilityRecord::PostCancelStartingWindowHotTask()
     auto taskName = std::to_string(missionId_) + "_hot";
     int foregroundTimeout =
         AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * FOREGROUND_TIMEOUT_MULTIPLE;
-    handler->SubmitTask(delayTask, taskName, foregroundTimeout);
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask(delayTask, taskName, foregroundTimeout);
 }
 
 void AbilityRecord::PostCancelStartingWindowColdTask()
@@ -944,8 +937,6 @@ void AbilityRecord::PostCancelStartingWindowColdTask()
         return;
     }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
-    auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
-    CHECK_POINTER_LOG(handler, "Fail to get TaskHandler.");
 
     auto windowHandler = GetWMSHandler();
     CHECK_POINTER_LOG(windowHandler, "PostCancelStartingWindowColdTask, Get WMS handler failed.");
@@ -963,7 +954,7 @@ void AbilityRecord::PostCancelStartingWindowColdTask()
     };
     auto taskName = std::to_string(missionId_) + "_cold";
     int loadTimeout = AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * LOAD_TIMEOUT_MULTIPLE;
-    handler->SubmitTask(delayTask, taskName, loadTimeout);
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask(delayTask, taskName, loadTimeout);
 }
 
 sptr<IWindowManagerServiceHandler> AbilityRecord::GetWMSHandler() const
@@ -1214,8 +1205,7 @@ void AbilityRecord::InitColdStartingWindowResource(
         bgColor_ = 0xdfffffff;
     }
 
-    auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
-    if (startingWindowBg_ && handler) {
+    if (startingWindowBg_) {
         auto delayTask = [me = weak_from_this()] {
             auto self = me.lock();
             if (!self || !self->startingWindowBg_) {
@@ -1223,7 +1213,7 @@ void AbilityRecord::InitColdStartingWindowResource(
             }
             self->startingWindowBg_.reset();
         };
-        handler->SubmitTask(delayTask, "release_bg", RELEASE_STARTING_BG_TIMEOUT);
+        TaskHandlerWrap::GetFfrtHandler()->SubmitTask(delayTask, "release_bg", RELEASE_STARTING_BG_TIMEOUT);
     }
 }
 
@@ -1273,15 +1263,15 @@ void AbilityRecord::BackgroundAbility(const Closure &task)
     }
 
     if (!IsDebug()) {
-        auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
-        if (handler && task) {
+        if (task) {
             int backgroundTimeout =
                 AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * BACKGROUND_TIMEOUT_MULTIPLE;
             if (InsightIntentExecuteParam::IsInsightIntentExecute(GetWant())) {
                 backgroundTimeout = AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() *
                     INSIGHT_INTENT_TIMEOUT_MULTIPLE;
             }
-            handler->SubmitTask(task, "background_" + std::to_string(recordId_), backgroundTimeout, false);
+            TaskHandlerWrap::GetFfrtHandler()->SubmitTask(task, "background_" + std::to_string(recordId_),
+                backgroundTimeout, false);
 
             if (abilityInfo_.type == AppExecFwk::AbilityType::PAGE) {
                 std::string methodName = "BackgroundAbility";
@@ -1735,8 +1725,7 @@ void AbilityRecord::Terminate(const Closure &task)
     TAG_LOGD(AAFwkTag::ABILITYMGR, "ability: %{public}s.", GetURI().c_str());
     CHECK_POINTER(lifecycleDeal_);
     if (!IsDebug()) {
-        auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
-        if (handler && task) {
+        if (task) {
             int terminateTimeout =
                 AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * TERMINATE_TIMEOUT_MULTIPLE;
             if (abilityInfo_.applicationInfo.asanEnabled) {
@@ -1747,7 +1736,8 @@ void AbilityRecord::Terminate(const Closure &task)
                 TAG_LOGI(AAFwkTag::ABILITYMGR, "terminate with not ready");
                 terminateTimeout = 0;
             }
-            handler->SubmitTask(task, "terminate_" + std::to_string(recordId_), terminateTimeout);
+            TaskHandlerWrap::GetFfrtHandler()->SubmitTask(task, "terminate_" + std::to_string(recordId_),
+                terminateTimeout);
             ResSchedUtil::GetInstance().ReportLoadingEventToRss(LoadingStage::DESTROY_BEGIN, GetPid(), GetUid(),
                 terminateTimeout, GetRecordId());
         }
@@ -2673,22 +2663,16 @@ void AbilityRecord::OnSchedulerDied(const wptr<IRemoteObject> &remote)
     lifecycleDeal_->SetScheduler(nullptr);
     isWindowAttached_ = false;
 
-    auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
-    CHECK_POINTER(handler);
-
     TAG_LOGI(AAFwkTag::ABILITYMGR, "Ability on scheduler died: '%{public}s'", abilityInfo_.name.c_str());
     auto task = [ability = shared_from_this()]() {
         DelayedSingleton<AbilityManagerService>::GetInstance()->OnAbilityDied(ability);
     };
-    handler->SubmitTask(task, AAFwk::TaskAttribute{
-        .taskName_ = "OnSchedulerDied",
-        .timeoutMillis_ = SCHEDULER_DIED_TIMEOUT
-    });
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask(task, "OnSchedulerDied");
     auto uriTask = [want = GetWant(), ability = shared_from_this()]() {
         ability->SaveResultToCallers(-1, &want);
         ability->SendResultToCallers(true);
     };
-    handler->SubmitTask(uriTask);
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask(uriTask, "SendResultToCallers");
 #ifdef SUPPORT_GRAPHICS
     NotifyAnimationAbilityDied();
 #endif
@@ -2709,23 +2693,20 @@ void AbilityRecord::OnProcessDied()
     }
     isWindowAttached_ = false;
 
-    auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
-    CHECK_POINTER(handler);
-
     TAG_LOGI(AAFwkTag::ABILITYMGR, "OnProcessDied: '%{public}s'", abilityInfo_.name.c_str());
     auto task = [ability = shared_from_this()]() {
         DelayedSingleton<AbilityManagerService>::GetInstance()->OnAbilityDied(ability);
     };
     if (IsSceneBoard()) {
-        handler->SubmitTask(task, RESTART_SCENEBOARD_DELAY);
+        TaskHandlerWrap::GetFfrtHandler()->SubmitTask(task, "sceneboardDiedTask", RESTART_SCENEBOARD_DELAY);
     } else {
-        handler->SubmitTask(task);
+        TaskHandlerWrap::GetFfrtHandler()->SubmitTask(task, "OnProcessDiedTask");
     }
     auto uriTask = [want = GetWant(), ability = shared_from_this()]() {
         ability->SaveResultToCallers(-1, &want);
         ability->SendResultToCallers(true);
     };
-    handler->SubmitTask(uriTask);
+    TaskHandlerWrap::GetFfrtHandler()->SubmitTask(uriTask, "SendResultToCallers");
 #ifdef SUPPORT_GRAPHICS
     NotifyAnimationAbilityDied();
 #endif

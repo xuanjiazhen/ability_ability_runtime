@@ -16,6 +16,7 @@
 
 #include "ability_manager_service.h"
 #include "ability_util.h"
+#include "ffrt.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -89,9 +90,7 @@ void FreeInstallObserverManager::OnInstallFinished(int32_t recordId, const std::
         self->HandleOnInstallFinished(recordId, bundleName, abilityName, startTime, resultCode);
     };
 
-    auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
-    CHECK_POINTER_LOG(handler, "Fail to get Ability task handler.");
-    handler->SubmitTask(task);
+    ffrt::submit(task);
 }
 
 void FreeInstallObserverManager::OnInstallFinishedByUrl(int32_t recordId, const std::string &startTime,
@@ -107,9 +106,7 @@ void FreeInstallObserverManager::OnInstallFinishedByUrl(int32_t recordId, const 
         self->HandleOnInstallFinishedByUrl(recordId, startTime, url, resultCode);
     };
 
-    auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
-    CHECK_POINTER_LOG(handler, "ability task handler get failed");
-    handler->SubmitTask(task);
+    ffrt::submit(task);
 }
 
 void FreeInstallObserverManager::HandleOnInstallFinished(int32_t recordId, const std::string &bundleName,

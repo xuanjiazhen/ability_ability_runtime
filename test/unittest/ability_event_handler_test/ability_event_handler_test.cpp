@@ -53,11 +53,10 @@ void AbilityEventHandlerTest::TearDown()
  */
 HWTEST_F(AbilityEventHandlerTest, ability_event_handler_001, TestSize.Level1)
 {
-    std::shared_ptr<TaskHandlerWrap> runner;
     std::weak_ptr<AbilityManagerService> server;
     std::shared_ptr<UserEvent> eventData = std::make_shared<UserEvent>();
     auto event = EventWrap(UserEventHandler::EVENT_SYSTEM_USER_START, eventData);
-    auto handler = std::make_shared<AbilityEventHandler>(runner, server);
+    auto handler = std::make_shared<AbilityEventHandler>(server);
     SetParameter("libc.hook_mode", "startup:");
     handler->ProcessEvent(event);
     SetParameter("libc.hook_mode", "test_parameter");

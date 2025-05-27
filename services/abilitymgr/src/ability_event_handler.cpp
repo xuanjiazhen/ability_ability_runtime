@@ -20,9 +20,8 @@
 
 namespace OHOS {
 namespace AAFwk {
-AbilityEventHandler::AbilityEventHandler(
-    const std::shared_ptr<TaskHandlerWrap> &taskHandler, const std::weak_ptr<AbilityManagerService> &server)
-    : EventHandlerWrap(taskHandler), server_(server)
+AbilityEventHandler::AbilityEventHandler(const std::weak_ptr<AbilityManagerService> &server)
+    : server_(server)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "constructors");
 }

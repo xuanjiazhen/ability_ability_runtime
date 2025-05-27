@@ -263,7 +263,7 @@ HWTEST_F(AbilityManagerServiceFourthTest, NotifySaveAsResult_001, TestSize.Level
 HWTEST_F(AbilityManagerServiceFourthTest, OnStop_001, TestSize.Level1)
 {
     auto abilityMs = std::make_shared<AbilityManagerService>();
-    abilityMs->abilityBundleEventCallback_ = new (std::nothrow) AbilityBundleEventCallback(nullptr, nullptr);
+    abilityMs->abilityBundleEventCallback_ = new (std::nothrow) AbilityBundleEventCallback(nullptr);
     abilityMs->OnStop();
     EXPECT_NE(abilityMs->abilityBundleEventCallback_, nullptr);
 }
@@ -993,11 +993,11 @@ HWTEST_F(AbilityManagerServiceFourthTest, CheckCallPermission_001, TestSize.Leve
     auto ret4 = abilityMs_->CheckCallPermission(
         want, abilityInfo, abilityRequest, isForegroundToRestartApp, isSendDialogResult, specifyTokenId,
         callerBundleName);
-    EXPECT_EQ(ret4, ERR_OK);
+    EXPECT_EQ(ret4, CHECK_PERMISSION_FAILED);
 
     auto ret5 = abilityMs_->CheckCallPermission(
         want, abilityInfo, abilityRequest, false, false, specifyTokenId, callerBundleName);
-    EXPECT_EQ(ret5, ERR_OK);
+    EXPECT_EQ(ret5, CHECK_PERMISSION_FAILED);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest CheckCallPermission_001 end");
 }
 
@@ -1584,7 +1584,7 @@ HWTEST_F(AbilityManagerServiceFourthTest, OnStartTest_002, TestSize.Level1)
     auto abilityManagerService = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityManagerService, nullptr);
     auto taskHandler = TaskHandlerWrap::CreateQueueHandler(AbilityConfig::NAME_ABILITY_MGR_SERVICE);
-    auto eventHandler = std::make_shared<AbilityEventHandler>(taskHandler, abilityManagerService);
+    auto eventHandler = std::make_shared<AbilityEventHandler>(abilityManagerService);
     abilityManagerService->subManagersHelper_ = std::make_shared<SubManagersHelper>(taskHandler, eventHandler);
     EXPECT_NE(abilityManagerService->subManagersHelper_, nullptr);
     abilityManagerService->OnStart();

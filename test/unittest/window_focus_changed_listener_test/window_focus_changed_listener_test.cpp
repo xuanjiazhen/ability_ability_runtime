@@ -63,8 +63,7 @@ void WindowFocusChangedListenerTest::TearDown(void)
 HWTEST_F(WindowFocusChangedListenerTest, OnFocused_001, Function | MediumTest | Level1)
 {
     std::shared_ptr<AbilityManagerService> owner;
-    std::shared_ptr<AAFwk::TaskHandlerWrap> handler;
-    auto info = std::make_shared<WindowFocusChangedListener>(owner, handler);
+    auto info = std::make_shared<WindowFocusChangedListener>(owner);
     sptr<Rosen::FocusChangeInfo> focusChangeInfo;
     info->OnFocused(focusChangeInfo);
     EXPECT_EQ(focusChangeInfo, nullptr);
@@ -80,8 +79,7 @@ HWTEST_F(WindowFocusChangedListenerTest, OnFocused_001, Function | MediumTest | 
 HWTEST_F(WindowFocusChangedListenerTest, OnFocused_002, Function | MediumTest | Level1)
 {
     std::shared_ptr<AbilityManagerService> owner;
-    std::shared_ptr<AAFwk::TaskHandlerWrap> handler;
-    auto info = std::make_shared<WindowFocusChangedListener>(owner, handler);
+    auto info = std::make_shared<WindowFocusChangedListener>(owner);
     sptr<Rosen::FocusChangeInfo> focusChangeInfo;
     pid_t pid = 1;
     focusChangeInfo = new Rosen::FocusChangeInfo();
@@ -100,10 +98,7 @@ HWTEST_F(WindowFocusChangedListenerTest, OnFocused_002, Function | MediumTest | 
 HWTEST_F(WindowFocusChangedListenerTest, OnFocused_003, Function | MediumTest | Level1)
 {
     std::shared_ptr<AbilityManagerService> owner;
-    std::string queueName = "queueName";
-    std::shared_ptr<AAFwk::TaskHandlerWrap> handler = AAFwk::TaskHandlerWrap::CreateQueueHandler(queueName);
-    EXPECT_NE(handler, nullptr);
-    auto info = std::make_shared<WindowFocusChangedListener>(owner, handler);
+    auto info = std::make_shared<WindowFocusChangedListener>(owner);
     sptr<Rosen::FocusChangeInfo> focusChangeInfo;
     pid_t pid = 1;
     focusChangeInfo = new Rosen::FocusChangeInfo();
@@ -122,8 +117,7 @@ HWTEST_F(WindowFocusChangedListenerTest, OnFocused_003, Function | MediumTest | 
 HWTEST_F(WindowFocusChangedListenerTest, OnUnfocused_001, Function | MediumTest | Level1)
 {
     std::shared_ptr<AbilityManagerService> owner;
-    std::shared_ptr<AAFwk::TaskHandlerWrap> handler;
-    auto info = std::make_shared<WindowFocusChangedListener>(owner, handler);
+    auto info = std::make_shared<WindowFocusChangedListener>(owner);
     sptr<Rosen::FocusChangeInfo> focusChangeInfo;
     info->OnUnfocused(focusChangeInfo);
     EXPECT_EQ(focusChangeInfo, nullptr);
@@ -139,8 +133,7 @@ HWTEST_F(WindowFocusChangedListenerTest, OnUnfocused_001, Function | MediumTest 
 HWTEST_F(WindowFocusChangedListenerTest, OnUnfocused_002, Function | MediumTest | Level1)
 {
     std::shared_ptr<AbilityManagerService> owner;
-    std::shared_ptr<AAFwk::TaskHandlerWrap> handler;
-    auto info = std::make_shared<WindowFocusChangedListener>(owner, handler);
+    auto info = std::make_shared<WindowFocusChangedListener>(owner);
     sptr<Rosen::FocusChangeInfo> focusChangeInfo;
     pid_t pid = 1;
     focusChangeInfo = new Rosen::FocusChangeInfo();
@@ -159,10 +152,7 @@ HWTEST_F(WindowFocusChangedListenerTest, OnUnfocused_002, Function | MediumTest 
 HWTEST_F(WindowFocusChangedListenerTest, OnUnfocused_003, Function | MediumTest | Level1)
 {
     std::shared_ptr<AbilityManagerService> owner;
-    std::string queueName = "queueName";
-    std::shared_ptr<AAFwk::TaskHandlerWrap> handler = AAFwk::TaskHandlerWrap::CreateQueueHandler(queueName);
-    EXPECT_NE(handler, nullptr);
-    auto info = std::make_shared<WindowFocusChangedListener>(owner, handler);
+    auto info = std::make_shared<WindowFocusChangedListener>(owner);
     sptr<Rosen::FocusChangeInfo> focusChangeInfo;
     pid_t pid = 1;
     focusChangeInfo = new Rosen::FocusChangeInfo();

@@ -47,11 +47,10 @@ void AbilityBundleEventCallbackTest::SetUp() {}
 HWTEST_F(AbilityBundleEventCallbackTest, OnReceiveEvent_0100, TestSize.Level1)
 {
     sptr<AbilityBundleEventCallback> abilityBundleEventCallback_ =
-        new (std::nothrow) AbilityBundleEventCallback(nullptr, nullptr);
+        new (std::nothrow) AbilityBundleEventCallback(nullptr);
     EXPECT_NE(abilityBundleEventCallback_, nullptr);
     EventFwk::CommonEventData eventData;
     abilityBundleEventCallback_->OnReceiveEvent(eventData);
-    EXPECT_EQ(abilityBundleEventCallback_->taskHandler_, nullptr);
 }
 
 /**
@@ -62,12 +61,10 @@ HWTEST_F(AbilityBundleEventCallbackTest, OnReceiveEvent_0100, TestSize.Level1)
 HWTEST_F(AbilityBundleEventCallbackTest, OnReceiveEvent_0200, TestSize.Level1)
 {
     sptr<AbilityBundleEventCallback> abilityBundleEventCallback_ =
-        new (std::nothrow) AbilityBundleEventCallback(nullptr, nullptr);
+        new (std::nothrow) AbilityBundleEventCallback(nullptr);
     EXPECT_NE(abilityBundleEventCallback_, nullptr);
-    abilityBundleEventCallback_->taskHandler_ = TaskHandlerWrap::CreateQueueHandler("AbilityBundleEventCallbackTest");
     EventFwk::CommonEventData eventData;
     abilityBundleEventCallback_->OnReceiveEvent(eventData);
-    EXPECT_NE(abilityBundleEventCallback_->taskHandler_, nullptr);
 }
 } // namespace AAFwk
 } // namespace OHOS
