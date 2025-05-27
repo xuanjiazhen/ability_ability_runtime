@@ -318,7 +318,7 @@ bool GetAbilityResultClass(ani_env *env, ani_class &cls)
 bool GetResultCode(ani_env *env, ani_object param, ani_class cls, int &resultCode)
 {
     ani_method method {};
-    ani_status status = env->Class_FindMethod(cls, "<get>resultCode", nullptr, &method);
+    ani_status status = env->Class_FindMethod(cls, "%%get-resultCode", nullptr, &method);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
         return false;
@@ -336,7 +336,7 @@ bool GetResultCode(ani_env *env, ani_object param, ani_class cls, int &resultCod
 bool GetWantReference(ani_env *env, ani_object param, ani_class cls, ani_ref &wantRef)
 {
     ani_method method {};
-    ani_status status = env->Class_FindMethod(cls, "<get>want", nullptr, &method);
+    ani_status status = env->Class_FindMethod(cls, "%%get-want", nullptr, &method);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
         return false;
