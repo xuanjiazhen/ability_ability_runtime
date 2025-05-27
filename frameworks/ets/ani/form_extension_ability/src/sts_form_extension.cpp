@@ -350,7 +350,7 @@ bool STSFormExtension::ExtractFormData(ani_env *env, ani_ref nativeResult, AppEx
     }
 
     ani_method data{};
-    status = env->Class_FindMethod(cls, "<get>data", nullptr, &data);
+    status = env->Class_FindMethod(cls, "%%get-data", nullptr, &data);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod data status: %{public}d", status);
         return false;
@@ -367,7 +367,7 @@ bool STSFormExtension::ExtractFormData(ani_env *env, ani_ref nativeResult, AppEx
     formData = AppExecFwk::FormProviderData(dataStr);
 
     ani_method proxies;
-    status = env->Class_FindMethod(cls, "<get>proxies", nullptr, &proxies);
+    status = env->Class_FindMethod(cls, "%%get-proxies", nullptr, &proxies);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod proxies status: %{public}d", status);
         return true;

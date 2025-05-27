@@ -50,7 +50,7 @@ ani_object WrapAbilityResult(ani_env *env, int32_t resultCode, const AAFwk::Want
     }
     
     ani_method resultCodeSetter = nullptr;
-    if ((status = env->Class_FindMethod(cls, "<set>resultCode", nullptr, &resultCodeSetter)) != ANI_OK) {
+    if ((status = env->Class_FindMethod(cls, "%%set-resultCode", nullptr, &resultCodeSetter)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "Class_FindMethod status: %{public}d", status);
         return nullptr;
     }
@@ -62,7 +62,7 @@ ani_object WrapAbilityResult(ani_env *env, int32_t resultCode, const AAFwk::Want
     }
 
     ani_method wantSetter = nullptr;
-    if ((status = env->Class_FindMethod(cls, "<set>want", nullptr, &wantSetter)) != ANI_OK) {
+    if ((status = env->Class_FindMethod(cls, "%%set-want", nullptr, &wantSetter)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "Class_FindMethod status: %{public}d", status);
         return nullptr;
     }
