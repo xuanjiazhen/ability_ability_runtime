@@ -46,11 +46,16 @@
 #include "display_manager.h"
 #include "window.h"
 #endif
+#include "ets_context_utils.h"
+#include "ets_runtime.h"
+#include "ets_error_utils.h"
 
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
     constexpr const char* PERSIST_DARKMODE_KEY = "persist.ace.darkmode";
+    constexpr const char* ETS_APPLICATION_CONTEXT_CLASS_NAME = "Lapplication/ApplicationContext/ApplicationContext;";
+    constexpr const char* ETS_CONTEXT_CLASS_NAME = "Lapplication/Context/Context;";
 }
 REGISTER_APPLICATION(OHOSApplication, OHOSApplication)
 constexpr int32_t APP_ENVIRONMENT_OVERWRITE = 1;
@@ -206,6 +211,116 @@ void OHOSApplication::SetApplicationContext(
         return applicationSptr->GetDisplayConfig(displayId, density, directionStr);
     });
 #endif
+}
+
+static void SetSupportedProcessCacheSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
+    ani_boolean value)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "SetSupportedProcessCacheSync Call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "env is null");
+        return;
+    }
+    ani_class applicationContextCls = nullptr;
+    if (env->FindClass(ETS_APPLICATION_CONTEXT_CLASS_NAME, &applicationContextCls) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "FindClass ApplicationContext failed");
+        AbilityRuntime::ThrowEtsInvalidParamError(env, "FindClass failed");
+        return;
+    }
+    ani_field contextField;
+    if (env->Class_FindField(applicationContextCls, "nativeContext", &contextField) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Class_FindField failed");
+        AbilityRuntime::ThrowEtsInvalidParamError(env, "Class_FindField failed");
+        return;
+    }
+    ani_long nativeContextLong;
+    if (env->Object_GetField_Long(aniObj, contextField, &nativeContextLong) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Object_GetField_Long failed");
+        AbilityRuntime::ThrowEtsInvalidParamError(env, "Object_GetField_Long failed");
+        return;
+    }
+    int32_t errCode = ((AbilityRuntime::ApplicationContext*)nativeContextLong)->SetSupportedProcessCacheSelf(value);
+    if (errCode == AAFwk::ERR_CAPABILITY_NOT_SUPPORT) {
+        AbilityRuntime::ThrowEtsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_CAPABILITY_NOT_SUPPORT);
+    } else if (errCode != ERR_OK) {
+        AbilityRuntime::ThrowEtsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+    }
+}
+
+void OHOSApplication::InitAniApplicationContext()
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "InitAniApplicationContext Call");
+    auto& runtime = GetRuntime(AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2);
+    if (runtime == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "runtime is null");
+        return;
+    }
+    auto aniEnv = static_cast<AbilityRuntime::ETSRuntime &>(*runtime).GetAniEnv();
+    if (aniEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "env is null");
+        return;
+    }
+    ani_class applicationContextCls = nullptr;
+    if (aniEnv->FindClass(ETS_APPLICATION_CONTEXT_CLASS_NAME, &applicationContextCls) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "FindClass ApplicationContext failed");
+        return;
+    }
+    std::array applicationContextFunctions = {
+        ani_native_function {"setSupportedProcessCacheSync", "Z:V",
+            reinterpret_cast<void *>(SetSupportedProcessCacheSync)},
+    };
+    aniEnv->Class_BindNativeMethods(applicationContextCls, applicationContextFunctions.data(),
+        applicationContextFunctions.size());
+
+    ani_method contextCtorMethod = nullptr;
+    if (aniEnv->Class_FindMethod(applicationContextCls, "<ctor>", ":V", &contextCtorMethod) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Class_FindMethod ctor failed");
+        return;
+    }
+    ani_object applicationContextObject = nullptr;
+    if (aniEnv->Object_New(applicationContextCls, contextCtorMethod, &applicationContextObject) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Object_New failed");
+        return;
+    }
+    ani_field contextField;
+    if (aniEnv->Class_FindField(applicationContextCls, "nativeContext", &contextField) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Class_FindField failed");
+        return;
+    }
+    if (aniEnv->Object_SetField_Long(applicationContextObject, contextField,
+        (ani_long)abilityRuntimeContext_.get()) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Object_SetField_Long failed");
+        return;
+    }
+    auto etsReference = std::make_shared<AbilityRuntime::ETSNativeReference>();
+    etsReference->aniObj = applicationContextObject;
+    AbilityRuntime::ApplicationContextManager::GetApplicationContextManager().AddEtsGlobalObject(aniEnv, etsReference);
+}
+
+void OHOSApplication::InitAniContext()
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "InitAniContext Call");
+    auto& runtime = GetRuntime(AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2);
+    if (runtime == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "runtime is null");
+        return;
+    }
+    auto aniEnv = static_cast<AbilityRuntime::ETSRuntime &>(*runtime).GetAniEnv();
+    if (aniEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "env is null");
+        return;
+    }
+    ani_class contextCls = nullptr;
+    if (aniEnv->FindClass(ETS_CONTEXT_CLASS_NAME, &contextCls) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "FindClass Context failed");
+        return;
+    }
+    std::array contextFunctions = {
+        ani_native_function {"getApplicationContextSync", ":Lapplication/ApplicationContext/ApplicationContext;",
+            reinterpret_cast<void *>(AbilityRuntime::ContextUtil::GetApplicationContextSync)},
+    };
+    aniEnv->Class_BindNativeMethods(contextCls, contextFunctions.data(),
+        contextFunctions.size());
 }
 
 /**
