@@ -92,6 +92,20 @@ public:
     int DisconnectAbility();
 
     /**
+     * Suspend the service ability.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int SuspendExtensionAbility();
+    
+    /**
+     * Resume the service ability.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int ResumeExtensionAbility();
+
+    /**
      * force to disconnect time out event.
      *
      */

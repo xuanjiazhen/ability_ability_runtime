@@ -843,7 +843,10 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentieth(uint32_t code, MessageParc
     if (interfaceCode == AbilityManagerInterfaceCode::START_ABILITY_WITH_WAIT) {
         return StartAbilityWithWaitInner(data, reply);
     }
-    if (interfaceCode == AbilityManagerInterfaceCode::RESTART_SELF_ATOMIC_SERVICE) {
+    if (interfaceCode == AbilityManagerInterfaceCode::SUSPEND_EXTENSION_ABILITY) {
+        return RestartSelfAtomicServiceInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::RESUME_EXTENSION_ABILITY) {
         return RestartSelfAtomicServiceInner(data, reply);
     }
     return ERR_CODE_NOT_EXIST;
@@ -4606,6 +4609,32 @@ int32_t AbilityManagerStub::GetInsightIntentInfoByIntentNameInner(MessageParcel 
         TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
         return INNER_ERR;
     }
+    return NO_ERROR;
+}
+
+int AbilityManagerStub::SuspendExtensionAbilityInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IAbilityConnection> callback = iface_cast<IAbilityConnection>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "callback null");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t result = SuspendExtensionAbility(callback);
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "suspend extension ability ret = %d", result);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int AbilityManagerStub::ResumeExtensionAbilityInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IAbilityConnection> callback = iface_cast<IAbilityConnection>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "callback null");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t result = SuspendExtensionAbility(callback);
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "resume extension ability ret = %d", result);
+    reply.WriteInt32(result);
     return NO_ERROR;
 }
 
