@@ -2285,10 +2285,10 @@ void UIAbilityLifecycleManager::StartSpecifiedAbilityBySCB(const Want &want)
     abilityRequest.isFromIcon = true;
     std::lock_guard guard(sessionLock_);
     // support specified process mode
-    if (!IsStartSpecifiedProcessRequest(abilityRequest)) {
+    if (IsStartSpecifiedProcessRequest(abilityRequest)) {
+        StartSpecifiedProcessRequest(abilityRequest);
         return;
     }
-    StartSpecifiedProcessRequest(abilityRequest);
     AddSpecifiedRequest(std::make_shared<SpecifiedRequest>(GetRequestId(), abilityRequest));
 }
 
@@ -2984,6 +2984,7 @@ int UIAbilityLifecycleManager::MoveMissionToFront(int32_t sessionId, std::shared
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_HEIGHT, 0),
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_WIDTH, 0));
     sessionInfo->canStartAbilityFromBackground = true;
+    sessionInfo->isMoveMissionToFront = true;
     return static_cast<int>(tmpSceneSession->PendingSessionActivation(sessionInfo));
 }
 
