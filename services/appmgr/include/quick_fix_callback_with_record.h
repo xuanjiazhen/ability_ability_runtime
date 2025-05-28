@@ -32,9 +32,9 @@ public:
 
     ~QuickFixCallbackWithRecord() override;
 
-    void OnLoadPatchDone(int32_t resultCode, int32_t recordId) override;
-    void OnUnloadPatchDone(int32_t resultCode, int32_t recordId) override;
-    void OnReloadPageDone(int32_t resultCode, int32_t recordId) override;
+    ErrCode OnLoadPatchDone(int32_t resultCode, int32_t recordId) override;
+    ErrCode OnUnloadPatchDone(int32_t resultCode, int32_t recordId) override;
+    ErrCode OnReloadPageDone(int32_t resultCode, int32_t recordId) override;
 
     void AddRecordId(int32_t recordId);
     void RemoveRecordId(int32_t recordId);
