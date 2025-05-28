@@ -40,7 +40,7 @@
 #include "insight_intent/insight_intent_execute_param.h"
 #include "insight_intent/insight_intent_execute_result.h"
 #include "insight_intent/insight_intent_info_for_query.h"
-#include "iprepare_terminate_callback_interface.h"
+#include "iprepare_terminate_callback.h"
 #include "keep_alive_info.h"
 #include "mission_info.h"
 #include "query_erms_observer_interface.h"

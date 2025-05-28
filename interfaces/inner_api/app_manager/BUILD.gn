@@ -126,6 +126,7 @@ ohos_shared_library("app_manager") {
   public_configs = [
     ":appmgr_core_config",
     ":appmgr_sdk_config",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
   ]
 
   defines = [ "AMS_LOG_TAG = \"AppexecfwkCore\"" ]
@@ -160,6 +161,7 @@ ohos_shared_library("app_manager") {
     "ability_base:want",
     "bundle_framework:appexecfwk_base",
     "image_framework:image_native",
+    "relational_store:native_dataability",
     "relational_store:native_rdb",
   ]
   if (ability_runtime_child_process) {
