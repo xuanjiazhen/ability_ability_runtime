@@ -797,6 +797,11 @@ enum {
      * Result (2097333) for target has not been started yet.
      */
     ERR_TARGET_NOT_STARTED = 2097333,
+
+    /**
+     * Result (2097334) for app selector not exists.
+     */
+    ERR_APP_SELECTOR_NOT_EXISTS = 2097334,
     
     /**
      * Native error(3000000) for target bundle not exist.
@@ -1019,6 +1024,11 @@ enum NativeFreeInstallError {
      * Result(29360217) for caller is not atomic service.
      */
      ERR_CALLER_NOT_ATOMIC_SERVICE = 29360217,
+
+    /*
+     * Result(29360218) for failed to create instance key from SCB.
+     */
+    ERR_CREATE_INSTANCE_KEY_FAILED = 29360218,
 
     /**
      * Undefine error code.

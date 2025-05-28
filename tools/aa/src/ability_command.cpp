@@ -32,6 +32,7 @@
 #include "sa_mgr_client.h"
 #include "system_ability_definition.h"
 #include "test_observer.h"
+#include "app_mem_info.h"
 
 using namespace OHOS::AppExecFwk;
 
@@ -53,6 +54,9 @@ constexpr int OPTION_WINDOW_LEFT = 261;
 constexpr int OPTION_WINDOW_TOP = 262;
 constexpr int OPTION_WINDOW_HEIGHT = 263;
 constexpr int OPTION_WINDOW_WIDTH = 264;
+
+constexpr int INVALID_PID = 10104003;
+constexpr int INVALID_LEVEL = 10104004;
 
 constexpr int INNER_ERR_START = 10108101;
 constexpr int INNER_ERR_TEST = 10108501;
@@ -122,6 +126,10 @@ const std::string ERR_IMPLICIT_START_ABILITY_FAIL_SOLUTION_TWO =
     "Make sure the corresponding HAP package is installed";
 const std::string ERR_INVALID_VALUE_SOLUTION_ONE =
     "Check if the application corresponding to the specified bundleName is installed.";
+const std::string ERR_INVALID_PID_VALUE_SOLUTION_ONE =
+    "Check if the pid specified by the application exists.";
+const std::string ERR_INVALID_LEVEL_VALUE_SOLUTION_ONE =
+    "Check if the value range of level is [0, 1, 2].";    
 const std::string BLACK_ACTION_SELECT_DATA = "ohos.want.action.select";
 
 constexpr struct option LONG_OPTIONS[] = {
@@ -218,6 +226,13 @@ constexpr struct option LONG_OPTIONS_ATTACH[] = {
     {"bundle", required_argument, nullptr, 'b'},
     {nullptr, 0, nullptr, 0},
 };
+const std::string SHORT_OPTIONS_SEND_MEMORY_LEVEL = "hp:l:";
+constexpr struct option LONG_OPTIONS_SEND_MEMORY_LEVEL[] = {
+    {"help", no_argument, nullptr, 'h'},
+    {"pid", required_argument, nullptr, 'p' },
+    {"level", required_argument, nullptr, 'l' },
+    {nullptr, 0, nullptr, 0 },
+};
 }  // namespace
 
 AbilityManagerShellCommand::AbilityManagerShellCommand(int argc, char* argv[]) : ShellCommand(argc, argv, TOOL_NAME)
@@ -240,6 +255,7 @@ ErrCode AbilityManagerShellCommand::CreateCommandMap()
         {"attach", [this]() { return this->RunAsAttachDebugCommand(); }},
         {"detach", [this]() { return this->RunAsDetachDebugCommand(); }},
         {"appdebug", [this]() { return this->RunAsAppDebugDebugCommand(); }},
+        {"send-memory-level", [this]() { return this->RunAsSendMemoryLevelCommand(); }},
 #ifdef ABILITY_COMMAND_FOR_TEST
         {"force-timeout", [this]() { return this->RunForceTimeoutForTest(); }},
 #endif
@@ -327,6 +343,12 @@ ErrCode AbilityManagerShellCommand::CreateMessageMap()
         "Failed to retrieve specified package information.",
         "The application corresponding to the specified package name is not installed.",
         {GET_BUNDLE_INFO_FAILED_SOLUTION_ONE, GET_BUNDLE_INFO_FAILED_SOLUTION_TWO});
+    messageMap_[INVALID_PID] = GetAaToolErrorInfo("10104003", "The specified pid does not exist.",
+        "The pid specified by the aa send-memory-level command does not exist.",
+        {ERR_INVALID_PID_VALUE_SOLUTION_ONE});
+    messageMap_[INVALID_LEVEL] = GetAaToolErrorInfo("10104004", "The specified level does not exist.",
+        "The level specified by the aa send-memory-level command does not exist.",
+        {ERR_INVALID_LEVEL_VALUE_SOLUTION_ONE});
     messageMap_[ERR_NOT_DEVELOPER_MODE] = GetAaToolErrorInfo("10106001", "not developer Mode",
         "The current device is not in developer mode",
         {ERR_NOT_DEVELOPER_MODE_SOLUTION_ONE});
@@ -1012,6 +1034,108 @@ ErrCode AbilityManagerShellCommand::RunAsProcessCommand()
     }
 
     return result;
+}
+
+ErrCode AbilityManagerShellCommand::RunAsSendMemoryLevelCommand()
+{
+    TAG_LOGD(AAFwkTag::AA_TOOL, "sendMemoryLevel");
+    std::string pidParse = "";
+    std::string memoryLevelParse = "";
+    ParsePidMemoryLevel(pidParse, memoryLevelParse);
+    if(pidParse.empty() || memoryLevelParse.empty()) {
+        resultReceiver_.append(HELP_MSG_SEND_MEMORY_LEVEL + "\n");
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    pid_t inputPid = static_cast<pid_t>(ConvertPid(pidParse));
+    MemoryLevel inputLevel = static_cast<MemoryLevel>(ConvertPid(memoryLevelParse));
+
+    std::string appRunningUniqueId;
+    ErrCode queryResult = DelayedSingleton<AppMgrClient>::GetInstance()->GetAppRunningUniqueIdByPid(
+        inputPid, appRunningUniqueId);
+    if (inputPid <= 0 || queryResult != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "pid value error. The specified pid does not exist.");
+        resultReceiver_.append(STRING_SEND_MEMORY_LEVEL_NG + "\n");
+        resultReceiver_.append(GetMessageFromCode(INVALID_PID));
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!(inputLevel == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_MODERATE ||
+        inputLevel == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_CRITICAL ||
+        inputLevel == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_LOW)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "level value error. Valid values: 0-2 (0: Moderate, 1: Low, 2: Critical)");
+        resultReceiver_.append(STRING_SEND_MEMORY_LEVEL_NG + "\n");
+        resultReceiver_.append(GetMessageFromCode(INVALID_LEVEL));
+        return ERR_INVALID_VALUE;
+    }
+
+    std::map<pid_t, MemoryLevel> pidMemoryLevelMap;
+    pidMemoryLevelMap.emplace(inputPid, inputLevel);
+    auto result = DelayedSingleton<AppMgrClient>::GetInstance()->NotifyProcMemoryLevel(pidMemoryLevelMap);
+    if (result == OHOS::ERR_OK) {
+        TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s", STRING_SEND_MEMORY_LEVEL_OK.c_str());
+        resultReceiver_ = STRING_SEND_MEMORY_LEVEL_OK + "\n";
+    } else {
+        TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s result: %{public}d", STRING_SEND_MEMORY_LEVEL_NG.c_str(), result);
+        resultReceiver_ = STRING_SEND_MEMORY_LEVEL_NG + "\n";
+        resultReceiver_.append(GetMessageFromCode(result));
+    }
+
+    return result;
+}
+
+ErrCode AbilityManagerShellCommand::ParsePidMemoryLevel(std::string &pidParse, std::string &memoryLevelParse)
+{
+    int option = -1;
+    int counter = 0;
+    while (true) {
+        counter++;
+        option = getopt_long(argc_, argv_, SHORT_OPTIONS_SEND_MEMORY_LEVEL.c_str(),
+            LONG_OPTIONS_SEND_MEMORY_LEVEL, nullptr);
+        TAG_LOGD(AAFwkTag::AA_TOOL, "getopt_long option: %{public}d, optopt: %{public}d, optind: %{public}d",
+            option, optopt, optind);
+        
+        if (optind < 0 || optind > argc_) {
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        // aa command without option
+        if (option == -1) {
+            if (counter == 1 && strcmp(argv_[optind], cmd_.c_str()) == 0) {
+                resultReceiver_.append(HELP_MSG_NO_OPTION + "\n");
+            }
+            break;
+        }
+
+        switch (option) {
+            case 'h':{
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -h' no arg", cmd_.c_str());
+                // 'aa send-memory-level -h' no arg
+                break;
+            }
+            case 'p':{
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -p' pid", cmd_.c_str());
+                // 'aa send-memory-level -p pid'
+                pidParse = optarg;
+                break;
+            }
+            case 'l':{
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -l' level", cmd_.c_str());
+                // 'aa send-memory-level -l level'
+                memoryLevelParse = optarg;
+                break;
+            }
+            case '?':{
+                std::string unknownOption = "";
+                std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
+                resultReceiver_.append(unknownOptionMsg);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    return OHOS::ERR_OK;
 }
 
 bool AbilityManagerShellCommand::MatchOrderString(const std::regex &regexScript, const std::string &orderCmd)

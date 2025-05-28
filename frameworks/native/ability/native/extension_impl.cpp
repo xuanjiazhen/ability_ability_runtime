@@ -242,7 +242,7 @@ void ExtensionImpl::Stop(bool &isAsyncCallback, const Want &want, sptr<AAFwk::Se
 void ExtensionImpl::AbilityTransactionCallback(const AAFwk::AbilityLifeCycleState &state)
 {
     TAG_LOGD(AAFwkTag::EXT, "called");
-    AAFwk::PacMap restoreData;
+    PacMap restoreData;
     AAFwk::AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_, state, restoreData);
 }
 
