@@ -98,7 +98,6 @@ ohos_unittest("appfreeze_state_test") {
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
-    "json:nlohmann_json_static",
     "napi:ace_napi",
   ]
 

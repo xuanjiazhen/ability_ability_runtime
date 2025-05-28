@@ -88,13 +88,18 @@ ErrCode UIServiceMgrClient::ShowDialog(const std::string& name, const std::strin
     isCallBack_ = false;
     if (code_ == EVENT_MULT_APP_CHOOSE) {
         params_ = params;
-        auto jsonObj = nlohmann::json::parse(params, nullptr, false);
-        auto hapListObj = nlohmann::json::array();
-        hapListObj = jsonObj["hapList"];
-        auto aObj = hapListObj[0];
-        std::string callbackParams = aObj["bundle"].dump() + ";" + aObj["ability"].dump();
-        callback(0, EVENT_CHOOSE_CODE, callbackParams);
-        return ERR_OK;
+        cJSON *jsonObj = cJSON_Parse(params.c_str());
+        cJSON *hapListObj = cJSON_GetObjectItem(jsonObj, "hapList");
+        if (cJSON_GetArraySize > 0) {
+            cJSON *aObj = cJSON_GetArrayItem(hapListObj, 0);
+            cJSON *bundleItem = cJSON_GetObjectItem(aObj, "bundle");
+            cJSON *abilityItem = cJSON_GetObjectItem(aObj, "ability");
+            std::string bundle = bundleItem->valuestring;
+            std::string ability = abilityItem->valuestring;
+            std::string callbackParams = bundle + ";" + ability;
+            callback(0, EVENT_CHOOSE_CODE, callbackParams);
+            return ERR_OK;
+        }
     }
 
     if (code_ == EVENT_MULT_APP_CLOSE) {

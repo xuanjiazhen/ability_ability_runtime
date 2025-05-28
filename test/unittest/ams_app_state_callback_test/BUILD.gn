@@ -43,7 +43,6 @@ ohos_unittest("AmsAppStateCallbackTest") {
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
-    "json:nlohmann_json_static",
   ]
 }
 
