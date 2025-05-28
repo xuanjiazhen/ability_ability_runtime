@@ -16,36 +16,6 @@
 #ifndef OHOS_ABILITY_RUNTIME_QUERY_ERMS_OBSERVER_INTERFACE_H
 #define OHOS_ABILITY_RUNTIME_QUERY_ERMS_OBSERVER_INTERFACE_H
 
-#include <string>
-#include "iremote_broker.h"
-
-namespace OHOS {
-namespace AbilityRuntime {
-struct AtomicServiceStartupRule {
-    bool isOpenAllowed = false;
-    bool isEmbeddedAllowed = false;
-};
-
-class IQueryERMSObserver : public OHOS::IRemoteBroker {
-public:
-    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.aafwk.IQueryERMSObserver");
-
-    /**
-     * OnQueryFinished, return free install result.
-     *
-     * @param appId Query ERMS app id.
-     * @param startTime Free install start request time.
-     * @param rule The ERMS query result.
-     * @param resultCode The result code.
-     */
-    virtual void OnQueryFinished(const std::string &appId, const std::string &startTime,
-        const AtomicServiceStartupRule &rule, int resultCode) = 0;
-
-    enum {
-        ON_QUERY_FINISHED = 1,
-    };
-};
-} // namespace AbilityRuntime
-} // namespace OHOS
+#include "iquery_e_r_m_s_observer.h"
 
 #endif // OHOS_ABILITY_RUNTIME_QUERY_ERMS_OBSERVER_INTERFACE_H

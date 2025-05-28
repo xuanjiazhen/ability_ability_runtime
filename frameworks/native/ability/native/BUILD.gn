@@ -289,8 +289,6 @@ ohos_shared_library("abilitykit_native") {
     "${ability_runtime_native_path}/ability/native/js_free_install_observer.cpp",
     "${ability_runtime_native_path}/ability/native/js_query_erms_observer.cpp",
     "${ability_runtime_native_path}/ability/native/new_ability_impl.cpp",
-    "${ability_runtime_native_path}/ability/native/query_erms_observer_proxy.cpp",
-    "${ability_runtime_native_path}/ability/native/query_erms_observer_stub.cpp",
     "${ability_runtime_native_path}/ability/native/service_ability_impl.cpp",
     "${ability_runtime_native_path}/appkit/app/app_context.cpp",
     "${ability_runtime_native_path}/appkit/app/context_container.cpp",
@@ -302,6 +300,7 @@ ohos_shared_library("abilitykit_native") {
   public_configs = [
     ":ability_public_config",
     "${ability_runtime_native_path}/ability:ability_context_public_config",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
     "${ability_runtime_innerkits_path}/wantagent:wantagent_innerkits_public_config",
   ]
 
@@ -313,6 +312,8 @@ ohos_shared_library("abilitykit_native") {
     ":ui_service_extension_connection",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_proxy",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
     "${ability_runtime_innerkits_path}/ability_manager:mission_info",
@@ -375,6 +376,8 @@ ohos_shared_library("abilitykit_native") {
     "jsoncpp:jsoncpp",
     "libuv:uv",
     "napi:ace_napi",
+    "relational_store:native_dataability",
+    "relational_store:native_rdb",
   ]
 
   defines = []

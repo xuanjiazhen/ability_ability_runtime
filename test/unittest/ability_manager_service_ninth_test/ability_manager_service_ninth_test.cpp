@@ -68,7 +68,7 @@ class MockIPrepareTerminateCallback : public IPrepareTerminateCallback {
 public:
     MockIPrepareTerminateCallback() {};
     virtual ~MockIPrepareTerminateCallback() {};
-    void DoPrepareTerminate() override {};
+    ErrCode DoPrepareTerminate() override { return ERR_OK; };
     sptr<IRemoteObject> AsObject() override
     {
         return {};

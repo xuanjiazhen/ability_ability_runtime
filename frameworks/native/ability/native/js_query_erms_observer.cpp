@@ -29,7 +29,7 @@ JsQueryERMSObserver::JsQueryERMSObserver(napi_env env) : env_(env) {}
 
 JsQueryERMSObserver::~JsQueryERMSObserver() = default;
 
-void JsQueryERMSObserver::OnQueryFinished(const std::string &appId, const std::string &startTime,
+ErrCode JsQueryERMSObserver::OnQueryFinished(const std::string &appId, const std::string &startTime,
     const AtomicServiceStartupRule &rule, int32_t resultCode)
 {
     TAG_LOGD(AAFwkTag::QUERY_ERMS, "call");
@@ -51,6 +51,7 @@ void JsQueryERMSObserver::OnQueryFinished(const std::string &appId, const std::s
     std::unique_ptr<NapiAsyncTask::ExecuteCallback> execute = nullptr;
     NapiAsyncTask::Schedule("JsQueryERMSObserver::OnQueryFinished", env_, std::make_unique<NapiAsyncTask>(callback,
         std::move(execute), std::move(complete)));
+    return ERR_OK;
 }
 
 void JsQueryERMSObserver::HandleOnQueryFinished(const std::string &appId, const std::string &startTime,

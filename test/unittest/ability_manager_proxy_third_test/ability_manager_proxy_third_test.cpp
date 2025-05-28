@@ -126,7 +126,7 @@ public:
 
 class MockIPrepareTerminateCallback : public IPrepareTerminateCallback {
 public:
-    void DoPrepareTerminate() override {};
+    ErrCode DoPrepareTerminate() override { return ERR_OK; };
     sptr<IRemoteObject> AsObject() override
     {
         return iremoteObject_;

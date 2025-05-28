@@ -29,7 +29,10 @@ ohos_unittest("ability_tool_test") {
   sources = [ "ability_tool_test.cpp" ]
   sources += test_ability_tool_mock_sources
 
-  configs = [ ":test_ability_tool_config" ]
+  configs = [
+    ":test_ability_tool_config",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
+  ]
 
   cflags = []
   if (target_cpu == "arm") {

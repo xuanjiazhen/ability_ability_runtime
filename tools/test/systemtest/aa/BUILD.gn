@@ -28,7 +28,10 @@ ohos_systemtest("aa_command_start_system_test") {
     "tool_system_test.cpp",
   ]
 
-  configs = [ ":tools_aa_test_config" ]
+  configs = [
+    ":tools_aa_test_config",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
+  ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -61,7 +64,10 @@ ohos_systemtest("aa_command_stop_service_system_test") {
     "tool_system_test.cpp",
   ]
 
-  configs = [ ":tools_aa_test_config" ]
+  configs = [
+    ":tools_aa_test_config",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
+  ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -93,7 +99,10 @@ ohos_systemtest("aa_command_dump_system_test") {
     "tool_system_test.cpp",
   ]
 
-  configs = [ ":tools_aa_test_config" ]
+  configs = [
+    ":tools_aa_test_config",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
+  ]
 
   cflags = []
   if (target_cpu == "arm") {

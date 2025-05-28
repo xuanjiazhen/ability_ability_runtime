@@ -37,9 +37,11 @@ namespace AAFwk {
 
 class MockIQueryERMSObserver : public AbilityRuntime::IQueryERMSObserver {
 public:
-    void OnQueryFinished(const std::string &appId, const std::string &startTime,
+    ErrCode OnQueryFinished(const std::string &appId, const std::string &startTime,
         const AtomicServiceStartupRule &rule, int resultCode)
-    {}
+    {
+        return ERR_OK;
+    }
     sptr<IRemoteObject> AsObject()
     {
         return token_;
@@ -51,7 +53,7 @@ class MockIHiddenStartObserver : public IHiddenStartObserver {
 public:
     bool IsHiddenStart(int32_t pid)
     {
-        return false;
+        return true;
     }
     sptr<IRemoteObject> AsObject()
     {
