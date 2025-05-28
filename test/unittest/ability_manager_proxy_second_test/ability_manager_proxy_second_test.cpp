@@ -17,7 +17,7 @@
 
 #include "ability_manager_proxy.h"
 #include "free_install_observer_manager.h"
-#include "iacquire_share_data_callback_interface.h"
+#include "iacquire_share_data_callback.h"
 #include "iability_manager_collaborator.h"
 #include "status_bar_delegate_interface.h"
 
@@ -70,7 +70,7 @@ class IAcquireShareDataCallbackMock : public IAcquireShareDataCallback {
 public:
     IAcquireShareDataCallbackMock() = default;
     virtual ~IAcquireShareDataCallbackMock() = default;
-    int32_t AcquireShareDataDone(int32_t resultCode, WantParams &wantParam) override { return 0; };
+    int32_t AcquireShareDataDone(int32_t resultCode, WantParams &wantParam, int32_t& funcResult) override { return 0; };
     sptr<IRemoteObject> AsObject() override
     {
         AbilityRequest abilityRequest;

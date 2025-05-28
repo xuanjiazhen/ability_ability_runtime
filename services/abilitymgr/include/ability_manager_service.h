@@ -50,7 +50,7 @@
 #include "deeplink_reserve/deeplink_reserve_config.h"
 #include "event_report.h"
 #include "free_install_manager.h"
-#include "iacquire_share_data_callback_interface.h"
+#include "iacquire_share_data_callback.h"
 #include "interceptor/ability_interceptor_executer.h"
 #include "iremote_object.h"
 #include "mission_list_manager_interface.h"

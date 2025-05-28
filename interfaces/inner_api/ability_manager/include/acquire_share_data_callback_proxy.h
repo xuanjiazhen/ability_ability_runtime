@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,30 +13,33 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_ACQUIRE_SHARE_DATA_CALLBACK_PROXY_H
-#define OHOS_ABILITY_RUNTIME_ACQUIRE_SHARE_DATA_CALLBACK_PROXY_H
+#ifndef OHOS_AAFWK_ACQUIRESHAREDATACALLBACKPROXY_H
+#define OHOS_AAFWK_ACQUIRESHAREDATACALLBACKPROXY_H
 
-#include "iremote_proxy.h"
-#include "iacquire_share_data_callback_interface.h"
-#include "want_params.h"
+#include <iremote_proxy.h>
+#include "iacquire_share_data_callback.h"
 
 namespace OHOS {
 namespace AAFwk {
+
 class AcquireShareDataCallbackProxy : public IRemoteProxy<IAcquireShareDataCallback> {
 public:
-    explicit AcquireShareDataCallbackProxy
-        (const sptr<IRemoteObject> &impl) : IRemoteProxy<IAcquireShareDataCallback>(impl) {}
+    explicit AcquireShareDataCallbackProxy(
+        const sptr<IRemoteObject>& remote)
+        : IRemoteProxy<IAcquireShareDataCallback>(remote)
+    {}
 
-    virtual ~AcquireShareDataCallbackProxy() {}
+    virtual ~AcquireShareDataCallbackProxy()
+    {}
 
-    virtual int32_t AcquireShareDataDone(int32_t resultCode, WantParams &wantParam) override;
-
-private:
-    bool WriteInterfaceToken(MessageParcel &data);
+    ErrCode AcquireShareDataDone(
+        int32_t resultCode,
+        const WantParams& wantParam,
+        int32_t& funcResult) override;
 
 private:
     static inline BrokerDelegator<AcquireShareDataCallbackProxy> delegator_;
 };
 } // namespace AAFwk
 } // namespace OHOS
-#endif // OHOS_ABILITY_RUNTIME_ACQUIRE_SHARE_DATA_CALLBACK_PROXY_H
+#endif // OHOS_AAFWK_ACQUIRESHAREDATACALLBACKPROXY_H

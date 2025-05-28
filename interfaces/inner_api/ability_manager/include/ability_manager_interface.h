@@ -36,7 +36,7 @@
 #include "free_install_observer_interface.h"
 #include "iability_controller.h"
 #include "iability_manager_collaborator.h"
-#include "iacquire_share_data_callback_interface.h"
+#include "iacquire_share_data_callback.h"
 #include "insight_intent/insight_intent_execute_param.h"
 #include "insight_intent/insight_intent_execute_result.h"
 #include "insight_intent/insight_intent_info_for_query.h"

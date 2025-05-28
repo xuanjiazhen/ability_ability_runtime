@@ -7445,7 +7445,8 @@ int32_t AbilityManagerService::GetShareDataPairAndReturnData(std::shared_ptr<Abi
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "callback object null");
                 return ERR_INVALID_VALUE;
             }
-            auto ret = callback->AcquireShareDataDone(resultCode, wantParam);
+            int32_t ret = 0;
+            callback->AcquireShareDataDone(resultCode, wantParam, ret);
             iAcquireShareDataMap_.erase(it);
             return ret;
         }

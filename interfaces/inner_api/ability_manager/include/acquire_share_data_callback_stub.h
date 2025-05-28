@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_ACQUIRE_SHARE_DATA_CALLBACK_STUB_H
-#define OHOS_ABILITY_RUNTIME_ACQUIRE_SHARE_DATA_CALLBACK_STUB_H
+#ifndef OHOS_AAFWK_ACQUIRESHAREDATACALLBACKSTUB_H
+#define OHOS_AAFWK_ACQUIRESHAREDATACALLBACKSTUB_H
 
-#include "event_handler.h"
-#include "iacquire_share_data_callback_interface.h"
 #include <iremote_stub.h>
+#include "event_handler.h"
+#include "iacquire_share_data_callback.h"
 #include "want_params.h"
 
 namespace OHOS {
@@ -36,13 +36,13 @@ public:
     virtual int32_t AcquireShareDataDone(int32_t resultCode, WantParams &wantParam) override;
     void SetHandler(std::shared_ptr<AppExecFwk::EventHandler> handler);
     void SetShareRuntimeTask(ShareRuntimeTask &shareRuntimeTask);
-
 private:
     DISALLOW_COPY_AND_MOVE(AcquireShareDataCallbackStub);
-    
+
     ShareRuntimeTask shareRuntimeTask_;
     std::shared_ptr<AppExecFwk::EventHandler> handler_;
 };
 } // namespace AAFwk
 } // namespace OHOS
-#endif // OHOS_ABILITY_RUNTIME_ACQUIRE_SHARE_DATA_CALLBACK_STUB_H
+#endif // OHOS_AAFWK_ACQUIRESHAREDATACALLBACKSTUB_H
+
