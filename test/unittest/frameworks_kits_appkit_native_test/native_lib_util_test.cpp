@@ -88,6 +88,7 @@ HWTEST_F(NativeLibUtilTest, GetHspNativeLibPath_0300, TestSize.Level1)
 {
     AppExecFwk::BaseSharedBundleInfo hspInfo;
     AppLibPathMap appLibPaths;
+    AppLibPathMap appAbcLibPaths;
     bool isPreInstallApp = true;
     hspInfo.nativeLibraryPath = "";
     AppExecFwk::GetHspNativeLibPath(hspInfo, appLibPaths, isPreInstallApp);
