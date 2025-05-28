@@ -257,6 +257,8 @@ void STSRuntime::SetAppLibPath(const AppLibPathMap& appLibPaths)
     StsEnv::STSEnvironment::InitSTSAppNS(appPath);
     StsEnv::STSEnvironment::InitSTSSDKNS(STS_RT_PATH);
     StsEnv::STSEnvironment::InitSTSSysNS(STS_SYSLIB_PATH);
+
+    // ark::ets::EtsNamespaceManager::SetAppLibPaths(appLibPaths);
 }
 
 bool STSRuntime::Initialize(const Options& options)
