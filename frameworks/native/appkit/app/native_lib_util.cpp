@@ -49,9 +49,13 @@ void GetHapSoPath(const HapModuleInfo &hapInfo, AppLibPathMap &appLibPaths, bool
     TAG_LOGD(
         AAFwkTag::APPKIT, "appLibPathKey: %{private}s, lib path: %{private}s", appLibPathKey.c_str(), libPath.c_str());
     appLibPaths[appLibPathKey].emplace_back(libPath);
+
+    std::string appLibAbcPathKey = "/data/storage/el1/bundle/" + hapInfo.moduleName + "/ets/modules_static.abc";
+    appLibPaths[appLibAbcPathKey].emplace_back(libPath);
 }
 
-void GetHspNativeLibPath(const BaseSharedBundleInfo &hspInfo, AppLibPathMap &appLibPaths, bool isPreInstallApp)
+void GetHspNativeLibPath(const BaseSharedBundleInfo &hspInfo, AppLibPathMap &appLibPaths, bool isPreInstallApp,
+    const std::string &appBundleName)
 {
     if (hspInfo.nativeLibraryPath.empty()) {
         return;
@@ -75,6 +79,13 @@ void GetHspNativeLibPath(const BaseSharedBundleInfo &hspInfo, AppLibPathMap &app
     TAG_LOGD(
         AAFwkTag::APPKIT, "appLibPathKey: %{private}s, libPath: %{private}s", appLibPathKey.c_str(), libPath.c_str());
     appLibPaths[appLibPathKey].emplace_back(libPath);
+
+    if (appBundleName) {
+        const bool isInternalHsp = (hspInfo.moduleName == appBundleName);
+        const std::string name = isInternalHsp ? hspInfo.moduleName : hspInfo.bundleName + "/" + hspInfo.moduleName;
+        const std::string appLibAbcPathKey = "/data/storage/el1/bundle/" + name + "/ets/modules_static.abc";
+        appLibPaths[appLibAbcPathKey].emplace_back(libPath);
+    }
 }
 
 void GetPatchNativeLibPath(const HapModuleInfo &hapInfo, std::string &patchNativeLibraryPath,
@@ -101,6 +112,9 @@ void GetPatchNativeLibPath(const HapModuleInfo &hapInfo, std::string &patchNativ
     TAG_LOGD(AAFwkTag::APPKIT, "appLibPathKey: %{public}s, patch lib path: %{private}s", appLibPathKey.c_str(),
         patchLibPath.c_str());
     appLibPaths[appLibPathKey].emplace_back(patchLibPath);
+
+    std::string appLibAbcPathKey = "/data/storage/el1/bundle/" + hapInfo.moduleName + "/ets/modules_static.abc";
+    appLibPaths[appLibAbcPathKey].emplace_back(patchLibPath);
 }
 } // AppExecFwk
 } // namespace OHOS
