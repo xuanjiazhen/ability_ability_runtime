@@ -80,7 +80,7 @@ void GetHspNativeLibPath(const BaseSharedBundleInfo &hspInfo, AppLibPathMap &app
         AAFwkTag::APPKIT, "appLibPathKey: %{private}s, libPath: %{private}s", appLibPathKey.c_str(), libPath.c_str());
     appLibPaths[appLibPathKey].emplace_back(libPath);
 
-    if (appBundleName) {
+    if (!appBundleName.empty()) {
         const bool isInternalHsp = (hspInfo.moduleName == appBundleName);
         const std::string name = isInternalHsp ? hspInfo.moduleName : hspInfo.bundleName + "/" + hspInfo.moduleName;
         const std::string appLibAbcPathKey = "/data/storage/el1/bundle/" + name + "/ets/modules_static.abc";
