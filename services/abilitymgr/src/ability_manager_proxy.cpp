@@ -6559,6 +6559,59 @@ int32_t AbilityManagerProxy::GetInsightIntentInfoByIntentName(
     return reply.ReadInt32();
 }
 
+
+int AbilityManagerProxy::SuspendExtensionAbility(sptr<IAbilityConnection> connect)
+{
+    int error;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (connect == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "fail, connect null");
+        return ERR_INVALID_VALUE;
+    }
+    if (!WriteInterfaceToken(data)) {
+        return INNER_ERR;
+    }
+    if (!data.WriteRemoteObject(connect->AsObject())) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "connect write failed");
+        return ERR_INVALID_VALUE;
+    }
+
+    error = SendRequest(AbilityManagerInterfaceCode::SUSPEND_EXTENSION_ABILITY, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "request error:%{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
+
+int AbilityManagerProxy::ResumeExtensionAbility(sptr<IAbilityConnection> connect)
+{
+    int error;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (connect == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "fail, connect null");
+        return ERR_INVALID_VALUE;
+    }
+    if (!WriteInterfaceToken(data)) {
+        return INNER_ERR;
+    }
+    if (!data.WriteRemoteObject(connect->AsObject())) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "connect write failed");
+        return ERR_INVALID_VALUE;
+    }
+
+    error = SendRequest(AbilityManagerInterfaceCode::RESUME_EXTENSION_ABILITY, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "request error:%{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
+
 int32_t AbilityManagerProxy::RestartSelfAtomicService(sptr<IRemoteObject> callerToken)
 {
     MessageParcel data;

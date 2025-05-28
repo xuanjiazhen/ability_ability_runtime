@@ -31,6 +31,14 @@
 
 namespace OHOS {
 namespace AAFwk {
+
+struct ConnectionEvent
+{
+    bool connectedEvent = false;
+    bool disconnectedEvent = false;
+    bool suspendedEvent = false;
+    bool resumedEvent = false;
+};
 /**
  * @class ConnectionStateManager
  * ConnectionStateManager manage connection states.
@@ -82,6 +90,22 @@ public:
      * @param isCallerDied whether caller was died.
      */
     void RemoveConnection(std::shared_ptr<ConnectionRecord> connectionRecord, bool isCallerDied);
+    
+    /**
+     * suspend an connection to manager.
+     *
+     * @param connectionRecord connection record info.
+     */
+    void SuspendConnection(std::shared_ptr<ConnectionRecord> connectionRecord);
+
+    /**
+     * resume an connection to manager.
+     *
+     * @param connectionRecord connection record info.
+     * @return Returns ERR_OK if success.
+     */
+    void ResumeConnection(std::shared_ptr<ConnectionRecord> connectionRecord);
+
 
     /**
      * add a data ability acquired information to manager.
@@ -196,8 +220,12 @@ private:
     };
 
     bool AddConnectionInner(std::shared_ptr<ConnectionRecord> connectionRecord,
-        AbilityRuntime::ConnectionData &data);
+        AbilityRuntime::ConnectionData &data, ConnectionEvent &connectionEvent);
     bool RemoveConnectionInner(std::shared_ptr<ConnectionRecord> connectionRecord,
+        AbilityRuntime::ConnectionData &data, ConnectionEvent &connectionEvent);
+    bool SuspendConnectionInner(std::shared_ptr<ConnectionRecord> connectionRecord,
+        AbilityRuntime::ConnectionData &data);
+    bool ResumeConnectionInner(std::shared_ptr<ConnectionRecord> connectionRecord,
         AbilityRuntime::ConnectionData &data);
     bool AddDataAbilityConnectionInner(const DataAbilityCaller &caller,
         const std::shared_ptr<DataAbilityRecord> &record, AbilityRuntime::ConnectionData &data);

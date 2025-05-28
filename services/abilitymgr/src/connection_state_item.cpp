@@ -64,28 +64,92 @@ public:
 
     virtual ~ConnectedExtension() = default;
 
-    bool AddConnection(sptr<IRemoteObject> connection)
+    bool AddConnection(sptr<IRemoteObject> connection, ConnectionEvent& event)
     {
         if (!connection) {
             return false;
         }
 
         std::lock_guard guard(connectionsMutex_);
-        bool needNotify = connections_.empty();
-        connections_.emplace(connection);
+        if (connections_.empty()) {
+            event.connectedEvent = true;
+            connections_.emplace(connection, false);
+            return true;
+        }
+        auto it = connections_.find(connection);
+        if (it == connections_.end() {
+            connections_.emplace(connection, false);
+        } else {
+            (*it).second = false;
+        }
 
-        return needNotify;
+        int count = std::count_if(connections_.begin(), connections_.end(),
+            [](std::pair<sptr<IRemoteObject>, bool>& pair) {return pair.second == false});
+        
+        if (count == 1) {
+            event.resumedEvent = true;
+            return true;
+        }
+
+        return false;
     }
 
-    bool RemoveConnection(sptr<IRemoteObject> connection)
+    bool RemoveConnection(sptr<IRemoteObject> connection, ConnectionEvent& event)
     {
         if (!connection) {
             return false;
         }
         std::lock_guard guard(connectionsMutex_);
         connections_.erase(connection);
-        return connections_.empty();
+        if (connections_.empty()) {
+            event.disconnectedEvent = true;
+            return true;
+        }
+
+        auto it = std::find_if(connections_.begin(), connections_.end(),
+            [](std::pair<sptr<IRemoteObject>, bool>& pair) {return pair.second == false});
+        
+        if (it == connections_.end()) {
+            event.suspendedEvent = true;
+            return true;
+        }
+        return false;
     }
+
+    bool SuspendConnection(sptr<IRemoteObject> connection)
+    {
+        if (!connection) {
+            return false;
+        }
+        std::lock_guard guard(connectionsMutex_);
+        auto it = connections_.find(connection);
+        if (it == connections_.end()) {
+            return false;
+        }
+        (*it).second = true;
+        it = std::find_if(connections_.begin(), connections_.end(),
+            [](std::pair<sptr<IRemoteObject>, bool>& pair) {return pair.second == false});
+
+        return it == connections_.end();
+    }
+
+    bool ResumeConnection(sptr<IRemoteObject> connection)
+    {
+        if (!connection) {
+            return false;
+        }
+        std::lock_guard guard(connectionsMutex_);
+        auto it = connections_.find(connection);
+        if (it == connections_.end()) {
+            return false;
+        }
+        (*it).second = false;
+        return std::count_if(connections_.begin(), connections_.end(),
+            [](std::pair<sptr<IRemoteObject>, bool>& pair) {return pair.second == 
+            }) == 1;
+    }
+
+
 
     void GenerateExtensionInfo(AbilityRuntime::ConnectionData &data)
     {
@@ -106,7 +170,7 @@ private:
     AppExecFwk::ExtensionAbilityType extensionType_;
 
     std::mutex connectionsMutex_;
-    std::set<sptr<IRemoteObject>> connections_; // remote object of IAbilityConnection
+    std::map<sptr<IRemoteObject>, bool> connections_; // remote object of IAbilityConnection
 };
 
 /**
