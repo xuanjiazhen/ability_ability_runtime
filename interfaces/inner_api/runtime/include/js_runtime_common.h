@@ -41,6 +41,9 @@ private:
     bool debugMode_ = false;
     bool debugApp_ = false;
     bool nativeStart_ = false;
+    std::mutex debugModeMutex_;
+    std::mutex debugAppMutex_;
+    std::mutex nativeStartMutex_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

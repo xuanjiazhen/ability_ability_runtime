@@ -36,39 +36,45 @@ JsRuntimeCommon::~JsRuntimeCommon() {}
 
 bool JsRuntimeCommon::IsDebugMode()
 {
+    std::lock_guard<std::mutex> lock(debugModeMutex_);
     return debugMode_;
 }
 
 bool JsRuntimeCommon::IsDebugApp()
 {
+    std::lock_guard<std::mutex> lock(debugAppMutex_);
     return debugApp_;
 }
 
 bool JsRuntimeCommon::IsNativeStart()
 {
+    std::lock_guard<std::mutex> lock(nativeStartMutex_);
     return nativeStart_;
 }
 
 void JsRuntimeCommon::SetDebugMode(bool isDebugMode)
 {
+    std::lock_guard<std::mutex> lock(debugModeMutex_);
     debugMode_ = isDebugMode;
 }
 
 void JsRuntimeCommon::SetDebugApp(bool isDebugApp)
 {
+    std::lock_guard<std::mutex> lock(debugAppMutex_);
     debugApp_ = isDebugApp;
 }
 
 void JsRuntimeCommon::SetNativeStart(bool isNativeStart)
 {
+    std::lock_guard<std::mutex> lock(nativeStartMutex_);
     nativeStart_ = isNativeStart;
 }
 
 void JsRuntimeCommon::StartDebuggerModule(bool isDebugApp, bool isNativeStart)
 {
-    debugMode_ = true;
-    debugApp_ = isDebugApp;
-    nativeStart_ = isNativeStart;
+    SetDebugMode(true);
+    SetDebugApp(isDebugApp);
+    SetNativeStart(isNativeStart);
 }
 
 napi_status JsRuntimeCommon::StartDebugMode(NativeEngine* nativeEngine, const std::string& threadName)
@@ -77,13 +83,13 @@ napi_status JsRuntimeCommon::StartDebugMode(NativeEngine* nativeEngine, const st
         TAG_LOGE(AAFwkTag::JSRUNTIME, "null nativeEngine");
         return napi_status::napi_invalid_arg;
     }
-    TAG_LOGI(AAFwkTag::JSRUNTIME, "debug mode is %{public}d, debug app is %{public}d", debugMode_, debugApp_);
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "debug mode is %{public}d, debug app is %{public}d", IsDebugMode(), IsDebugApp());
     auto arkNativeEngine = static_cast<NativeEngine*>(nativeEngine);
     auto instanceId = panda::DFXJSNApi::GetCurrentThreadId();
     TAG_LOGI(AAFwkTag::JSRUNTIME, "Create instanceId is %{public}d", instanceId);
     std::string instanceName = threadName + "_" + std::to_string(instanceId);
     bool isAddInstance = ConnectServerManager::Get().AddInstance(instanceId, instanceId, instanceName);
-    if (nativeStart_) {
+    if (IsNativeStart()) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "native: true, set isAddInstance: false");
         isAddInstance = false;
     }
@@ -93,8 +99,8 @@ napi_status JsRuntimeCommon::StartDebugMode(NativeEngine* nativeEngine, const st
     panda::JSNApi::DebugOption debugOption = {ARK_DEBUGGER_LIB_PATH, isAddInstance};
     auto vm = const_cast<EcmaVM*>(arkNativeEngine->GetEcmaVm());
     ConnectServerManager::Get().StoreDebuggerInfo(
-        instanceId, reinterpret_cast<void*>(vm), debugOption, postTask, debugApp_);
-    panda::JSNApi::NotifyDebugMode(instanceId, vm, debugOption, instanceId, postTask, debugApp_);
+        instanceId, reinterpret_cast<void*>(vm), debugOption, postTask, IsDebugApp());
+    panda::JSNApi::NotifyDebugMode(instanceId, vm, debugOption, instanceId, postTask, IsDebugApp());
     return napi_status::napi_ok;
 }
 
