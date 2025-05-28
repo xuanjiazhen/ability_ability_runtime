@@ -28,6 +28,7 @@ config("ability_context_public_config") {
     "${ability_runtime_path}/interfaces/kits/native/ability/ability_runtime",
     "${ability_runtime_path}/interfaces/kits/native/ability/ability_runtime/context",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
+    "${simulator_path}/common/include",
   ]
 
   cflags = []
