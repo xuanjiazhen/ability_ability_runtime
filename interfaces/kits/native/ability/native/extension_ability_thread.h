@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -63,20 +63,20 @@ public:
      * @param targetState Indicates the lifecycle state.
      * @param sessionInfo Indicates the session info.
      */
-    bool ScheduleAbilityTransaction(const Want &want, const LifeCycleStateInfo &targetState,
-        sptr<AAFwk::SessionInfo> sessionInfo = nullptr) override;
+    ErrCode ScheduleAbilityTransaction(const Want &want, const LifeCycleStateInfo &targetState,
+        const sptr<AAFwk::SessionInfo>& sessionInfo) override;
 
     /**
      * @brief Provide operating system ConnectAbility information to the observer
      * @param want Indicates the structure containing connect information about the ability.
      */
-    void ScheduleConnectAbility(const Want &want) override;
+    ErrCode ScheduleConnectAbility(const Want &want) override;
 
     /**
      * @brief Provide operating system DisconnectAbility information to the observer
      * @param want Indicates the structure containing connect information about the ability.
      */
-    void ScheduleDisconnectAbility(const Want &want) override;
+    ErrCode ScheduleDisconnectAbility(const Want &want) override;
 
     /**
      * @brief Provide operating system CommandAbility information to the observer
@@ -87,7 +87,7 @@ public:
      * 1 every time the ability is started. For example, if the ability has been started for six times, the value of
      * startId is 6.
      */
-    void ScheduleCommandAbility(const Want &want, bool restart, int startId) override;
+    ErrCode ScheduleCommandAbility(const Want &want, bool restart, int32_t startId) override;
 
     /**
      * @brief Schedule Command AbilityWindow
@@ -95,8 +95,8 @@ public:
      * @param sessionInfo Indicates the session info.
      * @param winCmd Indicates the WindowCommand of winCmd
      */
-    void ScheduleCommandAbilityWindow(
-        const Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo, AAFwk::WindowCommand winCmd) override;
+    ErrCode ScheduleCommandAbilityWindow(
+        const Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo, int32_t winCmd) override;
 
     /**
      * @brief ScheduleUpdateConfiguration, scheduling update configuration.
@@ -115,7 +115,7 @@ public:
      * @param want Indicates the data returned after the ability is destroyed. You can define the data returned. This
      * parameter can be null.
      */
-    void SendResult(int requestCode, int resultCode, const Want &resultData) override;
+    ErrCode SendResult(int requestCode, int resultCode, const Want &resultData) override;
 
     /**
      * @brief notify this ability current memory level.
@@ -128,7 +128,7 @@ public:
      * @param params the params need to be Dumped
      * @param info ability runner info.
      */
-    void DumpAbilityInfo(const std::vector<std::string> &params, std::vector<std::string> &info) override;
+    ErrCode DumpAbilityInfo(const std::vector<std::string> &params) override;
 
 private:
     /**

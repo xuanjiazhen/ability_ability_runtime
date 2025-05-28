@@ -215,7 +215,7 @@ public:
      * @return Returns the query result.
      */
     virtual std::shared_ptr<NativeRdb::AbsSharedResultSet> Query(
-        const Uri &uri, std::vector<std::string> &columns, const NativeRdb::DataAbilityPredicates &predicates);
+        const Uri &uri, const std::vector<std::string> &columns, const NativeRdb::DataAbilityPredicates &predicates);
 
     /**
      * @brief Obtains the MIME type matching the data specified by the URI of the Data ability. This method should

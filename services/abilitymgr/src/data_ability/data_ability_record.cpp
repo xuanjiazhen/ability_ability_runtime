@@ -142,7 +142,8 @@ int DataAbilityRecord::Attach(const sptr<IAbilityScheduler> &scheduler)
     LifeCycleStateInfo state;
     state.state = AbilityLifeCycleState::ABILITY_STATE_ACTIVE;
 
-    scheduler->ScheduleAbilityTransaction(ability_->GetWant(), state);
+    sptr<SessionInfo> sessionInfo = nullptr;
+    scheduler->ScheduleAbilityTransaction(ability_->GetWant(), state, sessionInfo);
 
     return ERR_OK;
 }

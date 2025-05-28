@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -94,26 +94,26 @@ public:
      * @param targetState Indicates the lifecycle state.
      * @param sessionInfo Indicates the session info.
      */
-    bool ScheduleAbilityTransaction(
-        const Want &want, const LifeCycleStateInfo &targetState, sptr<SessionInfo> sessionInfo = nullptr) override;
+    ErrCode ScheduleAbilityTransaction(const Want &want, const LifeCycleStateInfo &targetState,
+        const sptr<SessionInfo>& sessionInfo) override;
 
     /**
      * @brief Provide operating system ShareData information to the observer
      * @param requestCode Indicates the Ability request code.
      */
-    void ScheduleShareData(const int32_t &requestCode) override;
+    ErrCode ScheduleShareData(int32_t requestCode) override;
 
     /**
      * @brief Provide operating system ConnectAbility information to the observer
      * @param want Indicates the structure containing connect information about the ability.
      */
-    void ScheduleConnectAbility(const Want &want) override;
+    ErrCode ScheduleConnectAbility(const Want &want) override;
 
     /**
      * @brief Provide operating system DisconnectAbility information to the observer
      * @param want Indicates the structure containing connect information about the ability.
      */
-    void ScheduleDisconnectAbility(const Want &want) override;
+    ErrCode ScheduleDisconnectAbility(const Want &want) override;
 
     /**
      * @brief Provide operating system CommandAbility information to the observer
@@ -124,7 +124,7 @@ public:
      * 1 every time the ability is started. For example, if the ability has been started for six times, the value of
      * startId is 6.
      */
-    void ScheduleCommandAbility(const Want &want, bool restart, int startId) override;
+    ErrCode ScheduleCommandAbility(const Want &want, bool restart, int32_t startId) override;
 
     /**
      * @brief Schedule Command AbilityWindow
@@ -132,24 +132,24 @@ public:
      * @param sessionInfo Indicates the session info.
      * @param winCmd Indicates the WindowCommand of winCmd
      */
-    void ScheduleCommandAbilityWindow(
-        const Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo, AAFwk::WindowCommand winCmd) override;
+    ErrCode ScheduleCommandAbilityWindow(
+        const Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo, int32_t winCmd) override;
 
     /**
      * @brief Provide operating system PrepareTerminateAbility information to the observer
      */
-    bool SchedulePrepareTerminateAbility() override;
+    ErrCode SchedulePrepareTerminateAbility() override;
 
     /**
      * @brief Provide operating system SaveabilityState information to the observer
      */
-    void ScheduleSaveAbilityState() override;
+    ErrCode ScheduleSaveAbilityState() override;
 
     /**
      * @brief Provide operating system RestoreAbilityState information to the observer
      * @param state Indicates resotre ability state used to dispatchRestoreAbilityState.
      */
-    void ScheduleRestoreAbilityState(const PacMap &state) override;
+    ErrCode ScheduleRestoreAbilityState(const PacMap &state) override;
 
     /**
      * @brief Send the result code and data to be returned by this Page ability to the caller.
@@ -162,7 +162,7 @@ public:
      * @param resultData Indicates the data returned after the ability is destroyed. You can define the data returned.
      * This parameter can be null.
      */
-    void SendResult(int requestCode, int resultCode, const Want &resultData) override;
+    ErrCode SendResult(int requestCode, int resultCode, const Want &resultData) override;
 
     /**
      * @brief Obtains the MIME types of files supported.
@@ -170,7 +170,8 @@ public:
      * @param mimeTypeFilter Indicates the MIME types of the files to obtain. This parameter cannot be null.
      * @return Returns the matched MIME types. If there is no match, null is returned.
      */
-    std::vector<std::string> GetFileTypes(const Uri &uri, const std::string &mimeTypeFilter) override;
+    ErrCode GetFileTypes(const Uri &uri, const std::string &mimeTypeFilter,
+        std::vector<std::string>& funcResult) override;
 
     /**
      * @brief Opens a file in a specified remote path.
@@ -181,7 +182,7 @@ public:
      * or "rwt" for read and write access that truncates any existing file.
      * @return Returns the file descriptor.
      */
-    int OpenFile(const Uri &uri, const std::string &mode) override;
+    ErrCode OpenFile(const Uri &uri, const std::string &mode, int& funcResult) override;
 
     /**
      * @brief This is like openFile, open a file that need to be able to return sub-sections of files that often assets
@@ -193,7 +194,7 @@ public:
      * data, or "rwt" for read and write access that truncates any existing file.
      * @return Returns the RawFileDescriptor object containing file descriptor.
      */
-    int OpenRawFile(const Uri &uri, const std::string &mode) override;
+    ErrCode OpenRawFile(const Uri &uri, const std::string &mode, int32_t& funcResult) override;
 
     /**
      * @brief Inserts a single data record into the database.
@@ -201,7 +202,7 @@ public:
      * @param value Indicates the data record to insert. If this parameter is null, a blank row will be inserted.
      * @return Returns the index of the inserted data record.
      */
-    int Insert(const Uri &uri, const NativeRdb::ValuesBucket &value) override;
+    ErrCode Insert(const Uri &uri, const NativeRdb::AmValuesBucket &value, int32_t& funcResult) override;
 
     /**
      * @brief Calls the method of the Data ability.
@@ -211,8 +212,8 @@ public:
      * @param pacMap Defines a PacMap object for storing a series of values.
      * @return Returns the call result.
      */
-    std::shared_ptr<AppExecFwk::PacMap> Call(
-        const Uri &uri, const std::string &method, const std::string &arg, const AppExecFwk::PacMap &pacMap) override;
+    ErrCode Call(const Uri &uri, const std::string &method, const std::string &arg,
+        const AppExecFwk::PacMap &pacMap, std::shared_ptr<PacMap>& funcResult) override;
 
     /**
      * @brief Updates data records in the database.
@@ -221,8 +222,8 @@ public:
      * @param predicates Indicates filter criteria. You should define the processing logic when this parameter is null.
      * @return Returns the number of data records updated.
      */
-    int Update(const Uri &uri, const NativeRdb::ValuesBucket &value,
-        const NativeRdb::DataAbilityPredicates &predicates) override;
+    ErrCode Update(const Uri &uri, const NativeRdb::AmValuesBucket &value,
+        const NativeRdb::DataAbilityPredicates &predicates, int32_t& funcResult) override;
 
     /**
      * @brief Deletes one or more data records from the database.
@@ -230,7 +231,7 @@ public:
      * @param predicates Indicates filter criteria. You should define the processing logic when this parameter is null.
      * @return Returns the number of data records deleted.
      */
-    int Delete(const Uri &uri, const NativeRdb::DataAbilityPredicates &predicates) override;
+    ErrCode Delete(const Uri &uri, const NativeRdb::DataAbilityPredicates &predicates, int32_t& funcResult) override;
 
     /**
      * @brief Deletes one or more data records from the database.
@@ -239,8 +240,8 @@ public:
      * @param predicates Indicates filter criteria. You should define the processing logic when this parameter is null.
      * @return Returns the query result.
      */
-    std::shared_ptr<NativeRdb::AbsSharedResultSet> Query(
-        const Uri &uri, std::vector<std::string> &columns, const NativeRdb::DataAbilityPredicates &predicates) override;
+    ErrCode Query(const Uri &uri, const std::vector<std::string> &columns,
+        const NativeRdb::DataAbilityPredicates &predicates, std::shared_ptr<AmAbsSharedResultSet>& funcResult) override;
 
     /**
      * @brief Obtains the MIME type matching the data specified by the URI of the Data ability. This method should be
@@ -248,7 +249,7 @@ public:
      * @param uri Indicates the URI of the data.
      * @return Returns the MIME type that matches the data specified by uri.
      */
-    std::string GetType(const Uri &uri) override;
+    ErrCode GetType(const Uri &uri, std::string& funcResult) override;
 
     /**
      * @brief Reloads data in the database.
@@ -258,7 +259,7 @@ public:
      * processes, you must call BasePacMap.setClassLoader(ClassLoader) to set a class loader for the custom object.
      * @return Returns true if the data is successfully reloaded; returns false otherwise.
      */
-    bool Reload(const Uri &uri, const PacMap &extras) override;
+    ErrCode Reload(const Uri &uri, const PacMap &extras, bool& funcResult) override;
 
     /**
      * @brief Inserts multiple data records into the database.
@@ -266,20 +267,21 @@ public:
      * @param values Indicates the data records to insert.
      * @return Returns the number of data records inserted.
      */
-    int BatchInsert(const Uri &uri, const std::vector<NativeRdb::ValuesBucket> &values) override;
+    ErrCode BatchInsert(const Uri &uri, const std::vector<NativeRdb::AmValuesBucket> &values,
+        int32_t& funcResult) override;
 
     /**
      * @brief continue ability to target device.
      * @param deviceId target deviceId
      * @param versionCode Target bundle version.
      */
-    void ContinueAbility(const std::string &deviceId, uint32_t versionCode) override;
+    ErrCode ContinueAbility(const std::string &deviceId, uint32_t versionCode) override;
 
     /**
      * @brief notify this ability continuation result.
      * @param result: Continuation result
      */
-    void NotifyContinuationResult(int32_t result) override;
+    ErrCode NotifyContinuationResult(int32_t result) override;
 
     /**
      * @brief Converts the given uri that refer to the Data ability into a normalized URI. A normalized URI can be used
@@ -292,7 +294,7 @@ public:
      * @param uri Indicates the Uri object to normalize.
      * @return Returns the normalized Uri object if the Data ability supports URI normalization; returns null otherwise.
      */
-    Uri NormalizeUri(const Uri &uri) override;
+    ErrCode NormalizeUri(const Uri &uri, AmUri& funcResult) override;
 
     /**
      * @brief Converts the given normalized uri generated by normalizeUri(ohos.utils.net.Uri) into a denormalized one.
@@ -302,67 +304,68 @@ public:
      * to this method if there is nothing to do; returns null if the data identified by the original Uri cannot be found
      * in the current environment.
      */
-    Uri DenormalizeUri(const Uri &uri) override;
+    ErrCode DenormalizeUri(const Uri &uri, AmUri& funcResult) override;
 
     /**
      * @brief Registers an observer to DataObsMgr specified by the given Uri.
      * @param uri Indicates the path of the data to operate.
      * @param dataObserver Indicates the IDataAbilityObserver object.
      */
-    bool ScheduleRegisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver) override;
+    ErrCode ScheduleRegisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver) override;
 
     /**
      * @brief Deregisters an observer used for DataObsMgr specified by the given Uri.
      * @param uri Indicates the path of the data to operate.
      * @param dataObserver Indicates the IDataAbilityObserver object.
      */
-    bool ScheduleUnregisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver) override;
+    ErrCode ScheduleUnregisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver) override;
 
     /**
      * @brief Notifies the registered observers of a change to the data resource specified by Uri.
      * @param uri Indicates the path of the data to operate.
      */
-    bool ScheduleNotifyChange(const Uri &uri) override;
+    ErrCode ScheduleNotifyChange(const Uri &uri) override;
 
     /**
      * @brief Dump ability runner info.
      * @param params Indicates the params
      * @param info ability runner info.
      */
-    void DumpAbilityInfo(const std::vector<std::string> &params, std::vector<std::string> &info) override;
+    ErrCode DumpAbilityInfo(const std::vector<std::string> &params) override;
 
     /**
      * @brief Call Request
      */
-    void CallRequest() override;
+    ErrCode CallRequest() override;
 
-    void OnExecuteIntent(const Want &want) override;
+    ErrCode OnExecuteIntent(const Want &want) override;
 
     /**
      * @brief Execute Batch
      * @param operations Indicates the operations
      */
-    std::vector<std::shared_ptr<AppExecFwk::DataAbilityResult>> ExecuteBatch(
-        const std::vector<std::shared_ptr<AppExecFwk::DataAbilityOperation>> &operations) override;
+    ErrCode ExecuteBatch(const std::vector<std::shared_ptr<AppExecFwk::DataAbilityOperation>> &operations,
+        std::vector<std::shared_ptr<AppExecFwk::DataAbilityResult>>& funcResult) override;
 
     /**
      * @brief Dump ability runner info.
      * @param want Create modalUIExtension with want object.
      */
-    int CreateModalUIExtension(const Want &want) override;
+    ErrCode CreateModalUIExtension(const Want &want) override;
 
     /**
      * @brief Update sessionToken.
      * @param sessionToken The token of session.
      */
-    void UpdateSessionToken(sptr<IRemoteObject> sessionToken) override;
+    ErrCode UpdateSessionToken(const sptr<IRemoteObject>& sessionToken) override;
 
-    void ScheduleCollaborate(const Want &want) override;
+    ErrCode ScheduleCollaborate(const Want &want) override;
 
-    void ScheduleAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+    ErrCode ScheduleAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
         const std::string &message) override;
 
-    void ScheduleAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element) override;
+    ErrCode ScheduleAbilityRequestSuccess(const std::string &requestId,
+        const AppExecFwk::ElementName &element) override;
 
     sptr<IRemoteObject> token_;
     std::shared_ptr<AbilityHandler> abilityHandler_ = nullptr;

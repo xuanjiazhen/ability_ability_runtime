@@ -30,101 +30,121 @@ public:
     AbilityScheduler();
     virtual ~AbilityScheduler();
 
-    bool ScheduleAbilityTransaction(const Want& want, const LifeCycleStateInfo& targetState,
-        sptr<SessionInfo> sessionInfo = nullptr) override;
+    ErrCode ScheduleAbilityTransaction(const Want &want, const LifeCycleStateInfo &targetState,
+        const sptr<SessionInfo>& sessionInfo) override;
 
-    void ScheduleShareData(const int32_t &uniqueId) override;
+    ErrCode ScheduleShareData(int32_t uniqueId) override;
 
-    void SendResult(int requestCode, int resultCode, const Want& resultWant) override;
+    ErrCode SendResult(int requestCode, int resultCode, const Want& resultWant) override;
 
     const AbilityResult& GetResult() const;
 
-    void ScheduleConnectAbility(const Want& want) override;
+    ErrCode ScheduleConnectAbility(const Want& want) override;
 
-    void ScheduleDisconnectAbility(const Want& want) override;
+    ErrCode ScheduleDisconnectAbility(const Want& want) override;
 
-    bool SchedulePrepareTerminateAbility() override;
+    ErrCode SchedulePrepareTerminateAbility() override;
 
-    void ScheduleCommandAbility(const Want& want, bool restart, int startId) override;
+    ErrCode ScheduleCommandAbility(const Want& want, bool restart, int32_t startId) override;
 
-    void ScheduleCommandAbilityWindow(const Want &want, const sptr<SessionInfo> &sessionInfo,
-        WindowCommand winCmd) override;
+    ErrCode ScheduleCommandAbilityWindow(const Want &want, const sptr<SessionInfo> &sessionInfo,
+        int32_t winCmd) override;
 
-    void ScheduleSaveAbilityState() override;
+    ErrCode ScheduleSaveAbilityState() override;
 
-    void ScheduleRestoreAbilityState(const PacMap& inState) override;
+    ErrCode ScheduleRestoreAbilityState(const PacMap& inState) override;
 
-    std::vector<std::string> GetFileTypes(const Uri& uri, const std::string& mimeTypeFilter) override;
+    ErrCode GetFileTypes(const Uri& uri, const std::string& mimeTypeFilter,
+        std::vector<std::string>& funcResult) override;
 
-    int OpenFile(const Uri& uri, const std::string& mode) override;
+    ErrCode OpenFile(const Uri& uri, const std::string& mode, int& funcResult) override;
 
-    int Insert(const Uri& uri, const NativeRdb::ValuesBucket& value) override;
+    ErrCode Insert(const Uri& uri, const NativeRdb::AmValuesBucket& value, int32_t& funcResult) override;
 
-    int Update(const Uri& uri, const NativeRdb::ValuesBucket& value,
-        const NativeRdb::DataAbilityPredicates& predicates) override;
+    ErrCode Update(const Uri& uri, const NativeRdb::AmValuesBucket& value,
+        const NativeRdb::DataAbilityPredicates& predicates, int32_t& funcResult) override;
 
-    int Delete(const Uri& uri, const NativeRdb::DataAbilityPredicates& predicates) override;
+    ErrCode Delete(const Uri& uri, const NativeRdb::DataAbilityPredicates& predicates, int32_t& funcResult) override;
 
-    std::shared_ptr<NativeRdb::AbsSharedResultSet> Query(
-        const Uri& uri, std::vector<std::string>& columns, const NativeRdb::DataAbilityPredicates& predicates) override;
+    ErrCode Query(const Uri& uri, const std::vector<std::string>& columns,
+        const NativeRdb::DataAbilityPredicates& predicates, std::shared_ptr<AmAbsSharedResultSet>& funcResult) override;
 
-    std::shared_ptr<AppExecFwk::PacMap> Call(
-        const Uri& uri, const std::string& method, const std::string& arg, const AppExecFwk::PacMap& pacMap) override;
+    ErrCode Call(const Uri& uri, const std::string& method, const std::string& arg, const AppExecFwk::PacMap& pacMap,
+        std::shared_ptr<PacMap>& funcResult) override;
 
-    std::string GetType(const Uri& uri) override;
+    ErrCode GetType(const Uri& uri, std::string& funcResult) override;
 
-    int OpenRawFile(const Uri& uri, const std::string& mode) override;
+    ErrCode OpenRawFile(const Uri& uri, const std::string& mode, int32_t& funcResult) override;
 
-    bool Reload(const Uri& uri, const PacMap& extras) override;
+    ErrCode Reload(const Uri& uri, const PacMap& extras, bool& funcResult) override;
 
-    int BatchInsert(const Uri& uri, const std::vector<NativeRdb::ValuesBucket>& values) override;
+    ErrCode BatchInsert(const Uri& uri, const std::vector<NativeRdb::AmValuesBucket>& values,
+        int32_t& funcResult) override;
 
-    Uri NormalizeUri(const Uri& uri) override;
-    Uri DenormalizeUri(const Uri& uri) override;
-    virtual bool ScheduleRegisterObserver(const Uri& uri, const sptr<IDataAbilityObserver>& dataObserver) override
+    ErrCode NormalizeUri(const Uri& uri, AmUri& funcResult) override;
+    ErrCode DenormalizeUri(const Uri& uri, AmUri& funcResult) override;
+    virtual ErrCode ScheduleRegisterObserver(const Uri& uri, const sptr<IDataAbilityObserver>& dataObserver) override
     {
-        return true;
+        return ERR_OK;
     };
-    virtual bool ScheduleUnregisterObserver(const Uri& uri, const sptr<IDataAbilityObserver>& dataObserver) override
+    virtual ErrCode ScheduleUnregisterObserver(const Uri& uri, const sptr<IDataAbilityObserver>& dataObserver) override
     {
-        return true;
+        return ERR_OK;
     };
-    virtual bool ScheduleNotifyChange(const Uri& uri) override
+    virtual ErrCode ScheduleNotifyChange(const Uri& uri) override
     {
-        return true;
+        return ERR_OK;
     };
-    virtual std::vector<std::shared_ptr<AppExecFwk::DataAbilityResult>> ExecuteBatch(
-        const std::vector<std::shared_ptr<AppExecFwk::DataAbilityOperation>>& operations) override
+    virtual ErrCode ExecuteBatch(const std::vector<std::shared_ptr<AppExecFwk::DataAbilityOperation>>& operations,
+        std::vector<std::shared_ptr<AppExecFwk::DataAbilityResult>>& funcResult) override
     {
-        return std::vector<std::shared_ptr<AppExecFwk::DataAbilityResult>>();
+        return ERR_OK;
     };
-    virtual void NotifyContinuationResult(int32_t result) override
-    {};
-    virtual void ContinueAbility(const std::string& deviceId, uint32_t versionCode) override
-    {};
-    virtual void DumpAbilityInfo(const std::vector<std::string>& params, std::vector<std::string>& info) override
-    {};
-    virtual void CallRequest() override
+    virtual ErrCode NotifyContinuationResult(int32_t result) override
     {
-        return;
+        return ERR_OK;
     };
-    virtual void OnExecuteIntent(const Want &want) override
-    {};
-    virtual int CreateModalUIExtension(const Want &want) override
+    virtual ErrCode ContinueAbility(const std::string& deviceId, uint32_t versionCode) override
     {
-        return 0;
+        return ERR_OK;
     };
-    virtual void UpdateSessionToken(sptr<IRemoteObject> sessionToken) override {}
+    virtual ErrCode DumpAbilityInfo(const std::vector<std::string>& params) override
+    {
+        return ERR_OK;
+    };
+    virtual ErrCode CallRequest() override
+    {
+        return ERR_OK;;
+    };
+    virtual ErrCode OnExecuteIntent(const Want &want) override
+    {
+        return ERR_OK;
+    };
+    virtual ErrCode CreateModalUIExtension(const Want &want) override
+    {
+        return ERR_OK;
+    };
+    virtual ErrCode UpdateSessionToken(const sptr<IRemoteObject>& sessionToken) override
+    {
+        return ERR_OK;
+    }
 
-    virtual void ScheduleCollaborate(const Want &want) override {}
+    virtual ErrCode ScheduleCollaborate(const Want &want) override
+    {
+        return ERR_OK;
+    }
 
-    virtual void ScheduleAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+    virtual ErrCode ScheduleAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
         const std::string &message) override
-    {}
+    {
+        return ERR_OK;
+    }
 
-    virtual void ScheduleAbilityRequestSuccess(const std::string &requestId,
+    virtual ErrCode ScheduleAbilityRequestSuccess(const std::string &requestId,
         const AppExecFwk::ElementName &element) override
-    {}
+    {
+        return ERR_OK;
+    }
 private:
     AbilityResult result_;
 };

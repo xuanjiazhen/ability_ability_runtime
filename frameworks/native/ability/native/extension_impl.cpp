@@ -117,7 +117,7 @@ void ExtensionImpl::HandleExtensionTransaction(const Want &want, const AAFwk::Li
     }
     if (ret && !UIExtensionAbilityExecuteInsightIntent(want)) {
         TAG_LOGD(AAFwkTag::EXT, "call abilityms");
-        AAFwk::PacMap restoreData;
+        PacMap restoreData;
         AAFwk::AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_, targetState.state, restoreData);
     }
 }
@@ -242,7 +242,7 @@ void ExtensionImpl::Stop(bool &isAsyncCallback, const Want &want, sptr<AAFwk::Se
 void ExtensionImpl::AbilityTransactionCallback(const AAFwk::AbilityLifeCycleState &state)
 {
     TAG_LOGD(AAFwkTag::EXT, "called");
-    AAFwk::PacMap restoreData;
+    PacMap restoreData;
     AAFwk::AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_, state, restoreData);
 }
 

@@ -562,7 +562,7 @@ void DataAbilityManager::DumpClientInfo(std::vector<std::string> &info, bool isC
     // add dump client info
     if (isClient && record->GetScheduler() && record->GetAbilityRecord() && record->GetAbilityRecord()->IsReady()) {
         std::vector<std::string> params;
-        record->GetScheduler()->DumpAbilityInfo(params, info);
+        record->GetScheduler()->DumpAbilityInfo(params);
         AppExecFwk::Configuration config;
         if (DelayedSingleton<AppScheduler>::GetInstance()->GetConfiguration(config) == ERR_OK) {
             info.emplace_back("          configuration: " + config.GetName());

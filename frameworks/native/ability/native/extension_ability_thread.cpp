@@ -388,19 +388,19 @@ void ExtensionAbilityThread::HandleExtensionUpdateConfiguration(const AppExecFwk
     TAG_LOGD(AAFwkTag::EXT, "End");
 }
 
-bool ExtensionAbilityThread::ScheduleAbilityTransaction(
-    const Want &want, const LifeCycleStateInfo &lifeCycleStateInfo, sptr<AAFwk::SessionInfo> sessionInfo)
+ErrCode ExtensionAbilityThread::ScheduleAbilityTransaction(
+    const Want &want, const LifeCycleStateInfo &lifeCycleStateInfo, const sptr<AAFwk::SessionInfo>& sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::EXT, "Name: %{public}s, targeState: %{public}d, isNewWant: %{public}d",
         want.GetElement().GetAbilityName().c_str(), lifeCycleStateInfo.state, lifeCycleStateInfo.isNewWant);
     if (token_ == nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "null token_");
-        return false;
+        return ERR_INVALID_VALUE;
     }
     if (abilityHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "null abilityHandler_");
-        return false;
+        return ERR_INVALID_VALUE;
     }
     wptr<ExtensionAbilityThread> weak = this;
     auto task = [weak, want, lifeCycleStateInfo, sessionInfo]() {
@@ -414,17 +414,17 @@ bool ExtensionAbilityThread::ScheduleAbilityTransaction(
     bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::HIGH);
     if (!ret) {
         TAG_LOGE(AAFwkTag::EXT, "PostTask error");
-        return false;
+        return ERR_INVALID_VALUE;
     }
-    return true;
+    return ERR_OK;
 }
 
-void ExtensionAbilityThread::ScheduleConnectAbility(const Want &want)
+ErrCode ExtensionAbilityThread::ScheduleConnectAbility(const Want &want)
 {
     TAG_LOGD(AAFwkTag::EXT, "called");
     if (abilityHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "null abilityHandler_");
-        return;
+        return ERR_INVALID_VALUE;
     }
     FreezeUtil::GetInstance().AddLifecycleEvent(token_,
         "ExtensionAbilityThread::ScheduleConnectAbility");
@@ -441,15 +441,16 @@ void ExtensionAbilityThread::ScheduleConnectAbility(const Want &want)
     if (!ret) {
         TAG_LOGE(AAFwkTag::EXT, "PostTask error");
     }
+    return ERR_OK;
 }
 
-void ExtensionAbilityThread::ScheduleDisconnectAbility(const Want &want)
+ErrCode ExtensionAbilityThread::ScheduleDisconnectAbility(const Want &want)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::EXT, "called");
     if (abilityHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "null abilityHandler_");
-        return;
+        return ERR_INVALID_VALUE;
     }
     wptr<ExtensionAbilityThread> weak = this;
     auto task = [weak, want]() {
@@ -464,20 +465,22 @@ void ExtensionAbilityThread::ScheduleDisconnectAbility(const Want &want)
     if (!ret) {
         TAG_LOGE(AAFwkTag::EXT, "PostTask error");
     }
+    return ERR_OK;
 }
 
-void ExtensionAbilityThread::ScheduleCommandAbility(const Want &want, bool restart, int32_t startId)
+ErrCode ExtensionAbilityThread::ScheduleCommandAbility(const Want &want, bool restart, int32_t startId)
 {
     TAG_LOGD(AAFwkTag::EXT, "Begin startId: %{public}d", startId);
     if (abilityHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "null abilityHandler_");
-        return;
+        return ERR_INVALID_VALUE;
     }
     ScheduleCommandAbilityInner(want, restart, startId);
     if (AppExecFwk::InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
         ScheduleInsightIntentInner(want);
     }
     TAG_LOGD(AAFwkTag::EXT, "End");
+    return ERR_OK;
 }
 
 void ExtensionAbilityThread::ScheduleCommandAbilityInner(const Want &want, bool restart, int32_t startId)
@@ -514,13 +517,13 @@ void ExtensionAbilityThread::ScheduleInsightIntentInner(const Want &want)
     }
 }
 
-void ExtensionAbilityThread::ScheduleCommandAbilityWindow(
-    const Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo, AAFwk::WindowCommand winCmd)
+ErrCode ExtensionAbilityThread::ScheduleCommandAbilityWindow(
+    const Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo, int32_t winCmd)
 {
     TAG_LOGD(AAFwkTag::EXT, "Begin, winCmd: %{public}d", winCmd);
     if (abilityHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "null abilityHandler_");
-        return;
+        return ERR_INVALID_VALUE;
     }
     wptr<ExtensionAbilityThread> weak = this;
     auto task = [weak, want, sessionInfo, winCmd]() {
@@ -529,21 +532,22 @@ void ExtensionAbilityThread::ScheduleCommandAbilityWindow(
             TAG_LOGE(AAFwkTag::EXT, "null abilityThread");
             return;
         }
-        abilityThread->HandleCommandExtensionWindow(want, sessionInfo, winCmd);
+        abilityThread->HandleCommandExtensionWindow(want, sessionInfo, static_cast<AAFwk::WindowCommand>(winCmd));
     };
     bool ret = abilityHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::HIGH);
     if (!ret) {
         TAG_LOGE(AAFwkTag::EXT, "PostTask error");
     }
     TAG_LOGD(AAFwkTag::EXT, "End");
+    return ERR_OK;
 }
 
-void ExtensionAbilityThread::SendResult(int requestCode, int resultCode, const Want &want)
+ErrCode ExtensionAbilityThread::SendResult(int requestCode, int resultCode, const Want &want)
 {
     TAG_LOGD(AAFwkTag::EXT, "Begin");
     if (abilityHandler_ == nullptr || requestCode == -1) {
         TAG_LOGE(AAFwkTag::EXT, "null abilityHandler_ or requestCode -1");
-        return;
+        return ERR_INVALID_VALUE;
     }
 
     wptr<ExtensionAbilityThread> weak = this;
@@ -565,6 +569,7 @@ void ExtensionAbilityThread::SendResult(int requestCode, int resultCode, const W
         TAG_LOGE(AAFwkTag::EXT, "PostTask error");
     }
     TAG_LOGD(AAFwkTag::EXT, "End");
+    return ERR_OK;
 }
 
 void ExtensionAbilityThread::NotifyMemoryLevel(int32_t level)
@@ -577,12 +582,12 @@ void ExtensionAbilityThread::NotifyMemoryLevel(int32_t level)
     extensionImpl_->NotifyMemoryLevel(level);
 }
 
-void ExtensionAbilityThread::DumpAbilityInfo(const std::vector<std::string> &params, std::vector<std::string> &info)
+ErrCode ExtensionAbilityThread::DumpAbilityInfo(const std::vector<std::string> &params)
 {
     TAG_LOGD(AAFwkTag::EXT, "Begin");
     if (token_ == nullptr || abilityHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "null token_ or abilityHandler_");
-        return;
+        return ERR_INVALID_VALUE;
     }
     wptr<ExtensionAbilityThread> weak = this;
     auto task = [weak, params, token = token_]() {
@@ -603,6 +608,7 @@ void ExtensionAbilityThread::DumpAbilityInfo(const std::vector<std::string> &par
         TAG_LOGE(AAFwkTag::EXT, "PostTask error");
     }
     TAG_LOGD(AAFwkTag::EXT, "End");
+    return ERR_OK;
 }
 
 void ExtensionAbilityThread::DumpAbilityInfoInner(

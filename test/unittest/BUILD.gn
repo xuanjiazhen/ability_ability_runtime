@@ -117,8 +117,6 @@ ohos_source_set("abilityms_test_source") {
     "${ability_runtime_services_path}/abilitymgr/src/ability_manager_service.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ability_manager_stub.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ability_record.cpp",
-    "${ability_runtime_services_path}/abilitymgr/src/ability_scheduler_proxy.cpp",
-    "${ability_runtime_services_path}/abilitymgr/src/ability_scheduler_stub.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ability_token_stub.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ams_configuration_parameter.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/app_exit_reason_data_manager.cpp",
