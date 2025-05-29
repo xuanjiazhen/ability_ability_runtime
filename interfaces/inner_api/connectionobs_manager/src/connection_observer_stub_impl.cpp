@@ -55,8 +55,6 @@ void ConnectionObserverStubImpl::OnExtensionResumed(const ConnectionData &data)
     owner->HandleExtensionResumed(data);
 }
 
-
-
 #ifdef WITH_DLP
 void ConnectionObserverStubImpl::OnDlpAbilityOpened(const DlpStateData &data)
 {
