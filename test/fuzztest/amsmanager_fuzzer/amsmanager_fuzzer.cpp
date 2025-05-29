@@ -49,7 +49,7 @@ uint32_t GetU32Data(const char* ptr)
 
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
-    uint32_t code = GetU32Data(data) % (static_cast<uint32_t>(IAmsMgr::Message::END));
+    uint32_t code = GetU32Data(data) % (static_cast<uint32_t>(AbilityManagerInterfaceCode::END));
 
     MessageParcel parcel;
     parcel.WriteInterfaceToken(AMSMGR_INTERFACE_TOKEN);
