@@ -95,6 +95,10 @@ ohos_executable("aa") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
 
+  configs = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
+  ]
+
   deps = [ ":tools_aa_source_set" ]
 
   external_deps = [

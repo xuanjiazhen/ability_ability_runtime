@@ -31,7 +31,7 @@ config("ability_manager_idl_config") {
     include_dirs = [
       "${ability_runtime_innerkits_path}/dataobs_manager/include",
       "${target_gen_dir}",
-      "include/",
+      #"include/",
     ]
 }
 
