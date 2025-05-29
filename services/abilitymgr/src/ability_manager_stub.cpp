@@ -844,9 +844,12 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentieth(uint32_t code, MessageParc
         return StartAbilityWithWaitInner(data, reply);
     }
     if (interfaceCode == AbilityManagerInterfaceCode::SUSPEND_EXTENSION_ABILITY) {
-        return RestartSelfAtomicServiceInner(data, reply);
+        return SuspendExtensionAbilityInner(data, reply);
     }
     if (interfaceCode == AbilityManagerInterfaceCode::RESUME_EXTENSION_ABILITY) {
+        return ResumeExtensionAbilityInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::RESTART_SELF_ATOMIC_SERVICE) {
         return RestartSelfAtomicServiceInner(data, reply);
     }
     return ERR_CODE_NOT_EXIST;
@@ -4632,7 +4635,7 @@ int AbilityManagerStub::ResumeExtensionAbilityInner(MessageParcel &data, Message
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "callback null");
         return ERR_INVALID_VALUE;
     }
-    int32_t result = SuspendExtensionAbility(callback);
+    int32_t result = ResumeExtensionAbility(callback);
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "resume extension ability ret = %d", result);
     reply.WriteInt32(result);
     return NO_ERROR;
