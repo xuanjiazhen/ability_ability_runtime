@@ -147,7 +147,7 @@ void ConnectionStateManager::RemoveConnection(std::shared_ptr<ConnectionRecord> 
     }
 
     if (connectionEvent.suspendedEvent) {
-        controller->NotifyExtensionSuspendted(connectionData);
+        controller->NotifyExtensionSuspended(connectionData);
     }
 }
 
@@ -591,7 +591,7 @@ void ConnectionStateManager::SuspendConnection(std::shared_ptr<ConnectionRecord>
     controller->NotifyExtensionSuspended(connectionData);
 }
 
-bool SuspendConnectionInner(std::shared_ptr<ConnectionRecord> connectionRecord,
+bool ConnectionStateManager::SuspendConnectionInner(std::shared_ptr<ConnectionRecord> connectionRecord,
     AbilityRuntime::ConnectionData &data)
 {
     auto callerPid = connectionRecord->GetCallerPid();
@@ -631,7 +631,7 @@ void ConnectionStateManager::ResumeConnection(std::shared_ptr<ConnectionRecord> 
     controller->NotifyExtensionResumed(connectionData);
 }
 
-bool ResumeConnectionInner(std::shared_ptr<ConnectionRecord> connectionRecord,
+bool ConnectionStateManager::ResumeConnectionInner(std::shared_ptr<ConnectionRecord> connectionRecord,
     AbilityRuntime::ConnectionData &data)
 {
     auto callerPid = connectionRecord->GetCallerPid();
