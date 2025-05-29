@@ -2483,7 +2483,6 @@ ohos_shared_library("photo_editor_extension_module") {
   configs = [ ":photo_editor_extension_config" ]
 
   deps = [
-    ":photo_editor_extension",
     "${ability_runtime_innerkits_path}/runtime:runtime",
   ]
 
@@ -2491,6 +2490,7 @@ ohos_shared_library("photo_editor_extension_module") {
     "ability_base:configuration",
     "ability_base:session_info",
     "ability_base:want",
+    "app_extension_framework:photo_editor_extension",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
