@@ -1224,7 +1224,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityInnerFreeInstall_001, TestS
     ElementName element("", "com.test.demo", "MainAbility", "");
     want.SetElement(element);
     MyFlag::flag_ = 1;
-    auto result = abilityMs_->StartAbilityInner(want, nullptr, -1, false, -1, false);
+    auto result = abilityMs_->StartAbilityInner(want, nullptr, -1, false, -1);
     MyFlag::flag_ = 0;
     EXPECT_EQ(ERR_NULL_INTERCEPTOR_EXECUTER, result);
     abilityMs_->OnStop();
@@ -1252,7 +1252,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityInnerFreeInstall_002, TestS
     const int32_t userId = -1;
     const int requestCode = 0;
     MyFlag::flag_ = 1;
-    auto result = abilityMs_->StartAbilityInner(want, callerToken, requestCode, false, userId, false);
+    auto result = abilityMs_->StartAbilityInner(want, callerToken, requestCode, false, userId);
     MyFlag::flag_ = 0;
     abilityMs_->OnStop();
     EXPECT_EQ(ERR_NULL_INTERCEPTOR_EXECUTER, result);
@@ -1280,7 +1280,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityInnerFreeInstall_003, TestS
     const int32_t userId = -1;
     const int requestCode = 0;
     MyFlag::flag_ = 1;
-    auto result = abilityMs_->StartAbilityInner(want, callerToken, requestCode, false, userId, false);
+    auto result = abilityMs_->StartAbilityInner(want, callerToken, requestCode, false, userId);
     MyFlag::flag_ = 0;
     abilityMs_->OnStop();
     EXPECT_EQ(ERR_NULL_INTERCEPTOR_EXECUTER, result);
@@ -1308,7 +1308,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityInnerFreeInstall_004, TestS
     const int32_t userId = -1;
     const int requestCode = 0;
     MyFlag::flag_ = 1;
-    auto result = abilityMs_->StartAbilityInner(want, callerToken, requestCode, false, userId, false);
+    auto result = abilityMs_->StartAbilityInner(want, callerToken, requestCode, false, userId);
     MyFlag::flag_ = 0;
     abilityMs_->OnStop();
     EXPECT_EQ(ERR_NULL_INTERCEPTOR_EXECUTER, result);
@@ -1337,7 +1337,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityInnerFreeInstall_005, TestS
     const int32_t userId = -1;
     const int requestCode = 0;
     MyFlag::flag_ = 1;
-    auto result = abilityMs_->StartAbilityInner(want, callerToken, requestCode, false, userId, false);
+    auto result = abilityMs_->StartAbilityInner(want, callerToken, requestCode, false, userId);
     MyFlag::flag_ = 0;
     abilityMs_->OnStop();
     EXPECT_EQ(ERR_NULL_INTERCEPTOR_EXECUTER, result);
@@ -1367,7 +1367,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityInnerFreeInstall_006, TestS
     const int32_t userId = -1;
     const int requestCode = 0;
     MyFlag::flag_ = 1;
-    auto result = abilityMs_->StartAbilityInner(want, callerToken, requestCode, false, userId, false);
+    auto result = abilityMs_->StartAbilityInner(want, callerToken, requestCode, false, userId);
     MyFlag::flag_ = 0;
     abilityMs_->OnStop();
     EXPECT_EQ(ERR_NULL_INTERCEPTOR_EXECUTER, result);

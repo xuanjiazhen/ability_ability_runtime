@@ -55,6 +55,7 @@
 #include "interceptor/ability_interceptor_executer.h"
 #include "iremote_object.h"
 #include "mission_list_manager_interface.h"
+#include "param_wrap_util.h"
 #include "parameter.h"
 #include "pending_want_manager.h"
 #include "permission_verification.h"
@@ -1062,11 +1063,7 @@ public:
         int requestCode,
         bool isPendingWantCaller,
         int32_t userId = DEFAULT_INVAL_VALUE,
-        bool isStartAsCaller = false,
-        uint32_t specifyTokenId = 0,
-        bool isForegroundToRestartApp = false,
-        bool isImplicit = false,
-        bool isUIAbilityOnly = false);
+        OptionStartParamWrap optionParams = {});
 
     int StartAbilityInner(
         const Want &want,
@@ -1074,11 +1071,7 @@ public:
         int requestCode,
         bool isPendingWantCaller,
         int32_t userId = DEFAULT_INVAL_VALUE,
-        bool isStartAsCaller = false,
-        uint32_t specifyTokenId = 0,
-        bool isForegroundToRestartApp = false,
-        bool isImplicit = false,
-        bool isUIAbilityOnly = false);
+        OptionStartParamWrap optionParams = {});
 
     int32_t StartExtensionAbilityInner(
         const Want &want,

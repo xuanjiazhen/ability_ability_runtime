@@ -326,7 +326,10 @@ HWTEST_F(AbilityManagerServiceSixthTest, StartAbilityInner_002, TestSize.Level1)
     abilityMs->afterCheckExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
     Want want;
     want.SetFlags(Want::FLAG_ABILITY_PREPARE_CONTINUATION);
-    auto ret = abilityMs->StartAbilityInner(want, nullptr, -1, false, -1, false, -1, true);
+    auto ret = abilityMs->StartAbilityInner(want, nullptr, -1, false, -1, {
+        .isForegroundToRestartApp = true,
+        .specifyTokenId = -1
+    });
     EXPECT_EQ(ret, ERR_INVALID_CONTINUATION_FLAG);
 
     /**
@@ -337,7 +340,11 @@ HWTEST_F(AbilityManagerServiceSixthTest, StartAbilityInner_002, TestSize.Level1)
     MyFlag::flag_ = MyFlag::IS_SA_CALL;
     Want want2;
     want2.SetElementName(CONTACTS_BUNDLE_NAME, CONTACTS_ABILITY_NAME);
-    ret = abilityMs->StartAbilityInner(want2, callerToken, -1, false, -1, true, 1, true);
+    ret = abilityMs->StartAbilityInner(want2, callerToken, -1, false, -1, {
+        .isStartAsCaller = true,
+        .isForegroundToRestartApp = true,
+        .specifyTokenId = -1
+    });
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest StartAbilityInner_002 end");
 }
 
