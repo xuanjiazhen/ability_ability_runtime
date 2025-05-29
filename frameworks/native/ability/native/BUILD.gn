@@ -2405,7 +2405,6 @@ config("photo_editor_extension_config") {
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/context",
-    "${ability_runtime_path}/interfaces/kits/native/ability/native/photo_editor_extension_ability",
   ]
 }
 

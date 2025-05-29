@@ -188,7 +188,7 @@
           },
           {
             "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/photo_editor_extension_ability",
+              "header_base": "//foundation/ability/app_extension_framework/interfaces/kits/native/ability/native/photo_editor_extension_ability",
               "header_files": []
             },
             "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native/:cj_photo_editor_extension"
