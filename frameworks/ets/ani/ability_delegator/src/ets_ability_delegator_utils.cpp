@@ -13,14 +13,15 @@
  * limitations under the License.
  */
 
-#include "sts_ability_delegator_utils.h"
+#include "ets_ability_delegator_utils.h"
 
 #include <map>
+#include "ets_ability_delegator.h"
 #include "hilog_tag_wrapper.h"
-#include "sts_ability_delegator.h"
+
 
 namespace OHOS {
-namespace AbilityDelegatorSts {
+namespace AbilityDelegatorEts {
 namespace {
 constexpr const char* ABILITY_DELEGATOR_CLASS_NAME = "Lapplication/AbilityDelegator/AbilityDelegatorInner;";
 constexpr const char* RECORD_CLASS_NAME = "Lescompat/Record;";
@@ -28,9 +29,9 @@ constexpr const char* ARGS_ABILITY_DELEGATOR_CLASS_NAME =
     "Lapplication/abilityDelegatorArgs/AbilityDelegatorArgsInner;";
 }
 
-ani_object CreateStsAbilityDelegator(ani_env *aniEnv)
+ani_object CreateEtsAbilityDelegator(ani_env *aniEnv)
 {
-    TAG_LOGD(AAFwkTag::DELEGATOR, "CreateJsAbilityDelegator");
+    TAG_LOGD(AAFwkTag::DELEGATOR, "CreateEtsAbilityDelegator");
     if (aniEnv ==nullptr) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "null aniEnv");
         return {};
@@ -45,15 +46,19 @@ ani_object CreateStsAbilityDelegator(ani_env *aniEnv)
     TAG_LOGD(AAFwkTag::DELEGATOR, "find AbilityDelegator success");
 
     std::array delegatorFunctions = {
-        ani_native_function {"getAppContext", nullptr, reinterpret_cast<void *>(GetAppContext)},
-        ani_native_function {"executeShellCommandsync", nullptr, reinterpret_cast<void *>(ExecuteShellCommand)},
-        ani_native_function {"finishTestSync", nullptr, reinterpret_cast<void *>(FinishTestSync)},
-        ani_native_function {"printSync", nullptr, reinterpret_cast<void *>(PrintSync)},
-        ani_native_function {"addAbilityMonitorAsync", nullptr, reinterpret_cast<void *>(AddAbilityMonitorASync)},
+        ani_native_function {"getAppContext", nullptr, reinterpret_cast<void *>(EtsAbilityDelegator::GetAppContext)},
+        ani_native_function {"executeShellCommandSync", nullptr,
+            reinterpret_cast<void *>(EtsAbilityDelegator::ExecuteShellCommand)},
+        ani_native_function {"finishTestSync", nullptr,
+            reinterpret_cast<void *>(EtsAbilityDelegator::FinishTestASync)},
+        ani_native_function {"printSync", nullptr, reinterpret_cast<void *>(EtsAbilityDelegator::PrintSync)},
+        ani_native_function {"addAbilityMonitorAsync", nullptr,
+            reinterpret_cast<void *>(EtsAbilityDelegator::AddAbilityMonitorAsync)},
         ani_native_function {"startAbilityAsync",
             "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
-            reinterpret_cast<void *>(StartAbility)},
-        ani_native_function {"GetCurrentTopAbilitySync", nullptr, reinterpret_cast<void *>(GetCurrentTopAbilitySync)}
+            reinterpret_cast<void *>(EtsAbilityDelegator::StartAbility)},
+        ani_native_function {"GetCurrentTopAbilitySync", nullptr,
+            reinterpret_cast<void *>(EtsAbilityDelegator::GetCurrentTopAbilitySync)}
     };
     status = aniEnv->Class_BindNativeMethods(abilityDelegator, delegatorFunctions.data(), delegatorFunctions.size());
     if (status != ANI_OK) {
@@ -75,7 +80,7 @@ ani_object CreateStsAbilityDelegator(ani_env *aniEnv)
         return {};
     }
 
-    TAG_LOGD(AAFwkTag::DELEGATOR, "CreateStsAbilityDelegator success");
+    TAG_LOGD(AAFwkTag::DELEGATOR, "CreateEtsAbilityDelegator success");
     return object;
 }
 
@@ -250,7 +255,7 @@ void SetTestRunnerClassName(ani_env *aniEnv, ani_class arguments, ani_object arg
     TAG_LOGD(AAFwkTag::DELEGATOR, "Object_CallMethod_Void success");
 }
 
-ani_object CreateStsAbilityDelegatorArguments(
+ani_object CreateEtsAbilityDelegatorArguments(
     ani_env *aniEnv, const std::shared_ptr<AppExecFwk::AbilityDelegatorArgs> abilityDelegatorArgs)
 {
     TAG_LOGD(AAFwkTag::DELEGATOR, "CreateJsAbilityDelegatorArguments");
@@ -297,5 +302,5 @@ ani_object CreateStsAbilityDelegatorArguments(
 
     return argumentObject;
 }
-} // namespace AbilityDelegatorSts
+} // namespace AbilityDelegatorEts
 } // namespace OHOS
