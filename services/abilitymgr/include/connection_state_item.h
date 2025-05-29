@@ -24,6 +24,7 @@
 #include "extension_ability_info.h"
 #include "connection_data.h"
 #include "data_ability_record.h"
+#include "connection_event.h"
 
 namespace OHOS {
 namespace AAFwk {

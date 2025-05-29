@@ -24,6 +24,7 @@
 #include "application_state_observer_stub.h"
 #include "connection_state_item.h"
 #include "connection_observer_controller.h"
+#include "connection_event.h"
 #ifdef WITH_DLP
 #include "dlp_connection_info.h"
 #include "dlp_state_item.h"
@@ -32,13 +33,6 @@
 namespace OHOS {
 namespace AAFwk {
 
-struct ConnectionEvent
-{
-    bool connectedEvent = false;
-    bool disconnectedEvent = false;
-    bool suspendedEvent = false;
-    bool resumedEvent = false;
-};
 /**
  * @class ConnectionStateManager
  * ConnectionStateManager manage connection states.

@@ -337,7 +337,9 @@ void ConnectionStateManager::GetConnectionData(std::vector<AbilityRuntime::Conne
 }
 
 bool ConnectionStateManager::AddConnectionInner(std::shared_ptr<ConnectionRecord> connectionRecord,
-    AbilityRuntime::ConnectionData &data, ConnectionEvent &connectionEvent)
+    AbilityRuntime::ConnectionData &data, ConnectionEvent &connectionEvent
+
+)
 {
     std::shared_ptr<ConnectionStateItem> targetItem = nullptr;
     auto callerPid = connectionRecord->GetCallerPid();
