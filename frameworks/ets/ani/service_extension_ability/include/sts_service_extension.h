@@ -178,6 +178,8 @@ private:
  
     void ListenWMS();
 
+    sptr<IRemoteObject> OnConnectInner(ani_env* env, ani_object &aniRemoteobj, bool &isAsyncCallback);
+
     STSRuntime& stsRuntime_;
     std::unique_ptr<STSNativeReference> stsObj_;
     std::shared_ptr<STSNativeReference> shellContextRef_ = nullptr;

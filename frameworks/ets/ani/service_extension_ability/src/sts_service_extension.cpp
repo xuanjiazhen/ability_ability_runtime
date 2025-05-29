@@ -65,7 +65,7 @@ void DisconnectPromiseCallback(ani_env* env, ani_object aniObj)
 
 void ConnectPromiseCallback(ani_env* env, ani_object aniObj, ani_object obj)
 {
-    TAG_LOGD(AAFwkTag::SERVICE_EXT, "PromiseCallback");
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "ConnectPromiseCallback");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null env");
         return;
@@ -139,14 +139,20 @@ void StsServiceExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null env");
         return;
     }
+    ani_class cls = nullptr;
+    ani_status status = ANI_ERROR;
+    if ((status = env->FindClass("L@ohos/app/ability/ServiceExtensionAbility/ServiceExtensionAbility;", &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "status: %{public}d", status);
+        return;
+    }
     std::array functions = {
         ani_native_function { "nativeOnDisconnectCallback", ":V", reinterpret_cast<void*>(DisconnectPromiseCallback) },
         ani_native_function { "nativeOnConnectCallback", nullptr, reinterpret_cast<void*>(ConnectPromiseCallback) },
     };
-
-    ani_status status = env->Class_BindNativeMethods(stsObj_->aniCls, functions.data(), functions.size());
+    status = env->Class_BindNativeMethods(cls, functions.data(), functions.size());
     if (ANI_OK != status) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "Class_BindNativeMethods is fail %{public}d", status);
+        return;
     };
     BindContext(env, record->GetWant(), application);
     return;
@@ -272,9 +278,12 @@ sptr<IRemoteObject> StsServiceExtension::OnConnect(const AAFwk::Want &want)
 sptr<IRemoteObject> StsServiceExtension::OnConnect(const AAFwk::Want &want,
     AppExecFwk::AbilityTransactionCallbackInfo<sptr<IRemoteObject>> *callbackInfo, bool &isAsyncCallback)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "OnConnect");
+    Extension::OnConnect(want);
     auto env = stsRuntime_.GetAniEnv();
-    if (!env) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "env not found");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null env");
         return nullptr;
     }
     ani_ref wantRef = OHOS::AppExecFwk::WrapWant(env, want);
@@ -282,28 +291,54 @@ sptr<IRemoteObject> StsServiceExtension::OnConnect(const AAFwk::Want &want,
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null wantRef");
         return nullptr;
     }
-    if (callbackInfo == nullptr) {
-        isAsyncCallback = false;
-        return OnConnect(want);
-    }
     ani_long connectCallbackPoint = (ani_long)callbackInfo;
     ani_status status = ANI_ERROR;
-    ani_field field = nullptr;
-    if ((status = env->Class_FindField(stsObj_->aniCls, "connectCallbackPoint", &field)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
-    }
-    if ((status = env->Object_SetField_Long(stsObj_->aniObj, field, connectCallbackPoint)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
-    }
-    ani_ref result =
-        CallObjectMethod(true, "callOnConnect", "L@ohos/app/ability/Want/Want;:L@ohos/rpc/rpc/RemoteObject;", wantRef);
-    auto obj = reinterpret_cast<ani_object>(result);
-    auto remoteObj = AniGetNativeRemoteObject(env, obj);
-    if (remoteObj == nullptr) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "remoteObj null");
+    ani_field callbackField = nullptr;
+    if ((status = env->Class_FindField(stsObj_->aniCls, "connectCallbackPoint", &callbackField)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
         return nullptr;
     }
-    return remoteObj;
+    if ((status = env->Object_SetField_Long(stsObj_->aniObj, callbackField, connectCallbackPoint)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
+        return nullptr;
+    }
+    ani_ref aniRemoteRef = CallObjectMethod(true, "onConnect", nullptr, wantRef);
+    auto aniRemoteobj = reinterpret_cast<ani_object>(aniRemoteRef);
+    return OnConnectInner(env, aniRemoteobj, isAsyncCallback);
+}
+
+sptr<IRemoteObject> StsServiceExtension::OnConnectInner(ani_env* env, ani_object &aniRemoteobj, bool &isAsyncCallback)
+{
+    ani_status status = ANI_ERROR;
+    ani_method method {};
+    if ((status = env->Class_FindMethod(stsObj_->aniCls, "checkPromise", nullptr, &method)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
+        return nullptr;
+    }
+    ani_boolean isPromise = false;
+    if ((status = env->Object_CallMethod_Boolean(stsObj_->aniObj, method, &isPromise, aniRemoteobj)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
+        return nullptr;
+    }
+    if (!isPromise) {
+        isAsyncCallback = false;
+        auto remoteObj = AniGetNativeRemoteObject(env, aniRemoteobj);
+        if (remoteObj == nullptr) {
+            TAG_LOGE(AAFwkTag::SERVICE_EXT, "null remoteObj");
+        }
+        return remoteObj;
+    }
+    if ((status = env->Class_FindMethod(stsObj_->aniCls, "callPromise", nullptr, &method)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
+        return nullptr;
+    }
+    ani_boolean callResult = false;
+    if ((status = env->Object_CallMethod_Boolean(stsObj_->aniObj, method, &callResult, aniRemoteobj)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
+        return nullptr;
+    }
+    isAsyncCallback = callResult;
+    return nullptr;
 }
 
 void StsServiceExtension::OnDisconnect(const AAFwk::Want &want)
