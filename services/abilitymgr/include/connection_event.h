@@ -28,4 +28,4 @@ struct ConnectionEvent
 };
 }  // namespace AAFwk
 }  // namespace OHOS
-#endif  // OHOS_ABILITY_RUNTIME_PENDING_WANT_COMMON_EVENT_H
+#endif  // OHOS_ABILITY_RUNTIME_CONNECTION_EVENT_H
