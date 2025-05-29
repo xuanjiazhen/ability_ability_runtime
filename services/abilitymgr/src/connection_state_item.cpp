@@ -85,7 +85,7 @@ public:
         }
 
         int count = std::count_if(connections_.begin(), connections_.end(),
-            [](std::pair<sptr<IRemoteObject>, bool>& pair) {return pair.second == false});
+            [](const std::pair<sptr<IRemoteObject>, bool>& pair)->bool {return pair.second == false;});
         
         if (count == 1) {
             event.resumedEvent = true;
@@ -108,7 +108,7 @@ public:
         }
 
         auto it = std::find_if(connections_.begin(), connections_.end(),
-            [](std::pair<sptr<IRemoteObject>, bool>& pair) {return pair.second == false});
+            [](const std::pair<sptr<IRemoteObject>, bool>& pair)->bool {return pair.second == false;});
         
         if (it == connections_.end()) {
             event.suspendedEvent = true;
@@ -129,7 +129,7 @@ public:
         }
         (*it).second = true;
         it = std::find_if(connections_.begin(), connections_.end(),
-            [](std::pair<sptr<IRemoteObject>, bool>& pair) {return pair.second == false});
+            [](const std::pair<sptr<IRemoteObject>, bool>& pair)->bool {return pair.second == false;});
 
         return it == connections_.end();
     }
@@ -145,10 +145,10 @@ public:
             return false;
         }
 
-        auto it = std::find_if(connections_.begin(), connections_.end(),
-            [](std::pair<sptr<IRemoteObject>, bool>& pair) {return pair.second == false});
-        bool needNotify = (it == connections_.end());
-        
+        bool needNotify = std::find_if(connections_.begin(), connections_.end(),
+            [](const std::pair<sptr<IRemoteObject>, bool>& pair)->bool {return pair.second == false;})
+            == connections_.end();
+
         (*it).second = false;
         return needNotify
     }
