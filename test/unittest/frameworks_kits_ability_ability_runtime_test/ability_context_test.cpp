@@ -46,6 +46,26 @@ public:
     {
         return;
     }
+    virtual ErrCode RevokeDelegator()
+    {
+        return ERR_OK;
+    }
+    virtual bool GetHookOff()
+    {
+        return false;
+    }
+    virtual void SetHookOff(bool hookOff)
+    {
+        return;
+    }
+    virtual bool IsHook()
+    {
+        return false;
+    }
+    virtual void SetHook(bool isHook)
+    {
+        return;
+    }
     virtual std::string GetBundleName() const
     {
         return "MockAbilityContext for tdd";
@@ -86,7 +106,7 @@ public:
     {
         return "MockAbilityContext for tdd";
     }
-    virtual std::string GetResourceDir()
+    virtual std::string GetResourceDir(const std::string &moduleName = "")
     {
         return "MockAbilityContext for tdd";
     }
@@ -289,6 +309,19 @@ public:
     {
         return ERR_OK;
     }
+    virtual ErrCode StartAppServiceExtensionAbility(const AAFwk::Want &want)
+    {
+        return ERR_OK;
+    }
+    virtual ErrCode StopAppServiceExtensionAbility(const AAFwk::Want& want)
+    {
+        return ERR_OK;
+    }
+    virtual ErrCode ConnectAppServiceExtensionAbility(const AAFwk::Want& want,
+        const sptr<AbilityConnectCallback>& connectCallback)
+    {
+        return ERR_OK;
+    }
     virtual void DisconnectAbility(const AAFwk::Want &want,
         const sptr<AbilityConnectCallback> &connectCallback, int32_t accountId = -1)
     {
@@ -468,6 +501,46 @@ public:
         return;
     }
     virtual void RemoveResultCallbackTask(int requestCode)
+    {
+        return;
+    }
+
+    /**
+     * @brief Add CompletioHandler.
+     *
+     * @param requestId, the requestId.
+     * @param onRequestSucc, the callback ot be called upon request success.
+     * @param onRequestFail, the callback ot be called upon request failure.
+     * @return ERR_OK on success, otherwise failure.
+     */
+    virtual ErrCode AddCompletionHandler(const std::string &requestId, OnRequestResult onRequestSucc,
+        OnRequestResult onRequestFail)
+    {
+        return 0;
+    }
+
+    /**
+     * @brief Callback on request success.
+     *
+     * @param requestId, the requestId.
+     * @param element, the want element of startAbility.
+     * @param message, the message returned to the callback.
+     */
+    virtual void OnRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message)
+    {
+        return;
+    }
+
+    /**
+     * @brief Callback on request failure.
+     *
+     * @param requestId, the requestId.
+     * @param element, the want element of startAbility.
+     * @param message, the message returned to the callback.
+     */
+    virtual void OnRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message)
     {
         return;
     }

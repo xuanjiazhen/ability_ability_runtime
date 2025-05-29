@@ -20,6 +20,7 @@
 #include "freeze_util.h"
 #include "js_embeddable_ui_ability_context.h"
 #include "ui_ability.h"
+#include "recovery_param.h"
 
 class NativeReference;
 
@@ -36,6 +37,17 @@ using Configuration = AppExecFwk::Configuration;
 using InsightIntentExecuteResult = AppExecFwk::InsightIntentExecuteResult;
 using InsightIntentExecuteParam = AppExecFwk::InsightIntentExecuteParam;
 using InsightIntentExecutorAsyncCallback = AppExecFwk::InsightIntentExecutorAsyncCallback;
+
+struct CallOnSaveStateInfo {
+    AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult> *callbackInfo;
+    AppExecFwk::WantParams wantParams;
+    AppExecFwk::StateReason reason;
+};
+
+struct CallObjectMethodParams {
+    bool withResult = false;
+    bool showMethodNotFoundLog = true;
+};
 
 class JsUIAbility : public UIAbility {
 public:
@@ -138,7 +150,9 @@ public:
      * @param wantParams Indicates the user data to be saved.
      * @return result code defined in abilityConstants
      */
-    int32_t OnSaveState(int32_t reason, WantParams &wantParams) override;
+    int32_t OnSaveState(int32_t reason, WantParams &wantParams,
+        AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult> *callbackInfo,
+        bool &isAsync, AppExecFwk::StateReason stateReason) override;
 
     /**
      * @brief Called when startAbilityForResult(ohos.aafwk.content.Want,int) is called to start an ability and the
@@ -187,6 +201,8 @@ public:
      * @param state Indicates the continueState of an application.
      */
     void SetContinueState(int32_t state) override;
+
+    void NotifyWindowDestroy() override;
 
 #ifdef SUPPORT_SCREEN
 public:
@@ -241,7 +257,7 @@ public:
      * You can override this function to implement your own processing logic.
      */
     void OnBackground() override;
-    
+
     /**
      * @brief Called before this ability enters the <b>STATE_FOREGROUND</b> state.
      * The ability in the <b>STATE_FOREGROUND</b> state is invisible.
@@ -318,6 +334,17 @@ public:
         std::unique_ptr<InsightIntentExecutorAsyncCallback> callback) override;
 
     /**
+     * @brief Execute insight intent when an ability start with page insight intent.
+     *
+     * @param want Want.
+     * @param executeParam insight intent execute param.
+     * @param callback insight intent async callback.
+     */
+    void ExecuteInsightIntentPage(const AAFwk::Want &want,
+        const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
+        std::unique_ptr<InsightIntentExecutorAsyncCallback> callback) override;
+
+    /**
      * @brief Execute insight intent when an ability didn't started, schedule it to background.
      *
      * @param want Want.
@@ -334,6 +361,24 @@ public:
      */
     void HandleCollaboration(const Want &want) override;
 
+    /**
+     * @brief Called when startAbility request failed.
+     * @param requestId, the requestId.
+     * @param element, the element to start ability.
+     * @param message, the message to be returned to the calling app.
+     */
+    void OnAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message) override;
+
+    /**
+     * @brief Called when startAbility request succeeded.
+     * @param requestId, the requestId.
+     * @param element, the element to start ability.
+     * @param message, the message to be returned to the calling app.
+     */
+    void OnAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message) override;
+
 protected:
     void DoOnForeground(const Want &want) override;
     void ContinuationRestore(const Want &want) override;
@@ -348,7 +393,8 @@ private:
         const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
         InsightIntentExecutorInfo& executeInfo);
     int32_t OnCollaborate(WantParams &wantParams);
-    
+    void SetInsightIntentParam(const Want &want, bool coldStart);
+
     std::shared_ptr<NativeReference> jsWindowStageObj_;
     int32_t windowMode_ = 0;
 #endif
@@ -356,10 +402,13 @@ private:
 private:
     napi_value CallObjectMethod(const char *name, napi_value const *argv = nullptr, size_t argc = 0,
         bool withResult = false, bool showMethodNotFoundLog = true);
+    napi_value CallObjectMethod(const char *name, bool &hasCaughtException,
+        const CallObjectMethodParams &callObjectMethodParams, napi_value const *argv = nullptr, size_t argc = 0);
     bool CheckPromise(napi_value result);
     bool CallPromise(napi_value result, AppExecFwk::AbilityTransactionCallbackInfo<> *callbackInfo);
     bool CallPromise(napi_value result, AppExecFwk::AbilityTransactionCallbackInfo<int32_t> *callbackInfo);
     bool CallPromise(napi_value result, AppExecFwk::AbilityTransactionCallbackInfo<bool> *callbackInfo);
+    int32_t CallSaveStatePromise(napi_value result, CallOnSaveStateInfo info);
     std::unique_ptr<NativeReference> CreateAppWindowStage();
     std::shared_ptr<AppExecFwk::ADelegatorAbilityProperty> CreateADelegatorAbilityProperty();
     sptr<IRemoteObject> SetNewRuleFlagToCallee(napi_env env, napi_value remoteJsObj);
@@ -383,6 +432,7 @@ private:
     std::shared_ptr<NativeReference> jsAbilityObj_;
     std::shared_ptr<int32_t> screenModePtr_;
     sptr<IRemoteObject> remoteCallee_;
+    bool reusingWindow_ = false;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

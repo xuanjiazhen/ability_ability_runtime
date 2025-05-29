@@ -33,7 +33,7 @@
 #include "parameter.h"
 #include "parameters.h"
 #include "singleton.h"
-
+#include "res_sched_util.h"
 #include "app_mgr_client.h"
 #include "hilog_tag_wrapper.h"
 #include "time_util.h"
@@ -61,6 +61,8 @@ static constexpr uint8_t FREE_ASYNC_INDEX = 6;
 static constexpr uint16_t FREE_ASYNC_MAX = 1000;
 static constexpr int64_t NANOSECONDS = 1000000000;  // NANOSECONDS mean 10^9 nano second
 static constexpr int64_t MICROSECONDS = 1000000;    // MICROSECONDS mean 10^6 millias second
+static constexpr int DUMP_STACK_FAILED = -1;
+static constexpr int DUMP_KERNEL_STACK_SUCCESS = 1;
 constexpr uint64_t SEC_TO_MILLISEC = 1000;
 constexpr uint32_t BUFFER_SIZE = 1024;
 const std::string LOG_FILE_PATH = "data/log/eventlog";
@@ -68,6 +70,13 @@ static bool g_betaVersion = OHOS::system::GetParameter("const.logsystem.versiont
 static bool g_developMode = (OHOS::system::GetParameter("persist.hiview.leak_detector", "unknown") == "enable") ||
                             (OHOS::system::GetParameter("persist.hiview.leak_detector", "unknown") == "true");
 }
+static constexpr const char *const TWELVE_BIG_CPU_CUR_FREQ = "/sys/devices/system/cpu/cpufreq/policy2/scaling_cur_freq";
+static constexpr const char *const TWELVE_BIG_CPU_MAX_FREQ = "/sys/devices/system/cpu/cpufreq/policy2/scaling_max_freq";
+static constexpr const char *const TWELVE_MID_CPU_CUR_FREQ = "/sys/devices/system/cpu/cpufreq/policy1/scaling_cur_freq";
+static constexpr const char *const TWELVE_MID_CPU_MAX_FREQ = "/sys/devices/system/cpu/cpufreq/policy1/scaling_max_freq";
+const static std::set<std::string> HALF_EVENT_CONFIGS = {"UI_BLOCK_3S", "THREAD_BLOCK_3S", "BUSSNESS_THREAD_BLOCK_3S",
+                                                         "LIFECYCLE_HALF_TIMEOUT", "LIFECYCLE_HALF_TIMEOUT_WARNING"};
+static constexpr int PERF_TIME = 60000;
 std::shared_ptr<AppfreezeManager> AppfreezeManager::instance_ = nullptr;
 ffrt::mutex AppfreezeManager::singletonMutex_;
 ffrt::mutex AppfreezeManager::freezeMutex_;
@@ -125,7 +134,8 @@ int AppfreezeManager::AppfreezeHandle(const FaultData& faultData, const Appfreez
     CollectFreezeSysMemory(memoryContent);
     if (faultData.errorObject.name == AppFreezeType::APP_INPUT_BLOCK ||
         faultData.errorObject.name == AppFreezeType::THREAD_BLOCK_3S ||
-        faultData.errorObject.name == AppFreezeType::LIFECYCLE_HALF_TIMEOUT) {
+        faultData.errorObject.name == AppFreezeType::LIFECYCLE_HALF_TIMEOUT ||
+        faultData.errorObject.name == AppFreezeType::LIFECYCLE_HALF_TIMEOUT_WARNING) {
         AcquireStack(faultData, appInfo, memoryContent);
     } else {
         NotifyANR(faultData, appInfo, "", memoryContent);
@@ -157,8 +167,10 @@ int AppfreezeManager::MergeNotifyInfo(FaultData& faultNotifyData, const Appfreez
     std::string catcherStack = "";
     faultNotifyData.errorObject.message += "\nCatche stack trace start time: " +
         AbilityRuntime::TimeUtil::DefaultCurrentTimeStr() + "\n";
-    if (faultNotifyData.errorObject.name == AppFreezeType::LIFECYCLE_HALF_TIMEOUT
-        || faultNotifyData.errorObject.name == AppFreezeType::LIFECYCLE_TIMEOUT) {
+    if (faultNotifyData.errorObject.name == AppFreezeType::LIFECYCLE_HALF_TIMEOUT ||
+        faultNotifyData.errorObject.name == AppFreezeType::LIFECYCLE_HALF_TIMEOUT_WARNING ||
+        faultNotifyData.errorObject.name == AppFreezeType::LIFECYCLE_TIMEOUT ||
+        faultNotifyData.errorObject.name == AppFreezeType::LIFECYCLE_TIMEOUT_WARNING) {
         catcherStack += CatcherStacktrace(appInfo.pid, faultNotifyData.errorObject.stack);
     } else {
         catcherStack += CatchJsonStacktrace(appInfo.pid, faultNotifyData.errorObject.name,
@@ -172,7 +184,8 @@ int AppfreezeManager::MergeNotifyInfo(FaultData& faultNotifyData, const Appfreez
     faultNotifyData.errorObject.message += timeStamp;
     if (faultNotifyData.errorObject.name == AppFreezeType::APP_INPUT_BLOCK ||
         faultNotifyData.errorObject.name == AppFreezeType::THREAD_BLOCK_3S ||
-        faultNotifyData.errorObject.name == AppFreezeType::LIFECYCLE_HALF_TIMEOUT) {
+        faultNotifyData.errorObject.name == AppFreezeType::LIFECYCLE_HALF_TIMEOUT ||
+        faultNotifyData.errorObject.name == AppFreezeType::LIFECYCLE_HALF_TIMEOUT_WARNING) {
         AcquireStack(faultNotifyData, appInfo, memoryContent);
     } else {
         NotifyANR(faultNotifyData, appInfo, "", memoryContent);
@@ -238,7 +251,9 @@ int AppfreezeManager::LifecycleTimeoutHandle(const ParamInfo& info, FreezeUtil::
         return -1;
     }
     if (info.eventName != AppFreezeType::LIFECYCLE_TIMEOUT &&
-        info.eventName != AppFreezeType::LIFECYCLE_HALF_TIMEOUT) {
+        info.eventName != AppFreezeType::LIFECYCLE_TIMEOUT_WARNING &&
+        info.eventName != AppFreezeType::LIFECYCLE_HALF_TIMEOUT &&
+        info.eventName != AppFreezeType::LIFECYCLE_HALF_TIMEOUT_WARNING) {
         return -1;
     }
     TAG_LOGD(AAFwkTag::APPDFR, "called %{public}s, name_ %{public}s", info.bundleName.c_str(),
@@ -331,6 +346,7 @@ int AppfreezeManager::NotifyANR(const FaultData& faultData, const AppfreezeManag
     DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->GetAppRunningUniqueIdByPid(appInfo.pid,
         appRunningUniqueId);
     int ret = 0;
+    this->PerfStart(faultData.errorObject.name);
     int64_t startTime = AbilityRuntime::TimeUtil::CurrentTimeMillis();
     if (faultData.errorObject.name == AppFreezeType::APP_INPUT_BLOCK) {
         ret = HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::AAFWK, faultData.errorObject.name,
@@ -349,7 +365,7 @@ int AppfreezeManager::NotifyANR(const FaultData& faultData, const AppfreezeManag
     }
     TAG_LOGW(AAFwkTag::APPDFR,
         "reportEvent:%{public}s, pid:%{public}d, tid:%{public}d, bundleName:%{public}s, appRunningUniqueId:%{public}s"
-        ", endTime:%{public}s, interval:%{public}lld ms, eventId:%{public}d hisysevent write ret: %{public}d",
+        ", endTime:%{public}s, interval:%{public}" PRId64 " ms, eventId:%{public}d hisysevent write ret: %{public}d",
         faultData.errorObject.name.c_str(), appInfo.pid, faultData.tid, appInfo.bundleName.c_str(),
         appRunningUniqueId.c_str(), AbilityRuntime::TimeUtil::DefaultCurrentTimeStr().c_str(),
         AbilityRuntime::TimeUtil::CurrentTimeMillis() - startTime, faultData.eventId, ret);
@@ -520,12 +536,12 @@ void AppfreezeManager::DeleteStack(int pid)
     }
 }
 
-void AppfreezeManager::FindStackByPid(std::string& ret, int pid) const
+void AppfreezeManager::FindStackByPid(std::string& msg, int pid) const
 {
     std::lock_guard<ffrt::mutex> lock(catchStackMutex_);
     auto it = catchStackMap_.find(pid);
     if (it != catchStackMap_.end()) {
-        ret = it->second;
+        msg = it->second;
     }
 }
 
@@ -535,15 +551,21 @@ std::string AppfreezeManager::CatchJsonStacktrace(int pid, const std::string& fa
     HITRACE_METER_FMT(HITRACE_TAG_APP, "CatchJsonStacktrace pid:%d", pid);
     HiviewDFX::DfxDumpCatcher dumplog;
     std::string msg;
-    size_t defaultMaxFaultNum = 256;
-    if (dumplog.DumpCatchProcess(pid, msg, defaultMaxFaultNum, true) == -1) {
-        TAG_LOGI(AAFwkTag::APPDFR, "appfreeze catch stack failed");
-        msg = "Failed to dump stacktrace for " + std::to_string(pid) + "\n" + msg +
+    int timeout = 3000;
+    int tid = 0;
+    std::pair<int, std::string> dumpResult = dumplog.DumpCatchWithTimeout(pid, msg, timeout, tid, true);
+    if (dumpResult.first == DUMP_STACK_FAILED) {
+        TAG_LOGI(AAFwkTag::APPDFR, "appfreeze catch json stacktrace failed, %{public}s", dumpResult.second.c_str());
+        msg = "Failed to dump stacktrace for " + std::to_string(pid) + "\n" + dumpResult.second + "\n" + msg +
             "\nMain thread stack:" + stack;
         if (faultType == AppFreezeType::APP_INPUT_BLOCK) {
             FindStackByPid(msg, pid);
         }
     } else {
+        if (dumpResult.first == DUMP_KERNEL_STACK_SUCCESS) {
+            msg = "Failed to dump normal stacktrace for " + std::to_string(pid) + "\n" + dumpResult.second +
+                "Kernel stack is:\n" + msg;
+        }
         if (faultType == AppFreezeType::THREAD_BLOCK_3S) {
             std::lock_guard<ffrt::mutex> lock(catchStackMutex_);
             catchStackMap_[pid] = msg;
@@ -557,9 +579,15 @@ std::string AppfreezeManager::CatcherStacktrace(int pid, const std::string& stac
     HITRACE_METER_FMT(HITRACE_TAG_APP, "CatcherStacktrace pid:%d", pid);
     HiviewDFX::DfxDumpCatcher dumplog;
     std::string msg;
-    if (dumplog.DumpCatchProcess(pid, msg) == -1) {
-        msg = "Failed to dump stacktrace for " + std::to_string(pid) + "\n" + msg +
+    std::pair<int, std::string> dumpResult = dumplog.DumpCatchWithTimeout(pid, msg);
+    if (dumpResult.first == DUMP_STACK_FAILED) {
+        TAG_LOGI(AAFwkTag::APPDFR, "appfreeze catch stacktrace failed, %{public}s",
+            dumpResult.second.c_str());
+        msg = "Failed to dump stacktrace for " + std::to_string(pid) + "\n" + dumpResult.second + "\n" + msg +
             "\nMain thread stack:" + stack;
+    } else if (dumpResult.first == DUMP_KERNEL_STACK_SUCCESS) {
+        msg = "Failed to dump normal stacktrace for " + std::to_string(pid) + "\n" + dumpResult.second +
+            "Kernel stack is:\n" + msg;
     }
     return msg;
 }
@@ -569,17 +597,12 @@ bool AppfreezeManager::IsProcessDebug(int32_t pid, std::string bundleName)
     std::lock_guard<ffrt::mutex> lock(freezeFilterMutex_);
     auto it = appfreezeFilterMap_.find(bundleName);
     if (it != appfreezeFilterMap_.end() && it->second.pid == pid) {
-        if (g_betaVersion || g_developMode) {
-            TAG_LOGI(AAFwkTag::APPDFR, "filtration current device is beta or development do not report appfreeze");
-            return true;
-        }
-        if (it->second.state == AppFreezeState::APPFREEZE_STATE_CANCELED) {
-            TAG_LOGI(AAFwkTag::APPDFR, "filtration only once");
-            return false;
-        } else {
-            TAG_LOGI(AAFwkTag::APPDFR, "filtration %{public}s", bundleName.c_str());
-            return true;
-        }
+        bool result = it->second.state == AppFreezeState::APPFREEZE_STATE_CANCELED;
+        TAG_LOGW(AAFwkTag::APPDFR, "AppfreezeFilter: %{public}d, "
+            "bundleName=%{public}s, pid:%{public}d, state:%{public}d, g_betaVersion:%{public}d,"
+            " g_developMode:%{public}d",
+            result, bundleName.c_str(), pid, it->second.state, g_betaVersion, g_developMode);
+        return result;
     }
 
     const int buffSize = 128;
@@ -684,7 +707,7 @@ bool AppfreezeManager::IsNeedIgnoreFreezeEvent(int32_t pid, const std::string& e
 bool AppfreezeManager::CancelAppFreezeDetect(int32_t pid, const std::string& bundleName)
 {
     if (bundleName.empty()) {
-        TAG_LOGE(AAFwkTag::APPDFR, "SetAppFreezeFilter bundleName is empty.");
+        TAG_LOGE(AAFwkTag::APPDFR, "SetAppFreezeFilter: failed, bundleName is empty.");
         return false;
     }
     std::lock_guard<ffrt::mutex> lock(freezeFilterMutex_);
@@ -692,6 +715,8 @@ bool AppfreezeManager::CancelAppFreezeDetect(int32_t pid, const std::string& bun
     info.pid = pid;
     info.state = AppFreezeState::APPFREEZE_STATE_CANCELING;
     appfreezeFilterMap_.emplace(bundleName, info);
+    TAG_LOGI(AAFwkTag::APPDFR, "SetAppFreezeFilter: success, bundleName=%{public}s, "
+        "pid:%{public}d, state:%{public}d", bundleName.c_str(), info.pid, info.state);
     return true;
 }
 
@@ -700,8 +725,12 @@ void AppfreezeManager::RemoveDeathProcess(std::string bundleName)
     std::lock_guard<ffrt::mutex> lock(freezeFilterMutex_);
     auto it = appfreezeFilterMap_.find(bundleName);
     if (it != appfreezeFilterMap_.end()) {
-        TAG_LOGI(AAFwkTag::APPDFR, "Remove bundleName: %{public}s", bundleName.c_str());
+        TAG_LOGI(AAFwkTag::APPDFR, "RemoveAppFreezeFilter:success, bundleName: %{public}s",
+            bundleName.c_str());
         appfreezeFilterMap_.erase(it);
+    } else {
+        TAG_LOGI(AAFwkTag::APPDFR, "RemoveAppFreezeFilter:failed, not found bundleName: "
+            "%{public}s", bundleName.c_str());
     }
 }
 
@@ -709,23 +738,62 @@ void AppfreezeManager::ResetAppfreezeState(int32_t pid, const std::string& bundl
 {
     std::lock_guard<ffrt::mutex> lock(freezeFilterMutex_);
     if (appfreezeFilterMap_.find(bundleName) != appfreezeFilterMap_.end()) {
-        TAG_LOGD(AAFwkTag::APPDFR, "bundleName: %{public}s",
-            bundleName.c_str());
         appfreezeFilterMap_[bundleName].state = AppFreezeState::APPFREEZE_STATE_CANCELED;
     }
+    TAG_LOGI(AAFwkTag::APPDFR, "SetAppFreezeFilter: reset state, "
+        "bundleName=%{public}s, pid:%{public}d, state:%{public}d",
+        bundleName.c_str(), pid, appfreezeFilterMap_[bundleName].state);
 }
 
 bool AppfreezeManager::IsValidFreezeFilter(int32_t pid, const std::string& bundleName)
 {
     if (g_betaVersion || g_developMode) {
-        TAG_LOGI(AAFwkTag::APPDFR, "current device is beta or development do not report appfreeze");
+        TAG_LOGI(AAFwkTag::APPDFR, "SetAppFreezeFilter: "
+            "current device is beta or development");
         return true;
     }
     std::lock_guard<ffrt::mutex> lock(freezeFilterMutex_);
-    if (appfreezeFilterMap_.find(bundleName) != appfreezeFilterMap_.end()) {
-        return false;
+    bool ret = appfreezeFilterMap_.find(bundleName) != appfreezeFilterMap_.end();
+    TAG_LOGI(AAFwkTag::APPDFR, "SetAppFreezeFilter: %{public}d, bundleName=%{public}s, "
+        "pid:%{public}d", ret, bundleName.c_str(), pid);
+    return ret;
+}
+void AppfreezeManager::PerfStart(std::string eventName)
+{
+    if (OHOS::system::GetParameter("const.dfx.sub_health_recovery.enable", "") != "true") {
+        TAG_LOGI(AAFwkTag::APPDFR, "sub_health_recovery is not enable");
+        return;
     }
-    return true;
+    auto it = HALF_EVENT_CONFIGS.find(eventName);
+    if (it == HALF_EVENT_CONFIGS.end()) {
+        return;
+    }
+    auto curTime = AbilityRuntime::TimeUtil::SystemTimeMillisecond();
+    if (curTime - perfTime < PERF_TIME) {
+        TAG_LOGE(AAFwkTag::APPDFR, "perf time is less than 60s");
+        return;
+    }
+    std::string bigCpuCurFreq = this->GetFirstLine(TWELVE_BIG_CPU_CUR_FREQ);
+    std::string bigCpuMaxFreq = this->GetFirstLine(TWELVE_BIG_CPU_MAX_FREQ);
+    std::string midCpuCurFreq = this->GetFirstLine(TWELVE_MID_CPU_CUR_FREQ);
+    std::string midCpuMaxFreq = this->GetFirstLine(TWELVE_MID_CPU_MAX_FREQ);
+    if (bigCpuCurFreq == bigCpuMaxFreq || midCpuCurFreq == midCpuMaxFreq) {
+        perfTime = curTime;
+        TAG_LOGI(AAFwkTag::APPDFR, "perf start");
+        AAFwk::ResSchedUtil::GetInstance().ReportSubHealtyPerfInfoToRSS();
+        TAG_LOGI(AAFwkTag::APPDFR, "perf end");
+    }
+}
+std::string AppfreezeManager::GetFirstLine(const std::string &path)
+{
+    std::ifstream inFile(path.c_str());
+    if (!inFile) {
+        return "";
+    }
+    std::string firstLine;
+    getline(inFile, firstLine);
+    inFile.close();
+    return firstLine;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

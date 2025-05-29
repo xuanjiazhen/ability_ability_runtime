@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,16 +20,17 @@
 #include "ecmascript/napi/include/dfx_jsnapi.h"
 #include "ecmascript/napi/include/jsnapi.h"
 #include "js_environment_impl.h"
-#include "native_engine/native_engine.h"
 #include "source_map_operator.h"
 #include "uncaught_exception_callback.h"
 
 namespace OHOS {
 namespace JsEnv {
+struct WorkerInfo;
 class JsEnvironmentImpl;
 using DebuggerPostTask = std::function<void(std::function<void()>&&)>;
 using RequestAotCallback =
     std::function<int32_t(const std::string& bundleName, const std::string& moduleName, int32_t triggerMode)>;
+using UncatchableTask = std::function<void(std::string summary, const JsEnv::ErrorObject errorObject)>;
 class JsEnvironment final : public std::enable_shared_from_this<JsEnvironment> {
 public:
     JsEnvironment() {}
@@ -73,6 +74,8 @@ public:
     void RemoveTask(const std::string& name);
 
     void RegisterUncaughtExceptionHandler(const JsEnv::UncaughtExceptionInfo& uncaughtExceptionInfo);
+
+    void RegisterUncatchableExceptionHandler(const JsEnv::UncatchableTask& uncatchableTask);
 
     bool LoadScript(const std::string& path, std::vector<uint8_t>* buffer = nullptr, bool isBundle = false);
 

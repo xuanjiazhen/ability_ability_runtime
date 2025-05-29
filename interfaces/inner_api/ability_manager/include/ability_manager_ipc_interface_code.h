@@ -508,6 +508,7 @@ enum class AbilityManagerInterfaceCode {
     // ipc id for collborator
     REGISTER_COLLABORATOR = 4050,
     UNREGISTER_COLLABORATOR = 4051,
+    GET_ABILITY_MANAGER_COLLABORATOR = 4052,
 
     IS_ABILITY_CONTROLLER_START = 4054,
     OPEN_FILE = 4055,
@@ -610,6 +611,24 @@ enum class AbilityManagerInterfaceCode {
 
     // start self uiability with startOptions
     START_SELF_UI_ABILITY_WITH_START_OPTIONS = 6138,
+
+    // revoke delegator
+    REVOKE_DELEGATOR = 6139,
+
+    // get all insight intent info
+    GET_ALL_INSIGHT_INTENT_INFO = 6140,
+
+    // get all insight intent info by bundle name
+    GET_INSIGHT_INTENT_INFO_BY_BUNDLE_NAME = 6141,
+
+    // get all insight intent info by intent name
+    GET_INSIGHT_INTENT_INFO_BY_INTENT_NAME = 6142,
+
+    // start ability with wait
+    START_ABILITY_WITH_WAIT = 6143,
+
+    // restart atomic service
+    RESTART_SELF_ATOMIC_SERVICE = 6144,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

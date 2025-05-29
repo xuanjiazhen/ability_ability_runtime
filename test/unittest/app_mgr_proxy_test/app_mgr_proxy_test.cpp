@@ -31,6 +31,7 @@ namespace OHOS {
 namespace AppExecFwk {
 namespace {
 const int32_t USER_ID = 100;
+constexpr int32_t MAX_BACKGROUND_APP_COUNT = 1000;
 } // namespace
 
 class AppForegroundStateObserverMock : public AppForegroundStateObserverStub {
@@ -127,7 +128,7 @@ HWTEST_F(AppMgrProxyTest, AppMgrProxy_GetProcessRunningInfosByUserId_0100, TestS
  * @tc.desc: GetAllRenderProcesses
  * @tc.type: FUNC
  */
-HWTEST_F(AppMgrProxyTest, AppMgrProxy_GetAllRenderProcesses_0100, TestSize.Level0)
+HWTEST_F(AppMgrProxyTest, AppMgrProxy_GetAllRenderProcesses_0100, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "AppMgrProxy_GetAllRenderProcesses_0100 start";
 
@@ -150,7 +151,7 @@ HWTEST_F(AppMgrProxyTest, AppMgrProxy_GetAllRenderProcesses_0100, TestSize.Level
  * @tc.desc: GetAllChildrenProcesses
  * @tc.type: FUNC
  */
-HWTEST_F(AppMgrProxyTest, AppMgrProxy_GetAllChildrenProcesses_0100, TestSize.Level0)
+HWTEST_F(AppMgrProxyTest, AppMgrProxy_GetAllChildrenProcesses_0100, TestSize.Level2)
 {
     GTEST_LOG_(INFO) << "AppMgrProxy_GetAllChildrenProcesses_0100 start";
 
@@ -174,7 +175,7 @@ HWTEST_F(AppMgrProxyTest, AppMgrProxy_GetAllChildrenProcesses_0100, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI581VW
  */
-HWTEST_F(AppMgrProxyTest, GetAppRunningStateByBundleName_0100, TestSize.Level0)
+HWTEST_F(AppMgrProxyTest, GetAppRunningStateByBundleName_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
 
@@ -196,7 +197,7 @@ HWTEST_F(AppMgrProxyTest, GetAppRunningStateByBundleName_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI581VW
  */
-HWTEST_F(AppMgrProxyTest, NotifyLoadRepairPatch_0100, TestSize.Level0)
+HWTEST_F(AppMgrProxyTest, NotifyLoadRepairPatch_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
 
@@ -219,7 +220,7 @@ HWTEST_F(AppMgrProxyTest, NotifyLoadRepairPatch_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI581VW
  */
-HWTEST_F(AppMgrProxyTest, NotifyHotReloadPage_0100, TestSize.Level0)
+HWTEST_F(AppMgrProxyTest, NotifyHotReloadPage_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start", __func__);
 
@@ -242,7 +243,7 @@ HWTEST_F(AppMgrProxyTest, NotifyHotReloadPage_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI581VW
  */
-HWTEST_F(AppMgrProxyTest, NotifyUnLoadRepairPatch_0100, TestSize.Level0)
+HWTEST_F(AppMgrProxyTest, NotifyUnLoadRepairPatch_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
 
@@ -265,7 +266,7 @@ HWTEST_F(AppMgrProxyTest, NotifyUnLoadRepairPatch_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI5W4S7
  */
-HWTEST_F(AppMgrProxyTest, PreStartNWebSpawnProcess_001, TestSize.Level0)
+HWTEST_F(AppMgrProxyTest, PreStartNWebSpawnProcess_001, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
 
@@ -285,7 +286,7 @@ HWTEST_F(AppMgrProxyTest, PreStartNWebSpawnProcess_001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI76JBF
  */
-HWTEST_F(AppMgrProxyTest, GetProcessMemoryByPid_001, TestSize.Level0)
+HWTEST_F(AppMgrProxyTest, GetProcessMemoryByPid_001, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
 
@@ -307,7 +308,7 @@ HWTEST_F(AppMgrProxyTest, GetProcessMemoryByPid_001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI76JBF
  */
-HWTEST_F(AppMgrProxyTest, GetRunningProcessInformation_001, TestSize.Level0)
+HWTEST_F(AppMgrProxyTest, GetRunningProcessInformation_001, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
 
@@ -569,7 +570,8 @@ HWTEST_F(AppMgrProxyTest, SignRestartAppFlag_0100, TestSize.Level1)
 HWTEST_F(AppMgrProxyTest, NotifyMemorySizeStateChanged_0100, TestSize.Level1)
 {
     EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _)).Times(1);
-    auto res = appMgrProxy_->NotifyMemorySizeStateChanged(true);
+    int32_t memorySizeState = 1;
+    auto res = appMgrProxy_->NotifyMemorySizeStateChanged(memorySizeState);
     EXPECT_EQ(res, NO_ERROR);
 }
 
@@ -581,7 +583,8 @@ HWTEST_F(AppMgrProxyTest, NotifyMemorySizeStateChanged_0100, TestSize.Level1)
 HWTEST_F(AppMgrProxyTest, NotifyMemorySizeStateChanged_0200, TestSize.Level1)
 {
     EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _)).Times(1);
-    auto res = appMgrProxy_->NotifyMemorySizeStateChanged(false);
+    int32_t memorySizeState = 0;
+    auto res = appMgrProxy_->NotifyMemorySizeStateChanged(memorySizeState);
     EXPECT_EQ(res, NO_ERROR);
 }
 
@@ -818,7 +821,7 @@ HWTEST_F(AppMgrProxyTest, PreloadApplication_0800, TestSize.Level1)
  * @tc.desc: The application sets itself whether or not to support process cache.
  * @tc.type: FUNC
  */
-HWTEST_F(AppMgrProxyTest, SetSupportedProcessCacheSelf_001, TestSize.Level0)
+HWTEST_F(AppMgrProxyTest, SetSupportedProcessCacheSelf_001, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
 
@@ -919,7 +922,7 @@ HWTEST_F(AppMgrProxyTest, GetAllRunningInstanceKeysByBundleName_001, TestSize.Le
  * @tc.type: FUNC
  * @tc.require: issueIAGZ7H
  */
-HWTEST_F(AppMgrProxyTest, GetSupportedProcessCachePids_001, TestSize.Level0)
+HWTEST_F(AppMgrProxyTest, GetSupportedProcessCachePids_001, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
 
@@ -933,6 +936,64 @@ HWTEST_F(AppMgrProxyTest, GetSupportedProcessCachePids_001, TestSize.Level0)
     EXPECT_EQ(mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::GET_SUPPORTED_PROCESS_CACHE_PIDS));
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: UpdateConfigurationForBackgroundApp_001
+ * @tc.desc: UpdateConfigurationForBackgroundApp.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppMgrProxyTest, UpdateConfigurationForBackgroundApp_001, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
+
+    std::vector<BackgroundAppInfo> appInfos;
+    ConfigurationPolicy policy;
+    int32_t userId = -1;
+
+    auto ret = appMgrProxy_->UpdateConfigurationForBackgroundApp(appInfos, policy, userId);
+    if (appInfos.size() == 0 || appInfos.size() > MAX_BACKGROUND_APP_COUNT) {
+        EXPECT_EQ(ret, ERR_INVALID_DATA);
+    }
+    BackgroundAppInfo info;
+    appInfos.push_back(info);
+    appMgrProxy_->UpdateConfigurationForBackgroundApp(appInfos, policy, userId);
+    EXPECT_EQ(mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_CONFIGURATION_POLICY));
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: IsProcessCacheSupported_0100
+ * @tc.desc: Test IsProcessCacheSupported.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, IsProcessCacheSupported_0100, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _)).Times(1);
+    int32_t pid = 1;
+    bool isSupport = false;
+    auto ret = appMgrProxy_->IsProcessCacheSupported(pid, isSupport);
+    EXPECT_EQ(ret, NO_ERROR);
+}
+
+/**
+ * @tc.name: SetProcessCacheEnable_0100
+ * @tc.desc: Test SetProcessCacheEnable.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, SetProcessCacheEnable_0100, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _)).Times(1);
+    int32_t pid = 1;
+    bool enable = false;
+    auto ret = appMgrProxy_->SetProcessCacheEnable(pid, enable);
+    EXPECT_EQ(ret, NO_ERROR);
 }
 } // namespace AppExecFwk
 } // namespace OHOS

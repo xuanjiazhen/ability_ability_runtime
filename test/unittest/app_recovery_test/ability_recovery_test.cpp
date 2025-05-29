@@ -260,7 +260,7 @@ HWTEST_F(AbilityRecoveryUnitTest, ScheduleSaveAbilityState_002, TestSize.Level1)
 HWTEST_F(AbilityRecoveryUnitTest, SaveAbilityState_001, TestSize.Level1)
 {
     abilityRecovery_->ability_.reset();
-    EXPECT_FALSE(abilityRecovery_->SaveAbilityState());
+    EXPECT_FALSE(abilityRecovery_->SaveAbilityState(StateReason::LIFECYCLE));
 }
 
 /**
@@ -272,7 +272,7 @@ HWTEST_F(AbilityRecoveryUnitTest, SaveAbilityState_001, TestSize.Level1)
 HWTEST_F(AbilityRecoveryUnitTest, SaveAbilityState_002, TestSize.Level1)
 {
     abilityRecovery_->ability_ = mockAbility2_;
-    EXPECT_FALSE(abilityRecovery_->SaveAbilityState());
+    EXPECT_TRUE(abilityRecovery_->SaveAbilityState(StateReason::LIFECYCLE));
 }
 
 /**
@@ -284,9 +284,9 @@ HWTEST_F(AbilityRecoveryUnitTest, SaveAbilityState_002, TestSize.Level1)
 HWTEST_F(AbilityRecoveryUnitTest, SaveAbilityState_003, TestSize.Level1)
 {
     abilityRecovery_->ability_ = ability_;
-    EXPECT_TRUE(abilityRecovery_->SaveAbilityState());
+    EXPECT_TRUE(abilityRecovery_->SaveAbilityState(StateReason::LIFECYCLE));
     abilityRecovery_->ability_ = mockAbility_;
-    EXPECT_TRUE(abilityRecovery_->SaveAbilityState());
+    EXPECT_TRUE(abilityRecovery_->SaveAbilityState(StateReason::LIFECYCLE));
 }
 
 /**
@@ -300,10 +300,10 @@ HWTEST_F(AbilityRecoveryUnitTest, SaveAbilityState_004, TestSize.Level1)
     abilityRecovery_->EnableAbilityRecovery(true, RestartFlag::ALWAYS_RESTART, SaveOccasionFlag::SAVE_WHEN_ERROR,
         SaveModeFlag::SAVE_WITH_FILE);
     abilityRecovery_->ability_ = mockAbility_;
-    EXPECT_TRUE(abilityRecovery_->SaveAbilityState());
+    EXPECT_TRUE(abilityRecovery_->SaveAbilityState(StateReason::LIFECYCLE));
     abilityRecovery_->EnableAbilityRecovery(true, RestartFlag::ALWAYS_RESTART, SaveOccasionFlag::SAVE_WHEN_ERROR,
         SaveModeFlag::SAVE_WITH_SHARED_MEMORY);
-    EXPECT_TRUE(abilityRecovery_->SaveAbilityState());
+    EXPECT_TRUE(abilityRecovery_->SaveAbilityState(StateReason::LIFECYCLE));
 }
 
 /**
@@ -593,6 +593,49 @@ HWTEST_F(AbilityRecoveryUnitTest, TestLoadSavedState_001, TestSize.Level1)
     abilityRecovery_->hasLoaded_ = false;
     abilityRecovery_->missionId_ = 10;
     EXPECT_TRUE(!abilityRecovery_->LoadSavedState(StateReason::DEVELOPER_REQUEST));
+}
+
+/**
+ * @tc.name:  Test IsOnForeground
+ * @tc.desc:  add testcase
+ * @tc.type: Bugfix
+ */
+HWTEST_F(AbilityRecoveryUnitTest, IsOnForeground_001, TestSize.Level1)
+{
+    bool ret = abilityRecovery_->IsOnForeground();
+    EXPECT_EQ(ret, false);
+
+    std::shared_ptr<AbilityRuntime::UIAbility> ability =
+        std::make_shared<AbilityRuntime::UIAbility>();
+    abilityRecovery_->ability_ = ability;
+    ret = abilityRecovery_->IsOnForeground();
+    EXPECT_EQ(ret, false);
+
+    ability->abilityLifecycleExecutor_ =
+        std::make_shared<AppExecFwk::AbilityLifecycleExecutor>();
+    ability->abilityLifecycleExecutor_->state_ =
+        AbilityLifecycleExecutor::LifecycleState::FOREGROUND_NEW;
+    abilityRecovery_->ability_ = ability;
+    ret = abilityRecovery_->IsOnForeground();
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: SaveStateCallback_001
+ * @tc.desc: Test SaveStateCallback when enableFlag is false.
+ * @tc.type: FUNC
+ * @tc.require: I5UL6H
+ */
+HWTEST_F(AbilityRecoveryUnitTest, SaveStateCallback_001, TestSize.Level1)
+{
+    AppExecFwk::OnSaveStateResult result;
+    result.status = AppExecFwk::OnSaveResult::CONTINUATION_REJECT;
+    abilityRecovery_->ability_ = mockAbility_;
+    abilityRecovery_->SaveStateCallback(result);
+    EXPECT_NE(abilityRecovery_->ability_.lock(), nullptr);
+    result.status = AppExecFwk::OnSaveResult::ALL_AGREE;
+    abilityRecovery_->SaveStateCallback(result);
+    EXPECT_NE(abilityRecovery_->ability_.lock(), nullptr);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

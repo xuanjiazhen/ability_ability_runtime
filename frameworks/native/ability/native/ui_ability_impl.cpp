@@ -21,6 +21,7 @@
 #include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "json_utils.h"
 #include "ohos_application.h"
 #include "process_options.h"
 #ifdef SUPPORT_SCREEN
@@ -30,6 +31,8 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+const std::string JSON_KEY_ERR_MSG = "errMsg";
+
 void UIAbilityImpl::Init(const std::shared_ptr<AppExecFwk::OHOSApplication> &application,
     const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &record, std::shared_ptr<UIAbility> &ability,
     std::shared_ptr<AppExecFwk::AbilityHandler> &handler, const sptr<IRemoteObject> &token)
@@ -703,7 +706,7 @@ void UIAbilityImpl::HandleForegroundNewState(const AAFwk::Want &want, bool &bfla
 
 void UIAbilityImpl::HandleExecuteInsightIntentForeground(const AAFwk::Want &want, bool &bflag)
 {
-    TAG_LOGI(AAFwkTag::UIABILITY, "called");
+    TAG_LOGI(AAFwkTag::UIABILITY, "handle execute insight intent foreground");
     auto executeParam = std::make_shared<InsightIntentExecuteParam>();
     auto ret = InsightIntentExecuteParam::GenerateFromWant(want, *executeParam);
     if (!ret) {
@@ -722,6 +725,11 @@ void UIAbilityImpl::HandleExecuteInsightIntentForeground(const AAFwk::Want &want
     if (intentCb == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null intentCb");
         HandleForegroundNewState(want, bflag);
+        return;
+    }
+
+    if (AppExecFwk::InsightIntentExecuteParam::IsInsightIntentPage(want)) {
+        ExecuteInsightIntentPage(want, executeParam, std::move(intentCb));
         return;
     }
 
@@ -784,6 +792,31 @@ void UIAbilityImpl::ExecuteInsightIntentMoveToForeground(const Want &want,
     ability_->ExecuteInsightIntentMoveToForeground(want, executeParam, std::move(callback));
 }
 
+void UIAbilityImpl::ExecuteInsightIntentPage(const Want &want,
+    const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
+    std::unique_ptr<InsightIntentExecutorAsyncCallback> callback)
+{
+    // cause intent page no need execute onExecute callback, it just need set some params
+    TAG_LOGI(AAFwkTag::INTENT, "execute page intent");
+    auto asyncCallback =
+        [weak = weak_from_this(), intentId = executeParam->insightIntentId_, want](InsightIntentExecuteResult result) {
+            TAG_LOGD(AAFwkTag::INTENT, "execute insightIntent finished, intentId %{public}" PRIu64"", intentId);
+            auto abilityImpl = weak.lock();
+            if (abilityImpl == nullptr) {
+                TAG_LOGE(AAFwkTag::INTENT, "null ability impl");
+                return;
+            }
+            bool bflag = true;
+            abilityImpl->HandleForegroundNewState(want, bflag);
+            abilityImpl->ExecuteInsightIntentDone(intentId, result);
+            abilityImpl->AbilityTransactionCallback(AAFwk::ABILITY_STATE_FOREGROUND_NEW);
+        };
+    callback->Push(asyncCallback);
+
+    // private function, no need check ability_ validity.
+    ability_->ExecuteInsightIntentPage(want, executeParam, std::move(callback));
+}
+
 void UIAbilityImpl::PostForegroundInsightIntent()
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
@@ -816,7 +849,6 @@ void UIAbilityImpl::PostForegroundInsightIntent()
 
 bool UIAbilityImpl::HandleExecuteInsightIntentBackground(const AAFwk::Want &want, bool onlyExecuteIntent)
 {
-    TAG_LOGI(AAFwkTag::UIABILITY, "called");
     auto executeParam = std::make_shared<InsightIntentExecuteParam>();
     auto ret = InsightIntentExecuteParam::GenerateFromWant(want, *executeParam);
     if (!ret && !onlyExecuteIntent) {
@@ -825,7 +857,7 @@ bool UIAbilityImpl::HandleExecuteInsightIntentBackground(const AAFwk::Want &want
         return true;
     }
 
-    TAG_LOGD(AAFwkTag::UIABILITY,
+    TAG_LOGI(AAFwkTag::UIABILITY,
         "insightIntent bundleName: %{public}s, moduleName: %{public}s, abilityName: %{public}s"
         "insightIntentName: %{public}s, executeMode: %{public}d, intentId: %{public}" PRIu64"",
         executeParam->bundleName_.c_str(), executeParam->moduleName_.c_str(), executeParam->abilityName_.c_str(),
@@ -853,7 +885,7 @@ void UIAbilityImpl::ExecuteInsightIntentBackgroundByColdBoot(const Want &want,
     const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
     std::unique_ptr<InsightIntentExecutorAsyncCallback> callback)
 {
-    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    TAG_LOGI(AAFwkTag::UIABILITY, "execute insight intent background by cold boot");
     auto asyncCallback =
         [weak = weak_from_this(), intentId = executeParam->insightIntentId_](InsightIntentExecuteResult result) {
             TAG_LOGD(AAFwkTag::UIABILITY, "end, intentId %{public}" PRIu64"", intentId);
@@ -876,7 +908,7 @@ void UIAbilityImpl::ExecuteInsightIntentBackgroundAlreadyStart(const Want &want,
     const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
     std::unique_ptr<InsightIntentExecutorAsyncCallback> callback)
 {
-    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    TAG_LOGI(AAFwkTag::UIABILITY, "execute insight intent background already start");
 
     auto asyncCallback =
         [weak = weak_from_this(), intentId = executeParam->insightIntentId_](InsightIntentExecuteResult result) {
@@ -903,6 +935,30 @@ void UIAbilityImpl::ScheduleCollaborate(const Want &want)
         return;
     }
     ability_->HandleCollaboration(want);
+}
+
+void UIAbilityImpl::ScheduleAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+    const std::string &message)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "ScheduleAbilityRequestFailure called");
+    if (ability_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null ability_");
+        return;
+    }
+    ability_->OnAbilityRequestFailure(requestId, element, message);
+}
+
+void UIAbilityImpl::ScheduleAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "ScheduleAbilityRequestSuccess called");
+    if (ability_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null ability_");
+        return;
+    }
+    nlohmann::json jsonObject = nlohmann::json {
+        { JSON_KEY_ERR_MSG, "Succeeded" },
+    };
+    ability_->OnAbilityRequestSuccess(requestId, element, jsonObject.dump());
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

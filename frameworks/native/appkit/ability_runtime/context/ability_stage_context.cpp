@@ -49,6 +49,26 @@ void AbilityStageContext::InitHapModuleInfo(const std::shared_ptr<AppExecFwk::Ab
     contextImpl_->InitHapModuleInfo(abilityInfo);
 }
 
+void AbilityStageContext::InitPluginHapModuleInfo(const std::shared_ptr<AppExecFwk::AbilityInfo> &abilityInfo,
+    const std::string &hostBundleName)
+{
+    if (contextImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null contextImpl");
+        return;
+    }
+
+    contextImpl_->InitPluginHapModuleInfo(abilityInfo, hostBundleName);
+}
+
+void AbilityStageContext::SetIsPlugin(bool isPlugin)
+{
+    if (contextImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null contextImpl");
+        return;
+    }
+    contextImpl_->isPlugin_ = isPlugin;
+}
+
 void AbilityStageContext::InitHapModuleInfo(const AppExecFwk::HapModuleInfo &hapModuleInfo)
 {
     if (contextImpl_ == nullptr) {
@@ -127,6 +147,17 @@ std::shared_ptr<AppExecFwk::ApplicationInfo> AbilityStageContext::GetApplication
     }
 
     return contextImpl_->GetApplicationInfo();
+}
+
+std::shared_ptr<Context> AbilityStageContext::CreatePluginContext(const std::string &pluginBundleName,
+    const std::string &moduleName, std::shared_ptr<Context> inputContext)
+{
+    if (contextImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null contextImpl");
+        return nullptr;
+    }
+
+    return contextImpl_->CreatePluginContext(pluginBundleName, moduleName, inputContext);
 }
 
 std::shared_ptr<Context> AbilityStageContext::CreateBundleContext(const std::string &bundleName)
@@ -232,14 +263,14 @@ std::string AbilityStageContext::GetFilesDir()
     return contextImpl_->GetFilesDir();
 }
 
-std::string AbilityStageContext::GetResourceDir()
+std::string AbilityStageContext::GetResourceDir(const std::string &moduleName)
 {
     if (contextImpl_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null contextImpl");
         return {};
     }
 
-    return contextImpl_->GetResourceDir();
+    return contextImpl_->GetResourceDir(moduleName);
 }
 
 std::string AbilityStageContext::GetDatabaseDir()

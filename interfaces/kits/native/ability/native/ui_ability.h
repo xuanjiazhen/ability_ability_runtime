@@ -311,6 +311,10 @@ public:
      * @return result code defined in abilityConstants
      */
     virtual int32_t OnSaveState(int32_t reason, AAFwk::WantParams &wantParams);
+    
+    virtual int32_t OnSaveState(int32_t reason, AAFwk::WantParams &wantParams,
+        AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult> *callbackInfo,
+        bool &isAsync, AppExecFwk::StateReason stateReason);
 
     /**
      * @brief enable ability recovery.
@@ -409,7 +413,7 @@ public:
      * You can override this function to implement your own processing logic.
      */
     virtual void OnBackground();
-    
+
     /**
      * @brief Called before this ability enters the <b>STATE_FOREGROUND</b> state.
      * The ability in the <b>STATE_FOREGROUND</b> state is invisible.
@@ -568,6 +572,17 @@ public:
         std::unique_ptr<InsightIntentExecutorAsyncCallback> callback);
 
     /**
+     * @brief Execute insight intent when an ability start with page insight intent.
+     *
+     * @param want Want.
+     * @param executeParam insight intent execute param.
+     * @param callback insight intent async callback.
+     */
+    virtual void ExecuteInsightIntentPage(const AAFwk::Want &want,
+        const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
+        std::unique_ptr<InsightIntentExecutorAsyncCallback> callback);
+
+    /**
      * @brief Execute insight intent when an ability didn't started, schedule it to background.
      *
      * @param want Want.
@@ -600,6 +615,24 @@ public:
      * @param want want with collaborative info.
      */
     virtual void HandleCollaboration(const AAFwk::Want &want);
+
+    /**
+     * @brief Called when startAbility request failed.
+     * @param requestId, the requestId.
+     * @param element, the element to start ability.
+     * @param message, the message to be returned to the calling app.
+     */
+    virtual void OnAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message);
+
+    /**
+     * @brief Called when startAbility request succeeded.
+     * @param requestId, the requestId.
+     * @param element, the element to start ability.
+     * @param message, the message to be returned to the calling app.
+     */
+    virtual void OnAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message);
 
 protected:
     class UIAbilityDisplayListener : public OHOS::Rosen::IDisplayInfoChangedListener {

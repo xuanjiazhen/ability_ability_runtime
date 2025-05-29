@@ -16,21 +16,18 @@
 #include <gtest/gtest.h>
 #include <singleton.h>
 
-#define private public
-#include "context_impl.h"
-#undef private
-
-#include "constants.h"
 #include "ability_local_record.h"
 #include "application_context.h"
+#include "constants.h"
 #include "context.h"
+#include "context_impl.h"
 #include "hap_module_info.h"
 #include "hilog_tag_wrapper.h"
 #include "iremote_object.h"
 #include "mock_ability_token.h"
 #include "mock_bundle_manager.h"
-#include "system_ability_definition.h"
 #include "sys_mgr_client.h"
+#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -408,6 +405,18 @@ HWTEST_F(ContextImplTest, GetResourceDir_0300, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
 
+HWTEST_F(ContextImplTest, GetResourceDir_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    auto resourceDir = contextImpl->GetResourceDir("moduleName");
+    EXPECT_EQ(resourceDir, "");
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
 /**
  * @tc.name: GetFilesDir_0100
  * @tc.desc: Get files directory basic test.
@@ -518,6 +527,10 @@ HWTEST_F(ContextImplTest, GetBaseDir_0100, TestSize.Level1)
     contextImpl->InitHapModuleInfo(hapModuleInfo);
     baseDir = contextImpl->GetBaseDir();
     EXPECT_EQ(baseDir, "/data/app/el2/0/base/com.test.base/haps/test_moduleName");
+
+    contextImpl->isPlugin_ = true;
+    baseDir = contextImpl->GetBaseDir();
+    EXPECT_EQ(baseDir, "/data/app/el2/0/base/com.test.base");
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
@@ -1636,6 +1649,234 @@ HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_UpdateDisplayConfiguration_004,
         DEFAULT_DISPLAY_ID, DENSITY, DIRECTION_HORIZONTAL);
     EXPECT_EQ(result, true);
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_UpdateDisplayConfiguration_004 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetPluginInfo_001
+ * @tc.name: GetPluginInfo
+ * @tc.desc: GetPluginInfo test
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetPluginInfo_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetPluginInfo_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(contextImpl, nullptr);
+    std::string hostBundleName = "hostBundleName";
+    std::string pluginBundleName = "pluginBundleName";
+    std::string pluginModuleName = "pluginModuleName";
+    AppExecFwk::PluginBundleInfo pluginBundleInfo;
+    bool ret = contextImpl->GetPluginInfo(hostBundleName, pluginBundleName, pluginModuleName, pluginBundleInfo);
+    EXPECT_EQ(ret, false);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetPluginInfo_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetPluginInfo_002
+ * @tc.name: GetPluginInfo
+ * @tc.desc: GetPluginInfo test
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetPluginInfo_002, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetPluginInfo_002 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(contextImpl, nullptr);
+    std::string hostBundleName = "";
+    std::string pluginBundleName = "pluginBundleName";
+    std::string pluginModuleName = "pluginModuleName";
+    AppExecFwk::PluginBundleInfo pluginBundleInfo;
+    bool ret = contextImpl->GetPluginInfo(hostBundleName, pluginBundleName, pluginModuleName, pluginBundleInfo);
+    EXPECT_EQ(ret, false);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetPluginInfo_002 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetPluginInfo_003
+ * @tc.name: GetPluginInfo
+ * @tc.desc: GetPluginInfo test
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetPluginInfo_003, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetPluginInfo_003 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(contextImpl, nullptr);
+    std::string hostBundleName = "hostBundleName";
+    std::string pluginBundleName = "";
+    std::string pluginModuleName = "pluginModuleName";
+    AppExecFwk::PluginBundleInfo pluginBundleInfo;
+    bool ret = contextImpl->GetPluginInfo(hostBundleName, pluginBundleName, pluginModuleName, pluginBundleInfo);
+    EXPECT_EQ(ret, false);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetPluginInfo_003 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetPluginInfo_004
+ * @tc.name: GetPluginInfo
+ * @tc.desc: GetPluginInfo test
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetPluginInfo_004, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetPluginInfo_004 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(contextImpl, nullptr);
+    std::string hostBundleName = "hostBundleName";
+    std::string pluginBundleName = "pluginBundleName";
+    std::string pluginModuleName = "";
+    AppExecFwk::PluginBundleInfo pluginBundleInfo;
+    bool ret = contextImpl->GetPluginInfo(hostBundleName, pluginBundleName, pluginModuleName, pluginBundleInfo);
+    EXPECT_EQ(ret, false);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetPluginInfo_004 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_CreatePluginContext_001
+ * @tc.name: CreatePluginContext
+ * @tc.desc: CreatePluginContext test
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_CreatePluginContext_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreatePluginContext_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(contextImpl, nullptr);
+    std::string pluginBundleName = "pluginBundleName";
+    std::string pluginModuleName = "pluginModuleName";
+    AppExecFwk::PluginBundleInfo pluginBundleInfo;
+    auto ret = contextImpl->CreatePluginContext(pluginBundleName, pluginModuleName, contextImpl_);
+    EXPECT_EQ(ret, nullptr);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreatePluginContext_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_CreatePluginContext_002
+ * @tc.name: CreatePluginContext
+ * @tc.desc: CreatePluginContext test
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_CreatePluginContext_002, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreatePluginContext_002 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(contextImpl, nullptr);
+    std::string pluginBundleName = "";
+    std::string pluginModuleName = "pluginModuleName";
+    AppExecFwk::PluginBundleInfo pluginBundleInfo;
+    auto ret = contextImpl->CreatePluginContext(pluginBundleName, pluginModuleName, contextImpl_);
+    EXPECT_EQ(ret, nullptr);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreatePluginContext_002 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_CreatePluginContext_003
+ * @tc.name: CreatePluginContext
+ * @tc.desc: CreatePluginContext test
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_CreatePluginContext_003, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreatePluginContext_003 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(contextImpl, nullptr);
+    std::string pluginBundleName = "pluginBundleName";
+    std::string pluginModuleName = "";
+    AppExecFwk::PluginBundleInfo pluginBundleInfo;
+    auto ret = contextImpl->CreatePluginContext(pluginBundleName, pluginModuleName, contextImpl_);
+    EXPECT_EQ(ret, nullptr);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreatePluginContext_003 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_CreatePluginContext_004
+ * @tc.name: CreatePluginContext
+ * @tc.desc: CreatePluginContext test
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_CreatePluginContext_004, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreatePluginContext_004 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(contextImpl, nullptr);
+    std::string pluginBundleName = "pluginBundleName";
+    std::string pluginModuleName = "pluginModuleName";
+    AppExecFwk::PluginBundleInfo pluginBundleInfo;
+    auto ret = contextImpl->CreatePluginContext(pluginBundleName, pluginModuleName, nullptr);
+    EXPECT_EQ(ret, nullptr);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreatePluginContext_004 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_InitPluginHapModuleInfo_001
+ * @tc.name: InitPluginHapModuleInfo
+ * @tc.desc: InitPluginHapModuleInfo test
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_InitPluginHapModuleInfo_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_InitPluginHapModuleInfo_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(contextImpl, nullptr);
+    std::string hostBundleName = "hostBundleName";
+    auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    contextImpl->InitPluginHapModuleInfo(abilityInfo, hostBundleName);
+    EXPECT_NE(contextImpl->GetHapModuleInfo(), nullptr);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_InitPluginHapModuleInfo_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_InitPluginHapModuleInfo_002
+ * @tc.name: InitPluginHapModuleInfo
+ * @tc.desc: InitPluginHapModuleInfo test
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_InitPluginHapModuleInfo_002, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_InitPluginHapModuleInfo_002 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(contextImpl, nullptr);
+    std::string hostBundleName = "";
+    auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    contextImpl->InitPluginHapModuleInfo(abilityInfo, hostBundleName);
+    EXPECT_EQ(contextImpl->GetHapModuleInfo(), nullptr);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_InitPluginHapModuleInfo_002 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_InitPluginHapModuleInfo_003
+ * @tc.name: InitPluginHapModuleInfo
+ * @tc.desc: InitPluginHapModuleInfo test
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_InitPluginHapModuleInfo_003, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_InitPluginHapModuleInfo_003 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(contextImpl, nullptr);
+    std::string hostBundleName = "hostBundleName";
+    contextImpl->InitPluginHapModuleInfo(nullptr, hostBundleName);
+    EXPECT_EQ(contextImpl->GetHapModuleInfo(), nullptr);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_InitPluginHapModuleInfo_003 end";
 }
 }  // namespace AppExecFwk
 }

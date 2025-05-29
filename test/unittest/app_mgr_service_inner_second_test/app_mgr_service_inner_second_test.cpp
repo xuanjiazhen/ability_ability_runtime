@@ -1085,7 +1085,11 @@ HWTEST_F(AppMgrServiceInnerSecondTest, SendProcessExitEventTask_0100, TestSize.L
     std::shared_ptr<AppRunningRecord> appRecord = nullptr;
     time_t exitTime = 0;
     int32_t count = 2;
-    appMgrServiceInner->SendProcessExitEventTask(appRecord, exitTime, count);
+    auto pid = 1;
+    std::string processName = "com.example";
+    auto extensionType = 1;
+    auto exitReason = 1;
+    appMgrServiceInner->SendProcessExitEventTask(pid, processName, extensionType, exitReason, exitTime, count);
     EXPECT_EQ(appRecord, nullptr); //appRecord null
 
     BundleInfo bundleInfo;
@@ -1096,7 +1100,11 @@ HWTEST_F(AppMgrServiceInnerSecondTest, SendProcessExitEventTask_0100, TestSize.L
     appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_, TEST_PROCESS_NAME,
         bundleInfo, hapModuleInfo, want_, false);
     appRecord->priorityObject_ = nullptr;
-    appMgrServiceInner->SendProcessExitEventTask(appRecord, exitTime, count);
+    pid = appRecord->GetPid();
+    processName = appRecord->GetProcessName();
+    extensionType = static_cast<int32_t>(appRecord->GetExtensionType());
+    exitReason = appRecord->GetExitReason();
+    appMgrServiceInner->SendProcessExitEventTask(pid, processName, extensionType, exitReason, exitTime, count);
     EXPECT_NE(appRecord, nullptr);
     EXPECT_EQ(appRecord->priorityObject_, nullptr); //priorityObject null
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_SendProcessExitEventTask_0100 end");
@@ -1122,12 +1130,16 @@ HWTEST_F(AppMgrServiceInnerSecondTest, SendProcessExitEventTask_0200, TestSize.L
     appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_, TEST_PROCESS_NAME,
         bundleInfo, hapModuleInfo, want_, false);
     appRecord->GetPriorityObject()->SetPid(INT_MAX);
-    appMgrServiceInner->SendProcessExitEventTask(appRecord, exitTime, count);
+    auto pid = appRecord->GetPid();
+    auto processName = appRecord->GetProcessName();
+    auto extensionType = static_cast<int32_t>(appRecord->GetExtensionType());
+    auto exitReason = appRecord->GetExitReason();
+    appMgrServiceInner->SendProcessExitEventTask(pid, processName, extensionType, exitReason, exitTime, count);
     EXPECT_NE(appRecord->priorityObject_, nullptr); //exitResult = true
     EXPECT_FALSE(--count <= 0);
     count = 1;
     appRecord->GetPriorityObject()->SetPid(1);
-    appMgrServiceInner->SendProcessExitEventTask(appRecord, exitTime, count);
+    appMgrServiceInner->SendProcessExitEventTask(pid, processName, extensionType, exitReason, exitTime, count);
     EXPECT_TRUE(--count <= 0); //--count <= 0
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_SendProcessExitEventTask_0200 end");
 }
@@ -2062,9 +2074,6 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_StartChildPr
     system::SetBoolParameter(MULTI_PROCESS_MODEL, true);
     auto& utils = AAFwk::AppUtils::GetInstance();
     utils.isMultiProcessModel_.isLoaded = false;
-    ret = appMgrServiceInner->StartChildProcessPreCheck(pid, 1);
-    EXPECT_EQ(ret, AAFwk::ERR_CHILD_PROCESS_REACH_LIMIT);
-
     utils.maxChildProcess_.isLoaded = true;
     utils.maxChildProcess_.value = 1000000;
     ret = appMgrServiceInner->StartChildProcessPreCheck(pid, 1);
@@ -2302,6 +2311,37 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_KillRenderPr
     appRunningRecord->AddRenderRecord(renderRecord);
     appMgrServiceInner->KillRenderProcess(appRunningRecord);
     TAG_LOGI(AAFwkTag::TEST, "KillRenderProcess_0100 end");
+}
+
+/**
+ * @tc.name: AppMgrServiceInnerSecondTest_LaunchAbility_0100
+ * @tc.type: FUNC
+ * @tc.Function: LaunchAbility
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_LaunchAbility_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "LaunchAbility_0100 start";
+
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    int32_t result = appMgrServiceInner->LaunchAbility(nullptr);
+    EXPECT_EQ(result, AAFwk::ERR_NULL_APP_RUNNING_MANAGER);
+
+    BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    std::shared_ptr<AAFwk::Want> want;
+    std::string processName = "test_processName";
+    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    OHOS::sptr<IRemoteObject> token1 = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    loadParam->token = token1;
+    std::shared_ptr<AppRunningRecord> appRecord1 = appMgrServiceInner->CreateAppRunningRecord(loadParam,
+        applicationInfo_, abilityInfo_, processName, bundleInfo, hapModuleInfo, want);
+    EXPECT_NE(appRecord1, nullptr);
+    result = appMgrServiceInner->LaunchAbility(token1);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+
+    GTEST_LOG_(INFO) << "LaunchAbility_0100 end";
 }
 } // namespace AppExecFwk
 } // namespace OHOS

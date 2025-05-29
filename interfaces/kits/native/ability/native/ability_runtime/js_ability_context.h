@@ -74,6 +74,11 @@ public:
     static napi_value DisconnectUIServiceExtension(napi_env env, napi_callback_info info);
     static napi_value SetRestoreEnabled(napi_env env, napi_callback_info info);
     static napi_value SetColorMode(napi_env env, napi_callback_info info);
+    static napi_value RevokeDelegator(napi_env env, napi_callback_info info);
+    static napi_value StartAppServiceExtensionAbility(napi_env env, napi_callback_info info);
+    static napi_value StopAppServiceExtensionAbility(napi_env env, napi_callback_info info);
+    static napi_value ConnectAppServiceExtensionAbility(napi_env env, napi_callback_info info);
+    static napi_value DisconnectAppServiceExtensionAbility(napi_env env, napi_callback_info info);
 
     static void ConfigurationUpdated(napi_env env, std::shared_ptr<NativeReference> &jsContext,
         const std::shared_ptr<AppExecFwk::Configuration> &config);
@@ -102,6 +107,8 @@ private:
     napi_value OnOpenLink(napi_env env, NapiCallbackInfo& info);
     napi_value OnOpenLinkInner(napi_env env, const AAFwk::Want& want,
         int requestCode, const std::string& startTime, const std::string& url);
+    napi_value OnStartAbilityAsCallerInner(napi_env env, NapiCallbackInfo& info,
+        const AAFwk::Want &want, size_t unwrapArgc, const AAFwk::StartOptions &startOptions);
     napi_value OnStartAbilityAsCaller(napi_env env, NapiCallbackInfo& info);
     napi_value OnStartRecentAbility(napi_env env, NapiCallbackInfo& info);
     napi_value OnStartAbilityWithAccount(napi_env env, NapiCallbackInfo& info);
@@ -144,6 +151,16 @@ private:
         std::shared_ptr<NapiAsyncTask> uasyncTaskShared, const AAFwk::Want& want);
     napi_value OnDisconnectUIServiceExtension(napi_env env, NapiCallbackInfo& info);
     napi_value OnSetColorMode(napi_env env, NapiCallbackInfo& info);
+    napi_value OnRevokeDelegator(napi_env env, NapiCallbackInfo& info);
+    napi_value OnStartAppServiceExtensionAbility(napi_env env, NapiCallbackInfo& info);
+    napi_value OnStopAppServiceExtensionAbility(napi_env env, NapiCallbackInfo& info);
+    napi_value OnConnectAppServiceExtensionAbility(napi_env env, NapiCallbackInfo& info);
+    napi_value StartExtensionAbilityCommon(napi_env env, NapiCallbackInfo& info,
+        AppExecFwk::ExtensionAbilityType extensionType);
+    napi_value StopExtensionAbilityCommon(napi_env env, NapiCallbackInfo& info,
+        AppExecFwk::ExtensionAbilityType extensionType);
+    napi_value ConnectExtensionAbilityCommon(napi_env env, NapiCallbackInfo& info,
+        AppExecFwk::ExtensionAbilityType extensionType);
 
     static bool UnWrapWant(napi_env env, napi_value argv, AAFwk::Want& want);
     static napi_value WrapWant(napi_env env, const AAFwk::Want& want);
@@ -153,6 +170,7 @@ private:
     static napi_value WrapRequestDialogResult(napi_env env, int32_t resultCode, const AAFwk::Want& want);
     void AddFreeInstallObserver(napi_env env, const AAFwk::Want &want, napi_value callback, napi_value* result,
         bool isAbilityResult = false, bool isOpenLink = false);
+    void UnwrapCompletionHandlerInStartOptions(napi_env env, napi_value param, AAFwk::StartOptions &options);
     bool CheckStartAbilityByCallParams(napi_env env, NapiCallbackInfo& info, AAFwk::Want &want,
         int32_t &userId, napi_value &lastParam);
     napi_value SyncSetMissionContinueState(napi_env env, NapiCallbackInfo& info, const AAFwk::ContinueState& state);

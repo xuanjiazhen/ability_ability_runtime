@@ -21,6 +21,7 @@
 #include <list>
 #include <vector>
 
+#include "aa_tools/ability_start_with_wait_observer_interface.h"
 #include "ability_connect_callback_interface.h"
 #include "ability_manager_ipc_interface_code.h"
 #include "ability_running_info.h"
@@ -39,17 +40,15 @@
 #include "iacquire_share_data_callback_interface.h"
 #include "insight_intent/insight_intent_execute_param.h"
 #include "insight_intent/insight_intent_execute_result.h"
+#include "insight_intent/insight_intent_info_for_query.h"
 #include "iprepare_terminate_callback_interface.h"
 #include "keep_alive_info.h"
 #include "mission_info.h"
-#include "mission_listener_interface.h"
-#include "mission_snapshot.h"
 #include "query_erms_observer_interface.h"
 #include "remote_mission_listener_interface.h"
 #include "remote_on_listener_interface.h"
 #include "running_process_info.h"
 #include "sender_info.h"
-#include "snapshot.h"
 #include "start_options.h"
 #include "user_callback.h"
 #include "system_memory_attr.h"
@@ -77,6 +76,10 @@ class IStatusBarDelegate;
 }
 
 namespace AAFwk {
+class Snapshot;
+class IMissionListener;
+class ISnapshotHandler;
+struct MissionSnapshot;
 using KeepAliveInfo = AbilityRuntime::KeepAliveInfo;
 using AutoStartupInfo = AbilityRuntime::AutoStartupInfo;
 using InsightIntentExecuteParam = AppExecFwk::InsightIntentExecuteParam;
@@ -88,6 +91,7 @@ using UIExtensionSessionInfo = AbilityRuntime::UIExtensionSessionInfo;
 using IAbilityFirstFrameStateObserver = AppExecFwk::IAbilityFirstFrameStateObserver;
 #endif
 using AtomicServiceStartupRule = AbilityRuntime::AtomicServiceStartupRule;
+using InsightIntentInfoForQuery = AbilityRuntime::InsightIntentInfoForQuery;
 
 constexpr const char* ABILITY_MANAGER_SERVICE_NAME = "AbilityManagerService";
 const int DEFAULT_INVAL_VALUE = -1;
@@ -1558,6 +1562,15 @@ public:
         return 0;
     }
 
+    /**
+     * @brief get ability manager collaborator.
+     * @return Returns object pointer on success, others on null.
+     */
+    virtual sptr<IAbilityManagerCollaborator> GetAbilityManagerCollaborator()
+    {
+        return nullptr;
+    }
+
     virtual int32_t RegisterStatusBarDelegate(sptr<AbilityRuntime::IStatusBarDelegate> delegate)
     {
         return 0;
@@ -2030,6 +2043,17 @@ public:
     }
 
     /**
+     * Restart atomic service.
+     *
+     * @param callerToken, The caller ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RestartSelfAtomicService(sptr<IRemoteObject> callerToken)
+    {
+        return 0;
+    }
+
+    /**
      * Query atomic service ERMS rule.
      *
      * @param callerToken, The caller ability token.
@@ -2110,6 +2134,69 @@ public:
                                                   const std::string &hostBundleName,
                                                   int32_t &recordNum,
                                                   int32_t userId = DEFAULT_INVAL_VALUE)
+    {
+        return 0;
+    }
+
+    /**
+     * Revoke delegator.
+     *
+     * @param token, ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RevokeDelegator(sptr<IRemoteObject> token)
+    {
+        return 0;
+    }
+
+    virtual int32_t StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> &observer)
+    {
+        return 0;
+    }
+
+    /**
+     * Get all insight intent infos.
+     * @param flag, the get type.
+     * @param infos, the insight intent infos.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetAllInsightIntentInfo(
+        AbilityRuntime::GetInsightIntentFlag flag,
+        std::vector<InsightIntentInfoForQuery> &infos)
+    {
+        return 0;
+    }
+
+    /**
+     * Get specified bundleName insight intent infos.
+     * @param flag, the get type.
+     * @param infos, the insight intent infos.
+     * @param bundleName, The get insightIntent bundleName.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetInsightIntentInfoByBundleName(
+        AbilityRuntime::GetInsightIntentFlag flag,
+        const std::string &bundleName,
+        std::vector<InsightIntentInfoForQuery> &infos)
+    {
+        return 0;
+    }
+
+    /**
+     * Get specified intentName insight intent infos.
+     * @param flag, the get type.
+     * @param infos, the insight intent infos.
+     * @param bundleName, The get insightIntent bundleName.
+     * @param moduleName, The get insightIntent moduleName.
+     * @param intentName, The get intent name.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetInsightIntentInfoByIntentName(
+        AbilityRuntime::GetInsightIntentFlag flag,
+        const std::string &bundleName,
+        const std::string &moduleName,
+        const std::string &intentName,
+        InsightIntentInfoForQuery &info)
     {
         return 0;
     }

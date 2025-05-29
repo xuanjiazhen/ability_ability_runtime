@@ -56,6 +56,7 @@ constexpr char COMPONENT_STARTUP_NEW_RULES[] = "component.startup.newRules";
 #ifdef SUPPORT_SCREEN
 constexpr int32_t ERR_INVALID_VALUE = -1;
 #endif
+constexpr const char* USE_GLOBAL_UICONTENT = "ohos.uec.params.useGlobalUIContent";
 }
 UIAbility *UIAbility::Create(const std::unique_ptr<Runtime> &runtime)
 {
@@ -122,6 +123,7 @@ void UIAbility::Init(std::shared_ptr<AppExecFwk::AbilityLocalRecord> record,
     abilityLifecycleExecutor_->DispatchLifecycleState(AppExecFwk::AbilityLifecycleExecutor::LifecycleState::INITIAL);
     if (abilityContext_ != nullptr) {
         abilityContext_->RegisterAbilityCallback(weak_from_this());
+        abilityContext_->SetHook(record->IsHook());
     }
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
@@ -411,26 +413,29 @@ void UIAbility::InitConfigurationProperties(const AppExecFwk::Configuration &cha
             std::atoi(setting_->GetProperty(AppExecFwk::AbilityStartSetting::WINDOW_DISPLAY_ID_KEY).c_str());
         resourceConfig.SetLanguage(changeConfiguration.GetItem(displayId,
             AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE));
+        resourceConfig.SetLocale(changeConfiguration.GetItem(displayId,
+            AAFwk::GlobalConfigurationKey::SYSTEM_LOCALE));
         resourceConfig.SetColormode(changeConfiguration.GetItem(displayId,
             AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE));
         resourceConfig.SetHasPointerDevice(changeConfiguration.GetItem(displayId,
             AAFwk::GlobalConfigurationKey::INPUT_POINTER_DEVICE));
-        TAG_LOGD(AAFwkTag::UIABILITY, "displayId: [%{public}d], language: [%{public}s], colormode: [%{public}s], "
-            "hasPointerDevice: [%{public}s] mcc: [%{public}s], mnc: [%{public}s]", displayId,
-            resourceConfig.GetLanguage().c_str(), resourceConfig.GetColormode().c_str(),
-            resourceConfig.GetHasPointerDevice().c_str(), resourceConfig.GetMcc().c_str(),
-            resourceConfig.GetMnc().c_str());
+        TAG_LOGD(AAFwkTag::UIABILITY, "displayId: [%{public}d], language: [%{public}s], locale: [%{public}s], "
+            "colormode: [%{public}s], hasPointerDevice: [%{public}s] mcc: [%{public}s], mnc: [%{public}s]", displayId,
+            resourceConfig.GetLanguage().c_str(), resourceConfig.GetLocale().c_str(),
+            resourceConfig.GetColormode().c_str(), resourceConfig.GetHasPointerDevice().c_str(),
+            resourceConfig.GetMcc().c_str(), resourceConfig.GetMnc().c_str());
     } else {
         resourceConfig.SetLanguage(changeConfiguration.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE));
+        resourceConfig.SetLocale(changeConfiguration.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_LOCALE));
         resourceConfig.SetColormode(changeConfiguration.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE));
         resourceConfig.SetHasPointerDevice(changeConfiguration.GetItem(
             AAFwk::GlobalConfigurationKey::INPUT_POINTER_DEVICE));
         TAG_LOGD(AAFwkTag::UIABILITY,
-            "language: [%{public}s], colormode: [%{public}s], hasPointerDevice: [%{public}s] "
+            "language: [%{public}s], locale: [%{public}s], colormode: [%{public}s], hasPointerDevice: [%{public}s], "
             "mcc: [%{public}s], mnc: [%{public}s]",
-            resourceConfig.GetLanguage().c_str(), resourceConfig.GetColormode().c_str(),
-            resourceConfig.GetHasPointerDevice().c_str(), resourceConfig.GetMcc().c_str(),
-            resourceConfig.GetMnc().c_str());
+            resourceConfig.GetLanguage().c_str(), resourceConfig.GetLocale().c_str(),
+            resourceConfig.GetColormode().c_str(), resourceConfig.GetHasPointerDevice().c_str(),
+            resourceConfig.GetMcc().c_str(), resourceConfig.GetMnc().c_str());
     }
 }
 
@@ -555,6 +560,13 @@ bool UIAbility::OnRestoreData(AAFwk::WantParams &restoreData)
 }
 
 int32_t UIAbility::OnSaveState(int32_t reason, AAFwk::WantParams &wantParams)
+{
+    return ERR_OK;
+}
+
+int32_t UIAbility::OnSaveState(int32_t reason, AAFwk::WantParams &wantParams,
+    AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult> *callbackInfo,
+    bool &isAsync, AppExecFwk::StateReason stateReason)
 {
     return ERR_OK;
 }
@@ -800,6 +812,18 @@ void UIAbility::OnLeaveForeground()
 }
 
 void UIAbility::HandleCollaboration(const AAFwk::Want &want)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+}
+
+void UIAbility::OnAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+    const std::string &message)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+}
+
+void UIAbility::OnAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
+    const std::string &message)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
 }
@@ -1256,6 +1280,13 @@ void UIAbility::ExecuteInsightIntentMoveToForeground(const AAFwk::Want &want,
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
 }
 
+void UIAbility::ExecuteInsightIntentPage(const AAFwk::Want &want,
+    const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
+    std::unique_ptr<InsightIntentExecutorAsyncCallback> callback)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "execute insight intent page");
+}
+
 void UIAbility::ExecuteInsightIntentBackground(const AAFwk::Want &want,
     const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
     std::unique_ptr<InsightIntentExecutorAsyncCallback> callback)
@@ -1271,7 +1302,22 @@ int UIAbility::CreateModalUIExtension(const AAFwk::Want &want)
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext");
         return ERR_INVALID_VALUE;
     }
-    return abilityContextImpl->CreateModalUIExtensionWithApp(want);
+    int result;
+    if (want.HasParameter(USE_GLOBAL_UICONTENT) && want.GetBoolParam(USE_GLOBAL_UICONTENT, false) && handler_) {
+        std::weak_ptr<AbilityRuntime::AbilityContext> abilityContextImplWptr = abilityContextImpl;
+        auto task = [abilityContextImplWptr, want, &result]() {
+            std::shared_ptr<AbilityRuntime::AbilityContext> abilityContextImplSptr = abilityContextImplWptr.lock();
+            if (abilityContextImplSptr == nullptr) {
+                TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContextImpl");
+                return;
+            }
+            result = abilityContextImplSptr->CreateModalUIExtensionWithApp(want);
+        };
+        handler_->PostTask(task);
+    } else {
+        result = abilityContextImpl->CreateModalUIExtensionWithApp(want);
+    }
+    return result;
 }
 
 void UIAbility::SetSessionToken(sptr<IRemoteObject> sessionToken)

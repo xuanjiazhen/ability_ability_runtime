@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,6 +29,9 @@
 #include "session/host/include/session.h"
 #include "scene_board_judgement.h"
 #include "status_bar_delegate_interface.h"
+#include "mission_listener_interface.h"
+#include "mission_snapshot.h"
+#include "snapshot.h"
 
 using namespace testing::ext;
 using namespace testing;
@@ -421,6 +424,17 @@ HWTEST_F(AbilityManagerClientBranchTest, UnRegisterMissionListener_0200, TestSiz
     sptr<IRemoteMissionListener> listener = nullptr;
     auto result = client_->UnRegisterMissionListener(deviceId, listener);
     EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AbilityManagerClient_GetAbilityManagerCollaborator_0100
+ * @tc.desc: GetAbilityManagerCollaborator
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, GetAbilityManagerCollaborator_0100, TestSize.Level1)
+{
+    auto result = client_->GetAbilityManagerCollaborator();
+    EXPECT_EQ(result, nullptr);
 }
 
 /**
@@ -2470,6 +2484,33 @@ HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_RestartApp_0100, T
     client_->RestartApp(want);
     EXPECT_NE(client_, nullptr);
     GTEST_LOG_(INFO) << "RestartApp_0100 end";
+}
+
+/**
+ * @tc.name: RestartSelfAtomicService_0100
+ * @tc.desc: RestartSelfAtomicService
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, RestartSelfAtomicService_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RestartSelfAtomicService_0100 start";
+    client_->RestartSelfAtomicService(nullptr);
+    EXPECT_NE(client_, nullptr);
+    GTEST_LOG_(INFO) << "RestartSelfAtomicService_0100 end";
+}
+
+/**
+ * @tc.name: RestartSelfAtomicService_0200
+ * @tc.desc: RestartSelfAtomicService
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, RestartSelfAtomicService_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RestartSelfAtomicService_0200 start";
+    sptr<IRemoteObject> callerToken = new AbilityManagerStubTestMock();
+    client_->RestartSelfAtomicService(callerToken);
+    EXPECT_NE(client_, nullptr);
+    GTEST_LOG_(INFO) << "RestartSelfAtomicService_0200 end";
 }
 
 /**

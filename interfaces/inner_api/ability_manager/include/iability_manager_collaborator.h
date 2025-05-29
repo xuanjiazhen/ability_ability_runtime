@@ -159,9 +159,33 @@ public:
      * @brief Open file by uri.
      * @param uri The file uri.
      * @param flag Want::FLAG_AUTH_READ_URI_PERMISSION or Want::FLAG_AUTH_WRITE_URI_PERMISSION.
+     * @param tokenId caller tokenId.
      * @return int The file descriptor.
      */
-    virtual int32_t OpenFile(const Uri& uri, uint32_t flag)
+    virtual int32_t OpenFile(const Uri& uri, uint32_t flag, uint32_t tokenId)
+    {
+        return -1;
+    }
+
+    /**
+     * @brief grant uri permission
+     * @param flag Want::FLAG_AUTH_READ_URI_PERMISSION or Want::FLAG_AUTH_WRITE_URI_PERMISSION.
+     * @param targetTokenId the tokenId of target application.
+     * @param targetBundleName the bundleName of target application.
+     * @return 0 when on success or else failed.
+     */
+    virtual int32_t GrantUriPermission(const std::vector<std::string> &uriVec, uint32_t flag, uint32_t targetTokenId,
+        const std::string &targetBundleName)
+    {
+        return -1;
+    }
+    
+    /**
+     * @brief grant uri permission
+     * @param tokenId the tokenId of target application.
+     * @return 0 when on success or else failed.
+     */
+    virtual int32_t RevokeUriPermission(uint32_t tokenId)
     {
         return -1;
     }
@@ -196,6 +220,17 @@ public:
         return 0;
     }
 
+    /**
+     * @brief kill processes by bundleName.
+     * @param bundleName the bundleName of processes to be killed.
+     * @param userId the user id of processes to be killed.
+     * @return 0 when on success or else failed.
+     */
+    virtual int32_t NotifyKillProcesses(const std::string &bundleName, int32_t userId)
+    {
+        return 0;
+    }
+
     enum {
         NOTIFY_START_ABILITY = 1,
         NOTIFY_MISSION_CREATED,
@@ -216,6 +251,9 @@ public:
         CHECK_STATIC_CFG_PERMISSION,
         UPDATE_CALLER_IF_NEED,
         UPDATE_TARGET_IF_NEED,
+        NOTIFY_KILL_PROCESSES,
+        GRANT_URI_PERMISSION,
+        REVOKE_URI_PERMISSION,
     };
 };
 }  // namespace AAFwk

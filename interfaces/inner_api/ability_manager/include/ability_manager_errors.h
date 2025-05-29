@@ -693,6 +693,7 @@ enum {
     ERR_INVALID_ACCESS_TOKEN = 2097291,
     ERR_GET_KV_STORE_HANDLE_FAILED = 2097292,
 
+    ERR_WRITE_BOOL_FAILED = 2097295,
     ERR_WRITE_INTERFACE_TOKEN_FAILED = 2097296,
     ERR_WRITE_RESULT_CODE_FAILED = 2097297,
     ERR_READ_RESULT_PARCEL_FAILED = 2097298,
@@ -776,8 +777,32 @@ enum {
      * Result (2097317) for session info is nullptr.
      */
     ERR_NULL_SESSION_INFO = 2097317,
+    ERR_NOT_HOOK = 2097321,
+    ERR_FROM_WINDOW = 2097322,
+    ERR_INVALID_CONTEXT = 2097323,
     INTENT_NOT_EXIST = 2097329,
     INTENT_STATE_NOT_EXECUTING = 2097330,
+
+    /**
+     * Native error(2097331) for kill app while starting.
+     */
+    ERR_KILL_APP_WHILE_STARTING = 2097331,
+    
+    /**
+     * Result (2097332) for target not in app identifier allow list.
+     */
+    ERR_TARGET_NOT_IN_APP_IDENTIFIER_ALLOW_LIST = 2097332,
+
+    /**
+     * Result (2097333) for target has not been started yet.
+     */
+    ERR_TARGET_NOT_STARTED = 2097333,
+
+    /**
+     * Result (2097334) for app selector not exists.
+     */
+    ERR_APP_SELECTOR_NOT_EXISTS = 2097334,
+    
     /**
      * Native error(3000000) for target bundle not exist.
      */
@@ -989,6 +1014,21 @@ enum NativeFreeInstallError {
      * Result(29360215) for write StartSelfUIAbility result failed.
      */
     ERR_WRITE_START_SELF_UI_ABILITY_RESULT = 29360215,
+
+    /*
+     * Result(29360216) for write caller token failed.
+     */
+     ERR_WRITE_CALLER_TOKEN_FAILED = 29360216,
+
+    /*
+     * Result(29360217) for caller is not atomic service.
+     */
+     ERR_CALLER_NOT_ATOMIC_SERVICE = 29360217,
+
+    /*
+     * Result(29360218) for failed to create instance key from SCB.
+     */
+    ERR_CREATE_INSTANCE_KEY_FAILED = 29360218,
 
     /**
      * Undefine error code.

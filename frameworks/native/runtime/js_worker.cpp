@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,18 +31,22 @@
 #include "core/common/container_scope.h"
 #include "declarative_module_preloader.h"
 #endif
+#include "replace_intl_module.h"
 
 #include "extractor.h"
 #include "file_mapper.h"
 #include "hilog_tag_wrapper.h"
 #include "iremote_object.h"
 #include "iservice_registry.h"
+#include "js_runtime_common.h"
 #include "js_runtime_utils.h"
 #include "native_engine/impl/ark/ark_native_engine.h"
 #include "refbase.h"
 #include "singleton.h"
 #include "syscap_ts.h"
 #include "system_ability_definition.h"
+#include "js_environment_impl.h"
+#include "worker_info.h"
 #ifdef SUPPORT_SCREEN
 using OHOS::Ace::ContainerScope;
 #endif
@@ -65,10 +69,7 @@ constexpr char ARK_DEBUGGER_LIB_PATH[] = "libark_inspector.z.so";
 constexpr char ARK_DEBUGGER_LIB_PATH[] = "libark_inspector.z.so";
 #endif
 
-bool g_debugMode = false;
-bool g_debugApp = false;
 bool g_jsFramework = false;
-bool g_nativeStart = false;
 std::mutex g_mutex;
 }
 
@@ -87,6 +88,7 @@ void InitWorkerFunc(NativeEngine* nativeEngine)
         return;
     }
 
+    OHOS::Global::I18n::ReplaceIntlModule(reinterpret_cast<napi_env>(nativeEngine));
     OHOS::JsSysModule::Console::InitConsoleModule(reinterpret_cast<napi_env>(nativeEngine));
     InitSyscapModule(reinterpret_cast<napi_env>(nativeEngine));
 #ifdef SUPPORT_SCREEN
@@ -98,23 +100,12 @@ void InitWorkerFunc(NativeEngine* nativeEngine)
         TAG_LOGE(AAFwkTag::JSRUNTIME, "load jsFramework failed");
     }
 
-    if (g_debugMode) {
-        auto instanceId = DFXJSNApi::GetCurrentThreadId();
-        std::string instanceName = "workerThread_" + std::to_string(instanceId);
-        bool needBreakPoint = ConnectServerManager::Get().AddInstance(instanceId, instanceId, instanceName);
-        if (g_nativeStart) {
-            TAG_LOGE(AAFwkTag::JSRUNTIME, "native: true, set needBreakPoint: false");
-            needBreakPoint = false;
+    if (JsRuntimeCommon::GetInstance().IsDebugMode()) {
+        const std::string threadName = "workerThread";
+        napi_status errCode = JsRuntimeCommon::GetInstance().StartDebugMode(nativeEngine, threadName);
+        if (errCode != napi_status::napi_ok) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "start debug mode failed");
         }
-        auto workerPostTask = [nativeEngine](std::function<void()>&& callback) {
-            nativeEngine->CallDebuggerPostTaskFunc(std::move(callback));
-        };
-        panda::JSNApi::DebugOption debugOption = {ARK_DEBUGGER_LIB_PATH, needBreakPoint};
-        auto vm = const_cast<EcmaVM*>(arkNativeEngine->GetEcmaVm());
-        ConnectServerManager::Get().StoreDebuggerInfo(
-            instanceId, reinterpret_cast<void*>(vm), debugOption, workerPostTask, g_debugApp);
-
-        panda::JSNApi::NotifyDebugMode(instanceId, vm, debugOption, instanceId, workerPostTask, g_debugApp);
     }
 }
 
@@ -126,12 +117,11 @@ void OffWorkerFunc(NativeEngine* nativeEngine)
         return;
     }
 
-    if (g_debugMode) {
-        auto instanceId = DFXJSNApi::GetCurrentThreadId();
-        ConnectServerManager::Get().RemoveInstance(instanceId);
-        auto arkNativeEngine = static_cast<ArkNativeEngine*>(nativeEngine);
-        auto vm = const_cast<EcmaVM*>(arkNativeEngine->GetEcmaVm());
-        panda::JSNApi::StopDebugger(vm);
+    if (JsRuntimeCommon::GetInstance().IsDebugMode()) {
+        napi_status errCode = JsRuntimeCommon::GetInstance().StopDebugMode(nativeEngine);
+        if (errCode != napi_status::napi_ok) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "stop debug mode failed");
+        }
     }
 }
 
@@ -169,12 +159,20 @@ std::string AssetHelper::NormalizedFileName(const std::string& fileName) const
     return normalizedFilePath;
 }
 
+AssetHelper::AssetHelper(std::shared_ptr<JsEnv::WorkerInfo> workerInfo) : workerInfo_(workerInfo)
+{
+    panda::panda_file::StringPacProtect codePath = panda::panda_file::StringPacProtect(workerInfo_->codePath);
+    if (!(codePath.GetOriginString()).empty() && (codePath.GetOriginString()).back() != '/') {
+        (workerInfo_->codePath).Append('/');
+    }
+}
+
 AssetHelper::~AssetHelper()
 {
     TAG_LOGD(AAFwkTag::JSRUNTIME, "destroyed");
-    if (fd_ != -1) {
-        close(fd_);
-        fd_ = -1;
+    if (file_ != nullptr) {
+        fclose(file_);
+        file_ = nullptr;
     }
 }
 
@@ -287,13 +285,12 @@ bool AssetHelper::GetSafeData(const std::string& ami, uint8_t** buff, size_t* bu
         TAG_LOGE(AAFwkTag::JSRUNTIME, "Realpath file %{private}s caught error: %{public}d", ami.c_str(), errno);
         return false;
     }
-
-    int fd = open(resolvedPath.c_str(), O_RDONLY);
-    if (fd < 0) {
+    FILE *fileF = fopen(resolvedPath.c_str(), "r");
+    if (fileF == nullptr) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "Open file %{private}s caught error: %{public}d", resolvedPath.c_str(), errno);
         return false;
     }
-
+    int fd = fileno(fileF);
     struct stat statbuf;
     if (fstat(fd, &statbuf) < 0) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "Get fstat of file %{private}s caught error: %{public}d", resolvedPath.c_str(),
@@ -305,21 +302,25 @@ bool AssetHelper::GetSafeData(const std::string& ami, uint8_t** buff, size_t* bu
     std::unique_ptr<FileMapper> fileMapper = std::make_unique<FileMapper>();
     if (fileMapper == nullptr) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "null fileMapper");
-        close(fd);
+        fclose(fileF);
         return false;
     }
 
     auto result = fileMapper->CreateFileMapper(resolvedPath, false, fd, 0, statbuf.st_size, FileMapperType::SAFE_ABC);
     if (!result) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "Create file %{private}s mapper failed", resolvedPath.c_str());
-        close(fd);
+        fclose(fileF);
         return false;
     }
 
     *buff = fileMapper->GetDataPtr();
     *buffSize = fileMapper->GetDataLen();
     *mapper = fileMapper.release();
-    fd_ = fd;
+    if (file_ != nullptr) {
+        fclose(file_);
+        file_ = nullptr;
+    }
+    file_ = fileF;
     return true;
 }
 
@@ -558,13 +559,6 @@ void RestoreContainerScope(int32_t id)
 #ifdef SUPPORT_SCREEN
 ContainerScope::UpdateCurrent(-1);
 #endif
-}
-
-void StartDebuggerInWorkerModule(bool isDebugApp, bool isNativeStart)
-{
-    g_debugMode = true;
-    g_debugApp = isDebugApp;
-    g_nativeStart = isNativeStart;
 }
 
 void SetJsFramework()

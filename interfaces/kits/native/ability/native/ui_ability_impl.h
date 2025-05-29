@@ -176,6 +176,11 @@ public:
 
     void ScheduleCollaborate(const Want &want);
 
+    void ScheduleAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message);
+
+    void ScheduleAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element);
+
 #ifdef SUPPORT_GRAPHICS
 public:
 
@@ -233,7 +238,7 @@ private:
     void AfterFocusedCommon(bool isFocused);
     void UpdateSilentForeground(const AAFwk::LifeCycleStateInfo &targetState, sptr<AAFwk::SessionInfo> sessionInfo);
     void OnWillBackground();
-    
+
     bool hasSaveData_ = false;
     bool needSaveDate_ = false;
     AppExecFwk::PacMap restoreData_;
@@ -246,6 +251,9 @@ private:
         const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
         std::unique_ptr<InsightIntentExecutorAsyncCallback> callback);
     inline void ExecuteInsightIntentMoveToForeground(const Want &want,
+        const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
+        std::unique_ptr<InsightIntentExecutorAsyncCallback> callback);
+    inline void ExecuteInsightIntentPage(const Want &want,
         const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
         std::unique_ptr<InsightIntentExecutorAsyncCallback> callback);
     inline void ExecuteInsightIntentBackgroundByColdBoot(const Want &want,

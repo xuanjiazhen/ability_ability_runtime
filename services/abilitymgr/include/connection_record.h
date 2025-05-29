@@ -104,10 +104,10 @@ public:
     void CompleteConnect();
 
     /**
-     * complete disconnect ability without async task and invoke callback.
+     * complete connect ability and just try to invoke callback.
      *
      */
-    void CompleteDisconnectSync();
+    void CompleteConnectAndOnlyCallConnectDone();
 
     /**
      * complete disconnect ability and invoke callback.

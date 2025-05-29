@@ -29,18 +29,26 @@
 #include "app_running_record.h"
 #include "app_state_data.h"
 #include "application_info.h"
+#include "background_app_info.h"
 #include "bundle_info.h"
 #include "configuration.h"
+#include "configuration_policy.h"
 #include "iremote_object.h"
 #include "kill_process_config.h"
 #include "record_query_result.h"
 #include "refbase.h"
 #include "running_process_info.h"
 #include "simple_process_info.h"
+#include "process_bind_data.h"
 
 namespace OHOS {
 namespace Rosen {
 class WindowVisibilityInfo;
+enum ConfigMode : uint32_t {
+    COLOR_MODE = 0,
+    FONT_SCALE = 1,
+    FONT_WEIGHT_SCALE = 2,
+};
 }
 namespace AppExecFwk {
 
@@ -77,6 +85,9 @@ public:
         const std::string &processName, const int uid, const BundleInfo &bundleInfo,
         const std::string &specifiedProcessFlag = "", bool *isProCache = nullptr, const std::string &instanceKey = "",
         const std::string &customProcessFlag = "");
+
+    std::shared_ptr<AppRunningRecord> CheckAppRunningRecordForSpecifiedProcess(
+        int32_t uid, const std::string &instanceKey, const std::string &customProcessFlag);
 
 #ifdef APP_NO_RESPONSE_DIALOG
     /**
@@ -201,6 +212,16 @@ public:
     int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1);
 
     /**
+     * UpdateConfigurationForBackgroundApp
+     * @param appInfos Background application information.
+     * @param policy Update policy.
+     * @param userId configuration for the user
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t UpdateConfigurationForBackgroundApp(const std::vector<BackgroundAppInfo> &appInfos,
+        const AppExecFwk::ConfigurationPolicy &policy, const int32_t userId = -1);
+
+    /**
      *  Update config by sa.
      *
      * @param config Application enviroment change parameters.
@@ -322,7 +343,7 @@ public:
 #ifdef SUPPORT_CHILD_PROCESS
     std::shared_ptr<AppRunningRecord> GetAppRunningRecordByChildProcessPid(const pid_t pid);
     std::shared_ptr<ChildProcessRecord> OnChildProcessRemoteDied(const wptr<IRemoteObject> &remote);
-    bool IsChildProcessReachLimit(uint32_t accessTokenId);
+    bool IsChildProcessReachLimit(uint32_t accessTokenId, bool multiProcessFeature);
 #endif //SUPPORT_CHILD_PROCESS
 
     /**
@@ -374,16 +395,23 @@ public:
 
     void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey);
     std::shared_ptr<AppRunningRecord> QueryAppRecordPlus(int32_t pid, int32_t uid);
-private:
-    std::shared_ptr<AbilityRunningRecord> GetAbilityRunningRecord(const int64_t eventId);
+    int32_t AddUIExtensionBindItem(int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo);
+    int32_t QueryUIExtensionBindItemById(int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo);
+    int32_t RemoveUIExtensionBindItemById(int32_t uiExtensionBindAbilityId);
+
+    std::shared_ptr<AppRunningRecord> GetAppRunningRecordByChildRecordPid(const pid_t pid);
+    
     int32_t AssignRunningProcessInfoByAppRecord(
         std::shared_ptr<AppRunningRecord> appRecord, AppExecFwk::RunningProcessInfo &info) const;
+private:
+    std::shared_ptr<AbilityRunningRecord> GetAbilityRunningRecord(const int64_t eventId);
     bool isCollaboratorReserveType(const std::shared_ptr<AppRunningRecord> &appRecord);
     void NotifyAppPreCache(const std::shared_ptr<AppRunningRecord>& appRecord,
         const std::shared_ptr<AppMgrServiceInner>& appMgrServiceInner);
     void AddRecordToDeadList(std::shared_ptr<AppRunningRecord> appRecord);
     void RemoveTimeoutDeadAppRecord();
-
+    void ExecuteConfigurationTask(const BackgroundAppInfo& info, const int32_t userId);
+    bool UpdateConfiguration(std::shared_ptr<AppRunningRecord> &appRecord, Rosen::ConfigMode configMode);
 private:
     std::mutex runningRecordMapMutex_;
     std::map<const int32_t, const std::shared_ptr<AppRunningRecord>> appRunningRecordMap_;
@@ -394,6 +422,10 @@ private:
 
     std::mutex updateConfigurationDelayedLock_;
     std::map<const int32_t, bool> updateConfigurationDelayedMap_;
+
+    std::vector<BackgroundAppInfo> appInfos_;
+    std::mutex uiExtensionBindMapLock_;
+    std::map<int32_t, UIExtensionProcessBindInfo> uiExtensionBindMap_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

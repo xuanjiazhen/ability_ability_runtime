@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,6 +30,9 @@
 #include "hilog_tag_wrapper.h"
 #include "mission_snapshot.h"
 #include "want_sender_info.h"
+#include "mission_listener_interface.h"
+#include "mission_snapshot.h"
+#include "snapshot.h"
 
 using namespace testing::ext;
 using namespace testing;
@@ -510,7 +513,7 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_027, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: AR000GI8IL
  */
-HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_028, TestSize.Level0)
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_028, TestSize.Level2)
 {
     EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
         .Times(1)
@@ -528,7 +531,7 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_028, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AR000GI8IL
  */
-HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_029, TestSize.Level0)
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_029, TestSize.Level2)
 {
     EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
         .Times(1)
@@ -547,7 +550,7 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_029, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AR000GI8IH
  */
-HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_030, TestSize.Level0)
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_030, TestSize.Level2)
 {
     EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
         .Times(1)
@@ -564,7 +567,7 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_030, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AR000GI8IH
  */
-HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_031, TestSize.Level0)
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_031, TestSize.Level2)
 {
     EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
         .Times(1)
@@ -603,7 +606,7 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_032, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: AR000GI8IL
  */
-HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_033, TestSize.Level0)
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_033, TestSize.Level2)
 {
     EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
         .Times(1)
@@ -2725,6 +2728,22 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_RestartApp_0100, TestSize.
 }
 
 /**
+ * @tc.name: AbilityManagerProxy_RestartSelfAtomicService_0100
+ * @tc.desc: RestartSelfAtomicService
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_RestartSelfAtomicService_0100, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+
+    auto token = sptr<MockAbilityToken>::MakeSptr();
+    proxy_->RestartSelfAtomicService(token);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::RESTART_SELF_ATOMIC_SERVICE), mock_->code_);
+}
+
+/**
  * @tc.name: AbilityManagerProxy_ChangeAbilityVisibility_0100
  * @tc.desc: ChangeAbilityVisibility
  * @tc.type: FUNC
@@ -2780,6 +2799,67 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_TerminateMission_001, Test
     int32_t missionId = 1;
     auto res = proxy_->TerminateMission(missionId);
     EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::TERMINATE_MISSION), mock_->code_);
+    EXPECT_EQ(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetAllInsightIntentInfo
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetAllInsightIntentInfo
+ * EnvConditions: NA
+ * CaseDescription: GetAllInsightIntentInfo
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_GetAllInsightIntentInfo_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    auto flag = AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT;
+    std::vector<InsightIntentInfoForQuery> infos;
+    auto res = proxy_->GetAllInsightIntentInfo(flag, infos);
+    EXPECT_EQ(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetInsightIntentInfoByBundleName
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetInsightIntentInfoByBundleName
+ * EnvConditions: NA
+ * CaseDescription: GetInsightIntentInfoByBundleName
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_GetInsightIntentInfoByBundleName_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    auto flag = AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT;
+    std::string bundleName = "com.example.bundleName";
+    std::vector<InsightIntentInfoForQuery> infos;
+    auto res = proxy_->GetInsightIntentInfoByBundleName(flag, bundleName, infos);
+    EXPECT_EQ(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetInsightIntentInfoByIntentName
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetInsightIntentInfoByIntentName
+ * EnvConditions: NA
+ * CaseDescription: GetInsightIntentInfoByIntentName
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_GetInsightIntentInfoByIntentName_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    auto flag = AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT;
+    std::string bundleName = "com.example.bundleName";
+    std::string moduleName = "entry";
+    std::string intentName = "test";
+    InsightIntentInfoForQuery info;
+    auto res = proxy_->GetInsightIntentInfoByIntentName(flag, bundleName, moduleName, intentName, info);
     EXPECT_EQ(res, NO_ERROR);
 }
 } // namespace AAFwk

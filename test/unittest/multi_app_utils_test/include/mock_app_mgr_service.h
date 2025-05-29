@@ -39,7 +39,7 @@ public:
     MOCK_METHOD1(ApplicationBackgrounded, void(const int32_t recordId));
     MOCK_METHOD1(ApplicationTerminated, void(const int32_t recordId));
     MOCK_METHOD1(AbilityCleaned, void(const sptr<IRemoteObject>& token));
-    MOCK_METHOD3(UpdateApplicationInfoInstalled, int(const std::string&, const int uid, const std::string&));
+    MOCK_METHOD4(UpdateApplicationInfoInstalled, int(const std::string&, const int uid, const std::string&, bool));
     MOCK_METHOD3(KillApplication, int32_t(const std::string& appName, const bool clearPageStack, int32_t appIndex));
     MOCK_METHOD3(ForceKillApplication, int32_t(const std::string& appName, const int userId, const int appIndex));
     MOCK_METHOD1(KillProcessesByAccessTokenId, int32_t(const uint32_t accessTokenId));
@@ -111,10 +111,12 @@ public:
 
     MOCK_METHOD0(IsFinalAppProcess, bool());
     MOCK_METHOD1(SetSupportedProcessCacheSelf, int32_t(bool isSupport));
+    MOCK_METHOD2(IsProcessCacheSupported, int32_t(int32_t pid, bool &isSupported));
+    MOCK_METHOD2(SetProcessCacheEnable, int32_t(int32_t pid, bool enable));
     MOCK_METHOD2(SetSupportedProcessCache, int32_t(int32_t pid, bool isSupport));
 #ifdef SUPPORT_CHILD_PROCESS
-    MOCK_METHOD3(StartNativeChildProcess, int32_t(const std::string &libName, int32_t childProcessCount,
-        const sptr<IRemoteObject> &callback));
+    MOCK_METHOD4(StartNativeChildProcess, int32_t(const std::string &libName, int32_t childProcessCount,
+        const sptr<IRemoteObject> &callback, const std::string &customProcessName));
 #endif // SUPPORT_CHILD_PROCESS
     MOCK_METHOD2(GetSupportedProcessCachePids, int32_t(const std::string &bundleName,
         std::vector<int32_t> &pidList));
@@ -244,7 +246,7 @@ public:
         return false;
     }
 
-    virtual int32_t ChangeAppGcState(pid_t pid, int32_t state)
+    virtual int32_t ChangeAppGcState(pid_t pid, int32_t state, uint64_t tid = 0)
     {
         return 0;
     }

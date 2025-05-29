@@ -2996,6 +2996,22 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_UnregisterIAbilityManagerCol
 
 /*
  * Feature: AbilityManagerService
+ * Function: GetAbilityManagerCollaboratorInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetAbilityManagerCollaboratorInner
+ * EnvConditions: NA
+ * CaseDescription: Verify the function GetAbilityManagerCollaboratorInner is normal flow.
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_GetAbilityManagerCollaboratorInner_001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    auto res = stub_->GetAbilityManagerCollaboratorInner(data, reply);
+    EXPECT_EQ(res, ERR_NULL_OBJECT);
+}
+
+/*
+ * Feature: AbilityManagerService
  * Function: PrepareTerminateAbilityBySCBInner
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService PrepareTerminateAbilityBySCBInner
@@ -3703,6 +3719,71 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_TerminateMissionInner_001, T
     MessageParcel reply;
     auto res = stub_->TerminateMissionInner(data, reply);
     EXPECT_EQ(res, NO_ERROR);
+}
+
+/**
+ * @tc.name: GetAllInsightIntentInfo_0100
+ * @tc.desc: GetAllInsightIntentInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubTest, GetAllInsightIntentInfo_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin");
+
+    MessageParcel data;
+    MessageParcel reply;
+    auto flag = AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT;
+    data.WriteUint32(static_cast<uint32_t>(flag));
+    auto ret = stub_->GetAllInsightIntentInfoInner(data, reply);
+    EXPECT_EQ(ret, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "end");
+}
+
+/**
+ * @tc.name: GetInsightIntentInfoByBundleName_0100
+ * @tc.desc: GetInsightIntentInfoByBundleName
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubTest, GetInsightIntentInfoByBundleName_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin");
+
+    MessageParcel data;
+    MessageParcel reply;
+    auto flag = AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT;
+    std::string bundleName = "com.example.bundleName";
+    data.WriteUint32(static_cast<uint32_t>(flag));
+    data.WriteString(bundleName);
+    auto ret = stub_->GetInsightIntentInfoByBundleNameInner(data, reply);
+    EXPECT_EQ(ret, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "end");
+}
+
+/**
+ * @tc.name: GetInsightIntentInfoByIntentName_0100
+ * @tc.desc: GetInsightIntentInfoByIntentName
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubTest, GetInsightIntentInfoByIntentName_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin");
+
+    MessageParcel data;
+    MessageParcel reply;
+    auto flag = AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT;
+    std::string bundleName = "com.example.bundleName";
+    std::string moduleName = "entry";
+    std::string intentName = "test";
+    data.WriteUint32(static_cast<uint32_t>(flag));
+    data.WriteString(bundleName);
+    data.WriteString(moduleName);
+    data.WriteString(intentName);
+    auto ret = stub_->GetInsightIntentInfoByIntentNameInner(data, reply);
+    EXPECT_EQ(ret, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "end");
 }
 } // namespace AAFwk
 } // namespace OHOS

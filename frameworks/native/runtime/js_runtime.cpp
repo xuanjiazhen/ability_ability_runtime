@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -44,6 +44,7 @@
 #include "js_module_reader.h"
 #include "js_module_searcher.h"
 #include "js_quickfix_callback.h"
+#include "js_runtime_common.h"
 #include "js_runtime_utils.h"
 #include "js_utils.h"
 #include "js_worker.h"
@@ -57,9 +58,11 @@
 #include "ohos_js_environment_impl.h"
 #include "parameters.h"
 #include "extractor.h"
+#include "replace_intl_module.h"
 #include "system_ability_definition.h"
 #include "source_map.h"
 #include "source_map_operator.h"
+#include "worker_info.h"
 
 #ifdef SUPPORT_SCREEN
 #include "hot_reloader.h"
@@ -179,7 +182,7 @@ void JsRuntime::StartDebugMode(const DebugOption dOption)
     bool isDebugApp = dOption.isDebugApp;
     std::string appProvisionType = dOption.appProvisionType;
     TAG_LOGD(AAFwkTag::JSRUNTIME, "Ark VM is starting debug mode [%{public}s]", isStartWithDebug ? "break" : "normal");
-    StartDebuggerInWorkerModule(isDebugApp, dOption.isStartWithNative);
+    JsRuntimeCommon::GetInstance().StartDebuggerModule(isDebugApp, dOption.isStartWithNative);
     const std::string bundleName = bundleName_;
     uint32_t instanceId = instanceId_;
     auto weak = jsEnv_;
@@ -193,17 +196,20 @@ void JsRuntime::StartDebugMode(const DebugOption dOption)
     HdcRegister::Get().StartHdcRegister(bundleName_, inputProcessName, isDebugApp, debugMode,
         [bundleName, isStartWithDebug, instanceId, weak, isDebugApp, appProvisionType]
         (int socketFd, std::string option) {
-        TAG_LOGI(AAFwkTag::JSRUNTIME, "HdcRegister msg, fd= %{public}d, option= %{public}s", socketFd, option.c_str());
+        TAG_LOGI(AAFwkTag::JSRUNTIME,
+            "HdcRegister msg, fd %{public}d, option %{public}s, isStartWithDebug %{public}d, isDebugApp %{public}d",
+            socketFd, option.c_str(), isStartWithDebug, isDebugApp);
         if (weak == nullptr) {
             TAG_LOGE(AAFwkTag::JSRUNTIME, "null weak");
             return;
         }
-        // system is debuggable when const.secure is false and const.debuggable is true
-        bool isSystemDebuggable = system::GetBoolParameter("const.secure", true) == false &&
-            system::GetBoolParameter("const.debuggable", false) == true;
-        // Don't start any server if (system not in debuggable mode) and app is release version
+        // system is unlocked when const.boot.oemmode is rd
+        std::string oemmode = OHOS::system::GetParameter("const.boot.oemmode", "");
+        bool unlocked = "rd" == oemmode;
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "unlocked= %{public}d, oemmode= %{public}s", unlocked, oemmode.c_str());
+        // Don't start any server if (system is locked) and app is release version
         // Starting ConnectServer in release app on debuggable system is only for debug mode, not for profiling mode.
-        if ((!isSystemDebuggable) && appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_RELEASE) {
+        if ((!unlocked) && appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_RELEASE) {
             TAG_LOGE(AAFwkTag::JSRUNTIME, "not support release app");
             return;
         }
@@ -213,10 +219,6 @@ void JsRuntime::StartDebugMode(const DebugOption dOption)
             ConnectServerManager::Get().SendDebuggerInfo(isStartWithDebug, isDebugApp);
             ConnectServerManager::Get().StartConnectServer(bundleName, socketFd, false);
         } else {
-            if (appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_RELEASE) {
-                TAG_LOGE(AAFwkTag::JSRUNTIME, "not support release app");
-                return;
-            }
             // if has old debugger server, stop it
             weak->StopDebugger(option);
             weak->StartDebugger(option, socketFd, isDebugApp);
@@ -337,7 +339,7 @@ void JsRuntime::StartProfiler(const DebugOption dOption)
     bool isStartWithDebug = dOption.isStartWithDebug;
     bool isDebugApp = dOption.isDebugApp;
     std::string appProvisionType = dOption.appProvisionType;
-    StartDebuggerInWorkerModule(isDebugApp, dOption.isStartWithNative);
+    JsRuntimeCommon::GetInstance().StartDebuggerModule(isDebugApp, dOption.isStartWithNative);
     const std::string bundleName = bundleName_;
     auto weak = jsEnv_;
     uint32_t instanceId = instanceId_;
@@ -688,6 +690,7 @@ bool JsRuntime::Initialize(const Options& options)
         auto vm = GetEcmaVm();
         CHECK_POINTER_AND_RETURN(vm, false);
 
+        panda::JSNApi::SetLargeHeap(options.allowArkTsLargeHeap);
         if (preloaded_) {
             PostPreload(options);
         }
@@ -695,7 +698,6 @@ bool JsRuntime::Initialize(const Options& options)
         napi_value globalObj = nullptr;
         napi_get_global(env, &globalObj);
         CHECK_POINTER_AND_RETURN(globalObj, false);
-
         if (!preloaded_) {
             InitSyscapModule(env);
 
@@ -768,6 +770,7 @@ bool JsRuntime::Initialize(const Options& options)
             InitTimerModule();
         }
 
+        OHOS::Global::I18n::ReplaceIntlModule(GetNapiEnv());
         InitWorkerModule(options);
         SetModuleLoadChecker(options.moduleCheckerDelegate);
         SetRequestAotCallback();
@@ -790,6 +793,7 @@ bool JsRuntime::CreateJsEnv(const Options& options)
     std::string memConfigProperty = OHOS::system::GetParameter("persist.ark.mem_config_property", "");
     size_t gcThreadNum = OHOS::system::GetUintParameter<size_t>("persist.ark.gcthreads", 7);
     size_t longPauseTime = OHOS::system::GetUintParameter<size_t>("persist.ark.longpausetime", 40);
+    pandaOption.SetLargeHeap(options.allowArkTsLargeHeap);
     pandaOption.SetArkProperties(arkProperties);
     pandaOption.SetArkBundleName(bundleName);
     pandaOption.SetMemConfigProperty(memConfigProperty);
@@ -1086,6 +1090,67 @@ std::unique_ptr<NativeReference> JsRuntime::LoadSystemModule(
     return std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference*>(resultRef));
 }
 
+napi_value JsRuntime::GetExportObjectFromOhmUrl(const std::string &srcEntrance, const std::string &key)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "Get %{private}s export %{private}s", srcEntrance.c_str(), key.c_str());
+    auto vm = GetEcmaVm();
+    CHECK_POINTER_AND_RETURN(vm, nullptr);
+    auto ohmUrl = panda::JSNApi::IsOhmUrl(srcEntrance);
+    if (!ohmUrl) {
+        TAG_LOGW(AAFwkTag::JSRUNTIME, "srcEntrance %{private}s not ohmurl", srcEntrance.c_str());
+        return nullptr;
+    }
+
+    panda::Local<panda::ObjectRef> exportObj = panda::JSNApi::GetExportObjectFromOhmUrl(vm, srcEntrance, key);
+    if (exportObj->IsNull()) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "Get %{private}s export %{private}s failed", srcEntrance.c_str(), key.c_str());
+        return nullptr;
+    }
+
+    auto env = GetNapiEnv();
+    CHECK_POINTER_AND_RETURN(env, nullptr);
+    return ArkNativeEngine::ArkValueToNapiValue(env, exportObj);
+}
+
+bool JsRuntime::ExecuteSecureWithOhmUrl(const std::string &moduleName, const std::string &hapPath,
+    const std::string &srcEntrance)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "moduleName %{public}s, hapPath %{private}s, execute %{private}s",
+        moduleName.c_str(), hapPath.c_str(), srcEntrance.c_str());
+    auto vm = GetEcmaVm();
+    CHECK_POINTER_AND_RETURN(vm, false);
+    auto ohmUrl = panda::JSNApi::IsOhmUrl(srcEntrance);
+    if (!ohmUrl) {
+        TAG_LOGW(AAFwkTag::JSRUNTIME, "srcEntrance %{private}s not ohmurl", srcEntrance.c_str());
+        return false;
+    }
+
+    bool newCreate = false;
+    std::string loadPath = ExtractorUtil::GetLoadFilePath(hapPath);
+    std::shared_ptr<Extractor> extractor = ExtractorUtil::GetExtractor(loadPath, newCreate, true);
+    if (extractor == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "get hapPath %{private}s extractor failed", hapPath.c_str());
+        return false;
+    }
+
+    std::string srcFileName = BUNDLE_INSTALL_PATH + moduleName + MERGE_ABC_PATH;
+    auto safeData = extractor->GetSafeData(srcFileName);
+    if (safeData == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null safeData srcFileName %{private}s", srcFileName.c_str());
+        return false;
+    }
+
+    auto start = std::chrono::high_resolution_clock::now();
+    auto ret = panda::JSNApi::ExecuteSecureWithOhmUrl(vm, safeData->GetDataPtr(), safeData->GetDataLen(), srcFileName,
+        srcEntrance);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "srcEntrance %{public}s timing %{public}lld", srcEntrance.c_str(), duration_ms);
+    return ret;
+}
+
 bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath, bool useCommonChunk,
     const std::string& srcEntrance)
 {
@@ -1110,6 +1175,7 @@ bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath
         return false;
     }
     if (newCreate) {
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "newCreate");
         panda::JSNApi::LoadAotFile(vm, moduleName_);
         auto resourceManager = AbilityBase::ExtractResourceManager::GetExtractResourceManager().GetGlobalObject();
         if (resourceManager) {
@@ -1384,6 +1450,13 @@ void JsRuntime::RegisterUncaughtExceptionHandler(const JsEnv::UncaughtExceptionI
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     CHECK_POINTER(jsEnv_);
     jsEnv_->RegisterUncaughtExceptionHandler(uncaughtExceptionInfo);
+}
+
+void JsRuntime::RegisterUncatchableExceptionHandler(const JsEnv::UncatchableTask& uncatchableTask)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    CHECK_POINTER(jsEnv_);
+    jsEnv_->RegisterUncatchableExceptionHandler(uncatchableTask);
 }
 
 void JsRuntime::RegisterQuickFixQueryFunc(const std::map<std::string, std::string>& moduleAndPath)

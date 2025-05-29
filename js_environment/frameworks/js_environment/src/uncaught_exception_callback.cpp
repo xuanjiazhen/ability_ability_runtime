@@ -14,20 +14,25 @@
  */
 #include "uncaught_exception_callback.h"
 
+#include <charconv>
 #include <string>
 #include <sstream>
 
+#include "dfx_symbols.h"
+#include "elf_factory.h"
 #include "hilog_tag_wrapper.h"
-#include "native_engine/native_engine.h"
+#include "string_printf.h"
 #ifdef SUPPORT_GRAPHICS
 #include "ui_content.h"
 #endif // SUPPORT_GRAPHICS
-#include "elf_factory.h"
 #include "unwinder.h"
+#include "unwinder_config.h"
 
 namespace OHOS {
 namespace JsEnv {
 constexpr char BACKTRACE[] = "=====================Backtrace========================";
+constexpr size_t FLAG_SPLIT_POS = 16;
+constexpr size_t FLAG_PC_POS = 4;
 
 std::string NapiUncaughtExceptionCallback::GetNativeStrFromJsTaggedObj(napi_value obj, const char* key)
 {
@@ -56,6 +61,21 @@ std::string NapiUncaughtExceptionCallback::GetNativeStrFromJsTaggedObj(napi_valu
 }
 
 void NapiUncaughtExceptionCallback::operator()(napi_value obj)
+{
+    CallbackTask(obj);
+}
+
+void NapiUncaughtExceptionCallback::operator()(panda::TryCatch& trycatch)
+{
+    panda::Local<panda::ObjectRef> exception = trycatch.GetAndClearException();
+    if (!exception.IsEmpty() && !exception->IsHole()) {
+        napi_value obj = ArkNativeEngine::ArkValueToNapiValue(env_, exception);
+        CallbackTask(obj);
+    }
+}
+
+
+void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
 {
     std::string errorMsg = GetNativeStrFromJsTaggedObj(obj, "message");
     std::string errorName = GetNativeStrFromJsTaggedObj(obj, "name");
@@ -90,7 +110,7 @@ void NapiUncaughtExceptionCallback::operator()(napi_value obj)
         }
     }
     if (errorStack.find(BACKTRACE) != std::string::npos) {
-        summary += error + "Stacktrace:\n" + GetBuildId(errorStack);
+        summary += error + "Stacktrace:\n" + GetFuncNameAndBuildId(errorStack);
     } else {
         summary += error + "Stacktrace:\n" + errorStack;
     }
@@ -105,27 +125,55 @@ void NapiUncaughtExceptionCallback::operator()(napi_value obj)
     }
 }
 
-std::string NapiUncaughtExceptionCallback::GetBuildId(std::string nativeStack)
+std::string NapiUncaughtExceptionCallback::GetFuncNameAndBuildId(std::string nativeStack)
 {
     std::stringstream ss(nativeStack);
     std::string tempStr;
-    std::string addBuildId;
-    int i = 0;
+    std::string appendInfo;
+    // Filter two lines
+    std::getline(ss, tempStr); // Cannot get SourceMap info, dump raw stack:
+    std::getline(ss, tempStr); // =====================Backtrace========================
+    HiviewDFX::UnwinderConfig::SetEnableMiniDebugInfo(true);
+    HiviewDFX::UnwinderConfig::SetEnableLoadSymbolLazily(true);
     while (std::getline(ss, tempStr)) {
-        auto spitlPos = tempStr.rfind(" ");
-        if (spitlPos != std::string::npos) {
-            HiviewDFX::RegularElfFactory elfFactory(tempStr.substr(spitlPos + 1));
-            auto elfFile = elfFactory.Create();
-            std::string buildId = elfFile->GetBuildId();
-            if (i != 0 && !buildId.empty()) {
-                addBuildId += tempStr + "(" + buildId + ")" + "\n";
+        auto splitPos = tempStr.rfind(" ");
+        if (splitPos == std::string::npos) {
+            return nativeStack;
+        }
+        HiviewDFX::RegularElfFactory elfFactory(tempStr.substr(splitPos + 1));
+        auto elfFile = elfFactory.Create();
+        std::string pc;
+        size_t pcPos = tempStr.find(" pc ");
+        if (pcPos == std::string::npos) {
+            return nativeStack;
+        }
+        pc = tempStr.substr(pcPos += FLAG_PC_POS, FLAG_SPLIT_POS);
+        uint64_t value;
+        auto res = std::from_chars(pc.data(), pc.data() + pc.size(), value, FLAG_SPLIT_POS);
+        if (res.ec != std::errc()) {
+            return nativeStack;
+        }
+        std::string funcName;
+        uint64_t funcOffset;
+        HiviewDFX::DfxSymbols::GetFuncNameAndOffsetByPc(value, elfFile, funcName, funcOffset);
+        std::string buildId = elfFile->GetBuildId();
+        if (!funcName.empty()) {
+            appendInfo += tempStr + "(" + funcName;
+            appendInfo += HiviewDFX::StringPrintf("+%" PRId64, funcOffset) + ")";
+            if (!buildId.empty()) {
+                appendInfo += "(" + buildId + ")" + "\n";
             } else {
-                addBuildId += tempStr + "\n";
+                appendInfo += "\n";
+            }
+        } else {
+            if (!buildId.empty()) {
+                appendInfo += tempStr + "(" + buildId + ")" + "\n";
+            } else {
+                appendInfo += tempStr + "\n";
             }
         }
-        i++;
     }
-    return addBuildId;
+    return appendInfo;
 }
 } // namespace JsEnv
 } // namespace OHOS

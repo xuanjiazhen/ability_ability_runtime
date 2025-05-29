@@ -134,8 +134,11 @@ public:
      * kill the processes by pid list given.
      *
      * @param pids, the pid list of processes are going to be killed.
+     * @param reason, the reason to kill the processes.
+     * @param subProcess, kill SubProcess or not.
      */
-    virtual AppMgrResultCode KillProcessesByPids(std::vector<int32_t> &pids);
+    virtual AppMgrResultCode KillProcessesByPids(const std::vector<int32_t> &pids,
+        const std::string &reason = "KillProcessesByPids", bool subProcess = false);
 
     /**
      * Set child and parent relationship
@@ -154,7 +157,7 @@ public:
      * @return Returns RESULT_OK on success, others on failure.
      */
     virtual AppMgrResultCode UpdateApplicationInfoInstalled(const std::string &bundleName, const int uid,
-        const std::string &moduleName);
+        const std::string &moduleName, bool isPlugin);
 
     /**
      * KillApplication, call KillApplication() through proxy object, kill the application.
@@ -621,7 +624,7 @@ public:
      * @param pid pid
      * @return Is the status change completed..
      */
-    int32_t ChangeAppGcState(pid_t pid, int32_t state);
+    int32_t ChangeAppGcState(pid_t pid, int32_t state, uint64_t tid = 0);
 
      /**
      * @brief Register app debug listener.
@@ -730,6 +733,20 @@ public:
     int32_t UnregisterApplicationStateObserver(const sptr<IApplicationStateObserver> &observer);
 
     /**
+     * Register native child exit notify.
+     * @param notify, callback to notify.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t RegisterNativeChildExitNotify(sptr<INativeChildNotify> notify);
+
+    /**
+     * Unregister native child exit notify.
+     * @param notify, callback to notify.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t UnregisterNativeChildExitNotify(sptr<INativeChildNotify> notify);
+
+    /**
      * @brief Notify AbilityManagerService the page show.
      * @param token Ability identify.
      * @param pageStateData The data of ability's page state.
@@ -824,17 +841,23 @@ public:
     int32_t GetAllUIExtensionProviderPid(pid_t hostPid, std::vector<pid_t> &providerPids);
 
     /**
-     * @brief Notify memory size state changed to sufficient or insufficient.
-     * @param isMemorySizeSufficient Indicates the memory size state.
+     * @brief Notify memory size state changed: LOW_MEMORY, MEMORY_RECOVERY, REQUIRE_BIG_MEMORY, NO_REQUIRE_BIG_MEMORY.
+     * @param memorySizeState Indicates the memory size state.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t NotifyMemorySizeStateChanged(bool isMemorySizeSufficient);
+    int32_t NotifyMemorySizeStateChanged(int32_t memorySizeState);
 
     /**
      * whether memory size is sufficient.
      * @return Returns true is sufficient memory size, others return false.
      */
     bool IsMemorySizeSufficent() const;
+
+    /**
+     * whether or not requier a big memory
+     * @return Returens true is no big memory, others return false.
+     */
+    bool IsNoRequireBigMemory() const;
 
     /**
      * Record process exit reason to appRunningRecord
@@ -863,6 +886,10 @@ public:
     int32_t SetSupportedProcessCacheSelf(bool isSupport);
 
     int32_t SetSupportedProcessCache(int32_t pid, bool isSupport);
+
+    int32_t IsProcessCacheSupported(int32_t pid, bool &isSupported);
+
+    int32_t SetProcessCacheEnable(int32_t pid, bool enable);
 
     /**
      * set browser channel for caller

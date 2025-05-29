@@ -14,6 +14,7 @@
  */
 
 #include "ams_mgr_proxy.h"
+#include "freeze_util.h"
 #include "ipc_types.h"
 #include "iremote_object.h"
 #include "param.h"
@@ -116,6 +117,8 @@ void AmsMgrProxy::LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInfo,
     int32_t ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::LOAD_ABILITY), data, reply, option);
     if (ret != NO_ERROR) {
         TAG_LOGW(AAFwkTag::APPMGR, "SendRequest err: %{public}d", ret);
+        AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(loadParam->token,
+            "AmsMgrProxy::LoadAbility fail, ipc error " + std::to_string(ret));
     }
     TAG_LOGD(AAFwkTag::APPMGR, "end");
 }
@@ -287,7 +290,8 @@ void AmsMgrProxy::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnM
     TAG_LOGD(AAFwkTag::APPMGR, "ending");
 }
 
-void AmsMgrProxy::KillProcessesByPids(std::vector<int32_t> &pids)
+int32_t AmsMgrProxy::KillProcessesByPids(const std::vector<int32_t> &pids, const std::string &reason,
+    bool subProcess)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "start");
     MessageParcel data;
@@ -296,24 +300,34 @@ void AmsMgrProxy::KillProcessesByPids(std::vector<int32_t> &pids)
 
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write token failed");
-        return;
+        return ERR_INVALID_DATA;
     }
     if (!data.WriteUint32(pids.size())) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write size failed");
-        return;
+        return ERR_FLATTEN_OBJECT;
     }
     for (const auto &pid: pids) {
         if (!data.WriteInt32(pid)) {
             TAG_LOGE(AAFwkTag::APPMGR, "Write pid failed");
-            return;
+            return ERR_FLATTEN_OBJECT;
         }
+    }
+    if (!data.WriteString(reason)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write reason failed");
+        return ERR_FLATTEN_OBJECT;
+    }
+    if (!data.WriteBool(subProcess)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write subProcess failed");
+        return ERR_FLATTEN_OBJECT;
     }
     int32_t ret =
         SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::KILL_PROCESSES_BY_PIDS), data, reply, option);
     if (ret != NO_ERROR) {
         TAG_LOGW(AAFwkTag::APPMGR, "SendRequest err: %{public}d", ret);
+        return ret;
     }
     TAG_LOGD(AAFwkTag::APPMGR, "end");
+    return reply.ReadInt32();
 }
 
 void AmsMgrProxy::AttachPidToParent(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &callerToken)
@@ -510,7 +524,7 @@ int32_t AmsMgrProxy::KillProcessesByAccessTokenId(const uint32_t accessTokenId)
 }
 
 int32_t AmsMgrProxy::UpdateApplicationInfoInstalled(const std::string &bundleName, const int uid,
-    const std::string &moduleName)
+    const std::string &moduleName, bool isPlugin)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "start.");
     MessageParcel data;
@@ -529,6 +543,10 @@ int32_t AmsMgrProxy::UpdateApplicationInfoInstalled(const std::string &bundleNam
     }
     if (!data.WriteString(moduleName)) {
         TAG_LOGE(AAFwkTag::APPMGR, "moduleName WriteString failed");
+        return ERR_FLATTEN_OBJECT;
+    }
+    if (!data.WriteBool(isPlugin)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "isPlugin Write failed");
         return ERR_FLATTEN_OBJECT;
     }
     int32_t ret =
@@ -1303,6 +1321,24 @@ bool AmsMgrProxy::IsMemorySizeSufficent()
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
     auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::IS_MEMORY_SIZE_SUFFICIENT), data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Send request err: %{public}d", ret);
+        return true;
+    }
+    return reply.ReadBool();
+}
+
+bool AmsMgrProxy::IsNoRequireBigMemory()
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write token failed");
+        return true;
+    }
+
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::IS_NO_REQUIRE_BIG_MEMORY), data, reply, option);
     if (ret != NO_ERROR) {
         TAG_LOGE(AAFwkTag::APPMGR, "Send request err: %{public}d", ret);
         return true;

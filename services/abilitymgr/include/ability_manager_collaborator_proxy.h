@@ -143,7 +143,25 @@ public:
      * @param flag Want::FLAG_AUTH_READ_URI_PERMISSION or Want::FLAG_AUTH_WRITE_URI_PERMISSION.
      * @return int The file descriptor.
      */
-    virtual int OpenFile(const Uri& uri, uint32_t flag) override;
+    virtual int OpenFile(const Uri& uri, uint32_t flag, uint32_t tokenId) override;
+
+     /**
+     * @brief grant uri permission
+     * @param uriVec vector of uri
+     * @param flag Want::FLAG_AUTH_READ_URI_PERMISSION or Want::FLAG_AUTH_WRITE_URI_PERMISSION.
+     * @param targetTokenId the tokenId of target application.
+     * @param targetBundleName the bundleName of target application.
+     * @return 0 when on success or else failed.
+     */
+    virtual int32_t GrantUriPermission(const std::vector<std::string> &uriVec, uint32_t flag, uint32_t targetTokenId,
+        const std::string &targetBundleName) override;
+    
+    /**
+     * @brief revoke uri permission
+     * @param tokenId the tokenId of target application.
+     * @return 0 when on success or else failed.
+     */
+    virtual int32_t RevokeUriPermission(uint32_t tokenId) override;
 
     virtual void NotifyMissionBindPid(int32_t missionId, int32_t pid) override;
 
@@ -162,6 +180,14 @@ public:
      * @return 0 when update target successfully or else failed.
      */
     virtual int32_t UpdateTargetIfNeed(Want &want) override;
+
+    /**
+     * @brief kill processes by bundleName.
+     * @param bundleName the bundleName of processes to be killed.
+     * @param userId the user id of processes to be killed.
+     * @return 0 when on success or else failed.
+     */
+    virtual int32_t NotifyKillProcesses(const std::string &bundleName, int32_t userId) override;
 private:
     static inline BrokerDelegator<AbilityManagerCollaboratorProxy> delegator_;
     int32_t SendTransactCmd(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);

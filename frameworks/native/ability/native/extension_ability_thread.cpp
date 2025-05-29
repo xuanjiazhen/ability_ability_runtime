@@ -31,6 +31,7 @@ namespace {
 #ifdef SUPPORT_GRAPHICS
 constexpr static char FORM_EXTENSION[] = "FormExtension";
 constexpr static char FORM_EDIT_EXTENSION[] = "FormEditExtensionAbility";
+constexpr static char LIVE_FORM_EXTENSION[] = "LiveFormExtensionAbility";
 constexpr static char UI_EXTENSION[] = "UIExtensionAbility";
 constexpr static char CUSTOM_EXTENSION[] = "ExtensionAbility";
 constexpr static char USER_AUTH_EXTENSION[] = "UserAuthExtensionAbility";
@@ -69,7 +70,8 @@ const std::map<AppExecFwk::ExtensionAbilityType, std::string> UI_EXTENSION_NAME_
 #endif  // SUPPORT_AUTO_FILL
     { AppExecFwk::ExtensionAbilityType::EMBEDDED_UI, EMBEDDED_UI_EXTENSION },
     { AppExecFwk::ExtensionAbilityType::PHOTO_EDITOR, PHOTO_EDITOR_EXTENSION },
-    { AppExecFwk::ExtensionAbilityType::FORM_EDIT, FORM_EDIT_EXTENSION }
+    { AppExecFwk::ExtensionAbilityType::FORM_EDIT, FORM_EDIT_EXTENSION },
+    { AppExecFwk::ExtensionAbilityType::LIVE_FORM, LIVE_FORM_EXTENSION }
 #endif //SUPPORT_GRAPHICS
 };
 
@@ -213,10 +215,13 @@ void ExtensionAbilityThread::HandleAttach(const std::shared_ptr<AppExecFwk::OHOS
     std::string abilityName = CreateAbilityName(abilityRecord, application);
     if (abilityName.empty()) {
         TAG_LOGE(AAFwkTag::EXT, "empty abilityName");
+        FreezeUtil::GetInstance().AddLifecycleEvent(abilityRecord->GetToken(),
+            "ExtensionAbilityThread::HandleAttach, empty abilityName.");
         return;
     }
 
     TAG_LOGI(AAFwkTag::EXT, "HandleAttach, extension: %{public}s", abilityName.c_str());
+    FreezeUtil::GetInstance().AddLifecycleEvent(abilityRecord->GetToken(), "ExtensionAbilityThread::HandleAttach");
     if (mainRunner == nullptr) {
         runner_ = AppExecFwk::EventRunner::Create(abilityName);
         if (runner_ == nullptr) {
@@ -257,14 +262,20 @@ void ExtensionAbilityThread::HandleAttachInner(const std::shared_ptr<AppExecFwk:
         return;
     }
 
+    FreezeUtil::GetInstance().AddLifecycleEvent(abilityRecord->GetToken(),
+        "ExtensionAbilityThread::HandleAttachInner");
     // 3.new init
     extensionImpl_->Init(application, abilityRecord, currentExtension_, abilityHandler_, token_);
     // 4.ipc attach init
     ErrCode err = AbilityManagerClient::GetInstance()->AttachAbilityThread(this, token_);
     if (err != ERR_OK) {
         TAG_LOGE(AAFwkTag::EXT, "Attach err: %{public}d", err);
+        FreezeUtil::GetInstance().AddLifecycleEvent(abilityRecord->GetToken(),
+            "ExtensionAbilityThread::HandleAttachInner fail, error is " + std::to_string(err));
+        return;
     }
     FreezeUtil::GetInstance().DeleteAppLifecycleEvent(0);
+    FreezeUtil::GetInstance().DeleteLifecycleEvent(abilityRecord->GetToken());
 }
 
 void ExtensionAbilityThread::HandleExtensionTransaction(
@@ -283,6 +294,8 @@ void ExtensionAbilityThread::HandleConnectExtension(const Want &want)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::EXT, "Begin");
+    FreezeUtil::GetInstance().AddLifecycleEvent(token_,
+        "ExtensionAbilityThread::HandleConnectExtension");
     if (extensionImpl_ == nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "null extensionImpl_");
         return;
@@ -413,6 +426,8 @@ void ExtensionAbilityThread::ScheduleConnectAbility(const Want &want)
         TAG_LOGE(AAFwkTag::EXT, "null abilityHandler_");
         return;
     }
+    FreezeUtil::GetInstance().AddLifecycleEvent(token_,
+        "ExtensionAbilityThread::ScheduleConnectAbility");
     wptr<ExtensionAbilityThread> weak = this;
     auto task = [weak, want]() {
         auto abilityThread = weak.promote();

@@ -142,7 +142,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeTestCreate_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI581RO
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeTestSetAppLibPath_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeTestSetAppLibPath_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "SetAppLibPath_0100 start");
     std::string appLibPathKey = TEST_BUNDLE_NAME + TEST_MODULE_NAME;
@@ -213,7 +213,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeGetLanguageTest_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeNotifyApplicationStateTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeNotifyApplicationStateTest_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState start");
 
@@ -230,7 +230,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeNotifyApplicationStateTest_0100, TestSize.Level
  * @tc.desc: JsRuntime test for NotifyApplicationState when nativeEngine is not nullptr.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeNotifyApplicationStateTest_0200, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeNotifyApplicationStateTest_0200, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "NotifyApplicationState start");
 
@@ -249,7 +249,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeNotifyApplicationStateTest_0200, TestSize.Level
  * @tc.desc: JsRuntime test for DumpHeapSnapshot.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeDumpHeapSnapshotTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeDumpHeapSnapshotTest_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot start");
     std::unique_ptr<JsRuntime> jsRuntime = std::make_unique<AbilityRuntime::JsRuntime>();
@@ -263,7 +263,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeDumpHeapSnapshotTest_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for PreloadSystemModule.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimePreloadSystemModuleTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimePreloadSystemModuleTest_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "PreloadSystemModule start");
 
@@ -281,7 +281,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimePreloadSystemModuleTest_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for RunSandboxScript.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeRunSandboxScriptTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeRunSandboxScriptTest_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "RunSandboxScript start");
 
@@ -300,7 +300,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeRunSandboxScriptTest_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for LoadSystemModuleByEngine.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeLoadSystemModuleByEngineTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeLoadSystemModuleByEngineTest_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "LoadSystemModuleByEngine start");
 
@@ -319,7 +319,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeLoadSystemModuleByEngineTest_0100, TestSize.Lev
  * @tc.desc: JsRuntime test for FinishPreload.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeFinishPreloadTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeFinishPreloadTest_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "FinishPreload start");
 
@@ -338,7 +338,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeFinishPreloadTest_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for FinishPreload.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimePostPreloadTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimePostPreloadTest_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "PostPreload start");
 
@@ -357,7 +357,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimePostPreloadTest_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for LoadAotFile.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeLoadAotFileTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeLoadAotFileTest_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "LoadAotFile start");
 
@@ -376,7 +376,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeLoadAotFileTest_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for LoadModule.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeLoadModuleTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeLoadModuleTest_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "LoadModule start");
 
@@ -397,7 +397,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeLoadModuleTest_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for LoadSystemModule (invoke the overwrite interface).
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeLoadSystemModuleTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeLoadSystemModuleTest_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "LoadSystemModule start");
 
@@ -415,7 +415,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeLoadSystemModuleTest_0100, TestSize.Level0)
  * @tc.desc: Runtime test for SavePreloaded.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, RuntimeSavePreloadedTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, RuntimeSavePreloadedTest_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "SavePreloaded start");
 
@@ -432,7 +432,7 @@ HWTEST_F(JsRuntimeTest, RuntimeSavePreloadedTest_0100, TestSize.Level0)
  * @tc.desc: Runtime test for SetModuleLoadChecker.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, RuntimeSetModuleLoadCheckerTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, RuntimeSetModuleLoadCheckerTest_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "SetModuleLoadChecker start");
 
@@ -449,7 +449,7 @@ HWTEST_F(JsRuntimeTest, RuntimeSetModuleLoadCheckerTest_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for SuspendVM.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeSuspendVMTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeSuspendVMTest_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "SuspendVM start");
 
@@ -467,7 +467,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeSuspendVMTest_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for ResumeVM.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeResumeVMTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeResumeVMTest_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "ResumeVM start");
 
@@ -485,7 +485,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeResumeVMTest_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for SetDeviceDisconnectCallback.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeSetDeviceDisconnectCallbackTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeSetDeviceDisconnectCallbackTest_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "SetDeviceDisconnectCallback start");
 
@@ -506,7 +506,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeSetDeviceDisconnectCallbackTest_0100, TestSize.
  * @tc.desc: JsRuntime test for PostTask.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeDetachCallbackFuncTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeDetachCallbackFuncTest_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "DetachCallbackFunc start");
 
@@ -524,7 +524,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeDetachCallbackFuncTest_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for LoadSystemModule.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeLoadSystemModulesTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeLoadSystemModulesTest_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "LoadSystemModule start");
 
@@ -544,7 +544,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeLoadSystemModulesTest_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for StartDebugMode.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeStartDebugModeTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeStartDebugModeTest_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "JsRuntimeStartDebugModeTest_0100 start");
 
@@ -568,7 +568,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeStartDebugModeTest_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for StartDebugMode.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeStartDebugModeTest_0200, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeStartDebugModeTest_0200, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "JsRuntimeStartDebugModeTest_0200 start");
 
@@ -593,7 +593,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeStartDebugModeTest_0200, TestSize.Level0)
  * @tc.desc: JsRuntime test for StopDebugMode.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeStopDebugModeTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeStopDebugModeTest_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "StopDebugMode start");
 
@@ -612,7 +612,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeStopDebugModeTest_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for InitConsoleModule.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeInitConsoleModuleTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeInitConsoleModuleTest_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "InitConsoleModule start");
 
@@ -631,7 +631,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeInitConsoleModuleTest_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for LoadRepairPatch.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeLoadRepairPatchTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeLoadRepairPatchTest_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "LoadRepairPatch start");
 
@@ -653,7 +653,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeLoadRepairPatchTest_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for UnLoadRepairPatch.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeUnLoadRepairPatchTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeUnLoadRepairPatchTest_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "UnLoadRepairPatch start");
 
@@ -674,7 +674,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeUnLoadRepairPatchTest_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for NotifyHotReloadPage.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeNotifyHotReloadPageTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeNotifyHotReloadPageTest_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "NotifyHotReloadPage start");
 
@@ -694,7 +694,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeNotifyHotReloadPageTest_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for UpdateModuleNameAndAssetPath.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeUpdateModuleNameAndAssetPathTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeUpdateModuleNameAndAssetPathTest_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "UpdateModuleNameAndAssetPath start");
 
@@ -714,7 +714,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeUpdateModuleNameAndAssetPathTest_0100, TestSize
  * @tc.desc: JsRuntime test for UpdateModuleNameAndAssetPath.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeUpdateModuleNameAndAssetPathTest_0200, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeUpdateModuleNameAndAssetPathTest_0200, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "JsRuntimeUpdateModuleNameAndAssetPathTest_0200 start");
 
@@ -735,7 +735,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeUpdateModuleNameAndAssetPathTest_0200, TestSize
  * @tc.desc: JsRuntime test for UpdateModuleNameAndAssetPath.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeUpdateModuleNameAndAssetPathTest_0300, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeUpdateModuleNameAndAssetPathTest_0300, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "JsRuntimeUpdateModuleNameAndAssetPathTest_0300 start");
 
@@ -757,7 +757,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeUpdateModuleNameAndAssetPathTest_0300, TestSize
  * @tc.type: FUNC
  * @tc.require: issueI6KODF
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeInitialize_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeInitialize_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "Running in multi-thread, using default thread number.");
 
@@ -779,7 +779,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeInitialize_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for RegisterQuickFixQueryFunc.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, RegisterQuickFixQueryFunc_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, RegisterQuickFixQueryFunc_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "RegisterQuickFixQueryFunc start");
 
@@ -800,7 +800,7 @@ HWTEST_F(JsRuntimeTest, RegisterQuickFixQueryFunc_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for RegisterUncaughtExceptionHandler.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, RegisterUncaughtExceptionHandler_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, RegisterUncaughtExceptionHandler_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "RegisterUncaughtExceptionHandler start");
 
@@ -818,7 +818,7 @@ HWTEST_F(JsRuntimeTest, RegisterUncaughtExceptionHandler_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for ReadSourceMapData.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, ReadSourceMapData_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, ReadSourceMapData_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "ReadSourceMapData start");
 
@@ -839,7 +839,7 @@ HWTEST_F(JsRuntimeTest, ReadSourceMapData_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for StopDebugger.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, StopDebugger_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, StopDebugger_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "StopDebugger_0100 start");
 
@@ -856,7 +856,7 @@ HWTEST_F(JsRuntimeTest, StopDebugger_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for GetFileBuffer.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, GetFileBuffer_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, GetFileBuffer_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "GetFileBuffer_0100 start");
 
@@ -877,7 +877,7 @@ HWTEST_F(JsRuntimeTest, GetFileBuffer_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for RunScript.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeRunScriptTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeRunScriptTest_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "RunScript_0100 start");
 
@@ -896,7 +896,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeRunScriptTest_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for LoadScript.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeLoadScriptTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeLoadScriptTest_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "LoadScriptTest_0100 start");
     auto jsRuntime = std::make_unique<AbilityRuntime::JsRuntime>();
@@ -913,7 +913,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeLoadScriptTest_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for StopDebugger.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, JsRuntimeStopDebuggerTest_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, JsRuntimeStopDebuggerTest_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "StopDebuggerTest_0100 start");
     auto jsRuntime = std::make_unique<AbilityRuntime::JsRuntime>();
@@ -931,7 +931,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeStopDebuggerTest_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI7C87T
  */
-HWTEST_F(JsRuntimeTest, PostSyncTask_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, PostSyncTask_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "PostSyncTask_0100 start");
 
@@ -973,7 +973,7 @@ HWTEST_F(JsRuntimeTest, ReInitJsEnvImpl_0100, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI7C87T
  */
-HWTEST_F(JsRuntimeTest, PostTask_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, PostTask_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "PostTask_0100 start");
 
@@ -996,7 +996,7 @@ HWTEST_F(JsRuntimeTest, PostTask_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI7C87T
  */
-HWTEST_F(JsRuntimeTest, RemoveTask_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, RemoveTask_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "RemoveTask_0100 start");
 
@@ -1021,7 +1021,7 @@ HWTEST_F(JsRuntimeTest, RemoveTask_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for StartDebugger.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, StartDebugger_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, StartDebugger_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "StartDebugger_0100 start");
 
@@ -1042,7 +1042,7 @@ HWTEST_F(JsRuntimeTest, StartDebugger_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for ReloadFormComponent.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, ReloadFormComponent_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, ReloadFormComponent_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "ReloadFormComponent_0100 start");
 
@@ -1060,7 +1060,7 @@ HWTEST_F(JsRuntimeTest, ReloadFormComponent_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI82L1A
  */
-HWTEST_F(JsRuntimeTest, SetRequestAotCallback_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, SetRequestAotCallback_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "start");
 
@@ -1079,7 +1079,7 @@ HWTEST_F(JsRuntimeTest, SetRequestAotCallback_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for DestroyHeapProfiler.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, DestroyHeapProfiler_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, DestroyHeapProfiler_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "DestroyHeapProfiler_0100 start");
 
@@ -1096,7 +1096,7 @@ HWTEST_F(JsRuntimeTest, DestroyHeapProfiler_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for ForceFullGC.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, ForceFullGC_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, ForceFullGC_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "ForceFullGC_0100 start");
 
@@ -1113,7 +1113,7 @@ HWTEST_F(JsRuntimeTest, ForceFullGC_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for AllowCrossThreadExecution.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, AllowCrossThreadExecution_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, AllowCrossThreadExecution_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "AllowCrossThreadExecution_0100 start");
 
@@ -1129,7 +1129,7 @@ HWTEST_F(JsRuntimeTest, AllowCrossThreadExecution_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for GetHeapPrepare.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, GetHeapPrepare_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, GetHeapPrepare_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "GetHeapPrepare_0100 start");
 
@@ -1145,7 +1145,7 @@ HWTEST_F(JsRuntimeTest, GetHeapPrepare_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for InitLoop.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, InitLoop_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, InitLoop_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "InitLoop_0100 start");
 
@@ -1162,7 +1162,7 @@ HWTEST_F(JsRuntimeTest, InitLoop_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for InitSourceMap.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, InitSourceMap_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, InitSourceMap_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0100 start");
 
@@ -1174,7 +1174,7 @@ HWTEST_F(JsRuntimeTest, InitSourceMap_0100, TestSize.Level0)
     TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0100 end");
 }
 
-HWTEST_F(JsRuntimeTest, InitSourceMap_0200, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, InitSourceMap_0200, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0200 start");
 
@@ -1190,7 +1190,7 @@ HWTEST_F(JsRuntimeTest, InitSourceMap_0200, TestSize.Level0)
  * @tc.desc: JsRuntime test for Deinitialize.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, Deinitialize_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, Deinitialize_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "Deinitialize_0100 start");
 
@@ -1207,7 +1207,7 @@ HWTEST_F(JsRuntimeTest, Deinitialize_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for GetPkgContextInfoListMap.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, GetPkgContextInfoListMap_0100, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, GetPkgContextInfoListMap_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "GetPkgContextInfoListMap_0100 start");
 
@@ -1242,7 +1242,7 @@ HWTEST_F(JsRuntimeTest, GetPkgContextInfoListMap_0100, TestSize.Level0)
  * @tc.desc: JsRuntime test for GetPkgContextInfoListMap.
  * @tc.type: FUNC
  */
-HWTEST_F(JsRuntimeTest, GetPkgContextInfoListMap_0200, TestSize.Level0)
+HWTEST_F(JsRuntimeTest, GetPkgContextInfoListMap_0200, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "GetPkgContextInfoListMap_0200 start");
 
@@ -1471,6 +1471,45 @@ HWTEST_F(JsRuntimeTest, JsRuntimeSetStopPreloadSoCallback_0100, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetDebugOption_0100
+ * @tc.desc: JsRuntime test for SetDebugOption.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, SetDebugOption_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SetDebugOption_0100 start");
+    Runtime::DebugOption debugOption;
+    std::string bundleName = "com.ohos.example.bundleName";
+    debugOption.bundleName = bundleName;
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    jsRuntime->SetDebugOption(debugOption);
+    EXPECT_EQ(jsRuntime->debugOption_.bundleName, bundleName);
+    TAG_LOGI(AAFwkTag::TEST, "SetDebugOption_0100 end");
+}
+
+/**
+ * @tc.name: StartLocalDebugMode_0100
+ * @tc.desc: JsRuntime test for StartLocalDebugMode.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, StartLocalDebugMode_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartLocalDebugMode_0100 start");
+    bool isDebugFromLocal = false;
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    Runtime::DebugOption debugOption;
+    jsRuntime->SetDebugOption(debugOption);
+    jsRuntime->debugOption_.isDeveloperMode = false;
+    jsRuntime->StartLocalDebugMode(isDebugFromLocal);
+    EXPECT_EQ(jsRuntime->debugOption_.isDebugFromLocal, false);
+
+    isDebugFromLocal = true;
+    jsRuntime->StartLocalDebugMode(isDebugFromLocal);
+    EXPECT_EQ(jsRuntime->debugOption_.isDebugFromLocal, true);
+    TAG_LOGI(AAFwkTag::TEST, "StartLocalDebugMode_0100 end");
+}
+
+/**
  * @tc.name: StartProfiler_0100
  * @tc.desc: JsRuntime test for StartProfiler.
  * @tc.type: FUNC
@@ -1486,6 +1525,382 @@ HWTEST_F(JsRuntimeTest, StartProfiler_0100, TestSize.Level1)
     jsRuntime->StartProfiler(debugOption);
     EXPECT_EQ(jsRuntime->jsEnv_, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "StartProfiler_0100 end");
+}
+
+/**
+ * @tc.name: LoadScript_0200
+ * @tc.desc: LoadScript
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, LoadScript_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "LoadScript_0200 start");
+
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    jsRuntime->jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    jsRuntime->jsEnv_->engine_ = nullptr;
+
+    auto ret = jsRuntime->LoadScript("MyPath", nullptr, false);
+    EXPECT_EQ(ret, false);
+
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "LoadScript_0200 end");
+}
+
+/**
+ * @tc.name: LoadScript_0300
+ * @tc.desc: LoadScript
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, LoadScript_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "LoadScript_0300 start");
+
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    jsRuntime->jsEnv_ = nullptr;
+
+    auto ret = jsRuntime->LoadScript("MyPath", nullptr, 0, false, "");
+    EXPECT_EQ(ret, false);
+
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "LoadScript_0300 end");
+}
+
+/**
+ * @tc.name: LoadScript_0400
+ * @tc.desc: LoadScript
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, LoadScript_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "LoadScript_0400 start");
+
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    jsRuntime->jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    jsRuntime->isOhmUrl_ = true;
+    jsRuntime->moduleName_ = "moduleName";
+
+    auto ret = jsRuntime->LoadScript("MyPath", nullptr, 0, false, "");
+    EXPECT_EQ(ret, false);
+
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "LoadScript_0400 end");
+}
+
+/**
+ * @tc.name: LoadScript_0500
+ * @tc.desc: LoadScript
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, LoadScript_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "LoadScript_0500 start");
+
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    jsRuntime->jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    jsRuntime->isOhmUrl_ = false;
+    jsRuntime->moduleName_ = "moduleName";
+
+    auto ret = jsRuntime->LoadScript("MyPath", nullptr, 0, false, "");
+    EXPECT_EQ(ret, false);
+
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "LoadScript_0500 end");
+}
+
+/**
+ * @tc.name: LoadSystemModuleByEngine_0200
+ * @tc.desc: LoadSystemModuleByEngine
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, LoadSystemModuleByEngine_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "LoadSystemModuleByEngine_0200 start");
+
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    jsRuntime->jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    napi_env env = {};
+    jsRuntime->jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env);
+
+    auto ret = jsRuntime->LoadSystemModuleByEngine(env, "", nullptr, 0);
+    EXPECT_EQ(ret, nullptr);
+
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "LoadSystemModuleByEngine_0200 end");
+}
+
+/**
+ * @tc.name: Deinitialize_0200
+ * @tc.desc: Deinitialize
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, Deinitialize_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "Deinitialize_0200 start");
+
+    auto jsRuntime = std::make_unique<AbilityRuntime::JsRuntime>();
+    std::string moduleName = "PreloadSystemModuleTest";
+    napi_value object = nullptr;
+    std::unique_ptr<NativeReference> nativeRef = jsRuntime->LoadSystemModule(moduleName, &object, 0);
+    jsRuntime->modules_.emplace("moduleName", nativeRef.get());
+    jsRuntime->jsEnv_ = nullptr;
+
+    jsRuntime->Deinitialize();
+    EXPECT_EQ(jsRuntime->modules_.size(), 0);
+
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "Deinitialize_0200 end");
+}
+
+/**
+ * @tc.name: RunScript_0200
+ * @tc.desc: RunScript
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, RunScript_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RunScript_0200 start");
+
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    jsRuntime->jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    panda::RuntimeOption pandaOption;
+    jsRuntime->jsEnv_->vm_ = panda::JSNApi::CreateJSVM(pandaOption);
+
+    auto ret = jsRuntime->RunScript("", "", false);
+    EXPECT_EQ(ret, false);
+
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "RunScript_0200 end");
+}
+
+/**
+ * @tc.name: RunScript_0300
+ * @tc.desc: RunScript
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, RunScript_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RunScript_0300 start");
+
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    jsRuntime->jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    panda::RuntimeOption pandaOption;
+    jsRuntime->jsEnv_->vm_ = panda::JSNApi::CreateJSVM(pandaOption);
+
+    auto ret = jsRuntime->RunScript("MockPath", "", true);
+    EXPECT_EQ(ret, false);
+
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "RunScript_0300 end");
+}
+
+/**
+ * @tc.name: RunSandboxScript_0300
+ * @tc.desc: RunSandboxScript
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, RunSandboxScript_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RunSandboxScript_0300 start");
+
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    std::string bundleName(PATH_MAX, 'a');
+    const std::string& codePath = bundleName;
+    const std::string& modulePath = "";
+    std::string fileName = "";
+    jsRuntime->codePath_ = codePath;
+
+    auto ret = jsRuntime->RunSandboxScript(modulePath, fileName);
+    EXPECT_EQ(ret, false);
+
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "RunSandboxScript_0300 end");
+}
+
+/**
+ * @tc.name: RunSandboxScript_0300
+ * @tc.desc: RunSandboxScript
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, RunSandboxScript_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RunSandboxScript_0400 start");
+
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    std::string bundleName(PATH_MAX, 'a');
+    const std::string& codePath = bundleName;
+    const std::string& modulePath = "";
+    std::string fileName = "HelloWorld";
+    jsRuntime->codePath_ = codePath;
+
+    auto ret = jsRuntime->RunSandboxScript(modulePath, fileName);
+    EXPECT_EQ(ret, false);
+
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "RunSandboxScript_0400 end");
+}
+
+/**
+ * @tc.name: RemoveTask_0300
+ * @tc.desc: RemoveTask
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, RemoveTask_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RemoveTask_0300 start");
+
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    jsRuntime->jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    std::string taskName = "removeTask003";
+    bool taskExecuted = false;
+    auto task = [taskName, &taskExecuted]() {
+        TAG_LOGI(AAFwkTag::TEST, "%{public}s called.", taskName.c_str());
+        taskExecuted = true;
+    };
+    int64_t delayTime = 20;
+    jsRuntime->PostTask(task, taskName, delayTime);
+    jsRuntime->RemoveTask(taskName);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    EXPECT_EQ(taskExecuted, false);
+
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "RemoveTask_0300 end");
+}
+
+/**
+ * @tc.name: SuspendVM_0200
+ * @tc.desc: SuspendVM
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, SuspendVM_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SuspendVM_0200 start");
+
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    jsRuntime->jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    napi_env env = {};
+    jsRuntime->jsEnv_->engine_ = reinterpret_cast<NativeEngine*>(env);
+    auto ret = jsRuntime->SuspendVM(3);
+    EXPECT_EQ(ret, false);
+
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "SuspendVM_0200 end");
+}
+
+/**
+ * @tc.name: PopPreloadObj_0100
+ * @tc.desc: PopPreloadObj
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, PopPreloadObj_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PopPreloadObj_0100 start");
+
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    napi_ref ref = nullptr;
+    napi_value value = {};
+    napi_env env_ = {};
+    napi_create_reference(env_, value, 1, &ref);
+    auto navRef = std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference *>(ref));
+    std::map<std::string, std::unique_ptr<NativeReference>> preloadObjMap;
+    preloadObjMap.emplace("PreloadObj", nullptr);
+    preloadObjMap.emplace("PreloadObj1", std::move(navRef));
+    jsRuntime->preloadList_ = std::move(preloadObjMap);
+
+    std::unique_ptr<NativeReference> obj = nullptr;
+    auto ret = jsRuntime->PopPreloadObj("PreloadObj", obj);
+    EXPECT_EQ(ret, false);
+    EXPECT_EQ(obj, nullptr);
+    EXPECT_EQ(jsRuntime->preloadList_.size(), 1);
+
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "PopPreloadObj_0100 end");
+}
+
+/**
+ * @tc.name: UpdateModuleNameAndAssetPath_0400
+ * @tc.desc: UpdateModuleNameAndAssetPath
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, UpdateModuleNameAndAssetPath_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UpdateModuleNameAndAssetPath_0400 start");
+
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    jsRuntime->jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    jsRuntime->isBundle_ = false;
+    panda::RuntimeOption pandaOption;
+    jsRuntime->jsEnv_->vm_ = panda::JSNApi::CreateJSVM(pandaOption);
+    jsRuntime->moduleName_ = "";
+
+    jsRuntime->UpdateModuleNameAndAssetPath("moduleName");
+    EXPECT_EQ(jsRuntime->moduleName_, "moduleName");
+
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "UpdateModuleNameAndAssetPath_0400 end");
+}
+
+/**
+ * @tc.name: ExecuteSecureWithOhmUrl_0100
+ * @tc.desc: basic function test of ExecuteSecureWithOhmUrl and GetExportObjectFromOhmUrl.
+ * @tc.type: FUNC
+ * @tc.require: issueIC77WI
+ */
+HWTEST_F(JsRuntimeTest, ExecuteSecureWithOhmUrl_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ExecuteSecureWithOhmUrl_0100 start");
+
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    jsRuntime->jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    jsRuntime->isBundle_ = false;
+    panda::RuntimeOption pandaOption;
+    jsRuntime->jsEnv_->vm_ = panda::JSNApi::CreateJSVM(pandaOption);
+    jsRuntime->moduleName_ = "";
+
+    std::string moduleName = "moduleName";
+    std::string hapPath = "hapPath";
+    std::string srcEntrance = "srcEntrance";
+    auto ret = jsRuntime->ExecuteSecureWithOhmUrl(moduleName, hapPath, srcEntrance);
+    EXPECT_EQ(ret, false);
+
+    std::string key = "key";
+    auto retVal = jsRuntime->GetExportObjectFromOhmUrl(srcEntrance, key);
+    EXPECT_EQ(retVal, nullptr);
+
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "ExecuteSecureWithOhmUrl_0100 end");
+}
+
+/**
+ * @tc.name: RegisterUncatchableExceptionHandler_0100
+ * @tc.desc: JsRuntime test for RegisterUncatchableExceptionHandler.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsRuntimeTest, RegisterUncatchableExceptionHandler_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RegisterUncatchableExceptionHandler_0100 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    EXPECT_NE(jsRuntime, nullptr);
+    auto ret = jsRuntime->CreateJsEnv(options_);
+    jsRuntime->RegisterUncatchableExceptionHandler(nullptr);
+    EXPECT_NE(jsRuntime, nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "RegisterUncatchableExceptionHandler_0100 end");
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

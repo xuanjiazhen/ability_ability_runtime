@@ -1221,6 +1221,12 @@ public:
 
     virtual int32_t RegisterStatusBarDelegate(sptr<AbilityRuntime::IStatusBarDelegate> delegate) override;
 
+    /**
+     * @brief get ability manager collaborator.
+     * @return Returns object pointer on success, others on null.
+     */
+    virtual sptr<IAbilityManagerCollaborator> GetAbilityManagerCollaborator() override;
+
     virtual int32_t KillProcessWithPrepareTerminate(const std::vector<int32_t>& pids) override;
 
     /**
@@ -1618,6 +1624,14 @@ public:
         const std::string &appId, const std::string &startTime, AtomicServiceStartupRule &rule) override;
 
     /**
+     * Restart atomic service.
+     *
+     * @param callerToken, The caller ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RestartSelfAtomicService(sptr<IRemoteObject> callerToken) override;
+
+     /**
      * PrepareTerminateAbilityDone, called when PrepareTerminateAbility call is done.
      *
      * @param token, the token of the ability to terminate.
@@ -1673,6 +1687,53 @@ public:
                                                   const std::string &hostBundleName,
                                                   int32_t &recordNum,
                                                   int32_t userId = DEFAULT_INVAL_VALUE) override;
+
+    /**
+     * Revoke delegator.
+     *
+     * @param token, ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RevokeDelegator(sptr<IRemoteObject> token) override;
+    int32_t StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> &observer) override;
+
+    /**
+     * Get all insight intent infos.
+     * @param flag, the get type.
+     * @param infos, the insight intent infos.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetAllInsightIntentInfo(
+        AbilityRuntime::GetInsightIntentFlag flag,
+        std::vector<InsightIntentInfoForQuery> &infos) override;
+
+    /**
+     * Get specified bundleName insight intent infos.
+     * @param flag, the get type.
+     * @param infos, the insight intent infos.
+     * @param bundleName, The get insightIntent bundleName.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetInsightIntentInfoByBundleName(
+        AbilityRuntime::GetInsightIntentFlag flag,
+        const std::string &bundleName,
+        std::vector<InsightIntentInfoForQuery> &infos) override;
+
+    /**
+     * Get specified intentName insight intent infos.
+     * @param flag, the get type.
+     * @param infos, the insight intent infos.
+     * @param bundleName, The get insightIntent bundleName.
+     * @param moduleName, The get insightIntent moduleName.
+     * @param intentName, The get intent name.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetInsightIntentInfoByIntentName(
+        AbilityRuntime::GetInsightIntentFlag flag,
+        const std::string &bundleName,
+        const std::string &moduleName,
+        const std::string &intentName,
+        InsightIntentInfoForQuery &info) override;
 
 private:
     template <typename T>

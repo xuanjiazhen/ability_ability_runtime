@@ -417,6 +417,16 @@ public:
 
     virtual int32_t UpdateConfiguration(const Configuration &config, const int32_t userId = -1) override;
 
+    /**
+     * UpdateConfigurationForBackgroundApp
+     * @param appInfos Background application information.
+     * @param policy Update policy.
+     * @param userId configuration for the user
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t UpdateConfigurationForBackgroundApp(const std::vector<BackgroundAppInfo> &appInfos,
+        const AppExecFwk::ConfigurationPolicy &policy, const int32_t userId = -1) override;
+
     virtual int32_t UpdateConfigurationByBundleName(const Configuration &config, const std::string &name,
         int32_t appIndex = 0) override;
 
@@ -537,7 +547,7 @@ public:
      * @param pid pid
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t ChangeAppGcState(pid_t pid, int32_t state) override;
+    virtual int32_t ChangeAppGcState(pid_t pid, int32_t state, uint64_t tid = 0) override;
 
     /**
      * Register appRunning status listener.
@@ -629,6 +639,20 @@ public:
 #endif // SUPPORT_CHILD_PROCESS
 
     /**
+     * Register native child exit callback to notify.
+     * @param notify, Callback used to notify caller the info of native child exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t RegisterNativeChildExitNotify(const sptr<INativeChildNotify> notify) override;
+
+    /**
+     * Unregister native child exit callback to notify.
+     * @param notify, Callback used to notify caller the info of native child exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t UnregisterNativeChildExitNotify(const sptr<INativeChildNotify> notify) override;
+
+    /**
      * Whether the current application process is the last surviving process.
      *
      * @return Returns true is final application process, others return false.
@@ -707,11 +731,11 @@ public:
     int32_t GetAllUIExtensionProviderPid(pid_t hostPid, std::vector<pid_t> &providerPids) override;
 
     /**
-     * @brief Notify memory size state changed to sufficient or insufficient.
-     * @param isMemorySizeSufficient Indicates the memory size state.
+     * @brief Notify memory size state changed: LOW_MEMORY, MEMORY_RECOVERY, REQUIRE_BIG_MEMORY, NO_REQUIRE_BIG_MEMORY.
+     * @param memorySizeState Indicates the memory size state.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t NotifyMemorySizeStateChanged(bool isMemorySizeSufficient) override;
+    virtual int32_t NotifyMemorySizeStateChanged(int32_t memorySizeState) override;
 
     /**
      * Set application assertion pause state.
@@ -726,6 +750,10 @@ public:
     int32_t SetSupportedProcessCacheSelf(bool isSupport) override;
 
     int32_t SetSupportedProcessCache(int32_t pid, bool isSupport) override;
+
+    int32_t IsProcessCacheSupported(int32_t pid, bool &isSupported) override;
+
+    int32_t SetProcessCacheEnable(int32_t pid, bool enable) override;
 
     /**
      * set browser channel for caller
@@ -749,7 +777,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t StartNativeChildProcess(const std::string &libName, int32_t childProcessCount,
-        const sptr<IRemoteObject> &callback) override;
+        const sptr<IRemoteObject> &callback, const std::string &customProcessName) override;
 #endif // SUPPORT_CHILD_PROCESS
 
     /**
@@ -801,6 +829,15 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t GetKilledProcessInfo(int pid, int uid, KilledProcessInfo &info) override;
+
+    /**
+     * Launch ability when reuseDelegatorWindow is true.
+     *
+     * @param token Ability identify.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t LaunchAbility(sptr<IRemoteObject> token) override;
+
 private:
     bool SendTransactCmd(AppMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     bool WriteInterfaceToken(MessageParcel &data);

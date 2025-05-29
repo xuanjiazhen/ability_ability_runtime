@@ -90,7 +90,7 @@ public:
      * @return execute error code
      */
     int AbilityWindowConfigTransactionDone(
-        const sptr<IRemoteObject> &token, const AppExecFwk::WindowConfig &windowConfig);
+        const sptr<IRemoteObject> &token, const WindowConfig &windowConfig);
 
     /**
      * attach ability thread ipc object.
@@ -191,7 +191,7 @@ public:
      *
      * @param abilityRequest target ability request.
      */
-    int ResolveLocked(const AbilityRequest &abilityRequest);
+    int ResolveLocked(const AbilityRequest &abilityRequest, std::string &errMsg);
 
     /**
      * Call UIAbility by SCB.
@@ -388,8 +388,17 @@ public:
     void PrepareTerminateAbilityDone(std::shared_ptr<AbilityRecord> abilityRecord, bool isTerminate);
 
     void TryPrepareTerminateByPidsDone(const std::string &moduleName, int32_t prepareTermination, bool isExist);
+    
+    int32_t RevokeDelegator(sptr<IRemoteObject> token);
+
+    bool IsBundleStarting(pid_t pid);
+
+    void RecordPidKilling(pid_t pid, const std::string &reason);
 
 private:
+    void AddStartingPid(pid_t pid);
+    void RemoveStartingPid(pid_t pid);
+    void MarkStartingFlag(const AbilityRequest &abilityRequest);
     int32_t GetPersistentIdByAbilityRequest(const AbilityRequest &abilityRequest, bool &reuse) const;
     int32_t GetReusedSpecifiedPersistentId(const AbilityRequest &abilityRequest, bool &reuse) const;
     int32_t GetReusedStandardPersistentId(const AbilityRequest &abilityRequest, bool &reuse) const;
@@ -429,9 +438,11 @@ private:
         std::shared_ptr<AbilityRecord> callerAbilityRecord);
 
     // byCall
-    int CallAbilityLocked(const AbilityRequest &abilityRequest);
+    int CallAbilityLocked(const AbilityRequest &abilityRequest, std::string &errMsg);
     sptr<SessionInfo> CreateSessionInfo(const AbilityRequest &abilityRequest) const;
-    int NotifySCBPendingActivation(sptr<SessionInfo> &sessionInfo, const AbilityRequest &abilityRequest);
+    int NotifySCBPendingActivation(sptr<SessionInfo> &sessionInfo,
+        const AbilityRequest &abilityRequest, std::string &errMsg);
+    bool IsHookModule(const AbilityRequest &abilityRequest) const;
     int ResolveAbility(const std::shared_ptr<AbilityRecord> &targetAbility, const AbilityRequest &abilityRequest) const;
     std::vector<std::shared_ptr<AbilityRecord>> GetAbilityRecordsByNameInner(const AppExecFwk::ElementName &element);
     void HandleForegroundCollaborate(const AbilityRequest &abilityRequest,
@@ -440,10 +451,10 @@ private:
     void NotifyStartSpecifiedAbility(AbilityRequest &request, const AAFwk::Want &want);
     void NotifyRestartSpecifiedAbility(const AbilityRequest &request, const sptr<IRemoteObject> &token);
     int MoveAbilityToFront(const AbilityRequest &abilityRequest, const std::shared_ptr<AbilityRecord> &abilityRecord,
-        std::shared_ptr<AbilityRecord> callerAbility, std::shared_ptr<StartOptions> startOptions = nullptr);
+        std::shared_ptr<AbilityRecord> callerAbility, std::shared_ptr<StartOptions> startOptions, int32_t requestId);
     int SendSessionInfoToSCB(std::shared_ptr<AbilityRecord> &callerAbility, sptr<SessionInfo> &sessionInfo);
     int StartAbilityBySpecifed(const AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &callerAbility,
-        int32_t requestId, const std::string &flag);
+        int32_t requestId);
 
     void SetLastExitReason(std::shared_ptr<AbilityRecord> &abilityRecord) const;
     void SetReceiverInfo(const AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &abilityRecord) const;
@@ -465,7 +476,6 @@ private:
         sptr<SessionInfo> sessionInfo) const;
     void AddCallerRecord(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
         std::shared_ptr<AbilityRecord> uiAbilityRecord) const;
-    void CheckSpecified(int32_t requestId, std::shared_ptr<AbilityRecord> uiAbilityRecord);
     void SendKeyEvent(const AbilityRequest &abilityRequest) const;
     bool CheckPid(const std::shared_ptr<AbilityRecord> abilityRecord, const int32_t pid) const;
     std::shared_ptr<StatusBarDelegateManager> GetStatusBarDelegateManager();
@@ -503,7 +513,6 @@ private:
     void HandleLegacyAcceptWantDone(AbilityRequest &abilityRequest, int32_t requestId,
         const std::string &flag, const AAFwk::Want &want);
     std::shared_ptr<SpecifiedRequest> GetSpecifiedRequest(int32_t requestId);
-    void PutSpecifiedFlag(int32_t requestId, const std::string &flag);
     bool CheckPrepareTerminateTokens(const std::vector<sptr<IRemoteObject>> &tokens,
         uint32_t &tokenId, std::map<std::string, std::vector<sptr<IRemoteObject>>> &tokensPerModuleName);
     void HandleAbilityStageOnPrepareTerminationTimeout(int32_t pid, const std::string &moduleName,
@@ -512,10 +521,16 @@ private:
         const std::vector<sptr<IRemoteObject>> &tokens);
     void CancelPrepareTerminate(std::shared_ptr<AbilityRecord> abilityRecord);
     bool UpdateSpecifiedFlag(std::shared_ptr<AbilityRecord> abilityRequest, const std::string &flag);
+    bool ProcessColdStartBranch(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
+        std::shared_ptr<AbilityRecord> uiAbilityRecord, bool isColdStart);
+    bool TryProcessHookModule(SpecifiedRequest &specifiedRequest, bool isHookModule);
+    bool IsStartSpecifiedProcessRequest(const AbilityRequest &abilityRequest);
+    int32_t StartSpecifiedProcessRequest(const AbilityRequest &abilityRequest);
 
     int32_t userId_ = -1;
     mutable ffrt::mutex sessionLock_;
     std::unordered_map<int32_t, std::shared_ptr<AbilityRecord>> sessionAbilityMap_;
+    std::unordered_map<int32_t, std::shared_ptr<AbilityRecord>> lowMemKillAbilityMap_;
     std::unordered_map<int64_t, std::shared_ptr<AbilityRecord>> tmpAbilityMap_;
     std::unordered_map<std::shared_ptr<AbilityRecord>, std::list<AbilityRequest>> callRequestCache_;
     std::list<std::shared_ptr<AbilityRecord>> terminateAbilityList_;
@@ -532,7 +547,6 @@ private:
     std::map<int32_t, std::shared_ptr<AbilityRequest>> startAbilityCheckMap_;
 
     std::map<std::string, std::list<std::shared_ptr<SpecifiedRequest>>> specifiedRequestList_;
-    std::map<int32_t, std::string> specifiedFlagMap_;
 
     struct PrepareTerminateByPidRecord {
         pid_t pid_;
@@ -549,6 +563,10 @@ private:
     std::mutex isTryPrepareTerminateByPidsDoneMutex_;
     std::condition_variable isTryPrepareTerminateByPidsCv_;
     std::vector<std::shared_ptr<PrepareTerminateByPidRecord>> prepareTerminateByPidRecords_;
+    std::unordered_map<int32_t, std::shared_ptr<AbilityRecord>> hookSpecifiedMap_;
+
+    std::mutex startingPidsMutex_;
+    std::vector<pid_t> startingPids_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

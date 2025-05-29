@@ -15,6 +15,7 @@
 
 #include "ability_bundle_event_callback.h"
 
+#include "insight_intent_event_mgr.h"
 #include "ability_manager_service.h"
 #include "ability_util.h"
 #include "parameters.h"
@@ -27,10 +28,12 @@ namespace AAFwk {
 namespace {
 constexpr const char* KEY_TOKEN = "accessTokenId";
 constexpr const char* KEY_UID = "uid";
+constexpr const char* KEY_USER_ID = "userId";
+constexpr const char* KEY_APP_INDEX = "appIndex";
 constexpr const char* OLD_WEB_BUNDLE_NAME = "com.ohos.nweb";
 constexpr const char* NEW_WEB_BUNDLE_NAME = "com.ohos.arkwebcore";
 constexpr const char* ARKWEB_CORE_PACKAGE_NAME = "persist.arkwebcore.package_name";
-
+constexpr const char* BUNDLE_TYPE = "bundleType";
 }
 AbilityBundleEventCallback::AbilityBundleEventCallback(
     std::shared_ptr<TaskHandlerWrap> taskHandler, std::shared_ptr<AbilityAutoStartupService> abilityAutoStartupService)
@@ -50,37 +53,51 @@ void AbilityBundleEventCallback::OnReceiveEvent(const EventFwk::CommonEventData 
     std::string moduleName = want.GetElement().GetModuleName();
     auto tokenId = static_cast<uint32_t>(want.GetIntParam(KEY_TOKEN, 0));
     int uid = want.GetIntParam(KEY_UID, 0);
+    auto bundleType = want.GetIntParam(BUNDLE_TYPE, 0);
+    int userId = want.GetIntParam(KEY_USER_ID, 0);
+    int appIndex = want.GetIntParam(KEY_APP_INDEX, 0);
     // verify data
     if (action.empty() || bundleName.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "OnReceiveEvent failed, empty action/bundleName");
         return;
     }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "OnReceiveEvent, action:%{public}s.", action.c_str());
+    if (bundleType == static_cast<int32_t>(AppExecFwk::BundleType::APP_PLUGIN)) {
+        if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_ADDED) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "plugin add:%{public}s", bundleName.c_str());
+            HandleUpdatedModuleInfo(bundleName, uid, moduleName, true);
+        }
+        return;
+    }
 
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {
+        DelayedSingleton<AppScheduler>::GetInstance()->KillApplicationByUid(bundleName, uid, "UninstallAppEnd");
         // uninstall bundle
         HandleRemoveUriPermission(tokenId);
-        HandleUpdatedModuleInfo(bundleName, uid, moduleName);
+        HandleUpdatedModuleInfo(bundleName, uid, moduleName, false);
         if (abilityAutoStartupService_ == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "OnReceiveEvent failed, abilityAutoStartupService is nullptr");
             return;
         }
         abilityAutoStartupService_->DeleteAutoStartupData(bundleName, tokenId);
+        AbilityRuntime::InsightIntentEventMgr::DeleteInsightIntentEvent(want.GetElement(), userId, appIndex);
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_ADDED) {
         // install or uninstall module/bundle
-        HandleUpdatedModuleInfo(bundleName, uid, moduleName);
+        HandleUpdatedModuleInfo(bundleName, uid, moduleName, false);
+        AbilityRuntime::InsightIntentEventMgr::UpdateInsightIntentEvent(want.GetElement(), userId);
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_CHANGED) {
         if (bundleName == NEW_WEB_BUNDLE_NAME || bundleName == OLD_WEB_BUNDLE_NAME ||
             bundleName == system::GetParameter(ARKWEB_CORE_PACKAGE_NAME, "false")) {
             HandleRestartResidentProcessDependedOnWeb();
         }
-        HandleUpdatedModuleInfo(bundleName, uid, moduleName);
+        HandleUpdatedModuleInfo(bundleName, uid, moduleName, false);
         HandleAppUpgradeCompleted(uid);
         if (abilityAutoStartupService_ == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "OnReceiveEvent failed, abilityAutoStartupService is nullptr");
             return;
         }
         abilityAutoStartupService_->CheckAutoStartupData(bundleName, uid);
+        AbilityRuntime::InsightIntentEventMgr::UpdateInsightIntentEvent(want.GetElement(), userId);
     }
 }
 
@@ -96,16 +113,16 @@ void AbilityBundleEventCallback::HandleRemoveUriPermission(uint32_t tokenId)
 }
 
 void AbilityBundleEventCallback::HandleUpdatedModuleInfo(const std::string &bundleName, int32_t uid,
-    const std::string &moduleName)
+    const std::string &moduleName, bool isPlugin)
 {
     wptr<AbilityBundleEventCallback> weakThis = this;
-    auto task = [weakThis, bundleName, uid, moduleName]() {
+    auto task = [weakThis, bundleName, uid, moduleName, isPlugin]() {
         sptr<AbilityBundleEventCallback> sharedThis = weakThis.promote();
         if (sharedThis == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "sharedThis is nullptr.");
             return;
         }
-        sharedThis->abilityEventHelper_.HandleModuleInfoUpdated(bundleName, uid, moduleName);
+        sharedThis->abilityEventHelper_.HandleModuleInfoUpdated(bundleName, uid, moduleName, isPlugin);
     };
     taskHandler_->SubmitTask(task);
 }

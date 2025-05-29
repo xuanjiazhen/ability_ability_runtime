@@ -594,12 +594,12 @@ void AppStateObserverManager::HandleStateChangedNotifyObserver(
     TAG_LOGD(AAFwkTag::APPMGR,
         "Handle state change, module:%{public}s, bundle:%{public}s, ability:%{public}s, state:%{public}d,"
         "pid:%{public}d ,uid:%{public}d, abilityType:%{public}d, isAbility:%{public}d, callerBundleName:%{public}s,"
-        "callerAbilityName:%{public}s, isAtomicService:%{public}d",
+        "callerAbilityName:%{public}s, isAtomicService:%{public}d, callerUid:%{public}d",
         abilityStateData.moduleName.c_str(), abilityStateData.bundleName.c_str(),
         abilityStateData.abilityName.c_str(), abilityStateData.abilityState,
         abilityStateData.pid, abilityStateData.uid, abilityStateData.abilityType, isAbility,
         abilityStateData.callerBundleName.c_str(), abilityStateData.callerAbilityName.c_str(),
-        abilityStateData.isAtomicService);
+        abilityStateData.isAtomicService, abilityStateData.callerUid);
     auto appStateObserverMapCopy = GetAppStateObserverMapCopy();
     for (auto it = appStateObserverMapCopy.begin(); it != appStateObserverMapCopy.end(); ++it) {
         const auto &bundleNames = it->second.bundleNames;
@@ -878,6 +878,7 @@ ProcessData AppStateObserverManager::WrapProcessData(const std::shared_ptr<AppRu
     processData.gpuPid = appRecord->GetGPUPid();
     processData.callerPid = appRecord->GetCallerPid();
     processData.callerUid = appRecord->GetCallerUid();
+    processData.killReason = appRecord->GetKillReason();
     return processData;
 }
 
@@ -1110,6 +1111,7 @@ AppStateData AppStateObserverManager::WrapAppStateData(const std::shared_ptr<App
     appStateData.uid = appRecord->GetUid();
     appStateData.extensionType = appRecord->GetExtensionType();
     appStateData.isPreloadModule = appRecord->GetNeedPreloadModule();
+    appStateData.callerUid = appRecord->GetCallerUid();
     if (appRecord->GetApplicationInfo() != nullptr) {
         appStateData.accessTokenId = static_cast<uint32_t>(appRecord->GetApplicationInfo()->accessTokenId);
     }
@@ -1133,10 +1135,10 @@ AppStateData AppStateObserverManager::WrapAppStateData(const std::shared_ptr<App
         appStateData.callerBundleName = "";
     }
     appStateData.appIndex = appRecord->GetAppIndex();
-    TAG_LOGD(AAFwkTag::APPMGR, "Handle state change, bundle:%{public}s, state:%{public}d,"
-        "pid:%{public}d ,uid:%{public}d, isFocused:%{public}d, callerBUndleName: %{public}s, appIndex:%{public}d",
+    TAG_LOGD(AAFwkTag::APPMGR, "Handle state change, bundle:%{public}s, state:%{public}d, pid:%{public}d,"
+        "uid:%{public}d, isFocused:%{public}d, callerBUndleName: %{public}s, appIndex:%{public}d, callerUid:%{public}d",
         appStateData.bundleName.c_str(), appStateData.state, appStateData.pid, appStateData.uid,
-        appStateData.isFocused, appStateData.callerBundleName.c_str(), appStateData.appIndex);
+        appStateData.isFocused, appStateData.callerBundleName.c_str(), appStateData.appIndex, appStateData.callerUid);
     return appStateData;
 }
 
@@ -1245,6 +1247,75 @@ void AppStateObserverManager::HandleOnAppCacheStateChanged(const std::shared_ptr
         auto iter = std::find(bundleNames.begin(), bundleNames.end(), data.bundleName);
         if ((bundleNames.empty() || iter != bundleNames.end()) && it->first != nullptr) {
             it->first->OnAppCacheStateChanged(data);
+        }
+    }
+}
+
+ProcessBindData AppStateObserverManager::WrapProcessBindData(
+    const UIExtensionProcessBindInfo &bindInfo, int32_t bindingRelation)
+{
+    ProcessBindData processBindData;
+    processBindData.bundleName = bindInfo.bundleName;
+    processBindData.pid = bindInfo.pid;
+    processBindData.uid = bindInfo.uid;
+    processBindData.isKeepAlive = bindInfo.isKeepAlive;
+    processBindData.extensionType = bindInfo.extensionType;
+    processBindData.processType = bindInfo.processType;
+    processBindData.callerPid = bindInfo.callerPid;
+    processBindData.callerUid = bindInfo.callerUid;
+    processBindData.callerBundleName = bindInfo.callerBundleName;
+    processBindData.bindingRelation = bindingRelation;
+    return processBindData;
+}
+
+void AppStateObserverManager::OnProcessBindingRelationChanged(
+    const std::shared_ptr<AppRunningRecord> &appRecord,
+    const UIExtensionProcessBindInfo &bindInfo, int32_t bindingRelation)
+{
+    if (handler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null handler");
+        return;
+    }
+
+    auto task = [weak = weak_from_this(), appRecord, bindInfo, bindingRelation]() {
+        auto self = weak.lock();
+        if (self == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "null self");
+            return;
+        }
+        TAG_LOGD(AAFwkTag::APPMGR, "OnProcessBindingRelationChanged come.");
+        self->HandleOnProcessBindingRelationChanged(appRecord, bindInfo, bindingRelation);
+    };
+    handler_->SubmitTask(task);
+}
+
+void AppStateObserverManager::HandleOnProcessBindingRelationChanged(
+    const std::shared_ptr<AppRunningRecord> &appRecord,
+    const UIExtensionProcessBindInfo &bindInfo, int32_t bindingRelation)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null appRecord");
+        return;
+    }
+
+    ProcessBindData data = WrapProcessBindData(bindInfo, bindingRelation);
+    TAG_LOGD(AAFwkTag::APPMGR,
+        "HandleOnProcessBindingRelationChanged, pid:%{public}d, uid:%{public}d, bundleName:%{public}s, "
+        "callerPid:%{public}d, callerUid:%{public}d, callerBundleName:%{public}s, bindingRelation:%{public}d",
+        data.pid,
+        data.uid,
+        data.bundleName.c_str(),
+        data.callerPid,
+        data.callerUid,
+        data.callerBundleName.c_str(),
+        data.bindingRelation);
+    auto appStateObserverMapCopy = GetAppStateObserverMapCopy();
+    for (auto it = appStateObserverMapCopy.begin(); it != appStateObserverMapCopy.end(); ++it) {
+        const auto &bundleNames = it->second.bundleNames;
+        auto iter = std::find(bundleNames.begin(), bundleNames.end(), data.bundleName);
+        if ((bundleNames.empty() || iter != bundleNames.end()) && it->first != nullptr) {
+            it->first->OnProcessBindingRelationChanged(data);
         }
     }
 }

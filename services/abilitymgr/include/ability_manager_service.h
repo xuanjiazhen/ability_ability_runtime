@@ -35,6 +35,7 @@
 #include "ability_manager_event_subscriber.h"
 #include "ability_manager_stub.h"
 #include "ability_keep_alive_service.h"
+#include "ability_start_with_wait_observer_utils.h"
 #include "ams_configuration_parameter.h"
 #include "app_debug_listener_interface.h"
 #include "app_exit_reason_helper.h"
@@ -70,10 +71,13 @@
 #include "implicit_start_processor.h"
 #include "system_dialog_scheduler.h"
 #endif
+#include "insight_intent_event_mgr.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 class IStatusBarDelegate;
+struct ExtractInsightIntentGenericInfo;
+struct LinkIntentParamMapping;
 }
 namespace Rosen {
 class FocusChangeInfo;
@@ -87,6 +91,7 @@ constexpr int32_t BASE_USER_RANGE = 200000;
 constexpr int32_t U0_USER_ID = 0;
 constexpr int32_t INVALID_USER_ID = -1;
 constexpr const char* KEY_SESSION_ID = "com.ohos.param.sessionId";
+constexpr const char* KEY_REQUEST_ID = "com.ohos.param.requestId";
 using OHOS::AppExecFwk::IAbilityController;
 struct StartAbilityInfo;
 class WindowFocusChangedListener;
@@ -1566,6 +1571,12 @@ public:
     virtual int32_t UnregisterIAbilityManagerCollaborator(int32_t type) override;
 
     /**
+     * @brief get ability manager collaborator.
+     * @return Returns object pointer on success, others on null.
+     */
+    virtual sptr<IAbilityManagerCollaborator> GetAbilityManagerCollaborator() override;
+
+    /**
      * @brief Get collaborator.
      * @param type collaborator type.
      * @return nullptr or IAbilityManagerCollaborator stpr.
@@ -1946,6 +1957,14 @@ public:
     virtual int32_t QueryAtomicServiceStartupRule(sptr<IRemoteObject> callerToken,
         const std::string &appId, const std::string &startTime, AtomicServiceStartupRule &rule) override;
 
+    /**
+     * Restart atomic service.
+     *
+     * @param callerToken, The caller ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RestartSelfAtomicService(sptr<IRemoteObject> callerToken) override;
+
     int StartUIAbilityForOptionWrap(const Want &want, const StartOptions &options, sptr<IRemoteObject> callerToken,
         bool isPendingWantCaller, int32_t userId, int requestCode, uint32_t callerTokenId = 0, bool isImplicit = false,
         bool isCallByShortcut = false);
@@ -2011,6 +2030,54 @@ public:
                                                   int32_t &recordNum,
                                                   int32_t userId = DEFAULT_INVAL_VALUE) override;
 
+    /**
+     * Revoke delegator.
+     *
+     * @param token, ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RevokeDelegator(sptr<IRemoteObject> token) override;
+
+    virtual int32_t StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> &observer) override;
+
+    /**
+     * Get all insight intent infos.
+     * @param flag, the get type.
+     * @param infos, the insight intent infos.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetAllInsightIntentInfo(
+        AbilityRuntime::GetInsightIntentFlag flag,
+        std::vector<InsightIntentInfoForQuery> &infos) override;
+
+    /**
+     * Get specified bundleName insight intent infos.
+     * @param flag, the get type.
+     * @param infos, the insight intent infos.
+     * @param bundleName, The get insightIntent bundleName.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetInsightIntentInfoByBundleName(
+        AbilityRuntime::GetInsightIntentFlag flag,
+        const std::string &bundleName,
+        std::vector<InsightIntentInfoForQuery> &infos) override;
+
+    /**
+     * Get specified intentName insight intent infos.
+     * @param flag, the get type.
+     * @param infos, the insight intent infos.
+     * @param bundleName, The get insightIntent bundleName.
+     * @param moduleName, The get insightIntent moduleName.
+     * @param intentName, The get intent name.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetInsightIntentInfoByIntentName(
+        AbilityRuntime::GetInsightIntentFlag flag,
+        const std::string &bundleName,
+        const std::string &moduleName,
+        const std::string &intentName,
+        InsightIntentInfoForQuery &info) override;
+
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;
     static constexpr uint32_t ACTIVE_TIMEOUT_MSG = 1;
@@ -2063,10 +2130,23 @@ protected:
 
     void OnStartProcessFailed(sptr<IRemoteObject> token) override;
 
-    void OnCacheExitInfo(uint32_t accessTokenId, const AAFwk::LastExitDetailInfo &exitInfo,
+    void OnCacheExitInfo(uint32_t accessTokenId, const AppExecFwk::RunningProcessInfo &exitInfo,
         const std::string &bundleName, const std::vector<std::string> &abilityNames,
         const std::vector<std::string> &uiExtensionNames) override;
 
+    int32_t GetCollaboratorType(const std::string &codePath) const;
+    int32_t KillProcessForCollaborator(int32_t collaboratorType, const std::string &bundleName, int32_t userId);
+    
+    /**
+     * Check if Caller is allowed to start AppServiceExtension(Stage).
+     *
+     * @param abilityRequest, abilityRequest.
+     * @param isVerifyAppIdentifierAllowList, isVerifyAppIdentifierAllowList
+     * @param isFromConnect, isFromConnect
+     * @return Returns whether the caller is allowed to start AppServiceExtension.
+     */
+    int32_t CheckCallAppServiceExtensionPermission(const AbilityRequest &abilityRequest,
+        std::shared_ptr<AbilityRecord> targetService, bool isFromConnect);
 private:
     int TerminateAbilityWithFlag(const sptr<IRemoteObject> &token, int resultCode = DEFAULT_INVAL_VALUE,
         const Want *resultWant = nullptr, bool flag = true);
@@ -2404,10 +2484,7 @@ private:
 
     void InitStartupFlag();
 
-    inline bool IsCrossUserCall(int32_t userId)
-    {
-        return (userId != INVALID_USER_ID && userId != U0_USER_ID && userId != GetUserId());
-    }
+    bool IsCrossUserCall(int32_t userId) const;
 
     int32_t RequestDialogServiceInner(const Want &want, const sptr<IRemoteObject> &callerToken,
         int requestCode, int32_t userId);
@@ -2426,7 +2503,8 @@ private:
     int32_t CheckStartSelfUIAbilityStartOptions(const Want &want, const StartOptions &startOptions);
 
     void GetConnectManagerAndUIExtensionBySessionInfo(const sptr<SessionInfo> &sessionInfo,
-        std::shared_ptr<AbilityConnectManager> &connectManager, std::shared_ptr<AbilityRecord> &targetAbility);
+        std::shared_ptr<AbilityConnectManager> &connectManager, std::shared_ptr<AbilityRecord> &targetAbility,
+        bool needCheck = false);
 
     virtual int RegisterSessionHandler(const sptr<IRemoteObject> &object) override;
 
@@ -2485,11 +2563,19 @@ private:
 
     void WaitBootAnimationStart();
 
-    int32_t SignRestartAppFlag(int32_t userId, int32_t uid, const std::string &instanceKey,
-        AppExecFwk::MultiAppModeType type, bool isAppRecovery = false);
+    struct SignRestartAppFlagParam {
+        int32_t userId;
+        int32_t uid;
+        std::string instanceKey;
+        AppExecFwk::MultiAppModeType type;
+        bool isAppRecovery = false;
+        bool isAtomicService = false;
+    };
+    int32_t SignRestartAppFlag(const SignRestartAppFlagParam &param);
     int32_t CheckRestartAppWant(const AAFwk::Want &want, int32_t appIndex, int32_t userId);
 
     int32_t CheckDebugAssertPermission();
+    bool VerifySameAppOrAppIdentifierAllowListPermission(const AbilityRequest &abilityRequest);
     std::shared_ptr<AbilityDebugDeal> ConnectInitAbilityDebugDeal();
 
     int32_t SetBackgroundCall(const AppExecFwk::RunningProcessInfo &processInfo,
@@ -2499,6 +2585,7 @@ private:
         AppExecFwk::ExtensionAbilityType extensionType);
 
     bool CheckUIExtensionCallerIsForeground(const AbilityRequest &abilityRequest);
+    bool CheckStartCallHasFloatingWindowForUIExtension(const sptr<IRemoteObject> &callerToken);
     bool CheckUIExtensionCallerIsUIAbility(const AbilityRequest &abilityRequest);
     std::shared_ptr<AbilityRecord> GetUIExtensionRootCaller(const sptr<IRemoteObject> token, int32_t userId);
 
@@ -2519,6 +2606,8 @@ private:
         const AbilityRequest& abilityRequest, bool isForegroundToRestartApp,
         bool isSendDialogResult, uint32_t specifyTokenId,
         const std::string& callerBundleName);
+
+    int32_t CheckStartPlugin(const Want& want, sptr<IRemoteObject> callerToken);
 
     int StartAbilityByConnectManager(const Want& want, const AbilityRequest& abilityRequest,
         const AppExecFwk::AbilityInfo& abilityInfo, int validUserId, sptr<IRemoteObject> callerToken);
@@ -2551,6 +2640,8 @@ private:
     void ShowDeveloperModeDialog(const std::string &bundleName, const std::string &abilityName);
 
     void StartKeepAliveAppsInner(int32_t userId);
+
+    bool ProcessLowMemoryKill(int32_t pid, const ExitReason &reason);
 
     struct StartSelfUIAbilityParam {
         Want want;
@@ -2613,6 +2704,8 @@ private:
 
     std::list<std::string> exportWhiteList_;
 
+    std::shared_ptr<AbilityRuntime::InsightIntentEventMgr> insightIntentEventMgr_;
+
     bool ShouldPreventStartAbility(const AbilityRequest &abilityRequest);
 
     void PrintStartAbilityInfo(AppExecFwk::AbilityInfo callerInfo, AppExecFwk::AbilityInfo calledInfo);
@@ -2641,6 +2734,14 @@ private:
     bool ShouldBlockAllAppStart();
 
     std::string InsightIntentGetcallerBundleName();
+
+    ErrCode IntentOpenLinkInner(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
+        AbilityRuntime::ExtractInsightIntentGenericInfo &linkInfo, const int32_t userId);
+ 
+    AbilityRuntime::ExtractInsightIntentGenericInfo GetInsightIntentGenericInfo(const InsightIntentExecuteParam &param);
+ 
+    void CombinLinkInfo(
+        const std::vector<AbilityRuntime::LinkIntentParamMapping> &paramMappings, std::string &uri, AAFwk::Want &want);
 
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
     std::shared_ptr<BackgroundTaskObserver> bgtaskObserver_;

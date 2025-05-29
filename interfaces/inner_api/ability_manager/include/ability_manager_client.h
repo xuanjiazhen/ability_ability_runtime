@@ -25,7 +25,6 @@
 #include "auto_startup_info.h"
 #include "iremote_object.h"
 #include "mission_info.h"
-#include "snapshot.h"
 #include "system_memory_attr.h"
 #include "ui_extension_window_command.h"
 #include "want.h"
@@ -34,6 +33,8 @@
 
 namespace OHOS {
 namespace AAFwk {
+class Snapshot;
+class ISnapshotHandler;
 using AutoStartupInfo = AbilityRuntime::AutoStartupInfo;
 /**
  * @class AbilityManagerClient
@@ -145,6 +146,15 @@ public:
      */
     ErrCode StartAbility(const Want &want, int requestCode = DEFAULT_INVAL_VALUE,
         int32_t userId = DEFAULT_INVAL_VALUE);
+
+    /**
+     * StartAbilityWithWait, send want and abilityStartWithWaitObserver to abms.
+     *
+     * @param want Ability want.
+     * @param observer ability foreground notify observer for aa tool.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> observer);
 
     /**
      * StartAbility with want, send want to ability manager service.
@@ -540,6 +550,21 @@ public:
         sptr<IAbilityConnection> connect,
         sptr<IRemoteObject> callerToken,
         int32_t userId = DEFAULT_INVAL_VALUE);
+    
+    /**
+     * ConnectAbilityWithExtensionType, connect session with specified extentionType ability.
+     *
+     * @param want, Special want for appService type's ability.
+     * @param connect, Callback used to notify caller the result of connecting or disconnecting.
+     * @param callerToken, caller ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode ConnectAbilityWithExtensionType(
+        const Want &want,
+        sptr<IAbilityConnection> connect,
+        sptr<IRemoteObject> callerToken,
+        int32_t userId = DEFAULT_INVAL_VALUE,
+        AppExecFwk::ExtensionAbilityType extensionType = AppExecFwk::ExtensionAbilityType::SERVICE);
 
     /**
      * ConnectUIServiceExtensionAbility, connect session with uiService ability.
@@ -1426,6 +1451,12 @@ public:
     ErrCode UnregisterAppDebugListener(sptr<AppExecFwk::IAppDebugListener> listener);
 
     /**
+     * @brief get ability manager collaborator.
+     * @return Returns object pointer on success, others on null.
+     */
+    sptr<IAbilityManagerCollaborator> GetAbilityManagerCollaborator();
+
+    /**
      * @brief Attach app debug.
      * @param bundleName The application bundle name.
      * @return Returns ERR_OK on success, others on failure.
@@ -1686,6 +1717,14 @@ public:
         const std::string &appId, const std::string &startTime, AtomicServiceStartupRule &rule);
 
     /**
+     * Restart atomic service.
+     *
+     * @param callerToken, The caller ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+     ErrCode RestartSelfAtomicService(sptr<IRemoteObject> callerToken);
+
+    /**
      * PrepareTerminateAbilityDone, called when PrepareTerminateAbility call is done.
      *
      * @param token, the token of the ability to terminate.
@@ -1741,6 +1780,52 @@ public:
                                           int32_t &recordNum,
                                           int32_t userId = DEFAULT_INVAL_VALUE);
 
+    /**
+     * Revoke delegator.
+     *
+     * @param token, ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode RevokeDelegator(sptr<IRemoteObject> token);
+
+    /**
+     * Get all insight intent infos.
+     * @param flag, the get type.
+     * @param infos, the insight intent infos.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode GetAllInsightIntentInfo(
+        AbilityRuntime::GetInsightIntentFlag flag,
+        std::vector<InsightIntentInfoForQuery> &infos);
+
+    /**
+     * Get specified bundleName insight intent infos.
+     * @param flag, the get type.
+     * @param infos, the insight intent infos.
+     * @param bundleName, The get insightIntent bundleName.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode GetInsightIntentInfoByBundleName(
+        AbilityRuntime::GetInsightIntentFlag flag,
+        const std::string &bundleName,
+        std::vector<InsightIntentInfoForQuery> &infos);
+
+    /**
+     * Get specified intentName insight intent infos.
+     * @param flag, the get type.
+     * @param infos, the insight intent infos.
+     * @param bundleName, The get insightIntent bundleName.
+     * @param moduleName, The get insightIntent moduleName.
+     * @param intentName, The get intent name.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode GetInsightIntentInfoByIntentName(
+        AbilityRuntime::GetInsightIntentFlag flag,
+        const std::string &bundleName,
+        const std::string &moduleName,
+        const std::string &intentName,
+        InsightIntentInfoForQuery &info);
+                                    
 private:
     AbilityManagerClient();
     DISALLOW_COPY_AND_MOVE(AbilityManagerClient);

@@ -29,6 +29,9 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace AppExecFwk {
+namespace {
+constexpr int32_t FOUNDATION_UID = 5523;
+}
 class AppMgrServiceThirdTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -267,6 +270,73 @@ HWTEST_F(AppMgrServiceThirdTest, NotifyMemoryLevel_001, TestSize.Level1)
     AAFwk::MyFlag::perm = true;
     res = appMgrService->NotifyMemoryLevel(level);
     EXPECT_NE(res, ERR_INVALID_OPERATION);
+}
+
+/*
+ * Feature: AppMgrService
+ * Function: LaunchAbility
+ * SubFunction: NA
+ * FunctionPoints: AppMgrService LaunchAbility
+ * EnvConditions: NA
+ * CaseDescription: Verify LaunchAbility
+ */
+HWTEST_F(AppMgrServiceThirdTest, LaunchAbility_001, TestSize.Level1)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    appMgrService->SetInnerService(nullptr);
+    int32_t res = appMgrService->LaunchAbility(nullptr);
+    EXPECT_EQ(res, AAFwk::ERR_APP_MGR_SERVICE_NOT_READY);
+
+    appMgrService->SetInnerService(std::make_shared<AppMgrServiceInner>());
+    appMgrService->taskHandler_ = taskHandler_;
+    appMgrService->eventHandler_ = std::make_shared<AMSEventHandler>(taskHandler_, appMgrService->appMgrServiceInner_);
+    res = appMgrService->LaunchAbility(nullptr);
+    EXPECT_EQ(res, AAFwk::ERR_NULL_APP_RUNNING_MANAGER);
+}
+
+/*
+ * Feature: AppMgrService
+ * Function: UpdateConfigurationForBackgroundApp
+ * SubFunction: NA
+ * FunctionPoints: AppMgrService UpdateConfigurationForBackgroundApp
+ * EnvConditions: NA
+ * CaseDescription: Verify UpdateConfigurationForBackgroundApp
+ */
+HWTEST_F(AppMgrServiceThirdTest, UpdateConfigurationForBackgroundApp_001, TestSize.Level2)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    std::vector<BackgroundAppInfo> appInfos;
+    AppExecFwk::ConfigurationPolicy policy;
+    int32_t userId = -1;
+    appMgrService->SetInnerService(nullptr);
+    AAFwk::MyFlag::flag_ = 0;
+    int32_t res = appMgrService->UpdateConfigurationForBackgroundApp(appInfos, policy, userId);
+    EXPECT_EQ(res, ERR_PERMISSION_DENIED);
+    AAFwk::MyFlag::flag_ = 1;
+    res = appMgrService->UpdateConfigurationForBackgroundApp(appInfos, policy, userId);
+    EXPECT_EQ(res, ERR_INVALID_OPERATION);
+}
+
+/*
+ * Feature: AppMgrService
+ * Function: UpdateConfigurationForBackgroundApp
+ * SubFunction: NA
+ * FunctionPoints: AppMgrService UpdateConfigurationForBackgroundApp
+ * EnvConditions: NA
+ * CaseDescription: Verify UpdateConfigurationForBackgroundApp
+ */
+HWTEST_F(AppMgrServiceThirdTest, UpdateConfigurationForBackgroundApp_002, TestSize.Level2)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    std::vector<BackgroundAppInfo> appInfos;
+    AppExecFwk::ConfigurationPolicy policy;
+    int32_t userId = -1;
+    AAFwk::MyFlag::flag_ = 1;
+    appMgrService->SetInnerService(std::make_shared<AppMgrServiceInner>());
+    appMgrService->taskHandler_ = taskHandler_;
+    appMgrService->eventHandler_ = std::make_shared<AMSEventHandler>(taskHandler_, appMgrService->appMgrServiceInner_);
+    int32_t res = appMgrService->UpdateConfigurationForBackgroundApp(appInfos, policy, userId);
+    EXPECT_EQ(res, ERR_PERMISSION_DENIED);
 }
 } // namespace AppExecFwk
 } // namespace OHOS

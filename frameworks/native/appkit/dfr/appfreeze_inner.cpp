@@ -184,7 +184,8 @@ int AppfreezeInner::AppfreezeHandle(const FaultData& faultData, bool onlyMainThr
 bool AppfreezeInner::IsExitApp(const std::string& name)
 {
     if (name == AppFreezeType::THREAD_BLOCK_6S || name == AppFreezeType::APP_INPUT_BLOCK ||
-        name == AppFreezeType::LIFECYCLE_TIMEOUT || name == AppFreezeType::BUSSINESS_THREAD_BLOCK_6S) {
+        name == AppFreezeType::LIFECYCLE_TIMEOUT || name == AppFreezeType::BUSSINESS_THREAD_BLOCK_6S ||
+        name == AppFreezeType::LIFECYCLE_TIMEOUT_WARNING) {
         return true;
     }
     return false;
@@ -197,7 +198,7 @@ int AppfreezeInner::AcquireStack(const FaultData& info, bool onlyMainThread)
     int64_t startTime = AbilityRuntime::TimeUtil::CurrentTimeMillis();
     GetMainHandlerDump(msgContent);
     TAG_LOGW(AAFwkTag::APPDFR, "get mainhandler dump, eventName:%{public}s, endTime:%{public}s, "
-        "interval:%{public}lld ms", info.errorObject.name.c_str(),
+        "interval:%{public}" PRId64 " ms", info.errorObject.name.c_str(),
         AbilityRuntime::TimeUtil::DefaultCurrentTimeStr().c_str(),
         AbilityRuntime::TimeUtil::CurrentTimeMillis() - startTime);
 
@@ -210,6 +211,11 @@ int AppfreezeInner::AcquireStack(const FaultData& info, bool onlyMainThread)
             faultData.errorObject.message += "client actions for ability:\n" +
                 FreezeUtil::GetInstance().GetLifecycleEvent(it->token) + "\nclient actions for app:\n" +
                 FreezeUtil::GetInstance().GetAppLifecycleEvent(0) + "\n";
+            if (it->errorObject.name == AppFreezeType::LIFECYCLE_TIMEOUT ||
+                it->errorObject.name == AppFreezeType::LIFECYCLE_TIMEOUT_WARNING) {
+                FreezeUtil::GetInstance().DeleteLifecycleEvent(it->token);
+                FreezeUtil::GetInstance().DeleteAppLifecycleEvent(0);
+            }
         }
         faultData.errorObject.name = it->errorObject.name;
         faultData.timeoutMarkers = it->timeoutMarkers;

@@ -35,6 +35,7 @@ public:
     static std::unique_ptr<CJRuntime> Create(const Options& options);
     static void SetAppLibPath(const AppLibPathMap& appLibPaths);
     static bool IsCJAbility(const std::string& info);
+    static void SetAppVersion(std::string& version);
     static void SetSanitizerVersion(SanitizerKind kind);
     static void SetPackageName(std::string srcEntryName);
     ~CJRuntime() override = default;
@@ -59,15 +60,15 @@ public:
     bool NotifyHotReloadPage() override { return false; }
     bool UnLoadRepairPatch(const std::string& patchFile) override { return false; }
     void RegisterQuickFixQueryFunc(const std::map<std::string, std::string>& moduleAndPath) override {};
-    void StartProfiler(const DebugOption debugOption) override {};
+    void StartProfiler(const DebugOption dOption) override;
     void SetModuleLoadChecker(const std::shared_ptr<ModuleCheckerDelegate> moduleCheckerDelegate) const override {}
     void SetDeviceDisconnectCallback(const std::function<bool()> &cb) override {};
     bool IsAppLibLoaded() const { return appLibLoaded_; }
     void UnLoadCJAppLibrary();
     void DestroyHeapProfiler() override {};
     void ForceFullGC() override {};
-    void ForceFullGC(uint32_t tid) override {};
-    void DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary = false) override {};
+    void ForceFullGC(uint32_t tid) override;
+    void DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary = false) override;
     void DumpCpuProfile() override {};
     void AllowCrossThreadExecution() override {};
     void GetHeapPrepare() override {};

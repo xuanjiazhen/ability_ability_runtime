@@ -48,12 +48,15 @@ public:
     bool GetBundleInfo(const std::string &bundleName, int32_t flags, BundleInfo &bundleInfo, int32_t userId);
     std::string GetAppIdByBundleName(const std::string &bundleName, const int32_t userId);
     bool GetHapModuleInfo(const AbilityInfo &abilityInfo, HapModuleInfo &hapModuleInfo);
+    ErrCode GetPluginHapModuleInfo(const std::string &hostBundleName, const std::string &pluginBundleName,
+        const std::string &pluginModuleName, const int32_t userId, HapModuleInfo &hapModuleInfo);
     std::string GetAbilityLabel(const std::string &bundleName, const std::string &abilityName);
     std::string GetAppType(const std::string &bundleName);
     ErrCode GetBaseSharedBundleInfos(
         const std::string &bundleName, std::vector<BaseSharedBundleInfo> &baseSharedBundleInfos,
         GetDependentBundleInfoFlag flag = GetDependentBundleInfoFlag::GET_APP_CROSS_HSP_BUNDLE_INFO);
     ErrCode GetBundleInfoForSelf(int32_t flags, BundleInfo &bundleInfo);
+    ErrCode GetBundleInfoForSelfWithOutCache(int32_t flags, BundleInfo &bundleInfo);
     ErrCode GetDependentBundleInfo(const std::string &sharedBundleName, BundleInfo &sharedBundleInfo,
         GetDependentBundleInfoFlag flag = GetDependentBundleInfoFlag::GET_APP_CROSS_HSP_BUNDLE_INFO);
     bool GetGroupDir(const std::string &dataGroupId, std::string &dir);
@@ -111,7 +114,17 @@ public:
     std::string GetStringById(
         const std::string &bundleName, const std::string &moduleName, uint32_t resId, int32_t userId);
     std::string GetDataDir(const std::string &bundleName, const int32_t appIndex);
-
+    ErrCode GetPluginInfosForSelf(std::vector<PluginBundleInfo> &pluginBundleInfos);
+    ErrCode GetPluginAbilityInfo(const std::string &hostBundleName, const std::string &pluginBundleName,
+        const std::string &pluginModuleName, const std::string &pluginAbilityName, int32_t userId,
+        AbilityInfo &pluginAbilityInfo);
+    ErrCode RegisterPluginEventCallback(sptr<IBundleEventCallback> pluginEventCallback);
+    ErrCode UnregisterPluginEventCallback(sptr<IBundleEventCallback> pluginEventCallback);
+    // for collaborator (along with normal)
+    ErrCode GetCloneBundleInfoExt(const std::string &bundleName, uint32_t flags, int32_t appIndex,
+        int32_t userId, BundleInfo &bundleInfo);
+    ErrCode GetLauncherAbilityInfoSync(const std::string &bundleName, int32_t userId,
+        std::vector<AbilityInfo> &abilityInfo);
 private:
     sptr<IBundleMgr> Connect();
     sptr<IBundleMgr> Connect(bool checkBmsReady);

@@ -38,7 +38,7 @@ public:
     MOCK_METHOD1(ApplicationTerminated, void(const int32_t recordId));
     MOCK_METHOD2(UpdateAbilityState, void(const sptr<IRemoteObject>& token, const AbilityState state));
     MOCK_METHOD2(TerminateAbility, void(const sptr<IRemoteObject>& token, bool clearMissionFlag));
-    MOCK_METHOD3(UpdateApplicationInfoInstalled, int(const std::string&, const int uid, const std::string&));
+    MOCK_METHOD4(UpdateApplicationInfoInstalled, int(const std::string&, const int uid, const std::string&, bool));
     MOCK_METHOD3(KillApplication, int32_t(const std::string& bundleName, const bool clearPageStack, int32_t appIndex));
     MOCK_METHOD3(KillApplicationByUid, int(const std::string&, const int uid, const std::string&));
     MOCK_METHOD1(AbilityTerminated, void(const sptr<IRemoteObject>& token));
@@ -70,8 +70,8 @@ public:
 #endif // SUPPORT_CHILD_PROCESS
     MOCK_METHOD4(PreloadApplication, int32_t(const std::string&, int32_t, AppExecFwk::PreloadMode, int32_t));
 #ifdef SUPPORT_CHILD_PROCESS
-    MOCK_METHOD4(StartNativeChildProcess, int32_t(const pid_t hostPid, const std::string &libName,
-        int32_t childProcessCount, const sptr<IRemoteObject> &callback));
+    MOCK_METHOD5(StartNativeChildProcess, int32_t(const pid_t hostPid, const std::string &libName,
+        int32_t childProcessCount, const sptr<IRemoteObject> &callback, const std::string &customProcessName));
 #endif // SUPPORT_CHILD_PROCESS
     MOCK_METHOD1(DumpIpcAllStart, int(std::string& result));
     MOCK_METHOD1(DumpIpcAllStop, int(std::string& result));

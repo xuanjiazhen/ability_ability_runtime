@@ -50,6 +50,7 @@ using RuntimeTask = std::function<void(int, const AAFwk::Want&, bool)>;
 using PermissionRequestTask = std::function<void(const std::vector<std::string>&, const std::vector<int>&)>;
 using RequestDialogResultTask = std::function<void(int32_t resultCode, const AAFwk::Want&)>;
 using AbilityConfigUpdateCallback = std::function<void(AppExecFwk::Configuration &config)>;
+using OnRequestResult = std::function<void(const AppExecFwk::ElementName&, const std::string&)>;
 class LocalCallContainer;
 constexpr int32_t DEFAULT_INVAL_VALUE = -1;
 class AbilityContext : public Context {
@@ -215,6 +216,27 @@ public:
     virtual ErrCode ConnectUIServiceExtensionAbility(const AAFwk::Want& want,
         const sptr<AbilityConnectCallback>& connectCallback) = 0;
 
+    virtual ErrCode StartAppServiceExtensionAbility(const AAFwk::Want &want)
+    {
+        return 0;
+    }
+    virtual ErrCode StopAppServiceExtensionAbility(const AAFwk::Want& want)
+    {
+        return 0;
+    }
+    /**
+    * @brief Connects the current ability to an appService ability using the AbilityInfo.AbilityType.SERVICE template.f
+    *
+    * @param want Indicates the want containing information about the ability to connect
+    * @param connectCallback Indicates the callback object when the target ability is connected.
+    * @return True means success and false means failure
+    */
+    virtual ErrCode ConnectAppServiceExtensionAbility(const AAFwk::Want& want,
+        const sptr<AbilityConnectCallback>& connectCallback)
+    {
+        return 0;
+    }
+
     /**
     * @brief Disconnects the current ability from an ability
     *
@@ -369,6 +391,9 @@ public:
     virtual void SetAbilityConfiguration(const AppExecFwk::Configuration &config) = 0;
     virtual void SetAbilityColorMode(int32_t colorMode) = 0;
     virtual void SetAbilityResourceManager(std::shared_ptr<Global::Resource::ResourceManager> abilityResourceMgr) = 0;
+    virtual bool GetHookOff() = 0;
+    virtual void SetHookOff(bool hookOff) = 0;
+    virtual ErrCode RevokeDelegator() = 0;
 
     virtual std::shared_ptr<AAFwk::Want> GetWant() = 0;
 
@@ -424,11 +449,44 @@ public:
 #endif
 #endif
     virtual bool IsTerminating() = 0;
+    virtual bool IsHook() = 0;
+    virtual void SetHook(bool isHook) = 0;
     virtual void SetTerminating(bool state) = 0;
     virtual void InsertResultCallbackTask(int requestCode, RuntimeTask&& task) = 0;
     virtual void RemoveResultCallbackTask(int requestCode) = 0;
     using SelfType = AbilityContext;
     static const size_t CONTEXT_TYPE_ID;
+
+    /**
+     * @brief Add CompletioHandler.
+     *
+     * @param requestId, the requestId.
+     * @param onRequestSucc, the callback ot be called upon request success.
+     * @param onRequestFail, the callback ot be called upon request failure.
+     * @return ERR_OK on success, otherwise failure.
+     */
+    virtual ErrCode AddCompletionHandler(const std::string &requestId, OnRequestResult onRequestSucc,
+        OnRequestResult onRequestFail) = 0;
+
+    /**
+     * @brief Callback on request success.
+     *
+     * @param requestId, the requestId.
+     * @param element, the want element of startAbility.
+     * @param message, the message returned to the callback.
+     */
+    virtual void OnRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message) = 0;
+
+    /**
+     * @brief Callback on request failure.
+     *
+     * @param requestId, the requestId.
+     * @param element, the want element of startAbility.
+     * @param message, the message returned to the callback.
+     */
+    virtual void OnRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message) = 0;
 
 protected:
     bool IsContext(size_t contextTypeId) override

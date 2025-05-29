@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,7 +23,6 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
-void StartDebuggerInWorkerModule(bool isDebugApp, bool isNativeStart);
 void InitWorkerFunc(NativeEngine* nativeEngine);
 void OffWorkerFunc(NativeEngine* nativeEngine);
 void ReleaseWorkerSafeMemFunc(void* mapper);
@@ -34,13 +33,7 @@ void SetJsFramework();
 
 class AssetHelper final {
 public:
-    explicit AssetHelper(std::shared_ptr<JsEnv::WorkerInfo> workerInfo) : workerInfo_(workerInfo)
-    {
-        panda::panda_file::StringPacProtect codePath = panda::panda_file::StringPacProtect(workerInfo_->codePath);
-        if (!(codePath.GetOriginString()).empty() && (codePath.GetOriginString()).back() != '/') {
-            (workerInfo_->codePath).Append('/');
-        }
-    }
+    explicit AssetHelper(std::shared_ptr<JsEnv::WorkerInfo> workerInfo);
 
     virtual ~AssetHelper();
 
@@ -63,7 +56,7 @@ private:
     bool GetIsStageModel();
 
     std::shared_ptr<JsEnv::WorkerInfo> workerInfo_ = nullptr;
-    int fd_ = -1;
+    FILE *file_ = nullptr;
 };
 
 } // namespace AbilityRuntime

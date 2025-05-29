@@ -23,6 +23,7 @@
 #include "dialog_request_callback_impl.h"
 #include "dialog_ui_extension_callback.h"
 #include "hilog_tag_wrapper.h"
+#include "json_utils.h"
 #include "remote_object_wrapper.h"
 #include "request_constants.h"
 #include "session_info.h"
@@ -44,6 +45,9 @@ constexpr const char* UIEXTENSION_TARGET_TYPE_KEY = "ability.want.params.uiExten
 constexpr const char* FLAG_AUTH_READ_URI_PERMISSION = "ability.want.params.uriPermissionFlag";
 constexpr const char* DISPOSED_PROHIBIT_BACK = "APPGALLERY_APP_DISPOSED_PROHIBIT_BACK";
 constexpr const char* IS_WINDOWMODE_FOLLOWHOST = "ohos.uec.params.isWindowModeFollowHost";
+constexpr const char* USE_GLOBAL_UICONTENT = "ohos.uec.params.useGlobalUIContent";
+constexpr const int32_t ERR_NOT_SUPPORTED = -2;
+const std::string JSON_KEY_ERR_MSG = "errMsg";
 
 struct RequestResult {
     int32_t resultCode {0};
@@ -104,9 +108,9 @@ std::string AbilityContextImpl::GetTempDir()
     return stageContext_ ? stageContext_->GetTempDir() : "";
 }
 
-std::string AbilityContextImpl::GetResourceDir()
+std::string AbilityContextImpl::GetResourceDir(const std::string &moduleName)
 {
-    return stageContext_ ? stageContext_->GetResourceDir() : "";
+    return stageContext_ ? stageContext_->GetResourceDir(moduleName) : "";
 }
 
 std::string AbilityContextImpl::GetFilesDir()
@@ -263,6 +267,12 @@ ErrCode AbilityContextImpl::StartAbilityForResult(const AAFwk::Want& want, const
     if (err != ERR_OK && err != AAFwk::START_ABILITY_WAITING) {
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
         OnAbilityResultInner(requestCode, err, want);
+        if (!startOptions.requestId_.empty()) {
+            nlohmann::json jsonObject = nlohmann::json {
+                { JSON_KEY_ERR_MSG, "Failed to call startAbilityForResult" },
+            };
+            OnRequestFailure(startOptions.requestId_, want.GetElement(), jsonObject.dump());
+        }
     }
     return err;
 }
@@ -278,6 +288,12 @@ ErrCode AbilityContextImpl::StartAbilityForResultWithAccount(
     if (err != ERR_OK && err != AAFwk::START_ABILITY_WAITING) {
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
         OnAbilityResultInner(requestCode, err, want);
+        if (!startOptions.requestId_.empty()) {
+            nlohmann::json jsonObject = nlohmann::json {
+                { JSON_KEY_ERR_MSG, "Failed to call startAbilityForResultWithAccount" },
+            };
+            OnRequestFailure(startOptions.requestId_, want.GetElement(), jsonObject.dump());
+        }
     }
     return err;
 }
@@ -321,6 +337,10 @@ ErrCode AbilityContextImpl::StopServiceExtensionAbility(const AAFwk::Want& want,
 ErrCode AbilityContextImpl::TerminateAbilityWithResult(const AAFwk::Want& want, int resultCode)
 {
     isTerminating_.store(true);
+    if (isHook_ && hookOff_) {
+        TAG_LOGW(AAFwkTag::CONTEXT, "is hook and hook off, skip TerminateSession");
+        return ERR_OK;
+    }
     auto sessionToken = GetSessionToken();
     if (sessionToken == nullptr) {
         TAG_LOGW(AAFwkTag::CONTEXT, "withResult null sessionToken");
@@ -640,6 +660,10 @@ ErrCode AbilityContextImpl::TerminateSelf()
     if (sessionToken == nullptr) {
         TAG_LOGW(AAFwkTag::CONTEXT, "null sessionToken");
     }
+    if (isHook_ && hookOff_) {
+        TAG_LOGW(AAFwkTag::CONTEXT, "is hook and hook off, skip TerminateSession");
+        return ERR_OK;
+    }
 #ifdef SUPPORT_SCREEN
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled() && sessionToken) {
         TAG_LOGI(AAFwkTag::CONTEXT, "scb call, TerminateSelf: %{public}s",
@@ -693,6 +717,10 @@ sptr<IRemoteObject> AbilityContextImpl::GetToken()
 ErrCode AbilityContextImpl::RestoreWindowStage(napi_env env, napi_value contentStorage)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
+    if (isHook_) {
+        TAG_LOGD(AAFwkTag::CONTEXT, "RestoreWindowStage is hook module");
+        return ERR_NOT_SUPPORTED;
+    }
     napi_ref value = nullptr;
     napi_create_reference(env, contentStorage, 1, &value);
     contentStorage_ = std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference*>(value));
@@ -873,6 +901,10 @@ ErrCode AbilityContextImpl::GetMissionId(int32_t &missionId)
 ErrCode AbilityContextImpl::SetMissionContinueState(const AAFwk::ContinueState &state)
 {
     TAG_LOGI(AAFwkTag::CONTEXT, "called, state: %{public}d", state);
+    if (isHook_) {
+        TAG_LOGD(AAFwkTag::CONTEXT, "SetMissionContinueState is hook module");
+        return ERR_NOT_SUPPORTED;
+    }
     auto sessionToken = GetSessionToken();
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->SetMissionContinueState(token_, state, sessionToken);
     if (err != ERR_OK) {
@@ -937,6 +969,10 @@ void AbilityContextImpl::UnregisterAbilityLifecycleObserver(
 ErrCode AbilityContextImpl::SetMissionLabel(const std::string& label)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "label:%{public}s", label.c_str());
+    if (isHook_) {
+        TAG_LOGD(AAFwkTag::CONTEXT, "SetMissionLabel is hook module");
+        return ERR_NOT_SUPPORTED;
+    }
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->SetMissionLabel(token_, label);
     if (err != ERR_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "failed %{public}d", err);
@@ -1090,7 +1126,7 @@ ErrCode AbilityContextImpl::CreateModalUIExtensionWithApp(const AAFwk::Want &wan
         TAG_LOGE(AAFwkTag::CONTEXT, "null uiContent");
         return ERR_INVALID_VALUE;
     }
-    if (IsUIExtensionExist(want)) {
+    if (IsUIExtensionExist(want) && !want.GetBoolParam(USE_GLOBAL_UICONTENT, false)) {
         TAG_LOGD(AAFwkTag::CONTEXT, "exist uIExtension");
         return ERR_OK;
     }
@@ -1175,6 +1211,10 @@ ErrCode AbilityContextImpl::OpenAtomicService(AAFwk::Want& want, const AAFwk::St
 
 void AbilityContextImpl::SetRestoreEnabled(bool enabled)
 {
+    if (isHook_) {
+        TAG_LOGD(AAFwkTag::CONTEXT, "SetRestoreEnabled is hook module");
+        return;
+    }
     restoreEnabled_.store(enabled);
 }
 
@@ -1210,5 +1250,150 @@ std::shared_ptr<Context> AbilityContextImpl::CreateDisplayContext(uint64_t displ
     return stageContext_ ? stageContext_->CreateDisplayContext(displayId) : nullptr;
 }
 #endif
+
+ErrCode AbilityContextImpl::RevokeDelegator()
+{
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "capability not support");
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    if (!IsHook() || GetHookOff()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "repeated called");
+        return AAFwk::ERR_NOT_HOOK;
+    }
+    TAG_LOGI(AAFwkTag::CONTEXT, "RevokeDelegator called");
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->RevokeDelegator(token_);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "RevokeDelegator is failed:%{public}d", err);
+        return err;
+    }
+    auto sessionToken = GetSessionToken();
+    if (sessionToken == nullptr) {
+        TAG_LOGW(AAFwkTag::CONTEXT, "null sessionToken");
+        return ERR_INVALID_VALUE;
+    }
+    auto ifaceSessionToken = iface_cast<Rosen::ISession>(sessionToken);
+    if (ifaceSessionToken == nullptr) {
+        TAG_LOGW(AAFwkTag::CONTEXT, "null ifaceSessionToken");
+        return ERR_INVALID_VALUE;
+    }
+    err = static_cast<int32_t>(ifaceSessionToken->NotifyDisableDelegatorChange());
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "scb call, revokeDelegator err: %{public}d", err);
+        return AAFwk::ERR_FROM_WINDOW;
+    }
+    auto abilityCallback = abilityCallback_.lock();
+    if (abilityCallback == nullptr) {
+        TAG_LOGW(AAFwkTag::CONTEXT, "null abilityCallback");
+        return ERR_INVALID_VALUE;
+    }
+    abilityCallback->NotifyWindowDestroy();
+    SetHookOff(true);
+    return ERR_OK;
+}
+
+ErrCode AbilityContextImpl::AddCompletionHandler(const std::string &requestId, OnRequestResult onRequestSucc,
+    OnRequestResult onRequestFail)
+{
+    if (onRequestSucc == nullptr || onRequestFail == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "either func is null");
+        return ERR_INVALID_VALUE;
+    }
+    std::lock_guard lock(onRequestResultMutex_);
+    for (auto iter = onRequestResults_.begin(); iter != onRequestResults_.end(); iter++) {
+        if ((*iter)->requestId_ == requestId) {
+            TAG_LOGI(AAFwkTag::CONTEXT, "requestId=%{public}s already exists", requestId.c_str());
+            return ERR_OK;
+        }
+    }
+    onRequestResults_.emplace_back(std::make_shared<OnRequestResultElement>(requestId, onRequestSucc, onRequestFail));
+    return ERR_OK;
+}
+
+void AbilityContextImpl::OnRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
+    const std::string &message)
+{
+    std::shared_ptr<OnRequestResultElement> result = nullptr;
+    {
+        std::lock_guard lock(onRequestResultMutex_);
+        for (auto iter = onRequestResults_.begin(); iter != onRequestResults_.end(); iter++) {
+            if ((*iter)->requestId_ == requestId) {
+                result = *iter;
+                onRequestResults_.erase(iter);
+                break;
+            }
+        }
+    }
+
+    if (result != nullptr) {
+        TAG_LOGI(AAFwkTag::CONTEXT, "requestId=%{public}s, call onRequestSuccess", requestId.c_str());
+        result->onRequestSuccess_(element, message);
+        return;
+    }
+
+    TAG_LOGE(AAFwkTag::CONTEXT, "requestId=%{public}s not exist", requestId.c_str());
+}
+
+void AbilityContextImpl::OnRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+    const std::string &message)
+{
+    std::shared_ptr<OnRequestResultElement> result = nullptr;
+    {
+        std::lock_guard lock(onRequestResultMutex_);
+        for (auto iter = onRequestResults_.begin(); iter != onRequestResults_.end(); iter++) {
+            if ((*iter)->requestId_ == requestId) {
+                result = *iter;
+                onRequestResults_.erase(iter);
+                break;
+            }
+        }
+    }
+
+    if (result != nullptr) {
+        TAG_LOGI(AAFwkTag::CONTEXT, "requestId=%{public}s, call onRequestFailure", requestId.c_str());
+        result->onRequestFailure_(element, message);
+        return;
+    }
+
+    TAG_LOGE(AAFwkTag::CONTEXT, "requestId=%{public}s not exist", requestId.c_str());
+}
+
+
+ErrCode AbilityContextImpl::StartAppServiceExtensionAbility(const AAFwk::Want& want)
+{
+    TAG_LOGI(AAFwkTag::CONTEXT, "StartAppServiceExtensionAbility, name:%{public}s %{public}s",
+        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
+        want, token_, DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::APP_SERVICE);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "failed:%{public}d", err);
+    }
+    return err;
+}
+
+ErrCode AbilityContextImpl::StopAppServiceExtensionAbility(const AAFwk::Want& want)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "StopAppServiceExtensionAbility, name:%{public}s %{public}s",
+        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StopExtensionAbility(
+        want, token_, DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::APP_SERVICE);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "failed %{public}d", err);
+    }
+    return err;
+}
+
+ErrCode AbilityContextImpl::ConnectAppServiceExtensionAbility(const AAFwk::Want& want,
+    const sptr<AbilityConnectCallback>& connectCallback)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::CONTEXT, "ConnectAppServiceExtensionAbility, caller:%{public}s, target:%{public}s",
+        abilityInfo_ == nullptr ? "" : abilityInfo_->name.c_str(), want.GetElement().GetAbilityName().c_str());
+    ErrCode ret = ConnectionManager::GetInstance().ConnectAppServiceExtensionAbility(token_, want, connectCallback);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "failed %{public}d", ret);
+    }
+    return ret;
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

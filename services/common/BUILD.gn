@@ -132,6 +132,7 @@ ohos_shared_library("app_util") {
 
   sources = [
     "src/ability_manager_radar.cpp",
+    "src/ability_manager_xcollie.cpp",
     "src/app_utils.cpp",
     "src/json_utils.cpp",
   ]
@@ -139,6 +140,7 @@ ohos_shared_library("app_util") {
   external_deps = [
     "c_utils:utils",
     "config_policy:configpolicy_util",
+    "hicollie:libhicollie",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "init:libbegetutil",
@@ -183,6 +185,33 @@ ohos_shared_library("res_sched_util") {
     external_deps += [ "resource_schedule_service:ressched_client" ]
   }
 
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+ohos_shared_library("record_cost_time_util") {
+  sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  branch_protector_ret = "pac_ret"
+
+  include_dirs = [ "include" ]
+
+  public_configs = [ ":common_config" ]
+
+  sources = [ "src/record_cost_time_util.cpp" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+
+  innerapi_tags = [ "platformsdk_indirect" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }

@@ -17,6 +17,7 @@
 #define MOCK_WINDOW_H
 
 #include <gtest/gtest.h>
+#include "gmock/gmock.h"
 #include <iremote_object.h>
 #include <parcel.h>
 #include <pixel_map.h>
@@ -71,7 +72,7 @@ public:
         const Rect& rect = Rect::EMPTY_RECT, int32_t apiVersion = API_VERSION_INVALID) {return WMError::WM_OK;}
     virtual WMError SetLayoutFullScreen(bool status) {return WMError::WM_OK;}
     virtual WMError SetFullScreen(bool status) {return WMError::WM_OK;}
-    virtual WMError Destroy() {return WMError::WM_OK;}
+    virtual WMError Destroy(uint32_t reason = 0) {return WMError::WM_OK;}
     virtual WMError Show(uint32_t reason = 0, bool withAnimation = false,
         bool withFocus = true) {return WMError::WM_OK;}
     virtual WMError Hide(uint32_t reason = 0, bool withAnimation = false,
@@ -188,6 +189,7 @@ public:
     virtual WMError SetWindowGravity(WindowGravity gravity, uint32_t percent) {return WMError::WM_OK;}
     virtual KeyboardAnimationConfig GetKeyboardAnimationConfig() {return g_KeyboardAnimationConfig;};
     virtual void SetNeedDefaultAnimation(bool needDefaultAnimation) {}
+    MOCK_METHOD1(TransferExtensionData, WMError(const AAFwk::WantParams& wantParams));
 };
 }
 }

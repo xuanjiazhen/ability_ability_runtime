@@ -32,6 +32,7 @@
 #include "global_constant.h"
 #include "hitrace_meter.h"
 #include "image_source.h"
+#include "json_utils.h"
 #include "keep_alive_process_manager.h"
 #include "last_exit_detail_info.h"
 #include "multi_instance_utils.h"
@@ -87,6 +88,11 @@ const std::string PARAM_MISSION_AFFINITY_KEY = "ohos.anco.param.missionAffinity"
 const std::string DISTRIBUTED_FILES_PATH = "/data/storage/el2/distributedfiles/";
 const std::string UIEXTENSION_ABILITY_ID = "ability.want.params.uiExtensionAbilityId";
 const std::string UIEXTENSION_ROOT_HOST_PID = "ability.want.params.uiExtensionRootHostPid";
+const std::string UIEXTENSION_HOST_PID = "ability.want.params.uiExtensionHostPid";
+const std::string UIEXTENSION_HOST_UID = "ability.want.params.uiExtensionHostUid";
+const std::string UIEXTENSION_HOST_BUNDLENAME = "ability.want.params.uiExtensionHostBundleName";
+const std::string UIEXTENSION_BIND_ABILITY_ID = "ability.want.params.uiExtensionBindAbilityId";
+const std::string UIEXTENSION_NOTIFY_BIND = "ohos.uiextension.params.notifyProcessBind";
 constexpr const char* PARAM_SEND_RESULT_CALLER_BUNDLENAME = "ohos.anco.param.sendResultCallderBundleName";
 constexpr const char* PARAM_SEND_RESULT_CALLER_TOKENID = "ohos.anco.param.sendResultCallerTokenId";
 constexpr const char* PARAM_RESV_ANCO_IS_NEED_UPDATE_NAME = "ohos.anco.param.isNeedUpdateName";
@@ -99,6 +105,7 @@ constexpr const char* DMS_CALLER_ABILITY_NAME = "ohos.dms.param.sourceCallerAbil
 constexpr const char* DMS_CALLER_NATIVE_NAME = "ohos.dms.param.sourceCallerNativeName";
 constexpr const char* DMS_CALLER_APP_ID = "ohos.dms.param.sourceCallerAppId";
 constexpr const char* DMS_CALLER_APP_IDENTIFIER = "ohos.dms.param.sourceCallerAppIdentifier";
+constexpr const char* IS_HOOK = "ohos.ability_runtime.is_hook";
 const int32_t SHELL_ASSISTANT_DIETYPE = 0;
 std::atomic<int64_t> AbilityRecord::abilityRecordId = 0;
 const int32_t DEFAULT_USER_ID = 0;
@@ -111,6 +118,7 @@ const int MAX_URI_COUNT = 500;
 const int RESTART_SCENEBOARD_DELAY = 500;
 constexpr int32_t DMS_UID = 5522;
 constexpr int32_t SCHEDULER_DIED_TIMEOUT = 60000;
+const std::string JSON_KEY_ERR_MSG = "errMsg";
 
 auto g_addLifecycleEventTask = [](sptr<Token> token, std::string &methodName) {
     CHECK_POINTER_LOG(token, "token is nullptr");
@@ -258,12 +266,15 @@ std::shared_ptr<AbilityRecord> AbilityRecord::CreateAbilityRecord(const AbilityR
         TAG_LOGD(AAFwkTag::ABILITYMGR, "abilityRequest.callType is CALL_REQUEST_TYPE.");
         abilityRecord->SetStartedByCall(true);
     }
+    if (AbilityRuntime::StartupUtil::IsStartPlugin(abilityRequest.want)) {
+        abilityRecord->isPluginAbility_ = true;
+    }
     abilityRecord->collaboratorType_ = abilityRequest.collaboratorType;
     abilityRecord->missionAffinity_ = abilityRequest.want.GetStringParam(PARAM_MISSION_AFFINITY_KEY);
 
     auto userId = abilityRequest.appInfo.uid / BASE_USER_RANGE;
     if ((userId == 0 ||
-        AmsConfigurationParameter::GetInstance().InResidentWhiteList(abilityRequest.abilityInfo.bundleName)) &&
+        AppUtils::GetInstance().InResidentWhiteList(abilityRequest.abilityInfo.bundleName)) &&
         DelayedSingleton<ResidentProcessManager>::GetInstance()->IsResidentAbility(
             abilityRequest.abilityInfo.bundleName, abilityRequest.abilityInfo.name, userId)) {
         abilityRecord->keepAliveBundle_ = true;
@@ -349,6 +360,7 @@ int AbilityRecord::LoadAbility(bool isShellCall)
     }
     std::lock_guard guard(wantLock_);
     want_.SetParam(ABILITY_OWNER_USERID, ownerMissionUserId_);
+    want_.SetParam(IS_HOOK, isHook_);
     AbilityRuntime::LoadParam loadParam;
     loadParam.abilityRecordId = recordId_;
     loadParam.isShellCall = Rosen::SceneBoardJudgement::IsSceneBoardEnabled() ? isShellCall
@@ -365,6 +377,7 @@ int AbilityRecord::LoadAbility(bool isShellCall)
     }
     auto result = DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility(
         loadParam, abilityInfo_, abilityInfo_.applicationInfo, want_);
+    want_.RemoveParam(IS_HOOK);
     want_.RemoveParam(ABILITY_OWNER_USERID);
     want_.RemoveParam(Want::PARAMS_REAL_CALLER_KEY);
     if (DelayedSingleton<AppScheduler>::GetInstance()->IsAttachDebug(abilityInfo_.bundleName)) {
@@ -436,7 +449,7 @@ void AbilityRecord::ForegroundAbility(uint32_t sceneFlag)
 void AbilityRecord::ForegroundUIExtensionAbility(uint32_t sceneFlag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "ability:%{public}s", GetURI().c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ForegroundUIExtensionAbility:%{public}s", GetURI().c_str());
     CHECK_POINTER(lifecycleDeal_);
 
     // schedule active after updating AbilityState and sending timeout message to avoid ability async callback
@@ -1031,7 +1044,7 @@ std::shared_ptr<Global::Resource::ResourceManager> AbilityRecord::CreateResource
         TAG_LOGW(AAFwkTag::ABILITYMGR, "getcolormode failed");
     }
 
-    std::shared_ptr<Global::Resource::ResourceManager> resourceMgr(Global::Resource::CreateResourceManager());
+    std::shared_ptr<Global::Resource::ResourceManager> resourceMgr(Global::Resource::CreateResourceManager(false));
     resourceMgr->UpdateResConfig(*resConfig);
 
     std::string loadPath;
@@ -1369,7 +1382,7 @@ void AbilityRecord::CancelPrepareTerminate()
 int AbilityRecord::TerminateAbility()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "ability:%{public}s", abilityInfo_.name.c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "TerminateAbility:%{public}s", abilityInfo_.name.c_str());
 #ifdef WITH_DLP
     HandleDlpClosed();
 #endif // WITH_DLP
@@ -1538,8 +1551,8 @@ void AbilityRecord::SetAbilityState(AbilityState state)
 #endif // SUPPORT_SCREEN
 void AbilityRecord::SetScheduler(const sptr<IAbilityScheduler> &scheduler)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "bundle:%{public}s, ability: %{public}s",
-        abilityInfo_.applicationInfo.bundleName.c_str(), abilityInfo_.name.c_str());
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "SetScheduler, bundlename: %{public}s, %{public}s",
+        abilityInfo_.name.c_str(), abilityInfo_.applicationInfo.bundleName.c_str());
     CHECK_POINTER(lifecycleDeal_);
     if (scheduler != nullptr) {
         if (scheduler_ != nullptr && schedulerDeathRecipient_ != nullptr) {
@@ -1694,7 +1707,7 @@ void AbilityRecord::Activate()
 void AbilityRecord::Inactivate()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::SERVICE_EXT, "ability:%{public}s.", abilityInfo_.name.c_str());
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "Inactivate:%{public}s.", abilityInfo_.name.c_str());
     CHECK_POINTER(lifecycleDeal_);
 
     if (!IsDebug()) {
@@ -1719,7 +1732,7 @@ void AbilityRecord::Inactivate()
 void AbilityRecord::Terminate(const Closure &task)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "ability: %{public}s.", GetURI().c_str());
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Terminate: %{public}s.", GetURI().c_str());
     CHECK_POINTER(lifecycleDeal_);
     if (!IsDebug()) {
         auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
@@ -1754,7 +1767,7 @@ void AbilityRecord::Terminate(const Closure &task)
 
 void AbilityRecord::ShareData(const int32_t &uniqueId)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "ability:%{public}s", abilityInfo_.name.c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ShareData:%{public}s", abilityInfo_.name.c_str());
     CHECK_POINTER(lifecycleDeal_);
     if (!IsDebug()) {
         int loadTimeout =
@@ -1803,7 +1816,7 @@ void AbilityRecord::DisconnectAbility()
 void AbilityRecord::DisconnectAbilityWithWant(const Want &want)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::SERVICE_EXT, "ability:%{public}s.", abilityInfo_.name.c_str());
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "DisconnectAbilityWithWant:%{public}s.", abilityInfo_.name.c_str());
     CHECK_POINTER(lifecycleDeal_);
     lifecycleDeal_->DisconnectAbility(want);
     if (GetInProgressRecordCount() == 0) {
@@ -1873,7 +1886,7 @@ std::shared_ptr<AbilityResult> AbilityRecord::GetResult() const
 
 void AbilityRecord::SendResult(bool isSandboxApp, uint32_t tokeId)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "ability:%{public}s", abilityInfo_.name.c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SendResult:%{public}s", abilityInfo_.name.c_str());
     std::lock_guard<ffrt::mutex> guard(lock_);
     CHECK_POINTER(scheduler_);
     auto result = GetResult();
@@ -1888,7 +1901,7 @@ void AbilityRecord::SendResult(bool isSandboxApp, uint32_t tokeId)
 
 void AbilityRecord::SendResultByBackToCaller(const std::shared_ptr<AbilityResult> &result)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "ability:%{public}s", abilityInfo_.name.c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SendResultByBackToCaller:%{public}s", abilityInfo_.name.c_str());
     std::lock_guard<ffrt::mutex> guard(lock_);
     CHECK_POINTER(scheduler_);
     CHECK_POINTER(result);
@@ -1897,7 +1910,7 @@ void AbilityRecord::SendResultByBackToCaller(const std::shared_ptr<AbilityResult
 
 void AbilityRecord::SendSandboxSavefileResult(const Want &want, int resultCode, int requestCode)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "ability:%{public}s", abilityInfo_.name.c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SendSandboxSavefileResult:%{public}s", abilityInfo_.name.c_str());
 
     auto uriParam = want.GetParams().GetParam(PARAMS_FILE_SAVING_URL_KEY);
     auto uriArray = AAFwk::IArray::Query(uriParam);
@@ -3038,6 +3051,7 @@ void AbilityRecord::SetLastExitReason(const ExitReason &exitReason, const AppExe
     lastExitDetailInfo.exitSubReason = exitReason.subReason;
     lastExitDetailInfo.rss = processInfo.rssValue;
     lastExitDetailInfo.pss = processInfo.pssValue;
+    lastExitDetailInfo.processState = static_cast<int32_t>(processInfo.state_);
     lastExitDetailInfo.timestamp = timestamp;
     lastExitDetailInfo.processName = processInfo.processName_;
     lastExitDetailInfo.exitMsg = killMsg;
@@ -3825,6 +3839,56 @@ void AbilityRecord::ScheduleCollaborate(const Want &want)
     std::lock_guard guard(collaborateWantLock_);
     CHECK_POINTER(lifecycleDeal_);
     lifecycleDeal_->ScheduleCollaborate(want);
+}
+
+void AbilityRecord::NotifyAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+    const std::string &message)
+{
+    CHECK_POINTER(lifecycleDeal_);
+    nlohmann::json jsonObject = nlohmann::json {
+        { JSON_KEY_ERR_MSG, message },
+    };
+    lifecycleDeal_->NotifyAbilityRequestFailure(requestId, element, jsonObject.dump());
+}
+
+void AbilityRecord::NotifyAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element)
+{
+    CHECK_POINTER(lifecycleDeal_);
+    lifecycleDeal_->NotifyAbilityRequestSuccess(requestId, element);
+}
+
+void AbilityRecord::UpdateUIExtensionBindInfo(const WantParams &wantParams)
+{
+    if (!UIExtensionUtils::IsUIExtension(GetAbilityInfo().extensionAbilityType)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "abilityType not match");
+        return;
+    }
+
+    std::lock_guard guard(wantLock_);
+    if (want_.HasParameter(UIEXTENSION_BIND_ABILITY_ID)) {
+        want_.RemoveParam(UIEXTENSION_BIND_ABILITY_ID);
+    }
+    want_.SetParam(UIEXTENSION_BIND_ABILITY_ID, wantParams.GetIntParam(UIEXTENSION_BIND_ABILITY_ID, -1));
+
+    if (want_.HasParameter(UIEXTENSION_NOTIFY_BIND)) {
+        want_.RemoveParam(UIEXTENSION_NOTIFY_BIND);
+    }
+    want_.SetParam(UIEXTENSION_NOTIFY_BIND, wantParams.GetIntParam(UIEXTENSION_NOTIFY_BIND, -1));
+
+    if (want_.HasParameter(UIEXTENSION_HOST_PID)) {
+        want_.RemoveParam(UIEXTENSION_HOST_PID);
+    }
+    want_.SetParam(UIEXTENSION_HOST_PID, wantParams.GetIntParam(UIEXTENSION_HOST_PID, -1));
+
+    if (want_.HasParameter(UIEXTENSION_HOST_UID)) {
+        want_.RemoveParam(UIEXTENSION_HOST_UID);
+    }
+    want_.SetParam(UIEXTENSION_HOST_UID, wantParams.GetIntParam(UIEXTENSION_HOST_UID, -1));
+
+    if (want_.HasParameter(UIEXTENSION_HOST_BUNDLENAME)) {
+        want_.RemoveParam(UIEXTENSION_HOST_BUNDLENAME);
+    }
+    want_.SetParam(UIEXTENSION_HOST_BUNDLENAME, wantParams.GetStringParam(UIEXTENSION_HOST_BUNDLENAME));
 }
 }  // namespace AAFwk
 }  // namespace OHOS

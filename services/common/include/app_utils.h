@@ -140,6 +140,13 @@ public:
     bool IsMultiProcessModel();
 
     /**
+     * Allow starting child process in pc-type app
+     *
+     * @return allow or not allow
+     */
+    bool AllowChildProcessInMultiProcessFeatureApp();
+
+    /**
      * IsStartOptionsWithProcessOptions, check whether the start options have process options.
      *
      * @return Whether the start options have process options.
@@ -199,6 +206,20 @@ public:
     int32_t GetLimitMaximumExtensionsPerProc();
 
     /**
+     * IsBigMemoryUnrelatedKeepAliveProc, check if it refuses resident in memory quick kill.<unnamed>
+     *
+     * @param bundleName The bundle name.
+     */
+    bool IsBigMemoryUnrelatedKeepAliveProc(const std::string &bundleName);
+
+    /**
+     * IsRequireBigMemoryProcess, check if it requires big memory.
+     *
+     * @param bundleName The bundle name.
+     */
+    bool IsRequireBigMemoryProcess(const std::string &bundleName);
+
+    /**
      * GetLimitMaximumExtensionsPerDevice, get limit max extensions per device.
      *
      * @return Limit max extensions per device.
@@ -211,6 +232,13 @@ public:
      * @return Cache extension type list.
      */
     std::string GetCacheExtensionTypeList();
+
+    /**
+     * IsSystemReasonMessage, get param of anco app identifier.
+     *
+     * @return identifiers.
+     */
+    std::string GetAncoAppIdentifiers();
 
     /**
      * IsAllowStartAbilityWithoutCallerToken, check if it allows start ability without caller token.
@@ -250,6 +278,13 @@ public:
     int32_t MaxChildProcess();
 
     /**
+     * MaxMultiProcessFeatureChildProcess, get max child process of multi process feature app.
+     *
+     * @return Max child process count.
+     */
+    int32_t MaxMultiProcessFeatureChildProcess();
+
+    /**
      * GetMigrateClientBundleName, get migrate client bundle name.
      *
      * @return Migrate client bundle name.
@@ -264,11 +299,27 @@ public:
     bool IsConnectSupportCrossUser();
 
     /**
+     * IsSupportAppServiceExtension, check if it support app service extension.
+     *
+     * @return Whether it supports app service extension.
+     */
+    bool IsSupportAppServiceExtension();
+
+    /**
      * IsPrepareTerminateEnabled, check if it supports prepare terminate.
      *
      * @return Whether it supports prepare terminate.
      */
     bool IsPrepareTerminateEnabled();
+
+    /**
+     * IsCacheExtensionAbilityByList, check if it allows cache extension ability by list.
+     *
+     * @param bundleName The bundle name.
+     * @param abilityName The ability name.
+     * @return Whether it allows cache extensionability.
+     */
+    bool IsCacheExtensionAbilityByList(const std::string& bundleName, const std::string& abilityName);
 
     /**
      * IsSystemReasonMessage, check if it supports launch reason message.
@@ -277,6 +328,10 @@ public:
      * @return Whether it supports launch reason message.
      */
     bool IsSystemReasonMessage(const std::string &reasonMessage);
+
+    bool InResidentWhiteList(const std::string &bundleName);
+
+    const std::vector<std::string> &GetResidentWhiteList();
 
 private:
     /**
@@ -298,6 +353,36 @@ private:
     void LoadStartAbilityWithoutCallerToken();
 
     /**
+     * IsCacheAbilityEnabled, check cache ability parameter switch.
+     *
+     */
+    bool IsCacheAbilityEnabled();
+
+     /**
+     * LoadCacheAbilityList, load cache ability list from file.
+     *
+     */
+    void LoadCacheAbilityList();
+
+    /**
+     * LoadProcessProhibitedFromRestarting, load process prohibited in big memory.
+     *
+     */
+    void LoadProcessProhibitedFromRestarting();
+
+    /**
+     * LoadRequireBigMemoryApp, load app name that require big memory.
+     *
+     */
+    void LoadRequireBigMemoryApp();
+
+    /**
+     * LoadResidentWhiteList, load resident white list.
+     *
+     */
+    void LoadResidentWhiteList();
+
+    /**
      * AppUtils, private constructor.
      *
      */
@@ -314,6 +399,7 @@ private:
     volatile DeviceConfiguration<bool> isGrantPersistUriPermission_ = {false, false};
     volatile DeviceConfiguration<bool> isStartOptionsWithAnimation_ = {false, false};
     volatile DeviceConfiguration<bool> isMultiProcessModel_ = {false, false};
+    volatile DeviceConfiguration<bool> allowChildProcessInMultiProcessFeatureApp_ = {false, false};
     volatile DeviceConfiguration<bool> isStartOptionsWithProcessOptions_ = {false, false};
     volatile DeviceConfiguration<bool> enableMoveUIAbilityToBackgroundApi_ = {false, true};
     volatile DeviceConfiguration<bool> isLaunchEmbededUIAbility_ = {false, false};
@@ -321,9 +407,14 @@ private:
     volatile DeviceConfiguration<bool> isSupportMultiInstance_ = {false, false};
     std::mutex isConnectSupportCrossUserMutex_;
     volatile DeviceConfiguration<bool> isConnectSupportCrossUser_ = {false, false};
+    volatile DeviceConfiguration<bool> isSupportAppServiceExtension_ = {false, false};
     DeviceConfiguration<std::vector<std::pair<std::string, std::string>>>
         residentProcessInExtremeMemory_ = {false, {}};
     std::mutex residentProcessInExtremeMemoryMutex_;
+    DeviceConfiguration<std::vector<std::string>> processProhibitedFromRestarting_ = {false, {}};
+    std::mutex processProhibitedFromRestartingMutex_;
+    DeviceConfiguration<std::vector<std::string>> requireBigMemoryApp_ = {false, {}};
+    std::mutex requireBigMemoryAppMutex_;
     DeviceConfiguration<std::vector<std::string>>
         allowStartNativeProcessApps_ = {false, {}};
     volatile DeviceConfiguration<int32_t> limitMaximumExtensionsPerProc_ = {false, DEFAULT_MAX_EXT_PER_PROC};
@@ -335,7 +426,13 @@ private:
     volatile DeviceConfiguration<int32_t> collaboratorBrokerUid_ = {false, DEFAULT_INVALID_VALUE};
     volatile DeviceConfiguration<int32_t> collaboratorBrokerReserveUid_ = {false, DEFAULT_INVALID_VALUE};
     volatile DeviceConfiguration<int32_t> maxChildProcess_ = {false, DEFAULT_MAX_CHILD_PROCESS};
+    volatile DeviceConfiguration<int32_t> maxMultiProcessFeatureChildProcess_ = {false, DEFAULT_MAX_CHILD_PROCESS};
     DeviceConfiguration<std::string> migrateClientBundleName_ = {true, "com.huwei.hmos.migratecilent"};
+    std::mutex cacheAbilityListMutex_;
+    DeviceConfiguration<std::vector<std::pair<std::string, std::string>>>
+        cacheAbilityList_ = {false, {}};
+    DeviceConfiguration<std::vector<std::string>> residentWhiteList_ = {false, {}};
+    std::mutex residentWhiteListMutex_;
     DISALLOW_COPY_AND_MOVE(AppUtils);
 };
 }  // namespace AAFwk

@@ -18,6 +18,7 @@
 #include "ability_manager_service.h"
 #include "ability_util.h"
 #include "connection_state_manager.h"
+#include "freeze_util.h"
 #include "ui_service_extension_connection_constants.h"
 
 namespace OHOS {
@@ -105,16 +106,21 @@ int ConnectionRecord::DisconnectAbility()
     bool isAbilityUIServiceExt = (extAbilityType == AppExecFwk::ExtensionAbilityType::UI_SERVICE);
     if (connectNums == 1 || isAbilityUIServiceExt) {
         /* post timeout task to taskhandler */
+        auto disconnectTask = [thisWeakPtr = weak_from_this()]() {
+            auto connectionRecord = thisWeakPtr.lock();
+            if (connectionRecord == nullptr) {
+                TAG_LOGE(AAFwkTag::CONNECTION, "null connectionRecord");
+                return;
+            }
+            TAG_LOGE(AAFwkTag::CONNECTION, "Disconnect timeout");
+            connectionRecord->DisconnectTimeout();
+        };
         auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
         if (handler == nullptr) {
             TAG_LOGE(AAFwkTag::CONNECTION, "null handler");
         } else {
             std::string taskName("DisconnectTimeout_");
             taskName += std::to_string(recordId_);
-            auto disconnectTask = [connectionRecord = shared_from_this()]() {
-                TAG_LOGE(AAFwkTag::CONNECTION, "Disconnect timeout");
-                connectionRecord->DisconnectTimeout();
-            };
             int disconnectTimeout =
                 AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * DISCONNECT_TIMEOUT_MULTIPLE;
             handler->SubmitTask(disconnectTask, taskName, disconnectTimeout);
@@ -182,6 +188,37 @@ void ConnectionRecord::CompleteConnect()
     TAG_LOGI(AAFwkTag::CONNECTION, "connectState:%{public}d", state_);
 }
 
+void ConnectionRecord::CompleteConnectAndOnlyCallConnectDone()
+{
+    if (GetConnectState() != ConnectionState::CONNECTED) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Connect state is %{public}d, not connected state", GetConnectState());
+        return;
+    }
+    CHECK_POINTER(targetService_);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CompleteConnect,%{public}s", targetService_->GetAbilityInfo().name.c_str());
+    const AppExecFwk::AbilityInfo &abilityInfo = targetService_->GetAbilityInfo();
+    AppExecFwk::ElementName element(targetService_->GetWant().GetDeviceId(), abilityInfo.bundleName,
+        abilityInfo.name, abilityInfo.moduleName);
+    auto remoteObject = targetService_->GetConnRemoteObject();
+    auto callback = GetAbilityConnectCallback();
+    auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
+    if (remoteObject == nullptr) {
+        TAG_LOGW(AAFwkTag::CONNECTION, "Complete null remoteObject: %{public}s", element.GetURI().c_str());
+        return;
+    }
+
+    if (callback && handler) {
+        handler->SubmitTask([callback, element, remoteObject] {
+            TAG_LOGD(AAFwkTag::CONNECTION, "CallOnAbilityConnectDone");
+            auto ret = ConnectionRecord::CallOnAbilityConnectDone(callback, element, remoteObject, ERR_OK);
+            if (ret != ERR_OK) {
+                TAG_LOGE(AAFwkTag::CONNECTION, "CallOnAbilityConnectDone failed");
+            }
+        });
+    }
+    TAG_LOGI(AAFwkTag::CONNECTION, "Complete connectState:%{public}d", state_);
+}
+
 int32_t ConnectionRecord::CallOnAbilityConnectDone(sptr<IAbilityConnection> callback,
     const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode)
 {
@@ -221,24 +258,6 @@ int32_t ConnectionRecord::CallOnAbilityConnectDone(sptr<IAbilityConnection> call
         TAG_LOGE(AAFwkTag::ABILITYMGR, "fail. ret: %{public}d", ret);
     }
     return ret;
-}
-
-void ConnectionRecord::CompleteDisconnectSync()
-{
-    SetConnectState(ConnectionState::DISCONNECTED);
-    CHECK_POINTER(targetService_);
-    const AppExecFwk::AbilityInfo &abilityInfo = targetService_->GetAbilityInfo();
-    AppExecFwk::ElementName element(targetService_->GetWant().GetDeviceId(), abilityInfo.bundleName,
-        abilityInfo.name, abilityInfo.moduleName);
-    TAG_LOGD(AAFwkTag::CONNECTION, "OnAbilityDisconnectDone");
-    auto connCallback = GetAbilityConnectCallback();
-    if (!connCallback) {
-        TAG_LOGD(AAFwkTag::CONNECTION, "null connCallback");
-        return;
-    }
-    connCallback->OnAbilityDisconnectDone(element, -1);
-    DelayedSingleton<ConnectionStateManager>::GetInstance()->RemoveConnection(shared_from_this(), false);
-    TAG_LOGD(AAFwkTag::CONNECTION, "result: %{public}d, connectState:%{public}d", 0, state_);
 }
 
 void ConnectionRecord::CompleteDisconnect(int resultCode, bool isCallerDied, bool isTargetDied)
@@ -318,6 +337,9 @@ void ConnectionRecord::CancelConnectTimeoutTask()
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CancelConnectTimeoutTask taskName:%{public}s", taskName.c_str());
     handler->RemoveEvent(AbilityManagerService::CONNECT_TIMEOUT_MSG, taskName);
     handler->RemoveEvent(AbilityManagerService::CONNECT_HALF_TIMEOUT_MSG, taskName);
+    auto targetToken = GetTargetToken();
+    CHECK_POINTER(targetToken);
+    AbilityRuntime::FreezeUtil::GetInstance().DeleteLifecycleEvent(targetToken);
 }
 
 void ConnectionRecord::DisconnectTimeout()
@@ -348,8 +370,10 @@ std::string ConnectionRecord::ConvertConnectionState(const ConnectionState &stat
 
 void ConnectionRecord::Dump(std::vector<std::string> &info) const
 {
-    info.emplace_back("       > " + GetAbilityRecord()->GetAbilityInfo().bundleName + "/" +
-                      GetAbilityRecord()->GetAbilityInfo().name + "   connectionState #" +
+    auto abilityRecord = GetAbilityRecord();
+    CHECK_POINTER(abilityRecord);
+    info.emplace_back("       > " + abilityRecord->GetAbilityInfo().bundleName + "/" +
+                      abilityRecord->GetAbilityInfo().name + "   connectionState #" +
                       ConvertConnectionState(GetConnectState()));
 }
 

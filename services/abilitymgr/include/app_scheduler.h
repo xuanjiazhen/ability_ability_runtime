@@ -117,7 +117,7 @@ public:
     
     virtual void OnStartProcessFailed(sptr<IRemoteObject> token) {}
 
-    virtual void OnCacheExitInfo(uint32_t accessTokenId, const AAFwk::LastExitDetailInfo &exitInfo,
+    virtual void OnCacheExitInfo(uint32_t accessTokenId, const AppExecFwk::RunningProcessInfo &exitInfo,
         const std::string &bundleName, const std::vector<std::string> &abilityNames,
         const std::vector<std::string> &uiExtensionNames) {}
 };
@@ -235,8 +235,12 @@ public:
      * kill the processes by pid list given.
      *
      * @param pids, the pid list of processes are going to be killed.
+     * @param reason, the reason to kill the processes.
+     * @param subProcess, kill SubProcess or not.
+     * @return ERR_OK, return back success, others fail.
      */
-    void KillProcessesByPids(std::vector<int32_t> &pids);
+    int32_t KillProcessesByPids(const std::vector<int32_t> &pids,
+        const std::string &reason = "KillProcessesByPids", bool subProcess = false);
 
     /**
      * Set child and parent relationship
@@ -303,7 +307,8 @@ public:
      * @param  uid, uid.
      * @return 0 if success.
      */
-    int UpdateApplicationInfoInstalled(const std::string &bundleName, const int32_t uid, const std::string &moduleName);
+    int UpdateApplicationInfoInstalled(const std::string &bundleName, const int32_t uid, const std::string &moduleName,
+        bool isPlugin);
 
     /**
      * Ability attach timeout. If start ability encounter failure, attach timeout to terminate.
@@ -559,6 +564,12 @@ public:
     virtual bool IsMemorySizeSufficent() const;
 
     /**
+     * whether or not requier a big memory
+     * @return Returens true is no big memory, others return false.
+     */
+    virtual bool IsNoRequireBigMemory() const;
+
+    /**
      * Notifies that one ability is attached to status bar.
      *
      * @param token the token of the abilityRecord that is attached to status bar.
@@ -656,7 +667,7 @@ protected:
      * @param abilityNames abilityNames in app.
      * @param uiExtensionNames uiExtensionNames in app.
      */
-    virtual void OnCacheExitInfo(uint32_t accessTokenId, const AAFwk::LastExitDetailInfo &exitInfo,
+    virtual void OnCacheExitInfo(uint32_t accessTokenId, const AppExecFwk::RunningProcessInfo &exitInfo,
         const std::string &bundleName, const std::vector<std::string> &abilityNames,
         const std::vector<std::string> &uiExtensionNames) override;
 
