@@ -52,6 +52,7 @@ constexpr char EVENT_STACK[] = "STACK";
 constexpr char BINDER_INFO[] = "BINDER_INFO";
 constexpr char APP_RUNNING_UNIQUE_ID[] = "APP_RUNNING_UNIQUE_ID";
 constexpr char FREEZE_MEMORY[] = "FREEZE_MEMORY";
+constexpr char FREEZE_INFO_PATH[] = "FREEZE_INFO_PATH";
 constexpr int MAX_LAYER = 8;
 constexpr int FREEZEMAP_SIZE_MAX = 20;
 constexpr int FREEZE_TIME_LIMIT = 60000;
@@ -69,6 +70,8 @@ const std::string LOG_FILE_PATH = "data/log/eventlog";
 static bool g_betaVersion = OHOS::system::GetParameter("const.logsystem.versiontype", "unknown") == "beta";
 static bool g_developMode = (OHOS::system::GetParameter("persist.hiview.leak_detector", "unknown") == "enable") ||
                             (OHOS::system::GetParameter("persist.hiview.leak_detector", "unknown") == "true");
+static constexpr const char *const APPFREEZE_LOG_PREFIX = "/data/app/el2/100/log/";
+static constexpr const char *const APPFREEZE_LOG_SUFFIX = "/watchdog/freeze/";
 }
 static constexpr const char *const TWELVE_BIG_CPU_CUR_FREQ = "/sys/devices/system/cpu/cpufreq/policy2/scaling_cur_freq";
 static constexpr const char *const TWELVE_BIG_CPU_MAX_FREQ = "/sys/devices/system/cpu/cpufreq/policy2/scaling_max_freq";
@@ -83,6 +86,8 @@ ffrt::mutex AppfreezeManager::freezeMutex_;
 ffrt::mutex AppfreezeManager::catchStackMutex_;
 std::map<int, std::string> AppfreezeManager::catchStackMap_;
 ffrt::mutex AppfreezeManager::freezeFilterMutex_;
+ffrt::mutex AppfreezeManager::freezeInfoMutex_;
+std::string AppfreezeManager::appfreezeInfoPath_;
 
 AppfreezeManager::AppfreezeManager()
 {
@@ -208,6 +213,7 @@ int AppfreezeManager::AppfreezeHandleWithStack(const FaultData& faultData, const
     faultNotifyData.faultType = FaultDataType::APP_FREEZE;
     faultNotifyData.eventId = faultData.eventId;
     faultNotifyData.tid = faultData.tid;
+    faultNotifyData.appfreezeInfo = faultData.appfreezeInfo;
 
     HITRACE_METER_FMT(HITRACE_TAG_APP, "AppfreezeHandleWithStack pid:%d-name:%s",
         appInfo.pid, faultData.errorObject.name.c_str());
@@ -296,6 +302,7 @@ int AppfreezeManager::AcquireStack(const FaultData& faultData,
     faultNotifyData.errorObject.stack = faultData.errorObject.stack;
     faultNotifyData.faultType = FaultDataType::APP_FREEZE;
     faultNotifyData.eventId = faultData.eventId;
+    faultNotifyData.appfreezeInfo = faultData.appfreezeInfo;
     std::string binderInfo;
     std::string binderPidsStr;
     std::string terminalBinderTid;
@@ -339,6 +346,21 @@ int AppfreezeManager::AcquireStack(const FaultData& faultData,
     return ret;
 }
 
+std::string AppfreezeManager::GetFreezeInfoFile(const FaultData& faultData,
+    const std::string& bundleName)
+{
+    std::lock_guard<ffrt::mutex> lock(freezeInfoMutex_);
+    std::string filePath = "";
+    if (faultData.errorObject.name == AppFreezeType::THREAD_BLOCK_3S) {
+        appfreezeInfoPath_ = !faultData.appfreezeInfo.empty() ? (APPFREEZE_LOG_PREFIX + bundleName +
+            APPFREEZE_LOG_SUFFIX + faultData.appfreezeInfo) : "";
+    } else if (faultData.errorObject.name == AppFreezeType::THREAD_BLOCK_6S) {
+        filePath = appfreezeInfoPath_;
+        TAG_LOGI(AAFwkTag::APPDFR, "filePath:%{public}s", filePath.c_str());
+    }
+    return filePath;
+}
+
 int AppfreezeManager::NotifyANR(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo,
     const std::string& binderInfo, const std::string& memoryContent)
 {
@@ -361,7 +383,8 @@ int AppfreezeManager::NotifyANR(const FaultData& faultData, const AppfreezeManag
             EVENT_TID, faultData.tid,
             EVENT_PACKAGE_NAME, appInfo.bundleName, EVENT_PROCESS_NAME, appInfo.processName, EVENT_MESSAGE,
             faultData.errorObject.message, EVENT_STACK, faultData.errorObject.stack, BINDER_INFO, binderInfo,
-            APP_RUNNING_UNIQUE_ID, appRunningUniqueId, FREEZE_MEMORY, memoryContent);
+            APP_RUNNING_UNIQUE_ID, appRunningUniqueId, FREEZE_MEMORY, memoryContent, FREEZE_INFO_PATH,
+            GetFreezeInfoFile(faultData, appInfo.bundleName));
     }
     TAG_LOGW(AAFwkTag::APPDFR,
         "reportEvent:%{public}s, pid:%{public}d, tid:%{public}d, bundleName:%{public}s, appRunningUniqueId:%{public}s"

@@ -129,6 +129,7 @@ private:
     void ClearOldInfo();
     void CollectFreezeSysMemory(std::string& memoryContent);
     int MergeNotifyInfo(FaultData& faultNotifyData, const AppfreezeManager::AppInfo& appInfo);
+    std::string GetFreezeInfoFile(const FaultData& faultData, const std::string& bundleName);
 
     static const inline std::string LOGGER_DEBUG_PROC_PATH = "/proc/transaction_proc";
     std::string name_;
@@ -143,6 +144,8 @@ private:
     int64_t perfTime = 0;
     void PerfStart(std::string eventName);
     std::string GetFirstLine(const std::string &path);
+    static ffrt::mutex freezeInfoMutex_;
+    static std::string appfreezeInfoPath_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

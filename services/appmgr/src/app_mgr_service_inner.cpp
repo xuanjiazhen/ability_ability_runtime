@@ -7038,6 +7038,7 @@ FaultData AppMgrServiceInner::ConvertDataTypes(const AppFaultDataBySA &faultData
     newfaultData.state = faultData.state;
     newfaultData.eventId = faultData.eventId;
     newfaultData.needKillProcess = faultData.needKillProcess;
+    newfaultData.appfreezeInfo = faultData.appfreezeInfo;
     return newfaultData;
 }
 
