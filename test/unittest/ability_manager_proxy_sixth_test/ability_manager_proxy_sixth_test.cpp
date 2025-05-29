@@ -49,9 +49,9 @@ public:
 
 class MockIHiddenStartObserver : public IHiddenStartObserver {
 public:
-    bool IsHiddenStart(int32_t pid)
+    OHOS::ErrCode IsHiddenStart(int32_t pid, bool& funcResult)
     {
-        return false;
+        return ERR_OK;
     }
     sptr<IRemoteObject> AsObject()
     {

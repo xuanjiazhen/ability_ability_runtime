@@ -119,6 +119,7 @@ ohos_shared_library("abilityms") {
   configs = [
     ":abilityms_config",
     ":abilityms_exception_config",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
   ]
   include_dirs = [
     "${ability_runtime_services_path}/appdfr/include",
@@ -131,6 +132,8 @@ ohos_shared_library("abilityms") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_proxy",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_stub",
     "${ability_runtime_innerkits_path}/ability_manager:mission_info",
     "${ability_runtime_innerkits_path}/ability_manager:process_options",
     "${ability_runtime_innerkits_path}/ability_manager:start_window_option",
