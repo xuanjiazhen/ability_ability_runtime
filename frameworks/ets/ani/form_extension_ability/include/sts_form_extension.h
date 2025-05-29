@@ -49,6 +49,8 @@ public:
 
     void OnVisibilityChange(const std::map<int64_t, int32_t> &formEventsMap) override;
 
+    FormState OnAcquireFormState(const Want &want) override;
+
     sptr<IRemoteObject> OnConnect(const OHOS::AAFwk::Want &want) override;
 
     void OnStop() override;
