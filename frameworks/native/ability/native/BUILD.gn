@@ -1570,7 +1570,7 @@ group("extension_module") {
     deps += [ ":form_extension_module" ]
   }
   if (ability_runtime_photo_editor_extension) {
-    external_deps = [ "app_extension:photo_editor_extension_module" ]
+    external_deps = [ "app_extension_framework:photo_editor_extension_module" ]
   }
   if (ability_runtime_share_extension) {
     deps += [ ":share_extension_module" ]
