@@ -699,10 +699,18 @@ public:
     /**
      * SuspendExtensionAbility, suspend session with service ability.
      *
-     * @param connect, Callback used to notify caller the result of connecting or disconnecting.
+     * @param connect, Callback used to notify caller the result of suspend.
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int SuspendExtensionAbility(sptr<IAbilityConnection> connect) = 0;
+
+    /**
+     * ResumeExtensionAbility, resume session with service ability.
+     *
+     * @param connect, Callback used to notify caller the result of resume.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int ResumeExtensionAbility(sptr<IAbilityConnection> connect) = 0;
 
     /**
      * AcquireDataAbility, acquire a data ability by its authority, if it not existed,
