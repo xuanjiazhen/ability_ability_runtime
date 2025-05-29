@@ -17,7 +17,6 @@
 
 #include <chrono>
 #include <cstdlib>
-#include <nlohmann/json.hpp>
 #include <sys/types.h>
 #include <thread>
 

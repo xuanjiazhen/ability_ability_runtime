@@ -64,7 +64,6 @@ ohos_source_set("appmgr_mst_source") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
-    "json:nlohmann_json_static",
   ]
 
   public_external_deps = [

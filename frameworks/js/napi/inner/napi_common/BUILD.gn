@@ -60,7 +60,6 @@ ohos_shared_library("napi_common") {
     "hilog:libhilog",
     "ipc:ipc_core",
     "ipc:ipc_napi",
-    "json:nlohmann_json_static",
     "libuv:uv",
     "napi:ace_napi",
     "samgr:samgr_proxy",

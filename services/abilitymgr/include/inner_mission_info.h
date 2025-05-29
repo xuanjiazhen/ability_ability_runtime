@@ -54,7 +54,7 @@ struct InnerMissionInfo {
     MissionInfo missionInfo;
     bool FromJsonStr(const std::string &jsonStr);
     void Dump(std::vector<std::string> &info) const;
-    bool CheckJsonNode(nlohmann::json &value, const std::string &node, JsonType jsonType);
+    bool CheckJsonNode(cJSON *value, const std::string &node, JsonType jsonType);
 };
 }  // namespace AAFwk
 }  // namespace OHOS

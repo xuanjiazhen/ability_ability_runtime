@@ -16,10 +16,10 @@
 #ifndef OHOS_ABILITY_RUNTIME_DEEPLINK_RESERVE_CONFIG_H
 #define OHOS_ABILITY_RUNTIME_DEEPLINK_RESERVE_CONFIG_H
 
-#include <nlohmann/json.hpp>
 #include <string>
 #include <map>
 
+#include "cJSON.h"
 #include "singleton.h"
 
 namespace OHOS {
@@ -49,10 +49,10 @@ public:
 
 private:
     std::string GetConfigPath();
-    bool ReadFileInfoJson(const std::string &filePath, nlohmann::json &jsonBuf);
-    bool LoadReservedUriList(const nlohmann::json &object);
+    bool ReadFileInfoJson(const std::string &filePath, cJSON *jsonBuf);
+    bool LoadReservedUriList(const cJSON *object);
     bool IsUriMatched(const ReserveUri &reservedUri, const std::string &link);
-    void LoadReservedUrilItem(const nlohmann::json &jsonUriObject, std::vector<ReserveUri> &uriList);
+    void LoadReservedUrilItem(const cJSON *jsonUriObject, std::vector<ReserveUri> &uriList);
     DeepLinkReserveConfig() = default;
     DISALLOW_COPY_AND_MOVE(DeepLinkReserveConfig);
 

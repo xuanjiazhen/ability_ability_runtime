@@ -68,7 +68,6 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     abilityAutoStartupDataManager->ConvertAutoStartupStatusFromValue(value, isAutoStartup, isEdmForce);
     abilityAutoStartupDataManager->ConvertAutoStartupDataToKey(info);
     abilityAutoStartupDataManager->ConvertAutoStartupInfoFromKeyAndValue(key, value);
-    nlohmann::json jsonObject;
     std::string keys(data, size);
     std::string values(data, size);
     bool checkEmpty = *data % ENABLE;

@@ -44,6 +44,7 @@ ohos_unittest("service_router_mgr_service_test") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_core",
+    # "json:nlohmann_json_static",
     "safwk:api_cache_manager",
   ]
 }

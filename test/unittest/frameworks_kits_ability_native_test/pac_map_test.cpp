@@ -1443,9 +1443,10 @@ HWTEST_F(PacMapTest, AppExecFwk_PacMap_ToJsonArrayShort_0100, Function | MediumT
     GTEST_LOG_(INFO) << "AppExecFwk_PacMap_ToJsonArrayShort_0100 start";
 
     std::vector<short> array;
-    Json::Value item;
+    cJSON *item = nullptr;
     int type = 1;
     bool result = pacmap_->ToJsonArrayShort(array, item, type);
+    cJSON_Delete(item);
     EXPECT_EQ(result, false);
     
     GTEST_LOG_(INFO) << "AppExecFwk_PacMap_ToJsonArrayShort_0100 end";
@@ -1462,9 +1463,10 @@ HWTEST_F(PacMapTest, AppExecFwk_PacMap_ToJsonArrayInt_0100, Function | MediumTes
     GTEST_LOG_(INFO) << "AppExecFwk_PacMap_ToJsonArrayInt_0100 start";
 
     std::vector<int> array;
-    Json::Value item;
+    cJSON *item = nullptr;
     int type = 1;
     bool result = pacmap_->ToJsonArrayInt(array, item, type);
+    cJSON_Delete(item);
     EXPECT_EQ(result, false);
     
     GTEST_LOG_(INFO) << "AppExecFwk_PacMap_ToJsonArrayInt_0100 end";
@@ -1481,9 +1483,10 @@ HWTEST_F(PacMapTest, AppExecFwk_PacMap_ToJsonArrayLong_0100, Function | MediumTe
     GTEST_LOG_(INFO) << "AppExecFwk_PacMap_ToJsonArrayLong_0100 start";
 
     std::vector<long> array;
-    Json::Value item;
+    cJSON *item = nullptr;
     int type = 1;
     bool result = pacmap_->ToJsonArrayLong(array, item, type);
+    cJSON_Delete(item);
     EXPECT_EQ(result, false);
     
     GTEST_LOG_(INFO) << "AppExecFwk_PacMap_ToJsonArrayLong_0100 end";
@@ -1500,9 +1503,10 @@ HWTEST_F(PacMapTest, AppExecFwk_PacMap_ToJsonArrayByte_0100, Function | MediumTe
     GTEST_LOG_(INFO) << "AppExecFwk_PacMap_ToJsonArrayByte_0100 start";
 
     std::vector<byte> array;
-    Json::Value item;
+    cJSON *item = nullptr;
     int type = 1;
     bool result = pacmap_->ToJsonArrayByte(array, item, type);
+    cJSON_Delete(item);
     EXPECT_EQ(result, false);
     
     GTEST_LOG_(INFO) << "AppExecFwk_PacMap_ToJsonArrayByte_0100 end";
@@ -1519,9 +1523,10 @@ HWTEST_F(PacMapTest, AppExecFwk_PacMap_ToJsonArrayBoolean_0100, Function | Mediu
     GTEST_LOG_(INFO) << "AppExecFwk_PacMap_ToJsonArrayBoolean_0100 start";
 
     std::vector<bool> array;
-    Json::Value item;
+    cJSON *item = nullptr;
     int type = 1;
     bool result = pacmap_->ToJsonArrayBoolean(array, item, type);
+    cJSON_Delete(item);
     EXPECT_EQ(result, false);
     
     GTEST_LOG_(INFO) << "AppExecFwk_PacMap_ToJsonArrayBoolean_0100 end";
@@ -1538,9 +1543,10 @@ HWTEST_F(PacMapTest, AppExecFwk_PacMap_ToJsonArrayFloat_0100, Function | MediumT
     GTEST_LOG_(INFO) << "AppExecFwk_PacMap_ToJsonArrayFloat_0100 start";
 
     std::vector<float> array;
-    Json::Value item;
+    cJSON *item = nullptr;
     int type = 1;
     bool result = pacmap_->ToJsonArrayFloat(array, item, type);
+    cJSON_Delete(item);
     EXPECT_EQ(result, false);
     
     GTEST_LOG_(INFO) << "AppExecFwk_PacMap_ToJsonArrayFloat_0100 end";
@@ -1557,9 +1563,10 @@ HWTEST_F(PacMapTest, AppExecFwk_PacMap_ToJsonArrayDouble_0100, Function | Medium
     GTEST_LOG_(INFO) << "AppExecFwk_PacMap_ToJsonArrayDouble_0100 start";
 
     std::vector<double> array;
-    Json::Value item;
+    cJSON *item = nullptr;
     int type = 1;
     bool result = pacmap_->ToJsonArrayDouble(array, item, type);
+    cJSON_Delete(item);
     EXPECT_EQ(result, false);
     
     GTEST_LOG_(INFO) << "AppExecFwk_PacMap_ToJsonArrayDouble_0100 end";
@@ -1576,9 +1583,10 @@ HWTEST_F(PacMapTest, AppExecFwk_PacMap_ToJsonArrayString_0100, Function | Medium
     GTEST_LOG_(INFO) << "AppExecFwk_PacMap_ToJsonArrayString_0100 start";
 
     std::vector<std::string> array;
-    Json::Value item;
+    cJSON *item = nullptr;
     int type = 1;
     bool result = pacmap_->ToJsonArrayString(array, item, type);
+    cJSON_Delete(item);
     EXPECT_EQ(result, false);
     
     GTEST_LOG_(INFO) << "AppExecFwk_PacMap_ToJsonArrayString_0100 end";
@@ -1594,9 +1602,10 @@ HWTEST_F(PacMapTest, AppExecFwk_PacMap_ParseJson_0100, Function | MediumTest | L
 {
     GTEST_LOG_(INFO) << "AppExecFwk_PacMap_ParseJson_0100 start";
 
-    Json::Value data;
+    cJSON *data = nullptr;
     PacMapList mapList;
     bool result = pacmap_->ParseJson(data, mapList);
+    cJSON_Delete(data);
     EXPECT_EQ(result, false);
     
     GTEST_LOG_(INFO) << "AppExecFwk_PacMap_ParseJson_0100 end";
@@ -1614,8 +1623,9 @@ HWTEST_F(PacMapTest, AppExecFwk_ParseJsonItemArrayShort_0100, Function | MediumT
 
     PacMapList mapList;
     std::string key = "this is key";
-    Json::Value item;
+    cJSON *item = nullptr;
     bool result = pacmap_->ParseJsonItemArrayShort(mapList, key, item);
+    cJSON_Delete(item);
     EXPECT_EQ(result, true);
     
     GTEST_LOG_(INFO) << "AppExecFwk_ParseJsonItemArrayShort_0100 end";
@@ -1633,8 +1643,9 @@ HWTEST_F(PacMapTest, AppExecFwk_ParseJsonItemArrayInteger_0100, Function | Mediu
 
     PacMapList mapList;
     std::string key = "this is key";
-    Json::Value item;
+    cJSON *item = nullptr;
     bool result = pacmap_->ParseJsonItemArrayInteger(mapList, key, item);
+    cJSON_Delete(item);
     EXPECT_EQ(result, true);
     
     GTEST_LOG_(INFO) << "AppExecFwk_ParseJsonItemArrayInteger_0100 end";
@@ -1652,8 +1663,9 @@ HWTEST_F(PacMapTest, AppExecFwk_ParseJsonItemArrayLong_0100, Function | MediumTe
 
     PacMapList mapList;
     std::string key = "this is key";
-    Json::Value item;
+    cJSON *item = nullptr;
     bool result = pacmap_->ParseJsonItemArrayLong(mapList, key, item);
+    cJSON_Delete(item);
     EXPECT_EQ(result, true);
     
     GTEST_LOG_(INFO) << "AppExecFwk_ParseJsonItemArrayLong_0100 end";
@@ -1671,8 +1683,9 @@ HWTEST_F(PacMapTest, AppExecFwk_ParseJsonItemArrayChar_0100, Function | MediumTe
 
     PacMapList mapList;
     std::string key = "this is key";
-    Json::Value item;
+    cJSON *item = nullptr;
     bool result = pacmap_->ParseJsonItemArrayChar(mapList, key, item);
+    cJSON_Delete(item);
     EXPECT_EQ(result, true);
     
     GTEST_LOG_(INFO) << "AppExecFwk_ParseJsonItemArrayChar_0100 end";
@@ -1690,19 +1703,25 @@ HWTEST_F(PacMapTest, AppExecFwk_ParseJsonItemArrayChar_0200, Function | MediumTe
 
     PacMapList mapList;
     std::string key = "this is key";
-    Json::Value item;
-    item["data"] = "test";
+    cJSON *item = cJSON_CreateObject();
+    cJSON_AddStringToObject(item, "data", "test");
     auto result = pacmap_->ParseJsonItemArrayChar(mapList, key, item);
     EXPECT_EQ(result, true);
 
-    Json::Value courses(Json::arrayValue);
-    courses.append('a');
-    courses.append(1);
-    courses.append("first");
-    courses.append("second");
-    courses.append("third");
-    item["data"] = courses;
+    cJSON *courses = cJSON_CreateArray();
+    cJSON *courses1 = cJSON_CreateNumber(static_cast<double>('a'));
+    cJSON *courses2 = cJSON_CreateNumber(static_cast<double>(1));
+    cJSON *courses3 = cJSON_CreateString("first");
+    cJSON *courses4 = cJSON_CreateString("second");
+    cJSON *courses5 = cJSON_CreateString("third");
+    cJSON_AddItemToArray(courses, courses1);
+    cJSON_AddItemToArray(courses, courses2);
+    cJSON_AddItemToArray(courses, courses3);
+    cJSON_AddItemToArray(courses, courses4);
+    cJSON_AddItemToArray(courses, courses5);
+    cJSON_AddItemToObject(item, "data", courses);
     result = pacmap_->ParseJsonItemArrayChar(mapList, key, item);
+    cJSON_Delete(item);
     EXPECT_EQ(result, false);
     
     GTEST_LOG_(INFO) << "AppExecFwk_ParseJsonItemArrayChar_0200 end";
@@ -1720,8 +1739,9 @@ HWTEST_F(PacMapTest, AppExecFwk_ParseJsonItemArrayByte_0100, Function | MediumTe
 
     PacMapList mapList;
     std::string key = "this is key";
-    Json::Value item;
+    cJSON *item = nullptr;
     bool result = pacmap_->ParseJsonItemArrayByte(mapList, key, item);
+    cJSON_Delete(item);
     EXPECT_EQ(result, true);
     
     GTEST_LOG_(INFO) << "AppExecFwk_ParseJsonItemArrayByte_0100 end";
@@ -1739,8 +1759,9 @@ HWTEST_F(PacMapTest, AppExecFwk_ParseJsonItemArrayBoolean_0100, Function | Mediu
 
     PacMapList mapList;
     std::string key = "this is key";
-    Json::Value item;
+    cJSON *item = nullptr;
     bool result = pacmap_->ParseJsonItemArrayBoolean(mapList, key, item);
+    cJSON_Delete(item);
     EXPECT_EQ(result, true);
     
     GTEST_LOG_(INFO) << "AppExecFwk_ParseJsonItemArrayBoolean_0100 end";
@@ -1758,8 +1779,9 @@ HWTEST_F(PacMapTest, AppExecFwk_ParseJsonItemArrayFloat_0100, Function | MediumT
 
     PacMapList mapList;
     std::string key = "this is key";
-    Json::Value item;
+    cJSON *item = nullptr;
     bool result = pacmap_->ParseJsonItemArrayFloat(mapList, key, item);
+    cJSON_Delete(item);
     EXPECT_EQ(result, true);
     
     GTEST_LOG_(INFO) << "AppExecFwk_ParseJsonItemArrayFloat_0100 end";
@@ -1777,8 +1799,9 @@ HWTEST_F(PacMapTest, AppExecFwk_ParseJsonItemArrayDouble_0100, Function | Medium
 
     PacMapList mapList;
     std::string key = "this is key";
-    Json::Value item;
+    cJSON *item = nullptr;
     bool result = pacmap_->ParseJsonItemArrayDouble(mapList, key, item);
+    cJSON_Delete(item);
     EXPECT_EQ(result, true);
     
     GTEST_LOG_(INFO) << "AppExecFwk_ParseJsonItemArrayDouble_0100 end";
@@ -1796,8 +1819,9 @@ HWTEST_F(PacMapTest, AppExecFwk_ParseJsonItemArrayString_0100, Function | Medium
 
     PacMapList mapList;
     std::string key = "this is key";
-    Json::Value item;
+    cJSON *item = nullptr;
     bool result = pacmap_->ParseJsonItemArrayString(mapList, key, item);
+    cJSON_Delete(item);
     EXPECT_EQ(result, true);
     
     GTEST_LOG_(INFO) << "AppExecFwk_ParseJsonItemArrayString_0100 end";
@@ -1815,8 +1839,9 @@ HWTEST_F(PacMapTest, AppExecFwk_InnerPutObjectValue_0100, Function | MediumTest 
 
     PacMapList mapList;
     std::string key = "this is key";
-    Json::Value item;
+    cJSON *item = nullptr;
     bool result = pacmap_->InnerPutObjectValue(mapList, key, item);
+    cJSON_Delete(item);
     EXPECT_EQ(result, false);
     
     GTEST_LOG_(INFO) << "AppExecFwk_InnerPutObjectValue_0100 end";
@@ -1834,8 +1859,9 @@ HWTEST_F(PacMapTest, AppExecFwk_InnerPutPacMapValue_0100, Function | MediumTest 
 
     PacMapList mapList;
     std::string key = "this is key";
-    Json::Value item;
+    cJSON *item = nullptr;
     bool result = pacmap_->InnerPutPacMapValue(mapList, key, item);
+    cJSON_Delete(item);
     EXPECT_EQ(result, false);
     
     GTEST_LOG_(INFO) << "AppExecFwk_InnerPutPacMapValue_0100 end";

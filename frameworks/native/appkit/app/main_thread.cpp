@@ -42,6 +42,7 @@
 #include "child_main_thread.h"
 #include "child_process_manager.h"
 #endif // SUPPORT_CHILD_PROCESS
+#include "cJSON.h"
 #include "configuration_convertor.h"
 #include "common_event_manager.h"
 #include "global_constant.h"
@@ -79,7 +80,6 @@
 #include "cj_runtime.h"
 #endif
 #include "native_lib_util.h"
-#include "nlohmann/json.hpp"
 #include "ohos_application.h"
 #include "overlay_module_info.h"
 #include "parameters.h"
@@ -3846,34 +3846,31 @@ void MainThread::ParseAppConfigurationParams(const std::string configuration, Co
         return;
     }
     TAG_LOGI(AAFwkTag::APPKIT, "ParseAppConfigurationParams config:%{public}s", appConfig.GetName().c_str());
-    nlohmann::json configurationJson = nlohmann::json::parse(configuration, nullptr, false);
-    if (configurationJson.is_discarded()) {
+    cJSON *configurationJson = cJSON_Parse(configuration.c_str());
+    if (configurationJson == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "discarded error");
         return;
     }
-    if (!configurationJson.contains(JSON_KEY_APP_CONFIGURATION)) {
+    cJSON *jsonObject = cJSON_GetObjectItem(configurationJson, JSON_KEY_APP_CONFIGURATION.c_str());
+    if (jsonObject == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "app config not exist");
+        cJSON_Delete(configurationJson);
         return;
     }
-    nlohmann::json jsonObject = configurationJson.at(JSON_KEY_APP_CONFIGURATION).get<nlohmann::json>();
-    if (jsonObject.empty()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null app config");
-        return;
+    cJSON *fontSizeScaleItem = cJSON_GetObjectItem(jsonObject, JSON_KEY_APP_FONT_SIZE_SCALE.c_str());
+    if (fontSizeScaleItem != nullptr && cJSON_IsString(fontSizeScaleItem)) {
+        std::string configFontSizeScal = fontSizeScaleItem->valuestring;
+        appConfig.AddItem(AAFwk::GlobalConfigurationKey::APP_FONT_SIZE_SCALE, configFontSizeScal);
     }
-    if (jsonObject.contains(JSON_KEY_APP_FONT_SIZE_SCALE)
-        && jsonObject[JSON_KEY_APP_FONT_SIZE_SCALE].is_string()) {
-        std::string configFontSizeScal = jsonObject.at(JSON_KEY_APP_FONT_SIZE_SCALE).get<std::string>();
-        appConfig.AddItem(AAFwk::GlobalConfigurationKey::APP_FONT_SIZE_SCALE,
-            jsonObject.at(JSON_KEY_APP_FONT_SIZE_SCALE).get<std::string>());
-    }
-    if (jsonObject.contains(JSON_KEY_APP_FONT_MAX_SCALE)
-        && jsonObject[JSON_KEY_APP_FONT_MAX_SCALE].is_string()) {
-        std::string appFontMaxScale = jsonObject.at(JSON_KEY_APP_FONT_MAX_SCALE).get<std::string>();
+    cJSON *fontMaxScaleItem = cJSON_GetObjectItem(jsonObject, JSON_KEY_APP_FONT_MAX_SCALE.c_str());
+    if (fontMaxScaleItem != nullptr && cJSON_IsString(fontMaxScaleItem)) {
+        std::string appFontMaxScale = fontMaxScaleItem->valuestring;
         const std::regex INTEGER_REGEX("^[-+]?([0-9]+)([.]([0-9]+))?$");
         if (std::regex_match(appFontMaxScale, INTEGER_REGEX)) {
             appConfig.AddItem(AAFwk::GlobalConfigurationKey::APP_FONT_MAX_SCALE, appFontMaxScale);
         }
     }
+    cJSON_Delete(configurationJson);
     TAG_LOGD(AAFwkTag::APPKIT, "configuration_: %{public}s", appConfig.GetName().c_str());
 }
 
