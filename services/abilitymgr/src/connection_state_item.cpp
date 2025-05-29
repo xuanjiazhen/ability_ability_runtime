@@ -16,6 +16,7 @@
 #include "connection_state_item.h"
 
 #include "hilog_tag_wrapper.h"
+#include <algorithm>
 
 namespace OHOS {
 namespace AAFwk {
@@ -77,7 +78,7 @@ public:
             return true;
         }
         auto it = connections_.find(connection);
-        if (it == connections_.end() {
+        if (it == connections_.end()) {
             connections_.emplace(connection, false);
         } else {
             (*it).second = false;
@@ -143,16 +144,28 @@ public:
         if (it == connections_.end()) {
             return false;
         }
+
+        auto it = std::find_if(connections_.begin(), connections_.end(),
+            [](std::pair<sptr<IRemoteObject>, bool>& pair) {return pair.second == false});
+        bool needNotify = (it == connections_.end());
+        
         (*it).second = false;
-        return std::count_if(connections_.begin(), connections_.end(),
-            [](std::pair<sptr<IRemoteObject>, bool>& pair) {return pair.second == 
-            }) == 1;
+        return needNotify
     }
 
 
 
     void GenerateExtensionInfo(AbilityRuntime::ConnectionData &data)
     {
+        data.isSuspended = false;
+        {
+            std::lock_guard guard(connectionsMutex_);
+            auto it = std::find_if(connections_.begin(), connections_.end(),
+                [](std::pair<sptr<IRemoteObject>, bool>& pair) {return pair.second == false});
+            if (it == connections_.end()) {
+                data.isSuspended = true;
+            }
+        }
         data.extensionPid = extensionPid_;
         data.extensionUid = extensionUid_;
         data.extensionBundleName = extensionBundleName_;
@@ -324,7 +337,7 @@ std::shared_ptr<ConnectionStateItem> ConnectionStateItem::CreateConnectionStateI
 }
 
 bool ConnectionStateItem::AddConnection(std::shared_ptr<ConnectionRecord> record,
-    AbilityRuntime::ConnectionData &data)
+    AbilityRuntime::ConnectionData &data, ConnnectionEvent &event)
 {
     if (!record) {
         TAG_LOGE(AAFwkTag::CONNECTION, "invalid connection record");
@@ -359,7 +372,7 @@ bool ConnectionStateItem::AddConnection(std::shared_ptr<ConnectionRecord> record
         return false;
     }
 
-    bool needNotify = connectedExtension->AddConnection(connectionObj);
+    bool needNotify = connectedExtension->AddConnection(connectionObj, event);
     if (needNotify) {
         GenerateConnectionData(connectedExtension, data);
     }
@@ -368,6 +381,47 @@ bool ConnectionStateItem::AddConnection(std::shared_ptr<ConnectionRecord> record
 }
 
 bool ConnectionStateItem::RemoveConnection(std::shared_ptr<ConnectionRecord> record,
+    AbilityRuntime::ConnectionData &data, ConnnectionEvent &event)
+{
+    if (!record) {
+        TAG_LOGE(AAFwkTag::CONNECTION, "invalid connection record");
+        return false;
+    }
+
+    auto token = record->GetTargetToken();
+    if (!token) {
+        TAG_LOGE(AAFwkTag::CONNECTION, "invalid token");
+        return false;
+    }
+
+    sptr<IRemoteObject> connectionObj = record->GetConnection();
+    if (!connectionObj) {
+        TAG_LOGE(AAFwkTag::CONNECTION, "no connection callback");
+        return false;
+    }
+
+    auto it = connectionMap_.find(token);
+    if (it == connectionMap_.end()) {
+        TAG_LOGE(AAFwkTag::CONNECTION, "no such connectedExtension");
+        return false;
+    }
+
+    auto connectedExtension = it->second;
+    if (!connectedExtension) {
+        TAG_LOGE(AAFwkTag::CONNECTION, "no such connectedExtension");
+        return false;
+    }
+
+    bool needNotify = connectedExtension->RemoveConnection(connectionObj, event);
+    if (needNotify) {
+        connectionMap_.erase(it);
+        GenerateConnectionData(connectedExtension, data);
+    }
+
+    return needNotify;
+}
+
+bool ConnectionStateItem::SuspendConnection(std::shared_ptr<ConnectionRecord> record,
     AbilityRuntime::ConnectionData &data)
 {
     if (!record) {
@@ -399,9 +453,48 @@ bool ConnectionStateItem::RemoveConnection(std::shared_ptr<ConnectionRecord> rec
         return false;
     }
 
-    bool needNotify = connectedExtension->RemoveConnection(connectionObj);
+    bool needNotify = connectedExtension->SuspendConnection(connectionObj);
     if (needNotify) {
-        connectionMap_.erase(it);
+        GenerateConnectionData(connectedExtension, data);
+    }
+
+    return needNotify;
+}
+
+bool ConnectionStateItem::ResumeConnection(std::shared_ptr<ConnectionRecord> record,
+    AbilityRuntime::ConnectionData &data)
+{
+    if (!record) {
+        TAG_LOGE(AAFwkTag::CONNECTION, "invalid connection record");
+        return false;
+    }
+
+    auto token = record->GetTargetToken();
+    if (!token) {
+        TAG_LOGE(AAFwkTag::CONNECTION, "invalid token");
+        return false;
+    }
+
+    sptr<IRemoteObject> connectionObj = record->GetConnection();
+    if (!connectionObj) {
+        TAG_LOGE(AAFwkTag::CONNECTION, "no connection callback");
+        return false;
+    }
+
+    auto it = connectionMap_.find(token);
+    if (it == connectionMap_.end()) {
+        TAG_LOGE(AAFwkTag::CONNECTION, "no such connectedExtension");
+        return false;
+    }
+
+    auto connectedExtension = it->second;
+    if (!connectedExtension) {
+        TAG_LOGE(AAFwkTag::CONNECTION, "no such connectedExtension");
+        return false;
+    }
+
+    bool needNotify = connectedExtension->ResumeConnection(connectionObj);
+    if (needNotify) {
         GenerateConnectionData(connectedExtension, data);
     }
 
