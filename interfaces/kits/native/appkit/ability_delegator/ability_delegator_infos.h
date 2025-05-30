@@ -46,6 +46,7 @@ struct DelegatorAbilityStageProperty {
     std::string moduleName_;
     std::string srcEntrance_;
     std::weak_ptr<NativeReference> object_;
+    std::weak_ptr<AbilityRuntime::STSNativeReference> stsObject_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

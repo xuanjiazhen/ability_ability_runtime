@@ -45,15 +45,45 @@ ani_object CreateStsAbilityDelegator(ani_env *aniEnv)
     TAG_LOGD(AAFwkTag::DELEGATOR, "find AbilityDelegator success");
 
     std::array delegatorFunctions = {
-        ani_native_function {"getAppContext", nullptr, reinterpret_cast<void *>(GetAppContext)},
-        ani_native_function {"executeShellCommandsync", nullptr, reinterpret_cast<void *>(ExecuteShellCommand)},
-        ani_native_function {"finishTestSync", nullptr, reinterpret_cast<void *>(FinishTestSync)},
-        ani_native_function {"printSync", nullptr, reinterpret_cast<void *>(PrintSync)},
-        ani_native_function {"addAbilityMonitorAsync", nullptr, reinterpret_cast<void *>(AddAbilityMonitorASync)},
+        ani_native_function {"getAppContext", nullptr, reinterpret_cast<void *>(STSAbilityDelegator::GetAppContext)},
+        ani_native_function {"executeShellCommandSync", nullptr,
+            reinterpret_cast<void *>(STSAbilityDelegator::ExecuteShellCommand)},
+        ani_native_function {"finishTestSync", nullptr,
+            reinterpret_cast<void *>(STSAbilityDelegator::FinishTestASync)},
+        ani_native_function {"printSync", nullptr, reinterpret_cast<void *>(STSAbilityDelegator::PrintSync)},
+        ani_native_function {"addAbilityMonitorAsync", nullptr,
+            reinterpret_cast<void *>(STSAbilityDelegator::AddAbilityMonitorAsync)},
+        ani_native_function {"addAbilityMonitorSync", nullptr,
+            reinterpret_cast<void *>(STSAbilityDelegator::AddAbilityMonitor)},
+        ani_native_function {"removeAbilityMonitorAsync", nullptr,
+            reinterpret_cast<void *>(STSAbilityDelegator::RemoveAbilityMonitorAsync)},
+        ani_native_function {"removeAbilityMonitorSync", nullptr,
+            reinterpret_cast<void *>(STSAbilityDelegator::RemoveAbilityMonitor)},
+        ani_native_function {"waitAbilityMonitorAsync", nullptr,
+            reinterpret_cast<void *>(STSAbilityDelegator::WaitAbilityMonitorAsync)},
+        ani_native_function {"addAbilityStageMonitorAsync", nullptr,
+            reinterpret_cast<void *>(STSAbilityDelegator::AddAbilityStageMonitorAsync)},
+        ani_native_function {"addAbilityStageMonitorSync", nullptr,
+            reinterpret_cast<void *>(STSAbilityDelegator::AddAbilityStageMonitor)},
+        ani_native_function {"removeAbilityStageMonitorAsync", nullptr,
+            reinterpret_cast<void *>(STSAbilityDelegator::RemoveAbilityStageMonitorAsync)},
+        ani_native_function {"removeAbilityStageMonitorSync", nullptr,
+            reinterpret_cast<void *>(STSAbilityDelegator::RemoveAbilityStageMonitor)},
+        ani_native_function {"waitAbilityStageMonitorAsync", nullptr,
+            reinterpret_cast<void *>(STSAbilityDelegator::WaitAbilityStageMonitorAsync)},
+        ani_native_function {"doAbilityForegroundAsync", nullptr,
+            reinterpret_cast<void *>(STSAbilityDelegator::DoAbilityForegroundAsync)},
+        ani_native_function {"doAbilityBackgroundAsync", nullptr,
+            reinterpret_cast<void *>(STSAbilityDelegator::DoAbilityBackgroundAsync)},
+        ani_native_function {"printAsync", nullptr, reinterpret_cast<void *>(STSAbilityDelegator::PrintAsync)},
+        ani_native_function {"getAbilityState", nullptr,
+            reinterpret_cast<void *>(STSAbilityDelegator::GetAbilityState)},
+
         ani_native_function {"startAbilityAsync",
             "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
-            reinterpret_cast<void *>(StartAbility)},
-        ani_native_function {"GetCurrentTopAbilitySync", nullptr, reinterpret_cast<void *>(GetCurrentTopAbilitySync)}
+            reinterpret_cast<void *>(STSAbilityDelegator::StartAbility)},
+        ani_native_function {"GetCurrentTopAbilitySync", nullptr,
+            reinterpret_cast<void *>(STSAbilityDelegator::GetCurrentTopAbilitySync)}
     };
     status = aniEnv->Class_BindNativeMethods(abilityDelegator, delegatorFunctions.data(), delegatorFunctions.size());
     if (status != ANI_OK) {

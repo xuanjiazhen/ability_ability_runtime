@@ -24,7 +24,7 @@
 
 namespace OHOS {
 namespace AbilityDelegatorSts {
-class STSAbilityMonitor : public AppExecFwk::IAbilityMonitor {
+class STSAbilityMonitor {
 public:
     /**
      * A constructor used to create a STSAbilityMonitor instance with the input parameter passed.
@@ -56,7 +56,7 @@ public:
      *
      * @param abilityObj Indicates the ability object.
      */
-    void OnSTSAbilityStart(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj) override;
+    void OnSTSAbilityCreate(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj);
 
     /**
      * Called when ability is in foreground.
@@ -64,7 +64,7 @@ public:
      *
      * @param abilityObj Indicates the ability object.
      */
-    void OnSTSAbilityForeground(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj) override;
+    void OnSTSAbilityForeground(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj);
 
     /**
      * Called when ability is in background.
@@ -72,7 +72,7 @@ public:
      *
      * @param abilityObj Indicates the ability object.
      */
-    void OnSTSAbilityBackground(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj) override;
+    void OnSTSAbilityBackground(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj);
 
     /**
      * Called when ability is stopped.
@@ -80,7 +80,7 @@ public:
      *
      * @param abilityObj Indicates the ability object.
      */
-    void OnSTSAbilityStop(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj) override;
+    void OnSTSAbilityStop(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj);
 
     /**
      * Called when window stage is created.
@@ -88,7 +88,7 @@ public:
      *
      * @param abilityObj Indicates the ability object.
      */
-    void OnSTSWindowStageCreate(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj) override;
+    void OnSTSWindowStageCreate(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj);
 
     /**
      * Called when window stage is restored.
@@ -96,7 +96,7 @@ public:
      *
      * @param abilityObj Indicates the ability object.
      */
-    void OnSTSWindowStageRestore(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj) override;
+    void OnSTSWindowStageRestore(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj);
 
     /**
      * Called when window stage is destroyed.
@@ -104,7 +104,7 @@ public:
      *
      * @param abilityObj Indicates the ability object.
      */
-    void OnSTSWindowStageDestroy(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj) override;
+    void OnSTSWindowStageDestroy(const std::weak_ptr<AbilityRuntime::STSNativeReference> &abilityObj);
 
     /**
      * Sets the sts object.
@@ -134,6 +134,6 @@ private:
     std::string moduleName_ = "";
     std::unique_ptr<AbilityRuntime::STSNativeReference> stsAbilityMonitor_ = nullptr;
 };
-}  // namespace AbilityDelegatorJs
+}  // namespace AbilityDelegatorSts
 }  // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_STS_ABILITY_MONITOR_H
