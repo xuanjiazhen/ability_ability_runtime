@@ -187,6 +187,12 @@ bool AppRecovery::IsNeedSaveAppState(StateReason reason)
 bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
 {
     TAG_LOGI(AAFwkTag::RECOVERY, "begin");
+    if (reason != StateReason::DEVELOPER_REQUEST &&
+        OHOS::system::GetParameter("const.dfx.sub_health_recovery.enable", "") == "true") {
+        std::string str = "0x7";
+        std::string filePath = "/proc/" + std::to_string(getpid()) + "/unexpected_die_catch";
+        OHOS::SaveStringToFile(filePath, str, true);
+    }
     bool ret = IsNeedSaveAppState(reason);
     if (!ret && this->freezeCallback ==  nullptr) {
         return false;
@@ -229,6 +235,10 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
         return false;
     }
 
+    if (getpid() == gettid()) {
+        DoSaveAppState(reason);
+        return true;
+    }
     auto task = [reason, ability]() {
         AppRecovery::GetInstance().DoSaveAppState(reason, ability);
     };
