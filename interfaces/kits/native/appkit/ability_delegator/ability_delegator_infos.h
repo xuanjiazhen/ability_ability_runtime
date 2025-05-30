@@ -24,7 +24,8 @@ class NativeReference;
 
 namespace OHOS {
 namespace AppExecFwk {
-struct ADelegatorAbilityProperty {
+
+struct BaseDelegatorAbilityProperty {
     // token of ability
     sptr<IRemoteObject> token_;
     // name of ability
@@ -35,15 +36,21 @@ struct ADelegatorAbilityProperty {
     std::string fullName_;
     // lifecycle state of ability
     AbilityLifecycleExecutor::LifecycleState lifecycleState_ {AbilityLifecycleExecutor::LifecycleState::UNINITIALIZED};
-    // ability object in jsruntime
+};
+struct ADelegatorAbilityProperty : public BaseDelegatorAbilityProperty {
     std::weak_ptr<NativeReference> object_;
 };
 
-struct DelegatorAbilityStageProperty {
+
+struct BaseDelegatorAbilityStageProperty {
     std::string moduleName_;
     std::string srcEntrance_;
+};
+
+struct DelegatorAbilityStageProperty  : public BaseDelegatorAbilityStageProperty {
     std::weak_ptr<NativeReference> object_;
 };
+
 }  // namespace AppExecFwk
 }  // namespace OHOS
 
