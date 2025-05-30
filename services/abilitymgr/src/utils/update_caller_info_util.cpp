@@ -44,10 +44,13 @@ constexpr const char* CALLER_REQUEST_CODE = "ohos.extra.param.key.callerRequestC
 constexpr const char* IS_SHELL_CALL = "isShellCall";
 constexpr const char* COMPONENT_STARTUP_NEW_RULES = "component.startup.newRules";
 
-void ClearProtectedWantParam(Want &want)
+void ClearProtectedWantParam(Want &want, bool isFromRecovery)
 {
     want.RemoveParam(Want::PARAM_RESV_CALLER_NATIVE_NAME);
     want.RemoveParam(COMPONENT_STARTUP_NEW_RULES);
+    if (!isFromRecovery) {
+        want.RemoveParam(Want::PARAM_ABILITY_RECOVERY_RESTART);
+    }
 }
 }
 
@@ -57,7 +60,8 @@ UpdateCallerInfoUtil &UpdateCallerInfoUtil::GetInstance()
     return instance;
 }
 
-void UpdateCallerInfoUtil::UpdateCallerInfo(Want& want, const sptr<IRemoteObject> &callerToken)
+void UpdateCallerInfoUtil::UpdateCallerInfo(Want& want, const sptr<IRemoteObject> &callerToken,
+    bool isFromRecovery)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!StartAbilityUtils::IsCallFromAncoShellOrBroker(callerToken)) {
@@ -65,7 +69,7 @@ void UpdateCallerInfoUtil::UpdateCallerInfo(Want& want, const sptr<IRemoteObject
         want.RemoveParam(PARAM_RESV_ANCO_CALLER_UID);
         want.RemoveParam(PARAM_RESV_ANCO_CALLER_BUNDLENAME);
     }
-    ClearProtectedWantParam(want);
+    ClearProtectedWantParam(want, isFromRecovery);
     int32_t tokenId = static_cast<int32_t>(IPCSkeleton::GetCallingTokenID());
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     int32_t callerPid = IPCSkeleton::GetCallingPid();
@@ -141,7 +145,7 @@ void UpdateCallerInfoUtil::UpdateAsCallerSourceInfo(Want& want, sptr<IRemoteObje
     want.RemoveParam(IS_SHELL_CALL);
     want.RemoveParam(Want::PARAMS_REAL_CALLER_KEY);
     want.RemoveParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX);
-    ClearProtectedWantParam(want);
+    ClearProtectedWantParam(want, false);
 #ifdef SUPPORT_SCREEN
     if (UpdateAsCallerInfoFromDialog(want)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Update as caller source info from dialog.");
@@ -229,14 +233,15 @@ bool UpdateCallerInfoUtil::UpdateAsCallerInfoFromDialog(Want& want)
     return true;
 }
 
-void UpdateCallerInfoUtil::UpdateCallerInfoFromToken(Want& want, const sptr<IRemoteObject> &token)
+void UpdateCallerInfoUtil::UpdateCallerInfoFromToken(Want& want, const sptr<IRemoteObject> &token,
+    bool isFromRecovery)
 {
     auto abilityRecord = Token::GetAbilityRecordByToken(token);
     if (!abilityRecord) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "caller abilityRecord null");
         return;
     }
-    ClearProtectedWantParam(want);
+    ClearProtectedWantParam(want, isFromRecovery);
     int32_t tokenId = abilityRecord->GetApplicationInfo().accessTokenId;
     int32_t callerUid = abilityRecord->GetUid();
     int32_t callerPid = abilityRecord->GetPid();

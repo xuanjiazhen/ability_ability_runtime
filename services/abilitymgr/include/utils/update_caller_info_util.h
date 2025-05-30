@@ -27,9 +27,9 @@ public:
     ~UpdateCallerInfoUtil() = default;
 
     void UpdateAsCallerSourceInfo(Want& want, sptr<IRemoteObject> asCallerSourceToken, sptr<IRemoteObject> callerToken);
-    void UpdateCallerInfo(Want& want, const sptr<IRemoteObject> &callerToken);
+    void UpdateCallerInfo(Want& want, const sptr<IRemoteObject> &callerToken, bool isFromRecovery = false);
     void UpdateBackToCallerFlag(const sptr<IRemoteObject> &callerToken, Want &want, int32_t requestCode, bool backFlag);
-    void UpdateCallerInfoFromToken(Want& want, const sptr<IRemoteObject> &token);
+    void UpdateCallerInfoFromToken(Want& want, const sptr<IRemoteObject> &token, bool isFromRecovery = false);
     void UpdateDmsCallerInfo(Want& want, const sptr<IRemoteObject> &callerToken);
 
 private:
