@@ -101,6 +101,10 @@
 #include "window_pid_visibility_changed_listener.h"
 #include "cache_process_manager.h"
 #include "res_sched_util.h"
+#include "background_app_color_switch_settings.h"
+#include "session_manager_lite.h"
+#include "background_app_info.h"
+#include "configuration_policy.h"
 #ifdef APP_NO_RESPONSE_DIALOG
 #include "fault_data.h"
 #include "modal_system_app_freeze_uiextension.h"
@@ -116,7 +120,7 @@ namespace AppExecFwk {
 using namespace OHOS::Rosen;
 #endif //SUPPORT_SCREEN
 using namespace OHOS::Security;
-
+using namespace OHOS::Rosen;
 namespace {
 #define CHECK_CALLER_IS_SYSTEM_APP                                                             \
     if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) { \
@@ -435,6 +439,7 @@ void AppMgrServiceInner::Init()
         pThis->nwebPreloadSet_ = AAFwk::ResSchedUtil::GetInstance().GetNWebPreloadSet();
         }, NWEB_PRELOAD_DELAY);
     AppNativeSpawnManager::GetInstance().InitNativeSpawnMsgPipe(appRunningManager_);
+    BackGroundAppColorSwitchSettings::GetInstance().Initialize();
 }
 
 AppMgrServiceInner::~AppMgrServiceInner()
@@ -5503,7 +5508,11 @@ int32_t AppMgrServiceInner::UpdateConfiguration(const Configuration &config, con
             item.observer->OnConfigurationUpdated(config);
         }
     }
-
+    //BackGround App update colormode
+    if (!config.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE).empty()) {
+        BackGroundAppColorSwitch(notifyUserId);
+    }
+    
     return result;
 }
 
@@ -9813,6 +9822,64 @@ bool AppMgrServiceInner::WrapBindInfo(std::shared_ptr<AAFwk::Want> &want, std::s
     bindInfo.isKeepAlive = appRecord->IsKeepAliveApp();
     bindInfo.extensionType = appRecord->GetExtensionType();
     bindInfo.processType = appRecord->GetProcessType();
+    return true;
+}
+
+bool AppMgrServiceInner::BackGroundAppColorSwitch(const int32_t userId)
+{
+    if (!BackGroundAppColorSwitchSettings::GetInstance().IsSupportHotUpdate()) {
+        TAG_LOGI(AAFwkTag::APPMGR, "not Support backGround app color Switch");
+        return true;
+    }
+    auto sceneSessionManager = SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+    if (sceneSessionManager == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "GetSceneSessionManagerLiteProxy null");
+        return false;
+    }
+    std::vector<RecentSessionInfo> recentMainSessionInfoList;
+    auto resultCode = sceneSessionManager->GetRecentMainSessionInfoList(recentMainSessionInfoList);
+    if (resultCode != WSError::WS_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "GetRecentMainSessionInfoList result:%{public}d size:%{public}zu.", resultCode,
+            recentMainSessionInfoList.size());
+        return false;
+    }
+
+    std::vector<AppExecFwk::BackgroundAppInfo> backgroundAppInfoVe;
+    for (const auto& sessionInfo : recentMainSessionInfoList) {
+        if (!BackGroundAppColorSwitchSettings::GetInstance().CheckInWhileList(sessionInfo.bundleName)) {
+            TAG_LOGD(AAFwkTag::APPMGR, "not in whilelist bundleName:%{public}s appIndex :%{public}d.", sessionInfo.bundleName.c_str(),
+                sessionInfo.appIndex);
+            continue;
+        }
+        if (sessionInfo.sessionState != RecentSessionState::BACKGROUND) {
+            TAG_LOGD(AAFwkTag::APPMGR, "not background, bundleName:%{public}s appIndex :%{public}d.", sessionInfo.bundleName.c_str(),
+                sessionInfo.appIndex);
+            continue;
+        }
+        TAG_LOGD(AAFwkTag::APPMGR, "get sessionInfo bundleName:%{public}s appIndex :%{public}d.", sessionInfo.bundleName.c_str(),
+            sessionInfo.appIndex);
+        AppExecFwk::BackgroundAppInfo appInfo;
+        appInfo.bandleName = sessionInfo.bundleName;
+        appInfo.appIndex = sessionInfo.appIndex;
+        backgroundAppInfoVe.push_back(appInfo);
+    }
+
+    if (backgroundAppInfoVe.empty()) {
+        TAG_LOGD(AAFwkTag::APPMGR, "no need backGround app color Switch");
+        return true;
+    }
+
+    AppExecFwk::ConfigurationPolicy policy;
+    policy.maxCountPerBatch  = BackGroundAppColorSwitchSettings::GetInstance().GetTaskQuantity();
+    policy.intervalTime = BackGroundAppColorSwitchSettings::GetInstance().GetDurationMillisecond();
+    TAG_LOGI(AAFwkTag::APPMGR, "BackGroundAppColorSwitch settings maxCountPerBatch :%{public}d intervalTime :%{public}d.",
+        BackGroundAppColorSwitchSettings::GetInstance().GetTaskQuantity(),
+        BackGroundAppColorSwitchSettings::GetInstance().GetDurationMillisecond());
+    auto result = UpdateConfigurationForBackgroundApp(backgroundAppInfoVe, policy, userId);
+    if (result != 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "UpdateConfigurationForBackgroundApp fail result :%{public}d.", result);
+        return false;
+    }
     return true;
 }
 } // namespace AppExecFwk
