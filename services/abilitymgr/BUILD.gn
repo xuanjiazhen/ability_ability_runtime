@@ -132,8 +132,6 @@ ohos_shared_library("abilityms") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_proxy",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_stub",
     "${ability_runtime_innerkits_path}/ability_manager:mission_info",
     "${ability_runtime_innerkits_path}/ability_manager:process_options",
     "${ability_runtime_innerkits_path}/ability_manager:start_window_option",
@@ -310,6 +308,8 @@ ohos_shared_library("wantagent_manager") {
     "${ability_runtime_innerkits_path}/error_utils:ability_runtime_error_util",
   ]
 
+  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config" ]
+
   external_deps = [
     "ability_base:want",
     "c_utils:utils",
@@ -418,6 +418,8 @@ ohos_shared_library("mission_list") {
     "src/mission/mission_list_manager.cpp",
     "src/task_data_persistence_mgr.cpp",
   ]
+
+  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config" ]
 
   deps = [
     ":abilityms",

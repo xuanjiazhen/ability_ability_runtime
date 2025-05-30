@@ -72,7 +72,7 @@ public:
     IHiddenStartObserverMock() = default;
     virtual ~IHiddenStartObserverMock() = default;
     
-    ErrCode IsHiddenStart(int32_t pid, bool& funcResult) override
+    bool IsHiddenStart(int32_t pid) override
     {
         return mockReturnValue;
     }
