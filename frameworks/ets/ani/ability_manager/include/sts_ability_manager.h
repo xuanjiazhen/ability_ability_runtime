@@ -16,11 +16,31 @@
 #ifndef OHOS_ABILITY_RUNTIME_STS_ABILITY_MANAGER_H
 #define OHOS_ABILITY_RUNTIME_STS_ABILITY_MANAGER_H
 
+#include "sts_query_erms_observer.h"
 #include "sts_runtime.h"
 
 namespace OHOS {
 namespace AbilityManagerSts {
 void StsAbilityManagerRegistryInit(ani_env *env);
+class StsAbilityManager final {
+public:
+    static StsAbilityManager &GetInstance()
+    {
+        static StsAbilityManager instance;
+        return instance;
+    }
+    static void GetAbilityRunningInfos(ani_env *env, ani_object callback);
+    static void NotifyDebugAssertResult(ani_env *env, ani_string sessionIdObj, ani_object userStatusObj,
+        ani_object callback);
+    void QueryAtomicServiceStartupRule(ani_env *env, ani_object contextObj, ani_string aniAppId,
+        ani_object callbackObj);
+private:
+    void QueryAtomicServiceStartupRuleInner(ani_env *env, sptr<IRemoteObject> token, std::string appId,
+        ani_object callbackObj);
+    int32_t AddQueryERMSObserver(ani_env *env, sptr<IRemoteObject> token, const std::string &appId,
+        const std::string &startTime, ani_object callbackObj);
+    sptr<AbilityRuntime::StsQueryERMSObserver> queryERMSObserver_ = nullptr;
+};
 } // namespace AbilityManagerSts
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_STS_ABILITY_MANAGER_H
