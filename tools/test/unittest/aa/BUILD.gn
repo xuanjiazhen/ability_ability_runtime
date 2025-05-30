@@ -280,7 +280,10 @@ ohos_unittest("aa_command_attach_test") {
 
   sources = [ "aa_command_attach_test.cpp" ]
 
-  configs = [ ":tools_aa_config_mock" ]
+  configs = [
+    ":tools_aa_config_mock",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
+  ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -334,6 +337,10 @@ if (accessibility_enable) {
     sources = [
       "${ability_runtime_path}/tools/aa/src/accessibility_ability_utils.cpp",
       "accessibility_ability_utils_test.cpp",
+    ]
+
+    configs = [
+      "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
     ]
 
     cflags = []

@@ -95,7 +95,9 @@ ohos_executable("aa") {
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
-
+  public_configs = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
+  ]
   deps = [ ":tools_aa_source_set" ]
 
   external_deps = [

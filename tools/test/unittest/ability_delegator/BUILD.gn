@@ -166,7 +166,10 @@ ohos_unittest("shell_command_result_test") {
 
   sources = [ "shell_command_result_test.cpp" ]
 
-  configs = [ ":tools_ability_delegator_config" ]
+  configs = [
+    ":tools_ability_delegator_config",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
+  ]
 
   deps = [ "${ability_runtime_path}/tools/aa:tools_aa_source_set" ]
 
@@ -211,7 +214,10 @@ if (accessibility_enable) {
 
     include_dirs = []
 
-    configs = [ ":tools_ability_delegator_config" ]
+    configs = [
+      ":tools_ability_delegator_config",
+      "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
+    ]
 
     sources = [
       "${ability_runtime_path}/tools/aa/src/accessibility_ability_command.cpp",

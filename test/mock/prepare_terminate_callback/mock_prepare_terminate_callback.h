@@ -16,13 +16,13 @@
 #ifndef PREPARE_TERMINATE_CALLBACK_H
 #define PREPARE_TERMINATE_CALLBACK_H
 
-#include "iprepare_terminate_callback_interface.h"
+#include "iprepare_terminate_callback.h"
 
 namespace OHOS {
 namespace AAFwk {
 class PrepareTerminateCallback : public IPrepareTerminateCallback {
 public:
-    MOCK_METHOD0(DoPrepareTerminate, void());
+    MOCK_METHOD0(DoPrepareTerminate, ErrCode());
     sptr<IRemoteObject> AsObject() override
     {
         return {};
