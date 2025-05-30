@@ -74,7 +74,7 @@ public:
     
     ErrCode IsHiddenStart(int32_t pid, bool& funcResult) override
     {
-        return mockReturnValue;
+        return funcResult = mockReturnValue;
     }
     
     sptr<IRemoteObject> AsObject() override
