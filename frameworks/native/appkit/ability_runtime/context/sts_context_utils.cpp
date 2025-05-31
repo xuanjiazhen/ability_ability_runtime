@@ -28,19 +28,15 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace ContextUtil {
 void BindApplicationCtx(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
-    void* applicationCtxRef)
+    void* applicationCtxRef, std::shared_ptr<Context> context)
 {
     // bind parent context field:applicationContext
-    ani_field applicationContextField;
-    if (aniEnv->Class_FindField(contextClass, "applicationContext", &applicationContextField) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Class_FindField failed");
+    if (applicationCtxRef == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "applicationCtxRef is nullptr");
         return;
     }
-    ani_ref applicationContextRef = reinterpret_cast<ani_ref>(applicationCtxRef);
-    if (aniEnv->Object_SetField_Ref(contextObj, applicationContextField, applicationContextRef) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Object_SetField_Ref failed");
-        return;
-    }
+
+    BindParentProperty(aniEnv, contextClass, static_cast<ani_object>(applicationCtxRef), context);
 }
 
 void BindApplicationInfo(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
@@ -129,8 +125,8 @@ void BindParentProperty(ani_env* aniEnv, ani_class contextClass, ani_object cont
 void StsCreatContext(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
     void* applicationCtxRef, std::shared_ptr<Context> context)
 {
-    BindApplicationCtx(aniEnv, contextClass, contextObj, applicationCtxRef);
     BindParentProperty(aniEnv, contextClass, contextObj, context);
+    BindApplicationCtx(aniEnv, contextClass, contextObj, applicationCtxRef, context);
 }
 
 ani_object GetApplicationContextSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj)

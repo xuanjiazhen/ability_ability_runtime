@@ -23,7 +23,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace ContextUtil {
 void BindApplicationCtx(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
-    void* applicationCtxRef);
+    void* applicationCtxRef, std::shared_ptr<Context> context);
 
 void SetArea([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj, ani_int value);
 
