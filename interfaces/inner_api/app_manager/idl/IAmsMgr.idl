@@ -1,0 +1,88 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+sequenceable OHOS.IRemoteObject;
+sequenceable ability_info..OHOS.AppExecFwk.AbilityInfo;
+sequenceable application_info..OHOS.AppExecFwk.ApplicationInfo;
+sequenceable want..OHOS.AAFwk.Want;
+sequenceable param..OHOS.AbilityRuntime.LoadParam;
+sequenceable running_process_info..OHOS.AppExecFwk.RunningProcessInfo;
+
+import IAppStateCallback;
+import IAppMgrConstants;
+
+interface OHOS.AAFwk.IUserCallback;
+interface OHOS.AppExecFwk.IStartSpecifiedAbilityResponse;
+interface OHOS.AppExecFwk.IAppDebugListener;
+interface OHOS.AppExecFwk.IAbilityDebugResponse;
+
+interface OHOS.AppExecFwk.IAmsMgr {
+    void LoadAbility([in]  sharedptr<AbilityInfo> abilityInfo, [in] sharedptr<ApplicationInfo> appInfo,
+        [in] sharedptr<Want> want, [in] sharedptr<LoadParam> loadParam);
+    void TerminateAbility([in] IRemoteObject token, [in] boolean clearMissionFlag);
+    void UpdateAbilityState([in] IRemoteObject token, [in] int state);
+    void UpdateExtensionState([in] IRemoteObject token, [in] ExtensionState state);
+    void RegisterAppStateCallback([in] IAppStateCallback appStateCallback);
+    void KillProcessByAbilityToken([in] IRemoteObject token);
+    void KillProcessesByUserId([in] int userId, [in] boolean isNeedSendAppSpawnMsg, [in] IUserCallback userCallback);
+    void KillProcessesByPids([in] int[] pids, [in] String reason, [in] boolean subProcess);
+    void AttachPidToParent([in] IRemoteObject token, [in] IRemoteObject callerToken);
+    void KillProcessWithAccount([in] String bundleName, [in] int accountId, [in] boolean clearPageStack,
+        [in] int appIndex);
+    void KillProcessesInBatch([in] int[] pids);
+    void UpdateApplicationInfoInstalled([in] String bundleName, [in] int uid, [in] String moduleName,
+        [in] boolean isPlugin);
+    void KillApplication([in] String bundleName, [in] boolean clearPageStack, [in] int appIndex);
+    void ForceKillApplication([in] String bundleName, [in] int userId, [in] int appIndex);
+    void KillProcessesByAccessTokenId([in] unsigned int accessTokenId);
+    void KillApplicationByUid([in] String bundleName, [in] int uid, [in] String reason);
+    void KillApplicationSelf([in] boolean clearPageStack, [in] String reason);
+    void AbilityAttachTimeOut([in] IRemoteObject token);
+    void PrepareTerminate([in] IRemoteObject token, [in] boolean clearMissionFlag);
+    void GetRunningProcessInfoByToken([in] IRemoteObject token, [out] RunningProcessInfo info);
+    void SetAbilityForegroundingFlagToAppRecord([in] int pid);
+    void StartSpecifiedAbility([in] Want want, [in] AbilityInfo abilityInfo, [in] int requestId);
+    void RegisterStartSpecifiedAbilityResponse([in] IStartSpecifiedAbilityResponse response);
+    void PrepareTerminateApp([in] int pid, [in] String moduleName);
+    void StartSpecifiedProcess([in] Want want, [in] AbilityInfo abilityInfo, [in] int requestId);
+    void GetApplicationInfoByProcessID([in] int pid, [out] ApplicationInfo application, [out] boolean debug);
+    void NotifyAppMgrRecordExitReason([in] int pid, [in] int reason, [in] String exitMsg);
+    void SetCurrentUserId([in] int userId);
+    void SetEnableStartProcessFlagByUserId([in] int userId, [in] boolean enableStartProcess);
+    void GetBundleNameByPid([in] int pid, [out] String bundleName, [out] int uid);
+    void RegisterAppDebugListener([in] IAppDebugListener listener);
+    void UnregisterAppDebugListener([in] IAppDebugListener listener);
+    void AttachAppDebug([in] String bundleName, [in] boolean isDebugFromLocal);
+    void DetachAppDebug([in] String bundleName);
+    void SetAppWaitingDebug([in] String bundleName, [in] boolean isPersist);
+    void CancelAppWaitingDebug();
+    void GetWaitingDebugApp([out] String[] debugInfoList);
+    boolean IsWaitingDebugApp([in] String bundleName);
+    void ClearNonPersistWaitingDebugFlag();
+    void RegisterAbilityDebugResponse([in] IAbilityDebugResponse response);
+    boolean IsAttachDebug([in] String bundleName);
+    void SetKeepAliveEnableState([in] String bundleName, [in] boolean enable, [in] int uid);
+    void SetKeepAliveDkv([in] String bundleName, [in] boolean enable, [in] int uid);
+    void ClearProcessByToken([in] IRemoteObject token);
+    boolean IsMemorySizeSufficent();
+    boolean IsNoRequireBigMemory();
+    void AttachedToStatusBar([in] IRemoteObject token);
+    void BlockProcessCacheByPids([in] int[] pids);
+    boolean IsKilledForUpgradeWeb([in] String bundleName);
+    boolean CleanAbilityByUserRequest([in] IRemoteObject token);
+    boolean IsProcessContainsOnlyUIAbility([in] int pid);
+    boolean IsProcessAttached([in] IRemoteObject token);
+    boolean IsCallerKilling([in] String callerKey);
+}
