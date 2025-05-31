@@ -85,6 +85,7 @@ ohos_unittest("mission_list_test_call") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   deps = [
+    "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/app_manager:app_mgr_proxy",
     "${ability_runtime_innerkits_path}/app_manager:app_mgr_stub",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
