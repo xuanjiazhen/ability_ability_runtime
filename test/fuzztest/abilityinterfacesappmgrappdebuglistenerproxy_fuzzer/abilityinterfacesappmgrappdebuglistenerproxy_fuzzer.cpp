@@ -19,7 +19,7 @@
 #include <cstdint>
 
 #define private public
-#include "iapp_debug_listener.h"
+#include "app_debug_listener_proxy.h"
 #undef private
 
 #include "securec.h"
@@ -70,15 +70,6 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     std::vector<AppDebugInfo> debugInfos;
     infosProxy->OnAppDebugStarted(debugInfos);
     infosProxy->OnAppDebugStoped(debugInfos);
-    MessageParcel parcels;
-    parcels.WriteInterfaceToken(AMSMGR_INTERFACE_TOKEN);
-    parcels.WriteBuffer(data, size);
-    parcels.RewindRead(0);
-    infosProxy->WriteInterfaceToken(parcels);
-    IAppDebugListener::Message message = IAppDebugListenerIpcCode::COMMAND_ON_APP_DEBUG_STARTED;
-    infosProxy->SendRequest(message, debugInfos);
-    message = IAppDebugListenerIpcCode::COMMAND_ON_APP_DEBUG_STOPED;
-    infosProxy->SendRequest(message, debugInfos);
     return true;
 }
 }

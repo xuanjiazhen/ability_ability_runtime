@@ -19,7 +19,7 @@
 #include <cstdint>
 
 #define private public
-#include "iapp_debug_listener.h"
+#include "app_debug_listener_stub.h"
 #undef private
 
 #include "securec.h"

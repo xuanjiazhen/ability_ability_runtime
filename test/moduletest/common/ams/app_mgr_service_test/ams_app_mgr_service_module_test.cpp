@@ -479,7 +479,7 @@ HWTEST_F(AppMgrServiceModuleTest, KillApplication_001, TestSize.Level1)
 
         EXPECT_CALL(*mockAppMgrServiceInner_, KillApplication(_, _, _)).Times(1).WillOnce(Invoke(mockHandler));
 
-        int ret = appMgrService_->GetAmsMgr()->KillApplication(testBundleName);
+        int ret = appMgrService_->GetAmsMgr()->KillApplication(testBundleName, false, 0);
 
         sem.Wait();
 
