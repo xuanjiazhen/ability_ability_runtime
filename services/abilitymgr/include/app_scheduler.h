@@ -616,7 +616,8 @@ protected:
      * @param token,ability's token.
      * @param state,the state of ability lift cycle.
      */
-    virtual ErrCode OnAbilityRequestDone(const sptr<IRemoteObject> &token, const AppExecFwk::AbilityState state) override;
+    virtual ErrCode OnAbilityRequestDone(
+        const sptr<IRemoteObject> &token, const AppExecFwk::AbilityState state) override;
 
     /**
      * Application state changed callback.
