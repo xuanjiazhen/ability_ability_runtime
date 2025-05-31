@@ -19,8 +19,7 @@
 #include <cstdint>
 
 #define private public
-#include "app_debug_listener_proxy.h"
-#include "app_debug_listener_interface.h"
+#include "iapp_debug_listener.h"
 #undef private
 
 #include "securec.h"
@@ -76,9 +75,9 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     parcels.WriteBuffer(data, size);
     parcels.RewindRead(0);
     infosProxy->WriteInterfaceToken(parcels);
-    IAppDebugListener::Message message = IAppDebugListener::Message::ON_APP_DEBUG_STARTED;
+    IAppDebugListener::Message message = IAppDebugListenerIpcCode::COMMAND_ON_APP_DEBUG_STARTED;
     infosProxy->SendRequest(message, debugInfos);
-    message = IAppDebugListener::Message::ON_APP_DEBUG_STOPED;
+    message = IAppDebugListenerIpcCode::COMMAND_ON_APP_DEBUG_STOPED;
     infosProxy->SendRequest(message, debugInfos);
     return true;
 }

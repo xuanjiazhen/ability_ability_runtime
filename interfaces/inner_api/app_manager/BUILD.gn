@@ -16,9 +16,7 @@ import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 config("appmgr_idl_config") {
-  include_dirs = [
-      "${target_gen_dir}",
-    ]
+  include_dirs = [ "${target_gen_dir}" ]
 }
 
 config("appmgr_sdk_config") {
@@ -75,6 +73,9 @@ ohos_source_set("app_mgr_proxy") {
   configs = [
     ":appmgr_core_config",
     ":appmgr_sdk_config",
+  ]
+
+  public_configs = [
     ":appmgr_idl_config",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
     "${ability_runtime_path}/utils/server/startup:startup_util_config",
@@ -86,6 +87,7 @@ ohos_source_set("app_mgr_proxy") {
   deps = [
     ":app_mgr_interface",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_interface",
+    "${ability_runtime_path}/utils/server/startup:startup_util",
   ]
   external_deps = [
     "c_utils:utils",
@@ -120,6 +122,9 @@ ohos_source_set("app_mgr_stub") {
   configs = [
     ":appmgr_core_config",
     ":appmgr_sdk_config",
+  ]
+
+  public_configs = [
     ":appmgr_idl_config",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
     "${ability_runtime_path}/utils/server/startup:startup_util_config",
@@ -131,6 +136,7 @@ ohos_source_set("app_mgr_stub") {
   deps = [
     ":app_mgr_interface",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_interface",
+    "${ability_runtime_path}/utils/server/startup:startup_util",
   ]
   external_deps = [
     "c_utils:utils",

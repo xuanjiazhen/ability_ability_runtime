@@ -19,6 +19,7 @@
  #include "mock_ams_mgr_scheduler.h"
  #include "mock_app_debug_listener_stub.h"
  
+ using namespace OHOS::AppExecFwk;
  using namespace testing;
  using namespace testing::ext;
  

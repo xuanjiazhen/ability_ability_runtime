@@ -57,21 +57,27 @@ constexpr const char* PERMISSION_PROTECT_SCREEN_LOCK_DATA_TEST = "ohos.permissio
 class MockIAppStateCallback : public IAppStateCallback {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.appexecfwk.AppStateCallback");
-    ErrCode OnAppStateChanged(const AppProcessData &appProcessData) override { return ERR_OK; };
-    ErrCode OnAbilityRequestDone(const sptr<IRemoteObject> &token, const AbilityState state) override { return ERR_OK; };
+    ErrCode OnAppStateChanged(const AppProcessData &appProcessData) override { return ERR_OK; }
+    ErrCode OnAbilityRequestDone(const sptr<IRemoteObject> &token, const AbilityState state) override { return ERR_OK; }
+
+    ErrCode NotifyConfigurationChange(const AppExecFwk::Configuration &config, int32_t userId) override
+    {
+        dealed = true;
+        return ERR_OK;
+    }
+    MOCK_METHOD1(NotifyStartResidentProcess, ErrCode(const std::vector<BundleInfo>&));
+    MOCK_METHOD1(NotifyStartKeepAliveProcess, ErrCode(const std::vector<BundleInfo>&));
     ErrCode OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abilityTokens)
     {
         dealed = true;
         return ERR_OK;
     }
+    MOCK_METHOD1(OnStartProcessFailed, ErrCode(const sptr<IRemoteObject>&));
+    MOCK_METHOD2(NotifyAppPreCache, ErrCode(int32_t, int32_t));
+
     ErrCode OnCacheExitInfo(uint32_t accessTokenId, const RunningProcessInfo &exitInfo,
         const std::string &bundleName, const std::vector<std::string> &abilityNames,
         const std::vector<std::string> &uiExtensionNames) override
-    {
-        dealed = true;
-        return ERR_OK;
-    }
-    ErrCode NotifyConfigurationChange(const AppExecFwk::Configuration &config, int32_t userId) override
     {
         dealed = true;
         return ERR_OK;
