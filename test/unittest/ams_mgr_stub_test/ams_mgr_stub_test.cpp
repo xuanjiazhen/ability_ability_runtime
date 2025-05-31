@@ -15,7 +15,6 @@
 
  #include <gtest/gtest.h>
 
- #include "ability_manager_ipc_interface_code.h"
  #include "mock_ability_debug_response_stub.h"
  #include "mock_ams_mgr_scheduler.h"
  #include "mock_app_debug_listener_stub.h"
@@ -86,7 +85,7 @@
      data.WriteRemoteObject(listener_);
  
      auto result = mockAmsMgrScheduler_->OnRemoteRequest(
-         static_cast<uint32_t>(AbilityManagerInterfaceCode::REGISTER_APP_DEBUG_LISTENER), data, reply, option);
+         static_cast<uint32_t>(IAmsMgrIpcCode::COMMAND_REGISTER_APP_DEBUG_LISTENER), data, reply, option);
      EXPECT_EQ(result, NO_ERROR);
  }
  
@@ -107,7 +106,7 @@
      data.WriteRemoteObject(listener_);
  
      auto result = mockAmsMgrScheduler_->OnRemoteRequest(
-         static_cast<uint32_t>(AbilityManagerInterfaceCode::REGISTER_APP_DEBUG_LISTENER), data, reply, option);
+         static_cast<uint32_t>(IAmsMgrIpcCode::COMMAND_REGISTER_APP_DEBUG_LISTENER), data, reply, option);
      EXPECT_EQ(result, ERR_INVALID_VALUE);
  }
  /**
@@ -127,7 +126,7 @@
      data.WriteRemoteObject(listener_);
  
      auto result = mockAmsMgrScheduler_->OnRemoteRequest(
-         static_cast<uint32_t>(AbilityManagerInterfaceCode::UNREGISTER_APP_DEBUG_LISTENER), data, reply, option);
+         static_cast<uint32_t>(IAmsMgrIpcCode::COMMAND_UNREGISTER_APP_DEBUG_LISTENER), data, reply, option);
      EXPECT_EQ(result, NO_ERROR);
  }
  
@@ -148,7 +147,7 @@
      data.WriteRemoteObject(listener_);
  
      auto result = mockAmsMgrScheduler_->OnRemoteRequest(
-         static_cast<uint32_t>(AbilityManagerInterfaceCode::UNREGISTER_APP_DEBUG_LISTENER), data, reply, option);
+         static_cast<uint32_t>(IAmsMgrIpcCode::COMMAND_UNREGISTER_APP_DEBUG_LISTENER), data, reply, option);
      EXPECT_EQ(result, ERR_INVALID_VALUE);
  }
  
@@ -168,7 +167,7 @@
      data.WriteString(STRING_BUNDLE_NAME);
  
      auto result = mockAmsMgrScheduler_->OnRemoteRequest(
-         static_cast<uint32_t>(AbilityManagerInterfaceCode::ATTACH_APP_DEBUG), data, reply, option);
+         static_cast<uint32_t>(IAmsMgrIpcCode::COMMAND_ATTACH_APP_DEBUG), data, reply, option);
      EXPECT_EQ(result, NO_ERROR);
  }
  
@@ -188,7 +187,7 @@
      data.WriteString(EMPTY_BUNDLE_NAME);
  
      auto result = mockAmsMgrScheduler_->OnRemoteRequest(
-         static_cast<uint32_t>(AbilityManagerInterfaceCode::ATTACH_APP_DEBUG), data, reply, option);
+         static_cast<uint32_t>(IAmsMgrIpcCode::COMMAND_ATTACH_APP_DEBUG), data, reply, option);
      EXPECT_EQ(result, ERR_INVALID_VALUE);
  }
  
@@ -208,7 +207,7 @@
      data.WriteString(STRING_BUNDLE_NAME);
  
      auto result = mockAmsMgrScheduler_->OnRemoteRequest(
-         static_cast<uint32_t>(AbilityManagerInterfaceCode::DETACH_APP_DEBUG), data, reply, option);
+         static_cast<uint32_t>(IAmsMgrIpcCode::COMMAND_DETACH_APP_DEBUG), data, reply, option);
      EXPECT_EQ(result, NO_ERROR);
  }
  
@@ -228,7 +227,7 @@
      data.WriteString(EMPTY_BUNDLE_NAME);
  
      auto result = mockAmsMgrScheduler_->OnRemoteRequest(
-         static_cast<uint32_t>(AbilityManagerInterfaceCode::DETACH_APP_DEBUG), data, reply, option);
+         static_cast<uint32_t>(IAmsMgrIpcCode::COMMAND_DETACH_APP_DEBUG), data, reply, option);
      EXPECT_EQ(result, ERR_INVALID_VALUE);
  }
  
@@ -249,7 +248,7 @@
  
      EXPECT_CALL(*mockAmsMgrScheduler_, RegisterAbilityDebugResponse(_)).Times(1);
      auto result = mockAmsMgrScheduler_->OnRemoteRequest(
-         static_cast<uint32_t>(AbilityManagerInterfaceCode::REGISTER_ABILITY_DEBUG_RESPONSE), data, reply, option);
+         static_cast<uint32_t>(IAmsMgrIpcCode::COMMAND_REGISTER_ABILITY_DEBUG_RESPONSE), data, reply, option);
      EXPECT_EQ(result, NO_ERROR);
  }
  
@@ -270,7 +269,7 @@
  
      EXPECT_CALL(*mockAmsMgrScheduler_, RegisterAbilityDebugResponse(_)).Times(0);
      auto result = mockAmsMgrScheduler_->OnRemoteRequest(
-         static_cast<uint32_t>(AbilityManagerInterfaceCode::REGISTER_ABILITY_DEBUG_RESPONSE), data, reply, option);
+         static_cast<uint32_t>(IAmsMgrIpcCode::COMMAND_REGISTER_ABILITY_DEBUG_RESPONSE), data, reply, option);
      EXPECT_EQ(result, ERR_INVALID_VALUE);
  }
  
@@ -298,7 +297,7 @@
          .Times(1)
          .WillOnce(Return(NO_ERROR));
      auto result = mockAmsMgrScheduler_->OnRemoteRequest(
-         static_cast<uint32_t>(AbilityManagerInterfaceCode::NOTIFY_APP_MGR_RECORD_EXIT_REASON), data, reply, option);
+         static_cast<uint32_t>(IAmsMgrIpcCode::COMMAND_NOTIFY_APP_MGR_RECORD_EXIT_REASON), data, reply, option);
      EXPECT_EQ(result, NO_ERROR);
  }
  }  // namespace AppExecFwk
