@@ -232,10 +232,8 @@
           },
           {
             "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include",
-              "header_files": [
-                "iuser_callback.h"
-              ]
+              "header_base": [],
+              "header_files": []
             },
             "name": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager:ability_manager_innerkits"
           },
