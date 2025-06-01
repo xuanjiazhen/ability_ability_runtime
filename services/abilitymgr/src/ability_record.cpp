@@ -41,7 +41,7 @@
 #include "res_sched_util.h"
 #include "scene_board_judgement.h"
 #include "startup_util.h"
-#include "system_ability_token_callback.h"
+#include "isystem_ability_token_callback.h"
 #include "ui_extension_utils.h"
 #ifdef SUPPORT_UPMS
 #include "uri_permission_manager_client.h"
@@ -2082,7 +2082,6 @@ void SystemAbilityCallerRecord::SendResultToSystemAbility(int requestCode,
         callerUid = IPCSkeleton::GetCallingUid();
         accessToken = IPCSkeleton::GetCallingTokenID();
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Try to SendResult");
     if (callerToken == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null callerToken");
         return;
@@ -2114,7 +2113,8 @@ void SystemAbilityCallerRecord::SendResultToSystemAbility(int requestCode,
     }
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
-    int result = callerToken->SendRequest(ISystemAbilityTokenCallback::SEND_RESULT, data, reply, option);
+    int result = callerToken->SendRequest(
+        static_cast<uint32_t>(ISystemAbilityTokenCallbackIpcCode::COMMAND_SEND_RESULT), data, reply, option);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "error: %{public}d", result);
     }
