@@ -302,6 +302,10 @@ public:
         const InsightIntentExecuteResult &result));
     MOCK_METHOD5(StartAbilityWithSpecifyTokenId, int(const Want& want, const sptr<IRemoteObject>& callerToken,
         uint32_t specifyTokenId, int32_t userId, int requestCode));
+    MOCK_METHOD1(UpdateKioskApplicationList, int32_t(const std::vector<std::string> &appList));
+    MOCK_METHOD1(EnterKioskMode, int32_t(sptr<IRemoteObject> callerToken));
+    MOCK_METHOD1(ExitKioskMode, int32_t(sptr<IRemoteObject> callerToken));
+    MOCK_METHOD1(UnregisterAppDebugListener, int32_t(KioskStatus &kioskStatus));
 
     enum class RequestCode {
         E_STATE_INITIAL = 0,

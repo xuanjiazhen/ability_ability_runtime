@@ -20,6 +20,7 @@
 #include "interceptor/ability_jump_interceptor.h"
 #include "interceptor/ecological_rule_interceptor.h"
 #include "interceptor/disposed_rule_interceptor.h"
+#include "interceptor/kiosk_interceptor.h"
 #undef private
 #undef protected
 
@@ -782,6 +783,24 @@ HWTEST_F(AbilityInterceptorTest, EcologicalRuleInterceptor_002, TestSize.Level1)
 HWTEST_F(AbilityInterceptorTest, EcologicalRuleInterceptor_003, TestSize.Level1)
 {
     std::shared_ptr<EcologicalRuleInterceptor> interceptor = std::make_shared<EcologicalRuleInterceptor>();
+    Want want;
+    int userId = 100;
+    bool result = interceptor->DoProcess(want, userId);
+    EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.name: AbilityInterceptorTest_Kiosk_interceptor
+ * @tc.desc: DoProcess
+ * @tc.type: FUNC
+ * @tc.require: No
+ */
+HWTEST_F(AbilityInterceptorTest, Kiosk_interceptor, TestSize.Level1)
+{
+    auto kioskManager_ = std::make_shared<KioskManager>();
+    CHECK_POINTER_RETURN_BOOL(kioskManager_);
+
+    std::shared_ptr<KioskInterceptor> interceptor = std::make_shared<KioskInterceptor>([](){return 0;});
     Want want;
     int userId = 100;
     bool result = interceptor->DoProcess(want, userId);

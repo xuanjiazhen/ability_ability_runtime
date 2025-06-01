@@ -427,6 +427,10 @@ public:
         const InsightIntentExecuteParam &param));
     MOCK_METHOD3(ExecuteInsightIntentDone, int32_t(const sptr<IRemoteObject> &token, uint64_t intentId,
         const InsightIntentExecuteResult &result));
+    MOCK_METHOD1(UpdateKioskApplicationList, int(const std::vector<std::string> &appList));
+    MOCK_METHOD1(EnterKioskMode, int(sptr<IRemoteObject>));
+    MOCK_METHOD1(ExitKioskMode, int(sptr<IRemoteObject>));
+    MOCK_METHOD1(GetKioskStatus, int(AAFwk::KioskStatus &kioskInf));
 };
 }  // namespace AAFwk
 }  // namespace OHOS
