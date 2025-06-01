@@ -244,6 +244,12 @@ void OHOSApplication::InitAniContext()
         ani_native_function {"createModuleResourceManagerSync", "Lstd/core/String;Lstd/core/String;"
             ":L@ohos/resourceManager/resourceManager/ResourceManager;",
             reinterpret_cast<void *>(AbilityRuntime::ContextUtil::CreateModuleResourceManagerSync)},
+        ani_native_function {"nativeCreateDisplayContext", nullptr,
+            reinterpret_cast<void *>(AbilityRuntime::ContextUtil::NativeCreateDisplayContext)},
+        ani_native_function {"nativeCreateAreaModeContext", nullptr,
+            reinterpret_cast<void *>(AbilityRuntime::ContextUtil::NativeCreateAreaModeContext)},
+        ani_native_function {"nativeCreateSystemHspModuleResourceManager", nullptr,
+            reinterpret_cast<void *>(AbilityRuntime::ContextUtil::NativeCreateSystemHspModuleResourceManager)},
     };
     aniEnv->Class_BindNativeMethods(contextCls, contextFunctions.data(),
         contextFunctions.size());

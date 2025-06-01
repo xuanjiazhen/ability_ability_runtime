@@ -45,11 +45,19 @@ void BindContextDir(ani_env* aniEnv, ani_class contextClass, ani_object contextO
 void StsCreatContext(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
     void* applicationCtxRef, std::shared_ptr<Context> context);
 
+ani_object CreatAniContext(ani_env* aniEnv, std::shared_ptr<Context> context);
+
 ani_object CreateModuleResourceManagerSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
     ani_string bundleName, ani_string moduleName);
 
 ani_object GetApplicationContextSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj);
 
+ani_object NativeCreateDisplayContext(ani_env *env, ani_object aniObj, ani_double displayId);
+
+ani_object NativeCreateAreaModeContext(ani_env *env, ani_object aniObj, ani_object areaModeObj);
+
+ani_object NativeCreateSystemHspModuleResourceManager(ani_env *env, ani_object aniObj,
+    ani_string bundleNameObj, ani_string moduleNameObj);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
