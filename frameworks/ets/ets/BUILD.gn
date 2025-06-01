@@ -349,8 +349,7 @@ generate_static_abc("ability_runtime_shell_cmd_result_abc") {
   files = [ "./application/shellCmdResult.ets" ]
 
   is_boot_abc = "True"
-  device_dst_file =
-      "/system/framework/ability_runtime_shell_cmd_result_abc.abc"
+  device_dst_file = "/system/framework/ability_runtime_shell_cmd_result_abc.abc"
 }
 
 ohos_prebuilt_etc("ability_runtime_shell_cmd_result_abc_etc") {
@@ -609,8 +608,7 @@ generate_static_abc("ability_runtime_ability_caller_abc") {
   files = [ "./caller/Caller.ets" ]
 
   is_boot_abc = "True"
-  device_dst_file =
-      "/system/framework/ability_runtime_ability_caller_abc.abc"
+  device_dst_file = "/system/framework/ability_runtime_ability_caller_abc.abc"
 }
 
 ohos_prebuilt_etc("ability_runtime_ability_caller_abc_etc") {
@@ -626,8 +624,7 @@ generate_static_abc("ability_runtime_ability_callee_abc") {
   files = [ "./callee/Callee.ets" ]
 
   is_boot_abc = "True"
-  device_dst_file =
-      "/system/framework/ability_runtime_ability_callee_abc.abc"
+  device_dst_file = "/system/framework/ability_runtime_ability_callee_abc.abc"
 }
 
 ohos_prebuilt_etc("ability_runtime_ability_callee_abc_etc") {
@@ -757,7 +754,8 @@ generate_static_abc("ability_runtime_insight_intent_context_abc") {
   files = [ "./@ohos.app.ability.InsightIntentContext.ets" ]
 
   is_boot_abc = "True"
-  device_dst_file = "/system/framework/ability_runtime_insight_intent_context_abc.abc"
+  device_dst_file =
+      "/system/framework/ability_runtime_insight_intent_context_abc.abc"
 }
 
 ohos_prebuilt_etc("ability_runtime_insight_intent_context_abc_etc") {
@@ -773,7 +771,8 @@ generate_static_abc("ability_runtime_insight_intent_driver_abc") {
   files = [ "./@ohos.app.ability.insightIntentDriver.ets" ]
 
   is_boot_abc = "True"
-  device_dst_file = "/system/framework/ability_runtime_insight_intent_driver_abc.abc"
+  device_dst_file =
+      "/system/framework/ability_runtime_insight_intent_driver_abc.abc"
 }
 
 ohos_prebuilt_etc("ability_runtime_insight_intent_driver_abc_etc") {
@@ -789,7 +788,8 @@ generate_static_abc("ability_runtime_insight_intent_executor_abc") {
   files = [ "./@ohos.app.ability.InsightIntentExecutor.ets" ]
 
   is_boot_abc = "True"
-  device_dst_file = "/system/framework/ability_runtime_insight_intent_executor_abc.abc"
+  device_dst_file =
+      "/system/framework/ability_runtime_insight_intent_executor_abc.abc"
 }
 
 ohos_prebuilt_etc("ability_runtime_insight_intent_executor_abc_etc") {
@@ -798,6 +798,39 @@ ohos_prebuilt_etc("ability_runtime_insight_intent_executor_abc_etc") {
   subsystem_name = "ability"
   part_name = "ability_runtime"
   deps = [ ":ability_runtime_insight_intent_executor_abc" ]
+}
+
+generate_static_abc("ability_runtime_extension_ability_abc") {
+  base_url = "./"
+  files = [ "./@ohos.app.ability.ExtensionAbility.ets" ]
+
+  is_boot_abc = "True"
+  device_dst_file =
+      "/system/framework/ability_runtime_extension_ability_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_runtime_extension_ability_abc_etc") {
+  source = "$target_out_dir/ability_runtime_extension_ability_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_runtime_extension_ability_abc" ]
+}
+
+generate_static_abc("ability_runtime_ability_abc") {
+  base_url = "./"
+  files = [ "./@ohos.app.ability.Ability.ets" ]
+
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/ability_runtime_ability_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_runtime_ability_abc_etc") {
+  source = "$target_out_dir/ability_runtime_ability_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_runtime_ability_abc" ]
 }
 
 group("ets_packages") {
@@ -809,7 +842,9 @@ group("ets_packages") {
     ":ability_delegator_application_testRunner_abc_etc",
     ":ability_delegator_args_abc_etc",
     ":ability_delegator_registry_abc_etc",
+    ":ability_runtime_OpenLink_Options_abc_etc",
     ":ability_runtime_abilityResult_abc_etc",
+    ":ability_runtime_ability_abc_etc",
     ":ability_runtime_ability_callee_abc_etc",
     ":ability_runtime_ability_caller_abc_etc",
     ":ability_runtime_ability_constant_abc_etc",
@@ -828,6 +863,7 @@ group("ets_packages") {
     ":ability_runtime_context_abc_etc",
     ":ability_runtime_environment_callback_abc_etc",
     ":ability_runtime_event_hub_abc_etc",
+    ":ability_runtime_extension_ability_abc_etc",
     ":ability_runtime_extension_context_abc_etc",
     ":ability_runtime_insight_intent_abc_etc",
     ":ability_runtime_insight_intent_context_abc_etc",
@@ -848,6 +884,5 @@ group("ets_packages") {
     ":ability_runtime_want_constant_abc_etc",
     ":service_extension_ability_abc_etc",
     ":ui_extension_ability_ani_etc",
-    ":ability_runtime_OpenLink_Options_abc_etc",
   ]
 }

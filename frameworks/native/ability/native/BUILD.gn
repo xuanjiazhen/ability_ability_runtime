@@ -361,8 +361,8 @@ ohos_shared_library("abilitykit_native") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "ipc:ipc_napi",
-    "ipc:rpc_ani",
     "ipc:rpc",
+    "ipc:rpc_ani",
     "json:nlohmann_json_static",
     "napi:ace_napi",
     "resource_management:global_resmgr",
@@ -537,12 +537,14 @@ ohos_shared_library("extensionkit_native") {
   defines += [ "AMS_LOG_DOMAIN = 0xD001300" ]
   include_dirs = [
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
+    "${ability_runtime_path}/frameworks/ets/ani/enum_convert",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime",
     "${ability_runtime_napi_path}/inner/napi_common",
   ]
 
   sources = [
     "${ability_runtime_native_path}/ability/native/app_module_checker.cpp",
+    "${ability_runtime_native_path}/ability/native/ets_extension_common.cpp",
     "${ability_runtime_native_path}/ability/native/extension.cpp",
     "${ability_runtime_native_path}/ability/native/extension_config_mgr.cpp",
     "${ability_runtime_native_path}/ability/native/extension_impl.cpp",
@@ -565,6 +567,7 @@ ohos_shared_library("extensionkit_native") {
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
   ]
 
   external_deps = [
@@ -578,6 +581,7 @@ ohos_shared_library("extensionkit_native") {
     "ipc:ipc_napi",
     "json:nlohmann_json_static",
     "napi:ace_napi",
+    "runtime_core:ani",
   ]
 
   public_deps = [ ":abilitykit_utils" ]
@@ -741,10 +745,11 @@ config("uiability_config") {
 ohos_shared_library("uiabilitykit_native") {
   include_dirs = [
     "${ability_runtime_path}/frameworks/ets/ani/ani_common/include",
+    "${ability_runtime_path}/frameworks/ets/ani/enum_convert",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ability_runtime",
-    "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_extension_ability",
     "${ability_runtime_path}/utils/global/time/include",
+    "${ability_runtime_path}/frameworks/ets/ani/ui_extension_ability/include",
   ]
 
   sources = [
@@ -1052,15 +1057,16 @@ ohos_shared_library("service_extension") {
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/ability/native:insight_intent_executor",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_native_path}/appkit:app_context_utils",
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
-    "${ability_runtime_native_path}/appkit:app_context_utils",
   ]
 
   external_deps = [
     "ability_base:configuration",
     "ability_base:want",
     "ability_base:zuri",
+    "bundle_framework:bms_ani_common",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
@@ -1073,7 +1079,6 @@ ohos_shared_library("service_extension") {
     "runtime_core:ani",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "bundle_framework:bms_ani_common",
   ]
 
   if (ability_runtime_graphics) {

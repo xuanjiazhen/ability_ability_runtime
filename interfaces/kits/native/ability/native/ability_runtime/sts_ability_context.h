@@ -68,6 +68,9 @@ public:
     static void NativeRequestModalUIExtension(ani_env *env, ani_object aniObj, ani_string pickerWantObj,
         ani_object callBackObj);
 
+    static void ConfigurationUpdated(ani_env *env, std::shared_ptr<STSNativeReference> &stsContext,
+        const std::shared_ptr<AppExecFwk::Configuration> &config);
+
 private:
     static void InheritWindowMode(ani_env *env, ani_object aniObj, AAFwk::Want &want);
     void StartAbilityInner([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object aniObj,
