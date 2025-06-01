@@ -64,7 +64,7 @@ idl_gen_interface("app_mgr_interface") {
   part_name = "ability_runtime"
 }
 
-ohos_source_set("app_mgr_proxy") {
+ohos_source_set("app_mgr_idl_proxy") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -90,30 +90,19 @@ ohos_source_set("app_mgr_proxy") {
     "${ability_runtime_path}/utils/server/startup:startup_util",
   ]
   external_deps = [
+    "bundle_framework:appexecfwk_base",
     "c_utils:utils",
-    "faultloggerd:libbacktrace_local",
-    "faultloggerd:libdfx_dumpcatcher",
-    "faultloggerd:libfaultloggerd",
-    "ffrt:libffrt",
     "hilog:libhilog",
-    "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
-    "init:libbegetutil",
     "ipc:ipc_core",
-    "json:nlohmann_json_static",
     "samgr:samgr_proxy",
     "ability_base:configuration",
-    "ability_base:session_info",
-    "ability_base:want",
-    "bundle_framework:appexecfwk_base",
-    "image_framework:image_native",
-    "relational_store:native_rdb",
   ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }
 
-ohos_source_set("app_mgr_stub") {
+ohos_source_set("app_mgr_idl_stub") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -257,8 +246,8 @@ ohos_shared_library("app_manager") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   deps = [
-    ":app_mgr_proxy",
-    ":app_mgr_stub",
+    ":app_mgr_idl_proxy",
+    ":app_mgr_idl_stub",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_path}/utils/server/startup:startup_util",
     "${ability_runtime_services_path}/common:app_util",

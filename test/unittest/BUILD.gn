@@ -60,8 +60,8 @@ ohos_source_set("appmgr_test_source") {
   }
   deps = [
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
-    "${ability_runtime_innerkits_path}/app_manager:app_mgr_proxy",
-    "${ability_runtime_innerkits_path}/app_manager:app_mgr_stub",
+    "${ability_runtime_innerkits_path}/app_manager:app_mgr_idl_proxy",
+    "${ability_runtime_innerkits_path}/app_manager:app_mgr_idl_stub",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_services_path}/common:app_util",
   ]
@@ -228,8 +228,8 @@ ohos_source_set("abilityms_test_source") {
     "${ability_runtime_innerkits_path}/ability_manager:process_options",
     "${ability_runtime_innerkits_path}/ability_manager:start_window_option",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
-    "${ability_runtime_innerkits_path}/app_manager:app_mgr_proxy",
-    "${ability_runtime_innerkits_path}/app_manager:app_mgr_stub",
+    "${ability_runtime_innerkits_path}/app_manager:app_mgr_idl_proxy",
+    "${ability_runtime_innerkits_path}/app_manager:app_mgr_idl_stub",
     "${ability_runtime_innerkits_path}/connectionobs_manager:connection_obs_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
