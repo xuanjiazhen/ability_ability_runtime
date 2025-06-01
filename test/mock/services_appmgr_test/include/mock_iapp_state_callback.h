@@ -37,5 +37,5 @@ public:
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
- #endif  // MOCK_OHOS_ABILITY_RUNTIME_MOCK_IAPP_STATE_CALLBACK_H
+#endif  // MOCK_OHOS_ABILITY_RUNTIME_MOCK_IAPP_STATE_CALLBACK_H
  
