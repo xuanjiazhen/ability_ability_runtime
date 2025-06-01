@@ -284,6 +284,10 @@ public:
         const InsightIntentExecuteResult &result));
     MOCK_METHOD5(StartAbilityWithSpecifyTokenId, int(const Want& want, const sptr<IRemoteObject>& callerToken,
         uint32_t specifyTokenId, int32_t userId, int requestCode));
+    MOCK_METHOD1(UpdateKioskApplicationList, int(const std::vector<std::string> &appList));
+    MOCK_METHOD1(EnterKioskMode, int(sptr<IRemoteObject>));
+    MOCK_METHOD1(ExitKioskMode, int(sptr<IRemoteObject>));
+    MOCK_METHOD1(GetKioskStatus, int(AAFwk::KioskStatus &kioskInf));
 
     AbilityLifeCycleState curstate_ = AbilityLifeCycleState::ABILITY_STATE_INITIAL;
     sptr<IAbilityScheduler> abilityScheduler_;  // kit interface used to schedule ability life
