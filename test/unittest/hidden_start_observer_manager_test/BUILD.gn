@@ -25,20 +25,14 @@ ohos_unittest("hidden_start_observer_manager_test") {
   }
   module_out_path = module_output_path
 
-  include_dirs = [ 
-    "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/appexecfwk_core/include",
-    "${target_gen_dir}",
-  ]
+  include_dirs = [ "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/appexecfwk_core/include" ]
 
   sources = [ 
     "hidden_start_observer_manager_test.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/hidden_start_observer_manager.cpp",
   ]
 
-  configs = [ 
-    "${ability_runtime_services_path}/abilitymgr:abilityms_config",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
-  ]
+  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
 
   deps = [
     "${ability_runtime_innerkits_path}/app_manager:app_manager",

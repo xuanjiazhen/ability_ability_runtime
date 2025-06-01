@@ -567,6 +567,7 @@ napi_value JsEmbeddableUIAbilityContext::OnSetRestoreEnabled(napi_env env, NapiC
 napi_value JsEmbeddableUIAbilityContext::OnSetColorMode(napi_env env, NapiCallbackInfo& info)
 {
     if (IsEmbeddableStart(screenMode_)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "OnSetColorMode in half screen mode");
         CHECK_POINTER_RETURN(env, jsUIExtensionContext_);
         return jsUIExtensionContext_->OnSetColorMode(env, info);
     }
@@ -577,6 +578,7 @@ napi_value JsEmbeddableUIAbilityContext::OnSetColorMode(napi_env env, NapiCallba
 napi_value JsEmbeddableUIAbilityContext::OnStartUIServiceExtension(napi_env env, NapiCallbackInfo& info)
 {
     if (IsEmbeddableStart(screenMode_)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "OnStartUIServiceExtension in half screen mode");
         CHECK_POINTER_RETURN(env, jsUIExtensionContext_);
         return jsUIExtensionContext_->OnStartUIServiceExtension(env, info);
     }
@@ -587,6 +589,7 @@ napi_value JsEmbeddableUIAbilityContext::OnStartUIServiceExtension(napi_env env,
 napi_value JsEmbeddableUIAbilityContext::OnConnectUIServiceExtension(napi_env env, NapiCallbackInfo& info)
 {
     if (IsEmbeddableStart(screenMode_)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "OnConnectUIServiceExtension in half screen mode");
         CHECK_POINTER_RETURN(env, jsUIExtensionContext_);
         return jsUIExtensionContext_->OnConnectUIServiceExtension(env, info);
     }
@@ -597,6 +600,7 @@ napi_value JsEmbeddableUIAbilityContext::OnConnectUIServiceExtension(napi_env en
 napi_value JsEmbeddableUIAbilityContext::OnDisconnectUIServiceExtension(napi_env env, NapiCallbackInfo& info)
 {
     if (IsEmbeddableStart(screenMode_)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "OnConnectUIServiceExtension in half screen mode");
         CHECK_POINTER_RETURN(env, jsUIExtensionContext_);
         return jsUIExtensionContext_->OnDisconnectUIServiceExtension(env, info);
     }
