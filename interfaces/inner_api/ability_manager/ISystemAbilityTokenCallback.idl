@@ -12,7 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+sequenceable OHOS.AAFwk.Want;
 
-interface OHOS.AAFwk.IHiddenStartObserver {
-    boolean IsHiddenStart([in] int pid);
+interface OHOS.AAFwk.ISystemAbilityTokenCallback {
+     int SendResult([in] Want want, [in] int callerUid, [in] int requestCode,
+        [in] unsigned int accessToken, [in] int resultCode);
 }
