@@ -804,6 +804,41 @@ enum {
     ERR_APP_SELECTOR_NOT_EXISTS = 2097334,
     
     /**
+     * Result (2097335) for sa interceptor executer is nullptr.
+     */
+    ERR_NULL_SA_INTERCEPTOR_EXECUTER = 2097335,
+
+    /**
+     * Result (2097336) for sa interceptor write rule falied.
+     */
+    ERR_SA_INTERCEPTOR_WRITE_RULE_FAILED = 2097336,
+
+    /**
+     * Result (2097337) for sa interceptor descriptor mismatch.
+     */
+    ERR_SA_INTERCEPTOR_DESCRIPTOR_MISMATCH = 2097337,
+
+    /**
+     * Result (2097338) for sa interceptor write ipc params failed.
+     */
+    ERR_SA_INTERCEPTOR_WRITE_PARAMS_FAILED = 2097338,
+
+    /*
+     * Result(2097339) for ipc remote null.
+     */
+    ERR_NULL_IPC_REMOTE = 2097339,
+
+    /*
+     * Result(2097340) for ipc send request failed.
+     */
+    ERR_NULL_IPC_SEND_REQUST_FAILED = 2097340,
+
+    /*
+     * Result(2097341) for sa interceptor read ipc params failed.
+     */
+    ERR_SA_INTERCEPTOR_READ_PARAMS_FAILED = 2097341,
+
+    /**
      * Native error(3000000) for target bundle not exist.
      */
     ERR_CODE_NOT_EXIST = 3000000,
@@ -1029,6 +1064,11 @@ enum NativeFreeInstallError {
      * Result(29360218) for failed to create instance key from SCB.
      */
     ERR_CREATE_INSTANCE_KEY_FAILED = 29360218,
+
+    /*
+     * Result(29360219) for write sa interceptor failed.
+     */
+    ERR_WRITE_SA_INTERCEPTOR_FAILED = 29360219,
 
     /**
      * Undefine error code.

@@ -28,6 +28,7 @@
 #include "ability_manager_errors.h"
 #include "ability_manager_stub_mock_test.h"
 #include "ability_scheduler_mock.h"
+#include "ability_business_error.h"
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_execute_manager.h"
 #include "insight_intent_db_cache.h"
@@ -36,6 +37,7 @@
 #include "mock_bundle_manager_proxy.h"
 #include "mock_my_flag.h"
 #include "mock_permission_verification.h"
+#include "mock_sa_interceptor_stub.h"
 #include "mock_task_handler_wrap.h"
 #include "process_options.h"
 #include "recovery_param.h"
@@ -2087,6 +2089,128 @@ HWTEST_F(AbilityManagerServiceSixthTest, GetInsightIntentInfoByIntentName_001, T
     auto ret = abilityMs->GetInsightIntentInfoByIntentName(flag, bundleName, moduleName, intentName, info);
     EXPECT_NE(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetInsightIntentInfoByIntentName_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: RegisterSAInterceptor
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService RegisterSAInterceptor
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, RegisterSAInterceptor_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest RegisterSAInterceptor_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    MyFlag::flag_ = 0;
+    sptr<AbilityRuntime::ISAInterceptor> interceptor = new AbilityRuntime::MockSAInterceptorStub(0);
+    int32_t result = abilityMs->RegisterSAInterceptor(interceptor);
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    MyFlag::flag_ = MyFlag::IS_SA_CALL;
+    result = abilityMs->RegisterSAInterceptor(interceptor);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest RegisterSAInterceptor_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: HandleExecuteSAInterceptor
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService HandleExecuteSAInterceptor
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, HandleExecuteSAInterceptor_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest HandleExecuteSAInterceptor_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    Want want;
+    auto callerToken = sptr<MockAbilityToken>::MakeSptr();
+    const std::string deviceName = "";
+    const std::string abilityName = "EntryAbility";
+    const std::string appName = "amstest";
+    const std::string bundleName = "com.example.amstest";
+    const std::string moduleName = "entry";
+    AbilityRequest abilityRequest = AbilityManagerServiceSixthTest::GenerateAbilityRequest(deviceName,
+        abilityName, appName, bundleName, moduleName);
+    int32_t result;
+    bool retBool = abilityMs->HandleExecuteSAInterceptor(want, callerToken, abilityRequest, result);
+    EXPECT_EQ(retBool, true);
+
+    MyFlag::flag_ = MyFlag::IS_SA_CALL;
+    sptr<AbilityRuntime::ISAInterceptor> interceptor = new AbilityRuntime::MockSAInterceptorStub(0);
+    int32_t retInt = abilityMs->RegisterSAInterceptor(interceptor);
+    EXPECT_EQ(retInt, ERR_OK);
+    retBool = abilityMs->HandleExecuteSAInterceptor(want, callerToken, abilityRequest, result);
+    EXPECT_EQ(retBool, true);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest HandleExecuteSAInterceptor_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: HandleExecuteSAInterceptor
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService HandleExecuteSAInterceptor
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, HandleExecuteSAInterceptor_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest HandleExecuteSAInterceptor_002 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    Want want;
+    auto callerToken = sptr<MockAbilityToken>::MakeSptr();
+    const std::string deviceName = "";
+    const std::string abilityName = "EntryAbility";
+    const std::string appName = "amstest";
+    const std::string bundleName = "com.example.amstest";
+    const std::string moduleName = "entry";
+    AbilityRequest abilityRequest = AbilityManagerServiceSixthTest::GenerateAbilityRequest(deviceName,
+        abilityName, appName, bundleName, moduleName);
+    int32_t result;
+    sptr<AbilityRuntime::ISAInterceptor> interceptor =
+        new AbilityRuntime::MockSAInterceptorStub(AbilityRuntime::TYPE_NOT_ALLOW);
+    bool retBool = abilityMs->HandleExecuteSAInterceptor(want, callerToken, abilityRequest, result);
+    EXPECT_EQ(retBool, true);
+
+    MyFlag::flag_ = MyFlag::IS_SA_CALL;
+    int32_t retInt = abilityMs->RegisterSAInterceptor(interceptor);
+    EXPECT_EQ(retInt, ERR_OK);
+    retBool = abilityMs->HandleExecuteSAInterceptor(want, callerToken, abilityRequest, result);
+    EXPECT_EQ(retBool, false);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest HandleExecuteSAInterceptor_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: HandleExecuteSAInterceptor
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService HandleExecuteSAInterceptor
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, HandleExecuteSAInterceptor_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest HandleExecuteSAInterceptor_003 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    Want want;
+    auto callerToken = sptr<MockAbilityToken>::MakeSptr();
+    const std::string deviceName = "";
+    const std::string abilityName = "EntryAbility";
+    const std::string appName = "amstest";
+    const std::string bundleName = "com.example.amstest";
+    const std::string moduleName = "entry";
+    AbilityRequest abilityRequest = AbilityManagerServiceSixthTest::GenerateAbilityRequest(deviceName,
+        abilityName, appName, bundleName, moduleName);
+    int32_t result;
+    sptr<AbilityRuntime::ISAInterceptor> interceptor =
+        new AbilityRuntime::MockSAInterceptorStub(AbilityRuntime::TYPE_USER_SELECTION);
+    bool retBool = abilityMs->HandleExecuteSAInterceptor(want, callerToken, abilityRequest, result);
+    EXPECT_EQ(retBool, true);
+
+    MyFlag::flag_ = MyFlag::IS_SA_CALL;
+    int32_t retInt = abilityMs->RegisterSAInterceptor(interceptor);
+    EXPECT_EQ(retInt, ERR_OK);
+    retBool = abilityMs->HandleExecuteSAInterceptor(want, callerToken, abilityRequest, result);
+    EXPECT_EQ(retBool, false);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest HandleExecuteSAInterceptor_003 end");
 }
 }  // namespace AAFwk
 }  // namespace OHOS
