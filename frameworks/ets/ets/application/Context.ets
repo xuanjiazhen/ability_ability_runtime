@@ -42,6 +42,9 @@ export class Context extends BaseContext {
 
     public native getApplicationContextSync(): ApplicationContext;
     public native createModuleResourceManagerSync(bundleName: string, moduleName: string): resmgr.ResourceManager;
+    public native nativeCreateDisplayContext(displayId: number): Context;
+    public native nativeCreateAreaModeContext(areaMode: contextConstant.AreaMode): Context;
+    public native nativeCreateSystemHspModuleResourceManager(bundleName: string, moduleName: string): resmgr.ResourceManager;
 
     getApplicationContext(): ApplicationContext {
         return this.getApplicationContextSync();
@@ -49,5 +52,17 @@ export class Context extends BaseContext {
 
     createModuleResourceManager(bundleName: string, moduleName: string): resmgr.ResourceManager {
         return this.createModuleResourceManagerSync(bundleName, moduleName);
+    }
+
+    createDisplayContext(displayId: number): Context {
+      return this.nativeCreateDisplayContext(displayId);
+    }
+
+    createAreaModeContext(areaMode: contextConstant.AreaMode): Context {
+      return this.nativeCreateAreaModeContext(areaMode);
+    }
+
+    createSystemHspModuleResourceManager(bundleName: string, moduleName: string): resmgr.ResourceManager {
+      return this.nativeCreateSystemHspModuleResourceManager(bundleName, moduleName);
     }
 }
