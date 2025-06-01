@@ -37,26 +37,7 @@ namespace AbilityRuntime {
 namespace ContextUtil {
 namespace {
 constexpr const char* AREA_MODE_ENUM_NAME = "L@ohos/app/ability/contextConstant/contextConstant/AreaMode;";
-}
-static std::weak_ptr<Context> context_;
-void BindApplicationCtx(ani_env* aniEnv, ani_class contextClass, ani_object contextObj)
-{
-    // bind parent context field:applicationContext
-    ani_field applicationContextField;
-    if (aniEnv->Class_FindField(contextClass, "applicationContext", &applicationContextField) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Class_FindField failed");
-        return;
-    }
-    auto appContextObj = ApplicationContextManager::GetApplicationContextManager().GetEtsGlobalObject();
-    if (appContextObj == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "appContextObj is nullptr");
-        return;
-    }
-
-    if (aniEnv->Object_SetField_Ref(contextObj, applicationContextField, appContextObj->aniRef) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Object_SetField_Ref failed");
-        return;
-    }
+constexpr const char* CONTEXT_CLASS_NAME = "Lapplication/Context/Context;";
 }
 
 void BindApplicationInfo(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
@@ -214,50 +195,69 @@ void BindContextDir(ani_env* aniEnv, ani_class contextClass, ani_object contextO
     }
 }
 
-bool SetHapModuleInfo(
+void SetHapModuleInfo(
     ani_env *env, ani_class cls, ani_object contextObj, const std::shared_ptr<OHOS::AbilityRuntime::Context> &context)
 {
     if (env == nullptr || context == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null env or context");
-        return false;
+        return;
     }
     auto hapModuleInfo = context->GetHapModuleInfo();
     if (hapModuleInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "hapModuleInfo is nullptr");
-        return false;
+        return;
     }
     ani_ref hapModuleInfoRef = AppExecFwk::CommonFunAni::ConvertHapModuleInfo(env, *hapModuleInfo);
     if (hapModuleInfoRef == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "hapModuleInfoRef is nullptr");
-        return false;
+        return;
     }
     ani_status status = ANI_OK;
     status = env->Object_SetPropertyByName_Ref(contextObj, "currentHapModuleInfo", hapModuleInfoRef);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "Object_SetPropertyByName_Ref failed, status: %{public}d", status);
-        return false;
+        return;
     }
-    return true;
 }
 
-void StsCreatContext(ani_env* aniEnv, ani_class contextClass, ani_object contextObj, std::shared_ptr<Context> context)
+void StsCreateContext(ani_env* aniEnv, ani_class contextClass, ani_object contextObj, std::shared_ptr<Context> context)
 {
     if (aniEnv == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "aniEnv is nullptr");
         return;
     }
-    BindApplicationCtx(aniEnv, contextClass, contextObj);
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "context is nullptr");
         return;
     }
-    if (!SetHapModuleInfo(aniEnv, contextClass, contextObj, context)) {
-        TAG_LOGE(AAFwkTag::APPKIT, "SetHapModuleInfo fail");
-        return;
-    }
-    context_ = context;
+    SetHapModuleInfo(aniEnv, contextClass, contextObj, context);
     BindParentProperty(aniEnv, contextClass, contextObj, context);
     BindContextDir(aniEnv, contextClass, contextObj, context);
+}
+
+std::shared_ptr<Context> GetBaseContext(ani_env *env, ani_object aniObj)
+{
+    ani_status status = ANI_ERROR;
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return nullptr;
+    }
+    ani_class cls {};
+    if ((status = env->FindClass(CONTEXT_CLASS_NAME, &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "status: %{public}d", status);
+        return nullptr;
+    }
+    ani_field contextField = nullptr;
+    if ((status = env->Class_FindField(cls, "nativeContext", &contextField)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "status: %{public}d", status);
+        return nullptr;
+    }
+    ani_long nativeContextLong;
+    if ((status = env->Object_GetField_Long(aniObj, contextField, &nativeContextLong)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "status: %{public}d", status);
+        return nullptr;
+    }
+    auto weakContext = reinterpret_cast<std::weak_ptr<Context>*>(nativeContextLong);
+    return weakContext != nullptr ? weakContext->lock() : nullptr;
 }
 
 bool CheckCallerIsSystemApp()
@@ -273,14 +273,14 @@ ani_object CreateModuleResourceManagerSync([[maybe_unused]]ani_env *env, [[maybe
     ani_string bundleName, ani_string moduleName)
 {
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "env is nullptr");
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
         return {};
     }
     std::string bundleName_ = "";
     AppExecFwk::AniStringToStdString(env, bundleName, bundleName_);
     std::string moduleName_ = "";
     AppExecFwk::AniStringToStdString(env, moduleName, moduleName_);
-    auto context = context_.lock();
+    auto context = GetBaseContext(env, aniObj);
     if (!context) {
         TAG_LOGE(AAFwkTag::APPKIT, "null context");
         ThrowStsError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
@@ -327,7 +327,7 @@ void NativeGetGroupDir([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object 
         ThrowStsInvalidParamError(env, "Parse param groupId failed, groupId must be string.");
         return;
     }
-    auto context = context_.lock();
+    auto context = GetBaseContext(env, aniObj);
     if (!context) {
         TAG_LOGE(AAFwkTag::APPKIT, "null context");
         AppExecFwk::AsyncCallback(env, callBackObj, CreateStsError(env,
@@ -340,6 +340,177 @@ void NativeGetGroupDir([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object 
     ani_object errorObject = CreateStsError(env, static_cast<AbilityErrorCode>(ret));
     ani_string aniPath = AppExecFwk::GetAniString(env, path);
     AppExecFwk::AsyncCallback(env, callBackObj, errorObject, aniPath);
+}
+
+ani_object NativeCreateDisplayContext(ani_env *env, ani_object aniObj, ani_double displayId)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "NativeCreateDisplayContext");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "env is nullptr");
+        return nullptr;
+    }
+#ifdef SUPPORT_GRAPHICS
+    auto context = GetBaseContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null context");
+        ThrowStsError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        return nullptr;
+    }
+    ani_ref undefRef = GetUndefinedRef(env);
+    if (undefRef == nullptr) {
+        return nullptr;
+    }
+    if (displayId < 0) {
+        TAG_LOGE(AAFwkTag::APPKIT, "displayId is invalid, less than 0");
+        ThrowStsError(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        return reinterpret_cast<ani_object>(undefRef);
+    }
+    uint64_t validDisplayId = static_cast<uint64_t>(displayId);
+    auto displayContext = context->CreateDisplayContext(validDisplayId);
+    if (displayContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to create displayContext");
+        return reinterpret_cast<ani_object>(undefRef);
+    }
+    ani_class contextClass = nullptr;
+    ani_status status = env->FindClass(CONTEXT_CLASS_NAME, &contextClass);
+    if (status != ANI_OK || contextClass == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "FindClass Context failed, status: %{public}d", status);
+        AbilityRuntime::ThrowStsInvalidParamError(env, "FindClass failed");
+        return reinterpret_cast<ani_object>(undefRef);
+    }
+    ani_object contextObj = CreateContextObject(env, contextClass, displayContext);
+    if (contextObj == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null contextObj");
+        return reinterpret_cast<ani_object>(undefRef);
+    }
+    return contextObj;
+#else
+    ani_ref undefRef = GetUndefinedRef(env);
+    if (undefRef == nullptr) {
+        return nullptr;
+    }
+    return reinterpret_cast<ani_object>(undefRef);
+#endif
+}
+
+ani_object NativeCreateAreaModeContext(ani_env *env, ani_object aniObj, ani_object areaModeObj)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "NativeCreateAreaModeContext");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return nullptr;
+    }
+    auto context = GetBaseContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null context");
+        ThrowStsError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        return nullptr;
+    }
+    ani_ref undefRef = nullptr;
+    ani_status status = ANI_ERROR;
+    if ((status = env->GetUndefined(&undefRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY, "GetUndefined failed %{public}d", status);
+        return nullptr;
+    }
+    int areaMode = 0;
+    if (!AAFwk::AniEnumConvertUtil::EnumConvertStsToNative(env, areaModeObj, areaMode)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "param areaMode err");
+        ThrowStsInvalidNumParametersError(env);
+        return reinterpret_cast<ani_object>(undefRef);
+    }
+    auto areaContext = context->CreateAreaModeContext(areaMode);
+    if (areaContext == nullptr) {
+        ThrowStsError(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to create areaContext");
+        return reinterpret_cast<ani_object>(undefRef);
+    }
+    ani_class contextClass = nullptr;
+    if ((status = env->FindClass(CONTEXT_CLASS_NAME, &contextClass)) != ANI_OK || contextClass == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "FindClass Context failed status: %{public}d", status);
+        AbilityRuntime::ThrowStsInvalidParamError(env, "FindClass failed");
+        return reinterpret_cast<ani_object>(undefRef);
+    }
+    ani_object contextObj = CreateContextObject(env, contextClass, displayContext);
+    if (contextObj == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null contextObj");
+        return reinterpret_cast<ani_object>(undefRef);
+    }
+    return contextObj;
+}
+
+ani_object NativeCreateSystemHspModuleResourceManager(ani_env *env, ani_object aniObj,
+    ani_string bundleNameObj, ani_string moduleNameObj)
+{
+    TAG_LOGE(AAFwkTag::UIABILITY, "NativeCreateSystemHspModuleResourceManager");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "env is nullptr");
+        return nullptr;
+    }
+    ani_ref undefRef = nullptr;
+    ani_status status = ANI_ERROR;
+    if ((status = env->GetUndefined(&undefRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY, "GetUndefined failed %{public}d", status);
+        return nullptr;
+    }
+    auto context = GetBaseContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null context");
+        ThrowStsError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        return reinterpret_cast<ani_object>(undefRef);
+    }
+    std::string bundleName = "";
+    if (!AppExecFwk::AniStringToStdString(env, bundleNameObj, bundleName)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Parse bundleName failed");
+        ThrowStsInvalidParamError(env, "Parse param bundleName failed, bundleName must be string.");
+        return reinterpret_cast<ani_object>(undefRef);
+    }
+    std::string moduleName = "";
+    if (!AppExecFwk::AniStringToStdString(env, moduleNameObj, moduleName)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Parse moduleName failed");
+        ThrowStsInvalidParamError(env, "Parse param moduleName failed, moduleName must be string.");
+        return reinterpret_cast<ani_object>(undefRef);
+    }
+    std::shared_ptr<Global::Resource::ResourceManager> resourceManager = nullptr;
+    int32_t retCode = context->CreateSystemHspModuleResourceManager(bundleName, moduleName, resourceManager);
+    if (resourceManager == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null resourceManager, errorCode:%{public}d", retCode);
+        ThrowStsError(env, retCode);
+        return reinterpret_cast<ani_object>(undefRef);
+    }
+    return Global::Resource::ResMgrAddon::CreateResMgr(env, "", resourceManager, context);
+}
+
+ani_object CreateContextObject(ani_env* env, ani_class contextClass, std::shared_ptr<Context> nativeContext)
+{
+    ani_object contextObj = nullptr;
+    ani_method ctorMethod = nullptr;
+    ani_status status = ANI_ERROR;
+
+    if ((status = env->Class_FindMethod(contextClass, "<ctor>", ":V", &ctorMethod)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Find ctor method failed, status: %{public}d", status);
+        return nullptr;
+    }
+    if (ctorMethod == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null ctorMethod");
+        return nullptr;
+    }
+    if ((status = env->Object_New(contextClass, ctorMethod, &contextObj)) != ANI_OK || contextObj == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Object_New failed, status: %{public}d", status);
+        return nullptr;
+    }
+    StsCreateContext(env, contextClass, contextObj, nativeContext);
+    return contextObj;
+}
+
+ani_ref GetUndefinedRef(ani_env* env)
+{
+    ani_ref undefRef = nullptr;
+    ani_status status = env->GetUndefined(&undefRef);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY, "GetUndefined failed %{public}d", status);
+        return nullptr;
+    }
+    return undefRef;
 }
 }
 } // namespace AbilityRuntime

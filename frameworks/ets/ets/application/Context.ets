@@ -41,7 +41,9 @@ export class Context extends BaseContext {
   eventHub: EventHub = new EventHub();
   resourceManager: resmgr.ResourceManager;
   processName: string = "";
+
   native constructor();
+
   constructor(applicationInfo: ApplicationInfo, resourceManager: resmgr.ResourceManager) {
     super();
     this.applicationInfo = applicationInfo;
@@ -49,10 +51,20 @@ export class Context extends BaseContext {
   }
 
   public native getApplicationContextSync(): ApplicationContext;
+
   public native createModuleResourceManagerSync(bundleName: string, moduleName: string): resmgr.ResourceManager;
+
   public native nativeGetGroupDir(dataGroupID: string, callback: AsyncCallbackWrapper<string>): void;
+
   private static native nativeTransferStatic(input: ESValue): Object;
+
   private static native nativeTransferDynamic(input: Object): ESValue;
+
+  public native nativeCreateDisplayContext(displayId: number): Context;
+
+  public native nativeCreateAreaModeContext(areaMode: contextConstant.AreaMode): Context;
+
+  public native nativeCreateSystemHspModuleResourceManager(bundleName: string, moduleName: string): resmgr.ResourceManager;
 
   getApplicationContext(): ApplicationContext {
     return this.getApplicationContextSync();
@@ -90,5 +102,17 @@ export class Context extends BaseContext {
 
   static transferDynamic(input: Object): Any {
     return Context.nativeTransferDynamic(input).unwrap();
+  }
+
+  createDisplayContext(displayId: number): Context {
+    return this.nativeCreateDisplayContext(displayId);
+  }
+
+  createAreaModeContext(areaMode: contextConstant.AreaMode): Context {
+    return this.nativeCreateAreaModeContext(areaMode);
+  }
+
+  createSystemHspModuleResourceManager(bundleName: string, moduleName: string): resmgr.ResourceManager {
+    return this.nativeCreateSystemHspModuleResourceManager(bundleName, moduleName);
   }
 }

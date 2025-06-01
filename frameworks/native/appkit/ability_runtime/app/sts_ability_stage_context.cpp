@@ -81,9 +81,7 @@ ani_object STSAbilityStageContext::CreateStsAbilityStageContext(ani_env* env, st
         delete workContext;
         return nullptr;
     }
-
-    // bind parent context
-    ContextUtil::StsCreatContext(env, abilityStageCtxCls, obj, context);
+    ContextUtil::StsCreateContext(env, abilityStageCtxCls, obj, context);
 
     //set Config class
     auto configuration = context->GetConfiguration();

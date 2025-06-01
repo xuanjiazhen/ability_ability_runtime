@@ -23,8 +23,6 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace ContextUtil {
-void BindApplicationCtx(ani_env* aniEnv, ani_class contextClass, ani_object contextObj);
-
 void SetArea([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj, ani_int value);
 
 void BindMethods(ani_env* aniEnv, ani_class contextClass);
@@ -44,7 +42,7 @@ void BindParentPropertyInner(ani_env* aniEnv, ani_class contextClass, ani_object
 void BindContextDir(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
     std::shared_ptr<Context> context);
 
-void StsCreatContext(ani_env* aniEnv, ani_class contextClass, ani_object contextObj, std::shared_ptr<Context> context);
+void StsCreateContext(ani_env* aniEnv, ani_class contextClass, ani_object contextObj, std::shared_ptr<Context> context);
 
 ani_object CreateModuleResourceManagerSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
     ani_string bundleName, ani_string moduleName);
@@ -53,6 +51,17 @@ ani_object GetApplicationContextSync([[maybe_unused]]ani_env *env, [[maybe_unuse
 
 void NativeGetGroupDir([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
     ani_string dataGroupIdObj, ani_object callBackObj);
+
+ani_object NativeCreateDisplayContext(ani_env *env, ani_object aniObj, ani_double displayId);
+
+ani_object NativeCreateAreaModeContext(ani_env *env, ani_object aniObj, ani_object areaModeObj);
+
+ani_object NativeCreateSystemHspModuleResourceManager(ani_env *env, ani_object aniObj,
+    ani_string bundleNameObj, ani_string moduleNameObj);
+
+ani_object CreateContextObject(ani_env* env, ani_class contextClass, void* nativeContext);
+
+ani_ref GetUndefinedRef(ani_env* env);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
