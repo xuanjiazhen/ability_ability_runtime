@@ -18,9 +18,30 @@
 
 #include "sts_runtime.h"
 
+#include "ability_running_info.h"
+
 namespace OHOS {
 namespace AbilityManagerSts {
 void StsAbilityManagerRegistryInit(ani_env *env);
+
+class StsAbilityManager final {
+public:
+    static StsAbilityManager &GetInstance()
+    {
+        static StsAbilityManager instance;
+        return instance;
+    }
+    static void GetAbilityRunningInfos(ani_env *env, ani_object callback);
+    static void NotifyDebugAssertResult(
+        ani_env *env, ani_string sessionIdObj, ani_object userStatusObj, ani_object callback);
+
+private:
+    static bool WrapAbilityRunningInfo(ani_env *env, ani_object &infoObj, const AAFwk::AbilityRunningInfo &info);
+    static bool WrapAbilityRunningInfoArray(
+        ani_env *env, ani_object &arrayObj, const std::vector<AAFwk::AbilityRunningInfo> &infos);
+    static bool WrapAbilityRunningInfoInner(
+        ani_env *env, ani_object &infoObj, const AAFwk::AbilityRunningInfo &info, ani_class cls);
+};
 } // namespace AbilityManagerSts
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_STS_ABILITY_MANAGER_H
