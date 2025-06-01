@@ -34,17 +34,17 @@ namespace AbilityRuntime {
     /**
      * @brief Get "stageMode" value of object.
      *
-     * @param env NAPI environment.
+     * @param env ANI environment.
      * @param object Native value contains "stageMode" object.
      * @param stageMode The value of "stageMode" object.
-     * @return napi_status
+     * @return ani_status
      */
     ani_status IsStageContext(ani_env* env, ani_object object, ani_boolean& stageMode);
 
     /**
      * @brief Get stage mode context.
      *
-     * @param env NAPI environment.
+     * @param env ANI environment.
      * @param object Native value of context.
      * @return The stage mode context.
      */
@@ -54,7 +54,7 @@ namespace AbilityRuntime {
     /**
      * @brief Get current ability.
      *
-     * @param env NAPI environment.
+     * @param env ANI environment.
      * @return The pointer of current ability.
      */
     AppExecFwk::Ability* GetCurrentAbility(ani_env* env);

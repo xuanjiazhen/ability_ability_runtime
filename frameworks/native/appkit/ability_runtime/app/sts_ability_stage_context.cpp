@@ -19,7 +19,7 @@
 #include "configuration_convertor.h"
 #include "ohos_application.h"
 #include "ani_common_configuration.h"
-#include "sts_context_utils.h"
+#include "ets_context_utils.h"
 namespace OHOS {
 namespace AbilityRuntime {
 
@@ -89,7 +89,7 @@ ani_object STSAbilityStageContext::CreateStsAbilityStageContext(ani_env* env, st
         delete workContext;
         return nullptr;
     }
-    ContextUtil::StsCreatContext(env, abilityStageCtxCls, obj, app->GetApplicationCtxObjRef(), context);
+    ContextUtil::CreateEtsBaseContext(env, abilityStageCtxCls, obj, context);
 
     //set Config class
     auto configuration = context->GetConfiguration();
