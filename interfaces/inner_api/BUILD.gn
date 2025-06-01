@@ -16,7 +16,6 @@ group("innerkits_target") {
   deps = [
     "ability_manager:ability_manager",
     "ability_manager:ability_manager_c",
-    "ability_manager:ability_manager_innerkits",
     "app_manager:app_manager",
     "connectionobs_manager:connection_obs_manager",
     "dataobs_manager:dataobs_manager",

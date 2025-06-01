@@ -29,7 +29,7 @@ interface OHOS.AppExecFwk.IAppDebugListener;
 interface OHOS.AppExecFwk.IAbilityDebugResponse;
 
 interface OHOS.AppExecFwk.IAmsMgr {
-    void LoadAbility([in]  sharedptr<AbilityInfo> abilityInfo, [in] sharedptr<ApplicationInfo> appInfo,
+    void LoadAbility([in] sharedptr<AbilityInfo> abilityInfo, [in] sharedptr<ApplicationInfo> appInfo,
         [in] sharedptr<Want> want, [in] sharedptr<LoadParam> loadParam);
     void TerminateAbility([in] IRemoteObject token, [in] boolean clearMissionFlag);
     void UpdateAbilityState([in] IRemoteObject token, [in] int state);
