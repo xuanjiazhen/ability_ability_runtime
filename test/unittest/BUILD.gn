@@ -210,7 +210,10 @@ ohos_source_set("abilityms_test_source") {
   ]
 
   cflags_cc = []
-  configs = [ ":test_exception_config" ]
+  configs = [
+    ":test_exception_config",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
+  ]
 
   public_configs = [
     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
@@ -222,6 +225,8 @@ ohos_source_set("abilityms_test_source") {
   }
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_proxy",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_stub",
     "${ability_runtime_innerkits_path}/ability_manager:process_options",
     "${ability_runtime_innerkits_path}/ability_manager:start_window_option",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
@@ -298,7 +303,6 @@ ohos_source_set("abilityms_test_source") {
       "${ability_runtime_services_path}/abilitymgr/src/mission/mission_listener_proxy.cpp",
       "${ability_runtime_services_path}/abilitymgr/src/mission/mission_listener_stub.cpp",
       "${ability_runtime_services_path}/abilitymgr/src/mission/mission_snapshot.cpp",
-      "${ability_runtime_services_path}/abilitymgr/src/remote_mission_listener_proxy.cpp",
       "${ability_runtime_services_path}/abilitymgr/src/remote_mission_listener_stub.cpp",
       "${ability_runtime_services_path}/abilitymgr/src/system_dialog_scheduler.cpp",
       "${ability_runtime_services_path}/appdfr/src/application_anr_listener.cpp",

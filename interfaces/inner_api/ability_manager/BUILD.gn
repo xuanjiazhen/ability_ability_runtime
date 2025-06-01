@@ -16,7 +16,7 @@ import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 idl_gen_interface("ability_manager_interface") {
   sources = [
-
+    "IRemoteMissionListener.idl",
   ]
   sources_common = [
 
@@ -92,7 +92,7 @@ ohos_source_set("ability_manager_proxy") {
 
   output_values = get_target_outputs(":ability_manager_interface")
   source_values = [
-    #"*hidden_start_observer_proxy.cpp",
+    "*remote_mission_listener_proxy.cpp",
   ]
   sources = filter_include(output_values, source_values)
 
@@ -172,7 +172,7 @@ ohos_source_set("ability_manager_stub") {
 
   output_values = get_target_outputs(":ability_manager_interface")
   source_values = [
-    #"*hidden_start_observer_stub.cpp",
+    "*remote_mission_listener_stub.cpp",
   ]
   sources = filter_include(output_values, source_values)
 
@@ -283,7 +283,6 @@ ohos_shared_library("ability_manager") {
     "${ability_runtime_services_path}/abilitymgr/src/open_link/open_link_options.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/prepare_terminate_callback_proxy.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/prepare_terminate_callback_stub.cpp",
-    "${ability_runtime_services_path}/abilitymgr/src/remote_mission_listener_stub.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/remote_on_listener_proxy.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/remote_on_listener_stub.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/system_ability_token_callback_stub.cpp",
