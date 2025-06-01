@@ -70,7 +70,6 @@ ohos_shared_library("wantagent_innerkits") {
   ]
 
   deps = [
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_interface",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/error_utils:ability_runtime_error_util",
     "${ability_runtime_services_path}/abilitymgr:wantagent_manager",
@@ -96,8 +95,6 @@ ohos_shared_library("wantagent_innerkits") {
     "icu:shared_icuuc",
     "image_framework:image_native",
     "resource_management:global_resmgr",
-    "relational_store:native_dataability",
-    "relational_store:native_rdb",
   ]
 
   if (is_double_framework) {

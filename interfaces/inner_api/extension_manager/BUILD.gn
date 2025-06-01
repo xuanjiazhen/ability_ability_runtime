@@ -49,10 +49,6 @@ ohos_shared_library("extension_manager") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
   ]
 
-  deps = [
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_interface",
-  ]
-
   public_deps = [ "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub" ]
 
   external_deps = [
@@ -62,8 +58,6 @@ ohos_shared_library("extension_manager") {
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_single",
-    "relational_store:native_dataability",
-    "relational_store:native_rdb",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]

@@ -16,7 +16,7 @@ import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 idl_gen_interface("ability_manager_interface") {
   sources = [
-   "IHiddenStartObserver.idl"
+    "ISystemAbilityTokenCallback.idl",
   ]
   sources_common = [
 
@@ -92,7 +92,7 @@ ohos_source_set("ability_manager_proxy") {
 
   output_values = get_target_outputs(":ability_manager_interface")
   source_values = [
-    "*hidden_start_observer_proxy.cpp",
+    "*system_ability_token_callback_proxy.cpp.cpp",
   ]
   sources = filter_include(output_values, source_values)
 
@@ -172,7 +172,7 @@ ohos_source_set("ability_manager_stub") {
 
   output_values = get_target_outputs(":ability_manager_interface")
   source_values = [
-    "*hidden_start_observer_stub.cpp",
+    "*system_ability_token_callback_stub.cpp",
   ]
   sources = filter_include(output_values, source_values)
 
@@ -286,13 +286,14 @@ ohos_shared_library("ability_manager") {
     "${ability_runtime_services_path}/abilitymgr/src/remote_mission_listener_stub.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/remote_on_listener_proxy.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/remote_on_listener_stub.cpp",
-    "${ability_runtime_services_path}/abilitymgr/src/system_ability_token_callback_stub.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ui_extension/ui_extension_ability_connect_info.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ui_extension/ui_extension_host_info.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ui_extension/ui_extension_session_info.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/user_callback_proxy.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/user_callback_stub.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/window_config.cpp",
+    "src/hidden_start_observer_proxy.cpp",
+    "src/hidden_start_observer_stub.cpp",
     "src/status_bar_delegate/status_bar_delegate_proxy.cpp",
     "src/status_bar_delegate/status_bar_delegate_stub.cpp",
     "src/window_manager_service_handler_proxy.cpp",
@@ -592,7 +593,10 @@ ohos_shared_library("ability_connect_callback_stub") {
 
   sources = [ "${ability_runtime_services_path}/abilitymgr/src/ability_connect_callback_stub.cpp" ]
 
-  public_configs = [ ":ability_manager_public_config" ]
+  public_configs = [
+    ":ability_manager_public_config",
+    ":ability_manager_idl_config",
+  ]
 
   external_deps = [
     "c_utils:utils",
@@ -606,8 +610,6 @@ ohos_shared_library("ability_connect_callback_stub") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "jsoncpp:jsoncpp",
-    "relational_store:native_dataability",
-    "relational_store:native_rdb",
   ]
   if (ability_runtime_graphics) {
     external_deps += [ "graphic_2d:color_manager" ]
