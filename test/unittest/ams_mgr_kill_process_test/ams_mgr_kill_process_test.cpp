@@ -101,7 +101,7 @@ HWTEST_F(AmsMgrKillProcessTest, KillProcess_0100, TestSize.Level0)
     auto appMgrServiceInner = GetAppMgrServiceInner();
     EXPECT_NE(appMgrServiceInner, nullptr);
 
-    ErrCode result = appMgrServiceInner->KillApplicationByUserId(STRING_BUNDLE_NAME, 0, ACCOUNT_ID);
+    ErrCode result = appMgrServiceInner->KillApplicationByUserId(STRING_BUNDLE_NAME, 0, ACCOUNT_ID, false, 0);
     EXPECT_NE(result, ERR_OK);
 }
 
@@ -121,6 +121,6 @@ HWTEST_F(AmsMgrKillProcessTest, KillProcess_0200, TestSize.Level0)
     auto proxy = GetAppMgrProxy();
     EXPECT_NE(proxy, nullptr);
 
-    ErrCode result = proxy->GetAmsMgr()->KillProcessWithAccount(STRING_BUNDLE_NAME, ACCOUNT_ID);
+    ErrCode result = proxy->GetAmsMgr()->KillProcessWithAccount(STRING_BUNDLE_NAME, ACCOUNT_ID, false, 0);
     EXPECT_NE(result, ERR_OK);
 }

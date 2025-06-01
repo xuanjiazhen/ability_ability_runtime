@@ -18,7 +18,7 @@
 
 #include "ability_foreground_state_observer_interface.h"
 #include "ability_info.h"
-#include "ams_mgr_interface.h"
+#include "iams_mgr.h"
 #include "app_foreground_state_observer_interface.h"
 #include "app_malloc_info.h"
 #include "app_mgr_ipc_interface_code.h"
@@ -440,7 +440,7 @@ public:
 
     /**
      * UpdateConfigurationForBackgroundApp
-     * 
+     *
      * @param appInfos Background application information.
      * @param policy Update policy.
      * @param userId configuration for the user

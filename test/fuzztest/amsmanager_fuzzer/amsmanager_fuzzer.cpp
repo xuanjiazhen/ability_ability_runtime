@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "ability_manager_ipc_interface_code.h"
 #include "ams_mgr_scheduler.h"
 #include "app_mgr_constants.h"
 #include "app_mgr_service_inner.h"
@@ -37,6 +38,7 @@ constexpr size_t U32_AT_SIZE = 4;
 constexpr size_t OFFSET_ZERO = 24;
 constexpr size_t OFFSET_ONE = 16;
 constexpr size_t OFFSET_TWO = 8;
+constexpr int32_t MAX__IPC_CODE = 9999;
 }
 const std::u16string AMSMGR_INTERFACE_TOKEN = u"ohos.appexecfwk.IAmsMgr";
 
@@ -49,7 +51,7 @@ uint32_t GetU32Data(const char* ptr)
 
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
-    uint32_t code = GetU32Data(data) % (static_cast<uint32_t>(IAmsMgr::Message::END));
+    uint32_t code = GetU32Data(data) % MAX__IPC_CODE; //
 
     MessageParcel parcel;
     parcel.WriteInterfaceToken(AMSMGR_INTERFACE_TOKEN);
