@@ -28,6 +28,7 @@ ohos_unittest("ability_manager_service_fourteenth_test") {
   configs = [
     ":abilityms_config",
     ":abilityms_exception_config",
+    ":ability_manager_idl_config",
   ]
   include_dirs = [
     "../ability_manager_service_thirteenth_test/mock/include",
@@ -162,7 +163,6 @@ ohos_unittest("ability_manager_service_fourteenth_test") {
     "${ability_runtime_services_path}/abilitymgr/src/rdb/parser_util.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/rdb/rdb_data_manager.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/recovery_info_timer.cpp",
-    "${ability_runtime_services_path}/abilitymgr/src/remote_mission_listener_proxy.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/resident_process/resident_process_manager.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/restart_app_manager.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/scene_board/status_bar_delegate_manager.cpp",
@@ -231,6 +231,8 @@ ohos_unittest("ability_manager_service_fourteenth_test") {
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_proxy",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
     "${ability_runtime_innerkits_path}/ability_manager:mission_info",
