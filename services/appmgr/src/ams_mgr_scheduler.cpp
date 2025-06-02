@@ -65,22 +65,22 @@ AmsMgrScheduler::~AmsMgrScheduler()
     TAG_LOGI(AAFwkTag::APPMGR, "call");
 }
 
-void AmsMgrScheduler::LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInfo,
+ErrCode AmsMgrScheduler::LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInfo,
     const std::shared_ptr<ApplicationInfo> &appInfo,
-    const std::shared_ptr<AAFwk::Want> &want, std::shared_ptr<AbilityRuntime::LoadParam> loadParam)
+    const std::shared_ptr<AAFwk::Want> &want, const std::shared_ptr<AbilityRuntime::LoadParam>& loadParam)
 {
     if (!abilityInfo || !appInfo) {
         TAG_LOGE(AAFwkTag::APPMGR, "param error");
-        return;
+        return ERR_INVALID_VALUE;
     }
 
     if (!IsReady()) {
-        return;
+        return ERR_INVALID_OPERATION;
     }
 
     if (amsMgrServiceInner_->VerifyRequestPermission() != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
-        return;
+        return ERR_PERMISSION_DENIED;
     }
     PerfProfile::GetInstance().SetAbilityLoadStartTime(GetTickCount());
     TAG_LOGI(AAFwkTag::APPMGR, "SubmitLoadTask: %{public}s-%{public}s", abilityInfo->bundleName.c_str(),
@@ -93,7 +93,7 @@ void AmsMgrScheduler::LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInf
     // cache other application load ability task before scene board attach
     if (!amsMgrServiceInner_->GetSceneBoardAttachFlag() && abilityInfo->bundleName != SCENE_BOARD_BUNDLE_NAME) {
         amsMgrServiceInner_->CacheLoadAbilityTask(std::move(loadAbilityFunc));
-        return;
+        return ERR_INVALID_VALUE;
     }
     if (abilityInfo->bundleName == SCENE_BOARD_BUNDLE_NAME && abilityInfo->name == SCENEBOARD_ABILITY_NAME) {
         amsMgrServiceInner_->SetSceneBoardAttachFlag(false);
@@ -122,36 +122,38 @@ void AmsMgrScheduler::LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInf
     }
 
     amsHandler_->SubmitTask(loadAbilityFunc, taskAttr);
+    return ERR_OK;
 }
 
-void AmsMgrScheduler::UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state)
+ErrCode AmsMgrScheduler::UpdateAbilityState(const sptr<IRemoteObject> &token, int32_t state)
 {
     if (!IsReady()) {
-        return;
+        return ERR_INVALID_OPERATION;
     }
 
     if (amsMgrServiceInner_->VerifyRequestPermission() != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
-        return;
+        return ERR_PERMISSION_DENIED;
     }
     std::function<void()> updateAbilityStateFunc = [amsMgrServiceInner = amsMgrServiceInner_, token, state] () {
-        amsMgrServiceInner->UpdateAbilityState(token, state);
+        amsMgrServiceInner->UpdateAbilityState(token, static_cast<AbilityState>(state));
     };
     amsHandler_->SubmitTask(updateAbilityStateFunc, AAFwk::TaskAttribute{
         .taskName_ = TASK_UPDATE_ABILITY_STATE,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
     });
+    return ERR_OK;
 }
 
-void AmsMgrScheduler::UpdateExtensionState(const sptr<IRemoteObject> &token, const ExtensionState state)
+ErrCode AmsMgrScheduler::UpdateExtensionState(const sptr<IRemoteObject> &token, ExtensionState state)
 {
     if (!IsReady()) {
-        return;
+        return ERR_INVALID_OPERATION;
     }
 
     if (amsMgrServiceInner_->VerifyRequestPermission() != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
-        return;
+        return ERR_PERMISSION_DENIED;
     }
     std::function<void()> updateExtensionStateFunc = [amsMgrServiceInner = amsMgrServiceInner_, token, state]() {
         amsMgrServiceInner->UpdateExtensionState(token, state);
@@ -160,17 +162,18 @@ void AmsMgrScheduler::UpdateExtensionState(const sptr<IRemoteObject> &token, con
         .taskName_ = TASK_UPDATE_EXTENSION_STATE,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
     });
+    return ERR_OK;
 }
 
-void AmsMgrScheduler::TerminateAbility(const sptr<IRemoteObject> &token, bool clearMissionFlag)
+ErrCode AmsMgrScheduler::TerminateAbility(const sptr<IRemoteObject> &token, bool clearMissionFlag)
 {
     if (!IsReady()) {
-        return;
+        return ERR_INVALID_OPERATION;
     }
 
     if (amsMgrServiceInner_->VerifyRequestPermission() != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
-        return;
+        return ERR_PERMISSION_DENIED;
     }
     std::function<void()> terminateAbilityFunc = [amsMgrServiceInner = amsMgrServiceInner_, token, clearMissionFlag]() {
         amsMgrServiceInner->TerminateAbility(token, clearMissionFlag);
@@ -179,50 +182,53 @@ void AmsMgrScheduler::TerminateAbility(const sptr<IRemoteObject> &token, bool cl
         .taskName_ = TASK_TERMINATE_ABILITY,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
     });
+    return ERR_OK;
 }
 
-void AmsMgrScheduler::RegisterAppStateCallback(const sptr<IAppStateCallback> &callback)
+ErrCode AmsMgrScheduler::RegisterAppStateCallback(const sptr<IAppStateCallback> &callback)
 {
     if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
         TAG_LOGE(AAFwkTag::APPMGR, "caller is not SA");
-        return;
+        return ERR_PERMISSION_DENIED;
     }
     if (!IsReady()) {
-        return;
+        return ERR_INVALID_OPERATION;
     }
     std::function<void()> registerAppStateCallbackFunc = [amsMgrServiceInner = amsMgrServiceInner_, callback]() {
         amsMgrServiceInner->RegisterAppStateCallback(callback);
     };
     amsHandler_->SubmitTask(registerAppStateCallbackFunc, TASK_REGISTER_APP_STATE_CALLBACK);
+    return ERR_OK;
 }
 
-void AmsMgrScheduler::KillProcessByAbilityToken(const sptr<IRemoteObject> &token)
+ErrCode AmsMgrScheduler::KillProcessByAbilityToken(const sptr<IRemoteObject> &token)
 {
     if (!IsReady()) {
-        return;
+        return ERR_INVALID_OPERATION;
     }
 
     if (amsMgrServiceInner_->VerifyKillProcessPermission(token) != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
-        return;
+        return ERR_PERMISSION_DENIED;
     }
 
     std::function<void()> killProcessByAbilityTokenFunc = [amsMgrServiceInner = amsMgrServiceInner_, token]() {
         amsMgrServiceInner->KillProcessByAbilityToken(token);
     };
     amsHandler_->SubmitTask(killProcessByAbilityTokenFunc, TASK_KILL_PROCESS_BY_ABILITY_TOKEN);
+    return ERR_OK;
 }
 
-void AmsMgrScheduler::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg,
-    sptr<AAFwk::IUserCallback> callback)
+ErrCode AmsMgrScheduler::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg,
+    const sptr<AAFwk::IUserCallback>& callback)
 {
     if (!IsReady()) {
-        return;
+        return ERR_INVALID_OPERATION;
     }
 
     if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
         TAG_LOGE(AAFwkTag::APPMGR, "caller is not SA");
-        return;
+        return ERR_PERMISSION_DENIED;
     }
 
     bool isCallingFromFoundation =
@@ -231,7 +237,7 @@ void AmsMgrScheduler::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSp
     if (!isCallingFromFoundation &&
         amsMgrServiceInner_->VerifyAccountPermission(permission, userId) == ERR_PERMISSION_DENIED) {
         TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
-        return;
+        return ERR_PERMISSION_DENIED;
     }
 
     std::function<void()> killProcessesByUserIdFunc = [amsMgrServiceInner = amsMgrServiceInner_, userId,
@@ -239,9 +245,10 @@ void AmsMgrScheduler::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSp
         amsMgrServiceInner->KillProcessesByUserId(userId, isNeedSendAppSpawnMsg, callback);
     };
     amsHandler_->SubmitTask(killProcessesByUserIdFunc, TASK_KILL_PROCESSES_BY_USERID);
+    return ERR_OK;
 }
 
-int32_t AmsMgrScheduler::KillProcessesByPids(const std::vector<int32_t> &pids, const std::string &reason,
+ErrCode AmsMgrScheduler::KillProcessesByPids(const std::vector<int32_t> &pids, const std::string &reason,
     bool subProcess)
 {
     if (!IsReady()) {
@@ -258,27 +265,28 @@ int32_t AmsMgrScheduler::KillProcessesByPids(const std::vector<int32_t> &pids, c
     return amsMgrServiceInner_->KillProcessesByPids(pids, reason, subProcess);
 }
 
-void AmsMgrScheduler::AttachPidToParent(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &callerToken)
+ErrCode AmsMgrScheduler::AttachPidToParent(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &callerToken)
 {
     if (!IsReady()) {
-        return;
+        return ERR_INVALID_OPERATION;
     }
 
     pid_t callingPid = IPCSkeleton::GetCallingPid();
     pid_t pid = getprocpid();
     if (callingPid != pid) {
         TAG_LOGE(AAFwkTag::APPMGR, "not allow other process to call");
-        return;
+        return ERR_PERMISSION_DENIED;
     }
 
     std::function<void()> attachPidToParentFunc = [amsMgrServiceInner = amsMgrServiceInner_, token, callerToken]() {
         amsMgrServiceInner->AttachPidToParent(token, callerToken);
     };
     amsHandler_->SubmitTask(attachPidToParentFunc, TASK_ATTACH_PID_TO_PARENT);
+    return ERR_OK;
 }
 
-int32_t AmsMgrScheduler::KillProcessWithAccount(
-    const std::string &bundleName, const int accountId, const bool clearPageStack, int32_t appIndex)
+ErrCode AmsMgrScheduler::KillProcessWithAccount(
+    const std::string &bundleName, int32_t accountId, bool clearPageStack, int32_t appIndex)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "bundle=%{public}s, appIndex=%{public}d, userId=%{public}d, clearPageStack=%{public}d",
         bundleName.c_str(), appIndex, accountId, clearPageStack);
@@ -289,7 +297,7 @@ int32_t AmsMgrScheduler::KillProcessWithAccount(
         "KillProcessWithAccount");
 }
 
-int32_t AmsMgrScheduler::KillProcessesInBatch(const std::vector<int32_t> &pids)
+ErrCode AmsMgrScheduler::KillProcessesInBatch(const std::vector<int32_t> &pids)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "pids.size=%{public}zu", pids.size());
     if (!IsReady()) {
@@ -298,42 +306,44 @@ int32_t AmsMgrScheduler::KillProcessesInBatch(const std::vector<int32_t> &pids)
     return amsMgrServiceInner_->KillProcessesInBatch(pids);
 }
 
-void AmsMgrScheduler::AbilityAttachTimeOut(const sptr<IRemoteObject> &token)
+ErrCode AmsMgrScheduler::AbilityAttachTimeOut(const sptr<IRemoteObject> &token)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "call");
     if (!IsReady()) {
-        return;
+        return ERR_INVALID_OPERATION;
     }
 
     if (amsMgrServiceInner_->VerifyRequestPermission() != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
-        return;
+        return ERR_PERMISSION_DENIED;
     }
     auto task = [amsMgrServiceInner = amsMgrServiceInner_, token]() {
         amsMgrServiceInner->HandleAbilityAttachTimeOut(token);
     };
     amsHandler_->SubmitTask(task, "AbilityAttachTimeOut");
+    return ERR_OK;
 }
 
-void AmsMgrScheduler::PrepareTerminate(const sptr<IRemoteObject> &token, bool clearMissionFlag)
+ErrCode AmsMgrScheduler::PrepareTerminate(const sptr<IRemoteObject> &token, bool clearMissionFlag)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "Notify AppMgrService to prepare to terminate the ability.");
     if (!IsReady()) {
-        return;
+        return ERR_INVALID_OPERATION;
     }
 
     if (amsMgrServiceInner_->VerifyRequestPermission() != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
-        return;
+        return ERR_PERMISSION_DENIED;
     }
     auto task = [=]() { amsMgrServiceInner_->PrepareTerminate(token, clearMissionFlag); };
     amsHandler_->SubmitTask(task, {
         .taskName_ = "PrepareTerminate",
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
     });
+    return ERR_OK;
 }
 
-int32_t AmsMgrScheduler::UpdateApplicationInfoInstalled(const std::string &bundleName, const int uid,
+ErrCode AmsMgrScheduler::UpdateApplicationInfoInstalled(const std::string &bundleName, int32_t uid,
     const std::string &moduleName, bool isPlugin)
 {
     if (!IsReady()) {
@@ -354,8 +364,8 @@ int32_t AmsMgrScheduler::KillApplication(const std::string &bundleName, bool cle
     return amsMgrServiceInner_->KillApplication(bundleName, clearPageStack, appIndex);
 }
 
-int32_t AmsMgrScheduler::ForceKillApplication(const std::string &bundleName,
-    const int userId, const int appIndex)
+ErrCode AmsMgrScheduler::ForceKillApplication(const std::string &bundleName,
+    int32_t userId, int32_t appIndex)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "bundleName=%{public}s,userId=%{public}d,apIndex=%{public}d",
         bundleName.c_str(), userId, appIndex);
@@ -366,7 +376,7 @@ int32_t AmsMgrScheduler::ForceKillApplication(const std::string &bundleName,
     return amsMgrServiceInner_->ForceKillApplication(bundleName, userId, appIndex);
 }
 
-int32_t AmsMgrScheduler::KillProcessesByAccessTokenId(const uint32_t accessTokenId)
+ErrCode AmsMgrScheduler::KillProcessesByAccessTokenId(const uint32_t accessTokenId)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "accessTokenId=%{public}d", accessTokenId);
     if (!IsReady()) {
@@ -376,7 +386,7 @@ int32_t AmsMgrScheduler::KillProcessesByAccessTokenId(const uint32_t accessToken
     return amsMgrServiceInner_->KillProcessesByAccessTokenId(accessTokenId);
 }
 
-int32_t AmsMgrScheduler::KillApplicationByUid(const std::string &bundleName, const int uid,
+ErrCode AmsMgrScheduler::KillApplicationByUid(const std::string &bundleName, const int uid,
     const std::string& reason)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "bundleName = %{public}s, uid = %{public}d", bundleName.c_str(), uid);
@@ -386,7 +396,7 @@ int32_t AmsMgrScheduler::KillApplicationByUid(const std::string &bundleName, con
     return amsMgrServiceInner_->KillApplicationByUid(bundleName, uid, reason);
 }
 
-int32_t AmsMgrScheduler::KillApplicationSelf(const bool clearPageStack, const std::string& reason)
+ErrCode AmsMgrScheduler::KillApplicationSelf(const bool clearPageStack, const std::string& reason)
 {
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
@@ -407,85 +417,92 @@ bool AmsMgrScheduler::IsReady() const
     return true;
 }
 
-void AmsMgrScheduler::GetRunningProcessInfoByToken(
+ErrCode AmsMgrScheduler::GetRunningProcessInfoByToken(
     const sptr<IRemoteObject> &token, AppExecFwk::RunningProcessInfo &info)
 {
     if (!IsReady()) {
-        return;
+        return ERR_INVALID_OPERATION;
     }
 
     amsMgrServiceInner_->GetRunningProcessInfoByToken(token, info);
+    return ERR_OK;
 }
 
-void AmsMgrScheduler::SetAbilityForegroundingFlagToAppRecord(const pid_t pid)
+ErrCode AmsMgrScheduler::SetAbilityForegroundingFlagToAppRecord(int32_t pid)
 {
     if (!IsReady()) {
-        return;
+        return ERR_INVALID_OPERATION;
     }
     amsMgrServiceInner_->SetAbilityForegroundingFlagToAppRecord(pid);
+    return ERR_OK;
 }
 
-void AmsMgrScheduler::StartSpecifiedAbility(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
+ErrCode AmsMgrScheduler::StartSpecifiedAbility(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
     int32_t requestId)
 {
     if (!IsReady()) {
-        return;
+        return ERR_INVALID_OPERATION;
     }
 
     if (amsMgrServiceInner_->VerifyRequestPermission() != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
-        return;
+        return ERR_PERMISSION_DENIED;
     }
     auto task = [=]() { amsMgrServiceInner_->StartSpecifiedAbility(want, abilityInfo, requestId); };
     amsHandler_->SubmitTask(task, {
         .taskName_ = "StartSpecifiedAbility",
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
     });
+    return ERR_OK;
 }
 
-void AmsMgrScheduler::PrepareTerminateApp(const pid_t pid, const std::string &moduleName)
+ErrCode AmsMgrScheduler::PrepareTerminateApp(int32_t pid, const std::string &moduleName)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
     if (!IsReady()) {
         TAG_LOGW(AAFwkTag::APPMGR, "not ready");
-        return;
+        return ERR_INVALID_OPERATION;
     }
     amsMgrServiceInner_->SchedulePrepareTerminate(pid, moduleName);
+    return ERR_OK;
 }
 
-void AmsMgrScheduler::StartSpecifiedProcess(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
+ErrCode AmsMgrScheduler::StartSpecifiedProcess(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
     int32_t requestId)
 {
     if (!IsReady()) {
         TAG_LOGW(AAFwkTag::APPMGR, "not ready");
-        return;
+        return ERR_INVALID_OPERATION;
     }
 
     if (amsMgrServiceInner_->VerifyRequestPermission() != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
-        return;
+        return ERR_PERMISSION_DENIED;
     }
     auto task = [=]() { amsMgrServiceInner_->StartSpecifiedProcess(want, abilityInfo, requestId); };
     amsHandler_->SubmitTask(task, {
         .taskName_ = "StartSpecifiedProcess",
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
     });
+    return ERR_OK;
 }
 
-void AmsMgrScheduler::RegisterStartSpecifiedAbilityResponse(const sptr<IStartSpecifiedAbilityResponse> &response)
+ErrCode AmsMgrScheduler::RegisterStartSpecifiedAbilityResponse(const sptr<IStartSpecifiedAbilityResponse> &response)
 {
     if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
         TAG_LOGE(AAFwkTag::APPMGR, "caller is not SA");
-        return;
+        return ERR_PERMISSION_DENIED;
     }
     if (!IsReady()) {
-        return;
+        return ERR_INVALID_OPERATION;
     }
     auto task = [=]() { amsMgrServiceInner_->RegisterStartSpecifiedAbilityResponse(response); };
     amsHandler_->SubmitTask(task, "RegisterStartSpecifiedAbilityResponse");
+    return ERR_OK;
 }
 
-int AmsMgrScheduler::GetApplicationInfoByProcessID(const int pid, AppExecFwk::ApplicationInfo &application, bool &debug)
+ErrCode AmsMgrScheduler::GetApplicationInfoByProcessID(int32_t pid, AppExecFwk::ApplicationInfo &application,
+    bool &debug)
 {
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
@@ -493,7 +510,7 @@ int AmsMgrScheduler::GetApplicationInfoByProcessID(const int pid, AppExecFwk::Ap
     return amsMgrServiceInner_->GetApplicationInfoByProcessID(pid, application, debug);
 }
 
-int32_t AmsMgrScheduler::NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, const std::string &exitMsg)
+ErrCode AmsMgrScheduler::NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, const std::string &exitMsg)
 {
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
@@ -501,27 +518,29 @@ int32_t AmsMgrScheduler::NotifyAppMgrRecordExitReason(int32_t pid, int32_t reaso
     return amsMgrServiceInner_->NotifyAppMgrRecordExitReason(pid, reason, exitMsg);
 }
 
-void AmsMgrScheduler::SetCurrentUserId(const int32_t userId)
+ErrCode AmsMgrScheduler::SetCurrentUserId(const int32_t userId)
 {
     if (!IsReady()) {
-        return;
+        return ERR_INVALID_OPERATION;
     }
     amsMgrServiceInner_->SetCurrentUserId(userId);
+    return ERR_OK;
 }
 
-void AmsMgrScheduler::SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess)
+ErrCode AmsMgrScheduler::SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess)
 {
     if (!IsReady()) {
-        return;
+        return ERR_INVALID_OPERATION;
     }
     if (amsMgrServiceInner_->VerifyRequestPermission() != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
-        return;
+        return ERR_PERMISSION_DENIED;
     }
     amsMgrServiceInner_->SetEnableStartProcessFlagByUserId(userId, enableStartProcess);
+    return ERR_OK;
 }
 
-int32_t AmsMgrScheduler::GetBundleNameByPid(const int pid, std::string &bundleName, int32_t &uid)
+ErrCode AmsMgrScheduler::GetBundleNameByPid(int32_t pid, std::string &bundleName, int32_t &uid)
 {
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
@@ -529,7 +548,7 @@ int32_t AmsMgrScheduler::GetBundleNameByPid(const int pid, std::string &bundleNa
     return amsMgrServiceInner_->GetBundleNameByPid(pid, bundleName, uid);
 }
 
-int32_t AmsMgrScheduler::RegisterAppDebugListener(const sptr<IAppDebugListener> &listener)
+ErrCode AmsMgrScheduler::RegisterAppDebugListener(const sptr<IAppDebugListener> &listener)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
@@ -538,7 +557,7 @@ int32_t AmsMgrScheduler::RegisterAppDebugListener(const sptr<IAppDebugListener> 
     return amsMgrServiceInner_->RegisterAppDebugListener(listener);
 }
 
-int32_t AmsMgrScheduler::UnregisterAppDebugListener(const sptr<IAppDebugListener> &listener)
+ErrCode AmsMgrScheduler::UnregisterAppDebugListener(const sptr<IAppDebugListener> &listener)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
@@ -547,7 +566,7 @@ int32_t AmsMgrScheduler::UnregisterAppDebugListener(const sptr<IAppDebugListener
     return amsMgrServiceInner_->UnregisterAppDebugListener(listener);
 }
 
-int32_t AmsMgrScheduler::AttachAppDebug(const std::string &bundleName, bool isDebugFromLocal)
+ErrCode AmsMgrScheduler::AttachAppDebug(const std::string &bundleName, bool isDebugFromLocal)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
@@ -560,7 +579,7 @@ int32_t AmsMgrScheduler::AttachAppDebug(const std::string &bundleName, bool isDe
     return amsMgrServiceInner_->AttachAppDebug(bundleName, isDebugFromLocal);
 }
 
-int32_t AmsMgrScheduler::DetachAppDebug(const std::string &bundleName)
+ErrCode AmsMgrScheduler::DetachAppDebug(const std::string &bundleName)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
@@ -573,7 +592,7 @@ int32_t AmsMgrScheduler::DetachAppDebug(const std::string &bundleName)
     return amsMgrServiceInner_->DetachAppDebug(bundleName);
 }
 
-int32_t AmsMgrScheduler::SetAppWaitingDebug(const std::string &bundleName, bool isPersist)
+ErrCode AmsMgrScheduler::SetAppWaitingDebug(const std::string &bundleName, bool isPersist)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
@@ -582,7 +601,7 @@ int32_t AmsMgrScheduler::SetAppWaitingDebug(const std::string &bundleName, bool 
     return amsMgrServiceInner_->SetAppWaitingDebug(bundleName, isPersist);
 }
 
-int32_t AmsMgrScheduler::CancelAppWaitingDebug()
+ErrCode AmsMgrScheduler::CancelAppWaitingDebug()
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
@@ -591,7 +610,7 @@ int32_t AmsMgrScheduler::CancelAppWaitingDebug()
     return amsMgrServiceInner_->CancelAppWaitingDebug();
 }
 
-int32_t AmsMgrScheduler::GetWaitingDebugApp(std::vector<std::string> &debugInfoList)
+ErrCode AmsMgrScheduler::GetWaitingDebugApp(std::vector<std::string> &debugInfoList)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
@@ -600,25 +619,28 @@ int32_t AmsMgrScheduler::GetWaitingDebugApp(std::vector<std::string> &debugInfoL
     return amsMgrServiceInner_->GetWaitingDebugApp(debugInfoList);
 }
 
-bool AmsMgrScheduler::IsWaitingDebugApp(const std::string &bundleName)
+ErrCode AmsMgrScheduler::IsWaitingDebugApp(const std::string &bundleName, bool& funcResult)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return false;
+        funcResult = false;
+        return ERR_OK;
     }
-    return amsMgrServiceInner_->IsWaitingDebugApp(bundleName);
+    funcResult = amsMgrServiceInner_->IsWaitingDebugApp(bundleName);
+    return ERR_OK;
 }
 
-void AmsMgrScheduler::ClearNonPersistWaitingDebugFlag()
+ErrCode AmsMgrScheduler::ClearNonPersistWaitingDebugFlag()
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return;
+        return ERR_INVALID_OPERATION;
     }
     amsMgrServiceInner_->ClearNonPersistWaitingDebugFlag();
+    return ERR_OK;
 }
 
-int32_t AmsMgrScheduler::RegisterAbilityDebugResponse(const sptr<IAbilityDebugResponse> &response)
+ErrCode AmsMgrScheduler::RegisterAbilityDebugResponse(const sptr<IAbilityDebugResponse> &response)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
@@ -627,37 +649,41 @@ int32_t AmsMgrScheduler::RegisterAbilityDebugResponse(const sptr<IAbilityDebugRe
     return amsMgrServiceInner_->RegisterAbilityDebugResponse(response);
 }
 
-bool AmsMgrScheduler::IsAttachDebug(const std::string &bundleName)
+ErrCode AmsMgrScheduler::IsAttachDebug(const std::string &bundleName, bool& funcResult)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return false;
+        funcResult = false;
+        return ERR_OK;
     }
-    return amsMgrServiceInner_->IsAttachDebug(bundleName);
+    funcResult = amsMgrServiceInner_->IsAttachDebug(bundleName);
+    return ERR_OK;
 }
 
-void AmsMgrScheduler::SetKeepAliveEnableState(const std::string &bundleName, bool enable, int32_t uid)
+ErrCode AmsMgrScheduler::SetKeepAliveEnableState(const std::string &bundleName, bool enable, int32_t uid)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return;
+        return ERR_INVALID_OPERATION;
     }
     amsMgrServiceInner_->SetKeepAliveEnableState(bundleName, enable, uid);
+    return ERR_OK;
 }
 
-void AmsMgrScheduler::SetKeepAliveDkv(const std::string &bundleName, bool enable, int32_t uid)
+ErrCode AmsMgrScheduler::SetKeepAliveDkv(const std::string &bundleName, bool enable, int32_t uid)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return;
+        return ERR_INVALID_OPERATION;
     }
     amsMgrServiceInner_->SetKeepAliveDkv(bundleName, enable, uid);
+    return ERR_OK;
 }
 
-void AmsMgrScheduler::ClearProcessByToken(sptr<IRemoteObject> token)
+ErrCode AmsMgrScheduler::ClearProcessByToken(const sptr<IRemoteObject>& token)
 {
     if (!IsReady()) {
-        return;
+        return ERR_INVALID_OPERATION;
     }
 
     auto callerTokenId = IPCSkeleton::GetCallingTokenID();
@@ -665,131 +691,152 @@ void AmsMgrScheduler::ClearProcessByToken(sptr<IRemoteObject> token)
     Security::AccessToken::AccessTokenKit::GetNativeTokenInfo(callerTokenId, nativeInfo);
     if (nativeInfo.processName != "foundation") {
         TAG_LOGE(AAFwkTag::APPMGR, "not foundation");
-        return;
+        return ERR_INVALID_OPERATION;
     }
 
     std::function<void()> clearProcessByTokenFunc = [amsMgrServiceInner = amsMgrServiceInner_, token]() {
         amsMgrServiceInner->ClearProcessByToken(token);
     };
     amsHandler_->SubmitTask(clearProcessByTokenFunc, TASK_CLEAR_PROCESS_BY_ABILITY_TOKEN);
+    return ERR_OK;
 }
 
-bool AmsMgrScheduler::IsMemorySizeSufficent()
+ErrCode AmsMgrScheduler::IsMemorySizeSufficent(bool& funcResult)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return true;
+        funcResult = true;
+        return ERR_OK;
     }
     if (amsMgrServiceInner_->VerifyRequestPermission() != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
-        return true;
+        funcResult = true;
+        return ERR_OK;
     }
-    return amsMgrServiceInner_->IsMemorySizeSufficient();
+    funcResult = amsMgrServiceInner_->IsMemorySizeSufficient();
+    return ERR_OK;
 }
 
-bool AmsMgrScheduler::IsNoRequireBigMemory()
+ErrCode AmsMgrScheduler::IsNoRequireBigMemory(bool& funcResult)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return true;
+        funcResult = true;
+        return ERR_OK;
     }
     if (amsMgrServiceInner_->VerifyRequestPermission() != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
-        return true;
+        funcResult = true;
+        return ERR_OK;
     }
-    return amsMgrServiceInner_->IsNoRequireBigMemory();
+    funcResult = amsMgrServiceInner_->IsNoRequireBigMemory();
+    return ERR_OK;
 }
 
-void AmsMgrScheduler::AttachedToStatusBar(const sptr<IRemoteObject> &token)
+ErrCode AmsMgrScheduler::AttachedToStatusBar(const sptr<IRemoteObject> &token)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return;
+        return ERR_INVALID_OPERATION;
     }
     auto callerTokenId = IPCSkeleton::GetCallingTokenID();
     Security::AccessToken::NativeTokenInfo nativeInfo;
     Security::AccessToken::AccessTokenKit::GetNativeTokenInfo(callerTokenId, nativeInfo);
     if (nativeInfo.processName != "foundation") {
         TAG_LOGE(AAFwkTag::APPMGR, "not foundation");
-        return;
+        return ERR_INVALID_OPERATION;
     }
     std::function<void()> attachedToStatusBarFunc =
         std::bind(&AppMgrServiceInner::AttachedToStatusBar, amsMgrServiceInner_, token);
     amsHandler_->SubmitTask(attachedToStatusBarFunc, TASK_ATTACHED_TO_STATUS_BAR);
+    return ERR_OK;
 }
 
-void AmsMgrScheduler::BlockProcessCacheByPids(const std::vector<int32_t> &pids)
+ErrCode AmsMgrScheduler::BlockProcessCacheByPids(const std::vector<int32_t> &pids)
 {
     if (!IsReady()) {
-        return;
+        return ERR_INVALID_OPERATION;
     }
 
     pid_t callingPid = IPCSkeleton::GetCallingPid();
     pid_t pid = getprocpid();
     if (callingPid != pid) {
         TAG_LOGE(AAFwkTag::APPMGR, "not allow other process to call");
-        return;
+        return ERR_PERMISSION_DENIED;
     }
 
     std::function<void()> blockProcCacheFunc = [amsMgrServiceInner = amsMgrServiceInner_, pids]() mutable {
         amsMgrServiceInner->BlockProcessCacheByPids(pids);
     };
     amsHandler_->SubmitTask(blockProcCacheFunc, TASK_BLOCK_PROCESS_CACHE_BY_PIDS);
+    return ERR_OK;
 }
 
-bool AmsMgrScheduler::IsKilledForUpgradeWeb(const std::string &bundleName)
+ErrCode AmsMgrScheduler::IsKilledForUpgradeWeb(const std::string &bundleName, bool& funcResult)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return false;
+        funcResult = false;
+        return ERR_OK;
     }
-    return amsMgrServiceInner_->IsKilledForUpgradeWeb(bundleName);
+    funcResult = amsMgrServiceInner_->IsKilledForUpgradeWeb(bundleName);
+    return ERR_OK;
 }
 
-bool AmsMgrScheduler::CleanAbilityByUserRequest(const sptr<IRemoteObject> &token)
+ErrCode AmsMgrScheduler::CleanAbilityByUserRequest(const sptr<IRemoteObject> &token, bool& funcResult)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return false;
+        funcResult = false;
+        return ERR_OK;
     }
 
     if (IPCSkeleton::GetCallingPid() != getprocpid()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not allow other process to call");
-        return false;
+        funcResult = false;
+        return ERR_OK;
     }
-    return amsMgrServiceInner_->CleanAbilityByUserRequest(token);
+    funcResult = amsMgrServiceInner_->CleanAbilityByUserRequest(token);
+    return ERR_OK;
 }
-bool AmsMgrScheduler::IsProcessContainsOnlyUIAbility(const pid_t pid)
+ErrCode AmsMgrScheduler::IsProcessContainsOnlyUIAbility(int32_t pid, bool& funcResult)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return false;
+        funcResult = false;
+        return ERR_OK;
     }
     pid_t callingPid = IPCSkeleton::GetCallingPid();
     pid_t procPid = getprocpid();
     if (callingPid != procPid) {
         TAG_LOGE(AAFwkTag::APPMGR, "not allow other process to call");
-        return false;
+        funcResult = false;
+        return ERR_OK;
     }
-    return amsMgrServiceInner_->IsProcessContainsOnlyUIAbility(pid);
+    funcResult = amsMgrServiceInner_->IsProcessContainsOnlyUIAbility(pid);
+    return ERR_OK;
 }
 
-bool AmsMgrScheduler::IsProcessAttached(sptr<IRemoteObject> token)
+ErrCode AmsMgrScheduler::IsProcessAttached(const sptr<IRemoteObject>& token, bool& funcResult)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return false;
+        funcResult = false;
+        return ERR_OK;
     }
-    return amsMgrServiceInner_->IsProcessAttached(token);
+    funcResult = amsMgrServiceInner_->IsProcessAttached(token);
+    return ERR_OK;
 }
 
-bool AmsMgrScheduler::IsCallerKilling(const std::string& callerKey)
+ErrCode AmsMgrScheduler::IsCallerKilling(const std::string& callerKey, bool& funcResult)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "AmsMgrService is not ready.");
-        return false;
+        funcResult = false;
+        return ERR_OK;
     }
-    return amsMgrServiceInner_->IsCallerKilling(callerKey);
+    funcResult = amsMgrServiceInner_->IsCallerKilling(callerKey);
+    return ERR_OK;
 }
 } // namespace AppExecFwk
 }  // namespace OHOS

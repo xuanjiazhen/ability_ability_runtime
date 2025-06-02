@@ -14,8 +14,7 @@
 import("//build/ohos.gni")
 import("//build/test.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
-import(
-    "//foundation/ability/ability_runtime/services/abilitymgr/abilitymgr.gni")
+import("//foundation/ability/ability_runtime/services/abilitymgr/abilitymgr.gni")
 
 config("appmgr_test_config") {
   configs = [
@@ -43,8 +42,6 @@ ohos_source_set("appmgr_test_source") {
     "${ability_runtime_innerkits_path}/app_manager/src/appmgr/app_record_id.cpp",
     "${ability_runtime_innerkits_path}/app_manager/src/appmgr/app_scheduler_host.cpp",
     "${ability_runtime_innerkits_path}/app_manager/src/appmgr/app_scheduler_proxy.cpp",
-    "${ability_runtime_innerkits_path}/app_manager/src/appmgr/app_state_callback_host.cpp",
-    "${ability_runtime_innerkits_path}/app_manager/src/appmgr/app_state_callback_proxy.cpp",
     "${ability_runtime_innerkits_path}/app_manager/src/appmgr/fault_data.cpp",
     "${ability_runtime_innerkits_path}/app_manager/src/appmgr/native_child_notify_proxy.cpp",
     "${ability_runtime_innerkits_path}/app_manager/src/appmgr/native_child_notify_stub.cpp",
@@ -63,6 +60,8 @@ ohos_source_set("appmgr_test_source") {
   }
   deps = [
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_innerkits_path}/app_manager:app_mgr_proxy",
+    "${ability_runtime_innerkits_path}/app_manager:app_mgr_stub",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_services_path}/common:app_util",
   ]
@@ -211,7 +210,10 @@ ohos_source_set("abilityms_test_source") {
   ]
 
   cflags_cc = []
-  configs = [ ":test_exception_config" ]
+  configs = [
+    ":test_exception_config",
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_idl_config",
+  ]
 
   public_configs = [
     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
@@ -226,6 +228,8 @@ ohos_source_set("abilityms_test_source") {
     "${ability_runtime_innerkits_path}/ability_manager:process_options",
     "${ability_runtime_innerkits_path}/ability_manager:start_window_option",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_innerkits_path}/app_manager:app_mgr_proxy",
+    "${ability_runtime_innerkits_path}/app_manager:app_mgr_stub",
     "${ability_runtime_innerkits_path}/connectionobs_manager:connection_obs_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
