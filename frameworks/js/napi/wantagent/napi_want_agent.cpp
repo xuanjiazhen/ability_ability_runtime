@@ -23,6 +23,7 @@
 #include "ability_runtime_error_util.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_skeleton.h"
+#include "napi_base_context.h"
 #include "napi_common.h"
 #include "napi_common_want_agent.h"
 #include "start_options.h"
@@ -295,6 +296,12 @@ napi_value JsWantAgent::NapiTrigger(napi_env env, napi_callback_info info)
 {
     JsWantAgent* me = CheckParamsAndGetThis<JsWantAgent>(env, info);
     return (me != nullptr) ? me->OnNapiTrigger(env, info) : nullptr;
+};
+
+napi_value JsWantAgent::NapiTriggerAsync(napi_env env, napi_callback_info info)
+{
+    JsWantAgent* me = CheckParamsAndGetThis<JsWantAgent>(env, info);
+    return (me != nullptr) ? me->OnNapiTriggerAsync(env, info) : nullptr;
 };
 
 napi_value JsWantAgent::NapiGetWantAgent(napi_env env, napi_callback_info info)
@@ -714,7 +721,8 @@ napi_value JsWantAgent::OnTrigger(napi_env env, napi_callback_info info)
 
     auto execute = [wantAgent, triggerObj, triggerInfo] () {
         TAG_LOGD(AAFwkTag::WANTAGENT, "called");
-        WantAgentHelper::TriggerWantAgent(wantAgent, triggerObj, triggerInfo);
+        sptr<CompletedDispatcher> completedData;
+        WantAgentHelper::TriggerWantAgent(wantAgent, triggerObj, triggerInfo, completedData, nullptr);
     };
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JsWantAgent::OnTrigger",
@@ -730,7 +738,7 @@ int32_t JsWantAgent::UnWrapTriggerInfoParam(napi_env env, napi_callback_info inf
     size_t argc = ARGS_MAX_COUNT;
     napi_value argv[ARGS_MAX_COUNT] = {nullptr};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (argc != ARGC_THREE) {
+    if (argc < ARGC_THREE) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Not enough params");
         ThrowTooFewParametersError(env);
         return ERR_NOT_OK;
@@ -1159,13 +1167,99 @@ napi_value JsWantAgent::OnNapiTrigger(napi_env env, napi_callback_info info)
     }
     auto execute = [wantAgent, triggerObj, triggerInfo] () {
         TAG_LOGD(AAFwkTag::WANTAGENT, "called");
-        WantAgentHelper::TriggerWantAgent(wantAgent, triggerObj, triggerInfo);
+        sptr<CompletedDispatcher> completedData;
+        WantAgentHelper::TriggerWantAgent(wantAgent, triggerObj, triggerInfo, completedData, nullptr);
     };
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JsWantAgent::OnNapiTrigger",
         env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), nullptr, &result));
 
     return CreateJsNull(env);
+}
+
+napi_value JsWantAgent::OnNapiTriggerAsync(napi_env env, napi_callback_info info)
+{
+    size_t argc = ARGS_MAX_COUNT;
+    napi_value argv[ARGS_MAX_COUNT] = {nullptr};
+    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (argc < ARGC_THREE) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    bool stageMode = false;
+    napi_status status = OHOS::AbilityRuntime::IsStageContext(env, argv[ARGC_TWO], stageMode);
+    if (status != napi_ok || !stageMode) {
+        ThrowInvalidParamError(env, "Parse param context failed, must be a context of stageMode.");
+        return CreateJsUndefined(env);
+    }
+
+    auto context = OHOS::AbilityRuntime::GetStageModeContext(env, argv[ARGC_TWO]);
+    if (context == nullptr) {
+        ThrowInvalidParamError(env, "Parse param context failed, must not be nullptr.");
+        return CreateJsUndefined(env);
+    }
+    auto inputContextPtr = OHOS::AbilityRuntime::Context::ConvertTo<AbilityRuntime::Context>(context);
+
+    std::shared_ptr<WantAgent> wantAgent = nullptr;
+    TriggerInfo triggerInfo;
+    auto triggerObj = std::make_shared<TriggerCompleteCallBack>();
+    int32_t errCode = UnWrapTriggerInfoParam(env, info, wantAgent, triggerInfo, triggerObj);
+    if (errCode != NO_ERROR) {
+        ThrowInvalidParamError(env, "Parameter error!");
+        return CreateJsUndefined(env);
+    }
+    auto retCode = std::make_shared<int32_t>(NO_ERROR);
+    /*
+        if (!CheckCallerIsSystemApp()) {
+            AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP);
+            return CreateJsUndefined(env);
+        }
+    */
+    std::shared_ptr<CompletedDispatcher> data = nullptr;
+    auto execute = [wantAgent, triggerObj, triggerInfo, inputContextPtr, data, retCode] () {
+        sptr<CompletedDispatcher> completedData;
+        TAG_LOGI(AAFwkTag::WANTAGENT, "wangkailong completedData");
+        *retCode = WantAgentHelper::TriggerWantAgent(wantAgent, triggerObj, triggerInfo, completedData,
+            inputContextPtr->GetToken());
+        TAG_LOGI(AAFwkTag::WANTAGENT, "wangkailong TriggerWantAgent");
+        *data = *reinterpret_cast<CompletedDispatcher*>(completedData.GetRefPtr());
+        TAG_LOGI(AAFwkTag::WANTAGENT, "wangkailong execute data.GetResultCode() %d", data-> GetResultCode());
+    };
+    NapiAsyncTask::CompleteCallback complete = [retCode, data](napi_env env, NapiAsyncTask& task, int32_t status) {
+        TAG_LOGI(AAFwkTag::WANTAGENT, "wangkailong complete");
+        if (*retCode == NO_ERROR) {
+            task.ResolveWithNoError(env, CreateJsCompletedData(env, *data));
+        } else {
+            task.Reject(env, CreateJsError(env, *retCode, AbilityRuntimeErrorUtil::GetErrMessage(*retCode)));
+        }
+    };
+    napi_value result = nullptr;
+    NapiAsyncTask::ScheduleHighQos("JsWantAgent::OnNapiTriggerAsync",
+        env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+
+    return result;
+}
+
+napi_value JsWantAgent::CreateJsCompletedData(napi_env env, const CompletedDispatcher &data)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    TAG_LOGI(AAFwkTag::WANTAGENT, "wangkailong call" );
+    WantAgent *pWantAgent = new (std::nothrow) WantAgent(data.GetPendingWant());
+    if (pWantAgent == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null pWantAgent");
+        return objValue;
+    }
+
+    napi_value jsWantAgent = OHOS::AppExecFwk::WrapWantAgent(env, pWantAgent, nullptr);
+    TAG_LOGI(AAFwkTag::WANTAGENT, "wangkailong data.GetResultCode() %d", data.GetResultCode());
+    napi_set_named_property(env, objValue, "info", jsWantAgent);
+    napi_set_named_property(env, objValue, "want", CreateJsWant(env, data.GetWant()));
+    napi_set_named_property(env, objValue, "finalCode", CreateJsValue(env, data.GetResultCode()));
+    napi_set_named_property(env, objValue, "finalData", CreateJsValue(env, data.GetResultData()));
+    napi_set_named_property(env, objValue, "extraInfo", CreateJsWantParams(env, data.GetResultExtras()));
+    return objValue;
 }
 
 napi_value JsWantAgent::OnNapiGetWantAgent(napi_env env, napi_callback_info info)
