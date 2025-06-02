@@ -33,8 +33,6 @@ ohos_unittest("app_mgr_service_inner_mock_test") {
   ]
 
   sources = [
-    "${ability_runtime_innerkits_path}/app_manager/src/appmgr/kia_interceptor_proxy.cpp",
-    "${ability_runtime_innerkits_path}/app_manager/src/appmgr/kia_interceptor_stub.cpp",
     "app_mgr_service_inner_mock_test.cpp",
     "src/app_utils.cpp",
     "src/mock_app_mgr_service_inner.cpp",
@@ -43,8 +41,14 @@ ohos_unittest("app_mgr_service_inner_mock_test") {
     "src/window_manager.cpp",
   ]
 
-  deps = []
+  deps = [
+    "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_innerkits_path}/app_manager:app_mgr_proxy",
+    "${ability_runtime_innerkits_path}/app_manager:app_mgr_stub",
+  ]
 
+  public_configs =
+      [ "${ability_runtime_innerkits_path}/app_manager:appmgr_idl_config" ]
   external_deps = [
     "ability_base:want",
     "ability_base:zuri",
