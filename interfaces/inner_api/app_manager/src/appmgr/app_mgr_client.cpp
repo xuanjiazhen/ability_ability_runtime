@@ -597,9 +597,7 @@ bool AppMgrClient::IsProcessContainsOnlyUIAbility(const pid_t pid)
     if (service != nullptr) {
         sptr<IAmsMgr> amsService = service->GetAmsMgr();
         if (amsService != nullptr) {
-            bool ret = false;
-            amsService->IsProcessContainsOnlyUIAbility(pid, ret);
-            return ret;
+            return amsService->IsProcessContainsOnlyUIAbility(pid);
         }
     }
     return false;
@@ -1109,9 +1107,7 @@ bool AppMgrClient::IsWaitingDebugApp(const std::string &bundleName)
         TAG_LOGE(AAFwkTag::APPMGR, "App manager service is not ready.");
         return false;
     }
-    bool ret = false;
-    amsService_->IsWaitingDebugApp(bundleName, ret);
-    return ret;
+    return amsService_->IsWaitingDebugApp(bundleName);
 }
 
 void AppMgrClient::ClearNonPersistWaitingDebugFlag()
@@ -1136,9 +1132,7 @@ bool AppMgrClient::IsAttachDebug(const std::string &bundleName)
     if (!IsAmsServiceReady()) {
         return false;
     }
-    bool ret = false;
-    amsService_->IsAttachDebug(bundleName, ret);
-    return ret;
+    return amsService_->IsAttachDebug(bundleName);
 }
 
 bool AppMgrClient::IsAmsServiceReady()
@@ -1351,9 +1345,7 @@ bool AppMgrClient::IsMemorySizeSufficent() const
         TAG_LOGE(AAFwkTag::APPMGR, "amsService is nullptr.");
         return true;
     }
-    bool ret = false;
-    amsService->IsMemorySizeSufficent(ret);
-    return ret;
+    return amsService->IsMemorySizeSufficent();
 }
 
 bool AppMgrClient::IsNoRequireBigMemory() const
@@ -1368,9 +1360,7 @@ bool AppMgrClient::IsNoRequireBigMemory() const
         TAG_LOGE(AAFwkTag::APPMGR, "amsService is nullptr.");
         return true;
     }
-    bool ret = false;
-    amsService->IsNoRequireBigMemory(ret);
-    return ret;
+    return amsService->IsNoRequireBigMemory();
 }
 
 int32_t AppMgrClient::PreloadApplication(const std::string &bundleName, int32_t userId,
@@ -1516,9 +1506,7 @@ bool AppMgrClient::IsKilledForUpgradeWeb(const std::string &bundleName)
         return false;
     }
     TAG_LOGD(AAFwkTag::APPMGR, "call");
-    bool ret = false;
-    amsService->IsKilledForUpgradeWeb(bundleName, ret);
-    return ret;
+    return amsService->IsKilledForUpgradeWeb(bundleName);
 }
 
 bool AppMgrClient::CleanAbilityByUserRequest(const sptr<IRemoteObject> &token)
@@ -1534,9 +1522,7 @@ bool AppMgrClient::CleanAbilityByUserRequest(const sptr<IRemoteObject> &token)
         return false;
     }
     TAG_LOGD(AAFwkTag::APPMGR, "call");
-    bool ret = false;
-    amsService->CleanAbilityByUserRequest(token, ret);
-    return ret;
+    return amsService->CleanAbilityByUserRequest(token);
 }
 
 bool AppMgrClient::IsProcessAttached(sptr<IRemoteObject> token) const
@@ -1549,9 +1535,7 @@ bool AppMgrClient::IsProcessAttached(sptr<IRemoteObject> token) const
     if (amsService == nullptr) {
         return false;
     }
-    bool ret = false;
-    amsService->IsProcessAttached(token, ret);
-    return ret;
+    return amsService->IsProcessAttached(token);
 }
 
 bool AppMgrClient::IsCallerKilling(const std::string& callerKey) const
@@ -1564,9 +1548,7 @@ bool AppMgrClient::IsCallerKilling(const std::string& callerKey) const
     if (amsService == nullptr) {
         return false;
     }
-    bool ret  = false;
-    amsService->IsCallerKilling(callerKey, ret);
-    return ret;
+    return amsService->IsCallerKilling(callerKey);
 }
 
 AppMgrResultCode AppMgrClient::IsAppRunningByBundleNameAndUserId(const std::string &bundleName, int32_t userId,
