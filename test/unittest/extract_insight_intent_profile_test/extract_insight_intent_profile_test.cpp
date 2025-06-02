@@ -348,29 +348,38 @@ HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_0200, TestSize.Level0)
     EXPECT_EQ(profileInfos.insightIntents[1].example, "exampleBBB");
     EXPECT_NE(profileInfos.insightIntents[1].result, "");
 
-    nlohmann::json jsonObject1;
+    cJSON *jsonObject1 = nullptr;
     result = ExtractInsightIntentProfile::ToJson(profileInfos.insightIntents[0], jsonObject1);
     EXPECT_EQ(result, true);
     ExtractInsightIntentProfileInfoVec profileInfos1;
-    result = ExtractInsightIntentProfile::TransformTo(jsonObject1.dump(), profileInfos1);
+    char *str1 = cJSON_PrintUnformatted(jsonObject1);
+    std::string jsonStr1 = (str1 == nullptr) ? "" : str1;
+    cJSON_free(str1);
+    result = ExtractInsightIntentProfile::TransformTo(jsonStr1, profileInfos1);
     EXPECT_EQ(result, true);
-    TAG_LOGI(AAFwkTag::TEST, "jsonObject1 dump: %{public}s", jsonObject1.dump().c_str());
+    TAG_LOGI(AAFwkTag::TEST, "jsonObject1 dump: %{public}s", jsonStr1.c_str());
     EXPECT_EQ(profileInfos1.insightIntents.size(), 1);
     EXPECT_EQ(profileInfos1.insightIntents[0].decoratorType, "@InsightIntentLink");
     EXPECT_EQ(profileInfos1.insightIntents[0].intentName, "123");
     EXPECT_EQ(profileInfos1.insightIntents[0].example, "exampleAAA");
+    cJSON_Delete(jsonObject1);
 
-    nlohmann::json jsonObject2;
+
+    cJSON *jsonObject2 = nullptr;
     result = ExtractInsightIntentProfile::ToJson(profileInfos.insightIntents[1], jsonObject2);
     EXPECT_EQ(result, true);
     ExtractInsightIntentProfileInfoVec profileInfos2;
-    result = ExtractInsightIntentProfile::TransformTo(jsonObject2.dump(), profileInfos2);
+    char *str2 = cJSON_PrintUnformatted(jsonObject1);
+    std::string jsonStr2 = (str2 == nullptr) ? "" : str2;
+    cJSON_free(str2);
+    result = ExtractInsightIntentProfile::TransformTo(jsonStr2, profileInfos2);
     EXPECT_EQ(result, true);
-    TAG_LOGI(AAFwkTag::TEST, "jsonObject2 dump: %{public}s", jsonObject2.dump().c_str());
+    TAG_LOGI(AAFwkTag::TEST, "jsonObject2 dump: %{public}s", jsonStr2.c_str());
     EXPECT_EQ(profileInfos2.insightIntents.size(), 1);
     EXPECT_EQ(profileInfos2.insightIntents[0].decoratorType, "@InsightIntentLink");
     EXPECT_EQ(profileInfos2.insightIntents[0].intentName, "InsightIntent2");
     EXPECT_EQ(profileInfos2.insightIntents[0].example, "exampleBBB");
+    cJSON_Delete(jsonObject2);
 
     ExtractInsightIntentInfo info1;
     result = ExtractInsightIntentProfile::ProfileInfoFormat(profileInfos1.insightIntents[0], info1);

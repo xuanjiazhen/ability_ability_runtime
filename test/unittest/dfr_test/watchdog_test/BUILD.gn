@@ -81,7 +81,6 @@ ohos_unittest("watchdog_test") {
     "hilog:libhilog",
     "image_framework:image_native",
     "ipc:ipc_core",
-    "json:nlohmann_json_static",
     "jsoncpp:jsoncpp",
     "napi:ace_napi",
   ]

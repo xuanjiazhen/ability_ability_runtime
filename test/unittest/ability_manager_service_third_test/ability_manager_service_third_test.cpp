@@ -2425,8 +2425,9 @@ HWTEST_F(AbilityManagerServiceThirdTest, ParseJsonValueFromFile_001, TestSize.Le
     EXPECT_NE(abilityMs_, nullptr);
 
     std::string filePath = "hello";
-    nlohmann::json  value;
+    cJSON *value = nullptr;
     abilityMs_->ParseJsonValueFromFile(value, filePath);
+    cJSON_Delete(value);
 }
 
 /*
