@@ -1535,7 +1535,7 @@ bool AppMgrClient::CleanAbilityByUserRequest(const sptr<IRemoteObject> &token)
     }
     TAG_LOGD(AAFwkTag::APPMGR, "call");
     bool ret = false;
-    amsService->IsProcessAttached(token, ret);
+    amsService->CleanAbilityByUserRequest(token, ret);
     return ret;
 }
 
