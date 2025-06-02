@@ -21,6 +21,7 @@
 #include "ability_info.h"
 #include "ani.h"
 #include "ani_common_want.h"
+#include "ani_common_configuration.h"
 #include "form_provider_data.h"
 #include "form_runtime/form_extension_provider_client.h"
 #include "hilog_tag_wrapper.h"
@@ -618,6 +619,33 @@ bool STSFormExtension::CreateAndFillRecordObject(ani_env *env, const std::map<in
     }
 
     return true;
+}
+
+
+void STSFormExtension::OnConfigurationUpdated(const AppExecFwk::Configuration& configuration) {
+    TAG_LOGI(AAFwkTag::FORM_EXT, "call OnConfigurationUpdated");
+
+    const char* METHOD_NAME = "onConfigurationUpdated";
+    const char* ANI_ARG_TYPE = "L@ohos.app.ability.Configuration;";
+    const char* ANI_RETURN_TYPE = "V";
+    const std::string methodSignature = std::string(ANI_ARG_TYPE) + ":" + std::string(ANI_RETURN_TYPE);
+
+    auto env = stsRuntime_.GetAniEnv();
+    ani_object aniConfiguration = AppExecFwk::WrapConfiguration(env, configuration);
+
+    ani_status status = ANI_OK;
+    ani_method function;
+    if ((status = env->Class_FindMethod(
+        stsAbilityObj_->aniCls, METHOD_NAME, methodSignature.c_str(), &function))) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod status : %{public}d", status);
+    }
+
+    status = env->Object_CallMethod_Ref(stsAbilityObj_->aniObj, function, nullptr, aniConfiguration);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "Failed to call method or retrieve result: %{public}d", status);
+    }
+
+    TAG_LOGI(AAFwkTag::FORM_EXT, "end OnConfigurationUpdated");
 }
 
 void STSFormExtension::OnStop()
