@@ -748,7 +748,8 @@ HWTEST_F(UriPermissionImplTest, Upms_VerifyUriPermission_001, TestSize.Level1)
  */
 HWTEST_F(UriPermissionImplTest, Upms_SendSystemAppGrantUriPermissionEvent_001, TestSize.Level1)
 {
-    std::vector<Uri> uriVec = { Uri("file://com.example.test/data/storage/el2/base/haps/entry/files/test_A.txt") };
+    std::vector<std::string> uriVec;
+    uriVec.push_back("file://com.example.test/data/storage/el2/base/haps/entry/files/test_A.txt");
     const std::vector<bool> resVec = { true };
     auto ret = UPMSUtils::SendSystemAppGrantUriPermissionEvent(1001, 1002, uriVec, resVec);
     ASSERT_EQ(ret, false);
@@ -777,12 +778,13 @@ HWTEST_F(UriPermissionImplTest, Upms_CheckUriPermission_001, TestSize.Level1)
 {
     auto upms = std::make_unique<UriPermissionManagerStubImpl>();
     ASSERT_NE(upms, nullptr);
-    auto mediaPhotoUri = Uri("file://media/Photo/1/IMG_001/test_001.jpg");
+    std::string mediaPhotoUri = "file://media/Photo/1/IMG_001/test_001.jpg";
     uint32_t callerTokenId = 1001;
     uint32_t flagRead = 1;
 
     TokenIdPermission tokenIdPermission(callerTokenId);
-    std::vector<Uri> mediaPhotoUris = { mediaPhotoUri };
+    std::vector<std::string> mediaPhotoUris;
+    mediaPhotoUris.push_back(mediaPhotoUri);
     auto ret = upms->CheckUriPermission(tokenIdPermission, mediaPhotoUris, flagRead)[0];
     ASSERT_EQ(ret, false);
 }
@@ -797,12 +799,13 @@ HWTEST_F(UriPermissionImplTest, Upms_CheckUriPermission_002, TestSize.Level1)
 {
     auto upms = std::make_unique<UriPermissionManagerStubImpl>();
     ASSERT_NE(upms, nullptr);
-    auto mediaAudioUri = Uri("file://media/Audio/1/Record_001/test_001.mp3");
+    std::string mediaAudioUri = "file://media/Audio/1/Record_001/test_001.mp3";
     uint32_t callerTokenId = 1001;
     uint32_t flagRead = 1;
 
     TokenIdPermission tokenIdPermission(callerTokenId);
-    std::vector<Uri> mediaAudioUris = { mediaAudioUri };
+    std::vector<std::string> mediaAudioUris;
+    mediaAudioUris.push_back(mediaAudioUri);
     auto ret = upms->CheckUriPermission(tokenIdPermission, mediaAudioUris, flagRead)[0];
     ASSERT_EQ(ret, false);
 }
@@ -817,7 +820,9 @@ HWTEST_F(UriPermissionImplTest, Upms_CheckUriPermission_003, TestSize.Level1)
 {
     auto upms = std::make_unique<UriPermissionManagerStubImpl>();
     ASSERT_NE(upms, nullptr);
-    std::vector<Uri> docsUri = { Uri("file://docs/DestTop/Text/test_001.txt") };
+    std::string docsStr = "file://docs/DestTop/Text/test_001.txt";
+    std::vector<std::string> docsUri;
+    docsUri.push_back(docsStr);
     uint32_t callerTokenId = 1001;
     uint32_t targetTokenId = 1002;
     uint32_t flagRead = 1;
@@ -846,14 +851,14 @@ HWTEST_F(UriPermissionImplTest, Upms_CheckUriPermission_003, TestSize.Level1)
     ASSERT_EQ(ret, false);
 
     // read
-    upms->AddTempUriPermission(docsUri[0].ToString(), flagRead, callerTokenId, targetTokenId);
+    upms->AddTempUriPermission(docsUri[0], flagRead, callerTokenId, targetTokenId);
     ret = upms->CheckUriPermission(tokenIdPermission, docsUri, flagRead)[0];
     ASSERT_EQ(ret, true);
     ret = upms->CheckUriPermission(tokenIdPermission, docsUri, flagWrite)[0];
     ASSERT_EQ(ret, false);
     
     // write
-    upms->AddTempUriPermission(docsUri[0].ToString(), flagWrite, callerTokenId, targetTokenId);
+    upms->AddTempUriPermission(docsUri[0], flagWrite, callerTokenId, targetTokenId);
     ret = upms->CheckUriPermission(tokenIdPermission, docsUri, flagWrite)[0];
     ASSERT_EQ(ret, true);
     MyFlag::permissionProxyAuthorization_ = false;
@@ -869,8 +874,12 @@ HWTEST_F(UriPermissionImplTest, Upms_CheckUriPermission_004, TestSize.Level1)
 {
     auto upms = std::make_unique<UriPermissionManagerStubImpl>();
     ASSERT_NE(upms, nullptr);
-    std::vector<Uri> uri1 = { Uri("file://com.example.app1001/data/storage/el2/base/haps/entry/files/test_001.txt") };
-    std::vector<Uri> uri2 = { Uri("file://com.example.app1002/data/storage/el2/base/haps/entry/files/test_002.txt") };
+    std::vector<std::string > uri1;
+    std::string uriStr1 = "file://com.example.app1001/data/storage/el2/base/haps/entry/files/test_001.txt";
+    uri1.push_back(uriStr1);
+    std::vector<std::string > uri2;
+    std::string uriStr2 = "file://com.example.app1002/data/storage/el2/base/haps/entry/files/test_002.txt";
+    uri2.push_back(uriStr2);
     uint32_t callerTokenId = 1001;
     uint32_t targetTokenId = 1002;
     uint32_t flagRead = 1;
@@ -898,14 +907,14 @@ HWTEST_F(UriPermissionImplTest, Upms_CheckUriPermission_004, TestSize.Level1)
     ASSERT_EQ(ret, false);
     
     // read
-    upms->AddTempUriPermission(uri1[0].ToString(), flagRead, callerTokenId, targetTokenId);
+    upms->AddTempUriPermission(uri1[0], flagRead, callerTokenId, targetTokenId);
     ret = upms->CheckUriPermission(tokenIdPermission, uri1, flagRead)[0];
     ASSERT_EQ(ret, true);
     ret = upms->CheckUriPermission(tokenIdPermission, uri1, flagWrite)[0];
     ASSERT_EQ(ret, false);
     
     // write
-    upms->AddTempUriPermission(uri1[0].ToString(), flagWrite, callerTokenId, targetTokenId);
+    upms->AddTempUriPermission(uri1[0], flagWrite, callerTokenId, targetTokenId);
     ret = upms->CheckUriPermission(tokenIdPermission, uri1, flagRead)[0];
     ASSERT_EQ(ret, true);
     ret = upms->CheckUriPermission(tokenIdPermission, uri1, flagWrite)[0];

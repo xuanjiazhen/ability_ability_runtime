@@ -35,7 +35,9 @@ ohos_unittest("uri_perm_mgr_test") {
   include_dirs = [ "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper" ]
 
   sources = [
+    "batch_uri_test.cpp",
     "tokenid_permission_test.cpp",
+    "udmf_utils_test.cpp",
     "uri_permission_manager_service_test.cpp",
   ]
 
@@ -64,6 +66,7 @@ ohos_unittest("uri_perm_mgr_test") {
     "hilog:libhilog",
     "safwk:api_cache_manager",
     "storage_service:storage_manager_sa_proxy",
+    "udmf:udmf_client",
   ]
   if (background_task_mgr_continuous_task_enable) {
     external_deps += [ "background_task_mgr:bgtaskmgr_innerkits" ]

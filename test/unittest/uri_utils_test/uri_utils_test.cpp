@@ -793,5 +793,28 @@ HWTEST_F(UriUtilsTest, CheckIsInAncoAppIdentifier_001, TestSize.Level1)
     ret = UriUtils::GetInstance().CheckIsInAncoAppIdentifier(identifier, bundleName);
     EXPECT_EQ(ret, true);
 }
+
+/*
+ * Feature: UriUtils
+ * Function: ProcessUDMFKey
+ * SubFunction: NA
+ * FunctionPoints: UriUtils ProcessUDMFKey
+ */
+HWTEST_F(UriUtilsTest, ProcessUDMFKey_001, TestSize.Level1)
+{
+    auto &uriUtils = UriUtils::GetInstance();
+    Want want;
+    uriUtils.ProcessUDMFKey(want);
+    WantParams params;
+    sptr<AAFwk::IArray> ao = new (std::nothrow) AAFwk::Array(1, AAFwk::g_IID_IString);
+    if (ao != nullptr) {
+        ao->Set(0, String::Box("file"));
+        params.SetParam("ability.params.stream", ao);
+    }
+    want.SetParams(params);
+    uriUtils.ProcessUDMFKey(want);
+    auto key = want.GetStringParam("ohos.param.ability.udmfKey");
+    EXPECT_EQ(key.empty(), true);
+}
 }
 }

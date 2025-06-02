@@ -161,6 +161,7 @@ ohos_static_library("libupms_static") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "storage_service:storage_manager_sa_proxy",
+    "udmf:udmf_client",
   ]
   if (ability_runtime_upms) {
     deps += [
