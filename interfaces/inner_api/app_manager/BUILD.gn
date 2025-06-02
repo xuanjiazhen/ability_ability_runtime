@@ -48,15 +48,12 @@ config("appmgr_core_config") {
 idl_gen_interface("app_mgr_interface") {
   sources = [
     "idl/IAbilityDebugResponse.idl",
-    "idl/IAmsMgr.idl",
     "idl/IAppDebugListener.idl",
+    "idl/IAppStateCallback.idl",
     "idl/IStartSpecifiedAbilityResponse.idl",
   ]
-  sources_callback = [
-    "IAppStateCallback.idl",
-  ]
   sources_common = [
-    "IAppMgrConstants.idl",
+    "idl/IAppMgrConstants.idl",
   ]
   log_domainid = "0xD001311"
   log_tag = "AppMgr"

@@ -90,7 +90,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     sptr<IRemoteObject> preToken = nullptr;
     auto amsMgrScheduler = DoSomethingInterestingWithMyAPI1(token, preToken, data);
     AppExecFwk::AbilityState state = AppExecFwk::AbilityState::ABILITY_STATE_READY;
-    amsMgrScheduler->UpdateAbilityState(token, static_cast<int32_t>(state));
+    amsMgrScheduler->UpdateAbilityState(token, state);
     AppExecFwk::ExtensionState extensionState = AppExecFwk::ExtensionState::EXTENSION_STATE_READY;
     amsMgrScheduler->UpdateExtensionState(token, extensionState);
     bool clearMissionFlag = *data % ENABLE;

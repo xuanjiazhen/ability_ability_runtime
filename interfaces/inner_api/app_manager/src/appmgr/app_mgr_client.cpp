@@ -197,7 +197,7 @@ AppMgrResultCode AppMgrClient::UpdateAbilityState(const sptr<IRemoteObject> &tok
     if (service != nullptr) {
         sptr<IAmsMgr> amsService = service->GetAmsMgr();
         if (amsService != nullptr) {
-            amsService->UpdateAbilityState(token, static_cast<int32_t>(state));
+            amsService->UpdateAbilityState(token, state);
             return AppMgrResultCode::RESULT_OK;
         }
     }
