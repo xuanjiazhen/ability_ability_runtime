@@ -58,7 +58,6 @@ ohos_unittest("cj_test_runner_object_test") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_core",
-    "json:nlohmann_json_static",
     "napi:ace_napi",
     "resource_management:global_resmgr",
   ]

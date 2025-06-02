@@ -268,10 +268,15 @@ ErrCode AbilityContextImpl::StartAbilityForResult(const AAFwk::Want& want, const
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
         OnAbilityResultInner(requestCode, err, want);
         if (!startOptions.requestId_.empty()) {
-            nlohmann::json jsonObject = nlohmann::json {
-                { JSON_KEY_ERR_MSG, "Failed to call startAbilityForResult" },
-            };
-            OnRequestFailure(startOptions.requestId_, want.GetElement(), jsonObject.dump());
+            cJSON *jsonObject = cJSON_CreateObject();
+            if (jsonObject == nullptr) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "create jsonObject failed");
+                return ERR_INVALID_VALUE;
+            }
+            cJSON_AddStringToObject(jsonObject, JSON_KEY_ERR_MSG.c_str(), "Failed to call startAbilityForResult");
+            std::string jsonStr = AAFwk::JsonUtils::GetInstance().ToString(jsonObject);
+            cJSON_Delete(jsonObject);
+            OnRequestFailure(startOptions.requestId_, want.GetElement(), jsonStr);
         }
     }
     return err;
@@ -289,10 +294,16 @@ ErrCode AbilityContextImpl::StartAbilityForResultWithAccount(
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
         OnAbilityResultInner(requestCode, err, want);
         if (!startOptions.requestId_.empty()) {
-            nlohmann::json jsonObject = nlohmann::json {
-                { JSON_KEY_ERR_MSG, "Failed to call startAbilityForResultWithAccount" },
-            };
-            OnRequestFailure(startOptions.requestId_, want.GetElement(), jsonObject.dump());
+            cJSON *jsonObject = cJSON_CreateObject();
+            if (jsonObject == nullptr) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "create jsonObject failed");
+                return ERR_INVALID_VALUE;
+            }
+            cJSON_AddStringToObject(jsonObject, JSON_KEY_ERR_MSG.c_str(),
+                "Failed to call startAbilityForResultWithAccount");
+            std::string jsonStr = AAFwk::JsonUtils::GetInstance().ToString(jsonObject);
+            cJSON_Delete(jsonObject);
+            OnRequestFailure(startOptions.requestId_, want.GetElement(), jsonStr);
         }
     }
     return err;

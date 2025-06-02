@@ -16,9 +16,9 @@
 #include "extension_config_mgr.h"
 
 #include <fstream>
-#include <nlohmann/json.hpp>
 
 #include "app_module_checker.h"
+#include "cJSON.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 
@@ -31,7 +31,6 @@ void ExtensionConfigMgr::Init()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::EXT, "Init begin");
-    // clear cached data
     blocklistConfig_.clear();
     extensionBlocklist_.clear();
 
@@ -42,31 +41,45 @@ void ExtensionConfigMgr::Init()
         TAG_LOGE(AAFwkTag::EXT, "read extension config error");
         return;
     }
-    nlohmann::json extensionConfig;
-    inFile >> extensionConfig;
-    if (extensionConfig.is_discarded()) {
-        TAG_LOGE(AAFwkTag::EXT, "extension config json discarded error");
-        inFile.close();
+    std::string fileContent((std::istreambuf_iterator<char>(inFile)), std::istreambuf_iterator<char>());
+    inFile.close();
+
+    cJSON *extensionConfig = cJSON_Parse(fileContent.c_str());
+    if (extensionConfig == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "extension config json parse error");
         return;
     }
-    if (!extensionConfig.contains(ExtensionConfigItem::ITEM_NAME_BLOCKLIST)) {
+    cJSON *blockListItem = cJSON_GetObjectItem(extensionConfig, ExtensionConfigItem::ITEM_NAME_BLOCKLIST);
+    if (blockListItem == nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "extension config file have no blocklist node");
-        inFile.close();
+        cJSON_Delete(extensionConfig);
         return;
     }
-    auto blackList = extensionConfig.at(ExtensionConfigItem::ITEM_NAME_BLOCKLIST);
+    if (!cJSON_IsArray(blockListItem)) {
+        TAG_LOGE(AAFwkTag::EXT, "blocklist node is not array");
+        cJSON_Delete(extensionConfig);
+        return;
+    }
     std::unordered_set<std::string> currentBlockList;
-    for (const auto& item : blackList.items()) {
-        if (!blackList[item.key()].is_array()) {
+    int blockListSize = cJSON_GetArraySize(blockListItem);
+    for (int i = 0; i < blockListSize; i++) {
+        cJSON *blockItem = cJSON_GetArrayItem(blockListItem, i);
+        if (blockItem == nullptr || !cJSON_IsArray(blockItem)) {
             continue;
         }
-        for (const auto& value : blackList[item.key()]) {
-            currentBlockList.emplace(value.get<std::string>());
+        int blockSize = cJSON_GetArraySize(blockItem);
+        for (int j = 0; j < blockSize; j++) {
+            cJSON *item = cJSON_GetArrayItem(blockItem, j);
+            if (item != nullptr && cJSON_IsString(item)) {
+                std::string value = item->valuestring;
+                currentBlockList.emplace(value);
+            }
         }
-        blocklistConfig_.emplace(item.key(), std::move(currentBlockList));
+        std::string key = blockItem->string;
+        blocklistConfig_.emplace(key, std::move(currentBlockList));
         currentBlockList.clear();
     }
-    inFile.close();
+    cJSON_Delete(extensionConfig);
     TAG_LOGD(AAFwkTag::EXT, "Init end");
 }
 

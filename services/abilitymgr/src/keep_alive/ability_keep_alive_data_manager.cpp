@@ -17,6 +17,7 @@
 
 #include <unistd.h>
 
+#include "cJSON.h"
 #include "hilog_tag_wrapper.h"
 #include "json_utils.h"
 
@@ -300,10 +301,15 @@ int32_t AbilityKeepAliveDataManager::QueryKeepAliveApplications(
 
 DistributedKv::Value AbilityKeepAliveDataManager::ConvertKeepAliveStatusToValue(KeepAliveSetter setter)
 {
-    nlohmann::json jsonObject = nlohmann::json {
-        { JSON_KEY_SETTER, setter },
-    };
-    DistributedKv::Value value(jsonObject.dump());
+    cJSON *jsonObject = cJSON_CreateObject();
+    if (jsonObject == nullptr) {
+        TAG_LOGE(AAFwkTag::KEEP_ALIVE, "create jsonObject failed");
+        return DistributedKv::Value();
+    }
+    cJSON_AddNumberToObject(jsonObject, JSON_KEY_SETTER.c_str(), static_cast<double>(setter));
+    std::string jsonStr = AAFwk::JsonUtils::GetInstance().ToString(jsonObject);
+    cJSON_Delete(jsonObject);
+    DistributedKv::Value value(jsonStr);
     TAG_LOGD(AAFwkTag::KEEP_ALIVE, "value: %{public}s", value.ToString().c_str());
     return value;
 }
@@ -311,25 +317,32 @@ DistributedKv::Value AbilityKeepAliveDataManager::ConvertKeepAliveStatusToValue(
 void AbilityKeepAliveDataManager::ConvertKeepAliveStatusFromValue(const DistributedKv::Value &value,
     KeepAliveSetter &setter)
 {
-    nlohmann::json jsonObject = nlohmann::json::parse(value.ToString(), nullptr, false);
-    if (jsonObject.is_discarded()) {
-        TAG_LOGE(AAFwkTag::KEEP_ALIVE, "parse jsonObject fail");
+    cJSON *jsonObject = cJSON_Parse(value.ToString().c_str());
+    if (jsonObject == nullptr) {
+        TAG_LOGE(AAFwkTag::KEEP_ALIVE, "parse jsonObject failed");
         return;
     }
-    if (jsonObject.contains(JSON_KEY_SETTER) && jsonObject[JSON_KEY_SETTER].is_number()) {
-        setter = KeepAliveSetter(jsonObject.at(JSON_KEY_SETTER).get<int32_t>());
+    cJSON *setterItem = cJSON_GetObjectItem(jsonObject, JSON_KEY_SETTER.c_str());
+    if (setterItem != nullptr && cJSON_IsNumber(setterItem)) {
+        setter = KeepAliveSetter(static_cast<int32_t>(setterItem->valuedouble));
     }
+    cJSON_Delete(jsonObject);
 }
 
 DistributedKv::Key AbilityKeepAliveDataManager::ConvertKeepAliveDataToKey(const KeepAliveInfo &info)
 {
-    nlohmann::json jsonObject = nlohmann::json {
-        { JSON_KEY_BUNDLE_NAME, info.bundleName },
-        { JSON_KEY_USERID, info.userId },
-        { JSON_KEY_APP_TYPE, info.appType },
-        { JSON_KEY_SETTER, info.setter },
-    };
-    DistributedKv::Key key(jsonObject.dump());
+    cJSON *jsonObject = cJSON_CreateObject();
+    if (jsonObject == nullptr) {
+        TAG_LOGE(AAFwkTag::KEEP_ALIVE, "create jsonObject failed");
+        return DistributedKv::Key();
+    }
+    cJSON_AddStringToObject(jsonObject, JSON_KEY_BUNDLE_NAME.c_str(), info.bundleName.c_str());
+    cJSON_AddNumberToObject(jsonObject, JSON_KEY_USERID.c_str(), static_cast<double>(info.userId));
+    cJSON_AddNumberToObject(jsonObject, JSON_KEY_APP_TYPE.c_str(), static_cast<double>(info.appType));
+    cJSON_AddNumberToObject(jsonObject, JSON_KEY_SETTER.c_str(), static_cast<double>(info.setter));
+    std::string jsonStr = AAFwk::JsonUtils::GetInstance().ToString(jsonObject);
+    cJSON_Delete(jsonObject);
+    DistributedKv::Key key(jsonStr);
     TAG_LOGD(AAFwkTag::KEEP_ALIVE, "key: %{public}s", key.ToString().c_str());
     return key;
 }
@@ -337,52 +350,57 @@ DistributedKv::Key AbilityKeepAliveDataManager::ConvertKeepAliveDataToKey(const 
 KeepAliveInfo AbilityKeepAliveDataManager::ConvertKeepAliveInfoFromKey(const DistributedKv::Key &key)
 {
     KeepAliveInfo info;
-    nlohmann::json jsonObject = nlohmann::json::parse(key.ToString(), nullptr, false);
-    if (jsonObject.is_discarded()) {
-        TAG_LOGE(AAFwkTag::KEEP_ALIVE, "parse jsonObject fail");
+    cJSON *jsonObject = cJSON_Parse(key.ToString().c_str());
+    if (jsonObject == nullptr) {
+        TAG_LOGE(AAFwkTag::KEEP_ALIVE, "parse jsonObject failed");
         return info;
     }
-
-    if (jsonObject.contains(JSON_KEY_BUNDLE_NAME) && jsonObject[JSON_KEY_BUNDLE_NAME].is_string()) {
-        info.bundleName = jsonObject.at(JSON_KEY_BUNDLE_NAME).get<std::string>();
+    cJSON *bundleNameItem = cJSON_GetObjectItem(jsonObject, JSON_KEY_BUNDLE_NAME.c_str());
+    if (bundleNameItem != nullptr && cJSON_IsString(bundleNameItem)) {
+        info.bundleName = bundleNameItem->valuestring;
     }
-
-    if (jsonObject.contains(JSON_KEY_USERID) && jsonObject[JSON_KEY_USERID].is_number()) {
-        info.userId = jsonObject.at(JSON_KEY_USERID).get<int32_t>();
+    cJSON *userIdItem = cJSON_GetObjectItem(jsonObject, JSON_KEY_USERID.c_str());
+    if (userIdItem != nullptr && cJSON_IsNumber(userIdItem)) {
+        info.userId = static_cast<int32_t>(userIdItem->valuedouble);
     }
-
-    if (jsonObject.contains(JSON_KEY_APP_TYPE) && jsonObject[JSON_KEY_APP_TYPE].is_number()) {
-        info.appType = KeepAliveAppType(jsonObject.at(JSON_KEY_APP_TYPE).get<int32_t>());
+    cJSON *appTypeItem = cJSON_GetObjectItem(jsonObject, JSON_KEY_APP_TYPE.c_str());
+    if (appTypeItem != nullptr && cJSON_IsNumber(appTypeItem)) {
+        info.appType = static_cast<KeepAliveAppType>(static_cast<int32_t>(appTypeItem->valuedouble));
     }
-
-    if (jsonObject.contains(JSON_KEY_SETTER) && jsonObject[JSON_KEY_SETTER].is_number()) {
-        info.setter = KeepAliveSetter(jsonObject.at(JSON_KEY_SETTER).get<int32_t>());
+    cJSON *setterItem = cJSON_GetObjectItem(jsonObject, JSON_KEY_SETTER.c_str());
+    if (setterItem != nullptr && cJSON_IsNumber(setterItem)) {
+        info.setter = static_cast<KeepAliveSetter>(static_cast<int32_t>(setterItem->valuedouble));
     }
-
+    cJSON_Delete(jsonObject);
     return info;
 }
 
 bool AbilityKeepAliveDataManager::IsEqual(const DistributedKv::Key &key, const KeepAliveInfo &info)
 {
-    nlohmann::json jsonObject = nlohmann::json::parse(key.ToString(), nullptr, false);
-    if (jsonObject.is_discarded()) {
-        TAG_LOGE(AAFwkTag::KEEP_ALIVE, "parse jsonObject fail");
+    cJSON *jsonObject = cJSON_Parse(key.ToString().c_str());
+    if (jsonObject == nullptr) {
+        TAG_LOGE(AAFwkTag::KEEP_ALIVE, "parse jsonObject failed");
         return false;
     }
 
     if (!AAFwk::JsonUtils::GetInstance().IsEqual(jsonObject, JSON_KEY_USERID, info.userId)) {
+        cJSON_Delete(jsonObject);
         return false;
     }
 
     if (!info.bundleName.empty() &&
         !AAFwk::JsonUtils::GetInstance().IsEqual(jsonObject, JSON_KEY_BUNDLE_NAME, info.bundleName)) {
+        cJSON_Delete(jsonObject);
         return false;
     }
 
     if (info.appType != KeepAliveAppType::UNSPECIFIED &&
         !AAFwk::JsonUtils::GetInstance().IsEqual(jsonObject, JSON_KEY_APP_TYPE, static_cast<int32_t>(info.appType))) {
+        cJSON_Delete(jsonObject);
         return false;
     }
+
+    cJSON_Delete(jsonObject);
 
     return true;
 }

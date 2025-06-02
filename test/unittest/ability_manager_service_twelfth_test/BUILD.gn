@@ -107,6 +107,7 @@ ohos_unittest("ability_manager_service_twelfth_test") {
     "hisysevent:libhisysevent",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "jsoncpp:jsoncpp",
     "kv_store:distributeddata_inner",
     "relational_store:native_dataability",
     "safwk:api_cache_manager",

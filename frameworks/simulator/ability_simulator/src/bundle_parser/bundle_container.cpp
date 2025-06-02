@@ -15,8 +15,6 @@
 
 #include "bundle_container.h"
 
-#include <nlohmann/json.hpp>
-
 #include "hilog_tag_wrapper.h"
 #include "json_serializer.h"
 #include "module_profile.h"

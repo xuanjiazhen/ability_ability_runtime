@@ -63,6 +63,7 @@ ohos_fuzztest("AbilityMgrInsightIntentExecuteManagerFuzzTest") {
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_path}/utils/server/startup:startup_util",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:app_util",
     "${ability_runtime_services_path}/common:event_report",
     "${ability_runtime_services_path}/common:perm_verification",
   ]
@@ -76,6 +77,7 @@ ohos_fuzztest("AbilityMgrInsightIntentExecuteManagerFuzzTest") {
     "bundle_framework:appexecfwk_core",
     "bundle_framework:libappexecfwk_common",
     "c_utils:utils",
+    "config_policy:configpolicy_util",
     "common_event_service:cesfwk_innerkits",
     "dsoftbus:softbus_client",
     "ffrt:libffrt",

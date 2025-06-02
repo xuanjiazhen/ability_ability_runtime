@@ -64,10 +64,12 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     innerMissionInfo.FromJsonStr(jsonStr);
     std::vector<std::string> info;
     innerMissionInfo.Dump(info);
-    nlohmann::json value;
+    cJSON *value = cJSON_CreateObject();
     std::string node(data, size);
     JsonType jsonType = JsonType::STRING;
-    return innerMissionInfo.CheckJsonNode(value, node, jsonType);
+    bool result = innerMissionInfo.CheckJsonNode(value, node, jsonType);
+    cJSON_Delete(value);
+    return result;
 }
 }
 

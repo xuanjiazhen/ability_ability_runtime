@@ -45,7 +45,6 @@ ohos_moduletest("call_ability_service_module_test") {
     "hisysevent:libhisysevent",
     "init:libbegetutil",
     "ipc:ipc_core",
-    "jsoncpp:jsoncpp",
     "safwk:api_cache_manager",
   ]
 

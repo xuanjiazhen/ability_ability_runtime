@@ -18,11 +18,11 @@
 
 #include <string>
 #include <memory>
+#include "cJSON.h"
 #include "context/application_context.h"
 #include "completed_callback.h"
 #include "completed_dispatcher.h"
 #include "event_handler.h"
-#include "nlohmann/json.hpp"
 #include "trigger_info.h"
 #include "want.h"
 #include "want_agent.h"
@@ -196,7 +196,7 @@ private:
 
     static unsigned int FlagsTransformer(const std::vector<WantAgentConstant::Flags> &flags);
 
-    static std::vector<WantAgentConstant::Flags> ParseFlags(nlohmann::json jsonObject);
+    static std::vector<WantAgentConstant::Flags> ParseFlags(cJSON *jsonObject);
 };
 }  // namespace OHOS::AbilityRuntime::WantAgent
 #endif  // OHOS_ABILITY_RUNTIME_WANT_AGENT_HELPER_H
