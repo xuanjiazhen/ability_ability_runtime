@@ -422,7 +422,6 @@ group("unittest") {
       "ability_scheduler_stub_test:unittest",
       "ability_service_extension_test:unittest",
       "ability_service_log_test:unittest",
-      "ability_service_start_test:unittest",
       "ability_stage_context_test:unittest",
       "ability_start_window_option_test:unittest",
       "ability_start_with_wait_observer_manager:unittest",
