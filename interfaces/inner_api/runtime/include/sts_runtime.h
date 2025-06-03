@@ -137,6 +137,7 @@ private:
     void StopDebugMode();
 
 public:
+    static AbilityRuntime::JsRuntime* jsRuntime_;
     bool debugMode_ = false;
 //    std::mutex mutex_;
 };
