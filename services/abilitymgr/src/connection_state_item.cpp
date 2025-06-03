@@ -162,7 +162,9 @@ public:
         {
             std::lock_guard guard(connectionsMutex_);
             auto it = std::find_if(connections_.begin(), connections_.end(),
-                [](const std::pair<sptr<IRemoteObject>, bool>& pair) {return pair.second == false;})
+                [](const std::pair<sptr<IRemoteObject>, bool>& pair) {return pair.second == false;});
+            
+            if (it == connections_.end()) {
                 data.isSuspended = true;
             }
         }
