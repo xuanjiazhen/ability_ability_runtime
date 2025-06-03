@@ -69,8 +69,7 @@ void ModalSystemAppFreezeUIExtension::ProcessAppFreeze(bool focusFlag, const Fau
     bool isAppFreezeDialog = name == AppFreezeType::THREAD_BLOCK_6S || name == AppFreezeType::APP_INPUT_BLOCK ||
                              name == AppFreezeType::BUSSINESS_THREAD_BLOCK_6S;
     uint64_t now =
-        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch())
-            .count();
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
     bool timeout = now - lastFreezeTime > TIMEOUT_INTERVAL_MS;
     TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s is %{public}s.pid:%{public}s lastFreezePid:%{public}s",
         bundleName.c_str(), focusFlag ? "focus" : "not focus", pid.c_str(), lastFreezePid.c_str());
