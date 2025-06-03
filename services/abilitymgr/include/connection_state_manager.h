@@ -100,7 +100,6 @@ public:
      */
     void ResumeConnection(std::shared_ptr<ConnectionRecord> connectionRecord);
 
-
     /**
      * add a data ability acquired information to manager.
      *

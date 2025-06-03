@@ -86,12 +86,10 @@ public:
 
         int count = std::count_if(connections_.begin(), connections_.end(),
             [](const std::pair<sptr<IRemoteObject>, bool>& pair)->bool {return pair.second == false;});
-        
         if (count == 1) {
             event.resumedEvent = true;
             return true;
         }
-
         return false;
     }
 
@@ -106,10 +104,8 @@ public:
             event.disconnectedEvent = true;
             return true;
         }
-
         auto it = std::find_if(connections_.begin(), connections_.end(),
             [](const std::pair<sptr<IRemoteObject>, bool>& pair)->bool {return pair.second == false;});
-        
         if (it == connections_.end()) {
             event.suspendedEvent = true;
             return true;
@@ -153,17 +149,13 @@ public:
         return needNotify;
     }
 
-
-
     void GenerateExtensionInfo(AbilityRuntime::ConnectionData &data)
     {
-
-        data.isSuspended = false;
         {
             std::lock_guard guard(connectionsMutex_);
             auto it = std::find_if(connections_.begin(), connections_.end(),
-                [](const std::pair<sptr<IRemoteObject>, bool>& pair) {return pair.second == false;});
-            
+                [](const std::pair<sptr<IRemoteObject>, bool
+                    >& pair) {return pair.second == false;});
             if (it == connections_.end()) {
                 data.isSuspended = true;
             }

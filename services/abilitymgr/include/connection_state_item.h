@@ -65,7 +65,8 @@ public:
      * @param event output relationship event.
      * @return Returns true if need report relationship.
      */
-    bool AddConnection(std::shared_ptr<ConnectionRecord> record, AbilityRuntime::ConnectionData &data, ConnectionEvent &event);
+    bool AddConnection(std::shared_ptr<ConnectionRecord> record,
+        AbilityRuntime::ConnectionData &data, ConnectionEvent &event);
 
     /**
      * remove a connection to target extension.
@@ -75,7 +76,8 @@ public:
      * @param event output relationship event.
      * @return Returns true if need report relationship.
      */
-    bool RemoveConnection(std::shared_ptr<ConnectionRecord> record, AbilityRuntime::ConnectionData &data, ConnectionEvent &event);
+    bool RemoveConnection(std::shared_ptr<ConnectionRecord> record,
+        AbilityRuntime::ConnectionData &data, ConnectionEvent &event);
 
     /**
      * suspend a connection to target extension.
@@ -84,7 +86,8 @@ public:
      * @param data output relationship data.
      * @return Returns true if need report relationship.
      */
-    bool SuspendConnection(std::shared_ptr<ConnectionRecord> record, AbilityRuntime::ConnectionData &data);
+    bool SuspendConnection(std::shared_ptr<ConnectionRecord> record,
+        AbilityRuntime::ConnectionData &data);
 
     /**
      * resume a connection to target extension.
@@ -93,7 +96,8 @@ public:
      * @param data output relationship data.
      * @return Returns true if need report relationship.
      */
-    bool ResumeConnection(std::shared_ptr<ConnectionRecord> record, AbilityRuntime::ConnectionData &data);
+    bool ResumeConnection(std::shared_ptr<ConnectionRecord> record,
+        AbilityRuntime::ConnectionData &data);
 
     /**
      * add a connection to target data ability.

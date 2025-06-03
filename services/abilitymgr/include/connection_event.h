@@ -19,8 +19,7 @@
 namespace OHOS {
 namespace AAFwk {
 
-struct ConnectionEvent
-{
+struct ConnectionEvent {
     bool connectedEvent = false;
     bool disconnectedEvent = false;
     bool suspendedEvent = false;
