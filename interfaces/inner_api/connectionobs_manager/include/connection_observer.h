@@ -58,14 +58,14 @@ public:
      *
      * @param data connection relationship data.
      */
-    virtual void OnExtensionSuspended(const ConnectionData& data) = 0;
+    virtual void OnExtensionSuspended(const ConnectionData& data) {};
 
     /**
      * called when extension was resumed.
      *
      * @param data connection relationship data.
      */
-    virtual void OnExtensionResumed(const ConnectionData& data) = 0;
+    virtual void OnExtensionResumed(const ConnectionData& data) {};
 
     /**
      * called when dlp ability was started.
