@@ -4700,6 +4700,9 @@ sptr<IAbilityManagerCollaborator> AbilityManagerProxy::GetAbilityManagerCollabor
         return nullptr;
     }
     sptr<IAbilityManagerCollaborator> collaborator = iface_cast<IAbilityManagerCollaborator>(reply.ReadRemoteObject());
+    if (!collaborator) {
+        return nullptr;
+    }
     return collaborator;
 }
 
