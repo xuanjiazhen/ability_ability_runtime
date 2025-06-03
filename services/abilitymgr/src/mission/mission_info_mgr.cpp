@@ -531,11 +531,14 @@ bool MissionInfoMgr::UpdateMissionSnapshot(int32_t missionId, const sptr<IRemote
         return false;
     }
     Snapshot snapshot;
-    int32_t result = snapshotHandler_->GetSnapshot(abilityToken, snapshot);
+    int32_t result = 0;
+    std::shared_ptr<OHOS::Media::PixelMap> pixelMap;
+    snapshotHandler_->GetSnapshot(abilityToken, pixelMap, result);
     if (result != 0) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "fail, result = %{public}d", result);
         return false;
     }
+    snapshot.SetPixelMap(pixelMap);
 
 #ifdef SUPPORT_SCREEN
     if (missionSnapshot.isPrivate) {
