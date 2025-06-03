@@ -98,41 +98,41 @@ public:
         std::ifstream inFile;
         inFile.open(ENTRY_PATH_MAP_FILE, std::ios::in);
         if (!inFile.is_open()) {
-            TAG_LOGD(AAFwkTag::STSRUNTIME, "no entrypath file");
+            TAG_LOGD(AAFwkTag::ETSRUNTIME, "no entrypath file");
             return false;
         }
         nlohmann::json filePathsJson;
         inFile >> filePathsJson;
         if (filePathsJson.is_discarded()) {
-            TAG_LOGE(AAFwkTag::STSRUNTIME, "json discarded error");
+            TAG_LOGE(AAFwkTag::ETSRUNTIME, "json discarded error");
             inFile.close();
             return false;
         }
 
         if (filePathsJson.is_null() || filePathsJson.empty()) {
-            TAG_LOGE(AAFwkTag::STSRUNTIME, "invalid json");
+            TAG_LOGE(AAFwkTag::ETSRUNTIME, "invalid json");
             inFile.close();
             return false;
         }
 
         if (!filePathsJson.contains(ENTRY_PATH_MAP_KEY)) {
-            TAG_LOGD(AAFwkTag::STSRUNTIME, "no entrypath key");
+            TAG_LOGD(AAFwkTag::ETSRUNTIME, "no entrypath key");
             return false;
         }
         const auto &entryPathMap = filePathsJson[ENTRY_PATH_MAP_KEY];
         if (!entryPathMap.is_object()) {
-            TAG_LOGE(AAFwkTag::STSRUNTIME, "entrypath is not object");
+            TAG_LOGE(AAFwkTag::ETSRUNTIME, "entrypath is not object");
             return false;
         }
 
         for (const auto &entryPath: entryPathMap.items()) {
             std::string key = entryPath.key();
             if (!entryPath.value().is_string()) {
-                TAG_LOGE(AAFwkTag::STSRUNTIME, "val is not string, key: %{public}s", key.c_str());
+                TAG_LOGE(AAFwkTag::ETSRUNTIME, "val is not string, key: %{public}s", key.c_str());
                 continue;
             }
             std::string val = entryPath.value();
-            TAG_LOGD(AAFwkTag::STSRUNTIME, "key: %{public}s, value: %{public}s", key.c_str(), val.c_str());
+            TAG_LOGD(AAFwkTag::ETSRUNTIME, "key: %{public}s, value: %{public}s", key.c_str(), val.c_str());
             entryPathMap_.emplace(key, val);
         }
         inFile.close();
@@ -144,13 +144,13 @@ public:
         auto const &iter = entryPathMap_.find(srcEntry);
         if (iter == entryPathMap_.end()) {
             if (StartsWithDotSlash(srcEntry)) {
-                TAG_LOGD(AAFwkTag::STSRUNTIME, "not found srcEntry: %{public}s", srcEntry.c_str());
+                TAG_LOGD(AAFwkTag::ETSRUNTIME, "not found srcEntry: %{public}s", srcEntry.c_str());
                 return DEFAULT_ENTRY_ABILITY_CLASS;
             }
-            TAG_LOGD(AAFwkTag::STSRUNTIME, "srcEntry as class: %{public}s", srcEntry.c_str());
+            TAG_LOGD(AAFwkTag::ETSRUNTIME, "srcEntry as class: %{public}s", srcEntry.c_str());
             return HandleOhmUrlSrcEntry(srcEntry);
         }
-        TAG_LOGD(AAFwkTag::STSRUNTIME, "found srcEntry: %{public}s, output: %{public}s",
+        TAG_LOGD(AAFwkTag::ETSRUNTIME, "found srcEntry: %{public}s, output: %{public}s",
                  srcEntry.c_str(), iter->second.c_str());
         return iter->second;
     }
@@ -206,7 +206,7 @@ AbilityRuntime::JsRuntime* STSRuntime::jsRuntime_ = nullptr;
 std::unique_ptr<STSRuntime> STSRuntime::Create(const Options& options, Runtime* jsRuntime)
 {
     STSRuntime::jsRuntime_ = static_cast<AbilityRuntime::JsRuntime*>(jsRuntime);
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     std::unique_ptr<STSRuntime> instance;
     // JsRuntimeLite::InitJsRuntimeLite(options);
     if (!options.preload && options.isStageModel) {
@@ -236,11 +236,11 @@ std::unique_ptr<STSRuntime> STSRuntime::Create(const Options& options, Runtime* 
 
 void STSRuntime::SetAppLibPath(const AppLibPathMap& appLibPaths)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     std::string appPath = "";
     for (const auto& kv : appLibPaths) {
         for (const auto& libPath : kv.second) {
-            TAG_LOGD(AAFwkTag::STSRUNTIME, "SetSTSAppLibPath: %{public}s.", libPath.c_str());
+            TAG_LOGD(AAFwkTag::ETSRUNTIME, "SetSTSAppLibPath: %{public}s.", libPath.c_str());
             STSRuntime::appLibPaths_.emplace_back(libPath);
             appPath += appPath.empty() ? libPath : ":" + libPath;
         }
@@ -254,9 +254,9 @@ void STSRuntime::SetAppLibPath(const AppLibPathMap& appLibPaths)
 
 bool STSRuntime::Initialize(const Options& options)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     if (options.lang != GetLanguage()) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "language mismatch");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "language mismatch");
         return false;
     }
 
@@ -268,22 +268,22 @@ bool STSRuntime::Initialize(const Options& options)
 
     if (!preloaded_) {
         if (!CreateStsEnv(options)) {
-            TAG_LOGE(AAFwkTag::STSRUNTIME, "Create stsEnv failed");
+            TAG_LOGE(AAFwkTag::ETSRUNTIME, "Create stsEnv failed");
             return false;
         }
     }
 
     apiTargetVersion_ = options.apiTargetVersion;
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "Initialize: %{public}d", apiTargetVersion_);
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "Initialize: %{public}d", apiTargetVersion_);
     if (options.isStageModel || options.isTestFramework) {
         if (preloaded_) {
             PostPreload(options);
         }
 
         if (!preloaded_) {
-            TAG_LOGD(AAFwkTag::STSRUNTIME, "PreloadAce start");
+            TAG_LOGD(AAFwkTag::ETSRUNTIME, "PreloadAce start");
             PreloadAce(options);
-            TAG_LOGD(AAFwkTag::STSRUNTIME, "PreloadAce end");
+            TAG_LOGD(AAFwkTag::ETSRUNTIME, "PreloadAce end");
         }
 
         if (!options.preload) {
@@ -303,14 +303,14 @@ bool STSRuntime::Initialize(const Options& options)
 
     if (!options.preload) {
         if (options.isUnique) {
-            TAG_LOGD(AAFwkTag::STSRUNTIME, "Not supported TimerModule when form render");
+            TAG_LOGD(AAFwkTag::ETSRUNTIME, "Not supported TimerModule when form render");
         } else {
             InitTimerModule();
         }
 
         SetModuleLoadChecker(options.moduleCheckerDelegate);
         if (!stsEnv_->InitLoop(options.isStageModel)) {
-            TAG_LOGE(AAFwkTag::STSRUNTIME, "Init loop failed");
+            TAG_LOGE(AAFwkTag::ETSRUNTIME, "Init loop failed");
             return false;
         }
     }
@@ -320,7 +320,7 @@ bool STSRuntime::Initialize(const Options& options)
 bool STSRuntime::LoadSTSAppLibrary(const AppLibPathVec& appLibPaths)
 {
     if (stsEnv_ == nullptr) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "null stsEnv_");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null stsEnv_");
          return false;
     }
 
@@ -335,7 +335,7 @@ void STSRuntime::StartDebugMode(const DebugOption dOption)
 bool STSRuntime::StartDebugger()
 {
     if (stsEnv_ == nullptr) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "null stsEnv_");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null stsEnv_");
         return false;
     }
     return stsEnv_->StartDebugger();
@@ -343,18 +343,18 @@ bool STSRuntime::StartDebugger()
 
 void STSRuntime::UnLoadSTSAppLibrary()
 {
-    TAG_LOGI(AAFwkTag::STSRUNTIME, "UnLoadSTSAppLibrary not support yet");
+    TAG_LOGI(AAFwkTag::ETSRUNTIME, "UnLoadSTSAppLibrary not support yet");
 }
 
 void STSRuntime::RegisterUncaughtExceptionHandler(void* uncaughtExceptionInfo)
 {
     if (stsEnv_ == nullptr) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "null stsEnv_");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null stsEnv_");
         return;
     }
 
     if (uncaughtExceptionInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "null uncaughtExceptionInfo");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null uncaughtExceptionInfo");
         return;
     }
 
@@ -366,13 +366,13 @@ void STSRuntime::RegisterUncaughtExceptionHandler(void* uncaughtExceptionInfo)
 
 STSRuntime::~STSRuntime()
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     Deinitialize();
 }
 
 void STSRuntime::PostTask(const std::function<void()>& task, const std::string& name, int64_t delayTime)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     if (stsEnv_ != nullptr) {
         stsEnv_->PostTask(task, name, delayTime);
     }
@@ -380,7 +380,7 @@ void STSRuntime::PostTask(const std::function<void()>& task, const std::string& 
 
 void STSRuntime::PostSyncTask(const std::function<void()>& task, const std::string& name)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     if (stsEnv_ != nullptr) {
         stsEnv_->PostSyncTask(task, name);
     }
@@ -388,7 +388,7 @@ void STSRuntime::PostSyncTask(const std::function<void()>& task, const std::stri
 
 void STSRuntime::RemoveTask(const std::string& name)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     if (stsEnv_ != nullptr) {
         stsEnv_->RemoveTask(name);
     }
@@ -396,7 +396,7 @@ void STSRuntime::RemoveTask(const std::string& name)
 
 void STSRuntime::Deinitialize()
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     for (auto it = modules_.begin(); it != modules_.end(); it = modules_.erase(it)) {
         delete it->second;
         it->second = nullptr;
@@ -409,7 +409,7 @@ void STSRuntime::Deinitialize()
 
 bool STSRuntime::CreateStsEnv(const Options& options)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     stsEnv_ = std::make_shared<StsEnv::STSEnvironment>(std::make_unique<OHOSStsEnvironmentImpl>(options.eventRunner));
     
     std::vector<ani_option> aniOptions;
@@ -418,12 +418,12 @@ bool STSRuntime::CreateStsEnv(const Options& options)
         std::string aotFilePath = SANDBOX_ARK_CACHE_PATH + options.arkNativeFilePath + options.moduleName + ".an";
         aotFileString = "--ext:--aot-file=" + aotFilePath;
         aniOptions.push_back(ani_option{aotFileString.c_str(), nullptr});
-        TAG_LOGI(AAFwkTag::STSRUNTIME, "aotFileString: %{public}s", aotFileString.c_str());
+        TAG_LOGI(AAFwkTag::ETSRUNTIME, "aotFileString: %{public}s", aotFileString.c_str());
         aniOptions.push_back(ani_option{"--ext:--enable-an", nullptr});
     }
     
     if (stsEnv_ == nullptr || !stsEnv_->StartRuntime(STSRuntime::jsRuntime_->GetNapiEnv(), aniOptions)) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "Init StsEnv failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Init StsEnv failed");
         return false;
     }
 
@@ -432,12 +432,12 @@ bool STSRuntime::CreateStsEnv(const Options& options)
 
 void STSRuntime::PreloadAce(const Options& options)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
 }
 
 void STSRuntime::ReInitStsEnvImpl(const Options& options)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     if (stsEnv_ == nullptr) {
         return;
     }
@@ -446,7 +446,7 @@ void STSRuntime::ReInitStsEnvImpl(const Options& options)
 
 void STSRuntime::LoadAotFile(const Options& options)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     if (options.hapPath.empty()) {
         return;
     }
@@ -460,18 +460,18 @@ void STSRuntime::LoadAotFile(const Options& options)
 
 void STSRuntime::InitConsoleModule()
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     // need vm support Console
 }
 
 void STSRuntime::InitTimerModule()
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
 }
 
 void STSRuntime::ReInitUVLoop()
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     if (stsEnv_ == nullptr) {
         return;
     }
@@ -480,7 +480,7 @@ void STSRuntime::ReInitUVLoop()
 
 void STSRuntime::PostPreload(const Options& options)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     // need vm support Preload
     ReInitUVLoop();
 }
@@ -488,7 +488,7 @@ void STSRuntime::PostPreload(const Options& options)
 ani_env* STSRuntime::GetAniEnv()
 {
     if (stsEnv_ == nullptr) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "null stsEnv_");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null stsEnv_");
         return nullptr;
     }
     return stsEnv_->GetAniEnv();
@@ -497,50 +497,50 @@ ani_env* STSRuntime::GetAniEnv()
 void STSRuntime::PreloadModule(const std::string& moduleName, const std::string& hapPath,
     bool isEsMode, bool useCommonTrunk)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "moduleName: %{public}s", moduleName.c_str());
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "moduleName: %{public}s", moduleName.c_str());
     ani_env* aniEnv = GetAniEnv();
     if (aniEnv == nullptr) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "GetAniEnv failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetAniEnv failed");
         return;
     }
     ani_class stringCls = nullptr;
     if (aniEnv->FindClass("Lstd/core/String;", &stringCls) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass Lstd/core/String Failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "FindClass Lstd/core/String Failed");
         return;
     }
     std::string modulePath = BUNDLE_INSTALL_PATH + moduleName + MERGE_ABC_PATH;
     ani_string ani_str;
     if (aniEnv->String_NewUTF8(modulePath.c_str(), modulePath.size(), &ani_str) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "String_NewUTF8 modulePath Failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "String_NewUTF8 modulePath Failed");
         return;
     }
     ani_ref undefined_ref;
     if (aniEnv->GetUndefined(&undefined_ref) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "GetUndefined failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetUndefined failed");
         return;
     }
     ani_array_ref refArray;
     if (aniEnv->Array_New_Ref(stringCls, 1, undefined_ref, &refArray) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "Array_New_Ref Failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Array_New_Ref Failed");
         return;
     }
     if (aniEnv->Array_Set_Ref(refArray, 0, ani_str) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "Array_Set_Ref Failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Array_Set_Ref Failed");
         return;
     }
     ani_class cls = nullptr;
     if (aniEnv->FindClass("Lstd/core/AbcRuntimeLinker;", &cls) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass AbcRuntimeLinker failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "FindClass AbcRuntimeLinker failed");
         return;
     }
     ani_method method = nullptr;
     if (aniEnv->Class_FindMethod(cls, "<ctor>", "Lstd/core/RuntimeLinker;[Lstd/core/String;:V", &method) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindMethod ctor failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Class_FindMethod ctor failed");
         return;
     }
     ani_object object = nullptr;
     if (aniEnv->Object_New(cls, method, &object, undefined_ref, refArray) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "Object_New AbcRuntimeLinker failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Object_New AbcRuntimeLinker failed");
     }
 }
 
@@ -548,7 +548,7 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadModule(const std::string& mo
     const std::string& modulePath, const std::string& hapPath, bool esmodule, bool useCommonChunk,
     const std::string& srcEntrance)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "Load module(%{public}s, %{public}s, %{public}s, %{public}s)",
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "Load module(%{public}s, %{public}s, %{public}s, %{public}s)",
         moduleName.c_str(), modulePath.c_str(), hapPath.c_str(), esmodule ? "true" : "false");
 
     std::string path = moduleName;
@@ -557,7 +557,7 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadModule(const std::string& mo
         path.erase(pos, path.size() - pos);
         moduleName_ = path;
     }
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "moduleName_(%{public}s, path %{public}s",
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "moduleName_(%{public}s, path %{public}s",
         moduleName_.c_str(), path.c_str());
 
     std::string fileName;
@@ -567,7 +567,7 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadModule(const std::string& mo
         fileName = std::regex_replace(fileName, pattern, "");
     } else {
         if (!MakeFilePath(codePath_, modulePath, fileName)) {
-            TAG_LOGE(AAFwkTag::STSRUNTIME, "make module file path: %{public}s failed", modulePath.c_str());
+            TAG_LOGE(AAFwkTag::ETSRUNTIME, "make module file path: %{public}s failed", modulePath.c_str());
             return nullptr;
         }
     }
@@ -579,63 +579,63 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string 
     const std::string &path, const std::string &hapPath,
     const std::string &srcEntrance)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "Load sts module(%{public}s, %{public}s, %{public}s, %{public}s)",
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "Load sts module(%{public}s, %{public}s, %{public}s, %{public}s)",
         moduleName.c_str(), path.c_str(), hapPath.c_str(), srcEntrance.c_str());
     auto stsNativeReference = std::make_unique<STSNativeReference>();
     ani_env* aniEnv = GetAniEnv();
     if (aniEnv == nullptr) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "GetAniEnv failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetAniEnv failed");
         return std::make_unique<STSNativeReference>();
     }
 
     ani_class stringCls = nullptr;
     if (aniEnv->FindClass("Lstd/core/String;", &stringCls) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass Lstd/core/String Failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "FindClass Lstd/core/String Failed");
         return std::make_unique<STSNativeReference>();
     }
 
     std::string modulePath = BUNDLE_INSTALL_PATH + moduleName_ + MERGE_ABC_PATH;
     ani_string ani_str;
     if (aniEnv->String_NewUTF8(modulePath.c_str(), modulePath.size(), &ani_str) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "String_NewUTF8 modulePath Failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "String_NewUTF8 modulePath Failed");
         return std::make_unique<STSNativeReference>();
     }
 
     ani_ref undefined_ref;
     if (aniEnv->GetUndefined(&undefined_ref) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "GetUndefined failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetUndefined failed");
         return std::make_unique<STSNativeReference>();
     }
     ani_array_ref refArray;
     if (aniEnv->Array_New_Ref(stringCls, 1, undefined_ref, &refArray) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "Array_New_Ref Failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Array_New_Ref Failed");
         return std::make_unique<STSNativeReference>();
     }
     if (aniEnv->Array_Set_Ref(refArray, 0, ani_str) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "Array_Set_Ref Failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Array_Set_Ref Failed");
         return std::make_unique<STSNativeReference>();
     }
 
     ani_class cls = nullptr;
     if (aniEnv->FindClass("Lstd/core/AbcRuntimeLinker;", &cls) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass AbcRuntimeLinker failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "FindClass AbcRuntimeLinker failed");
         return std::make_unique<STSNativeReference>();
     }
     ani_method method = nullptr;
     if (aniEnv->Class_FindMethod(cls, "<ctor>", "Lstd/core/RuntimeLinker;[Lstd/core/String;:V", &method) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindMethod ctor failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Class_FindMethod ctor failed");
         return std::make_unique<STSNativeReference>();
     }
     ani_object object = nullptr;
     aniEnv->ResetError();
     if (aniEnv->Object_New(cls, method, &object, undefined_ref, refArray) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "Object_New AbcRuntimeLinker failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Object_New AbcRuntimeLinker failed");
         HandleUncaughtError();
         return std::make_unique<STSNativeReference>();
     }
     ani_method loadClassMethod = nullptr;
     if (aniEnv->Class_FindMethod(cls, "loadClass", nullptr, &loadClassMethod) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindMethod loadClass failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Class_FindMethod loadClass failed");
         return std::make_unique<STSNativeReference>();
     }
     std::string entryPath = EntryPathManager::GetInstance().GetEntryPath(srcEntrance);
@@ -644,9 +644,9 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string 
     ani_class entryClass = nullptr;
     ani_ref entryClassRef = nullptr;
     ani_boolean isInit = false;
-    TAG_LOGI(AAFwkTag::STSRUNTIME, "load class: %{public}s", entryPath.c_str());
+    TAG_LOGI(AAFwkTag::ETSRUNTIME, "load class: %{public}s", entryPath.c_str());
     if (aniEnv->Object_CallMethod_Ref(object, loadClassMethod, &entryClassRef, entryClassStr, isInit) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "Object_CallMethod_Ref loadClassMethod failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Object_CallMethod_Ref loadClassMethod failed");
         return std::make_unique<STSNativeReference>();
     } else {
         entryClass = static_cast<ani_class>(entryClassRef);
@@ -654,19 +654,19 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string 
 
     ani_method entryMethod = nullptr;
     if (aniEnv->Class_FindMethod(entryClass, "<ctor>", ":V", &entryMethod) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindMethod ctor failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Class_FindMethod ctor failed");
         return std::make_unique<STSNativeReference>();
     }
 
     ani_object entryObject = nullptr;
     if (aniEnv->Object_New(entryClass, entryMethod, &entryObject) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "Object_New AbcRuntimeLinker failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Object_New AbcRuntimeLinker failed");
         return std::make_unique<STSNativeReference>();
     }
 
     ani_ref entryObjectRef = nullptr;
     if (aniEnv->GlobalReference_Create(entryObject, &entryObjectRef) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "GlobalReference_Create failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "GlobalReference_Create failed");
         return std::make_unique<STSNativeReference>();
     }
     stsNativeReference->aniCls = entryClass;
@@ -682,14 +682,14 @@ bool STSRuntime::RunScript(ani_env *aniEnv, const std::string &moduleName,
 {
     bool newCreate = false;
     std::string loadPath = ExtractorUtil::GetLoadFilePath(hapPath);
-    TAG_LOGE(AAFwkTag::STSRUNTIME, "hapPath[%{public}s], loadPath:%{public}s", hapPath.c_str(), loadPath.c_str());
+    TAG_LOGE(AAFwkTag::ETSRUNTIME, "hapPath[%{public}s], loadPath:%{public}s", hapPath.c_str(), loadPath.c_str());
     // need vm support Aot.
     return true;
 }
 
 void STSRuntime::HandleUncaughtError()
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     if (stsEnv_ == nullptr) {
         return;
     }

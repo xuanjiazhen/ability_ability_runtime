@@ -25,16 +25,16 @@ namespace {
 void OHOSStsEnvironmentImpl::PostTaskToHandler(const char* taskName, uv_io_cb func, void* work, int status,
     int priority)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     if (!func || !work) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "Invalid parameters");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Invalid parameters");
         return;
     }
 
     auto task = [func, work, status]() {
-        TAG_LOGD(AAFwkTag::STSRUNTIME, "Do uv work");
+        TAG_LOGD(AAFwkTag::ETSRUNTIME, "Do uv work");
         func(work, status);
-        TAG_LOGD(AAFwkTag::STSRUNTIME, "Do uv work end");
+        TAG_LOGD(AAFwkTag::ETSRUNTIME, "Do uv work end");
     };
 
     AppExecFwk::EventQueue::Priority prio = AppExecFwk::EventQueue::Priority::IMMEDIATE;
@@ -54,21 +54,21 @@ void OHOSStsEnvironmentImpl::PostTaskToHandler(const char* taskName, uv_io_cb fu
     }
 
     if (g_eventHandler == nullptr) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "Invalid parameters");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Invalid parameters");
         return;
     }
     g_eventHandler->PostTask(task, "uv_io_cb", 0, prio);
 }
 OHOSStsEnvironmentImpl::OHOSStsEnvironmentImpl()
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
 }
 
 OHOSStsEnvironmentImpl::OHOSStsEnvironmentImpl(const std::shared_ptr<AppExecFwk::EventRunner>& eventRunner)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     if (eventRunner != nullptr) {
-        TAG_LOGD(AAFwkTag::STSRUNTIME, "Create event handler");
+        TAG_LOGD(AAFwkTag::ETSRUNTIME, "Create event handler");
         eventHandler_ = std::make_shared<AppExecFwk::EventHandler>(eventRunner);
         if (eventRunner.get() == AppExecFwk::EventRunner::GetMainEventRunner().get()) {
             g_eventHandler = std::make_shared<AppExecFwk::EventHandler>(eventRunner);
@@ -78,12 +78,12 @@ OHOSStsEnvironmentImpl::OHOSStsEnvironmentImpl(const std::shared_ptr<AppExecFwk:
 
 OHOSStsEnvironmentImpl::~OHOSStsEnvironmentImpl()
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
 }
 
 void OHOSStsEnvironmentImpl::PostTask(const std::function<void()>& task, const std::string& name, int64_t delayTime)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     if (eventHandler_ != nullptr) {
         eventHandler_->PostTask(task, name, delayTime);
     }
@@ -91,7 +91,7 @@ void OHOSStsEnvironmentImpl::PostTask(const std::function<void()>& task, const s
 
 void OHOSStsEnvironmentImpl::PostSyncTask(const std::function<void()>& task, const std::string& name)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     if (eventHandler_ != nullptr) {
         eventHandler_->PostSyncTask(task, name);
     }
@@ -99,7 +99,7 @@ void OHOSStsEnvironmentImpl::PostSyncTask(const std::function<void()>& task, con
 
 void OHOSStsEnvironmentImpl::RemoveTask(const std::string& name)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     if (eventHandler_ != nullptr) {
         eventHandler_->RemoveTask(name);
     }
@@ -107,21 +107,21 @@ void OHOSStsEnvironmentImpl::RemoveTask(const std::string& name)
 
 bool OHOSStsEnvironmentImpl::InitLoop(bool isStage)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     loop_ = new (std::nothrow)uv_loop_t;
     if (loop_ == nullptr) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "failed to create uv_loop, async task interface would not work");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "failed to create uv_loop, async task interface would not work");
         return false;
     }
     if (uv_loop_init(loop_) != ERR_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "failed to init uv_loop, async task interface would not work");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "failed to init uv_loop, async task interface would not work");
         delete loop_;
         loop_ = nullptr;
         return false;
     }
     auto fd = loop_ != nullptr ? uv_backend_fd(loop_) : -1;
     if (fd < 0) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "get fd failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "get fd failed");
         return false;
     }
     uv_run(loop_, UV_RUN_NOWAIT);
@@ -129,7 +129,7 @@ bool OHOSStsEnvironmentImpl::InitLoop(bool isStage)
     if (eventHandler_ != nullptr) {
         uint32_t events = AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT | AppExecFwk::FILE_DESCRIPTOR_OUTPUT_EVENT;
         eventHandler_->AddFileDescriptorListener(fd, events, std::make_shared<OHOSLoopHandler>(loop_), "uvLoopTask");
-        TAG_LOGD(AAFwkTag::STSRUNTIME, "uv_register_task_to_event, isStage: %{public}d", isStage);
+        TAG_LOGD(AAFwkTag::ETSRUNTIME, "uv_register_task_to_event, isStage: %{public}d", isStage);
         if (isStage && (eventHandler_->GetEventRunner()).get() == AppExecFwk::EventRunner::GetMainEventRunner().get()) {
             uv_register_task_to_event(loop_, PostTaskToHandler, nullptr);
         }
@@ -140,7 +140,7 @@ bool OHOSStsEnvironmentImpl::InitLoop(bool isStage)
 
 void OHOSStsEnvironmentImpl::DeInitLoop()
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     auto fd = loop_ != nullptr ? uv_backend_fd(loop_) : -1;
     if (fd >= 0 && eventHandler_ != nullptr) {
         eventHandler_->RemoveFileDescriptorListener(fd);
@@ -151,7 +151,7 @@ void OHOSStsEnvironmentImpl::DeInitLoop()
 
 bool OHOSStsEnvironmentImpl::ReInitUVLoop()
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     if (loop_ != nullptr) {
         delete loop_;
         loop_ = nullptr;
@@ -159,11 +159,11 @@ bool OHOSStsEnvironmentImpl::ReInitUVLoop()
 
     loop_ = new (std::nothrow)uv_loop_t;
     if (loop_ == nullptr) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "failed to create uv_loop, async task interface would not work");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "failed to create uv_loop, async task interface would not work");
         return false;
     }
     if (uv_loop_init(loop_) != ERR_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "failed to init uv_loop, async task interface would not work");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "failed to init uv_loop, async task interface would not work");
         delete loop_;
         loop_ = nullptr;
         return false;

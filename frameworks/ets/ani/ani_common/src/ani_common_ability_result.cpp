@@ -31,39 +31,39 @@ ani_object WrapAbilityResult(ani_env *env, int32_t resultCode, const AAFwk::Want
     static const char *className = "Lability/abilityResult/AbilityResultInner;";
 
     if ((status = env->FindClass(className, &cls)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::ANI, "status : %{public}d", status);
         return nullptr;
     }
 
     if ((status = env->Class_FindMethod(cls, "<ctor>", nullptr, &ctor)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::ANI, "status : %{public}d", status);
         return nullptr;
     }
 
     if ((status = env->Object_New(cls, ctor, &result_obj)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::ANI, "status : %{public}d", status);
         return nullptr;
     }
     
     ani_method resultCodeSetter = nullptr;
     if ((status = env->Class_FindMethod(cls, "<set>resultCode", nullptr, &resultCodeSetter)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::ANI, "status : %{public}d", status);
     }
 
     ani_double dResultCode {resultCode};
     if ((status = env->Object_CallMethod_Void(result_obj, resultCodeSetter, dResultCode)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::ANI, "status : %{public}d", status);
         return nullptr;
     }
 
     ani_method wantSetter = nullptr;
     if ((status = env->Class_FindMethod(cls, "<set>want", nullptr, &wantSetter)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::ANI, "status : %{public}d", status);
     }
 
     ani_object wantObj = AppExecFwk::WrapWant(env, want);
     if ((status = env->Object_CallMethod_Void(result_obj, wantSetter, wantObj)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::ANI, "status : %{public}d", status);
         return nullptr;
     }
 

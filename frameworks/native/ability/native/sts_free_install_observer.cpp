@@ -75,7 +75,7 @@ void StsFreeInstallObserver::CallCallback(ani_object callback, int32_t resultCod
     ani_option interopEnabled { "--interop=disable", nullptr };
     ani_options aniArgs { 1, &interopEnabled };
     if ((etsVm_->AttachCurrentThread(&aniArgs, ANI_VERSION_1, &env)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::FREE_INSTALL, "status : %{public}d", status);
     }
     AsyncCallback(env, callback, WrapBusinessError(env, resultCode), nullptr);
 }
