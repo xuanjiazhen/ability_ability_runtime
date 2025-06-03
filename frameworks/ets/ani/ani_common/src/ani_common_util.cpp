@@ -940,5 +940,47 @@ bool SetRefProperty(ani_env *env, ani_object param, const char *name, ani_ref va
     }
     return true;
 }
+
+ani_object CreateStringArray(ani_env *env, const std::vector<std::string> &values)
+{
+    ani_class arrayCls = nullptr;
+    ani_method arrayCtor;
+    ani_object arrayObj;
+    ani_string string = nullptr;
+
+    ani_status status = env->FindClass("Lescompat/Array;", &arrayCls);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        return nullptr;
+    }
+
+    status = env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        return nullptr;
+    }
+
+    status = env->Object_New(arrayCls, arrayCtor, &arrayObj, values.size());
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        return nullptr;
+    }
+
+    for (size_t i = 0; i < values.size(); i++) {
+        string = nullptr;
+        status = env->String_NewUTF8(values[i].c_str(), values[i].size(), &string);
+        if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+            return nullptr;
+        }
+
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", i, string);
+        if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+            return nullptr;
+        }
+    }
+    return arrayObj;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
