@@ -13,33 +13,13 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_FIRST_FRAME_STATE_OBSERVER_STUB_H
-#define OHOS_ABILITY_RUNTIME_FIRST_FRAME_STATE_OBSERVER_STUB_H
+#ifndef OHOS_ABILITY_RUNTIME_ABILITY_FIRST_FRAME_STATE_OBSERVER_RECIPIENT_H
+#define OHOS_ABILITY_RUNTIME_ABILITY_FIRST_FRAME_STATE_OBSERVER_RECIPIENT_H
 #ifdef SUPPORT_GRAPHICS
-
-#include <map>
-#include <mutex>
-
-#include "ability_first_frame_state_observer_interface.h"
 #include "iremote_stub.h"
 
 namespace OHOS {
 namespace AppExecFwk {
-class AbilityFirstFrameStateObserverStub : public IRemoteStub<IAbilityFirstFrameStateObserver> {
-public:
-    AbilityFirstFrameStateObserverStub();
-    virtual ~AbilityFirstFrameStateObserverStub();
-
-    int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
-
-private:
-    int32_t HandleOnAbilityFirstFrameStateChanged(MessageParcel &data, MessageParcel &reply);
-
-    static std::mutex callbackMutex_;
-
-    DISALLOW_COPY_AND_MOVE(AbilityFirstFrameStateObserverStub);
-};
-
 /**
  * @class AbilityFirstFrameStateObserverRecipient
  * AbilityFirstFrameStateObserverRecipient notices IRemoteBroker died.
@@ -57,4 +37,4 @@ private:
 } // namespace AppExecFwk
 } // namespace OHOS
 #endif // SUPPORT_GRAPHICS
-#endif // OHOS_ABILITY_RUNTIME_ABILITY_FOREGROUND_STATE_OBSERVER_STUB_H
+#endif // OHOS_ABILITY_RUNTIME_ABILITY_FIRST_FRAME_STATE_OBSERVER_RECIPIENT_H

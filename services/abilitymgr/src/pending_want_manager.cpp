@@ -335,7 +335,9 @@ int32_t PendingWantManager::PendingWantStartServiceExtension(Want &want, const s
     }
     //reset flags
     want.SetFlags(0);
-    return DelayedSingleton<AbilityManagerService>::GetInstance()->StartExtensionAbility(want, callerToken);
+    int32_t userId = DEFAULT_INVAL_VALUE;
+    int32_t extensionType = static_cast<int32_t>(AppExecFwk::ExtensionAbilityType::UNSPECIFIED);
+    return DelayedSingleton<AbilityManagerService>::GetInstance()->StartExtensionAbility(want, callerToken, userId, extensionType);
 }
 
 int32_t PendingWantManager::PendingWantStartAbilitys(const std::vector<WantsInfo> &wantsInfo,

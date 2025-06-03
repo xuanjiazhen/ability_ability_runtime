@@ -666,7 +666,9 @@ void DataAbilityManager::RestartDataAbility(const std::shared_ptr<AbilityRecord>
                 TAG_LOGI(AAFwkTag::DATA_ABILITY, "restart dataability: %{public}s, uri: %{public}s",
                     abilityRecord->GetAbilityInfo().name.c_str(), uriStr.c_str());
                 Uri uri(uriStr);
-                OHOS::DelayedSingleton<AbilityManagerService>::GetInstance()->AcquireDataAbility(uri, true, nullptr);
+                sptr<IAbilityScheduler> tempIAbilityScheduler = nullptr;
+                OHOS::DelayedSingleton<AbilityManagerService>::GetInstance()->AcquireDataAbility(uri, true, nullptr,
+                    tempIAbilityScheduler);
                 return;
             }
         }

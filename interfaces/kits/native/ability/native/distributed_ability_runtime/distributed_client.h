@@ -19,7 +19,7 @@
 
 #include <string>
 
-#include "dms_continueInfo.h"
+#include "dms_continue_info.h"
 #include "mission_info.h"
 #include "mission_snapshot.h"
 #include "want_params.h"

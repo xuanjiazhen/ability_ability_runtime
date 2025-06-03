@@ -851,7 +851,7 @@ int AbilityManagerService::StartAbilityOnlyUIAbility(const Want &want, const spt
 }
 
 int AbilityManagerService::StartAbilityAsCaller(const Want &want, const sptr<IRemoteObject> &callerToken,
-    sptr<IRemoteObject> asCallerSourceToken, int32_t userId, int requestCode)
+    const sptr<IRemoteObject> &asCallerSourceToken, int32_t userId, int requestCode)
 {
     return StartAbilityAsCallerDetails(want, callerToken, asCallerSourceToken, userId, requestCode);
 }
@@ -1759,8 +1759,8 @@ int AbilityManagerService::StartUIAbilityForOptionWrap(const Want &want, const S
 }
 
 int AbilityManagerService::StartAbilityAsCaller(const Want &want, const StartOptions &startOptions,
-    const sptr<IRemoteObject> &callerToken, sptr<IRemoteObject> asCallerSourceToken,
-    int32_t userId, int requestCode)
+    const sptr<IRemoteObject> &callerToken, const sptr<IRemoteObject> &asCallerSourceToken,
+    int32_t userId, int32_t requestCode)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Start ability as caller with startOptions.");
     CHECK_CALLER_IS_SYSTEM_APP;
@@ -2276,8 +2276,8 @@ int32_t AbilityManagerService::RequestDialogServiceInner(const Want &want, const
     return connectManager->StartAbility(abilityRequest);
 }
 
-int32_t AbilityManagerService::OpenAtomicService(AAFwk::Want& want, const StartOptions &options,
-    sptr<IRemoteObject> callerToken, int32_t requestCode, int32_t userId)
+int32_t AbilityManagerService::OpenAtomicService(const Want& want, const StartOptions &options,
+    const sptr<IRemoteObject> &callerToken, int32_t requestCode, int32_t userId)
 {
     auto accessTokenId = IPCSkeleton::GetCallingTokenID();
     auto type = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(accessTokenId);
@@ -4413,7 +4413,7 @@ int32_t AbilityManagerService::ConnectAbility(
 
 int32_t AbilityManagerService::ConnectAbilityCommon(
     const Want &want, const sptr<IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken,
-    AppExecFwk::ExtensionAbilityType extensionType, int32_t userId, bool isQueryExtensionOnly)
+    int32_t extensionType, int32_t userId, bool isQueryExtensionOnly)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::SERVICE_EXT,
@@ -5756,33 +5756,38 @@ bool AbilityManagerService::GenerateDataAbilityRequestByUri(const std::string& d
     return true;
 }
 
-sptr<IAbilityScheduler> AbilityManagerService::AcquireDataAbility(
-    const Uri &uri, bool tryBind, const sptr<IRemoteObject> &callerToken)
+
+int AbilityManagerService::AcquireDataAbility(const Uri &uri, bool tryBind,
+    const sptr<IRemoteObject> &callerToken, sptr<IAbilityScheduler>& funcResult)
 {
     auto localUri(uri);
     if (localUri.GetScheme() != AbilityConfig::SCHEME_DATA_ABILITY) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "acquire data ability invalid uri scheme");
-        return nullptr;
+        funcResult = nullptr;
+        return ERR_INVALID_VALUE;
     }
     std::vector<std::string> pathSegments;
     localUri.GetPathSegments(pathSegments);
     if (pathSegments.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "acquire data ability invalid uri path");
-        return nullptr;
+        funcResult = nullptr;
+        return ERR_INVALID_VALUE;
     }
 
     auto userId = GetValidUserId(INVALID_USER_ID);
     AbilityRequest abilityRequest;
     if (!GenerateDataAbilityRequestByUri(localUri.ToString(), abilityRequest, callerToken, userId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "generate data ability request failed");
-        return nullptr;
+        funcResult = nullptr;
+        return ERR_INVALID_VALUE;
     }
 
     auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
     auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
     if (!isSaCall && CheckCallDataAbilityPermission(abilityRequest, isShellCall, isSaCall) != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid ability request info acquiring");
-        return nullptr;
+        funcResult = nullptr;
+        return ERR_INVALID_VALUE;
     }
 
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Query data ability info: %{public}s|%{public}s|%{public}s",
@@ -5792,12 +5797,14 @@ sptr<IAbilityScheduler> AbilityManagerService::AcquireDataAbility(
     if (CheckStaticCfgPermission(abilityRequest, false, -1, true, isSaCall) !=
         AppExecFwk::Constants::PERMISSION_GRANTED) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "checkStaticCfgPermission fail");
-        return nullptr;
+        funcResult = nullptr;
+        return ERR_INVALID_VALUE;
     }
 
     if (!VerificationAllToken(callerToken)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "verificationAllToken fail");
-        return nullptr;
+        funcResult = nullptr;
+        return ERR_INVALID_VALUE;
     }
 
     if (abilityRequest.abilityInfo.applicationInfo.singleton) {
@@ -5805,11 +5812,20 @@ sptr<IAbilityScheduler> AbilityManagerService::AcquireDataAbility(
     }
 
     std::shared_ptr<DataAbilityManager> dataAbilityManager = GetDataAbilityManagerByUserId(userId);
-    CHECK_POINTER_AND_RETURN(dataAbilityManager, nullptr);
+    if (!dataAbilityManager) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "dataAbilityManager nullptr");
+        funcResult = nullptr;
+        return ERR_INVALID_VALUE;
+    }
     ReportEventToRSS(abilityRequest.abilityInfo, callerToken);
     bool isNotHap = isSaCall || isShellCall;
     UpdateCallerInfoUtil::GetInstance().UpdateCallerInfo(abilityRequest.want, callerToken);
-    return dataAbilityManager->Acquire(abilityRequest, tryBind, callerToken, isNotHap);
+    funcResult = dataAbilityManager->Acquire(abilityRequest, tryBind, callerToken, isNotHap);
+    if (funcResult) {
+        return ERR_OK;
+    } else {
+        return ERR_INVALID_VALUE;
+    }
 }
 
 int AbilityManagerService::ReleaseDataAbility(
@@ -8674,7 +8690,7 @@ void AbilityManagerService::AppRecoverKill(pid_t pid, int32_t reason)
     IN_PROCESS_CALL(DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->NotifyAppFaultBySA(faultDataSA));
 }
 
-void AbilityManagerService::ScheduleRecoverAbility(const sptr<IRemoteObject>& token, int32_t reason, const Want *want)
+void AbilityManagerService::ScheduleRecoverAbility(const sptr<IRemoteObject>& token, int32_t reason, const std::shared_ptr<Want>& want)
 {
     if (token == nullptr) {
         return;
@@ -8722,7 +8738,7 @@ void AbilityManagerService::ScheduleRecoverAbility(const sptr<IRemoteObject>& to
             return;
         }
 
-        if (want != nullptr) {
+        if (want) {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "BundleName:%{public}s targetBundleName:%{public}s.",
                 appInfo.bundleName.c_str(), want->GetElement().GetBundleName().c_str());
             if (want->GetElement().GetBundleName().empty() ||
@@ -9778,7 +9794,7 @@ void AbilityManagerService::ShowIllegalInfomation(std::string& result)
     result.append(ILLEGAL_INFOMATION);
 }
 
-int AbilityManagerService::DumpAbilityInfoDone(std::vector<std::string> &infos, const sptr<IRemoteObject> &callerToken)
+int AbilityManagerService::DumpAbilityInfoDone(const std::vector<std::string> &infos, const sptr<IRemoteObject> &callerToken)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "dumpAbilityInfoDone begin");
     auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
@@ -12511,33 +12527,40 @@ int32_t AbilityManagerService::SignRestartAppFlag(int32_t userId, int32_t uid, c
     }
 }
 
-bool AbilityManagerService::IsEmbeddedOpenAllowed(sptr<IRemoteObject> callerToken, const std::string &appId)
+//注意调用方 这里要看一下
+int AbilityManagerService::IsEmbeddedOpenAllowed(const sptr<IRemoteObject> &callerToken,
+    const std::string &appId, bool& funcResult)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!AppUtils::GetInstance().IsLaunchEmbededUIAbility()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "device type not allowd");
-        return false;
+        funcResult = false;
+        return ERR_INVALID_VALUE;
     }
     auto accessTokenId = IPCSkeleton::GetCallingTokenID();
     auto type = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(accessTokenId);
     if (type != Security::AccessToken::TypeATokenTypeEnum::TOKEN_HAP) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "caller not hap");
-        return false;
+        funcResult = false;
+        return ERR_INVALID_VALUE;
     }
     auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
     CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
     auto callerAbility = uiAbilityManager->GetAbilityRecordByToken(callerToken);
     if (callerAbility == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "caller invalid");
-        return false;
+        funcResult = false;
+        return ERR_INVALID_VALUE;
     }
     if (callerAbility->GetApplicationInfo().accessTokenId != accessTokenId) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "callerToken don't belong caller");
-        return false;
+        funcResult = false;
+        return ERR_INVALID_VALUE;
     }
     if (!callerAbility->IsForeground() && !callerAbility->GetAbilityForegroundingFlag()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "caller not foreground");
-        return false;
+        funcResult = false;
+        return ERR_INVALID_VALUE;
     }
     CHECK_POINTER_AND_RETURN(freeInstallManager_, false);
     std::string bundleName = ATOMIC_SERVICE_PREFIX + appId;
@@ -12548,11 +12571,17 @@ bool AbilityManagerService::IsEmbeddedOpenAllowed(sptr<IRemoteObject> callerToke
     int32_t ret = freeInstallManager_->StartFreeInstall(want, GetUserId(), 0, callerToken);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "target not allowed free install");
-        return false;
+        funcResult = false;
+        return ERR_INVALID_VALUE;
     }
     want.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, callerAbility->GetElementName().GetBundleName());
     auto erms = std::make_shared<EcologicalRuleInterceptor>();
-    return erms->DoProcess(want, GetUserId());
+    if (erms->DoProcess(want, GetUserId())) {
+        funcResult = true;
+        return ERR_OK;
+    } else {
+        return ERR_INVALID_VALUE;
+    }
 }
 
 int32_t AbilityManagerService::AddQueryERMSObserver(sptr<IRemoteObject> callerToken,
@@ -13315,7 +13344,7 @@ void AbilityManagerService::RemovePreStartSession(const std::string& sessionId)
     preStartSessionMap_.erase(sessionId);
 }
 
-ErrCode AbilityManagerService::OpenLink(const Want& want, sptr<IRemoteObject> callerToken,
+ErrCode AbilityManagerService::OpenLink(const Want& want, const sptr<IRemoteObject>& callerToken,
     int32_t userId, int requestCode)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");

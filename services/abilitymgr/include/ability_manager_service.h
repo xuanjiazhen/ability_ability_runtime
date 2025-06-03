@@ -69,8 +69,11 @@
 #ifdef SUPPORT_GRAPHICS
 #include "implicit_start_processor.h"
 #include "system_dialog_scheduler.h"
+#include "iconnection_observer.h"
 #endif
-
+#ifdef WITH_DLP
+#include "dlp_connection_info.h"
+#endif // WITH_DLP
 namespace OHOS {
 namespace AbilityRuntime {
 class IStatusBarDelegate;
@@ -276,7 +279,7 @@ public:
     virtual int StartAbilityAsCaller(
             const Want &want,
             const sptr<IRemoteObject> &callerToken,
-            sptr<IRemoteObject> asCallerSourceToken,
+            const sptr<IRemoteObject> &asCallerSourceToken,
             int32_t userId = DEFAULT_INVAL_VALUE,
             int requestCode = DEFAULT_INVAL_VALUE) override;
 
@@ -295,9 +298,9 @@ public:
         const Want &want,
         const StartOptions &startOptions,
         const sptr<IRemoteObject> &callerToken,
-        sptr<IRemoteObject> asCallerSourceToken,
+        const sptr<IRemoteObject> &asCallerSourceToken,
         int32_t userId = DEFAULT_INVAL_VALUE,
-        int requestCode = DEFAULT_INVAL_VALUE) override;
+        int32_t requestCode = DEFAULT_INVAL_VALUE) override;
 
     /**
      * Starts a new ability for result using the original caller information.
@@ -375,7 +378,7 @@ public:
      * @param specifyTokenId The Caller ID.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int StartAbilityOnlyUIAbility(
+    virtual ErrCode StartAbilityOnlyUIAbility(
         const Want &want,
         const sptr<IRemoteObject> &callerToken,
         uint32_t specifyTokenId) override;
@@ -389,8 +392,8 @@ public:
      * @param requestCode Ability request code.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t OpenLink(const Want& want, sptr<IRemoteObject> callerToken,
-        int32_t userId = DEFAULT_INVAL_VALUE, int requestCode = DEFAULT_INVAL_VALUE) override;
+    virtual ErrCode OpenLink(const Want& want,const sptr<IRemoteObject>& callerToken,
+        int32_t userId = DEFAULT_INVAL_VALUE, int32_t requestCode = DEFAULT_INVAL_VALUE) override;
 
     /**
      * Pop-up launch of full-screen atomic service.
@@ -401,8 +404,9 @@ public:
      * @param userId The User ID.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t OpenAtomicService(Want& want, const StartOptions &options, sptr<IRemoteObject> callerToken,
-        int32_t requestCode = DEFAULT_INVAL_VALUE, int32_t userId = DEFAULT_INVAL_VALUE) override;
+    virtual int32_t OpenAtomicService(const Want& want, const StartOptions &options,
+        const sptr<IRemoteObject> &callerToken, int32_t requestCode = DEFAULT_INVAL_VALUE,
+        int32_t userId = DEFAULT_INVAL_VALUE) override;
 
     /**
      * @brief Querying whether to allow embedded startup of atomic service.
@@ -411,7 +415,7 @@ public:
      * @param appId The ID of the application to which this bundle belongs.
      * @return Returns true to allow ability to start, or false to reject.
      */
-    virtual bool IsEmbeddedOpenAllowed(sptr<IRemoteObject> callerToken, const std::string &appId) override;
+    virtual int32_t IsEmbeddedOpenAllowed(const sptr<IRemoteObject> &callerToken, const std::string &appId, bool& funcResult) override;
 
     /**
      * Start extension ability with want, send want to ability manager service.
@@ -425,9 +429,10 @@ public:
     virtual int32_t StartExtensionAbility(
         const Want &want,
         const sptr<IRemoteObject> &callerToken,
-        int32_t userId = DEFAULT_INVAL_VALUE,
-        AppExecFwk::ExtensionAbilityType extensionType = AppExecFwk::ExtensionAbilityType::UNSPECIFIED) override;
-
+        int32_t userId ,
+        int32_t extensionType) override;
+                // int32_t userId = DEFAULT_INVAL_VALUE,
+// AppExecFwk::ExtensionAbilityType extensionType = AppExecFwk::ExtensionAbilityType::UNSPECIFIED
     /**
      * Request modal UIExtension with want, send want to ability manager service.
      *
@@ -436,14 +441,14 @@ public:
      */
     int RequestModalUIExtension(const Want &want) override;
 
-    int PreloadUIExtensionAbility(const Want &want, std::string &hostBundleName,
-        int32_t userId = DEFAULT_INVAL_VALUE, int32_t hostPid = DEFAULT_INVAL_VALUE) override;
+    int PreloadUIExtensionAbility(const Want &want, const std::string &hostBundleName,
+        int32_t userId, int32_t hostPid) override;
 
     int UnloadUIExtensionAbility(const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, std::string &bundleName);
 
-    int ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow) override;
+    int ChangeAbilityVisibility(const sptr<IRemoteObject>& token, bool isShow) override;
 
-    int ChangeUIAbilityVisibilityBySCB(sptr<SessionInfo> sessionInfo, bool isShow) override;
+    int ChangeUIAbilityVisibilityBySCB(const sptr<SessionInfo>& sessionInfo, bool isShow) override;
 
     /**
      * Start ui extension ability with extension session info, send extension session info to ability manager service.
@@ -463,7 +468,7 @@ public:
      * @param isColdStart the session info of the ability is or not cold start.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag = 0) override;
+    virtual int StartUIAbilityBySCB(const sptr<SessionInfo>& sessionInfo, bool &isColdStart, uint32_t sceneFlag = 0) override;
 
     /**
      * Stop extension ability with want, send want to ability manager service.
@@ -478,7 +483,7 @@ public:
         const Want& want,
         const sptr<IRemoteObject>& callerToken,
         int32_t userId = DEFAULT_INVAL_VALUE,
-        AppExecFwk::ExtensionAbilityType extensionType = AppExecFwk::ExtensionAbilityType::UNSPECIFIED) override;
+        int32_t extensionType = static_cast<int32_t>(AppExecFwk::ExtensionAbilityType::UNSPECIFIED)) override;
 
     /**
      * TerminateAbility, terminate the special ability.
@@ -489,7 +494,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int TerminateAbility(const sptr<IRemoteObject> &token, int resultCode = DEFAULT_INVAL_VALUE,
-        const Want *resultWant = nullptr) override;
+        const std::shared_ptr<Want> &resultWant = nullptr) override;
 
     /**
      * TerminateUIServiceExtensionAbility, terminate the UIServiceExtensionAbility.
@@ -509,7 +514,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int BackToCallerAbilityWithResult(const sptr<IRemoteObject> &token, int resultCode,
-        const Want *resultWant, int64_t callerRequestCode) override;
+        const std::shared_ptr<Want> &resultWant, int64_t callerRequestCode) override;
 
     /**
      * TerminateAbility, terminate the special ui extension ability.
@@ -520,7 +525,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int TerminateUIExtensionAbility(const sptr<SessionInfo> &extensionSessionInfo,
-        int resultCode = DEFAULT_INVAL_VALUE, const Want *resultWant = nullptr) override;
+        int resultCode = DEFAULT_INVAL_VALUE, const std::shared_ptr<Want> &resultWant = nullptr) override;
 
     /**
      * CloseUIExtensionAbilityBySCB, terminate the specified ui extension ability by SCB.
@@ -528,7 +533,7 @@ public:
      * @param token the ability token.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int CloseUIExtensionAbilityBySCB(const sptr<IRemoteObject> token) override;
+    int CloseUIExtensionAbilityBySCB(const sptr<IRemoteObject>& token) override;
 
     /**
      *  CloseUIAbilityBySCB, close the special ability by scb.
@@ -548,7 +553,7 @@ public:
      * @param resultWant, the Want of the ability to return.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int SendResultToAbility(int32_t requestCode, int32_t resultCode, Want& resultWant) override;
+    virtual int SendResultToAbility(int32_t requestCode, int32_t resultCode,const Want& resultWant) override;
 
     /**
      * MoveAbilityToBackground.
@@ -564,7 +569,7 @@ public:
      * @param token the token of the ability to move.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t MoveUIAbilityToBackground(const sptr<IRemoteObject> token) override;
+    virtual int32_t MoveUIAbilityToBackground(const sptr<IRemoteObject>& token) override;
 
     /**
      * CloseAbility, close the special ability.
@@ -575,7 +580,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int CloseAbility(const sptr<IRemoteObject> &token, int resultCode = DEFAULT_INVAL_VALUE,
-        const Want *resultWant = nullptr) override;
+        const std::shared_ptr<Want> &resultWant = nullptr) override;
 
     /**
      * MinimizeAbility, minimize the special ability.
@@ -625,16 +630,16 @@ public:
         const Want &want,
         const sptr<IAbilityConnection> &connect,
         const sptr<IRemoteObject> &callerToken,
-        AppExecFwk::ExtensionAbilityType extensionType,
-        int32_t userId = DEFAULT_INVAL_VALUE,
-        bool isQueryExtensionOnly = false) override;
+        int32_t extensionType,
+        int32_t userId,
+        bool isQueryExtensionOnly) override;
 
     virtual int ConnectUIExtensionAbility(
         const Want &want,
         const sptr<IAbilityConnection> &connect,
         const sptr<SessionInfo> &sessionInfo,
         int32_t userId = DEFAULT_INVAL_VALUE,
-        sptr<UIExtensionAbilityConnectInfo> connectInfo = nullptr) override;
+        const sptr<UIExtensionAbilityConnectInfo>& connectInfo = nullptr) override;
 
     /**
      * ContinueMission, continue ability from mission center.
@@ -647,7 +652,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int ContinueMission(const std::string &srcDeviceId, const std::string &dstDeviceId,
-        int32_t missionId, const sptr<IRemoteObject> &callBack, AAFwk::WantParams &wantParams) override;
+        int32_t missionId, const sptr<IRemoteObject> &callBack, const AAFwk::WantParams &wantParams) override;
 
     /**
      * ContinueMission, continue ability from mission center.
@@ -659,7 +664,7 @@ public:
      * @param wantParams, extended params.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int ContinueMission(AAFwk::ContinueMissionInfo continueMissionInfo,
+    virtual int ContinueMission(const AAFwk::ContinueMissionInfo& continueMissionInfo,
         const sptr<IRemoteObject> &callback) override;
 
     /**
@@ -689,7 +694,7 @@ public:
      * @param isSuccess, continuation result.
      * @return
      */
-    virtual void NotifyCompleteContinuation(const std::string &deviceId, int32_t sessionId, bool isSuccess) override;
+    virtual int NotifyCompleteContinuation(const std::string &deviceId, int32_t sessionId, bool isSuccess) override;
 
     /**
      * NotifyContinuationResult, notify continue result to ability.
@@ -740,7 +745,7 @@ public:
     virtual int UnRegisterMissionListener(const std::string &deviceId,
         const sptr<IRemoteMissionListener> &listener)override;
 
-    virtual int DisconnectAbility(sptr<IAbilityConnection> connect) override;
+    virtual int DisconnectAbility(const sptr<IAbilityConnection>& connect) override;
 
     /**
      * AcquireDataAbility, acquire a data ability by its authority, if it not existed,
@@ -751,8 +756,8 @@ public:
      * @param callerToken, specifies the caller ability token.
      * @return returns the data ability ipc object, or nullptr for failed.
      */
-    virtual sptr<IAbilityScheduler> AcquireDataAbility(
-        const Uri &uri, bool tryBind, const sptr<IRemoteObject> &callerToken) override;
+    virtual int AcquireDataAbility(const Uri &uri, bool tryBind, const sptr<IRemoteObject> &callerToken,
+        sptr<IAbilityScheduler>& funcResult) override;
 
     /**
      * ReleaseDataAbility, release the data ability that referenced by 'dataAbilityToken'.
@@ -762,7 +767,7 @@ public:
      * @return returns ERR_OK if succeeded, or error codes for failed.
      */
     virtual int ReleaseDataAbility(
-        sptr<IAbilityScheduler> dataAbilityScheduler, const sptr<IRemoteObject> &callerToken) override;
+        const sptr<IAbilityScheduler>& dataAbilityScheduler, const sptr<IRemoteObject> &callerToken) override;
 
     /**
      * AttachAbilityThread, ability call this interface after loaded.
@@ -781,7 +786,7 @@ public:
      * @param state,.the state of ability lift cycle.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int AbilityTransitionDone(const sptr<IRemoteObject> &token, int state, const PacMap &saveData) override;
+    virtual int AbilityTransitionDone(const sptr<IRemoteObject> &token, int32_t state, const PacMap &saveData) override;
 
     /**
      * AbilityWindowConfigTransitionDone, ability call this interface after lift cycle was changed.
@@ -865,9 +870,9 @@ public:
      * @param state Ability stack info.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual void DumpState(const std::string &args, std::vector<std::string> &info) override;
-    virtual void DumpSysState(
-        const std::string& args, std::vector<std::string>& info, bool isClient, bool isUserID, int UserID) override;
+    virtual int DumpState(const std::string &args, std::vector<std::string> &info) override;
+    virtual int DumpSysState(
+        const std::string& args, std::vector<std::string>& info, bool isClient, bool isUserID, int32_t UserID) override;
 
     /**
      * Destroys this Service ability by Want.
@@ -918,49 +923,50 @@ public:
     virtual int32_t UpgradeApp(const std::string &bundleName, const int32_t uid, const std::string &exitMsg,
         int32_t appIndex = 0) override;
 
-    virtual sptr<IWantSender> GetWantSender(
-        const WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, int32_t uid = -1) override;
+    virtual int GetWantSender(
+        const WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, int32_t uid,
+        sptr<IWantSender>& funcResult) override;
 
-    virtual int SendWantSender(sptr<IWantSender> target, const SenderInfo &senderInfo) override;
+    virtual int SendWantSender(const sptr<IWantSender>& target, const SenderInfo &senderInfo) override;
 
-    virtual void CancelWantSender(const sptr<IWantSender> &sender) override;
+    virtual int CancelWantSender(const sptr<IWantSender> &sender) override;
 
     virtual int GetPendingWantUid(const sptr<IWantSender> &target) override;
 
     virtual int GetPendingWantUserId(const sptr<IWantSender> &target) override;
 
-    virtual std::string GetPendingWantBundleName(const sptr<IWantSender> &target) override;
+    virtual int GetPendingWantBundleName(const sptr<IWantSender> &target, std::string& funcResult) override;
 
     virtual int GetPendingWantCode(const sptr<IWantSender> &target) override;
 
     virtual int GetPendingWantType(const sptr<IWantSender> &target) override;
 
-    virtual void RegisterCancelListener(const sptr<IWantSender> &sender, const sptr<IWantReceiver> &receiver) override;
+    virtual int RegisterCancelListener(const sptr<IWantSender> &sender, const sptr<IWantReceiver> &receiver) override;
 
-    virtual void UnregisterCancelListener(
+    virtual int UnregisterCancelListener(
         const sptr<IWantSender> &sender, const sptr<IWantReceiver> &receiver) override;
 
     virtual int GetPendingRequestWant(const sptr<IWantSender> &target, std::shared_ptr<Want> &want) override;
 
     virtual int GetWantSenderInfo(const sptr<IWantSender> &target, std::shared_ptr<WantSenderInfo> &info) override;
 
-    virtual int RegisterObserver(const sptr<AbilityRuntime::IConnectionObserver> &observer) override;
+    virtual int RegisterObserver(const sptr<AbilityRuntime::IConnectionObserver> &observer);
 
-    virtual int UnregisterObserver(const sptr<AbilityRuntime::IConnectionObserver> &observer) override;
+    virtual int UnregisterObserver(const sptr<AbilityRuntime::IConnectionObserver> &observer);
 
 #ifdef WITH_DLP
-    virtual int GetDlpConnectionInfos(std::vector<AbilityRuntime::DlpConnectionInfo> &infos) override;
+    virtual int GetDlpConnectionInfos(std::vector<AbilityRuntime::DlpConnectionInfo> &infos);
 #endif // WITH_DLP
 
-    virtual int GetConnectionData(std::vector<AbilityRuntime::ConnectionData> &connectionData) override;
+    virtual int GetConnectionData(std::vector<AbilityRuntime::ConnectionData> &connectionData);
 
-    virtual void CancelWantSenderByFlags(const sptr<IWantSender> &sender, uint32_t flags) override;
+    virtual void CancelWantSenderByFlags(const sptr<IWantSender> &sender, uint32_t flags);
 
     virtual int LockMissionForCleanup(int32_t missionId) override;
 
     virtual int UnlockMissionForCleanup(int32_t missionId) override;
 
-    virtual void SetLockedState(int32_t sessionId, bool lockedState) override;
+    virtual int SetLockedState(int32_t sessionId, bool lockedState) override;
 
     virtual int RegisterMissionListener(const sptr<IMissionListener> &listener) override;
 
@@ -987,7 +993,7 @@ public:
 
     virtual int32_t GetMissionIdByToken(const sptr<IRemoteObject> &token) override;
 
-    void GetAbilityTokenByCalleeObj(const sptr<IRemoteObject> &callStub, sptr<IRemoteObject> &token) override;
+    int GetAbilityTokenByCalleeObj(const sptr<IRemoteObject> &callStub, sptr<IRemoteObject> &token) override;
 
     virtual int StartSyncRemoteMissions(const std::string& devId, bool fixConflict, int64_t tag) override;
 
@@ -995,7 +1001,7 @@ public:
 
     virtual int GetAppMemorySize() override;
 
-    virtual bool IsRamConstrainedDevice() override;
+    virtual int IsRamConstrainedDevice(bool& funcResult) override;
     /**
      * Start Ability, connect session with common ability.
      *
@@ -1024,7 +1030,7 @@ public:
      * @param token, ability's token.
      * @param callStub, ability's callee.
      */
-    void CallRequestDone(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &callStub) override;
+    int CallRequestDone(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &callStub) override;
 
     /**
      * Release the call between Ability, disconnect session with common ability.
@@ -1034,7 +1040,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int ReleaseCall(
-        const sptr<IAbilityConnection> &connect, const AppExecFwk::ElementName &element) override;
+        const sptr<IAbilityConnection> &connect, const ElementName &element) override;
 
     std::list<std::shared_ptr<ConnectionRecord>> GetConnectRecordListByCallback(sptr<IAbilityConnection> callback);
 
@@ -1203,11 +1209,11 @@ public:
      */
     sptr<IRemoteObject> GetAbilityTokenByMissionId(int32_t missionId);
 
-    virtual int StartUser(int userId, sptr<IUserCallback> callback, bool isAppRecovery = false) override;
+    virtual int StartUser(int userId,const sptr<IUserCallback>& callback, bool isAppRecovery = false) override;
 
     virtual int StopUser(int userId, const sptr<IUserCallback> &callback) override;
 
-    virtual int LogoutUser(int32_t userId, sptr<IUserCallback> callback) override;
+    virtual int LogoutUser(int32_t userId, const sptr<IUserCallback> &callback) override;
 
     /**
      * Called when client complete dump.
@@ -1216,10 +1222,10 @@ public:
      * @param callerToken The caller ability token.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int DumpAbilityInfoDone(std::vector<std::string> &infos, const sptr<IRemoteObject> &callerToken) override;
+    virtual int DumpAbilityInfoDone(const std::vector<std::string> &infos, const sptr<IRemoteObject> &callerToken) override;
 
     virtual int SetMissionContinueState(const sptr<IRemoteObject> &abilityToken,
-        const AAFwk::ContinueState &state) override;
+        AAFwk::ContinueState state) override;
 
 #ifdef SUPPORT_SCREEN
     virtual int SetMissionLabel(const sptr<IRemoteObject> &abilityToken, const std::string &label) override;
@@ -1230,14 +1236,14 @@ public:
     virtual int RegisterWindowManagerServiceHandler(const sptr<IWindowManagerServiceHandler>& handler,
         bool animationEnabled) override;
 
-    virtual void CompleteFirstFrameDrawing(const sptr<IRemoteObject> &abilityToken) override;
+    virtual int CompleteFirstFrameDrawing(const sptr<IRemoteObject> &abilityToken) override;
 
-    virtual void CompleteFirstFrameDrawing(int32_t sessionId) override;
+    virtual int CompleteFirstFrameDrawing(int32_t sessionId) override;
 
     sptr<IWindowManagerServiceHandler> GetWMSHandler() const;
 
     virtual int PrepareTerminateAbility(const sptr<IRemoteObject> &token,
-        sptr<IPrepareTerminateCallback> &callback) override;
+       const sptr<IPrepareTerminateCallback> &callback) override;
 
     void HandleFocused(const sptr<OHOS::Rosen::FocusChangeInfo> &focusChangeInfo);
 
@@ -1257,7 +1263,7 @@ public:
 
     void SetTargetCloneIndexInSameBundle(const Want &want, sptr<IRemoteObject> callerToken);
 
-    virtual int RegisterAbilityFirstFrameStateObserver(const sptr<IAbilityFirstFrameStateObserver> &observer,
+    virtual int RegisterAbilityFirstFrameStateObserver(const sptr<AppExecFwk::IAbilityFirstFrameStateObserver> &observer,
         const std::string &bundleName) override;
 
     virtual int UnregisterAbilityFirstFrameStateObserver(
@@ -1295,12 +1301,12 @@ public:
      *
      * @return Returns true if user is a stability test.
      */
-    virtual bool IsRunningInStabilityTest() override;
+    virtual int IsRunningInStabilityTest(bool& funcResult) override;
 
     virtual int StartUserTest(const Want &want, const sptr<IRemoteObject> &observer) override;
 
     virtual int FinishUserTest(
-        const std::string &msg, const int64_t &resultCode, const std::string &bundleName) override;
+        const std::string &msg,int64_t resultCode, const std::string &bundleName) override;
 
     /**
      * GetTopAbility, get the token of top ability.
@@ -1366,17 +1372,17 @@ public:
     bool GetDataAbilityUri(const std::vector<AppExecFwk::AbilityInfo> &abilityInfos,
         const std::string &mainAbility, std::string &uri);
 
-    virtual AppExecFwk::ElementName GetTopAbility(bool isNeedLocalDeviceId = true) override;
+    virtual int GetTopAbility(bool isNeedLocalDeviceId, ElementName& funcResult) override;
 
-    virtual AppExecFwk::ElementName GetElementNameByToken(sptr<IRemoteObject> token,
-        bool isNeedLocalDeviceId = true) override;
+    virtual int GetElementNameByToken(const sptr<IRemoteObject>& token,
+        bool isNeedLocalDeviceId, ElementName& funcResult) override;
 
     /**
      * AtomicServiceStatusCallback OnInstallFinished callback.
      *
      * @param resultCode FreeInstall result code.
      * @param want Want has been installed.
-     * @param userId User id.
+     * @param userId User4 id.
      */
     void OnInstallFinished(int resultCode, const Want &want, int32_t userId);
 
@@ -1428,15 +1434,14 @@ public:
      * @param pixelMap The snapshot.
      */
 #ifdef SUPPORT_SCREEN
-    virtual void UpdateMissionSnapShot(const sptr<IRemoteObject> &token,
+    virtual int UpdateMissionSnapShot(const sptr<IRemoteObject> &token,
         const std::shared_ptr<Media::PixelMap> &pixelMap) override;
 #endif // SUPPORT_SCREEN
-    virtual void EnableRecoverAbility(const sptr<IRemoteObject>& token) override;
-    virtual void SubmitSaveRecoveryInfo(const sptr<IRemoteObject>& token) override;
-    virtual void ScheduleRecoverAbility(const sptr<IRemoteObject> &token, int32_t reason,
-        const Want *want = nullptr) override;
-
-    virtual void ScheduleClearRecoveryPageStack() override;
+    virtual int EnableRecoverAbility(const sptr<IRemoteObject>& token) override;
+    virtual int SubmitSaveRecoveryInfo(const sptr<IRemoteObject>& token) override;
+    virtual int ScheduleRecoverAbility(const sptr<IRemoteObject> &token, int32_t reason,
+        const std::shared_ptr<Want>& want = nullptr) override;
+    virtual int ScheduleClearRecoveryPageStack() override;
 
     /**
      * Called to verify that the MissionId is valid.
@@ -1452,9 +1457,9 @@ public:
     int32_t ReportDrawnCompleted(const sptr<IRemoteObject> &callerToken) override;
 
     virtual int32_t AcquireShareData(
-        const int32_t &missionId, const sptr<IAcquireShareDataCallback> &shareData) override;
+        int32_t missionId, const sptr<IAcquireShareDataCallback> &shareData) override;
     virtual int32_t ShareDataDone(const sptr<IRemoteObject>& token,
-        const int32_t &requestCode, const int32_t &uniqueId, WantParams &wantParam) override;
+        int32_t requestCode, int32_t uniqueId, const WantParams &wantParam) override;
 
     bool GetStartUpNewRuleFlag() const;
 
@@ -1467,7 +1472,7 @@ public:
      * @param uid
      * @return Returns ERR_OK if the current process has the permission, others on failure.
      */
-    virtual int VerifyPermission(const std::string &permission, int pid, int uid) override;
+    virtual int VerifyPermission(const std::string &permission, int32_t pid, int32_t uid) override;
 
     bool IsDmsAlive() const;
 
@@ -1516,7 +1521,7 @@ public:
      *
      * @param rootSceneSession Indicates root scene session of SCB.
      */
-    virtual void SetRootSceneSession(const sptr<IRemoteObject> &rootSceneSession) override;
+    virtual int32_t SetRootSceneSession(const sptr<IRemoteObject> &rootSceneSession) override;
 
     /**
      * Call UIAbility by SCB.
@@ -1524,14 +1529,14 @@ public:
      * @param sessionInfo the session info of the ability to be called.
      * @param isColdStart the session of the ability is or not cold start.
      */
-    virtual void CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isColdStart) override;
+    virtual int32_t CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isColdStart) override;
 
     /**
      * Start specified ability by SCB.
      *
      * @param want Want information.
      */
-    virtual void StartSpecifiedAbilityBySCB(const Want &want) override;
+    virtual int32_t StartSpecifiedAbilityBySCB(const Want &want) override;
 
     /**
      * Notify sandbox app the result of saving file.
@@ -1540,7 +1545,7 @@ public:
      * @param requestCode Pass the requestCode to match request.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t NotifySaveAsResult(const Want &want, int resultCode, int requestCode) override;
+    virtual int32_t NotifySaveAsResult(const Want &want, int32_t resultCode, int32_t requestCode) override;
 
     /**
      * Set sessionManagerService
@@ -1579,7 +1584,7 @@ public:
      */
     int32_t GetUserId() const;
 
-    virtual int32_t RegisterStatusBarDelegate(sptr<AbilityRuntime::IStatusBarDelegate> delegate) override;
+    virtual int32_t RegisterStatusBarDelegate(const sptr<IStatusBarDelegate>& delegate) override;
 
     virtual int32_t KillProcessWithPrepareTerminate(const std::vector<int32_t>& pids) override;
 
@@ -1634,14 +1639,14 @@ public:
      * @param listener App debug listener.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t RegisterAppDebugListener(sptr<AppExecFwk::IAppDebugListener> listener) override;
+    int32_t RegisterAppDebugListener(const sptr<AppExecFwk::IAppDebugListener>& listener) override;
 
     /**
      * @brief Unregister app debug listener.
      * @param listener App debug listener.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t UnregisterAppDebugListener(sptr<AppExecFwk::IAppDebugListener> listener) override;
+    int32_t UnregisterAppDebugListener(const sptr<AppExecFwk::IAppDebugListener>& listener) override;
 
     /**
      * @brief Attach app debug.
@@ -1684,7 +1689,7 @@ public:
      * @param want The want of ability to start.
      * @return Return true to allow ability to start, or false to reject.
      */
-    virtual bool IsAbilityControllerStart(const Want &want) override;
+    virtual int32_t  IsAbilityControllerStart(const Want &want) override;
 
     /**
      * @brief Called when insight intent execute finished.
@@ -1733,8 +1738,8 @@ public:
      * @brief Update session info.
      * @param sessionInfos The vector of session info.
      */
-    virtual int32_t UpdateSessionInfoBySCB(std::list<SessionInfo> &sessionInfos, int32_t userId,
-        std::vector<int32_t> &sessionIds) override;
+    virtual int32_t UpdateSessionInfoBySCB(const std::vector<SessionInfo> &sessionInfos, int32_t userId,
+        const std::vector<int32_t> &sessionIds) override;
 
     /**
      * @brief Restart app self.
@@ -1752,7 +1757,7 @@ public:
      * @param userId The user id.
      * @return int32_t Returns ERR_OK on success, others on failure.
      */
-    int32_t GetUIExtensionRootHostInfo(const sptr<IRemoteObject> token, UIExtensionHostInfo &hostInfo,
+    int32_t GetUIExtensionRootHostInfo(const sptr<IRemoteObject>& token, UIExtensionHostInfo &hostInfo,
         int32_t userId = DEFAULT_INVAL_VALUE) override;
 
     /**
@@ -1763,7 +1768,7 @@ public:
      * @param userId The user id.
      * @return int32_t Returns ERR_OK on success, others on failure.
      */
-    int32_t GetUIExtensionSessionInfo(const sptr<IRemoteObject> token, UIExtensionSessionInfo &uiExtensionSessionInfo,
+    int32_t GetUIExtensionSessionInfo(const sptr<IRemoteObject>& token, UIExtensionSessionInfo &uiExtensionSessionInfo,
         int32_t userId = DEFAULT_INVAL_VALUE) override;
 
     /**
@@ -1830,7 +1835,7 @@ public:
      * @param pidList, the pid list of the frozen process.
      * @param uid, the uid of the frozen process.
      */
-    virtual void NotifyFrozenProcessByRSS(const std::vector<int32_t> &pidList, int32_t uid) override;
+    virtual int32_t NotifyFrozenProcessByRSS(const std::vector<int32_t> &pidList, int32_t uid) override;
 
     /**
      * Open atomic service window prior to finishing free install.
@@ -1853,8 +1858,8 @@ public:
 
     int32_t TerminateMission(int32_t missionId) override;
 
-    int32_t UpdateAssociateConfigList(const std::map<std::string, std::list<std::string>>& configs,
-        const std::list<std::string>& exportConfigs, int32_t flag) override;
+    int32_t UpdateAssociateConfigList(const std::unordered_map<std::string, std::vector<std::string>>& configs,
+        const std::vector<std::string>& exportConfigs, int32_t flag) override;
 
     int32_t BlockAllAppStart(bool flag) override;
 
@@ -1932,8 +1937,8 @@ public:
      * @param observer, The observer of the ability to query ERMS.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t AddQueryERMSObserver(sptr<IRemoteObject> callerToken,
-        sptr<AbilityRuntime::IQueryERMSObserver> observer) override;
+    virtual int32_t AddQueryERMSObserver(const sptr<IRemoteObject>& callerToken,
+        const sptr<AbilityRuntime::IQueryERMSObserver>& observer) override;
 
     /**
      * Query atomic service ERMS rule.
@@ -1944,7 +1949,7 @@ public:
      * @param rule, The returned ERMS rule.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t QueryAtomicServiceStartupRule(sptr<IRemoteObject> callerToken,
+    virtual int32_t QueryAtomicServiceStartupRule(const sptr<IRemoteObject>& callerToken,
         const std::string &appId, const std::string &startTime, AtomicServiceStartupRule &rule) override;
 
     int StartUIAbilityForOptionWrap(const Want &want, const StartOptions &options, sptr<IRemoteObject> callerToken,
@@ -1957,7 +1962,7 @@ public:
      * @param token, the token of the ability to terminate.
      * @param callback callback.
      */
-    virtual void PrepareTerminateAbilityDone(const sptr<IRemoteObject> &token, bool isTerminate) override;
+    virtual int32_t PrepareTerminateAbilityDone(const sptr<IRemoteObject> &token, bool isTerminate) override;
 
     /**
      * KillProcessForPermissionUpdate, call KillProcessForPermissionUpdate() through proxy object,
@@ -1975,7 +1980,7 @@ public:
      * @param prepareTermination, the result of prepareTermination call of the module.
      * @param isExist, whether the prepareTerminate functions are implemented.
      */
-    virtual void KillProcessWithPrepareTerminateDone(const std::string &moduleName,
+    virtual int32_t KillProcessWithPrepareTerminateDone(const std::string &moduleName,
         int32_t prepareTermination, bool isExist) override;
     std::shared_ptr<AppExitReasonHelper> GetAppExitReasonHelper()
     {
@@ -2018,7 +2023,7 @@ public:
      * @param token, ability token.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t RevokeDelegator(sptr<IRemoteObject> token) override;
+    virtual int32_t RevokeDelegator(const sptr<IRemoteObject>& token) override;
 
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;

@@ -47,8 +47,9 @@ bool FreeInstallManager::IsTopAbility(const sptr<IRemoteObject> &callerToken)
 {
     auto server = server_.lock();
     CHECK_POINTER_AND_RETURN_LOG(server, false, "Get server failed!");
-    AppExecFwk::ElementName elementName = IN_PROCESS_CALL(server->GetTopAbility());
-    if (elementName.GetBundleName().empty() || elementName.GetAbilityName().empty()) {
+    AppExecFwk::ElementName elementName;
+    int ret = IN_PROCESS_CALL(server->GetTopAbility(true, elementName));
+    if (ret != OHOS::ERR_OK || elementName.GetBundleName().empty() || elementName.GetAbilityName().empty()) {
         TAG_LOGE(AAFwkTag::FREE_INSTALL, "GetBundleName or GetAbilityName empty");
         return false;
     }

@@ -102,7 +102,9 @@ bool HiddenStartObserverManager::IsHiddenStart(int32_t pid)
         if (*it == nullptr) {
             continue;
         }
-        if ((*it)->IsHiddenStart(pid)) {
+        bool res = false;
+        (*it)->IsHiddenStart(pid, res);
+        if (res) {
             return true;
         }
     }

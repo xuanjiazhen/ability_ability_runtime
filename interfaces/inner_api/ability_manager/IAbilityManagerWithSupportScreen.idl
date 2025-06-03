@@ -1,0 +1,358 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+sequenceable OHOS.AAFwk.AbilityRunningInfo;
+sequenceable OHOS.AAFwk.AbilityStartSetting;
+sequenceable OHOS.AbilityRuntime.AutoStartupInfo;
+sequenceable OHOS.AAFwk.DialogSessionInfo;
+sequenceable OHOS.AppExecFwk.ElementName;
+sequenceable OHOS.AAFwk.ExitReason;
+sequenceable OHOS.AAFwk.ExtensionRunningInfo;
+interface OHOS.AAFwk.ISnapshotHandler;
+sequenceable OHOS.AAFwk.MissionInfo;
+sequenceable OHOS.AAFwk.MissionSnapshot;
+sequenceable mission_info..OHOS.AAFwk.MissionValidResult;
+sequenceable OHOS.AAFwk.PacMap;
+sequenceable OHOS.AppExecFwk.RunningProcessInfo;
+sequenceable OHOS.AAFwk.SenderInfo;
+sequenceable OHOS.AAFwk.StartOptions;
+sequenceable OHOS.AAFwk.Want;
+sequenceable OHOS.AAFwk.WantParams;
+sequenceable OHOS.AAFwk.WantSenderInfo;
+sequenceable OHOS.AbilityRuntime.AutoStartupInfo;
+sequenceable OHOS.AbilityRuntime.KeepAliveInfo;
+sequenceable OHOS.AbilityRuntime.UIExtensionAbilityConnectInfo;
+sequenceable OHOS.AbilityRuntime.UIExtensionHostInfo;
+sequenceable OHOS.AbilityRuntime.UIExtensionSessionInfo;
+sequenceable OHOS.AppExecFwk.AbilityStateData;
+sequenceable OHOS.AppExecFwk.InsightIntentExecuteParam;
+sequenceable OHOS.AppExecFwk.InsightIntentExecuteResult;
+sequenceable OHOS.AppExecFwk.IntentExemptionInfo;
+sequenceable OHOS.IRemoteObject;
+sequenceable OHOS.AAFwk.SessionInfo;
+sequenceable OHOS.Uri;
+sequenceable OHOS.AAFwk.WindowConfig;
+sequenceable OHOS.AbilityRuntime.AtomicServiceStartupRule;
+sequenceable OHOS.AAFwk.ContinueMissionInfo;
+sequenceable window_manager_service_handler..OHOS.Media.PixelMap;
+
+
+
+interface OHOS.AAFwk.IAbilityConnection;
+interface OHOS.AppExecFwk.IAbilityController;
+interface OHOS.AAFwk.IAbilityManagerCollaborator;
+interface OHOS.AAFwk.IAbilityScheduler;
+interface OHOS.AAFwk.IMissionListener;
+interface OHOS.AAFwk.IAcquireShareDataCallback;
+interface OHOS.AAFwk.IHiddenStartObserver;
+interface OHOS.AAFwk.IPrepareTerminateCallback;
+interface OHOS.AbilityRuntime.IQueryERMSObserver;
+interface OHOS.AAFwk.IRemoteMissionListener;
+interface OHOS.AAFwk.IRemoteOnListener;
+interface status_bar_delegate..OHOS.AbilityRuntime.IStatusBarDelegate;
+interface OHOS.AAFwk.IWantReceiver;
+interface OHOS.AAFwk.IWantSender;
+interface OHOS.AAFwk.IWindowManagerServiceHandler;
+interface OHOS.AbilityRuntime.IFreeInstallObserver;
+interface OHOS.AppExecFwk.IAppDebugListener;
+interface OHOS.AppExecFwk.IUserCallback;
+
+import ability_state;
+import ExtensionAbilityType;
+import mission_info;
+import UIExtensionWindowCommand;
+
+interface OHOS.AAFwk.IAbilityManagerWithSupportScreen{
+    void StartSelfUIAbility([in] Want want);
+    void StartSelfUIAbilityWithStartOptions([in] Want want, [in] StartOptions options);
+    void StartAbility([in] Want want, [in] int userId, [in] int requestCode);
+    void StartAbility([in] Want want, [in] IRemoteObject callerToken, [in] int userId, [in] int requestCode);
+    void StartAbilityWithSpecifyTokenId([in] Want want, [in] IRemoteObject callerToken, [in] unsigned int specifyTokenId,
+        [in] int userId, [in] int requestCode);
+    void StartAbilityByInsightIntent([in] Want want, [in] IRemoteObject callerToken, [in] unsigned long intentId,
+        [in] int userId);
+    void StartAbility([in] Want want, [in] AbilityStartSetting abilityStartSetting, [in] IRemoteObject callerToken,
+        [in] int userId, [in] int requestCode);
+    void StartAbility([in] Want want, [in] StartOptions startOptions, [in] IRemoteObject callerToken, [in] int userId,
+        [in] int requestCode);
+    void StartAbilityAsCaller([in] Want want, [in] IRemoteObject callerToken, [in] IRemoteObject asCallerSourceToken,
+        [in] int userId, [in] int requestCode);
+    void StartAbilityAsCaller([in] Want want, [in] StartOptions startOptions, [in] IRemoteObject callerToken,
+        [in] IRemoteObject asCallerSourceToken, [in] int userId, [in] int requestCode);
+    void StartAbilityByUIContentSession([in] Want want, [in] IRemoteObject callerToken,
+        [in] sptr<SessionInfo> sessionInfo, [in] int userId, [in] int requestCode);
+    void StartAbilityOnlyUIAbility([in] Want want, [in] IRemoteObject callerToken, [in] unsigned long specifyTokenId);
+    void StartExtensionAbility([in] Want want, [in] IRemoteObject callerToken, [in] int userId,
+        [in] ExtensionAbilityType extensionType);
+    void RequestModalUIExtension([in] Want want);
+    void PreloadUIExtensionAbility([in] Want want, [in] String hostBundleName, [in] int userId, [in] int hostPid);
+    void ChangeAbilityVisibility([in] IRemoteObject token, [in] boolean isShow);
+    void ChangeUIAbilityVisibilityBySCB([in] sptr<SessionInfo> sessionInfo, [in] boolean isShow);
+    void StartUIExtensionAbility([in] sptr<SessionInfo> extensionSessionInfo, [in] int userId);
+    void StopExtensionAbility([in] Want want, [in] IRemoteObject callerToken, [in] int userId,
+        [in] ExtensionAbilityType extensionType
+    );
+    boolean IsRamConstrainedDevice();
+    void GetAppMemorySize();
+    ElementName GetTopAbility([in] boolean isNeedLocalDeviceId);
+    ElementName GetElementNameByToken([in] IRemoteObject token, [in] boolean isNeedLocalDeviceId);
+    void TerminateAbility([in] IRemoteObject token, [in] int resultCode, [in] Want resultWant);
+
+    void BackToCallerAbilityWithResult([in] IRemoteObject token, [in] int resultCode,
+        [in] Want resultWant, [in] long callerRequestCode);
+    void TerminateUIServiceExtensionAbility([in] IRemoteObject token);
+    void TerminateUIExtensionAbility([in] sptr<SessionInfo> extensionSessionInfo,
+        [in] int resultCode, [in] Want resultWant);
+    void CloseUIExtensionAbilityBySCB([in] IRemoteObject token);
+    void CloseUIAbilityBySCB([in] sptr<SessionInfo> sessionInfo, [in] boolean isUserRequestedExit,
+        [in] unsigned int sceneFlag);
+    void SendResultToAbility([in] int requestCode, [in] int resultCode, [in] Want resultWant);
+    void MoveAbilityToBackground([in] IRemoteObject token);
+    void MoveUIAbilityToBackground([in] IRemoteObject token);
+    void MinimizeAbility([in] IRemoteObject token, [in] boolean fromUser);
+    void MinimizeUIExtensionAbility([in] sptr<SessionInfo> extensionSessionInfo, 
+        [in] boolean fromUser);
+    void MinimizeUIAbilityBySCB([in] sptr<SessionInfo> sessionInfo, [in] boolean fromUser, [in] unsigned int sceneFlag);
+    void ConnectAbility([in] Want want, [in] IAbilityConnection connect, [in] IRemoteObject callerToken,
+        [in] int userId);
+    void ConnectAbilityCommon([in] Want want, [in] IAbilityConnection connect, [in] IRemoteObject callerToken,
+        [in] ExtensionAbilityType extensionType, [in] int userId, [in] boolean isQueryExtensionOnly);
+    void ConnectUIExtensionAbility([in] Want want, [in] IAbilityConnection connect, [in] sptr<SessionInfo> sessionInfo,
+        [in] int userId, [in] sptr<UIExtensionAbilityConnectInfo> connectInfo);
+    void DisconnectAbility([in] IAbilityConnection connect);
+    void ReleaseDataAbility([in] IAbilityScheduler dataAbilityScheduler, [in] IRemoteObject callerToken);
+    void AttachAbilityThread([in] IAbilityScheduler scheduler, [in] IRemoteObject token);
+    void AbilityTransitionDone([in] IRemoteObject token, [in] int state, [in] PacMap saveData);
+    [oneway] void AbilityWindowConfigTransitionDone([in] IRemoteObject token, [in] WindowConfig windowConfig);
+    void ScheduleConnectAbilityDone([in] IRemoteObject token, [in] IRemoteObject remoteObject);
+    void ScheduleDisconnectAbilityDone([in] IRemoteObject token);
+    void ScheduleCommandAbilityDone([in] IRemoteObject token);
+    void ScheduleCommandAbilityWindowDone([in] IRemoteObject token, [in] sptr<SessionInfo> sessionInfo,
+        [in] WindowCommand winCmd, [in] AbilityCommand abilityCmd);
+    void DumpState([in] String args, [out] String[] state);
+    void DumpSysState([in] String args, [out] String[] state, [in] boolean isClient, [in] boolean isUserID,
+        [in] int UserID);
+    void StopServiceAbility([in] Want want, [in] int userId, [in] IRemoteObject token);
+    void KillProcess([in] String bundleName, [in] boolean clearPageStack, [in] int appIndex);
+    [macrodef ABILITY_COMMAND_FOR_TEST]int ForceTimeoutForTest([in] String abilityName, [in] String state);
+
+    void UninstallApp([in] String bundleName, [in] int uid);
+    void UninstallApp([in] String bundleName, [in] int uid, [in] int appIndex);
+    void UpgradeApp([in] String bundleName, [in] int uid, [in] String exitMsg, [in] int appIndex);
+    IWantSender GetWantSender([in] WantSenderInfo wantSenderInfo, [in] IRemoteObject callerToken, [in] int uid);
+    void SendWantSender([in] IWantSender target, [in] SenderInfo senderInfo);
+    void CancelWantSender([in] IWantSender sender);
+    void GetPendingWantUid([in] IWantSender target);
+    void GetPendingWantUserId([in] IWantSender target);
+    String GetPendingWantBundleName([in] IWantSender target);
+    void GetPendingWantCode([in] IWantSender target);
+    void GetPendingWantType([in] IWantSender target);
+    void RegisterCancelListener([in] IWantSender sender, [in] IWantReceiver receiver);
+    void UnregisterCancelListener([in] IWantSender sender, [in] IWantReceiver receiver);
+    void GetPendingRequestWant([in] IWantSender target, [out] sharedptr<Want> want);
+    void GetWantSenderInfo([in] IWantSender target, [out] sharedptr<WantSenderInfo> info);
+    void ContinueMission([in] String srcDeviceId, [in] String dstDeviceId, [in] int missionId,
+        [in] IRemoteObject callBack, [in] WantParams wantParams);
+    void ContinueMission([in] ContinueMissionInfo continueMissionInfo, [in] IRemoteObject callBack);
+    void ContinueAbility([in] String deviceId, [in] int missionId, [in] unsigned int versionCode);
+    void StartContinuation([in] Want want, [in] IRemoteObject abilityToken, [in] int status);
+    void NotifyCompleteContinuation([in] String deviceId, [in] int sessionId, [in] boolean isSuccess);
+    void NotifyContinuationResult([in] int missionId, [in] int notifyResult);
+    void LockMissionForCleanup([in] int missionId);
+    void UnlockMissionForCleanup([in] int missionId);
+    [oneway]void SetLockedState([in] int sessionId, [in] boolean lockedState);
+    void RegisterMissionListener([in] IMissionListener listener);
+    void UnRegisterMissionListener([in] IMissionListener listener);
+    void GetMissionInfos([in] String deviceId, [in] int numMax, [out] MissionInfo[] missionInfos);
+    void GetMissionInfo([in] String deviceId, [in] int missionId, [out] MissionInfo missionInfo);
+    void GetRecentMissions([in] String deviceId, [in] int numMax, [out] MissionInfo[] recentMissions);
+    void GetMissionSnapshot([in] String deviceId, [in] int missionId, [out] MissionSnapshot snapshot,
+        [in] boolean isLowResolution);
+    void CleanMission([in] int missionId);
+    void CleanAllMissions();
+    void MoveMissionToFront([in] int missionId);
+    void MoveMissionToFront([in] int missionId, [in] StartOptions startOptions);
+    void MoveMissionsToForeground([in] int[] missionIds, [in] int topMissionId);
+    void MoveMissionsToBackground([in] int[] missionIds, [out] int[] moveMissionsResult);
+    void RegisterSessionHandler([in] IRemoteObject object);
+    void StartAbilityByCall([in] Want want, [in] IAbilityConnection connect, [in] IRemoteObject callerToken,
+        [in] int accountId);
+    void StartAbilityByCallWithErrMsg([in] Want want, [in] IAbilityConnection connect,
+        [in] IRemoteObject callerToken, [in] int accountId, [out] String errMsg);
+    void CallRequestDone([in] IRemoteObject token, [in] IRemoteObject callStub);
+    void ReleaseCall([in] IAbilityConnection connect, [in] ElementName element);
+    void StartUser([in] int userId, [in] IUserCallback callBack, [in] boolean isAppRecovery);
+    void StopUser([in] int userId, [in] IUserCallback callBack);
+    void LogoutUser([in] int userId, [in] IUserCallback callBack);
+    void SetMissionContinueState([in] IRemoteObject token, [in] ContinueState state);
+    [macrodef SUPPORT_SCREEN]void SetMissionLabel([in] IRemoteObject abilityToken,  [in] String label);
+    [macrodef SUPPORT_SCREEN]void RegisterWindowManagerServiceHandler([in] IWindowManagerServiceHandler handler,
+        [in] boolean animationEnabled);
+    [macrodef SUPPORT_SCREEN]void CompleteFirstFrameDrawing([in] IRemoteObject abilityToken);
+    [macrodef SUPPORT_SCREEN]void CompleteFirstFrameDrawing([in] int sessionId);
+    [macrodef SUPPORT_SCREEN]void PrepareTerminateAbility([in] IRemoteObject token, [in] IPrepareTerminateCallback callBack);
+    [macrodef SUPPORT_SCREEN]void GetDialogSessionInfo([in] String dialogSessionId,
+        [out] sptr<DialogSessionInfo> dialogSessionInfo);
+    [macrodef SUPPORT_SCREEN]void SendDialogResult([in] Want want, [in] String dialogSessionId, [in] boolean isAllow);
+    [macrodef SUPPORT_SCREEN]void SetMissionIcon([in] IRemoteObject token, [in] sharedptr<PixelMap> icon);
+    [macrodef SUPPORT_SCREEN]void UpdateMissionSnapShot([in] IRemoteObject token, [in] sharedptr<PixelMap> pixelMap);
+/*
+    [macrodef SUPPORT_SCREEN]void RegisterAbilityFirstFrameStateObserver([in] IAbilityFirstFrameStateObserver observer,
+        [in] String targetBundleName);
+    [macrodef SUPPORT_SCREEN]void UnregisterAbilityFirstFrameStateObserver([in] IAbilityFirstFrameStateObserver observer);
+*/
+    void GetTopAbility([out] IRemoteObject token);
+    void GetAbilityRunningInfos([out] AbilityRunningInfo[] info);
+    void GetExtensionRunningInfos([in] int upperLimit, [out] ExtensionRunningInfo[] info);
+    void GetProcessRunningInfos([out] RunningProcessInfo[] info);
+    void StartSyncRemoteMissions([in] String devId, [in] boolean fixConflict, [in] long tag);
+    void StopSyncRemoteMissions([in] String devId);
+    void RegisterMissionListener([in] String deviceId, [in] IRemoteMissionListener listener);
+    void RegisterOnListener([in] String type, [in] IRemoteOnListener listener);
+    void RegisterOffListener([in] String type, [in] IRemoteOnListener listener);
+    void UnRegisterMissionListener([in] String deviceId, [in] IRemoteMissionListener listener);
+    void SetAbilityController([in] IAbilityController abilityController, [in] boolean imAStabilityTest);
+    boolean IsRunningInStabilityTest();
+    void RegisterSnapshotHandler([in] ISnapshotHandler handler);  
+    void StartUserTest([in] Want want, [in] IRemoteObject observer);
+    void FinishUserTest([in] String msg, [in] long resultCode, [in] String bundleName);
+    void CheckUIExtensionIsFocused([in] unsigned int uiExtensionTokenId, [out] boolean isFocused);
+    void DelegatorDoAbilityForeground([in] IRemoteObject token);
+    void DelegatorDoAbilityBackground([in] IRemoteObject token);
+    void DoAbilityForeground([in] IRemoteObject token, [in] unsigned int flag);
+    void DoAbilityBackground([in] IRemoteObject token, [in] unsigned int flag);
+    void GetMissionIdByToken([in] IRemoteObject token);
+    void GetAbilityTokenByCalleeObj([in] IRemoteObject callStub, [out] IRemoteObject token);
+    void DumpAbilityInfoDone([in] String[] infos, [in] IRemoteObject callerToken);
+    void FreeInstallAbilityFromRemote([in] Want want, [in] IRemoteObject callBack, [in] int userId, [in] int requestCode);
+    void AddFreeInstallObserver([in] IRemoteObject callerToken, [in] IFreeInstallObserver observer);
+    void EnableRecoverAbility([in] IRemoteObject token);
+    void SubmitSaveRecoveryInfo([in] IRemoteObject token);
+    void ScheduleRecoverAbility([in] IRemoteObject token, [in] int reason, [in] Want want);
+    void ScheduleClearRecoveryPageStack();
+    void IsValidMissionIds([in] int[] missionIds, [out] MissionValidResult[] missionResults);
+    void VerifyPermission([in] String permission, [in] int pid, [in] int uid);
+    void RequestDialogService([in] Want want, [in] IRemoteObject callerToken);
+    void ReportDrawnCompleted([in] IRemoteObject callerToken);
+    void AcquireShareData([in] int missionId, [in] IAcquireShareDataCallback shareData);
+    void ShareDataDone([in] IRemoteObject token, [in] int resultCode, [in] int uniqueId, [in] WantParams wantParam);
+    void ForceExitApp([in] int pid, [in] ExitReason exitReason);
+    void RecordAppExitReason([in] ExitReason exitReason);
+    void RecordProcessExitReason([in] int pid, [in] ExitReason exitReason);
+    void RecordProcessExitReason([in] int pid, [in] int uid, [in] ExitReason exitReason);
+    [oneway]void SetRootSceneSession([in] IRemoteObject rootSceneSession);
+    void CallUIAbilityBySCB([in] sptr<SessionInfo> sessionInfo, [out] boolean isColdStart);
+    [oneway]void StartSpecifiedAbilityBySCB([in] Want want);
+    void NotifySaveAsResult([in] Want want, [in] int resultCode, [in] int requestCode);
+    void SetSessionManagerService([in] IRemoteObject sessionManagerService);
+    void RegisterIAbilityManagerCollaborator([in] int type, [in] IAbilityManagerCollaborator impl);
+    void UnregisterIAbilityManagerCollaborator([in] int type);
+    void RegisterStatusBarDelegate([in] IStatusBarDelegate delegate);
+    void KillProcessWithPrepareTerminate([in] int[] pids);
+    void KillProcessWithReason([in] int pid, [in] ExitReason reason);
+    void RegisterAutoStartupSystemCallback([in] IRemoteObject callBack);
+    void UnregisterAutoStartupSystemCallback([in] IRemoteObject callBack);
+    void SetApplicationAutoStartup([in] AutoStartupInfo info);
+    void CancelApplicationAutoStartup([in] AutoStartupInfo info);
+    void QueryAllAutoStartupApplications([out] AutoStartupInfo[] infoList);
+    void PrepareTerminateAbilityBySCB([in] sptr<SessionInfo> sessionInfo, [out] boolean isPrepareTerminate);
+    void RegisterAppDebugListener([in] IAppDebugListener listener);
+    void UnregisterAppDebugListener([in] IAppDebugListener listener);
+    void AttachAppDebug([in] String bundleName, [in] boolean isDebugFromLocal);
+    void DetachAppDebug([in] String bundleName, [in] boolean isDebugFromLocal);
+    void ExecuteIntent([in] unsigned long key, [in] IRemoteObject callerToken, [in] InsightIntentExecuteParam param);
+    void IsAbilityControllerStart([in] Want want);
+    void ExecuteInsightIntentDone([in] IRemoteObject token, [in] unsigned long intentId, [in] InsightIntentExecuteResult insightResult);
+    void SetApplicationAutoStartupByEDM([in] AutoStartupInfo info, [in] boolean flag);
+    void CancelApplicationAutoStartupByEDM([in] AutoStartupInfo info, [in] boolean flag);
+    void GetForegroundUIAbilities([out] AbilityStateData[] list);
+    void OpenFile([in] Uri uri, [in] unsigned int flag);
+    void UpdateSessionInfoBySCB([in] SessionInfo[] sessionInfos, [in] int userId, [in] int[] sessionIds);
+    void RestartApp([in] Want want, [in] boolean isAppRecovery);
+    void GetUIExtensionRootHostInfo([in] IRemoteObject token, [out] UIExtensionHostInfo hostInfo, [in] int userId);
+    void GetUIExtensionSessionInfo([in] IRemoteObject token, [out] UIExtensionSessionInfo uiExtensionSessionInfo,
+        [in] int userId);
+    void OpenLink([in] Want want, [in] IRemoteObject callerToken, [in] int userId, [in] int requestCode);
+    void OpenAtomicService([in] Want want, [in] StartOptions options, [in] IRemoteObject callerToken,
+        [in] int requestCode, [in] int userId);
+    void SetResidentProcessEnabled([in] String bundleName, [in] boolean enable);
+    boolean IsEmbeddedOpenAllowed([in] IRemoteObject callerToken, [in] String appId);
+    void RequestAssertFaultDialog([in] IRemoteObject callBack, [in] WantParams wantParams);
+    void NotifyDebugAssertResult([in] unsigned long assertFaultSessionId, [in] UserStatus userStatus);
+    void StartShortcut([in] Want want, [in] StartOptions startOptions);
+    void GetAbilityStateByPersistentId([in] int persistentId, [out] boolean state);
+    void TransferAbilityResultForExtension([in] IRemoteObject callerToken, [in] int resultCode, [in] Want want);
+    [oneway]void NotifyFrozenProcessByRSS([in] int[] pidList, [in] int uid);
+    void CleanUIAbilityBySCB([in] sptr<SessionInfo> sessionInfo, [in] boolean isUserRequestedExit, [in] unsigned int sceneFlag);
+    void PreStartMission([in] String bundleName, [in] String moduleName, [in] String abilityName, [in] String startTime);
+    void TerminateMission([in] int missionId);
+    void BlockAllAppStart([in] boolean flag);
+    void UpdateAssociateConfigList([in] Map<String, String[]> configs, [in] String[] exportConfigs, [in] int flag);
+    void SetApplicationKeepAlive([in] String bundleName, [in] int userId, [in] boolean flag);
+    void SetApplicationKeepAliveByEDM([in] String bundleName, [in] int userId, [in] boolean flag);
+    void QueryKeepAliveApplications([in] int appType, [in] int userId, [out] KeepAliveInfo[] list);
+    void GetAllIntentExemptionInfo([out] IntentExemptionInfo[] info);
+    void AddQueryERMSObserver([in] IRemoteObject callerToken, [in] IQueryERMSObserver observer);
+    void PrepareTerminateAbilityDone([in] IRemoteObject token, [in] boolean isTerminate);
+    void KillProcessWithPrepareTerminateDone([in] String moduleName, [in] int prepareTermination,
+        [in] boolean isExist);
+    void KillProcessForPermissionUpdate([in] unsigned int accessTokenId);
+    void RegisterHiddenStartObserver([in] IHiddenStartObserver observer);
+    void UnregisterHiddenStartObserver([in] IHiddenStartObserver observer);
+    void QueryPreLoadUIExtensionRecord([in] ElementName element, [in] String moduleName,
+        [in] String hostBundleName, [out] int recordNum, [in] int userId);
+    void RevokeDelegator([in] IRemoteObject token);
+    void QueryAtomicServiceStartupRule([in] IRemoteObject callerToken,
+                                     [in] String appId,
+                                     [in] String startTime,
+                                     [out] AtomicServiceStartupRule rule);
+
+    void StartAbilityForResultAsCaller(
+        [in] Want want,
+        [in] IRemoteObject callerToken,
+        [in] int requestCode,
+        [in] int userId);
+
+    void StartAbilityForResultAsCaller(
+        [in] Want want,
+        [in] StartOptions startOptions,
+        [in] IRemoteObject callerToken,
+        [in] int requestCode,
+        [in] int userId);
+
+    void StartAbilityByUIContentSession(
+        [in] Want want,
+        [in] StartOptions options,
+        [in] IRemoteObject callerToken,
+        [in] sptr<SessionInfo> sessionInfo,
+        [in] int userId,
+        [in] int requestCode);
+
+    void StartUIAbilityBySCB(
+        [in] sptr<SessionInfo> sessionInfo,
+        [out] boolean isColdStart,
+        [in] int sceneFlag);
+    
+    void CloseAbility(
+        [in] IRemoteObject token,
+        [in] int resultCode,
+        [in] Want resultWant);
+
+    IAbilityScheduler AcquireDataAbility(
+        [in] Uri uri,
+        [in] boolean tryBind,
+        [in] IRemoteObject callerToken);
+
+}

@@ -13,28 +13,7 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_DMS_CONTINUEINFO_INFO_H
-#define OHOS_ABILITY_RUNTIME_DMS_CONTINUEINFO_INFO_H
-
-#include <string>
-
-#include "parcel.h"
-#include "want.h"
-
-namespace OHOS {
-namespace AAFwk {
-/**
- * @struct AutoStartupInfo
- * Defines auto startup info.
- */
-struct ContinueMissionInfo  {
-    std::string dstDeviceId;
-    std::string srcDeviceId;
-    std::string bundleName;
-    std::string srcBundleName;
-    std::string continueType;
-    AAFwk::WantParams wantParams;
-};
-} // namespace AAFwk
-} // namespace OHOS
-#endif // OHOS_ABILITY_RUNTIME_DMS_CONTINUEINFO_INFO_H
+#ifndef OHOS_ABILITY_RUNTIME_CONTINUEINFO_MISSION_INFO_H
+#define OHOS_ABILITY_RUNTIME_CONTINUEINFO_MISSION_INFO_H
+#include "dms_continue_info.h"
+#endif // OHOS_ABILITY_RUNTIME_CONTINUEINFO_MISSION_INFO_H

@@ -16,7 +16,6 @@
 #ifndef OHOS_ABILITY_RUNTIME_WINDOW_MANAGER_SERVICE_HANDLER_H
 #define OHOS_ABILITY_RUNTIME_WINDOW_MANAGER_SERVICE_HANDLER_H
 
-#ifdef SUPPORT_SCREEN
 #include "iremote_broker.h"
 #include "window_info.h"
 
@@ -79,5 +78,5 @@ public:
 };
 }  // namespace AAFwk
 }  // namespace OHOS
-#endif
+
 #endif  // OHOS_ABILITY_RUNTIME_WINDOW_MANAGER_SERVICE_HANDLER_H

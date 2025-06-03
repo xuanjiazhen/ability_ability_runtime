@@ -2487,6 +2487,7 @@ void AbilityRecord::DumpUIExtensionRootHostInfo(std::vector<std::string> &info) 
     }
 
     UIExtensionHostInfo hostInfo;
+    int32_t userId = DEFAULT_INVAL_VALUE;
     auto ret = IN_PROCESS_CALL(AAFwk::AbilityManagerClient::GetInstance()->GetUIExtensionRootHostInfo(token, hostInfo));
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed: %{public}d", ret);
@@ -3383,7 +3384,7 @@ void AbilityRecord::DumpClientInfo(std::vector<std::string> &info, const std::ve
     }
 }
 
-void AbilityRecord::DumpAbilityInfoDone(std::vector<std::string> &infos)
+void AbilityRecord::DumpAbilityInfoDone(const std::vector<std::string> &infos)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
     if (isDumpTimeout_) {

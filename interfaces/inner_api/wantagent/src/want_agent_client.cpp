@@ -71,7 +71,7 @@ ErrCode WantAgentClient::GetWantSender(
         return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
     }
 
-    auto error = abms->SendRequest(static_cast<uint32_t>(AbilityManagerInterfaceCode::GET_PENDING_WANT_SENDER),
+    auto error = abms->SendRequest(static_cast<uint32_t>(IAbilityManagerIpcCode::COMMAND_GET_WANT_SENDER),
         data, reply, option);
     if (error != NO_ERROR) {
         return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_WANTAGENT;
@@ -99,8 +99,7 @@ ErrCode WantAgentClient::SendWantSender(sptr<IWantSender> target, const SenderIn
         TAG_LOGE(AAFwkTag::WANTAGENT, "senderInfo write failed");
         return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
     }
-
-    auto error = abms->SendRequest(static_cast<uint32_t>(AbilityManagerInterfaceCode::SEND_PENDING_WANT_SENDER),
+    auto error = abms->SendRequest(static_cast<uint32_t>(IAbilityManagerIpcCode::COMMAND_SEND_WANT_SENDER),
         data, reply, option);
     if (error != NO_ERROR) {
         return ERR_ABILITY_RUNTIME_EXTERNAL_SERVICE_TIMEOUT;
@@ -131,7 +130,7 @@ ErrCode WantAgentClient::CancelWantSender(const sptr<IWantSender> &sender, uint3
         return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
     }
 
-    error = abms->SendRequest(static_cast<int32_t>(AbilityManagerInterfaceCode::CANCEL_PENDING_WANT_SENDER),
+    error = abms->SendRequest(static_cast<int32_t>(IAbilityManagerIpcCode::COMMAND_CANCEL_WANT_SENDER),
         data, reply, option);
     if (error != NO_ERROR) {
         return ERR_ABILITY_RUNTIME_EXTERNAL_SERVICE_BUSY;
@@ -147,7 +146,7 @@ ErrCode WantAgentClient::GetPendingWantUid(const sptr<IWantSender> &target, int3
     CHECK_POINTER_AND_RETURN(abms, ERR_ABILITY_RUNTIME_EXTERNAL_SERVICE_BUSY);
     ErrCode error;
     MessageParcel reply;
-    if (!SendRequest(static_cast<int32_t>(AbilityManagerInterfaceCode::GET_PENDING_WANT_UID),
+    if (!SendRequest(static_cast<int32_t>(IAbilityManagerIpcCode::COMMAND_GET_PENDING_WANT_UID),
         abms, target->AsObject(), reply, error)) {
         return error;
     }
@@ -162,7 +161,7 @@ ErrCode WantAgentClient::GetPendingWantUserId(const sptr<IWantSender> &target, i
     CHECK_POINTER_AND_RETURN(abms, ABILITY_SERVICE_NOT_CONNECTED);
     ErrCode error;
     MessageParcel reply;
-    if (!SendRequest(static_cast<int32_t>(AbilityManagerInterfaceCode::GET_PENDING_WANT_USERID),
+    if (!SendRequest(static_cast<int32_t>(IAbilityManagerIpcCode::COMMAND_GET_PENDING_WANT_USER_ID),
         abms, target->AsObject(), reply, error)) {
         return error;
     }
@@ -177,7 +176,7 @@ ErrCode WantAgentClient::GetPendingWantBundleName(const sptr<IWantSender> &targe
     CHECK_POINTER_AND_RETURN(abms, ERR_ABILITY_RUNTIME_EXTERNAL_SERVICE_BUSY);
     ErrCode error;
     MessageParcel reply;
-    if (!SendRequest(static_cast<int32_t>(AbilityManagerInterfaceCode::GET_PENDING_WANT_BUNDLENAME),
+    if (!SendRequest(static_cast<int32_t>(IAbilityManagerIpcCode::COMMAND_GET_PENDING_WANT_BUNDLE_NAME),
         abms, target->AsObject(), reply, error)) {
         return error;
     }
@@ -192,7 +191,7 @@ ErrCode WantAgentClient::GetPendingWantCode(const sptr<IWantSender> &target, int
     CHECK_POINTER_AND_RETURN(abms, ERR_ABILITY_RUNTIME_EXTERNAL_SERVICE_BUSY);
     ErrCode error;
     MessageParcel reply;
-    if (!SendRequest(static_cast<int32_t>(AbilityManagerInterfaceCode::GET_PENDING_WANT_CODE),
+    if (!SendRequest(static_cast<int32_t>(IAbilityManagerIpcCode::COMMAND_GET_PENDING_WANT_CODE),
         abms, target->AsObject(), reply, error)) {
         return ERR_ABILITY_RUNTIME_EXTERNAL_SERVICE_TIMEOUT;
     }
@@ -207,7 +206,7 @@ ErrCode WantAgentClient::GetPendingWantType(sptr<IWantSender> target, int32_t &t
     CHECK_POINTER_AND_RETURN(abms, ERR_ABILITY_RUNTIME_EXTERNAL_SERVICE_BUSY);
     ErrCode error;
     MessageParcel reply;
-    if (!SendRequest(static_cast<int32_t>(AbilityManagerInterfaceCode::GET_PENDING_WANT_TYPE),
+    if (!SendRequest(static_cast<int32_t>(IAbilityManagerIpcCode::COMMAND_GET_PENDING_WANT_TYPE),
         abms, target->AsObject(), reply, error)) {
         return ERR_ABILITY_RUNTIME_EXTERNAL_SERVICE_TIMEOUT;
     }
@@ -240,7 +239,7 @@ void WantAgentClient::RegisterCancelListener(const sptr<IWantSender> &sender, co
         TAG_LOGE(AAFwkTag::WANTAGENT, "receiver write failed");
         return;
     }
-    auto error = abms->SendRequest(static_cast<uint32_t>(AbilityManagerInterfaceCode::REGISTER_CANCEL_LISTENER),
+    auto error = abms->SendRequest(static_cast<uint32_t>(IAbilityManagerIpcCode::COMMAND_REGISTER_CANCEL_LISTENER),
         data, reply, option);
     if (error != NO_ERROR) {
         return;
@@ -272,7 +271,7 @@ void WantAgentClient::UnregisterCancelListener(
         TAG_LOGE(AAFwkTag::WANTAGENT, "receiver write failed");
         return;
     }
-    auto error = abms->SendRequest(static_cast<uint32_t>(AbilityManagerInterfaceCode::UNREGISTER_CANCEL_LISTENER),
+    auto error = abms->SendRequest(static_cast<uint32_t>(IAbilityManagerIpcCode::COMMAND_UNREGISTER_CANCEL_LISTENER),
         data, reply, option);
     if (error != NO_ERROR) {
         return;
@@ -307,7 +306,7 @@ ErrCode WantAgentClient::GetPendingRequestWant(const sptr<IWantSender> &target, 
         TAG_LOGE(AAFwkTag::WANTAGENT, "want write failed");
         return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
     }
-    auto error = abms->SendRequest(static_cast<int32_t>(AbilityManagerInterfaceCode::GET_PENDING_REQUEST_WANT),
+    auto error = abms->SendRequest(static_cast<int32_t>(IAbilityManagerIpcCode::COMMAND_GET_PENDING_REQUEST_WANT),
         data, reply, option);
     if (error != NO_ERROR) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Send request error: %{public}d", error);
@@ -343,7 +342,7 @@ ErrCode WantAgentClient::GetWantSenderInfo(const sptr<IWantSender> &target, std:
         TAG_LOGE(AAFwkTag::WANTAGENT, "info write failed");
         return INNER_ERR;
     }
-    auto error = abms->SendRequest(static_cast<uint32_t>(AbilityManagerInterfaceCode::GET_PENDING_WANT_SENDER_INFO),
+    auto error = abms->SendRequest(static_cast<uint32_t>(IAbilityManagerIpcCode::COMMAND_GET_WANT_SENDER_INFO),
         data, reply, option);
     if (error != NO_ERROR) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Send request error: %{public}d", error);

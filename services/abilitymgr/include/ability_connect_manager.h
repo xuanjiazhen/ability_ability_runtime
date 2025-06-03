@@ -109,7 +109,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int PreloadUIExtensionAbilityInner(const AbilityRequest &abilityRequest, std::string &hostBundleName,
-        int32_t hostPid = AAFwk::DEFAULT_INVAL_VALUE);
+        int32_t hostPid = -1);
 
     /**
      * PreloadUIExtensionAbilityLocked, preload uiextension ability.
@@ -119,7 +119,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int PreloadUIExtensionAbilityLocked(const AbilityRequest &abilityRequest, std::string &hostBundleName,
-        int32_t hostPid = AAFwk::DEFAULT_INVAL_VALUE);
+        int32_t hostPid = -1);
 
     /**
      * Query preload uiextension record.
@@ -647,7 +647,7 @@ private:
     void HandleNotifyAssertFaultDialogDied(const std::shared_ptr<AbilityRecord> &abilityRecord);
     EventInfo BuildEventInfo(const std::shared_ptr<AbilityRecord> &abilityRecord);
     void UpdateUIExtensionInfo(const std::shared_ptr<AbilityRecord> &abilityRecord,
-        int32_t hostPid = AAFwk::DEFAULT_INVAL_VALUE);
+        int32_t hostPid = -1);
     std::string GenerateBundleName(const AbilityRequest &abilityRequest) const;
 
     bool AddToServiceMap(const std::string &key, std::shared_ptr<AbilityRecord> abilityRecord);

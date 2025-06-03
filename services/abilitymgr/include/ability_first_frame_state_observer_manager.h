@@ -20,7 +20,7 @@
 #include <map>
 #include <string>
 
-#include "ability_first_frame_state_observer_interface.h"
+#include "iability_first_frame_state_observer.h"
 #include "ability_record.h"
 #include "cpp/mutex.h"
 #include "singleton.h"

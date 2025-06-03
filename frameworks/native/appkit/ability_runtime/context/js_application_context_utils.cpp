@@ -815,7 +815,8 @@ napi_value JsApplicationContextUtils::OnPreloadUIExtensionAbility(napi_env env, 
         }
         auto hostBundleName = context->GetBundleName();
         TAG_LOGD(AAFwkTag::APPKIT, "HostBundleName is %{public}s", hostBundleName.c_str());
-        *innerErrCode = AAFwk::AbilityManagerClient::GetInstance()->PreloadUIExtensionAbility(want, hostBundleName);
+        *innerErrCode = AAFwk::AbilityManagerClient::GetInstance()->PreloadUIExtensionAbility(want,
+            hostBundleName, -1, -1);
     };
     NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
         if (*innerErrCode == ERR_OK) {

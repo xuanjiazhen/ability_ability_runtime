@@ -109,6 +109,7 @@ bool DialogSessionManager::NotifyQueryERMSFinished(const std::string &dialogSess
         info = it->second;
         queryERMSInfoMap_.erase(dialogSessionId);
     }
+    
     AtomicServiceStartupRule rule = { isAllowed, info.isEmbeddedAllowed };
     QueryERMSManager::GetInstance().OnQueryFinished(info.recordId, info.appId, info.startTime, rule, ERR_OK);
     return true;

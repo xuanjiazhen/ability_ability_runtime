@@ -21,9 +21,46 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
-struct AtomicServiceStartupRule {
+struct AtomicServiceStartupRule : public Parcelable {
     bool isOpenAllowed = false;
     bool isEmbeddedAllowed = false;
+
+    AtomicServiceStartupRule() = default;
+    AtomicServiceStartupRule(bool allow, bool embedAllow) 
+        : isOpenAllowed(allow), isEmbeddedAllowed(embedAllow) {}
+
+    bool Marshalling(Parcel &parcel) const override {
+        if (!parcel.WriteBool(isOpenAllowed)) {
+            // TAG_LOGW("Write isOpenAllowed failed");
+            return false;
+        }
+        if (!parcel.WriteBool(isEmbeddedAllowed)) {
+            // TAG_LOGW("Write isEmbeddedAllowed failed");
+            return false;
+        }
+        return true;
+    }
+
+    bool ReadFromParcel(Parcel &parcel) {
+        isOpenAllowed = parcel.ReadBool();
+        isEmbeddedAllowed = parcel.ReadBool();
+        return true;
+    }
+
+    static AtomicServiceStartupRule* Unmarshalling(Parcel &parcel) {
+        AtomicServiceStartupRule* rule = new (std::nothrow) AtomicServiceStartupRule();
+        if (rule == nullptr) {
+            // TAG_LOGW("Create AtomicServiceStartupRule failed");
+            return nullptr;
+        }
+
+        if (!rule->ReadFromParcel(parcel)) {
+            // TAG_LOGW("ReadFromParcel failed");
+            delete rule;
+            rule = nullptr;
+        }
+        return rule;
+    }
 };
 
 class IQueryERMSObserver : public OHOS::IRemoteBroker {

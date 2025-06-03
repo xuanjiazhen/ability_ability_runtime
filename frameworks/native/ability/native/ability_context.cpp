@@ -56,7 +56,7 @@ ErrCode AbilityContext::StartAbility(const AAFwk::Want &want, int requestCode)
         TAG_LOGE(AAFwkTag::CONTEXT, "abilityType: %{public}d", type);
         return ERR_INVALID_VALUE;
     }
-    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, token_, requestCode);
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, token_, requestCode, -1);
     TAG_LOGD(AAFwkTag::CONTEXT, "ret=%{public}d", err);
     return err;
 }
@@ -71,7 +71,7 @@ ErrCode AbilityContext::StartAbility(const Want &want, int requestCode, const Ab
         return ERR_INVALID_VALUE;
     }
     ErrCode err =
-        AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, abilityStartSetting, token_, requestCode);
+        AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, abilityStartSetting, token_, requestCode, -1);
     TAG_LOGD(AAFwkTag::CONTEXT, "ret=%{public}d", err);
     return err;
 }
@@ -174,7 +174,7 @@ bool AbilityContext::ConnectAbility(const Want &want, const sptr<AAFwk::IAbility
         return false;
     }
 
-    ErrCode ret = AAFwk::AbilityManagerClient::GetInstance()->ConnectAbility(want, conn, token_);
+    ErrCode ret = AAFwk::AbilityManagerClient::GetInstance()->ConnectAbility(want, conn, token_, -1);
     TAG_LOGD(AAFwkTag::CONTEXT, "ret=%{public}d", ret);
     bool value = ((ret == ERR_OK) ? true : false);
     if (!value) {

@@ -289,7 +289,7 @@ ErrCode AbilityDelegator::StartAbility(const AAFwk::Want &want)
     }
     realWant.SetParam(IS_DELEGATOR_CALL, true);
 
-    return AbilityManagerClient::GetInstance()->StartAbility(realWant);
+    return AbilityManagerClient::GetInstance()->StartAbility(realWant, -1, -1);
 }
 
 bool AbilityDelegator::DoAbilityForeground(const sptr<IRemoteObject> &token)

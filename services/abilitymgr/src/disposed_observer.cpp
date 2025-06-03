@@ -63,7 +63,7 @@ void DisposedObserver::OnPageShow(const AppExecFwk::PageStateData &pageStateData
 {
     if (disposedRule_.componentType == AppExecFwk::ComponentType::UI_ABILITY) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Call");
-        int ret = IN_PROCESS_CALL(AbilityManagerClient::GetInstance()->StartAbility(*disposedRule_.want));
+        int ret = IN_PROCESS_CALL(AbilityManagerClient::GetInstance()->StartAbility(*disposedRule_.want, -1, -1));
         if (ret != ERR_OK) {
             interceptor_->UnregisterObserver(pageStateData.bundleName);
             TAG_LOGE(AAFwkTag::ABILITYMGR, "call failed");

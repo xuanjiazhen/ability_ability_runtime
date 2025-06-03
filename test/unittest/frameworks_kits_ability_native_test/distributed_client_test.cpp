@@ -20,7 +20,7 @@
 #include "ability_manager_errors.h"
 #include "distributed_client.h"
 #include "distributed_parcel_helper.h"
-#include "dms_continueInfo.h"
+#include "dms_continue_info.h"
 #include "iservice_registry.h"
 #include "iremote_object.h"
 #include "mock_ability_connect_callback.h"

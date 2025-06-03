@@ -1,0 +1,10 @@
+enum WindowCommand {
+    WIN_CMD_FOREGROUND,
+    WIN_CMD_BACKGROUND,
+    WIN_CMD_DESTROY
+};
+enum AbilityCommand {
+    ABILITY_CMD_FOREGROUND,
+    ABILITY_CMD_BACKGROUND,
+    ABILITY_CMD_DESTROY
+};

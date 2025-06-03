@@ -39,7 +39,7 @@ ConnectionManager& ConnectionManager::GetInstance()
 ErrCode ConnectionManager::ConnectAbility(const sptr<IRemoteObject>& connectCaller,
     const AAFwk::Want& want, const sptr<AbilityConnectCallback>& connectCallback)
 {
-    return ConnectAbilityInner(connectCaller, want, AAFwk::DEFAULT_INVAL_VALUE, connectCallback);
+    return ConnectAbilityInner(connectCaller, want, DEFAULT_INVAL_VALUE, connectCallback);
 }
 
 ErrCode ConnectionManager::ConnectAbilityWithAccount(const sptr<IRemoteObject>& connectCaller,
@@ -51,7 +51,7 @@ ErrCode ConnectionManager::ConnectAbilityWithAccount(const sptr<IRemoteObject>& 
 ErrCode ConnectionManager::ConnectUIServiceExtensionAbility(const sptr<IRemoteObject>& connectCaller,
     const AAFwk::Want& want, const sptr<AbilityConnectCallback>& connectCallback)
 {
-    return ConnectAbilityInner(connectCaller, want, AAFwk::DEFAULT_INVAL_VALUE, connectCallback, true);
+    return ConnectAbilityInner(connectCaller, want, DEFAULT_INVAL_VALUE, connectCallback, true);
 }
 
 ErrCode ConnectionManager::ConnectAbilityInner(const sptr<IRemoteObject>& connectCaller,

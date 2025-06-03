@@ -886,13 +886,16 @@ int AbilityManagerProxy::StopExtensionAbility(const Want &want, const sptr<IRemo
     return reply.ReadInt32();
 }
 
-int AbilityManagerProxy::TerminateAbility(const sptr<IRemoteObject> &token, int resultCode, const Want *resultWant)
+
+
+int AbilityManagerProxy::TerminateAbility(const sptr<IRemoteObject> &token, int resultCode,
+    const std::shared_ptr<Want> &resultWant)
 {
     return TerminateAbility(token, resultCode, resultWant, true);
 }
 
 int AbilityManagerProxy::TerminateAbility(const sptr<IRemoteObject> &token,
-    int resultCode, const Want *resultWant, bool flag)
+    int resultCode, const std::shared_ptr<Want> &resultWant, bool flag)
 {
     int error;
     MessageParcel data;
@@ -930,7 +933,7 @@ int AbilityManagerProxy::TerminateAbility(const sptr<IRemoteObject> &token,
 }
 
 int AbilityManagerProxy::BackToCallerAbilityWithResult(const sptr<IRemoteObject> &token, int resultCode,
-    const Want *resultWant, int64_t callerRequestCode)
+    const std::shared_ptr<Want> &resultWant, int64_t callerRequestCode)
 {
     int error;
     MessageParcel data;
@@ -1001,7 +1004,7 @@ int32_t AbilityManagerProxy::TerminateUIServiceExtensionAbility(const sptr<IRemo
 }
 
 int AbilityManagerProxy::TerminateUIExtensionAbility(const sptr<SessionInfo> &extensionSessionInfo, int resultCode,
-    const Want *resultWant)
+    const std::shared_ptr<Want> &resultWant)
 {
     int error;
     MessageParcel data;
@@ -1183,7 +1186,7 @@ int32_t AbilityManagerProxy::MoveUIAbilityToBackground(const sptr<IRemoteObject>
     return reply.ReadInt32();
 }
 
-int AbilityManagerProxy::CloseAbility(const sptr<IRemoteObject> &token, int resultCode, const Want *resultWant)
+int AbilityManagerProxy::CloseAbility(const sptr<IRemoteObject> &token, int resultCode, const std::shared_ptr<Want> &resultWant)
 {
     return TerminateAbility(token, resultCode, resultWant, false);
 }
@@ -1884,7 +1887,8 @@ void AbilityManagerProxy::EnableRecoverAbility(const sptr<IRemoteObject>& token)
     return;
 }
 
-void AbilityManagerProxy::ScheduleRecoverAbility(const sptr<IRemoteObject>& token, int32_t reason, const Want *want)
+void AbilityManagerProxy::ScheduleRecoverAbility(const sptr<IRemoteObject>& token, int32_t reason,
+    const std::shared_ptr<Want> &want)
 {
     int error;
     MessageParcel data;

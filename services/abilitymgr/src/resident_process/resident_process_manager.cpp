@@ -119,7 +119,9 @@ void ResidentProcessManager::StartResidentProcessWithMainElementPerBundleHap(
             TAG_LOGI(AAFwkTag::ABILITYMGR, "call, mainElement: %{public}s, uri: %{public}s",
                 mainElement.c_str(), uriStr.c_str());
             Uri uri(uriStr);
-            DelayedSingleton<AbilityManagerService>::GetInstance()->AcquireDataAbility(uri, true, nullptr);
+            sptr<IAbilityScheduler> tempIAbilityScheduler = nullptr;
+            DelayedSingleton<AbilityManagerService>::GetInstance()->AcquireDataAbility(uri, true, nullptr,
+            tempIAbilityScheduler);
         }
         return;
     }

@@ -165,7 +165,7 @@ ErrCode AbilityContextImpl::StartAbility(const AAFwk::Want& want, int requestCod
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
-    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, token_, requestCode);
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, token_, requestCode, -1);
     if (err != ERR_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
     }
@@ -176,7 +176,8 @@ ErrCode AbilityContextImpl::StartAbilityAsCaller(const AAFwk::Want &want, int re
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
-    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbilityAsCaller(want, token_, nullptr, requestCode);
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbilityAsCaller(want, token_, nullptr,
+        requestCode, -1);
     if (err != ERR_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
     }
@@ -199,7 +200,8 @@ ErrCode AbilityContextImpl::StartAbility(const AAFwk::Want& want, const AAFwk::S
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
-    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, startOptions, token_, requestCode);
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, startOptions, token_,
+        requestCode, -1);
     if (err != ERR_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
     }
@@ -212,7 +214,7 @@ ErrCode AbilityContextImpl::StartAbilityAsCaller(const AAFwk::Want &want, const 
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbilityAsCaller(want,
-        startOptions, token_, nullptr, requestCode);
+        startOptions, token_, nullptr, requestCode, -1);
     if (err != ERR_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
     }
@@ -263,7 +265,8 @@ ErrCode AbilityContextImpl::StartAbilityForResult(const AAFwk::Want& want, const
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
     resultCallbacks_.insert(make_pair(requestCode, std::move(task)));
-    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, startOptions, token_, requestCode);
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, startOptions, token_, requestCode,
+        -1);
     if (err != ERR_OK && err != AAFwk::START_ABILITY_WAITING) {
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
         OnAbilityResultInner(requestCode, err, want);
