@@ -1,0 +1,105 @@
+--- simulator.cpp_	2025-06-17 09:42:28.047739786 +0300
++++ simulator.cpp	2025-06-18 10:22:19.955284856 +0300
+@@ -25,6 +25,7 @@
+ 
+ #include "ability_context.h"
+ #include "ability_stage_context.h"
++#include "bundle_constants.h"
+ #if defined(LINUX_PLATFORM)
+ #include "ani.h"
+ #include "ani_window_stage.h"
+@@ -227,9 +228,11 @@
+     void UpdateConfiguration(const AppExecFwk::Configuration &config) override;
+     void SetMockList(const std::map<std::string, std::string> &mockList) override;
+     void SetHostResolveBufferTracker(ResolveBufferTrackerCallback cb) override;
++    std::string GetCodeLanguage() override
++    {
++        return abilityInfo_->codeLanguage;
++    }
+ #if defined(LINUX_PLATFORM)
+-    int64_t StartSTSAbility(
+-        const std::string &abilitySrcPath, TerminateCallback callback, const std::string &abilityName = "") override;
+     ani_object GetAniObj() override
+     {
+         return entryObject;
+@@ -238,12 +241,8 @@
+     {
+         return windowScene_;
+     }
+-#else
+-    int64_t StartSTSAbility(
+-        const std::string &abilitySrcPath, TerminateCallback callback, const std::string &abilityName = "") override {
+-        return 0;
+-    }
+-#endif
++#endif // LINUX_PLATFORM
++
+ private:
+     bool OnInit();
+     void Run();
+@@ -294,8 +293,12 @@
+         std::map<std::string, std::string> &pkgAliasMap);
+     void GetPkgContextInfoListInner(nlohmann::json &itemObject, std::vector<std::string> &items,
+         std::map<std::string, std::string> &pkgAliasMap, std::string &pkgName);
+-
++    int64_t StartJSAbility(
++        const std::string &abilitySrcPath, TerminateCallback callback, const std::string &abilityName = "");
+ #if defined(LINUX_PLATFORM)
++    int64_t StartSTSAbility(
++        const std::string &abilitySrcPath, TerminateCallback callback, const std::string &abilityName = "");
++
+     bool LoadSTSRuntimeApis();
+     bool StartSTSRuntime();
+     bool LoadStsModule();
+@@ -497,6 +500,22 @@
+     }
+ 
+     CreateStageContext();
++
++    if (abilityInfo_->codeLanguage == AppExecFwk::Constants::CODE_LANGUAGE_1_1) {
++        return StartJSAbility(abilitySrcPath, callback, abilityName);
++#if defined(LINUX_PLATFORM)
++    } else if (abilityInfo_->codeLanguage == AppExecFwk::Constants::CODE_LANGUAGE_1_2) {
++        return StartSTSAbility(abilitySrcPath, callback, abilityName);
++#endif // LINUX_PLATFORM
++    } else {
++        TAG_LOGE(AAFwkTag::ABILITY_SIM, "Unsuported code language %{public}s", abilityInfo_->codeLanguage.c_str());
++        return 0;
++    }
++}
++
++int64_t SimulatorImpl::StartJSAbility(
++    const std::string &abilitySrcPath, TerminateCallback callback, const std::string &abilityName)
++{
+     std::ifstream stream(options_.modulePath, std::ios::ate | std::ios::binary);
+     if (!stream.is_open()) {
+         TAG_LOGE(AAFwkTag::ABILITY_SIM, "open:%{public}s failed", options_.modulePath.c_str());
+@@ -553,11 +572,6 @@
+ int64_t SimulatorImpl::StartSTSAbility(
+     const std::string &abilitySrcPath, TerminateCallback callback, const std::string &abilityName)
+ {
+-    if (!ParseAbilityInfo(abilitySrcPath, abilityName)) {
+-        return -1;
+-    }
+-    CreateStageContext();
+-
+     LoadSTSRuntimeApis();
+     StartSTSRuntime();
+ 
+@@ -1165,7 +1179,7 @@
+         TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindMethod ctor failed");
+         return false;
+     }
+-    static ani_object object = nullptr;
++    ani_object object = nullptr;
+     if (aniEnv_->Object_New(cls, method, &object, undefined_ref, refArray) != ANI_OK) {
+         TAG_LOGE(AAFwkTag::STSRUNTIME, "Object_New AbcRuntimeLinker failed");
+         return false;
+@@ -1187,7 +1201,6 @@
+         return false;
+     }
+     entryClass = static_cast<ani_class>(entryClassRef);
+-
+     ani_method entryMethod = nullptr;
+     if (aniEnv_->Class_FindMethod(entryClass, "<ctor>", ":V", &entryMethod) != ANI_OK) {
+         TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindMethod ctor failed");

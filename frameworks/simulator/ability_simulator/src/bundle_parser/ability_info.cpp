@@ -199,6 +199,7 @@ void to_json(nlohmann::json &jsonObject, const AbilityInfo &abilityInfo)
         {JSON_KEY_RECOVERABLE, abilityInfo.recoverable},
         {JSON_KEY_SUPPORT_EXT_NAMES, abilityInfo.supportExtNames},
         {JSON_KEY_SUPPORT_MIME_TYPES, abilityInfo.supportMimeTypes},
+        {Constants::CODE_LANGUAGE, abilityInfo.codeLanguage},
     };
     if (abilityInfo.maxWindowRatio == 0) {
         // maxWindowRatio in json string will be 0 instead of 0.0
@@ -849,6 +850,14 @@ void from_json(const nlohmann::json &jsonObject, AbilityInfo &abilityInfo)
         false,
         parseResult,
         ArrayType::STRING);
+    GetValueIfFindKey<std::string>(jsonObject,
+        jsonObjectEnd,
+        Constants::CODE_LANGUAGE,
+        abilityInfo.codeLanguage,
+        JsonType::STRING,
+        false,
+        parseResult,
+        ArrayType::NOT_ARRAY);
     if (parseResult != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITY_SIM, "AbilityInfo from_json error:%{public}d", parseResult);
     }

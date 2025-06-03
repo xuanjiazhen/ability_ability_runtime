@@ -110,6 +110,7 @@ struct ExtensionAbilityInfo {
     CompileMode compileMode = CompileMode::JS_BUNDLE;
     int32_t uid = -1;
     std::vector<SkillUriForAbilityAndExtension> skillUri;
+    std::string codeLanguage = Constants::CODE_LANGUAGE_1_1;
 };
 } // namespace AppExecFwk
 } // namespace OHOS

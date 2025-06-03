@@ -981,6 +981,8 @@ std::optional<HapModuleInfo> InnerBundleInfo::FindHapModuleInfo(const std::strin
     hapInfo.compressNativeLibs = it->second.compressNativeLibs;
     hapInfo.nativeLibraryFileNames = it->second.nativeLibraryFileNames;
     hapInfo.aotCompileStatus = it->second.aotCompileStatus;
+    hapInfo.codeLanguage = it->second.codeLanguage;
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "[zzz] hapInfo.codeLanguage %{public}s", hapInfo.codeLanguage.c_str());
     return hapInfo;
 }
 

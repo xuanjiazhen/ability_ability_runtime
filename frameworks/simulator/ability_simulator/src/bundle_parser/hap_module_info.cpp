@@ -197,7 +197,8 @@ void to_json(nlohmann::json &jsonObject, const HapModuleInfo &hapModuleInfo)
         {HAP_MODULE_INFO_ISOLATION_MODE, hapModuleInfo.isolationMode},
         {HAP_MODULE_INFO_AOT_COMPILE_STATUS, hapModuleInfo.aotCompileStatus},
         {HAP_MODULE_INFO_COMPRESS_NATIVE_LIBS, hapModuleInfo.compressNativeLibs},
-        {HAP_MODULE_INFO_NATIVE_LIBRARY_FILE_NAMES, hapModuleInfo.nativeLibraryFileNames}
+        {HAP_MODULE_INFO_NATIVE_LIBRARY_FILE_NAMES, hapModuleInfo.nativeLibraryFileNames},
+        {Constants::CODE_LANGUAGE, hapModuleInfo.codeLanguage}
     };
 }
 
@@ -605,6 +606,14 @@ void from_json(const nlohmann::json &jsonObject, HapModuleInfo &hapModuleInfo)
         false,
         parseResult,
         ArrayType::STRING);
+    GetValueIfFindKey<std::string>(jsonObject,
+        jsonObjectEnd,
+        Constants::CODE_LANGUAGE,
+        hapModuleInfo.codeLanguage,
+        JsonType::STRING,
+        false,
+        parseResult,
+        ArrayType::NOT_ARRAY);
     if (parseResult != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITY_SIM, "HapModuleInfo error:%{public}d", parseResult);
     }

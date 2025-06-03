@@ -233,6 +233,7 @@ void to_json(nlohmann::json &jsonObject, const ApplicationInfo &applicationInfo)
         {APPLICATION_COMPILE_SDK_VERSION, applicationInfo.compileSdkVersion},
         {APPLICATION_COMPILE_SDK_TYPE, applicationInfo.compileSdkType},
         {APPLICATION_RESOURCES_APPLY, applicationInfo.resourcesApply},
+        {Constants::CODE_LANGUAGE, applicationInfo.codeLanguage},
     };
 }
 
@@ -864,6 +865,14 @@ void from_json(const nlohmann::json &jsonObject, ApplicationInfo &applicationInf
         false,
         parseResult,
         ArrayType::NUMBER);
+    GetValueIfFindKey<std::string>(jsonObject,
+        jsonObjectEnd,
+        Constants::CODE_LANGUAGE,
+        applicationInfo.codeLanguage,
+        JsonType::STRING,
+        false,
+        parseResult,
+        ArrayType::NOT_ARRAY);
     if (parseResult != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITY_SIM, "from_json error:%{public}d", parseResult);
     }

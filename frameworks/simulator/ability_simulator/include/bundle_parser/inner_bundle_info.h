@@ -16,6 +16,8 @@
 #ifndef OHOS_ABILITY_RUNTIME_SIMULATOR_INNER_BUNDLE_INFO_H
 #define OHOS_ABILITY_RUNTIME_SIMULATOR_INNER_BUNDLE_INFO_H
 
+#include <optional>
+
 #include "nocopyable.h"
 #include "ability_info.h"
 #include "bundle_constants.h"
@@ -94,6 +96,7 @@ struct InnerModuleInfo {
     bool compressNativeLibs = true;
     std::vector<std::string> nativeLibraryFileNames;
     AOTCompileStatus aotCompileStatus = AOTCompileStatus::NOT_COMPILED;
+    std::string codeLanguage = Constants::CODE_LANGUAGE_1_1;
 };
 
 class InnerBundleInfo {
