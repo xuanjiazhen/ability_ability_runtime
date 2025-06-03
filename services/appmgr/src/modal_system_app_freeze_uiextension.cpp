@@ -73,12 +73,8 @@ void ModalSystemAppFreezeUIExtension::ProcessAppFreeze(bool focusFlag, const Fau
             .count();
     bool timeout = now - lastFreezeTime > TIMEOUT_INTERVAL_MS;
     TAG_LOGI(AAFwkTag::ABILITYMGR,
-        "%{public}s is %{public}s.pid:%{public}s lastFreezePid:%{public}s,timeout %{public}lu",
-        bundleName.c_str(),
-        focusFlag ? "focus" : "not focus",
-        pid.c_str(),
-        lastFreezePid.c_str(),
-        now - lastFreezeTime);
+        "%{public}s is %{public}s.pid:%{public}s lastFreezePid:%{public}s,timeout %{public}lu", bundleName.c_str(),
+        focusFlag ? "focus" : "not focus", pid.c_str(), lastFreezePid.c_str(), now - lastFreezeTime);
     bool isPullUpBox =
         isAppFreezeDialog && (pid != lastFreezePid || (pid == lastFreezePid && timeout && !isDialogExist));
     bool updateTypeName = name == AppFreezeType::THREAD_BLOCK_6S || name == AppFreezeType::BUSSINESS_THREAD_BLOCK_6S;
@@ -112,7 +108,6 @@ bool ModalSystemAppFreezeUIExtension::CreateModalUIExtension(std::string pid, st
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null abilityManagerClient");
         return false;
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Try to StartExtensionAbility");
     auto result = IN_PROCESS_CALL(abilityManagerClient->StartExtensionAbility(want, token));
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "StartExtensionAbility failed, result = %{public}d", result);
