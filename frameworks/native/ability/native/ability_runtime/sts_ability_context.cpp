@@ -257,7 +257,7 @@ void StsAbilityContext::AddFreeInstallObserver(
         ani_vm *etsVm = nullptr;
         ani_status status = ANI_ERROR;
         if ((status = env->GetVM(&etsVm)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
+            TAG_LOGE(AAFwkTag::CONTEXT, "status : %{public}d", status);
         }
         freeInstallObserver_ = new StsFreeInstallObserver(etsVm);
         ret = context->AddFreeInstallObserver(freeInstallObserver_);
@@ -365,7 +365,7 @@ void StsAbilityContext::StartAbilityForResultInner(ani_env *env, ani_object aniO
     ani_vm *etsVm = nullptr;
     ani_status status = ANI_ERROR;
     if ((status = env->GetVM(&etsVm)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::CONTEXT, "status : %{public}d", status);
         return;
     }
     RuntimeTask task = [etsVm, callbackRef, element = want.GetElement(), flags = want.GetFlags(), startTime]
@@ -374,7 +374,7 @@ void StsAbilityContext::StartAbilityForResultInner(ani_env *env, ani_object aniO
         ani_status status = ANI_ERROR;
         ani_env *env = nullptr;
         if ((status = etsVm->GetEnv(ANI_VERSION_1, &env)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
+            TAG_LOGE(AAFwkTag::CONTEXT, "status : %{public}d", status);
             return;
         }
         std::string bundleName = element.GetBundleName();
