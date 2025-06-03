@@ -844,31 +844,9 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentieth(uint32_t code, MessageParc
         return StartAbilityWithWaitInner(data, reply);
     }
     if (interfaceCode == AbilityManagerInterfaceCode::RESTART_SELF_ATOMIC_SERVICE) {
-        return  (data, reply);
+        return RestartSelfAtomicServiceInner(data, reply);
     }
     return ERR_CODE_NOT_EXIST;
-}
-
-int AbilityManagerStub::OnRemoteRequestInner(uint32_t code, MessageParcel &data,
-    MessageParcel &reply, MessageOption &option)
-{
-    int retCode = ERR_OK;
-    retCode = HandleOnRemoteRequestInnerFirst(code, data, reply, option);
-    if (retCode != ERR_CODE_NOT_EXIST) {
-        return retCode;
-    }
-    retCode = HandleOnRemoteRequestInnerSecond(code, data, reply, option);
-    if (retCode != ERR_CODE_NOT_EXIST) {
-        return retCode;
-    }
-
-    retCode = HandleOnRemoteRequestInnerThird(code, data, reply, option);
-    if (retCode != ERR_CODE_NOT_EXIST) {
-        return retCode;
-    }
-
-    TAG_LOGW(AAFwkTag::ABILITYMGR, "default case");
-    return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
 int AbilityManagerStub::OnRemoteRequestInnerTwentyFirst(uint32_t code, MessageParcel &data,
