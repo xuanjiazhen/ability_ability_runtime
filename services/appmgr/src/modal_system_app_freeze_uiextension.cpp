@@ -72,9 +72,8 @@ void ModalSystemAppFreezeUIExtension::ProcessAppFreeze(bool focusFlag, const Fau
         std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch())
             .count();
     bool timeout = now - lastFreezeTime > TIMEOUT_INTERVAL_MS;
-    TAG_LOGI(AAFwkTag::ABILITYMGR,
-        "%{public}s is %{public}s.pid:%{public}s lastFreezePid:%{public}s,timeout %{public}lu", bundleName.c_str(),
-        focusFlag ? "focus" : "not focus", pid.c_str(), lastFreezePid.c_str(), now - lastFreezeTime);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s is %{public}s.pid:%{public}s lastFreezePid:%{public}s",
+        bundleName.c_str(), focusFlag ? "focus" : "not focus", pid.c_str(), lastFreezePid.c_str());
     bool isPullUpBox =
         isAppFreezeDialog && (pid != lastFreezePid || (pid == lastFreezePid && timeout && !isDialogExist));
     bool updateTypeName = name == AppFreezeType::THREAD_BLOCK_6S || name == AppFreezeType::BUSSINESS_THREAD_BLOCK_6S;
@@ -99,7 +98,7 @@ void ModalSystemAppFreezeUIExtension::ProcessAppFreeze(bool focusFlag, const Fau
 
 bool ModalSystemAppFreezeUIExtension::CreateModalUIExtension(std::string pid, std::string bundleName)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "Create Modal UIExtension Called");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Called");
     sptr<IRemoteObject> token;
     AAFwk::Want want = CreateSystemDialogWant(pid, bundleName, token);
     std::unique_lock<std::mutex> lockAssertResult(appFreezeResultMutex_);
