@@ -37,6 +37,7 @@ using namespace std::chrono;
 namespace {
 const std::string STRING_DATA_ABILITY = "com.example.data_ability";
 constexpr size_t SIZE_ONE = 1;
+constexpr pid_t pid_ = 2000;
 }  // namespace
 
 namespace OHOS {
@@ -1624,6 +1625,35 @@ HWTEST_F(DataAbilityManagerTest, AaFwk_DataAbilityManager_ReportDataAbilityRelea
     std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
     dataAbilityRecord->ability_ = abilityRecord;
     dataAbilityManager->ReportDataAbilityReleased(dataAbilityRecord->GetToken(), isNotHap, dataAbilityRecord);
+}
+
+/*
+ * Feature: AbilityManager
+ * Function: DataAbility
+ * SubFunction: ReportEventToRSS
+ * FunctionPoints: The parameter of function ReportEventToRSS.
+ * EnvConditions: Can run ohos test framework
+ * CaseDescription: Verify function ReportEventToRSS
+ */
+HWTEST_F(DataAbilityManagerTest, AaFwk_DataAbilityManager_ReportEventToRSS_001, TestSize.Level1)
+{
+    std::unique_ptr<DataAbilityManager> dataAbilityManager = std::make_unique<DataAbilityManager>();
+    ASSERT_NE(dataAbilityManager, nullptr);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::DATA;
+    abilityRequest.abilityInfo.bundleName = "bundleName";
+    abilityRequest.abilityInfo.name = "name";
+    std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    abilityRecord->SetPid(0);
+    dataAbilityManager->ReportEventToRSS(abilityRequest.abilityInfo, nullptr);
+    EXPECT_EQ(abilityRecord->GetPid(), 0);
+
+    dataAbilityManager->ReportEventToRSS(abilityRequest.abilityInfo, abilityRecord);
+    EXPECT_EQ(abilityRecord->GetPid(), 0);
+
+    abilityRecord->SetPid(pid_);
+    dataAbilityManager->ReportEventToRSS(abilityRequest.abilityInfo, abilityRecord);
+    EXPECT_EQ(abilityRecord->GetPid(), pid_);
 }
 }  // namespace AAFwk
 }  // namespace OHOS
