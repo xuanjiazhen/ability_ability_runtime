@@ -41,6 +41,7 @@ ohos_shared_library("ability_app_manager_ani_kit") {
   sources = [
     "./src/sts_app_manager.cpp",
     "./src/sts_app_manager_utils.cpp",
+    "./src/sts_app_state_observer.cpp",
   ]
 
   cflags = []
