@@ -16,7 +16,10 @@ import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 config("appmgr_idl_config") {
-  include_dirs = [ "${target_gen_dir}" ]
+  include_dirs = [
+    "${ability_runtime_innerkits_path}/app_manager/include/appmgr",
+    "${target_gen_dir}",
+  ]
 }
 
 config("appmgr_sdk_config") {
@@ -47,17 +50,12 @@ config("appmgr_core_config") {
 
 idl_gen_interface("app_mgr_interface") {
   sources = [
-    "idl/IAbilityDebugResponse.idl",
-    "idl/IAmsMgr.idl",
-    "idl/IAppDebugListener.idl",
-    "idl/IStartSpecifiedAbilityResponse.idl",
+    "IAbilityDebugResponse.idl",
+    "IAppDebugListener.idl",
+    "IStartSpecifiedAbilityResponse.idl",
+    "IAmsMgr.idl",
   ]
-  sources_callback = [
-    "IAppStateCallback.idl",
-  ]
-  sources_common = [
-    "IAppMgrConstants.idl",
-  ]
+  sources_callback = [ "IAppStateCallback.idl",]
   log_domainid = "0xD001311"
   log_tag = "AppMgr"
   subsystem_name = "ability"
@@ -70,23 +68,15 @@ ohos_source_set("app_mgr_idl_proxy") {
     cfi_cross_dso = true
     debug = false
   }
-  configs = [
-    ":appmgr_core_config",
-    ":appmgr_sdk_config",
-  ]
 
   public_configs = [
     ":appmgr_idl_config",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
     "${ability_runtime_path}/utils/server/startup:startup_util_config",
   ]
-
   output_values = get_target_outputs(":app_mgr_interface")
   sources = filter_include(output_values, [ "*_proxy.cpp" ])
-
   deps = [
     ":app_mgr_interface",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_interface",
     "${ability_runtime_path}/utils/server/startup:startup_util",
   ]
   external_deps = [
@@ -108,44 +98,21 @@ ohos_source_set("app_mgr_idl_stub") {
     cfi_cross_dso = true
     debug = false
   }
-  configs = [
-    ":appmgr_core_config",
-    ":appmgr_sdk_config",
-  ]
 
   public_configs = [
     ":appmgr_idl_config",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
     "${ability_runtime_path}/utils/server/startup:startup_util_config",
   ]
-
   output_values = get_target_outputs(":app_mgr_interface")
   sources = filter_include(output_values, [ "*_stub.cpp" ])
-
-  deps = [
-    ":app_mgr_interface",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_interface",
-    "${ability_runtime_path}/utils/server/startup:startup_util",
-  ]
+  deps = [ ":app_mgr_interface" ]
   external_deps = [
     "c_utils:utils",
-    "faultloggerd:libbacktrace_local",
-    "faultloggerd:libdfx_dumpcatcher",
-    "faultloggerd:libfaultloggerd",
-    "ffrt:libffrt",
     "hilog:libhilog",
-    "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
-    "json:nlohmann_json_static",
     "samgr:samgr_proxy",
-    "ability_base:configuration",
-    "ability_base:session_info",
-    "ability_base:want",
-    "bundle_framework:appexecfwk_base",
-    "image_framework:image_native",
-    "relational_store:native_rdb",
   ]
 
   subsystem_name = "ability"
@@ -255,6 +222,7 @@ ohos_shared_library("app_manager") {
   ]
 
   external_deps = [
+    "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "faultloggerd:libbacktrace_local",
     "faultloggerd:libdfx_dumpcatcher",

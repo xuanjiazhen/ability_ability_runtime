@@ -35,7 +35,7 @@ public:
      * @param token Ability token.
      * @param state Application state.
      */
-    virtual ErrCode OnAbilityRequestDone(const sptr<IRemoteObject> &, const AbilityState) override;
+    virtual ErrCode OnAbilityRequestDone(const sptr<IRemoteObject> &, const AbilityState&) override;
 
     /**
      * Application state changed callback.

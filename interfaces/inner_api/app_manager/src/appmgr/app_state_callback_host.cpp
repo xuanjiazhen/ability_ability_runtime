@@ -27,7 +27,7 @@ AppStateCallbackHost::AppStateCallbackHost() {}
 
 AppStateCallbackHost::~AppStateCallbackHost() {}
 
-ErrCode AppStateCallbackHost::OnAbilityRequestDone(const sptr<IRemoteObject> &, const AbilityState)
+ErrCode AppStateCallbackHost::OnAbilityRequestDone(const sptr<IRemoteObject> &, const AbilityState&)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     return ERR_OK;
