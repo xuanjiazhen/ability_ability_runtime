@@ -1776,7 +1776,8 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         for (auto& runtime : runtimes) {
             application_->AddRuntime(std::move(runtime));
         }
-        if (appInfo.codeLanguage == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2) {
+        if (appInfo.codeLanguage == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2 ||
+            appInfo.codeLanguage == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_HYBRID) {
             application_->InitAniApplicationContext();
             application_->InitAniContext();
         }
@@ -1799,7 +1800,6 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
 #ifdef CJ_FRONTEND
         if (!isCJApp) {
 #endif
-            auto &runtime = application_->GetRuntime(appInfo.codeLanguage);
             if (application_ != nullptr) {
                 TAG_LOGE(AAFwkTag::APPKIT, "main_thread bundleName is %{public}s",
                     appInfo.bundleName.c_str());
@@ -1807,6 +1807,11 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
                 LoadAllExtensions();
             }
             if (appInfo.codeLanguage == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_0) {
+                auto &runtime = application_->GetRuntime(AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_0);
+                if (runtime == nullptr) {
+                    TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
+                    return;
+                }
                 auto &jsEngine = (static_cast<AbilityRuntime::JsRuntime &>(*runtime)).GetNativeEngine();
                 IdleTimeCallback callback = [wpApplication](int32_t idleTime) {
                     auto app = wpApplication.lock();
@@ -1831,7 +1836,8 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
                 auto helper = std::make_shared<DumpRuntimeHelper>(application_);
                 helper->SetAppFreezeFilterCallback();
             }
-            if (appInfo.codeLanguage == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2) {
+            if (appInfo.codeLanguage == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2 ||
+                appInfo.codeLanguage == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_HYBRID) {
                 auto& runtime = application_->GetRuntime(AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2);
                 if (runtime == nullptr) {
                     TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
