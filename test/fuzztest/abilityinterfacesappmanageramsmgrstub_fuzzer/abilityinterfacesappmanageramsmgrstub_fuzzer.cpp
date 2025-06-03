@@ -66,7 +66,7 @@ sptr<Token> GetFuzzAbilityToken()
 
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
-    uint32_t code = static_cast<uint32_t>(IAmsMgr::Message::UPDATE_EXTENSION_STATE);
+    uint32_t code = static_cast<uint32_t>(IAmsMgrIpcCode::COMMAND_UPDATE_EXTENSION_STATE);
     MessageParcel parcel;
     parcel.WriteInterfaceToken(AMSMGR_INTERFACE_TOKEN);
     parcel.WriteBuffer(data, size);

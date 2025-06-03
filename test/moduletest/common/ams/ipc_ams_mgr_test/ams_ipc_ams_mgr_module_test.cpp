@@ -281,7 +281,7 @@ HWTEST_F(AmsIpcAmsmgrModuleTest, ExcuteAmsmgrIPCInterface_006, TestSize.Level3)
     for (int i = 0; i < COUNT; i++) {
         EXPECT_CALL(*mockAppMgrServiceInner, KillApplication(_, _, _))
             .WillOnce(InvokeWithoutArgs(mockAppMgrServiceInner.get(), &MockAppMgrServiceInner::Post4Int));
-        amsMgrScheduler_->KillApplication(bundleName);
+        amsMgrScheduler_->KillApplication(bundleName, false, 0);
         mockAppMgrServiceInner->Wait();
     }
 

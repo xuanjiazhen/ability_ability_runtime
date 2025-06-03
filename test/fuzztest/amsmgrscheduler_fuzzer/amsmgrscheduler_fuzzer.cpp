@@ -101,13 +101,13 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     amsMgrScheduler->KillProcessesByUserId(userId, false, nullptr);
     std::string bundleName(data, size);
     int accountId = static_cast<int>(GetU32Data(data));
-    amsMgrScheduler->KillProcessWithAccount(bundleName, accountId);
+    amsMgrScheduler->KillProcessWithAccount(bundleName, accountId, false, 0);
     amsMgrScheduler->AbilityAttachTimeOut(token);
-    amsMgrScheduler->PrepareTerminate(token);
-    amsMgrScheduler->KillApplication(bundleName);
+    amsMgrScheduler->PrepareTerminate(token, false);
+    amsMgrScheduler->KillApplication(bundleName, false, 0);
     int uid = static_cast<int>(GetU32Data(data));
-    amsMgrScheduler->KillApplicationByUid(bundleName, uid);
-    amsMgrScheduler->KillApplicationSelf();
+    amsMgrScheduler->KillApplicationByUid(bundleName, uid, "KillApplicationByUid");
+    amsMgrScheduler->KillApplicationSelf(false, "KillApplicationSelf");
     AppExecFwk::RunningProcessInfo info;
     amsMgrScheduler->GetRunningProcessInfoByToken(token, info);
     Parcel wantParcel;
@@ -119,7 +119,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
         }
     }
     AbilityInfo abilityInfo;
-    amsMgrScheduler->StartSpecifiedAbility(*want, abilityInfo);
+    amsMgrScheduler->StartSpecifiedAbility(*want, abilityInfo, 0);
     int pid = static_cast<int>(GetU32Data(data));
     AppExecFwk::ApplicationInfo application;
     bool debug;

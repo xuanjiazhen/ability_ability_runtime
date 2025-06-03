@@ -21,22 +21,21 @@
 #include "app_state_callback_host.h"
 #include "app_process_data.h"
 #include "bundle_info.h"
-
+ 
 namespace OHOS {
 namespace AppExecFwk {
 class MockAppStateCallback : public AppStateCallbackHost {
 public:
-    MockAppStateCallback()
-    {}
-    virtual ~MockAppStateCallback()
-    {}
+    MockAppStateCallback() {}
+    virtual ~MockAppStateCallback() {}
 
-    MOCK_METHOD1(OnAppStateChanged, void(const AppProcessData&));
-    MOCK_METHOD2(OnAbilityRequestDone, void(const sptr<IRemoteObject>&, const AbilityState));
-    MOCK_METHOD1(NotifyStartResidentProcess, void(std::vector<AppExecFwk::BundleInfo>&));
-    MOCK_METHOD1(NotifyStartKeepAliveProcess, void(std::vector<AppExecFwk::BundleInfo>&));
-    MOCK_METHOD2(NotifyAppPreCache, void(int32_t, int32_t));
+    MOCK_METHOD1(OnAppStateChanged, ErrCode(const AppProcessData&));
+    MOCK_METHOD2(OnAbilityRequestDone, ErrCode(const sptr<IRemoteObject>&, const AbilityState));
+    MOCK_METHOD1(NotifyStartResidentProcess, ErrCode(const std::vector<AppExecFwk::BundleInfo>&));
+    MOCK_METHOD1(NotifyStartKeepAliveProcess, ErrCode(const std::vector<AppExecFwk::BundleInfo>&));
+    MOCK_METHOD2(NotifyAppPreCache, ErrCode(int32_t, int32_t));
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
 #endif  // MOCK_OHOS_ABILITY_RUNTIME_MOCK_IAPP_STATE_CALLBACK_H
+ 
