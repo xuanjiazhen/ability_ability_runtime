@@ -1,0 +1,36 @@
+--- test/unittest/BUILD.gn
++++ test/unittest/BUILD.gn
+@@ -210,7 +211,10 @@ ohos_source_set("abilityms_test_source") {
+   ]
+ 
+   cflags_cc = []
+-  configs = [ ":test_exception_config" ]
++  configs = [
++    ":test_exception_config",
++    "${ability_runtime_innerkits_path}/app_manager:appmgr_idl_config",
++  ]
+ 
+   public_configs = [
+     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
+@@ -225,6 +229,8 @@ ohos_source_set("abilityms_test_source") {
+     "${ability_runtime_innerkits_path}/ability_manager:process_options",
+     "${ability_runtime_innerkits_path}/ability_manager:start_window_option",
+     "${ability_runtime_innerkits_path}/app_manager:app_manager",
++    "${ability_runtime_innerkits_path}/app_manager:app_mgr_proxy",
++    "${ability_runtime_innerkits_path}/app_manager:app_mgr_stub",
+     "${ability_runtime_innerkits_path}/connectionobs_manager:connection_obs_manager",
+     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
+--- test/unittest/BUILD.gn
++++ test/unittest/BUILD.gn
+@@ -228,8 +228,8 @@ ohos_source_set("abilityms_test_source") {
+     "${ability_runtime_innerkits_path}/ability_manager:process_options",
+     "${ability_runtime_innerkits_path}/ability_manager:start_window_option",
+     "${ability_runtime_innerkits_path}/app_manager:app_manager",
+-    "${ability_runtime_innerkits_path}/app_manager:app_mgr_proxy",
+-    "${ability_runtime_innerkits_path}/app_manager:app_mgr_stub",
++    "${ability_runtime_innerkits_path}/app_manager:app_mgr_idl_proxy",
++    "${ability_runtime_innerkits_path}/app_manager:app_mgr_idl_stub",
+     "${ability_runtime_innerkits_path}/connectionobs_manager:connection_obs_manager",
+     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+     "${ability_runtime_native_path}/appkit:appkit_manager_helper",

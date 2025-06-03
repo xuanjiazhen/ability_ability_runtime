@@ -199,65 +199,73 @@ AppAbilityState AppScheduler::GetAbilityState() const
     return appAbilityState_;
 }
 
-void AppScheduler::OnAbilityRequestDone(const sptr<IRemoteObject> &token, const AppExecFwk::AbilityState state)
+ErrCode AppScheduler::OnAbilityRequestDone(const sptr<IRemoteObject> &token, const AppExecFwk::AbilityState state)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "state:%{public}d", static_cast<int32_t>(state));
     auto callback = callback_.lock();
-    CHECK_POINTER(callback);
+    CHECK_POINTER_AND_RETURN(callback, INNER_ERR);
     appAbilityState_ = ConvertToAppAbilityState(static_cast<int32_t>(state));
     callback->OnAbilityRequestDone(token, static_cast<int32_t>(state));
+    return ERR_OK;
 }
 
-void AppScheduler::NotifyConfigurationChange(const AppExecFwk::Configuration &config, int32_t userId)
+ErrCode AppScheduler::NotifyConfigurationChange(const AppExecFwk::Configuration &config, int32_t userId)
 {
     auto callback = callback_.lock();
-    CHECK_POINTER(callback);
+    CHECK_POINTER_AND_RETURN(callback, INNER_ERR);
     callback->NotifyConfigurationChange(config, userId);
+    return ERR_OK;
 }
 
-void AppScheduler::NotifyStartResidentProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos)
+ErrCode AppScheduler::NotifyStartResidentProcess(const std::vector<AppExecFwk::BundleInfo> &bundleInfos)
 {
     auto callback = callback_.lock();
-    CHECK_POINTER(callback);
+    CHECK_POINTER_AND_RETURN(callback, INNER_ERR);
     callback->NotifyStartResidentProcess(bundleInfos);
+    return ERR_OK;
 }
 
-void AppScheduler::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos)
+ErrCode AppScheduler::NotifyStartKeepAliveProcess(const std::vector<AppExecFwk::BundleInfo> &bundleInfos)
 {
     auto callback = callback_.lock();
-    CHECK_POINTER(callback);
+    CHECK_POINTER_AND_RETURN(callback, INNER_ERR);
     callback->NotifyStartKeepAliveProcess(bundleInfos);
+    return ERR_OK;
 }
 
-void AppScheduler::OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abilityTokens)
+ErrCode AppScheduler::OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abilityTokens)
 {
     auto callback = callback_.lock();
-    CHECK_POINTER(callback);
+    CHECK_POINTER_AND_RETURN(callback, INNER_ERR);
     callback->OnAppRemoteDied(abilityTokens);
+    return ERR_OK;
 }
 
-void AppScheduler::OnStartProcessFailed(sptr<IRemoteObject> token)
+ErrCode AppScheduler::OnStartProcessFailed(const sptr<IRemoteObject> &token)
 {
     auto callback = callback_.lock();
-    CHECK_POINTER(callback);
+    CHECK_POINTER_AND_RETURN(callback, INNER_ERR);
     callback->OnStartProcessFailed(token);
+    return ERR_OK;
 }
 
-void AppScheduler::OnCacheExitInfo(uint32_t accessTokenId, const AppExecFwk::RunningProcessInfo &exitInfo,
+ErrCode AppScheduler::OnCacheExitInfo(uint32_t accessTokenId, const AppExecFwk::RunningProcessInfo &exitInfo,
     const std::string &bundleName, const std::vector<std::string> &abilityNames,
     const std::vector<std::string> &uiExtensionNames)
 {
     auto callback = callback_.lock();
-    CHECK_POINTER(callback);
+    CHECK_POINTER_AND_RETURN(callback, INNER_ERR);
     callback->OnCacheExitInfo(accessTokenId, exitInfo, bundleName, abilityNames, uiExtensionNames);
+    return ERR_OK;
 }
 
-void AppScheduler::NotifyAppPreCache(int32_t pid, int32_t userId)
+ErrCode AppScheduler::NotifyAppPreCache(int32_t pid, int32_t userId)
 {
     auto callback = callback_.lock();
-    CHECK_POINTER(callback);
+    CHECK_POINTER_AND_RETURN(callback, INNER_ERR);
     callback->NotifyAppPreCache(pid, userId);
+    return ERR_OK;
 }
 
 int AppScheduler::KillApplication(const std::string &bundleName, bool clearPageStack, int32_t appIndex)
@@ -326,11 +334,11 @@ void AppScheduler::PrepareTerminate(const sptr<IRemoteObject> &token, bool clear
     IN_PROCESS_CALL_WITHOUT_RET(appMgrClient_->PrepareTerminate(token, clearMissionFlag));
 }
 
-void AppScheduler::OnAppStateChanged(const AppExecFwk::AppProcessData &appData)
+ErrCode AppScheduler::OnAppStateChanged(const AppExecFwk::AppProcessData &appData)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto callback = callback_.lock();
-    CHECK_POINTER(callback);
+    CHECK_POINTER_AND_RETURN(callback, INNER_ERR);
     AppInfo info;
     for (const auto &list : appData.appDatas) {
         AppData data;
@@ -345,6 +353,7 @@ void AppScheduler::OnAppStateChanged(const AppExecFwk::AppProcessData &appData)
     info.instanceKey = appData.instanceKey;
     info.bundleName = appData.bundleName;
     callback->OnAppStateChanged(info);
+    return ERR_OK;
 }
 
 void AppScheduler::GetRunningProcessInfoByToken(const sptr<IRemoteObject> &token, AppExecFwk::RunningProcessInfo &info)
@@ -386,10 +395,11 @@ void AppScheduler::StartSpecifiedAbility(const AAFwk::Want &want, const AppExecF
     IN_PROCESS_CALL_WITHOUT_RET(appMgrClient_->StartSpecifiedAbility(want, abilityInfo, requestId));
 }
 
-void StartSpecifiedAbilityResponse::OnAcceptWantResponse(
+ErrCode StartSpecifiedAbilityResponse::OnAcceptWantResponse(
     const AAFwk::Want &want, const std::string &flag, int32_t requestId)
 {
     DelayedSingleton<AbilityManagerService>::GetInstance()->OnAcceptWantResponse(want, flag, requestId);
+    return ERR_OK;
 }
 
 void AppScheduler::PrepareTerminateApp(const pid_t pid, const std::string &moduleName)
@@ -398,9 +408,10 @@ void AppScheduler::PrepareTerminateApp(const pid_t pid, const std::string &modul
     IN_PROCESS_CALL_WITHOUT_RET(appMgrClient_->PrepareTerminateApp(pid, moduleName));
 }
 
-void StartSpecifiedAbilityResponse::OnTimeoutResponse(int32_t requestId)
+ErrCode StartSpecifiedAbilityResponse::OnTimeoutResponse(int32_t requestId)
 {
     DelayedSingleton<AbilityManagerService>::GetInstance()->OnStartSpecifiedAbilityTimeoutResponse(requestId);
+    return ERR_OK;
 }
 
 void AppScheduler::StartSpecifiedProcess(
@@ -410,19 +421,22 @@ void AppScheduler::StartSpecifiedProcess(
     IN_PROCESS_CALL_WITHOUT_RET(appMgrClient_->StartSpecifiedProcess(want, abilityInfo, requestId));
 }
 
-void StartSpecifiedAbilityResponse::OnNewProcessRequestResponse(const std::string &flag, int32_t requestId)
+ErrCode StartSpecifiedAbilityResponse::OnNewProcessRequestResponse(const std::string &flag, int32_t requestId)
 {
     DelayedSingleton<AbilityManagerService>::GetInstance()->OnStartSpecifiedProcessResponse(flag, requestId);
+    return ERR_OK;
 }
 
-void StartSpecifiedAbilityResponse::OnNewProcessRequestTimeoutResponse(int32_t requestId)
+ErrCode StartSpecifiedAbilityResponse::OnNewProcessRequestTimeoutResponse(int32_t requestId)
 {
     DelayedSingleton<AbilityManagerService>::GetInstance()->OnStartSpecifiedProcessTimeoutResponse(requestId);
+    return ERR_OK;
 }
 
-void StartSpecifiedAbilityResponse::OnStartSpecifiedFailed(int32_t requestId)
+ErrCode StartSpecifiedAbilityResponse::OnStartSpecifiedFailed(int32_t requestId)
 {
     DelayedSingleton<AbilityManagerService>::GetInstance()->OnStartSpecifiedFailed(requestId);
+    return ERR_OK;
 }
 
 int AppScheduler::GetProcessRunningInfos(std::vector<AppExecFwk::RunningProcessInfo> &info)

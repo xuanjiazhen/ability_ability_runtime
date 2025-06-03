@@ -19,14 +19,14 @@
 #include <memory>
 #include <unordered_set>
 
-#include "ability_debug_response_interface.h"
+#include "iability_debug_response.h"
 #include "ability_info.h"
 #include "ability_manager_client.h"
-#include "app_debug_listener_interface.h"
+#include "iapp_debug_listener.h"
 #include "application_info.h"
 #include "appmgr/app_mgr_client.h"
-#include "appmgr/app_state_callback_host.h"
-#include "appmgr/start_specified_ability_response_stub.h"
+#include "app_state_callback_stub.h"
+#include "start_specified_ability_response_stub.h"
 #include "bundle_info.h"
 #include "fault_data.h"
 #include "iremote_object.h"
@@ -98,9 +98,9 @@ public:
 
     virtual void NotifyConfigurationChange(const AppExecFwk::Configuration &config, int32_t userId) {}
 
-    virtual void NotifyStartResidentProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos) {}
+    virtual void NotifyStartResidentProcess(const std::vector<AppExecFwk::BundleInfo> &bundleInfos) {}
 
-    virtual void NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos) {}
+    virtual void NotifyStartKeepAliveProcess(const std::vector<AppExecFwk::BundleInfo> &bundleInfos) {}
 
     /**
      * @brief Notify abilityms app process pre cache
@@ -114,7 +114,7 @@ public:
      * @param abilityTokens abilities in died process.
      */
     virtual void OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abilityTokens) {}
-    
+
     virtual void OnStartProcessFailed(sptr<IRemoteObject> token) {}
 
     virtual void OnCacheExitInfo(uint32_t accessTokenId, const AppExecFwk::RunningProcessInfo &exitInfo,
@@ -127,21 +127,21 @@ public:
     StartSpecifiedAbilityResponse() = default;
     virtual ~StartSpecifiedAbilityResponse() = default;
 
-    virtual void OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag,
+    virtual ErrCode OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag,
         int32_t requestId) override;
-    virtual void OnTimeoutResponse(int32_t requestId) override;
+    virtual ErrCode OnTimeoutResponse(int32_t requestId) override;
 
-    virtual void OnNewProcessRequestResponse(const std::string &flag, int32_t requestId) override;
-    virtual void OnNewProcessRequestTimeoutResponse(int32_t requestId) override;
+    virtual ErrCode OnNewProcessRequestResponse(const std::string &flag, int32_t requestId) override;
+    virtual ErrCode OnNewProcessRequestTimeoutResponse(int32_t requestId) override;
 
-    virtual void OnStartSpecifiedFailed(int32_t requestId) override;
+    virtual ErrCode OnStartSpecifiedFailed(int32_t requestId) override;
 };
 
 /**
  * @class AppScheduler
  * AppScheduler , access app manager service.
  */
-class AppScheduler : virtual RefBase, public AppExecFwk::AppStateCallbackHost {
+class AppScheduler : virtual RefBase, public AppExecFwk::AppStateCallbackStub {
     DECLARE_DELAYED_SINGLETON(AppScheduler)
 public:
     /**
@@ -616,48 +616,49 @@ protected:
      * @param token,ability's token.
      * @param state,the state of ability lift cycle.
      */
-    virtual void OnAbilityRequestDone(const sptr<IRemoteObject> &token, const AppExecFwk::AbilityState state) override;
+    virtual ErrCode OnAbilityRequestDone(
+        const sptr<IRemoteObject> &token, const AppExecFwk::AbilityState state) override;
 
     /**
      * Application state changed callback.
      *
      * @param appProcessData Process data
      */
-    virtual void OnAppStateChanged(const AppExecFwk::AppProcessData &appData) override;
+    virtual ErrCode OnAppStateChanged(const AppExecFwk::AppProcessData &appData) override;
 
     /**
      * @brief Notify application update system environment changes.
      * @param config System environment change parameters.
      * @param userId userId Designation User ID.
      */
-    virtual void NotifyConfigurationChange(const AppExecFwk::Configuration &config, int32_t userId) override;
+    virtual ErrCode NotifyConfigurationChange(const AppExecFwk::Configuration &config, int32_t userId) override;
 
     /**
      * @brief Notify abilityms start resident process.
      * @param bundleInfos resident process bundle infos.
      */
-    virtual void NotifyStartResidentProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos) override;
+    virtual ErrCode NotifyStartResidentProcess(const std::vector<AppExecFwk::BundleInfo> &bundleInfos) override;
 
     /**
      * @brief Notify abilityms start keep-alive process.
      * @param bundleInfos resident process bundle infos.
      */
-    virtual void NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos) override;
+    virtual ErrCode NotifyStartKeepAliveProcess(const std::vector<AppExecFwk::BundleInfo> &bundleInfos) override;
 
     /**
      * @brief Notify abilityms app process OnRemoteDied
      * @param abilityTokens abilities in died process.
      */
-    virtual void OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abilityTokens) override;
+    virtual ErrCode OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abilityTokens) override;
 
-    virtual void OnStartProcessFailed(sptr<IRemoteObject> token) override;
+    virtual ErrCode OnStartProcessFailed(const sptr<IRemoteObject> &token) override;
 
     /**
      * @brief Notify abilityms app process pre cache
      * @param pid process pid.
      * @param userId userId Designation User ID.
      */
-    virtual void NotifyAppPreCache(int32_t pid, int32_t userId) override;
+    virtual ErrCode NotifyAppPreCache(int32_t pid, int32_t userId) override;
 
     /**
      * @brief Notify abilityms exit info
@@ -667,7 +668,7 @@ protected:
      * @param abilityNames abilityNames in app.
      * @param uiExtensionNames uiExtensionNames in app.
      */
-    virtual void OnCacheExitInfo(uint32_t accessTokenId, const AppExecFwk::RunningProcessInfo &exitInfo,
+    virtual ErrCode OnCacheExitInfo(uint32_t accessTokenId, const AppExecFwk::RunningProcessInfo &exitInfo,
         const std::string &bundleName, const std::vector<std::string> &abilityNames,
         const std::vector<std::string> &uiExtensionNames) override;
 

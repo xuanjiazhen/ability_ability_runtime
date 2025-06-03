@@ -26,14 +26,12 @@ namespace OHOS {
 namespace AAFwk {
 class AppStateCallbackMock : public AppStateCallback {
 public:
-    AppStateCallbackMock()
-    {}
-    virtual ~AppStateCallbackMock()
-    {}
+    AppStateCallbackMock() {}
+    virtual ~AppStateCallbackMock() {}
     MOCK_METHOD2(OnAbilityRequestDone, void(const sptr<IRemoteObject>&, const int32_t));
     MOCK_METHOD1(OnAppStateChanged, void(const AppInfo& info));
-    MOCK_METHOD1(NotifyStartResidentProcess, void(std::vector<AppExecFwk::BundleInfo>&));
-    MOCK_METHOD1(NotifyStartKeepAliveProcess, void(std::vector<AppExecFwk::BundleInfo>&));
+    MOCK_METHOD1(NotifyStartResidentProcess, void(const std::vector<AppExecFwk::BundleInfo>&));
+    MOCK_METHOD1(NotifyStartKeepAliveProcess, void(const std::vector<AppExecFwk::BundleInfo>&));
     MOCK_METHOD2(NotifyAppPreCache, void(int32_t, int32_t));
 };
 }  // namespace AAFwk

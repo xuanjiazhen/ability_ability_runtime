@@ -186,7 +186,7 @@ HWTEST_F(AmsMgrSchedulerTest, AmsMgrScheduler_003, TestSize.Level1)
 
     EXPECT_CALL(*mockAppMgrServiceInner, UpdateAbilityState(_, _))
         .WillOnce(InvokeWithoutArgs(mockAppMgrServiceInner.get(), &MockAppMgrServiceInner::Post));
-    amsMgrScheduler->UpdateAbilityState(token, abilityState);
+    amsMgrScheduler->UpdateAbilityState(token, static_cast<int32_t>(abilityState));
     mockAppMgrServiceInner->Wait();
 
     TAG_LOGD(AAFwkTag::TEST, "AmsMgrScheduler_003 end.");
@@ -468,10 +468,10 @@ HWTEST_F(AmsMgrSchedulerTest, UpdateAbilityState_001, TestSize.Level2)
     ASSERT_NE(amsMgrScheduler, nullptr);
     sptr<IRemoteObject> token = nullptr;
     AbilityState state = AbilityState::ABILITY_STATE_READY;
-    amsMgrScheduler->UpdateAbilityState(token, state);
+    amsMgrScheduler->UpdateAbilityState(token, static_cast<int32_t>(state));
     amsMgrScheduler->amsMgrServiceInner_ = GetMockAppMgrServiceInner();
     amsMgrScheduler->amsHandler_ = GetAmsTaskHandler();
-    amsMgrScheduler->UpdateAbilityState(token, state);
+    amsMgrScheduler->UpdateAbilityState(token, static_cast<int32_t>(state));
 }
 
 /*
@@ -603,11 +603,11 @@ HWTEST_F(AmsMgrSchedulerTest, KillProcessWithAccount_001, TestSize.Level2)
     ASSERT_NE(amsMgrScheduler, nullptr);
     std::string bundleName = "bundleName";
     int accountId = 0;
-    int32_t res1 = amsMgrScheduler->KillProcessWithAccount(bundleName, accountId);
+    int32_t res1 = amsMgrScheduler->KillProcessWithAccount(bundleName, accountId, false, 0);
     EXPECT_EQ(res1, ERR_INVALID_OPERATION);
     amsMgrScheduler->amsMgrServiceInner_ = GetMockAppMgrServiceInner();
     amsMgrScheduler->amsHandler_ = GetAmsTaskHandler();
-    int32_t res2 = amsMgrScheduler->KillProcessWithAccount(bundleName, accountId);
+    int32_t res2 = amsMgrScheduler->KillProcessWithAccount(bundleName, accountId, false, 0);
     EXPECT_NE(res2, ERR_INVALID_OPERATION);
 }
 
@@ -643,10 +643,10 @@ HWTEST_F(AmsMgrSchedulerTest, PrepareTerminate_001, TestSize.Level2)
     auto amsMgrScheduler = std::make_unique<AmsMgrScheduler>(nullptr, nullptr);
     ASSERT_NE(amsMgrScheduler, nullptr);
     sptr<IRemoteObject> token = nullptr;
-    amsMgrScheduler->PrepareTerminate(token);
+    amsMgrScheduler->PrepareTerminate(token, false);
     amsMgrScheduler->amsMgrServiceInner_ = GetMockAppMgrServiceInner();
     amsMgrScheduler->amsHandler_ = GetAmsTaskHandler();
-    amsMgrScheduler->PrepareTerminate(token);
+    amsMgrScheduler->PrepareTerminate(token, false);
 }
 
 /*
@@ -682,10 +682,10 @@ HWTEST_F(AmsMgrSchedulerTest, KillApplicationByUid_001, TestSize.Level2)
     ASSERT_NE(amsMgrScheduler, nullptr);
     std::string bundleName = "bundleName";
     int uid = 0;
-    amsMgrScheduler->KillApplicationByUid(bundleName, uid);
+    amsMgrScheduler->KillApplicationByUid(bundleName, uid, "KillApplicationByUid");
     amsMgrScheduler->amsMgrServiceInner_ = GetMockAppMgrServiceInner();
     amsMgrScheduler->amsHandler_ = GetAmsTaskHandler();
-    amsMgrScheduler->KillApplicationByUid(bundleName, uid);
+    amsMgrScheduler->KillApplicationByUid(bundleName, uid, "KillApplicationByUid");
 }
 
 /*
@@ -700,10 +700,10 @@ HWTEST_F(AmsMgrSchedulerTest, KillApplicationSelf_001, TestSize.Level2)
 {
     auto amsMgrScheduler = std::make_unique<AmsMgrScheduler>(nullptr, nullptr);
     ASSERT_NE(amsMgrScheduler, nullptr);
-    amsMgrScheduler->KillApplicationSelf();
+    amsMgrScheduler->KillApplicationSelf(false, "KillApplicationSelf");
     amsMgrScheduler->amsMgrServiceInner_ = GetMockAppMgrServiceInner();
     amsMgrScheduler->amsHandler_ = GetAmsTaskHandler();
-    amsMgrScheduler->KillApplicationSelf();
+    amsMgrScheduler->KillApplicationSelf(false, "KillApplicationSelf");
 }
 
 /*
@@ -738,11 +738,12 @@ HWTEST_F(AmsMgrSchedulerTest, IsMemorySizeSufficent_001, TestSize.Level2)
 {
     auto amsMgrScheduler = std::make_unique<AmsMgrScheduler>(nullptr, nullptr);
     ASSERT_NE(amsMgrScheduler, nullptr);
-    bool res = amsMgrScheduler->IsMemorySizeSufficent();
+    bool res = false;
+    amsMgrScheduler->IsMemorySizeSufficent(res);
     EXPECT_EQ(res, true);
     amsMgrScheduler->amsMgrServiceInner_ = GetMockAppMgrServiceInner();
     amsMgrScheduler->amsHandler_ = GetAmsTaskHandler();
-    res = amsMgrScheduler->IsMemorySizeSufficent();
+    amsMgrScheduler->IsMemorySizeSufficent(res);
     EXPECT_EQ(res, true);
 }
 
@@ -760,10 +761,10 @@ HWTEST_F(AmsMgrSchedulerTest, StartSpecifiedAbility_001, TestSize.Level2)
     ASSERT_NE(amsMgrScheduler, nullptr);
     Want want;
     AbilityInfo abilityInfo;
-    amsMgrScheduler->StartSpecifiedAbility(want, abilityInfo);
+    amsMgrScheduler->StartSpecifiedAbility(want, abilityInfo, 0);
     amsMgrScheduler->amsMgrServiceInner_ = GetMockAppMgrServiceInner();
     amsMgrScheduler->amsHandler_ = GetAmsTaskHandler();
-    amsMgrScheduler->StartSpecifiedAbility(want, abilityInfo);
+    amsMgrScheduler->StartSpecifiedAbility(want, abilityInfo, 0);
 }
 
 /*
@@ -968,7 +969,7 @@ HWTEST_F(AmsMgrSchedulerTest, KillProcessesByPids_001, TestSize.Level2)
     ASSERT_NE(amsMgrScheduler, nullptr);
     int32_t userId = 0;
     std::vector<int32_t> pids = {1};
-    amsMgrScheduler->KillProcessesByPids(pids);
+    amsMgrScheduler->KillProcessesByPids(pids, "KillProcessesByPids", false);
 }
 
 /*
@@ -987,7 +988,7 @@ HWTEST_F(AmsMgrSchedulerTest, KillProcessesByPids_002, TestSize.Level2)
     ASSERT_NE(amsMgrScheduler, nullptr);
     int32_t userId = 0;
     std::vector<int32_t> pids = {1};
-    amsMgrScheduler->KillProcessesByPids(pids);
+    amsMgrScheduler->KillProcessesByPids(pids, "KillProcessesByPids", false);
 }
 
 /*
@@ -1297,7 +1298,8 @@ HWTEST_F(AmsMgrSchedulerTest, IsWaitingDebugApp_001, TestSize.Level2)
     auto amsMgrScheduler = std::make_unique<AmsMgrScheduler>(nullptr, nullptr);
     ASSERT_NE(amsMgrScheduler, nullptr);
     const std::string bundleName;
-    auto iret = amsMgrScheduler->IsWaitingDebugApp(bundleName);
+    bool iret = false;
+    iret = amsMgrScheduler->IsWaitingDebugApp(bundleName, iret);
     ASSERT_EQ(iret, false);
 }
 
@@ -1316,7 +1318,8 @@ HWTEST_F(AmsMgrSchedulerTest, IsWaitingDebugApp_002, TestSize.Level2)
     amsMgrScheduler->amsHandler_ = GetAmsTaskHandler();
     ASSERT_NE(amsMgrScheduler, nullptr);
     const std::string bundleName;
-    auto iret = amsMgrScheduler->IsWaitingDebugApp(bundleName);
+    bool iret = false;
+    amsMgrScheduler->IsWaitingDebugApp(bundleName, iret);
     ASSERT_EQ(iret, false);
 }
 
@@ -1365,7 +1368,8 @@ HWTEST_F(AmsMgrSchedulerTest, IsAttachDebug_001, TestSize.Level2)
     auto amsMgrScheduler = std::make_unique<AmsMgrScheduler>(nullptr, nullptr);
     ASSERT_NE(amsMgrScheduler, nullptr);
     const std::string bundleName;
-    auto iret = amsMgrScheduler->IsAttachDebug(bundleName);
+    bool iret = false;
+    amsMgrScheduler->IsAttachDebug(bundleName, iret);
     ASSERT_EQ(iret, false);
 }
 
@@ -1384,7 +1388,8 @@ HWTEST_F(AmsMgrSchedulerTest, IsAttachDebug_002, TestSize.Level2)
     amsMgrScheduler->amsHandler_ = GetAmsTaskHandler();
     ASSERT_NE(amsMgrScheduler, nullptr);
     const std::string bundleName;
-    auto iret = amsMgrScheduler->IsAttachDebug(bundleName);
+    bool iret = false;
+    amsMgrScheduler->IsAttachDebug(bundleName, iret);
     ASSERT_EQ(iret, false);
 }
 
