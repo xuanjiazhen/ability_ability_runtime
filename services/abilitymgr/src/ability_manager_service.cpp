@@ -14324,6 +14324,7 @@ int AbilityManagerService::SuspendExtensionAbility(sptr<IAbilityConnection> conn
     if (connectManager->SuspendExtensionAbilityLocked(connect) == ERR_OK) {
         return ERR_OK;
     }
+    
     connectManager = GetConnectManagerByUserId(U1_USER_ID);
     CHECK_POINTER_AND_RETURN(connectManager, ERR_NO_INIT);
     if (connectManager->SuspendExtensionAbilityLocked(connect) == ERR_OK) {
@@ -14339,10 +14340,9 @@ int AbilityManagerService::SuspendExtensionAbility(sptr<IAbilityConnection> conn
             }
         }
     }
-
     connectManager = GetConnectManagerByUserId(USER_ID_DEFAULT);
     CHECK_POINTER_AND_RETURN(connectManager, ERR_NO_INIT);
-    auto err = connectManager->DisconnectAbilityLocked(connect);
+    auto err = connectManager->SuspendExtensionAbilityLocked(connect);
     if (err == ERR_OK) {
         return ERR_OK;
     }
