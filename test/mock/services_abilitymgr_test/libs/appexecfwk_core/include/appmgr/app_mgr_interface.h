@@ -23,7 +23,7 @@
 #include "application_info.h"
 #include "app_record_id.h"
 #include "iapp_state_callback.h"
-#include "ams_mgr_interface.h"
+#include "iams_mgr.h"
 #include "render_process_info.h"
 #include "running_process_info.h"
 
