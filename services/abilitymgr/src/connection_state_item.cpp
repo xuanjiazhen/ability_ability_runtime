@@ -150,7 +150,7 @@ public:
             == connections_.end();
 
         (*it).second = false;
-        return needNotify
+        return needNotify;
     }
 
 
@@ -161,7 +161,7 @@ public:
         {
             std::lock_guard guard(connectionsMutex_);
             auto it = std::find_if(connections_.begin(), connections_.end(),
-                [](std::pair<sptr<IRemoteObject>, bool>& pair) {return pair.second == false});
+                [](const std::pair<sptr<IRemoteObject>, bool>& pair) {return pair.second == false;);
             if (it == connections_.end()) {
                 data.isSuspended = true;
             }
@@ -337,7 +337,7 @@ std::shared_ptr<ConnectionStateItem> ConnectionStateItem::CreateConnectionStateI
 }
 
 bool ConnectionStateItem::AddConnection(std::shared_ptr<ConnectionRecord> record,
-    AbilityRuntime::ConnectionData &data, ConnnectionEvent &event)
+    AbilityRuntime::ConnectionData &data, ConnectionEvent &event)
 {
     if (!record) {
         TAG_LOGE(AAFwkTag::CONNECTION, "invalid connection record");
@@ -381,7 +381,7 @@ bool ConnectionStateItem::AddConnection(std::shared_ptr<ConnectionRecord> record
 }
 
 bool ConnectionStateItem::RemoveConnection(std::shared_ptr<ConnectionRecord> record,
-    AbilityRuntime::ConnectionData &data, ConnnectionEvent &event)
+    AbilityRuntime::ConnectionData &data, ConnectionEvent &event)
 {
     if (!record) {
         TAG_LOGE(AAFwkTag::CONNECTION, "invalid connection record");
