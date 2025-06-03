@@ -269,5 +269,31 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_CatchStack_001, TestSize.Lev
     appfreezeManager->DeleteStack(pid);
     EXPECT_TRUE(appfreezeManager->catchStackMap_.empty());
 }
+
+/**
+ * @tc.number: AppfreezeManagerTest_003
+ * @tc.desc: add testcase codecoverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_GetFreezeInfoFile_001, TestSize.Level1)
+{
+    FaultData faultData;
+    std::string bundleName = "AppfreezeManagerTest";
+    std::string freezeInfoFile = appfreezeManager->GetFreezeInfoFile(faultData, bundleName);
+    EXPECT_EQ(freezeInfoFile, "");
+    faultData.appfreezeInfo = "stackPath:test.txt;";
+    faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_3S;
+    AppfreezeManager::AppInfo appInfo = {
+        .pid = getpid(),
+        .uid = getuid(),
+        .bundleName = bundleName,
+        .processName = bundleName,
+    };
+    freezeInfoFile = appfreezeManager->GetFreezeInfoFile(faultData, bundleName);
+    EXPECT_EQ(freezeInfoFile, "");
+    faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
+    freezeInfoFile = appfreezeManager->GetFreezeInfoFile(faultData, bundleName);
+    EXPECT_TRUE(!freezeInfoFile.empty());
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
