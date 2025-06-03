@@ -62,7 +62,7 @@ export default class FormExtensionAbility {
     console.log(`FormExtensionAbility onConfigurationUpdate`);
   }
 
-  onAcquireFormState?: OnAcquireFormStateFn;
+  public onAcquireFormState?: OnAcquireFormStateFn;
 
-  onStop?: OnStopFn;
+  public onStop?: OnStopFn;
 }
