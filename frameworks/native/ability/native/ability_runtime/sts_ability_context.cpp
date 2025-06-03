@@ -789,6 +789,21 @@ ani_object StsAbilityContext::NativeTransferDynamic(ani_env *env, ani_object, an
     return nullptr;
 }
 
+void StsAbilityContext::ConfigurationUpdated(ani_env *env, std::shared_ptr<STSNativeReference> &stsContext,
+    const std::shared_ptr<AppExecFwk::Configuration> &config)
+{
+    if (env == nullptr || stsContext == nullptr || config == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "env or stsContext or config is null");
+        return;
+    }
+    ani_ref configurationRef = OHOS::AppExecFwk::WrapConfiguration(env, *config);
+    ani_status status = env->Object_SetFieldByName_Ref(stsContext->aniObj, "config", configurationRef);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Object_SetFieldByName_Ref status: %{public}d", status);
+        return;
+    }
+}
+
 bool BindNativeMethods(ani_env *env, ani_class &cls)
 {
     ani_status status = env->FindClass(UI_ABILITY_CONTEXT_CLASS_NAME, &cls);
