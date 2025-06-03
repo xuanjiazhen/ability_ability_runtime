@@ -1165,24 +1165,49 @@ void AbilityRecord::StartingWindowCold(const std::shared_ptr<StartOptions> &star
     // get bg pixelmap and color.
     std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
     uint32_t bgColor = 0;
-    GetColdStartingWindowResource(pixelMap, bgColor);
+    auto info = CreateAbilityTransitionInfo(startOptions, want, abilityRequest);
+    GetColdStartingWindowResource(info, pixelMap, bgColor);
 
     // start window
-    auto info = CreateAbilityTransitionInfo(startOptions, want, abilityRequest);
     windowHandler->StartingWindow(info, pixelMap, bgColor);
     startingWindowBg_.reset();
 }
 
-void AbilityRecord::GetColdStartingWindowResource(std::shared_ptr<Media::PixelMap> &bg, uint32_t &bgColor)
+void AbilityRecord::GetColdStartingWindowResource(sptr<AbilityTransitionInfo> &info,
+    std::shared_ptr<Media::PixelMap> &bg, uint32_t &bgColor)
 {
-    bg = startingWindowBg_;
-    bgColor = bgColor_;
-    if (bg) {
-        return;
-    }
     auto resourceMgr = CreateResourceManager();
     if (!resourceMgr) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "get resourceMgr failed");
+        return;
+    }
+
+     auto loadPixelMap = [&](uint32_t mediaDataId) {
+        return GetPixelMap(mediaDataId, resourceMgr);
+    };
+
+    const auto &swResource = abilityInfo_.startWindowResource;
+    if (resourceMgr->GetColorById(swResource.startWindowBackgroundColorId,
+        info->startWindowPageDrawInfo_.bgColor) == Global::Resource::RState::SUCCESS) {
+        info->startWindowPageDrawInfo_.branding =
+            loadPixelMap(swResource.startWindowBrandingImageId);
+        info->startWindowPageDrawInfo_.bgImg =
+            loadPixelMap(swResource.startWindowBackgroundImageId);
+        if (info->startWindowPageDrawInfo_.bgImg) {
+            info->startWindowPageDrawInfo_.bgImgFit = swResource.startWindowBackgroundImageFit;
+        }
+        info->startWindowPageDrawInfo_.appIcon =
+            loadPixelMap(swResource.startWindowAppIconId);
+        if (!info->startWindowPageDrawInfo_.appIcon) {
+            info->startWindowPageDrawInfo_.illustration =
+                loadPixelMap(swResource.startWindowIllustrationId);
+        }
+        return;
+    }
+
+    bg = startingWindowBg_;
+    bgColor = bgColor_;
+    if (bg) {
         return;
     }
 

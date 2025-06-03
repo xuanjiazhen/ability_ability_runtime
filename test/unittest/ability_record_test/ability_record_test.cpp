@@ -1280,10 +1280,11 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_GetColdStartingWindowResource_001, Tes
     EXPECT_NE(abilityRecord, nullptr);
     std::shared_ptr<Media::PixelMap> bg;
     uint32_t bgColor = 0;
+    std::shared_ptr<Global::Resource::ResourceManager> resourceMgr(Global::Resource::CreateResourceManager());
     abilityRecord->startingWindowBg_ = std::make_shared<Media::PixelMap>();
-    abilityRecord->GetColdStartingWindowResource(bg, bgColor);
+    abilityRecord->GetColdStartingWindowResource(bg, bgColor, resourceMgr);
     abilityRecord->startingWindowBg_ = nullptr;
-    abilityRecord->GetColdStartingWindowResource(bg, bgColor);
+    abilityRecord->GetColdStartingWindowResource(bg, bgColor, resourceMgr);
 }
 
 /*

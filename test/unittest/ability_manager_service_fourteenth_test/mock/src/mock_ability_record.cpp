@@ -522,7 +522,8 @@ void AbilityRecord::StartingWindowCold(const std::shared_ptr<StartOptions> &star
 {
 }
 
-void AbilityRecord::GetColdStartingWindowResource(std::shared_ptr<Media::PixelMap> &bg, uint32_t &bgColor)
+void AbilityRecord::GetColdStartingWindowResource(std::shared_ptr<Media::PixelMap> &bg, uint32_t &bgColor,
+    std::shared_ptr<Global::Resource::ResourceManager> &resourceMgr)
 {
 }
 

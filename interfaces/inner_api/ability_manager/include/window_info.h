@@ -22,6 +22,7 @@
 #include "ability_info.h"
 #include "iremote_object.h"
 #include "parcel.h"
+#include "pixel_map.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -36,6 +37,63 @@ enum class TransitionReason : uint32_t {
     BACK_TRANSITION,
     CLOSE_BUTTON,
     BACKGROUND_TRANSITION,
+};
+
+struct StartWindowPageDrawInfo : public Parcelable {
+    uint32_t bgColor = 0;
+    std::string bgImgFit = "";
+    std::shared_ptr<Media::PixelMap> appIcon = nullptr;
+    std::shared_ptr<Media::PixelMap> branding = nullptr;
+    std::shared_ptr<Media::PixelMap> illustration = nullptr;
+    std::shared_ptr<Media::PixelMap> bgImg = nullptr;
+
+    bool ReadFromParcel(Parcel &parcel)
+    {
+        bgColor =  parcel.ReadUint32();
+        bgImgFit = parcel.ReadString();
+        appIcon = std::shared_ptr<Media::PixelMap>(parcel.ReadParcelable<Media::PixelMap>());
+        branding = std::shared_ptr<Media::PixelMap>(parcel.ReadParcelable<Media::PixelMap>());
+        illustration = std::shared_ptr<Media::PixelMap>(parcel.ReadParcelable<Media::PixelMap>());
+        bgImg = std::shared_ptr<Media::PixelMap>(parcel.ReadParcelable<Media::PixelMap>());
+        return true;
+    }
+
+    bool Marshalling(Parcel &parcel) const
+    {
+        if (!parcel.WriteUint32(bgColor)) {
+            return false;
+        }
+        if (!parcel.WriteString(bgImgFit)) {
+            return false;
+        }
+        if (!parcel.WriteParcelable(appIcon.get())) {
+            return false;
+        }
+        if (!parcel.WriteParcelable(branding.get())) {
+            return false;
+        }
+        if (!parcel.WriteParcelable(illustration.get())) {
+            return false;
+        }
+        if (!parcel.WriteParcelable(bgImg.get())) {
+            return false;
+        }
+        return true;
+    }
+
+    static StartWindowPageDrawInfo *Unmarshalling(Parcel &parcel)
+    {
+        StartWindowPageDrawInfo *info = new (std::nothrow) StartWindowPageDrawInfo();
+        if (info == nullptr) {
+            return nullptr;
+        }
+
+        if (!info->ReadFromParcel(parcel)) {
+            delete info;
+            info = nullptr;
+        }
+        return info;
+    }
 };
 
 struct AbilityTransitionInfo : public Parcelable {
@@ -58,6 +116,7 @@ struct AbilityTransitionInfo : public Parcelable {
     std::vector<AppExecFwk::SupportWindowMode> windowModes_;
     
     AppExecFwk::DisplayOrientation orientation_ = AppExecFwk::DisplayOrientation::UNSPECIFIED;
+    StartWindowPageDrawInfo startWindowPageDrawInfo_;
 
     virtual bool Marshalling(Parcel& parcel) const override
     {
