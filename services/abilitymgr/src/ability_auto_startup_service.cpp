@@ -425,7 +425,7 @@ bool AbilityAutoStartupService::GetBundleInfo(const std::string &bundleName,
             TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null abilityMgr");
             return false;
         }
-        userId = abilityMgr->GetUserId();
+        userId = abilityMgr->GetCallerUserId();
     }
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "bundleName: %{public}s, userId: %{public}d, appIndex: %{public}d",
         bundleName.c_str(), userId, appIndex);

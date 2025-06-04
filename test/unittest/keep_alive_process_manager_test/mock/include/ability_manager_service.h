@@ -48,12 +48,6 @@ public:
     bool IsSceneBoardReady(int32_t userId);
 
     /**
-     * get the user id.
-     *
-     */
-    int32_t GetUserId() const;
-
-    /**
      * Starts a new ability with specific start options.
      *
      * @param want the want of the ability to start.
@@ -69,6 +63,8 @@ public:
         const sptr<IRemoteObject> &callerToken,
         int32_t userId = -1,
         int requestCode = -1);
+
+    int32_t GetCallerUserId() const;
 
 public:
     static bool isInStatusBarResult;

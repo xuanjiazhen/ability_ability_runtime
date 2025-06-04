@@ -43,15 +43,16 @@ bool AbilityManagerService::IsSceneBoardReady(int32_t userId)
     return false;
 }
 
-int32_t AbilityManagerService::GetUserId() const
-{
-    return userId_;
-}
-
 int32_t AbilityManagerService::StartAbility(const Want &want, const StartOptions &startOptions,
     const sptr<IRemoteObject> &callerToken, int32_t userId, int requestCode)
 {
     return startAbilityResult;
+}
+
+int32_t AbilityManagerService::GetCallerUserId() const
+{
+    int32_t userId = 100;
+    return userId;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

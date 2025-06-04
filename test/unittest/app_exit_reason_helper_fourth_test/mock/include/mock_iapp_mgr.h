@@ -93,7 +93,7 @@ public:
     }
 
     virtual int32_t GetAllRunningInstanceKeysByBundleName(
-        const std::string& bundleName, std::vector<std::string>& instanceKeys, int32_t userId = -1)
+        const std::string& bundleName, std::vector<std::string>& instanceKeys)
     {
         return 0;
     }

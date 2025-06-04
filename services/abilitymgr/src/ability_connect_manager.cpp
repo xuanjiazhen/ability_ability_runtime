@@ -1733,7 +1733,7 @@ void AbilityConnectManager::HandleStartTimeoutTask(const std::shared_ptr<Ability
     RemoveServiceAbility(abilityRecord);
     DelayedSingleton<AppScheduler>::GetInstance()->AttachTimeOut(abilityRecord->GetToken());
     if (abilityRecord->IsSceneBoard()) {
-        if (DelayedSingleton<AbilityManagerService>::GetInstance()->GetUserId() == userId_) {
+        if (UserController::GetInstance().IsCurrentUser(userId_)) {
             RestartAbility(abilityRecord, userId_);
         }
         return;
@@ -2321,8 +2321,7 @@ void AbilityConnectManager::CleanActivatingTimeoutAbility(std::shared_ptr<Abilit
     if (!IsAbilityNeedKeepAlive(abilityRecord)) {
         return;
     }
-    if (!abilityRecord->IsSceneBoard() ||
-        DelayedSingleton<AbilityManagerService>::GetInstance()->GetUserId() == userId_) {
+    if (!abilityRecord->IsSceneBoard() || UserController::GetInstance().IsCurrentUser(userId_)) {
         RestartAbility(abilityRecord, userId_);
     }
 }
@@ -2638,6 +2637,10 @@ void AbilityConnectManager::RestartAbility(const std::shared_ptr<AbilityRecord> 
         }
         if (abilityRecord->IsSceneBoard()) {
             requestInfo.want.SetParam("ohos.app.recovery", true);
+            uint64_t displayId = 0;
+            if (UserController::GetInstance().GetDisplayIdByUserId(userId_, displayId)) {
+                requestInfo.want.SetParam("ohos.ability.displayId", static_cast<int32_t>(displayId));
+            }
             DelayedSingleton<AbilityManagerService>::GetInstance()->EnableListForSCBRecovery(userId_);
         }
         requestInfo.restartCount = abilityRecord->GetRestartCount();

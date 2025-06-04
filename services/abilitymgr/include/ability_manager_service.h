@@ -1203,7 +1203,8 @@ public:
      */
     sptr<IRemoteObject> GetAbilityTokenByMissionId(int32_t missionId);
 
-    virtual int StartUser(int userId, sptr<IUserCallback> callback, bool isAppRecovery = false) override;
+    virtual int StartUser(int userId, uint64_t displayId, sptr<IUserCallback> callback,
+        bool isAppRecovery = false) override;
 
     virtual int StopUser(int userId, const sptr<IUserCallback> &callback) override;
 
@@ -1583,7 +1584,7 @@ public:
      * get the user id.
      *
      */
-    int32_t GetUserId() const;
+    int32_t GetCallerUserId() const;
 
     virtual int32_t RegisterStatusBarDelegate(sptr<AbilityRuntime::IStatusBarDelegate> delegate) override;
 
@@ -2162,7 +2163,7 @@ private:
      * start highest priority ability.
      *
      */
-    int StartHighestPriorityAbility(int32_t userId, bool isBoot, bool isAppRecovery = false);
+    int StartHighestPriorityAbility(int32_t userId, uint64_t displayId, bool isBoot, bool isAppRecovery = false);
 #endif
     /**
      * connect bms.
@@ -2271,7 +2272,7 @@ private:
     void StartFreezingScreen();
     void StopFreezingScreen();
     void UserStarted(int32_t userId);
-    int SwitchToUser(int32_t oldUserId, int32_t userId, sptr<IUserCallback> callback,
+    int SwitchToUser(int32_t oldUserId, int32_t userId, uint64_t displayId, sptr<IUserCallback> callback,
         bool isAppRecovery = false);
     void SwitchManagers(int32_t userId, bool switchUser = true);
     void StartUserApps();
@@ -2679,7 +2680,6 @@ private:
 
     std::shared_ptr<FreeInstallManager> freeInstallManager_;
     std::shared_ptr<SubManagersHelper> subManagersHelper_;
-    std::shared_ptr<UserController> userController_;
     sptr<AppExecFwk::IAbilityController> abilityController_ = nullptr;
 
     std::multimap<std::string, std::string> timeoutMap_;
