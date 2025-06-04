@@ -316,7 +316,7 @@ HWTEST_F(ConnectionStateItemTest, RemoveConnection_004, TestSize.Level1)
         abilityRecord->GetToken(), abilityRecord, connCallback, nullptr);
     ConnectionData data;
     ConnectionEvent event;
-    auto res = connectionStateItem->RemoveConnection(record, data, event；);
+    auto res = connectionStateItem->RemoveConnection(record, data, event);
     EXPECT_FALSE(res);
 }
 
