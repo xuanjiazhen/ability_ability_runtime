@@ -27,7 +27,7 @@
 #include "gmock/gmock.h"
 
 namespace OHOS {
-namespace AAFwk {   
+namespace AAFwk {
 enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 
 class MockAbilityManagerService : public AbilityManagerStub,
