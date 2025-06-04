@@ -854,7 +854,7 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentyFirst(uint32_t code, MessagePa
 {
     AbilityManagerInterfaceCode interfaceCode = static_cast<AbilityManagerInterfaceCode>(code);
     if (interfaceCode == AbilityManagerInterfaceCode::SUSPEND_EXTENSION_ABILITY) {
-        return SupsendExtensionAbilityInner(data, reply);
+        return SuspendExtensionAbilityInner(data, reply);
     }
     if (interfaceCode == AbilityManagerInterfaceCode::RESUME_EXTENSION_ABILITY) {
         return ResumeExtensionAbilityInner(data, reply);

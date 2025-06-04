@@ -695,7 +695,6 @@ public:
      */
     virtual int DisconnectAbility(sptr<IAbilityConnection> connect) = 0;
 
-
     /**
      * SuspendExtensionAbility, suspend session with service ability.
      *
