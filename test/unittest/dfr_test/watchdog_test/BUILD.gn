@@ -58,6 +58,8 @@ ohos_unittest("watchdog_test") {
     ":ability_start_setting_config",
   ]
 
+  public_configs =
+      [ "${ability_runtime_innerkits_path}/app_manager:appmgr_idl_config" ]
   sources = [
     "${ability_runtime_test_path}/mock/frameworks_kits_appkit_test/include/mock_app_thread.cpp",
     "watchdog_test.cpp",
