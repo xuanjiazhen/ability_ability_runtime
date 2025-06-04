@@ -27,6 +27,7 @@ bool MockAbilityDelegatorStub::finishFlag_ = false;
 MockAbilityDelegatorStub::MockAbilityDelegatorStub()
 {}
 
+
 int MockAbilityDelegatorStub::StartAbility(const Want& want, int32_t userId, int requestCode)
 {
     return 0;
