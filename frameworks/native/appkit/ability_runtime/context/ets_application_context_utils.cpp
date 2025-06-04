@@ -239,8 +239,9 @@ void EtsApplicationContextUtils::GetAllRunningInstanceKeys([[maybe_unused]]ani_e
         AppExecFwk::AsyncCallback(env, callback, CreateStsErrorByNativeErr(env, (int32_t)innerErrCode), emptyArray);
         return;
     }
-    emptyArray = AppExecFwk::CreateStringArray(env, *instanceKeys);
-    AppExecFwk::AsyncCallback(env, callback, CreateStsError(env, AbilityErrorCode::ERROR_OK), emptyArray);
+    ani_object stringArray;
+    AppExecFwk::WrapArrayString(env, stringArray, *instanceKeys);
+    AppExecFwk::AsyncCallback(env, callback, CreateStsError(env, AbilityErrorCode::ERROR_OK), stringArray);
 }
 
 ani_double EtsApplicationContextUtils::NativeOnSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
