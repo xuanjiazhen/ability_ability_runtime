@@ -173,11 +173,6 @@ public:
         return 0;
     }
 
-    virtual int AttachAbilityThread(const sptr<IAbilityScheduler>& scheduler, const sptr<IRemoteObject>& token)
-    {
-        return 0;
-    }
-
     virtual int AbilityTransitionDone(const sptr<IRemoteObject>& token, int state, const PacMap& saveData)
     {
         return 0;
