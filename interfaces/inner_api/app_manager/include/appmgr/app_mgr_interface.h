@@ -440,7 +440,7 @@ public:
 
     /**
      * UpdateConfigurationForBackgroundApp
-     * 
+     *
      * @param appInfos Background application information.
      * @param policy Update policy.
      * @param userId configuration for the user
