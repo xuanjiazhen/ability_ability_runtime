@@ -218,8 +218,8 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     std::vector<AbilityRuntime::DlpConnectionInfo> infos;
     connectionStateManager->GetDlpConnectionInfos(infos);
 #endif // WITH_DLP
-    connectionStateManager->AddConnectionInner(connectionRecord, connectionData);
-    connectionStateManager->RemoveConnectionInner(connectionRecord, connectionData);
+    connectionStateManager->AddConnectionInner(connectionRecord, connectionData, connectionEvent);
+    connectionStateManager->RemoveConnectionInner(connectionRecord, connectionData, connectionEvent);
     connectionStateManager->HandleCallerDied(int32Param);
     connectionStateManager->RemoveDiedCaller(int32Param);
     connectionStateManager->AddDataAbilityConnectionInner(dataCaller, dataAbility, connectionData);
