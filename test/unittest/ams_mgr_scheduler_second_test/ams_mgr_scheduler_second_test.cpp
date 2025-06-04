@@ -255,7 +255,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_UpdateAbilityState
     std::shared_ptr<AmsMgrScheduler> amsMgrScheduler =
         std::make_shared<AmsMgrScheduler>(appMgrServiceInner_, nullptr);
 
-    amsMgrScheduler->UpdateAbilityState(nullptr, AbilityState::ABILITY_STATE_CREATE);
+    amsMgrScheduler->UpdateAbilityState(nullptr, static_cast<int32_t>(AbilityState::ABILITY_STATE_CREATE));
     EXPECT_TRUE(amsMgrScheduler != nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_UpdateAbilityState_001 end");
 }
@@ -272,7 +272,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_UpdateAbilityState
         std::make_shared<AmsMgrScheduler>(appMgrServiceInner_, taskHandler_);
 
     IPCSkeleton::SetCallingUid(-1);
-    amsMgrScheduler->UpdateAbilityState(nullptr, AbilityState::ABILITY_STATE_CREATE);
+    amsMgrScheduler->UpdateAbilityState(nullptr, static_cast<int32_t>(AbilityState::ABILITY_STATE_CREATE));
     EXPECT_TRUE(amsMgrScheduler != nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_UpdateAbilityState_002 end");
 }
@@ -289,7 +289,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_UpdateAbilityState
         std::make_shared<AmsMgrScheduler>(appMgrServiceInner_, taskHandler_);
 
     IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
-    amsMgrScheduler->UpdateAbilityState(nullptr, AbilityState::ABILITY_STATE_CREATE);
+    amsMgrScheduler->UpdateAbilityState(nullptr, static_cast<int32_t>(AbilityState::ABILITY_STATE_CREATE));
     EXPECT_TRUE(amsMgrScheduler != nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_UpdateAbilityState_003 end");
 }
@@ -303,7 +303,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_KillProcessesByUse
 {
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_KillProcessesByUserId_001 start");
     std::shared_ptr<AmsMgrScheduler> amsMgrScheduler =
-    std::make_shared<AmsMgrScheduler>(nullptr, taskHandler_);
+        std::make_shared<AmsMgrScheduler>(nullptr, taskHandler_);
 
     /**
      * @tc.steps: step1. amsMgrScheduler isReady false
@@ -399,7 +399,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_KillProcessesByPid
      * @tc.expected: step1. expect taskHandler_ time(0)
      */
     std::vector<int32_t> pids;
-    amsMgrScheduler->KillProcessesByPids(pids);
+    amsMgrScheduler->KillProcessesByPids(pids, "KillProcessesByPids", false);
     EXPECT_TRUE(amsMgrScheduler != nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_KillProcessesByPids_001 end");
 }
@@ -420,7 +420,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_KillProcessesByPid
      * @tc.expected: step1. expect taskHandler_ time(0)
      */
     std::vector<int32_t> pids = { 1 };
-    amsMgrScheduler->KillProcessesByPids(pids);
+    amsMgrScheduler->KillProcessesByPids(pids, "KillProcessesByPids", false);
     EXPECT_TRUE(amsMgrScheduler != nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_KillProcessesByPids_002 end");
 }
@@ -487,7 +487,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_KillProcessWithAcc
      * @tc.expected: step1. expect taskHandler_ time(0)
      */
     const std::string bundleName = "testBundleName";
-    auto ret = amsMgrScheduler->KillProcessWithAccount(bundleName, 1, false);
+    auto ret = amsMgrScheduler->KillProcessWithAccount(bundleName, 1, false, 0);
     EXPECT_EQ(ret, ERR_INVALID_OPERATION);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_KillProcessWithAccount_001 end");
 }
@@ -510,7 +510,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_KillProcessWithAcc
      */
     const std::string bundleName = "testBundleName";
     MyFlag::flag_ = MyFlag::IS_SHELL_CALL;
-    auto ret = amsMgrScheduler->KillProcessWithAccount(bundleName, 1, false);
+    auto ret = amsMgrScheduler->KillProcessWithAccount(bundleName, 1, false, 0);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_KillProcessWithAccount_002 end");
 }
@@ -760,7 +760,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_KillApplicationByU
      * @tc.steps: step1. amsMgrScheduler isReady false
      * @tc.expected: step1. expect taskHandler_ time 0
      */
-    auto ret = amsMgrScheduler->KillApplicationByUid("", 0);
+    auto ret = amsMgrScheduler->KillApplicationByUid("", 0, "KillApplicationByUid");
     EXPECT_EQ(ret, ERR_INVALID_OPERATION);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_KillProcessesByAccessTokenId_002 end");
 }
@@ -782,7 +782,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_KillApplicationByU
      * @tc.steps: step1. amsMgrScheduler isReady
      * @tc.expected: step1. expect ERR_OK
      */
-    auto ret = amsMgrScheduler->KillApplicationByUid("", 0);
+    auto ret = amsMgrScheduler->KillApplicationByUid("", 0, "KillApplicationByUid");
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_KillApplicationByUid_002 end");
 }
@@ -1527,7 +1527,8 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsWaitingDebugApp_
      * @tc.steps: step1. amsMgrScheduler isReady false
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
-    auto ret = amsMgrScheduler->IsWaitingDebugApp("");
+    bool ret = false;
+    amsMgrScheduler->IsWaitingDebugApp("", ret);
     EXPECT_EQ(ret, false);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsWaitingDebugApp_001 end");
 }
@@ -1551,7 +1552,8 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsWaitingDebugApp_
      */
     appMgrServiceInner->waitingDebugBundleList_.emplace("testBundleName", true);
     IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
-    auto ret = amsMgrScheduler->IsWaitingDebugApp("testBundleName");
+    bool ret = false;
+    amsMgrScheduler->IsWaitingDebugApp("testBundleName", ret);
     EXPECT_EQ(ret, true);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsWaitingDebugApp_002 end");
 }
@@ -1616,7 +1618,8 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsAttachDebug_001,
      * @tc.steps: step1. amsMgrScheduler isReady false
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
-    auto ret = amsMgrScheduler->IsAttachDebug("");
+    bool ret = false;
+    amsMgrScheduler->IsAttachDebug("", ret);
     EXPECT_FALSE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsAttachDebug_001 end");
 }
@@ -1639,7 +1642,8 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsAttachDebug_002,
      * @tc.expected: step1. expect ERR_OK
      */
     MyFlag::flag_ = MyFlag::IS_SA_CALL;
-    auto ret = amsMgrScheduler->IsAttachDebug("testBundleName");
+    bool ret = false;
+    amsMgrScheduler->IsAttachDebug("testBundleName", ret);
     EXPECT_FALSE(ret); // appDebug return false
     TAG_LOGI(AAFwkTag::TEST, "IsAttachDebug_002 end");
 }
@@ -1704,7 +1708,8 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsMemorySizeSuffic
      * @tc.steps: step1. amsMgrScheduler isReady false
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
-    auto ret = amsMgrScheduler->IsMemorySizeSufficent();
+    bool ret = false;
+    amsMgrScheduler->IsMemorySizeSufficent(ret);
     EXPECT_TRUE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsMemorySizeSufficent_001 end");
 }
@@ -1726,7 +1731,8 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsMemorySizeSuffic
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
     IPCSkeleton::SetCallingUid(-1);
-    auto ret = amsMgrScheduler->IsMemorySizeSufficent();
+    bool ret = false;
+    amsMgrScheduler->IsMemorySizeSufficent(ret);
     EXPECT_TRUE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsMemorySizeSufficent_002 end");
 }
@@ -1748,7 +1754,8 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsMemorySizeSuffic
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
     IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
-    auto ret = amsMgrScheduler->IsMemorySizeSufficent();
+    bool ret = false;
+    amsMgrScheduler->IsMemorySizeSufficent(ret);
     EXPECT_TRUE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsMemorySizeSufficent_003 end");
 }
@@ -1857,7 +1864,8 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_CleanAbilityByUser
      * @tc.steps: step1. amsMgrScheduler isReady false
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
-    amsMgrScheduler->CleanAbilityByUserRequest(nullptr);
+    bool ret = false;
+    amsMgrScheduler->CleanAbilityByUserRequest(nullptr, ret);
     EXPECT_TRUE(amsMgrScheduler != nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_CleanAbilityByUserRequest_001 end");
 }
@@ -1878,7 +1886,8 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_CleanAbilityByUser
      * @tc.steps: step1. amsMgrScheduler isReady false
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
-    amsMgrScheduler->CleanAbilityByUserRequest(nullptr);
+    bool ret = false;
+    amsMgrScheduler->CleanAbilityByUserRequest(nullptr, ret);
     EXPECT_TRUE(amsMgrScheduler != nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_CleanAbilityByUserRequest_002 end");
 }
@@ -1899,7 +1908,8 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsKilledForUpgrade
      * @tc.steps: step1. amsMgrScheduler isReady false
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
-    auto ret = amsMgrScheduler->IsKilledForUpgradeWeb("");
+    bool ret = false;
+    amsMgrScheduler->IsKilledForUpgradeWeb("", ret);
     EXPECT_FALSE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsKilledForUpgradeWeb_001 end");
 }
@@ -1921,7 +1931,8 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsKilledForUpgrade
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
     IPCSkeleton::SetCallingUid(-1);
-    auto ret = amsMgrScheduler->IsKilledForUpgradeWeb("");
+    bool ret = false;
+    amsMgrScheduler->IsKilledForUpgradeWeb("", ret);
     EXPECT_FALSE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsKilledForUpgradeWeb_002 end");
 }
@@ -1943,7 +1954,8 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsKilledForUpgrade
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
     IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
-    auto ret = amsMgrScheduler->IsKilledForUpgradeWeb("");
+    bool ret = false;
+    amsMgrScheduler->IsKilledForUpgradeWeb("", ret);
     EXPECT_FALSE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsKilledForUpgradeWeb_003 end");
 }
@@ -1964,7 +1976,8 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsProcessContainsO
      * @tc.steps: step1. amsMgrScheduler isReady false
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
-    auto ret = amsMgrScheduler->IsProcessContainsOnlyUIAbility(0);
+    bool ret = false;
+    amsMgrScheduler->IsProcessContainsOnlyUIAbility(0, ret);
     EXPECT_FALSE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsProcessContainsOnlyUIAbility_001 end");
 }
@@ -1986,7 +1999,8 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsProcessContainsO
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
     IPCSkeleton::SetCallingUid(-1);
-    auto ret = amsMgrScheduler->IsProcessContainsOnlyUIAbility(0);
+    bool ret = false;
+    amsMgrScheduler->IsProcessContainsOnlyUIAbility(0, ret);
     EXPECT_FALSE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsProcessContainsOnlyUIAbility_002 end");
 }
@@ -2008,7 +2022,8 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsProcessAttached_
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
     sptr<IRemoteObject> token = nullptr;
-    auto ret = amsMgrScheduler->IsProcessAttached(token);
+    bool ret = false;
+    amsMgrScheduler->IsProcessAttached(token, ret);
     EXPECT_FALSE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsProcessAttached_001 end");
 }
@@ -2031,7 +2046,8 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsProcessAttached_
      */
     IPCSkeleton::SetCallingUid(-1);
     sptr<IRemoteObject> token = nullptr;
-    auto ret = amsMgrScheduler->IsProcessAttached(token);
+    auto ret = false;
+    amsMgrScheduler->IsProcessAttached(token, ret);
     EXPECT_FALSE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsProcessAttached_002 end");
 }
@@ -2054,7 +2070,8 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsProcessAttached_
      */
     IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
     sptr<IRemoteObject> token = nullptr;
-    auto ret = amsMgrScheduler->IsProcessAttached(token);
+    bool ret = false;
+    amsMgrScheduler->IsProcessAttached(token, ret);
     EXPECT_FALSE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsProcessAttached_003 end");
 }
@@ -2075,7 +2092,8 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsCallerKilling_00
      * @tc.steps: step1. amsMgrScheduler isReady false
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
-    auto ret = amsMgrScheduler->IsCallerKilling("");
+    bool ret = false;
+    amsMgrScheduler->IsCallerKilling("", ret);
     EXPECT_FALSE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsCallerKilling_001 end");
 }
@@ -2097,7 +2115,8 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsCallerKilling_00
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
     IPCSkeleton::SetCallingUid(-1);
-    auto ret = amsMgrScheduler->IsCallerKilling("");
+    bool ret = false;
+    amsMgrScheduler->IsCallerKilling("", ret);
     EXPECT_FALSE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsCallerKilling_002 end");
 }
@@ -2119,7 +2138,8 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsCallerKilling_00
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
     IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
-    auto ret = amsMgrScheduler->IsCallerKilling("");
+    bool ret = false;
+    amsMgrScheduler->IsCallerKilling("", ret);
     EXPECT_FALSE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsCallerKilling_003 end");
 }

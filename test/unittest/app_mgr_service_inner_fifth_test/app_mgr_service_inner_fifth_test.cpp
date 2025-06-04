@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -72,21 +72,30 @@ constexpr const char* PERMISSION_PROTECT_SCREEN_LOCK_DATA_TEST = "ohos.permissio
 class MockIAppStateCallback : public IAppStateCallback {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.appexecfwk.AppStateCallback");
-    void OnAppStateChanged(const AppProcessData &appProcessData) override {};
-    void OnAbilityRequestDone(const sptr<IRemoteObject> &token, const AbilityState state) override {};
-    void OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abilityTokens)
+    ErrCode OnAppStateChanged(const AppProcessData &appProcessData) override { return ERR_OK; }
+    ErrCode OnAbilityRequestDone(const sptr<IRemoteObject> &token, const AbilityState state) override { return ERR_OK; }
+
+    ErrCode NotifyConfigurationChange(const AppExecFwk::Configuration &config, int32_t userId) override
     {
         dealed = true;
+        return ERR_OK;
     }
-    void OnCacheExitInfo(uint32_t accessTokenId, const RunningProcessInfo &exitInfo,
+    MOCK_METHOD1(NotifyStartResidentProcess, ErrCode(const std::vector<BundleInfo>&));
+    MOCK_METHOD1(NotifyStartKeepAliveProcess, ErrCode(const std::vector<BundleInfo>&));
+    ErrCode OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abilityTokens)
+    {
+        dealed = true;
+        return ERR_OK;
+    }
+    MOCK_METHOD1(OnStartProcessFailed, ErrCode(const sptr<IRemoteObject>&));
+    MOCK_METHOD2(NotifyAppPreCache, ErrCode(int32_t, int32_t));
+
+    ErrCode OnCacheExitInfo(uint32_t accessTokenId, const RunningProcessInfo &exitInfo,
         const std::string &bundleName, const std::vector<std::string> &abilityNames,
         const std::vector<std::string> &uiExtensionNames) override
     {
         dealed = true;
-    }
-    void NotifyConfigurationChange(const AppExecFwk::Configuration &config, int32_t userId) override
-    {
-        dealed = true;
+        return ERR_OK;
     }
     sptr<IRemoteObject> AsObject()
     {
