@@ -786,7 +786,42 @@ enum {
     /**
      * Native error(2097331) for kill app while starting.
      */
-    ERR_KILL_APP_WHILE_STRATING = 2097331,
+    ERR_KILL_APP_WHILE_STARTING = 2097331,
+    
+    /**
+     * Result (2097332) for target not in app identifier allow list.
+     */
+    ERR_TARGET_NOT_IN_APP_IDENTIFIER_ALLOW_LIST = 2097332,
+
+    /**
+     * Result (2097333) for target has not been started yet.
+     */
+    ERR_TARGET_NOT_STARTED = 2097333,
+
+    /**
+     * Result (2097334) for app selector not exists.
+     */
+    ERR_APP_SELECTOR_NOT_EXISTS = 2097334,
+
+    /**
+     * Result (2097340-2097350) for uri permission error result.
+     */
+    ERR_UPMS_GET_FILE_URIS_BY_KEY_FAILED = 2097340,
+
+    ERR_UPMS_NO_PERMISSION_GRANT_URI = 2097341,
+
+    ERR_UPMS_INVALID_CALLER_TOKENID = 2097342,
+
+    ERR_UPMS_INVALID_TARGET_TOKENID = 2097343,
+
+    ERR_UPMS_ADD_PRIVILEGED_FAILED = 2097344,
+
+    ERR_UPMS_GET_ORI_URI_FAILED = 2097345,
+
+    ERR_UPMS_NOT_FILE_URI = 2097346,
+
+    ERR_UPMS_GRANT_URI_PERMISSION_FAILED = 2097347,
+    
     /**
      * Native error(3000000) for target bundle not exist.
      */
@@ -998,6 +1033,21 @@ enum NativeFreeInstallError {
      * Result(29360215) for write StartSelfUIAbility result failed.
      */
     ERR_WRITE_START_SELF_UI_ABILITY_RESULT = 29360215,
+
+    /*
+     * Result(29360216) for write caller token failed.
+     */
+     ERR_WRITE_CALLER_TOKEN_FAILED = 29360216,
+
+    /*
+     * Result(29360217) for caller is not atomic service.
+     */
+     ERR_CALLER_NOT_ATOMIC_SERVICE = 29360217,
+
+    /*
+     * Result(29360218) for failed to create instance key from SCB.
+     */
+    ERR_CREATE_INSTANCE_KEY_FAILED = 29360218,
 
     /**
      * Undefine error code.

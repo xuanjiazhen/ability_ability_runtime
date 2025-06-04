@@ -126,6 +126,13 @@ public:
     bool IsGrantPersistUriPermission();
 
     /**
+     * IsSupportGrantUriPermission, check whether to grant temp uri permission, default true.
+     *
+     * @return Whether to grant temp uri permission.
+     */
+    bool IsSupportGrantUriPermission();
+
+    /**
      * IsStartOptionsWithAnimation, check whether the start options have animation.
      *
      * @return Whether the start options have animation.
@@ -234,6 +241,13 @@ public:
     std::string GetCacheExtensionTypeList();
 
     /**
+     * IsSystemReasonMessage, get param of anco app identifier.
+     *
+     * @return identifiers.
+     */
+    std::string GetAncoAppIdentifiers();
+
+    /**
      * IsAllowStartAbilityWithoutCallerToken, check if it allows start ability without caller token.
      *
      * @param bundleName The bundle name.
@@ -292,6 +306,13 @@ public:
     bool IsConnectSupportCrossUser();
 
     /**
+     * IsSupportAppServiceExtension, check if it support app service extension.
+     *
+     * @return Whether it supports app service extension.
+     */
+    bool IsSupportAppServiceExtension();
+
+    /**
      * IsPrepareTerminateEnabled, check if it supports prepare terminate.
      *
      * @return Whether it supports prepare terminate.
@@ -314,6 +335,10 @@ public:
      * @return Whether it supports launch reason message.
      */
     bool IsSystemReasonMessage(const std::string &reasonMessage);
+
+    bool InResidentWhiteList(const std::string &bundleName);
+
+    const std::vector<std::string> &GetResidentWhiteList();
 
 private:
     /**
@@ -359,6 +384,12 @@ private:
     void LoadRequireBigMemoryApp();
 
     /**
+     * LoadResidentWhiteList, load resident white list.
+     *
+     */
+    void LoadResidentWhiteList();
+
+    /**
      * AppUtils, private constructor.
      *
      */
@@ -383,6 +414,8 @@ private:
     volatile DeviceConfiguration<bool> isSupportMultiInstance_ = {false, false};
     std::mutex isConnectSupportCrossUserMutex_;
     volatile DeviceConfiguration<bool> isConnectSupportCrossUser_ = {false, false};
+    volatile DeviceConfiguration<bool> isSupportAppServiceExtension_ = {false, false};
+    volatile DeviceConfiguration<bool> isGrantTempUriPermission_ = {false, true};
     DeviceConfiguration<std::vector<std::pair<std::string, std::string>>>
         residentProcessInExtremeMemory_ = {false, {}};
     std::mutex residentProcessInExtremeMemoryMutex_;
@@ -406,6 +439,8 @@ private:
     std::mutex cacheAbilityListMutex_;
     DeviceConfiguration<std::vector<std::pair<std::string, std::string>>>
         cacheAbilityList_ = {false, {}};
+    DeviceConfiguration<std::vector<std::string>> residentWhiteList_ = {false, {}};
+    std::mutex residentWhiteListMutex_;
     DISALLOW_COPY_AND_MOVE(AppUtils);
 };
 }  // namespace AAFwk

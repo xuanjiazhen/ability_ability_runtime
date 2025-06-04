@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -42,6 +42,7 @@ const std::string PARAMS_URI = "ability.verify.uri";
 const std::string DISTRIBUTED_FILES_PATH = "/data/storage/el2/distributedfiles/";
 const std::string HIDE_SENSITIVE_TYPE = "ohos.media.params.hideSensitiveType";
 const std::string DMS_PROCESS_NAME = "distributedsched";
+const std::string UDMF_DATA_KEY = "ohos.param.ability.udmfKey";
 const int32_t MAX_URI_COUNT = 500;
 constexpr int32_t API14 = 14;
 constexpr int32_t API_VERSION_MOD = 100;
@@ -56,6 +57,28 @@ UriUtils &UriUtils::GetInstance()
 {
     static UriUtils utils;
     return utils;
+}
+
+bool UriUtils::IsInAncoAppIdentifier(const std::string &bundleName)
+{
+    auto identifier = AppUtils::GetInstance().GetAncoAppIdentifiers();
+    return CheckIsInAncoAppIdentifier(identifier, bundleName);
+}
+
+bool UriUtils::CheckIsInAncoAppIdentifier(const std::string &identifier, const std::string &bundleName)
+{
+    if (identifier.empty() || bundleName.empty()) {
+        return false;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "identifier:%{public}s", identifier.c_str());
+    std::stringstream ss(identifier);
+    std::string item;
+    while (getline(ss, item, '|')) {
+        if (item == bundleName) {
+            return true;
+        }
+    }
+    return false;
 }
 
 std::vector<Uri> UriUtils::GetUriListFromWantDms(Want &want)
@@ -403,6 +426,7 @@ void UriUtils::GrantUriPermission(Want &want, std::string targetBundleName, int3
         TAG_LOGE(AAFwkTag::ABILITYMGR, "sandbox can not grant UriPermission");
         return;
     }
+    ProcessUDMFKey(want);
 
     if (IsDmsCall(callerTokenId)) {
         GrantDmsUriPermission(want, callerTokenId, targetBundleName, appIndex);
@@ -416,7 +440,7 @@ void UriUtils::GrantUriPermission(Want &want, std::string targetBundleName, int3
     }
 
     auto callerPkg = want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
-    bool isBrokerCall = (callerPkg == AppUtils::GetInstance().GetBrokerDelegateBundleName() ||
+    bool isBrokerCall = (IsInAncoAppIdentifier(callerPkg) ||
         IPCSkeleton::GetCallingUid() == AppUtils::GetInstance().GetCollaboratorBrokerUID());
     if (isBrokerCall && GrantShellUriPermission(uriVec, flag, targetBundleName, appIndex)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "permission to shell");
@@ -427,6 +451,14 @@ void UriUtils::GrantUriPermission(Want &want, std::string targetBundleName, int3
     }
     // report open file event
     PublishFileOpenEvent(want);
+}
+
+void UriUtils::ProcessUDMFKey(Want &want)
+{
+    // PARAMS_STREAM and UDMF_DATA_KEY is conflict
+    if (!want.GetStringArrayParam(AbilityConfig::PARAMS_STREAM).empty()) {
+        want.RemoveParam(UDMF_DATA_KEY);
+    }
 }
 
 bool UriUtils::GrantUriPermissionInner(std::vector<std::string> uriVec, uint32_t callerTokenId,

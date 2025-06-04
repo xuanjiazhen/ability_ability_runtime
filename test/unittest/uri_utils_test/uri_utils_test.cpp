@@ -29,6 +29,8 @@ namespace AAFwk {
 namespace {
 const int32_t BEYOND_MAX_URI_COUNT = 501;
 const int32_t MAX_URI_COUNT = 500;
+constexpr const char* UDMF_DATA_KEY = "ohos.param.ability.udmfKey";
+constexpr const char* ABILIY_PARAM_STREAM = "ability.params.stream";
 }
 class UriUtilsTest : public testing::Test {
 public:
@@ -758,6 +760,82 @@ HWTEST_F(UriUtilsTest, GrantUriPermissionForUIOrServiceExtension_001, TestSize.L
     abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SERVICE;
     UriUtils::GetInstance().GrantUriPermissionForUIOrServiceExtension(abilityRequest);
     EXPECT_EQ(abilityRequest.abilityInfo.extensionAbilityType, AppExecFwk::ExtensionAbilityType::SERVICE);
+}
+
+/*
+ * Feature: UriUtils
+ * Function: CheckIsInAncoAppIdentifier
+ * SubFunction: NA
+ * FunctionPoints: UriUtils CheckIsInAncoAppIdentifier
+ */
+HWTEST_F(UriUtilsTest, CheckIsInAncoAppIdentifier_001, TestSize.Level1)
+{
+    std::string identifier = "";
+    std::string bundleName = "";
+    auto ret = UriUtils::GetInstance().CheckIsInAncoAppIdentifier(identifier, bundleName);
+    EXPECT_EQ(ret, false);
+
+    identifier = "com.example.test";
+    bundleName = "";
+    ret = UriUtils::GetInstance().CheckIsInAncoAppIdentifier(identifier, bundleName);
+    EXPECT_EQ(ret, false);
+
+    identifier = "com.example.test1|com.example.test2";
+    bundleName = "com.example.test";
+    ret = UriUtils::GetInstance().CheckIsInAncoAppIdentifier(identifier, bundleName);
+    EXPECT_EQ(ret, false);
+
+    identifier = "com.example.test";
+    bundleName = "com.example.test";
+    ret = UriUtils::GetInstance().CheckIsInAncoAppIdentifier(identifier, bundleName);
+    EXPECT_EQ(ret, true);
+
+    identifier = "com.example.test|com.example.test1";
+    bundleName = "com.example.test";
+    ret = UriUtils::GetInstance().CheckIsInAncoAppIdentifier(identifier, bundleName);
+    EXPECT_EQ(ret, true);
+}
+
+/*
+ * Feature: UriUtils
+ * Function: ProcessUDMFKey
+ * SubFunction: NA
+ * FunctionPoints: UriUtils ProcessUDMFKey
+ */
+HWTEST_F(UriUtilsTest, ProcessUDMFKey_001, TestSize.Level1)
+{
+    auto &uriUtils = UriUtils::GetInstance();
+    Want want;
+    std::string udKey = "udmf:tempKey";
+    want.SetParam(UDMF_DATA_KEY, udKey);
+    uriUtils.ProcessUDMFKey(want);
+    EXPECT_EQ(want.GetStringParam(UDMF_DATA_KEY).empty(), false);
+
+    std::vector<std::string> uris = { "file://com.example.test/aaa.txt" };
+    want.SetParam(ABILIY_PARAM_STREAM, uris);
+    uriUtils.ProcessUDMFKey(want);
+    EXPECT_EQ(want.GetStringParam(UDMF_DATA_KEY).empty(), true);
+}
+
+/*
+ * Feature: UriUtils
+ * Function: ProcessUDMFKey
+ * SubFunction: NA
+ * FunctionPoints: UriUtils ProcessUDMFKey
+ */
+HWTEST_F(UriUtilsTest, ProcessUDMFKey_002, TestSize.Level1)
+{
+    auto &uriUtils = UriUtils::GetInstance();
+    Want want;
+    std::string udKey;
+    want.SetParam(UDMF_DATA_KEY, udKey);
+    uriUtils.ProcessUDMFKey(want);
+    EXPECT_EQ(want.GetStringParam(UDMF_DATA_KEY).empty(), true);
+
+    std::vector<std::string> uris = { "file://com.example.test/aaa.txt" };
+    want.SetParam(ABILIY_PARAM_STREAM, uris);
+    uriUtils.ProcessUDMFKey(want);
+    EXPECT_EQ(want.GetStringParam(UDMF_DATA_KEY).empty(), true);
 }
 }
 }

@@ -50,6 +50,7 @@ namespace {
     bool g_jitEnabled = false;
     AbilityRuntime::Runtime::DebugOption g_debugOption;
     const std::string MULTI_PROCESS = "multi_process";
+    constexpr char DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
 }
 bool ChildProcessManager::signalRegistered_ = false;
 
@@ -130,10 +131,10 @@ ChildProcessManagerErrorCode ChildProcessManager::StartChildProcessWithArgs(
     const AppExecFwk::ChildProcessOptions &options)
 {
     TAG_LOGI(AAFwkTag::PROCESSMGR, "StartChildProcessWithArgs, childProcessType:%{public}d, startWitDebug: %{public}d,"
-        " processName:%{public}s, native:%{public}d, entryParams size:%{public}zu, fdsSize:%{public}zu,"
-        " options.isolationMode:%{public}d", childProcessType, g_debugOption.isStartWithDebug,
-        g_debugOption.processName.c_str(), g_debugOption.isStartWithNative, args.entryParams.length(), args.fds.size(),
-        options.isolationMode);
+        "processName:%{public}s, native:%{public}d, entryParams size:%{public}zu, fdsSize:%{public}zu, "
+        "options.isolationMode:%{public}d, options.customProcessName:%{public}s", childProcessType,
+        g_debugOption.isStartWithDebug, g_debugOption.processName.c_str(), g_debugOption.isStartWithNative,
+        args.entryParams.length(), args.fds.size(), options.isolationMode, options.customProcessName.c_str());
     ChildProcessManagerErrorCode errorCode = PreCheck(childProcessType);
     if (errorCode != ChildProcessManagerErrorCode::ERR_OK) {
         return errorCode;
@@ -162,7 +163,7 @@ ChildProcessManagerErrorCode ChildProcessManager::StartChildProcessWithArgs(
 }
 
 ChildProcessManagerErrorCode ChildProcessManager::StartNativeChildProcessByAppSpawnFork(
-    const std::string &libName, const sptr<IRemoteObject> &callbackStub)
+    const std::string &libName, const sptr<IRemoteObject> &callbackStub, const std::string &customProcessName)
 {
     TAG_LOGI(AAFwkTag::PROCESSMGR, "libName:%{private}s", libName.c_str());
     ChildProcessManagerErrorCode errorCode = PreCheck(AppExecFwk::CHILD_PROCESS_TYPE_NATIVE);
@@ -177,7 +178,7 @@ ChildProcessManagerErrorCode ChildProcessManager::StartNativeChildProcessByAppSp
     }
 
     std::lock_guard<std::mutex> lock(childProcessCountLock_);
-    auto ret = appMgr->StartNativeChildProcess(libName, childProcessCount_, callbackStub);
+    auto ret = appMgr->StartNativeChildProcess(libName, childProcessCount_, callbackStub, customProcessName);
     TAG_LOGD(AAFwkTag::PROCESSMGR, "StartNativeChildProcess ret:%{public}d", ret);
 
     if (ret != ERR_OK) {
@@ -505,6 +506,7 @@ void ChildProcessManager::SetAppSpawnForkDebugOption(Runtime::DebugOption &debug
     debugOption.isStartWithDebug = processInfo->isStartWithDebug;
     debugOption.isDebugApp = processInfo->isDebugApp;
     debugOption.isStartWithNative = processInfo->isStartWithNative;
+    debugOption.isDeveloperMode = system::GetBoolParameter(DEVELOPER_MODE_STATE, false);
 }
 
 void ChildProcessManager::MakeProcessName(const std::string &srcEntry)
