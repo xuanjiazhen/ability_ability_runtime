@@ -126,6 +126,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     sptr<AbilityRuntime::IConnectionObserver> observer = new MyAbilityConnectionObserver();
     std::vector<std::string> info;
     AbilityRuntime::ConnectionData connectionData;
+    ConnectionEvent connectionEvent;
 
     // fuzz for ConnectionObserverController
     auto connectionObserverController = std::make_shared<ConnectionObserverController>();
@@ -178,8 +179,8 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     connectionStateItem->CreateConnectionStateItem(record);
     DataAbilityCaller dataCaller;
     connectionStateItem->CreateConnectionStateItem(dataCaller);
-    connectionStateItem->AddConnection(record, connectionData);
-    connectionStateItem->RemoveConnection(record, connectionData);
+    connectionStateItem->AddConnection(record, connectionData, connectionEvent);
+    connectionStateItem->RemoveConnection(record, connectionData, connectionEvent);
     std::shared_ptr<DataAbilityRecord> dataAbility;
     connectionStateItem->AddDataAbilityConnection(dataCaller, dataAbility, connectionData);
     connectionStateItem->RemoveDataAbilityConnection(dataCaller, dataAbility, connectionData);
