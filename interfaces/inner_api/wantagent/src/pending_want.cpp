@@ -276,10 +276,11 @@ void PendingWant::Send(int resultCode, const std::shared_ptr<Want> &want,
 ErrCode PendingWant::Send(int resultCode, const std::shared_ptr<Want> &want,
     const sptr<CompletedDispatcher> &onCompleted, const std::string &requiredPermission,
     const std::shared_ptr<WantParams> &options, const std::shared_ptr<StartOptions> &startOptions,
-    const sptr<AAFwk::IWantSender> &target)
+    const sptr<AAFwk::IWantSender> &target, sptr<IRemoteObject> callerToken)
 {
     int result =
-        SendAndReturnResult(resultCode, want, onCompleted, requiredPermission, options, startOptions, target);
+        SendAndReturnResult(resultCode, want, onCompleted, requiredPermission, options,
+            startOptions, target, callerToken);
     if (result != 0) {
         return ERR_ABILITY_RUNTIME_EXTERNAL_SERVICE_BUSY;
     }
@@ -289,7 +290,7 @@ ErrCode PendingWant::Send(int resultCode, const std::shared_ptr<Want> &want,
 int PendingWant::SendAndReturnResult(int resultCode, const std::shared_ptr<Want> &want,
     const sptr<CompletedDispatcher> &onCompleted, const std::string &requiredPermission,
     const std::shared_ptr<WantParams> &options, const std::shared_ptr<StartOptions> &startOptions,
-    const sptr<AAFwk::IWantSender> &target)
+    const sptr<AAFwk::IWantSender> &target, sptr<IRemoteObject> callerToken)
 {
     TAG_LOGD(AAFwkTag::WANTAGENT, "call");
     SenderInfo senderInfo;
@@ -306,6 +307,7 @@ int PendingWant::SendAndReturnResult(int resultCode, const std::shared_ptr<Want>
     senderInfo.requiredPermission = requiredPermission;
     senderInfo.code = resultCode;
     senderInfo.finishedReceiver = onCompleted;
+    senderInfo.callerToken = callerToken;
     return WantAgentClient::GetInstance().SendWantSender(target, senderInfo);
 }
 

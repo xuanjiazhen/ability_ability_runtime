@@ -227,12 +227,12 @@ public:
     ErrCode Send(int resultCode, const std::shared_ptr<AAFwk::Want> &want,
         const sptr<CompletedDispatcher> &onCompleted, const std::string &requiredPermission,
         const std::shared_ptr<AAFwk::WantParams> &options, const std::shared_ptr<AAFwk::StartOptions> &startOptions,
-        const sptr<AAFwk::IWantSender> &target);
+        const sptr<AAFwk::IWantSender> &target, sptr<IRemoteObject> callerToken = nullptr);
 
     int SendAndReturnResult(int resultCode, const std::shared_ptr<AAFwk::Want> &want,
         const sptr<CompletedDispatcher> &onCompleted, const std::string &requiredPermission,
         const std::shared_ptr<AAFwk::WantParams> &options, const std::shared_ptr<AAFwk::StartOptions> &startOptions,
-        const sptr<AAFwk::IWantSender> &target);
+        const sptr<AAFwk::IWantSender> &target, sptr<IRemoteObject> callerToken = nullptr);
 
     ErrCode GetBundleName(const sptr<AAFwk::IWantSender> &target, std::string &bundleName);
 
