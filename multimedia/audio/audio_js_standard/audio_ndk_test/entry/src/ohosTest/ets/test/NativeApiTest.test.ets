@@ -3947,5 +3947,184 @@ export default function audioNDK() {
       done()
     })
 
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_CAPTURER_GET_FAST_STATUS_001
+     * @tc.name      : TestCapturerGetFastStatus001
+     * @tc.desc      : test OH_AudioCapturer_GetFastStatus
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('TestCapturerGetFastStatus001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.audioCaptureGetFastStatus_001();
+      console.info(`Tag: SUB_MULTIMEDIA_AUDIO_CAPTURER_GET_FAST_STATUS_001 audioCaptureGetFastStatus_001: ${result}`);
+      expect(result).assertEqual(TEST_PASS)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_CAPTURER_GET_FAST_STATUS_002
+     * @tc.name      : TestCapturerGetFastStatus002
+     * @tc.desc      : test OH_AudioCapturer_GetFastStatus
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('TestCapturerGetFastStatus002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.audioCaptureGetFastStatus_002();
+      console.info(`Tag: SUB_MULTIMEDIA_AUDIO_CAPTURER_GET_FAST_STATUS_002 audioCaptureGetFastStatus_002: ${result}`);
+      expect(result).assertEqual(TEST_PASS)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_CAPTURER_GET_FAST_STATUS_003
+     * @tc.name      : TestCapturerGetFastStatus003
+     * @tc.desc      : test OH_AudioCapturer_GetFastStatus
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('TestCapturerGetFastStatus003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.audioCaptureGetFastStatus_003();
+      console.info(`Tag: SUB_MULTIMEDIA_AUDIO_CAPTURER_GET_FAST_STATUS_003 audioCaptureGetFastStatus_003: ${result}`);
+      expect(result).assertEqual(TEST_PASS)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_RENDERER_GET_FAST_STATUS_001
+     * @tc.name      : TestRendererGetFastStatus001
+     * @tc.desc      : test OH_AudioRenderer_GetFastStatus
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('TestRendererGetFastStatus001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.audioRendererGetFastStatus_001();
+      console.info(`Tag: SUB_MULTIMEDIA_AUDIO_RENDERER_GET_FAST_STATUS_001 audioRendererGetFastStatus_001: ${result}`);
+      expect(result).assertEqual(TEST_PASS)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_RENDERER_GET_FAST_STATUS_002
+     * @tc.name      : TestRendererGetFastStatus002
+     * @tc.desc      : test OH_AudioRenderer_GetFastStatus
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('TestRendererGetFastStatus002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.audioRendererGetFastStatus_002();
+      console.info(`Tag: SUB_MULTIMEDIA_AUDIO_RENDERER_GET_FAST_STATUS_002 audioRendererGetFastStatus_002: ${result}`);
+      expect(result).assertEqual(TEST_PASS)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_RENDERER_GET_FAST_STATUS_003
+     * @tc.name      : TestRendererGetFastStatus003
+     * @tc.desc      : test OH_AudioRenderer_GetFastStatus
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('TestRendererGetFastStatus003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.audioRendererGetFastStatus_003();
+      console.info(`Tag: SUB_MULTIMEDIA_AUDIO_RENDERER_GET_FAST_STATUS_003 audioRendererGetFastStatus_003: ${result}`);
+      expect(result).assertEqual(TEST_PASS)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_IS_FAST_PLAYBACK_SUPPORTED_001
+     * @tc.name      : TestIsFastPlaybackSupported001
+     * @tc.desc      : test OH_AudioStreamManager_IsFastPlaybackSupported
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('TestIsFastPlaybackSupported001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.audioStreamManagerIsFastPlaybackSupported_001();
+      console.info(`Tag: SUB_MULTIMEDIA_AUDIO_IS_FAST_PLAYBACK_SUPPORTED_001 audioStreamManagerIsFastPlaybackSupported_001: ${result}`);
+      expect(result).assertEqual(TEST_PASS)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_IS_FAST_RECORDING_SUPPORTED_001
+     * @tc.name      : TestIsFastRecordingSupported001
+     * @tc.desc      : test OH_AudioStreamManager_IsFastRecordingSupported
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('TestIsFastRecordingSupported001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.audioStreamManagerIsFastRecordingSupported_001();
+      console.info(`Tag: SUB_MULTIMEDIA_AUDIO_IS_FAST_RECORDING_SUPPORTED_001 audioStreamManagerIsFastRecordingSupported_001: ${result}`);
+      expect(result).assertEqual(TEST_PASS)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_SET_CAPTURER_FAST_STATUS_CHANGED_CALLBACK_001
+     * @tc.name      : TestSetCapturerFastStatusChangeCallback001
+     * @tc.desc      : test OH_AudioStreamBuilder_SetCapturerFastStatusChangeCallback
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('TestSetCapturerFastStatusChangeCallback001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.audioStreamBuilderSetCapturerFastStatusChangeCallback_001();
+      console.info(`Tag: SUB_MULTIMEDIA_AUDIO_SET_CAPTURER_FAST_STATUS_CHANGED_CALLBACK_001 audioStreamBuilderSetCapturerFastStatusChangeCallback_001: ${result}`);
+      expect(result).assertEqual(TEST_PASS)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_SET_CAPTURER_FAST_STATUS_CHANGED_CALLBACK_002
+     * @tc.name      : TestSetCapturerFastStatusChangeCallback002
+     * @tc.desc      : test OH_AudioStreamBuilder_SetCapturerFastStatusChangeCallback
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('TestSetCapturerFastStatusChangeCallback002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.audioStreamBuilderSetCapturerFastStatusChangeCallback_002();
+      console.info(`Tag: SUB_MULTIMEDIA_AUDIO_SET_CAPTURER_FAST_STATUS_CHANGED_CALLBACK_002 audioStreamBuilderSetCapturerFastStatusChangeCallback_002: ${result}`);
+      expect(result).assertEqual(TEST_PASS)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_SET_RENDERER_FAST_STATUS_CHANGED_CALLBACK_001
+     * @tc.name      : TestSetRendererFastStatusChangeCallback001
+     * @tc.desc      : test OH_AudioStreamBuilder_SetRendererFastStatusChangeCallback
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('TestSetRendererFastStatusChangeCallback001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.audioStreamBuilderSetRendererFastStatusChangeCallback_001();
+      console.info(`Tag: SUB_MULTIMEDIA_AUDIO_SET_RENDERER_FAST_STATUS_CHANGED_CALLBACK_001 audioStreamBuilderSetRendererFastStatusChangeCallback_001: ${result}`);
+      expect(result).assertEqual(TEST_PASS)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_SET_RENDERER_FAST_STATUS_CHANGED_CALLBACK_002
+     * @tc.name      : TestSetRendererFastStatusChangeCallback002
+     * @tc.desc      : test OH_AudioStreamBuilder_SetRendererFastStatusChangeCallback
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('TestSetRendererFastStatusChangeCallback002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.audioStreamBuilderSetRendererFastStatusChangeCallback_002();
+      console.info(`Tag: SUB_MULTIMEDIA_AUDIO_SET_RENDERER_FAST_STATUS_CHANGED_CALLBACK_002 audioStreamBuilderSetRendererFastStatusChangeCallback_002: ${result}`);
+      expect(result).assertEqual(TEST_PASS)
+      done()
+    })
   })
 }
