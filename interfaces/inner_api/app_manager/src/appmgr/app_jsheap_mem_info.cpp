@@ -31,7 +31,7 @@ JsHeapDumpInfo *JsHeapDumpInfo::Unmarshalling(Parcel &parcel)
     if (info == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "info nullptr");
         return nullptr;
-    }U
+    }
     info->pid = parcel.Readint32();
     info->tid = parcel.ReadUint32();
     info->needGc = parcel.ReadBool();
