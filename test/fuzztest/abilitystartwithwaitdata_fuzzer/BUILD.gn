@@ -37,6 +37,8 @@ ohos_fuzztest("AbilityStartWithWaitDataFuzzTest") {
     "abilitystartwithwaitdata_fuzzer.cpp",
   ]
 
+  configs = [ "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config" ]
+
   deps = [
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_services_path}/appmgr:libappms",
