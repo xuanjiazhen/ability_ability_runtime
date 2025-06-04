@@ -158,7 +158,7 @@ public:
         return 0;
     }
 
-    irtual int SuspendExtensionAbility(sptr<IAbilityConnection> connect)
+    virtual int SuspendExtensionAbility(sptr<IAbilityConnection> connect)
     {
         return 0;
     }
