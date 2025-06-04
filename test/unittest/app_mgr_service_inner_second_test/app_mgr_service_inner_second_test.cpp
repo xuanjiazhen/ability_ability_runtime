@@ -132,7 +132,7 @@ class IKiaInterceptorTest : public IKiaInterceptor {
     public:
     IKiaInterceptorTest() = default;
     virtual ~IKiaInterceptorTest() = default;
-    int OnIntercept(AAFwk::Want &want) override { return 0; }
+    ErrCode OnIntercept(AAFwk::Want &want) override { return 0; }
 };
 
 /**

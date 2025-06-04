@@ -23,7 +23,7 @@ int MockKiaInterceptorImpl::onInterceptRetCode = 0;
 std::string MockKiaInterceptorImpl::kiaWatermarkBusinessName;
 bool MockKiaInterceptorImpl::isWatermarkEnabled = false;
 
-int MockKiaInterceptorImpl::OnIntercept(AAFwk::Want &want)
+ErrCode MockKiaInterceptorImpl::OnIntercept(AAFwk::Want &want)
 {
     if (onInterceptRetCode != 0) {
         return onInterceptRetCode;
