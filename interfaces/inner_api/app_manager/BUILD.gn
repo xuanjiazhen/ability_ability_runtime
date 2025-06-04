@@ -58,11 +58,6 @@ idl_gen_interface("app_mgr_interface") {
 }
 
 ohos_source_set("app_mgr_idl_proxy") {
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
   configs = [
     ":appmgr_core_config",
     ":appmgr_sdk_config",
@@ -96,11 +91,6 @@ ohos_source_set("app_mgr_idl_proxy") {
 }
 
 ohos_source_set("app_mgr_idl_stub") {
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
   configs = [
     ":appmgr_core_config",
     ":appmgr_sdk_config",
@@ -141,11 +131,6 @@ ohos_source_set("app_mgr_idl_stub") {
 
 ohos_shared_library("app_manager") {
   branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
   include_dirs = [
     "${ability_runtime_path}/interfaces/kits/native/appkit/dfr",
     "${ability_runtime_path}/utils/global/time/include",
