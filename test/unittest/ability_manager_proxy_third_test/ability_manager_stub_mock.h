@@ -139,6 +139,11 @@ public:
         return 0;
     }
 
+    virtual int SuspendExtensionAbility(sptr<IAbilityConnection> connect)
+    {
+        return 0;
+    }
+
     virtual int ResumeExtensionAbility(sptr<IAbilityConnection> connect)
     {
         return 0;

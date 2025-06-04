@@ -20,8 +20,8 @@
 #include <iremote_stub.h>
 #include "ability_manager_interface.h"
 
-namespace OHOS {
-namespace AAFwk {
+    namespace OHOS {
+    namespace AAFwk {
 class AbilityManagerStubTestMock : public IRemoteStub<IAbilityManager> {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"IAbilityManagerMock");

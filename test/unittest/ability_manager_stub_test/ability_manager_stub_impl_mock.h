@@ -158,6 +158,16 @@ public:
         return 0;
     }
 
+    irtual int SuspendExtensionAbility(sptr<IAbilityConnection> connect)
+    {
+        return 0;
+    }
+
+    virtual int ResumeExtensionAbility(sptr<IAbilityConnection> connect)
+    {
+        return 0;
+    }
+
     sptr<IAbilityScheduler> AcquireDataAbility(
         const Uri& uri, bool tryBind, const sptr<IRemoteObject>& callerToken) override
     {
