@@ -273,8 +273,8 @@ HWTEST_F(ConnectionStateItemTest, RemoveConnection_002, TestSize.Level1)
     std::shared_ptr<ConnectionRecord> record = std::make_shared<ConnectionRecord>(
         callerToken, abilityRecord, connCallback, nullptr);
     ConnectionData data;
-    ConnectionEvent event；
-    auto res = connectionStateItem->RemoveConnection(record, data，event);
+    ConnectionEvent event;
+    auto res = connectionStateItem->RemoveConnection(record, data, event);
     EXPECT_FALSE(res);
 }
 
@@ -294,7 +294,8 @@ HWTEST_F(ConnectionStateItemTest, RemoveConnection_003, TestSize.Level1)
     std::shared_ptr<ConnectionRecord> record = std::make_shared<ConnectionRecord>(
         abilityRecord->GetToken(), abilityRecord, connCallback, nullptr);
     ConnectionData data;
-    auto res = connectionStateItem->RemoveConnection(record, data);
+    ConnectionEvent event;
+    auto res = connectionStateItem->RemoveConnection(record, data, event);
     EXPECT_FALSE(res);
 }
 
@@ -314,7 +315,7 @@ HWTEST_F(ConnectionStateItemTest, RemoveConnection_004, TestSize.Level1)
     std::shared_ptr<ConnectionRecord> record = std::make_shared<ConnectionRecord>(
         abilityRecord->GetToken(), abilityRecord, connCallback, nullptr);
     ConnectionData data;
-    ConnectionEvent event；
+    ConnectionEvent event;
     auto res = connectionStateItem->RemoveConnection(record, data, event；);
     EXPECT_FALSE(res);
 }
@@ -335,9 +336,9 @@ HWTEST_F(ConnectionStateItemTest, RemoveConnection_005, TestSize.Level1)
     std::shared_ptr<ConnectionRecord> record = std::make_shared<ConnectionRecord>(
         abilityRecord->GetToken(), abilityRecord, connCallback, nullptr);
     ConnectionData data;
-    ConnectionEvent event；
+    ConnectionEvent event;
     connectionStateItem->connectionMap_[abilityRecord->GetToken()] = nullptr;
-    auto res = connectionStateItem->RemoveConnection(record, data, event；);
+    auto res = connectionStateItem->RemoveConnection(record, data, event);
     EXPECT_FALSE(res);
 }
 
@@ -357,7 +358,7 @@ HWTEST_F(ConnectionStateItemTest, RemoveConnection_006, TestSize.Level1)
     std::shared_ptr<ConnectionRecord> record = std::make_shared<ConnectionRecord>(
         abilityRecord->GetToken(), abilityRecord, connCallback, nullptr);
     ConnectionData data;
-    ConnectionEvent event
+    ConnectionEvent event;
     connectionStateItem->AddConnection(record, data, event);
     auto res = connectionStateItem->RemoveConnection(record, data, event);
     EXPECT_TRUE(res);
