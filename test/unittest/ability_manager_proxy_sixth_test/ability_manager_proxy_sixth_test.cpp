@@ -51,7 +51,7 @@ class MockIHiddenStartObserver : public IHiddenStartObserver {
 public:
     bool IsHiddenStart(int32_t pid)
     {
-        return false;
+        return true;
     }
     sptr<IRemoteObject> AsObject()
     {
