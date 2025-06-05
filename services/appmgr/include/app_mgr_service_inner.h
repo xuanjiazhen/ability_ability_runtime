@@ -64,7 +64,7 @@
 #include "iremote_object.h"
 #include "irender_state_observer.h"
 #include "istart_specified_ability_response.h"
-#include "kia_interceptor_interface.h"
+#include "ikia_interceptor.h"
 #include "kill_process_config.h"
 #include "killed_process_info.h"
 #include "process_memory_state.h"
