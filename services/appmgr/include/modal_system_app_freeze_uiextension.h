@@ -47,7 +47,7 @@ public:
 
 private:
     bool CreateModalUIExtension(std::string pid, std::string bundleName);
-    AAFwk::Want CreateSystemDialogWant(std::string pid, std::string bundleName, sptr<IRemoteObject> &token);
+    bool CreateSystemDialogWant(std::string pid, std::string bundleName, sptr<IRemoteObject> &token, AAFwk::Want &want);
 
 private:
     bool lastFocusStatus = false;
