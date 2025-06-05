@@ -22,6 +22,7 @@
 #include "running_multi_info.h"
 #include "process_data.h"
 #include "keep_alive_info.h"
+#include "ability_state_data.h"
 
 namespace OHOS {
 namespace AppManagerSts {
