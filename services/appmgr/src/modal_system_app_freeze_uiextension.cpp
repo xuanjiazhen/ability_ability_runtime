@@ -97,10 +97,13 @@ void ModalSystemAppFreezeUIExtension::ProcessAppFreeze(bool focusFlag, const Fau
 
 bool ModalSystemAppFreezeUIExtension::CreateModalUIExtension(std::string pid, std::string bundleName)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "Called");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Create Modal UIExtension Called");
     sptr<IRemoteObject> token;
-    AAFwk::Want want = CreateSystemDialogWant(pid, bundleName, token);
+    AAFwk::Want want;
     std::unique_lock<std::mutex> lockAssertResult(appFreezeResultMutex_);
+    if (!CreateSystemDialogWant(pid, bundleName, token, want)) {
+        return false;
+    }
     auto abilityManagerClient = AAFwk::AbilityManagerClient::GetInstance();
     if (abilityManagerClient == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null abilityManagerClient");
@@ -114,16 +117,14 @@ bool ModalSystemAppFreezeUIExtension::CreateModalUIExtension(std::string pid, st
     lastFreezePid = pid;
     lastFocusStatus = true;
     lastFreezeTime =
-        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch())
-            .count();
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
     TAG_LOGI(AAFwkTag::ABILITYMGR, "success, result = %{public}d", result);
     return true;
 }
 
-AAFwk::Want ModalSystemAppFreezeUIExtension::CreateSystemDialogWant(
-    std::string pid, std::string bundleName, sptr<IRemoteObject> &token)
+bool ModalSystemAppFreezeUIExtension::CreateSystemDialogWant(
+    std::string pid, std::string bundleName, sptr<IRemoteObject> &token, AAFwk::Want &want)
 {
-    AAFwk::Want want;
     want.SetElementName(APP_NO_RESPONSE_BUNDLENAME, APP_NO_RESPONSE_ABILITY);
     want.SetParam(UIEXTENSION_TYPE_KEY, UIEXTENSION_SYS_COMMON_UI);
     want.SetParam(APP_FREEZE_PID, pid);
@@ -132,10 +133,12 @@ AAFwk::Want ModalSystemAppFreezeUIExtension::CreateSystemDialogWant(
     auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
     if (!sceneSessionManager) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "sceneSessionManager is null proxy!");
+        return false;
     } else {
         auto ret = static_cast<int>(sceneSessionManager->GetFocusSessionToken(token));
         if (ret != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "Get focus session token err: %{public}d", ret);
+            return false;
         }
     }
     want.SetParam(APP_FREEZE_TOKEN, token);
@@ -148,16 +151,22 @@ AAFwk::Want ModalSystemAppFreezeUIExtension::CreateSystemDialogWant(
     auto ret = sceneSessionManager->GetVisibilityWindowInfo(infos);
     if (ret != Rosen::WMError::WM_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Get visibility window info err: %{public}d", ret);
+        return false;
     } else {
+        bool infoReady = false;
         for (const auto &info : infos) {
             if (info->IsFocused()) {
                 posX = info->rect_.posX_;
                 posY = info->rect_.posY_;
                 width = info->rect_.width_;
                 height = info->rect_.height_;
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "Get focused window info successfully.");
+                infoReady = true;
                 break;
             }
+        }
+        if (!infoReady) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "No fucused window!");
+            return false;
         }
     }
     want.SetParam(FREEZE_WINDOW_POSX, std::to_string(posX));
