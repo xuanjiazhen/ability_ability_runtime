@@ -51,6 +51,7 @@
 #include "running_process_info.h"
 #include "system_memory_attr.h"
 #include "want.h"
+#include "app_cjheap_mem_info.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -299,6 +300,15 @@ public:
      * @return ERR_OK ,return back success, others fail.
      */
     virtual int DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info) = 0;
+
+    /**
+     * DumpCjHeapMemory, call DumpCjHeapMemory() through proxy project.
+     * triggerGC and dump the application's cjheap memory info.
+     *
+     * @param info, pid needGc needSnapshot
+     * @return ERR_OK ,return back success, others fail.
+     */
+    virtual int DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info) = 0;
 
     /**
      * Start a resident process
