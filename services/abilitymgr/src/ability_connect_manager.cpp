@@ -219,6 +219,8 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
     if (ret != ERR_OK) {
         return ret;
     }
+    TAG_LOGE(AAFwkTag::SERVICE_EXT, "-----wzb---AbilityConnectManager::StartAbilityLocked---ReportEventToRSS-----new 3-4-5");
+    ReportEventToRSS(abilityRequest.abilityInfo, targetService, abilityRequest.callerToken);
 
     if (!isLoadedAbility) {
         TAG_LOGD(AAFwkTag::SERVICE_EXT, "targetService has not been loaded");
@@ -611,7 +613,7 @@ void AbilityConnectManager::ReportEventToRSS(const AppExecFwk::AbilityInfo &abil
     if (taskHandler_ == nullptr || abilityRecord == nullptr || abilityRecord->GetPid() <= 0) {
         return;
     }
-
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "-----wzb-----AbilityConnectManager::ReportEventToRSS PID > 0");
     std::string reason = ResSchedUtil::GetInstance().GetThawReasonByAbilityType(abilityInfo);
     const int32_t uid = abilityInfo.applicationInfo.uid;
     const std::string bundleName = abilityInfo.applicationInfo.bundleName;
@@ -650,9 +652,9 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
     if (ret != ERR_OK) {
         return ret;
     }
-    if (ResSchedUtil::GetInstance().NeedReportByPidWhenConnect(abilityRequest.abilityInfo)) {
-        ReportEventToRSS(abilityRequest.abilityInfo, targetService, callerToken);
-    }
+    TAG_LOGE(AAFwkTag::SERVICE_EXT, "wzb-----AbilityConnectManager::ConnectAbilityLocked ---NEW----6");
+    ReportEventToRSS(abilityRequest.abilityInfo, targetService, callerToken);
+
     // 2. get target connectRecordList, and check whether this callback has been connected.
     ConnectListType connectRecordList;
     GetConnectRecordListFromMap(connect, connectRecordList);
