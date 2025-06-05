@@ -15,6 +15,8 @@
 
 import { Configuration } from '@ohos.app.ability.Configuration'
 import AbilityStageContext from 'application.AbilityStageContext'
+import Want from '@ohos.app.ability.Want';
+import AbilityConstant from '@ohos.app.ability.AbilityConstant';
 
 export default class AbilityStage {
     context: AbilityStageContext = new AbilityStageContext();
@@ -26,5 +28,16 @@ export default class AbilityStage {
     }
 
     onDestroy(): void {
+    }
+
+    onAcceptWant(want: Want): string {
+        return '';
+    }
+
+    onMemoryLevel(level: AbilityConstant.MemoryLevel): void {
+    }
+
+    onNewProcessRequest(want: Want): string {
+        return '';
     }
 }
