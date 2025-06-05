@@ -23,7 +23,7 @@
 
 #include "ability_stage.h"
 #include "configuration.h"
-#include "js_startup_task.h"
+#include "ets_startup_task.h"
 #include "resource_manager.h"
 #include "nlohmann/json.hpp"
 #include "native_engine/native_value.h"
@@ -67,12 +67,12 @@ private:
 
     static bool UseCommonChunk(const AppExecFwk::HapModuleInfo& hapModuleInfo);
 
-    std::unique_ptr<STSNativeReference> LoadJsOhmUrl(const std::string &srcEntry, const std::string &ohmUrl,
+    std::unique_ptr<STSNativeReference> LoadEtsOhmUrl(const std::string &srcEntry, const std::string &ohmUrl,
         const std::string &moduleName, const std::string &hapPath, bool esmodule);
 
     std::unique_ptr<STSNativeReference> LoadJsSrcEntry(const std::string &srcEntry);
 
-    bool LoadJsStartupConfig(const std::string &srcEntry);
+    bool LoadEtsStartupConfig(const std::string &srcEntry);
 
     int32_t RegisterAppStartupTask(const std::shared_ptr<AppExecFwk::HapModuleInfo>& hapModuleInfo);
 
