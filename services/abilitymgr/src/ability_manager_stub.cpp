@@ -25,6 +25,7 @@
 #include "mission_listener_interface.h"
 #include "mission_snapshot.h"
 #include "snapshot.h"
+#include "insight_intent_execute_param.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -1575,6 +1576,10 @@ int AbilityManagerStub::StartAbilityAddCallerInner(MessageParcel &data, MessageP
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
         return ERR_INVALID_VALUE;
+    }
+    //fix security issues,remove INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG.
+    if (want->HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG)) {
+        want->RemoveParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG);
     }
 
     sptr<IRemoteObject> callerToken = nullptr;
