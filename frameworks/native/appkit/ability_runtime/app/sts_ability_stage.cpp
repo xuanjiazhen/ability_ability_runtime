@@ -53,6 +53,18 @@ void RegisterStopPreloadSoCallback(STSRuntime& stsRuntime)
         TAG_LOGE(AAFwkTag::APPKIT, "null startupManager");
         return;
     }
+    if (!startupManager->HasAppStartupConfig()) {
+        // no app startup config, no need to register stop preload so callback.
+        return;
+    }
+    stsRuntime.SetStopPreloadSoCallback([]()-> void {
+        std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+        if (startupManager == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null startupManager");
+            return;
+        }
+        startupManager->StopAutoPreloadSoTask();
+    });
 }
 } // namespace
 
@@ -185,33 +197,190 @@ void STSAbilityStage::OnMemoryLevel(int32_t level)
 int32_t STSAbilityStage::RunAutoStartupTask(const std::function<void()> &callback, bool &isAsyncCallback,
     const std::shared_ptr<Context> &stageContext)
 {
+    TAG_LOGD(AAFwkTag::APPKIT, "RunAutoStartupTask called");
     isAsyncCallback = false;
+    auto context = GetContext();
+    if (!context) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null context");
+        return ERR_INVALID_VALUE;
+    }
+    auto hapModuleInfo = context->GetHapModuleInfo();
+    if (!hapModuleInfo) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null hapModuleInfo");
+        return ERR_INVALID_VALUE;
+    }
+    if (hapModuleInfo->moduleType != AppExecFwk::ModuleType::ENTRY) {
+        TAG_LOGD(AAFwkTag::APPKIT, "not entry module");
+        return ERR_INVALID_VALUE;
+    }
+    if (hapModuleInfo->appStartup.empty()) {
+        TAG_LOGD(AAFwkTag::APPKIT, "entry module no app startup config");
+        return ERR_INVALID_VALUE;
+    }
+
+    SetJsAbilityStage(stageContext);
+
+    int32_t result = RegisterAppStartupTask(hapModuleInfo);
+    if (result != ERR_OK) {
+        return result;
+    }
     return RunAutoStartupTaskInner(callback, isAsyncCallback);
 }
 
 int32_t STSAbilityStage::RegisterAppStartupTask(const std::shared_ptr<AppExecFwk::HapModuleInfo>& hapModuleInfo)
 {
+   std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    if (startupManager == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null startupManager");
+        return ERR_INVALID_VALUE;
+    }
+    bool needRunAutoStartupTask = false;
+    int32_t result = startupManager->LoadAppStartupTaskConfig(needRunAutoStartupTask);
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (!needRunAutoStartupTask) {
+        return ERR_OK;
+    }
+
+    //TODO dxp
+    //stsRuntime_.UpdateModuleNameAndAssetPath(hapModuleInfo->moduleName);
+
+    const std::string &configEntry = startupManager->GetPendingConfigEntry();
+    if (!LoadEtsStartupConfig(configEntry)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "load js appStartup config failed.");
+        return ERR_INVALID_VALUE;
+    }
+
+    const std::vector<StartupTaskInfo> &startupTaskInfos = startupManager->GetStartupTaskInfos();
+    for (const auto& item : startupTaskInfos) {
+        std::unique_ptr<STSNativeReference> startupStsRef = LoadEtsOhmUrl(
+            item.srcEntry, item.ohmUrl, item.moduleName, item.hapPath, item.esModule);
+        if (startupStsRef == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "load ets appStartup tasks failed.");
+            continue;
+        }
+
+        auto etsStartupTask = std::make_shared<EtsStartupTask>(item.name, stsRuntime_, startupJsRef, shellContextRef_);
+        etsStartupTask->SetDependencies(item.dependencies);
+        etsStartupTask->SetIsExcludeFromAutoStart(item.excludeFromAutoStart);
+        etsStartupTask->SetCallCreateOnMainThread(item.callCreateOnMainThread);
+        etsStartupTask->SetWaitOnMainThread(item.waitOnMainThread);
+        startupManager->RegisterAppStartupTask(item.name, etsStartupTask);
+    }
     return ERR_OK;
 }
 
 int32_t STSAbilityStage::RunAutoStartupTaskInner(const std::function<void()> &callback, bool &isAsyncCallback)
 {
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    if (startupManager == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null startupManager");
+        return ERR_INVALID_VALUE;
+    }
+    std::shared_ptr<StartupTaskManager> startupTaskManager = nullptr;
+    int32_t result = startupManager->BuildAutoAppStartupTaskManager(startupTaskManager);
+    if (result != ERR_OK) {
+        return result;
+    }
+    result = startupTaskManager->Prepare();
+    if (result != ERR_OK) {
+        return result;
+    }
+    auto runAutoStartupCallback = std::make_shared<OnCompletedCallback>(
+        [callback](const std::shared_ptr<StartupTaskResult> &) {
+            TAG_LOGI(AAFwkTag::APPKIT, "RunAutoStartupCallback");
+            callback();
+        });
+    result = startupTaskManager->Run(runAutoStartupCallback);
+    if (result != ERR_OK) {
+        isAsyncCallback = runAutoStartupCallback->IsCalled();
+        return result;
+    }
+    isAsyncCallback = true;
     return ERR_OK;
 }
 
-std::unique_ptr<STSNativeReference> STSAbilityStage::LoadJsOhmUrl(const std::string &srcEntry,
+std::unique_ptr<STSNativeReference> STSAbilityStage::LoadEtsOhmUrl(const std::string &srcEntry,
     const std::string &ohmUrl, const std::string &moduleName, const std::string &hapPath, bool esmodule)
 {
-    return nullptr;
+    TAG_LOGD(AAFwkTag::APPKIT, "LoadEtsOhmUrl call");
+    if (srcEntry.empty() && ohmUrl.empty()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "srcEntry and ohmUrl empty");
+        return nullptr;
+    }
+
+    std::string moduleNameWithStartupTask = moduleName + "::startupTask";
+    std::string srcPath(moduleName + "/" + srcEntry);
+    auto pos = srcPath.rfind('.');
+    if (pos == std::string::npos) {
+        return nullptr;
+    }
+    srcPath.erase(pos);
+    srcPath.append(".abc");
+
+    return stsRuntime_.LoadModule(moduleNameWithStartupTask, srcPath, hapPath, esmodule, false, ohmUrl);
 }
 
-std::unique_ptr<STSNativeReference> STSAbilityStage::LoadJsSrcEntry(const std::string &srcEntry)
+std::unique_ptr<STSNativeReference> STSAbilityStage::LoadEtsSrcEntry(const std::string &srcEntry)
 {
-    return nullptr;
+   TAG_LOGD(AAFwkTag::APPKIT, "LoadEtsSrcEntry call");
+    if (srcEntry.empty()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "srcEntry invalid");
+        return nullptr;
+    }
+    auto context = GetContext();
+    if (!context) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null context");
+        return nullptr;
+    }
+    auto hapModuleInfo = context->GetHapModuleInfo();
+    if (!hapModuleInfo) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null hapModuleInfo");
+        return nullptr;
+    }
+
+    bool esmodule = hapModuleInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE;
+    std::string moduleName(hapModuleInfo->moduleName);
+    std::string srcPath(moduleName + "/" + srcEntry);
+
+    auto pos = srcPath.rfind('.');
+    if (pos == std::string::npos) {
+        return nullptr;
+    }
+    srcPath.erase(pos);
+    srcPath.append(".abc");
+
+    //TODO dxp srcEntry
+    return stsRuntime_.LoadModule(moduleName, srcPath, hapModuleInfo->hapPath, esmodule);
 }
 
-bool STSAbilityStage::LoadJsStartupConfig(const std::string &srcEntry)
+bool STSAbilityStage::LoadEtsStartupConfig(const std::string &srcEntry)
 {
+    std::unique_ptr<STSNativeReference> startupConfigEntry = LoadEtsSrcEntry(srcEntry);
+    if (startupConfigEntry == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null startupConfigEntry");
+        return false;
+    }
+    auto env = stsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return false;
+    }
+    std::shared_ptr<EtsStartupConfig> startupConfig = std::make_shared<EtsStartupConfig>(env);
+    if (startupConfig == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null startupConfig");
+        return false;
+    }
+    if (startupConfig->Init(startupConfigEntry) != ERR_OK) {
+        return false;
+    }
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    if (startupManager == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null startupManager");
+        return false;
+    }
+    startupManager->SetDefaultConfig(startupConfig);
     return true;
 }
 
