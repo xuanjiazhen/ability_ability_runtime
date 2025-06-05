@@ -88,6 +88,7 @@ struct AppFaultDataBySA : public Parcelable {
     bool needKillProcess = true;
     bool WriteErrorObject(Parcel &parcel) const;
     virtual bool Marshalling(Parcel &parcel) const override;
+    bool MarshallingInner(Parcel &parcel) const;
     static AppFaultDataBySA *Unmarshalling(Parcel &parcel);
     // error object
     ErrorObject errorObject;
