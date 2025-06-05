@@ -1159,7 +1159,7 @@ void NAPIRemoteMissionListener::NotifyMissionsChanged(const std::string &deviceI
     TAG_LOGI(AAFwkTag::MISSION, "end");
 }
 
-void NAPIRemoteOnListener::OnCallback(const uint32_t continueState, const std::string &srcDeviceId,
+ErrCode NAPIRemoteOnListener::OnCallback(const uint32_t continueState, const std::string &srcDeviceId,
     const std::string &bundleName, const std::string &continueType, const std::string &srcBundleName)
 {
     TAG_LOGI(AAFwkTag::MISSION, "called");
@@ -1168,7 +1168,7 @@ void NAPIRemoteOnListener::OnCallback(const uint32_t continueState, const std::s
     napi_get_uv_event_loop(env_, &loop);
     if (loop == nullptr) {
         TAG_LOGE(AAFwkTag::MISSION, "null loop");
-        return;
+        return PARAMETER_CHECK_FAILED;
     }
 
     uv_work_t *work = new uv_work_t;
@@ -1177,7 +1177,7 @@ void NAPIRemoteOnListener::OnCallback(const uint32_t continueState, const std::s
     if (onCB == nullptr) {
         TAG_LOGE(AAFwkTag::MISSION, "null onCB");
         delete work;
-        return;
+        return PARAMETER_CHECK_FAILED;
     }
     for (auto ele = callbacks_.begin(); ele != callbacks_.end(); ++ele) {
         onCB->cbBase.cbInfo.vecCallbacks.push_back(*ele);
@@ -1198,6 +1198,7 @@ void NAPIRemoteOnListener::OnCallback(const uint32_t continueState, const std::s
         delete work;
     }
     TAG_LOGI(AAFwkTag::MISSION, "OnCallback end");
+    return ERR_OK;
 }
 
 void UvWorkNotifySnapshot(uv_work_t *work, int status)
