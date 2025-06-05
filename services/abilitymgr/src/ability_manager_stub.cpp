@@ -20,7 +20,7 @@
 #include "fd_guard.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
-#include "status_bar_delegate_interface.h"
+#include "istatus_bar_delegate.h"
 #include <iterator>
 #include "mission_listener_interface.h"
 #include "mission_snapshot.h"
