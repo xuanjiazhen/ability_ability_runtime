@@ -26,8 +26,8 @@ public:
     MockSystemAbilityTokenCallbackStub() = default;
     virtual ~MockSystemAbilityTokenCallbackStub() = default;
 
-    MOCK_METHOD5(SendResult, int32_t(OHOS::AAFwk::Want& want, int32_t callerUid, int32_t requestCode,
-        uint32_t accessToken, int32_t resultCode));
+    MOCK_METHOD6(SendResult, ErrCode(const Want& want, int32_t callerUid, int32_t requestCode,
+        uint32_t accessToken, int32_t resultCode, int32_t& funcResult));
 };
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -85,7 +85,8 @@ HWTEST_F(SystemAbilityTokenCallbackStubTest, SystemAbilityTokenCallbackStubTest_
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    int res = stub_->OnRemoteRequest(ISystemAbilityTokenCallback::SEND_RESULT, data, reply, option);
+    int res = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(ISystemAbilityTokenCallbackIpcCode::COMMAND_SEND_RESULT), data, reply, option);
 
     EXPECT_EQ(res, ERR_PERMISSION_DENIED);
 }
@@ -105,7 +106,8 @@ HWTEST_F(SystemAbilityTokenCallbackStubTest, SystemAbilityTokenCallbackStubTest_
     MessageOption option;
     WriteInterfaceToken(data);
     data.WriteParcelable(nullptr);
-    int res = stub_->OnRemoteRequest(ISystemAbilityTokenCallback::SEND_RESULT, data, reply, option);
+    int res = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(ISystemAbilityTokenCallbackIpcCode::COMMAND_SEND_RESULT), data, reply, option);
 
     EXPECT_EQ(res, ERR_NULL_OBJECT);
 }
@@ -126,8 +128,9 @@ HWTEST_F(SystemAbilityTokenCallbackStubTest, SystemAbilityTokenCallbackStubTest_
     Want want;
     WriteInterfaceToken(data);
     data.WriteParcelable(&want);
-    EXPECT_CALL(*stub_, SendResult(_, _, _, _, _)).Times(1).WillOnce(Return(0));
-    int res = stub_->OnRemoteRequest(ISystemAbilityTokenCallback::SEND_RESULT, data, reply, option);
+    EXPECT_CALL(*stub_, SendResult(_, _, _, _, _, _)).Times(1).WillOnce(Return(0));
+    int res = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(ISystemAbilityTokenCallbackIpcCode::COMMAND_SEND_RESULT), data, reply, option);
 
     EXPECT_EQ(res, NO_ERROR);
 }
