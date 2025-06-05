@@ -33,7 +33,9 @@ export interface Callee {
 
 export default class UIAbility {
   private destroyCallbackPoint: long;
+  private prepareToTerminateCallbackPoint: long;
   private native nativeOnDestroyCallback(): void;
+  private native nativeOnPrepareToTerminateCallback(prepareTermination: boolean): void;
   private callOnDestroy(): boolean {
     const derivedClassType = AbilityUtils.getClassType(this);
     if (derivedClassType === undefined) {
@@ -54,6 +56,24 @@ export default class UIAbility {
     return false;
   }
 
+  private callOnPrepareToTerminate(): boolean {
+    const derivedClassType = AbilityUtils.getClassType(this);
+    if (derivedClassType === undefined) {
+      return false;
+    }
+    const uiAbilityClassType = AbilityUtils.getClassType(new UIAbility());
+    if (uiAbilityClassType === undefined) {
+      return false;
+    }
+    const isOverride = AbilityUtils.isOverride(derivedClassType, "onDestroyAsync", uiAbilityClassType);
+    if (isOverride) {
+      this.onPrepareToTerminateAsync().then((prepareTermination: boolean) => this.nativeOnPrepareToTerminateCallback(prepareTermination));
+      return true;
+    }
+    return false;
+  }
+
+
   context: UIAbilityContext = new UIAbilityContext();
   launchWant: Want = new Want();
   lastRequestWant: Want = new Want();
@@ -71,4 +91,8 @@ export default class UIAbility {
   onForeground(): void {}
   onBackground(): void {}
   onNewWant(want: Want, launchParam: AbilityConstant.LaunchParam): void {}
+  onPrepareToTerminateAsync(): Promise<boolean> {
+    return new Promise<boolean>((resolve: (a: boolean) => void,
+      reject: (err: Error) => void): boolean => {});
+  }
 }

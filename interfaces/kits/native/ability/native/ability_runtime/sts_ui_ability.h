@@ -236,6 +236,13 @@ public:
     bool OnBackPress() override;
 
     /**
+     * @brief Called when ability prepare terminate.
+     * @param callbackInfo The callbackInfo is used when onPrepareToTerminateAsync is implemented.
+     * @param isAsync The returned flag indicates if onPrepareToTerminateAsync is implemented.
+     */
+    void OnPrepareTerminate(AppExecFwk::AbilityTransactionCallbackInfo<bool> *callbackInfo, bool &isAsync) override;
+
+    /**
      * @brief Get JsWindow Stage
      * @return Returns the current STSNativeReference
      */
