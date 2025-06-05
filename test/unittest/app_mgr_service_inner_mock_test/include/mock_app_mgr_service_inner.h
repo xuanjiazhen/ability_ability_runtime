@@ -18,7 +18,7 @@
 
 #include "app_running_manager.h"
 #include "app_running_record.h"
-#include "kia_interceptor_interface.h"
+#include "ikia_interceptor.h"
 
 namespace OHOS {
 namespace AppExecFwk {
