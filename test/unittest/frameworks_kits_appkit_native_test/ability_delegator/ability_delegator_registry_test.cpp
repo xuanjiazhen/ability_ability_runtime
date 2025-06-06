@@ -96,7 +96,8 @@ HWTEST_F(AbilityDelegatorRegistryTest, Ability_Delegator_Registry_Test_0100, Fun
     std::unique_ptr<TestRunner> testRunner = TestRunner::Create(nullptr, abilityArgs, true);
     std::shared_ptr<AbilityDelegator> abilityDelegator =
         std::make_shared<AbilityDelegator>(nullptr, std::move(testRunner), nullptr);
-    AbilityDelegatorRegistry::RegisterInstance(abilityDelegator, abilityArgs);
+    AbilityDelegatorRegistry::RegisterInstance(abilityDelegator, abilityArgs,
+        AbilityRuntime::Runtime::Language::JS);
 
     EXPECT_EQ(AbilityDelegatorRegistry::GetAbilityDelegator(), abilityDelegator);
     EXPECT_EQ(AbilityDelegatorRegistry::GetArguments(), abilityArgs);
