@@ -27,7 +27,7 @@ public:
     virtual ~MockRenderScheduler() = default;
 
     MOCK_METHOD4(NotifyBrowserFd,
-                 void(int32_t ipcFd, int32_t sharedFd, int32_t crashFd, sptr<IRemoteObject> browser));
+                 ErrCode(int32_t ipcFd, int32_t sharedFd, int32_t crashFd, const sptr<IRemoteObject>& browser));
     MOCK_METHOD0(AsObject, sptr<IRemoteObject>());
 };
 }  // namespace AppExecFwk

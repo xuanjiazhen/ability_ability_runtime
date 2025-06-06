@@ -31,7 +31,7 @@ public:
     static int onInterceptRetCode;
     static std::string kiaWatermarkBusinessName;
     static bool isWatermarkEnabled;
-    virtual int OnIntercept(AAFwk::Want &want) override;
+    virtual ErrCode OnIntercept(AAFwk::Want &want) override;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

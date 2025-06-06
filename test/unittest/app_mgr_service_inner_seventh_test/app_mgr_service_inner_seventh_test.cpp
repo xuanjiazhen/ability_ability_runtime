@@ -45,8 +45,11 @@ public:
 
 class MyRenderScheduler : public IRenderScheduler {
 public:
-    void NotifyBrowserFd(int32_t ipcFd, int32_t sharedFd,
-                                    int32_t crashFd, sptr<IRemoteObject> browser) override {}
+    ErrCode NotifyBrowserFd(int32_t ipcFd, int32_t sharedFd,
+                                    int32_t crashFd, const sptr<IRemoteObject>& browser) override
+    {
+        return ERR_OK;
+    }
     sptr<IRemoteObject> AsObject() override
     {
         return nullptr;
