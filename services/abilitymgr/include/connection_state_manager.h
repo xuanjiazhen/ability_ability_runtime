@@ -24,6 +24,7 @@
 #include "application_state_observer_stub.h"
 #include "connection_state_item.h"
 #include "connection_observer_controller.h"
+#include "connection_event.h"
 #ifdef WITH_DLP
 #include "dlp_connection_info.h"
 #include "dlp_state_item.h"
@@ -31,6 +32,7 @@
 
 namespace OHOS {
 namespace AAFwk {
+
 /**
  * @class ConnectionStateManager
  * ConnectionStateManager manage connection states.
@@ -82,6 +84,21 @@ public:
      * @param isCallerDied whether caller was died.
      */
     void RemoveConnection(std::shared_ptr<ConnectionRecord> connectionRecord, bool isCallerDied);
+    
+    /**
+     * suspend an connection to manager.
+     *
+     * @param connectionRecord connection record info.
+     */
+    void SuspendConnection(std::shared_ptr<ConnectionRecord> connectionRecord);
+
+    /**
+     * resume an connection to manager.
+     *
+     * @param connectionRecord connection record info.
+     * @return Returns ERR_OK if success.
+     */
+    void ResumeConnection(std::shared_ptr<ConnectionRecord> connectionRecord);
 
     /**
      * add a data ability acquired information to manager.
@@ -196,8 +213,12 @@ private:
     };
 
     bool AddConnectionInner(std::shared_ptr<ConnectionRecord> connectionRecord,
-        AbilityRuntime::ConnectionData &data);
+        AbilityRuntime::ConnectionData &data, ConnectionEvent &connectionEvent);
     bool RemoveConnectionInner(std::shared_ptr<ConnectionRecord> connectionRecord,
+        AbilityRuntime::ConnectionData &data, ConnectionEvent &connectionEvent);
+    bool SuspendConnectionInner(std::shared_ptr<ConnectionRecord> connectionRecord,
+        AbilityRuntime::ConnectionData &data);
+    bool ResumeConnectionInner(std::shared_ptr<ConnectionRecord> connectionRecord,
         AbilityRuntime::ConnectionData &data);
     bool AddDataAbilityConnectionInner(const DataAbilityCaller &caller,
         const std::shared_ptr<DataAbilityRecord> &record, AbilityRuntime::ConnectionData &data);

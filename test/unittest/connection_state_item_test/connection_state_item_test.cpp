@@ -147,7 +147,8 @@ HWTEST_F(ConnectionStateItemTest, AddConnection_001, TestSize.Level1)
     auto connectionStateItem = Init();
     std::shared_ptr<ConnectionRecord> record = nullptr;
     ConnectionData data;
-    auto res = connectionStateItem->AddConnection(record, data);
+    ConnectionEvent event;
+    auto res = connectionStateItem->AddConnection(record, data, event);
     EXPECT_FALSE(res);
 }
 
@@ -168,7 +169,8 @@ HWTEST_F(ConnectionStateItemTest, AddConnection_002, TestSize.Level1)
     std::shared_ptr<ConnectionRecord> record = std::make_shared<ConnectionRecord>(
         callerToken, abilityRecord, connCallback, nullptr);
     ConnectionData data;
-    auto res = connectionStateItem->AddConnection(record, data);
+    ConnectionEvent event;
+    auto res = connectionStateItem->AddConnection(record, data, event);
     EXPECT_FALSE(res);
 }
 
@@ -188,7 +190,8 @@ HWTEST_F(ConnectionStateItemTest, AddConnection_003, TestSize.Level1)
     std::shared_ptr<ConnectionRecord> record = std::make_shared<ConnectionRecord>(
         abilityRecord->GetToken(), abilityRecord, connCallback, nullptr);
     ConnectionData data;
-    auto res = connectionStateItem->AddConnection(record, data);
+    ConnectionEvent event;
+    auto res = connectionStateItem->AddConnection(record, data, event);
     EXPECT_FALSE(res);
 }
 
@@ -208,7 +211,8 @@ HWTEST_F(ConnectionStateItemTest, AddConnection_004, TestSize.Level1)
     std::shared_ptr<ConnectionRecord> record = std::make_shared<ConnectionRecord>(
         abilityRecord->GetToken(), abilityRecord, connCallback, nullptr);
     ConnectionData data;
-    auto res = connectionStateItem->AddConnection(record, data);
+    ConnectionEvent event;
+    auto res = connectionStateItem->AddConnection(record, data, event);
     EXPECT_TRUE(res);
 }
 
@@ -228,8 +232,9 @@ HWTEST_F(ConnectionStateItemTest, AddConnection_005, TestSize.Level1)
     std::shared_ptr<ConnectionRecord> record = std::make_shared<ConnectionRecord>(
         abilityRecord->GetToken(), abilityRecord, connCallback, nullptr);
     ConnectionData data;
+    ConnectionEvent event;
     connectionStateItem->connectionMap_[abilityRecord->GetToken()] = nullptr;
-    auto res = connectionStateItem->AddConnection(record, data);
+    auto res = connectionStateItem->AddConnection(record, data, event);
     EXPECT_FALSE(res);
 }
 
@@ -246,7 +251,8 @@ HWTEST_F(ConnectionStateItemTest, RemoveConnection_001, TestSize.Level1)
     auto connectionStateItem = Init();
     std::shared_ptr<ConnectionRecord> record = nullptr;
     ConnectionData data;
-    auto res = connectionStateItem->RemoveConnection(record, data);
+    ConnectionEvent event;
+    auto res = connectionStateItem->RemoveConnection(record, data, event);
     EXPECT_FALSE(res);
 }
 
@@ -267,7 +273,8 @@ HWTEST_F(ConnectionStateItemTest, RemoveConnection_002, TestSize.Level1)
     std::shared_ptr<ConnectionRecord> record = std::make_shared<ConnectionRecord>(
         callerToken, abilityRecord, connCallback, nullptr);
     ConnectionData data;
-    auto res = connectionStateItem->RemoveConnection(record, data);
+    ConnectionEvent event;
+    auto res = connectionStateItem->RemoveConnection(record, data, event);
     EXPECT_FALSE(res);
 }
 
@@ -287,7 +294,8 @@ HWTEST_F(ConnectionStateItemTest, RemoveConnection_003, TestSize.Level1)
     std::shared_ptr<ConnectionRecord> record = std::make_shared<ConnectionRecord>(
         abilityRecord->GetToken(), abilityRecord, connCallback, nullptr);
     ConnectionData data;
-    auto res = connectionStateItem->RemoveConnection(record, data);
+    ConnectionEvent event;
+    auto res = connectionStateItem->RemoveConnection(record, data, event);
     EXPECT_FALSE(res);
 }
 
@@ -307,7 +315,8 @@ HWTEST_F(ConnectionStateItemTest, RemoveConnection_004, TestSize.Level1)
     std::shared_ptr<ConnectionRecord> record = std::make_shared<ConnectionRecord>(
         abilityRecord->GetToken(), abilityRecord, connCallback, nullptr);
     ConnectionData data;
-    auto res = connectionStateItem->RemoveConnection(record, data);
+    ConnectionEvent event;
+    auto res = connectionStateItem->RemoveConnection(record, data, event);
     EXPECT_FALSE(res);
 }
 
@@ -327,8 +336,9 @@ HWTEST_F(ConnectionStateItemTest, RemoveConnection_005, TestSize.Level1)
     std::shared_ptr<ConnectionRecord> record = std::make_shared<ConnectionRecord>(
         abilityRecord->GetToken(), abilityRecord, connCallback, nullptr);
     ConnectionData data;
+    ConnectionEvent event;
     connectionStateItem->connectionMap_[abilityRecord->GetToken()] = nullptr;
-    auto res = connectionStateItem->RemoveConnection(record, data);
+    auto res = connectionStateItem->RemoveConnection(record, data, event);
     EXPECT_FALSE(res);
 }
 
@@ -348,8 +358,9 @@ HWTEST_F(ConnectionStateItemTest, RemoveConnection_006, TestSize.Level1)
     std::shared_ptr<ConnectionRecord> record = std::make_shared<ConnectionRecord>(
         abilityRecord->GetToken(), abilityRecord, connCallback, nullptr);
     ConnectionData data;
-    connectionStateItem->AddConnection(record, data);
-    auto res = connectionStateItem->RemoveConnection(record, data);
+    ConnectionEvent event;
+    connectionStateItem->AddConnection(record, data, event);
+    auto res = connectionStateItem->RemoveConnection(record, data, event);
     EXPECT_TRUE(res);
 }
 
@@ -690,12 +701,13 @@ HWTEST_F(ConnectionStateItemTest, GenerateAllConnectionData_001, TestSize.Level1
     std::shared_ptr<ConnectionRecord> record = std::make_shared<ConnectionRecord>(
         abilityRecord->GetToken(), abilityRecord, connCallback, nullptr);
     ConnectionData data;
+    ConnectionEvent event;
     DataAbilityCaller caller;
     std::shared_ptr<DataAbilityRecord> dataAbility = InitDataAbilityRecord();
     caller.isNotHap = true;
     caller.callerToken = abilityRecord->GetToken();
     dataAbility->ability_ = abilityRecord;
-    connectionStateItem->AddConnection(record, data);
+    connectionStateItem->AddConnection(record, data, event);
     connectionStateItem->AddDataAbilityConnection(caller, dataAbility, data);
     connectionStateItem->GenerateAllConnectionData(datas);
     EXPECT_TRUE(connectionStateItem != nullptr);
