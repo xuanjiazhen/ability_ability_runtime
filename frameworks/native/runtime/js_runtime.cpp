@@ -754,6 +754,9 @@ bool JsRuntime::Initialize(const Options& options)
             panda::JSNApi::SetPkgAliasList(vm, pkgAliasMap);
             panda::JSNApi::SetPkgNameList(vm, options.packageNameList);
         }
+        panda::JSNApi::SetStopPreLoadSoCallback(vm, [options]() -> void {
+            TAG_LOGI(AAFwkTag::JSRUNTIME, "BundleName:%{public}s so preloadAce stop", options.bundleName.c_str());
+        });
     }
 
     if (!preloaded_) {
