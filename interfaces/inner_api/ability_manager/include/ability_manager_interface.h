@@ -48,6 +48,7 @@
 #include "remote_mission_listener_interface.h"
 #include "remote_on_listener_interface.h"
 #include "running_process_info.h"
+#include "sa_interceptor_interface.h"
 #include "sender_info.h"
 #include "start_options.h"
 #include "user_callback.h"
@@ -2197,6 +2198,16 @@ public:
         const std::string &moduleName,
         const std::string &intentName,
         InsightIntentInfoForQuery &info)
+    {
+        return 0;
+    }
+
+    /**
+     * Register sa interceptor.
+     * @param interceptor, The sa interceptor.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RegisterSAInterceptor(sptr<AbilityRuntime::ISAInterceptor> interceptor)
     {
         return 0;
     }

@@ -1735,6 +1735,13 @@ public:
         const std::string &intentName,
         InsightIntentInfoForQuery &info) override;
 
+    /**
+     * Register sa interceptor.
+     * @param interceptor, The sa interceptor.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode RegisterSAInterceptor(sptr<AbilityRuntime::ISAInterceptor> interceptor) override;
+
 private:
     template <typename T>
     int GetParcelableInfos(MessageParcel &reply, std::vector<T> &parcelableInfos);

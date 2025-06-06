@@ -629,6 +629,9 @@ enum class AbilityManagerInterfaceCode {
 
     // restart atomic service
     RESTART_SELF_ATOMIC_SERVICE = 6144,
+
+    // register sa interceptor
+    REGISTER_SA_INTERCEPTOR = 6145,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
