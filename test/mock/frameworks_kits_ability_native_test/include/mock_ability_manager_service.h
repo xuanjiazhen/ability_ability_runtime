@@ -73,6 +73,8 @@ public:
         int32_t userId = DEFAULT_INVAL_VALUE) override;
 
     int DisconnectAbility(sptr<IAbilityConnection> connect) override;
+    int SuspendExtensionAbility(sptr<IAbilityConnection> connect) override;
+    int ResumeExtensionAbility(sptr<IAbilityConnection> connect) override;
 
     int AttachAbilityThread(const sptr<IAbilityScheduler>& scheduler, const sptr<IRemoteObject>& token) override;
 

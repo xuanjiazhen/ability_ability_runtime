@@ -101,6 +101,14 @@ public:
     {
         return 0;
     }
+    int SuspendExtensionAbility(sptr<IAbilityConnection> connect) override
+    {
+        return 0;
+    }
+    int ResumeExtensionAbility(sptr<IAbilityConnection> connect) override
+    {
+        return 0;
+    }
     sptr<IAbilityScheduler> AcquireDataAbility(
         const Uri &uri, bool tryBind, const sptr<IRemoteObject> &callerToken) override
     {
