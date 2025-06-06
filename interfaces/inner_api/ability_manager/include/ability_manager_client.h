@@ -1834,7 +1834,6 @@ public:
 
     ErrCode GetKioskStatus(AAFwk::KioskStatus &kioskStatus);
                                     
-
     /**
      * SuspendExtensionAbility, suspend session with service ability.
      *
