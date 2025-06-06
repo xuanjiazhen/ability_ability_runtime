@@ -27,7 +27,7 @@ using namespace OHOS::AAFwk;
 namespace OHOS {
 namespace {
 constexpr size_t U32_AT_SIZE = 4;
-const std::u16string ABILITYMGR_INTERFACE_TOKEN = u"ohos.aafwk.ISystemAbilityTokenCallback";
+const std::u16string ABILITYMGR_INTERFACE_TOKEN = u"OHOS.AAFwk.ISystemAbilityTokenCallback";
 }
 
 class SystemAbilityTokenCallbackStubFuzzTest : public SystemAbilityTokenCallbackStub {
@@ -35,10 +35,11 @@ public:
     SystemAbilityTokenCallbackStubFuzzTest() = default;
     virtual ~SystemAbilityTokenCallbackStubFuzzTest()
     {}
-    int32_t SendResult(OHOS::AAFwk::Want& want, int32_t callerUid, int32_t requestCode,
-        uint32_t accessToken, int32_t resultCode) override
+    ErrCode SendResult(
+        const Want& want, int32_t callerUid, int32_t requestCode,
+        uint32_t accessToken, int32_t resultCode, int32_t& funcResult)
     {
-        return 0;
+        return ERR_OK;
     }
 };
 

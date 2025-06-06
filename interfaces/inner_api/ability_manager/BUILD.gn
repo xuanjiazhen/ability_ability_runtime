@@ -11,8 +11,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//build/config/components/idl_tool/idl.gni")
 import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
+idl_gen_interface("ability_manager_interface") {
+  sources = [
+    "idl/ISystemAbilityTokenCallback.idl",
+  ]
+  sources_common = [
+
+  ]
+  log_domainid = "0xD001336"
+  log_tag = "AbilityMgr"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+config("ability_manager_idl_config") {
+    include_dirs = [
+      "${ability_runtime_innerkits_path}/dataobs_manager/include",
+      "${target_gen_dir}",
+    ]
+}
 
 config("ability_manager_public_config") {
   visibility = [ ":*" ]
@@ -40,6 +60,7 @@ config("ability_manager_public_config") {
     "${ability_runtime_path}/interfaces/kits/native/appkit/dfr",
     "${ability_runtime_path}/interfaces/kits/native/appkit",
     "${ability_runtime_innerkits_path}/dataobs_manager/include",
+    "${target_gen_dir}",
   ]
 
   defines = []
@@ -62,10 +83,166 @@ config("ability_manager_public_config") {
   }
 }
 
+ohos_source_set("ability_manager_proxy") {
+  sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  output_values = get_target_outputs(":ability_manager_interface")
+  source_values = [
+    "*system_ability_token_callback_proxy.cpp.cpp",
+  ]
+  sources = filter_include(output_values, source_values)
+
+  public_configs = [
+    ":ability_manager_idl_config",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_config",
+  ]
+
+  public_deps = [ ":ability_connect_callback_stub" ]
+
+  deps = [
+    ":ability_manager_interface",
+    ":ability_start_options",
+    ":ability_start_setting",
+    ":mission_info",
+    ":process_options",
+    ":start_window_option",
+    "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_path}/utils/global/freeze:freeze_util",
+    "${ability_runtime_services_path}/abilitymgr:wantagent_manager",
+  ]
+
+  external_deps = [
+    "bundle_framework:libappexecfwk_common",
+    "c_utils:utils",
+    "common_event_service:cesfwk_innerkits",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "ipc:ipc_core",
+    "ipc:ipc_napi",
+    "jsoncpp:jsoncpp",
+    "relational_store:native_dataability",
+    "samgr:samgr_proxy",
+  ]
+
+  if (host_cpu != "arm64") {
+    external_deps += [ "relational_store:native_rdb" ]
+  }
+
+  public_external_deps = [
+    "ability_base:base",
+    "ability_base:configuration",
+    "ability_base:session_info",
+    "ability_base:want",
+    "ability_base:zuri",
+    "background_task_mgr:bgtaskmgr_innerkits",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "init:libbegetutil",
+    "jsoncpp:jsoncpp",
+    "relational_store:native_dataability",
+    "relational_store:native_rdb",
+  ]
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+ohos_source_set("ability_manager_stub") {
+  sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  output_values = get_target_outputs(":ability_manager_interface")
+  source_values = [
+    "*system_ability_token_callback_stub.cpp",
+  ]
+  sources = filter_include(output_values, source_values)
+
+  public_configs = [
+    ":ability_manager_idl_config",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_config",
+  ]
+
+  public_deps = [ ":ability_connect_callback_stub" ]
+
+  deps = [
+    ":ability_manager_interface",
+    ":ability_start_options",
+    ":ability_start_setting",
+    ":mission_info",
+    ":process_options",
+    ":start_window_option",
+    "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_path}/utils/global/freeze:freeze_util",
+    "${ability_runtime_services_path}/abilitymgr:wantagent_manager",
+  ]
+
+  external_deps = [
+    "bundle_framework:libappexecfwk_common",
+    "c_utils:utils",
+    "common_event_service:cesfwk_innerkits",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "ipc:ipc_core",
+    "ipc:ipc_napi",
+    "jsoncpp:jsoncpp",
+    "relational_store:native_dataability",
+    "samgr:samgr_proxy",
+  ]
+
+  if (host_cpu != "arm64") {
+    external_deps += [ "relational_store:native_rdb" ]
+  }
+
+  public_external_deps = [
+    "ability_base:base",
+    "ability_base:configuration",
+    "ability_base:session_info",
+    "ability_base:want",
+    "ability_base:zuri",
+    "background_task_mgr:bgtaskmgr_innerkits",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "init:libbegetutil",
+    "jsoncpp:jsoncpp",
+    "relational_store:native_dataability",
+    "relational_store:native_rdb",
+  ]
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
 ohos_shared_library("ability_manager") {
+  sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
   use_exceptions = true
   branch_protector_ret = "pac_ret"
-
   sources = [
     "${ability_runtime_native_path}/ability/native/data_ability_operation.cpp",
     "${ability_runtime_native_path}/ability/native/data_ability_operation_builder.cpp",
@@ -101,7 +278,6 @@ ohos_shared_library("ability_manager") {
     "${ability_runtime_services_path}/abilitymgr/src/remote_mission_listener_stub.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/remote_on_listener_proxy.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/remote_on_listener_stub.cpp",
-    "${ability_runtime_services_path}/abilitymgr/src/system_ability_token_callback_stub.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ui_extension/ui_extension_ability_connect_info.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ui_extension/ui_extension_host_info.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ui_extension/ui_extension_session_info.cpp",
@@ -130,12 +306,15 @@ ohos_shared_library("ability_manager") {
 
   public_configs = [
     ":ability_manager_public_config",
+    ":ability_manager_idl_config",
     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
   ]
 
   public_deps = [ ":ability_connect_callback_stub" ]
 
   deps = [
+    ":ability_manager_proxy",
+    ":ability_manager_stub",
     ":ability_start_options",
     ":ability_start_setting",
     ":mission_info",
@@ -305,7 +484,10 @@ ohos_shared_library("ability_start_setting") {
     "${ability_runtime_services_path}/abilitymgr/src/ability_start_setting.cpp",
   ]
 
-  public_configs = [ ":ability_manager_public_config" ]
+  public_configs = [
+    ":ability_manager_public_config",
+    "${ability_runtime_path}/utils/server/startup:startup_util_config",
+  ]
 
   external_deps = [ "c_utils:utils" ]
   public_external_deps = [
@@ -410,7 +592,11 @@ ohos_shared_library("ability_connect_callback_stub") {
 
   sources = [ "${ability_runtime_services_path}/abilitymgr/src/ability_connect_callback_stub.cpp" ]
 
-  public_configs = [ ":ability_manager_public_config" ]
+  public_configs = [
+    ":ability_manager_public_config",
+    ":ability_manager_idl_config",
+    "${ability_runtime_path}/utils/server/startup:startup_util_config",
+  ]
 
   external_deps = [
     "c_utils:utils",
