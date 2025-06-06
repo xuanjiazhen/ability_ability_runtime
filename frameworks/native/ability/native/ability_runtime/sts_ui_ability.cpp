@@ -78,6 +78,7 @@ constexpr const int32_t API12 = 12;
 constexpr const int32_t API_VERSION_MOD = 100;
 constexpr const char* UI_ABILITY_CONTEXT_CLASS_NAME = "Lapplication/UIAbilityContext/UIAbilityContext;";
 constexpr const char* UI_ABILITY_CLASS_NAME = "L@ohos/app/ability/UIAbility/UIAbility;";
+constexpr const char* ON_SAVE_RESULT_ENUM_NAME = "L@ohos/app/ability/AbilityConstant/AbilityConstant/OnSaveResult;";
 
 void OnDestroyPromiseCallback(ani_env* env, ani_object aniObj)
 {
@@ -1131,11 +1132,48 @@ int32_t StsUIAbility::OnContinue(
 
 int32_t StsUIAbility::OnSaveState(int32_t reason, WantParams &wantParams)
 {
+    auto env = stsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return -1;
+    }
     if (stsAbilityObj_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null stsAbilityObj_");
         return -1;
     }
-    return -1;
+    ani_method method {};
+    ani_status status = env->Class_FindMethod(stsAbilityObj_->aniCls, "onSaveState", nullptr, &method);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "Class_FindMethod status: %{public}d", status);
+        env->ResetError();
+        return -1;
+    }
+    ani_value args[2] = {};
+    ani_enum_item reasonEnum {};
+    if (!OHOS::AAFwk::AniEnumConvertUtil::EnumConvertNativeToSts(env, ON_SAVE_RESULT_ENUM_NAME, reason, reasonEnum)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "reasonEnum failed");
+        return -1;
+    }
+    ani_ref wantParamsRef = OHOS::AppExecFwk::WrapWantParams(env, wantParams);
+    if (wantParamsRef == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null wantParamsRef");
+        return -1;
+    }
+    args[0].r = reasonEnum;
+    args[1].r = wantParamsRef;
+    ani_ref result {};
+    if ((status = env->Object_CallMethod_Ref_A(stsAbilityObj_->aniObj, method, &result, args)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "Object_CallMethod_Ref_A status: %{public}d", status);
+        return false;
+    }
+    OHOS::AppExecFwk::UnwrapWantParams(env, wantParamsRef, wantParams);
+    int32_t numberResult = 0;
+    if (!AAFwk::AniEnumConvertUtil::EnumConvertStsToNative(
+            env, reinterpret_cast<ani_enum_item>(result), numberResult)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "no result return from onSaveState");
+        return -1;
+    }
+    return numberResult;
 }
 
 void StsUIAbility::OnConfigurationUpdated(const Configuration &configuration)
