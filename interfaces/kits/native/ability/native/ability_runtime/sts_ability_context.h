@@ -67,6 +67,10 @@ public:
     static void NativeMoveAbilityToBackground(ani_env *env, ani_object aniObj, ani_object callBack);
     static void NativeRequestModalUIExtension(ani_env *env, ani_object aniObj, ani_string pickerWantObj,
         ani_object callBackObj);
+    static ani_int ConnectServiceExtensionAbility([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object aniObj,
+        ani_object wantObj, ani_object connectOptionsObj);
+    static void DisconnectServiceExtensionAbilitySync([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object aniObj,
+        ani_int connectId, ani_object connectOptionsObj);
 
 private:
     static void InheritWindowMode(ani_env *env, ani_object aniObj, AAFwk::Want &want);
@@ -86,6 +90,40 @@ private:
 
     sptr<StsFreeInstallObserver> freeInstallObserver_ = nullptr;
     static std::mutex requestCodeMutex_;
+};
+
+class STSAbilityConnection : public AbilityConnectCallback {
+public:
+    explicit STSAbilityConnection(ani_vm *etsVm);
+    ~STSAbilityConnection();
+    void OnAbilityConnectDone(
+        const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode) override;
+    void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int32_t resultCode) override;
+    void CallStsFailed(int32_t errorCode);
+    void SetConnectionId(int64_t id);
+    int64_t GetConnectionId() { return connectionId_; }
+    void SetConnectionRef(ani_object connectOptionsObj);
+
+protected:
+    ani_vm *etsVm_ = nullptr;
+    int64_t connectionId_ = -1;
+    ani_ref stsConnectionRef_;
+};
+
+struct StsConnectionKey {
+    AAFwk::Want want;
+    int64_t id;
+    int32_t accountId;
+};
+
+struct StsKeyCompare {
+    bool operator()(const StsConnectionKey &key1, const StsConnectionKey &key2) const
+    {
+        if (key1.id < key2.id) {
+            return true;
+        }
+        return false;
+    }
 };
 
 bool BindNativeMethods(ani_env *env, ani_class &cls);
