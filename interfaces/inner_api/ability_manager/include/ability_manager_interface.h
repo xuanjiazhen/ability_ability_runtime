@@ -157,7 +157,8 @@ public:
         const Want &want,
         const sptr<IRemoteObject> &callerToken,
         int32_t userId = DEFAULT_INVAL_VALUE,
-        int requestCode = DEFAULT_INVAL_VALUE) = 0;
+        int requestCode = DEFAULT_INVAL_VALUE,
+        bool removeInsightIntentFlag = true) = 0;
 
     /**
      * StartAbilityWithSpecifyTokenId with want and specialId, send want to ability manager service.
@@ -1802,7 +1803,8 @@ public:
      * @return Returns ERR_OK on success, others on failure.
     */
     virtual int32_t OpenLink(const Want& want, sptr<IRemoteObject> callerToken,
-        int32_t userId = DEFAULT_INVAL_VALUE, int requestCode = DEFAULT_INVAL_VALUE)
+        int32_t userId = DEFAULT_INVAL_VALUE, int requestCode = DEFAULT_INVAL_VALUE,
+        bool removeInsightIntentFlag = true)
     {
         return 0;
     }

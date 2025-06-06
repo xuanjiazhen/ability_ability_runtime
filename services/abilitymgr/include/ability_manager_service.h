@@ -162,7 +162,8 @@ public:
         const Want &want,
         const sptr<IRemoteObject> &callerToken,
         int32_t userId = DEFAULT_INVAL_VALUE,
-        int requestCode = DEFAULT_INVAL_VALUE) override;
+        int requestCode = DEFAULT_INVAL_VALUE,
+        bool removeInsightIntentFlag = true) override;
 
     /**
      * StartAbilityWithSpecifyTokenIdInner with want and specialId, send want to ability manager service.
@@ -395,7 +396,8 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t OpenLink(const Want& want, sptr<IRemoteObject> callerToken,
-        int32_t userId = DEFAULT_INVAL_VALUE, int requestCode = DEFAULT_INVAL_VALUE) override;
+        int32_t userId = DEFAULT_INVAL_VALUE, int requestCode = DEFAULT_INVAL_VALUE,
+        bool removeInsightIntentFlag = true) override;
 
     /**
      * Pop-up launch of full-screen atomic service.
