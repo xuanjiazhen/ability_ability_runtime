@@ -22,7 +22,9 @@ template("abilitymanager") {
     if (defined(invoker.defines)) {
       defines += invoker.defines
     }
-
+    configs = [
+      "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
+    ]
     sources = [
       "ability_manager_module.cpp",
       "js_ability_foreground_state_observer.cpp",
@@ -35,6 +37,8 @@ template("abilitymanager") {
     deps = [
       "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
       "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
+      #"${ability_runtime_innerkits_path}/ability_manager:acquire_share_data_callback_proxy",
+      "${ability_runtime_innerkits_path}/ability_manager:acquire_share_data_callback_stub",
       "${ability_runtime_innerkits_path}/app_manager:app_manager",
       "${ability_runtime_innerkits_path}/napi_base_context:napi_base_context",
       "${ability_runtime_innerkits_path}/runtime:runtime",

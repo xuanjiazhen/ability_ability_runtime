@@ -105,7 +105,8 @@ HWTEST_F(AcquireShareDataCallbackProxyTest, acquire_share_data_callback_proxy_op
     OHOS::sptr<OHOS::IRemoteObject> impl = nullptr;
     sptr<AcquireShareDataCallbackProxy> acquireShareDataCallbackProxy = new AcquireShareDataCallbackProxy(impl);
     WantParams wantParam;
-    int32_t ret = acquireShareDataCallbackProxy->AcquireShareDataDone(1, wantParam);
+    int32_t ret = 0;
+    acquireShareDataCallbackProxy->AcquireShareDataDone(1, wantParam, ret);
     EXPECT_EQ(ret, INNER_ERR);
 }
 
@@ -122,7 +123,8 @@ HWTEST_F(AcquireShareDataCallbackProxyTest, acquire_share_data_callback_proxy_op
     OHOS::sptr<OHOS::IRemoteObject> impl = new IRemoteObjectMocker();
     sptr<AcquireShareDataCallbackProxy> acquireShareDataCallbackProxy = new AcquireShareDataCallbackProxy(impl);
     WantParams wantParam;
-    int32_t ret = acquireShareDataCallbackProxy->AcquireShareDataDone(1, wantParam);
+    int32_t ret = 0;
+    acquireShareDataCallbackProxy->AcquireShareDataDone(1, wantParam, ret);
     EXPECT_EQ(ret, ERR_OK);
 }
 }  // namespace AAFwk

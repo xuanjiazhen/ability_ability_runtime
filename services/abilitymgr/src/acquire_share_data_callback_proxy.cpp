@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,50 +15,46 @@
 
 #include "acquire_share_data_callback_proxy.h"
 
-#include "ability_manager_errors.h"
-#include "hilog_tag_wrapper.h"
-
 namespace OHOS {
 namespace AAFwk {
-bool AcquireShareDataCallbackProxy::WriteInterfaceToken(MessageParcel &data)
-{
-    if (!data.WriteInterfaceToken(AcquireShareDataCallbackProxy::GetDescriptor())) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "write interface tokern failed");
-        return false;
-    }
-    return true;
-}
 
-int32_t AcquireShareDataCallbackProxy::AcquireShareDataDone(int32_t resultCode, WantParams &wantParam)
+ErrCode AcquireShareDataCallbackProxy::AcquireShareDataDone(
+    int32_t resultCode,
+    const WantParams& wantParam,
+    int32_t& funcResult)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option(MessageOption::TF_ASYNC);
-    if (!WriteInterfaceToken(data)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "write interface token failed");
-        return INNER_ERR;
+    MessageOption option(MessageOption::TF_SYNC);
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        return ERR_INVALID_VALUE;
     }
 
     if (!data.WriteInt32(resultCode)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "resultCode write failed");
-        return INNER_ERR;
+        return ERR_INVALID_DATA;
     }
     if (!data.WriteParcelable(&wantParam)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "wantParam write failed");
-        return INNER_ERR;
+        return ERR_INVALID_DATA;
     }
-    auto remote = Remote();
+
+    sptr<IRemoteObject> remote = Remote();
     if (!remote) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "remote object null");
-        return INNER_ERR;
+        return ERR_INVALID_DATA;
     }
-    int32_t ret = remote->SendRequest(IAcquireShareDataCallback::ACQUIRE_SHARE_DATA_DONE, data, reply, option);
-    if (ret != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "fail, err: %{public}d", ret);
+    int32_t result = remote->SendRequest(
+        static_cast<uint32_t>(IAcquireShareDataCallbackIpcCode::COMMAND_ACQUIRE_SHARE_DATA_DONE), data, reply, option);
+    if (FAILED(result)) {
+        return result;
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "end");
-    return ret;
+
+    ErrCode errCode = reply.ReadInt32();
+    if (FAILED(errCode)) {
+        return errCode;
+    }
+
+    funcResult = reply.ReadInt32();
+    return ERR_OK;
 }
-}
-}
+} // namespace AAFwk
+} // namespace OHOS
