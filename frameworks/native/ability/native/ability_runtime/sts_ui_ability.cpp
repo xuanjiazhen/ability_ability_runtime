@@ -87,6 +87,7 @@ constexpr const char* UI_ABILITY_SIGNATURE_WANT_LAUNCH_VOID =
 constexpr const char* UI_ABILITY_SIGNATURE_WINDOWSTAGE_VOID =
     "L@ohos/window/window/WindowStage;:V";
 constexpr const char* MEMORY_LEVEL_ENUM_NAME = "L@ohos/app/ability/AbilityConstant/AbilityConstant/MemoryLevel;";
+constexpr const char* ON_SAVE_RESULT_ENUM_NAME = "L@ohos/app/ability/AbilityConstant/AbilityConstant/OnSaveResult;";
 
 void OnDestroyPromiseCallback(ani_env* env, ani_object aniObj)
 {
@@ -1188,11 +1189,46 @@ int32_t StsUIAbility::OnContinue(
 
 int32_t StsUIAbility::OnSaveState(int32_t reason, WantParams &wantParams)
 {
-    if (stsAbilityObj_ == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null stsAbilityObj_");
+    auto env = stsRuntime_.GetAniEnv();
+    if (env == nullptr || stsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env or stsAbilityObj_");
         return -1;
     }
-    return -1;
+    ani_method method = nullptr;
+    ani_status status = env->Class_FindMethod(stsAbilityObj_->aniCls, "onSaveState", nullptr, &method);
+    if (status != ANI_OK || method == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "onSaveState FindMethod status: %{public}d, or null method", status);
+        env->ResetError();
+        return -1;
+    }
+    ani_enum_item reasonEnum = nullptr;
+    if (!AAFwk::AniEnumConvertUtil::EnumConvertNativeToSts(env, ON_SAVE_RESULT_ENUM_NAME, reason, reasonEnum) ||
+        reasonEnum == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "reasonEnum failed, or null reasonEnum");
+        return -1;
+    }
+    ani_ref wantParamsRef = AppExecFwk::WrapWantParams(env, wantParams);
+    if (wantParamsRef == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null wantParamsRef");
+        return -1;
+    }
+    ani_value args[2] = {};
+    args[0].r = reasonEnum;
+    args[1].r = wantParamsRef;
+    ani_ref result = nullptr;
+    if ((status = env->Object_CallMethod_Ref_A(stsAbilityObj_->aniObj, method, &result, args)) != ANI_OK ||
+        result == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "Object_CallMethod_Ref_A status: %{public}d, or null result", status);
+        return false;
+    }
+    AppExecFwk::UnwrapWantParams(env, wantParamsRef, wantParams);
+    int32_t numberResult = 0;
+    if (!AAFwk::AniEnumConvertUtil::EnumConvertStsToNative(
+            env, reinterpret_cast<ani_enum_item>(result), numberResult)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "no result return from onSaveState");
+        return -1;
+    }
+    return numberResult;
 }
 
 void StsUIAbility::OnConfigurationUpdated(const Configuration &configuration)
