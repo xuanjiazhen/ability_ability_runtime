@@ -196,6 +196,10 @@ std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options &options, std::uniq
     if (instance != nullptr && !options.preload) {
         instance->PostFork(options, jsRuntime);
     }
+<<<<<<< HEAD
+=======
+    EntryPathManager::GetInstance().Init();
+>>>>>>> dab746d5c9 (Description: add hybrid js module reader)
     return instance;
 }
 
@@ -277,6 +281,12 @@ bool ETSRuntime::Initialize(const Options &options, std::unique_ptr<JsRuntime> &
     if (!CreateEtsEnv(options)) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "CreateEtsEnv failed");
         return false;
+    }
+
+    if (jsRuntime_ != nullptr) {
+        auto vm = static_cast<JsRuntime *>(jsRuntime_.get())->GetEcmaVm();
+        panda::JSNApi::SetHostResolveBufferTrackerForHybridApp(
+            vm, HybridJsModuleReader(options.bundleName, options.hapPath, options.isUnique));
     }
 
     apiTargetVersion_ = options.apiTargetVersion;
