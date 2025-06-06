@@ -849,6 +849,19 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentieth(uint32_t code, MessageParc
     return ERR_CODE_NOT_EXIST;
 }
 
+int AbilityManagerStub::OnRemoteRequestInnerTwentyFirst(uint32_t code, MessageParcel &data,
+    MessageParcel &reply, MessageOption &option)
+{
+    AbilityManagerInterfaceCode interfaceCode = static_cast<AbilityManagerInterfaceCode>(code);
+    if (interfaceCode == AbilityManagerInterfaceCode::SUSPEND_EXTENSION_ABILITY) {
+        return SuspendExtensionAbilityInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::RESUME_EXTENSION_ABILITY) {
+        return ResumeExtensionAbilityInner(data, reply);
+    }
+    return ERR_CODE_NOT_EXIST;
+}
+
 int AbilityManagerStub::OnRemoteRequestInner(uint32_t code, MessageParcel &data,
     MessageParcel &reply, MessageOption &option)
 {
@@ -861,6 +874,12 @@ int AbilityManagerStub::OnRemoteRequestInner(uint32_t code, MessageParcel &data,
     if (retCode != ERR_CODE_NOT_EXIST) {
         return retCode;
     }
+
+    retCode = HandleOnRemoteRequestInnerThird(code, data, reply, option);
+    if (retCode != ERR_CODE_NOT_EXIST) {
+        return retCode;
+    }
+
     TAG_LOGW(AAFwkTag::ABILITYMGR, "default case");
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
@@ -953,6 +972,17 @@ int AbilityManagerStub::HandleOnRemoteRequestInnerSecond(uint32_t code, MessageP
         return retCode;
     }
     retCode = OnRemoteRequestInnerTwentieth(code, data, reply, option);
+    if (retCode != ERR_CODE_NOT_EXIST) {
+        return retCode;
+    }
+    return ERR_CODE_NOT_EXIST;
+}
+
+int AbilityManagerStub::HandleOnRemoteRequestInnerThird(uint32_t code, MessageParcel &data,
+    MessageParcel &reply, MessageOption &option)
+{
+    int retCode = ERR_OK;
+    retCode = OnRemoteRequestInnerTwentyFirst(code, data, reply, option);
     if (retCode != ERR_CODE_NOT_EXIST) {
         return retCode;
     }
@@ -4609,6 +4639,32 @@ int32_t AbilityManagerStub::GetInsightIntentInfoByIntentNameInner(MessageParcel 
         TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
         return INNER_ERR;
     }
+    return NO_ERROR;
+}
+
+int AbilityManagerStub::SuspendExtensionAbilityInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IAbilityConnection> callback = iface_cast<IAbilityConnection>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "callback null");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t result = SuspendExtensionAbility(callback);
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "suspend extension ability ret = %d", result);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int AbilityManagerStub::ResumeExtensionAbilityInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IAbilityConnection> callback = iface_cast<IAbilityConnection>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "callback null");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t result = ResumeExtensionAbility(callback);
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "resume extension ability ret = %d", result);
+    reply.WriteInt32(result);
     return NO_ERROR;
 }
 

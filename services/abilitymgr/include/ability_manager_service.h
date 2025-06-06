@@ -746,6 +746,10 @@ public:
 
     virtual int DisconnectAbility(sptr<IAbilityConnection> connect) override;
 
+    virtual int SuspendExtensionAbility(sptr<IAbilityConnection> connect) override;
+
+    virtual int ResumeExtensionAbility(sptr<IAbilityConnection> connect) override;
+
     /**
      * AcquireDataAbility, acquire a data ability by its authority, if it not existed,
      * AMS loads it synchronously.

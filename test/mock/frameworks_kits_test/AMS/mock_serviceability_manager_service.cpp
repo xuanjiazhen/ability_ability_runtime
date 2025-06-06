@@ -102,6 +102,17 @@ int MockServiceAbilityManagerService::DisconnectAbility(sptr<IAbilityConnection>
     return 0;
 }
 
+int MockServiceAbilityManagerService::SuspendExtensionAbility(sptr<IAbilityConnection> connect)
+{
+    return 0;
+}
+
+int MockServiceAbilityManagerService::ResumeExtensionAbility(sptr<IAbilityConnection> connect)
+{
+    return 0;
+}
+
+
 int MockServiceAbilityManagerService::AttachAbilityThread(
     const sptr<IAbilityScheduler>& scheduler, const sptr<IRemoteObject>& token)
 {

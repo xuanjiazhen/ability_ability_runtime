@@ -14300,5 +14300,89 @@ int32_t AbilityManagerService::RestartSelfAtomicService(sptr<IRemoteObject> call
     RestartAppManager::GetInstance().AddRestartAppHistory(key, now);
     return result;
 }
+
+int AbilityManagerService::SuspendExtensionAbility(sptr<IAbilityConnection> connect)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "Suspend extension ability begin.");
+    CHECK_POINTER_AND_RETURN(connect, ERR_INVALID_VALUE);
+    auto currentConnectManager = GetCurrentConnectManager();
+    CHECK_POINTER_AND_RETURN(currentConnectManager, ERR_NO_INIT);
+    if (currentConnectManager->SuspendExtensionAbilityLocked(connect) == ERR_OK) {
+        return ERR_OK;
+    }
+    // If current connectManager does not exist connect, then try connectManagerU0
+    auto connectManager = GetConnectManagerByUserId(U0_USER_ID);
+    CHECK_POINTER_AND_RETURN(connectManager, ERR_NO_INIT);
+    if (connectManager->SuspendExtensionAbilityLocked(connect) == ERR_OK) {
+        return ERR_OK;
+    }
+    
+    connectManager = GetConnectManagerByUserId(U1_USER_ID);
+    CHECK_POINTER_AND_RETURN(connectManager, ERR_NO_INIT);
+    if (connectManager->SuspendExtensionAbilityLocked(connect) == ERR_OK) {
+        return ERR_OK;
+    }
+
+    auto userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    if (userId == U0_USER_ID || userId == U1_USER_ID) {
+        auto connectManagers = GetConnectManagers();
+        for (auto& item : connectManagers) {
+            if (item.second && item.second->SuspendExtensionAbilityLocked(connect) == ERR_OK) {
+                return ERR_OK;
+            }
+        }
+    }
+    connectManager = GetConnectManagerByUserId(USER_ID_DEFAULT);
+    CHECK_POINTER_AND_RETURN(connectManager, ERR_NO_INIT);
+    auto err = connectManager->SuspendExtensionAbilityLocked(connect);
+    if (err == ERR_OK) {
+        return ERR_OK;
+    }
+    TAG_LOGE(AAFwkTag::SERVICE_EXT, "Suspend extension ability error %{public}d", err);
+    return err;
+}
+
+int AbilityManagerService::ResumeExtensionAbility(sptr<IAbilityConnection> connect)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "Resume extension ability begin.");
+    CHECK_POINTER_AND_RETURN(connect, ERR_INVALID_VALUE);
+    auto currentConnectManager = GetCurrentConnectManager();
+    CHECK_POINTER_AND_RETURN(currentConnectManager, ERR_NO_INIT);
+    if (currentConnectManager->ResumeExtensionAbilityLocked(connect) == ERR_OK) {
+        return ERR_OK;
+    }
+    // If current connectManager does not exist connect, then try connectManagerU0
+    auto connectManager = GetConnectManagerByUserId(U0_USER_ID);
+    CHECK_POINTER_AND_RETURN(connectManager, ERR_NO_INIT);
+    if (connectManager->ResumeExtensionAbilityLocked(connect) == ERR_OK) {
+        return ERR_OK;
+    }
+    connectManager = GetConnectManagerByUserId(U1_USER_ID);
+    CHECK_POINTER_AND_RETURN(connectManager, ERR_NO_INIT);
+    if (connectManager->ResumeExtensionAbilityLocked(connect) == ERR_OK) {
+        return ERR_OK;
+    }
+
+    auto userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    if (userId == U0_USER_ID || userId == U1_USER_ID) {
+        auto connectManagers = GetConnectManagers();
+        for (auto& item : connectManagers) {
+            if (item.second && item.second->ResumeExtensionAbilityLocked(connect) == ERR_OK) {
+                return ERR_OK;
+            }
+        }
+    }
+
+    connectManager = GetConnectManagerByUserId(USER_ID_DEFAULT);
+    CHECK_POINTER_AND_RETURN(connectManager, ERR_NO_INIT);
+    auto err = connectManager->ResumeExtensionAbilityLocked(connect);
+    if (err == ERR_OK) {
+        return ERR_OK;
+    }
+    TAG_LOGE(AAFwkTag::SERVICE_EXT, "Resume extension ability error %{public}d", err);
+    return err;
+}
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -625,9 +625,10 @@ HWTEST_F(ConnectionStateManagerTest, AddConnectionInner_001, TestSize.Level1)
     std::shared_ptr<ConnectionRecord> connectionRecord =
         ConnectionRecord::CreateConnectionRecord(abilityRecord_->GetToken(), abilityRecord_, callback_, nullptr);
     ConnectionData data;
+    ConnectionEvent event;
     connectionRecord->callerPid_ = 0;
     manager_->connectionStates_[0] = nullptr;
-    bool res = manager_->AddConnectionInner(connectionRecord, data);
+    bool res = manager_->AddConnectionInner(connectionRecord, data, event);
     EXPECT_FALSE(res);
 }
 
@@ -644,9 +645,10 @@ HWTEST_F(ConnectionStateManagerTest, RemoveConnectionInner_001, TestSize.Level1)
     std::shared_ptr<ConnectionRecord> connectionRecord =
         ConnectionRecord::CreateConnectionRecord(abilityRecord_->GetToken(), abilityRecord_, callback_, nullptr);
     ConnectionData data;
+    ConnectionEvent event;
     connectionRecord->callerPid_ = 0;
     manager_->connectionStates_[0] = nullptr;
-    bool res = manager_->RemoveConnectionInner(connectionRecord, data);
+    bool res = manager_->RemoveConnectionInner(connectionRecord, data, event);
     EXPECT_FALSE(res);
 }
 

@@ -1735,6 +1735,22 @@ public:
         const std::string &intentName,
         InsightIntentInfoForQuery &info) override;
 
+    /**
+     * SuspendExtensionAbility, suspend session with service ability.
+     *
+     * @param connect, Callback used to notify caller the result of suspend or resume.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int SuspendExtensionAbility(sptr<IAbilityConnection> connect) override;
+
+    /**
+     * ResumeExtensionAbility, resume session with service ability.
+     *
+     * @param connect, Callback used to notify caller the result of suspend or resume.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int ResumeExtensionAbility(sptr<IAbilityConnection> connect) override;
+
 private:
     template <typename T>
     int GetParcelableInfos(MessageParcel &reply, std::vector<T> &parcelableInfos);
