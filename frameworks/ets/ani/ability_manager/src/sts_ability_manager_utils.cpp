@@ -14,7 +14,9 @@
  */
 
 #include "sts_ability_manager_utils.h"
-
+#include <cstdint>
+#include "ability_state.h"
+#include "hilog_tag_wrapper.h"
 #include "ani_common_util.h"
 #include "ani_common_want.h"
 #include "ani_enum_convert.h"
@@ -284,6 +286,95 @@ bool WrapExtensionRunningInfoInner(
         return false;
     }
     return true;
+}
+
+bool SetAbilityStateData(ani_env *env, ani_object object, const AbilityStateData &abilityStateData)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
+        return false;
+    }
+    ani_status status = ANI_OK;
+    if ((status = env->Object_SetFieldByName_Ref(object, "moduleName",
+        OHOS::AppExecFwk::GetAniString(env, abilityStateData.moduleName))) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "moduleName failed status:%{public}d", status);
+        return false;
+    }
+    if ((status = env->Object_SetFieldByName_Ref(object, "bundleName",
+        OHOS::AppExecFwk::GetAniString(env, abilityStateData.bundleName))) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleName failed status:%{public}d", status);
+        return false;
+    }
+    if ((status = env->Object_SetFieldByName_Ref(object, "abilityName",
+        OHOS::AppExecFwk::GetAniString(env, abilityStateData.abilityName))) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityName failed status:%{public}d", status);
+        return false;
+    }
+    if ((status = env->Object_SetFieldByName_Int(object, "pid", static_cast<int32_t>(abilityStateData.pid)))
+        != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "pid failed status:%{public}d", status);
+        return false;
+    }
+    if ((status = env->Object_SetFieldByName_Int(object, "uid", abilityStateData.uid)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "uid failed status:%{public}d", status);
+        return false;
+    }
+    if ((status = env->Object_SetFieldByName_Int(object, "state", abilityStateData.abilityState)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "state failed status:%{public}d", status);
+        return false;
+    }
+    if ((status = env->Object_SetFieldByName_Int(object, "abilityType", abilityStateData.abilityType)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityType failed status:%{public}d", status);
+        return false;
+    }
+    if ((status = env->Object_SetFieldByName_Boolean(object, "isAtomicService",
+        abilityStateData.isAtomicService)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "isAtomicService failed status:%{public}d", status);
+        return false;
+    }
+    if ((status = env->Object_SetFieldByName_Ref(object, "appCloneIndex",
+        OHOS::AppExecFwk::createInt(env, abilityStateData.appCloneIndex))) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "appCloneIndex failed status:%{public}d", status);
+        return false;
+    }
+    return true;
+}
+
+ani_object WrapAbilityStateData(ani_env *env, const AbilityStateData &abilityStateData)
+{
+    ani_class cls {};
+    ani_status status = ANI_ERROR;
+    ani_method method {};
+    ani_object object = nullptr;
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
+        return nullptr;
+    }
+    if ((status = env->FindClass("Lapplication/AbilityStateData/AbilityStateData;", &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "find class failed status : %{public}d", status);
+        return nullptr;
+    }
+    if (cls == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null cls");
+        return nullptr;
+    }
+    if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "find ctor failed status : %{public}d", status);
+        return nullptr;
+    }
+    if ((status = env->Object_New(cls, method, &object)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Object_New AppStateData failed status : %{public}d", status);
+        return nullptr;
+    }
+    if (object == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null object");
+        return nullptr;
+    }
+    if (!SetAbilityStateData(env, object, abilityStateData)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "SetAppStateData failed");
+        return nullptr;
+    }
+    return object;
 }
 
 } // namespace AbilityManagerSts

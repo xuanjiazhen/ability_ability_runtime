@@ -787,6 +787,23 @@ ohos_prebuilt_etc("ability_delegator_application_testRunner_abc_etc") {
   deps = [ ":ability_delegator_application_testRunner_abc" ]
 }
 
+generate_static_abc("ability_foreground_state_observer_abc") {
+  base_url = "."
+  files = [ "./application/AbilityForegroundStateObserver.ets" ]
+
+  is_boot_abc = "True"
+  device_dst_file =
+      "/system/framework/ability_foreground_state_observer_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_foreground_state_observer_abc_etc") {
+  source = "$target_out_dir/ability_foreground_state_observer_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_foreground_state_observer_abc" ]
+}
+
 generate_static_abc("ability_runtime_OpenLink_Options_abc") {
   base_url = "./"
   files = [ "./@ohos.app.ability.OpenLinkOptions.ets" ]
@@ -1074,6 +1091,7 @@ group("ets_packages") {
     ":ability_delegator_application_testRunner_abc_etc",
     ":ability_delegator_args_abc_etc",
     ":ability_delegator_registry_abc_etc",
+    ":ability_foreground_state_observer_abc_etc",
     ":ability_runtime_abilityResult_abc_etc",
     ":ability_runtime_ability_abc_etc",
     ":ability_runtime_ability_callee_abc_etc",
