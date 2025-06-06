@@ -50,8 +50,6 @@ ohos_source_set("appmgr_test_source") {
     "${ability_runtime_innerkits_path}/app_manager/src/appmgr/native_child_notify_stub.cpp",
     "${ability_runtime_innerkits_path}/app_manager/src/appmgr/process_info.cpp",
     "${ability_runtime_innerkits_path}/app_manager/src/appmgr/profile.cpp",
-    "${ability_runtime_innerkits_path}/app_manager/src/appmgr/render_scheduler_host.cpp",
-    "${ability_runtime_innerkits_path}/app_manager/src/appmgr/render_scheduler_proxy.cpp",
     "${ability_runtime_innerkits_path}/app_manager/src/appmgr/running_process_info.cpp",
   ]
 
