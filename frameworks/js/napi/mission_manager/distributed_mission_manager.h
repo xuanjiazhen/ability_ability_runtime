@@ -101,7 +101,7 @@ class NAPIRemoteOnListener : public AAFwk::RemoteOnListenerStub {
 public:
     virtual ~NAPIRemoteOnListener() {};
 
-    void OnCallback(const uint32_t continueState, const std::string &srcDeviceId,
+    ErrCode OnCallback(const uint32_t continueState, const std::string &srcDeviceId,
         const std::string &bundleName, const std::string &continueType = "",
         const std::string &srcBundleName = "") override;
     void SetEnv(const napi_env &env);
