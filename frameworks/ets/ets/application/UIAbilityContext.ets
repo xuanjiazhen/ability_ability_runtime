@@ -74,6 +74,7 @@ export default class UIAbilityContext extends Context {
   private native nativeIsTerminating(): boolean;
   private native nativeMoveAbilityToBackground(callback: AsyncCallbackWrapper<void>): void;
   private native nativeRequestModalUIExtension(pickerWant: Want, callback: AsyncCallbackWrapper<void>): void;
+  private native nativeBackToCallerAbilityWithResult(abilityResult: AbilityResult, requestCode: string, callback: AsyncCallbackWrapper<void>): void;
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
@@ -339,6 +340,21 @@ export default class UIAbilityContext extends Context {
       });
       taskpool.execute(() => {
         this.nativeRequestModalUIExtension(pickerWant, syncCall);
+      });
+    });
+  }
+
+  backToCallerAbilityWithResult(abilityResult: AbilityResult, requestCode: string): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError<void>) => void): void => {
+      let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>) => {
+        if (err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute(() => {
+        this.nativeBackToCallerAbilityWithResult(abilityResult, requestCode, syncCall);
       });
     });
   }
