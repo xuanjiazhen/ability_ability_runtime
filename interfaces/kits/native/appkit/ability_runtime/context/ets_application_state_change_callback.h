@@ -47,7 +47,7 @@ private:
     void CallEtsMethod(const std::string &methodName);
     ani_env *env_ = nullptr;
     std::set<ani_ref> callbacks_;
-    mutable std::mutex Mutex_;
+    mutable std::mutex mutex_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
