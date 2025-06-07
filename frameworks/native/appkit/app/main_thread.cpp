@@ -1732,6 +1732,10 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
             appThread->ScheduleProcessSecurityExit();
         };
         applicationContext->RegisterProcessSecurityExit(callback);
+        if (appInfo.codeLanguage == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2) {
+            application_->InitAniApplicationContext();
+            application_->InitAniContext();
+        }
 
         application_->SetRuntime(std::move(runtime));
 
