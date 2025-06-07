@@ -66,14 +66,14 @@ export default namespace abilityManager {
       });
     });
     return p;
-}
+  }
 
-export function getTopAbility(callback: AsyncCallback<ElementName, void>): void {
-    let myCall = new AsyncCallbackWrapper<ElementName>(callback);
-    taskpool.execute( (): void => {
-        abilityManager.nativeGetTopAbility(myCall);
-    });
-}
+  export function getTopAbility(callback: AsyncCallback<ElementName, void>): void {
+      let myCall = new AsyncCallbackWrapper<ElementName>(callback);
+      taskpool.execute( (): void => {
+          abilityManager.nativeGetTopAbility(myCall);
+      });
+  }
 
   function getAbilityRunningInfos(): Promise<Array<AbilityRunningInfo>> {
     return new Promise<Array<AbilityRunningInfo>>((resolve: (data: Array<AbilityRunningInfo>) => void,
@@ -97,6 +97,17 @@ export function getTopAbility(callback: AsyncCallback<ElementName, void>): void 
     taskpool.execute((): void => {
       abilityManager.nativeGetAbilityRunningInfos(syncCall);
     });
+  }
+
+  export native function nativeOn(type:string, observer: AbilityForegroundStateObserver): void;
+  function on(type: 'abilityForegroundState', observer: AbilityForegroundStateObserver): void
+  {
+    nativeOn('abilityForegroundState', observer);
+  }
+
+  export native function nativeOff(type:string, observer?: AbilityForegroundStateObserver): void;
+  function off(type: 'abilityForegroundState', observer?: AbilityForegroundStateObserver): void {
+    nativeOff('abilityForegroundState', observer);
   }
 
   export enum AbilityState {
