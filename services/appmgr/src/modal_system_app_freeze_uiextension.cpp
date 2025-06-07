@@ -81,12 +81,7 @@ void ModalSystemAppFreezeUIExtension::ProcessAppFreeze(bool focusFlag, const Fau
         lastFreezeTime = now;
     }
     if (focusFlag && isPullUpBox) {
-        std::string appNoResponseBundleName = APP_NO_RESPONSE_BUNDLENAME;
-        if (appNoResponseBundleName == "com.ohos.taskmanager") {
-            callback();
-        } else {
-            CreateModalUIExtension(pid, bundleName);
-        }
+        CreateModalUIExtension(pid, bundleName);
     } else if (callback && (faultType != FaultDataType::APP_FREEZE || !isAppFreezeDialog)) {
         callback();
     }
