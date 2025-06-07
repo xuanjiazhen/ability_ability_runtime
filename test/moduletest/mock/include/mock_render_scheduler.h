@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,7 +27,7 @@ public:
     virtual ~MockRenderScheduler() = default;
 
     MOCK_METHOD4(NotifyBrowserFd,
-                 void(int32_t ipcFd, int32_t sharedFd, int32_t crashFd, sptr<IRemoteObject> browser));
+                 ErrCode(int32_t ipcFd, int32_t sharedFd, int32_t crashFd, const sptr<IRemoteObject>& browser));
     MOCK_METHOD0(AsObject, sptr<IRemoteObject>());
 };
 }  // namespace AppExecFwk

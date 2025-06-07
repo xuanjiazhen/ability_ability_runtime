@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -74,7 +74,7 @@ HWTEST_F(QuickFixCallbackProxyTest, OnLoadPatchDone_0100, TestSize.Level1)
     quickFixMgrProxy_->OnLoadPatchDone(resultCode, recordId);
 
     EXPECT_EQ(mockCallbackService_->code_,
-        static_cast<uint32_t>(IQuickFixCallback::QuickFixCallbackCmd::ON_NOTIFY_LOAD_PATCH));
+        static_cast<uint32_t>(IQuickFixCallbackIpcCode::COMMAND_ON_LOAD_PATCH_DONE));
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
@@ -98,7 +98,7 @@ HWTEST_F(QuickFixCallbackProxyTest, OnUnloadPatchDone_0100, TestSize.Level1)
     quickFixMgrProxy_->OnUnloadPatchDone(resultCode, recordId);
 
     EXPECT_EQ(mockCallbackService_->code_,
-        static_cast<uint32_t>(IQuickFixCallback::QuickFixCallbackCmd::ON_NOTIFY_UNLOAD_PATCH));
+        static_cast<uint32_t>(IQuickFixCallbackIpcCode::COMMAND_ON_UNLOAD_PATCH_DONE));
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
@@ -122,7 +122,7 @@ HWTEST_F(QuickFixCallbackProxyTest, OnReloadPageDone_0100, TestSize.Level1)
     quickFixMgrProxy_->OnReloadPageDone(resultCode, recordId);
 
     EXPECT_EQ(mockCallbackService_->code_,
-        static_cast<uint32_t>(IQuickFixCallback::QuickFixCallbackCmd::ON_NOTIFY_RELOAD_PAGE));
+        static_cast<uint32_t>(IQuickFixCallbackIpcCode::COMMAND_ON_RELOAD_PAGE_DONE));
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
