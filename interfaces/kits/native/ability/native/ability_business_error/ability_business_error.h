@@ -212,7 +212,7 @@ enum class AbilityErrorCode {
     // The context is not UIAbilityContext.
     ERROR_CODE_NOT_UI_ABILITY_CONTEXT = 16000086,
 
-    // The Caller is not an atomic service.
+    // The caller is not an atomic service.
     ERROR_CODE_CALLER_NOT_ATOMIC_SERVICE = 16000090,
 
     // invalid caller.
@@ -247,6 +247,15 @@ enum class AbilityErrorCode {
 
     // target application is not attached to a status bar.
     ERROR_CODE_NOT_ATTACHED_TO_STATUS_BAR = 16300010,
+
+    // invalid main element type
+    ERROR_CODE_INVALID_MAIN_ELEMENT_TYPE = 16000202,
+
+    // can not change keep alive status
+    ERROR_CODE_CHANGE_KEEP_ALIVE = 16000203,
+
+    // target bundle is not in u1
+    ERROR_CODE_NO_U1 = 16000204,
 
     ERROR_CODE_BUNDLE_NAME_INVALID = 18500001,
 };

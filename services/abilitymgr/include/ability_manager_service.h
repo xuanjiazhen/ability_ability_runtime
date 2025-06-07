@@ -72,6 +72,7 @@
 #include "system_dialog_scheduler.h"
 #endif
 #include "insight_intent_event_mgr.h"
+#include "kiosk_manager.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -1919,7 +1920,8 @@ public:
      * @param flag Keep-alive flag.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t SetApplicationKeepAliveByEDM(const std::string &bundleName, int32_t userId, bool flag) override;
+    virtual int32_t SetApplicationKeepAliveByEDM(const std::string &bundleName, int32_t userId,
+        bool flag, bool isAllowUserToCancel = false) override;
 
     /**
      * Get keep-alive applications by EDM.
@@ -2073,6 +2075,38 @@ public:
         const std::string &moduleName,
         const std::string &intentName,
         InsightIntentInfoForQuery &info) override;
+
+    int32_t UpdateKioskApplicationList(const std::vector<std::string> &appList) override;
+
+    int32_t EnterKioskMode(sptr<IRemoteObject> callerToken) override;
+
+    int32_t ExitKioskMode(sptr<IRemoteObject> callerToken) override;
+
+    int32_t GetKioskStatus(AAFwk::KioskStatus &kioskStatus) override;
+
+    std::shared_ptr<AbilityInterceptorExecuter> GetAbilityInterceptorExecuter();
+
+    /**
+     * Register sa interceptor.
+     * @param interceptor, The sa interceptor.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RegisterSAInterceptor(sptr<AbilityRuntime::ISAInterceptor> interceptor) override;
+
+     /**
+     * Set keep-alive flag for app service extension under u1 user.
+     * @param bundleName Bundle name.
+     * @param flag Keep-alive flag.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t SetAppServiceExtensionKeepAlive(const std::string &bundleName, bool flag) override;
+
+    /**
+     * Get keep-alive app service extensions.
+     * @param list List of Keep-alive information.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t QueryKeepAliveAppServiceExtensions(std::vector<KeepAliveInfo> &list) override;
 
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;
@@ -2320,7 +2354,7 @@ private:
     void RetrySubscribeScreenUnlockedEvent(int32_t retryCount);
     void RemoveScreenUnlockInterceptor();
     void RemoveUnauthorizedLaunchReasonMessage(const Want &want, AbilityRequest &abilityRequest,
-        const sptr<IRemoteObject> &callerToken);
+        uint32_t callerTokenId);
 
     int VerifyAccountPermission(int32_t userId);
 
@@ -2647,6 +2681,9 @@ private:
         bool hasStartOptions = false;
     };
     int StartSelfUIAbilityInner(StartSelfUIAbilityParam param);
+
+    bool HandleExecuteSAInterceptor(const Want &want, sptr<IRemoteObject> callerToken,
+        AbilityRequest &abilityRequest, int32_t &result);
 
     bool controllerIsAStabilityTest_ = false;
     bool isParamStartAbilityEnable_ = false;

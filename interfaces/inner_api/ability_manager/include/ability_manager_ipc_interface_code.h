@@ -585,6 +585,12 @@ enum class AbilityManagerInterfaceCode {
 
     GET_INTENT_EXEMPTION_INFO = 6125,
 
+    // set app service extension keep alive
+    SET_APP_SERVICE_EXTENSION_KEEP_ALIVE = 6126,
+
+    // get keep-alive app service extensions
+    GET_APP_SERVICE_EXTENSIONS_KEEP_ALIVE = 6127,
+
     // add query ERMS observer
     ADD_QUERY_ERMS_OBSERVER = 6130,
 
@@ -629,6 +635,21 @@ enum class AbilityManagerInterfaceCode {
 
     // restart atomic service
     RESTART_SELF_ATOMIC_SERVICE = 6144,
+
+    // update the list of applications allowed in kiosk mode
+    UPDATE_KIOSK_APP_LIST = 6145,
+
+    // enter kiosk mode
+    ENTER_KIOSK_MODE = 6146,
+
+    // exit kiosk mode
+    EXIT_KIOSK_MODE = 6147,
+
+    // get current kiosk mode information
+    GET_KIOSK_INFO = 6148,
+
+    // register sa interceptor
+    REGISTER_SA_INTERCEPTOR = 6149,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
