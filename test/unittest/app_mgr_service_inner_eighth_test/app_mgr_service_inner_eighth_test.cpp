@@ -74,18 +74,21 @@ public:
 };
 class MyChildScheduler : public IChildScheduler {
 public:
-    bool ScheduleLoadChild() override
+    ErrCode ScheduleLoadChild(bool& funcResult) override
     {
         g_scheduleLoadChildCall++;
-        return false;
+        funcResult = false;
+        return ERR_OK;
     }
-    bool ScheduleExitProcessSafely() override
+    ErrCode ScheduleExitProcessSafely(bool& funcResult) override
     {
-        return false;
+        funcResult = false;
+        return ERR_OK;
     }
-    bool ScheduleRunNativeProc(const sptr<IRemoteObject> &mainProcessCb) override
+    ErrCode ScheduleRunNativeProc(const sptr<IRemoteObject> &mainProcessCb, bool& funcResult) override
     {
-        return false;
+        funcResult = false;
+        return ERR_OK;
     }
     sptr<IRemoteObject> AsObject() override
     {

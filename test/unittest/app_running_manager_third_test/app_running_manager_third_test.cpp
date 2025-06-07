@@ -90,19 +90,22 @@ class MockIChildScheduler : public IChildScheduler {
 public:
     MockIChildScheduler() = default;
     ~MockIChildScheduler() = default;
-    bool ScheduleLoadChild() override
+    ErrCode ScheduleLoadChild(bool &funcRes) override
     {
-        return true;
+        funcRes = true;
+        return ERR_OK;
     }
 
-    bool ScheduleExitProcessSafely() override
+    ErrCode ScheduleExitProcessSafely(bool &funcRes) override
     {
-        return true;
+        funcRes = true;
+        return ERR_OK;
     }
 
-    bool ScheduleRunNativeProc(const sptr<IRemoteObject> &mainProcessCb) override
+    ErrCode ScheduleRunNativeProc(const sptr<IRemoteObject> &mainProcessCb, bool &funcRes) override
     {
-        return true;
+        funcRes = true;
+        return ERR_OK;
     }
 
     sptr<IRemoteObject> AsObject() override

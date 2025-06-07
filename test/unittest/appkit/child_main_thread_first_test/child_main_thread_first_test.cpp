@@ -92,8 +92,9 @@ HWTEST_F(ChildMainThreadFirstTest, ScheduleLoadChild_0100, TestSize.Level1)
     thread_->mainHandler_ = handler;
     thread_->processInfo_ = std::make_shared<ChildProcessInfo>();
 
-    auto ret = thread_->ScheduleLoadChild();
-    EXPECT_TRUE(ret);
+    bool funcRes = false;
+    thread_->ScheduleLoadChild(funcRes);
+    EXPECT_TRUE(funcRes);
     TAG_LOGI(AAFwkTag::TEST, "ScheduleLoadChild_0100 end.");
 }
 
@@ -106,8 +107,10 @@ HWTEST_F(ChildMainThreadFirstTest, ScheduleLoadChild_0200, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "ScheduleLoadChild_0200 start.");
     ASSERT_NE(thread_, nullptr);
-    auto ret = thread_->ScheduleLoadChild();
-    EXPECT_FALSE(ret);
+
+    bool funcRes = false;
+    thread_->ScheduleLoadChild(funcRes);
+    EXPECT_FALSE(funcRes);
     TAG_LOGI(AAFwkTag::TEST, "ScheduleLoadChild_0200 end.");
 }
 
@@ -123,8 +126,9 @@ HWTEST_F(ChildMainThreadFirstTest, ScheduleLoadChild_0300, TestSize.Level1)
     std::shared_ptr<EventRunner> runner = EventRunner::GetMainEventRunner();
     std::shared_ptr<EventHandler> handler = std::make_shared<EventHandler>(runner);
     thread_->mainHandler_ = handler;
-    auto ret = thread_->ScheduleLoadChild();
-    EXPECT_FALSE(ret);
+    bool funcRes = false;
+    thread_->ScheduleLoadChild(funcRes);
+    EXPECT_FALSE(funcRes);
     TAG_LOGI(AAFwkTag::TEST, "ScheduleLoadChild_0300 end.");
 }
 

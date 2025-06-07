@@ -20,7 +20,7 @@
 
 #define private public
 #include "child_scheduler_proxy.h"
-#include "child_scheduler_interface.h"
+#include "ichild_scheduler.h"
 #undef private
 
 #include "securec.h"
@@ -68,15 +68,15 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
     sptr<IRemoteObject> impl;
     std::shared_ptr<ChildSchedulerProxy> infosProxy = std::make_shared<ChildSchedulerProxy>(impl);
-    infosProxy->ScheduleLoadChild();
-    infosProxy->ScheduleExitProcessSafely();
+    bool funcRes = false;
+    infosProxy->ScheduleLoadChild(funcRes);
+    infosProxy->ScheduleExitProcessSafely(funcRes);
     sptr<IRemoteObject> mainProcessCb;
-    infosProxy->ScheduleRunNativeProc(mainProcessCb);
+    infosProxy->ScheduleRunNativeProc(mainProcessCb, funcRes);
     MessageParcel parcels;
     parcels.WriteInterfaceToken(AMSMGR_INTERFACE_TOKEN);
     parcels.WriteBuffer(data, size);
     parcels.RewindRead(0);
-    infosProxy->WriteInterfaceToken(parcels);
     return true;
 }
 }

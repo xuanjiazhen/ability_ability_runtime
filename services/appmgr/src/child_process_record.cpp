@@ -177,7 +177,8 @@ void ChildProcessRecord::ScheduleExitProcessSafely()
         TAG_LOGE(AAFwkTag::APPMGR, "null scheduler_");
         return;
     }
-    scheduler_->ScheduleExitProcessSafely();
+    bool funcRes = false;
+    scheduler_->ScheduleExitProcessSafely(funcRes);
 }
 
 void ChildProcessRecord::MakeProcessName(const std::shared_ptr<AppRunningRecord> hostRecord,

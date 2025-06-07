@@ -113,9 +113,9 @@ HWTEST_F(ChildMainThreadTest, ScheduleLoadChild_0100, TestSize.Level1)
     std::shared_ptr<EventHandler> handler = std::make_shared<EventHandler>(runner);
     thread->mainHandler_ = handler;
     thread->processInfo_ = std::make_shared<ChildProcessInfo>();
-
-    auto ret = thread->ScheduleLoadChild();
-    EXPECT_TRUE(ret);
+    bool funcRes = false;
+    thread->ScheduleLoadChild(funcRes);
+    EXPECT_TRUE(funcRes);
 }
 
 /**
@@ -202,8 +202,9 @@ HWTEST_F(ChildMainThreadTest, ScheduleExitProcessSafely_0100, TestSize.Level2)
     std::shared_ptr<EventHandler> handler = std::make_shared<EventHandler>(runner);
     thread->mainHandler_ = handler;
 
-    auto ret = thread->ScheduleExitProcessSafely();
-    EXPECT_TRUE(ret);
+    bool funcRes = false;
+    thread->ScheduleExitProcessSafely(funcRes);
+    EXPECT_TRUE(funcRes);
 }
 
 /**
@@ -222,8 +223,9 @@ HWTEST_F(ChildMainThreadTest, ScheduleRunNativeProc_0100, TestSize.Level2)
     thread->mainHandler_ = handler;
 
     sptr<IRemoteObject> mainPorcessCb = nullptr;
-    auto ret = thread->ScheduleRunNativeProc(mainPorcessCb);
-    EXPECT_FALSE(ret);
+    bool funcRes = false;
+    thread->ScheduleRunNativeProc(mainPorcessCb, funcRes);
+    EXPECT_FALSE(funcRes);
 }
 
 } // namespace AppExecFwk
