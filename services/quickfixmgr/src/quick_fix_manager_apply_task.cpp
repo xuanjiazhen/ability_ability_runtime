@@ -235,52 +235,55 @@ public:
         TAG_LOGD(AAFwkTag::QUICKFIX, "destroyed");
     }
 
-    void OnLoadPatchDone(int32_t resultCode, [[maybe_unused]] int32_t recordId) override
+    ErrCode OnLoadPatchDone(int32_t resultCode, [[maybe_unused]] int32_t recordId) override
     {
         TAG_LOGD(AAFwkTag::QUICKFIX, "called");
         if (resultCode != 0) {
             TAG_LOGE(AAFwkTag::QUICKFIX, "notify patch failed: %{public}d", resultCode);
             applyTask_->NotifyApplyStatus(QUICK_FIX_NOTIFY_LOAD_PATCH_FAILED);
             applyTask_->RemoveSelf();
-            return;
+            return ERR_INVALID_VALUE;
         }
 
         applyTask_->PostDeleteQuickFixTask();
+        return ERR_OK;
     }
 
-    void OnUnloadPatchDone(int32_t resultCode, [[maybe_unused]] int32_t recordId) override
+    ErrCode OnUnloadPatchDone(int32_t resultCode, [[maybe_unused]] int32_t recordId) override
     {
         TAG_LOGD(AAFwkTag::QUICKFIX, "called");
         if (resultCode != 0) {
             TAG_LOGE(AAFwkTag::QUICKFIX, "notify patch failed: %{public}d", resultCode);
             applyTask_->NotifyApplyStatus(QUICK_FIX_NOTIFY_UNLOAD_PATCH_FAILED);
             applyTask_->RemoveSelf();
-            return;
+            return ERR_INVALID_VALUE;
         }
 
         if (applyTask_->GetTaskType() == QuickFixManagerApplyTask::TaskType::QUICK_FIX_APPLY) {
             applyTask_->PostSwitchQuickFixTask();
-            return;
+            return ERR_OK;
         } else if (applyTask_->GetTaskType() == QuickFixManagerApplyTask::TaskType::QUICK_FIX_REVOKE) {
             applyTask_->PostRevokeQuickFixDeleteTask();
-            return;
+            return ERR_OK;
         }
 
         TAG_LOGW(AAFwkTag::QUICKFIX, "Invalid task type");
+        return ERR_OK;
     }
 
-    void OnReloadPageDone(int32_t resultCode, [[maybe_unused]] int32_t recordId) override
+    ErrCode OnReloadPageDone(int32_t resultCode, [[maybe_unused]] int32_t recordId) override
     {
         TAG_LOGD(AAFwkTag::QUICKFIX, "called");
         if (resultCode != 0) {
             TAG_LOGE(AAFwkTag::QUICKFIX, "notify app load patch failed: %{public}d", resultCode);
             applyTask_->NotifyApplyStatus(QUICK_FIX_NOTIFY_RELOAD_PAGE_FAILED);
             applyTask_->RemoveSelf();
-            return;
+            return ERR_INVALID_VALUE;
         }
 
         applyTask_->NotifyApplyStatus(QUICK_FIX_OK);
         applyTask_->RemoveSelf();
+        return ERR_OK;
     }
 
 private:
@@ -295,11 +298,15 @@ public:
 
     virtual ~RevokeQuickFixNotifyCallback() = default;
 
-    void OnLoadPatchDone(int32_t resultCode, [[maybe_unused]] int32_t recordId) override
-    {}
+    ErrCode OnLoadPatchDone(int32_t resultCode, [[maybe_unused]] int32_t recordId) override
+    {
+        return ERR_OK;
+    }
 
-    void OnReloadPageDone(int32_t resultCode, [[maybe_unused]] int32_t recordId) override
-    {}
+    ErrCode OnReloadPageDone(int32_t resultCode, [[maybe_unused]] int32_t recordId) override
+    {
+        return ERR_OK;
+    }
 };
 
 QuickFixManagerApplyTask::~QuickFixManagerApplyTask()

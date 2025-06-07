@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -42,19 +42,22 @@ public:
     QuickFixCallbackImpl() = default;
     virtual ~QuickFixCallbackImpl() = default;
 
-    void OnLoadPatchDone(int32_t resultCode, int32_t recordId) override
+    ErrCode OnLoadPatchDone(int32_t resultCode, int32_t recordId) override
     {
         TAG_LOGD(AAFwkTag::TEST, "function called.");
+        return ERR_OK;
     }
 
-    void OnUnloadPatchDone(int32_t resultCode, int32_t recordId) override
+    ErrCode OnUnloadPatchDone(int32_t resultCode, int32_t recordId) override
     {
         TAG_LOGD(AAFwkTag::TEST, "function called.");
+        return ERR_OK;
     }
 
-    void OnReloadPageDone(int32_t resultCode, int32_t recordId) override
+    ErrCode OnReloadPageDone(int32_t resultCode, int32_t recordId) override
     {
         TAG_LOGD(AAFwkTag::TEST, "function called.");
+        return ERR_OK;
     }
 };
 

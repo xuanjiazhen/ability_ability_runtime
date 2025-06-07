@@ -662,19 +662,25 @@ int32_t AppMgrServiceInner::MakeKiaProcess(std::shared_ptr<AAFwk::Want> want, bo
 #ifdef INCLUDE_ZURI
     isFileUri = !want->GetUriString().empty() && want->GetUri().GetScheme() == "file";
 #endif
+TAG_LOGI(AAFwkTag::APPMGR, "zyh AppMgrServiceInner::MakeKiaProcess -------------------- 1");
     if (isFileUri && kiaInterceptor_ != nullptr) {
+        TAG_LOGI(AAFwkTag::APPMGR, "zyh AppMgrServiceInner::MakeKiaProcess -------------------- 2");
         auto resultCode = kiaInterceptor_->OnIntercept(*want);
         watermarkBusinessName = want->GetStringParam(KEY_WATERMARK_BUSINESS_NAME);
         isWatermarkEnabled = want->GetBoolParam(KEY_IS_WATERMARK_ENABLED, false);
+        TAG_LOGI(AAFwkTag::APPMGR, "zyh AppMgrServiceInner::MakeKiaProcess -------------------- 3");
         TAG_LOGI(AAFwkTag::APPMGR, "After calling kiaInterceptor_->OnIntercept,"
             "resultCode=%{public}d,watermarkBusinessName=%{private}s,isWatermarkEnabled=%{private}d",
             resultCode, watermarkBusinessName.c_str(),
             static_cast<int>(isWatermarkEnabled));
         isKia = (resultCode == ERR_OK && !watermarkBusinessName.empty() && isWatermarkEnabled);
         if (isKia) {
+            TAG_LOGI(AAFwkTag::APPMGR, "zyh AppMgrServiceInner::MakeKiaProcess -------------------- 3");
             processName += "_KIA";
         }
+        TAG_LOGI(AAFwkTag::APPMGR, "zyh AppMgrServiceInner::MakeKiaProcess -------------------- 4");
     }
+    TAG_LOGI(AAFwkTag::APPMGR, "zyh AppMgrServiceInner::MakeKiaProcess -------------------- 5");
     return ERR_OK;
 }
 
@@ -9669,15 +9675,20 @@ int32_t AppMgrServiceInner::GetSupportedProcessCachePids(const std::string &bund
 int AppMgrServiceInner::RegisterKiaInterceptor(const sptr<IKiaInterceptor> &interceptor)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "call");
+    TAG_LOGE(AAFwkTag::APPMGR, "zyh AppMgrServiceInner::RegisterKiaInterceptor ----------------    1");
     if (!AAFwk::AppUtils::GetInstance().IsStartOptionsWithAnimation() ||
         !AAFwk::PermissionVerification::GetInstance()->VerifySuperviseKiaServicePermission()) {
+            TAG_LOGE(AAFwkTag::APPMGR, "zyh AppMgrServiceInner::RegisterKiaInterceptor ----------------    2");
         TAG_LOGE(AAFwkTag::APPMGR, "no kia permission.");
         return ERR_PERMISSION_DENIED;
     }
+    TAG_LOGE(AAFwkTag::APPMGR, "zyh AppMgrServiceInner::RegisterKiaInterceptor ----------------    3");
     if (interceptor == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "zyh AppMgrServiceInner::RegisterKiaInterceptor ----------------    4");
         TAG_LOGE(AAFwkTag::APPMGR, "interceptor is nullptr.");
         return ERR_INVALID_VALUE;
     }
+    TAG_LOGE(AAFwkTag::APPMGR, "zyh AppMgrServiceInner::RegisterKiaInterceptor ----------------    5");
     kiaInterceptor_ = interceptor;
     return ERR_OK;
 }
