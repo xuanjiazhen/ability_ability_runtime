@@ -123,6 +123,8 @@ public:
     }
     MOCK_METHOD(WMError, CreateNewInstanceKey, (const std::string& bundleName, std::string& instanceKey), (override));
     MOCK_METHOD(WMError, RemoveInstanceKey, (const std::string& bundleName, const std::string& instanceKey), (override));
+    MOCK_METHOD(WMError, GetRouterStackInfo, 
+        (int32_t persistentId, const sptr<ISessionRouterStackListener>& listener), (override));
 };
 } // namespace OHOS::Rosen
 #endif // MOCK_SCENE_SESSION_MANAGER_LITE_H
