@@ -62,6 +62,10 @@ class AbilityContext extends Context {
     return this.__context_impl__.startAbilityWithAccount(want, accountId, options, callback);
   }
 
+  startAbilities(wantList) {
+    return this.__context_impl__.startAbilities(wantList);
+  }
+
   startAbilityByCall(want) {
     return new Promise(async (resolve, reject) => {
       if (typeof want !== 'object' || want == null) {

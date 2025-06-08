@@ -45,6 +45,7 @@ public:
     static napi_value StartAbilityAsCaller(napi_env env, napi_callback_info info);
     static napi_value StartRecentAbility(napi_env env, napi_callback_info info);
     static napi_value StartAbilityWithAccount(napi_env env, napi_callback_info info);
+    static napi_value StartAbilities(napi_env env, napi_callback_info info);
     static napi_value StartAbilityByCall(napi_env env, napi_callback_info info);
     static napi_value StartAbilityForResult(napi_env env, napi_callback_info info);
     static napi_value StartAbilityForResultWithAccount(napi_env env, napi_callback_info info);
@@ -112,6 +113,7 @@ private:
     napi_value OnStartAbilityAsCaller(napi_env env, NapiCallbackInfo& info);
     napi_value OnStartRecentAbility(napi_env env, NapiCallbackInfo& info);
     napi_value OnStartAbilityWithAccount(napi_env env, NapiCallbackInfo& info);
+    napi_value OnStartAbilities(napi_env env, NapiCallbackInfo& info);
     napi_value OnStartAbilityByCall(napi_env env, NapiCallbackInfo& info);
     napi_value OnStartAbilityForResult(napi_env env, NapiCallbackInfo& info);
     napi_value OnStartAbilityForResultWithAccount(napi_env env, NapiCallbackInfo& info);

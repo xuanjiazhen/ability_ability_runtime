@@ -575,6 +575,9 @@ int AbilityManagerStub::OnRemoteRequestInnerFourteenth(uint32_t code, MessagePar
     if (interfaceCode == AbilityManagerInterfaceCode::CLOSE_UI_EXTENSION_ABILITY_BY_SCB) {
         return CloseUIExtensionAbilityBySCBInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::START_ABILITIES) {
+        return StartAbilitiesInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -3829,6 +3832,41 @@ int AbilityManagerStub::StartAbilityForResultAsCallerInner(MessageParcel &data, 
     int32_t requestCode = data.ReadInt32();
     int32_t userId = data.ReadInt32();
     int32_t result = StartAbilityForResultAsCaller(*want, callerToken, requestCode, userId);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::StartAbilitiesInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call StartAbilitiesInner");
+
+    int32_t size = data.ReadInt32();
+    int32_t threshold = 4;
+    if (size > threshold) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "vector size too large");
+        return ERR_ENOUGH_DATA;
+    }
+    std::vector<Want> wantList;
+    for (auto i = 0; i < size; i++) {
+        std::unique_ptr<Want> want(data.ReadParcelable<Want>());
+        if (want == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
+            return ERR_NATIVE_IPC_PARCEL_FAILED;
+        }
+        wantList.emplace_back(*want);
+    }
+
+    sptr<IRemoteObject> callerToken = data.ReadRemoteObject();
+    if (callerToken == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null callerToken");
+        return INVALID_CALLER_TOKEN;
+    }
+    int32_t userId = data.ReadInt32();
+
+    for (const Want &item : wantList) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbilitiesLog stub abilityName %{public}s", item.GetElement().GetAbilityName().c_str());
+    }
+    int32_t result = StartAbilities(wantList, callerToken, userId);
     reply.WriteInt32(result);
     return NO_ERROR;
 }

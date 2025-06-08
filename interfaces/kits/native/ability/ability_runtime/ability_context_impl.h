@@ -232,6 +232,14 @@ public:
 #ifdef SUPPORT_SCREEN
     ErrCode StartAbilityByType(const std::string &type,
         AAFwk::WantParams &wantParam, const std::shared_ptr<JsUIExtensionCallback> &uiExtensionCallbacks) override;
+
+    /**
+     * @brief start abilities simultaneously.
+     *
+     * @param wantList a list of want to start abilities.
+     * @return Returns ERR_OK if success.
+     */
+    ErrCode StartAbilities(const std::vector<AAFwk::Want> &wantList) override;
 #endif
     ErrCode RequestModalUIExtension(const Want &want) override;
 

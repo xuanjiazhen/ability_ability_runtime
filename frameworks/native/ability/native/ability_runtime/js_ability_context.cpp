@@ -61,6 +61,7 @@ constexpr int32_t INDEX_ZERO = 0;
 constexpr int32_t INDEX_ONE = 1;
 constexpr int32_t INDEX_TWO = 2;
 constexpr int32_t INDEX_THREE = 3;
+constexpr int32_t INDEX_FOUR = 4;
 constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
@@ -270,6 +271,11 @@ napi_value JsAbilityContext::StartRecentAbility(napi_env env, napi_callback_info
 napi_value JsAbilityContext::StartAbilityWithAccount(napi_env env, napi_callback_info info)
 {
     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnStartAbilityWithAccount);
+}
+
+napi_value JsAbilityContext::StartAbilities(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnStartAbilities);
 }
 
 napi_value JsAbilityContext::StartAbilityByCall(napi_env env, napi_callback_info info)
@@ -1124,6 +1130,75 @@ napi_value JsAbilityContext::OnStartAbilityWithAccount(napi_env env, NapiCallbac
     return result;
 }
 
+napi_value JsAbilityContext::OnStartAbilities(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGI(AAFwkTag::CONTEXT, "startAbilitiesLog call JsAbilityContext::OnStartAbilities");
+    //入参不止一个 抛出错误
+    if (info.argc != ARGC_ONE) {
+        TAG_LOGI(AAFwkTag::CONTEXT, "startAbilitiesLog info.argc != ARGC_ONE");
+        ThrowInvalidNumParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    AppExecFwk::ComplexArrayData jsWantList;
+    if (!AppExecFwk::UnwrapArrayComplexFromJS(env, info.argv[INDEX_ZERO], jsWantList)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "startAbilitiesLog wantList not array.");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        return CreateJsUndefined(env);
+    }
+
+    size_t jsWantSize = jsWantList.objectList.size();
+    if (jsWantSize < INDEX_ONE || jsWantSize > INDEX_FOUR) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "startAbilitiesLog wantList size not support");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        return CreateJsUndefined(env);
+    }
+
+    std::vector<AAFwk::Want> wantList;
+    for (uint32_t index = 0; index < jsWantSize; index++) {
+        AAFwk::Want curWant;
+        // 元素不是want或解析失败 抛出错误
+        if (!OHOS::AppExecFwk::UnwrapWant(env, jsWantList.objectList[index], curWant)) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "startAbilitiesLog parse want failed");
+            ThrowInvalidParamError(env, "Parse want failed, wantList members must be Want.");
+            return CreateJsUndefined(env);
+        }
+        InheritWindowMode(curWant);
+        TAG_LOGD(AAFwkTag::CONTEXT, "startAbilitiesLog ability:%{public}s",
+            curWant.GetElement().GetAbilityName().c_str());
+        wantList.emplace_back(curWant);
+    }
+    TAG_LOGI(AAFwkTag::CONTEXT, "startAbilitiesLog wantListLength: %{public}zu", wantList.size());
+
+    auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute = [weak = context_, wantList, innerErrCode]() {
+        auto context = weak.lock();
+        if (!context) {
+            TAG_LOGW(AAFwkTag::CONTEXT, "null context");
+            *innerErrCode = static_cast<int>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+            return;
+        }
+        *innerErrCode = context->StartAbilities(wantList);
+        TAG_LOGI(AAFwkTag::CONTEXT, "startAbilitiesLog execute innerErrCode: %{public}d", *innerErrCode);
+    };
+
+    NapiAsyncTask::CompleteCallback complete = [weak = context_, innerErrCode, wantList](
+        napi_env env, NapiAsyncTask& task, int32_t status) {
+            TAG_LOGI(AAFwkTag::CONTEXT, "startAbilitiesLog complete innerErrCode: %{public}d", *innerErrCode);
+            if (*innerErrCode == 0) {
+                task.Resolve(env, CreateJsUndefined(env));
+                return;
+            }
+            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+    };
+
+    // napi_value lastParam = (info.argc > unwrapArgc) ? info.argv[unwrapArgc] : nullptr;
+    napi_value result = nullptr;
+    NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnStartAbilities", env,
+    CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result)); // lastParam做什么用的？
+    return result;
+}
+//ability_context.js --> js_ability_context.cpp --> ability_context_impl.cpp --> ability_manager_client --> ability_manager_proxy --> IPC --> ability_manager_stub --> ability_manager_service --> SCB
 bool JsAbilityContext::CheckStartAbilityByCallParams(napi_env env, NapiCallbackInfo& info,
     AAFwk::Want &want, int32_t &userId, napi_value &lastParam)
 {
@@ -2160,6 +2235,7 @@ napi_value CreateJsAbilityContext(napi_env env, std::shared_ptr<AbilityContext> 
     BindNativeFunction(env, object, "startAbilityForResult", moduleName, JsAbilityContext::StartAbilityForResult);
     BindNativeFunction(env, object, "startAbilityForResultWithAccount", moduleName,
         JsAbilityContext::StartAbilityForResultWithAccount);
+    BindNativeFunction(env, object, "startAbilities", moduleName, JsAbilityContext::StartAbilities);
     BindNativeFunction(env, object, "startServiceExtensionAbility", moduleName,
         JsAbilityContext::StartServiceExtensionAbility);
     BindNativeFunction(env, object, "startServiceExtensionAbilityWithAccount", moduleName,

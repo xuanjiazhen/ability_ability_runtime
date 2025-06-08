@@ -298,6 +298,16 @@ ErrCode AbilityContextImpl::StartAbilityForResultWithAccount(
     return err;
 }
 
+ErrCode AbilityContextImpl::StartAbilities(const std::vector<AAFwk::Want> &wantList)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "StartAbilitiesLog call StartAbilities");
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbilities(wantList, token_);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "StartAbilitiesLog ret=%{public}d", err);
+    }
+    return err;
+}
+
 ErrCode AbilityContextImpl::StartUIServiceExtensionAbility(const AAFwk::Want& want, int32_t accountId)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "name:%{public}s %{public}s, accountId=%{public}d",
