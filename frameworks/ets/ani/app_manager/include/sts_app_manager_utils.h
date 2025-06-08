@@ -15,13 +15,15 @@
 #ifndef OHOS_ABILITY_RUNTIME_STS_APP_MANAGER_UTILS_H
 #define OHOS_ABILITY_RUNTIME_STS_APP_MANAGER_UTILS_H
 
-#include "sts_runtime.h"
 #include <vector>
-#include "running_process_info.h"
+
+#include "ability_state_data.h"
 #include "app_state_data.h"
-#include "running_multi_info.h"
-#include "process_data.h"
 #include "keep_alive_info.h"
+#include "process_data.h"
+#include "running_multi_info.h"
+#include "running_process_info.h"
+#include "sts_runtime.h"
 
 namespace OHOS {
 namespace AppManagerSts {
