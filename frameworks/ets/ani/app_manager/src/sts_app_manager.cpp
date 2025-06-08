@@ -14,6 +14,7 @@
  */
 
 #include "sts_app_manager.h"
+#include "ets_app_state_observer.h"
 #include "hilog_tag_wrapper.h"
 #include "ability_manager_client.h"
 #include "ability_manager_interface.h"
@@ -37,17 +38,22 @@
 namespace OHOS {
 namespace AppManagerSts {
 
+constexpr const char* ON_OFF_TYPE = "applicationState";
+
 constexpr int32_t ERR_FAILURE = -1;
 
-static const char* ON_SIGNATURE_FIRST
-    = "Lstd/core/String;Lapplication/ApplicationStateObserver/ApplicationStateObserver;Lescompat/Array;:D";
-static const char* ON_SIGNATURE_SECOND
-    = "Lstd/core/String;Lapplication/ApplicationStateObserver/ApplicationStateObserver;:D";
+static const char *APPLICATION_STATE_WITH_BUNDLELIST_ON_SIGNATURE =
+    "Lstd/core/String;Lapplication/ApplicationStateObserver/ApplicationStateObserver;Lescompat/Array;:D";
 
+static const char *APPLICATION_STATE_ON_SIGNATURE =
+    "Lstd/core/String;Lapplication/ApplicationStateObserver/ApplicationStateObserver;:D";
 
-static const char* OFF_SIGNATURE_FIRST
-    = "Lstd/core/String;DLutils/AbilityUtils/AsyncCallbackWrapper;:V";
+static const char *APPLICATION_STATE_OFF_SIGNATURE = "Lstd/core/String;DLutils/AbilityUtils/AsyncCallbackWrapper;:V";
+
 class StsAppManager final {
+private:
+    static int32_t serialNumber_;
+    static sptr<OHOS::AbilityRuntime::EtsAppStateObserver> appStateObserver_;
 public:
     static OHOS::sptr<OHOS::AppExecFwk::IAppMgr> GetAppManagerInstance()
     {
@@ -329,50 +335,144 @@ public:
         GetRunningProcessInfoByBundleNameAndUserId(env, stsBundleName, static_cast<double>(userId), callback);
     }
 
-static ani_double OnOnApplicationStateInner(ani_env *env, ani_string type,
-    ani_object observer, ani_object stsBundleNameList)
-{
-    TAG_LOGD(AAFwkTag::APPMGR, "OnOnApplicationStateInner called");
-    if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "env null ptr");
-        return ANI_ERROR;
-    }
-    std::string strType;
-    if (!OHOS::AppExecFwk::GetStdString(env, type, strType)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "env null ptr");
-        AbilityRuntime::ThrowStsErrorByNativeErr(env,
-            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
-        return ANI_ERROR;
-    }
-    auto appManager = GetAppManagerInstance();
-    if (appManager == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "null appManager");
-        AbilityRuntime::ThrowStsErrorByNativeErr(env,
-            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
-        return ANI_ERROR;
+    static int32_t GetObserverId()
+    {
+        int32_t observerId = serialNumber_;
+        if (serialNumber_ < INT32_MAX) {
+            serialNumber_++;
+        } else {
+            serialNumber_ = 0;
+        }
+        return observerId;
     }
 
-    std::vector<std::string> bundleNameList;
-    if (stsBundleNameList != nullptr) {
-        UnWrapArrayString(env, stsBundleNameList, bundleNameList);
+    static bool CheckOnOnApplicationStateInnerParam(ani_env *env, ani_string type, ani_object observer,
+        ani_object stsBundleNameList, std::vector<std::string> &bundleNameList)
+    {
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "env null ptr");
+            return false;
+        }
+        std::string strType;
+        if (!OHOS::AppExecFwk::GetStdString(env, type, strType) || strType != ON_OFF_TYPE) {
+            TAG_LOGE(AAFwkTag::APPMGR, "GetStdString failed");
+            AbilityRuntime::ThrowStsInvalidParamError(
+                env, "Parse param type failed, must be a string, value must be applicationState.");
+            return false;
+        }
+        ani_boolean isUndefined = false;
+        ani_status status = ANI_OK;
+        if ((status = env->Reference_IsUndefined(stsBundleNameList, &isUndefined)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Failed to check undefined status : %{public}d", status);
+            AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+            return false;
+        }
+        if (!isUndefined && !UnWrapArrayString(env, stsBundleNameList, bundleNameList)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "GetStdString failed");
+            AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+            return false;
+        }
+        return true;
     }
-    return ANI_OK;
-}
 
-    static ani_double OnOnApplicationStateFirst(ani_env *env, ani_string type,
+    static ani_double OnOnApplicationStateInner(ani_env *env, ani_string type, ani_object observer,
+        ani_object stsBundleNameList)
+    {
+        TAG_LOGD(AAFwkTag::APPMGR, "OnOnApplicationStateInner called");
+        std::vector<std::string> bundleNameList;
+        if (!CheckOnOnApplicationStateInnerParam(env, type, observer, stsBundleNameList, bundleNameList)) {
+            return ANI_ERROR;
+        }
+        auto appManager = GetAppManagerInstance();
+        if (appManager == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "null appManager");
+            AbilityRuntime::ThrowStsError(env,
+                static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
+            return ANI_ERROR;
+        }
+        ani_vm *aniVM = nullptr;
+        if (env->GetVM(&aniVM) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "get aniVM failed");
+            AbilityRuntime::ThrowStsError(env,
+                static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
+            return ANI_ERROR;
+        }
+        if (appStateObserver_ == nullptr) {
+            appStateObserver_ = new (std::nothrow) AbilityRuntime::EtsAppStateObserver(aniVM);
+        }
+        int32_t ret = appManager->RegisterApplicationStateObserver(appStateObserver_, bundleNameList);
+        TAG_LOGD(AAFwkTag::APPMGR, "err:%{public}d", ret);
+        if (ret == ERR_OK) {
+            int32_t observerId = GetObserverId();
+            appStateObserver_->AddEtsObserverObject(env, observerId, observer);
+            TAG_LOGD(AAFwkTag::APPMGR, "OnOnApplicationStateInner end");
+            return observerId;
+        } else {
+            AbilityRuntime::ThrowStsErrorByNativeErr(env, static_cast<int32_t>(ret));
+            return ANI_ERROR;
+        }
+    }
+
+    static ani_double OnOnApplicationStateWithBundleList(ani_env *env, ani_string type,
         ani_object observer, ani_object stsBundleNameList)
     {
         return OnOnApplicationStateInner(env, type, observer, stsBundleNameList);
     }
 
-    static ani_double OnOnApplicationStateSecond(ani_env *env, ani_string type, ani_object observer)
+    static ani_double OnOnApplicationState(ani_env *env, ani_string type, ani_object observer)
     {
-        return OnOnApplicationStateInner(env, type, observer, nullptr);
+        ani_ref undefined = nullptr;
+        env->GetUndefined(&undefined);
+        return OnOnApplicationStateInner(env, type, observer, static_cast<ani_object>(undefined));
     }
 
-static void OnOff(ani_env *env, [[maybe_unused]]ani_class aniClss)
-{
-}
+    static void OnOff(ani_env *env, ani_string type, ani_double stsObserverId, ani_object callback)
+    {
+        TAG_LOGD(AAFwkTag::APPMGR, "OnOff called");
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "env null ptr");
+            return;
+        }
+        std::string strType;
+        if (!OHOS::AppExecFwk::GetStdString(env, type, strType) || strType != ON_OFF_TYPE) {
+            TAG_LOGE(AAFwkTag::APPMGR, "GetStdString failed");
+            AbilityRuntime::ThrowStsInvalidParamError(
+                env, "Parse param type failed, must be a string, value must be applicationState.");
+            return;
+        }
+        TAG_LOGD(AAFwkTag::APPMGR, "observerId:%{public}f", stsObserverId);
+        int64_t observerId = static_cast<int64_t>(stsObserverId);
+
+        sptr<OHOS::AppExecFwk::IAppMgr> appMgr = GetAppManagerInstance();
+        if (appMgr == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "appManager null ptr");
+            AppExecFwk::AsyncCallback(env, callback,
+                OHOS::AbilityRuntime::CreateStsError(env,
+                    static_cast<AbilityRuntime::AbilityErrorCode>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER)),
+                nullptr);
+            return;
+        }
+        if (appStateObserver_ == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "null observer");
+            AbilityRuntime::ThrowStsInvalidParamError(env, "observer is nullptr, please register first.");
+            return;
+        }
+        if (!appStateObserver_->FindObserverByObserverId(observerId)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "not find observer:%{public}d", static_cast<int32_t>(observerId));
+            AbilityRuntime::ThrowStsInvalidParamError(env, "not find observerId.");
+            return;
+        }
+        int32_t ret = appMgr->UnregisterApplicationStateObserver(appStateObserver_);
+        if (ret == 0 && appStateObserver_->RemoveEtsObserverObject(observerId)) {
+            TAG_LOGD(AAFwkTag::APPMGR, "OnOff success");
+        } else {
+            TAG_LOGE(AAFwkTag::APPMGR, "OnOff err:%{public}d", ret);
+        }
+        AppExecFwk::AsyncCallback(env, callback,
+            OHOS::AbilityRuntime::CreateStsErrorByNativeErr(env, static_cast<int32_t>(ret)), nullptr);
+        TAG_LOGD(AAFwkTag::APPMGR, "OnOff end");
+    }
+
     static void GetAppMemorySize(ani_env *env, ani_object callback)
     {
         TAG_LOGD(AAFwkTag::APPMGR, "GetAppMemorySize called");
@@ -900,6 +1000,9 @@ static void OnOff(ani_env *env, [[maybe_unused]]ani_class aniClss)
     }
 }; //StsAppManager
 
+int32_t StsAppManager::serialNumber_ = 0;
+sptr<OHOS::AbilityRuntime::EtsAppStateObserver> StsAppManager::appStateObserver_ = nullptr;
+
 void StsAppManagerRegistryInit(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "StsAppManagerRegistryInit call");
@@ -926,11 +1029,11 @@ void StsAppManagerRegistryInit(ani_env *env)
             reinterpret_cast<void *>(StsAppManager::GetRunningProcessInfoByBundleName)},
         ani_native_function {"nativeGetRunningProcessInfoByBundleNameAndUserId", nullptr,
             reinterpret_cast<void *>(StsAppManager::GetRunningProcessInfoByBundleNameAndUserId)},
-        ani_native_function {"nativeOn", ON_SIGNATURE_FIRST,
-            reinterpret_cast<void *>(StsAppManager::OnOnApplicationStateFirst)},
-        ani_native_function {"nativeOn", ON_SIGNATURE_SECOND,
-            reinterpret_cast<void *>(StsAppManager::OnOnApplicationStateSecond)},
-        ani_native_function {"nativeOff", OFF_SIGNATURE_FIRST,
+        ani_native_function {"nativeOn", APPLICATION_STATE_WITH_BUNDLELIST_ON_SIGNATURE,
+            reinterpret_cast<void *>(StsAppManager::OnOnApplicationStateWithBundleList)},
+        ani_native_function {"nativeOn", APPLICATION_STATE_ON_SIGNATURE,
+            reinterpret_cast<void *>(StsAppManager::OnOnApplicationState)},
+        ani_native_function {"nativeOff", APPLICATION_STATE_OFF_SIGNATURE,
             reinterpret_cast<void *>(StsAppManager::OnOff)},
         ani_native_function {"nativeGetAppMemorySize", nullptr,
             reinterpret_cast<void *>(StsAppManager::GetAppMemorySize)},
