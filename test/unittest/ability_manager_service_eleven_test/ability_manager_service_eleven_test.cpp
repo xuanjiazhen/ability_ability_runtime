@@ -27,6 +27,7 @@
 #include "mock_ability_controller.h"
 #include "mock_ability_manager_collaborator.h"
 #include "mock_ability_token.h"
+#include "mock_app_mgr_service.h"
 #include "mock_mission_list_manager_interface.h"
 #include "mock_my_flag.h"
 #include "mock_permission_verification.h"
@@ -254,13 +255,55 @@ HWTEST_F(AbilityManagerServiceElevenTest, GetWantSender_0002, TestSize.Level1)
     EXPECT_EQ(result, nullptr);
 
     MyFlag::flag_ = 1;
-    wantSenderInfo.userId = 1;
-    uid = 1;
+    wantSenderInfo.userId = 100;
+    bundleName = "com.ohos.settings";
+    operation.SetBundleName(bundleName);
+    want.SetOperation(operation);
+    wantsInfo.want = want;
+    wantSenderInfo.allWants.clear();
+    wantSenderInfo.allWants.emplace_back(wantsInfo);
+    abilityMs->subManagersHelper_->pendingWantManagers_.emplace(
+        wantSenderInfo.userId, std::make_shared<PendingWantManager>(nullptr));
     EXPECT_EQ(wantSenderInfo.allWants.size(), 1);
     result = abilityMs->GetWantSender(wantSenderInfo, nullptr, uid);
     EXPECT_NE(result, nullptr);
 
     GTEST_LOG_(INFO) << "GetWantSender_0002 end";
+}
+
+/*
+ * Feature: GetWantSender_0003
+ * Function: GetWantSender
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetWantSender
+ */
+HWTEST_F(AbilityManagerServiceElevenTest, GetWantSender_0003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetWantSender_0003 start";
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    EXPECT_NE(abilityMs->subManagersHelper_, nullptr);
+
+    MyFlag::flag_ = 1;
+    WantSenderInfo wantSenderInfo;
+    wantSenderInfo.userId = 100;
+    AAFwk::Want want;
+    AAFwk::Operation operation;
+    std::string bundleName = "com.ohos.settings";
+    operation.SetBundleName(bundleName);
+    want.SetOperation(operation);
+    WantsInfo wantsInfo;
+    wantsInfo.want = want;
+    wantsInfo.resolvedTypes = want.GetType();
+    wantSenderInfo.allWants.clear();
+    wantSenderInfo.allWants.emplace_back(wantsInfo);
+    abilityMs->subManagersHelper_->pendingWantManagers_.emplace(
+        wantSenderInfo.userId, std::make_shared<PendingWantManager>(nullptr));
+    EXPECT_EQ(wantSenderInfo.allWants.size(), 1);
+    auto result = abilityMs->GetWantSender(wantSenderInfo, nullptr, -1);
+    EXPECT_NE(result, nullptr);
+    GTEST_LOG_(INFO) << "GetWantSender_0003 end";
 }
 
 /*
@@ -985,6 +1028,54 @@ HWTEST_F(AbilityManagerServiceElevenTest, VerificationToken_003, TestSize.Level1
     abilityMs->subManagersHelper_->currentMissionListManager_ = nullptr;
     EXPECT_FALSE(abilityMs->VerificationToken(token));
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceElevenTest VerificationToken_003 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: GetUidByCloneBundleInfo_001
+ * Function: GetUidByCloneBundleInfo
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetUidByCloneBundleInfo
+ */
+HWTEST_F(AbilityManagerServiceElevenTest, GetUidByCloneBundleInfo_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetUidByCloneBundleInfo_001 start";
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    EXPECT_NE(abilityMs->subManagersHelper_, nullptr);
+
+    std::string bundleName = "com.ohos.settings";
+    int mockRightUid = -1;
+    int userId = 100;
+    AppExecFwk::MockAppMgrService::retCode_ = mockRightUid;
+    auto result = abilityMs->GetUidByCloneBundleInfo(bundleName, mockRightUid, 0, userId);
+    EXPECT_NE(result, mockRightUid);
+    GTEST_LOG_(INFO) << "GetUidByCloneBundleInfo_001 end";
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: GetUidByCloneBundleInfo_002
+ * Function: GetUidByCloneBundleInfo
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetUidByCloneBundleInfo
+ */
+HWTEST_F(AbilityManagerServiceElevenTest, GetUidByCloneBundleInfo_002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetUidByCloneBundleInfo_002 start";
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    EXPECT_NE(abilityMs->subManagersHelper_, nullptr);
+
+    std::string bundleName = "com.applicaion.test";
+    int mockErrorUid = -1;
+    int userId = 101;
+    AppExecFwk::MockAppMgrService::retCode_ = mockErrorUid;
+    auto result = abilityMs->GetUidByCloneBundleInfo(bundleName, mockErrorUid, 0, userId);
+    EXPECT_EQ(result, mockErrorUid);
+    GTEST_LOG_(INFO) << "GetUidByCloneBundleInfo_002 end";
 }
 } // namespace AAFwk
 } // namespace OHOS
