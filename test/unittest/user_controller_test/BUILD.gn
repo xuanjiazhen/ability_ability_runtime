@@ -18,6 +18,12 @@ module_output_path = "ability_runtime/ability_runtime/abilitymgr"
 
 ohos_unittest("user_controller_test") {
   module_out_path = module_output_path
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "../../cfi_blocklist.txt"
+  }
 
   sources = [ "user_controller_test.cpp" ]
 
@@ -25,6 +31,8 @@ ohos_unittest("user_controller_test") {
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/app_manager:app_mgr_idl_proxy",
+    "${ability_runtime_innerkits_path}/app_manager:app_mgr_idl_stub",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
     "${ability_runtime_services_path}/common:perm_verification",
   ]
