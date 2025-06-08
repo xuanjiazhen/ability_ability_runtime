@@ -45,8 +45,6 @@ ohos_unittest("call_record_test") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   deps = [
-    "${ability_runtime_innerkits_path}/app_manager:app_mgr_idl_proxy",
-    "${ability_runtime_innerkits_path}/app_manager:app_mgr_idl_stub",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
     "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/appexecfwk_core:appexecfwk_appmgr_mock",

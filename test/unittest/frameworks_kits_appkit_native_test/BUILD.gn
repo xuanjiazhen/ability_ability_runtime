@@ -39,7 +39,7 @@ config("module_context_config") {
   visibility = [ ":*" ]
   configs = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
-    "${ability_runtime_innerkits_path}/app_manager:appmgr_idl_config",
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config",
   ]
   include_dirs = [
     "${ability_runtime_innerkits_path}/app_manager/include/appmgr",
@@ -1016,8 +1016,6 @@ ohos_unittest("idle_time_test") {
 
   deps = [
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
-    "${ability_runtime_innerkits_path}/app_manager:app_mgr_idl_proxy",
-    "${ability_runtime_innerkits_path}/app_manager:app_mgr_idl_stub",
     "${ability_runtime_native_path}/appkit:appkit_native",
   ]
 

@@ -15,10 +15,6 @@ import("//build/config/components/idl_tool/idl.gni")
 import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
-config("appmgr_idl_config") {
-  include_dirs = [ "${target_gen_dir}" ]
-}
-
 config("appmgr_sdk_config") {
   include_dirs = [
     "include/appmgr",
@@ -45,7 +41,7 @@ config("appmgr_core_config") {
   }
 }
 
-idl_gen_interface("app_mgr_interface") {
+idl_gen_interface("appmgr_innerkits") {
   sources = [
     "idl/IAbilityDebugResponse.idl",
     "idl/IAppDebugListener.idl",
@@ -57,7 +53,11 @@ idl_gen_interface("app_mgr_interface") {
   part_name = "ability_runtime"
 }
 
-ohos_source_set("app_mgr_idl_proxy") {
+config("appmgr_innerkits_config") {
+  include_dirs = [ "${target_gen_dir}" ]
+}
+
+ohos_source_set("appmgr_innerkits_include") {
   sanitize = {
     integer_overflow = true
     ubsan = true
@@ -67,22 +67,15 @@ ohos_source_set("app_mgr_idl_proxy") {
     cfi_vcall_icall_only = true
     debug = false
   }
-  configs = [
-    ":appmgr_core_config",
-    ":appmgr_sdk_config",
-  ]
 
   public_configs = [
-    ":appmgr_idl_config",
+    ":appmgr_innerkits_config",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
     "${ability_runtime_path}/utils/server/startup:startup_util_config",
   ]
 
-  output_values = get_target_outputs(":app_mgr_interface")
-  sources = filter_include(output_values, [ "*_proxy.cpp" ])
-
   deps = [
-    ":app_mgr_interface",
+    ":appmgr_innerkits",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_interface",
     "${ability_runtime_path}/utils/server/startup:startup_util",
   ]
@@ -99,7 +92,7 @@ ohos_source_set("app_mgr_idl_proxy") {
   part_name = "ability_runtime"
 }
 
-ohos_source_set("app_mgr_idl_stub") {
+ohos_source_set("appmgr_innerkits_source") {
   sanitize = {
     integer_overflow = true
     ubsan = true
@@ -115,16 +108,16 @@ ohos_source_set("app_mgr_idl_stub") {
   ]
 
   public_configs = [
-    ":appmgr_idl_config",
+    ":appmgr_innerkits_config",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
     "${ability_runtime_path}/utils/server/startup:startup_util_config",
   ]
 
-  output_values = get_target_outputs(":app_mgr_interface")
-  sources = filter_include(output_values, [ "*_stub.cpp" ])
+  output_values = get_target_outputs(":appmgr_innerkits")
+  sources = filter_include(output_values, [ "*.cpp" ])
 
   deps = [
-    ":app_mgr_interface",
+    ":appmgr_innerkits",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_interface",
     "${ability_runtime_path}/utils/server/startup:startup_util",
   ]
@@ -238,7 +231,7 @@ ohos_shared_library("app_manager") {
   public_configs = [
     ":appmgr_core_config",
     ":appmgr_sdk_config",
-    ":appmgr_idl_config",
+    ":appmgr_innerkits_config",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
     "${ability_runtime_path}/utils/server/startup:startup_util_config",
   ]
@@ -250,8 +243,7 @@ ohos_shared_library("app_manager") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   deps = [
-    ":app_mgr_idl_proxy",
-    ":app_mgr_idl_stub",
+    ":appmgr_innerkits_source",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_path}/utils/server/startup:startup_util",
     "${ability_runtime_services_path}/common:app_util",
