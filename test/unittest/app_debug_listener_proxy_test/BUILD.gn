@@ -18,7 +18,12 @@ module_output_path = "ability_runtime/ability_runtime/appmgrservice"
 
 ohos_unittest("AppDebugListenerProxyTest") {
   module_out_path = module_output_path
-
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "../../cfi_blocklist.txt"
+  }
   include_dirs = [
     "${ability_runtime_services_path}/appmgr/include",
     "${ability_runtime_test_path}/mock/services_appmgr_test/include",
@@ -28,6 +33,8 @@ ohos_unittest("AppDebugListenerProxyTest") {
 
   deps = [
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_innerkits_path}/app_manager:app_mgr_idl_proxy",
+    "${ability_runtime_innerkits_path}/app_manager:app_mgr_idl_stub",
     "${ability_runtime_services_path}/appmgr:libappms",
     "${ability_runtime_services_path}/common:task_handler_wrap",
   ]
