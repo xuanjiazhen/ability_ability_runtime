@@ -19,9 +19,7 @@
 #include <memory>
 #include <mutex>
 
-#include "application_info.h"
 #include "bindable.h"
-#include "hap_module_info.h"
 #include "iremote_object.h"
 #include "resource_manager.h"
 
@@ -36,6 +34,8 @@ enum DeviceType : int32_t;
 }
 namespace AppExecFwk {
 class Configuration;
+struct HapModuleInfo;
+struct ApplicationInfo;
 }
 namespace AbilityRuntime {
 class ApplicationContext;

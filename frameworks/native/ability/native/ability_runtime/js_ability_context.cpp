@@ -21,6 +21,7 @@
 #include <mutex>
 #include <regex>
 
+#include "ability_info.h"
 #include "ability_manager_client.h"
 #include "ability_manager_errors.h"
 #include "app_utils.h"
