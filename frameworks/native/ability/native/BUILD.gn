@@ -823,6 +823,7 @@ ohos_shared_library("uiabilitykit_native") {
     "ipc:ipc_napi",
     "json:nlohmann_json_static",
     "resource_management:global_resmgr",
+    "runtime_core:ani",
     "samgr:samgr_proxy",
   ]
   public_external_deps = [

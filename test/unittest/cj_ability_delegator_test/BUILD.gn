@@ -82,6 +82,7 @@ ohos_unittest("cj_ability_delegator_test") {
     "napi:cj_bind_native",
     "resource_management:global_resmgr",
     "samgr:samgr_proxy",
+    "runtime_core:ani",
     "window_manager:libwsutils",
     "window_manager:scene_session",
   ]
