@@ -66,6 +66,7 @@ ohos_shared_library("cj_ability_ffi") {
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "runtime_core:ani",
     "napi:ace_napi",
     "napi:cj_bind_ffi",
     "napi:cj_bind_native",

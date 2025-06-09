@@ -205,6 +205,7 @@ ohos_shared_library("appkit_native") {
     "ipc:ipc_single",
     "json:nlohmann_json_static",
     "libxml2:libxml2",
+    "runtime_core:ani",
     "napi:ace_napi",
     "preferences:native_preferences",
     "resource_management:global_resmgr",
@@ -509,6 +510,7 @@ ohos_shared_library("appkit_delegator") {
     "image_framework:image_native",
     "ipc:ipc_core",
     "json:nlohmann_json_static",
+    "runtime_core:ani",
     "napi:ace_napi",
     "samgr:samgr_proxy",
   ]
