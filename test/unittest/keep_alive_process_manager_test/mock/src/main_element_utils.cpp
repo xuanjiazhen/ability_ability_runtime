@@ -24,6 +24,7 @@ bool MainElementUtils::checkMainUIAbilityResult = false;
 bool MainElementUtils::checkStatusBarAbilityResult = false;
 int32_t MainElementUtils::usedUpdateMainElementTimes = 0;
 int32_t MainElementUtils::usedCheckMainUIAbilityTime = 0;
+bool MainElementUtils::checkAppServiceExtensionResult = false;
 
 void MainElementUtils::UpdateMainElement(const std::string &bundleName, const std::string &moduleName,
     const std::string &mainElement, bool updateEnable, int32_t userId)
@@ -40,6 +41,11 @@ bool MainElementUtils::CheckMainUIAbility(const AppExecFwk::BundleInfo &bundleIn
 bool MainElementUtils::CheckStatusBarAbility(const AppExecFwk::BundleInfo &bundleInfo)
 {
     return checkStatusBarAbilityResult;
+}
+
+bool MainElementUtils::CheckAppServiceExtension(const AppExecFwk::BundleInfo &bundleInfo, std::string& mainElementName)
+{
+    return checkAppServiceExtensionResult;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

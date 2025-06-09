@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -425,6 +425,7 @@ void UriUtils::GrantUriPermission(Want &want, std::string targetBundleName, int3
         TAG_LOGE(AAFwkTag::ABILITYMGR, "sandbox can not grant UriPermission");
         return;
     }
+    ProcessUDMFKey(want);
 
     if (IsDmsCall(callerTokenId)) {
         GrantDmsUriPermission(want, callerTokenId, targetBundleName, appIndex);
@@ -449,6 +450,14 @@ void UriUtils::GrantUriPermission(Want &want, std::string targetBundleName, int3
     }
     // report open file event
     PublishFileOpenEvent(want);
+}
+
+void UriUtils::ProcessUDMFKey(Want &want)
+{
+    // PARAMS_STREAM and UDMF_DATA_KEY is conflict
+    if (!want.GetStringArrayParam(AbilityConfig::PARAMS_STREAM).empty()) {
+        want.RemoveParam(Want::PARAM_ABILITY_UNIFIED_DATA_KEY);
+    }
 }
 
 bool UriUtils::GrantUriPermissionInner(std::vector<std::string> uriVec, uint32_t callerTokenId,

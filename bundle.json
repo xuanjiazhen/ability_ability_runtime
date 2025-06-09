@@ -30,7 +30,8 @@
         "ability_runtime_app_no_response_dialog_wearable",
         "ability_runtime_app_no_response_bundlename",
         "ability_runtime_start_window_options_with_pixelmap",
-        "ability_runtime_check_internet_permission"
+        "ability_runtime_check_internet_permission",
+        "ability_runtime_no_screen"
       ],
       "adapted_system_type": [
           "standard"
@@ -67,6 +68,7 @@
             "ffrt",
             "form_fwk",
             "graphic_2d",
+            "hiappevent",
             "hichecker",
             "hicollie",
             "hilog",
@@ -107,6 +109,7 @@
             "selinux_adapter",
             "storage_service",
             "toolchain",
+            "udmf",
             "webview",
             "window_manager",
             "zlib"
@@ -128,7 +131,9 @@
           "//foundation/ability/ability_runtime/frameworks/native/insight_intent:insight_intent_innerkits",
           "//foundation/ability/ability_runtime/frameworks/c/ability_runtime:ability_runtime",
           "//foundation/ability/ability_runtime/frameworks/cj:cj_ability_packages",
+          "//foundation/ability/ability_runtime/frameworks/ets/ani:ani_packages",
           "//foundation/ability/ability_runtime/frameworks/js/napi:napi_packages",
+          "//foundation/ability/ability_runtime/frameworks/ets/ets:ets_packages",
           "//foundation/ability/ability_runtime/cj_environment/frameworks/cj_environment:cj_environment",
           "//foundation/ability/ability_runtime/js_environment/frameworks/js_environment:js_environment",
           "//foundation/ability/ability_runtime/services/abilitymgr/etc:appfwk_etc",
@@ -191,6 +196,13 @@
               "header_files": []
             },
             "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native/:cj_photo_editor_extension"
+          },
+          {
+            "header": {
+              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/form_runtime",
+              "header_files": []
+            },
+            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:cj_form_extension"
           },
           {
             "header": {
@@ -279,6 +291,15 @@
           },
           {
             "header": {
+              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/ani_base_context/include",
+              "header_files": [
+                "ani_base_context.h"
+              ]
+            },
+            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/ani_base_context:ani_base_context"
+          },
+          {
+            "header": {
               "header_base": "//foundation/ability/ability_runtime/frameworks/js/napi/inner/napi_common",
               "header_files": [
                 "napi_common_configuration.h",
@@ -288,6 +309,16 @@
               ]
             },
             "name": "//foundation/ability/ability_runtime/frameworks/js/napi/inner/napi_common:napi_common"
+          },
+          {
+            "header": {
+              "header_base": "//foundation/ability/ability_runtime/frameworks/ets/ani/ani_common/include",
+              "header_files": [
+                "ani_common_start_options.h",
+                "ani_common_want.h"
+              ]
+            },
+            "name": "//foundation/ability/ability_runtime/frameworks/ets/ani/ani_common:ani_common"
           },
           {
             "header": {
@@ -529,6 +560,15 @@
               ]
             },
             "name": "//foundation/ability/ability_runtime/interfaces/inner_api/extension_manager:extension_manager"
+          },
+          {
+            "header": {
+              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/mission_manager/include",
+              "header_files": [
+                "mission_manager_client.h"
+              ]
+            },
+            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/mission_manager:mission_manager"
           },
           {
             "header": {

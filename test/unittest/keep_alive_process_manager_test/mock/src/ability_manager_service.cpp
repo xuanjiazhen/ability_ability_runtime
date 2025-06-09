@@ -27,6 +27,7 @@ int32_t AbilityManagerService::startAbilityResult = ERR_OK;
 int32_t AbilityManagerService::usedSupportStatusBarTimes = 0;
 int32_t AbilityManagerService::usedStartAbilityTimes = 0;
 int32_t AbilityManagerService::usedIsInStatusBar = 0;
+int32_t AbilityManagerService::startExtensionAbilityResult = ERR_OK;
 
 AbilityManagerService::AbilityManagerService() {}
 
@@ -67,6 +68,12 @@ int32_t AbilityManagerService::StartAbility(const Want &want, const StartOptions
     }
     usedStartAbilityTimes++;
     return startAbilityResult;
+}
+
+int32_t AbilityManagerService::StartExtensionAbility(const Want &want, const sptr<IRemoteObject> &callerToken,
+    int32_t userId, AppExecFwk::ExtensionAbilityType extensionType)
+{
+    return startExtensionAbilityResult;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
