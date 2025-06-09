@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -89,8 +89,10 @@ public:
 public:
     static int32_t callSetResult;
     static int32_t callQueryResult;
-    static bool callIsKeepAliveResult;
     static int32_t callGetResult;
+    static int32_t callIsKeepAliveTimes;
+    static bool callIsKeepAliveResult;
+    static bool getInfoList;
     static int32_t callSetAppServiceExtensionResult;
     static int32_t callQueryAppServiceExtensionResult;
     static int32_t callClearKeepAliveAppServiceExtensionResult;
