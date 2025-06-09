@@ -108,7 +108,7 @@ int32_t KioskManager::EnterKioskMode(sptr<IRemoteObject> callerToken)
     kioskStatus_.kioskBundleName_ = bundleName;
     kioskStatus_.kioskBundleUid_ = IPCSkeleton::GetCallingUid();
     GetEnterKioskModeCallback()();
-    notifyKioskModeChanged(true);
+    NotifyKioskModeChanged(true);
     auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
     CHECK_POINTER_AND_RETURN_LOG(sceneSessionManager, ERR_INVALID_VALUE, "sceneSessionManager is nullptr");
     sceneSessionManager->EnterKioskMode(callerToken);
@@ -126,7 +126,7 @@ int32_t KioskManager::ExitKioskMode(sptr<IRemoteObject> callerToken)
     return ExitKioskModeInner(record->GetAbilityInfo().bundleName, callerToken);
 }
 
-int32_t ExitKioskModeInner(const std::string &bundleName, sptr<IRemoteObject> callerToken = nullptr);
+int32_t KioskManager::ExitKioskModeInner(const std::string &bundleName, sptr<IRemoteObject> callerToken)
 {
     if (!IsInWhiteListInner(bundleName)) {
         return ERR_KIOSK_MODE_NOT_IN_WHITELIST;
