@@ -27,6 +27,7 @@ import { HapModuleInfo } from 'bundleManager.HapModuleInfo';
 import AsyncCallbackWrapper from '../utils/AbilityUtils';
 import OpenLinkOptions from '@ohos.app.ability.OpenLinkOptions';
 import { LocalStorage } from '@ohos.arkui.stateManagement';
+import { ConnectOptions } from 'ability.connectOptions';
 
 export default class UIAbilityContext extends Context {
   static {
@@ -62,6 +63,9 @@ export default class UIAbilityContext extends Context {
   private native nativeIsTerminating(): boolean;
   private native nativeMoveAbilityToBackground(callback: AsyncCallbackWrapper<void>): void;
   private native nativeRequestModalUIExtension(pickerWant: Want, callback: AsyncCallbackWrapper<void>): void;
+  private native nativeConnectServiceExtensionAbility(want: Want, options: ConnectOptions): double;
+  private native nativeDisconnectServiceExtensionAbilitySync(connection: double, callback: AsyncCallbackWrapper<void>): void;
+
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
@@ -328,6 +332,26 @@ export default class UIAbilityContext extends Context {
       taskpool.execute(() => {
         this.nativeRequestModalUIExtension(pickerWant, syncCall);
       });
+    });
+  }
+
+  connectServiceExtensionAbility(want: Want, options: ConnectOptions): number {
+    return this.nativeConnectServiceExtensionAbility(want, options);
+  }
+
+  disconnectServiceExtensionAbility(connection: number): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void,
+      reject: (err: BusinessError<void>) => void): void => {
+      let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>) => {
+        if (err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeDisconnectServiceExtensionAbilitySync(connection, syncCall);
+      })
     });
   }
 }
