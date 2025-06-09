@@ -2004,6 +2004,8 @@ void MainThread::InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, co
         ErrorObject appExecErrorObj = { errorObject.name, errorObject.message, errorObject.stack};
         auto napiEnv = (static_cast<AbilityRuntime::JsRuntime&>(
             *appThread->application_->GetRuntime(AbilityRuntime::CODE_LANGUAGE_ARKTS_1_0))).GetNapiEnv();
+        AAFwk::ExitReason exitReason = { REASON_JS_ERROR, errorObject.name };
+        AbilityManagerClient::GetInstance()->RecordAppExitReason(exitReason);
         if (!isUncatchable && NapiErrorManager::GetInstance()->NotifyUncaughtException(napiEnv, summary,
             appExecErrorObj.name, appExecErrorObj.message, appExecErrorObj.stack)) {
             return;
@@ -2028,8 +2030,6 @@ void MainThread::InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, co
         TAG_LOGW(AAFwkTag::APPKIT, "hisysevent write result=%{public}d, send event [FRAMEWORK,PROCESS_KILL],"
             " pid=%{public}d, processName=%{public}s, msg=%{public}s, foreground=%{public}d, isUncatchable=%{public}d",
             result, pid, processName.c_str(), KILL_REASON, foreground, isUncatchable);
-        AAFwk::ExitReason exitReason = { REASON_JS_ERROR, errorObject.name };
-        AbilityManagerClient::GetInstance()->RecordAppExitReason(exitReason);
         _exit(JS_ERROR_EXIT);
     };
 }
