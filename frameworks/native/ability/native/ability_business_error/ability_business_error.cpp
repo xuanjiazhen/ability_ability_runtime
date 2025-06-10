@@ -121,7 +121,7 @@ constexpr const char* ERROR_MSG_NO_U1 = "The target bundle is not in u1";
 constexpr const char* ERROR_MSG_KIOSK_MODE_NOT_IN_WHITELIST = "The current application is not in the kiosk whitelist.";
 constexpr const char* ERROR_MSG_ALREADY_IN_KIOSK_MODE = "The system is already in the kiosk mode.";
 constexpr const char* ERROR_MSG_NOT_IN_KIOSK_MODE =
-    "The current application is not in the kiosk mode. Exit is not allowed.";
+    "The system is not in the kiosk mode. Exit is not allowed.";
 constexpr const char* ERROR_MSG_APP_NOT_IN_FOCUS = "The current ability is not foreground.";
 
 // follow ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST of appexecfwk_errors.h in bundle_framework
