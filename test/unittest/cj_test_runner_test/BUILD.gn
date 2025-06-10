@@ -97,7 +97,6 @@ ohos_unittest("cj_test_runner_test") {
     "napi:ace_napi",
     "napi:cj_bind_native",
     "resource_management:global_resmgr",
-    "runtime_core:ani",
     "samgr:samgr_proxy",
   ]
 
