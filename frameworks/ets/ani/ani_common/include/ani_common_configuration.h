@@ -13,22 +13,16 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_NAPI_COMMON_CONFIGURATION_H
-#define OHOS_ABILITY_RUNTIME_NAPI_COMMON_CONFIGURATION_H
+#ifndef OHOS_ABILITY_RUNTIME_ANI_COMMON_CONFIGURATION_H
+#define OHOS_ABILITY_RUNTIME_ANI_COMMON_CONFIGURATION_H
 
-#include "configuration.h"
 #include "ani_common_util.h"
+#include "configuration.h"
 
 namespace OHOS {
 namespace AppExecFwk {
-
-void SetBasicConfiguration(
-    ani_env *env, ani_class cls, ani_object object, const AppExecFwk::Configuration &configuration);
-void SetAdditionalConfiguration(
-    ani_env *env, ani_class cls, ani_object object, const AppExecFwk::Configuration &configuration);
 ani_object WrapConfiguration(ani_env *env, const AppExecFwk::Configuration &configuration);
 bool UnwrapConfiguration(ani_env *env, ani_object param, Configuration &config);
-
 }  // namespace AppExecFwk
 }  // namespace OHOS
-#endif  // OHOS_ABILITY_RUNTIME_NAPI_COMMON_CONFIGURATION_H
+#endif  // OHOS_ABILITY_RUNTIME_ANI_COMMON_CONFIGURATION_H
