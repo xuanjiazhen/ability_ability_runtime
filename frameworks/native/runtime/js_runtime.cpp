@@ -642,6 +642,7 @@ void JsRuntime::PostPreload(const Options& options)
         panda::JSNApi::PostFork(vm, postOption);
     }
     reinterpret_cast<NativeEngine*>(env)->ReinitUVLoop();
+    panda::JSNApi::TriggerModuleDeseralizer(vm, options.bundleName);
     uv_loop_s* loop = nullptr;
     napi_get_uv_event_loop(env, &loop);
     panda::JSNApi::SetLoop(vm, loop);
