@@ -323,7 +323,10 @@ ohos_source_set("abilityms_test_source") {
 group("unittest") {
   testonly = true
 
-  deps = [ "runtime_test:stsunittest" ]
+  deps = [
+    "frameworks_kits_ability_native_test:stsunittest",
+    "runtime_test:stsunittest",
+  ]
   if (!use_libfuzzer) {
     deps += []
 
