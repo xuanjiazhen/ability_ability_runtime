@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,7 +19,6 @@
 #include <string>
 
 #include "ability_transaction_callback_info.h"
-#include "napi_remote_object.h"
 #include "iremote_object.h"
 #include "session_info.h"
 #include "wm/window.h"
@@ -28,6 +27,7 @@
 #include "want.h"
 
 namespace OHOS {
+struct CallingInfo;
 namespace AppExecFwk {
 struct AbilityInfo;
 class OHOSApplication;
