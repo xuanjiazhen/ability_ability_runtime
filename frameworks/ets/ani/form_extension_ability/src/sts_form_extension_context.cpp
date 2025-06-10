@@ -36,7 +36,8 @@ ani_object STSFormExtensionContext::SetFormExtensionContext(
         TAG_LOGE(AAFwkTag::FORM_EXT, "env null");
         return nullptr;
     }
-    ani_long nativeContextLong = (ani_long)context.get();
+    auto workContext = new (std::nothrow) std::weak_ptr<FormExtensionContext>(context);
+    ani_long nativeContextLong = (ani_long)workContext;
     ani_class cls = nullptr;
     ani_status status = ANI_ERROR;
     ani_object contextObj = nullptr;
