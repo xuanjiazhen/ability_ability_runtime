@@ -432,7 +432,6 @@ bool AbilityManagerService::Init()
     appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(subManagersHelper_);
     insightIntentEventMgr_ = std::make_shared<AbilityRuntime::InsightIntentEventMgr>();
     insightIntentEventMgr_->SubscribeSysEventReceiver();
-    abilityEventHelper_ = std::make_shared<AbilityEventUtil>(taskHandler_);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "init success");
     return true;
 }
@@ -658,7 +657,7 @@ int32_t AbilityManagerService::StartAbilityByFreeInstall(const Want &want, sptr<
     if ((flags & Want::FLAG_ABILITY_CONTINUATION) == Want::FLAG_ABILITY_CONTINUATION) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not allow startAbility with continuation flags:%{public}d",
             ERR_INVALID_CONTINUATION_FLAG);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_CONTINUATION_FLAG,
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_CONTINUATION_FLAG,
             "continuation flags not allowed");
         return ERR_INVALID_CONTINUATION_FLAG;
     }
@@ -696,7 +695,7 @@ int AbilityManagerService::StartAbilityWithSpecifyTokenIdInner(const Want &want,
     if ((flags & Want::FLAG_ABILITY_CONTINUATION) == Want::FLAG_ABILITY_CONTINUATION) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "startAbility with continuation flags not allowed:%{public}d",
             ERR_INVALID_CONTINUATION_FLAG);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_CONTINUATION_FLAG,
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_CONTINUATION_FLAG,
             "continuation flags not allowed");
         return ERR_INVALID_CONTINUATION_FLAG;
     }
@@ -836,7 +835,7 @@ int AbilityManagerService::StartAbilityOnlyUIAbility(const Want &want, const spt
     SendAbilityEvent(EventName::START_ABILITY, HiSysEventType::BEHAVIOR, eventInfo);
     if ((flags & Want::FLAG_ABILITY_CONTINUATION) == Want::FLAG_ABILITY_CONTINUATION) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbility not allowed:%{public}d", ERR_INVALID_CONTINUATION_FLAG);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_CONTINUATION_FLAG, "not allowed");
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_CONTINUATION_FLAG, "not allowed");
         return ERR_INVALID_CONTINUATION_FLAG;
     }
 
@@ -877,7 +876,7 @@ int AbilityManagerService::StartAbilityAsCallerDetails(const Want &want, const s
     if ((flags & Want::FLAG_ABILITY_CONTINUATION) == Want::FLAG_ABILITY_CONTINUATION) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "startAbility with continuation flags not allowed:%{public}d",
             ERR_INVALID_CONTINUATION_FLAG);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_CONTINUATION_FLAG,
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_CONTINUATION_FLAG,
             "continuation flags not allowed");
         return ERR_INVALID_CONTINUATION_FLAG;
     }
@@ -1156,7 +1155,7 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
             VerifyAccountPermission(userId) == CHECK_PERMISSION_FAILED ||
             !DlpUtils::DlpAccessOtherAppsCheck(callerToken, want)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s: permission verification failed", __func__);
-            abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, CHECK_PERMISSION_FAILED,
+            abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, CHECK_PERMISSION_FAILED,
                 "permission verification failed");
             return CHECK_PERMISSION_FAILED;
         }
@@ -1179,7 +1178,7 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
             AAFwk::PermissionVerification::GetInstance()->VerifyFusionAccessPermission();
         if (!isSpecificSA) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s verificationAllToken failed", __func__);
-            abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_CALLER,
+            abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_CALLER,
                 "verificationAllToken failed");
             return ERR_INVALID_CALLER;
         }
@@ -1208,7 +1207,7 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
         interceptorExecuter_->DoProcess(interceptorParam);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "interceptorExecuter_ null or DoProcess error");
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, result, "DoProcess error");
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "DoProcess error");
         return result;
     }
 
@@ -1225,7 +1224,7 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
 
     if (!JudgeMultiUserConcurrency(validUserId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "multi-user non-concurrent unsatisfied");
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, ERR_CROSS_USER,
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, ERR_CROSS_USER,
             "multi-user non-concurrent unsatisfied");
         return ERR_CROSS_USER;
     }
@@ -1252,7 +1251,7 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
         result = implicitStartProcessor_->ImplicitStartAbility(abilityRequest, validUserId);
         if (result != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "implicit start ability error:%{public}d", result);
-            abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, result, "implicit start error");
+            abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "implicit start error");
         }
         return result;
     }
@@ -1304,7 +1303,7 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
 
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "generate ability request local error:%{public}d", result);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, result, "GenerateAbilityRequest error");
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "GenerateAbilityRequest error");
         return result;
     }
 
@@ -1346,7 +1345,7 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
         abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0), false, false, isImplicit);
     if (result != AppExecFwk::Constants::PERMISSION_GRANTED) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "checkStaticCfgPermission error, result:%{public}d", result);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, result, "checkStaticCfgPermission error");
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "checkStaticCfgPermission error");
         return ERR_STATIC_CFG_PERMISSION;
     }
 
@@ -1355,7 +1354,7 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
             isSendDialogResult, specifyTokenId, callerBundleName);
         if (result != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "checkCallPermission error, result:%{public}d", result);
-            abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, result, "checkCallPermission error");
+            abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "checkCallPermission error");
             return result;
         }
         if (!HandleExecuteSAInterceptor(want, callerToken, abilityRequest, result)) {
@@ -1391,7 +1390,7 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
             TAG_LOGE(AAFwkTag::ABILITYMGR,
                 "startAbility:app data ability preloading failed, '%{public}s', %{public}d",
                 abilityInfo.bundleName.c_str(), result);
-            abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, result, "app data ability preloading failed");
+            abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "app data ability preloading failed");
             return result;
         }
     }
@@ -1405,7 +1404,7 @@ int AbilityManagerService::StartAbilityInner(const Want &want, const sptr<IRemot
 
     if (!IsAbilityControllerStart(want, abilityInfo.bundleName)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "isAbilityControllerStart failed:%{public}s", abilityInfo.bundleName.c_str());
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, ERR_WOULD_BLOCK, "isAbilityControllerStart failed");
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, ERR_WOULD_BLOCK, "isAbilityControllerStart failed");
         return ERR_WOULD_BLOCK;
     }
 
@@ -1562,7 +1561,7 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
         !DlpUtils::DlpAccessOtherAppsCheck(callerToken, want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s: permission verification failed:%{public}d",
             __func__, CHECK_PERMISSION_FAILED);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, CHECK_PERMISSION_FAILED,
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, CHECK_PERMISSION_FAILED,
             "permission verification failed");
         return CHECK_PERMISSION_FAILED;
     }
@@ -1575,13 +1574,13 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
         IPCSkeleton::GetCallingUid() != DMS_UID) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "The flag only support for DMS, flag:%{public}d, error:%{public}d",
             want.GetFlags(), ERR_INVALID_CONTINUATION_FLAG);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_CONTINUATION_FLAG, "flags not allowed");
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_CONTINUATION_FLAG, "flags not allowed");
         return ERR_INVALID_CONTINUATION_FLAG;
     }
 
     if (callerToken != nullptr && !VerificationAllToken(callerToken)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "verify callerToken failed:%{public}d", ERR_INVALID_CALLER);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_CALLER, "verify callerToken failed");
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_CALLER, "verify callerToken failed");
         return ERR_INVALID_CALLER;
     }
 
@@ -1604,7 +1603,7 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
         interceptorExecuter_->DoProcess(interceptorParam);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "interceptorExecuter_ null or doProcess error:%{public}d", result);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, result, "doProcess error");
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "doProcess error");
         return result;
     }
 
@@ -1623,7 +1622,7 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
 
     if (!JudgeMultiUserConcurrency(validUserId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "multi-user non-concurrent unsatisfied:%{publid}d", ERR_CROSS_USER);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, ERR_CROSS_USER,
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, ERR_CROSS_USER,
             "multi-user non-concurrent unsatisfied");
         return ERR_CROSS_USER;
     }
@@ -1643,7 +1642,7 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
         result = implicitStartProcessor_->ImplicitStartAbility(abilityRequest, validUserId);
         if (result != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "implicit start ability error:%{public}d", result);
-            abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, result, "implicit start error");
+            abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "implicit start error");
         }
         return result;
     }
@@ -1654,7 +1653,7 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
     result = GenerateAbilityRequest(want, requestCode, abilityRequest, callerToken, validUserId);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "generate ability request local error:%{public}d", result);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, result, "GenerateAbilityRequest error");
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "GenerateAbilityRequest error");
         return result;
     }
     abilityRequest.want.RemoveParam(PARAM_SPECIFIED_PROCESS_FLAG);
@@ -1667,14 +1666,14 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
     result = CheckStaticCfgPermission(abilityRequest, false, -1, false, false, isImplicit);
     if (result != AppExecFwk::Constants::PERMISSION_GRANTED) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "checkStaticCfgPermission error, result:%{public}d", result);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, result, "checkStaticCfgPermission error");
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "checkStaticCfgPermission error");
         return ERR_STATIC_CFG_PERMISSION;
     }
     result = CheckCallAbilityPermission(abilityRequest);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s checkCallAbilityPermission error:%{public}d",
             __func__, result);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, result, "checkCallAbilityPermission error");
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "checkCallAbilityPermission error");
         return result;
     }
 
@@ -1683,7 +1682,7 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
     if (abilityInfo.type == AppExecFwk::AbilityType::DATA) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "cannot start data ability, use 'AcquireDataAbility()':%{public}d",
             ERR_WRONG_INTERFACE_CALL);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, ERR_WRONG_INTERFACE_CALL,
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, ERR_WRONG_INTERFACE_CALL,
             "cannot start data ability");
         return ERR_WRONG_INTERFACE_CALL;
     }
@@ -1702,21 +1701,21 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
         if (result != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "startAbility: app data ability preloading failed, '%{public}s', %{public}d",
                 abilityInfo.bundleName.c_str(), result);
-            abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, result, "app data ability preloading failed");
+            abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "app data ability preloading failed");
             return result;
         }
     }
 #ifdef SUPPORT_GRAPHICS
     if (abilityInfo.type != AppExecFwk::AbilityType::PAGE) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "only support page type ability:%{public}d", ERR_WRONG_INTERFACE_CALL);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, ERR_WRONG_INTERFACE_CALL,
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, ERR_WRONG_INTERFACE_CALL,
             "only support page ability");
         return ERR_WRONG_INTERFACE_CALL;
     }
 #endif
     if (!IsAbilityControllerStart(want, abilityInfo.bundleName)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "ability controller start failed:%{public}d", ERR_WOULD_BLOCK);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, ERR_WOULD_BLOCK, "ability controller start failed");
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, ERR_WOULD_BLOCK, "ability controller start failed");
         return ERR_WOULD_BLOCK;
     }
     auto callerTokenId = IPCSkeleton::GetCallingTokenID();
@@ -1739,7 +1738,7 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
     auto ret = missionListManager->StartAbility(abilityRequest);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "missionlist start ability error:%{public}d", ret);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, ret, "missionlist start ability error");
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, ret, "missionlist start ability error");
     }
     return ret;
 }
@@ -1883,7 +1882,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         VerifyAccountPermission(userId) == CHECK_PERMISSION_FAILED ||
         !DlpUtils::DlpAccessOtherAppsCheck(callerToken, want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "permission verify failed:%{public}d", CHECK_PERMISSION_FAILED);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, CHECK_PERMISSION_FAILED,
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, CHECK_PERMISSION_FAILED,
             "permission verify failed");
         return CHECK_PERMISSION_FAILED;
     }
@@ -1896,14 +1895,14 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         IPCSkeleton::GetCallingUid() != DMS_UID) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "The flag only support for DMS, flag:%{public}d, error:%{publicd}d",
             want.GetFlags(), ERR_INVALID_CONTINUATION_FLAG);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_CONTINUATION_FLAG,
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_CONTINUATION_FLAG,
             "flags not allowed");
         return ERR_INVALID_CONTINUATION_FLAG;
     }
 
     if (callerToken != nullptr && !VerificationAllToken(callerToken)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "verify callerToken failed:%{public}d", ERR_INVALID_CALLER);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_CALLER, "verify callerToken failed");
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_CALLER, "verify callerToken failed");
         return ERR_INVALID_CALLER;
     }
 
@@ -1927,7 +1926,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         interceptorExecuter_->DoProcess(interceptorParam);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "interceptorExecuter_ null or doProcess error:%{public}d", result);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, result, "doProcess error");
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "doProcess error");
         return result;
     }
 
@@ -1951,7 +1950,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
     }
     if (!JudgeMultiUserConcurrency(validUserId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "multi-user non-concurrent unsatisfied:%{publid}d", ERR_CROSS_USER);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, ERR_CROSS_USER,
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, ERR_CROSS_USER,
             "multi-user non-concurrent unsatisfied");
         return ERR_CROSS_USER;
     }
@@ -1996,7 +1995,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
             startOptions.GetWindowMode());
         if (result != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "implicit start ability error:%{public}d", result);
-            abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, result, "implicit start error");
+            abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "implicit start error");
         }
         return result;
     }
@@ -2007,7 +2006,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
     result = GenerateAbilityRequest(want, requestCode, abilityRequest, callerToken, validUserId);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "generate ability request local error:%{public}d", result);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, result, "GenerateAbilityRequest error");
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "GenerateAbilityRequest error");
         return result;
     }
 
@@ -2042,20 +2041,20 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0), false, false, isImplicit);
     if (result != AppExecFwk::Constants::PERMISSION_GRANTED) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "checkStaticCfgPermission error, result=%{public}d", result);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, result, "checkStaticCfgPermission error");
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "checkStaticCfgPermission error");
         return ERR_STATIC_CFG_PERMISSION;
     }
     result = CheckCallAbilityPermission(abilityRequest, 0, isCallByShortcut);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s CheckCallAbilityPermission error:%{public}d",
             __func__, result);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, result, "CheckCallAbilityPermission error");
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "CheckCallAbilityPermission error");
         return result;
     }
 
     if (abilityInfo.type != AppExecFwk::AbilityType::PAGE) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "only support page type ability:%{public}d", ERR_ABILITY_TYPE_INVALID);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, ERR_ABILITY_TYPE_INVALID,
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, ERR_ABILITY_TYPE_INVALID,
             "only support page ability");
         return ERR_ABILITY_TYPE_INVALID;
     }
@@ -2065,14 +2064,14 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         if (result != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "startAbility:app data ability preloading failed, '%{public}s', %{public}d",
                 abilityInfo.bundleName.c_str(), result);
-            abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, result, "app data ability preloading failed");
+            abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "app data ability preloading failed");
             return result;
         }
     }
 
     if (!IsAbilityControllerStart(want, abilityInfo.bundleName)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "ability controller start failed:%{public}d", ERR_WOULD_BLOCK);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, ERR_WOULD_BLOCK, "controller start failed");
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, ERR_WOULD_BLOCK, "controller start failed");
         return ERR_WOULD_BLOCK;
     }
 #ifdef SUPPORT_SCREEN
@@ -2165,7 +2164,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
     auto ret = missionListManager->StartAbility(abilityRequest);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "missionListManager start ability errror:%{public}d", ret);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, ret, "missionListManager start errror");
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, ret, "missionListManager start errror");
     }
     return ret;
 }
@@ -2346,7 +2345,7 @@ int AbilityManagerService::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bo
     EventInfo eventInfo = BuildEventInfo(sessionInfo->want, -1);
     if (sessionInfo == nullptr || sessionInfo->sessionToken == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionInfo null");
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_VALUE,
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_VALUE,
             "sessionInfo null", true);
         return ERR_INVALID_VALUE;
     }
@@ -2370,7 +2369,7 @@ int AbilityManagerService::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bo
 #endif
     if (!IsCallerSceneBoard()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no sceneboard, no allowed");
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, ERR_WRONG_INTERFACE_CALL,
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, ERR_WRONG_INTERFACE_CALL,
             "not sceneboard", true);
         return ERR_WRONG_INTERFACE_CALL;
     }
@@ -2457,7 +2456,7 @@ int AbilityManagerService::StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionI
         sessionInfo->callerToken, currentUserId);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "generate ability request local error");
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, result,
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, result,
             "generate ability request local error", true);
         return result;
     }
@@ -2471,7 +2470,7 @@ int AbilityManagerService::StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionI
         interceptorExecuter_->DoProcess(interceptorParam);
         if (result != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "interceptorExecuter_ null or DoProcess error:%{public}d", result);
-            abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, result, "DoProcess error");
+            abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, result, "DoProcess error");
             return result;
         }
         if (!HandleExecuteSAInterceptor(sessionInfo->want, sessionInfo->callerToken, abilityRequest, result)) {
@@ -2500,7 +2499,7 @@ int AbilityManagerService::StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionI
     if (!AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall() &&
         abilityInfo.type != AppExecFwk::AbilityType::PAGE) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "only support page type ability");
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_VALUE,
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_VALUE,
             "only support page type ability", true);
         return ERR_INVALID_VALUE;
     }
@@ -2523,7 +2522,7 @@ int AbilityManagerService::StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionI
         if (result != ERR_OK) {
             if (isReplaceWantExist == false) {
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "doProcess failed or replaceWant absent");
-                abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, result,
+                abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, result,
                     "doProcess failed or replaceWant absent", true);
                 return result;
             }
@@ -13303,7 +13302,7 @@ int32_t AbilityManagerService::PreStartInner(const FreeInstallInfo& taskInfo)
 
     if (callerToken != nullptr && !VerificationAllToken(callerToken)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "PreStartInner StartAbilityError:%{public}d", ERR_INVALID_CALLER);
-        abilityEventHelper_->SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_CALLER,
+        abilityEventHelper_.SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_CALLER,
             "PreStartInner StartAbilityError");
         return ERR_INVALID_CALLER;
     }
