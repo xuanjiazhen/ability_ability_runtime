@@ -115,8 +115,10 @@ HWTEST_F(UIExtensionRecordFactoryTest, NeedReuse_0100, TestSize.Level1)
     std::string moduleName = "entry";
     abilityRequest = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName, moduleName);
     auto sessionInfo = MockSessionInfo(1);
-    abilityRequest.sessionInfo = sessionInfo;
     int32_t extensionRecordId = 1;
+    bool resultWithNoSessionInfo = info.NeedReuse(abilityRequest, extensionRecordId);
+    EXPECT_EQ(resultWithNoSessionInfo, false);
+    abilityRequest.sessionInfo = sessionInfo;
     bool result = info.NeedReuse(abilityRequest, extensionRecordId);
     EXPECT_EQ(result, true);
 }
