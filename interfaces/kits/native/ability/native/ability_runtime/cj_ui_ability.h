@@ -30,7 +30,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 class CJRuntime;
 class CJAbilityObject;
-struct InsightIntentExecutorInfo;
+struct CJInsightIntentExecutorInfo;
 using AbilityHandler = AppExecFwk::AbilityHandler;
 using AbilityInfo = AppExecFwk::AbilityInfo;
 using OHOSApplication = AppExecFwk::OHOSApplication;
@@ -281,7 +281,7 @@ private:
     void AbilityContinuationOrRecover(const Want &want);
     inline bool GetInsightIntentExecutorInfo(const Want &want,
         const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
-        InsightIntentExecutorInfo& executeInfo);
+        CJInsightIntentExecutorInfo& executeInfo);
 
     sptr<Rosen::CJWindowStageImpl> cjWindowStage_;
     int32_t windowMode_ = 0;
