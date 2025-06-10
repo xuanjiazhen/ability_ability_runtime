@@ -155,6 +155,7 @@ ohos_shared_library("abilitykit_utils") {
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/app",
     "${ability_runtime_innerkits_path}/ability_manager/include",
+    "${ability_runtime_innerkits_path}/runtime/include",
     "${ability_runtime_innerkits_path}/wantagent/include",
     "${ability_runtime_services_path}/abilitymgr/include/utils",
     "${ability_runtime_services_path}/abilitymgr/include",
@@ -1112,6 +1113,8 @@ ohos_shared_library("service_extension") {
   defines = [ "AMS_LOG_TAG = \"Ability\"" ]
   defines += [ "AMS_LOG_DOMAIN = 0xD001300" ]
   include_dirs = [
+    "${ability_runtime_path}/frameworks/ets/ani/ani_common/include",
+    "${ability_runtime_path}/frameworks/ets/ani/service_extension_ability/include",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime",
     "${ability_runtime_path}/utils/global/freeze/include",
@@ -1122,6 +1125,7 @@ ohos_shared_library("service_extension") {
     "${ability_runtime_native_path}/ability/native/js_service_extension_context.cpp",
     "${ability_runtime_native_path}/ability/native/service_extension.cpp",
     "${ability_runtime_native_path}/appkit/ability_runtime/service_extension_context.cpp",
+    "${ability_runtime_path}/frameworks/ets/ani/service_extension_ability/src/ets_service_extension.cpp",
   ]
 
   deps = [
@@ -1138,6 +1142,7 @@ ohos_shared_library("service_extension") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
+    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
   ]
 
   external_deps = [
@@ -1151,7 +1156,9 @@ ohos_shared_library("service_extension") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi",
+    "ipc:rpc_ani",
     "napi:ace_napi",
+    "runtime_core:ani",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
