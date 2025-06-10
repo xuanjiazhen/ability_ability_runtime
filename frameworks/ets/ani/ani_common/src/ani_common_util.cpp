@@ -24,6 +24,7 @@ namespace AppExecFwk {
 constexpr const char* CLASSNAME_DOUBLE = "Lstd/core/Double;";
 constexpr const char* CLASSNAME_BOOL = "Lstd/core/Boolean;";
 constexpr const char* CLASSNAME_ARRAY = "Lescompat/Array;";
+constexpr const char* CLASSNAME_ASYNC_CALLBACK_WRAPPER = "Lutils/AbilityUtils/AsyncCallbackWrapper;";
 
 bool GetFieldDoubleByName(ani_env *env, ani_object object, const char *name, double &value)
 {
@@ -498,6 +499,33 @@ bool GetStringOrUndefined(ani_env *env, ani_object param, const char *name, std:
     }
     if (!GetStdString(env, reinterpret_cast<ani_string>(obj), res)) {
         TAG_LOGE(AAFwkTag::JSNAPI, "GetStdString failed");
+        return false;
+    }
+    return true;
+}
+
+bool AsyncCallback(ani_env *env, ani_object call, ani_object error, ani_object result)
+{
+    ani_status status = ANI_ERROR;
+    ani_class clsCall {};
+
+    if ((status = env->FindClass(CLASSNAME_ASYNC_CALLBACK_WRAPPER, &clsCall)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        return false;
+    }
+    ani_method method {};
+    if ((status = env->Class_FindMethod(
+        clsCall, "invoke", "L@ohos/base/BusinessError;Lstd/core/Object;:V", &method)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        return false;
+    }
+    if (result == nullptr) {
+        ani_ref nullRef = nullptr;
+        env->GetNull(&nullRef);
+        result = reinterpret_cast<ani_object>(nullRef);
+    }
+    if ((status = env->Object_CallMethod_Void(call, method, error, result)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
         return false;
     }
     return true;
