@@ -645,6 +645,9 @@ bool UIAbilityImpl::AbilityTransaction(const AAFwk::Want &want, const AAFwk::Lif
             if (lifecycleState_ != AAFwk::ABILITY_STATE_STARTED_NEW) {
                 ret = false;
             }
+            if (want.GetBoolParam(Want::PARAM_RESV_CALL_BEFORE_BACKGROUND, false)) {
+                break;
+            }
             OnWillBackground();
 #ifdef SUPPORT_GRAPHICS
             if (!InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
