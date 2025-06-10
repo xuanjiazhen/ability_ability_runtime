@@ -23,7 +23,6 @@
 #include "bindable.h"
 #include "hap_module_info.h"
 #include "iremote_object.h"
-#include "resource_manager.h"
 
 using IRemoteObject = OHOS::IRemoteObject;
 
