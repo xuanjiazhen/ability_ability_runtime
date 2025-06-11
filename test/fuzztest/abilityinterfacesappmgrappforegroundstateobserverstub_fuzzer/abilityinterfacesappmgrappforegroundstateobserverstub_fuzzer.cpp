@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,8 +19,9 @@
 #include <cstdint>
 
 #define private public
+#include "app_foreground_state_observer_recipient.h"
 #include "app_foreground_state_observer_stub.h"
-#include "app_foreground_state_observer_interface.h"
+#include "iapp_foreground_state_observer.h"
 #undef private
 
 #include "securec.h"
@@ -56,7 +57,10 @@ public:
     virtual ~ AppForegroundStateObserverStubFUZZ() {};
     int OnRemoteRequest(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override{ return 0; };
-    void OnAppStateChanged(const AppStateData &appStateData) override{};
+    ErrCode OnAppStateChanged(const AppStateData &appStateData) override
+    {
+        return ERR_OK;
+    };
 };
 
 sptr<Token> GetFuzzAbilityToken()
@@ -75,7 +79,7 @@ sptr<Token> GetFuzzAbilityToken()
 
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
-    uint32_t code = static_cast<uint32_t>(IAppForegroundStateObserver::Message::ON_APP_STATE_CHANGED);
+     uint32_t code = static_cast<uint32_t>(IAppForegroundStateObserverIpcCode::COMMAND_ON_APP_STATE_CHANGED);
     MessageParcel parcel;
     parcel.WriteInterfaceToken(IA_APP_FOREGROUND_STATE_OBSERVER_TOKEN);
     parcel.WriteBuffer(data, size);

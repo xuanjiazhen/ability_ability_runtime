@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,12 +25,12 @@ constexpr size_t ARGC_ONE = 1;
 }
 JSAppForegroundStateObserver::JSAppForegroundStateObserver(napi_env env) : env_(env) {}
 
-void JSAppForegroundStateObserver::OnAppStateChanged(const AppStateData &appStateData)
+ErrCode JSAppForegroundStateObserver::OnAppStateChanged(const AppStateData &appStateData)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (!valid_) {
         TAG_LOGE(AAFwkTag::APPMGR, "invalid appMgr");
-        return;
+        return ERR_INVALID_VALUE;
     }
     wptr<JSAppForegroundStateObserver> self = this;
     std::unique_ptr<NapiAsyncTask::CompleteCallback> complete = std::make_unique<NapiAsyncTask::CompleteCallback>(
@@ -45,6 +45,7 @@ void JSAppForegroundStateObserver::OnAppStateChanged(const AppStateData &appStat
     napi_ref callback = nullptr;
     NapiAsyncTask::Schedule("JSAppForegroundStateObserver::OnAppStateChanged", env_,
         std::make_unique<NapiAsyncTask>(callback, nullptr, std::move(complete)));
+    return ERR_OK;
 }
 
 void JSAppForegroundStateObserver::HandleOnAppStateChanged(const AppStateData &appStateData)

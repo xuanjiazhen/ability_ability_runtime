@@ -25,11 +25,10 @@ ohos_unittest("app_foreground_state_observer_stub_test") {
     "${ability_runtime_test_path}/unittest/app_foreground_state_observer_proxy_test/",
   ]
 
-  sources = [
-    "${ability_runtime_innerkits_path}/app_manager/src/appmgr/app_foreground_state_observer_stub.cpp",
-    "app_foreground_state_observer_stub_test.cpp",
-  ]
+  sources = [ "app_foreground_state_observer_stub_test.cpp" ]
 
+  configs = [ "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config" ]
+  
   deps = [ "${ability_runtime_innerkits_path}/app_manager:app_manager" ]
 
   external_deps = [

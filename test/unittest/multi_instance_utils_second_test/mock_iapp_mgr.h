@@ -17,7 +17,6 @@
 
 #include "ability_foreground_state_observer_interface.h"
 #include "ability_info.h"
-#include "app_foreground_state_observer_interface.h"
 #include "app_malloc_info.h"
 #include "app_mgr_ipc_interface_code.h"
 #include "app_record_id.h"
@@ -31,6 +30,7 @@
 #include "app_mgr_interface.h"
 #include "fault_data.h"
 #include "iapp_state_callback.h"
+#include "iapp_foreground_state_observer.h"
 #include "iapplication_state_observer.h"
 #include "iconfiguration_observer.h"
 #include "iquick_fix_callback.h"

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,29 +13,13 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_APP_FOREGROUND_STATE_OBSERVER_STUB_H
-#define OHOS_ABILITY_RUNTIME_APP_FOREGROUND_STATE_OBSERVER_STUB_H
+#ifndef OHOS_ABILITY_RUNTIME_APP_FOREGROUND_STATE_OBSERVER_RECIPIENT_H
+#define OHOS_ABILITY_RUNTIME_APP_FOREGROUND_STATE_OBSERVER_RECIPIENT_H
 
-#include <map>
-
-#include "app_foreground_state_observer_interface.h"
-#include "iremote_stub.h"
-#include "nocopyable.h"
-#include "string_ex.h"
+#include "iapp_foreground_state_observer.h"
 
 namespace OHOS {
 namespace AppExecFwk {
-class AppForegroundStateObserverStub : public IRemoteStub<IAppForegroundStateObserver> {
-public:
-    AppForegroundStateObserverStub();
-    virtual ~AppForegroundStateObserverStub();
-    int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
-
-private:
-    int32_t HandleOnAppStateChanged(MessageParcel &data, MessageParcel &reply);
-
-    DISALLOW_COPY_AND_MOVE(AppForegroundStateObserverStub);
-};
 
 /**
  * @class AppForegroundStateObserverRecipient
@@ -53,4 +37,4 @@ private:
 };
 } // namespace AppExecFwk
 } // namespace OHOS
-#endif // OHOS_ABILITY_RUNTIME_APP_FOREGROUND_STATE_OBSERVER_STUB_H
+#endif // OHOS_ABILITY_RUNTIME_APP_FOREGROUND_STATE_OBSERVER_RECIPIENT_H
