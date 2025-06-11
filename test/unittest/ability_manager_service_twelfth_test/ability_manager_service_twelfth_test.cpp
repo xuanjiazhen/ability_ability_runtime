@@ -31,6 +31,7 @@
 #include "ability_util.h"
 #include "connection_data.h"
 #include "mock_scene_board_judgement.h"
+#include "mock_parameters.h"
 #include "mock_test_object.h"
 
 using namespace testing;
@@ -41,6 +42,7 @@ using OHOS::AppExecFwk::ExtensionAbilityType;
 
 constexpr char DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
 constexpr const char* DEBUG_APP = "debugApp";
+constexpr char PRODUCT_APPBOOT_SETTING_ENABLED[] = "const.product.appboot.setting.enabled";
 constexpr const char* START_ABILITY_TYPE = "ABILITY_INNER_START_WITH_ACCOUNT";
 constexpr int32_t ONE = 1;
 constexpr int32_t TWO = 2;
@@ -1010,6 +1012,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, UpdateKioskApplicationList_Success, T
     bundleNames.emplace_back("com.test.demo1");
     bundleNames.emplace_back("com.test.demo2");
     MyFlag::flag_ = true;
+    system::SetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, true);
     auto result =
         abilityManagerService->UpdateKioskApplicationList(bundleNames);
     ASSERT_EQ(result, ERR_OK);
@@ -1031,6 +1034,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, UpdateKioskApplicationList_Fail, Test
     bundleNames.emplace_back("com.test.demo1");
     bundleNames.emplace_back("com.test.demo2");
     MyFlag::flag_ = false;
+    system::SetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, true);
     auto result =
         abilityManagerService->UpdateKioskApplicationList(bundleNames);
     ASSERT_EQ(result, CHECK_PERMISSION_FAILED);
@@ -1043,6 +1047,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, UpdateKioskApplicationList_Fail, Test
  * FunctionPoints: AbilityManagerService EnterKioskMode
  */
 HWTEST_F(AbilityManagerServiceTwelfthTest, EnterKioskMode_Fail, TestSize.Level1) {
+    system::SetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, true);
     IPCSkeleton::SetCallingUid(BASE_USER_RANGE);
     IPCSkeleton::SetCallingTokenID(ONE);
     auto abilityManagerService = std::make_shared<AbilityManagerService>();
@@ -1064,6 +1069,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, EnterKioskMode_Fail, TestSize.Level1)
  * FunctionPoints: AbilityManagerService ExitKioskMode
  */
 HWTEST_F(AbilityManagerServiceTwelfthTest, ExitKioskMode_Fail, TestSize.Level1) {
+    system::SetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, true);
     IPCSkeleton::SetCallingUid(BASE_USER_RANGE);
     IPCSkeleton::SetCallingTokenID(ONE);
     auto abilityManagerService = std::make_shared<AbilityManagerService>();
@@ -1080,6 +1086,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, ExitKioskMode_Fail, TestSize.Level1) 
  * FunctionPoints: AbilityManagerService GetKioskStatus
  */
 HWTEST_F(AbilityManagerServiceTwelfthTest, GetKioskStatus, TestSize.Level1) {
+    system::SetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, true);
     IPCSkeleton::SetCallingUid(BASE_USER_RANGE);
     IPCSkeleton::SetCallingTokenID(ONE);
     auto abilityManagerService = std::make_shared<AbilityManagerService>();
@@ -1097,6 +1104,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, GetKioskStatus, TestSize.Level1) {
  * FunctionPoints: KioskManager UpdateKioskApplicationList
  */
 HWTEST_F(AbilityManagerServiceTwelfthTest, KioskManager_UpdateKioskApplicationList, TestSize.Level1) {
+    system::SetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, true);
     IPCSkeleton::SetCallingUid(BASE_USER_RANGE);
     IPCSkeleton::SetCallingTokenID(ONE);
     MyFlag::flag_ = true;
@@ -1115,6 +1123,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, KioskManager_UpdateKioskApplicationLi
  * FunctionPoints: KioskManager EnterKioskMode
  */
 HWTEST_F(AbilityManagerServiceTwelfthTest, KioskManager_EnterKioskMode_Fail_01, TestSize.Level1) {
+    system::SetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, true);
     auto callerToken = MockToken(AbilityType::PAGE);
     auto result = KioskManager::GetInstance().EnterKioskMode(callerToken);
     ASSERT_EQ(result, ERR_APP_NOT_IN_FOCUS);
@@ -1127,6 +1136,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, KioskManager_EnterKioskMode_Fail_01, 
  * FunctionPoints: KioskManager ExitKioskMode
  */
 HWTEST_F(AbilityManagerServiceTwelfthTest, KioskManager_ExitKioskMode_Fail_01, TestSize.Level1) {
+    system::SetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, true);
     auto callerToken = MockToken(AbilityType::PAGE);
     auto result = KioskManager::GetInstance().ExitKioskMode(callerToken);
     ASSERT_EQ(result, ERR_KIOSK_MODE_NOT_IN_WHITELIST);
@@ -1139,6 +1149,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, KioskManager_ExitKioskMode_Fail_01, T
  * FunctionPoints: KioskManager GetKioskStatus
  */
 HWTEST_F(AbilityManagerServiceTwelfthTest, KioskManager_GetKioskStatus_Success, TestSize.Level1) {
+    system::SetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, true);
     IPCSkeleton::SetCallingUid(BASE_USER_RANGE);
     IPCSkeleton::SetCallingTokenID(ONE);
     MyFlag::flag_ = true;
