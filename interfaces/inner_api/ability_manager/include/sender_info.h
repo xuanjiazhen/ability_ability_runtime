@@ -36,6 +36,7 @@ struct SenderInfo : public Parcelable {
     std::string requiredPermission;
     Want want;
     sptr<IRemoteObject> callerToken = nullptr;
+    int32_t operType;
 
     bool ReadFromParcel(Parcel &parcel);
     virtual bool Marshalling(Parcel &parcel) const override;

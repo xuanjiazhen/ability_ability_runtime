@@ -22,6 +22,7 @@
 #include "completed_callback.h"
 #include "completed_dispatcher.h"
 #include "event_handler.h"
+#include "local_want_agent_info.h"
 #include "nlohmann/json.hpp"
 #include "trigger_info.h"
 #include "want.h"
@@ -75,6 +76,18 @@ public:
      */
     static std::shared_ptr<WantAgent> GetWantAgent(const WantAgentInfo &paramsInfo,
         int32_t userId = INVLID_WANT_AGENT_USER_ID, int32_t uid = -1);
+
+    /**
+     * Creates a LocalWantAgent object.
+     * 
+     * @param context Indicates the context of the caller. This parameter cannot be null.
+     * @param paramsInfo Indicates the WantAgentInfo object that contains parameters of the
+     * WantAgent object to create.
+     * @return Returns ERR_OK If create local wantagent correctly.
+     */
+    static ErrCode CreateLocalWantAgent(
+        const std::shared_ptr<OHOS::AbilityRuntime::ApplicationContext> &context,
+        const WantAgentInfo &paramsInfo, std::shared_ptr<WantAgent> &wantAgent);
 
     /**
      * Obtains an WantAgent object operation type.
@@ -194,6 +207,10 @@ private:
         sptr<CompletedDispatcher> &callBack,
         const TriggerInfo &paramsInfo,
         sptr<IRemoteObject> callerToken);
+
+    static ErrCode Send(const std::shared_ptr<LocalPendingWant> &lcoalPendingWant,
+        const sptr<CompletedDispatcher> &callBack,
+        const TriggerInfo &paramsInfo);
 
     static unsigned int FlagsTransformer(const std::vector<WantAgentConstant::Flags> &flags);
 
