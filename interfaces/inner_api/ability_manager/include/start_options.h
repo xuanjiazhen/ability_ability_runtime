@@ -18,11 +18,13 @@
 
 #include <string>
 
-#include "ability_info.h"
 #include "ability_window_configuration.h"
 #include "parcel.h"
 
 namespace OHOS {
+namespace AppExecFwk {
+enum class SupportWindowMode;
+}
 namespace AAFwk {
 class ProcessOptions;
 class StartWindowOption;

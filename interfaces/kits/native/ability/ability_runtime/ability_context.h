@@ -17,7 +17,6 @@
 #define OHOS_ABILITY_RUNTIME_ABILITY_CONTEXT_H
 
 #include "ability_connect_callback.h"
-#include "ability_info.h"
 #include "ability_lifecycle_observer_interface.h"
 #include "caller_callback.h"
 #include "context.h"
@@ -39,7 +38,9 @@
 
 namespace OHOS {
 namespace AppExecFwk {
+struct AbilityInfo;
 class Configuration;
+enum class ExtensionAbilityType;
 }
 namespace Ace {
 class UIContent;

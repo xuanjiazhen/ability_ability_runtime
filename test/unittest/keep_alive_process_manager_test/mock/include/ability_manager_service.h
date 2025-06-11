@@ -20,6 +20,7 @@
 #include <memory>
 #include <singleton.h>
 
+#include "ability_info.h"
 #include "ability_keep_alive_service.h"
 #include "keep_alive_info.h"
 #include "start_options.h"

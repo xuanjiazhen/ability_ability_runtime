@@ -15,6 +15,7 @@
 
 #include "start_options.h"
 
+#include "ability_info.h"
 #include "hilog_tag_wrapper.h"
 #include "process_options.h"
 #include "start_window_option.h"
