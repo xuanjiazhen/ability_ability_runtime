@@ -26,7 +26,6 @@ ohos_fuzztest("MissionInfoMgrAFuzzTest") {
       "${ability_runtime_test_path}/fuzztest/missioninfomgra_fuzzer"
   include_dirs = [
     "${ability_runtime_innerkits_path}/ability_manager/include",
-    "${ability_runtime_innerkits_path}/dataobs_manager/include",
   ]
   cflags = [
     "-g",

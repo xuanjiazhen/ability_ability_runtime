@@ -47,7 +47,7 @@ using AbilityRuntime::FreezeUtil;
 namespace AbilityRuntime {
 using namespace std::chrono_literals;
 using AbilityManagerClient = OHOS::AAFwk::AbilityManagerClient;
-using DataObsMgrClient = OHOS::AAFwk::DataObsMgrClient;
+using DataObsMgrClient = OHOS::DataShare::DataObsMgrClient;
 namespace {
 constexpr static char ACE_SERVICE_ABILITY_NAME[] = "AceServiceAbility";
 constexpr static char ACE_DATA_ABILITY_NAME[] = "AceDataAbility";
@@ -1184,7 +1184,7 @@ Uri FAAbilityThread::DenormalizeUri(const Uri &uri)
     return urivalue;
 }
 
-bool FAAbilityThread::HandleRegisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver)
+bool FAAbilityThread::HandleRegisterObserver(const Uri &uri, const sptr<DataShare::IDataAbilityObserver> &dataObserver)
 {
     auto obsMgrClient = DataObsMgrClient::GetInstance();
     if (obsMgrClient == nullptr) {
@@ -1200,7 +1200,7 @@ bool FAAbilityThread::HandleRegisterObserver(const Uri &uri, const sptr<AAFwk::I
     return true;
 }
 
-bool FAAbilityThread::HandleUnregisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver)
+bool FAAbilityThread::HandleUnregisterObserver(const Uri &uri, const sptr<DataShare::IDataAbilityObserver> &dataObserver)
 {
     auto obsMgrClient = DataObsMgrClient::GetInstance();
     if (obsMgrClient == nullptr) {
@@ -1232,7 +1232,7 @@ bool FAAbilityThread::HandleNotifyChange(const Uri &uri)
     return true;
 }
 
-bool FAAbilityThread::ScheduleRegisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver)
+bool FAAbilityThread::ScheduleRegisterObserver(const Uri &uri, const sptr<DataShare::IDataAbilityObserver> &dataObserver)
 {
     TAG_LOGD(AAFwkTag::FA, "called");
     if (abilityHandler_ == nullptr) {
@@ -1255,7 +1255,7 @@ bool FAAbilityThread::ScheduleRegisterObserver(const Uri &uri, const sptr<AAFwk:
     return ret;
 }
 
-bool FAAbilityThread::ScheduleUnregisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver)
+bool FAAbilityThread::ScheduleUnregisterObserver(const Uri &uri, const sptr<DataShare::IDataAbilityObserver> &dataObserver)
 {
     TAG_LOGD(AAFwkTag::FA, "called");
     if (abilityHandler_ == nullptr) {

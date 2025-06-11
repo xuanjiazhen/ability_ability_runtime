@@ -102,7 +102,7 @@ HWTEST_F(AbilitySchedulerStubSecondTest, AbilitySchedulerStubSecond_002, TestSiz
 
     MessageParcel data2;
     data2.WriteParcelable(uri.get());
-    sptr<IDataAbilityObserver> dataObserver(new (std::nothrow) MockDataAbilityObserverStub());
+    sptr<DataShare::IDataAbilityObserver> dataObserver(new (std::nothrow) MockDataAbilityObserverStub());
     data2.WriteRemoteObject(dataObserver->AsObject());
     res = stub_->RegisterObserverInner(data2, reply);
     EXPECT_EQ(res, NO_ERROR);
@@ -128,7 +128,7 @@ HWTEST_F(AbilitySchedulerStubSecondTest, AbilitySchedulerStubSecond_003, TestSiz
 
     MessageParcel data2;
     data2.WriteParcelable(uri.get());
-    sptr<IDataAbilityObserver> dataObserver(new (std::nothrow) MockDataAbilityObserverStub());
+    sptr<DataShare::IDataAbilityObserver> dataObserver(new (std::nothrow) MockDataAbilityObserverStub());
     data2.WriteRemoteObject(dataObserver->AsObject());
     res = stub_->UnregisterObserverInner(data2, reply);
     EXPECT_EQ(res, NO_ERROR);

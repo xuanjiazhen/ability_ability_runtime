@@ -37,9 +37,9 @@ public:
     MOCK_METHOD0(ScheduleSaveAbilityState, void());
     MOCK_METHOD1(ScheduleRestoreAbilityState, void(const PacMap& inState));
     MOCK_METHOD1(ScheduleNewWant, void(const Want& want));
-    MOCK_METHOD2(ScheduleRegisterObserver, bool(const Uri& uri, const sptr<AAFwk::IDataAbilityObserver>& dataObserver));
+    MOCK_METHOD2(ScheduleRegisterObserver, bool(const Uri& uri, const sptr<DataShare::IDataAbilityObserver>& dataObserver));
     MOCK_METHOD2(
-        ScheduleUnregisterObserver, bool(const Uri& uri, const sptr<AAFwk::IDataAbilityObserver>& dataObserver));
+        ScheduleUnregisterObserver, bool(const Uri& uri, const sptr<DataShare::IDataAbilityObserver>& dataObserver));
     MOCK_METHOD1(ScheduleNotifyChange, bool(const Uri& uri));
     MOCK_METHOD1(ExecuteBatch, std::vector<std::shared_ptr<AppExecFwk::DataAbilityResult>>(
         const std::vector<std::shared_ptr<AppExecFwk::DataAbilityOperation>>& operations));

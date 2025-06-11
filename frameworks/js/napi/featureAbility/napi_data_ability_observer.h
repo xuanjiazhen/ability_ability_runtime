@@ -22,7 +22,7 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-class NAPIDataAbilityObserver : public AAFwk::DataAbilityObserverStub {
+class NAPIDataAbilityObserver : public DataShare::DataAbilityObserverStub {
 public:
     void OnChange() override;
     void SetEnv(const napi_env &env);

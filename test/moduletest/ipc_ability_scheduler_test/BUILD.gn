@@ -19,7 +19,7 @@ module_output_path = "ability_runtime/ability_runtime/mstabilitymgrservice"
 ohos_moduletest("IpcAbilitySchedulerModuleTest") {
   module_out_path = module_output_path
 
-  include_dirs = [ "${ability_runtime_innerkits_path}/dataobs_manager/include" ]
+  include_dirs = []
 
   sources = [ "ipc_ability_scheduler_module_test.cpp" ]
 

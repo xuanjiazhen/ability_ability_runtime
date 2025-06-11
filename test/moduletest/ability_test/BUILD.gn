@@ -33,7 +33,6 @@ config("module_private_config") {
     "${ability_runtime_test_path}/mock/frameworks_kits_test/DemoAbility",
     "${ability_runtime_services_path}/abilitymgr/include/utils",
     "${ability_runtime_services_path}/abilitymgr/include",
-    "${ability_runtime_innerkits_path}/dataobs_manager/include",
   ]
 }
 
@@ -256,8 +255,6 @@ ohos_moduletest("data_ability_helper_module_test") {
     "${ability_runtime_test_path}/mock/frameworks_kits_test/DemoAbility",
     "${ability_runtime_test_path}/mock/frameworks_kits_test/DemoObServer",
     "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include",
-    "${ability_runtime_services_path}/dataobsmgr/include",
-    "${ability_runtime_innerkits_path}/dataobs_manager/include",
   ]
 
   sources = [ "data_ability_helper_module_test.cpp" ]
@@ -308,8 +305,6 @@ ohos_moduletest("ability_post_event_timeout_test") {
     "${ability_runtime_test_path}/mock/frameworks_kits_test/DemoAbility",
     "${ability_runtime_test_path}/mock/frameworks_kits_test/DemoObServer",
     "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include",
-    "${ability_runtime_services_path}/dataobsmgr/include",
-    "${ability_runtime_innerkits_path}/dataobs_manager/include",
   ]
 
   sources = [ "ability_post_event_timeout_test.cpp" ]

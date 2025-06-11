@@ -17,7 +17,6 @@ group("ams_target") {
     "abilitymgr:abilityms_target",
     "appmgr:appms_target",
     "common:ams_common_target",
-    "dataobsmgr:dataobsms",
     "quickfixmgr:quickfixms",
   ]
   if (ability_runtime_upms) {

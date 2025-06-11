@@ -238,7 +238,7 @@ public:
      * @param uri, Indicates the path of the data to operate.
      * @param dataObserver, Indicates the IDataAbilityObserver object.
      */
-    void RegisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver);
+    void RegisterObserver(const Uri &uri, const sptr<DataShare::IDataAbilityObserver> &dataObserver);
 
     /**
      * @brief Deregisters an observer used for DataObsMgr specified by the given Uri.
@@ -246,7 +246,7 @@ public:
      * @param uri, Indicates the path of the data to operate.
      * @param dataObserver, Indicates the IDataAbilityObserver object.
      */
-    void UnregisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver);
+    void UnregisterObserver(const Uri &uri, const sptr<DataShare::IDataAbilityObserver> &dataObserver);
 
     /**
      * @brief Notifies the registered observers of a change to the data resource specified by Uri.

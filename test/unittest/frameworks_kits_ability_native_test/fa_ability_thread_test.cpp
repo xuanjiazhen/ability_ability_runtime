@@ -29,7 +29,6 @@
 #include "mock_ability_thread.h"
 #include "mock_ability_token.h"
 #include "mock_data_ability.h"
-#include "mock_data_obs_mgr_stub.h"
 #include "mock_page_ability.h"
 #include "mock_service_ability.h"
 #include "ohos_application.h"

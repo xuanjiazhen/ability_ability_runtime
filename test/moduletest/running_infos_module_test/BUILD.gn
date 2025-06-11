@@ -23,7 +23,6 @@ ohos_moduletest("running_infos_module_test") {
     "${ability_runtime_test_path}/moduletest/mock/include",
     "${ability_runtime_test_path}/mock/common/include",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/distributed_ability_runtime",
-    "${ability_runtime_innerkits_path}/dataobs_manager/include",
   ]
 
   sources = [ "running_infos_module_test.cpp" ]

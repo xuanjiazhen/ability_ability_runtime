@@ -32,9 +32,11 @@ namespace AppExecFwk {
 class DataAbilityResult;
 class DataAbilityOperation;
 }
+namespace DataShare {
+class IDataAbilityObserver;
+}
 namespace AAFwk {
 using OHOS::AppExecFwk::PacMap;
-class IDataAbilityObserver;
 class SessionInfo;
 
 /**
@@ -45,6 +47,7 @@ class IAbilityScheduler : public OHOS::IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.aafwk.AbilityScheduler");
 
+    using IDataAbilityObserver = DataShare::IDataAbilityObserver;
     /*
      * ScheduleAbilityTransaction,  schedule ability to transform life state.
      *

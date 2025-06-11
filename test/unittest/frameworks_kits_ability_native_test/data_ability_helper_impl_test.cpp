@@ -55,7 +55,7 @@ public:
     void TearDown() {};
 };
 
-class MolDataAbilityObserver : public AAFwk::DataAbilityObserverStub {
+class MolDataAbilityObserver : public DataShare::DataAbilityObserverStub {
 public:
     MolDataAbilityObserver() {};
     virtual ~MolDataAbilityObserver() {};
@@ -1529,7 +1529,7 @@ HWTEST_F(DataAbilityHelperImplForObserverTest,
 {
     GTEST_LOG_(INFO) << "AppExecFwk_DataAbilityHelperImpl_CheckUriAndDataObserver_0100 start";
     std::shared_ptr<Uri> uri = std::make_shared<Uri>("\nullptr");
-    const sptr<AAFwk::IDataAbilityObserver> dataObserver;
+    const sptr<DataShare::IDataAbilityObserver> dataObserver;
     sptr<AAFwk::MockAbilityManagerService> porxyNew = new (std::nothrow) AAFwk::MockAbilityManagerService();
     porxyNew->acquireDataAbility_ = new (std::nothrow) MockAbilitySchedulerStub();
     AbilityManagerClient::GetInstance()->proxy_ = porxyNew;
@@ -1551,7 +1551,7 @@ HWTEST_F(DataAbilityHelperImplForObserverTest,
     GTEST_LOG_(INFO) << "AppExecFwk_DataAbilityHelperImpl_CheckUriAndDataObserver_0200 start";
     std::shared_ptr<Uri> uri =
         std::make_shared<Uri>("dataability://device_id/com.domainname.dataability.persondata/person/10");
-    const sptr<AAFwk::IDataAbilityObserver> dataObserver;
+    const sptr<DataShare::IDataAbilityObserver> dataObserver;
     sptr<AAFwk::MockAbilityManagerService> porxyNew = new (std::nothrow) AAFwk::MockAbilityManagerService();
     porxyNew->acquireDataAbility_ = new (std::nothrow) MockAbilitySchedulerStub();
     AbilityManagerClient::GetInstance()->proxy_ = porxyNew;
@@ -1573,7 +1573,7 @@ HWTEST_F(DataAbilityHelperImplForObserverTest,
     GTEST_LOG_(INFO) << "AppExecFwk_DataAbilityHelperImpl_CheckUriAndDataObserver_0300 start";
     std::shared_ptr<Uri> uri =
         std::make_shared<Uri>("dataability://device_id/com.domainname.dataability.persondata/person/10");
-    const sptr<AAFwk::IDataAbilityObserver> dataObserver = new (std::nothrow) MolDataAbilityObserver();
+    const sptr<DataShare::IDataAbilityObserver> dataObserver = new (std::nothrow) MolDataAbilityObserver();
     sptr<AAFwk::MockAbilityManagerService> porxyNew = new (std::nothrow) AAFwk::MockAbilityManagerService();
     porxyNew->acquireDataAbility_ = new (std::nothrow) MockAbilitySchedulerStub();
     AbilityManagerClient::GetInstance()->proxy_ = porxyNew;
@@ -1594,7 +1594,7 @@ HWTEST_F(DataAbilityHelperImplForObserverTest,
 {
     GTEST_LOG_(INFO) << "AppExecFwk_DataAbilityHelperImpl_CheckUriParam_0100 start";
     std::shared_ptr<Uri> uri = std::make_shared<Uri>("\nullptr");
-    const sptr<AAFwk::IDataAbilityObserver> dataObserver;
+    const sptr<DataShare::IDataAbilityObserver> dataObserver;
     sptr<AAFwk::MockAbilityManagerService> porxyNew = new (std::nothrow) AAFwk::MockAbilityManagerService();
     porxyNew->acquireDataAbility_ = new (std::nothrow) MockAbilitySchedulerStub();
     AbilityManagerClient::GetInstance()->proxy_ = porxyNew;
@@ -1616,7 +1616,7 @@ HWTEST_F(DataAbilityHelperImplForObserverTest,
     GTEST_LOG_(INFO) << "AppExecFwk_DataAbilityHelperImpl_CheckUriParam_0200 start";
     std::shared_ptr<Uri> uri =
         std::make_shared<Uri>("dataability://device_id/com.domainname.dataability.persondata/person/10");
-    const sptr<AAFwk::IDataAbilityObserver> dataObserver;
+    const sptr<DataShare::IDataAbilityObserver> dataObserver;
     sptr<AAFwk::MockAbilityManagerService> porxyNew = new (std::nothrow) AAFwk::MockAbilityManagerService();
     porxyNew->acquireDataAbility_ = new (std::nothrow) MockAbilitySchedulerStub();
     AbilityManagerClient::GetInstance()->proxy_ = porxyNew;
@@ -1637,7 +1637,7 @@ HWTEST_F(DataAbilityHelperImplForObserverTest,
 {
     GTEST_LOG_(INFO) << "AppExecFwk_DataAbilityHelperImpl_GetDataAbilityProxy_0100 start";
     std::shared_ptr<Uri> uri = std::make_shared<Uri>("\nullptr");
-    const sptr<AAFwk::IDataAbilityObserver> dataObserver;
+    const sptr<DataShare::IDataAbilityObserver> dataObserver;
     bool addDeathRecipient = true;
     sptr<AAFwk::MockAbilityManagerService> porxyNew = new (std::nothrow) AAFwk::MockAbilityManagerService();
     porxyNew->acquireDataAbility_ = new (std::nothrow) MockAbilitySchedulerStub();
@@ -1660,7 +1660,7 @@ HWTEST_F(DataAbilityHelperImplForObserverTest,
     GTEST_LOG_(INFO) << "AppExecFwk_DataAbilityHelperImpl_GetDataAbilityProxy_0200 start";
     std::shared_ptr<Uri> uri =
         std::make_shared<Uri>("dataability://device_id/com.domainname.dataability.persondata/person/10");
-    const sptr<AAFwk::IDataAbilityObserver> dataObserver;
+    const sptr<DataShare::IDataAbilityObserver> dataObserver;
     bool addDeathRecipient = true;
     sptr<AAFwk::MockAbilityManagerService> porxyNew = new (std::nothrow) AAFwk::MockAbilityManagerService();
     porxyNew->acquireDataAbility_ = new (std::nothrow) MockAbilitySchedulerStub();
@@ -1683,7 +1683,7 @@ HWTEST_F(DataAbilityHelperImplForObserverTest,
     GTEST_LOG_(INFO) << "AppExecFwk_DataAbilityHelperImpl_GetDataAbilityProxy_0300 start";
     std::shared_ptr<Uri> uri =
         std::make_shared<Uri>("dataability://device_id/com.domainname.dataability.persondata/person/10");
-    const sptr<AAFwk::IDataAbilityObserver> dataObserver;
+    const sptr<DataShare::IDataAbilityObserver> dataObserver;
     bool addDeathRecipient = true;
     sptr<AAFwk::MockAbilityManagerService> porxyNew = new (std::nothrow) AAFwk::MockAbilityManagerService();
     porxyNew->acquireDataAbility_ = new (std::nothrow) MockAbilitySchedulerStub();
@@ -1708,7 +1708,7 @@ HWTEST_F(DataAbilityHelperImplForObserverTest,
     GTEST_LOG_(INFO) << "AppExecFwk_DataAbilityHelperImpl_RegisterObserver_0100 start";
     std::shared_ptr<Uri> uri =
         std::make_shared<Uri>("dataability://device_id/com.domainname.dataability.persondata/person/10");
-    const sptr<AAFwk::IDataAbilityObserver> dataObserver;
+    const sptr<DataShare::IDataAbilityObserver> dataObserver;
     sptr<AAFwk::MockAbilityManagerService> porxyNew = new (std::nothrow) AAFwk::MockAbilityManagerService();
     porxyNew->acquireDataAbility_ = new (std::nothrow) MockAbilitySchedulerStub();
     AbilityManagerClient::GetInstance()->proxy_ = porxyNew;
@@ -1729,7 +1729,7 @@ HWTEST_F(DataAbilityHelperImplForObserverTest,
 {
     GTEST_LOG_(INFO) << "AppExecFwk_DataAbilityHelperImpl_RegisterObserver_0200 start";
     std::shared_ptr<Uri> uri = std::make_shared<Uri>("\nullptr");
-    const sptr<AAFwk::IDataAbilityObserver> dataObserver;
+    const sptr<DataShare::IDataAbilityObserver> dataObserver;
     sptr<AAFwk::MockAbilityManagerService> porxyNew = new (std::nothrow) AAFwk::MockAbilityManagerService();
     porxyNew->acquireDataAbility_ = new (std::nothrow) MockAbilitySchedulerStub();
     AbilityManagerClient::GetInstance()->proxy_ = porxyNew;
@@ -1751,7 +1751,7 @@ HWTEST_F(DataAbilityHelperImplForObserverTest,
     GTEST_LOG_(INFO) << "AppExecFwk_DataAbilityHelperImpl_RegisterObserver_0300 start";
     std::shared_ptr<Uri> uri =
         std::make_shared<Uri>("dataability://device_id/com.domainname.dataability.persondata/person/10");
-    const sptr<AAFwk::IDataAbilityObserver> dataObserver = new (std::nothrow) MolDataAbilityObserver();
+    const sptr<DataShare::IDataAbilityObserver> dataObserver = new (std::nothrow) MolDataAbilityObserver();
     sptr<AAFwk::MockAbilityManagerService> porxyNew = new (std::nothrow) AAFwk::MockAbilityManagerService();
     porxyNew->acquireDataAbility_ = new (std::nothrow) MockAbilitySchedulerStub();
     AbilityManagerClient::GetInstance()->proxy_ = porxyNew;
@@ -1774,7 +1774,7 @@ HWTEST_F(DataAbilityHelperImplForObserverTest,
     GTEST_LOG_(INFO) << "AppExecFwk_DataAbilityHelperImpl_RegisterObserver_0400 start";
     std::shared_ptr<Uri> uri =
         std::make_shared<Uri>("dataability://device_id/com.domainname.dataability.persondata/person/10");
-    const sptr<AAFwk::IDataAbilityObserver> dataObserver = new (std::nothrow) MolDataAbilityObserver();
+    const sptr<DataShare::IDataAbilityObserver> dataObserver = new (std::nothrow) MolDataAbilityObserver();
     sptr<AAFwk::MockAbilityManagerService> porxyNew = new (std::nothrow) AAFwk::MockAbilityManagerService();
     porxyNew->acquireDataAbility_ = new (std::nothrow) MockAbilitySchedulerStub();
     AbilityManagerClient::GetInstance()->proxy_ = porxyNew;
@@ -1797,7 +1797,7 @@ HWTEST_F(DataAbilityHelperImplForObserverTest,
     GTEST_LOG_(INFO) << "AppExecFwk_DataAbilityHelperImpl_RegisterObserver_0500 start";
     std::shared_ptr<Uri> uri =
         std::make_shared<Uri>("dataability://device_id/com.domainname.dataability.persondata/person/10");
-    const sptr<AAFwk::IDataAbilityObserver> dataObserver = new (std::nothrow) MolDataAbilityObserver();
+    const sptr<DataShare::IDataAbilityObserver> dataObserver = new (std::nothrow) MolDataAbilityObserver();
     sptr<AAFwk::MockAbilityManagerService> porxyNew = new (std::nothrow) AAFwk::MockAbilityManagerService();
     porxyNew->acquireDataAbility_ = new (std::nothrow) MockAbilitySchedulerStub();
     AbilityManagerClient::GetInstance()->proxy_ = porxyNew;
@@ -1822,7 +1822,7 @@ HWTEST_F(DataAbilityHelperImplForObserverTest,
     GTEST_LOG_(INFO) << "AppExecFwk_DataAbilityHelperImpl_UnregisterObserver_0100 start";
     std::shared_ptr<Uri> uri =
         std::make_shared<Uri>("dataability://device_id/com.domainname.dataability.persondata/person/10");
-    const sptr<AAFwk::IDataAbilityObserver> dataObserver;
+    const sptr<DataShare::IDataAbilityObserver> dataObserver;
     sptr<AAFwk::MockAbilityManagerService> porxyNew = new (std::nothrow) AAFwk::MockAbilityManagerService();
     porxyNew->acquireDataAbility_ = new (std::nothrow) MockAbilitySchedulerStub();
     AbilityManagerClient::GetInstance()->proxy_ = porxyNew;
@@ -1843,7 +1843,7 @@ HWTEST_F(DataAbilityHelperImplForObserverTest,
 {
     GTEST_LOG_(INFO) << "AppExecFwk_DataAbilityHelperImpl_UnregisterObserver_0200 start";
     std::shared_ptr<Uri> uri = std::make_shared<Uri>("\nullptr");
-    const sptr<AAFwk::IDataAbilityObserver> dataObserver;
+    const sptr<DataShare::IDataAbilityObserver> dataObserver;
     sptr<AAFwk::MockAbilityManagerService> porxyNew = new (std::nothrow) AAFwk::MockAbilityManagerService();
     porxyNew->acquireDataAbility_ = new (std::nothrow) MockAbilitySchedulerStub();
     AbilityManagerClient::GetInstance()->proxy_ = porxyNew;
@@ -1865,7 +1865,7 @@ HWTEST_F(DataAbilityHelperImplForObserverTest,
     GTEST_LOG_(INFO) << "AppExecFwk_DataAbilityHelperImpl_UnregisterObserver_0300 start";
     std::shared_ptr<Uri> uri =
         std::make_shared<Uri>("dataability://device_id/com.domainname.dataability.persondata/person/10");
-    const sptr<AAFwk::IDataAbilityObserver> dataObserver = new (std::nothrow) MolDataAbilityObserver();
+    const sptr<DataShare::IDataAbilityObserver> dataObserver = new (std::nothrow) MolDataAbilityObserver();
     sptr<AAFwk::MockAbilityManagerService> porxyNew = new (std::nothrow) AAFwk::MockAbilityManagerService();
     porxyNew->acquireDataAbility_ = new (std::nothrow) MockAbilitySchedulerStub();
     AbilityManagerClient::GetInstance()->proxy_ = porxyNew;
@@ -1888,7 +1888,7 @@ HWTEST_F(DataAbilityHelperImplForObserverTest,
     GTEST_LOG_(INFO) << "AppExecFwk_DataAbilityHelperImpl_UnregisterObserver_0400 start";
     std::shared_ptr<Uri> uri =
         std::make_shared<Uri>("dataability://device_id/com.domainname.dataability.persondata/person/10");
-    const sptr<AAFwk::IDataAbilityObserver> dataObserver = new (std::nothrow) MolDataAbilityObserver();
+    const sptr<DataShare::IDataAbilityObserver> dataObserver = new (std::nothrow) MolDataAbilityObserver();
     sptr<AAFwk::MockAbilityManagerService> porxyNew = new (std::nothrow) AAFwk::MockAbilityManagerService();
     porxyNew->acquireDataAbility_ = new (std::nothrow) MockAbilitySchedulerStub();
     AbilityManagerClient::GetInstance()->proxy_ = porxyNew;
@@ -1911,7 +1911,7 @@ HWTEST_F(DataAbilityHelperImplForObserverTest,
     GTEST_LOG_(INFO) << "AppExecFwk_DataAbilityHelperImpl_UnregisterObserver_0500 start";
     std::shared_ptr<Uri> uri =
         std::make_shared<Uri>("dataability://device_id/com.domainname.dataability.persondata/person/10");
-    const sptr<AAFwk::IDataAbilityObserver> dataObserver = new (std::nothrow) MolDataAbilityObserver();
+    const sptr<DataShare::IDataAbilityObserver> dataObserver = new (std::nothrow) MolDataAbilityObserver();
     sptr<AAFwk::MockAbilityManagerService> porxyNew = new (std::nothrow) AAFwk::MockAbilityManagerService();
     porxyNew->acquireDataAbility_ = new (std::nothrow) MockAbilitySchedulerStub();
     AbilityManagerClient::GetInstance()->proxy_ = porxyNew;

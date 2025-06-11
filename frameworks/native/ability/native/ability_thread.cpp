@@ -234,13 +234,13 @@ Uri AbilityThread::DenormalizeUri(const Uri &uri)
     return uri;
 }
 
-bool AbilityThread::ScheduleRegisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver)
+bool AbilityThread::ScheduleRegisterObserver(const Uri &uri, const sptr<DataShare::IDataAbilityObserver> &dataObserver)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
     return false;
 }
 
-bool AbilityThread::ScheduleUnregisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver)
+bool AbilityThread::ScheduleUnregisterObserver(const Uri &uri, const sptr<DataShare::IDataAbilityObserver> &dataObserver)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
     return false;

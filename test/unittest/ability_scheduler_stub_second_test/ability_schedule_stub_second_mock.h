@@ -175,7 +175,7 @@ public:
     {}
 };
 
-class MockDataAbilityObserverStub : public DataAbilityObserverStub {
+class MockDataAbilityObserverStub : public DataShare::DataAbilityObserverStub {
 public:
     MockDataAbilityObserverStub() = default;
     virtual ~MockDataAbilityObserverStub() = default;

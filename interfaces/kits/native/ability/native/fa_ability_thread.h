@@ -297,14 +297,14 @@ public:
      * @param uri Indicates the path of the data to operate.
      * @param dataObserver Indicates the IDataAbilityObserver object.
      */
-    bool ScheduleRegisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver) override;
+    bool ScheduleRegisterObserver(const Uri &uri, const sptr<DataShare::IDataAbilityObserver> &dataObserver) override;
 
     /**
      * @brief Deregisters an observer used for DataObsMgr specified by the given Uri.
      * @param uri Indicates the path of the data to operate.
      * @param dataObserver Indicates the IDataAbilityObserver object.
      */
-    bool ScheduleUnregisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver) override;
+    bool ScheduleUnregisterObserver(const Uri &uri, const sptr<DataShare::IDataAbilityObserver> &dataObserver) override;
 
     /**
      * @brief Notifies the registered observers of a change to the data resource specified by Uri.
@@ -538,14 +538,14 @@ private:
      * @param dataObserver Indicates the IDataAbilityObserver object.
      * @return The operation succeeded or failed. Procedure
      */
-    bool HandleRegisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver);
+    bool HandleRegisterObserver(const Uri &uri, const sptr<DataShare::IDataAbilityObserver> &dataObserver);
 
     /**
      * @brief Deregisters an observer used for DataObsMgr specified by the given Uri.
      * @param uri Indicates the path of the data to operate.
      * @param dataObserver Indicates the IDataAbilityObserver object.
      */
-    bool HandleUnregisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver);
+    bool HandleUnregisterObserver(const Uri &uri, const sptr<DataShare::IDataAbilityObserver> &dataObserver);
 
     /**
      * @brief Notifies the registered observers of a change to the data resource specified by Uri.

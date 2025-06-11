@@ -232,7 +232,7 @@ public:
      * @param uri, Indicates the path of the data to operate.
      * @param dataObserver, Indicates the IDataAbilityObserver object.
      */
-    void RegisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver);
+    void RegisterObserver(const Uri &uri, const sptr<DataShare::IDataAbilityObserver> &dataObserver);
 
     /**
      * @brief Deregisters an observer used for DataObsMgr specified by the given Uri.
@@ -240,7 +240,7 @@ public:
      * @param uri, Indicates the path of the data to operate.
      * @param dataObserver, Indicates the IDataAbilityObserver object.
      */
-    void UnregisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver);
+    void UnregisterObserver(const Uri &uri, const sptr<DataShare::IDataAbilityObserver> &dataObserver);
 
     /**
      * @brief Notifies the registered observers of a change to the data resource specified by Uri.
@@ -309,7 +309,7 @@ private:
     void ReleaseDataAbility(sptr<AAFwk::IAbilityScheduler> dataAbilityProxy);
 
     bool CheckUriAndDataObserver(const Uri &uri,
-        const sptr<AAFwk::IDataAbilityObserver> &dataObserver);
+        const sptr<DataShare::IDataAbilityObserver> &dataObserver);
 
     sptr<IRemoteObject> token_;
     std::weak_ptr<Context> context_;
@@ -321,8 +321,8 @@ private:
     std::mutex oplock_;
 
     sptr<IRemoteObject::DeathRecipient> callerDeathRecipient_ = nullptr;  // caller binderDied Recipient
-    std::map<sptr<AAFwk::IDataAbilityObserver>, sptr<AAFwk::IAbilityScheduler>> registerMap_;
-    std::map<sptr<AAFwk::IDataAbilityObserver>, std::string> uriMap_;
+    std::map<sptr<DataShare::IDataAbilityObserver>, sptr<AAFwk::IAbilityScheduler>> registerMap_;
+    std::map<sptr<DataShare::IDataAbilityObserver>, std::string> uriMap_;
 };
 
 class DataAbilityDeathRecipient : public IRemoteObject::DeathRecipient {
