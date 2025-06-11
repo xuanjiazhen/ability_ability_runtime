@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -168,6 +168,11 @@ void AppRunningRecord::SetJointUserId(const std::string &jointUserId)
 const std::string &AppRunningRecord::GetProcessName() const
 {
     return processName_;
+}
+
+void AppRunningRecord::SetProcessName(const std::string &processName)
+{
+    processName_ = processName;
 }
 
 bool AppRunningRecord::GetExtensionSandBoxFlag() const

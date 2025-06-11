@@ -7042,6 +7042,19 @@ int AbilityManagerService::GenerateExtensionAbilityRequest(
     request.callerToken = callerToken;
     request.startSetting = nullptr;
 
+    std::string uri = want.GetUri().ToString();
+    if (!uri.empty()) {
+        int32_t validUserId = GetValidUserId(userId);
+        AppExecFwk::ExtensionAbilityInfo extensionInfo;
+        auto bms = AbilityUtil::GetBundleManagerHelper();
+        CHECK_POINTER_AND_RETURN(bms, ERR_INVALID_VALUE);
+        bool queryResult = IN_PROCESS_CALL(bms->QueryExtensionAbilityInfoByUri(uri, validUserId, extensionInfo));
+        if (queryResult) {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "isolationProcess: %{public}d", extensionInfo.isolationProcess);
+            request.abilityInfo.isolationProcess = extensionInfo.isolationProcess;
+        }
+    }
+
     auto abilityInfo = StartAbilityUtils::startAbilityInfo;
     if (abilityInfo == nullptr || abilityInfo->GetAppBundleName() != want.GetElement().GetBundleName()) {
         int32_t appIndex = 0;

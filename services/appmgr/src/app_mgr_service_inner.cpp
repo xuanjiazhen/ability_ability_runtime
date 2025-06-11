@@ -808,9 +808,12 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
             TAG_LOGE(AAFwkTag::APPMGR, "MakeKiaProcess failed");
             return;
         }
-        appRecord = appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name,
-            processName, appInfo->uid, bundleInfo, specifiedProcessFlag, &isProcCache, loadParam->instanceKey,
-            customProcessFlag);
+        if (!processName_.empty()) {
+            processName = processName_;
+        }
+        appRecord = appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name, processName, appInfo->uid,
+            bundleInfo, specifiedProcessFlag, &isProcCache, loadParam->instanceKey, customProcessFlag);
+        processName_ = "";
     }
 
     if (appRecord && appRecord->IsCaching()) {
@@ -854,6 +857,18 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         }
     } else {
         TAG_LOGI(AAFwkTag::APPMGR, "have apprecord");
+        if (abilityInfo->isolationProcess &&
+            AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo->extensionAbilityType) && !processName_.empty()) {
+            TAG_LOGI(AAFwkTag::APPMGR, "isolation process for UIExtension");
+            processName_ = "";
+            waitingTasks_[appRecord->GetRecordId()] = [this, abilityInfo, appInfo, want, loadParam, appRecord](
+                                                          const std::string &flag) {
+                LoadAbilityContext context{ abilityInfo, appInfo, want, loadParam, appRecord, flag };
+                StartScheduleNewProcessRequest(context);
+            };
+            appRecord->ScheduleNewProcessRequest(*want, hapModuleInfo.moduleName);
+        }
+
         ReportEventToRSS(*abilityInfo, appRecord);
         appRunningManager_->UpdateConfigurationDelayed(appRecord);
         if (!isProcCache) {
@@ -891,6 +906,39 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         want->RemoveParam(UIEXTENSION_BIND_ABILITY_ID);
     }
     AfterLoadAbility(appRecord, abilityInfo, loadParam);
+}
+
+void AppMgrServiceInner::StartScheduleNewProcessRequest(const LoadAbilityContext &context)
+{
+    int32_t recordId = context.appRecord->GetRecordId();
+
+    loadAbilityQueue_[recordId].push_back(context);
+    if (loadAbilityQueue_[recordId].size() > 1) {
+        return;
+    }
+
+    auto processName = context.appRecord->GetProcessName();
+    if (!context.flag.empty()) {
+        TAG_LOGI(AAFwkTag::APPMGR, "flag is not empty, processName = %{public}s, flag = %{public}s",
+            processName.c_str(), context.flag.c_str());
+        processName_ = processName + context.flag;
+        context.appRecord->SetProcessName(processName_);
+    }
+    LoadAbility(context.abilityInfo, context.appInfo, context.want, context.loadParam);
+    ProcessNextLoadAbility(recordId);
+}
+
+void AppMgrServiceInner::ProcessNextLoadAbility(int32_t recordId)
+{
+    auto &queue = loadAbilityQueue_[recordId];
+    if (!queue.empty()) {
+        queue.pop_front();
+        if (!queue.empty()) {
+            StartScheduleNewProcessRequest(queue.front());
+        } else {
+            loadAbilityQueue_.erase(recordId);
+        }
+    }
 }
 
 void AppMgrServiceInner::AfterLoadAbility(std::shared_ptr<AppRunningRecord> appRecord,
@@ -5473,10 +5521,28 @@ void AppMgrServiceInner::ScheduleNewProcessRequestDone(
     appRecord->ScheduleNewProcessRequestDone();
     appRecord->ResetNewProcessRequest();
 
-    if (startSpecifiedAbilityResponse_) {
-        startSpecifiedAbilityResponse_->OnNewProcessRequestResponse(flag, requestId);
+    std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    auto abilities = appRecord->GetAbilities();
+    for (const auto &item : abilities) {
+        abilityInfo = item.second ? item.second->GetAbilityInfo() : nullptr;
+        if (abilityInfo && abilityInfo->isolationProcess &&
+            AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo->extensionAbilityType)) {
+            TAG_LOGI(AAFwkTag::APPMGR, "found extension ability, recordId: %{public}d", recordId);
+            auto it = waitingTasks_.find(recordId);
+            if (it != waitingTasks_.end()) {
+                TAG_LOGI(AAFwkTag::APPMGR, "start waitingTasks!");
+                it->second(flag);
+                waitingTasks_.erase(it);
+            }
+        }
     }
-    appRecord->ResetNewProcessRequest();
+
+    if (!AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo->extensionAbilityType)) {
+        if (startSpecifiedAbilityResponse_) {
+            startSpecifiedAbilityResponse_->OnNewProcessRequestResponse(flag, requestId);
+        }
+        appRecord->ResetNewProcessRequest();
+    }
 }
 
 void AppMgrServiceInner::HandleStartSpecifiedProcessTimeout(std::shared_ptr<AppRunningRecord> appRecord)

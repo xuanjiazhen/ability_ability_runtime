@@ -113,6 +113,15 @@ public:
         int32_t userId = -1;
     };
 
+    struct LoadAbilityContext {
+        std::shared_ptr<AbilityInfo> abilityInfo;
+        std::shared_ptr<ApplicationInfo> appInfo;
+        std::shared_ptr<AAFwk::Want> want;
+        std::shared_ptr<AbilityRuntime::LoadParam> loadParam;
+        std::shared_ptr<AppRunningRecord> appRecord;
+        std::string flag;
+    };
+
     AppMgrServiceInner();
     virtual ~AppMgrServiceInner();
 
@@ -2044,6 +2053,8 @@ private:
     void SetKeepAliveEnableStateAndNotify(const std::shared_ptr<AppRunningRecord>& appRecord, bool enable);
     void SetKeepAliveDkvAndNotify(const std::shared_ptr<AppRunningRecord>& appRecord, bool enable);
     bool GetKeepAliveState(const std::shared_ptr<AppRunningRecord> &appRecord);
+    void ProcessNextLoadAbility(int32_t recordId);
+    void StartScheduleNewProcessRequest(const LoadAbilityContext &context);
     bool isInitAppWaitingDebugListExecuted_ = false;
     std::atomic<bool> sceneBoardAttachFlag_ = true;
     std::atomic<int32_t> willKillPidsNum_ = 0;
@@ -2103,6 +2114,9 @@ private:
 
     std::mutex uiExtensionBindReleationsLock_;
     std::map<int32_t, std::unordered_map<pid_t, int32_t>> uiExtensionBindReleations_;
+    std::map<int32_t, std::function<void(const std::string &)>> waitingTasks_;
+    std::map<int32_t, std::deque<LoadAbilityContext>> loadAbilityQueue_;
+    std::string processName_ = "";
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
