@@ -311,6 +311,12 @@ napi_value JsWantAgent::NapiGetWantAgent(napi_env env, napi_callback_info info)
     return (me != nullptr) ? me->OnNapiGetWantAgent(env, info) : nullptr;
 };
 
+napi_value JsWantAgent::NapiCreateLocalWantAgent(napi_env env, napi_callback_info info)
+{
+    JsWantAgent* me = CheckParamsAndGetThis<JsWantAgent>(env, info);
+    return (me != nullptr) ? me->OnNapiCreateLocalWantAgent(env, info) : nullptr;
+};
+
 napi_value JsWantAgent::NapiGetOperationType(napi_env env, napi_callback_info info)
 {
     JsWantAgent* me = CheckParamsAndGetThis<JsWantAgent>(env, info);
@@ -1342,6 +1348,57 @@ void JsWantAgent::SetOnNapiGetWantAgentCallback(std::shared_ptr<WantAgentWantsPa
             task.ResolveWithNoError(env, jsWantAgent);
         }
     };
+}
+
+napi_value JsWantAgent::OnNapiCreateLocalWantAgent(napi_env env, napi_callback_info info)
+{
+    TAG_LOGI(AAFwkTag::WANTAGENT, "on create localWantAgent");
+    size_t argc = ARGS_MAX_COUNT;
+    napi_value argv[ARGS_MAX_COUNT] = {nullptr};
+    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (argc > ARGC_TWO || argc < ARGC_ONE) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "Not enough params");
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    if (!CheckCallerIsSystemApp()) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "Non-system app");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP);
+        return CreateJsUndefined(env);
+    }
+
+    std::shared_ptr<WantAgentWantsParas> spParas = std::make_shared<WantAgentWantsParas>();
+    int32_t ret = GetWantAgentParam(env, info, *spParas);
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "Failed to get wantAgent param");
+        ThrowInvalidParamError(env, "Parameter error! Info must be a WantAgentInfo.");
+        return CreateJsUndefined(env);
+    }
+
+    LocalWantAgentInfo localWantAgentInfo(spParas->requestCode,
+        static_cast<WantAgentConstant::OperationType>(spParas->operationType),
+        spParas->wants);
+    const auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
+    std::shared_ptr<WantAgent> wantAgent = nullptr;
+    ErrCode result = WantAgentHelper::CreateLocalWantAgent(context, localWantAgentInfo, wantAgent);
+    if (result != ERR_OK || wantAgent == nullptr) {
+        ThrowInvalidParamError(env, "Parameter error! CreateLocalWantAgent failed.");
+        return CreateJsUndefined(env);
+    }
+
+    WantAgent *pWantAgent = new (std::nothrow) WantAgent(wantAgent->GetLocalPendingWant());
+    if (pWantAgent == nullptr) {
+        ThrowInvalidParamError(env, "Parameter error! New wantAgent failed.");
+        return CreateJsUndefined(env);
+    }
+    napi_value jsWantAgent = OHOS::AppExecFwk::WrapWantAgent(env, pWantAgent, nullptr);
+    if (jsWantAgent == nullptr) {
+        delete pWantAgent;
+        pWantAgent = nullptr;
+        return CreateJsUndefined(env);
+    }
+    return jsWantAgent;
 }
 
 napi_value JsWantAgent::OnNapiGetOperationType(napi_env env, napi_callback_info info)

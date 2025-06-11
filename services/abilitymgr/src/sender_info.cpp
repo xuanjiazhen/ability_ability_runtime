@@ -55,6 +55,7 @@ bool SenderInfo::ReadFromParcel(Parcel &parcel)
             return false;
         }
     }
+    operType = parcel.ReadInt32();
     return true;
 }
 
@@ -124,6 +125,10 @@ bool SenderInfo::Marshalling(Parcel &parcel) const
             TAG_LOGE(AAFwkTag::ABILITYMGR, "write callerToken failed");
             return false;
         }
+    }
+    if (!parcel.WriteInt32(operType)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write operType failed");
+        return false;
     }
     return true;
 }

@@ -18,6 +18,7 @@
 #include "ability_runtime_error_util.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "local_pending_want.h"
 #include "want_params_wrapper.h"
 #include "pending_want.h"
 #include "want_agent_client.h"
@@ -182,12 +183,43 @@ std::shared_ptr<WantAgent> WantAgentHelper::GetWantAgent(const WantAgentInfo &pa
     return agent;
 }
 
+ErrCode WantAgentHelper::CreateLocalWantAgent(const std::shared_ptr<OHOS::AbilityRuntime::ApplicationContext> &context,
+    const LocalWantAgentInfo &paramsInfo, std::shared_ptr<WantAgent> &wantAgent)
+{
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
+        return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
+    }
+    std::vector<std::shared_ptr<Want>> wants = paramsInfo.GetWants();
+    if (wants.empty() || wants[0] == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
+        return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
+    }
+
+    WantAgentConstant::OperationType operationType = paramsInfo.GetOperationType();
+    std::string bundleName = context->GetBundleName();
+    std::shared_ptr<LocalPendingWant> LocalPendingWant = std::make_shared<LocalPendingWant>(bundleName, -1, wants[0],
+        static_cast<int32_t>(operationType));
+    wantAgent = std::make_shared<WantAgent>(localPendingWant);
+    return ERR_OK;
+}
+
 WantAgentConstant::OperationType WantAgentHelper::GetType(std::shared_ptr<WantAgent> agent)
 {
-    if ((agent == nullptr) || (agent->GetPendingWant() == nullptr)) {
+    if (agent == nullptr) {
         return WantAgentConstant::OperationType::UNKNOWN_TYPE;
     }
 
+    if (agent->IsLocal()) {
+        if (agent->GetLocalPendingWant() == nullptr) {
+            return WantAgentConstant::OperationType::UNKNOWN_TYPE;
+        }
+        return static_cast<WantAgentConstant::OperationType>(agent->GetLocalPendingWant()->GetType());
+    }
+
+    if (agent->GetPendingWant() == nullptr) {
+        return WantAgentConstant::OperationType::UNKNOWN_TYPE;
+    }
     return agent->GetPendingWant()->GetType(agent->GetPendingWant()->GetTarget());
 }
 
@@ -200,9 +232,18 @@ ErrCode WantAgentHelper::TriggerWantAgent(std::shared_ptr<WantAgent> agent,
         TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
         return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
     }
+
+    sptr<CompletedDispatcher> dispatcher = nullptr;
+    if (agent->IsLocal()) {
+        std::shared_ptr<LocalPendingWant> localPendingWant = agent->GetLocalPendingWant();
+        if (callback != nullptr) {
+            dispatcher = new (std::nothrow) CompletedDispatcher(localPendingWant, callback, nullptr);
+        }
+        return Send(localPendingWant, dispatcher, paramsInfo);
+    }
+
     std::shared_ptr<PendingWant> pendingWant = agent->GetPendingWant();
     WantAgentConstant::OperationType type = GetType(agent);
-    sptr<CompletedDispatcher> dispatcher = nullptr;
     if (callback != nullptr) {
         if (callerToken != nullptr) {
             dispatcher = new (std::nothrow) CompletedDispatcher(pendingWant, nullptr, nullptr);
@@ -233,6 +274,17 @@ ErrCode WantAgentHelper::Send(const std::shared_ptr<PendingWant> &pendingWant,
         paramsInfo.GetStartOptions(),
         pendingWant->GetTarget(),
         callerToken);
+}
+
+ErrCode WantAgentHelper::Send(const std::shared_ptr<LocalPendingWant> &localPendingWant,
+    const sptr<CompletedDispatcher> &callBack, const TriggerInfo &paramsInfo)
+{
+    TAG_LOGD(AAFwkTag::WANTAGENT, "call");
+    if (localPendingWant == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
+        return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
+    }
+    return localPendingWant->Send(callBack, paramsInfo);
 }
 
 ErrCode WantAgentHelper::Cancel(const std::shared_ptr<WantAgent> agent, uint32_t flags)
@@ -272,6 +324,15 @@ ErrCode WantAgentHelper::GetBundleName(const std::shared_ptr<WantAgent> &agent, 
         return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
     }
 
+    if (agent->IsLocal()) {
+        if (agent->GetLocalPendingWant() == nullptr) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
+            return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
+        }
+        bundleName = agent->GetLocalPendingWant()->GetBundleName();
+        return NO_ERROR;
+    }
+
     std::shared_ptr<PendingWant> pendingWant = agent->GetPendingWant();
     if (pendingWant == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
@@ -286,6 +347,15 @@ ErrCode WantAgentHelper::GetUid(const std::shared_ptr<WantAgent> &agent, int32_t
     if (agent == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
         return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
+    }
+
+    if (agent->IsLocal()) {
+        if (agent->GetLocalPendingWant() == nullptr) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
+            return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
+        }
+        bundleName = agent->GetLocalPendingWant()->GetUid();
+        return NO_ERROR;
     }
 
     std::shared_ptr<PendingWant> pendingWant = agent->GetPendingWant();
@@ -303,6 +373,14 @@ std::shared_ptr<Want> WantAgentHelper::GetWant(const std::shared_ptr<WantAgent> 
     if (agent == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
         return nullptr;
+    }
+
+    if (agent->IsLocal()) {
+        if (agent->GetLocalPendingWant() == nullptr) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
+            return nullptr;
+        }
+        return agent->GetLocalPendingWant()->GetWant();
     }
 
     std::shared_ptr<PendingWant> pendingWant = agent->GetPendingWant();
@@ -471,18 +549,45 @@ std::vector<WantAgentConstant::Flags> WantAgentHelper::ParseFlags(nlohmann::json
 
 ErrCode WantAgentHelper::GetType(const std::shared_ptr<WantAgent> &agent, int32_t &operType)
 {
-    if ((agent == nullptr) || (agent->GetPendingWant() == nullptr)) {
+    if (agent == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
         return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_WANTAGENT;
     }
 
+    if (agent->IsLocal()) {
+        if (agent->GetLocalPendingWant() == nullptr) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
+            return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
+        }
+        operType = agent->GetLocalPendingWant()->GetType();
+        return NO_ERROR;
+    }
+
+    if (agent->GetPendingWant() == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
+        return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_WANTAGENT;
+    }
     return agent->GetPendingWant()->GetType(agent->GetPendingWant()->GetTarget(), operType);
 }
 
 ErrCode WantAgentHelper::GetWant(const std::shared_ptr<WantAgent> &agent, std::shared_ptr<AAFwk::Want> &want)
 {
-    if ((agent == nullptr) || (agent->GetPendingWant() == nullptr)) {
+    if (agent == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param.");
+        return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_WANTAGENT;
+    }
+
+    if (agent->IsLocal()) {
+        if (agent->GetLocalPendingWant() == nullptr) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
+            return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
+        }
+        want = agent->GetLocalPendingWant()->GetWant();
+        return NO_ERROR;
+    }
+
+    if (agent->GetPendingWant() == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
         return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_WANTAGENT;
     }
 
