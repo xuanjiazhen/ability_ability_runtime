@@ -202,7 +202,9 @@ void KioskManager::NotifyKioskModeChanged(bool isInKioskMode)
     want.SetParam("uid", kioskStatus_.kioskBundleUid_);
     want.SetParam("userId", kioskStatus_.kioskBundleUid_ / BASE_USER_RANGE);
     EventFwk::CommonEventData commonData {want};
-    EventFwk::CommonEventManager::PublishCommonEvent(commonData);
+    if(!IN_PROCESS_CALL(EventFwk::CommonEventManager::PublishCommonEvent(commonData))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "PublishCommonEvent failed, eventData: %{public}s", eventData.c_str());
+    }
 }
 
 bool KioskManager::IsInWhiteListInner(const std::string &bundleName)
