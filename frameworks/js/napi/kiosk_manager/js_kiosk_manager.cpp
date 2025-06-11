@@ -115,12 +115,16 @@ napi_value JsKioskManager::OnUpdateKioskApplicationList(napi_env env, NapiCallba
     };
 
     auto complete = [innerErrCode](napi_env env, NapiAsyncTask &task, int32_t status) {
-        if (*innerErrCode != ERR_OK) {
+        if (*innerErrCode == ERR_OK) {
+            task.ResolveWithNoError(env, CreateJsUndefined(env));
+        } else if (*innerErrCode == AAFwk::ERR_CAPABILITY_NOT_SUPPORT || *innerErrCode == AAFwk::ERR_NOT_SYSTEM_APP ||
+                   *innerErrCode == AAFwk::CHECK_PERMISSION_FAILED) {
             TAG_LOGE(AAFwkTag::APPKIT, "innerErrCode=%{public}d", *innerErrCode);
-            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
-            return;
+            task.Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(*innerErrCode)));
+        } else {
+            TAG_LOGE(AAFwkTag::APPKIT, "innerErrCode=%{public}d", *innerErrCode);
+            task.Reject(env, CreateJsError(env, static_cast<AbilityErrorCode>(*innerErrCode)));
         }
-        task.ResolveWithNoError(env, CreateJsUndefined(env));
     };
     napi_value result = nullptr;
     NapiAsyncTask::Schedule("JsKioskManager::OnUpdateKioskApplicationList", env,
@@ -170,12 +174,15 @@ napi_value JsKioskManager::OnEnterKioskMode(napi_env env, NapiCallbackInfo &info
     };
 
     auto complete = [innerErrCode](napi_env env, NapiAsyncTask &task, int32_t status) {
-        if (*innerErrCode != ERR_OK) {
+        if (*innerErrCode == ERR_OK) {
+            task.ResolveWithNoError(env, CreateJsUndefined(env));
+        } else if (*innerErrCode == AAFwk::ERR_CAPABILITY_NOT_SUPPORT) {
             TAG_LOGE(AAFwkTag::APPKIT, "innerErrCode=%{public}d", *innerErrCode);
-            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
-            return;
+            task.Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(*innerErrCode)));
+        } else {
+            TAG_LOGE(AAFwkTag::APPKIT, "innerErrCode=%{public}d", *innerErrCode);
+            task.Reject(env, CreateJsError(env, static_cast<AbilityErrorCode>(*innerErrCode)));
         }
-        task.ResolveWithNoError(env, CreateJsUndefined(env));
     };
 
     napi_value result = nullptr;
@@ -225,12 +232,15 @@ napi_value JsKioskManager::OnExitKioskMode(napi_env env, NapiCallbackInfo &info)
     };
 
     auto complete = [innerErrCode](napi_env env, NapiAsyncTask &task, int32_t status) {
-        if (*innerErrCode != ERR_OK) {
+        if (*innerErrCode == ERR_OK) {
+            task.ResolveWithNoError(env, CreateJsUndefined(env));
+        } else if (*innerErrCode == AAFwk::ERR_CAPABILITY_NOT_SUPPORT) {
             TAG_LOGE(AAFwkTag::APPKIT, "innerErrCode=%{public}d", *innerErrCode);
-            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
-            return;
+            task.Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(*innerErrCode)));
+        } else {
+            TAG_LOGE(AAFwkTag::APPKIT, "innerErrCode=%{public}d", *innerErrCode);
+            task.Reject(env, CreateJsError(env, static_cast<AbilityErrorCode>(*innerErrCode)));
         }
-        task.ResolveWithNoError(env, CreateJsUndefined(env));
     };
     napi_value result = nullptr;
     NapiAsyncTask::Schedule("JsKioskManager::OnExitKioskMode", env,
@@ -261,12 +271,15 @@ napi_value JsKioskManager::OnGetKioskStatus(napi_env env, NapiCallbackInfo &info
     };
 
     auto complete = [innerErrCode, kioskStatus](napi_env env, NapiAsyncTask &task, int32_t status) {
-        if (*innerErrCode != ERR_OK) {
+        if (*innerErrCode == ERR_OK) {
+            task.ResolveWithNoError(env, JsKioskManager::CreateJsKioskStatus(env, kioskStatus));
+        } else if (*innerErrCode == AAFwk::ERR_CAPABILITY_NOT_SUPPORT || *innerErrCode == AAFwk::ERR_NOT_SYSTEM_APP) {
             TAG_LOGE(AAFwkTag::APPKIT, "innerErrCode=%{public}d", *innerErrCode);
-            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
-            return;
+            task.Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(*innerErrCode)));
+        } else {
+            TAG_LOGE(AAFwkTag::APPKIT, "innerErrCode=%{public}d", *innerErrCode);
+            task.Reject(env, CreateJsError(env, static_cast<AbilityErrorCode>(*innerErrCode)));
         }
-        task.ResolveWithNoError(env, JsKioskManager::CreateJsKioskStatus(env, kioskStatus));
     };
     napi_value result = nullptr;
     NapiAsyncTask::Schedule("JsKioskManager::OnGetKioskStatus", env,
