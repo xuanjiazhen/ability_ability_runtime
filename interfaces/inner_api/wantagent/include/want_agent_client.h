@@ -60,6 +60,8 @@ public:
     ErrCode GetPendingRequestWant(const sptr<IWantSender> &target, std::shared_ptr<Want> &want);
 
     ErrCode GetWantSenderInfo(const sptr<IWantSender> &target, std::shared_ptr<WantSenderInfo> &info);
+
+    void RemoveDeathRecipient();
 private:
     class WantAgentDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
