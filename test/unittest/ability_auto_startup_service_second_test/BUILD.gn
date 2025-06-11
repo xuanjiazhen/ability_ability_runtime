@@ -37,7 +37,7 @@ ohos_unittest("ability_auto_startup_service_second_test") {
     "mock/src/mock_permission_verification.cpp",
   ]
 
-  configs = []
+  configs = [ ]
 
   cflags = [
     "-Dprivate = public",
