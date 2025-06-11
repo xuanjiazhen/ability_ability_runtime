@@ -143,6 +143,54 @@ void to_json(nlohmann::json& jsonObject, const EntryInfoForQuery &info)
     };
 }
 
+void from_json(const nlohmann::json &jsonObject, EntityInfoForQuery &entityInfo)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "EntityInfoForQuery from json");
+    const auto &jsonObjectEnd = jsonObject.end();
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_ENTITY_CLASS_NAME,
+        entityInfo.className,
+        true,
+        g_parseResult);
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_ENTITY_ID,
+        entityInfo.entityId,
+        true,
+        g_parseResult);
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_ENTITY_CATEGORY,
+        entityInfo.entityCategory,
+        true,
+        g_parseResult);
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_ENTITY_PARAMETERS,
+        entityInfo.parameters,
+        true,
+        g_parseResult);
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_ENTITY_PARENT_CLASS_NAME,
+        entityInfo.parentClassName,
+        true,
+        g_parseResult);
+}
+
+void to_json(nlohmann::json& jsonObject, const EntityInfoForQuery &info)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "EntityInfoForQuery to json");
+    jsonObject = nlohmann::json {
+        {INSIGHT_INTENT_ENTITY_CLASS_NAME, info.className},
+        {INSIGHT_INTENT_ENTITY_ID, info.entityId},
+        {INSIGHT_INTENT_ENTITY_CATEGORY, info.entityCategory},
+        {INSIGHT_INTENT_PARAMETERS, info.parameters},
+        {INSIGHT_INTENT_ENTITY_PARENT_CLASS_NAME, info.parentClassName}
+    };
+}
+
 void from_json(const nlohmann::json &jsonObject, InsightIntentInfoForQuery &insightIntentInfo)
 {
     TAG_LOGD(AAFwkTag::INTENT, "InsightIntentInfoForQuery from json");
@@ -233,6 +281,14 @@ void from_json(const nlohmann::json &jsonObject, InsightIntentInfoForQuery &insi
         false,
         g_parseResult,
         ArrayType::STRING);
+    AppExecFwk::GetValueIfFindKey<std::vector<EntityInfoForQuery>>(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_ENTITY_INFO,
+        insightIntentInfo.entities,
+        JsonType::ARRAY,
+        false,
+        g_parseResult,
+        ArrayType::OBJECT);
 
     if (insightIntentInfo.intentType == INSIGHT_INTENTS_TYPE_LINK) {
         AppExecFwk::GetValueIfFindKey<LinkInfoForQuery>(jsonObject,
@@ -284,7 +340,8 @@ void to_json(nlohmann::json& jsonObject, const InsightIntentInfoForQuery &info)
         {INSIGHT_INTENT_KEYWORDS, info.keywords},
         {INSIGHT_INTENT_LINK_INFO, info.linkInfo},
         {INSIGHT_INTENT_PAGE_INFO, info.pageInfo},
-        {INSIGHT_INTENT_ENTRY_INFO, info.entryInfo}
+        {INSIGHT_INTENT_ENTRY_INFO, info.entryInfo},
+        {INSIGHT_INTENT_ENTITY_INFO, info.entities}
     };
 }
 
