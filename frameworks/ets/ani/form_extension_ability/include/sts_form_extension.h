@@ -18,7 +18,7 @@
 
 #include "ani.h"
 #include "form_extension.h"
-#include "sts_runtime.h"
+#include "ets_runtime.h"
 
 class NativeReference;
 class STSNativeReference;
