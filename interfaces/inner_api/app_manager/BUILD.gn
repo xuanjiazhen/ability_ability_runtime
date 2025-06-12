@@ -46,6 +46,7 @@ idl_gen_interface("appmgr_innerkits") {
     "idl/IAbilityDebugResponse.idl",
     "idl/IAppDebugListener.idl",
     "idl/IStartSpecifiedAbilityResponse.idl",
+    "idl/IRenderStateObserver.idl",
   ]
   log_domainid = "0xD001311"
   log_tag = "AppMgr"
@@ -220,8 +221,6 @@ ohos_shared_library("app_manager") {
     "src/appmgr/render_scheduler_host.cpp",
     "src/appmgr/render_scheduler_proxy.cpp",
     "src/appmgr/render_state_data.cpp",
-    "src/appmgr/render_state_observer_proxy.cpp",
-    "src/appmgr/render_state_observer_stub.cpp",
     "src/appmgr/running_multi_info.cpp",
     "src/appmgr/running_process_info.cpp",
     "src/appmgr/system_memory_attr.cpp",

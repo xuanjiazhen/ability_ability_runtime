@@ -48,24 +48,5 @@ void RenderStateObserverStubTest::SetUp()
 void RenderStateObserverStubTest::TearDown()
 {}
 
-/**
- * @tc.number: OnRenderStateChangedInner_0100
- * @tc.desc: Test when params is not nullptr.
- * @tc.type: FUNC
- */
-HWTEST_F(RenderStateObserverStubTest, OnRenderStateChangedInner_0100, TestSize.Level1)
-{
-    auto stub = new (std::nothrow) MockRenderStateObserverStub();
-    EXPECT_TRUE(stub);
-    EXPECT_CALL(*stub, OnRenderStateChanged(_)).Times(1);
-    MessageParcel data;
-    RenderStateData renderStateData;
-    data.WriteParcelable(&renderStateData);
-    MessageParcel reply;
-    auto result = stub->OnRenderStateChangedInner(data, reply);
-    EXPECT_EQ(NO_ERROR, result);
-    testing::Mock::AllowLeak(stub);
-}
-
 } // namespace AppExecFwk
 } // namespace OHOS
