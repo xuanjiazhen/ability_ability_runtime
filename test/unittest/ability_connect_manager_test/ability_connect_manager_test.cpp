@@ -1055,6 +1055,95 @@ HWTEST_F(AbilityConnectManagerTest, AAFWK_Kit_Disconnect_002, TestSize.Level1)
 
 /*
  * Feature: AbilityConnectManager
+ * Function: DisconnectAbilityLocked
+ * SubFunction:
+ * FunctionPoints: DisconnectAbilityLocked and ConnectAbilityLocked
+ * EnvConditions:NA
+ * CaseDescription:Verify the following:
+ * 1. Disconnect ability a nonexistent connect, disconnect failed
+ * 2. If the current connect ability state is not connected, disconnect fails
+ * 3. Verify the success of disconnect ability
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFWK_Kit_Disconnect_003, TestSize.Level1)
+{
+    ConnectManager()->SetTaskHandler(TaskHandler());
+    ConnectManager()->SetEventHandler(EventHandler());
+
+    auto callback = new AbilityConnectCallback();
+    auto result = ConnectManager()->DisconnectAbilityLocked(callback);
+    EXPECT_EQ(result, OHOS::AAFwk::CONNECTION_NOT_EXIST);
+
+    auto result1 = ConnectManager()->ConnectAbilityLocked(abilityRequest_, callbackA_, nullptr);
+    EXPECT_EQ(0, result1);
+
+    auto result2 = ConnectManager()->DisconnectAbilityLocked(callbackA_);
+    EXPECT_EQ(result2, OHOS::AAFwk::INVALID_CONNECTION_STATE);
+
+    auto list = ConnectManager()->GetConnectRecordListByCallback(callbackA_);
+    EXPECT_EQ(static_cast<int>(list.size()), 1);
+
+    for (auto& it : list) {
+        it->SetConnectState(ConnectionState::CONNECTED);
+    }
+
+    auto result3 = ConnectManager()->DisconnectAbilityLocked(callbackA_);
+    EXPECT_EQ(result3, OHOS::ERR_OK);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: DisconnectAbilityLocked
+ * SubFunction:
+ * FunctionPoints: DisconnectAbilityLocked and ConnectAbilityLocked
+ * EnvConditions:NA
+ * CaseDescription: Results after verifying the disconnect ability
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFWK_Kit_Disconnect_004, TestSize.Level1)
+{
+    ConnectManager()->SetTaskHandler(TaskHandler());
+    ConnectManager()->SetEventHandler(EventHandler());
+
+    auto result = ConnectManager()->ConnectAbilityLocked(abilityRequest_, callbackA_, nullptr);
+    EXPECT_EQ(0, result);
+
+    auto result1 = ConnectManager()->ConnectAbilityLocked(abilityRequest_, callbackB_, nullptr);
+    EXPECT_EQ(0, result1);
+
+    auto result2 = ConnectManager()->ConnectAbilityLocked(abilityRequest1_, callbackA_, nullptr);
+    EXPECT_EQ(0, result2);
+
+    auto result3 = ConnectManager()->ConnectAbilityLocked(abilityRequest1_, callbackB_, nullptr);
+    EXPECT_EQ(0, result3);
+
+    auto listA = ConnectManager()->GetConnectRecordListByCallback(callbackA_);
+    EXPECT_EQ(static_cast<int>(listA.size()), 2);
+
+    for (auto& it : listA) {
+        it->SetConnectState(ConnectionState::CONNECTED);
+    }
+
+    auto listB = ConnectManager()->GetConnectRecordListByCallback(callbackB_);
+    EXPECT_EQ(static_cast<int>(listB.size()), 2);
+
+    for (auto& it : listB) {
+        it->SetConnectState(ConnectionState::CONNECTED);
+    }
+
+    auto result5 = ConnectManager()->DisconnectAbilityLocked(callbackA_);
+    WaitUntilTaskDone(TaskHandler());
+    EXPECT_EQ(result5, OHOS::ERR_OK);
+    auto serviceMap = ConnectManager()->GetServiceMap();
+    EXPECT_EQ(static_cast<int>(serviceMap.size()), 2);
+
+    auto connectMap = ConnectManager()->connectMap_;
+    EXPECT_EQ(static_cast<int>(connectMap.size()), 1);
+    for (auto& it : connectMap) {
+        EXPECT_EQ(static_cast<int>(it.second.size()), 2);
+    }
+}
+
+/*
+ * Feature: AbilityConnectManager
  * Function: AbilityTransitionDone
  * SubFunction: NA
  * FunctionPoints: AbilityTransitionDone
@@ -1590,6 +1679,61 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_OnAppStateChanged_002, TestS
 
 /*
  * Feature: AbilityConnectManager
+ * Function: OnAppStateChanged
+ * SubFunction: OnAppStateChanged
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager OnAppStateChanged
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_OnAppStateChanged_003, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    ASSERT_NE(connectManager, nullptr);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    AppInfo info;
+    std::string bundleName = "bundleName";
+    std::string name = "name";
+    int32_t uid = 0;
+    info.processName = bundleName;
+    abilityRecord->abilityInfo_.applicationInfo.bundleName = bundleName;
+    abilityRecord->abilityInfo_.applicationInfo.name = name;
+    abilityRecord->abilityInfo_.uid = uid;
+    info.appData.push_back({name, uid});
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    connectManager->serviceMap_.emplace("second", nullptr);
+    connectManager->OnAppStateChanged(info);
+}
+ 
+ /*
+  * Feature: AbilityConnectManager
+  * Function: OnAppStateChanged
+  * SubFunction: OnAppStateChanged
+  * FunctionPoints: NA
+  * EnvConditions: NA
+  * CaseDescription: Verify AbilityConnectManager OnAppStateChanged
+  */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_OnAppStateChanged_004, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    ASSERT_NE(connectManager, nullptr);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    AppInfo info;
+    std::string bundleName = "bundleName";
+    std::string name = "name";
+    int32_t uid = 0;
+    info.processName = "";
+    abilityRecord->abilityInfo_.applicationInfo.bundleName = bundleName;
+    abilityRecord->abilityInfo_.applicationInfo.name = name;
+    abilityRecord->abilityInfo_.uid = uid;
+    info.appData.push_back({name, uid});
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    connectManager->serviceMap_.emplace("first", nullptr);
+    connectManager->serviceMap_.emplace("second", abilityRecord);
+    connectManager->OnAppStateChanged(info);
+}
+
+/*
+ * Feature: AbilityConnectManager
  * Function: AbilityTransitionDone
  * SubFunction: AbilityTransitionDone
  * FunctionPoints: NA
@@ -1636,6 +1780,237 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleConnectAbilityDoneLo
 
 /*
  * Feature: AbilityConnectManager
+ * Function: ScheduleConnectAbilityDoneLocked
+ * SubFunction: ScheduleConnectAbilityDoneLocked
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager ScheduleConnectAbilityDoneLocked
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleConnectAbilityDoneLocked_002, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    sptr<IRemoteObject> remoteObject = nullptr;
+    abilityRecord->abilityInfo_.type = AbilityType::EXTENSION;
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    int res = connectManager->ScheduleConnectAbilityDoneLocked(token, remoteObject);
+    EXPECT_EQ(res, ERR_OK);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: ScheduleConnectAbilityDoneLocked
+ * SubFunction: ScheduleConnectAbilityDoneLocked
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager ScheduleConnectAbilityDoneLocked
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleConnectAbilityDoneLocked_003, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    sptr<IRemoteObject> remoteObject = nullptr;
+    abilityRecord->abilityInfo_.type = AbilityType::SERVICE;
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    int res = connectManager->ScheduleConnectAbilityDoneLocked(token, remoteObject);
+    EXPECT_EQ(res, ERR_OK);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: ScheduleConnectAbilityDoneLocked
+ * SubFunction: ScheduleConnectAbilityDoneLocked
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager ScheduleConnectAbilityDoneLocked
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleConnectAbilityDoneLocked_004, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    sptr<IRemoteObject> remoteObject = nullptr;
+    abilityRecord->abilityInfo_.type = AbilityType::DATA;
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    int res = connectManager->ScheduleConnectAbilityDoneLocked(token, remoteObject);
+    EXPECT_EQ(res, ERR_OK);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: ScheduleConnectAbilityDoneLocked
+ * SubFunction: ScheduleConnectAbilityDoneLocked
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager ScheduleConnectAbilityDoneLocked
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleConnectAbilityDoneLocked_005, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    sptr<IRemoteObject> remoteObject = nullptr;
+    abilityRecord->abilityInfo_.type = AbilityType::FORM;
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    int res = connectManager->ScheduleConnectAbilityDoneLocked(token, remoteObject);
+    EXPECT_EQ(res, ERR_OK);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: ScheduleConnectAbilityDoneLocked
+ * SubFunction: ScheduleConnectAbilityDoneLocked
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager ScheduleConnectAbilityDoneLocked
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleConnectAbilityDoneLocked_006 TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    sptr<IRemoteObject> remoteObject = nullptr;
+    abilityRecord->abilityInfo_.type = AbilityType::UNKNOWN;
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    int res = connectManager->ScheduleConnectAbilityDoneLocked(token, remoteObject);
+    EXPECT_EQ(res, ERR_OK);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: ScheduleConnectAbilityDoneLocked
+ * SubFunction: ScheduleConnectAbilityDoneLocked
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager ScheduleConnectAbilityDoneLocked
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleConnectAbilityDoneLocked_007, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    sptr<IRemoteObject> remoteObject = nullptr;
+    abilityRecord->abilityInfo_.type = AbilityType::PAGE;
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    int res = connectManager->ScheduleConnectAbilityDoneLocked(nullptr, remoteObject);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: ScheduleConnectAbilityDoneLocked
+ * SubFunction: ScheduleConnectAbilityDoneLocked
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager ScheduleConnectAbilityDoneLocked
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleConnectAbilityDoneLocked_008, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    sptr<IRemoteObject> remoteObject = nullptr;
+    abilityRecord->abilityInfo_.type = AbilityType::EXTENSION;
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    int res = connectManager->ScheduleConnectAbilityDoneLocked(nullptr, remoteObject);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: ScheduleConnectAbilityDoneLocked
+ * SubFunction: ScheduleConnectAbilityDoneLocked
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager ScheduleConnectAbilityDoneLocked
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleConnectAbilityDoneLocked_009, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    sptr<IRemoteObject> remoteObject = nullptr;
+    abilityRecord->abilityInfo_.type = AbilityType::SERVICE;
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    int res = connectManager->ScheduleConnectAbilityDoneLocked(nullptr, remoteObject);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: ScheduleConnectAbilityDoneLocked
+ * SubFunction: ScheduleConnectAbilityDoneLocked
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager ScheduleConnectAbilityDoneLocked
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleConnectAbilityDoneLocked_010, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    sptr<IRemoteObject> remoteObject = nullptr;
+    abilityRecord->abilityInfo_.type = AbilityType::DATA;
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    int res = connectManager->ScheduleConnectAbilityDoneLocked(nullptr, remoteObject);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: ScheduleConnectAbilityDoneLocked
+ * SubFunction: ScheduleConnectAbilityDoneLocked
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager ScheduleConnectAbilityDoneLocked
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleConnectAbilityDoneLocked_011, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    sptr<IRemoteObject> remoteObject = nullptr;
+    abilityRecord->abilityInfo_.type = AbilityType::FORM;
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    int res = connectManager->ScheduleConnectAbilityDoneLocked(nullptr, remoteObject);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: ScheduleConnectAbilityDoneLocked
+ * SubFunction: ScheduleConnectAbilityDoneLocked
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager ScheduleConnectAbilityDoneLocked
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleConnectAbilityDoneLocked_012, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    sptr<IRemoteObject> remoteObject = nullptr;
+    abilityRecord->abilityInfo_.type = AbilityType::UNKNOWN;
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    int res = connectManager->ScheduleConnectAbilityDoneLocked(nullptr, remoteObject);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+}
+
+/*
+ * Feature: AbilityConnectManager
  * Function: ScheduleDisconnectAbilityDoneLocked
  * SubFunction: ScheduleDisconnectAbilityDoneLocked
  * FunctionPoints: NA
@@ -1662,6 +2037,336 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleDisconnectAbilityDon
     connectManager->serviceMap_.emplace("first", abilityRecord);
     res = connectManager->ScheduleDisconnectAbilityDoneLocked(token);
     EXPECT_EQ(res, ERR_OK);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: ScheduleDisconnectAbilityDoneLocked
+ * SubFunction: ScheduleDisconnectAbilityDoneLocked
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager ScheduleDisconnectAbilityDoneLocked
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleDisconnectAbilityDoneLocked_002, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
+    std::shared_ptr<ConnectionRecord> connection =
+        std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    connection->SetConnectState(ConnectionState::DISCONNECTING);
+    abilityRecord->abilityInfo_.type = AbilityType::EXTENSION;
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    abilityRecord->connRecordList_.push_back(connection);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    int res = connectManager->ScheduleDisconnectAbilityDoneLocked(token);
+    EXPECT_EQ(res, INVALID_CONNECTION_STATE);
+    abilityRecord->AddStartId();
+    abilityRecord->SetAbilityState(AbilityState::ACTIVE);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    res = connectManager->ScheduleDisconnectAbilityDoneLocked(token);
+    EXPECT_EQ(res, ERR_OK);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: ScheduleDisconnectAbilityDoneLocked
+ * SubFunction: ScheduleDisconnectAbilityDoneLocked
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager ScheduleDisconnectAbilityDoneLocked
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleDisconnectAbilityDoneLocked_003, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
+    std::shared_ptr<ConnectionRecord> connection =
+        std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    connection->SetConnectState(ConnectionState::DISCONNECTING);
+    abilityRecord->abilityInfo_.type = AbilityType::SERVICE;
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    abilityRecord->connRecordList_.push_back(connection);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    int res = connectManager->ScheduleDisconnectAbilityDoneLocked(token);
+    EXPECT_EQ(res, INVALID_CONNECTION_STATE);
+    abilityRecord->AddStartId();
+    abilityRecord->SetAbilityState(AbilityState::ACTIVE);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    res = connectManager->ScheduleDisconnectAbilityDoneLocked(token);
+    EXPECT_EQ(res, ERR_OK);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: ScheduleDisconnectAbilityDoneLocked
+ * SubFunction: ScheduleDisconnectAbilityDoneLocked
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager ScheduleDisconnectAbilityDoneLocked
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleDisconnectAbilityDoneLocked_004, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
+    std::shared_ptr<ConnectionRecord> connection =
+        std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    connection->SetConnectState(ConnectionState::DISCONNECTING);
+    abilityRecord->abilityInfo_.type = AbilityType::DATA;
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    abilityRecord->connRecordList_.push_back(connection);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    int res = connectManager->ScheduleDisconnectAbilityDoneLocked(token);
+    EXPECT_EQ(res, INVALID_CONNECTION_STATE);
+    abilityRecord->AddStartId();
+    abilityRecord->SetAbilityState(AbilityState::ACTIVE);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    res = connectManager->ScheduleDisconnectAbilityDoneLocked(token);
+    EXPECT_EQ(res, ERR_OK);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: ScheduleDisconnectAbilityDoneLocked
+ * SubFunction: ScheduleDisconnectAbilityDoneLocked
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager ScheduleDisconnectAbilityDoneLocked
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleDisconnectAbilityDoneLocked_005, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
+    std::shared_ptr<ConnectionRecord> connection =
+        std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    connection->SetConnectState(ConnectionState::DISCONNECTING);
+    abilityRecord->abilityInfo_.type = AbilityType::FORM;
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    abilityRecord->connRecordList_.push_back(connection);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    int res = connectManager->ScheduleDisconnectAbilityDoneLocked(token);
+    EXPECT_EQ(res, INVALID_CONNECTION_STATE);
+    abilityRecord->AddStartId();
+    abilityRecord->SetAbilityState(AbilityState::ACTIVE);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    res = connectManager->ScheduleDisconnectAbilityDoneLocked(token);
+    EXPECT_EQ(res, ERR_OK);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: ScheduleDisconnectAbilityDoneLocked
+ * SubFunction: ScheduleDisconnectAbilityDoneLocked
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager ScheduleDisconnectAbilityDoneLocked
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleDisconnectAbilityDoneLocked_006, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
+    std::shared_ptr<ConnectionRecord> connection =
+        std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    connection->SetConnectState(ConnectionState::DISCONNECTING);
+    abilityRecord->abilityInfo_.type = AbilityType::UNKNOWN;
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    abilityRecord->connRecordList_.push_back(connection);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    int res = connectManager->ScheduleDisconnectAbilityDoneLocked(token);
+    EXPECT_EQ(res, INVALID_CONNECTION_STATE);
+    abilityRecord->AddStartId();
+    abilityRecord->SetAbilityState(AbilityState::ACTIVE);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    res = connectManager->ScheduleDisconnectAbilityDoneLocked(token);
+    EXPECT_EQ(res, ERR_OK);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: ScheduleDisconnectAbilityDoneLocked
+ * SubFunction: ScheduleDisconnectAbilityDoneLocked
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager ScheduleDisconnectAbilityDoneLocked
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleDisconnectAbilityDoneLocked_007, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
+    std::shared_ptr<ConnectionRecord> connection =
+        std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    connection->SetConnectState(ConnectionState::DISCONNECTING);
+    abilityRecord->abilityInfo_.type = AbilityType::PAGE;
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    abilityRecord->connRecordList_.push_back(connection);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    int res = connectManager->ScheduleDisconnectAbilityDoneLocked(token);
+    EXPECT_EQ(res, INVALID_CONNECTION_STATE);
+    abilityRecord->AddStartId();
+    abilityRecord->SetAbilityState(AbilityState::ACTIVE);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    res = connectManager->ScheduleDisconnectAbilityDoneLocked(nullptr);
+    EXPECT_EQ(res, CONNECTION_NOT_EXIST);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: ScheduleDisconnectAbilityDoneLocked
+ * SubFunction: ScheduleDisconnectAbilityDoneLocked
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager ScheduleDisconnectAbilityDoneLocked
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleDisconnectAbilityDoneLocked_008, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
+    std::shared_ptr<ConnectionRecord> connection =
+        std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    connection->SetConnectState(ConnectionState::DISCONNECTING);
+    abilityRecord->abilityInfo_.type = AbilityType::EXTENSION;
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    abilityRecord->connRecordList_.push_back(connection);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    int res = connectManager->ScheduleDisconnectAbilityDoneLocked(token);
+    EXPECT_EQ(res, INVALID_CONNECTION_STATE);
+    abilityRecord->AddStartId();
+    abilityRecord->SetAbilityState(AbilityState::ACTIVE);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    res = connectManager->ScheduleDisconnectAbilityDoneLocked(nullptr);
+    EXPECT_EQ(res, CONNECTION_NOT_EXIST);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: ScheduleDisconnectAbilityDoneLocked
+ * SubFunction: ScheduleDisconnectAbilityDoneLocked
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager ScheduleDisconnectAbilityDoneLocked
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleDisconnectAbilityDoneLocked_009, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
+    std::shared_ptr<ConnectionRecord> connection =
+        std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    connection->SetConnectState(ConnectionState::DISCONNECTING);
+    abilityRecord->abilityInfo_.type = AbilityType::SERVICE;
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    abilityRecord->connRecordList_.push_back(connection);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    int res = connectManager->ScheduleDisconnectAbilityDoneLocked(token);
+    EXPECT_EQ(res, INVALID_CONNECTION_STATE);
+    abilityRecord->AddStartId();
+    abilityRecord->SetAbilityState(AbilityState::ACTIVE);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    res = connectManager->ScheduleDisconnectAbilityDoneLocked(nullptr);
+    EXPECT_EQ(res, CONNECTION_NOT_EXIST);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: ScheduleDisconnectAbilityDoneLocked
+ * SubFunction: ScheduleDisconnectAbilityDoneLocked
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager ScheduleDisconnectAbilityDoneLocked
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleDisconnectAbilityDoneLocked_010, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
+    std::shared_ptr<ConnectionRecord> connection =
+        std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    connection->SetConnectState(ConnectionState::DISCONNECTING);
+    abilityRecord->abilityInfo_.type = AbilityType::DATA;
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    abilityRecord->connRecordList_.push_back(connection);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    int res = connectManager->ScheduleDisconnectAbilityDoneLocked(token);
+    EXPECT_EQ(res, INVALID_CONNECTION_STATE);
+    abilityRecord->AddStartId();
+    abilityRecord->SetAbilityState(AbilityState::ACTIVE);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    res = connectManager->ScheduleDisconnectAbilityDoneLocked(nullptr);
+    EXPECT_EQ(res, CONNECTION_NOT_EXIST);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: ScheduleDisconnectAbilityDoneLocked
+ * SubFunction: ScheduleDisconnectAbilityDoneLocked
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager ScheduleDisconnectAbilityDoneLocked
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleDisconnectAbilityDoneLocked_011, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
+    std::shared_ptr<ConnectionRecord> connection =
+        std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    connection->SetConnectState(ConnectionState::DISCONNECTING);
+    abilityRecord->abilityInfo_.type = AbilityType::FORM;
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    abilityRecord->connRecordList_.push_back(connection);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    int res = connectManager->ScheduleDisconnectAbilityDoneLocked(token);
+    EXPECT_EQ(res, INVALID_CONNECTION_STATE);
+    abilityRecord->AddStartId();
+    abilityRecord->SetAbilityState(AbilityState::ACTIVE);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    res = connectManager->ScheduleDisconnectAbilityDoneLocked(nullptr);
+    EXPECT_EQ(res, CONNECTION_NOT_EXIST);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: ScheduleDisconnectAbilityDoneLocked
+ * SubFunction: ScheduleDisconnectAbilityDoneLocked
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityConnectManager ScheduleDisconnectAbilityDoneLocked
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_ScheduleDisconnectAbilityDoneLocked_012, TestSize.Level1)
+{
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
+    OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
+    std::shared_ptr<ConnectionRecord> connection =
+        std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    connection->SetConnectState(ConnectionState::DISCONNECTING);
+    abilityRecord->abilityInfo_.type = AbilityType::UNKNOWN;
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    abilityRecord->connRecordList_.push_back(connection);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    int res = connectManager->ScheduleDisconnectAbilityDoneLocked(token);
+    EXPECT_EQ(res, INVALID_CONNECTION_STATE);
+    abilityRecord->AddStartId();
+    abilityRecord->SetAbilityState(AbilityState::ACTIVE);
+    connectManager->serviceMap_.emplace("first", abilityRecord);
+    res = connectManager->ScheduleDisconnectAbilityDoneLocked(nullptr);
+    EXPECT_EQ(res, CONNECTION_NOT_EXIST);
 }
 
 /*
