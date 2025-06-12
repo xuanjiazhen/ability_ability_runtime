@@ -1652,9 +1652,8 @@ int32_t UIAbilityLifecycleManager::BackToCallerAbilityWithResultLocked(sptr<Sess
 }
 
 int UIAbilityLifecycleManager::CloseUIAbility(const std::shared_ptr<AbilityRecord> &abilityRecord,
-    int resultCode, const Want *resultWant, bool isClearSession)
+    int resultCode, const Want *resultWant, bool isClearSession, bool isIndependentRecovery)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
@@ -1680,9 +1679,13 @@ int UIAbilityLifecycleManager::CloseUIAbility(const std::shared_ptr<AbilityRecor
         return abilityRecord->TerminateAbility();
     }
     if (abilityRecord->GetPendingState() != AbilityState::INITIAL) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "pending state: FOREGROUND/ BACKGROUND, dropped");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "pending state: FOREGROUND/ BACKGROUND, dropped. independentRecovery:%{public}d",
+            isIndependentRecovery);
         abilityRecord->SetPendingState(AbilityState::BACKGROUND);
-        return ERR_OK;
+        if (!isIndependentRecovery) {
+            return ERR_OK;
+        }
+        abilityRecord->RemoveForegroundTimeoutTask();
     }
     return CloseUIAbilityInner(abilityRecord);
 }
@@ -3242,7 +3245,7 @@ void UIAbilityLifecycleManager::BatchCloseUIAbility(
             return;
         }
         for (const auto& ability : abilitySet) {
-            self->CloseUIAbility(ability, -1, nullptr, false);
+            self->CloseUIAbility(ability, -1, nullptr, false, true);
         }
     };
     auto taskHandler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
@@ -3465,7 +3468,7 @@ int32_t UIAbilityLifecycleManager::CleanUIAbility(
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR,
         "can not force kill when user request clean ability, schedule lifecycle:%{public}s", element.c_str());
-    return CloseUIAbility(abilityRecord, -1, nullptr, true);
+    return CloseUIAbility(abilityRecord, -1, nullptr, true, false);
 }
 
 void UIAbilityLifecycleManager::CheckCallerFromBackground(
