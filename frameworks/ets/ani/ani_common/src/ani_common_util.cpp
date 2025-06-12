@@ -459,13 +459,13 @@ bool AsyncCallback(ani_env *env, ani_object call, ani_object error, ani_object r
     ani_class clsCall {};
 
     if ((status = env->FindClass(CLASSNAME_ASYNC_CALLBACK_WRAPPER, &clsCall)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
     ani_method method {};
     if ((status = env->Class_FindMethod(
         clsCall, "invoke", "L@ohos/base/BusinessError;Lstd/core/Object;:V", &method)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
     if (result == nullptr) {
@@ -474,7 +474,7 @@ bool AsyncCallback(ani_env *env, ani_object call, ani_object error, ani_object r
         result = reinterpret_cast<ani_object>(nullRef);
     }
     if ((status = env->Object_CallMethod_Void(call, method, error, result)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
     return true;
@@ -486,21 +486,26 @@ bool GetDoubleOrUndefined(ani_env *env, ani_object param, const char *name, ani_
     ani_boolean isUndefined = true;
     ani_status status = ANI_ERROR;
 
+    if  (env == nullptr || param == nullptr || name == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null env or param or name");
+        return false;
+    }
+
     if ((status = env->Object_GetFieldByName_Ref(param, name, &obj)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::ANI, "status : %{public}d", status);
         return false;
     }
     if ((status = env->Reference_IsUndefined(obj, &isUndefined)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::ANI, "status : %{public}d", status);
         return false;
     }
     if (isUndefined) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "%{public}s : undefined", name);
+        TAG_LOGE(AAFwkTag::ANI, "%{public}s : undefined", name);
         return false;
     }
     if ((status = env->Object_CallMethodByName_Double(
         reinterpret_cast<ani_object>(obj), "doubleValue", nullptr, &value)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::ANI, "status : %{public}d", status);
         return false;
     }
     return true;
@@ -512,20 +517,25 @@ bool GetStringOrUndefined(ani_env *env, ani_object param, const char *name, std:
     ani_boolean isUndefined = true;
     ani_status status = ANI_ERROR;
 
+    if (env == nullptr || param == nullptr || name == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null env or param or name");
+        return false;
+    }
+
     if ((status = env->Object_GetFieldByName_Ref(param, name, &obj)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::ANI, "status : %{public}d", status);
         return false;
     }
     if ((status = env->Reference_IsUndefined(obj, &isUndefined)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::ANI, "status : %{public}d", status);
         return false;
     }
     if (isUndefined) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "%{public}s : undefined", name);
+        TAG_LOGE(AAFwkTag::ANI, "%{public}s : undefined", name);
         return false;
     }
     if (!GetStdString(env, reinterpret_cast<ani_string>(obj), res)) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "GetStdString failed");
+        TAG_LOGE(AAFwkTag::ANI, "GetStdString failed");
         return false;
     }
     return true;
