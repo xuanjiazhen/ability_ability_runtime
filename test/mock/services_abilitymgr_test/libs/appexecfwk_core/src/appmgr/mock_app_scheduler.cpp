@@ -98,9 +98,10 @@ AppAbilityState AppScheduler::GetAbilityState() const
     return appAbilityState_;
 }
 
-void AppScheduler::OnAbilityRequestDone(const sptr<IRemoteObject>& token, const AppExecFwk::AbilityState state)
+ErrCode AppScheduler::OnAbilityRequestDone(const sptr<IRemoteObject>& token, const AppExecFwk::AbilityState state)
 {
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::OnAbilityRequestDone()");
+    return ERR_OK;
 }
 
 int AppScheduler::KillApplication(const std::string& bundleName, bool clearPageStack, int32_t appIndex)
@@ -119,39 +120,46 @@ void AppScheduler::PrepareTerminate(const sptr<IRemoteObject>& token, bool clear
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::PrepareTerminate()");
 }
 
-void AppScheduler::OnAppStateChanged(const AppExecFwk::AppProcessData& appData)
+ErrCode AppScheduler::OnAppStateChanged(const AppExecFwk::AppProcessData& appData)
 {
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::OnAppStateChanged()");
+    return ERR_OK;
 }
 
-void AppScheduler::NotifyConfigurationChange(const AppExecFwk::Configuration &config, int32_t userId)
+ErrCode AppScheduler::NotifyConfigurationChange(const AppExecFwk::Configuration &config, int32_t userId)
 {
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::NotifyConfigurationChange()");
+    return ERR_OK;
 }
 
-void AppScheduler::NotifyStartResidentProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos)
+ErrCode AppScheduler::NotifyStartResidentProcess(const std::vector<AppExecFwk::BundleInfo> &bundleInfos)
 {
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::NotifyStartResidentProcess()");
+    return ERR_OK;
 }
 
-void AppScheduler::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos)
+ErrCode AppScheduler::NotifyStartKeepAliveProcess(const std::vector<AppExecFwk::BundleInfo> &bundleInfos)
 {
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::NotifyStartKeepAliveProcess()");
+    return ERR_OK;
 }
 
-void AppScheduler::OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abilityTokens)
+ErrCode AppScheduler::OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abilityTokens)
 {
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::OnAppRemoteDied()");
+    return ERR_OK;
 }
 
-void AppScheduler::OnStartProcessFailed(sptr<IRemoteObject> token)
+ErrCode AppScheduler::OnStartProcessFailed(const sptr<IRemoteObject> &token)
 {
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::OnStartProcessFailed()");
+    return ERR_OK;
 }
 
-void AppScheduler::NotifyAppPreCache(int32_t pid, int32_t userId)
+ErrCode AppScheduler::NotifyAppPreCache(int32_t pid, int32_t userId)
 {
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::NotifyAppPreCache()");
+    return ERR_OK;
 }
 
 void AppScheduler::UpdateAbilityState(const sptr<IRemoteObject>& token, const AppExecFwk::AbilityState state)

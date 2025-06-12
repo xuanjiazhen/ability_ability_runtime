@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "app_config_data_manager.h"
-#include "app_state_callback_host.h"
+#include "app_state_callback_stub.h"
 #include "errors.h"
 #include "hilog_tag_wrapper.h"
 #include "mock_ability_token.h"

@@ -141,8 +141,8 @@ ohos_unittest("application_test") {
     "napi:ace_napi",
     "resource_management:global_resmgr",
     "resource_management:librawfile",
-    "samgr:samgr_proxy",
     "runtime_core:ani",
+    "samgr:samgr_proxy",
   ]
 
   if (ability_runtime_graphics) {
@@ -207,8 +207,8 @@ ohos_unittest("context_impl_test") {
     "napi:ace_napi",
     "resource_management:global_resmgr",
     "resource_management:librawfile",
-    "samgr:samgr_proxy",
     "runtime_core:ani",
+    "samgr:samgr_proxy",
   ]
 
   if (ability_runtime_graphics) {
@@ -266,8 +266,8 @@ ohos_unittest("context_impl_second_test") {
     "ipc:ipc_core",
     "napi:ace_napi",
     "resource_management:global_resmgr",
-    "samgr:samgr_proxy",
     "runtime_core:ani",
+    "samgr:samgr_proxy",
   ]
 
   if (ability_runtime_graphics) {
@@ -327,8 +327,8 @@ ohos_unittest("context_impl_third_test") {
     "napi:ace_napi",
     "resource_management:global_resmgr",
     "resource_management:librawfile",
-    "samgr:samgr_proxy",
     "runtime_core:ani",
+    "samgr:samgr_proxy",
   ]
 
   if (ability_runtime_graphics) {
@@ -378,8 +378,8 @@ ohos_unittest("context_container_test") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "napi:ace_napi",
-    "samgr:samgr_proxy",
     "runtime_core:ani",
+    "samgr:samgr_proxy",
   ]
 
   if (ability_runtime_graphics) {
@@ -580,8 +580,8 @@ ohos_unittest("context_deal_test") {
     "ipc:ipc_core",
     "napi:ace_napi",
     "resource_management:global_resmgr",
-    "samgr:samgr_proxy",
     "runtime_core:ani",
+    "samgr:samgr_proxy",
   ]
 
   if (ability_runtime_graphics) {
@@ -636,8 +636,8 @@ ohos_unittest("application_impl_test") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "napi:ace_napi",
-    "samgr:samgr_proxy",
     "runtime_core:ani",
+    "samgr:samgr_proxy",
   ]
 
   if (ability_runtime_graphics) {
@@ -782,8 +782,8 @@ ohos_unittest("form_extension_context_test") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "napi:ace_napi",
-    "samgr:samgr_proxy",
     "runtime_core:ani",
+    "samgr:samgr_proxy",
   ]
 
   if (ability_runtime_graphics) {
@@ -966,13 +966,13 @@ ohos_unittest("dump_runtime_helper_test") {
     "ability_runtime:runtime",
     "c_utils:utils",
     "faultloggerd:libfaultloggerd",
+    "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",
     "jsoncpp:jsoncpp",
     "napi:ace_napi",
-    "ffrt:libffrt",
     "storage_service:storage_manager_acl",
   ]
 }
@@ -1017,7 +1017,11 @@ ohos_unittest("idle_time_test") {
     "idle_time_test.cpp",
   ]
 
-  configs = [ ":module_context_config" ]
+  configs = [
+    ":module_context_config",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_innerkits_config",
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config",
+  ]
 
   deps = [ "${ability_runtime_native_path}/appkit:appkit_native" ]
 
@@ -1063,15 +1067,15 @@ ohos_unittest("dump_runtime_helper_second_test") {
     "c_utils:utils",
     "ets_runtime:libark_jsruntime",
     "faultloggerd:libfaultloggerd",
+    "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",
     "jsoncpp:jsoncpp",
     "napi:ace_napi",
-    "ffrt:libffrt",
-    "storage_service:storage_manager_acl",
     "runtime_core:ani",
+    "storage_service:storage_manager_acl",
   ]
 }
 

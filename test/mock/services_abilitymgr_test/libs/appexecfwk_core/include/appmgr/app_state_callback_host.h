@@ -21,7 +21,7 @@
 #include "nocopyable.h"
 #include "string_ex.h"
 #include "app_mgr_constants.h"
-#include "appmgr/iapp_state_callback.h"
+#include "iapp_state_callback.h"
 #include "bundle_info.h"
 #include "iremote_object.h"
 

@@ -19,7 +19,11 @@ module_output_path = "ability_runtime/ability_runtime/appmgrservice"
 ohos_unittest("app_preloader_test") {
   module_out_path = module_output_path
 
-  configs = [ "${ability_runtime_services_path}/common:common_config" ]
+  configs = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_innerkits_config",
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config",
+    "${ability_runtime_services_path}/common:common_config",
+  ]
 
   include_dirs = [
     "include",

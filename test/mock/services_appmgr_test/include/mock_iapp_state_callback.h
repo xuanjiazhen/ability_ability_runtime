@@ -18,24 +18,29 @@
 
 #include "gmock/gmock.h"
 #include "app_mgr_constants.h"
-#include "app_state_callback_host.h"
+#include "app_state_callback_stub.h"
 #include "app_process_data.h"
 #include "bundle_info.h"
 
 namespace OHOS {
 namespace AppExecFwk {
-class MockAppStateCallback : public AppStateCallbackHost {
+class MockAppStateCallback : public AppStateCallbackStub {
 public:
     MockAppStateCallback()
     {}
     virtual ~MockAppStateCallback()
     {}
 
-    MOCK_METHOD1(OnAppStateChanged, void(const AppProcessData&));
-    MOCK_METHOD2(OnAbilityRequestDone, void(const sptr<IRemoteObject>&, const AbilityState));
-    MOCK_METHOD1(NotifyStartResidentProcess, void(std::vector<AppExecFwk::BundleInfo>&));
-    MOCK_METHOD1(NotifyStartKeepAliveProcess, void(std::vector<AppExecFwk::BundleInfo>&));
-    MOCK_METHOD2(NotifyAppPreCache, void(int32_t, int32_t));
+    MOCK_METHOD1(OnAppStateChanged, ErrCode(const AppProcessData&));
+    MOCK_METHOD2(OnAbilityRequestDone, ErrCode(const sptr<IRemoteObject>&, const AbilityState));
+    MOCK_METHOD1(NotifyStartResidentProcess, ErrCode(const std::vector<AppExecFwk::BundleInfo>&));
+    MOCK_METHOD1(NotifyStartKeepAliveProcess, ErrCode(const std::vector<AppExecFwk::BundleInfo>&));
+    MOCK_METHOD2(NotifyAppPreCache, ErrCode(int32_t, int32_t));
+    MOCK_METHOD2(NotifyConfigurationChange, ErrCode(const Configuration&, int32_t));
+    MOCK_METHOD1(OnAppRemoteDied, ErrCode(const std::vector<sptr<IRemoteObject>>&));
+    MOCK_METHOD1(OnStartProcessFailed, ErrCode(const sptr<IRemoteObject>&));
+    MOCK_METHOD5(OnCacheExitInfo, ErrCode(uint32_t, const RunningProcessInfo&,
+        const std::string&, const std::vector<std::string>&, const std::vector<std::string>&));
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

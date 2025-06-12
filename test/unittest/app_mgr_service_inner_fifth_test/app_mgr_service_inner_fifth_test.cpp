@@ -72,21 +72,54 @@ constexpr const char* PERMISSION_PROTECT_SCREEN_LOCK_DATA_TEST = "ohos.permissio
 class MockIAppStateCallback : public IAppStateCallback {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.appexecfwk.AppStateCallback");
-    void OnAppStateChanged(const AppProcessData &appProcessData) override {};
-    void OnAbilityRequestDone(const sptr<IRemoteObject> &token, const AbilityState state) override {};
-    void OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abilityTokens)
+    ErrCode OnAppStateChanged(const AppProcessData& appProcessData) override
     {
         dealed = true;
+        return ERR_OK;
     }
-    void OnCacheExitInfo(uint32_t accessTokenId, const RunningProcessInfo &exitInfo,
-        const std::string &bundleName, const std::vector<std::string> &abilityNames,
-        const std::vector<std::string> &uiExtensionNames) override
+
+    ErrCode OnAbilityRequestDone(const sptr<IRemoteObject>& token, AbilityState state) override
     {
-        dealed = true;
+        return ERR_OK;
     }
-    void NotifyConfigurationChange(const AppExecFwk::Configuration &config, int32_t userId) override
+
+    ErrCode NotifyConfigurationChange(const Configuration& config, int32_t userId) override
+    {
+        return ERR_OK;
+    }
+
+    ErrCode NotifyStartResidentProcess(const std::vector<BundleInfo>& bundleInfos) override
+    {
+        return ERR_OK;
+    }
+
+    ErrCode NotifyStartKeepAliveProcess(const std::vector<BundleInfo>& bundleInfos) override
+    {
+        return ERR_OK;
+    }
+
+    ErrCode OnAppRemoteDied(const std::vector<sptr<IRemoteObject>>& abilityTokens) override
     {
         dealed = true;
+        return ERR_OK;
+    }
+
+    ErrCode OnStartProcessFailed(const sptr<IRemoteObject>& token) override
+    {
+        return ERR_OK;
+    }
+
+    ErrCode NotifyAppPreCache(int32_t pid, int32_t userId) override
+    {
+        return ERR_OK;
+    }
+
+    ErrCode OnCacheExitInfo(uint32_t accessTokenId, const RunningProcessInfo& exitInfo,
+        const std::string& bundle, const std::vector<std::string>& abilityNames,
+        const std::vector<std::string>&ExtensionNames) override
+    {
+        dealed = true;
+        return ERR_OK;
     }
     sptr<IRemoteObject> AsObject()
     {
