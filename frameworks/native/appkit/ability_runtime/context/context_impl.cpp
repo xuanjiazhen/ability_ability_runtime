@@ -485,7 +485,13 @@ std::shared_ptr<Context> ContextImpl::CreatePluginContext(const std::string &plu
         return nullptr;
     }
 
-    auto appContext = std::make_shared<ContextImpl>();
+    return WrapContext(pluginBundleName, moduleName, inputContext, pluginBundleInfo);
+}
+
+std::shared_ptr<Context> ContextImpl::WrapContext(const std::string &pluginBundleName, const std::string &moduleName,
+    std::shared_ptr<Context> inputContext, AppExecFwk::PluginBundleInfo& pluginBundleInfo)
+{
+    std::shared_ptr<ContextImpl> appContext = std::make_shared<ContextImpl>();
     appContext->SetConfiguration(config_);
     appContext->SetProcessName(processName_);
     appContext->isPlugin_ = true;
@@ -1798,5 +1804,36 @@ bool ContextImpl::GetDisplayConfig(uint64_t displayId, float &density, std::stri
     return getDisplayConfigCallback_(displayId, density, directionStr);
 }
 #endif
+
+std::shared_ptr<Context> ContextImpl::CreateTargetPluginContext(const std::string &hostBundName,
+    const std::string &pluginBundleName, const std::string &moduleName, std::shared_ptr<Context> inputContext)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (hostBundName.empty() || pluginBundleName.empty() || moduleName.empty() || inputContext == nullptr) {
+        return nullptr;
+    }
+
+    TAG_LOGD(AAFwkTag::APPKIT, "hostBundName: %{public}s, pluginBundleName: %{public}s, moduleName: %{public}s",
+        hostBundName.c_str(), pluginBundleName.c_str(), moduleName.c_str());
+
+    int32_t errCode = GetBundleManager();
+    if (errCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "GetBundleManager failed, errCode: %{public}d", errCode);
+        return nullptr;
+    }
+
+    int accountId = GetCurrentAccountId();
+    if (accountId == 0) {
+        accountId = GetCurrentActiveAccountId();
+    }
+    AppExecFwk::PluginBundleInfo pluginBundleInfo;
+    errCode = bundleMgr_->GetPluginInfoForTarget(hostBundName, pluginBundleName, accountId, pluginBundleInfo);
+    if (errCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "GetPluginInfosForTarget failed, errCode: %{public}d", errCode);
+        return nullptr;
+    }
+
+    return WrapContext(pluginBundleName, moduleName, inputContext, pluginBundleInfo);
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS
