@@ -1112,7 +1112,7 @@ void AppRunningRecord::AbilityTerminated(const sptr<IRemoteObject> &token)
         EVENT_KEY_BUNDLE_NAME, appInfo->bundleName, EVENT_KEY_SUPPORT_STATE, state);
     if (moduleRecord->GetAbilities().empty() && (!IsKeepAliveApp()
         || AAFwk::UIExtensionUtils::IsUIExtension(GetExtensionType())
-        || !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient()) && !needCache) {
+        || !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient()) && !needCache && !IsLauncherApp()) {
         RemoveModuleRecord(moduleRecord, isExtensionDebug);
     }
 
@@ -1120,7 +1120,7 @@ void AppRunningRecord::AbilityTerminated(const sptr<IRemoteObject> &token)
     if (moduleRecordList.empty() && (!IsKeepAliveApp()
         || AAFwk::UIExtensionUtils::IsUIExtension(GetExtensionType())
         || !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient()) && !isExtensionDebug
-        && !needCache) {
+        && !needCache && !IsLauncherApp()) {
         ScheduleTerminate();
     }
 }
@@ -1343,6 +1343,15 @@ bool AppRunningRecord::IsKeepAliveApp() const
     auto userId = GetUid() / BASE_USER_RANGE;
     if (userId == 0) {
         return isSingleton_;
+    }
+    return true;
+}
+
+bool AppRunningRecord::IsKeepAliveAppNeedTerminate() const
+{
+    if ((IsKeepAliveApp() &&
+        ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient()) || IsLauncherApp()) {
+        return false;
     }
     return true;
 }

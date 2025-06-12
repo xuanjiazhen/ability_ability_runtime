@@ -566,6 +566,11 @@ public:
     bool IsKeepAliveApp() const;
 
     /**
+     * @brief Whether the process should keep alive.
+     */
+    bool IsKeepAliveAppNeedTerminate() const;
+
+    /**
      * @brief Whether the process is non-resident keep-alive.
      */
     bool IsKeepAliveDkv() const;
