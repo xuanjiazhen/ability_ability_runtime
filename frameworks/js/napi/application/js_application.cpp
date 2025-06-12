@@ -34,6 +34,7 @@ namespace {
     constexpr size_t ARGC_ONE = 1;
     constexpr size_t ARGC_TWO = 2;
     constexpr size_t ARGC_THREE = 3;
+    constexpr size_t ARGC_FOUR = 4;
     constexpr const char* PERMISSION_GET_BUNDLE_INFO = "ohos.permission.GET_BUNDLE_INFO_PRIVILEGED";
 }
 void JsApplication::Finalizer(napi_env env, void *data, void *hint)
@@ -81,11 +82,12 @@ napi_value JsApplication::CreatePluginModuleContext(napi_env env, napi_callback_
     GET_NAPI_INFO_AND_CALL(env, info, JsApplication, OnCreatePluginModuleContext);
 }
 
-
 napi_value JsApplication::OnCreatePluginModuleContext(napi_env env, NapiCallbackInfo &info)
 {
-    if (info.argc < ARGC_THREE) {
-        ThrowTooFewParametersError(env);
+    std::string moduleName = "";
+    std::string pluginBundleName = "";
+    std::string hostBundleName = "";
+    if (!VerifyCreatePluginContextParams(env, info, moduleName, pluginBundleName, hostBundleName)) {
         return CreateJsUndefined(env);
     }
 
@@ -101,7 +103,6 @@ napi_value JsApplication::OnCreatePluginModuleContext(napi_env env, NapiCallback
         ThrowInvalidParamError(env, "Parse param context failed, must not be nullptr.");
         return CreateJsUndefined(env);
     }
-
     auto inputContextPtr = Context::ConvertTo<Context>(context);
     if (inputContextPtr == nullptr) {
         ThrowInvalidParamError(env, "Parse param context failed, must be a context.");
@@ -115,21 +116,18 @@ napi_value JsApplication::OnCreatePluginModuleContext(napi_env env, NapiCallback
         return CreateJsUndefined(env);
     }
     contextImpl->SetProcessName(context->GetProcessName());
-    std::string moduleName = "";
-    std::string pluginBundleName = "";
 
-    if (!ConvertFromJsValue(env, info.argv[ARGC_TWO], moduleName)
-        || !ConvertFromJsValue(env, info.argv[ARGC_ONE], pluginBundleName)) {
-        ThrowInvalidParamError(env, "Parse param failed, moduleName and pluginBundleName must be string.");
-        return CreateJsUndefined(env);
-    }
-
-    TAG_LOGD(AAFwkTag::APPKIT, "moduleName: %{public}s, pluginBundleName: %{public}s",
-        moduleName.c_str(), pluginBundleName.c_str());
-    NapiAsyncTask::ExecuteCallback execute = [moduleName, pluginBundleName, contextImpl,
+    TAG_LOGD(AAFwkTag::APPKIT, "moduleName: %{public}s, pluginBundleName: %{public}s, bundleName: %{public}s",
+        moduleName.c_str(), pluginBundleName.c_str(), hostBundleName.c_str());
+    NapiAsyncTask::ExecuteCallback execute = [moduleName, pluginBundleName, hostBundleName, contextImpl,
         moduleContext, inputContextPtr]() {
         if (contextImpl != nullptr) {
-            *moduleContext = contextImpl->CreatePluginContext(pluginBundleName, moduleName, inputContextPtr);
+            if (hostBundleName.empty()) {
+                *moduleContext = contextImpl->CreatePluginContext(pluginBundleName, moduleName, inputContextPtr);
+            } else {
+                *moduleContext = contextImpl->CreateTargetPluginContext(
+                    hostBundleName, pluginBundleName, moduleName, inputContextPtr);
+            }
         }
     };
 
@@ -141,6 +139,37 @@ napi_value JsApplication::OnCreatePluginModuleContext(napi_env env, NapiCallback
         env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
 
     return result;
+}
+
+bool JsApplication::VerifyCreatePluginContextParams(napi_env env, NapiCallbackInfo &info, std::string &moduleName,
+    std::string &pluginBundleName, std::string &hostBundleName)
+{
+    if (info.argc < ARGC_THREE) {
+        ThrowTooFewParametersError(env);
+        return false;
+    }
+    if (!ConvertFromJsValue(env, info.argv[ARGC_TWO], moduleName)
+        || !ConvertFromJsValue(env, info.argv[ARGC_ONE], pluginBundleName)) {
+        ThrowInvalidParamError(env, "Parse param failed, moduleName and pluginBundleName must be string.");
+        return false;
+    }
+    if (info.argc == ARGC_FOUR) {
+        if (!ConvertFromJsValue(env, info.argv[ARGC_THREE], hostBundleName)) {
+            ThrowInvalidParamError(env, "Parse param failed, host bundleName must be string");
+            return false;
+        }
+        if (!CheckCallerIsSystemApp()) {
+            TAG_LOGE(AAFwkTag::APPKIT, "no system app");
+            ThrowNotSystemAppError(env);
+            return false;
+        }
+        if (!CheckCallerPermission(PERMISSION_GET_BUNDLE_INFO)) {
+            TAG_LOGE(AAFwkTag::APPKIT, "no permission");
+            ThrowNoPermissionError(env, PERMISSION_GET_BUNDLE_INFO);
+            return false;
+        }
+    }
+    return true;
 }
 
 napi_value JsApplication::OnCreateModuleContext(napi_env env, NapiCallbackInfo &info)
