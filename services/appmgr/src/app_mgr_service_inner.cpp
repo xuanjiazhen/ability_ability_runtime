@@ -5863,6 +5863,7 @@ int AppMgrServiceInner::GetAbilityRecordsByProcessID(const int pid, std::vector<
     for (auto &item : appRecord->GetAbilities()) {
         tokens.emplace_back(item.first);
     }
+    appRecord->SetTerminating();
     return ERR_OK;
 }
 

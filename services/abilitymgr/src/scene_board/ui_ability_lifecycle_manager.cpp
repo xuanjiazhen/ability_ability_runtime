@@ -3152,23 +3152,29 @@ int32_t UIAbilityLifecycleManager::TryPrepareTerminateByPids(const std::vector<i
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "prepare terminate app");
-    IN_PROCESS_CALL_WITHOUT_RET(DelayedSingleton<AppScheduler>::GetInstance()->BlockProcessCacheByPids(pids));
+    auto task = [pids]() {
+        IN_PROCESS_CALL_WITHOUT_RET(DelayedSingleton<AppScheduler>::GetInstance()->BlockProcessCacheByPids(pids));
+    }
+    ffrt::submit(task);
     for (const auto &pid : pids) {
-        std::unordered_set<std::shared_ptr<AbilityRecord>> abilitysToTerminate;
         std::vector<sptr<IRemoteObject>> tokens;
         IN_PROCESS_CALL_WITHOUT_RET(
             DelayedSingleton<AppScheduler>::GetInstance()->GetAbilityRecordsByProcessID(pid, tokens));
-        for (const auto &token : PrepareTerminateAppAndGetRemaining(pid, tokens)) {
-            auto abilityRecord = Token::GetAbilityRecordByToken(token);
-            if (PrepareTerminateAbility(abilityRecord, true)) {
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "terminate blocked");
-                continue;
+        auto terminateTask = [pid, tokens]() {
+            std::unordered_set<std::shared_ptr<AbilityRecord>> abilitysToTerminate;
+            for (const auto &token : PrepareTerminateAppAndGetRemaining(pid, tokens)) {
+                auto abilityRecord = Token::GetAbilityRecordByToken(token);
+                if (PrepareTerminateAbility(abilityRecord, true)) {
+                    TAG_LOGI(AAFwkTag::ABILITYMGR, "terminate blocked");
+                    continue;
+                }
+                abilitysToTerminate.emplace(abilityRecord);
             }
-            abilitysToTerminate.emplace(abilityRecord);
+            for (const auto &abilityRecord : abilitysToTerminate) {
+                TerminateSession(abilityRecord);
+            }
         }
-        for (const auto &abilityRecord : abilitysToTerminate) {
-            TerminateSession(abilityRecord);
-        }
+        ffrt::submit(terminateTask);
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "end.");
     return ERR_OK;
