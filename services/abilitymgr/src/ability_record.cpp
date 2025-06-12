@@ -509,7 +509,7 @@ void AbilityRecord::PostForegroundTimeoutTask()
             INSIGHT_INTENT_TIMEOUT_MULTIPLE;
     }
     SendEvent(AbilityManagerService::FOREGROUND_TIMEOUT_MSG, foregroundTimeout / HALF_TIMEOUT);
-    std::string methodName = "ForegroundAbility";
+    std::string methodName = "ProcessForegroundAbility";
     g_addLifecycleEventTask(token_, FreezeUtil::TimeoutState::FOREGROUND, methodName);
     ResSchedUtil::GetInstance().ReportLoadingEventToRss(LoadingStage::FOREGROUND_BEGIN, GetPid(), GetUid(),
         foregroundTimeout, GetAbilityRecordId());
@@ -1424,8 +1424,9 @@ void AbilityRecord::SetAbilityStateInner(AbilityState state)
     }
 
     auto missionListWrap = DelayedSingleton<AbilityManagerService>::GetInstance()->GetMissionListWrap();
-    CHECK_POINTER(missionListWrap);
-    missionListWrap->SetMissionAbilityState(missionId_, currentState_);
+    if (missionListWrap != nullptr) {
+        missionListWrap->SetMissionAbilityState(missionId_, currentState_);
+    }
 }
 
 bool AbilityRecord::GetAbilityForegroundingFlag() const
