@@ -44,6 +44,7 @@ StartOptions::StartOptions(const StartOptions &other)
     minWindowHeightUsed_ = other.minWindowHeightUsed_;
     maxWindowWidthUsed_ = other.maxWindowWidthUsed_;
     maxWindowHeightUsed_ = other.maxWindowHeightUsed_;
+    hideStartWindow_ = other.hideStartWindow_;
     processOptions = other.processOptions;
     windowFocused_ = other.windowFocused_;
     startWindowOption = other.startWindowOption;
@@ -73,6 +74,7 @@ StartOptions &StartOptions::operator=(const StartOptions &other)
         minWindowHeightUsed_ = other.minWindowHeightUsed_;
         maxWindowWidthUsed_ = other.maxWindowWidthUsed_;
         maxWindowHeightUsed_ = other.maxWindowHeightUsed_;
+        hideStartWindow_ = other.hideStartWindow_;
         processOptions = other.processOptions;
         windowFocused_ = other.windowFocused_;
         startWindowOption = other.startWindowOption;
@@ -96,6 +98,7 @@ bool StartOptions::ReadFromParcel(Parcel &parcel)
     SetMaxWindowWidth(parcel.ReadInt32());
     SetMaxWindowHeight(parcel.ReadInt32());
     SetWindowFocused(parcel.ReadBool());
+    SetHideStartWindow(parcel.ReadBool());
     windowLeftUsed_ = parcel.ReadBool();
     windowTopUsed_ = parcel.ReadBool();
     windowWidthUsed_ = parcel.ReadBool();
@@ -147,6 +150,7 @@ bool StartOptions::Marshalling(Parcel &parcel) const
     parcel.WriteInt32(GetMaxWindowWidth());
     parcel.WriteInt32(GetMaxWindowHeight());
     parcel.WriteBool(GetWindowFocused());
+    parcel.WriteBool(GetHideStartWindow());
     parcel.WriteBool(windowLeftUsed_);
     parcel.WriteBool(windowTopUsed_);
     parcel.WriteBool(windowWidthUsed_);
@@ -296,5 +300,16 @@ int32_t StartOptions::GetWindowFocused() const
 {
     return windowFocused_;
 }
+
+void StartOptions::SetHideStartWindow(bool hideStartWindow)
+{
+    hideStartWindow_ = hideStartWindow;
+}
+
+bool StartOptions::GetHideStartWindow() const
+{
+    return hideStartWindow_;
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS
