@@ -72,6 +72,7 @@
 #include "system_dialog_scheduler.h"
 #endif
 #include "insight_intent_event_mgr.h"
+#include "kiosk_manager.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -746,6 +747,10 @@ public:
 
     virtual int DisconnectAbility(sptr<IAbilityConnection> connect) override;
 
+    virtual int32_t SuspendExtensionAbility(sptr<IAbilityConnection> connect) override;
+
+    virtual int32_t ResumeExtensionAbility(sptr<IAbilityConnection> connect) override;
+
     /**
      * AcquireDataAbility, acquire a data ability by its authority, if it not existed,
      * AMS loads it synchronously.
@@ -921,7 +926,7 @@ public:
     virtual sptr<IWantSender> GetWantSender(
         const WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, int32_t uid = -1) override;
 
-    virtual int SendWantSender(sptr<IWantSender> target, const SenderInfo &senderInfo) override;
+    virtual int SendWantSender(sptr<IWantSender> target, SenderInfo &senderInfo) override;
 
     virtual void CancelWantSender(const sptr<IWantSender> &sender) override;
 
@@ -1919,7 +1924,8 @@ public:
      * @param flag Keep-alive flag.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t SetApplicationKeepAliveByEDM(const std::string &bundleName, int32_t userId, bool flag) override;
+    virtual int32_t SetApplicationKeepAliveByEDM(const std::string &bundleName, int32_t userId,
+        bool flag, bool isAllowUserToCancel = false) override;
 
     /**
      * Get keep-alive applications by EDM.
@@ -2073,6 +2079,38 @@ public:
         const std::string &moduleName,
         const std::string &intentName,
         InsightIntentInfoForQuery &info) override;
+
+    int32_t UpdateKioskApplicationList(const std::vector<std::string> &appList) override;
+
+    int32_t EnterKioskMode(sptr<IRemoteObject> callerToken) override;
+
+    int32_t ExitKioskMode(sptr<IRemoteObject> callerToken) override;
+
+    int32_t GetKioskStatus(AAFwk::KioskStatus &kioskStatus) override;
+
+    std::shared_ptr<AbilityInterceptorExecuter> GetAbilityInterceptorExecuter();
+
+    /**
+     * Register sa interceptor.
+     * @param interceptor, The sa interceptor.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RegisterSAInterceptor(sptr<AbilityRuntime::ISAInterceptor> interceptor) override;
+
+     /**
+     * Set keep-alive flag for app service extension under u1 user.
+     * @param bundleName Bundle name.
+     * @param flag Keep-alive flag.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t SetAppServiceExtensionKeepAlive(const std::string &bundleName, bool flag) override;
+
+    /**
+     * Get keep-alive app service extensions.
+     * @param list List of Keep-alive information.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t QueryKeepAliveAppServiceExtensions(std::vector<KeepAliveInfo> &list) override;
 
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;
@@ -2285,6 +2323,8 @@ private:
     std::shared_ptr<DataAbilityManager> GetDataAbilityManager(const sptr<IAbilityScheduler> &scheduler);
     std::shared_ptr<DataAbilityManager> GetDataAbilityManagerByUserId(int32_t userId);
     std::shared_ptr<DataAbilityManager> GetDataAbilityManagerByToken(const sptr<IRemoteObject> &token);
+    int32_t HandleExtensionAbility(sptr<IAbilityConnection> connect,
+        std::function<int32_t(std::shared_ptr<AbilityConnectManager>, sptr<IAbilityConnection>)>);
     std::unordered_map<int, std::shared_ptr<AbilityConnectManager>> GetConnectManagers();
     std::shared_ptr<AbilityConnectManager> GetCurrentConnectManager();
     std::shared_ptr<AbilityConnectManager> GetConnectManagerByUserId(int32_t userId);
@@ -2320,7 +2360,7 @@ private:
     void RetrySubscribeScreenUnlockedEvent(int32_t retryCount);
     void RemoveScreenUnlockInterceptor();
     void RemoveUnauthorizedLaunchReasonMessage(const Want &want, AbilityRequest &abilityRequest,
-        const sptr<IRemoteObject> &callerToken);
+        uint32_t callerTokenId);
 
     int VerifyAccountPermission(int32_t userId);
 
@@ -2648,6 +2688,9 @@ private:
     };
     int StartSelfUIAbilityInner(StartSelfUIAbilityParam param);
 
+    bool HandleExecuteSAInterceptor(const Want &want, sptr<IRemoteObject> callerToken,
+        AbilityRequest &abilityRequest, int32_t &result);
+
     bool controllerIsAStabilityTest_ = false;
     bool isParamStartAbilityEnable_ = false;
     // Component StartUp rule switch
@@ -2740,6 +2783,11 @@ private:
     void CombinLinkInfo(
         const std::vector<AbilityRuntime::LinkIntentParamMapping> &paramMappings, std::string &uri, AAFwk::Want &want);
 
+    int StartAbilityWithRemoveIntentFlag(const Want &want, const sptr<IRemoteObject> &callerToken,
+        int32_t userId, int requestCode, bool removeInsightIntentFlag);
+
+    int32_t OpenLinkInner(const Want &want, sptr<IRemoteObject> callerToken, int32_t userId, int requestCode,
+        bool removeInsightIntentFlag);
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
     std::shared_ptr<BackgroundTaskObserver> bgtaskObserver_;
 #endif
@@ -2779,6 +2827,7 @@ private:
 
     std::mutex prepareTermiationCallbackMutex_;
     std::map<std::string, sptr<IPrepareTerminateCallback>> prepareTermiationCallbacks_;
+    std::shared_ptr<AbilityEventUtil> abilityEventHelper_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

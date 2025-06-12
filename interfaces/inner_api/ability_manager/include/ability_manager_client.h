@@ -1825,7 +1825,38 @@ public:
         const std::string &moduleName,
         const std::string &intentName,
         InsightIntentInfoForQuery &info);
-                                    
+
+    ErrCode UpdateKioskApplicationList(const std::vector<std::string> &appList);
+
+    ErrCode EnterKioskMode(sptr<IRemoteObject> callerToken);
+
+    ErrCode ExitKioskMode(sptr<IRemoteObject> callerToken);
+
+    ErrCode GetKioskStatus(AAFwk::KioskStatus &kioskStatus);
+
+    /**
+     * Register sa interceptor.
+     * @param interceptor, The sa interceptor.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode RegisterSAInterceptor(sptr<AbilityRuntime::ISAInterceptor> interceptor);
+
+    /**
+     * SuspendExtensionAbility, suspend session with service ability.
+     *
+     * @param connect, Callback used to notify caller the result of connecting or disconnecting.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode SuspendExtensionAbility(sptr<IAbilityConnection> connect);
+
+    /**
+     * ResumeExtensionAbility, resume session with service ability.
+     *
+     * @param connect, Callback used to notify caller the result of connecting or disconnecting.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode ResumeExtensionAbility(sptr<IAbilityConnection> connect);
+
 private:
     AbilityManagerClient();
     DISALLOW_COPY_AND_MOVE(AbilityManagerClient);

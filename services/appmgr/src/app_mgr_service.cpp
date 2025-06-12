@@ -561,6 +561,16 @@ int32_t AppMgrService::DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info)
     return appMgrServiceInner_->DumpJsHeapMemory(info);
 }
 
+int32_t AppMgrService::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
+{
+    if (!IsReady() || !HasDumpPermission()) {
+        return ERR_INVALID_OPERATION;
+    }
+    static std::mutex mutex_;
+    std::lock_guard<std::mutex> lock(mutex_);
+    return appMgrServiceInner_->DumpCjHeapMemory(info);
+}
+
 void AppMgrService::AddAbilityStageDone(const int32_t recordId)
 {
     if (!IsReady()) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include <string>
 
 #include "ability_manager_errors.h"
+#include "running_process_info.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -54,9 +55,11 @@ public:
      * @param uid indicates user, 0 for all users
      */
     void SetKeepAliveDkv(const std::string &bundleName, bool enable, int32_t uid);
-
+    
+    int32_t GetProcessRunningInfosByUserId(std::vector<RunningProcessInfo> &info, int32_t userId);
 public:
     static int32_t isAppRunningReturnCode;
+    static int32_t usedKillAppTimes;
     static bool isAppRunningReturnValue;
 };
 }  // namespace AppExecFwk
