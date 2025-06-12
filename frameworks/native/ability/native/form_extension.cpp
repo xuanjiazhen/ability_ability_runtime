@@ -37,7 +37,7 @@ FormExtension* FormExtension::Create(const std::unique_ptr<Runtime>& runtime)
             return JsFormExtension::Create(runtime);
         case Runtime::Language::CJ:
             return CreateCJFormExtension();
-	case Runtime::Language::STS:
+	case Runtime::Language::ETS:
 	    return STSFormExtension::Create(runtime);
         default:
             return new FormExtension();
