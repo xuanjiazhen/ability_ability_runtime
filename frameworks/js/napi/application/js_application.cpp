@@ -34,6 +34,7 @@ namespace {
     constexpr size_t ARGC_ONE = 1;
     constexpr size_t ARGC_TWO = 2;
     constexpr size_t ARGC_THREE = 3;
+    constexpr size_t ARGC_FOUR = 4;
     constexpr const char* PERMISSION_GET_BUNDLE_INFO = "ohos.permission.GET_BUNDLE_INFO_PRIVILEGED";
 }
 void JsApplication::Finalizer(napi_env env, void *data, void *hint)
@@ -81,7 +82,6 @@ napi_value JsApplication::CreatePluginModuleContext(napi_env env, napi_callback_
     GET_NAPI_INFO_AND_CALL(env, info, JsApplication, OnCreatePluginModuleContext);
 }
 
-
 napi_value JsApplication::OnCreatePluginModuleContext(napi_env env, NapiCallbackInfo &info)
 {
     if (info.argc < ARGC_THREE) {
@@ -124,12 +124,29 @@ napi_value JsApplication::OnCreatePluginModuleContext(napi_env env, NapiCallback
         return CreateJsUndefined(env);
     }
 
-    TAG_LOGD(AAFwkTag::APPKIT, "moduleName: %{public}s, pluginBundleName: %{public}s",
-        moduleName.c_str(), pluginBundleName.c_str());
-    NapiAsyncTask::ExecuteCallback execute = [moduleName, pluginBundleName, contextImpl,
+    std::string bundName = "";
+    if (info.argc == ARGC_FOUR) {
+        if (!ConvertFromJsValue(env, info.argv[ARGC_THREE], bundName)) {
+            ThrowInvalidParamError(env, "Parse param failed, bundleName must be string");
+            return CreateJsUndefined(env);
+        }
+        if (bundName.empty()) {
+            ThrowInvalidParamError(env, "invalid bundleName");
+            return CreateJsUndefined(env);
+        }
+    }
+
+    TAG_LOGD(AAFwkTag::APPKIT, "moduleName: %{public}s, pluginBundleName: %{public}s, bundleName: %{public}s",
+        moduleName.c_str(), pluginBundleName.c_str(), bundName.c_str());
+    NapiAsyncTask::ExecuteCallback execute = [moduleName, pluginBundleName, bundName, contextImpl,
         moduleContext, inputContextPtr]() {
         if (contextImpl != nullptr) {
-            *moduleContext = contextImpl->CreatePluginContext(pluginBundleName, moduleName, inputContextPtr);
+            if (bundName.empty()) {
+                *moduleContext = contextImpl->CreatePluginContext(pluginBundleName, moduleName, inputContextPtr);
+            } else {
+                *moduleContext = contextImpl->CreateTargetPluginContext(
+                    bundName, pluginBundleName, moduleName, inputContextPtr);
+            }
         }
     };
 

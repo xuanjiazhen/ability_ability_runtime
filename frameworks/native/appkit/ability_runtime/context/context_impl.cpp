@@ -485,6 +485,12 @@ std::shared_ptr<Context> ContextImpl::CreatePluginContext(const std::string &plu
         return nullptr;
     }
 
+    return WrapContext(pluginBundleName, moduleName, inputContext, pluginBundleInfo);
+}
+
+bool ContextImpl::WrapContext(const std::string &pluginBundleName, const std::string &moduleName,
+    std::shared_ptr<Context> inputContext, AppExecFwk::PluginBundleInfo& pluginBundleInfo)
+{
     auto appContext = std::make_shared<ContextImpl>();
     appContext->SetConfiguration(config_);
     appContext->SetProcessName(processName_);
@@ -1798,5 +1804,23 @@ bool ContextImpl::GetDisplayConfig(uint64_t displayId, float &density, std::stri
     return getDisplayConfigCallback_(displayId, density, directionStr);
 }
 #endif
+
+std::shared_ptr<Context> ContextImpl::CreateTargetPluginContext(const std::string &bundleName,
+    const std::string &pluginBundleName, const std::string &moduleName, std::shared_ptr<Context> inputContext)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (bundleName.empty() || pluginBundleName.empty() || moduleName.empty() || inputContext == nullptr) {
+        return nullptr;
+    }
+
+    // 这里改用包管理的新接口
+    AppExecFwk::PluginBundleInfo pluginBundleInfo;
+    if (!GetPluginInfo(inputContext->GetBundleName(), pluginBundleName, moduleName, pluginBundleInfo)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "GetPluginInfo failed");
+        return nullptr;
+    }
+
+    return WrapContext(pluginBundleName, moduleName, inputContext, pluginBundleInfo);
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS

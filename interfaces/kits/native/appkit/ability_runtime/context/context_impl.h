@@ -213,6 +213,12 @@ public:
     std::shared_ptr<Context> CreatePluginContext(const std::string &pluginBundleName,
         const std::string &moduleName, std::shared_ptr<Context> inputContext);
 
+    std::shared_ptr<Context> CreateTargetPluginContext(const std::string &bundName, const std::string &pluginBundleName,
+        const std::string &moduleName, const std::string &bundleName, std::shared_ptr<Context> inputContext);
+
+    std::shared_ptr<Context> CreateOtherPluginContext(const std::string &inputBundleName,
+        const std::string &pluginBundleName, const std::string &moduleName, std::shared_ptr<Context> inputContext);
+
     std::string GetBundleNameWithContext(std::shared_ptr<Context> inputContext = nullptr) const;
 
     /**
@@ -560,6 +566,8 @@ private:
     static std::mutex getDisplayConfigCallbackMutex_;
     static GetDisplayConfigCallback getDisplayConfigCallback_;
 #endif
+    ContextImpl WrapContext(const std::string &pluginBundleName, const std::string &moduleName,
+        std::shared_ptr<Context> inputContext, AppExecFwk::PluginBundleInfo& pluginBundleInfo);
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS
