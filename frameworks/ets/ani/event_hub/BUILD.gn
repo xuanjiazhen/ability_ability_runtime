@@ -37,7 +37,11 @@ ohos_shared_library("event_hub_ani_kit") {
 
   public_configs = []
 
-  sources = [ "./src/ets_event_hub.cpp" ]
+  sources = [
+    "./src/ts_hybridgrep.cpp",
+    "./src/ets_hybridgrep.cpp",
+    "./src/event_hub.cpp",
+  ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -59,8 +63,6 @@ ohos_shared_library("event_hub_ani_kit") {
   ]
 
   external_deps = [
-    "ability_base:want",
-    "ability_base:zuri",
     "access_token:libtokenid_sdk",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
@@ -68,8 +70,6 @@ ohos_shared_library("event_hub_ani_kit") {
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "init:libbegetutil",
-    "ipc:ipc_core",
-    "ipc:ipc_napi",
     "json:nlohmann_json_static",
     "napi:ace_napi",
     "runtime_core:ani",
@@ -81,24 +81,4 @@ ohos_shared_library("event_hub_ani_kit") {
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
-}
-
-generate_static_abc("uri_permission_manager_abc") {
-  base_url = "./ets"
-
-  files = [ "./ets/@ohos.application.uriPermissionManager.ets" ]
-
-  dst_file = "$target_out_dir/uri_permission_manager.abc"
-  out_puts = [ "$target_out_dir/uri_permission_manager.abc" ]
-
-  is_boot_abc = "True"
-  device_dst_file = "/system/framework/uri_permission_manager.abc"
-}
-
-ohos_prebuilt_etc("uri_permission_manager_abc_etc") {
-  source = "$target_out_dir/uri_permission_manager.abc"
-  module_install_dir = "framework"
-  subsystem_name = "ability"
-  part_name = "ability_runtime"
-  deps = [ ":uri_permission_manager_abc" ]
 }

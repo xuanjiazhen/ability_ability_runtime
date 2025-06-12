@@ -11,17 +11,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ */
 
-#ifndef OHOS_ABILITY_RUNTIME_EVENT_HUB_H
-#define OHOS_ABILITY_RUNTIME_EVENT_HUB_H
+#ifndef ETS_HYBRIDGREF_H
+#define ETS_HYBRIDGREF_H
 
-#include "sts_runtime.h"
+#include "ts_hybridgref.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-static void 
-}
-}
 
-#endif // OHOS_ABILITY_RUNTIME_EVENT_HUB_H
+bool RegisterNativeGetRef(napi_env env);
+bool RegisterNativeSaveRef(ani_env* env);
+
+} // namespace AbilityRuntime
+} // namespace OHOS
+#endif // ETS_HYBRIDGREF_H

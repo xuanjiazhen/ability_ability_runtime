@@ -191,8 +191,8 @@ public:
 
         std::array methods = {
             ani_native_function {"nativeGetEventHubOnRef", nullptr, reinterpret_cast<void *>(NativeGetEventHubOnRef)},
-            ani_native_function {"nativeGetEventHubOffRef", nullptr, reinterpret_cast<void *>(nativeGetEventHubOffRef)},
-            ani_native_function {"nativeGetEventHubEmitRef", nullptr, reinterpret_cast<void *>(nativeGetEventHubEmitRef)},
+            ani_native_function {"nativeGetEventHubOffRef", nullptr, reinterpret_cast<void *>(NativeGetEventHubOffRef)},
+            ani_native_function {"nativeGetEventHubEmitRef", nullptr, reinterpret_cast<void *>(NativeGetEventHubEmitRef)},
         };
         return env->Module_BindNativeFunctions(mod, methods.data(), methods.size()) == ANI_OK;
     }
