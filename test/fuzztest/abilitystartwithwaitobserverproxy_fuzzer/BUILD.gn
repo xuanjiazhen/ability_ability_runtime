@@ -25,6 +25,8 @@ ohos_fuzztest("AbilityStartWithWaitObserverProxyFuzzTest") {
     "${ability_runtime_innerkits_path}/app_manager/include/appmgr",
   ]
 
+  configs = [ "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config" ]
+
   cflags = [
     "-g",
     "-O0",

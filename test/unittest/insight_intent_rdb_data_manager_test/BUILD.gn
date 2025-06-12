@@ -37,6 +37,8 @@ ohos_unittest("insight_intent_rdb_data_manager_test") {
     "insight_intent_rdb_data_manager_test.cpp"
   ]
 
+  configs = [ "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config" ]
+
   deps = [ "${ability_runtime_abilitymgr_path}/:abilityms" ]
 
   external_deps = [
