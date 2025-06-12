@@ -48,7 +48,7 @@ protected:
     bool Reload(const Uri& uri, const PacMap& extras);
     int BatchInsert(const Uri& uri, const std::vector<NativeRdb::ValuesBucket>& values);
     std::string GetType(const Uri& uri);
-    std::shared_ptr<NativeRdb::AbsSharedResultSet> Query(
+    std::shared_ptr<NativeRdb::ResultSet> Query(
         const Uri& uri, const std::vector<std::string>& columns, const NativeRdb::DataAbilityPredicates& predicates);
 };
 }  // namespace AppExecFwk

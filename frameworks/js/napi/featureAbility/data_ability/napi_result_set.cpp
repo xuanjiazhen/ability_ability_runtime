@@ -40,26 +40,6 @@ static napi_ref __thread ctorRef_ = nullptr;
 static napi_ref __thread ctorRefV9_ = nullptr;
 static const int E_OK = 0;
 
-#if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM)
-napi_value ResultSetProxy::NewInstance(napi_env env, std::shared_ptr<AbsSharedResultSet> resultSet, int version)
-{
-    auto instance = NewInstance(env, std::static_pointer_cast<NativeRdb::ResultSet>(resultSet), version);
-    ResultSetProxy *proxy = nullptr;
-    auto status = napi_unwrap(env, instance, reinterpret_cast<void **>(&proxy));
-    if (proxy == nullptr) {
-        LOG_ERROR("NewInstance native instance is nullptr! code:%{public}d!", status);
-        return instance;
-    }
-
-    if (resultSet != nullptr && resultSet->GetBlock() != nullptr) {
-        proxy->sharedBlockName_ = resultSet->GetBlock()->Name();
-        proxy->sharedBlockAshmemFd_ = resultSet->GetBlock()->GetFd();
-    }
-    proxy->sharedResultSet_ = resultSet;
-    return instance;
-}
-#endif
-
 napi_value ResultSetProxy::NewInstance(napi_env env, std::shared_ptr<NativeRdb::ResultSet> resultSet, int version)
 {
     napi_value cons = GetConstructor(env, version);

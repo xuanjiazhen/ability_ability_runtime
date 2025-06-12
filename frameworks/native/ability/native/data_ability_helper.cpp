@@ -459,12 +459,12 @@ int DataAbilityHelper::Delete(Uri &uri, const NativeRdb::DataAbilityPredicates &
  *
  * @return Returns the query result.
  */
-std::shared_ptr<NativeRdb::AbsSharedResultSet> DataAbilityHelper::Query(
+std::shared_ptr<NativeRdb::ResultSet> DataAbilityHelper::Query(
     Uri &uri, std::vector<std::string> &columns, const NativeRdb::DataAbilityPredicates &predicates)
 {
     HITRACE_METER_NAME(HITRACE_TAG_DISTRIBUTEDDATA, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::DATA_ABILITY, "called");
-    std::shared_ptr<NativeRdb::AbsSharedResultSet> resultSet = nullptr;
+    std::shared_ptr<NativeRdb::ResultSet> resultSet = nullptr;
     auto dataAbilityHelperImpl = GetDataAbilityHelperImpl();
     if (dataAbilityHelperImpl) {
         TAG_LOGD(AAFwkTag::DATA_ABILITY, "Ability Query");

@@ -34,8 +34,6 @@ public:
     ~ResultSetProxy();
     ResultSetProxy(std::shared_ptr<NativeRdb::ResultSet> resultSet);
     ResultSetProxy &operator=(std::shared_ptr<NativeRdb::ResultSet> resultSet);
-    static napi_value NewInstance(napi_env env, std::shared_ptr<NativeRdb::AbsSharedResultSet> resultSet,
-        int version = AppDataMgrJsKit::APIVERSION_8);
     static napi_value NewInstance(napi_env env, std::shared_ptr<NativeRdb::ResultSet> resultSet,
         int version = AppDataMgrJsKit::APIVERSION_8);
     static std::shared_ptr<NativeRdb::AbsSharedResultSet> GetNativeObject(const napi_env env, const napi_value arg);

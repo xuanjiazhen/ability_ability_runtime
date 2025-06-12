@@ -625,7 +625,7 @@ int AbilitySchedulerProxy::Delete(const Uri &uri, const NativeRdb::DataAbilityPr
  *
  * @return Returns the query result.
  */
-std::shared_ptr<NativeRdb::AbsSharedResultSet> AbilitySchedulerProxy::Query(
+std::shared_ptr<NativeRdb::ResultSet> AbilitySchedulerProxy::Query(
     const Uri &uri, std::vector<std::string> &columns, const NativeRdb::DataAbilityPredicates &predicates)
 {
     MessageParcel data;

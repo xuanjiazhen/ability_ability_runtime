@@ -759,7 +759,7 @@ int Ability::OpenFile(const Uri &uri, const std::string &mode)
     return -1;
 }
 
-std::shared_ptr<NativeRdb::AbsSharedResultSet> Ability::Query(
+std::shared_ptr<NativeRdb::ResultSet> Ability::Query(
     const Uri &uri, const std::vector<std::string> &columns, const NativeRdb::DataAbilityPredicates &predicates)
 {
     return nullptr;

@@ -86,10 +86,10 @@ public:
     {
         return DELETENUM;
     };
-    virtual std::shared_ptr<NativeRdb::AbsSharedResultSet> Query(
+    virtual std::shared_ptr<NativeRdb::ResultSet> Query(
         const Uri& uri, std::vector<std::string>& columns, const NativeRdb::DataAbilityPredicates& predicates)
     {
-        return std::make_shared<NativeRdb::AbsSharedResultSet>("resultset");
+        return std::make_shared<NativeRdb::ResultSet>();
     };
     std::shared_ptr<AppExecFwk::PacMap> Call(
         const Uri& uri, const std::string& method, const std::string& arg, const AppExecFwk::PacMap& pacMap)

@@ -67,12 +67,11 @@ int DataAbilityImpl::Delete(const Uri& uri, const NativeRdb::DataAbilityPredicat
     return returnValueDelete;
 }
 
-std::shared_ptr<NativeRdb::AbsSharedResultSet> DataAbilityImpl::Query(
+std::shared_ptr<NativeRdb::ResultSet> DataAbilityImpl::Query(
     const Uri& uri, std::vector<std::string>& columns, const NativeRdb::DataAbilityPredicates& predicates)
 {
     GTEST_LOG_(INFO) << "Mock DataAbilityImpl::Query called";
-    std::shared_ptr<NativeRdb::AbsSharedResultSet> resultSet = std::make_shared<NativeRdb::AbsSharedResultSet>(
-        std::string("Test"));
+    std::shared_ptr<NativeRdb::ResultSet> resultSet = std::make_shared<NativeRdb::ResultSet>();
     return resultSet;
 }
 

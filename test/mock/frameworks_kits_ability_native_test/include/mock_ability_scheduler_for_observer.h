@@ -48,7 +48,7 @@ public:
     MOCK_METHOD2(Insert, int(const Uri&, const NativeRdb::ValuesBucket&));
     MOCK_METHOD3(Update, int(const Uri&, const NativeRdb::ValuesBucket&, const NativeRdb::DataAbilityPredicates&));
     MOCK_METHOD2(Delete, int(const Uri&, const NativeRdb::DataAbilityPredicates&));
-    MOCK_METHOD3(Query, std::shared_ptr<NativeRdb::AbsSharedResultSet>(const Uri&,
+    MOCK_METHOD3(Query, std::shared_ptr<NativeRdb::ResultSet>(const Uri&,
         std::vector<std::string>&, const NativeRdb::DataAbilityPredicates&));
     MOCK_METHOD4(Call, std::shared_ptr<PacMap>(const Uri&, const std::string&, const std::string&, const PacMap&));
     MOCK_METHOD1(GetType, std::string(const Uri&));

@@ -171,7 +171,7 @@ int AbilityImpl::Delete(const Uri& uri, const NativeRdb::DataAbilityPredicates& 
     return 1;
 }
 
-std::shared_ptr<NativeRdb::AbsSharedResultSet> AbilityImpl::Query(
+std::shared_ptr<NativeRdb::ResultSet> AbilityImpl::Query(
     const Uri& uri, std::vector<std::string>& columns, const NativeRdb::DataAbilityPredicates& predicates)
 {
     GTEST_LOG_(INFO) << "Mock AbilityImpl::Query called";
