@@ -33,7 +33,9 @@ public:
     static uint32_t ConvertExtractInsightIntentGenericInfo(
         ExtractInsightIntentGenericInfo &genericInfo, InsightIntentInfoForQuery &queryInfo);
     static uint32_t ConvertExtractInsightIntentInfo(
-        ExtractInsightIntentInfo &intentInfo, InsightIntentInfoForQuery &queryInfo);
+        ExtractInsightIntentInfo &intentInfo, InsightIntentInfoForQuery &queryInfo, bool getEntity);
+    static uint32_t ConvertExtractInsightIntentEntityInfo(
+    ExtractInsightIntentInfo &intentInfo, InsightIntentInfoForQuery &queryInfo);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
