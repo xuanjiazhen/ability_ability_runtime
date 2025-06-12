@@ -67,9 +67,9 @@ foundation/ability            #元能力子系统
 │
 ├── ability_base              # ability_base元能力基础部件
 │
-|── app_extension             # app_extension应用扩展元能力部件
+|── app_extension_framework   # app_extension_framework应用扩展元能力部件
 │
-├── app_extension_picker      # app_extension_picker应用扩展选择器部件
+├── app_extension_manage      # app_extension_manage应用扩展选择器部件
 │
 ├── ability_lite              # ability_lite轻量化元能力部件
 │
