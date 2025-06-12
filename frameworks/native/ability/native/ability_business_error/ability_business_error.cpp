@@ -118,11 +118,13 @@ constexpr const char* ERR_MSG_INVALID_TARGET_TOKENID = "The target token ID is i
 constexpr const char* ERROR_MSG_INVALID_MAIN_ELEMENT_TYPE = "Invalid main element type";
 constexpr const char* ERROR_MSG_CHANGE_KEEP_ALIVE = "Can not change keep alive status";
 constexpr const char* ERROR_MSG_NO_U1 = "The target bundle is not in u1";
-constexpr const char* ERROR_MSG_KIOSK_MODE_NOT_IN_WHITELIST = "The current application is not in the kiosk whitelist.";
-constexpr const char* ERROR_MSG_ALREADY_IN_KIOSK_MODE = "The system is already in the kiosk mode.";
+constexpr const char* ERROR_MSG_KIOSK_MODE_NOT_IN_WHITELIST =
+    "Current application is not in kiosk app list, can not enter kiosk mode.";
+constexpr const char* ERROR_MSG_ALREADY_IN_KIOSK_MODE =
+    "System is already in kiosk mode, can not enter again.";
 constexpr const char* ERROR_MSG_NOT_IN_KIOSK_MODE =
-    "The current application is not in the kiosk mode. Exit is not allowed.";
-constexpr const char* ERROR_MSG_APP_NOT_IN_FOCUS = "The current ability is not foreground.";
+    "Current application is not in kiosk mode, can not exit.";
+constexpr const char* ERROR_MSG_APP_NOT_IN_FOCUS = "Current ability is not in foreground.";
 
 // follow ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST of appexecfwk_errors.h in bundle_framework
 constexpr int32_t ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST = 8521220;
