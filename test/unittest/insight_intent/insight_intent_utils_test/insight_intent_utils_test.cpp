@@ -113,6 +113,41 @@ InsightIntentFormInfo TEST_INSIGHT_INTENT_FORM_INFO = [] {
     return tmp;
 }();
 
+InsightIntentPageInfo TEST_INSIGHT_INTENT_PAGE_INFO = [] {
+    InsightIntentPageInfo tmp;
+    tmp.uiAbility = "uiAbility";
+    tmp.pagePath = "pagePath";
+    tmp.navigationId = "navigationId";
+    tmp.navDestinationName = "navDestinationName";
+    tmp.parameters = R"({"oneOf":[{"requied":["palybackSpeed"]},{"requied": ["playbackProgress"]}],"properties":
+        {"playbackProgress":{"type":"number","description":"播放进度，单位秒"},"palybackSpeed":
+        {"description":"播放速率","enum":[0.5,0.75,1,1.25,1.5,2],"type":"number"}},"propertiesNames":
+        {"enum":["playbackProgress","palybackSpeed"]},"type":"object"})";
+    return tmp;
+}();
+
+InsightIntentEntryInfo TEST_INSIGHT_INTENT_ENTRY_INFO = [] {
+    InsightIntentEntryInfo tmp;
+    tmp.abilityName = "abilityName";
+    tmp.executeMode = {};
+    tmp.parameters = R"({"oneOf":[{"requied":["palybackSpeed"]},{"requied": ["playbackProgress"]}],"properties":
+        {"playbackProgress":{"type":"number","description":"播放进度，单位秒"},"palybackSpeed":
+        {"description":"播放速率","enum":[0.5,0.75,1,1.25,1.5,2],"type":"number"}},"propertiesNames":
+        {"enum":["playbackProgress","palybackSpeed"]},"type":"object"})";
+    return tmp;
+}();
+
+InsightIntentFunctionInfo TEST_INSIGHT_INTENT_FUNCTION_INFO = [] {
+    InsightIntentFunctionInfo tmp;
+    tmp.functionName = "functionName";
+    tmp.functionParams = {};
+    tmp.parameters = R"({"oneOf":[{"requied":["palybackSpeed"]},{"requied": ["playbackProgress"]}],"properties":
+        {"playbackProgress":{"type":"number","description":"播放进度，单位秒"},"palybackSpeed":
+        {"description":"播放速率","enum":[0.5,0.75,1,1.25,1.5,2],"type":"number"}},"propertiesNames":
+        {"enum":["playbackProgress","palybackSpeed"]},"type":"object"})";
+    return tmp;
+}();
+
 ExtractInsightIntentGenericInfo TEST_INSIGHT_INTENT_GENERIC_INFO = [] {
     ExtractInsightIntentGenericInfo tmp;
     tmp.bundleName = "com.tdd.test";
@@ -120,8 +155,6 @@ ExtractInsightIntentGenericInfo TEST_INSIGHT_INTENT_GENERIC_INFO = [] {
     tmp.intentName = "InsightIntentLink";
     tmp.displayName = "displayName_test";
     tmp.decoratorType = "decoratorType_test";
-    tmp.set<InsightIntentLinkInfo>();
-    tmp.data = TEST_INSIGHT_INTENT_LINK_INFO;
     return tmp;
 }();
 
@@ -301,9 +334,20 @@ HWTEST_F(InsightIntentUtilsTest, ConvertExtractInsightIntentGenericInfo_0100, Te
     TAG_LOGI(AAFwkTag::TEST,  "InsightIntentUtilsTest ConvertExtractInsightIntentGenericInfo_0100 start");
     AbilityRuntime::InsightIntentUtils utils;
     InsightIntentInfoForQuery insightIntentInfoForQuery;
+    ExtractInsightIntentGenericInfo extractInsightIntentGenericInfo = TEST_INSIGHT_INTENT_GENERIC_INFO;
+    extractInsightIntentGenericInfo.set<InsightIntentLinkInfo>();
+    extractInsightIntentGenericInfo.data = TEST_INSIGHT_INTENT_LINK_INFO;
     TEST_INSIGHT_INTENT_GENERIC_INFO.decoratorType = "@InsightIntentLink";
-    auto result = utils.ConvertExtractInsightIntentGenericInfo(TEST_INSIGHT_INTENT_GENERIC_INFO, insightIntentInfoForQuery);
+    auto result = utils.ConvertExtractInsightIntentGenericInfo(
+        extractInsightIntentGenericInfo, insightIntentInfoForQuery);
     EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(insightIntentInfoForQuery.bundleName, TEST_INSIGHT_INTENT_GENERIC_INFO.bundleName);
+    EXPECT_EQ(insightIntentInfoForQuery.moduleName, TEST_INSIGHT_INTENT_GENERIC_INFO.moduleName);
+    EXPECT_EQ(insightIntentInfoForQuery.intentName, TEST_INSIGHT_INTENT_GENERIC_INFO.intentName);
+    EXPECT_EQ(insightIntentInfoForQuery.displayName, TEST_INSIGHT_INTENT_GENERIC_INFO.displayName);
+    EXPECT_EQ(insightIntentInfoForQuery.intentType, TEST_INSIGHT_INTENT_GENERIC_INFO.decoratorType);
+    EXPECT_EQ(insightIntentInfoForQuery.parameters, TEST_INSIGHT_INTENT_LINK_INFO.parameters);
+    EXPECT_EQ(insightIntentInfoForQuery.linkInfo.uri, TEST_INSIGHT_INTENT_LINK_INFO.uri);
     Mock::VerifyAndClear(mockBundleMgr);
     testing::Mock::AllowLeak(mockBundleMgr);
     TAG_LOGI(AAFwkTag::TEST, "InsightIntentUtilsTest ConvertExtractInsightIntentGenericInfo_0100 end.");
@@ -319,12 +363,86 @@ HWTEST_F(InsightIntentUtilsTest, ConvertExtractInsightIntentGenericInfo_0200, Te
     TAG_LOGI(AAFwkTag::TEST,  "InsightIntentUtilsTest ConvertExtractInsightIntentGenericInfo_0200 start");
     AbilityRuntime::InsightIntentUtils utils;
     InsightIntentInfoForQuery insightIntentInfoForQuery;
+    ExtractInsightIntentGenericInfo extractInsightIntentGenericInfo = TEST_INSIGHT_INTENT_GENERIC_INFO;
+    extractInsightIntentGenericInfo.set<InsightIntentPageInfo>();
+    extractInsightIntentGenericInfo.data = TEST_INSIGHT_INTENT_PAGE_INFO;
+    TEST_INSIGHT_INTENT_GENERIC_INFO.decoratorType = "@InsightIntentPage";
+    auto result = utils.ConvertExtractInsightIntentGenericInfo(
+        extractInsightIntentGenericInfo, insightIntentInfoForQuery);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(insightIntentInfoForQuery.parameters, TEST_INSIGHT_INTENT_PAGE_INFO.parameters);
+    EXPECT_EQ(insightIntentInfoForQuery.pageInfo.navDestinationName, TEST_INSIGHT_INTENT_PAGE_INFO.navDestinationName);
+    EXPECT_EQ(insightIntentInfoForQuery.pageInfo.navigationId, TEST_INSIGHT_INTENT_PAGE_INFO.navigationId);
+    EXPECT_EQ(insightIntentInfoForQuery.pageInfo.pagePath, TEST_INSIGHT_INTENT_PAGE_INFO.pagePath);
+    EXPECT_EQ(insightIntentInfoForQuery.pageInfo.uiAbility, TEST_INSIGHT_INTENT_PAGE_INFO.uiAbility);
+    Mock::VerifyAndClear(mockBundleMgr);
+    testing::Mock::AllowLeak(mockBundleMgr);
+    TAG_LOGI(AAFwkTag::TEST, "InsightIntentUtilsTest ConvertExtractInsightIntentGenericInfo_0200 end");
+}
+
+/**
+ * @tc.name: ConvertExtractInsightIntentGenericInfo_0300
+ * @tc.desc: basic function test of convert info.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentUtilsTest, ConvertExtractInsightIntentGenericInfo_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,  "InsightIntentUtilsTest ConvertExtractInsightIntentGenericInfo_0300 start");
+    AbilityRuntime::InsightIntentUtils utils;
+    InsightIntentInfoForQuery insightIntentInfoForQuery;
+    ExtractInsightIntentGenericInfo extractInsightIntentGenericInfo = TEST_INSIGHT_INTENT_GENERIC_INFO;
+    extractInsightIntentGenericInfo.set<InsightIntentFunctionInfo>();
+    extractInsightIntentGenericInfo.data = TEST_INSIGHT_INTENT_FUNCTION_INFO;
+    TEST_INSIGHT_INTENT_GENERIC_INFO.decoratorType = "@InsightIntentFunctionMethod";
+    auto result = utils.ConvertExtractInsightIntentGenericInfo(
+        extractInsightIntentGenericInfo, insightIntentInfoForQuery);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(insightIntentInfoForQuery.parameters, TEST_INSIGHT_INTENT_PAGE_INFO.parameters);
+    Mock::VerifyAndClear(mockBundleMgr);
+    testing::Mock::AllowLeak(mockBundleMgr);
+    TAG_LOGI(AAFwkTag::TEST, "InsightIntentUtilsTest ConvertExtractInsightIntentGenericInfo_0300 end");
+}
+
+/**
+ * @tc.name: ConvertExtractInsightIntentGenericInfo_0400
+ * @tc.desc: basic function test of convert info.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentUtilsTest, ConvertExtractInsightIntentGenericInfo_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,  "InsightIntentUtilsTest ConvertExtractInsightIntentGenericInfo_0400 start");
+    AbilityRuntime::InsightIntentUtils utils;
+    InsightIntentInfoForQuery insightIntentInfoForQuery;
+    ExtractInsightIntentGenericInfo extractInsightIntentGenericInfo = TEST_INSIGHT_INTENT_GENERIC_INFO;
+    extractInsightIntentGenericInfo.set<InsightIntentEntryInfo>();
+    extractInsightIntentGenericInfo.data = TEST_INSIGHT_INTENT_ENTRY_INFO;
+    TEST_INSIGHT_INTENT_GENERIC_INFO.decoratorType = "@InsightIntentEntry";
+    auto result = utils.ConvertExtractInsightIntentGenericInfo(
+        extractInsightIntentGenericInfo, insightIntentInfoForQuery);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(insightIntentInfoForQuery.entryInfo.abilityName, TEST_INSIGHT_INTENT_ENTRY_INFO.abilityName);
+    EXPECT_EQ(insightIntentInfoForQuery.parameters, TEST_INSIGHT_INTENT_PAGE_INFO.parameters);
+    Mock::VerifyAndClear(mockBundleMgr);
+    testing::Mock::AllowLeak(mockBundleMgr);
+    TAG_LOGI(AAFwkTag::TEST, "InsightIntentUtilsTest ConvertExtractInsightIntentGenericInfo_0400 end");
+}
+
+/**
+ * @tc.name: ConvertExtractInsightIntentGenericInfo_0500
+ * @tc.desc: basic function test of convert info.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentUtilsTest, ConvertExtractInsightIntentGenericInfo_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,  "InsightIntentUtilsTest ConvertExtractInsightIntentGenericInfo_0500 start");
+    AbilityRuntime::InsightIntentUtils utils;
+    InsightIntentInfoForQuery insightIntentInfoForQuery;
     TEST_INSIGHT_INTENT_GENERIC_INFO.decoratorType = "test";
     auto result = utils.ConvertExtractInsightIntentGenericInfo(TEST_INSIGHT_INTENT_GENERIC_INFO, insightIntentInfoForQuery);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
     Mock::VerifyAndClear(mockBundleMgr);
     testing::Mock::AllowLeak(mockBundleMgr);
-    TAG_LOGI(AAFwkTag::TEST, "InsightIntentUtilsTest ConvertExtractInsightIntentGenericInfo_0200 end.");
+    TAG_LOGI(AAFwkTag::TEST, "InsightIntentUtilsTest ConvertExtractInsightIntentGenericInfo_0500 end.");
 }
 
 /**
