@@ -19,6 +19,7 @@
 #include <string>
 #include "ability_lifecycle_executor.h"
 #include "iremote_object.h"
+#include "ets_runtime.h"
 
 class NativeReference;
 

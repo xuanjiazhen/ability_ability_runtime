@@ -828,6 +828,7 @@ ohos_shared_library("uiabilitykit_native") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi",
+    "runtime_core:ani",
     "json:nlohmann_json_static",
     "resource_management:global_resmgr",
     "runtime_core:ani",

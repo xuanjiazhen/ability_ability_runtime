@@ -26,7 +26,7 @@
 
 #include "runtime.h"
 #include "js_runtime.h"
-#include "ets_exception_callback.h"
+// #include "ets_exception_callback.h"
 #include "ani.h"
 
 using AppLibPathMap = std::map<std::string, std::vector<std::string>>;
@@ -44,62 +44,62 @@ struct ETSNativeReference {
     ani_ref aniRef = nullptr;
 };
 
-class ETSRuntime : public Runtime {
-public:
-    static std::unique_ptr<ETSRuntime> Create(const Options &options, Runtime *jsRuntime);
-    static void SetAppLibPath(const AppLibPathMap &appLibPaths);
-    ~ETSRuntime() override;
-    Language GetLanguage() const override
-    {
-        return Language::ETS;
-    }
+// class ETSRuntime : public Runtime {
+// public:
+//     static std::unique_ptr<ETSRuntime> Create(const Options &options, Runtime *jsRuntime);
+//     static void SetAppLibPath(const AppLibPathMap &appLibPaths);
+//     ~ETSRuntime() override;
+//     Language GetLanguage() const override
+//     {
+//         return Language::ETS;
+//     }
 
-    void StartDebugMode(const DebugOption debugOption) override {}
-    void DumpHeapSnapshot(bool isPrivate) override {}
-    void NotifyApplicationState(bool isBackground) override {}
-    bool SuspendVM(uint32_t tid) override { return false; }
-    void ResumeVM(uint32_t tid) override {}
-    void PreloadSystemModule(const std::string &moduleName) override {}
-    void PreloadMainAbility(const std::string &moduleName, const std::string &srcPath, const std::string &hapPath,
-        bool isEsMode, const std::string &srcEntrance) override {}
-    void PreloadModule(const std::string &moduleName, const std::string &srcPath, const std::string &hapPath,
-        bool isEsMode, bool useCommonTrunk) override {}
-    void PreloadModule(
-        const std::string &moduleName, const std::string &hapPath, bool isEsMode, bool useCommonTrunk) override;
-    void FinishPreload() override {}
-    bool LoadRepairPatch(const std::string &patchFile, const std::string &baseFile) override { return false; }
-    bool NotifyHotReloadPage() override { return false; }
-    bool UnLoadRepairPatch(const std::string &patchFile) override { return false; }
-    void RegisterQuickFixQueryFunc(const std::map<std::string, std::string> &moduleAndPath) override {};
-    void StartProfiler(const DebugOption debugOption) override {};
-    void SetModuleLoadChecker(const std::shared_ptr<ModuleCheckerDelegate> moduleCheckerDelegate) const override {}
-    void SetDeviceDisconnectCallback(const std::function<bool()> &cb) override {};
-    void DestroyHeapProfiler() override {};
-    void ForceFullGC() override {};
-    void ForceFullGC(uint32_t tid) override {};
-    void DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary = false) override {};
-    void DumpCpuProfile() override {};
-    void AllowCrossThreadExecution() override {};
-    void GetHeapPrepare() override {};
-    void RegisterUncaughtExceptionHandler(void *uncaughtExceptionInfo) override;
-    ani_env *GetAniEnv();
-    std::unique_ptr<ETSNativeReference> LoadModule(const std::string &moduleName, const std::string &modulePath,
-        const std::string &hapPath, bool esmodule, bool useCommonChunk, const std::string &srcEntrance);
-    std::unique_ptr<ETSNativeReference> LoadEtsModule(const std::string &moduleName, const std::string &fileName,
-        const std::string &hapPath, const std::string &srcEntrance);
-    void HandleUncaughtError();
+//     void StartDebugMode(const DebugOption debugOption) override {}
+//     void DumpHeapSnapshot(bool isPrivate) override {}
+//     void NotifyApplicationState(bool isBackground) override {}
+//     bool SuspendVM(uint32_t tid) override { return false; }
+//     void ResumeVM(uint32_t tid) override {}
+//     void PreloadSystemModule(const std::string &moduleName) override {}
+//     void PreloadMainAbility(const std::string &moduleName, const std::string &srcPath, const std::string &hapPath,
+//         bool isEsMode, const std::string &srcEntrance) override {}
+//     void PreloadModule(const std::string &moduleName, const std::string &srcPath, const std::string &hapPath,
+//         bool isEsMode, bool useCommonTrunk) override {}
+//     void PreloadModule(
+//         const std::string &moduleName, const std::string &hapPath, bool isEsMode, bool useCommonTrunk) override;
+//     void FinishPreload() override {}
+//     bool LoadRepairPatch(const std::string &patchFile, const std::string &baseFile) override { return false; }
+//     bool NotifyHotReloadPage() override { return false; }
+//     bool UnLoadRepairPatch(const std::string &patchFile) override { return false; }
+//     void RegisterQuickFixQueryFunc(const std::map<std::string, std::string> &moduleAndPath) override {};
+//     void StartProfiler(const DebugOption debugOption) override {};
+//     void SetModuleLoadChecker(const std::shared_ptr<ModuleCheckerDelegate> moduleCheckerDelegate) const override {}
+//     void SetDeviceDisconnectCallback(const std::function<bool()> &cb) override {};
+//     void DestroyHeapProfiler() override {};
+//     void ForceFullGC() override {};
+//     void ForceFullGC(uint32_t tid) override {};
+//     void DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary = false) override {};
+//     void DumpCpuProfile() override {};
+//     void AllowCrossThreadExecution() override {};
+//     void GetHeapPrepare() override {};
+//     void RegisterUncaughtExceptionHandler(void *uncaughtExceptionInfo) override;
+//     ani_env *GetAniEnv();
+//     std::unique_ptr<ETSNativeReference> LoadModule(const std::string &moduleName, const std::string &modulePath,
+//         const std::string &hapPath, bool esmodule, bool useCommonChunk, const std::string &srcEntrance);
+//     std::unique_ptr<ETSNativeReference> LoadEtsModule(const std::string &moduleName, const std::string &fileName,
+//         const std::string &hapPath, const std::string &srcEntrance);
+//     void HandleUncaughtError();
 
-private:
-    bool Initialize(const Options &options, Runtime *jsRuntime);
-    void Deinitialize();
-    bool CreateEtsEnv(const Options &options, Runtime *jsRuntime);
-    bool LoadAbcLinker(ani_env *env, const std::string &moduleName, ani_class &abcCls, ani_object &abcObj);
-    std::shared_ptr<EtsEnv::ETSEnvironment> etsEnv_;
-    int32_t apiTargetVersion_ = 0;
-    std::string codePath_;
-    static AppLibPathVec appLibPaths_;
-    std::string moduleName_;
-};
+// private:
+//     bool Initialize(const Options &options, Runtime *jsRuntime);
+//     void Deinitialize();
+//     bool CreateEtsEnv(const Options &options, Runtime *jsRuntime);
+//     bool LoadAbcLinker(ani_env *env, const std::string &moduleName, ani_class &abcCls, ani_object &abcObj);
+//     std::shared_ptr<EtsEnv::ETSEnvironment> etsEnv_;
+//     int32_t apiTargetVersion_ = 0;
+//     std::string codePath_;
+//     static AppLibPathVec appLibPaths_;
+//     std::string moduleName_;
+// };
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_ETS_RUNTIME_H
