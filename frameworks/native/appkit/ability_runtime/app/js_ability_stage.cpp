@@ -51,6 +51,8 @@ constexpr const char* WAIT_ON_MAIN_THREAD = "waitOnMainThread";
 constexpr const char* CONFIG_ENTRY = "configEntry";
 constexpr const char *TASKPOOL = "taskPool";
 constexpr const char *TASKPOOL_LOWER = "taskpool";
+constexpr const char *CALLBACK_SUCCESS = "success";
+constexpr const int32_t ARGC_ONE = 1;
 namespace {
 void RegisterStopPreloadSoCallback(JsRuntime& jsRuntime)
 {
@@ -92,6 +94,25 @@ napi_value OnPrepareTerminatePromiseCallback(napi_env env, napi_callback_info in
     AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnPrepareTerminationResult>::Destroy(callbackInfo);
     data = nullptr;
     TAG_LOGI(AAFwkTag::APPKIT, "OnPrepareTerminatePromiseCallback end");
+    return nullptr;
+}
+
+napi_value OnStringPromiseCallback(napi_env env, napi_callback_info info)
+{
+    void *data = nullptr;
+    size_t argc = ARGC_MAX_COUNT;
+    napi_value argv[ARGC_MAX_COUNT] = {nullptr};
+    NAPI_CALL_NO_THROW(napi_get_cb_info(env, info, &argc, argv, nullptr, &data), nullptr);
+    auto *callbackInfo =
+        static_cast<AppExecFwk::AbilityTransactionCallbackInfo<std::string> *>(data);
+    std::string flag;
+    if (callbackInfo == nullptr || (argc > 0 && !ConvertFromJsValue(env, argv[0], flag))) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null callbackInfo or unwrap flag result failed");
+        return nullptr;
+    }
+    callbackInfo->Call(flag);
+    AppExecFwk::AbilityTransactionCallbackInfo<std::string>::Destroy(callbackInfo);
+    data = nullptr;
     return nullptr;
 }
 } // namespace
@@ -292,7 +313,8 @@ bool JsAbilityStage::CallOnPrepareTerminate(napi_env env,
         TAG_LOGE(AAFwkTag::APPKIT, "callbackInfo nullptr");
         return false;
     }
-    napi_value result = CallObjectMethod("onPrepareTermination", nullptr, 0);
+    bool hasCaughtException = false;
+    napi_value result = CallObjectMethod("onPrepareTermination", hasCaughtException, nullptr, 0);
     if (result == nullptr) {
         TAG_LOGI(AAFwkTag::APPKIT, "onPrepareTermination unimplemented");
         return false;
@@ -316,7 +338,8 @@ bool JsAbilityStage::CallOnPrepareTerminateAsync(napi_env env,
         TAG_LOGE(AAFwkTag::APPKIT, "callbackInfo nullptr");
         return false;
     }
-    napi_value result = CallObjectMethod("onPrepareTerminationAsync", nullptr, 0);
+    bool hasCaughtException = false;
+    napi_value result = CallObjectMethod("onPrepareTerminationAsync", hasCaughtException, nullptr, 0);
     if (result == nullptr || !CheckTypeForNapiValue(env, result, napi_object)) {
         TAG_LOGI(AAFwkTag::APPKIT, "onPrepareTerminationAsync unimplemented");
         return false;
@@ -359,70 +382,144 @@ bool JsAbilityStage::CallOnPrepareTerminateAsync(napi_env env,
     return true;
 }
 
-std::string JsAbilityStage::OnAcceptWant(const AAFwk::Want &want)
+std::string JsAbilityStage::OnAcceptWant(const AAFwk::Want &want,
+    AppExecFwk::AbilityTransactionCallbackInfo<std::string> *callbackInfo, bool &isAsync)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "called");
-    AbilityStage::OnAcceptWant(want);
-
-    if (!jsAbilityStageObj_) {
-        TAG_LOGW(AAFwkTag::APPKIT, "Not found AbilityStage.js");
-        return "";
-    }
+    TAG_LOGD(AAFwkTag::APPKIT, "OnAcceptWant called");
+    AbilityStage::OnAcceptWant(want, callbackInfo, isAsync);
 
     HandleScope handleScope(jsRuntime_);
     auto env = jsRuntime_.GetNapiEnv();
 
-    napi_value obj = jsAbilityStageObj_->GetNapiValue();
-    if (!CheckTypeForNapiValue(env, obj, napi_object)) {
-        TAG_LOGE(AAFwkTag::APPKIT, "get object failed");
+    if (!jsAbilityStageObj_) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Not found AbilityStage.js");
         return "";
     }
-
-    napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, want);
-    napi_value methodOnAcceptWant = nullptr;
-    napi_get_named_property(env, obj, "onAcceptWant", &methodOnAcceptWant);
-    if (methodOnAcceptWant == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null methodOnAcceptWant");
-        return "";
+    std::string methodName = "onAcceptWantAsync";
+    if (CallAcceptOrRequestAsync(env, want, methodName, callbackInfo, isAsync)) {
+        TAG_LOGD(AAFwkTag::APPKIT, "onAcceptWantAsync is implemented");
+        return CALLBACK_SUCCESS;
     }
-
-    napi_value argv[] = { napiWant };
-    napi_value flagNative = nullptr;
-    napi_call_function(env, obj, methodOnAcceptWant, 1, argv, &flagNative);
-    return AppExecFwk::UnwrapStringFromJS(env, flagNative);
+    methodName = "onAcceptWant";
+    isAsync = false;
+    if (CallAcceptOrRequestSync(env, want, methodName, callbackInfo)) {
+        return CALLBACK_SUCCESS;
+    }
+    return "";
 }
 
-std::string JsAbilityStage::OnNewProcessRequest(const AAFwk::Want &want)
+bool JsAbilityStage::CallAcceptOrRequestSync(napi_env env, const AAFwk::Want &want, std::string &methodName,
+    AppExecFwk::AbilityTransactionCallbackInfo<std::string> *callbackInfo) const
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "called");
-    AbilityStage::OnNewProcessRequest(want);
-
-    if (!jsAbilityStageObj_) {
-        TAG_LOGW(AAFwkTag::APPKIT, "Not found AbilityStage.js");
-        return "";
+    napi_value obj = jsAbilityStageObj_->GetNapiValue();
+    if (!CheckTypeForNapiValue(env, obj, napi_object)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "get object failed");
+        return false;
     }
+    napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, want);
+    napi_value methodOnAcceptWant = nullptr;
+    napi_status status = napi_get_named_property(env, obj, methodName.c_str(), &methodOnAcceptWant);
+    if (status != napi_ok || methodOnAcceptWant == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null %{public}s", methodName.c_str());
+        return false;
+    }
+    napi_value argv[] = { napiWant };
+    napi_value flagNative;
+    status = napi_call_function(env, obj, methodOnAcceptWant, 1, argv, &flagNative);
+    if (status != napi_ok || flagNative == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to call %{public}s", methodName.c_str());
+        return false;
+    }
+    if (callbackInfo) {
+        std::string resultString = AppExecFwk::UnwrapStringFromJS(env, flagNative);
+        callbackInfo->Call(resultString);
+        AppExecFwk::AbilityTransactionCallbackInfo<std::string>::Destroy(callbackInfo);
+        return true;
+    }
+    return false;
+}
+
+bool JsAbilityStage::CallAcceptOrRequestAsync(napi_env env, const AAFwk::Want &want, std::string &methodName,
+    AppExecFwk::AbilityTransactionCallbackInfo<std::string> *callbackInfo, bool &isAsync)  const
+{
+    if (callbackInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "callbackInfo nullptr");
+        return false;
+    }
+    napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, want);
+    bool hasCaughtException = false;
+    napi_value result = CallObjectMethod(methodName.c_str(), hasCaughtException, &napiWant, ARGC_ONE);
+    if (hasCaughtException) {
+        std::string result;
+        callbackInfo->Call(result);
+        AppExecFwk::AbilityTransactionCallbackInfo<std::string>::Destroy(callbackInfo);
+        return true;
+    }
+    if (result == nullptr || !CheckTypeForNapiValue(env, result, napi_object)) {
+        TAG_LOGI(AAFwkTag::APPKIT, "%{public}s unimplemented", methodName.c_str());
+        return false;
+    }
+    bool isPromise = false;
+    napi_is_promise(env, result, &isPromise);
+    if (!isPromise) {
+        TAG_LOGD(AAFwkTag::APPKIT, "result not promise");
+        return true;
+    }
+    TAG_LOGD(AAFwkTag::APPKIT, "async call");
+    bool callResult = false;
+    do {
+        napi_value then = nullptr;
+        napi_get_named_property(env, result, "then", &then);
+        if (then == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null then");
+            break;
+        }
+        bool isCallable = false;
+        napi_is_callable(env, then, &isCallable);
+        if (!isCallable) {
+            TAG_LOGE(AAFwkTag::APPKIT, "not callable property then");
+            break;
+        }
+        napi_value promiseCallback = nullptr;
+        napi_create_function(env, "promiseCallback", strlen("promiseCallback"),
+            OnStringPromiseCallback, callbackInfo, &promiseCallback);
+        napi_value argv[1] = { promiseCallback };
+        napi_call_function(env, result, then, 1, argv, nullptr);
+        callResult = true;
+    } while (false);
+
+    if (!callResult) {
+        TAG_LOGE(AAFwkTag::APPKIT, "call promise error");
+        return true;
+    }
+    isAsync = true;
+    return true;
+}
+
+std::string JsAbilityStage::OnNewProcessRequest(const AAFwk::Want &want,
+    AppExecFwk::AbilityTransactionCallbackInfo<std::string> *callbackInfo, bool &isAsync)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "OnNewProcessRequest called");
+    AbilityStage::OnNewProcessRequest(want, callbackInfo, isAsync);
 
     HandleScope handleScope(jsRuntime_);
     auto env = jsRuntime_.GetNapiEnv();
 
-    napi_value obj = jsAbilityStageObj_->GetNapiValue();
-    if (!CheckTypeForNapiValue(env, obj, napi_object)) {
-        TAG_LOGE(AAFwkTag::APPKIT, "get object failed");
+    if (!jsAbilityStageObj_) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Not found AbilityStage.js");
         return "";
     }
-
-    napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, want);
-    napi_value methodOnNewProcessRequest = nullptr;
-    napi_get_named_property(env, obj, "onNewProcessRequest", &methodOnNewProcessRequest);
-    if (methodOnNewProcessRequest == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null methodOnNewProcessRequest");
-        return "";
+    std::string methodName = "onNewProcessRequestAsync";
+    if (CallAcceptOrRequestAsync(env, want, methodName, callbackInfo, isAsync)) {
+        TAG_LOGD(AAFwkTag::APPKIT, "onNewProcessRequestAsync is implemented");
+        return CALLBACK_SUCCESS;
     }
-
-    napi_value argv[] = { napiWant };
-    napi_value flagNative = nullptr;
-    napi_call_function(env, obj, methodOnNewProcessRequest, 1, argv, &flagNative);
-    return AppExecFwk::UnwrapStringFromJS(env, flagNative);
+    methodName = "onNewProcessRequest";
+    isAsync = false;
+    if (CallAcceptOrRequestSync(env, want, methodName, callbackInfo)) {
+        return CALLBACK_SUCCESS;
+    }
+    return "";
 }
 
 void JsAbilityStage::OnConfigurationUpdated(const AppExecFwk::Configuration& configuration)
@@ -445,8 +542,9 @@ void JsAbilityStage::OnConfigurationUpdated(const AppExecFwk::Configuration& con
     JsAbilityStageContext::ConfigurationUpdated(env, shellContextRef_, fullConfig);
 
     napi_value napiConfiguration = OHOS::AppExecFwk::WrapConfiguration(env, *fullConfig);
-    CallObjectMethod("onConfigurationUpdated", &napiConfiguration, 1);
-    CallObjectMethod("onConfigurationUpdate", &napiConfiguration, 1);
+    bool hasCaughtException = false;
+    CallObjectMethod("onConfigurationUpdated", hasCaughtException, &napiConfiguration, ARGC_ONE);
+    CallObjectMethod("onConfigurationUpdate", hasCaughtException, &napiConfiguration, ARGC_ONE);
 }
 
 void JsAbilityStage::OnMemoryLevel(int32_t level)
@@ -470,12 +568,13 @@ void JsAbilityStage::OnMemoryLevel(int32_t level)
 
     napi_value jsLevel = CreateJsValue(env, level);
     napi_value argv[] = { jsLevel };
-    CallObjectMethod("onMemoryLevel", argv, ArraySize(argv));
+    bool hasCaughtException = false;
+    CallObjectMethod("onMemoryLevel", hasCaughtException, argv, ArraySize(argv));
     TAG_LOGD(AAFwkTag::APPKIT, "end");
 }
 
-int32_t JsAbilityStage::RunAutoStartupTask(const std::function<void()> &callback, bool &isAsyncCallback,
-    const std::shared_ptr<Context> &stageContext)
+int32_t JsAbilityStage::RunAutoStartupTask(const std::function<void()> &callback, std::shared_ptr<AAFwk::Want> want,
+    bool &isAsyncCallback, const std::shared_ptr<Context> &stageContext)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
     isAsyncCallback = false;
@@ -489,25 +588,27 @@ int32_t JsAbilityStage::RunAutoStartupTask(const std::function<void()> &callback
         TAG_LOGE(AAFwkTag::APPKIT, "null hapModuleInfo");
         return ERR_INVALID_VALUE;
     }
-    if (hapModuleInfo->moduleType != AppExecFwk::ModuleType::ENTRY) {
-        TAG_LOGD(AAFwkTag::APPKIT, "not entry module");
+    if (hapModuleInfo->moduleType != AppExecFwk::ModuleType::ENTRY &&
+        hapModuleInfo->moduleType != AppExecFwk::ModuleType::FEATURE) {
+        TAG_LOGD(AAFwkTag::APPKIT, "not entry module or feature module");
         return ERR_INVALID_VALUE;
     }
     if (hapModuleInfo->appStartup.empty()) {
-        TAG_LOGD(AAFwkTag::APPKIT, "entry module no app startup config");
+        TAG_LOGD(AAFwkTag::APPKIT, "module no app startup config");
         return ERR_INVALID_VALUE;
     }
     if (!shellContextRef_) {
         SetJsAbilityStage(stageContext);
     }
-    int32_t result = RegisterAppStartupTask(hapModuleInfo);
+    int32_t result = RegisterAppStartupTask(hapModuleInfo, want);
     if (result != ERR_OK) {
         return result;
     }
-    return RunAutoStartupTaskInner(callback, isAsyncCallback);
+    return RunAutoStartupTaskInner(callback, want, isAsyncCallback, hapModuleInfo->name);
 }
 
-int32_t JsAbilityStage::RegisterAppStartupTask(const std::shared_ptr<AppExecFwk::HapModuleInfo>& hapModuleInfo)
+int32_t JsAbilityStage::RegisterAppStartupTask(const std::shared_ptr<AppExecFwk::HapModuleInfo>& hapModuleInfo,
+    std::shared_ptr<AAFwk::Want> want)
 {
     std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
     if (startupManager == nullptr) {
@@ -519,18 +620,22 @@ int32_t JsAbilityStage::RegisterAppStartupTask(const std::shared_ptr<AppExecFwk:
     if (result != ERR_OK) {
         return result;
     }
+    result = startupManager->RunLoadModuleStartupConfigTask(needRunAutoStartupTask, hapModuleInfo);
+    if (result != ERR_OK) {
+        return result;
+    }
     if (!needRunAutoStartupTask) {
         return ERR_OK;
     }
     jsRuntime_.UpdateModuleNameAndAssetPath(hapModuleInfo->moduleName);
 
     const std::string &configEntry = startupManager->GetPendingConfigEntry();
-    if (!LoadJsStartupConfig(configEntry)) {
+    if (!LoadJsStartupConfig(configEntry, want, hapModuleInfo->moduleName, hapModuleInfo->moduleType)) {
         TAG_LOGE(AAFwkTag::APPKIT, "load js appStartup config failed.");
         return ERR_INVALID_VALUE;
     }
 
-    const std::vector<StartupTaskInfo> &startupTaskInfos = startupManager->GetStartupTaskInfos();
+    const std::vector<StartupTaskInfo> startupTaskInfos = startupManager->GetStartupTaskInfos(hapModuleInfo->name);
     for (const auto& item : startupTaskInfos) {
         std::unique_ptr<NativeReference> startupJsRef = LoadJsOhmUrl(
             item.srcEntry, item.ohmUrl, item.moduleName, item.hapPath, item.esModule);
@@ -543,12 +648,16 @@ int32_t JsAbilityStage::RegisterAppStartupTask(const std::shared_ptr<AppExecFwk:
         jsStartupTask->SetIsExcludeFromAutoStart(item.excludeFromAutoStart);
         jsStartupTask->SetCallCreateOnMainThread(item.callCreateOnMainThread);
         jsStartupTask->SetWaitOnMainThread(item.waitOnMainThread);
+        jsStartupTask->SetModuleName(hapModuleInfo->moduleName);
+        jsStartupTask->SetModuleType(hapModuleInfo->moduleType);
+        jsStartupTask->SetMatchRules(std::move(item.matchRules));
         startupManager->RegisterAppStartupTask(item.name, jsStartupTask);
     }
     return ERR_OK;
 }
 
-int32_t JsAbilityStage::RunAutoStartupTaskInner(const std::function<void()> &callback, bool &isAsyncCallback)
+int32_t JsAbilityStage::RunAutoStartupTaskInner(const std::function<void()> &callback,
+    std::shared_ptr<AAFwk::Want> want, bool &isAsyncCallback, const std::string &moduleName)
 {
     std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
     if (startupManager == nullptr) {
@@ -556,10 +665,15 @@ int32_t JsAbilityStage::RunAutoStartupTaskInner(const std::function<void()> &cal
         return ERR_INVALID_VALUE;
     }
     std::shared_ptr<StartupTaskManager> startupTaskManager = nullptr;
-    int32_t result = startupManager->BuildAutoAppStartupTaskManager(startupTaskManager);
+    int32_t result = startupManager->BuildAutoAppStartupTaskManager(want, startupTaskManager, moduleName);
     if (result != ERR_OK) {
         return result;
     }
+    if (startupTaskManager == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null startupTaskManager");
+        return ERR_INVALID_VALUE;
+    }
+    startupTaskManager->UpdateStartupTaskContextRef(shellContextRef_);
     result = startupTaskManager->Prepare();
     if (result != ERR_OK) {
         return result;
@@ -634,7 +748,8 @@ std::unique_ptr<NativeReference> JsAbilityStage::LoadJsSrcEntry(const std::strin
     return jsCode;
 }
 
-bool JsAbilityStage::LoadJsStartupConfig(const std::string &srcEntry)
+bool JsAbilityStage::LoadJsStartupConfig(const std::string &srcEntry, std::shared_ptr<AAFwk::Want> want,
+    const std::string &moduleName, AppExecFwk::ModuleType moduleType)
 {
     std::unique_ptr<NativeReference> startupConfigEntry = LoadJsSrcEntry(srcEntry);
     if (startupConfigEntry == nullptr) {
@@ -647,7 +762,7 @@ bool JsAbilityStage::LoadJsStartupConfig(const std::string &srcEntry)
         TAG_LOGE(AAFwkTag::APPKIT, "null startupConfig");
         return false;
     }
-    if (startupConfig->Init(startupConfigEntry) != ERR_OK) {
+    if (startupConfig->Init(startupConfigEntry, want) != ERR_OK) {
         return false;
     }
     std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
@@ -655,11 +770,12 @@ bool JsAbilityStage::LoadJsStartupConfig(const std::string &srcEntry)
         TAG_LOGE(AAFwkTag::APPKIT, "null startupManager");
         return false;
     }
-    startupManager->SetDefaultConfig(startupConfig);
+    startupManager->SetModuleConfig(startupConfig, moduleName, moduleType == AppExecFwk::ModuleType::ENTRY);
     return true;
 }
 
-napi_value JsAbilityStage::CallObjectMethod(const char* name, napi_value const * argv, size_t argc) const
+napi_value JsAbilityStage::CallObjectMethod(
+    const char* name, bool &hasCaughtException, napi_value const * argv, size_t argc) const
 {
     TAG_LOGD(AAFwkTag::APPKIT, "call %{public}s", name);
     if (!jsAbilityStageObj_) {
@@ -691,8 +807,9 @@ napi_value JsAbilityStage::CallObjectMethod(const char* name, napi_value const *
         TAG_LOGE(AAFwkTag::APPKIT, "JsAbilityStage call js, withResult failed: %{public}d", withResultStatus);
     }
     if (tryCatch.HasCaught()) {
-        TAG_LOGE(AAFwkTag::APPKIT, "exception occurred");
+        TAG_LOGE(AAFwkTag::APPKIT, "%{public}s exception occurred", name);
         reinterpret_cast<NativeEngine*>(env)->HandleUncaughtException();
+        hasCaughtException = true;
     }
     return handleEscape.Escape(result);
 }

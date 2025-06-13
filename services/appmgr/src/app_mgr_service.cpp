@@ -22,6 +22,7 @@
 #include <thread>
 
 #include "ability_manager_errors.h"
+#include "ability_manager_xcollie.h"
 #include "app_death_recipient.h"
 #include "app_mgr_constants.h"
 #include "datetime_ex.h"
@@ -212,6 +213,7 @@ void AppMgrService::AttachApplication(const sptr<IRemoteObject> &app)
 int32_t AppMgrService::PreloadApplication(const std::string &bundleName, int32_t userId,
     AppExecFwk::PreloadMode preloadMode, int32_t appIndex)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR, "PreloadApplication called");
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "PreloadApplication failed");
@@ -336,6 +338,7 @@ sptr<IAmsMgr> AppMgrService::GetAmsMgr()
 
 int32_t AppMgrService::ClearUpApplicationData(const std::string &bundleName, int32_t appCloneIndex, int32_t userId)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
         TAG_LOGE(AAFwkTag::APPMGR, "caller is not SA");
         return AAFwk::ERR_NOT_SYSTEM_APP;
@@ -355,12 +358,6 @@ int32_t AppMgrService::ClearUpApplicationData(const std::string &bundleName, int
     }
     int32_t callingUid = IPCSkeleton::GetCallingUid();
     if ((callingUid != 0 && callingUid != USER_UID) || userId < 0) {
-        std::string callerBundleName;
-        auto result = IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callingUid, callerBundleName));
-        if (result != ERR_OK) {
-            TAG_LOGE(AAFwkTag::APPMGR, "getBundleName failed: %{public}d", result);
-            return ERR_INVALID_OPERATION;
-        }
         auto isCallingPerm = AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
             AAFwk::PermissionConstants::PERMISSION_CLEAN_APPLICATION_DATA);
         if (!isCallingPerm) {
@@ -378,6 +375,7 @@ int32_t AppMgrService::ClearUpApplicationData(const std::string &bundleName, int
 
 int32_t AppMgrService::ClearUpApplicationDataBySelf(int32_t userId)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
@@ -563,6 +561,16 @@ int32_t AppMgrService::DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info)
     return appMgrServiceInner_->DumpJsHeapMemory(info);
 }
 
+int32_t AppMgrService::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
+{
+    if (!IsReady() || !HasDumpPermission()) {
+        return ERR_INVALID_OPERATION;
+    }
+    static std::mutex mutex_;
+    std::lock_guard<std::mutex> lock(mutex_);
+    return appMgrServiceInner_->DumpCjHeapMemory(info);
+}
+
 void AppMgrService::AddAbilityStageDone(const int32_t recordId)
 {
     if (!IsReady()) {
@@ -599,6 +607,26 @@ int32_t AppMgrService::UnregisterApplicationStateObserver(const sptr<IApplicatio
         return ERR_INVALID_OPERATION;
     }
     return appMgrServiceInner_->UnregisterApplicationStateObserver(observer);
+}
+
+int32_t AppMgrService::RegisterNativeChildExitNotify(const sptr<INativeChildNotify> notify)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "begin");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->RegisterNativeChildExitNotify(notify);
+}
+
+int32_t AppMgrService::UnregisterNativeChildExitNotify(const sptr<INativeChildNotify> notify)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "begin");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->UnregisterNativeChildExitNotify(notify);
 }
 
 int32_t AppMgrService::RegisterAbilityForegroundStateObserver(const sptr<IAbilityForegroundStateObserver> &observer)
@@ -995,6 +1023,7 @@ int AppMgrService::GetAbilityRecordsByProcessID(const int pid, std::vector<sptr<
 
 int32_t AppMgrService::PreStartNWebSpawnProcess()
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::APPMGR, "PreStartNWebSpawnProcess");
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
@@ -1007,6 +1036,7 @@ int32_t AppMgrService::PreStartNWebSpawnProcess()
 int32_t AppMgrService::StartRenderProcess(const std::string &renderParam, int32_t ipcFd,
     int32_t sharedFd, int32_t crashFd, pid_t &renderPid, bool isGPU)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     FdGuard ipcFdGuard(ipcFd);
     FdGuard sharedFdGuard(sharedFd);
     FdGuard crashFdGuard(crashFd);
@@ -1348,13 +1378,13 @@ void AppMgrService::OnRemoveSystemAbility(int32_t systemAbilityId, const std::st
 #endif
 }
 
-int32_t AppMgrService::ChangeAppGcState(pid_t pid, int32_t state)
+int32_t AppMgrService::ChangeAppGcState(pid_t pid, int32_t state, uint64_t tid)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (!appMgrServiceInner_) {
         return ERR_INVALID_VALUE;
     }
-    return appMgrServiceInner_->ChangeAppGcState(pid, state);
+    return appMgrServiceInner_->ChangeAppGcState(pid, state, tid);
 }
 
 int32_t AppMgrService::NotifyPageShow(const sptr<IRemoteObject> &token, const PageStateData &pageStateData)
@@ -1453,6 +1483,7 @@ int32_t AppMgrService::IsAppRunningByBundleNameAndUserId(const std::string &bund
 #ifdef SUPPORT_CHILD_PROCESS
 int32_t AppMgrService::StartChildProcess(pid_t &childPid, const ChildProcessRequest &request)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     std::vector<FdGuard> fds;
     for (const auto &[name, fd] : request.args.fds) {
@@ -1584,12 +1615,6 @@ int32_t AppMgrService::GetAppRunningUniqueIdByPid(pid_t pid, std::string &appRun
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
-    bool isCallingPermission = AAFwk::PermissionVerification::GetInstance()->IsSACall() &&
-        AAFwk::PermissionVerification::GetInstance()->VerifyRunningInfoPerm();
-    if (!isCallingPermission) {
-        TAG_LOGE(AAFwkTag::APPMGR, "GetAppRunningUniqueIdByPid not SA call or verification failed");
-        return ERR_PERMISSION_DENIED;
-    }
     return appMgrServiceInner_->GetAppRunningUniqueIdByPid(pid, appRunningUniqueId);
 }
 
@@ -1647,6 +1672,36 @@ int32_t AppMgrService::SetSupportedProcessCache(int32_t pid, bool isSupport)
     return appMgrServiceInner_->SetSupportedProcessCache(pid, isSupport);
 }
 
+int32_t AppMgrService::IsProcessCacheSupported(int32_t pid, bool &isSupported)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "get supported process cache");
+    if (appMgrServiceInner_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
+        return AAFwk::ERR_NULL_APP_MGR_SERVICE_INNER;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
+        FOUNDATION_PROCESS)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller not foundation");
+        return AAFwk::ERR_NO_PERMISSION_CALLER;
+    }
+    return appMgrServiceInner_->IsProcessCacheSupported(pid, isSupported);
+}
+
+int32_t AppMgrService::SetProcessCacheEnable(int32_t pid, bool enable)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "set enable process cache");
+    if (appMgrServiceInner_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
+        return AAFwk::ERR_NULL_APP_MGR_SERVICE_INNER;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
+        FOUNDATION_PROCESS)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller not foundation");
+        return AAFwk::ERR_NO_PERMISSION_CALLER;
+    }
+    return appMgrServiceInner_->SetProcessCacheEnable(pid, enable);
+}
+
 void AppMgrService::SetAppAssertionPauseState(bool flag)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "call");
@@ -1659,8 +1714,9 @@ void AppMgrService::SetAppAssertionPauseState(bool flag)
 
 #ifdef SUPPORT_CHILD_PROCESS
 int32_t AppMgrService::StartNativeChildProcess(const std::string &libName, int32_t childProcessCount,
-    const sptr<IRemoteObject> &callback)
+    const sptr<IRemoteObject> &callback, const std::string &customProcessName)
 {
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::APPMGR, "call");
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
@@ -1668,7 +1724,7 @@ int32_t AppMgrService::StartNativeChildProcess(const std::string &libName, int32
     }
 
     return appMgrServiceInner_->StartNativeChildProcess(
-        IPCSkeleton::GetCallingPid(), libName, childProcessCount, callback);
+        IPCSkeleton::GetCallingPid(), libName, childProcessCount, callback, customProcessName);
 }
 #endif // SUPPORT_CHILD_PROCESS
 

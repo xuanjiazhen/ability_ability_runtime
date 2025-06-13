@@ -194,6 +194,17 @@ void AppLifeCycleDeal::ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &in
     appThread->ScheduleJsHeapMemory(info);
 }
 
+void AppLifeCycleDeal::ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
+{
+    auto appThread = GetApplicationClient();
+    if (!appThread) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null appThread");
+        return;
+    }
+
+    appThread->ScheduleCjHeapMemory(info);
+}
+
 void AppLifeCycleDeal::LowMemoryWarning()
 {
     auto appThread = GetApplicationClient();
@@ -344,7 +355,7 @@ int32_t AppLifeCycleDeal::NotifyAppFault(const FaultData &faultData)
     return appThread->ScheduleNotifyAppFault(faultData);
 }
 
-int32_t AppLifeCycleDeal::ChangeAppGcState(int32_t state)
+int32_t AppLifeCycleDeal::ChangeAppGcState(int32_t state, uint64_t tid)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     auto appThread = GetApplicationClient();
@@ -352,7 +363,7 @@ int32_t AppLifeCycleDeal::ChangeAppGcState(int32_t state)
         TAG_LOGE(AAFwkTag::APPMGR, "null appThread");
         return ERR_INVALID_VALUE;
     }
-    return appThread->ScheduleChangeAppGcState(state);
+    return appThread->ScheduleChangeAppGcState(state, tid);
 }
 
 int32_t AppLifeCycleDeal::AttachAppDebug(bool isDebugFromLocal)

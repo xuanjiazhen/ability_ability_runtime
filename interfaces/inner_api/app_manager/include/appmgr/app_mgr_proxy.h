@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_APP_MGR_PROXY_H
 
 #include "app_jsheap_mem_info.h"
+#include "app_cjheap_mem_info.h"
 #include "app_malloc_info.h"
 #include "app_mgr_interface.h"
 #include "bundle_info.h"
@@ -259,6 +260,15 @@ public:
      * @return ERR_OK ,return back success, others fail.
      */
     virtual int32_t DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info) override;
+
+    /**
+     * DumpCjHeapMemory, call DumpCjHeapMemory() through proxy project.
+     * triggerGC and dump the application's cjheap memory info.
+     *
+     * @param info, pid needGc needSnapshot
+     * @return ERR_OK ,return back success, others fail.
+     */
+    virtual int32_t DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info) override;
 
     /**
      * Notify that the ability stage has been updated
@@ -547,7 +557,7 @@ public:
      * @param pid pid
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t ChangeAppGcState(pid_t pid, int32_t state) override;
+    virtual int32_t ChangeAppGcState(pid_t pid, int32_t state, uint64_t tid = 0) override;
 
     /**
      * Register appRunning status listener.
@@ -637,6 +647,20 @@ public:
      */
     void ExitChildProcessSafely() override;
 #endif // SUPPORT_CHILD_PROCESS
+
+    /**
+     * Register native child exit callback to notify.
+     * @param notify, Callback used to notify caller the info of native child exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t RegisterNativeChildExitNotify(const sptr<INativeChildNotify> notify) override;
+
+    /**
+     * Unregister native child exit callback to notify.
+     * @param notify, Callback used to notify caller the info of native child exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t UnregisterNativeChildExitNotify(const sptr<INativeChildNotify> notify) override;
 
     /**
      * Whether the current application process is the last surviving process.
@@ -737,6 +761,10 @@ public:
 
     int32_t SetSupportedProcessCache(int32_t pid, bool isSupport) override;
 
+    int32_t IsProcessCacheSupported(int32_t pid, bool &isSupported) override;
+
+    int32_t SetProcessCacheEnable(int32_t pid, bool enable) override;
+
     /**
      * set browser channel for caller
      */
@@ -759,7 +787,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t StartNativeChildProcess(const std::string &libName, int32_t childProcessCount,
-        const sptr<IRemoteObject> &callback) override;
+        const sptr<IRemoteObject> &callback, const std::string &customProcessName) override;
 #endif // SUPPORT_CHILD_PROCESS
 
     /**

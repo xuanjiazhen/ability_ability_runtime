@@ -24,6 +24,7 @@
 #include "hilog_tag_wrapper.h"
 #include "app_malloc_info.h"
 #include "app_jsheap_mem_info.h"
+#include "app_cjheap_mem_info.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -81,6 +82,8 @@ public:
 #endif // SUPPORT_CHILD_PROCESS
     MOCK_METHOD1(RegisterRenderStateObserver, int32_t(const sptr<IRenderStateObserver> &observer));
     MOCK_METHOD1(UnregisterRenderStateObserver, int32_t(const sptr<IRenderStateObserver> &observer));
+    MOCK_METHOD1(RegisterNativeChildExitNotify, int32_t(const sptr<INativeChildNotify> notify));
+    MOCK_METHOD1(UnregisterNativeChildExitNotify, int32_t(const sptr<INativeChildNotify> notify));
     MOCK_METHOD2(UpdateRenderState, int32_t(pid_t renderPid, int32_t state));
     MOCK_METHOD2(GetRunningMultiAppInfoByBundleName, int32_t(const std::string &bundleName,
         RunningMultiAppInfo &info));
@@ -88,10 +91,12 @@ public:
     MOCK_METHOD3(GetAllRunningInstanceKeysByBundleName, int32_t(const std::string &bundleName,
         std::vector<std::string> &instanceKeys, int32_t userId));
     MOCK_METHOD1(SetSupportedProcessCacheSelf, int32_t(bool isSupported));
+    MOCK_METHOD2(IsProcessCacheSupported, int32_t(int32_t pid, bool &isSupported));
+    MOCK_METHOD2(SetProcessCacheEnable, int32_t(int32_t pid, bool enable));
     MOCK_METHOD2(SetSupportedProcessCache, int32_t(int32_t pid, bool isSupport));
 #ifdef SUPPORT_CHILD_PROCESS
-    MOCK_METHOD3(StartNativeChildProcess, int32_t(const std::string &libName, int32_t childProcessCount,
-        const sptr<IRemoteObject> &callback));
+    MOCK_METHOD4(StartNativeChildProcess, int32_t(const std::string &libName, int32_t childProcessCount,
+        const sptr<IRemoteObject> &callback, const std::string &customProcessName));
 #endif // SUPPORT_CHILD_PROCESS
     MOCK_METHOD2(GetSupportedProcessCachePids, int32_t(const std::string &bundleName,
         std::vector<int32_t> &pidList));
@@ -356,6 +361,11 @@ public:
     }
 
     int32_t DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info)
+    {
+        return 0;
+    }
+
+    int32_t DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
     {
         return 0;
     }

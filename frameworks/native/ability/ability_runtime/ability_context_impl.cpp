@@ -23,6 +23,7 @@
 #include "dialog_request_callback_impl.h"
 #include "dialog_ui_extension_callback.h"
 #include "hilog_tag_wrapper.h"
+#include "json_utils.h"
 #include "remote_object_wrapper.h"
 #include "request_constants.h"
 #include "session_info.h"
@@ -46,6 +47,7 @@ constexpr const char* DISPOSED_PROHIBIT_BACK = "APPGALLERY_APP_DISPOSED_PROHIBIT
 constexpr const char* IS_WINDOWMODE_FOLLOWHOST = "ohos.uec.params.isWindowModeFollowHost";
 constexpr const char* USE_GLOBAL_UICONTENT = "ohos.uec.params.useGlobalUIContent";
 constexpr const int32_t ERR_NOT_SUPPORTED = -2;
+const std::string JSON_KEY_ERR_MSG = "errMsg";
 
 struct RequestResult {
     int32_t resultCode {0};
@@ -106,9 +108,9 @@ std::string AbilityContextImpl::GetTempDir()
     return stageContext_ ? stageContext_->GetTempDir() : "";
 }
 
-std::string AbilityContextImpl::GetResourceDir()
+std::string AbilityContextImpl::GetResourceDir(const std::string &moduleName)
 {
-    return stageContext_ ? stageContext_->GetResourceDir() : "";
+    return stageContext_ ? stageContext_->GetResourceDir(moduleName) : "";
 }
 
 std::string AbilityContextImpl::GetFilesDir()
@@ -267,7 +269,7 @@ ErrCode AbilityContextImpl::StartAbilityForResult(const AAFwk::Want& want, const
         OnAbilityResultInner(requestCode, err, want);
         if (!startOptions.requestId_.empty()) {
             nlohmann::json jsonObject = nlohmann::json {
-                { JSON_KEY_ERR_MSG, "startAbility failed" },
+                { JSON_KEY_ERR_MSG, "Failed to call startAbilityForResult" },
             };
             OnRequestFailure(startOptions.requestId_, want.GetElement(), jsonObject.dump());
         }
@@ -288,7 +290,7 @@ ErrCode AbilityContextImpl::StartAbilityForResultWithAccount(
         OnAbilityResultInner(requestCode, err, want);
         if (!startOptions.requestId_.empty()) {
             nlohmann::json jsonObject = nlohmann::json {
-                { JSON_KEY_ERR_MSG, "startAbility failed" },
+                { JSON_KEY_ERR_MSG, "Failed to call startAbilityForResultWithAccount" },
             };
             OnRequestFailure(startOptions.requestId_, want.GetElement(), jsonObject.dump());
         }
@@ -1354,6 +1356,44 @@ void AbilityContextImpl::OnRequestFailure(const std::string &requestId, const Ap
     }
 
     TAG_LOGE(AAFwkTag::CONTEXT, "requestId=%{public}s not exist", requestId.c_str());
+}
+
+
+ErrCode AbilityContextImpl::StartAppServiceExtensionAbility(const AAFwk::Want& want)
+{
+    TAG_LOGI(AAFwkTag::CONTEXT, "StartAppServiceExtensionAbility, name:%{public}s %{public}s",
+        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
+        want, token_, DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::APP_SERVICE);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "failed:%{public}d", err);
+    }
+    return err;
+}
+
+ErrCode AbilityContextImpl::StopAppServiceExtensionAbility(const AAFwk::Want& want)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "StopAppServiceExtensionAbility, name:%{public}s %{public}s",
+        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StopExtensionAbility(
+        want, token_, DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::APP_SERVICE);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "failed %{public}d", err);
+    }
+    return err;
+}
+
+ErrCode AbilityContextImpl::ConnectAppServiceExtensionAbility(const AAFwk::Want& want,
+    const sptr<AbilityConnectCallback>& connectCallback)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::CONTEXT, "ConnectAppServiceExtensionAbility, caller:%{public}s, target:%{public}s",
+        abilityInfo_ == nullptr ? "" : abilityInfo_->name.c_str(), want.GetElement().GetAbilityName().c_str());
+    ErrCode ret = ConnectionManager::GetInstance().ConnectAppServiceExtensionAbility(token_, want, connectCallback);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "failed %{public}d", ret);
+    }
+    return ret;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -126,6 +126,13 @@ public:
     bool IsGrantPersistUriPermission();
 
     /**
+     * IsSupportGrantUriPermission, check whether to grant temp uri permission, default true.
+     *
+     * @return Whether to grant temp uri permission.
+     */
+    bool IsSupportGrantUriPermission();
+
+    /**
      * IsStartOptionsWithAnimation, check whether the start options have animation.
      *
      * @return Whether the start options have animation.
@@ -138,6 +145,13 @@ public:
      * @return Whether it is a multi-process model.
      */
     bool IsMultiProcessModel();
+
+    /**
+     * Allow starting child process in pc-type app
+     *
+     * @return allow or not allow
+     */
+    bool AllowChildProcessInMultiProcessFeatureApp();
 
     /**
      * IsStartOptionsWithProcessOptions, check whether the start options have process options.
@@ -227,6 +241,13 @@ public:
     std::string GetCacheExtensionTypeList();
 
     /**
+     * IsSystemReasonMessage, get param of anco app identifier.
+     *
+     * @return identifiers.
+     */
+    std::string GetAncoAppIdentifiers();
+
+    /**
      * IsAllowStartAbilityWithoutCallerToken, check if it allows start ability without caller token.
      *
      * @param bundleName The bundle name.
@@ -264,6 +285,13 @@ public:
     int32_t MaxChildProcess();
 
     /**
+     * MaxMultiProcessFeatureChildProcess, get max child process of multi process feature app.
+     *
+     * @return Max child process count.
+     */
+    int32_t MaxMultiProcessFeatureChildProcess();
+
+    /**
      * GetMigrateClientBundleName, get migrate client bundle name.
      *
      * @return Migrate client bundle name.
@@ -276,6 +304,13 @@ public:
      * @return Whether it supports cross-user.
      */
     bool IsConnectSupportCrossUser();
+
+    /**
+     * IsSupportAppServiceExtension, check if it support app service extension.
+     *
+     * @return Whether it supports app service extension.
+     */
+    bool IsSupportAppServiceExtension();
 
     /**
      * IsPrepareTerminateEnabled, check if it supports prepare terminate.
@@ -300,6 +335,10 @@ public:
      * @return Whether it supports launch reason message.
      */
     bool IsSystemReasonMessage(const std::string &reasonMessage);
+
+    bool InResidentWhiteList(const std::string &bundleName);
+
+    const std::vector<std::string> &GetResidentWhiteList();
 
 private:
     /**
@@ -345,6 +384,12 @@ private:
     void LoadRequireBigMemoryApp();
 
     /**
+     * LoadResidentWhiteList, load resident white list.
+     *
+     */
+    void LoadResidentWhiteList();
+
+    /**
      * AppUtils, private constructor.
      *
      */
@@ -361,6 +406,7 @@ private:
     volatile DeviceConfiguration<bool> isGrantPersistUriPermission_ = {false, false};
     volatile DeviceConfiguration<bool> isStartOptionsWithAnimation_ = {false, false};
     volatile DeviceConfiguration<bool> isMultiProcessModel_ = {false, false};
+    volatile DeviceConfiguration<bool> allowChildProcessInMultiProcessFeatureApp_ = {false, false};
     volatile DeviceConfiguration<bool> isStartOptionsWithProcessOptions_ = {false, false};
     volatile DeviceConfiguration<bool> enableMoveUIAbilityToBackgroundApi_ = {false, true};
     volatile DeviceConfiguration<bool> isLaunchEmbededUIAbility_ = {false, false};
@@ -368,6 +414,8 @@ private:
     volatile DeviceConfiguration<bool> isSupportMultiInstance_ = {false, false};
     std::mutex isConnectSupportCrossUserMutex_;
     volatile DeviceConfiguration<bool> isConnectSupportCrossUser_ = {false, false};
+    volatile DeviceConfiguration<bool> isSupportAppServiceExtension_ = {false, false};
+    volatile DeviceConfiguration<bool> isGrantTempUriPermission_ = {false, true};
     DeviceConfiguration<std::vector<std::pair<std::string, std::string>>>
         residentProcessInExtremeMemory_ = {false, {}};
     std::mutex residentProcessInExtremeMemoryMutex_;
@@ -386,10 +434,13 @@ private:
     volatile DeviceConfiguration<int32_t> collaboratorBrokerUid_ = {false, DEFAULT_INVALID_VALUE};
     volatile DeviceConfiguration<int32_t> collaboratorBrokerReserveUid_ = {false, DEFAULT_INVALID_VALUE};
     volatile DeviceConfiguration<int32_t> maxChildProcess_ = {false, DEFAULT_MAX_CHILD_PROCESS};
+    volatile DeviceConfiguration<int32_t> maxMultiProcessFeatureChildProcess_ = {false, DEFAULT_MAX_CHILD_PROCESS};
     DeviceConfiguration<std::string> migrateClientBundleName_ = {true, "com.huwei.hmos.migratecilent"};
     std::mutex cacheAbilityListMutex_;
     DeviceConfiguration<std::vector<std::pair<std::string, std::string>>>
         cacheAbilityList_ = {false, {}};
+    DeviceConfiguration<std::vector<std::string>> residentWhiteList_ = {false, {}};
+    std::mutex residentWhiteListMutex_;
     DISALLOW_COPY_AND_MOVE(AppUtils);
 };
 }  // namespace AAFwk

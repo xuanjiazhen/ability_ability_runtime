@@ -15,7 +15,9 @@
 
 #include <gtest/gtest.h>
 
+#define private public
 #include "app_utils.h"
+#undef private
 #include "hilog_tag_wrapper.h"
 #include "parameters.h"
 
@@ -330,6 +332,97 @@ HWTEST_F(AppUtilsTest, AppUtilsTest_1500, TestSize.Level2)
     } else if (deviceType == "2in1") {
         EXPECT_TRUE(isSupportMultiInstance == true);
     }
+}
+
+/**
+ * @tc.number: AppUtilsTest_1600
+ * @tc.desc: Test AllowChildProcessInMultiProcessFeatureApp works
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppUtilsTest, AppUtilsTest_1600, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppUtilsTest_1600 start.");
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    bool allow = appUtils.AllowChildProcessInMultiProcessFeatureApp();
+    EXPECT_FALSE(allow);
+
+    appUtils.allowChildProcessInMultiProcessFeatureApp_.value = true;
+    allow = appUtils.AllowChildProcessInMultiProcessFeatureApp();
+    EXPECT_TRUE(allow);
+    TAG_LOGI(AAFwkTag::TEST, "AppUtilsTest_1600 end.");
+}
+
+/**
+ * @tc.number: AppUtilsTest_1700
+ * @tc.desc: Test MaxMultiProcessFeatureChildProcess works
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppUtilsTest, AppUtilsTest_1700, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppUtilsTest_1700 called.");
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+
+    appUtils.maxMultiProcessFeatureChildProcess_.isLoaded = true;
+    appUtils.maxMultiProcessFeatureChildProcess_.value = 512;
+    auto maxProcess = appUtils.MaxMultiProcessFeatureChildProcess();
+    EXPECT_TRUE(maxProcess == 512);
+}
+
+/**
+ * @tc.number: AppUtilsTest_1800
+ * @tc.desc: Test InResidentWhiteList works
+ * @tc.desc: Test InResidentWhiteList works
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppUtilsTest, AppUtilsTest_1800, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppUtilsTest_1800 called.");
+    auto allow = AAFwk::AppUtils::GetInstance().InResidentWhiteList("com.test.demo");
+    EXPECT_FALSE(allow);
+}
+
+/**
+ * @tc.number: AppUtilsTest_1900
+ * @tc.desc: Test GetResidentWhiteList works
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppUtilsTest, AppUtilsTest_1900, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppUtilsTest_1900 called.");
+    auto residentWhiteList = AAFwk::AppUtils::GetInstance().GetResidentWhiteList();
+    bool isExist = false;
+    for (const auto &item: residentWhiteList) {
+        if (item == "com.test.demo") {
+            isExist = true;
+        }
+    }
+    EXPECT_FALSE(isExist);
+}
+
+/**
+ * @tc.number: AppUtilsTest_2000
+ * @tc.desc: Test IsSupportGrantUriPermission works
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppUtilsTest, AppUtilsTest_2000, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppUtilsTest_2000 called.");
+    auto isSupport = AAFwk::AppUtils::GetInstance().IsSupportGrantUriPermission();
+    EXPECT_TRUE(isSupport);
+}
+
+/**
+ * @tc.number: AppUtilsTest_2100
+ * @tc.desc: Test IsSupportGrantUriPermission works
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppUtilsTest, AppUtilsTest_2100, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppUtilsTest_2100 called.");
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.isGrantTempUriPermission_.isLoaded = true;
+    auto isSupport = appUtils.IsSupportGrantUriPermission();
+    EXPECT_TRUE(isSupport);
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

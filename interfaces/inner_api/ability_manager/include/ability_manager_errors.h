@@ -693,6 +693,7 @@ enum {
     ERR_INVALID_ACCESS_TOKEN = 2097291,
     ERR_GET_KV_STORE_HANDLE_FAILED = 2097292,
 
+    ERR_WRITE_BOOL_FAILED = 2097295,
     ERR_WRITE_INTERFACE_TOKEN_FAILED = 2097296,
     ERR_WRITE_RESULT_CODE_FAILED = 2097297,
     ERR_READ_RESULT_PARCEL_FAILED = 2097298,
@@ -781,6 +782,127 @@ enum {
     ERR_INVALID_CONTEXT = 2097323,
     INTENT_NOT_EXIST = 2097329,
     INTENT_STATE_NOT_EXECUTING = 2097330,
+
+    /**
+     * Native error(2097331) for kill app while starting.
+     */
+    ERR_KILL_APP_WHILE_STARTING = 2097331,
+    
+    /**
+     * Result (2097332) for target not in app identifier allow list.
+     */
+    ERR_TARGET_NOT_IN_APP_IDENTIFIER_ALLOW_LIST = 2097332,
+
+    /**
+     * Result (2097333) for target has not been started yet.
+     */
+    ERR_TARGET_NOT_STARTED = 2097333,
+
+    /**
+     * Result (2097334) for app selector not exists.
+     */
+    ERR_APP_SELECTOR_NOT_EXISTS = 2097334,
+
+    /**
+     * Result (2097335) for canceled wantagent.
+     */
+    ERR_WANTAGENT_CANCELED = 2097335,
+
+    /**
+     * Result (2097336) for invalid main element type.
+     */
+    ERR_INVALID_MAIN_ELEMENT_TYPE = 2097336,
+    
+    /**
+     * Result (2097337) for can not change keep alive status.
+     */
+    ERR_CHANGE_KEEP_ALIVE = 2097337,
+
+    /**
+     * Result (2097338) for target bundle is not in u1.
+     */
+    ERR_NO_U1 = 2097338,
+
+    /**
+     * Result (2097340-2097350) for uri permission error result.
+     */
+    ERR_UPMS_GET_FILE_URIS_BY_KEY_FAILED = 2097340,
+
+    ERR_UPMS_NO_PERMISSION_GRANT_URI = 2097341,
+
+    ERR_UPMS_INVALID_CALLER_TOKENID = 2097342,
+
+    ERR_UPMS_INVALID_TARGET_TOKENID = 2097343,
+
+    ERR_UPMS_ADD_PRIVILEGED_FAILED = 2097344,
+
+    ERR_UPMS_GET_ORI_URI_FAILED = 2097345,
+
+    ERR_UPMS_NOT_FILE_URI = 2097346,
+
+    ERR_UPMS_GRANT_URI_PERMISSION_FAILED = 2097347,
+
+    ERR_UPMS_KEY_IS_NOT_CREATE_BY_CALLER = 2097348,
+
+    /**
+     * Result (2097351) target not in whitelist.
+     */
+    ERR_KIOSK_MODE_NOT_IN_WHITELIST = 2097351,
+
+    /**
+     * Result (2097352) already in kiosk mode.
+     */
+    ERR_ALREADY_IN_KIOSK_MODE = 2097352,
+
+    /**
+     * Result (2097353) system not in kiosk mode when required.
+     */
+    ERR_NOT_IN_KIOSK_MODE = 2097353,
+
+    /**
+     * Result (2097354) for application not in focus.
+     */
+    ERR_APP_NOT_IN_FOCUS = 2097354,
+
+    ERR_WRITE_KIOSK_UPDATE_APP_LIST_FAILED = 2097355,
+
+    ERR_WRITE_KIOSK_STATUS_FAILED = 2097356,
+
+    /**
+     * Result (2097355) for sa interceptor executer is nullptr.
+     */
+    ERR_NULL_SA_INTERCEPTOR_EXECUTER = 2097355,
+
+    /**
+     * Result (2097356) for sa interceptor write rule falied.
+     */
+    ERR_SA_INTERCEPTOR_WRITE_RULE_FAILED = 2097356,
+
+    /**
+     * Result (2097357) for sa interceptor descriptor mismatch.
+     */
+    ERR_SA_INTERCEPTOR_DESCRIPTOR_MISMATCH = 2097357,
+
+    /**
+     * Result (2097358) for sa interceptor write ipc params failed.
+     */
+    ERR_SA_INTERCEPTOR_WRITE_PARAMS_FAILED = 2097358,
+
+    /*
+     * Result(2097359) for ipc remote null.
+     */
+    ERR_NULL_IPC_REMOTE = 2097359,
+
+    /*
+     * Result(2097360) for ipc send request failed.
+     */
+    ERR_NULL_IPC_SEND_REQUST_FAILED = 2097360,
+
+    /*
+     * Result(2097361) for sa interceptor read ipc params failed.
+     */
+    ERR_SA_INTERCEPTOR_READ_PARAMS_FAILED = 2097361,
+
     /**
      * Native error(3000000) for target bundle not exist.
      */
@@ -992,6 +1114,26 @@ enum NativeFreeInstallError {
      * Result(29360215) for write StartSelfUIAbility result failed.
      */
     ERR_WRITE_START_SELF_UI_ABILITY_RESULT = 29360215,
+
+    /*
+     * Result(29360216) for write caller token failed.
+     */
+     ERR_WRITE_CALLER_TOKEN_FAILED = 29360216,
+
+    /*
+     * Result(29360217) for caller is not atomic service.
+     */
+     ERR_CALLER_NOT_ATOMIC_SERVICE = 29360217,
+
+    /*
+     * Result(29360218) for failed to create instance key from SCB.
+     */
+    ERR_CREATE_INSTANCE_KEY_FAILED = 29360218,
+
+    /*
+     * Result(29360219) for write sa interceptor failed.
+     */
+    ERR_WRITE_SA_INTERCEPTOR_FAILED = 29360219,
 
     /**
      * Undefine error code.

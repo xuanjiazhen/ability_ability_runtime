@@ -39,6 +39,7 @@
 #include "system_ability.h"
 #include "task_handler_wrap.h"
 #include "app_jsheap_mem_info.h"
+#include "app_cjheap_mem_info.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -294,6 +295,15 @@ public:
      */
     virtual int32_t DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info) override;
 
+    /**
+     * DumpCjHeapMemory, call DumpCJHeapMemory() through proxy project.
+     * triggerGC and dump the application's cjheap memory info.
+     *
+     * @param info, pid, needGc, needSnapshot
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info) override;
+
     // the function about service running info
     /**
      * QueryServiceState, Query application service status.
@@ -431,7 +441,7 @@ public:
      * the policy.
      * If during the execution of a task, a caller triggers UpdateConfiguration or UpdateConfigurationForBackgroundApp,
      * the asynchronous task will be terminated.
-     * If the task has not been executed and the app is switched to the foreground, the task will be updated 
+     * If the task has not been executed and the app is switched to the foreground, the task will be updated
      * when brought to the foreground. The task will not be updated while in the background.
      * Supported scope: colormode
      * Only SA can call this method.
@@ -634,7 +644,7 @@ public:
      *
      * @return Is the status change completed.
      */
-    virtual int32_t ChangeAppGcState(pid_t pid, int32_t state) override;
+    virtual int32_t ChangeAppGcState(pid_t pid, int32_t state, uint64_t tid = 0) override;
 
     /**
      * Register appRunning status listener.
@@ -777,6 +787,10 @@ public:
 
     int32_t SetSupportedProcessCache(int32_t pid, bool isSupport) override;
 
+    int32_t IsProcessCacheSupported(int32_t pid, bool &isSupported) override;
+
+    int32_t SetProcessCacheEnable(int32_t pid, bool enable) override;
+
     /**
      * set browser channel for caller
      */
@@ -799,8 +813,22 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t StartNativeChildProcess(const std::string &libName, int32_t childProcessCount,
-        const sptr<IRemoteObject> &callback) override;
+        const sptr<IRemoteObject> &callback, const std::string &customProcessName) override;
 #endif // SUPPORT_CHILD_PROCESS
+
+    /**
+     * Register callback to notify native child exit.
+     * @param notify, callback to notify
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RegisterNativeChildExitNotify(const sptr<INativeChildNotify> notify) override;
+
+    /**
+     * Unregister callback to notify native child exit.
+     * @param notify, callback to notify
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t UnregisterNativeChildExitNotify(const sptr<INativeChildNotify> notify) override;
 
     /**
      * Notify that the process depends on web by itself.

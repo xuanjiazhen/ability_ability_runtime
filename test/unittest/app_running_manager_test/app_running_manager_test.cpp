@@ -240,7 +240,7 @@ HWTEST_F(AppRunningManagerTest, AppRunningManager_IsChildProcessReachLimit_0100,
     auto appRunningManager = std::make_shared<AppRunningManager>();
     EXPECT_NE(appRunningManager, nullptr);
 
-    appRunningManager->IsChildProcessReachLimit(1);
+    appRunningManager->IsChildProcessReachLimit(1, false);
     auto record = appRunningManager->GetAppRunningRecordByChildProcessPid(123);
     EXPECT_EQ(record, nullptr);
 }
@@ -748,6 +748,31 @@ HWTEST_F(AppRunningManagerTest, ProcessUpdateApplicationInfoInstalled_0100, Test
     ApplicationInfo appInfo;
     std::string moduleName;
     EXPECT_EQ(appRunningManager->ProcessUpdateApplicationInfoInstalled(appInfo, moduleName), 0);
+}
+
+/**
+ * @tc.name: HandleChildRelation_0100
+ * @tc.desc: handle child relation when native child process exit test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerTest, HandleChildRelation_0100, TestSize.Level1)
+{
+    static std::shared_ptr<AppRunningManager> appRunningManager = std::make_shared<AppRunningManager>();
+    ASSERT_NE(appRunningManager, nullptr);
+    appRunningManager->HandleChildRelation(nullptr, nullptr);
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.example.child");
+    appRunningManager->HandleChildRelation(nullptr, appRecord);
+    ChildProcessRequest request;
+    request.srcEntry = "./ets/AProcess.ts";
+    auto childRecord = ChildProcessRecord::CreateChildProcessRecord(PID, request, appRecord);
+    pid_t childPid = 201;
+    childRecord->pid_ = childPid;
+    appRecord->AddChildProcessRecord(childPid, childRecord);
+    appRunningManager->appRunningRecordMap_.insert(make_pair(RECORD_ID, appRecord));
+    appRunningManager->HandleChildRelation(childRecord, appRecord);
+    auto record = appRunningManager->GetAppRunningRecordByChildProcessPid(childPid);
+    EXPECT_NE(record, nullptr);
 }
 } // namespace AppExecFwk
 } // namespace OHOS
