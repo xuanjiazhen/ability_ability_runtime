@@ -45,9 +45,18 @@ public:
     NativeChildCallbackMock() = default;
     virtual ~NativeChildCallbackMock() = default;
     
-    void OnNativeChildStarted(const sptr<IRemoteObject> &nativeChild) {}
-    void OnError(int32_t errCode) {}
-    int32_t OnNativeChildExit(int32_t pid, int32_t signal) { return 0; }
+    ErrCode OnNativeChildStarted(const sptr<IRemoteObject> &nativeChild)
+    {
+        return ERR_OK;
+    }
+    ErrCode OnError(int32_t errCode)
+    {
+        return ERR_OK;
+    }
+    ErrCode OnNativeChildExit(int32_t pid, int32_t signal)
+    {
+        return ERR_OK;
+    }
 };
 
 class AmsIpcAppMgrInterfaceTest : public testing::Test {
