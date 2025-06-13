@@ -31,6 +31,12 @@ public:
     {
         GTEST_LOG_(INFO) << "OnConfigurationUpdated";
     }
+
+    void test()
+    {
+        GTEST_LOG_(INFO) << "test";
+    };
+
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
