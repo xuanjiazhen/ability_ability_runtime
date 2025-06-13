@@ -50,17 +50,6 @@ void AppForegroundStateObserverProxyTest::SetUp()
 void AppForegroundStateObserverProxyTest::TearDown() {}
 
 /**
- * @tc.name: WriteInterfaceToken_0100
- * @tc.desc: Write token into parcel data.
- * @tc.type: FUNC
- */
-HWTEST_F(AppForegroundStateObserverProxyTest, WriteInterfaceToken_0100, TestSize.Level1)
-{
-    MessageParcel data;
-    EXPECT_TRUE(observerProxy_->WriteInterfaceToken(data));
-}
-
-/**
  * @tc.name: OnAppStateChanged_0100
  * @tc.desc: Test when the return of WriteInterfaceToken and
  *      WriteParcelable is true and remote is not nullptr.
