@@ -12,21 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "sts_context_utils.h"
-
+#include "ability_runtime_error_util.h"
 #include "ani_common_util.h"
 #include "ani_enum_convert.h"
 #include "application_context.h"
 #include "application_context_manager.h"
 #include "common_fun_ani.h"
 #include "hilog_tag_wrapper.h"
-#include "resourceManager.h"
-#include "sts_error_utils.h"
-#include "ani_common_util.h"
-#include "ability_runtime_error_util.h"
-#include "tokenid_kit.h"
 #include "ipc_skeleton.h"
+#include "resourceManager.h"
+#include "sts_context_utils.h"
+#include "sts_error_utils.h"
+#include "tokenid_kit.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -38,7 +35,10 @@ static std::weak_ptr<Context> context_;
 void BindApplicationCtx(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
     void* applicationCtxRef)
 {
-    // bind parent context field:applicationContext
+    if (aniEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "aniEnv or context is nullptr");
+        return;
+    }
     ani_field applicationContextField;
     if (aniEnv->Class_FindField(contextClass, "applicationContext", &applicationContextField) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "Class_FindField failed");
@@ -54,6 +54,10 @@ void BindApplicationCtx(ani_env* aniEnv, ani_class contextClass, ani_object cont
 void BindApplicationInfo(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
     std::shared_ptr<Context> context)
 {
+    if (aniEnv == nullptr || context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "aniEnv or context is nullptr");
+        return;
+    }
     ani_field applicationInfoField;
     if (ANI_OK != aniEnv->Class_FindField(contextClass, "applicationInfo", &applicationInfoField)) {
         TAG_LOGE(AAFwkTag::APPKIT, "find applicationInfo failed");
@@ -71,6 +75,10 @@ void BindApplicationInfo(ani_env* aniEnv, ani_class contextClass, ani_object con
 void BindResourceManager(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
     std::shared_ptr<Context> context)
 {
+    if (aniEnv == nullptr || context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "aniEnv or context is nullptr");
+        return;
+    }
     ani_field resourceManagerField;
     if (ANI_OK != aniEnv->Class_FindField(contextClass, "resourceManager", &resourceManagerField)) {
         TAG_LOGE(AAFwkTag::APPKIT, "find resourceManager failed");
@@ -88,6 +96,10 @@ void BindResourceManager(ani_env* aniEnv, ani_class contextClass, ani_object con
 void BindParentProperty(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
     std::shared_ptr<Context> context)
 {
+    if (aniEnv == nullptr || context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "aniEnv or context is nullptr");
+        return;
+    }
     BindApplicationInfo(aniEnv, contextClass, contextObj, context);
     BindResourceManager(aniEnv, contextClass, contextObj, context);
 
@@ -139,6 +151,10 @@ void BindParentProperty(ani_env* aniEnv, ani_class contextClass, ani_object cont
 void BindParentPropertyInner(ani_env *aniEnv, ani_class contextClass, ani_object contextObj,
     std::shared_ptr<Context> context)
 {
+    if (aniEnv == nullptr || context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "aniEnv or context is nullptr");
+        return;
+    }
     ani_status status = ANI_ERROR;
     ani_field processNameField;
     if ((status = aniEnv->Class_FindField(contextClass, "processName", &processNameField)) != ANI_OK) {
@@ -269,10 +285,10 @@ ani_object CreateModuleResourceManagerSync([[maybe_unused]]ani_env *env, [[maybe
         TAG_LOGE(AAFwkTag::APPKIT, "env is nullptr");
         return {};
     }
-    std::string bundleName_ = "";
-    AppExecFwk::AniStringToStdString(env, bundleName, bundleName_);
-    std::string moduleName_ = "";
-    AppExecFwk::AniStringToStdString(env, moduleName, moduleName_);
+    std::string stdBundleName = "";
+    AppExecFwk::AniStringToStdString(env, bundleName, stdBundleName);
+    std::string stdModuleName = "";
+    AppExecFwk::AniStringToStdString(env, moduleName, stdModuleName);
     auto context = context_.lock();
     if (!context) {
         TAG_LOGE(AAFwkTag::APPKIT, "null context");
@@ -284,7 +300,7 @@ ani_object CreateModuleResourceManagerSync([[maybe_unused]]ani_env *env, [[maybe
         ThrowStsError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
         return {};
     }
-    auto resourceManager = context->CreateModuleResourceManager(bundleName_, moduleName_);
+    auto resourceManager = context->CreateModuleResourceManager(stdBundleName, stdModuleName);
     if (resourceManager == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null resourceManager");
         ThrowStsError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
