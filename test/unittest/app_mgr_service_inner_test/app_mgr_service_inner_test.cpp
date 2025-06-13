@@ -88,8 +88,8 @@ class RenderStateObserverMock : public RenderStateObserverStub {
 public:
     RenderStateObserverMock() = default;
     virtual ~RenderStateObserverMock() = default;
-    void OnRenderStateChanged(const RenderStateData &renderStateData) override
-    {}
+    ErrCode OnRenderStateChanged(const RenderStateData &renderStateData) override
+    {return ERR_OK;}
 };
 
 void AppMgrServiceInnerTest::InitAppInfo(const std::string& deviceName,
@@ -117,13 +117,9 @@ public:
     MockIUserCallback() = default;
     virtual ~MockIUserCallback() = default;
 
-    void OnStopUserDone(int userId, int errcode) override
-    {}
-    void OnStartUserDone(int userId, int errcode) override
-    {}
-
-    void OnLogoutUserDone(int userId, int errcode)  override
-    {}
+    ErrCode OnStopUserDone(int userId, int errcode) override { return ERR_OK; }
+    ErrCode OnStartUserDone(int userId, int errcode) override { return ERR_OK; }
+    ErrCode OnLogoutUserDone(int userId, int errcode)  override { return ERR_OK; }
 
     sptr<IRemoteObject> AsObject() override
     {

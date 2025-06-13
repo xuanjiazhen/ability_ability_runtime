@@ -54,7 +54,7 @@ public:
     virtual ~ RenderStateObserverStubFUZZ() {};
     int OnRemoteRequest(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override{ return 0; };
-    void OnRenderStateChanged(const RenderStateData &renderStateData) override{};
+    int OnRenderStateChanged(const RenderStateData &renderStateData) override{return ERR_OK;};
 };
 
 sptr<Token> GetFuzzAbilityToken()
@@ -73,7 +73,7 @@ sptr<Token> GetFuzzAbilityToken()
 
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
-    uint32_t code = static_cast<uint32_t>(IRenderStateObserver::ON_RENDER_STATE_CHANGED);
+    uint32_t code = static_cast<uint32_t>(IRenderStateObserverIpcCode::COMMAND_ON_RENDER_STATE_CHANGED);
     MessageParcel parcel;
     parcel.WriteInterfaceToken(IR_ENDER_STATE_OBSERVER_TOKEN);
     parcel.WriteBuffer(data, size);
