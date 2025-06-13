@@ -271,6 +271,7 @@ group("unittest") {
       "app_service_extension_test:unittest",
       "app_spawn_client_second_test:unittest",
       "app_spawn_client_test:unittest",
+      "app_startup:unittest",
       "app_state_observer_manager_test:unittest",
       "app_state_observer_manager_test_second:unittest",
       "app_utils_test:unittest",
